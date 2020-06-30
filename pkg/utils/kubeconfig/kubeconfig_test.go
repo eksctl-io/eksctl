@@ -312,35 +312,40 @@ var _ = Describe("Kubeconfig", func() {
 
 	It("safely handles concurrent read-modify-write operations", func() {
 		var (
-			oneClusterAsBytes  []byte
-			twoClustersAsBytes []byte
+			oneCluster  *api.Config
+			twoClusters *api.Config
 		)
 		ChangeKubeconfig()
 
 		var err error
+		tmp, err := ioutil.TempFile("", "")
+		Expect(err).To(BeNil())
 
-		if oneClusterAsBytes, err = ioutil.ReadFile("testdata/one_cluster.golden"); err != nil {
-			GinkgoT().Fatalf("failed reading .golden: %v", err)
-		}
+		{
+			if oneCluster, err = clientcmd.LoadFromFile("testdata/one_cluster.golden"); err != nil {
+				GinkgoT().Fatalf("failed reading .golden: %v", err)
+			}
 
-		if twoClustersAsBytes, err = ioutil.ReadFile("testdata/two_clusters.golden"); err != nil {
-			GinkgoT().Fatalf("failed reading .golden: %v", err)
+			if twoClusters, err = clientcmd.LoadFromFile("testdata/two_clusters.golden"); err != nil {
+				GinkgoT().Fatalf("failed reading .golden: %v", err)
+			}
 		}
 
 		var wg sync.WaitGroup
 		multiplier := 3
-		iters := 100
+		iters := 10
 		for i := 0; i < multiplier; i++ {
 			for k := 0; k < iters; k++ {
-				wg.Add(2)
+				wg.Add(1)
 				go func() {
 					defer wg.Done()
-					_, err := configFile.Write(oneClusterAsBytes)
+					_, err := kubeconfig.Write(tmp.Name(), *oneCluster, false)
 					Expect(err).To(BeNil())
 				}()
+				wg.Add(1)
 				go func() {
 					defer wg.Done()
-					_, err := configFile.Write(twoClustersAsBytes)
+					_, err := kubeconfig.Write(tmp.Name(), *twoClusters, false)
 					Expect(err).To(BeNil())
 				}()
 			}

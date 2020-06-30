@@ -1,4 +1,4 @@
-package cmdutils
+package filter
 
 import (
 	"fmt"
@@ -23,6 +23,15 @@ type Filter struct {
 	excludeNames    sets.String
 	excludeGlobs    []glob.Glob
 	rawExcludeGlobs []string
+}
+
+// NewFilter returns a new initialized Filter
+func NewFilter() Filter {
+	return Filter{
+		ExcludeAll:   false,
+		includeNames: sets.NewString(),
+		excludeNames: sets.NewString(),
+	}
 }
 
 // AppendIncludeNames appends explicit names to the include filter
@@ -53,8 +62,9 @@ func (*Filter) matchGlobs(name string, exprs []glob.Glob) bool {
 	return false
 }
 
+// hasIncludeRules returns true if the user has supplied inclusion globs or names
 func (f *Filter) hasIncludeRules() bool {
-	return f.includeNames.Len()+len(f.includeGlobs) != 0
+	return len(f.includeGlobs) != 0
 }
 
 func (f *Filter) describeIncludeRules() string {
@@ -62,8 +72,9 @@ func (f *Filter) describeIncludeRules() string {
 	return strings.Join(rules, ",")
 }
 
+// hasExcludeRules returns true if the user has supplied exclusion globs or names
 func (f *Filter) hasExcludeRules() bool {
-	return f.excludeNames.Len()+len(f.excludeGlobs) != 0
+	return len(f.excludeGlobs) != 0
 }
 
 func (f *Filter) describeExcludeRules() string {
@@ -78,38 +89,55 @@ func (f *Filter) Match(name string) bool {
 		return false // force exclude
 	}
 
+	// Name overwrites
+	if f.includeNames.Has(name) && !f.excludeNames.Has(name) {
+		return true
+	}
+
+	if f.excludeNames.Has(name) {
+		return false
+	}
+
 	hasIncludeRules := f.hasIncludeRules()
 	hasExcludeRules := f.hasExcludeRules()
 
 	if !hasIncludeRules && !hasExcludeRules {
-		return true // empty rules - include
+		return true
 	}
 
-	mustInclude := false // use this override when rules overlap
+	// Exclusion override takes precedence
+	if f.excludeNames.Has(name) {
+		return false
+	}
 
 	if hasIncludeRules {
-		mustInclude = f.includeNames.Has(name)
 		if f.matchGlobs(name, f.includeGlobs) {
-			mustInclude = true
+			if hasExcludeRules {
+				// exclusion takes precedence
+				if f.matchGlobs(name, f.excludeGlobs) {
+					return false
+				}
+			}
+			return true
 		}
-		if !hasExcludeRules {
-			// empty exclusion rules - explicit inclusion mode
-			return mustInclude
-		}
+
+		// if there are include rules and it doesn't match then it must be excluded regardless of the exclude rules
+		return false
 	}
 
+	// With only exclusion rules, everything that is not excluded is included
 	if hasExcludeRules {
-		exclude := f.excludeNames.Has(name)
-		if f.matchGlobs(name, f.excludeGlobs) {
-			exclude = true
-		}
-		if exclude && !mustInclude {
-			// exclude, unless overridden by an inclusion rule
+		// Overwrites by name take precedence
+		if f.excludeNames.Has(name) {
 			return false
 		}
+		if f.matchGlobs(name, f.excludeGlobs) {
+			return false
+		}
+		return true
 	}
 
-	return true // biased to include
+	return false
 }
 
 // doMatchAll all names against the filter and return two sets of names - included and excluded
@@ -171,7 +199,7 @@ func (f *Filter) includeGlobsMatchAnything(names []string, resource string) erro
 	return fmt.Errorf("no %ss match include glob filter specification: %q", resource, strings.Join(f.rawIncludeGlobs, ","))
 }
 
-func (f *Filter) doLogInfo(resource string, names []string) {
+func (f *Filter) doLogInfo(resource string, included, excluded sets.String) {
 	logMsg := func(subset sets.String, status string) {
 		count := subset.Len()
 		list := strings.Join(subset.List(), ", ")
@@ -182,7 +210,6 @@ func (f *Filter) doLogInfo(resource string, names []string) {
 		logger.Info(subjectFmt, count, resource, list, status+" (based on the include/exclude rules)")
 	}
 
-	included, excluded := f.doMatchAll(names)
 	if f.hasIncludeRules() {
 		logger.Info("combined include rules: %s", f.describeIncludeRules())
 		if included.Len() == 0 {

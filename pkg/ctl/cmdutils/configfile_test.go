@@ -9,6 +9,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	. "github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 )
 
 var _ = Describe("cmdutils configfile", func() {
@@ -125,7 +126,7 @@ var _ = Describe("cmdutils configfile", func() {
 				}
 
 				params := &CreateClusterCmdParams{WithoutNodeGroup: true, Managed: false}
-				Expect(NewCreateClusterLoader(cmd, NewNodeGroupFilter(), nil, params).Load()).To(Succeed())
+				Expect(NewCreateClusterLoader(cmd, filter.NewNodeGroupFilter(), nil, params).Load()).To(Succeed())
 				cfg := cmd.ClusterConfig
 				Expect(cfg.VPC.NAT.Gateway).To(Not(BeNil()))
 				Expect(*cfg.VPC.NAT.Gateway).To(Equal(natTest.expectedGateway))
@@ -174,7 +175,7 @@ var _ = Describe("cmdutils configfile", func() {
 					ProviderConfig: &api.ProviderConfig{},
 				}
 
-				ngFilter := NewNodeGroupFilter()
+				ngFilter := filter.NewNodeGroupFilter()
 
 				Expect(cmd.ClusterConfig.NodeGroups).To(HaveLen(0))
 
@@ -184,7 +185,7 @@ var _ = Describe("cmdutils configfile", func() {
 				}
 				Expect(NewCreateClusterLoader(cmd, ngFilter, loaderTest.ng, params).Load()).To(Succeed())
 
-				Expect(ngFilter.ExcludeAll).To(Equal(loaderTest.withoutNodeGroup))
+				Expect(ngFilter.GetExcludeAll()).To(Equal(loaderTest.withoutNodeGroup))
 
 				if loaderTest.withoutNodeGroup {
 					Expect(cmd.ClusterConfig.NodeGroups).To(HaveLen(0))
@@ -238,7 +239,7 @@ var _ = Describe("cmdutils configfile", func() {
 					ProviderConfig:    &api.ProviderConfig{},
 				}
 
-				ngFilter := NewNodeGroupFilter()
+				ngFilter := filter.NewNodeGroupFilter()
 
 				params := &CreateClusterCmdParams{
 					WithoutNodeGroup: loaderTest.withoutNodeGroup,
@@ -246,7 +247,7 @@ var _ = Describe("cmdutils configfile", func() {
 				}
 				Expect(NewCreateClusterLoader(cmd, ngFilter, nil, params).Load()).To(Succeed())
 
-				Expect(ngFilter.ExcludeAll).To(Equal(loaderTest.withoutNodeGroup))
+				Expect(ngFilter.GetExcludeAll()).To(Equal(loaderTest.withoutNodeGroup))
 
 				if loaderTest.managed {
 					Expect(cmd.ClusterConfig.ManagedNodeGroups).To(HaveLen(loaderTest.nodeGroupCount))
@@ -277,7 +278,7 @@ var _ = Describe("cmdutils configfile", func() {
 					Managed:          false,
 				}
 
-				Expect(NewCreateClusterLoader(cmd, NewNodeGroupFilter(), nil, params).Load()).To(Succeed())
+				Expect(NewCreateClusterLoader(cmd, filter.NewNodeGroupFilter(), nil, params).Load()).To(Succeed())
 				cfg := cmd.ClusterConfig
 				assertValidClusterEndpoint(cfg.VPC.ClusterEndpoints, expectedPrivAccess, expectedPubAccess)
 			}

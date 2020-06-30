@@ -10,6 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 )
@@ -147,10 +148,10 @@ func NewMetadataLoader(cmd *Cmd) ClusterConfigLoader {
 }
 
 // NewCreateClusterLoader will load config or use flags for 'eksctl create cluster'
-func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGroup, params *CreateClusterCmdParams) ClusterConfigLoader {
+func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.NodeGroup, params *CreateClusterCmdParams) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
-	ngFilter.ExcludeAll = params.WithoutNodeGroup
+	ngFilter.SetExcludeAll(params.WithoutNodeGroup)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"tags",
@@ -282,7 +283,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 }
 
 // NewCreateNodeGroupLoader will load config or use flags for 'eksctl create nodegroup'
-func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFilter, managedNodeGroup bool) ClusterConfigLoader {
+func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.NodeGroupFilter, managedNodeGroup bool) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
@@ -308,7 +309,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 	)
 
 	l.validateWithConfigFile = func() error {
-		return ngFilter.AppendGlobs(l.Include, l.Exclude, getAllNodeGroupNames(l.ClusterConfig))
+		return ngFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.GetAllNodeGroupNames())
 	}
 
 	l.validateWithoutConfigFile = func() error {
@@ -392,11 +393,11 @@ func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
 }
 
 // NewDeleteNodeGroupLoader will load config or use flags for 'eksctl delete nodegroup'
-func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFilter) ClusterConfigLoader {
+func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.NodeGroupFilter) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.validateWithConfigFile = func() error {
-		return ngFilter.AppendGlobs(l.Include, l.Exclude, getAllNodeGroupNames(l.ClusterConfig))
+		return ngFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.GetAllNodeGroupNames())
 	}
 
 	l.flagsIncompatibleWithoutConfigFile.Insert(
@@ -537,7 +538,7 @@ func parseCIDRs(arg string) ([]string, error) {
 }
 
 // NewCreateIAMServiceAccountLoader will laod config or use flags for 'eksctl create iamserviceaccount'
-func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *IAMServiceAccountFilter) ClusterConfigLoader {
+func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *filter.IAMServiceAccountFilter) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
@@ -616,7 +617,7 @@ func NewGetIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount) C
 }
 
 // NewDeleteIAMServiceAccountLoader will load config or use flags for 'eksctl delete iamserviceaccount'
-func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount, saFilter *IAMServiceAccountFilter) ClusterConfigLoader {
+func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount, saFilter *filter.IAMServiceAccountFilter) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.validateWithConfigFile = func() error {

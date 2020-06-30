@@ -70,7 +70,8 @@ Currently, to update a role you will need to re-create, run `eksctl delete iamse
 To manage `iamserviceaccounts` using config file, you will be looking to set `iam.withOIDC: true` and list account you want under `iam.serviceAccount`.
 
 All of the commands support `--config-file`, you can manage _iamserviceaccounts_ the same way as _nodegroups_.
-The `eksctl create iamserviceaccount` command supports `--include` and `--exclude` flags.
+The `eksctl create iamserviceaccount` command supports `--include` and `--exclude` flags (see
+[this section](/usage/managing-nodegroups#include-and-exclude-rules) for more details about how these work).
 And the `eksctl delete iamserviceaccount` command supports `--only-missing` as well, so you can perform deletions the same way as nodegroups.
 
 You use the following config example with `eksctl create cluster`:

@@ -7,7 +7,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/ssh"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
@@ -75,7 +77,7 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils
 }
 
 func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeGroupParams) error {
-	ngFilter := cmdutils.NewNodeGroupFilter()
+	ngFilter := filter.NewNodeGroupFilter()
 
 	if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, params.managed).Load(); err != nil {
 		return err
@@ -110,7 +112,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	if err := ngFilter.SetExcludeExistingFilter(stackManager); err != nil {
+	if err := ngFilter.SetOnlyLocal(stackManager, cfg); err != nil {
 		return err
 	}
 

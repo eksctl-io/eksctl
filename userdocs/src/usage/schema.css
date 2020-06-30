@@ -1,5 +1,6 @@
 table#config {
     font-family: monospace;
+    font-size: 13px;
 }
 table#config span.example,
 table#config span.value {
@@ -22,5 +23,5 @@ table#config td .anchor:target::before {
 }
 table#config td.type {
     filter: opacity(70%);
-    font-size: 80%;
+    color: #999999;
 }

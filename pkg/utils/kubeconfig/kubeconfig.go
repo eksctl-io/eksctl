@@ -180,6 +180,10 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 	}
 }
 
+func lockFileName(filePath string) string {
+	return filePath + ".eksctl.lock"
+}
+
 // ensureDirectory should probably be handled in flock
 func ensureDirectory(filePath string) error {
 	dir := filepath.Dir(filePath)
@@ -191,29 +195,25 @@ func ensureDirectory(filePath string) error {
 	return nil
 }
 
-func lockConfigFile(filePath string) error {
+func lockConfigFile(filePath string) (*flock.Flock, error) {
+	lockFileName := lockFileName(filePath)
 	// Make sure the directory exists, otherwise flock fails
-	if err := ensureDirectory(filePath); err != nil {
-		return err
+	if err := ensureDirectory(lockFileName); err != nil {
+		return nil, err
 	}
-	flock := flock.New(filePath)
+	flock := flock.New(lockFileName)
 	err := flock.Lock()
 	if err != nil {
-		return errors.Wrap(err, "flock: failed to obtain exclusive lock on kubeconfig file")
+		return nil, errors.Wrap(err, "failed to obtain exclusive lock on kubeconfig lockfile")
 	}
 
-	return nil
+	return flock, nil
 }
 
-func unlockConfigFile(filePath string) error {
-	// Make sure the directory exists, otherwise flock fails
-	if err := ensureDirectory(filePath); err != nil {
-		return err
-	}
-	flock := flock.New(filePath)
-	err := flock.Unlock()
+func unlockConfigFile(fl *flock.Flock) error {
+	err := fl.Unlock()
 	if err != nil {
-		return errors.Wrap(err, "flock: failed to release exclusive lock on kubeconfig file")
+		return errors.Wrap(err, "failed to release exclusive lock on kubeconfig lockfile")
 	}
 
 	return nil
@@ -226,13 +226,13 @@ func unlockConfigFile(filePath string) error {
 func Write(path string, newConfig clientcmdapi.Config, setContext bool) (string, error) {
 	configAccess := getConfigAccess(path)
 	configFileName := configAccess.GetDefaultFilename()
-	err := lockConfigFile(configFileName)
+	fl, err := lockConfigFile(configFileName)
 	if err != nil {
 		return "", err
 	}
 
 	defer func() {
-		if err := unlockConfigFile(configFileName); err != nil {
+		if err := unlockConfigFile(fl); err != nil {
 			logger.Critical(err.Error())
 		}
 	}()
@@ -314,13 +314,13 @@ func MaybeDeleteConfig(meta *api.ClusterMeta) {
 	p := AutoPath(meta.Name)
 
 	if file.Exists(p) {
-		err := lockConfigFile(p)
+		fl, err := lockConfigFile(p)
 		if err != nil {
 			logger.Critical(err.Error())
 		}
 
 		defer func() {
-			if err := unlockConfigFile(p); err != nil {
+			if err := unlockConfigFile(fl); err != nil {
 				logger.Critical(err.Error())
 			}
 		}()
@@ -337,13 +337,13 @@ func MaybeDeleteConfig(meta *api.ClusterMeta) {
 
 	configAccess := getConfigAccess(DefaultPath())
 	defaultFilename := configAccess.GetDefaultFilename()
-	err := lockConfigFile(defaultFilename)
+	fl, err := lockConfigFile(defaultFilename)
 	if err != nil {
 		logger.Critical(err.Error())
 	}
 
 	defer func() {
-		if err := unlockConfigFile(defaultFilename); err != nil {
+		if err := unlockConfigFile(fl); err != nil {
 			logger.Critical(err.Error())
 		}
 	}()
