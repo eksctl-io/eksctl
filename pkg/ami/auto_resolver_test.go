@@ -243,8 +243,10 @@ func addMockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern str
 	).Return(&ec2.DescribeImagesOutput{
 		Images: []*ec2.Image{
 			{
-				ImageId: aws.String(amiID),
-				State:   aws.String(amiState),
+				ImageId:      aws.String(amiID),
+				State:        aws.String(amiState),
+				CreationDate: aws.String(createdDate),
+				Description:  aws.String(instanceFamily),
 			},
 		},
 	}, nil)

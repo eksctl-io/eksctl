@@ -155,7 +155,7 @@ func toCLIArgs(values map[string]string) string {
 	return strings.Join(args, " ")
 }
 
-func makeCommonKubeletEnvParams(spec *api.ClusterConfig, ng *api.NodeGroup) []string {
+func makeCommonKubeletEnvParams(ng *api.NodeGroup) []string {
 	variables := []string{
 		fmt.Sprintf("NODE_LABELS=%s", kvs(ng.Labels)),
 		fmt.Sprintf("NODE_TAINTS=%s", kvs(ng.Taints)),

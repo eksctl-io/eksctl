@@ -44,7 +44,7 @@ func ImportInstanceRoleFromProfileARN(provider api.ClusterProvider, ng *api.Node
 
 // UseFromNodeGroup retrieves the IAM configuration from an existing nodegroup
 // based on stack outputs
-func UseFromNodeGroup(provider api.ClusterProvider, stack *cfn.Stack, ng *api.NodeGroup) error {
+func UseFromNodeGroup(stack *cfn.Stack, ng *api.NodeGroup) error {
 	if ng.IAM == nil {
 		ng.IAM = &api.NodeGroupIAM{}
 	}

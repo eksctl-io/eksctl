@@ -251,7 +251,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNo
 }
 
 // GetNodeGroupIAM retrieves the IAM configuration of the given nodegroup
-func (c *ClusterProvider) GetNodeGroupIAM(stackManager *manager.StackCollection, spec *api.ClusterConfig, ng *api.NodeGroup) error {
+func (c *ClusterProvider) GetNodeGroupIAM(stackManager *manager.StackCollection, ng *api.NodeGroup) error {
 	stacks, err := stackManager.DescribeNodeGroupStacks()
 	if err != nil {
 		return err
@@ -259,7 +259,7 @@ func (c *ClusterProvider) GetNodeGroupIAM(stackManager *manager.StackCollection,
 
 	for _, s := range stacks {
 		if stackManager.GetNodeGroupName(s) == ng.Name {
-			err := iam.UseFromNodeGroup(c.Provider, s, ng)
+			err := iam.UseFromNodeGroup(s, ng)
 			// An empty InstanceRoleARN likely also points to an error
 			if err == nil && ng.IAM.InstanceRoleARN == "" {
 				err = errors.New("InstanceRoleARN empty")

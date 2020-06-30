@@ -113,7 +113,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	if updateAuthConfigMap {
 		for _, ng := range cfg.NodeGroups {
 			if ng.IAM == nil || ng.IAM.InstanceRoleARN == "" {
-				if err := ctl.GetNodeGroupIAM(stackManager, cfg, ng); err != nil {
+				if err := ctl.GetNodeGroupIAM(stackManager, ng); err != nil {
 					logger.Warning("error getting instance role ARN for nodegroup %q: %v", ng.Name, err)
 					return nil
 				}

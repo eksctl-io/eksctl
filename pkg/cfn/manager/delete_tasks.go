@@ -106,7 +106,7 @@ func (c *StackCollection) NewTasksToDeleteNodeGroups(shouldDelete func(string) b
 func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) (*TaskTree, error) {
 	tasks := &TaskTree{Parallel: false}
 
-	saTasks, err := c.NewTasksToDeleteIAMServiceAccounts(deleteAll, oidc, clientSetGetter, true)
+	saTasks, err := c.NewTasksToDeleteIAMServiceAccounts(deleteAll, clientSetGetter, true)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oid
 }
 
 // NewTasksToDeleteIAMServiceAccounts defines tasks required to delete all of the iamserviceaccounts
-func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(shouldDelete func(string) bool, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*TaskTree, error) {
+func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(shouldDelete func(string) bool, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*TaskTree, error) {
 	serviceAccountStacks, err := c.DescribeIAMServiceAccountStacks()
 	if err != nil {
 		return nil, err

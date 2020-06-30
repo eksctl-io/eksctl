@@ -116,7 +116,7 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 
 	saSubset, _ := saFilter.MatchAll(cfg.IAM.ServiceAccounts)
 
-	tasks, err := stackManager.NewTasksToDeleteIAMServiceAccounts(saSubset.Has, oidc, kubernetes.NewCachedClientSet(clientSet), cmd.Wait)
+	tasks, err := stackManager.NewTasksToDeleteIAMServiceAccounts(saSubset.Has, kubernetes.NewCachedClientSet(clientSet), cmd.Wait)
 	if err != nil {
 		return err
 	}
