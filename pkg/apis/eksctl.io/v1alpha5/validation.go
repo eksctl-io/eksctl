@@ -112,20 +112,6 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return errors.New("field secretsEncryption.keyARN is required for enabling secrets encryption")
 	}
 
-	if cfg.PrivateCluster.Enabled {
-		if cfg.VPC != nil && cfg.VPC.ID != "" && len(cfg.VPC.Subnets.Private) == 0 {
-			return errors.New("vpc.subnets.private must be specified in a fully-private cluster when a pre-existing VPC is supplied")
-		}
-		if additionalServices := cfg.PrivateCluster.AdditionalEndpointServices; len(additionalServices) > 0 {
-			if err := ValidateAdditionalEndpointServices(additionalServices); err != nil {
-				return errors.Wrap(err, "invalid value in privateCluster.additionalEndpointServices")
-			}
-		}
-		// public access is initially enabled to allow running operations that access the Kubernetes API
-		cfg.VPC.ClusterEndpoints.PublicAccess = Enabled()
-		cfg.VPC.ClusterEndpoints.PrivateAccess = Enabled()
-	}
-
 	return nil
 }
 
@@ -137,6 +123,27 @@ func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
 	endpts := c.VPC.ClusterEndpoints
 	if NoAccess(endpts) {
 		return ErrClusterEndpointNoAccess
+	}
+	return nil
+}
+
+// ValidatePrivateCluster validates the private cluster config
+func (c *ClusterConfig) ValidatePrivateCluster() error {
+	if c.PrivateCluster.Enabled {
+		if c.VPC != nil && c.VPC.ID != "" && len(c.VPC.Subnets.Private) == 0 {
+			return errors.New("vpc.subnets.private must be specified in a fully-private cluster when a pre-existing VPC is supplied")
+		}
+		if additionalServices := c.PrivateCluster.AdditionalEndpointServices; len(additionalServices) > 0 {
+			if err := ValidateAdditionalEndpointServices(additionalServices); err != nil {
+				return errors.Wrap(err, "invalid value in privateCluster.additionalEndpointServices")
+			}
+		}
+		if c.VPC != nil && c.VPC.ClusterEndpoints == nil {
+			c.VPC.ClusterEndpoints = &ClusterEndpoints{}
+		}
+		// public access is initially enabled to allow running operations that access the Kubernetes API
+		c.VPC.ClusterEndpoints.PublicAccess = Enabled()
+		c.VPC.ClusterEndpoints.PrivateAccess = Enabled()
 	}
 	return nil
 }

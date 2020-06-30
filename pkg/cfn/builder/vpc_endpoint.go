@@ -7,10 +7,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	gfn "github.com/awslabs/goformation/cloudformation"
+
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+
+	gfn "github.com/weaveworks/goformation/cloudformation"
 )
 
 // A VPCEndpointResourceSet represents the resources required for VPC endpoints

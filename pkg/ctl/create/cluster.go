@@ -119,6 +119,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		}
 	}
 
+	if err := cfg.ValidatePrivateCluster(); err != nil {
+		return err
+	}
+
 	if err := cfg.ValidateClusterEndpointConfig(); err != nil {
 		return err
 	}

@@ -9,8 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 
-	gfn "github.com/awslabs/goformation/cloudformation"
 	"github.com/pkg/errors"
+
+	gfn "github.com/weaveworks/goformation/cloudformation"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"

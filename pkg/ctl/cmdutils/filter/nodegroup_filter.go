@@ -130,11 +130,12 @@ func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(lister stackLister, clust
 	for _, s := range existingStacks {
 		remoteNodeGroupName := s.NodeGroupName
 		if !f.localNodegroups.Has(remoteNodeGroupName) {
+			ngBase := &api.NodeGroupBase{Name: s.NodeGroupName}
 			logger.Info("nodegroup %q present in the cluster, but missing from the given config", s.NodeGroupName)
 			if s.Type == api.NodeGroupTypeManaged {
-				clusterConfig.ManagedNodeGroups = append(clusterConfig.ManagedNodeGroups, &api.ManagedNodeGroup{Name: s.NodeGroupName})
+				clusterConfig.ManagedNodeGroups = append(clusterConfig.ManagedNodeGroups, &api.ManagedNodeGroup{NodeGroupBase: ngBase})
 			} else {
-				clusterConfig.NodeGroups = append(clusterConfig.NodeGroups, &api.NodeGroup{Name: s.NodeGroupName})
+				clusterConfig.NodeGroups = append(clusterConfig.NodeGroups, &api.NodeGroup{NodeGroupBase: ngBase})
 			}
 		}
 	}
