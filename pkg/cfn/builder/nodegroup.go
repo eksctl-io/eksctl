@@ -293,11 +293,11 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_La
 	if n.spec.T3Unlimited != nil {
 		if isTInstance {
 			if *n.spec.T3Unlimited {
-				launchTemplateData.CreditSpecification = &gfn.LaunchTemplate_CreditSpecification{
+				launchTemplateData.CreditSpecification = &gfn.AWSEC2LaunchTemplate_CreditSpecification{
 					CpuCredits: gfn.NewString("unlimited"),
 				}
 			} else {
-				launchTemplateData.CreditSpecification = &gfn.LaunchTemplate_CreditSpecification{
+				launchTemplateData.CreditSpecification = &gfn.AWSEC2LaunchTemplate_CreditSpecification{
 					CpuCredits: gfn.NewString("standard"),
 				}
 			}
