@@ -114,6 +114,7 @@ type Properties struct {
 			SpotAllocationStrategy              string
 		}
 	}
+	
 }
 
 type LaunchTemplateData struct {
@@ -131,6 +132,9 @@ type LaunchTemplateData struct {
 			SpotInstanceType string
 			MaxPrice         string
 		}
+	}
+	CreditSpecification *struct {
+		CpuCredits           string
 	}
 }
 
@@ -1916,7 +1920,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroup{T3Unlimited=nil}", func() {
+	Context("NodeGroup{CPUCreditsUnlimited=nil}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		build(cfg, "eksctl-test-t3-unlimited", ng)
@@ -1928,7 +1932,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroup{T3Unlimited=false InstancesDistribution.InstanceTypes=t3.medium,t3a.medium}", func() {
+	Context("NodeGroup{CPUCreditsUnlimited=false InstancesDistribution.InstanceTypes=t3.medium,t3a.medium}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.InstanceType = "mixed"
@@ -1949,7 +1953,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroup{T3Unlimited=true InstancesDistribution.InstanceTypes=t3.medium,t3a.medium}", func() {
+	Context("NodeGroup{CPUCreditsUnlimited=true InstancesDistribution.InstanceTypes=t3.medium,t3a.medium}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.InstanceType = "mixed"
@@ -1970,7 +1974,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroup{T3Unlimited=true InstancesDistribution.InstanceTypes=m5.large}", func() {
+	Context("NodeGroup{CPUCreditsUnlimited=true InstancesDistribution.InstanceTypes=m5.large}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.InstanceType = "mixed"
