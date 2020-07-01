@@ -412,11 +412,3 @@ func metricsCollectionResource(asgMetricsCollection []api.MetricsCollection) []m
 	}
 	return metricsCollections
 }
-
-func cpuCreditsResource(n *NodeGroupResourceSet) *gfn.LaunchTemplate_CreditSpecification {
-	var
-	var cpuCredits := &gfn.LaunchTemplate_CreditSpecification{
-		CpuCredits: gfn.NewString(n.spec.cpuCredits)
-	}
-	return metricsCollections
-}
