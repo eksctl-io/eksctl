@@ -279,7 +279,7 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_La
 	} else {
 		launchTemplateData.InstanceType = gfn.NewString(n.spec.InstancesDistribution.InstanceTypes[0])
 
-		for i, instanceType := range n.spec.InstancesDistribution.InstanceTypes {
+		for _, instanceType := range n.spec.InstancesDistribution.InstanceTypes {
 			if strings.HasPrefix(instanceType, "t") {
 				isTInstance = true
 			}
