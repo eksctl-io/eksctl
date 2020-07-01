@@ -251,6 +251,11 @@ func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
 }
 
 func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_LaunchTemplateData {
+	instanceTypes := ng.InstancesDistribution.InstanceTypes
+	needT3Unlimited := false
+
+
+
 	launchTemplateData := &gfn.AWSEC2LaunchTemplate_LaunchTemplateData{
 		IamInstanceProfile: &gfn.AWSEC2LaunchTemplate_IamInstanceProfile{
 			Arn: n.instanceProfileARN,
@@ -274,6 +279,21 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_La
 	}
 	if n.spec.EBSOptimized != nil {
 		launchTemplateData.EbsOptimized = gfn.NewBoolean(*n.spec.EBSOptimized)
+	}
+
+	if n.spec.T3Unlimited {
+		for i, instanceType := range instanceTypes {
+			if strings.HasPrefix(instanceType, "t") {
+				needT3Unlimited = true
+			}
+		}
+		if needT3Unlimited {
+			launchTemplateData.CreditSpecification = &gfn.LaunchTemplate_CreditSpecification{
+				CpuCredits: gfn.NewString("unlimited"),
+			}
+		} else {
+			logger.Warning("T3unlimited option ignored, nodegroup %s has no T3 instance types", n.nodeGroupName)
+		}
 	}
 
 	return launchTemplateData
@@ -379,6 +399,14 @@ func metricsCollectionResource(asgMetricsCollection []api.MetricsCollection) []m
 		newCollection["Granularity"] = m.Granularity
 
 		metricsCollections = append(metricsCollections, newCollection)
+	}
+	return metricsCollections
+}
+
+func cpuCreditsResource(n *NodeGroupResourceSet) *gfn.LaunchTemplate_CreditSpecification {
+	var
+	var cpuCredits := &gfn.LaunchTemplate_CreditSpecification{
+		CpuCredits: gfn.NewString(n.spec.cpuCredits)
 	}
 	return metricsCollections
 }

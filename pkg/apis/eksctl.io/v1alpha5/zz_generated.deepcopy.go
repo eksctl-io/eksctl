@@ -752,6 +752,11 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.T3Unlimited != nil {
+		in, out := &in.T3Unlimited, &out.T3Unlimited
+		*out = new(bool)
+		**out = **in
+	}
 	if in.VolumeSize != nil {
 		in, out := &in.VolumeSize, &out.VolumeSize
 		*out = new(int)

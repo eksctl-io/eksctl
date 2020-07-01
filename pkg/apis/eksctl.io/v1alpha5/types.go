@@ -698,6 +698,9 @@ type NodeGroup struct {
 	// +optional
 	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
 
+	// T3Unlimited enables [T3 Unlimited](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html), valid only for T-type instances
+	T3Unlimited *bool `json:"t3Unlimited,omitempty"`
+
 	// VolumeSize gigabytes
 	// Defaults to `80`
 	// +optional
