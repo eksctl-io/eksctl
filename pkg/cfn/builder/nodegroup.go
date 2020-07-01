@@ -292,7 +292,7 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_La
 	// Add T3 Unlimited setting only if nodegroup has T-type instances
 	if n.spec.T3Unlimited != nil {
 		if isTInstance {
-			if n.spec.T3Unlimited {
+			if *n.spec.T3Unlimited {
 				launchTemplateData.CreditSpecification = &gfn.LaunchTemplate_CreditSpecification{
 					CpuCredits: gfn.NewString("unlimited"),
 				}
