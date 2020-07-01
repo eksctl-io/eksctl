@@ -251,10 +251,7 @@ func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
 }
 
 func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_LaunchTemplateData {
-	instanceTypes := ng.InstancesDistribution.InstanceTypes
-	needT3Unlimited := false
-
-
+	isTInstance := false
 
 	launchTemplateData := &gfn.AWSEC2LaunchTemplate_LaunchTemplateData{
 		IamInstanceProfile: &gfn.AWSEC2LaunchTemplate_IamInstanceProfile{
@@ -272,24 +269,37 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_La
 			HttpPutResponseHopLimit: gfn.NewInteger(2),
 		},
 	}
+
 	if !api.HasMixedInstances(n.spec) {
 		launchTemplateData.InstanceType = gfn.NewString(n.spec.InstanceType)
+
+		if strings.HasPrefix(n.spec.InstanceType, "t") {
+			isTInstance = true
+		}
 	} else {
 		launchTemplateData.InstanceType = gfn.NewString(n.spec.InstancesDistribution.InstanceTypes[0])
+
+		for i, instanceType := range n.spec.InstancesDistribution.InstanceTypes {
+			if strings.HasPrefix(instanceType, "t") {
+				isTInstance = true
+			}
+		}
 	}
 	if n.spec.EBSOptimized != nil {
 		launchTemplateData.EbsOptimized = gfn.NewBoolean(*n.spec.EBSOptimized)
 	}
 
-	if n.spec.T3Unlimited {
-		for i, instanceType := range instanceTypes {
-			if strings.HasPrefix(instanceType, "t") {
-				needT3Unlimited = true
-			}
-		}
-		if needT3Unlimited {
-			launchTemplateData.CreditSpecification = &gfn.LaunchTemplate_CreditSpecification{
-				CpuCredits: gfn.NewString("unlimited"),
+	// Add T3 Unlimited setting only if nodegroup has T-type instances
+	if n.spec.T3Unlimited != nil {
+		if isTInstance {
+			if n.spec.T3Unlimited {
+				launchTemplateData.CreditSpecification = &gfn.LaunchTemplate_CreditSpecification{
+					CpuCredits: gfn.NewString("unlimited"),
+				}
+			} else {
+				launchTemplateData.CreditSpecification = &gfn.LaunchTemplate_CreditSpecification{
+					CpuCredits: gfn.NewString("standard"),
+				}
 			}
 		} else {
 			logger.Warning("T3unlimited option ignored, nodegroup %s has no T3 instance types", n.nodeGroupName)
