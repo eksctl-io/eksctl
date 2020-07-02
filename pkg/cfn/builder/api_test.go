@@ -2972,8 +2972,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		It("should have correct resources and attributes", func() {
 			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification).To(BeNil())
-			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CpuCredits).ToNot(BeNil())
-			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CpuCredits).To(Equal("standard"))
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).ToNot(BeNil())
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).To(Equal("standard"))
 		})
 	})
 
@@ -2997,8 +2997,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		It("should have correct resources and attributes", func() {
 			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification).ToNot(BeNil())
-			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CpuCredits).ToNot(BeNil())
-			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CpuCredits).To(Equal("unlimited"))
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).ToNot(BeNil())
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).To(Equal("unlimited"))
 		})
 	})
 
