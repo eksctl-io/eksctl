@@ -23,7 +23,7 @@ func main() {
 		panic(err)
 	}
 
-	// We add some examples and blacklist some descriptions
+	// We add some examples and exclude some descriptions
 	if t, ok := schema.Definitions["ClusterConfig"].Properties["kind"]; ok {
 		t.Examples = []string{"ClusterConfig"}
 		t.Description = ""
