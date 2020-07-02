@@ -243,7 +243,12 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 
 		for _, ng := range cfg.ManagedNodeGroups {
 			if err := ctl.WaitForNodes(clientSet, ng); err != nil {
-				return err
+				if cfg.PrivateCluster.Enabled {
+					logger.Info("error waiting for nodes to join the cluster; this command was likely run from outside the cluster's VPC as the API server is not reachable, nodegroup(s) should still be able to join the cluster, underlying error is: %v", err)
+					break
+				} else {
+					return err
+				}
 			}
 		}
 
