@@ -763,10 +763,17 @@ type NodeGroup struct {
 
 // Git groups all configuration options related to enabling GitOps on a
 // cluster and linking it to a Git repository.
+// [Gitops Guide](/gitops-quickstart/)
 type Git struct {
+
+	// [Enable Repo](/usage/gitops/#installing-flux)
 	Repo *Repo `json:"repo,omitempty"`
+
+	// [Enable Repo](/usage/gitops/#installing-flux)
 	// +optional
 	Operator Operator `json:"operator,omitempty"`
+
+	// [Installing a Quickstart profile](/usage/gitops/#installing-a-quickstart-profile-in-your-cluster)
 	// +optional
 	BootstrapProfile *Profile `json:"bootstrapProfile,omitempty"` // one or many profiles to enable on this cluster once it is created
 }
@@ -783,43 +790,73 @@ func NewGit() *Git {
 // Repo groups all configuration options related to a Git repository used for
 // GitOps.
 type Repo struct {
-	URL string `json:"url,omitempty"` // the Git SSH URL to the repository which will contain the cluster configuration, e.g. git@github.com:org/repo
+	// The Git SSH URL to the repository which will contain the cluster configuration, e.g. git@github.com:org/repo
+	URL string `json:"url,omitempty"`
+
+	// The git branch under which cluster configuration files will be committed & pushed, e.g. master
 	// +optional
-	Branch string `json:"branch,omitempty"` // the branch under which cluster configuration files will be committed & pushed, e.g. master
+	Branch string `json:"branch,omitempty"`
+
+	// Relative paths within the Git repository which the GitOps operator will monitor to find Kubernetes manifests to apply, e.g. ["kube-system", "base"]
+	//+optional
+	Paths []string `json:"paths,omitempty"`
+
+	// The directory under which Flux configuration files will be written, e.g. flux/
 	// +optional
-	Paths []string `json:"paths,omitempty"` // relative paths within the Git repository which the GitOps operator will monitor to find Kubernetes manifests to apply, e.g. ["kube-system", "base"]
+	FluxPath string `json:"fluxPath,omitempty"`
+
+	// Git user which will be used to commit changes
 	// +optional
-	FluxPath string `json:"fluxPath,omitempty"` // the directory under which Flux configuration files will be written, e.g. flux/
+	User string `json:"user,omitempty"`
+
+	// Git email which will be used to commit changes
+	Email string `json:"email,omitempty"`
+
+	// Path to the private SSH key to use to authenticate
 	// +optional
-	User  string `json:"user,omitempty"`  // Git user which will be used to commit changes
-	Email string `json:"email,omitempty"` // Git email which will be used to commit changes
-	// +optional
-	PrivateSSHKeyPath string `json:"privateSSHKeyPath,omitempty"` // path to the private SSH key to use to authenticate
+	PrivateSSHKeyPath string `json:"privateSSHKeyPath,omitempty"`
 }
 
 // Operator groups all configuration options related to the operator used to
 // keep the cluster and the Git repository in sync.
 type Operator struct {
+
+	// Commit and push Flux manifests to the Git Repo on install
 	// +optional
-	CommitOperatorManifests *bool `json:"commitOperatorManifests,omitempty"` // Commit and push Flux manifests to the Git Repo on install
+	CommitOperatorManifests *bool `json:"commitOperatorManifests,omitempty"`
+
+	// Git label to keep track of Flux's sync progress; this is equivalent to overriding --git-sync-tag and --git-notes-ref in Flux
 	// +optional
-	Label string `json:"label,omitempty"` // e.g. flux
+	Label string `json:"label,omitempty"`
+
+	// Cluster namespace where to install Flux and the Helm Operator e.g. flux
 	// +optional
-	Namespace string `json:"namespace,omitempty"` // e.g. flux
+	Namespace string `json:"namespace,omitempty"`
+
+	// Install the Helm Operator
 	// +optional
-	WithHelm *bool `json:"withHelm,omitempty"` // whether to install the Flux Helm Operator or not
+	WithHelm *bool `json:"withHelm,omitempty"`
+
+	// Instruct Flux to read-only mode and create the deploy key as read-only
 	// +optional
-	ReadOnly bool `json:"readOnly,omitempty"` // Instruct Flux to read-only mode and create the deploy key as read-only
+	ReadOnly bool `json:"readOnly,omitempty"`
 }
 
 // Profile groups all details on a quickstart profile to enable on the cluster
 // and add to the Git repository.
 type Profile struct {
-	Source string `json:"source,omitempty"` // e.g. app-dev
+
+	// Name or URL of the Quick Start profile. For example, app-dev
+	Source string `json:"source,omitempty"`
+
+	// Revision of the Quick Start profile. Can be a branch, tag or commit hash
 	// +optional
-	Revision string `json:"revision,omitempty"` // branch, tag or commit hash
+	Revision string `json:"revision,omitempty"`
+
+	//  Output directory for the processed profile templates (generate profile command)
+	// Defaults to ./<quickstart-repo-name>
 	// +optional
-	OutputPath string `json:"outputPath,omitempty"` // output directory for processed profile templates (generate profile command)
+	OutputPath string `json:"outputPath,omitempty"`
 }
 
 // HasBootstrapProfile returns true if there is a profile with a source specified
