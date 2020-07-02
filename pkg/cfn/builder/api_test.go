@@ -114,7 +114,6 @@ type Properties struct {
 			SpotAllocationStrategy              string
 		}
 	}
-
 }
 
 type LaunchTemplateData struct {
@@ -134,7 +133,7 @@ type LaunchTemplateData struct {
 		}
 	}
 	CreditSpecification *struct {
-		CpuCredits           string
+		CpuCredits string
 	}
 }
 
@@ -1919,7 +1918,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(*getLaunchTemplateData(ngTemplate).EbsOptimized).To(BeTrue())
 		})
 	})
-
 
 	checkAsset := func(name, expectedContent string) {
 		assetContent, err := nodebootstrap.Asset(name)
