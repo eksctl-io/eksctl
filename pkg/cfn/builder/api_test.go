@@ -3002,31 +3002,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroup{T3Unlimited=true InstancesDistribution.InstanceTypes=m5.large}", func() {
-		cfg, ng := newClusterConfigAndNodegroup(true)
-
-		ng.InstanceType = "mixed"
-		ng.T3Unlimited = &boolTrue
-		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
-			MaxPrice:                            &maxSpotPrice,
-			InstanceTypes:                       []string{"m5.large", "m5.2xlarge"},
-			OnDemandBaseCapacity:                &baseCap,
-			OnDemandPercentageAboveBaseCapacity: &percentageOnDemand,
-			SpotInstancePools:                   &pools,
-			SpotAllocationStrategy:              &spotAllocationStrategy,
-		}
-
-		build(cfg, "eksctl-test-t3-unlimited", ng)
-
-		roundtrip()
-
-		It("should have correct resources and attributes", func() {
-			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification).ToNot(BeNil())
-			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CpuCredits).ToNot(BeNil())
-			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CpuCredits).To(Equal("standard"))
-		})
-	})
-
 })
 
 func setSubnets(cfg *api.ClusterConfig) {

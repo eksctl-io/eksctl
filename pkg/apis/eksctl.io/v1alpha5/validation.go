@@ -236,6 +236,12 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		return err
 	}
 
+	if IsEnabled(ng.T3Unlimited) {
+		if err := validateT3Unlimited(ng); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -437,6 +443,27 @@ func validateInstancesDistribution(ng *NodeGroup) error {
 		if !isSpotAllocationStrategySupported(*distribution.SpotAllocationStrategy) {
 			return fmt.Errorf("spotAllocationStrategy should be one of: %v", strings.Join(supportedSpotAllocationStrategies(), ", "))
 		}
+	}
+
+	return nil
+}
+
+func validateT3Unlimited(ng *NodeGroup) error {
+	isTInstance := false
+	instanceTypes := []string{ng.InstanceType}
+
+	if ng.InstanceType == "mixed" {
+		instanceTypes = ng.InstancesDistribution.InstanceTypes
+	}
+
+	for _, instanceType := range instanceTypes {
+		if strings.HasPrefix(instanceType, "t") {
+			isTInstance = true
+		}
+	}
+
+	if !isTInstance && *ng.T3Unlimited {
+		return fmt.Errorf("t3Unlimited option set for nodegroup, but it has no t2/t3 instance types")
 	}
 
 	return nil
