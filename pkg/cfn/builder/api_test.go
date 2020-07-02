@@ -2891,6 +2891,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 	percentageOnDemand := 20
 	pools := 3
 	spotAllocationStrategy := "lowest-price"
+	boolTrue := true
+	boolFalse := false
+	zero := 0
 
 	Context("Nodegroup with Mixed instances", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
@@ -2905,7 +2908,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 			SpotAllocationStrategy:              &spotAllocationStrategy,
 		}
 
-		zero := 0
 		ng.MinSize = &zero
 		ng.MaxSize = &zero
 
@@ -2956,7 +2958,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.InstanceType = "mixed"
-		ng.T3Unlimited = false
+		ng.T3Unlimited = &boolFalse
 		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
 			MaxPrice:                            &maxSpotPrice,
 			InstanceTypes:                       []string{"t3.medium", "t3a.medium"},
@@ -2981,7 +2983,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.InstanceType = "mixed"
-		ng.T3Unlimited = true
+		ng.T3Unlimited = &boolTrue
 		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
 			MaxPrice:                            &maxSpotPrice,
 			InstanceTypes:                       []string{"t3.medium", "t3a.medium"},
@@ -3006,7 +3008,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.InstanceType = "mixed"
-		ng.T3Unlimited = true
+		ng.T3Unlimited = &boolTrue
 		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
 			MaxPrice:                            &maxSpotPrice,
 			InstanceTypes:                       []string{"m5.large", "m5.2xlarge"},
