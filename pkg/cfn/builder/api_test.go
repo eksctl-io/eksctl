@@ -133,7 +133,7 @@ type LaunchTemplateData struct {
 		}
 	}
 	CreditSpecification *struct {
-		CpuCredits string
+		CPUCredits string
 	}
 }
 
