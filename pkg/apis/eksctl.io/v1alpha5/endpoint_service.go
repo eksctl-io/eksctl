@@ -1,6 +1,8 @@
 package v1alpha5
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+)
 
 const (
 	// Endpoint services that are required and cannot be disabled
@@ -11,8 +13,9 @@ const (
 	EndpointServiceSTS    = "sts"
 
 	// Additional endpoint services
-	EndpointServiceAutoscaling = "autoscaling"
-	EndpointServiceCloudWatch  = "logs"
+	EndpointServiceCloudFormation = "cloudformation"
+	EndpointServiceAutoscaling    = "autoscaling"
+	EndpointServiceCloudWatch     = "logs"
 )
 
 // RequiredEndpointServices returns a list of endpoint services that are required for a fully-private cluster
@@ -31,7 +34,7 @@ func ValidateAdditionalEndpointServices(services []string) error {
 	seen := make(map[string]struct{})
 	for _, service := range services {
 		switch service {
-		case EndpointServiceAutoscaling, EndpointServiceCloudWatch:
+		case EndpointServiceCloudFormation, EndpointServiceAutoscaling, EndpointServiceCloudWatch:
 			if _, ok := seen[service]; ok {
 				return errors.Errorf("found duplicate endpoint service: %q", service)
 			}
