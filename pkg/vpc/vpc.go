@@ -256,6 +256,9 @@ func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.Cl
 	}
 
 	for _, ng := range spec.ManagedNodeGroups {
+		if ng.PrivateNetworking {
+			continue
+		}
 		err := selectSubnets(ng.AvailabilityZones)
 		if err != nil {
 			return err
