@@ -23,7 +23,9 @@
             "type": "string",
             "default": ""
           },
-          "type": "array"
+          "type": "array",
+          "description": "Types of logging to enable (see [CloudWatch docs](/usage/cloudwatch-cluster-logging/#clusterconfig-examples)). To choose from: `api`, `audit`, `authenticator`, `controllerManager`, `scheduler`",
+          "x-intellij-html-description": "Types of logging to enable (see <a href=\"/usage/cloudwatch-cluster-logging/#clusterconfig-examples\">CloudWatch docs</a>). To choose from: <code>api</code>, <code>audit</code>, <code>authenticator</code>, <code>controllerManager</code>, <code>scheduler</code>"
         }
       },
       "preferredOrder": [
@@ -53,7 +55,9 @@
           "type": "array"
         },
         "cloudWatch": {
-          "$ref": "#/definitions/ClusterCloudWatch"
+          "$ref": "#/definitions/ClusterCloudWatch",
+          "description": "See [CloudWatch support](/usage/cloudwatch-cluster-logging/)",
+          "x-intellij-html-description": "See <a href=\"/usage/cloudwatch-cluster-logging/\">CloudWatch support</a>"
         },
         "fargateProfiles": {
           "items": {
@@ -1169,9 +1173,9 @@
       "properties": {
         "outputPath": {
           "type": "string",
-          "description": "Output directory for the processed profile templates (generate profile command) Defaults to ./<quickstart-repo-name>",
-          "x-intellij-html-description": "Output directory for the processed profile templates (generate profile command) Defaults to ./<quickstart-repo-name>",
-          "default": ""
+          "description": "Output directory for the processed profile templates (generate profile command)",
+          "x-intellij-html-description": "Output directory for the processed profile templates (generate profile command)",
+          "default": "./<quickstart-repo-name>"
         },
         "revision": {
           "type": "string",

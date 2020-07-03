@@ -501,6 +501,7 @@ type ClusterConfig struct {
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
 
+	// See [CloudWatch support](/usage/cloudwatch-cluster-logging/)
 	// +optional
 	CloudWatch *ClusterCloudWatch `json:"cloudWatch,omitempty"`
 
@@ -853,8 +854,8 @@ type Profile struct {
 	// +optional
 	Revision string `json:"revision,omitempty"`
 
-	//  Output directory for the processed profile templates (generate profile command)
-	// Defaults to ./<quickstart-repo-name>
+	// Output directory for the processed profile templates (generate profile command)
+	// Defaults to `./<quickstart-repo-name>`
 	// +optional
 	OutputPath string `json:"outputPath,omitempty"`
 }
