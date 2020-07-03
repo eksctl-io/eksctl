@@ -1099,27 +1099,34 @@ func IsAMI(amiFlag string) bool {
 
 // FargateProfile defines the settings used to schedule workload onto Fargate.
 type FargateProfile struct {
+
 	// Name of the Fargate profile.
 	Name string `json:"name" jsonschema:"required"`
+
 	// PodExecutionRoleARN is the IAM role's ARN to use to run pods onto Fargate.
 	PodExecutionRoleARN string `json:"podExecutionRoleARN,omitempty"`
+
 	// Selectors define the rules to select workload to schedule onto Fargate.
 	Selectors []FargateProfileSelector `json:"selectors"`
-	// +optional
+
 	// Subnets which Fargate should use to do network placement of the selected workload.
 	// If none provided, all subnets for the cluster will be used.
+	// +optional
 	Subnets []string `json:"subnets,omitempty"`
 
+	// Used to tag the AWS resources
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
 }
 
 // FargateProfileSelector defines rules to select workload to schedule onto Fargate.
 type FargateProfileSelector struct {
+
 	// Namespace is the Kubernetes namespace from which to select workload.
 	Namespace string `json:"namespace" jsonschema:"required"`
-	// +optional
+
 	// Labels are the Kubernetes label selectors to use to select workload.
+	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
 }
 

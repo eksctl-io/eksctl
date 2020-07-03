@@ -468,6 +468,8 @@
             "default": ""
           },
           "type": "object",
+          "description": "Used to tag the AWS resources",
+          "x-intellij-html-description": "Used to tag the AWS resources",
           "default": "{}"
         }
       },
