@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
-	gfn "github.com/weaveworks/goformation/cloudformation"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -118,7 +118,7 @@ func (c *StackCollection) EnsureMapPublicIPOnLaunchEnabled() error {
 
 		currentValue := gjson.Get(currentTemplate, path)
 		if !currentValue.Exists() || !currentValue.Bool() {
-			currentTemplate, err = sjson.Set(currentTemplate, path, gfn.True())
+			currentTemplate, err = sjson.Set(currentTemplate, path, gfnt.True())
 			if err != nil {
 				return errors.Wrapf(err, "unable to set MapPublicIpOnLaunch property on subnet %q", path)
 			}

@@ -3,7 +3,7 @@ package builder
 import (
 	"fmt"
 
-	gfn "github.com/weaveworks/goformation/cloudformation"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 var servicePrincipalPartitionMappings = map[string]map[string]string{
@@ -26,24 +26,25 @@ var servicePrincipalPartitionMappings = map[string]map[string]string{
 
 const servicePrincipalPartitionMapName = "ServicePrincipalPartitionMap"
 
-func makeFnFindInMap(mapName string, args ...*gfn.Value) *gfn.Value {
-	return gfn.MakeIntrinsic(gfn.FnFindInMap, append([]*gfn.Value{gfn.NewString(mapName)}, args...))
+// TODO put this in gfn
+func makeFnFindInMap(mapName string, args ...*gfnt.Value) *gfnt.Value {
+	return gfnt.MakeIntrinsic(gfnt.FnFindInMap, append([]*gfnt.Value{gfnt.NewString(mapName)}, args...))
 }
 
 // MakeServiceRef returns a reference to an intrinsic map function that looks up the servicePrincipalName
 // in servicePrincipalPartitionMappings
-func MakeServiceRef(servicePrincipalName string) *gfn.Value {
-	return makeFnFindInMap(servicePrincipalPartitionMapName, gfn.RefPartition, gfn.NewString(servicePrincipalName))
+func MakeServiceRef(servicePrincipalName string) *gfnt.Value {
+	return makeFnFindInMap(servicePrincipalPartitionMapName, gfnt.RefPartition, gfnt.NewString(servicePrincipalName))
 }
 
-func makePolicyARNs(policyNames ...string) []*gfn.Value {
-	policyARNs := make([]*gfn.Value, len(policyNames))
+func makePolicyARNs(policyNames ...string) []*gfnt.Value {
+	policyARNs := make([]*gfnt.Value, len(policyNames))
 	for i, policy := range policyNames {
-		policyARNs[i] = gfn.MakeFnSubString(fmt.Sprintf("arn:${%s}:iam::aws:policy/%s", gfn.Partition, policy))
+		policyARNs[i] = gfnt.MakeFnSubString(fmt.Sprintf("arn:${%s}:iam::aws:policy/%s", gfnt.Partition, policy))
 	}
 	return policyARNs
 }
 
-func addARNPartitionPrefix(s string) *gfn.Value {
-	return gfn.MakeFnSubString(fmt.Sprintf("arn:${%s}:%s", gfn.Partition, s))
+func addARNPartitionPrefix(s string) *gfnt.Value {
+	return gfnt.MakeFnSubString(fmt.Sprintf("arn:${%s}:%s", gfnt.Partition, s))
 }

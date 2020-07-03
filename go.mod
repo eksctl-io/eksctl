@@ -8,7 +8,6 @@ require (
 	github.com/Azure/go-autorest/autorest v0.10.0 // indirect
 	github.com/Azure/go-autorest/autorest/azure/auth v0.4.2 // indirect
 	github.com/aws/aws-sdk-go v1.30.11
-	github.com/awslabs/goformation/v4 v4.1.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/cloudflare/cfssl v0.0.0-20190726000631-633726f6bcb7
@@ -42,7 +41,7 @@ require (
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	github.com/tidwall/gjson v1.1.3
 	github.com/tidwall/match v1.0.1 // indirect
 	github.com/tidwall/sjson v1.0.2
@@ -51,7 +50,7 @@ require (
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
 	// Forked from errordeveloper/goformation, forked from awslabs/goformation in
 	// Sept. 2018, see #1133
-	github.com/weaveworks/goformation v0.0.0-20200623124447-18df1c671d26
+	github.com/weaveworks/goformation/v4 v4.0.0-20200706072553-926cac65aa49
 	github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d
 	github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d

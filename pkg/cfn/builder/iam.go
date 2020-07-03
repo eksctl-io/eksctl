@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	gfn "github.com/weaveworks/goformation/cloudformation"
+	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -37,10 +38,10 @@ var (
 	}
 )
 
-func (c *resourceSet) attachAllowPolicy(name string, refRole *gfn.Value, resources interface{}, actions []string) {
-	c.newResource(name, &gfn.AWSIAMPolicy{
+func (c *resourceSet) attachAllowPolicy(name string, refRole *gfnt.Value, resources interface{}, actions []string) {
+	c.newResource(name, &gfniam.Policy{
 		PolicyName: makeName(name),
-		Roles:      makeSlice(refRole),
+		Roles:      gfnt.NewSlice(refRole),
 		PolicyDocument: cft.MakePolicyDocument(map[string]interface{}{
 			"Effect":   "Allow",
 			"Resource": resources,
@@ -70,19 +71,19 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 
 	c.rs.withIAM = true
 
-	role := &gfn.AWSIAMRole{
+	role := &gfniam.Role{
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
 			MakeServiceRef("EKS"),
 			// Ensure that EKS can schedule pods onto Fargate, should the user
 			// define so-called "Fargate profiles" in order to do so:
 			MakeServiceRef("EKSFargatePods"),
 		),
-		ManagedPolicyArns: makePolicyARNs(
+		ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(
 			iamPolicyAmazonEKSClusterPolicy,
-		),
+		)...),
 	}
 	if api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRolePermissionsBoundary) {
-		role.PermissionsBoundary = gfn.NewString(*c.spec.IAM.ServiceRolePermissionsBoundary)
+		role.PermissionsBoundary = gfnt.NewString(*c.spec.IAM.ServiceRolePermissionsBoundary)
 	}
 	refSR := c.newResource("ServiceRole", role)
 	c.rs.attachAllowPolicy("PolicyNLB", refSR, "*", []string{
@@ -94,7 +95,7 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 		"cloudwatch:PutMetricData",
 	})
 
-	c.rs.defineOutputFromAtt(outputs.ClusterServiceRoleARN, "ServiceRole.Arn", true, func(v string) error {
+	c.rs.defineOutputFromAtt(outputs.ClusterServiceRoleARN, "ServiceRole", "Arn", true, func(v string) error {
 		c.spec.IAM.ServiceRoleARN = &v
 		return nil
 	})
@@ -117,7 +118,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() error {
 
 		// if instance profile is given, as well as the role, we simply use both and export the role
 		// (which is needed in order to authorise the nodegroup)
-		n.instanceProfileARN = gfn.NewString(n.spec.IAM.InstanceProfileARN)
+		n.instanceProfileARN = gfnt.NewString(n.spec.IAM.InstanceProfileARN)
 		if n.spec.IAM.InstanceRoleARN != "" {
 			n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceProfileARN, n.spec.IAM.InstanceProfileARN, true)
 			n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceRoleARN, n.spec.IAM.InstanceRoleARN, true)
@@ -135,12 +136,12 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() error {
 
 	if n.spec.IAM.InstanceRoleARN != "" {
 		// if role is set, but profile isn't - create profile
-		n.newResource(cfnIAMInstanceProfileName, &gfn.AWSIAMInstanceProfile{
-			Path:  gfn.NewString("/"),
-			Roles: makeStringSlice(n.spec.IAM.InstanceRoleARN),
+		n.newResource(cfnIAMInstanceProfileName, &gfniam.InstanceProfile{
+			Path:  gfnt.NewString("/"),
+			Roles: gfnt.NewStringSlice(n.spec.IAM.InstanceRoleARN),
 		})
-		n.instanceProfileARN = gfn.MakeFnGetAttString(makeAttrAccessor(cfnIAMInstanceProfileName, "Arn"))
-		n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, makeAttrAccessor(cfnIAMInstanceProfileName, "Arn"), true, func(v string) error {
+		n.instanceProfileARN = gfnt.MakeFnGetAttString(cfnIAMInstanceProfileName, "Arn")
+		n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, cfnIAMInstanceProfileName, "Arn", true, func(v string) error {
 			n.spec.IAM.InstanceProfileARN = v
 			return nil
 		})
@@ -159,17 +160,17 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() error {
 		return err
 	}
 
-	n.newResource(cfnIAMInstanceProfileName, &gfn.AWSIAMInstanceProfile{
-		Path:  gfn.NewString("/"),
-		Roles: makeSlice(gfn.MakeRef(cfnIAMInstanceRoleName)),
+	n.newResource(cfnIAMInstanceProfileName, &gfniam.InstanceProfile{
+		Path:  gfnt.NewString("/"),
+		Roles: gfnt.NewSlice(gfnt.MakeRef(cfnIAMInstanceRoleName)),
 	})
-	n.instanceProfileARN = gfn.MakeFnGetAttString(makeAttrAccessor(cfnIAMInstanceProfileName, "Arn"))
+	n.instanceProfileARN = gfnt.MakeFnGetAttString(cfnIAMInstanceProfileName, "Arn")
 
-	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, makeAttrAccessor(cfnIAMInstanceProfileName, "Arn"), true, func(v string) error {
+	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, cfnIAMInstanceProfileName, "Arn", true, func(v string) error {
 		n.spec.IAM.InstanceProfileARN = v
 		return nil
 	})
-	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceRoleARN, makeAttrAccessor(cfnIAMInstanceRoleName, "Arn"), true, func(v string) error {
+	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceRoleARN, cfnIAMInstanceRoleName, "Arn", true, func(v string) error {
 		n.spec.IAM.InstanceRoleARN = v
 		return nil
 	})
