@@ -2971,7 +2971,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		roundtrip()
 
 		It("should have correct resources and attributes", func() {
-			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification).To(BeNil())
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification).ToNot(BeNil())
 			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).ToNot(BeNil())
 			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).To(Equal("standard"))
 		})
