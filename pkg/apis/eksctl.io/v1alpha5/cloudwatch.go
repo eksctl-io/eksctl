@@ -8,6 +8,9 @@ type ClusterCloudWatch struct {
 
 // ClusterCloudWatchLogging container config parameters related to cluster logging
 type ClusterCloudWatchLogging struct {
+
+	// Types of logging to enable (see [CloudWatch docs](/usage/cloudwatch-cluster-logging/#clusterconfig-examples)).
+	// To choose from: `api`, `audit`, `authenticator`, `controllerManager`, `scheduler`
 	//+optional
 	EnableTypes []string `json:"enableTypes,omitempty"`
 }
