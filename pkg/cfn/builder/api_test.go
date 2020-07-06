@@ -2940,7 +2940,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroup{T3Unlimited=nil}", func() {
+	Context("NodeGroup{CPUCredits=nil}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		build(cfg, "eksctl-test-t3-unlimited", ng)
@@ -2952,11 +2952,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroup{T3Unlimited=false InstancesDistribution.InstanceTypes=t3.medium,t3a.medium}", func() {
+	Context("NodeGroup{CPUCredits=standard InstancesDistribution.InstanceTypes=t3.medium,t3a.medium}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.InstanceType = "mixed"
-		ng.T3Unlimited = &boolFalse
+		ng.CPUCredits = "standard"
 		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
 			MaxPrice:                            &maxSpotPrice,
 			InstanceTypes:                       []string{"t3.medium", "t3a.medium"},
@@ -2977,11 +2977,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroup{T3Unlimited=true InstancesDistribution.InstanceTypes=t3.medium,t3a.medium}", func() {
+	Context("NodeGroup{CPUCredits=unlimited InstancesDistribution.InstanceTypes=t3.medium,t3a.medium}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.InstanceType = "mixed"
-		ng.T3Unlimited = &boolTrue
+		ng.CPUCredits = "unlimiteds"
 		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
 			MaxPrice:                            &maxSpotPrice,
 			InstanceTypes:                       []string{"t3.medium", "t3a.medium"},

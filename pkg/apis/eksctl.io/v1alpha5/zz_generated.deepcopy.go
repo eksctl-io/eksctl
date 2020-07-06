@@ -752,8 +752,8 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		*out = new(bool)
 		**out = **in
 	}
-	if in.T3Unlimited != nil {
-		in, out := &in.T3Unlimited, &out.T3Unlimited
+	if in.CPUCredits != nil {
+		in, out := &in.CPUCredits, &out.CPUCredits
 		*out = new(bool)
 		**out = **in
 	}

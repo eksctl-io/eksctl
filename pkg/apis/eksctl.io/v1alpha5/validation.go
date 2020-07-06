@@ -236,8 +236,8 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		return err
 	}
 
-	if IsEnabled(ng.T3Unlimited) {
-		if err := validateT3Unlimited(ng); err != nil {
+	if ng.CPUCredits != nil {
+		if err := validateCPUCredits(ng); err != nil {
 			return err
 		}
 	}
@@ -448,7 +448,7 @@ func validateInstancesDistribution(ng *NodeGroup) error {
 	return nil
 }
 
-func validateT3Unlimited(ng *NodeGroup) error {
+func validateCPUCredits(ng *NodeGroup) error {
 	isTInstance := false
 	instanceTypes := []string{ng.InstanceType}
 
@@ -462,8 +462,12 @@ func validateT3Unlimited(ng *NodeGroup) error {
 		}
 	}
 
-	if !isTInstance && *ng.T3Unlimited {
-		return fmt.Errorf("t3Unlimited option set for nodegroup, but it has no t2/t3 instance types")
+	if !isTInstance && ng.CPUCredits != nil {
+		return fmt.Errorf("cpuCredits option set for nodegroup, but it has no t2/t3 instance types")
+	}
+
+	if strings.ToLower(*ng.CPUCredits) != "unlimited" && strings.ToLower(*ng.CPUCredits) != "standard" {
+		return fmt.Errorf("cpuCredits option accepts only one of 'standard' or 'unlimited'")
 	}
 
 	return nil
