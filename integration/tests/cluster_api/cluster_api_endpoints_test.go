@@ -134,7 +134,7 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 				ContainElement(ContainSubstring(endpointPrivTmpl, e.Private)),
 			))
 			if e.Type == deleteCluster {
-				// nned to update public access to allow access to delete when it isn't allowed
+				// need to update public access to allow access to delete when it isn't allowed
 				if e.Public == false {
 					utilsCmd := params.EksctlUtilsCmd.
 						WithTimeout(timeOutSeconds*time.Second).WithArgs(

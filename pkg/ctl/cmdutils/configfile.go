@@ -265,6 +265,8 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			}
 		}
 
+		api.SetClusterEndpointAccessDefaults(l.ClusterConfig.VPC)
+
 		if params.Fargate {
 			l.ClusterConfig.SetDefaultFargateProfile()
 			// A Fargate-only cluster should NOT have any un-managed node group:
