@@ -2890,6 +2890,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 	pools := 3
 	spotAllocationStrategy := "lowest-price"
 	zero := 0
+	cpuCreditsUnlimited := "unlimited"
+	cpuCreditsStandard := "standard"
 
 	Context("Nodegroup with Mixed instances", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
@@ -2954,7 +2956,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.InstanceType = "mixed"
-		ng.CPUCredits = "standard"
+		ng.CPUCredits = *cpuCreditsStandard
 		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
 			MaxPrice:                            &maxSpotPrice,
 			InstanceTypes:                       []string{"t3.medium", "t3a.medium"},
@@ -2979,7 +2981,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.InstanceType = "mixed"
-		ng.CPUCredits = "unlimited"
+		ng.CPUCredits = *cpuCreditsUnlimited
 		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
 			MaxPrice:                            &maxSpotPrice,
 			InstanceTypes:                       []string{"t3.medium", "t3a.medium"},

@@ -700,7 +700,8 @@ type NodeGroup struct {
 	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
 
 	// CPUCredits configures [T3 Unlimited](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html), valid only for T-type instances
-	CPUCredits string `json:"cpuCredits,omitempty"`
+	// +optional
+	CPUCredits *string `json:"cpuCredits,omitempty"`
 
 	// VolumeSize gigabytes
 	// Defaults to `80`
