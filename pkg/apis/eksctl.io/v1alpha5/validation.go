@@ -59,26 +59,29 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 
 	// names must be unique across both managed and unmanaged nodegroups
 	ngNames := nameSet{}
-	validateNg := func(name, path string) error {
-		if name == "" {
+	validateNg := func(ng *NodeGroupBase, path string) error {
+		if ng.Name == "" {
 			return fmt.Errorf("%s.name must be set", path)
 		}
-		if _, err := ngNames.checkUnique(path+".name", name); err != nil {
+		if _, err := ngNames.checkUnique(path+".name", ng.Name); err != nil {
 			return err
+		}
+		if cfg.PrivateCluster.Enabled && !ng.PrivateNetworking {
+			return fmt.Errorf("%s.privateNetworking must be enabled for a fully-private cluster", path)
 		}
 		return nil
 	}
 
 	for i, ng := range cfg.NodeGroups {
 		path := fmt.Sprintf("nodeGroups[%d]", i)
-		if err := validateNg(ng.NameString(), path); err != nil {
+		if err := validateNg(ng.NodeGroupBase, path); err != nil {
 			return err
 		}
 	}
 
 	for i, ng := range cfg.ManagedNodeGroups {
 		path := fmt.Sprintf("managedNodeGroups[%d]", i)
-		if err := validateNg(ng.NameString(), path); err != nil {
+		if err := validateNg(ng.NodeGroupBase, path); err != nil {
 			return err
 		}
 	}
@@ -120,6 +123,27 @@ func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
 	endpts := c.VPC.ClusterEndpoints
 	if NoAccess(endpts) {
 		return ErrClusterEndpointNoAccess
+	}
+	return nil
+}
+
+// ValidatePrivateCluster validates the private cluster config
+func (c *ClusterConfig) ValidatePrivateCluster() error {
+	if c.PrivateCluster.Enabled {
+		if c.VPC != nil && c.VPC.ID != "" && len(c.VPC.Subnets.Private) == 0 {
+			return errors.New("vpc.subnets.private must be specified in a fully-private cluster when a pre-existing VPC is supplied")
+		}
+		if additionalEndpoints := c.PrivateCluster.AdditionalEndpointServices; len(additionalEndpoints) > 0 {
+			if err := ValidateAdditionalEndpointServices(additionalEndpoints); err != nil {
+				return errors.Wrap(err, "invalid value in privateCluster.additionalEndpointServices")
+			}
+		}
+		if c.VPC != nil && c.VPC.ClusterEndpoints == nil {
+			c.VPC.ClusterEndpoints = &ClusterEndpoints{}
+		}
+		// public access is initially enabled to allow running operations that access the Kubernetes API
+		c.VPC.ClusterEndpoints.PublicAccess = Enabled()
+		c.VPC.ClusterEndpoints.PrivateAccess = Enabled()
 	}
 	return nil
 }

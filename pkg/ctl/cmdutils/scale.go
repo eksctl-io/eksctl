@@ -70,6 +70,9 @@ func validateNameArgument(cmd *Cmd, ng *api.NodeGroup) error {
 }
 
 func validateNumberOfNodes(ng *api.NodeGroup) error {
+	if ng.ScalingConfig == nil {
+		ng.ScalingConfig = &api.ScalingConfig{}
+	}
 
 	if ng.DesiredCapacity == nil || *ng.DesiredCapacity < 0 {
 		return fmt.Errorf("number of nodes must be 0 or greater")
