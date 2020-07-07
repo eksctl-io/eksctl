@@ -2956,7 +2956,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.InstanceType = "mixed"
-		ng.CPUCredits = *cpuCreditsStandard
+		ng.CPUCredits = &cpuCreditsStandard
 		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
 			MaxPrice:                            &maxSpotPrice,
 			InstanceTypes:                       []string{"t3.medium", "t3a.medium"},
@@ -2981,7 +2981,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.InstanceType = "mixed"
-		ng.CPUCredits = *cpuCreditsUnlimited
+		ng.CPUCredits = &cpuCreditsUnlimited
 		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
 			MaxPrice:                            &maxSpotPrice,
 			InstanceTypes:                       []string{"t3.medium", "t3a.medium"},

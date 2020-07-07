@@ -289,14 +289,10 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_La
 		launchTemplateData.EbsOptimized = gfn.NewBoolean(*n.spec.EBSOptimized)
 	}
 
-	// Add T3 Unlimited setting only if nodegroup has T-type instances
-	if n.spec.CPUCredits != nil {
-		if isTInstance {
-			launchTemplateData.CreditSpecification = &gfn.AWSEC2LaunchTemplate_CreditSpecification{
-				CpuCredits: gfn.NewString(strings.ToLower(*n.spec.CPUCredits)),
-			}
-		} else {
-			logger.Warning("cpuCredits option ignored, nodegroup %s has no T3 instance types", n.nodeGroupName)
+	// Add CPUCredits setting only if nodegroup has T-type instances
+	if n.spec.CPUCredits != nil && isTInstance {
+		launchTemplateData.CreditSpecification = &gfn.AWSEC2LaunchTemplate_CreditSpecification{
+			CpuCredits: gfn.NewString(strings.ToLower(*n.spec.CPUCredits)),
 		}
 	}
 
