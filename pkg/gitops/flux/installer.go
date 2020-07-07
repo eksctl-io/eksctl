@@ -145,18 +145,20 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 
 	gitProvider, err := providers.GetProvider(fi.cfg.Git.Repo.URL)
 	if err != nil {
-		logger.Warning("could not find git provider implementation for url %q. Skipping authorization of SSH key", fi.cfg.Git.Repo.URL)
+		logger.Warning("could not find git provider implementation for url %q: %q. Skipping authorization of SSH key", fi.cfg.Git.Repo.URL, err.Error())
 		return instruction, nil
 	}
 
+	keyTitle := KeyTitle(*fi.cfg.Metadata)
 	err = gitProvider.AuthorizeSSHKey(ctx, key.SSHKey{
-		Title:    KeyTitle(*fi.cfg.Metadata),
+		Title:    keyTitle,
 		Key:      fluxSSHKey.Key,
 		ReadOnly: fi.cfg.Git.Operator.ReadOnly,
 	})
 	if err != nil {
-		return "", errors.Wrapf(err, "could not authorize SSH key")
+		return instruction, errors.Wrapf(err, "could not authorize SSH key")
 	}
+	instruction = fmt.Sprintf("Flux SSH key with name %q authorized to access the repo", keyTitle)
 
 	return instruction, nil
 }
