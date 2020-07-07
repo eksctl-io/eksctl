@@ -2889,8 +2889,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 	percentageOnDemand := 20
 	pools := 3
 	spotAllocationStrategy := "lowest-price"
-	boolTrue := true
-	boolFalse := false
 	zero := 0
 
 	Context("Nodegroup with Mixed instances", func() {
@@ -2981,7 +2979,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.InstanceType = "mixed"
-		ng.CPUCredits = "unlimiteds"
+		ng.CPUCredits = "unlimited"
 		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
 			MaxPrice:                            &maxSpotPrice,
 			InstanceTypes:                       []string{"t3.medium", "t3a.medium"},
