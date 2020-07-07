@@ -1,0 +1,38 @@
+name: Merge release changes to master
+on:
+  push:
+    branches:
+      - release-*
+env:
+  VERSION_FILE: pkg/version/release.go
+  DEFAULT_BRANCH: master
+jobs:
+  merge_release:
+    name: Merge release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Merge release branch into ${{env.DEFAULT_BRANCH}}
+        run: |
+          git checkout $DEFAULT_BRANCH
+          git checkout -b merge-${{ github.sha }}
+          git config user.name "weaveworksbot"
+          git config user.email "weaveworksbot@users.noreply.github.com"
+          git merge --no-commit --no-ff ${{ github.ref }}
+          git checkout ORIG_HEAD -- $VERSION_FILE
+          git add $VERSION_FILE
+          EDITOR=true git merge --continue
+          git push --set-upstream origin HEAD
+      - uses: actions/github-script@v2.0.0
+        name: Open PR to ${{env.DEFAULT_BRANCH}}
+        with:
+          github-token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
+          script: |
+            await github.pulls.create({
+              ...context.repo,
+              title: `Merge ${context.ref} to ${{ env.DEFAULT_BRANCH }}`,
+              head: `merge-${context.sha}`,
+              base: "${{ env.DEFAULT_BRANCH }}",
+            });
