@@ -310,6 +310,7 @@ func testVPC() *api.ClusterVPC {
 				},
 			},
 		},
+		ClusterEndpoints: &api.ClusterEndpoints{},
 	}
 }
 

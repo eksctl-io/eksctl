@@ -337,7 +337,8 @@ const expected = `
 			"autoAllocateIPv6": false,
 			"nat": {
 				"gateway": "Single"
-			  }
+			  },
+             "clusterEndpoints": {}
 		},
 		"cloudWatch": {
 		  "clusterLogging": {}
