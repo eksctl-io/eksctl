@@ -11,17 +11,16 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
-	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/gitops"
-	"github.com/weaveworks/eksctl/pkg/ssh"
-	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
+	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
@@ -120,6 +119,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		}
 	}
 
+	if err := cfg.ValidatePrivateCluster(); err != nil {
+		return err
+	}
+
 	if err := cfg.ValidateClusterEndpointConfig(); err != nil {
 		return err
 	}
@@ -189,7 +192,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 			if err := ctl.SetAvailabilityZones(cfg, params.AvailabilityZones); err != nil {
 				return err
 			}
-			if err := vpc.SetSubnets(cfg); err != nil {
+			if err := vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones); err != nil {
 				return err
 			}
 			return nil
@@ -267,22 +270,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 			return err
 		}
 		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
-
-		// load or use SSH key - name includes cluster name and the
-		// fingerprint, so if unique keys provided, each will get
-		// loaded and used as intended and there is no need to have
-		// nodegroup name in the key name
-		publicKeyName, err := ssh.LoadKey(ng.SSH, meta.Name, ng.Name, ctl.Provider.EC2())
-		if err != nil {
-			return err
-		}
-		if publicKeyName != "" {
-			ng.SSH.PublicKeyName = &publicKeyName
-		}
 	}
 
 	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider.EC2())
-	if err := nodeGroupService.NormalizeManaged(cfg.ManagedNodeGroups); err != nil {
+	if err := nodeGroupService.Normalize(cmdutils.ToBaseNodeGroups(cfg)); err != nil {
 		return err
 	}
 
@@ -433,6 +424,16 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		if err := kubectl.CheckAllCommands(params.KubeconfigPath, params.SetContext, kubeconfigContextName, env); err != nil {
 			logger.Critical("%s\n", err.Error())
 			logger.Info("cluster should be functional despite missing (or misconfigured) client binaries")
+		}
+
+		if cfg.PrivateCluster.Enabled {
+			// disable public access
+			logger.Info("disabling public endpoint access for the cluster")
+			cfg.VPC.ClusterEndpoints.PublicAccess = api.Disabled()
+			if err := ctl.UpdateClusterConfigForEndpoints(cfg); err != nil {
+				return errors.Wrap(err, "error disabling public endpoint access for the cluster")
+			}
+			logger.Info("fully private cluster %q has been created. For subsequent operations, eksctl must be run from within the cluster's VPC, a peered VPC or some other means like AWS Direct Connect", cfg.Metadata.Name)
 		}
 	}
 

@@ -20,8 +20,7 @@ type ClusterResourceSet struct {
 	spec                 *api.ClusterConfig
 	provider             api.ClusterProvider
 	supportsManagedNodes bool
-	vpc                  *gfn.Value
-	subnets              map[api.SubnetTopology][]*gfn.Value
+	vpcResourceSet       *VPCResourceSet
 	securityGroups       []*gfn.Value
 }
 
@@ -30,11 +29,13 @@ func NewClusterResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig
 	if existingStack != nil {
 		unsetExistingResources(existingStack, spec)
 	}
+	rs := newResourceSet()
 	return &ClusterResourceSet{
-		rs:                   newResourceSet(),
+		rs:                   rs,
 		spec:                 spec,
 		provider:             provider,
 		supportsManagedNodes: supportsManagedNodes,
+		vpcResourceSet:       NewVPCResourceSet(rs, spec, provider),
 	}
 }
 
@@ -53,24 +54,29 @@ func unsetExistingResources(existingStack *gjson.Result, clusterConfig *api.Clus
 
 // AddAllResources adds all the information about the cluster to the resource set
 func (c *ClusterResourceSet) AddAllResources() error {
-	dedicatedVPC := c.spec.VPC.ID == ""
 
 	if err := c.spec.HasSufficientSubnets(); err != nil {
 		return err
 	}
 
-	if dedicatedVPC {
-		if err := c.addResourcesForVPC(); err != nil {
-			return errors.Wrap(err, "error adding VPC resources")
-		}
-	} else {
-		c.importResourcesForVPC()
+	vpcResource, err := c.vpcResourceSet.AddResources()
+	if err != nil {
+		return errors.Wrap(err, "error adding VPC resources")
 	}
-	c.addOutputsForVPC()
 
-	c.addResourcesForSecurityGroups()
+	c.vpcResourceSet.AddOutputs()
+	clusterSG := c.addResourcesForSecurityGroups(vpcResource)
+
+	if privateCluster := c.spec.PrivateCluster; privateCluster.Enabled {
+		vpcEndpointResourceSet := NewVPCEndpointResourceSet(c.provider, c.rs, c.spec, vpcResource.VPC, vpcResource.SubnetDetails.Private, clusterSG.ClusterSharedNode)
+
+		if err := vpcEndpointResourceSet.AddResources(); err != nil {
+			return errors.Wrap(err, "error adding resources for VPC endpoints")
+		}
+	}
+
 	c.addResourcesForIAM()
-	c.addResourcesForControlPlane()
+	c.addResourcesForControlPlane(vpcResource.SubnetDetails)
 
 	if len(c.spec.FargateProfiles) > 0 {
 		c.addResourcesForFargate()
@@ -89,8 +95,10 @@ func (c *ClusterResourceSet) AddAllResources() error {
 	c.rs.template.Description = fmt.Sprintf(
 		"%s (dedicated VPC: %v, dedicated IAM: %v) %s",
 		clusterTemplateDescription,
-		dedicatedVPC, c.rs.withIAM,
-		templateDescriptionSuffix)
+		c.spec.VPC.ID == "",
+		c.rs.withIAM,
+		templateDescriptionSuffix,
+	)
 
 	return nil
 }
@@ -144,13 +152,13 @@ type encryptionConfig struct {
 
 type awsEKSCluster gfn.AWSEKSCluster
 
-func (c *ClusterResourceSet) addResourcesForControlPlane() {
+func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *subnetDetails) {
 	clusterVPC := &gfn.AWSEKSCluster_ResourcesVpcConfig{
 		SecurityGroupIds: c.securityGroups,
 	}
-	for topology := range c.subnets {
-		clusterVPC.SubnetIds = append(clusterVPC.SubnetIds, c.subnets[topology]...)
-	}
+
+	clusterVPC.SubnetIds = append(clusterVPC.SubnetIds, subnetDetails.PublicSubnetRefs()...)
+	clusterVPC.SubnetIds = append(clusterVPC.SubnetIds, subnetDetails.PrivateSubnetRefs()...)
 
 	serviceRoleARN := gfn.MakeFnGetAttString("ServiceRole.Arn")
 	if api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRoleARN) {

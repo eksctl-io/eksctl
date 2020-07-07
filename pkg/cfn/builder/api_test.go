@@ -310,10 +310,7 @@ func testVPC() *api.ClusterVPC {
 				},
 			},
 		},
-		ClusterEndpoints: &api.ClusterEndpoints{
-			PrivateAccess: api.Disabled(),
-			PublicAccess:  api.Enabled(),
-		},
+		ClusterEndpoints: &api.ClusterEndpoints{},
 	}
 }
 
@@ -484,44 +481,48 @@ var _ = Describe("CloudFormation template builder API", func() {
 			CloudWatch: &api.ClusterCloudWatch{
 				ClusterLogging: &api.ClusterCloudWatchLogging{},
 			},
+			PrivateCluster: &api.PrivateCluster{},
 			NodeGroups: []*api.NodeGroup{
 				{
-					AMI:               "",
-					AMIFamily:         "AmazonLinux2",
-					InstanceType:      "t2.medium",
-					Name:              "ng-abcd1234",
-					PrivateNetworking: false,
+					NodeGroupBase: &api.NodeGroupBase{
+						AMIFamily:         "AmazonLinux2",
+						InstanceType:      "t2.medium",
+						Name:              "ng-abcd1234",
+						PrivateNetworking: false,
+						VolumeSize:        aws.Int(2),
+						IAM: &api.NodeGroupIAM{
+							WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
+								ImageBuilder:   api.Disabled(),
+								AutoScaler:     api.Disabled(),
+								ExternalDNS:    api.Disabled(),
+								CertManager:    api.Disabled(),
+								AppMesh:        api.Disabled(),
+								AppMeshPreview: api.Disabled(),
+								EBS:            api.Disabled(),
+								FSX:            api.Disabled(),
+								EFS:            api.Disabled(),
+								ALBIngress:     api.Disabled(),
+								XRay:           api.Disabled(),
+								CloudWatch:     api.Disabled(),
+							},
+						},
+						ScalingConfig: &api.ScalingConfig{},
+						SSH: &api.NodeGroupSSH{
+							Allow:         api.Disabled(),
+							PublicKeyPath: &api.DefaultNodeSSHPublicKeyPath,
+						},
+					},
+					AMI: "",
 					SecurityGroups: &api.NodeGroupSGs{
 						WithLocal:  api.Enabled(),
 						WithShared: api.Enabled(),
 						AttachIDs:  []string{},
 					},
-					DesiredCapacity: nil,
-					VolumeSize:      aws.Int(2),
+
 					VolumeType:      aws.String(api.NodeVolumeTypeSC1),
 					VolumeName:      aws.String("/dev/xvda"),
 					VolumeEncrypted: api.Disabled(),
 					VolumeKmsKeyID:  aws.String(""),
-					IAM: &api.NodeGroupIAM{
-						WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
-							ImageBuilder:   api.Disabled(),
-							AutoScaler:     api.Disabled(),
-							ExternalDNS:    api.Disabled(),
-							CertManager:    api.Disabled(),
-							AppMesh:        api.Disabled(),
-							AppMeshPreview: api.Disabled(),
-							EBS:            api.Disabled(),
-							FSX:            api.Disabled(),
-							EFS:            api.Disabled(),
-							ALBIngress:     api.Disabled(),
-							XRay:           api.Disabled(),
-							CloudWatch:     api.Disabled(),
-						},
-					},
-					SSH: &api.NodeGroupSSH{
-						Allow:         api.Disabled(),
-						PublicKeyPath: &api.DefaultNodeSSHPublicKeyPath,
-					},
 				},
 			},
 		}
@@ -593,7 +594,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	}
 
 	roundtrip := func() {
-		It("should serialise JSON without errors, and parse the teamplate", func() {
+		It("should serialise JSON without errors, and parse the template", func() {
 			ngTemplate = &Template{}
 			{
 				templateBody, err := ngrs.RenderJSON()
@@ -2937,7 +2938,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 func setSubnets(cfg *api.ClusterConfig) {
 	It("should not error when calling SetSubnets", func() {
-		err := vpc.SetSubnets(cfg)
+		err := vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones)
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 

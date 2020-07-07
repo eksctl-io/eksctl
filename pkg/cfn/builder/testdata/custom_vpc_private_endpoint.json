@@ -1,0 +1,66 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Resources": {
+        "VPCEndpointEC2": {
+            "Type": "AWS::EC2::VPCEndpoint",
+            "Properties": {
+                "PrivateDnsEnabled": true,
+                "SecurityGroupIds": [
+                    "sg-test"
+                ],
+                "ServiceName": "com.amazonaws.us-west-2.ec2",
+                "SubnetIds": ["subnet-custom1", "subnet-custom2"],
+                "VpcEndpointType": "Interface",
+                "VpcId": "vpc-custom"
+            }
+        },
+        "VPCEndpointECRAPI": {
+            "Type": "AWS::EC2::VPCEndpoint",
+            "Properties": {
+                "PrivateDnsEnabled": true,
+                "SecurityGroupIds": [
+                    "sg-test"
+                ],
+                "ServiceName": "com.amazonaws.us-west-2.ecr.api",
+                "SubnetIds": ["subnet-custom1", "subnet-custom2"],
+                "VpcEndpointType": "Interface",
+                "VpcId": "vpc-custom"
+            }
+        },
+        "VPCEndpointECRDKR": {
+            "Type": "AWS::EC2::VPCEndpoint",
+            "Properties": {
+                "PrivateDnsEnabled": true,
+                "SecurityGroupIds": [
+                    "sg-test"
+                ],
+                "ServiceName": "com.amazonaws.us-west-2.ecr.dkr",
+                "SubnetIds": ["subnet-custom1", "subnet-custom2"],
+                "VpcEndpointType": "Interface",
+                "VpcId": "vpc-custom"
+            }
+        },
+        "VPCEndpointS3": {
+            "Type": "AWS::EC2::VPCEndpoint",
+            "Properties": {
+                "RouteTableIds": ["rtb-custom-1", "rtb-custom-2"],
+                "ServiceName": "com.amazonaws.us-west-2.s3",
+                "VpcEndpointType": "Gateway",
+                "VpcId": "vpc-custom"
+            }
+        },
+        "VPCEndpointSTS": {
+            "Type": "AWS::EC2::VPCEndpoint",
+            "Properties": {
+                "PrivateDnsEnabled": true,
+                "SecurityGroupIds": [
+                    "sg-test"
+                ],
+                "ServiceName": "com.amazonaws.us-west-2.sts",
+                "SubnetIds": ["subnet-custom1", "subnet-custom2"],
+                "VpcEndpointType": "Interface",
+                "VpcId": "vpc-custom"
+            }
+        }
+    }
+}

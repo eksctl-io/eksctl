@@ -26,7 +26,9 @@ var _ = Describe("Windows", func() {
 			Name: "unit-test",
 		}
 		ng = &api.NodeGroup{
-			AMIFamily: api.NodeImageFamilyWindowsServer2019CoreContainer,
+			NodeGroupBase: &api.NodeGroupBase{
+				AMIFamily: api.NodeImageFamilyWindowsServer2019CoreContainer,
+			},
 		}
 	})
 
