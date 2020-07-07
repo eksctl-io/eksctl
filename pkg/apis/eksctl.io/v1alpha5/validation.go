@@ -236,10 +236,8 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		return err
 	}
 
-	if ng.CPUCredits != nil {
-		if err := validateCPUCredits(ng); err != nil {
-			return err
-		}
+	if err := validateCPUCredits(ng); err != nil {
+		return err
 	}
 
 	return nil
@@ -452,6 +450,10 @@ func validateCPUCredits(ng *NodeGroup) error {
 	isTInstance := false
 	instanceTypes := []string{ng.InstanceType}
 
+	if ng.CPUCredits == nil {
+		return nil
+	}
+
 	if ng.InstanceType == "mixed" {
 		instanceTypes = ng.InstancesDistribution.InstanceTypes
 	}
@@ -462,7 +464,7 @@ func validateCPUCredits(ng *NodeGroup) error {
 		}
 	}
 
-	if !isTInstance && ng.CPUCredits != nil {
+	if !isTInstance {
 		return fmt.Errorf("cpuCredits option set for nodegroup, but it has no t2/t3 instance types")
 	}
 
