@@ -98,7 +98,9 @@
           "x-intellij-html-description": "For information and examples see <a href=\"/usage/managing-nodegroups\">nodegroups</a>"
         },
         "privateCluster": {
-          "$ref": "#/definitions/PrivateCluster"
+          "$ref": "#/definitions/PrivateCluster",
+          "description": "allows configuring a fully-private cluster in which no node has outbound internet access, and private access to AWS services is enabled via VPC endpoints",
+          "x-intellij-html-description": "allows configuring a fully-private cluster in which no node has outbound internet access, and private access to AWS services is enabled via VPC endpoints"
         },
         "secretsEncryption": {
           "$ref": "#/definitions/SecretsEncryption"
@@ -1185,10 +1187,14 @@
             "type": "string",
             "default": ""
           },
-          "type": "array"
+          "type": "array",
+          "description": "specifies additional endpoint services that must be enabled for private access Valid values are cloudformation, autoscaling and logs",
+          "x-intellij-html-description": "specifies additional endpoint services that must be enabled for private access Valid values are cloudformation, autoscaling and logs"
         },
         "enabled": {
           "type": "boolean",
+          "description": "enables creation of a fully-private cluster",
+          "x-intellij-html-description": "enables creation of a fully-private cluster",
           "default": "false"
         }
       },
@@ -1197,8 +1203,8 @@
         "additionalEndpointServices"
       ],
       "additionalProperties": false,
-      "description": "defines the config for a private cluster",
-      "x-intellij-html-description": "defines the config for a private cluster"
+      "description": "defines the configuration for a fully-private cluster",
+      "x-intellij-html-description": "defines the configuration for a fully-private cluster"
     },
     "Profile": {
       "properties": {
