@@ -23,6 +23,9 @@ privateCluster:
     If your setup can reach the EKS API server endpoint via its private address, and has outbound internet access (for `EKS:DescribeCluster`),
     all eksctl commands should work.
 
+!!!note
+    VPC endpoints are charged by the hour and based on usage. More details about pricing can be found at
+    [AWS PrivateLink pricing](https://aws.amazon.com/privatelink/pricing/)
 
 ## Configuring private access to additional AWS services
 

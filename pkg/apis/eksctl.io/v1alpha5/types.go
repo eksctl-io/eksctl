@@ -486,6 +486,9 @@ type ClusterConfig struct {
 	// +optional
 	VPC *ClusterVPC `json:"vpc,omitempty"`
 
+	// PrivateCluster allows configuring a fully-private cluster
+	// in which no node has outbound internet access, and private access
+	// to AWS services is enabled via VPC endpoints
 	// +optional
 	PrivateCluster *PrivateCluster `json:"privateCluster,omitempty"`
 
@@ -1097,8 +1100,13 @@ type SecretsEncryption struct {
 	KeyARN *string `json:"keyARN,omitempty" jsonschema:"required"`
 }
 
-// PrivateCluster defines the config for a private cluster
+// PrivateCluster defines the configuration for a fully-private cluster
 type PrivateCluster struct {
-	Enabled                    bool     `json:"enabled"`
+
+	// Enabled enables creation of a fully-private cluster
+	Enabled bool `json:"enabled"`
+
+	// AdditionalEndpointServices specifies additional endpoint services that must be enabled for private access
+	// Valid values are cloudformation, autoscaling and logs
 	AdditionalEndpointServices []string `json:"additionalEndpointServices,omitempty"`
 }
