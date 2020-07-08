@@ -701,6 +701,11 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.CPUCredits != nil {
+		in, out := &in.CPUCredits, &out.CPUCredits
+		*out = new(string)
+		**out = **in
+	}
 	if in.VolumeType != nil {
 		in, out := &in.VolumeType, &out.VolumeType
 		*out = new(string)

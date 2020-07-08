@@ -687,6 +687,10 @@ type NodeGroup struct {
 	// +optional
 	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
 
+	// CPUCredits configures [T3 Unlimited](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html), valid only for T-type instances
+	// +optional
+	CPUCredits *string `json:"cpuCredits,omitempty"`
+
 	// Valid variants are `VolumeType` constants
 	// +optional
 	VolumeType *string `json:"volumeType,omitempty"`

@@ -132,6 +132,9 @@ type LaunchTemplateData struct {
 			MaxPrice         string
 		}
 	}
+	CreditSpecification *struct {
+		CPUCredits string
+	}
 }
 
 type Template struct {
@@ -2882,14 +2885,18 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 	})
 
+	maxSpotPrice := 0.045
+	baseCap := 40
+	percentageOnDemand := 20
+	pools := 3
+	spotAllocationStrategy := "lowest-price"
+	zero := 0
+	cpuCreditsUnlimited := "unlimited"
+	cpuCreditsStandard := "standard"
+
 	Context("Nodegroup with Mixed instances", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
-		maxSpotPrice := 0.045
-		baseCap := 40
-		percentageOnDemand := 20
-		pools := 3
-		spotAllocationStrategy := "lowest-price"
 		ng.InstanceType = "mixed"
 		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
 			MaxPrice:                            &maxSpotPrice,
@@ -2900,7 +2907,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 			SpotAllocationStrategy:              &spotAllocationStrategy,
 		}
 
-		zero := 0
 		ng.MinSize = &zero
 		ng.MaxSize = &zero
 
@@ -2934,6 +2940,69 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		})
 	})
+
+	Context("NodeGroup{CPUCredits=nil}", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		build(cfg, "eksctl-test-t3-unlimited", ng)
+
+		roundtrip()
+
+		It("should have correct resources and attributes", func() {
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification).To(BeNil())
+		})
+	})
+
+	Context("NodeGroup{CPUCredits=standard InstancesDistribution.InstanceTypes=t3.medium,t3a.medium}", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.InstanceType = "mixed"
+		ng.CPUCredits = &cpuCreditsStandard
+		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
+			MaxPrice:                            &maxSpotPrice,
+			InstanceTypes:                       []string{"t3.medium", "t3a.medium"},
+			OnDemandBaseCapacity:                &baseCap,
+			OnDemandPercentageAboveBaseCapacity: &percentageOnDemand,
+			SpotInstancePools:                   &pools,
+			SpotAllocationStrategy:              &spotAllocationStrategy,
+		}
+
+		build(cfg, "eksctl-test-t3-unlimited", ng)
+
+		roundtrip()
+
+		It("should have correct resources and attributes", func() {
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification).ToNot(BeNil())
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).ToNot(BeNil())
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).To(Equal("standard"))
+		})
+	})
+
+	Context("NodeGroup{CPUCredits=unlimited InstancesDistribution.InstanceTypes=t3.medium,t3a.medium}", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.InstanceType = "mixed"
+		ng.CPUCredits = &cpuCreditsUnlimited
+		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
+			MaxPrice:                            &maxSpotPrice,
+			InstanceTypes:                       []string{"t3.medium", "t3a.medium"},
+			OnDemandBaseCapacity:                &baseCap,
+			OnDemandPercentageAboveBaseCapacity: &percentageOnDemand,
+			SpotInstancePools:                   &pools,
+			SpotAllocationStrategy:              &spotAllocationStrategy,
+		}
+
+		build(cfg, "eksctl-test-t3-unlimited", ng)
+
+		roundtrip()
+
+		It("should have correct resources and attributes", func() {
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification).ToNot(BeNil())
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).ToNot(BeNil())
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).To(Equal("unlimited"))
+		})
+	})
+
 })
 
 func setSubnets(cfg *api.ClusterConfig) {
