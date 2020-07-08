@@ -272,25 +272,14 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_La
 
 	if !api.HasMixedInstances(n.spec) {
 		launchTemplateData.InstanceType = gfn.NewString(n.spec.InstanceType)
-
-		if strings.HasPrefix(n.spec.InstanceType, "t") {
-			isTInstance = true
-		}
 	} else {
 		launchTemplateData.InstanceType = gfn.NewString(n.spec.InstancesDistribution.InstanceTypes[0])
-
-		for _, instanceType := range n.spec.InstancesDistribution.InstanceTypes {
-			if strings.HasPrefix(instanceType, "t") {
-				isTInstance = true
-			}
-		}
 	}
 	if n.spec.EBSOptimized != nil {
 		launchTemplateData.EbsOptimized = gfn.NewBoolean(*n.spec.EBSOptimized)
 	}
 
-	// Add CPUCredits setting only if nodegroup has T-type instances
-	if n.spec.CPUCredits != nil && isTInstance {
+	if n.spec.CPUCredits != nil {
 		launchTemplateData.CreditSpecification = &gfn.AWSEC2LaunchTemplate_CreditSpecification{
 			CpuCredits: gfn.NewString(strings.ToLower(*n.spec.CPUCredits)),
 		}
