@@ -251,8 +251,6 @@ func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
 }
 
 func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_LaunchTemplateData {
-	isTInstance := false
-
 	launchTemplateData := &gfn.AWSEC2LaunchTemplate_LaunchTemplateData{
 		IamInstanceProfile: &gfn.AWSEC2LaunchTemplate_IamInstanceProfile{
 			Arn: n.instanceProfileARN,
