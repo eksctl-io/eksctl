@@ -53,15 +53,21 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		return err
 	}
 
+	scalingConfig := gfneks.Nodegroup_ScalingConfig{}
+	if m.nodeGroup.MinSize != nil {
+		scalingConfig.MinSize = gfnt.NewInteger(*m.nodeGroup.MinSize)
+	}
+	if m.nodeGroup.MaxSize != nil {
+		scalingConfig.MaxSize = gfnt.NewInteger(*m.nodeGroup.MaxSize)
+	}
+	if m.nodeGroup.DesiredCapacity != nil {
+		scalingConfig.DesiredSize = gfnt.NewInteger(*m.nodeGroup.DesiredCapacity)
+	}
 	managedResource := &gfneks.Nodegroup{
 		ClusterName:   gfnt.NewString(m.clusterConfig.Metadata.Name),
 		NodegroupName: gfnt.NewString(m.nodeGroup.Name),
-		ScalingConfig: &gfneks.Nodegroup_ScalingConfig{
-			MinSize:     gfnt.NewInteger(*m.nodeGroup.MinSize),
-			MaxSize:     gfnt.NewInteger(*m.nodeGroup.MaxSize),
-			DesiredSize: gfnt.NewInteger(*m.nodeGroup.DesiredCapacity),
-		},
-		Subnets: subnets,
+		ScalingConfig: &scalingConfig,
+		Subnets:       subnets,
 		// Currently the API supports specifying only one instance type
 		InstanceTypes: gfnt.NewStringSlice(m.nodeGroup.InstanceType),
 		AmiType:       gfnt.NewString(getAMIType(m.nodeGroup.InstanceType)),

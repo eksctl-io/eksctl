@@ -91,7 +91,7 @@ func TestManagedPolicyResources(t *testing.T) {
 			role, ok := template.GetAllIAMRoleResources()["NodeInstanceRole"]
 			assert.True(ok)
 
-			assert.ElementsMatch(tt.expectedManagedPolicies, role.ManagedPolicyArns)
+			assert.ElementsMatch(tt.expectedManagedPolicies, role.ManagedPolicyArns.Raw().(gfnt.Slice))
 
 		})
 	}
@@ -108,11 +108,13 @@ func TestManagedNodeRole(t *testing.T) {
 		{
 			description: "InstanceRoleARN is not provided",
 			nodeGroup: &api.ManagedNodeGroup{
-				ScalingConfig: &api.ScalingConfig{},
-				SSH: &api.NodeGroupSSH{
-					Allow: api.Disabled(),
+				NodeGroupBase: &api.NodeGroupBase{
+					ScalingConfig: &api.ScalingConfig{},
+					SSH: &api.NodeGroupSSH{
+						Allow: api.Disabled(),
+					},
+					IAM: &api.NodeGroupIAM{},
 				},
-				IAM: &api.NodeGroupIAM{},
 			},
 			expectedNewRole:     true,
 			expectedNodeRoleARN: gfnt.MakeFnGetAtt(cfnIAMInstanceRoleName, gfnt.NewString("Arn")), // creating new role
@@ -120,12 +122,14 @@ func TestManagedNodeRole(t *testing.T) {
 		{
 			description: "InstanceRoleARN is provided",
 			nodeGroup: &api.ManagedNodeGroup{
-				ScalingConfig: &api.ScalingConfig{},
-				SSH: &api.NodeGroupSSH{
-					Allow: api.Disabled(),
-				},
-				IAM: &api.NodeGroupIAM{
-					InstanceRoleARN: "arn::DUMMY::DUMMYROLE",
+				NodeGroupBase: &api.NodeGroupBase{
+					ScalingConfig: &api.ScalingConfig{},
+					SSH: &api.NodeGroupSSH{
+						Allow: api.Disabled(),
+					},
+					IAM: &api.NodeGroupIAM{
+						InstanceRoleARN: "arn::DUMMY::DUMMYROLE",
+					},
 				},
 			},
 			expectedNewRole:     false,

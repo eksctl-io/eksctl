@@ -486,6 +486,12 @@ type ClusterConfig struct {
 	// +optional
 	VPC *ClusterVPC `json:"vpc,omitempty"`
 
+	// PrivateCluster allows configuring a fully-private cluster
+	// in which no node has outbound internet access, and private access
+	// to AWS services is enabled via VPC endpoints
+	// +optional
+	PrivateCluster *PrivateCluster `json:"privateCluster,omitempty"`
+
 	// NodeGroups For information and examples see [nodegroups](/usage/managing-nodegroups)
 	// +optional
 	NodeGroups []*NodeGroup `json:"nodeGroups,omitempty"`
@@ -501,6 +507,7 @@ type ClusterConfig struct {
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
 
+	// See [CloudWatch support](/usage/cloudwatch-cluster-logging/)
 	// +optional
 	CloudWatch *ClusterCloudWatch `json:"cloudWatch,omitempty"`
 
@@ -545,6 +552,7 @@ func NewClusterConfig() *ClusterConfig {
 		CloudWatch: &ClusterCloudWatch{
 			ClusterLogging: &ClusterCloudWatchLogging{},
 		},
+		PrivateCluster: &PrivateCluster{},
 	}
 
 	return cfg
@@ -560,7 +568,7 @@ func NewClusterVPC() *ClusterVPC {
 		},
 		NAT:              DefaultClusterNAT(),
 		AutoAllocateIPv6: Disabled(),
-		ClusterEndpoints: ClusterEndpointAccessDefaults(),
+		ClusterEndpoints: &ClusterEndpoints{},
 	}
 }
 
@@ -574,39 +582,41 @@ func (c *ClusterConfig) AppendAvailabilityZone(newAZ string) {
 	c.AvailabilityZones = append(c.AvailabilityZones, newAZ)
 }
 
-// NewNodeGroup creates new nodegroup, and returns pointer to it
+// NewNodeGroup creates a new NodeGroup, and returns a pointer to it
 func NewNodeGroup() *NodeGroup {
 	return &NodeGroup{
-		PrivateNetworking: false,
+		NodeGroupBase: &NodeGroupBase{
+			PrivateNetworking: false,
+			InstanceType:      DefaultNodeType,
+			VolumeSize:        &DefaultNodeVolumeSize,
+			IAM: &NodeGroupIAM{
+				WithAddonPolicies: NodeGroupIAMAddonPolicies{
+					ImageBuilder:   Disabled(),
+					AutoScaler:     Disabled(),
+					ExternalDNS:    Disabled(),
+					CertManager:    Disabled(),
+					AppMesh:        Disabled(),
+					AppMeshPreview: Disabled(),
+					EBS:            Disabled(),
+					FSX:            Disabled(),
+					EFS:            Disabled(),
+					ALBIngress:     Disabled(),
+					XRay:           Disabled(),
+					CloudWatch:     Disabled(),
+				},
+			},
+			ScalingConfig: &ScalingConfig{},
+			SSH: &NodeGroupSSH{
+				Allow:         Disabled(),
+				PublicKeyPath: &DefaultNodeSSHPublicKeyPath,
+			},
+		},
 		SecurityGroups: &NodeGroupSGs{
 			AttachIDs:  []string{},
 			WithLocal:  Enabled(),
 			WithShared: Enabled(),
 		},
-		DesiredCapacity: nil,
-		InstanceType:    DefaultNodeType,
-		VolumeSize:      &DefaultNodeVolumeSize,
-		VolumeType:      &DefaultNodeVolumeType,
-		IAM: &NodeGroupIAM{
-			WithAddonPolicies: NodeGroupIAMAddonPolicies{
-				ImageBuilder:   Disabled(),
-				AutoScaler:     Disabled(),
-				ExternalDNS:    Disabled(),
-				CertManager:    Disabled(),
-				AppMesh:        Disabled(),
-				AppMeshPreview: Disabled(),
-				EBS:            Disabled(),
-				FSX:            Disabled(),
-				EFS:            Disabled(),
-				ALBIngress:     Disabled(),
-				XRay:           Disabled(),
-				CloudWatch:     Disabled(),
-			},
-		},
-		SSH: &NodeGroupSSH{
-			Allow:         Disabled(),
-			PublicKeyPath: &DefaultNodeSSHPublicKeyPath,
-		},
+		VolumeType: &DefaultNodeVolumeType,
 	}
 }
 
@@ -617,27 +627,29 @@ func NewManagedNodeGroup() *ManagedNodeGroup {
 		volumeSize = DefaultNodeVolumeSize
 	)
 	return &ManagedNodeGroup{
-		VolumeSize:    &volumeSize,
-		ScalingConfig: &ScalingConfig{},
-		SSH: &NodeGroupSSH{
-			Allow:         Disabled(),
-			PublicKeyName: &publicKey,
-		},
-		IAM: &NodeGroupIAM{
-			WithAddonPolicies: NodeGroupIAMAddonPolicies{
-				ImageBuilder:   Disabled(),
-				AutoScaler:     Disabled(),
-				ExternalDNS:    Disabled(),
-				CertManager:    Disabled(),
-				AppMesh:        Disabled(),
-				AppMeshPreview: Disabled(),
-				EBS:            Disabled(),
-				FSX:            Disabled(),
-				EFS:            Disabled(),
-				ALBIngress:     Disabled(),
-				XRay:           Disabled(),
-				CloudWatch:     Disabled(),
+		NodeGroupBase: &NodeGroupBase{
+			VolumeSize: &volumeSize,
+			SSH: &NodeGroupSSH{
+				Allow:         Disabled(),
+				PublicKeyName: &publicKey,
 			},
+			IAM: &NodeGroupIAM{
+				WithAddonPolicies: NodeGroupIAMAddonPolicies{
+					ImageBuilder:   Disabled(),
+					AutoScaler:     Disabled(),
+					ExternalDNS:    Disabled(),
+					CertManager:    Disabled(),
+					AppMesh:        Disabled(),
+					AppMeshPreview: Disabled(),
+					EBS:            Disabled(),
+					FSX:            Disabled(),
+					EFS:            Disabled(),
+					ALBIngress:     Disabled(),
+					XRay:           Disabled(),
+					CloudWatch:     Disabled(),
+				},
+			},
+			ScalingConfig: &ScalingConfig{},
 		},
 	}
 }
@@ -655,41 +667,18 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 // NodeGroup holds configuration attributes that are
 // specific to a nodegroup
 type NodeGroup struct {
-	Name string `json:"name" jsonschema:"required"`
-	// Specify [custom AMIs](/usage/custom-ami-support/), "auto-ssm", "auto", or "static"
+	*NodeGroupBase
 	// +optional
 	AMI string `json:"ami,omitempty"`
-	// +optional
-	AMIFamily string `json:"amiFamily,omitempty"`
-	// +optional
-	InstanceType string `json:"instanceType,omitempty"`
 	//+optional
 	InstancesDistribution *NodeGroupInstancesDistribution `json:"instancesDistribution,omitempty"`
 	// +optional
 	InstancePrefix string `json:"instancePrefix,omitempty"`
 	// +optional
 	InstanceName string `json:"instanceName,omitempty"`
-	// Limit [nodes to specific
-	// AZs](/usage/autoscaling/#zone-aware-auto-scaling)
-	// +optional
-	AvailabilityZones []string `json:"availabilityZones,omitempty"`
-	// +optional
-	Tags map[string]string `json:"tags,omitempty"`
-	// Enable [private
-	// networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup)
-	// for nodegroup
-	// +optional
-	PrivateNetworking bool `json:"privateNetworking"`
-
 	// +optional
 	SecurityGroups *NodeGroupSGs `json:"securityGroups,omitempty"`
 
-	// +optional
-	DesiredCapacity *int `json:"desiredCapacity,omitempty"`
-	// +optional
-	MinSize *int `json:"minSize,omitempty"`
-	// +optional
-	MaxSize *int `json:"maxSize,omitempty"`
 	// +optional
 	ASGMetricsCollection []MetricsCollection `json:"asgMetricsCollection,omitempty"`
 
@@ -698,10 +687,6 @@ type NodeGroup struct {
 	// +optional
 	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
 
-	// VolumeSize gigabytes
-	// Defaults to `80`
-	// +optional
-	VolumeSize *int `json:"volumeSize,omitempty"`
 	// Valid variants are `VolumeType` constants
 	// +optional
 	VolumeType *string `json:"volumeType,omitempty"`
@@ -718,9 +703,6 @@ type NodeGroup struct {
 	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
 
 	// +optional
-	Labels map[string]string `json:"labels,omitempty"`
-
-	// +optional
 	Taints map[string]string `json:"taints,omitempty"`
 
 	// Associate load balancers with auto scaling group
@@ -732,12 +714,6 @@ type NodeGroup struct {
 	TargetGroupARNs []string `json:"targetGroupARNs,omitempty"`
 
 	// SSH configures ssh access for this nodegroup
-	// +optional
-	SSH *NodeGroupSSH `json:"ssh,omitempty"`
-
-	// +optional
-	IAM *NodeGroupIAM `json:"iam,omitempty"`
-
 	// +optional
 	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
 
@@ -763,10 +739,17 @@ type NodeGroup struct {
 
 // Git groups all configuration options related to enabling GitOps on a
 // cluster and linking it to a Git repository.
+// [Gitops Guide](/gitops-quickstart/)
 type Git struct {
+
+	// [Enable Repo](/usage/gitops/#installing-flux)
 	Repo *Repo `json:"repo,omitempty"`
+
+	// [Enable Repo](/usage/gitops/#installing-flux)
 	// +optional
 	Operator Operator `json:"operator,omitempty"`
+
+	// [Installing a Quickstart profile](/usage/gitops/#installing-a-quickstart-profile-in-your-cluster)
 	// +optional
 	BootstrapProfile *Profile `json:"bootstrapProfile,omitempty"` // one or many profiles to enable on this cluster once it is created
 }
@@ -783,43 +766,73 @@ func NewGit() *Git {
 // Repo groups all configuration options related to a Git repository used for
 // GitOps.
 type Repo struct {
-	URL string `json:"url,omitempty"` // the Git SSH URL to the repository which will contain the cluster configuration, e.g. git@github.com:org/repo
+	// The Git SSH URL to the repository which will contain the cluster configuration, e.g. git@github.com:org/repo
+	URL string `json:"url,omitempty"`
+
+	// The git branch under which cluster configuration files will be committed & pushed, e.g. master
 	// +optional
-	Branch string `json:"branch,omitempty"` // the branch under which cluster configuration files will be committed & pushed, e.g. master
+	Branch string `json:"branch,omitempty"`
+
+	// Relative paths within the Git repository which the GitOps operator will monitor to find Kubernetes manifests to apply, e.g. ["kube-system", "base"]
+	//+optional
+	Paths []string `json:"paths,omitempty"`
+
+	// The directory under which Flux configuration files will be written, e.g. flux/
 	// +optional
-	Paths []string `json:"paths,omitempty"` // relative paths within the Git repository which the GitOps operator will monitor to find Kubernetes manifests to apply, e.g. ["kube-system", "base"]
+	FluxPath string `json:"fluxPath,omitempty"`
+
+	// Git user which will be used to commit changes
 	// +optional
-	FluxPath string `json:"fluxPath,omitempty"` // the directory under which Flux configuration files will be written, e.g. flux/
+	User string `json:"user,omitempty"`
+
+	// Git email which will be used to commit changes
+	Email string `json:"email,omitempty"`
+
+	// Path to the private SSH key to use to authenticate
 	// +optional
-	User  string `json:"user,omitempty"`  // Git user which will be used to commit changes
-	Email string `json:"email,omitempty"` // Git email which will be used to commit changes
-	// +optional
-	PrivateSSHKeyPath string `json:"privateSSHKeyPath,omitempty"` // path to the private SSH key to use to authenticate
+	PrivateSSHKeyPath string `json:"privateSSHKeyPath,omitempty"`
 }
 
 // Operator groups all configuration options related to the operator used to
 // keep the cluster and the Git repository in sync.
 type Operator struct {
+
+	// Commit and push Flux manifests to the Git Repo on install
 	// +optional
-	CommitOperatorManifests *bool `json:"commitOperatorManifests,omitempty"` // Commit and push Flux manifests to the Git Repo on install
+	CommitOperatorManifests *bool `json:"commitOperatorManifests,omitempty"`
+
+	// Git label to keep track of Flux's sync progress; this is equivalent to overriding --git-sync-tag and --git-notes-ref in Flux
 	// +optional
-	Label string `json:"label,omitempty"` // e.g. flux
+	Label string `json:"label,omitempty"`
+
+	// Cluster namespace where to install Flux and the Helm Operator e.g. flux
 	// +optional
-	Namespace string `json:"namespace,omitempty"` // e.g. flux
+	Namespace string `json:"namespace,omitempty"`
+
+	// Install the Helm Operator
 	// +optional
-	WithHelm *bool `json:"withHelm,omitempty"` // whether to install the Flux Helm Operator or not
+	WithHelm *bool `json:"withHelm,omitempty"`
+
+	// Instruct Flux to read-only mode and create the deploy key as read-only
 	// +optional
-	ReadOnly bool `json:"readOnly,omitempty"` // Instruct Flux to read-only mode and create the deploy key as read-only
+	ReadOnly bool `json:"readOnly,omitempty"`
 }
 
 // Profile groups all details on a quickstart profile to enable on the cluster
 // and add to the Git repository.
 type Profile struct {
-	Source string `json:"source,omitempty"` // e.g. app-dev
+
+	// Name or URL of the Quick Start profile. For example, app-dev
+	Source string `json:"source,omitempty"`
+
+	// Revision of the Quick Start profile. Can be a branch, tag or commit hash
 	// +optional
-	Revision string `json:"revision,omitempty"` // branch, tag or commit hash
+	Revision string `json:"revision,omitempty"`
+
+	// Output directory for the processed profile templates (generate profile command)
+	// Defaults to `./<quickstart-repo-name>`
 	// +optional
-	OutputPath string `json:"outputPath,omitempty"` // output directory for processed profile templates (generate profile command)
+	OutputPath string `json:"outputPath,omitempty"`
 }
 
 // HasBootstrapProfile returns true if there is a profile with a source specified
@@ -830,29 +843,6 @@ func (c *ClusterConfig) HasBootstrapProfile() bool {
 // HasGitopsRepoConfigured returns true if there is a profile with a source specified
 func (c *ClusterConfig) HasGitopsRepoConfigured() bool {
 	return c.Git != nil && c.Git.Repo != nil && c.Git.Repo.URL != ""
-}
-
-// ListOptions returns metav1.ListOptions with label selector for the nodegroup
-func (n *NodeGroup) ListOptions() metav1.ListOptions {
-	return makeListOptions(n.Name)
-}
-
-// NameString returns common name string
-func (n *NodeGroup) NameString() string {
-	return n.Name
-}
-
-// Size returns the minimum nodegroup size
-func (n *NodeGroup) Size() int {
-	if n.MinSize == nil {
-		return 0
-	}
-	return *n.MinSize
-}
-
-// GetAMIFamily returns the AMI family
-func (n *NodeGroup) GetAMIFamily() string {
-	return n.AMIFamily
 }
 
 type (
@@ -978,28 +968,34 @@ type ScalingConfig struct {
 	MaxSize *int `json:"maxSize,omitempty"`
 }
 
-// ManagedNodeGroup defines an EKS-managed nodegroup
-// TODO Validate for unmapped fields and throw an error
-type ManagedNodeGroup struct {
+// NodeGroupBase represents the base nodegroup config for self-managed and managed nodegroups
+type NodeGroupBase struct {
 	Name string `json:"name" jsonschema:"required"`
 
+	// Specify [custom AMIs](/usage/custom-ami-support/), "auto-ssm", "auto", or "static"
 	// +optional
 	AMIFamily string `json:"amiFamily,omitempty"`
 	// +optional
 	InstanceType string `json:"instanceType,omitempty"`
-	// +optional
-	*ScalingConfig
-	// VolumeSize gigabytes
-	// Defaults to `80`
-	// +optional
-	VolumeSize *int `json:"volumeSize,omitempty"`
+	// Limit [nodes to specific
+	// AZs](/usage/autoscaling/#zone-aware-auto-scaling)
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
-	// +optional
-	SSH *NodeGroupSSH `json:"ssh,omitempty"`
 
 	// +optional
+	*ScalingConfig
+
+	// +optional
+	// VolumeSize gigabytes
+	// Defaults to `80`
+	VolumeSize *int `json:"volumeSize,omitempty"`
+	// +optional
+	SSH *NodeGroupSSH `json:"ssh,omitempty"`
+	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
+	// Enable [private
+	// networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup)
+	// for nodegroup
 	// +optional
 	PrivateNetworking bool `json:"privateNetworking"`
 	// +optional
@@ -1008,18 +1004,18 @@ type ManagedNodeGroup struct {
 	IAM *NodeGroupIAM `json:"iam,omitempty"`
 }
 
-// ListOptions returns metav1.ListOptions with label selector for the managed nodegroup
-func (n *ManagedNodeGroup) ListOptions() metav1.ListOptions {
+// ListOptions returns metav1.ListOptions with label selector for the nodegroup
+func (n *NodeGroupBase) ListOptions() metav1.ListOptions {
 	return makeListOptions(n.Name)
 }
 
 // NameString returns the nodegroup name
-func (n *ManagedNodeGroup) NameString() string {
+func (n *NodeGroupBase) NameString() string {
 	return n.Name
 }
 
 // Size returns the minimum nodegroup size
-func (n *ManagedNodeGroup) Size() int {
+func (n *NodeGroupBase) Size() int {
 	if n.MinSize == nil {
 		return 0
 	}
@@ -1027,8 +1023,14 @@ func (n *ManagedNodeGroup) Size() int {
 }
 
 // GetAMIFamily returns the AMI family
-func (n *ManagedNodeGroup) GetAMIFamily() string {
+func (n *NodeGroupBase) GetAMIFamily() string {
 	return n.AMIFamily
+}
+
+// ManagedNodeGroup represents an EKS-managed nodegroup
+// TODO Validate for unmapped fields and throw an error
+type ManagedNodeGroup struct {
+	*NodeGroupBase
 }
 
 func makeListOptions(nodeGroupName string) metav1.ListOptions {
@@ -1062,31 +1064,49 @@ func IsAMI(amiFlag string) bool {
 
 // FargateProfile defines the settings used to schedule workload onto Fargate.
 type FargateProfile struct {
+
 	// Name of the Fargate profile.
 	Name string `json:"name" jsonschema:"required"`
+
 	// PodExecutionRoleARN is the IAM role's ARN to use to run pods onto Fargate.
 	PodExecutionRoleARN string `json:"podExecutionRoleARN,omitempty"`
+
 	// Selectors define the rules to select workload to schedule onto Fargate.
 	Selectors []FargateProfileSelector `json:"selectors"`
-	// +optional
+
 	// Subnets which Fargate should use to do network placement of the selected workload.
 	// If none provided, all subnets for the cluster will be used.
+	// +optional
 	Subnets []string `json:"subnets,omitempty"`
 
+	// Used to tag the AWS resources
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
 }
 
 // FargateProfileSelector defines rules to select workload to schedule onto Fargate.
 type FargateProfileSelector struct {
+
 	// Namespace is the Kubernetes namespace from which to select workload.
 	Namespace string `json:"namespace" jsonschema:"required"`
-	// +optional
+
 	// Labels are the Kubernetes label selectors to use to select workload.
+	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
 }
 
 // SecretsEncryption defines the configuration for KMS encryption provider
 type SecretsEncryption struct {
 	KeyARN *string `json:"keyARN,omitempty" jsonschema:"required"`
+}
+
+// PrivateCluster defines the configuration for a fully-private cluster
+type PrivateCluster struct {
+
+	// Enabled enables creation of a fully-private cluster
+	Enabled bool `json:"enabled"`
+
+	// AdditionalEndpointServices specifies additional endpoint services that must be enabled for private access
+	// Valid values are cloudformation, autoscaling and logs
+	AdditionalEndpointServices []string `json:"additionalEndpointServices,omitempty"`
 }

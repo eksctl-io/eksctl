@@ -338,13 +338,13 @@ const expected = `
 			"nat": {
 				"gateway": "Single"
 			  },
-			"clusterEndpoints": {
-				"privateAccess": false,
-				"publicAccess": true
-			}
+             "clusterEndpoints": {}
 		},
 		"cloudWatch": {
 		  "clusterLogging": {}
+		},
+		"privateCluster": {
+			"enabled": false
 		},
 		"nodeGroups": [
 		  {

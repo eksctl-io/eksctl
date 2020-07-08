@@ -28,6 +28,10 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 			cfg.CloudWatch.ClusterLogging.EnableTypes = SupportedCloudWatchClusterLogTypes()
 		}
 	}
+
+	if cfg.PrivateCluster == nil {
+		cfg.PrivateCluster = &PrivateCluster{}
+	}
 }
 
 // SetNodeGroupDefaults will set defaults for a given nodegroup
@@ -59,6 +63,10 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 		ng.SSH = &NodeGroupSSH{
 			Allow: Disabled(),
 		}
+	}
+
+	if ng.ScalingConfig == nil {
+		ng.ScalingConfig = &ScalingConfig{}
 	}
 
 	setSSHDefaults(ng.SSH)

@@ -18,6 +18,7 @@ const (
 	ClusterSecurityGroup        = "SecurityGroup"
 	ClusterSubnetsPrivate       = string("Subnets" + api.SubnetTopologyPrivate)
 	ClusterSubnetsPublic        = string("Subnets" + api.SubnetTopologyPublic)
+	ClusterFullyPrivate         = "ClusterFullyPrivate"
 
 	ClusterSubnetsPublicLegacy = "Subnets"
 
