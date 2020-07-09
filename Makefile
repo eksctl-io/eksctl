@@ -22,6 +22,7 @@ all_generated_files := \
   pkg/nodebootstrap/assets.go \
   pkg/addons/default/assets.go \
   pkg/addons/assets.go \
+  pkg/apis/eksctl.io/v1alpha5 \
   $(conditionally_generated_files)
 
 .DEFAULT_GOAL := help
