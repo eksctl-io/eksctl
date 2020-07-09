@@ -132,7 +132,7 @@ func (m *OpenIDConnectManager) getIssuerCAThumbprint() error {
 	if err != nil {
 		return errors.Wrap(err, "connecting to issuer OIDC")
 	}
-
+	defer response.Body.Close()
 	if response.TLS != nil {
 		if numCerts := len(response.TLS.PeerCertificates); numCerts >= 1 {
 			root := response.TLS.PeerCertificates[numCerts-1]
