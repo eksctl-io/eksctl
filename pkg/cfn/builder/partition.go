@@ -26,15 +26,12 @@ var servicePrincipalPartitionMappings = map[string]map[string]string{
 
 const servicePrincipalPartitionMapName = "ServicePrincipalPartitionMap"
 
-// TODO put this in gfn
-func makeFnFindInMap(mapName string, args ...*gfnt.Value) *gfnt.Value {
-	return gfnt.MakeIntrinsic(gfnt.FnFindInMap, append([]*gfnt.Value{gfnt.NewString(mapName)}, args...))
-}
-
 // MakeServiceRef returns a reference to an intrinsic map function that looks up the servicePrincipalName
 // in servicePrincipalPartitionMappings
 func MakeServiceRef(servicePrincipalName string) *gfnt.Value {
-	return makeFnFindInMap(servicePrincipalPartitionMapName, gfnt.RefPartition, gfnt.NewString(servicePrincipalName))
+	return gfnt.MakeFnFindInMap(
+		gfnt.NewString(servicePrincipalPartitionMapName), gfnt.RefPartition, gfnt.NewString(servicePrincipalName),
+	)
 }
 
 func makePolicyARNs(policyNames ...string) []*gfnt.Value {

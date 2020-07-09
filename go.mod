@@ -50,7 +50,7 @@ require (
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
 	// Forked from errordeveloper/goformation, forked from awslabs/goformation in
 	// Sept. 2018, see #1133
-	github.com/weaveworks/goformation/v4 v4.0.0-20200706072553-926cac65aa49
+	github.com/weaveworks/goformation/v4 v4.0.0-20200709125005-7f44a7f6f9c6
 	github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d
 	github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
