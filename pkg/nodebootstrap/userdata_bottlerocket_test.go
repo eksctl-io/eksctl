@@ -37,10 +37,10 @@ var _ = Describe("Bottlerocket", func() {
 		clusterConfig.Metadata = &api.ClusterMeta{
 			Name: "unit-test",
 		}
-		ng = &api.NodeGroup{
-			// SetNodeGroupDefaults ensures this is non-nil for Bottlerocket nodegroups
-			Bottlerocket: &api.NodeGroupBottlerocket{},
-		}
+
+		ng = api.NewNodeGroup()
+		// SetNodeGroupDefaults ensures this is non-nil for Bottlerocket nodegroups
+		ng.Bottlerocket = &api.NodeGroupBottlerocket{}
 	})
 
 	Describe("with no user settings", func() {

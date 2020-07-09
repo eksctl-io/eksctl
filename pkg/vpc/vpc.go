@@ -23,10 +23,9 @@ import (
 
 // SetSubnets defines CIDRs for each of the subnets,
 // it must be called after SetAvailabilityZones
-func SetSubnets(spec *api.ClusterConfig) error {
+func SetSubnets(vpc *api.ClusterVPC, availabilityZones []string) error {
 	var err error
 
-	vpc := spec.VPC
 	vpc.Subnets = &api.ClusterSubnets{
 		Private: map[string]api.Network{},
 		Public:  map[string]api.Network{},
@@ -35,23 +34,23 @@ func SetSubnets(spec *api.ClusterConfig) error {
 		cidr := api.DefaultCIDR()
 		vpc.CIDR = &cidr
 	}
-	prefix, _ := spec.VPC.CIDR.Mask.Size()
+	prefix, _ := vpc.CIDR.Mask.Size()
 	if (prefix < 16) || (prefix > 24) {
 		return fmt.Errorf("VPC CIDR prefix must be between /16 and /24")
 	}
-	zoneCIDRs, err := subnet.SplitInto8(&spec.VPC.CIDR.IPNet)
+	zoneCIDRs, err := subnet.SplitInto8(&vpc.CIDR.IPNet)
 	if err != nil {
 		return err
 	}
 
 	logger.Debug("VPC CIDR (%s) was divided into 8 subnets %v", vpc.CIDR.String(), zoneCIDRs)
 
-	zonesTotal := len(spec.AvailabilityZones)
+	zonesTotal := len(availabilityZones)
 	if 2*zonesTotal > len(zoneCIDRs) {
 		return fmt.Errorf("insufficient number of subnets (have %d, but need %d) for %d availability zones", len(zoneCIDRs), 2*zonesTotal, zonesTotal)
 	}
 
-	for i, zone := range spec.AvailabilityZones {
+	for i, zone := range availabilityZones {
 		public := zoneCIDRs[i]
 		private := zoneCIDRs[i+zonesTotal]
 		vpc.Subnets.Private[zone] = api.Network{
@@ -128,6 +127,10 @@ func UseFromCluster(provider api.ClusterProvider, stack *cfn.Stack, spec *api.Cl
 		},
 		outputs.ClusterSubnetsPublic: func(v string) error {
 			return ImportSubnetsFromList(provider, spec, api.SubnetTopologyPublic, strings.Split(v, ","))
+		},
+		outputs.ClusterFullyPrivate: func(v string) error {
+			spec.PrivateCluster.Enabled = v == "true"
+			return nil
 		},
 	}
 

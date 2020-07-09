@@ -59,9 +59,11 @@ var _ = Describe("ClusterConfig validation", func() {
 			testKeyPath := "some/path/to/file.pub"
 
 			testNodeGroup := NodeGroup{
-				VolumeSize: &DefaultNodeVolumeSize,
-				SSH: &NodeGroupSSH{
-					PublicKeyPath: &testKeyPath,
+				NodeGroupBase: &NodeGroupBase{
+					VolumeSize: &DefaultNodeVolumeSize,
+					SSH: &NodeGroupSSH{
+						PublicKeyPath: &testKeyPath,
+					},
 				},
 			}
 
@@ -73,9 +75,11 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		It("Enabling SSH without a key uses default key", func() {
 			testNodeGroup := NodeGroup{
-				VolumeSize: &DefaultNodeVolumeSize,
-				SSH: &NodeGroupSSH{
-					Allow: Enabled(),
+				NodeGroupBase: &NodeGroupBase{
+					VolumeSize: &DefaultNodeVolumeSize,
+					SSH: &NodeGroupSSH{
+						Allow: Enabled(),
+					},
 				},
 			}
 
@@ -88,10 +92,12 @@ var _ = Describe("ClusterConfig validation", func() {
 			testKeyPath := "some/path/to/file.pub"
 
 			testNodeGroup := NodeGroup{
-				VolumeSize: &DefaultNodeVolumeSize,
-				SSH: &NodeGroupSSH{
-					Allow:         Disabled(),
-					PublicKeyPath: &testKeyPath,
+				NodeGroupBase: &NodeGroupBase{
+					VolumeSize: &DefaultNodeVolumeSize,
+					SSH: &NodeGroupSSH{
+						Allow:         Disabled(),
+						PublicKeyPath: &testKeyPath,
+					},
 				},
 			}
 
@@ -105,9 +111,11 @@ var _ = Describe("ClusterConfig validation", func() {
 	Context("Bottlerocket Settings", func() {
 		It("enables SSH with NodeGroup", func() {
 			testNodeGroup := NodeGroup{
-				AMIFamily: NodeImageFamilyBottlerocket,
-				SSH: &NodeGroupSSH{
-					Allow: Enabled(),
+				NodeGroupBase: &NodeGroupBase{
+					AMIFamily: NodeImageFamilyBottlerocket,
+					SSH: &NodeGroupSSH{
+						Allow: Enabled(),
+					},
 				},
 			}
 
@@ -118,7 +126,9 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		It("has default NodeGroup configuration", func() {
 			testNodeGroup := NodeGroup{
-				AMIFamily: NodeImageFamilyBottlerocket,
+				NodeGroupBase: &NodeGroupBase{
+					AMIFamily: NodeImageFamilyBottlerocket,
+				},
 			}
 
 			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})

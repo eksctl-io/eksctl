@@ -170,25 +170,25 @@ var _ = Describe("Kubeconfig", func() {
 			},
 			NodeGroups: []*eksctlapi.NodeGroup{
 				{
-					AMI:               "",
-					InstanceType:      "m5.large",
-					AvailabilityZones: []string{"us-west-2b", "us-west-2a", "us-west-2c"},
-					PrivateNetworking: false,
-					SSH: &eksctlapi.NodeGroupSSH{
-						Allow:         eksctlapi.Disabled(),
-						PublicKeyPath: &exampleSSHKeyPath,
-						PublicKey:     nil,
-						PublicKeyName: nil,
+					NodeGroupBase: &eksctlapi.NodeGroupBase{
+						InstanceType:      "m5.large",
+						AvailabilityZones: []string{"us-west-2b", "us-west-2a", "us-west-2c"},
+						PrivateNetworking: false,
+						SSH: &eksctlapi.NodeGroupSSH{
+							Allow:         eksctlapi.Disabled(),
+							PublicKeyPath: &exampleSSHKeyPath,
+							PublicKey:     nil,
+							PublicKeyName: nil,
+						},
+						ScalingConfig: &eksctlapi.ScalingConfig{},
+						IAM: &eksctlapi.NodeGroupIAM{
+							AttachPolicyARNs: []string(nil),
+							InstanceRoleARN:  "",
+							InstanceRoleName: "",
+						},
 					},
-					DesiredCapacity: nil,
-					MinSize:         nil,
-					MaxSize:         nil,
-					MaxPodsPerNode:  0,
-					IAM: &eksctlapi.NodeGroupIAM{
-						AttachPolicyARNs: []string(nil),
-						InstanceRoleARN:  "",
-						InstanceRoleName: "",
-					},
+					AMI:            "",
+					MaxPodsPerNode: 0,
 				},
 			},
 			VPC: &eksctlapi.ClusterVPC{

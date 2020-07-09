@@ -91,6 +91,14 @@ func clusterDNS(spec *api.ClusterConfig, ng *api.NodeGroup) string {
 	return "10.100.0.10"
 }
 
+func getKubeReserved(info InstanceTypeInfo) api.InlineDocument {
+	return api.InlineDocument{
+		"ephemeral-storage": info.DefaultStorageToReserve(),
+		"cpu":               info.DefaultCPUToReserve(),
+		"memory":            info.DefaultMemoryToReserve(),
+	}
+}
+
 func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, error) {
 	data, err := Asset("kubelet.yaml")
 	if err != nil {
@@ -110,12 +118,34 @@ func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, 
 
 	// Set default reservations if specs about instance is available
 	if info, ok := instanceTypeInfos[ng.InstanceType]; ok {
+		// This is a NodeGroup with a single instanceType defined
 		if _, ok := obj["kubeReserved"]; !ok {
 			obj["kubeReserved"] = api.InlineDocument{}
 		}
-		obj["kubeReserved"].(api.InlineDocument)["ephemeral-storage"] = info.DefaultStorageToReserve()
-		obj["kubeReserved"].(api.InlineDocument)["cpu"] = info.DefaultCPUToReserve()
-		obj["kubeReserved"].(api.InlineDocument)["memory"] = info.DefaultMemoryToReserve()
+		obj["kubeReserved"] = getKubeReserved(info)
+	} else if ng.InstancesDistribution != nil {
+		// This is a NodeGroup using mixed instance types
+		var minCPU, minRAM int64
+		for _, instanceType := range ng.InstancesDistribution.InstanceTypes {
+			if info, ok := instanceTypeInfos[instanceType]; ok {
+				if instanceCPU := info.CPU; minCPU == 0 || instanceCPU < minCPU {
+					minCPU = instanceCPU
+				}
+				if instanceRAM := info.Memory; minRAM == 0 || instanceRAM < minRAM {
+					minRAM = instanceRAM
+				}
+			}
+		}
+		if minCPU > 0 && minRAM > 0 {
+			info = InstanceTypeInfo{
+				Memory: minRAM,
+				CPU:    minCPU,
+			}
+			if _, ok := obj["kubeReserved"]; !ok {
+				obj["kubeReserved"] = api.InlineDocument{}
+			}
+			obj["kubeReserved"] = getKubeReserved(info)
+		}
 	}
 
 	// Add extra configuration from configfile

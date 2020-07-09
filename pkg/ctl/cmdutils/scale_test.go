@@ -33,7 +33,7 @@ var _ = Describe("scale node group config file loader", func() {
 				NameArg:           params.name,
 			}
 
-			ng := &api.NodeGroup{}
+			ng := api.NewNodeGroup()
 			err := NewScaleNodeGroupLoader(cmd, ng).Load()
 			if params.error != nil {
 				Expect(err).To(HaveOccurred())

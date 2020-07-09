@@ -1,9 +1,9 @@
 package v1alpha5
 
 import (
-	"encoding/json"
 	"fmt"
 	"net"
+	"reflect"
 
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 )
@@ -219,15 +219,7 @@ func (c *ClusterConfig) UpdateEndpointsMsg() string {
 
 // EndpointsEqual returns true of two endpoints have same values after dereferencing any pointers
 func EndpointsEqual(a, b ClusterEndpoints) bool {
-	ajson, err := json.Marshal(a)
-	if err != nil {
-		return false
-	}
-	bjson, err := json.Marshal(b)
-	if err != nil {
-		return false
-	}
-	return string(ajson) == string(bjson)
+	return reflect.DeepEqual(a, b)
 }
 
 //HasClusterEndpointAccess determines if endpoint access was configured in config file or not

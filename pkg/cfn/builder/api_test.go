@@ -132,6 +132,9 @@ type LaunchTemplateData struct {
 			MaxPrice         string
 		}
 	}
+	CreditSpecification *struct {
+		CPUCredits string
+	}
 }
 
 type Template struct {
@@ -310,10 +313,7 @@ func testVPC() *api.ClusterVPC {
 				},
 			},
 		},
-		ClusterEndpoints: &api.ClusterEndpoints{
-			PrivateAccess: api.Disabled(),
-			PublicAccess:  api.Enabled(),
-		},
+		ClusterEndpoints: &api.ClusterEndpoints{},
 	}
 }
 
@@ -484,44 +484,48 @@ var _ = Describe("CloudFormation template builder API", func() {
 			CloudWatch: &api.ClusterCloudWatch{
 				ClusterLogging: &api.ClusterCloudWatchLogging{},
 			},
+			PrivateCluster: &api.PrivateCluster{},
 			NodeGroups: []*api.NodeGroup{
 				{
-					AMI:               "",
-					AMIFamily:         "AmazonLinux2",
-					InstanceType:      "t2.medium",
-					Name:              "ng-abcd1234",
-					PrivateNetworking: false,
+					NodeGroupBase: &api.NodeGroupBase{
+						AMIFamily:         "AmazonLinux2",
+						InstanceType:      "t2.medium",
+						Name:              "ng-abcd1234",
+						PrivateNetworking: false,
+						VolumeSize:        aws.Int(2),
+						IAM: &api.NodeGroupIAM{
+							WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
+								ImageBuilder:   api.Disabled(),
+								AutoScaler:     api.Disabled(),
+								ExternalDNS:    api.Disabled(),
+								CertManager:    api.Disabled(),
+								AppMesh:        api.Disabled(),
+								AppMeshPreview: api.Disabled(),
+								EBS:            api.Disabled(),
+								FSX:            api.Disabled(),
+								EFS:            api.Disabled(),
+								ALBIngress:     api.Disabled(),
+								XRay:           api.Disabled(),
+								CloudWatch:     api.Disabled(),
+							},
+						},
+						ScalingConfig: &api.ScalingConfig{},
+						SSH: &api.NodeGroupSSH{
+							Allow:         api.Disabled(),
+							PublicKeyPath: &api.DefaultNodeSSHPublicKeyPath,
+						},
+					},
+					AMI: "",
 					SecurityGroups: &api.NodeGroupSGs{
 						WithLocal:  api.Enabled(),
 						WithShared: api.Enabled(),
 						AttachIDs:  []string{},
 					},
-					DesiredCapacity: nil,
-					VolumeSize:      aws.Int(2),
+
 					VolumeType:      aws.String(api.NodeVolumeTypeSC1),
 					VolumeName:      aws.String("/dev/xvda"),
 					VolumeEncrypted: api.Disabled(),
 					VolumeKmsKeyID:  aws.String(""),
-					IAM: &api.NodeGroupIAM{
-						WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
-							ImageBuilder:   api.Disabled(),
-							AutoScaler:     api.Disabled(),
-							ExternalDNS:    api.Disabled(),
-							CertManager:    api.Disabled(),
-							AppMesh:        api.Disabled(),
-							AppMeshPreview: api.Disabled(),
-							EBS:            api.Disabled(),
-							FSX:            api.Disabled(),
-							EFS:            api.Disabled(),
-							ALBIngress:     api.Disabled(),
-							XRay:           api.Disabled(),
-							CloudWatch:     api.Disabled(),
-						},
-					},
-					SSH: &api.NodeGroupSSH{
-						Allow:         api.Disabled(),
-						PublicKeyPath: &api.DefaultNodeSSHPublicKeyPath,
-					},
 				},
 			},
 		}
@@ -593,7 +597,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	}
 
 	roundtrip := func() {
-		It("should serialise JSON without errors, and parse the teamplate", func() {
+		It("should serialise JSON without errors, and parse the template", func() {
 			ngTemplate = &Template{}
 			{
 				templateBody, err := ngrs.RenderJSON()
@@ -2881,14 +2885,18 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 	})
 
+	maxSpotPrice := 0.045
+	baseCap := 40
+	percentageOnDemand := 20
+	pools := 3
+	spotAllocationStrategy := "lowest-price"
+	zero := 0
+	cpuCreditsUnlimited := "unlimited"
+	cpuCreditsStandard := "standard"
+
 	Context("Nodegroup with Mixed instances", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
-		maxSpotPrice := 0.045
-		baseCap := 40
-		percentageOnDemand := 20
-		pools := 3
-		spotAllocationStrategy := "lowest-price"
 		ng.InstanceType = "mixed"
 		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
 			MaxPrice:                            &maxSpotPrice,
@@ -2899,7 +2907,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 			SpotAllocationStrategy:              &spotAllocationStrategy,
 		}
 
-		zero := 0
 		ng.MinSize = &zero
 		ng.MaxSize = &zero
 
@@ -2933,11 +2940,74 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		})
 	})
+
+	Context("NodeGroup{CPUCredits=nil}", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		build(cfg, "eksctl-test-t3-unlimited", ng)
+
+		roundtrip()
+
+		It("should have correct resources and attributes", func() {
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification).To(BeNil())
+		})
+	})
+
+	Context("NodeGroup{CPUCredits=standard InstancesDistribution.InstanceTypes=t3.medium,t3a.medium}", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.InstanceType = "mixed"
+		ng.CPUCredits = &cpuCreditsStandard
+		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
+			MaxPrice:                            &maxSpotPrice,
+			InstanceTypes:                       []string{"t3.medium", "t3a.medium"},
+			OnDemandBaseCapacity:                &baseCap,
+			OnDemandPercentageAboveBaseCapacity: &percentageOnDemand,
+			SpotInstancePools:                   &pools,
+			SpotAllocationStrategy:              &spotAllocationStrategy,
+		}
+
+		build(cfg, "eksctl-test-t3-unlimited", ng)
+
+		roundtrip()
+
+		It("should have correct resources and attributes", func() {
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification).ToNot(BeNil())
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).ToNot(BeNil())
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).To(Equal("standard"))
+		})
+	})
+
+	Context("NodeGroup{CPUCredits=unlimited InstancesDistribution.InstanceTypes=t3.medium,t3a.medium}", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.InstanceType = "mixed"
+		ng.CPUCredits = &cpuCreditsUnlimited
+		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
+			MaxPrice:                            &maxSpotPrice,
+			InstanceTypes:                       []string{"t3.medium", "t3a.medium"},
+			OnDemandBaseCapacity:                &baseCap,
+			OnDemandPercentageAboveBaseCapacity: &percentageOnDemand,
+			SpotInstancePools:                   &pools,
+			SpotAllocationStrategy:              &spotAllocationStrategy,
+		}
+
+		build(cfg, "eksctl-test-t3-unlimited", ng)
+
+		roundtrip()
+
+		It("should have correct resources and attributes", func() {
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification).ToNot(BeNil())
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).ToNot(BeNil())
+			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).To(Equal("unlimited"))
+		})
+	})
+
 })
 
 func setSubnets(cfg *api.ClusterConfig) {
 	It("should not error when calling SetSubnets", func() {
-		err := vpc.SetSubnets(cfg)
+		err := vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones)
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 

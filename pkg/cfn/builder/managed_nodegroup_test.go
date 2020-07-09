@@ -106,11 +106,13 @@ func TestManagedNodeRole(t *testing.T) {
 		{
 			description: "InstanceRoleARN is not provided",
 			nodeGroup: &api.ManagedNodeGroup{
-				ScalingConfig: &api.ScalingConfig{},
-				SSH: &api.NodeGroupSSH{
-					Allow: api.Disabled(),
+				NodeGroupBase: &api.NodeGroupBase{
+					ScalingConfig: &api.ScalingConfig{},
+					SSH: &api.NodeGroupSSH{
+						Allow: api.Disabled(),
+					},
+					IAM: &api.NodeGroupIAM{},
 				},
-				IAM: &api.NodeGroupIAM{},
 			},
 			expectedNewRole:     true,
 			expectedNodeRoleARN: fmt.Sprintf("\"Fn::GetAtt\":\"%s.Arn\"", cfnIAMInstanceRoleName), // creating new role
@@ -118,12 +120,14 @@ func TestManagedNodeRole(t *testing.T) {
 		{
 			description: "InstanceRoleARN is provided",
 			nodeGroup: &api.ManagedNodeGroup{
-				ScalingConfig: &api.ScalingConfig{},
-				SSH: &api.NodeGroupSSH{
-					Allow: api.Disabled(),
-				},
-				IAM: &api.NodeGroupIAM{
-					InstanceRoleARN: "arn::DUMMY::DUMMYROLE",
+				NodeGroupBase: &api.NodeGroupBase{
+					ScalingConfig: &api.ScalingConfig{},
+					SSH: &api.NodeGroupSSH{
+						Allow: api.Disabled(),
+					},
+					IAM: &api.NodeGroupIAM{
+						InstanceRoleARN: "arn::DUMMY::DUMMYROLE",
+					},
 				},
 			},
 			expectedNewRole:     false,

@@ -267,6 +267,7 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_La
 			HttpPutResponseHopLimit: gfn.NewInteger(2),
 		},
 	}
+
 	if !api.HasMixedInstances(n.spec) {
 		launchTemplateData.InstanceType = gfn.NewString(n.spec.InstanceType)
 	} else {
@@ -274,6 +275,12 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_La
 	}
 	if n.spec.EBSOptimized != nil {
 		launchTemplateData.EbsOptimized = gfn.NewBoolean(*n.spec.EBSOptimized)
+	}
+
+	if n.spec.CPUCredits != nil {
+		launchTemplateData.CreditSpecification = &gfn.AWSEC2LaunchTemplate_CreditSpecification{
+			CpuCredits: gfn.NewString(strings.ToLower(*n.spec.CPUCredits)),
+		}
 	}
 
 	return launchTemplateData
