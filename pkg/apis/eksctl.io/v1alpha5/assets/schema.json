@@ -741,6 +741,11 @@
           "x-intellij-html-description": "<a href=\"/usage/vpc-networking/#custom-cluster-dns-address\">Custom address</a> used for DNS lookups",
           "default": ""
         },
+        "cpuCredits": {
+          "type": "string",
+          "description": "configures [T3 Unlimited](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html), valid only for T-type instances",
+          "x-intellij-html-description": "configures <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html\">T3 Unlimited</a>, valid only for T-type instances"
+        },
         "desiredCapacity": {
           "type": "integer"
         },
@@ -748,11 +753,6 @@
           "type": "boolean",
           "description": "enables [EBS optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)",
           "x-intellij-html-description": "enables <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html\">EBS optimization</a>"
-        },
-        "cpuCredits": {
-          "type": "string",
-          "description": "configures [T3 Unlimited](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html), valid only for T-type instances. Possible values: 'unlimited' or 'standard'.",
-          "x-intellij-html-description": "configures <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html\">T3 Unlimited</a>, valid only for T-type instances.  Possible values: 'unlimited' or 'standard'."
         },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
