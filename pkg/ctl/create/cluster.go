@@ -11,6 +11,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
+	"github.com/weaveworks/eksctl/pkg/utils"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
@@ -162,6 +163,12 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		return err
 	}
 	if params.InstallWindowsVPCController {
+		if isMin1_16, err := utils.IsMinVersion(api.Version1_16, cfg.Metadata.Version); err != nil {
+			return err
+		} else if isMin1_16 {
+			logger.Warning("starting with EKS 1.16 the VPC controller runs on the EKS control plane, --install-vpc-controller is therefore deprecated")
+			params.InstallWindowsVPCController = false
+		}
 		if !eks.SupportsWindowsWorkloads(kubeNodeGroups) {
 			return errors.New("running Windows workloads requires having both Windows and Linux (AmazonLinux2) node groups")
 		}

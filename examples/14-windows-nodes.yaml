@@ -1,5 +1,5 @@
 # An example of ClusterConfig containing Windows and Linux node groups to support Windows workloads
-# This example should be run with `eksctl create cluster -f 14-windows-nodes.yaml --install-vpc-controllers`
+# This example should be run with `eksctl create cluster -f 14-windows-nodes.yaml`
 ---
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig

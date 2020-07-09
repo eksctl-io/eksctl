@@ -181,8 +181,11 @@ func LogWindowsCompatibility(nodeGroups []KubeNodeGroup, clusterMeta *api.Cluste
 			logger.Warning("a Linux node group is required to support Windows workloads")
 			logger.Warning("add it using 'eksctl create nodegroup --cluster=%s --node-ami-family=%s'", clusterMeta.Name, api.NodeImageFamilyAmazonLinux2)
 		}
-		logger.Warning("Windows VPC resource controller is required to run Windows workloads")
-		logger.Warning("install it using 'eksctl utils install-vpc-controllers --name=%s --region=%s --approve'", clusterMeta.Name, clusterMeta.Region)
+		isMin1_16, _ := utils.IsMinVersion(api.Version1_16, clusterMeta.Version)
+		if !isMin1_16 {
+			logger.Warning("Windows VPC resource controller is required to run Windows workloads")
+			logger.Warning("install it using 'eksctl utils install-vpc-controllers --name=%s --region=%s --approve'", clusterMeta.Name, clusterMeta.Region)
+		}
 	}
 }
 
