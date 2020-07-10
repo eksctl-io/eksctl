@@ -11,8 +11,9 @@ import (
 )
 
 type scaleNodeGroupCase struct {
-	name  string
-	error error
+	name    string
+	error   error
+	minSize *int
 }
 
 var _ = Describe("scale node group config file loader", func() {
@@ -22,6 +23,7 @@ var _ = Describe("scale node group config file loader", func() {
 			Run: func(_ *cobra.Command, _ []string) {},
 		}
 	}
+	minSizeOne := 1
 
 	DescribeTable("create nodegroup successfully",
 		func(params scaleNodeGroupCase) {
@@ -39,6 +41,9 @@ var _ = Describe("scale node group config file loader", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(params.error.Error()))
 			} else {
+				if params.minSize != nil {
+					Expect(ng.MinSize).To(Equal(params.minSize))
+				}
 				Expect(err).ToNot(HaveOccurred())
 			}
 		},
@@ -57,7 +62,8 @@ var _ = Describe("scale node group config file loader", func() {
 			name: "ng-no-min-max",
 		}),
 		Entry("ng with minSize", scaleNodeGroupCase{
-			name: "ng-with-min",
+			name:    "ng-with-min",
+			minSize: &minSizeOne,
 		}),
 		Entry("ng with wrong value for minSize", scaleNodeGroupCase{
 			name:  "ng-with-wrong-min",
