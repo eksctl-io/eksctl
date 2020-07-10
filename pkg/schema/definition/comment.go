@@ -15,15 +15,6 @@ var (
 	pTags               = regexp.MustCompile("(<p>)|(</p>)")
 )
 
-func interpretReference(ref string) (string, string) {
-	splits := strings.Split(ref, ".")
-	var pkg string
-	if len(splits) > 1 {
-		pkg = strings.Join(splits[:len(splits)-1], "")
-	}
-	return pkg, splits[len(splits)-1]
-}
-
 // handleComment interprets as much as it can from the comment and saves this
 // information in the Definition
 func (dg *Generator) handleComment(rawName, comment string, def *Definition) (bool, error) {
