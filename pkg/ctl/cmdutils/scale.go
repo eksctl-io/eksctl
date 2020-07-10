@@ -30,6 +30,7 @@ func NewScaleNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup) ClusterConfigLoader {
 		if err := validateNumberOfNodes(loadedNG); err != nil {
 			return err
 		}
+		*ng = *loadedNG
 		l.Plan = false
 		return nil
 	}
