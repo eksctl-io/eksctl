@@ -112,14 +112,17 @@ const (
 	// Version1_16 represents Kubernetes version 1.16.x
 	Version1_16 = "1.16"
 
-	// Version1_17 represents Kubernetes version 1.16.x
+	// Version1_17 represents Kubernetes version 1.17.x
 	Version1_17 = "1.17"
+
+	// Version1_18 represents Kubernetes version 1.18.x
+	Version1_18 = "1.18"
 
 	// DefaultVersion represents default Kubernetes version supported by EKS
 	DefaultVersion = Version1_16
 
 	// LatestVersion represents latest Kubernetes version supported by EKS
-	LatestVersion = Version1_16
+	LatestVersion = Version1_17
 
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
@@ -334,6 +337,7 @@ func SupportedVersions() []string {
 		Version1_14,
 		Version1_15,
 		Version1_16,
+		Version1_17,
 	}
 }
 
