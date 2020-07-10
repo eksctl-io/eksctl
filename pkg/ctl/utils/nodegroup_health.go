@@ -29,18 +29,18 @@ func nodeGroupHealthCmd(cmd *cmdutils.Cmd) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
 		fs.StringVarP(&nodeGroupName, "name", "n", "", "Name of the nodegroup")
 
-		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
+		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
 func getNodeGroupHealth(cmd *cmdutils.Cmd, nodeGroupName string) error {
 	cfg := cmd.ClusterConfig
 
-	ctl := eks.New(cmd.ProviderConfig, cmd.ClusterConfig)
+	ctl := eks.New(&cmd.ProviderConfig, cmd.ClusterConfig)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err

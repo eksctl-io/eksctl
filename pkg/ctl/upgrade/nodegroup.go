@@ -34,7 +34,7 @@ func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 		fs.StringVarP(&cfg.Metadata.Name, "cluster", "", "", "EKS cluster name")
 		fs.StringVarP(&options.nodeGroupName, "name", "", "", "Nodegroup name")
 		fs.StringVarP(&options.kubernetesVersion, "kubernetes-version", "", "", "Kubernetes version")
-		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
+		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmd.Wait = true
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "nodegroup upgrade to complete")
@@ -43,7 +43,7 @@ func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, 35*time.Minute)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 
 }
 
@@ -65,7 +65,7 @@ func upgradeNodeGroup(cmd *cmdutils.Cmd, options upgradeOptions) error {
 		return cmdutils.ErrMustBeSet("name")
 	}
 
-	ctl := eks.New(cmd.ProviderConfig, cmd.ClusterConfig)
+	ctl := eks.New(&cmd.ProviderConfig, cmd.ClusterConfig)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err

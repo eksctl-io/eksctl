@@ -116,7 +116,7 @@ func NewGetFargateProfileLoader(cmd *Cmd, options *fargate.Options) ClusterConfi
 
 func flagsIncompatibleWithConfigFileExcept(items ...string) sets.String {
 	set := sets.NewString(fargateProfileFlagsIncompatibleWithConfigFile...)
-	set = set.Union(defaultFlagsIncompatibleWithConfigFile)
+	set = set.Union(sets.NewString(defaultFlagsIncompatibleWithConfigFile[:]...))
 	set.Delete(items...)
 	return set
 }

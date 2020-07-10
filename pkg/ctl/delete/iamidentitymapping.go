@@ -29,12 +29,12 @@ func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 		fs.BoolVar(&all, "all", false, "Delete all matching mappings instead of just one")
 		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &arn)
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
+		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
 func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, all bool) error {

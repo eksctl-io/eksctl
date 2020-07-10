@@ -20,7 +20,7 @@ type Cmd struct {
 
 	ClusterConfigFile string
 
-	ProviderConfig *api.ProviderConfig
+	ProviderConfig api.ProviderConfig
 	ClusterConfig  *api.ClusterConfig
 
 	Include, Exclude []string
@@ -58,10 +58,10 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 		}
 	}
 
-	ctl := eks.New(c.ProviderConfig, c.ClusterConfig)
+	ctl := eks.New(&c.ProviderConfig, c.ClusterConfig)
 
 	if !ctl.IsSupportedRegion() {
-		return nil, ErrUnsupportedRegion(c.ProviderConfig)
+		return nil, ErrUnsupportedRegion(&c.ProviderConfig)
 	}
 
 	return ctl, nil
@@ -71,7 +71,7 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 func AddResourceCmd(flagGrouping *FlagGrouping, parentVerbCmd *cobra.Command, newCmd func(*Cmd)) {
 	c := &Cmd{
 		CobraCommand:   &cobra.Command{},
-		ProviderConfig: &api.ProviderConfig{},
+		ProviderConfig: api.ProviderConfig{},
 
 		Plan:     true,  // always on by default
 		Wait:     false, // varies in some commands

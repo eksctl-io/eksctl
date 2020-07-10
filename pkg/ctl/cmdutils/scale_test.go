@@ -31,7 +31,7 @@ var _ = Describe("scale node group config file loader", func() {
 				CobraCommand:      newCmd(),
 				ClusterConfigFile: "test_data/scale-ng-test.yaml",
 				ClusterConfig:     api.NewClusterConfig(),
-				ProviderConfig:    &api.ProviderConfig{},
+				ProviderConfig:    api.ProviderConfig{},
 				NameArg:           params.name,
 			}
 
