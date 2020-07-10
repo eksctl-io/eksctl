@@ -7,6 +7,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
+	"github.com/weaveworks/go-git-providers/pkg/providers"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -81,4 +82,28 @@ func InstallProfile(cfg *api.ClusterConfig) error {
 	}
 
 	return nil
+}
+
+// DeleteKey deletes the authorized SSH key for the gitops repo if gitops are configured
+// Will not fail if the key was not previously authorized
+func DeleteKey(cfg *api.ClusterConfig) error {
+	if !cfg.HasGitopsRepoConfigured() {
+		return nil
+	}
+
+	provider, err := providers.GetProvider(cfg.Git.Repo.URL)
+	if err != nil {
+		logger.Warning("provider for URL %q not found. Skipping deletion of authorized repo key", cfg.Git.Repo.URL)
+		return nil
+	}
+
+	clusterKeyTitle := flux.KeyTitle(*cfg.Metadata)
+	logger.Info("deleting SSH key %q from repo %q", clusterKeyTitle, cfg.Git.Repo.URL)
+
+	err = provider.DeleteSSHKey(context.Background(), clusterKeyTitle)
+	if err != nil {
+		return errors.Wrapf(err, "unable to delete authorized key")
+	}
+	return nil
+
 }

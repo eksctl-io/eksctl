@@ -11,12 +11,12 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/fargate"
+	"github.com/weaveworks/eksctl/pkg/gitops"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/elb"
-	"github.com/weaveworks/eksctl/pkg/gitops/deploykey"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
@@ -186,7 +186,7 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 	}
 
 	{
-		if err := deploykey.Delete(context.Background(), cfg); err != nil {
+		if err := gitops.DeleteKey(cfg); err != nil {
 			return err
 		}
 	}
