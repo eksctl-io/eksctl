@@ -831,7 +831,8 @@ type Operator struct {
 // and add to the Git repository.
 type Profile struct {
 
-	// Name or URL of the Quick Start profile. For example, app-dev
+	// Name or URL of the Quick Start profile
+	// For example: `app-dev`
 	Source string `json:"source,omitempty"`
 
 	// Revision of the Quick Start profile. Can be a branch, tag or commit hash

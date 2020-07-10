@@ -1228,9 +1228,12 @@
         },
         "source": {
           "type": "string",
-          "description": "Name or URL of the Quick Start profile. For example, app-dev",
-          "x-intellij-html-description": "Name or URL of the Quick Start profile. For example, app-dev",
-          "default": ""
+          "description": "Name or URL of the Quick Start profile",
+          "x-intellij-html-description": "Name or URL of the Quick Start profile",
+          "default": "",
+          "examples": [
+            "app-dev"
+          ]
         }
       },
       "preferredOrder": [
