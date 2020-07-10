@@ -774,7 +774,8 @@ func NewGit() *Git {
 // Repo groups all configuration options related to a Git repository used for
 // GitOps.
 type Repo struct {
-	// The Git SSH URL to the repository which will contain the cluster configuration, e.g. git@github.com:org/repo
+	// The Git SSH URL to the repository which will contain the cluster configuration
+	// For example: `git@github.com:org/repo`
 	URL string `json:"url,omitempty"`
 
 	// The git branch under which cluster configuration files will be committed & pushed, e.g. master

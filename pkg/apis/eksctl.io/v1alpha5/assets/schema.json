@@ -1279,9 +1279,12 @@
         },
         "url": {
           "type": "string",
-          "description": "The Git SSH URL to the repository which will contain the cluster configuration, e.g. git@github.com:org/repo",
-          "x-intellij-html-description": "The Git SSH URL to the repository which will contain the cluster configuration, e.g. git@github.com:org/repo",
-          "default": ""
+          "description": "The Git SSH URL to the repository which will contain the cluster configuration",
+          "x-intellij-html-description": "The Git SSH URL to the repository which will contain the cluster configuration",
+          "default": "",
+          "examples": [
+            "git@github.com:org/repo"
+          ]
         },
         "user": {
           "type": "string",
