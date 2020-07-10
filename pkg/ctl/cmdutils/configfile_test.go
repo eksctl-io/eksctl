@@ -1,4 +1,4 @@
-package cmdutils_test
+package cmdutils
 
 import (
 	"path/filepath"
@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/cobra"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	. "github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 )
 
@@ -77,6 +76,47 @@ var _ = Describe("cmdutils configfile", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal(ErrCannotUseWithConfigFile("--cluster").Error()))
 			}
+		})
+
+		Describe("name argument", func() {
+			When("given as --name switch", func() {
+				It("succeeds", func() {
+					cfg := api.NewClusterConfig()
+					cobraCmd := newCmd()
+					name := "foo-2"
+					cobraCmd.SetArgs([]string{"--name", name})
+
+					cmd := &Cmd{
+						ClusterConfig:     cfg,
+						NameArg:           name,
+						CobraCommand:      cobraCmd,
+						ClusterConfigFile: examplesDir + "01-simple-cluster.yaml",
+						ProviderConfig:    &api.ProviderConfig{},
+					}
+					l := newCommonClusterConfigLoader(cmd)
+					l.flagsIncompatibleWithConfigFile.Delete("name")
+
+					err := l.Load()
+					Expect(err).ToNot(HaveOccurred())
+				})
+			})
+			When("given as positional argument", func() {
+				It("succeeds", func() {
+					cfg := api.NewClusterConfig()
+					cmd := &Cmd{
+						ClusterConfig:     cfg,
+						NameArg:           "foo-2",
+						CobraCommand:      newCmd(),
+						ClusterConfigFile: examplesDir + "01-simple-cluster.yaml",
+						ProviderConfig:    &api.ProviderConfig{},
+					}
+					l := newCommonClusterConfigLoader(cmd)
+					l.flagsIncompatibleWithConfigFile.Delete("name")
+
+					err := l.Load()
+					Expect(err).ToNot(HaveOccurred())
+				})
+			})
 		})
 
 		It("load all of example file", func() {
