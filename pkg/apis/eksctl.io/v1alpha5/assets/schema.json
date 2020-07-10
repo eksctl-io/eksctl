@@ -251,8 +251,8 @@
         "tags"
       ],
       "additionalProperties": false,
-      "description": "holds an iamserviceaccount metadata and configuration",
-      "x-intellij-html-description": "holds an iamserviceaccount metadata and configuration"
+      "description": "holds an IAM service account metadata and configuration",
+      "x-intellij-html-description": "holds an IAM service account metadata and configuration"
     },
     "ClusterIAMServiceAccountStatus": {
       "properties": {
@@ -264,8 +264,8 @@
         "roleARN"
       ],
       "additionalProperties": false,
-      "description": "holds status of iamserviceaccount",
-      "x-intellij-html-description": "holds status of iamserviceaccount"
+      "description": "holds status of the IAM service account",
+      "x-intellij-html-description": "holds status of the IAM service account"
     },
     "ClusterMeta": {
       "required": [

@@ -175,7 +175,7 @@ const (
 	// OldNodeGroupIDTag defines the old version of tag of the nodegroup name
 	OldNodeGroupIDTag = "eksctl.cluster.k8s.io/v1alpha1/nodegroup-id"
 
-	// IAMServiceAccountNameTag defines the tag of the iamserviceaccount name
+	// IAMServiceAccountNameTag defines the tag of the IAM service account name
 	IAMServiceAccountNameTag = "alpha.eksctl.io/iamserviceaccount-name"
 
 	// ClusterNameLabel defines the tag of the cluster name
