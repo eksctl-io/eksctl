@@ -9,13 +9,13 @@ import (
 // NewScaleNodeGroupLoader will load config or use flags for 'eksctl scale nodegroup'
 func NewScaleNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
-	l.nameArgumentAllowed = true
 
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"nodes",
 		"nodes-min",
 		"nodes-max",
 	)
+	l.flagsIncompatibleWithConfigFile.Delete("name")
 
 	l.validateWithConfigFile = func() error {
 		if err := validateNameArgument(cmd, ng); err != nil {

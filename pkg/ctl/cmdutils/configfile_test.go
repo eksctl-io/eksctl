@@ -62,7 +62,7 @@ var _ = Describe("cmdutils configfile", func() {
 
 				err := NewMetadataLoader(cmd).Load()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal(ErrCannotUseWithConfigFile(`name argument "foo-3"`).Error()))
+				Expect(err.Error()).To(Equal(ErrCannotUseWithConfigFile(`name argument`).Error()))
 
 				fs := cmd.CobraCommand.Flags()
 

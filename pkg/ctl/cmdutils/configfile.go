@@ -32,7 +32,6 @@ type commonClusterConfigLoader struct {
 	flagsIncompatibleWithoutConfigFile sets.String
 	validateWithConfigFile             func() error
 	validateWithoutConfigFile          func() error
-	nameArgumentAllowed                bool
 }
 
 var (
@@ -99,10 +98,8 @@ func (l *commonClusterConfigLoader) Load() error {
 		}
 	}
 
-	if !l.nameArgumentAllowed {
-		if l.NameArg != "" {
-			return ErrCannotUseWithConfigFile(fmt.Sprintf("name argument %q", l.NameArg))
-		}
+	if l.flagsIncompatibleWithConfigFile.Has("name") && l.NameArg != "" {
+		return ErrCannotUseWithConfigFile("name argument")
 	}
 
 	if meta.Name == "" {
