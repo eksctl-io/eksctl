@@ -27,8 +27,12 @@ type Config struct {
 const (
 	// firstKind is legacy
 	firstKind = "FirstKind" // nolint:deadcode,varcheck,unused
-	// secondKind should be used (default)
+	// secondKind should be used
 	secondKind = "SecondKind" // nolint:deadcode,varcheck,unused
+	// thirdKind is from some other package
+	thirdKind = subpkg.SpecialKind // nolint:deadcode,varcheck,unused
+	// defaultKind (default) and this comment combines with secondKind
+	defaultKind = secondKind // nolint:deadcode,varcheck,unused
 )
 
 // Alias is just an int
