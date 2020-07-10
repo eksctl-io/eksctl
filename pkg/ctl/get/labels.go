@@ -31,11 +31,11 @@ func getLabelsCmd(cmd *cmdutils.Cmd) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
 		fs.StringVarP(&nodeGroupName, "nodegroup", "n", "", "Nodegroup name")
 
-		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
+		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 
 }
 
@@ -55,7 +55,7 @@ func getLabels(cmd *cmdutils.Cmd, nodeGroupName string) error {
 		return cmdutils.ErrUnsupportedNameArg()
 	}
 
-	ctl := eks.New(cmd.ProviderConfig, cmd.ClusterConfig)
+	ctl := eks.New(&cmd.ProviderConfig, cmd.ClusterConfig)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err

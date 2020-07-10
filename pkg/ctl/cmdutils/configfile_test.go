@@ -91,7 +91,7 @@ var _ = Describe("cmdutils configfile", func() {
 						NameArg:           name,
 						CobraCommand:      cobraCmd,
 						ClusterConfigFile: examplesDir + "01-simple-cluster.yaml",
-						ProviderConfig:    &api.ProviderConfig{},
+						ProviderConfig:    api.ProviderConfig{},
 					}
 					l := newCommonClusterConfigLoader(cmd)
 					l.flagsIncompatibleWithConfigFile.Delete("name")
@@ -108,7 +108,7 @@ var _ = Describe("cmdutils configfile", func() {
 						NameArg:           "foo-2",
 						CobraCommand:      newCmd(),
 						ClusterConfigFile: examplesDir + "01-simple-cluster.yaml",
-						ProviderConfig:    &api.ProviderConfig{},
+						ProviderConfig:    api.ProviderConfig{},
 					}
 					l := newCommonClusterConfigLoader(cmd)
 					l.flagsIncompatibleWithConfigFile.Delete("name")
@@ -129,7 +129,7 @@ var _ = Describe("cmdutils configfile", func() {
 					CobraCommand:      newCmd(),
 					ClusterConfigFile: example,
 					ClusterConfig:     api.NewClusterConfig(),
-					ProviderConfig:    &api.ProviderConfig{},
+					ProviderConfig:    api.ProviderConfig{},
 				}
 
 				err := NewMetadataLoader(cmd).Load()
@@ -162,7 +162,7 @@ var _ = Describe("cmdutils configfile", func() {
 					CobraCommand:      newCmd(),
 					ClusterConfigFile: filepath.Join(examplesDir, natTest.configFile),
 					ClusterConfig:     api.NewClusterConfig(),
-					ProviderConfig:    &api.ProviderConfig{},
+					ProviderConfig:    api.ProviderConfig{},
 				}
 
 				params := &CreateClusterCmdParams{WithoutNodeGroup: true, Managed: false}
@@ -212,7 +212,7 @@ var _ = Describe("cmdutils configfile", func() {
 				cmd := &Cmd{
 					CobraCommand:   newCmd(),
 					ClusterConfig:  api.NewClusterConfig(),
-					ProviderConfig: &api.ProviderConfig{},
+					ProviderConfig: api.ProviderConfig{},
 				}
 
 				ngFilter := filter.NewNodeGroupFilter()
@@ -276,7 +276,7 @@ var _ = Describe("cmdutils configfile", func() {
 					CobraCommand:      newCmd(),
 					ClusterConfigFile: filepath.Join(examplesDir, loaderTest.configFile),
 					ClusterConfig:     api.NewClusterConfig(),
-					ProviderConfig:    &api.ProviderConfig{},
+					ProviderConfig:    api.ProviderConfig{},
 				}
 
 				ngFilter := filter.NewNodeGroupFilter()
@@ -310,7 +310,7 @@ var _ = Describe("cmdutils configfile", func() {
 					CobraCommand:      newCmd(),
 					ClusterConfigFile: configFilePath,
 					ClusterConfig:     api.NewClusterConfig(),
-					ProviderConfig:    &api.ProviderConfig{},
+					ProviderConfig:    api.ProviderConfig{},
 				}
 
 				params := &CreateClusterCmdParams{

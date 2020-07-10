@@ -25,14 +25,14 @@ func describeStacksCmd(cmd *cmdutils.Cmd) {
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
+		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		fs.BoolVar(&all, "all", false, "include deleted stacks")
 		fs.BoolVar(&events, "events", false, "include stack events")
 		fs.BoolVar(&trail, "trail", false, "lookup CloudTrail events for the cluster")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
 func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool) error {

@@ -41,7 +41,7 @@ func waitNodesCmd(cmd *cmdutils.Cmd) {
 func doWaitNodes(cmd *cmdutils.Cmd, ng *api.NodeGroup, kubeconfigPath string) error {
 	cfg := cmd.ClusterConfig
 
-	ctl := eks.New(cmd.ProviderConfig, cfg)
+	ctl := eks.New(&cmd.ProviderConfig, cfg)
 
 	if kubeconfigPath == "" {
 		return cmdutils.ErrMustBeSet("--kubeconfig")
