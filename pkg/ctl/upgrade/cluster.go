@@ -21,6 +21,8 @@ func upgradeCluster(cmd *cmdutils.Cmd) {
 
 func upgradeClusterWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd) error) {
 	cfg := api.NewClusterConfig()
+	// Reset version
+	cfg.Metadata.Version = ""
 	cmd.ClusterConfig = cfg
 
 	cmd.SetDescription("cluster", "Upgrade control plane to the next version",
