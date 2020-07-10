@@ -22,3 +22,5 @@ template: |
 replacers:
   - search: '/(@martina-if|@michaelbeaumont|@cPu1)(,)?/g'
     replace: ''
+exclude-labels:
+  - 'skip-release-notes'
