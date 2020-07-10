@@ -30,9 +30,14 @@ jobs:
         with:
           github-token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
           script: |
-            await github.pulls.create({
+            const { data: pr } = await github.pulls.create({
               ...context.repo,
               title: `Merge ${context.ref} to ${{ env.DEFAULT_BRANCH }}`,
               head: `merge-${context.sha}`,
               base: "${{ env.DEFAULT_BRANCH }}",
+            });
+            await github.issues.addLabels({
+              ...context.repo,
+              issue_number: pr.number,
+              labels: ["skip-release-notes"],
             });
