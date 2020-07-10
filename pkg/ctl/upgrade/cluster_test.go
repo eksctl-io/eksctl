@@ -61,8 +61,13 @@ var _ = Describe("upgrade cluster", func() {
 
 			cfg := cmd.Cmd.ClusterConfig
 			Expect(cfg.Metadata.Name).To(Equal("clus-1"))
+
+			// The version should be empty when not specified as a flag
+			Expect(cfg.Metadata.Version).To(Equal(""))
+
 			// I cannot test the region here because this flag is loaded into the cmd.ProviderConfig.Region
 			//Expect(cfg.Metadata.Region).To(Equal("us-west-2"))
+
 			Expect(cmd.Cmd.ProviderConfig.Region).To(Equal("us-west-2"))
 			Expect(cmd.Cmd.Plan).To(BeFalse())
 			Expect(cmd.Cmd.ProviderConfig.WaitTimeout).To(Equal(123 * time.Minute))
@@ -147,6 +152,18 @@ var _ = Describe("upgrade cluster", func() {
 			Expect(loadedCfg.Region).To(Equal("us-west-2"))
 			Expect(loadedCfg.Version).To(Equal("1.16"))
 		})
+
+		It("when not specified in the config file the version is empty", func() {
+			cfg.Metadata.Version = ""
+			configFile = CreateConfigFile(cfg)
+
+			cmd := newMockUpgradeClusterCmd("cluster", "--config-file", configFile)
+			_, err := cmd.Execute()
+			Expect(err).To(Not(HaveOccurred()))
+
+			loadedCfg := cmd.Cmd.ClusterConfig.Metadata
+			Expect(loadedCfg.Version).To(Equal(""))
+		})
 	})
 
 	type upgradeCase struct {
@@ -175,8 +192,8 @@ var _ = Describe("upgrade cluster", func() {
 
 		Entry("upgrades by default when the version is not specified", upgradeCase{
 			givenVersion:           "",
-			eksVersion:             "1.15",
-			expectedUpgradeVersion: "1.16",
+			eksVersion:             "1.16",
+			expectedUpgradeVersion: "1.17",
 			expectedUpgrade:        true,
 		}),
 
