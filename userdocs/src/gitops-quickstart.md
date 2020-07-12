@@ -179,7 +179,7 @@ Run this command from any directory in your file system. `eksctl` will clone
 your repository in a temporary directory that will be removed later.
 
 ```console
-enable profile app-dev \
+    eksctl enable profile app-dev \
         --git-url git@github.com:example/my-eks-config \
         --git-email your@email.com \
         --cluster your-cluster-name \
