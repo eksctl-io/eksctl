@@ -142,6 +142,12 @@ repository. For example, in GitHub, by adding it as a deploy key. There you
 can easily do this in the `Settings > Deploy keys > Add deploy key`. Just
 make sure you check `Allow write access` as well.
 
+By default, Flux git pull frequency is set to 5 minutes.
+You can tell Flux to sync the changes immediately with:
+```console
+fluxctl sync --k8s-fwd-ns flux
+```
+
 The next time Flux syncs from Git, it will start updating the cluster
 and actively deploying.
 
@@ -208,7 +214,19 @@ This will load gitops Quick Start manifests into your repo. It will use
 templating to add your cluster name and region to the configuration so that
 cluster components that need those values can work (e.g. `alb-ingress`).
 
-In our case we are going to see these new arrivals in the cluster:
+By default, Flux git pull frequency is set to 5 minutes.
+You can tell Flux to sync the changes immediately with:
+```console
+fluxctl sync --k8s-fwd-ns flux
+```
+
+The next time Flux syncs from Git, it will start updating the cluster
+and actively deploying.
+
+If you run `git pull` next, you will see that eksctl has committed them to your
+config repository already.
+
+In our case we are going to see these new arrivals running in the cluster:
 
 ```console
 $ kubectl get pods --all-namespaces
