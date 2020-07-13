@@ -82,6 +82,17 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
                 <span class="${valueClass}">${value}</span>
             </td>
         `;
+
+        // Whether our field has sub fields
+        let ref;
+        // This definition references another definition directly
+        if (definition.$ref) {
+            ref = definition.$ref;
+            // This definition is an array
+        } else if (definition.items && definition.items.$ref) {
+            ref = definition.items.$ref;
+        }
+
         if (definition.$ref) {
             // Check if the referenced description is a final one
             const refName = definition.$ref.replace("#/definitions/", "");
@@ -180,28 +191,9 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
         }
 
         // This definition references another definition
-        if (definition.$ref) {
+        if (ref) {
             yield html`
-                ${template(
-                    definitions,
-                    definition,
-                    definition.$ref,
-                    ident + 2,
-                    path
-                )}
-            `;
-        }
-
-        // This definition is an array
-        if (definition.items && definition.items.$ref) {
-            yield html`
-                ${template(
-                    definitions,
-                    definition,
-                    definition.items.$ref,
-                    ident + 2,
-                    path
-                )}
+                ${template(definitions, definition, ref, ident + 2, path)}
             `;
         }
     }
