@@ -18,7 +18,7 @@
             "Type": "AWS::EC2::NatGateway",
             "Properties": {
                 "AllocationId": {
-                    "Fn::GetAtt": "NATIP.AllocationId"
+                    "Fn::GetAtt": ["NATIP", "AllocationId"]
                 },
                 "SubnetId": {
                     "Ref": "SubnetPublicUSWEST2A"
@@ -36,7 +36,15 @@
         "NATIP": {
             "Type": "AWS::EC2::EIP",
             "Properties": {
-                "Domain": "vpc"
+                "Domain": "vpc",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/NATIP"
+                        }
+                    }
+                ]
             }
         },
         "NATPrivateSubnetRouteUSWEST2A": {

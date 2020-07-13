@@ -12,17 +12,18 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
-	gfn "github.com/weaveworks/goformation/cloudformation"
+	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 // A VPCEndpointResourceSet represents the resources required for VPC endpoints
 type VPCEndpointResourceSet struct {
 	provider        provider
 	rs              *resourceSet
-	vpc             *gfn.Value
+	vpc             *gfnt.Value
 	clusterConfig   *api.ClusterConfig
 	subnets         []subnetResource
-	clusterSharedSG *gfn.Value
+	clusterSharedSG *gfnt.Value
 }
 
 type provider interface {
@@ -31,7 +32,7 @@ type provider interface {
 }
 
 // NewVPCEndpointResourceSet creates a new VPCEndpointResourceSet
-func NewVPCEndpointResourceSet(provider provider, rs *resourceSet, clusterConfig *api.ClusterConfig, vpc *gfn.Value, subnets []subnetResource, clusterSharedSG *gfn.Value) *VPCEndpointResourceSet {
+func NewVPCEndpointResourceSet(provider provider, rs *resourceSet, clusterConfig *api.ClusterConfig, vpc *gfnt.Value, subnets []subnetResource, clusterSharedSG *gfnt.Value) *VPCEndpointResourceSet {
 	return &VPCEndpointResourceSet{
 		provider:        provider,
 		rs:              rs,
@@ -62,18 +63,18 @@ func (e *VPCEndpointResourceSet) AddResources() error {
 	}
 
 	for _, endpointDetail := range endpointServiceDetails {
-		endpoint := &gfn.AWSEC2VPCEndpoint{
-			ServiceName:     gfn.NewString(endpointDetail.ServiceName),
+		endpoint := &gfnec2.VPCEndpoint{
+			ServiceName:     gfnt.NewString(endpointDetail.ServiceName),
 			VpcId:           e.vpc,
-			VpcEndpointType: gfn.NewString(endpointDetail.EndpointType),
+			VpcEndpointType: gfnt.NewString(endpointDetail.EndpointType),
 		}
 
 		if endpointDetail.EndpointType == ec2.VpcEndpointTypeGateway {
-			endpoint.RouteTableIds = e.routeTableIDs()
+			endpoint.RouteTableIds = gfnt.NewSlice(e.routeTableIDs()...)
 		} else {
-			endpoint.SubnetIds = e.subnetsForAZs(endpointDetail.AvailabilityZones)
-			endpoint.PrivateDnsEnabled = gfn.NewBoolean(true)
-			endpoint.SecurityGroupIds = []*gfn.Value{e.clusterSharedSG}
+			endpoint.SubnetIds = gfnt.NewSlice(e.subnetsForAZs(endpointDetail.AvailabilityZones)...)
+			endpoint.PrivateDnsEnabled = gfnt.NewBoolean(true)
+			endpoint.SecurityGroupIds = gfnt.NewSlice(e.clusterSharedSG)
 		}
 
 		resourceName := fmt.Sprintf("VPCEndpoint%s", strings.ToUpper(
@@ -86,8 +87,8 @@ func (e *VPCEndpointResourceSet) AddResources() error {
 	return nil
 }
 
-func (e *VPCEndpointResourceSet) subnetsForAZs(azs []string) []*gfn.Value {
-	var subnetRefs []*gfn.Value
+func (e *VPCEndpointResourceSet) subnetsForAZs(azs []string) []*gfnt.Value {
+	var subnetRefs []*gfnt.Value
 	for _, az := range azs {
 		for _, subnet := range e.subnets {
 			if subnet.AvailabilityZone == az {
@@ -99,8 +100,8 @@ func (e *VPCEndpointResourceSet) subnetsForAZs(azs []string) []*gfn.Value {
 	return subnetRefs
 }
 
-func (e *VPCEndpointResourceSet) routeTableIDs() []*gfn.Value {
-	var routeTableIDs []*gfn.Value
+func (e *VPCEndpointResourceSet) routeTableIDs() []*gfnt.Value {
+	var routeTableIDs []*gfnt.Value
 	for _, subnet := range e.subnets {
 		routeTableIDs = append(routeTableIDs, subnet.RouteTable)
 	}
