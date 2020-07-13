@@ -21,16 +21,18 @@ func upgradeCluster(cmd *cmdutils.Cmd) {
 
 func upgradeClusterWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd) error) {
 	cfg := api.NewClusterConfig()
+	// Reset version
+	cfg.Metadata.Version = ""
 	cmd.ClusterConfig = cfg
 
 	cmd.SetDescription("cluster", "Upgrade control plane to the next version",
 		"Upgrade control plane to the next Kubernetes version if available. Will also perform any updates needed in the cluster stack if resources are missing.")
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
-		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
+		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 
@@ -189,6 +191,8 @@ func getNextVersion(currentVersion string) (string, error) {
 		return api.Version1_16, nil
 	case api.Version1_16:
 		return api.Version1_17, nil
+	case api.Version1_17:
+		return api.Version1_18, nil
 	default:
 		// version of control plane is not known to us, maybe we are just too old...
 		return "", fmt.Errorf("control plane version %q is not known to this version of eksctl, try to upgrade eksctl first", currentVersion)

@@ -260,6 +260,10 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		return err
 	}
 
+	if err := validateCPUCredits(ng); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -461,6 +465,35 @@ func validateInstancesDistribution(ng *NodeGroup) error {
 		if !isSpotAllocationStrategySupported(*distribution.SpotAllocationStrategy) {
 			return fmt.Errorf("spotAllocationStrategy should be one of: %v", strings.Join(supportedSpotAllocationStrategies(), ", "))
 		}
+	}
+
+	return nil
+}
+
+func validateCPUCredits(ng *NodeGroup) error {
+	isTInstance := false
+	instanceTypes := []string{ng.InstanceType}
+
+	if ng.CPUCredits == nil {
+		return nil
+	}
+
+	if ng.InstanceType == "mixed" {
+		instanceTypes = ng.InstancesDistribution.InstanceTypes
+	}
+
+	for _, instanceType := range instanceTypes {
+		if strings.HasPrefix(instanceType, "t") {
+			isTInstance = true
+		}
+	}
+
+	if !isTInstance {
+		return fmt.Errorf("cpuCredits option set for nodegroup, but it has no t2/t3 instance types")
+	}
+
+	if strings.ToLower(*ng.CPUCredits) != "unlimited" && strings.ToLower(*ng.CPUCredits) != "standard" {
+		return fmt.Errorf("cpuCredits option accepts only one of 'standard' or 'unlimited'")
 	}
 
 	return nil

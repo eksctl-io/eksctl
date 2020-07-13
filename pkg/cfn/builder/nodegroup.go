@@ -267,6 +267,7 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfnec2.LaunchTemplate_Launc
 			HttpPutResponseHopLimit: gfnt.NewInteger(2),
 		},
 	}
+
 	if !api.HasMixedInstances(n.spec) {
 		launchTemplateData.InstanceType = gfnt.NewString(n.spec.InstanceType)
 	} else {
@@ -274,6 +275,12 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfnec2.LaunchTemplate_Launc
 	}
 	if n.spec.EBSOptimized != nil {
 		launchTemplateData.EbsOptimized = gfnt.NewBoolean(*n.spec.EBSOptimized)
+	}
+
+	if n.spec.CPUCredits != nil {
+		launchTemplateData.CreditSpecification = &gfnec2.LaunchTemplate_CreditSpecification{
+			CpuCredits: gfnt.NewString(strings.ToLower(*n.spec.CPUCredits)),
+		}
 	}
 
 	return launchTemplateData

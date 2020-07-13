@@ -112,14 +112,17 @@ const (
 	// Version1_16 represents Kubernetes version 1.16.x
 	Version1_16 = "1.16"
 
-	// Version1_17 represents Kubernetes version 1.16.x
+	// Version1_17 represents Kubernetes version 1.17.x
 	Version1_17 = "1.17"
+
+	// Version1_18 represents Kubernetes version 1.18.x
+	Version1_18 = "1.18"
 
 	// DefaultVersion represents default Kubernetes version supported by EKS
 	DefaultVersion = Version1_16
 
 	// LatestVersion represents latest Kubernetes version supported by EKS
-	LatestVersion = Version1_16
+	LatestVersion = Version1_17
 
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
@@ -172,7 +175,7 @@ const (
 	// OldNodeGroupIDTag defines the old version of tag of the nodegroup name
 	OldNodeGroupIDTag = "eksctl.cluster.k8s.io/v1alpha1/nodegroup-id"
 
-	// IAMServiceAccountNameTag defines the tag of the iamserviceaccount name
+	// IAMServiceAccountNameTag defines the tag of the IAM service account name
 	IAMServiceAccountNameTag = "alpha.eksctl.io/iamserviceaccount-name"
 
 	// ClusterNameLabel defines the tag of the cluster name
@@ -334,6 +337,7 @@ func SupportedVersions() []string {
 		Version1_14,
 		Version1_15,
 		Version1_16,
+		Version1_17,
 	}
 }
 
@@ -687,6 +691,10 @@ type NodeGroup struct {
 	// +optional
 	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
 
+	// CPUCredits configures [T3 Unlimited](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html), valid only for T-type instances
+	// +optional
+	CPUCredits *string `json:"cpuCredits,omitempty"`
+
 	// Valid variants are `VolumeType` constants
 	// +optional
 	VolumeType *string `json:"volumeType,omitempty"`
@@ -766,7 +774,8 @@ func NewGit() *Git {
 // Repo groups all configuration options related to a Git repository used for
 // GitOps.
 type Repo struct {
-	// The Git SSH URL to the repository which will contain the cluster configuration, e.g. git@github.com:org/repo
+	// The Git SSH URL to the repository which will contain the cluster configuration
+	// For example: `git@github.com:org/repo`
 	URL string `json:"url,omitempty"`
 
 	// The git branch under which cluster configuration files will be committed & pushed, e.g. master
@@ -822,7 +831,8 @@ type Operator struct {
 // and add to the Git repository.
 type Profile struct {
 
-	// Name or URL of the Quick Start profile. For example, app-dev
+	// Name or URL of the Quick Start profile
+	// For example: `app-dev`
 	Source string `json:"source,omitempty"`
 
 	// Revision of the Quick Start profile. Can be a branch, tag or commit hash

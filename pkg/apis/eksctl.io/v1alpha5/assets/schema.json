@@ -251,8 +251,8 @@
         "tags"
       ],
       "additionalProperties": false,
-      "description": "holds an iamserviceaccount metadata and configuration",
-      "x-intellij-html-description": "holds an iamserviceaccount metadata and configuration"
+      "description": "holds an IAM service account metadata and configuration",
+      "x-intellij-html-description": "holds an IAM service account metadata and configuration"
     },
     "ClusterIAMServiceAccountStatus": {
       "properties": {
@@ -264,8 +264,8 @@
         "roleARN"
       ],
       "additionalProperties": false,
-      "description": "holds status of iamserviceaccount",
-      "x-intellij-html-description": "holds status of iamserviceaccount"
+      "description": "holds status of the IAM service account",
+      "x-intellij-html-description": "holds status of the IAM service account"
     },
     "ClusterMeta": {
       "required": [
@@ -741,6 +741,11 @@
           "x-intellij-html-description": "<a href=\"/usage/vpc-networking/#custom-cluster-dns-address\">Custom address</a> used for DNS lookups",
           "default": ""
         },
+        "cpuCredits": {
+          "type": "string",
+          "description": "configures [T3 Unlimited](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html), valid only for T-type instances",
+          "x-intellij-html-description": "configures <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html\">T3 Unlimited</a>, valid only for T-type instances"
+        },
         "desiredCapacity": {
           "type": "integer"
         },
@@ -896,6 +901,7 @@
         "securityGroups",
         "asgMetricsCollection",
         "ebsOptimized",
+        "cpuCredits",
         "volumeType",
         "volumeName",
         "volumeEncrypted",
@@ -1222,9 +1228,12 @@
         },
         "source": {
           "type": "string",
-          "description": "Name or URL of the Quick Start profile. For example, app-dev",
-          "x-intellij-html-description": "Name or URL of the Quick Start profile. For example, app-dev",
-          "default": ""
+          "description": "Name or URL of the Quick Start profile",
+          "x-intellij-html-description": "Name or URL of the Quick Start profile",
+          "default": "",
+          "examples": [
+            "app-dev"
+          ]
         }
       },
       "preferredOrder": [
@@ -1273,9 +1282,12 @@
         },
         "url": {
           "type": "string",
-          "description": "The Git SSH URL to the repository which will contain the cluster configuration, e.g. git@github.com:org/repo",
-          "x-intellij-html-description": "The Git SSH URL to the repository which will contain the cluster configuration, e.g. git@github.com:org/repo",
-          "default": ""
+          "description": "The Git SSH URL to the repository which will contain the cluster configuration",
+          "x-intellij-html-description": "The Git SSH URL to the repository which will contain the cluster configuration",
+          "default": "",
+          "examples": [
+            "git@github.com:org/repo"
+          ]
         },
         "user": {
           "type": "string",

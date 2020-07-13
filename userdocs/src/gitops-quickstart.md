@@ -104,11 +104,11 @@ Run this command from any directory in your file system. `eksctl` will clone
 your repository in a temporary directory that will be removed later.
 
 ```console
-    eksctl enable repo \
-        --git-url git@github.com:example/my-eks-config \
-        --git-email your@email.com \
-        --cluster your-cluster-name \
-        --region your-cluster-region
+eksctl enable repo \
+    --git-url git@github.com:example/my-eks-config \
+    --git-email your@email.com \
+    --cluster your-cluster-name \
+    --region your-cluster-region
 ```
 
 Let us go through the specified arguments one by one:
@@ -179,11 +179,11 @@ Run this command from any directory in your file system. `eksctl` will clone
 your repository in a temporary directory that will be removed later.
 
 ```console
-enable profile app-dev \
-        --git-url git@github.com:example/my-eks-config \
-        --git-email your@email.com \
-        --cluster your-cluster-name \
-        --region your-cluster-region
+eksctl enable profile app-dev \
+    --git-url git@github.com:example/my-eks-config \
+    --git-email your@email.com \
+    --cluster your-cluster-name \
+    --region your-cluster-region
 ```
 
 Let us go through the specified arguments one by one:
@@ -343,9 +343,9 @@ Now please run:
 
 ```console
 eksctl generate profile \
-        --cluster wonderful-wardrobe-1565767990 \
-        --profile-source https://github.com/weaveworks/eks-quickstart-app-dev.git \
-        --profile-path ~/dev/flux-get-started/cluster-config
+    --cluster wonderful-wardrobe-1565767990 \
+    --profile-source https://github.com/weaveworks/eks-quickstart-app-dev.git \
+    --profile-path ~/dev/flux-get-started/cluster-config
 ```
 
 Let's break this down here. `eksctl generate profile` at the very

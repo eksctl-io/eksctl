@@ -32,23 +32,22 @@ type commonClusterConfigLoader struct {
 	flagsIncompatibleWithoutConfigFile sets.String
 	validateWithConfigFile             func() error
 	validateWithoutConfigFile          func() error
-	nameArgumentAllowed                bool
 }
 
 var (
-	defaultFlagsIncompatibleWithConfigFile = sets.NewString(
+	defaultFlagsIncompatibleWithConfigFile = [...]string{
 		"name",
 		"region",
 		"version",
 		"cluster",
 		"namepace",
-	)
-	defaultFlagsIncompatibleWithoutConfigFile = sets.NewString(
+	}
+	defaultFlagsIncompatibleWithoutConfigFile = [...]string{
 		"only",
 		"include",
 		"exclude",
 		"only-missing",
-	)
+	}
 )
 
 func newCommonClusterConfigLoader(cmd *Cmd) *commonClusterConfigLoader {
@@ -58,9 +57,9 @@ func newCommonClusterConfigLoader(cmd *Cmd) *commonClusterConfigLoader {
 		Cmd: cmd,
 
 		validateWithConfigFile:             nilValidatorFunc,
-		flagsIncompatibleWithConfigFile:    defaultFlagsIncompatibleWithConfigFile,
+		flagsIncompatibleWithConfigFile:    sets.NewString(defaultFlagsIncompatibleWithConfigFile[:]...),
 		validateWithoutConfigFile:          nilValidatorFunc,
-		flagsIncompatibleWithoutConfigFile: defaultFlagsIncompatibleWithoutConfigFile,
+		flagsIncompatibleWithoutConfigFile: sets.NewString(defaultFlagsIncompatibleWithoutConfigFile[:]...),
 	}
 }
 
@@ -99,10 +98,8 @@ func (l *commonClusterConfigLoader) Load() error {
 		}
 	}
 
-	if !l.nameArgumentAllowed {
-		if l.NameArg != "" {
-			return ErrCannotUseWithConfigFile(fmt.Sprintf("name argument %q", l.NameArg))
-		}
+	if l.flagsIncompatibleWithConfigFile.Has("name") && l.NameArg != "" {
+		return ErrCannotUseWithConfigFile("name argument")
 	}
 
 	if meta.Name == "" {

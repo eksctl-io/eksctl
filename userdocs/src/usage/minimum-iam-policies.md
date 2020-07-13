@@ -89,6 +89,14 @@ EksAllAccess
                 "arn:aws:ssm:*::parameter/aws/*"
             ],
             "Effect": "Allow"
+        },
+        {
+             "Action": [
+               "kms:CreateGrant",
+               "kms:DescribeKey"
+             ],
+             "Resource": "*",
+             "Effect": "Allow"
         }
     ]
 }

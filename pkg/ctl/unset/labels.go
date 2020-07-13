@@ -33,11 +33,11 @@ func unsetLabelsCmd(cmd *cmdutils.Cmd) {
 
 		_ = cobra.MarkFlagRequired(fs, "labels")
 
-		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
+		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 
 }
 
@@ -51,7 +51,7 @@ func unsetLabels(cmd *cmdutils.Cmd, nodeGroupName string, removeLabels []string)
 		return cmdutils.ErrUnsupportedNameArg()
 	}
 
-	ctl := eks.New(cmd.ProviderConfig, cmd.ClusterConfig)
+	ctl := eks.New(&cmd.ProviderConfig, cmd.ClusterConfig)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
