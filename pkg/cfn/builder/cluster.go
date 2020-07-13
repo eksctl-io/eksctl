@@ -2,13 +2,14 @@ package builder
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
-	gfn "github.com/weaveworks/goformation/cloudformation"
+	gfn "github.com/weaveworks/goformation/v4/cloudformation"
+	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -21,7 +22,7 @@ type ClusterResourceSet struct {
 	provider             api.ClusterProvider
 	supportsManagedNodes bool
 	vpcResourceSet       *VPCResourceSet
-	securityGroups       []*gfn.Value
+	securityGroups       []*gfnt.Value
 }
 
 // NewClusterResourceSet returns a resource set for the new cluster
@@ -82,7 +83,7 @@ func (c *ClusterResourceSet) AddAllResources() error {
 		c.addResourcesForFargate()
 	}
 
-	c.rs.defineOutput(outputs.ClusterStackName, gfn.RefStackName, false, func(v string) error {
+	c.rs.defineOutput(outputs.ClusterStackName, gfnt.RefStackName, false, func(v string) error {
 		if c.spec.Status == nil {
 			c.spec.Status = &api.ClusterStatus{}
 		}
@@ -119,79 +120,47 @@ func HasManagedNodesSG(stackResources *gjson.Result) bool {
 	return stackResources.Get(cfnIngressClusterToNodeSGResource).Exists()
 }
 
-func (c *ClusterResourceSet) newResource(name string, resource interface{}) *gfn.Value {
+func (c *ClusterResourceSet) newResource(name string, resource gfn.Resource) *gfnt.Value {
 	return c.rs.newResource(name, resource)
 }
 
-// TODO use goformation after support is out
-type awsEKSClusterKMS struct {
-	*awsEKSCluster   `json:",inline"`
-	EncryptionConfig []*encryptionConfig `json:"EncryptionConfig,omitempty"`
-}
-
-func (e *awsEKSClusterKMS) MarshalJSON() ([]byte, error) {
-	type Properties awsEKSClusterKMS
-	val, err := json.Marshal(&struct {
-		Type       string
-		Properties Properties
-	}{
-		Type:       "AWS::EKS::Cluster",
-		Properties: Properties(*e),
-	})
-	return val, err
-}
-
-type encryptionProvider struct {
-	KeyArn string `json:"KeyArn"`
-}
-
-type encryptionConfig struct {
-	Provider  *encryptionProvider `json:"Provider"`
-	Resources []string            `json:"Resources"`
-}
-
-type awsEKSCluster gfn.AWSEKSCluster
-
 func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *subnetDetails) {
-	clusterVPC := &gfn.AWSEKSCluster_ResourcesVpcConfig{
-		SecurityGroupIds: c.securityGroups,
+	clusterVPC := &gfneks.Cluster_ResourcesVpcConfig{
+		SecurityGroupIds: gfnt.NewSlice(c.securityGroups...),
 	}
 
-	clusterVPC.SubnetIds = append(clusterVPC.SubnetIds, subnetDetails.PublicSubnetRefs()...)
-	clusterVPC.SubnetIds = append(clusterVPC.SubnetIds, subnetDetails.PrivateSubnetRefs()...)
+	clusterVPC.SubnetIds = gfnt.NewSlice(append(subnetDetails.PublicSubnetRefs(), subnetDetails.PrivateSubnetRefs()...)...)
 
-	serviceRoleARN := gfn.MakeFnGetAttString("ServiceRole.Arn")
+	serviceRoleARN := gfnt.MakeFnGetAttString("ServiceRole", "Arn")
 	if api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRoleARN) {
-		serviceRoleARN = gfn.NewString(*c.spec.IAM.ServiceRoleARN)
+		serviceRoleARN = gfnt.NewString(*c.spec.IAM.ServiceRoleARN)
 	}
 
-	var encryptionConfigs []*encryptionConfig
+	var encryptionConfigs []gfneks.Cluster_EncryptionConfig
 	if c.spec.SecretsEncryption != nil && c.spec.SecretsEncryption.KeyARN != nil {
-		encryptionConfigs = []*encryptionConfig{
+		encryptionConfigs = []gfneks.Cluster_EncryptionConfig{
 			{
-				Resources: []string{"secrets"},
-				Provider: &encryptionProvider{
-					KeyArn: *c.spec.SecretsEncryption.KeyARN,
+				Resources: gfnt.NewSlice(gfnt.NewString("secrets")),
+				Provider: &gfneks.Cluster_Provider{
+					KeyArn: gfnt.NewString(*c.spec.SecretsEncryption.KeyARN),
 				},
 			},
 		}
 	}
 
-	c.newResource("ControlPlane", &awsEKSClusterKMS{
-		awsEKSCluster: &awsEKSCluster{
-			Name:               gfn.NewString(c.spec.Metadata.Name),
-			RoleArn:            serviceRoleARN,
-			Version:            gfn.NewString(c.spec.Metadata.Version),
-			ResourcesVpcConfig: clusterVPC,
-		},
-		EncryptionConfig: encryptionConfigs,
+	c.newResource("ControlPlane", &gfneks.Cluster{
+		Name:               gfnt.NewString(c.spec.Metadata.Name),
+		RoleArn:            serviceRoleARN,
+		Version:            gfnt.NewString(c.spec.Metadata.Version),
+		ResourcesVpcConfig: clusterVPC,
+		EncryptionConfig:   encryptionConfigs,
 	})
 
 	if c.spec.Status == nil {
 		c.spec.Status = &api.ClusterStatus{}
 	}
 
-	c.rs.defineOutputFromAtt(outputs.ClusterCertificateAuthorityData, "ControlPlane.CertificateAuthorityData", false, func(v string) error {
+	c.rs.defineOutputFromAtt(outputs.ClusterCertificateAuthorityData, "ControlPlane", "CertificateAuthorityData", false, func(v string) error {
 		caData, err := base64.StdEncoding.DecodeString(v)
 		if err != nil {
 			return errors.Wrap(err, "decoding certificate authority data")
@@ -199,11 +168,11 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *subnetDe
 		c.spec.Status.CertificateAuthorityData = caData
 		return nil
 	})
-	c.rs.defineOutputFromAtt(outputs.ClusterEndpoint, "ControlPlane.Endpoint", true, func(v string) error {
+	c.rs.defineOutputFromAtt(outputs.ClusterEndpoint, "ControlPlane", "Endpoint", true, func(v string) error {
 		c.spec.Status.Endpoint = v
 		return nil
 	})
-	c.rs.defineOutputFromAtt(outputs.ClusterARN, "ControlPlane.Arn", true, func(v string) error {
+	c.rs.defineOutputFromAtt(outputs.ClusterARN, "ControlPlane", "Arn", true, func(v string) error {
 		c.spec.Status.ARN = v
 		return nil
 	})
@@ -213,7 +182,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *subnetDe
 		// managed and unmanaged nodegroups, they must share a security group.
 		// EKS attaches this to Managed Nodegroups by default, but we need to add this for unmanaged nodegroups.
 		// This exported value is imported in the CloudFormation resource for unmanaged nodegroups
-		c.rs.defineOutputFromAtt(outputs.ClusterDefaultSecurityGroup, "ControlPlane.ClusterSecurityGroupId",
+		c.rs.defineOutputFromAtt(outputs.ClusterDefaultSecurityGroup, "ControlPlane", "ClusterSecurityGroupId",
 			true, func(s string) error {
 				return nil
 			})

@@ -8,7 +8,6 @@ require (
 	github.com/Azure/go-autorest/autorest v0.10.0 // indirect
 	github.com/Azure/go-autorest/autorest/azure/auth v0.4.2 // indirect
 	github.com/aws/aws-sdk-go v1.30.11
-	github.com/awslabs/goformation/v4 v4.1.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/cloudflare/cfssl v0.0.0-20190726000631-633726f6bcb7
@@ -21,7 +20,6 @@ require (
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/flock v0.7.1
 	github.com/golangci/golangci-lint v1.27.0
-	github.com/google/go-github/v31 v31.0.0
 	github.com/goreleaser/goreleaser v0.136.0
 	github.com/inconshreveable/log15 v0.0.0-20200109203555-b30bc20e4fd1 // indirect
 	github.com/instrumenta/kubeval v0.0.0-20190918223246-8d013ec9fc56
@@ -42,7 +40,7 @@ require (
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	github.com/tidwall/gjson v1.1.3
 	github.com/tidwall/match v1.0.1 // indirect
 	github.com/tidwall/sjson v1.0.2
@@ -52,10 +50,9 @@ require (
 	github.com/weaveworks/go-git-providers v0.1.2
 	// Forked from errordeveloper/goformation, forked from awslabs/goformation in
 	// Sept. 2018, see #1133
-	github.com/weaveworks/goformation v0.0.0-20200623124447-18df1c671d26
+	github.com/weaveworks/goformation/v4 v4.0.0-20200709125005-7f44a7f6f9c6
 	github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/tools v0.0.0-20200502202811-ed308ab3e770
 	k8s.io/api v0.16.8
 	k8s.io/apiextensions-apiserver v0.16.8
