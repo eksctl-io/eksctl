@@ -175,7 +175,7 @@ const (
 	// OldNodeGroupIDTag defines the old version of tag of the nodegroup name
 	OldNodeGroupIDTag = "eksctl.cluster.k8s.io/v1alpha1/nodegroup-id"
 
-	// IAMServiceAccountNameTag defines the tag of the iamserviceaccount name
+	// IAMServiceAccountNameTag defines the tag of the IAM service account name
 	IAMServiceAccountNameTag = "alpha.eksctl.io/iamserviceaccount-name"
 
 	// ClusterNameLabel defines the tag of the cluster name
@@ -774,7 +774,8 @@ func NewGit() *Git {
 // Repo groups all configuration options related to a Git repository used for
 // GitOps.
 type Repo struct {
-	// The Git SSH URL to the repository which will contain the cluster configuration, e.g. git@github.com:org/repo
+	// The Git SSH URL to the repository which will contain the cluster configuration
+	// For example: `git@github.com:org/repo`
 	URL string `json:"url,omitempty"`
 
 	// The git branch under which cluster configuration files will be committed & pushed, e.g. master
@@ -830,7 +831,8 @@ type Operator struct {
 // and add to the Git repository.
 type Profile struct {
 
-	// Name or URL of the Quick Start profile. For example, app-dev
+	// Name or URL of the Quick Start profile
+	// For example: `app-dev`
 	Source string `json:"source,omitempty"`
 
 	// Revision of the Quick Start profile. Can be a branch, tag or commit hash
