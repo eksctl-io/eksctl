@@ -244,7 +244,7 @@ func (v *VPCResourceSet) importResources() error {
 			if subnetRoutes != nil {
 				rt, ok := subnetRoutes[network.ID]
 				if !ok {
-					return nil, errors.Errorf("failed to find an explicit route table associated with subnet: %q;"+
+					return nil, errors.Errorf("failed to find an explicit route table associated with subnet %q; "+
 						"eksctl does not modify the main route table if a subnet is not associated with an explicit route table", network.ID)
 				}
 				sr.RouteTable = gfnt.NewString(rt)
@@ -287,8 +287,8 @@ func (v *VPCResourceSet) importResources() error {
 
 func importRouteTables(ec2API ec2iface.EC2API, subnets map[string]api.Network) (map[string]string, error) {
 	var subnetIDs []string
-	for id := range subnets {
-		subnetIDs = append(subnetIDs, id)
+	for _, subnet := range subnets {
+		subnetIDs = append(subnetIDs, subnet.ID)
 	}
 
 	var routeTables []*ec2.RouteTable
