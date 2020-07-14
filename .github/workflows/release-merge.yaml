@@ -24,6 +24,7 @@ jobs:
           git checkout ORIG_HEAD -- $VERSION_FILE
           git add $VERSION_FILE
           EDITOR=true git merge --continue
+          ! git diff --exit-code $DEFAULT_BRANCH HEAD
           git push --set-upstream origin HEAD
       - uses: actions/github-script@v2.0.0
         name: Open PR to ${{env.DEFAULT_BRANCH}}
