@@ -16,7 +16,7 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	gfn "github.com/weaveworks/goformation/cloudformation"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -99,8 +99,8 @@ type Properties struct {
 	MixedInstancesPolicy *struct {
 		LaunchTemplate struct {
 			LaunchTemplateSpecification struct {
-				LaunchTemplateName map[string]string
-				Version            map[string]string
+				LaunchTemplateName map[string]interface{}
+				Version            map[string]interface{}
 				Overrides          []struct {
 					InstanceType string
 				}
@@ -879,7 +879,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(profile.Roles).To(HaveLen(1))
 			isRefTo(profile.Roles[0], "NodeInstanceRole")
 
-			isFnGetAttOf(getLaunchTemplateData(ngTemplate).IamInstanceProfile.Arn, "NodeInstanceProfile.Arn")
+			isFnGetAttOf(getLaunchTemplateData(ngTemplate).IamInstanceProfile.Arn, "NodeInstanceProfile", "Arn")
 		})
 
 		It("should have correct policies", func() {
@@ -1594,7 +1594,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(profile.Roles).To(HaveLen(1))
 			Expect(profile.Roles[0]).To(Equal("arn:role"))
 
-			isFnGetAttOf(getLaunchTemplateData(ngTemplate).IamInstanceProfile.Arn, "NodeInstanceProfile.Arn")
+			isFnGetAttOf(getLaunchTemplateData(ngTemplate).IamInstanceProfile.Arn, "NodeInstanceProfile", "Arn")
 		})
 	})
 
@@ -1722,7 +1722,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			ltd := getLaunchTemplateData(ngTemplate)
 
-			isFnGetAttOf(ltd.IamInstanceProfile.Arn, "NodeInstanceProfile.Arn")
+			isFnGetAttOf(ltd.IamInstanceProfile.Arn, "NodeInstanceProfile", "Arn")
 
 			Expect(ltd.InstanceType).To(Equal("t2.medium"))
 
@@ -2555,7 +2555,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(cp.Name).To(Equal(cfg.Metadata.Name))
 
-			isFnGetAttOf(cp.RoleArn, "ServiceRole.Arn")
+			isFnGetAttOf(cp.RoleArn, "ServiceRole", "Arn")
 
 			Expect(cp.ResourcesVpcConfig.SecurityGroupIds).To(HaveLen(1))
 			Expect(cp.ResourcesVpcConfig.SecurityGroupIds[0]).To(Equal(cfg.VPC.SecurityGroup))
@@ -2684,7 +2684,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				BeEquivalentTo([]string{"VPCGatewayAttachment"}),
 			)
 
-			expectedFnCIDR := `{ "Fn::Cidr": [{ "Fn::Select": [ 0, { "Fn::GetAtt": "VPC.Ipv6CidrBlocks" }]}, 8, 64 ]}`
+			expectedFnCIDR := `{ "Fn::Cidr": [{ "Fn::Select": [ 0, { "Fn::GetAtt": ["VPC", "Ipv6CidrBlocks"] }]}, 8, 64 ]}`
 
 			for _, suffix1 := range []string{"PrivateUSWEST2", "PublicUSWEST2"} {
 				for _, suffix2 := range []string{"A", "B", "C"} {
@@ -2928,7 +2928,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(nodeGroupProperties.MixedInstancesPolicy).To(Not(BeNil()))
 			Expect(nodeGroupProperties.MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification.LaunchTemplateName["Fn::Sub"]).To(Equal("${AWS::StackName}"))
-			Expect(nodeGroupProperties.MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification.Version["Fn::GetAtt"]).To(Equal("NodeGroupLaunchTemplate.LatestVersionNumber"))
+			Expect(nodeGroupProperties.MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification.Version["Fn::GetAtt"]).To(Equal(
+				[]interface{}{"NodeGroupLaunchTemplate", "LatestVersionNumber"}),
+			)
 			Expect(nodeGroupProperties.MixedInstancesPolicy.LaunchTemplate).To(Not(BeNil()))
 
 			Expect(nodeGroupProperties.MixedInstancesPolicy.InstancesDistribution).To(Not(BeNil()))
@@ -3029,16 +3031,16 @@ func isRefTo(obj interface{}, value string) {
 	Expect(obj).ToNot(BeEmpty())
 	o, ok := obj.(map[string]interface{})
 	Expect(ok).To(BeTrue())
-	Expect(o).To(HaveKey(gfn.Ref))
-	Expect(o[gfn.Ref]).To(Equal(value))
+	Expect(o).To(HaveKey(gfnt.Ref))
+	Expect(o[gfnt.Ref]).To(Equal(value))
 }
 
-func isFnGetAttOf(obj interface{}, value string) {
+func isFnGetAttOf(obj interface{}, logicalName, attr string) {
 	Expect(obj).ToNot(BeEmpty())
 	o, ok := obj.(map[string]interface{})
 	Expect(ok).To(BeTrue())
-	Expect(o).To(HaveKey(gfn.FnGetAtt))
-	Expect(o[gfn.FnGetAtt]).To(Equal(value))
+	Expect(o).To(HaveKey(gfnt.FnGetAtt))
+	Expect(o[gfnt.FnGetAtt]).To(Equal([]interface{}{logicalName, attr}))
 }
 
 func getLaunchTemplateData(obj *Template) LaunchTemplateData {
@@ -3048,7 +3050,7 @@ func getLaunchTemplateData(obj *Template) LaunchTemplateData {
 }
 
 func checkARPD(services []string, arpd interface{}) {
-	var serviceRefs []*gfn.Value
+	var serviceRefs []*gfnt.Value
 	for _, service := range services {
 		serviceRefs = append(serviceRefs, MakeServiceRef(service))
 	}

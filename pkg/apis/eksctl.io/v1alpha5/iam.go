@@ -51,7 +51,7 @@ func (iamMeta *ClusterIAMMeta) AsObjectMeta() metav1.ObjectMeta {
 	}
 }
 
-// ClusterIAMServiceAccount holds an iamserviceaccount metadata and configuration
+// ClusterIAMServiceAccount holds an IAM service account metadata and configuration
 type ClusterIAMServiceAccount struct {
 	ClusterIAMMeta `json:"metadata,omitempty"`
 	// +optional
@@ -67,7 +67,7 @@ type ClusterIAMServiceAccount struct {
 	Tags map[string]string `json:"tags,omitempty"`
 }
 
-// ClusterIAMServiceAccountStatus holds status of iamserviceaccount
+// ClusterIAMServiceAccountStatus holds status of the IAM service account
 type ClusterIAMServiceAccountStatus struct {
 	// +optional
 	RoleARN *string `json:"roleARN,omitempty"`

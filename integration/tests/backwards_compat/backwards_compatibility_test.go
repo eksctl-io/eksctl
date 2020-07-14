@@ -76,8 +76,7 @@ var _ = Describe("(Integration) [Backwards compatibility test]", func() {
 				"--nodegroup-name", initialNgName,
 				"-v4",
 				"--region", params.Region,
-			).
-			WithTimeout(20 * time.Minute)
+			)
 
 		Expect(cmd).To(RunSuccessfully())
 
