@@ -20,7 +20,7 @@ template: |
   Weaveworks would like to sincerely thank:
   $CONTRIBUTORS
 replacers:
-  - search: '/(@martina-if|@michaelbeaumont|@cPu1)(,)?/g'
+  - search: '/(@martina-if|@michaelbeaumont|@cPu1|@weaveworksbot)(,)?/g'
     replace: ''
 exclude-labels:
   - 'skip-release-notes'
