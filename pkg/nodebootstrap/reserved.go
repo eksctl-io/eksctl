@@ -20,13 +20,6 @@ type progression []struct {
 }
 
 var (
-	memProgression = progression{
-		{upper: 4096, fraction: 0.25},
-		{upper: 8192, fraction: 0.20},
-		{upper: 16384, fraction: 0.10},
-		{upper: 131072, fraction: 0.06},
-		{upper: math.MaxInt64, fraction: 0.02},
-	}
 	cpuProgression = progression{
 		{upper: 1000, fraction: 0.06},
 		{upper: 2000, fraction: 0.01},
@@ -58,8 +51,8 @@ type InstanceTypeInfo struct {
 	// Storage (ephemeral) available (GiB).
 	// Is 0 if not supported or none available.
 	Storage int64
-	// Memory available (MiB).
-	Memory int64
+	// Max pods per node.
+	MaxPodsPerNode int64
 	// CPU count.
 	CPU int64
 }
@@ -74,8 +67,8 @@ func NewInstanceTypeInfo(ec2info *ec2.InstanceTypeInfo) InstanceTypeInfo {
 	if aws.BoolValue(ec2info.InstanceStorageSupported) && ec2info.InstanceStorageInfo != nil {
 		i.Storage = aws.Int64Value(ec2info.InstanceStorageInfo.TotalSizeInGB)
 	}
-	if ec2info.MemoryInfo != nil {
-		i.Memory = aws.Int64Value(ec2info.MemoryInfo.SizeInMiB)
+	if maxPodsPerNode, exists := maxPodsPerNodeType[*ec2info.InstanceType]; exists {
+		i.MaxPodsPerNode = int64(maxPodsPerNode)
 	}
 	if ec2info.VCpuInfo != nil {
 		i.CPU = aws.Int64Value(ec2info.VCpuInfo.DefaultVCpus)
@@ -93,17 +86,9 @@ func (i InstanceTypeInfo) DefaultStorageToReserve() string {
 
 // DefaultMemoryToReserve returns how much memory to reserve.
 //
-// See https://github.com/awslabs/amazon-eks-ami/blob/ff690788dfaf399e6919eebb59371ee923617df4/files/bootstrap.sh#L150-L181
-// which takes it form https://cloud.google.com/kubernetes-engine/docs/concepts/cluster-architecture#node_allocatable
-//
-// 255 Mi of memory for machines with less than 1024Mi of memory
-// 25% of the first 4096Mi of memory
-// 20% of the next 4096Mi of memory (up to 8192Mi)
-// 10% of the next 8192Mi of memory (up to 16384Mi)
-// 6% of the next 114688Mi of memory (up to 131072Mi)
-// 2% of any memory above 131072Mi
+// See https://github.com/awslabs/amazon-eks-ami/blob/21426e27e3845319dbca92e7df32e5c4b984a1d1/files/bootstrap.sh#L154-L165
 func (i InstanceTypeInfo) DefaultMemoryToReserve() string {
-	mib := memProgression.calculate(i.Memory, minimumMemoryToReserve)
+	mib := 11*i.MaxPodsPerNode + minimumMemoryToReserve
 	return fmt.Sprintf("%dMi", mib)
 }
 

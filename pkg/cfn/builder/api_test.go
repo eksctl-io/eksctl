@@ -344,7 +344,7 @@ func completeKubeletConfig(kubeletConfigAssetContent []byte, clusterDNS string) 
 		"kubeReserved:\n" +
 		"  cpu: 70m\n" +
 		"  ephemeral-storage: 1Gi\n" +
-		"  memory: 1843Mi\n"
+		"  memory: 574Mi\n"
 }
 
 var _ = Describe("CloudFormation template builder API", func() {
