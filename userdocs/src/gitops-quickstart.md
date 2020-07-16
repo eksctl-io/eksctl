@@ -106,7 +106,7 @@ your repository in a temporary directory that will be removed later.
 ```console
 eksctl enable repo \
     --git-url git@github.com:example/my-eks-config \
-    --git-email your@email.com \
+    --git-email <username>@users.noreply.github.com \
     --cluster your-cluster-name \
     --region your-cluster-region
 ```
@@ -181,7 +181,7 @@ your repository in a temporary directory that will be removed later.
 ```console
 eksctl enable profile app-dev \
     --git-url git@github.com:example/my-eks-config \
-    --git-email your@email.com \
+    --git-email <username>@users.noreply.github.com \
     --cluster your-cluster-name \
     --region your-cluster-region
 ```
@@ -298,7 +298,7 @@ git:
     branch: master
     fluxPath: "flux/"
     user: "gitops"
-    email: "gitops@myorg.com"
+    email: "<username>@users.noreply.github.com"
   operator:
     namespace: "flux"
     withHelm: true
