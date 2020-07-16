@@ -38,6 +38,28 @@ import { unsafeHTML } from "https://unpkg.com/lit-html@1.2.1/directives/unsafe-h
 function offset(ident) {
     return `${ident * 2}ex`;
 }
+
+function valueEntry(definition) {
+    let value = definition.default;
+    let valueClass = "value";
+    let tooltip = "Default value";
+    const isEnum = (definition.enum && definition.enum.length > 0) || definition.const;
+    if (!definition.default && isEnum) {
+        value = definition.const || definition.enum[0];
+        valueClass = "example";
+        tooltip = "Example value";
+        if (definition.const || definition.enum.length === 1) {
+            valueClass = "const";
+            tooltip = "Required value";
+        }
+    } else if (definition.examples && definition.examples.length > 0) {
+        value = definition.examples[0];
+        valueClass = "example";
+        tooltip = "Example value";
+    }
+    return [value, valueClass, tooltip];
+}
+
 function* template(definitions, parentDefinition, ref, ident, parent) {
     const name = ref.replace("#/definitions/", "");
     const allProperties = [];
@@ -60,11 +82,7 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
         let keyClass = required ? "key required" : "key";
 
         // Value
-        let value = definition.default;
-        if (definition.examples && definition.examples.length > 0) {
-            value = definition.examples[0];
-        }
-        const valueClass = definition.examples ? "example" : "value";
+        let [value, valueClass, tooltip] = valueEntry(definition);
 
         // Description
         let desc = definition["x-intellij-html-description"] || "";
@@ -73,13 +91,19 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
         if (parentDefinition && parentDefinition.type === "array") {
             firstOfListType = index === 0;
         }
+        const valueCell = value
+            ? html`<span title="${tooltip}" class="${valueClass}"
+                  >${value}</span
+              >`
+            : null;
+
         const keyCell = (value) => html`
             <td>
                 <div class="anchor" id="${path}"></div>
-                <span class="${keyClass}" style="margin-left: ${offset(ident)}">
+                <span title="${required ? 'Required key' : ''}" class="${keyClass}" style="margin-left: ${offset(ident)}">
                     ${anchor(path, key, firstOfListType)}:
                 </span>
-                <span class="${valueClass}">${value}</span>
+                ${valueCell}
             </td>
         `;
 
