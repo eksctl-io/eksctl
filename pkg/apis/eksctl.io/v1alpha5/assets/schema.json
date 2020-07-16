@@ -37,13 +37,15 @@
     },
     "ClusterConfig": {
       "required": [
-        "metadata"
+        "metadata",
+        "kind",
+        "apiVersion"
       ],
       "properties": {
         "apiVersion": {
           "type": "string",
           "default": "",
-          "examples": [
+          "enum": [
             "eksctl.io/v1alpha5"
           ]
         },
@@ -74,7 +76,7 @@
         "kind": {
           "type": "string",
           "default": "",
-          "examples": [
+          "enum": [
             "ClusterConfig"
           ]
         },
