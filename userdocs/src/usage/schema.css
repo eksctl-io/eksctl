@@ -2,9 +2,22 @@ table#config {
     font-family: monospace;
     font-size: 13px;
 }
+table#config span.const {
+    filter: opacity(70%);
+}
 table#config span.example,
 table#config span.value {
+    font-size: 0.9em;
     filter: opacity(70%);
+    display: inline-block;
+    padding: 0px 4px;
+    border-radius: 5px;
+}
+table#config span.example {
+    background-color: lightBlue;
+}
+table#config span.value {
+    background-color: lightGray;
 }
 table#config td.comment:nth-child(3) {
     border-left: 2px solid whiteSmoke;
