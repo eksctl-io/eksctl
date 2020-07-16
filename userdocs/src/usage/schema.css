@@ -22,6 +22,9 @@ table#config span.value {
 table#config td.comment:nth-child(3) {
     border-left: 2px solid whiteSmoke;
 }
+table#config td.type {
+    font-size: 0.8em;
+}
 table#config tr:hover code {
     background-color: hsla(0, 0%, 100%, 1); // --md-default-bg-color;
 }

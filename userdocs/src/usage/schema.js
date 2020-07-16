@@ -137,8 +137,8 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
             yield html`
                 <tr class="top">
                     ${keyCell(value)}
-                    <td class="type">${type}</td>
                     <td class="comment">${unsafeHTML(desc)}</td>
+                    <td class="type">${type}</td>
                 </tr>
             `;
         } else if (definition.items && definition.items.$ref) {
@@ -159,8 +159,8 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
             yield html`
                 <tr class="top">
                     ${keyCell(value)}
-                    <td class="type">${type}</td>
                     <td class="comment">${unsafeHTML(desc)}</td>
+                    <td class="type">${type}</td>
                 </tr>
             `;
         } else if (definition.type === "array" && value && value !== "[]") {
@@ -170,10 +170,10 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
             yield html`
                 <tr>
                     ${keyCell("")}
-                    <td class="type"></td>
                     <td class="comment" rowspan="${1 + values.length}">
                         ${unsafeHTML(desc)}
                     </td>
+                    <td class="type"></td>
                 </tr>
             `;
 
@@ -187,8 +187,8 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
                                 >- <span class="${valueClass}">${v}</span></span
                             >
                         </td>
-                        <td class="type">object</td>
                         <td class="comment"></td>
+                        <td class="type">object</td>
                     </tr>
                 `;
             }
@@ -196,8 +196,8 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
             yield html`
                 <tr>
                     ${keyCell(value)}
-                    <td class="type">object</td>
                     <td class="comment">${unsafeHTML(desc)}</td>
+                    <td class="type">object</td>
                 </tr>
             `;
         } else {
@@ -208,8 +208,8 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
             yield html`
                 <tr>
                     ${keyCell(value)}
-                    <td class="type">${type}</td>
                     <td class="comment">${unsafeHTML(desc)}</td>
+                    <td class="type">${type}</td>
                 </tr>
             `;
         }
