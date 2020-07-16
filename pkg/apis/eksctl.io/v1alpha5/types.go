@@ -18,6 +18,44 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+// Values for `KubernetesVersion`
+// All valid values should go in this block
+const (
+	Version1_14 = "1.14"
+
+	Version1_15 = "1.15"
+
+	Version1_16 = "1.16"
+
+	Version1_17 = "1.17"
+
+	// DefaultVersion (default)
+	DefaultVersion = Version1_17
+
+	LatestVersion = Version1_17
+)
+
+// No longer supported versions
+const (
+	// Version1_10 represents Kubernetes version 1.10.x
+	Version1_10 = "1.10"
+
+	// Version1_11 represents Kubernetes version 1.11.x
+	Version1_11 = "1.11"
+
+	// Version1_12 represents Kubernetes version 1.12.x
+	Version1_12 = "1.12"
+
+	// Version1_13 represents Kubernetes version 1.13.x
+	Version1_13 = "1.13"
+)
+
+// Not yet supported versions
+const (
+	// Version1_18 represents Kubernetes version 1.18.x
+	Version1_18 = "1.18"
+)
+
 const (
 	// AWSDebugLevel defines the LogLevel for AWS produced logs
 	AWSDebugLevel = 5
@@ -90,39 +128,6 @@ const (
 
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
-
-	// Version1_10 represents Kubernetes version 1.10.x
-	Version1_10 = "1.10"
-
-	// Version1_11 represents Kubernetes version 1.11.x
-	Version1_11 = "1.11"
-
-	// Version1_12 represents Kubernetes version 1.12.x
-	Version1_12 = "1.12"
-
-	// Version1_13 represents Kubernetes version 1.13.x
-	Version1_13 = "1.13"
-
-	// Version1_14 represents Kubernetes version 1.14.x
-	Version1_14 = "1.14"
-
-	// Version1_15 represents Kubernetes version 1.15.x
-	Version1_15 = "1.15"
-
-	// Version1_16 represents Kubernetes version 1.16.x
-	Version1_16 = "1.16"
-
-	// Version1_17 represents Kubernetes version 1.17.x
-	Version1_17 = "1.17"
-
-	// Version1_18 represents Kubernetes version 1.18.x
-	Version1_18 = "1.18"
-
-	// DefaultVersion represents default Kubernetes version supported by EKS
-	DefaultVersion = Version1_17
-
-	// LatestVersion represents latest Kubernetes version supported by EKS
-	LatestVersion = Version1_17
 
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
@@ -404,6 +409,7 @@ func EKSResourceAccountID(region string) string {
 type ClusterMeta struct {
 	Name   string `json:"name" jsonschema:"required"`
 	Region string `json:"region" jsonschema:"required"`
+	// Valid variants are `KubernetesVersion` constants
 	// +optional
 	Version string `json:"version,omitempty"`
 	// +optional
