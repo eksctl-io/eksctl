@@ -1,12 +1,11 @@
 package builder
 
 import (
-	"fmt"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
-	gfn "github.com/weaveworks/goformation/cloudformation"
+	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 const (
@@ -26,22 +25,22 @@ func AddResourcesForFargate(rs *resourceSet, cfg *api.ClusterConfig) error {
 	rs.withIAM = true
 
 	rs.template.Description = fargateRoleDescription
-	role := &gfn.AWSIAMRole{
+	role := &gfniam.Role{
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
 			MakeServiceRef("EKS"),
 			MakeServiceRef("EKSFargatePods"), // Ensure that EKS can schedule pods onto Fargate.
 		),
-		ManagedPolicyArns: makePolicyARNs(
+		ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(
 			iamPolicyAmazonEKSFargatePodExecutionRolePolicy,
-		),
+		)...),
 	}
 
 	if api.IsSetAndNonEmptyString(cfg.IAM.FargatePodExecutionRolePermissionsBoundary) {
-		role.PermissionsBoundary = gfn.NewString(*cfg.IAM.FargatePodExecutionRolePermissionsBoundary)
+		role.PermissionsBoundary = gfnt.NewString(*cfg.IAM.FargatePodExecutionRolePermissionsBoundary)
 	}
 
 	rs.newResource(fargateRoleName, role)
-	rs.defineOutputFromAtt(outputs.FargatePodExecutionRoleARN, fmt.Sprintf("%s.Arn", fargateRoleName), true, func(v string) error {
+	rs.defineOutputFromAtt(outputs.FargatePodExecutionRoleARN, fargateRoleName, "Arn", true, func(v string) error {
 		cfg.IAM.FargatePodExecutionRoleARN = &v
 		return nil
 	})

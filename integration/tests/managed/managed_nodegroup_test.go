@@ -27,11 +27,6 @@ import (
 
 var params *tests.Params
 
-const (
-	k8sUpdatePollInterval = "2s"
-	k8sUpdatePollTimeout  = "3m"
-)
-
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
@@ -252,11 +247,9 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				clientset, err := kubernetes.NewForConfig(config)
 				Expect(err).ToNot(HaveOccurred())
 
-				Eventually(func() string {
-					serverVersion, err := clientset.ServerVersion()
-					Expect(err).ToNot(HaveOccurred())
-					return fmt.Sprintf("%s.%s", serverVersion.Major, strings.TrimSuffix(serverVersion.Minor, "+"))
-				}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal(nextVersion))
+				serverVersion, err := clientset.ServerVersion()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(fmt.Sprintf("%s.%s", serverVersion.Major, strings.TrimSuffix(serverVersion.Minor, "+"))).To(Equal(nextVersion))
 
 				By(fmt.Sprintf("upgrading nodegroup %s to Kubernetes version %s", initialNodeGroup, nextVersion))
 				cmd = params.EksctlUpgradeCmd.WithArgs(
