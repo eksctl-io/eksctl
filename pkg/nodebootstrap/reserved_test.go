@@ -21,20 +21,19 @@ var _ = Describe("Reservations defaults", func() {
 	)
 
 	type memoryCase struct {
-		mib int64
-		exp string
+		maxPodsPerNode int64
+		exp            string
 	}
 	DescribeTable("calculate memory", func(c memoryCase) {
-		Expect(InstanceTypeInfo{Memory: c.mib}.DefaultMemoryToReserve()).To(Equal(c.exp))
+		Expect(InstanceTypeInfo{MaxPodsPerNode: c.maxPodsPerNode}.DefaultMemoryToReserve()).To(Equal(c.exp))
 	},
-		Entry("0MiB", memoryCase{0, "255Mi"}),
-		Entry("512MiB", memoryCase{512, "255Mi"}),
-		Entry("2GiB", memoryCase{2048, "512Mi"}),
-		Entry("4GiB", memoryCase{4096, "1024Mi"}),
-		Entry("6GiB", memoryCase{6144, "1433Mi"}),
-		Entry("8GiB", memoryCase{8192, "1843Mi"}),
-		Entry("12GiB", memoryCase{12288, "2252Mi"}),
-		Entry("64GiB", memoryCase{1 << 16, "5611Mi"}),
+		Entry("4 pods per node", memoryCase{4, "299Mi"}),
+		Entry("8 pods per node", memoryCase{8, "343Mi"}),
+		Entry("29 pods per node", memoryCase{29, "574Mi"}),
+		Entry("58 pods per node", memoryCase{58, "893Mi"}),
+		Entry("234 pods per node", memoryCase{234, "2829Mi"}),
+		Entry("452 pods per node", memoryCase{452, "5227Mi"}),
+		Entry("737 pods per node", memoryCase{737, "8362Mi"}),
 	)
 
 	type cpuCase struct {
@@ -68,17 +67,15 @@ var _ = Describe("Reservations defaults", func() {
 		Expect(instanceTypeInfos[c.instance].DefaultMemoryToReserve()).To(Equal(c.expMemory))
 		Expect(instanceTypeInfos[c.instance].DefaultCPUToReserve()).To(Equal(c.expCPU))
 	},
-		Entry("a1.2xlarge", instanceCase{"a1.2xlarge", "2662Mi", "90m", "1Gi"}),
-		Entry("t3.nano", instanceCase{"t3.nano", "255Mi", "70m", "1Gi"}),
-		Entry("t3a.micro", instanceCase{"t3a.micro", "256Mi", "70m", "1Gi"}),
-		Entry("t2.small", instanceCase{"t2.small", "512Mi", "60m", "1Gi"}),
-		Entry("t2.medium", instanceCase{"t2.medium", "1024Mi", "70m", "1Gi"}),
-		Entry("m5ad.large", instanceCase{"m5ad.large", "1843Mi", "70m", "1Gi"}),
-		Entry("m5ad", instanceCase{"m5ad.xlarge", "2662Mi", "80m", "1Gi"}),
-		Entry("m5ad.2xlarge", instanceCase{"m5ad.2xlarge", "3645Mi", "90m", "1Gi"}),
-		Entry("m5ad.8xlarge", instanceCase{"m5ad.8xlarge", "9543Mi", "150m", "1Gi"}),
-		Entry("m5ad.12xlarge", instanceCase{"m5ad.12xlarge", "10853Mi", "190m", "1Gi"}),
-		Entry("m5ad.16xlarge", instanceCase{"m5ad.16xlarge", "12164Mi", "230m", "1Gi"}),
-		Entry("m5ad.24xlarge", instanceCase{"m5ad.24xlarge", "14785Mi", "310m", "1Gi"}),
+		Entry("a1.2xlarge", instanceCase{"a1.2xlarge", "893Mi", "90m", "1Gi"}),
+		Entry("t3.nano", instanceCase{"t3.nano", "299Mi", "70m", "1Gi"}),
+		Entry("t3a.micro", instanceCase{"t3a.micro", "299Mi", "70m", "1Gi"}),
+		Entry("t2.small", instanceCase{"t2.small", "376Mi", "60m", "1Gi"}),
+		Entry("t2.medium", instanceCase{"t2.medium", "442Mi", "70m", "1Gi"}),
+		Entry("m5ad.large", instanceCase{"m5ad.large", "574Mi", "70m", "1Gi"}),
+		Entry("m5ad.xlarge", instanceCase{"m5ad.xlarge", "893Mi", "80m", "1Gi"}),
+		Entry("m5ad.2xlarge", instanceCase{"m5ad.2xlarge", "893Mi", "90m", "1Gi"}),
+		Entry("m5ad.12xlarge", instanceCase{"m5ad.12xlarge", "2829Mi", "190m", "1Gi"}),
+		Entry("m5ad.24xlarge", instanceCase{"m5ad.24xlarge", "8362Mi", "310m", "1Gi"}),
 	)
 })
