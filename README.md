@@ -22,8 +22,7 @@ sudo mv /tmp/eksctl /usr/local/bin
 Alternatively, macOS users can use [Homebrew](https://brew.sh):
 
 ```
-brew tap weaveworks/tap
-brew install weaveworks/tap/eksctl
+brew install eksctl
 ```
 
 and Windows users can use [chocolatey](https://chocolatey.org):
