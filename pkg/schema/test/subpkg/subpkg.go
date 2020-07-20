@@ -4,3 +4,7 @@ package subpkg
 type PackageType struct {
 	Kind string `json:"kind"`
 }
+
+const (
+	SpecialKind = "SpecialKind"
+)

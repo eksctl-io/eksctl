@@ -82,9 +82,9 @@ var _ = Describe("GenerateSchema", func() {
 		expected := definition.Definition{
 			Type:            "string",
 			Default:         "SecondKind",
-			Enum:            []string{"FirstKind", "SecondKind"},
-			Description:     "Tells us which kind of config. Valid variants are: `\"FirstKind\"` is legacy, `\"SecondKind\"` should be used (default).",
-			HTMLDescription: "Tells us which kind of config. Valid variants are: <code>&quot;FirstKind&quot;</code> is legacy, <code>&quot;SecondKind&quot;</code> should be used (default).",
+			Enum:            []string{"FirstKind", "SecondKind", "SpecialKind"},
+			Description:     "Tells us which kind of config. Valid variants are: `\"FirstKind\"` is legacy, `\"SecondKind\"` should be used (default) and this comment combines with secondKind, `\"SpecialKind\"` is from some other package.",
+			HTMLDescription: "Tells us which kind of config. Valid variants are: <code>&quot;FirstKind&quot;</code> is legacy, <code>&quot;SecondKind&quot;</code> should be used (default) and this comment combines with secondKind, <code>&quot;SpecialKind&quot;</code> is from some other package.",
 		}
 		Expect(configDef().Properties).To(HaveKey("kind"))
 		Expect(*configDef().Properties["kind"]).To(BeEquivalentTo(expected))

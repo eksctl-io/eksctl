@@ -414,9 +414,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 			return nil
 		}
 
-		// check kubectl version, and offer install instructions if missing or old
-		// also check heptio-authenticator
-		// TODO: https://github.com/weaveworks/eksctl/issues/30
 		env, err := ctl.GetCredentialsEnv()
 		if err != nil {
 			return err
