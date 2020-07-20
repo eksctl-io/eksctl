@@ -357,6 +357,44 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	Describe("cpuCredits", func() {
+		var ng *NodeGroup
+		BeforeEach(func() {
+			unlimited := "unlimited"
+			ng = &NodeGroup{
+				NodeGroupBase: &NodeGroupBase{},
+				InstancesDistribution: &NodeGroupInstancesDistribution{
+					InstanceTypes: []string{"t3.medium", "t3.large"},
+				},
+				CPUCredits: &unlimited,
+			}
+		})
+
+		It("works independent of instanceType", func() {
+			Context("unset", func() {
+				err := validateCPUCredits(ng)
+				Expect(err).ToNot(HaveOccurred())
+			})
+			Context("set", func() {
+				ng.InstanceType = "mixed"
+				err := validateCPUCredits(ng)
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
+		It("errors if no instance distribution", func() {
+			ng.InstancesDistribution = nil
+			err := validateCPUCredits(ng)
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("errors if no t instance types", func() {
+			ng.InstancesDistribution.InstanceTypes = []string{}
+			err := validateCPUCredits(ng)
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
 	Describe("ssh flags", func() {
 		var (
 			testKeyPath = "some/path/to/file.pub"
