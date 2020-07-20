@@ -167,7 +167,8 @@ Welcome to a fully gitopsed world!
 
 ## Enabling a Quick Start profile
 
-The following command will set up your cluster with the `app-dev` profile,
+The following command will set up your cluster with the
+[app-dev](https://github.com/weaveworks/eks-quickstart-app-dev) profile,
 the first gitops Quick Start. All of the config files you need for a
 production-ready cluster will be in the git repo you have provided and
 those components will be deployed to your cluster. When you make changes

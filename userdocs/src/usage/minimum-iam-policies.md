@@ -41,6 +41,7 @@ AmazonEC2FullAccess
                         "ec2scheduled.amazonaws.com",
                         "elasticloadbalancing.amazonaws.com",
                         "eks.amazonaws.com",
+                        "eks-fargate-pods.amazonaws.com",
                         "spot.amazonaws.com",
                         "spotfleet.amazonaws.com",
                         "transitgateway.amazonaws.com"
