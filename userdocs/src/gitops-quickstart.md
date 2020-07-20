@@ -167,7 +167,8 @@ Welcome to a fully gitopsed world!
 
 ## Enabling a Quick Start profile
 
-The following command will set up your cluster with the [app-dev](https://github.com/weaveworks/eks-quickstart-app-dev) profile which is built-in profile in `eksctl`,
+The following command will set up your cluster with the
+[app-dev](https://github.com/weaveworks/eks-quickstart-app-dev) profile,
 the first gitops Quick Start. All of the config files you need for a
 production-ready cluster will be in the git repo you have provided and
 those components will be deployed to your cluster. When you make changes
@@ -250,8 +251,8 @@ in your cluster:
 - [Fluentd](https://www.fluentd.org/) & Amazon's [CloudWatch agent](https://aws.amazon.com/cloudwatch/) -- for cluster & containers' [log collection, aggregation & analytics in CloudWatch](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-setup-logs.html).
 - [podinfo](https://github.com/stefanprodan/podinfo) --  a toy demo application.
 
-It's easy to confirm if all of this is up and running for you. `eksctl` is pretty smart. If your deployments require namespace, role etc and  If the namespaces are specified another yaml file,  `eksctl` will create the namespace, role, rolebinding etc before deployments etc. 
-Let's check `podinfo` and see if it's up.
+It's easy to confirm if all of this is up and running for you. Let's
+check `podinfo` and see if it's up.
 
 ```console
 kubectl get service --namespace demo
