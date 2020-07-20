@@ -142,6 +142,13 @@ repository. For example, in GitHub, by adding it as a deploy key. There you
 can easily do this in the `Settings > Deploy keys > Add deploy key`. Just
 make sure you check `Allow write access` as well.
 
+Flux polls git at a set interval but you can tell Flux to sync the changes
+immediately with:
+
+```console
+fluxctl sync --k8s-fwd-ns flux
+```
+
 The next time Flux syncs from Git, it will start updating the cluster
 and actively deploying.
 
@@ -208,6 +215,11 @@ which details all the flags and resulting directory structure.
 This will load gitops Quick Start manifests into your repo. It will use
 templating to add your cluster name and region to the configuration so that
 cluster components that need those values can work (e.g. `alb-ingress`).
+
+If you fetch the latest changes to your configuration repository,
+you will see that eksctl has updated it with the templated files from the
+Quick Start. The next time Flux syncs from this repo, it will start updating
+the cluster with the current configuration.
 
 In our case we are going to see these new arrivals in the cluster:
 
