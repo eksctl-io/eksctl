@@ -2457,10 +2457,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should have the Fargate pod execution role", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlane"))
 			Expect(clusterTemplate.Resources).To(HaveKey("ServiceRole"))
-			Expect(clusterTemplate.Resources).To(HaveKey("PolicyNLB"))
 			Expect(clusterTemplate.Resources).To(HaveKey("PolicyCloudWatchMetrics"))
 			Expect(clusterTemplate.Resources).To(HaveKey("FargatePodExecutionRole"))
-			Expect(clusterTemplate.Resources).To(HaveLen(5))
+			Expect(clusterTemplate.Resources).To(HaveLen(4))
 		})
 	})
 
@@ -2509,9 +2508,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should have EKS and IAM resources", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlane"))
 			Expect(clusterTemplate.Resources).To(HaveKey("ServiceRole"))
-			Expect(clusterTemplate.Resources).To(HaveKey("PolicyNLB"))
 			Expect(clusterTemplate.Resources).To(HaveKey("PolicyCloudWatchMetrics"))
-			Expect(clusterTemplate.Resources).To(HaveLen(4))
+			Expect(clusterTemplate.Resources).To(HaveLen(3))
 		})
 
 		It("should have correct own IAM resources", func() {
@@ -2523,7 +2521,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			checkARPD([]string{"EKS", "EKSFargatePods"}, clusterTemplate.Resources["ServiceRole"].Properties.AssumeRolePolicyDocument)
 
-			policy1 := clusterTemplate.Resources["PolicyNLB"].Properties
+			policy1 := clusterTemplate.Resources["PolicyCloudWatchMetrics"].Properties
 
 			Expect(policy1).ToNot(BeNil())
 			isRefTo(policy1.Roles[0], "ServiceRole")
@@ -2532,20 +2530,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(policy1.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
 			Expect(policy1.PolicyDocument.Statement[0].Resource).To(Equal("*"))
 			Expect(policy1.PolicyDocument.Statement[0].Action).To(Equal([]string{
-				"elasticloadbalancing:*",
-				"ec2:CreateSecurityGroup",
-				"ec2:Describe*",
-			}))
-
-			policy2 := clusterTemplate.Resources["PolicyCloudWatchMetrics"].Properties
-
-			Expect(policy2).ToNot(BeNil())
-			isRefTo(policy2.Roles[0], "ServiceRole")
-
-			Expect(policy2.PolicyDocument.Statement).To(HaveLen(1))
-			Expect(policy2.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(policy2.PolicyDocument.Statement[0].Resource).To(Equal("*"))
-			Expect(policy2.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"cloudwatch:PutMetricData",
 			}))
 		})
@@ -2607,7 +2591,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				}
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(32))
+			Expect(len(clusterTemplate.Resources)).To(Equal(31))
 		})
 
 		It("should use own VPC and subnets", func() {
@@ -2705,7 +2689,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				}
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(39))
+			Expect(len(clusterTemplate.Resources)).To(Equal(38))
 		})
 
 		It("should use own VPC and subnets", func() {
@@ -2782,7 +2766,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(36))
+			Expect(len(clusterTemplate.Resources)).To(Equal(35))
 		})
 
 		It("should route Internet traffic from private subnets through their corresponding NAT gateways", func() {
@@ -2828,7 +2812,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(32))
+			Expect(len(clusterTemplate.Resources)).To(Equal(31))
 		})
 
 		It("should route Internet traffic from private subnets through the single NAT gateway", func() {
@@ -2871,7 +2855,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(27))
+			Expect(len(clusterTemplate.Resources)).To(Equal(26))
 
 		})
 
