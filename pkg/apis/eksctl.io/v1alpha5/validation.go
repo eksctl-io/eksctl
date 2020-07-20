@@ -478,7 +478,7 @@ func validateCPUCredits(ng *NodeGroup) error {
 		return nil
 	}
 
-	if ng.InstanceType == "mixed" {
+	if ng.InstancesDistribution != nil {
 		instanceTypes = ng.InstancesDistribution.InstanceTypes
 	}
 
