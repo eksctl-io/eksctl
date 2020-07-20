@@ -37,7 +37,7 @@ git:
     branch: master
     fluxPath: "flux/"
     user: "gitops"
-    email: "gitops@myorg.com"
+    email: "<username>@users.noreply.github.com"
   operator:
     namespace: "flux"
     withHelm: true
@@ -56,7 +56,7 @@ To disable the installation of the Helm Operator, pass the flag `--with-helm=fal
 Full example:
 
 ```console
-eksctl enable repo --cluster=cluster-1 --region=eu-west-2  --git-url=git@github.com:weaveworks/cluster-1-gitops.git  --git-email=johndoe+flux@weave.works --namespace=flux
+eksctl enable repo --cluster=cluster-1 --region=eu-west-2  --git-url=git@github.com:weaveworks/cluster-1-gitops.git  --git-email=<username>@users.noreply.github.com --namespace=flux
 [ℹ]  Generating manifests
 [ℹ]  Cloning git@github.com:weaveworks/cluster-1-gitops.git
 Cloning into '/var/folders/zt/sh1tk7ts24sc6dybr5z9qtfh0000gn/T/eksctl-install-flux-clone-142184188'...
@@ -81,7 +81,7 @@ Cloning into '/var/folders/zt/sh1tk7ts24sc6dybr5z9qtfh0000gn/T/eksctl-install-fl
 [ℹ]  Flux started successfully
 [ℹ]  Committing and pushing manifests to git@github.com:weaveworks/cluster-1-gitops.git
 [master ec43024] Add Initial Flux configuration
- Author: Flux <johndoe+flux@weave.works>
+ Author: Flux <username@users.noreply.github.com>
 14 files changed, 694 insertions(+)
 Enumerating objects: 11, done.
 Counting objects: 100% (11/11), done.
@@ -163,7 +163,7 @@ This command will create a temporary clone of the specified repository and then 
 Example:
 
 ```
-eksctl enable profile --cluster production-cluster --region eu-north-1 --git-url=git@github.com:myorg/production-kubernetes --git-email=gitops@myorg.com app-dev
+eksctl enable profile --cluster production-cluster --region eu-north-1 --git-url=git@github.com:myorg/production-kubernetes --git-email=<username>@users.noreply.github.com app-dev
 Cloning into '/tmp/gitops-repos/flux-test-3'...
 Resolving deltas: 100% (37/37), done.
 [ℹ]  cloning repository "git@github.com:weaveworks/eks-quickstart-app-dev.git":master
@@ -409,7 +409,7 @@ git push origin master
 Now that the templates are in the remote repository, the Quick Start is ready to be used with `eksctl enable profile`:
 
 ```console
-eksctl enable profile --cluster team1 --region eu-west-1 --git-url git@github.com:myorg/team1-cluster --git-email alice@myorg.com git@github.com:myorg/production-infra
+eksctl enable profile --cluster team1 --region eu-west-1 --git-url git@github.com:myorg/team1-cluster --git-email <username>@users.noreply.github.com git@github.com:myorg/production-infra
 ```
 
 In this example we provide `github.com:myorg/production-infra` as the Quick Start profile and

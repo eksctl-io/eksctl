@@ -88,7 +88,7 @@ func (dg *Generator) newPropertyRef(referenceName string, t ast.Expr, comment st
 	switch tt := t.(type) {
 	case *ast.Ident:
 		typeName := tt.Name
-		if obj, ok := dg.Importer.FindPkgObj(typeName); ok {
+		if obj, ok := dg.Importer.SearchEntryPackageForObj(typeName); ok {
 			// If we have a declared type behind our ident, add it
 			refTypeName, refTypeSpec = tt.Name, obj.Decl.(*ast.TypeSpec)
 		}
