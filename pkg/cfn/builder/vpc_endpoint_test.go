@@ -16,7 +16,8 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/vpc"
-	gfn "github.com/weaveworks/goformation/cloudformation"
+	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 type vpcResourceSetCase struct {
@@ -50,11 +51,13 @@ var _ = Describe("VPC Endpoint Builder", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		if vc.clusterConfig.PrivateCluster.Enabled {
-			vpcEndpointResourceSet := NewVPCEndpointResourceSet(provider, rs, vc.clusterConfig, vpcResource.VPC, vpcResource.SubnetDetails.Private, gfn.NewString("sg-test"))
+			vpcEndpointResourceSet := NewVPCEndpointResourceSet(provider, rs, vc.clusterConfig, vpcResource.VPC, vpcResource.SubnetDetails.Private, gfnt.NewString("sg-test"))
 			Expect(vpcEndpointResourceSet.AddResources()).To(Succeed())
-			s3Endpoint := rs.template.Resources["VPCEndpointS3"].(*gfn.AWSEC2VPCEndpoint)
-			sort.Slice(s3Endpoint.RouteTableIds, func(i, j int) bool {
-				return s3Endpoint.RouteTableIds[i].String() < s3Endpoint.RouteTableIds[j].String()
+			s3Endpoint := rs.template.Resources["VPCEndpointS3"].(*gfnec2.VPCEndpoint)
+			routeIdsSlice, ok := s3Endpoint.RouteTableIds.Raw().(gfnt.Slice)
+			Expect(ok).To(BeTrue())
+			sort.Slice(routeIdsSlice, func(i, j int) bool {
+				return routeIdsSlice[i].String() < routeIdsSlice[j].String()
 			})
 		} else if vc.clusterConfig.VPC.ID != "" {
 			Expect(rs.template.Resources).To(BeEmpty())

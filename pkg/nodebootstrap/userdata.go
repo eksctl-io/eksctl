@@ -125,21 +125,21 @@ func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, 
 		obj["kubeReserved"] = getKubeReserved(info)
 	} else if ng.InstancesDistribution != nil {
 		// This is a NodeGroup using mixed instance types
-		var minCPU, minRAM int64
+		var minCPU, minMaxPodsPerNode int64
 		for _, instanceType := range ng.InstancesDistribution.InstanceTypes {
 			if info, ok := instanceTypeInfos[instanceType]; ok {
 				if instanceCPU := info.CPU; minCPU == 0 || instanceCPU < minCPU {
 					minCPU = instanceCPU
 				}
-				if instanceRAM := info.Memory; minRAM == 0 || instanceRAM < minRAM {
-					minRAM = instanceRAM
+				if instanceMaxPodsPerNode := info.MaxPodsPerNode; minMaxPodsPerNode == 0 || instanceMaxPodsPerNode < minMaxPodsPerNode {
+					minMaxPodsPerNode = instanceMaxPodsPerNode
 				}
 			}
 		}
-		if minCPU > 0 && minRAM > 0 {
+		if minCPU > 0 && minMaxPodsPerNode > 0 {
 			info = InstanceTypeInfo{
-				Memory: minRAM,
-				CPU:    minCPU,
+				MaxPodsPerNode: minMaxPodsPerNode,
+				CPU:            minCPU,
 			}
 			if _, ok := obj["kubeReserved"]; !ok {
 				obj["kubeReserved"] = api.InlineDocument{}

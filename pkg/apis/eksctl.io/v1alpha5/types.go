@@ -18,6 +18,44 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+// Values for `KubernetesVersion`
+// All valid values should go in this block
+const (
+	Version1_14 = "1.14"
+
+	Version1_15 = "1.15"
+
+	Version1_16 = "1.16"
+
+	Version1_17 = "1.17"
+
+	// DefaultVersion (default)
+	DefaultVersion = Version1_17
+
+	LatestVersion = Version1_17
+)
+
+// No longer supported versions
+const (
+	// Version1_10 represents Kubernetes version 1.10.x
+	Version1_10 = "1.10"
+
+	// Version1_11 represents Kubernetes version 1.11.x
+	Version1_11 = "1.11"
+
+	// Version1_12 represents Kubernetes version 1.12.x
+	Version1_12 = "1.12"
+
+	// Version1_13 represents Kubernetes version 1.13.x
+	Version1_13 = "1.13"
+)
+
+// Not yet supported versions
+const (
+	// Version1_18 represents Kubernetes version 1.18.x
+	Version1_18 = "1.18"
+)
+
 const (
 	// AWSDebugLevel defines the LogLevel for AWS produced logs
 	AWSDebugLevel = 5
@@ -91,39 +129,6 @@ const (
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 
-	// Version1_10 represents Kubernetes version 1.10.x
-	Version1_10 = "1.10"
-
-	// Version1_11 represents Kubernetes version 1.11.x
-	Version1_11 = "1.11"
-
-	// Version1_12 represents Kubernetes version 1.12.x
-	Version1_12 = "1.12"
-
-	// Version1_13 represents Kubernetes version 1.13.x
-	Version1_13 = "1.13"
-
-	// Version1_14 represents Kubernetes version 1.14.x
-	Version1_14 = "1.14"
-
-	// Version1_15 represents Kubernetes version 1.15.x
-	Version1_15 = "1.15"
-
-	// Version1_16 represents Kubernetes version 1.16.x
-	Version1_16 = "1.16"
-
-	// Version1_17 represents Kubernetes version 1.17.x
-	Version1_17 = "1.17"
-
-	// Version1_18 represents Kubernetes version 1.18.x
-	Version1_18 = "1.18"
-
-	// DefaultVersion represents default Kubernetes version supported by EKS
-	DefaultVersion = Version1_16
-
-	// LatestVersion represents latest Kubernetes version supported by EKS
-	LatestVersion = Version1_17
-
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
 
@@ -175,7 +180,7 @@ const (
 	// OldNodeGroupIDTag defines the old version of tag of the nodegroup name
 	OldNodeGroupIDTag = "eksctl.cluster.k8s.io/v1alpha1/nodegroup-id"
 
-	// IAMServiceAccountNameTag defines the tag of the iamserviceaccount name
+	// IAMServiceAccountNameTag defines the tag of the IAM service account name
 	IAMServiceAccountNameTag = "alpha.eksctl.io/iamserviceaccount-name"
 
 	// ClusterNameLabel defines the tag of the cluster name
@@ -404,6 +409,7 @@ func EKSResourceAccountID(region string) string {
 type ClusterMeta struct {
 	Name   string `json:"name" jsonschema:"required"`
 	Region string `json:"region" jsonschema:"required"`
+	// Valid variants are `KubernetesVersion` constants
 	// +optional
 	Version string `json:"version,omitempty"`
 	// +optional
@@ -774,7 +780,8 @@ func NewGit() *Git {
 // Repo groups all configuration options related to a Git repository used for
 // GitOps.
 type Repo struct {
-	// The Git SSH URL to the repository which will contain the cluster configuration, e.g. git@github.com:org/repo
+	// The Git SSH URL to the repository which will contain the cluster configuration
+	// For example: `git@github.com:org/repo`
 	URL string `json:"url,omitempty"`
 
 	// The git branch under which cluster configuration files will be committed & pushed, e.g. master
@@ -830,7 +837,8 @@ type Operator struct {
 // and add to the Git repository.
 type Profile struct {
 
-	// Name or URL of the Quick Start profile. For example, app-dev
+	// Name or URL of the Quick Start profile
+	// For example: `app-dev`
 	Source string `json:"source,omitempty"`
 
 	// Revision of the Quick Start profile. Can be a branch, tag or commit hash

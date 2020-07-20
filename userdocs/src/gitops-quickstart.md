@@ -104,11 +104,11 @@ Run this command from any directory in your file system. `eksctl` will clone
 your repository in a temporary directory that will be removed later.
 
 ```console
-    eksctl enable repo \
-        --git-url git@github.com:example/my-eks-config \
-        --git-email your@email.com \
-        --cluster your-cluster-name \
-        --region your-cluster-region
+eksctl enable repo \
+    --git-url git@github.com:example/my-eks-config \
+    --git-email <username>@users.noreply.github.com \
+    --cluster your-cluster-name \
+    --region your-cluster-region
 ```
 
 Let us go through the specified arguments one by one:
@@ -173,7 +173,8 @@ Welcome to a fully gitopsed world!
 
 ## Enabling a Quick Start profile
 
-The following command will set up your cluster with the `app-dev` profile,
+The following command will set up your cluster with the
+[app-dev](https://github.com/weaveworks/eks-quickstart-app-dev) profile,
 the first gitops Quick Start. All of the config files you need for a
 production-ready cluster will be in the git repo you have provided and
 those components will be deployed to your cluster. When you make changes
@@ -185,11 +186,11 @@ Run this command from any directory in your file system. `eksctl` will clone
 your repository in a temporary directory that will be removed later.
 
 ```console
-enable profile app-dev \
-        --git-url git@github.com:example/my-eks-config \
-        --git-email your@email.com \
-        --cluster your-cluster-name \
-        --region your-cluster-region
+eksctl enable profile app-dev \
+    --git-url git@github.com:example/my-eks-config \
+    --git-email <username>@users.noreply.github.com \
+    --cluster your-cluster-name \
+    --region your-cluster-region
 ```
 
 Let us go through the specified arguments one by one:
@@ -316,7 +317,7 @@ git:
     branch: master
     fluxPath: "flux/"
     user: "gitops"
-    email: "gitops@myorg.com"
+    email: "<username>@users.noreply.github.com"
   operator:
     namespace: "flux"
     withHelm: true
@@ -361,9 +362,9 @@ Now please run:
 
 ```console
 eksctl generate profile \
-        --cluster wonderful-wardrobe-1565767990 \
-        --profile-source https://github.com/weaveworks/eks-quickstart-app-dev.git \
-        --profile-path ~/dev/flux-get-started/cluster-config
+    --cluster wonderful-wardrobe-1565767990 \
+    --profile-source https://github.com/weaveworks/eks-quickstart-app-dev.git \
+    --profile-path ~/dev/flux-get-started/cluster-config
 ```
 
 Let's break this down here. `eksctl generate profile` at the very

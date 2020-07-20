@@ -90,9 +90,9 @@ func render(infos map[string]nodebootstrap.InstanceTypeInfo) error {
 		Map(String()).Id("InstanceTypeInfo").Values(DictFunc(func(d Dict) {
 		for k, info := range infos {
 			d[Lit(k)] = Values(Dict{
-				Id("Storage"): Lit(info.Storage),
-				Id("Memory"):  Lit(info.Memory),
-				Id("CPU"):     Lit(info.CPU),
+				Id("Storage"):        Lit(info.Storage),
+				Id("MaxPodsPerNode"): Lit(info.MaxPodsPerNode),
+				Id("CPU"):            Lit(info.CPU),
 			})
 		}
 	}))

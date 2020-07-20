@@ -70,7 +70,7 @@ var _ = Describe("User data", func() {
 			Expect(kubelet.KubeReserved).To(Equal(map[string]string{
 				"ephemeral-storage": "1Gi",
 				"cpu":               "250m",
-				"memory":            "17407Mi",
+				"memory":            "8362Mi",
 			}))
 		})
 
@@ -78,9 +78,12 @@ var _ = Describe("User data", func() {
 			ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{}
 			ng.InstancesDistribution.InstanceTypes = []string{
 				"c5.xlarge",
-				"c5.2xlarge",
-				"c5.4xlarge",
+				"c5a.2xlarge",
+				"c5a.4xlarge",
 			}
+			Expect(instanceTypeExists(ng.InstancesDistribution.InstanceTypes[0])).To(Equal(true))
+			Expect(instanceTypeExists(ng.InstancesDistribution.InstanceTypes[1])).To(Equal(true))
+			Expect(instanceTypeExists(ng.InstancesDistribution.InstanceTypes[2])).To(Equal(true))
 			data, err := makeKubeletConfigYAML(clusterConfig, ng)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -90,7 +93,7 @@ var _ = Describe("User data", func() {
 			Expect(kubelet.KubeReserved).To(Equal(map[string]string{
 				"ephemeral-storage": "1Gi",
 				"cpu":               "80m",
-				"memory":            "1843Mi",
+				"memory":            "893Mi",
 			}))
 		})
 
@@ -101,6 +104,9 @@ var _ = Describe("User data", func() {
 				"dne.small",
 				"dne.large",
 			}
+			Expect(instanceTypeExists(ng.InstancesDistribution.InstanceTypes[0])).To(Equal(true))
+			Expect(instanceTypeExists(ng.InstancesDistribution.InstanceTypes[1])).To(Equal(false))
+			Expect(instanceTypeExists(ng.InstancesDistribution.InstanceTypes[2])).To(Equal(false))
 			data, err := makeKubeletConfigYAML(clusterConfig, ng)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -110,7 +116,7 @@ var _ = Describe("User data", func() {
 			Expect(kubelet.KubeReserved).To(Equal(map[string]string{
 				"ephemeral-storage": "1Gi",
 				"cpu":               "80m",
-				"memory":            "1843Mi",
+				"memory":            "893Mi",
 			}))
 		})
 
@@ -158,9 +164,12 @@ var _ = Describe("User data", func() {
 			ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{}
 			ng.InstancesDistribution.InstanceTypes = []string{
 				"c5.xlarge",
-				"c5.2xlarge",
-				"c5.4xlarge",
+				"c5a.2xlarge",
+				"c5a.4xlarge",
 			}
+			Expect(instanceTypeExists(ng.InstancesDistribution.InstanceTypes[0])).To(Equal(true))
+			Expect(instanceTypeExists(ng.InstancesDistribution.InstanceTypes[1])).To(Equal(true))
+			Expect(instanceTypeExists(ng.InstancesDistribution.InstanceTypes[2])).To(Equal(true))
 			data, err := makeKubeletConfigYAML(clusterConfig, ng)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -179,3 +188,8 @@ var _ = Describe("User data", func() {
 		})
 	})
 })
+
+func instanceTypeExists(name string) bool {
+	_, exists := instanceTypeInfos[name]
+	return exists
+}

@@ -77,7 +77,7 @@ var _ = Describe("(Integration) [Backwards compatibility test]", func() {
 				"-v4",
 				"--region", params.Region,
 			).
-			WithTimeout(20 * time.Minute)
+			WithTimeout(30 * time.Minute)
 
 		Expect(cmd).To(RunSuccessfully())
 

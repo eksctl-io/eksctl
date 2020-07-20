@@ -6,7 +6,9 @@ import (
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
-	gfn "github.com/weaveworks/goformation/cloudformation"
+	gfn "github.com/weaveworks/goformation/v4/cloudformation"
+	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 const (
@@ -20,6 +22,10 @@ type awsCloudFormationResource struct {
 	Properties   map[string]interface{}
 	UpdatePolicy map[string]map[string]string `json:",omitempty"`
 	DependsOn    []string                     `json:",omitempty"`
+}
+
+func (r *awsCloudFormationResource) AWSCloudFormationType() string {
+	return r.Type
 }
 
 // ResourceSet is an interface which cluster and nodegroup builders
@@ -47,35 +53,26 @@ func newResourceSet() *resourceSet {
 }
 
 // makeName is syntactic sugar for {"Fn::Sub": "${AWS::Stack}-<name>"}
-func makeName(suffix string) *gfn.Value {
-	return gfn.MakeFnSubString(fmt.Sprintf("${%s}-%s", gfn.StackName, suffix))
-}
-
-// makeSlice makes a slice from a list of arguments
-func makeSlice(i ...*gfn.Value) []*gfn.Value {
-	return i
+func makeName(suffix string) *gfnt.Value {
+	return gfnt.MakeFnSubString(fmt.Sprintf("${%s}-%s", gfnt.StackName, suffix))
 }
 
 // makeSlice makes a slice from a list of string arguments
-func makeStringSlice(s ...string) []*gfn.Value {
-	slice := []*gfn.Value{}
+func makeStringSlice(s ...string) []*gfnt.Value {
+	slice := []*gfnt.Value{}
 	for _, i := range s {
-		slice = append(slice, gfn.NewString(i))
+		slice = append(slice, gfnt.NewString(i))
 	}
 	return slice
 }
 
 // makeAutoNameTag create a new Name tag in the following format:
 // {Key: "Name", Value: !Sub "${AWS::StackName}/<logicalResourceName>"}
-func makeAutoNameTag(suffix string) gfn.Tag {
-	return gfn.Tag{
-		Key:   gfn.NewString("Name"),
-		Value: gfn.MakeFnSubString(fmt.Sprintf("${%s}/%s", gfn.StackName, suffix)),
+func makeAutoNameTag(suffix string) gfncfn.Tag {
+	return gfncfn.Tag{
+		Key:   gfnt.NewString("Name"),
+		Value: gfnt.MakeFnSubString(fmt.Sprintf("${%s}/%s", gfnt.StackName, suffix)),
 	}
-}
-
-func makeAttrAccessor(resource, attr string) string {
-	return fmt.Sprintf("%s.%s", resource, attr)
 }
 
 // maybeSetNameTag adds a Name tag to any resource that supports tags
@@ -86,7 +83,7 @@ func maybeSetNameTag(name string, resource interface{}) {
 		f := e.FieldByName("Tags")
 		if f.IsValid() && f.CanSet() {
 			tag := reflect.ValueOf(makeAutoNameTag(name))
-			if f.Type() == reflect.ValueOf([]gfn.Tag{}).Type() {
+			if f.Type() == reflect.ValueOf([]gfncfn.Tag{}).Type() {
 				f.Set(reflect.Append(f, tag))
 			}
 		}
@@ -94,10 +91,10 @@ func maybeSetNameTag(name string, resource interface{}) {
 }
 
 // newResource adds a resource, and adds Name tag if possible, it returns a reference
-func (r *resourceSet) newResource(name string, resource interface{}) *gfn.Value {
+func (r *resourceSet) newResource(name string, resource gfn.Resource) *gfnt.Value {
 	maybeSetNameTag(name, resource)
 	r.template.Resources[name] = resource
-	return gfn.MakeRef(name)
+	return gfnt.MakeRef(name)
 }
 
 // renderJSON renders template as JSON
