@@ -156,6 +156,8 @@ jobs:
           no_output_timeout: 21m
       - store_artifacts:
           path: dist/
+      - notify-slack:
+          fail_only: false
   release:
     machine:
       image: ubuntu-1604:201903-01
@@ -183,7 +185,6 @@ jobs:
           path: dist/
       - notify-slack:
           fail_only: false
-          only_for_branches: ""
   integration-tests:
     machine:
       image: ubuntu-1604:201903-01
