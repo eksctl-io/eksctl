@@ -106,7 +106,7 @@ your repository in a temporary directory that will be removed later.
 ```console
 eksctl enable repo \
     --git-url git@github.com:example/my-eks-config \
-    --git-email your@email.com \
+    --git-email <username>@users.noreply.github.com \
     --cluster your-cluster-name \
     --region your-cluster-region
 ```
@@ -167,7 +167,8 @@ Welcome to a fully gitopsed world!
 
 ## Enabling a Quick Start profile
 
-The following command will set up your cluster with the `app-dev` profile,
+The following command will set up your cluster with the
+[app-dev](https://github.com/weaveworks/eks-quickstart-app-dev) profile,
 the first gitops Quick Start. All of the config files you need for a
 production-ready cluster will be in the git repo you have provided and
 those components will be deployed to your cluster. When you make changes
@@ -181,7 +182,7 @@ your repository in a temporary directory that will be removed later.
 ```console
 eksctl enable profile app-dev \
     --git-url git@github.com:example/my-eks-config \
-    --git-email your@email.com \
+    --git-email <username>@users.noreply.github.com \
     --cluster your-cluster-name \
     --region your-cluster-region
 ```
@@ -298,7 +299,7 @@ git:
     branch: master
     fluxPath: "flux/"
     user: "gitops"
-    email: "gitops@myorg.com"
+    email: "<username>@users.noreply.github.com"
   operator:
     namespace: "flux"
     withHelm: true

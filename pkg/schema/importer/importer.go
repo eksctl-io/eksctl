@@ -58,14 +58,18 @@ func handleVariants(decl *ast.GenDecl) []*ast.ValueSpec {
 	return variants
 }
 
+// Variants is a list of values
+type Variants []*ast.ValueSpec
+
 // VariantMap groups constants together under a name
-type VariantMap map[string][]*ast.ValueSpec
+type VariantMap map[string]Variants
 
 var regexpVariantDeclaration = regexp.MustCompile("[vV]alues for `(.*)`")
 
 // handleGenDeclComments handles `type X struct {}` type declarations
 // Comments on `GenDecl`s would otherwise be lost because after calling
 // `NewPackage` we only have access to `TypeSpec`s _inside_ the `GenDecl`s
+// it also returns a map of names to enum variants
 func handleGenDeclComments(scope *ast.Scope, fileMap map[string]*ast.File) VariantMap {
 	var variants = make(VariantMap)
 	for _, f := range fileMap {
@@ -155,7 +159,8 @@ func NewImporter(path string) (Importer, error) {
 	return f, nil
 }
 
-func importPathFromSelector(it *ast.SelectorExpr) (path string, name string, err error) {
+// ImportPathFromSelector gives us a path and a selector like for some pkg.SomeStruct
+func ImportPathFromSelector(it *ast.SelectorExpr) (path string, name string, err error) {
 	// We assume we'll find an import on the lefthand side of the SelectorExpr
 	importIdent := it.X.(*ast.Ident)
 	if importIdent.Obj == nil {
@@ -173,8 +178,8 @@ func importPathFromSelector(it *ast.SelectorExpr) (path string, name string, err
 	return importPath, it.Sel.Name, nil
 }
 
-// FindPkgObj takes a name like Struct and looks in the starting package
-func (importer Importer) FindPkgObj(typeName string) (*ast.Object, bool) {
+// SearchEntryPackageForObj takes a name like SomeStruct and looks in the starting package
+func (importer Importer) SearchEntryPackageForObj(typeName string) (*ast.Object, bool) {
 	importedPkg, err := importer("")
 	if err != nil {
 		panic(errors.Wrapf(err, "Error importing starting package!"))
@@ -185,24 +190,50 @@ func (importer Importer) FindPkgObj(typeName string) (*ast.Object, bool) {
 	return obj, ok
 }
 
-// FindImportedTypeSpec takes a SelectorExpr `pkg.Struct` where `pkg` refers to
-// an import and finds the corresponding TypeSpec
-func (importer Importer) FindImportedTypeSpec(it *ast.SelectorExpr) (string, *ast.TypeSpec, error) {
-	importPath, typeName, err := importPathFromSelector(it)
+// SearchPackageForObj takes a name like SomeStruct and looks in the starting package
+func (importer Importer) SearchPackageForObj(pkg, typeName string) (*ast.Object, bool) {
+	importedPkg, err := importer(pkg)
 	if err != nil {
-		return "", nil, errors.Wrapf(err, "couldn't get import path")
+		panic(errors.Wrapf(err, "Error importing starting package!"))
+	}
+
+	scope := importedPkg.Pkg.Data.(*ast.Scope)
+	obj, ok := scope.Objects[typeName]
+	return obj, ok
+}
+
+// findImportedObj takes a SelectorExpr `pkg.Struct` where `pkg` refers to
+// an import and finds the corresponding object
+func (importer Importer) findImportedObj(it *ast.SelectorExpr) (*ast.Object, error) {
+	importPath, typeName, err := ImportPathFromSelector(it)
+	if err != nil {
+		return nil, errors.Wrapf(err, "couldn't get import path")
 	}
 
 	importedPkg, err := importer(importPath)
 	if err != nil {
-		return "", nil, errors.Wrapf(err, "couldn't handle struct field")
+		return nil, errors.Wrapf(err, "couldn't handle struct field")
 	}
 
 	// Look for the righthand side of the SelectorExpr in our imported package
 	scope := importedPkg.Pkg.Data.(*ast.Scope)
 	obj, ok := scope.Objects[typeName]
 	if !ok {
-		return "", nil, errors.Errorf("Couldn't find object %s in imported package %s", it.Sel.Name, importPath)
+		return nil, errors.Errorf("Couldn't find object %s in imported package %s", it.Sel.Name, importPath)
+	}
+	return obj, nil
+}
+
+// FindImportedTypeSpec takes a SelectorExpr `pkg.Struct` where `pkg` refers to
+// an import and finds the corresponding TypeSpec
+func (importer Importer) FindImportedTypeSpec(it *ast.SelectorExpr) (string, *ast.TypeSpec, error) {
+	obj, err := importer.findImportedObj(it)
+	if err != nil {
+		return "", nil, err
+	}
+	importPath, _, err := ImportPathFromSelector(it)
+	if err != nil {
+		return "", nil, err
 	}
 	inlineName := fmt.Sprintf("%s.%s", strings.ReplaceAll(importPath, "/", "|"), it.Sel.Name)
 	typeSpec, ok := obj.Decl.(*ast.TypeSpec)
