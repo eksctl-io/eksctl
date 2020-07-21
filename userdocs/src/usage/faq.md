@@ -9,7 +9,7 @@
     First you'll need the name of the Cloudformation stack that manages the
     nodegroup:
     ```console
-    $ ./eksctl utils describe-stacks --region=us-west-2 --cluster NAME
+    $ eksctl utils describe-stacks --region=us-west-2 --cluster NAME
     ```
     You'll see a name similar to `eksctl-CLUSTER_NAME-nodegroup-NODEGROUP_NAME`.
 
