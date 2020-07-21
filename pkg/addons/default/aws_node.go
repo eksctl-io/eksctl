@@ -83,6 +83,7 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 				return false, err
 			}
 			if exists {
+				logger.Info(resource.LogAction(plan, "skipped existing"))
 				continue
 			}
 		}
