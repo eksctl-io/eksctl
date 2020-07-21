@@ -76,6 +76,18 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 			continue
 		}
 
+		// Leave service account if it exists
+		// to avoid overwriting annotations
+		if resource.GVK.Kind == "ServiceAccount" {
+			_, exists, err := resource.Get()
+			if err != nil {
+				return false, err
+			}
+			if exists {
+				continue
+			}
+		}
+
 		status, err := resource.CreateOrReplace(plan)
 		if err != nil {
 			return false, err

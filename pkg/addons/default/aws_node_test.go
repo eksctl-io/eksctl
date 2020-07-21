@@ -3,6 +3,7 @@ package defaultaddons_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega/gstruct"
 
 	. "github.com/weaveworks/eksctl/pkg/addons/default"
 
@@ -56,7 +57,10 @@ var _ = Describe("default addons - aws-node", func() {
 
 			_, err := UpdateAWSNode(rawClient, "eu-west-1", false)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(rawClient.Collection.UpdatedItems()).To(HaveLen(4))
+			Expect(rawClient.Collection.UpdatedItems()).To(HaveLen(3))
+			Expect(rawClient.Collection.UpdatedItems()).ToNot(ContainElement(PointTo(MatchFields(IgnoreMissing|IgnoreExtras, Fields{
+				"TypeMeta": MatchFields(IgnoreMissing|IgnoreExtras, Fields{"Kind": Equal("ServiceAccount")}),
+			}))))
 			Expect(rawClient.Collection.CreatedItems()).To(HaveLen(10))
 
 			rawClient.ClientSetUseUpdatedObjects = true // for verification of updated objects
