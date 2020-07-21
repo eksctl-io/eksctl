@@ -632,13 +632,13 @@ func NewNodeGroup() *NodeGroup {
 				Allow:         Disabled(),
 				PublicKeyPath: &DefaultNodeSSHPublicKeyPath,
 			},
+			VolumeType: &DefaultNodeVolumeType,
 		},
 		SecurityGroups: &NodeGroupSGs{
 			AttachIDs:  []string{},
 			WithLocal:  Enabled(),
 			WithShared: Enabled(),
 		},
-		VolumeType: &DefaultNodeVolumeType,
 	}
 }
 
@@ -690,8 +690,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 // specific to a nodegroup
 type NodeGroup struct {
 	*NodeGroupBase
-	// +optional
-	AMI string `json:"ami,omitempty"`
+
 	//+optional
 	InstancesDistribution *NodeGroupInstancesDistribution `json:"instancesDistribution,omitempty"`
 	// +optional
@@ -704,26 +703,9 @@ type NodeGroup struct {
 	// +optional
 	ASGMetricsCollection []MetricsCollection `json:"asgMetricsCollection,omitempty"`
 
-	// EBSOptimized enables [EBS
-	// optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)
-	// +optional
-	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
-
 	// CPUCredits configures [T3 Unlimited](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html), valid only for T-type instances
 	// +optional
 	CPUCredits *string `json:"cpuCredits,omitempty"`
-
-	// Valid variants are `VolumeType` constants
-	// +optional
-	VolumeType *string `json:"volumeType,omitempty"`
-	// +optional
-	VolumeName *string `json:"volumeName,omitempty"`
-	// +optional
-	VolumeEncrypted *bool `json:"volumeEncrypted,omitempty"`
-	// +optional
-	VolumeKmsKeyID *string `json:"volumeKmsKeyID,omitempty"`
-	// +optional
-	VolumeIOPS *int `json:"volumeIOPS,omitempty"`
 
 	// +optional
 	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
@@ -1042,6 +1024,26 @@ type NodeGroupBase struct {
 	Tags map[string]string `json:"tags,omitempty"`
 	// +optional
 	IAM *NodeGroupIAM `json:"iam,omitempty"`
+
+	// +optional
+	AMI string `json:"ami,omitempty"`
+
+	// EBSOptimized enables [EBS
+	// optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)
+	// +optional
+	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
+
+	// Valid variants are `VolumeType` constants
+	// +optional
+	VolumeType *string `json:"volumeType,omitempty"`
+	// +optional
+	VolumeName *string `json:"volumeName,omitempty"`
+	// +optional
+	VolumeEncrypted *bool `json:"volumeEncrypted,omitempty"`
+	// +optional
+	VolumeKmsKeyID *string `json:"volumeKmsKeyID,omitempty"`
+	// +optional
+	VolumeIOPS *int `json:"volumeIOPS,omitempty"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
