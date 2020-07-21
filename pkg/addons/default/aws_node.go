@@ -45,7 +45,8 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 		if err != nil {
 			return false, err
 		}
-		if resource.GVK.Kind == "DaemonSet" {
+		switch resource.GVK.Kind {
+		case "DaemonSet":
 			daemonSet, ok := resource.Info.Object.(*appsv1.DaemonSet)
 			if !ok {
 				return false, fmt.Errorf("expected type %T; got %T", &appsv1.Deployment{}, resource.Info.Object)
@@ -67,13 +68,24 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 			if err != nil {
 				return false, err
 			}
-		}
-
-		if resource.GVK.Kind == "CustomResourceDefinition" && plan {
-			// eniconfigs.crd.k8s.amazonaws.com CRD is only partially defined in the
-			// manifest, and causes a range of issue in plan mode, we can skip it
-			logger.Info(resource.LogAction(plan, "replaced"))
-			continue
+		case "CustomResourceDefinition":
+			if plan {
+				// eniconfigs.crd.k8s.amazonaws.com CRD is only partially defined in the
+				// manifest, and causes a range of issue in plan mode, we can skip it
+				logger.Info(resource.LogAction(plan, "replaced"))
+				continue
+			}
+		case "ServiceAccount":
+			// Leave service account if it exists
+			// to avoid overwriting annotations
+			_, exists, err := resource.Get()
+			if err != nil {
+				return false, err
+			}
+			if exists {
+				logger.Info(resource.LogAction(plan, "skipped existing"))
+				continue
+			}
 		}
 
 		status, err := resource.CreateOrReplace(plan)
