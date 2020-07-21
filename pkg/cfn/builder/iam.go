@@ -86,11 +86,6 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 		role.PermissionsBoundary = gfnt.NewString(*c.spec.IAM.ServiceRolePermissionsBoundary)
 	}
 	refSR := c.newResource("ServiceRole", role)
-	c.rs.attachAllowPolicy("PolicyNLB", refSR, "*", []string{
-		"elasticloadbalancing:*",
-		"ec2:CreateSecurityGroup",
-		"ec2:Describe*",
-	})
 	c.rs.attachAllowPolicy("PolicyCloudWatchMetrics", refSR, "*", []string{
 		"cloudwatch:PutMetricData",
 	})

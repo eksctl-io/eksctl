@@ -22,8 +22,8 @@ func fmtKubectlCmd(ktl *kubectl.LocalClient, cmds ...string) string {
 	return shellquote.Join(args...)
 }
 
-// CheckKubectlVersion checks version of kubectl
-func CheckKubectlVersion(env []string) error {
+// checkKubectlVersion checks version of kubectl
+func checkKubectlVersion(env []string) error {
 	ktl := &kubectl.LocalClient{Env: env}
 	kubectlPath, err := ktl.LookPath()
 	if err != nil {
@@ -54,7 +54,7 @@ func CheckKubectlVersion(env []string) error {
 // of the authenticator commands; most importantly it validates if kubectl can
 // use kubeconfig we've created for it
 func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName string, env []string) error {
-	if err := CheckKubectlVersion(env); err != nil {
+	if err := checkKubectlVersion(env); err != nil {
 		return err
 	}
 
