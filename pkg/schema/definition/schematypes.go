@@ -12,7 +12,8 @@ func setTypeOrRef(def *Definition, typeName string) {
 	case "float64":
 		def.Type = "number"
 	case "byte":
-		def.Type = "string" // TODO mediaEncoding
+		def.Type = "string"
+		def.ContentEncoding = "base64"
 	default:
 		def.Ref = DefPrefix + typeName
 	}

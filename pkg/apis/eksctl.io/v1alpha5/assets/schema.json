@@ -320,7 +320,8 @@
         },
         "certificateAuthorityData": {
           "items": {
-            "type": "string"
+            "type": "string",
+            "contentEncoding": "base64"
           },
           "type": "array"
         },
