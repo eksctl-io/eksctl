@@ -37,7 +37,7 @@ func IsMinVersion(minimumVersion, version string) (bool, error) {
 	}
 	targetVersion, err := semver.ParseTolerant(version)
 	if err != nil {
-		return false, fmt.Errorf("unable to parse version %s", version)
+		return false, fmt.Errorf("unable to parse target version %s", version)
 	}
 	return targetVersion.GE(minVersion), nil
 }
@@ -49,11 +49,11 @@ func IsMinVersion(minimumVersion, version string) (bool, error) {
 func CompareVersions(a, b string) (int, error) {
 	aVersion, err := semver.ParseTolerant(a)
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable to parse version %q", a)
+		return 0, errors.Wrapf(err, "unable to parse first version %q", a)
 	}
 	bVersion, err := semver.ParseTolerant(b)
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable to parse version %q", b)
+		return 0, errors.Wrapf(err, "unable to parse second version %q", b)
 	}
 	return aVersion.Compare(bVersion), nil
 }

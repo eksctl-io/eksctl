@@ -137,7 +137,8 @@ func requiresVersionUpgrade(clusterMeta *api.ClusterMeta, currentEKSVersion stri
 	}
 
 	// If the version was not specified default to the next Kubernetes version and assume the user intended to upgrade if possible
-	if clusterMeta.Version == "" {
+	// also support "auto" as version (see #2461)
+	if clusterMeta.Version == "" || clusterMeta.Version == "auto" {
 		if api.IsSupportedVersion(nextVersion) {
 			clusterMeta.Version = nextVersion
 			return true, nil
@@ -149,7 +150,7 @@ func requiresVersionUpgrade(clusterMeta *api.ClusterMeta, currentEKSVersion stri
 	}
 
 	if c, err := utils.CompareVersions(clusterMeta.Version, currentEKSVersion); err != nil {
-		return false, err
+		return false, errors.Wrap(err, "couldn't compare versions for upgrade")
 	} else if c < 0 {
 		return false, fmt.Errorf("cannot upgrade to a lower version. Found given target version %q, current cluster version %q", clusterMeta.Version, currentEKSVersion)
 	}
