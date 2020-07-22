@@ -38,6 +38,28 @@ import { unsafeHTML } from "https://unpkg.com/lit-html@1.2.1/directives/unsafe-h
 function offset(ident) {
     return `${ident * 2}ex`;
 }
+
+function valueEntry(definition) {
+    let value = definition.default;
+    let valueClass = "value";
+    let tooltip = "Default value";
+    const isEnum = (definition.enum && definition.enum.length > 0) || definition.const;
+    if (!definition.default && isEnum) {
+        value = definition.const || definition.enum[0];
+        valueClass = "example";
+        tooltip = "Example value";
+        if (definition.const || definition.enum.length === 1) {
+            valueClass = "const";
+            tooltip = "Required value";
+        }
+    } else if (definition.examples && definition.examples.length > 0) {
+        value = definition.examples[0];
+        valueClass = "example";
+        tooltip = "Example value";
+    }
+    return [value, valueClass, tooltip];
+}
+
 function* template(definitions, parentDefinition, ref, ident, parent) {
     const name = ref.replace("#/definitions/", "");
     const allProperties = [];
@@ -60,11 +82,7 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
         let keyClass = required ? "key required" : "key";
 
         // Value
-        let value = definition.default;
-        if (definition.examples && definition.examples.length > 0) {
-            value = definition.examples[0];
-        }
-        const valueClass = definition.examples ? "example" : "value";
+        let [value, valueClass, tooltip] = valueEntry(definition);
 
         // Description
         let desc = definition["x-intellij-html-description"] || "";
@@ -73,13 +91,19 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
         if (parentDefinition && parentDefinition.type === "array") {
             firstOfListType = index === 0;
         }
+        const valueCell = value
+            ? html`<span title="${tooltip}" class="${valueClass}"
+                  >${value}</span
+              >`
+            : null;
+
         const keyCell = (value) => html`
             <td>
                 <div class="anchor" id="${path}"></div>
-                <span class="${keyClass}" style="margin-left: ${offset(ident)}">
+                <span title="${required ? 'Required key' : ''}" class="${keyClass}" style="margin-left: ${offset(ident)}">
                     ${anchor(path, key, firstOfListType)}:
                 </span>
-                <span class="${valueClass}">${value}</span>
+                ${valueCell}
             </td>
         `;
 
@@ -113,8 +137,8 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
             yield html`
                 <tr class="top">
                     ${keyCell(value)}
-                    <td class="type">${type}</td>
                     <td class="comment">${unsafeHTML(desc)}</td>
+                    <td class="type">${type}</td>
                 </tr>
             `;
         } else if (definition.items && definition.items.$ref) {
@@ -135,8 +159,8 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
             yield html`
                 <tr class="top">
                     ${keyCell(value)}
-                    <td class="type">${type}</td>
                     <td class="comment">${unsafeHTML(desc)}</td>
+                    <td class="type">${type}</td>
                 </tr>
             `;
         } else if (definition.type === "array" && value && value !== "[]") {
@@ -146,10 +170,10 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
             yield html`
                 <tr>
                     ${keyCell("")}
-                    <td class="type"></td>
                     <td class="comment" rowspan="${1 + values.length}">
                         ${unsafeHTML(desc)}
                     </td>
+                    <td class="type"></td>
                 </tr>
             `;
 
@@ -163,8 +187,8 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
                                 >- <span class="${valueClass}">${v}</span></span
                             >
                         </td>
-                        <td class="type">object</td>
                         <td class="comment"></td>
+                        <td class="type">object</td>
                     </tr>
                 `;
             }
@@ -172,8 +196,8 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
             yield html`
                 <tr>
                     ${keyCell(value)}
-                    <td class="type">object</td>
                     <td class="comment">${unsafeHTML(desc)}</td>
+                    <td class="type">object</td>
                 </tr>
             `;
         } else {
@@ -184,8 +208,8 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
             yield html`
                 <tr>
                     ${keyCell(value)}
-                    <td class="type">${type}</td>
                     <td class="comment">${unsafeHTML(desc)}</td>
+                    <td class="type">${type}</td>
                 </tr>
             `;
         }

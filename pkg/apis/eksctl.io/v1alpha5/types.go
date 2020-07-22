@@ -749,6 +749,11 @@ type NodeGroup struct {
 	// [Customize `kubelet` config](/usage/customizing-the-kubelet/)
 	// +optional
 	KubeletExtraConfig *InlineDocument `json:"kubeletExtraConfig,omitempty"`
+
+	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
+	// Defaults to `false`
+	// +optional
+	DisableIMDSv1 *bool `json:"disableIMDSv1,omitempty"`
 }
 
 // Git groups all configuration options related to enabling GitOps on a

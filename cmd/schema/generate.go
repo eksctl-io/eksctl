@@ -24,16 +24,18 @@ func main() {
 	}
 
 	// We add some examples and exclude some descriptions
-	if t, ok := schema.Definitions["ClusterConfig"].Properties["kind"]; ok {
-		t.Examples = []string{"ClusterConfig"}
+	cc := schema.Definitions["ClusterConfig"]
+	if t, ok := cc.Properties["kind"]; ok {
+		t.Enum = []string{"ClusterConfig"}
 		t.Description = ""
 		t.HTMLDescription = ""
 	}
-	if t, ok := schema.Definitions["ClusterConfig"].Properties["apiVersion"]; ok {
-		t.Examples = []string{fmt.Sprintf("%s/%s", api.GroupName, v1alpha5.CurrentGroupVersion)}
+	if t, ok := cc.Properties["apiVersion"]; ok {
+		t.Enum = []string{fmt.Sprintf("%s/%s", api.GroupName, v1alpha5.CurrentGroupVersion)}
 		t.Description = ""
 		t.HTMLDescription = ""
 	}
+	cc.Required = append(cc.Required, "kind", "apiVersion")
 
 	bytes, err := schemapkg.ToJSON(schema)
 	if err != nil {

@@ -16,6 +16,8 @@ nodeGroups:
     volumeType: gp2
     ami: ami-05ecac759c81e0b0c
     amiFamily: AmazonLinux2
+    # forces the use of IMDSv2 tokens
+    disableIMDSv1: true
     labels:
       nodegroup-type: frontend-workloads
     iam:

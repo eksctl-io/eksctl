@@ -37,13 +37,15 @@
     },
     "ClusterConfig": {
       "required": [
-        "metadata"
+        "metadata",
+        "kind",
+        "apiVersion"
       ],
       "properties": {
         "apiVersion": {
           "type": "string",
           "default": "",
-          "examples": [
+          "enum": [
             "eksctl.io/v1alpha5"
           ]
         },
@@ -74,7 +76,7 @@
         "kind": {
           "type": "string",
           "default": "",
-          "examples": [
+          "enum": [
             "ClusterConfig"
           ]
         },
@@ -757,6 +759,12 @@
         "desiredCapacity": {
           "type": "integer"
         },
+        "disableIMDSv1": {
+          "type": "boolean",
+          "description": "requires requests to the metadata service to use IMDSv2 tokens",
+          "x-intellij-html-description": "requires requests to the metadata service to use IMDSv2 tokens",
+          "default": "false"
+        },
         "ebsOptimized": {
           "type": "boolean",
           "description": "enables [EBS optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)",
@@ -923,7 +931,8 @@
         "preBootstrapCommands",
         "overrideBootstrapCommand",
         "clusterDNS",
-        "kubeletExtraConfig"
+        "kubeletExtraConfig",
+        "disableIMDSv1"
       ],
       "additionalProperties": false,
       "description": "holds configuration attributes that are specific to a nodegroup",
