@@ -752,7 +752,7 @@ type NodeGroup struct {
 
 	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
 	// +optional
-	DisableIMDSv1 *bool `json:"disableIMDSv1"`
+	DisableIMDSv1 *bool `json:"disableIMDSv1,omitempty"`
 }
 
 // Git groups all configuration options related to enabling GitOps on a
