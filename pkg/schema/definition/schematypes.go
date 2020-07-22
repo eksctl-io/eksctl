@@ -19,10 +19,11 @@ func setTypeOrRef(def *Definition, typeName string) {
 }
 
 func setDefaultForNonPointerType(def *Definition, typeName string) {
+	// It only really makes sense to set default for bools
+	// For strings or numbers, the empty value typically has a
+	// different semantic meaning
 	switch typeName {
 	case "bool":
 		def.Default = "false"
-	case "string":
-		def.Default = ""
 	}
 }
