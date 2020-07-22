@@ -251,6 +251,11 @@ func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
 }
 
 func newLaunchTemplateData(n *NodeGroupResourceSet) *gfnec2.LaunchTemplate_LaunchTemplateData {
+	imdsv2TokensRequired := gfnt.NewString("optional")
+	if n.spec.DisableIMDSv1 != nil && *n.spec.DisableIMDSv1 {
+		imdsv2TokensRequired = gfnt.NewString("required")
+	}
+
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
 		IamInstanceProfile: &gfnec2.LaunchTemplate_IamInstanceProfile{
 			Arn: n.instanceProfileARN,
@@ -265,6 +270,7 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfnec2.LaunchTemplate_Launc
 		}},
 		MetadataOptions: &gfnec2.LaunchTemplate_MetadataOptions{
 			HttpPutResponseHopLimit: gfnt.NewInteger(2),
+			HttpTokens:              imdsv2TokensRequired,
 		},
 	}
 

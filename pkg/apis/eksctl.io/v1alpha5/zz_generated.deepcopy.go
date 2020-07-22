@@ -767,6 +767,11 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		in, out := &in.KubeletExtraConfig, &out.KubeletExtraConfig
 		*out = (*in).DeepCopy()
 	}
+	if in.DisableIMDSv1 != nil {
+		in, out := &in.DisableIMDSv1, &out.DisableIMDSv1
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 
