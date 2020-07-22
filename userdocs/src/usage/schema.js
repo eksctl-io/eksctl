@@ -42,20 +42,20 @@ function offset(ident) {
 function valueEntry(definition) {
     let value = definition.default;
     let valueClass = "value";
-    let tooltip = "Default value";
+    let tooltip = "default";
     const isEnum = (definition.enum && definition.enum.length > 0) || definition.const;
     if (definition.default == null && isEnum) {
-        value = definition.const || definition.enum[0];
+        value = definition.const || definition.example || definition.enum[0];
         valueClass = "example";
-        tooltip = "Example value";
+        tooltip = "example";
         if (definition.const || definition.enum.length === 1) {
             valueClass = "const";
-            tooltip = "Required value";
+            tooltip = "required value";
         }
     } else if (definition.examples && definition.examples.length > 0) {
         value = definition.examples[0];
         valueClass = "example";
-        tooltip = "Example value";
+        tooltip = "example";
     }
     return [value, valueClass, tooltip];
 }
