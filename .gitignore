@@ -1,9 +1,6 @@
 # Test binary, build with `go test -c`
 *.test
 
-# Release config file backups
-.goreleaser.brew.combined.yml
-
 # Locally built binaries
 eksctl
 eksctl-integration-test
