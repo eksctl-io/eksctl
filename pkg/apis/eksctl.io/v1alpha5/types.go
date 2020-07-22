@@ -751,6 +751,7 @@ type NodeGroup struct {
 	KubeletExtraConfig *InlineDocument `json:"kubeletExtraConfig,omitempty"`
 
 	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
+	// Defaults to `false`
 	// +optional
 	DisableIMDSv1 *bool `json:"disableIMDSv1,omitempty"`
 }
