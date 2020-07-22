@@ -637,7 +637,7 @@
           "type": "integer",
           "description": "gigabytes",
           "x-intellij-html-description": "gigabytes",
-          "default": "80"
+          "default": 80
         }
       },
       "preferredOrder": [
@@ -763,7 +763,7 @@
           "type": "boolean",
           "description": "requires requests to the metadata service to use IMDSv2 tokens",
           "x-intellij-html-description": "requires requests to the metadata service to use IMDSv2 tokens",
-          "default": "false"
+          "default": false
         },
         "ebsOptimized": {
           "type": "boolean",
@@ -881,7 +881,7 @@
           "type": "integer",
           "description": "gigabytes",
           "x-intellij-html-description": "gigabytes",
-          "default": "80"
+          "default": 80
         },
         "volumeType": {
           "type": "string",
@@ -1110,13 +1110,13 @@
           "type": "boolean",
           "description": "attach a security group local to this nodegroup",
           "x-intellij-html-description": "attach a security group local to this nodegroup",
-          "default": "true"
+          "default": true
         },
         "withShared": {
           "type": "boolean",
           "description": "attach the security group shared among all nodegroups in the cluster",
           "x-intellij-html-description": "attach the security group shared among all nodegroups in the cluster",
-          "default": "true"
+          "default": true
         }
       },
       "preferredOrder": [
