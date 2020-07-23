@@ -30,9 +30,8 @@ integration/kubeconfig-*
 
 # Docker Image ID file and docker intermediate files
 # Build image context and Docker Image ID file
-.build_image_context
 *.iid
-.docker/
+build/docker/
 
 # direnv's files:
 .envrc
