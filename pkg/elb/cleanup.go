@@ -84,8 +84,10 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 		if lb == nil {
 			continue
 		}
-		logger.Debug("tracking deletion of load balancer %s of kind %d with security groups %v",
-			lb.name, lb.kind, convertStringSetToSlice(lb.ownedSecurityGroupIDs))
+		logger.Debug(
+			"tracking deletion of load balancer %s of kind %d with security groups %v",
+			lb.name, lb.kind, convertStringSetToSlice(lb.ownedSecurityGroupIDs),
+		)
 		awsLoadBalancers[lb.name] = *lb
 		logger.Debug("deleting 'type: LoadBalancer' Service %s/%s", s.Namespace, s.Name)
 		if err := kubernetesCS.CoreV1().Services(s.Namespace).Delete(s.Name, &metav1.DeleteOptions{}); err != nil {
@@ -102,8 +104,10 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 		if lb == nil {
 			continue
 		}
-		logger.Debug("tracking deletion of load balancer %s of kind %d with security groups %v",
-			lb.name, lb.kind, convertStringSetToSlice(lb.ownedSecurityGroupIDs))
+		logger.Debug(
+			"tracking deletion of load balancer %s of kind %d with security groups %v",
+			lb.name, lb.kind, convertStringSetToSlice(lb.ownedSecurityGroupIDs),
+		)
 		awsLoadBalancers[lb.name] = *lb
 		logger.Debug("deleting 'kubernetes.io/ingress.class: alb' Ingress %s/%s", i.Namespace, i.Name)
 		if err := kubernetesCS.NetworkingV1beta1().Ingresses(i.Namespace).Delete(i.Name, &metav1.DeleteOptions{}); err != nil {
@@ -131,13 +135,11 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 			delete(awsLoadBalancers, name)
 		}
 	}
-	numLB := len(awsLoadBalancers)
-	if numLB > 0 {
-		lbs := make([]string, numLB)
-		var i int
+
+	if numLB := len(awsLoadBalancers); numLB > 0 {
+		lbs := make([]string, 0, numLB)
 		for name := range awsLoadBalancers {
-			lbs[i] = name
-			i++
+			lbs = append(lbs, name)
 		}
 		return fmt.Errorf("deadline surpassed waiting for AWS load balancers to be deleted: %s", strings.Join(lbs, ","))
 	}
@@ -188,7 +190,7 @@ func getIngressLoadBalancer(ctx context.Context, ingress networkingv1beta1.Ingre
 	// Expected e.g. bf647c9e-default-appingres-350b-1622159649.eu-central-1.elb.amazonaws.com where AWS ALB name is
 	// bf647c9e-default-appingres-350b (cannot be longer than 32 characters).
 	hostNameParts := strings.Split(ingress.Status.LoadBalancer.Ingress[0].Hostname, ".")
-	if len(hostNameParts) == 0 {
+	if len(hostNameParts[0]) == 0 {
 		logger.Debug("%s is ALB Ingress, but probably not provisioned or something other unexpected, skip", ingress.Name)
 		return nil
 	}
