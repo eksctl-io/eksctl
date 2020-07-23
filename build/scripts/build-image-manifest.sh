@@ -15,4 +15,4 @@ done < ${REQUIREMENTS_FILE}
 
 git ls-tree --full-tree @ -- Dockerfile
 git ls-tree --full-tree @ -- .requirements
-git ls-tree --full-tree @ -- install-build-deps.sh
+git ls-tree --full-tree @ -- build/scripts/install-build-deps.sh

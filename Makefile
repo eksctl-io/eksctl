@@ -6,6 +6,8 @@ version_pkg := github.com/weaveworks/eksctl/pkg/version
 gopath := $(shell go env GOPATH)
 gocache := $(shell go env GOCACHE)
 
+export PATH := ./build/scripts:$(PATH)
+
 GOBIN ?= $(gopath)/bin
 
 AWS_SDK_GO_DIR ?= $(gopath)/pkg/mod/$(shell grep 'aws-sdk-go' go.sum | awk '{print $$1 "@" $$2}' | grep -v 'go.mod' | sort | tail -1)
@@ -33,7 +35,7 @@ install-all-deps: install-build-deps install-site-deps ## Install all dependenci
 
 .PHONY: install-build-deps
 install-build-deps: ## Install dependencies (packages and tools)
-	./install-build-deps.sh
+	install-build-deps.sh
 
 ##@ Build
 
@@ -193,7 +195,7 @@ update-aws-node: ## Re-download the aws-node manifests from AWS
 
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) .license-header ## Generate Kubernetes API helpers
-	./tools/update-codegen.sh
+	update-codegen.sh
 
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 	time env GOBIN=$(GOBIN) AWS_SDK_GO_DIR=$(AWS_SDK_GO_DIR) go generate ./pkg/eks/mocks
@@ -205,11 +207,11 @@ generate-kube-reserved: ## Update instance list with respective specs
 ##@ Release
 .PHONY: prepare-release
 prepare-release:
-	./tag-release.sh
+	tag-release.sh
 
 .PHONY: prepare-release-candidate
 prepare-release-candidate:
-	./tag-release-candidate.sh
+	tag-release-candidate.sh
 
 .PHONY: print-version
 print-version:
