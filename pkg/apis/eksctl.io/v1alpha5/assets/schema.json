@@ -303,15 +303,23 @@
     "ClusterNAT": {
       "properties": {
         "gateway": {
-          "type": "string"
+          "type": "string",
+          "description": "Valid variants are: `\"HighlyAvailable\"` configures a highly available NAT gateway, `\"Single\"` configures a single NAT gateway (default), `\"Disable\"` disables NAT.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;HighlyAvailable&quot;</code> configures a highly available NAT gateway, <code>&quot;Single&quot;</code> configures a single NAT gateway (default), <code>&quot;Disable&quot;</code> disables NAT.",
+          "default": "Single",
+          "enum": [
+            "HighlyAvailable",
+            "Single",
+            "Disable"
+          ]
         }
       },
       "preferredOrder": [
         "gateway"
       ],
       "additionalProperties": false,
-      "description": "holds NAT gateway configuration options",
-      "x-intellij-html-description": "holds NAT gateway configuration options"
+      "description": "NAT config",
+      "x-intellij-html-description": "NAT config"
     },
     "ClusterStatus": {
       "properties": {
@@ -370,21 +378,25 @@
     "ClusterVPC": {
       "properties": {
         "autoAllocateIPv6": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "AutoAllocateIPV6 requests an IPv6 CIDR block with /56 prefix for the VPC",
+          "x-intellij-html-description": "AutoAllocateIPV6 requests an IPv6 CIDR block with /56 prefix for the VPC"
         },
         "cidr": {
           "$ref": "#/definitions/github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet"
         },
         "clusterEndpoints": {
-          "$ref": "#/definitions/ClusterEndpoints"
+          "$ref": "#/definitions/ClusterEndpoints",
+          "description": "See [managing access to API](/usage/vpc-networking/#managing-access-to-the-kubernetes-api-server-endpoints)",
+          "x-intellij-html-description": "See <a href=\"/usage/vpc-networking/#managing-access-to-the-kubernetes-api-server-endpoints\">managing access to API</a>"
         },
         "extraCIDRs": {
           "items": {
             "$ref": "#/definitions/github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet"
           },
           "type": "array",
-          "description": "for additional CIDR associations, e.g. to use with separate CIDR for private subnets or any ad-hoc subnets",
-          "x-intellij-html-description": "for additional CIDR associations, e.g. to use with separate CIDR for private subnets or any ad-hoc subnets"
+          "description": "for additional CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets",
+          "x-intellij-html-description": "for additional CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets"
         },
         "id": {
           "type": "string"
@@ -396,10 +408,14 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "description": "which CIDR blocks to allow access to public k8s API endpoint",
+          "x-intellij-html-description": "which CIDR blocks to allow access to public k8s API endpoint"
         },
         "securityGroup": {
-          "type": "string"
+          "type": "string",
+          "description": "for communication between control plane and nodes",
+          "x-intellij-html-description": "for communication between control plane and nodes"
         },
         "sharedNodeSecurityGroup": {
           "type": "string",
@@ -408,8 +424,8 @@
         },
         "subnets": {
           "$ref": "#/definitions/ClusterSubnets",
-          "description": "subnets are either public or private for use with separate nodegroups, these are keyed by AZ for convenience",
-          "x-intellij-html-description": "subnets are either public or private for use with separate nodegroups, these are keyed by AZ for convenience"
+          "description": "keyed by AZ for convenience. See [this example](/examples/reusing-iam-and-vpc/) as well as [using existing VPCs](/usage/vpc-networking/#use-existing-vpc-any-custom-configuration).",
+          "x-intellij-html-description": "keyed by AZ for convenience. See <a href=\"/examples/reusing-iam-and-vpc/\">this example</a> as well as <a href=\"/usage/vpc-networking/#use-existing-vpc-any-custom-configuration\">using existing VPCs</a>."
         }
       },
       "preferredOrder": [
@@ -425,8 +441,8 @@
         "publicAccessCIDRs"
       ],
       "additionalProperties": false,
-      "description": "holds global subnet and all child public/private subnet",
-      "x-intellij-html-description": "holds global subnet and all child public/private subnet"
+      "description": "holds global subnet and all child subnets",
+      "x-intellij-html-description": "holds global subnet and all child subnets"
     },
     "FargateProfile": {
       "required": [
