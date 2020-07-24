@@ -9,6 +9,7 @@ type Definition struct {
 	PreferredOrder       []string               `json:"preferredOrder,omitempty"`
 	AdditionalProperties interface{}            `json:"additionalProperties,omitempty"`
 	Type                 string                 `json:"type,omitempty"`
+	ContentEncoding      string                 `json:"contentEncoding,omitempty"`
 	AnyOf                []*Definition          `json:"anyOf,omitempty"`
 	Description          string                 `json:"description,omitempty"`
 	HTMLDescription      string                 `json:"x-intellij-html-description,omitempty"`

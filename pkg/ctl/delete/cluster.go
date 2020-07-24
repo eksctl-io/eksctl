@@ -148,7 +148,7 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 			ctx, cleanup := context.WithTimeout(context.Background(), 10*time.Minute)
 			defer cleanup()
 
-			logger.Info("cleaning up LoadBalancer services")
+			logger.Info("cleaning up AWS load balancers created by Kubernetes objects of Kind Service or Ingress")
 			if err := elb.Cleanup(ctx, ctl.Provider.EC2(), ctl.Provider.ELB(), ctl.Provider.ELBV2(), clientSet, cfg); err != nil {
 				return err
 			}

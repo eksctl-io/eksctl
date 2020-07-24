@@ -51,7 +51,11 @@ func (dg *Generator) handleComment(rawName, comment string, def *Definition) (bo
 	// Extract default value
 	if m := regexpDefaults.FindStringSubmatch(description); m != nil {
 		description = strings.TrimSpace(m[1])
-		def.Default = m[2]
+		parsedDefault, err := parserAsValue(m[2])
+		if err != nil {
+			return noDerive, errors.Wrapf(err, "couldn't parse default value from %v", m[2])
+		}
+		def.Default = parsedDefault
 	}
 
 	// Extract schema type, disabling derivation

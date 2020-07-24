@@ -62,7 +62,7 @@ var _ = Describe("GenerateSchema", func() {
 		expected := definition.Definition{
 			Type:                 "object",
 			Default:              "{}",
-			AdditionalProperties: &definition.Definition{Type: "string", Default: ""},
+			AdditionalProperties: &definition.Definition{Type: "string"},
 		}
 		Expect(configDef().Properties).To(HaveKey("other"))
 		Expect(*configDef().Properties["other"]).To(BeEquivalentTo(expected))
@@ -94,8 +94,7 @@ var _ = Describe("GenerateSchema", func() {
 			expected := definition.Definition{
 				Properties: map[string]*definition.Definition{
 					"kind": {
-						Type:    "string",
-						Default: "",
+						Type: "string",
 					},
 				},
 				PreferredOrder:       []string{"kind"},
@@ -114,8 +113,7 @@ var _ = Describe("GenerateSchema", func() {
 			expected := definition.Definition{
 				Properties: map[string]*definition.Definition{
 					"kind": {
-						Type:    "string",
-						Default: "",
+						Type: "string",
 					},
 				},
 				PreferredOrder:       []string{"kind"},
@@ -134,8 +132,7 @@ var _ = Describe("GenerateSchema", func() {
 			expected := definition.Definition{
 				Properties: map[string]*definition.Definition{
 					"kind": {
-						Type:    "string",
-						Default: "",
+						Type: "string",
 					},
 				},
 				PreferredOrder:       []string{"kind"},

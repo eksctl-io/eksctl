@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -18,6 +19,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/kris-nova/logger"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1beta1 "k8s.io/api/networking/v1beta1"
+
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -28,14 +31,17 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
+type loadBalancerKind int
+
 const (
-	loadBalancerKindClassic = iota
-	loadBalancerKindNetwork = iota
+	classic loadBalancerKind = iota
+	network
+	application
 )
 
 type loadBalancer struct {
 	name                  string
-	kind                  int
+	kind                  loadBalancerKind
 	ownedSecurityGroupIDs map[string]struct{}
 }
 
@@ -51,30 +57,63 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 	if err != nil {
 		errStr := fmt.Sprintf("cannot list Kubernetes Services: %s", err)
 		if k8serrors.IsForbidden(err) {
-			errStr = fmt.Sprintf("%s (deleting a cluster requires permission to list Kubernetes services)", errStr)
+			errStr = fmt.Sprintf("%s (deleting a cluster requires permission to list Kubernetes Services)", errStr)
 		}
 		return errors.New(errStr)
 	}
 
-	// Delete Services of type 'LoadBalancer', collecting their ELBs to wait for them to be deleted later on
-	loadBalancers := map[string]loadBalancer{}
+	ingresses, err := kubernetesCS.NetworkingV1beta1().Ingresses(metav1.NamespaceAll).List(metav1.ListOptions{})
+	if err != nil {
+		errStr := fmt.Sprintf("cannot list Kubernetes Ingresses: %s", err)
+		if k8serrors.IsForbidden(err) {
+			errStr = fmt.Sprintf("%s (deleting a cluster requires permission to list Kubernetes Ingresses)", errStr)
+		}
+		return errors.New(errStr)
+	}
+
+	// Delete Services of type 'LoadBalancer' and Ingresses kubernetes.io/ingress.class: alb
+	// collecting their ELBs, NLBs and ALBs to wait for them to be deleted later on.
+	awsLoadBalancers := map[string]loadBalancer{}
+	// For k8s kind Service
 	for _, s := range services.Items {
 		lb, err := getServiceLoadBalancer(ctx, ec2API, elbAPI, clusterConfig.Metadata.Name, &s)
 		if err != nil {
-			return fmt.Errorf("cannot obtain information for ELB %s from LoadBalancer service %s/%s: %s",
+			return fmt.Errorf("cannot obtain information for ELB %s from LoadBalancer Service %s/%s: %s",
 				cloudprovider.DefaultLoadBalancerName(&s), s.Namespace, s.Name, err)
 		}
 		if lb == nil {
 			continue
 		}
-		logger.Debug("tracking deletion of Load Balancer %s of kind %d with security groups %v",
-			lb.name, lb.kind, convertStringSetToSlice(lb.ownedSecurityGroupIDs))
-		loadBalancers[lb.name] = *lb
-		logger.Debug("deleting 'type: LoadBalancer' service %s/%s", s.Namespace, s.Name)
+		logger.Debug(
+			"tracking deletion of load balancer %s of kind %d with security groups %v",
+			lb.name, lb.kind, convertStringSetToSlice(lb.ownedSecurityGroupIDs),
+		)
+		awsLoadBalancers[lb.name] = *lb
+		logger.Debug("deleting 'type: LoadBalancer' Service %s/%s", s.Namespace, s.Name)
 		if err := kubernetesCS.CoreV1().Services(s.Namespace).Delete(s.Name, &metav1.DeleteOptions{}); err != nil {
 			errStr := fmt.Sprintf("cannot delete Kubernetes Service %s/%s: %s", s.Namespace, s.Name, err)
 			if k8serrors.IsForbidden(err) {
-				errStr = fmt.Sprintf("%s (deleting a cluster requires permission to delete Kubernetes services)", errStr)
+				errStr = fmt.Sprintf("%s (deleting a cluster requires permission to delete Kubernetes Services)", errStr)
+			}
+			return errors.New(errStr)
+		}
+	}
+	// For k8s Kind Ingress
+	for _, i := range ingresses.Items {
+		lb := getIngressLoadBalancer(ctx, i)
+		if lb == nil {
+			continue
+		}
+		logger.Debug(
+			"tracking deletion of load balancer %s of kind %d with security groups %v",
+			lb.name, lb.kind, convertStringSetToSlice(lb.ownedSecurityGroupIDs),
+		)
+		awsLoadBalancers[lb.name] = *lb
+		logger.Debug("deleting 'kubernetes.io/ingress.class: alb' Ingress %s/%s", i.Namespace, i.Name)
+		if err := kubernetesCS.NetworkingV1beta1().Ingresses(i.Namespace).Delete(i.Name, &metav1.DeleteOptions{}); err != nil {
+			errStr := fmt.Sprintf("cannot delete Kubernetes Ingress %s/%s: %s", i.Namespace, i.Name, err)
+			if k8serrors.IsForbidden(err) {
+				errStr = fmt.Sprintf("%s (deleting a cluster requires permission to delete Kubernetes Ingress)", errStr)
 			}
 			return errors.New(errStr)
 		}
@@ -82,8 +121,8 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 
 	// Wait for all the load balancers backing the LoadBalancer services to disappear
 	pollInterval := 2 * time.Second
-	for ; time.Now().Before(deadline) && len(loadBalancers) > 0; time.Sleep(pollInterval) {
-		for name, lb := range loadBalancers {
+	for ; time.Now().Before(deadline) && len(awsLoadBalancers) > 0; time.Sleep(pollInterval) {
+		for name, lb := range awsLoadBalancers {
 			exists, err := loadBalancerExists(ctx, ec2API, elbAPI, elbv2API, lb)
 			if err != nil {
 				logger.Warning("error when checking existence of load balancer %s: %s", lb.name, err)
@@ -93,15 +132,19 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 			}
 			logger.Debug("load balancer %s and its security groups were deleted by the cloud provider", name)
 			// The load balancer and its security groups have been deleted
-			delete(loadBalancers, name)
+			delete(awsLoadBalancers, name)
 		}
 	}
 
-	if len(loadBalancers) > 0 {
-		return fmt.Errorf("deadline surpased waiting for load balancers to be deleted")
+	if numLB := len(awsLoadBalancers); numLB > 0 {
+		lbs := make([]string, 0, numLB)
+		for name := range awsLoadBalancers {
+			lbs = append(lbs, name)
+		}
+		return fmt.Errorf("deadline surpassed waiting for AWS load balancers to be deleted: %s", strings.Join(lbs, ","))
 	}
-	logger.Debug("deleting Load Balancer Security Group orphans")
-	// Orphan security-group deletion is needed due to https://github.com/kubernetes/kubernetes/issues/79994
+	logger.Debug("deleting load balancer Security Group orphans")
+	// Orphan security-group deletion is needed due to https://github.com/kubernetes/kubernetes/issues/79994`
 	// and because we could have started the service deletion when a service didn't finish its creation
 	if err := deleteOrphanLoadBalancerSecurityGroups(ctx, ec2API, elbAPI, clusterConfig); err != nil {
 		return fmt.Errorf("cannot delete orphan ELB Security Groups: %s", err)
@@ -128,6 +171,38 @@ func getServiceLoadBalancer(ctx context.Context, ec2API ec2iface.EC2API, elbAPI 
 		ownedSecurityGroupIDs: securityGroupIDs,
 	}
 	return &lb, nil
+}
+
+func getIngressLoadBalancer(ctx context.Context, ingress networkingv1beta1.Ingress) (lb *loadBalancer) {
+	ingressCls := "kubernetes.io/ingress.class"
+	if ingress.Annotations[ingressCls] != "alb" {
+		logger.Debug("%s is not ALB Ingress, it is '%s': '%s', skip", ingress.Name, ingressCls, ingress.Annotations[ingressCls])
+		return nil
+	}
+
+	// Check if field status.loadBalancer.ingress[].hostname is set, value corresponds with name for AWS ALB
+	// if does not pass ALB hadn't been provisioned so nothing to return.
+	if len(ingress.Status.LoadBalancer.Ingress) == 0 ||
+		len(ingress.Status.LoadBalancer.Ingress[0].Hostname) == 0 {
+		logger.Debug("%s is ALB Ingress, but probably not provisioned, skip", ingress.Name)
+		return nil
+	}
+	// Expected e.g. bf647c9e-default-appingres-350b-1622159649.eu-central-1.elb.amazonaws.com where AWS ALB name is
+	// bf647c9e-default-appingres-350b (cannot be longer than 32 characters).
+	hostNameParts := strings.Split(ingress.Status.LoadBalancer.Ingress[0].Hostname, ".")
+	if len(hostNameParts[0]) == 0 {
+		logger.Debug("%s is ALB Ingress, but probably not provisioned or something other unexpected, skip", ingress.Name)
+		return nil
+	}
+	name := strings.TrimPrefix(hostNameParts[0], "internal-") // Trim 'internal-' prefix for ALB DNS name which is not a part of name.
+	if len(name) > 31 {
+		name = name[:31]
+	}
+	return &loadBalancer{
+		name:                  name,
+		kind:                  application,
+		ownedSecurityGroupIDs: map[string]struct{}{},
+	}
 }
 
 func convertStringSetToSlice(set map[string]struct{}) []string {
@@ -276,8 +351,8 @@ func tagsIncludeClusterName(tags []*ec2.Tag, clusterName string) bool {
 }
 
 func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI,
-	clusterName string, loadBalancerName string, loadBalancerKind int) (map[string]struct{}, error) {
-	if loadBalancerKind == loadBalancerKindNetwork {
+	clusterName string, loadBalancerName string, loadBalancerKind loadBalancerKind) (map[string]struct{}, error) {
+	if loadBalancerKind == network {
 		// V2 ELBs just use the Security Group of the EC2 instances
 		return map[string]struct{}{}, nil
 	}
@@ -326,12 +401,12 @@ func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API ec2iface.E
 	return result, nil
 }
 
-func getLoadBalancerKind(service *corev1.Service) int {
+func getLoadBalancerKind(service *corev1.Service) loadBalancerKind {
 	// See https://github.com/kubernetes/legacy-cloud-providers/blob/master/aws/aws_loadbalancer.go#L65-L70
 	if service.Annotations[awsprovider.ServiceAnnotationLoadBalancerType] == "nlb" {
-		return loadBalancerKindNetwork
+		return network
 	}
-	return loadBalancerKindClassic
+	return classic
 }
 
 func loadBalancerExists(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI, elbv2API elbv2iface.ELBV2API, lb loadBalancer) (bool, error) {
@@ -353,8 +428,8 @@ func loadBalancerExists(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbi
 }
 
 func elbExists(ctx context.Context, elbAPI elbiface.ELBAPI, elbv2API elbv2iface.ELBV2API,
-	name string, kind int) (bool, error) {
-	if kind == loadBalancerKindNetwork {
+	name string, kind loadBalancerKind) (bool, error) {
+	if kind == network || kind == application {
 		return elbV2Exists(ctx, elbv2API, name)
 	}
 	desc, err := describeClassicLoadBalancer(ctx, elbAPI, name)
