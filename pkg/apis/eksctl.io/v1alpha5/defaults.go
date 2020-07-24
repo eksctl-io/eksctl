@@ -210,9 +210,9 @@ func setBottlerocketNodeGroupDefaults(ng *NodeGroup) {
 
 // DefaultClusterNAT will set the default value for Cluster NAT mode
 func DefaultClusterNAT() *ClusterNAT {
-	single := ClusterSingleNAT
+	def := ClusterNATDefault
 	return &ClusterNAT{
-		Gateway: &single,
+		Gateway: &def,
 	}
 }
 
