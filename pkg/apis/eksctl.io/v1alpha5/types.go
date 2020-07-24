@@ -945,7 +945,7 @@ type (
 		// Defaults to `0`
 		// +optional
 		OnDemandBaseCapacity *int `json:"onDemandBaseCapacity,omitempty"`
-		// Range [1-100]
+		// Range [0-100]
 		// Defaults to `100`
 		// +optional
 		OnDemandPercentageAboveBaseCapacity *int `json:"onDemandPercentageAboveBaseCapacity,omitempty"`
