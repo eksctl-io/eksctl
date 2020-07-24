@@ -21,9 +21,3 @@ func JSONPropName(tag reflect.StructTag) string {
 
 	return strings.Split(jsonField, ",")[0]
 }
-
-// IsRequired checks whether the field has been marked required
-func IsRequired(tag reflect.StructTag) bool {
-	jsonField := tag.Get("jsonschema")
-	return strings.Contains(jsonField, "required")
-}

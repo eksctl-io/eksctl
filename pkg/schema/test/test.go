@@ -5,7 +5,9 @@ import "github.com/weaveworks/eksctl/pkg/schema/test/subpkg"
 // Config describes some settings for _some_ things
 type Config struct {
 	// Num describes the number of subthings
-	Num           int                `json:"num"`
+	Num int `json:"num"`
+	// An option
+	// +required
 	Option        DirectType         `json:"option"`
 	PointerOption *PointerType       `json:"pointeroption"`
 	PackageOption subpkg.PackageType `json:"packageoption"`
