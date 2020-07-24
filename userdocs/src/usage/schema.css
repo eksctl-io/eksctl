@@ -29,6 +29,7 @@ table#config tr:hover code {
     background-color: hsla(0, 0%, 100%, 1); // --md-default-bg-color;
 }
 table#config td:first-child {
+    white-space: nowrap;
     padding-right: 50px;
 }
 table#config td span.required a.key {

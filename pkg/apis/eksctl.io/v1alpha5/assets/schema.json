@@ -1013,19 +1013,27 @@
           "type": "array"
         },
         "maxPrice": {
-          "type": "number"
+          "type": "number",
+          "default": "on demand price"
         },
         "onDemandBaseCapacity": {
-          "type": "integer"
+          "type": "integer",
+          "default": 0
         },
         "onDemandPercentageAboveBaseCapacity": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Range [1-100]",
+          "x-intellij-html-description": "Range [1-100]",
+          "default": 100
         },
         "spotAllocationStrategy": {
           "type": "string"
         },
         "spotInstancePools": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Range [1-20]",
+          "x-intellij-html-description": "Range [1-20]",
+          "default": 2
         }
       },
       "preferredOrder": [
