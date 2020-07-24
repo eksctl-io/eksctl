@@ -943,17 +943,22 @@ type (
 	// NodeGroupInstancesDistribution holds the configuration for [spot
 	// instances](/usage/spot-instances/)
 	NodeGroupInstancesDistribution struct {
-		//+required
 		InstanceTypes []string `json:"instanceTypes,omitempty" jsonschema:"required"`
+		// Defaults to `on demand price`
 		// +optional
 		MaxPrice *float64 `json:"maxPrice,omitempty"`
-		//+optional
+		// Defaults to `0`
+		// +optional
 		OnDemandBaseCapacity *int `json:"onDemandBaseCapacity,omitempty"`
-		//+optional
+		// Range [1-100]
+		// Defaults to `100`
+		// +optional
 		OnDemandPercentageAboveBaseCapacity *int `json:"onDemandPercentageAboveBaseCapacity,omitempty"`
-		//+optional
+		// Range [1-20]
+		// Defaults to `2`
+		// +optional
 		SpotInstancePools *int `json:"spotInstancePools,omitempty"`
-		//+optional
+		// +optional
 		SpotAllocationStrategy *string `json:"spotAllocationStrategy,omitempty"`
 	}
 

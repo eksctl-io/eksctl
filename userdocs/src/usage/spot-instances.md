@@ -62,11 +62,4 @@ nodeGroups:
 
 ### Parameters in instancesDistribution
 
-|                                     | type        | required | default value   |
-| ----------------------------------- | ----------- | -------- | --------------- |
-| instanceTypes                       | []string    | required | -               |
-| maxPrice                            | float       | optional | on demand price |
-| onDemandBaseCapacity                | int         | optional | 0               |
-| onDemandPercentageAboveBaseCapacity | int [1-100] | optional | 100             |
-| spotInstancePools                   | int [1-20]  | optional | 2               |
-| spotAllocationStrategy              | string      | optional | -               |
+Please see [the config parameters](/usage/schema/#nodeGroups-instancesDistribution) for details.
