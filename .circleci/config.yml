@@ -152,7 +152,7 @@ jobs:
               --volume=$(pwd):/src \
               --volume=$HOME/.cache/go-build/:/root/.cache/go-build \
               --volume=$HOME/go/pkg/mod/:/go/pkg/mod \
-              weaveworks/eksctl-build:$(cat .docker/image_tag) ./do-release-candidate.sh
+              weaveworks/eksctl-build:$(cat .docker/image_tag) ./build/scripts/do-release-candidate.sh
           no_output_timeout: 21m
       - store_artifacts:
           path: dist/
@@ -179,7 +179,7 @@ jobs:
               --volume=$(pwd):/src \
               --volume=$HOME/.cache/go-build/:/root/.cache/go-build \
               --volume=$HOME/go/pkg/mod/:/go/pkg/mod \
-              weaveworks/eksctl-build:$(cat .docker/image_tag) ./do-release.sh
+              weaveworks/eksctl-build:$(cat .docker/image_tag) ./build/scripts/do-release.sh
           no_output_timeout: 21m
       - store_artifacts:
           path: dist/
