@@ -21,13 +21,13 @@ type Generator struct {
 }
 
 // newStructDefinition handles saving definitions for refs in the map
-func (dg *Generator) newStructDefinition(name string, typeSpec ast.Expr, comment string) *Definition {
+func (dg *Generator) newStructDefinition(name string, typeSpec ast.Expr, structComment string) *Definition {
 	def := Definition{}
-	noDerive, err := dg.handleComment(name, comment, &def)
+	commentMeta, err := dg.handleComment(name, structComment, &def)
 	if err != nil {
 		panic(err)
 	}
-	if noDerive {
+	if commentMeta.NoDerive {
 		return &def
 	}
 	structType, ok := typeSpec.(*ast.StructType)
@@ -37,6 +37,7 @@ func (dg *Generator) newStructDefinition(name string, typeSpec ast.Expr, comment
 	for _, field := range structType.Fields.List {
 		tag := GetFieldTag(field)
 		fieldName := JSONPropName(tag)
+		fieldDoc := field.Doc.Text()
 
 		if def.Properties == nil {
 			def.Properties = make(map[string]*Definition)
@@ -48,7 +49,7 @@ func (dg *Generator) newStructDefinition(name string, typeSpec ast.Expr, comment
 		if len(field.Names) == 0 {
 			// We have to handle an embedded field, get its definition
 			// and deconstruct it into this def
-			ref := dg.newPropertyRef("", field.Type, field.Doc.Text(), true)
+			ref, _ := dg.newPropertyRef("", field.Type, fieldDoc, true)
 			properties = ref.Properties
 			preferredOrder = ref.PreferredOrder
 			required = ref.Required
@@ -57,15 +58,18 @@ func (dg *Generator) newStructDefinition(name string, typeSpec ast.Expr, comment
 				// private field
 				continue
 			}
+
+			field, isRequired := dg.newPropertyRef(field.Names[0].Name, field.Type, fieldDoc, false)
+			preferredOrder = []string{fieldName}
+			properties = map[string]*Definition{
+				fieldName: field,
+			}
+
 			required = []string{}
-			if IsRequired(tag) {
+			if isRequired {
 				required = []string{fieldName}
 			}
 
-			preferredOrder = []string{fieldName}
-			properties = map[string]*Definition{
-				fieldName: dg.newPropertyRef(field.Names[0].Name, field.Type, field.Doc.Text(), false),
-			}
 			def.AdditionalProperties = false
 		}
 
@@ -79,7 +83,7 @@ func (dg *Generator) newStructDefinition(name string, typeSpec ast.Expr, comment
 }
 
 // newPropertyRef creates a new JSON schema Definition
-func (dg *Generator) newPropertyRef(referenceName string, t ast.Expr, comment string, inline bool) *Definition {
+func (dg *Generator) newPropertyRef(referenceName string, t ast.Expr, propertyComment string, inline bool) (*Definition, bool) {
 	var def *Definition
 
 	var refTypeName string
@@ -97,7 +101,7 @@ func (dg *Generator) newPropertyRef(referenceName string, t ast.Expr, comment st
 		setDefaultForNonPointerType(def, typeName)
 
 	case *ast.StarExpr:
-		def = dg.newPropertyRef(referenceName, tt.X, comment, inline)
+		def, _ = dg.newPropertyRef(referenceName, tt.X, propertyComment, inline)
 		def.Default = nil
 
 	case *ast.SelectorExpr:
@@ -110,20 +114,22 @@ func (dg *Generator) newPropertyRef(referenceName string, t ast.Expr, comment st
 		setTypeOrRef(def, refTypeName)
 
 	case *ast.ArrayType:
+		item, _ := dg.newPropertyRef("", tt.Elt, "", inline)
 		def = &Definition{
 			Type:  "array",
-			Items: dg.newPropertyRef("", tt.Elt, "", inline),
+			Items: item,
 		}
 
 	case *ast.MapType:
+		additional, _ := dg.newPropertyRef("", tt.Value, "", inline)
 		def = &Definition{
 			Type:                 "object",
 			Default:              "{}",
-			AdditionalProperties: dg.newPropertyRef("", tt.Value, "", inline),
+			AdditionalProperties: additional,
 		}
 
 	case *ast.StructType:
-		return dg.newStructDefinition(referenceName, t, comment)
+		def = dg.newStructDefinition(referenceName, t, propertyComment)
 
 	case *ast.InterfaceType:
 		// Only `interface{}` is supported
@@ -135,21 +141,21 @@ func (dg *Generator) newPropertyRef(referenceName string, t ast.Expr, comment st
 
 	// Add a new definition if necessary
 	if refTypeSpec != nil {
-		structDef := dg.newPropertyRef(refTypeName, refTypeSpec.Type, refTypeSpec.Doc.Text(), inline)
+		structDef, _ := dg.newPropertyRef(refTypeName, refTypeSpec.Type, refTypeSpec.Doc.Text(), inline)
 		// If we're inlining this, we want the struct definition, not the ref
 		// and we also don't need to save it in our definitions
 		if inline {
-			return structDef
+			return structDef, false
 		}
 		dg.Definitions[refTypeName] = structDef
 	}
 
-	_, err := dg.handleComment(referenceName, comment, def)
+	commentMeta, err := dg.handleComment(referenceName, propertyComment, def)
 	if err != nil {
 		panic(err)
 	}
 
-	return def
+	return def, commentMeta.Required
 }
 
 // CollectDefinitionsFromStruct gets a complete definition for the root object
@@ -158,5 +164,5 @@ func (dg *Generator) CollectDefinitionsFromStruct(root string) {
 		NamePos: token.NoPos,
 		Name:    root,
 	}
-	_ = dg.newPropertyRef(root, &rootIdent, "", false)
+	_, _ = dg.newPropertyRef(root, &rootIdent, "", false)
 }

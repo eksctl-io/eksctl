@@ -10,16 +10,29 @@ var _ = Describe("HandleComment", func() {
 	It("interprets type override", func() {
 		def := &Definition{}
 		comment := `Struct holds some info
-		Schema type is ` + "`string`"
+Schema type is ` + "`string`"
 		dummy := func(path string) (importer.PackageInfo, error) {
 			return importer.PackageInfo{}, nil
 		}
 		dg := Generator{Strict: false, Importer: dummy}
-		noderive, err := dg.handleComment("Struct", comment, def)
+		commentMeta, err := dg.handleComment("Struct", comment, def)
 		Expect(err).ToNot(HaveOccurred())
-		Expect(noderive).To(BeTrue())
+		Expect(commentMeta.NoDerive).To(BeTrue())
 		Expect(def.Description).To(Equal("holds some info"))
 		Expect(def.Type).To(Equal("string"))
+	})
+	It("interprets +required", func() {
+		def := &Definition{}
+		comment := `Struct holds some info
++required`
+		dummy := func(path string) (importer.PackageInfo, error) {
+			return importer.PackageInfo{}, nil
+		}
+		dg := Generator{Strict: false, Importer: dummy}
+		commentMeta, err := dg.handleComment("Struct", comment, def)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(commentMeta.Required).To(BeTrue())
+		Expect(def.Description).To(Equal("holds some info"))
 	})
 })
 
