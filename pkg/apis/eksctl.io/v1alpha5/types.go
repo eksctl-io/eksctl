@@ -407,8 +407,10 @@ func EKSResourceAccountID(region string) string {
 
 // ClusterMeta contains general cluster information
 type ClusterMeta struct {
-	Name   string `json:"name" jsonschema:"required"`
-	Region string `json:"region" jsonschema:"required"`
+	// +required
+	Name string `json:"name"`
+	// +required
+	Region string `json:"region"`
 	// Valid variants are `KubernetesVersion` constants
 	// +optional
 	Version string `json:"version,omitempty"`
@@ -488,7 +490,8 @@ type ProviderConfig struct {
 type ClusterConfig struct {
 	metav1.TypeMeta
 
-	Metadata *ClusterMeta `json:"metadata" jsonschema:"required"`
+	// +required
+	Metadata *ClusterMeta `json:"metadata"`
 
 	// +optional
 	IAM *ClusterIAM `json:"iam,omitempty"`
@@ -943,7 +946,8 @@ type (
 	// NodeGroupInstancesDistribution holds the configuration for [spot
 	// instances](/usage/spot-instances/)
 	NodeGroupInstancesDistribution struct {
-		InstanceTypes []string `json:"instanceTypes,omitempty" jsonschema:"required"`
+		// +required
+		InstanceTypes []string `json:"instanceTypes,omitempty"`
 		// Defaults to `on demand price`
 		// +optional
 		MaxPrice *float64 `json:"maxPrice,omitempty"`
@@ -979,7 +983,7 @@ type (
 // docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html)
 type MetricsCollection struct {
 	// +required
-	Granularity string `json:"granularity" jsonschema:"required"`
+	Granularity string `json:"granularity"`
 	// +optional
 	Metrics []string `json:"metrics,omitempty"`
 }
@@ -996,7 +1000,8 @@ type ScalingConfig struct {
 
 // NodeGroupBase represents the base nodegroup config for self-managed and managed nodegroups
 type NodeGroupBase struct {
-	Name string `json:"name" jsonschema:"required"`
+	// +required
+	Name string `json:"name"`
 
 	// Specify [custom AMIs](/usage/custom-ami-support/), "auto-ssm", "auto", or "static"
 	// +optional
@@ -1092,7 +1097,8 @@ func IsAMI(amiFlag string) bool {
 type FargateProfile struct {
 
 	// Name of the Fargate profile.
-	Name string `json:"name" jsonschema:"required"`
+	// +required
+	Name string `json:"name"`
 
 	// PodExecutionRoleARN is the IAM role's ARN to use to run pods onto Fargate.
 	PodExecutionRoleARN string `json:"podExecutionRoleARN,omitempty"`
@@ -1114,7 +1120,8 @@ type FargateProfile struct {
 type FargateProfileSelector struct {
 
 	// Namespace is the Kubernetes namespace from which to select workload.
-	Namespace string `json:"namespace" jsonschema:"required"`
+	// +required
+	Namespace string `json:"namespace"`
 
 	// Labels are the Kubernetes label selectors to use to select workload.
 	// +optional
@@ -1123,7 +1130,8 @@ type FargateProfileSelector struct {
 
 // SecretsEncryption defines the configuration for KMS encryption provider
 type SecretsEncryption struct {
-	KeyARN *string `json:"keyARN,omitempty" jsonschema:"required"`
+	// +required
+	KeyARN *string `json:"keyARN,omitempty"`
 }
 
 // PrivateCluster defines the configuration for a fully-private cluster
