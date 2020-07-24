@@ -1038,8 +1038,8 @@
         },
         "onDemandPercentageAboveBaseCapacity": {
           "type": "integer",
-          "description": "Range [1-100]",
-          "x-intellij-html-description": "Range [1-100]",
+          "description": "Range [0-100]",
+          "x-intellij-html-description": "Range [0-100]",
           "default": 100
         },
         "spotAllocationStrategy": {
