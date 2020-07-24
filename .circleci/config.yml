@@ -72,12 +72,15 @@ commands:
       fail_only:
         type: boolean
         default: true
+      only_for_branches:
+        type: string
+        default: master
     steps:
       - run: exit 0
       - slack/status:
           fail_only: << parameters.fail_only >>
           mentions: 'team-aws'
-          only_for_branches: master
+          only_for_branches: << parameters.only_for_branches >>
 
 jobs:
   test-and-build:
@@ -158,6 +161,7 @@ jobs:
           path: dist/
       - notify-slack:
           fail_only: false
+          only_for_branches: ""
   release:
     machine:
       image: ubuntu-1604:201903-01
@@ -185,6 +189,7 @@ jobs:
           path: dist/
       - notify-slack:
           fail_only: false
+          only_for_branches: ""
   integration-tests:
     machine:
       image: ubuntu-1604:201903-01
