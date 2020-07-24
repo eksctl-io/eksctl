@@ -139,6 +139,35 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			},
 			expectedFile: "custom_vpc_private_endpoint.json",
 		}),
+		Entry("Private cluster with a user-supplied VPC has same route table", vpcResourceSetCase{
+			clusterConfig: &api.ClusterConfig{
+				PrivateCluster: &api.PrivateCluster{
+					Enabled: true,
+				},
+				VPC: &api.ClusterVPC{
+					Network: api.Network{
+						ID: "vpc-custom",
+					},
+					Subnets: &api.ClusterSubnets{
+						Private: map[string]api.Network{
+							"us-west-2a": {
+								ID: "subnet-custom1",
+							},
+							"us-west-2b": {
+								ID: "subnet-custom2",
+							},
+						},
+					},
+				},
+			},
+			createProvider: func() api.ClusterProvider {
+				provider := mockprovider.NewMockProvider()
+				mockDescribeVPCEndpoints(provider)
+				mockDescribeRouteTablesSame(provider, []string{"subnet-custom1", "subnet-custom2"})
+				return provider
+			},
+			expectedFile: "custom_vpc_private_endpoint_same_route_table.json",
+		}),
 	)
 })
 
@@ -289,6 +318,32 @@ func mockDescribeRouteTables(provider *mockprovider.MockProvider, subnetIDs []st
 
 	for i, subnetID := range subnetIDs {
 		rtID := aws.String(fmt.Sprintf("rtb-custom-%d", i+1))
+		output.RouteTables[i] = &ec2.RouteTable{
+			VpcId:        aws.String("vpc-custom"),
+			RouteTableId: rtID,
+			Associations: []*ec2.RouteTableAssociation{
+				{
+					RouteTableId:            rtID,
+					SubnetId:                aws.String(subnetID),
+					RouteTableAssociationId: aws.String("rtbassoc-custom"),
+					Main:                    aws.Bool(false),
+				},
+			},
+		}
+	}
+
+	provider.MockEC2().On("DescribeRouteTables", mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
+		return len(input.Filters) > 0
+	})).Return(output, nil)
+}
+
+func mockDescribeRouteTablesSame(provider *mockprovider.MockProvider, subnetIDs []string) {
+	output := &ec2.DescribeRouteTablesOutput{
+		RouteTables: make([]*ec2.RouteTable, len(subnetIDs)),
+	}
+
+	for i, subnetID := range subnetIDs {
+		rtID := aws.String("rtb-custom-1")
 		output.RouteTables[i] = &ec2.RouteTable{
 			VpcId:        aws.String("vpc-custom"),
 			RouteTableId: rtID,

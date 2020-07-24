@@ -102,8 +102,14 @@ func (e *VPCEndpointResourceSet) subnetsForAZs(azs []string) []*gfnt.Value {
 
 func (e *VPCEndpointResourceSet) routeTableIDs() []*gfnt.Value {
 	var routeTableIDs []*gfnt.Value
+	m := make(map[string]bool)
 	for _, subnet := range e.subnets {
-		routeTableIDs = append(routeTableIDs, subnet.RouteTable)
+		routeTableStr := subnet.RouteTable.String()
+
+		if !m[routeTableStr] {
+			m[routeTableStr] = true
+			routeTableIDs = append(routeTableIDs, subnet.RouteTable)
+		}
 	}
 	return routeTableIDs
 }
