@@ -1,5 +1,7 @@
 include Makefile.common
 
+export PATH := ./build/scripts:$(PATH)
+
 image_manifest_file = .docker/build_image_manifest
 
 # We use git object hashes for determining the input files used for any given build image
@@ -21,7 +23,7 @@ docker_build := time docker build
 
 .PHONY: update-build-image-tag
 update-build-image-tag:
-	./build-image-manifest.sh > $(image_manifest_file)
+	build-image-manifest.sh > $(image_manifest_file)
 	git hash-object $(image_manifest_file) > $(build_image_tag_file)
 
 .PHONY: check-build-image-manifest-up-to-date
@@ -36,7 +38,7 @@ commit-new-image-tag: update-build-image-tag ## Update build image manifest and 
 .PHONY: build-image
 build-image: check-build-image-manifest-up-to-date ## Build the build image that has all of external dependencies
 	-docker pull $(build_image_name)
-	cp .requirements install-build-deps.sh go.mod go.sum .docker/
+	cp .requirements build/scripts/install-build-deps.sh go.mod go.sum .docker/
 	$(docker_build) \
 	  --iidfile=.build_image.iid \
 	  --cache-from=$(build_image_name) \
