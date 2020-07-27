@@ -156,8 +156,8 @@
         },
         "fargatePodExecutionRolePermissionsBoundary": {
           "type": "string",
-          "description": "permissions Boundary for the FargatePodExecutionRole. See [EKS Fargate Support](/usage/fargate-support/)",
-          "x-intellij-html-description": "permissions Boundary for the FargatePodExecutionRole. See <a href=\"/usage/fargate-support/\">EKS Fargate Support</a>"
+          "description": "permissions boundary for the fargate pod execution role`. See [EKS Fargate Support](/usage/fargate-support/)",
+          "x-intellij-html-description": "permissions boundary for the fargate pod execution role`. See <a href=\"/usage/fargate-support/\">EKS Fargate Support</a>"
         },
         "serviceAccounts": {
           "items": {
@@ -172,8 +172,8 @@
         },
         "serviceRolePermissionsBoundary": {
           "type": "string",
-          "description": "permissions Boundary for all identity-based entities created by eksctl. See [AWS Permission Boundary](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html)",
-          "x-intellij-html-description": "permissions Boundary for all identity-based entities created by eksctl. See <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html\">AWS Permission Boundary</a>"
+          "description": "permissions boundary for all identity-based entities created by eksctl. See [AWS Permission Boundary](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html)",
+          "x-intellij-html-description": "permissions boundary for all identity-based entities created by eksctl. See <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html\">AWS Permission Boundary</a>"
         },
         "withOIDC": {
           "type": "boolean",
@@ -204,8 +204,8 @@
         },
         "attachPolicy": {
           "$ref": "#/definitions/InlineDocument",
-          "description": "attachPolicy holds a policy document to attach to this service account",
-          "x-intellij-html-description": "attachPolicy holds a policy document to attach to this service account"
+          "description": "holds a policy document to attach to this service account",
+          "x-intellij-html-description": "holds a policy document to attach to this service account"
         },
         "attachPolicyARNs": {
           "items": {
@@ -230,8 +230,8 @@
         },
         "permissionsBoundary": {
           "type": "string",
-          "description": "ARN of the Permissions Boundary to associate with the service account",
-          "x-intellij-html-description": "ARN of the Permissions Boundary to associate with the service account"
+          "description": "ARN of the permissions boundary to associate with the service account",
+          "x-intellij-html-description": "ARN of the permissions boundary to associate with the service account"
         },
         "status": {
           "$ref": "#/definitions/ClusterIAMServiceAccountStatus"
@@ -241,8 +241,8 @@
             "type": "string"
           },
           "type": "object",
-          "description": "AWS Tags for the service account",
-          "x-intellij-html-description": "AWS Tags for the service account",
+          "description": "AWS tags for the service account",
+          "x-intellij-html-description": "AWS tags for the service account",
           "default": "{}"
         }
       },

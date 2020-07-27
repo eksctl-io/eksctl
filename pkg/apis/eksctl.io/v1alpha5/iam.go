@@ -17,7 +17,7 @@ type ClusterIAM struct {
 	// +optional
 	ServiceRoleARN *string `json:"serviceRoleARN,omitempty"`
 
-	// permissions Boundary for all identity-based entities created by eksctl.
+	// permissions boundary for all identity-based entities created by eksctl.
 	// See [AWS Permission Boundary](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html)
 	// +optional
 	ServiceRolePermissionsBoundary *string `json:"serviceRolePermissionsBoundary,omitempty"`
@@ -27,7 +27,7 @@ type ClusterIAM struct {
 	// +optional
 	FargatePodExecutionRoleARN *string `json:"fargatePodExecutionRoleARN,omitempty"`
 
-	// permissions Boundary for the FargatePodExecutionRole. See [EKS Fargate Support](/usage/fargate-support/)
+	// permissions boundary for the fargate pod execution role`. See [EKS Fargate Support](/usage/fargate-support/)
 	// +optional
 	FargatePodExecutionRolePermissionsBoundary *string `json:"fargatePodExecutionRolePermissionsBoundary,omitempty"`
 
@@ -75,18 +75,18 @@ type ClusterIAMServiceAccount struct {
 	// +optional
 	AttachPolicyARNs []string `json:"attachPolicyARNs,omitempty"`
 
-	// attachPolicy holds a policy document to attach to this service account
+	// AttachPolicy holds a policy document to attach to this service account
 	// +optional
 	AttachPolicy InlineDocument `json:"attachPolicy,omitempty"`
 
-	// ARN of the Permissions Boundary to associate with the service account
+	// ARN of the permissions boundary to associate with the service account
 	// +optional
 	PermissionsBoundary string `json:"permissionsBoundary,omitempty"`
 
 	// +optional
 	Status *ClusterIAMServiceAccountStatus `json:"status,omitempty"`
 
-	// AWS Tags for the service account
+	// AWS tags for the service account
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
 }
