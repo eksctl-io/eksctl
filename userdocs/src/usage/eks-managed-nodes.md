@@ -8,12 +8,17 @@ An EKS managed node group is an autoscaling group and associated EC2 instances t
 !!!info
     The term "unmanaged nodegroups" has been used to refer to nodegroups that eksctl has supported since the beginning and uses by default. The `ClusterConfig` file continues to use the `nodeGroups` field for defining unmanaged nodegroups, and a new field `managedNodeGroups` has been added for defining managed nodegroups.
 
-## Creating a cluster
+## Creating managed nodegroups
 
-You can add a managed node group to new or existing clusters. To create a new cluster with a managed nodegroup, run
+At the command line, add the `--managed` switch to use managed instead
+of unmanaged nodegroups.
+
+### New clusters
+
+To create a new cluster with a managed nodegroup, run
 
 ```console
-eksctl create cluster --managed
+$ eksctl create cluster --managed
 ```
 
 To create multiple managed nodegroups and have more control over the configuration, a config file can be used.
@@ -102,6 +107,14 @@ managedNodeGroups:
     maxSize: 3
 ```
 
+### Existing clusters
+
+The same switch `--managed` can be used to create a new nodegroup for an
+existing cluster:
+
+```console
+$ eksctl create nodegroup --managed
+```
 
 ## Upgrading managed nodegroups
 You can update a nodegroup to the latest EKS-optimized AMI release version for the AMI type you are using at any time.
