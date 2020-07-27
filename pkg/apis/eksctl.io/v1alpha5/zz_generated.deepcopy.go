@@ -743,6 +743,11 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.ASGSuspendedProcesses != nil {
+		in, out := &in.ASGSuspendedProcesses, &out.ASGSuspendedProcesses
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.TargetGroupARNs != nil {
 		in, out := &in.TargetGroupARNs, &out.TargetGroupARNs
 		*out = make([]string, len(*in))

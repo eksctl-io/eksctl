@@ -704,6 +704,10 @@ type NodeGroup struct {
 	// +optional
 	ASGMetricsCollection []MetricsCollection `json:"asgMetricsCollection,omitempty"`
 
+	// Suspend ASG scaling processes, e.g. AZRebalance
+	// +optional
+	ASGSuspendedProcesses []string `json:"asgSuspendedProcesses,omitempty"`
+
 	// EBSOptimized enables [EBS
 	// optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)
 	// +optional

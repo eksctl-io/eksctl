@@ -724,6 +724,14 @@
           },
           "type": "array"
         },
+        "asgSuspendedProcesses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Suspend this ASG scaling processes. Usually it's a good idea to suspend `AZRebalance`.",
+            "x-intellij-html-description": "Suspend this ASG scaling processes. Usually it's a good idea to suspend <code>AZRebalance</code>."
+          },
         "availabilityZones": {
           "items": {
             "type": "string"
