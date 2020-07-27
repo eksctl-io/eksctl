@@ -42,20 +42,20 @@ function offset(ident) {
 function valueEntry(definition) {
     let value = definition.default;
     let valueClass = "value";
-    let tooltip = "Default value";
+    let tooltip = "default";
     const isEnum = (definition.enum && definition.enum.length > 0) || definition.const;
-    if (!definition.default && isEnum) {
-        value = definition.const || definition.enum[0];
+    if (definition.default == null && isEnum) {
+        value = definition.const || definition.example || definition.enum[0];
         valueClass = "example";
-        tooltip = "Example value";
+        tooltip = "example";
         if (definition.const || definition.enum.length === 1) {
             valueClass = "const";
-            tooltip = "Required value";
+            tooltip = "required value";
         }
     } else if (definition.examples && definition.examples.length > 0) {
         value = definition.examples[0];
         valueClass = "example";
-        tooltip = "Example value";
+        tooltip = "example";
     }
     return [value, valueClass, tooltip];
 }
@@ -91,13 +91,13 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
         if (parentDefinition && parentDefinition.type === "array") {
             firstOfListType = index === 0;
         }
-        const valueCell = value
+        const valueCell = value != null
             ? html`<span title="${tooltip}" class="${valueClass}"
                   >${value}</span
               >`
             : null;
 
-        const keyCell = (value) => html`
+        const keyCell = html`
             <td>
                 <div class="anchor" id="${path}"></div>
                 <span title="${required ? 'Required key' : ''}" class="${keyClass}" style="margin-left: ${offset(ident)}">
@@ -125,7 +125,6 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
             if (refDef.type === "object") {
                 if (!refDef.properties && !refDef.anyOf) {
                     type = "object";
-                    value = "{}";
                 }
             } else {
                 type = refDef.type;
@@ -136,7 +135,7 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
 
             yield html`
                 <tr class="top">
-                    ${keyCell(value)}
+                    ${keyCell}
                     <td class="comment">${unsafeHTML(desc)}</td>
                     <td class="type">${type}</td>
                 </tr>
@@ -158,7 +157,7 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
             }
             yield html`
                 <tr class="top">
-                    ${keyCell(value)}
+                    ${keyCell}
                     <td class="comment">${unsafeHTML(desc)}</td>
                     <td class="type">${type}</td>
                 </tr>
@@ -169,7 +168,7 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
 
             yield html`
                 <tr>
-                    ${keyCell("")}
+                    ${keyCell}
                     <td class="comment" rowspan="${1 + values.length}">
                         ${unsafeHTML(desc)}
                     </td>
@@ -195,7 +194,7 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
         } else if (definition.type === "object" && value && value !== "{}") {
             yield html`
                 <tr>
-                    ${keyCell(value)}
+                    ${keyCell}
                     <td class="comment">${unsafeHTML(desc)}</td>
                     <td class="type">object</td>
                 </tr>
@@ -207,7 +206,7 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
                     : definition.type;
             yield html`
                 <tr>
-                    ${keyCell(value)}
+                    ${keyCell}
                     <td class="comment">${unsafeHTML(desc)}</td>
                     <td class="type">${type}</td>
                 </tr>

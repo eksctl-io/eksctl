@@ -23,7 +23,9 @@ var _ = Describe("GenerateSchema", func() {
 	})
 	It("handles the top level definition", func() {
 		props := []string{"num", "option", "pointeroption", "packageoption", "aliasedint", "unknown", "other", "version", "kind"}
+		required := []string{"option"}
 		expected := Fields{
+			"Required":             Equal(required),
 			"PreferredOrder":       Equal(props),
 			"AdditionalProperties": Equal(false),
 			"Description":          Equal("describes some settings for _some_ things"),
@@ -62,7 +64,7 @@ var _ = Describe("GenerateSchema", func() {
 		expected := definition.Definition{
 			Type:                 "object",
 			Default:              "{}",
-			AdditionalProperties: &definition.Definition{Type: "string", Default: ""},
+			AdditionalProperties: &definition.Definition{Type: "string"},
 		}
 		Expect(configDef().Properties).To(HaveKey("other"))
 		Expect(*configDef().Properties["other"]).To(BeEquivalentTo(expected))
@@ -94,8 +96,7 @@ var _ = Describe("GenerateSchema", func() {
 			expected := definition.Definition{
 				Properties: map[string]*definition.Definition{
 					"kind": {
-						Type:    "string",
-						Default: "",
+						Type: "string",
 					},
 				},
 				PreferredOrder:       []string{"kind"},
@@ -105,7 +106,9 @@ var _ = Describe("GenerateSchema", func() {
 			}
 			Expect(*schema.Definitions["DirectType"]).To(BeEquivalentTo(expected))
 			ref := definition.Definition{
-				Ref: "#/definitions/DirectType",
+				Ref:             "#/definitions/DirectType",
+				Description:     "An option",
+				HTMLDescription: "An option",
 			}
 			Expect(configDef().Properties).To(HaveKey("option"))
 			Expect(*configDef().Properties["option"]).To(BeEquivalentTo(ref))
@@ -114,8 +117,7 @@ var _ = Describe("GenerateSchema", func() {
 			expected := definition.Definition{
 				Properties: map[string]*definition.Definition{
 					"kind": {
-						Type:    "string",
-						Default: "",
+						Type: "string",
 					},
 				},
 				PreferredOrder:       []string{"kind"},
@@ -134,8 +136,7 @@ var _ = Describe("GenerateSchema", func() {
 			expected := definition.Definition{
 				Properties: map[string]*definition.Definition{
 					"kind": {
-						Type:    "string",
-						Default: "",
+						Type: "string",
 					},
 				},
 				PreferredOrder:       []string{"kind"},
