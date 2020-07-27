@@ -696,6 +696,11 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.ASGSuspendedProcesses != nil {
+		in, out := &in.ASGSuspendedProcesses, &out.ASGSuspendedProcesses
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.EBSOptimized != nil {
 		in, out := &in.EBSOptimized, &out.EBSOptimized
 		*out = new(bool)
@@ -740,11 +745,6 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 	}
 	if in.ClassicLoadBalancerNames != nil {
 		in, out := &in.ClassicLoadBalancerNames, &out.ClassicLoadBalancerNames
-		*out = make([]string, len(*in))
-		copy(*out, *in)
-	}
-	if in.ASGSuspendedProcesses != nil {
-		in, out := &in.ASGSuspendedProcesses, &out.ASGSuspendedProcesses
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
