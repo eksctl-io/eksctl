@@ -44,6 +44,10 @@ const (
 
 	// outputs from Fargate stack:
 	FargatePodExecutionRoleARN = "FargatePodExecutionRoleARN"
+
+	// outputs from Spot Ocean
+	NodeGroupSpotOceanClusterID    = "SpotOceanClusterId"
+	NodeGroupSpotOceanLaunchSpecID = "SpotOceanLaunchSpecId"
 )
 
 type (

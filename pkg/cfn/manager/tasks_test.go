@@ -6,8 +6,11 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/mock"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
@@ -640,6 +643,46 @@ var _ = Describe("StackCollection Tasks", func() {
 
 				p = mockprovider.NewMockProvider()
 
+				p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+					consume := args[1].(func(p *cfn.ListStacksOutput, last bool) (shouldContinue bool))
+					out := &cfn.ListStacksOutput{
+						StackSummaries: []*cfn.StackSummary{
+							{
+								StackName: aws.String("eksctl-test-cluster-nodegroup-12345"),
+							},
+						},
+					}
+					cont := consume(out, true)
+					if !cont {
+						panic("unexpected return value from the paging function: shouldContinue was false. It becomes " +
+							"false only when subsequent DescribeStacks call(s) fail, which isn't expected in this test scenario")
+					}
+				}).Return(nil)
+
+				p.MockCloudFormation().On("DescribeStacks", mock.MatchedBy(func(input *cfn.DescribeStacksInput) bool {
+					return input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345"
+				})).Return(&cfn.DescribeStacksOutput{
+					Stacks: []*cfn.Stack{
+						{
+							StackName:   aws.String("eksctl-test-cluster-nodegroup-12345"),
+							StackId:     aws.String("eksctl-test-cluster-nodegroup-12345-id"),
+							StackStatus: aws.String("CREATE_COMPLETE"),
+							Tags: []*cfn.Tag{
+								{
+									Key:   aws.String(api.NodeGroupNameTag),
+									Value: aws.String("12345"),
+								},
+							},
+							Outputs: []*cfn.Output{
+								{
+									OutputKey:   aws.String("InstanceRoleARN"),
+									OutputValue: aws.String("arn:aws:iam::1111:role/eks-nodes-base-role"),
+								},
+							},
+						},
+					},
+				}, nil)
+
 				cfg = newClusterConfig("test-cluster")
 
 				stackManager = NewStackCollection(p, cfg)
@@ -670,43 +713,53 @@ var _ = Describe("StackCollection Tasks", func() {
 				// The supportsManagedNodes argument has no effect on the Describe call, so the values are alternated
 				// in these tests
 				{
-					tasks := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("bar", "foo"), true)
+					tasks, err := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("bar", "foo"), nil, true)
+					Expect(err).To(BeNil())
 					Expect(tasks.Describe()).To(Equal(`2 parallel tasks: { create nodegroup "bar", create nodegroup "foo" }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("bar"), false)
+					tasks, err := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("bar"), nil, false)
+					Expect(err).To(BeNil())
 					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "bar" }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("foo"), true)
+					tasks, err := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("foo"), nil, true)
+					Expect(err).To(BeNil())
 					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "foo" }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateNodeGroups(nil, false)
+					tasks, err := stackManager.NewTasksToCreateNodeGroups(nil, nil, false)
+					Expect(err).To(BeNil())
 					Expect(tasks.Describe()).To(Equal(`no tasks`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"), nil, true)
+					tasks, err := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"), nil, true)
+					Expect(err).To(BeNil())
 					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", 2 parallel sub-tasks: { create nodegroup "bar", create nodegroup "foo" } }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar"), nil, false)
+					tasks, err := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar"), nil, false)
+					Expect(err).To(BeNil())
 					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", create nodegroup "bar" }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(nil, nil, true)
+					tasks, err := stackManager.NewTasksToCreateClusterWithNodeGroups(nil, nil, true)
+					Expect(err).To(BeNil())
 					Expect(tasks.Describe()).To(Equal(`1 task: { create cluster control plane "test-cluster" }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"), makeManagedNodeGroups("m1", "m2"), false)
+					tasks, err := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"), makeManagedNodeGroups("m1", "m2"), false)
+					Expect(err).To(BeNil())
 					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", 4 parallel sub-tasks: { create nodegroup "bar", create nodegroup "foo", create managed nodegroup "m1", create managed nodegroup "m2" } }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("foo"), makeManagedNodeGroups("m1"), true)
+					tasks, err := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("foo"), makeManagedNodeGroups("m1"), true)
+					Expect(err).To(BeNil())
 					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", 2 parallel sub-tasks: { create nodegroup "foo", create managed nodegroup "m1" } }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar"), nil, false, &task{id: 1})
+					tasks, err := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar"), nil, false, &task{id: 1})
+					Expect(err).To(BeNil())
 					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", 2 sequential sub-tasks: { task 1, create nodegroup "bar" } }`))
 				}
 			})

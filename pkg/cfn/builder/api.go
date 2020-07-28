@@ -97,6 +97,12 @@ func (r *resourceSet) newResource(name string, resource gfn.Resource) *gfnt.Valu
 	return gfnt.MakeRef(name)
 }
 
+// newParameter adds a parameter and returns a reference.
+func (r *resourceSet) newParameter(key string, value interface{}) *gfnt.Value {
+	r.template.Parameters[key] = value
+	return gfnt.MakeRef(key)
+}
+
 // renderJSON renders template as JSON
 func (r *resourceSet) renderJSON() ([]byte, error) {
 	return r.template.JSON()

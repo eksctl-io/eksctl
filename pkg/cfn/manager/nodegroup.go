@@ -50,19 +50,30 @@ func (c *StackCollection) makeNodeGroupStackName(name string) string {
 
 // createNodeGroupTask creates the nodegroup
 func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup, supportsManagedNodes bool) error {
-	name := c.makeNodeGroupStackName(ng.Name)
-	logger.Info("building nodegroup stack %q", name)
-	stack := builder.NewNodeGroupResourceSet(c.provider, c.spec, c.makeClusterStackName(), ng, supportsManagedNodes)
-	if err := stack.AddAllResources(); err != nil {
-		return err
-	}
-
 	if ng.Tags == nil {
 		ng.Tags = make(map[string]string)
 	}
 	ng.Tags[api.NodeGroupNameTag] = ng.Name
 	ng.Tags[api.OldNodeGroupNameTag] = ng.Name
 	ng.Tags[api.NodeGroupTypeTag] = string(api.NodeGroupTypeUnmanaged)
+
+	// Spot Ocean.
+	{
+		if ng.SpotOcean != nil {
+			if ng.Name == api.SpotOceanNodeGroupName {
+				ng.Tags[api.SpotOceanResourceTypeTag] = string(api.SpotOceanResourceTypeCluster)
+			} else {
+				ng.Tags[api.SpotOceanResourceTypeTag] = string(api.SpotOceanResourceTypeLaunchSpec)
+			}
+		}
+	}
+
+	name := c.makeNodeGroupStackName(ng.Name)
+	logger.Info("building nodegroup stack %q", name)
+	stack := builder.NewNodeGroupResourceSet(c.provider, c.spec, c.makeClusterStackName(), c.sharedTags, ng, supportsManagedNodes)
+	if err := stack.AddAllResources(); err != nil {
+		return err
+	}
 
 	return c.CreateStack(name, stack, ng.Tags, nil, errs)
 }
@@ -324,6 +335,7 @@ func GetEksctlVersion(tags []*cfn.Tag) (semver.Version, bool, error) {
 }
 
 type nodeGroupPaths struct {
+	ImageID         string
 	InstanceType    string
 	DesiredCapacity string
 	MinSize         string
@@ -346,6 +358,7 @@ func getNodeGroupPaths(tags []*cfn.Tag) (*nodeGroupPaths, error) {
 
 		}
 		return &nodeGroupPaths{
+			ImageID:         imageIDPath,
 			InstanceType:    makePath("InstanceTypes.0"),
 			DesiredCapacity: makeScalingPath("DesiredSize"),
 			MinSize:         makeScalingPath("MinSize"),
@@ -357,7 +370,23 @@ func getNodeGroupPaths(tags []*cfn.Tag) (*nodeGroupPaths, error) {
 		makePath := func(field string) string {
 			return fmt.Sprintf("%s.NodeGroup.Properties.%s", resourcesRootPath, field)
 		}
+
+		// Spot Ocean.
+		{
+			for _, tag := range tags {
+				if *tag.Key == api.SpotOceanResourceTypeTag {
+					return &nodeGroupPaths{
+						ImageID:         makePath("oceanSummary.imageId"),
+						DesiredCapacity: makePath("oceanSummary.capacity.target"),
+						MinSize:         makePath("oceanSummary.capacity.minimum"),
+						MaxSize:         makePath("oceanSummary.capacity.maximum"),
+					}, nil
+				}
+			}
+		}
+
 		return &nodeGroupPaths{
+			ImageID:         imageIDPath,
 			InstanceType:    resourcesRootPath + ".NodeGroupLaunchTemplate.Properties.LaunchTemplateData.InstanceType",
 			DesiredCapacity: makePath("DesiredCapacity"),
 			MinSize:         makePath("MinSize"),
@@ -382,7 +411,7 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, ngPaths *node
 	minSize := gjson.Get(template, ngPaths.MinSize)
 	desired := gjson.Get(template, ngPaths.DesiredCapacity)
 	instanceType := gjson.Get(template, ngPaths.InstanceType)
-	imageID := gjson.Get(template, imageIDPath)
+	imageID := gjson.Get(template, ngPaths.ImageID)
 
 	nodeGroupType, err := GetNodeGroupType(stack.Tags)
 	if err != nil {

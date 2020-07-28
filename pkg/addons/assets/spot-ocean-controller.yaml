@@ -1,0 +1,233 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: spotinst-kubernetes-cluster-controller
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: spotinst-kubernetes-cluster-controller
+rules:
+  # ----------------------------------------------------------------------------
+  # Required for functional operation (read-only).
+  # ----------------------------------------------------------------------------
+- apiGroups: [""]
+  resources: ["pods", "nodes", "services", "namespaces", "replicationcontrollers", "limitranges", "events", "persistentvolumes", "persistentvolumeclaims"]
+  verbs: ["get", "list"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "daemonsets", "statefulsets", "replicasets"]
+  verbs: ["get","list"]
+- apiGroups: ["storage.k8s.io"]
+  resources: ["storageclasses"]
+  verbs: ["get", "list"]
+- apiGroups: ["batch"]
+  resources: ["jobs"]
+  verbs: ["get", "list"]
+- apiGroups: ["extensions"]
+  resources: ["replicasets", "daemonsets"]
+  verbs: ["get","list"]
+- apiGroups: ["policy"]
+  resources: ["poddisruptionbudgets"]
+  verbs: ["get", "list"]
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+- apiGroups: ["autoscaling"]
+  resources: ["horizontalpodautoscalers"]
+  verbs: ["get", "list"]
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ["customresourcedefinitions"]
+  verbs: ["get", "list"]
+- nonResourceURLs: ["/version/", "/version"]
+  verbs: ["get"]
+  # ----------------------------------------------------------------------------
+  # Required by the draining feature and for functional operation.
+  # ----------------------------------------------------------------------------
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["patch", "update"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["delete"]
+- apiGroups: [""]
+  resources: ["pods/eviction"]
+  verbs: ["create"]
+  # ----------------------------------------------------------------------------
+  # Required by the Spot Cleanup feature.
+  # ----------------------------------------------------------------------------
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["delete"]
+  # ----------------------------------------------------------------------------
+  # Required by the Spot CSR-approval feature.
+  # ----------------------------------------------------------------------------
+- apiGroups: ["certificates.k8s.io"]
+  resources: ["certificatesigningrequests"]
+  verbs: ["get", "list"]
+- apiGroups: ["certificates.k8s.io"]
+  resources: ["certificatesigningrequests/approval"]
+  verbs: ["patch", "update"]
+  # ----------------------------------------------------------------------------
+  # Required by the Spot Auto-update feature.
+  # ----------------------------------------------------------------------------
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["clusterroles"]
+  resourceNames: ["spotinst-kubernetes-cluster-controller"]
+  verbs: ["patch", "update", "escalate"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  resourceNames: ["spotinst-kubernetes-cluster-controller"]
+  verbs: ["patch","update"]
+  # ----------------------------------------------------------------------------
+  # Required by the Spot Apply feature.
+  # ----------------------------------------------------------------------------
+- apiGroups: ["apps"]
+  resources: ["deployments", "daemonsets"]
+  verbs: ["get", "list", "patch","update","create","delete"]
+- apiGroups: ["extensions"]
+  resources: ["daemonsets"]
+  verbs: ["get", "list", "patch","update","create","delete"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "patch", "update", "create", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: spotinst-kubernetes-cluster-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: spotinst-kubernetes-cluster-controller
+subjects:
+- kind: ServiceAccount
+  name: spotinst-kubernetes-cluster-controller
+  namespace: kube-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: spotinst-kubernetes-cluster-controller
+  name: spotinst-kubernetes-cluster-controller
+  namespace: kube-system
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      k8s-app: spotinst-kubernetes-cluster-controller
+  template:
+    metadata:
+      labels:
+        k8s-app: spotinst-kubernetes-cluster-controller
+    spec:
+      priorityClassName: system-cluster-critical
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: node-role.kubernetes.io/master
+                operator: Exists
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 50
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: k8s-app
+                  operator: In
+                  values:
+                  - spotinst-kubernetes-cluster-controller
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: spotinst-kubernetes-cluster-controller
+        imagePullPolicy: Always
+        image: spotinst/kubernetes-cluster-controller:1.0.64
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 4401
+          initialDelaySeconds: 300
+          periodSeconds: 20
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 4401
+          initialDelaySeconds: 20
+          periodSeconds: 20
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 3
+        env:
+        - name: SPOTINST_TOKEN
+          valueFrom:
+            configMapKeyRef:
+              name: spotinst-kubernetes-cluster-controller-config
+              key: spotinst.token
+        - name: SPOTINST_ACCOUNT
+          valueFrom:
+            configMapKeyRef:
+              name: spotinst-kubernetes-cluster-controller-config
+              key: spotinst.account
+        - name: CLUSTER_IDENTIFIER
+          valueFrom:
+            configMapKeyRef:
+              name: spotinst-kubernetes-cluster-controller-config
+              key: spotinst.cluster-identifier
+        - name: DISABLE_AUTO_UPDATE
+          valueFrom:
+            configMapKeyRef:
+              name: spotinst-kubernetes-cluster-controller-config
+              key: disable-auto-update
+              optional: true
+        - name: ENABLE_CSR_APPROVAL
+          valueFrom:
+            configMapKeyRef:
+              name: spotinst-kubernetes-cluster-controller-config
+              key: enable-csr-approval
+              optional: true
+        - name: PROXY_URL
+          valueFrom:
+            configMapKeyRef:
+              name: spotinst-kubernetes-cluster-controller-config
+              key: proxy-url
+              optional: true
+        - name: BASE_SPOTINST_URL
+          valueFrom:
+            configMapKeyRef:
+              name: spotinst-kubernetes-cluster-controller-config
+              key: base-url
+              optional: true
+        - name: POD_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+      serviceAccountName: spotinst-kubernetes-cluster-controller
+      tolerations:
+      - key: node.kubernetes.io/not-ready
+        effect: NoExecute
+        operator: Exists
+        tolerationSeconds: 150
+      - key: node.kubernetes.io/unreachable
+        effect: NoExecute
+        operator: Exists
+        tolerationSeconds: 150
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+---

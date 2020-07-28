@@ -19,4 +19,31 @@ type CreateClusterCmdParams struct {
 	WithoutNodeGroup            bool
 	Managed                     bool
 	Fargate                     bool
+
+	// Spot Ocean.
+	SpotProfile string
+	SpotOcean   bool
+}
+
+// CreateNodeGroupCmdParams groups CLI options for the create nodegroup command.
+type CreateNodeGroupCmdParams struct {
+	UpdateAuthConfigMap       bool
+	Managed                   bool
+	InstallNeuronDevicePlugin bool
+
+	// Spot Ocean.
+	SpotProfile string
+	SpotOcean   bool
+}
+
+// DeleteNodeGroupCmdParams groups CLI options for the delete nodegroup command.
+type DeleteNodeGroupCmdParams struct {
+	UpdateAuthConfigMap bool
+	Drain               bool
+	OnlyMissing         bool
+
+	// Spot Ocean.
+	SpotProfile       string
+	SpotRoll          bool
+	SpotRollBatchSize int
 }

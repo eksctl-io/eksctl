@@ -126,6 +126,14 @@ func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(lister stackLister, clust
 		}
 	}
 
+	// Spot Ocean.
+	for _, localNodeGroup := range clusterConfig.NodeGroups {
+		if localNodeGroup.SpotOcean != nil {
+			f.localNodegroups.Insert(api.SpotOceanNodeGroupName)
+			break
+		}
+	}
+
 	// Log remote-only nodegroups  AND add them to the cluster config
 	for _, s := range existingStacks {
 		remoteNodeGroupName := s.NodeGroupName
