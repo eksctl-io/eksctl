@@ -505,7 +505,7 @@ func validateCPUCredits(ng *NodeGroup) error {
 
 func validateASGSuspendedProcesses(ng *NodeGroup) error {
 	// Processes list taken from here: https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_SuspendProcesses.html
-	for _, proc := range(ng.ASGSuspendedProcesses) {
+	for _, proc := range ng.ASGSuspendedProcesses {
 		switch proc {
 		case
 			"Launch",
@@ -517,7 +517,7 @@ func validateASGSuspendedProcesses(ng *NodeGroup) error {
 			"InstanceRefresh",
 			"ReplaceUnhealthy",
 			"ScheduledActions":
-				continue
+			continue
 		default:
 			return fmt.Errorf("asgSuspendedProcesses contains invalid process name '%s'", proc)
 		}

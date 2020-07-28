@@ -20,8 +20,8 @@ const (
 type awsCloudFormationResource struct {
 	Type         string
 	Properties   map[string]interface{}
-	UpdatePolicy map[string]map[string]string `json:",omitempty"`
-	DependsOn    []string                     `json:",omitempty"`
+	UpdatePolicy map[string]map[string]interface{} `json:",omitempty"`
+	DependsOn    []string                          `json:",omitempty"`
 }
 
 func (r *awsCloudFormationResource) AWSCloudFormationType() string {
