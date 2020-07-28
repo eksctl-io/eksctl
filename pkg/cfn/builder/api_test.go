@@ -961,19 +961,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(ng.Properties.TargetGroupARNs).To(Equal([]string{"tg-arn-1", "tg-arn-2"}))
 		})
-
-		It("should have empty SuspendedProcesses set", func() {
-			Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
-			ng := ngTemplate.Resources["NodeGroup"]
-			Expect(ng).ToNot(BeNil())
-			Expect(ng).To(HaveKey("UpdatePolicy"))
-			Expect(ng.UpdatePolicy).ToNot(BeNil())
-			Expect(ng.UpdatePolicy).To(HaveKey("AutoScalingRollingUpdate"))
-			Expect(ng.UpdatePolicy.AutoScalingRollingUpdate).ToNot(BeNil())
-			Expect(ng.UpdatePolicy.AutoScalingRollingUpdate).To(HaveKey("SuspendProcesses"))
-
-			Expect(ng.UpdatePolicy.AutoScalingRollingUpdate.SuspendedProcesses).To(Equal([]string{}))
-		})
 	})
 
 	Context("NodeGroupAutoScaling with metrics collection", func() {
@@ -1028,29 +1015,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Expect(metricsCollection).To(HaveKey("Granularity"))
 				Expect(metricsCollection["Granularity"]).To(Equal("1Minute"))
 			})
-		})
-	})
-
-	Context("NodeGroupAutoScaling with ASGSuspendedProcesses", func() {
-		cfg, ng := newClusterConfigAndNodegroup(true)
-		ng.ASGSuspendedProcesses := []string{
-			"AZRebalance",
-			"Terminate",
-		}
-		build(cfg, "eksctl-test-asg-suspended-proc", ng)
-		roundtrip()
-
-		It("should have correct SuspendedProcesses set", func() {
-			Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
-			ng := ngTemplate.Resources["NodeGroup"]
-			Expect(ng).ToNot(BeNil())
-			Expect(ng).To(HaveKey("UpdatePolicy"))
-			Expect(ng.UpdatePolicy).ToNot(BeNil())
-			Expect(ng.UpdatePolicy).To(HaveKey("AutoScalingRollingUpdate"))
-			Expect(ng.UpdatePolicy.AutoScalingRollingUpdate).ToNot(BeNil())
-			Expect(ng.UpdatePolicy.AutoScalingRollingUpdate).To(HaveKey("SuspendProcesses"))
-
-			Expect(ng.UpdatePolicy.AutoScalingRollingUpdate.SuspendedProcesses).To(Equal([]string{ "AZRebalance", "Terminate" }))
 		})
 	})
 
