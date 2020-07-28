@@ -322,18 +322,14 @@ func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interfa
 		}
 	}
 
-	suspendedProcesses := []string{}
-	if len(ng.ASGSuspendedProcesses) > 0 {
-		suspendedProcesses = ng.ASGSuspendedProcesses
+	updatePolicy := map[string]interface{}{
+		"AutoScalingRollingUpdate": map[string]interface{}{
+			"MinInstancesInService": "0",
+			"MaxBatchSize":          "1",
+			"SuspendProcesses": ng.ASGSuspendedProcesses,
+		},
 	}
 
-	updatePolicy := make(map[string]interface{})
-	updatePolicy["AutoScalingRollingUpdate"] := map[string]interface{}{
-		"MinInstancesInService": "0",
-		"MaxBatchSize":          "1",
-		"SuspendProcesses": suspendedProcesses,
-	}
-	
 	return &awsCloudFormationResource{
 		Type:       "AWS::AutoScaling::AutoScalingGroup",
 		Properties: ngProps,
