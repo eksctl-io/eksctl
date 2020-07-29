@@ -150,25 +150,35 @@
     "ClusterIAM": {
       "properties": {
         "fargatePodExecutionRoleARN": {
-          "type": "string"
+          "type": "string",
+          "description": "role used by pods to access AWS APIs. This role is added to the Kubernetes RBAC for authorization. See [Pod Execution Role](https://docs.aws.amazon.com/eks/latest/userguide/pod-execution-role.html)",
+          "x-intellij-html-description": "role used by pods to access AWS APIs. This role is added to the Kubernetes RBAC for authorization. See <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/pod-execution-role.html\">Pod Execution Role</a>"
         },
         "fargatePodExecutionRolePermissionsBoundary": {
-          "type": "string"
+          "type": "string",
+          "description": "permissions boundary for the fargate pod execution role`. See [EKS Fargate Support](/usage/fargate-support/)",
+          "x-intellij-html-description": "permissions boundary for the fargate pod execution role`. See <a href=\"/usage/fargate-support/\">EKS Fargate Support</a>"
         },
         "serviceAccounts": {
           "items": {
             "$ref": "#/definitions/ClusterIAMServiceAccount"
           },
-          "type": "array"
+          "type": "array",
+          "description": "service accounts to create in the cluster. See [IAM Service Accounts](/iamserviceaccounts/#usage-with-config-files)",
+          "x-intellij-html-description": "service accounts to create in the cluster. See <a href=\"/iamserviceaccounts/#usage-with-config-files\">IAM Service Accounts</a>"
         },
         "serviceRoleARN": {
           "type": "string"
         },
         "serviceRolePermissionsBoundary": {
-          "type": "string"
+          "type": "string",
+          "description": "permissions boundary for all identity-based entities created by eksctl. See [AWS Permission Boundary](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html)",
+          "x-intellij-html-description": "permissions boundary for all identity-based entities created by eksctl. See <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html\">AWS Permission Boundary</a>"
         },
         "withOIDC": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "enables the IAM OIDC provider",
+          "x-intellij-html-description": "enables the IAM OIDC provider"
         }
       },
       "preferredOrder": [
@@ -201,7 +211,9 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "description": "list of ARNs of the IAM policies to attach",
+          "x-intellij-html-description": "list of ARNs of the IAM policies to attach"
         },
         "labels": {
           "additionalProperties": {
@@ -217,7 +229,9 @@
           "type": "string"
         },
         "permissionsBoundary": {
-          "type": "string"
+          "type": "string",
+          "description": "ARN of the permissions boundary to associate with the service account",
+          "x-intellij-html-description": "ARN of the permissions boundary to associate with the service account"
         },
         "status": {
           "$ref": "#/definitions/ClusterIAMServiceAccountStatus"
@@ -227,6 +241,8 @@
             "type": "string"
           },
           "type": "object",
+          "description": "AWS tags for the service account",
+          "x-intellij-html-description": "AWS tags for the service account",
           "default": "{}"
         }
       },
