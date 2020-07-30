@@ -150,10 +150,11 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
                     value = "{}";
                 }
             } else {
-                type = refDef.type;
+                type = `${refDef.type}[]`;
             }
-            if (desc === "") {
-                desc = refDef["x-intellij-html-description"] || "";
+            // If the ref has enum information, show it in the field
+            if (desc === "" || (refDef.enum && refDef.enum.length > 0)) {
+                desc = [desc, refDef["x-intellij-html-description"]].filter(x => x).join(" ");
             }
             yield html`
                 <tr class="top">
