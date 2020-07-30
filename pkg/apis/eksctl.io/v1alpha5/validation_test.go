@@ -722,9 +722,15 @@ var _ = Describe("ClusterConfig validation", func() {
 			}
 
 			ngs := map[string]*NodeGroup{
-				"PreBootstrapCommands":     {PreBootstrapCommands: []string{"/usr/bin/env true"}},
-				"OverrideBootstrapCommand": {OverrideBootstrapCommand: &cmd},
-				"KubeletExtraConfig":       {KubeletExtraConfig: &doc},
+				"PreBootstrapCommands": {
+					NodeGroupBase: &NodeGroupBase{
+						PreBootstrapCommands: []string{"/usr/bin/env true"},
+					}},
+				"OverrideBootstrapCommand": {
+					NodeGroupBase: &NodeGroupBase{
+						OverrideBootstrapCommand: &cmd,
+					}},
+				"KubeletExtraConfig": {KubeletExtraConfig: &doc},
 				"overlapping Bottlerocket settings": {
 					Bottlerocket: &NodeGroupBottlerocket{
 						Settings: &InlineDocument{
@@ -809,7 +815,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			}
 
 			ngs := map[string]*NodeGroup{
-				"OverrideBootstrapCommand": {OverrideBootstrapCommand: &cmd, NodeGroupBase: &NodeGroupBase{}},
+				"OverrideBootstrapCommand": {NodeGroupBase: &NodeGroupBase{OverrideBootstrapCommand: &cmd}},
 				"KubeletExtraConfig":       {KubeletExtraConfig: &doc, NodeGroupBase: &NodeGroupBase{}},
 			}
 
@@ -826,7 +832,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				{NodeGroupBase: &NodeGroupBase{Labels: map[string]string{"label": "label-value"}}},
 				{MaxPodsPerNode: x, NodeGroupBase: &NodeGroupBase{}},
 				{NodeGroupBase: &NodeGroupBase{ScalingConfig: &ScalingConfig{MinSize: &x}}},
-				{PreBootstrapCommands: []string{"start /wait msiexec.exe"}, NodeGroupBase: &NodeGroupBase{}},
+				{NodeGroupBase: &NodeGroupBase{PreBootstrapCommands: []string{"start /wait msiexec.exe"}}},
 			}
 
 			for i, ng := range ngs {
