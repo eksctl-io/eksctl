@@ -739,6 +739,10 @@ type NodeGroup struct {
 	DisableIMDSv1 *bool `json:"disableIMDSv1,omitempty"`
 }
 
+func (n *NodeGroup) BaseNodeGroup() *NodeGroupBase {
+	return n.NodeGroupBase
+}
+
 // Git groups all configuration options related to enabling GitOps on a
 // cluster and linking it to a Git repository.
 // [Gitops Guide](/gitops-quickstart/)
@@ -979,6 +983,13 @@ type ScalingConfig struct {
 	MaxSize *int `json:"maxSize,omitempty"`
 }
 
+// NodePool represents a group of nodes that share the same configuration
+// Ideally the NodeGroup type should be renamed to UnmanagedNodeGroup or SelfManagedNodeGroup and this interface
+// should be called NodeGroup
+type NodePool interface {
+	BaseNodeGroup() *NodeGroupBase
+}
+
 // NodeGroupBase represents the base nodegroup config for self-managed and managed nodegroups
 type NodeGroupBase struct {
 	// +required
@@ -1071,10 +1082,26 @@ func (n *NodeGroupBase) GetAMIFamily() string {
 	return n.AMIFamily
 }
 
+type LaunchTemplate struct {
+	// Launch template ID
+	// +required
+	ID string `json:"id,omitempty"`
+	// Launch template version
+	// Defaults to the default launch template version
+	Version *int `json:"version,omitempty"`
+	// TODO support Name?
+}
+
 // ManagedNodeGroup represents an EKS-managed nodegroup
 // TODO Validate for unmapped fields and throw an error
 type ManagedNodeGroup struct {
 	*NodeGroupBase
+
+	LaunchTemplate *LaunchTemplate `json:"launchTemplate,omitempty"`
+}
+
+func (m *ManagedNodeGroup) BaseNodeGroup() *NodeGroupBase {
+	return m.NodeGroupBase
 }
 
 func makeListOptions(nodeGroupName string) metav1.ListOptions {
