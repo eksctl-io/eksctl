@@ -633,11 +633,11 @@ func NewNodeGroup() *NodeGroup {
 				PublicKeyPath: &DefaultNodeSSHPublicKeyPath,
 			},
 			VolumeType: &DefaultNodeVolumeType,
-		},
-		SecurityGroups: &NodeGroupSGs{
-			AttachIDs:  []string{},
-			WithLocal:  Enabled(),
-			WithShared: Enabled(),
+			SecurityGroups: &NodeGroupSGs{
+				AttachIDs:  []string{},
+				WithLocal:  Enabled(),
+				WithShared: Enabled(),
+			},
 		},
 	}
 }
@@ -697,8 +697,6 @@ type NodeGroup struct {
 	InstancePrefix string `json:"instancePrefix,omitempty"`
 	// +optional
 	InstanceName string `json:"instanceName,omitempty"`
-	// +optional
-	SecurityGroups *NodeGroupSGs `json:"securityGroups,omitempty"`
 
 	// +optional
 	ASGMetricsCollection []MetricsCollection `json:"asgMetricsCollection,omitempty"`
@@ -724,15 +722,6 @@ type NodeGroup struct {
 	// SSH configures ssh access for this nodegroup
 	// +optional
 	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
-
-	// PreBootstrapCommands are executed before bootstrapping instances to the
-	// cluster
-	// +optional
-	PreBootstrapCommands []string `json:"preBootstrapCommands,omitempty"`
-
-	// Override `eksctl`'s bootstrapping script
-	// +optional
-	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
 
 	// [Custom
 	// address](/usage/vpc-networking/#custom-cluster-dns-address) used for DNS
@@ -873,6 +862,7 @@ type (
 		WithShared *bool `json:"withShared"`
 		// WithLocal attach a security group
 		// local to this nodegroup
+		// Not supported for managed nodegroups
 		// Defaults to `true`
 		// +optional
 		WithLocal *bool `json:"withLocal"`
@@ -1028,6 +1018,9 @@ type NodeGroupBase struct {
 	// +optional
 	AMI string `json:"ami,omitempty"`
 
+	// +optional
+	SecurityGroups *NodeGroupSGs `json:"securityGroups,omitempty"`
+
 	// EBSOptimized enables [EBS
 	// optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)
 	// +optional
@@ -1044,6 +1037,15 @@ type NodeGroupBase struct {
 	VolumeKmsKeyID *string `json:"volumeKmsKeyID,omitempty"`
 	// +optional
 	VolumeIOPS *int `json:"volumeIOPS,omitempty"`
+
+	// PreBootstrapCommands are executed before bootstrapping instances to the
+	// cluster
+	// +optional
+	PreBootstrapCommands []string `json:"preBootstrapCommands,omitempty"`
+
+	// Override `eksctl`'s bootstrapping script
+	// +optional
+	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
