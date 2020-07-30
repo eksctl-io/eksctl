@@ -74,7 +74,6 @@ commands:
         default: true
       only_for_branches:
         type: string
-        default: master
     steps:
       - run: exit 0
       - slack/status:
@@ -115,7 +114,8 @@ jobs:
           path: ./test-results
       - store_artifacts:
           path: ./bin
-      - notify-slack
+      - notify-slack:
+          only_for_branches: master
   build-all-distros:
     machine:
       image: ubuntu-1604:201903-01
@@ -133,7 +133,8 @@ jobs:
           cmd: make build-all
       - store_artifacts:
           path: dist/
-      - notify-slack
+      - notify-slack:
+          only_for_branches: master
   release-candidate:
     machine:
       image: ubuntu-1604:201903-01
@@ -222,6 +223,7 @@ jobs:
           path: ./test-results
       - notify-slack:
           fail_only: false
+          only_for_branches: master
 
 workflows:
   version: 2
