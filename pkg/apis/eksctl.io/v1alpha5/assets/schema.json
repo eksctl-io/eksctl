@@ -20,11 +20,18 @@
       "properties": {
         "enableTypes": {
           "items": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "api",
+              "audit",
+              "authenticator",
+              "controllerManager",
+              "scheduler"
+            ]
           },
           "type": "array",
-          "description": "Types of logging to enable (see [CloudWatch docs](/usage/cloudwatch-cluster-logging/#clusterconfig-examples)). To choose from: `api`, `audit`, `authenticator`, `controllerManager`, `scheduler`",
-          "x-intellij-html-description": "Types of logging to enable (see <a href=\"/usage/cloudwatch-cluster-logging/#clusterconfig-examples\">CloudWatch docs</a>). To choose from: <code>api</code>, <code>audit</code>, <code>authenticator</code>, <code>controllerManager</code>, <code>scheduler</code>"
+          "description": "Types of logging to enable (see [CloudWatch docs](/usage/cloudwatch-cluster-logging/#clusterconfig-examples)). Valid entries are: `\"api\"`, `\"audit\"`, `\"authenticator\"`, `\"controllerManager\"`, `\"scheduler\"`.",
+          "x-intellij-html-description": "Types of logging to enable (see <a href=\"/usage/cloudwatch-cluster-logging/#clusterconfig-examples\">CloudWatch docs</a>). Valid entries are: <code>&quot;api&quot;</code>, <code>&quot;audit&quot;</code>, <code>&quot;authenticator&quot;</code>, <code>&quot;controllerManager&quot;</code>, <code>&quot;scheduler&quot;</code>."
         }
       },
       "preferredOrder": [
