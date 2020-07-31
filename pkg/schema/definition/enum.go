@@ -14,10 +14,12 @@ import (
 
 // patterns for enum-type values
 var (
-	enumValuePattern     = "^[ \t]*`(?P<name>[^`]+)`([ \t]*\\(default\\))?(?:(: .*)|,)?$"
-	regexpEnumReference  = regexp.MustCompile("(?m).*Valid [a-z]+ are `(.*)` [a-z]+")
-	regexpEnumDefinition = regexp.MustCompile("(?m).*Valid [a-z]+ are:((\\n" + enumValuePattern + ")*)")
-	regexpEnumValues     = regexp.MustCompile("(?m)" + enumValuePattern)
+	enumValuePattern         = "^[ \t]*`(?P<name>[^`]+)`([ \t]*\\(default\\))?(?:(: .*)|,)?$"
+	regexpItemEnumReference  = regexp.MustCompile("(?m).*Valid (entries|items) are `(.*)` [a-z]+")
+	regexpItemEnumDefinition = regexp.MustCompile("(?m).*Valid (?:entries|items) are:((\\n" + enumValuePattern + ")*)")
+	regexpEnumReference      = regexp.MustCompile("(?m).*Valid ([a-z]+) are `(.*)` [a-z]+")
+	regexpEnumDefinition     = regexp.MustCompile("(?m).*Valid [a-z]+ are:((\\n" + enumValuePattern + ")*)")
+	regexpEnumValues         = regexp.MustCompile("(?m)" + enumValuePattern)
 )
 
 // findLiteralFromString does a lookup for constant values
@@ -97,94 +99,147 @@ func findReferencedVariants(importer importer.Importer, variantDeclName string) 
 // enumCommentInformation holds information interpreted from a comment string
 type enumCommentInformation struct {
 	Enum             []string
-	Default          string
+	Default          *string
 	EnumComment      string
 	RemainingComment string
 }
 
-// interpretEnumComments handles interpreting enum information from comments
-func interpretEnumComments(importer importer.Importer, comment string) (*enumCommentInformation, error) {
+func handleGenDeclReference(importer importer.Importer, comment string, match []string) (*enumCommentInformation, error) {
 	var enum = []string{}
-	// If this comments refers to a GenDecl of constants
-	if m := regexpEnumReference.FindStringSubmatch(comment); m != nil {
-		var def string
-		// Drop the reference to the GenDecl from our comment
-		entireComment := m[0]
-		comment = strings.ReplaceAll(comment, entireComment, "")
+	var def *string
+	// Drop the reference to the GenDecl from our comment
+	entireComment := match[0]
+	comment = strings.ReplaceAll(comment, entireComment, "")
 
-		variantName := m[1]
-		variants, err := findReferencedVariants(importer, variantName)
-		if err != nil {
-			return nil, errors.Wrap(err, "couldn't find variant")
+	termForVariant := match[1]
+	variantName := match[2]
+	variants, err := findReferencedVariants(importer, variantName)
+	if err != nil {
+		return nil, errors.Wrap(err, "couldn't find variant")
+	}
+
+	// We synthesize the comments for the enum variants into one description
+	// see the tests
+	var variantComments = []string{}
+
+	// We take into account duplicated enum variants
+	seen := make(map[string]int)
+	for _, valueSpec := range variants {
+		isDefault, value, variantComment := interpretReferencedVariantComment(importer, valueSpec)
+
+		if indexSeen, valueSeen := seen[value]; !valueSeen {
+			// The first time we see a value, append a new enum variant
+			variantCommentWithValue := joinIfNotEmpty(" ", fmt.Sprintf("`\"%s\"`", value), variantComment)
+			enum = append(enum, value)
+			seen[value] = len(enum) - 1
+			variantComments = append(variantComments, variantCommentWithValue)
+		} else {
+			// If we've seen this value before, append the comments
+			variantComments[indexSeen] = joinIfNotEmpty(" ", variantComments[indexSeen], variantComment)
 		}
+		if isDefault {
+			def = &value
+		}
+	}
 
-		// We synthesize the comments for the enum variants into one description
-		// see the tests
-		var variantComments = []string{}
+	// Add some commas, a nice prefix and a period
+	joinedVariantComments := strings.Join(variantComments, ", ")
+	prefix := fmt.Sprintf("Valid %s are:", termForVariant)
+	enumComment := strings.Join(append([]string{prefix}, joinedVariantComments), " ") + "."
 
-		// We take into account duplicated enum variants
-		seen := make(map[string]int)
-		for _, valueSpec := range variants {
-			isDefault, value, variantComment := interpretReferencedVariantComment(importer, valueSpec)
+	return &enumCommentInformation{
+		Enum:    enum,
+		Default: def,
+		// Our synthesized comment for this enum
+		EnumComment:      enumComment,
+		RemainingComment: comment,
+	}, nil
 
-			if indexSeen, valueSeen := seen[value]; !valueSeen {
-				// The first time we see a value, append a new enum variant
-				variantCommentWithValue := joinIfNotEmpty(" ", fmt.Sprintf("`\"%s\"`", value), variantComment)
-				enum = append(enum, value)
-				seen[value] = len(enum) - 1
-				variantComments = append(variantComments, variantCommentWithValue)
+}
+
+func handleVariantList(importer importer.Importer, comment string, match []string) (*enumCommentInformation, error) {
+	var enum = []string{}
+	var def *string
+	if n := regexpEnumValues.FindAllStringSubmatch(match[1], -1); n != nil {
+		for _, match := range n {
+			rawVal := match[1]
+			isDefault := match[2] != ""
+			var value string
+			if literal, err := strconv.Unquote(rawVal); err == nil {
+				value = literal
 			} else {
-				// If we've seen this value before, append the comments
-				variantComments[indexSeen] = joinIfNotEmpty(" ", variantComments[indexSeen], variantComment)
+				val, err := findLiteralFromString(importer, "", rawVal)
+				if err != nil {
+					return nil, errors.Wrapf(err, "couldn't resolve %s in package", rawVal)
+				}
+				value = val
+				comment = strings.ReplaceAll(comment, rawVal, fmt.Sprintf(`"%s"`, val))
 			}
 			if isDefault {
-				def = value
+				def = &value
 			}
+			enum = append(enum, value)
 		}
+	}
+	return &enumCommentInformation{
+		Enum:    enum,
+		Default: def,
+		// Our synthesized comment for this enum
+		EnumComment:      "",
+		RemainingComment: comment,
+	}, nil
+}
 
-		// Add some commas, a nice prefix and a period
-		joinedVariantComments := strings.Join(variantComments, ", ")
-		enumComment := strings.Join(append([]string{"Valid variants are:"}, joinedVariantComments), " ") + "."
+// CommentInformation holds information interpreted from a comment string
+type CommentInformation struct {
+	SynthesizedComment string
+	RemainingComment   string
+}
 
-		return &enumCommentInformation{
-			Enum:    enum,
-			Default: def,
-			// Our synthesized comment for this enum
-			EnumComment:      enumComment,
-			RemainingComment: comment,
-		}, nil
+func applyEnumComment(def *Definition, info *enumCommentInformation) (*CommentInformation, error) {
+	if info.Default != nil {
+		def.Default = *info.Default
+	}
+	def.Enum = info.Enum
+	return &CommentInformation{
+		SynthesizedComment: info.EnumComment,
+		RemainingComment:   info.RemainingComment,
+	}, nil
+}
+
+// handleEnumComments handles interpreting enum information from comments
+func handleEnumComments(importer importer.Importer, def *Definition, comment string) (*CommentInformation, error) {
+	// If this comments refers to a GenDecl of constants
+	if m := regexpItemEnumReference.FindStringSubmatch(comment); m != nil {
+		info, err := handleGenDeclReference(importer, comment, m)
+		if err != nil {
+			return nil, err
+		}
+		if def.Items == nil {
+			return nil, errors.Errorf("can't add enum to items for non-array definition %s", def.Type)
+		}
+		return applyEnumComment(def.Items, info)
+	} else if m := regexpEnumReference.FindStringSubmatch(comment); m != nil {
+		info, err := handleGenDeclReference(importer, comment, m)
+		if err != nil {
+			return nil, err
+		}
+		return applyEnumComment(def, info)
+	} else if m := regexpItemEnumDefinition.FindStringSubmatch(comment); m != nil {
+		info, err := handleVariantList(importer, comment, m)
+		if err != nil {
+			return nil, err
+		}
+		if def.Items == nil {
+			return nil, errors.Errorf("can't add enum to items for non-array definition %s", def.Type)
+		}
+		return applyEnumComment(def.Items, info)
 	} else if m := regexpEnumDefinition.FindStringSubmatch(comment); m != nil {
-		var def string
-		// If we mention a list of variants in the doc text
-		if n := regexpEnumValues.FindAllStringSubmatch(m[1], -1); n != nil {
-			for _, matches := range n {
-				rawVal := matches[1]
-				isDefault := matches[2] != ""
-				var value string
-				if literal, err := strconv.Unquote(rawVal); err == nil {
-					value = literal
-				} else {
-					val, err := findLiteralFromString(importer, "", rawVal)
-					if err != nil {
-						return nil, errors.Wrapf(err, "couldn't resolve %s in package", rawVal)
-					}
-					value = val
-					comment = strings.ReplaceAll(comment, rawVal, fmt.Sprintf(`"%s"`, val))
-				}
-				if isDefault {
-					def = value
-				}
-				enum = append(enum, value)
-			}
+		info, err := handleVariantList(importer, comment, m)
+		if err != nil {
+			return nil, err
 		}
-		return &enumCommentInformation{
-			Enum:    enum,
-			Default: def,
-			// For now the generated enum comment is empty
-			// because we leave the comment as is
-			EnumComment:      "",
-			RemainingComment: comment,
-		}, nil
+		return applyEnumComment(def, info)
 	}
 	// We don't have an enum
 	return nil, nil
