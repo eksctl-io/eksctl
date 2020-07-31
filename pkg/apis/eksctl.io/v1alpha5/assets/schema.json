@@ -1188,11 +1188,16 @@
       "properties": {
         "additionalEndpointServices": {
           "items": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "cloudformation",
+              "autoscaling",
+              "logs"
+            ]
           },
           "type": "array",
-          "description": "specifies additional endpoint services that must be enabled for private access Valid values are cloudformation, autoscaling and logs",
-          "x-intellij-html-description": "specifies additional endpoint services that must be enabled for private access Valid values are cloudformation, autoscaling and logs"
+          "description": "specifies additional endpoint services that must be enabled for private access. Valid entries are: `\"cloudformation\"`, `\"autoscaling\"`, `\"logs\"`.",
+          "x-intellij-html-description": "specifies additional endpoint services that must be enabled for private access. Valid entries are: <code>&quot;cloudformation&quot;</code>, <code>&quot;autoscaling&quot;</code>, <code>&quot;logs&quot;</code>."
         },
         "enabled": {
           "type": "boolean",

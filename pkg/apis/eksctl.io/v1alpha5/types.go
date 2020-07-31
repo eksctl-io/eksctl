@@ -1149,7 +1149,8 @@ type PrivateCluster struct {
 	// Enabled enables creation of a fully-private cluster
 	Enabled bool `json:"enabled"`
 
-	// AdditionalEndpointServices specifies additional endpoint services that must be enabled for private access
-	// Valid values are cloudformation, autoscaling and logs
+	// AdditionalEndpointServices specifies additional endpoint services that
+	// must be enabled for private access.
+	// Valid entries are `AdditionalEndpointServices` constants
 	AdditionalEndpointServices []string `json:"additionalEndpointServices,omitempty"`
 }
