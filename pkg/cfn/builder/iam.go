@@ -89,6 +89,13 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 	c.rs.attachAllowPolicy("PolicyCloudWatchMetrics", refSR, "*", []string{
 		"cloudwatch:PutMetricData",
 	})
+	// These are potentially required for creating load balancers but aren't included in the
+	// AmazonEKSClusterPolicy
+	// See https://docs.aws.amazon.com/elasticloadbalancing/latest/userguide/elb-api-permissions.html#required-permissions-v2
+	// and weaveworks/eksctl#2488
+	c.rs.attachAllowPolicy("PolicyELBPermissions", refSR, "*", []string{
+		"ec2:DescribeAccountAttributes",
+	})
 
 	c.rs.defineOutputFromAtt(outputs.ClusterServiceRoleARN, "ServiceRole", "Arn", true, func(v string) error {
 		c.spec.IAM.ServiceRoleARN = &v
