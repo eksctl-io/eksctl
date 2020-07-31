@@ -31,6 +31,7 @@ nav:
         - usage/cloudwatch-cluster-logging.md
         - usage/windows-worker-nodes.md
         - usage/eks-managed-nodes.md
+        - usage/eks-private-cluster.md
         - usage/fargate-support.md
         - usage/gitops.md
         - usage/schema.md
