@@ -197,6 +197,13 @@ var _ = Describe("upgrade cluster", func() {
 			expectedUpgrade:        true,
 		}),
 
+		Entry("upgrades by default when the version is auto", upgradeCase{
+			givenVersion:           "auto",
+			eksVersion:             "1.16",
+			expectedUpgradeVersion: "1.17",
+			expectedUpgrade:        true,
+		}),
+
 		Entry("does not upgrade or fail when the cluster is already in the last version", upgradeCase{
 			givenVersion:           "",
 			eksVersion:             "1.17",
