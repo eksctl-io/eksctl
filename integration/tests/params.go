@@ -64,7 +64,7 @@ func (p *Params) GenerateCommands() {
 
 	p.EksctlCreateCmd = p.EksctlCmd.
 		WithArgs("create").
-		WithTimeout(25 * time.Minute)
+		WithTimeout(30 * time.Minute)
 
 	p.EksctlUpdateCmd = p.EksctlCmd.
 		WithArgs("update").
