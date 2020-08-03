@@ -22,7 +22,7 @@ var _ = Describe("GenerateSchema", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 	It("handles the top level definition", func() {
-		props := []string{"num", "option", "pointeroption", "packageoption", "aliasedint", "unknown", "other", "version", "kind"}
+		props := []string{"num", "option", "pointeroption", "packageoption", "aliasedint", "unknown", "other", "version", "kind", "kinds"}
 		required := []string{"option"}
 		expected := Fields{
 			"Required":             Equal(required),
@@ -90,6 +90,20 @@ var _ = Describe("GenerateSchema", func() {
 		}
 		Expect(configDef().Properties).To(HaveKey("kind"))
 		Expect(*configDef().Properties["kind"]).To(BeEquivalentTo(expected))
+	})
+	It("handles enums by reference in lists", func() {
+		expected := definition.Definition{
+			Type: "array",
+			Items: &definition.Definition{
+				Type:    "string",
+				Default: "SecondKind",
+				Enum:    []string{"FirstKind", "SecondKind", "SpecialKind"},
+			},
+			Description:     "Valid entries are: `\"FirstKind\"` is legacy, `\"SecondKind\"` should be used (default) and this comment combines with secondKind, `\"SpecialKind\"` is from some other package.",
+			HTMLDescription: "Valid entries are: <code>&quot;FirstKind&quot;</code> is legacy, <code>&quot;SecondKind&quot;</code> should be used (default) and this comment combines with secondKind, <code>&quot;SpecialKind&quot;</code> is from some other package.",
+		}
+		Expect(configDef().Properties).To(HaveKey("kinds"))
+		Expect(*configDef().Properties["kinds"]).To(BeEquivalentTo(expected))
 	})
 	It("finds referenced structs", func() {
 		When("directly referenced", func() {

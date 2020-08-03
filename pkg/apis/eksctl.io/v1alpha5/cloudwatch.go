@@ -6,18 +6,27 @@ type ClusterCloudWatch struct {
 	ClusterLogging *ClusterCloudWatchLogging `json:"clusterLogging,omitempty"`
 }
 
+// Values for `CloudWatchLogging`
+const (
+	APILogging               = "api"
+	AuditLogging             = "audit"
+	AuthenticatorLogging     = "authenticator"
+	ControllerManagerLogging = "controllerManager"
+	SchedulerLogging         = "scheduler"
+)
+
 // ClusterCloudWatchLogging container config parameters related to cluster logging
 type ClusterCloudWatchLogging struct {
 
 	// Types of logging to enable (see [CloudWatch docs](/usage/cloudwatch-cluster-logging/#clusterconfig-examples)).
-	// To choose from: `api`, `audit`, `authenticator`, `controllerManager`, `scheduler`
+	// Valid entries are `CloudWatchLogging` constants
 	//+optional
 	EnableTypes []string `json:"enableTypes,omitempty"`
 }
 
 // SupportedCloudWatchClusterLogTypes retuls all supported logging facilities
 func SupportedCloudWatchClusterLogTypes() []string {
-	return []string{"api", "audit", "authenticator", "controllerManager", "scheduler"}
+	return []string{APILogging, AuditLogging, AuthenticatorLogging, ControllerManagerLogging, SchedulerLogging}
 }
 
 // HasClusterCloudWatchLogging determines if cluster logging was enabled or not

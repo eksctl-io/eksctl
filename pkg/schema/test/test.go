@@ -23,6 +23,8 @@ type Config struct {
 	// Tells us which kind of config.
 	// Valid variants are `Kind` constants
 	Kind string `json:"kind"`
+	// Valid entries are `Kind` constants
+	Kinds []string `json:"kinds"`
 }
 
 // Values for `Kind`

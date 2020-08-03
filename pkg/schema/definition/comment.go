@@ -34,16 +34,14 @@ func (dg *Generator) handleComment(rawName, comment string, def *Definition) (Me
 		}
 	}
 
-	enumInformation, err := interpretEnumComments(dg.Importer, comment)
+	enumInformation, err := handleEnumComments(dg.Importer, def, comment)
 	if err != nil {
 		return Meta{}, err
 	}
-	var enumComment string
+	var synthesizedComment string
 	if enumInformation != nil {
-		def.Default = enumInformation.Default
-		def.Enum = enumInformation.Enum
 		comment = enumInformation.RemainingComment
-		enumComment = enumInformation.EnumComment
+		synthesizedComment = enumInformation.SynthesizedComment
 	}
 
 	// Extract requiredness
@@ -95,7 +93,7 @@ func (dg *Generator) handleComment(rawName, comment string, def *Definition) (Me
 			return Meta{}, errors.Errorf("description should end with a dot on field %s", name)
 		}
 	}
-	def.Description = joinIfNotEmpty(" ", description, enumComment)
+	def.Description = joinIfNotEmpty(" ", description, synthesizedComment)
 
 	// Convert to HTML
 	html := string(blackfriday.Run([]byte(def.Description), blackfriday.WithNoExtensions()))

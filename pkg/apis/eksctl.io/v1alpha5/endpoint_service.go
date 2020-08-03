@@ -11,8 +11,11 @@ const (
 	EndpointServiceECRDKR = "ecr.dkr"
 	EndpointServiceS3     = "s3"
 	EndpointServiceSTS    = "sts"
+)
 
-	// Additional endpoint services
+// Values for `AdditionalEndpointServices`
+// Additional endpoint services
+const (
 	EndpointServiceCloudFormation = "cloudformation"
 	EndpointServiceAutoscaling    = "autoscaling"
 	EndpointServiceCloudWatch     = "logs"
