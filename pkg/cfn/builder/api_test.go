@@ -2459,7 +2459,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ServiceRole"))
 			Expect(clusterTemplate.Resources).To(HaveKey("PolicyCloudWatchMetrics"))
 			Expect(clusterTemplate.Resources).To(HaveKey("FargatePodExecutionRole"))
-			Expect(clusterTemplate.Resources).To(HaveLen(4))
+			Expect(clusterTemplate.Resources).To(HaveLen(5))
 		})
 	})
 
@@ -2509,7 +2509,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlane"))
 			Expect(clusterTemplate.Resources).To(HaveKey("ServiceRole"))
 			Expect(clusterTemplate.Resources).To(HaveKey("PolicyCloudWatchMetrics"))
-			Expect(clusterTemplate.Resources).To(HaveLen(3))
+			Expect(clusterTemplate.Resources).To(HaveLen(4))
 		})
 
 		It("should have correct own IAM resources", func() {
@@ -2591,7 +2591,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				}
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(31))
+			Expect(len(clusterTemplate.Resources)).To(Equal(32))
 		})
 
 		It("should use own VPC and subnets", func() {
@@ -2689,7 +2689,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				}
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(38))
+			Expect(len(clusterTemplate.Resources)).To(Equal(39))
 		})
 
 		It("should use own VPC and subnets", func() {
@@ -2766,7 +2766,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(35))
+			Expect(len(clusterTemplate.Resources)).To(Equal(36))
 		})
 
 		It("should route Internet traffic from private subnets through their corresponding NAT gateways", func() {
@@ -2812,7 +2812,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(31))
+			Expect(len(clusterTemplate.Resources)).To(Equal(32))
 		})
 
 		It("should route Internet traffic from private subnets through the single NAT gateway", func() {
@@ -2855,7 +2855,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(26))
+			Expect(len(clusterTemplate.Resources)).To(Equal(27))
 
 		})
 
