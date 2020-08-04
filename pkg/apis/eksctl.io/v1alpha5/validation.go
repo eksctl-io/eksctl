@@ -435,8 +435,8 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 		ng.VolumeType = &DefaultNodeVolumeType
 	}
 
-	if IsEnabled(ng.SecurityGroups.WithLocal) {
-		return errors.Errorf("securityGroups.withLocal is not supported for managed nodegroups (%s.securityGroups.withLocal)", path)
+	if IsEnabled(ng.SecurityGroups.WithLocal) || IsEnabled(ng.SecurityGroups.WithShared) {
+		return errors.Errorf("securityGroups.withLocal and securityGroups.withShared are not supported for managed nodegroups (%s.securityGroups)", path)
 	}
 
 	switch {
@@ -451,7 +451,7 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 
 		if ng.InstanceType != "" || ng.AMI != "" || IsEnabled(ng.SSH.Allow) || len(ng.SSH.SourceSecurityGroupIDs) > 0 ||
 			ng.VolumeSize != nil || len(ng.PreBootstrapCommands) > 0 || ng.OverrideBootstrapCommand != nil ||
-			len(ng.SecurityGroups.AttachIDs) > 0 || IsEnabled(ng.SecurityGroups.WithShared) {
+			len(ng.SecurityGroups.AttachIDs) > 0 {
 
 			return errors.Errorf("cannot set instanceType, ami, ssh.allow, ssh.sourceSecurityGroupIds, securityGroups, " +
 				"volumeSize, preBootstrapCommands or overrideBootstrapCommand in managedNodeGroup when a launch template is supplied")
@@ -466,7 +466,7 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 		}
 
 	case ng.OverrideBootstrapCommand != nil:
-		return errors.Errorf("cannot set %s.overrideBootstrapCommand without a custom AMI (%s.ami)", path, path)
+		return errors.Errorf("%s.overrideBootstrapCommand can only be set when a custom AMI (%s.ami) is specified", path, path)
 	}
 
 	return nil
