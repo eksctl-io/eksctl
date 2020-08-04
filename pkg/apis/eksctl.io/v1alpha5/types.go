@@ -647,10 +647,12 @@ func NewManagedNodeGroup() *ManagedNodeGroup {
 	var (
 		publicKey  = DefaultNodeSSHPublicKeyPath
 		volumeSize = DefaultNodeVolumeSize
+		volumeType = DefaultNodeVolumeType
 	)
 	return &ManagedNodeGroup{
 		NodeGroupBase: &NodeGroupBase{
 			VolumeSize: &volumeSize,
+			VolumeType: &volumeType,
 			SSH: &NodeGroupSSH{
 				Allow:         Disabled(),
 				PublicKeyName: &publicKey,
@@ -671,7 +673,8 @@ func NewManagedNodeGroup() *ManagedNodeGroup {
 					CloudWatch:     Disabled(),
 				},
 			},
-			ScalingConfig: &ScalingConfig{},
+			ScalingConfig:  &ScalingConfig{},
+			SecurityGroups: &NodeGroupSGs{},
 		},
 	}
 }

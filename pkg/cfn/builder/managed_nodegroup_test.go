@@ -108,13 +108,7 @@ func TestManagedNodeRole(t *testing.T) {
 		{
 			description: "InstanceRoleARN is not provided",
 			nodeGroup: &api.ManagedNodeGroup{
-				NodeGroupBase: &api.NodeGroupBase{
-					ScalingConfig: &api.ScalingConfig{},
-					SSH: &api.NodeGroupSSH{
-						Allow: api.Disabled(),
-					},
-					IAM: &api.NodeGroupIAM{},
-				},
+				NodeGroupBase: &api.NodeGroupBase{},
 			},
 			expectedNewRole:     true,
 			expectedNodeRoleARN: gfnt.MakeFnGetAtt(cfnIAMInstanceRoleName, gfnt.NewString("Arn")), // creating new role
@@ -123,10 +117,6 @@ func TestManagedNodeRole(t *testing.T) {
 			description: "InstanceRoleARN is provided",
 			nodeGroup: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
-					ScalingConfig: &api.ScalingConfig{},
-					SSH: &api.NodeGroupSSH{
-						Allow: api.Disabled(),
-					},
 					IAM: &api.NodeGroupIAM{
 						InstanceRoleARN: "arn::DUMMY::DUMMYROLE",
 					},
@@ -140,7 +130,9 @@ func TestManagedNodeRole(t *testing.T) {
 	for i, tt := range nodeRoleTests {
 		t.Run(fmt.Sprintf("%d: %s", i, tt.description), func(t *testing.T) {
 			require := require.New(t)
-			stack := NewManagedNodeGroup(api.NewClusterConfig(), tt.nodeGroup, nil, "iam-test")
+			clusterConfig := api.NewClusterConfig()
+			api.SetManagedNodeGroupDefaults(tt.nodeGroup, clusterConfig.Metadata)
+			stack := NewManagedNodeGroup(clusterConfig, tt.nodeGroup, nil, "iam-test")
 			err := stack.AddAllResources()
 			require.NoError(err)
 
