@@ -2,29 +2,43 @@ package builder
 
 import (
 	"fmt"
+	"strconv"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils"
+	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 // ManagedNodeGroupResourceSet defines the CloudFormation resources required for a managed nodegroup
 type ManagedNodeGroupResourceSet struct {
-	clusterConfig    *api.ClusterConfig
-	clusterStackName string
-	nodeGroup        *api.ManagedNodeGroup
+	clusterConfig         *api.ClusterConfig
+	clusterStackName      string
+	nodeGroup             *api.ManagedNodeGroup
+	launchTemplateFetcher launchTemplateFetcher
 	*resourceSet
+
+	// UserDataMimeBoundary sets the MIME boundary for user data
+	UserDataMimeBoundary string
+}
+
+type launchTemplateFetcher interface {
+	DescribeLaunchTemplateVersions(*ec2.DescribeLaunchTemplateVersionsInput) (*ec2.DescribeLaunchTemplateVersionsOutput, error)
 }
 
 // NewManagedNodeGroup creates a new ManagedNodeGroupResourceSet
-func NewManagedNodeGroup(cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, clusterStackName string) *ManagedNodeGroupResourceSet {
+func NewManagedNodeGroup(cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher launchTemplateFetcher, clusterStackName string) *ManagedNodeGroupResourceSet {
 	return &ManagedNodeGroupResourceSet{
-		clusterConfig:    cluster,
-		clusterStackName: clusterStackName,
-		nodeGroup:        nodeGroup,
-		resourceSet:      newResourceSet(),
+		clusterConfig:         cluster,
+		clusterStackName:      clusterStackName,
+		nodeGroup:             nodeGroup,
+		launchTemplateFetcher: launchTemplateFetcher,
+		resourceSet:           newResourceSet(),
 	}
 }
 
@@ -68,25 +82,91 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		NodegroupName: gfnt.NewString(m.nodeGroup.Name),
 		ScalingConfig: &scalingConfig,
 		Subnets:       subnets,
-		// Currently the API supports specifying only one instance type
-		InstanceTypes: gfnt.NewStringSlice(m.nodeGroup.InstanceType),
-		AmiType:       gfnt.NewString(getAMIType(m.nodeGroup.InstanceType)),
 		NodeRole:      nodeRole,
 		Labels:        m.nodeGroup.Labels,
 		Tags:          m.nodeGroup.Tags,
 	}
 
-	if api.IsEnabled(m.nodeGroup.SSH.Allow) {
-		managedResource.RemoteAccess = &gfneks.Nodegroup_RemoteAccess{
-			Ec2SshKey:            gfnt.NewString(*m.nodeGroup.SSH.PublicKeyName),
-			SourceSecurityGroups: gfnt.NewStringSlice(m.nodeGroup.SSH.SourceSecurityGroupIDs...),
+	var launchTemplate *gfneks.Nodegroup_LaunchTemplate
+
+	if m.nodeGroup.LaunchTemplate != nil {
+		launchTemplateData, err := m.getLaunchTemplate()
+		if err != nil {
+			return err
+		}
+		if err := validateLaunchTemplate(launchTemplateData, m.nodeGroup); err != nil {
+			return err
+		}
+
+		launchTemplate = &gfneks.Nodegroup_LaunchTemplate{
+			ID: gfnt.NewString(m.nodeGroup.LaunchTemplate.ID),
+		}
+		if version := m.nodeGroup.LaunchTemplate.Version; version != nil {
+			launchTemplate.Version = gfnt.NewInteger(*version)
+		}
+
+		if launchTemplateData.ImageId == nil {
+			managedResource.AmiType = gfnt.NewString(getAMIType(*launchTemplateData.InstanceType))
+		}
+	} else {
+		launchTemplateData, err := m.makeLaunchTemplateData()
+		if err != nil {
+			return err
+		}
+		if launchTemplateData.ImageId == nil {
+			managedResource.AmiType = gfnt.NewString(getAMIType(m.nodeGroup.InstanceType))
+		}
+
+		ltRef := m.newResource("LaunchTemplate", &gfnec2.LaunchTemplate{
+			LaunchTemplateName: gfnt.NewString(fmt.Sprintf("%s-launch-template-%s", m.clusterStackName, m.nodeGroup.Name)),
+			LaunchTemplateData: launchTemplateData,
+		})
+		launchTemplate = &gfneks.Nodegroup_LaunchTemplate{
+			ID: ltRef,
 		}
 	}
-	if m.nodeGroup.VolumeSize != nil {
-		managedResource.DiskSize = gfnt.NewInteger(*m.nodeGroup.VolumeSize)
+
+	managedResource.LaunchTemplate = launchTemplate
+	m.newResource("ManagedNodeGroup", managedResource)
+	return nil
+}
+
+func (m *ManagedNodeGroupResourceSet) getLaunchTemplate() (*ec2.ResponseLaunchTemplateData, error) {
+	input := &ec2.DescribeLaunchTemplateVersionsInput{
+		LaunchTemplateId: aws.String(m.nodeGroup.LaunchTemplate.ID),
+	}
+	if version := m.nodeGroup.LaunchTemplate.Version; version != nil {
+		input.Versions = []*string{aws.String(strconv.Itoa(*version))}
+	} else {
+		input.Versions = []*string{aws.String("$Default")}
 	}
 
-	m.newResource("ManagedNodeGroup", managedResource)
+	output, err := m.launchTemplateFetcher.DescribeLaunchTemplateVersions(input)
+	if err != nil {
+		return nil, err
+	}
+	if len(output.LaunchTemplateVersions) != 1 {
+		return nil, errors.Errorf("failed to find launch template with ID %q", m.nodeGroup.LaunchTemplate.ID)
+	}
+
+	return output.LaunchTemplateVersions[0].LaunchTemplateData, nil
+
+}
+
+func validateLaunchTemplate(launchTemplateData *ec2.ResponseLaunchTemplateData, ng *api.ManagedNodeGroup) error {
+	if launchTemplateData.InstanceType == nil {
+		return errors.New("instance type must be set in the launch template")
+	}
+
+	// Custom AMI
+	if launchTemplateData.ImageId != nil {
+		if launchTemplateData.UserData == nil {
+			return errors.New("node bootstrapping script (UserData) must be set when using a custom AMI")
+		}
+		if ng.AMI != "" {
+			return errors.New("cannot set managedNodegroup.AMI when launchTemplate.ImageId is set")
+		}
+	}
 
 	return nil
 }
