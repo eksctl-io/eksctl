@@ -29,6 +29,7 @@ if [ -z "${CIRCLE_PULL_REQUEST}" ] && [ -n "${CIRCLE_TAG}" ] && [ "${CIRCLE_PROJ
   export RELEASE_DESCRIPTION="${CIRCLE_TAG}"
   goreleaser release --skip-validate --rm-dist --config=./.goreleaser.yml --release-notes="${RELEASE_NOTES_FILE}"
 
+  EKSCTL_IMAGE_VERSION="${CIRCLE_TAG}" make -f Makefile.docker eksctl-image || true
 else
   echo "Not a tag release, skip publish"
 fi

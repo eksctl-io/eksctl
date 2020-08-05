@@ -1,4 +1,5 @@
 userdocs/src/usage/schema.json: pkg/apis/eksctl.io/v1alpha5/assets/schema.json
+	mkdir -p $$(dirname $@)
 	cp $< $@
 
 .PHONY: install-site-deps

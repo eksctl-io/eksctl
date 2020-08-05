@@ -12,9 +12,11 @@ image_manifest_file = build/docker/build_image_manifest
 build_image_tag_file = build/docker/image_tag
 build_image_tag = $(shell cat $(build_image_tag_file))
 
-build_image_name = weaveworks/eksctl-build:$(build_image_tag)
+build_image = weaveworks/eksctl-build
+build_image_name = $(build_image):$(build_image_tag)
 
-intermediate_container_name = eksctl-build-$(unique_tag)
+eksctl_image = weaveworks/eksctl
+eksctl_image_name = "$(eksctl_image):$${EKSCTL_IMAGE_VERSION}"
 
 docker_build := time docker build
 # We should eventually switch to buildkit, as it has a many feature and cleaner output with timing info,
@@ -25,6 +27,7 @@ docker_build := time docker build
 update-build-image-tag:
 	build-image-manifest.sh > $(image_manifest_file)
 	git hash-object $(image_manifest_file) > $(build_image_tag_file)
+	sed -i -e "1s|\(BUILD_IMAGE=\).*|\1/$(build_image):$$(cat $(build_image_tag_file))|" Dockerfile
 
 .PHONY: check-build-image-manifest-up-to-date
 check-build-image-manifest-up-to-date: update-build-image-tag ## Update build image manifest and commits the changes
@@ -49,23 +52,17 @@ push-build-image: build-image ## Push the build image to the Docker Hub registry
 	docker push $(build_image_name)
 	echo "Remember to commit the image_tag and build_image_manifest files"
 
-.PHONY: intermediate-image
-intermediate-image: build-image ## Build the intermediate image that has all artefacts
-	time docker run \
-	  --tty \
-	  --name=$(intermediate_container_name) \
-	  --volume=$(git_toplevel):/src \
-	    $(build_image_name) /src/build/scripts/eksctl-image-builder.sh \
-	  || (docker rm $(intermediate_container_name) ; exit 1)
-	time docker commit $(intermediate_container_name) $(intermediate_image_name) \
-	  && docker rm $(intermediate_container_name)
+.PHONY: eksctl-image
+eksctl-image: build-image ## Build the eksctl image that has release artefacts and no build dependencies
+	$(docker_build) \
+	  --cache-from=$(build_image_name) \
+	  --tag=$(eksctl_image_name) \
+	  --build-arg=BUILD_IMAGE=$(build_image_name) \
+	  $(git_toplevel)
 
 .PHONY: eksctl-image
-eksctl-image: intermediate-image ## Build the eksctl image that has release artefacts and no build dependencies
-	printf 'FROM scratch\nCMD eksctl\nCOPY --from=%s /out /' $(intermediate_image_name) \
-	  | $(docker_build) \
-	      --iidfile=.eksctl_image.iid \
-	      --tag="$(eksctl_image_name)" -
+push-eksctl-image: eksctl-image
+	docker push $(eksctl_image_name)
 
 .PHONY: build test
 build test: ## Run targets from Makefile using the build image
