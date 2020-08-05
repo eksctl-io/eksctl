@@ -7,6 +7,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
+	"github.com/weaveworks/eksctl/pkg/addons"
 	"github.com/weaveworks/eksctl/pkg/printers"
 
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
@@ -18,6 +19,28 @@ const (
 	// KubeProxy is the name of the kube-proxy addon
 	KubeProxy = "kube-proxy"
 )
+
+func IsKubeProxyUpToDate(clientSet kubernetes.Interface, controlPlaneVersion string) (bool, error) {
+	d, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(KubeProxy, metav1.GetOptions{})
+	if err != nil {
+		if apierrs.IsNotFound(err) {
+			logger.Warning("%q was not found", KubeProxy)
+			return false, nil
+		}
+		return false, errors.Wrapf(err, "getting %q", KubeProxy)
+	}
+	if numContainers := len(d.Spec.Template.Spec.Containers); !(numContainers >= 1) {
+		return false, fmt.Errorf("%s has %d containers, expected at least 1", KubeProxy, numContainers)
+	}
+
+	desiredTag := kubeProxyImageTag(controlPlaneVersion)
+	image := d.Spec.Template.Spec.Containers[0].Image
+	imageTag, err := addons.ImageTag(image)
+	if err != nil {
+		return false, err
+	}
+	return desiredTag == imageTag, nil
+}
 
 // UpdateKubeProxyImageTag updates image tag for kube-system:damoneset/kube-proxy based to match controlPlaneVersion
 func UpdateKubeProxyImageTag(clientSet kubernetes.Interface, controlPlaneVersion string, plan bool) (bool, error) {
@@ -46,7 +69,7 @@ func UpdateKubeProxyImageTag(clientSet kubernetes.Interface, controlPlaneVersion
 		return false, fmt.Errorf("unexpected image format %q for %q", *image, KubeProxy)
 	}
 
-	desiredTag := "v" + controlPlaneVersion
+	desiredTag := kubeProxyImageTag(controlPlaneVersion)
 
 	if imageParts[1] == desiredTag {
 		logger.Debug("imageParts = %v, desiredTag = %s", imageParts, desiredTag)
@@ -71,4 +94,8 @@ func UpdateKubeProxyImageTag(clientSet kubernetes.Interface, controlPlaneVersion
 
 	logger.Info("%q is now up-to-date", KubeProxy)
 	return false, nil
+}
+
+func kubeProxyImageTag(controlPlaneVersion string) string {
+	return fmt.Sprintf("v%s-eksbuild.1", controlPlaneVersion)
 }

@@ -24,6 +24,55 @@ const (
 	KubeDNS = "kube-dns"
 )
 
+func IsCoreDNSUpToDate(rawClient kubernetes.RawClientInterface, region, controlPlaneVersion string) (bool, error) {
+	kubeDNSDeployment, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(CoreDNS, metav1.GetOptions{})
+	if err != nil {
+		if apierrs.IsNotFound(err) {
+			logger.Warning("%q was not found", CoreDNS)
+			return false, nil
+		}
+		return false, errors.Wrapf(err, "getting %q", CoreDNS)
+	}
+
+	// if Deployment is present, go through our list of assets
+	list, err := loadAssetCoreDNS(controlPlaneVersion)
+	if err != nil {
+		return false, err
+	}
+
+	for _, rawObj := range list.Items {
+		resource, err := rawClient.NewRawResource(rawObj.Object)
+		if err != nil {
+			return false, err
+		}
+		if resource.GVK.Kind != "Deployment" {
+			continue
+		}
+		if resource.Info.Name != "coredns" {
+			continue
+		}
+		deployment, ok := resource.Info.Object.(*appsv1.Deployment)
+		if !ok {
+			return false, fmt.Errorf("expected type %T; got %T", &appsv1.Deployment{}, resource.Info.Object)
+		}
+		if err := addons.UseRegionalImage(&deployment.Spec.Template, region); err != nil {
+			return false, err
+		}
+		if computeType, ok := kubeDNSDeployment.Spec.Template.Annotations[coredns.ComputeTypeAnnotationKey]; ok {
+			deployment.Spec.Template.Annotations[coredns.ComputeTypeAnnotationKey] = computeType
+		}
+		tagMismatch, err := addons.ImageTagsDiffer(
+			deployment.Spec.Template.Spec.Containers[0].Image,
+			kubeDNSDeployment.Spec.Template.Spec.Containers[0].Image,
+		)
+		if err != nil {
+			return false, err
+		}
+		return !tagMismatch, err
+	}
+	return true, nil
+}
+
 // UpdateCoreDNS will update the `coredns` add-on and returns true
 // if an update is available
 func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlaneVersion string, plan bool) (bool, error) {

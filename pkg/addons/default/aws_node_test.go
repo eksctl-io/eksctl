@@ -13,7 +13,7 @@ import (
 )
 
 var _ = Describe("default addons - aws-node", func() {
-	Describe("can update aws-node add-on", func() {
+	Describe("can update aws-node add-on to multi-architecture images", func() {
 		var (
 			rawClient *testutils.FakeRawClient
 			ct        *testutils.CollectionTracker
@@ -52,7 +52,7 @@ var _ = Describe("default addons - aws-node", func() {
 
 		})
 
-		It("can update 1.14 sample to latest", func() {
+		It("can update 1.14 sample to latest multi-architecture image", func() {
 			rawClient.AssumeObjectsMissing = false
 
 			_, err := UpdateAWSNode(rawClient, "eu-west-1", false)
@@ -69,13 +69,13 @@ var _ = Describe("default addons - aws-node", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
-				Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/amazon-k8s-cni:v1.6.3"),
+				Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/amazon-k8s-cni:v1.6.3-eksbuild.1"),
 			)
 
 			rawClient.ClearUpdated()
 		})
 
-		It("can update 1.14 sample for different region", func() {
+		It("can update 1.14 sample for different region to multi-architecture image", func() {
 			rawClient.ClientSetUseUpdatedObjects = false // must be set for subsequent UpdateAWSNode
 
 			_, err := UpdateAWSNode(rawClient, "us-east-1", false)
@@ -87,11 +87,11 @@ var _ = Describe("default addons - aws-node", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
-				Equal("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni:v1.6.3"),
+				Equal("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni:v1.6.3-eksbuild.1"),
 			)
 		})
 
-		It("can update 1.14 sample for china region", func() {
+		It("can update 1.14 sample for china region to multi-architecture image", func() {
 			rawClient.ClientSetUseUpdatedObjects = false // must be set for subsequent UpdateAWSNode
 
 			_, err := UpdateAWSNode(rawClient, "cn-northwest-1", false)
@@ -103,7 +103,7 @@ var _ = Describe("default addons - aws-node", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
-				Equal("961992271922.dkr.ecr.cn-northwest-1.amazonaws.com.cn/amazon-k8s-cni:v1.6.3"),
+				Equal("961992271922.dkr.ecr.cn-northwest-1.amazonaws.com.cn/amazon-k8s-cni:v1.6.3-eksbuild.1"),
 			)
 		})
 

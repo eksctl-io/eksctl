@@ -15,6 +15,22 @@ func HasInstanceType(nodeGroup *NodeGroup, hasType func(string) bool) bool {
 	return false
 }
 
+// ClusterHasInstanceType checks all nodegroups and managed nodegroups for a specific instance type
+func ClusterHasInstanceType(cfg *ClusterConfig, hasType func(string) bool) bool {
+	for _, ng := range cfg.NodeGroups {
+		if HasInstanceType(ng, hasType) {
+			return true
+		}
+	}
+
+	for _, mng := range cfg.ManagedNodeGroups {
+		if hasType(mng.InstanceType) {
+			return true
+		}
+	}
+	return false
+}
+
 // HasNodegroup returns true if this clusterConfig contains a managed or un-managed nodegroup with the given name
 func (c *ClusterConfig) FindNodegroup(name string) *NodeGroup {
 	for _, ng := range c.NodeGroups {
@@ -35,4 +51,17 @@ func (c *ClusterConfig) GetAllNodeGroupNames() []string {
 		ngNames = append(ngNames, ng.NameString())
 	}
 	return ngNames
+}
+
+// AllNodeGroups combines managed and self-managed nodegroups and returns a slice of *api.NodeGroupBase containing
+// both types of nodegroups
+func (c *ClusterConfig) AllNodeGroups() []*NodeGroupBase {
+	var baseNodeGroups []*NodeGroupBase
+	for _, ng := range c.NodeGroups {
+		baseNodeGroups = append(baseNodeGroups, ng.NodeGroupBase)
+	}
+	for _, ng := range c.ManagedNodeGroups {
+		baseNodeGroups = append(baseNodeGroups, ng.NodeGroupBase)
+	}
+	return baseNodeGroups
 }

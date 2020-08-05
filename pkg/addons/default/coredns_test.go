@@ -75,7 +75,7 @@ var _ = Describe("default addons - coredns", func() {
 
 	loadSampleAndCheck("1.14", "1.6.0")
 
-	Context("[1.14 –> 1.15] can update coredns", func() {
+	Context("[1.14 –> 1.15] can update coredns to multi-architecture images", func() {
 
 		loadSample("1.14", 10)
 
@@ -86,7 +86,7 @@ var _ = Describe("default addons - coredns", func() {
 		It("can update to correct version", func() {
 			_, err := UpdateCoreDNS(rawClient, "eu-west-2", "1.15.x", false)
 			Expect(err).ToNot(HaveOccurred())
-			checkCoreDNSImage(rawClient, "eu-west-2", "v1.6.6", false)
+			checkCoreDNSImage(rawClient, "eu-west-2", "v1.6.6-eksbuild.1", false)
 
 			createReqs := []string{
 				"POST [/clusterrolebindings] (aws-node)",
@@ -124,7 +124,7 @@ var _ = Describe("default addons - coredns", func() {
 
 	loadSampleAndCheck("1.14", "1.6.0")
 
-	Context("[1.14 –> 1.15] can update coredns", func() {
+	Context("[1.14 –> 1.15] can update coredns to multi-architecture image", func() {
 
 		loadSample("1.14", 10)
 
@@ -135,7 +135,7 @@ var _ = Describe("default addons - coredns", func() {
 		It("can update to correct version", func() {
 			_, err := UpdateCoreDNS(rawClient, "eu-west-2", "1.15.x", false)
 			Expect(err).ToNot(HaveOccurred())
-			checkCoreDNSImage(rawClient, "eu-west-2", "v1.6.6", false)
+			checkCoreDNSImage(rawClient, "eu-west-2", "v1.6.6-eksbuild.1", false)
 
 			createReqs := []string{
 				"POST [/clusterrolebindings] (aws-node)",
@@ -173,7 +173,7 @@ var _ = Describe("default addons - coredns", func() {
 
 	loadSampleAndCheck("1.15", "1.6.6")
 
-	Context("[1.15 –> 1.16] can update coredns", func() {
+	Context("[1.15 –> 1.16] can update coredns to a multi-architecture image", func() {
 
 		loadSample("1.15", 10)
 
@@ -184,7 +184,7 @@ var _ = Describe("default addons - coredns", func() {
 		It("can update to correct version", func() {
 			_, err := UpdateCoreDNS(rawClient, "eu-west-2", "1.16.x", false)
 			Expect(err).ToNot(HaveOccurred())
-			checkCoreDNSImage(rawClient, "eu-west-2", "v1.6.6", false)
+			checkCoreDNSImage(rawClient, "eu-west-2", "v1.6.6-eksbuild.1", false)
 
 			createReqs := []string{
 				"POST [/clusterrolebindings] (aws-node)",
