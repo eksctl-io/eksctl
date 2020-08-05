@@ -13,6 +13,6 @@ while IFS= read -r req; do
   go list  -json "${req}"  | jq '.Module| "\(.Path) \(.Version)"'
 done < ${REQUIREMENTS_FILE}
 
-git ls-tree --full-tree @ -- Dockerfile
+git ls-tree --full-tree @ -- build/docker/Dockerfile
 git ls-tree --full-tree @ -- .requirements
 git ls-tree --full-tree @ -- build/scripts/install-build-deps.sh
