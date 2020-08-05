@@ -37,10 +37,10 @@ var _ = Describe("default addons - kube-proxy", func() {
 			check("v1.14.6")
 		})
 
-		It("can update based on control plane version", func() {
+		It("can update to multi-architecture image based on control plane version", func() {
 			_, err := UpdateKubeProxyImageTag(clientSet, "1.15.0", false)
 			Expect(err).ToNot(HaveOccurred())
-			check("v1.15.0")
+			check("v1.15.0-eksbuild.1")
 		})
 
 		It("can dry-run update based on control plane version", func() {
