@@ -115,8 +115,8 @@ it comes down to running [`make test`](https://github.com/weaveworks/eksctl/blob
 
 ## Further Improvements
 
-- stop using `docker run` and `docker commit`, use another `Dockerfile` instead of `eksctl-image-builder.sh`
-- push images to a registry (GitHub offering could be a good fit, otherwise consider ECR)
-- automate other workflows with bots and GitHub Actions (e.g. cherry-picking [#1284](https://github.com/weaveworks/eksctl/issues/1284), AMI updates [#314](https://github.com/weaveworks/eksctl/issues/314))
-- automate integration tests
-- allow running integration tests on PRs from contributors upon PR approval
+- [x] stop using `docker run` and `docker commit`, use another `Dockerfile` instead of `eksctl-image-builder.sh`
+- [x] push images to a registry (GitHub offering could be a good fit, otherwise consider ECR)
+- [ ] automate other workflows with bots and GitHub Actions (e.g. cherry-picking [#1284](https://github.com/weaveworks/eksctl/issues/1284), AMI updates [#314](https://github.com/weaveworks/eksctl/issues/314))
+- [x] automate integration tests
+- [ ] allow running integration tests on PRs from contributors upon PR approval
