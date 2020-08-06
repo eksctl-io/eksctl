@@ -66,14 +66,18 @@ func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlane
 			if !ok {
 				return false, fmt.Errorf("expected type %T; got %T", &appsv1.Deployment{}, resource.Info.Object)
 			}
-			if err := addons.UseRegionalImage(&deployment.Spec.Template, region); err != nil {
+			template := &deployment.Spec.Template
+			if err := addons.UseRegionalImage(template, region); err != nil {
 				return false, err
 			}
 			if computeType, ok := kubeDNSDeployment.Spec.Template.Annotations[coredns.ComputeTypeAnnotationKey]; ok {
-				deployment.Spec.Template.Annotations[coredns.ComputeTypeAnnotationKey] = computeType
+				if template.Annotations == nil {
+					template.Annotations = make(map[string]string)
+				}
+				template.Annotations[coredns.ComputeTypeAnnotationKey] = computeType
 			}
 			tagMismatch, err = addons.ImageTagsDiffer(
-				deployment.Spec.Template.Spec.Containers[0].Image,
+				template.Spec.Containers[0].Image,
 				kubeDNSDeployment.Spec.Template.Spec.Containers[0].Image,
 			)
 			if err != nil {
