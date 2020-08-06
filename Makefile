@@ -52,7 +52,7 @@ build-all: generate-always
 	goreleaser --config=.goreleaser-local.yaml --snapshot --skip-publish --rm-dist
 
 clean: ## Remove artefacts or generated files from previous build
-	rm -rf .license-header eksctl eksctl-integration-test
+	rm -rf eksctl eksctl-integration-test
 
 ##@ Testing & CI
 
@@ -171,10 +171,6 @@ generate-all: generate-always $(conditionally_generated_files) ## Re-generate al
 check-all-generated-files-up-to-date: generate-all
 	git diff --quiet -- $(all_generated_files) || (git --no-pager diff $(all_generated_files); echo "HINT: to fix this, run 'git commit $(all_generated_files) --message \"Update generated files\"'"; exit 1)
 
-.license-header: LICENSE
-	@# generate-groups.sh can't find the license header when using Go modules, so we provide one
-	printf "/*\n%s\n*/\n" "$$(cat LICENSE)" > $@
-
 ### Update AMIs in ami static resolver
 .PHONY: update-ami
 update-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
@@ -194,7 +190,7 @@ update-aws-node: ## Re-download the aws-node manifests from AWS
 	time go generate ./pkg/addons/default/aws_node_generate.go
 
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
-$(generated_code_deep_copy_helper): $(deep_copy_helper_input) .license-header ## Generate Kubernetes API helpers
+$(generated_code_deep_copy_helper): $(deep_copy_helper_input) ## Generate Kubernetes API helpers
 	update-codegen.sh
 
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
