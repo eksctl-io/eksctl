@@ -42,7 +42,6 @@ build-image: check-build-image-manifest-up-to-date ## Build the build image that
 	$(docker_build) \
 	  --cache-from=$(build_image_name) \
 	  --tag=$(build_image_name) \
-	  --file Dockerfile \
 	  build/docker/
 
 .PHONY: push-build-image
