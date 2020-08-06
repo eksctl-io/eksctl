@@ -722,7 +722,6 @@ type NodeGroup struct {
 	// +optional
 	TargetGroupARNs []string `json:"targetGroupARNs,omitempty"`
 
-	// SSH configures ssh access for this nodegroup
 	// +optional
 	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
 
@@ -735,13 +734,9 @@ type NodeGroup struct {
 	// [Customize `kubelet` config](/usage/customizing-the-kubelet/)
 	// +optional
 	KubeletExtraConfig *InlineDocument `json:"kubeletExtraConfig,omitempty"`
-
-	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
-	// Defaults to `false`
-	// +optional
-	DisableIMDSv1 *bool `json:"disableIMDSv1,omitempty"`
 }
 
+// BaseNodeGroup implements NodePool
 func (n *NodeGroup) BaseNodeGroup() *NodeGroupBase {
 	return n.NodeGroupBase
 }
@@ -990,6 +985,7 @@ type ScalingConfig struct {
 // Ideally the NodeGroup type should be renamed to UnmanagedNodeGroup or SelfManagedNodeGroup and this interface
 // should be called NodeGroup
 type NodePool interface {
+	// BaseNodeGroup returns the base nodegroup
 	BaseNodeGroup() *NodeGroupBase
 }
 
@@ -1016,6 +1012,7 @@ type NodeGroupBase struct {
 	// Defaults to `80`
 	VolumeSize *int `json:"volumeSize,omitempty"`
 	// +optional
+	// SSH configures ssh access for this nodegroup
 	SSH *NodeGroupSSH `json:"ssh,omitempty"`
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
@@ -1060,6 +1057,11 @@ type NodeGroupBase struct {
 	// Override `eksctl`'s bootstrapping script
 	// +optional
 	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
+
+	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
+	// Defaults to `false`
+	// +optional
+	DisableIMDSv1 *bool `json:"disableIMDSv1,omitempty"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
@@ -1091,6 +1093,7 @@ type LaunchTemplate struct {
 	ID string `json:"id,omitempty"`
 	// Launch template version
 	// Defaults to the default launch template version
+	// TODO support $Default, $Latest
 	Version *int `json:"version,omitempty"`
 	// TODO support Name?
 }
@@ -1100,9 +1103,12 @@ type LaunchTemplate struct {
 type ManagedNodeGroup struct {
 	*NodeGroupBase
 
+	// LaunchTemplate specifies an existing launch template to use
+	// for the nodegroup
 	LaunchTemplate *LaunchTemplate `json:"launchTemplate,omitempty"`
 }
 
+// BaseNodeGroup implements NodePool
 func (m *ManagedNodeGroup) BaseNodeGroup() *NodeGroupBase {
 	return m.NodeGroupBase
 }

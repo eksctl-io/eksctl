@@ -118,7 +118,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		}
 
 		ltRef := m.newResource("LaunchTemplate", &gfnec2.LaunchTemplate{
-			LaunchTemplateName: gfnt.NewString(fmt.Sprintf("%s-launch-template-%s", m.clusterStackName, m.nodeGroup.Name)),
+			LaunchTemplateName: gfnt.MakeFnSubString(fmt.Sprintf("${%s}", gfnt.StackName)),
 			LaunchTemplateData: launchTemplateData,
 		})
 		launchTemplate = &gfneks.Nodegroup_LaunchTemplate{

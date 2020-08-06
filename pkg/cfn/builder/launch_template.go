@@ -11,35 +11,8 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
-	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
-
-func (m *ManagedNodeGroupResourceSet) makeLaunchTemplate() (*gfneks.Nodegroup_LaunchTemplate, error) {
-	var launchTemplate *gfneks.Nodegroup_LaunchTemplate
-	if m.nodeGroup.LaunchTemplate != nil {
-		launchTemplate = &gfneks.Nodegroup_LaunchTemplate{
-			ID: gfnt.MakeRef(m.nodeGroup.LaunchTemplate.ID),
-		}
-		if version := m.nodeGroup.LaunchTemplate.Version; version != nil {
-			launchTemplate.Version = gfnt.NewInteger(*version)
-		}
-	} else {
-		launchTemplateData, err := m.makeLaunchTemplateData()
-		if err != nil {
-			return nil, err
-		}
-
-		ltRef := m.newResource("LaunchTemplate", &gfnec2.LaunchTemplate{
-			LaunchTemplateName: gfnt.NewString(fmt.Sprintf("eksctl-%s-nodegroup-%s", m.clusterStackName, m.nodeGroup.Name)),
-			LaunchTemplateData: launchTemplateData,
-		})
-		launchTemplate = &gfneks.Nodegroup_LaunchTemplate{
-			ID: ltRef,
-		}
-	}
-	return launchTemplate, nil
-}
 
 func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
 	mng := m.nodeGroup
@@ -47,7 +20,6 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
 		InstanceType: gfnt.NewString(mng.InstanceType),
 	}
-
 	userData, err := makeUserData(mng.NodeGroupBase, m.UserDataMimeBoundary)
 	if err != nil {
 		return nil, err
@@ -57,7 +29,6 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 	}
 
 	securityGroupIDs := gfnt.Slice{makeImportValue(m.clusterStackName, outputs.ClusterDefaultSecurityGroup)}
-
 	for _, sgID := range mng.SecurityGroups.AttachIDs {
 		securityGroupIDs = append(securityGroupIDs, gfnt.NewString(sgID))
 	}
@@ -95,13 +66,18 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 			} else {
 				sgIngressRules = []gfnec2.SecurityGroup_Ingress{
 					makeSSHIngress(sgSourceAnywhereIPv4),
-					makeSSHIngress(sgSourceAnywhereIPv6),
+					{
+						FromPort:   sgPortSSH,
+						ToPort:     sgPortSSH,
+						IpProtocol: sgProtoTCP,
+						CidrIpv6:   sgSourceAnywhereIPv6,
+					},
 				}
 			}
 		}
 
 		sshRef := m.newResource("SSH", &gfnec2.SecurityGroup{
-			GroupName:            gfnt.NewString(fmt.Sprintf("%s-%s-%s", m.clusterStackName, m.nodeGroup.Name, "eks-remoteAccess")),
+			GroupName:            gfnt.MakeFnSubString(fmt.Sprintf("${%s}-remoteAccess", gfnt.StackName)),
 			VpcId:                makeImportValue(m.clusterStackName, outputs.ClusterVPC),
 			SecurityGroupIngress: sgIngressRules,
 			GroupDescription:     gfnt.NewString("Allow SSH access"),
