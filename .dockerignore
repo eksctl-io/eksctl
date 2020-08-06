@@ -1,0 +1,13 @@
+*
+!.git
+!.goreleaser*
+!.golangci*
+!build/scripts
+!cmd
+!examples
+!go.*
+!integration
+!LICENSE
+!Makefile*
+!pkg
+!tools.go
