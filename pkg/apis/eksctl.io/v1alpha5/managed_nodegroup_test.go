@@ -13,7 +13,7 @@ type nodeGroupCase struct {
 }
 
 var _ = Describe("Managed Nodegroup Validation", func() {
-	DescribeTable("Unsupported field combinations", func(n *nodeGroupCase) {
+	DescribeTable("Supported and unsupported field combinations", func(n *nodeGroupCase) {
 		SetManagedNodeGroupDefaults(n.ng, &ClusterMeta{Name: "managed-cluster"})
 		err := ValidateManagedNodeGroup(n.ng, 0)
 		if n.errMsg == "" {
@@ -35,6 +35,13 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 			},
 			errMsg: "only AmazonLinux2 is supported",
 		}),
+		Entry("Supported AMI family", &nodeGroupCase{
+			ng: &ManagedNodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					AMIFamily: "AmazonLinux2",
+				},
+			},
+		}),
 		Entry("Custom AMI without overrideBootstrapCommand", &nodeGroupCase{
 			ng: &ManagedNodeGroup{
 				NodeGroupBase: &NodeGroupBase{
@@ -43,7 +50,13 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 			},
 			errMsg: "overrideBootstrapCommand is required when a custom AMI",
 		}),
-
+		Entry("Custom AMI with overrideBootstrapCommand", &nodeGroupCase{
+			ng: &ManagedNodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					OverrideBootstrapCommand: aws.String(`bootstrap.sh`),
+				},
+			},
+		}),
 		Entry("launchTemplate with no ID", &nodeGroupCase{
 			ng: &ManagedNodeGroup{
 				NodeGroupBase:  &NodeGroupBase{},
@@ -51,7 +64,14 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 			},
 			errMsg: "launchTemplate.id is required",
 		}),
-
+		Entry("launchTemplate with ID", &nodeGroupCase{
+			ng: &ManagedNodeGroup{
+				NodeGroupBase: &NodeGroupBase{},
+				LaunchTemplate: &LaunchTemplate{
+					ID: "lt-1234",
+				},
+			},
+		}),
 		Entry("launchTemplate with invalid version", &nodeGroupCase{
 			ng: &ManagedNodeGroup{
 				NodeGroupBase: &NodeGroupBase{},
@@ -61,6 +81,15 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 				},
 			},
 			errMsg: "launchTemplate.version must be >= 1",
+		}),
+		Entry("launchTemplate with valid version", &nodeGroupCase{
+			ng: &ManagedNodeGroup{
+				NodeGroupBase: &NodeGroupBase{},
+				LaunchTemplate: &LaunchTemplate{
+					ID:      "lt-custom",
+					Version: aws.Int(3),
+				},
+			},
 		}),
 	)
 
