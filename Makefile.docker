@@ -40,7 +40,6 @@ build-image: check-build-image-manifest-up-to-date ## Build the build image that
 	-docker pull $(build_image_name)
 	cp .requirements build/scripts/install-build-deps.sh go.mod go.sum build/docker/
 	$(docker_build) \
-	  --iidfile=.build_image.iid \
 	  --cache-from=$(build_image_name) \
 	  --tag=$(build_image_name) \
 	  --file Dockerfile \
