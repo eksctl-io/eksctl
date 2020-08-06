@@ -31,7 +31,7 @@ chmod +x ${CODEGEN_PKG}/generate-groups.sh
 GOPATH=$(go env GOPATH) ${CODEGEN_PKG}/generate-groups.sh deepcopy,defaulter \
     _ github.com/weaveworks/eksctl/pkg/apis \
     eksctl.io:v1alpha5 \
-    --go-header-file .license-header \
+    --go-header-file <(printf "/*\n%s\n*/\n" "$(cat LICENSE)") \
     --output-base "${TEMP_DIR}"
 
 # Copy everything back.
