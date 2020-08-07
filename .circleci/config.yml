@@ -36,6 +36,7 @@ commands:
             docker run \
               --env=JUNIT_REPORT_DIR=/src/test-results \
               --env=GOPRIVATE \
+              --volume=/var/run/docker.sock:/var/run/docker.sock \
               --volume=$(pwd):/src \
               --volume=$HOME/.cache/go-build/:/root/.cache/go-build \
               --volume=$HOME/go/pkg/mod/:/go/pkg/mod \
@@ -131,6 +132,8 @@ jobs:
       - docker-pull-build-image
       - docker-run:
           cmd: make build-all
+      - docker-run:
+          cmd: make -f Makefile.docker eksctl-image
       - store_artifacts:
           path: dist/
       - notify-slack:
