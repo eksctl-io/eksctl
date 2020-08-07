@@ -121,6 +121,20 @@ API_SERVER_URL=https://test.com
 
 			resourcesFilename: "launch_template_custom_ami.json",
 		}),
+
+		Entry("SSH enabled", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: "ssh-enabled",
+					SSH: &api.NodeGroupSSH{
+						Allow:         api.Enabled(),
+						PublicKeyName: aws.String("test-keypair"),
+					},
+				},
+			},
+
+			resourcesFilename: "ssh_enabled.json",
+		}),
 	)
 })
 
