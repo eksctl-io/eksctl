@@ -133,7 +133,7 @@ jobs:
       - docker-run:
           cmd: make build-all
       - docker-run:
-          cmd: make -f Makefile.docker eksctl-image
+          cmd: EKSCTL_IMAGE_VERSION=<< pipeline.git.branch >> make -f Makefile.docker eksctl-image
       - store_artifacts:
           path: dist/
       - notify-slack:
