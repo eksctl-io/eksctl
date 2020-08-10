@@ -581,11 +581,36 @@
       "x-intellij-html-description": "holds any arbitrary JSON/YAML documents, such as extra config parameters or IAM policies",
       "default": "{}"
     },
+    "LaunchTemplate": {
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Launch template ID",
+          "x-intellij-html-description": "Launch template ID"
+        },
+        "version": {
+          "type": "string",
+          "description": "Launch template version Defaults to the default launch template version TODO support $Default, $Latest",
+          "x-intellij-html-description": "Launch template version Defaults to the default launch template version TODO support $Default, $Latest"
+        }
+      },
+      "preferredOrder": [
+        "id",
+        "version"
+      ],
+      "additionalProperties": false
+    },
     "ManagedNodeGroup": {
       "required": [
         "name"
       ],
       "properties": {
+        "ami": {
+          "type": "string"
+        },
         "amiFamily": {
           "type": "string",
           "description": "Specify [custom AMIs](/usage/custom-ami-support/), \"auto-ssm\", \"auto\", or \"static\"",
@@ -602,6 +627,17 @@
         "desiredCapacity": {
           "type": "integer"
         },
+        "disableIMDSv1": {
+          "type": "boolean",
+          "description": "requires requests to the metadata service to use IMDSv2 tokens",
+          "x-intellij-html-description": "requires requests to the metadata service to use IMDSv2 tokens",
+          "default": false
+        },
+        "ebsOptimized": {
+          "type": "boolean",
+          "description": "enables [EBS optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)",
+          "x-intellij-html-description": "enables <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html\">EBS optimization</a>"
+        },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
         },
@@ -615,6 +651,11 @@
           "type": "object",
           "default": "{}"
         },
+        "launchTemplate": {
+          "$ref": "#/definitions/LaunchTemplate",
+          "description": "specifies an existing launch template to use for the nodegroup",
+          "x-intellij-html-description": "specifies an existing launch template to use for the nodegroup"
+        },
         "maxSize": {
           "type": "integer"
         },
@@ -624,14 +665,32 @@
         "name": {
           "type": "string"
         },
+        "overrideBootstrapCommand": {
+          "type": "string",
+          "description": "Override `eksctl`'s bootstrapping script",
+          "x-intellij-html-description": "Override <code>eksctl</code>'s bootstrapping script"
+        },
+        "preBootstrapCommands": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "executed before bootstrapping instances to the cluster",
+          "x-intellij-html-description": "executed before bootstrapping instances to the cluster"
+        },
         "privateNetworking": {
           "type": "boolean",
           "description": "Enable [private networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup) for nodegroup",
           "x-intellij-html-description": "Enable <a href=\"/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup\">private networking</a> for nodegroup",
           "default": "false"
         },
+        "securityGroups": {
+          "$ref": "#/definitions/NodeGroupSGs"
+        },
         "ssh": {
-          "$ref": "#/definitions/NodeGroupSSH"
+          "$ref": "#/definitions/NodeGroupSSH",
+          "description": "configures ssh access for this nodegroup",
+          "x-intellij-html-description": "configures ssh access for this nodegroup"
         },
         "tags": {
           "additionalProperties": {
@@ -640,11 +699,35 @@
           "type": "object",
           "default": "{}"
         },
+        "volumeEncrypted": {
+          "type": "boolean"
+        },
+        "volumeIOPS": {
+          "type": "integer"
+        },
+        "volumeKmsKeyID": {
+          "type": "string"
+        },
+        "volumeName": {
+          "type": "string"
+        },
         "volumeSize": {
           "type": "integer",
           "description": "gigabytes",
           "x-intellij-html-description": "gigabytes",
           "default": 80
+        },
+        "volumeType": {
+          "type": "string",
+          "description": "Valid variants are: `\"gp2\"` is General Purpose SSD (default), `\"io1\"` is Provisioned IOPS SSD, `\"sc1\"` is Throughput Optimized HDD, `\"st1\"` is Cold HDD.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;gp2&quot;</code> is General Purpose SSD (default), <code>&quot;io1&quot;</code> is Provisioned IOPS SSD, <code>&quot;sc1&quot;</code> is Throughput Optimized HDD, <code>&quot;st1&quot;</code> is Cold HDD.",
+          "default": "gp2",
+          "enum": [
+            "gp2",
+            "io1",
+            "sc1",
+            "st1"
+          ]
         }
       },
       "preferredOrder": [
@@ -660,8 +743,21 @@
         "labels",
         "privateNetworking",
         "tags",
-        "iam"
+        "iam",
+        "ami",
+        "securityGroups",
+        "ebsOptimized",
+        "volumeType",
+        "volumeName",
+        "volumeEncrypted",
+        "volumeKmsKeyID",
+        "volumeIOPS",
+        "preBootstrapCommands",
+        "overrideBootstrapCommand",
+        "disableIMDSv1",
+        "launchTemplate"
       ],
+      "additionalProperties": false,
       "description": "represents an EKS-managed nodegroup TODO Validate for unmapped fields and throw an error",
       "x-intellij-html-description": "represents an EKS-managed nodegroup TODO Validate for unmapped fields and throw an error"
     },
@@ -733,9 +829,7 @@
           "x-intellij-html-description": "Limit <a href=\"/usage/autoscaling/#zone-aware-auto-scaling\">nodes to specific AZs</a>"
         },
         "bottlerocket": {
-          "$ref": "#/definitions/NodeGroupBottlerocket",
-          "description": "SSH configures ssh access for this nodegroup",
-          "x-intellij-html-description": "SSH configures ssh access for this nodegroup"
+          "$ref": "#/definitions/NodeGroupBottlerocket"
         },
         "classicLoadBalancerNames": {
           "items": {
@@ -831,7 +925,9 @@
           "$ref": "#/definitions/NodeGroupSGs"
         },
         "ssh": {
-          "$ref": "#/definitions/NodeGroupSSH"
+          "$ref": "#/definitions/NodeGroupSSH",
+          "description": "configures ssh access for this nodegroup",
+          "x-intellij-html-description": "configures ssh access for this nodegroup"
         },
         "tags": {
           "additionalProperties": {
@@ -901,28 +997,28 @@
         "tags",
         "iam",
         "ami",
-        "instancesDistribution",
-        "instancePrefix",
-        "instanceName",
         "securityGroups",
-        "asgMetricsCollection",
         "ebsOptimized",
-        "cpuCredits",
         "volumeType",
         "volumeName",
         "volumeEncrypted",
         "volumeKmsKeyID",
         "volumeIOPS",
+        "preBootstrapCommands",
+        "overrideBootstrapCommand",
+        "disableIMDSv1",
+        "instancesDistribution",
+        "instancePrefix",
+        "instanceName",
+        "asgMetricsCollection",
+        "cpuCredits",
         "maxPodsPerNode",
         "taints",
         "classicLoadBalancerNames",
         "targetGroupARNs",
         "bottlerocket",
-        "preBootstrapCommands",
-        "overrideBootstrapCommand",
         "clusterDNS",
-        "kubeletExtraConfig",
-        "disableIMDSv1"
+        "kubeletExtraConfig"
       ],
       "additionalProperties": false,
       "description": "holds configuration attributes that are specific to a nodegroup",
@@ -1099,8 +1195,8 @@
         },
         "withLocal": {
           "type": "boolean",
-          "description": "attach a security group local to this nodegroup",
-          "x-intellij-html-description": "attach a security group local to this nodegroup",
+          "description": "attach a security group local to this nodegroup Not supported for managed nodegroups",
+          "x-intellij-html-description": "attach a security group local to this nodegroup Not supported for managed nodegroups",
           "default": true
         },
         "withShared": {
