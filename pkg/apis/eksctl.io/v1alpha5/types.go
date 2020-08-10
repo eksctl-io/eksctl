@@ -1094,7 +1094,7 @@ type LaunchTemplate struct {
 	// Launch template version
 	// Defaults to the default launch template version
 	// TODO support $Default, $Latest
-	Version *int `json:"version,omitempty"`
+	Version *string `json:"version,omitempty"`
 	// TODO support Name?
 }
 

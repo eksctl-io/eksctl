@@ -53,6 +53,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 		Entry("Custom AMI with overrideBootstrapCommand", &nodeGroupCase{
 			ng: &ManagedNodeGroup{
 				NodeGroupBase: &NodeGroupBase{
+					AMI:                      "ami-custom",
 					OverrideBootstrapCommand: aws.String(`bootstrap.sh`),
 				},
 			},
@@ -77,7 +78,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 				NodeGroupBase: &NodeGroupBase{},
 				LaunchTemplate: &LaunchTemplate{
 					ID:      "lt-custom",
-					Version: aws.Int(0),
+					Version: aws.String("0"),
 				},
 			},
 			errMsg: "launchTemplate.version must be >= 1",
@@ -87,7 +88,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 				NodeGroupBase: &NodeGroupBase{},
 				LaunchTemplate: &LaunchTemplate{
 					ID:      "lt-custom",
-					Version: aws.Int(3),
+					Version: aws.String("3"),
 				},
 			},
 		}),

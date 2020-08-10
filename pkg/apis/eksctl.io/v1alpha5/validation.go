@@ -3,6 +3,7 @@ package v1alpha5
 import (
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -445,8 +446,15 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 			return errors.Errorf("launchTemplate.id is required if launchTemplate is set (%s.%s)", path, "launchTemplate")
 		}
 
-		if ng.LaunchTemplate.Version != nil && *ng.LaunchTemplate.Version < 1 {
-			return errors.Errorf("launchTemplate.version must be >= 1 (%s.%s)", path, "launchTemplate.version")
+		if ng.LaunchTemplate.Version != nil {
+			// TODO support `latest` and `default`
+			versionNumber, err := strconv.ParseInt(*ng.LaunchTemplate.Version, 10, 64)
+			if err != nil {
+				return errors.Wrap(err, "invalid launch template version")
+			}
+			if versionNumber < 1 {
+				return errors.Errorf("launchTemplate.version must be >= 1 (%s.%s)", path, "launchTemplate.version")
+			}
 		}
 
 		if ng.InstanceType != "" || ng.AMI != "" || IsEnabled(ng.SSH.Allow) || len(ng.SSH.SourceSecurityGroupIDs) > 0 ||

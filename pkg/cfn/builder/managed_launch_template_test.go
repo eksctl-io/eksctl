@@ -107,7 +107,7 @@ API_SERVER_URL=https://test.com
 				},
 				LaunchTemplate: &api.LaunchTemplate{
 					ID:      "lt-1234",
-					Version: aws.Int(2),
+					Version: aws.String("2"),
 				},
 			},
 			mockFetcherFn: mockLaunchTemplate(func(input *ec2.DescribeLaunchTemplateVersionsInput) bool {

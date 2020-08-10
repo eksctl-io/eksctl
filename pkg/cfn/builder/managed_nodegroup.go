@@ -2,7 +2,6 @@ package builder
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -102,7 +101,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 			ID: gfnt.NewString(m.nodeGroup.LaunchTemplate.ID),
 		}
 		if version := m.nodeGroup.LaunchTemplate.Version; version != nil {
-			launchTemplate.Version = gfnt.NewInteger(*version)
+			launchTemplate.Version = gfnt.NewString(*version)
 		}
 
 		if launchTemplateData.ImageId == nil {
@@ -136,7 +135,7 @@ func (m *ManagedNodeGroupResourceSet) getLaunchTemplate() (*ec2.ResponseLaunchTe
 		LaunchTemplateId: aws.String(m.nodeGroup.LaunchTemplate.ID),
 	}
 	if version := m.nodeGroup.LaunchTemplate.Version; version != nil {
-		input.Versions = []*string{aws.String(strconv.Itoa(*version))}
+		input.Versions = []*string{version}
 	} else {
 		input.Versions = []*string{aws.String("$Default")}
 	}
