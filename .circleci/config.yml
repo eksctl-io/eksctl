@@ -26,6 +26,9 @@ commands:
     parameters:
       cmd:
         type: string
+      options:
+        type: string
+        default: ""
       timeout:
         type: string
         default: 30m
@@ -34,6 +37,7 @@ commands:
           name: docker run << parameters.cmd >>
           command: |
             docker run \
+              << parameters.options >> \
               --env=JUNIT_REPORT_DIR=/src/test-results \
               --env=GOPRIVATE \
               --volume=/var/run/docker.sock:/var/run/docker.sock \
@@ -133,7 +137,9 @@ jobs:
       - docker-run:
           cmd: make build-all
       - docker-run:
-          cmd: EKSCTL_IMAGE_VERSION=<< pipeline.git.branch >> make -f Makefile.docker eksctl-image
+          cmd: make -f Makefile.docker eksctl-image
+          options: >
+            --env=EKSCTL_IMAGE_VERSION=<< pipeline.git.branch >>
       - store_artifacts:
           path: dist/
       - notify-slack:
