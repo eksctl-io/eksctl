@@ -36,7 +36,7 @@ check-build-image-manifest-up-to-date: update-build-image-tag ## Update build im
 
 .PHONY: commit-new-image-tag
 commit-new-image-tag: update-build-image-tag ## Update build image manifest and commits the changes
-	git commit --quiet $(image_manifest_file) $(build_image_tag_file) --message 'Update build image manifest and tag file'
+	git commit --quiet $(image_manifest_file) $(build_image_tag_file) Dockerfile --message 'Update build image manifest and tag file'
 
 .PHONY: build-image
 build-image: check-build-image-manifest-up-to-date ## Build the build image that has all of external dependencies

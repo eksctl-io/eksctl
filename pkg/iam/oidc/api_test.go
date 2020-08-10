@@ -1,10 +1,14 @@
 package iamoidc
 
 import (
+	"crypto/sha1"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
+	"os/exec"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -14,9 +18,29 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
+
+var thumbprint string
+
+var _ = BeforeSuite(func() {
+	session, err := gexec.Start(exec.Command("make", "-C", "testdata", "all"), GinkgoWriter, GinkgoWriter)
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	rawCert, err := ioutil.ReadFile("testdata/test-server.pem")
+	Expect(err).NotTo(HaveOccurred())
+	block, rest := pem.Decode(rawCert)
+	Expect(rest).To(BeEmpty())
+	thumbprint = fmt.Sprintf("%x", sha1.Sum(block.Bytes))
+})
+
+var _ = AfterSuite(func() {
+	session, err := gexec.Start(exec.Command("make", "-C", "testdata", "clean"), GinkgoWriter, GinkgoWriter)
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+})
 
 var _ = Describe("EKS/IAM API wrapper", func() {
 	const (
@@ -80,13 +104,11 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			oidc.insecureSkipVerify = true
 
 			err = oidc.getIssuerCAThumbprint()
+			Expect(srv.close()).To(Succeed())
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(oidc.issuerCAThumbprint).ToNot(BeEmpty())
-
-			Expect(oidc.issuerCAThumbprint).To(Equal("8b453cc675feb77c65163b7a9907d77994386664"))
-
-			Expect(srv.close()).To(Succeed())
+			Expect(oidc.issuerCAThumbprint).To(Equal(thumbprint))
 		})
 
 		It("should get OIDC issuer's CA fingerprint for a URL that returns 403", func() {
@@ -103,13 +125,11 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			oidc.insecureSkipVerify = true
 
 			err = oidc.getIssuerCAThumbprint()
+			Expect(srv.close()).To(Succeed())
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(oidc.issuerCAThumbprint).ToNot(BeEmpty())
-
-			Expect(oidc.issuerCAThumbprint).To(Equal("8b453cc675feb77c65163b7a9907d77994386664"))
-
-			Expect(srv.close()).To(Succeed())
+			Expect(oidc.issuerCAThumbprint).To(Equal(thumbprint))
 		})
 	})
 
@@ -265,7 +285,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			}()
 		})
 
-		AfterEach(func() {
+		JustAfterEach(func() {
 			srv.close()
 		})
 
