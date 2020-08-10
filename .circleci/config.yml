@@ -138,7 +138,7 @@ jobs:
           cmd: make build-all
       - docker-run:
           cmd: make -f Makefile.docker eksctl-image
-          options: >
+          options: >-
             --env=EKSCTL_IMAGE_VERSION=<< pipeline.git.branch >>
       - store_artifacts:
           path: dist/
