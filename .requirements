@@ -1,3 +1,5 @@
+github.com/cloudflare/cfssl/cmd/cfssl
+github.com/cloudflare/cfssl/cmd/cfssljson
 github.com/golangci/golangci-lint/cmd/golangci-lint
 github.com/goreleaser/goreleaser
 github.com/kevinburke/go-bindata/go-bindata
