@@ -28,7 +28,7 @@ var thumbprint string
 var _ = BeforeSuite(func() {
 	session, err := gexec.Start(exec.Command("make", "-C", "testdata", "all"), GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
+	Eventually(session, 3).Should(gexec.Exit())
 	rawCert, err := ioutil.ReadFile("testdata/test-server.pem")
 	Expect(err).NotTo(HaveOccurred())
 	block, rest := pem.Decode(rawCert)
@@ -39,7 +39,7 @@ var _ = BeforeSuite(func() {
 var _ = AfterSuite(func() {
 	session, err := gexec.Start(exec.Command("make", "-C", "testdata", "clean"), GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
+	Eventually(session, 3).Should(gexec.Exit())
 })
 
 var _ = Describe("EKS/IAM API wrapper", func() {
