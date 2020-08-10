@@ -63,14 +63,15 @@ any public subnets. The `privateNetworking` field (`nodeGroup[*].privateNetworki
 explicitly set. It is an error to leave `privateNetworking` unset in a fully-private cluster.
 
 
- ```yaml
+```yaml
 nodeGroups:
 - name: ng1
   instanceType: m5.large
   desiredCapacity: 2
   # privateNetworking must be explicitly set for a fully-private cluster
-  # Rather than defaulting this field to `true` for a fully-private cluster, we require users to explicitly set it
-  # to make the behaviour explicit and avoid confusion.
+  # Rather than defaulting this field to `true`,
+  # we require users to explicitly set it to make the behaviour
+  # explicit and avoid confusion.
   privateNetworking: true
 
 managedNodeGroups:
@@ -78,7 +79,6 @@ managedNodeGroups:
   instanceType: m5.large
   desiredCapacity: 2
   privateNetworking: true
-
 ```
 
 ## Cluster Endpoint Access
@@ -132,8 +132,6 @@ managedNodeGroups:
   instanceType: m5.large
   desiredCapacity: 2
   privateNetworking: true
-
-
 ```
 
 ## Managing a fully-private cluster
