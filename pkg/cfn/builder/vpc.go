@@ -459,7 +459,7 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 		return
 	}
 
-	desc := "worker nodes in group " + n.nodeGroupName
+	desc := "worker nodes in group " + n.spec.Name
 
 	allInternalIPv4 := gfnt.NewString(n.clusterSpec.VPC.CIDR.String())
 
