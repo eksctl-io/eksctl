@@ -161,6 +161,7 @@ jobs:
             --env=CIRCLE_TAG
             --env=CIRCLE_PROJECT_USERNAME
             --env=CIRCLE_PROJECT_REPONAME
+            --env=DOCKER_HUB_PASSWORD
             --volume=/var/run/docker.sock:/var/run/docker.sock
       - store_artifacts:
           path: dist/
@@ -184,6 +185,7 @@ jobs:
             --env=CIRCLE_TAG
             --env=CIRCLE_PROJECT_USERNAME
             --env=CIRCLE_PROJECT_REPONAME
+            --env=DOCKER_HUB_PASSWORD
             --volume=/var/run/docker.sock:/var/run/docker.sock
       - store_artifacts:
           path: dist/
