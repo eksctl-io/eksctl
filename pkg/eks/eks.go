@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -178,6 +179,10 @@ func (c *ClusterProvider) maybeRefreshClusterStatus(spec *api.ClusterConfig) err
 func (c *ClusterProvider) CanDelete(spec *api.ClusterConfig) (bool, error) {
 	err := c.maybeRefreshClusterStatus(spec)
 	if err != nil {
+		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); ok &&
+			awsError.Code() == awseks.ErrCodeResourceNotFoundException {
+			return true, nil
+		}
 		return false, errors.Wrapf(err, "fetching cluster status to determine if it can be deleted")
 	}
 	// it must be possible to delete cluster in any state
@@ -195,7 +200,6 @@ func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
 	case awseks.ClusterStatusCreating, awseks.ClusterStatusDeleting, awseks.ClusterStatusFailed:
 		return false, fmt.Errorf("cannot perform Kubernetes API operations on cluster %q in %q region due to status %q", spec.Metadata.Name, spec.Metadata.Region, status)
 	default:
-		// all other states are considered operable, including UPDGRADING (which is missing from the SDK)
 		return true, nil
 	}
 }

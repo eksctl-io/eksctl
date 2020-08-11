@@ -123,13 +123,12 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 			}
 			oidcSupported = false
 		}
+		if err := deleteFargateProfiles(cmd, ctl); err != nil {
+			return err
+		}
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
-
-	if err := deleteFargateProfiles(cmd, ctl); err != nil {
-		return err
-	}
 
 	ssh.DeleteKeys(meta.Name, ctl.Provider.EC2())
 
