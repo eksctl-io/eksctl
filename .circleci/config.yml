@@ -40,7 +40,6 @@ commands:
               << parameters.options >> \
               --env=JUNIT_REPORT_DIR=/src/test-results \
               --env=GOPRIVATE \
-              --volume=/var/run/docker.sock:/var/run/docker.sock \
               --volume=$(pwd):/src \
               --volume=$HOME/.cache/go-build/:/root/.cache/go-build \
               --volume=$HOME/go/pkg/mod/:/go/pkg/mod \
@@ -140,6 +139,7 @@ jobs:
           cmd: make -f Makefile.docker eksctl-image
           options: >-
             --env=EKSCTL_IMAGE_VERSION=<< pipeline.git.branch >>
+            --volume=/var/run/docker.sock:/var/run/docker.sock
       - store_artifacts:
           path: dist/
       - notify-slack:
@@ -153,20 +153,15 @@ jobs:
       - docker-pull-build-image
       - docker-run:
           cmd: go mod download
-      - run:
-          name: Create release candidate binaries for all plaforms and upload to GitHub
-          command: |
-            docker run \
-              --env=GITHUB_TOKEN \
-              --env=CIRCLE_TAG \
-              --env=CIRCLE_PROJECT_USERNAME \
-              --env=CIRCLE_PROJECT_REPONAME \
-              --env=GOPRIVATE \
-              --volume=$(pwd):/src \
-              --volume=$HOME/.cache/go-build/:/root/.cache/go-build \
-              --volume=$HOME/go/pkg/mod/:/go/pkg/mod \
-              weaveworks/eksctl-build:$(cat build/docker/image_tag) ./build/scripts/do-release-candidate.sh
-          no_output_timeout: 21m
+      - docker-run:
+          cmd: ./build/scripts/do-release-candidate.sh
+          timeout: 21m
+          options: >-
+            --env=GITHUB_TOKEN
+            --env=CIRCLE_TAG
+            --env=CIRCLE_PROJECT_USERNAME
+            --env=CIRCLE_PROJECT_REPONAME
+            --volume=/var/run/docker.sock:/var/run/docker.sock
       - store_artifacts:
           path: dist/
       - notify-slack:
@@ -181,20 +176,15 @@ jobs:
       - docker-pull-build-image
       - docker-run:
           cmd: go mod download
-      - run:
-          name: Create release binaries for all plaforms and upload to GitHub
-          command: |
-            docker run \
-              --env=GITHUB_TOKEN \
-              --env=CIRCLE_TAG \
-              --env=CIRCLE_PROJECT_USERNAME \
-              --env=CIRCLE_PROJECT_REPONAME \
-              --env=GOPRIVATE \
-              --volume=$(pwd):/src \
-              --volume=$HOME/.cache/go-build/:/root/.cache/go-build \
-              --volume=$HOME/go/pkg/mod/:/go/pkg/mod \
-              weaveworks/eksctl-build:$(cat build/docker/image_tag) ./build/scripts/do-release.sh
-          no_output_timeout: 21m
+      - docker-run:
+          cmd: ./build/scripts/do-release.sh
+          timeout: 21m
+          options: >-
+            --env=GITHUB_TOKEN
+            --env=CIRCLE_TAG
+            --env=CIRCLE_PROJECT_USERNAME
+            --env=CIRCLE_PROJECT_REPONAME
+            --volume=/var/run/docker.sock:/var/run/docker.sock
       - store_artifacts:
           path: dist/
       - notify-slack:
@@ -215,17 +205,13 @@ jobs:
       - restore-cache
       - docker-pull-build-image
       - run: mkdir test-results
-      - run:
-          name: Run integration tests
-          command: |
-            docker run --init \
-                --env=JUNIT_REPORT_DIR=/src/test-results \
-                --env=AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-                --env=AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-                --volume=$(pwd):/src \
-                --volume=$HOME/project/.ssh:/root/.ssh \
-                weaveworks/eksctl-build:$(cat build/docker/image_tag) make integration-test TEST_V=1 SSH_KEY_PATH="/root/.ssh/${SSH_KEY_NAME}"
-          no_output_timeout: 35m
+      - docker-run:
+          cmd: make integration-test TEST_V=1 SSH_KEY_PATH="/root/.ssh/${SSH_KEY_NAME}"
+          timeout: 35m
+          options: >-
+            --init
+            --env=AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            --env=AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
       - store_test_results:
           path: ./test-results
       - store_artifacts:
