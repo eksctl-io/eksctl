@@ -3,10 +3,9 @@ FROM $BUILD_IMAGE as build
 
 WORKDIR /src
 ENV JUNIT_REPORT_DIR="${JUNIT_REPORT_DIR:-/src/test-results/ginkgo}"
+RUN mkdir -p "${JUNIT_REPORT_DIR}"
 
 COPY . /src
-
-RUN mkdir -p "${JUNIT_REPORT_DIR}"
 
 RUN make test
 RUN make build \
@@ -17,5 +16,5 @@ RUN make build-integration-test \
     && cp ./eksctl-integration-test /out/usr/local/bin/eksctl-integration-test
 
 FROM scratch
-CMD eksctl
 COPY --from=build /out /
+ENTRYPOINT ["eksctl"]
