@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
@@ -19,6 +20,12 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
 		InstanceType: gfnt.NewString(mng.InstanceType),
+		TagSpecifications: []gfnec2.LaunchTemplate_TagSpecification{
+			{
+				ResourceType: gfnt.NewString("instance"),
+				Tags:         makeTags(mng.Tags),
+			},
+		},
 	}
 	userData, err := makeUserData(mng.NodeGroupBase, m.UserDataMimeBoundary)
 	if err != nil {
@@ -169,4 +176,15 @@ func makeUserData(ng *api.NodeGroupBase, mimeBoundary string) (string, error) {
 	}
 
 	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
+}
+
+func makeTags(tags map[string]string) []cloudformation.Tag {
+	var cfnTags []cloudformation.Tag
+	for k, v := range tags {
+		cfnTags = append(cfnTags, cloudformation.Tag{
+			Key:   gfnt.NewString(k),
+			Value: gfnt.NewString(v),
+		})
+	}
+	return cfnTags
 }
