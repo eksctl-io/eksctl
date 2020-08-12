@@ -23,7 +23,7 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 		TagSpecifications: []gfnec2.LaunchTemplate_TagSpecification{
 			{
 				ResourceType: gfnt.NewString("instance"),
-				Tags:         makeTags(mng.Tags),
+				Tags:         makeTags(mng.NodeGroupBase, m.clusterConfig.Metadata),
 			},
 		},
 	}
@@ -178,9 +178,14 @@ func makeUserData(ng *api.NodeGroupBase, mimeBoundary string) (string, error) {
 	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
 }
 
-func makeTags(tags map[string]string) []cloudformation.Tag {
-	var cfnTags []cloudformation.Tag
-	for k, v := range tags {
+func makeTags(ng *api.NodeGroupBase, meta *api.ClusterMeta) []cloudformation.Tag {
+	cfnTags := []cloudformation.Tag{
+		{
+			Key:   gfnt.NewString("Name"),
+			Value: gfnt.NewString(generateNodeName(ng, meta)),
+		},
+	}
+	for k, v := range ng.Tags {
 		cfnTags = append(cfnTags, cloudformation.Tag{
 			Key:   gfnt.NewString(k),
 			Value: gfnt.NewString(v),

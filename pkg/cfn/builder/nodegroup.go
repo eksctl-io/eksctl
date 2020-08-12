@@ -162,7 +162,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	tags := []map[string]interface{}{
 		{
 			"Key":               "Name",
-			"Value":             n.generateNodeName(),
+			"Value":             generateNodeName(n.spec.NodeGroupBase, n.clusterSpec.Metadata),
 			"PropagateAtLaunch": "true",
 		},
 		{
@@ -193,18 +193,18 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 }
 
 // generateNodeName formulates the name based on the configuration in input
-func (n *NodeGroupResourceSet) generateNodeName() string {
-	name := []string{}
-	if n.spec.InstancePrefix != "" {
-		name = append(name, n.spec.InstancePrefix, "-")
+func generateNodeName(ng *api.NodeGroupBase, meta *api.ClusterMeta) string {
+	var nameParts []string
+	if ng.InstancePrefix != "" {
+		nameParts = append(nameParts, ng.InstancePrefix, "-")
 	}
 	// this overrides the default naming convention
-	if n.spec.InstanceName != "" {
-		name = append(name, n.spec.InstanceName)
+	if ng.InstanceName != "" {
+		nameParts = append(nameParts, ng.InstanceName)
 	} else {
-		name = append(name, fmt.Sprintf("%s-%s-Node", n.clusterSpec.Metadata.Name, n.nodeGroupName))
+		nameParts = append(nameParts, fmt.Sprintf("%s-%s-Node", meta.Name, ng.Name))
 	}
-	return strings.Join(name, "")
+	return strings.Join(nameParts, "")
 }
 
 // AssignSubnets subnets based on the specified availability zones

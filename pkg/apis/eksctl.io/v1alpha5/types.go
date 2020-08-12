@@ -696,10 +696,6 @@ type NodeGroup struct {
 
 	//+optional
 	InstancesDistribution *NodeGroupInstancesDistribution `json:"instancesDistribution,omitempty"`
-	// +optional
-	InstancePrefix string `json:"instancePrefix,omitempty"`
-	// +optional
-	InstanceName string `json:"instanceName,omitempty"`
 
 	// +optional
 	ASGMetricsCollection []MetricsCollection `json:"asgMetricsCollection,omitempty"`
@@ -1003,6 +999,11 @@ type NodeGroupBase struct {
 	// AZs](/usage/autoscaling/#zone-aware-auto-scaling)
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
+
+	// +optional
+	InstancePrefix string `json:"instancePrefix,omitempty"`
+	// +optional
+	InstanceName string `json:"instanceName,omitempty"`
 
 	// +optional
 	*ScalingConfig

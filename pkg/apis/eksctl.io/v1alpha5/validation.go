@@ -459,10 +459,10 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 
 		if ng.InstanceType != "" || ng.AMI != "" || IsEnabled(ng.SSH.Allow) || len(ng.SSH.SourceSecurityGroupIDs) > 0 ||
 			ng.VolumeSize != nil || len(ng.PreBootstrapCommands) > 0 || ng.OverrideBootstrapCommand != nil ||
-			len(ng.SecurityGroups.AttachIDs) > 0 {
+			len(ng.SecurityGroups.AttachIDs) > 0 || ng.InstanceName != "" || ng.InstancePrefix != "" {
 
-			return errors.Errorf("cannot set instanceType, ami, ssh.allow, ssh.sourceSecurityGroupIds, securityGroups, " +
-				"volumeSize, preBootstrapCommands or overrideBootstrapCommand in managedNodeGroup when a launch template is supplied")
+			return errors.New("cannot set instanceType, ami, ssh.allow, ssh.sourceSecurityGroupIds, securityGroups, " +
+				"volumeSize, instanceName, instancePrefix, preBootstrapCommands or overrideBootstrapCommand in managedNodeGroup when a launch template is supplied")
 		}
 
 	case ng.AMI != "":
