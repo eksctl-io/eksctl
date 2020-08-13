@@ -24,16 +24,6 @@ INSTANCE_ID="$(get_metadata instance-id)"
 INSTANCE_TYPE="$(get_metadata instance-type)"
 AWS_SERVICES_DOMAIN="$(get_metadata services/domain)"
 
-MACHINE=$(uname -m)
-
-if [ "$MACHINE" == "x86_64" ]; then
-    ARCH="amd64"
-elif [ "$MACHINE" == "aarch64" ]; then
-    ARCH="arm64"
-else
-    ARCH="amd64"
-    echo "Set default architecture to '$ARCH'" >&2
-fi
 
 source /etc/eksctl/kubelet.env # this can override MAX_PODS
 
@@ -43,7 +33,6 @@ INSTANCE_ID=${INSTANCE_ID}
 INSTANCE_TYPE=${INSTANCE_TYPE}
 AWS_SERVICES_DOMAIN=${AWS_SERVICES_DOMAIN}
 MAX_PODS=${MAX_PODS:-$(get_max_pods "${INSTANCE_TYPE}")}
-ARCH=${ARCH}
 EOF
 
 systemctl daemon-reload
