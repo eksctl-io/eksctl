@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/addons"
+	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/utils"
 
@@ -69,6 +70,38 @@ func (n *neuronDevicePluginTask) Do(errCh chan error) error {
 	return nil
 }
 
+// UpdateAddonsTask makes sure the default addons are up to date. This is used when creating a cluster with ARM nodes,
+// which require addons to have the multi-architecture images.
+// TODO Remove this once the multi-architecture images are used by EKS by default in new clusters
+type UpdateAddonsTask struct {
+	info            string
+	clusterProvider *ClusterProvider
+	spec            *api.ClusterConfig
+}
+
+func (t *UpdateAddonsTask) Describe() string { return t.info }
+
+func (t *UpdateAddonsTask) Do(errCh chan error) error {
+	defer close(errCh)
+	rawClient, err := t.clusterProvider.NewRawClient(t.spec)
+	if err != nil {
+		return err
+	}
+	clientSet, err := t.clusterProvider.NewStdClientSet(t.spec)
+	if err != nil {
+		return err
+	}
+	kubernetesVersion, err := rawClient.ServerVersion()
+	if err != nil {
+		return err
+	}
+	err = defaultaddons.EnsureAddonsUpToDate(clientSet, rawClient, kubernetesVersion, t.clusterProvider.Provider.Region())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // CreateExtraClusterConfigTasks returns all tasks for updating cluster configuration not depending on the control plane availability
 func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, installVPCController bool) *manager.TaskTree {
 	newTasks := &manager.TaskTree{
@@ -116,6 +149,14 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 			info:            "create fargate profiles",
 			spec:            cfg,
 			clusterProvider: c,
+		})
+	}
+
+	if api.ClusterHasInstanceType(cfg, utils.IsARMInstanceType) {
+		newTasks.Append(&UpdateAddonsTask{
+			info:            "update default addons",
+			clusterProvider: c,
+			spec:            cfg,
 		})
 	}
 	return newTasks

@@ -21,6 +21,7 @@ nav:
         - usage/custom-ami-support.md
         - usage/vpc-networking.md
         - usage/gpu-support.md
+        - usage/arm-support.md
         - usage/spot-instances.md
         - IAM:
             - usage/iam-permissions-boundary.md

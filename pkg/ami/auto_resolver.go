@@ -24,6 +24,7 @@ func MakeImageSearchPatterns(version string) map[string]map[int]string {
 		api.NodeImageFamilyAmazonLinux2: {
 			ImageClassGeneral: fmt.Sprintf("amazon-eks-node-%s-v*", version),
 			ImageClassGPU:     fmt.Sprintf("amazon-eks-gpu-node-%s-*", version),
+			ImageClassARM:     fmt.Sprintf("amazon-eks-arm64-node-%s-*", version),
 		},
 		api.NodeImageFamilyUbuntu1804: {
 			ImageClassGeneral: fmt.Sprintf("ubuntu-eks/k8s_%s/images/*", version),
@@ -73,6 +74,15 @@ func (r *AutoResolver) Resolve(region, version, instanceType, imageFamily string
 		namePattern, ok = imageClasses[ImageClassGPU]
 		if !ok {
 			logger.Critical("image family %s doesn't support GPU image class", imageFamily)
+			return "", NewErrFailedResolution(region, version, instanceType, imageFamily)
+		}
+	}
+
+	if utils.IsARMInstanceType(instanceType) {
+		var ok bool
+		namePattern, ok = imageClasses[ImageClassARM]
+		if !ok {
+			logger.Critical("image family %s doesn't support ARM image class", imageFamily)
 			return "", NewErrFailedResolution(region, version, instanceType, imageFamily)
 		}
 	}
