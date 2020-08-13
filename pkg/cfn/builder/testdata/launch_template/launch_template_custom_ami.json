@@ -33,7 +33,7 @@
             },
             "LaunchTemplate": {
                 "Id": "lt-1234",
-                "Version": 2
+                "Version": "2"
             }
         }
     },

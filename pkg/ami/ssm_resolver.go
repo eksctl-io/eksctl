@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/kris-nova/logger"
@@ -71,6 +72,15 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 	default:
 		return "", fmt.Errorf("unknown image family %s", imageFamily)
 	}
+}
+
+// MakeManagedSSMParameterName creates an SSM parameter name for a managed nodegroup
+func MakeManagedSSMParameterName(version, imageFamily, amiType string) (string, error) {
+	imageType := utils.ToKebabCase(imageFamily)
+	if amiType == eks.AMITypesAl2X8664Gpu {
+		imageType += "-gpu"
+	}
+	return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/%s", version, imageType, "release_version"), nil
 }
 
 // instanceEC2ArchName returns the name of the architecture as used by EC2

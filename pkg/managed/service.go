@@ -10,20 +10,29 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
-	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+
+	"github.com/weaveworks/eksctl/pkg/ami"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/goformation/v4"
+	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
+	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 // A Service provides methods for managing managed nodegroups
 type Service struct {
-	provider        v1alpha5.ClusterProvider
-	clusterName     string
-	stackCollection *manager.StackCollection
+	provider              api.ClusterProvider
+	launchTemplateFetcher *builder.LaunchTemplateFetcher
+	clusterName           string
+	stackCollection       *manager.StackCollection
 }
 
 // HealthIssue represents a health issue with a managed nodegroup
@@ -32,14 +41,30 @@ type HealthIssue struct {
 	Code    string
 }
 
+// UpgradeOptions contains options to configure nodegroup upgrades
+type UpgradeOptions struct {
+	// NodeGroupName nodegroup name
+	NodegroupName string
+	// KubernetesVersion EKS version
+	KubernetesVersion string
+	// LaunchTemplateVersion launch template version
+	// valid only if a nodegroup was created with a launch template
+	LaunchTemplateVersion string
+}
+
 // TODO use goformation types
 const (
 	labelsPath = "Resources.ManagedNodeGroup.Properties.Labels"
 )
 
 // NewService creates a new Service
-func NewService(provider v1alpha5.ClusterProvider, stackCollection *manager.StackCollection, clusterName string) *Service {
-	return &Service{provider: provider, stackCollection: stackCollection, clusterName: clusterName}
+func NewService(provider api.ClusterProvider, stackCollection *manager.StackCollection, clusterName string) *Service {
+	return &Service{
+		provider:              provider,
+		stackCollection:       stackCollection,
+		launchTemplateFetcher: builder.NewLaunchTemplateFetcher(provider.EC2()),
+		clusterName:           clusterName,
+	}
 }
 
 // GetHealth fetches the health status for a nodegroup
@@ -113,57 +138,136 @@ func (m *Service) GetLabels(nodeGroupName string) (map[string]string, error) {
 
 // UpgradeNodeGroup upgrades nodegroup to the latest AMI release for the specified Kubernetes version, or
 // the current Kubernetes version if the version isn't specified
-func (m *Service) UpgradeNodeGroup(nodeGroupName, kubernetesVersion string, waitTimeout time.Duration) error {
-	nodegroupOutput, err := m.provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
-		ClusterName:   aws.String(m.clusterName),
-		NodegroupName: aws.String(nodeGroupName),
+// If options.LaunchTemplateVersion is set, it also upgrades the nodegroup to the specified launch template version
+func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
+	output, err := m.provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
+		ClusterName:   &m.clusterName,
+		NodegroupName: &options.NodegroupName,
 	})
 
 	if err != nil {
-		return errors.Wrap(err, "failed to describe nodegroup")
-	}
-
-	updateInput := &eks.UpdateNodegroupVersionInput{
-		ClusterName:   aws.String(m.clusterName),
-		NodegroupName: aws.String(nodeGroupName),
-	}
-
-	if kubernetesVersion != "" {
-		if _, err := semver.ParseTolerant(kubernetesVersion); err != nil {
-			return errors.Wrap(err, "error parsing Kubernetes version")
+		if isNotFound(err) {
+			return fmt.Errorf("upgrade is only supported for managed nodegroups; could not find one with name %q", options.NodegroupName)
 		}
-		updateInput.Version = aws.String(kubernetesVersion)
-	} else {
-		updateInput.Version = nodegroupOutput.Nodegroup.Version
+		return err
 	}
 
-	nodegroupUpdate, err := m.provider.EKS().UpdateNodegroupVersion(updateInput)
+	nodeGroup := output.Nodegroup
+
+	if options.KubernetesVersion != "" {
+		if _, err := semver.ParseTolerant(options.KubernetesVersion); err != nil {
+			return errors.Wrap(err, "invalid Kubernetes version")
+		}
+	}
+
+	template, err := m.stackCollection.GetManagedNodeGroupTemplate(options.NodegroupName)
 	if err != nil {
-		return errors.Wrap(err, "error upgrading nodegroup")
+		return errors.Wrap(err, "error fetching nodegroup template")
 	}
 
-	if updateErrors := nodegroupUpdate.Update.Errors; len(updateErrors) > 0 {
-		return errors.Errorf("failed to upgrade nodegroup:\n%v", aggregateErrors(updateErrors))
+	stack, err := goformation.ParseJSON([]byte(template))
+	if err != nil {
+		return errors.Wrap(err, "unexpected error parsing nodegroup template")
 	}
 
-	for _, param := range nodegroupUpdate.Update.Params {
-		if *param.Type == eks.UpdateParamTypeReleaseVersion {
-			newReleaseVersion := *param.Value
-			if newReleaseVersion == *nodegroupOutput.Nodegroup.ReleaseVersion {
-				logger.Info("nodegroup %q is already up-to-date (release version: %v)", nodeGroupName, *nodegroupOutput.Nodegroup.ReleaseVersion)
-				return nil
-			}
-			logger.Info("upgrading nodegroup to release version %v", newReleaseVersion)
+	ngResources := stack.GetAllEKSNodegroupResources()
+	ngResource, ok := ngResources[builder.ManagedNodeGroupResourceName]
+	if !ok {
+		return errors.New("unexpected error: failed to find nodegroup resource in nodegroup stack")
+	}
+
+	ltResources := stack.GetAllEC2LaunchTemplateResources()
+
+	if options.LaunchTemplateVersion != "" {
+		// TODO validate launch template version
+		if len(ltResources) == 1 {
+			return errors.New("launch-template-version is only valid if a nodegroup is using an explicit launch template")
+		}
+		if ngResource.LaunchTemplate == nil || ngResource.LaunchTemplate.ID == nil {
+			return errors.New("nodegroup does not use a launch template")
 		}
 	}
 
-	if waitTimeout > 0 {
-		ctx, cancelFunc := context.WithTimeout(context.Background(), waitTimeout)
-		defer cancelFunc()
-		return m.waitForUpdate(ctx, nodeGroupName, nodegroupUpdate.Update.Id)
+	usesCustomAMI, err := m.usesCustomAMI(ltResources, ngResource)
+	if err != nil {
+		return err
 	}
-	logger.Info("nodegroup upgrade request submitted")
+
+	if usesCustomAMI && options.KubernetesVersion != "" {
+		return errors.New("cannot specify kubernetes-version when using a custom AMI")
+	}
+
+	if !usesCustomAMI {
+		kubernetesVersion := options.KubernetesVersion
+		if kubernetesVersion == "" {
+			// Use the current Kubernetes version
+			version, err := semver.ParseTolerant(*nodeGroup.Version)
+			if err != nil {
+				return errors.Wrapf(err, "unexpected error parsing Kubernetes version %q", *nodeGroup.Version)
+			}
+			kubernetesVersion = fmt.Sprintf("%v.%v", version.Major, version.Minor)
+		}
+		latestReleaseVersion, err := m.getLatestReleaseVersion(kubernetesVersion, nodeGroup)
+		if err != nil {
+			return err
+		}
+		if latestReleaseVersion == *nodeGroup.ReleaseVersion && options.LaunchTemplateVersion == "" {
+			logger.Info("nodegroup %q is already up-to-date", *nodeGroup.NodegroupName)
+			return nil
+		}
+		ngResource.ReleaseVersion = gfnt.NewString(latestReleaseVersion)
+	}
+	if options.LaunchTemplateVersion != "" {
+		ngResource.LaunchTemplate.Version = gfnt.NewString(options.LaunchTemplateVersion)
+	}
+
+	updatedTemplate, err := stack.JSON()
+	if err != nil {
+		return err
+	}
+	if err := m.stackCollection.UpdateNodeGroupStack(options.NodegroupName, string(updatedTemplate)); err != nil {
+		return errors.Wrap(err, "error updating nodegroup stack")
+	}
+	logger.Info("nodegroup successfully upgraded")
 	return nil
+}
+
+func (m *Service) getLatestReleaseVersion(kubernetesVersion string, nodeGroup *eks.Nodegroup) (string, error) {
+	ssmParameterName, err := ami.MakeManagedSSMParameterName(kubernetesVersion, api.NodeImageFamilyAmazonLinux2, *nodeGroup.AmiType)
+	if err != nil {
+		return "", err
+	}
+
+	ssmOutput, err := m.provider.SSM().GetParameter(&ssm.GetParameterInput{
+		Name: &ssmParameterName,
+	})
+	if err != nil {
+		return "", err
+	}
+	return *ssmOutput.Parameter.Value, nil
+}
+
+func (m *Service) usesCustomAMI(ltResources map[string]*gfnec2.LaunchTemplate, ng *gfneks.Nodegroup) (bool, error) {
+	if lt, ok := ltResources["LaunchTemplate"]; ok {
+		return lt.LaunchTemplateData.ImageId != nil, nil
+	}
+
+	if ng.LaunchTemplate == nil || ng.LaunchTemplate.ID == nil {
+		return false, nil
+	}
+
+	lt := &api.LaunchTemplate{
+		ID: ng.LaunchTemplate.ID.String(),
+	}
+	if version := ng.LaunchTemplate.Version; version != nil {
+		lt.Version = aws.String(version.String())
+	}
+
+	customLaunchTemplate, err := m.launchTemplateFetcher.Fetch(lt)
+	if err != nil {
+		return false, errors.Wrap(err, "error fetching launch template data")
+	}
+	return customLaunchTemplate.ImageId != nil, nil
 }
 
 func (m *Service) waitForUpdate(ctx context.Context, nodeGroupName string, updateID *string) error {

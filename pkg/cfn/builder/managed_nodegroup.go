@@ -3,7 +3,6 @@ package builder
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/pkg/errors"
@@ -19,19 +18,17 @@ type ManagedNodeGroupResourceSet struct {
 	clusterConfig         *api.ClusterConfig
 	clusterStackName      string
 	nodeGroup             *api.ManagedNodeGroup
-	launchTemplateFetcher launchTemplateFetcher
+	launchTemplateFetcher *LaunchTemplateFetcher
 	*resourceSet
 
 	// UserDataMimeBoundary sets the MIME boundary for user data
 	UserDataMimeBoundary string
 }
 
-type launchTemplateFetcher interface {
-	DescribeLaunchTemplateVersions(*ec2.DescribeLaunchTemplateVersionsInput) (*ec2.DescribeLaunchTemplateVersionsOutput, error)
-}
+const ManagedNodeGroupResourceName = "ManagedNodeGroup"
 
 // NewManagedNodeGroup creates a new ManagedNodeGroupResourceSet
-func NewManagedNodeGroup(cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher launchTemplateFetcher, clusterStackName string) *ManagedNodeGroupResourceSet {
+func NewManagedNodeGroup(cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher *LaunchTemplateFetcher, clusterStackName string) *ManagedNodeGroupResourceSet {
 	return &ManagedNodeGroupResourceSet{
 		clusterConfig:         cluster,
 		clusterStackName:      clusterStackName,
@@ -88,7 +85,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	var launchTemplate *gfneks.Nodegroup_LaunchTemplate
 
 	if m.nodeGroup.LaunchTemplate != nil {
-		launchTemplateData, err := m.getLaunchTemplate()
+		launchTemplateData, err := m.launchTemplateFetcher.Fetch(m.nodeGroup.LaunchTemplate)
 		if err != nil {
 			return err
 		}
@@ -125,30 +122,8 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	}
 
 	managedResource.LaunchTemplate = launchTemplate
-	m.newResource("ManagedNodeGroup", managedResource)
+	m.newResource(ManagedNodeGroupResourceName, managedResource)
 	return nil
-}
-
-func (m *ManagedNodeGroupResourceSet) getLaunchTemplate() (*ec2.ResponseLaunchTemplateData, error) {
-	input := &ec2.DescribeLaunchTemplateVersionsInput{
-		LaunchTemplateId: aws.String(m.nodeGroup.LaunchTemplate.ID),
-	}
-	if version := m.nodeGroup.LaunchTemplate.Version; version != nil {
-		input.Versions = []*string{version}
-	} else {
-		input.Versions = []*string{aws.String("$Default")}
-	}
-
-	output, err := m.launchTemplateFetcher.DescribeLaunchTemplateVersions(input)
-	if err != nil {
-		return nil, err
-	}
-	if len(output.LaunchTemplateVersions) != 1 {
-		return nil, errors.Errorf("failed to find launch template with ID %q", m.nodeGroup.LaunchTemplate.ID)
-	}
-
-	return output.LaunchTemplateVersions[0].LaunchTemplateData, nil
-
 }
 
 func validateLaunchTemplate(launchTemplateData *ec2.ResponseLaunchTemplateData, ng *api.ManagedNodeGroup) error {
@@ -164,6 +139,10 @@ func validateLaunchTemplate(launchTemplateData *ec2.ResponseLaunchTemplateData, 
 		if ng.AMI != "" {
 			return errors.New("cannot set managedNodegroup.AMI when launchTemplate.ImageId is set")
 		}
+	}
+
+	if launchTemplateData.IamInstanceProfile != nil && launchTemplateData.IamInstanceProfile.Arn != nil {
+		return errors.New("IAM instance profile must not be set in the launch template")
 	}
 
 	return nil

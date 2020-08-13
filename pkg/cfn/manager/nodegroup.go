@@ -6,12 +6,11 @@ import (
 	"strings"
 	"time"
 
+	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
-
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -69,7 +68,7 @@ func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup
 func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup) error {
 	name := c.makeNodeGroupStackName(ng.Name)
 	logger.Info("building managed nodegroup stack %q", name)
-	stack := builder.NewManagedNodeGroup(c.spec, ng, c.provider.EC2(), c.makeClusterStackName())
+	stack := builder.NewManagedNodeGroup(c.spec, ng, builder.NewLaunchTemplateFetcher(c.provider.EC2()), c.makeClusterStackName())
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}

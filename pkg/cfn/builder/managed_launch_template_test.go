@@ -35,7 +35,7 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 			m.mockFetcherFn(provider)
 		}
 
-		stack := NewManagedNodeGroup(clusterConfig, m.ng, provider.MockEC2(), fmt.Sprintf("eksctl-%s", clusterConfig.Metadata.Name))
+		stack := NewManagedNodeGroup(clusterConfig, m.ng, NewLaunchTemplateFetcher(provider.MockEC2()), fmt.Sprintf("eksctl-%s", clusterConfig.Metadata.Name))
 		stack.UserDataMimeBoundary = "//"
 		err := stack.AddAllResources()
 		Expect(err).ToNot(HaveOccurred())
