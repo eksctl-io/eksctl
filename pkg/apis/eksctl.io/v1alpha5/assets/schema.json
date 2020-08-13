@@ -641,6 +641,12 @@
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
         },
+        "instanceName": {
+          "type": "string"
+        },
+        "instancePrefix": {
+          "type": "string"
+        },
         "instanceType": {
           "type": "string"
         },
@@ -735,6 +741,8 @@
         "amiFamily",
         "instanceType",
         "availabilityZones",
+        "instancePrefix",
+        "instanceName",
         "desiredCapacity",
         "minSize",
         "maxSize",
@@ -987,6 +995,8 @@
         "amiFamily",
         "instanceType",
         "availabilityZones",
+        "instancePrefix",
+        "instanceName",
         "desiredCapacity",
         "minSize",
         "maxSize",
@@ -1008,8 +1018,6 @@
         "overrideBootstrapCommand",
         "disableIMDSv1",
         "instancesDistribution",
-        "instancePrefix",
-        "instanceName",
         "asgMetricsCollection",
         "cpuCredits",
         "maxPodsPerNode",
