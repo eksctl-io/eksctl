@@ -191,6 +191,9 @@ func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
 			return fmt.Errorf("%s.volumeKmsKeyID can not be set without %s.volumeEncrypted enabled explicitly", path, path)
 		}
 	}
+	if ng.MaxPodsPerNode < 0 {
+		return fmt.Errorf("%s.maxPodsPerNode cannot be negative", path)
+	}
 
 	return nil
 }
@@ -459,10 +462,10 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 
 		if ng.InstanceType != "" || ng.AMI != "" || IsEnabled(ng.SSH.Allow) || len(ng.SSH.SourceSecurityGroupIDs) > 0 ||
 			ng.VolumeSize != nil || len(ng.PreBootstrapCommands) > 0 || ng.OverrideBootstrapCommand != nil ||
-			len(ng.SecurityGroups.AttachIDs) > 0 || ng.InstanceName != "" || ng.InstancePrefix != "" {
+			len(ng.SecurityGroups.AttachIDs) > 0 || ng.InstanceName != "" || ng.InstancePrefix != "" || ng.MaxPodsPerNode != 0 {
 
 			return errors.New("cannot set instanceType, ami, ssh.allow, ssh.sourceSecurityGroupIds, securityGroups, " +
-				"volumeSize, instanceName, instancePrefix, preBootstrapCommands or overrideBootstrapCommand in managedNodeGroup when a launch template is supplied")
+				"volumeSize, instanceName, instancePrefix, maxPodsPerNode, preBootstrapCommands or overrideBootstrapCommand in managedNodeGroup when a launch template is supplied")
 		}
 
 	case ng.AMI != "":
@@ -470,7 +473,10 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 			return errors.Errorf("invalid AMI %q (%s.%s)", ng.AMI, path, "ami")
 		}
 		if ng.OverrideBootstrapCommand == nil {
-			return errors.Errorf("%s.overrideBootstrapCommand is required when a custom AMI (%s.ami) is specified ", path, path)
+			return errors.Errorf("%s.overrideBootstrapCommand is required when using a custom AMI (%s.ami)", path, path)
+		}
+		if ng.MaxPodsPerNode != 0 {
+			return errors.Errorf("%s.maxPodsPerNode is not supported when using a custom AMI (%s.ami)", path, path)
 		}
 
 	case ng.OverrideBootstrapCommand != nil:

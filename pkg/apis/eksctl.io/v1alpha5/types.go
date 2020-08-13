@@ -705,9 +705,6 @@ type NodeGroup struct {
 	CPUCredits *string `json:"cpuCredits,omitempty"`
 
 	// +optional
-	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
-
-	// +optional
 	Taints map[string]string `json:"taints,omitempty"`
 
 	// Associate load balancers with auto scaling group
@@ -1032,6 +1029,9 @@ type NodeGroupBase struct {
 
 	// +optional
 	SecurityGroups *NodeGroupSGs `json:"securityGroups,omitempty"`
+
+	// +optional
+	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
 
 	// EBSOptimized enables [EBS
 	// optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)

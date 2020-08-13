@@ -48,7 +48,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 					AMI: "ami-custom",
 				},
 			},
-			errMsg: "overrideBootstrapCommand is required when a custom AMI",
+			errMsg: "overrideBootstrapCommand is required when using a custom AMI",
 		}),
 		Entry("Custom AMI with overrideBootstrapCommand", &nodeGroupCase{
 			ng: &ManagedNodeGroup{
@@ -105,7 +105,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 		err := ValidateManagedNodeGroup(mng, 0)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("cannot set instanceType, ami, ssh.allow, ssh.sourceSecurityGroupIds, securityGroups, " +
-			"volumeSize, preBootstrapCommands or overrideBootstrapCommand in managedNodeGroup when a launch template is supplied"))
+			"volumeSize, instanceName, instancePrefix, maxPodsPerNode, preBootstrapCommands or overrideBootstrapCommand in managedNodeGroup when a launch template is supplied"))
 	},
 		Entry("instanceType", &NodeGroupBase{
 			InstanceType: "m5.xlarge",

@@ -19,13 +19,8 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 	mng := m.nodeGroup
 
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
-		InstanceType: gfnt.NewString(mng.InstanceType),
-		TagSpecifications: []gfnec2.LaunchTemplate_TagSpecification{
-			{
-				ResourceType: gfnt.NewString("instance"),
-				Tags:         makeTags(mng.NodeGroupBase, m.clusterConfig.Metadata),
-			},
-		},
+		InstanceType:      gfnt.NewString(mng.InstanceType),
+		TagSpecifications: makeTags(mng.NodeGroupBase, m.clusterConfig.Metadata),
 	}
 	userData, err := makeUserData(mng.NodeGroupBase, m.UserDataMimeBoundary)
 	if err != nil {
@@ -165,6 +160,8 @@ func makeUserData(ng *api.NodeGroupBase, mimeBoundary string) (string, error) {
 
 	if ng.OverrideBootstrapCommand != nil {
 		scripts = append(scripts, *ng.OverrideBootstrapCommand)
+	} else if ng.MaxPodsPerNode != 0 {
+		scripts = append(scripts, makeMaxPodsScript(ng.MaxPodsPerNode))
 	}
 
 	if len(scripts) == 0 {
@@ -178,7 +175,17 @@ func makeUserData(ng *api.NodeGroupBase, mimeBoundary string) (string, error) {
 	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
 }
 
-func makeTags(ng *api.NodeGroupBase, meta *api.ClusterMeta) []cloudformation.Tag {
+func makeMaxPodsScript(maxPods int) string {
+	script := `#!/bin/sh
+set -ex
+sed -i -E "s/^USE_MAX_PODS=\"\\$\{USE_MAX_PODS:-true}\"/USE_MAX_PODS=false/" /etc/eks/bootstrap.sh
+KUBELET_CONFIG=/etc/kubernetes/kubelet/kubelet-config.json
+`
+	script += fmt.Sprintf(`echo "$(jq ".maxPods=%v" $KUBELET_CONFIG)" > $KUBELET_CONFIG`, maxPods)
+	return script
+}
+
+func makeTags(ng *api.NodeGroupBase, meta *api.ClusterMeta) []gfnec2.LaunchTemplate_TagSpecification {
 	cfnTags := []cloudformation.Tag{
 		{
 			Key:   gfnt.NewString("Name"),
@@ -191,5 +198,10 @@ func makeTags(ng *api.NodeGroupBase, meta *api.ClusterMeta) []cloudformation.Tag
 			Value: gfnt.NewString(v),
 		})
 	}
-	return cfnTags
+	return []gfnec2.LaunchTemplate_TagSpecification{
+		{
+			ResourceType: gfnt.NewString("instance"),
+			Tags:         cfnTags,
+		},
+	}
 }
