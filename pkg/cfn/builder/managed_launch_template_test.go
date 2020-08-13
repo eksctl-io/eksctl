@@ -8,9 +8,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	. "github.com/benjamintf1/unmarshalledmatchers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+
 	"github.com/stretchr/testify/mock"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -51,7 +53,7 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 
 		expected, err := ioutil.ReadFile(path.Join("testdata", "launch_template", m.resourcesFilename))
 		Expect(err).ToNot(HaveOccurred())
-		Expect(actual).To(MatchJSON(expected))
+		Expect(actual).To(MatchOrderedJSON(expected, WithUnorderedListKeys("Tags")))
 
 	},
 		Entry("No custom AMI", &mngCase{

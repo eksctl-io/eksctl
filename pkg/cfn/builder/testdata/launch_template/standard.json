@@ -8,6 +8,25 @@
                     {
                         "Fn::ImportValue": "eksctl-lt::ClusterSecurityGroupId"
                     }
+                ],
+                "TagSpecifications": [
+                    {
+                        "ResourceType": "instance",
+                        "Tags": [
+                            {
+                                "Key": "Name",
+                                "Value": "lt-standard-Node"
+                            },
+                            {
+                                "Key": "alpha.eksctl.io/nodegroup-name",
+                                "Value": "standard"
+                            },
+                            {
+                                "Key": "alpha.eksctl.io/nodegroup-type",
+                                "Value": "managed"
+                            }
+                        ]
+                    }
                 ]
             },
             "LaunchTemplateName": {

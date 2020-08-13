@@ -10,6 +10,25 @@
                         "Fn::ImportValue": "eksctl-lt::ClusterSecurityGroupId"
                     }
                 ],
+                "TagSpecifications": [
+                    {
+                        "ResourceType": "instance",
+                        "Tags": [
+                            {
+                                "Key": "Name",
+                                "Value": "lt-custom-ami-Node"
+                            },
+                            {
+                                "Key": "alpha.eksctl.io/nodegroup-name",
+                                "Value": "custom-ami"
+                            },
+                            {
+                                "Key": "alpha.eksctl.io/nodegroup-type",
+                                "Value": "managed"
+                            }
+                        ]
+                    }
+                ],
                 "UserData": "TUlNRS1WZXJzaW9uOiAxLjANCkNvbnRlbnQtVHlwZTogbXVsdGlwYXJ0L21peGVkOyBib3VuZGFyeT0vLw0KDQotLS8vDQpDb250ZW50LVR5cGU6IHRleHQveC1zaGVsbHNjcmlwdA0KQ29udGVudC1UeXBlOiBjaGFyc2V0PSJ1cy1hc2NpaSINCg0KCiMhL2Jpbi9iYXNoCnNldCAtZXgKQjY0X0NMVVNURVJfQ0E9ZEdWemRBbz0KQVBJX1NFUlZFUl9VUkw9aHR0cHM6Ly90ZXN0LmNvbQovZXRjL2Vrcy9ib290c3RyYXAuc2ggbGF1bmNoLXRlbXBsYXRlIC0tYjY0LWNsdXN0ZXItY2EgJEI2NF9DTFVTVEVSX0NBIC0tYXBpc2VydmVyLWVuZHBvaW50ICRBUElfU0VSVkVSX1VSTAoNCi0tLy8tLQ0K"
             },
             "LaunchTemplateName": {

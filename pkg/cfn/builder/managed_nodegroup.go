@@ -80,6 +80,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		Subnets:       subnets,
 		NodeRole:      nodeRole,
 		Labels:        m.nodeGroup.Labels,
+		Tags:          m.nodeGroup.Tags,
 	}
 
 	var launchTemplate *gfneks.Nodegroup_LaunchTemplate
