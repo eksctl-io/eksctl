@@ -1,14 +1,10 @@
 package managed
 
 import (
-	"context"
 	"fmt"
-	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/blang/semver"
@@ -268,65 +264,6 @@ func (m *Service) usesCustomAMI(ltResources map[string]*gfnec2.LaunchTemplate, n
 		return false, errors.Wrap(err, "error fetching launch template data")
 	}
 	return customLaunchTemplate.ImageId != nil, nil
-}
-
-func (m *Service) waitForUpdate(ctx context.Context, nodeGroupName string, updateID *string) error {
-	logger.Debug("waiting for nodegroup update to complete (updateID: %v)", *updateID)
-
-	const retryAfter = 5 * time.Second
-
-	for {
-		describeOutput, err := m.provider.EKS().DescribeUpdate(&eks.DescribeUpdateInput{
-			Name:          aws.String(m.clusterName),
-			NodegroupName: aws.String(nodeGroupName),
-			UpdateId:      updateID,
-		})
-
-		if err != nil {
-			describeErr := errors.Wrap(err, "error describing nodegroup update")
-			if !request.IsErrorRetryable(err) {
-				return describeErr
-			}
-			logger.Warning(describeErr.Error())
-		}
-
-		logger.Debug("DescribeUpdate output: %v", describeOutput.Update.String())
-
-		switch status := *describeOutput.Update.Status; status {
-		case eks.UpdateStatusSuccessful:
-			logger.Info("nodegroup successfully upgraded")
-			return nil
-
-		case eks.UpdateStatusCancelled:
-			return errors.New("nodegroup update cancelled")
-
-		case eks.UpdateStatusFailed:
-			return errors.Errorf("nodegroup update failed:\n%v", aggregateErrors(describeOutput.Update.Errors))
-
-		case eks.UpdateStatusInProgress:
-			logger.Debug("nodegroup update in progress")
-
-		default:
-			return errors.Errorf("unexpected nodegroup update status: %q", status)
-
-		}
-
-		timer := time.NewTimer(retryAfter)
-		select {
-		case <-ctx.Done():
-			timer.Stop()
-			return errors.Errorf("timed out waiting for nodegroup update to complete: %v", ctx.Err())
-		case <-timer.C:
-		}
-	}
-}
-
-func aggregateErrors(errorDetails []*eks.ErrorDetail) string {
-	var aggregatedErrors []string
-	for _, err := range errorDetails {
-		aggregatedErrors = append(aggregatedErrors, fmt.Sprintf("- %v", err))
-	}
-	return strings.Join(aggregatedErrors, "\n")
 }
 
 func isNotFound(err error) bool {
