@@ -7,19 +7,34 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 )
 
 var _ = Describe("create cluster", func() {
 	Describe("un-managed node group", func() {
+		It("understands ssh access arguments correctly", func() {
+			commandArgs := []string{"cluster", "--ssh-access=false", "--ssh-public-key", "dummy-key"}
+			cmd := newMockEmptyCmd(commandArgs...)
+			count := 0
+			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
+				createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams) error {
+					Expect(*cmd.ClusterConfig.NodeGroups[0].SSH.Allow).To(BeFalse())
+					count++
+					return nil
+				})
+			})
+			_, err := cmd.execute()
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(count).To(Equal(1))
+		})
 		DescribeTable("create cluster successfully",
 			func(args ...string) {
 				commandArgs := append([]string{"cluster"}, args...)
 				cmd := newMockEmptyCmd(commandArgs...)
 				count := 0
 				cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-					createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.CreateClusterCmdParams) error {
+					createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams) error {
 						Expect(cmd.ClusterConfig.Metadata.Name).NotTo(BeNil())
 						count++
 						return nil
@@ -93,7 +108,7 @@ var _ = Describe("create cluster", func() {
 				cmd := newMockEmptyCmd(commandArgs...)
 				count := 0
 				cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-					createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.CreateClusterCmdParams) error {
+					createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams) error {
 						Expect(cmd.ClusterConfig.Metadata.Name).NotTo(BeNil())
 						count++
 						return nil

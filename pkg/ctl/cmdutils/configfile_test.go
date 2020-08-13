@@ -141,7 +141,9 @@ var _ = Describe("cmdutils configfile", func() {
 				Expect(cfg.Metadata.Region).To(Equal(cmd.ProviderConfig.Region))
 			}
 		})
+	})
 
+	Describe("CreateClusterLoader", func() {
 		It("should set VPC.NAT.Gateway with the correct value", func() {
 			natTests := []struct {
 				configFile      string
