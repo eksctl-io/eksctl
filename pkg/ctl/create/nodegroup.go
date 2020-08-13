@@ -8,9 +8,12 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 
@@ -117,6 +120,15 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 
 	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
 
+	clientSet, err := ctl.NewStdClientSet(cfg)
+	if err != nil {
+		return err
+	}
+
+	if err = checkARMSupport(ctl, clientSet, cfg); err != nil {
+		return err
+	}
+
 	// EKS 1.14 clusters created with prior versions of eksctl may not support Managed Nodes
 	supportsManagedNodes, err := ctl.SupportsManagedNodes(cfg)
 	if err != nil {
@@ -140,7 +152,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 	}
 
 	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider.EC2())
-	if err := nodeGroupService.Normalize(cmdutils.ToBaseNodeGroups(cfg)); err != nil {
+	if err := nodeGroupService.Normalize(cfg.AllNodeGroups()); err != nil {
 		return err
 	}
 
@@ -205,11 +217,6 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 	}
 
 	{ // post-creation action
-		clientSet, err := ctl.NewStdClientSet(cfg)
-		if err != nil {
-			return err
-		}
-
 		tasks := ctl.ClusterTasksForNodeGroups(cfg, params.installNeuronDevicePlugin)
 		logger.Info(tasks.Describe())
 		errs := tasks.DoAllSync()
@@ -259,5 +266,29 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
+	return nil
+}
+
+func checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes.Interface, cfg *api.ClusterConfig) error {
+	rawClient, err := ctl.NewRawClient(cfg)
+	if err != nil {
+		return err
+	}
+
+	kubernetesVersion, err := rawClient.ServerVersion()
+	if err != nil {
+		return err
+	}
+	if api.ClusterHasInstanceType(cfg, utils.IsARMInstanceType) {
+		upToDate, err := defaultaddons.AreAddonsUpToDate(clientSet, rawClient, kubernetesVersion, ctl.Provider.Region())
+		if err != nil {
+			return err
+		}
+		if !upToDate {
+			logger.Critical("to create an ARM nodegroup kube-proxy, coredns and aws-node addons should be up to date. " +
+				"Please use `eksctl utils update-coredns`, `eksctl utils update-kube-proxy` and `eksctl utils update-aws-node` before proceeding.")
+			return errors.New("expected default addons up to date")
+		}
+	}
 	return nil
 }
