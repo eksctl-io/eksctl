@@ -251,10 +251,6 @@ func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
 }
 
 func newLaunchTemplateData(n *NodeGroupResourceSet) *gfnec2.LaunchTemplate_LaunchTemplateData {
-	imdsv2TokensRequired := "optional"
-	if api.IsEnabled(n.spec.DisableIMDSv1) {
-		imdsv2TokensRequired = "required"
-	}
 
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
 		IamInstanceProfile: &gfnec2.LaunchTemplate_IamInstanceProfile{
@@ -268,10 +264,7 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfnec2.LaunchTemplate_Launc
 			DeviceIndex:              gfnt.NewInteger(0),
 			Groups:                   gfnt.NewSlice(n.securityGroups...),
 		}},
-		MetadataOptions: &gfnec2.LaunchTemplate_MetadataOptions{
-			HttpPutResponseHopLimit: gfnt.NewInteger(2),
-			HttpTokens:              gfnt.NewString(imdsv2TokensRequired),
-		},
+		MetadataOptions: makeMetadataOptions(n.spec.NodeGroupBase),
 	}
 
 	if !api.HasMixedInstances(n.spec) {
@@ -290,6 +283,17 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfnec2.LaunchTemplate_Launc
 	}
 
 	return launchTemplateData
+}
+
+func makeMetadataOptions(ng *api.NodeGroupBase) *gfnec2.LaunchTemplate_MetadataOptions {
+	imdsv2TokensRequired := "optional"
+	if api.IsEnabled(ng.DisableIMDSv1) {
+		imdsv2TokensRequired = "required"
+	}
+	return &gfnec2.LaunchTemplate_MetadataOptions{
+		HttpPutResponseHopLimit: gfnt.NewInteger(2),
+		HttpTokens:              gfnt.NewString(imdsv2TokensRequired),
+	}
 }
 
 func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interface{}, tags []map[string]interface{}, ng *api.NodeGroup) *awsCloudFormationResource {

@@ -4,6 +4,10 @@
         "Properties": {
             "LaunchTemplateData": {
                 "InstanceType": "m5.xlarge",
+                "MetadataOptions": {
+                    "HttpPutResponseHopLimit": 2,
+                    "HttpTokens": "optional"
+                },
                 "SecurityGroupIds": [
                     {
                         "Fn::ImportValue": "eksctl-lt::ClusterSecurityGroupId"

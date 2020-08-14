@@ -21,6 +21,7 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
 		InstanceType:      gfnt.NewString(mng.InstanceType),
 		TagSpecifications: makeTags(mng.NodeGroupBase, m.clusterConfig.Metadata),
+		MetadataOptions:   makeMetadataOptions(mng.NodeGroupBase),
 	}
 	userData, err := makeUserData(mng.NodeGroupBase, m.UserDataMimeBoundary)
 	if err != nil {

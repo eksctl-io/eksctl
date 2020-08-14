@@ -465,7 +465,7 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 			len(ng.SecurityGroups.AttachIDs) > 0 || ng.InstanceName != "" || ng.InstancePrefix != "" || ng.MaxPodsPerNode != 0 {
 
 			return errors.New("cannot set instanceType, ami, ssh.allow, ssh.sourceSecurityGroupIds, securityGroups, " +
-				"volumeSize, instanceName, instancePrefix, maxPodsPerNode, preBootstrapCommands or overrideBootstrapCommand in managedNodeGroup when a launch template is supplied")
+				"volumeSize, instanceName, instancePrefix, maxPodsPerNode, disableIMDSv1, preBootstrapCommands or overrideBootstrapCommand in managedNodeGroup when a launch template is supplied")
 		}
 
 	case ng.AMI != "":
