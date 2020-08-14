@@ -21,6 +21,15 @@ const (
 	KubeProxy = "kube-proxy"
 )
 
+// KubeProxyDocumentedVersions maps major and minor control plane version to latest documented AWS kube-proxy version
+// see https://docs.aws.amazon.com/eks/latest/userguide/update-cluster.html for latest supported versions
+var KubeProxyDocumentedVersions = map[string]string{
+	"1.17": "1.17.7",
+	"1.16": "1.16.12",
+	"1.15": "1.15.11",
+	"1.14": "1.14.9",
+}
+
 func IsKubeProxyUpToDate(clientSet kubernetes.Interface, controlPlaneVersion string) (bool, error) {
 	d, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(KubeProxy, metav1.GetOptions{})
 	if err != nil {
@@ -98,17 +107,9 @@ func UpdateKubeProxyImageTag(clientSet kubernetes.Interface, controlPlaneVersion
 }
 
 func kubeProxyImageTag(controlPlaneVersion string) string {
-	// See https://docs.aws.amazon.com/eks/latest/userguide/update-cluster.html for latest supported versions
-	documentedVersions := map[string]string{
-		"1.17": "1.17.7",
-		"1.16": "1.16.12",
-		"1.15": "1.15.11",
-		"1.14": "1.14.9",
-	}
 	parsedVersion, _ := semver.ParseTolerant(controlPlaneVersion)
 	lookupVersion := fmt.Sprintf("%d.%d", parsedVersion.Major, parsedVersion.Minor)
-
-	imageTagVersion := documentedVersions[lookupVersion]
+	imageTagVersion := KubeProxyDocumentedVersions[lookupVersion]
 
 	if imageTagVersion == "" {
 		imageTagVersion = controlPlaneVersion
