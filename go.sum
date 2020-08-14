@@ -955,6 +955,8 @@ github.com/weaveworks/go-git-providers v0.1.2 h1:NaQMvKNB3LLlpfQCNt5v+AeiFMPy9Gs
 github.com/weaveworks/go-git-providers v0.1.2/go.mod h1:M6Czz1nBpSmewHqSZQ2zy/9eGuYbDwq8bGCLSUbWDVs=
 github.com/weaveworks/goformation/v4 v4.0.0-20200713150029-ff3cf0bbf42c h1:QqVYCZ74N11g05e4zCi9JGQTE++XVKM+10VUgf23Ag8=
 github.com/weaveworks/goformation/v4 v4.0.0-20200713150029-ff3cf0bbf42c/go.mod h1:v5eVVfemt/w9XiVfD/Zmwic31dGfwIsVEHp5XhJ0qFU=
+github.com/weaveworks/goformation/v4 v4.10.2-0.20200814120225-9ad99f6e397d h1:iKFsWQ0XAFnL/NiSfxVkhYJt3r3wvlcIyDJSOUTTLeM=
+github.com/weaveworks/goformation/v4 v4.10.2-0.20200814120225-9ad99f6e397d/go.mod h1:v5eVVfemt/w9XiVfD/Zmwic31dGfwIsVEHp5XhJ0qFU=
 github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15 h1:i/RhLevywqC6cuUWtGdoaNrsJd+/zWh3PXbkXZIyZsU=
 github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15/go.mod h1:w9Z1vnQmPobkEZ0F3oyiqRYP+62qDqTGnK6t5uhe1kg=
 github.com/weaveworks/mesh v0.0.0-20170419100114-1f158d31de55/go.mod h1:mcON9Ws1aW0crSErpXWp7U1ErCDEKliDX2OhVlbWRKk=
