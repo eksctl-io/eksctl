@@ -373,7 +373,9 @@ func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
 		if *ng.SSH.PublicKeyPath == "" {
 			return fmt.Errorf("--ssh-public-key must be non-empty string")
 		}
-		ng.SSH.Allow = api.Enabled()
+		if flag := l.CobraCommand.Flag("ssh-access"); flag == nil || !flag.Changed {
+			ng.SSH.Allow = api.Enabled()
+		}
 	} else {
 		ng.SSH.PublicKeyPath = nil
 	}

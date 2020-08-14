@@ -26,12 +26,12 @@ import (
 )
 
 func createClusterCmd(cmd *cmdutils.Cmd) {
-	createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.CreateClusterCmdParams) error {
-		return doCreateCluster(cmd, ng, params)
+	createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams) error {
+		return doCreateCluster(cmd, ngFilter, params)
 	})
 }
 
-func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.CreateClusterCmdParams) error) {
+func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams) error) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
@@ -42,7 +42,11 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return runFunc(cmd, ng, params)
+		ngFilter := filter.NewNodeGroupFilter()
+		if err := cmdutils.NewCreateClusterLoader(cmd, ngFilter, ng, params).Load(); err != nil {
+			return err
+		}
+		return runFunc(cmd, ngFilter, params)
 	}
 
 	exampleClusterName := names.ForCluster("", "")
@@ -90,12 +94,7 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 	})
 }
 
-func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.CreateClusterCmdParams) error {
-	ngFilter := filter.NewNodeGroupFilter()
-	if err := cmdutils.NewCreateClusterLoader(cmd, ngFilter, ng, params).Load(); err != nil {
-		return err
-	}
-
+func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams) error {
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
