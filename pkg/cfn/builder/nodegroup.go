@@ -24,7 +24,6 @@ type NodeGroupResourceSet struct {
 	supportsManagedNodes bool
 	provider             api.ClusterProvider
 	clusterStackName     string
-	nodeGroupName        string
 	instanceProfileARN   *gfnt.Value
 	securityGroups       []*gfnt.Value
 	vpc                  *gfnt.Value
@@ -37,7 +36,6 @@ func NewNodeGroupResourceSet(provider api.ClusterProvider, spec *api.ClusterConf
 	return &NodeGroupResourceSet{
 		rs:                   newResourceSet(),
 		clusterStackName:     clusterStackName,
-		nodeGroupName:        ng.Name,
 		supportsManagedNodes: supportsManagedNodes,
 		clusterSpec:          spec,
 		spec:                 ng,
@@ -75,7 +73,7 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		} else {
 			n.spec.MinSize = n.spec.DesiredCapacity
 		}
-		logger.Info("--nodes-min=%d was set automatically for nodegroup %s", *n.spec.MinSize, n.nodeGroupName)
+		logger.Info("--nodes-min=%d was set automatically for nodegroup %s", *n.spec.MinSize, n.spec.Name)
 	} else if n.spec.DesiredCapacity != nil && *n.spec.DesiredCapacity < *n.spec.MinSize {
 		return fmt.Errorf("cannot use --nodes-min=%d and --nodes=%d at the same time", *n.spec.MinSize, *n.spec.DesiredCapacity)
 	}
@@ -87,7 +85,7 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		} else {
 			n.spec.MaxSize = n.spec.DesiredCapacity
 		}
-		logger.Info("--nodes-max=%d was set automatically for nodegroup %s", *n.spec.MaxSize, n.nodeGroupName)
+		logger.Info("--nodes-max=%d was set automatically for nodegroup %s", *n.spec.MaxSize, n.spec.Name)
 	} else if n.spec.DesiredCapacity != nil && *n.spec.DesiredCapacity > *n.spec.MaxSize {
 		return fmt.Errorf("cannot use --nodes-max=%d and --nodes=%d at the same time", *n.spec.MaxSize, *n.spec.DesiredCapacity)
 	} else if *n.spec.MaxSize < *n.spec.MinSize {
@@ -202,7 +200,7 @@ func (n *NodeGroupResourceSet) generateNodeName() string {
 	if n.spec.InstanceName != "" {
 		name = append(name, n.spec.InstanceName)
 	} else {
-		name = append(name, fmt.Sprintf("%s-%s-Node", n.clusterSpec.Metadata.Name, n.nodeGroupName))
+		name = append(name, fmt.Sprintf("%s-%s-Node", n.clusterSpec.Metadata.Name, n.spec.Name))
 	}
 	return strings.Join(name, "")
 }

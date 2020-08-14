@@ -88,5 +88,9 @@ func imageType(imageFamily, instanceType string) string {
 	if utils.IsGPUInstanceType(instanceType) {
 		return family + "-gpu"
 	}
+
+	if utils.IsARMInstanceType(instanceType) {
+		return family + "-arm64"
+	}
 	return family
 }

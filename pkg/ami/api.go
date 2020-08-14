@@ -18,6 +18,7 @@ import (
 const (
 	ImageClassGeneral = iota
 	ImageClassGPU
+	ImageClassARM
 )
 
 // ImageClasses is a list of image class names
