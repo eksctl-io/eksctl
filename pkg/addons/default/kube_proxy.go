@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -97,5 +98,21 @@ func UpdateKubeProxyImageTag(clientSet kubernetes.Interface, controlPlaneVersion
 }
 
 func kubeProxyImageTag(controlPlaneVersion string) string {
-	return fmt.Sprintf("v%s-eksbuild.1", controlPlaneVersion)
+	// See https://docs.aws.amazon.com/eks/latest/userguide/update-cluster.html for latest supported versions
+	documentedVersions := map[string]string{
+		"1.17": "1.17.7",
+		"1.16": "1.16.12",
+		"1.15": "1.15.11",
+		"1.14": "1.14.9",
+	}
+	parsedVersion, _ := semver.ParseTolerant(controlPlaneVersion)
+	lookupVersion := fmt.Sprintf("%d.%d", parsedVersion.Major, parsedVersion.Minor)
+
+	imageTagVersion := documentedVersions[lookupVersion]
+
+	if imageTagVersion == "" {
+		imageTagVersion = controlPlaneVersion
+	}
+
+	return fmt.Sprintf("v%s-eksbuild.1", imageTagVersion)
 }
