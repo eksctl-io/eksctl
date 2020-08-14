@@ -662,6 +662,9 @@
           "description": "specifies an existing launch template to use for the nodegroup",
           "x-intellij-html-description": "specifies an existing launch template to use for the nodegroup"
         },
+        "maxPodsPerNode": {
+          "type": "integer"
+        },
         "maxSize": {
           "type": "integer"
         },
@@ -754,6 +757,7 @@
         "iam",
         "ami",
         "securityGroups",
+        "maxPodsPerNode",
         "ebsOptimized",
         "volumeType",
         "volumeName",
@@ -1008,6 +1012,7 @@
         "iam",
         "ami",
         "securityGroups",
+        "maxPodsPerNode",
         "ebsOptimized",
         "volumeType",
         "volumeName",
@@ -1020,7 +1025,6 @@
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",
-        "maxPodsPerNode",
         "taints",
         "classicLoadBalancerNames",
         "targetGroupARNs",
