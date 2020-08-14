@@ -186,9 +186,9 @@ var _ = Describe("Kubeconfig", func() {
 							InstanceRoleARN:  "",
 							InstanceRoleName: "",
 						},
-						AMI: "",
+						AMI:            "",
+						MaxPodsPerNode: 0,
 					},
-					MaxPodsPerNode: 0,
 				},
 			},
 			VPC: &eksctlapi.ClusterVPC{
