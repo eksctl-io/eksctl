@@ -329,7 +329,7 @@ func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interfa
 			"AutoScalingRollingUpdate": {
 				"MinInstancesInService": "0",
 				"MaxBatchSize":          "1",
-				"SuspendProcesses":      ng.ASGSuspendedProcesses,
+				"SuspendProcesses":      ng.ASGSuspendProcesses,
 			},
 		},
 	}

@@ -724,13 +724,13 @@
           },
           "type": "array"
         },
-        "asgSuspendedProcesses": {
+        "asgSuspendProcesses": {
           "items": {
             "type": "string"
           },
           "type": "array",
-          "description": "Suspend ASG scaling processes, e.g. AZRebalance",
-          "x-intellij-html-description": "Suspend ASG scaling processes, e.g. AZRebalance"
+          "description": "See [relevant AWS docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-updatepolicy.html#cfn-attributes-updatepolicy-rollingupdate-suspendprocesses)",
+          "x-intellij-html-description": "See <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-updatepolicy.html#cfn-attributes-updatepolicy-rollingupdate-suspendprocesses\">relevant AWS docs</a>"
         },
         "availabilityZones": {
           "items": {
@@ -914,7 +914,7 @@
         "instanceName",
         "securityGroups",
         "asgMetricsCollection",
-        "asgSuspendedProcesses",
+        "asgSuspendProcesses",
         "ebsOptimized",
         "cpuCredits",
         "volumeType",

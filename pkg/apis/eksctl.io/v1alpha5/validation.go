@@ -264,7 +264,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		return err
 	}
 
-	if err := validateASGSuspendedProcesses(ng); err != nil {
+	if err := validateASGSuspendProcesses(ng); err != nil {
 		return err
 	}
 
@@ -503,9 +503,9 @@ func validateCPUCredits(ng *NodeGroup) error {
 	return nil
 }
 
-func validateASGSuspendedProcesses(ng *NodeGroup) error {
+func validateASGSuspendProcesses(ng *NodeGroup) error {
 	// Processes list taken from here: https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_SuspendProcesses.html
-	for _, proc := range ng.ASGSuspendedProcesses {
+	for _, proc := range ng.ASGSuspendProcesses {
 		switch proc {
 		case
 			"Launch",
@@ -519,7 +519,7 @@ func validateASGSuspendedProcesses(ng *NodeGroup) error {
 			"ScheduledActions":
 			continue
 		default:
-			return fmt.Errorf("asgSuspendedProcesses contains invalid process name '%s'", proc)
+			return fmt.Errorf("asgSuspendProcesses contains invalid process name '%s'", proc)
 		}
 	}
 	return nil
