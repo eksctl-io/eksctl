@@ -3,6 +3,7 @@ package create
 import (
 	"github.com/kris-nova/logger"
 	"github.com/lithammer/dedent"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -28,13 +29,15 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	var arn string
 	var username string
 	var groups []string
+	var account string
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doCreateIAMIdentityMapping(cmd, arn, username, groups)
+		return doCreateIAMIdentityMapping(cmd, account, arn, username, groups)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVar(&account, "account", "", "Account ID to automatically map to its username")
 		fs.StringVar(&username, "username", "", "User name within Kubernetes to map to IAM role")
 		fs.StringArrayVar(&groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
 		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &arn)
@@ -47,12 +50,7 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
-func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, username string, groups []string) error {
-	id, err := iam.NewIdentity(arn, username, groups)
-	if err != nil {
-		return err
-	}
-
+func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, account string, arn string, username string, groups []string) error {
 	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
@@ -85,24 +83,37 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, username string, 
 		return err
 	}
 
-	// Check whether role already exists.
-	identities, err := acm.Identities()
-	if err != nil {
-		return err
-	}
-
-	createdArn := id.ARN() // The call to Valid above makes sure this cannot error
-	for _, identity := range identities {
-		arn := identity.ARN()
-
-		if createdArn == arn {
-			logger.Warning("found existing mappings with same arn %q (which will be shadowed by your new mapping)", createdArn)
-			break
+	if account == "" {
+		id, err := iam.NewIdentity(arn, username, groups)
+		if err != nil {
+			return err
 		}
-	}
 
-	if err := acm.AddIdentity(id); err != nil {
-		return err
+		// Check whether role already exists.
+		identities, err := acm.Identities()
+		if err != nil {
+			return err
+		}
+
+		createdArn := id.ARN() // The call to Valid above makes sure this cannot error
+		for _, identity := range identities {
+			arn := identity.ARN()
+
+			if createdArn == arn {
+				logger.Warning("found existing mappings with same arn %q (which will be shadowed by your new mapping)", createdArn)
+				break
+			}
+		}
+
+		if err := acm.AddIdentity(id); err != nil {
+			return err
+		}
+	} else if arn == "" && username == "" && len(groups) == 0 {
+		if err := acm.AddAccount(account); err != nil {
+			return err
+		}
+	} else {
+		return errors.New("account can only be set alone")
 	}
 	return acm.Save()
 }
