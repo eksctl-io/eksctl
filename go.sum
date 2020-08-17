@@ -129,6 +129,8 @@ github.com/bazelbuild/buildtools v0.0.0-20190917191645-69366ca98f89 h1:3B/ZE1a6e
 github.com/bazelbuild/buildtools v0.0.0-20190917191645-69366ca98f89/go.mod h1:5JP0TXzWDHXv8qvxRC4InIazwdyDseBDbzESUMKk1yU=
 github.com/bazelbuild/rules_go v0.0.0-20190719190356-6dae44dc5cab h1:wzbawlkLtl2ze9w/312NHZ84c7kpUCtlkD8HgFY27sw=
 github.com/bazelbuild/rules_go v0.0.0-20190719190356-6dae44dc5cab/go.mod h1:MC23Dc/wkXEyk3Wpq6lCqz0ZAYOZDw2DR5y3N1q2i7M=
+github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea h1:NhnqtoeNnEBu36bfeP2CZq/d5bJxzJBtChscvM7v5Cg=
+github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea/go.mod h1:jfBxQAPihPj5l6sipcapjHruLizHrt3RKuppDE97K+g=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0 h1:HWo1m869IqiPhD389kmkxeTalrjNbbJTC8LXupb+sl0=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
@@ -556,6 +558,7 @@ github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8/go.mod h1:Nht
 github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af/go.mod h1:Nht3zPeWKUH0NzdCt2Blrr5ys8VGpn0CEB0cQHVjt7k=
 github.com/jmespath/go-jmespath v0.3.0 h1:OS12ieG61fsCg5+qLJ+SsW9NicxNkg3b25OyT2yCeUc=
 github.com/jmespath/go-jmespath v0.3.0/go.mod h1:9QtRXoHjLGCJ5IBSaohpXITPlowMeeYCZ7fLUTSywik=
+github.com/jmoiron/sqlx v1.2.1-0.20190826204134-d7d95172beb5 h1:lrdPtrORjGv1HbbEvKWDUAy97mPpFm4B8hp77tcCUJY=
 github.com/jmoiron/sqlx v1.2.1-0.20190826204134-d7d95172beb5/go.mod h1:1FEQNm3xlJgrMD+FBdI9+xvCksHtbpVBBw5dYhBSsks=
 github.com/joho/godotenv v1.3.0/go.mod h1:7hK45KPybAkOC6peb+G5yklZfMxEjkZhHbwpqxOKXbg=
 github.com/jonboulle/clockwork v0.1.0 h1:VKV+ZcuP6l3yW9doeqz6ziZGgcynBVQO+obU0+0hcPo=
@@ -948,8 +951,8 @@ github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 h1:txplJASvd6b
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2/go.mod h1:DGCIhurYgnLz8J9ga1fMV/fbLDyUvTyrWXVWUIyJon4=
 github.com/weaveworks/go-git-providers v0.1.2 h1:NaQMvKNB3LLlpfQCNt5v+AeiFMPy9Gs1VAOe9wAjmrw=
 github.com/weaveworks/go-git-providers v0.1.2/go.mod h1:M6Czz1nBpSmewHqSZQ2zy/9eGuYbDwq8bGCLSUbWDVs=
-github.com/weaveworks/goformation/v4 v4.0.0-20200713150029-ff3cf0bbf42c h1:QqVYCZ74N11g05e4zCi9JGQTE++XVKM+10VUgf23Ag8=
-github.com/weaveworks/goformation/v4 v4.0.0-20200713150029-ff3cf0bbf42c/go.mod h1:v5eVVfemt/w9XiVfD/Zmwic31dGfwIsVEHp5XhJ0qFU=
+github.com/weaveworks/goformation/v4 v4.10.2-0.20200814120225-9ad99f6e397d h1:iKFsWQ0XAFnL/NiSfxVkhYJt3r3wvlcIyDJSOUTTLeM=
+github.com/weaveworks/goformation/v4 v4.10.2-0.20200814120225-9ad99f6e397d/go.mod h1:v5eVVfemt/w9XiVfD/Zmwic31dGfwIsVEHp5XhJ0qFU=
 github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15 h1:i/RhLevywqC6cuUWtGdoaNrsJd+/zWh3PXbkXZIyZsU=
 github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15/go.mod h1:w9Z1vnQmPobkEZ0F3oyiqRYP+62qDqTGnK6t5uhe1kg=
 github.com/weaveworks/mesh v0.0.0-20170419100114-1f158d31de55/go.mod h1:mcON9Ws1aW0crSErpXWp7U1ErCDEKliDX2OhVlbWRKk=

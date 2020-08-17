@@ -264,16 +264,8 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		return err
 	}
 
-	for _, ng := range cfg.NodeGroups {
-		// resolve AMI
-		if err := eks.EnsureAMI(ctl.Provider, meta.Version, ng); err != nil {
-			return err
-		}
-		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
-	}
-
-	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider.EC2())
-	if err := nodeGroupService.Normalize(cfg.AllNodeGroups()); err != nil {
+	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider)
+	if err := nodeGroupService.Normalize(cmdutils.ToNodePools(cfg)); err != nil {
 		return err
 	}
 

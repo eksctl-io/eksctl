@@ -8,6 +8,7 @@ require (
 	github.com/Azure/go-autorest/autorest v0.10.0 // indirect
 	github.com/Azure/go-autorest/autorest/azure/auth v0.4.2 // indirect
 	github.com/aws/aws-sdk-go v1.30.11
+	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/cloudflare/cfssl v0.0.0-20190726000631-633726f6bcb7
@@ -49,7 +50,7 @@ require (
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
 	github.com/weaveworks/go-git-providers v0.1.2
 	// Fork from errordeveloper/goformation, rebased on awslabs/goformation/v4
-	github.com/weaveworks/goformation/v4 v4.0.0-20200713150029-ff3cf0bbf42c
+	github.com/weaveworks/goformation/v4 v4.10.2-0.20200814120225-9ad99f6e397d
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
 	golang.org/x/tools v0.0.0-20200502202811-ed308ab3e770
