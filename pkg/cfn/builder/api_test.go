@@ -140,8 +140,9 @@ type LaunchTemplateData struct {
 type Template struct {
 	Description string
 	Resources   map[string]struct {
-		Properties Properties
-		DependsOn  []string
+		Properties   Properties
+		DependsOn    []string
+		UpdatePolicy map[string]map[string]interface{}
 	}
 }
 
@@ -2986,6 +2987,25 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification).ToNot(BeNil())
 			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).ToNot(BeNil())
 			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).To(Equal("unlimited"))
+		})
+	})
+
+	Context("NodeGroup with asgSuspendProcesses", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.ASGSuspendProcesses = []string{"Launch", "InstanceRefresh"}
+		build(cfg, "eksctl-test-asgSuspendProcesses", ng)
+
+		roundtrip()
+
+		It("should have correct resources and attributes", func() {
+			Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
+			ngResource := ngTemplate.Resources["NodeGroup"]
+			Expect(ng).ToNot(BeNil())
+			Expect(ngResource.UpdatePolicy).To(HaveKey("AutoScalingRollingUpdate"))
+			Expect(ngResource.UpdatePolicy["AutoScalingRollingUpdate"]).To(
+				HaveKeyWithValue("SuspendProcesses", []interface{}{"Launch", "InstanceRefresh"}),
+			)
 		})
 	})
 
