@@ -1,0 +1,33 @@
+# An example of ClusterConfig object using a provided launch template
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: managed-cluster
+  region: us-west-2
+
+managedNodeGroups:
+- name: launch-template-ng
+  launchTemplate:
+    id: lt-1234
+    version: "2" #optional (uses the default version of the launch template if unspecified)
+  labels: {role: worker}
+  tags:
+    nodegroup-role: worker
+  iam:
+    withAddonPolicies:
+      externalDNS: true
+      certManager: true
+
+
+- name: custom-nodegroup
+  instanceType: m5.xlarge
+  desiredCapacity: 2
+  ami: ami-0e124de4755b2734d
+  ssh:
+    allow: true
+  securityGroups:
+    attachIDs: ["sg-123", "sg-321"]
+  overrideBootstrapCommand: |
+    /etc/eks/bootstrap.sh managed-cluster --kubelet-extra-args '--node-labels=eks.amazonaws.com/nodegroup=custom-ng,eks.amazonaws.com/nodegroup-image=ami-0e124de4755b2734d'

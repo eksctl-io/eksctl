@@ -3,6 +3,7 @@ package v1alpha5
 import (
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -158,10 +159,7 @@ func PrivateOnly(ces *ClusterEndpoints) bool {
 	return !*ces.PublicAccess && *ces.PrivateAccess
 }
 
-// ValidateNodeGroup checks compatible fields of a given nodegroup
-func ValidateNodeGroup(i int, ng *NodeGroup) error {
-	path := fmt.Sprintf("nodeGroups[%d]", i)
-
+func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
 	if ng.VolumeSize == nil {
 		errCantSet := func(field string) error {
 			return fmt.Errorf("%s.%s cannot be set without %s.volumeSize", path, field, path)
@@ -190,8 +188,21 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 
 	if ng.VolumeEncrypted == nil || IsDisabled(ng.VolumeEncrypted) {
 		if IsSetAndNonEmptyString(ng.VolumeKmsKeyID) {
-			return fmt.Errorf("%s.VolumeKmsKeyID can not be set without %s.VolumeEncrypted enabled explicitly", path, path)
+			return fmt.Errorf("%s.volumeKmsKeyID can not be set without %s.volumeEncrypted enabled explicitly", path, path)
 		}
+	}
+	if ng.MaxPodsPerNode < 0 {
+		return fmt.Errorf("%s.maxPodsPerNode cannot be negative", path)
+	}
+
+	return nil
+}
+
+// ValidateNodeGroup checks compatible fields of a given nodegroup
+func ValidateNodeGroup(i int, ng *NodeGroup) error {
+	path := fmt.Sprintf("nodeGroups[%d]", i)
+	if err := validateNodeGroupBase(ng.NodeGroupBase, path); err != nil {
+		return err
 	}
 
 	if ng.IAM != nil {
@@ -381,6 +392,11 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 		return fmt.Errorf("only %s is supported for Managed Nodegroups", NodeImageFamilyAmazonLinux2)
 	}
 	path := fmt.Sprintf("managedNodeGroups[%d]", index)
+
+	if err := validateNodeGroupBase(ng.NodeGroupBase, path); err != nil {
+		return err
+	}
+
 	if ng.IAM != nil {
 		if err := validateNodeGroupIAM(ng.IAM, ng.IAM.InstanceRoleARN, "instanceRoleARN", path); err != nil {
 			return err
@@ -423,6 +439,54 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 	if ng.DesiredCapacity == nil {
 		ng.DesiredCapacity = ng.MinSize
 	}
+	if ng.VolumeType == nil {
+		ng.VolumeType = &DefaultNodeVolumeType
+	}
+
+	if IsEnabled(ng.SecurityGroups.WithLocal) || IsEnabled(ng.SecurityGroups.WithShared) {
+		return errors.Errorf("securityGroups.withLocal and securityGroups.withShared are not supported for managed nodegroups (%s.securityGroups)", path)
+	}
+
+	switch {
+	case ng.LaunchTemplate != nil:
+		if ng.LaunchTemplate.ID == "" {
+			return errors.Errorf("launchTemplate.id is required if launchTemplate is set (%s.%s)", path, "launchTemplate")
+		}
+
+		if ng.LaunchTemplate.Version != nil {
+			// TODO support `latest` and `default`
+			versionNumber, err := strconv.ParseInt(*ng.LaunchTemplate.Version, 10, 64)
+			if err != nil {
+				return errors.Wrap(err, "invalid launch template version")
+			}
+			if versionNumber < 1 {
+				return errors.Errorf("launchTemplate.version must be >= 1 (%s.%s)", path, "launchTemplate.version")
+			}
+		}
+
+		if ng.InstanceType != "" || ng.AMI != "" || IsEnabled(ng.SSH.Allow) || len(ng.SSH.SourceSecurityGroupIDs) > 0 ||
+			ng.VolumeSize != nil || len(ng.PreBootstrapCommands) > 0 || ng.OverrideBootstrapCommand != nil ||
+			len(ng.SecurityGroups.AttachIDs) > 0 || ng.InstanceName != "" || ng.InstancePrefix != "" || ng.MaxPodsPerNode != 0 {
+
+			return errors.New("cannot set instanceType, ami, ssh.allow, ssh.sourceSecurityGroupIds, securityGroups, " +
+				"volumeSize, instanceName, instancePrefix, maxPodsPerNode, disableIMDSv1, preBootstrapCommands or overrideBootstrapCommand in managedNodeGroup when a launch template is supplied")
+		}
+
+	case ng.AMI != "":
+		if !IsAMI(ng.AMI) {
+			return errors.Errorf("invalid AMI %q (%s.%s)", ng.AMI, path, "ami")
+		}
+		if ng.OverrideBootstrapCommand == nil {
+			return errors.Errorf("%s.overrideBootstrapCommand is required when using a custom AMI (%s.ami)", path, path)
+		}
+		if ng.MaxPodsPerNode != 0 {
+			return errors.Errorf("%s.maxPodsPerNode is not supported when using a custom AMI (%s.ami)", path, path)
+		}
+
+	case ng.OverrideBootstrapCommand != nil:
+		return errors.Errorf("%s.overrideBootstrapCommand can only be set when a custom AMI (%s.ami) is specified", path, path)
+	}
+
 	return nil
 }
 
@@ -432,7 +496,7 @@ func validateInstancesDistribution(ng *NodeGroup) error {
 	}
 
 	if ng.InstanceType != "" && ng.InstanceType != "mixed" {
-		return fmt.Errorf("instanceType should be \"mixed\" or unset when using the mixed instances feature")
+		return fmt.Errorf(`instanceType should be "mixed" or unset when using the mixed instances feature`)
 	}
 
 	distribution := ng.InstancesDistribution

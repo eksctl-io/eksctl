@@ -36,6 +36,7 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 
 // SetNodeGroupDefaults will set defaults for a given nodegroup
 func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
+	setNodeGroupBaseDefaults(ng.NodeGroupBase, meta)
 	if ng.InstanceType == "" {
 		if HasMixedInstances(ng) {
 			ng.InstanceType = "mixed"
@@ -47,30 +48,6 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 		ng.AMIFamily = DefaultNodeImageFamily
 	}
 
-	if ng.SecurityGroups == nil {
-		ng.SecurityGroups = &NodeGroupSGs{
-			AttachIDs: []string{},
-		}
-	}
-	if ng.SecurityGroups.WithLocal == nil {
-		ng.SecurityGroups.WithLocal = Enabled()
-	}
-	if ng.SecurityGroups.WithShared == nil {
-		ng.SecurityGroups.WithShared = Enabled()
-	}
-
-	if ng.SSH == nil {
-		ng.SSH = &NodeGroupSSH{
-			Allow: Disabled(),
-		}
-	}
-
-	if ng.ScalingConfig == nil {
-		ng.ScalingConfig = &ScalingConfig{}
-	}
-
-	setSSHDefaults(ng.SSH)
-
 	if !IsSetAndNonEmptyString(ng.VolumeType) {
 		ng.VolumeType = &DefaultNodeVolumeType
 	}
@@ -79,16 +56,12 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 		ng.VolumeSize = &DefaultNodeVolumeSize
 	}
 
-	if ng.IAM == nil {
-		ng.IAM = &NodeGroupIAM{}
+	if ng.SecurityGroups.WithLocal == nil {
+		ng.SecurityGroups.WithLocal = Enabled()
 	}
-
-	setIAMDefaults(ng.IAM)
-
-	if ng.Labels == nil {
-		ng.Labels = make(map[string]string)
+	if ng.SecurityGroups.WithShared == nil {
+		ng.SecurityGroups.WithShared = Enabled()
 	}
-	setDefaultNodeLabels(ng.Labels, meta.Name, ng.Name)
 
 	switch ng.AMIFamily {
 	case NodeImageFamilyBottlerocket:
@@ -98,12 +71,22 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 
 // SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
 func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta) {
+	setNodeGroupBaseDefaults(ng.NodeGroupBase, meta)
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = NodeImageFamilyAmazonLinux2
 	}
-	if ng.InstanceType == "" {
+	if ng.LaunchTemplate == nil && ng.InstanceType == "" {
 		ng.InstanceType = DefaultNodeType
 	}
+
+	if ng.Tags == nil {
+		ng.Tags = make(map[string]string)
+	}
+	ng.Tags[NodeGroupNameTag] = ng.Name
+	ng.Tags[NodeGroupTypeTag] = string(NodeGroupTypeManaged)
+}
+
+func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
 	if ng.ScalingConfig == nil {
 		ng.ScalingConfig = &ScalingConfig{}
 	}
@@ -114,6 +97,10 @@ func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta) {
 	}
 	setSSHDefaults(ng.SSH)
 
+	if ng.SecurityGroups == nil {
+		ng.SecurityGroups = &NodeGroupSGs{}
+	}
+
 	if ng.IAM == nil {
 		ng.IAM = &NodeGroupIAM{}
 	}
@@ -123,12 +110,6 @@ func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta) {
 		ng.Labels = make(map[string]string)
 	}
 	setDefaultNodeLabels(ng.Labels, meta.Name, ng.Name)
-
-	if ng.Tags == nil {
-		ng.Tags = make(map[string]string)
-	}
-	ng.Tags[NodeGroupNameTag] = ng.Name
-	ng.Tags[NodeGroupTypeTag] = string(NodeGroupTypeManaged)
 }
 
 func setIAMDefaults(iamConfig *NodeGroupIAM) {
