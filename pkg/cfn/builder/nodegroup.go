@@ -325,10 +325,11 @@ func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interfa
 	return &awsCloudFormationResource{
 		Type:       "AWS::AutoScaling::AutoScalingGroup",
 		Properties: ngProps,
-		UpdatePolicy: map[string]map[string]string{
+		UpdatePolicy: map[string]map[string]interface{}{
 			"AutoScalingRollingUpdate": {
 				"MinInstancesInService": "0",
 				"MaxBatchSize":          "1",
+				"SuspendProcesses":      ng.ASGSuspendProcesses,
 			},
 		},
 	}

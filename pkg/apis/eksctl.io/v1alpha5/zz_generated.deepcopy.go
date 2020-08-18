@@ -696,6 +696,11 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.ASGSuspendProcesses != nil {
+		in, out := &in.ASGSuspendProcesses, &out.ASGSuspendProcesses
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.EBSOptimized != nil {
 		in, out := &in.EBSOptimized, &out.EBSOptimized
 		*out = new(bool)

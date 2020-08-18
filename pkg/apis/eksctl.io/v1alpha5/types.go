@@ -704,6 +704,11 @@ type NodeGroup struct {
 	// +optional
 	ASGMetricsCollection []MetricsCollection `json:"asgMetricsCollection,omitempty"`
 
+	// See [relevant AWS
+	// docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-updatepolicy.html#cfn-attributes-updatepolicy-rollingupdate-suspendprocesses)
+	// +optional
+	ASGSuspendProcesses []string `json:"asgSuspendProcesses,omitempty"`
+
 	// EBSOptimized enables [EBS
 	// optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)
 	// +optional
