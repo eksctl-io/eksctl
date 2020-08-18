@@ -85,9 +85,11 @@ func TestUseAMI(t *testing.T) {
 		t.Run(fmt.Sprintf("%d: %s", i, tt.description), func(t *testing.T) {
 			mockProvider := mockDescribeImages(tt.blockDeviceMappings, tt.rootDeviceName)
 			ng := &api.NodeGroup{
-				AMI: "ami-0121d8347f8191f90",
+				NodeGroupBase: &api.NodeGroupBase{
+					AMI: "ami-0121d8347f8191f90",
+				},
 			}
-			err := ami.Use(mockProvider.MockEC2(), ng)
+			err := ami.Use(mockProvider.MockEC2(), ng.NodeGroupBase)
 
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)

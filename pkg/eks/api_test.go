@@ -95,7 +95,7 @@ var _ = Describe("eksctl API", func() {
 			ng.AMI = "static"
 			ng.InstanceType = "p2.xlarge"
 
-			err := EnsureAMI(provider, "1.14", ng)
+			err := ResolveAMI(provider, "1.14", ng)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ng.AMI).To(HavePrefix("ami"))
@@ -104,7 +104,7 @@ var _ = Describe("eksctl API", func() {
 			ng.AMI = "static"
 			ng.InstanceType = "m5.xlarge"
 
-			err := EnsureAMI(provider, "1.14", ng)
+			err := ResolveAMI(provider, "1.14", ng)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ng.AMI).To(HavePrefix("ami"))
@@ -116,7 +116,7 @@ var _ = Describe("eksctl API", func() {
 				InstanceTypes: []string{"t3.large", "m5.large", "m5a.large"},
 			}
 
-			err := EnsureAMI(provider, "1.14", ng)
+			err := ResolveAMI(provider, "1.14", ng)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ng.AMI).To(HavePrefix("ami"))
@@ -128,7 +128,7 @@ var _ = Describe("eksctl API", func() {
 				InstanceTypes: []string{"t3.large", "m5.large", "m5a.large", "p3.2xlarge"},
 			}
 
-			err := EnsureAMI(provider, "1.14", ng)
+			err := ResolveAMI(provider, "1.14", ng)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ng.AMI).To(HavePrefix("ami"))
@@ -153,7 +153,7 @@ var _ = Describe("eksctl API", func() {
 		})
 
 		testEnsureAMI := func(matcher gomegatypes.GomegaMatcher) {
-			err := EnsureAMI(provider, "1.14", ng)
+			err := ResolveAMI(provider, "1.14", ng)
 			ExpectWithOffset(1, err).ToNot(HaveOccurred())
 			ExpectWithOffset(1, ng.AMI).To(matcher)
 		}

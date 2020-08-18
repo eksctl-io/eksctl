@@ -160,7 +160,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	tags := []map[string]interface{}{
 		{
 			"Key":               "Name",
-			"Value":             n.generateNodeName(),
+			"Value":             generateNodeName(n.spec.NodeGroupBase, n.clusterSpec.Metadata),
 			"PropagateAtLaunch": "true",
 		},
 		{
@@ -191,18 +191,18 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 }
 
 // generateNodeName formulates the name based on the configuration in input
-func (n *NodeGroupResourceSet) generateNodeName() string {
-	name := []string{}
-	if n.spec.InstancePrefix != "" {
-		name = append(name, n.spec.InstancePrefix, "-")
+func generateNodeName(ng *api.NodeGroupBase, meta *api.ClusterMeta) string {
+	var nameParts []string
+	if ng.InstancePrefix != "" {
+		nameParts = append(nameParts, ng.InstancePrefix, "-")
 	}
 	// this overrides the default naming convention
-	if n.spec.InstanceName != "" {
-		name = append(name, n.spec.InstanceName)
+	if ng.InstanceName != "" {
+		nameParts = append(nameParts, ng.InstanceName)
 	} else {
-		name = append(name, fmt.Sprintf("%s-%s-Node", n.clusterSpec.Metadata.Name, n.spec.Name))
+		nameParts = append(nameParts, fmt.Sprintf("%s-%s-Node", meta.Name, ng.Name))
 	}
-	return strings.Join(name, "")
+	return strings.Join(nameParts, "")
 }
 
 // AssignSubnets subnets based on the specified availability zones
@@ -249,10 +249,6 @@ func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
 }
 
 func newLaunchTemplateData(n *NodeGroupResourceSet) *gfnec2.LaunchTemplate_LaunchTemplateData {
-	imdsv2TokensRequired := "optional"
-	if api.IsEnabled(n.spec.DisableIMDSv1) {
-		imdsv2TokensRequired = "required"
-	}
 
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
 		IamInstanceProfile: &gfnec2.LaunchTemplate_IamInstanceProfile{
@@ -266,10 +262,7 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfnec2.LaunchTemplate_Launc
 			DeviceIndex:              gfnt.NewInteger(0),
 			Groups:                   gfnt.NewSlice(n.securityGroups...),
 		}},
-		MetadataOptions: &gfnec2.LaunchTemplate_MetadataOptions{
-			HttpPutResponseHopLimit: gfnt.NewInteger(2),
-			HttpTokens:              gfnt.NewString(imdsv2TokensRequired),
-		},
+		MetadataOptions: makeMetadataOptions(n.spec.NodeGroupBase),
 	}
 
 	if !api.HasMixedInstances(n.spec) {
@@ -288,6 +281,17 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfnec2.LaunchTemplate_Launc
 	}
 
 	return launchTemplateData
+}
+
+func makeMetadataOptions(ng *api.NodeGroupBase) *gfnec2.LaunchTemplate_MetadataOptions {
+	imdsv2TokensRequired := "optional"
+	if api.IsEnabled(ng.DisableIMDSv1) {
+		imdsv2TokensRequired = "required"
+	}
+	return &gfnec2.LaunchTemplate_MetadataOptions{
+		HttpPutResponseHopLimit: gfnt.NewInteger(2),
+		HttpTokens:              gfnt.NewString(imdsv2TokensRequired),
+	}
 }
 
 func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interface{}, tags []map[string]interface{}, ng *api.NodeGroup) *awsCloudFormationResource {
