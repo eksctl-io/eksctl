@@ -363,6 +363,11 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 
 func makeManagedNodegroup(nodeGroup *api.NodeGroup) *api.ManagedNodeGroup {
 	ngBase := *nodeGroup.NodeGroupBase
+	if ngBase.SecurityGroups != nil {
+		ngBase.SecurityGroups = &api.NodeGroupSGs{
+			AttachIDs: ngBase.SecurityGroups.AttachIDs,
+		}
+	}
 	return &api.ManagedNodeGroup{
 		NodeGroupBase: &ngBase,
 	}

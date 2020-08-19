@@ -129,6 +129,8 @@ github.com/bazelbuild/buildtools v0.0.0-20190917191645-69366ca98f89 h1:3B/ZE1a6e
 github.com/bazelbuild/buildtools v0.0.0-20190917191645-69366ca98f89/go.mod h1:5JP0TXzWDHXv8qvxRC4InIazwdyDseBDbzESUMKk1yU=
 github.com/bazelbuild/rules_go v0.0.0-20190719190356-6dae44dc5cab h1:wzbawlkLtl2ze9w/312NHZ84c7kpUCtlkD8HgFY27sw=
 github.com/bazelbuild/rules_go v0.0.0-20190719190356-6dae44dc5cab/go.mod h1:MC23Dc/wkXEyk3Wpq6lCqz0ZAYOZDw2DR5y3N1q2i7M=
+github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea h1:NhnqtoeNnEBu36bfeP2CZq/d5bJxzJBtChscvM7v5Cg=
+github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea/go.mod h1:jfBxQAPihPj5l6sipcapjHruLizHrt3RKuppDE97K+g=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0 h1:HWo1m869IqiPhD389kmkxeTalrjNbbJTC8LXupb+sl0=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
@@ -952,8 +954,8 @@ github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 h1:txplJASvd6b
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2/go.mod h1:DGCIhurYgnLz8J9ga1fMV/fbLDyUvTyrWXVWUIyJon4=
 github.com/weaveworks/go-git-providers v0.1.2 h1:NaQMvKNB3LLlpfQCNt5v+AeiFMPy9Gs1VAOe9wAjmrw=
 github.com/weaveworks/go-git-providers v0.1.2/go.mod h1:M6Czz1nBpSmewHqSZQ2zy/9eGuYbDwq8bGCLSUbWDVs=
-github.com/weaveworks/goformation/v4 v4.0.0-20200811080054-9679a1b9714e h1:viB9rE722E+45nYTeKscMPVGjJgxoXMroY0GpUfIz/8=
-github.com/weaveworks/goformation/v4 v4.0.0-20200811080054-9679a1b9714e/go.mod h1:v5eVVfemt/w9XiVfD/Zmwic31dGfwIsVEHp5XhJ0qFU=
+github.com/weaveworks/goformation/v4 v4.10.2-0.20200818093538-2bbc8360f17e h1:51eBi0xt21FzC6egZJrVZBz/vTrg8vgfQ16JEvtNsd8=
+github.com/weaveworks/goformation/v4 v4.10.2-0.20200818093538-2bbc8360f17e/go.mod h1:v5eVVfemt/w9XiVfD/Zmwic31dGfwIsVEHp5XhJ0qFU=
 github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15 h1:i/RhLevywqC6cuUWtGdoaNrsJd+/zWh3PXbkXZIyZsU=
 github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15/go.mod h1:w9Z1vnQmPobkEZ0F3oyiqRYP+62qDqTGnK6t5uhe1kg=
 github.com/weaveworks/mesh v0.0.0-20170419100114-1f158d31de55/go.mod h1:mcON9Ws1aW0crSErpXWp7U1ErCDEKliDX2OhVlbWRKk=
@@ -1072,7 +1074,6 @@ golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7/go.mod h1:z5CRVTTTmAJ677TzLL
 golang.org/x/net v0.0.0-20190923162816-aa69164e4478/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
 golang.org/x/net v0.0.0-20191004110552-13f9640d40b9/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
 golang.org/x/net v0.0.0-20200202094626-16171245cfb2/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
-golang.org/x/net v0.0.0-20200226121028-0de0cce0169b h1:0mm1VjtFUOIlE1SbDlwjYaDxZVDP2S5ou6y0gSgXHu8=
 golang.org/x/net v0.0.0-20200226121028-0de0cce0169b/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
 golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7 h1:AeiKBIuRw3UomYXSbLy0Mc2dDLfdtbT/IVn4keq83P0=
 golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7/go.mod h1:qpuaurCH72eLCgpAm/N6yyVIVM9cpaDIP3A8BGJEC5A=
@@ -1247,7 +1248,6 @@ gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15/go.mod h1:Co6ibVJAznAaIkqp8
 gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f h1:BLraFXnmrev5lT+xlilqcH8XK9/i0At2xKjWk4p6zsU=
 gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/errgo.v2 v2.1.0/go.mod h1:hNsd1EY+bozCKY1Ytp96fpM3vjJbqLJn88ws8XvfDNI=
-gopkg.in/fsnotify.v1 v1.4.7 h1:xOHLXZwVvI9hhs+cLKq5+I5onOuwQLhQwiu63xxlHs4=
 gopkg.in/fsnotify.v1 v1.4.7/go.mod h1:Tz8NjZHkW78fSQdbUxIjBTcgA1z1m8ZHf0WmKUhAMys=
 gopkg.in/gcfg.v1 v1.2.0 h1:0HIbH907iBTAntm+88IJV2qmJALDAh8sPekI9Vc1fm0=
 gopkg.in/gcfg.v1 v1.2.0/go.mod h1:yesOnuUOFQAhST5vPY4nbZsb/huCgGGXlipJsBn0b3o=
