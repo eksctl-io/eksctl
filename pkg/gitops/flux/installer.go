@@ -10,11 +10,10 @@ import (
 	"time"
 
 	fluxinstall "github.com/fluxcd/flux/pkg/install"
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmopinstall "github.com/fluxcd/helm-operator/pkg/install"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/go-git-providers/pkg/key"
-	"github.com/weaveworks/go-git-providers/pkg/providers"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
@@ -22,6 +21,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/git"
+	"github.com/weaveworks/eksctl/pkg/gitops/deploykey"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
@@ -143,17 +143,17 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 	instruction := fmt.Sprintf("please configure %s so that the following Flux SSH public key has write access to it\n%s",
 		fi.opts.Repo.URL, fluxSSHKey.Key)
 
-	gitProvider, err := providers.GetProvider(fi.cfg.Git.Repo.URL)
+	client, err := deploykey.GetDeployKeyClient(ctx, fi.cfg.Git.Repo.URL)
 	if err != nil {
 		logger.Warning("could not find git provider implementation for url %q: %q. Skipping authorization of SSH key", fi.cfg.Git.Repo.URL, err.Error())
 		return instruction, nil
 	}
 
 	keyTitle := KeyTitle(*fi.cfg.Metadata)
-	err = gitProvider.AuthorizeSSHKey(ctx, key.SSHKey{
-		Title:    keyTitle,
-		Key:      fluxSSHKey.Key,
-		ReadOnly: fi.cfg.Git.Operator.ReadOnly,
+	_, err = client.Create(ctx, gitprovider.DeployKeyInfo{
+		Name:     keyTitle,
+		Key:      []byte(fluxSSHKey.Key),
+		ReadOnly: &fi.cfg.Git.Operator.ReadOnly,
 	})
 	if err != nil {
 		return instruction, errors.Wrapf(err, "could not authorize SSH key")
