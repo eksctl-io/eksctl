@@ -145,7 +145,11 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 
 	client, err := deploykey.GetDeployKeyClient(ctx, fi.cfg.Git.Repo.URL)
 	if err != nil {
-		logger.Warning("could not find git provider implementation for url %q: %q. Skipping authorization of SSH key", fi.cfg.Git.Repo.URL, err.Error())
+		logger.Warning(
+			"could not find git provider implementation for url %q: %q. Skipping authorization of SSH key",
+			fi.cfg.Git.Repo.URL,
+			err.Error(),
+		)
 		return instruction, nil
 	}
 

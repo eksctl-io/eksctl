@@ -19,27 +19,27 @@ func GetDeployKeyClient(ctx context.Context, url string) (gitprovider.DeployKeyC
 	if err != nil {
 		return nil, err
 	}
-	if strings.Contains(repo.Host, "github.com") {
-		githubToken := os.Getenv(githubTokenVariable)
-		gh, err := github.NewClient(github.WithOAuth2Token(githubToken))
-		if err != nil {
-			return nil, err
-		}
-		ownerRepo := strings.Split(repo.Path, "/")
-		if len(ownerRepo) != 2 {
-			return nil, errors.Errorf("couldn't handle URL as github.com URL: %s", url)
-		}
-		rep, err := gh.UserRepositories().Get(ctx, gitprovider.UserRepositoryRef{
-			UserRef: gitprovider.UserRef{
-				Domain:    "github.com",
-				UserLogin: ownerRepo[0],
-			},
-			RepositoryName: ownerRepo[1],
-		})
-		if err != nil {
-			return nil, err
-		}
-		return rep.DeployKeys(), nil
+	if !strings.Contains(repo.Host, github.DefaultDomain) {
+		return nil, errors.New("only GitHub URLs are currently supported")
 	}
-	return nil, nil
+	githubToken := os.Getenv(githubTokenVariable)
+	gh, err := github.NewClient(github.WithOAuth2Token(githubToken))
+	if err != nil {
+		return nil, err
+	}
+	ownerRepo := strings.Split(repo.Path, "/")
+	if len(ownerRepo) != 2 {
+		return nil, errors.New("couldn't understand path of URL")
+	}
+	rep, err := gh.UserRepositories().Get(ctx, gitprovider.UserRepositoryRef{
+		UserRef: gitprovider.UserRef{
+			Domain:    github.DefaultDomain,
+			UserLogin: ownerRepo[0],
+		},
+		RepositoryName: ownerRepo[1],
+	})
+	if err != nil {
+		return nil, err
+	}
+	return rep.DeployKeys(), nil
 }

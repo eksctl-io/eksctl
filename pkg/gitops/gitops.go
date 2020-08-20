@@ -42,8 +42,7 @@ func Setup(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, cfg *a
 		return errors.Wrapf(err, "unable to install flux")
 	}
 
-	err = InstallProfile(cfg)
-	if err != nil {
+	if err = InstallProfile(cfg); err != nil {
 		return err
 	}
 
@@ -76,8 +75,7 @@ func InstallProfile(cfg *api.ClusterConfig) error {
 		IO: afero.Afero{Fs: afero.NewOsFs()},
 	}
 
-	err := profileGen.Install(cfg)
-	if err != nil {
+	if err := profileGen.Install(cfg); err != nil {
 		return errors.Wrapf(err, "unable to install bootstrap profile")
 	}
 
@@ -94,7 +92,11 @@ func DeleteKey(cfg *api.ClusterConfig) error {
 	ctx := context.Background()
 	deployKeyClient, err := deploykey.GetDeployKeyClient(ctx, cfg.Git.Repo.URL)
 	if err != nil {
-		logger.Warning("provider for URL %q not found. Skipping deletion of authorized repo key", cfg.Git.Repo.URL)
+		logger.Warning(
+			"could not find git provider implementation for url %q: %q. Skipping deletion of authorized SSH key",
+			cfg.Git.Repo.URL,
+			err.Error(),
+		)
 		return nil
 	}
 
@@ -105,8 +107,7 @@ func DeleteKey(cfg *api.ClusterConfig) error {
 	if err != nil {
 		return errors.Wrapf(err, "unable to find SSH key")
 	}
-	err = key.Delete(ctx)
-	if err != nil {
+	if err := key.Delete(ctx); err != nil {
 		return errors.Wrapf(err, "unable to delete authorized key")
 	}
 	return nil
