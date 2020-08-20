@@ -3007,6 +3007,24 @@ var _ = Describe("CloudFormation template builder API", func() {
 				HaveKeyWithValue("SuspendProcesses", []interface{}{"Launch", "InstanceRefresh"}),
 			)
 		})
+		Context("empty asgSuspendProcesses", func() {
+			cfg, ng := newClusterConfigAndNodegroup(true)
+
+			ng.ASGSuspendProcesses = []string{}
+			build(cfg, "eksctl-test-asgSuspendProcesses-empty", ng)
+
+			roundtrip()
+
+			It("shouldn't be included in resource", func() {
+				Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
+				ngResource := ngTemplate.Resources["NodeGroup"]
+				Expect(ng).ToNot(BeNil())
+				Expect(ngResource.UpdatePolicy).To(HaveKey("AutoScalingRollingUpdate"))
+				Expect(ngResource.UpdatePolicy["AutoScalingRollingUpdate"]).ToNot(
+					HaveKey("SuspendProcesses"),
+				)
+			})
+		})
 	})
 
 })
