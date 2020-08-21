@@ -154,7 +154,7 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 	}
 
 	keyTitle := KeyTitle(*fi.cfg.Metadata)
-	_, err = client.Create(ctx, gitprovider.DeployKeyInfo{
+	_, _, err = client.Reconcile(ctx, gitprovider.DeployKeyInfo{
 		Name:     keyTitle,
 		Key:      []byte(fluxSSHKey.Key),
 		ReadOnly: &fi.cfg.Git.Operator.ReadOnly,
