@@ -7,6 +7,7 @@ import (
 	"time"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -267,10 +268,15 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 	return summaries, nil
 }
 
+// DescribeNodeGroupStack gets the specified nodegroup stack
+func (c *StackCollection) DescribeNodeGroupStack(nodeGroupName string) (*Stack, error) {
+	stackName := c.makeNodeGroupStackName(nodeGroupName)
+	return c.DescribeStack(&Stack{StackName: &stackName})
+}
+
 // GetNodeGroupStackType returns the nodegroup stack type
 func (c *StackCollection) GetNodeGroupStackType(name string) (api.NodeGroupType, error) {
-	stackName := c.makeNodeGroupStackName(name)
-	stack, err := c.DescribeStack(&Stack{StackName: &stackName})
+	stack, err := c.DescribeNodeGroupStack(name)
 	if err != nil {
 		return "", err
 	}
@@ -298,6 +304,20 @@ func GetNodeGroupType(tags []*cfn.Tag) (api.NodeGroupType, error) {
 	}
 
 	return nodeGroupType, nil
+}
+
+// GetEksctlVersion returns the eksctl version used to create or update the stack
+func GetEksctlVersion(tags []*cfn.Tag) (semver.Version, bool, error) {
+	for _, tag := range tags {
+		if *tag.Key == api.EksctlVersionTag {
+			v, err := semver.ParseTolerant(*tag.Value)
+			if err != nil {
+				return v, false, errors.Wrapf(err, "unexpected error parsing eksctl version %q", *tag.Value)
+			}
+			return v, true, nil
+		}
+	}
+	return semver.Version{}, false, nil
 }
 
 type nodeGroupPaths struct {
