@@ -7,12 +7,12 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
-	"github.com/weaveworks/go-git-providers/pkg/providers"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/git"
+	"github.com/weaveworks/eksctl/pkg/gitops/deploykey"
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
 )
@@ -42,8 +42,7 @@ func Setup(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, cfg *a
 		return errors.Wrapf(err, "unable to install flux")
 	}
 
-	err = InstallProfile(cfg)
-	if err != nil {
+	if err = InstallProfile(cfg); err != nil {
 		return err
 	}
 
@@ -76,8 +75,7 @@ func InstallProfile(cfg *api.ClusterConfig) error {
 		IO: afero.Afero{Fs: afero.NewOsFs()},
 	}
 
-	err := profileGen.Install(cfg)
-	if err != nil {
+	if err := profileGen.Install(cfg); err != nil {
 		return errors.Wrapf(err, "unable to install bootstrap profile")
 	}
 
@@ -91,17 +89,25 @@ func DeleteKey(cfg *api.ClusterConfig) error {
 		return nil
 	}
 
-	provider, err := providers.GetProvider(cfg.Git.Repo.URL)
+	ctx := context.Background()
+	deployKeyClient, err := deploykey.GetDeployKeyClient(ctx, cfg.Git.Repo.URL)
 	if err != nil {
-		logger.Warning("provider for URL %q not found. Skipping deletion of authorized repo key", cfg.Git.Repo.URL)
+		logger.Warning(
+			"could not find git provider implementation for url %q: %q. Skipping deletion of authorized SSH key",
+			cfg.Git.Repo.URL,
+			err.Error(),
+		)
 		return nil
 	}
 
 	clusterKeyTitle := flux.KeyTitle(*cfg.Metadata)
 	logger.Info("deleting SSH key %q from repo %q", clusterKeyTitle, cfg.Git.Repo.URL)
 
-	err = provider.DeleteSSHKey(context.Background(), clusterKeyTitle)
+	key, err := deployKeyClient.Get(ctx, clusterKeyTitle)
 	if err != nil {
+		return errors.Wrapf(err, "unable to find SSH key")
+	}
+	if err := key.Delete(ctx); err != nil {
 		return errors.Wrapf(err, "unable to delete authorized key")
 	}
 	return nil
