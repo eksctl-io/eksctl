@@ -264,7 +264,7 @@ func (m *Service) requiresStackFormatUpdate(nodeGroupName string) (bool, error) 
 			Minor: 25,
 			Patch: 0,
 		}
-		return ver.Compare(newFormatVersion) < 0, nil
+		return ver.LT(newFormatVersion), nil
 	}
 	return true, nil
 }
