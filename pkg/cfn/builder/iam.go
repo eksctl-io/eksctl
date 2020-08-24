@@ -95,6 +95,8 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 	// and weaveworks/eksctl#2488
 	c.rs.attachAllowPolicy("PolicyELBPermissions", refSR, "*", []string{
 		"ec2:DescribeAccountAttributes",
+		"ec2:DescribeAddresses",
+		"ec2:DescribeInternetGateways",
 	})
 
 	c.rs.defineOutputFromAtt(outputs.ClusterServiceRoleARN, "ServiceRole", "Arn", true, func(v string) error {
