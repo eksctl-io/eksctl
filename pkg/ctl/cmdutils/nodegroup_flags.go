@@ -72,11 +72,23 @@ func AddCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup
 	ng.IAM.WithAddonPolicies.XRay = new(bool)
 	ng.IAM.WithAddonPolicies.CloudWatch = new(bool)
 	fs.BoolVar(ng.IAM.WithAddonPolicies.AutoScaler, "asg-access", false, "enable IAM policy for cluster-autoscaler")
+	fs.BoolVar(ng.IAM.WithAddonPolicies.AutoScaler, "iam-autoscaler", false, "enable IAM policy for cluster-autoscaler")
+	_ = fs.MarkDeprecated("asg-access", "please use --iam-autoscaler")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.ExternalDNS, "external-dns-access", false, "enable IAM policy for external-dns")
+	fs.BoolVar(ng.IAM.WithAddonPolicies.ExternalDNS, "iam-external-dns", false, "enable IAM policy for external-dns")
+	_ = fs.MarkDeprecated("external-dns-access", "please use --iam-external-dns")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.ImageBuilder, "full-ecr-access", false, "enable full access to ECR")
+	fs.BoolVar(ng.IAM.WithAddonPolicies.ImageBuilder, "iam-image-builder", false, "enable full access to ECR")
+	_ = fs.MarkDeprecated("full-ecr-access", "please use --iam-image-builder")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.AppMesh, "appmesh-access", false, "enable full access to AppMesh")
+	fs.BoolVar(ng.IAM.WithAddonPolicies.AppMesh, "iam-appmesh", false, "enable full access to AppMesh")
+	_ = fs.MarkDeprecated("appmesh-access", "please use --iam-appmesh")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.AppMeshPreview, "appmesh-preview-access", false, "enable full access to AppMesh Preview")
+	fs.BoolVar(ng.IAM.WithAddonPolicies.AppMeshPreview, "iam-appmesh-preview", false, "enable full access to AppMesh Preview")
+	_ = fs.MarkDeprecated("appmesh-preview-access", "please use --iam-appmesh-preview")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.ALBIngress, "alb-ingress-access", false, "enable full access for alb-ingress-controller")
+	fs.BoolVar(ng.IAM.WithAddonPolicies.ALBIngress, "iam-alb-ingress", false, "enable full access for alb-ingress-controller")
+	_ = fs.MarkDeprecated("alb-ingress-access", "please use --iam-alb-ingress")
 }
 
 // AddNodeGroupFilterFlags add common `--include` and `--exclude` flags for filtering nodegroups
