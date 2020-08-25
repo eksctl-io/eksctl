@@ -59,7 +59,10 @@ const (
 const (
 	// AWSDebugLevel defines the LogLevel for AWS produced logs
 	AWSDebugLevel = 5
+)
 
+// Regions
+const (
 	// RegionUSWest1 represents the US West Region North California
 	RegionUSWest1 = "us-west-1"
 
@@ -134,7 +137,16 @@ const (
 
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
+)
 
+// Partitions
+const (
+	PartitionAWS   = "aws"
+	PartitionChina = "aws-cn"
+	PartitionUSGov = "aws-us-gov"
+)
+
+const (
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
 
@@ -316,6 +328,18 @@ func SupportedRegions() []string {
 		RegionCNNorth1,
 		RegionUSGovWest1,
 		RegionUSGovEast1,
+	}
+}
+
+// Partition gives the partition a region belongs to
+func Partition(region string) string {
+	switch region {
+	case RegionUSGovWest1, RegionUSGovEast1:
+		return PartitionUSGov
+	case RegionCNNorth1, RegionCNNorthwest1:
+		return PartitionChina
+	default:
+		return PartitionAWS
 	}
 }
 

@@ -126,7 +126,11 @@ func (e *VPCEndpointResourceSet) hasEndpoint(endpoint string) bool {
 // BuildVPCEndpointServices builds a slice of VPCEndpointServiceDetails for the specified endpoint names
 func BuildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints []string) ([]VPCEndpointServiceDetails, error) {
 	serviceNames := make([]string, len(endpoints))
-	serviceRegionPrefix := fmt.Sprintf("com.amazonaws.%s.", region)
+	servicePrefix := ""
+	if api.Partition(region) == api.PartitionChina {
+		servicePrefix = "cn."
+	}
+	serviceRegionPrefix := fmt.Sprintf("%scom.amazonaws.%s.", servicePrefix, region)
 	for i, endpoint := range endpoints {
 		serviceNames[i] = serviceRegionPrefix + endpoint
 	}
