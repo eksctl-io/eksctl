@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: automerge
-        uses: "JakeChampion/automerge-action@e2f6d39bda"
+        uses: "michaelbeaumont/automerge-action@a7256bf"
         env:
           MERGE_LABELS: ""
           MERGE_METHOD: "merge"
