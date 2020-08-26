@@ -319,6 +319,9 @@ func importRouteTables(ec2API ec2iface.EC2API, subnets map[string]api.Network) (
 	subnetRoutes := make(map[string]string)
 	for _, rt := range routeTables {
 		for _, rta := range rt.Associations {
+			if rta.Main != nil && *rta.Main {
+				return nil, errors.New("subnets must be associated with a non-main route table; eksctl does not modify the main route table")
+			}
 			subnetRoutes[*rta.SubnetId] = *rt.RouteTableId
 		}
 	}
