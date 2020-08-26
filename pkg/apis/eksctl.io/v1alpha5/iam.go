@@ -75,6 +75,10 @@ type ClusterIAMServiceAccount struct {
 	// +optional
 	AttachPolicyARNs []string `json:"attachPolicyARNs,omitempty"`
 
+	// ARN of the IAM role to attach
+	// +optional
+	AttachRoleARN string `json:"attachRoleARN,omitempty"`
+
 	// AttachPolicy holds a policy document to attach to this service account
 	// +optional
 	AttachPolicy InlineDocument `json:"attachPolicy,omitempty"`
@@ -123,5 +127,8 @@ func (sa *ClusterIAMServiceAccount) SetAnnotations() {
 
 	if sa.Status != nil && sa.Status.RoleARN != nil {
 		sa.Annotations[AnnotationEKSRoleARN] = *sa.Status.RoleARN
+	}
+	if sa.AttachRoleARN != "" {
+		sa.Annotations[AnnotationEKSRoleARN] = sa.AttachRoleARN
 	}
 }

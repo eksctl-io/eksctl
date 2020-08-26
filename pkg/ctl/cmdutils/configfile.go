@@ -572,6 +572,7 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *filter.IAMServiceAccou
 			return ErrMustBeSet("--name")
 		}
 
+		// TODO
 		if len(serviceAccount.AttachPolicyARNs) == 0 {
 			return ErrMustBeSet("--attach-policy-arn")
 		}

@@ -53,8 +53,8 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		if ok, err := saNames.checkUnique("<namespace>/<name> of "+path, sa.NameString()); !ok {
 			return err
 		}
-		if len(sa.AttachPolicyARNs) == 0 && sa.AttachPolicy == nil {
-			return fmt.Errorf("%s.attachPolicyARNs or %s.attachPolicy must be set", path, path)
+		if (len(sa.AttachPolicyARNs) == 0 && sa.AttachPolicy == nil) == (sa.AttachRoleARN == "") {
+			return fmt.Errorf("exactly one of %[1]s.attachPolicyARNs or %[1]s.attachPolicy and %[1]s.attachRoleARN must be set", path)
 		}
 	}
 
