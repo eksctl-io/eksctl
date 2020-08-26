@@ -24,6 +24,7 @@ type vpcResourceSetCase struct {
 	clusterConfig  *api.ClusterConfig
 	expectedFile   string
 	createProvider func() api.ClusterProvider
+	err            string
 }
 
 var _ = Describe("VPC Endpoint Builder", func() {
@@ -48,8 +49,13 @@ var _ = Describe("VPC Endpoint Builder", func() {
 		rs := newResourceSet()
 		vpcResourceSet := NewVPCResourceSet(rs, vc.clusterConfig, provider)
 		vpcResource, err := vpcResourceSet.AddResources()
-		Expect(err).ToNot(HaveOccurred())
+		if vc.err != "" {
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("subnets must be associated with a non-main route table"))
+			return
+		}
 
+		Expect(err).ToNot(HaveOccurred())
 		if vc.clusterConfig.PrivateCluster.Enabled {
 			vpcEndpointResourceSet := NewVPCEndpointResourceSet(provider, rs, vc.clusterConfig, vpcResource.VPC, vpcResource.SubnetDetails.Private, gfnt.NewString("sg-test"))
 			Expect(vpcEndpointResourceSet.AddResources()).To(Succeed())
@@ -167,6 +173,54 @@ var _ = Describe("VPC Endpoint Builder", func() {
 				return provider
 			},
 			expectedFile: "custom_vpc_private_endpoint_same_route_table.json",
+		}),
+		Entry("Private cluster with a user-supplied VPC having subnets with an explicit main route table association", vpcResourceSetCase{
+			clusterConfig: &api.ClusterConfig{
+				PrivateCluster: &api.PrivateCluster{
+					Enabled: true,
+				},
+				VPC: &api.ClusterVPC{
+					Network: api.Network{
+						ID: "vpc-custom",
+					},
+					Subnets: &api.ClusterSubnets{
+						Private: map[string]api.Network{
+							"us-west-2a": {
+								ID: "subnet-custom1",
+							},
+						},
+					},
+				},
+			},
+			createProvider: func() api.ClusterProvider {
+				provider := mockprovider.NewMockProvider()
+				output := &ec2.DescribeRouteTablesOutput{
+					RouteTables: []*ec2.RouteTable{
+						{
+							VpcId:        aws.String("vpc-custom"),
+							RouteTableId: aws.String("rt-main"),
+							Associations: []*ec2.RouteTableAssociation{
+								{
+									RouteTableId:            aws.String("rt-main"),
+									RouteTableAssociationId: aws.String("rtbassoc-custom1"),
+									Main:                    aws.Bool(true),
+								},
+								{
+									RouteTableId:            aws.String("rt-main"),
+									SubnetId:                aws.String("subnet-custom1"),
+									RouteTableAssociationId: aws.String("rtbassoc-custom2"),
+									Main:                    aws.Bool(false),
+								},
+							},
+						},
+					},
+				}
+				provider.MockEC2().On("DescribeRouteTables", mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
+					return len(input.Filters) > 0
+				})).Return(output, nil)
+				return provider
+			},
+			err: "subnets must be associated with a non-main route table",
 		}),
 	)
 })
