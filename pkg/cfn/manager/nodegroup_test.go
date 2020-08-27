@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/blang/semver"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -366,5 +367,40 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				},
 				api.NodeGroupType("")),
 		)
+	})
+})
+
+var _ = Describe("GetEksctlVersion", func() {
+	It("handles versions with metadata", func() {
+		gitVersion := "0.27.0-dev+001eeced.2020-08-27T03:03:31Z"
+		versionTag := api.EksctlVersionTag
+
+		v, found, err := GetEksctlVersion([]*cfn.Tag{{Key: &versionTag, Value: &gitVersion}})
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(found).To(BeTrue())
+		Expect(v).To(Equal(
+			semver.Version{
+				Major: 0,
+				Minor: 27,
+				Patch: 0,
+			},
+		))
+	})
+	It("handles versions without metadata", func() {
+		gitVersion := "0.27.0"
+		versionTag := api.EksctlVersionTag
+
+		v, found, err := GetEksctlVersion([]*cfn.Tag{{Key: &versionTag, Value: &gitVersion}})
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(found).To(BeTrue())
+		Expect(v).To(Equal(
+			semver.Version{
+				Major: 0,
+				Minor: 27,
+				Patch: 0,
+			},
+		))
 	})
 })
