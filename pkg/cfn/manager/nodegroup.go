@@ -16,6 +16,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/weaveworks/eksctl/pkg/version"
 )
 
 const (
@@ -310,7 +311,9 @@ func GetNodeGroupType(tags []*cfn.Tag) (api.NodeGroupType, error) {
 func GetEksctlVersion(tags []*cfn.Tag) (semver.Version, bool, error) {
 	for _, tag := range tags {
 		if *tag.Key == api.EksctlVersionTag {
-			v, err := semver.ParseTolerant(*tag.Value)
+			// We don't want any extra info from the version
+			semverVersion := strings.Split(*tag.Value, version.ExtraSep)[0]
+			v, err := semver.ParseTolerant(semverVersion)
 			if err != nil {
 				return v, false, errors.Wrapf(err, "unexpected error parsing eksctl version %q", *tag.Value)
 			}
