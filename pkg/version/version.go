@@ -38,6 +38,9 @@ func GetVersionInfo() Info {
 	}
 }
 
+// ExtraSep separates semver version from any extra version info
+const ExtraSep = "-"
+
 // String return version info as JSON
 func String() string {
 	if data, err := json.Marshal(GetVersionInfo()); err == nil {
@@ -52,21 +55,18 @@ func GetVersion() string {
 		return Version
 	}
 
-	if isReleaseCandidate(PreReleaseID) {
-		return fmt.Sprintf("%s-%s", Version, PreReleaseID)
+	versionWithPR := fmt.Sprintf("%s%s%s", Version, ExtraSep, PreReleaseID)
+
+	if isReleaseCandidate(PreReleaseID) || (gitCommit == "" || buildDate == "") {
+		return versionWithPR
 	}
 
-	if gitCommit != "" && buildDate != "" {
-		//  Include build metadata
-		return fmt.Sprintf("%s-%s+%s.%s",
-			Version,
-			PreReleaseID,
-			gitCommit,
-			buildDate,
-		)
-	}
-	return fmt.Sprintf("%s-%s", Version, PreReleaseID)
-
+	//  Include build metadata
+	return fmt.Sprintf("%s+%s.%s",
+		versionWithPR,
+		gitCommit,
+		buildDate,
+	)
 }
 
 func isReleaseCandidate(preReleaseID string) bool {
