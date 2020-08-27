@@ -114,7 +114,7 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 					WithTimeout(timeOutSeconds*time.Second).
 					WithArgs(
 						"update-cluster-endpoints",
-						"--name", clName,
+						"--cluster", clName,
 						fmt.Sprintf("--private-access=%v", e.Private),
 						fmt.Sprintf("--public-access=%v", e.Public),
 						"--approve")
@@ -139,7 +139,7 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 					utilsCmd := params.EksctlUtilsCmd.
 						WithTimeout(timeOutSeconds*time.Second).WithArgs(
 						"update-cluster-endpoints",
-						"--name", clName,
+						"--cluster", clName,
 						fmt.Sprintf("--public-access=%v", true),
 						"--approve",
 					)
