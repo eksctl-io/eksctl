@@ -6,6 +6,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
-func TestSuite(t *testing.T) {
+func TestKubernetes(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }

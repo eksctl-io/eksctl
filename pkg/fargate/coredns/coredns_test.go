@@ -20,7 +20,7 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-func TestSuite(t *testing.T) {
+func TestFargateCoreDNS(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
