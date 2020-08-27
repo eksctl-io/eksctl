@@ -8,6 +8,7 @@ require (
 	github.com/Azure/go-autorest/autorest v0.10.0 // indirect
 	github.com/Azure/go-autorest/autorest/azure/auth v0.4.2 // indirect
 	github.com/aws/aws-sdk-go v1.30.11
+	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/cloudflare/cfssl v0.0.0-20190726000631-633726f6bcb7
@@ -15,6 +16,7 @@ require (
 	github.com/dlespiau/kube-test-harness v0.0.0-20190930170435-ec3f93e1a754
 	github.com/evanphx/json-patch v4.5.0+incompatible
 	github.com/fluxcd/flux/pkg/install v0.0.0-20200402142123-873fb9300996 // flux 1.19.0
+	github.com/fluxcd/go-git-providers v0.0.2
 	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200407140510-8d71b0072a3e // helm-operator 1.0.0
 	github.com/github-release/github-release v0.8.1
 	github.com/gobwas/glob v0.2.3
@@ -32,7 +34,7 @@ require (
 	github.com/kris-nova/lolgopher v0.0.0-20180921204813-313b3abb0d9b // indirect
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
-	github.com/onsi/ginkgo v1.12.3
+	github.com/onsi/ginkgo v1.14.0
 	github.com/onsi/gomega v1.10.1
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
@@ -47,9 +49,8 @@ require (
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
-	github.com/weaveworks/go-git-providers v0.1.2
 	// Fork from errordeveloper/goformation, rebased on awslabs/goformation/v4
-	github.com/weaveworks/goformation/v4 v4.0.0-20200811080054-9679a1b9714e
+	github.com/weaveworks/goformation/v4 v4.10.2-0.20200818093538-2bbc8360f17e
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
 	golang.org/x/tools v0.0.0-20200502202811-ed308ab3e770

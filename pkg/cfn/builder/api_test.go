@@ -140,8 +140,9 @@ type LaunchTemplateData struct {
 type Template struct {
 	Description string
 	Resources   map[string]struct {
-		Properties Properties
-		DependsOn  []string
+		Properties   Properties
+		DependsOn    []string
+		UpdatePolicy map[string]map[string]interface{}
 	}
 }
 
@@ -514,18 +515,18 @@ var _ = Describe("CloudFormation template builder API", func() {
 							Allow:         api.Disabled(),
 							PublicKeyPath: &api.DefaultNodeSSHPublicKeyPath,
 						},
-					},
-					AMI: "",
-					SecurityGroups: &api.NodeGroupSGs{
-						WithLocal:  api.Enabled(),
-						WithShared: api.Enabled(),
-						AttachIDs:  []string{},
-					},
+						AMI: "",
+						SecurityGroups: &api.NodeGroupSGs{
+							WithLocal:  api.Enabled(),
+							WithShared: api.Enabled(),
+							AttachIDs:  []string{},
+						},
 
-					VolumeType:      aws.String(api.NodeVolumeTypeSC1),
-					VolumeName:      aws.String("/dev/xvda"),
-					VolumeEncrypted: api.Disabled(),
-					VolumeKmsKeyID:  aws.String(""),
+						VolumeType:      aws.String(api.NodeVolumeTypeSC1),
+						VolumeName:      aws.String("/dev/xvda"),
+						VolumeEncrypted: api.Disabled(),
+						VolumeKmsKeyID:  aws.String(""),
+					},
 				},
 			},
 		}
@@ -2986,6 +2987,43 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification).ToNot(BeNil())
 			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).ToNot(BeNil())
 			Expect(getLaunchTemplateData(ngTemplate).CreditSpecification.CPUCredits).To(Equal("unlimited"))
+		})
+	})
+
+	Context("NodeGroup with asgSuspendProcesses", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.ASGSuspendProcesses = []string{"Launch", "InstanceRefresh"}
+		build(cfg, "eksctl-test-asgSuspendProcesses", ng)
+
+		roundtrip()
+
+		It("should have correct resources and attributes", func() {
+			Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
+			ngResource := ngTemplate.Resources["NodeGroup"]
+			Expect(ng).ToNot(BeNil())
+			Expect(ngResource.UpdatePolicy).To(HaveKey("AutoScalingRollingUpdate"))
+			Expect(ngResource.UpdatePolicy["AutoScalingRollingUpdate"]).To(
+				HaveKeyWithValue("SuspendProcesses", []interface{}{"Launch", "InstanceRefresh"}),
+			)
+		})
+		Context("empty asgSuspendProcesses", func() {
+			cfg, ng := newClusterConfigAndNodegroup(true)
+
+			ng.ASGSuspendProcesses = []string{}
+			build(cfg, "eksctl-test-asgSuspendProcesses-empty", ng)
+
+			roundtrip()
+
+			It("shouldn't be included in resource", func() {
+				Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
+				ngResource := ngTemplate.Resources["NodeGroup"]
+				Expect(ng).ToNot(BeNil())
+				Expect(ngResource.UpdatePolicy).To(HaveKey("AutoScalingRollingUpdate"))
+				Expect(ngResource.UpdatePolicy["AutoScalingRollingUpdate"]).ToNot(
+					HaveKey("SuspendProcesses"),
+				)
+			})
 		})
 	})
 

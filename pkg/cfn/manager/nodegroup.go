@@ -6,16 +6,17 @@ import (
 	"strings"
 	"time"
 
+	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/weaveworks/eksctl/pkg/version"
 )
 
 const (
@@ -69,7 +70,7 @@ func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup
 func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup) error {
 	name := c.makeNodeGroupStackName(ng.Name)
 	logger.Info("building managed nodegroup stack %q", name)
-	stack := builder.NewManagedNodeGroup(c.spec, ng, c.makeClusterStackName())
+	stack := builder.NewManagedNodeGroup(c.spec, ng, builder.NewLaunchTemplateFetcher(c.provider.EC2()), c.makeClusterStackName())
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
@@ -268,10 +269,15 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 	return summaries, nil
 }
 
+// DescribeNodeGroupStack gets the specified nodegroup stack
+func (c *StackCollection) DescribeNodeGroupStack(nodeGroupName string) (*Stack, error) {
+	stackName := c.makeNodeGroupStackName(nodeGroupName)
+	return c.DescribeStack(&Stack{StackName: &stackName})
+}
+
 // GetNodeGroupStackType returns the nodegroup stack type
 func (c *StackCollection) GetNodeGroupStackType(name string) (api.NodeGroupType, error) {
-	stackName := c.makeNodeGroupStackName(name)
-	stack, err := c.DescribeStack(&Stack{StackName: &stackName})
+	stack, err := c.DescribeNodeGroupStack(name)
 	if err != nil {
 		return "", err
 	}
@@ -299,6 +305,22 @@ func GetNodeGroupType(tags []*cfn.Tag) (api.NodeGroupType, error) {
 	}
 
 	return nodeGroupType, nil
+}
+
+// GetEksctlVersion returns the eksctl version used to create or update the stack
+func GetEksctlVersion(tags []*cfn.Tag) (semver.Version, bool, error) {
+	for _, tag := range tags {
+		if *tag.Key == api.EksctlVersionTag {
+			// We don't want any extra info from the version
+			semverVersion := strings.Split(*tag.Value, version.ExtraSep)[0]
+			v, err := semver.ParseTolerant(semverVersion)
+			if err != nil {
+				return v, false, errors.Wrapf(err, "unexpected error parsing eksctl version %q", *tag.Value)
+			}
+			return v, true, nil
+		}
+	}
+	return semver.Version{}, false, nil
 }
 
 type nodeGroupPaths struct {

@@ -59,7 +59,10 @@ const (
 const (
 	// AWSDebugLevel defines the LogLevel for AWS produced logs
 	AWSDebugLevel = 5
+)
 
+// Regions
+const (
 	// RegionUSWest1 represents the US West Region North California
 	RegionUSWest1 = "us-west-1"
 
@@ -134,7 +137,16 @@ const (
 
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
+)
 
+// Partitions
+const (
+	PartitionAWS   = "aws"
+	PartitionChina = "aws-cn"
+	PartitionUSGov = "aws-us-gov"
+)
+
+const (
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
 
@@ -316,6 +328,18 @@ func SupportedRegions() []string {
 		RegionCNNorth1,
 		RegionUSGovWest1,
 		RegionUSGovEast1,
+	}
+}
+
+// Partition gives the partition a region belongs to
+func Partition(region string) string {
+	switch region {
+	case RegionUSGovWest1, RegionUSGovEast1:
+		return PartitionUSGov
+	case RegionCNNorth1, RegionCNNorthwest1:
+		return PartitionChina
+	default:
+		return PartitionAWS
 	}
 }
 
@@ -632,13 +656,13 @@ func NewNodeGroup() *NodeGroup {
 				Allow:         Disabled(),
 				PublicKeyPath: &DefaultNodeSSHPublicKeyPath,
 			},
+			VolumeType: &DefaultNodeVolumeType,
+			SecurityGroups: &NodeGroupSGs{
+				AttachIDs:  []string{},
+				WithLocal:  Enabled(),
+				WithShared: Enabled(),
+			},
 		},
-		SecurityGroups: &NodeGroupSGs{
-			AttachIDs:  []string{},
-			WithLocal:  Enabled(),
-			WithShared: Enabled(),
-		},
-		VolumeType: &DefaultNodeVolumeType,
 	}
 }
 
@@ -647,10 +671,12 @@ func NewManagedNodeGroup() *ManagedNodeGroup {
 	var (
 		publicKey  = DefaultNodeSSHPublicKeyPath
 		volumeSize = DefaultNodeVolumeSize
+		volumeType = DefaultNodeVolumeType
 	)
 	return &ManagedNodeGroup{
 		NodeGroupBase: &NodeGroupBase{
 			VolumeSize: &volumeSize,
+			VolumeType: &volumeType,
 			SSH: &NodeGroupSSH{
 				Allow:         Disabled(),
 				PublicKeyName: &publicKey,
@@ -671,7 +697,8 @@ func NewManagedNodeGroup() *ManagedNodeGroup {
 					CloudWatch:     Disabled(),
 				},
 			},
-			ScalingConfig: &ScalingConfig{},
+			ScalingConfig:  &ScalingConfig{},
+			SecurityGroups: &NodeGroupSGs{},
 		},
 	}
 }
@@ -690,43 +717,16 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 // specific to a nodegroup
 type NodeGroup struct {
 	*NodeGroupBase
-	// +optional
-	AMI string `json:"ami,omitempty"`
+
 	//+optional
 	InstancesDistribution *NodeGroupInstancesDistribution `json:"instancesDistribution,omitempty"`
-	// +optional
-	InstancePrefix string `json:"instancePrefix,omitempty"`
-	// +optional
-	InstanceName string `json:"instanceName,omitempty"`
-	// +optional
-	SecurityGroups *NodeGroupSGs `json:"securityGroups,omitempty"`
 
 	// +optional
 	ASGMetricsCollection []MetricsCollection `json:"asgMetricsCollection,omitempty"`
 
-	// EBSOptimized enables [EBS
-	// optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)
-	// +optional
-	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
-
 	// CPUCredits configures [T3 Unlimited](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html), valid only for T-type instances
 	// +optional
 	CPUCredits *string `json:"cpuCredits,omitempty"`
-
-	// Valid variants are `VolumeType` constants
-	// +optional
-	VolumeType *string `json:"volumeType,omitempty"`
-	// +optional
-	VolumeName *string `json:"volumeName,omitempty"`
-	// +optional
-	VolumeEncrypted *bool `json:"volumeEncrypted,omitempty"`
-	// +optional
-	VolumeKmsKeyID *string `json:"volumeKmsKeyID,omitempty"`
-	// +optional
-	VolumeIOPS *int `json:"volumeIOPS,omitempty"`
-
-	// +optional
-	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
 
 	// +optional
 	Taints map[string]string `json:"taints,omitempty"`
@@ -739,18 +739,8 @@ type NodeGroup struct {
 	// +optional
 	TargetGroupARNs []string `json:"targetGroupARNs,omitempty"`
 
-	// SSH configures ssh access for this nodegroup
 	// +optional
 	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
-
-	// PreBootstrapCommands are executed before bootstrapping instances to the
-	// cluster
-	// +optional
-	PreBootstrapCommands []string `json:"preBootstrapCommands,omitempty"`
-
-	// Override `eksctl`'s bootstrapping script
-	// +optional
-	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
 
 	// [Custom
 	// address](/usage/vpc-networking/#custom-cluster-dns-address) used for DNS
@@ -761,11 +751,11 @@ type NodeGroup struct {
 	// [Customize `kubelet` config](/usage/customizing-the-kubelet/)
 	// +optional
 	KubeletExtraConfig *InlineDocument `json:"kubeletExtraConfig,omitempty"`
+}
 
-	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
-	// Defaults to `false`
-	// +optional
-	DisableIMDSv1 *bool `json:"disableIMDSv1,omitempty"`
+// BaseNodeGroup implements NodePool
+func (n *NodeGroup) BaseNodeGroup() *NodeGroupBase {
+	return n.NodeGroupBase
 }
 
 // Git groups all configuration options related to enabling GitOps on a
@@ -891,6 +881,7 @@ type (
 		WithShared *bool `json:"withShared"`
 		// WithLocal attach a security group
 		// local to this nodegroup
+		// Not supported for managed nodegroups
 		// Defaults to `true`
 		// +optional
 		WithLocal *bool `json:"withLocal"`
@@ -1007,6 +998,14 @@ type ScalingConfig struct {
 	MaxSize *int `json:"maxSize,omitempty"`
 }
 
+// NodePool represents a group of nodes that share the same configuration
+// Ideally the NodeGroup type should be renamed to UnmanagedNodeGroup or SelfManagedNodeGroup and this interface
+// should be called NodeGroup
+type NodePool interface {
+	// BaseNodeGroup returns the base nodegroup
+	BaseNodeGroup() *NodeGroupBase
+}
+
 // NodeGroupBase represents the base nodegroup config for self-managed and managed nodegroups
 type NodeGroupBase struct {
 	// +required
@@ -1023,6 +1022,11 @@ type NodeGroupBase struct {
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
 
 	// +optional
+	InstancePrefix string `json:"instancePrefix,omitempty"`
+	// +optional
+	InstanceName string `json:"instanceName,omitempty"`
+
+	// +optional
 	*ScalingConfig
 
 	// +optional
@@ -1030,6 +1034,7 @@ type NodeGroupBase struct {
 	// Defaults to `80`
 	VolumeSize *int `json:"volumeSize,omitempty"`
 	// +optional
+	// SSH configures ssh access for this nodegroup
 	SSH *NodeGroupSSH `json:"ssh,omitempty"`
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
@@ -1042,6 +1047,51 @@ type NodeGroupBase struct {
 	Tags map[string]string `json:"tags,omitempty"`
 	// +optional
 	IAM *NodeGroupIAM `json:"iam,omitempty"`
+
+	// +optional
+	AMI string `json:"ami,omitempty"`
+
+	// +optional
+	SecurityGroups *NodeGroupSGs `json:"securityGroups,omitempty"`
+
+	// +optional
+	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
+
+	// See [relevant AWS
+	// docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-updatepolicy.html#cfn-attributes-updatepolicy-rollingupdate-suspendprocesses)
+	// +optional
+	ASGSuspendProcesses []string `json:"asgSuspendProcesses,omitempty"`
+
+	// EBSOptimized enables [EBS
+	// optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)
+	// +optional
+	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
+
+	// Valid variants are `VolumeType` constants
+	// +optional
+	VolumeType *string `json:"volumeType,omitempty"`
+	// +optional
+	VolumeName *string `json:"volumeName,omitempty"`
+	// +optional
+	VolumeEncrypted *bool `json:"volumeEncrypted,omitempty"`
+	// +optional
+	VolumeKmsKeyID *string `json:"volumeKmsKeyID,omitempty"`
+	// +optional
+	VolumeIOPS *int `json:"volumeIOPS,omitempty"`
+
+	// PreBootstrapCommands are executed before bootstrapping instances to the
+	// cluster
+	// +optional
+	PreBootstrapCommands []string `json:"preBootstrapCommands,omitempty"`
+
+	// Override `eksctl`'s bootstrapping script
+	// +optional
+	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
+
+	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
+	// Defaults to `false`
+	// +optional
+	DisableIMDSv1 *bool `json:"disableIMDSv1,omitempty"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
@@ -1067,10 +1117,30 @@ func (n *NodeGroupBase) GetAMIFamily() string {
 	return n.AMIFamily
 }
 
+type LaunchTemplate struct {
+	// Launch template ID
+	// +required
+	ID string `json:"id,omitempty"`
+	// Launch template version
+	// Defaults to the default launch template version
+	// TODO support $Default, $Latest
+	Version *string `json:"version,omitempty"`
+	// TODO support Name?
+}
+
 // ManagedNodeGroup represents an EKS-managed nodegroup
 // TODO Validate for unmapped fields and throw an error
 type ManagedNodeGroup struct {
 	*NodeGroupBase
+
+	// LaunchTemplate specifies an existing launch template to use
+	// for the nodegroup
+	LaunchTemplate *LaunchTemplate `json:"launchTemplate,omitempty"`
+}
+
+// BaseNodeGroup implements NodePool
+func (m *ManagedNodeGroup) BaseNodeGroup() *NodeGroupBase {
+	return m.NodeGroupBase
 }
 
 func makeListOptions(nodeGroupName string) metav1.ListOptions {

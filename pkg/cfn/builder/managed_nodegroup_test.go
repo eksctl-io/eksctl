@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/goformation/v4"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
@@ -71,27 +71,27 @@ func TestManagedPolicyResources(t *testing.T) {
 
 	for i, tt := range iamRoleTests {
 		t.Run(fmt.Sprintf("%d: %s", i, tt.description), func(t *testing.T) {
-			assert := assert.New(t)
+			require := require.New(t)
 			clusterConfig := api.NewClusterConfig()
 
 			ng := api.NewManagedNodeGroup()
 			ng.IAM.WithAddonPolicies = tt.addons
 			ng.IAM.AttachPolicyARNs = prefixPolicies(tt.attachPolicyARNs...)
 
-			stack := NewManagedNodeGroup(clusterConfig, ng, "iam-test")
+			stack := NewManagedNodeGroup(clusterConfig, ng, nil, "iam-test")
 			err := stack.AddAllResources()
-			assert.Nil(err)
+			require.Nil(err)
 
 			bytes, err := stack.RenderJSON()
-			assert.NoError(err)
+			require.NoError(err)
 
 			template, err := goformation.ParseJSON(bytes)
-			assert.NoError(err)
+			require.NoError(err)
 
 			role, ok := template.GetAllIAMRoleResources()["NodeInstanceRole"]
-			assert.True(ok)
+			require.True(ok)
 
-			assert.ElementsMatch(tt.expectedManagedPolicies, role.ManagedPolicyArns.Raw().(gfnt.Slice))
+			require.ElementsMatch(tt.expectedManagedPolicies, role.ManagedPolicyArns.Raw().(gfnt.Slice))
 
 		})
 	}
@@ -108,13 +108,7 @@ func TestManagedNodeRole(t *testing.T) {
 		{
 			description: "InstanceRoleARN is not provided",
 			nodeGroup: &api.ManagedNodeGroup{
-				NodeGroupBase: &api.NodeGroupBase{
-					ScalingConfig: &api.ScalingConfig{},
-					SSH: &api.NodeGroupSSH{
-						Allow: api.Disabled(),
-					},
-					IAM: &api.NodeGroupIAM{},
-				},
+				NodeGroupBase: &api.NodeGroupBase{},
 			},
 			expectedNewRole:     true,
 			expectedNodeRoleARN: gfnt.MakeFnGetAtt(cfnIAMInstanceRoleName, gfnt.NewString("Arn")), // creating new role
@@ -123,10 +117,6 @@ func TestManagedNodeRole(t *testing.T) {
 			description: "InstanceRoleARN is provided",
 			nodeGroup: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
-					ScalingConfig: &api.ScalingConfig{},
-					SSH: &api.NodeGroupSSH{
-						Allow: api.Disabled(),
-					},
 					IAM: &api.NodeGroupIAM{
 						InstanceRoleARN: "arn::DUMMY::DUMMYROLE",
 					},
@@ -139,24 +129,26 @@ func TestManagedNodeRole(t *testing.T) {
 
 	for i, tt := range nodeRoleTests {
 		t.Run(fmt.Sprintf("%d: %s", i, tt.description), func(t *testing.T) {
-			assert := assert.New(t)
-			stack := NewManagedNodeGroup(api.NewClusterConfig(), tt.nodeGroup, "iam-test")
+			require := require.New(t)
+			clusterConfig := api.NewClusterConfig()
+			api.SetManagedNodeGroupDefaults(tt.nodeGroup, clusterConfig.Metadata)
+			stack := NewManagedNodeGroup(clusterConfig, tt.nodeGroup, nil, "iam-test")
 			err := stack.AddAllResources()
-			assert.NoError(err)
+			require.NoError(err)
 
 			bytes, err := stack.RenderJSON()
-			assert.NoError(err)
+			require.NoError(err)
 
 			template, err := goformation.ParseJSON(bytes)
-			assert.NoError(err)
+			require.NoError(err)
 			ngResource, ok := template.Resources["ManagedNodeGroup"]
-			assert.True(ok)
+			require.True(ok)
 			ng, ok := ngResource.(*gfneks.Nodegroup)
-			assert.True(ok)
-			assert.Equal(tt.expectedNodeRoleARN, ng.NodeRole)
+			require.True(ok)
+			require.Equal(tt.expectedNodeRoleARN, ng.NodeRole)
 
 			_, ok = template.GetAllIAMRoleResources()[cfnIAMInstanceRoleName]
-			assert.Equal(tt.expectedNewRole, ok)
+			require.Equal(tt.expectedNewRole, ok)
 		})
 	}
 }

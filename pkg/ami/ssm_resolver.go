@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/kris-nova/logger"
@@ -55,22 +56,33 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 		}
 	}
 
+	const fieldName = "image_id"
+
 	switch imageFamily {
 	case api.NodeImageFamilyAmazonLinux2:
-		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/image_id", version, imageType(imageFamily, instanceType)), nil
+		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/%s", version, imageType(imageFamily, instanceType), fieldName), nil
 	case api.NodeImageFamilyWindowsServer2019CoreContainer:
-		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2019-English-Core-EKS_Optimized-%s/image_id", version), nil
+		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2019-English-Core-EKS_Optimized-%s/%s", version, fieldName), nil
 	case api.NodeImageFamilyWindowsServer2019FullContainer:
-		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2019-English-Full-EKS_Optimized-%s/image_id", version), nil
+		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2019-English-Full-EKS_Optimized-%s/%s", version, fieldName), nil
 	case api.NodeImageFamilyWindowsServer1909CoreContainer:
-		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-1909-English-Core-EKS_Optimized-%s/image_id", version), nil
+		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-1909-English-Core-EKS_Optimized-%s/%s", version, fieldName), nil
 	case api.NodeImageFamilyBottlerocket:
-		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/%s/latest/image_id", version, instanceEC2ArchName(instanceType)), nil
+		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/%s/latest/%s", version, instanceEC2ArchName(instanceType), fieldName), nil
 	case api.NodeImageFamilyUbuntu1804:
 		return "", &UnsupportedQueryError{msg: fmt.Sprintf("SSM Parameter lookups for %s AMIs is not supported yet", imageFamily)}
 	default:
 		return "", fmt.Errorf("unknown image family %s", imageFamily)
 	}
+}
+
+// MakeManagedSSMParameterName creates an SSM parameter name for a managed nodegroup
+func MakeManagedSSMParameterName(version, imageFamily, amiType string) (string, error) {
+	imageType := utils.ToKebabCase(imageFamily)
+	if amiType == eks.AMITypesAl2X8664Gpu {
+		imageType += "-gpu"
+	}
+	return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/%s", version, imageType, "release_version"), nil
 }
 
 // instanceEC2ArchName returns the name of the architecture as used by EC2

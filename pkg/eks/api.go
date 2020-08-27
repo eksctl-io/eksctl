@@ -266,12 +266,8 @@ func (c *ClusterProvider) CheckAuth() error {
 	return nil
 }
 
-// EnsureAMI ensures that the node AMI is set and is available
-func EnsureAMI(provider api.ClusterProvider, version string, ng *api.NodeGroup) error {
-	if api.IsAMI(ng.AMI) {
-		return ami.Use(provider.EC2(), ng)
-	}
-
+// ResolveAMI ensures that the node AMI is set and is available
+func ResolveAMI(provider api.ClusterProvider, version string, ng *api.NodeGroup) error {
 	var resolver ami.Resolver
 	switch ng.AMI {
 	case api.NodeImageResolverAuto:
@@ -296,9 +292,7 @@ func EnsureAMI(provider api.ClusterProvider, version string, ng *api.NodeGroup) 
 		return ami.NewErrFailedResolution(provider.Region(), version, instanceType, ng.AMIFamily)
 	}
 	ng.AMI = id
-
-	// Check the AMI is available and populate RootDevice information
-	return ami.Use(provider.EC2(), ng)
+	return nil
 }
 
 // selectInstanceType determines which instanceType is relevant for selecting an AMI
