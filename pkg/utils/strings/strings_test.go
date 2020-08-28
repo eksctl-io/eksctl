@@ -9,7 +9,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
-func TestSuite(t *testing.T) {
+func TestUtilsStrings(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 

@@ -6,6 +6,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
-func TestSuite(t *testing.T) {
+func TestAPIs(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }

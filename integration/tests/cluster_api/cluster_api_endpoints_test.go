@@ -30,7 +30,7 @@ func init() {
 	params = tests.NewParams("capi")
 }
 
-func TestSuite(t *testing.T) {
+func TestClusterAPI(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 

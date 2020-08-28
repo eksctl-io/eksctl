@@ -24,7 +24,7 @@ func init() {
 	params = tests.NewParams("qstart")
 }
 
-func TestSuite(t *testing.T) {
+func TestQuickstartProfiles(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
