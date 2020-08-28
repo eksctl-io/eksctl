@@ -53,7 +53,7 @@ eksctl create cluster -f cluster-arm-2.yaml
 ```
 
 
-The AMI resolvers, `auto` and `auto-ssm`, will see that you want to use an ARM instance type and they will select the correct AMI.
+The AMI resolvers, `auto` and `auto-ssm`, will see that you want to use an ARM instance type and they will select the correct AMI. If using un-managed NodeGroups, ARM Processors can be used by adding either `ami: auto` or `ami: auto-ssm` to the config.
 
 !!!note
     Note that currently there are only AmazonLinux2 EKS optimized AMIs for ARM.
