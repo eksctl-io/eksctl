@@ -268,6 +268,11 @@ func (in *ClusterIAM) DeepCopyInto(out *ClusterIAM) {
 			}
 		}
 	}
+	if in.VPCResourceControllerPolicy != nil {
+		in, out := &in.VPCResourceControllerPolicy, &out.VPCResourceControllerPolicy
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 
