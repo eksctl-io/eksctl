@@ -46,6 +46,10 @@ or [environment variables][awsenv]. For more information read [AWS documentation
 
 You will also need [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) command (either `aws-iam-authenticator` or `aws eks get-token` (available in version 1.16.156 or greater of AWS CLI) in your `PATH`.
 
+### Docker
+
+For every release and RC a docker image is pushed to [weaveworks/eksctl](https://hub.docker.com/r/weaveworks/eksctl).
+
 ## Basic usage
 
 To create a basic cluster, run:
