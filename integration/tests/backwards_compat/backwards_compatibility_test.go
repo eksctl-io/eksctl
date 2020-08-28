@@ -29,7 +29,7 @@ func init() {
 	params = tests.NewParams("bwardscomp")
 }
 
-func TestSuite(t *testing.T) {
+func TestBackwardsCompatibility(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
