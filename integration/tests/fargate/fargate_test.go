@@ -28,7 +28,7 @@ func init() {
 	params.SetRegion("ap-northeast-1")
 }
 
-func TestSuite(t *testing.T) {
+func TestFargate(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 

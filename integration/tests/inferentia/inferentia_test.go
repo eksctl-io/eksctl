@@ -34,7 +34,7 @@ func init() {
 	noInstallCluster = params.NewClusterName("inf1-no-plugin")
 }
 
-func TestSuite(t *testing.T) {
+func TestInferentia(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 

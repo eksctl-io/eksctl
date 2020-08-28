@@ -26,7 +26,7 @@ func init() {
 	deleteAfterSuite = true
 }
 
-func TestSuite(t *testing.T) {
+func TestBeforeActive(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 

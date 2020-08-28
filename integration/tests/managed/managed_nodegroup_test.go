@@ -38,7 +38,7 @@ func init() {
 	params.Version = supportedVersions[len(supportedVersions)-2]
 }
 
-func TestSuite(t *testing.T) {
+func TestManaged(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
