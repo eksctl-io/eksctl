@@ -40,8 +40,6 @@ AmazonEC2FullAccess
                         "autoscaling.amazonaws.com",
                         "ec2scheduled.amazonaws.com",
                         "elasticloadbalancing.amazonaws.com",
-                        "eks.amazonaws.com",
-                        "eks-fargate-pods.amazonaws.com",
                         "spot.amazonaws.com",
                         "spotfleet.amazonaws.com",
                         "transitgateway.amazonaws.com"
@@ -149,6 +147,22 @@ IamLimitedAccess
             "Resource": [
                 "arn:aws:iam::<account_id>:role/*"
             ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:CreateServiceLinkedRole"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "iam:AWSServiceName": [
+                        "eks.amazonaws.com",
+                        "eks-nodegroup.amazonaws.com",
+                        "eks-fargate.amazonaws.com"
+                    ]
+                }
+            }
         }
     ]
 }
