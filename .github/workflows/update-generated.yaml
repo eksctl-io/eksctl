@@ -2,7 +2,7 @@ name: Update generated files and open PRs
 on:
   workflow_dispatch: {}
   schedule:
-    - cron: '0 5 * * Thu'
+    - cron: "0 5 * * Thu"
 
 env:
   DEFAULT_BRANCH: master
@@ -21,7 +21,7 @@ jobs:
       - name: Setup go
         uses: actions/setup-go@v2
         with:
-          go-version: '^1.14'
+          go-version: "^1.14"
       - name: Update maxpods
         run: make update-maxpods
       - name: Commit changes
@@ -53,19 +53,22 @@ jobs:
   update_aws_node:
     name: Update aws-node and open PR
     runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:f3eaceb26f3f288afd65088d80dd9c22d2eae637
     env:
       UPDATE_BRANCH: update-aws-node
+      GOPRIVATE: ""
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Setup go
-        uses: actions/setup-go@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
         with:
-          go-version: '^1.14'
-      - name: Install deps
-        run: make install-build-deps
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
       - name: Update aws-node
         run: make update-aws-node
       - name: Commit changes
