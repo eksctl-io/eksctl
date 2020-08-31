@@ -44,7 +44,7 @@ godeps = $(shell $(call godeps_cmd,$(1)))
 
 .PHONY: build
 build: generate-always ## Build main binary
-	CGO_ENABLED=0 time go build -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).buildDate=$(build_date)" ./cmd/eksctl
+	CGO_ENABLED=0 go build -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).buildDate=$(build_date)" ./cmd/eksctl
 
 # Build binaries for Linux, Windows and Mac and place them in dist/
 .PHONY: build-all
@@ -82,8 +82,8 @@ endif
 
 .PHONY: lint
 lint: ## Run linter over the codebase
-	time golangci-lint run
-	@for config_file in $(shell ls .goreleaser*); do time goreleaser check -f $${config_file}; done
+	golangci-lint run
+	@for config_file in $(shell ls .goreleaser*); do goreleaser check -f $${config_file}; done
 
 .PHONY: test
 test:
@@ -94,11 +94,11 @@ test:
 
 .PHONY: unit-test
 unit-test: ## Run unit test only
-	CGO_ENABLED=0 time go test  -tags=release ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
+	CGO_ENABLED=0 go test  -tags=release ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: unit-test-race
 unit-test-race: ## Run unit test with race detection
-	CGO_ENABLED=1 time go test -race ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
+	CGO_ENABLED=1 go test -race ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: build-integration-test
 build-integration-test: $(all_generated_code)
@@ -159,10 +159,10 @@ generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (requi
 	@# - deleting an asset is breaks the dependencies
 	@# - different version of go-bindata generate different code
 	@go-bindata -v
-	time go generate ./pkg/apis/eksctl.io/v1alpha5/generate.go
-	time go generate ./pkg/nodebootstrap
-	time go generate ./pkg/addons/default/generate.go
-	time go generate ./pkg/addons
+	go generate ./pkg/apis/eksctl.io/v1alpha5/generate.go
+	go generate ./pkg/nodebootstrap
+	go generate ./pkg/addons/default/generate.go
+	go generate ./pkg/addons
 
 .PHONY: generate-all
 generate-all: generate-always $(conditionally_generated_files) ## Re-generate all the automatically-generated source files
@@ -183,19 +183,19 @@ update-maxpods: ## Re-download the max pods info from AWS and regenerate the max
 
 ### Update aws-node addon manifests from AWS
 pkg/addons/default/assets/aws-node.yaml:
-	time go generate ./pkg/addons/default/aws_node_generate.go
+	go generate ./pkg/addons/default/aws_node_generate.go
 
 .PHONY: update-aws-node
 update-aws-node: ## Re-download the aws-node manifests from AWS
-	time go generate ./pkg/addons/default/aws_node_generate.go
-	time go generate ./pkg/addons/default/generate.go
+	go generate ./pkg/addons/default/aws_node_generate.go
+	go generate ./pkg/addons/default/generate.go
 
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) ## Generate Kubernetes API helpers
 	update-codegen.sh
 
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
-	time AWS_SDK_GO_DIR=$(AWS_SDK_GO_DIR) go generate ./pkg/eks/mocks
+	AWS_SDK_GO_DIR=$(AWS_SDK_GO_DIR) go generate ./pkg/eks/mocks
 
 .PHONY: generate-kube-reserved
 generate-kube-reserved: ## Update instance list with respective specs
