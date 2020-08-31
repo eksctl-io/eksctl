@@ -28,6 +28,7 @@ update-build-image-tag:
 	build-image-manifest.sh > $(image_manifest_file)
 	git hash-object $(image_manifest_file) > $(build_image_tag_file)
 	sed -i -e "1s|\(BUILD_IMAGE=\).*|\1/$(build_image):$$(cat $(build_image_tag_file))|" Dockerfile
+	find .github/workflows -type f | xargs sed -i -e "s|\($(build_image):\).*|\1$$(cat $(build_image_tag_file))|"
 
 .PHONY: check-build-image-manifest-up-to-date
 check-build-image-manifest-up-to-date: update-build-image-tag ## Update build image manifest and commits the changes
