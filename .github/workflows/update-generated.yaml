@@ -22,8 +22,6 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: '^1.14'
-      - name: Install deps
-        run: make install-build-deps
       - name: Update maxpods
         run: make update-maxpods
       - name: Commit changes
@@ -66,6 +64,8 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: '^1.14'
+      - name: Install deps
+        run: make install-build-deps
       - name: Update aws-node
         run: make update-aws-node
       - name: Commit changes
