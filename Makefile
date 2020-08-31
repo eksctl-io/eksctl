@@ -6,9 +6,9 @@ version_pkg := github.com/weaveworks/eksctl/pkg/version
 gopath := $(shell go env GOPATH)
 gocache := $(shell go env GOCACHE)
 
-export PATH := ./build/scripts:$(PATH)
+export GOBIN ?= $(gopath)/bin
 
-GOBIN ?= $(gopath)/bin
+export PATH := $(GOBIN):./build/scripts:$(PATH)
 
 AWS_SDK_GO_DIR ?= $(gopath)/pkg/mod/$(shell grep 'aws-sdk-go' go.sum | awk '{print $$1 "@" $$2}' | grep -v 'go.mod' | sort | tail -1)
 
@@ -82,8 +82,8 @@ endif
 
 .PHONY: lint
 lint: ## Run linter over the codebase
-	time "$(GOBIN)/golangci-lint" run
-	@for config_file in $(shell ls .goreleaser*); do time "$(GOBIN)/goreleaser" check -f $${config_file}; done
+	time golangci-lint run
+	@for config_file in $(shell ls .goreleaser*); do time goreleaser check -f $${config_file}; done
 
 .PHONY: test
 test:
@@ -158,11 +158,11 @@ generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (requi
 	@# go-bindata targets must run every time, as dependencies are too complex to declare in make:
 	@# - deleting an asset is breaks the dependencies
 	@# - different version of go-bindata generate different code
-	@$(GOBIN)/go-bindata -v
-	env GOBIN=$(GOBIN) time go generate ./pkg/apis/eksctl.io/v1alpha5/generate.go
-	env GOBIN=$(GOBIN) time go generate ./pkg/nodebootstrap
-	env GOBIN=$(GOBIN) time go generate ./pkg/addons/default/generate.go
-	env GOBIN=$(GOBIN) time go generate ./pkg/addons
+	@go-bindata -v
+	time go generate ./pkg/apis/eksctl.io/v1alpha5/generate.go
+	time go generate ./pkg/nodebootstrap
+	time go generate ./pkg/addons/default/generate.go
+	time go generate ./pkg/addons
 
 .PHONY: generate-all
 generate-all: generate-always $(conditionally_generated_files) ## Re-generate all the automatically-generated source files
@@ -188,14 +188,14 @@ pkg/addons/default/assets/aws-node.yaml:
 .PHONY: update-aws-node
 update-aws-node: ## Re-download the aws-node manifests from AWS
 	time go generate ./pkg/addons/default/aws_node_generate.go
-	env GOBIN=$(GOBIN) time go generate ./pkg/addons/default/generate.go
+	time go generate ./pkg/addons/default/generate.go
 
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) ## Generate Kubernetes API helpers
 	update-codegen.sh
 
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
-	time env GOBIN=$(GOBIN) AWS_SDK_GO_DIR=$(AWS_SDK_GO_DIR) go generate ./pkg/eks/mocks
+	time AWS_SDK_GO_DIR=$(AWS_SDK_GO_DIR) go generate ./pkg/eks/mocks
 
 .PHONY: generate-kube-reserved
 generate-kube-reserved: ## Update instance list with respective specs
