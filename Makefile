@@ -183,11 +183,12 @@ update-maxpods: ## Re-download the max pods info from AWS and regenerate the max
 
 ### Update aws-node addon manifests from AWS
 pkg/addons/default/assets/aws-node.yaml:
-	$(MAKE) update-aws-node
+	time go generate ./pkg/addons/default/aws_node_generate.go
 
 .PHONY: update-aws-node
 update-aws-node: ## Re-download the aws-node manifests from AWS
 	time go generate ./pkg/addons/default/aws_node_generate.go
+	env GOBIN=$(GOBIN) time go generate ./pkg/addons/default/generate.go
 
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) ## Generate Kubernetes API helpers
