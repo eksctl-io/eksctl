@@ -5,7 +5,9 @@ run the integration tests.
 
 > **Note**: remember to replace `<account_id>` with your own.
 
-AmazonEC2FullAccess
+!!!info An AWS Managed Policy is created and administered by AWS. You cannot change the permissions defined in AWS managed policies.
+
+AmazonEC2FullAccess (AWS Managed Policy)
 ```
 {
     "Version": "2012-10-17",
@@ -51,7 +53,7 @@ AmazonEC2FullAccess
 }
 ```
 
-AWSCloudFormationFullAccess
+AWSCloudFormationFullAccess (AWS Managed Policy)
 ```
 {
     "Version": "2012-10-17",
