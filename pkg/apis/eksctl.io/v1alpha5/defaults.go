@@ -63,8 +63,7 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 		ng.SecurityGroups.WithShared = Enabled()
 	}
 
-	switch ng.AMIFamily {
-	case NodeImageFamilyBottlerocket:
+	if ng.AMIFamily == NodeImageFamilyBottlerocket {
 		setBottlerocketNodeGroupDefaults(ng)
 	}
 }
