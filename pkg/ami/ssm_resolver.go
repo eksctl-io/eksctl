@@ -2,7 +2,6 @@ package ami
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
@@ -88,8 +87,7 @@ func MakeManagedSSMParameterName(version, imageFamily, amiType string) (string, 
 // instanceEC2ArchName returns the name of the architecture as used by EC2
 // resources.
 func instanceEC2ArchName(instanceType string) string {
-	// eg: a1.large - an ARM instance type.
-	if strings.HasPrefix(instanceType, "a") {
+	if utils.IsARMInstanceType(instanceType) {
 		return "arm64"
 	}
 	return "x86_64"
