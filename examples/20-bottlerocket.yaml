@@ -9,14 +9,12 @@ kind: ClusterConfig
 metadata:
   name: cluster-20
   region: us-west-2
-  version: '1.15'
 
 nodeGroups:
   - name: ng1-public
     instanceType: m5.xlarge
     desiredCapacity: 4
     amiFamily: Bottlerocket
-    ami: auto-ssm
     labels:
       "network-locality.example.com/public": "true"
     bottlerocket:
@@ -28,7 +26,6 @@ nodeGroups:
     instanceType: m5.xlarge
     desiredCapacity: 4
     amiFamily: Bottlerocket
-    ami: auto-ssm
     ssh:
       # Enable ssh access (via the admin container)
       allow: true
