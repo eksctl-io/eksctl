@@ -1,6 +1,8 @@
 package eks
 
 import (
+	"fmt"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -12,6 +14,10 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+)
+
+const (
+	iamPolicyAmazonEKSCNIPolicy = "AmazonEKS_CNI_Policy"
 )
 
 type clusterConfigTask struct {
@@ -203,7 +209,7 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 	// used by this would be more elegant if it was all done via CloudFormation and we didn't
 	// have to put wires across all the things like this; this whole function is needed because
 	// we cannot manage certain EKS features with CloudFormation
-	eatlyOIDC := &iamoidc.OpenIDConnectManager{}
+	oidcPlaceholder := &iamoidc.OpenIDConnectManager{}
 	tasks.Append(&clusterConfigTask{
 		info: "associate IAM OIDC provider",
 		spec: cfg,
@@ -218,7 +224,7 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 			if err := oidc.CreateProvider(); err != nil {
 				return err
 			}
-			*eatlyOIDC = *oidc
+			*oidcPlaceholder = *oidc
 			return nil
 		},
 	})
@@ -229,10 +235,19 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 		},
 	}
 
+	serviceAccounts := append([]*api.ClusterIAMServiceAccount{}, cfg.IAM.ServiceAccounts...)
+	if api.IsEnabled(cfg.IAM.WithOIDC) {
+		serviceAccounts = append(serviceAccounts, &api.ClusterIAMServiceAccount{
+			ClusterIAMMeta: api.ClusterIAMMeta{Name: "aws-node",
+				Namespace: "kube-system",
+			},
+			AttachPolicyARNs: []string{fmt.Sprintf("arn:aws:iam::aws:policy/%s", iamPolicyAmazonEKSCNIPolicy)},
+		})
+	}
 	// as this is non-CloudFormation context, we need to construct a new stackManager,
 	// given a clientSet getter and OpenIDConnectManager reference we can build out
 	// the list of tasks for each of the service accounts that need to be created
-	newTasks := c.NewStackManager(cfg).NewTasksToCreateIAMServiceAccounts(cfg.IAM.ServiceAccounts, eatlyOIDC, clientSet)
+	newTasks := c.NewStackManager(cfg).NewTasksToCreateIAMServiceAccounts(serviceAccounts, oidcPlaceholder, clientSet)
 	newTasks.IsSubTask = true
 	tasks.Append(newTasks)
 }
