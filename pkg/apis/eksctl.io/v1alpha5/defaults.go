@@ -16,6 +16,10 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 		cfg.IAM.WithOIDC = Disabled()
 	}
 
+	if cfg.IAM.VPCResourceControllerPolicy == nil {
+		cfg.IAM.VPCResourceControllerPolicy = Enabled()
+	}
+
 	for _, sa := range cfg.IAM.ServiceAccounts {
 		if sa.Namespace == "" {
 			sa.Namespace = metav1.NamespaceDefault
