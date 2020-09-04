@@ -9,15 +9,7 @@ fi
 
 if [ "$(uname)" = "Darwin" ] ; then
   OSARCH="darwin-amd64"
-<<<<<<< HEAD
-<<<<<<< HEAD
 elif [ "$(uname -i)" = "aarch64" ] ; then
-=======
-elif [ "$(uname)" = "aarch64" ] ; then
->>>>>>> adb0480d... Add aarch64/linux-arm64 to build-deps
-=======
-elif [ "$(uname -i)" = "aarch64" ] ; then
->>>>>>> 8dadf523... Add aarch64/linux-arm64 to build-deps
   OSARCH="linux-arm64"
 else
   OSARCH="linux-amd64"
