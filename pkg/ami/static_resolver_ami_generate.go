@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -29,6 +30,7 @@ func main() {
 
 	client := newMultiRegionClient()
 
+	regions := supportedRegions()
 	for _, version := range api.SupportedVersions() {
 		versionImages := Dict{}
 		imageFamilies := ami.MakeImageSearchPatterns(version)
@@ -38,7 +40,7 @@ func main() {
 			imageClasses := imageFamilies[family]
 			for class := range imageClasses {
 				classImages := Dict{}
-				for _, region := range api.SupportedRegions() {
+				for _, region := range regions {
 					namePattern := imageClasses[class]
 					ownerAccount, err := ami.OwnerAccountID(family, region)
 					if err != nil {
@@ -69,6 +71,16 @@ func main() {
 
 }
 
+func supportedRegions() []string {
+	allRegions := sets.NewString(api.SupportedRegions()...)
+	allRegions.Delete(api.RegionUSGovEast1,
+		api.RegionUSGovWest1,
+		api.RegionCNNorth1,
+		api.RegionCNNorthwest1,
+	)
+	return allRegions.List()
+}
+
 func newSession(region string) *session.Session {
 	config := aws.NewConfig()
 	config = config.WithRegion(region)
@@ -86,7 +98,7 @@ func newSession(region string) *session.Session {
 
 func newMultiRegionClient() map[string]*ec2.EC2 {
 	clients := make(map[string]*ec2.EC2)
-	for _, region := range api.SupportedRegions() {
+	for _, region := range supportedRegions() {
 		clients[region] = ec2.New(newSession(region))
 	}
 	return clients

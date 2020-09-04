@@ -25,6 +25,7 @@ const (
 var ImageClasses = []string{
 	"ImageClassGeneral",
 	"ImageClassGPU",
+	"ImageClassARM",
 }
 
 // Use checks if a given AMI ID is available in AWS EC2 as well as checking and populating RootDevice information
