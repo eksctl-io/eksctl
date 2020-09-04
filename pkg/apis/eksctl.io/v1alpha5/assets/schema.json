@@ -182,6 +182,12 @@
           "description": "permissions boundary for all identity-based entities created by eksctl. See [AWS Permission Boundary](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html)",
           "x-intellij-html-description": "permissions boundary for all identity-based entities created by eksctl. See <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html\">AWS Permission Boundary</a>"
         },
+        "vpcResourceControllerPolicy": {
+          "type": "boolean",
+          "description": "attaches the IAM policy necessary to run the VPC controller in the control plane",
+          "x-intellij-html-description": "attaches the IAM policy necessary to run the VPC controller in the control plane",
+          "default": true
+        },
         "withOIDC": {
           "type": "boolean",
           "description": "enables the IAM OIDC provider",
@@ -194,7 +200,8 @@
         "fargatePodExecutionRoleARN",
         "fargatePodExecutionRolePermissionsBoundary",
         "withOIDC",
-        "serviceAccounts"
+        "serviceAccounts",
+        "vpcResourceControllerPolicy"
       ],
       "additionalProperties": false,
       "description": "holds all IAM attributes of a cluster",

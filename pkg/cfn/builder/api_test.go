@@ -2517,7 +2517,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(clusterTemplate.Resources["ServiceRole"].Properties).ToNot(BeNil())
 
 			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(Equal(
-				makePolicyARNRef("AmazonEKSClusterPolicy")),
+				makePolicyARNRef("AmazonEKSClusterPolicy", "AmazonEKSVPCResourceController")),
 			)
 
 			checkARPD([]string{"EKS", "EKSFargatePods"}, clusterTemplate.Resources["ServiceRole"].Properties.AssumeRolePolicyDocument)

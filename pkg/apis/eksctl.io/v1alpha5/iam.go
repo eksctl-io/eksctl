@@ -39,6 +39,11 @@ type ClusterIAM struct {
 	// See [IAM Service Accounts](/iamserviceaccounts/#usage-with-config-files)
 	// +optional
 	ServiceAccounts []*ClusterIAMServiceAccount `json:"serviceAccounts,omitempty"`
+
+	// VPCResourceControllerPolicy attaches the IAM policy
+	// necessary to run the VPC controller in the control plane
+	// Defaults to `true`
+	VPCResourceControllerPolicy *bool `json:"vpcResourceControllerPolicy,omitempty"`
 }
 
 // ClusterIAMMeta holds information we can use to create ObjectMeta for service

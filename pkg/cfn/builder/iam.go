@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	iamPolicyAmazonEKSClusterPolicy = "AmazonEKSClusterPolicy"
+	iamPolicyAmazonEKSClusterPolicy         = "AmazonEKSClusterPolicy"
+	iamPolicyAmazonEKSVPCResourceController = "AmazonEKSVPCResourceController"
 
 	iamPolicyAmazonEKSWorkerNodePolicy           = "AmazonEKSWorkerNodePolicy"
 	iamPolicyAmazonEKSCNIPolicy                  = "AmazonEKS_CNI_Policy"
@@ -71,6 +72,13 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 
 	c.rs.withIAM = true
 
+	managedPolicyArns := []string{
+		iamPolicyAmazonEKSClusterPolicy,
+	}
+	if !api.IsDisabled(c.spec.IAM.VPCResourceControllerPolicy) {
+		managedPolicyArns = append(managedPolicyArns, iamPolicyAmazonEKSVPCResourceController)
+	}
+
 	role := &gfniam.Role{
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
 			MakeServiceRef("EKS"),
@@ -78,9 +86,7 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 			// define so-called "Fargate profiles" in order to do so:
 			MakeServiceRef("EKSFargatePods"),
 		),
-		ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(
-			iamPolicyAmazonEKSClusterPolicy,
-		)...),
+		ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(managedPolicyArns...)...),
 	}
 	if api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRolePermissionsBoundary) {
 		role.PermissionsBoundary = gfnt.NewString(*c.spec.IAM.ServiceRolePermissionsBoundary)
