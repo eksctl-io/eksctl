@@ -27,13 +27,9 @@ AWS_SERVICES_DOMAIN="$(get_metadata services/domain)"
 
 source /etc/eksctl/kubelet.env # this can override MAX_PODS
 
-INSTANCE_LIFECYCLE="$(get_metadata instance-life-cycle | grep 'spot')"
+INSTANCE_LIFECYCLE="$(get_metadata instance-life-cycle)"
+NODE_LABELS="${NODE_LABELS},node-lifecycle=${INSTANCE_LIFECYCLE}"
 
-if [ "$INSTANCE_LIFECYCLE" == "spot" ]; then
- NODE_LABELS="${NODE_LABELS},node-lifecycle=spot"
-else
- NODE_LABELS="${NODE_LABELS},node-lifecycle=on-demand"
-fi
       
 cat > /etc/eksctl/kubelet.local.env <<EOF
 NODE_IP=${NODE_IP}
