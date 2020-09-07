@@ -35,6 +35,7 @@ NODE_IP=${NODE_IP}
 INSTANCE_ID=${INSTANCE_ID}
 INSTANCE_TYPE=${INSTANCE_TYPE}
 MAX_PODS=${MAX_PODS:-$(get_max_pods "${INSTANCE_TYPE}")}
+NODE_LABELS=${NODE_LABELS}
 EOF
 
 snap alias kubelet-eks.kubelet kubelet
