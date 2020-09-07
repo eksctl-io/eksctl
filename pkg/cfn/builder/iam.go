@@ -35,7 +35,6 @@ const (
 var (
 	iamDefaultNodePolicies = []string{
 		iamPolicyAmazonEKSWorkerNodePolicy,
-		iamPolicyAmazonEKSCNIPolicy,
 	}
 )
 
@@ -166,7 +165,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() error {
 		n.rs.withNamedIAM = true
 	}
 
-	if err := createRole(n.rs, n.spec.IAM, false); err != nil {
+	if err := createRole(n.rs, n.clusterSpec.IAM, n.spec.IAM, false); err != nil {
 		return err
 	}
 
