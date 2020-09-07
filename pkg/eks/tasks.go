@@ -2,9 +2,14 @@ package eks
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/weaveworks/eksctl/pkg/addons"
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
@@ -105,6 +110,43 @@ func (t *UpdateAddonsTask) Do(errCh chan error) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+type restartDaemonsetTask struct {
+	name            string
+	namespace       string
+	clusterProvider *ClusterProvider
+	spec            *api.ClusterConfig
+}
+
+func (t *restartDaemonsetTask) Describe() string {
+	return fmt.Sprintf(`restart daemonset "%s/%s"`, t.namespace, t.name)
+}
+
+func (t *restartDaemonsetTask) Do(errCh chan error) error {
+	defer close(errCh)
+	clientSet, err := t.clusterProvider.NewStdClientSet(t.spec)
+	if err != nil {
+		return err
+	}
+	ds := clientSet.AppsV1().DaemonSets(t.namespace)
+	dep, err := ds.Get(t.name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	if dep.Spec.Template.Annotations == nil {
+		dep.Spec.Template.Annotations = make(map[string]string)
+	}
+	dep.Spec.Template.Annotations["eksctl.io/restartedAt"] = time.Now().Format(time.RFC3339)
+	bytes, err := runtime.Encode(unstructured.UnstructuredJSONScheme, dep)
+	if err != nil {
+		return errors.Wrapf(err, "failed to marshal %q deployment", t.name)
+	}
+	if _, err := ds.Patch(t.name, types.MergePatchType, bytes); err != nil {
+		return errors.Wrap(err, "failed to patch deployment")
+	}
+	logger.Info(`daemonset "%s/%s" restarted`, t.namespace, t.name)
 	return nil
 }
 
@@ -250,6 +292,12 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 	newTasks := c.NewStackManager(cfg).NewTasksToCreateIAMServiceAccounts(serviceAccounts, oidcPlaceholder, clientSet)
 	newTasks.IsSubTask = true
 	tasks.Append(newTasks)
+	tasks.Append(&restartDaemonsetTask{
+		namespace:       "kube-system",
+		name:            "aws-node",
+		clusterProvider: c,
+		spec:            cfg,
+	})
 }
 
 func (c *ClusterProvider) maybeAppendTasksForEndpointAccessUpdates(cfg *api.ClusterConfig, tasks *manager.TaskTree) {
