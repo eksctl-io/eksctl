@@ -636,9 +636,16 @@ func validateNodeGroupKubeletExtraConfig(kubeletConfig *InlineDocument) error {
 
 // IsWindowsImage reports whether the AMI family is for Windows
 func IsWindowsImage(imageFamily string) bool {
-	return imageFamily == NodeImageFamilyWindowsServer2019CoreContainer ||
-		imageFamily == NodeImageFamilyWindowsServer2019FullContainer ||
-		imageFamily == NodeImageFamilyWindowsServer1909CoreContainer
+	switch imageFamily {
+	case NodeImageFamilyWindowsServer2019CoreContainer,
+		NodeImageFamilyWindowsServer2019FullContainer,
+		NodeImageFamilyWindowsServer1909CoreContainer,
+		NodeImageFamilyWindowsServer2004CoreContainer:
+		return true
+
+	default:
+		return false
+	}
 }
 
 func validateCIDRs(cidrs []string) ([]string, error) {

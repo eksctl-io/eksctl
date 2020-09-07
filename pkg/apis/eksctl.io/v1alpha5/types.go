@@ -168,6 +168,8 @@ const (
 	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
 	// NodeImageFamilyWindowsServer1909CoreContainer represents Windows 1909 core container family
 	NodeImageFamilyWindowsServer1909CoreContainer = "WindowsServer1909CoreContainer"
+	// NodeImageFamilyWindowsServer2004CoreContainer represents Windows 2004 core container family
+	NodeImageFamilyWindowsServer2004CoreContainer = "WindowsServer2004CoreContainer"
 
 	// NodeImageResolverStatic represents static AMI resolver (see ami package)
 	NodeImageResolverStatic = "static"
