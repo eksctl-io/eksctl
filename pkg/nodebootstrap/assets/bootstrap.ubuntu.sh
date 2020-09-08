@@ -28,14 +28,12 @@ source /etc/eksctl/kubelet.env # this can override MAX_PODS
 
 
 INSTANCE_LIFECYCLE="$(get_metadata instance-life-cycle)"
-NODE_LABELS="${NODE_LABELS},node-lifecycle=${INSTANCE_LIFECYCLE}"
 
 cat > /etc/eksctl/kubelet.local.env <<EOF
 NODE_IP=${NODE_IP}
 INSTANCE_ID=${INSTANCE_ID}
 INSTANCE_TYPE=${INSTANCE_TYPE}
 MAX_PODS=${MAX_PODS:-$(get_max_pods "${INSTANCE_TYPE}")}
-NODE_LABELS=${NODE_LABELS}
 EOF
 
 snap alias kubelet-eks.kubelet kubelet
@@ -56,7 +54,7 @@ systemctl reset-failed
   flags=(
     "node-ip=${NODE_IP}"
     "max-pods=${MAX_PODS}"
-    "node-labels=${NODE_LABELS},alpha.eksctl.io/instance-id=${INSTANCE_ID}"
+    "node-labels=${NODE_LABELS},alpha.eksctl.io/instance-id=${INSTANCE_ID},node-lifecycle=${INSTANCE_LIFECYCLE}"
     "pod-infra-container-image=${AWS_EKS_ECR_ACCOUNT}.dkr.ecr.${AWS_DEFAULT_REGION}.${AWS_SERVICES_DOMAIN}/eks/pause:3.1-eksbuild.1"
     "cloud-provider=aws"
     "cni-bin-dir=/opt/cni/bin"
