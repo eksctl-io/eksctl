@@ -30,13 +30,14 @@ source /etc/eksctl/kubelet.env # this can override MAX_PODS
 INSTANCE_LIFECYCLE="$(get_metadata instance-life-cycle)"
 NODE_LABELS="${NODE_LABELS},node-lifecycle=${INSTANCE_LIFECYCLE}"
 
-      
+
 cat > /etc/eksctl/kubelet.local.env <<EOF
 NODE_IP=${NODE_IP}
 INSTANCE_ID=${INSTANCE_ID}
 INSTANCE_TYPE=${INSTANCE_TYPE}
 AWS_SERVICES_DOMAIN=${AWS_SERVICES_DOMAIN}
 MAX_PODS=${MAX_PODS:-$(get_max_pods "${INSTANCE_TYPE}")}
+NODE_LABELS=${NODE_LABELS}
 EOF
 
 systemctl daemon-reload

@@ -60,6 +60,8 @@ nodeGroups:
       instanceTypes: ["t3.small", "t3.medium"] # At least one instance type should be specified
 ```
 
+To distinguish nodes between spot or on-demand instances you can use the kubernetes label `node-lifecycle` which will have the value `spot` or `on-demand` depending on its type.
+
 ### Parameters in instancesDistribution
 
 Please see [the config parameters](/usage/schema/#nodeGroups-instancesDistribution) for details.
