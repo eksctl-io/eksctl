@@ -863,6 +863,11 @@ func (in *NodeGroupBase) DeepCopyInto(out *NodeGroupBase) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.DisableIMDS != nil {
+		in, out := &in.DisableIMDS, &out.DisableIMDS
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 

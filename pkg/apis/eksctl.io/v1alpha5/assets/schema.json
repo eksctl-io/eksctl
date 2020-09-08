@@ -642,6 +642,12 @@
         "desiredCapacity": {
           "type": "integer"
         },
+        "disableIMDS": {
+          "type": "boolean",
+          "description": "disallows IMDS requests",
+          "x-intellij-html-description": "disallows IMDS requests",
+          "default": false
+        },
         "disableIMDSv1": {
           "type": "boolean",
           "description": "requires requests to the metadata service to use IMDSv2 tokens",
@@ -783,6 +789,7 @@
         "preBootstrapCommands",
         "overrideBootstrapCommand",
         "disableIMDSv1",
+        "disableIMDS",
         "launchTemplate"
       ],
       "additionalProperties": false,
@@ -887,6 +894,12 @@
         },
         "desiredCapacity": {
           "type": "integer"
+        },
+        "disableIMDS": {
+          "type": "boolean",
+          "description": "disallows IMDS requests",
+          "x-intellij-html-description": "disallows IMDS requests",
+          "default": false
         },
         "disableIMDSv1": {
           "type": "boolean",
@@ -1047,6 +1060,7 @@
         "preBootstrapCommands",
         "overrideBootstrapCommand",
         "disableIMDSv1",
+        "disableIMDS",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",

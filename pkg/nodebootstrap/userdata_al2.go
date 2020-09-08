@@ -58,6 +58,10 @@ func NewUserDataForAmazonLinux2(spec *api.ClusterConfig, ng *api.NodeGroup) (str
 		config.AddShellCommand(command)
 	}
 
+	if api.IsEnabled(ng.DisableIMDS) {
+		scripts = append(scripts, "disable-imds.al2.sh")
+	}
+
 	if ng.OverrideBootstrapCommand != nil {
 		config.AddShellCommand(*ng.OverrideBootstrapCommand)
 	} else {

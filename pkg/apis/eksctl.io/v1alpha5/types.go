@@ -1094,6 +1094,11 @@ type NodeGroupBase struct {
 	// Defaults to `false`
 	// +optional
 	DisableIMDSv1 *bool `json:"disableIMDSv1,omitempty"`
+
+	// DisableIMDS disallows IMDS requests
+	// Defaults to `false`
+	// +optional
+	DisableIMDS *bool `json:"disableIMDS,omitempty"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
