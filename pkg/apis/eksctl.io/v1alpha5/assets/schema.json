@@ -420,14 +420,6 @@
           "description": "See [managing access to API](/usage/vpc-networking/#managing-access-to-the-kubernetes-api-server-endpoints)",
           "x-intellij-html-description": "See <a href=\"/usage/vpc-networking/#managing-access-to-the-kubernetes-api-server-endpoints\">managing access to API</a>"
         },
-        "extraCIDRs": {
-          "items": {
-            "$ref": "#/definitions/github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet"
-          },
-          "type": "array",
-          "description": "for additional CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets",
-          "x-intellij-html-description": "for additional CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets"
-        },
         "id": {
           "type": "string"
         },
@@ -463,7 +455,6 @@
         "cidr",
         "securityGroup",
         "subnets",
-        "extraCIDRs",
         "sharedNodeSecurityGroup",
         "autoAllocateIPv6",
         "nat",

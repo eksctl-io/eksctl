@@ -38,10 +38,6 @@ type (
 		// VPCs](/usage/vpc-networking/#use-existing-vpc-any-custom-configuration).
 		// +optional
 		Subnets *ClusterSubnets `json:"subnets,omitempty"`
-		// for additional CIDR associations, e.g. a CIDR for
-		// private subnets or any ad-hoc subnets
-		// +optional
-		ExtraCIDRs []*ipnet.IPNet `json:"extraCIDRs,omitempty"`
 		// for pre-defined shared node SG
 		SharedNodeSecurityGroup string `json:"sharedNodeSecurityGroup,omitempty"`
 		// AutoAllocateIPV6 requests an IPv6 CIDR block with /56 prefix for the VPC
