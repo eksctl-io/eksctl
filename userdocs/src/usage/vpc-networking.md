@@ -8,6 +8,10 @@ The nodegroup by default allows inbound traffic from the control plane security 
 
 If that functionality doesn't suit you, the following options are currently available.
 
+
+!!! note
+In `us-east-1` eksctl only creates 2 public and 2 private subnets by default.
+
 !!! important
     From `eksctl` version `0.17.0` and onwards public subnets will have the property `MapPublicIpOnLaunch` enabled, and
     the property `AssociatePublicIpAddress` disabled in the Auto Scaling Group for the nodegroups. This means that for
@@ -15,7 +19,6 @@ If that functionality doesn't suit you, the following options are currently avai
     nodegroup or have `MapPublicIpOnLaunch` enabled in its public subnets. Otherwise, the new nodes won't have access to
     the internet and won't be able to download the basic add-ons (CNI plugin, kube-proxy, etc). To help setting up
     subnets correctly for old clusters you can use the new command `eksctl utils update-legacy-subnet-settings`.
-
 
 ## Change VPC CIDR
 
