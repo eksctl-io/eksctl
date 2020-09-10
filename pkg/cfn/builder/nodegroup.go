@@ -285,11 +285,15 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfnec2.LaunchTemplate_Launc
 
 func makeMetadataOptions(ng *api.NodeGroupBase) *gfnec2.LaunchTemplate_MetadataOptions {
 	imdsv2TokensRequired := "optional"
-	if api.IsEnabled(ng.DisableIMDSv1) {
+	if api.IsEnabled(ng.DisableIMDSv1) || api.IsEnabled(ng.DisablePodIMDS) {
 		imdsv2TokensRequired = "required"
 	}
+	hopLimit := 2
+	if api.IsEnabled(ng.DisablePodIMDS) {
+		hopLimit = 1
+	}
 	return &gfnec2.LaunchTemplate_MetadataOptions{
-		HttpPutResponseHopLimit: gfnt.NewInteger(2),
+		HttpPutResponseHopLimit: gfnt.NewInteger(hopLimit),
 		HttpTokens:              gfnt.NewString(imdsv2TokensRequired),
 	}
 }

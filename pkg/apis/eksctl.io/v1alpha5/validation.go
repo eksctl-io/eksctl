@@ -195,6 +195,15 @@ func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
 		return fmt.Errorf("%s.maxPodsPerNode cannot be negative", path)
 	}
 
+	if IsEnabled(ng.DisablePodIMDS) && ng.IAM != nil {
+		fmtFieldConflictErr := func(_ string) error {
+			return fmt.Errorf("%s.disablePodIMDS and %s.iam.withAddonPolicies cannot be set at the same time", path, path)
+		}
+		if err := validateNodeGroupIAMWithAddonPolicies(ng.IAM.WithAddonPolicies, fmtFieldConflictErr); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -330,6 +339,50 @@ func isKubernetesLabel(namespace string) bool {
 	return false
 }
 
+func validateNodeGroupIAMWithAddonPolicies(
+	policies NodeGroupIAMAddonPolicies,
+	fmtFieldConflictErr func(conflictingField string) error,
+) error {
+	prefix := "withAddonPolicies."
+	if IsEnabled(policies.AutoScaler) {
+		return fmtFieldConflictErr(prefix + "autoScaler")
+	}
+	if IsEnabled(policies.ExternalDNS) {
+		return fmtFieldConflictErr(prefix + "externalDNS")
+	}
+	if IsEnabled(policies.CertManager) {
+		return fmtFieldConflictErr(prefix + "certManager")
+	}
+	if IsEnabled(policies.ImageBuilder) {
+		return fmtFieldConflictErr(prefix + "imageBuilder")
+	}
+	if IsEnabled(policies.AppMesh) {
+		return fmtFieldConflictErr(prefix + "appMesh")
+	}
+	if IsEnabled(policies.AppMeshPreview) {
+		return fmtFieldConflictErr(prefix + "appMeshPreview")
+	}
+	if IsEnabled(policies.EBS) {
+		return fmtFieldConflictErr(prefix + "ebs")
+	}
+	if IsEnabled(policies.FSX) {
+		return fmtFieldConflictErr(prefix + "fsx")
+	}
+	if IsEnabled(policies.EFS) {
+		return fmtFieldConflictErr(prefix + "efs")
+	}
+	if IsEnabled(policies.ALBIngress) {
+		return fmtFieldConflictErr(prefix + "albIngress")
+	}
+	if IsEnabled(policies.XRay) {
+		return fmtFieldConflictErr(prefix + "xRay")
+	}
+	if IsEnabled(policies.CloudWatch) {
+		return fmtFieldConflictErr(prefix + "cloudWatch")
+	}
+	return nil
+}
+
 func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) error {
 	if value != "" {
 		fmtFieldConflictErr := func(conflictingField string) error {
@@ -345,42 +398,8 @@ func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) erro
 		if iam.InstanceRolePermissionsBoundary != "" {
 			return fmtFieldConflictErr("instanceRolePermissionsBoundary")
 		}
-		prefix := "withAddonPolicies."
-		if IsEnabled(iam.WithAddonPolicies.AutoScaler) {
-			return fmtFieldConflictErr(prefix + "autoScaler")
-		}
-		if IsEnabled(iam.WithAddonPolicies.ExternalDNS) {
-			return fmtFieldConflictErr(prefix + "externalDNS")
-		}
-		if IsEnabled(iam.WithAddonPolicies.CertManager) {
-			return fmtFieldConflictErr(prefix + "certManager")
-		}
-		if IsEnabled(iam.WithAddonPolicies.ImageBuilder) {
-			return fmtFieldConflictErr(prefix + "imageBuilder")
-		}
-		if IsEnabled(iam.WithAddonPolicies.AppMesh) {
-			return fmtFieldConflictErr(prefix + "appMesh")
-		}
-		if IsEnabled(iam.WithAddonPolicies.AppMeshPreview) {
-			return fmtFieldConflictErr(prefix + "appMeshPreview")
-		}
-		if IsEnabled(iam.WithAddonPolicies.EBS) {
-			return fmtFieldConflictErr(prefix + "ebs")
-		}
-		if IsEnabled(iam.WithAddonPolicies.FSX) {
-			return fmtFieldConflictErr(prefix + "fsx")
-		}
-		if IsEnabled(iam.WithAddonPolicies.EFS) {
-			return fmtFieldConflictErr(prefix + "efs")
-		}
-		if IsEnabled(iam.WithAddonPolicies.ALBIngress) {
-			return fmtFieldConflictErr(prefix + "albIngress")
-		}
-		if IsEnabled(iam.WithAddonPolicies.XRay) {
-			return fmtFieldConflictErr(prefix + "xRay")
-		}
-		if IsEnabled(iam.WithAddonPolicies.CloudWatch) {
-			return fmtFieldConflictErr(prefix + "cloudWatch")
+		if err := validateNodeGroupIAMWithAddonPolicies(iam.WithAddonPolicies, fmtFieldConflictErr); err != nil {
+			return err
 		}
 	}
 	return nil
