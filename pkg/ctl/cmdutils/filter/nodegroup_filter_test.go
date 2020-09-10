@@ -386,7 +386,9 @@ const expected = `
 				  "xRay": false,
 				  "cloudWatch": false
 			    }
-			  }
+			  },
+			  "disableIMDSv1": false,
+			  "disablePodIMDS": false
 		  },
 		  {
 			  "name": "test-ng2a",
@@ -426,7 +428,9 @@ const expected = `
 				  "xRay": false,
 				  "cloudWatch": false
 			    }
-			  }
+			  },
+			  "disableIMDSv1": false,
+			  "disablePodIMDS": false
 		  },
 		  {
 			  "name": "test-ng3a",
@@ -465,7 +469,9 @@ const expected = `
 				  "cloudWatch": false
 			    }
 			  },
-			  "clusterDNS": "1.2.3.4"
+			  "clusterDNS": "1.2.3.4",
+			  "disableIMDSv1": false,
+			  "disablePodIMDS": false
 		  },
 		  {
 			  "name": "test-ng1b",
@@ -503,7 +509,9 @@ const expected = `
 				  "xRay": false,
 				  "cloudWatch": false
 			    }
-			  }
+			  },
+			  "disableIMDSv1": false,
+			  "disablePodIMDS": false
 		  },
 		  {
 			  "name": "test-ng2b",
@@ -545,7 +553,9 @@ const expected = `
 				  "cloudWatch": false
 			    }
 			  },
-			  "clusterDNS": "4.2.8.14"
+			  "clusterDNS": "4.2.8.14",
+			  "disableIMDSv1": false,
+			  "disablePodIMDS": false
 		  },
 		  {
 			  "name": "test-ng3b",
@@ -586,7 +596,9 @@ const expected = `
 				  "xRay": false,
 				  "cloudWatch": false
 			    }
-			  }
+			  },
+			  "disableIMDSv1": false,
+			  "disablePodIMDS": false
 		  }
 		]
   }
