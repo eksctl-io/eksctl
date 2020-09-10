@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -161,8 +162,17 @@ func makeUserData(ng *api.NodeGroupBase, mimeBoundary string) (string, error) {
 
 	if ng.OverrideBootstrapCommand != nil {
 		scripts = append(scripts, *ng.OverrideBootstrapCommand)
-	} else if ng.MaxPodsPerNode != 0 {
-		scripts = append(scripts, makeMaxPodsScript(ng.MaxPodsPerNode))
+	} else {
+		if api.IsEnabled(ng.DisableIMDS) {
+			script, err := nodebootstrap.Asset("disable-imds.al2.sh")
+			if err != nil {
+				return "", errors.Wrap(err, "unexpected error loading script for disabling IMDS")
+			}
+			scripts = append(scripts, string(script))
+		}
+		if ng.MaxPodsPerNode != 0 {
+			scripts = append(scripts, makeMaxPodsScript(ng.MaxPodsPerNode))
+		}
 	}
 
 	if len(scripts) == 0 {

@@ -485,10 +485,11 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 
 		if ng.InstanceType != "" || ng.AMI != "" || IsEnabled(ng.SSH.Allow) || len(ng.SSH.SourceSecurityGroupIDs) > 0 ||
 			ng.VolumeSize != nil || len(ng.PreBootstrapCommands) > 0 || ng.OverrideBootstrapCommand != nil ||
-			len(ng.SecurityGroups.AttachIDs) > 0 || ng.InstanceName != "" || ng.InstancePrefix != "" || ng.MaxPodsPerNode != 0 {
+			len(ng.SecurityGroups.AttachIDs) > 0 || ng.InstanceName != "" || ng.InstancePrefix != "" || ng.MaxPodsPerNode != 0 ||
+			IsEnabled(ng.DisableIMDS) {
 
 			return errors.New("cannot set instanceType, ami, ssh.allow, ssh.sourceSecurityGroupIds, securityGroups, " +
-				"volumeSize, instanceName, instancePrefix, maxPodsPerNode, disableIMDSv1, preBootstrapCommands or overrideBootstrapCommand in managedNodeGroup when a launch template is supplied")
+				"volumeSize, instanceName, instancePrefix, maxPodsPerNode, disableIMDS, preBootstrapCommands or overrideBootstrapCommand in managedNodeGroup when a launch template is supplied")
 		}
 
 	case ng.AMI != "":
@@ -498,8 +499,14 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 		if ng.OverrideBootstrapCommand == nil {
 			return errors.Errorf("%s.overrideBootstrapCommand is required when using a custom AMI (%s.ami)", path, path)
 		}
+		notSupportedErr := func(field string) error {
+			return errors.Errorf("%s.%s is not supported when using a custom AMI (%s.ami)", path, field, path)
+		}
 		if ng.MaxPodsPerNode != 0 {
-			return errors.Errorf("%s.maxPodsPerNode is not supported when using a custom AMI (%s.ami)", path, path)
+			return notSupportedErr("maxPodsPerNode")
+		}
+		if IsEnabled(ng.DisableIMDS) {
+			return notSupportedErr("disableIMDS")
 		}
 
 	case ng.OverrideBootstrapCommand != nil:
