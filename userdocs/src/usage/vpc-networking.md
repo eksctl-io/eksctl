@@ -8,6 +8,10 @@ The nodegroup by default allows inbound traffic from the control plane security 
 
 If that functionality doesn't suit you, the following options are currently available.
 
+
+!!! note
+In `us-east-1` eksctl only creates 2 public and 2 private subnets by default.
+
 !!! important
     From `eksctl` version `0.17.0` and onwards public subnets will have the property `MapPublicIpOnLaunch` enabled, and
     the property `AssociatePublicIpAddress` disabled in the Auto Scaling Group for the nodegroups. This means that for
@@ -15,7 +19,6 @@ If that functionality doesn't suit you, the following options are currently avai
     nodegroup or have `MapPublicIpOnLaunch` enabled in its public subnets. Otherwise, the new nodes won't have access to
     the internet and won't be able to download the basic add-ons (CNI plugin, kube-proxy, etc). To help setting up
     subnets correctly for old clusters you can use the new command `eksctl utils update-legacy-subnet-settings`.
-
 
 ## Change VPC CIDR
 
@@ -93,6 +96,34 @@ eksctl create cluster \
   --vpc-public-subnets=subnet-0153e560b3129a696,subnet-009fa0199ec203c37
 ```
 
+or use the following equivalent config file:
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: my-test
+  region: us-west-2
+
+vpc:
+  id: "vpc-11111"
+  subnets:
+    private:
+      us-west-2a:
+          id: "subnet-0ff156e0c4a6d300c"
+      us-west-2c:
+          id: "subnet-0426fb4a607393184"
+    public:
+      us-west-2a:
+          id: "subnet-0153e560b3129a696"
+      us-west-2c:
+          id: "subnet-009fa0199ec203c37"
+
+nodeGroups:
+  - name: ng-1
+```
+
 To create a cluster using 3x private subnets and make initial nodegroup use those subnets, run:
 
 ```
@@ -101,12 +132,71 @@ eksctl create cluster \
   --node-private-networking
 ```
 
+or use the following equivalent config file:
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: my-test
+  region: us-west-2
+
+vpc:
+  id: "vpc-11111"
+  subnets:
+    private:
+      us-west-2d:
+          id: "subnet-0ff156e0c4a6d300c"
+      us-west-2c:
+          id: "subnet-0549cdab573695c03"
+      us-west-2a:
+          id: "subnet-0426fb4a607393184"
+
+nodeGroups:
+  - name: ng-1
+  privateNetworking: true
+
+```
+
 To create a cluster using 4x public subnets, run:
 
 ```
 eksctl create cluster \
   --vpc-public-subnets=subnet-0153e560b3129a696,subnet-0cc9c5aebe75083fd,subnet-009fa0199ec203c37,subnet-018fa0176ba320e45
 ```
+
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: my-test
+  region: us-west-2
+
+vpc:
+  id: "vpc-11111"
+  subnets:
+    public:
+      us-west-2d:
+          id: "subnet-0153e560b3129a696"
+      us-west-2c:
+          id: "subnet-0cc9c5aebe75083fd"
+      us-west-2a:
+          id: "subnet-009fa0199ec203c37"
+      us-west-2b:
+          id: "subnet-018fa0176ba320e45"
+
+nodeGroups:
+  - name: ng-1
+```
+
+For more examples see this examples:
+
+- [using an existing VPC](https://github.com/weaveworks/eksctl/blob/master/examples/04-existing-vpc.yaml)
+- [using a custom VPC CIDR](https://github.com/weaveworks/eksctl/blob/master/examples/02-custom-vpc-cidr-no-nodes.yaml)
+
 
 ## Custom Cluster DNS address
 

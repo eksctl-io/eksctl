@@ -16,6 +16,7 @@ nav:
     - Usage:
         - usage/creating-and-managing-clusters.md
         - usage/managing-nodegroups.md
+        - usage/security.md
         - usage/cluster-upgrade.md
         - usage/autoscaling.md
         - usage/custom-ami-support.md

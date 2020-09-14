@@ -113,6 +113,13 @@ func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
 		ng.Labels = make(map[string]string)
 	}
 	setDefaultNodeLabels(ng.Labels, meta.Name, ng.Name)
+
+	if ng.DisableIMDSv1 == nil {
+		ng.DisableIMDSv1 = Disabled()
+	}
+	if ng.DisablePodIMDS == nil {
+		ng.DisablePodIMDS = Disabled()
+	}
 }
 
 func setIAMDefaults(iamConfig *NodeGroupIAM) {

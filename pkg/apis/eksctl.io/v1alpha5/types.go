@@ -1094,6 +1094,11 @@ type NodeGroupBase struct {
 	// Defaults to `false`
 	// +optional
 	DisableIMDSv1 *bool `json:"disableIMDSv1,omitempty"`
+
+	// DisablePodIMDS blocks all IMDS requests from non host networking pods
+	// Defaults to `false`
+	// +optional
+	DisablePodIMDS *bool `json:"disablePodIMDS,omitempty"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup

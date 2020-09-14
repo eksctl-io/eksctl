@@ -648,6 +648,12 @@
           "x-intellij-html-description": "requires requests to the metadata service to use IMDSv2 tokens",
           "default": false
         },
+        "disablePodIMDS": {
+          "type": "boolean",
+          "description": "blocks all IMDS requests from non host networking pods",
+          "x-intellij-html-description": "blocks all IMDS requests from non host networking pods",
+          "default": false
+        },
         "ebsOptimized": {
           "type": "boolean",
           "description": "enables [EBS optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)",
@@ -783,6 +789,7 @@
         "preBootstrapCommands",
         "overrideBootstrapCommand",
         "disableIMDSv1",
+        "disablePodIMDS",
         "launchTemplate"
       ],
       "additionalProperties": false,
@@ -892,6 +899,12 @@
           "type": "boolean",
           "description": "requires requests to the metadata service to use IMDSv2 tokens",
           "x-intellij-html-description": "requires requests to the metadata service to use IMDSv2 tokens",
+          "default": false
+        },
+        "disablePodIMDS": {
+          "type": "boolean",
+          "description": "blocks all IMDS requests from non host networking pods",
+          "x-intellij-html-description": "blocks all IMDS requests from non host networking pods",
           "default": false
         },
         "ebsOptimized": {
@@ -1047,6 +1060,7 @@
         "preBootstrapCommands",
         "overrideBootstrapCommand",
         "disableIMDSv1",
+        "disablePodIMDS",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",
