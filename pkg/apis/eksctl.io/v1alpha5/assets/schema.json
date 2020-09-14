@@ -190,8 +190,8 @@
         },
         "withOIDC": {
           "type": "boolean",
-          "description": "enables the IAM OIDC provider",
-          "x-intellij-html-description": "enables the IAM OIDC provider"
+          "description": "enables the IAM OIDC provider as well as IRSA for the Amazon CNI plugin",
+          "x-intellij-html-description": "enables the IAM OIDC provider as well as IRSA for the Amazon CNI plugin"
         }
       },
       "preferredOrder": [
