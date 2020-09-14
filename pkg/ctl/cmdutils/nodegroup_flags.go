@@ -38,18 +38,18 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGrou
 	ng.SSH.Allow = fs.Bool("ssh-access", *ng.SSH.Allow, "control SSH access for nodes. Uses ~/.ssh/id_rsa.pub as default key path if enabled")
 	ng.SSH.PublicKeyPath = fs.String("ssh-public-key", "", "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
 
-	fs.StringVar(&ng.AMI, "node-ami", "", "Advanced use cases only. If 'ssm' is supplied (default) then eksctl will use SSM Parameter; if 'auto' is supplied then eksctl will automatically set the AMI based on version/region/instance type; if static is supplied (deprecated), then static AMIs will be used; if any other value is supplied it will override the AMI to use for the nodes. Use with extreme care.")
-	fs.StringVar(&ng.AMIFamily, "node-ami-family", api.DefaultNodeImageFamily, "Advanced use cases only. If 'AmazonLinux2' is supplied (default), then eksctl will use the official AWS EKS AMIs (Amazon Linux 2); if 'Ubuntu1804' is supplied, then eksctl will use the official Canonical EKS AMIs (Ubuntu 18.04).")
+	fs.StringVar(&ng.AMI, "node-ami", "", "'auto-ssm' (default), 'auto', 'static' (deprecated) or an AMI id (advanced use)")
+	fs.StringVar(&ng.AMIFamily, "node-ami-family", api.DefaultNodeImageFamily, "'AmazonLinux2' for the Amazon EKS optimized AMI or 'Ubuntu1804' for the official Canonical EKS AMIs (Ubuntu 18.04)")
 
 	fs.BoolVarP(&ng.PrivateNetworking, "node-private-networking", "P", false, "whether to make nodegroup networking private")
 
-	fs.StringSliceVar(&ng.SecurityGroups.AttachIDs, "node-security-groups", []string{}, "Attach additional security groups to nodes, so that it can be used to allow extra ingress/egress access from/to pods")
+	fs.StringSliceVar(&ng.SecurityGroups.AttachIDs, "node-security-groups", []string{}, "attach additional security groups to nodes")
 
-	AddStringToStringVarPFlag(fs, &ng.Labels, "node-labels", "", nil, "Extra labels to add when registering the nodes in the nodegroup")
+	AddStringToStringVarPFlag(fs, &ng.Labels, "node-labels", "", nil, "extra labels to add when registering the nodes in the nodegroup")
 	fs.StringSliceVar(&ng.AvailabilityZones, "node-zones", nil, "(inherited from the cluster if unspecified)")
 
-	fs.StringVar(&ng.InstancePrefix, "instance-prefix", "", "Add a prefix value in front of the instance's name.")
-	fs.StringVar(&ng.InstanceName, "instance-name", "", "Overrides the default instance's name. It can be used in combination with the instance-prefix flag.")
+	fs.StringVar(&ng.InstancePrefix, "instance-prefix", "", "add a prefix value in front of the instance's name")
+	fs.StringVar(&ng.InstanceName, "instance-name", "", "overrides the default instance's name")
 }
 
 func incompatibleManagedNodesFlags() []string {
