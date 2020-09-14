@@ -620,7 +620,7 @@ func NewClusterVPC() *ClusterVPC {
 	}
 }
 
-// NewClusterIAM creates new VPC config for a cluster
+// NewClusterIAM creates a new ClusterIAM for a cluster
 func NewClusterIAM() *ClusterIAM {
 	return &ClusterIAM{
 		WithOIDC: Disabled(),
