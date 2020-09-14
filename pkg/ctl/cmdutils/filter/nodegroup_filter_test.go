@@ -331,7 +331,9 @@ const expected = `
 		  "region": "eu-central-1",
 		  "version": "1.17"
 		},
-		"iam": {},
+		"iam": {
+		  "withOIDC": false
+		},
 		"vpc": {
 			"cidr": "192.168.0.0/16",
 			"autoAllocateIPv6": false,

@@ -522,7 +522,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 							WithShared: api.Enabled(),
 							AttachIDs:  []string{},
 						},
-
 						VolumeType:      aws.String(api.NodeVolumeTypeSC1),
 						VolumeName:      aws.String("/dev/xvda"),
 						VolumeEncrypted: api.Disabled(),
