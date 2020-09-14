@@ -31,7 +31,7 @@ type ClusterIAM struct {
 	// +optional
 	FargatePodExecutionRolePermissionsBoundary *string `json:"fargatePodExecutionRolePermissionsBoundary,omitempty"`
 
-	// enables the IAM OIDC provider
+	// enables the IAM OIDC provider as well as IRSA for the Amazon CNI plugin
 	// +optional
 	WithOIDC *bool `json:"withOIDC,omitempty"`
 
