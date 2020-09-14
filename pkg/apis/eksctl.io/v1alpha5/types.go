@@ -671,7 +671,7 @@ func NewNodeGroup() *NodeGroup {
 				WithLocal:  Enabled(),
 				WithShared: Enabled(),
 			},
-			DisableIMDSv1: Disabled(),
+			DisableIMDSv1:  Disabled(),
 			DisablePodIMDS: Disabled(),
 		},
 	}

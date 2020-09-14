@@ -480,6 +480,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
 			IAM: &api.ClusterIAM{
+				WithOIDC:       api.Disabled(),
 				ServiceRoleARN: aws.String(arn),
 			},
 			CloudWatch: &api.ClusterCloudWatch{
@@ -526,6 +527,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 						VolumeName:      aws.String("/dev/xvda"),
 						VolumeEncrypted: api.Disabled(),
 						VolumeKmsKeyID:  aws.String(""),
+						DisableIMDSv1:   api.Disabled(),
+						DisablePodIMDS:  api.Disabled(),
 					},
 				},
 			},
