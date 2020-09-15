@@ -105,7 +105,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 		err := ValidateManagedNodeGroup(mng, 0)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("cannot set instanceType, ami, ssh.allow, ssh.sourceSecurityGroupIds, securityGroups, " +
-			"volumeSize, instanceName, instancePrefix, maxPodsPerNode, disableIMDSv1, disablePodIMDS, preBootstrapCommands or overrideBootstrapCommand in managedNodeGroup when a launch template is supplied"))
+			"volumeSize, instanceName, instancePrefix, maxPodsPerNode, disableIMDSv1, disablePodIMDS, preBootstrapCommands, overrideBootstrapCommand, placement in managedNodeGroup when a launch template is supplied"))
 	},
 		Entry("instanceType", &NodeGroupBase{
 			InstanceType: "m5.xlarge",
