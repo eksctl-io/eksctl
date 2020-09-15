@@ -161,7 +161,9 @@ nodeGroups:
       lifecycle: Ec2Spot
       aws.amazon.com/spot: "true"
       gpu-count: "4"
-    # Stick to one AZ for all GPU nodes. In case of termination, this will prevent volumes from being unavailable if the new instance got spun up in another AZ.
+    # Stick to one AZ for all GPU nodes. 
+    # In case of termination, this will prevent volumes from being unavailable 
+    # if the new instance got spun up in another AZ.
     availabilityZones: ["us-east-1a"]
     taints:
       spotInstance: "true:PreferNoSchedule"
