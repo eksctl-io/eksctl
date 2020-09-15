@@ -120,6 +120,12 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 		launchTemplateData.BlockDeviceMappings = []gfnec2.LaunchTemplate_BlockDeviceMapping{mapping}
 	}
 
+	if mng.Placement != nil {
+		launchTemplateData.Placement = &gfnec2.LaunchTemplate_Placement{
+			GroupName: gfnt.NewString(mng.Placement.GroupName),
+		}
+	}
+
 	return launchTemplateData, nil
 }
 

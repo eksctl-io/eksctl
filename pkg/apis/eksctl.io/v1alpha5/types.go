@@ -1114,6 +1114,16 @@ type NodeGroupBase struct {
 	// Defaults to `false`
 	// +optional
 	DisablePodIMDS *bool `json:"disablePodIMDS,omitempty"`
+
+	// Placement specifies the placement group in which nodes should
+	// be spawned
+	// +optional
+	Placement *Placement `json:"placement,omitempty"`
+}
+
+// Placement specifies placement group information
+type Placement struct {
+	GroupName string `json:"groupName,omitempty"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
