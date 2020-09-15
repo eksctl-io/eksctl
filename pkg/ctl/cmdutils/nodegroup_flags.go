@@ -50,6 +50,8 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGrou
 
 	fs.StringVar(&ng.InstancePrefix, "instance-prefix", "", "add a prefix value in front of the instance's name")
 	fs.StringVar(&ng.InstanceName, "instance-name", "", "overrides the default instance's name")
+
+	fs.BoolVar(ng.DisablePodIMDS, "disable-pod-imds", false, "Blocks IMDS requests from non host networking pods")
 }
 
 func incompatibleManagedNodesFlags() []string {
