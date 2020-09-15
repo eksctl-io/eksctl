@@ -1164,34 +1164,48 @@
           "type": "boolean"
         },
         "appMesh": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "enables full access to AppMesh",
+          "x-intellij-html-description": "enables full access to AppMesh"
         },
         "appMeshPreview": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "enables full access to AppMesh Preview",
+          "x-intellij-html-description": "enables full access to AppMesh Preview"
         },
         "autoScaler": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "enables IAM policy for cluster-autoscaler",
+          "x-intellij-html-description": "enables IAM policy for cluster-autoscaler"
         },
         "certManager": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "enables the ability to add records to Route 53 in order to solve the DNS01 challenge. More information can be found [here](https://cert-manager.io/docs/configuration/acme/dns01/route53/#set-up-a-iam-role)",
+          "x-intellij-html-description": "enables the ability to add records to Route 53 in order to solve the DNS01 challenge. More information can be found <a href=\"https://cert-manager.io/docs/configuration/acme/dns01/route53/#set-up-a-iam-role\">here</a>"
         },
         "cloudWatch": {
           "type": "boolean"
         },
         "ebs": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "enables the new EBS CSI (Elastic Block Store Container Storage Interface) driver",
+          "x-intellij-html-description": "enables the new EBS CSI (Elastic Block Store Container Storage Interface) driver"
         },
         "efs": {
           "type": "boolean"
         },
         "externalDNS": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "adds the external-dns project policies for Amazon Route 53",
+          "x-intellij-html-description": "adds the external-dns project policies for Amazon Route 53"
         },
         "fsx": {
           "type": "boolean"
         },
         "imageBuilder": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "allows for full ECR (Elastic Container Registry) access. This is useful for building, for example, a CI server that needs to push images to ECR",
+          "x-intellij-html-description": "allows for full ECR (Elastic Container Registry) access. This is useful for building, for example, a CI server that needs to push images to ECR"
         },
         "xRay": {
           "type": "boolean"
