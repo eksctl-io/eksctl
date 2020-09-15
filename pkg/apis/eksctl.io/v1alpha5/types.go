@@ -921,18 +921,27 @@ type (
 	// NodeGroupIAMAddonPolicies holds all IAM addon policies
 	NodeGroupIAMAddonPolicies struct {
 		// +optional
+		// ImageBuilder allows for full ECR (Elastic Container Registry) access. This is useful for building, for
+		// example, a CI server that needs to push images to ECR
 		ImageBuilder *bool `json:"imageBuilder"`
 		// +optional
+		// AutoScaler enables IAM policy for cluster-autoscaler
 		AutoScaler *bool `json:"autoScaler"`
 		// +optional
+		// ExternalDNS adds the external-dns project policies for Amazon Route 53
 		ExternalDNS *bool `json:"externalDNS"`
 		// +optional
+		// CertManager enables the ability to add records to Route 53 in order to solve the DNS01 challenge. More information can be found
+		// [here](https://cert-manager.io/docs/configuration/acme/dns01/route53/#set-up-a-iam-role)
 		CertManager *bool `json:"certManager"`
 		// +optional
+		// AppMesh enables full access to AppMesh
 		AppMesh *bool `json:"appMesh"`
 		// +optional
+		// AppMeshPreview enables full access to AppMesh Preview
 		AppMeshPreview *bool `json:"appMeshPreview"`
 		// +optional
+		// EBS enables the new EBS CSI (Elastic Block Store Container Storage Interface) driver
 		EBS *bool `json:"ebs"`
 		// +optional
 		FSX *bool `json:"fsx"`
