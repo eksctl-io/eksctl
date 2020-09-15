@@ -21,7 +21,7 @@ var _ = Describe("cmdutils configfile", func() {
 	}
 
 	const examplesDir = "../../../examples/"
-	const numOfExamples = 22
+	const numOfExamples = 23
 
 	Context("load configfiles", func() {
 
