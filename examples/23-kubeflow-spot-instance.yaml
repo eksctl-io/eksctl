@@ -59,7 +59,7 @@ nodeGroups:
         cloudWatch: true
 
   - name: ng-2
-    desiredCapacity: 0Kubeflow
+    desiredCapacity: 0
     volumeType: gp2
     instanceType: m5a.2xlarge
     availabilityZones: ["us-east-1a"]
