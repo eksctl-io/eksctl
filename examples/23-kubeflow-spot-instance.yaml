@@ -1,13 +1,13 @@
 # Cost-Optimized EKS cluster for Kubeflow with spot GPU instances and node scale down to zero
 # Built in efforts to reducing training costs of ML workloads.
 # This spec creates a cluster on EKS with the following active nodes 
-# = 2x m5a.2xlarge - Accomodates all pods of Kubeflow
+# - 2x m5a.2xlarge - Accomodates all pods of Kubeflow
 # It also creates the following nodegroups with 0 nodes running unless a pod comes along and requests for the node to get spun up
-# = m5a.2xlarge   -- Max Allowed 10 worker nodes
-# = p2.xlarge     -- Max Allowed 10 worker nodes
-# = p3.2xlarge    -- Max Allowed 10 worker nodes
-# = p3.8xlarge    -- Max Allowed 04 worker nodes
-# = p3dn.24xlarge -- Max Allowed 01 worker nodes
+# - m5a.2xlarge   -- Max Allowed 10 worker nodes
+# - p2.xlarge     -- Max Allowed 10 worker nodes
+# - p3.2xlarge    -- Max Allowed 10 worker nodes
+# - p3.8xlarge    -- Max Allowed 04 worker nodes
+# - p3dn.24xlarge -- Max Allowed 01 worker nodes
 
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
