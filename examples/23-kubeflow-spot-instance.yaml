@@ -1,5 +1,7 @@
 # Cost-Optimized EKS cluster for Kubeflow with spot GPU instances and node scale down to zero
 # Built in efforts to reducing training costs of ML workloads.
+# Supporting tutorial can be found at the following link: 
+# https://blog.gofynd.com/how-we-reduced-our-ml-training-costs-by-78-a33805cb00cf
 # This spec creates a cluster on EKS with the following active nodes 
 # - 2x m5a.2xlarge - Accomodates all pods of Kubeflow
 # It also creates the following nodegroups with 0 nodes running unless a pod comes along and requests for the node to get spun up
