@@ -442,15 +442,21 @@ func EKSResourceAccountID(region string) string {
 
 // ClusterMeta contains general cluster information
 type ClusterMeta struct {
+	// Name of the cluster
 	// +required
 	Name string `json:"name"`
+	// the AWS region hosting this cluster
 	// +required
 	Region string `json:"region"`
 	// Valid variants are `KubernetesVersion` constants
 	// +optional
 	Version string `json:"version,omitempty"`
+	// Tags are used to tag AWS resources created by eksctl
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
+	// Annotations are arbitrary metadata ignored by `eksctl`.
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // ClusterStatus hold read-only attributes of a cluster

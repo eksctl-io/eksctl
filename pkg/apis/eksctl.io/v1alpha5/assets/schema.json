@@ -294,17 +294,32 @@
         "region"
       ],
       "properties": {
+        "annotations": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "arbitrary metadata ignored by `eksctl`.",
+          "x-intellij-html-description": "arbitrary metadata ignored by <code>eksctl</code>.",
+          "default": "{}"
+        },
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "of the cluster",
+          "x-intellij-html-description": "of the cluster"
         },
         "region": {
-          "type": "string"
+          "type": "string",
+          "description": "the AWS region hosting this cluster",
+          "x-intellij-html-description": "the AWS region hosting this cluster"
         },
         "tags": {
           "additionalProperties": {
             "type": "string"
           },
           "type": "object",
+          "description": "used to tag AWS resources created by eksctl",
+          "x-intellij-html-description": "used to tag AWS resources created by eksctl",
           "default": "{}"
         },
         "version": {
@@ -324,7 +339,8 @@
         "name",
         "region",
         "version",
-        "tags"
+        "tags",
+        "annotations"
       ],
       "additionalProperties": false,
       "description": "contains general cluster information",
