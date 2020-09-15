@@ -595,7 +595,7 @@ func NewClusterConfig() *ClusterConfig {
 		Metadata: &ClusterMeta{
 			Version: DefaultVersion,
 		},
-		IAM: &ClusterIAM{},
+		IAM: NewClusterIAM(),
 		VPC: NewClusterVPC(),
 		CloudWatch: &ClusterCloudWatch{
 			ClusterLogging: &ClusterCloudWatchLogging{},
@@ -617,6 +617,13 @@ func NewClusterVPC() *ClusterVPC {
 		NAT:              DefaultClusterNAT(),
 		AutoAllocateIPv6: Disabled(),
 		ClusterEndpoints: &ClusterEndpoints{},
+	}
+}
+
+// NewClusterIAM creates a new ClusterIAM for a cluster
+func NewClusterIAM() *ClusterIAM {
+	return &ClusterIAM{
+		WithOIDC: Disabled(),
 	}
 }
 
@@ -664,6 +671,8 @@ func NewNodeGroup() *NodeGroup {
 				WithLocal:  Enabled(),
 				WithShared: Enabled(),
 			},
+			DisableIMDSv1:  Disabled(),
+			DisablePodIMDS: Disabled(),
 		},
 	}
 }
