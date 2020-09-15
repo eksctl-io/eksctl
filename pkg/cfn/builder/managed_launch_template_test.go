@@ -137,6 +137,18 @@ API_SERVER_URL=https://test.com
 
 			resourcesFilename: "ssh_enabled.json",
 		}),
+		Entry("With placement group", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "standard",
+					InstanceType: "m5.xlarge",
+					Placement: &api.Placement{
+						GroupName: "test",
+					},
+				},
+			},
+			resourcesFilename: "placement.json",
+		}),
 	)
 })
 
