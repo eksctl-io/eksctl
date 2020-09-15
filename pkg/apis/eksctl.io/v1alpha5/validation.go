@@ -204,6 +204,12 @@ func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
 		}
 	}
 
+	if ng.Placement != nil {
+		if ng.Placement.GroupName == "" {
+			return fmt.Errorf("%s.placement.groupName must be set and non-empty", path)
+		}
+	}
+
 	return nil
 }
 

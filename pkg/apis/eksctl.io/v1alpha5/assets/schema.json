@@ -716,6 +716,11 @@
           "description": "Override `eksctl`'s bootstrapping script",
           "x-intellij-html-description": "Override <code>eksctl</code>'s bootstrapping script"
         },
+        "placement": {
+          "$ref": "#/definitions/Placement",
+          "description": "specifies the placement group in which nodes should be spawned",
+          "x-intellij-html-description": "specifies the placement group in which nodes should be spawned"
+        },
         "preBootstrapCommands": {
           "items": {
             "type": "string"
@@ -806,6 +811,7 @@
         "overrideBootstrapCommand",
         "disableIMDSv1",
         "disablePodIMDS",
+        "placement",
         "launchTemplate"
       ],
       "additionalProperties": false,
@@ -972,6 +978,11 @@
           "description": "Override `eksctl`'s bootstrapping script",
           "x-intellij-html-description": "Override <code>eksctl</code>'s bootstrapping script"
         },
+        "placement": {
+          "$ref": "#/definitions/Placement",
+          "description": "specifies the placement group in which nodes should be spawned",
+          "x-intellij-html-description": "specifies the placement group in which nodes should be spawned"
+        },
         "preBootstrapCommands": {
           "items": {
             "type": "string"
@@ -1077,6 +1088,7 @@
         "overrideBootstrapCommand",
         "disableIMDSv1",
         "disablePodIMDS",
+        "placement",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",
@@ -1353,6 +1365,19 @@
       "additionalProperties": false,
       "description": "groups all configuration options related to the operator used to keep the cluster and the Git repository in sync.",
       "x-intellij-html-description": "groups all configuration options related to the operator used to keep the cluster and the Git repository in sync."
+    },
+    "Placement": {
+      "properties": {
+        "groupName": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "groupName"
+      ],
+      "additionalProperties": false,
+      "description": "specifies placement group information",
+      "x-intellij-html-description": "specifies placement group information"
     },
     "PrivateCluster": {
       "properties": {

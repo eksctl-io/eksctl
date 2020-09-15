@@ -280,6 +280,12 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfnec2.LaunchTemplate_Launc
 		}
 	}
 
+	if n.spec.Placement != nil {
+		launchTemplateData.Placement = &gfnec2.LaunchTemplate_Placement{
+			GroupName: gfnt.NewString(n.spec.Placement.GroupName),
+		}
+	}
+
 	return launchTemplateData
 }
 
