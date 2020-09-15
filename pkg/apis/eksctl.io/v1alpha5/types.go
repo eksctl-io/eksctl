@@ -442,15 +442,21 @@ func EKSResourceAccountID(region string) string {
 
 // ClusterMeta contains general cluster information
 type ClusterMeta struct {
+	// Name of the cluster
 	// +required
 	Name string `json:"name"`
+	// the AWS region hosting this cluster
 	// +required
 	Region string `json:"region"`
 	// Valid variants are `KubernetesVersion` constants
 	// +optional
 	Version string `json:"version,omitempty"`
+	// Tags are used to tag AWS resources created by eksctl
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
+	// Annotations are arbitrary metadata ignored by `eksctl`.
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // ClusterStatus hold read-only attributes of a cluster
@@ -595,7 +601,7 @@ func NewClusterConfig() *ClusterConfig {
 		Metadata: &ClusterMeta{
 			Version: DefaultVersion,
 		},
-		IAM: &ClusterIAM{},
+		IAM: NewClusterIAM(),
 		VPC: NewClusterVPC(),
 		CloudWatch: &ClusterCloudWatch{
 			ClusterLogging: &ClusterCloudWatchLogging{},
@@ -617,6 +623,13 @@ func NewClusterVPC() *ClusterVPC {
 		NAT:              DefaultClusterNAT(),
 		AutoAllocateIPv6: Disabled(),
 		ClusterEndpoints: &ClusterEndpoints{},
+	}
+}
+
+// NewClusterIAM creates a new ClusterIAM for a cluster
+func NewClusterIAM() *ClusterIAM {
+	return &ClusterIAM{
+		WithOIDC: Disabled(),
 	}
 }
 
@@ -664,6 +677,8 @@ func NewNodeGroup() *NodeGroup {
 				WithLocal:  Enabled(),
 				WithShared: Enabled(),
 			},
+			DisableIMDSv1:  Disabled(),
+			DisablePodIMDS: Disabled(),
 		},
 	}
 }
