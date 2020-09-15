@@ -16,7 +16,7 @@ kind: ClusterConfig
 
 metadata:
   # Name of your cluster, change to whatever you find fit.
-  # if changed, make sure to change all nodegroup tags from 
+  # If changed, make sure to change all nodegroup tags from 
   # 'k8s.io/cluster-autoscaler/kubeflow-us-east-1: "owned"' --> 'k8s.io/cluster-autoscaler/your-new-name: "owned"'
   name: kubeflow-us-east-1
   # choose your region wisely, this will significantly impact the cost incurred
