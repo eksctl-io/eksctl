@@ -14,11 +14,12 @@ kind: ClusterConfig
 
 metadata:
   # Name of your cluster, change to whatever you find fit.
-  # if changed, make sure to change all nodegroup tags from 'k8s.io/cluster-autoscaler/kubeflow-us-east-1: "owned"' --> 'k8s.io/cluster-autoscaler/your-new-name: "owned"'
+  # if changed, make sure to change all nodegroup tags from 
+  # 'k8s.io/cluster-autoscaler/kubeflow-us-east-1: "owned"' --> 'k8s.io/cluster-autoscaler/your-new-name: "owned"'
   name: kubeflow-us-east-1
   # choose your region wisely, this will significantly impact the cost incurred
   region: us-east-1
-  # 1.14 Kubernetes version since Kubeflow 1.0 has been tested with the same.
+  # 1.14 Kubernetes version since Kubeflow 1.0 officially supports the same
   version: '1.14'
   tags:
     # Add more cloud tags if needed for billing
@@ -90,7 +91,9 @@ nodeGroups:
       lifecycle: Ec2Spot
       aws.amazon.com/spot: "true"
       gpu-count: "1"
-    # Stick to one AZ for all GPU nodes. In case of termination, this will prevent volumes from being unavailable if the new instance got spun up in another AZ.
+    # Stick to one AZ for all GPU nodes. 
+    # In case of termination, this will prevent volumes from being unavailable 
+    # if the new instance got spun up in another AZ.
     availabilityZones: ["us-east-1a"]
     taints:
       spotInstance: "true:PreferNoSchedule"
@@ -122,7 +125,9 @@ nodeGroups:
       lifecycle: Ec2Spot
       aws.amazon.com/spot: "true"
       gpu-count: "1"
-    # Stick to one AZ for all GPU nodes. In case of termination, this will prevent volumes from being unavailable if the new instance got spun up in another AZ.
+    # Stick to one AZ for all GPU nodes. 
+    # In case of termination, this will prevent volumes from being unavailable 
+    # if the new instance got spun up in another AZ.
     availabilityZones: ["us-east-1a"]
     taints:
       spotInstance: "true:PreferNoSchedule"
