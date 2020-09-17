@@ -29,6 +29,11 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
+const (
+	k8sUpdatePollInterval = "2s"
+	k8sUpdatePollTimeout  = "3m"
+)
+
 var defaultCluster string
 var noInstallCluster string
 var params *tests.Params
@@ -131,9 +136,11 @@ var _ = Describe("(Integration) Update addons", func() {
 			clientSet, err := kubernetes.NewForConfig(config)
 			Expect(err).ToNot(HaveOccurred())
 
-			serverVersion, err := clientSet.ServerVersion()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(fmt.Sprintf("%s.%s", serverVersion.Major, strings.TrimSuffix(serverVersion.Minor, "+"))).To(Equal("1.16"))
+			Eventually(func() string {
+				serverVersion, err := clientSet.ServerVersion()
+				Expect(err).ToNot(HaveOccurred())
+				return fmt.Sprintf("%s.%s", serverVersion.Major, strings.TrimSuffix(serverVersion.Minor, "+"))
+			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal("1.16"))
 		})
 
 		It("should upgrade kube-proxy", func() {
@@ -146,11 +153,13 @@ var _ = Describe("(Integration) Update addons", func() {
 			Expect(cmd).To(RunSuccessfully())
 
 			clientSet := getClientSet()
-			daemonSet, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get("kube-proxy", metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
-			kubeProxyVersion, err := addons.ImageTag(daemonSet.Spec.Template.Spec.Containers[0].Image)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(kubeProxyVersion).To(Equal("v1.16.13-eksbuild.1"))
+			Eventually(func() string {
+				daemonSet, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get("kube-proxy", metav1.GetOptions{})
+				Expect(err).ToNot(HaveOccurred())
+				kubeProxyVersion, err := addons.ImageTag(daemonSet.Spec.Template.Spec.Containers[0].Image)
+				Expect(err).ToNot(HaveOccurred())
+				return kubeProxyVersion
+			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal("v1.16.13-eksbuild.1"))
 		})
 
 		It("should upgrade aws-node", func() {
@@ -163,11 +172,13 @@ var _ = Describe("(Integration) Update addons", func() {
 			Expect(cmd).To(RunSuccessfully())
 
 			rawClient := getRawClient()
-			clusterDaemonSet, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get("aws-node", metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
-			awsNodeVersion, err := addons.ImageTag(clusterDaemonSet.Spec.Template.Spec.Containers[0].Image)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(awsNodeVersion).To(Equal("v1.6.3-eksbuild.1"))
+			Eventually(func() string {
+				clusterDaemonSet, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get("aws-node", metav1.GetOptions{})
+				Expect(err).ToNot(HaveOccurred())
+				awsNodeVersion, err := addons.ImageTag(clusterDaemonSet.Spec.Template.Spec.Containers[0].Image)
+				Expect(err).ToNot(HaveOccurred())
+				return awsNodeVersion
+			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal("v1.6.3-eksbuild.1"))
 		})
 
 		It("should upgrade coredns", func() {
@@ -180,11 +191,13 @@ var _ = Describe("(Integration) Update addons", func() {
 			Expect(cmd).To(RunSuccessfully())
 
 			rawClient := getRawClient()
-			coreDNSDeployment, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get("coredns", metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
-			coreDNSVersion, err := addons.ImageTag(coreDNSDeployment.Spec.Template.Spec.Containers[0].Image)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(coreDNSVersion).To(Equal("v1.6.6-eksbuild.1"))
+			Eventually(func() string {
+				coreDNSDeployment, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get("coredns", metav1.GetOptions{})
+				Expect(err).ToNot(HaveOccurred())
+				coreDNSVersion, err := addons.ImageTag(coreDNSDeployment.Spec.Template.Spec.Containers[0].Image)
+				Expect(err).ToNot(HaveOccurred())
+				return coreDNSVersion
+			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal("v1.6.6-eksbuild.1"))
 		})
 
 	})
