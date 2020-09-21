@@ -1,8 +1,15 @@
 package eks
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/weaveworks/eksctl/pkg/addons"
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
@@ -12,6 +19,10 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+)
+
+const (
+	iamPolicyAmazonEKSCNIPolicy = "AmazonEKS_CNI_Policy"
 )
 
 type clusterConfigTask struct {
@@ -99,6 +110,43 @@ func (t *UpdateAddonsTask) Do(errCh chan error) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+type restartDaemonsetTask struct {
+	name            string
+	namespace       string
+	clusterProvider *ClusterProvider
+	spec            *api.ClusterConfig
+}
+
+func (t *restartDaemonsetTask) Describe() string {
+	return fmt.Sprintf(`restart daemonset "%s/%s"`, t.namespace, t.name)
+}
+
+func (t *restartDaemonsetTask) Do(errCh chan error) error {
+	defer close(errCh)
+	clientSet, err := t.clusterProvider.NewStdClientSet(t.spec)
+	if err != nil {
+		return err
+	}
+	ds := clientSet.AppsV1().DaemonSets(t.namespace)
+	dep, err := ds.Get(t.name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	if dep.Spec.Template.Annotations == nil {
+		dep.Spec.Template.Annotations = make(map[string]string)
+	}
+	dep.Spec.Template.Annotations["eksctl.io/restartedAt"] = time.Now().Format(time.RFC3339)
+	bytes, err := runtime.Encode(unstructured.UnstructuredJSONScheme, dep)
+	if err != nil {
+		return errors.Wrapf(err, "failed to marshal %q deployment", t.name)
+	}
+	if _, err := ds.Patch(t.name, types.MergePatchType, bytes); err != nil {
+		return errors.Wrap(err, "failed to patch deployment")
+	}
+	logger.Info(`daemonset "%s/%s" restarted`, t.namespace, t.name)
 	return nil
 }
 
@@ -203,7 +251,7 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 	// used by this would be more elegant if it was all done via CloudFormation and we didn't
 	// have to put wires across all the things like this; this whole function is needed because
 	// we cannot manage certain EKS features with CloudFormation
-	eatlyOIDC := &iamoidc.OpenIDConnectManager{}
+	oidcPlaceholder := &iamoidc.OpenIDConnectManager{}
 	tasks.Append(&clusterConfigTask{
 		info: "associate IAM OIDC provider",
 		spec: cfg,
@@ -218,7 +266,7 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 			if err := oidc.CreateProvider(); err != nil {
 				return err
 			}
-			*eatlyOIDC = *oidc
+			*oidcPlaceholder = *oidc
 			return nil
 		},
 	})
@@ -229,12 +277,27 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 		},
 	}
 
+	serviceAccounts := append([]*api.ClusterIAMServiceAccount{}, cfg.IAM.ServiceAccounts...)
+	if api.IsEnabled(cfg.IAM.WithOIDC) {
+		serviceAccounts = append(serviceAccounts, &api.ClusterIAMServiceAccount{
+			ClusterIAMMeta: api.ClusterIAMMeta{Name: "aws-node",
+				Namespace: "kube-system",
+			},
+			AttachPolicyARNs: []string{fmt.Sprintf("arn:aws:iam::aws:policy/%s", iamPolicyAmazonEKSCNIPolicy)},
+		})
+	}
 	// as this is non-CloudFormation context, we need to construct a new stackManager,
 	// given a clientSet getter and OpenIDConnectManager reference we can build out
 	// the list of tasks for each of the service accounts that need to be created
-	newTasks := c.NewStackManager(cfg).NewTasksToCreateIAMServiceAccounts(cfg.IAM.ServiceAccounts, eatlyOIDC, clientSet)
+	newTasks := c.NewStackManager(cfg).NewTasksToCreateIAMServiceAccounts(serviceAccounts, oidcPlaceholder, clientSet)
 	newTasks.IsSubTask = true
 	tasks.Append(newTasks)
+	tasks.Append(&restartDaemonsetTask{
+		namespace:       "kube-system",
+		name:            "aws-node",
+		clusterProvider: c,
+		spec:            cfg,
+	})
 }
 
 func (c *ClusterProvider) maybeAppendTasksForEndpointAccessUpdates(cfg *api.ClusterConfig, tasks *manager.TaskTree) {

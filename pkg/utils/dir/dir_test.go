@@ -12,7 +12,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/dir"
 )
 
-func TestSuite(t *testing.T) {
+func TestUtilsDir(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 

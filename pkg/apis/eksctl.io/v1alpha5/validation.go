@@ -195,6 +195,21 @@ func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
 		return fmt.Errorf("%s.maxPodsPerNode cannot be negative", path)
 	}
 
+	if IsEnabled(ng.DisablePodIMDS) && ng.IAM != nil {
+		fmtFieldConflictErr := func(_ string) error {
+			return fmt.Errorf("%s.disablePodIMDS and %s.iam.withAddonPolicies cannot be set at the same time", path, path)
+		}
+		if err := validateNodeGroupIAMWithAddonPolicies(ng.IAM.WithAddonPolicies, fmtFieldConflictErr); err != nil {
+			return err
+		}
+	}
+
+	if ng.Placement != nil {
+		if ng.Placement.GroupName == "" {
+			return fmt.Errorf("%s.placement.groupName must be set and non-empty", path)
+		}
+	}
+
 	return nil
 }
 
@@ -330,6 +345,50 @@ func isKubernetesLabel(namespace string) bool {
 	return false
 }
 
+func validateNodeGroupIAMWithAddonPolicies(
+	policies NodeGroupIAMAddonPolicies,
+	fmtFieldConflictErr func(conflictingField string) error,
+) error {
+	prefix := "withAddonPolicies."
+	if IsEnabled(policies.AutoScaler) {
+		return fmtFieldConflictErr(prefix + "autoScaler")
+	}
+	if IsEnabled(policies.ExternalDNS) {
+		return fmtFieldConflictErr(prefix + "externalDNS")
+	}
+	if IsEnabled(policies.CertManager) {
+		return fmtFieldConflictErr(prefix + "certManager")
+	}
+	if IsEnabled(policies.ImageBuilder) {
+		return fmtFieldConflictErr(prefix + "imageBuilder")
+	}
+	if IsEnabled(policies.AppMesh) {
+		return fmtFieldConflictErr(prefix + "appMesh")
+	}
+	if IsEnabled(policies.AppMeshPreview) {
+		return fmtFieldConflictErr(prefix + "appMeshPreview")
+	}
+	if IsEnabled(policies.EBS) {
+		return fmtFieldConflictErr(prefix + "ebs")
+	}
+	if IsEnabled(policies.FSX) {
+		return fmtFieldConflictErr(prefix + "fsx")
+	}
+	if IsEnabled(policies.EFS) {
+		return fmtFieldConflictErr(prefix + "efs")
+	}
+	if IsEnabled(policies.ALBIngress) {
+		return fmtFieldConflictErr(prefix + "albIngress")
+	}
+	if IsEnabled(policies.XRay) {
+		return fmtFieldConflictErr(prefix + "xRay")
+	}
+	if IsEnabled(policies.CloudWatch) {
+		return fmtFieldConflictErr(prefix + "cloudWatch")
+	}
+	return nil
+}
+
 func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) error {
 	if value != "" {
 		fmtFieldConflictErr := func(conflictingField string) error {
@@ -345,42 +404,8 @@ func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) erro
 		if iam.InstanceRolePermissionsBoundary != "" {
 			return fmtFieldConflictErr("instanceRolePermissionsBoundary")
 		}
-		prefix := "withAddonPolicies."
-		if IsEnabled(iam.WithAddonPolicies.AutoScaler) {
-			return fmtFieldConflictErr(prefix + "autoScaler")
-		}
-		if IsEnabled(iam.WithAddonPolicies.ExternalDNS) {
-			return fmtFieldConflictErr(prefix + "externalDNS")
-		}
-		if IsEnabled(iam.WithAddonPolicies.CertManager) {
-			return fmtFieldConflictErr(prefix + "certManager")
-		}
-		if IsEnabled(iam.WithAddonPolicies.ImageBuilder) {
-			return fmtFieldConflictErr(prefix + "imageBuilder")
-		}
-		if IsEnabled(iam.WithAddonPolicies.AppMesh) {
-			return fmtFieldConflictErr(prefix + "appMesh")
-		}
-		if IsEnabled(iam.WithAddonPolicies.AppMeshPreview) {
-			return fmtFieldConflictErr(prefix + "appMeshPreview")
-		}
-		if IsEnabled(iam.WithAddonPolicies.EBS) {
-			return fmtFieldConflictErr(prefix + "ebs")
-		}
-		if IsEnabled(iam.WithAddonPolicies.FSX) {
-			return fmtFieldConflictErr(prefix + "fsx")
-		}
-		if IsEnabled(iam.WithAddonPolicies.EFS) {
-			return fmtFieldConflictErr(prefix + "efs")
-		}
-		if IsEnabled(iam.WithAddonPolicies.ALBIngress) {
-			return fmtFieldConflictErr(prefix + "albIngress")
-		}
-		if IsEnabled(iam.WithAddonPolicies.XRay) {
-			return fmtFieldConflictErr(prefix + "xRay")
-		}
-		if IsEnabled(iam.WithAddonPolicies.CloudWatch) {
-			return fmtFieldConflictErr(prefix + "cloudWatch")
+		if err := validateNodeGroupIAMWithAddonPolicies(iam.WithAddonPolicies, fmtFieldConflictErr); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -466,10 +491,15 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 
 		if ng.InstanceType != "" || ng.AMI != "" || IsEnabled(ng.SSH.Allow) || len(ng.SSH.SourceSecurityGroupIDs) > 0 ||
 			ng.VolumeSize != nil || len(ng.PreBootstrapCommands) > 0 || ng.OverrideBootstrapCommand != nil ||
-			len(ng.SecurityGroups.AttachIDs) > 0 || ng.InstanceName != "" || ng.InstancePrefix != "" || ng.MaxPodsPerNode != 0 {
+			len(ng.SecurityGroups.AttachIDs) > 0 || ng.InstanceName != "" || ng.InstancePrefix != "" || ng.MaxPodsPerNode != 0 ||
+			IsEnabled(ng.DisableIMDSv1) || IsEnabled(ng.DisablePodIMDS) || ng.Placement != nil {
 
-			return errors.New("cannot set instanceType, ami, ssh.allow, ssh.sourceSecurityGroupIds, securityGroups, " +
-				"volumeSize, instanceName, instancePrefix, maxPodsPerNode, disableIMDSv1, preBootstrapCommands or overrideBootstrapCommand in managedNodeGroup when a launch template is supplied")
+			incompatibleFields := []string{
+				"instanceType", "ami", "ssh.allow", "ssh.sourceSecurityGroupIds", "securityGroups",
+				"volumeSize", "instanceName", "instancePrefix", "maxPodsPerNode", "disableIMDSv1",
+				"disablePodIMDS", "preBootstrapCommands", "overrideBootstrapCommand", "placement",
+			}
+			return errors.Errorf("cannot set %s in managedNodeGroup when a launch template is supplied", strings.Join(incompatibleFields, ", "))
 		}
 
 	case ng.AMI != "":
@@ -636,9 +666,16 @@ func validateNodeGroupKubeletExtraConfig(kubeletConfig *InlineDocument) error {
 
 // IsWindowsImage reports whether the AMI family is for Windows
 func IsWindowsImage(imageFamily string) bool {
-	return imageFamily == NodeImageFamilyWindowsServer2019CoreContainer ||
-		imageFamily == NodeImageFamilyWindowsServer2019FullContainer ||
-		imageFamily == NodeImageFamilyWindowsServer1909CoreContainer
+	switch imageFamily {
+	case NodeImageFamilyWindowsServer2019CoreContainer,
+		NodeImageFamilyWindowsServer2019FullContainer,
+		NodeImageFamilyWindowsServer1909CoreContainer,
+		NodeImageFamilyWindowsServer2004CoreContainer:
+		return true
+
+	default:
+		return false
+	}
 }
 
 func validateCIDRs(cidrs []string) ([]string, error) {

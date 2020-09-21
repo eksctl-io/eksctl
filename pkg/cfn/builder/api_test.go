@@ -480,6 +480,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
 			IAM: &api.ClusterIAM{
+				WithOIDC:       api.Disabled(),
 				ServiceRoleARN: aws.String(arn),
 			},
 			CloudWatch: &api.ClusterCloudWatch{
@@ -521,11 +522,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 							WithShared: api.Enabled(),
 							AttachIDs:  []string{},
 						},
-
 						VolumeType:      aws.String(api.NodeVolumeTypeSC1),
 						VolumeName:      aws.String("/dev/xvda"),
 						VolumeEncrypted: api.Disabled(),
 						VolumeKmsKeyID:  aws.String(""),
+						DisableIMDSv1:   api.Disabled(),
+						DisablePodIMDS:  api.Disabled(),
 					},
 				},
 			},
@@ -2517,7 +2519,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(clusterTemplate.Resources["ServiceRole"].Properties).ToNot(BeNil())
 
 			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(Equal(
-				makePolicyARNRef("AmazonEKSClusterPolicy")),
+				makePolicyARNRef("AmazonEKSClusterPolicy", "AmazonEKSVPCResourceController")),
 			)
 
 			checkARPD([]string{"EKS", "EKSFargatePods"}, clusterTemplate.Resources["ServiceRole"].Properties.AssumeRolePolicyDocument)
@@ -3006,6 +3008,24 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ngResource.UpdatePolicy["AutoScalingRollingUpdate"]).To(
 				HaveKeyWithValue("SuspendProcesses", []interface{}{"Launch", "InstanceRefresh"}),
 			)
+		})
+		Context("empty asgSuspendProcesses", func() {
+			cfg, ng := newClusterConfigAndNodegroup(true)
+
+			ng.ASGSuspendProcesses = []string{}
+			build(cfg, "eksctl-test-asgSuspendProcesses-empty", ng)
+
+			roundtrip()
+
+			It("shouldn't be included in resource", func() {
+				Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
+				ngResource := ngTemplate.Resources["NodeGroup"]
+				Expect(ng).ToNot(BeNil())
+				Expect(ngResource.UpdatePolicy).To(HaveKey("AutoScalingRollingUpdate"))
+				Expect(ngResource.UpdatePolicy["AutoScalingRollingUpdate"]).ToNot(
+					HaveKey("SuspendProcesses"),
+				)
+			})
 		})
 	})
 

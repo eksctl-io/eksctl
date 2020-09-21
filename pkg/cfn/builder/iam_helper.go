@@ -19,8 +19,8 @@ type cfnTemplate interface {
 }
 
 // createRole creates an IAM role with policies required for the worker nodes and addons
-func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bool) error {
-	managedPolicyARNs, err := makeManagedPolicies(iamConfig, managed)
+func createRole(cfnTemplate cfnTemplate, clusterIAMConfig *api.ClusterIAM, iamConfig *api.NodeGroupIAM, managed bool) error {
+	managedPolicyARNs, err := makeManagedPolicies(clusterIAMConfig, iamConfig, managed)
 	if err != nil {
 		return err
 	}
@@ -273,10 +273,13 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 	return nil
 }
 
-func makeManagedPolicies(iamConfig *api.NodeGroupIAM, managed bool) (*gfnt.Value, error) {
+func makeManagedPolicies(iamCluster *api.ClusterIAM, iamConfig *api.NodeGroupIAM, managed bool) (*gfnt.Value, error) {
 	managedPolicyNames := sets.NewString()
 	if len(iamConfig.AttachPolicyARNs) == 0 {
 		managedPolicyNames.Insert(iamDefaultNodePolicies...)
+		if !api.IsEnabled(iamCluster.WithOIDC) {
+			managedPolicyNames.Insert(iamPolicyAmazonEKSCNIPolicy)
+		}
 		if managed {
 			// The Managed Nodegroup API requires this managed policy to be present, even though
 			// AmazonEC2ContainerRegistryPowerUser (attached if imageBuilder is enabled) contains a superset of the

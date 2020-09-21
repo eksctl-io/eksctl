@@ -40,7 +40,7 @@ func init() {
 	params = tests.NewParams("crud")
 }
 
-func TestSuite(t *testing.T) {
+func TestCRUD(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 

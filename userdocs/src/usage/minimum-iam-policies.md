@@ -5,7 +5,9 @@ run the integration tests.
 
 > **Note**: remember to replace `<account_id>` with your own.
 
-AmazonEC2FullAccess
+!!!info An AWS Managed Policy is created and administered by AWS. You cannot change the permissions defined in AWS managed policies.
+
+AmazonEC2FullAccess (AWS Managed Policy)
 ```
 {
     "Version": "2012-10-17",
@@ -40,8 +42,6 @@ AmazonEC2FullAccess
                         "autoscaling.amazonaws.com",
                         "ec2scheduled.amazonaws.com",
                         "elasticloadbalancing.amazonaws.com",
-                        "eks.amazonaws.com",
-                        "eks-fargate-pods.amazonaws.com",
                         "spot.amazonaws.com",
                         "spotfleet.amazonaws.com",
                         "transitgateway.amazonaws.com"
@@ -53,7 +53,7 @@ AmazonEC2FullAccess
 }
 ```
 
-AWSCloudFormationFullAccess
+AWSCloudFormationFullAccess (AWS Managed Policy)
 ```
 {
     "Version": "2012-10-17",
@@ -149,6 +149,22 @@ IamLimitedAccess
             "Resource": [
                 "arn:aws:iam::<account_id>:role/*"
             ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:CreateServiceLinkedRole"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "iam:AWSServiceName": [
+                        "eks.amazonaws.com",
+                        "eks-nodegroup.amazonaws.com",
+                        "eks-fargate.amazonaws.com"
+                    ]
+                }
+            }
         }
     ]
 }

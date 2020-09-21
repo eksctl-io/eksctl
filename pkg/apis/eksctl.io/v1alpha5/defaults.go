@@ -16,6 +16,10 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 		cfg.IAM.WithOIDC = Disabled()
 	}
 
+	if cfg.IAM.VPCResourceControllerPolicy == nil {
+		cfg.IAM.VPCResourceControllerPolicy = Enabled()
+	}
+
 	for _, sa := range cfg.IAM.ServiceAccounts {
 		if sa.Namespace == "" {
 			sa.Namespace = metav1.NamespaceDefault
@@ -63,8 +67,7 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 		ng.SecurityGroups.WithShared = Enabled()
 	}
 
-	switch ng.AMIFamily {
-	case NodeImageFamilyBottlerocket:
+	if ng.AMIFamily == NodeImageFamilyBottlerocket {
 		setBottlerocketNodeGroupDefaults(ng)
 	}
 }
@@ -110,6 +113,13 @@ func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
 		ng.Labels = make(map[string]string)
 	}
 	setDefaultNodeLabels(ng.Labels, meta.Name, ng.Name)
+
+	if ng.DisableIMDSv1 == nil {
+		ng.DisableIMDSv1 = Disabled()
+	}
+	if ng.DisablePodIMDS == nil {
+		ng.DisablePodIMDS = Disabled()
+	}
 }
 
 func setIAMDefaults(iamConfig *NodeGroupIAM) {

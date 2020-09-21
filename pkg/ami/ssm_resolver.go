@@ -2,7 +2,6 @@ package ami
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
@@ -67,6 +66,8 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2019-English-Full-EKS_Optimized-%s/%s", version, fieldName), nil
 	case api.NodeImageFamilyWindowsServer1909CoreContainer:
 		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-1909-English-Core-EKS_Optimized-%s/%s", version, fieldName), nil
+	case api.NodeImageFamilyWindowsServer2004CoreContainer:
+		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2004-English-Core-EKS_Optimized-%s/%s", version, fieldName), nil
 	case api.NodeImageFamilyBottlerocket:
 		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/%s/latest/%s", version, instanceEC2ArchName(instanceType), fieldName), nil
 	case api.NodeImageFamilyUbuntu1804:
@@ -88,8 +89,7 @@ func MakeManagedSSMParameterName(version, imageFamily, amiType string) (string, 
 // instanceEC2ArchName returns the name of the architecture as used by EC2
 // resources.
 func instanceEC2ArchName(instanceType string) string {
-	// eg: a1.large - an ARM instance type.
-	if strings.HasPrefix(instanceType, "a") {
+	if utils.IsARMInstanceType(instanceType) {
 		return "arm64"
 	}
 	return "x86_64"

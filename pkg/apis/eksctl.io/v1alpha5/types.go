@@ -59,7 +59,10 @@ const (
 const (
 	// AWSDebugLevel defines the LogLevel for AWS produced logs
 	AWSDebugLevel = 5
+)
 
+// Regions
+const (
 	// RegionUSWest1 represents the US West Region North California
 	RegionUSWest1 = "us-west-1"
 
@@ -134,7 +137,16 @@ const (
 
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
+)
 
+// Partitions
+const (
+	PartitionAWS   = "aws"
+	PartitionChina = "aws-cn"
+	PartitionUSGov = "aws-us-gov"
+)
+
+const (
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
 
@@ -156,6 +168,8 @@ const (
 	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
 	// NodeImageFamilyWindowsServer1909CoreContainer represents Windows 1909 core container family
 	NodeImageFamilyWindowsServer1909CoreContainer = "WindowsServer1909CoreContainer"
+	// NodeImageFamilyWindowsServer2004CoreContainer represents Windows 2004 core container family
+	NodeImageFamilyWindowsServer2004CoreContainer = "WindowsServer2004CoreContainer"
 
 	// NodeImageResolverStatic represents static AMI resolver (see ami package)
 	NodeImageResolverStatic = "static"
@@ -319,6 +333,18 @@ func SupportedRegions() []string {
 	}
 }
 
+// Partition gives the partition a region belongs to
+func Partition(region string) string {
+	switch region {
+	case RegionUSGovWest1, RegionUSGovEast1:
+		return PartitionUSGov
+	case RegionCNNorth1, RegionCNNorthwest1:
+		return PartitionChina
+	default:
+		return PartitionAWS
+	}
+}
+
 // DeprecatedVersions are the versions of Kubernetes that EKS used to support
 // but no longer does. See also:
 // https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html
@@ -416,15 +442,21 @@ func EKSResourceAccountID(region string) string {
 
 // ClusterMeta contains general cluster information
 type ClusterMeta struct {
+	// Name of the cluster
 	// +required
 	Name string `json:"name"`
+	// the AWS region hosting this cluster
 	// +required
 	Region string `json:"region"`
 	// Valid variants are `KubernetesVersion` constants
 	// +optional
 	Version string `json:"version,omitempty"`
+	// Tags are used to tag AWS resources created by eksctl
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
+	// Annotations are arbitrary metadata ignored by `eksctl`.
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // ClusterStatus hold read-only attributes of a cluster
@@ -569,7 +601,7 @@ func NewClusterConfig() *ClusterConfig {
 		Metadata: &ClusterMeta{
 			Version: DefaultVersion,
 		},
-		IAM: &ClusterIAM{},
+		IAM: NewClusterIAM(),
 		VPC: NewClusterVPC(),
 		CloudWatch: &ClusterCloudWatch{
 			ClusterLogging: &ClusterCloudWatchLogging{},
@@ -591,6 +623,13 @@ func NewClusterVPC() *ClusterVPC {
 		NAT:              DefaultClusterNAT(),
 		AutoAllocateIPv6: Disabled(),
 		ClusterEndpoints: &ClusterEndpoints{},
+	}
+}
+
+// NewClusterIAM creates a new ClusterIAM for a cluster
+func NewClusterIAM() *ClusterIAM {
+	return &ClusterIAM{
+		WithOIDC: Disabled(),
 	}
 }
 
@@ -638,6 +677,8 @@ func NewNodeGroup() *NodeGroup {
 				WithLocal:  Enabled(),
 				WithShared: Enabled(),
 			},
+			DisableIMDSv1:  Disabled(),
+			DisablePodIMDS: Disabled(),
 		},
 	}
 }
@@ -880,18 +921,27 @@ type (
 	// NodeGroupIAMAddonPolicies holds all IAM addon policies
 	NodeGroupIAMAddonPolicies struct {
 		// +optional
+		// ImageBuilder allows for full ECR (Elastic Container Registry) access. This is useful for building, for
+		// example, a CI server that needs to push images to ECR
 		ImageBuilder *bool `json:"imageBuilder"`
 		// +optional
+		// AutoScaler enables IAM policy for cluster-autoscaler
 		AutoScaler *bool `json:"autoScaler"`
 		// +optional
+		// ExternalDNS adds the external-dns project policies for Amazon Route 53
 		ExternalDNS *bool `json:"externalDNS"`
 		// +optional
+		// CertManager enables the ability to add records to Route 53 in order to solve the DNS01 challenge. More information can be found
+		// [here](https://cert-manager.io/docs/configuration/acme/dns01/route53/#set-up-a-iam-role)
 		CertManager *bool `json:"certManager"`
 		// +optional
+		// AppMesh enables full access to AppMesh
 		AppMesh *bool `json:"appMesh"`
 		// +optional
+		// AppMeshPreview enables full access to AppMesh Preview
 		AppMeshPreview *bool `json:"appMeshPreview"`
 		// +optional
+		// EBS enables the new EBS CSI (Elastic Block Store Container Storage Interface) driver
 		EBS *bool `json:"ebs"`
 		// +optional
 		FSX *bool `json:"fsx"`
@@ -1068,6 +1118,21 @@ type NodeGroupBase struct {
 	// Defaults to `false`
 	// +optional
 	DisableIMDSv1 *bool `json:"disableIMDSv1,omitempty"`
+
+	// DisablePodIMDS blocks all IMDS requests from non host networking pods
+	// Defaults to `false`
+	// +optional
+	DisablePodIMDS *bool `json:"disablePodIMDS,omitempty"`
+
+	// Placement specifies the placement group in which nodes should
+	// be spawned
+	// +optional
+	Placement *Placement `json:"placement,omitempty"`
+}
+
+// Placement specifies placement group information
+type Placement struct {
+	GroupName string `json:"groupName,omitempty"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup

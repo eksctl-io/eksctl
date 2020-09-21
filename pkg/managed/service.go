@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
+	"github.com/weaveworks/goformation/v4/cloudformation"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -172,6 +173,28 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 		return errors.New("unexpected error: failed to find nodegroup resource in nodegroup stack")
 	}
 
+	updateStack := func(stack *cloudformation.Template) error {
+		bytes, err := stack.JSON()
+		if err != nil {
+			return err
+		}
+		if err := m.stackCollection.UpdateNodeGroupStack(options.NodegroupName, string(bytes)); err != nil {
+			return errors.Wrap(err, "error updating nodegroup stack")
+		}
+		return nil
+	}
+
+	requiresUpdate, err := m.requiresStackFormatUpdate(options.NodegroupName)
+	if err != nil {
+		return err
+	}
+	if requiresUpdate {
+		logger.Info("updating nodegroup stack to a newer format before upgrading nodegroup version")
+		if err := updateStack(stack); err != nil {
+			return err
+		}
+	}
+
 	ltResources := stack.GetAllEC2LaunchTemplateResources()
 
 	if options.LaunchTemplateVersion != "" {
@@ -217,15 +240,33 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 		ngResource.LaunchTemplate.Version = gfnt.NewString(options.LaunchTemplateVersion)
 	}
 
-	updatedTemplate, err := stack.JSON()
-	if err != nil {
+	logger.Info("upgrading nodegroup version")
+	if err := updateStack(stack); err != nil {
 		return err
-	}
-	if err := m.stackCollection.UpdateNodeGroupStack(options.NodegroupName, string(updatedTemplate)); err != nil {
-		return errors.Wrap(err, "error updating nodegroup stack")
 	}
 	logger.Info("nodegroup successfully upgraded")
 	return nil
+}
+
+func (m *Service) requiresStackFormatUpdate(nodeGroupName string) (bool, error) {
+	ngStack, err := m.stackCollection.DescribeNodeGroupStack(nodeGroupName)
+	if err != nil {
+		return false, err
+	}
+
+	ver, found, err := manager.GetEksctlVersion(ngStack.Tags)
+	if err != nil {
+		return false, err
+	}
+	if found {
+		newFormatVersion := semver.Version{
+			Major: 0,
+			Minor: 25,
+			Patch: 0,
+		}
+		return ver.LT(newFormatVersion), nil
+	}
+	return true, nil
 }
 
 func (m *Service) getLatestReleaseVersion(kubernetesVersion string, nodeGroup *eks.Nodegroup) (string, error) {

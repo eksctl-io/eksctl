@@ -25,6 +25,11 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+const (
+	k8sUpdatePollInterval = "2s"
+	k8sUpdatePollTimeout  = "3m"
+)
+
 var params *tests.Params
 
 func init() {
@@ -38,7 +43,7 @@ func init() {
 	params.Version = supportedVersions[len(supportedVersions)-2]
 }
 
-func TestSuite(t *testing.T) {
+func TestManaged(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
@@ -246,10 +251,11 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 
 				clientset, err := kubernetes.NewForConfig(config)
 				Expect(err).ToNot(HaveOccurred())
-
-				serverVersion, err := clientset.ServerVersion()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(fmt.Sprintf("%s.%s", serverVersion.Major, strings.TrimSuffix(serverVersion.Minor, "+"))).To(Equal(nextVersion))
+				Eventually(func() string {
+					serverVersion, err := clientset.ServerVersion()
+					Expect(err).ToNot(HaveOccurred())
+					return fmt.Sprintf("%s.%s", serverVersion.Major, strings.TrimSuffix(serverVersion.Minor, "+"))
+				}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal(nextVersion))
 
 				By(fmt.Sprintf("upgrading nodegroup %s to Kubernetes version %s", initialNodeGroup, nextVersion))
 				cmd = params.EksctlUpgradeCmd.WithArgs(

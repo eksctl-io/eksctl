@@ -1,18 +1,11 @@
 package gitops_test
 
 import (
-	"testing"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/eksctl/pkg/gitops"
-	"github.com/weaveworks/eksctl/pkg/testutils"
 )
-
-func TestSuite(t *testing.T) {
-	testutils.RegisterAndRun(t)
-}
 
 var _ = Describe("profile", func() {
 	Describe("RepositoryURL", func() {

@@ -280,16 +280,26 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfnec2.LaunchTemplate_Launc
 		}
 	}
 
+	if n.spec.Placement != nil {
+		launchTemplateData.Placement = &gfnec2.LaunchTemplate_Placement{
+			GroupName: gfnt.NewString(n.spec.Placement.GroupName),
+		}
+	}
+
 	return launchTemplateData
 }
 
 func makeMetadataOptions(ng *api.NodeGroupBase) *gfnec2.LaunchTemplate_MetadataOptions {
 	imdsv2TokensRequired := "optional"
-	if api.IsEnabled(ng.DisableIMDSv1) {
+	if api.IsEnabled(ng.DisableIMDSv1) || api.IsEnabled(ng.DisablePodIMDS) {
 		imdsv2TokensRequired = "required"
 	}
+	hopLimit := 2
+	if api.IsEnabled(ng.DisablePodIMDS) {
+		hopLimit = 1
+	}
 	return &gfnec2.LaunchTemplate_MetadataOptions{
-		HttpPutResponseHopLimit: gfnt.NewInteger(2),
+		HttpPutResponseHopLimit: gfnt.NewInteger(hopLimit),
 		HttpTokens:              gfnt.NewString(imdsv2TokensRequired),
 	}
 }
@@ -326,15 +336,19 @@ func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interfa
 		}
 	}
 
+	rollingUpdate := map[string]interface{}{
+		"MinInstancesInService": "0",
+		"MaxBatchSize":          "1",
+	}
+	if len(ng.ASGSuspendProcesses) > 0 {
+		rollingUpdate["SuspendProcesses"] = ng.ASGSuspendProcesses
+	}
+
 	return &awsCloudFormationResource{
 		Type:       "AWS::AutoScaling::AutoScalingGroup",
 		Properties: ngProps,
 		UpdatePolicy: map[string]map[string]interface{}{
-			"AutoScalingRollingUpdate": {
-				"MinInstancesInService": "0",
-				"MaxBatchSize":          "1",
-				"SuspendProcesses":      ng.ASGSuspendProcesses,
-			},
+			"AutoScalingRollingUpdate": rollingUpdate,
 		},
 	}
 }

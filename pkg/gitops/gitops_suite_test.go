@@ -9,7 +9,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
-func TestSuite(t *testing.T) {
+func TestGitops(t *testing.T) {
 	RegisterFailHandler(Fail)
 	testutils.RegisterAndRun(t)
 }

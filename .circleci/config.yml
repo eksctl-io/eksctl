@@ -78,11 +78,21 @@ commands:
         default: true
       only_for_branches:
         type: string
+      success_message:
+        type: string
+        default: ':tada: A $CIRCLE_JOB job has succeeded!'
+      failure_message:
+        type: string
+        default: ':red_circle: A $CIRCLE_JOB job has failed!'
     steps:
       - run: exit 0
       - slack/status:
+          include_job_number_field: false
+          include_project_field: false
           fail_only: << parameters.fail_only >>
           mentions: 'team-aws'
+          success_message: << parameters.success_message >>
+          failure_message: << parameters.failure_message >>
           only_for_branches: << parameters.only_for_branches >>
 
 jobs:
@@ -168,6 +178,8 @@ jobs:
       - notify-slack:
           fail_only: false
           only_for_branches: ""
+          failure_message: ':red_circle: `eksctl` $CIRCLE_TAG release failed!'
+          success_message: ':tada: `eksctl` $CIRCLE_TAG released!'
   release:
     machine:
       image: ubuntu-1604:201903-01
@@ -192,6 +204,8 @@ jobs:
       - notify-slack:
           fail_only: false
           only_for_branches: ""
+          failure_message: ':red_circle: `eksctl` $CIRCLE_TAG release failed!'
+          success_message: ':tada: `eksctl` $CIRCLE_TAG released!'
   integration-tests:
     machine:
       image: ubuntu-1604:201903-01
