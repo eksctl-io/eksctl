@@ -24,7 +24,7 @@ $ eksctl create cluster --fargate
 [ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
 [ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=ap-northeast-1 --cluster=ridiculous-painting-1574859263'
 [ℹ]  CloudWatch logging will not be enabled for cluster "ridiculous-painting-1574859263" in "ap-northeast-1"
-[ℹ]  you can enable it with 'eksctl utils update-cluster-logging --region=ap-northeast-1 --cluster=ridiculous-painting-1574859263'
+[ℹ]  you can enable it with 'eksctl utils update-cluster-logging --enable-types={SPECIFY-YOUR-LOG-TYPES-HERE (e.g. all)} --region=ap-northeast-1 --cluster=ridiculous-painting-1574859263'
 [ℹ]  Kubernetes API endpoint access will use default of {publicAccess=true, privateAccess=false} for cluster "ridiculous-painting-1574859263" in "ap-northeast-1"
 [ℹ]  2 sequential tasks: { create cluster control plane "ridiculous-painting-1574859263", create nodegroup "ng-dba9d731" }
 [ℹ]  building cluster stack "eksctl-ridiculous-painting-1574859263-cluster"
@@ -135,7 +135,7 @@ $ eksctl create cluster -f cluster-fargate.yaml
 [ℹ]  will create a CloudFormation stack for cluster itself and 0 managed nodegroup stack(s)
 [ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=ap-northeast-1 --cluster=fargate-cluster'
 [ℹ]  CloudWatch logging will not be enabled for cluster "fargate-cluster" in "ap-northeast-1"
-[ℹ]  you can enable it with 'eksctl utils update-cluster-logging --region=ap-northeast-1 --cluster=fargate-cluster'
+[ℹ]  you can enable it with 'eksctl utils update-cluster-logging --enable-types={SPECIFY-YOUR-LOG-TYPES-HERE (e.g. all)} --region=ap-northeast-1 --cluster=fargate-cluster'
 [ℹ]  Kubernetes API endpoint access will use default of {publicAccess=true, privateAccess=false} for cluster "fargate-cluster" in "ap-northeast-1"
 [ℹ]  2 sequential tasks: { create cluster control plane "fargate-cluster", create nodegroup "ng-1" }
 [ℹ]  building cluster stack "eksctl-fargate-cluster-cluster"
