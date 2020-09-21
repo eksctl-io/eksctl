@@ -1,6 +1,8 @@
 package delete
 
 import (
+	"time"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -13,23 +15,24 @@ import (
 )
 
 func deleteNodeGroupCmd(cmd *cmdutils.Cmd) {
-	deleteNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool) error {
-		return doDeleteNodeGroup(cmd, ng, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing)
+	deleteNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod time.Duration) error {
+		return doDeleteNodeGroup(cmd, ng, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, maxGracePeriod)
 	})
 }
 
-func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool) error) {
+func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod time.Duration) error) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
 	var updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool
+	var maxGracePeriod time.Duration
 
 	cmd.SetDescription("nodegroup", "Delete a nodegroup", "", "ng")
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return runFunc(cmd, ng, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing)
+		return runFunc(cmd, ng, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, maxGracePeriod)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -42,6 +45,8 @@ func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cm
 		fs.BoolVar(&onlyMissing, "only-missing", false, "Only delete nodegroups that are not defined in the given config file")
 		cmdutils.AddUpdateAuthConfigMap(fs, &updateAuthConfigMap, "Remove nodegroup IAM role from aws-auth configmap")
 		fs.BoolVar(&deleteNodeGroupDrain, "drain", true, "Drain and cordon all nodes in the nodegroup before deletion")
+		defaultMaxGracePeriod, _ := time.ParseDuration("10m")
+		fs.DurationVar(&maxGracePeriod, "max-grace-period", defaultMaxGracePeriod, "Maximum pods termination grace period")
 
 		cmd.Wait = false
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "deletion of all resources")
@@ -51,7 +56,7 @@ func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cm
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
 }
 
-func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool) error {
+func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod time.Duration) error {
 	ngFilter := filter.NewNodeGroupFilter()
 
 	if err := cmdutils.NewDeleteNodeGroupLoader(cmd, ng, ngFilter).Load(); err != nil {
@@ -130,7 +135,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 		if !cmd.Plan {
 			for _, ng := range allNodeGroups {
-				if err := drain.NodeGroup(clientSet, ng, ctl.Provider.WaitTimeout(), false); err != nil {
+				if err := drain.NodeGroup(clientSet, ng, ctl.Provider.WaitTimeout(), maxGracePeriod, false); err != nil {
 					return err
 				}
 			}

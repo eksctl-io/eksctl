@@ -46,8 +46,8 @@ type Helper struct {
 	Force  bool
 	DryRun bool
 
-	GracePeriodSeconds int
-	Timeout            time.Duration
+	MaxGracePeriodSeconds int
+	Timeout               time.Duration
 
 	IgnoreAllDaemonSets bool
 	IgnoreDaemonSets    []metav1.ObjectMeta
@@ -88,12 +88,19 @@ func (d *Helper) CanUseEvictions() error {
 	return nil
 }
 
-func (d *Helper) makeDeleteOptions() *metav1.DeleteOptions {
+func (d *Helper) makeDeleteOptions(pod corev1.Pod) *metav1.DeleteOptions {
 	deleteOptions := &metav1.DeleteOptions{}
-	if d.GracePeriodSeconds >= 0 {
-		gracePeriodSeconds := int64(d.GracePeriodSeconds)
-		deleteOptions.GracePeriodSeconds = &gracePeriodSeconds
+
+	gracePeriodSeconds := int64(corev1.DefaultTerminationGracePeriodSeconds)
+	if pod.Spec.TerminationGracePeriodSeconds != nil {
+		if *pod.Spec.TerminationGracePeriodSeconds < int64(d.MaxGracePeriodSeconds) {
+			gracePeriodSeconds = *pod.Spec.TerminationGracePeriodSeconds
+		} else {
+			gracePeriodSeconds = int64(d.MaxGracePeriodSeconds)
+		}
 	}
+
+	deleteOptions.GracePeriodSeconds = &gracePeriodSeconds
 	return deleteOptions
 }
 
@@ -118,14 +125,14 @@ func (d *Helper) EvictPod(pod corev1.Pod) error {
 			Name:      pod.Name,
 			Namespace: pod.Namespace,
 		},
-		DeleteOptions: d.makeDeleteOptions(),
+		DeleteOptions: d.makeDeleteOptions(pod),
 	}
 	return d.Client.PolicyV1beta1().Evictions(eviction.Namespace).Evict(eviction)
 }
 
 // DeletePod will delete the given pod, or return an error if it couldn't
 func (d *Helper) DeletePod(pod corev1.Pod) error {
-	return d.Client.CoreV1().Pods(pod.Namespace).Delete(pod.Name, d.makeDeleteOptions())
+	return d.Client.CoreV1().Pods(pod.Namespace).Delete(pod.Name, d.makeDeleteOptions(pod))
 }
 
 // getPodsForDeletion lists all pods on a given node, filters those using the default
