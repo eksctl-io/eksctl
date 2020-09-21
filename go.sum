@@ -960,8 +960,8 @@ github.com/vmware/govmomi v0.20.1 h1:7b/SeTUB3tER8ZLGLLLH3xcnB2xeuLULXmfPFqPSRZA
 github.com/vmware/govmomi v0.20.1/go.mod h1:URlwyTFZX72RmxtxuaFL2Uj3fD1JTvZdx59bHWk6aFU=
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 h1:txplJASvd6b/hrE0s/Ixfpp2cuwH9IO9oZBAN9iYa4A=
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2/go.mod h1:DGCIhurYgnLz8J9ga1fMV/fbLDyUvTyrWXVWUIyJon4=
-github.com/weaveworks/goformation/v4 v4.10.2-0.20200818093538-2bbc8360f17e h1:51eBi0xt21FzC6egZJrVZBz/vTrg8vgfQ16JEvtNsd8=
-github.com/weaveworks/goformation/v4 v4.10.2-0.20200818093538-2bbc8360f17e/go.mod h1:v5eVVfemt/w9XiVfD/Zmwic31dGfwIsVEHp5XhJ0qFU=
+github.com/weaveworks/goformation/v4 v4.10.2-0.20200921152539-d988cd847e74 h1:sG07hBbJf/fJ3JPjMJrIpTXX6ig/8TPjufejsWkrYcY=
+github.com/weaveworks/goformation/v4 v4.10.2-0.20200921152539-d988cd847e74/go.mod h1:v5eVVfemt/w9XiVfD/Zmwic31dGfwIsVEHp5XhJ0qFU=
 github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15 h1:i/RhLevywqC6cuUWtGdoaNrsJd+/zWh3PXbkXZIyZsU=
 github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15/go.mod h1:w9Z1vnQmPobkEZ0F3oyiqRYP+62qDqTGnK6t5uhe1kg=
 github.com/weaveworks/mesh v0.0.0-20170419100114-1f158d31de55/go.mod h1:mcON9Ws1aW0crSErpXWp7U1ErCDEKliDX2OhVlbWRKk=

@@ -202,7 +202,7 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 		if len(ltResources) == 1 {
 			return errors.New("launch-template-version is only valid if a nodegroup is using an explicit launch template")
 		}
-		if ngResource.LaunchTemplate == nil || ngResource.LaunchTemplate.ID == nil {
+		if ngResource.LaunchTemplate == nil || ngResource.LaunchTemplate.Id == nil {
 			return errors.New("nodegroup does not use a launch template")
 		}
 	}
@@ -289,12 +289,12 @@ func (m *Service) usesCustomAMI(ltResources map[string]*gfnec2.LaunchTemplate, n
 		return lt.LaunchTemplateData.ImageId != nil, nil
 	}
 
-	if ng.LaunchTemplate == nil || ng.LaunchTemplate.ID == nil {
+	if ng.LaunchTemplate == nil || ng.LaunchTemplate.Id == nil {
 		return false, nil
 	}
 
 	lt := &api.LaunchTemplate{
-		ID: ng.LaunchTemplate.ID.String(),
+		ID: ng.LaunchTemplate.Id.String(),
 	}
 	if version := ng.LaunchTemplate.Version; version != nil {
 		lt.Version = aws.String(version.String())

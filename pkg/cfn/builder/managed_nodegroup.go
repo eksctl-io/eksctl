@@ -83,7 +83,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		Tags:          m.nodeGroup.Tags,
 	}
 
-	var launchTemplate *gfneks.Nodegroup_LaunchTemplate
+	var launchTemplate *gfneks.Nodegroup_LaunchTemplateSpecification
 
 	if m.nodeGroup.LaunchTemplate != nil {
 		launchTemplateData, err := m.launchTemplateFetcher.Fetch(m.nodeGroup.LaunchTemplate)
@@ -94,8 +94,8 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 			return err
 		}
 
-		launchTemplate = &gfneks.Nodegroup_LaunchTemplate{
-			ID: gfnt.NewString(m.nodeGroup.LaunchTemplate.ID),
+		launchTemplate = &gfneks.Nodegroup_LaunchTemplateSpecification{
+			Id: gfnt.NewString(m.nodeGroup.LaunchTemplate.ID),
 		}
 		if version := m.nodeGroup.LaunchTemplate.Version; version != nil {
 			launchTemplate.Version = gfnt.NewString(*version)
@@ -117,8 +117,8 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 			LaunchTemplateName: gfnt.MakeFnSubString(fmt.Sprintf("${%s}", gfnt.StackName)),
 			LaunchTemplateData: launchTemplateData,
 		})
-		launchTemplate = &gfneks.Nodegroup_LaunchTemplate{
-			ID: ltRef,
+		launchTemplate = &gfneks.Nodegroup_LaunchTemplateSpecification{
+			Id: ltRef,
 		}
 	}
 
