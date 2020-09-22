@@ -283,7 +283,9 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 			ClusterIAMMeta: api.ClusterIAMMeta{Name: "aws-node",
 				Namespace: "kube-system",
 			},
-			AttachPolicyARNs: []string{fmt.Sprintf("arn:aws:iam::aws:policy/%s", iamPolicyAmazonEKSCNIPolicy)},
+			AttachPolicyARNs: []string{
+				fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(c.Provider.Region()), iamPolicyAmazonEKSCNIPolicy),
+			},
 		})
 	}
 	// as this is non-CloudFormation context, we need to construct a new stackManager,
