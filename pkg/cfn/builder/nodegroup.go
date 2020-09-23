@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/pkg/errors"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -122,7 +123,10 @@ func (n *NodeGroupResourceSet) newResource(name string, resource gfn.Resource) *
 
 func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	launchTemplateName := gfnt.MakeFnSubString(fmt.Sprintf("${%s}", gfnt.StackName))
-	launchTemplateData := newLaunchTemplateData(n)
+	launchTemplateData, err := newLaunchTemplateData(n)
+	if err != nil {
+		return errors.Wrap(err, "couldn't add resources for nodegroup")
+	}
 
 	if n.spec.SSH != nil && api.IsSetAndNonEmptyString(n.spec.SSH.PublicKeyName) {
 		launchTemplateData.KeyName = gfnt.NewString(*n.spec.SSH.PublicKeyName)
@@ -260,21 +264,27 @@ func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
 	return n.rs.GetAllOutputs(stack)
 }
 
-func newLaunchTemplateData(n *NodeGroupResourceSet) *gfnec2.LaunchTemplate_LaunchTemplateData {
-
+func newLaunchTemplateData(n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
 		IamInstanceProfile: &gfnec2.LaunchTemplate_IamInstanceProfile{
 			Arn: n.instanceProfileARN,
 		},
-		ImageId:  gfnt.NewString(n.spec.AMI),
-		UserData: n.userData,
-		NetworkInterfaces: []gfnec2.LaunchTemplate_NetworkInterface{{
-			// Explicitly un-setting this so that it doesn't get defaulted to true
-			AssociatePublicIpAddress: nil,
-			DeviceIndex:              gfnt.NewInteger(0),
-			Groups:                   gfnt.NewSlice(n.securityGroups...),
-		}},
+		ImageId:         gfnt.NewString(n.spec.AMI),
+		UserData:        n.userData,
 		MetadataOptions: makeMetadataOptions(n.spec.NodeGroupBase),
+	}
+
+	if err := n.buildNetworkInterfaces(launchTemplateData); err != nil {
+		return nil, errors.Wrap(err, "couldn't build network interfaces for launch template data")
+	}
+
+	if n.spec.Placement == nil {
+		groupName := n.newResource("NodeGroupPlacementGroup", &gfnec2.PlacementGroup{
+			Strategy: gfnt.NewString("cluster"),
+		})
+		launchTemplateData.Placement = &gfnec2.LaunchTemplate_Placement{
+			GroupName: groupName,
+		}
 	}
 
 	if !api.HasMixedInstances(n.spec) {
@@ -298,7 +308,7 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfnec2.LaunchTemplate_Launc
 		}
 	}
 
-	return launchTemplateData
+	return launchTemplateData, nil
 }
 
 func makeMetadataOptions(ng *api.NodeGroupBase) *gfnec2.LaunchTemplate_MetadataOptions {

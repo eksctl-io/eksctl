@@ -56,6 +56,15 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 		launchTemplateData.EbsOptimized = gfnt.NewBoolean(*mng.EBSOptimized)
 	}
 
+	if api.IsEnabled(mng.EFAEnabled) && mng.Placement == nil {
+		groupName := m.newResource("NodeGroupPlacementGroup", &gfnec2.PlacementGroup{
+			Strategy: gfnt.NewString("cluster"),
+		})
+		launchTemplateData.Placement = &gfnec2.LaunchTemplate_Placement{
+			GroupName: groupName,
+		}
+	}
+
 	if volumeSize := mng.VolumeSize; volumeSize != nil && *volumeSize > 0 {
 		mapping := gfnec2.LaunchTemplate_BlockDeviceMapping{
 			Ebs: &gfnec2.LaunchTemplate_Ebs{

@@ -1254,6 +1254,8 @@ type NodeGroupBase struct {
 	// +optional
 	Placement *Placement `json:"placement,omitempty"`
 
+	EFAEnabled *bool `json:"efaEnabled,omitempty"`
+
 	// Internal fields
 	// Some AMIs (bottlerocket) have a separate volume for the OS
 	AdditionalEncryptedVolume string `json:"-"`

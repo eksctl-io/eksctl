@@ -98,6 +98,9 @@ func NewUserDataForAmazonLinux2(spec *api.ClusterConfig, ng *api.NodeGroup) (str
 	if ng.OverrideBootstrapCommand != nil {
 		config.AddShellCommand(*ng.OverrideBootstrapCommand)
 	} else {
+		if api.IsEnabled(ng.EFAEnabled) {
+			scripts = append(scripts, "efa.al2.sh")
+		}
 		scripts = append(scripts, "bootstrap.al2.sh")
 	}
 
