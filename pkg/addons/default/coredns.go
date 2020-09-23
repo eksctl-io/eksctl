@@ -29,7 +29,7 @@ func IsCoreDNSUpToDate(rawClient kubernetes.RawClientInterface, region, controlP
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", CoreDNS)
-			return false, nil
+			return true, nil
 		}
 		return false, errors.Wrapf(err, "getting %q", CoreDNS)
 	}

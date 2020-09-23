@@ -25,7 +25,7 @@ func IsKubeProxyUpToDate(clientSet kubernetes.Interface, controlPlaneVersion str
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", KubeProxy)
-			return false, nil
+			return true, nil
 		}
 		return false, errors.Wrapf(err, "getting %q", KubeProxy)
 	}
