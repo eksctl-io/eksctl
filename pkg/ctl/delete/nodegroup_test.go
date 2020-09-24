@@ -2,6 +2,7 @@ package delete
 
 import (
 	"fmt"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
@@ -21,7 +22,7 @@ var _ = Describe("delete", func() {
 			cmd := newMockEmptyCmd(args...)
 			count := 0
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				deleteNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *v1alpha5.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool) error {
+				deleteNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *v1alpha5.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod time.Duration) error {
 					Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
 					Expect(ng.Name).To(Equal("ng"))
 					count++

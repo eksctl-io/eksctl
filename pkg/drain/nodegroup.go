@@ -37,7 +37,7 @@ func evictPods(drainer *Helper, node *corev1.Node) (int, error) {
 }
 
 // NodeGroup drains a nodegroup
-func NodeGroup(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout time.Duration, undo bool) error {
+func NodeGroup(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout time.Duration, maxGracePeriod time.Duration, undo bool) error {
 	drainer := &Helper{
 		Client: clientSet,
 
@@ -49,6 +49,8 @@ func NodeGroup(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout
 		Force:               true,
 		DeleteLocalData:     true,
 		IgnoreAllDaemonSets: true,
+
+		MaxGracePeriodSeconds: int(maxGracePeriod.Seconds()),
 
 		// TODO: ideally only the list of well-known DaemonSets should
 		// be set by default

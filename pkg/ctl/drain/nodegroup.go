@@ -1,6 +1,8 @@
 package drain
 
 import (
+	"time"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -13,23 +15,24 @@ import (
 )
 
 func drainNodeGroupCmd(cmd *cmdutils.Cmd) {
-	drainNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool) error {
-		return doDrainNodeGroup(cmd, ng, undo, onlyMissing)
+	drainNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod time.Duration) error {
+		return doDrainNodeGroup(cmd, ng, undo, onlyMissing, maxGracePeriod)
 	})
 }
 
-func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool) error) {
+func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod time.Duration) error) {
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
 	var undo, onlyMissing bool
+	var maxGracePeriod time.Duration
 
 	cmd.SetDescription("nodegroup", "Cordon and drain a nodegroup", "", "ng")
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return runFunc(cmd, ng, undo, onlyMissing)
+		return runFunc(cmd, ng, undo, onlyMissing, maxGracePeriod)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -41,13 +44,15 @@ func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 		cmdutils.AddNodeGroupFilterFlags(fs, &cmd.Include, &cmd.Exclude)
 		fs.BoolVar(&onlyMissing, "only-missing", false, "Only drain nodegroups that are not defined in the given config file")
 		fs.BoolVar(&undo, "undo", false, "Uncordone the nodegroup")
+		defaultMaxGracePeriod, _ := time.ParseDuration("10m")
+		fs.DurationVar(&maxGracePeriod, "max-grace-period", defaultMaxGracePeriod, "Maximum pods termination grace period")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
 }
 
-func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool) error {
+func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod time.Duration) error {
 	ngFilter := filter.NewNodeGroupFilter()
 
 	if err := cmdutils.NewDeleteNodeGroupLoader(cmd, ng, ngFilter).Load(); err != nil {
@@ -108,7 +113,7 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 	}
 	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 	for _, ng := range allNodeGroups {
-		if err := drain.NodeGroup(clientSet, ng, ctl.Provider.WaitTimeout(), undo); err != nil {
+		if err := drain.NodeGroup(clientSet, ng, ctl.Provider.WaitTimeout(), maxGracePeriod, undo); err != nil {
 			return err
 		}
 	}
