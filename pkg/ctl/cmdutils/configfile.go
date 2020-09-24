@@ -621,7 +621,7 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.validateWithConfigFile = func() error {
-		if api.IsDisabled(l.ClusterConfig.IAM.WithOIDC) {
+		if l.ClusterConfig.IAM == nil || api.IsDisabled(l.ClusterConfig.IAM.WithOIDC) {
 			return fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile)
 		}
 		return saFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.IAM.ServiceAccounts)
