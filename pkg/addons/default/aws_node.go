@@ -58,10 +58,6 @@ func IsAWSNodeUpToDate(rawClient kubernetes.RawClientInterface, region string) (
 			return false, fmt.Errorf("invalid container image: %s", container.Image)
 		}
 
-		if !strings.HasSuffix(imageParts[1], "-eksbuild.1") {
-			imageParts[1] = imageParts[1] + "-eksbuild.1"
-		}
-
 		container.Image = awsNodeImageFormatPrefix + ":" + imageParts[1]
 		if err := addons.UseRegionalImage(&daemonSet.Spec.Template, region); err != nil {
 			return false, err
@@ -112,10 +108,6 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 			imageParts := strings.Split(container.Image, ":")
 			if len(imageParts) != 2 {
 				return false, fmt.Errorf("invalid container image: %s", container.Image)
-			}
-
-			if !strings.HasSuffix(imageParts[1], "-eksbuild.1") {
-				imageParts[1] = imageParts[1] + "-eksbuild.1"
 			}
 
 			container.Image = awsNodeImageFormatPrefix + ":" + imageParts[1]
