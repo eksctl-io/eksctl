@@ -148,13 +148,20 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *subnetDe
 		}
 	}
 
-	c.newResource("ControlPlane", &gfneks.Cluster{
+	cluster := gfneks.Cluster{
 		Name:               gfnt.NewString(c.spec.Metadata.Name),
 		RoleArn:            serviceRoleARN,
 		Version:            gfnt.NewString(c.spec.Metadata.Version),
 		ResourcesVpcConfig: clusterVPC,
 		EncryptionConfig:   encryptionConfigs,
-	})
+	}
+	if c.spec.KubernetesNetworkConfig != nil && c.spec.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
+		cluster.KubernetesNetworkConfig = &gfneks.Cluster_KubernetesNetworkConfig{
+			ServiceIpv4Cidr: gfnt.NewString(c.spec.KubernetesNetworkConfig.ServiceIPv4CIDR),
+		}
+	}
+
+	c.newResource("ControlPlane", &cluster)
 
 	if c.spec.Status == nil {
 		c.spec.Status = &api.ClusterStatus{}

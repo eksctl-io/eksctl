@@ -21,10 +21,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
-const (
-	iamPolicyAmazonEKSCNIPolicy = "AmazonEKS_CNI_Policy"
-)
-
 type clusterConfigTask struct {
 	info string
 	spec *api.ClusterConfig
@@ -277,19 +273,10 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 		},
 	}
 
-	serviceAccounts := append([]*api.ClusterIAMServiceAccount{}, cfg.IAM.ServiceAccounts...)
-	if api.IsEnabled(cfg.IAM.WithOIDC) {
-		serviceAccounts = append(serviceAccounts, &api.ClusterIAMServiceAccount{
-			ClusterIAMMeta: api.ClusterIAMMeta{Name: "aws-node",
-				Namespace: "kube-system",
-			},
-			AttachPolicyARNs: []string{fmt.Sprintf("arn:aws:iam::aws:policy/%s", iamPolicyAmazonEKSCNIPolicy)},
-		})
-	}
 	// as this is non-CloudFormation context, we need to construct a new stackManager,
 	// given a clientSet getter and OpenIDConnectManager reference we can build out
 	// the list of tasks for each of the service accounts that need to be created
-	newTasks := c.NewStackManager(cfg).NewTasksToCreateIAMServiceAccounts(serviceAccounts, oidcPlaceholder, clientSet)
+	newTasks := c.NewStackManager(cfg).NewTasksToCreateIAMServiceAccounts(cfg.IAM.ServiceAccounts, oidcPlaceholder, clientSet)
 	newTasks.IsSubTask = true
 	tasks.Append(newTasks)
 	tasks.Append(&restartDaemonsetTask{

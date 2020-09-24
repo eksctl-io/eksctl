@@ -149,6 +149,17 @@ func (c *ClusterConfig) ValidatePrivateCluster() error {
 	return nil
 }
 
+// ValidateKubernetesNetworkConfig validates the network config
+func (c *ClusterConfig) ValidateKubernetesNetworkConfig() error {
+	if c.KubernetesNetworkConfig != nil {
+		serviceIP := c.KubernetesNetworkConfig.ServiceIPv4CIDR
+		if _, _, err := net.ParseCIDR(serviceIP); serviceIP != "" && err != nil {
+			return errors.Wrap(err, "invalid IPv4 CIDR for kubernetesNetworkConfig.serviceIPv4CIDR")
+		}
+	}
+	return nil
+}
+
 // NoAccess returns true if neither public are private cluster endpoint access is enabled and false otherwise
 func NoAccess(ces *ClusterEndpoints) bool {
 	return !(*ces.PublicAccess || *ces.PrivateAccess)

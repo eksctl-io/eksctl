@@ -83,6 +83,9 @@
             "ClusterConfig"
           ]
         },
+        "kubernetesNetworkConfig": {
+          "$ref": "#/definitions/KubernetesNetworkConfig"
+        },
         "managedNodeGroups": {
           "items": {
             "$ref": "#/definitions/ManagedNodeGroup"
@@ -121,6 +124,7 @@
         "kind",
         "apiVersion",
         "metadata",
+        "kubernetesNetworkConfig",
         "iam",
         "vpc",
         "privateCluster",
@@ -603,6 +607,21 @@
       "description": "holds any arbitrary JSON/YAML documents, such as extra config parameters or IAM policies",
       "x-intellij-html-description": "holds any arbitrary JSON/YAML documents, such as extra config parameters or IAM policies",
       "default": "{}"
+    },
+    "KubernetesNetworkConfig": {
+      "properties": {
+        "serviceIPv4CIDR": {
+          "type": "string",
+          "description": "CIDR range from where `ClusterIP`s are assigned",
+          "x-intellij-html-description": "CIDR range from where <code>ClusterIP</code>s are assigned"
+        }
+      },
+      "preferredOrder": [
+        "serviceIPv4CIDR"
+      ],
+      "additionalProperties": false,
+      "description": "contains cluster networking options",
+      "x-intellij-html-description": "contains cluster networking options"
     },
     "LaunchTemplate": {
       "required": [

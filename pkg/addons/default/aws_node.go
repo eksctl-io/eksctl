@@ -28,7 +28,7 @@ func IsAWSNodeUpToDate(rawClient kubernetes.RawClientInterface, region string) (
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", AWSNode)
-			return false, nil
+			return true, nil
 		}
 		return false, errors.Wrapf(err, "getting %q", AWSNode)
 	}

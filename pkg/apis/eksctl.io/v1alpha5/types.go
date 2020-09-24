@@ -459,6 +459,12 @@ type ClusterMeta struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
+// KubernetesNetworkConfig contains cluster networking options
+type KubernetesNetworkConfig struct {
+	// ServiceIPv4CIDR is the CIDR range from where `ClusterIP`s are assigned
+	ServiceIPv4CIDR string `json:"serviceIPv4CIDR,omitempty"`
+}
+
 // ClusterStatus hold read-only attributes of a cluster
 type ClusterStatus struct {
 	Endpoint                 string `json:"endpoint,omitempty"`
@@ -533,6 +539,9 @@ type ClusterConfig struct {
 
 	// +required
 	Metadata *ClusterMeta `json:"metadata"`
+
+	// +optional
+	KubernetesNetworkConfig *KubernetesNetworkConfig `json:"kubernetesNetworkConfig,omitempty"`
 
 	// +optional
 	IAM *ClusterIAM `json:"iam,omitempty"`
