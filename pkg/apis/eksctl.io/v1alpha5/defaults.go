@@ -1,9 +1,15 @@
 package v1alpha5
 
 import (
+	"fmt"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/weaveworks/eksctl/pkg/git"
+)
+
+const (
+	iamPolicyAmazonEKSCNIPolicy = "AmazonEKS_CNI_Policy"
 )
 
 // SetClusterConfigDefaults will set defaults for a given cluster
@@ -18,6 +24,19 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 
 	if cfg.IAM.VPCResourceControllerPolicy == nil {
 		cfg.IAM.VPCResourceControllerPolicy = Enabled()
+	}
+
+	if IsEnabled(cfg.IAM.WithOIDC) {
+		awsNode := ClusterIAMServiceAccount{
+			ClusterIAMMeta: ClusterIAMMeta{
+				Name:      "aws-node",
+				Namespace: "kube-system",
+			},
+			AttachPolicyARNs: []string{
+				fmt.Sprintf("arn:%s:iam::aws:policy/%s", Partition(cfg.Metadata.Region), iamPolicyAmazonEKSCNIPolicy),
+			},
+		}
+		cfg.IAM.ServiceAccounts = append(cfg.IAM.ServiceAccounts, &awsNode)
 	}
 
 	for _, sa := range cfg.IAM.ServiceAccounts {
