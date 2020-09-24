@@ -13,9 +13,15 @@ func init() {
 	awsNode := string(MustAsset("aws-node.yaml"))
 
 	awsNodeParts := strings.Split(awsNode, "---\n")
-	awsNodeParts = awsNodeParts[0 : len(awsNodeParts)-1]
+	nonCRDs := []string{}
+	for _, part := range awsNodeParts {
+		if strings.Contains(part, ": \"CustomResourceDefinition\"") {
+			continue
+		}
+		nonCRDs = append(nonCRDs, part)
+	}
 
-	awsNode = strings.Join(awsNodeParts, "---\n")
+	awsNode = strings.Join(nonCRDs, "---\n")
 
 	var buf bytes.Buffer
 	zw := gzip.NewWriter(&buf)
