@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
@@ -21,9 +22,8 @@ const (
 	awsNodeImageFormatPrefix = "%s.dkr.ecr.%s.%s/amazon-k8s-cni"
 )
 
-// IsAWSNodeUpToDate will update the `aws-node` add-on and returns true
-// if an update is available.
-func IsAWSNodeUpToDate(rawClient kubernetes.RawClientInterface, region string) (bool, error) {
+// DoesAWSNodeSupportMultiArch makes sure awsnode supports ARM nodes
+func DoesAWSNodeSupportMultiArch(rawClient kubernetes.RawClientInterface, region string) (bool, error) {
 	clusterDaemonSet, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(AWSNode, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
@@ -33,45 +33,32 @@ func IsAWSNodeUpToDate(rawClient kubernetes.RawClientInterface, region string) (
 		return false, errors.Wrapf(err, "getting %q", AWSNode)
 	}
 
-	// if DaemonSets is present, go through our list of assets
-	list, err := LoadAsset(AWSNode, "yaml")
+	minVersion := semver.Version{
+		Major: 1,
+		Minor: 6,
+		Patch: 3,
+	}
+
+	clusterTag, err := addons.ImageTag(clusterDaemonSet.Spec.Template.Spec.Containers[0].Image)
 	if err != nil {
 		return false, err
 	}
-
-	for _, rawObj := range list.Items {
-		resource, err := rawClient.NewRawResource(rawObj.Object)
-		if err != nil {
-			return false, err
-		}
-		if resource.GVK.Kind != "DaemonSet" {
-			continue
-		}
-
-		daemonSet, ok := resource.Info.Object.(*appsv1.DaemonSet)
-		if !ok {
-			return false, fmt.Errorf("expected type %T; got %T", &appsv1.Deployment{}, resource.Info.Object)
-		}
-		container := &daemonSet.Spec.Template.Spec.Containers[0]
-		imageParts := strings.Split(container.Image, ":")
-		if len(imageParts) != 2 {
-			return false, fmt.Errorf("invalid container image: %s", container.Image)
-		}
-
-		container.Image = awsNodeImageFormatPrefix + ":" + imageParts[1]
-		if err := addons.UseRegionalImage(&daemonSet.Spec.Template, region); err != nil {
-			return false, err
-		}
-		tagMismatch, err := addons.ImageTagsDiffer(
-			container.Image,
-			clusterDaemonSet.Spec.Template.Spec.Containers[0].Image,
-		)
-		if err != nil {
-			return false, err
-		}
-		return !tagMismatch, nil
+	clusterVersion, err := semver.ParseTolerant(clusterTag)
+	if err != nil {
+		return false, err
 	}
-	return true, nil
+	clusterSemverVersion := semver.Version{
+		Major: clusterVersion.Major,
+		Minor: clusterVersion.Minor,
+		Patch: clusterVersion.Patch,
+	}
+
+	if clusterSemverVersion.GT(minVersion) ||
+		(clusterSemverVersion.EQ(minVersion) && clusterVersion.String() == "1.6.3-eksbuild.1") {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 // UpdateAWSNode will update the `aws-node` add-on and returns true
