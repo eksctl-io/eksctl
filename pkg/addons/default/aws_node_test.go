@@ -13,6 +13,57 @@ import (
 )
 
 var _ = Describe("default addons - aws-node", func() {
+	Describe("properly checks for multi-architecture support", func() {
+		var (
+			rawClient *testutils.FakeRawClient
+			ct        *testutils.CollectionTracker
+		)
+		loadSample := func(f string) {
+			sampleAddons := testutils.LoadSamples(f)
+
+			rawClient = testutils.NewFakeRawClient()
+
+			rawClient.AssumeObjectsMissing = true
+
+			for _, item := range sampleAddons {
+				rc, err := rawClient.NewRawResource(item)
+				Expect(err).ToNot(HaveOccurred())
+				_, err = rc.CreateOrReplace(false)
+				Expect(err).ToNot(HaveOccurred())
+			}
+
+			ct = rawClient.Collection
+
+			Expect(ct.Updated()).To(BeEmpty())
+			Expect(ct.Created()).ToNot(BeEmpty())
+			Expect(ct.CreatedItems()).To(HaveLen(10))
+		}
+		It("reports that 1.14 sample needs an update", func() {
+			loadSample("testdata/sample-1.14.json")
+			rawClient.AssumeObjectsMissing = false
+
+			needsUpdate, err := DoesAWSNodeSupportMultiArch(rawClient, "eu-west-1")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(needsUpdate).To(BeFalse())
+		})
+		It("reports that sample with 1.6.3-eksbuild.1 doesn't need an update", func() {
+			loadSample("testdata/sample-1.16-eksbuild.1.json")
+			rawClient.AssumeObjectsMissing = false
+
+			needsUpdate, err := DoesAWSNodeSupportMultiArch(rawClient, "eu-west-1")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(needsUpdate).To(BeTrue())
+		})
+		It("reports that sample with 1.7.3 doesn't need an update", func() {
+			loadSample("testdata/sample-1.16-v1.7.3.json")
+			rawClient.AssumeObjectsMissing = false
+
+			needsUpdate, err := DoesAWSNodeSupportMultiArch(rawClient, "eu-west-1")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(needsUpdate).To(BeTrue())
+		})
+	})
+
 	Describe("can update aws-node add-on to multi-architecture images", func() {
 		var (
 			rawClient *testutils.FakeRawClient

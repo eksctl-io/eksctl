@@ -29,7 +29,7 @@ func EnsureAddonsUpToDate(clientSet kubernetes.Interface, rawClient kubernetes.R
 	return nil
 }
 
-func AreAddonsUpToDate(clientSet kubernetes.Interface, rawClient kubernetes.RawClientInterface, controlPlaneVersion string, region string) (bool, error) {
+func DoAddonsSupportMultiArch(clientSet kubernetes.Interface, rawClient kubernetes.RawClientInterface, controlPlaneVersion string, region string) (bool, error) {
 	kubeProxyUpToDate, err := IsKubeProxyUpToDate(clientSet, controlPlaneVersion)
 	if err != nil {
 		return true, err
@@ -38,7 +38,7 @@ func AreAddonsUpToDate(clientSet kubernetes.Interface, rawClient kubernetes.RawC
 		return false, nil
 	}
 
-	awsNodeUpToDate, err := IsAWSNodeUpToDate(rawClient, region)
+	awsNodeUpToDate, err := DoesAWSNodeSupportMultiArch(rawClient, region)
 	if err != nil {
 		return true, err
 	}
