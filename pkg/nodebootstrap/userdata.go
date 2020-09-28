@@ -2,6 +2,7 @@ package nodebootstrap
 
 import (
 	"fmt"
+	"net"
 	"sort"
 	"strings"
 
@@ -82,6 +83,17 @@ func makeClientConfigData(spec *api.ClusterConfig, authenticatorCMD string) ([]b
 func clusterDNS(spec *api.ClusterConfig, ng *api.NodeGroup) string {
 	if ng.ClusterDNS != "" {
 		return ng.ClusterDNS
+	}
+	if spec.KubernetesNetworkConfig != nil && spec.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
+		if _, ipnet, err := net.ParseCIDR(spec.KubernetesNetworkConfig.ServiceIPv4CIDR); err != nil {
+			panic(errors.Wrap(err, "invalid IPv4 CIDR for kubernetesNetworkConfig.serviceIPv4CIDR"))
+		} else {
+			prefix := strings.Split(ipnet.IP.String(), ".")
+			if len(prefix) != 4 {
+				panic(errors.Wrap(err, "invalid IPv4 CIDR for kubernetesNetworkConfig.serviceIPv4CIDR"))
+			}
+			return strings.Join([]string{prefix[0], prefix[1], prefix[2], "10"}, ".")
+		}
 	}
 	// Default service network is 10.100.0.0, but it gets set 172.20.0.0 automatically when pod network
 	// is anywhere within 10.0.0.0/8
