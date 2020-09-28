@@ -2,7 +2,7 @@ name: Merge release changes to master
 on:
   push:
     branches:
-      - release-*
+      - "release-[0-9]+.[0-9]+"
 env:
   VERSION_FILE: pkg/version/release.go
   DEFAULT_BRANCH: master
@@ -24,7 +24,7 @@ jobs:
           git checkout ORIG_HEAD -- $VERSION_FILE
           git add $VERSION_FILE
           EDITOR=true git merge --continue
-          ! git diff --exit-code $DEFAULT_BRANCH...HEAD
+          ! git diff --exit-code $DEFAULT_BRANCH...HEAD || exit 1
           git push --set-upstream origin HEAD
       - uses: actions/github-script@v2.0.0
         name: Open PR to ${{env.DEFAULT_BRANCH}}
