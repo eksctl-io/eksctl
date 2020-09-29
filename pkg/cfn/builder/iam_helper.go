@@ -318,3 +318,19 @@ func makeManagedPolicies(iamCluster *api.ClusterIAM, iamConfig *api.NodeGroupIAM
 		makePolicyARNs(managedPolicyNames.List()...)...,
 	)...), nil
 }
+
+// NormalizeARN returns the ARN with just the last element in the resource path preserved. If the
+// input does not contain at least one forward-slash then the input is returned unmodified.
+//
+// When providing an existing instanceRoleARN that contains a path other than "/", nodes may
+// fail to join the cluster as the AWS IAM Authenticator does not recognize such ARNs declared in
+// the aws-auth ConfigMap.
+//
+// See: https://docs.aws.amazon.com/eks/latest/userguide/troubleshooting.html#troubleshoot-container-runtime-network
+func NormalizeARN(arn string) string {
+	parts := strings.Split(arn, "/")
+	if len(parts) <= 1 {
+		return arn
+	}
+	return fmt.Sprintf("%s/%s", parts[0], parts[len(parts)-1])
+}

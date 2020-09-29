@@ -55,7 +55,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		}
 		nodeRole = gfnt.MakeFnGetAttString(cfnIAMInstanceRoleName, "Arn")
 	} else {
-		nodeRole = gfnt.NewString(m.nodeGroup.IAM.InstanceRoleARN)
+		nodeRole = gfnt.NewString(NormalizeARN(m.nodeGroup.IAM.InstanceRoleARN))
 	}
 
 	subnets, err := AssignSubnets(m.nodeGroup.AvailabilityZones, m.clusterStackName, m.clusterConfig, m.nodeGroup.PrivateNetworking)
