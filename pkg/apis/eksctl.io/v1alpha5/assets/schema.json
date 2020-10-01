@@ -789,8 +789,8 @@
         },
         "volumeType": {
           "type": "string",
-          "description": "Valid variants are: `\"gp2\"` is General Purpose SSD (default), `\"io1\"` is Provisioned IOPS SSD, `\"sc1\"` is Throughput Optimized HDD, `\"st1\"` is Cold HDD.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;gp2&quot;</code> is General Purpose SSD (default), <code>&quot;io1&quot;</code> is Provisioned IOPS SSD, <code>&quot;sc1&quot;</code> is Throughput Optimized HDD, <code>&quot;st1&quot;</code> is Cold HDD.",
+          "description": "Valid variants are: `\"gp2\"` is General Purpose SSD (default), `\"io1\"` is Provisioned IOPS SSD, `\"sc1\"` is Cold HDD, `\"st1\"` is Throughput Optimized HDD.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;gp2&quot;</code> is General Purpose SSD (default), <code>&quot;io1&quot;</code> is Provisioned IOPS SSD, <code>&quot;sc1&quot;</code> is Cold HDD, <code>&quot;st1&quot;</code> is Throughput Optimized HDD.",
           "default": "gp2",
           "enum": [
             "gp2",
@@ -1066,8 +1066,8 @@
         },
         "volumeType": {
           "type": "string",
-          "description": "Valid variants are: `\"gp2\"` is General Purpose SSD (default), `\"io1\"` is Provisioned IOPS SSD, `\"sc1\"` is Throughput Optimized HDD, `\"st1\"` is Cold HDD.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;gp2&quot;</code> is General Purpose SSD (default), <code>&quot;io1&quot;</code> is Provisioned IOPS SSD, <code>&quot;sc1&quot;</code> is Throughput Optimized HDD, <code>&quot;st1&quot;</code> is Cold HDD.",
+          "description": "Valid variants are: `\"gp2\"` is General Purpose SSD (default), `\"io1\"` is Provisioned IOPS SSD, `\"sc1\"` is Cold HDD, `\"st1\"` is Throughput Optimized HDD.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;gp2&quot;</code> is General Purpose SSD (default), <code>&quot;io1&quot;</code> is Provisioned IOPS SSD, <code>&quot;sc1&quot;</code> is Cold HDD, <code>&quot;st1&quot;</code> is Throughput Optimized HDD.",
           "default": "gp2",
           "enum": [
             "gp2",
