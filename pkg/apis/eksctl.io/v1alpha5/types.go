@@ -250,9 +250,9 @@ const (
 	NodeVolumeTypeGP2 = "gp2"
 	// NodeVolumeTypeIO1 is Provisioned IOPS SSD
 	NodeVolumeTypeIO1 = "io1"
-	// NodeVolumeTypeSC1 is Throughput Optimized HDD
+	// NodeVolumeTypeSC1 is Cold HDD
 	NodeVolumeTypeSC1 = "sc1"
-	// NodeVolumeTypeST1 is Cold HDD
+	// NodeVolumeTypeST1 is Throughput Optimized HDD
 	NodeVolumeTypeST1 = "st1"
 )
 
