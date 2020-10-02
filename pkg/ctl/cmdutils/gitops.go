@@ -25,6 +25,7 @@ const (
 	namespace   = "namespace"
 	readOnly    = "read-only"
 	withHelm    = "with-helm"
+	additionalFluxArgs = "additional-flux-args"
 
 	commitOperatorManifests = "commit-operator-manifests"
 
@@ -59,6 +60,8 @@ func AddCommonFlagsForFlux(fs *pflag.FlagSet, opts *api.Git) {
 	opts.Operator.CommitOperatorManifests = fs.Bool(commitOperatorManifests, true,
 		"Commit and push Flux manifests to the Git repo on install")
 	opts.Operator.WithHelm = fs.Bool(withHelm, true, "Install the Helm Operator")
+	fs.StringSliceVar(&opts.Operator.AdditionalFluxArgs, additionalFluxArgs, []string{},
+		"Additional command line arguments for the Flux Operator")
 }
 
 // AddCommonFlagsForGit configures the flags required to interact with a Git
@@ -118,6 +121,7 @@ func NewGitOpsConfigLoader(cmd *Cmd, cfg *api.Git) *GitOpsConfigLoader {
 			"amend",
 			profileName,
 			profileRevision,
+			additionalFluxArgs,
 		),
 		flagsIncompatibleWithoutConfigFile: sets.NewString(),
 	}

@@ -305,6 +305,7 @@ func getFluxManifests(opts *api.Git, cs kubeclient.Interface) (map[string][]byte
 	}
 
 	additionalFluxArgs := []string{"--sync-garbage-collection"}
+	additionalFluxArgs = append(additionalFluxArgs, opts.Operator.AdditionalFluxArgs...)
 	if opts.Operator.ReadOnly {
 		additionalFluxArgs = append(additionalFluxArgs, "--registry-disable-scanning")
 	}

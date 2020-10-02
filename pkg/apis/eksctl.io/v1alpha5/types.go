@@ -864,6 +864,10 @@ type Operator struct {
 	// Instruct Flux to read-only mode and create the deploy key as read-only
 	// +optional
 	ReadOnly bool `json:"readOnly,omitempty"`
+
+	// Additional command line arguments for the Flux Operator
+	// +optional
+	AdditionalFluxArgs []string `json:"additionalFluxArgs,omitempty"`
 }
 
 // Profile groups all details on a quickstart profile to enable on the cluster
