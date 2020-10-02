@@ -38,7 +38,7 @@ func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
-		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to delete")
+		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to drain")
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddApproveFlag(fs, cmd)
 		cmdutils.AddNodeGroupFilterFlags(fs, &cmd.Include, &cmd.Exclude)
