@@ -42,7 +42,7 @@ To create a new cluster without using a config file, issue the following command
 ```console
 eksctl create cluster --name=windows-cluster --node-ami-family=WindowsServer2019CoreContainer
 eksctl create nodegroup --cluster=windows-cluster --node-ami-family=AmazonLinux2 --nodes-min=2 --node-type=t2.large
-eksctl utils install-vpc-controllers --name=windows-cluster --approve
+eksctl utils install-vpc-controllers --cluster=windows-cluster --approve
 ```
 
 
@@ -51,7 +51,7 @@ To enable running Windows workloads on an existing cluster with Linux nodes (`Am
 
 ```console
 eksctl create nodegroup --cluster=existing-cluster --node-ami-family=WindowsServer2019CoreContainer
-eksctl utils install-vpc-controllers --name=windows-cluster --approve
+eksctl utils install-vpc-controllers --cluster=windows-cluster --approve
 ```
 
 To ensure workloads are scheduled on the right OS, they must have a `nodeSelector` targeting the OS it must run on:
