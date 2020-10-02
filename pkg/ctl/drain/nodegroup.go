@@ -43,7 +43,7 @@ func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 		cmdutils.AddApproveFlag(fs, cmd)
 		cmdutils.AddNodeGroupFilterFlags(fs, &cmd.Include, &cmd.Exclude)
 		fs.BoolVar(&onlyMissing, "only-missing", false, "Only drain nodegroups that are not defined in the given config file")
-		fs.BoolVar(&undo, "undo", false, "Uncordone the nodegroup")
+		fs.BoolVar(&undo, "undo", false, "Uncordon the nodegroup")
 		defaultMaxGracePeriod, _ := time.ParseDuration("10m")
 		fs.DurationVar(&maxGracePeriod, "max-grace-period", defaultMaxGracePeriod, "Maximum pods termination grace period")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
