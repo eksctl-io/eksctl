@@ -865,9 +865,13 @@ type Operator struct {
 	// +optional
 	ReadOnly bool `json:"readOnly,omitempty"`
 
-	// Additional command line arguments for the Flux Operator
+	// Additional command line arguments for the Flux daemon
 	// +optional
 	AdditionalFluxArgs []string `json:"additionalFluxArgs,omitempty"`
+
+	// Additional command line arguments for the Helm Operator
+	// +optional
+	AdditionalHelmOperatorArgs []string `json:"additionalHelmOperatorArgs,omitempty"`
 }
 
 // Profile groups all details on a quickstart profile to enable on the cluster

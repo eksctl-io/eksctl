@@ -1366,8 +1366,16 @@
             "type": "string"
           },
           "type": "array",
-          "description": "Additional command line arguments for the Flux Operator",
-          "x-intellij-html-description": "Additional command line arguments for the Flux Operator"
+          "description": "Additional command line arguments for the Flux daemon",
+          "x-intellij-html-description": "Additional command line arguments for the Flux daemon"
+        },
+        "additionalHelmOperatorArgs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Additional command line arguments for the Helm Operator",
+          "x-intellij-html-description": "Additional command line arguments for the Helm Operator"
         },
         "commitOperatorManifests": {
           "type": "boolean",
@@ -1402,7 +1410,8 @@
         "namespace",
         "withHelm",
         "readOnly",
-        "additionalFluxArgs"
+        "additionalFluxArgs",
+        "additionalHelmOperatorArgs"
       ],
       "additionalProperties": false,
       "description": "groups all configuration options related to the operator used to keep the cluster and the Git repository in sync.",
