@@ -10,7 +10,7 @@ eksctl create cluster --node-type=p2.xlarge
 !!! note
     It is no longer necessary to subscribe to the marketplace AMI for GPU support on EKS.
 
-The AMI resolvers (`static`, `auto` and `auto-ssm`) will see that you want to use a
+The AMI resolvers (`auto` and `auto-ssm`) will see that you want to use a
 GPU instance type and they will select the correct EKS optimized accelerated AMI.
 
 Eksctl will detect that an AMI with a GPU-enabled instance type has been selected and
