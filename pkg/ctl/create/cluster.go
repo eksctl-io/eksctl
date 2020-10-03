@@ -355,15 +355,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			return err
 		}
 
-		// tasks depending on the control plane availability
-		tasks := ctl.NewTasksRequiringControlPlane(cfg)
 		ngTasks := ctl.ClusterTasksForNodeGroups(cfg, params.InstallNeuronDevicePlugin)
-		if ngTasks.Len() > 0 {
-			tasks.Append(ngTasks)
-		}
 
-		logger.Info(tasks.Describe())
-		if errs := tasks.DoAllSync(); len(errs) > 0 {
+		logger.Info(ngTasks.Describe())
+		if errs := ngTasks.DoAllSync(); len(errs) > 0 {
 			logger.Warning("%d error(s) occurred and post actions have failed, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", meta.Region, meta.Name)
 			for _, err := range errs {
