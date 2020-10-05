@@ -23,6 +23,9 @@ func GetDeployKeyClient(ctx context.Context, url string) (gitprovider.DeployKeyC
 		return nil, errors.New("only GitHub URLs are currently supported")
 	}
 	githubToken := os.Getenv(githubTokenVariable)
+	if githubToken == "" {
+		return nil, errors.Errorf("%s not set", githubTokenVariable)
+	}
 	gh, err := github.NewClient(github.WithOAuth2Token(githubToken))
 	if err != nil {
 		return nil, err
