@@ -52,7 +52,7 @@ form of a label. The scheme of priorities looks like this:
 
 - **awaiting-more-evidence**: Possibly useful, but not yet enough support to actually get it done. These are mostly place-holders for potentially good ideas, so that they don't get completely forgotten, and can be referenced /deduped every time they come up.
 
-These priority categories have been inspired by [the Kuberntes contributing guide](https://github.com/kubernetes/community/blob/master/contributors/guide/issue-triage.md).
+These priority categories have been inspired by [the Kubernetes contributing guide](https://github.com/kubernetes/community/blob/master/contributors/guide/issue-triage.md).
 
 ## Getting Started
 
