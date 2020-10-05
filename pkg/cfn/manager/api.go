@@ -37,7 +37,7 @@ type StackInfo struct {
 	Template  *string
 }
 
-// TemplateData is an union (sum type) to describe template data.
+// TemplateData is a union (sum type) to describe template data.
 type TemplateData interface {
 	isTemplateData()
 }
