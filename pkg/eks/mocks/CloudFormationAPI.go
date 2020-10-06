@@ -898,6 +898,41 @@ func (_m *CloudFormationAPI) DescribeAccountLimits(_a0 *cloudformation.DescribeA
 	return r0, r1
 }
 
+// DescribeAccountLimitsPages provides a mock function with given fields: _a0, _a1
+func (_m *CloudFormationAPI) DescribeAccountLimitsPages(_a0 *cloudformation.DescribeAccountLimitsInput, _a1 func(*cloudformation.DescribeAccountLimitsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudformation.DescribeAccountLimitsInput, func(*cloudformation.DescribeAccountLimitsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeAccountLimitsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *CloudFormationAPI) DescribeAccountLimitsPagesWithContext(_a0 context.Context, _a1 *cloudformation.DescribeAccountLimitsInput, _a2 func(*cloudformation.DescribeAccountLimitsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeAccountLimitsInput, func(*cloudformation.DescribeAccountLimitsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeAccountLimitsRequest provides a mock function with given fields: _a0
 func (_m *CloudFormationAPI) DescribeAccountLimitsRequest(_a0 *cloudformation.DescribeAccountLimitsInput) (*request.Request, *cloudformation.DescribeAccountLimitsOutput) {
 	ret := _m.Called(_a0)
@@ -2641,6 +2676,41 @@ func (_m *CloudFormationAPI) ListChangeSets(_a0 *cloudformation.ListChangeSetsIn
 	return r0, r1
 }
 
+// ListChangeSetsPages provides a mock function with given fields: _a0, _a1
+func (_m *CloudFormationAPI) ListChangeSetsPages(_a0 *cloudformation.ListChangeSetsInput, _a1 func(*cloudformation.ListChangeSetsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudformation.ListChangeSetsInput, func(*cloudformation.ListChangeSetsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListChangeSetsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *CloudFormationAPI) ListChangeSetsPagesWithContext(_a0 context.Context, _a1 *cloudformation.ListChangeSetsInput, _a2 func(*cloudformation.ListChangeSetsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListChangeSetsInput, func(*cloudformation.ListChangeSetsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListChangeSetsRequest provides a mock function with given fields: _a0
 func (_m *CloudFormationAPI) ListChangeSetsRequest(_a0 *cloudformation.ListChangeSetsInput) (*request.Request, *cloudformation.ListChangeSetsOutput) {
 	ret := _m.Called(_a0)
@@ -2945,6 +3015,41 @@ func (_m *CloudFormationAPI) ListStackInstances(_a0 *cloudformation.ListStackIns
 	return r0, r1
 }
 
+// ListStackInstancesPages provides a mock function with given fields: _a0, _a1
+func (_m *CloudFormationAPI) ListStackInstancesPages(_a0 *cloudformation.ListStackInstancesInput, _a1 func(*cloudformation.ListStackInstancesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudformation.ListStackInstancesInput, func(*cloudformation.ListStackInstancesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListStackInstancesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *CloudFormationAPI) ListStackInstancesPagesWithContext(_a0 context.Context, _a1 *cloudformation.ListStackInstancesInput, _a2 func(*cloudformation.ListStackInstancesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListStackInstancesInput, func(*cloudformation.ListStackInstancesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListStackInstancesRequest provides a mock function with given fields: _a0
 func (_m *CloudFormationAPI) ListStackInstancesRequest(_a0 *cloudformation.ListStackInstancesInput) (*request.Request, *cloudformation.ListStackInstancesOutput) {
 	ret := _m.Called(_a0)
@@ -3136,6 +3241,41 @@ func (_m *CloudFormationAPI) ListStackSetOperationResults(_a0 *cloudformation.Li
 	return r0, r1
 }
 
+// ListStackSetOperationResultsPages provides a mock function with given fields: _a0, _a1
+func (_m *CloudFormationAPI) ListStackSetOperationResultsPages(_a0 *cloudformation.ListStackSetOperationResultsInput, _a1 func(*cloudformation.ListStackSetOperationResultsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudformation.ListStackSetOperationResultsInput, func(*cloudformation.ListStackSetOperationResultsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListStackSetOperationResultsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *CloudFormationAPI) ListStackSetOperationResultsPagesWithContext(_a0 context.Context, _a1 *cloudformation.ListStackSetOperationResultsInput, _a2 func(*cloudformation.ListStackSetOperationResultsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListStackSetOperationResultsInput, func(*cloudformation.ListStackSetOperationResultsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListStackSetOperationResultsRequest provides a mock function with given fields: _a0
 func (_m *CloudFormationAPI) ListStackSetOperationResultsRequest(_a0 *cloudformation.ListStackSetOperationResultsInput) (*request.Request, *cloudformation.ListStackSetOperationResultsOutput) {
 	ret := _m.Called(_a0)
@@ -3214,6 +3354,41 @@ func (_m *CloudFormationAPI) ListStackSetOperations(_a0 *cloudformation.ListStac
 	return r0, r1
 }
 
+// ListStackSetOperationsPages provides a mock function with given fields: _a0, _a1
+func (_m *CloudFormationAPI) ListStackSetOperationsPages(_a0 *cloudformation.ListStackSetOperationsInput, _a1 func(*cloudformation.ListStackSetOperationsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudformation.ListStackSetOperationsInput, func(*cloudformation.ListStackSetOperationsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListStackSetOperationsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *CloudFormationAPI) ListStackSetOperationsPagesWithContext(_a0 context.Context, _a1 *cloudformation.ListStackSetOperationsInput, _a2 func(*cloudformation.ListStackSetOperationsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListStackSetOperationsInput, func(*cloudformation.ListStackSetOperationsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListStackSetOperationsRequest provides a mock function with given fields: _a0
 func (_m *CloudFormationAPI) ListStackSetOperationsRequest(_a0 *cloudformation.ListStackSetOperationsInput) (*request.Request, *cloudformation.ListStackSetOperationsOutput) {
 	ret := _m.Called(_a0)
@@ -3290,6 +3465,41 @@ func (_m *CloudFormationAPI) ListStackSets(_a0 *cloudformation.ListStackSetsInpu
 	}
 
 	return r0, r1
+}
+
+// ListStackSetsPages provides a mock function with given fields: _a0, _a1
+func (_m *CloudFormationAPI) ListStackSetsPages(_a0 *cloudformation.ListStackSetsInput, _a1 func(*cloudformation.ListStackSetsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudformation.ListStackSetsInput, func(*cloudformation.ListStackSetsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListStackSetsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *CloudFormationAPI) ListStackSetsPagesWithContext(_a0 context.Context, _a1 *cloudformation.ListStackSetsInput, _a2 func(*cloudformation.ListStackSetsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListStackSetsInput, func(*cloudformation.ListStackSetsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // ListStackSetsRequest provides a mock function with given fields: _a0
@@ -4813,6 +5023,41 @@ func (_m *CloudFormationAPI) WaitUntilStackImportComplete(_a0 *cloudformation.De
 
 // WaitUntilStackImportCompleteWithContext provides a mock function with given fields: _a0, _a1, _a2
 func (_m *CloudFormationAPI) WaitUntilStackImportCompleteWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStacksInput, _a2 ...request.WaiterOption) error {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStacksInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilStackRollbackComplete provides a mock function with given fields: _a0
+func (_m *CloudFormationAPI) WaitUntilStackRollbackComplete(_a0 *cloudformation.DescribeStacksInput) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudformation.DescribeStacksInput) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilStackRollbackCompleteWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudFormationAPI) WaitUntilStackRollbackCompleteWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStacksInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
