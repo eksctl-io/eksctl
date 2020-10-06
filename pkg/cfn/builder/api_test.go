@@ -1601,6 +1601,29 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
+	Context("NodeGroup with custom role containing a deep resource path is normalized", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.IAM.InstanceRoleARN = "arn:aws:iam::1234567890:role/foo/bar/baz/custom-eks-role"
+
+		build(cfg, "eksctl-test-123-cluster", ng)
+
+		roundtrip()
+
+		It("should have correct instance role and profile", func() {
+			Expect(ngTemplate.Resources).ToNot(HaveKey("NodeInstanceRole"))
+			Expect(ngTemplate.Resources).To(HaveKey("NodeInstanceProfile"))
+
+			profile := ngTemplate.Resources["NodeInstanceProfile"].Properties
+
+			Expect(profile.Path).To(Equal("/"))
+			Expect(profile.Roles).To(HaveLen(1))
+			Expect(profile.Roles[0]).To(Equal("arn:aws:iam::1234567890:role/custom-eks-role"))
+
+			isFnGetAttOf(getLaunchTemplateData(ngTemplate).IamInstanceProfile.Arn, "NodeInstanceProfile", "Arn")
+		})
+	})
+
 	Context("NodeGroup with cutom profile", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
