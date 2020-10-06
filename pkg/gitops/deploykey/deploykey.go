@@ -23,6 +23,9 @@ func GetDeployKeyClient(ctx context.Context, url string) (gitprovider.DeployKeyC
 		return nil, errors.New("only GitHub URLs are currently supported")
 	}
 	githubToken := os.Getenv(githubTokenVariable)
+	if githubToken == "" {
+		return nil, errors.Errorf("%s not set", githubTokenVariable)
+	}
 	gh, err := github.NewClient(github.WithOAuth2Token(githubToken))
 	if err != nil {
 		return nil, err
@@ -31,12 +34,13 @@ func GetDeployKeyClient(ctx context.Context, url string) (gitprovider.DeployKeyC
 	if len(ownerRepo) != 2 {
 		return nil, errors.New("couldn't understand path of URL")
 	}
+	repoName := strings.TrimSuffix(ownerRepo[1], ".git")
 	rep, err := gh.UserRepositories().Get(ctx, gitprovider.UserRepositoryRef{
 		UserRef: gitprovider.UserRef{
 			Domain:    github.DefaultDomain,
 			UserLogin: ownerRepo[0],
 		},
-		RepositoryName: ownerRepo[1],
+		RepositoryName: repoName,
 	})
 	if err != nil {
 		return nil, err
