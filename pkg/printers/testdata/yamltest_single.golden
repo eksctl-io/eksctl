@@ -5,6 +5,7 @@
   EncryptionConfig: null
   Endpoint: null
   Identity: null
+  KubernetesNetworkConfig: null
   Logging: null
   Name: test-cluster
   PlatformVersion: null
