@@ -1046,7 +1046,6 @@ type NodeGroupBase struct {
 	// +required
 	Name string `json:"name"`
 
-	// Specify [custom AMIs](/usage/custom-ami-support/), "auto-ssm", "auto", or "static"
 	// +optional
 	AMIFamily string `json:"amiFamily,omitempty"`
 	// +optional
@@ -1083,6 +1082,7 @@ type NodeGroupBase struct {
 	// +optional
 	IAM *NodeGroupIAM `json:"iam,omitempty"`
 
+	// Specify [custom AMIs](/usage/custom-ami-support/), `auto-ssm`, `auto`, or `static`
 	// +optional
 	AMI string `json:"ami,omitempty"`
 
