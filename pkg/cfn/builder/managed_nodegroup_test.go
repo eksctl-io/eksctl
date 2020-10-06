@@ -125,6 +125,18 @@ func TestManagedNodeRole(t *testing.T) {
 			expectedNewRole:     false,
 			expectedNodeRoleARN: gfnt.NewString("arn::DUMMY::DUMMYROLE"), // using the provided role
 		},
+		{
+			description: "InstanceRoleARN is provided and normalized",
+			nodeGroup: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					IAM: &api.NodeGroupIAM{
+						InstanceRoleARN: "arn:aws:iam::1234567890:role/foo/bar/baz/custom-eks-role",
+					},
+				},
+			},
+			expectedNewRole:     false,
+			expectedNodeRoleARN: gfnt.NewString("arn:aws:iam::1234567890:role/custom-eks-role"),
+		},
 	}
 
 	for i, tt := range nodeRoleTests {
