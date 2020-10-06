@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/kris-nova/logger"
@@ -260,6 +261,21 @@ func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iam
 	return iamoidc.NewOpenIDConnectManager(c.Provider.IAM(), parsedARN.AccountID, *c.Status.clusterInfo.cluster.Identity.Oidc.Issuer, parsedARN.Partition)
 }
 
+// LoadClusterIntoSpec loads the cluster configuration into the spec
+// At the moment VPC and KubernetesNetworkConfig are respected
+func (c *ClusterProvider) LoadClusterIntoSpec(spec *api.ClusterConfig) error {
+	if err := c.LoadClusterVPC(spec); err != nil {
+		return err
+	}
+	if err := c.RefreshClusterStatus(spec); err != nil {
+		return err
+	}
+	if err := c.loadClusterKubernetesNetworkConfig(spec); err != nil {
+		return err
+	}
+	return nil
+}
+
 // LoadClusterVPC loads the VPC configuration
 func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig) error {
 	stack, err := c.NewStackManager(spec).DescribeClusterStack()
@@ -268,6 +284,21 @@ func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig) error {
 	}
 
 	return vpc.UseFromCluster(c.Provider, stack, spec)
+}
+
+// loadClusterKubernetesNetworkConfig gets the network config of an existing
+// cluster, note status must be refreshed!
+func (c *ClusterProvider) loadClusterKubernetesNetworkConfig(spec *api.ClusterConfig) error {
+	if spec.Status == nil {
+		return errors.New("cluster hasn't been refreshed")
+	}
+	knCfg := c.Status.clusterInfo.cluster.KubernetesNetworkConfig
+	if knCfg != nil {
+		spec.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
+			ServiceIPv4CIDR: aws.StringValue(knCfg.ServiceIpv4Cidr),
+		}
+	}
+	return nil
 }
 
 // ListClusters display details of all the EKS cluster in your account

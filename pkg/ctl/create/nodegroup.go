@@ -108,8 +108,8 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 		return err
 	}
 
-	if err := ctl.LoadClusterVPC(cfg); err != nil {
-		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
+	if err := ctl.LoadClusterIntoSpec(cfg); err != nil {
+		return errors.Wrapf(err, "getting existing configuration for cluster %q", cfg.Metadata.Name)
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
