@@ -159,6 +159,8 @@ const (
 	DefaultNodeImageFamily = NodeImageFamilyAmazonLinux2
 	// NodeImageFamilyAmazonLinux2 represents Amazon Linux 2 family
 	NodeImageFamilyAmazonLinux2 = "AmazonLinux2"
+	// NodeImageFamilyUbuntu2004 represents Ubuntu 20.04 family
+	NodeImageFamilyUbuntu2004 = "Ubuntu2004"
 	// NodeImageFamilyUbuntu1804 represents Ubuntu 18.04 family
 	NodeImageFamilyUbuntu1804 = "Ubuntu1804"
 	// NodeImageFamilyBottlerocket represents Bottlerocket family

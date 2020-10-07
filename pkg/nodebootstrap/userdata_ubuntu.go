@@ -11,7 +11,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
-func makeUbuntu1804Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles, error) {
+func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles, error) {
 	clientConfigData, err := makeClientConfigData(spec, kubeconfig.HeptioAuthenticatorAWS)
 	if err != nil {
 		return nil, err
@@ -24,6 +24,19 @@ func makeUbuntu1804Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFil
 	kubeletEnvParams := append(makeCommonKubeletEnvParams(ng),
 		fmt.Sprintf("CLUSTER_DNS=%s", clusterDNS(spec, ng)),
 	)
+
+	// Set resolvConf for Ubuntu 20.04 only, do not override user set value
+	if ng.AMIFamily == api.NodeImageFamilyUbuntu2004 {
+		if ng.KubeletExtraConfig != nil {
+			if (*ng.KubeletExtraConfig)["resolvConf"] == nil {
+				(*ng.KubeletExtraConfig)["resolvConf"] = "/run/systemd/resolve/resolv.conf"
+			}
+		} else {
+			ng.KubeletExtraConfig = &api.InlineDocument{
+				"resolvConf": "/run/systemd/resolve/resolv.conf",
+			}
+		}
+	}
 
 	kubeletConfigData, err := makeKubeletConfigYAML(spec, ng)
 	if err != nil {
@@ -45,11 +58,11 @@ func makeUbuntu1804Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFil
 	return files, nil
 }
 
-// NewUserDataForUbuntu1804 creates new user data for Ubuntu 18.04 nodes
-func NewUserDataForUbuntu1804(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
+// NewUserDataForUbuntu creates new user data for Ubuntu 18.04 & 20.04 nodes
+func NewUserDataForUbuntu(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
 	config := cloudconfig.New()
 
-	files, err := makeUbuntu1804Config(spec, ng)
+	files, err := makeUbuntuConfig(spec, ng)
 	if err != nil {
 		return "", err
 	}

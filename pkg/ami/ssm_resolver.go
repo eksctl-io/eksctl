@@ -70,7 +70,7 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2004-English-Core-EKS_Optimized-%s/%s", version, fieldName), nil
 	case api.NodeImageFamilyBottlerocket:
 		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/%s/latest/%s", version, instanceEC2ArchName(instanceType), fieldName), nil
-	case api.NodeImageFamilyUbuntu1804:
+	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
 		return "", &UnsupportedQueryError{msg: fmt.Sprintf("SSM Parameter lookups for %s AMIs is not supported yet", imageFamily)}
 	default:
 		return "", fmt.Errorf("unknown image family %s", imageFamily)
