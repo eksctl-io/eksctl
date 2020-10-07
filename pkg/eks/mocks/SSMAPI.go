@@ -2047,6 +2047,41 @@ func (_m *SSMAPI) DescribeAssociationExecutionTargets(_a0 *ssm.DescribeAssociati
 	return r0, r1
 }
 
+// DescribeAssociationExecutionTargetsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeAssociationExecutionTargetsPages(_a0 *ssm.DescribeAssociationExecutionTargetsInput, _a1 func(*ssm.DescribeAssociationExecutionTargetsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeAssociationExecutionTargetsInput, func(*ssm.DescribeAssociationExecutionTargetsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeAssociationExecutionTargetsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeAssociationExecutionTargetsPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeAssociationExecutionTargetsInput, _a2 func(*ssm.DescribeAssociationExecutionTargetsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeAssociationExecutionTargetsInput, func(*ssm.DescribeAssociationExecutionTargetsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeAssociationExecutionTargetsRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) DescribeAssociationExecutionTargetsRequest(_a0 *ssm.DescribeAssociationExecutionTargetsInput) (*request.Request, *ssm.DescribeAssociationExecutionTargetsOutput) {
 	ret := _m.Called(_a0)
@@ -2123,6 +2158,41 @@ func (_m *SSMAPI) DescribeAssociationExecutions(_a0 *ssm.DescribeAssociationExec
 	}
 
 	return r0, r1
+}
+
+// DescribeAssociationExecutionsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeAssociationExecutionsPages(_a0 *ssm.DescribeAssociationExecutionsInput, _a1 func(*ssm.DescribeAssociationExecutionsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeAssociationExecutionsInput, func(*ssm.DescribeAssociationExecutionsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeAssociationExecutionsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeAssociationExecutionsPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeAssociationExecutionsInput, _a2 func(*ssm.DescribeAssociationExecutionsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeAssociationExecutionsInput, func(*ssm.DescribeAssociationExecutionsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DescribeAssociationExecutionsRequest provides a mock function with given fields: _a0
@@ -2258,6 +2328,41 @@ func (_m *SSMAPI) DescribeAutomationExecutions(_a0 *ssm.DescribeAutomationExecut
 	return r0, r1
 }
 
+// DescribeAutomationExecutionsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeAutomationExecutionsPages(_a0 *ssm.DescribeAutomationExecutionsInput, _a1 func(*ssm.DescribeAutomationExecutionsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeAutomationExecutionsInput, func(*ssm.DescribeAutomationExecutionsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeAutomationExecutionsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeAutomationExecutionsPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeAutomationExecutionsInput, _a2 func(*ssm.DescribeAutomationExecutionsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeAutomationExecutionsInput, func(*ssm.DescribeAutomationExecutionsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeAutomationExecutionsRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) DescribeAutomationExecutionsRequest(_a0 *ssm.DescribeAutomationExecutionsInput) (*request.Request, *ssm.DescribeAutomationExecutionsOutput) {
 	ret := _m.Called(_a0)
@@ -2336,6 +2441,41 @@ func (_m *SSMAPI) DescribeAutomationStepExecutions(_a0 *ssm.DescribeAutomationSt
 	return r0, r1
 }
 
+// DescribeAutomationStepExecutionsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeAutomationStepExecutionsPages(_a0 *ssm.DescribeAutomationStepExecutionsInput, _a1 func(*ssm.DescribeAutomationStepExecutionsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeAutomationStepExecutionsInput, func(*ssm.DescribeAutomationStepExecutionsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeAutomationStepExecutionsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeAutomationStepExecutionsPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeAutomationStepExecutionsInput, _a2 func(*ssm.DescribeAutomationStepExecutionsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeAutomationStepExecutionsInput, func(*ssm.DescribeAutomationStepExecutionsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeAutomationStepExecutionsRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) DescribeAutomationStepExecutionsRequest(_a0 *ssm.DescribeAutomationStepExecutionsInput) (*request.Request, *ssm.DescribeAutomationStepExecutionsOutput) {
 	ret := _m.Called(_a0)
@@ -2412,6 +2552,41 @@ func (_m *SSMAPI) DescribeAvailablePatches(_a0 *ssm.DescribeAvailablePatchesInpu
 	}
 
 	return r0, r1
+}
+
+// DescribeAvailablePatchesPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeAvailablePatchesPages(_a0 *ssm.DescribeAvailablePatchesInput, _a1 func(*ssm.DescribeAvailablePatchesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeAvailablePatchesInput, func(*ssm.DescribeAvailablePatchesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeAvailablePatchesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeAvailablePatchesPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeAvailablePatchesInput, _a2 func(*ssm.DescribeAvailablePatchesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeAvailablePatchesInput, func(*ssm.DescribeAvailablePatchesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DescribeAvailablePatchesRequest provides a mock function with given fields: _a0
@@ -2648,6 +2823,41 @@ func (_m *SSMAPI) DescribeEffectiveInstanceAssociations(_a0 *ssm.DescribeEffecti
 	return r0, r1
 }
 
+// DescribeEffectiveInstanceAssociationsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeEffectiveInstanceAssociationsPages(_a0 *ssm.DescribeEffectiveInstanceAssociationsInput, _a1 func(*ssm.DescribeEffectiveInstanceAssociationsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeEffectiveInstanceAssociationsInput, func(*ssm.DescribeEffectiveInstanceAssociationsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeEffectiveInstanceAssociationsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeEffectiveInstanceAssociationsPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeEffectiveInstanceAssociationsInput, _a2 func(*ssm.DescribeEffectiveInstanceAssociationsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeEffectiveInstanceAssociationsInput, func(*ssm.DescribeEffectiveInstanceAssociationsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeEffectiveInstanceAssociationsRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) DescribeEffectiveInstanceAssociationsRequest(_a0 *ssm.DescribeEffectiveInstanceAssociationsInput) (*request.Request, *ssm.DescribeEffectiveInstanceAssociationsOutput) {
 	ret := _m.Called(_a0)
@@ -2726,6 +2936,41 @@ func (_m *SSMAPI) DescribeEffectivePatchesForPatchBaseline(_a0 *ssm.DescribeEffe
 	return r0, r1
 }
 
+// DescribeEffectivePatchesForPatchBaselinePages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeEffectivePatchesForPatchBaselinePages(_a0 *ssm.DescribeEffectivePatchesForPatchBaselineInput, _a1 func(*ssm.DescribeEffectivePatchesForPatchBaselineOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeEffectivePatchesForPatchBaselineInput, func(*ssm.DescribeEffectivePatchesForPatchBaselineOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeEffectivePatchesForPatchBaselinePagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeEffectivePatchesForPatchBaselinePagesWithContext(_a0 context.Context, _a1 *ssm.DescribeEffectivePatchesForPatchBaselineInput, _a2 func(*ssm.DescribeEffectivePatchesForPatchBaselineOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeEffectivePatchesForPatchBaselineInput, func(*ssm.DescribeEffectivePatchesForPatchBaselineOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeEffectivePatchesForPatchBaselineRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) DescribeEffectivePatchesForPatchBaselineRequest(_a0 *ssm.DescribeEffectivePatchesForPatchBaselineInput) (*request.Request, *ssm.DescribeEffectivePatchesForPatchBaselineOutput) {
 	ret := _m.Called(_a0)
@@ -2802,6 +3047,41 @@ func (_m *SSMAPI) DescribeInstanceAssociationsStatus(_a0 *ssm.DescribeInstanceAs
 	}
 
 	return r0, r1
+}
+
+// DescribeInstanceAssociationsStatusPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeInstanceAssociationsStatusPages(_a0 *ssm.DescribeInstanceAssociationsStatusInput, _a1 func(*ssm.DescribeInstanceAssociationsStatusOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeInstanceAssociationsStatusInput, func(*ssm.DescribeInstanceAssociationsStatusOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeInstanceAssociationsStatusPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeInstanceAssociationsStatusPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeInstanceAssociationsStatusInput, _a2 func(*ssm.DescribeInstanceAssociationsStatusOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeInstanceAssociationsStatusInput, func(*ssm.DescribeInstanceAssociationsStatusOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DescribeInstanceAssociationsStatusRequest provides a mock function with given fields: _a0
@@ -3018,6 +3298,41 @@ func (_m *SSMAPI) DescribeInstancePatchStatesForPatchGroup(_a0 *ssm.DescribeInst
 	return r0, r1
 }
 
+// DescribeInstancePatchStatesForPatchGroupPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeInstancePatchStatesForPatchGroupPages(_a0 *ssm.DescribeInstancePatchStatesForPatchGroupInput, _a1 func(*ssm.DescribeInstancePatchStatesForPatchGroupOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeInstancePatchStatesForPatchGroupInput, func(*ssm.DescribeInstancePatchStatesForPatchGroupOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeInstancePatchStatesForPatchGroupPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeInstancePatchStatesForPatchGroupPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeInstancePatchStatesForPatchGroupInput, _a2 func(*ssm.DescribeInstancePatchStatesForPatchGroupOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeInstancePatchStatesForPatchGroupInput, func(*ssm.DescribeInstancePatchStatesForPatchGroupOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeInstancePatchStatesForPatchGroupRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) DescribeInstancePatchStatesForPatchGroupRequest(_a0 *ssm.DescribeInstancePatchStatesForPatchGroupInput) (*request.Request, *ssm.DescribeInstancePatchStatesForPatchGroupOutput) {
 	ret := _m.Called(_a0)
@@ -3071,6 +3386,41 @@ func (_m *SSMAPI) DescribeInstancePatchStatesForPatchGroupWithContext(_a0 contex
 	}
 
 	return r0, r1
+}
+
+// DescribeInstancePatchStatesPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeInstancePatchStatesPages(_a0 *ssm.DescribeInstancePatchStatesInput, _a1 func(*ssm.DescribeInstancePatchStatesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeInstancePatchStatesInput, func(*ssm.DescribeInstancePatchStatesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeInstancePatchStatesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeInstancePatchStatesPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeInstancePatchStatesInput, _a2 func(*ssm.DescribeInstancePatchStatesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeInstancePatchStatesInput, func(*ssm.DescribeInstancePatchStatesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DescribeInstancePatchStatesRequest provides a mock function with given fields: _a0
@@ -3151,6 +3501,41 @@ func (_m *SSMAPI) DescribeInstancePatches(_a0 *ssm.DescribeInstancePatchesInput)
 	return r0, r1
 }
 
+// DescribeInstancePatchesPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeInstancePatchesPages(_a0 *ssm.DescribeInstancePatchesInput, _a1 func(*ssm.DescribeInstancePatchesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeInstancePatchesInput, func(*ssm.DescribeInstancePatchesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeInstancePatchesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeInstancePatchesPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeInstancePatchesInput, _a2 func(*ssm.DescribeInstancePatchesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeInstancePatchesInput, func(*ssm.DescribeInstancePatchesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeInstancePatchesRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) DescribeInstancePatchesRequest(_a0 *ssm.DescribeInstancePatchesInput) (*request.Request, *ssm.DescribeInstancePatchesOutput) {
 	ret := _m.Called(_a0)
@@ -3227,6 +3612,41 @@ func (_m *SSMAPI) DescribeInventoryDeletions(_a0 *ssm.DescribeInventoryDeletions
 	}
 
 	return r0, r1
+}
+
+// DescribeInventoryDeletionsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeInventoryDeletionsPages(_a0 *ssm.DescribeInventoryDeletionsInput, _a1 func(*ssm.DescribeInventoryDeletionsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeInventoryDeletionsInput, func(*ssm.DescribeInventoryDeletionsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeInventoryDeletionsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeInventoryDeletionsPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeInventoryDeletionsInput, _a2 func(*ssm.DescribeInventoryDeletionsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeInventoryDeletionsInput, func(*ssm.DescribeInventoryDeletionsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DescribeInventoryDeletionsRequest provides a mock function with given fields: _a0
@@ -3307,6 +3727,41 @@ func (_m *SSMAPI) DescribeMaintenanceWindowExecutionTaskInvocations(_a0 *ssm.Des
 	return r0, r1
 }
 
+// DescribeMaintenanceWindowExecutionTaskInvocationsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeMaintenanceWindowExecutionTaskInvocationsPages(_a0 *ssm.DescribeMaintenanceWindowExecutionTaskInvocationsInput, _a1 func(*ssm.DescribeMaintenanceWindowExecutionTaskInvocationsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeMaintenanceWindowExecutionTaskInvocationsInput, func(*ssm.DescribeMaintenanceWindowExecutionTaskInvocationsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeMaintenanceWindowExecutionTaskInvocationsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeMaintenanceWindowExecutionTaskInvocationsPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeMaintenanceWindowExecutionTaskInvocationsInput, _a2 func(*ssm.DescribeMaintenanceWindowExecutionTaskInvocationsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeMaintenanceWindowExecutionTaskInvocationsInput, func(*ssm.DescribeMaintenanceWindowExecutionTaskInvocationsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeMaintenanceWindowExecutionTaskInvocationsRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) DescribeMaintenanceWindowExecutionTaskInvocationsRequest(_a0 *ssm.DescribeMaintenanceWindowExecutionTaskInvocationsInput) (*request.Request, *ssm.DescribeMaintenanceWindowExecutionTaskInvocationsOutput) {
 	ret := _m.Called(_a0)
@@ -3383,6 +3838,41 @@ func (_m *SSMAPI) DescribeMaintenanceWindowExecutionTasks(_a0 *ssm.DescribeMaint
 	}
 
 	return r0, r1
+}
+
+// DescribeMaintenanceWindowExecutionTasksPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeMaintenanceWindowExecutionTasksPages(_a0 *ssm.DescribeMaintenanceWindowExecutionTasksInput, _a1 func(*ssm.DescribeMaintenanceWindowExecutionTasksOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeMaintenanceWindowExecutionTasksInput, func(*ssm.DescribeMaintenanceWindowExecutionTasksOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeMaintenanceWindowExecutionTasksPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeMaintenanceWindowExecutionTasksPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeMaintenanceWindowExecutionTasksInput, _a2 func(*ssm.DescribeMaintenanceWindowExecutionTasksOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeMaintenanceWindowExecutionTasksInput, func(*ssm.DescribeMaintenanceWindowExecutionTasksOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DescribeMaintenanceWindowExecutionTasksRequest provides a mock function with given fields: _a0
@@ -3463,6 +3953,41 @@ func (_m *SSMAPI) DescribeMaintenanceWindowExecutions(_a0 *ssm.DescribeMaintenan
 	return r0, r1
 }
 
+// DescribeMaintenanceWindowExecutionsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeMaintenanceWindowExecutionsPages(_a0 *ssm.DescribeMaintenanceWindowExecutionsInput, _a1 func(*ssm.DescribeMaintenanceWindowExecutionsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeMaintenanceWindowExecutionsInput, func(*ssm.DescribeMaintenanceWindowExecutionsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeMaintenanceWindowExecutionsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeMaintenanceWindowExecutionsPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeMaintenanceWindowExecutionsInput, _a2 func(*ssm.DescribeMaintenanceWindowExecutionsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeMaintenanceWindowExecutionsInput, func(*ssm.DescribeMaintenanceWindowExecutionsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeMaintenanceWindowExecutionsRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) DescribeMaintenanceWindowExecutionsRequest(_a0 *ssm.DescribeMaintenanceWindowExecutionsInput) (*request.Request, *ssm.DescribeMaintenanceWindowExecutionsOutput) {
 	ret := _m.Called(_a0)
@@ -3539,6 +4064,41 @@ func (_m *SSMAPI) DescribeMaintenanceWindowSchedule(_a0 *ssm.DescribeMaintenance
 	}
 
 	return r0, r1
+}
+
+// DescribeMaintenanceWindowSchedulePages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeMaintenanceWindowSchedulePages(_a0 *ssm.DescribeMaintenanceWindowScheduleInput, _a1 func(*ssm.DescribeMaintenanceWindowScheduleOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeMaintenanceWindowScheduleInput, func(*ssm.DescribeMaintenanceWindowScheduleOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeMaintenanceWindowSchedulePagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeMaintenanceWindowSchedulePagesWithContext(_a0 context.Context, _a1 *ssm.DescribeMaintenanceWindowScheduleInput, _a2 func(*ssm.DescribeMaintenanceWindowScheduleOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeMaintenanceWindowScheduleInput, func(*ssm.DescribeMaintenanceWindowScheduleOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DescribeMaintenanceWindowScheduleRequest provides a mock function with given fields: _a0
@@ -3619,6 +4179,41 @@ func (_m *SSMAPI) DescribeMaintenanceWindowTargets(_a0 *ssm.DescribeMaintenanceW
 	return r0, r1
 }
 
+// DescribeMaintenanceWindowTargetsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeMaintenanceWindowTargetsPages(_a0 *ssm.DescribeMaintenanceWindowTargetsInput, _a1 func(*ssm.DescribeMaintenanceWindowTargetsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeMaintenanceWindowTargetsInput, func(*ssm.DescribeMaintenanceWindowTargetsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeMaintenanceWindowTargetsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeMaintenanceWindowTargetsPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeMaintenanceWindowTargetsInput, _a2 func(*ssm.DescribeMaintenanceWindowTargetsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeMaintenanceWindowTargetsInput, func(*ssm.DescribeMaintenanceWindowTargetsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeMaintenanceWindowTargetsRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) DescribeMaintenanceWindowTargetsRequest(_a0 *ssm.DescribeMaintenanceWindowTargetsInput) (*request.Request, *ssm.DescribeMaintenanceWindowTargetsOutput) {
 	ret := _m.Called(_a0)
@@ -3695,6 +4290,41 @@ func (_m *SSMAPI) DescribeMaintenanceWindowTasks(_a0 *ssm.DescribeMaintenanceWin
 	}
 
 	return r0, r1
+}
+
+// DescribeMaintenanceWindowTasksPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeMaintenanceWindowTasksPages(_a0 *ssm.DescribeMaintenanceWindowTasksInput, _a1 func(*ssm.DescribeMaintenanceWindowTasksOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeMaintenanceWindowTasksInput, func(*ssm.DescribeMaintenanceWindowTasksOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeMaintenanceWindowTasksPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeMaintenanceWindowTasksPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeMaintenanceWindowTasksInput, _a2 func(*ssm.DescribeMaintenanceWindowTasksOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeMaintenanceWindowTasksInput, func(*ssm.DescribeMaintenanceWindowTasksOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DescribeMaintenanceWindowTasksRequest provides a mock function with given fields: _a0
@@ -3798,6 +4428,41 @@ func (_m *SSMAPI) DescribeMaintenanceWindowsForTarget(_a0 *ssm.DescribeMaintenan
 	return r0, r1
 }
 
+// DescribeMaintenanceWindowsForTargetPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeMaintenanceWindowsForTargetPages(_a0 *ssm.DescribeMaintenanceWindowsForTargetInput, _a1 func(*ssm.DescribeMaintenanceWindowsForTargetOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeMaintenanceWindowsForTargetInput, func(*ssm.DescribeMaintenanceWindowsForTargetOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeMaintenanceWindowsForTargetPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeMaintenanceWindowsForTargetPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeMaintenanceWindowsForTargetInput, _a2 func(*ssm.DescribeMaintenanceWindowsForTargetOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeMaintenanceWindowsForTargetInput, func(*ssm.DescribeMaintenanceWindowsForTargetOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeMaintenanceWindowsForTargetRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) DescribeMaintenanceWindowsForTargetRequest(_a0 *ssm.DescribeMaintenanceWindowsForTargetInput) (*request.Request, *ssm.DescribeMaintenanceWindowsForTargetOutput) {
 	ret := _m.Called(_a0)
@@ -3851,6 +4516,41 @@ func (_m *SSMAPI) DescribeMaintenanceWindowsForTargetWithContext(_a0 context.Con
 	}
 
 	return r0, r1
+}
+
+// DescribeMaintenanceWindowsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeMaintenanceWindowsPages(_a0 *ssm.DescribeMaintenanceWindowsInput, _a1 func(*ssm.DescribeMaintenanceWindowsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeMaintenanceWindowsInput, func(*ssm.DescribeMaintenanceWindowsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeMaintenanceWindowsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeMaintenanceWindowsPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeMaintenanceWindowsInput, _a2 func(*ssm.DescribeMaintenanceWindowsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeMaintenanceWindowsInput, func(*ssm.DescribeMaintenanceWindowsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DescribeMaintenanceWindowsRequest provides a mock function with given fields: _a0
@@ -3929,6 +4629,41 @@ func (_m *SSMAPI) DescribeOpsItems(_a0 *ssm.DescribeOpsItemsInput) (*ssm.Describ
 	}
 
 	return r0, r1
+}
+
+// DescribeOpsItemsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeOpsItemsPages(_a0 *ssm.DescribeOpsItemsInput, _a1 func(*ssm.DescribeOpsItemsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeOpsItemsInput, func(*ssm.DescribeOpsItemsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeOpsItemsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeOpsItemsPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeOpsItemsInput, _a2 func(*ssm.DescribeOpsItemsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeOpsItemsInput, func(*ssm.DescribeOpsItemsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DescribeOpsItemsRequest provides a mock function with given fields: _a0
@@ -4122,6 +4857,41 @@ func (_m *SSMAPI) DescribePatchBaselines(_a0 *ssm.DescribePatchBaselinesInput) (
 	return r0, r1
 }
 
+// DescribePatchBaselinesPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribePatchBaselinesPages(_a0 *ssm.DescribePatchBaselinesInput, _a1 func(*ssm.DescribePatchBaselinesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribePatchBaselinesInput, func(*ssm.DescribePatchBaselinesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribePatchBaselinesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribePatchBaselinesPagesWithContext(_a0 context.Context, _a1 *ssm.DescribePatchBaselinesInput, _a2 func(*ssm.DescribePatchBaselinesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribePatchBaselinesInput, func(*ssm.DescribePatchBaselinesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribePatchBaselinesRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) DescribePatchBaselinesRequest(_a0 *ssm.DescribePatchBaselinesInput) (*request.Request, *ssm.DescribePatchBaselinesOutput) {
 	ret := _m.Called(_a0)
@@ -4278,6 +5048,41 @@ func (_m *SSMAPI) DescribePatchGroups(_a0 *ssm.DescribePatchGroupsInput) (*ssm.D
 	return r0, r1
 }
 
+// DescribePatchGroupsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribePatchGroupsPages(_a0 *ssm.DescribePatchGroupsInput, _a1 func(*ssm.DescribePatchGroupsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribePatchGroupsInput, func(*ssm.DescribePatchGroupsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribePatchGroupsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribePatchGroupsPagesWithContext(_a0 context.Context, _a1 *ssm.DescribePatchGroupsInput, _a2 func(*ssm.DescribePatchGroupsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribePatchGroupsInput, func(*ssm.DescribePatchGroupsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribePatchGroupsRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) DescribePatchGroupsRequest(_a0 *ssm.DescribePatchGroupsInput) (*request.Request, *ssm.DescribePatchGroupsOutput) {
 	ret := _m.Called(_a0)
@@ -4356,6 +5161,41 @@ func (_m *SSMAPI) DescribePatchProperties(_a0 *ssm.DescribePatchPropertiesInput)
 	return r0, r1
 }
 
+// DescribePatchPropertiesPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribePatchPropertiesPages(_a0 *ssm.DescribePatchPropertiesInput, _a1 func(*ssm.DescribePatchPropertiesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribePatchPropertiesInput, func(*ssm.DescribePatchPropertiesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribePatchPropertiesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribePatchPropertiesPagesWithContext(_a0 context.Context, _a1 *ssm.DescribePatchPropertiesInput, _a2 func(*ssm.DescribePatchPropertiesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribePatchPropertiesInput, func(*ssm.DescribePatchPropertiesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribePatchPropertiesRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) DescribePatchPropertiesRequest(_a0 *ssm.DescribePatchPropertiesInput) (*request.Request, *ssm.DescribePatchPropertiesOutput) {
 	ret := _m.Called(_a0)
@@ -4432,6 +5272,41 @@ func (_m *SSMAPI) DescribeSessions(_a0 *ssm.DescribeSessionsInput) (*ssm.Describ
 	}
 
 	return r0, r1
+}
+
+// DescribeSessionsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) DescribeSessionsPages(_a0 *ssm.DescribeSessionsInput, _a1 func(*ssm.DescribeSessionsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.DescribeSessionsInput, func(*ssm.DescribeSessionsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeSessionsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) DescribeSessionsPagesWithContext(_a0 context.Context, _a1 *ssm.DescribeSessionsInput, _a2 func(*ssm.DescribeSessionsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DescribeSessionsInput, func(*ssm.DescribeSessionsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DescribeSessionsRequest provides a mock function with given fields: _a0
@@ -5058,6 +5933,41 @@ func (_m *SSMAPI) GetInventory(_a0 *ssm.GetInventoryInput) (*ssm.GetInventoryOut
 	return r0, r1
 }
 
+// GetInventoryPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) GetInventoryPages(_a0 *ssm.GetInventoryInput, _a1 func(*ssm.GetInventoryOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.GetInventoryInput, func(*ssm.GetInventoryOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetInventoryPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) GetInventoryPagesWithContext(_a0 context.Context, _a1 *ssm.GetInventoryInput, _a2 func(*ssm.GetInventoryOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.GetInventoryInput, func(*ssm.GetInventoryOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetInventoryRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) GetInventoryRequest(_a0 *ssm.GetInventoryInput) (*request.Request, *ssm.GetInventoryOutput) {
 	ret := _m.Called(_a0)
@@ -5104,6 +6014,41 @@ func (_m *SSMAPI) GetInventorySchema(_a0 *ssm.GetInventorySchemaInput) (*ssm.Get
 	}
 
 	return r0, r1
+}
+
+// GetInventorySchemaPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) GetInventorySchemaPages(_a0 *ssm.GetInventorySchemaInput, _a1 func(*ssm.GetInventorySchemaOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.GetInventorySchemaInput, func(*ssm.GetInventorySchemaOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetInventorySchemaPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) GetInventorySchemaPagesWithContext(_a0 context.Context, _a1 *ssm.GetInventorySchemaInput, _a2 func(*ssm.GetInventorySchemaOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.GetInventorySchemaInput, func(*ssm.GetInventorySchemaOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // GetInventorySchemaRequest provides a mock function with given fields: _a0
@@ -5680,6 +6625,41 @@ func (_m *SSMAPI) GetOpsSummary(_a0 *ssm.GetOpsSummaryInput) (*ssm.GetOpsSummary
 	}
 
 	return r0, r1
+}
+
+// GetOpsSummaryPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) GetOpsSummaryPages(_a0 *ssm.GetOpsSummaryInput, _a1 func(*ssm.GetOpsSummaryOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.GetOpsSummaryInput, func(*ssm.GetOpsSummaryOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetOpsSummaryPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) GetOpsSummaryPagesWithContext(_a0 context.Context, _a1 *ssm.GetOpsSummaryInput, _a2 func(*ssm.GetOpsSummaryOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.GetOpsSummaryInput, func(*ssm.GetOpsSummaryOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // GetOpsSummaryRequest provides a mock function with given fields: _a0
@@ -6454,6 +7434,41 @@ func (_m *SSMAPI) ListAssociationVersions(_a0 *ssm.ListAssociationVersionsInput)
 	return r0, r1
 }
 
+// ListAssociationVersionsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) ListAssociationVersionsPages(_a0 *ssm.ListAssociationVersionsInput, _a1 func(*ssm.ListAssociationVersionsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.ListAssociationVersionsInput, func(*ssm.ListAssociationVersionsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListAssociationVersionsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) ListAssociationVersionsPagesWithContext(_a0 context.Context, _a1 *ssm.ListAssociationVersionsInput, _a2 func(*ssm.ListAssociationVersionsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListAssociationVersionsInput, func(*ssm.ListAssociationVersionsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListAssociationVersionsRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) ListAssociationVersionsRequest(_a0 *ssm.ListAssociationVersionsInput) (*request.Request, *ssm.ListAssociationVersionsOutput) {
 	ret := _m.Called(_a0)
@@ -6871,6 +7886,41 @@ func (_m *SSMAPI) ListComplianceItems(_a0 *ssm.ListComplianceItemsInput) (*ssm.L
 	return r0, r1
 }
 
+// ListComplianceItemsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) ListComplianceItemsPages(_a0 *ssm.ListComplianceItemsInput, _a1 func(*ssm.ListComplianceItemsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.ListComplianceItemsInput, func(*ssm.ListComplianceItemsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListComplianceItemsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) ListComplianceItemsPagesWithContext(_a0 context.Context, _a1 *ssm.ListComplianceItemsInput, _a2 func(*ssm.ListComplianceItemsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListComplianceItemsInput, func(*ssm.ListComplianceItemsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListComplianceItemsRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) ListComplianceItemsRequest(_a0 *ssm.ListComplianceItemsInput) (*request.Request, *ssm.ListComplianceItemsOutput) {
 	ret := _m.Called(_a0)
@@ -6949,6 +7999,41 @@ func (_m *SSMAPI) ListComplianceSummaries(_a0 *ssm.ListComplianceSummariesInput)
 	return r0, r1
 }
 
+// ListComplianceSummariesPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) ListComplianceSummariesPages(_a0 *ssm.ListComplianceSummariesInput, _a1 func(*ssm.ListComplianceSummariesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.ListComplianceSummariesInput, func(*ssm.ListComplianceSummariesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListComplianceSummariesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) ListComplianceSummariesPagesWithContext(_a0 context.Context, _a1 *ssm.ListComplianceSummariesInput, _a2 func(*ssm.ListComplianceSummariesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListComplianceSummariesInput, func(*ssm.ListComplianceSummariesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListComplianceSummariesRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) ListComplianceSummariesRequest(_a0 *ssm.ListComplianceSummariesInput) (*request.Request, *ssm.ListComplianceSummariesOutput) {
 	ret := _m.Called(_a0)
@@ -7025,6 +8110,41 @@ func (_m *SSMAPI) ListDocumentVersions(_a0 *ssm.ListDocumentVersionsInput) (*ssm
 	}
 
 	return r0, r1
+}
+
+// ListDocumentVersionsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) ListDocumentVersionsPages(_a0 *ssm.ListDocumentVersionsInput, _a1 func(*ssm.ListDocumentVersionsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.ListDocumentVersionsInput, func(*ssm.ListDocumentVersionsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListDocumentVersionsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) ListDocumentVersionsPagesWithContext(_a0 context.Context, _a1 *ssm.ListDocumentVersionsInput, _a2 func(*ssm.ListDocumentVersionsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListDocumentVersionsInput, func(*ssm.ListDocumentVersionsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // ListDocumentVersionsRequest provides a mock function with given fields: _a0
@@ -7296,6 +8416,41 @@ func (_m *SSMAPI) ListResourceComplianceSummaries(_a0 *ssm.ListResourceComplianc
 	return r0, r1
 }
 
+// ListResourceComplianceSummariesPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) ListResourceComplianceSummariesPages(_a0 *ssm.ListResourceComplianceSummariesInput, _a1 func(*ssm.ListResourceComplianceSummariesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.ListResourceComplianceSummariesInput, func(*ssm.ListResourceComplianceSummariesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListResourceComplianceSummariesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) ListResourceComplianceSummariesPagesWithContext(_a0 context.Context, _a1 *ssm.ListResourceComplianceSummariesInput, _a2 func(*ssm.ListResourceComplianceSummariesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListResourceComplianceSummariesInput, func(*ssm.ListResourceComplianceSummariesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListResourceComplianceSummariesRequest provides a mock function with given fields: _a0
 func (_m *SSMAPI) ListResourceComplianceSummariesRequest(_a0 *ssm.ListResourceComplianceSummariesInput) (*request.Request, *ssm.ListResourceComplianceSummariesOutput) {
 	ret := _m.Called(_a0)
@@ -7372,6 +8527,41 @@ func (_m *SSMAPI) ListResourceDataSync(_a0 *ssm.ListResourceDataSyncInput) (*ssm
 	}
 
 	return r0, r1
+}
+
+// ListResourceDataSyncPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) ListResourceDataSyncPages(_a0 *ssm.ListResourceDataSyncInput, _a1 func(*ssm.ListResourceDataSyncOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.ListResourceDataSyncInput, func(*ssm.ListResourceDataSyncOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListResourceDataSyncPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) ListResourceDataSyncPagesWithContext(_a0 context.Context, _a1 *ssm.ListResourceDataSyncInput, _a2 func(*ssm.ListResourceDataSyncOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListResourceDataSyncInput, func(*ssm.ListResourceDataSyncOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // ListResourceDataSyncRequest provides a mock function with given fields: _a0
@@ -9845,4 +11035,39 @@ func (_m *SSMAPI) UpdateServiceSettingWithContext(_a0 context.Context, _a1 *ssm.
 	}
 
 	return r0, r1
+}
+
+// WaitUntilCommandExecuted provides a mock function with given fields: _a0
+func (_m *SSMAPI) WaitUntilCommandExecuted(_a0 *ssm.GetCommandInvocationInput) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.GetCommandInvocationInput) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilCommandExecutedWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *SSMAPI) WaitUntilCommandExecutedWithContext(_a0 context.Context, _a1 *ssm.GetCommandInvocationInput, _a2 ...request.WaiterOption) error {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.GetCommandInvocationInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
