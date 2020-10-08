@@ -275,6 +275,7 @@ func ResolveAMI(provider api.ClusterProvider, version string, ng *api.NodeGroup)
 	case api.NodeImageResolverAutoSSM:
 		resolver = ami.NewSSMResolver(provider.SSM())
 	case api.NodeImageResolverStatic:
+		logger.Warning("'static' value for node-ami flag (nodeGroup.ami field) is deprecated and will be removed with release 0.33.0. Valid values will be 'auto-ssm' (default), 'auto' or an AMI id (advanced use)")
 		resolver = ami.NewStaticResolver()
 	default:
 		resolver = ami.NewMultiResolver(
