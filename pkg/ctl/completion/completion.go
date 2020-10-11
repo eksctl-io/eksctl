@@ -59,6 +59,20 @@ eksctl completion fish > ~/.config/fish/completions/eksctl.fish
 		},
 	}
 
+	var powershellCompletionCmd = &cobra.Command{
+		Use:   "powershell",
+		Short: "Generates powershell completion scripts",
+		Long: `To configure your powershell, run:
+
+eksctl completion powershell > C:\Users\Documents\WindowsPowerShell\Scripts\eksctl.ps1
+
+Note: the path might be different depending on your system settings.
+`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return rootCmd.GenPowerShellCompletion(cmd.OutOrStdout())
+		},
+	}
+
 	cmd := &cobra.Command{
 		Use:   "completion",
 		Short: "Generates shell completion scripts for bash, zsh or fish",
@@ -72,6 +86,7 @@ eksctl completion fish > ~/.config/fish/completions/eksctl.fish
 	cmd.AddCommand(bashCompletionCmd)
 	cmd.AddCommand(zshCompletionCmd)
 	cmd.AddCommand(fishCompletionCmd)
+	cmd.AddCommand(powershellCompletionCmd)
 
 	return cmd
 }
