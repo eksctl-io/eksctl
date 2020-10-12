@@ -206,8 +206,8 @@ var _ = Describe("upgrade cluster", func() {
 
 		Entry("does not upgrade or fail when the cluster is already in the last version", upgradeCase{
 			givenVersion:           "",
-			eksVersion:             "1.17",
-			expectedUpgradeVersion: "1.17",
+			eksVersion:             "1.18",
+			expectedUpgradeVersion: "1.18",
 			expectedUpgrade:        false,
 		}),
 
@@ -244,9 +244,9 @@ var _ = Describe("upgrade cluster", func() {
 		}),
 
 		Entry("fails when the version is still not supported", upgradeCase{
-			givenVersion:      "1.18",
-			eksVersion:        "1.16",
-			expectedErrorText: "control plane version \"1.18\" is not known to this version of eksctl",
+			givenVersion:      "1.19",
+			eksVersion:        "1.18",
+			expectedErrorText: "control plane version \"1.19\" is not known to this version of eksctl",
 		}),
 	)
 })
