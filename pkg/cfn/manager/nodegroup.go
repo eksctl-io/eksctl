@@ -307,13 +307,11 @@ func GetNodeGroupType(tags []*cfn.Tag) (api.NodeGroupType, error) {
 	return nodeGroupType, nil
 }
 
-// GetEksctlVersion returns the eksctl version used to create or update the stack
-func GetEksctlVersion(tags []*cfn.Tag) (semver.Version, bool, error) {
+// GetEksctlVersionFromTags returns the eksctl version used to create or update the stack
+func GetEksctlVersionFromTags(tags []*cfn.Tag) (semver.Version, bool, error) {
 	for _, tag := range tags {
 		if *tag.Key == api.EksctlVersionTag {
-			// We don't want any extra info from the version
-			semverVersion := strings.Split(*tag.Value, version.ExtraSep)[0]
-			v, err := semver.ParseTolerant(semverVersion)
+			v, err := version.ParseEksctlVersion(*tag.Value)
 			if err != nil {
 				return v, false, errors.Wrapf(err, "unexpected error parsing eksctl version %q", *tag.Value)
 			}
