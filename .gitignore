@@ -37,3 +37,6 @@ build/docker/
 eksctl_*_*.snap
 
 userdocs/src/usage/schema.json
+
+# Goreleaser
+dist/
