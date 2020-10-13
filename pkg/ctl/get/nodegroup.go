@@ -76,6 +76,11 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		return errors.Wrap(err, "getting nodegroup stack summaries")
 	}
 
+	// Empty summary implies no nodegroups
+	if len(summaries) == 0 {
+		return errors.Errorf("Nodegroup with name %v not found", ng.Name)
+	}
+
 	printer, err := printers.NewPrinter(params.output)
 	if err != nil {
 		return err
