@@ -21,12 +21,17 @@ builds:
       - linux
     goarch:
       - amd64
+      - arm64
+      - arm
+    goarm:
+      - 6
+      - 7
 
 archives:
   - id: default
     builds:
       - default
-    name_template: "eksctl_{{ .Os }}_{{ .Arch }}"
+    name_template: "eksctl_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
     replacements:
       darwin: Darwin
       linux: Linux
