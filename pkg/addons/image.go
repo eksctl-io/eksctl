@@ -29,6 +29,12 @@ func UseRegionalImage(spec *corev1.PodTemplateSpec, region string) error {
 	}
 	regionalImage := fmt.Sprintf(imageFormat, api.EKSResourceAccountID(region), region, dnsSuffix)
 	spec.Spec.Containers[0].Image = regionalImage
+
+	if len(spec.Spec.InitContainers) > 0 {
+		imageFormat = spec.Spec.InitContainers[0].Image
+		regionalImage = fmt.Sprintf(imageFormat, api.EKSResourceAccountID(region), region, dnsSuffix)
+		spec.Spec.InitContainers[0].Image = regionalImage
+	}
 	return nil
 }
 
