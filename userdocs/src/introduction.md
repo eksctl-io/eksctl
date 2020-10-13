@@ -246,6 +246,15 @@ mkdir -p ~/.config/fish/completions
 eksctl completion fish > ~/.config/fish/completions/eksctl.fish
 ```
 
+#### Powershell
+
+The below command can be referred for setting it up. Please note that the path might be different depending on your
+system settings.
+
+```
+eksctl completion powershell > C:\Users\Documents\WindowsPowerShell\Scripts\eksctl.ps1
+```
+
 ## Features
 
 The features that are currently implemented are:
