@@ -88,6 +88,9 @@ func (c *StackCollection) DoCreateStackRequest(i *Stack, templateData TemplateDa
 	input := &cloudformation.CreateStackInput{
 		StackName: i.StackName,
 	}
+	if c.provider.CloudFormationOnFailureDoNothing() {
+		input.OnFailure = aws.String(cloudformation.OnFailureDoNothing)
+	}
 	input.Tags = append(input.Tags, c.sharedTags...)
 	for k, v := range tags {
 		input.Tags = append(input.Tags, newTag(k, v))
