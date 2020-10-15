@@ -255,7 +255,7 @@ func (m *Service) requiresStackUpdate(nodeGroupName string) (bool, error) {
 		return false, err
 	}
 
-	ver, found, err := manager.GetEksctlVersion(ngStack.Tags)
+	ver, found, err := manager.GetEksctlVersionFromTags(ngStack.Tags)
 	if err != nil {
 		return false, err
 	}
@@ -263,7 +263,7 @@ func (m *Service) requiresStackUpdate(nodeGroupName string) (bool, error) {
 		return true, nil
 	}
 
-	curVer, err := semver.ParseTolerant(version.GetVersion())
+	curVer, err := version.ParseEksctlVersion(version.GetVersion())
 	if err != nil {
 		return false, errors.Wrap(err, "unexpected error parsing current eksctl version")
 	}
