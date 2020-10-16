@@ -2,7 +2,7 @@
 
 ## Failed stack creation
 
-You can use the `--cfn-no-rollback` flag to stop Cloudformation from rolling
+You can use the `--cfn-disable-rollback` flag to stop Cloudformation from rolling
 back failed stacks to make debugging easier.
 
 ## subnet ID "subnet-11111111" is not the same as "subnet-22222222"

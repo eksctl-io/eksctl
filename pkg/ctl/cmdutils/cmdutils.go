@@ -115,7 +115,7 @@ func AddCommonFlagsForAWS(group *NamedFlagSetGroup, p *api.ProviderConfig, addCf
 		}
 		if addCfnOptions {
 			fs.StringVar(&p.CloudFormationRoleARN, "cfn-role-arn", "", "IAM role used by CloudFormation to call AWS API on your behalf")
-			fs.BoolVar(&p.CloudFormationOnFailureDoNothing, "cfn-no-rollback", false, "for debugging: If a stack fails, do not roll it back. Be careful, this may lead to unintentional resource consumption!")
+			fs.BoolVar(&p.CloudFormationDisableRollback, "cfn-disable-rollback", false, "for debugging: If a stack fails, do not roll it back. Be careful, this may lead to unintentional resource consumption!")
 		}
 	})
 }

@@ -511,7 +511,7 @@ func (c ClusterConfig) IsFargateEnabled() bool {
 type ClusterProvider interface {
 	CloudFormation() cloudformationiface.CloudFormationAPI
 	CloudFormationRoleARN() string
-	CloudFormationOnFailureDoNothing() bool
+	CloudFormationDisableRollback() bool
 	EKS() eksiface.EKSAPI
 	EC2() ec2iface.EC2API
 	ELB() elbiface.ELBAPI
@@ -527,8 +527,8 @@ type ClusterProvider interface {
 
 // ProviderConfig holds global parameters for all interactions with AWS APIs
 type ProviderConfig struct {
-	CloudFormationRoleARN            string
-	CloudFormationOnFailureDoNothing bool
+	CloudFormationRoleARN         string
+	CloudFormationDisableRollback bool
 
 	Region      string
 	Profile     string

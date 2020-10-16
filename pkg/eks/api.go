@@ -74,9 +74,9 @@ func (p ProviderServices) CloudFormation() cloudformationiface.CloudFormationAPI
 // CloudFormationRoleARN returns, if any, a service role used by CloudFormation to call AWS API on your behalf
 func (p ProviderServices) CloudFormationRoleARN() string { return p.spec.CloudFormationRoleARN }
 
-// CloudFormationOnFailureDoNothing returns whether stacks should not rollback on failure
-func (p ProviderServices) CloudFormationOnFailureDoNothing() bool {
-	return p.spec.CloudFormationOnFailureDoNothing
+// CloudFormationDisableRollback returns whether stacks should not rollback on failure
+func (p ProviderServices) CloudFormationDisableRollback() bool {
+	return p.spec.CloudFormationDisableRollback
 }
 
 // EKS returns a representation of the EKS API
