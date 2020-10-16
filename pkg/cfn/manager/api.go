@@ -86,7 +86,8 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *
 // DoCreateStackRequest requests the creation of a CloudFormation stack
 func (c *StackCollection) DoCreateStackRequest(i *Stack, templateData TemplateData, tags, parameters map[string]string, withIAM bool, withNamedIAM bool) error {
 	input := &cloudformation.CreateStackInput{
-		StackName: i.StackName,
+		StackName:       i.StackName,
+		DisableRollback: aws.Bool(c.provider.CloudFormationDisableRollback()),
 	}
 	input.Tags = append(input.Tags, c.sharedTags...)
 	for k, v := range tags {
