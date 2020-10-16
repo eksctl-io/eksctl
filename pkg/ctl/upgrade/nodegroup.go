@@ -26,10 +26,11 @@ func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&cfg.Metadata.Name, "cluster", "", "", "EKS cluster name")
-		fs.StringVarP(&options.NodegroupName, "name", "", "", "Nodegroup name")
-		fs.StringVarP(&options.KubernetesVersion, "kubernetes-version", "", "", "Kubernetes version")
-		fs.StringVarP(&options.LaunchTemplateVersion, "launch-template-version", "", "", "Launch template version")
+		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
+		fs.StringVar(&options.NodegroupName, "name", "", "Nodegroup name")
+		fs.StringVar(&options.KubernetesVersion, "kubernetes-version", "", "Kubernetes version")
+		fs.StringVar(&options.LaunchTemplateVersion, "launch-template-version", "", "Launch template version")
+		fs.BoolVar(&options.ForceUpgrade, "force-upgrade", false, "Force the update if the existing node group's pods are unable to be drained due to a pod disruption budget issue")
 
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
