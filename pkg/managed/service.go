@@ -48,6 +48,8 @@ type UpgradeOptions struct {
 	// LaunchTemplateVersion launch template version
 	// valid only if a nodegroup was created with a launch template
 	LaunchTemplateVersion string
+	//ForceUpgrade enables force upgrade
+	ForceUpgrade bool
 }
 
 // TODO use goformation types
@@ -240,6 +242,8 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 	if options.LaunchTemplateVersion != "" {
 		ngResource.LaunchTemplate.Version = gfnt.NewString(options.LaunchTemplateVersion)
 	}
+
+	ngResource.ForceUpdateEnabled = gfnt.NewBoolean(options.ForceUpgrade)
 
 	logger.Info("upgrading nodegroup version")
 	if err := updateStack(stack); err != nil {
