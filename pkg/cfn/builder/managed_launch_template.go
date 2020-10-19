@@ -7,6 +7,8 @@ import (
 	"io"
 	"mime/multipart"
 
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
+
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -160,6 +162,15 @@ func makeUserData(ng *api.NodeGroupBase, mimeBoundary string) (string, error) {
 		buf     bytes.Buffer
 		scripts []string
 	)
+
+	if ng.SSH.EnableSSM != nil && *ng.SSH.EnableSSM {
+		installSSMScript, err := nodebootstrap.Asset("install-ssm.al2.sh")
+		if err != nil {
+			return "", err
+		}
+
+		scripts = append(scripts, string(installSSMScript))
+	}
 
 	if len(ng.PreBootstrapCommands) > 0 {
 		scripts = append(scripts, ng.PreBootstrapCommands...)
