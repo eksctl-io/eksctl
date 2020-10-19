@@ -131,12 +131,14 @@ API_SERVER_URL=https://test.com
 					SSH: &api.NodeGroupSSH{
 						Allow:         api.Enabled(),
 						PublicKeyName: aws.String("test-keypair"),
+						EnableSSM:     api.Enabled(),
 					},
 				},
 			},
 
 			resourcesFilename: "ssh_enabled.json",
 		}),
+
 		Entry("With placement group", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{

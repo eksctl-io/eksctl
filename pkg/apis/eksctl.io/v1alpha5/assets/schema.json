@@ -1333,6 +1333,9 @@
         "allow": {
           "type": "boolean"
         },
+        "enableSsm": {
+          "type": "boolean"
+        },
         "publicKey": {
           "type": "string"
         },
@@ -1354,7 +1357,8 @@
         "publicKeyPath",
         "publicKey",
         "publicKeyName",
-        "sourceSecurityGroupIds"
+        "sourceSecurityGroupIds",
+        "enableSsm"
       ],
       "additionalProperties": false,
       "description": "holds all the ssh access configuration to a NodeGroup",

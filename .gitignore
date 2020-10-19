@@ -40,3 +40,6 @@ userdocs/src/usage/schema.json
 
 # Goreleaser
 dist/
+
+# IDEA directory
+.idea/

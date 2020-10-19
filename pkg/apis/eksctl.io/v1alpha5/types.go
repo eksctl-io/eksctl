@@ -709,6 +709,7 @@ func NewManagedNodeGroup() *ManagedNodeGroup {
 			SSH: &NodeGroupSSH{
 				Allow:         Disabled(),
 				PublicKeyName: &publicKey,
+				EnableSSM:     Disabled(),
 			},
 			IAM: &NodeGroupIAM{
 				WithAddonPolicies: NodeGroupIAMAddonPolicies{
@@ -979,6 +980,8 @@ type (
 		PublicKeyName *string `json:"publicKeyName,omitempty"`
 		// +optional
 		SourceSecurityGroupIDs []string `json:"sourceSecurityGroupIds,omitempty"`
+		// +optional
+		EnableSSM *bool `json:"enableSsm,omitempty"`
 	}
 
 	// NodeGroupInstancesDistribution holds the configuration for [spot
