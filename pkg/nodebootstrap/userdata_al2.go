@@ -55,9 +55,7 @@ func NewUserDataForAmazonLinux2(spec *api.ClusterConfig, ng *api.NodeGroup) (str
 	var scripts []string
 
 	if ng.SSH.EnableSSM != nil && *ng.SSH.EnableSSM {
-		config.AddShellCommand("yum install -y amazon-ssm-agent")
-		config.AddShellCommand("systemctl enable amazon-ssm-agent")
-		config.AddShellCommand("systemctl start amazon-ssm-agent")
+		scripts = append(scripts, "install-ssm.al2.sh")
 	}
 
 	for _, command := range ng.PreBootstrapCommands {
