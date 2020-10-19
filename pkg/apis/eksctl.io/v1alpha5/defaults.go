@@ -12,6 +12,13 @@ const (
 	iamPolicyAmazonEKSCNIPolicy = "AmazonEKS_CNI_Policy"
 )
 
+var (
+	awsNodeMeta = ClusterIAMMeta{
+		Name:      "aws-node",
+		Namespace: "kube-system",
+	}
+)
+
 // SetClusterConfigDefaults will set defaults for a given cluster
 func SetClusterConfigDefaults(cfg *ClusterConfig) {
 	if cfg.IAM == nil {
@@ -27,16 +34,19 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 	}
 
 	if IsEnabled(cfg.IAM.WithOIDC) {
-		awsNode := ClusterIAMServiceAccount{
-			ClusterIAMMeta: ClusterIAMMeta{
-				Name:      "aws-node",
-				Namespace: "kube-system",
-			},
-			AttachPolicyARNs: []string{
-				fmt.Sprintf("arn:%s:iam::aws:policy/%s", Partition(cfg.Metadata.Region), iamPolicyAmazonEKSCNIPolicy),
-			},
+		var found bool
+		for _, sa := range cfg.IAM.ServiceAccounts {
+			found = found || (sa.Name == awsNodeMeta.Name && sa.Namespace == awsNodeMeta.Namespace)
 		}
-		cfg.IAM.ServiceAccounts = append(cfg.IAM.ServiceAccounts, &awsNode)
+		if !found {
+			awsNode := ClusterIAMServiceAccount{
+				ClusterIAMMeta: awsNodeMeta,
+				AttachPolicyARNs: []string{
+					fmt.Sprintf("arn:%s:iam::aws:policy/%s", Partition(cfg.Metadata.Region), iamPolicyAmazonEKSCNIPolicy),
+				},
+			}
+			cfg.IAM.ServiceAccounts = append(cfg.IAM.ServiceAccounts, &awsNode)
+		}
 	}
 
 	for _, sa := range cfg.IAM.ServiceAccounts {

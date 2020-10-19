@@ -80,8 +80,13 @@ func NewMockProvider() *MockProvider {
 // CloudFormation returns a representation of the CloudFormation API
 func (m MockProvider) CloudFormation() cloudformationiface.CloudFormationAPI { return m.cfn }
 
-// CloudFormationRoleARN returns, if any,  a service role used by CloudFormation to call AWS API on your behalf
+// CloudFormationRoleARN returns, if any, a service role used by CloudFormation to call AWS API on your behalf
 func (m MockProvider) CloudFormationRoleARN() string { return m.cfnRoleARN }
+
+// CloudFormationDisableRollback returns whether stacks should not rollback on failure
+func (m MockProvider) CloudFormationDisableRollback() bool {
+	return false
+}
 
 // MockCloudFormation returns a mocked CloudFormation API
 func (m MockProvider) MockCloudFormation() *mocks.CloudFormationAPI {

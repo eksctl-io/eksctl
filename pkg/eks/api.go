@@ -71,8 +71,13 @@ type ProviderServices struct {
 // CloudFormation returns a representation of the CloudFormation API
 func (p ProviderServices) CloudFormation() cloudformationiface.CloudFormationAPI { return p.cfn }
 
-// CloudFormationRoleARN returns, if any,  a service role used by CloudFormation to call AWS API on your behalf
+// CloudFormationRoleARN returns, if any, a service role used by CloudFormation to call AWS API on your behalf
 func (p ProviderServices) CloudFormationRoleARN() string { return p.spec.CloudFormationRoleARN }
+
+// CloudFormationDisableRollback returns whether stacks should not rollback on failure
+func (p ProviderServices) CloudFormationDisableRollback() bool {
+	return p.spec.CloudFormationDisableRollback
+}
 
 // EKS returns a representation of the EKS API
 func (p ProviderServices) EKS() eksiface.EKSAPI { return p.eks }

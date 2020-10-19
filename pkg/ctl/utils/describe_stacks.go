@@ -1,13 +1,17 @@
 package utils
 
 import (
+	"os"
+
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/printers"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
 func describeStacksCmd(cmd *cmdutils.Cmd) {
@@ -15,12 +19,32 @@ func describeStacksCmd(cmd *cmdutils.Cmd) {
 	cmd.ClusterConfig = cfg
 
 	var all, events, trail bool
+	var output printers.Type
 
 	cmd.SetDescription("describe-stacks", "Describe CloudFormation stack for a given cluster", "")
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doDescribeStacksCmd(cmd, all, events, trail)
+		var printer printers.OutputPrinter
+		var err error
+		if output != "" {
+			if cmd.CobraCommand.Flags().Changed("all") ||
+				cmd.CobraCommand.Flags().Changed("events") ||
+				cmd.CobraCommand.Flags().Changed("trails") {
+				return errors.Errorf("since the output flag is specified, the flags `all`, `events` and `trail` cannot be used")
+			}
+		}
+		switch output {
+		case printers.TableType:
+			return errors.Errorf("output type %q is not supported", output)
+		case "":
+		default:
+			printer, err = printers.NewPrinter(output)
+			if err != nil {
+				return err
+			}
+		}
+		return doDescribeStacksCmd(cmd, all, events, trail, printer)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -29,20 +53,23 @@ func describeStacksCmd(cmd *cmdutils.Cmd) {
 		fs.BoolVar(&all, "all", false, "include deleted stacks")
 		fs.BoolVar(&events, "events", false, "include stack events")
 		fs.BoolVar(&trail, "trail", false, "lookup CloudTrail events for the cluster")
+		fs.StringVarP(&output, "output", "o", "", "specifies the output formats (valid option: json and yaml)")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
-func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool) error {
+func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool, printer printers.OutputPrinter) error {
 	cfg := cmd.ClusterConfig
 
 	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
 	}
-	cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
+	if printer == nil {
+		cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
+	}
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
@@ -69,6 +96,10 @@ func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool) error {
 
 	if len(stacks) < 2 {
 		logger.Warning("only %d stacks found, for a ready-to-use cluster there should be at least 2", len(stacks))
+	}
+
+	if printer != nil {
+		return printer.PrintObj(stacks, os.Stdout)
 	}
 
 	for _, s := range stacks {
