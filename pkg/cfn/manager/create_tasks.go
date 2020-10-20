@@ -3,6 +3,7 @@ package manager
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -114,7 +115,10 @@ func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*
 			kubernetes: clientSetGetter,
 			call: func(clientSet kubernetes.Interface) error {
 				sa.SetAnnotations()
-				return kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa.ClusterIAMMeta.AsObjectMeta())
+				if err := kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa.ClusterIAMMeta.AsObjectMeta()); err != nil {
+					return errors.Wrapf(err, "failed to create service account %s", sa.NameString())
+				}
+				return nil
 			},
 		})
 
