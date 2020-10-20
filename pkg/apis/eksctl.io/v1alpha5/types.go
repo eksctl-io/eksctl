@@ -982,6 +982,7 @@ type (
 		PublicKeyName *string `json:"publicKeyName,omitempty"`
 		// +optional
 		SourceSecurityGroupIDs []string `json:"sourceSecurityGroupIds,omitempty"`
+		// Enables the ability to [SSH onto nodes using SSM](/introduction#ssh-access)
 		// +optional
 		EnableSSM *bool `json:"enableSsm,omitempty"`
 	}
