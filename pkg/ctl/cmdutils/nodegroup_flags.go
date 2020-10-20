@@ -37,6 +37,7 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGrou
 
 	ng.SSH.Allow = fs.Bool("ssh-access", *ng.SSH.Allow, "control SSH access for nodes. Uses ~/.ssh/id_rsa.pub as default key path if enabled")
 	ng.SSH.PublicKeyPath = fs.String("ssh-public-key", "", "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
+	ng.SSH.EnableSSM = fs.Bool("enable-ssm", false, "Enable AWS Systems Manager (SSM)")
 
 	fs.StringVar(&ng.AMI, "node-ami", "", "'auto-ssm' (default), 'auto', 'static' (deprecated, will be removed in 0.33.0) or an AMI id (advanced use)")
 	fs.StringVar(&ng.AMIFamily, "node-ami-family", api.DefaultNodeImageFamily, "'AmazonLinux2' for the Amazon EKS optimized AMI or 'Ubuntu1804' for the official Canonical EKS AMIs (Ubuntu 18.04)")

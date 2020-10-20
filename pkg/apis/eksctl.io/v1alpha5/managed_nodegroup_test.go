@@ -104,7 +104,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 		SetManagedNodeGroupDefaults(mng, &ClusterMeta{Name: "managed-cluster"})
 		err := ValidateManagedNodeGroup(mng, 0)
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("cannot set instanceType, ami, ssh.allow, ssh.sourceSecurityGroupIds, securityGroups, " +
+		Expect(err.Error()).To(ContainSubstring("cannot set instanceType, ami, ssh.allow, ssh.enableSSM, ssh.sourceSecurityGroupIds, securityGroups, " +
 			"volumeSize, instanceName, instancePrefix, maxPodsPerNode, disableIMDSv1, disablePodIMDS, preBootstrapCommands, overrideBootstrapCommand, placement in managedNodeGroup when a launch template is supplied"))
 	},
 		Entry("instanceType", &NodeGroupBase{
@@ -116,6 +116,11 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 		Entry("SSH", &NodeGroupBase{
 			SSH: &NodeGroupSSH{
 				Allow: Enabled(),
+			},
+		}),
+		Entry("enableSSM", &NodeGroupBase{
+			SSH: &NodeGroupSSH{
+				EnableSSM: Enabled(),
 			},
 		}),
 		Entry("volumeSize", &NodeGroupBase{

@@ -1333,6 +1333,11 @@
         "allow": {
           "type": "boolean"
         },
+        "enableSsm": {
+          "type": "boolean",
+          "description": "Enables the ability to [SSH onto nodes using SSM](/introduction#ssh-access)",
+          "x-intellij-html-description": "Enables the ability to <a href=\"/introduction#ssh-access\">SSH onto nodes using SSM</a>"
+        },
         "publicKey": {
           "type": "string"
         },
@@ -1354,7 +1359,8 @@
         "publicKeyPath",
         "publicKey",
         "publicKeyName",
-        "sourceSecurityGroupIds"
+        "sourceSecurityGroupIds",
+        "enableSsm"
       ],
       "additionalProperties": false,
       "description": "holds all the ssh access configuration to a NodeGroup",
