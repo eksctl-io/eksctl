@@ -128,7 +128,7 @@ eksctl create cluster --enable-ssm
 ```
 
 !!! note
-    If you are creating managed nodes with a custom launch template, the `--enabl-ssm` flag is ignored.
+    If you are creating managed nodes with a custom launch template, the `--enable-ssm` flag is disallowed.
 
 ### Tagging
 
