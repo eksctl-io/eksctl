@@ -91,10 +91,11 @@ func NodeGroup(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout
 	timer := time.NewTimer(waitTimeout)
 	defer timer.Stop()
 
+	timeoutErr := fmt.Errorf("timed out (after %s) waiting for nodegroup %q to be drained", waitTimeout, ng.NameString())
 	for {
 		select {
 		case <-timer.C:
-			return fmt.Errorf("timed out (after %s) waiting for nodegroup %q to be drained", waitTimeout, ng.NameString())
+			return timeoutErr
 		default:
 			nodes, err := clientSet.CoreV1().Nodes().List(ng.ListOptions())
 			if err != nil {
@@ -143,15 +144,20 @@ func NodeGroup(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout
 
 			for _, node := range nodes.Items {
 				if newPendingNodes.Has(node.Name) {
-					pending, err := evictPods(drainer, &node)
-					if err != nil {
-						logger.Warning("pod eviction error (%q) on node %s – will retry after delay of %s", err, node.Name, retryDelay)
-						time.Sleep(retryDelay)
-						continue
-					}
-					logger.Debug("%d pods to be evicted from %s", pending, node.Name)
-					if pending == 0 {
-						drainedNodes.Insert(node.Name)
+					select {
+					case <-timer.C:
+						return timeoutErr
+					default:
+						pending, err := evictPods(drainer, &node)
+						if err != nil {
+							logger.Warning("pod eviction error (%q) on node %s – will retry after delay of %s", err, node.Name, retryDelay)
+							time.Sleep(retryDelay)
+							continue
+						}
+						logger.Debug("%d pods to be evicted from %s", pending, node.Name)
+						if pending == 0 {
+							drainedNodes.Insert(node.Name)
+						}
 					}
 				}
 			}
