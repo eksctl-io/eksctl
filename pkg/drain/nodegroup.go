@@ -146,11 +146,7 @@ func NodeGroup(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout
 					pending, err := evictPods(drainer, &node)
 					if err != nil {
 						logger.Warning("pod eviction error (%q) on node %s – will retry after delay of %s", err, node.Name, retryDelay)
-						retryTimer := time.NewTimer(retryDelay)
-
-						select {
-						case <-retryTimer.C:
-						}
+						time.Sleep(retryDelay)
 						continue
 					}
 					logger.Debug("%d pods to be evicted from %s", pending, node.Name)
