@@ -254,6 +254,14 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 				return err
 			}
 			*oidcPlaceholder = *oidc
+			// Make sure control plane is reachable
+			clientSet, err := c.NewStdClientSet(cfg)
+			if err != nil {
+				return errors.Wrap(err, "failed to get ClientSet")
+			}
+			if err := c.WaitForControlPlane(cfg.Metadata, clientSet); err != nil {
+				return errors.Wrap(err, "failed to wait for control plane")
+			}
 			return nil
 		},
 	})
