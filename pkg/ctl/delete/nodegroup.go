@@ -1,6 +1,7 @@
 package delete
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/kris-nova/logger"
@@ -15,24 +16,24 @@ import (
 )
 
 func deleteNodeGroupCmd(cmd *cmdutils.Cmd) {
-	deleteNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod time.Duration) error {
-		return doDeleteNodeGroup(cmd, ng, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, maxGracePeriod)
+	deleteNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, force bool, maxGracePeriod time.Duration) error {
+		return doDeleteNodeGroup(cmd, ng, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, force, maxGracePeriod)
 	})
 }
 
-func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod time.Duration) error) {
+func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, force bool, maxGracePeriod time.Duration) error) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
-	var updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool
+	var updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, force bool
 	var maxGracePeriod time.Duration
 
 	cmd.SetDescription("nodegroup", "Delete a nodegroup", "", "ng")
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return runFunc(cmd, ng, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, maxGracePeriod)
+		return runFunc(cmd, ng, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, force, maxGracePeriod)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -47,6 +48,7 @@ func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cm
 		fs.BoolVar(&deleteNodeGroupDrain, "drain", true, "Drain and cordon all nodes in the nodegroup before deletion")
 		defaultMaxGracePeriod, _ := time.ParseDuration("10m")
 		fs.DurationVar(&maxGracePeriod, "max-grace-period", defaultMaxGracePeriod, "Maximum pods termination grace period")
+		fs.BoolVar(&force, "force", false, "Force delete ignores some errors that would otherwise cause deletion to fail")
 
 		cmd.Wait = false
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "deletion of all resources")
@@ -56,7 +58,7 @@ func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cm
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
 }
 
-func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod time.Duration) error {
+func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, force bool, maxGracePeriod time.Duration) error {
 	ngFilter := filter.NewNodeGroupFilter()
 
 	if err := cmdutils.NewDeleteNodeGroupLoader(cmd, ng, ngFilter).Load(); err != nil {
@@ -121,8 +123,12 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		for _, ng := range cfg.NodeGroups {
 			if ng.IAM == nil || ng.IAM.InstanceRoleARN == "" {
 				if err := ctl.GetNodeGroupIAM(stackManager, ng); err != nil {
-					logger.Warning("error getting instance role ARN for nodegroup %q: %v", ng.Name, err)
-					return nil
+					err := fmt.Sprintf("error getting instance role ARN for nodegroup %q: %v", ng.Name, err)
+					if !force {
+						logger.Warning(err)
+						return nil
+					}
+					logger.Warning("Continuing with force deletion, error occurred: %s", err)
 				}
 			}
 		}
@@ -136,7 +142,10 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		if !cmd.Plan {
 			for _, ng := range allNodeGroups {
 				if err := drain.NodeGroup(clientSet, ng, ctl.Provider.WaitTimeout(), maxGracePeriod, false); err != nil {
-					return err
+					if !force {
+						return err
+					}
+					logger.Warning("Continuing with force deletion, error occurred: %s", err.Error())
 				}
 			}
 		}
