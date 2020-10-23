@@ -28,6 +28,7 @@ type NodeGroupSummary struct {
 	StackName           string
 	Cluster             string
 	Name                string
+	Status              string
 	MaxSize             int
 	MinSize             int
 	DesiredCapacity     int
@@ -374,13 +375,18 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, ngPaths *node
 		return nil, errors.Wrapf(err, "error getting CloudFormation template for stack %s", *stack.StackName)
 	}
 
-	cluster := getClusterNameTag(stack)
-	name := c.GetNodeGroupName(stack)
-	maxSize := gjson.Get(template, ngPaths.MaxSize)
-	minSize := gjson.Get(template, ngPaths.MinSize)
-	desired := gjson.Get(template, ngPaths.DesiredCapacity)
-	instanceType := gjson.Get(template, ngPaths.InstanceType)
-	imageID := gjson.Get(template, imageIDPath)
+	summary := &NodeGroupSummary{
+		StackName:       *stack.StackName,
+		Cluster:         getClusterNameTag(stack),
+		Name:            c.GetNodeGroupName(stack),
+		Status:          *stack.StackStatus,
+		MaxSize:         int(gjson.Get(template, ngPaths.MaxSize).Int()),
+		MinSize:         int(gjson.Get(template, ngPaths.MinSize).Int()),
+		DesiredCapacity: int(gjson.Get(template, ngPaths.DesiredCapacity).Int()),
+		InstanceType:    gjson.Get(template, ngPaths.InstanceType).String(),
+		ImageID:         gjson.Get(template, imageIDPath).String(),
+		CreationTime:    stack.CreationTime,
+	}
 
 	nodeGroupType, err := GetNodeGroupType(stack.Tags)
 	if err != nil {
@@ -398,22 +404,11 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, ngPaths *node
 		}
 		collectorSet := outputs.NewCollectorSet(collectors)
 		if err := collectorSet.MustCollect(*stack); err != nil {
-			return nil, errors.Wrapf(err, "error collecting Cloudformation outputs for stack %s", *stack.StackName)
+			logger.Warning(errors.Wrapf(err, "error collecting Cloudformation outputs for stack %s", *stack.StackName).Error())
 		}
 	}
 
-	summary := &NodeGroupSummary{
-		StackName:           *stack.StackName,
-		Cluster:             cluster,
-		Name:                name,
-		MaxSize:             int(maxSize.Int()),
-		MinSize:             int(minSize.Int()),
-		DesiredCapacity:     int(desired.Int()),
-		InstanceType:        instanceType.String(),
-		ImageID:             imageID.String(),
-		CreationTime:        stack.CreationTime,
-		NodeInstanceRoleARN: nodeInstanceRoleARN,
-	}
+	summary.NodeInstanceRoleARN = nodeInstanceRoleARN
 
 	return summary, nil
 }

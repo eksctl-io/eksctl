@@ -1,6 +1,7 @@
 package delete
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/kris-nova/logger"
@@ -121,8 +122,8 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		for _, ng := range cfg.NodeGroups {
 			if ng.IAM == nil || ng.IAM.InstanceRoleARN == "" {
 				if err := ctl.GetNodeGroupIAM(stackManager, ng); err != nil {
-					logger.Warning("error getting instance role ARN for nodegroup %q: %v", ng.Name, err)
-					return nil
+					err := fmt.Sprintf("error getting instance role ARN for nodegroup %q: %v", ng.Name, err)
+					logger.Warning("continuing with deletion, error occurred: %s", err)
 				}
 			}
 		}
@@ -136,6 +137,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		if !cmd.Plan {
 			for _, ng := range allNodeGroups {
 				if err := drain.NodeGroup(clientSet, ng, ctl.Provider.WaitTimeout(), maxGracePeriod, false); err != nil {
+					logger.Warning("error occurred during drain, to skip drain use '--drain=false' flag")
 					return err
 				}
 			}

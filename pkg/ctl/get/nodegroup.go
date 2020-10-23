@@ -104,6 +104,9 @@ func addSummaryTableColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("NODEGROUP", func(s *manager.NodeGroupSummary) string {
 		return s.Name
 	})
+	printer.AddColumn("STATUS", func(s *manager.NodeGroupSummary) string {
+		return s.Status
+	})
 	printer.AddColumn("CREATED", func(s *manager.NodeGroupSummary) string {
 		return s.CreationTime.Format(time.RFC3339)
 	})
