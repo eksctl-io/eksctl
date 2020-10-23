@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package drain
+package evictor
 
 import (
 	"fmt"
@@ -45,11 +45,11 @@ type podDelete struct {
 	status podDeleteStatus
 }
 
-type podDeleteList struct {
+type PodDeleteList struct {
 	items []podDelete
 }
 
-func (l *podDeleteList) Pods() []corev1.Pod {
+func (l *PodDeleteList) Pods() []corev1.Pod {
 	pods := []corev1.Pod{}
 	for _, i := range l.items {
 		if i.status.delete {
@@ -59,7 +59,7 @@ func (l *podDeleteList) Pods() []corev1.Pod {
 	return pods
 }
 
-func (l *podDeleteList) Warnings() string {
+func (l *PodDeleteList) Warnings() string {
 	ps := make(map[string][]string)
 	for _, i := range l.items {
 		if i.status.reason == podDeleteStatusTypeWarning {
@@ -74,7 +74,7 @@ func (l *podDeleteList) Warnings() string {
 	return strings.Join(msgs, "; ")
 }
 
-func (l *podDeleteList) errors() []error {
+func (l *PodDeleteList) errors() []error {
 	failedPods := make(map[string][]string)
 	for _, i := range l.items {
 		if i.status.reason == podDeleteStatusTypeError {
@@ -138,7 +138,7 @@ func makePodDeleteStatusWithError(message string) podDeleteStatus {
 	}
 }
 
-func (d *Helper) makeFilters() []podFilter {
+func (d Helper) makeFilters() []podFilter {
 	return []podFilter{
 		d.annotationFilter,
 		d.daemonSetFilter,
@@ -158,7 +158,7 @@ func hasLocalStorage(pod corev1.Pod) bool {
 	return false
 }
 
-func (d *Helper) annotationFilter(pod corev1.Pod) podDeleteStatus {
+func (d Helper) annotationFilter(pod corev1.Pod) podDeleteStatus {
 	if v, ok := pod.Annotations[drainPodAnnotation]; ok {
 		annotation := fmt.Sprintf("due to annotation %s=%s", drainPodAnnotation, v)
 		switch v {
@@ -174,7 +174,7 @@ func (d *Helper) annotationFilter(pod corev1.Pod) podDeleteStatus {
 	return makePodDeleteStatusOkay()
 }
 
-func (d *Helper) daemonSetFilter(pod corev1.Pod) podDeleteStatus {
+func (d Helper) daemonSetFilter(pod corev1.Pod) podDeleteStatus {
 	// Note that we return false in cases where the pod is DaemonSet managed,
 	// regardless of flags.
 	//
@@ -215,14 +215,14 @@ func (d *Helper) daemonSetFilter(pod corev1.Pod) podDeleteStatus {
 	return makePodDeleteStatusWithWarning(false, daemonSetWarning)
 }
 
-func (d *Helper) mirrorPodFilter(pod corev1.Pod) podDeleteStatus {
+func (d Helper) mirrorPodFilter(pod corev1.Pod) podDeleteStatus {
 	if _, found := pod.ObjectMeta.Annotations[corev1.MirrorPodAnnotationKey]; found {
 		return makePodDeleteStatusSkip()
 	}
 	return makePodDeleteStatusOkay()
 }
 
-func (d *Helper) localStorageFilter(pod corev1.Pod) podDeleteStatus {
+func (d Helper) localStorageFilter(pod corev1.Pod) podDeleteStatus {
 	if !hasLocalStorage(pod) {
 		return makePodDeleteStatusOkay()
 	}
@@ -237,7 +237,7 @@ func (d *Helper) localStorageFilter(pod corev1.Pod) podDeleteStatus {
 	return makePodDeleteStatusWithWarning(true, localStorageWarning)
 }
 
-func (d *Helper) unreplicatedFilter(pod corev1.Pod) podDeleteStatus {
+func (d Helper) unreplicatedFilter(pod corev1.Pod) podDeleteStatus {
 	// any finished pod can be removed
 	if pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed {
 		return makePodDeleteStatusOkay()

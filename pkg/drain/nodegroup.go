@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/drain/evictor"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -17,8 +19,11 @@ import (
 // this is our custom addition, it's not part of the package
 // we copied from Kubernetes
 
-func evictPods(drainer *Helper, node *corev1.Node) (int, error) {
-	list, errs := drainer.getPodsForDeletion(node.Name)
+// retryDelay is how long is slept before retry after an error occurs during drainage
+const retryDelay = 5 * time.Second
+
+func evictPods(drainer *evictor.Helper, node *corev1.Node) (int, error) {
+	list, errs := drainer.GetPodsForDeletion(node.Name)
 	if len(errs) > 0 {
 		return 0, fmt.Errorf("errs: %v", errs) // TODO: improve formatting
 	}
@@ -38,7 +43,7 @@ func evictPods(drainer *Helper, node *corev1.Node) (int, error) {
 
 // NodeGroup drains a nodegroup
 func NodeGroup(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout time.Duration, maxGracePeriod time.Duration, undo bool) error {
-	drainer := &Helper{
+	drainer := &evictor.Helper{
 		Client: clientSet,
 
 		// TODO: Force, DeleteLocalData & IgnoreAllDaemonSets shouldn't

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package drain
+package evictor
 
 import (
 	"time"
@@ -32,8 +32,6 @@ const (
 	EvictionKind = "Eviction"
 	// EvictionSubresource represents the kind of evictions object as pod's subresource
 	EvictionSubresource = "pods/eviction"
-	// retryDelay is how long is slept before retry after an error occurs during drainage
-	retryDelay = 5 * time.Second
 )
 
 // Helper contains the parameters to control the behaviour of drainer
@@ -135,11 +133,11 @@ func (d *Helper) DeletePod(pod corev1.Pod) error {
 	return d.Client.CoreV1().Pods(pod.Namespace).Delete(pod.Name, d.makeDeleteOptions(pod))
 }
 
-// getPodsForDeletion lists all pods on a given node, filters those using the default
-// filters, and returns podDeleteList along with any errors. All pods that are ready
+// GetPodsForDeletion lists all pods on a given node, filters those using the default
+// filters, and returns PodDeleteList along with any errors. All pods that are ready
 // to be deleted can be obtained with .Pods(), and string with all warning can be obtained
 // with .Warnings()
-func (d *Helper) getPodsForDeletion(nodeName string) (*podDeleteList, []error) {
+func (d *Helper) GetPodsForDeletion(nodeName string) (*PodDeleteList, []error) {
 	labelSelector, err := labels.Parse(d.PodSelector)
 	if err != nil {
 		return nil, []error{err}
@@ -171,7 +169,7 @@ func (d *Helper) getPodsForDeletion(nodeName string) (*podDeleteList, []error) {
 		})
 	}
 
-	list := &podDeleteList{items: pods}
+	list := &PodDeleteList{items: pods}
 
 	if errs := list.errors(); len(errs) > 0 {
 		return list, errs
