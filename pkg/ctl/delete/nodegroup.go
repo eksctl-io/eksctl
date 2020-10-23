@@ -26,7 +26,7 @@ func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cm
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
-	var updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, force bool
+	var updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool
 	var maxGracePeriod time.Duration
 
 	cmd.SetDescription("nodegroup", "Delete a nodegroup", "", "ng")
