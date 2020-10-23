@@ -75,6 +75,42 @@ var _ = Describe("Drain", func() {
 		})
 	})
 
+	When("the nodes never drain successfully", func() {
+		var pod corev1.Pod
+
+		BeforeEach(func() {
+			pod = corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "pod-1",
+				},
+			}
+
+			fakeDrainer.GetPodsForDeletionReturns(&evictor.PodDeleteList{
+				Items: []evictor.PodDelete{
+					{
+						Pod: pod,
+						Status: evictor.PodDeleteStatus{
+							Delete: true,
+						},
+					},
+				},
+			}, nil)
+
+			fakeDrainer.EvictOrDeletePodReturns(nil)
+
+			_, err := fakeClientSet.CoreV1().Nodes().Create(&corev1.Node{})
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("times out and errors", func() {
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*2, time.Second, false)
+			nodeGroupDrainer.SetDrainer(fakeDrainer)
+
+			err := nodeGroupDrainer.Drain()
+			Expect(err).To(MatchError("timed out (after 2s) waiting for nodegroup \"node-1\" to be drained"))
+		})
+	})
+
 	When("Evictions are not supported", func() {
 		BeforeEach(func() {
 			fakeDrainer.CanUseEvictionsReturns(fmt.Errorf("error1"))
