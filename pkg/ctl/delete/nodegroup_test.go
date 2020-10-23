@@ -22,7 +22,7 @@ var _ = Describe("delete", func() {
 			cmd := newMockEmptyCmd(args...)
 			count := 0
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				deleteNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *v1alpha5.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, force bool, maxGracePeriod time.Duration) error {
+				deleteNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *v1alpha5.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod time.Duration) error {
 					Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
 					Expect(ng.Name).To(Equal("ng"))
 					count++
@@ -33,7 +33,7 @@ var _ = Describe("delete", func() {
 			Expect(err).To(Not(HaveOccurred()))
 			Expect(count).To(Equal(1))
 		},
-		Entry("with valid details", "nodegroup", "--cluster", "clusterName", "--name", "ng", "--force"),
+		Entry("with valid details", "nodegroup", "--cluster", "clusterName", "--name", "ng"),
 		Entry("with deprecated flag --only", "nodegroup", "--cluster", "clusterName", "--name", "ng", "--only", "ng"),
 	)
 
