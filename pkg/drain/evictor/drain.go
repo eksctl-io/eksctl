@@ -34,8 +34,8 @@ const (
 	EvictionSubresource = "pods/eviction"
 )
 
-// Helper contains the parameters to control the behaviour of drainer
-type Helper struct {
+// Evictor contains the parameters to control the behaviour of drainer
+type Evictor struct {
 	Selector    string
 	PodSelector string
 
@@ -56,7 +56,7 @@ type Helper struct {
 }
 
 // CanUseEvictions uses Discovery API to find out if evictions are supported
-func (d *Helper) CanUseEvictions() error {
+func (d *Evictor) CanUseEvictions() error {
 	discoveryClient := d.Client.Discovery()
 	groupList, err := discoveryClient.ServerGroups()
 	if err != nil {
@@ -86,7 +86,7 @@ func (d *Helper) CanUseEvictions() error {
 	return nil
 }
 
-func (d *Helper) makeDeleteOptions(pod corev1.Pod) *metav1.DeleteOptions {
+func (d *Evictor) makeDeleteOptions(pod corev1.Pod) *metav1.DeleteOptions {
 	deleteOptions := &metav1.DeleteOptions{}
 
 	gracePeriodSeconds := int64(corev1.DefaultTerminationGracePeriodSeconds)
@@ -104,7 +104,7 @@ func (d *Helper) makeDeleteOptions(pod corev1.Pod) *metav1.DeleteOptions {
 
 // EvictOrDeletePod will evict pod if policy API is available, otherwise deletes it
 // NOTE: CanUseEvictions must be called prior to this
-func (d *Helper) EvictOrDeletePod(pod corev1.Pod) error {
+func (d *Evictor) EvictOrDeletePod(pod corev1.Pod) error {
 	if d.UseEvictions {
 		return d.EvictPod(pod)
 	}
@@ -113,7 +113,7 @@ func (d *Helper) EvictOrDeletePod(pod corev1.Pod) error {
 
 // EvictPod will evict the give pod, or return an error if it couldn't
 // NOTE: CanUseEvictions must be called prior to this
-func (d *Helper) EvictPod(pod corev1.Pod) error {
+func (d *Evictor) EvictPod(pod corev1.Pod) error {
 	eviction := &policyv1beta1.Eviction{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: d.policyAPIGroupVersion,
@@ -129,7 +129,7 @@ func (d *Helper) EvictPod(pod corev1.Pod) error {
 }
 
 // DeletePod will delete the given pod, or return an error if it couldn't
-func (d *Helper) DeletePod(pod corev1.Pod) error {
+func (d *Evictor) DeletePod(pod corev1.Pod) error {
 	return d.Client.CoreV1().Pods(pod.Namespace).Delete(pod.Name, d.makeDeleteOptions(pod))
 }
 
@@ -137,7 +137,7 @@ func (d *Helper) DeletePod(pod corev1.Pod) error {
 // filters, and returns PodDeleteList along with any errors. All pods that are ready
 // to be deleted can be obtained with .Pods(), and string with all warning can be obtained
 // with .Warnings()
-func (d *Helper) GetPodsForDeletion(nodeName string) (*PodDeleteList, []error) {
+func (d *Evictor) GetPodsForDeletion(nodeName string) (*PodDeleteList, []error) {
 	labelSelector, err := labels.Parse(d.PodSelector)
 	if err != nil {
 		return nil, []error{err}

@@ -22,7 +22,7 @@ import (
 // retryDelay is how long is slept before retry after an error occurs during drainage
 const retryDelay = 5 * time.Second
 
-func evictPods(drainer *evictor.Helper, node *corev1.Node) (int, error) {
+func evictPods(drainer *evictor.Evictor, node *corev1.Node) (int, error) {
 	list, errs := drainer.GetPodsForDeletion(node.Name)
 	if len(errs) > 0 {
 		return 0, fmt.Errorf("errs: %v", errs) // TODO: improve formatting
@@ -43,7 +43,7 @@ func evictPods(drainer *evictor.Helper, node *corev1.Node) (int, error) {
 
 // NodeGroup drains a nodegroup
 func NodeGroup(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout time.Duration, maxGracePeriod time.Duration, undo bool) error {
-	drainer := &evictor.Helper{
+	drainer := &evictor.Evictor{
 		Client: clientSet,
 
 		// TODO: Force, DeleteLocalData & IgnoreAllDaemonSets shouldn't
