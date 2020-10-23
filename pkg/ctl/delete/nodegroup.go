@@ -128,7 +128,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 						logger.Warning(err)
 						return nil
 					}
-					logger.Warning("Continuing with force deletion, error occurred: %s", err)
+					logger.Warning("continuing with force deletion, error occurred: %s", err)
 				}
 			}
 		}
