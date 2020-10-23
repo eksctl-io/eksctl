@@ -137,7 +137,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		if !cmd.Plan {
 			for _, ng := range allNodeGroups {
 				if err := drain.NodeGroup(clientSet, ng, ctl.Provider.WaitTimeout(), maxGracePeriod, false); err != nil {
-					logger.Warning("error occurred during drain, to skip drain when deleting using '--drain=false' flag")
+					logger.Warning("error occurred during drain, to skip drain use '--drain=false' flag")
 					return err
 				}
 			}
