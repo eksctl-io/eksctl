@@ -106,14 +106,14 @@ func (d *Evictor) makeDeleteOptions(pod corev1.Pod) *metav1.DeleteOptions {
 // NOTE: CanUseEvictions must be called prior to this
 func (d *Evictor) EvictOrDeletePod(pod corev1.Pod) error {
 	if d.UseEvictions {
-		return d.EvictPod(pod)
+		return d.evictPod(pod)
 	}
-	return d.DeletePod(pod)
+	return d.deletePod(pod)
 }
 
-// EvictPod will evict the give Pod, or return an error if it couldn't
+// evictPod will evict the give Pod, or return an error if it couldn't
 // NOTE: CanUseEvictions must be called prior to this
-func (d *Evictor) EvictPod(pod corev1.Pod) error {
+func (d *Evictor) evictPod(pod corev1.Pod) error {
 	eviction := &policyv1beta1.Eviction{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: d.policyAPIGroupVersion,
@@ -128,8 +128,8 @@ func (d *Evictor) EvictPod(pod corev1.Pod) error {
 	return d.Client.PolicyV1beta1().Evictions(eviction.Namespace).Evict(eviction)
 }
 
-// DeletePod will Delete the given Pod, or return an error if it couldn't
-func (d *Evictor) DeletePod(pod corev1.Pod) error {
+// deletePod will Delete the given Pod, or return an error if it couldn't
+func (d *Evictor) deletePod(pod corev1.Pod) error {
 	return d.Client.CoreV1().Pods(pod.Namespace).Delete(pod.Name, d.makeDeleteOptions(pod))
 }
 
