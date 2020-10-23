@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"time"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/weaveworks/eksctl/pkg/drain/evictor"
+
+	corev1 "k8s.io/api/core/v1"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/eks"
 
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 )
@@ -22,27 +24,22 @@ import (
 // retryDelay is how long is slept before retry after an error occurs during drainage
 const retryDelay = 5 * time.Second
 
-func evictPods(drainer *evictor.Evictor, node *corev1.Node) (int, error) {
-	list, errs := drainer.GetPodsForDeletion(node.Name)
-	if len(errs) > 0 {
-		return 0, fmt.Errorf("errs: %v", errs) // TODO: improve formatting
-	}
-	if w := list.Warnings(); w != "" {
-		logger.Warning(w)
-	}
-	pods := list.Pods()
-	pending := len(pods)
-	for _, pod := range pods {
-		// TODO: handle API rate limiter error
-		if err := drainer.EvictOrDeletePod(pod); err != nil {
-			return pending, err
-		}
-	}
-	return pending, nil
+//go:generate counterfeiter -o fakes/fake_drainer.go . Drainer
+type Drainer interface {
+	CanUseEvictions() error
+	EvictOrDeletePod(pod corev1.Pod) error
+	GetPodsForDeletion(nodeName string) (*evictor.PodDeleteList, []error)
 }
 
-// NodeGroup drains a nodegroup
-func NodeGroup(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout time.Duration, maxGracePeriod time.Duration, undo bool) error {
+type NodeGroupDrainer struct {
+	clientSet   kubernetes.Interface
+	drainer     Drainer
+	ng          eks.KubeNodeGroup
+	waitTimeout time.Duration
+	undo        bool
+}
+
+func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout time.Duration, maxGracePeriod time.Duration, undo bool) NodeGroupDrainer {
 	drainer := &evictor.Evictor{
 		Client: clientSet,
 
@@ -86,29 +83,41 @@ func NodeGroup(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout
 		},
 	}
 
-	if err := drainer.CanUseEvictions(); err != nil {
+	return NodeGroupDrainer{
+		drainer:     drainer,
+		clientSet:   clientSet,
+		ng:          ng,
+		waitTimeout: waitTimeout,
+		undo:        undo,
+	}
+}
+
+// NodeGroup drains a nodegroup
+func (n *NodeGroupDrainer) Drain() error {
+
+	if err := n.drainer.CanUseEvictions(); err != nil {
 		return errors.Wrap(err, "checking if cluster implements policy API")
 	}
 
 	drainedNodes := sets.NewString()
 	// loop until all nodes are drained to handle accidental scale-up
 	// or any other changes in the ASG
-	timer := time.NewTimer(waitTimeout)
+	timer := time.NewTimer(n.waitTimeout)
 	defer timer.Stop()
 
-	timeoutErr := fmt.Errorf("timed out (after %s) waiting for nodegroup %q to be drained", waitTimeout, ng.NameString())
+	timeoutErr := fmt.Errorf("timed out (after %s) waiting for nodegroup %q to be drained", n.waitTimeout, n.ng.NameString())
 	for {
 		select {
 		case <-timer.C:
 			return timeoutErr
 		default:
-			nodes, err := clientSet.CoreV1().Nodes().List(ng.ListOptions())
+			nodes, err := n.clientSet.CoreV1().Nodes().List(n.ng.ListOptions())
 			if err != nil {
 				return err
 			}
 
 			if len(nodes.Items) == 0 {
-				logger.Warning("no nodes found in nodegroup %q (label selector: %q)", ng.NameString(), ng.ListOptions().LabelSelector)
+				logger.Warning("no nodes found in nodegroup %q (label selector: %q)", n.ng.NameString(), n.ng.ListOptions().LabelSelector)
 				return nil
 			}
 
@@ -119,10 +128,10 @@ func NodeGroup(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout
 					continue // already drained, get next one
 				}
 				newPendingNodes.Insert(node.Name)
-				desired := !undo
+				desired := !n.undo
 				c := NewCordonHelper(&node, desired)
 				if c.IsUpdateRequired() {
-					err, patchErr := c.PatchOrReplace(clientSet)
+					err, patchErr := c.PatchOrReplace(n.clientSet)
 					if patchErr != nil {
 						logger.Warning(patchErr.Error())
 					}
@@ -135,7 +144,7 @@ func NodeGroup(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout
 				}
 			}
 
-			if undo {
+			if n.undo {
 				return nil // no need to kill any pods
 			}
 
@@ -153,7 +162,7 @@ func NodeGroup(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout
 					case <-timer.C:
 						return timeoutErr
 					default:
-						pending, err := evictPods(drainer, &node)
+						pending, err := n.evictPods(&node)
 						if err != nil {
 							logger.Warning("pod eviction error (%q) on node %s – will retry after delay of %s", err, node.Name, retryDelay)
 							time.Sleep(retryDelay)
@@ -168,6 +177,25 @@ func NodeGroup(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout
 			}
 		}
 	}
+}
+
+func (n *NodeGroupDrainer) evictPods(node *corev1.Node) (int, error) {
+	list, errs := n.drainer.GetPodsForDeletion(node.Name)
+	if len(errs) > 0 {
+		return 0, fmt.Errorf("errs: %v", errs) // TODO: improve formatting
+	}
+	if w := list.Warnings(); w != "" {
+		logger.Warning(w)
+	}
+	pods := list.Pods()
+	pending := len(pods)
+	for _, pod := range pods {
+		// TODO: handle API rate limiter error
+		if err := n.drainer.EvictOrDeletePod(pod); err != nil {
+			return pending, err
+		}
+	}
+	return pending, nil
 }
 
 func cordonStatus(desired bool) string {

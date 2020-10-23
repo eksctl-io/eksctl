@@ -30,7 +30,7 @@ import (
 const (
 	// EvictionKind represents the kind of evictions object
 	EvictionKind = "Eviction"
-	// EvictionSubresource represents the kind of evictions object as pod's subresource
+	// EvictionSubresource represents the kind of evictions object as Pod's subresource
 	EvictionSubresource = "pods/eviction"
 )
 
@@ -102,7 +102,7 @@ func (d *Evictor) makeDeleteOptions(pod corev1.Pod) *metav1.DeleteOptions {
 	return deleteOptions
 }
 
-// EvictOrDeletePod will evict pod if policy API is available, otherwise deletes it
+// EvictOrDeletePod will evict Pod if policy API is available, otherwise deletes it
 // NOTE: CanUseEvictions must be called prior to this
 func (d *Evictor) EvictOrDeletePod(pod corev1.Pod) error {
 	if d.UseEvictions {
@@ -111,7 +111,7 @@ func (d *Evictor) EvictOrDeletePod(pod corev1.Pod) error {
 	return d.DeletePod(pod)
 }
 
-// EvictPod will evict the give pod, or return an error if it couldn't
+// EvictPod will evict the give Pod, or return an error if it couldn't
 // NOTE: CanUseEvictions must be called prior to this
 func (d *Evictor) EvictPod(pod corev1.Pod) error {
 	eviction := &policyv1beta1.Eviction{
@@ -128,7 +128,7 @@ func (d *Evictor) EvictPod(pod corev1.Pod) error {
 	return d.Client.PolicyV1beta1().Evictions(eviction.Namespace).Evict(eviction)
 }
 
-// DeletePod will delete the given pod, or return an error if it couldn't
+// DeletePod will Delete the given Pod, or return an error if it couldn't
 func (d *Evictor) DeletePod(pod corev1.Pod) error {
 	return d.Client.CoreV1().Pods(pod.Namespace).Delete(pod.Name, d.makeDeleteOptions(pod))
 }
@@ -150,26 +150,26 @@ func (d *Evictor) GetPodsForDeletion(nodeName string) (*PodDeleteList, []error) 
 		return nil, []error{err}
 	}
 
-	pods := []podDelete{}
+	pods := []PodDelete{}
 
 	for _, pod := range podList.Items {
-		var status podDeleteStatus
+		var status PodDeleteStatus
 		for _, filter := range d.makeFilters() {
 			status = filter(pod)
-			if !status.delete {
-				// short-circuit as soon as pod is filtered out
-				// at that point, there is no reason to run pod
+			if !status.Delete {
+				// short-circuit as soon as Pod is filtered out
+				// at that point, there is no Reason to run Pod
 				// through any additional filters
 				break
 			}
 		}
-		pods = append(pods, podDelete{
-			pod:    pod,
-			status: status,
+		pods = append(pods, PodDelete{
+			Pod:    pod,
+			Status: status,
 		})
 	}
 
-	list := &PodDeleteList{items: pods}
+	list := &PodDeleteList{Items: pods}
 
 	if errs := list.errors(); len(errs) > 0 {
 		return list, errs
