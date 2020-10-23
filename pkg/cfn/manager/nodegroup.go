@@ -22,8 +22,8 @@ import (
 const (
 	imageIDPath = resourcesRootPath + ".NodeGroupLaunchTemplate.Properties.LaunchTemplateData.ImageId"
 
-	nodeCreationSucceeded = "Creation succeeded"
-	nodeCreationFailed    = "Creation failed"
+	nodeGroupCreationSucceeded = "Creation succeeded"
+	nodeGroupCreationFailed    = "Creation failed"
 )
 
 // NodeGroupSummary represents a summary of a nodegroup stack
