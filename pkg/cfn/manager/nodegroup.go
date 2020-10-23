@@ -382,7 +382,7 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, ngPaths *node
 		StackName:       *stack.StackName,
 		Cluster:         getClusterNameTag(stack),
 		Name:            c.GetNodeGroupName(stack),
-		Status:          nodeCreationSucceeded,
+		Status:          nodeGroupCreationSucceeded,
 		MaxSize:         int(gjson.Get(template, ngPaths.MaxSize).Int()),
 		MinSize:         int(gjson.Get(template, ngPaths.MinSize).Int()),
 		DesiredCapacity: int(gjson.Get(template, ngPaths.DesiredCapacity).Int()),
@@ -408,7 +408,7 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, ngPaths *node
 		collectorSet := outputs.NewCollectorSet(collectors)
 		if err := collectorSet.MustCollect(*stack); err != nil {
 			logger.Info(errors.Wrapf(err, "error collecting Cloudformation outputs for stack %s", *stack.StackName).Error())
-			summary.Status = nodeCreationFailed
+			summary.Status = nodeGroupCreationFailed
 		}
 	}
 
