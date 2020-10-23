@@ -59,7 +59,8 @@ var _ = Describe("Drain", func() {
 
 			fakeDrainer.EvictOrDeletePodReturns(nil)
 
-			fakeClientSet.CoreV1().Nodes().Create(&corev1.Node{})
+			_, err := fakeClientSet.CoreV1().Nodes().Create(&corev1.Node{})
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("does not error", func() {

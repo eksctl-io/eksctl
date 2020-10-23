@@ -113,7 +113,8 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 	}
 	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 	for _, ng := range allNodeGroups {
-		if err := drain.NodeGroup(clientSet, ng, ctl.Provider.WaitTimeout(), maxGracePeriod, undo); err != nil {
+		nodeGroupDrainer := drain.NewNodeGroupDrainer(clientSet, ng, ctl.Provider.WaitTimeout(), maxGracePeriod, undo)
+		if err := nodeGroupDrainer.Drain(); err != nil {
 			return err
 		}
 	}

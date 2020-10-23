@@ -135,7 +135,8 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 		if !cmd.Plan {
 			for _, ng := range allNodeGroups {
-				if err := drain.NodeGroup(clientSet, ng, ctl.Provider.WaitTimeout(), maxGracePeriod, false); err != nil {
+				nodeGroupDrainer := drain.NewNodeGroupDrainer(clientSet, ng, ctl.Provider.WaitTimeout(), maxGracePeriod, false)
+				if err := nodeGroupDrainer.Drain(); err != nil {
 					return err
 				}
 			}
