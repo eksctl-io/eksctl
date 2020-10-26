@@ -27,10 +27,10 @@ func MakeImageSearchPatterns(version string) map[string]map[int]string {
 			ImageClassARM:     fmt.Sprintf("amazon-eks-arm64-node-%s-*", version),
 		},
 		api.NodeImageFamilyUbuntu2004: {
-			ImageClassGeneral: fmt.Sprintf("ubuntu-eks/k8s_%s/images/*", version),
+			ImageClassGeneral: fmt.Sprintf("ubuntu-eks/k8s_%s/images/*20.04*", version),
 		},
 		api.NodeImageFamilyUbuntu1804: {
-			ImageClassGeneral: fmt.Sprintf("ubuntu-eks/k8s_%s/images/*", version),
+			ImageClassGeneral: fmt.Sprintf("ubuntu-eks/k8s_%s/images/*18.04*", version),
 		},
 		api.NodeImageFamilyWindowsServer2019CoreContainer: {
 			ImageClassGeneral: fmt.Sprintf("Windows_Server-2019-English-Core-EKS_Optimized-%v-*", version),
