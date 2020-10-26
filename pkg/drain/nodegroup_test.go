@@ -46,7 +46,7 @@ var _ = Describe("Drain", func() {
 				},
 			}
 
-			fakeEvictor.GetPodsForDeletionReturnsOnCall(0, &evictor.PodDeleteList{
+			fakeEvictor.GetPodsForEvictionReturnsOnCall(0, &evictor.PodDeleteList{
 				Items: []evictor.PodDelete{
 					{
 						Pod: pod,
@@ -56,9 +56,9 @@ var _ = Describe("Drain", func() {
 					},
 				},
 			}, nil)
-			fakeEvictor.GetPodsForDeletionReturnsOnCall(1, &evictor.PodDeleteList{}, nil)
+			fakeEvictor.GetPodsForEvictionReturnsOnCall(1, &evictor.PodDeleteList{}, nil)
 
-			fakeEvictor.EvictOrDeletePodReturns(nil)
+			fakeEvictor.EvictPodReturns(nil)
 
 			_, err := fakeClientSet.CoreV1().Nodes().Create(&corev1.Node{
 				ObjectMeta: metav1.ObjectMeta{
@@ -78,9 +78,9 @@ var _ = Describe("Drain", func() {
 			err := nodeGroupDrainer.Drain()
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeEvictor.GetPodsForDeletionCallCount()).To(Equal(2))
-			Expect(fakeEvictor.EvictOrDeletePodCallCount()).To(Equal(1))
-			Expect(fakeEvictor.EvictOrDeletePodArgsForCall(0)).To(Equal(pod))
+			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(Equal(2))
+			Expect(fakeEvictor.EvictPodCallCount()).To(Equal(1))
+			Expect(fakeEvictor.EvictPodArgsForCall(0)).To(Equal(pod))
 
 			node, err := fakeClientSet.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
@@ -98,7 +98,7 @@ var _ = Describe("Drain", func() {
 				},
 			}
 
-			fakeEvictor.GetPodsForDeletionReturns(&evictor.PodDeleteList{
+			fakeEvictor.GetPodsForEvictionReturns(&evictor.PodDeleteList{
 				Items: []evictor.PodDelete{
 					{
 						Pod: pod,
@@ -109,7 +109,7 @@ var _ = Describe("Drain", func() {
 				},
 			}, nil)
 
-			fakeEvictor.EvictOrDeletePodReturns(nil)
+			fakeEvictor.EvictPodReturns(nil)
 
 			_, err := fakeClientSet.CoreV1().Nodes().Create(&corev1.Node{})
 			Expect(err).NotTo(HaveOccurred())
@@ -162,8 +162,8 @@ var _ = Describe("Drain", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(node.Spec.Unschedulable).To(BeFalse())
 
-			Expect(fakeEvictor.GetPodsForDeletionCallCount()).To(BeZero())
-			Expect(fakeEvictor.EvictOrDeletePodCallCount()).To(BeZero())
+			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(BeZero())
+			Expect(fakeEvictor.EvictPodCallCount()).To(BeZero())
 		})
 	})
 })

@@ -27,8 +27,8 @@ const retryDelay = 5 * time.Second
 //go:generate counterfeiter -o fakes/fake_evictor.go . Evictor
 type Evictor interface {
 	CanUseEvictions() error
-	EvictOrDeletePod(pod corev1.Pod) error
-	GetPodsForDeletion(nodeName string) (*evictor.PodDeleteList, []error)
+	EvictPod(pod corev1.Pod) error
+	GetPodsForEviction(nodeName string) (*evictor.PodDeleteList, []error)
 }
 
 type NodeGroupDrainer struct {
@@ -182,7 +182,7 @@ func (n *NodeGroupDrainer) toggleCordon(cordon bool, nodes *corev1.NodeList) {
 }
 
 func (n *NodeGroupDrainer) evictPods(node string) (int, error) {
-	list, errs := n.evictor.GetPodsForDeletion(node)
+	list, errs := n.evictor.GetPodsForEviction(node)
 	if len(errs) > 0 {
 		return 0, fmt.Errorf("errs: %v", errs) // TODO: improve formatting
 	}
@@ -193,7 +193,7 @@ func (n *NodeGroupDrainer) evictPods(node string) (int, error) {
 	pending := len(pods)
 	for _, pod := range pods {
 		// TODO: handle API rate limiter error
-		if err := n.evictor.EvictOrDeletePod(pod); err != nil {
+		if err := n.evictor.EvictPod(pod); err != nil {
 			return pending, err
 		}
 	}

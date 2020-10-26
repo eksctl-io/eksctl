@@ -104,7 +104,7 @@ func (d *Evictor) makeDeleteOptions(pod corev1.Pod) *metav1.DeleteOptions {
 
 // EvictOrDeletePod will evict Pod if policy API is available, otherwise deletes it
 // NOTE: CanUseEvictions must be called prior to this
-func (d *Evictor) EvictOrDeletePod(pod corev1.Pod) error {
+func (d *Evictor) EvictPod(pod corev1.Pod) error {
 	if d.UseEvictions {
 		return d.evictPod(pod)
 	}
@@ -137,7 +137,7 @@ func (d *Evictor) deletePod(pod corev1.Pod) error {
 // filters, and returns PodDeleteList along with any errors. All pods that are ready
 // to be deleted can be obtained with .Pods(), and string with all warning can be obtained
 // with .Warnings()
-func (d *Evictor) GetPodsForDeletion(nodeName string) (*PodDeleteList, []error) {
+func (d *Evictor) GetPodsForEviction(nodeName string) (*PodDeleteList, []error) {
 	labelSelector, err := labels.Parse(d.PodSelector)
 	if err != nil {
 		return nil, []error{err}
