@@ -94,7 +94,6 @@ func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, w
 
 // NodeGroup drains a nodegroup
 func (n *NodeGroupDrainer) Drain() error {
-
 	if err := n.drainer.CanUseEvictions(); err != nil {
 		return errors.Wrap(err, "checking if cluster implements policy API")
 	}
@@ -158,20 +157,15 @@ func (n *NodeGroupDrainer) Drain() error {
 
 			for _, node := range nodes.Items {
 				if newPendingNodes.Has(node.Name) {
-					select {
-					case <-timer.C:
-						return timeoutErr
-					default:
-						pending, err := n.evictPods(&node)
-						if err != nil {
-							logger.Warning("pod eviction error (%q) on node %s – will retry after delay of %s", err, node.Name, retryDelay)
-							time.Sleep(retryDelay)
-							continue
-						}
-						logger.Debug("%d pods to be evicted from %s", pending, node.Name)
-						if pending == 0 {
-							drainedNodes.Insert(node.Name)
-						}
+					pending, err := n.evictPods(&node)
+					if err != nil {
+						logger.Warning("pod eviction error (%q) on node %s – will retry after delay of %s", err, node.Name, retryDelay)
+						time.Sleep(retryDelay)
+						continue
+					}
+					logger.Debug("%d pods to be evicted from %s", pending, node.Name)
+					if pending == 0 {
+						drainedNodes.Insert(node.Name)
 					}
 				}
 			}
