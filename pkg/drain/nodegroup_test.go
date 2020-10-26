@@ -25,6 +25,7 @@ var _ = Describe("Drain", func() {
 		mockNG        mocks.KubeNodeGroup
 		fakeClientSet *fake.Clientset
 		fakeDrainer   *fakes.FakeDrainer
+		nodeName      = "node-1"
 	)
 
 	BeforeEach(func() {
@@ -59,7 +60,14 @@ var _ = Describe("Drain", func() {
 
 			fakeDrainer.EvictOrDeletePodReturns(nil)
 
-			_, err := fakeClientSet.CoreV1().Nodes().Create(&corev1.Node{})
+			_, err := fakeClientSet.CoreV1().Nodes().Create(&corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: nodeName,
+				},
+				Spec: corev1.NodeSpec{
+					Unschedulable: false,
+				},
+			})
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -69,9 +77,14 @@ var _ = Describe("Drain", func() {
 
 			err := nodeGroupDrainer.Drain()
 			Expect(err).NotTo(HaveOccurred())
+
 			Expect(fakeDrainer.GetPodsForDeletionCallCount()).To(Equal(2))
 			Expect(fakeDrainer.EvictOrDeletePodCallCount()).To(Equal(1))
 			Expect(fakeDrainer.EvictOrDeletePodArgsForCall(0)).To(Equal(pod))
+
+			node, err := fakeClientSet.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(node.Spec.Unschedulable).To(BeTrue())
 		})
 	})
 
@@ -122,6 +135,35 @@ var _ = Describe("Drain", func() {
 
 			err := nodeGroupDrainer.Drain()
 			Expect(err).To(MatchError("checking if cluster implements policy API: error1"))
+		})
+	})
+
+	When("undo is true", func() {
+		BeforeEach(func() {
+			_, err := fakeClientSet.CoreV1().Nodes().Create(&corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: nodeName,
+				},
+				Spec: corev1.NodeSpec{
+					Unschedulable: true,
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("uncordons all the nodes", func() {
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, true)
+			nodeGroupDrainer.SetDrainer(fakeDrainer)
+
+			err := nodeGroupDrainer.Drain()
+			Expect(err).NotTo(HaveOccurred())
+
+			node, err := fakeClientSet.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(node.Spec.Unschedulable).To(BeFalse())
+
+			Expect(fakeDrainer.GetPodsForDeletionCallCount()).To(BeZero())
+			Expect(fakeDrainer.EvictOrDeletePodCallCount()).To(BeZero())
 		})
 	})
 })
