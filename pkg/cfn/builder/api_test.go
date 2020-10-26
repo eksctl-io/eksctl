@@ -2463,6 +2463,253 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
+	Context("UserData - Ubuntu2004", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		cfg.VPC.CIDR, _ = ipnet.ParseCIDR("10.1.0.0/16")
+		ng.AMIFamily = "Ubuntu2004"
+		ng.InstanceType = "m5.large"
+
+		build(cfg, "eksctl-test-123-cluster", ng)
+
+		roundtrip()
+
+		extractCloudConfig()
+
+		It("should have correct description", func() {
+			Expect(ngTemplate.Description).To(ContainSubstring("AMI family: Ubuntu2004"))
+			Expect(ngTemplate.Description).To(ContainSubstring("SSH access: false"))
+			Expect(ngTemplate.Description).To(ContainSubstring("private networking: false"))
+		})
+
+		It("should have packages, scripts and commands in cloud-config", func() {
+			Expect(cc.Packages).Should(BeEmpty())
+
+			kubeletEnv := getFile(cc, "/etc/eksctl/kubelet.env")
+			Expect(kubeletEnv).ToNot(BeNil())
+			Expect(kubeletEnv.Permissions).To(Equal("0644"))
+			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
+				"NODE_LABELS=",
+				"NODE_TAINTS=",
+				"CLUSTER_DNS=172.20.0.10",
+			}))
+
+			kubeconfig := getFile(cc, "/etc/eksctl/kubeconfig.yaml")
+			Expect(kubeconfig).ToNot(BeNil())
+			Expect(kubeconfig.Permissions).To(Equal("0644"))
+			Expect(kubeconfig.Content).To(MatchYAML(kubeconfigBody("heptio-authenticator-aws")))
+
+			kubeletConfigAssetContent, err := nodebootstrap.Asset("kubelet.yaml")
+			Expect(err).ToNot(HaveOccurred())
+			kubeletConfigTemplate := completeKubeletConfig(kubeletConfigAssetContent, "172.20.0.10")
+			kubeletConfigAssetContentString := kubeletConfigTemplate + "resolvConf: /run/systemd/resolve/resolv.conf\n"
+
+			kubeletConfig := getFile(cc, "/etc/eksctl/kubelet.yaml")
+			Expect(kubeletConfig).ToNot(BeNil())
+			Expect(kubeletConfig.Permissions).To(Equal("0644"))
+
+			Expect(kubeletConfig.Content).To(MatchYAML(kubeletConfigAssetContentString))
+
+			ca := getFile(cc, "/etc/eksctl/ca.crt")
+			Expect(ca).ToNot(BeNil())
+			Expect(ca.Permissions).To(Equal("0644"))
+			Expect(ca.Content).To(Equal(string(caCertData)))
+
+			checkScript(cc, "/var/lib/cloud/scripts/per-instance/bootstrap.ubuntu.sh", true)
+		})
+	})
+
+	Context("UserData - Ubuntu2004 (custom VPC CIDR and pre-bootstrap script)", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		cfg.VPC.CIDR, _ = ipnet.ParseCIDR("10.1.0.0/16")
+		ng.AMIFamily = "Ubuntu2004"
+		ng.InstanceType = "m5.large"
+
+		ng.PreBootstrapCommands = []string{
+			"while true ; do echo foo > /dev/null ; done",
+		}
+
+		build(cfg, "eksctl-test-123-cluster", ng)
+
+		roundtrip()
+
+		extractCloudConfig()
+
+		It("should have correct description", func() {
+			Expect(ngTemplate.Description).To(ContainSubstring("AMI family: Ubuntu2004"))
+			Expect(ngTemplate.Description).To(ContainSubstring("SSH access: false"))
+			Expect(ngTemplate.Description).To(ContainSubstring("private networking: false"))
+		})
+
+		It("should have packages, scripts and commands in cloud-config", func() {
+			Expect(cc.Packages).Should(BeEmpty())
+
+			kubeletEnv := getFile(cc, "/etc/eksctl/kubelet.env")
+			Expect(kubeletEnv).ToNot(BeNil())
+			Expect(kubeletEnv.Permissions).To(Equal("0644"))
+			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
+				"NODE_LABELS=",
+				"NODE_TAINTS=",
+				"CLUSTER_DNS=172.20.0.10",
+			}))
+
+			kubeconfig := getFile(cc, "/etc/eksctl/kubeconfig.yaml")
+			Expect(kubeconfig).ToNot(BeNil())
+			Expect(kubeconfig.Permissions).To(Equal("0644"))
+			Expect(kubeconfig.Content).To(MatchYAML(kubeconfigBody("heptio-authenticator-aws")))
+
+			ca := getFile(cc, "/etc/eksctl/ca.crt")
+			Expect(ca).ToNot(BeNil())
+			Expect(ca.Permissions).To(Equal("0644"))
+			Expect(ca.Content).To(Equal(string(caCertData)))
+
+			checkScript(cc, "/var/lib/cloud/scripts/per-instance/bootstrap.ubuntu.sh", true)
+
+			for i, cmd := range ng.PreBootstrapCommands {
+				c := cc.Commands[i].([]interface{})
+				Expect(c[0]).To(Equal("/bin/bash"))
+				Expect(c[1]).To(Equal("-c"))
+				Expect(c[2]).To(Equal(cmd))
+			}
+		})
+	})
+
+	Context("UserData - Ubuntu2004 (custom bootstrap)", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		cfg.VPC.CIDR, _ = ipnet.ParseCIDR("10.1.0.0/16")
+		ng.AMIFamily = "Ubuntu2004"
+		ng.InstanceType = "m5.large"
+		ng.MaxPodsPerNode = 66
+
+		ng.Labels = map[string]string{
+			"os": "ubuntu",
+		}
+		ng.Taints = map[string]string{
+			"key1": "value1:NoSchedule",
+		}
+
+		ng.ClusterDNS = "169.254.20.10"
+
+		ng.OverrideBootstrapCommand = &overrideBootstrapCommand
+
+		build(cfg, "eksctl-test-123-cluster", ng)
+
+		roundtrip()
+
+		extractCloudConfig()
+
+		It("should have correct description", func() {
+			Expect(ngTemplate.Description).To(ContainSubstring("AMI family: Ubuntu2004"))
+			Expect(ngTemplate.Description).To(ContainSubstring("SSH access: false"))
+			Expect(ngTemplate.Description).To(ContainSubstring("private networking: false"))
+		})
+
+		It("should have packages, scripts and commands in cloud-config", func() {
+			Expect(cc.Packages).Should(BeEmpty())
+
+			kubeletEnv := getFile(cc, "/etc/eksctl/kubelet.env")
+			Expect(kubeletEnv).ToNot(BeNil())
+			Expect(kubeletEnv.Permissions).To(Equal("0644"))
+			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
+				"NODE_LABELS=os=ubuntu",
+				"NODE_TAINTS=key1=value1:NoSchedule",
+				"MAX_PODS=66",
+				"CLUSTER_DNS=169.254.20.10",
+			}))
+
+			kubeconfig := getFile(cc, "/etc/eksctl/kubeconfig.yaml")
+			Expect(kubeconfig).ToNot(BeNil())
+			Expect(kubeconfig.Permissions).To(Equal("0644"))
+			Expect(kubeconfig.Content).To(MatchYAML(kubeconfigBody("heptio-authenticator-aws")))
+
+			ca := getFile(cc, "/etc/eksctl/ca.crt")
+			Expect(ca).ToNot(BeNil())
+			Expect(ca.Permissions).To(Equal("0644"))
+			Expect(ca.Content).To(Equal(string(caCertData)))
+
+			script := getFile(cc, "/var/lib/cloud/scripts/per-instance/bootstrap.ubuntu.sh")
+			Expect(script).To(BeNil())
+
+			Expect(cc.Commands).To(HaveLen(1))
+			Expect(cc.Commands[0]).To(HaveLen(3))
+			Expect(cc.Commands[0].([]interface{})[0]).To(Equal("/bin/bash"))
+			Expect(cc.Commands[0].([]interface{})[1]).To(Equal("-c"))
+			Expect(cc.Commands[0].([]interface{})[2]).To(Equal(overrideBootstrapCommand))
+		})
+	})
+
+	Context("UserData - Ubuntu2004 (custom bootstrap and pre-bootstrap)", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		cfg.VPC.CIDR, _ = ipnet.ParseCIDR("10.1.0.0/16")
+		ng.AMIFamily = "Ubuntu2004"
+		ng.InstanceType = "m5.large"
+
+		ng.Labels = map[string]string{
+			"os": "ubuntu",
+		}
+
+		ng.ClusterDNS = "169.254.20.10"
+
+		ng.PreBootstrapCommands = []string{"echo 1 > /tmp/1", "echo 2 > /tmp/2", "echo 3 > /tmp/3"}
+		ng.OverrideBootstrapCommand = &overrideBootstrapCommand
+
+		build(cfg, "eksctl-test-123-cluster", ng)
+
+		roundtrip()
+
+		extractCloudConfig()
+
+		It("should have correct description", func() {
+			Expect(ngTemplate.Description).To(ContainSubstring("AMI family: Ubuntu2004"))
+			Expect(ngTemplate.Description).To(ContainSubstring("SSH access: false"))
+			Expect(ngTemplate.Description).To(ContainSubstring("private networking: false"))
+		})
+
+		It("should have packages, scripts and commands in cloud-config", func() {
+			Expect(cc.Packages).Should(BeEmpty())
+
+			kubeletEnv := getFile(cc, "/etc/eksctl/kubelet.env")
+			Expect(kubeletEnv).ToNot(BeNil())
+			Expect(kubeletEnv.Permissions).To(Equal("0644"))
+			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
+				"NODE_LABELS=os=ubuntu",
+				"NODE_TAINTS=",
+				"CLUSTER_DNS=169.254.20.10",
+			}))
+
+			kubeconfig := getFile(cc, "/etc/eksctl/kubeconfig.yaml")
+			Expect(kubeconfig).ToNot(BeNil())
+			Expect(kubeconfig.Permissions).To(Equal("0644"))
+			Expect(kubeconfig.Content).To(MatchYAML(kubeconfigBody("heptio-authenticator-aws")))
+
+			ca := getFile(cc, "/etc/eksctl/ca.crt")
+			Expect(ca).ToNot(BeNil())
+			Expect(ca.Permissions).To(Equal("0644"))
+			Expect(ca.Content).To(Equal(string(caCertData)))
+
+			script := getFile(cc, "/var/lib/cloud/scripts/per-instance/bootstrap.ubuntu.sh")
+			Expect(script).To(BeNil())
+
+			Expect(cc.Commands).To(HaveLen(4))
+			Expect(cc.Commands[0]).To(HaveLen(3))
+
+			for i, cmd := range ng.PreBootstrapCommands {
+				c := cc.Commands[i].([]interface{})
+				Expect(c[0]).To(Equal("/bin/bash"))
+				Expect(c[1]).To(Equal("-c"))
+				Expect(c[2]).To(Equal(cmd))
+			}
+
+			c3 := cc.Commands[3].([]interface{})
+			Expect(c3[0]).To(Equal("/bin/bash"))
+			Expect(c3[1]).To(Equal("-c"))
+			Expect(c3[2]).To(Equal(overrideBootstrapCommand))
+		})
+	})
+
 	Context("with Fargate profiles", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 		name := "test-fargate-profile"

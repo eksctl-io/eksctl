@@ -231,8 +231,8 @@ func NewUserData(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
 	switch ng.AMIFamily {
 	case api.NodeImageFamilyAmazonLinux2:
 		return NewUserDataForAmazonLinux2(spec, ng)
-	case api.NodeImageFamilyUbuntu1804:
-		return NewUserDataForUbuntu1804(spec, ng)
+	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
+		return NewUserDataForUbuntu(spec, ng)
 	case api.NodeImageFamilyBottlerocket:
 		return NewUserDataForBottlerocket(spec, ng)
 	default:
