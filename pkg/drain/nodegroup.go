@@ -98,6 +98,21 @@ func (n *NodeGroupDrainer) Drain() error {
 		return errors.Wrap(err, "checking if cluster implements policy API")
 	}
 
+	nodes, err := n.clientSet.CoreV1().Nodes().List(n.ng.ListOptions())
+	if err != nil {
+		return err
+	}
+
+	if len(nodes.Items) == 0 {
+		logger.Warning("no nodes found in nodegroup %q (label selector: %q)", n.ng.NameString(), n.ng.ListOptions().LabelSelector)
+		return nil
+	}
+
+	if n.undo {
+		n.toggleCordon(false, nodes)
+		return nil // no need to kill any pods
+	}
+
 	drainedNodes := sets.NewString()
 	// loop until all nodes are drained to handle accidental scale-up
 	// or any other changes in the ASG
@@ -115,66 +130,63 @@ func (n *NodeGroupDrainer) Drain() error {
 				return err
 			}
 
-			if len(nodes.Items) == 0 {
-				logger.Warning("no nodes found in nodegroup %q (label selector: %q)", n.ng.NameString(), n.ng.ListOptions().LabelSelector)
-				return nil
-			}
-
 			newPendingNodes := sets.NewString()
+
+			n.toggleCordon(true, nodes)
 
 			for _, node := range nodes.Items {
 				if drainedNodes.Has(node.Name) {
 					continue // already drained, get next one
 				}
 				newPendingNodes.Insert(node.Name)
-				desired := !n.undo
-				c := NewCordonHelper(&node, desired)
-				if c.IsUpdateRequired() {
-					err, patchErr := c.PatchOrReplace(n.clientSet)
-					if patchErr != nil {
-						logger.Warning(patchErr.Error())
-					}
-					if err != nil {
-						logger.Critical(err.Error())
-					}
-					logger.Info("%s node %q", cordonStatus(desired), node.Name)
-				} else {
-					logger.Debug("no need to %s node %q", cordonStatus(desired), node.Name)
-				}
 			}
 
-			if n.undo {
-				return nil // no need to kill any pods
-			}
-
-			if drainedNodes.HasAll(newPendingNodes.List()...) {
-				logger.Success("drained nodes: %v", drainedNodes.List())
+			if newPendingNodes.Len() == 0 {
+				logger.Success("drained all nodes: %v", drainedNodes.List())
 				return nil // no new nodes were seen
 			}
 
 			logger.Debug("already drained: %v", drainedNodes.List())
 			logger.Debug("will drain: %v", newPendingNodes.List())
 
-			for _, node := range nodes.Items {
-				if newPendingNodes.Has(node.Name) {
-					pending, err := n.evictPods(&node)
-					if err != nil {
-						logger.Warning("pod eviction error (%q) on node %s – will retry after delay of %s", err, node.Name, retryDelay)
-						time.Sleep(retryDelay)
-						continue
-					}
-					logger.Debug("%d pods to be evicted from %s", pending, node.Name)
-					if pending == 0 {
-						drainedNodes.Insert(node.Name)
-					}
+			for _, node := range newPendingNodes.List() {
+				pending, err := n.evictPods(node)
+				if err != nil {
+					logger.Warning("pod eviction error (%q) on node %s – will retry after delay of %s", err, node, retryDelay)
+					time.Sleep(retryDelay)
+					continue
 				}
+				logger.Debug("%d pods to be evicted from %s", pending, node)
+				if pending == 0 {
+					drainedNodes.Insert(node)
+				}
+
 			}
 		}
 	}
 }
 
-func (n *NodeGroupDrainer) evictPods(node *corev1.Node) (int, error) {
-	list, errs := n.drainer.GetPodsForDeletion(node.Name)
+func (n *NodeGroupDrainer) toggleCordon(cordon bool, nodes *corev1.NodeList) {
+	for _, node := range nodes.Items {
+		c := NewCordonHelper(&node, cordon)
+		if c.IsUpdateRequired() {
+			err, patchErr := c.PatchOrReplace(n.clientSet)
+			if patchErr != nil {
+				logger.Warning(patchErr.Error())
+			}
+			if err != nil {
+				logger.Critical(err.Error())
+			}
+			logger.Info("%s node %q", cordonStatus(cordon), node.Name)
+		} else {
+			logger.Debug("no need to %s node %q", cordonStatus(cordon), node.Name)
+		}
+	}
+
+}
+
+func (n *NodeGroupDrainer) evictPods(node string) (int, error) {
+	list, errs := n.drainer.GetPodsForDeletion(node)
 	if len(errs) > 0 {
 		return 0, fmt.Errorf("errs: %v", errs) // TODO: improve formatting
 	}
