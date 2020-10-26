@@ -119,11 +119,10 @@ func (n *NodeGroupDrainer) Drain() error {
 	timer := time.NewTimer(n.waitTimeout)
 	defer timer.Stop()
 
-	timeoutErr := fmt.Errorf("timed out (after %s) waiting for nodegroup %q to be drained", n.waitTimeout, n.ng.NameString())
 	for {
 		select {
 		case <-timer.C:
-			return timeoutErr
+			return fmt.Errorf("timed out (after %s) waiting for nodegroup %q to be drained", n.waitTimeout, n.ng.NameString())
 		default:
 			nodes, err := n.clientSet.CoreV1().Nodes().List(n.ng.ListOptions())
 			if err != nil {
@@ -135,10 +134,9 @@ func (n *NodeGroupDrainer) Drain() error {
 			n.toggleCordon(true, nodes)
 
 			for _, node := range nodes.Items {
-				if drainedNodes.Has(node.Name) {
-					continue // already drained, get next one
+				if !drainedNodes.Has(node.Name) {
+					newPendingNodes.Insert(node.Name)
 				}
-				newPendingNodes.Insert(node.Name)
 			}
 
 			if newPendingNodes.Len() == 0 {
@@ -152,7 +150,7 @@ func (n *NodeGroupDrainer) Drain() error {
 			for _, node := range newPendingNodes.List() {
 				pending, err := n.evictPods(node)
 				if err != nil {
-					logger.Warning("pod eviction error (%q) on node %s – will retry after delay of %s", err, node, retryDelay)
+					logger.Warning("pod eviction error (%q) on node %s", err, node)
 					time.Sleep(retryDelay)
 					continue
 				}
@@ -160,7 +158,6 @@ func (n *NodeGroupDrainer) Drain() error {
 				if pending == 0 {
 					drainedNodes.Insert(node)
 				}
-
 			}
 		}
 	}
