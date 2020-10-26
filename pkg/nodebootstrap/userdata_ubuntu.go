@@ -11,6 +11,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
+const ubuntu2004ResolveConfPath = "/run/systemd/resolve/resolv.conf"
+
 func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles, error) {
 	clientConfigData, err := makeClientConfigData(spec, kubeconfig.HeptioAuthenticatorAWS)
 	if err != nil {
@@ -27,14 +29,11 @@ func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles, 
 
 	// Set resolvConf for Ubuntu 20.04 only, do not override user set value
 	if ng.AMIFamily == api.NodeImageFamilyUbuntu2004 {
-		if ng.KubeletExtraConfig != nil {
-			if (*ng.KubeletExtraConfig)["resolvConf"] == nil {
-				(*ng.KubeletExtraConfig)["resolvConf"] = "/run/systemd/resolve/resolv.conf"
-			}
-		} else {
-			ng.KubeletExtraConfig = &api.InlineDocument{
-				"resolvConf": "/run/systemd/resolve/resolv.conf",
-			}
+		if ng.KubeletExtraConfig == nil {
+			ng.KubeletExtraConfig = &api.InlineDocument{}
+		}
+		if _, ok := (*ng.KubeletExtraConfig)["resolvConf"]; !ok {
+			(*ng.KubeletExtraConfig)["resolvConf"] = ubuntu2004ResolveConfPath
 		}
 	}
 
