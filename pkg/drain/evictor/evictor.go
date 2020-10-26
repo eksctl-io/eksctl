@@ -36,7 +36,6 @@ const (
 
 // Evictor contains the parameters to control the behaviour of the evictor
 type Evictor struct {
-	selector    string
 	podSelector string
 
 	client kubernetes.Interface
@@ -45,7 +44,6 @@ type Evictor struct {
 	DryRun bool
 
 	maxGracePeriodSeconds int
-	timeout               time.Duration
 
 	ignoreAllDaemonSets bool
 	ignoreDaemonSets    []metav1.ObjectMeta
