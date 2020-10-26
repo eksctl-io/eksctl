@@ -128,10 +128,9 @@ func (n *NodeGroupDrainer) Drain() error {
 			if err != nil {
 				return err
 			}
+			n.toggleCordon(true, nodes)
 
 			newPendingNodes := sets.NewString()
-
-			n.toggleCordon(true, nodes)
 
 			for _, node := range nodes.Items {
 				if !drainedNodes.Has(node.Name) {
