@@ -190,16 +190,16 @@ func (d Evictor) daemonSetFilter(pod corev1.Pod) PodDeleteStatus {
 		return makePodDeleteStatusOkay()
 	}
 
-	if _, err := d.Client.AppsV1().DaemonSets(pod.Namespace).Get(controllerRef.Name, metav1.GetOptions{}); err != nil {
+	if _, err := d.client.AppsV1().DaemonSets(pod.Namespace).Get(controllerRef.Name, metav1.GetOptions{}); err != nil {
 		// remove orphaned pods with a warning if --force is used
-		if apierrors.IsNotFound(err) && d.Force {
+		if apierrors.IsNotFound(err) && d.force {
 			return makePodDeleteStatusWithWarning(true, err.Error())
 		}
 
 		return makePodDeleteStatusWithError(err.Error())
 	}
 
-	for _, ignoreDaemonSet := range d.IgnoreDaemonSets {
+	for _, ignoreDaemonSet := range d.ignoreDaemonSets {
 		if controllerRef.Name == ignoreDaemonSet.Name {
 			switch ignoreDaemonSet.Namespace {
 			case pod.Namespace, metav1.NamespaceAll:
@@ -208,7 +208,7 @@ func (d Evictor) daemonSetFilter(pod corev1.Pod) PodDeleteStatus {
 		}
 	}
 
-	if !d.IgnoreAllDaemonSets {
+	if !d.ignoreAllDaemonSets {
 		return makePodDeleteStatusWithError(daemonSetFatal)
 	}
 
@@ -230,7 +230,7 @@ func (d Evictor) localStorageFilter(pod corev1.Pod) PodDeleteStatus {
 	if pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed {
 		return makePodDeleteStatusOkay()
 	}
-	if !d.DeleteLocalData {
+	if !d.deleteLocalData {
 		return makePodDeleteStatusWithError(localStorageFatal)
 	}
 
@@ -247,7 +247,7 @@ func (d Evictor) unreplicatedFilter(pod corev1.Pod) PodDeleteStatus {
 	if controllerRef != nil {
 		return makePodDeleteStatusOkay()
 	}
-	if d.Force {
+	if d.force {
 		return makePodDeleteStatusWithWarning(true, unmanagedWarning)
 	}
 	return makePodDeleteStatusWithError(unmanagedFatal)

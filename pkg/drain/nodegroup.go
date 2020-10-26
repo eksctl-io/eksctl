@@ -40,51 +40,34 @@ type NodeGroupDrainer struct {
 }
 
 func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout time.Duration, maxGracePeriod time.Duration, undo bool) NodeGroupDrainer {
-	evictor := &evictor.Evictor{
-		Client: clientSet,
-
-		// TODO: Force, DeleteLocalData & IgnoreAllDaemonSets shouldn't
-		// be enabled by default, we need flags to control these, but that
-		// requires more improvements in the underlying drain package,
-		// as it currently produces errors and warnings with references
-		// to kubectl flags
-		Force:               true,
-		DeleteLocalData:     true,
-		IgnoreAllDaemonSets: true,
-
-		MaxGracePeriodSeconds: int(maxGracePeriod.Seconds()),
-
-		// TODO: ideally only the list of well-known DaemonSets should
-		// be set by default
-		IgnoreDaemonSets: []metav1.ObjectMeta{
-			{
-				Namespace: "kube-system",
-				Name:      "aws-node",
-			},
-			{
-				Namespace: "kube-system",
-				Name:      "kube-proxy",
-			},
-			{
-				Name: "node-exporter",
-			},
-			{
-				Name: "prom-node-exporter",
-			},
-			{
-				Name: "weave-scope",
-			},
-			{
-				Name: "weave-scope-agent",
-			},
-			{
-				Name: "weave-net",
-			},
+	ignoreDaemonSets := []metav1.ObjectMeta{
+		{
+			Namespace: "kube-system",
+			Name:      "aws-node",
+		},
+		{
+			Namespace: "kube-system",
+			Name:      "kube-proxy",
+		},
+		{
+			Name: "node-exporter",
+		},
+		{
+			Name: "prom-node-exporter",
+		},
+		{
+			Name: "weave-scope",
+		},
+		{
+			Name: "weave-scope-agent",
+		},
+		{
+			Name: "weave-net",
 		},
 	}
 
 	return NodeGroupDrainer{
-		evictor:     evictor,
+		evictor:     evictor.New(clientSet, maxGracePeriod, ignoreDaemonSets),
 		clientSet:   clientSet,
 		ng:          ng,
 		waitTimeout: waitTimeout,

@@ -34,30 +34,46 @@ const (
 	EvictionSubresource = "pods/eviction"
 )
 
-// Evictor contains the parameters to control the behaviour of drainer
+// Evictor contains the parameters to control the behaviour of the evictor
 type Evictor struct {
-	Selector    string
-	PodSelector string
+	selector    string
+	podSelector string
 
-	Client kubernetes.Interface
+	client kubernetes.Interface
 
-	Force  bool
+	force  bool
 	DryRun bool
 
-	MaxGracePeriodSeconds int
-	Timeout               time.Duration
+	maxGracePeriodSeconds int
+	timeout               time.Duration
 
-	IgnoreAllDaemonSets bool
-	IgnoreDaemonSets    []metav1.ObjectMeta
-	DeleteLocalData     bool
+	ignoreAllDaemonSets bool
+	ignoreDaemonSets    []metav1.ObjectMeta
+	deleteLocalData     bool
 
 	policyAPIGroupVersion string
 	UseEvictions          bool
 }
 
+func New(clientSet kubernetes.Interface, maxGracePeriod time.Duration, ignoreDaemonSets []metav1.ObjectMeta) *Evictor {
+	return &Evictor{
+		client: clientSet,
+		// TODO: force, DeleteLocalData & IgnoreAllDaemonSets shouldn't
+		// be enabled by default, we need flags to control these, but that
+		// requires more improvements in the underlying drain package,
+		// as it currently produces errors and warnings with references
+		// to kubectl flags
+		force:                 true,
+		deleteLocalData:       true,
+		ignoreAllDaemonSets:   true,
+		maxGracePeriodSeconds: int(maxGracePeriod.Seconds()),
+		ignoreDaemonSets:      ignoreDaemonSets,
+	}
+}
+
 // CanUseEvictions uses Discovery API to find out if evictions are supported
 func (d *Evictor) CanUseEvictions() error {
-	discoveryClient := d.Client.Discovery()
+	discoveryClient := d.client.Discovery()
 	groupList, err := discoveryClient.ServerGroups()
 	if err != nil {
 		return err
@@ -91,10 +107,10 @@ func (d *Evictor) makeDeleteOptions(pod corev1.Pod) *metav1.DeleteOptions {
 
 	gracePeriodSeconds := int64(corev1.DefaultTerminationGracePeriodSeconds)
 	if pod.Spec.TerminationGracePeriodSeconds != nil {
-		if *pod.Spec.TerminationGracePeriodSeconds < int64(d.MaxGracePeriodSeconds) {
+		if *pod.Spec.TerminationGracePeriodSeconds < int64(d.maxGracePeriodSeconds) {
 			gracePeriodSeconds = *pod.Spec.TerminationGracePeriodSeconds
 		} else {
-			gracePeriodSeconds = int64(d.MaxGracePeriodSeconds)
+			gracePeriodSeconds = int64(d.maxGracePeriodSeconds)
 		}
 	}
 
@@ -125,12 +141,12 @@ func (d *Evictor) evictPod(pod corev1.Pod) error {
 		},
 		DeleteOptions: d.makeDeleteOptions(pod),
 	}
-	return d.Client.PolicyV1beta1().Evictions(eviction.Namespace).Evict(eviction)
+	return d.client.PolicyV1beta1().Evictions(eviction.Namespace).Evict(eviction)
 }
 
 // deletePod will Delete the given Pod, or return an error if it couldn't
 func (d *Evictor) deletePod(pod corev1.Pod) error {
-	return d.Client.CoreV1().Pods(pod.Namespace).Delete(pod.Name, d.makeDeleteOptions(pod))
+	return d.client.CoreV1().Pods(pod.Namespace).Delete(pod.Name, d.makeDeleteOptions(pod))
 }
 
 // GetPodsForDeletion lists all pods on a given node, filters those using the default
@@ -138,12 +154,12 @@ func (d *Evictor) deletePod(pod corev1.Pod) error {
 // to be deleted can be obtained with .Pods(), and string with all warning can be obtained
 // with .Warnings()
 func (d *Evictor) GetPodsForEviction(nodeName string) (*PodDeleteList, []error) {
-	labelSelector, err := labels.Parse(d.PodSelector)
+	labelSelector, err := labels.Parse(d.podSelector)
 	if err != nil {
 		return nil, []error{err}
 	}
 
-	podList, err := d.Client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{
+	podList, err := d.client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{
 		LabelSelector: labelSelector.String(),
 		FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": nodeName}).String()})
 	if err != nil {
