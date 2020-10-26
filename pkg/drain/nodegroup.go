@@ -24,8 +24,8 @@ import (
 // retryDelay is how long is slept before retry after an error occurs during drainage
 const retryDelay = 5 * time.Second
 
-//go:generate counterfeiter -o fakes/fake_drainer.go . Drainer
-type Drainer interface {
+//go:generate counterfeiter -o fakes/fake_evictor.go . Evictor
+type Evictor interface {
 	CanUseEvictions() error
 	EvictOrDeletePod(pod corev1.Pod) error
 	GetPodsForDeletion(nodeName string) (*evictor.PodDeleteList, []error)
@@ -33,14 +33,14 @@ type Drainer interface {
 
 type NodeGroupDrainer struct {
 	clientSet   kubernetes.Interface
-	drainer     Drainer
+	evictor     Evictor
 	ng          eks.KubeNodeGroup
 	waitTimeout time.Duration
 	undo        bool
 }
 
 func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout time.Duration, maxGracePeriod time.Duration, undo bool) NodeGroupDrainer {
-	drainer := &evictor.Evictor{
+	evictor := &evictor.Evictor{
 		Client: clientSet,
 
 		// TODO: Force, DeleteLocalData & IgnoreAllDaemonSets shouldn't
@@ -84,7 +84,7 @@ func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, w
 	}
 
 	return NodeGroupDrainer{
-		drainer:     drainer,
+		evictor:     evictor,
 		clientSet:   clientSet,
 		ng:          ng,
 		waitTimeout: waitTimeout,
@@ -94,7 +94,7 @@ func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, w
 
 // NodeGroup drains a nodegroup
 func (n *NodeGroupDrainer) Drain() error {
-	if err := n.drainer.CanUseEvictions(); err != nil {
+	if err := n.evictor.CanUseEvictions(); err != nil {
 		return errors.Wrap(err, "checking if cluster implements policy API")
 	}
 
@@ -182,7 +182,7 @@ func (n *NodeGroupDrainer) toggleCordon(cordon bool, nodes *corev1.NodeList) {
 }
 
 func (n *NodeGroupDrainer) evictPods(node string) (int, error) {
-	list, errs := n.drainer.GetPodsForDeletion(node)
+	list, errs := n.evictor.GetPodsForDeletion(node)
 	if len(errs) > 0 {
 		return 0, fmt.Errorf("errs: %v", errs) // TODO: improve formatting
 	}
@@ -193,7 +193,7 @@ func (n *NodeGroupDrainer) evictPods(node string) (int, error) {
 	pending := len(pods)
 	for _, pod := range pods {
 		// TODO: handle API rate limiter error
-		if err := n.drainer.EvictOrDeletePod(pod); err != nil {
+		if err := n.evictor.EvictOrDeletePod(pod); err != nil {
 			return pending, err
 		}
 	}

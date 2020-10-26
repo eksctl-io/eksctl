@@ -24,7 +24,7 @@ var _ = Describe("Drain", func() {
 	var (
 		mockNG        mocks.KubeNodeGroup
 		fakeClientSet *fake.Clientset
-		fakeDrainer   *fakes.FakeDrainer
+		fakeEvictor   *fakes.FakeEvictor
 		nodeName      = "node-1"
 	)
 
@@ -33,7 +33,7 @@ var _ = Describe("Drain", func() {
 		mockNG.Mock.On("NameString").Return("node-1")
 		mockNG.Mock.On("ListOptions").Return(metav1.ListOptions{})
 		fakeClientSet = fake.NewSimpleClientset()
-		fakeDrainer = new(fakes.FakeDrainer)
+		fakeEvictor = new(fakes.FakeEvictor)
 	})
 
 	When("all nodes drain successfully", func() {
@@ -46,7 +46,7 @@ var _ = Describe("Drain", func() {
 				},
 			}
 
-			fakeDrainer.GetPodsForDeletionReturnsOnCall(0, &evictor.PodDeleteList{
+			fakeEvictor.GetPodsForDeletionReturnsOnCall(0, &evictor.PodDeleteList{
 				Items: []evictor.PodDelete{
 					{
 						Pod: pod,
@@ -56,9 +56,9 @@ var _ = Describe("Drain", func() {
 					},
 				},
 			}, nil)
-			fakeDrainer.GetPodsForDeletionReturnsOnCall(1, &evictor.PodDeleteList{}, nil)
+			fakeEvictor.GetPodsForDeletionReturnsOnCall(1, &evictor.PodDeleteList{}, nil)
 
-			fakeDrainer.EvictOrDeletePodReturns(nil)
+			fakeEvictor.EvictOrDeletePodReturns(nil)
 
 			_, err := fakeClientSet.CoreV1().Nodes().Create(&corev1.Node{
 				ObjectMeta: metav1.ObjectMeta{
@@ -73,14 +73,14 @@ var _ = Describe("Drain", func() {
 
 		It("does not error", func() {
 			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, false)
-			nodeGroupDrainer.SetDrainer(fakeDrainer)
+			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
 			err := nodeGroupDrainer.Drain()
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeDrainer.GetPodsForDeletionCallCount()).To(Equal(2))
-			Expect(fakeDrainer.EvictOrDeletePodCallCount()).To(Equal(1))
-			Expect(fakeDrainer.EvictOrDeletePodArgsForCall(0)).To(Equal(pod))
+			Expect(fakeEvictor.GetPodsForDeletionCallCount()).To(Equal(2))
+			Expect(fakeEvictor.EvictOrDeletePodCallCount()).To(Equal(1))
+			Expect(fakeEvictor.EvictOrDeletePodArgsForCall(0)).To(Equal(pod))
 
 			node, err := fakeClientSet.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
@@ -98,7 +98,7 @@ var _ = Describe("Drain", func() {
 				},
 			}
 
-			fakeDrainer.GetPodsForDeletionReturns(&evictor.PodDeleteList{
+			fakeEvictor.GetPodsForDeletionReturns(&evictor.PodDeleteList{
 				Items: []evictor.PodDelete{
 					{
 						Pod: pod,
@@ -109,7 +109,7 @@ var _ = Describe("Drain", func() {
 				},
 			}, nil)
 
-			fakeDrainer.EvictOrDeletePodReturns(nil)
+			fakeEvictor.EvictOrDeletePodReturns(nil)
 
 			_, err := fakeClientSet.CoreV1().Nodes().Create(&corev1.Node{})
 			Expect(err).NotTo(HaveOccurred())
@@ -117,7 +117,7 @@ var _ = Describe("Drain", func() {
 
 		It("times out and errors", func() {
 			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*2, time.Second, false)
-			nodeGroupDrainer.SetDrainer(fakeDrainer)
+			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
 			err := nodeGroupDrainer.Drain()
 			Expect(err).To(MatchError("timed out (after 2s) waiting for nodegroup \"node-1\" to be drained"))
@@ -126,12 +126,12 @@ var _ = Describe("Drain", func() {
 
 	When("Evictions are not supported", func() {
 		BeforeEach(func() {
-			fakeDrainer.CanUseEvictionsReturns(fmt.Errorf("error1"))
+			fakeEvictor.CanUseEvictionsReturns(fmt.Errorf("error1"))
 		})
 
 		It("errors", func() {
 			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second, time.Second, false)
-			nodeGroupDrainer.SetDrainer(fakeDrainer)
+			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
 			err := nodeGroupDrainer.Drain()
 			Expect(err).To(MatchError("checking if cluster implements policy API: error1"))
@@ -153,7 +153,7 @@ var _ = Describe("Drain", func() {
 
 		It("uncordons all the nodes", func() {
 			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, true)
-			nodeGroupDrainer.SetDrainer(fakeDrainer)
+			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
 			err := nodeGroupDrainer.Drain()
 			Expect(err).NotTo(HaveOccurred())
@@ -162,8 +162,8 @@ var _ = Describe("Drain", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(node.Spec.Unschedulable).To(BeFalse())
 
-			Expect(fakeDrainer.GetPodsForDeletionCallCount()).To(BeZero())
-			Expect(fakeDrainer.EvictOrDeletePodCallCount()).To(BeZero())
+			Expect(fakeEvictor.GetPodsForDeletionCallCount()).To(BeZero())
+			Expect(fakeEvictor.EvictOrDeletePodCallCount()).To(BeZero())
 		})
 	})
 })

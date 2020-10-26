@@ -1,5 +1,5 @@
 package drain
 
-func (n *NodeGroupDrainer) SetDrainer(drainer Drainer) {
-	n.drainer = drainer
+func (n *NodeGroupDrainer) SetDrainer(drainer Evictor) {
+	n.evictor = drainer
 }
