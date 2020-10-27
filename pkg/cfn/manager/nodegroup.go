@@ -85,6 +85,10 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 		return nil, err
 	}
 
+	if len(stacks) == 0 {
+		return nil, c.errStackNotFound()
+	}
+
 	nodeGroupStacks := []*Stack{}
 	for _, s := range stacks {
 		if *s.StackStatus == cfn.StackStatusDeleteComplete {
