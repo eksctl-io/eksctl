@@ -445,7 +445,7 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 		return nil, errors.Wrapf(err, "describing CloudFormation stacks for %q", c.spec.Metadata.Name)
 	}
 	if len(stacks) == 0 {
-		return nil, c.errStackNotFound()
+		logger.Debug("No stacks found for %s", c.spec.Metadata.Name)
 	}
 	return stacks, nil
 }
