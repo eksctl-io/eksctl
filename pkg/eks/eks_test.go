@@ -232,6 +232,8 @@ var _ = Describe("EKS API wrapper", func() {
 				p.MockEKS().On("ListClusters", mock.MatchedBy(func(input *awseks.ListClustersInput) bool {
 					return *input.MaxResults == int64(chunkSize)
 				})).Return(mockResultFn, nil)
+
+				p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(nil)
 			})
 
 			JustBeforeEach(func() {
@@ -244,6 +246,10 @@ var _ = Describe("EKS API wrapper", func() {
 
 			It("should have called AWS EKS service twice", func() {
 				Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "ListClusters", 2)).To(BeTrue())
+			})
+
+			It("should check if the clusters are eksctl created", func() {
+				Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 2)).To(BeTrue())
 			})
 		})
 
@@ -267,6 +273,8 @@ var _ = Describe("EKS API wrapper", func() {
 				p.MockEKS().On("ListClusters", mock.MatchedBy(func(input *awseks.ListClustersInput) bool {
 					return *input.MaxResults == int64(chunkSize)
 				})).Return(mockResultFn, nil)
+
+				p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(nil)
 			})
 
 			JustBeforeEach(func() {

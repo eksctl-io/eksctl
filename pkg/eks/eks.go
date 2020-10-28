@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -335,6 +337,36 @@ func (c *ClusterProvider) GetCluster(clusterName string, output printers.Type) e
 	return c.doGetCluster(clusterName, printer)
 }
 
+func (c *ClusterProvider) doGetCluster(clusterName string, printer printers.OutputPrinter) error {
+	input := &awseks.DescribeClusterInput{
+		Name: &clusterName,
+	}
+	output, err := c.Provider.EKS().DescribeCluster(input)
+	if err != nil {
+		return errors.Wrapf(err, "unable to describe control plane %q", clusterName)
+	}
+	logger.Debug("cluster = %#v", output)
+
+	clusters := []*awseks.Cluster{output.Cluster} // TODO: in the future this will have multiple clusters
+	if err := printer.PrintObjWithKind("clusters", clusters, os.Stdout); err != nil {
+		return err
+	}
+
+	if *output.Cluster.Status == awseks.ClusterStatusActive {
+		if logger.Level >= 4 {
+			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: clusterName}}
+			stacks, err := c.NewStackManager(spec).ListStacks()
+			if err != nil {
+				return errors.Wrapf(err, "listing CloudFormation stack for %q", clusterName)
+			}
+			for _, s := range stacks {
+				logger.Debug("stack = %#v", *s)
+			}
+		}
+	}
+	return nil
+}
+
 func (c *ClusterProvider) getClustersRequest(chunkSize int64, nextToken string) ([]*string, *string, error) {
 	input := &awseks.ListClustersInput{MaxResults: &chunkSize}
 	if nextToken != "" {
@@ -371,9 +403,18 @@ func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.Outpu
 		}
 
 		for _, clusterName := range clusters {
+			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: *clusterName}}
+			stacks, err := c.NewStackManager(spec).ListStacks()
+			managed := "False"
+			if err != nil {
+				managed = "Unknown"
+			} else if isClusterStack(stacks) {
+				managed = "True"
+			}
 			*allClusters = append(*allClusters, &api.ClusterMeta{
-				Name:   *clusterName,
-				Region: c.Provider.Region(),
+				Name:          *clusterName,
+				Region:        c.Provider.Region(),
+				EKSCTLCreated: managed,
 			})
 		}
 
@@ -387,34 +428,15 @@ func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.Outpu
 	return nil
 }
 
-func (c *ClusterProvider) doGetCluster(clusterName string, printer printers.OutputPrinter) error {
-	input := &awseks.DescribeClusterInput{
-		Name: &clusterName,
-	}
-	output, err := c.Provider.EKS().DescribeCluster(input)
-	if err != nil {
-		return errors.Wrapf(err, "unable to describe control plane %q", clusterName)
-	}
-	logger.Debug("cluster = %#v", output)
-
-	clusters := []*awseks.Cluster{output.Cluster} // TODO: in the future this will have multiple clusters
-	if err := printer.PrintObjWithKind("clusters", clusters, os.Stdout); err != nil {
-		return err
-	}
-
-	if *output.Cluster.Status == awseks.ClusterStatusActive {
-		if logger.Level >= 4 {
-			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: clusterName}}
-			stacks, err := c.NewStackManager(spec).ListStacks()
-			if err != nil {
-				return errors.Wrapf(err, "listing CloudFormation stack for %q", clusterName)
-			}
-			for _, s := range stacks {
-				logger.Debug("stack = %#v", *s)
+func isClusterStack(stacks []*manager.Stack) bool {
+	for _, stack := range stacks {
+		for _, output := range stack.Outputs {
+			if *output.OutputKey == "ClusterStackName" {
+				return true
 			}
 		}
 	}
-	return nil
+	return false
 }
 
 // WaitForControlPlane waits till the control plane is ready
@@ -485,5 +507,8 @@ func addListTableColumns(printer *printers.TablePrinter) {
 	})
 	printer.AddColumn("REGION", func(c *api.ClusterMeta) string {
 		return c.Region
+	})
+	printer.AddColumn("EKSCTL CREATED", func(c *api.ClusterMeta) string {
+		return c.EKSCTLCreated
 	})
 }
