@@ -2,8 +2,6 @@ package eks_test
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -62,7 +60,7 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.GetCluster(clusterName, output)
+					_, err = c.GetCluster(clusterName)
 				})
 
 				It("should not error", func() {
@@ -114,7 +112,7 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.GetCluster(clusterName, output)
+					_, err = c.GetCluster(clusterName)
 				})
 
 				It("should not error", func() {

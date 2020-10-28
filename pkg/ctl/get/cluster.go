@@ -2,6 +2,15 @@ package get
 
 import (
 	"fmt"
+	"os"
+	"strings"
+	"time"
+
+	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"k8s.io/apimachinery/pkg/util/sets"
+
+	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/printers"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
@@ -69,6 +78,64 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 		return ctl.ListClusters(params.chunkSize, params.output, listAllRegions)
 	}
 
-	return ctl.GetCluster(cfg.Metadata.Name, params.output)
+	return getAndPrintCluster(cfg, ctl, params)
+}
 
+func getAndPrintCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, params *getCmdParams) error {
+	printer, err := printers.NewPrinter(params.output)
+	if err != nil {
+		return err
+	}
+
+	if params.output == "table" {
+		addGetClusterSummaryTableColumns(printer.(*printers.TablePrinter))
+	}
+
+	cluster, err := ctl.GetCluster(cfg.Metadata.Name)
+
+	if err != nil {
+		return err
+	}
+
+	if err := printer.PrintObjWithKind("clusters", []*awseks.Cluster{cluster}, os.Stdout); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func addGetClusterSummaryTableColumns(printer *printers.TablePrinter) {
+	printer.AddColumn("NAME", func(c *awseks.Cluster) string {
+		return *c.Name
+	})
+	printer.AddColumn("VERSION", func(c *awseks.Cluster) string {
+		return *c.Version
+	})
+	printer.AddColumn("STATUS", func(c *awseks.Cluster) string {
+		return *c.Status
+	})
+	printer.AddColumn("CREATED", func(c *awseks.Cluster) string {
+		return c.CreatedAt.Format(time.RFC3339)
+	})
+	printer.AddColumn("VPC", func(c *awseks.Cluster) string {
+		return *c.ResourcesVpcConfig.VpcId
+	})
+	printer.AddColumn("SUBNETS", func(c *awseks.Cluster) string {
+		subnets := sets.NewString()
+		for _, subnetid := range c.ResourcesVpcConfig.SubnetIds {
+			if api.IsSetAndNonEmptyString(subnetid) {
+				subnets.Insert(*subnetid)
+			}
+		}
+		return strings.Join(subnets.List(), ",")
+	})
+	printer.AddColumn("SECURITYGROUPS", func(c *awseks.Cluster) string {
+		groups := sets.NewString()
+		for _, sg := range c.ResourcesVpcConfig.SecurityGroupIds {
+			if api.IsSetAndNonEmptyString(sg) {
+				groups.Insert(*sg)
+			}
+		}
+		return strings.Join(groups.List(), ",")
+	})
 }

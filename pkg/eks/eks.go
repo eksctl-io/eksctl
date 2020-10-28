@@ -6,7 +6,6 @@ import (
 	"os"
 	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -19,7 +18,6 @@ import (
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 
-	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -378,47 +376,30 @@ func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.Outpu
 }
 
 // GetCluster display details of an EKS cluster in your account
-func (c *ClusterProvider) GetCluster(clusterName string, output printers.Type) error {
-	printer, err := printers.NewPrinter(output)
-	if err != nil {
-		return err
-	}
-
-	if output == "table" {
-		addSummaryTableColumns(printer.(*printers.TablePrinter))
-	}
-
-	return c.doGetCluster(clusterName, printer)
-}
-
-func (c *ClusterProvider) doGetCluster(clusterName string, printer printers.OutputPrinter) error {
+func (c *ClusterProvider) GetCluster(clusterName string) (*awseks.Cluster, error) {
 	input := &awseks.DescribeClusterInput{
 		Name: &clusterName,
 	}
+
 	output, err := c.Provider.EKS().DescribeCluster(input)
 	if err != nil {
-		return errors.Wrapf(err, "unable to describe control plane %q", clusterName)
+		return &awseks.Cluster{}, errors.Wrapf(err, "unable to describe control plane %q", clusterName)
 	}
 	logger.Debug("cluster = %#v", output)
-
-	clusters := []*awseks.Cluster{output.Cluster} // TODO: in the future this will have multiple clusters
-	if err := printer.PrintObjWithKind("clusters", clusters, os.Stdout); err != nil {
-		return err
-	}
 
 	if *output.Cluster.Status == awseks.ClusterStatusActive {
 		if logger.Level >= 4 {
 			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: clusterName}}
 			stacks, err := c.NewStackManager(spec).ListStacks()
 			if err != nil {
-				return errors.Wrapf(err, "listing CloudFormation stack for %q", clusterName)
+				return &awseks.Cluster{}, errors.Wrapf(err, "listing CloudFormation stack for %q", clusterName)
 			}
 			for _, s := range stacks {
 				logger.Debug("stack = %#v", *s)
 			}
 		}
 	}
-	return nil
+	return output.Cluster, nil
 }
 
 func (c *ClusterProvider) getClustersRequest(chunkSize int64, nextToken string) ([]*string, *string, error) {
@@ -468,42 +449,6 @@ func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *
 			return fmt.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.Provider.WaitTimeout())
 		}
 	}
-}
-
-func addSummaryTableColumns(printer *printers.TablePrinter) {
-	printer.AddColumn("NAME", func(c *awseks.Cluster) string {
-		return *c.Name
-	})
-	printer.AddColumn("VERSION", func(c *awseks.Cluster) string {
-		return *c.Version
-	})
-	printer.AddColumn("STATUS", func(c *awseks.Cluster) string {
-		return *c.Status
-	})
-	printer.AddColumn("CREATED", func(c *awseks.Cluster) string {
-		return c.CreatedAt.Format(time.RFC3339)
-	})
-	printer.AddColumn("VPC", func(c *awseks.Cluster) string {
-		return *c.ResourcesVpcConfig.VpcId
-	})
-	printer.AddColumn("SUBNETS", func(c *awseks.Cluster) string {
-		subnets := sets.NewString()
-		for _, subnetid := range c.ResourcesVpcConfig.SubnetIds {
-			if api.IsSetAndNonEmptyString(subnetid) {
-				subnets.Insert(*subnetid)
-			}
-		}
-		return strings.Join(subnets.List(), ",")
-	})
-	printer.AddColumn("SECURITYGROUPS", func(c *awseks.Cluster) string {
-		groups := sets.NewString()
-		for _, sg := range c.ResourcesVpcConfig.SecurityGroupIds {
-			if api.IsSetAndNonEmptyString(sg) {
-				groups.Insert(*sg)
-			}
-		}
-		return strings.Join(groups.List(), ",")
-	})
 }
 
 func addListTableColumns(printer *printers.TablePrinter) {
