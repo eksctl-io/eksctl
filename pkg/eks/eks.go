@@ -302,20 +302,13 @@ func (c *ClusterProvider) loadClusterKubernetesNetworkConfig(spec *api.ClusterCo
 }
 
 // ListClusters display details of all the EKS cluster in your account
-func (c *ClusterProvider) ListClusters(clusterName string, chunkSize int, output printers.Type, eachRegion bool) error {
+func (c *ClusterProvider) ListClusters(chunkSize int, output printers.Type, eachRegion bool) error {
 	// NOTE: this needs to be reworked in the future so that the functionality
 	// is combined. This require the ability to return details of all clusters
 	// in a single call.
 	printer, err := printers.NewPrinter(output)
 	if err != nil {
 		return err
-	}
-
-	if clusterName != "" {
-		if output == "table" {
-			addSummaryTableColumns(printer.(*printers.TablePrinter))
-		}
-		return c.doGetCluster(clusterName, printer)
 	}
 
 	if output == "table" {
@@ -326,6 +319,20 @@ func (c *ClusterProvider) ListClusters(clusterName string, chunkSize int, output
 		return err
 	}
 	return printer.PrintObjWithKind("clusters", allClusters, os.Stdout)
+}
+
+// GetCluster display details of an EKS cluster in your account
+func (c *ClusterProvider) GetCluster(clusterName string, output printers.Type) error {
+	printer, err := printers.NewPrinter(output)
+	if err != nil {
+		return err
+	}
+
+	if output == "table" {
+		addSummaryTableColumns(printer.(*printers.TablePrinter))
+	}
+
+	return c.doGetCluster(clusterName, printer)
 }
 
 func (c *ClusterProvider) getClustersRequest(chunkSize int64, nextToken string) ([]*string, *string, error) {

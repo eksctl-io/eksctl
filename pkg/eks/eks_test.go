@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
-
 	"github.com/kris-nova/logger"
 
 	. "github.com/onsi/ginkgo"
@@ -34,8 +33,8 @@ var _ = Describe("EKS API wrapper", func() {
 		output = "json"
 	})
 
-	Describe("ListAll", func() {
-		Context("With a cluster name", func() {
+	Describe("GetClusters", func() {
+		When("the cluster is ready", func() {
 			var (
 				clusterName string
 				err         error
@@ -63,7 +62,7 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.ListClusters(clusterName, 100, output, false)
+					err = c.GetCluster(clusterName, output)
 				})
 
 				It("should not error", func() {
@@ -115,7 +114,7 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.ListClusters(clusterName, 100, output, false)
+					err = c.GetCluster(clusterName, output)
 				})
 
 				It("should not error", func() {
@@ -132,7 +131,7 @@ var _ = Describe("EKS API wrapper", func() {
 			})
 		})
 
-		Context("with a cluster name but cluster isn't ready", func() {
+		When("the cluster is not ready", func() {
 			var (
 				clusterName    string
 				err            error
@@ -163,7 +162,7 @@ var _ = Describe("EKS API wrapper", func() {
 			})
 
 			JustBeforeEach(func() {
-				err = c.ListClusters(clusterName, 100, output, false)
+				err = c.GetCluster(clusterName, output)
 			})
 
 			AfterEach(func() {
@@ -195,92 +194,93 @@ var _ = Describe("EKS API wrapper", func() {
 			})
 		})
 
-		Context("with no cluster name", func() {
+	})
+
+	Describe("ListAll", func() {
+		var (
+			err       error
+			chunkSize int
+		)
+
+		Context("and chunk-size of 1", func() {
 			var (
-				err       error
-				chunkSize int
+				callNumber int
 			)
+			BeforeEach(func() {
+				chunkSize = 1
+				callNumber = 0
 
-			Context("and chunk-size of 1", func() {
-				var (
-					callNumber int
-				)
-				BeforeEach(func() {
-					chunkSize = 1
-					callNumber = 0
+				p = mockprovider.NewMockProvider()
 
-					p = mockprovider.NewMockProvider()
+				c = &ClusterProvider{
+					Provider: p,
+				}
 
-					c = &ClusterProvider{
-						Provider: p,
+				mockResultFn := func(_ *awseks.ListClustersInput) *awseks.ListClustersOutput {
+					clusterName := fmt.Sprintf("cluster-%d", callNumber)
+					output := &awseks.ListClustersOutput{
+						Clusters: []*string{aws.String(clusterName)},
+					}
+					if callNumber == 0 {
+						output.NextToken = aws.String("SOMERANDOMTOKEN")
 					}
 
-					mockResultFn := func(_ *awseks.ListClustersInput) *awseks.ListClustersOutput {
-						clusterName := fmt.Sprintf("cluster-%d", callNumber)
-						output := &awseks.ListClustersOutput{
-							Clusters: []*string{aws.String(clusterName)},
-						}
-						if callNumber == 0 {
-							output.NextToken = aws.String("SOMERANDOMTOKEN")
-						}
+					callNumber++
+					return output
+				}
 
-						callNumber++
-						return output
-					}
-
-					p.MockEKS().On("ListClusters", mock.MatchedBy(func(input *awseks.ListClustersInput) bool {
-						return *input.MaxResults == int64(chunkSize)
-					})).Return(mockResultFn, nil)
-				})
-
-				JustBeforeEach(func() {
-					err = c.ListClusters("", chunkSize, output, false)
-				})
-
-				It("should not error", func() {
-					Expect(err).NotTo(HaveOccurred())
-				})
-
-				It("should have called AWS EKS service twice", func() {
-					Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "ListClusters", 2)).To(BeTrue())
-				})
+				p.MockEKS().On("ListClusters", mock.MatchedBy(func(input *awseks.ListClustersInput) bool {
+					return *input.MaxResults == int64(chunkSize)
+				})).Return(mockResultFn, nil)
 			})
-			Context("and chunk-size of 100", func() {
-				BeforeEach(func() {
-					chunkSize = 100
 
-					p = mockprovider.NewMockProvider()
+			JustBeforeEach(func() {
+				err = c.ListClusters(chunkSize, output, false)
+			})
 
-					c = &ClusterProvider{
-						Provider: p,
-					}
+			It("should not error", func() {
+				Expect(err).NotTo(HaveOccurred())
+			})
 
-					mockResultFn := func(_ *awseks.ListClustersInput) *awseks.ListClustersOutput {
-						output := &awseks.ListClustersOutput{
-							Clusters: []*string{aws.String("cluster-1"), aws.String("cluster-2")},
-						}
-						return output
-					}
-
-					p.MockEKS().On("ListClusters", mock.MatchedBy(func(input *awseks.ListClustersInput) bool {
-						return *input.MaxResults == int64(chunkSize)
-					})).Return(mockResultFn, nil)
-				})
-
-				JustBeforeEach(func() {
-					err = c.ListClusters("", chunkSize, output, false)
-				})
-
-				It("should not error", func() {
-					Expect(err).NotTo(HaveOccurred())
-				})
-
-				It("should have called AWS EKS service once", func() {
-					Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "ListClusters", 1)).To(BeTrue())
-				})
+			It("should have called AWS EKS service twice", func() {
+				Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "ListClusters", 2)).To(BeTrue())
 			})
 		})
 
+		Context("and chunk-size of 100", func() {
+			BeforeEach(func() {
+				chunkSize = 100
+
+				p = mockprovider.NewMockProvider()
+
+				c = &ClusterProvider{
+					Provider: p,
+				}
+
+				mockResultFn := func(_ *awseks.ListClustersInput) *awseks.ListClustersOutput {
+					output := &awseks.ListClustersOutput{
+						Clusters: []*string{aws.String("cluster-1"), aws.String("cluster-2")},
+					}
+					return output
+				}
+
+				p.MockEKS().On("ListClusters", mock.MatchedBy(func(input *awseks.ListClustersInput) bool {
+					return *input.MaxResults == int64(chunkSize)
+				})).Return(mockResultFn, nil)
+			})
+
+			JustBeforeEach(func() {
+				err = c.ListClusters(chunkSize, output, false)
+			})
+
+			It("should not error", func() {
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("should have called AWS EKS service once", func() {
+				Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "ListClusters", 1)).To(BeTrue())
+			})
+		})
 	})
 
 	Describe("can get OIDC issuer URL and host fingerprint", func() {

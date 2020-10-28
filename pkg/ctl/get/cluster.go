@@ -65,5 +65,10 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 		return err
 	}
 
-	return ctl.ListClusters(cfg.Metadata.Name, params.chunkSize, params.output, listAllRegions)
+	if cfg.Metadata.Name == "" {
+		return ctl.ListClusters(params.chunkSize, params.output, listAllRegions)
+	}
+
+	return ctl.GetCluster(cfg.Metadata.Name, params.output)
+
 }
