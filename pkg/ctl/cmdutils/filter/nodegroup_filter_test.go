@@ -329,8 +329,7 @@ const expected = `
 		"metadata": {
 		  "name": "test-3x3-ngs",
 		  "region": "eu-central-1",
-		  "version": "1.17",
-		  "eksctlCreated": ""
+		  "version": "1.17"
 		},
 		"iam": {
 		  "withOIDC": false
