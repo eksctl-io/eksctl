@@ -29,12 +29,12 @@ import (
 const (
 	daemonSetFatal      = "DaemonSet-managed Pods (use --ignore-daemonsets to ignore)"
 	daemonSetWarning    = "ignoring DaemonSet-managed Pods"
-	localStorageFatal   = "Pods with local storage (use --Delete-local-data to override)"
+	localStorageFatal   = "Pods with local storage (use --delete-local-data to override)"
 	localStorageWarning = "deleting Pods with local storage"
 	unmanagedFatal      = "Pods not managed by ReplicationController, ReplicaSet, Job, DaemonSet or StatefulSet (use --force to override)"
 	unmanagedWarning    = "deleting Pods not managed by ReplicationController, ReplicaSet, Job, DaemonSet or StatefulSet"
 
-	drainPodAnnotation       = "Pod.alpha.kubernetes.io/drain"
+	drainPodAnnotation       = "pod.alpha.kubernetes.io/drain"
 	drainPodAnnotationForce  = "force"
 	drainPodAnnotationIgnore = "ignore"
 	drainPodAnnotationNever  = "never"
