@@ -138,7 +138,7 @@ func makePodDeleteStatusWithError(message string) PodDeleteStatus {
 	}
 }
 
-func (d Evictor) makeFilters() []podFilter {
+func (d *Evictor) makeFilters() []podFilter {
 	return []podFilter{
 		d.annotationFilter,
 		d.daemonSetFilter,
@@ -158,7 +158,7 @@ func hasLocalStorage(pod corev1.Pod) bool {
 	return false
 }
 
-func (d Evictor) annotationFilter(pod corev1.Pod) PodDeleteStatus {
+func (d *Evictor) annotationFilter(pod corev1.Pod) PodDeleteStatus {
 	if v, ok := pod.Annotations[drainPodAnnotation]; ok {
 		annotation := fmt.Sprintf("due to annotation %s=%s", drainPodAnnotation, v)
 		switch v {
@@ -174,7 +174,7 @@ func (d Evictor) annotationFilter(pod corev1.Pod) PodDeleteStatus {
 	return makePodDeleteStatusOkay()
 }
 
-func (d Evictor) daemonSetFilter(pod corev1.Pod) PodDeleteStatus {
+func (d *Evictor) daemonSetFilter(pod corev1.Pod) PodDeleteStatus {
 	// Note that we return false in cases where the Pod is DaemonSet managed,
 	// regardless of flags.
 	//
@@ -215,14 +215,14 @@ func (d Evictor) daemonSetFilter(pod corev1.Pod) PodDeleteStatus {
 	return makePodDeleteStatusWithWarning(false, daemonSetWarning)
 }
 
-func (d Evictor) mirrorPodFilter(pod corev1.Pod) PodDeleteStatus {
+func (d *Evictor) mirrorPodFilter(pod corev1.Pod) PodDeleteStatus {
 	if _, found := pod.ObjectMeta.Annotations[corev1.MirrorPodAnnotationKey]; found {
 		return makePodDeleteStatusSkip()
 	}
 	return makePodDeleteStatusOkay()
 }
 
-func (d Evictor) localStorageFilter(pod corev1.Pod) PodDeleteStatus {
+func (d *Evictor) localStorageFilter(pod corev1.Pod) PodDeleteStatus {
 	if !hasLocalStorage(pod) {
 		return makePodDeleteStatusOkay()
 	}
@@ -237,7 +237,7 @@ func (d Evictor) localStorageFilter(pod corev1.Pod) PodDeleteStatus {
 	return makePodDeleteStatusWithWarning(true, localStorageWarning)
 }
 
-func (d Evictor) unreplicatedFilter(pod corev1.Pod) PodDeleteStatus {
+func (d *Evictor) unreplicatedFilter(pod corev1.Pod) PodDeleteStatus {
 	// any finished Pod can be removed
 	if pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed {
 		return makePodDeleteStatusOkay()
