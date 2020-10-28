@@ -307,11 +307,6 @@
           "x-intellij-html-description": "arbitrary metadata ignored by <code>eksctl</code>.",
           "default": "{}"
         },
-        "eksctlCreated": {
-          "type": "string",
-          "description": "Whether the cluster was created by eksctl or not",
-          "x-intellij-html-description": "Whether the cluster was created by eksctl or not"
-        },
         "name": {
           "type": "string",
           "description": "of the cluster",
@@ -350,8 +345,7 @@
         "region",
         "version",
         "tags",
-        "annotations",
-        "eksctlCreated"
+        "annotations"
       ],
       "additionalProperties": false,
       "description": "contains general cluster information",
@@ -390,6 +384,9 @@
           },
           "type": "array"
         },
+        "eksctlCreated": {
+          "type": "string"
+        },
         "endpoint": {
           "type": "string"
         },
@@ -401,7 +398,8 @@
         "endpoint",
         "certificateAuthorityData",
         "arn",
-        "stackName"
+        "stackName",
+        "eksctlCreated"
       ],
       "additionalProperties": false,
       "description": "hold read-only attributes of a cluster",
