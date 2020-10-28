@@ -131,18 +131,11 @@ var _ = Describe("EKS API wrapper", func() {
 
 		When("the cluster is not ready", func() {
 			var (
-				clusterName    string
-				err            error
-				originalStdout *os.File
-				reader         *os.File
-				writer         *os.File
+				clusterName string
+				err         error
 			)
 
 			BeforeEach(func() {
-				originalStdout = os.Stdout
-				reader, writer, _ = os.Pipe()
-				os.Stdout = writer
-
 				clusterName = "test-cluster"
 				logger.Level = 1
 
@@ -160,11 +153,7 @@ var _ = Describe("EKS API wrapper", func() {
 			})
 
 			JustBeforeEach(func() {
-				err = c.GetCluster(clusterName, output)
-			})
-
-			AfterEach(func() {
-				os.Stdout = originalStdout
+				_, err = c.GetCluster(clusterName)
 			})
 
 			It("should not error", func() {
@@ -177,18 +166,6 @@ var _ = Describe("EKS API wrapper", func() {
 
 			It("should not call AWS CFN ListStacksPages", func() {
 				Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 0)).To(BeTrue())
-			})
-
-			It("the output should equal the golden file singlecluster_deleting.golden", func() {
-				writer.Close()
-				g, err := ioutil.ReadFile("testdata/singlecluster_deleting.golden")
-				if err != nil {
-					GinkgoT().Fatalf("failed reading .golden: %s", err)
-				}
-
-				actualOutput, _ := ioutil.ReadAll(reader)
-
-				Expect(actualOutput).Should(MatchJSON(string(g)))
 			})
 		})
 
