@@ -193,7 +193,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 			logger.Debug("cluster has withOIDC enabled but is not using IRSA for CNI, will add CNI policy to node role")
 		}
 
-		nodeGroupTasks := stackManager.NewTasksToCreateNodeGroups(cfg.NodeGroups, supportsManagedNodes, !awsNodeUsesIRSA)
+		nodeGroupTasks := stackManager.NewUnmanagedNodeGroupTask(cfg.NodeGroups, supportsManagedNodes, !awsNodeUsesIRSA)
 		if nodeGroupTasks.Len() > 0 {
 			allNodeGroupTasks.Append(nodeGroupTasks)
 		}

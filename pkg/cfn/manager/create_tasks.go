@@ -25,7 +25,7 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 	)
 
 	appendNodeGroupTasksTo := func(taskTree *TaskTree) {
-		nodeGroupTasks := c.NewTasksToCreateNodeGroups(nodeGroups, supportsManagedNodes, false)
+		nodeGroupTasks := c.NewUnmanagedNodeGroupTask(nodeGroups, supportsManagedNodes, false)
 
 		managedNodeGroupTasks := c.NewManagedNodeGroupTask(managedNodeGroups, false)
 		if managedNodeGroupTasks.Len() > 0 {
@@ -53,8 +53,8 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 	return &tasks
 }
 
-// NewTasksToCreateNodeGroups defines tasks required to create all of the nodegroups
-func (c *StackCollection) NewTasksToCreateNodeGroups(nodeGroups []*api.NodeGroup, supportsManagedNodes bool, forceAddCNIPolicy bool) *TaskTree {
+// NewUnmanagedNodeGroupTask defines tasks required to create all of the nodegroups
+func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup, supportsManagedNodes bool, forceAddCNIPolicy bool) *TaskTree {
 	tasks := &TaskTree{Parallel: true}
 
 	for _, ng := range nodeGroups {
