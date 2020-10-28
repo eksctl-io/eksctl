@@ -670,19 +670,19 @@ var _ = Describe("StackCollection Tasks", func() {
 				// The supportsManagedNodes argument has no effect on the Describe call, so the values are alternated
 				// in these tests
 				{
-					tasks := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("bar", "foo"), true)
+					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("bar", "foo"), true, false)
 					Expect(tasks.Describe()).To(Equal(`2 parallel tasks: { create nodegroup "bar", create nodegroup "foo" }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("bar"), false)
+					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("bar"), false, false)
 					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "bar" }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("foo"), true)
+					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("foo"), true, false)
 					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "foo" }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateNodeGroups(nil, false)
+					tasks := stackManager.NewUnmanagedNodeGroupTask(nil, false, false)
 					Expect(tasks.Describe()).To(Equal(`no tasks`))
 				}
 				{

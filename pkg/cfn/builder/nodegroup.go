@@ -22,6 +22,7 @@ type NodeGroupResourceSet struct {
 	clusterSpec          *api.ClusterConfig
 	spec                 *api.NodeGroup
 	supportsManagedNodes bool
+	forceAddCNIPolicy    bool
 	provider             api.ClusterProvider
 	clusterStackName     string
 	instanceProfileARN   *gfnt.Value
@@ -32,11 +33,12 @@ type NodeGroupResourceSet struct {
 
 // NewNodeGroupResourceSet returns a resource set for a nodegroup embedded in a cluster config
 func NewNodeGroupResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup,
-	supportsManagedNodes bool) *NodeGroupResourceSet {
+	supportsManagedNodes, forceAddCNIPolicy bool) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
 		rs:                   newResourceSet(),
 		clusterStackName:     clusterStackName,
 		supportsManagedNodes: supportsManagedNodes,
+		forceAddCNIPolicy:    forceAddCNIPolicy,
 		clusterSpec:          spec,
 		spec:                 ng,
 		provider:             provider,
