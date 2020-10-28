@@ -316,11 +316,65 @@ func (c *ClusterProvider) ListClusters(chunkSize int, output printers.Type, each
 	if output == "table" {
 		addListTableColumns(printer.(*printers.TablePrinter))
 	}
-	allClusters := []*api.ClusterMeta{}
+	allClusters := []*api.ClusterConfig{}
 	if err := c.doListClusters(int64(chunkSize), printer, &allClusters, eachRegion); err != nil {
 		return err
 	}
 	return printer.PrintObjWithKind("clusters", allClusters, os.Stdout)
+}
+
+func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.OutputPrinter, allClusters *[]*api.ClusterConfig, eachRegion bool) error {
+	if eachRegion {
+		// reset region and re-create the client, then make a recursive call
+		for _, region := range api.SupportedRegions() {
+			spec := &api.ProviderConfig{
+				Region:      region,
+				Profile:     c.Provider.Profile(),
+				WaitTimeout: c.Provider.WaitTimeout(),
+			}
+			if err := New(spec, nil).doListClusters(chunkSize, printer, allClusters, false); err != nil {
+				logger.Critical("error listing clusters in %q region: %s", region, err.Error())
+			}
+		}
+		return nil
+	}
+
+	token := ""
+	for {
+		clusters, nextToken, err := c.getClustersRequest(chunkSize, token)
+		if err != nil {
+			return err
+		}
+
+		for _, clusterName := range clusters {
+			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: *clusterName}}
+			stacks, err := c.NewStackManager(spec).ListStacks()
+			managed := "False"
+			if err != nil {
+				managed = "Unknown"
+				logger.Warning("error fetching stacks for cluster %s: %v", clusterName, err)
+			} else if isClusterStack(stacks) {
+				managed = "True"
+			}
+			*allClusters = append(*allClusters, &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Name:   *clusterName,
+					Region: c.Provider.Region(),
+				},
+				Status: &api.ClusterStatus{
+					EKSCTLCreated: managed,
+				},
+			})
+		}
+
+		if api.IsSetAndNonEmptyString(nextToken) {
+			token = *nextToken
+		} else {
+			break
+		}
+	}
+
+	return nil
 }
 
 // GetCluster display details of an EKS cluster in your account
@@ -377,55 +431,6 @@ func (c *ClusterProvider) getClustersRequest(chunkSize int64, nextToken string) 
 		return nil, nil, errors.Wrap(err, "listing control planes")
 	}
 	return output.Clusters, output.NextToken, nil
-}
-
-func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.OutputPrinter, allClusters *[]*api.ClusterMeta, eachRegion bool) error {
-	if eachRegion {
-		// reset region and re-create the client, then make a recursive call
-		for _, region := range api.SupportedRegions() {
-			spec := &api.ProviderConfig{
-				Region:      region,
-				Profile:     c.Provider.Profile(),
-				WaitTimeout: c.Provider.WaitTimeout(),
-			}
-			if err := New(spec, nil).doListClusters(chunkSize, printer, allClusters, false); err != nil {
-				logger.Critical("error listing clusters in %q region: %s", region, err.Error())
-			}
-		}
-		return nil
-	}
-
-	token := ""
-	for {
-		clusters, nextToken, err := c.getClustersRequest(chunkSize, token)
-		if err != nil {
-			return err
-		}
-
-		for _, clusterName := range clusters {
-			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: *clusterName}}
-			stacks, err := c.NewStackManager(spec).ListStacks()
-			managed := "False"
-			if err != nil {
-				managed = "Unknown"
-			} else if isClusterStack(stacks) {
-				managed = "True"
-			}
-			*allClusters = append(*allClusters, &api.ClusterMeta{
-				Name:          *clusterName,
-				Region:        c.Provider.Region(),
-				EKSCTLCreated: managed,
-			})
-		}
-
-		if api.IsSetAndNonEmptyString(nextToken) {
-			token = *nextToken
-		} else {
-			break
-		}
-	}
-
-	return nil
 }
 
 func isClusterStack(stacks []*manager.Stack) bool {
@@ -502,13 +507,13 @@ func addSummaryTableColumns(printer *printers.TablePrinter) {
 }
 
 func addListTableColumns(printer *printers.TablePrinter) {
-	printer.AddColumn("NAME", func(c *api.ClusterMeta) string {
-		return c.Name
+	printer.AddColumn("NAME", func(c *api.ClusterConfig) string {
+		return c.Metadata.Name
 	})
-	printer.AddColumn("REGION", func(c *api.ClusterMeta) string {
-		return c.Region
+	printer.AddColumn("REGION", func(c *api.ClusterConfig) string {
+		return c.Metadata.Region
 	})
-	printer.AddColumn("EKSCTL CREATED", func(c *api.ClusterMeta) string {
-		return c.EKSCTLCreated
+	printer.AddColumn("EKSCTL CREATED", func(c *api.ClusterConfig) string {
+		return c.Status.EKSCTLCreated
 	})
 }

@@ -458,9 +458,6 @@ type ClusterMeta struct {
 	// Annotations are arbitrary metadata ignored by `eksctl`.
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
-	// Whether the cluster was created by eksctl or not
-	// +optional
-	EKSCTLCreated string `json:"eksctlCreated"`
 }
 
 // KubernetesNetworkConfig contains cluster networking options
@@ -475,6 +472,7 @@ type ClusterStatus struct {
 	CertificateAuthorityData []byte `json:"certificateAuthorityData,omitempty"`
 	ARN                      string `json:"arn,omitempty"`
 	StackName                string `json:"stackName,omitempty"`
+	EKSCTLCreated            string `json:"eksctlCreated,omitempty"`
 }
 
 // String returns canonical representation of ClusterMeta
