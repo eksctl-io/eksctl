@@ -19,8 +19,8 @@ type cfnTemplate interface {
 }
 
 // createRole creates an IAM role with policies required for the worker nodes and addons
-func createRole(cfnTemplate cfnTemplate, clusterIAMConfig *api.ClusterIAM, iamConfig *api.NodeGroupIAM, managed, enableSSM bool) error {
-	managedPolicyARNs, err := makeManagedPolicies(clusterIAMConfig, iamConfig, managed, enableSSM)
+func createRole(cfnTemplate cfnTemplate, clusterIAMConfig *api.ClusterIAM, iamConfig *api.NodeGroupIAM, managed, enableSSM, forceAddCNIPolicy bool) error {
+	managedPolicyARNs, err := makeManagedPolicies(clusterIAMConfig, iamConfig, managed, enableSSM, forceAddCNIPolicy)
 	if err != nil {
 		return err
 	}
@@ -273,11 +273,11 @@ func createRole(cfnTemplate cfnTemplate, clusterIAMConfig *api.ClusterIAM, iamCo
 	return nil
 }
 
-func makeManagedPolicies(iamCluster *api.ClusterIAM, iamConfig *api.NodeGroupIAM, managed, enableSSM bool) (*gfnt.Value, error) {
+func makeManagedPolicies(iamCluster *api.ClusterIAM, iamConfig *api.NodeGroupIAM, managed, enableSSM, forceAddCNIPolicy bool) (*gfnt.Value, error) {
 	managedPolicyNames := sets.NewString()
 	if len(iamConfig.AttachPolicyARNs) == 0 {
 		managedPolicyNames.Insert(iamDefaultNodePolicies...)
-		if !api.IsEnabled(iamCluster.WithOIDC) {
+		if !api.IsEnabled(iamCluster.WithOIDC) || forceAddCNIPolicy {
 			managedPolicyNames.Insert(iamPolicyAmazonEKSCNIPolicy)
 		}
 		if managed {
