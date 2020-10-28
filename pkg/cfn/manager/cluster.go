@@ -46,6 +46,10 @@ func (c *StackCollection) DescribeClusterStack() (*Stack, error) {
 		return nil, err
 	}
 
+	if len(stacks) == 0 {
+		return nil, c.errStackNotFound()
+	}
+
 	for _, s := range stacks {
 		if *s.StackStatus == cfn.StackStatusDeleteComplete {
 			continue
