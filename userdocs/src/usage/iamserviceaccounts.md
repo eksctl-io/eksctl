@@ -122,6 +122,7 @@ iam:
         - "autoscaling:DescribeTags"
         - "autoscaling:SetDesiredCapacity"
         - "autoscaling:TerminateInstanceInAutoScalingGroup"
+        - "ec2:DescribeLaunchTemplateVersions"
         Resource: '*'
 
 nodeGroups:
