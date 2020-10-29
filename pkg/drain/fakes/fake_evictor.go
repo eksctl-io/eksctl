@@ -20,15 +20,15 @@ type FakeEvictor struct {
 	canUseEvictionsReturnsOnCall map[int]struct {
 		result1 error
 	}
-	EvictPodStub        func(v1.Pod) error
-	evictPodMutex       sync.RWMutex
-	evictPodArgsForCall []struct {
+	EvictOrDeletePodStub        func(v1.Pod) error
+	evictOrDeletePodMutex       sync.RWMutex
+	evictOrDeletePodArgsForCall []struct {
 		arg1 v1.Pod
 	}
-	evictPodReturns struct {
+	evictOrDeletePodReturns struct {
 		result1 error
 	}
-	evictPodReturnsOnCall map[int]struct {
+	evictOrDeletePodReturnsOnCall map[int]struct {
 		result1 error
 	}
 	GetPodsForEvictionStub        func(string) (*evictor.PodDeleteList, []error)
@@ -100,62 +100,62 @@ func (fake *FakeEvictor) CanUseEvictionsReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeEvictor) EvictPod(arg1 v1.Pod) error {
-	fake.evictPodMutex.Lock()
-	ret, specificReturn := fake.evictPodReturnsOnCall[len(fake.evictPodArgsForCall)]
-	fake.evictPodArgsForCall = append(fake.evictPodArgsForCall, struct {
+func (fake *FakeEvictor) EvictOrDeletePod(arg1 v1.Pod) error {
+	fake.evictOrDeletePodMutex.Lock()
+	ret, specificReturn := fake.evictOrDeletePodReturnsOnCall[len(fake.evictOrDeletePodArgsForCall)]
+	fake.evictOrDeletePodArgsForCall = append(fake.evictOrDeletePodArgsForCall, struct {
 		arg1 v1.Pod
 	}{arg1})
-	fake.recordInvocation("EvictPod", []interface{}{arg1})
-	fake.evictPodMutex.Unlock()
-	if fake.EvictPodStub != nil {
-		return fake.EvictPodStub(arg1)
+	fake.recordInvocation("EvictOrDeletePod", []interface{}{arg1})
+	fake.evictOrDeletePodMutex.Unlock()
+	if fake.EvictOrDeletePodStub != nil {
+		return fake.EvictOrDeletePodStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.evictPodReturns
+	fakeReturns := fake.evictOrDeletePodReturns
 	return fakeReturns.result1
 }
 
-func (fake *FakeEvictor) EvictPodCallCount() int {
-	fake.evictPodMutex.RLock()
-	defer fake.evictPodMutex.RUnlock()
-	return len(fake.evictPodArgsForCall)
+func (fake *FakeEvictor) EvictOrDeletePodCallCount() int {
+	fake.evictOrDeletePodMutex.RLock()
+	defer fake.evictOrDeletePodMutex.RUnlock()
+	return len(fake.evictOrDeletePodArgsForCall)
 }
 
-func (fake *FakeEvictor) EvictPodCalls(stub func(v1.Pod) error) {
-	fake.evictPodMutex.Lock()
-	defer fake.evictPodMutex.Unlock()
-	fake.EvictPodStub = stub
+func (fake *FakeEvictor) EvictOrDeletePodCalls(stub func(v1.Pod) error) {
+	fake.evictOrDeletePodMutex.Lock()
+	defer fake.evictOrDeletePodMutex.Unlock()
+	fake.EvictOrDeletePodStub = stub
 }
 
-func (fake *FakeEvictor) EvictPodArgsForCall(i int) v1.Pod {
-	fake.evictPodMutex.RLock()
-	defer fake.evictPodMutex.RUnlock()
-	argsForCall := fake.evictPodArgsForCall[i]
+func (fake *FakeEvictor) EvictOrDeletePodArgsForCall(i int) v1.Pod {
+	fake.evictOrDeletePodMutex.RLock()
+	defer fake.evictOrDeletePodMutex.RUnlock()
+	argsForCall := fake.evictOrDeletePodArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeEvictor) EvictPodReturns(result1 error) {
-	fake.evictPodMutex.Lock()
-	defer fake.evictPodMutex.Unlock()
-	fake.EvictPodStub = nil
-	fake.evictPodReturns = struct {
+func (fake *FakeEvictor) EvictOrDeletePodReturns(result1 error) {
+	fake.evictOrDeletePodMutex.Lock()
+	defer fake.evictOrDeletePodMutex.Unlock()
+	fake.EvictOrDeletePodStub = nil
+	fake.evictOrDeletePodReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeEvictor) EvictPodReturnsOnCall(i int, result1 error) {
-	fake.evictPodMutex.Lock()
-	defer fake.evictPodMutex.Unlock()
-	fake.EvictPodStub = nil
-	if fake.evictPodReturnsOnCall == nil {
-		fake.evictPodReturnsOnCall = make(map[int]struct {
+func (fake *FakeEvictor) EvictOrDeletePodReturnsOnCall(i int, result1 error) {
+	fake.evictOrDeletePodMutex.Lock()
+	defer fake.evictOrDeletePodMutex.Unlock()
+	fake.EvictOrDeletePodStub = nil
+	if fake.evictOrDeletePodReturnsOnCall == nil {
+		fake.evictOrDeletePodReturnsOnCall = make(map[int]struct {
 			result1 error
 		})
 	}
-	fake.evictPodReturnsOnCall[i] = struct {
+	fake.evictOrDeletePodReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -228,8 +228,8 @@ func (fake *FakeEvictor) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.canUseEvictionsMutex.RLock()
 	defer fake.canUseEvictionsMutex.RUnlock()
-	fake.evictPodMutex.RLock()
-	defer fake.evictPodMutex.RUnlock()
+	fake.evictOrDeletePodMutex.RLock()
+	defer fake.evictOrDeletePodMutex.RUnlock()
 	fake.getPodsForEvictionMutex.RLock()
 	defer fake.getPodsForEvictionMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

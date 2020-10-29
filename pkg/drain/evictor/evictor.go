@@ -118,7 +118,7 @@ func (d *Evictor) makeDeleteOptions(pod corev1.Pod) *metav1.DeleteOptions {
 
 // EvictOrDeletePod will evict Pod if policy API is available, otherwise deletes it
 // NOTE: CanUseEvictions must be called prior to this
-func (d *Evictor) EvictPod(pod corev1.Pod) error {
+func (d *Evictor) EvictOrDeletePod(pod corev1.Pod) error {
 	if d.UseEvictions {
 		return d.evictPod(pod)
 	}

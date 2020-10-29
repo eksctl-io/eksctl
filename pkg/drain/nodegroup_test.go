@@ -58,7 +58,7 @@ var _ = Describe("Drain", func() {
 			}, nil)
 			fakeEvictor.GetPodsForEvictionReturnsOnCall(1, &evictor.PodDeleteList{}, nil)
 
-			fakeEvictor.EvictPodReturns(nil)
+			fakeEvictor.EvictOrDeletePodReturns(nil)
 
 			_, err := fakeClientSet.CoreV1().Nodes().Create(&corev1.Node{
 				ObjectMeta: metav1.ObjectMeta{
@@ -79,8 +79,8 @@ var _ = Describe("Drain", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(Equal(2))
-			Expect(fakeEvictor.EvictPodCallCount()).To(Equal(1))
-			Expect(fakeEvictor.EvictPodArgsForCall(0)).To(Equal(pod))
+			Expect(fakeEvictor.EvictOrDeletePodCallCount()).To(Equal(1))
+			Expect(fakeEvictor.EvictOrDeletePodArgsForCall(0)).To(Equal(pod))
 
 			node, err := fakeClientSet.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
@@ -109,7 +109,7 @@ var _ = Describe("Drain", func() {
 				},
 			}, nil)
 
-			fakeEvictor.EvictPodReturns(nil)
+			fakeEvictor.EvictOrDeletePodReturns(nil)
 
 			_, err := fakeClientSet.CoreV1().Nodes().Create(&corev1.Node{})
 			Expect(err).NotTo(HaveOccurred())
@@ -163,7 +163,7 @@ var _ = Describe("Drain", func() {
 			Expect(node.Spec.Unschedulable).To(BeFalse())
 
 			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(BeZero())
-			Expect(fakeEvictor.EvictPodCallCount()).To(BeZero())
+			Expect(fakeEvictor.EvictOrDeletePodCallCount()).To(BeZero())
 		})
 	})
 })
