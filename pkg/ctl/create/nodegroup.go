@@ -184,11 +184,20 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 		allNodeGroupTasks := &manager.TaskTree{
 			Parallel: true,
 		}
-		nodeGroupTasks := stackManager.NewTasksToCreateNodeGroups(cfg.NodeGroups, supportsManagedNodes)
+		awsNodeUsesIRSA, err := eks.DoesAWSNodeUseIRSA(ctl.Provider, clientSet)
+		if err != nil {
+			return errors.Wrap(err, "couldn't check aws-node for annotation")
+		}
+
+		if !awsNodeUsesIRSA && api.IsEnabled(cfg.IAM.WithOIDC) {
+			logger.Debug("cluster has withOIDC enabled but is not using IRSA for CNI, will add CNI policy to node role")
+		}
+
+		nodeGroupTasks := stackManager.NewUnmanagedNodeGroupTask(cfg.NodeGroups, supportsManagedNodes, !awsNodeUsesIRSA)
 		if nodeGroupTasks.Len() > 0 {
 			allNodeGroupTasks.Append(nodeGroupTasks)
 		}
-		managedTasks := stackManager.NewManagedNodeGroupTask(cfg.ManagedNodeGroups)
+		managedTasks := stackManager.NewManagedNodeGroupTask(cfg.ManagedNodeGroups, !awsNodeUsesIRSA)
 		if managedTasks.Len() > 0 {
 			allNodeGroupTasks.Append(managedTasks)
 		}

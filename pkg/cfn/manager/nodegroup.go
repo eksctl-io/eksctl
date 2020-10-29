@@ -50,10 +50,10 @@ func (c *StackCollection) makeNodeGroupStackName(name string) string {
 }
 
 // createNodeGroupTask creates the nodegroup
-func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup, supportsManagedNodes bool) error {
+func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup, supportsManagedNodes, forceAddCNIPolicy bool) error {
 	name := c.makeNodeGroupStackName(ng.Name)
 	logger.Info("building nodegroup stack %q", name)
-	stack := builder.NewNodeGroupResourceSet(c.provider, c.spec, c.makeClusterStackName(), ng, supportsManagedNodes)
+	stack := builder.NewNodeGroupResourceSet(c.provider, c.spec, c.makeClusterStackName(), ng, supportsManagedNodes, forceAddCNIPolicy)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
@@ -68,10 +68,10 @@ func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup
 	return c.CreateStack(name, stack, ng.Tags, nil, errs)
 }
 
-func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup) error {
+func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool) error {
 	name := c.makeNodeGroupStackName(ng.Name)
 	logger.Info("building managed nodegroup stack %q", name)
-	stack := builder.NewManagedNodeGroup(c.spec, ng, builder.NewLaunchTemplateFetcher(c.provider.EC2()), c.makeClusterStackName())
+	stack := builder.NewManagedNodeGroup(c.spec, ng, builder.NewLaunchTemplateFetcher(c.provider.EC2()), c.makeClusterStackName(), forceAddCNIPolicy)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
@@ -83,6 +83,10 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 	stacks, err := c.DescribeStacks()
 	if err != nil {
 		return nil, err
+	}
+
+	if len(stacks) == 0 {
+		return nil, c.errStackNotFound()
 	}
 
 	nodeGroupStacks := []*Stack{}

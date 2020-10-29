@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	iamPolicyAmazonEKSCNIPolicy = "AmazonEKS_CNI_Policy"
+	IamPolicyAmazonEKSCNIPolicy = "AmazonEKS_CNI_Policy"
 )
 
 var (
@@ -42,7 +42,7 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 			awsNode := ClusterIAMServiceAccount{
 				ClusterIAMMeta: awsNodeMeta,
 				AttachPolicyARNs: []string{
-					fmt.Sprintf("arn:%s:iam::aws:policy/%s", Partition(cfg.Metadata.Region), iamPolicyAmazonEKSCNIPolicy),
+					fmt.Sprintf("arn:%s:iam::aws:policy/%s", Partition(cfg.Metadata.Region), IamPolicyAmazonEKSCNIPolicy),
 				},
 			}
 			cfg.IAM.ServiceAccounts = append(cfg.IAM.ServiceAccounts, &awsNode)
