@@ -383,7 +383,7 @@ func (c *ClusterProvider) GetCluster(clusterName string) (*awseks.Cluster, error
 
 	output, err := c.Provider.EKS().DescribeCluster(input)
 	if err != nil {
-		return &awseks.Cluster{}, errors.Wrapf(err, "unable to describe control plane %q", clusterName)
+		return nil, errors.Wrapf(err, "unable to describe control plane %q", clusterName)
 	}
 	logger.Debug("cluster = %#v", output)
 
