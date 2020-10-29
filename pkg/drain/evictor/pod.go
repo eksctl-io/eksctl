@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package drain
+package evictor
 
 import (
 	"fmt"
@@ -40,30 +40,30 @@ const (
 	drainPodAnnotationNever  = "never"
 )
 
-type podDelete struct {
-	pod    corev1.Pod
-	status podDeleteStatus
+type PodDelete struct {
+	Pod    corev1.Pod
+	Status PodDeleteStatus
 }
 
-type podDeleteList struct {
-	items []podDelete
+type PodDeleteList struct {
+	Items []PodDelete
 }
 
-func (l *podDeleteList) Pods() []corev1.Pod {
+func (l *PodDeleteList) Pods() []corev1.Pod {
 	pods := []corev1.Pod{}
-	for _, i := range l.items {
-		if i.status.delete {
-			pods = append(pods, i.pod)
+	for _, i := range l.Items {
+		if i.Status.Delete {
+			pods = append(pods, i.Pod)
 		}
 	}
 	return pods
 }
 
-func (l *podDeleteList) Warnings() string {
+func (l *PodDeleteList) Warnings() string {
 	ps := make(map[string][]string)
-	for _, i := range l.items {
-		if i.status.reason == podDeleteStatusTypeWarning {
-			ps[i.status.message] = append(ps[i.status.message], fmt.Sprintf("%s/%s", i.pod.Namespace, i.pod.Name))
+	for _, i := range l.Items {
+		if i.Status.Reason == podDeleteStatusTypeWarning {
+			ps[i.Status.Message] = append(ps[i.Status.Message], fmt.Sprintf("%s/%s", i.Pod.Namespace, i.Pod.Name))
 		}
 	}
 
@@ -74,32 +74,32 @@ func (l *podDeleteList) Warnings() string {
 	return strings.Join(msgs, "; ")
 }
 
-func (l *podDeleteList) errors() []error {
+func (l *PodDeleteList) errors() []error {
 	failedPods := make(map[string][]string)
-	for _, i := range l.items {
-		if i.status.reason == podDeleteStatusTypeError {
-			msg := i.status.message
+	for _, i := range l.Items {
+		if i.Status.Reason == podDeleteStatusTypeError {
+			msg := i.Status.Message
 			if msg == "" {
 				msg = "unexpected error"
 			}
-			failedPods[msg] = append(failedPods[msg], fmt.Sprintf("%s/%s", i.pod.Namespace, i.pod.Name))
+			failedPods[msg] = append(failedPods[msg], fmt.Sprintf("%s/%s", i.Pod.Namespace, i.Pod.Name))
 		}
 	}
 	errs := make([]error, 0)
 	for msg, pods := range failedPods {
-		errs = append(errs, fmt.Errorf("cannot delete %s: %s", msg, strings.Join(pods, ", ")))
+		errs = append(errs, fmt.Errorf("cannot Delete %s: %s", msg, strings.Join(pods, ", ")))
 	}
 	return errs
 }
 
-type podDeleteStatus struct {
-	delete  bool
-	reason  string
-	message string
+type PodDeleteStatus struct {
+	Delete  bool
+	Reason  string
+	Message string
 }
 
-// Takes a pod and returns a PodDeleteStatus
-type podFilter func(corev1.Pod) podDeleteStatus
+// Takes a Pod and returns a PodDeleteStatus
+type podFilter func(corev1.Pod) PodDeleteStatus
 
 const (
 	podDeleteStatusTypeOkay    = "Okay"
@@ -108,37 +108,37 @@ const (
 	podDeleteStatusTypeError   = "Error"
 )
 
-func makePodDeleteStatusOkay() podDeleteStatus {
-	return podDeleteStatus{
-		delete: true,
-		reason: podDeleteStatusTypeOkay,
+func makePodDeleteStatusOkay() PodDeleteStatus {
+	return PodDeleteStatus{
+		Delete: true,
+		Reason: podDeleteStatusTypeOkay,
 	}
 }
 
-func makePodDeleteStatusSkip() podDeleteStatus {
-	return podDeleteStatus{
-		delete: false,
-		reason: podDeleteStatusTypeSkip,
+func makePodDeleteStatusSkip() PodDeleteStatus {
+	return PodDeleteStatus{
+		Delete: false,
+		Reason: podDeleteStatusTypeSkip,
 	}
 }
 
-func makePodDeleteStatusWithWarning(delete bool, message string) podDeleteStatus {
-	return podDeleteStatus{
-		delete:  delete,
-		reason:  podDeleteStatusTypeWarning,
-		message: message,
+func makePodDeleteStatusWithWarning(delete bool, message string) PodDeleteStatus {
+	return PodDeleteStatus{
+		Delete:  delete,
+		Reason:  podDeleteStatusTypeWarning,
+		Message: message,
 	}
 }
 
-func makePodDeleteStatusWithError(message string) podDeleteStatus {
-	return podDeleteStatus{
-		delete:  false,
-		reason:  podDeleteStatusTypeError,
-		message: message,
+func makePodDeleteStatusWithError(message string) PodDeleteStatus {
+	return PodDeleteStatus{
+		Delete:  false,
+		Reason:  podDeleteStatusTypeError,
+		Message: message,
 	}
 }
 
-func (d *Helper) makeFilters() []podFilter {
+func (d *Evictor) makeFilters() []podFilter {
 	return []podFilter{
 		d.annotationFilter,
 		d.daemonSetFilter,
@@ -158,7 +158,7 @@ func hasLocalStorage(pod corev1.Pod) bool {
 	return false
 }
 
-func (d *Helper) annotationFilter(pod corev1.Pod) podDeleteStatus {
+func (d *Evictor) annotationFilter(pod corev1.Pod) PodDeleteStatus {
 	if v, ok := pod.Annotations[drainPodAnnotation]; ok {
 		annotation := fmt.Sprintf("due to annotation %s=%s", drainPodAnnotation, v)
 		switch v {
@@ -174,8 +174,8 @@ func (d *Helper) annotationFilter(pod corev1.Pod) podDeleteStatus {
 	return makePodDeleteStatusOkay()
 }
 
-func (d *Helper) daemonSetFilter(pod corev1.Pod) podDeleteStatus {
-	// Note that we return false in cases where the pod is DaemonSet managed,
+func (d *Evictor) daemonSetFilter(pod corev1.Pod) PodDeleteStatus {
+	// Note that we return false in cases where the Pod is DaemonSet managed,
 	// regardless of flags.
 	//
 	// The exception is for pods that are orphaned (the referencing
@@ -185,21 +185,21 @@ func (d *Helper) daemonSetFilter(pod corev1.Pod) podDeleteStatus {
 	if controllerRef == nil || controllerRef.Kind != appsv1.SchemeGroupVersion.WithKind("DaemonSet").Kind {
 		return makePodDeleteStatusOkay()
 	}
-	// Any finished pod can be removed.
+	// Any finished Pod can be removed.
 	if pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed {
 		return makePodDeleteStatusOkay()
 	}
 
-	if _, err := d.Client.AppsV1().DaemonSets(pod.Namespace).Get(controllerRef.Name, metav1.GetOptions{}); err != nil {
+	if _, err := d.client.AppsV1().DaemonSets(pod.Namespace).Get(controllerRef.Name, metav1.GetOptions{}); err != nil {
 		// remove orphaned pods with a warning if --force is used
-		if apierrors.IsNotFound(err) && d.Force {
+		if apierrors.IsNotFound(err) && d.force {
 			return makePodDeleteStatusWithWarning(true, err.Error())
 		}
 
 		return makePodDeleteStatusWithError(err.Error())
 	}
 
-	for _, ignoreDaemonSet := range d.IgnoreDaemonSets {
+	for _, ignoreDaemonSet := range d.ignoreDaemonSets {
 		if controllerRef.Name == ignoreDaemonSet.Name {
 			switch ignoreDaemonSet.Namespace {
 			case pod.Namespace, metav1.NamespaceAll:
@@ -208,37 +208,37 @@ func (d *Helper) daemonSetFilter(pod corev1.Pod) podDeleteStatus {
 		}
 	}
 
-	if !d.IgnoreAllDaemonSets {
+	if !d.ignoreAllDaemonSets {
 		return makePodDeleteStatusWithError(daemonSetFatal)
 	}
 
 	return makePodDeleteStatusWithWarning(false, daemonSetWarning)
 }
 
-func (d *Helper) mirrorPodFilter(pod corev1.Pod) podDeleteStatus {
+func (d *Evictor) mirrorPodFilter(pod corev1.Pod) PodDeleteStatus {
 	if _, found := pod.ObjectMeta.Annotations[corev1.MirrorPodAnnotationKey]; found {
 		return makePodDeleteStatusSkip()
 	}
 	return makePodDeleteStatusOkay()
 }
 
-func (d *Helper) localStorageFilter(pod corev1.Pod) podDeleteStatus {
+func (d *Evictor) localStorageFilter(pod corev1.Pod) PodDeleteStatus {
 	if !hasLocalStorage(pod) {
 		return makePodDeleteStatusOkay()
 	}
-	// Any finished pod can be removed.
+	// Any finished Pod can be removed.
 	if pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed {
 		return makePodDeleteStatusOkay()
 	}
-	if !d.DeleteLocalData {
+	if !d.deleteLocalData {
 		return makePodDeleteStatusWithError(localStorageFatal)
 	}
 
 	return makePodDeleteStatusWithWarning(true, localStorageWarning)
 }
 
-func (d *Helper) unreplicatedFilter(pod corev1.Pod) podDeleteStatus {
-	// any finished pod can be removed
+func (d *Evictor) unreplicatedFilter(pod corev1.Pod) PodDeleteStatus {
+	// any finished Pod can be removed
 	if pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed {
 		return makePodDeleteStatusOkay()
 	}
@@ -247,7 +247,7 @@ func (d *Helper) unreplicatedFilter(pod corev1.Pod) podDeleteStatus {
 	if controllerRef != nil {
 		return makePodDeleteStatusOkay()
 	}
-	if d.Force {
+	if d.force {
 		return makePodDeleteStatusWithWarning(true, unmanagedWarning)
 	}
 	return makePodDeleteStatusWithError(unmanagedFatal)
