@@ -22,14 +22,9 @@ import (
 
 var _ = Describe("EKS API wrapper", func() {
 	var (
-		c      *ClusterProvider
-		p      *mockprovider.MockProvider
-		output string
+		c *ClusterProvider
+		p *mockprovider.MockProvider
 	)
-
-	BeforeEach(func() {
-		output = "json"
-	})
 
 	Describe("GetClusters", func() {
 		When("the cluster is ready", func() {
@@ -212,7 +207,7 @@ var _ = Describe("EKS API wrapper", func() {
 			})
 
 			JustBeforeEach(func() {
-				err = c.ListClusters(chunkSize, output, false)
+				_, err = c.ListClusters(chunkSize, false)
 			})
 
 			It("should not error", func() {
@@ -253,7 +248,7 @@ var _ = Describe("EKS API wrapper", func() {
 			})
 
 			JustBeforeEach(func() {
-				err = c.ListClusters(chunkSize, output, false)
+				_, err = c.ListClusters(chunkSize, false)
 			})
 
 			It("should not error", func() {

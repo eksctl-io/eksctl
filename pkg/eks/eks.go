@@ -22,7 +22,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
@@ -300,7 +299,7 @@ func (c *ClusterProvider) loadClusterKubernetesNetworkConfig(spec *api.ClusterCo
 	return nil
 }
 
-// ListClusters display details of all the EKS cluster in your account
+// ListClusters returns a list of the EKS cluster in your account
 func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*api.ClusterConfig, error) {
 	if listAllRegions {
 		var clusters []*api.ClusterConfig
@@ -311,7 +310,7 @@ func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*a
 				Profile:     c.Provider.Profile(),
 				WaitTimeout: c.Provider.WaitTimeout(),
 			}
-			newClusters, err := New(spec, nil).doListClusters(int64(chunkSize))
+			newClusters, err := New(spec, nil).listClusters(int64(chunkSize))
 			if err != nil {
 				logger.Critical("error listing clusters in %q region: %s", region, err.Error())
 			}
@@ -321,10 +320,10 @@ func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*a
 		return clusters, nil
 	}
 
-	return c.doListClusters(int64(chunkSize))
+	return c.listClusters(int64(chunkSize))
 }
 
-func (c *ClusterProvider) doListClusters(chunkSize int64) ([]*api.ClusterConfig, error) {
+func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, error) {
 	var allClusters []*api.ClusterConfig
 
 	token := ""
@@ -439,16 +438,4 @@ func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *
 			return fmt.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.Provider.WaitTimeout())
 		}
 	}
-}
-
-func addListTableColumns(printer *printers.TablePrinter) {
-	printer.AddColumn("NAME", func(c *api.ClusterConfig) string {
-		return c.Metadata.Name
-	})
-	printer.AddColumn("REGION", func(c *api.ClusterConfig) string {
-		return c.Metadata.Region
-	})
-	printer.AddColumn("EKSCTL CREATED", func(c *api.ClusterConfig) string {
-		return c.Status.EKSCTLCreated
-	})
 }
