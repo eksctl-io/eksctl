@@ -107,7 +107,7 @@ func addGetClustersSummaryTableColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("REGION", func(c *api.ClusterConfig) string {
 		return c.Metadata.Region
 	})
-	printer.AddColumn("EKSCTL CREATED", func(c *api.ClusterConfig) string {
+	printer.AddColumn("EKSCTL CREATED", func(c *api.ClusterConfig) api.EKSCTLCreated {
 		return c.Status.EKSCTLCreated
 	})
 }

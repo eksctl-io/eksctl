@@ -385,7 +385,7 @@
           "type": "array"
         },
         "eksctlCreated": {
-          "type": "string"
+          "$ref": "#/definitions/EKSCTLCreated"
         },
         "endpoint": {
           "type": "string"
@@ -498,6 +498,9 @@
       "additionalProperties": false,
       "description": "holds global subnet and all child subnets",
       "x-intellij-html-description": "holds global subnet and all child subnets"
+    },
+    "EKSCTLCreated": {
+      "type": "string"
     },
     "FargateProfile": {
       "required": [
