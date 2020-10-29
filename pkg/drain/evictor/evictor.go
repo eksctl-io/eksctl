@@ -147,7 +147,7 @@ func (d *Evictor) deletePod(pod corev1.Pod) error {
 	return d.client.CoreV1().Pods(pod.Namespace).Delete(pod.Name, d.makeDeleteOptions(pod))
 }
 
-// GetPodsForDeletion lists all pods on a given node, filters those using the default
+// GetPodsForEviction lists all pods on a given node, filters those using the default
 // filters, and returns PodDeleteList along with any errors. All pods that are ready
 // to be deleted can be obtained with .Pods(), and string with all warning can be obtained
 // with .Warnings()
