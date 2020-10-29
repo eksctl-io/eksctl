@@ -387,7 +387,7 @@ func (c *ClusterProvider) GetCluster(clusterName string) (*awseks.Cluster, error
 			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: clusterName}}
 			stacks, err := c.NewStackManager(spec).ListStacks()
 			if err != nil {
-				return &awseks.Cluster{}, errors.Wrapf(err, "listing CloudFormation stack for %q", clusterName)
+				return nil, errors.Wrapf(err, "listing CloudFormation stack for %q", clusterName)
 			}
 			for _, s := range stacks {
 				logger.Debug("stack = %#v", *s)
