@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	// ownerIDUbuntu1804Family is the owner ID used for Ubuntu AMIs
-	ownerIDUbuntu1804Family = "099720109477"
+	// ownerIDUbuntuFamily is the owner ID used for Ubuntu AMIs
+	ownerIDUbuntuFamily = "099720109477"
 
 	// ownerIDWindowsFamily is the owner ID used for Ubuntu AMIs
 	ownerIDWindowsFamily = "801119661308"
@@ -26,8 +26,11 @@ func MakeImageSearchPatterns(version string) map[string]map[int]string {
 			ImageClassGPU:     fmt.Sprintf("amazon-eks-gpu-node-%s-*", version),
 			ImageClassARM:     fmt.Sprintf("amazon-eks-arm64-node-%s-*", version),
 		},
+		api.NodeImageFamilyUbuntu2004: {
+			ImageClassGeneral: fmt.Sprintf("ubuntu-eks/k8s_%s/images/*20.04*", version),
+		},
 		api.NodeImageFamilyUbuntu1804: {
-			ImageClassGeneral: fmt.Sprintf("ubuntu-eks/k8s_%s/images/*", version),
+			ImageClassGeneral: fmt.Sprintf("ubuntu-eks/k8s_%s/images/*18.04*", version),
 		},
 		api.NodeImageFamilyWindowsServer2019CoreContainer: {
 			ImageClassGeneral: fmt.Sprintf("Windows_Server-2019-English-Core-EKS_Optimized-%v-*", version),
@@ -47,8 +50,8 @@ func MakeImageSearchPatterns(version string) map[string]map[int]string {
 // OwnerAccountID returns the AWS account ID that owns worker AMI.
 func OwnerAccountID(imageFamily, region string) (string, error) {
 	switch imageFamily {
-	case api.NodeImageFamilyUbuntu1804:
-		return ownerIDUbuntu1804Family, nil
+	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
+		return ownerIDUbuntuFamily, nil
 	case api.NodeImageFamilyAmazonLinux2:
 		return api.EKSResourceAccountID(region), nil
 	default:

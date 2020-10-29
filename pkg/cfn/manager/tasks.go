@@ -158,24 +158,26 @@ type nodeGroupTask struct {
 	info                 string
 	nodeGroup            *api.NodeGroup
 	supportsManagedNodes bool
+	forceAddCNIPolicy    bool
 	stackCollection      *StackCollection
 }
 
 func (t *nodeGroupTask) Describe() string { return t.info }
 func (t *nodeGroupTask) Do(errs chan error) error {
-	return t.stackCollection.createNodeGroupTask(errs, t.nodeGroup, t.supportsManagedNodes)
+	return t.stackCollection.createNodeGroupTask(errs, t.nodeGroup, t.supportsManagedNodes, t.forceAddCNIPolicy)
 }
 
 type managedNodeGroupTask struct {
-	info            string
-	nodeGroup       *api.ManagedNodeGroup
-	stackCollection *StackCollection
+	info              string
+	nodeGroup         *api.ManagedNodeGroup
+	stackCollection   *StackCollection
+	forceAddCNIPolicy bool
 }
 
 func (t *managedNodeGroupTask) Describe() string { return t.info }
 
 func (t *managedNodeGroupTask) Do(errorCh chan error) error {
-	return t.stackCollection.createManagedNodeGroupTask(errorCh, t.nodeGroup)
+	return t.stackCollection.createManagedNodeGroupTask(errorCh, t.nodeGroup, t.forceAddCNIPolicy)
 }
 
 type clusterCompatTask struct {

@@ -657,7 +657,20 @@
           "x-intellij-html-description": "Specify <a href=\"/usage/custom-ami-support/\">custom AMIs</a>, <code>auto-ssm</code>, <code>auto</code>, or <code>static</code>"
         },
         "amiFamily": {
-          "type": "string"
+          "type": "string",
+          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer1909CoreContainer\"`, `\"WindowsServer2004CoreContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer1909CoreContainer&quot;</code>, <code>&quot;WindowsServer2004CoreContainer&quot;</code>.",
+          "default": "AmazonLinux2",
+          "enum": [
+            "AmazonLinux2",
+            "Ubuntu2004",
+            "Ubuntu1804",
+            "Bottlerocket",
+            "WindowsServer2019CoreContainer",
+            "WindowsServer2019FullContainer",
+            "WindowsServer1909CoreContainer",
+            "WindowsServer2004CoreContainer"
+          ]
         },
         "asgSuspendProcesses": {
           "items": {
@@ -889,7 +902,20 @@
           "x-intellij-html-description": "Specify <a href=\"/usage/custom-ami-support/\">custom AMIs</a>, <code>auto-ssm</code>, <code>auto</code>, or <code>static</code>"
         },
         "amiFamily": {
-          "type": "string"
+          "type": "string",
+          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer1909CoreContainer\"`, `\"WindowsServer2004CoreContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer1909CoreContainer&quot;</code>, <code>&quot;WindowsServer2004CoreContainer&quot;</code>.",
+          "default": "AmazonLinux2",
+          "enum": [
+            "AmazonLinux2",
+            "Ubuntu2004",
+            "Ubuntu1804",
+            "Bottlerocket",
+            "WindowsServer2019CoreContainer",
+            "WindowsServer2019FullContainer",
+            "WindowsServer1909CoreContainer",
+            "WindowsServer2004CoreContainer"
+          ]
         },
         "asgMetricsCollection": {
           "items": {

@@ -148,30 +148,28 @@ const (
 	PartitionUSGov = "aws-us-gov"
 )
 
+// Values for `NodeAMIFamily`
+// All valid values should go in this block
+const (
+	// DefaultNodeImageFamily (default)
+	DefaultNodeImageFamily      = NodeImageFamilyAmazonLinux2
+	NodeImageFamilyAmazonLinux2 = "AmazonLinux2"
+	NodeImageFamilyUbuntu2004   = "Ubuntu2004"
+	NodeImageFamilyUbuntu1804   = "Ubuntu1804"
+	NodeImageFamilyBottlerocket = "Bottlerocket"
+
+	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
+	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
+	NodeImageFamilyWindowsServer1909CoreContainer = "WindowsServer1909CoreContainer"
+	NodeImageFamilyWindowsServer2004CoreContainer = "WindowsServer2004CoreContainer"
+)
+
 const (
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
 
 	// DefaultNodeCount defines the default number of nodes to be created
 	DefaultNodeCount = 2
-
-	// DefaultNodeImageFamily defines the default image family for the worker nodes
-	DefaultNodeImageFamily = NodeImageFamilyAmazonLinux2
-	// NodeImageFamilyAmazonLinux2 represents Amazon Linux 2 family
-	NodeImageFamilyAmazonLinux2 = "AmazonLinux2"
-	// NodeImageFamilyUbuntu1804 represents Ubuntu 18.04 family
-	NodeImageFamilyUbuntu1804 = "Ubuntu1804"
-	// NodeImageFamilyBottlerocket represents Bottlerocket family
-	NodeImageFamilyBottlerocket = "Bottlerocket"
-
-	// NodeImageFamilyWindowsServer2019CoreContainer represents Windows 2019 core container family
-	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
-	// NodeImageFamilyWindowsServer2019FullContainer represents Windows 2019 full container family
-	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
-	// NodeImageFamilyWindowsServer1909CoreContainer represents Windows 1909 core container family
-	NodeImageFamilyWindowsServer1909CoreContainer = "WindowsServer1909CoreContainer"
-	// NodeImageFamilyWindowsServer2004CoreContainer represents Windows 2004 core container family
-	NodeImageFamilyWindowsServer2004CoreContainer = "WindowsServer2004CoreContainer"
 
 	// NodeImageResolverStatic represents static AMI resolver (see ami package)
 	NodeImageResolverStatic = "static"
@@ -1055,6 +1053,7 @@ type NodeGroupBase struct {
 	// +required
 	Name string `json:"name"`
 
+	// Valid variants are `NodeAMIFamily` constants
 	// +optional
 	AMIFamily string `json:"amiFamily,omitempty"`
 	// +optional

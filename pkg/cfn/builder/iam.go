@@ -170,7 +170,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() error {
 	}
 
 	enableSSM := n.spec.SSH != nil && api.IsEnabled(n.spec.SSH.EnableSSM)
-	if err := createRole(n.rs, n.clusterSpec.IAM, n.spec.IAM, false, enableSSM); err != nil {
+	if err := createRole(n.rs, n.clusterSpec.IAM, n.spec.IAM, false, enableSSM, n.forceAddCNIPolicy); err != nil {
 		return err
 	}
 

@@ -25,9 +25,9 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 	)
 
 	appendNodeGroupTasksTo := func(taskTree *TaskTree) {
-		nodeGroupTasks := c.NewTasksToCreateNodeGroups(nodeGroups, supportsManagedNodes)
+		nodeGroupTasks := c.NewUnmanagedNodeGroupTask(nodeGroups, supportsManagedNodes, false)
 
-		managedNodeGroupTasks := c.NewManagedNodeGroupTask(managedNodeGroups)
+		managedNodeGroupTasks := c.NewManagedNodeGroupTask(managedNodeGroups, false)
 		if managedNodeGroupTasks.Len() > 0 {
 			nodeGroupTasks.Append(managedNodeGroupTasks.tasks...)
 		}
@@ -53,8 +53,8 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 	return &tasks
 }
 
-// NewTasksToCreateNodeGroups defines tasks required to create all of the nodegroups
-func (c *StackCollection) NewTasksToCreateNodeGroups(nodeGroups []*api.NodeGroup, supportsManagedNodes bool) *TaskTree {
+// NewUnmanagedNodeGroupTask defines tasks required to create all of the nodegroups
+func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup, supportsManagedNodes bool, forceAddCNIPolicy bool) *TaskTree {
 	tasks := &TaskTree{Parallel: true}
 
 	for _, ng := range nodeGroups {
@@ -63,6 +63,7 @@ func (c *StackCollection) NewTasksToCreateNodeGroups(nodeGroups []*api.NodeGroup
 			nodeGroup:            ng,
 			stackCollection:      c,
 			supportsManagedNodes: supportsManagedNodes,
+			forceAddCNIPolicy:    forceAddCNIPolicy,
 		})
 		// TODO: move authconfigmap tasks here using kubernetesTask and kubernetes.CallbackClientSet
 	}
@@ -71,13 +72,14 @@ func (c *StackCollection) NewTasksToCreateNodeGroups(nodeGroups []*api.NodeGroup
 }
 
 // NewManagedNodeGroupTask defines tasks required to create managed nodegroups
-func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeGroup) *TaskTree {
+func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool) *TaskTree {
 	tasks := &TaskTree{Parallel: true}
 	for _, ng := range nodeGroups {
 		tasks.Append(&managedNodeGroupTask{
-			stackCollection: c,
-			nodeGroup:       ng,
-			info:            fmt.Sprintf("create managed nodegroup %q", ng.Name),
+			stackCollection:   c,
+			nodeGroup:         ng,
+			forceAddCNIPolicy: forceAddCNIPolicy,
+			info:              fmt.Sprintf("create managed nodegroup %q", ng.Name),
 		})
 	}
 	return tasks
