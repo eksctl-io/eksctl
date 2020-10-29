@@ -3,7 +3,6 @@ package eks
 import (
 	"encoding/base64"
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"time"
@@ -302,27 +301,9 @@ func (c *ClusterProvider) loadClusterKubernetesNetworkConfig(spec *api.ClusterCo
 }
 
 // ListClusters display details of all the EKS cluster in your account
-func (c *ClusterProvider) ListClusters(chunkSize int, output printers.Type, eachRegion bool) error {
-	// NOTE: this needs to be reworked in the future so that the functionality
-	// is combined. This require the ability to return details of all clusters
-	// in a single call.
-	printer, err := printers.NewPrinter(output)
-	if err != nil {
-		return err
-	}
-
-	if output == "table" {
-		addListTableColumns(printer.(*printers.TablePrinter))
-	}
-	allClusters := []*api.ClusterConfig{}
-	if err := c.doListClusters(int64(chunkSize), printer, &allClusters, eachRegion); err != nil {
-		return err
-	}
-	return printer.PrintObjWithKind("clusters", allClusters, os.Stdout)
-}
-
-func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.OutputPrinter, allClusters *[]*api.ClusterConfig, eachRegion bool) error {
-	if eachRegion {
+func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*api.ClusterConfig, error) {
+	if listAllRegions {
+		var clusters []*api.ClusterConfig
 		// reset region and re-create the client, then make a recursive call
 		for _, region := range api.SupportedRegions() {
 			spec := &api.ProviderConfig{
@@ -330,18 +311,27 @@ func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.Outpu
 				Profile:     c.Provider.Profile(),
 				WaitTimeout: c.Provider.WaitTimeout(),
 			}
-			if err := New(spec, nil).doListClusters(chunkSize, printer, allClusters, false); err != nil {
+			newClusters, err := New(spec, nil).doListClusters(int64(chunkSize))
+			if err != nil {
 				logger.Critical("error listing clusters in %q region: %s", region, err.Error())
 			}
+
+			clusters = append(clusters, newClusters...)
 		}
-		return nil
+		return clusters, nil
 	}
+
+	return c.doListClusters(int64(chunkSize))
+}
+
+func (c *ClusterProvider) doListClusters(chunkSize int64) ([]*api.ClusterConfig, error) {
+	var allClusters []*api.ClusterConfig
 
 	token := ""
 	for {
 		clusters, nextToken, err := c.getClustersRequest(chunkSize, token)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		for _, clusterName := range clusters {
@@ -354,7 +344,7 @@ func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.Outpu
 			} else if isClusterStack(stacks) {
 				managed = "True"
 			}
-			*allClusters = append(*allClusters, &api.ClusterConfig{
+			allClusters = append(allClusters, &api.ClusterConfig{
 				Metadata: &api.ClusterMeta{
 					Name:   *clusterName,
 					Region: c.Provider.Region(),
@@ -372,7 +362,7 @@ func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.Outpu
 		}
 	}
 
-	return nil
+	return allClusters, nil
 }
 
 // GetCluster display details of an EKS cluster in your account

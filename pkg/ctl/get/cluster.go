@@ -75,10 +75,41 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 	}
 
 	if cfg.Metadata.Name == "" {
-		return ctl.ListClusters(params.chunkSize, params.output, listAllRegions)
+		return getAndPrinterClusters(ctl, params, listAllRegions)
 	}
 
 	return getAndPrintCluster(cfg, ctl, params)
+}
+
+func getAndPrinterClusters(ctl *eks.ClusterProvider, params *getCmdParams, listAllRegions bool) error {
+
+	printer, err := printers.NewPrinter(params.output)
+	if err != nil {
+		return err
+	}
+
+	if params.output == "table" {
+		addGetClustersSummaryTableColumns(printer.(*printers.TablePrinter))
+	}
+
+	clusters, err := ctl.ListClusters(params.chunkSize, listAllRegions)
+	if err != nil {
+		return err
+	}
+
+	return printer.PrintObjWithKind("clusters", clusters, os.Stdout)
+}
+
+func addGetClustersSummaryTableColumns(printer *printers.TablePrinter) {
+	printer.AddColumn("NAME", func(c *api.ClusterConfig) string {
+		return c.Metadata.Name
+	})
+	printer.AddColumn("REGION", func(c *api.ClusterConfig) string {
+		return c.Metadata.Region
+	})
+	printer.AddColumn("EKSCTL CREATED", func(c *api.ClusterConfig) string {
+		return c.Status.EKSCTLCreated
+	})
 }
 
 func getAndPrintCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, params *getCmdParams) error {
