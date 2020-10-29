@@ -26,6 +26,12 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
+const (
+	True    api.EKSCTLCreated = "True"
+	False   api.EKSCTLCreated = "False"
+	Unknown api.EKSCTLCreated = "Unknown"
+)
+
 // DescribeControlPlane describes the cluster control plane
 func (c *ClusterProvider) DescribeControlPlane(meta *api.ClusterMeta) (*awseks.Cluster, error) {
 	input := &awseks.DescribeClusterInput{
@@ -336,12 +342,12 @@ func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, e
 		for _, clusterName := range clusters {
 			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: *clusterName}}
 			stacks, err := c.NewStackManager(spec).ListStacks()
-			managed := "False"
+			managed := False
 			if err != nil {
-				managed = "Unknown"
+				managed = Unknown
 				logger.Warning("error fetching stacks for cluster %s: %v", clusterName, err)
 			} else if isClusterStack(stacks) {
-				managed = "True"
+				managed = True
 			}
 			allClusters = append(allClusters, &api.ClusterConfig{
 				Metadata: &api.ClusterMeta{

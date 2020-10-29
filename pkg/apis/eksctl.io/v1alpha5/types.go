@@ -466,13 +466,15 @@ type KubernetesNetworkConfig struct {
 	ServiceIPv4CIDR string `json:"serviceIPv4CIDR,omitempty"`
 }
 
+type EKSCTLCreated string
+
 // ClusterStatus hold read-only attributes of a cluster
 type ClusterStatus struct {
-	Endpoint                 string `json:"endpoint,omitempty"`
-	CertificateAuthorityData []byte `json:"certificateAuthorityData,omitempty"`
-	ARN                      string `json:"arn,omitempty"`
-	StackName                string `json:"stackName,omitempty"`
-	EKSCTLCreated            string `json:"eksctlCreated,omitempty"`
+	Endpoint                 string        `json:"endpoint,omitempty"`
+	CertificateAuthorityData []byte        `json:"certificateAuthorityData,omitempty"`
+	ARN                      string        `json:"arn,omitempty"`
+	StackName                string        `json:"stackName,omitempty"`
+	EKSCTLCreated            EKSCTLCreated `json:"eksctlCreated,omitempty"`
 }
 
 // String returns canonical representation of ClusterMeta
