@@ -178,56 +178,61 @@ func (c *NodeGroup) Create() error {
 		}
 	}
 
-	{ // post-creation action
-		tasks := ctl.ClusterTasksForNodeGroups(cfg, c.options.InstallNeuronDevicePlugin)
-		logger.Info(tasks.Describe())
-		errs := tasks.DoAllSync()
-		if len(errs) > 0 {
-			logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
-			logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroups", cfg.Metadata.Region, cfg.Metadata.Name)
-			for _, err := range errs {
-				if err != nil {
-					logger.Critical("%s\n", err.Error())
-				}
-			}
-			return fmt.Errorf("failed to create nodegroups for cluster %q", cfg.Metadata.Name)
-		}
-
-		for _, ng := range cfg.NodeGroups {
-			if c.options.UpdateAuthConfigMap {
-				// authorise nodes to join
-				if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
-					return err
-				}
-
-				// wait for nodes to join
-				if err = ctl.WaitForNodes(clientSet, ng); err != nil {
-					return err
-				}
-			}
-
-			ShowDevicePluginMessageForNodeGroup(ng, c.options.InstallNeuronDevicePlugin)
-		}
-		logger.Success("created %d nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
-
-		for _, ng := range cfg.ManagedNodeGroups {
-			if err := ctl.WaitForNodes(clientSet, ng); err != nil {
-				if cfg.PrivateCluster.Enabled {
-					logger.Info("error waiting for nodes to join the cluster; this command was likely run from outside the cluster's VPC as the API server is not reachable, nodegroup(s) should still be able to join the cluster, underlying error is: %v", err)
-					break
-				} else {
-					return err
-				}
-			}
-		}
-
-		logger.Success("created %d managed nodegroup(s) in cluster %q", len(cfg.ManagedNodeGroups), cfg.Metadata.Name)
+	if err := PostNodeCreationTasks(ctl, cfg, clientSet, c.options); err != nil {
+		return err
 	}
 
 	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
+	return nil
+}
+
+func PostNodeCreationTasks(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, clientSet kubernetes.Interface, options NodeGroupOptions) error {
+	tasks := ctl.ClusterTasksForNodeGroups(cfg, options.InstallNeuronDevicePlugin)
+	logger.Info(tasks.Describe())
+	errs := tasks.DoAllSync()
+	if len(errs) > 0 {
+		logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
+		logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroups", cfg.Metadata.Region, cfg.Metadata.Name)
+		for _, err := range errs {
+			if err != nil {
+				logger.Critical("%s\n", err.Error())
+			}
+		}
+		return fmt.Errorf("failed to create nodegroups for cluster %q", cfg.Metadata.Name)
+	}
+
+	for _, ng := range cfg.NodeGroups {
+		if options.UpdateAuthConfigMap {
+			// authorise nodes to join
+			if err := authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
+				return err
+			}
+
+			// wait for nodes to join
+			if err := ctl.WaitForNodes(clientSet, ng); err != nil {
+				return err
+			}
+		}
+
+		ShowDevicePluginMessageForNodeGroup(ng, options.InstallNeuronDevicePlugin)
+	}
+	logger.Success("created %d nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
+
+	for _, ng := range cfg.ManagedNodeGroups {
+		if err := ctl.WaitForNodes(clientSet, ng); err != nil {
+			if cfg.PrivateCluster.Enabled {
+				logger.Info("error waiting for nodes to join the cluster; this command was likely run from outside the cluster's VPC as the API server is not reachable, nodegroup(s) should still be able to join the cluster, underlying error is: %v", err)
+				break
+			} else {
+				return err
+			}
+		}
+	}
+
+	logger.Success("created %d managed nodegroup(s) in cluster %q", len(cfg.ManagedNodeGroups), cfg.Metadata.Name)
 	return nil
 }
 
