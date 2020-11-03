@@ -384,6 +384,9 @@
           },
           "type": "array"
         },
+        "eksctlCreated": {
+          "$ref": "#/definitions/EKSCTLCreated"
+        },
         "endpoint": {
           "type": "string"
         },
@@ -395,7 +398,8 @@
         "endpoint",
         "certificateAuthorityData",
         "arn",
-        "stackName"
+        "stackName",
+        "eksctlCreated"
       ],
       "additionalProperties": false,
       "description": "hold read-only attributes of a cluster",
@@ -494,6 +498,9 @@
       "additionalProperties": false,
       "description": "holds global subnet and all child subnets",
       "x-intellij-html-description": "holds global subnet and all child subnets"
+    },
+    "EKSCTLCreated": {
+      "type": "string"
     },
     "FargateProfile": {
       "required": [
