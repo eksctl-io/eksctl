@@ -7,6 +7,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/actions/create"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
@@ -19,7 +20,7 @@ var _ = Describe("create nodegroup", func() {
 				cmd := newMockEmptyCmd(commandArgs...)
 				count := 0
 				cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-					createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeGroupParams) error {
+					createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options create.NodeGroupOptions, managed bool) error {
 						Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
 						Expect(ng.Name).NotTo(BeNil())
 						count++
@@ -61,7 +62,7 @@ var _ = Describe("create nodegroup", func() {
 				cmd := newDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal(c.error.Error()))
+				Expect(err.Error()).To(ContainSubstring(c.error.Error()))
 			},
 			Entry("without cluster name", invalidParamsCase{
 				args:  []string{"nodegroupName", "--name", "nodegroupName"},
@@ -85,7 +86,7 @@ var _ = Describe("create nodegroup", func() {
 				cmd := newMockEmptyCmd(commandArgs...)
 				count := 0
 				cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-					createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeGroupParams) error {
+					createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options create.NodeGroupOptions, managed bool) error {
 						Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
 						Expect(ng.Name).NotTo(BeNil())
 						count++
@@ -124,7 +125,7 @@ var _ = Describe("create nodegroup", func() {
 				cmd := newDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(Equal(fmt.Errorf("%s is not supported for Managed Nodegroups (--managed=true)", args[0])))
+				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("%s is not supported for Managed Nodegroups (--managed=true)", args[0])))
 			},
 			Entry("node-volume-type", "--node-volume-type", "gp2"),
 			Entry("max-pods-per-node", "--max-pods-per-node", "2"),
@@ -138,7 +139,7 @@ var _ = Describe("create nodegroup", func() {
 				cmd := newDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal(c.error.Error()))
+				Expect(err.Error()).To(ContainSubstring(c.error.Error()))
 			},
 			Entry("with nodegroup name as argument and flag", invalidParamsCase{
 				args:  []string{"nodegroupName", "--name", "nodegroupName"},
