@@ -5,6 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
@@ -15,8 +16,7 @@ var _ = Describe("create", func() {
 			cmd := newMockCreateFargateProfileCmd("fargateprofile")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("--cluster must be set"))
-			Expect(out).To(ContainSubstring("Error: --cluster must be set"))
+			Expect(err.Error()).To(ContainSubstring("Error: --cluster must be set"))
 			Expect(out).To(ContainSubstring("Usage:"))
 		})
 
@@ -24,8 +24,7 @@ var _ = Describe("create", func() {
 			cmd := newMockCreateFargateProfileCmd("fargateprofile", "--cluster", "foo")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("invalid Fargate profile: empty selector namespace"))
-			Expect(out).To(ContainSubstring("Error: invalid Fargate profile: empty selector namespace"))
+			Expect(err.Error()).To(ContainSubstring("Error: invalid Fargate profile: empty selector namespace"))
 			Expect(out).To(ContainSubstring("Usage:"))
 		})
 
@@ -133,8 +132,13 @@ type mockCreateFargateProfileCmd struct {
 }
 
 func (c mockCreateFargateProfileCmd) execute() (string, error) {
-	buf := new(bytes.Buffer)
-	c.parentCmd.SetOut(buf)
+	outBuf := new(bytes.Buffer)
+	errBuf := new(bytes.Buffer)
+	c.parentCmd.SetOut(outBuf)
+	c.parentCmd.SetErr(errBuf)
 	err := c.parentCmd.Execute()
-	return buf.String(), err
+	if err != nil {
+		err = errors.New(errBuf.String())
+	}
+	return outBuf.String(), err
 }

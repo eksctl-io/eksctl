@@ -11,7 +11,7 @@ var _ = Describe("get", func() {
 			cmd := newMockCmd("cluster", "--invalid", "dummy")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("unknown flag: --invalid"))
+			Expect(err.Error()).To(ContainSubstring("Error: unknown flag: --invalid"))
 		})
 	})
 })

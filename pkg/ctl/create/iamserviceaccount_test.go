@@ -39,23 +39,23 @@ var _ = Describe("create iamserviceaccount", func() {
 			cmd := newDefaultCmd(c.args...)
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal(c.error.Error()))
+			Expect(err.Error()).To(ContainSubstring(c.error.Error()))
 		},
 		Entry("without cluster name", invalidParamsCase{
 			args:  []string{"iamserviceaccount", "--name", "serviceAccountName"},
-			error: fmt.Errorf("--cluster must be set"),
+			error: fmt.Errorf("Error: --cluster must be set"),
 		}),
 		Entry("with iamserviceaccount name as argument and flag", invalidParamsCase{
 			args:  []string{"iamserviceaccount", "--cluster", "clusterName", "--name", "serviceAccountName", "serviceAccountName"},
-			error: fmt.Errorf("--name=serviceAccountName and argument serviceAccountName cannot be used at the same time"),
+			error: fmt.Errorf("Error: --name=serviceAccountName and argument serviceAccountName cannot be used at the same time"),
 		}),
 		Entry("without required flag --attach-policy-arn", invalidParamsCase{
 			args:  []string{"iamserviceaccount", "--cluster", "clusterName", "serviceAccountName"},
-			error: fmt.Errorf("--attach-policy-arn must be set"),
+			error: fmt.Errorf("Error: --attach-policy-arn must be set"),
 		}),
 		Entry("with invalid flags", invalidParamsCase{
 			args:  []string{"iamserviceaccount", "--invalid", "dummy"},
-			error: fmt.Errorf("unknown flag: --invalid"),
+			error: fmt.Errorf("Error: unknown flag: --invalid"),
 		}),
 	)
 })
