@@ -62,7 +62,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		nodeRole = gfnt.NewString(NormalizeARN(m.nodeGroup.IAM.InstanceRoleARN))
 	}
 
-	subnets, err := AssignSubnets(m.nodeGroup.AvailabilityZones, m.clusterStackName, m.clusterConfig, m.nodeGroup.PrivateNetworking)
+	subnets, err := AssignSubnets(m.nodeGroup.NodeGroupBase, m.clusterStackName, m.clusterConfig)
 	if err != nil {
 		return err
 	}

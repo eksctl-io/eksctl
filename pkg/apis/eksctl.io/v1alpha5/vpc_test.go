@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 )
 
 type endpointAccessCase struct {
@@ -14,7 +15,164 @@ type endpointAccessCase struct {
 	Expected  bool
 }
 
+type subnetCase struct {
+	subnets  AZSubnetMapping
+	az       string
+	subnetID string
+	cidr     string
+	err      bool
+	expected AZSubnetMapping
+}
+
 var _ = Describe("VPC Configuration", func() {
+	DescribeTable("Subnet import",
+		func(e subnetCase) {
+			err := doImportSubnet(&e.subnets, e.az, e.subnetID, e.cidr)
+			if e.err {
+				Expect(err).To(HaveOccurred())
+			} else {
+				Expect(err).NotTo(HaveOccurred())
+				Expect(e.subnets).To(Equal(e.expected))
+			}
+		},
+		Entry("No subnets", subnetCase{
+			subnets:  NewAZSubnetMapping(),
+			az:       "us-east-1a",
+			subnetID: "subnet-1",
+			cidr:     "192.168.0.0/16",
+			expected: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"us-east-1a": {
+					AZ:   "us-east-1a",
+					ID:   "subnet-1",
+					CIDR: ipnet.MustParseCIDR("192.168.0.0/16"),
+				},
+			}),
+		}),
+		Entry("Existing subnets", subnetCase{
+			subnets: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"us-east-1a": {},
+			}),
+			az:       "us-east-1a",
+			subnetID: "subnet-1",
+			cidr:     "192.168.0.0/16",
+			expected: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"us-east-1a": {
+					AZ:   "us-east-1a",
+					ID:   "subnet-1",
+					CIDR: ipnet.MustParseCIDR("192.168.0.0/16"),
+				},
+			}),
+		}),
+		Entry("Existing subnet with ID", subnetCase{
+			subnets: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"us-east-1a": {
+					ID: "subnet-1",
+				},
+			}),
+			az:       "us-east-1a",
+			subnetID: "subnet-1",
+			cidr:     "192.168.0.0/16",
+			expected: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"us-east-1a": {
+					AZ:   "us-east-1a",
+					ID:   "subnet-1",
+					CIDR: ipnet.MustParseCIDR("192.168.0.0/16"),
+				},
+			}),
+		}),
+		Entry("Conflicting existing subnets", subnetCase{
+			subnets: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"us-east-1a": {
+					ID: "subnet-2",
+				},
+			}),
+			az:       "us-east-1a",
+			subnetID: "subnet-1",
+			cidr:     "192.168.0.0/16",
+			err:      true,
+		}),
+		Entry("Named subnets placeholder", subnetCase{
+			subnets: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"main-subnet": {
+					AZ: "us-east-1a",
+				},
+			}),
+			az:       "us-east-1a",
+			subnetID: "subnet-1",
+			cidr:     "192.168.0.0/16",
+			expected: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"main-subnet": {
+					AZ:   "us-east-1a",
+					ID:   "subnet-1",
+					CIDR: ipnet.MustParseCIDR("192.168.0.0/16"),
+				},
+			}),
+		}),
+		Entry("Ambiguous list", subnetCase{
+			subnets: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"main-subnet": {
+					AZ: "us-east-1a",
+				},
+				"other-subnet": {
+					AZ: "us-east-1a",
+				},
+			}),
+			az:       "us-east-1a",
+			subnetID: "subnet-1",
+			cidr:     "192.168.0.0/16",
+			err:      true,
+		}),
+		Entry("CIDR+AZ differentiated list", subnetCase{
+			subnets: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"main-subnet": {
+					AZ:   "us-east-1a",
+					CIDR: ipnet.MustParseCIDR("192.168.0.0/24"),
+				},
+				"other-subnet": {
+					AZ:   "us-east-1a",
+					CIDR: ipnet.MustParseCIDR("192.168.1.0/24"),
+				},
+			}),
+			az:       "us-east-1a",
+			subnetID: "subnet-1",
+			cidr:     "192.168.0.0/24",
+			expected: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"main-subnet": {
+					AZ:   "us-east-1a",
+					ID:   "subnet-1",
+					CIDR: ipnet.MustParseCIDR("192.168.0.0/24"),
+				},
+				"other-subnet": {
+					AZ:   "us-east-1a",
+					CIDR: ipnet.MustParseCIDR("192.168.1.0/24"),
+				},
+			}),
+		}),
+		Entry("ID disamiguating list", subnetCase{
+			subnets: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"main-subnet": {
+					AZ: "us-east-1a",
+					ID: "subnet-1",
+				},
+				"other-subnet": {
+					AZ: "us-east-1a",
+				},
+			}),
+			az:       "us-east-1a",
+			subnetID: "subnet-1",
+			cidr:     "192.168.0.0/24",
+			expected: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"main-subnet": {
+					AZ:   "us-east-1a",
+					ID:   "subnet-1",
+					CIDR: ipnet.MustParseCIDR("192.168.0.0/24"),
+				},
+				"other-subnet": {
+					AZ: "us-east-1a",
+				},
+			}),
+		}),
+	)
 	DescribeTable("Can determine if VPC config in config file has cluster endpoints",
 		func(e endpointAccessCase) {
 			cc := &ClusterConfig{}

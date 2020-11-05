@@ -14,6 +14,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 // NodeGroupResourceSet stores the resource information of the nodegroup
@@ -154,7 +155,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		LaunchTemplateData: launchTemplateData,
 	})
 
-	vpcZoneIdentifier, err := AssignSubnets(n.spec.AvailabilityZones, n.clusterStackName, n.clusterSpec, n.spec.PrivateNetworking)
+	vpcZoneIdentifier, err := AssignSubnets(n.spec.NodeGroupBase, n.clusterStackName, n.clusterSpec)
 	if err != nil {
 		return err
 	}
@@ -208,35 +209,21 @@ func generateNodeName(ng *api.NodeGroupBase, meta *api.ClusterMeta) string {
 }
 
 // AssignSubnets subnets based on the specified availability zones
-func AssignSubnets(availabilityZones []string, clusterStackName string, clusterSpec *api.ClusterConfig, privateNetworking bool) (*gfnt.Value, error) {
+func AssignSubnets(spec *api.NodeGroupBase, clusterStackName string, clusterSpec *api.ClusterConfig) (*gfnt.Value, error) {
 	// currently goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
 
-	if numNodeGroupsAZs := len(availabilityZones); numNodeGroupsAZs > 0 {
-		subnets := clusterSpec.VPC.Subnets.Private
-		if !privateNetworking {
-			subnets = clusterSpec.VPC.Subnets.Public
+	if numNodeGroupsAZs, numNodeGroupsSubnets := len(spec.AvailabilityZones), len(spec.Subnets); numNodeGroupsAZs > 0 || numNodeGroupsSubnets > 0 {
+		subnets := clusterSpec.VPC.Subnets.Public
+		if spec.PrivateNetworking {
+			subnets = clusterSpec.VPC.Subnets.Private
 		}
-		makeErrorDesc := func() string {
-			return fmt.Sprintf("(subnets=%#v AZs=%#v)", subnets, availabilityZones)
-		}
-		if len(subnets) < numNodeGroupsAZs {
-			return nil, fmt.Errorf("VPC doesn't have enough subnets for nodegroup AZs %s", makeErrorDesc())
-		}
-		subnetIDs := make([]*gfnt.Value, numNodeGroupsAZs)
-		for i, az := range availabilityZones {
-			subnet, ok := subnets[az]
-			if !ok {
-				return nil, fmt.Errorf("VPC doesn't have subnets in %s %s", az, makeErrorDesc())
-			}
-
-			subnetIDs[i] = gfnt.NewString(subnet.ID)
-		}
-		return gfnt.NewSlice(subnetIDs...), nil
+		subnetIDs, err := vpc.SelectNodeGroupSubnets(spec.AvailabilityZones, spec.Subnets, subnets)
+		return gfnt.NewStringSlice(subnetIDs...), err
 	}
 
 	var subnets *gfnt.Value
-	if privateNetworking {
+	if spec.PrivateNetworking {
 		subnets = makeImportValue(clusterStackName, outputs.ClusterSubnetsPrivate)
 	} else {
 		subnets = makeImportValue(clusterStackName, outputs.ClusterSubnetsPublic)
