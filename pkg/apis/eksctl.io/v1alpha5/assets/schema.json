@@ -8,14 +8,16 @@
         "$ref": "#/definitions/AZSubnetSpec"
       },
       "type": "object",
-      "description": "holds subnet to AZ mappings. If the key is an AZ, that also becomes the name of the subnet otherwise use the key to refer to this subnet. Schema type is `map[string]AZSubnetSpec`",
-      "x-intellij-html-description": "holds subnet to AZ mappings. If the key is an AZ, that also becomes the name of the subnet otherwise use the key to refer to this subnet. Schema type is <code>map[string]AZSubnetSpec</code>",
+      "description": "holds subnet to AZ mappings. If the key is an AZ, that also becomes the name of the subnet otherwise use the key to refer to this subnet.",
+      "x-intellij-html-description": "holds subnet to AZ mappings. If the key is an AZ, that also becomes the name of the subnet otherwise use the key to refer to this subnet.",
       "default": "{}"
     },
     "AZSubnetSpec": {
       "properties": {
         "az": {
-          "type": "string"
+          "type": "string",
+          "description": "can be omitted if the key is an AZ",
+          "x-intellij-html-description": "can be omitted if the key is an AZ"
         },
         "cidr": {
           "$ref": "#/definitions/github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet"

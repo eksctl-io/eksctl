@@ -119,6 +119,7 @@ type (
 	AZSubnetSpec   struct {
 		// +optional
 		ID string `json:"id,omitempty"`
+		// AZ can be omitted if the key is an AZ
 		// +optional
 		AZ string `json:"az,omitempty"`
 		// +optional
