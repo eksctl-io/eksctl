@@ -338,3 +338,12 @@ func NormalizeARN(arn string) string {
 	}
 	return fmt.Sprintf("%s/%s", parts[0], parts[len(parts)-1])
 }
+
+// AbstractRoleNameFromARN returns the role name from the ARN
+func AbstractRoleNameFromARN(arn string) string {
+	parts := strings.Split(arn, "/")
+	if len(parts) <= 1 {
+		return arn
+	}
+	return parts[len(parts)-1]
+}

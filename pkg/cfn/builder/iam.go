@@ -151,7 +151,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() error {
 		// if role is set, but profile isn't - create profile
 		n.newResource(cfnIAMInstanceProfileName, &gfniam.InstanceProfile{
 			Path:  gfnt.NewString("/"),
-			Roles: gfnt.NewStringSlice(roleARN),
+			Roles: gfnt.NewStringSlice(AbstractRoleNameFromARN(roleARN)),
 		})
 		n.instanceProfileARN = gfnt.MakeFnGetAttString(cfnIAMInstanceProfileName, "Arn")
 		n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, cfnIAMInstanceProfileName, "Arn", true, func(v string) error {
