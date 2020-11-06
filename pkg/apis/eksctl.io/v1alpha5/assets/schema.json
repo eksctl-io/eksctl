@@ -1364,7 +1364,9 @@
     "NodeGroupSSH": {
       "properties": {
         "allow": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Enables/Disables the security group configuration. Values provided by SourceSecurityGroupIDs are ignored if set to false",
+          "x-intellij-html-description": "Enables/Disables the security group configuration. Values provided by SourceSecurityGroupIDs are ignored if set to false"
         },
         "enableSsm": {
           "type": "boolean",
