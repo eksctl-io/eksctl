@@ -139,7 +139,7 @@ API_SERVER_URL=https://test.com
 			resourcesFilename: "ssh_enabled.json",
 		}),
 
-		Entry("SSH configured but disabled", &mngCase{
+		Entry("SSH configured but allowed=false", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
 					Name: "ssh-disabled",
@@ -150,7 +150,7 @@ API_SERVER_URL=https://test.com
 					},
 				},
 			},
-
+			// The SG should not be created
 			resourcesFilename: "ssh_disabled.json",
 		}),
 
