@@ -973,7 +973,8 @@ type (
 
 	// NodeGroupSSH holds all the ssh access configuration to a NodeGroup
 	NodeGroupSSH struct {
-		// +optional
+		// +optional Enables/Disables the security group configuration. Values provided by SourceSecurityGroupIDs
+		// are ignored if set to false
 		Allow *bool `json:"allow"`
 		// +optional
 		PublicKeyPath *string `json:"publicKeyPath,omitempty"`
