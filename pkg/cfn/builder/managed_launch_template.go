@@ -42,7 +42,7 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 		launchTemplateData.ImageId = gfnt.NewString(mng.AMI)
 	}
 
-	if mng.SSH != nil && api.IsSetAndNonEmptyString(mng.SSH.PublicKeyName) {
+	if mng.SSH != nil && *mng.SSH.Allow && api.IsSetAndNonEmptyString(mng.SSH.PublicKeyName) {
 		launchTemplateData.KeyName = gfnt.NewString(*mng.SSH.PublicKeyName)
 
 		var sgIngressRules []gfnec2.SecurityGroup_Ingress

@@ -139,6 +139,21 @@ API_SERVER_URL=https://test.com
 			resourcesFilename: "ssh_enabled.json",
 		}),
 
+		Entry("SSH configured but disabled", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: "ssh-disabled",
+					SSH: &api.NodeGroupSSH{
+						Allow:         api.Disabled(),
+						PublicKeyName: aws.String("test-keypair"),
+						EnableSSM:     api.Enabled(),
+					},
+				},
+			},
+
+			resourcesFilename: "ssh_disabled.json",
+		}),
+
 		Entry("With placement group", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
