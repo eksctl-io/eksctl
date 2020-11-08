@@ -1618,7 +1618,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(profile.Path).To(Equal("/"))
 			Expect(profile.Roles).To(HaveLen(1))
-			Expect(profile.Roles[0]).To(Equal("arn:aws:iam::1234567890:role/custom-eks-role"))
+			Expect(profile.Roles[0]).To(Equal("custom-eks-role"))
 
 			isFnGetAttOf(getLaunchTemplateData(ngTemplate).IamInstanceProfile.Arn, "NodeInstanceProfile", "Arn")
 		})
