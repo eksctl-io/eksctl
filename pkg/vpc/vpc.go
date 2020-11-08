@@ -424,9 +424,6 @@ func UseEndpointAccessFromCluster(provider api.ClusterProvider, spec *api.Cluste
 
 // cleanupSubnets clean up subnet entries having invalid AZ
 func cleanupSubnets(spec *api.ClusterConfig) {
-	if spec == nil {
-		return
-	}
 	availabilityZones := make(map[string]struct{})
 	for _, az := range spec.AvailabilityZones {
 		availabilityZones[az] = struct{}{}

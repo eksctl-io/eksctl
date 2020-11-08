@@ -6,6 +6,7 @@ import (
 	"net"
 	"reflect"
 
+	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 )
 
@@ -204,12 +205,17 @@ func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID, cidr
 
 	switch topology {
 	case SubnetTopologyPrivate:
-		return doImportSubnet(&c.VPC.Subnets.Private, az, subnetID, cidr)
+		if err := doImportSubnet(&c.VPC.Subnets.Private, az, subnetID, cidr); err != nil {
+			return errors.Wrapf(err, "couldn't import subnet %s", subnetID)
+		}
 	case SubnetTopologyPublic:
-		return doImportSubnet(&c.VPC.Subnets.Public, az, subnetID, cidr)
+		if err := doImportSubnet(&c.VPC.Subnets.Public, az, subnetID, cidr); err != nil {
+			return errors.Wrapf(err, "couldn't import subnet %s", subnetID)
+		}
 	default:
 		return fmt.Errorf("unexpected subnet topology: %s", topology)
 	}
+	return nil
 }
 
 // Note that the user must use EITHER AZs as keys OR names as keys and specify
@@ -237,9 +243,6 @@ func doImportSubnet(subnets *AZSubnetMapping, az, subnetID, cidr string) error {
 				}
 				guessKey = k
 			} else if s.ID == subnetID {
-				if s.AZ != "" && s.AZ != az {
-					return fmt.Errorf("subnet AZ %q is not the same as %q", s.AZ, az)
-				}
 				if s.CIDR.String() != "" && s.CIDR.String() != subnetCIDR.String() {
 					return fmt.Errorf("subnet CIDR %q is not the same as %q", s.CIDR.String(), subnetCIDR.String())
 				}
