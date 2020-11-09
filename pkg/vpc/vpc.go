@@ -1,7 +1,9 @@
 package vpc
 
 import (
+	"encoding/binary"
 	"fmt"
+	"net"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -63,6 +65,31 @@ func SetSubnets(vpc *api.ClusterVPC, availabilityZones []string) error {
 	}
 
 	return nil
+}
+
+func SplitInto16(parent *net.IPNet) ([]*net.IPNet, error) {
+	networkLength, _ := parent.Mask.Size()
+	networkLength += 4
+
+	var subnets []*net.IPNet
+	for i := 0; i < 16; i++ {
+		ip4 := parent.IP.To4()
+		if ip4 != nil {
+			n := binary.BigEndian.Uint32(ip4)
+			n += uint32(i) << uint(32-networkLength)
+			subnetIP := make(net.IP, len(ip4))
+			binary.BigEndian.PutUint32(subnetIP, n)
+
+			subnets = append(subnets, &net.IPNet{
+				IP:   subnetIP,
+				Mask: net.CIDRMask(networkLength, 32),
+			})
+		} else {
+			return nil, fmt.Errorf("Unexpected IP address type: %s", parent)
+		}
+	}
+
+	return subnets, nil
 }
 
 // describeSubnets fetches subnet metadata from EC2

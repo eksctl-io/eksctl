@@ -74,6 +74,43 @@ func newFakeClusterWithEndpoints(private, public bool, name string) *eks.Cluster
 }
 
 var _ = Describe("VPC - Set Subnets", func() {
+	Describe("SplitInto16", func() {
+		It("splits the block into 16", func() {
+			expected := []string{
+				"192.168.0.0/20",
+				"192.168.16.0/20",
+				"192.168.32.0/20",
+				"192.168.48.0/20",
+				"192.168.64.0/20",
+				"192.168.80.0/20",
+				"192.168.96.0/20",
+				"192.168.112.0/20",
+				"192.168.128.0/20",
+				"192.168.144.0/20",
+				"192.168.160.0/20",
+				"192.168.176.0/20",
+				"192.168.192.0/20",
+				"192.168.208.0/20",
+				"192.168.224.0/20",
+				"192.168.240.0/20",
+			}
+
+			//192.168.0.0/16
+			input := net.IPNet{
+				IP:   []byte{192, 168, 0, 0},
+				Mask: []byte{255, 255, 0, 0},
+			}
+
+			subnets, err := SplitInto16(&input)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(subnets).To(HaveLen(16))
+			for i, subnet := range subnets {
+				fmt.Println(subnet.String())
+				Expect(subnet.String()).To(Equal(expected[i]))
+			}
+
+		})
+	})
 	DescribeTable("Set subnets",
 		func(subnetsCase setSubnetsCase) {
 			if err := SetSubnets(subnetsCase.vpc, subnetsCase.availabilityZones); err != nil {
