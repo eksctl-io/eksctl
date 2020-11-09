@@ -71,7 +71,8 @@ func (p *Params) GenerateCommands() {
 		WithTimeout(55 * time.Minute)
 
 	p.EksctlUpgradeCmd = p.EksctlCmd.
-		WithArgs("upgrade")
+		WithArgs("upgrade").
+		WithTimeout(50 * time.Minute)
 
 	p.EksctlGetCmd = p.EksctlCmd.
 		WithArgs("get").
