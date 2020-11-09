@@ -54,7 +54,7 @@ require (
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
 	golang.org/x/tools v0.0.0-20200502202811-ed308ab3e770
-	k8s.io/api v0.16.8
+	k8s.io/api v0.19.3
 	k8s.io/apiextensions-apiserver v0.16.8
 	k8s.io/apimachinery v0.16.8
 	k8s.io/cli-runtime v0.16.8
