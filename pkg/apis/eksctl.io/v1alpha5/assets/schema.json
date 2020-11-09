@@ -1403,6 +1403,22 @@
     },
     "Operator": {
       "properties": {
+        "additionalFluxArgs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Additional command line arguments for the Flux daemon",
+          "x-intellij-html-description": "Additional command line arguments for the Flux daemon"
+        },
+        "additionalHelmOperatorArgs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Additional command line arguments for the Helm Operator",
+          "x-intellij-html-description": "Additional command line arguments for the Helm Operator"
+        },
         "commitOperatorManifests": {
           "type": "boolean",
           "description": "Commit and push Flux manifests to the Git Repo on install",
@@ -1435,7 +1451,9 @@
         "label",
         "namespace",
         "withHelm",
-        "readOnly"
+        "readOnly",
+        "additionalFluxArgs",
+        "additionalHelmOperatorArgs"
       ],
       "additionalProperties": false,
       "description": "groups all configuration options related to the operator used to keep the cluster and the Git repository in sync.",
