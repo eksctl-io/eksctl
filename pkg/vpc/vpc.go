@@ -40,15 +40,24 @@ func SetSubnets(vpc *api.ClusterVPC, availabilityZones []string) error {
 	if (prefix < 16) || (prefix > 24) {
 		return fmt.Errorf("VPC CIDR prefix must be between /16 and /24")
 	}
-	zoneCIDRs, err := subnet.SplitInto8(&vpc.CIDR.IPNet)
-	if err != nil {
-		return err
-	}
-
-	logger.Debug("VPC CIDR (%s) was divided into 8 subnets %v", vpc.CIDR.String(), zoneCIDRs)
-
 	zonesTotal := len(availabilityZones)
-	if 2*zonesTotal > len(zoneCIDRs) {
+
+	var zoneCIDRs []*net.IPNet
+
+	switch subnetsTotal := zonesTotal * 2; {
+	case subnetsTotal <= 8:
+		zoneCIDRs, err = subnet.SplitInto8(&vpc.CIDR.IPNet)
+		if err != nil {
+			return err
+		}
+		logger.Debug("VPC CIDR (%s) was divided into 8 subnets %v", vpc.CIDR.String(), zoneCIDRs)
+	case subnetsTotal <= 16:
+		zoneCIDRs, err = SplitInto16(&vpc.CIDR.IPNet)
+		if err != nil {
+			return err
+		}
+		logger.Debug("VPC CIDR (%s) was divided into 16 subnets %v", vpc.CIDR.String(), zoneCIDRs)
+	default:
 		return fmt.Errorf("insufficient number of subnets (have %d, but need %d) for %d availability zones", len(zoneCIDRs), 2*zonesTotal, zonesTotal)
 	}
 

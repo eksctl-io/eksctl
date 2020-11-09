@@ -105,7 +105,6 @@ var _ = Describe("VPC - Set Subnets", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(subnets).To(HaveLen(16))
 			for i, subnet := range subnets {
-				fmt.Println(subnet.String())
 				Expect(subnet.String()).To(Equal(expected[i]))
 			}
 
