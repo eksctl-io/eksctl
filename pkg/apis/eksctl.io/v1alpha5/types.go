@@ -29,10 +29,12 @@ const (
 
 	Version1_17 = "1.17"
 
+	Version1_18 = "1.18"
+
 	// DefaultVersion (default)
 	DefaultVersion = Version1_17
 
-	LatestVersion = Version1_17
+	LatestVersion = Version1_18
 )
 
 // No longer supported versions
@@ -52,8 +54,8 @@ const (
 
 // Not yet supported versions
 const (
-	// Version1_18 represents Kubernetes version 1.18.x
-	Version1_18 = "1.18"
+	// Version1_19 represents Kubernetes version 1.19.x
+	Version1_19 = "1.19"
 )
 
 const (
@@ -146,30 +148,28 @@ const (
 	PartitionUSGov = "aws-us-gov"
 )
 
+// Values for `NodeAMIFamily`
+// All valid values should go in this block
+const (
+	// DefaultNodeImageFamily (default)
+	DefaultNodeImageFamily      = NodeImageFamilyAmazonLinux2
+	NodeImageFamilyAmazonLinux2 = "AmazonLinux2"
+	NodeImageFamilyUbuntu2004   = "Ubuntu2004"
+	NodeImageFamilyUbuntu1804   = "Ubuntu1804"
+	NodeImageFamilyBottlerocket = "Bottlerocket"
+
+	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
+	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
+	NodeImageFamilyWindowsServer1909CoreContainer = "WindowsServer1909CoreContainer"
+	NodeImageFamilyWindowsServer2004CoreContainer = "WindowsServer2004CoreContainer"
+)
+
 const (
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
 
 	// DefaultNodeCount defines the default number of nodes to be created
 	DefaultNodeCount = 2
-
-	// DefaultNodeImageFamily defines the default image family for the worker nodes
-	DefaultNodeImageFamily = NodeImageFamilyAmazonLinux2
-	// NodeImageFamilyAmazonLinux2 represents Amazon Linux 2 family
-	NodeImageFamilyAmazonLinux2 = "AmazonLinux2"
-	// NodeImageFamilyUbuntu1804 represents Ubuntu 18.04 family
-	NodeImageFamilyUbuntu1804 = "Ubuntu1804"
-	// NodeImageFamilyBottlerocket represents Bottlerocket family
-	NodeImageFamilyBottlerocket = "Bottlerocket"
-
-	// NodeImageFamilyWindowsServer2019CoreContainer represents Windows 2019 core container family
-	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
-	// NodeImageFamilyWindowsServer2019FullContainer represents Windows 2019 full container family
-	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
-	// NodeImageFamilyWindowsServer1909CoreContainer represents Windows 1909 core container family
-	NodeImageFamilyWindowsServer1909CoreContainer = "WindowsServer1909CoreContainer"
-	// NodeImageFamilyWindowsServer2004CoreContainer represents Windows 2004 core container family
-	NodeImageFamilyWindowsServer2004CoreContainer = "WindowsServer2004CoreContainer"
 
 	// NodeImageResolverStatic represents static AMI resolver (see ami package)
 	NodeImageResolverStatic = "static"
@@ -374,6 +374,7 @@ func SupportedVersions() []string {
 		Version1_15,
 		Version1_16,
 		Version1_17,
+		Version1_18,
 	}
 }
 
@@ -465,12 +466,15 @@ type KubernetesNetworkConfig struct {
 	ServiceIPv4CIDR string `json:"serviceIPv4CIDR,omitempty"`
 }
 
+type EKSCTLCreated string
+
 // ClusterStatus hold read-only attributes of a cluster
 type ClusterStatus struct {
-	Endpoint                 string `json:"endpoint,omitempty"`
-	CertificateAuthorityData []byte `json:"certificateAuthorityData,omitempty"`
-	ARN                      string `json:"arn,omitempty"`
-	StackName                string `json:"stackName,omitempty"`
+	Endpoint                 string        `json:"endpoint,omitempty"`
+	CertificateAuthorityData []byte        `json:"certificateAuthorityData,omitempty"`
+	ARN                      string        `json:"arn,omitempty"`
+	StackName                string        `json:"stackName,omitempty"`
+	EKSCTLCreated            EKSCTLCreated `json:"eksctlCreated,omitempty"`
 }
 
 // String returns canonical representation of ClusterMeta
@@ -508,6 +512,7 @@ func (c ClusterConfig) IsFargateEnabled() bool {
 type ClusterProvider interface {
 	CloudFormation() cloudformationiface.CloudFormationAPI
 	CloudFormationRoleARN() string
+	CloudFormationDisableRollback() bool
 	EKS() eksiface.EKSAPI
 	EC2() ec2iface.EC2API
 	ELB() elbiface.ELBAPI
@@ -523,7 +528,8 @@ type ClusterProvider interface {
 
 // ProviderConfig holds global parameters for all interactions with AWS APIs
 type ProviderConfig struct {
-	CloudFormationRoleARN string
+	CloudFormationRoleARN         string
+	CloudFormationDisableRollback bool
 
 	Region      string
 	Profile     string
@@ -706,6 +712,7 @@ func NewManagedNodeGroup() *ManagedNodeGroup {
 			SSH: &NodeGroupSSH{
 				Allow:         Disabled(),
 				PublicKeyName: &publicKey,
+				EnableSSM:     Disabled(),
 			},
 			IAM: &NodeGroupIAM{
 				WithAddonPolicies: NodeGroupIAMAddonPolicies{
@@ -974,7 +981,8 @@ type (
 
 	// NodeGroupSSH holds all the ssh access configuration to a NodeGroup
 	NodeGroupSSH struct {
-		// +optional
+		// +optional Enables/Disables the security group configuration. Values provided by SourceSecurityGroupIDs
+		// are ignored if set to false
 		Allow *bool `json:"allow"`
 		// +optional
 		PublicKeyPath *string `json:"publicKeyPath,omitempty"`
@@ -984,6 +992,9 @@ type (
 		PublicKeyName *string `json:"publicKeyName,omitempty"`
 		// +optional
 		SourceSecurityGroupIDs []string `json:"sourceSecurityGroupIds,omitempty"`
+		// Enables the ability to [SSH onto nodes using SSM](/introduction#ssh-access)
+		// +optional
+		EnableSSM *bool `json:"enableSsm,omitempty"`
 	}
 
 	// NodeGroupInstancesDistribution holds the configuration for [spot
@@ -1054,7 +1065,7 @@ type NodeGroupBase struct {
 	// +required
 	Name string `json:"name"`
 
-	// Specify [custom AMIs](/usage/custom-ami-support/), "auto-ssm", "auto", or "static"
+	// Valid variants are `NodeAMIFamily` constants
 	// +optional
 	AMIFamily string `json:"amiFamily,omitempty"`
 	// +optional
@@ -1091,6 +1102,7 @@ type NodeGroupBase struct {
 	// +optional
 	IAM *NodeGroupIAM `json:"iam,omitempty"`
 
+	// Specify [custom AMIs](/usage/custom-ami-support/), `auto-ssm`, `auto`, or `static`
 	// +optional
 	AMI string `json:"ami,omitempty"`
 

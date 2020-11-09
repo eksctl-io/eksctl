@@ -19,6 +19,13 @@ curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/d
 sudo mv /tmp/eksctl /usr/local/bin
 ```
 
+For ARM system, please change ARCH (e.g. armv6, armv7 or arm64) accordingly
+
+```
+curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_arm64.tar.gz" | tar xz -C /tmp
+sudo mv /tmp/eksctl /usr/local/bin
+```
+
 Alternatively, macOS users can use [Homebrew](https://brew.sh):
 
 ```

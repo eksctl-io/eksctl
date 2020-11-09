@@ -328,14 +328,15 @@
         },
         "version": {
           "type": "string",
-          "description": "Valid variants are: `\"1.14\"`, `\"1.15\"`, `\"1.16\"`, `\"1.17\"` (default).",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;1.14&quot;</code>, <code>&quot;1.15&quot;</code>, <code>&quot;1.16&quot;</code>, <code>&quot;1.17&quot;</code> (default).",
+          "description": "Valid variants are: `\"1.14\"`, `\"1.15\"`, `\"1.16\"`, `\"1.17\"` (default), `\"1.18\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;1.14&quot;</code>, <code>&quot;1.15&quot;</code>, <code>&quot;1.16&quot;</code>, <code>&quot;1.17&quot;</code> (default), <code>&quot;1.18&quot;</code>.",
           "default": "1.17",
           "enum": [
             "1.14",
             "1.15",
             "1.16",
-            "1.17"
+            "1.17",
+            "1.18"
           ]
         }
       },
@@ -383,6 +384,9 @@
           },
           "type": "array"
         },
+        "eksctlCreated": {
+          "$ref": "#/definitions/EKSCTLCreated"
+        },
         "endpoint": {
           "type": "string"
         },
@@ -394,7 +398,8 @@
         "endpoint",
         "certificateAuthorityData",
         "arn",
-        "stackName"
+        "stackName",
+        "eksctlCreated"
       ],
       "additionalProperties": false,
       "description": "hold read-only attributes of a cluster",
@@ -493,6 +498,9 @@
       "additionalProperties": false,
       "description": "holds global subnet and all child subnets",
       "x-intellij-html-description": "holds global subnet and all child subnets"
+    },
+    "EKSCTLCreated": {
+      "type": "string"
     },
     "FargateProfile": {
       "required": [
@@ -651,12 +659,25 @@
       ],
       "properties": {
         "ami": {
-          "type": "string"
+          "type": "string",
+          "description": "Specify [custom AMIs](/usage/custom-ami-support/), `auto-ssm`, `auto`, or `static`",
+          "x-intellij-html-description": "Specify <a href=\"/usage/custom-ami-support/\">custom AMIs</a>, <code>auto-ssm</code>, <code>auto</code>, or <code>static</code>"
         },
         "amiFamily": {
           "type": "string",
-          "description": "Specify [custom AMIs](/usage/custom-ami-support/), \"auto-ssm\", \"auto\", or \"static\"",
-          "x-intellij-html-description": "Specify <a href=\"/usage/custom-ami-support/\">custom AMIs</a>, &quot;auto-ssm&quot;, &quot;auto&quot;, or &quot;static&quot;"
+          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer1909CoreContainer\"`, `\"WindowsServer2004CoreContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer1909CoreContainer&quot;</code>, <code>&quot;WindowsServer2004CoreContainer&quot;</code>.",
+          "default": "AmazonLinux2",
+          "enum": [
+            "AmazonLinux2",
+            "Ubuntu2004",
+            "Ubuntu1804",
+            "Bottlerocket",
+            "WindowsServer2019CoreContainer",
+            "WindowsServer2019FullContainer",
+            "WindowsServer1909CoreContainer",
+            "WindowsServer2004CoreContainer"
+          ]
         },
         "asgSuspendProcesses": {
           "items": {
@@ -883,12 +904,25 @@
       ],
       "properties": {
         "ami": {
-          "type": "string"
+          "type": "string",
+          "description": "Specify [custom AMIs](/usage/custom-ami-support/), `auto-ssm`, `auto`, or `static`",
+          "x-intellij-html-description": "Specify <a href=\"/usage/custom-ami-support/\">custom AMIs</a>, <code>auto-ssm</code>, <code>auto</code>, or <code>static</code>"
         },
         "amiFamily": {
           "type": "string",
-          "description": "Specify [custom AMIs](/usage/custom-ami-support/), \"auto-ssm\", \"auto\", or \"static\"",
-          "x-intellij-html-description": "Specify <a href=\"/usage/custom-ami-support/\">custom AMIs</a>, &quot;auto-ssm&quot;, &quot;auto&quot;, or &quot;static&quot;"
+          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer1909CoreContainer\"`, `\"WindowsServer2004CoreContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer1909CoreContainer&quot;</code>, <code>&quot;WindowsServer2004CoreContainer&quot;</code>.",
+          "default": "AmazonLinux2",
+          "enum": [
+            "AmazonLinux2",
+            "Ubuntu2004",
+            "Ubuntu1804",
+            "Bottlerocket",
+            "WindowsServer2019CoreContainer",
+            "WindowsServer2019FullContainer",
+            "WindowsServer1909CoreContainer",
+            "WindowsServer2004CoreContainer"
+          ]
         },
         "asgMetricsCollection": {
           "items": {
@@ -1330,7 +1364,14 @@
     "NodeGroupSSH": {
       "properties": {
         "allow": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Enables/Disables the security group configuration. Values provided by SourceSecurityGroupIDs are ignored if set to false",
+          "x-intellij-html-description": "Enables/Disables the security group configuration. Values provided by SourceSecurityGroupIDs are ignored if set to false"
+        },
+        "enableSsm": {
+          "type": "boolean",
+          "description": "Enables the ability to [SSH onto nodes using SSM](/introduction#ssh-access)",
+          "x-intellij-html-description": "Enables the ability to <a href=\"/introduction#ssh-access\">SSH onto nodes using SSM</a>"
         },
         "publicKey": {
           "type": "string"
@@ -1353,7 +1394,8 @@
         "publicKeyPath",
         "publicKey",
         "publicKeyName",
-        "sourceSecurityGroupIds"
+        "sourceSecurityGroupIds",
+        "enableSsm"
       ],
       "additionalProperties": false,
       "description": "holds all the ssh access configuration to a NodeGroup",

@@ -17,6 +17,7 @@ import (
 type ManagedNodeGroupResourceSet struct {
 	clusterConfig         *api.ClusterConfig
 	clusterStackName      string
+	forceAddCNIPolicy     bool
 	nodeGroup             *api.ManagedNodeGroup
 	launchTemplateFetcher *LaunchTemplateFetcher
 	*resourceSet
@@ -28,10 +29,11 @@ type ManagedNodeGroupResourceSet struct {
 const ManagedNodeGroupResourceName = "ManagedNodeGroup"
 
 // NewManagedNodeGroup creates a new ManagedNodeGroupResourceSet
-func NewManagedNodeGroup(cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher *LaunchTemplateFetcher, clusterStackName string) *ManagedNodeGroupResourceSet {
+func NewManagedNodeGroup(cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher *LaunchTemplateFetcher, clusterStackName string, forceAddCNIPolicy bool) *ManagedNodeGroupResourceSet {
 	return &ManagedNodeGroupResourceSet{
 		clusterConfig:         cluster,
 		clusterStackName:      clusterStackName,
+		forceAddCNIPolicy:     forceAddCNIPolicy,
 		nodeGroup:             nodeGroup,
 		launchTemplateFetcher: launchTemplateFetcher,
 		resourceSet:           newResourceSet(),
@@ -50,12 +52,14 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 
 	var nodeRole *gfnt.Value
 	if m.nodeGroup.IAM.InstanceRoleARN == "" {
-		if err := createRole(m.resourceSet, m.clusterConfig.IAM, m.nodeGroup.IAM, true); err != nil {
+		enableSSM := m.nodeGroup.SSH != nil && api.IsEnabled(m.nodeGroup.SSH.EnableSSM)
+
+		if err := createRole(m.resourceSet, m.clusterConfig.IAM, m.nodeGroup.IAM, true, enableSSM, m.forceAddCNIPolicy); err != nil {
 			return err
 		}
 		nodeRole = gfnt.MakeFnGetAttString(cfnIAMInstanceRoleName, "Arn")
 	} else {
-		nodeRole = gfnt.NewString(m.nodeGroup.IAM.InstanceRoleARN)
+		nodeRole = gfnt.NewString(NormalizeARN(m.nodeGroup.IAM.InstanceRoleARN))
 	}
 
 	subnets, err := AssignSubnets(m.nodeGroup.AvailabilityZones, m.clusterStackName, m.clusterConfig, m.nodeGroup.PrivateNetworking)

@@ -19,7 +19,8 @@ const (
 	// AWSNode is the name of the aws-node addon
 	AWSNode = "aws-node"
 
-	awsNodeImageFormatPrefix = "%s.dkr.ecr.%s.%s/amazon-k8s-cni"
+	awsNodeImageFormatPrefix     = "%s.dkr.ecr.%s.%s/amazon-k8s-cni"
+	awsNodeInitImageFormatPrefix = "%s.dkr.ecr.%s.%s/amazon-k8s-cni-init"
 )
 
 // DoesAWSNodeSupportMultiArch makes sure awsnode supports ARM nodes
@@ -92,22 +93,39 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 				return false, fmt.Errorf("expected type %T; got %T", &appsv1.Deployment{}, resource.Info.Object)
 			}
 			container := &daemonSet.Spec.Template.Spec.Containers[0]
+			initContainer := &daemonSet.Spec.Template.Spec.InitContainers[0]
 			imageParts := strings.Split(container.Image, ":")
 			if len(imageParts) != 2 {
 				return false, fmt.Errorf("invalid container image: %s", container.Image)
 			}
 
 			container.Image = awsNodeImageFormatPrefix + ":" + imageParts[1]
+			initContainer.Image = awsNodeInitImageFormatPrefix + ":" + imageParts[1]
 			if err := addons.UseRegionalImage(&daemonSet.Spec.Template, region); err != nil {
 				return false, err
 			}
-			tagMismatch, err = addons.ImageTagsDiffer(
+
+			containerTagMismatch, err := addons.ImageTagsDiffer(
 				container.Image,
 				clusterDaemonSet.Spec.Template.Spec.Containers[0].Image,
 			)
 			if err != nil {
 				return false, err
 			}
+
+			initContainerTagMismatch := true // Will be true by default if the init containers don't exist
+			if len(clusterDaemonSet.Spec.Template.Spec.InitContainers) > 0 {
+				initContainerTagMismatch, err = addons.ImageTagsDiffer(
+					initContainer.Image,
+					clusterDaemonSet.Spec.Template.Spec.InitContainers[0].Image,
+				)
+				if err != nil {
+					return false, err
+				}
+			}
+
+			tagMismatch = containerTagMismatch || initContainerTagMismatch
+
 		case "CustomResourceDefinition":
 			if plan {
 				// eniconfigs.crd.k8s.amazonaws.com CRD is only partially defined in the

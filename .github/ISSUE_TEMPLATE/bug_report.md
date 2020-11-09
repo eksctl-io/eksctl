@@ -14,7 +14,8 @@ A description of actual behavior (with error messages).
 A clear and concise description of what the bug is.
 
 **How to reproduce it?**
-Include the steps to reproduce the bug
+Include the steps to reproduce the bug.
+If using a config, include it here, removing any sensitive information!
 
 **Anything else we need to know?**
 What OS are you using, are you using a downloaded binary or did you compile eksctl, what type of AWS credentials are you using (i.e. default/named profile, MFA) - please don't include actual credentials though!

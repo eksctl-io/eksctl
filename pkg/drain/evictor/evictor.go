@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package drain
+package evictor
 
 import (
 	"time"
@@ -30,36 +30,48 @@ import (
 const (
 	// EvictionKind represents the kind of evictions object
 	EvictionKind = "Eviction"
-	// EvictionSubresource represents the kind of evictions object as pod's subresource
+	// EvictionSubresource represents the kind of evictions object as Pod's subresource
 	EvictionSubresource = "pods/eviction"
-	// retryDelay is how long is slept before retry after an error occurs during drainage
-	retryDelay = 5 * time.Second
 )
 
-// Helper contains the parameters to control the behaviour of drainer
-type Helper struct {
-	Selector    string
-	PodSelector string
+// Evictor contains the parameters to control the behaviour of the evictor
+type Evictor struct {
+	podSelector string
 
-	Client kubernetes.Interface
+	client kubernetes.Interface
 
-	Force  bool
+	force  bool
 	DryRun bool
 
-	MaxGracePeriodSeconds int
-	Timeout               time.Duration
+	maxGracePeriodSeconds int
 
-	IgnoreAllDaemonSets bool
-	IgnoreDaemonSets    []metav1.ObjectMeta
-	DeleteLocalData     bool
+	ignoreAllDaemonSets bool
+	ignoreDaemonSets    []metav1.ObjectMeta
+	deleteLocalData     bool
 
 	policyAPIGroupVersion string
 	UseEvictions          bool
 }
 
+func New(clientSet kubernetes.Interface, maxGracePeriod time.Duration, ignoreDaemonSets []metav1.ObjectMeta) *Evictor {
+	return &Evictor{
+		client: clientSet,
+		// TODO: force, DeleteLocalData & IgnoreAllDaemonSets shouldn't
+		// be enabled by default, we need flags to control these, but that
+		// requires more improvements in the underlying drain package,
+		// as it currently produces errors and warnings with references
+		// to kubectl flags
+		force:                 true,
+		deleteLocalData:       true,
+		ignoreAllDaemonSets:   true,
+		maxGracePeriodSeconds: int(maxGracePeriod.Seconds()),
+		ignoreDaemonSets:      ignoreDaemonSets,
+	}
+}
+
 // CanUseEvictions uses Discovery API to find out if evictions are supported
-func (d *Helper) CanUseEvictions() error {
-	discoveryClient := d.Client.Discovery()
+func (d *Evictor) CanUseEvictions() error {
+	discoveryClient := d.client.Discovery()
 	groupList, err := discoveryClient.ServerGroups()
 	if err != nil {
 		return err
@@ -88,15 +100,15 @@ func (d *Helper) CanUseEvictions() error {
 	return nil
 }
 
-func (d *Helper) makeDeleteOptions(pod corev1.Pod) *metav1.DeleteOptions {
+func (d *Evictor) makeDeleteOptions(pod corev1.Pod) *metav1.DeleteOptions {
 	deleteOptions := &metav1.DeleteOptions{}
 
 	gracePeriodSeconds := int64(corev1.DefaultTerminationGracePeriodSeconds)
 	if pod.Spec.TerminationGracePeriodSeconds != nil {
-		if *pod.Spec.TerminationGracePeriodSeconds < int64(d.MaxGracePeriodSeconds) {
+		if *pod.Spec.TerminationGracePeriodSeconds < int64(d.maxGracePeriodSeconds) {
 			gracePeriodSeconds = *pod.Spec.TerminationGracePeriodSeconds
 		} else {
-			gracePeriodSeconds = int64(d.MaxGracePeriodSeconds)
+			gracePeriodSeconds = int64(d.maxGracePeriodSeconds)
 		}
 	}
 
@@ -104,18 +116,18 @@ func (d *Helper) makeDeleteOptions(pod corev1.Pod) *metav1.DeleteOptions {
 	return deleteOptions
 }
 
-// EvictOrDeletePod will evict pod if policy API is available, otherwise deletes it
+// EvictOrDeletePod will evict Pod if policy API is available, otherwise deletes it
 // NOTE: CanUseEvictions must be called prior to this
-func (d *Helper) EvictOrDeletePod(pod corev1.Pod) error {
+func (d *Evictor) EvictOrDeletePod(pod corev1.Pod) error {
 	if d.UseEvictions {
-		return d.EvictPod(pod)
+		return d.evictPod(pod)
 	}
-	return d.DeletePod(pod)
+	return d.deletePod(pod)
 }
 
-// EvictPod will evict the give pod, or return an error if it couldn't
+// evictPod will evict the give Pod, or return an error if it couldn't
 // NOTE: CanUseEvictions must be called prior to this
-func (d *Helper) EvictPod(pod corev1.Pod) error {
+func (d *Evictor) evictPod(pod corev1.Pod) error {
 	eviction := &policyv1beta1.Eviction{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: d.policyAPIGroupVersion,
@@ -127,51 +139,51 @@ func (d *Helper) EvictPod(pod corev1.Pod) error {
 		},
 		DeleteOptions: d.makeDeleteOptions(pod),
 	}
-	return d.Client.PolicyV1beta1().Evictions(eviction.Namespace).Evict(eviction)
+	return d.client.PolicyV1beta1().Evictions(eviction.Namespace).Evict(eviction)
 }
 
-// DeletePod will delete the given pod, or return an error if it couldn't
-func (d *Helper) DeletePod(pod corev1.Pod) error {
-	return d.Client.CoreV1().Pods(pod.Namespace).Delete(pod.Name, d.makeDeleteOptions(pod))
+// deletePod will Delete the given Pod, or return an error if it couldn't
+func (d *Evictor) deletePod(pod corev1.Pod) error {
+	return d.client.CoreV1().Pods(pod.Namespace).Delete(pod.Name, d.makeDeleteOptions(pod))
 }
 
-// getPodsForDeletion lists all pods on a given node, filters those using the default
-// filters, and returns podDeleteList along with any errors. All pods that are ready
+// GetPodsForEviction lists all pods on a given node, filters those using the default
+// filters, and returns PodDeleteList along with any errors. All pods that are ready
 // to be deleted can be obtained with .Pods(), and string with all warning can be obtained
 // with .Warnings()
-func (d *Helper) getPodsForDeletion(nodeName string) (*podDeleteList, []error) {
-	labelSelector, err := labels.Parse(d.PodSelector)
+func (d *Evictor) GetPodsForEviction(nodeName string) (*PodDeleteList, []error) {
+	labelSelector, err := labels.Parse(d.podSelector)
 	if err != nil {
 		return nil, []error{err}
 	}
 
-	podList, err := d.Client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{
+	podList, err := d.client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{
 		LabelSelector: labelSelector.String(),
 		FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": nodeName}).String()})
 	if err != nil {
 		return nil, []error{err}
 	}
 
-	pods := []podDelete{}
+	pods := []PodDelete{}
 
 	for _, pod := range podList.Items {
-		var status podDeleteStatus
+		var status PodDeleteStatus
 		for _, filter := range d.makeFilters() {
 			status = filter(pod)
-			if !status.delete {
-				// short-circuit as soon as pod is filtered out
-				// at that point, there is no reason to run pod
+			if !status.Delete {
+				// short-circuit as soon as Pod is filtered out
+				// at that point, there is no Reason to run Pod
 				// through any additional filters
 				break
 			}
 		}
-		pods = append(pods, podDelete{
-			pod:    pod,
-			status: status,
+		pods = append(pods, PodDelete{
+			Pod:    pod,
+			Status: status,
 		})
 	}
 
-	list := &podDeleteList{items: pods}
+	list := &PodDeleteList{Items: pods}
 
 	if errs := list.errors(); len(errs) > 0 {
 		return list, errs

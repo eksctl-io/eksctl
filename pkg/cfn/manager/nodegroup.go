@@ -28,6 +28,7 @@ type NodeGroupSummary struct {
 	StackName           string
 	Cluster             string
 	Name                string
+	Status              string
 	MaxSize             int
 	MinSize             int
 	DesiredCapacity     int
@@ -49,10 +50,10 @@ func (c *StackCollection) makeNodeGroupStackName(name string) string {
 }
 
 // createNodeGroupTask creates the nodegroup
-func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup, supportsManagedNodes bool) error {
+func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup, supportsManagedNodes, forceAddCNIPolicy bool) error {
 	name := c.makeNodeGroupStackName(ng.Name)
 	logger.Info("building nodegroup stack %q", name)
-	stack := builder.NewNodeGroupResourceSet(c.provider, c.spec, c.makeClusterStackName(), ng, supportsManagedNodes)
+	stack := builder.NewNodeGroupResourceSet(c.provider, c.spec, c.makeClusterStackName(), ng, supportsManagedNodes, forceAddCNIPolicy)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
@@ -67,10 +68,10 @@ func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup
 	return c.CreateStack(name, stack, ng.Tags, nil, errs)
 }
 
-func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup) error {
+func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool) error {
 	name := c.makeNodeGroupStackName(ng.Name)
 	logger.Info("building managed nodegroup stack %q", name)
-	stack := builder.NewManagedNodeGroup(c.spec, ng, builder.NewLaunchTemplateFetcher(c.provider.EC2()), c.makeClusterStackName())
+	stack := builder.NewManagedNodeGroup(c.spec, ng, builder.NewLaunchTemplateFetcher(c.provider.EC2()), c.makeClusterStackName(), forceAddCNIPolicy)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
@@ -82,6 +83,10 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 	stacks, err := c.DescribeStacks()
 	if err != nil {
 		return nil, err
+	}
+
+	if len(stacks) == 0 {
+		return nil, c.errStackNotFound()
 	}
 
 	nodeGroupStacks := []*Stack{}
@@ -307,13 +312,11 @@ func GetNodeGroupType(tags []*cfn.Tag) (api.NodeGroupType, error) {
 	return nodeGroupType, nil
 }
 
-// GetEksctlVersion returns the eksctl version used to create or update the stack
-func GetEksctlVersion(tags []*cfn.Tag) (semver.Version, bool, error) {
+// GetEksctlVersionFromTags returns the eksctl version used to create or update the stack
+func GetEksctlVersionFromTags(tags []*cfn.Tag) (semver.Version, bool, error) {
 	for _, tag := range tags {
 		if *tag.Key == api.EksctlVersionTag {
-			// We don't want any extra info from the version
-			semverVersion := strings.Split(*tag.Value, version.ExtraSep)[0]
-			v, err := semver.ParseTolerant(semverVersion)
+			v, err := version.ParseEksctlVersion(*tag.Value)
 			if err != nil {
 				return v, false, errors.Wrapf(err, "unexpected error parsing eksctl version %q", *tag.Value)
 			}
@@ -376,13 +379,18 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, ngPaths *node
 		return nil, errors.Wrapf(err, "error getting CloudFormation template for stack %s", *stack.StackName)
 	}
 
-	cluster := getClusterNameTag(stack)
-	name := c.GetNodeGroupName(stack)
-	maxSize := gjson.Get(template, ngPaths.MaxSize)
-	minSize := gjson.Get(template, ngPaths.MinSize)
-	desired := gjson.Get(template, ngPaths.DesiredCapacity)
-	instanceType := gjson.Get(template, ngPaths.InstanceType)
-	imageID := gjson.Get(template, imageIDPath)
+	summary := &NodeGroupSummary{
+		StackName:       *stack.StackName,
+		Cluster:         getClusterNameTag(stack),
+		Name:            c.GetNodeGroupName(stack),
+		Status:          *stack.StackStatus,
+		MaxSize:         int(gjson.Get(template, ngPaths.MaxSize).Int()),
+		MinSize:         int(gjson.Get(template, ngPaths.MinSize).Int()),
+		DesiredCapacity: int(gjson.Get(template, ngPaths.DesiredCapacity).Int()),
+		InstanceType:    gjson.Get(template, ngPaths.InstanceType).String(),
+		ImageID:         gjson.Get(template, imageIDPath).String(),
+		CreationTime:    stack.CreationTime,
+	}
 
 	nodeGroupType, err := GetNodeGroupType(stack.Tags)
 	if err != nil {
@@ -400,22 +408,11 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, ngPaths *node
 		}
 		collectorSet := outputs.NewCollectorSet(collectors)
 		if err := collectorSet.MustCollect(*stack); err != nil {
-			return nil, errors.Wrapf(err, "error collecting Cloudformation outputs for stack %s", *stack.StackName)
+			logger.Warning(errors.Wrapf(err, "error collecting Cloudformation outputs for stack %s", *stack.StackName).Error())
 		}
 	}
 
-	summary := &NodeGroupSummary{
-		StackName:           *stack.StackName,
-		Cluster:             cluster,
-		Name:                name,
-		MaxSize:             int(maxSize.Int()),
-		MinSize:             int(minSize.Int()),
-		DesiredCapacity:     int(desired.Int()),
-		InstanceType:        instanceType.String(),
-		ImageID:             imageID.String(),
-		CreationTime:        stack.CreationTime,
-		NodeInstanceRoleARN: nodeInstanceRoleARN,
-	}
+	summary.NodeInstanceRoleARN = nodeInstanceRoleARN
 
 	return summary, nil
 }

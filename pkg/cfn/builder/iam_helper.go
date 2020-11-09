@@ -19,8 +19,8 @@ type cfnTemplate interface {
 }
 
 // createRole creates an IAM role with policies required for the worker nodes and addons
-func createRole(cfnTemplate cfnTemplate, clusterIAMConfig *api.ClusterIAM, iamConfig *api.NodeGroupIAM, managed bool) error {
-	managedPolicyARNs, err := makeManagedPolicies(clusterIAMConfig, iamConfig, managed)
+func createRole(cfnTemplate cfnTemplate, clusterIAMConfig *api.ClusterIAM, iamConfig *api.NodeGroupIAM, managed, enableSSM, forceAddCNIPolicy bool) error {
+	managedPolicyARNs, err := makeManagedPolicies(clusterIAMConfig, iamConfig, managed, enableSSM, forceAddCNIPolicy)
 	if err != nil {
 		return err
 	}
@@ -273,11 +273,11 @@ func createRole(cfnTemplate cfnTemplate, clusterIAMConfig *api.ClusterIAM, iamCo
 	return nil
 }
 
-func makeManagedPolicies(iamCluster *api.ClusterIAM, iamConfig *api.NodeGroupIAM, managed bool) (*gfnt.Value, error) {
+func makeManagedPolicies(iamCluster *api.ClusterIAM, iamConfig *api.NodeGroupIAM, managed, enableSSM, forceAddCNIPolicy bool) (*gfnt.Value, error) {
 	managedPolicyNames := sets.NewString()
 	if len(iamConfig.AttachPolicyARNs) == 0 {
 		managedPolicyNames.Insert(iamDefaultNodePolicies...)
-		if !api.IsEnabled(iamCluster.WithOIDC) {
+		if !api.IsEnabled(iamCluster.WithOIDC) || forceAddCNIPolicy {
 			managedPolicyNames.Insert(iamPolicyAmazonEKSCNIPolicy)
 		}
 		if managed {
@@ -286,6 +286,10 @@ func makeManagedPolicies(iamCluster *api.ClusterIAM, iamConfig *api.NodeGroupIAM
 			// actions allowed by this managed policy
 			managedPolicyNames.Insert(iamPolicyAmazonEC2ContainerRegistryReadOnly)
 		}
+	}
+
+	if enableSSM {
+		managedPolicyNames.Insert(iamPolicyAmazonSSMManagedInstanceCore)
 	}
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.ImageBuilder) {
@@ -317,4 +321,29 @@ func makeManagedPolicies(iamCluster *api.ClusterIAM, iamConfig *api.NodeGroupIAM
 		makeStringSlice(iamConfig.AttachPolicyARNs...),
 		makePolicyARNs(managedPolicyNames.List()...)...,
 	)...), nil
+}
+
+// NormalizeARN returns the ARN with just the last element in the resource path preserved. If the
+// input does not contain at least one forward-slash then the input is returned unmodified.
+//
+// When providing an existing instanceRoleARN that contains a path other than "/", nodes may
+// fail to join the cluster as the AWS IAM Authenticator does not recognize such ARNs declared in
+// the aws-auth ConfigMap.
+//
+// See: https://docs.aws.amazon.com/eks/latest/userguide/troubleshooting.html#troubleshoot-container-runtime-network
+func NormalizeARN(arn string) string {
+	parts := strings.Split(arn, "/")
+	if len(parts) <= 1 {
+		return arn
+	}
+	return fmt.Sprintf("%s/%s", parts[0], parts[len(parts)-1])
+}
+
+// AbstractRoleNameFromARN returns the role name from the ARN
+func AbstractRoleNameFromARN(arn string) string {
+	parts := strings.Split(arn, "/")
+	if len(parts) <= 1 {
+		return arn
+	}
+	return parts[len(parts)-1]
 }

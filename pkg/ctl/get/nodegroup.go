@@ -76,6 +76,11 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		return errors.Wrap(err, "getting nodegroup stack summaries")
 	}
 
+	// Empty summary implies no nodegroups
+	if len(summaries) == 0 {
+		return errors.Errorf("Nodegroup with name %v not found", ng.Name)
+	}
+
 	printer, err := printers.NewPrinter(params.output)
 	if err != nil {
 		return err
@@ -98,6 +103,9 @@ func addSummaryTableColumns(printer *printers.TablePrinter) {
 	})
 	printer.AddColumn("NODEGROUP", func(s *manager.NodeGroupSummary) string {
 		return s.Name
+	})
+	printer.AddColumn("STATUS", func(s *manager.NodeGroupSummary) string {
+		return s.Status
 	})
 	printer.AddColumn("CREATED", func(s *manager.NodeGroupSummary) string {
 		return s.CreationTime.Format(time.RFC3339)

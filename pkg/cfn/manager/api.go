@@ -37,7 +37,7 @@ type StackInfo struct {
 	Template  *string
 }
 
-// TemplateData is an union (sum type) to describe template data.
+// TemplateData is a union (sum type) to describe template data.
 type TemplateData interface {
 	isTemplateData()
 }
@@ -86,7 +86,8 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *
 // DoCreateStackRequest requests the creation of a CloudFormation stack
 func (c *StackCollection) DoCreateStackRequest(i *Stack, templateData TemplateData, tags, parameters map[string]string, withIAM bool, withNamedIAM bool) error {
 	input := &cloudformation.CreateStackInput{
-		StackName: i.StackName,
+		StackName:       i.StackName,
+		DisableRollback: aws.Bool(c.provider.CloudFormationDisableRollback()),
 	}
 	input.Tags = append(input.Tags, c.sharedTags...)
 	for k, v := range tags {
@@ -444,7 +445,7 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 		return nil, errors.Wrapf(err, "describing CloudFormation stacks for %q", c.spec.Metadata.Name)
 	}
 	if len(stacks) == 0 {
-		return nil, c.errStackNotFound()
+		logger.Debug("No stacks found for %s", c.spec.Metadata.Name)
 	}
 	return stacks, nil
 }

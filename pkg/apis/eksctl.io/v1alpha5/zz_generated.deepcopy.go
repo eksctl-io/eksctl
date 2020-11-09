@@ -1142,6 +1142,11 @@ func (in *NodeGroupSSH) DeepCopyInto(out *NodeGroupSSH) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.EnableSSM != nil {
+		in, out := &in.EnableSSM, &out.EnableSSM
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 

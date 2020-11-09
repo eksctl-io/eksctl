@@ -203,21 +203,12 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 			spec:            cfg,
 		})
 	}
-	return newTasks
-}
 
-// NewTasksRequiringControlPlane returns all tasks for updating cluster configuration depending on the control plane availability
-// or nil if there are no tasks
-func (c *ClusterProvider) NewTasksRequiringControlPlane(cfg *api.ClusterConfig) *manager.TaskTree {
-	tasks := &manager.TaskTree{
-		Parallel:  false,
-		IsSubTask: true,
-	}
 	if api.IsEnabled(cfg.IAM.WithOIDC) {
-		c.appendCreateTasksForIAMServiceAccounts(cfg, tasks)
+		c.appendCreateTasksForIAMServiceAccounts(cfg, newTasks)
 	}
 
-	return tasks
+	return newTasks
 }
 
 // ClusterTasksForNodeGroups returns all tasks dependent on node groups
@@ -263,6 +254,14 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 				return err
 			}
 			*oidcPlaceholder = *oidc
+			// Make sure control plane is reachable
+			clientSet, err := c.NewStdClientSet(cfg)
+			if err != nil {
+				return errors.Wrap(err, "failed to get ClientSet")
+			}
+			if err := c.WaitForControlPlane(cfg.Metadata, clientSet); err != nil {
+				return errors.Wrap(err, "failed to wait for control plane")
+			}
 			return nil
 		},
 	})

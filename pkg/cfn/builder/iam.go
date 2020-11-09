@@ -3,6 +3,8 @@ package builder
 import (
 	"fmt"
 
+	"github.com/weaveworks/eksctl/pkg/iam"
+
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -10,7 +12,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
-	"github.com/weaveworks/eksctl/pkg/iam"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 )
 
@@ -23,6 +24,7 @@ const (
 	iamPolicyAmazonEC2ContainerRegistryPowerUser = "AmazonEC2ContainerRegistryPowerUser"
 	iamPolicyAmazonEC2ContainerRegistryReadOnly  = "AmazonEC2ContainerRegistryReadOnly"
 	iamPolicyCloudWatchAgentServerPolicy         = "CloudWatchAgentServerPolicy"
+	iamPolicyAmazonSSMManagedInstanceCore        = "AmazonSSMManagedInstanceCore"
 
 	iamPolicyAmazonEKSFargatePodExecutionRolePolicy = "AmazonEKSFargatePodExecutionRolePolicy"
 )
@@ -144,17 +146,19 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() error {
 	n.rs.withIAM = true
 
 	if n.spec.IAM.InstanceRoleARN != "" {
+		roleARN := NormalizeARN(n.spec.IAM.InstanceRoleARN)
+
 		// if role is set, but profile isn't - create profile
 		n.newResource(cfnIAMInstanceProfileName, &gfniam.InstanceProfile{
 			Path:  gfnt.NewString("/"),
-			Roles: gfnt.NewStringSlice(n.spec.IAM.InstanceRoleARN),
+			Roles: gfnt.NewStringSlice(AbstractRoleNameFromARN(roleARN)),
 		})
 		n.instanceProfileARN = gfnt.MakeFnGetAttString(cfnIAMInstanceProfileName, "Arn")
 		n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, cfnIAMInstanceProfileName, "Arn", true, func(v string) error {
 			n.spec.IAM.InstanceProfileARN = v
 			return nil
 		})
-		n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceRoleARN, n.spec.IAM.InstanceRoleARN, true)
+		n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceRoleARN, roleARN, true)
 		return nil
 	}
 
@@ -165,7 +169,8 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() error {
 		n.rs.withNamedIAM = true
 	}
 
-	if err := createRole(n.rs, n.clusterSpec.IAM, n.spec.IAM, false); err != nil {
+	enableSSM := n.spec.SSH != nil && api.IsEnabled(n.spec.SSH.EnableSSM)
+	if err := createRole(n.rs, n.clusterSpec.IAM, n.spec.IAM, false, enableSSM, n.forceAddCNIPolicy); err != nil {
 		return err
 	}
 

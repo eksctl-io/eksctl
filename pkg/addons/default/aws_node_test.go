@@ -54,8 +54,8 @@ var _ = Describe("default addons - aws-node", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(needsUpdate).To(BeTrue())
 		})
-		It("reports that sample with 1.7.3 doesn't need an update", func() {
-			loadSample("testdata/sample-1.16-v1.7.3.json")
+		It("reports that sample with 1.7.5 doesn't need an update", func() {
+			loadSample("testdata/sample-1.16-v1.7.json")
 			rawClient.AssumeObjectsMissing = false
 
 			needsUpdate, err := DoesAWSNodeSupportMultiArch(rawClient, "eu-west-1")
@@ -120,9 +120,12 @@ var _ = Describe("default addons - aws-node", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
-				Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/amazon-k8s-cni:v1.7.3"),
+				Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/amazon-k8s-cni:v1.7.5"),
 			)
-
+			Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
+			Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
+				Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/amazon-k8s-cni-init:v1.7.5"),
+			)
 			rawClient.ClearUpdated()
 		})
 
@@ -138,7 +141,11 @@ var _ = Describe("default addons - aws-node", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
-				Equal("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni:v1.7.3"),
+				Equal("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni:v1.7.5"),
+			)
+			Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
+			Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
+				Equal("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni-init:v1.7.5"),
 			)
 		})
 
@@ -154,7 +161,11 @@ var _ = Describe("default addons - aws-node", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
-				Equal("961992271922.dkr.ecr.cn-northwest-1.amazonaws.com.cn/amazon-k8s-cni:v1.7.3"),
+				Equal("961992271922.dkr.ecr.cn-northwest-1.amazonaws.com.cn/amazon-k8s-cni:v1.7.5"),
+			)
+			Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
+			Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
+				Equal("961992271922.dkr.ecr.cn-northwest-1.amazonaws.com.cn/amazon-k8s-cni-init:v1.7.5"),
 			)
 		})
 

@@ -10,11 +10,11 @@ import (
 	"github.com/spf13/pflag"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
-
+	"github.com/weaveworks/eksctl/pkg/actions/create"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/kops"
@@ -355,15 +355,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			return err
 		}
 
-		// tasks depending on the control plane availability
-		tasks := ctl.NewTasksRequiringControlPlane(cfg)
 		ngTasks := ctl.ClusterTasksForNodeGroups(cfg, params.InstallNeuronDevicePlugin)
-		if ngTasks.Len() > 0 {
-			tasks.Append(ngTasks)
-		}
 
-		logger.Info(tasks.Describe())
-		if errs := tasks.DoAllSync(); len(errs) > 0 {
+		logger.Info(ngTasks.Describe())
+		if errs := ngTasks.DoAllSync(); len(errs) > 0 {
 			logger.Warning("%d error(s) occurred and post actions have failed, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", meta.Region, meta.Name)
 			for _, err := range errs {
@@ -384,7 +379,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 				return err
 			}
 
-			showDevicePluginMessageForNodeGroup(ng, params.InstallNeuronDevicePlugin)
+			create.ShowDevicePluginMessageForNodeGroup(ng, params.InstallNeuronDevicePlugin)
 		}
 
 		for _, ng := range cfg.ManagedNodeGroups {
@@ -437,4 +432,8 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	}
 
 	return nil
+}
+
+func checkSubnetsGivenAsFlags(params *cmdutils.CreateClusterCmdParams) bool {
+	return len(*params.Subnets[api.SubnetTopologyPrivate])+len(*params.Subnets[api.SubnetTopologyPublic]) != 0
 }

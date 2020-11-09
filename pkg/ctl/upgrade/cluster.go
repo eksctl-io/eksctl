@@ -15,6 +15,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
+// updating from 1.15 to 1.16 has been observed to take longer than the default value of 25 minutes
+// increased to 50 for flex fleet changes
+const upgradeClusterTimeout = 50 * time.Minute
+
 func upgradeCluster(cmd *cmdutils.Cmd) {
 	upgradeClusterWithRunFunc(cmd, DoUpgradeCluster)
 }
@@ -40,8 +44,7 @@ func upgradeClusterWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 
 		cmdutils.AddApproveFlag(fs, cmd)
 
-		// updating from 1.15 to 1.16 has been observed to take longer than the default value of 25 minutes
-		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, 35*time.Minute)
+		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, upgradeClusterTimeout)
 	})
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
@@ -194,6 +197,8 @@ func getNextVersion(currentVersion string) (string, error) {
 		return api.Version1_17, nil
 	case api.Version1_17:
 		return api.Version1_18, nil
+	case api.Version1_18:
+		return api.Version1_19, nil
 	default:
 		// version of control plane is not known to us, maybe we are just too old...
 		return "", fmt.Errorf("control plane version %q is not known to this version of eksctl, try to upgrade eksctl first", currentVersion)

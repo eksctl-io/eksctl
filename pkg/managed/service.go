@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
+	"github.com/weaveworks/eksctl/pkg/version"
 	"github.com/weaveworks/goformation/v4/cloudformation"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
@@ -47,6 +48,8 @@ type UpgradeOptions struct {
 	// LaunchTemplateVersion launch template version
 	// valid only if a nodegroup was created with a launch template
 	LaunchTemplateVersion string
+	//ForceUpgrade enables force upgrade
+	ForceUpgrade bool
 }
 
 // TODO use goformation types
@@ -184,7 +187,7 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 		return nil
 	}
 
-	requiresUpdate, err := m.requiresStackFormatUpdate(options.NodegroupName)
+	requiresUpdate, err := m.requiresStackUpdate(options.NodegroupName)
 	if err != nil {
 		return err
 	}
@@ -240,6 +243,8 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 		ngResource.LaunchTemplate.Version = gfnt.NewString(options.LaunchTemplateVersion)
 	}
 
+	ngResource.ForceUpdateEnabled = gfnt.NewBoolean(options.ForceUpgrade)
+
 	logger.Info("upgrading nodegroup version")
 	if err := updateStack(stack); err != nil {
 		return err
@@ -248,25 +253,25 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 	return nil
 }
 
-func (m *Service) requiresStackFormatUpdate(nodeGroupName string) (bool, error) {
+func (m *Service) requiresStackUpdate(nodeGroupName string) (bool, error) {
 	ngStack, err := m.stackCollection.DescribeNodeGroupStack(nodeGroupName)
 	if err != nil {
 		return false, err
 	}
 
-	ver, found, err := manager.GetEksctlVersion(ngStack.Tags)
+	ver, found, err := manager.GetEksctlVersionFromTags(ngStack.Tags)
 	if err != nil {
 		return false, err
 	}
-	if found {
-		newFormatVersion := semver.Version{
-			Major: 0,
-			Minor: 25,
-			Patch: 0,
-		}
-		return ver.LT(newFormatVersion), nil
+	if !found {
+		return true, nil
 	}
-	return true, nil
+
+	curVer, err := version.ParseEksctlVersion(version.GetVersion())
+	if err != nil {
+		return false, errors.Wrap(err, "unexpected error parsing current eksctl version")
+	}
+	return !ver.EQ(curVer), nil
 }
 
 func (m *Service) getLatestReleaseVersion(kubernetesVersion string, nodeGroup *eks.Nodegroup) (string, error) {

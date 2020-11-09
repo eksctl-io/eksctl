@@ -37,7 +37,7 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 			m.mockFetcherFn(provider)
 		}
 
-		stack := NewManagedNodeGroup(clusterConfig, m.ng, NewLaunchTemplateFetcher(provider.MockEC2()), fmt.Sprintf("eksctl-%s", clusterConfig.Metadata.Name))
+		stack := NewManagedNodeGroup(clusterConfig, m.ng, NewLaunchTemplateFetcher(provider.MockEC2()), fmt.Sprintf("eksctl-%s", clusterConfig.Metadata.Name), false)
 		stack.UserDataMimeBoundary = "//"
 		err := stack.AddAllResources()
 		Expect(err).ToNot(HaveOccurred())
@@ -131,12 +131,29 @@ API_SERVER_URL=https://test.com
 					SSH: &api.NodeGroupSSH{
 						Allow:         api.Enabled(),
 						PublicKeyName: aws.String("test-keypair"),
+						EnableSSM:     api.Enabled(),
 					},
 				},
 			},
 
 			resourcesFilename: "ssh_enabled.json",
 		}),
+
+		Entry("SSH configured but allowed=false", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: "ssh-disabled",
+					SSH: &api.NodeGroupSSH{
+						Allow:         api.Disabled(),
+						PublicKeyName: aws.String("test-keypair"),
+						EnableSSM:     api.Enabled(),
+					},
+				},
+			},
+			// The SG should not be created
+			resourcesFilename: "ssh_disabled.json",
+		}),
+
 		Entry("With placement group", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{

@@ -23,7 +23,7 @@ eksctl create cluster --name=cluster-1 --nodes=4
 
 ```
 
-EKS supports versions `1.14`, `1.15`, `1.16` and `1.17` (default).
+EKS supports versions `1.14`, `1.15`, `1.16`, `1.17` (default) and `1.18`.
 With `eksctl` you can deploy any of the supported versions by passing `--version`.
 
 ```
@@ -118,6 +118,17 @@ To use a pre-existing EC2 key pair in `us-east-1` region, you can specify key pa
 eksctl create cluster --ssh-access --ssh-public-key=my_kubernetes_key --region=us-east-1
 
 ```
+
+To use [AWS Systems Manager (SSM)](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html#sessions-start-cli) to SSH onto nodes, you can specify the `--enable-ssm` flag:
+
+```
+
+eksctl create cluster --enable-ssm
+
+```
+
+!!! note
+    If you are creating managed nodes with a custom launch template, the `--enable-ssm` flag is disallowed.
 
 ### Tagging
 
@@ -244,6 +255,15 @@ The below commands can be used for fish auto completion:
 ```
 mkdir -p ~/.config/fish/completions
 eksctl completion fish > ~/.config/fish/completions/eksctl.fish
+```
+
+#### Powershell
+
+The below command can be referred for setting it up. Please note that the path might be different depending on your
+system settings.
+
+```
+eksctl completion powershell > C:\Users\Documents\WindowsPowerShell\Scripts\eksctl.ps1
 ```
 
 ## Features
