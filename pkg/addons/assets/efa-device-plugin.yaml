@@ -1,0 +1,85 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: aws-efa-k8s-device-plugin-daemonset
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      name:  aws-efa-k8s-device-plugin
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      # This annotation is deprecated. Kept here for backward compatibility
+      # See https://kubernetes.io/docs/tasks/administer-cluster/guaranteed-scheduling-critical-addon-pods/
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ""
+      labels:
+        name: aws-efa-k8s-device-plugin
+    spec:
+      serviceAccount: default
+      tolerations:
+        - key: CriticalAddonsOnly
+          operator: Exists
+        - key: aws.amazon.com/efa
+          operator: Exists
+          effect: NoSchedule
+      # Mark this pod as a critical add-on; when enabled, the critical add-on
+      # scheduler reserves resources for critical add-on pods so that they can
+      # be rescheduled after a failure.
+      # See https://kubernetes.io/docs/tasks/administer-cluster/guaranteed-scheduling-critical-addon-pods/
+      priorityClassName: "system-node-critical"
+      affinity:
+        nodeAffinity:
+          # EFA supported instances: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html#efa-instance-types
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "beta.kubernetes.io/instance-type"
+                    operator: In
+                    values:
+                      - c5n.18xlarge
+                      - c5n.metal
+                      - g4dn.metal
+                      - i3en.24xlarge
+                      - i3en.metal
+                      - inf1.24xlarge
+                      - m5dn.24xlarge
+                      - m5n.24xlarge
+                      - p3dn.24xlarge
+                      - r5dn.24xlarge
+                      - r5n.24xlarge
+                      - p4d.24xlarge
+              - matchExpressions:
+                  - key: "node.kubernetes.io/instance-type"
+                    operator: In
+                    values:
+                      - c5n.18xlarge
+                      - c5n.metal
+                      - g4dn.metal
+                      - i3en.24xlarge
+                      - i3en.metal
+                      - inf1.24xlarge
+                      - m5dn.24xlarge
+                      - m5n.24xlarge
+                      - p3dn.24xlarge
+                      - r5dn.24xlarge
+                      - r5n.24xlarge
+                      - p4d.24xlarge
+      hostNetwork: true
+      containers:
+        - image: "%s.dkr.ecr.%s.%s/eks/aws-efa-k8s-device-plugin:v0.3-linux_amd64"
+          name: aws-efa-k8s-device-plugin
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: device-plugin
+              mountPath: /var/lib/kubelet/device-plugins
+      volumes:
+        - name: device-plugin
+          hostPath:
+            path: /var/lib/kubelet/device-plugins

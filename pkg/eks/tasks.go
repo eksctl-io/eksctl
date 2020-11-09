@@ -95,9 +95,9 @@ func (n *devicePluginTask) Do(errCh chan error) error {
 	if err != nil {
 		return err
 	}
-	neuronDevicePlugin := n.mkPlugin(rawClient, n.clusterProvider.Provider.Region(), false)
-	if err := neuronDevicePlugin.Deploy(); err != nil {
-		return errors.Wrap(err, "error installing Neuron device plugin")
+	devicePlugin := n.mkPlugin(rawClient, n.clusterProvider.Provider.Region(), false)
+	if err := devicePlugin.Deploy(); err != nil {
+		return errors.Wrap(err, "error installing device plugin")
 	}
 	return nil
 }
@@ -124,6 +124,19 @@ func newNeuronDevicePluginTask(
 		clusterProvider: clusterProvider,
 		spec:            spec,
 		mkPlugin:        addons.NewNeuronDevicePlugin,
+	}
+	return &t
+}
+
+func newEFADevicePluginTask(
+	clusterProvider *ClusterProvider,
+	spec *api.ClusterConfig,
+) tasks.Task {
+	t := devicePluginTask{
+		info:            "install EFA device plugin",
+		clusterProvider: clusterProvider,
+		spec:            spec,
+		mkPlugin:        addons.NewEFADevicePlugin,
 	}
 	return &t
 }
@@ -249,15 +262,16 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 	var needsNvidiaButNotNeuron = func(t string) bool {
 		return utils.IsGPUInstanceType(t) && !utils.IsInferentiaInstanceType(t)
 	}
-	var haveNeuronInstanceType bool
-	var haveNvidiaInstanceType bool
+	var haveNeuronInstanceType, haveNvidiaInstanceType, efaEnabled bool
 	for _, ng := range cfg.NodeGroups {
 		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceType(ng, utils.IsInferentiaInstanceType)
 		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceType(ng, needsNvidiaButNotNeuron)
+		efaEnabled = efaEnabled || api.IsEnabled(ng.EFAEnabled)
 	}
 	for _, ng := range cfg.ManagedNodeGroups {
 		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceTypeManaged(ng, utils.IsInferentiaInstanceType)
 		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceTypeManaged(ng, needsNvidiaButNotNeuron)
+		efaEnabled = efaEnabled || api.IsEnabled(ng.EFAEnabled)
 	}
 	if haveNeuronInstanceType && installNeuronDevicePluginParam {
 		tasks.Append(newNeuronDevicePluginTask(c, cfg))
@@ -277,6 +291,10 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 		if len(ng.ASGSuspendProcesses) > 0 {
 			tasks.Append(newSuspendProcesses(c, cfg, ng))
 		}
+	}
+
+	if efaEnabled {
+		tasks.Append(newEFADevicePluginTask(c, cfg))
 	}
 
 	return tasks
