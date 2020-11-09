@@ -25,6 +25,7 @@ import (
 type NodeGroupOptions struct {
 	UpdateAuthConfigMap       bool
 	InstallNeuronDevicePlugin bool
+	InstallNvidiaDevicePlugin bool
 }
 
 // NodeGroup holds everything needed to create node groups
@@ -190,7 +191,7 @@ func (c *NodeGroup) Create() error {
 }
 
 func PostNodeCreationTasks(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, clientSet kubernetes.Interface, options NodeGroupOptions) error {
-	tasks := ctl.ClusterTasksForNodeGroups(cfg, options.InstallNeuronDevicePlugin)
+	tasks := ctl.ClusterTasksForNodeGroups(cfg, options.InstallNeuronDevicePlugin, options.InstallNvidiaDevicePlugin)
 	logger.Info(tasks.Describe())
 	errs := tasks.DoAllSync()
 	if len(errs) > 0 {
@@ -217,7 +218,7 @@ func PostNodeCreationTasks(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, cli
 			}
 		}
 
-		ShowDevicePluginMessageForNodeGroup(ng, options.InstallNeuronDevicePlugin)
+		ShowDevicePluginMessageForNodeGroup(ng, options.InstallNeuronDevicePlugin, options.InstallNvidiaDevicePlugin)
 	}
 	logger.Success("created %d nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 
@@ -236,7 +237,7 @@ func PostNodeCreationTasks(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, cli
 	return nil
 }
 
-func ShowDevicePluginMessageForNodeGroup(nodeGroup *api.NodeGroup, installNeuronPlugin bool) {
+func ShowDevicePluginMessageForNodeGroup(nodeGroup *api.NodeGroup, installNeuronPlugin, installNvidiaPlugin bool) {
 	if api.HasInstanceType(nodeGroup, utils.IsInferentiaInstanceType) {
 		if installNeuronPlugin {
 			logger.Info("as you are using the EKS-Optimized Accelerated AMI with an inf1 instance type, the AWS Neuron Kubernetes device plugin was automatically installed.")
@@ -247,9 +248,14 @@ func ShowDevicePluginMessageForNodeGroup(nodeGroup *api.NodeGroup, installNeuron
 			logger.Info("\t see the following page for instructions: https://github.com/aws/aws-neuron-sdk/blob/master/docs/neuron-container-tools/tutorial-k8s.md")
 		}
 	} else if api.HasInstanceType(nodeGroup, utils.IsGPUInstanceType) {
-		// if GPU instance type, give instructions
-		logger.Info("as you are using a GPU optimized instance type you will need to install NVIDIA Kubernetes device plugin.")
-		logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
+		if installNvidiaPlugin {
+			logger.Info("as you are using the EKS-Optimized Accelerated AMI with a GPU-enabled instance type, the Nvidia Kubernetes device plugin was automatically installed.")
+			logger.Info("\t to skip installing it, use --install-nvidia-plugin=false.")
+		} else {
+			// if GPU instance type, give instructions
+			logger.Info("as you are using a GPU optimized instance type you will need to install NVIDIA Kubernetes device plugin.")
+			logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
+		}
 	}
 }
 
