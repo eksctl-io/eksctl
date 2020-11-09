@@ -113,23 +113,24 @@ flux-helm-operator-6bc7c85bb5-l2nzn
 
 CLI arguments for `eksctl enable repo`
 
-| Flag                          | Default value | Type    | Required | Use                                                                                                                          |
-|-------------------------------|---------------|---------|----------|------------------------------------------------------------------------------------------------------------------------------|
-| `--cluster`                   |               | string  | required | name of the EKS cluster                                                                                                      |
-| `--region`                    |               | string  | required | AWS region                                                                                                                   |
-| `--git-url`                   |               | string  | required | SSH URL of the Git repository to be used for GitOps                                                                          |
-| `--git-branch`                | master        | string  | optional | Git branch to be used for GitOps                                                                                             |
-| `--git-email`                 |               | string  | required | Email to use as Git committer                                                                                                |
-| `--git-user`                  | Flux          | string  | optional | Username to use as Git committer                                                                                             |
-| `--git-private-ssh-key-path`  |               | string  | optional | Optional path to the private SSH key to use with Git                                                                         |
-| `--git-paths`                 |               | string  | optional | Relative paths within the Git repo for Flux to locate Kubernetes manifests                                                   |
-| `--git-label`                 | flux          | string  | optional | Git label to keep track of Flux's sync progress; this is equivalent to overriding --git-sync-tag and --git-notes-ref in Flux |
-| `--git-flux-subdir`           | flux/         | string  | optional | Directory within the Git repository where to commit the Flux manifests                                                       |
-| `--namespace`                 | flux          | string  | optional | Cluster namespace where to install Flux and the Helm Operator                                                                |
-| `--with-helm`                 | true          | boolean | optional | Install the Helm Operator                                                                                                    |
-| `--commit-operator-manifests` | true          | boolean | optional | Commit and push Flux manifests to the Git repo on install                                                                    |
-| `--read-only`                 | false         | boolean | optional | Configure Flux in read-only mode and create the deploy key in read-only mode (only for Github)                               |
-
+| Flag                              | Default value | Type    | Required | Use                                                                                                                          |
+|-----------------------------------|---------------|---------|----------|------------------------------------------------------------------------------------------------------------------------------|
+| `--cluster`                       |               | string  | required | name of the EKS cluster                                                                                                      |
+| `--region`                        |               | string  | required | AWS region                                                                                                                   |
+| `--git-url`                       |               | string  | required | SSH URL of the Git repository to be used for GitOps                                                                          |
+| `--git-branch`                    | master        | string  | optional | Git branch to be used for GitOps                                                                                             |
+| `--git-email`                     |               | string  | required | Email to use as Git committer                                                                                                |
+| `--git-user`                      | Flux          | string  | optional | Username to use as Git committer                                                                                             |
+| `--git-private-ssh-key-path`      |               | string  | optional | Optional path to the private SSH key to use with Git                                                                         |
+| `--git-paths`                     |               | string  | optional | Relative paths within the Git repo for Flux to locate Kubernetes manifests                                                   |
+| `--git-label`                     | flux          | string  | optional | Git label to keep track of Flux's sync progress; this is equivalent to overriding --git-sync-tag and --git-notes-ref in Flux |
+| `--git-flux-subdir`               | flux/         | string  | optional | Directory within the Git repository where to commit the Flux manifests                                                       |
+| `--namespace`                     | flux          | string  | optional | Cluster namespace where to install Flux and the Helm Operator                                                                |
+| `--with-helm`                     | true          | boolean | optional | Install the Helm Operator                                                                                                    |
+| `--commit-operator-manifests`     | true          | boolean | optional | Commit and push Flux manifests to the Git repo on install                                                                    |
+| `--read-only`                     | false         | boolean | optional | Configure Flux in read-only mode and create the deploy key in read-only mode (only for Github)                               |
+| `--additional-flux-args`          |               | string  | optional | Additional command line arguments for the Flux daemon                                                                        |
+| `--additional-helm-operator-args` |               | string  | optional | Additional command line arguments for the Helm Operator                                                                      |
 
 #### Adding a workload
 

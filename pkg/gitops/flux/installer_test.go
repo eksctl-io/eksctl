@@ -23,9 +23,11 @@ var _ = Describe("Installer", func() {
 			FluxPath: "fluxpath/",
 		},
 		Operator: api.Operator{
-			Label:     "gitlabel",
-			Namespace: "fluxnamespace",
-			WithHelm:  api.Enabled(),
+			Label:                      "gitlabel",
+			Namespace:                  "fluxnamespace",
+			WithHelm:                   api.Enabled(),
+			AdditionalFluxArgs:         []string{"--git-poll-interval=30s"},
+			AdditionalHelmOperatorArgs: []string{"--log-format=json"},
 		},
 	}
 	mockInstaller := &Installer{

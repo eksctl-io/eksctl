@@ -285,7 +285,7 @@ func (fi *Installer) getManifests() (map[string][]byte, error) {
 	if !api.IsEnabled(fi.opts.Operator.WithHelm) {
 		return manifests, nil
 	}
-	helmOpManifests, err := getHelmOpManifests(fi.opts.Operator.Namespace)
+	helmOpManifests, err := getHelmOpManifests(fi.opts.Operator.Namespace, fi.opts.Operator.AdditionalHelmOperatorArgs)
 	if err != nil {
 		return nil, err
 	}
@@ -305,6 +305,7 @@ func getFluxManifests(opts *api.Git, cs kubeclient.Interface) (map[string][]byte
 	}
 
 	additionalFluxArgs := []string{"--sync-garbage-collection"}
+	additionalFluxArgs = append(additionalFluxArgs, opts.Operator.AdditionalFluxArgs...)
 	if opts.Operator.ReadOnly {
 		additionalFluxArgs = append(additionalFluxArgs, "--registry-disable-scanning")
 	}
@@ -328,11 +329,12 @@ func getFluxManifests(opts *api.Git, cs kubeclient.Interface) (map[string][]byte
 	return mergeMaps(manifests, fluxManifests), nil
 }
 
-func getHelmOpManifests(namespace string) (map[string][]byte, error) {
+func getHelmOpManifests(namespace string, additionalHelmOperatorArgs []string) (map[string][]byte, error) {
 	helmOpParameters := helmopinstall.TemplateParameters{
-		Namespace:     namespace,
-		HelmVersions:  fluxHelmVersions,
-		SSHSecretName: fluxPrivateSSHKeySecretName,
+		Namespace:      namespace,
+		AdditionalArgs: additionalHelmOperatorArgs,
+		HelmVersions:   fluxHelmVersions,
+		SSHSecretName:  fluxPrivateSSHKeySecretName,
 	}
 	manifests, err := helmopinstall.FillInTemplates(helmOpParameters)
 	if err != nil {
