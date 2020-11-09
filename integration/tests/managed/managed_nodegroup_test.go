@@ -231,7 +231,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 		Context("and upgrading a nodegroup", func() {
 			It("should upgrade to the next Kubernetes version", func() {
 				By("updating the control plane version")
-				cmd := params.EksctlUpdateCmd.
+				cmd := params.EksctlUpgradeCmd.
 					WithArgs(
 						"cluster",
 						"--verbose", "4",
