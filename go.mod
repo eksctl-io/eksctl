@@ -15,9 +15,9 @@ require (
 	github.com/dave/jennifer v1.3.0
 	github.com/dlespiau/kube-test-harness v0.0.0-20190930170435-ec3f93e1a754
 	github.com/evanphx/json-patch v4.5.0+incompatible
-	github.com/fluxcd/flux/pkg/install v0.0.0-20200402142123-873fb9300996 // flux 1.19.0
-	github.com/fluxcd/go-git-providers v0.0.2
-	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200407140510-8d71b0072a3e // helm-operator 1.0.0
+	github.com/fluxcd/flux/pkg/install v0.0.0-20201001122558-cb08da1b356a // flux 1.21.0
+	github.com/fluxcd/go-git-providers v0.0.3
+	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200729150005-1467489f7ee4 // helm-operator 1.2.0
 	github.com/github-release/github-release v0.8.1
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/flock v0.8.0
