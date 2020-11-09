@@ -1,0 +1,37 @@
+# An example of ClusterConfig object specifying subnets for a nodegroup
+--- 
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-1
+  region: us-west-2
+
+vpc:
+  id: vpc-0c24b1cc77da8f463
+  cidr: "192.168.0.0/16"
+  subnets:
+    public:
+      public-one: 
+        id: subnet-0324095a4f2188967
+        # az: us-west-2a # any unambiguous combination of these is allowed
+        # cidr: 192.168.64.0/19
+      public-two: 
+        id: subnet-083814b087bad140b
+      public-three: 
+        id: subnet-03a1260affe6f9944
+    private:
+      private-one:
+        id: subnet-05373e0e6d03065cc
+      private-two:
+        id: subnet-00110ffa3ef259d0c
+      private-three:
+        id: subnet-0a96e24163ef2c9c3
+
+nodeGroups:
+  - name: ng-1
+    instanceType: m5.xlarge
+    desiredCapacity: 2
+    subnets:
+      - public-one
+      - public-two
