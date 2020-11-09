@@ -19,12 +19,14 @@ const (
 	gitEmail             = "git-email"
 	gitPrivateSSHKeyPath = "git-private-ssh-key-path"
 
-	gitPaths    = "git-paths"
-	gitFluxPath = "git-flux-subdir"
-	gitLabel    = "git-label"
-	namespace   = "namespace"
-	readOnly    = "read-only"
-	withHelm    = "with-helm"
+	gitPaths                   = "git-paths"
+	gitFluxPath                = "git-flux-subdir"
+	gitLabel                   = "git-label"
+	namespace                  = "namespace"
+	readOnly                   = "read-only"
+	withHelm                   = "with-helm"
+	additionalFluxArgs         = "additional-flux-args"
+	additionalHelmOperatorArgs = "additional-helm-operator-args"
 
 	commitOperatorManifests = "commit-operator-manifests"
 
@@ -59,6 +61,10 @@ func AddCommonFlagsForFlux(fs *pflag.FlagSet, opts *api.Git) {
 	opts.Operator.CommitOperatorManifests = fs.Bool(commitOperatorManifests, true,
 		"Commit and push Flux manifests to the Git repo on install")
 	opts.Operator.WithHelm = fs.Bool(withHelm, true, "Install the Helm Operator")
+	fs.StringSliceVar(&opts.Operator.AdditionalFluxArgs, additionalFluxArgs, []string{},
+		"Additional command line arguments for the Flux daemon")
+	fs.StringSliceVar(&opts.Operator.AdditionalHelmOperatorArgs, additionalHelmOperatorArgs, []string{},
+		"Additional command line arguments for the Helm Operator")
 }
 
 // AddCommonFlagsForGit configures the flags required to interact with a Git
@@ -118,6 +124,8 @@ func NewGitOpsConfigLoader(cmd *Cmd, cfg *api.Git) *GitOpsConfigLoader {
 			"amend",
 			profileName,
 			profileRevision,
+			additionalFluxArgs,
+			additionalHelmOperatorArgs,
 		),
 		flagsIncompatibleWithoutConfigFile: sets.NewString(),
 	}
