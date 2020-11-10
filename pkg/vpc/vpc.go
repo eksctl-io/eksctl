@@ -3,7 +3,6 @@ package vpc
 import (
 	"encoding/binary"
 	"fmt"
-	"math"
 	"net"
 	"strings"
 
@@ -470,25 +469,26 @@ func SelectNodeGroupSubnets(nodegroupAZs, nodegroupSubnets []string, subnets api
 	if len(subnets) < numNodeGroupsAZs || len(subnets) < numNodeGroupsSubnets {
 		return nil, fmt.Errorf("VPC doesn't have enough subnets for nodegroup AZs or subnets %s", makeErrorDesc())
 	}
-	subnetIDs := make([]string, int(math.Max(float64(numNodeGroupsAZs), float64(numNodeGroupsSubnets))))
-	for i, az := range nodegroupAZs {
-		var subnetID string
+	subnetIDs := []string{}
+	// We validate previously that either AZs or subnets is set
+	for _, az := range nodegroupAZs {
+		azSubnetIDs := []string{}
 		for _, s := range subnets {
 			if s.AZ == az {
-				subnetID = s.ID
+				azSubnetIDs = append(azSubnetIDs, s.ID)
 			}
 		}
-		if subnetID == "" {
+		if len(azSubnetIDs) == 0 {
 			return nil, fmt.Errorf("VPC doesn't have subnets in %s %s", az, makeErrorDesc())
 		}
-		subnetIDs[i] = subnetID
+		subnetIDs = append(subnetIDs, azSubnetIDs...)
 	}
-	for i, subnetName := range nodegroupSubnets {
+	for _, subnetName := range nodegroupSubnets {
 		subnet, ok := subnets[subnetName]
 		if !ok {
 			return nil, fmt.Errorf("VPC doesn't have subnet with name %s %s", subnetName, makeErrorDesc())
 		}
-		subnetIDs[i] = subnet.ID
+		subnetIDs = append(subnetIDs, subnet.ID)
 	}
 	return subnetIDs, nil
 }

@@ -61,6 +61,13 @@ type cleanupSubnetsCase struct {
 	want *api.ClusterConfig
 }
 
+type selectSubnetsCase struct {
+	nodegroupAZs     []string
+	nodegroupSubnets []string
+	subnets          api.AZSubnetMapping
+	expectIDs        []string
+}
+
 var (
 	cluster *eks.Cluster
 	p       *mockprovider.MockProvider
@@ -767,6 +774,40 @@ var _ = Describe("VPC - Import all subnets", func() {
 				}),
 			},
 			error: nil,
+		}),
+	)
+})
+
+var _ = Describe("VPC", func() {
+	DescribeTable("select subnets",
+		func(e selectSubnetsCase) {
+			ids, err := SelectNodeGroupSubnets(e.nodegroupAZs, e.nodegroupSubnets, e.subnets)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(ids).To(ConsistOf(e.expectIDs))
+		},
+		Entry("one subnet", selectSubnetsCase{
+			nodegroupSubnets: []string{"a"},
+			subnets: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+				"a": {
+					ID: "a",
+					AZ: "us-east-1a",
+				},
+			}),
+			expectIDs: []string{"a"},
+		}),
+		Entry("one AZ", selectSubnetsCase{
+			nodegroupAZs: []string{"us-east-1a"},
+			subnets: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+				"a": {
+					ID: "a",
+					AZ: "us-east-1a",
+				},
+				"b": {
+					ID: "b",
+					AZ: "us-east-1a",
+				},
+			}),
+			expectIDs: []string{"a", "b"},
 		}),
 	)
 })
