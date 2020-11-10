@@ -99,9 +99,9 @@ func DoUpgradeCluster(cmd *cmdutils.Cmd) error {
 
 	if manager.IsClusterStack(stacks) {
 		return upgradeEKSCTLCluster(versionUpdateRequired, cmd.Plan, cfg, currentVersion, ctl, stackManager)
-	} else {
-		return upgradeNonEKSCTLCluster(versionUpdateRequired, cmd.Plan, cfg, currentVersion, ctl)
 	}
+
+	return upgradeNonEKSCTLCluster(versionUpdateRequired, cmd.Plan, cfg, currentVersion, ctl)
 }
 
 func upgradeEKSCTLCluster(versionUpdateRequired, dryRun bool, cfg *api.ClusterConfig, currentVersion string, ctl *eks.ClusterProvider, stackManager *manager.StackCollection) error {
