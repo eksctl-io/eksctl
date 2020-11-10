@@ -1173,6 +1173,16 @@ func (in *Operator) DeepCopyInto(out *Operator) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.AdditionalFluxArgs != nil {
+		in, out := &in.AdditionalFluxArgs, &out.AdditionalFluxArgs
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
+	if in.AdditionalHelmOperatorArgs != nil {
+		in, out := &in.AdditionalHelmOperatorArgs, &out.AdditionalHelmOperatorArgs
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	return
 }
 

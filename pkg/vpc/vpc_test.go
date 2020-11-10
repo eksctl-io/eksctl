@@ -74,6 +74,72 @@ func newFakeClusterWithEndpoints(private, public bool, name string) *eks.Cluster
 }
 
 var _ = Describe("VPC - Set Subnets", func() {
+	Describe("SplitInto16", func() {
+		It("splits the block into 16", func() {
+			expected := []string{
+				"192.168.0.0/20",
+				"192.168.16.0/20",
+				"192.168.32.0/20",
+				"192.168.48.0/20",
+				"192.168.64.0/20",
+				"192.168.80.0/20",
+				"192.168.96.0/20",
+				"192.168.112.0/20",
+				"192.168.128.0/20",
+				"192.168.144.0/20",
+				"192.168.160.0/20",
+				"192.168.176.0/20",
+				"192.168.192.0/20",
+				"192.168.208.0/20",
+				"192.168.224.0/20",
+				"192.168.240.0/20",
+			}
+
+			//192.168.0.0/16
+			input := net.IPNet{
+				IP:   []byte{192, 168, 0, 0},
+				Mask: []byte{255, 255, 0, 0},
+			}
+
+			subnets, err := SplitInto16(&input)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(subnets).To(HaveLen(16))
+			for i, subnet := range subnets {
+				Expect(subnet.String()).To(Equal(expected[i]))
+			}
+
+		})
+	})
+
+	Describe("SplitInto8", func() {
+		It("splits the block into 8", func() {
+			expected := []string{
+				"192.168.0.0/19",
+				"192.168.32.0/19",
+				"192.168.64.0/19",
+				"192.168.96.0/19",
+				"192.168.128.0/19",
+				"192.168.160.0/19",
+				"192.168.192.0/19",
+				"192.168.224.0/19",
+			}
+
+			//192.168.0.0/16
+			input := net.IPNet{
+				IP:   []byte{192, 168, 0, 0},
+				Mask: []byte{255, 255, 0, 0},
+			}
+
+			subnets, err := SplitInto8(&input)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(subnets).To(HaveLen(8))
+			for i, subnet := range subnets {
+				Expect(subnet.String()).To(Equal(expected[i]))
+			}
+
+		})
+	})
+
 	DescribeTable("Set subnets",
 		func(subnetsCase setSubnetsCase) {
 			if err := SetSubnets(subnetsCase.vpc, subnetsCase.availabilityZones); err != nil {
@@ -119,11 +185,15 @@ var _ = Describe("VPC - Set Subnets", func() {
 			},
 			error: fmt.Errorf("Unexpected IP address type: <nil>"),
 		}),
-
+		Entry("VPC with valid number of subnets", setSubnetsCase{
+			vpc:               api.NewClusterVPC(),
+			availabilityZones: []string{"1", "2", "3", "4", "5", "6", "7", "8"},
+			error:             nil,
+		}),
 		Entry("VPC with invalid number of subnets", setSubnetsCase{
 			vpc:               api.NewClusterVPC(),
-			availabilityZones: []string{"1", "2", "3", "4", "5"}, // more AZ than required
-			error:             fmt.Errorf("insufficient number of subnets (have 8, but need 10) for 5 availability zones"),
+			availabilityZones: []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"}, // more AZ than required
+			error:             fmt.Errorf("cannot create more than 16 subnets, 18 requested"),
 		}),
 		Entry("VPC with multiple AZs", setSubnetsCase{
 			vpc:               api.NewClusterVPC(),

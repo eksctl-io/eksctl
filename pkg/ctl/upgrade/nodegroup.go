@@ -13,6 +13,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
+const upgradeNodegroupTimeout = 35 * time.Minute
+
 func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
@@ -37,8 +39,8 @@ func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 		cmd.Wait = true
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "nodegroup upgrade to complete")
 
-		// during testing, a nodegroup update took 20-25 minutes
-		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, 35*time.Minute)
+		// found with experimentation
+		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, upgradeNodegroupTimeout)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
