@@ -56,25 +56,52 @@ func (v *vpcControllerTask) Do(errCh chan error) error {
 	return nil
 }
 
-type neuronDevicePluginTask struct {
+type devicePluginTask struct {
 	info            string
 	clusterProvider *ClusterProvider
 	spec            *api.ClusterConfig
+	mkPlugin        addons.MkDevicePlugin
 }
 
-func (n *neuronDevicePluginTask) Describe() string { return n.info }
+func (n *devicePluginTask) Describe() string { return n.info }
 
-func (n *neuronDevicePluginTask) Do(errCh chan error) error {
+func (n *devicePluginTask) Do(errCh chan error) error {
 	defer close(errCh)
 	rawClient, err := n.clusterProvider.NewRawClient(n.spec)
 	if err != nil {
 		return err
 	}
-	neuronDevicePlugin := addons.NewNeuronDevicePlugin(rawClient, n.clusterProvider.Provider.Region(), false)
+	neuronDevicePlugin := n.mkPlugin(rawClient, n.clusterProvider.Provider.Region(), false)
 	if err := neuronDevicePlugin.Deploy(); err != nil {
 		return errors.Wrap(err, "error installing Neuron device plugin")
 	}
 	return nil
+}
+
+func newNvidiaDevicePluginTask(
+	clusterProvider *ClusterProvider,
+	spec *api.ClusterConfig,
+) manager.Task {
+	t := devicePluginTask{
+		info:            "install Nvidia device plugin",
+		clusterProvider: clusterProvider,
+		spec:            spec,
+		mkPlugin:        addons.NewNvidiaDevicePlugin,
+	}
+	return &t
+}
+
+func newNeuronDevicePluginTask(
+	clusterProvider *ClusterProvider,
+	spec *api.ClusterConfig,
+) manager.Task {
+	t := devicePluginTask{
+		info:            "install Neuron device plugin",
+		clusterProvider: clusterProvider,
+		spec:            spec,
+		mkPlugin:        addons.NewNeuronDevicePlugin,
+	}
+	return &t
 }
 
 // UpdateAddonsTask makes sure the default addons are up to date. This is used when creating a cluster with ARM nodes,
@@ -212,22 +239,24 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 }
 
 // ClusterTasksForNodeGroups returns all tasks dependent on node groups
-func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, installNeuronDevicePluginParam bool) *manager.TaskTree {
+func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, installNeuronDevicePluginParam, installNvidiaDevicePluginParam bool) *manager.TaskTree {
 	tasks := &manager.TaskTree{
 		Parallel:  false,
-		IsSubTask: true,
+		IsSubTask: false,
 	}
-	var reallyInstallNeuronDevicePlugin bool
+	var haveNeuronInstanceType bool
 	for _, ng := range cfg.NodeGroups {
-		reallyInstallNeuronDevicePlugin = reallyInstallNeuronDevicePlugin || api.HasInstanceType(ng, utils.IsInferentiaInstanceType)
+		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceType(ng, utils.IsInferentiaInstanceType)
 	}
-	reallyInstallNeuronDevicePlugin = reallyInstallNeuronDevicePlugin && installNeuronDevicePluginParam
-	if reallyInstallNeuronDevicePlugin {
-		tasks.Append(&neuronDevicePluginTask{
-			info:            "install Neuron device plugin",
-			spec:            cfg,
-			clusterProvider: c,
-		})
+	var haveNvidiaInstanceType bool
+	for _, ng := range cfg.NodeGroups {
+		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceType(ng, utils.IsGPUInstanceType)
+	}
+	if haveNeuronInstanceType && installNeuronDevicePluginParam {
+		tasks.Append(newNeuronDevicePluginTask(c, cfg))
+	}
+	if haveNvidiaInstanceType && installNvidiaDevicePluginParam {
+		tasks.Append(newNvidiaDevicePluginTask(c, cfg))
 	}
 	return tasks
 }
