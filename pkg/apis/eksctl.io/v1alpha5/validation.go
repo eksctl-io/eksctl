@@ -240,6 +240,12 @@ func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
 		}
 	}
 
+	if IsEnabled(ng.EFAEnabled) {
+		if len(ng.AvailabilityZones) > 1 || len(ng.Subnets) > 1 {
+			return fmt.Errorf("%s.efaEnabled nodegroups must have only one subnet or one availability zone", path)
+		}
+	}
+
 	return nil
 }
 
