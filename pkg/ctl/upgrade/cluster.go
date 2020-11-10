@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -88,15 +90,22 @@ func DoUpgradeCluster(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	if err := ctl.LoadClusterVPC(cfg); err != nil {
-		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
+	stackManager := ctl.NewStackManager(cfg)
+
+	stacks, err := stackManager.DescribeStacks()
+	if err != nil {
+		return err
+	}
+
+	if manager.IsClusterStack(stacks) {
+		if err := ctl.LoadClusterVPC(cfg); err != nil {
+			return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
+		}
 	}
 
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
-
-	stackManager := ctl.NewStackManager(cfg)
 
 	if versionUpdateRequired {
 		msgNodeGroupsAndAddons := "you will need to follow the upgrade procedure for all of nodegroups and add-ons"
@@ -110,25 +119,27 @@ func DoUpgradeCluster(cmd *cmdutils.Cmd) error {
 		}
 	}
 
-	if err := ctl.RefreshClusterStatus(cfg); err != nil {
-		return err
-	}
+	if manager.IsClusterStack(stacks) {
+		if err := ctl.RefreshClusterStatus(cfg); err != nil {
+			return err
+		}
 
-	supportsManagedNodes, err := ctl.SupportsManagedNodes(cfg)
-	if err != nil {
-		return err
-	}
+		supportsManagedNodes, err := ctl.SupportsManagedNodes(cfg)
+		if err != nil {
+			return err
+		}
 
-	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(cmd.Plan, supportsManagedNodes)
-	if err != nil {
-		return err
-	}
+		stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(cmd.Plan, supportsManagedNodes)
+		if err != nil {
+			return err
+		}
 
-	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, stackManager); err != nil {
-		logger.Critical("failed checking nodegroups", err.Error())
-	}
+		if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, stackManager); err != nil {
+			logger.Critical("failed checking nodegroups", err.Error())
+		}
 
-	cmdutils.LogPlanModeWarning(cmd.Plan && (stackUpdateRequired || versionUpdateRequired))
+		cmdutils.LogPlanModeWarning(cmd.Plan && (stackUpdateRequired || versionUpdateRequired))
+	}
 
 	return nil
 }

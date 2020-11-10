@@ -346,7 +346,7 @@ func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, e
 			if err != nil {
 				managed = eksctlCreatedUnknown
 				logger.Warning("error fetching stacks for cluster %s: %v", clusterName, err)
-			} else if isClusterStack(stacks) {
+			} else if manager.IsClusterStack(stacks) {
 				managed = eksctlCreatedTrue
 			}
 			allClusters = append(allClusters, &api.ClusterConfig{
@@ -407,17 +407,6 @@ func (c *ClusterProvider) getClustersRequest(chunkSize int64, nextToken string) 
 		return nil, nil, errors.Wrap(err, "listing control planes")
 	}
 	return output.Clusters, output.NextToken, nil
-}
-
-func isClusterStack(stacks []*manager.Stack) bool {
-	for _, stack := range stacks {
-		for _, output := range stack.Outputs {
-			if *output.OutputKey == "ClusterStackName" {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 // WaitForControlPlane waits till the control plane is ready
