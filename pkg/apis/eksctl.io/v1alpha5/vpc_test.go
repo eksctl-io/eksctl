@@ -27,7 +27,7 @@ type subnetCase struct {
 var _ = Describe("VPC Configuration", func() {
 	DescribeTable("Subnet import",
 		func(e subnetCase) {
-			err := doImportSubnet(&e.subnets, e.az, e.subnetID, e.cidr)
+			err := doImportSubnet(e.subnets, e.az, e.subnetID, e.cidr)
 			if e.err {
 				Expect(err).To(HaveOccurred())
 			} else {

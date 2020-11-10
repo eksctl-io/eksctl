@@ -200,16 +200,19 @@ func (c *ClusterConfig) PublicSubnetIDs() []string {
 // ImportSubnet loads a given subnet into cluster config
 func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID, cidr string) error {
 	if c.VPC.Subnets == nil {
-		c.VPC.Subnets = &ClusterSubnets{}
+		c.VPC.Subnets = &ClusterSubnets{
+			Private: NewAZSubnetMapping(),
+			Public:  NewAZSubnetMapping(),
+		}
 	}
 
 	switch topology {
 	case SubnetTopologyPrivate:
-		if err := doImportSubnet(&c.VPC.Subnets.Private, az, subnetID, cidr); err != nil {
+		if err := doImportSubnet(c.VPC.Subnets.Private, az, subnetID, cidr); err != nil {
 			return errors.Wrapf(err, "couldn't import subnet %s", subnetID)
 		}
 	case SubnetTopologyPublic:
-		if err := doImportSubnet(&c.VPC.Subnets.Public, az, subnetID, cidr); err != nil {
+		if err := doImportSubnet(c.VPC.Subnets.Public, az, subnetID, cidr); err != nil {
 			return errors.Wrapf(err, "couldn't import subnet %s", subnetID)
 		}
 	default:
@@ -220,20 +223,16 @@ func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID, cidr
 
 // Note that the user must use EITHER AZs as keys OR names as keys and specify
 // the AZ and (the ID or the CIDR)
-func doImportSubnet(subnets *AZSubnetMapping, az, subnetID, cidr string) error {
+func doImportSubnet(subnets AZSubnetMapping, az, subnetID, cidr string) error {
 	subnetCIDR, _ := ipnet.ParseCIDR(cidr)
 
-	if subnets == nil {
-		s := NewAZSubnetMapping()
-		subnets = &s
-	}
-	if network, ok := (*subnets)[az]; !ok {
+	if network, ok := subnets[az]; !ok {
 		newS := AZSubnetSpec{ID: subnetID, AZ: az, CIDR: subnetCIDR}
 		// Used if we find an exact ID match
 		var idKey string
 		// Used if we match to AZ/CIDR
 		var guessKey string
-		for k, s := range *subnets {
+		for k, s := range subnets {
 			if s.ID == "" {
 				if s.AZ != az || (s.CIDR.String() != "" && s.CIDR.String() != subnetCIDR.String()) {
 					continue
@@ -253,11 +252,11 @@ func doImportSubnet(subnets *AZSubnetMapping, az, subnetID, cidr string) error {
 			}
 		}
 		if idKey != "" {
-			(*subnets)[idKey] = newS
+			subnets[idKey] = newS
 		} else if guessKey != "" {
-			(*subnets)[guessKey] = newS
+			subnets[guessKey] = newS
 		} else {
-			(*subnets)[az] = newS
+			subnets[az] = newS
 		}
 	} else {
 		if network.ID == "" {
@@ -271,7 +270,7 @@ func doImportSubnet(subnets *AZSubnetMapping, az, subnetID, cidr string) error {
 			return fmt.Errorf("subnet CIDR %q is not the same as %q", network.CIDR.String(), subnetCIDR.String())
 		}
 		network.AZ = az
-		(*subnets)[az] = network
+		subnets[az] = network
 	}
 	return nil
 }
