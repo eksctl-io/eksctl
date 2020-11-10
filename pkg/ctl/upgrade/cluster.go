@@ -67,8 +67,6 @@ func DoUpgradeCluster(cmd *cmdutils.Cmd) error {
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
-	printer := printers.NewJSONPrinter()
-
 	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
@@ -86,6 +84,7 @@ func DoUpgradeCluster(cmd *cmdutils.Cmd) error {
 	if cmd.ClusterConfigFile != "" {
 		logger.Warning("NOTE: cluster VPC (subnets, routing & NAT Gateway) configuration changes are not yet implemented")
 	}
+
 	currentVersion := ctl.ControlPlaneVersion()
 	versionUpdateRequired, err := requiresVersionUpgrade(cfg.Metadata, currentVersion)
 	if err != nil {
@@ -93,30 +92,30 @@ func DoUpgradeCluster(cmd *cmdutils.Cmd) error {
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
-
 	stacks, err := stackManager.DescribeStacks()
 	if err != nil {
 		return err
 	}
 
 	if manager.IsClusterStack(stacks) {
-		return upgradeEKSCTLCluster(printer, versionUpdateRequired, cmd.Plan, cfg, currentVersion, ctl, stackManager)
+		return upgradeEKSCTLCluster(versionUpdateRequired, cmd.Plan, cfg, currentVersion, ctl, stackManager)
 	} else {
-		return upgradeNonEKSCTLCluster(printer, versionUpdateRequired, cmd.Plan, cfg, currentVersion, ctl)
+		return upgradeNonEKSCTLCluster(versionUpdateRequired, cmd.Plan, cfg, currentVersion, ctl)
 	}
 }
 
-func upgradeEKSCTLCluster(printer printers.OutputPrinter, versionUpdateRequired, plan bool, cfg *api.ClusterConfig, currentVersion string, ctl *eks.ClusterProvider, stackManager *manager.StackCollection) error {
+func upgradeEKSCTLCluster(versionUpdateRequired, dryRun bool, cfg *api.ClusterConfig, currentVersion string, ctl *eks.ClusterProvider, stackManager *manager.StackCollection) error {
 	if err := ctl.LoadClusterVPC(cfg); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
 	}
 
+	printer := printers.NewJSONPrinter()
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
 
 	if versionUpdateRequired {
-		if err := updateVersion(plan, cfg, currentVersion, ctl); err != nil {
+		if err := updateVersion(dryRun, cfg, currentVersion, ctl); err != nil {
 			return err
 		}
 	}
@@ -130,7 +129,7 @@ func upgradeEKSCTLCluster(printer printers.OutputPrinter, versionUpdateRequired,
 		return err
 	}
 
-	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(plan, supportsManagedNodes)
+	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(dryRun, supportsManagedNodes)
 	if err != nil {
 		return err
 	}
@@ -139,27 +138,28 @@ func upgradeEKSCTLCluster(printer printers.OutputPrinter, versionUpdateRequired,
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
-	cmdutils.LogPlanModeWarning(plan && (stackUpdateRequired || versionUpdateRequired))
+	cmdutils.LogPlanModeWarning(dryRun && (stackUpdateRequired || versionUpdateRequired))
 	return nil
 }
 
-func upgradeNonEKSCTLCluster(printer printers.OutputPrinter, versionUpdateRequired, plan bool, cfg *api.ClusterConfig, currentVersion string, ctl *eks.ClusterProvider) error {
+func upgradeNonEKSCTLCluster(versionUpdateRequired, dryRun bool, cfg *api.ClusterConfig, currentVersion string, ctl *eks.ClusterProvider) error {
+	printer := printers.NewJSONPrinter()
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
 
 	if versionUpdateRequired {
-		if err := updateVersion(plan, cfg, currentVersion, ctl); err != nil {
+		if err := updateVersion(dryRun, cfg, currentVersion, ctl); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func updateVersion(plan bool, cfg *api.ClusterConfig, currentVersion string, ctl *eks.ClusterProvider) error {
+func updateVersion(dryRun bool, cfg *api.ClusterConfig, currentVersion string, ctl *eks.ClusterProvider) error {
 	msgNodeGroupsAndAddons := "you will need to follow the upgrade procedure for all of nodegroups and add-ons"
-	cmdutils.LogIntendedAction(plan, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, currentVersion, cfg.Metadata.Version)
-	if !plan {
+	cmdutils.LogIntendedAction(dryRun, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, currentVersion, cfg.Metadata.Version)
+	if !dryRun {
 		if err := ctl.UpdateClusterVersionBlocking(cfg); err != nil {
 			return err
 		}
