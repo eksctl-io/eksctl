@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/eks"
+
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
 	"github.com/kris-nova/logger"
@@ -98,9 +100,15 @@ func DoUpgradeCluster(cmd *cmdutils.Cmd) error {
 	}
 
 	if manager.IsClusterStack(stacks) {
-		if err := ctl.LoadClusterVPC(cfg); err != nil {
-			return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
-		}
+		return upgradeEKSCTLCluster(printer, versionUpdateRequired, cmd.Plan, cfg, currentVersion, ctl, stackManager)
+	} else {
+		return upgradeNonEKSCTLCluster(printer, versionUpdateRequired, cmd.Plan, cfg, currentVersion, ctl)
+	}
+}
+
+func upgradeEKSCTLCluster(printer printers.OutputPrinter, versionUpdateRequired, plan bool, cfg *api.ClusterConfig, currentVersion string, ctl *eks.ClusterProvider, stackManager *manager.StackCollection) error {
+	if err := ctl.LoadClusterVPC(cfg); err != nil {
+		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
 	}
 
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
@@ -108,39 +116,56 @@ func DoUpgradeCluster(cmd *cmdutils.Cmd) error {
 	}
 
 	if versionUpdateRequired {
-		msgNodeGroupsAndAddons := "you will need to follow the upgrade procedure for all of nodegroups and add-ons"
-		cmdutils.LogIntendedAction(cmd.Plan, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, currentVersion, cfg.Metadata.Version)
-		if !cmd.Plan {
-			if err := ctl.UpdateClusterVersionBlocking(cfg); err != nil {
-				return err
-			}
-			logger.Success("cluster %q control plane has been upgraded to version %q", cfg.Metadata.Name, cfg.Metadata.Version)
-			logger.Info(msgNodeGroupsAndAddons)
+		if err := updateVersion(plan, cfg, currentVersion, ctl); err != nil {
+			return err
 		}
 	}
 
-	if manager.IsClusterStack(stacks) {
-		if err := ctl.RefreshClusterStatus(cfg); err != nil {
-			return err
-		}
-
-		supportsManagedNodes, err := ctl.SupportsManagedNodes(cfg)
-		if err != nil {
-			return err
-		}
-
-		stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(cmd.Plan, supportsManagedNodes)
-		if err != nil {
-			return err
-		}
-
-		if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, stackManager); err != nil {
-			logger.Critical("failed checking nodegroups", err.Error())
-		}
-
-		cmdutils.LogPlanModeWarning(cmd.Plan && (stackUpdateRequired || versionUpdateRequired))
+	if err := ctl.RefreshClusterStatus(cfg); err != nil {
+		return err
 	}
 
+	supportsManagedNodes, err := ctl.SupportsManagedNodes(cfg)
+	if err != nil {
+		return err
+	}
+
+	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(plan, supportsManagedNodes)
+	if err != nil {
+		return err
+	}
+
+	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, stackManager); err != nil {
+		logger.Critical("failed checking nodegroups", err.Error())
+	}
+
+	cmdutils.LogPlanModeWarning(plan && (stackUpdateRequired || versionUpdateRequired))
+	return nil
+}
+
+func upgradeNonEKSCTLCluster(printer printers.OutputPrinter, versionUpdateRequired, plan bool, cfg *api.ClusterConfig, currentVersion string, ctl *eks.ClusterProvider) error {
+	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
+		return err
+	}
+
+	if versionUpdateRequired {
+		if err := updateVersion(plan, cfg, currentVersion, ctl); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func updateVersion(plan bool, cfg *api.ClusterConfig, currentVersion string, ctl *eks.ClusterProvider) error {
+	msgNodeGroupsAndAddons := "you will need to follow the upgrade procedure for all of nodegroups and add-ons"
+	cmdutils.LogIntendedAction(plan, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, currentVersion, cfg.Metadata.Version)
+	if !plan {
+		if err := ctl.UpdateClusterVersionBlocking(cfg); err != nil {
+			return err
+		}
+		logger.Success("cluster %q control plane has been upgraded to version %q", cfg.Metadata.Name, cfg.Metadata.Version)
+		logger.Info(msgNodeGroupsAndAddons)
+	}
 	return nil
 }
 
