@@ -110,6 +110,36 @@ var _ = Describe("VPC - Set Subnets", func() {
 
 		})
 	})
+
+	Describe("SplitInto8", func() {
+		It("splits the block into 8", func() {
+			expected := []string{
+				"192.168.0.0/19",
+				"192.168.32.0/19",
+				"192.168.64.0/19",
+				"192.168.96.0/19",
+				"192.168.128.0/19",
+				"192.168.160.0/19",
+				"192.168.192.0/19",
+				"192.168.224.0/19",
+			}
+
+			//192.168.0.0/16
+			input := net.IPNet{
+				IP:   []byte{192, 168, 0, 0},
+				Mask: []byte{255, 255, 0, 0},
+			}
+
+			subnets, err := SplitInto8(&input)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(subnets).To(HaveLen(8))
+			for i, subnet := range subnets {
+				Expect(subnet.String()).To(Equal(expected[i]))
+			}
+
+		})
+	})
+
 	DescribeTable("Set subnets",
 		func(subnetsCase setSubnetsCase) {
 			if err := SetSubnets(subnetsCase.vpc, subnetsCase.availabilityZones); err != nil {
