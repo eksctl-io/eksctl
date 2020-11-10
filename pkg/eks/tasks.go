@@ -81,13 +81,14 @@ func (v *VPCControllerTask) Do(errCh chan error) error {
 }
 
 type devicePluginTask struct {
-	info            string
+	kind            string
 	clusterProvider *ClusterProvider
 	spec            *api.ClusterConfig
 	mkPlugin        addons.MkDevicePlugin
+	logMessage      string
 }
 
-func (n *devicePluginTask) Describe() string { return n.info }
+func (n *devicePluginTask) Describe() string { return fmt.Sprintf("install %s device plugin", n.kind) }
 
 func (n *devicePluginTask) Do(errCh chan error) error {
 	defer close(errCh)
@@ -99,6 +100,7 @@ func (n *devicePluginTask) Do(errCh chan error) error {
 	if err := devicePlugin.Deploy(); err != nil {
 		return errors.Wrap(err, "error installing device plugin")
 	}
+	logger.Info(n.logMessage)
 	return nil
 }
 
@@ -107,10 +109,13 @@ func newNvidiaDevicePluginTask(
 	spec *api.ClusterConfig,
 ) tasks.Task {
 	t := devicePluginTask{
-		info:            "install Nvidia device plugin",
+		kind:            "Nvidia",
 		clusterProvider: clusterProvider,
 		spec:            spec,
 		mkPlugin:        addons.NewNvidiaDevicePlugin,
+		logMessage: `as you are using the EKS-Optimized Accelerated AMI with a GPU-enabled instance type, the Nvidia Kubernetes device plugin was automatically installed.
+	to skip installing it, use --install-nvidia-plugin=false.
+`,
 	}
 	return &t
 }
@@ -120,10 +125,13 @@ func newNeuronDevicePluginTask(
 	spec *api.ClusterConfig,
 ) tasks.Task {
 	t := devicePluginTask{
-		info:            "install Neuron device plugin",
+		kind:            "Neuron",
 		clusterProvider: clusterProvider,
 		spec:            spec,
 		mkPlugin:        addons.NewNeuronDevicePlugin,
+		logMessage: `as you are using the EKS-Optimized Accelerated AMI with an inf1 instance type, the AWS Neuron Kubernetes device plugin was automatically installed.
+	to skip installing it, use --install-neuron-plugin=false.
+`,
 	}
 	return &t
 }
@@ -133,10 +141,11 @@ func newEFADevicePluginTask(
 	spec *api.ClusterConfig,
 ) tasks.Task {
 	t := devicePluginTask{
-		info:            "install EFA device plugin",
+		kind:            "EFA",
 		clusterProvider: clusterProvider,
 		spec:            spec,
 		mkPlugin:        addons.NewEFADevicePlugin,
+		logMessage:      "as you have enabled EFA, the EFA device plugin was automatically installed.",
 	}
 	return &t
 }
@@ -273,11 +282,21 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceTypeManaged(ng, needsNvidiaButNotNeuron)
 		efaEnabled = efaEnabled || api.IsEnabled(ng.EFAEnabled)
 	}
-	if haveNeuronInstanceType && installNeuronDevicePluginParam {
-		tasks.Append(newNeuronDevicePluginTask(c, cfg))
+	if haveNeuronInstanceType {
+		if installNeuronDevicePluginParam {
+			tasks.Append(newNeuronDevicePluginTask(c, cfg))
+		} else {
+			logger.Info("as you are using the EKS-Optimized Accelerated AMI with an inf1 instance type, you will need to install the AWS Neuron Kubernetes device plugin.")
+			logger.Info("\t see the following page for instructions: https://github.com/aws/aws-neuron-sdk/blob/master/docs/neuron-container-tools/tutorial-k8s.md")
+		}
 	}
-	if haveNvidiaInstanceType && installNvidiaDevicePluginParam {
-		tasks.Append(newNvidiaDevicePluginTask(c, cfg))
+	if haveNvidiaInstanceType {
+		if installNvidiaDevicePluginParam {
+			tasks.Append(newNvidiaDevicePluginTask(c, cfg))
+		} else {
+			logger.Info("as you are using a GPU optimized instance type you will need to install NVIDIA Kubernetes device plugin.")
+			logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
+		}
 	}
 
 	var ngs []*api.NodeGroupBase
