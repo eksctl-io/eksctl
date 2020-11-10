@@ -58,7 +58,7 @@ func SetSubnets(vpc *api.ClusterVPC, availabilityZones []string) error {
 		}
 		logger.Debug("VPC CIDR (%s) was divided into 16 subnets %v", vpc.CIDR.String(), zoneCIDRs)
 	default:
-		return fmt.Errorf("insufficient number of subnets (have %d, but need %d) for %d availability zones", len(zoneCIDRs), 2*zonesTotal, zonesTotal)
+		return fmt.Errorf("cannot create more than 16 subnets, %d requested", subnetsTotal)
 	}
 
 	for i, zone := range availabilityZones {

@@ -155,11 +155,15 @@ var _ = Describe("VPC - Set Subnets", func() {
 			},
 			error: fmt.Errorf("Unexpected IP address type: <nil>"),
 		}),
-
+		Entry("VPC with valid number of subnets", setSubnetsCase{
+			vpc:               api.NewClusterVPC(),
+			availabilityZones: []string{"1", "2", "3", "4", "5", "6", "7", "8"},
+			error:             nil,
+		}),
 		Entry("VPC with invalid number of subnets", setSubnetsCase{
 			vpc:               api.NewClusterVPC(),
-			availabilityZones: []string{"1", "2", "3", "4", "5"}, // more AZ than required
-			error:             fmt.Errorf("insufficient number of subnets (have 8, but need 10) for 5 availability zones"),
+			availabilityZones: []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"}, // more AZ than required
+			error:             fmt.Errorf("cannot create more than 16 subnets, 18 requested"),
 		}),
 		Entry("VPC with multiple AZs", setSubnetsCase{
 			vpc:               api.NewClusterVPC(),
