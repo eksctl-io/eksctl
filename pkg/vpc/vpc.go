@@ -3,6 +3,7 @@ package vpc
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
 	"net"
 	"strings"
 
@@ -27,8 +28,8 @@ func SetSubnets(vpc *api.ClusterVPC, availabilityZones []string) error {
 	var err error
 
 	vpc.Subnets = &api.ClusterSubnets{
-		Private: map[string]api.Network{},
-		Public:  map[string]api.Network{},
+		Private: api.NewAZSubnetMapping(),
+		Public:  api.NewAZSubnetMapping(),
 	}
 	if vpc.CIDR == nil {
 		cidr := api.DefaultCIDR()
@@ -62,12 +63,12 @@ func SetSubnets(vpc *api.ClusterVPC, availabilityZones []string) error {
 	for i, zone := range availabilityZones {
 		public := zoneCIDRs[i]
 		private := zoneCIDRs[i+zonesTotal]
-		vpc.Subnets.Private[zone] = api.Network{
+		vpc.Subnets.Private.SetAZ(zone, api.Network{
 			CIDR: &ipnet.IPNet{IPNet: *private},
-		}
-		vpc.Subnets.Public[zone] = api.Network{
+		})
+		vpc.Subnets.Public.SetAZ(zone, api.Network{
 			CIDR: &ipnet.IPNet{IPNet: *public},
-		}
+		})
 		logger.Info("subnets for %s - public:%s private:%s", zone, public.String(), private.String())
 	}
 
@@ -290,10 +291,10 @@ func ImportSubnetsFromList(provider api.ClusterProvider, spec *api.ClusterConfig
 func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.ClusterProvider) error {
 	subnetsToValidate := sets.NewString()
 
-	selectSubnets := func(azs []string) error {
-		if len(azs) > 0 {
+	selectSubnets := func(ng *api.NodeGroupBase) error {
+		if len(ng.AvailabilityZones) > 0 || len(ng.Subnets) > 0 {
 			// Check only the public subnets that this ng has
-			subnetIDs, err := SelectPublicNodeGroupSubnets(azs, spec)
+			subnetIDs, err := SelectNodeGroupSubnets(ng.AvailabilityZones, ng.Subnets, spec.VPC.Subnets.Public)
 			if err != nil {
 				return err
 			}
@@ -311,7 +312,7 @@ func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.Cl
 		if ng.PrivateNetworking {
 			continue
 		}
-		err := selectSubnets(ng.AvailabilityZones)
+		err := selectSubnets(ng.NodeGroupBase)
 		if err != nil {
 			return err
 		}
@@ -321,7 +322,7 @@ func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.Cl
 		if ng.PrivateNetworking {
 			continue
 		}
-		err := selectSubnets(ng.AvailabilityZones)
+		err := selectSubnets(ng.NodeGroupBase)
 		if err != nil {
 			return err
 		}
@@ -428,16 +429,16 @@ func cleanupSubnets(spec *api.ClusterConfig) {
 		availabilityZones[az] = struct{}{}
 	}
 
-	cleanup := func(subnets map[string]api.Network) {
-		for az := range subnets {
-			if _, ok := availabilityZones[az]; !ok {
-				delete(subnets, az)
+	cleanup := func(subnets *api.AZSubnetMapping) {
+		for name, subnet := range *subnets {
+			if _, ok := availabilityZones[subnet.AZ]; !ok {
+				delete(*subnets, name)
 			}
 		}
 	}
 
-	cleanup(spec.VPC.Subnets.Private)
-	cleanup(spec.VPC.Subnets.Public)
+	cleanup(&spec.VPC.Subnets.Private)
+	cleanup(&spec.VPC.Subnets.Public)
 }
 
 func validatePublicSubnet(subnets []*ec2.Subnet) error {
@@ -455,26 +456,38 @@ func validatePublicSubnet(subnets []*ec2.Subnet) error {
 	return nil
 }
 
-func SelectPublicNodeGroupSubnets(nodegroupAZs []string, clusterSpec *api.ClusterConfig) ([]string, error) {
+func SelectNodeGroupSubnets(nodegroupAZs, nodegroupSubnets []string, subnets api.AZSubnetMapping) ([]string, error) {
+	// We have validated that either azs are provided or subnets are provided
 	numNodeGroupsAZs := len(nodegroupAZs)
-	if numNodeGroupsAZs == 0 {
+	numNodeGroupsSubnets := len(nodegroupSubnets)
+	if numNodeGroupsAZs == 0 && numNodeGroupsSubnets == 0 {
 		return nil, nil
 	}
 
-	subnets := clusterSpec.VPC.Subnets.Public
 	makeErrorDesc := func() string {
-		return fmt.Sprintf("(subnets=%#v AZs=%#v)", subnets, nodegroupAZs)
+		return fmt.Sprintf("(allSubnets=%#v AZs=%#v subnets=%#v)", subnets, nodegroupAZs, nodegroupSubnets)
 	}
-	if len(subnets) < numNodeGroupsAZs {
-		return nil, fmt.Errorf("VPC doesn't have enough subnets for nodegroup AZs %s", makeErrorDesc())
+	if len(subnets) < numNodeGroupsAZs || len(subnets) < numNodeGroupsSubnets {
+		return nil, fmt.Errorf("VPC doesn't have enough subnets for nodegroup AZs or subnets %s", makeErrorDesc())
 	}
-	subnetIDs := make([]string, numNodeGroupsAZs)
+	subnetIDs := make([]string, int(math.Max(float64(numNodeGroupsAZs), float64(numNodeGroupsSubnets))))
 	for i, az := range nodegroupAZs {
-		subnet, ok := subnets[az]
-		if !ok {
+		var subnetID string
+		for _, s := range subnets {
+			if s.AZ == az {
+				subnetID = s.ID
+			}
+		}
+		if subnetID == "" {
 			return nil, fmt.Errorf("VPC doesn't have subnets in %s %s", az, makeErrorDesc())
 		}
-
+		subnetIDs[i] = subnetID
+	}
+	for i, subnetName := range nodegroupSubnets {
+		subnet, ok := subnets[subnetName]
+		if !ok {
+			return nil, fmt.Errorf("VPC doesn't have subnet with name %s %s", subnetName, makeErrorDesc())
+		}
 		subnetIDs[i] = subnet.ID
 	}
 	return subnetIDs, nil

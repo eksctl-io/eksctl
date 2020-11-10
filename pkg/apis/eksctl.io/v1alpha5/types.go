@@ -1074,6 +1074,9 @@ type NodeGroupBase struct {
 	// AZs](/usage/autoscaling/#zone-aware-auto-scaling)
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
+	// Limit nodes to specific subnets
+	// +optional
+	Subnets []string `json:"subnets,omitempty"`
 
 	// +optional
 	InstancePrefix string `json:"instancePrefix,omitempty"`

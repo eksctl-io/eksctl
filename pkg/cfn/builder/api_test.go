@@ -255,7 +255,7 @@ func testVPC() *api.ClusterVPC {
 		SharedNodeSecurityGroup: "sg-shared",
 		AutoAllocateIPv6:        api.Disabled(),
 		Subnets: &api.ClusterSubnets{
-			Public: map[string]api.Network{
+			Public: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 				"us-west-2b": {
 					ID: "subnet-0f98135715dfcf55f",
 					CIDR: &ipnet.IPNet{
@@ -283,8 +283,8 @@ func testVPC() *api.ClusterVPC {
 						},
 					},
 				},
-			},
-			Private: map[string]api.Network{
+			}),
+			Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 				"us-west-2b": {
 					ID: "subnet-0f98135715dfcf55a",
 					CIDR: &ipnet.IPNet{
@@ -312,7 +312,7 @@ func testVPC() *api.ClusterVPC {
 						},
 					},
 				},
-			},
+			}),
 		},
 		ClusterEndpoints: &api.ClusterEndpoints{},
 	}
@@ -429,7 +429,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		}, nil)
 
 		for t := range subnetLists {
-			fn := func(list string, subnetsByAz map[string]api.Network) {
+			fn := func(list string, subnetsByAz map[string]api.AZSubnetSpec) {
 				subnets := strings.Split(list, ",")
 
 				output := &ec2.DescribeSubnetsOutput{
@@ -1833,7 +1833,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			},
 			SecurityGroup: "sg-0b44c48bcba5b7362",
 			Subnets: &api.ClusterSubnets{
-				Public: map[string]api.Network{
+				Public: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 					"us-west-2b": {
 						ID: "subnet-0f98135715dfcf55f",
 					},
@@ -1843,8 +1843,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 					"us-west-2c": {
 						ID: "subnet-0e2e63ff1712bf6ef",
 					},
-				},
-				Private: map[string]api.Network{
+				}),
+				Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 					"us-west-2b": {
 						ID: "subnet-0f98135715dfcf55a",
 					},
@@ -1854,7 +1854,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 					"us-west-2c": {
 						ID: "subnet-0e2e63ff1712bf6ea",
 					},
-				},
+				}),
 			},
 		}
 

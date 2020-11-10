@@ -145,7 +145,7 @@ func (v *VPCResourceSet) AddResources() (*VPCResource, error) {
 	return v.vpcResource, nil
 }
 
-func (v *VPCResourceSet) addSubnets(refRT *gfnt.Value, topology api.SubnetTopology, subnets map[string]api.Network) []subnetResource {
+func (v *VPCResourceSet) addSubnets(refRT *gfnt.Value, topology api.SubnetTopology, subnets map[string]api.AZSubnetSpec) []subnetResource {
 	var subnetIndexForIPv6 int
 	if api.IsEnabled(v.clusterConfig.VPC.AutoAllocateIPv6) {
 		// this is same kind of indexing we have in vpc.SetSubnets
@@ -159,8 +159,9 @@ func (v *VPCResourceSet) addSubnets(refRT *gfnt.Value, topology api.SubnetTopolo
 
 	var subnetResources []subnetResource
 
-	for az, subnet := range subnets {
-		alias := string(topology) + strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
+	for name, subnet := range subnets {
+		az := subnet.AZ
+		nameAlias := strings.ToUpper(strings.Join(strings.Split(name, "-"), ""))
 		subnet := &gfnec2.Subnet{
 			AvailabilityZone: gfnt.NewString(az),
 			CidrBlock:        gfnt.NewString(subnet.CIDR.String()),
@@ -170,7 +171,7 @@ func (v *VPCResourceSet) addSubnets(refRT *gfnt.Value, topology api.SubnetTopolo
 		switch topology {
 		case api.SubnetTopologyPrivate:
 			// Choose the appropriate route table for private subnets
-			refRT = gfnt.MakeRef("PrivateRouteTable" + strings.ToUpper(strings.Join(strings.Split(az, "-"), "")))
+			refRT = gfnt.MakeRef("PrivateRouteTable" + nameAlias)
 			subnet.Tags = []gfncfn.Tag{{
 				Key:   gfnt.NewString("kubernetes.io/role/internal-elb"),
 				Value: gfnt.NewString("1"),
@@ -182,8 +183,9 @@ func (v *VPCResourceSet) addSubnets(refRT *gfnt.Value, topology api.SubnetTopolo
 			}}
 			subnet.MapPublicIpOnLaunch = gfnt.True()
 		}
-		refSubnet := v.newResource("Subnet"+alias, subnet)
-		v.newResource("RouteTableAssociation"+alias, &gfnec2.SubnetRouteTableAssociation{
+		subnetAlias := string(topology) + nameAlias
+		refSubnet := v.newResource("Subnet"+subnetAlias, subnet)
+		v.newResource("RouteTableAssociation"+subnetAlias, &gfnec2.SubnetRouteTableAssociation{
 			SubnetId:     refSubnet,
 			RouteTableId: refRT,
 		})
@@ -200,7 +202,7 @@ func (v *VPCResourceSet) addSubnets(refRT *gfnt.Value, topology api.SubnetTopolo
 			refSubnetSlices := gfnt.MakeFnCIDR(
 				refAutoAllocateCIDRv6, gfnt.NewInteger(8), gfnt.NewInteger(64),
 			)
-			v.newResource(alias+"CIDRv6", &gfnec2.SubnetCidrBlock{
+			v.newResource(subnetAlias+"CIDRv6", &gfnec2.SubnetCidrBlock{
 				SubnetId:      refSubnet,
 				Ipv6CidrBlock: gfnt.MakeFnSelect(gfnt.NewInteger(subnetIndexForIPv6), refSubnetSlices),
 			})
@@ -232,10 +234,11 @@ func (v *VPCResourceSet) addNATGateways() error {
 }
 
 func (v *VPCResourceSet) importResources() error {
-	makeSubnetResources := func(subnets map[string]api.Network, subnetRoutes map[string]string) ([]subnetResource, error) {
+	makeSubnetResources := func(subnets map[string]api.AZSubnetSpec, subnetRoutes map[string]string) ([]subnetResource, error) {
 		subnetResources := make([]subnetResource, len(subnets))
 		i := 0
-		for az, network := range subnets {
+		for _, network := range subnets {
+			az := network.AZ
 			sr := subnetResource{
 				AvailabilityZone: az,
 				Subnet:           gfnt.NewString(network.ID),
@@ -285,7 +288,7 @@ func (v *VPCResourceSet) importResources() error {
 	return nil
 }
 
-func importRouteTables(ec2API ec2iface.EC2API, subnets map[string]api.Network) (map[string]string, error) {
+func importRouteTables(ec2API ec2iface.EC2API, subnets map[string]api.AZSubnetSpec) (map[string]string, error) {
 	var subnetIDs []string
 	for _, subnet := range subnets {
 		subnetIDs = append(subnetIDs, subnet.ID)

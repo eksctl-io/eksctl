@@ -103,15 +103,15 @@ var _ = Describe("VPC Endpoint Builder", func() {
 						ID: "vpc-custom",
 					},
 					Subnets: &api.ClusterSubnets{
-						Private: map[string]api.Network{
+						Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 							"us-west-2a": {
 								ID: "subnet-custom1",
 							},
 							"us-west-2b": {
 								ID: "subnet-custom2",
 							},
-						},
-						Public: map[string]api.Network{},
+						}),
+						Public: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{}),
 					},
 				},
 			},
@@ -126,14 +126,14 @@ var _ = Describe("VPC Endpoint Builder", func() {
 						ID: "vpc-custom",
 					},
 					Subnets: &api.ClusterSubnets{
-						Private: map[string]api.Network{
+						Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 							"us-west-2a": {
 								ID: "subnet-custom1",
 							},
 							"us-west-2b": {
 								ID: "subnet-custom2",
 							},
-						},
+						}),
 					},
 				},
 			},
@@ -155,14 +155,14 @@ var _ = Describe("VPC Endpoint Builder", func() {
 						ID: "vpc-custom",
 					},
 					Subnets: &api.ClusterSubnets{
-						Private: map[string]api.Network{
+						Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 							"us-west-2a": {
 								ID: "subnet-custom1",
 							},
 							"us-west-2b": {
 								ID: "subnet-custom2",
 							},
-						},
+						}),
 					},
 				},
 			},
@@ -184,11 +184,11 @@ var _ = Describe("VPC Endpoint Builder", func() {
 						ID: "vpc-custom",
 					},
 					Subnets: &api.ClusterSubnets{
-						Private: map[string]api.Network{
+						Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 							"us-west-2a": {
 								ID: "subnet-custom1",
 							},
-						},
+						}),
 					},
 				},
 			},

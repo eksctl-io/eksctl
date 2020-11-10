@@ -215,6 +215,10 @@ func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
 		}
 	}
 
+	if len(ng.AvailabilityZones) > 0 && len(ng.Subnets) > 0 {
+		return fmt.Errorf("only one of %[1]s.subnets or %[1]s.availabilityZones should be set", path)
+	}
+
 	if ng.Placement != nil {
 		if ng.Placement.GroupName == "" {
 			return fmt.Errorf("%s.placement.groupName must be set and non-empty", path)
