@@ -238,14 +238,18 @@ func AssignSubnets(spec *api.NodeGroupBase, clusterStackName string, clusterSpec
 	// currently goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
 
-	if numNodeGroupsAZs, numNodeGroupsSubnets := len(spec.AvailabilityZones), len(spec.Subnets); numNodeGroupsAZs > 0 || numNodeGroupsSubnets > 0 {
-		subnets := clusterSpec.VPC.Subnets.Public
+	if numNodeGroupsAZs, numNodeGroupsSubnets := len(spec.AvailabilityZones), len(spec.Subnets); api.IsEnabled(spec.EFAEnabled) || numNodeGroupsAZs > 0 || numNodeGroupsSubnets > 0 {
+		allSubnets := clusterSpec.VPC.Subnets.Public
 		typ := "public"
 		if spec.PrivateNetworking {
-			subnets = clusterSpec.VPC.Subnets.Private
+			allSubnets = clusterSpec.VPC.Subnets.Private
 			typ = "private"
 		}
-		subnetIDs, err := vpc.SelectNodeGroupSubnets(spec.AvailabilityZones, spec.Subnets, subnets)
+		subnetIDs, err := vpc.SelectNodeGroupSubnets(spec.AvailabilityZones, spec.Subnets, allSubnets)
+		if api.IsEnabled(spec.EFAEnabled) && len(subnetIDs) > 1 {
+			subnetIDs = []string{subnetIDs[0]}
+			logger.Info("EFA requires all nodes be in a single subnet, arbitrarily choosing one: %s", subnetIDs)
+		}
 		return gfnt.NewStringSlice(subnetIDs...), errors.Wrapf(err, "couldn't find %s subnets", typ)
 	}
 
