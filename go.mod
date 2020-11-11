@@ -34,8 +34,8 @@ require (
 	github.com/kris-nova/lolgopher v0.0.0-20180921204813-313b3abb0d9b // indirect
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
-	github.com/onsi/ginkgo v1.14.0
-	github.com/onsi/gomega v1.10.1
+	github.com/onsi/ginkgo v1.14.2
+	github.com/onsi/gomega v1.10.3
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/russross/blackfriday/v2 v2.0.1
@@ -48,8 +48,7 @@ require (
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
-	// Fork from errordeveloper/goformation, rebased on awslabs/goformation/v4
-	github.com/weaveworks/goformation/v4 v4.10.2-0.20200921152539-943d7e97b454
+	github.com/weaveworks/goformation/v4 v4.10.2-0.20201110203917-3037d9ed91a7
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
 	golang.org/x/tools v0.0.0-20200502202811-ed308ab3e770
