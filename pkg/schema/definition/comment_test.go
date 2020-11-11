@@ -1,6 +1,8 @@
 package definition
 
 import (
+	"go/ast"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/eksctl/pkg/schema/importer"
@@ -12,7 +14,14 @@ var _ = Describe("HandleComment", func() {
 		comment := `Struct holds some info
 Schema type is ` + "`string`"
 		dummy := func(path string) (importer.PackageInfo, error) {
-			return importer.PackageInfo{}, nil
+			return importer.PackageInfo{
+				Pkg: &ast.Object{
+					Data: &ast.Scope{
+						Objects: map[string]*ast.Object{},
+					},
+					Kind: ast.Typ,
+				},
+			}, nil
 		}
 		dg := Generator{Strict: false, Importer: dummy}
 		commentMeta, err := dg.handleComment("Struct", comment, def)

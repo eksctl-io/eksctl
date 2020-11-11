@@ -3,6 +3,36 @@
   "type": "object",
   "$schema": "http://json-schema-org/draft-07/schema#",
   "definitions": {
+    "AZSubnetMapping": {
+      "additionalProperties": {
+        "$ref": "#/definitions/AZSubnetSpec"
+      },
+      "type": "object",
+      "description": "holds subnet to AZ mappings. If the key is an AZ, that also becomes the name of the subnet otherwise use the key to refer to this subnet.",
+      "x-intellij-html-description": "holds subnet to AZ mappings. If the key is an AZ, that also becomes the name of the subnet otherwise use the key to refer to this subnet.",
+      "default": "{}"
+    },
+    "AZSubnetSpec": {
+      "properties": {
+        "az": {
+          "type": "string",
+          "description": "can be omitted if the key is an AZ",
+          "x-intellij-html-description": "can be omitted if the key is an AZ"
+        },
+        "cidr": {
+          "$ref": "#/definitions/github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "id",
+        "az",
+        "cidr"
+      ],
+      "additionalProperties": false
+    },
     "ClusterCloudWatch": {
       "properties": {
         "clusterLogging": {
@@ -408,18 +438,10 @@
     "ClusterSubnets": {
       "properties": {
         "private": {
-          "additionalProperties": {
-            "$ref": "#/definitions/Network"
-          },
-          "type": "object",
-          "default": "{}"
+          "$ref": "#/definitions/AZSubnetMapping"
         },
         "public": {
-          "additionalProperties": {
-            "$ref": "#/definitions/Network"
-          },
-          "type": "object",
-          "default": "{}"
+          "$ref": "#/definitions/AZSubnetMapping"
         }
       },
       "preferredOrder": [
@@ -783,6 +805,14 @@
           "description": "configures ssh access for this nodegroup",
           "x-intellij-html-description": "configures ssh access for this nodegroup"
         },
+        "subnets": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Limit nodes to specific subnets",
+          "x-intellij-html-description": "Limit nodes to specific subnets"
+        },
         "tags": {
           "additionalProperties": {
             "type": "string"
@@ -826,6 +856,7 @@
         "amiFamily",
         "instanceType",
         "availabilityZones",
+        "subnets",
         "instancePrefix",
         "instanceName",
         "desiredCapacity",
@@ -880,23 +911,6 @@
       "additionalProperties": false,
       "description": "used by the scaling config, see [cloudformation docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html)",
       "x-intellij-html-description": "used by the scaling config, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html\">cloudformation docs</a>"
-    },
-    "Network": {
-      "properties": {
-        "cidr": {
-          "$ref": "#/definitions/github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet"
-        },
-        "id": {
-          "type": "string"
-        }
-      },
-      "preferredOrder": [
-        "id",
-        "cidr"
-      ],
-      "additionalProperties": false,
-      "description": "holds ID and CIDR",
-      "x-intellij-html-description": "holds ID and CIDR"
     },
     "NodeGroup": {
       "required": [
@@ -1058,6 +1072,14 @@
           "description": "configures ssh access for this nodegroup",
           "x-intellij-html-description": "configures ssh access for this nodegroup"
         },
+        "subnets": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Limit nodes to specific subnets",
+          "x-intellij-html-description": "Limit nodes to specific subnets"
+        },
         "tags": {
           "additionalProperties": {
             "type": "string"
@@ -1116,6 +1138,7 @@
         "amiFamily",
         "instanceType",
         "availabilityZones",
+        "subnets",
         "instancePrefix",
         "instanceName",
         "desiredCapacity",
