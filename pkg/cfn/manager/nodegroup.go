@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
@@ -25,17 +26,18 @@ const (
 
 // NodeGroupSummary represents a summary of a nodegroup stack
 type NodeGroupSummary struct {
-	StackName           string
-	Cluster             string
-	Name                string
-	Status              string
-	MaxSize             int
-	MinSize             int
-	DesiredCapacity     int
-	InstanceType        string
-	ImageID             string
-	CreationTime        *time.Time
-	NodeInstanceRoleARN string
+	StackName            string
+	Cluster              string
+	Name                 string
+	Status               string
+	MaxSize              int
+	MinSize              int
+	DesiredCapacity      int
+	InstanceType         string
+	ImageID              string
+	CreationTime         *time.Time
+	NodeInstanceRoleARN  string
+	AutoScalingGroupName string
 }
 
 // NodeGroupStack represents a nodegroup and its type
@@ -251,6 +253,12 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stacks")
 	}
+	res, err := c.DescribeNodeGroupStacksAndResources()
+	if err != nil {
+		return nil, errors.Wrap(err, "getting nodegroup stacks and resources")
+	}
+
+	logger.Debug("nodegroup stack resrouces %v", res)
 
 	var summaries []*NodeGroupSummary
 	for _, s := range stacks {
@@ -262,6 +270,12 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 		summary, err := c.mapStackToNodeGroupSummary(s, ngPaths)
 		if err != nil {
 			return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
+		}
+
+		for _, r := range res[c.GetNodeGroupName(s)].Resources {
+			if aws.StringValue(r.LogicalResourceId) == "NodeGroup" {
+				summary.AutoScalingGroupName = aws.StringValue(r.PhysicalResourceId)
+			}
 		}
 
 		if name == "" {
