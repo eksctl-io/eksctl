@@ -120,7 +120,7 @@ func (c *CollectorSet) Define(template *gfn.Template, name string, value interfa
 			Value: value,
 		}
 		if export {
-			o.Export = gfn.Export{
+			o.Export = &gfn.Export{
 				Name: gfnt.MakeFnSubString(fmt.Sprintf("${%s}::%s", gfnt.StackName, name)),
 			}
 		}
