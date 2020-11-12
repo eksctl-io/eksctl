@@ -335,7 +335,7 @@ func assertValidHelmOperatorDeployment(fileName string) {
 			Expect(deployment.Spec.Template.Spec.Containers).To(HaveLen(1))
 			container := deployment.Spec.Template.Spec.Containers[0]
 			Expect(container.Name).To(Equal("helm-operator"))
-			Expect(container.Image).To(Equal("docker.io/fluxcd/helm-operator:1.0.0"))
+			Expect(container.Image).To(HavePrefix("docker.io/fluxcd/helm-operator"))
 		} else {
 			Fail(fmt.Sprintf("Unsupported Kubernetes object. Got %s object with version %s in: %s", gvk.Kind, gvk.Version, fileName))
 		}
