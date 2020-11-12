@@ -2,6 +2,7 @@ package completion
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 
 	. "github.com/onsi/ginkgo"
@@ -38,10 +39,10 @@ var _ = Describe("completion", func() {
 
 	It("with invalid shell", func() {
 		cmd := newMockCmd("invalid-shell")
-		out, err := cmd.execute()
+		_, err := cmd.execute()
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("unknown command \"invalid-shell\" for \"completion\""))
-		Expect(out).To(ContainSubstring("usage"))
+		Expect(err.Error()).To(ContainSubstring("Error: unknown command \"invalid-shell\" for \"completion\""))
+		Expect(err.Error()).To(ContainSubstring("usage"))
 	})
 
 	It("with no shell", func() {
@@ -73,8 +74,13 @@ type mockVerbCmd struct {
 }
 
 func (c mockVerbCmd) execute() (string, error) {
-	buf := new(bytes.Buffer)
-	c.parentCmd.SetOut(buf)
+	outBuf := new(bytes.Buffer)
+	errBuf := new(bytes.Buffer)
+	c.parentCmd.SetOut(outBuf)
+	c.parentCmd.SetErr(errBuf)
 	err := c.parentCmd.Execute()
-	return buf.String(), err
+	if err != nil {
+		err = errors.New(errBuf.String())
+	}
+	return outBuf.String(), err
 }

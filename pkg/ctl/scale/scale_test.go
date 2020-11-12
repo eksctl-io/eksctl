@@ -2,6 +2,7 @@ package scale
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 
 	. "github.com/onsi/ginkgo"
@@ -22,24 +23,24 @@ var _ = Describe("generate", func() {
 		DescribeTable("invalid flags or arguments",
 			func(c invalidParamsCase) {
 				cmd := newDefaultCmd(c.args...)
-				out, err := cmd.execute()
+				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal(c.error.Error()))
-				Expect(out).To(ContainSubstring(c.output))
+				Expect(err.Error()).To(ContainSubstring(c.error.Error()))
+				Expect(err.Error()).To(ContainSubstring(c.output))
 			},
 			Entry("missing required flag --cluster", invalidParamsCase{
 				args:   []string{"invalid-resource"},
-				error:  fmt.Errorf("unknown command \"invalid-resource\" for \"scale\""),
+				error:  fmt.Errorf("Error: unknown command \"invalid-resource\" for \"scale\""),
 				output: "usage",
 			}),
 			Entry("with invalid-resource and some flag", invalidParamsCase{
 				args:   []string{"invalid-resource", "--invalid-flag", "foo"},
-				error:  fmt.Errorf("unknown command \"invalid-resource\" for \"scale\""),
+				error:  fmt.Errorf("Error: unknown command \"invalid-resource\" for \"scale\""),
 				output: "usage",
 			}),
 			Entry("with invalid-resource and additional argument", invalidParamsCase{
 				args:   []string{"invalid-resource", "foo"},
-				error:  fmt.Errorf("unknown command \"invalid-resource\" for \"scale\""),
+				error:  fmt.Errorf("Error: unknown command \"invalid-resource\" for \"scale\""),
 				output: "usage",
 			}),
 		)
@@ -68,8 +69,13 @@ type mockVerbCmd struct {
 }
 
 func (c mockVerbCmd) execute() (string, error) {
-	buf := new(bytes.Buffer)
-	c.parentCmd.SetOut(buf)
+	outBuf := new(bytes.Buffer)
+	errBuf := new(bytes.Buffer)
+	c.parentCmd.SetOut(outBuf)
+	c.parentCmd.SetErr(errBuf)
 	err := c.parentCmd.Execute()
-	return buf.String(), err
+	if err != nil {
+		err = errors.New(errBuf.String())
+	}
+	return outBuf.String(), err
 }
