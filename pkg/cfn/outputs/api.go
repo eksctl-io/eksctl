@@ -116,10 +116,12 @@ func (c *CollectorSet) MustCollect(stack cfn.Stack) error {
 // and optionally export too
 func (c *CollectorSet) Define(template *gfn.Template, name string, value interface{}, export bool, fn Collector) {
 	if template != nil {
-		o := map[string]interface{}{"Value": value}
+		o := gfn.Output{
+			Value: value,
+		}
 		if export {
-			o["Export"] = map[string]*gfnt.Value{
-				"Name": gfnt.MakeFnSubString(fmt.Sprintf("${%s}::%s", gfnt.StackName, name)),
+			o.Export = &gfn.Export{
+				Name: gfnt.MakeFnSubString(fmt.Sprintf("${%s}::%s", gfnt.StackName, name)),
 			}
 		}
 		template.Outputs[name] = o

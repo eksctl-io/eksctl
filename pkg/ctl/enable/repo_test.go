@@ -80,6 +80,8 @@ var _ = Describe("enable repo", func() {
 				"--with-helm",
 				"--read-only",
 				"--commit-operator-manifests=false",
+				"--additional-flux-args", "--git-poll-interval=30s,--git-timeout=5m",
+				"--additional-helm-operator-args", "--log-format=json,--workers=4",
 			)
 			_, err := cmd.Execute()
 			Expect(err).ToNot(HaveOccurred())
@@ -103,6 +105,8 @@ var _ = Describe("enable repo", func() {
 			Expect(*cfg.Git.Operator.WithHelm).To(BeTrue())
 			Expect(cfg.Git.Operator.ReadOnly).To(BeTrue())
 			Expect(*cfg.Git.Operator.CommitOperatorManifests).To(BeFalse())
+			Expect(cfg.Git.Operator.AdditionalFluxArgs).To(ConsistOf("--git-poll-interval=30s", "--git-timeout=5m"))
+			Expect(cfg.Git.Operator.AdditionalHelmOperatorArgs).To(ConsistOf("--log-format=json", "--workers=4"))
 		})
 
 		It("loads correct defaults", func() {
@@ -130,6 +134,8 @@ var _ = Describe("enable repo", func() {
 			Expect(*cfg.Git.Operator.WithHelm).To(BeTrue())
 			Expect(cfg.Git.Operator.ReadOnly).To(BeFalse())
 			Expect(*cfg.Git.Operator.CommitOperatorManifests).To(BeTrue())
+			Expect(cfg.Git.Operator.AdditionalFluxArgs).To(BeEmpty())
+			Expect(cfg.Git.Operator.AdditionalHelmOperatorArgs).To(BeEmpty())
 		})
 	})
 
@@ -240,6 +246,8 @@ var _ = Describe("enable repo", func() {
 			Expect(*gitCfg.Operator.WithHelm).To(BeTrue())
 			Expect(gitCfg.Operator.ReadOnly).To(BeFalse())
 			Expect(*gitCfg.Operator.CommitOperatorManifests).To(BeTrue())
+			Expect(gitCfg.Operator.AdditionalFluxArgs).To(BeEmpty())
+			Expect(gitCfg.Operator.AdditionalHelmOperatorArgs).To(BeEmpty())
 		})
 
 	})

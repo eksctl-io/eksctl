@@ -32,7 +32,6 @@ type Params struct {
 	PrivateSSHKeyPath       string
 	EksctlCmd               runner.Cmd
 	EksctlCreateCmd         runner.Cmd
-	EksctlUpdateCmd         runner.Cmd
 	EksctlUpgradeCmd        runner.Cmd
 	EksctlGetCmd            runner.Cmd
 	EksctlDeleteCmd         runner.Cmd
@@ -66,12 +65,9 @@ func (p *Params) GenerateCommands() {
 		WithArgs("create").
 		WithTimeout(30 * time.Minute)
 
-	p.EksctlUpdateCmd = p.EksctlCmd.
-		WithArgs("update").
-		WithTimeout(55 * time.Minute)
-
 	p.EksctlUpgradeCmd = p.EksctlCmd.
-		WithArgs("upgrade")
+		WithArgs("upgrade").
+		WithTimeout(50 * time.Minute)
 
 	p.EksctlGetCmd = p.EksctlCmd.
 		WithArgs("get").
