@@ -1212,6 +1212,12 @@ type LaunchTemplate struct {
 type ManagedNodeGroup struct {
 	*NodeGroupBase
 
+	// InstanceTypes specifies a list of instance types
+	InstanceTypes []string `json:"instanceTypes,omitempty"`
+
+	// Spot creates a spot nodegroup
+	Spot bool `json:"spot,omitempty"`
+
 	// LaunchTemplate specifies an existing launch template to use
 	// for the nodegroup
 	LaunchTemplate *LaunchTemplate `json:"launchTemplate,omitempty"`
