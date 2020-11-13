@@ -543,7 +543,7 @@ func NewUtilsPublicAccessCIDRsLoader(cmd *Cmd) ClusterConfigLoader {
 			return errors.New("a comma-separated CIDR list is required")
 		}
 
-		cidrs, err := parseCIDRs(cmd.NameArg)
+		cidrs, err := parseList(cmd.NameArg)
 		if err != nil {
 			return err
 		}
@@ -553,7 +553,7 @@ func NewUtilsPublicAccessCIDRsLoader(cmd *Cmd) ClusterConfigLoader {
 	return l
 }
 
-func parseCIDRs(arg string) ([]string, error) {
+func parseList(arg string) ([]string, error) {
 	reader := strings.NewReader(arg)
 	csvReader := csv.NewReader(reader)
 	return csvReader.Read()
