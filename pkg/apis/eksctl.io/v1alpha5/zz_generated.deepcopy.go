@@ -746,6 +746,11 @@ func (in *ManagedNodeGroup) DeepCopyInto(out *ManagedNodeGroup) {
 		*out = new(NodeGroupBase)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.InstanceTypes != nil {
+		in, out := &in.InstanceTypes, &out.InstanceTypes
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.LaunchTemplate != nil {
 		in, out := &in.LaunchTemplate, &out.LaunchTemplate
 		*out = new(LaunchTemplate)

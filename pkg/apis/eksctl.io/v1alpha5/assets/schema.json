@@ -795,6 +795,14 @@
         "instanceType": {
           "type": "string"
         },
+        "instanceTypes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "specifies a list of instance types",
+          "x-intellij-html-description": "specifies a list of instance types"
+        },
         "labels": {
           "additionalProperties": {
             "type": "string"
@@ -845,6 +853,12 @@
         },
         "securityGroups": {
           "$ref": "#/definitions/NodeGroupSGs"
+        },
+        "spot": {
+          "type": "boolean",
+          "description": "creates a spot nodegroup",
+          "x-intellij-html-description": "creates a spot nodegroup",
+          "default": "false"
         },
         "ssh": {
           "$ref": "#/definitions/NodeGroupSSH",
@@ -929,6 +943,8 @@
         "disableIMDSv1",
         "disablePodIMDS",
         "placement",
+        "instanceTypes",
+        "spot",
         "launchTemplate"
       ],
       "additionalProperties": false,
