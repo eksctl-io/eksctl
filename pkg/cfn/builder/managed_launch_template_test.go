@@ -23,6 +23,7 @@ type mngCase struct {
 	ng                *api.ManagedNodeGroup
 	resourcesFilename string
 	mockFetcherFn     func(*mockprovider.MockProvider)
+	errMsg            string
 }
 
 var _ = Describe("ManagedNodeGroup builder", func() {
@@ -40,6 +41,12 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 		stack := NewManagedNodeGroup(clusterConfig, m.ng, NewLaunchTemplateFetcher(provider.MockEC2()), fmt.Sprintf("eksctl-%s", clusterConfig.Metadata.Name), false)
 		stack.UserDataMimeBoundary = "//"
 		err := stack.AddAllResources()
+		if m.errMsg != "" {
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(m.errMsg))
+			return
+		}
+
 		Expect(err).ToNot(HaveOccurred())
 		bytes, err := stack.RenderJSON()
 		Expect(err).ToNot(HaveOccurred())
@@ -165,6 +172,80 @@ API_SERVER_URL=https://test.com
 				},
 			},
 			resourcesFilename: "placement.json",
+		}),
+
+		Entry("With Spot instances", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: "spot",
+				},
+				Spot:          true,
+				InstanceTypes: []string{"c3.large", "c4.large", "c5.large", "c5d.large", "c5n.large", "c5a.large"},
+			},
+			resourcesFilename: "spot.json",
+		}),
+
+		Entry("Without instance type set", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: "template-custom-ami",
+				},
+				LaunchTemplate: &api.LaunchTemplate{
+					ID:      "lt-1234",
+					Version: aws.String("2"),
+				},
+			},
+			mockFetcherFn: mockLaunchTemplate(func(input *ec2.DescribeLaunchTemplateVersionsInput) bool {
+				return *input.LaunchTemplateId == "lt-1234" && *input.Versions[0] == "2"
+			}, &ec2.ResponseLaunchTemplateData{
+				ImageId:  aws.String("ami-1234"),
+				KeyName:  aws.String("key-name"),
+				UserData: aws.String("bootstrap.sh"),
+			}),
+			errMsg: "instance type must be set in the launch template",
+		}),
+
+		Entry("With instance type set", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: "template-custom-ami",
+				},
+				InstanceTypes: []string{"t2.medium"},
+				LaunchTemplate: &api.LaunchTemplate{
+					ID:      "lt-1234",
+					Version: aws.String("2"),
+				},
+			},
+			mockFetcherFn: mockLaunchTemplate(func(input *ec2.DescribeLaunchTemplateVersionsInput) bool {
+				return *input.LaunchTemplateId == "lt-1234" && *input.Versions[0] == "2"
+			}, &ec2.ResponseLaunchTemplateData{
+				ImageId:      aws.String("ami-1234"),
+				InstanceType: aws.String("m5.large"),
+				KeyName:      aws.String("key-name"),
+				UserData:     aws.String("bootstrap.sh"),
+			}),
+			errMsg: "instance type must not be set in the launch template",
+		}),
+
+		Entry("With launch template and multiple instance types", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: "template-custom-ami",
+				},
+				InstanceTypes: []string{"c3.large", "c4.large", "c5.large", "c5d.large", "c5n.large", "c5a.large"},
+				LaunchTemplate: &api.LaunchTemplate{
+					ID:      "lt-1234",
+					Version: aws.String("3"),
+				},
+			},
+			mockFetcherFn: mockLaunchTemplate(func(input *ec2.DescribeLaunchTemplateVersionsInput) bool {
+				return *input.LaunchTemplateId == "lt-1234" && *input.Versions[0] == "3"
+			}, &ec2.ResponseLaunchTemplateData{
+				ImageId:  aws.String("ami-1234"),
+				KeyName:  aws.String("key-name"),
+				UserData: aws.String("bootstrap.sh"),
+			}),
+			resourcesFilename: "lt_instance_types.json",
 		}),
 	)
 })

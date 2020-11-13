@@ -4,7 +4,6 @@
         "Properties": {
             "LaunchTemplateData": {
                 "ImageId": "ami-custom",
-                "InstanceType": "m5.xlarge",
                 "MetadataOptions": {
                     "HttpPutResponseHopLimit": 2,
                     "HttpTokens": "optional"
@@ -48,6 +47,7 @@
                 "alpha.eksctl.io/cluster-name": "lt",
                 "alpha.eksctl.io/nodegroup-name": "custom-ami"
             },
+            "InstanceTypes": ["m5.xlarge"],
             "NodeRole": {
                 "Fn::GetAtt": [
                     "NodeInstanceRole",

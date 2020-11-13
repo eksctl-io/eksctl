@@ -92,6 +92,15 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 				},
 			},
 		}),
+		Entry("launchTemplate with instanceTypes", &nodeGroupCase{
+			ng: &ManagedNodeGroup{
+				NodeGroupBase: &NodeGroupBase{},
+				InstanceTypes: []string{"c3.large", "c4.large"},
+				LaunchTemplate: &LaunchTemplate{
+					ID: "lt-custom",
+				},
+			},
+		}),
 	)
 
 	DescribeTable("User-supplied launch template with unsupported fields", func(ngBase *NodeGroupBase) {
