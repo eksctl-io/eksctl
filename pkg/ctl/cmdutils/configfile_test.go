@@ -166,7 +166,9 @@ var _ = Describe("cmdutils configfile", func() {
 					ProviderConfig:    api.ProviderConfig{},
 				}
 
-				params := &CreateClusterCmdParams{WithoutNodeGroup: true, Managed: false}
+				params := &CreateClusterCmdParams{WithoutNodeGroup: true, CreateManagedNGOptions: CreateManagedNGOptions{
+					Managed: false,
+				}}
 				Expect(NewCreateClusterLoader(cmd, filter.NewNodeGroupFilter(), nil, params).Load()).To(Succeed())
 				cfg := cmd.ClusterConfig
 				Expect(cfg.VPC.NAT.Gateway).To(Not(BeNil()))
@@ -222,7 +224,9 @@ var _ = Describe("cmdutils configfile", func() {
 
 				params := &CreateClusterCmdParams{
 					WithoutNodeGroup: loaderTest.withoutNodeGroup,
-					Managed:          loaderTest.managed,
+					CreateManagedNGOptions: CreateManagedNGOptions{
+						Managed: loaderTest.managed,
+					},
 				}
 				Expect(NewCreateClusterLoader(cmd, ngFilter, loaderTest.ng, params).Load()).To(Succeed())
 
@@ -284,7 +288,9 @@ var _ = Describe("cmdutils configfile", func() {
 
 				params := &CreateClusterCmdParams{
 					WithoutNodeGroup: loaderTest.withoutNodeGroup,
-					Managed:          loaderTest.managed,
+					CreateManagedNGOptions: CreateManagedNGOptions{
+						Managed: loaderTest.managed,
+					},
 				}
 				Expect(NewCreateClusterLoader(cmd, ngFilter, nil, params).Load()).To(Succeed())
 
@@ -316,7 +322,9 @@ var _ = Describe("cmdutils configfile", func() {
 
 				params := &CreateClusterCmdParams{
 					WithoutNodeGroup: true,
-					Managed:          false,
+					CreateManagedNGOptions: CreateManagedNGOptions{
+						Managed: false,
+					},
 				}
 
 				Expect(NewCreateClusterLoader(cmd, filter.NewNodeGroupFilter(), nil, params).Load()).To(Succeed())
