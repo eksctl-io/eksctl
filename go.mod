@@ -55,7 +55,7 @@ require (
 	k8s.io/api v0.16.8
 	k8s.io/apiextensions-apiserver v0.16.8
 	k8s.io/apimachinery v0.16.8
-	k8s.io/cli-runtime v0.16.8
+	k8s.io/cli-runtime v0.19.3
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/cloud-provider v0.16.8
 	k8s.io/code-generator v0.16.8
