@@ -11,8 +11,8 @@ import (
 )
 
 // AddCommonCreateNodeGroupFlags adds common flags for creating a nodegroup
-func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGroup) {
-	fs.StringVarP(&ng.InstanceType, "node-type", "t", api.DefaultNodeType, "node instance type")
+func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGroup, mngOptions *CreateManagedNGOptions) {
+	fs.StringVarP(&ng.InstanceType, "node-type", "t", "", "node instance type")
 
 	desiredCapacity := fs.IntP("nodes", "N", api.DefaultNodeCount, "total number of nodes (for a static ASG)")
 	minSize := fs.IntP("nodes-min", "m", api.DefaultNodeCount, "minimum nodes in ASG")
@@ -53,6 +53,10 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGrou
 	fs.StringVar(&ng.InstanceName, "instance-name", "", "overrides the default instance's name")
 
 	fs.BoolVar(ng.DisablePodIMDS, "disable-pod-imds", false, "Blocks IMDS requests from non host networking pods")
+
+	fs.BoolVarP(&mngOptions.Managed, "managed", "", false, "Create EKS-managed nodegroup")
+	fs.BoolVar(&mngOptions.Spot, "spot", false, "Create a spot nodegroup (managed nodegroups only)")
+	fs.StringSliceVar(&mngOptions.InstanceTypes, "instance-types", nil, "Comma-separated list of instance types (e.g., --instance-types=c3.large,c4.large,c5.large")
 }
 
 func incompatibleManagedNodesFlags() []string {

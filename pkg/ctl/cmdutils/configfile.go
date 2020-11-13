@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -155,6 +156,8 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 		"zones",
 		"managed",
 		"fargate",
+		"spot",
+		"instance-types",
 		"nodes",
 		"nodes-min",
 		"nodes-max",
@@ -245,19 +248,15 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			return fmt.Errorf("status fields are read-only")
 		}
 
-		if params.Managed {
-			for _, f := range incompatibleManagedNodesFlags() {
-				if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
-					return ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", f))
-				}
-			}
+		if err := validateManagedNGFlags(l.CobraCommand, params.Managed); err != nil {
+			return err
 		}
 
 		// prevent creation of invalid config object with irrelevant nodegroup
 		// that may or may not be constructed correctly
 		if !params.WithoutNodeGroup {
 			if params.Managed {
-				l.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{makeManagedNodegroup(ng)}
+				l.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{makeManagedNodegroup(ng, params.CreateManagedNGOptions)}
 			} else {
 				l.ClusterConfig.NodeGroups = []*api.NodeGroup{ng}
 			}
@@ -290,7 +289,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 }
 
 // NewCreateNodeGroupLoader will load config or use flags for 'eksctl create nodegroup'
-func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.NodeGroupFilter, managedNodeGroup bool) ClusterConfigLoader {
+func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.NodeGroupFilter, mngOptions CreateManagedNGOptions) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
@@ -304,6 +303,8 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 		"max-pods-per-node",
 		"node-ami",
 		"node-ami-family",
+		"spot",
+		"instance-types",
 		"ssh-access",
 		"ssh-public-key",
 		"enable-ssm",
@@ -324,19 +325,18 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 		if l.ClusterConfig.Metadata.Name == "" {
 			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
-		if managedNodeGroup {
-			for _, f := range incompatibleManagedNodesFlags() {
-				if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
-					return ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", f))
-				}
-			}
-			l.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{makeManagedNodegroup(ng)}
+		if err := validateManagedNGFlags(l.CobraCommand, mngOptions.Managed); err != nil {
+			return err
+		}
+		if mngOptions.Managed {
+			l.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{makeManagedNodegroup(ng, mngOptions)}
+
 		} else {
 			l.ClusterConfig.NodeGroups = []*api.NodeGroup{ng}
 		}
 
 		// Validate both filtered and unfiltered nodegroups
-		if managedNodeGroup {
+		if mngOptions.Managed {
 			for _, ng := range l.ClusterConfig.ManagedNodeGroups {
 				ngName := names.ForNodeGroup(ng.Name, l.NameArg)
 				if ngName == "" {
@@ -363,7 +363,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 	return l
 }
 
-func makeManagedNodegroup(nodeGroup *api.NodeGroup) *api.ManagedNodeGroup {
+func makeManagedNodegroup(nodeGroup *api.NodeGroup, options CreateManagedNGOptions) *api.ManagedNodeGroup {
 	ngBase := *nodeGroup.NodeGroupBase
 	if ngBase.SecurityGroups != nil {
 		ngBase.SecurityGroups = &api.NodeGroupSGs{
@@ -372,7 +372,27 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup) *api.ManagedNodeGroup {
 	}
 	return &api.ManagedNodeGroup{
 		NodeGroupBase: &ngBase,
+		Spot:          options.Spot,
+		InstanceTypes: options.InstanceTypes,
 	}
+}
+
+func validateManagedNGFlags(cmd *cobra.Command, managed bool) error {
+	if managed {
+		for _, f := range incompatibleManagedNodesFlags() {
+			if flag := cmd.Flag(f); flag != nil && flag.Changed {
+				return ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", f))
+			}
+		}
+		return nil
+	}
+	flagsValidOnlyWithMNG := []string{"spot", "instance-types"}
+	for _, f := range flagsValidOnlyWithMNG {
+		if flag := cmd.Flag(f); flag != nil && flag.Changed {
+			return errors.Errorf("--%s is only valid with managed nodegroups (--managed)", f)
+		}
+	}
+	return nil
 }
 
 func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
