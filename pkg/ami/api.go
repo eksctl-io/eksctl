@@ -53,10 +53,9 @@ func Use(ec2api ec2iface.EC2API, ng *api.NodeGroupBase) error {
 
 	case "ebs":
 		if !api.IsSetAndNonEmptyString(ng.VolumeName) {
+			ng.VolumeName = image.RootDeviceName
 			if ng.AMIFamily == api.NodeImageFamilyBottlerocket {
 				ng.VolumeName = aws.String("/dev/xvdb")
-			} else {
-				ng.VolumeName = image.RootDeviceName
 			}
 		}
 		rootDeviceMapping, err := findRootDeviceMapping(image)
