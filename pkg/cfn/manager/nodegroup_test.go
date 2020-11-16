@@ -216,6 +216,10 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				}, nil)
 
 				p.MockCloudFormation().On("DescribeStacks", mock.Anything).Return(nil, fmt.Errorf("DescribeStacks failed"))
+
+				p.MockCloudFormation().On("DescribeStackResources", mock.Anything).Return(
+					&cfn.DescribeStackResourcesOutput{}, nil)
+				p.MockCloudFormation().On("DescribeStackResources", mock.Anything).Return(nil, fmt.Errorf("DescribeStacksReousrces failed"))
 			})
 
 			Context("With no matching stacks", func() {
@@ -256,10 +260,12 @@ var _ = Describe("StackCollection NodeGroup", func() {
 
 				It("should not have called AWS CloudFormation GetTemplate", func() {
 					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "GetTemplate", 1)).To(BeTrue())
+					//Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "GetTemplate", 2)).To(BeTrue())
 				})
 
 				It("should have called AWS CloudFormation DescribeStacks once", func() {
 					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "DescribeStacks", 1)).To(BeTrue())
+					//Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "DescribeStacks", 2)).To(BeTrue())
 				})
 
 				It("the output should equal the expectation", func() {
