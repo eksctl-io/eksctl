@@ -123,7 +123,6 @@ func TestUseAMI(t *testing.T) {
 
 			if *ng.VolumeName != tt.volumeName {
 				t.Errorf("expected VolumeName to be %v", tt.volumeName)
-
 			}
 		})
 	}
