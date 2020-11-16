@@ -18,6 +18,8 @@ func TestUseAMI(t *testing.T) {
 		blockDeviceMappings []*ec2.BlockDeviceMapping
 		rootDeviceName      string
 		description         string
+		volumeName          string
+		amiFamily           string
 
 		encrypted bool
 	}{
@@ -41,7 +43,8 @@ func TestUseAMI(t *testing.T) {
 				},
 			},
 
-			encrypted: true,
+			encrypted:  true,
+			volumeName: "/dev/sda1",
 		},
 		{
 			description:    "Only one device mapping (AL2 AMIs)",
@@ -55,7 +58,8 @@ func TestUseAMI(t *testing.T) {
 				},
 			},
 
-			encrypted: true,
+			encrypted:  true,
+			volumeName: "/dev/sda1",
 		},
 		{
 			description:    "Different root device name",
@@ -77,7 +81,24 @@ func TestUseAMI(t *testing.T) {
 				},
 			},
 
-			encrypted: false,
+			encrypted:  false,
+			volumeName: "/dev/xvda",
+		},
+		{
+			description:    "uses /dev/xvdb disk for bottlerocket images",
+			rootDeviceName: "/dev/xvda",
+			amiFamily:      api.NodeImageFamilyBottlerocket,
+			blockDeviceMappings: []*ec2.BlockDeviceMapping{
+				{
+					DeviceName: aws.String("/dev/xvda"),
+					Ebs: &ec2.EbsBlockDevice{
+						Encrypted: aws.Bool(false),
+					},
+				},
+			},
+
+			encrypted:  false,
+			volumeName: "/dev/xvdb",
 		},
 	}
 
@@ -86,7 +107,8 @@ func TestUseAMI(t *testing.T) {
 			mockProvider := mockDescribeImages(tt.blockDeviceMappings, tt.rootDeviceName)
 			ng := &api.NodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
-					AMI: "ami-0121d8347f8191f90",
+					AMI:       "ami-0121d8347f8191f90",
+					AMIFamily: tt.amiFamily,
 				},
 			}
 			err := ami.Use(mockProvider.MockEC2(), ng.NodeGroupBase)
@@ -97,6 +119,10 @@ func TestUseAMI(t *testing.T) {
 
 			if *ng.VolumeEncrypted != tt.encrypted {
 				t.Errorf("expected VolumeEncrypted to be %v", tt.encrypted)
+			}
+
+			if *ng.VolumeName != tt.volumeName {
+				t.Errorf("expected VolumeName to be %v", tt.volumeName)
 			}
 		})
 	}
