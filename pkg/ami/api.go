@@ -21,6 +21,9 @@ const (
 	ImageClassARM
 )
 
+// Bottlerocket disk used by kubelet
+const bottlerocketDataDisk = "/dev/xvdb"
+
 // ImageClasses is a list of image class names
 var ImageClasses = []string{
 	"ImageClassGeneral",
@@ -55,7 +58,7 @@ func Use(ec2api ec2iface.EC2API, ng *api.NodeGroupBase) error {
 		if !api.IsSetAndNonEmptyString(ng.VolumeName) {
 			ng.VolumeName = image.RootDeviceName
 			if ng.AMIFamily == api.NodeImageFamilyBottlerocket {
-				ng.VolumeName = aws.String("/dev/xvdb")
+				ng.VolumeName = aws.String(bottlerocketDataDisk)
 			}
 		}
 		rootDeviceMapping, err := findRootDeviceMapping(image)
