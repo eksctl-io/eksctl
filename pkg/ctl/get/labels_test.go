@@ -11,21 +11,21 @@ var _ = Describe("get", func() {
 			cmd := newMockCmd("labels")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("--cluster must be set"))
+			Expect(err.Error()).To(ContainSubstring("Error: --cluster must be set"))
 		})
 
 		It("missing required flag --cluster, but with --nodegroup", func() {
 			cmd := newMockCmd("labels", "--nodegroup", "dummyNodeGroup")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("--cluster must be set"))
+			Expect(err.Error()).To(ContainSubstring("Error: --cluster must be set"))
 		})
 
 		It("setting name argument", func() {
 			cmd := newMockCmd("labels", "--cluster", "dummy", "dummyName")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("name argument is not supported"))
+			Expect(err.Error()).To(ContainSubstring("Error: name argument is not supported"))
 		})
 	})
 })

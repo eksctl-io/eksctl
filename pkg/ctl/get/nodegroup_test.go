@@ -11,21 +11,21 @@ var _ = Describe("get", func() {
 			cmd := newMockCmd("nodegroup")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("--cluster must be set"))
+			Expect(err.Error()).To(ContainSubstring("Error: --cluster must be set"))
 		})
 
 		It("setting --name and argument at the same time", func() {
 			cmd := newMockCmd("nodegroup", "ng", "--cluster", "dummy", "--name", "ng")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("--name=ng and argument ng cannot be used at the same time"))
+			Expect(err.Error()).To(ContainSubstring("Error: --name=ng and argument ng cannot be used at the same time"))
 		})
 
 		It("invalid flag", func() {
 			cmd := newMockCmd("nodegroup", "--invalid", "dummy")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("unknown flag: --invalid"))
+			Expect(err.Error()).To(ContainSubstring("Error: unknown flag: --invalid"))
 		})
 	})
 })

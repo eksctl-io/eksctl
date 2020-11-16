@@ -44,15 +44,15 @@ var _ = Describe("drain node group", func() {
 			cmd := newDefaultCmd(c.args...)
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal(c.error.Error()))
+			Expect(err.Error()).To(ContainSubstring(c.error.Error()))
 		},
 		Entry("missing required flag --cluster", invalidParamsCase{
 			args:  []string{"nodegroup"},
-			error: fmt.Errorf("--cluster must be set"),
+			error: fmt.Errorf("Error: --cluster must be set"),
 		}),
 		Entry("setting --name and argument at the same time", invalidParamsCase{
 			args:  []string{"nodegroup", "ng", "--cluster", "dummy", "--name", "ng"},
-			error: fmt.Errorf("--name=ng and argument ng cannot be used at the same time"),
+			error: fmt.Errorf("Error: --name=ng and argument ng cannot be used at the same time"),
 		}),
 	)
 })

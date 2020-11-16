@@ -45,19 +45,19 @@ var _ = Describe("delete iamserviceaccount", func() {
 			cmd := newDefaultCmd(commandArgs...)
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal(c.error.Error()))
+			Expect(err.Error()).To(ContainSubstring(c.error.Error()))
 		},
 		Entry("without cluster name", invalidParamsCase{
 			args:  []string{"--name", "serviceAccountName"},
-			error: fmt.Errorf("--cluster must be set"),
+			error: fmt.Errorf("Error: --cluster must be set"),
 		}),
 		Entry("with iamserviceaccount name as argument and flag", invalidParamsCase{
 			args:  []string{"--cluster", "clusterName", "--name", "serviceAccountName", "serviceAccountName"},
-			error: fmt.Errorf("--name=serviceAccountName and argument serviceAccountName cannot be used at the same time"),
+			error: fmt.Errorf("Error: --name=serviceAccountName and argument serviceAccountName cannot be used at the same time"),
 		}),
 		Entry("with invalid flags", invalidParamsCase{
 			args:  []string{"iamserviceaccount", "--invalid", "dummy"},
-			error: fmt.Errorf("unknown flag: --invalid"),
+			error: fmt.Errorf("Error: unknown flag: --invalid"),
 		}),
 	)
 })

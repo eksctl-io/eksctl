@@ -225,7 +225,7 @@ var maxPodsPerNodeType = map[string]int{
 	"p3.2xlarge":    58,
 	"p3.8xlarge":    234,
 	"p3dn.24xlarge": 737,
-	"p4d.24xlarge":  2942,
+	"p4d.24xlarge":  737,
 	"r3.2xlarge":    58,
 	"r3.4xlarge":    234,
 	"r3.8xlarge":    234,

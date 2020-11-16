@@ -11,14 +11,14 @@ var _ = Describe("get", func() {
 			cmd := newMockCmd("iamidentitymapping")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("--cluster must be set"))
+			Expect(err.Error()).To(ContainSubstring("Error: --cluster must be set"))
 		})
 
 		It("invalid flag --dummy", func() {
 			cmd := newMockCmd("iamidentitymapping", "--invalid", "dummy")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("unknown flag: --invalid"))
+			Expect(err.Error()).To(ContainSubstring("Error: unknown flag: --invalid"))
 		})
 	})
 })

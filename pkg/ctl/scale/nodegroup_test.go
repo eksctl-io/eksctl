@@ -51,60 +51,60 @@ var _ = Describe("scale", func() {
 				_, err := cmd.execute()
 				fmt.Println(err)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal(c.error.Error()))
+				Expect(err.Error()).To(ContainSubstring(c.error.Error()))
 			},
 			Entry("missing required flag --cluster", invalidParamsCase{
 				args:  []string{"nodegroup", "ng"},
-				error: fmt.Errorf("--cluster must be set"),
+				error: fmt.Errorf("Error: --cluster must be set"),
 			}),
 			Entry("setting --name and argument at the same time", invalidParamsCase{
 				args:  []string{"nodegroup", "ng", "--cluster", "dummy", "--name", "ng"},
-				error: fmt.Errorf("--name=ng and argument ng cannot be used at the same time"),
+				error: fmt.Errorf("Error: --name=ng and argument ng cannot be used at the same time"),
 			}),
 			Entry("missing required nodes flag --nodes", invalidParamsCase{
 				args:  []string{"nodegroup", "ng", "--cluster", "dummy"},
-				error: fmt.Errorf("number of nodes must be 0 or greater"),
+				error: fmt.Errorf("Error: number of nodes must be 0 or greater"),
 			}),
 			Entry("invalid flag", invalidParamsCase{
 				args:  []string{"nodegroup", "--invalid", "dummy"},
-				error: fmt.Errorf("unknown flag: --invalid"),
+				error: fmt.Errorf("Error: unknown flag: --invalid"),
 			}),
 			Entry("desired node less than min nodes", invalidParamsCase{
 				args:  []string{"nodegroup", "ng", "--cluster", "dummy", "--nodes", "2", "--nodes-min", "3"},
-				error: fmt.Errorf("minimum number of nodes must be less than or equal to number of nodes"),
+				error: fmt.Errorf("Error: minimum number of nodes must be less than or equal to number of nodes"),
 			}),
 
 			Entry("desired node greater than max nodes", invalidParamsCase{
 				args:  []string{"nodegroup", "ng", "--cluster", "dummy", "--nodes", "2", "--nodes-max", "1"},
-				error: fmt.Errorf("maximum number of nodes must be greater than or equal to number of nodes"),
+				error: fmt.Errorf("Error: maximum number of nodes must be greater than or equal to number of nodes"),
 			}),
 			Entry("desired node less than min nodes", invalidParamsCase{
 				args:  []string{"nodegroup", "ng", "--cluster", "dummy", "--nodes", "2", "--nodes-min", "3"},
-				error: fmt.Errorf("minimum number of nodes must be less than or equal to number of nodes"),
+				error: fmt.Errorf("Error: minimum number of nodes must be less than or equal to number of nodes"),
 			}),
 			Entry("desired node outside the range [min, max]", invalidParamsCase{
 				args:  []string{"nodegroup", "ng", "--cluster", "dummy", "--nodes", "2", "--nodes-min", "1", "--nodes-max", "1"},
-				error: fmt.Errorf("number of nodes must be within range of min nodes and max nodes"),
+				error: fmt.Errorf("Error: number of nodes must be within range of min nodes and max nodes"),
 			}),
 			Entry("with config file and no name flags", invalidParamsCase{
 				args:  []string{"nodegroup", "-f", "../cmdutils/test_data/scale-ng-test.yaml"},
-				error: fmt.Errorf("--name must be set"),
+				error: fmt.Errorf("Error: --name must be set"),
 			}),
 			Entry("with config file and nodes flags", invalidParamsCase{
 				args:  []string{"nodegroup", "-f", "../cmdutils/test_data/scale-ng-test.yaml", "--nodes", "2"},
-				error: fmt.Errorf("cannot use --nodes when --config-file/-f is set"),
+				error: fmt.Errorf("Error: cannot use --nodes when --config-file/-f is set"),
 			}),
 			Entry("with config file and nodes-max flags", invalidParamsCase{
 				args:  []string{"nodegroup", "-f", "../cmdutils/test_data/scale-ng-test.yaml", "--nodes-max", "2"},
-				error: fmt.Errorf("cannot use --nodes-max when --config-file/-f is set"),
+				error: fmt.Errorf("Error: cannot use --nodes-max when --config-file/-f is set"),
 			}),
 			Entry("with config file and nodes-min flags", invalidParamsCase{
 				args:  []string{"nodegroup", "-f", "../cmdutils/test_data/scale-ng-test.yaml", "--nodes-min", "2"},
-				error: fmt.Errorf("cannot use --nodes-min when --config-file/-f is set"),
+				error: fmt.Errorf("Error: cannot use --nodes-min when --config-file/-f is set"),
 			}),
 			Entry("with config file and cluster flags", invalidParamsCase{
 				args:  []string{"nodegroup", "-f", "../cmdutils/test_data/scale-ng-test.yaml", "--cluster", "dummyCluster"},
-				error: fmt.Errorf("cannot use --cluster when --config-file/-f is set"),
+				error: fmt.Errorf("Error: cannot use --cluster when --config-file/-f is set"),
 			}),
 		)
 	})

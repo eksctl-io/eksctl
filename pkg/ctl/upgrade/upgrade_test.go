@@ -5,6 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
@@ -13,24 +14,24 @@ var _ = Describe("upgrade", func() {
 	Describe("invalid-resource", func() {
 		It("with no flag", func() {
 			cmd := newMockCmd("invalid-resource")
-			out, err := cmd.execute()
+			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"upgrade\""))
-			Expect(out).To(ContainSubstring("usage"))
+			Expect(err.Error()).To(ContainSubstring("Error: unknown command \"invalid-resource\" for \"upgrade\""))
+			Expect(err.Error()).To(ContainSubstring("usage"))
 		})
 		It("with invalid-resource and some flag", func() {
 			cmd := newMockCmd("invalid-resource", "--invalid-flag", "foo")
-			out, err := cmd.execute()
+			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"upgrade\""))
-			Expect(out).To(ContainSubstring("usage"))
+			Expect(err.Error()).To(ContainSubstring("Error: unknown command \"invalid-resource\" for \"upgrade\""))
+			Expect(err.Error()).To(ContainSubstring("usage"))
 		})
 		It("with invalid-resource and additional argument", func() {
 			cmd := newMockCmd("invalid-resource", "foo")
-			out, err := cmd.execute()
+			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"upgrade\""))
-			Expect(out).To(ContainSubstring("usage"))
+			Expect(err.Error()).To(ContainSubstring("Error: unknown command \"invalid-resource\" for \"upgrade\""))
+			Expect(err.Error()).To(ContainSubstring("usage"))
 		})
 	})
 })
@@ -49,8 +50,13 @@ type mockVerbCmd struct {
 }
 
 func (c mockVerbCmd) execute() (string, error) {
-	buf := new(bytes.Buffer)
-	c.parentCmd.SetOut(buf)
+	outBuf := new(bytes.Buffer)
+	errBuf := new(bytes.Buffer)
+	c.parentCmd.SetOut(outBuf)
+	c.parentCmd.SetErr(errBuf)
 	err := c.parentCmd.Execute()
-	return buf.String(), err
+	if err != nil {
+		err = errors.New(errBuf.String())
+	}
+	return outBuf.String(), err
 }
