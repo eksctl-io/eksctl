@@ -120,16 +120,19 @@ type Properties struct {
 	}
 }
 
+type NetworkInterface struct {
+	DeviceIndex              int
+	AssociatePublicIPAddress bool
+	NetworkCardIndex         int
+	InterfaceType            string
+}
 type LaunchTemplateData struct {
 	IamInstanceProfile              struct{ Arn interface{} }
 	UserData, InstanceType, ImageID string
 	BlockDeviceMappings             []interface{}
 	EbsOptimized                    *bool
-	NetworkInterfaces               []struct {
-		DeviceIndex              int
-		AssociatePublicIPAddress bool
-	}
-	InstanceMarketOptions *struct {
+	NetworkInterfaces               []NetworkInterface
+	InstanceMarketOptions           *struct {
 		MarketType  string
 		SpotOptions struct {
 			SpotInstanceType string
@@ -3439,6 +3442,46 @@ var _ = Describe("CloudFormation template builder API", func() {
 					HaveKey("SuspendProcesses"),
 				)
 			})
+		})
+	})
+
+	Context("p4 NodeGroup with EFA enabled", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.EFAEnabled = aws.Bool(true)
+		ng.InstanceType = "p4d.24xlarge"
+		build(cfg, "eksctl-test-nodegroup-p4-efa", ng)
+
+		roundtrip()
+
+		It("should have correct interfaces", func() {
+			Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
+			launchTemplate := ngTemplate.Resources["NodeGroupLaunchTemplate"]
+			Expect(ng).ToNot(BeNil())
+			Expect(launchTemplate.Properties.LaunchTemplateData.NetworkInterfaces).To(Equal(
+				[]NetworkInterface{
+					{
+						InterfaceType:    "efa",
+						DeviceIndex:      0,
+						NetworkCardIndex: 0,
+					},
+					{
+						InterfaceType:    "efa",
+						DeviceIndex:      1,
+						NetworkCardIndex: 1,
+					},
+					{
+						InterfaceType:    "efa",
+						DeviceIndex:      2,
+						NetworkCardIndex: 2,
+					},
+					{
+						InterfaceType:    "efa",
+						DeviceIndex:      3,
+						NetworkCardIndex: 3,
+					},
+				},
+			))
 		})
 	})
 

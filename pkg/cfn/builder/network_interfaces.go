@@ -9,17 +9,18 @@ import (
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
-func defaultNetworkInterface(securityGroups []*gfnt.Value, index int) gfnec2.LaunchTemplate_NetworkInterface {
+func defaultNetworkInterface(securityGroups []*gfnt.Value, device, card int) gfnec2.LaunchTemplate_NetworkInterface {
 	return gfnec2.LaunchTemplate_NetworkInterface{
 		// Explicitly un-setting this so that it doesn't get defaulted to true
 		AssociatePublicIpAddress: nil,
-		DeviceIndex:              gfnt.NewInteger(index),
+		DeviceIndex:              gfnt.NewInteger(device),
 		Groups:                   gfnt.NewSlice(securityGroups...),
+		NetworkCardIndex:         gfnt.NewInteger(card),
 	}
 }
 
 func (n *NodeGroupResourceSet) buildNetworkInterfaces(launchTemplateData *gfnec2.LaunchTemplate_LaunchTemplateData) error {
-	firstNI := defaultNetworkInterface(n.securityGroups, 0)
+	firstNI := defaultNetworkInterface(n.securityGroups, 0, 0)
 	if api.IsEnabled(n.spec.EFAEnabled) {
 		input := ec2.DescribeInstanceTypesInput{
 			InstanceTypes: aws.StringSlice([]string{n.spec.InstanceType}),
@@ -36,7 +37,7 @@ func (n *NodeGroupResourceSet) buildNetworkInterfaces(launchTemplateData *gfnec2
 		// Due to ASG incompatibilities, we create each network card
 		// with its own device
 		for i := 1; i < numEFAs; i++ {
-			ni := defaultNetworkInterface(n.securityGroups, i)
+			ni := defaultNetworkInterface(n.securityGroups, i, i)
 			ni.InterfaceType = gfnt.NewString("efa")
 			nis = append(nis, ni)
 		}
