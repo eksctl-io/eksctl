@@ -178,14 +178,6 @@ func (m *MockAWSClient) MockRequestForMockOutput(input *MockInput) (*request.Req
 	return req, output
 }
 
-func BuildNewMockRequestForMockOutput(m *MockAWSClient, in *MockInput) func([]request.Option) (*request.Request, error) {
-	return func(opts []request.Option) (*request.Request, error) {
-		req, _ := m.MockRequestForMockOutput(in)
-		req.ApplyOptions(opts...)
-		return req, nil
-	}
-}
-
 func (m *MockAWSClient) MockRequestForGivenOutput(input, output interface{}) *request.Request {
 	op := &request.Operation{
 		Name:       "Mock",

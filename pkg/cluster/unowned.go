@@ -7,19 +7,19 @@ import (
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
-type NONEKSCTLCluster struct {
+type UnownedCluster struct {
 	cfg *api.ClusterConfig
 	ctl *eks.ClusterProvider
 }
 
-func newNonEKSCTLCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (*NONEKSCTLCluster, error) {
-	return &NONEKSCTLCluster{
+func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (*UnownedCluster, error) {
+	return &UnownedCluster{
 		cfg: cfg,
 		ctl: ctl,
 	}, nil
 }
 
-func (c *NONEKSCTLCluster) Upgrade(dryRun bool) error {
+func (c *UnownedCluster) Upgrade(dryRun bool) error {
 	currentVersion := c.ctl.ControlPlaneVersion()
 	versionUpdateRequired, err := requiresVersionUpgrade(c.cfg.Metadata, currentVersion)
 	if err != nil {

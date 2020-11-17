@@ -18,8 +18,8 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
 	}
 
 	if manager.IsClusterStack(stacks) {
-		return newEKSCTLCluster(cfg, ctl, stackManager)
+		return NewOwnedCluster(cfg, ctl, stackManager)
 	}
 
-	return newNonEKSCTLCluster(cfg, ctl)
+	return NewUnownedCluster(cfg, ctl)
 }

@@ -10,23 +10,26 @@ import (
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
-type EKSCTLCluster struct {
+type OwnedCluster struct {
 	cfg          *api.ClusterConfig
 	ctl          *eks.ClusterProvider
 	stackManager *manager.StackCollection
 }
 
-func newEKSCTLCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager *manager.StackCollection) (*EKSCTLCluster, error) {
-	return &EKSCTLCluster{
+func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager *manager.StackCollection) (*OwnedCluster, error) {
+	return &OwnedCluster{
 		cfg:          cfg,
 		ctl:          ctl,
 		stackManager: stackManager,
 	}, nil
 }
 
-func (c *EKSCTLCluster) Upgrade(dryRun bool) error {
+func (c *OwnedCluster) Upgrade(dryRun bool) error {
 	currentVersion := c.ctl.ControlPlaneVersion()
 	versionUpdateRequired, err := requiresVersionUpgrade(c.cfg.Metadata, currentVersion)
+	if err != nil {
+		return err
+	}
 
 	if err := c.ctl.LoadClusterVPC(c.cfg); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
