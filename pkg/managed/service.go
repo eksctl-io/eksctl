@@ -286,14 +286,17 @@ type amiReleaseVersion struct {
 	Date    string
 }
 
+// LTE checks if a is less than or equal to b.
 func (a amiReleaseVersion) LTE(b amiReleaseVersion) bool {
 	return a.Compare(b) <= 0
 }
 
+// GTE checks if a is greater than or equal to b.
 func (a amiReleaseVersion) GTE(b amiReleaseVersion) bool {
 	return a.Compare(b) >= 0
 }
 
+// Compare returns 0 if a==b, -1 if a < b, and +1 if a > b.
 func (a amiReleaseVersion) Compare(b amiReleaseVersion) int {
 	cmp := a.Version.Compare(b.Version)
 	if cmp == 0 {
