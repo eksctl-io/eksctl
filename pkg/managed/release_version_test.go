@@ -14,8 +14,20 @@ var _ = Describe("AMI Release Version", func() {
 		errMsg string
 	}
 
+	compare := func(a, b string) (int, error) {
+		v1, err := parseReleaseVersion(a)
+		if err != nil {
+			return 0, err
+		}
+		v2, err := parseReleaseVersion(b)
+		if err != nil {
+			return 0, err
+		}
+		return v1.Compare(v2), nil
+	}
+
 	DescribeTable("AMI release version comparison", func(vc versionCase) {
-		cmp, err := compareReleaseVersion(vc.v1, vc.v2)
+		cmp, err := compare(vc.v1, vc.v2)
 		if vc.errMsg != "" {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(vc.errMsg))

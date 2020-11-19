@@ -234,17 +234,20 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 		if err != nil {
 			return err
 		}
-
-		cmp, err := compareReleaseVersion(latestReleaseVersion, *nodeGroup.ReleaseVersion)
+		latest, err := parseReleaseVersion(latestReleaseVersion)
+		if err != nil {
+			return err
+		}
+		current, err := parseReleaseVersion(*nodeGroup.ReleaseVersion)
 		if err != nil {
 			return err
 		}
 
-		if cmp <= 0 && options.LaunchTemplateVersion == "" {
+		if latest.LTE(current) && options.LaunchTemplateVersion == "" {
 			logger.Info("nodegroup %q is already up-to-date", *nodeGroup.NodegroupName)
 			return nil
 		}
-		if cmp >= 0 {
+		if latest.GTE(current) {
 			ngResource.ReleaseVersion = gfnt.NewString(latestReleaseVersion)
 		}
 	}
@@ -283,24 +286,20 @@ type amiReleaseVersion struct {
 	Date    string
 }
 
+func (a amiReleaseVersion) LTE(b amiReleaseVersion) bool {
+	return a.Compare(b) <= 0
+}
+
+func (a amiReleaseVersion) GTE(b amiReleaseVersion) bool {
+	return a.Compare(b) >= 0
+}
+
 func (a amiReleaseVersion) Compare(b amiReleaseVersion) int {
 	cmp := a.Version.Compare(b.Version)
 	if cmp == 0 {
 		return strings.Compare(a.Date, b.Date)
 	}
 	return cmp
-}
-
-func compareReleaseVersion(a, b string) (int, error) {
-	v1, err := parseReleaseVersion(a)
-	if err != nil {
-		return 0, err
-	}
-	v2, err := parseReleaseVersion(b)
-	if err != nil {
-		return 0, err
-	}
-	return v1.Compare(v2), nil
 }
 
 func (m *Service) requiresStackUpdate(nodeGroupName string) (bool, error) {
