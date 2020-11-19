@@ -2,6 +2,7 @@ package managed
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -233,11 +234,19 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 		if err != nil {
 			return err
 		}
-		if latestReleaseVersion == *nodeGroup.ReleaseVersion && options.LaunchTemplateVersion == "" {
+
+		cmp, err := compareReleaseVersion(latestReleaseVersion, *nodeGroup.ReleaseVersion)
+		if err != nil {
+			return err
+		}
+
+		if cmp <= 0 && options.LaunchTemplateVersion == "" {
 			logger.Info("nodegroup %q is already up-to-date", *nodeGroup.NodegroupName)
 			return nil
 		}
-		ngResource.ReleaseVersion = gfnt.NewString(latestReleaseVersion)
+		if cmp >= 0 {
+			ngResource.ReleaseVersion = gfnt.NewString(latestReleaseVersion)
+		}
 	}
 	if options.LaunchTemplateVersion != "" {
 		ngResource.LaunchTemplate.Version = gfnt.NewString(options.LaunchTemplateVersion)
@@ -251,6 +260,47 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 	}
 	logger.Info("nodegroup successfully upgraded")
 	return nil
+}
+
+// parseReleaseVersion parses an AMI release version string that's in the format `1.18.8-20201007`
+func parseReleaseVersion(releaseVersion string) (amiReleaseVersion, error) {
+	parts := strings.Split(releaseVersion, "-")
+	if len(parts) != 2 {
+		return amiReleaseVersion{}, errors.Errorf("unexpected format for release version: %q", releaseVersion)
+	}
+	v, err := semver.ParseTolerant(parts[0])
+	if err != nil {
+		return amiReleaseVersion{}, errors.Wrap(err, "invalid SemVer version")
+	}
+	return amiReleaseVersion{
+		Version: v,
+		Date:    parts[1],
+	}, nil
+}
+
+type amiReleaseVersion struct {
+	Version semver.Version
+	Date    string
+}
+
+func (a amiReleaseVersion) Compare(b amiReleaseVersion) int {
+	cmp := a.Version.Compare(b.Version)
+	if cmp == 0 {
+		return strings.Compare(a.Date, b.Date)
+	}
+	return cmp
+}
+
+func compareReleaseVersion(a, b string) (int, error) {
+	v1, err := parseReleaseVersion(a)
+	if err != nil {
+		return 0, err
+	}
+	v2, err := parseReleaseVersion(b)
+	if err != nil {
+		return 0, err
+	}
+	return v1.Compare(v2), nil
 }
 
 func (m *Service) requiresStackUpdate(nodeGroupName string) (bool, error) {
