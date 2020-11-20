@@ -12,6 +12,7 @@ import (
 // IsARMInstanceType returns true if the instance type is ARM architecture
 func IsARMInstanceType(instanceType string) bool {
 	return strings.HasPrefix(instanceType, "a1") ||
+		strings.HasPrefix(instanceType, "t4g") ||
 		strings.HasPrefix(instanceType, "m6g") ||
 		strings.HasPrefix(instanceType, "m6gd") ||
 		strings.HasPrefix(instanceType, "c6g") ||
