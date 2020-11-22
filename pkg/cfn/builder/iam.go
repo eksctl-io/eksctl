@@ -211,8 +211,10 @@ func NewIAMServiceAccountResourceSet(spec *api.ClusterIAMServiceAccount, oidc *i
 // WithIAM returns true
 func (*IAMServiceAccountResourceSet) WithIAM() bool { return true }
 
-// WithNamedIAM returns false
-func (*IAMServiceAccountResourceSet) WithNamedIAM() bool { return false }
+// WithNamedIAM implements the ResourceSet interface
+func (rs *IAMServiceAccountResourceSet) WithNamedIAM() bool {
+	return rs.spec.RoleName != ""
+}
 
 // AddAllResources adds all resources for the stack
 func (rs *IAMServiceAccountResourceSet) AddAllResources() error {
@@ -229,6 +231,7 @@ func (rs *IAMServiceAccountResourceSet) AddAllResources() error {
 	role := &cft.IAMRole{
 		AssumeRolePolicyDocument: rs.oidc.MakeAssumeRolePolicyDocument(rs.spec.Namespace, rs.spec.Name),
 		PermissionsBoundary:      rs.spec.PermissionsBoundary,
+		RoleName:                 rs.spec.RoleName,
 	}
 	role.ManagedPolicyArns = append(role.ManagedPolicyArns, rs.spec.AttachPolicyARNs...)
 
