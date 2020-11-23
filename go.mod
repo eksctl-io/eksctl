@@ -6,7 +6,6 @@ go 1.15
 
 require (
 	github.com/Azure/go-autorest/autorest v0.10.0 // indirect
-	github.com/GeertJohan/go.rice v1.0.0 // indirect
 	github.com/aws/aws-sdk-go v1.35.4
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/blang/semver v3.5.1+incompatible
@@ -14,7 +13,7 @@ require (
 	github.com/cloudflare/cfssl v0.0.0-20190726000631-633726f6bcb7
 	github.com/dave/jennifer v1.3.0
 	github.com/dlespiau/kube-test-harness v0.0.0-20190930170435-ec3f93e1a754
-	github.com/evanphx/json-patch v4.5.0+incompatible
+	github.com/evanphx/json-patch/v5 v5.1.0
 	github.com/fluxcd/flux/pkg/install v0.0.0-20201001122558-cb08da1b356a // flux 1.21.0
 	github.com/fluxcd/go-git-providers v0.0.3
 	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200729150005-1467489f7ee4 // helm-operator 1.2.0
@@ -25,12 +24,10 @@ require (
 	github.com/goreleaser/goreleaser v0.147.1
 	github.com/inconshreveable/log15 v0.0.0-20200109203555-b30bc20e4fd1 // indirect
 	github.com/instrumenta/kubeval v0.0.0-20190918223246-8d013ec9fc56
-	github.com/jmhodges/clock v0.0.0-20160418191101-880ee4c33548 // indirect
 	github.com/justinbarrick/go-k8s-portforward v1.0.3
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kevinburke/go-bindata v3.22.0+incompatible
 	github.com/kevinburke/rest v0.0.0-20200429221318-0d2892b400f8 // indirect
-	github.com/kisielk/sqlstruct v0.0.0-20201105191214-5f3e10d3ab46 // indirect
 	github.com/kris-nova/logger v0.0.0-20181127235838-fd0d87064b06
 	github.com/kris-nova/lolgopher v0.0.0-20180921204813-313b3abb0d9b // indirect
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
@@ -52,8 +49,6 @@ require (
 	github.com/weaveworks/goformation/v4 v4.10.2-0.20201111141619-594e2a8b695f
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
-	github.com/zmap/zcrypto v0.0.0-20201103164829-2760ff0e1c25 // indirect
-	github.com/zmap/zlint v1.1.0 // indirect
 	golang.org/x/tools v0.0.0-20201013201025-64a9e34f3752
 	k8s.io/api v0.16.8
 	k8s.io/apiextensions-apiserver v0.16.8
