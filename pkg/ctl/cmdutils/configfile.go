@@ -539,7 +539,7 @@ func parseCIDRs(arg string) ([]string, error) {
 	return csvReader.Read()
 }
 
-// NewCreateIAMServiceAccountLoader will laod config or use flags for 'eksctl create iamserviceaccount'
+// NewCreateIAMServiceAccountLoader will load config or use flags for 'eksctl create iamserviceaccount'
 func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *filter.IAMServiceAccountFilter) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
@@ -548,6 +548,9 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *filter.IAMServiceAccou
 	)
 
 	l.validateWithConfigFile = func() error {
+		if l.ClusterConfig.IAM == nil || l.ClusterConfig.IAM.ServiceAccounts == nil {
+			return fmt.Errorf("'iam.serviceAccounts' is not defined in %q", l.ClusterConfigFile)
+		}
 		return saFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.IAM.ServiceAccounts)
 	}
 
