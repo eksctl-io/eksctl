@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/blang/semver"
-	jsonpatch "github.com/evanphx/json-patch"
+	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
