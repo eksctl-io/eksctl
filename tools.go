@@ -6,11 +6,12 @@ package eksctl
 // See https://github.com/golang/go/wiki/Modules#how-can-i-track-tool-dependencies-for-a-module
 import (
 	_ "github.com/dave/jennifer/jen"
+	_ "github.com/github-release/github-release"
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/goreleaser/goreleaser"
 	_ "github.com/kevinburke/go-bindata/go-bindata"
+	_ "github.com/maxbrunsfeld/counterfeiter/v6"
 	_ "github.com/vektra/mockery/cmd/mockery"
-	_ "github.com/github-release/github-release"
 	_ "golang.org/x/tools/cmd/stringer"
 	_ "k8s.io/code-generator/cmd/client-gen"
 	_ "k8s.io/code-generator/cmd/deepcopy-gen"
