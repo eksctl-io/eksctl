@@ -13,6 +13,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/addons"
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
+	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/utils"
 
@@ -220,6 +221,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 			info:            "create fargate profiles",
 			spec:            cfg,
 			clusterProvider: c,
+			awsClient:       fargate.NewClientWithWaitTimeout(cfg.Metadata.Name, c.Provider.EKS(), c.Provider.WaitTimeout()),
 		})
 	}
 

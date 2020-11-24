@@ -25,7 +25,7 @@ import (
 func bindataRead(data []byte, name string) ([]byte, error) {
 	gz, err := gzip.NewReader(bytes.NewBuffer(data))
 	if err != nil {
-		return nil, fmt.Errorf("read %q: %w", name, err)
+		return nil, fmt.Errorf("read %q: %v", name, err)
 	}
 
 	var buf bytes.Buffer
@@ -33,7 +33,7 @@ func bindataRead(data []byte, name string) ([]byte, error) {
 	clErr := gz.Close()
 
 	if err != nil {
-		return nil, fmt.Errorf("read %q: %w", name, err)
+		return nil, fmt.Errorf("read %q: %v", name, err)
 	}
 	if clErr != nil {
 		return nil, err
@@ -293,9 +293,6 @@ var _bindata = map[string]func() (*asset, error){
 	"coredns-1.18.json": coredns118Json,
 }
 
-// AssetDebug is true if the assets were built with the debug flag enabled.
-const AssetDebug = false
-
 // AssetDir returns the file names below a certain
 // directory embedded in the file by go-bindata.
 // For example if you run go-bindata on data/... and data contains the
@@ -337,12 +334,12 @@ type bintree struct {
 }
 
 var _bintree = &bintree{nil, map[string]*bintree{
-	"aws-node.yaml": {awsNodeYaml, map[string]*bintree{}},
-	"coredns-1.14.json": {coredns114Json, map[string]*bintree{}},
-	"coredns-1.15.json": {coredns115Json, map[string]*bintree{}},
-	"coredns-1.16.json": {coredns116Json, map[string]*bintree{}},
-	"coredns-1.17.json": {coredns117Json, map[string]*bintree{}},
-	"coredns-1.18.json": {coredns118Json, map[string]*bintree{}},
+	"aws-node.yaml":     &bintree{awsNodeYaml, map[string]*bintree{}},
+	"coredns-1.14.json": &bintree{coredns114Json, map[string]*bintree{}},
+	"coredns-1.15.json": &bintree{coredns115Json, map[string]*bintree{}},
+	"coredns-1.16.json": &bintree{coredns116Json, map[string]*bintree{}},
+	"coredns-1.17.json": &bintree{coredns117Json, map[string]*bintree{}},
+	"coredns-1.18.json": &bintree{coredns118Json, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory.
