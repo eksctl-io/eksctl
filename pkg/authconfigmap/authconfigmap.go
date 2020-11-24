@@ -17,7 +17,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
-	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/client-go/kubernetes/typed/core/v1"
 	"sigs.k8s.io/yaml"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -144,9 +144,22 @@ func (a *AuthConfigMap) setAccounts(accounts []string) error {
 // role or user with given groups. If you are calling
 // this as part of node creation you should use DefaultNodeGroups.
 func (a *AuthConfigMap) AddIdentity(identity iam.Identity) error {
+	return a.AddIdentityIfNotPresent(identity, nil)
+}
+
+// AddIdentityIfNotPresent adds the specified identity if the predicate exists(identity) returns false for all entries
+func (a *AuthConfigMap) AddIdentityIfNotPresent(identity iam.Identity, exists func(iam.Identity) bool) error {
 	identities, err := a.Identities()
 	if err != nil {
 		return err
+	}
+
+	if exists != nil {
+		for _, idt := range identities {
+			if idt.Type() == identity.Type() && exists(idt) {
+				return nil
+			}
+		}
 	}
 
 	identities = append(identities, identity)
