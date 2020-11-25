@@ -292,6 +292,35 @@ var _ = Describe("EKS API wrapper", func() {
 		})
 	})
 
+	Describe("ListClusters when no clusters exist", func() {
+		It("should return empty slice", func() {
+			p = mockprovider.NewMockProvider()
+
+			c = &ClusterProvider{
+				Provider: p,
+				Status:   &ProviderStatus{},
+			}
+
+			mockResultFn := func(_ *awseks.ListClustersInput) *awseks.ListClustersOutput {
+				output := &awseks.ListClustersOutput{
+					Clusters: []*string{},
+				}
+				return output
+			}
+
+			chunkSize := 1
+
+			p.MockEKS().On("ListClusters", mock.MatchedBy(func(input *awseks.ListClustersInput) bool {
+				return *input.MaxResults == int64(chunkSize)
+			})).Return(mockResultFn, nil)
+
+			clusters, err := c.ListClusters(chunkSize, false)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(clusters).ToNot(BeNil())
+			Expect(len(clusters)).To(Equal(0))
+		})
+	})
+
 	Describe("can get OIDC issuer URL and host fingerprint", func() {
 		var (
 			ctl *ClusterProvider
