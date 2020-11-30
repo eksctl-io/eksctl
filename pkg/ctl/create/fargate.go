@@ -79,7 +79,8 @@ func doCreateFargateProfile(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	if err := eks.DoCreateFargateProfiles(cmd.ClusterConfig, ctl); err != nil {
+	client := fargate.NewClientWithWaitTimeout(cfg.Metadata.Name, ctl.Provider.EKS(), ctl.Provider.WaitTimeout())
+	if err := eks.DoCreateFargateProfiles(cmd.ClusterConfig, client); err != nil {
 		return err
 	}
 	clientSet, err := clientSet(cfg, ctl)
