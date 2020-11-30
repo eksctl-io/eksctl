@@ -11,7 +11,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/cloudflare/cfssl v1.5.0
-	github.com/dave/jennifer v1.3.0
+	github.com/dave/jennifer v1.4.1
 	github.com/dlespiau/kube-test-harness v0.0.0-20190930170435-ec3f93e1a754
 	github.com/evanphx/json-patch/v5 v5.1.0
 	github.com/fluxcd/flux/pkg/install v0.0.0-20201001122558-cb08da1b356a // flux 1.21.0
