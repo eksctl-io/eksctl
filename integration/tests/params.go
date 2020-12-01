@@ -33,6 +33,7 @@ type Params struct {
 	EksctlCmd               runner.Cmd
 	EksctlCreateCmd         runner.Cmd
 	EksctlUpgradeCmd        runner.Cmd
+	EksctlUpdateCmd         runner.Cmd
 	EksctlGetCmd            runner.Cmd
 	EksctlDeleteCmd         runner.Cmd
 	EksctlDeleteClusterCmd  runner.Cmd
@@ -68,6 +69,10 @@ func (p *Params) GenerateCommands() {
 	p.EksctlUpgradeCmd = p.EksctlCmd.
 		WithArgs("upgrade").
 		WithTimeout(50 * time.Minute)
+
+	p.EksctlUpdateCmd = p.EksctlCmd.
+		WithArgs("update").
+		WithTimeout(20 * time.Minute)
 
 	p.EksctlGetCmd = p.EksctlCmd.
 		WithArgs("get").

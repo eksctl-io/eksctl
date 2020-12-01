@@ -1109,6 +1109,84 @@ func (_m *EC2API) AssociateDhcpOptionsWithContext(_a0 context.Context, _a1 *ec2.
 	return r0, r1
 }
 
+// AssociateEnclaveCertificateIamRole provides a mock function with given fields: _a0
+func (_m *EC2API) AssociateEnclaveCertificateIamRole(_a0 *ec2.AssociateEnclaveCertificateIamRoleInput) (*ec2.AssociateEnclaveCertificateIamRoleOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.AssociateEnclaveCertificateIamRoleOutput
+	if rf, ok := ret.Get(0).(func(*ec2.AssociateEnclaveCertificateIamRoleInput) *ec2.AssociateEnclaveCertificateIamRoleOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AssociateEnclaveCertificateIamRoleOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.AssociateEnclaveCertificateIamRoleInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AssociateEnclaveCertificateIamRoleRequest provides a mock function with given fields: _a0
+func (_m *EC2API) AssociateEnclaveCertificateIamRoleRequest(_a0 *ec2.AssociateEnclaveCertificateIamRoleInput) (*request.Request, *ec2.AssociateEnclaveCertificateIamRoleOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.AssociateEnclaveCertificateIamRoleInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.AssociateEnclaveCertificateIamRoleOutput
+	if rf, ok := ret.Get(1).(func(*ec2.AssociateEnclaveCertificateIamRoleInput) *ec2.AssociateEnclaveCertificateIamRoleOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.AssociateEnclaveCertificateIamRoleOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// AssociateEnclaveCertificateIamRoleWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) AssociateEnclaveCertificateIamRoleWithContext(_a0 context.Context, _a1 *ec2.AssociateEnclaveCertificateIamRoleInput, _a2 ...request.Option) (*ec2.AssociateEnclaveCertificateIamRoleOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.AssociateEnclaveCertificateIamRoleOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AssociateEnclaveCertificateIamRoleInput, ...request.Option) *ec2.AssociateEnclaveCertificateIamRoleOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AssociateEnclaveCertificateIamRoleOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AssociateEnclaveCertificateIamRoleInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AssociateIamInstanceProfile provides a mock function with given fields: _a0
 func (_m *EC2API) AssociateIamInstanceProfile(_a0 *ec2.AssociateIamInstanceProfileInput) (*ec2.AssociateIamInstanceProfileOutput, error) {
 	ret := _m.Called(_a0)
@@ -24657,6 +24735,84 @@ func (_m *EC2API) DisassociateClientVpnTargetNetworkWithContext(_a0 context.Cont
 	return r0, r1
 }
 
+// DisassociateEnclaveCertificateIamRole provides a mock function with given fields: _a0
+func (_m *EC2API) DisassociateEnclaveCertificateIamRole(_a0 *ec2.DisassociateEnclaveCertificateIamRoleInput) (*ec2.DisassociateEnclaveCertificateIamRoleOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DisassociateEnclaveCertificateIamRoleOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DisassociateEnclaveCertificateIamRoleInput) *ec2.DisassociateEnclaveCertificateIamRoleOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisassociateEnclaveCertificateIamRoleOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DisassociateEnclaveCertificateIamRoleInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DisassociateEnclaveCertificateIamRoleRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DisassociateEnclaveCertificateIamRoleRequest(_a0 *ec2.DisassociateEnclaveCertificateIamRoleInput) (*request.Request, *ec2.DisassociateEnclaveCertificateIamRoleOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DisassociateEnclaveCertificateIamRoleInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DisassociateEnclaveCertificateIamRoleOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DisassociateEnclaveCertificateIamRoleInput) *ec2.DisassociateEnclaveCertificateIamRoleOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DisassociateEnclaveCertificateIamRoleOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DisassociateEnclaveCertificateIamRoleWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DisassociateEnclaveCertificateIamRoleWithContext(_a0 context.Context, _a1 *ec2.DisassociateEnclaveCertificateIamRoleInput, _a2 ...request.Option) (*ec2.DisassociateEnclaveCertificateIamRoleOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DisassociateEnclaveCertificateIamRoleOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisassociateEnclaveCertificateIamRoleInput, ...request.Option) *ec2.DisassociateEnclaveCertificateIamRoleOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisassociateEnclaveCertificateIamRoleOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisassociateEnclaveCertificateIamRoleInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DisassociateIamInstanceProfile provides a mock function with given fields: _a0
 func (_m *EC2API) DisassociateIamInstanceProfile(_a0 *ec2.DisassociateIamInstanceProfileInput) (*ec2.DisassociateIamInstanceProfileOutput, error) {
 	ret := _m.Called(_a0)
@@ -25975,6 +26131,84 @@ func (_m *EC2API) ExportTransitGatewayRoutesWithContext(_a0 context.Context, _a1
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ExportTransitGatewayRoutesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAssociatedEnclaveCertificateIamRoles provides a mock function with given fields: _a0
+func (_m *EC2API) GetAssociatedEnclaveCertificateIamRoles(_a0 *ec2.GetAssociatedEnclaveCertificateIamRolesInput) (*ec2.GetAssociatedEnclaveCertificateIamRolesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.GetAssociatedEnclaveCertificateIamRolesOutput
+	if rf, ok := ret.Get(0).(func(*ec2.GetAssociatedEnclaveCertificateIamRolesInput) *ec2.GetAssociatedEnclaveCertificateIamRolesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetAssociatedEnclaveCertificateIamRolesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.GetAssociatedEnclaveCertificateIamRolesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAssociatedEnclaveCertificateIamRolesRequest provides a mock function with given fields: _a0
+func (_m *EC2API) GetAssociatedEnclaveCertificateIamRolesRequest(_a0 *ec2.GetAssociatedEnclaveCertificateIamRolesInput) (*request.Request, *ec2.GetAssociatedEnclaveCertificateIamRolesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.GetAssociatedEnclaveCertificateIamRolesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.GetAssociatedEnclaveCertificateIamRolesOutput
+	if rf, ok := ret.Get(1).(func(*ec2.GetAssociatedEnclaveCertificateIamRolesInput) *ec2.GetAssociatedEnclaveCertificateIamRolesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.GetAssociatedEnclaveCertificateIamRolesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetAssociatedEnclaveCertificateIamRolesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) GetAssociatedEnclaveCertificateIamRolesWithContext(_a0 context.Context, _a1 *ec2.GetAssociatedEnclaveCertificateIamRolesInput, _a2 ...request.Option) (*ec2.GetAssociatedEnclaveCertificateIamRolesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.GetAssociatedEnclaveCertificateIamRolesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetAssociatedEnclaveCertificateIamRolesInput, ...request.Option) *ec2.GetAssociatedEnclaveCertificateIamRolesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetAssociatedEnclaveCertificateIamRolesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetAssociatedEnclaveCertificateIamRolesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)

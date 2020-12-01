@@ -203,6 +203,9 @@ const (
 	// IAMServiceAccountNameTag defines the tag of the IAM service account name
 	IAMServiceAccountNameTag = "alpha.eksctl.io/iamserviceaccount-name"
 
+	// AddonNameTag defines the tag of the IAM service account name
+	AddonNameTag = "alpha.eksctl.io/addon-name"
+
 	// ClusterNameLabel defines the tag of the cluster name
 	ClusterNameLabel = "alpha.eksctl.io/cluster-name"
 
@@ -554,6 +557,9 @@ type ClusterConfig struct {
 
 	// +optional
 	VPC *ClusterVPC `json:"vpc,omitempty"`
+
+	// +optional
+	Addons []*Addon `json:"addons,omitempty"`
 
 	// PrivateCluster allows configuring a fully-private cluster
 	// in which no node has outbound internet access, and private access

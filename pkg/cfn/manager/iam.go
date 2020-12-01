@@ -117,3 +117,31 @@ func (*StackCollection) GetIAMServiceAccountName(s *Stack) string {
 	}
 	return ""
 }
+
+func (c *StackCollection) GetIAMAddonsStacks() ([]*Stack, error) {
+	stacks, err := c.DescribeStacks()
+	if err != nil {
+		return nil, err
+	}
+
+	iamAddonStacks := []*Stack{}
+	for _, s := range stacks {
+		if *s.StackStatus == cfn.StackStatusDeleteComplete {
+			continue
+		}
+		if c.GetIAMAddonName(s) != "" {
+			iamAddonStacks = append(iamAddonStacks, s)
+		}
+	}
+	logger.Debug("iamserviceaccounts = %v", iamAddonStacks)
+	return iamAddonStacks, nil
+}
+
+func (*StackCollection) GetIAMAddonName(s *Stack) string {
+	for _, tag := range s.Tags {
+		if *tag.Key == api.AddonNameTag {
+			return *tag.Value
+		}
+	}
+	return ""
+}

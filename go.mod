@@ -68,6 +68,7 @@ require (
 
 replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v14.0.0+incompatible
+	github.com/aws/aws-sdk-go => github.com/weaveworks/aws-sdk-go v0.0.0-20201201091233-ac5a6d7dbe32
 	// github.com/aws/aws-sdk-go => github.com/weaveworks/aws-sdk-go v1.25.14-0.20191218135223-757eeed07291
 	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.3.1
 	// k8s.io/kops is still using old version of component-base

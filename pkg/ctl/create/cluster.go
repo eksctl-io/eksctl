@@ -4,6 +4,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+
+	"github.com/weaveworks/eksctl/pkg/utils"
+
+	"github.com/weaveworks/eksctl/pkg/actions/addon"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -312,7 +318,20 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			return err
 		}
 		postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(cfg, params.InstallWindowsVPCController)
-		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks)
+
+		supported, err := utils.IsMinVersion(api.Version1_18, cfg.Metadata.Version)
+		if err != nil {
+			return err
+		}
+
+		var tasks *manager.TaskTree
+		if supported {
+			createAddonTasks := addon.CreateAddonTasks(cfg, ctl)
+			createAddonTasks.IsSubTask = true
+			tasks = stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks, createAddonTasks)
+		} else {
+			tasks = stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks)
+		}
 
 		logger.Info(tasks.Describe())
 		if errs := tasks.DoAllSync(); len(errs) > 0 {

@@ -38,6 +38,16 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvid
 		}
 	}
 
+	deleteAddonIAMtasks, err := c.NewTaskToDeleteAddonIAM(wait)
+	if err != nil {
+		return nil, err
+	}
+
+	if deleteAddonIAMtasks.Len() > 0 {
+		deleteAddonIAMtasks.IsSubTask = true
+		tasks.Append(deleteAddonIAMtasks)
+	}
+
 	clusterStack, err := c.DescribeClusterStack()
 	if err != nil {
 		return nil, err
@@ -180,4 +190,37 @@ func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(shouldDelete func(s
 	}
 
 	return tasks, nil
+}
+
+// NewTasksToDeleteIAMServiceAccounts defines tasks required to delete all of the iamserviceaccounts
+func (c *StackCollection) NewTaskToDeleteAddonIAM(wait bool) (*TaskTree, error) {
+	stacks, err := c.GetIAMAddonsStacks()
+	if err != nil {
+		return nil, err
+	}
+	tasks := &TaskTree{Parallel: true}
+	for _, s := range stacks {
+		info := fmt.Sprintf("delete addon IAM %q", *s.StackName)
+
+		deleteStackTasks := &TaskTree{
+			Parallel:  false,
+			IsSubTask: true,
+		}
+		if wait {
+			deleteStackTasks.Append(&taskWithStackSpec{
+				info:  info,
+				stack: s,
+				call:  c.DeleteStackBySpecSync,
+			})
+		} else {
+			deleteStackTasks.Append(&asyncTaskWithStackSpec{
+				info:  info,
+				stack: s,
+				call:  c.DeleteStackBySpec,
+			})
+		}
+		tasks.Append(deleteStackTasks)
+	}
+	return tasks, nil
+
 }
