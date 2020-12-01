@@ -113,21 +113,23 @@ integration-test: build build-integration-test ## Run the integration tests (wit
 	JUNIT_REPORT_DIR=$(git_toplevel)/test-results ./eksctl-integration-test $(INTEGRATION_TEST_ARGS)
 
 .PHONY: integration-test-container
-integration-test-container: eksctl-image ## Run the integration tests inside a Docker container
-	$(MAKE) integration-test-container-pre-built
-
-.PHONY: integration-test-container-pre-built
-integration-test-container-pre-built: ## Run the integration tests inside a Docker container
+integration-test-container:
+	sudo cp -f ${SSH_KEY_PATH} $(HOME)/project/.ssh/gitops_id_rsa
+	sudo chmod 0600 $(HOME)/project/.ssh/gitops_id_rsa
 	docker run \
-	  --env=AWS_PROFILE \
-	  --volume=$(HOME)/.aws:/root/.aws \
-	  --volume=$(HOME)/.ssh:/root/.ssh \
-	  --workdir=/usr/local/share/eksctl \
-	    $(eksctl_image_name) \
-		  eksctl-integration-test \
-		    -eksctl.path=/usr/local/bin/eksctl \
-			-eksctl.kubeconfig=/tmp/kubeconfig \
-			  $(INTEGRATION_TEST_ARGS)
+	  --env=JUNIT_REPORT_DIR=/src/test-results \
+	  --env=GOPRIVATE \
+	  --env=AWS_SESSION_TOKEN \
+	  --env=AWS_ACCESS_KEY_ID \
+	  --env=AWS_SECRET_ACCESS_KEY \
+	  --env=SSH_KEY_PATH=/root/.ssh/gitops_id_rsa \
+	  --env=TEST_V=1 \
+	  --volume=$(shell pwd):/src \
+	  --volume=$(HOME)/.cache/go-build/:/root/.cache/go-build \
+	  --volume=$(HOME)/go/pkg/mod/:/go/pkg/mod \
+	  --volume=$(HOME)/project/.ssh:/root/.ssh \
+	  weaveworks/eksctl-build:$(shell cat build/docker/image_tag) \
+          $(MAKE) integration-test
 
 TEST_CLUSTER ?= integration-test-dev
 .PHONY: integration-test-dev
@@ -144,10 +146,10 @@ integration-test-dev: build-integration-test ## Run the integration tests withou
 		-eksctl.kubeconfig=$(HOME)/.kube/eksctl/clusters/$(TEST_CLUSTER)
 
 create-integration-test-dev-cluster: build ## Create a test cluster for use when developing integration tests
-	./eksctl create cluster --name=integration-test-dev --auto-kubeconfig --nodes=1 --nodegroup-name=ng-0
+	./eksctl create cluster --name=$(TEST_CLUSTER) --auto-kubeconfig --nodes=1 --nodegroup-name=ng-0
 
 delete-integration-test-dev-cluster: build ## Delete the test cluster for use when developing integration tests
-	./eksctl delete cluster --name=integration-test-dev --auto-kubeconfig
+	./eksctl delete cluster --name=$(TEST_CLUSTER) --auto-kubeconfig
 
 ##@ Code Generation
 
