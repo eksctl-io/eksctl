@@ -16,9 +16,9 @@ import (
 )
 
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
-	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options create.NodeGroupOptions, managed bool) error {
+	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options create.NodeGroupOptions, mngOptions cmdutils.CreateManagedNGOptions) error {
 		ngFilter := filter.NewNodeGroupFilter()
-		if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, managed).Load(); err != nil {
+		if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, mngOptions).Load(); err != nil {
 			return errors.Wrap(err, "couldn't create node group filter from command line options")
 		}
 		ctl, err := cmd.NewCtl()
@@ -39,15 +39,17 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 }
 
-type runFn func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options create.NodeGroupOptions, managed bool) error
+type runFn func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options create.NodeGroupOptions, mngOptions cmdutils.CreateManagedNGOptions) error
 
 func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
-	var options create.NodeGroupOptions
-	var managed bool
+	var (
+		options    create.NodeGroupOptions
+		mngOptions cmdutils.CreateManagedNGOptions
+	)
 
 	cfg.Metadata.Version = "auto"
 
@@ -55,7 +57,7 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return runFunc(cmd, ng, options, managed)
+		return runFunc(cmd, ng, options, mngOptions)
 	}
 
 	exampleNodeGroupName := names.ForNodeGroup("", "")
@@ -73,8 +75,7 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 
 	cmd.FlagSetGroup.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&ng.Name, "name", "n", "", fmt.Sprintf("name of the new nodegroup (generated if unspecified, e.g. %q)", exampleNodeGroupName))
-		cmdutils.AddCommonCreateNodeGroupFlags(fs, cmd, ng)
-		fs.BoolVarP(&managed, "managed", "", false, "Create EKS-managed nodegroup")
+		cmdutils.AddCommonCreateNodeGroupFlags(fs, cmd, ng, &mngOptions)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Addons", func(fs *pflag.FlagSet) {

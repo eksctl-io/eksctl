@@ -1,0 +1,21 @@
+# spot-cluster.yaml
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: spot-cluster
+  region: us-west-2
+
+managedNodeGroups:
+- name: spot
+  instanceTypes: ["c3.large","c4.large","c5.large","c5d.large","c5n.large","c5a.large"]
+  spot: true
+
+# `instanceTypes` defaults to [`m5.large`]
+- name: spot-2
+  spot: true
+
+# On-Demand instances
+- name: on-demand
+  instanceTypes: ["c3.large", "c4.large", "c5.large"]

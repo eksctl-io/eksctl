@@ -1177,8 +1177,8 @@ github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 h1:txplJASvd6b
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2/go.mod h1:DGCIhurYgnLz8J9ga1fMV/fbLDyUvTyrWXVWUIyJon4=
 github.com/weaveworks/aws-sdk-go v0.0.0-20201201091233-ac5a6d7dbe32 h1:0wqm73uJN5qNrh5GRCbqeoxdNX/+55UFkee1D1T7bng=
 github.com/weaveworks/aws-sdk-go v0.0.0-20201201091233-ac5a6d7dbe32/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2zKMmprdro=
-github.com/weaveworks/goformation/v4 v4.10.2-0.20201111141619-594e2a8b695f h1:D7pzv2ep6sXjuN4mz7cDdWW/4l04A5cHxoUeA2H5FU0=
-github.com/weaveworks/goformation/v4 v4.10.2-0.20201111141619-594e2a8b695f/go.mod h1:x92o12+Azh6DQ4yoXT5oEuE7dhQHR5V2vy/fmZ6pO7k=
+github.com/weaveworks/goformation/v4 v4.10.2-0.20201201143936-6016cb59d8ca h1:QUYvB73KRYUJc4yy9tXu0bSiTZVt/OA6n0F6bjfvIOc=
+github.com/weaveworks/goformation/v4 v4.10.2-0.20201201143936-6016cb59d8ca/go.mod h1:x92o12+Azh6DQ4yoXT5oEuE7dhQHR5V2vy/fmZ6pO7k=
 github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15 h1:i/RhLevywqC6cuUWtGdoaNrsJd+/zWh3PXbkXZIyZsU=
 github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15/go.mod h1:w9Z1vnQmPobkEZ0F3oyiqRYP+62qDqTGnK6t5uhe1kg=
 github.com/weaveworks/mesh v0.0.0-20170419100114-1f158d31de55/go.mod h1:mcON9Ws1aW0crSErpXWp7U1ErCDEKliDX2OhVlbWRKk=
