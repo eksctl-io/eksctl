@@ -11,7 +11,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/cloudflare/cfssl v1.5.0
-	github.com/dave/jennifer v1.3.0
+	github.com/dave/jennifer v1.4.1
 	github.com/dlespiau/kube-test-harness v0.0.0-20190930170435-ec3f93e1a754
 	github.com/evanphx/json-patch/v5 v5.1.0
 	github.com/fluxcd/flux/pkg/install v0.0.0-20201001122558-cb08da1b356a // flux 1.21.0
@@ -20,7 +20,7 @@ require (
 	github.com/github-release/github-release v0.8.1
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/flock v0.8.0
-	github.com/golangci/golangci-lint v1.32.2
+	github.com/golangci/golangci-lint v1.33.0
 	github.com/goreleaser/goreleaser v0.147.1
 	github.com/inconshreveable/log15 v0.0.0-20200109203555-b30bc20e4fd1 // indirect
 	github.com/instrumenta/kubeval v0.0.0-20190918223246-8d013ec9fc56
@@ -62,7 +62,7 @@ require (
 	k8s.io/kubelet v0.16.8
 	k8s.io/kubernetes v1.16.8
 	k8s.io/legacy-cloud-providers v0.16.8
-	sigs.k8s.io/aws-iam-authenticator v0.5.0
+	sigs.k8s.io/aws-iam-authenticator v0.5.2
 	sigs.k8s.io/yaml v1.2.0
 )
 
