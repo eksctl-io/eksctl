@@ -1,3 +1,5 @@
+SHELL=/bin/bash
+
 include Makefile.common
 include Makefile.docs
 
