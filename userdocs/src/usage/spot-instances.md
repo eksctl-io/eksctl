@@ -1,5 +1,73 @@
 # Spot instances
 
+## Managed Nodegroups
+
+`eksctl` supports [Spot worker nodes using EKS Managed Nodegroups][eks-user-guide], a feature that allows EKS customers with
+fault-tolerant applications to easily provision and manage EC2 Spot Instances for their EKS clusters.
+EKS Managed Nodegroup will configure and launch an EC2 Autoscaling group of Spot Instances following Spot best
+practices and draining Spot worker nodes automatically before the instances are interrupted by AWS. There is no
+incremental charge to use this feature and customers pay only for using the AWS resources, such as EC2 Spot Instances
+and EBS volumes.
+
+To create a cluster with a managed nodegroup using Spot instances, pass the `--spot` flag and an optional list of instance types:
+
+```console
+$ eksctl create cluster --managed --spot --instance-types=c3.large,c4.large,c5.large
+```
+
+To create a managed nodegroup using Spot instances on an existing cluster:
+
+```console
+$ eksctl create nodegroup --cluster=<clusterName> --managed --spot --instance-types=c3.large,c4.large,c5.large
+```
+
+To create Spot instances using managed nodegroups via a config file:
+
+```yaml
+# spot-cluster.yaml
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: spot-cluster
+  region: us-west-2
+
+managedNodeGroups:
+- name: spot
+  instanceTypes: ["c3.large","c4.large","c5.large","c5d.large","c5n.large","c5a.large"]
+  spot: true
+
+
+# `instanceTypes` defaults to [`m5.large`]
+- name: spot-2
+  spot: true
+
+# On-Demand instances
+- name: on-demand
+  instanceTypes: ["c3.large", "c4.large", "c5.large"]
+
+```
+
+```console
+$ eksctl create cluster -f spot-cluster.yaml
+```
+
+!!!note
+    Unmanaged nodegroups do not support the `spot` and `instanceTypes` fields, instead the `instancesDistribution` field
+    is used to configure Spot instances. [See below](spot-instances.md#unmanaged-nodegroups)
+
+
+### Further information
+
+- [EKS Spot Nodegroups][eks-user-guide]
+- [EKS Managed Nodegroup Capacity Types](https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html#managed-node-group-capacity-types)
+
+[eks-user-guide]: https://aws.amazon.com/blogs/containers/amazon-eks-now-supports-provisioning-and-managing-ec2-spot-instances-in-managed-node-groups/
+
+
+
+## Unmanaged Nodegroups
 `eksctl` has support for spot instances through the MixedInstancesPolicy for Auto Scaling Groups.
 
 Here is an example of a nodegroup that uses 50% spot instances and 50% on demand instances:
@@ -49,7 +117,7 @@ nodeGroups:
       spotAllocationStrategy: "capacity-optimized"
 ```
 
-Note that the `spotInstancePools` field shouldn't be set when using the `spotAllocationStrategy` field. If the `spotAllocationStrategy` is not specified, EC2 will default to use the `lowest-price` strategy. 
+Note that the `spotInstancePools` field shouldn't be set when using the `spotAllocationStrategy` field. If the `spotAllocationStrategy` is not specified, EC2 will default to use the `lowest-price` strategy.
 
 Here is a minimal example:
 
