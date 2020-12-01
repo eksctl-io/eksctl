@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	"fmt"
+	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -33,7 +34,7 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 		cfg.IAM.VPCResourceControllerPolicy = Enabled()
 	}
 
-	if IsEnabled(cfg.IAM.WithOIDC) {
+	if IsEnabled(cfg.IAM.WithOIDC) && !vpcniAddonSpecified(cfg) {
 		var found bool
 		for _, sa := range cfg.IAM.ServiceAccounts {
 			found = found || (sa.Name == awsNodeMeta.Name && sa.Namespace == awsNodeMeta.Namespace)
@@ -65,6 +66,15 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 	if cfg.PrivateCluster == nil {
 		cfg.PrivateCluster = &PrivateCluster{}
 	}
+}
+
+func vpcniAddonSpecified(cfg *ClusterConfig) bool {
+	for _, a := range cfg.Addons {
+		if strings.ToLower(a.Name) == "vpc-cni" {
+			return true
+		}
+	}
+	return false
 }
 
 // SetNodeGroupDefaults will set defaults for a given nodegroup

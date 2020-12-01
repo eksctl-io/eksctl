@@ -143,13 +143,21 @@ func (m *OpenIDConnectManager) getIssuerCAThumbprint() error {
 	return fmt.Errorf("unable to get OIDC issuer's certificate")
 }
 
-// MakeAssumeRolePolicyDocument constructs a trust policy document for the given
+// MakeAssumeRolePolicyDocumentWithServiceAccountConditions constructs a trust policy document for the given
 // provider
-func (m *OpenIDConnectManager) MakeAssumeRolePolicyDocument(serviceAccountNamespace, serviceAccountName string) cft.MapOfInterfaces {
+func (m *OpenIDConnectManager) MakeAssumeRolePolicyDocumentWithServiceAccountConditions(serviceAccountNamespace, serviceAccountName string) cft.MapOfInterfaces {
 	subject := fmt.Sprintf("system:serviceaccount:%s:%s", serviceAccountNamespace, serviceAccountName)
 	return cft.MakeAssumeRoleWithWebIdentityPolicyDocument(m.ProviderARN, cft.MapOfInterfaces{
 		"StringEquals": map[string]string{
 			m.hostnameAndPath() + ":sub": subject,
+			m.hostnameAndPath() + ":aud": m.audience,
+		},
+	})
+}
+
+func (m *OpenIDConnectManager) MakeAssumeRolePolicyDocument() cft.MapOfInterfaces {
+	return cft.MakeAssumeRoleWithWebIdentityPolicyDocument(m.ProviderARN, cft.MapOfInterfaces{
+		"StringEquals": map[string]string{
 			m.hostnameAndPath() + ":aud": m.audience,
 		},
 	})

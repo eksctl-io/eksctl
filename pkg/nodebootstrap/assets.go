@@ -24,7 +24,7 @@ import (
 func bindataRead(data []byte, name string) ([]byte, error) {
 	gz, err := gzip.NewReader(bytes.NewBuffer(data))
 	if err != nil {
-		return nil, fmt.Errorf("read %q: %w", name, err)
+		return nil, fmt.Errorf("read %q: %v", name, err)
 	}
 
 	var buf bytes.Buffer
@@ -32,7 +32,7 @@ func bindataRead(data []byte, name string) ([]byte, error) {
 	clErr := gz.Close()
 
 	if err != nil {
-		return nil, fmt.Errorf("read %q: %w", name, err)
+		return nil, fmt.Errorf("read %q: %v", name, err)
 	}
 	if clErr != nil {
 		return nil, err
@@ -271,9 +271,6 @@ var _bindata = map[string]func() (*asset, error){
 	"kubelet.yaml":        kubeletYaml,
 }
 
-// AssetDebug is true if the assets were built with the debug flag enabled.
-const AssetDebug = false
-
 // AssetDir returns the file names below a certain
 // directory embedded in the file by go-bindata.
 // For example if you run go-bindata on data/... and data contains the
@@ -315,11 +312,11 @@ type bintree struct {
 }
 
 var _bintree = &bintree{nil, map[string]*bintree{
-	"10-eksclt.al2.conf": {_10EkscltAl2Conf, map[string]*bintree{}},
-	"bootstrap.al2.sh": {bootstrapAl2Sh, map[string]*bintree{}},
-	"bootstrap.ubuntu.sh": {bootstrapUbuntuSh, map[string]*bintree{}},
-	"install-ssm.al2.sh": {installSsmAl2Sh, map[string]*bintree{}},
-	"kubelet.yaml": {kubeletYaml, map[string]*bintree{}},
+	"10-eksclt.al2.conf":  &bintree{_10EkscltAl2Conf, map[string]*bintree{}},
+	"bootstrap.al2.sh":    &bintree{bootstrapAl2Sh, map[string]*bintree{}},
+	"bootstrap.ubuntu.sh": &bintree{bootstrapUbuntuSh, map[string]*bintree{}},
+	"install-ssm.al2.sh":  &bintree{installSsmAl2Sh, map[string]*bintree{}},
+	"kubelet.yaml":        &bintree{kubeletYaml, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory.

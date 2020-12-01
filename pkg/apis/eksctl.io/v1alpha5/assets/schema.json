@@ -33,6 +33,45 @@
       ],
       "additionalProperties": false
     },
+    "Addon": {
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "attachPolicy": {
+          "$ref": "#/definitions/InlineDocument",
+          "description": "holds a policy document to attach to this service account",
+          "x-intellij-html-description": "holds a policy document to attach to this service account"
+        },
+        "attachPolicyARNs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "list of ARNs of the IAM policies to attach",
+          "x-intellij-html-description": "list of ARNs of the IAM policies to attach"
+        },
+        "name": {
+          "type": "string"
+        },
+        "serviceAccountRoleARN": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "version",
+        "serviceAccountRoleARN",
+        "attachPolicyARNs",
+        "attachPolicy"
+      ],
+      "additionalProperties": false,
+      "description": "holds the EKS addon configuration",
+      "x-intellij-html-description": "holds the EKS addon configuration"
+    },
     "ClusterCloudWatch": {
       "properties": {
         "clusterLogging": {
@@ -78,6 +117,12 @@
         "apiVersion"
       ],
       "properties": {
+        "addons": {
+          "items": {
+            "$ref": "#/definitions/Addon"
+          },
+          "type": "array"
+        },
         "apiVersion": {
           "type": "string",
           "enum": [
@@ -157,6 +202,7 @@
         "kubernetesNetworkConfig",
         "iam",
         "vpc",
+        "addons",
         "privateCluster",
         "nodeGroups",
         "managedNodeGroups",

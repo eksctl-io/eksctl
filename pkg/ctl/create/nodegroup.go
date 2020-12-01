@@ -36,12 +36,12 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 		}
 		return c.Create()
 	})
+
 }
 
-func createNodeGroupCmdWithRunFunc(
-	cmd *cmdutils.Cmd,
-	runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options create.NodeGroupOptions, managed bool) error,
-) {
+type runFn func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options create.NodeGroupOptions, managed bool) error
+
+func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg

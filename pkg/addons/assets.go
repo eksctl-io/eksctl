@@ -27,7 +27,7 @@ import (
 func bindataRead(data []byte, name string) ([]byte, error) {
 	gz, err := gzip.NewReader(bytes.NewBuffer(data))
 	if err != nil {
-		return nil, fmt.Errorf("read %q: %w", name, err)
+		return nil, fmt.Errorf("read %q: %v", name, err)
 	}
 
 	var buf bytes.Buffer
@@ -35,7 +35,7 @@ func bindataRead(data []byte, name string) ([]byte, error) {
 	clErr := gz.Close()
 
 	if err != nil {
-		return nil, fmt.Errorf("read %q: %w", name, err)
+		return nil, fmt.Errorf("read %q: %v", name, err)
 	}
 	if clErr != nil {
 		return nil, err
@@ -337,9 +337,6 @@ var _bindata = map[string]func() (*asset, error){
 	"vpc-resource-controller.yaml":      vpcResourceControllerYaml,
 }
 
-// AssetDebug is true if the assets were built with the debug flag enabled.
-const AssetDebug = false
-
 // AssetDir returns the file names below a certain
 // directory embedded in the file by go-bindata.
 // For example if you run go-bindata on data/... and data contains the
@@ -381,14 +378,14 @@ type bintree struct {
 }
 
 var _bintree = &bintree{nil, map[string]*bintree{
-	"neuron-device-plugin.yaml": {neuronDevicePluginYaml, map[string]*bintree{}},
-	"nvidia-device-plugin.yaml": {nvidiaDevicePluginYaml, map[string]*bintree{}},
-	"vpc-admission-webhook-config.yaml": {vpcAdmissionWebhookConfigYaml, map[string]*bintree{}},
-	"vpc-admission-webhook-csr.yaml": {vpcAdmissionWebhookCsrYaml, map[string]*bintree{}},
-	"vpc-admission-webhook-dep.yaml": {vpcAdmissionWebhookDepYaml, map[string]*bintree{}},
-	"vpc-admission-webhook.yaml": {vpcAdmissionWebhookYaml, map[string]*bintree{}},
-	"vpc-resource-controller-dep.yaml": {vpcResourceControllerDepYaml, map[string]*bintree{}},
-	"vpc-resource-controller.yaml": {vpcResourceControllerYaml, map[string]*bintree{}},
+	"neuron-device-plugin.yaml":         &bintree{neuronDevicePluginYaml, map[string]*bintree{}},
+	"nvidia-device-plugin.yaml":         &bintree{nvidiaDevicePluginYaml, map[string]*bintree{}},
+	"vpc-admission-webhook-config.yaml": &bintree{vpcAdmissionWebhookConfigYaml, map[string]*bintree{}},
+	"vpc-admission-webhook-csr.yaml":    &bintree{vpcAdmissionWebhookCsrYaml, map[string]*bintree{}},
+	"vpc-admission-webhook-dep.yaml":    &bintree{vpcAdmissionWebhookDepYaml, map[string]*bintree{}},
+	"vpc-admission-webhook.yaml":        &bintree{vpcAdmissionWebhookYaml, map[string]*bintree{}},
+	"vpc-resource-controller-dep.yaml":  &bintree{vpcResourceControllerDepYaml, map[string]*bintree{}},
+	"vpc-resource-controller.yaml":      &bintree{vpcResourceControllerYaml, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory.

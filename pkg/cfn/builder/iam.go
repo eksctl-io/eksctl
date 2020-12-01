@@ -227,7 +227,7 @@ func (rs *IAMServiceAccountResourceSet) AddAllResources() error {
 	// we will need to consider using a large stack for all the roles, but that needs some
 	// testing and potentially a better stack mutation strategy
 	role := &cft.IAMRole{
-		AssumeRolePolicyDocument: rs.oidc.MakeAssumeRolePolicyDocument(rs.spec.Namespace, rs.spec.Name),
+		AssumeRolePolicyDocument: rs.oidc.MakeAssumeRolePolicyDocumentWithServiceAccountConditions(rs.spec.Namespace, rs.spec.Name),
 		PermissionsBoundary:      rs.spec.PermissionsBoundary,
 	}
 	role.ManagedPolicyArns = append(role.ManagedPolicyArns, rs.spec.AttachPolicyARNs...)
@@ -261,5 +261,84 @@ func (rs *IAMServiceAccountResourceSet) RenderJSON() ([]byte, error) {
 
 // GetAllOutputs will get all outputs from iamserviceaccount stack
 func (rs *IAMServiceAccountResourceSet) GetAllOutputs(stack cfn.Stack) error {
+	return rs.outputs.MustCollect(stack)
+}
+
+// IAMRoleResourceSet holds IAM Role stack build-time information
+type IAMRoleResourceSet struct {
+	template         *cft.Template
+	oidc             *iamoidc.OpenIDConnectManager
+	outputs          *outputs.CollectorSet
+	name             string
+	attachPolicyARNs []string
+	attachPolicy     api.InlineDocument
+	OutputRole       string
+}
+
+// NewIAMServiceAccountResourceSet builds IAM Role stack from the give spec
+func NewIAMRoleResourceSetWithAttachPolicyARNs(name string, attachPolicyARNs []string, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
+	return &IAMRoleResourceSet{
+		template:         cft.NewTemplate(),
+		attachPolicyARNs: attachPolicyARNs,
+		name:             name,
+		oidc:             oidc,
+	}
+}
+
+// NewIAMServiceAccountResourceSet builds IAM Role stack from the give spec
+func NewIAMRoleResourceSetWithAttachPolicy(name string, attachPolicy api.InlineDocument, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
+	return &IAMRoleResourceSet{
+		template:     cft.NewTemplate(),
+		attachPolicy: attachPolicy,
+		name:         name,
+		oidc:         oidc,
+	}
+}
+
+// WithIAM returns true
+func (*IAMRoleResourceSet) WithIAM() bool { return true }
+
+// WithNamedIAM returns false
+func (*IAMRoleResourceSet) WithNamedIAM() bool { return false }
+
+// AddAllResources adds all resources for the stack
+func (rs *IAMRoleResourceSet) AddAllResources() error {
+	rs.template.Description = fmt.Sprintf(
+		"IAM role for %q %s",
+		rs.name,
+		templateDescriptionSuffix,
+	)
+
+	role := &cft.IAMRole{
+		AssumeRolePolicyDocument: rs.oidc.MakeAssumeRolePolicyDocument(),
+	}
+	role.ManagedPolicyArns = append(role.ManagedPolicyArns, rs.attachPolicyARNs...)
+
+	roleRef := rs.template.NewResource("Role1", role)
+
+	rs.template.Outputs["Role1"] = cft.Output{
+		Value: cft.MakeFnGetAttString("Role1.Arn"),
+	}
+	rs.outputs = outputs.NewCollectorSet(map[string]outputs.Collector{
+		"Role1": func(v string) error {
+			rs.OutputRole = v
+			return nil
+		},
+	})
+
+	if len(rs.attachPolicy) != 0 {
+		rs.template.AttachPolicy("Policy1", roleRef, rs.attachPolicy)
+	}
+
+	return nil
+}
+
+// RenderJSON will render iamserviceaccount stack as JSON
+func (rs *IAMRoleResourceSet) RenderJSON() ([]byte, error) {
+	return rs.template.RenderJSON()
+}
+
+// GetAllOutputs will get all outputs from iamserviceaccount stack
+func (rs *IAMRoleResourceSet) GetAllOutputs(stack cfn.Stack) error {
 	return rs.outputs.MustCollect(stack)
 }
