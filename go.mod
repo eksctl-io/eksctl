@@ -6,7 +6,7 @@ go 1.15
 
 require (
 	github.com/Azure/go-autorest/autorest v0.10.0 // indirect
-	github.com/aws/aws-sdk-go v1.35.4
+	github.com/aws/aws-sdk-go v1.36.0
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
@@ -68,7 +68,6 @@ require (
 
 replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v14.0.0+incompatible
-	github.com/aws/aws-sdk-go => github.com/weaveworks/aws-sdk-go v0.0.0-20201201091233-ac5a6d7dbe32
 	// github.com/aws/aws-sdk-go => github.com/weaveworks/aws-sdk-go v1.25.14-0.20191218135223-757eeed07291
 	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.3.1
 	// k8s.io/kops is still using old version of component-base

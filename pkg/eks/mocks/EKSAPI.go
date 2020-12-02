@@ -712,6 +712,41 @@ func (_m *EKSAPI) DescribeAddonVersions(_a0 *eks.DescribeAddonVersionsInput) (*e
 	return r0, r1
 }
 
+// DescribeAddonVersionsPages provides a mock function with given fields: _a0, _a1
+func (_m *EKSAPI) DescribeAddonVersionsPages(_a0 *eks.DescribeAddonVersionsInput, _a1 func(*eks.DescribeAddonVersionsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.DescribeAddonVersionsInput, func(*eks.DescribeAddonVersionsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeAddonVersionsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EKSAPI) DescribeAddonVersionsPagesWithContext(_a0 context.Context, _a1 *eks.DescribeAddonVersionsInput, _a2 func(*eks.DescribeAddonVersionsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeAddonVersionsInput, func(*eks.DescribeAddonVersionsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeAddonVersionsRequest provides a mock function with given fields: _a0
 func (_m *EKSAPI) DescribeAddonVersionsRequest(_a0 *eks.DescribeAddonVersionsInput) (*request.Request, *eks.DescribeAddonVersionsOutput) {
 	ret := _m.Called(_a0)
@@ -1130,6 +1165,41 @@ func (_m *EKSAPI) ListAddons(_a0 *eks.ListAddonsInput) (*eks.ListAddonsOutput, e
 	}
 
 	return r0, r1
+}
+
+// ListAddonsPages provides a mock function with given fields: _a0, _a1
+func (_m *EKSAPI) ListAddonsPages(_a0 *eks.ListAddonsInput, _a1 func(*eks.ListAddonsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.ListAddonsInput, func(*eks.ListAddonsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListAddonsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EKSAPI) ListAddonsPagesWithContext(_a0 context.Context, _a1 *eks.ListAddonsInput, _a2 func(*eks.ListAddonsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListAddonsInput, func(*eks.ListAddonsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // ListAddonsRequest provides a mock function with given fields: _a0
@@ -2261,6 +2331,76 @@ func (_m *EKSAPI) UpdateNodegroupVersionWithContext(_a0 context.Context, _a1 *ek
 	}
 
 	return r0, r1
+}
+
+// WaitUntilAddonActive provides a mock function with given fields: _a0
+func (_m *EKSAPI) WaitUntilAddonActive(_a0 *eks.DescribeAddonInput) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.DescribeAddonInput) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilAddonActiveWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) WaitUntilAddonActiveWithContext(_a0 context.Context, _a1 *eks.DescribeAddonInput, _a2 ...request.WaiterOption) error {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeAddonInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilAddonDeleted provides a mock function with given fields: _a0
+func (_m *EKSAPI) WaitUntilAddonDeleted(_a0 *eks.DescribeAddonInput) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.DescribeAddonInput) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilAddonDeletedWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) WaitUntilAddonDeletedWithContext(_a0 context.Context, _a1 *eks.DescribeAddonInput, _a2 ...request.WaiterOption) error {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeAddonInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // WaitUntilClusterActive provides a mock function with given fields: _a0
