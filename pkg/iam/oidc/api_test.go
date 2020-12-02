@@ -188,9 +188,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 				}
 				return false
 			})).Return(nil, nil)
-		})
 
-		JustBeforeEach(func() {
 			oidc, err = NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10028/", "aws")
 			Expect(err).NotTo(HaveOccurred())
 
@@ -201,29 +199,21 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 				_ = srv.serve()
 			}()
 
-			{
-				exists, err := oidc.CheckProviderExists()
-				Expect(err).NotTo(HaveOccurred())
-				Expect(exists).To(BeFalse())
-				Expect(oidc.ProviderARN).To(BeEmpty())
-			}
-
 			oidc.insecureSkipVerify = true
 
 			err = oidc.CreateProvider()
 			Expect(err).NotTo(HaveOccurred())
 
-			{
-				exists, err := oidc.CheckProviderExists()
-				Expect(err).NotTo(HaveOccurred())
-				Expect(exists).To(BeTrue())
-				Expect(oidc.ProviderARN).To(Equal(fakeProviderARN))
-			}
+			exists, err := oidc.CheckProviderExists()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(exists).To(BeTrue())
+			Expect(oidc.ProviderARN).To(Equal(fakeProviderARN))
 
 		})
 
-		JustAfterEach(func() {
+		AfterEach(func() {
 			Expect(srv.close()).To(Succeed())
+			Expect(oidc.DeleteProvider()).NotTo(HaveOccurred())
 		})
 
 		It("delete existing OIDC provider and check it no longer exists", func() {
@@ -240,7 +230,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(exists).To(BeTrue())
 
-			document := oidc.MakeAssumeRolePolicyDocument("test-ns1", "test-sa1")
+			document := oidc.MakeAssumeRolePolicyDocumentWithServiceAccountConditions("test-ns1", "test-sa1")
 			Expect(document).ToNot(BeEmpty())
 
 			expected := `{
@@ -255,6 +245,37 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 						"Condition": {
 							"StringEquals": {
 								"localhost/:sub": "system:serviceaccount:test-ns1:test-sa1",
+								"localhost/:aud": "sts.amazonaws.com"
+							}
+						}
+					}
+				]
+			}`
+
+			js, err := json.Marshal(document)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(js).To(MatchJSON(expected))
+		})
+
+		It("should construct assume role policy document", func() {
+			exists, err := oidc.CheckProviderExists()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(exists).To(BeTrue())
+
+			document := oidc.MakeAssumeRolePolicyDocument()
+			Expect(document).ToNot(BeEmpty())
+
+			expected := `{
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": {
+							"Federated": "` + fakeProviderARN + `"
+						},
+						"Action": ["sts:AssumeRoleWithWebIdentity"],
+						"Condition": {
+							"StringEquals": {
 								"localhost/:aud": "sts.amazonaws.com"
 							}
 						}
@@ -305,7 +326,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(oidc.CreateProvider()).To(Succeed())
 
-			document := oidc.MakeAssumeRolePolicyDocument("test-ns", "test-sa")
+			document := oidc.MakeAssumeRolePolicyDocumentWithServiceAccountConditions("test-ns", "test-sa")
 			expected := fmt.Sprintf(`{
 				"Version": "2012-10-17",
 				"Statement": [

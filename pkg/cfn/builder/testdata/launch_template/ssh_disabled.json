@@ -3,7 +3,6 @@
     "Type": "AWS::EC2::LaunchTemplate",
     "Properties": {
       "LaunchTemplateData": {
-        "InstanceType": "m5.large",
         "KeyName": "test-keypair",
         "MetadataOptions": {
           "HttpPutResponseHopLimit": 2,
@@ -49,6 +48,7 @@
         "alpha.eksctl.io/cluster-name": "lt",
         "alpha.eksctl.io/nodegroup-name": "ssh-disabled"
       },
+      "InstanceTypes": ["m5.large"],
       "NodeRole": {
         "Fn::GetAtt": [
           "NodeInstanceRole",

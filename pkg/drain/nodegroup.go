@@ -24,7 +24,7 @@ import (
 // retryDelay is how long is slept before retry after an error occurs during drainage
 const retryDelay = 5 * time.Second
 
-//go:generate counterfeiter -o fakes/fake_evictor.go . Evictor
+//go:generate "$GOBIN/counterfeiter" -o fakes/fake_evictor.go . Evictor
 type Evictor interface {
 	CanUseEvictions() error
 	EvictOrDeletePod(pod corev1.Pod) error

@@ -1419,6 +1419,41 @@ var instanceTypeInfos = map[string]InstanceTypeInfo{
 		MaxPodsPerNode: int64(58),
 		Storage:        int64(0),
 	},
+	"t4g.2xlarge": {
+		CPU:            int64(8),
+		MaxPodsPerNode: int64(58),
+		Storage:        int64(0),
+	},
+	"t4g.large": {
+		CPU:            int64(2),
+		MaxPodsPerNode: int64(35),
+		Storage:        int64(0),
+	},
+	"t4g.medium": {
+		CPU:            int64(2),
+		MaxPodsPerNode: int64(17),
+		Storage:        int64(0),
+	},
+	"t4g.micro": {
+		CPU:            int64(2),
+		MaxPodsPerNode: int64(4),
+		Storage:        int64(0),
+	},
+	"t4g.nano": {
+		CPU:            int64(2),
+		MaxPodsPerNode: int64(4),
+		Storage:        int64(0),
+	},
+	"t4g.small": {
+		CPU:            int64(2),
+		MaxPodsPerNode: int64(11),
+		Storage:        int64(0),
+	},
+	"t4g.xlarge": {
+		CPU:            int64(4),
+		MaxPodsPerNode: int64(58),
+		Storage:        int64(0),
+	},
 	"x1.16xlarge": {
 		CPU:            int64(64),
 		MaxPodsPerNode: int64(234),

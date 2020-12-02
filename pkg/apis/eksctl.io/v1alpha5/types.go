@@ -32,7 +32,7 @@ const (
 	Version1_18 = "1.18"
 
 	// DefaultVersion (default)
-	DefaultVersion = Version1_17
+	DefaultVersion = Version1_18
 
 	LatestVersion = Version1_18
 )
@@ -202,6 +202,9 @@ const (
 
 	// IAMServiceAccountNameTag defines the tag of the IAM service account name
 	IAMServiceAccountNameTag = "alpha.eksctl.io/iamserviceaccount-name"
+
+	// AddonNameTag defines the tag of the IAM service account name
+	AddonNameTag = "alpha.eksctl.io/addon-name"
 
 	// ClusterNameLabel defines the tag of the cluster name
 	ClusterNameLabel = "alpha.eksctl.io/cluster-name"
@@ -554,6 +557,9 @@ type ClusterConfig struct {
 
 	// +optional
 	VPC *ClusterVPC `json:"vpc,omitempty"`
+
+	// +optional
+	Addons []*Addon `json:"addons,omitempty"`
 
 	// PrivateCluster allows configuring a fully-private cluster
 	// in which no node has outbound internet access, and private access
@@ -1205,6 +1211,12 @@ type LaunchTemplate struct {
 // TODO Validate for unmapped fields and throw an error
 type ManagedNodeGroup struct {
 	*NodeGroupBase
+
+	// InstanceTypes specifies a list of instance types
+	InstanceTypes []string `json:"instanceTypes,omitempty"`
+
+	// Spot creates a spot nodegroup
+	Spot bool `json:"spot,omitempty"`
 
 	// LaunchTemplate specifies an existing launch template to use
 	// for the nodegroup

@@ -487,6 +487,10 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 		return errors.Errorf("securityGroups.withLocal and securityGroups.withShared are not supported for managed nodegroups (%s.securityGroups)", path)
 	}
 
+	if ng.InstanceType != "" && len(ng.InstanceTypes) > 0 {
+		return errors.Errorf("only one of instanceType or instanceTypes can be specified (%s)", path)
+	}
+
 	switch {
 	case ng.LaunchTemplate != nil:
 		if ng.LaunchTemplate.ID == "" {

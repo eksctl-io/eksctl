@@ -1,3 +1,4 @@
+github.com/maxbrunsfeld/counterfeiter/v6
 github.com/cloudflare/cfssl/cmd/cfssl
 github.com/cloudflare/cfssl/cmd/cfssljson
 github.com/golangci/golangci-lint/cmd/golangci-lint

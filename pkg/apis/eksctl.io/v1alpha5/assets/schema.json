@@ -33,6 +33,45 @@
       ],
       "additionalProperties": false
     },
+    "Addon": {
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "attachPolicy": {
+          "$ref": "#/definitions/InlineDocument",
+          "description": "holds a policy document to attach to this service account",
+          "x-intellij-html-description": "holds a policy document to attach to this service account"
+        },
+        "attachPolicyARNs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "list of ARNs of the IAM policies to attach",
+          "x-intellij-html-description": "list of ARNs of the IAM policies to attach"
+        },
+        "name": {
+          "type": "string"
+        },
+        "serviceAccountRoleARN": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "version",
+        "serviceAccountRoleARN",
+        "attachPolicyARNs",
+        "attachPolicy"
+      ],
+      "additionalProperties": false,
+      "description": "holds the EKS addon configuration",
+      "x-intellij-html-description": "holds the EKS addon configuration"
+    },
     "ClusterCloudWatch": {
       "properties": {
         "clusterLogging": {
@@ -78,6 +117,12 @@
         "apiVersion"
       ],
       "properties": {
+        "addons": {
+          "items": {
+            "$ref": "#/definitions/Addon"
+          },
+          "type": "array"
+        },
         "apiVersion": {
           "type": "string",
           "enum": [
@@ -157,6 +202,7 @@
         "kubernetesNetworkConfig",
         "iam",
         "vpc",
+        "addons",
         "privateCluster",
         "nodeGroups",
         "managedNodeGroups",
@@ -358,9 +404,9 @@
         },
         "version": {
           "type": "string",
-          "description": "Valid variants are: `\"1.14\"`, `\"1.15\"`, `\"1.16\"`, `\"1.17\"` (default), `\"1.18\"`.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;1.14&quot;</code>, <code>&quot;1.15&quot;</code>, <code>&quot;1.16&quot;</code>, <code>&quot;1.17&quot;</code> (default), <code>&quot;1.18&quot;</code>.",
-          "default": "1.17",
+          "description": "Valid variants are: `\"1.14\"`, `\"1.15\"`, `\"1.16\"`, `\"1.17\"`, `\"1.18\"` (default).",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;1.14&quot;</code>, <code>&quot;1.15&quot;</code>, <code>&quot;1.16&quot;</code>, <code>&quot;1.17&quot;</code>, <code>&quot;1.18&quot;</code> (default).",
+          "default": "1.18",
           "enum": [
             "1.14",
             "1.15",
@@ -749,6 +795,14 @@
         "instanceType": {
           "type": "string"
         },
+        "instanceTypes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "specifies a list of instance types",
+          "x-intellij-html-description": "specifies a list of instance types"
+        },
         "labels": {
           "additionalProperties": {
             "type": "string"
@@ -799,6 +853,12 @@
         },
         "securityGroups": {
           "$ref": "#/definitions/NodeGroupSGs"
+        },
+        "spot": {
+          "type": "boolean",
+          "description": "creates a spot nodegroup",
+          "x-intellij-html-description": "creates a spot nodegroup",
+          "default": "false"
         },
         "ssh": {
           "$ref": "#/definitions/NodeGroupSSH",
@@ -883,6 +943,8 @@
         "disableIMDSv1",
         "disablePodIMDS",
         "placement",
+        "instanceTypes",
+        "spot",
         "launchTemplate"
       ],
       "additionalProperties": false,

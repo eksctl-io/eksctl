@@ -330,7 +330,7 @@ func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*a
 }
 
 func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, error) {
-	var allClusters []*api.ClusterConfig
+	allClusters := []*api.ClusterConfig{}
 
 	token := ""
 	for {

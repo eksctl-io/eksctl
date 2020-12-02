@@ -1,0 +1,29 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: cluster-25
+  region: us-west-2
+  version: "1.18"
+
+iam:
+  withOIDC: true
+
+addons:
+- name: vpc-cni
+  attachPolicyARNs:
+    - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+- name: another-addon
+  serviceAccountRoleARN:  arn:aws:iam::1234567890:role/another-addon-role
+- name: alternative-addon
+  attachPolicy:
+    Statement:
+      - Effect: Allow
+        Action:
+          - "autoscaling:DescribeAutoScalingGroups"
+          - "autoscaling:DescribeAutoScalingInstances"
+          - "autoscaling:DescribeLaunchConfigurations"
+          - "autoscaling:DescribeTags"
+          - "autoscaling:SetDesiredCapacity"
+          - "autoscaling:TerminateInstanceInAutoScalingGroup"
+          - "ec2:DescribeLaunchTemplateVersions"
+        Resource: '*'

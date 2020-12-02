@@ -2,6 +2,7 @@ package managed
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -233,11 +234,22 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 		if err != nil {
 			return err
 		}
-		if latestReleaseVersion == *nodeGroup.ReleaseVersion && options.LaunchTemplateVersion == "" {
+		latest, err := parseReleaseVersion(latestReleaseVersion)
+		if err != nil {
+			return err
+		}
+		current, err := parseReleaseVersion(*nodeGroup.ReleaseVersion)
+		if err != nil {
+			return err
+		}
+
+		if latest.LTE(current) && options.LaunchTemplateVersion == "" {
 			logger.Info("nodegroup %q is already up-to-date", *nodeGroup.NodegroupName)
 			return nil
 		}
-		ngResource.ReleaseVersion = gfnt.NewString(latestReleaseVersion)
+		if latest.GTE(current) {
+			ngResource.ReleaseVersion = gfnt.NewString(latestReleaseVersion)
+		}
 	}
 	if options.LaunchTemplateVersion != "" {
 		ngResource.LaunchTemplate.Version = gfnt.NewString(options.LaunchTemplateVersion)
@@ -251,6 +263,46 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 	}
 	logger.Info("nodegroup successfully upgraded")
 	return nil
+}
+
+// parseReleaseVersion parses an AMI release version string that's in the format `1.18.8-20201007`
+func parseReleaseVersion(releaseVersion string) (amiReleaseVersion, error) {
+	parts := strings.Split(releaseVersion, "-")
+	if len(parts) != 2 {
+		return amiReleaseVersion{}, errors.Errorf("unexpected format for release version: %q", releaseVersion)
+	}
+	v, err := semver.ParseTolerant(parts[0])
+	if err != nil {
+		return amiReleaseVersion{}, errors.Wrap(err, "invalid SemVer version")
+	}
+	return amiReleaseVersion{
+		Version: v,
+		Date:    parts[1],
+	}, nil
+}
+
+type amiReleaseVersion struct {
+	Version semver.Version
+	Date    string
+}
+
+// LTE checks if a is less than or equal to b.
+func (a amiReleaseVersion) LTE(b amiReleaseVersion) bool {
+	return a.Compare(b) <= 0
+}
+
+// GTE checks if a is greater than or equal to b.
+func (a amiReleaseVersion) GTE(b amiReleaseVersion) bool {
+	return a.Compare(b) >= 0
+}
+
+// Compare returns 0 if a==b, -1 if a < b, and +1 if a > b.
+func (a amiReleaseVersion) Compare(b amiReleaseVersion) int {
+	cmp := a.Version.Compare(b.Version)
+	if cmp == 0 {
+		return strings.Compare(a.Date, b.Date)
+	}
+	return cmp
 }
 
 func (m *Service) requiresStackUpdate(nodeGroupName string) (bool, error) {
