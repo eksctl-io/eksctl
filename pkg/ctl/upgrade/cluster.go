@@ -3,7 +3,7 @@ package upgrade
 import (
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/cluster"
+	"github.com/weaveworks/eksctl/pkg/actions/cluster"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
