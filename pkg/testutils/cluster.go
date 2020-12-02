@@ -3,8 +3,6 @@ package testutils
 import (
 	"time"
 
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-
 	"github.com/aws/aws-sdk-go/aws"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 )
@@ -26,7 +24,7 @@ func NewFakeCluster(clusterName string, status string) *awseks.Cluster {
 			Data: aws.String("dGVzdAo="),
 		},
 		Endpoint: aws.String("https://localhost/"),
-		Version:  aws.String(api.Version1_17),
+		Version:  aws.String("1.17"),
 	}
 
 	return cluster
