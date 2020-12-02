@@ -119,6 +119,8 @@ github.com/Masterminds/semver v1.5.0 h1:H65muMkzWKEuNDnfl9d70GUjFniHKHRbFPGBuZ3Q
 github.com/Masterminds/semver v1.5.0/go.mod h1:MB6lktGJrhw8PrUyiEoblNEGEQ+RzHPF078ddwwvV3Y=
 github.com/Masterminds/semver/v3 v3.1.0 h1:Y2lUDsFKVRSYGojLJ1yLxSXdMmMYTYls0rCvoqmMUQk=
 github.com/Masterminds/semver/v3 v3.1.0/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
+github.com/Masterminds/semver/v3 v3.1.1 h1:hLg3sBzpNErnxhQtUy/mmLR2I9foDujNK030IGemrRc=
+github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
 github.com/Masterminds/sprig v2.17.1+incompatible/go.mod h1:y6hNFY5UBTIWBxnzTeuNhlNS5hqE0NB0E6fgfo2Br3o=
 github.com/Masterminds/sprig v2.22.0+incompatible h1:z4yfnGrZ7netVz+0EDJ0Wi+5VZCSYp4Z0m2dk6cEM60=
 github.com/Masterminds/sprig v2.22.0+incompatible/go.mod h1:y6hNFY5UBTIWBxnzTeuNhlNS5hqE0NB0E6fgfo2Br3o=
@@ -516,8 +518,6 @@ github.com/golangci/gofmt v0.0.0-20181222123516-0b8337e80d98/go.mod h1:9qCChq59u
 github.com/golangci/gofmt v0.0.0-20190930125516-244bba706f1a h1:iR3fYXUjHCR97qWS8ch1y9zPNsgXThGwjKPrYfqMPks=
 github.com/golangci/gofmt v0.0.0-20190930125516-244bba706f1a/go.mod h1:9qCChq59u/eW8im404Q2WWTrnBUQKjpNYKMbU4M7EFU=
 github.com/golangci/golangci-lint v1.18.0/go.mod h1:kaqo8l0OZKYPtjNmG4z4HrWLgcYNIJ9B9q3LWri9uLg=
-github.com/golangci/golangci-lint v1.32.2 h1:CgIeFWTLJ3Nt1w/WU1RO351j/CjN6LIVjppbJfI9nMk=
-github.com/golangci/golangci-lint v1.32.2/go.mod h1:ydr+IqtIVyAh72L16aK0bNdNg/YGa+AEgdbKj9MluzI=
 github.com/golangci/golangci-lint v1.33.0 h1:/o4OtOR3Idim4FHKBJXcy+6ZjNDm82gwK/v6+gWyH9U=
 github.com/golangci/golangci-lint v1.33.0/go.mod h1:zMnMLSCaDlrXExYsuq2LOweE9CHVqYk5jexk23UsjYM=
 github.com/golangci/gosec v0.0.0-20190211064107-66fb7fc33547/go.mod h1:0qUabqiIQgfmlAmulqxyiGkkyF6/tOGSnY2cnPVwrzU=
@@ -608,10 +608,10 @@ github.com/goreleaser/chglog v0.1.2 h1:tdzAb/ILeMnphzI9zQ7Nkq+T8R9qyXli8GydD8plF
 github.com/goreleaser/chglog v0.1.2/go.mod h1:tTZsFuSZK4epDXfjMkxzcGbrIOXprf0JFp47BjIr3B8=
 github.com/goreleaser/fileglob v0.3.0 h1:ef5bTud50fxihAjR2IWP0lGpyaPOgCD5qWfo14azJyI=
 github.com/goreleaser/fileglob v0.3.0/go.mod h1:kNcPrPzjCp+Ox3jmXLU5QEsjhqrtLBm6OnXAif8KRl8=
-github.com/goreleaser/goreleaser v0.147.1 h1:sGrZNjBiG6oCnbMb0MIj5hwtIVyunWz4JpXuyN7FaJk=
-github.com/goreleaser/goreleaser v0.147.1/go.mod h1:AkI3X+mBaAEc99RDZgUGvjbUEqh/+t+EjNMaqUbd+3w=
-github.com/goreleaser/nfpm v1.10.1 h1:v8CQ9Xe+1DLYkns2g0uAgQ/pCn5qs4/iBWWk1UDV6BA=
-github.com/goreleaser/nfpm v1.10.1/go.mod h1:G0vvOjif+gnnTTWBtvYqMBh8nMGM7eNkrZU/W2gdM6o=
+github.com/goreleaser/goreleaser v0.148.0 h1:vDmy2XMB7e/Uc5N+L6sZnlgA2bYMVcBbbuuwPnETMys=
+github.com/goreleaser/goreleaser v0.148.0/go.mod h1:4IfM3GZYelDiM3x05po3Nk2N20lQGYQUliWQYWSP0oU=
+github.com/goreleaser/nfpm v1.10.2 h1:/D5vs9LwFcXTnZqHkJOwuiEag6rgtwKVj1yBvvJZaMA=
+github.com/goreleaser/nfpm v1.10.2/go.mod h1:R3sQteLUCtPD7GJxvDl0eqlkTX0/hqFftT3WUPLjClA=
 github.com/gorilla/context v1.1.1/go.mod h1:kBGZzfjB9CEq2AlWe17Uuf7NDRt0dE0s8S51q0aT7Yg=
 github.com/gorilla/mux v1.6.2/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
 github.com/gorilla/mux v1.7.0/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
@@ -786,8 +786,6 @@ github.com/kunwardeep/paralleltest v1.0.2 h1:/jJRv0TiqPoEy/Y8dQxCFJhD56uS/pnvtat
 github.com/kunwardeep/paralleltest v1.0.2/go.mod h1:ZPqNm1fVHPllh5LPVujzbVz1JN2GhLxSfY+oqUsvG30=
 github.com/kylelemons/go-gypsy v0.0.0-20160905020020-08cad365cd28/go.mod h1:T/T7jsxVqf9k/zYOqbgNAsANsjxTd1Yq3htjDhQ1H0c=
 github.com/kylelemons/godebug v0.0.0-20170820004349-d65d576e9348/go.mod h1:B69LEHPfb2qLo0BaaOLcbitczOKLWTsrBG9LczfCD4k=
-github.com/kyoh86/exportloopref v0.1.7 h1:u+iHuTbkbTS2D/JP7fCuZDo/t3rBVGo3Hf58Rc+lQVY=
-github.com/kyoh86/exportloopref v0.1.7/go.mod h1:h1rDl2Kdj97+Kwh4gdz3ujE7XHmH51Q0lUiZ1z4NLj8=
 github.com/kyoh86/exportloopref v0.1.8 h1:5Ry/at+eFdkX9Vsdw3qU4YkvGtzuVfzT4X7S77LoN/M=
 github.com/kyoh86/exportloopref v0.1.8/go.mod h1:1tUcJeiioIs7VWe5gcOObrux3lb66+sBqGZrRkMwPgg=
 github.com/lib/pq v1.0.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
@@ -1124,8 +1122,6 @@ github.com/syndtr/gocapability v0.0.0-20160928074757-e7cb7fa329f4/go.mod h1:hkRG
 github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07/go.mod h1:kDXzergiv9cbyO7IOYJZWg1U88JhDg3PB6klq9Hg2pA=
 github.com/tdakkota/asciicheck v0.0.0-20200416190851-d7f85be797a2 h1:Xr9gkxfOP0KQWXKNqmwe8vEeSUiUj4Rlee9CMVX2ZUQ=
 github.com/tdakkota/asciicheck v0.0.0-20200416190851-d7f85be797a2/go.mod h1:yHp0ai0Z9gUljN3o0xMhYJnH/IcvkdTBOX2fmJ93JEM=
-github.com/tetafro/godot v0.4.9 h1:dSOiuasshpevY73eeI3+zaqFnXSBKJ3mvxbyhh54VRo=
-github.com/tetafro/godot v0.4.9/go.mod h1:/7NLHhv08H1+8DNj0MElpAACw1ajsCuf3TKNQxA5S+0=
 github.com/tetafro/godot v1.3.0 h1:rKXb6aAz2AnwS98jYlU3snCFFXnIInQdaGiftNwpj+k=
 github.com/tetafro/godot v1.3.0/go.mod h1:/7NLHhv08H1+8DNj0MElpAACw1ajsCuf3TKNQxA5S+0=
 github.com/thecodeteam/goscaleio v0.1.0/go.mod h1:68sdkZAsK8bvEwBlbQnlLS+xU+hvLYM/iQ8KXej1AwM=
@@ -1537,7 +1533,6 @@ golang.org/x/tools v0.0.0-20200227222343-706bc42d1f0d/go.mod h1:TB2adYChydJhpapK
 golang.org/x/tools v0.0.0-20200304193943-95d2e580d8eb/go.mod h1:o4KQGtdN14AW+yjsvvwRTJJuXz8XRtIHtEnmAXLyFUw=
 golang.org/x/tools v0.0.0-20200312045724-11d5b4c81c7d/go.mod h1:o4KQGtdN14AW+yjsvvwRTJJuXz8XRtIHtEnmAXLyFUw=
 golang.org/x/tools v0.0.0-20200317043434-63da46f3035e/go.mod h1:Sl4aGygMT6LrqrWclx+PTx3U+LnKx/seiNR+3G19Ar8=
-golang.org/x/tools v0.0.0-20200321224714-0d839f3cf2ed/go.mod h1:Sl4aGygMT6LrqrWclx+PTx3U+LnKx/seiNR+3G19Ar8=
 golang.org/x/tools v0.0.0-20200324003944-a576cf524670/go.mod h1:Sl4aGygMT6LrqrWclx+PTx3U+LnKx/seiNR+3G19Ar8=
 golang.org/x/tools v0.0.0-20200325010219-a49f79bcc224/go.mod h1:Sl4aGygMT6LrqrWclx+PTx3U+LnKx/seiNR+3G19Ar8=
 golang.org/x/tools v0.0.0-20200331025713-a30bf2db82d4/go.mod h1:Sl4aGygMT6LrqrWclx+PTx3U+LnKx/seiNR+3G19Ar8=
@@ -1693,6 +1688,8 @@ gopkg.in/yaml.v2 v2.2.4/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 gopkg.in/yaml.v2 v2.2.8/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 gopkg.in/yaml.v2 v2.3.0 h1:clyUAQHOM3G0M3f5vQj7LuJrETvjVot3Z5el9nffUtU=
 gopkg.in/yaml.v2 v2.3.0/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
+gopkg.in/yaml.v2 v2.4.0 h1:D8xgwECY7CYvx+Y2n4sBz93Jn9JRvxdiyyo8CTfuKaY=
+gopkg.in/yaml.v2 v2.4.0/go.mod h1:RDklbk79AGWmwhnvt/jBztapEOGDOx6ZbXqjP6csGnQ=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c h1:grhR+C34yXImVGp7EzNk+DTIk+323eIUWOmEevy6bDo=
 gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
