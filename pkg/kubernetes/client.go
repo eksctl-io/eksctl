@@ -310,7 +310,7 @@ func (r *RawResource) CreateOrReplace(plan bool) (string, error) {
 	}
 	if !exists {
 		if !plan {
-			_, err := r.Helper.Create(r.Info.Namespace, true, r.Info.Object, &metav1.CreateOptions{})
+			_, err := r.Helper.Create(r.Info.Namespace, true, r.Info.Object)
 			if err != nil {
 				return "", err
 			}
@@ -356,7 +356,7 @@ func (r *RawResource) CreatePatchOrReplace() error {
 	}
 
 	if !exists {
-		_, err := r.Helper.Create(r.Info.Namespace, true, r.Info.Object, &metav1.CreateOptions{})
+		_, err := r.Helper.Create(r.Info.Namespace, true, r.Info.Object)
 		if err != nil {
 			return err
 		}

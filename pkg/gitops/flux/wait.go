@@ -74,7 +74,7 @@ func getPublicKeyFromFlux(ctx context.Context, namespace string, timeout time.Du
 type tryFunc func(rootURL string) error
 
 func waitForDeploymentToStart(k8sClientSet kubeclient.Interface, namespace string, name string, timeout time.Duration) error {
-	watcher, err := k8sClientSet.AppsV1().Deployments(namespace).Watch(metav1.ListOptions{
+	watcher, err := k8sClientSet.AppsV1().Deployments(namespace).Watch(context.TODO(), metav1.ListOptions{
 		FieldSelector: "metadata.name=" + name,
 	})
 	if err != nil {

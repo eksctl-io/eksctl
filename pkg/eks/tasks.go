@@ -1,6 +1,7 @@
 package eks
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -155,7 +156,7 @@ func (t *restartDaemonsetTask) Do(errCh chan error) error {
 		return err
 	}
 	ds := clientSet.AppsV1().DaemonSets(t.namespace)
-	dep, err := ds.Get(t.name, metav1.GetOptions{})
+	dep, err := ds.Get(context.TODO(), t.name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -167,7 +168,7 @@ func (t *restartDaemonsetTask) Do(errCh chan error) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to marshal %q deployment", t.name)
 	}
-	if _, err := ds.Patch(t.name, types.MergePatchType, bytes); err != nil {
+	if _, err := ds.Patch(context.TODO(), t.name, types.MergePatchType, bytes, metav1.PatchOptions{}); err != nil {
 		return errors.Wrap(err, "failed to patch deployment")
 	}
 	logger.Info(`daemonset "%s/%s" restarted`, t.namespace, t.name)

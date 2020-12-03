@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -43,7 +44,7 @@ func NewNamespaceYAML(name string) []byte {
 // CheckNamespaceExists check if a namespace with a given name already exists, and
 // returns boolean or an error
 func CheckNamespaceExists(clientSet Interface, name string) (bool, error) {
-	_, err := clientSet.CoreV1().Namespaces().Get(name, metav1.GetOptions{})
+	_, err := clientSet.CoreV1().Namespaces().Get(context.TODO(), name, metav1.GetOptions{})
 	if err == nil {
 		return true, nil
 	}
@@ -61,7 +62,7 @@ func MaybeCreateNamespace(clientSet Interface, name string) error {
 		return err
 	}
 	if !exists {
-		_, err = clientSet.CoreV1().Namespaces().Create(NewNamespace(name))
+		_, err = clientSet.CoreV1().Namespaces().Create(context.TODO(), NewNamespace(name), metav1.CreateOptions{})
 		if apierrors.IsAlreadyExists(err) {
 			logger.Debug("ignoring failed creation of existing namespace %q", name)
 			return nil

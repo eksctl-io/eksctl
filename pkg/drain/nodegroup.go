@@ -1,6 +1,7 @@
 package drain
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -81,7 +82,7 @@ func (n *NodeGroupDrainer) Drain() error {
 		return errors.Wrap(err, "checking if cluster implements policy API")
 	}
 
-	nodes, err := n.clientSet.CoreV1().Nodes().List(n.ng.ListOptions())
+	nodes, err := n.clientSet.CoreV1().Nodes().List(context.TODO(), n.ng.ListOptions())
 	if err != nil {
 		return err
 	}
@@ -107,7 +108,7 @@ func (n *NodeGroupDrainer) Drain() error {
 		case <-timer.C:
 			return fmt.Errorf("timed out (after %s) waiting for nodegroup %q to be drained", n.waitTimeout, n.ng.NameString())
 		default:
-			nodes, err := n.clientSet.CoreV1().Nodes().List(n.ng.ListOptions())
+			nodes, err := n.clientSet.CoreV1().Nodes().List(context.TODO(), n.ng.ListOptions())
 			if err != nil {
 				return err
 			}
