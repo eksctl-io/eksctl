@@ -165,6 +165,7 @@ generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (requi
 	go generate ./pkg/nodebootstrap
 	go generate ./pkg/addons/default/generate.go
 	go generate ./pkg/addons
+	go generate ./pkg/authconfigmap
 	# mocks
 	go generate ./pkg/eks
 	go generate ./pkg/drain

@@ -1,4 +1,3 @@
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -8,7 +7,7 @@ rules:
     resources: ["namespaces"]
     verbs: ["get"]
   - apiGroups: [""]
-    resources: ["serviceaccounts", "services", "configmaps", "events", "pods"]
+    resources: ["serviceaccounts", "services", "configmaps", "events", "pods", "pods/log"]
     verbs: ["get", "list", "watch", "describe", "create", "edit", "delete", "deletecollection", "annotate", "patch", "label"]
   - apiGroups: [""]
     resources: ["secrets"]
