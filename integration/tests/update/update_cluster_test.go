@@ -178,7 +178,7 @@ var _ = Describe("(Integration) Update addons", func() {
 				awsNodeVersion, err := addons.ImageTag(clusterDaemonSet.Spec.Template.Spec.Containers[0].Image)
 				Expect(err).ToNot(HaveOccurred())
 				return awsNodeVersion
-			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal("v1.7.5"))
+			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal("v1.7.6"))
 		})
 
 		It("should upgrade coredns", func() {
