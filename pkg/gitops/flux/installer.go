@@ -170,7 +170,7 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 // IsFluxInstalled returns an error if Flux is not installed in the cluster. To determine that it looks for the flux
 // pod
 func (fi *Installer) IsFluxInstalled() (bool, error) {
-	_, err := fi.k8sClientSet.AppsV1().Deployments(fi.opts.Operator.Namespace).Get("flux", metav1.GetOptions{})
+	_, err := fi.k8sClientSet.AppsV1().Deployments(fi.opts.Operator.Namespace).Get(context.TODO(), "flux", metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("flux deployment was not found")

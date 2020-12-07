@@ -128,7 +128,7 @@ func portForward(namespace string, nameLabelValue string, port int, name string,
 	}
 	podDeadline := time.Now().Add(portForwardingTimeout)
 	for ; time.Now().Before(podDeadline); time.Sleep(portForwardingRetryPeriod) {
-		err := portforwarder.Start()
+		err := portforwarder.Start(context.TODO())
 		if err == nil {
 			defer portforwarder.Stop()
 			break
