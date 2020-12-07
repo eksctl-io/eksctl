@@ -66,5 +66,4 @@ func (c *OwnedCluster) Upgrade(dryRun bool) error {
 
 	cmdutils.LogPlanModeWarning(dryRun && (stackUpdateRequired || versionUpdateRequired))
 	return nil
-
 }
