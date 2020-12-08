@@ -66,7 +66,6 @@ require (
 )
 
 replace (
-	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.3.1
 	// k8s.io/kops is still using old version of component-base
 	// which uses an older version of the following package
 	github.com/prometheus/client_golang => github.com/prometheus/client_golang v0.9.4
