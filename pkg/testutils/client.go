@@ -224,7 +224,7 @@ func NewFakeRawResource(item runtime.Object, missing, unionised bool, ct *Collec
 
 	client := &restfake.RESTClient{
 		GroupVersion:         gvk.GroupVersion(),
-		NegotiatedSerializer: scheme.Codecs,
+		NegotiatedSerializer: scheme.Codecs.WithoutConversion(),
 		Client: restfake.CreateHTTPClient(func(req *http.Request) (*http.Response, error) {
 			rt.Append(req)
 			switch req.Method {
