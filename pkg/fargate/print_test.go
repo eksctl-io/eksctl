@@ -46,10 +46,10 @@ var _ = Describe("fargate", func() {
 	})
 })
 
-const expectedTable = `NAME	SELECTOR_NAMESPACE	SELECTOR_LABELS		POD_EXECUTION_ROLE_ARN		SUBNETS				TAGS
-fp-prod	prod			env=prod		arn:aws:iam::123:role/root	subnet-prod,subnet-d34dc0w	<none>
-fp-test	default			<none>			arn:aws:iam::123:role/root	<none>				app=my-app,env=test
-fp-test	kube-system		app=my-app,env=test	arn:aws:iam::123:role/root	<none>				app=my-app,env=test
+const expectedTable = `NAME	SELECTOR_NAMESPACE	SELECTOR_LABELS		POD_EXECUTION_ROLE_ARN		SUBNETS				TAGS			STATUS
+fp-prod	prod			env=prod		arn:aws:iam::123:role/root	subnet-prod,subnet-d34dc0w	<none>			ACTIVE
+fp-test	default			<none>			arn:aws:iam::123:role/root	<none>				app=my-app,env=test	ACTIVE
+fp-test	kube-system		app=my-app,env=test	arn:aws:iam::123:role/root	<none>				app=my-app,env=test	ACTIVE
 `
 
 const expectedYAML = `- name: fp-test
@@ -60,6 +60,7 @@ const expectedYAML = `- name: fp-test
       env: test
     namespace: kube-system
   - namespace: default
+  status: ACTIVE
   tags:
     app: my-app
     env: test
@@ -69,6 +70,7 @@ const expectedYAML = `- name: fp-test
   - labels:
       env: prod
     namespace: prod
+  status: ACTIVE
   subnets:
   - subnet-prod
   - subnet-d34dc0w
@@ -93,7 +95,8 @@ const expectedJSON = `[
         "tags": {
             "app": "my-app",
             "env": "test"
-        }
+        },
+        "status": "ACTIVE"
     },
     {
         "name": "fp-prod",
@@ -109,7 +112,8 @@ const expectedJSON = `[
         "subnets": [
             "subnet-prod",
             "subnet-d34dc0w"
-        ]
+        ],
+        "status": "ACTIVE"
     }
 ]`
 
@@ -134,6 +138,7 @@ func sampleProfiles() []*api.FargateProfile {
 				"app": "my-app",
 				"env": "test",
 			},
+			Status: "ACTIVE",
 		},
 		{
 			Name:    "fp-prod",
@@ -147,6 +152,7 @@ func sampleProfiles() []*api.FargateProfile {
 				},
 			},
 			PodExecutionRoleARN: "arn:aws:iam::123:role/root",
+			Status:              "ACTIVE",
 		},
 	}
 }

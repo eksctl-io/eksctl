@@ -593,6 +593,11 @@
           "description": "define the rules to select workload to schedule onto Fargate.",
           "x-intellij-html-description": "define the rules to select workload to schedule onto Fargate."
         },
+        "status": {
+          "type": "string",
+          "description": "The current status of the Fargate profile.",
+          "x-intellij-html-description": "The current status of the Fargate profile."
+        },
         "subnets": {
           "items": {
             "type": "string"
@@ -616,7 +621,8 @@
         "podExecutionRoleARN",
         "selectors",
         "subnets",
-        "tags"
+        "tags",
+        "status"
       ],
       "additionalProperties": false,
       "description": "defines the settings used to schedule workload onto Fargate.",
