@@ -86,7 +86,7 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 	}
 
 	if len(stacks) == 0 {
-		return nil, c.errStackNotFound()
+		return nil, nil
 	}
 
 	nodeGroupStacks := []*Stack{}
