@@ -10,7 +10,7 @@ export GOBIN ?= $(gopath)/bin
 
 export PATH := $(GOBIN):./build/scripts:$(PATH)
 
-AWS_SDK_GO_DIR ?= $(gopath)/pkg/mod/$(shell grep 'aws-sdk-go' go.sum | awk '{print $$1 "@" $$2}' | grep -v 'go.mod' | sort | tail -1)
+AWS_SDK_GO_DIR ?= $(shell go list -m -f '{{.Dir}}' 'github.com/aws/aws-sdk-go')
 
 generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
 
