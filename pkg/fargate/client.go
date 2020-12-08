@@ -226,6 +226,7 @@ func toFargateProfile(in *eks.FargateProfile) *api.FargateProfile {
 		PodExecutionRoleARN: strings.EmptyIfNil(in.PodExecutionRoleArn),
 		Subnets:             strings.ToValuesArray(in.Subnets),
 		Tags:                strings.ToValuesMap(in.Tags),
+		Status:              *in.Status,
 	}
 }
 

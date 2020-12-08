@@ -1278,6 +1278,9 @@ type FargateProfile struct {
 	// Used to tag the AWS resources
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
+
+	// The current status of the Fargate profile.
+	Status string `json:"status"`
 }
 
 // FargateProfileSelector defines rules to select workload to schedule onto Fargate.
