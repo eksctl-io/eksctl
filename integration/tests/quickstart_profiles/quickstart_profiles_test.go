@@ -3,18 +3,15 @@
 package integration_test
 
 import (
-	"fmt"
-	"math/rand"
 	"testing"
-	"time"
 
-	"github.com/kubicorn/kubicorn/pkg/namer"
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	"github.com/weaveworks/eksctl/integration/utilities/git"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 
+	"github.com/kubicorn/kubicorn/pkg/namer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -53,19 +50,14 @@ var _ = Describe("Enable and use GitOps quickstart profiles", func() {
 
 	BeforeEach(func() {
 		if branch == "" {
-			rand.Seed(time.Now().UnixNano())
-			branch = fmt.Sprintf("%s-%d", namer.RandomName(), rand.Intn(100))
+			branch = namer.RandomName()
 			cloneDir, err = git.CreateBranch(branch, params.PrivateSSHKeyPath)
-			Expect(err).NotTo(HaveOccurred()) // Creating the branch should have succeeded.
 		}
-	})
-
-	AfterEach(func() {
-		Expect(git.DeleteBranch(branch, cloneDir, params.PrivateSSHKeyPath)).To(Succeed())
 	})
 
 	Context("enable repo", func() {
 		It("should add Flux to the repo and the cluster", func() {
+			Expect(err).NotTo(HaveOccurred()) // Creating the branch should have succeeded.
 			AssertFluxManifestsAbsentInGit(branch, params.PrivateSSHKeyPath)
 			AssertFluxPodsAbsentInKubernetes(params.KubeconfigPath)
 
@@ -86,6 +78,7 @@ var _ = Describe("Enable and use GitOps quickstart profiles", func() {
 
 	Context("enable repo", func() {
 		It("should not add Flux to the repo and the cluster if there is a flux deployment already", func() {
+			Expect(err).NotTo(HaveOccurred()) // Creating the branch should have succeeded.
 			AssertFluxPodsPresentInKubernetes(params.KubeconfigPath)
 
 			cmd := params.EksctlCmd.WithArgs(
@@ -102,6 +95,7 @@ var _ = Describe("Enable and use GitOps quickstart profiles", func() {
 
 	Context("enable profile", func() {
 		It("should add the configured quickstart profile to the repo and the cluster", func() {
+			Expect(err).NotTo(HaveOccurred()) // Creating the branch should have succeeded.
 			// Flux should have been installed by the previously run "enable repo" command:
 			AssertFluxManifestsPresentInGit(branch, params.PrivateSSHKeyPath)
 			AssertFluxPodsPresentInKubernetes(params.KubeconfigPath)

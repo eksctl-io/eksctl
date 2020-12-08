@@ -607,7 +607,7 @@
                     }
                   }
                 ],
-                "image": "602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni:v1.7.5",
+                "image": "602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni:v1.7.6",
                 "imagePullPolicy": "Always",
                 "livenessProbe": {
                   "exec": {
