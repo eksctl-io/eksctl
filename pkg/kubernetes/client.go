@@ -145,7 +145,7 @@ func (c *RawClient) ClientSet() Interface { return c.clientSet }
 // NewHelperFor construct a raw client helper instance for a give gvk
 // (it's based on k8s.io/kubernetes/pkg/kubectl/cmd/util/factory_client_access.go)
 func (c *RawClient) NewHelperFor(gvk schema.GroupVersionKind) (*resource.Helper, error) {
-	mapping, err := c.mapper.RESTMapping(gvk.GroupKind(), gvk.GroupVersion().Version, "")
+	mapping, err := c.mapper.RESTMapping(gvk.GroupKind(), gvk.Version, "")
 	if err != nil {
 		return nil, errors.Wrapf(err, "constructing REST client mapping for %s", gvk.String())
 	}
