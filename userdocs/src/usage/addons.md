@@ -46,7 +46,7 @@ addons:
 You can specify at most one of `attachPolicy`, `attachPolicyARNs` and `serviceAccountRoleARN`.
 
 !!!note
-    In order to attach policies to addons your cluster must have `OIDC` enabled. If its not enabled we ignore any policies
+    In order to attach policies to addons your cluster must have `OIDC` enabled. If it's not enabled we ignore any policies
     attached.
 
 
@@ -78,7 +78,7 @@ You can discover what addons are available to install on your cluster by running
 eksctl utils describe-addon-versions --cluster <cluster-name>
 ```
 
-This will discover your clusters kubernetes version and filter on that. Alternatively if you want to see what
+This will discover your cluster's kubernetes version and filter on that. Alternatively if you want to see what
 addons are available for a particular kubernetes version you can run:
 ```console
 eksctl utils describe-addon-versions --kubernetes-version <version>
