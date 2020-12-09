@@ -317,7 +317,7 @@ func DoesAWSNodeUseIRSA(provider api.ClusterProvider, clientSet kubernetes.Inter
 	}
 	logger.Debug("found following policies attached to role annotated on aws-node service account: %s", policies.AttachedPolicies)
 	for _, p := range policies.AttachedPolicies {
-		if *p.PolicyName == api.IamPolicyAmazonEKSCNIPolicy {
+		if *p.PolicyName == api.IAMPolicyAmazonEKSCNIPolicy {
 			return true, nil
 		}
 	}
