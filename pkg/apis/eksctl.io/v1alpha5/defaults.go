@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	IamPolicyAmazonEKSCNIPolicy = "AmazonEKS_CNI_Policy"
+	IAMPolicyAmazonEKSCNIPolicy = "AmazonEKS_CNI_Policy"
 )
 
 var (
@@ -34,22 +34,6 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 		cfg.IAM.VPCResourceControllerPolicy = Enabled()
 	}
 
-	if IsEnabled(cfg.IAM.WithOIDC) && !vpcniAddonSpecified(cfg) {
-		var found bool
-		for _, sa := range cfg.IAM.ServiceAccounts {
-			found = found || (sa.Name == awsNodeMeta.Name && sa.Namespace == awsNodeMeta.Namespace)
-		}
-		if !found {
-			awsNode := ClusterIAMServiceAccount{
-				ClusterIAMMeta: awsNodeMeta,
-				AttachPolicyARNs: []string{
-					fmt.Sprintf("arn:%s:iam::aws:policy/%s", Partition(cfg.Metadata.Region), IamPolicyAmazonEKSCNIPolicy),
-				},
-			}
-			cfg.IAM.ServiceAccounts = append(cfg.IAM.ServiceAccounts, &awsNode)
-		}
-	}
-
 	for _, sa := range cfg.IAM.ServiceAccounts {
 		if sa.Namespace == "" {
 			sa.Namespace = metav1.NamespaceDefault
@@ -68,7 +52,29 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 	}
 }
 
-func vpcniAddonSpecified(cfg *ClusterConfig) bool {
+// IAMServiceAccountsWithAWSNodeServiceAccount returns the specified IAM service
+// accounts including the potentially autocreated aws-node account as well
+func IAMServiceAccountsWithAWSNodeServiceAccount(cfg *ClusterConfig) []*ClusterIAMServiceAccount {
+	serviceAccounts := cfg.IAM.ServiceAccounts
+	if IsEnabled(cfg.IAM.WithOIDC) && !vpccniAddonSpecified(cfg) {
+		var found bool
+		for _, sa := range cfg.IAM.ServiceAccounts {
+			found = found || (sa.Name == awsNodeMeta.Name && sa.Namespace == awsNodeMeta.Namespace)
+		}
+		if !found {
+			awsNode := ClusterIAMServiceAccount{
+				ClusterIAMMeta: awsNodeMeta,
+				AttachPolicyARNs: []string{
+					fmt.Sprintf("arn:%s:iam::aws:policy/%s", Partition(cfg.Metadata.Region), IAMPolicyAmazonEKSCNIPolicy),
+				},
+			}
+			serviceAccounts = append(serviceAccounts, &awsNode)
+		}
+	}
+	return serviceAccounts
+}
+
+func vpccniAddonSpecified(cfg *ClusterConfig) bool {
 	for _, a := range cfg.Addons {
 		if strings.ToLower(a.Name) == "vpc-cni" {
 			return true
