@@ -74,12 +74,12 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 
 	var summaries []*manager.NodeGroupSummary
 	if ng.Name == "" {
-		summaries, err = nodegroup.New(cfg, ctl).GetAll()
+		summaries, err = nodegroup.New(cfg, ctl, nil).GetAll()
 		if err != nil {
 			return err
 		}
 	} else {
-		summary, err := nodegroup.New(cfg, ctl).Get(ng.Name)
+		summary, err := nodegroup.New(cfg, ctl, nil).Get(ng.Name)
 		if err != nil {
 			return err
 		}

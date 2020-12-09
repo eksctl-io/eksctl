@@ -6,7 +6,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
-func (ng NodeGroup) GetAll() ([]*manager.NodeGroupSummary, error) {
+func (ng *NodeGroup) GetAll() ([]*manager.NodeGroupSummary, error) {
 	summaries, err := ng.manager.GetNodeGroupSummaries("")
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stack summaries")
@@ -59,7 +59,7 @@ func (ng NodeGroup) GetAll() ([]*manager.NodeGroupSummary, error) {
 	return summaries, nil
 }
 
-func (ng NodeGroup) Get(name string) (*manager.NodeGroupSummary, error) {
+func (ng *NodeGroup) Get(name string) (*manager.NodeGroupSummary, error) {
 	summaries, err := ng.manager.GetNodeGroupSummaries(name)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stack summaries")
