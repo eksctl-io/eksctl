@@ -18,6 +18,8 @@ build_image_name = $(build_image):$(build_image_tag)
 eksctl_image = weaveworks/eksctl
 eksctl_image_name = "$(eksctl_image):$${EKSCTL_IMAGE_VERSION}"
 
+update_generated_workflow_file = .github/workflows/update-generated.yaml
+
 docker_build := time docker build
 # We should eventually switch to buildkit, as it has a many feature and cleaner output with timing info,
 # but right now 'docker build' doesn't allow us to export build cache images, so we cannot use it yet
@@ -37,7 +39,7 @@ check-build-image-manifest-up-to-date: update-build-image-tag ## Update build im
 
 .PHONY: commit-new-image-tag
 commit-new-image-tag: update-build-image-tag ## Update build image manifest and commits the changes
-	git commit --quiet $(image_manifest_file) $(build_image_tag_file) Dockerfile --message 'Update build image manifest and tag file'
+	git commit --quiet $(image_manifest_file) $(build_image_tag_file) $(update_generated_workflow_file) Dockerfile --message 'Update build image manifest and tag file'
 
 .PHONY: build-image
 build-image: check-build-image-manifest-up-to-date ## Build the build image that has all of external dependencies
