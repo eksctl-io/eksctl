@@ -79,8 +79,8 @@ func createRole(cfnTemplate cfnTemplate, clusterIAMConfig *api.ClusterIAM, iamCo
 		cfnTemplate.attachAllowPolicy("PolicyEFSEC2", refIR, efsEc2Statements())
 	}
 
-	if api.IsEnabled(iamConfig.WithAddonPolicies.ALBIngress) {
-		cfnTemplate.attachAllowPolicy("PolicyALBIngress", refIR, loadBalancerControllerStatements())
+	if api.IsEnabled(iamConfig.WithAddonPolicies.AWSLoadBalancerController) {
+		cfnTemplate.attachAllowPolicy("PolicyAWSLoadBalancerController", refIR, loadBalancerControllerStatements())
 	}
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.XRay) {

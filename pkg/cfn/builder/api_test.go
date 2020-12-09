@@ -498,18 +498,18 @@ var _ = Describe("CloudFormation template builder API", func() {
 						VolumeSize:        aws.Int(2),
 						IAM: &api.NodeGroupIAM{
 							WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
-								ImageBuilder:   api.Disabled(),
-								AutoScaler:     api.Disabled(),
-								ExternalDNS:    api.Disabled(),
-								CertManager:    api.Disabled(),
-								AppMesh:        api.Disabled(),
-								AppMeshPreview: api.Disabled(),
-								EBS:            api.Disabled(),
-								FSX:            api.Disabled(),
-								EFS:            api.Disabled(),
-								ALBIngress:     api.Disabled(),
-								XRay:           api.Disabled(),
-								CloudWatch:     api.Disabled(),
+								ImageBuilder:              api.Disabled(),
+								AutoScaler:                api.Disabled(),
+								ExternalDNS:               api.Disabled(),
+								CertManager:               api.Disabled(),
+								AppMesh:                   api.Disabled(),
+								AppMeshPreview:            api.Disabled(),
+								EBS:                       api.Disabled(),
+								FSX:                       api.Disabled(),
+								EFS:                       api.Disabled(),
+								AWSLoadBalancerController: api.Disabled(),
+								XRay:                      api.Disabled(),
+								CloudWatch:                api.Disabled(),
 							},
 						},
 						ScalingConfig: &api.ScalingConfig{},
@@ -1078,7 +1078,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyServiceLinkRole"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEFS"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEFSEC2"))
-			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyALBIngress"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAWSLoadBalancerController"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyXRay"))
 		})
 
@@ -1285,15 +1285,15 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyServiceLinkRole"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEFS"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEFSEC2"))
-			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyALBIngress"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAWSLoadBalancerController"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyXRay"))
 		})
 	})
 
-	Context("NodeGroupALBIngress", func() {
+	Context("NodeGroupAWSLoadBalancerController", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
-		ng.IAM.WithAddonPolicies.ALBIngress = api.Enabled()
+		ng.IAM.WithAddonPolicies.AWSLoadBalancerController = api.Enabled()
 
 		build(cfg, "eksctl-test-megaapps-cluster", ng)
 
@@ -1302,9 +1302,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should have correct policies", func() {
 			Expect(ngTemplate.Resources).ToNot(BeEmpty())
 
-			Expect(ngTemplate.Resources).To(HaveKey("PolicyALBIngress"))
+			Expect(ngTemplate.Resources).To(HaveKey("PolicyAWSLoadBalancerController"))
 
-			policy := ngTemplate.Resources["PolicyALBIngress"].Properties
+			policy := ngTemplate.Resources["PolicyAWSLoadBalancerController"].Properties
 
 			Expect(policy.Roles).To(HaveLen(1))
 			isRefTo(policy.Roles[0], "NodeInstanceRole")
