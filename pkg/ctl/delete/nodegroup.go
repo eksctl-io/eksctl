@@ -129,16 +129,15 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 			}
 		}
 	}
+	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 
 	nodeGroupManager := nodegroup.New(cfg, ctl, clientSet)
 	if deleteNodeGroupDrain {
-		err := nodeGroupManager.DrainAll(cmd.Plan, maxGracePeriod)
+		err := nodeGroupManager.DrainAll(allNodeGroups, cmd.Plan, maxGracePeriod)
 		if err != nil {
 			return err
 		}
 	}
-
-	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 
 	cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 

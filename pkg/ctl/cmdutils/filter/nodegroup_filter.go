@@ -114,6 +114,7 @@ func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(lister stackLister, clust
 	if err != nil {
 		return err
 	}
+
 	for _, s := range existingStacks {
 		f.remoteNodegroups.Insert(s.NodeGroupName)
 	}

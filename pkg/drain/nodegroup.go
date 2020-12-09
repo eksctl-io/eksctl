@@ -81,14 +81,26 @@ func (n *NodeGroupDrainer) Drain() error {
 		return errors.Wrap(err, "checking if cluster implements policy API")
 	}
 
-	nodes, err := n.clientSet.CoreV1().Nodes().List(n.ng.ListOptions())
+	listOptions := n.ng.ListOptions()
+	nodes, err := n.clientSet.CoreV1().Nodes().List(listOptions)
 	if err != nil {
 		return err
 	}
 
 	if len(nodes.Items) == 0 {
-		logger.Warning("no nodes found in nodegroup %q (label selector: %q)", n.ng.NameString(), n.ng.ListOptions().LabelSelector)
-		return nil
+		listOptions = metav1.ListOptions{
+			LabelSelector: fmt.Sprintf("%s=%s", "eks.amazonaws.com/nodegroup", n.ng.NameString()),
+		}
+		nodes, err = n.clientSet.CoreV1().Nodes().List(listOptions)
+
+		if err != nil {
+			return err
+		}
+
+		if len(nodes.Items) == 0 {
+			logger.Warning("no nodes found in nodegroup %q (label selector: %q)", n.ng.NameString(), n.ng.ListOptions().LabelSelector)
+			return nil
+		}
 	}
 
 	if n.undo {
@@ -107,7 +119,7 @@ func (n *NodeGroupDrainer) Drain() error {
 		case <-timer.C:
 			return fmt.Errorf("timed out (after %s) waiting for nodegroup %q to be drained", n.waitTimeout, n.ng.NameString())
 		default:
-			nodes, err := n.clientSet.CoreV1().Nodes().List(n.ng.ListOptions())
+			nodes, err := n.clientSet.CoreV1().Nodes().List(listOptions)
 			if err != nil {
 				return err
 			}
