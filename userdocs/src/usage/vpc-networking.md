@@ -229,8 +229,16 @@ vpc:
 ```
 
 !!! important
-    If using an arbitrary value as the identifying key, `az` must be set. If using the AZ as the identifying
-    key, the `.az` value can be omitted.
+    If using the AZ as the identifying key, the `az` value can be omitted.
+
+    If using an arbitrary string as the identifying key, like above, either:
+
+	* `id` must be set (`az` and `cidr` optional)
+	* or `az` must be set (`cidr` optional)
+
+	If a user specifies a subnet by AZ without specifying CIDR and ID, a subnet
+	in that AZ will be chosen from the VPC, arbitrarily if multiple such subnets
+	exist.
 
 Nodegroups can be restricted to named subnets via the configuration.
 When specifying subnets on nodegroup configuration, use the identifying key as given in the VPC spec **not** the subnet id.
