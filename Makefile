@@ -177,11 +177,6 @@ generate-all: generate-always $(conditionally_generated_files) ## Re-generate al
 check-all-generated-files-up-to-date: generate-all
 	git diff --quiet -- $(all_generated_files) || (git --no-pager diff $(all_generated_files); echo "HINT: to fix this, run 'git commit $(all_generated_files) --message \"Update generated files\"'"; exit 1)
 
-### Update AMIs in ami static resolver
-.PHONY: update-ami
-update-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
-	go generate ./pkg/ami
-
 ### Update maxpods.go from AWS
 .PHONY: update-maxpods
 update-maxpods: ## Re-download the max pods info from AWS and regenerate the maxpods.go file

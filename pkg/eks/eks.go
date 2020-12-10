@@ -84,7 +84,7 @@ func (c *ClusterProvider) SupportsManagedNodes(clusterConfig *api.ClusterConfig)
 		return false, err
 	}
 
-	return ClusterSupportsManagedNodes(c.Status.clusterInfo.cluster)
+	return ClusterSupportsManagedNodes(c.Status.ClusterInfo.Cluster)
 }
 
 // ClusterSupportsManagedNodes reports whether the EKS cluster supports managed nodes
@@ -123,7 +123,7 @@ func (c *ClusterProvider) SupportsFargate(clusterConfig *api.ClusterConfig) (boo
 	if err := c.maybeRefreshClusterStatus(clusterConfig); err != nil {
 		return false, err
 	}
-	return ClusterSupportsFargate(c.Status.clusterInfo.cluster)
+	return ClusterSupportsFargate(c.Status.ClusterInfo.Cluster)
 }
 
 // ClusterSupportsFargate reports whether an existing cluster supports Fargate.
@@ -201,7 +201,7 @@ func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
 		return false, errors.Wrapf(err, "fetching cluster status to determine operability")
 	}
 
-	switch status := *c.Status.clusterInfo.cluster.Status; status {
+	switch status := *c.Status.ClusterInfo.Cluster.Status; status {
 	case awseks.ClusterStatusCreating, awseks.ClusterStatusDeleting, awseks.ClusterStatusFailed:
 		return false, fmt.Errorf("cannot perform Kubernetes API operations on cluster %q in %q region due to status %q", spec.Metadata.Name, spec.Metadata.Region, status)
 	default:
@@ -216,7 +216,7 @@ func (c *ClusterProvider) CanUpdate(spec *api.ClusterConfig) (bool, error) {
 		return false, errors.Wrapf(err, "fetching cluster status to determine update status")
 	}
 
-	switch status := *c.Status.clusterInfo.cluster.Status; status {
+	switch status := *c.Status.ClusterInfo.Cluster.Status; status {
 	case awseks.ClusterStatusActive:
 		// only active cluster can be upgraded
 		return true, nil
@@ -227,10 +227,10 @@ func (c *ClusterProvider) CanUpdate(spec *api.ClusterConfig) (bool, error) {
 
 // ControlPlaneVersion returns cached version (EKS API)
 func (c *ClusterProvider) ControlPlaneVersion() string {
-	if c.Status.clusterInfo.cluster == nil || c.Status.clusterInfo.cluster.Version == nil {
+	if c.Status.ClusterInfo == nil || c.Status.ClusterInfo.Cluster == nil || c.Status.ClusterInfo.Cluster.Version == nil {
 		return ""
 	}
-	return *c.Status.clusterInfo.cluster.Version
+	return *c.Status.ClusterInfo.Cluster.Version
 }
 
 // UnsupportedOIDCError represents an unsupported OIDC error
@@ -248,7 +248,7 @@ func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iam
 		return nil, err
 	}
 
-	if c.Status.clusterInfo.cluster == nil || c.Status.clusterInfo.cluster.Identity == nil || c.Status.clusterInfo.cluster.Identity.Oidc == nil || c.Status.clusterInfo.cluster.Identity.Oidc.Issuer == nil {
+	if c.Status.ClusterInfo.Cluster == nil || c.Status.ClusterInfo.Cluster.Identity == nil || c.Status.ClusterInfo.Cluster.Identity.Oidc == nil || c.Status.ClusterInfo.Cluster.Identity.Oidc.Issuer == nil {
 		return nil, &UnsupportedOIDCError{"unknown OIDC issuer URL"}
 	}
 
@@ -262,7 +262,7 @@ func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iam
 		return nil, fmt.Errorf("unknown EKS ARN: %q", spec.Status.ARN)
 	}
 
-	return iamoidc.NewOpenIDConnectManager(c.Provider.IAM(), parsedARN.AccountID, *c.Status.clusterInfo.cluster.Identity.Oidc.Issuer, parsedARN.Partition)
+	return iamoidc.NewOpenIDConnectManager(c.Provider.IAM(), parsedARN.AccountID, *c.Status.ClusterInfo.Cluster.Identity.Oidc.Issuer, parsedARN.Partition)
 }
 
 // LoadClusterIntoSpec loads the cluster configuration into the spec
@@ -296,7 +296,7 @@ func (c *ClusterProvider) loadClusterKubernetesNetworkConfig(spec *api.ClusterCo
 	if spec.Status == nil {
 		return errors.New("cluster hasn't been refreshed")
 	}
-	knCfg := c.Status.clusterInfo.cluster.KubernetesNetworkConfig
+	knCfg := c.Status.ClusterInfo.Cluster.KubernetesNetworkConfig
 	if knCfg != nil {
 		spec.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
 			ServiceIPv4CIDR: aws.StringValue(knCfg.ServiceIpv4Cidr),
@@ -346,7 +346,7 @@ func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, e
 			if err != nil {
 				managed = eksctlCreatedUnknown
 				logger.Warning("error fetching stacks for cluster %s: %v", clusterName, err)
-			} else if isClusterStack(stacks) {
+			} else if manager.IsClusterStack(stacks) {
 				managed = eksctlCreatedTrue
 			}
 			allClusters = append(allClusters, &api.ClusterConfig{
@@ -407,17 +407,6 @@ func (c *ClusterProvider) getClustersRequest(chunkSize int64, nextToken string) 
 		return nil, nil, errors.Wrap(err, "listing control planes")
 	}
 	return output.Clusters, output.NextToken, nil
-}
-
-func isClusterStack(stacks []*manager.Stack) bool {
-	for _, stack := range stacks {
-		for _, output := range stack.Outputs {
-			if *output.OutputKey == "ClusterStackName" {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 // WaitForControlPlane waits till the control plane is ready

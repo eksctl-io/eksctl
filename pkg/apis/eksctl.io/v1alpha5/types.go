@@ -171,8 +171,6 @@ const (
 	// DefaultNodeCount defines the default number of nodes to be created
 	DefaultNodeCount = 2
 
-	// NodeImageResolverStatic represents static AMI resolver (see ami package)
-	NodeImageResolverStatic = "static"
 	// NodeImageResolverAuto represents auto AMI resolver (see ami package)
 	NodeImageResolverAuto = "auto"
 	// NodeImageResolverAutoSSM is used to indicate that the latest EKS AMIs should be used for the nodes. The AMI is selected

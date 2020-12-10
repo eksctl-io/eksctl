@@ -116,7 +116,7 @@ func (p ProviderServices) WaitTimeout() time.Duration { return p.spec.WaitTimeou
 type ProviderStatus struct {
 	iamRoleARN   string
 	sessionCreds *credentials.Credentials
-	clusterInfo  *clusterInfo
+	ClusterInfo  *ClusterInfo
 }
 
 // New creates a new setup of the used AWS APIs
@@ -279,9 +279,6 @@ func ResolveAMI(provider api.ClusterProvider, version string, ng *api.NodeGroup)
 		resolver = ami.NewAutoResolver(provider.EC2())
 	case api.NodeImageResolverAutoSSM:
 		resolver = ami.NewSSMResolver(provider.SSM())
-	case api.NodeImageResolverStatic:
-		logger.Warning("'static' value for node-ami flag (nodeGroup.ami field) is deprecated and will be removed with release 0.33.0. Valid values will be 'auto-ssm' (default), 'auto' or an AMI id (advanced use)")
-		resolver = ami.NewStaticResolver()
 	default:
 		resolver = ami.NewMultiResolver(
 			ami.NewSSMResolver(provider.SSM()),

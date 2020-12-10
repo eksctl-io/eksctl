@@ -164,6 +164,11 @@ var _ = Describe("(Integration) Update addons", func() {
 		})
 
 		It("should upgrade aws-node", func() {
+			rawClient := getRawClient()
+			preUpdateAWSNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get("aws-node", metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			preUpdateAWSNodeVersion, err := addons.ImageTag(preUpdateAWSNode.Spec.Template.Spec.Containers[0].Image)
+			Expect(err).ToNot(HaveOccurred())
 			cmd := params.EksctlUtilsCmd.WithArgs(
 				"update-aws-node",
 				"--cluster", params.ClusterName,
@@ -172,14 +177,13 @@ var _ = Describe("(Integration) Update addons", func() {
 			)
 			Expect(cmd).To(RunSuccessfully())
 
-			rawClient := getRawClient()
 			Eventually(func() string {
-				clusterDaemonSet, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "aws-node", metav1.GetOptions{})
+				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "aws-node", metav1.GetOptions{})
 				Expect(err).ToNot(HaveOccurred())
-				awsNodeVersion, err := addons.ImageTag(clusterDaemonSet.Spec.Template.Spec.Containers[0].Image)
+				awsNodeVersion, err := addons.ImageTag(awsNode.Spec.Template.Spec.Containers[0].Image)
 				Expect(err).ToNot(HaveOccurred())
 				return awsNodeVersion
-			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal("v1.7.6"))
+			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).ShouldNot(Equal(preUpdateAWSNodeVersion))
 		})
 
 		It("should upgrade coredns", func() {
