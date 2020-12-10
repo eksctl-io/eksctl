@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -42,6 +43,7 @@ const (
 	vpcID          = "vpc-0e265ad953062b94b"
 	subnetsPublic  = "subnet-0f98135715dfcf55f,subnet-0ade11bad78dced9e,subnet-0e2e63ff1712bf6ef"
 	subnetsPrivate = "subnet-0f98135715dfcf55a,subnet-0ade11bad78dced9f,subnet-0e2e63ff1712bf6ea"
+	scriptPath     = "/var/lib/cloud/scripts/eksctl/"
 )
 
 var overrideBootstrapCommand = "echo foo > /etc/test_foo; echo bar > /etc/test_bar; poweroff -fn;"
@@ -2029,7 +2031,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ca.Permissions).To(Equal("0644"))
 			Expect(ca.Content).To(Equal(string(caCertData)))
 
-			checkScript(cc, "/var/lib/cloud/scripts/per-instance/bootstrap.al2.sh", true)
+			checkScript(cc, path.Join(scriptPath, "bootstrap.al2.sh"), true)
 		})
 
 	})
@@ -2082,7 +2084,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ca.Permissions).To(Equal("0644"))
 			Expect(ca.Content).To(Equal(string(caCertData)))
 
-			checkScript(cc, "/var/lib/cloud/scripts/per-instance/bootstrap.al2.sh", true)
+			checkScript(cc, path.Join(scriptPath, "bootstrap.al2.sh"), true)
 
 			Expect(cc.Commands).To(HaveLen(len(ng.PreBootstrapCommands) + 1))
 			for i, cmd := range ng.PreBootstrapCommands {
@@ -2141,7 +2143,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ca.Permissions).To(Equal("0644"))
 			Expect(ca.Content).To(Equal(string(caCertData)))
 
-			script := getFile(cc, "/var/lib/cloud/scripts/per-instance/bootstrap.al2.sh")
+			script := getFile(cc, path.Join(scriptPath, "bootstrap.al2.sh"))
 			Expect(script).To(BeNil())
 
 			Expect(cc.Commands).To(HaveLen(1))
@@ -2198,7 +2200,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ca.Permissions).To(Equal("0644"))
 			Expect(ca.Content).To(Equal(string(caCertData)))
 
-			script := getFile(cc, "/var/lib/cloud/scripts/per-instance/bootstrap.al2.sh")
+			script := getFile(cc, path.Join(scriptPath, "bootstrap.al2.sh"))
 			Expect(script).To(BeNil())
 
 			Expect(cc.Commands).To(HaveLen(4))
@@ -2268,7 +2270,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ca.Permissions).To(Equal("0644"))
 			Expect(ca.Content).To(Equal(string(caCertData)))
 
-			checkScript(cc, "/var/lib/cloud/scripts/per-instance/bootstrap.ubuntu.sh", true)
+			checkScript(cc, path.Join(scriptPath, "bootstrap.ubuntu.sh"), true)
 		})
 	})
 
@@ -2317,7 +2319,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ca.Permissions).To(Equal("0644"))
 			Expect(ca.Content).To(Equal(string(caCertData)))
 
-			checkScript(cc, "/var/lib/cloud/scripts/per-instance/bootstrap.ubuntu.sh", true)
+			checkScript(cc, path.Join(scriptPath, "bootstrap.ubuntu.sh"), true)
 
 			for i, cmd := range ng.PreBootstrapCommands {
 				c := cc.Commands[i].([]interface{})
@@ -2515,7 +2517,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ca.Permissions).To(Equal("0644"))
 			Expect(ca.Content).To(Equal(string(caCertData)))
 
-			checkScript(cc, "/var/lib/cloud/scripts/per-instance/bootstrap.ubuntu.sh", true)
+			checkScript(cc, path.Join(scriptPath, "bootstrap.ubuntu.sh"), true)
 		})
 	})
 
@@ -2564,7 +2566,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ca.Permissions).To(Equal("0644"))
 			Expect(ca.Content).To(Equal(string(caCertData)))
 
-			checkScript(cc, "/var/lib/cloud/scripts/per-instance/bootstrap.ubuntu.sh", true)
+			checkScript(cc, path.Join(scriptPath, "bootstrap.ubuntu.sh"), true)
 
 			for i, cmd := range ng.PreBootstrapCommands {
 				c := cc.Commands[i].([]interface{})
