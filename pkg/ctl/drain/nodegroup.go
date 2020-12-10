@@ -3,6 +3,10 @@ package drain
 import (
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
+
+	"github.com/aws/aws-sdk-go/service/eks"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -10,8 +14,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
-
-	"github.com/weaveworks/eksctl/pkg/drain"
 )
 
 func drainNodeGroupCmd(cmd *cmdutils.Cmd) {
@@ -22,7 +24,7 @@ func drainNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod time.Duration) error) {
 	cfg := api.NewClusterConfig()
-	ng := cfg.NewNodeGroup()
+	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
 	var undo, onlyMissing bool
@@ -90,7 +92,43 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 				return err
 			}
 		}
+	} else {
+		nodeGroupType, err := stackManager.GetNodeGroupStackType(ng.Name)
+		if err != nil {
+			logger.Debug("failed to fetch nodegroup %q stack: %v", ng.Name, err)
+			_, err := ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
+				ClusterName:   &cfg.Metadata.Name,
+				NodegroupName: &ng.Name,
+			})
+
+			if err != nil {
+				return err
+			}
+			nodeGroupType = api.NodeGroupTypeUnowned
+		}
+		switch nodeGroupType {
+		case api.NodeGroupTypeUnmanaged:
+			cfg.NodeGroups = []*api.NodeGroup{ng}
+		case api.NodeGroupTypeManaged:
+			cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name: ng.Name,
+					},
+				},
+			}
+		case api.NodeGroupTypeUnowned:
+			cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name: ng.Name,
+					},
+					Unowned: true,
+				},
+			}
+		}
 	}
+
 	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
 
 	verb := "drain"
@@ -112,11 +150,6 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 		return nil
 	}
 	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
-	for _, ng := range allNodeGroups {
-		nodeGroupDrainer := drain.NewNodeGroupDrainer(clientSet, ng, ctl.Provider.WaitTimeout(), maxGracePeriod, undo)
-		if err := nodeGroupDrainer.Drain(); err != nil {
-			return err
-		}
-	}
-	return nil
+
+	return nodegroup.New(cfg, ctl, clientSet).Drain(allNodeGroups, cmd.Plan, maxGracePeriod)
 }

@@ -15,7 +15,6 @@ import (
 )
 
 func (ng *NodeGroupManager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.ManagedNodeGroup, wait, plan bool) error {
-	plan = true
 	var nodesWithStacks []eks.KubeNodeGroup
 	var nodesWithoutStacksDeleteTask []*DeleteUnownedNodegroupTask
 
