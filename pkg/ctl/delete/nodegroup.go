@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/eks"
+
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 
 	"github.com/kris-nova/logger"
@@ -91,7 +93,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d nodegroups defined in the given config (%q) against remote state", len(cfg.NodeGroups), cmd.ClusterConfigFile)
 		if onlyMissing {
-			err = ngFilter.SetOnlyRemote(stackManager, cfg)
+			err = ngFilter.SetOnlyRemote(ctl.Provider.EKS(), stackManager, cfg)
 			if err != nil {
 				return err
 			}
@@ -99,7 +101,16 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	} else {
 		nodeGroupType, err := stackManager.GetNodeGroupStackType(ng.Name)
 		if err != nil {
-			return err
+			logger.Debug("failed to fetch nodegroup %q stack: %v", ng.Name, err)
+			_, err := ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
+				ClusterName:   &cfg.Metadata.Name,
+				NodegroupName: &ng.Name,
+			})
+
+			if err != nil {
+				return err
+			}
+			nodeGroupType = api.NodeGroupTypeUnowned
 		}
 		switch nodeGroupType {
 		case api.NodeGroupTypeUnmanaged:
@@ -110,6 +121,15 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 					NodeGroupBase: &api.NodeGroupBase{
 						Name: ng.Name,
 					},
+				},
+			}
+		case api.NodeGroupTypeUnowned:
+			cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name: ng.Name,
+					},
+					Unowned: true,
 				},
 			}
 		}
@@ -141,7 +161,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 	cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
-	err = nodeGroupManager.Delete(allNodeGroups, cmd.Wait, cmd.Plan)
+	err = nodeGroupManager.Delete(cfg.NodeGroups, cfg.ManagedNodeGroups, cmd.Wait, cmd.Plan)
 	if err != nil {
 		return err
 	}

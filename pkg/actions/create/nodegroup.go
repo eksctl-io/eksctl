@@ -76,7 +76,7 @@ func (c *NodeGroup) Create() error {
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	if err := c.nodegroupFilter.SetOnlyLocal(stackManager, cfg); err != nil {
+	if err := c.nodegroupFilter.SetOnlyLocal(ctl.Provider.EKS(), stackManager, cfg); err != nil {
 		return err
 	}
 
