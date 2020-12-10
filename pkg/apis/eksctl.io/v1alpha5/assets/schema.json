@@ -547,8 +547,8 @@
         },
         "subnets": {
           "$ref": "#/definitions/ClusterSubnets",
-          "description": "keyed by AZ for convenience. See [this example](/examples/reusing-iam-and-vpc/) as well as [using existing VPCs](/usage/vpc-networking/#use-existing-vpc-any-custom-configuration).",
-          "x-intellij-html-description": "keyed by AZ for convenience. See <a href=\"/examples/reusing-iam-and-vpc/\">this example</a> as well as <a href=\"/usage/vpc-networking/#use-existing-vpc-any-custom-configuration\">using existing VPCs</a>."
+          "description": "keyed by AZ for convenience. See [this example](/examples/reusing-iam-and-vpc/) as well as [using existing VPCs](/usage/vpc-networking/#use-existing-vpc-other-custom-configuration).",
+          "x-intellij-html-description": "keyed by AZ for convenience. See <a href=\"/examples/reusing-iam-and-vpc/\">this example</a> as well as <a href=\"/usage/vpc-networking/#use-existing-vpc-other-custom-configuration\">using existing VPCs</a>."
         }
       },
       "preferredOrder": [

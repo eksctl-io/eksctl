@@ -72,7 +72,6 @@ A cluster will be created with default parameters
 - use official AWS EKS AMI
 - `us-west-2` region
 - dedicated VPC (check your quotas)
-- using static AMI resolver
 
 Once you have created a cluster, you will find that cluster credentials were added in `~/.kube/config`. If you have `kubectl` v1.10.x as well as `aws-iam-authenticator` commands in your PATH, you should be
 able to use `kubectl`. You will need to make sure to use the same AWS API credentials for this also. Check [EKS docs][ekskubectl] for instructions. If you installed `eksctl` via Homebrew, you should have all of these dependencies installed already.

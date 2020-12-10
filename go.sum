@@ -356,8 +356,8 @@ github.com/ghodss/yaml v0.0.0-20150909031657-73d445a93680/go.mod h1:4dBDuWmgqj2H
 github.com/ghodss/yaml v0.0.0-20180820084758-c7ce16629ff4/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/ghodss/yaml v1.0.0 h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
-github.com/github-release/github-release v0.8.1 h1:FgSRfoHEu9VwiU5l+3oTa1+lhTJIeLlbCp0OUKR3EMI=
-github.com/github-release/github-release v0.8.1/go.mod h1:CcaWgA5VoBGz94mOHYIXavqUA8kADNZxU+5/oDQxF6o=
+github.com/github-release/github-release v0.9.0 h1:X8vP33sp1vtVhpD0UgNiD5Z6W3NjumZn3a/E8HSlbfQ=
+github.com/github-release/github-release v0.9.0/go.mod h1:CcaWgA5VoBGz94mOHYIXavqUA8kADNZxU+5/oDQxF6o=
 github.com/gliderlabs/ssh v0.1.1/go.mod h1:U7qILu1NlMHj9FlMhZLlkCdDnU1DBEAqr0aevW3Awn0=
 github.com/gliderlabs/ssh v0.2.2 h1:6zsha5zo/TWhRhwqCD3+EarCAgZ2yN28ipRnGPnwkI0=
 github.com/gliderlabs/ssh v0.2.2/go.mod h1:U7qILu1NlMHj9FlMhZLlkCdDnU1DBEAqr0aevW3Awn0=

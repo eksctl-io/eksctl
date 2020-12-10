@@ -80,6 +80,23 @@ var _ = Describe("VPC Configuration", func() {
 				},
 			}),
 		}),
+		Entry("ID only subnet", subnetCase{
+			subnets: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"main-subnet": {
+					ID: "subnet-1",
+				},
+			}),
+			az:       "us-east-1a",
+			subnetID: "subnet-1",
+			cidr:     "192.168.0.0/24",
+			expected: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
+				"main-subnet": {
+					AZ:   "us-east-1a",
+					ID:   "subnet-1",
+					CIDR: ipnet.MustParseCIDR("192.168.0.0/24"),
+				},
+			}),
+		}),
 		Entry("Conflicting existing subnets", subnetCase{
 			subnets: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
 				"us-east-1a": {

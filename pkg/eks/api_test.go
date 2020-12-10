@@ -75,66 +75,6 @@ var _ = Describe("eksctl API", func() {
 		})
 	})
 
-	Context("Static AMI selection", func() {
-		var (
-			ng       *api.NodeGroup
-			provider *mockprovider.MockProvider
-		)
-		BeforeEach(func() {
-			ng = api.NewNodeGroup()
-			ng.AMIFamily = api.DefaultNodeImageFamily
-
-			provider = mockprovider.NewMockProvider()
-
-			mockDescribeImages(provider, "ami-123", func(input *ec2.DescribeImagesInput) bool {
-				return len(input.ImageIds) == 1
-			})
-		})
-
-		It("should pick a valid AMI for GPU instances when AMI is static", func() {
-			ng.AMI = "static"
-			ng.InstanceType = "p2.xlarge"
-
-			err := ResolveAMI(provider, "1.14", ng)
-
-			Expect(err).ToNot(HaveOccurred())
-			Expect(ng.AMI).To(HavePrefix("ami"))
-		})
-		It("should pick a valid AMI for normal instances when AMI is static", func() {
-			ng.AMI = "static"
-			ng.InstanceType = "m5.xlarge"
-
-			err := ResolveAMI(provider, "1.14", ng)
-
-			Expect(err).ToNot(HaveOccurred())
-			Expect(ng.AMI).To(HavePrefix("ami"))
-		})
-		It("should pick a valid AMI for mixed normal instances", func() {
-			ng.AMI = "static"
-			ng.InstanceType = "mixed"
-			ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
-				InstanceTypes: []string{"t3.large", "m5.large", "m5a.large"},
-			}
-
-			err := ResolveAMI(provider, "1.14", ng)
-
-			Expect(err).ToNot(HaveOccurred())
-			Expect(ng.AMI).To(HavePrefix("ami"))
-		})
-		It("should pick a GPU AMI for mixed instances with GPU instance types", func() {
-			ng.AMI = "static"
-			ng.InstanceType = "mixed"
-			ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
-				InstanceTypes: []string{"t3.large", "m5.large", "m5a.large", "p3.2xlarge"},
-			}
-
-			err := ResolveAMI(provider, "1.14", ng)
-
-			Expect(err).ToNot(HaveOccurred())
-			Expect(ng.AMI).To(HavePrefix("ami"))
-		})
-	})
-
 	Context("Dynamic AMI Resolution", func() {
 		var (
 			ng       *api.NodeGroup
@@ -168,11 +108,6 @@ var _ = Describe("eksctl API", func() {
 			}, nil)
 
 			testEnsureAMI(Equal("ami-ssm"))
-		})
-
-		It("should use static resolution when specified", func() {
-			ng.AMI = "static"
-			testEnsureAMI(HavePrefix("ami"))
 		})
 
 		It("should fall back to auto resolution for Ubuntu", func() {

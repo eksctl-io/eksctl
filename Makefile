@@ -10,7 +10,7 @@ export GOBIN ?= $(gopath)/bin
 
 export PATH := $(GOBIN):./build/scripts:$(PATH)
 
-AWS_SDK_GO_DIR ?= $(gopath)/pkg/mod/$(shell grep 'aws-sdk-go' go.sum | awk '{print $$1 "@" $$2}' | grep -v 'go.mod' | sort | tail -1)
+AWS_SDK_GO_DIR ?= $(shell go list -m -f '{{.Dir}}' 'github.com/aws/aws-sdk-go')
 
 generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
 
@@ -165,6 +165,7 @@ generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (requi
 	go generate ./pkg/nodebootstrap
 	go generate ./pkg/addons/default/generate.go
 	go generate ./pkg/addons
+	go generate ./pkg/authconfigmap
 	# mocks
 	go generate ./pkg/eks
 	go generate ./pkg/drain
@@ -175,11 +176,6 @@ generate-all: generate-always $(conditionally_generated_files) ## Re-generate al
 .PHONY: check-all-generated-files-up-to-date
 check-all-generated-files-up-to-date: generate-all
 	git diff --quiet -- $(all_generated_files) || (git --no-pager diff $(all_generated_files); echo "HINT: to fix this, run 'git commit $(all_generated_files) --message \"Update generated files\"'"; exit 1)
-
-### Update AMIs in ami static resolver
-.PHONY: update-ami
-update-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
-	go generate ./pkg/ami
 
 ### Update maxpods.go from AWS
 .PHONY: update-maxpods
