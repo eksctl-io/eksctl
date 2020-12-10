@@ -82,25 +82,15 @@ func (n *NodeGroupDrainer) Drain() error {
 	}
 
 	listOptions := n.ng.ListOptions()
+	logger.Info(listOptions.String())
 	nodes, err := n.clientSet.CoreV1().Nodes().List(listOptions)
 	if err != nil {
 		return err
 	}
 
 	if len(nodes.Items) == 0 {
-		listOptions = metav1.ListOptions{
-			LabelSelector: fmt.Sprintf("%s=%s", "eks.amazonaws.com/nodegroup", n.ng.NameString()),
-		}
-		nodes, err = n.clientSet.CoreV1().Nodes().List(listOptions)
-
-		if err != nil {
-			return err
-		}
-
-		if len(nodes.Items) == 0 {
-			logger.Warning("no nodes found in nodegroup %q (label selector: %q)", n.ng.NameString(), n.ng.ListOptions().LabelSelector)
-			return nil
-		}
+		logger.Warning("no nodes found in nodegroup %q (label selector: %q)", n.ng.NameString(), n.ng.ListOptions().LabelSelector)
+		return nil
 	}
 
 	if n.undo {

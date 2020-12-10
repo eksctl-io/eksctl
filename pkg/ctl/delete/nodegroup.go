@@ -110,7 +110,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 			if err != nil {
 				return err
 			}
-			nodeGroupType = api.NodeGroupTypeManaged
+			nodeGroupType = api.NodeGroupTypeUnowned
 		}
 		switch nodeGroupType {
 		case api.NodeGroupTypeUnmanaged:
@@ -121,6 +121,15 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 					NodeGroupBase: &api.NodeGroupBase{
 						Name: ng.Name,
 					},
+				},
+			}
+		case api.NodeGroupTypeUnowned:
+			cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name: ng.Name,
+					},
+					Unowned: true,
 				},
 			}
 		}
@@ -144,7 +153,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 	nodeGroupManager := nodegroup.New(cfg, ctl, clientSet)
 	if deleteNodeGroupDrain {
-		err := nodeGroupManager.DrainAll(allNodeGroups, cmd.Plan, maxGracePeriod)
+		err := nodeGroupManager.Drain(allNodeGroups, cmd.Plan, maxGracePeriod)
 		if err != nil {
 			return err
 		}
