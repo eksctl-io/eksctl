@@ -23,15 +23,20 @@ func (ng *NodeGroup) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*ap
 	}
 
 	for _, n := range managedNodeGroups {
-		if n.Unowned {
+		hasStacks, err := ng.hasStacks(n)
+		if err != nil {
+			return err
+		}
+
+		if hasStacks {
+			cloudformationNodegroups = append(cloudformationNodegroups, n)
+		} else {
 			deleteUnownedNodegroupTasks = append(deleteUnownedNodegroupTasks, &DeleteUnownedNodegroupTask{
 				cluster:   ng.cfg.Metadata.Name,
 				nodegroup: n.Name,
 				eksAPI:    ng.ctl.Provider.EKS(),
 				info:      fmt.Sprintf("delete unowned nodegroup %q", n.Name),
 			})
-		} else {
-			cloudformationNodegroups = append(cloudformationNodegroups, n)
 		}
 	}
 
@@ -59,6 +64,19 @@ func (ng *NodeGroup) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*ap
 		return handleErrors(errs, "nodegroup(s)")
 	}
 	return nil
+}
+
+func (ng *NodeGroup) hasStacks(n *api.ManagedNodeGroup) (bool, error) {
+	stacks, err := ng.manager.ListNodeGroupStacks()
+	if err != nil {
+		return false, err
+	}
+	for _, stack := range stacks {
+		if stack.NodeGroupName == n.Name {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 type DeleteUnownedNodegroupTask struct {

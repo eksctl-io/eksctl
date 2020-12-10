@@ -110,7 +110,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 			if err != nil {
 				return err
 			}
-			nodeGroupType = api.NodeGroupTypeUnowned
+			nodeGroupType = api.NodeGroupTypeManaged
 		}
 		switch nodeGroupType {
 		case api.NodeGroupTypeUnmanaged:
@@ -121,15 +121,6 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 					NodeGroupBase: &api.NodeGroupBase{
 						Name: ng.Name,
 					},
-				},
-			}
-		case api.NodeGroupTypeUnowned:
-			cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
-				{
-					NodeGroupBase: &api.NodeGroupBase{
-						Name: ng.Name,
-					},
-					Unowned: true,
 				},
 			}
 		}

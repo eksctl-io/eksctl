@@ -128,19 +128,8 @@ func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(eksAPI eksiface.EKSAPI, l
 
 	// Get local nodegroups and discover if any specified don't have stacks
 	for _, localNodeGroup := range clusterConfig.GetAllNodeGroupNames() {
-		if !stackExists(nodesWithStacks, localNodeGroup) {
-			if nodeExists(nodesWithoutStacks, localNodeGroup) {
-				//set the local config to be Unowned
-				for _, managedNode := range clusterConfig.ManagedNodeGroups {
-					if managedNode.Name == localNodeGroup {
-						managedNode.Unowned = true
-						logger.Debug("nodegroup %q present in the given config and exists, but does not have stacks. Setting `unowned: true` ", localNodeGroup)
-					}
-				}
-
-			} else {
-				logger.Debug("nodegroup %q present in the given config, but missing in the cluster", localNodeGroup)
-			}
+		if !stackExists(nodesWithStacks, localNodeGroup) && !nodeExists(nodesWithoutStacks, localNodeGroup) {
+			logger.Debug("nodegroup %q present in the given config, but missing in the cluster", localNodeGroup)
 		}
 	}
 
@@ -148,7 +137,7 @@ func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(eksAPI eksiface.EKSAPI, l
 		if !f.localNodegroups.Has(nodeWithoutStack) {
 			ngBase := &api.NodeGroupBase{Name: nodeWithoutStack}
 			logger.Debug("nodegroup %q present in the cluster, but missing from the given config", nodeWithoutStack)
-			clusterConfig.ManagedNodeGroups = append(clusterConfig.ManagedNodeGroups, &api.ManagedNodeGroup{NodeGroupBase: ngBase, Unowned: true})
+			clusterConfig.ManagedNodeGroups = append(clusterConfig.ManagedNodeGroups, &api.ManagedNodeGroup{NodeGroupBase: ngBase})
 		}
 	}
 

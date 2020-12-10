@@ -291,9 +291,8 @@ func (c *StackCollection) GetNodeGroupStackType(name string) (api.NodeGroupType,
 
 // GetNodeGroupType returns the nodegroup type
 func GetNodeGroupType(tags []*cfn.Tag) (api.NodeGroupType, error) {
-	var (
-		nodeGroupType api.NodeGroupType
-	)
+	var nodeGroupType api.NodeGroupType
+
 	if ngNameTagValue := GetNodegroupTagName(tags); ngNameTagValue == "" {
 		return "", errors.New("failed to find the nodegroup name tag")
 	}
