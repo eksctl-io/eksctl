@@ -151,9 +151,8 @@ func validateKMSSupport(clusterConfig *api.ClusterConfig) error {
 		return fmt.Errorf("secrets encryption with KMS is only supported for EKS version %s and above", minReqVersion)
 	}
 
-	keyARN := *clusterConfig.SecretsEncryption.KeyARN
-	if _, err := arn.Parse(keyARN); err != nil {
-		return errors.Wrapf(err, "invalid ARN in secretsEncryption.keyARN: %q", keyARN)
+	if _, err := arn.Parse(clusterConfig.SecretsEncryption.KeyARN); err != nil {
+		return errors.Wrapf(err, "invalid ARN in secretsEncryption.keyARN: %q", clusterConfig.SecretsEncryption.KeyARN)
 	}
 	return nil
 }

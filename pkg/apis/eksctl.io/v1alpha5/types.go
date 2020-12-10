@@ -1394,7 +1394,7 @@ type FargateProfileSelector struct {
 // SecretsEncryption defines the configuration for KMS encryption provider
 type SecretsEncryption struct {
 	// +required
-	KeyARN *string `json:"keyARN,omitempty"`
+	KeyARN string `json:"keyARN,omitempty"`
 }
 
 // PrivateCluster defines the configuration for a fully-private cluster
