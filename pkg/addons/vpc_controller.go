@@ -8,6 +8,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/assetutil"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes/typed/certificates/v1beta1"
@@ -50,7 +51,7 @@ type VPCController struct {
 func (v *VPCController) Deploy() (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			if ae, ok := r.(*assetError); ok {
+			if ae, ok := r.(*assetutil.Error); ok {
 				err = ae
 			} else {
 				panic(r)
@@ -107,7 +108,7 @@ func (v *VPCController) generateCert() error {
 		return errors.Wrap(err, "generating CSR")
 	}
 
-	manifest := mustGenerateAsset(vpcAdmissionWebhookCsrYamlBytes)
+	manifest := assetutil.MustLoad(vpcAdmissionWebhookCsrYamlBytes)
 	rawExtension, err := kubernetes.NewRawExtension(manifest)
 	if err != nil {
 		return err
@@ -207,21 +208,21 @@ func (v *VPCController) createCertSecrets(key, cert []byte) error {
 }
 
 func (v *VPCController) deployVPCResourceController() error {
-	if err := v.applyResources(mustGenerateAsset(vpcResourceControllerYamlBytes)); err != nil {
+	if err := v.applyResources(assetutil.MustLoad(vpcResourceControllerYamlBytes)); err != nil {
 		return err
 	}
-	return v.applyDeployment(mustGenerateAsset(vpcResourceControllerDepYamlBytes))
+	return v.applyDeployment(assetutil.MustLoad(vpcResourceControllerDepYamlBytes))
 }
 
 func (v *VPCController) deployVPCWebhook() error {
-	if err := v.applyResources(mustGenerateAsset(vpcAdmissionWebhookYamlBytes)); err != nil {
+	if err := v.applyResources(assetutil.MustLoad(vpcAdmissionWebhookYamlBytes)); err != nil {
 		return err
 	}
-	if err := v.applyDeployment(mustGenerateAsset(vpcAdmissionWebhookDepYamlBytes)); err != nil {
+	if err := v.applyDeployment(assetutil.MustLoad(vpcAdmissionWebhookDepYamlBytes)); err != nil {
 		return err
 	}
 
-	manifest := mustGenerateAsset(vpcAdmissionWebhookConfigYamlBytes)
+	manifest := assetutil.MustLoad(vpcAdmissionWebhookConfigYamlBytes)
 	rawExtension, err := kubernetes.NewRawExtension(manifest)
 	if err != nil {
 		return err
@@ -331,24 +332,6 @@ func (v *VPCController) applyRawResource(object runtime.Object) error {
 	}
 	logger.Info(msg)
 	return nil
-}
-
-type assetError struct {
-	error
-}
-
-func (ae *assetError) Error() string {
-	return fmt.Sprintf("unexpected error generating assets: %v", ae.error.Error())
-}
-
-type assetFunc func() ([]byte, error)
-
-func mustGenerateAsset(assetFunc assetFunc) []byte {
-	bytes, err := assetFunc()
-	if err != nil {
-		panic(&assetError{err})
-	}
-	return bytes
 }
 
 func generateCertReq(service, namespace string) ([]byte, []byte, error) {

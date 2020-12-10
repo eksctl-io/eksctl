@@ -7,7 +7,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
 type OwnedCluster struct {
@@ -25,25 +24,13 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackMana
 }
 
 func (c *OwnedCluster) Upgrade(dryRun bool) error {
-	currentVersion := c.ctl.ControlPlaneVersion()
-	versionUpdateRequired, err := requiresVersionUpgrade(c.cfg.Metadata, currentVersion)
-	if err != nil {
-		return err
-	}
-
 	if err := c.ctl.LoadClusterVPC(c.cfg); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
 	}
 
-	printer := printers.NewJSONPrinter()
-	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", c.cfg); err != nil {
+	versionUpdateRequired, err := upgrade(c.cfg, c.ctl, dryRun)
+	if err != nil {
 		return err
-	}
-
-	if versionUpdateRequired {
-		if err := updateVersion(dryRun, c.cfg, currentVersion, c.ctl); err != nil {
-			return err
-		}
 	}
 
 	if err := c.ctl.RefreshClusterStatus(c.cfg); err != nil {

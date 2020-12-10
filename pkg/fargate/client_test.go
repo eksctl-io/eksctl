@@ -229,6 +229,7 @@ func createProfileWithoutTag() *api.FargateProfile {
 				},
 			},
 		},
+		Status: "ACTIVE",
 	}
 }
 
@@ -350,6 +351,7 @@ func apiFargateProfile(name string) *api.FargateProfile {
 		},
 		Subnets: []string{},
 		Tags:    map[string]string{},
+		Status:  "ACTIVE",
 	}
 }
 

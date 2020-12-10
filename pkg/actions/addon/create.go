@@ -169,7 +169,7 @@ func (a *Manager) getRecommendedPolicies(addon *api.Addon) []string {
 	// API isn't case sensitive
 	switch strings.ToLower(addon.Name) {
 	case vpcCNIName:
-		return []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(a.clusterConfig.Metadata.Region), api.IamPolicyAmazonEKSCNIPolicy)}
+		return []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}
 	default:
 		return []string{}
 	}

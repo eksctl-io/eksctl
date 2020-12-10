@@ -36,8 +36,8 @@ func getIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
 
-		fs.StringVar(&serviceAccount.Name, "name", "", "name of the iamserviceaccount to delete")
-		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace where to delete the iamserviceaccount")
+		fs.StringVar(&serviceAccount.Name, "name", "", "name of iamserviceaccount to get")
+		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace to look for iamserviceaccount")
 
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
@@ -86,7 +86,7 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMSer
 		// reset defaulted fields to avoid output being a complete lie
 		cfg.VPC = nil
 		cfg.CloudWatch = nil
-		// only return the iamserciceaccount that user asked for
+		// only return the iamserviceaccount that user asked for
 		var notFoundErr error
 		if serviceAccount.Name != "" { // name was given
 			notFoundErr = fmt.Errorf("iamserviceaccount %q not found", serviceAccount.NameString())

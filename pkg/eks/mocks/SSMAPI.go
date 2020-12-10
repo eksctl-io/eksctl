@@ -718,6 +718,84 @@ func (_m *SSMAPI) CreateOpsItemWithContext(_a0 context.Context, _a1 *ssm.CreateO
 	return r0, r1
 }
 
+// CreateOpsMetadata provides a mock function with given fields: _a0
+func (_m *SSMAPI) CreateOpsMetadata(_a0 *ssm.CreateOpsMetadataInput) (*ssm.CreateOpsMetadataOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ssm.CreateOpsMetadataOutput
+	if rf, ok := ret.Get(0).(func(*ssm.CreateOpsMetadataInput) *ssm.CreateOpsMetadataOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.CreateOpsMetadataOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ssm.CreateOpsMetadataInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateOpsMetadataRequest provides a mock function with given fields: _a0
+func (_m *SSMAPI) CreateOpsMetadataRequest(_a0 *ssm.CreateOpsMetadataInput) (*request.Request, *ssm.CreateOpsMetadataOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ssm.CreateOpsMetadataInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ssm.CreateOpsMetadataOutput
+	if rf, ok := ret.Get(1).(func(*ssm.CreateOpsMetadataInput) *ssm.CreateOpsMetadataOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ssm.CreateOpsMetadataOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateOpsMetadataWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *SSMAPI) CreateOpsMetadataWithContext(_a0 context.Context, _a1 *ssm.CreateOpsMetadataInput, _a2 ...request.Option) (*ssm.CreateOpsMetadataOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ssm.CreateOpsMetadataOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.CreateOpsMetadataInput, ...request.Option) *ssm.CreateOpsMetadataOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.CreateOpsMetadataOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.CreateOpsMetadataInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreatePatchBaseline provides a mock function with given fields: _a0
 func (_m *SSMAPI) CreatePatchBaseline(_a0 *ssm.CreatePatchBaselineInput) (*ssm.CreatePatchBaselineOutput, error) {
 	ret := _m.Called(_a0)
@@ -1256,6 +1334,84 @@ func (_m *SSMAPI) DeleteMaintenanceWindowWithContext(_a0 context.Context, _a1 *s
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ssm.DeleteMaintenanceWindowInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteOpsMetadata provides a mock function with given fields: _a0
+func (_m *SSMAPI) DeleteOpsMetadata(_a0 *ssm.DeleteOpsMetadataInput) (*ssm.DeleteOpsMetadataOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ssm.DeleteOpsMetadataOutput
+	if rf, ok := ret.Get(0).(func(*ssm.DeleteOpsMetadataInput) *ssm.DeleteOpsMetadataOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.DeleteOpsMetadataOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ssm.DeleteOpsMetadataInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteOpsMetadataRequest provides a mock function with given fields: _a0
+func (_m *SSMAPI) DeleteOpsMetadataRequest(_a0 *ssm.DeleteOpsMetadataInput) (*request.Request, *ssm.DeleteOpsMetadataOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ssm.DeleteOpsMetadataInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ssm.DeleteOpsMetadataOutput
+	if rf, ok := ret.Get(1).(func(*ssm.DeleteOpsMetadataInput) *ssm.DeleteOpsMetadataOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ssm.DeleteOpsMetadataOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteOpsMetadataWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *SSMAPI) DeleteOpsMetadataWithContext(_a0 context.Context, _a1 *ssm.DeleteOpsMetadataInput, _a2 ...request.Option) (*ssm.DeleteOpsMetadataOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ssm.DeleteOpsMetadataOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DeleteOpsMetadataInput, ...request.Option) *ssm.DeleteOpsMetadataOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.DeleteOpsMetadataOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.DeleteOpsMetadataInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6604,6 +6760,84 @@ func (_m *SSMAPI) GetOpsItemWithContext(_a0 context.Context, _a1 *ssm.GetOpsItem
 	return r0, r1
 }
 
+// GetOpsMetadata provides a mock function with given fields: _a0
+func (_m *SSMAPI) GetOpsMetadata(_a0 *ssm.GetOpsMetadataInput) (*ssm.GetOpsMetadataOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ssm.GetOpsMetadataOutput
+	if rf, ok := ret.Get(0).(func(*ssm.GetOpsMetadataInput) *ssm.GetOpsMetadataOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.GetOpsMetadataOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ssm.GetOpsMetadataInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetOpsMetadataRequest provides a mock function with given fields: _a0
+func (_m *SSMAPI) GetOpsMetadataRequest(_a0 *ssm.GetOpsMetadataInput) (*request.Request, *ssm.GetOpsMetadataOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ssm.GetOpsMetadataInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ssm.GetOpsMetadataOutput
+	if rf, ok := ret.Get(1).(func(*ssm.GetOpsMetadataInput) *ssm.GetOpsMetadataOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ssm.GetOpsMetadataOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetOpsMetadataWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *SSMAPI) GetOpsMetadataWithContext(_a0 context.Context, _a1 *ssm.GetOpsMetadataInput, _a2 ...request.Option) (*ssm.GetOpsMetadataOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ssm.GetOpsMetadataOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.GetOpsMetadataInput, ...request.Option) *ssm.GetOpsMetadataOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.GetOpsMetadataOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.GetOpsMetadataInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetOpsSummary provides a mock function with given fields: _a0
 func (_m *SSMAPI) GetOpsSummary(_a0 *ssm.GetOpsSummaryInput) (*ssm.GetOpsSummaryOutput, error) {
 	ret := _m.Called(_a0)
@@ -8385,6 +8619,84 @@ func (_m *SSMAPI) ListInventoryEntriesWithContext(_a0 context.Context, _a1 *ssm.
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ssm.ListInventoryEntriesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListOpsMetadata provides a mock function with given fields: _a0
+func (_m *SSMAPI) ListOpsMetadata(_a0 *ssm.ListOpsMetadataInput) (*ssm.ListOpsMetadataOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ssm.ListOpsMetadataOutput
+	if rf, ok := ret.Get(0).(func(*ssm.ListOpsMetadataInput) *ssm.ListOpsMetadataOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.ListOpsMetadataOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ssm.ListOpsMetadataInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListOpsMetadataRequest provides a mock function with given fields: _a0
+func (_m *SSMAPI) ListOpsMetadataRequest(_a0 *ssm.ListOpsMetadataInput) (*request.Request, *ssm.ListOpsMetadataOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ssm.ListOpsMetadataInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ssm.ListOpsMetadataOutput
+	if rf, ok := ret.Get(1).(func(*ssm.ListOpsMetadataInput) *ssm.ListOpsMetadataOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ssm.ListOpsMetadataOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListOpsMetadataWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *SSMAPI) ListOpsMetadataWithContext(_a0 context.Context, _a1 *ssm.ListOpsMetadataInput, _a2 ...request.Option) (*ssm.ListOpsMetadataOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ssm.ListOpsMetadataOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListOpsMetadataInput, ...request.Option) *ssm.ListOpsMetadataOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.ListOpsMetadataOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.ListOpsMetadataInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10795,6 +11107,84 @@ func (_m *SSMAPI) UpdateOpsItemWithContext(_a0 context.Context, _a1 *ssm.UpdateO
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ssm.UpdateOpsItemInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateOpsMetadata provides a mock function with given fields: _a0
+func (_m *SSMAPI) UpdateOpsMetadata(_a0 *ssm.UpdateOpsMetadataInput) (*ssm.UpdateOpsMetadataOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ssm.UpdateOpsMetadataOutput
+	if rf, ok := ret.Get(0).(func(*ssm.UpdateOpsMetadataInput) *ssm.UpdateOpsMetadataOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.UpdateOpsMetadataOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ssm.UpdateOpsMetadataInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateOpsMetadataRequest provides a mock function with given fields: _a0
+func (_m *SSMAPI) UpdateOpsMetadataRequest(_a0 *ssm.UpdateOpsMetadataInput) (*request.Request, *ssm.UpdateOpsMetadataOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ssm.UpdateOpsMetadataInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ssm.UpdateOpsMetadataOutput
+	if rf, ok := ret.Get(1).(func(*ssm.UpdateOpsMetadataInput) *ssm.UpdateOpsMetadataOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ssm.UpdateOpsMetadataOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UpdateOpsMetadataWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *SSMAPI) UpdateOpsMetadataWithContext(_a0 context.Context, _a1 *ssm.UpdateOpsMetadataInput, _a2 ...request.Option) (*ssm.UpdateOpsMetadataOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ssm.UpdateOpsMetadataOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.UpdateOpsMetadataInput, ...request.Option) *ssm.UpdateOpsMetadataOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.UpdateOpsMetadataOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.UpdateOpsMetadataInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
