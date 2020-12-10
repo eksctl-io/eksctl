@@ -267,6 +267,8 @@ const (
 	NodeGroupTypeManaged NodeGroupType = "managed"
 	// NodeGroupTypeUnmanaged defines an unmanaged nodegroup
 	NodeGroupTypeUnmanaged NodeGroupType = "unmanaged"
+	// NodeGroupTypeUnowned defines an unowned nodegroup
+	NodeGroupTypeUnowned NodeGroupType = "unowned"
 )
 
 var (
@@ -1221,6 +1223,9 @@ type ManagedNodeGroup struct {
 	// LaunchTemplate specifies an existing launch template to use
 	// for the nodegroup
 	LaunchTemplate *LaunchTemplate `json:"launchTemplate,omitempty"`
+
+	// Unowned specifies if the nodegroup was no created by eksctl
+	Unowned bool
 }
 
 // BaseNodeGroup implements NodePool
