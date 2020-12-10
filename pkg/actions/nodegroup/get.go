@@ -74,6 +74,10 @@ func (ng *NodeGroup) Get(name string) (*manager.NodeGroupSummary, error) {
 		NodegroupName: &name,
 	})
 
+	if err != nil {
+		return nil, err
+	}
+
 	return &manager.NodeGroupSummary{
 		Name:                *describeOutput.Nodegroup.NodegroupName,
 		Cluster:             *describeOutput.Nodegroup.ClusterName,
