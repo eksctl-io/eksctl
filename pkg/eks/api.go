@@ -116,7 +116,7 @@ func (p ProviderServices) WaitTimeout() time.Duration { return p.spec.WaitTimeou
 type ProviderStatus struct {
 	iamRoleARN   string
 	sessionCreds *credentials.Credentials
-	clusterInfo  *clusterInfo
+	ClusterInfo  *ClusterInfo
 }
 
 // New creates a new setup of the used AWS APIs

@@ -24,6 +24,7 @@ func NewFakeCluster(clusterName string, status string) *awseks.Cluster {
 			Data: aws.String("dGVzdAo="),
 		},
 		Endpoint: aws.String("https://localhost/"),
+		Version:  aws.String("1.17"),
 	}
 
 	return cluster

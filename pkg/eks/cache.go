@@ -8,24 +8,24 @@ import (
 
 const clusterInfoCacheTTL = 15 * time.Second
 
-type clusterInfo struct {
+type ClusterInfo struct {
 	timestamp time.Time
-	cluster   *awseks.Cluster
+	Cluster   *awseks.Cluster
 }
 
 func (c *ClusterProvider) clusterInfoNeedsUpdate() bool {
-	if c.Status.clusterInfo == nil {
+	if c.Status.ClusterInfo == nil {
 		return true
 	}
-	if time.Since(c.Status.clusterInfo.timestamp) > clusterInfoCacheTTL {
+	if time.Since(c.Status.ClusterInfo.timestamp) > clusterInfoCacheTTL {
 		return true
 	}
 	return false
 }
 
 func (c *ClusterProvider) setClusterInfo(cluster *awseks.Cluster) {
-	c.Status.clusterInfo = &clusterInfo{
+	c.Status.ClusterInfo = &ClusterInfo{
 		timestamp: time.Now(),
-		cluster:   cluster,
+		Cluster:   cluster,
 	}
 }
