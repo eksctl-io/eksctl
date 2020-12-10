@@ -82,7 +82,6 @@ func (n *NodeGroupDrainer) Drain() error {
 	}
 
 	listOptions := n.ng.ListOptions()
-	logger.Info(listOptions.String())
 	nodes, err := n.clientSet.CoreV1().Nodes().List(listOptions)
 	if err != nil {
 		return err

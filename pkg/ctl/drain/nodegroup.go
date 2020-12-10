@@ -5,8 +5,6 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 
-	"github.com/aws/aws-sdk-go/service/eks"
-
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -93,39 +91,9 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 			}
 		}
 	} else {
-		nodeGroupType, err := stackManager.GetNodeGroupStackType(ng.Name)
+		err := cmdutils.PopulateNodegroup(stackManager, ng.Name, cfg, ctl.Provider)
 		if err != nil {
-			logger.Debug("failed to fetch nodegroup %q stack: %v", ng.Name, err)
-			_, err := ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
-				ClusterName:   &cfg.Metadata.Name,
-				NodegroupName: &ng.Name,
-			})
-
-			if err != nil {
-				return err
-			}
-			nodeGroupType = api.NodeGroupTypeUnowned
-		}
-		switch nodeGroupType {
-		case api.NodeGroupTypeUnmanaged:
-			cfg.NodeGroups = []*api.NodeGroup{ng}
-		case api.NodeGroupTypeManaged:
-			cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
-				{
-					NodeGroupBase: &api.NodeGroupBase{
-						Name: ng.Name,
-					},
-				},
-			}
-		case api.NodeGroupTypeUnowned:
-			cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
-				{
-					NodeGroupBase: &api.NodeGroupBase{
-						Name: ng.Name,
-					},
-					Unowned: true,
-				},
-			}
+			return err
 		}
 	}
 
