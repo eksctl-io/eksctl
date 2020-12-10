@@ -1,7 +1,7 @@
 # GPU Support
 
-Eksctl supports selecting GPU instance types for nodegroups. Simply supply either a `p2` or `p3`
-instance type to the create command, or via the config file.
+Eksctl supports selecting GPU instance types for nodegroups. Simply supply a
+compatible instance type to the create command, or via the config file.
 
 ```
 eksctl create cluster --node-type=p2.xlarge
@@ -11,7 +11,7 @@ eksctl create cluster --node-type=p2.xlarge
     It is no longer necessary to subscribe to the marketplace AMI for GPU support on EKS.
 
 The AMI resolvers (`static`, `auto` and `auto-ssm`) will see that you want to use a
-GPU instance type (`p2` or `p3`) and they will select the correct EKS-Optimized Accelerated AMI.
+GPU instance type and they will select the correct EKS optimized accelerated AMI.
 
 Eksctl will detect that an AMI with a GPU-enabled instance type has been selected and
 will install the [NVIDIA Kubernetes device plugin](https://github.com/NVIDIA/k8s-device-plugin) automatically.
