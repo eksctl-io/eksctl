@@ -8,7 +8,6 @@ The `--node-ami` can take the AMI image id for an image to explicitly use. It al
 
 | Keyword   | Description                                                                                                         |
 | --------- | ------------------------------------------------------------------------------------------------------------------- |
-| static    | Indicates that the AMI images ids embedded into `eksctl` should be used. This relates to the static resolvers.      |
 | auto      | Indicates that the AMI to use for the nodes should be found by querying AWS EC2. This relates to the auto resolver. |
 | auto-ssm  | Indicates that the AMI to use for the nodes should be found by querying AWS SSM Parameter Store.                    |
 

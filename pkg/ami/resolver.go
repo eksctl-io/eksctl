@@ -39,14 +39,6 @@ type Resolver interface {
 	Resolve(region, version, instanceType, imageFamily string) (string, error)
 }
 
-// NewStaticResolver returns a static resolver that delegates on
-// StaticGPUResolver, StaticBottlerocketResolver, and StaticDefaultResolver.
-func NewStaticResolver() Resolver {
-	return &MultiResolver{
-		delegates: []Resolver{&StaticGPUResolver{}, &StaticBottlerocketResolver{}, &StaticDefaultResolver{}},
-	}
-}
-
 // NewMultiResolver creates and returns a MultiResolver with the specified delegates
 func NewMultiResolver(delegates ...Resolver) *MultiResolver {
 	return &MultiResolver{
