@@ -3,6 +3,8 @@ package cluster
 import (
 	"fmt"
 
+	"github.com/weaveworks/eksctl/pkg/printers"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -11,17 +13,30 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
-func updateVersion(dryRun bool, cfg *api.ClusterConfig, currentVersion string, ctl *eks.ClusterProvider) error {
-	msgNodeGroupsAndAddons := "you will need to follow the upgrade procedure for all of nodegroups and add-ons"
-	cmdutils.LogIntendedAction(dryRun, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, currentVersion, cfg.Metadata.Version)
-	if !dryRun {
-		if err := ctl.UpdateClusterVersionBlocking(cfg); err != nil {
-			return err
-		}
-		logger.Success("cluster %q control plane has been upgraded to version %q", cfg.Metadata.Name, cfg.Metadata.Version)
-		logger.Info(msgNodeGroupsAndAddons)
+func upgrade(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, dryRun bool) (bool, error) {
+	currentVersion := ctl.ControlPlaneVersion()
+	versionUpdateRequired, err := requiresVersionUpgrade(cfg.Metadata, currentVersion)
+	if err != nil {
+		return false, err
 	}
-	return nil
+
+	printer := printers.NewJSONPrinter()
+	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
+		return false, err
+	}
+
+	if versionUpdateRequired {
+		msgNodeGroupsAndAddons := "you will need to follow the upgrade procedure for all of nodegroups and add-ons"
+		cmdutils.LogIntendedAction(dryRun, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, currentVersion, cfg.Metadata.Version)
+		if !dryRun {
+			if err := ctl.UpdateClusterVersionBlocking(cfg); err != nil {
+				return false, err
+			}
+			logger.Success("cluster %q control plane has been upgraded to version %q", cfg.Metadata.Name, cfg.Metadata.Version)
+			logger.Info(msgNodeGroupsAndAddons)
+		}
+	}
+	return versionUpdateRequired, nil
 }
 
 func requiresVersionUpgrade(clusterMeta *api.ClusterMeta, currentEKSVersion string) (bool, error) {
