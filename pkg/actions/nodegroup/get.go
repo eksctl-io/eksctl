@@ -6,7 +6,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
-func (ng *NodeGroup) GetAll() ([]*manager.NodeGroupSummary, error) {
+func (ng *NodeGroupManager) GetAll() ([]*manager.NodeGroupSummary, error) {
 	summaries, err := ng.manager.GetNodeGroupSummaries("")
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stack summaries")
@@ -20,7 +20,7 @@ func (ng *NodeGroup) GetAll() ([]*manager.NodeGroupSummary, error) {
 		return nil, err
 	}
 
-	var unownedNodeGroups []string
+	var nodesWithoutStacks []string
 	for _, ng := range nodeGroups.Nodegroups {
 		found := false
 		for _, summary := range summaries {
@@ -30,14 +30,14 @@ func (ng *NodeGroup) GetAll() ([]*manager.NodeGroupSummary, error) {
 		}
 
 		if !found {
-			unownedNodeGroups = append(unownedNodeGroups, *ng)
+			nodesWithoutStacks = append(nodesWithoutStacks, *ng)
 		}
 	}
 
-	for _, unownedNodeGroup := range unownedNodeGroups {
+	for _, nodeWithoutStack := range nodesWithoutStacks {
 		describeOutput, err := ng.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
 			ClusterName:   &ng.cfg.Metadata.Name,
-			NodegroupName: &unownedNodeGroup,
+			NodegroupName: &nodeWithoutStack,
 		})
 		if err != nil {
 			return nil, err
@@ -59,7 +59,7 @@ func (ng *NodeGroup) GetAll() ([]*manager.NodeGroupSummary, error) {
 	return summaries, nil
 }
 
-func (ng *NodeGroup) Get(name string) (*manager.NodeGroupSummary, error) {
+func (ng *NodeGroupManager) Get(name string) (*manager.NodeGroupSummary, error) {
 	summaries, err := ng.manager.GetNodeGroupSummaries(name)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stack summaries")

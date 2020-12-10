@@ -14,12 +14,13 @@ import (
 	"github.com/kris-nova/logger"
 )
 
-func (ng *NodeGroup) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.ManagedNodeGroup, wait, plan bool) error {
-	var cloudformationNodegroups []eks.KubeNodeGroup
-	var deleteUnownedNodegroupTasks []*DeleteUnownedNodegroupTask
+func (ng *NodeGroupManager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.ManagedNodeGroup, wait, plan bool) error {
+	plan = true
+	var nodesWithStacks []eks.KubeNodeGroup
+	var nodesWithoutStacksDeleteTask []*DeleteUnownedNodegroupTask
 
 	for _, n := range nodeGroups {
-		cloudformationNodegroups = append(cloudformationNodegroups, n)
+		nodesWithStacks = append(nodesWithStacks, n)
 	}
 
 	for _, n := range managedNodeGroups {
@@ -29,9 +30,9 @@ func (ng *NodeGroup) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*ap
 		}
 
 		if hasStacks {
-			cloudformationNodegroups = append(cloudformationNodegroups, n)
+			nodesWithStacks = append(nodesWithStacks, n)
 		} else {
-			deleteUnownedNodegroupTasks = append(deleteUnownedNodegroupTasks, &DeleteUnownedNodegroupTask{
+			nodesWithoutStacksDeleteTask = append(nodesWithoutStacksDeleteTask, &DeleteUnownedNodegroupTask{
 				cluster:   ng.cfg.Metadata.Name,
 				nodegroup: n.Name,
 				eksAPI:    ng.ctl.Provider.EKS(),
@@ -41,7 +42,7 @@ func (ng *NodeGroup) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*ap
 	}
 
 	shouldDelete := func(ngName string) bool {
-		for _, n := range cloudformationNodegroups {
+		for _, n := range nodesWithStacks {
 			if n.NameString() == ngName {
 				return true
 			}
@@ -54,7 +55,7 @@ func (ng *NodeGroup) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*ap
 		return err
 	}
 
-	for _, t := range deleteUnownedNodegroupTasks {
+	for _, t := range nodesWithoutStacksDeleteTask {
 		tasks.Append(t)
 	}
 
@@ -66,7 +67,7 @@ func (ng *NodeGroup) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*ap
 	return nil
 }
 
-func (ng *NodeGroup) hasStacks(n *api.ManagedNodeGroup) (bool, error) {
+func (ng *NodeGroupManager) hasStacks(n *api.ManagedNodeGroup) (bool, error) {
 	stacks, err := ng.manager.ListNodeGroupStacks()
 	if err != nil {
 		return false, err

@@ -7,15 +7,15 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-type NodeGroup struct {
+type NodeGroupManager struct {
 	manager   *manager.StackCollection
 	ctl       *eks.ClusterProvider
 	cfg       *api.ClusterConfig
 	clientSet *kubernetes.Clientset
 }
 
-func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet *kubernetes.Clientset) *NodeGroup {
-	return &NodeGroup{
+func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet *kubernetes.Clientset) *NodeGroupManager {
+	return &NodeGroupManager{
 		manager:   ctl.NewStackManager(cfg),
 		ctl:       ctl,
 		cfg:       cfg,
