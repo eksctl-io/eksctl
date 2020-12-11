@@ -165,7 +165,7 @@ var _ = Describe("(Integration) Update addons", func() {
 
 		It("should upgrade aws-node", func() {
 			rawClient := getRawClient()
-			preUpdateAWSNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get("aws-node", metav1.GetOptions{})
+			preUpdateAWSNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "aws-node", metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			preUpdateAWSNodeVersion, err := addons.ImageTag(preUpdateAWSNode.Spec.Template.Spec.Containers[0].Image)
 			Expect(err).ToNot(HaveOccurred())
