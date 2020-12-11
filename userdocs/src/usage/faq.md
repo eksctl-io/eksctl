@@ -28,9 +28,10 @@
 ## Ingress
 
 !!! question "How do I set up ingress with `eksctl`?"
-    If the plan is to use AWS ALB Ingress controller, setting `nodegroups[*].iam.withAddonPolicies.albIngress` to `true` will add the required IAM policies to your nodes allowing the controller to provision load balancers. Then you can follow [docs to set up the controller](https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html).
+    We recommend using the [AWS Load Balancer Controller](https://github.com/kubernetes-sigs/aws-load-balancer-controller).
+    Documentation on how to deploy the controller to your cluster, as well as how to migrate from the old ALB Ingress Controller, can be found [here](https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html).
 
-    For Nginx Ingress Controller, setup would be the same as [any other Kubernetes cluster](https://kubernetes.github.io/ingress-nginx/deploy/#aws).
+    For the Nginx Ingress Controller, setup would be the same as [any on other Kubernetes cluster](https://kubernetes.github.io/ingress-nginx/deploy/#aws).
 
 ## Kubectl
 
