@@ -152,9 +152,7 @@ func describeVPC(provider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
 // NOTE: it doesn't expect any fields in spec.VPC to be set, the remote state
 // is treated as the source of truth
 func UseFromCluster(provider api.ClusterProvider, stack *cfn.Stack, spec *api.ClusterConfig) error {
-	if spec.VPC == nil {
-		spec.VPC = api.NewClusterVPC()
-	}
+	spec.VPC = api.NewClusterVPC()
 	// this call is authoritative, and we can safely override the
 	// CIDR, as it can only be set to anything due to defaulting
 	spec.VPC.CIDR = nil
