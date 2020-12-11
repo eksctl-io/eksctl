@@ -392,7 +392,7 @@ func validateNodeGroupIAMWithAddonPolicies(
 	if IsEnabled(policies.EFS) {
 		return fmtFieldConflictErr(prefix + "efs")
 	}
-	if IsEnabled(policies.ALBIngress) {
+	if IsEnabled(policies.AWSLoadBalancerController) {
 		return fmtFieldConflictErr(prefix + "albIngress")
 	}
 	if IsEnabled(policies.XRay) {

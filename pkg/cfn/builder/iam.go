@@ -40,15 +40,11 @@ var (
 	}
 )
 
-func (c *resourceSet) attachAllowPolicy(name string, refRole *gfnt.Value, resources interface{}, actions []string) {
+func (c *resourceSet) attachAllowPolicy(name string, refRole *gfnt.Value, statements []cft.MapOfInterfaces) {
 	c.newResource(name, &gfniam.Policy{
-		PolicyName: makeName(name),
-		Roles:      gfnt.NewSlice(refRole),
-		PolicyDocument: cft.MakePolicyDocument(map[string]interface{}{
-			"Effect":   "Allow",
-			"Resource": resources,
-			"Action":   actions,
-		}),
+		PolicyName:     makeName(name),
+		Roles:          gfnt.NewSlice(refRole),
+		PolicyDocument: cft.MakePolicyDocument(statements...),
 	})
 }
 
@@ -93,18 +89,12 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 		role.PermissionsBoundary = gfnt.NewString(*c.spec.IAM.ServiceRolePermissionsBoundary)
 	}
 	refSR := c.newResource("ServiceRole", role)
-	c.rs.attachAllowPolicy("PolicyCloudWatchMetrics", refSR, "*", []string{
-		"cloudwatch:PutMetricData",
-	})
+	c.rs.attachAllowPolicy("PolicyCloudWatchMetrics", refSR, cloudWatchMetricsStatements())
 	// These are potentially required for creating load balancers but aren't included in the
 	// AmazonEKSClusterPolicy
 	// See https://docs.aws.amazon.com/elasticloadbalancing/latest/userguide/elb-api-permissions.html#required-permissions-v2
 	// and weaveworks/eksctl#2488
-	c.rs.attachAllowPolicy("PolicyELBPermissions", refSR, "*", []string{
-		"ec2:DescribeAccountAttributes",
-		"ec2:DescribeAddresses",
-		"ec2:DescribeInternetGateways",
-	})
+	c.rs.attachAllowPolicy("PolicyELBPermissions", refSR, elbStatements())
 
 	c.rs.defineOutputFromAtt(outputs.ClusterServiceRoleARN, "ServiceRole", "Arn", true, func(v string) error {
 		c.spec.IAM.ServiceRoleARN = &v

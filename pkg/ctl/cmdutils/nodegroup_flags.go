@@ -75,7 +75,7 @@ func AddCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup
 	ng.IAM.WithAddonPolicies.ImageBuilder = new(bool)
 	ng.IAM.WithAddonPolicies.AppMesh = new(bool)
 	ng.IAM.WithAddonPolicies.AppMeshPreview = new(bool)
-	ng.IAM.WithAddonPolicies.ALBIngress = new(bool)
+	ng.IAM.WithAddonPolicies.AWSLoadBalancerController = new(bool)
 	ng.IAM.WithAddonPolicies.XRay = new(bool)
 	ng.IAM.WithAddonPolicies.CloudWatch = new(bool)
 	fs.BoolVar(ng.IAM.WithAddonPolicies.AutoScaler, "asg-access", false, "enable IAM policy for cluster-autoscaler")
@@ -83,7 +83,7 @@ func AddCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup
 	fs.BoolVar(ng.IAM.WithAddonPolicies.ImageBuilder, "full-ecr-access", false, "enable full access to ECR")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.AppMesh, "appmesh-access", false, "enable full access to AppMesh")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.AppMeshPreview, "appmesh-preview-access", false, "enable full access to AppMesh Preview")
-	fs.BoolVar(ng.IAM.WithAddonPolicies.ALBIngress, "alb-ingress-access", false, "enable full access for alb-ingress-controller")
+	fs.BoolVar(ng.IAM.WithAddonPolicies.AWSLoadBalancerController, "alb-ingress-access", false, "enable full access for alb-ingress-controller")
 }
 
 // AddNodeGroupFilterFlags add common `--include` and `--exclude` flags for filtering nodegroups
