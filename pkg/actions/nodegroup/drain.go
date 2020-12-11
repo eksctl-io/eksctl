@@ -10,7 +10,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/drain"
 )
 
-func (ng *NodeGroupManager) Drain(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod time.Duration) error {
+func (ng *Manager) Drain(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod time.Duration) error {
 	cmdutils.LogIntendedAction(plan, "drain %d nodegroup(s) in cluster %q", len(nodeGroups), ng.cfg.Metadata.Name)
 
 	if !plan {

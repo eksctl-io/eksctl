@@ -14,7 +14,7 @@ import (
 	"github.com/kris-nova/logger"
 )
 
-func (ng *NodeGroupManager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.ManagedNodeGroup, wait, plan bool) error {
+func (ng *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.ManagedNodeGroup, wait, plan bool) error {
 	var nodesWithStacks []eks.KubeNodeGroup
 	var nodesWithoutStacksDeleteTask []*DeleteUnownedNodegroupTask
 
@@ -66,7 +66,7 @@ func (ng *NodeGroupManager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroup
 	return nil
 }
 
-func (ng *NodeGroupManager) hasStacks(n *api.ManagedNodeGroup) (bool, error) {
+func (ng *Manager) hasStacks(n *api.ManagedNodeGroup) (bool, error) {
 	stacks, err := ng.manager.ListNodeGroupStacks()
 	if err != nil {
 		return false, err

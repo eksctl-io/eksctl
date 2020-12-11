@@ -1229,13 +1229,13 @@ type ManagedNodeGroup struct {
 	Unowned bool
 }
 
-func (n *ManagedNodeGroup) ListOptions() metav1.ListOptions {
-	if n.Unowned {
+func (m *ManagedNodeGroup) ListOptions() metav1.ListOptions {
+	if m.Unowned {
 		return metav1.ListOptions{
-			LabelSelector: fmt.Sprintf("%s=%s", EKSNodeGroupNameLabel, n.NameString()),
+			LabelSelector: fmt.Sprintf("%s=%s", EKSNodeGroupNameLabel, m.NameString()),
 		}
 	}
-	return n.NodeGroupBase.ListOptions()
+	return m.NodeGroupBase.ListOptions()
 }
 
 // BaseNodeGroup implements NodePool
