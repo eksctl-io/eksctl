@@ -63,6 +63,10 @@ func doEnableSecretsEncryption(cmd *cmdutils.Cmd, encrypt bool) error {
 		return err
 	}
 
+	if cmd.ClusterConfig.Metadata.Name == "" {
+		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
+	}
+
 	if ok, err := ctl.CanUpdate(clusterConfig); !ok {
 		return err
 	}
