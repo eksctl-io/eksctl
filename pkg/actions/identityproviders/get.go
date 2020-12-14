@@ -10,12 +10,18 @@ import (
 
 // Summary holds the known info about this provider
 type Summary struct {
-	Type      api.IdentityProviderType
-	Name      string
-	ClientID  string
-	IssuerURL string
-	Status    string
-	Arn       string
+	Type           api.IdentityProviderType
+	Name           string
+	ClientID       string
+	IssuerURL      string
+	Status         string
+	Arn            string
+	UsernameClaim  *string
+	UsernamePrefix *string
+	GroupsClaim    *string
+	GroupsPrefix   *string
+	RequiredClaims map[string]string
+	Tags           map[string]string
 }
 
 type GetIdentityProvidersOptions struct {
@@ -62,12 +68,18 @@ func (ipm *IdentityProviderManager) Get(options GetIdentityProvidersOptions) ([]
 		}
 		if cfg := idP.IdentityProviderConfig.Oidc; cfg != nil {
 			summaries = append(summaries, Summary{
-				Type:      api.OIDCIdentityProviderType,
-				Name:      aws.StringValue(cfg.IdentityProviderConfigName),
-				ClientID:  aws.StringValue(cfg.ClientId),
-				IssuerURL: aws.StringValue(cfg.IssuerUrl),
-				Status:    aws.StringValue(cfg.Status),
-				Arn:       aws.StringValue(cfg.IdentityProviderConfigArn),
+				Type:           api.OIDCIdentityProviderType,
+				Name:           aws.StringValue(cfg.IdentityProviderConfigName),
+				ClientID:       aws.StringValue(cfg.ClientId),
+				IssuerURL:      aws.StringValue(cfg.IssuerUrl),
+				Status:         aws.StringValue(cfg.Status),
+				Arn:            aws.StringValue(cfg.IdentityProviderConfigArn),
+				UsernameClaim:  cfg.UsernameClaim,
+				UsernamePrefix: cfg.UsernamePrefix,
+				GroupsClaim:    cfg.GroupsClaim,
+				GroupsPrefix:   cfg.GroupsPrefix,
+				RequiredClaims: aws.StringValueMap(cfg.RequiredClaims),
+				Tags:           aws.StringValueMap(cfg.Tags),
 			})
 		}
 	}

@@ -117,22 +117,26 @@ func (l *commonClusterConfigLoader) Load() error {
 	return l.validateWithConfigFile()
 }
 
-func (l *commonClusterConfigLoader) validateMetadataWithoutConfigFile() error {
-	meta := l.ClusterConfig.Metadata
+func validateMetadataWithoutConfigFile(cmd *Cmd) error {
+	meta := cmd.ClusterConfig.Metadata
 
-	if meta.Name != "" && l.NameArg != "" {
-		return ErrClusterFlagAndArg(l.Cmd, meta.Name, l.NameArg)
+	if meta.Name != "" && cmd.NameArg != "" {
+		return ErrClusterFlagAndArg(cmd, meta.Name, cmd.NameArg)
 	}
 
-	if l.NameArg != "" {
-		meta.Name = l.NameArg
+	if cmd.NameArg != "" {
+		meta.Name = cmd.NameArg
 	}
 
 	if meta.Name == "" {
-		return ErrMustBeSet(ClusterNameFlag(l.Cmd))
+		return ErrMustBeSet(ClusterNameFlag(cmd))
 	}
 
 	return nil
+}
+
+func (l *commonClusterConfigLoader) validateMetadataWithoutConfigFile() error {
+	return validateMetadataWithoutConfigFile(l.Cmd)
 }
 
 // NewMetadataLoader handles loading of clusterConfigFile vs using flags for all commands that require only
