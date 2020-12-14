@@ -1,6 +1,7 @@
 package addon
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -110,7 +111,7 @@ func (a *Manager) Create(addon *api.Addon) error {
 
 func (a *Manager) patchAWSNodeSA() error {
 	serviceaccounts := a.clientSet.CoreV1().ServiceAccounts("kube-system")
-	sa, err := serviceaccounts.Get("aws-node", metav1.GetOptions{})
+	sa, err := serviceaccounts.Get(context.TODO(), "aws-node", metav1.GetOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			logger.Debug("could not find aws-node SA, skipping patching")
@@ -129,7 +130,7 @@ func (a *Manager) patchAWSNodeSA() error {
 		return nil
 	}
 
-	_, err = serviceaccounts.Patch("aws-node", types.JSONPatchType, []byte(fmt.Sprintf(`[{"op": "remove", "path": "/metadata/managedFields/%d"}]`, managerIndex)))
+	_, err = serviceaccounts.Patch(context.TODO(), "aws-node", types.JSONPatchType, []byte(fmt.Sprintf(`[{"op": "remove", "path": "/metadata/managedFields/%d"}]`, managerIndex)), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to patch sa")
 	}
@@ -139,7 +140,7 @@ func (a *Manager) patchAWSNodeSA() error {
 
 func (a *Manager) patchAWSNodeDaemonSet() error {
 	daemonsets := a.clientSet.AppsV1().DaemonSets(kubeSystemNamespace)
-	sa, err := daemonsets.Get("aws-node", metav1.GetOptions{})
+	sa, err := daemonsets.Get(context.TODO(), "aws-node", metav1.GetOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			logger.Debug("could not find aws-node daemon set, skipping patching")
@@ -158,7 +159,7 @@ func (a *Manager) patchAWSNodeDaemonSet() error {
 		return nil
 	}
 
-	_, err = daemonsets.Patch("aws-node", types.JSONPatchType, []byte(fmt.Sprintf(`[{"op": "remove", "path": "/metadata/managedFields/%d"}]`, managerIndex)))
+	_, err = daemonsets.Patch(context.TODO(), "aws-node", types.JSONPatchType, []byte(fmt.Sprintf(`[{"op": "remove", "path": "/metadata/managedFields/%d"}]`, managerIndex)), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to patch daemon set")
 	}

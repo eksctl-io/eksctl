@@ -1,6 +1,8 @@
 package defaultaddons_test
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -222,7 +224,7 @@ var _ = Describe("default addons - coredns", func() {
 })
 
 func checkCoreDNSImage(rawClient *testutils.FakeRawClient, region, imageTag string, setImage bool) {
-	coreDNS, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(CoreDNS, metav1.GetOptions{})
+	coreDNS, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), CoreDNS, metav1.GetOptions{})
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(coreDNS).ToNot(BeNil())

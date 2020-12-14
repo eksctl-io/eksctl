@@ -1,6 +1,7 @@
 package addons
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -91,12 +92,12 @@ func (v *VPCController) generateCert() error {
 	}
 	if hasApprovedCert {
 		// Delete existing CSR if the secret is missing
-		_, err := v.rawClient.ClientSet().CoreV1().Secrets(vpcControllerNamespace).Get("vpc-admission-webhook-certs", metav1.GetOptions{})
+		_, err := v.rawClient.ClientSet().CoreV1().Secrets(vpcControllerNamespace).Get(context.TODO(), "vpc-admission-webhook-certs", metav1.GetOptions{})
 		if err != nil {
 			if !apierrors.IsNotFound(err) {
 				return err
 			}
-			if err := csrClientSet.Delete(csrName, &metav1.DeleteOptions{}); err != nil {
+			if err := csrClientSet.Delete(context.TODO(), csrName, metav1.DeleteOptions{}); err != nil {
 				return err
 			}
 		}
@@ -135,7 +136,7 @@ func (v *VPCController) generateCert() error {
 		},
 	}
 
-	if _, err := csrClientSet.UpdateApproval(certificateSigningRequest); err != nil {
+	if _, err := csrClientSet.UpdateApproval(context.TODO(), certificateSigningRequest, metav1.UpdateOptions{}); err != nil {
 		return errors.Wrap(err, "updating approval")
 	}
 
@@ -150,7 +151,7 @@ func (v *VPCController) generateCert() error {
 }
 
 func watchCSRApproval(csrClientSet v1beta1.CertificateSigningRequestInterface, csrName string, timeout time.Duration) ([]byte, error) {
-	watcher, err := csrClientSet.Watch(metav1.ListOptions{
+	watcher, err := csrClientSet.Watch(context.TODO(), metav1.ListOptions{
 		FieldSelector: fmt.Sprintf("metadata.name=%s", csrName),
 	})
 
@@ -239,7 +240,7 @@ func (v *VPCController) deployVPCWebhook() error {
 
 func (v *VPCController) hasApprovedCert() (bool, error) {
 	csrClientSet := v.rawClient.ClientSet().CertificatesV1beta1().CertificateSigningRequests()
-	request, err := csrClientSet.Get(fmt.Sprintf("%s.%s", webhookServiceName, vpcControllerNamespace), metav1.GetOptions{})
+	request, err := csrClientSet.Get(context.TODO(), fmt.Sprintf("%s.%s", webhookServiceName, vpcControllerNamespace), metav1.GetOptions{})
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
 			return false, err

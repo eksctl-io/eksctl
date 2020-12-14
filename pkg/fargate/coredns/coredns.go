@@ -1,6 +1,7 @@
 package coredns
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -59,7 +60,7 @@ func IsScheduledOnFargate(clientSet kubeclient.Interface) (bool, error) {
 }
 
 func isDeploymentScheduledOnFargate(clientSet kubeclient.Interface) (bool, error) {
-	coredns, err := clientSet.AppsV1().Deployments(Namespace).Get(Name, metav1.GetOptions{})
+	coredns, err := clientSet.AppsV1().Deployments(Namespace).Get(context.TODO(), Name, metav1.GetOptions{})
 	if err != nil {
 		return false, err
 	}
@@ -78,7 +79,7 @@ func isDeploymentScheduledOnFargate(clientSet kubeclient.Interface) (bool, error
 }
 
 func arePodsScheduledOnFargate(clientSet kubeclient.Interface) (bool, error) {
-	pods, err := clientSet.CoreV1().Pods(Namespace).List(metav1.ListOptions{
+	pods, err := clientSet.CoreV1().Pods(Namespace).List(context.TODO(), metav1.ListOptions{
 		LabelSelector: fmt.Sprintf("eks.amazonaws.com/component = %s", Name),
 	})
 	if err != nil {
@@ -114,7 +115,7 @@ func ScheduleOnFargate(clientSet kubeclient.Interface) error {
 
 func scheduleOnFargate(clientSet kubeclient.Interface) error {
 	deployments := clientSet.AppsV1().Deployments(Namespace)
-	coredns, err := deployments.Get(Name, metav1.GetOptions{})
+	coredns, err := deployments.Get(context.TODO(), Name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -123,7 +124,7 @@ func scheduleOnFargate(clientSet kubeclient.Interface) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to marshal %q deployment", Name)
 	}
-	patched, err := deployments.Patch(Name, types.MergePatchType, bytes)
+	patched, err := deployments.Patch(context.TODO(), Name, types.MergePatchType, bytes, metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to patch deployment")
 	}

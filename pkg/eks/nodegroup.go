@@ -1,6 +1,7 @@
 package eks
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -36,7 +37,7 @@ func isNodeReady(node *corev1.Node) bool {
 }
 
 func getNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) (int, error) {
-	nodes, err := clientSet.CoreV1().Nodes().List(ng.ListOptions())
+	nodes, err := clientSet.CoreV1().Nodes().List(context.TODO(), ng.ListOptions())
 	if err != nil {
 		return 0, err
 	}
@@ -213,7 +214,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNo
 	timer := time.After(c.Provider.WaitTimeout())
 	timeout := false
 	readyNodes := sets.NewString()
-	watcher, err := clientSet.CoreV1().Nodes().Watch(ng.ListOptions())
+	watcher, err := clientSet.CoreV1().Nodes().Watch(context.TODO(), ng.ListOptions())
 	if err != nil {
 		return errors.Wrap(err, "creating node watcher")
 	}
@@ -284,7 +285,7 @@ func (c *ClusterProvider) GetNodeGroupIAM(stackManager *manager.StackCollection,
 }
 
 func getAWSNodeSAARNAnnotation(clientSet kubernetes.Interface) (string, error) {
-	clusterDaemonSet, err := clientSet.CoreV1().ServiceAccounts(metav1.NamespaceSystem).Get(addons.AWSNode, metav1.GetOptions{})
+	clusterDaemonSet, err := clientSet.CoreV1().ServiceAccounts(metav1.NamespaceSystem).Get(context.TODO(), addons.AWSNode, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", addons.AWSNode)

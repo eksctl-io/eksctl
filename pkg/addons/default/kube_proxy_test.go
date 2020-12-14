@@ -1,6 +1,8 @@
 package defaultaddons_test
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -18,7 +20,7 @@ var _ = Describe("default addons - kube-proxy", func() {
 		)
 
 		check := func(imageTag string) {
-			kubeProxy, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(KubeProxy, metav1.GetOptions{})
+			kubeProxy, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), KubeProxy, metav1.GetOptions{})
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(kubeProxy).ToNot(BeNil())

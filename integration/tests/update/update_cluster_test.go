@@ -3,6 +3,7 @@
 package update
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -154,7 +155,7 @@ var _ = Describe("(Integration) Update addons", func() {
 
 			clientSet := getClientSet()
 			Eventually(func() string {
-				daemonSet, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get("kube-proxy", metav1.GetOptions{})
+				daemonSet, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "kube-proxy", metav1.GetOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				kubeProxyVersion, err := addons.ImageTag(daemonSet.Spec.Template.Spec.Containers[0].Image)
 				Expect(err).ToNot(HaveOccurred())
@@ -164,7 +165,7 @@ var _ = Describe("(Integration) Update addons", func() {
 
 		It("should upgrade aws-node", func() {
 			rawClient := getRawClient()
-			preUpdateAWSNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get("aws-node", metav1.GetOptions{})
+			preUpdateAWSNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "aws-node", metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			preUpdateAWSNodeVersion, err := addons.ImageTag(preUpdateAWSNode.Spec.Template.Spec.Containers[0].Image)
 			Expect(err).ToNot(HaveOccurred())
@@ -177,7 +178,7 @@ var _ = Describe("(Integration) Update addons", func() {
 			Expect(cmd).To(RunSuccessfully())
 
 			Eventually(func() string {
-				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get("aws-node", metav1.GetOptions{})
+				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "aws-node", metav1.GetOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				awsNodeVersion, err := addons.ImageTag(awsNode.Spec.Template.Spec.Containers[0].Image)
 				Expect(err).ToNot(HaveOccurred())
@@ -196,7 +197,7 @@ var _ = Describe("(Integration) Update addons", func() {
 
 			rawClient := getRawClient()
 			Eventually(func() string {
-				coreDNSDeployment, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get("coredns", metav1.GetOptions{})
+				coreDNSDeployment, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), "coredns", metav1.GetOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				coreDNSVersion, err := addons.ImageTag(coreDNSDeployment.Spec.Template.Spec.Containers[0].Image)
 				Expect(err).ToNot(HaveOccurred())
