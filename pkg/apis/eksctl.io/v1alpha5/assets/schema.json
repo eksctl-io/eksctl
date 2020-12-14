@@ -159,6 +159,12 @@
         "iam": {
           "$ref": "#/definitions/ClusterIAM"
         },
+        "identityProviders": {
+          "items": {
+            "$ref": "#/definitions/IdentityProvider"
+          },
+          "type": "array"
+        },
         "kind": {
           "type": "string",
           "enum": [
@@ -208,6 +214,7 @@
         "metadata",
         "kubernetesNetworkConfig",
         "iam",
+        "identityProviders",
         "vpc",
         "addons",
         "privateCluster",
@@ -792,6 +799,10 @@
       "additionalProperties": false,
       "description": "groups all configuration options related to enabling GitOps Toolkit on a cluster and linking it to a Git repository. Note: this will replace the older Git types",
       "x-intellij-html-description": "groups all configuration options related to enabling GitOps Toolkit on a cluster and linking it to a Git repository. Note: this will replace the older Git types"
+    },
+    "IdentityProvider": {
+      "description": "holds an identity provider",
+      "x-intellij-html-description": "holds an identity provider"
     },
     "InlineDocument": {
       "additionalProperties": {},

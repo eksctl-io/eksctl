@@ -48,6 +48,10 @@ func (s nameSet) checkUnique(path, name string) (bool, error) {
 	return true, nil
 }
 
+func setNonEmpty(field string) error {
+	return fmt.Errorf("%s must be set and non-empty", field)
+}
+
 // ValidateClusterConfig checks compatible fields of a given ClusterConfig
 func ValidateClusterConfig(cfg *ClusterConfig) error {
 	if IsDisabled(cfg.IAM.WithOIDC) && len(cfg.IAM.ServiceAccounts) > 0 {
@@ -85,6 +89,10 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 			return fmt.Errorf("%s.privateNetworking must be enabled for a fully-private cluster", path)
 		}
 		return nil
+	}
+
+	if err := ValidateIdentityProviders(cfg.IdentityProviders); err != nil {
+		return err
 	}
 
 	for i, ng := range cfg.NodeGroups {
@@ -262,6 +270,31 @@ func validateVolumeOpts(ng *NodeGroupBase, path string) error {
 		}
 	}
 
+	return nil
+}
+
+func ValidateIdentityProvider(idP IdentityProvider) error {
+	switch idP := idP.Inner().(type) {
+	case *OIDCIdentityProvider:
+		if idP.Name == "" {
+			return setNonEmpty("name")
+		}
+		if idP.ClientID == "" {
+			return setNonEmpty("clientID")
+		}
+		if idP.IssuerURL == "" {
+			return setNonEmpty("issuerURL")
+		}
+	}
+	return nil
+}
+
+func ValidateIdentityProviders(idPs []IdentityProvider) error {
+	for k, idP := range idPs {
+		if err := ValidateIdentityProvider(idP); err != nil {
+			return errors.Wrapf(err, "identityProviders[%d] is invalid", k)
+		}
+	}
 	return nil
 }
 
