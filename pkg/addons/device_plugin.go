@@ -1,6 +1,7 @@
 package addons
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -36,7 +37,7 @@ func useRegionalImage(spec *v1.PodTemplateSpec, region string, account string) e
 }
 
 func watchDaemonSetReady(dsClientSet clientappsv1.DaemonSetInterface, dsName string) error {
-	watcher, err := dsClientSet.Watch(metav1.ListOptions{
+	watcher, err := dsClientSet.Watch(context.TODO(), metav1.ListOptions{
 		FieldSelector: fmt.Sprintf("metadata.name=%s", dsName),
 	})
 

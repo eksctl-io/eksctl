@@ -1,6 +1,8 @@
 package defaultaddons_test
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -16,16 +18,16 @@ var _ = Describe("default addons", func() {
 		It("can create the fake client and verify objects get loaded client", func() {
 			clientSet, _ := testutils.NewFakeClientSetWithSamples("testdata/sample-1.16.json")
 
-			nsl, err := clientSet.CoreV1().Namespaces().List(metav1.ListOptions{})
+			nsl, err := clientSet.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(nsl.Items).To(HaveLen(0))
 
-			dl, err := clientSet.AppsV1().Deployments(metav1.NamespaceAll).List(metav1.ListOptions{})
+			dl, err := clientSet.AppsV1().Deployments(metav1.NamespaceAll).List(context.TODO(), metav1.ListOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(dl.Items).To(HaveLen(1))
 			Expect(dl.Items[0].Spec.Template.Spec.Containers).To(HaveLen(1))
 
-			kubeProxy, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(KubeProxy, metav1.GetOptions{})
+			kubeProxy, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), KubeProxy, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(kubeProxy).ToNot(BeNil())
 			Expect(kubeProxy.Spec.Template.Spec.Containers).To(HaveLen(1))

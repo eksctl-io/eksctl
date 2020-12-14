@@ -17,6 +17,7 @@ limitations under the License.
 package evictor
 
 import (
+	"context"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -100,8 +101,8 @@ func (d *Evictor) CanUseEvictions() error {
 	return nil
 }
 
-func (d *Evictor) makeDeleteOptions(pod corev1.Pod) *metav1.DeleteOptions {
-	deleteOptions := &metav1.DeleteOptions{}
+func (d *Evictor) makeDeleteOptions(pod corev1.Pod) metav1.DeleteOptions {
+	deleteOptions := metav1.DeleteOptions{}
 
 	gracePeriodSeconds := int64(corev1.DefaultTerminationGracePeriodSeconds)
 	if pod.Spec.TerminationGracePeriodSeconds != nil {
@@ -128,6 +129,7 @@ func (d *Evictor) EvictOrDeletePod(pod corev1.Pod) error {
 // evictPod will evict the give Pod, or return an error if it couldn't
 // NOTE: CanUseEvictions must be called prior to this
 func (d *Evictor) evictPod(pod corev1.Pod) error {
+	deleteOptions := d.makeDeleteOptions(pod)
 	eviction := &policyv1beta1.Eviction{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: d.policyAPIGroupVersion,
@@ -137,14 +139,14 @@ func (d *Evictor) evictPod(pod corev1.Pod) error {
 			Name:      pod.Name,
 			Namespace: pod.Namespace,
 		},
-		DeleteOptions: d.makeDeleteOptions(pod),
+		DeleteOptions: &deleteOptions,
 	}
-	return d.client.PolicyV1beta1().Evictions(eviction.Namespace).Evict(eviction)
+	return d.client.PolicyV1beta1().Evictions(eviction.Namespace).Evict(context.TODO(), eviction)
 }
 
 // deletePod will Delete the given Pod, or return an error if it couldn't
 func (d *Evictor) deletePod(pod corev1.Pod) error {
-	return d.client.CoreV1().Pods(pod.Namespace).Delete(pod.Name, d.makeDeleteOptions(pod))
+	return d.client.CoreV1().Pods(pod.Namespace).Delete(context.TODO(), pod.Name, d.makeDeleteOptions(pod))
 }
 
 // GetPodsForEviction lists all pods on a given node, filters those using the default
@@ -157,7 +159,7 @@ func (d *Evictor) GetPodsForEviction(nodeName string) (*PodDeleteList, []error) 
 		return nil, []error{err}
 	}
 
-	podList, err := d.client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{
+	podList, err := d.client.CoreV1().Pods(metav1.NamespaceAll).List(context.TODO(), metav1.ListOptions{
 		LabelSelector: labelSelector.String(),
 		FieldSelector: fields.SelectorFromSet(fields.Set{"spec.nodeName": nodeName}).String()})
 	if err != nil {

@@ -1,6 +1,7 @@
 package coredns_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -118,14 +119,14 @@ var _ = Describe("coredns", func() {
 		It("should set the compute-type annotation to 'fargate'", func() {
 			// Given:
 			mockClientset := mockClientsetWith(deployment("ec2", 0, 2))
-			deployment, err := mockClientset.AppsV1().Deployments(coredns.Namespace).Get(coredns.Name, metav1.GetOptions{})
+			deployment, err := mockClientset.AppsV1().Deployments(coredns.Namespace).Get(context.TODO(), coredns.Name, metav1.GetOptions{})
 			Expect(err).To(Not(HaveOccurred()))
 			Expect(deployment.Spec.Template.Annotations).To(HaveKeyWithValue(coredns.ComputeTypeAnnotationKey, "ec2"))
 			// When:
 			err = coredns.ScheduleOnFargate(mockClientset)
 			Expect(err).To(Not(HaveOccurred()))
 			// Then:
-			deployment, err = mockClientset.AppsV1().Deployments(coredns.Namespace).Get(coredns.Name, metav1.GetOptions{})
+			deployment, err = mockClientset.AppsV1().Deployments(coredns.Namespace).Get(context.TODO(), coredns.Name, metav1.GetOptions{})
 			Expect(err).To(Not(HaveOccurred()))
 			Expect(deployment.Spec.Template.Annotations).To(HaveKeyWithValue(coredns.ComputeTypeAnnotationKey, "fargate"))
 		})

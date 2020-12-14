@@ -180,8 +180,8 @@ func setIAMDefaults(iamConfig *NodeGroupIAM) {
 	if iamConfig.WithAddonPolicies.CertManager == nil {
 		iamConfig.WithAddonPolicies.CertManager = Disabled()
 	}
-	if iamConfig.WithAddonPolicies.ALBIngress == nil {
-		iamConfig.WithAddonPolicies.ALBIngress = Disabled()
+	if iamConfig.WithAddonPolicies.AWSLoadBalancerController == nil {
+		iamConfig.WithAddonPolicies.AWSLoadBalancerController = Disabled()
 	}
 	if iamConfig.WithAddonPolicies.XRay == nil {
 		iamConfig.WithAddonPolicies.XRay = Disabled()

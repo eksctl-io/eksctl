@@ -1,6 +1,7 @@
 package drain
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -82,7 +83,7 @@ func (n *NodeGroupDrainer) Drain() error {
 	}
 
 	listOptions := n.ng.ListOptions()
-	nodes, err := n.clientSet.CoreV1().Nodes().List(listOptions)
+	nodes, err := n.clientSet.CoreV1().Nodes().List(context.TODO(), listOptions)
 	if err != nil {
 		return err
 	}
@@ -108,7 +109,7 @@ func (n *NodeGroupDrainer) Drain() error {
 		case <-timer.C:
 			return fmt.Errorf("timed out (after %s) waiting for nodegroup %q to be drained", n.waitTimeout, n.ng.NameString())
 		default:
-			nodes, err := n.clientSet.CoreV1().Nodes().List(listOptions)
+			nodes, err := n.clientSet.CoreV1().Nodes().List(context.TODO(), listOptions)
 			if err != nil {
 				return err
 			}

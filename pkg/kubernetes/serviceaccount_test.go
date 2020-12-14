@@ -1,6 +1,7 @@
 package kubernetes_test
 
 import (
+	"context"
 	"encoding/json"
 
 	. "github.com/onsi/ginkgo"
@@ -62,7 +63,7 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		Expect(ok).To(BeTrue())
 
 		{
-			resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(sa.Name, metav1.GetOptions{})
+			resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(resp.Labels).To(BeEmpty())
@@ -80,7 +81,7 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		{
-			resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(sa.Name, metav1.GetOptions{})
+			resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(resp.Labels).To(HaveKey("foo"))
@@ -94,7 +95,7 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		{
-			resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(sa.Name, metav1.GetOptions{})
+			resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(resp.Labels).To(HaveKey("foo"))
