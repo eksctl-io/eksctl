@@ -267,7 +267,7 @@ const (
 	NodeGroupTypeManaged NodeGroupType = "managed"
 	// NodeGroupTypeUnmanaged defines an unmanaged nodegroup
 	NodeGroupTypeUnmanaged NodeGroupType = "unmanaged"
-	// NodeGroupTypeUnowned defines an unmanaged nodegroup
+	// NodeGroupTypeUnowned defines an unowned nodegroup
 	NodeGroupTypeUnowned NodeGroupType = "unowned"
 )
 
