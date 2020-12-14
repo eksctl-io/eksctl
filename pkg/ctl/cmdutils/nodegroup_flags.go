@@ -39,7 +39,7 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGrou
 	ng.SSH.PublicKeyPath = fs.String("ssh-public-key", "", "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
 	ng.SSH.EnableSSM = fs.Bool("enable-ssm", false, "Enable AWS Systems Manager (SSM)")
 
-	fs.StringVar(&ng.AMI, "node-ami", "auto-ssm", "'auto-ssm', 'auto', 'static' (deprecated) or an AMI id (advanced use)")
+	fs.StringVar(&ng.AMI, "node-ami", "", "'auto-ssm', 'auto', 'static' (deprecated) or an AMI id (advanced use)")
 	fs.StringVar(&ng.AMIFamily, "node-ami-family", api.DefaultNodeImageFamily, "'AmazonLinux2' for the Amazon EKS optimized AMI, or use 'Ubuntu2004' or 'Ubuntu1804' for the official Canonical EKS AMIs")
 
 	fs.BoolVarP(&ng.PrivateNetworking, "node-private-networking", "P", false, "whether to make nodegroup networking private")
@@ -75,7 +75,7 @@ func AddCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup
 	ng.IAM.WithAddonPolicies.ImageBuilder = new(bool)
 	ng.IAM.WithAddonPolicies.AppMesh = new(bool)
 	ng.IAM.WithAddonPolicies.AppMeshPreview = new(bool)
-	ng.IAM.WithAddonPolicies.ALBIngress = new(bool)
+	ng.IAM.WithAddonPolicies.AWSLoadBalancerController = new(bool)
 	ng.IAM.WithAddonPolicies.XRay = new(bool)
 	ng.IAM.WithAddonPolicies.CloudWatch = new(bool)
 	fs.BoolVar(ng.IAM.WithAddonPolicies.AutoScaler, "asg-access", false, "enable IAM policy for cluster-autoscaler")
@@ -83,7 +83,7 @@ func AddCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup
 	fs.BoolVar(ng.IAM.WithAddonPolicies.ImageBuilder, "full-ecr-access", false, "enable full access to ECR")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.AppMesh, "appmesh-access", false, "enable full access to AppMesh")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.AppMeshPreview, "appmesh-preview-access", false, "enable full access to AppMesh Preview")
-	fs.BoolVar(ng.IAM.WithAddonPolicies.ALBIngress, "alb-ingress-access", false, "enable full access for alb-ingress-controller")
+	fs.BoolVar(ng.IAM.WithAddonPolicies.AWSLoadBalancerController, "alb-ingress-access", false, "enable full access for alb-ingress-controller")
 }
 
 // AddNodeGroupFilterFlags add common `--include` and `--exclude` flags for filtering nodegroups

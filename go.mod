@@ -5,7 +5,7 @@ module github.com/weaveworks/eksctl
 go 1.15
 
 require (
-	github.com/aws/aws-sdk-go v1.36.3
+	github.com/aws/aws-sdk-go v1.36.7
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
@@ -33,15 +33,15 @@ require (
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0
 	github.com/onsi/ginkgo v1.14.2
-	github.com/onsi/gomega v1.10.3
+	github.com/onsi/gomega v1.10.4
 	github.com/pelletier/go-toml v1.8.1
 	github.com/pkg/errors v0.9.1
 	github.com/russross/blackfriday/v2 v2.1.0
-	github.com/spf13/afero v1.4.1
+	github.com/spf13/afero v1.5.1
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
-	github.com/tidwall/gjson v1.6.3
+	github.com/tidwall/gjson v1.6.4
 	github.com/tidwall/sjson v1.1.2
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5

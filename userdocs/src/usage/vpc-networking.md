@@ -220,12 +220,15 @@ vpc:
     public:
       public-one:                           # arbitrary key
           id: "subnet-0153e560b3129a696"
-          az: "us-west-2a"
       public-two:
           id: "subnet-0cc9c5aebe75083fd"
-          az: "us-west-2a"
       us-west-2b:                           # or list by AZ
           id: "subnet-018fa0176ba320e45"
+    private:
+      private-one:
+          id: "subnet-0153e560b3129a696"
+      private-two:
+          id: "subnet-0cc9c5aebe75083fd"
 ```
 
 !!! important
@@ -240,6 +243,10 @@ vpc:
 	in that AZ will be chosen from the VPC, arbitrarily if multiple such subnets
 	exist.
 
+!!! note
+    A complete subnet spec must be provided, ie. both `public` and `private` configurations
+    declared in the VPC spec.
+
 Nodegroups can be restricted to named subnets via the configuration.
 When specifying subnets on nodegroup configuration, use the identifying key as given in the VPC spec **not** the subnet id.
 For example:
@@ -251,7 +258,7 @@ vpc:
     public:
       public-one:
           id: "subnet-0153e560b3129a696"
-          az: "us-west-2a"
+    ... # subnet spec continued
 
 nodeGroups:
   - name: ng-1
@@ -263,6 +270,27 @@ nodeGroups:
 
 !!! note
     Only one of `subnets` or `availabilityZones` can be provided in nodegroup configuration.
+
+When placing nodegroups inside a private subnet, `privateNetworking` must be set to `true`
+on the nodegroup:
+
+```yaml
+vpc:
+  id: "vpc-11111"
+  subnets:
+    public:
+      private-one:
+          id: "subnet-0153e560b3129a696"
+    ... # subnet spec continued
+
+nodeGroups:
+  - name: ng-1
+    instanceType: m5.xlarge
+    desiredCapacity: 2
+    privateNetworking: true
+    subnets:
+      - private-one
+```
 
 See [here](https://github.com/weaveworks/eksctl/blob/master/examples/24-nodegroup-subnets.yaml) for a full
 configuration example.

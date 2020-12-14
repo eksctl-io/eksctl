@@ -1094,8 +1094,8 @@ func (in *NodeGroupIAMAddonPolicies) DeepCopyInto(out *NodeGroupIAMAddonPolicies
 		*out = new(bool)
 		**out = **in
 	}
-	if in.ALBIngress != nil {
-		in, out := &in.ALBIngress, &out.ALBIngress
+	if in.AWSLoadBalancerController != nil {
+		in, out := &in.AWSLoadBalancerController, &out.AWSLoadBalancerController
 		*out = new(bool)
 		**out = **in
 	}

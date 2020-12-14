@@ -62,9 +62,10 @@ type Properties struct {
 
 	PolicyDocument struct {
 		Statement []struct {
-			Action   []string
-			Effect   string
-			Resource interface{}
+			Action    []string
+			Effect    string
+			Resource  interface{}
+			Condition map[string]interface{}
 		}
 	}
 
@@ -497,18 +498,18 @@ var _ = Describe("CloudFormation template builder API", func() {
 						VolumeSize:        aws.Int(2),
 						IAM: &api.NodeGroupIAM{
 							WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
-								ImageBuilder:   api.Disabled(),
-								AutoScaler:     api.Disabled(),
-								ExternalDNS:    api.Disabled(),
-								CertManager:    api.Disabled(),
-								AppMesh:        api.Disabled(),
-								AppMeshPreview: api.Disabled(),
-								EBS:            api.Disabled(),
-								FSX:            api.Disabled(),
-								EFS:            api.Disabled(),
-								ALBIngress:     api.Disabled(),
-								XRay:           api.Disabled(),
-								CloudWatch:     api.Disabled(),
+								ImageBuilder:              api.Disabled(),
+								AutoScaler:                api.Disabled(),
+								ExternalDNS:               api.Disabled(),
+								CertManager:               api.Disabled(),
+								AppMesh:                   api.Disabled(),
+								AppMeshPreview:            api.Disabled(),
+								EBS:                       api.Disabled(),
+								FSX:                       api.Disabled(),
+								EFS:                       api.Disabled(),
+								AWSLoadBalancerController: api.Disabled(),
+								XRay:                      api.Disabled(),
+								CloudWatch:                api.Disabled(),
 							},
 						},
 						ScalingConfig: &api.ScalingConfig{},
@@ -1077,7 +1078,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyServiceLinkRole"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEFS"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEFSEC2"))
-			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyALBIngress"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAWSLoadBalancerController"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyXRay"))
 		})
 
@@ -1284,15 +1285,15 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyServiceLinkRole"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEFS"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEFSEC2"))
-			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyALBIngress"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAWSLoadBalancerController"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyXRay"))
 		})
 	})
 
-	Context("NodeGroupALBIngress", func() {
+	Context("NodeGroupAWSLoadBalancerController", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
-		ng.IAM.WithAddonPolicies.ALBIngress = api.Enabled()
+		ng.IAM.WithAddonPolicies.AWSLoadBalancerController = api.Enabled()
 
 		build(cfg, "eksctl-test-megaapps-cluster", ng)
 
@@ -1301,94 +1302,125 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should have correct policies", func() {
 			Expect(ngTemplate.Resources).ToNot(BeEmpty())
 
-			Expect(ngTemplate.Resources).To(HaveKey("PolicyALBIngress"))
+			Expect(ngTemplate.Resources).To(HaveKey("PolicyAWSLoadBalancerController"))
 
-			policy := ngTemplate.Resources["PolicyALBIngress"].Properties
+			policy := ngTemplate.Resources["PolicyAWSLoadBalancerController"].Properties
 
 			Expect(policy.Roles).To(HaveLen(1))
 			isRefTo(policy.Roles[0], "NodeInstanceRole")
 
-			Expect(policy.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy.PolicyDocument.Statement).To(HaveLen(7))
+
 			Expect(policy.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(policy.PolicyDocument.Statement[0].Resource).To(Equal("*"))
-			Expect(policy.PolicyDocument.Statement[0].Action).To(Equal([]string{
-				"acm:DescribeCertificate",
-				"acm:ListCertificates",
-				"acm:GetCertificate",
-				"ec2:AuthorizeSecurityGroupIngress",
-				"ec2:CreateSecurityGroup",
-				"ec2:CreateTags",
-				"ec2:DeleteTags",
-				"ec2:DeleteSecurityGroup",
-				"ec2:DescribeAccountAttributes",
-				"ec2:DescribeAddresses",
-				"ec2:DescribeInstances",
-				"ec2:DescribeInstanceStatus",
-				"ec2:DescribeInternetGateways",
-				"ec2:DescribeNetworkInterfaces",
-				"ec2:DescribeSecurityGroups",
-				"ec2:DescribeSubnets",
-				"ec2:DescribeTags",
-				"ec2:DescribeVpcs",
-				"ec2:ModifyInstanceAttribute",
-				"ec2:ModifyNetworkInterfaceAttribute",
-				"ec2:RevokeSecurityGroupIngress",
-				"elasticloadbalancing:AddListenerCertificates",
-				"elasticloadbalancing:AddTags",
-				"elasticloadbalancing:CreateListener",
+			Expect(policy.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:ec2:*:*:security-group/*"))
+			Expect(policy.PolicyDocument.Statement[0].Action).To(Equal([]string{"ec2:CreateTags"}))
+			Expect(policy.PolicyDocument.Statement[0].Condition).To(HaveLen(2))
+
+			Expect(policy.PolicyDocument.Statement[1].Effect).To(Equal("Allow"))
+			Expect(policy.PolicyDocument.Statement[1].Resource).To(Equal("arn:aws:ec2:*:*:security-group/*"))
+			Expect(policy.PolicyDocument.Statement[1].Action).To(Equal([]string{"ec2:CreateTags", "ec2:DeleteTags"}))
+			Expect(policy.PolicyDocument.Statement[1].Condition).To(HaveLen(1))
+
+			Expect(policy.PolicyDocument.Statement[2].Effect).To(Equal("Allow"))
+			Expect(policy.PolicyDocument.Statement[2].Resource).To(Equal("*"))
+			Expect(policy.PolicyDocument.Statement[2].Action).To(Equal([]string{
 				"elasticloadbalancing:CreateLoadBalancer",
-				"elasticloadbalancing:CreateRule",
 				"elasticloadbalancing:CreateTargetGroup",
-				"elasticloadbalancing:DeleteListener",
-				"elasticloadbalancing:DeleteLoadBalancer",
-				"elasticloadbalancing:DeleteRule",
-				"elasticloadbalancing:DeleteTargetGroup",
-				"elasticloadbalancing:DeregisterTargets",
-				"elasticloadbalancing:DescribeListenerCertificates",
-				"elasticloadbalancing:DescribeListeners",
-				"elasticloadbalancing:DescribeLoadBalancers",
-				"elasticloadbalancing:DescribeLoadBalancerAttributes",
-				"elasticloadbalancing:DescribeRules",
-				"elasticloadbalancing:DescribeSSLPolicies",
-				"elasticloadbalancing:DescribeTags",
-				"elasticloadbalancing:DescribeTargetGroups",
-				"elasticloadbalancing:DescribeTargetGroupAttributes",
-				"elasticloadbalancing:DescribeTargetHealth",
-				"elasticloadbalancing:ModifyListener",
-				"elasticloadbalancing:ModifyLoadBalancerAttributes",
-				"elasticloadbalancing:ModifyRule",
-				"elasticloadbalancing:ModifyTargetGroup",
-				"elasticloadbalancing:ModifyTargetGroupAttributes",
-				"elasticloadbalancing:RegisterTargets",
-				"elasticloadbalancing:RemoveListenerCertificates",
+			}))
+			Expect(policy.PolicyDocument.Statement[2].Condition).To(HaveLen(1))
+
+			Expect(policy.PolicyDocument.Statement[3].Effect).To(Equal("Allow"))
+			Expect(policy.PolicyDocument.Statement[3].Resource).To(Equal([]interface{}{
+				"arn:aws:elasticloadbalancing:*:*:targetgroup/*/*",
+				"arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*/*",
+				"arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*/*",
+			}))
+			Expect(policy.PolicyDocument.Statement[3].Action).To(Equal([]string{
+				"elasticloadbalancing:AddTags",
 				"elasticloadbalancing:RemoveTags",
+			}))
+			Expect(policy.PolicyDocument.Statement[3].Condition).To(HaveLen(1))
+
+			Expect(policy.PolicyDocument.Statement[4].Effect).To(Equal("Allow"))
+			Expect(policy.PolicyDocument.Statement[4].Resource).To(Equal("*"))
+			Expect(policy.PolicyDocument.Statement[4].Action).To(Equal([]string{
+				"ec2:AuthorizeSecurityGroupIngress",
+				"ec2:RevokeSecurityGroupIngress",
+				"ec2:DeleteSecurityGroup",
+				"elasticloadbalancing:ModifyLoadBalancerAttributes",
 				"elasticloadbalancing:SetIpAddressType",
 				"elasticloadbalancing:SetSecurityGroups",
 				"elasticloadbalancing:SetSubnets",
-				"elasticloadbalancing:SetWebACL",
+				"elasticloadbalancing:DeleteLoadBalancer",
+				"elasticloadbalancing:ModifyTargetGroup",
+				"elasticloadbalancing:ModifyTargetGroupAttributes",
+				"elasticloadbalancing:DeleteTargetGroup",
+			}))
+			Expect(policy.PolicyDocument.Statement[4].Condition).To(HaveLen(1))
+
+			Expect(policy.PolicyDocument.Statement[5].Effect).To(Equal("Allow"))
+			Expect(policy.PolicyDocument.Statement[5].Resource).To(Equal("arn:aws:elasticloadbalancing:*:*:targetgroup/*/*"))
+			Expect(policy.PolicyDocument.Statement[5].Action).To(Equal([]string{
+				"elasticloadbalancing:RegisterTargets",
+				"elasticloadbalancing:DeregisterTargets",
+			}))
+			Expect(policy.PolicyDocument.Statement[5].Condition).To(HaveLen(0))
+
+			Expect(policy.PolicyDocument.Statement[6].Effect).To(Equal("Allow"))
+			Expect(policy.PolicyDocument.Statement[6].Resource).To(Equal("*"))
+			Expect(policy.PolicyDocument.Statement[6].Action).To(Equal([]string{
 				"iam:CreateServiceLinkedRole",
-				"iam:GetServerCertificate",
+				"ec2:DescribeAccountAttributes",
+				"ec2:DescribeAddresses",
+				"ec2:DescribeInternetGateways",
+				"ec2:DescribeVpcs",
+				"ec2:DescribeSubnets",
+				"ec2:DescribeSecurityGroups",
+				"ec2:DescribeInstances",
+				"ec2:DescribeNetworkInterfaces",
+				"ec2:DescribeTags",
+				"elasticloadbalancing:DescribeLoadBalancers",
+				"elasticloadbalancing:DescribeLoadBalancerAttributes",
+				"elasticloadbalancing:DescribeListeners",
+				"elasticloadbalancing:DescribeListenerCertificates",
+				"elasticloadbalancing:DescribeSSLPolicies",
+				"elasticloadbalancing:DescribeRules",
+				"elasticloadbalancing:DescribeTargetGroups",
+				"elasticloadbalancing:DescribeTargetGroupAttributes",
+				"elasticloadbalancing:DescribeTargetHealth",
+				"elasticloadbalancing:DescribeTags",
+				"cognito-idp:DescribeUserPoolClient",
+				"acm:ListCertificates",
+				"acm:DescribeCertificate",
 				"iam:ListServerCertificates",
-				"waf-regional:GetWebACLForResource",
+				"iam:GetServerCertificate",
 				"waf-regional:GetWebACL",
+				"waf-regional:GetWebACLForResource",
 				"waf-regional:AssociateWebACL",
 				"waf-regional:DisassociateWebACL",
-				"tag:GetResources",
-				"tag:TagResources",
-				"waf:GetWebACL",
 				"wafv2:GetWebACL",
 				"wafv2:GetWebACLForResource",
 				"wafv2:AssociateWebACL",
 				"wafv2:DisassociateWebACL",
-				"shield:DescribeProtection",
 				"shield:GetSubscriptionState",
-				"shield:DeleteProtection",
+				"shield:DescribeProtection",
 				"shield:CreateProtection",
-				"shield:DescribeSubscription",
-				"shield:ListProtections",
+				"shield:DeleteProtection",
+				"ec2:AuthorizeSecurityGroupIngress",
+				"ec2:RevokeSecurityGroupIngress",
+				"ec2:CreateSecurityGroup",
+				"elasticloadbalancing:CreateListener",
+				"elasticloadbalancing:DeleteListener",
+				"elasticloadbalancing:CreateRule",
+				"elasticloadbalancing:DeleteRule",
+				"elasticloadbalancing:SetWebAcl",
+				"elasticloadbalancing:ModifyListener",
+				"elasticloadbalancing:AddListenerCertificates",
+				"elasticloadbalancing:RemoveListenerCertificates",
+				"elasticloadbalancing:ModifyRule",
 			}))
+			Expect(policy.PolicyDocument.Statement[6].Condition).To(HaveLen(0))
 		})
-
 	})
 
 	Context("NodeGroupXRay", func() {

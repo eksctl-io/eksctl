@@ -2,15 +2,6 @@ package template
 
 import gfn "github.com/weaveworks/goformation/v4/cloudformation/types"
 
-// AttachAllowPolicy constructs a role with allow policy for given resources and actions
-func (t *Template) AttachAllowPolicy(name string, refRole *Value, resources interface{}, actions []string) {
-	t.AttachPolicy(name, refRole, MakePolicyDocument(MapOfInterfaces{
-		"Effect":   "Allow",
-		"Resource": resources,
-		"Action":   actions,
-	}))
-}
-
 // AttachPolicy attaches the specified policy document
 func (t *Template) AttachPolicy(name string, refRole *Value, policyDoc MapOfInterfaces) {
 	t.NewResource(name, &IAMPolicy{

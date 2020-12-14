@@ -671,18 +671,18 @@ func NewNodeGroup() *NodeGroup {
 			VolumeSize:        &DefaultNodeVolumeSize,
 			IAM: &NodeGroupIAM{
 				WithAddonPolicies: NodeGroupIAMAddonPolicies{
-					ImageBuilder:   Disabled(),
-					AutoScaler:     Disabled(),
-					ExternalDNS:    Disabled(),
-					CertManager:    Disabled(),
-					AppMesh:        Disabled(),
-					AppMeshPreview: Disabled(),
-					EBS:            Disabled(),
-					FSX:            Disabled(),
-					EFS:            Disabled(),
-					ALBIngress:     Disabled(),
-					XRay:           Disabled(),
-					CloudWatch:     Disabled(),
+					ImageBuilder:              Disabled(),
+					AutoScaler:                Disabled(),
+					ExternalDNS:               Disabled(),
+					CertManager:               Disabled(),
+					AppMesh:                   Disabled(),
+					AppMeshPreview:            Disabled(),
+					EBS:                       Disabled(),
+					FSX:                       Disabled(),
+					EFS:                       Disabled(),
+					AWSLoadBalancerController: Disabled(),
+					XRay:                      Disabled(),
+					CloudWatch:                Disabled(),
 				},
 			},
 			ScalingConfig: &ScalingConfig{},
@@ -720,18 +720,18 @@ func NewManagedNodeGroup() *ManagedNodeGroup {
 			},
 			IAM: &NodeGroupIAM{
 				WithAddonPolicies: NodeGroupIAMAddonPolicies{
-					ImageBuilder:   Disabled(),
-					AutoScaler:     Disabled(),
-					ExternalDNS:    Disabled(),
-					CertManager:    Disabled(),
-					AppMesh:        Disabled(),
-					AppMeshPreview: Disabled(),
-					EBS:            Disabled(),
-					FSX:            Disabled(),
-					EFS:            Disabled(),
-					ALBIngress:     Disabled(),
-					XRay:           Disabled(),
-					CloudWatch:     Disabled(),
+					ImageBuilder:              Disabled(),
+					AutoScaler:                Disabled(),
+					ExternalDNS:               Disabled(),
+					CertManager:               Disabled(),
+					AppMesh:                   Disabled(),
+					AppMeshPreview:            Disabled(),
+					EBS:                       Disabled(),
+					FSX:                       Disabled(),
+					EFS:                       Disabled(),
+					AWSLoadBalancerController: Disabled(),
+					XRay:                      Disabled(),
+					CloudWatch:                Disabled(),
 				},
 			},
 			ScalingConfig:  &ScalingConfig{},
@@ -976,7 +976,7 @@ type (
 		// +optional
 		EFS *bool `json:"efs"`
 		// +optional
-		ALBIngress *bool `json:"albIngress"`
+		AWSLoadBalancerController *bool `json:"albIngress"`
 		// +optional
 		XRay *bool `json:"xRay"`
 		// +optional

@@ -231,6 +231,10 @@ func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID, cidr
 func doImportSubnet(subnets AZSubnetMapping, az, subnetID, cidr string) error {
 	subnetCIDR, _ := ipnet.ParseCIDR(cidr)
 
+	if subnets == nil {
+		return nil
+	}
+
 	if network, ok := subnets[az]; !ok {
 		newS := AZSubnetSpec{ID: subnetID, AZ: az, CIDR: subnetCIDR}
 		// Used if we find an exact ID match
