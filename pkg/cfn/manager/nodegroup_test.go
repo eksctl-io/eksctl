@@ -217,15 +217,15 @@ var _ = Describe("StackCollection NodeGroup", func() {
 
 				p.MockCloudFormation().On("DescribeStacks", mock.Anything).Return(nil, fmt.Errorf("DescribeStacks failed"))
 
+				p.MockCloudFormation().On("DescribeStackResource", mock.Anything).Return(nil, fmt.Errorf("DescribeStackResource failed"))
+
 				p.MockCloudFormation().On("DescribeStackResource", mock.MatchedBy(func(input *cfn.DescribeStackResourceInput) bool {
-					return (input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345") && (input.LogicalResourceId != nil && *input.LogicalResourceId == "nodegroup")
+					return input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345" && input.LogicalResourceId != nil && *input.LogicalResourceId == "NodeGroup"
 				})).Return(&cfn.DescribeStackResourceOutput{
 					StackResourceDetail: &cfn.StackResourceDetail{
-						LogicalResourceId: aws.String("eksctl-test-cluster-nodegroup-ng1-NodeGroup-ZWXHLRQZI381"),
+						PhysicalResourceId: aws.String("eksctl-test-cluster-nodegroup-123451-NodeGroup-1N68LL8H1EH27"),
 					},
 				}, nil)
-
-				p.MockCloudFormation().On("DescribeStackResource", mock.Anything).Return(nil, fmt.Errorf("DescribeStackResource failed"))
 			})
 
 			Context("With no matching stacks", func() {
@@ -266,16 +266,10 @@ var _ = Describe("StackCollection NodeGroup", func() {
 
 				It("should not have called AWS CloudFormation GetTemplate", func() {
 					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "GetTemplate", 1)).To(BeTrue())
-					//Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "GetTemplate", 2)).To(BeTrue())
 				})
 
 				It("should have called AWS CloudFormation DescribeStacks once", func() {
 					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "DescribeStacks", 1)).To(BeTrue())
-					//Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "DescribeStacks", 2)).To(BeTrue())
-				})
-
-				It("should not have called AWS CloudFormation DescribeStackResource", func() {
-					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "DescribeStackResource", 1)).To(BeTrue())
 				})
 
 				It("the output should equal the expectation", func() {

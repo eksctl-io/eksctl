@@ -268,10 +268,11 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 			return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
 		}
 
-		asgName, err := c.GetNodeGroupAutoScalingGroupName(s)
+		asgName, err := c.GetAutoScalingGroupName(s)
 		if err != nil {
 			return nil, errors.Wrap(err, "getting autoscalinggroupname")
 		}
+
 		summary.AutoScalingGroupName = asgName
 
 		if name == "" {
@@ -284,10 +285,8 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 	return summaries, nil
 }
 
-func (c *StackCollection) GetNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
-	input := &cfn.DescribeStackResourceInput{
-		StackName: s.StackName,
-	}
+// GetAutoScalingGroupName returns the AutoscalingGroupName
+func (c *StackCollection) GetAutoScalingGroupName(s *Stack) (string, error) {
 
 	nodeGroupType, err := GetNodeGroupType(s.Tags)
 	if err != nil {
@@ -296,28 +295,40 @@ func (c *StackCollection) GetNodeGroupAutoScalingGroupName(s *Stack) (string, er
 
 	switch nodeGroupType {
 	case api.NodeGroupTypeManaged:
-		input.LogicalResourceId = aws.String("ManagedNodeGroup")
 		res, err := c.GetManagedNodeGroupAutoScalingGroupName(s)
 		if err != nil {
 			return "", err
 		}
 		return res, nil
 	case api.NodeGroupTypeUnmanaged, "":
-		input.LogicalResourceId = aws.String("NodeGroup")
-		res, err := c.provider.CloudFormation().DescribeStackResource(input)
+		res, err := c.GetNodeGroupAutoScalingGroupName(s)
 		if err != nil {
 			return "", err
 		}
+		return res, nil
 
-		return *res.StackResourceDetail.PhysicalResourceId, nil
 	default:
 		return "", fmt.Errorf("cant get autoscaling group name, because unexpected nodegroup type : %q", nodeGroupType)
 	}
-
 }
 
-func (c *StackCollection) GetManagedNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
+// GetNodeGroupAutoScalingGroupName return the unmanaged nodegroup's AutoScalingGroupName
+func (c *StackCollection) GetNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
+	input := &cfn.DescribeStackResourceInput{
+		StackName:         s.StackName,
+		LogicalResourceId: aws.String("NodeGroup"),
+	}
 
+	res, err := c.provider.CloudFormation().DescribeStackResource(input)
+	if err != nil {
+		return "", err
+	}
+
+	return *res.StackResourceDetail.PhysicalResourceId, nil
+}
+
+// GetManagedNodeGroupAutoScalingGroupName  returns the managed nodegroup's AutoScalingGroupName
+func (c *StackCollection) GetManagedNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
 	input := &eks.DescribeNodegroupInput{
 		ClusterName:   aws.String(getClusterNameTag(s)),
 		NodegroupName: aws.String(c.GetNodeGroupName(s)),
