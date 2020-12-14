@@ -164,11 +164,11 @@ To upgrade a managed nodegroup to the latest AMI release version:
 eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster
 ```
 
-If a nodegroup is on Kubernetes 1.13, and the cluster's Kubernetes version is 1.14, the nodegroup can be upgraded to
-the latest AMI release for Kubernetes 1.14 using:
+If a nodegroup is on Kubernetes 1.14, and the cluster's Kubernetes version is 1.15, the nodegroup can be upgraded to
+the latest AMI release for Kubernetes 1.15 using:
 
 ```console
-eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --kubernetes-version=1.14
+eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --kubernetes-version=1.15
 ```
 
 ## Nodegroup Health issues
