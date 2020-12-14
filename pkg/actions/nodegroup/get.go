@@ -15,7 +15,6 @@ func (ng *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 	nodeGroups, err := ng.ctl.Provider.EKS().ListNodegroups(&eks.ListNodegroupsInput{
 		ClusterName: &ng.cfg.Metadata.Name,
 	})
-
 	if err != nil {
 		return nil, err
 	}
