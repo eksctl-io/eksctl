@@ -22,7 +22,9 @@ var _ = Describe("GenerateSchema", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 	It("handles the top level definition", func() {
-		props := []string{"num", "option", "pointeroption", "packageoption", "aliasedint", "unknown", "other", "version", "kind", "kinds"}
+		props := []string{
+			"num", "option", "pointeroption", "packageoption", "aliasedint", "unknown", "other", "version", "kind", "kinds", "sumType",
+		}
 		required := []string{"option"}
 		expected := Fields{
 			"Required":             Equal(required),
@@ -166,5 +168,28 @@ var _ = Describe("GenerateSchema", func() {
 			Expect(configDef().Properties).To(HaveKey("packageoption"))
 			Expect(*configDef().Properties["packageoption"]).To(BeEquivalentTo(refDef))
 		})
+	})
+	It("handles oneOf", func() {
+		refDef := definition.Definition{
+			Ref: "#/definitions/SumType",
+		}
+		Expect(configDef().Properties).To(HaveKey("sumType"))
+		Expect(*configDef().Properties["sumType"]).To(BeEquivalentTo(refDef))
+		expected := definition.Definition{
+			Properties: map[string]*definition.Definition{
+				"type": {
+					Type:            "string",
+					Enum:            []string{"a", "b"},
+					Description:     "Valid variants are: `\"a\"`: type A `\"b\"`: type B",
+					HTMLDescription: "Valid variants are: <code>&quot;a&quot;</code>: type A <code>&quot;b&quot;</code>: type B",
+				},
+			},
+			PreferredOrder: []string{"type"},
+			OneOf: []*definition.Definition{
+				{Ref: "#/definitions/SumTypeA"},
+				{Ref: "#/definitions/SumTypeB"},
+			},
+		}
+		Expect(*schema.Definitions["SumType"]).To(BeEquivalentTo(expected))
 	})
 })
