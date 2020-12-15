@@ -37,16 +37,14 @@ RUN curl --silent --location "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/amd
 WORKDIR /src
 ENV CGO_ENABLED=0 GOPROXY=https://proxy.golang.org,direct
 
-RUN git config --global url."git@github.com:".insteadOf "https://github.com/"
-
+# The authenticator is a runtime dependency, so it needs to be in /out
+ENV AWS_IAM_AUTH_VERSION 0.5.2
+RUN curl --silent --location "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${AWS_IAM_AUTH_VERSION}/aws-iam-authenticator_${AWS_IAM_AUTH_VERSION}_linux_amd64" --output /out/usr/local/bin/aws-iam-authenticator \
+    && chmod +x /out/usr/local/bin/aws-iam-authenticator
 COPY .requirements install-build-deps.sh go.mod go.sum /src/
 
 # Install all build tools dependencies
 RUN ./install-build-deps.sh
-
-# The authenticator is a runtime dependency, so it needs to be in /out
-RUN go install sigs.k8s.io/aws-iam-authenticator/cmd/aws-iam-authenticator \
-    && mv $GOPATH/bin/aws-iam-authenticator /out/usr/local/bin/aws-iam-authenticator
 
 # Add kubectl and aws-iam-authenticator to the PATH
 ENV PATH="${PATH}:/out/usr/bin:/out/usr/local/bin"

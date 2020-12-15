@@ -3,6 +3,7 @@
 package crud
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -396,7 +397,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					Expect(err).ShouldNot(HaveOccurred())
 
 					{
-						sa, err := clientSet.CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get("s3-read-only", metav1.GetOptions{})
+						sa, err := clientSet.CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get(context.TODO(), "s3-read-only", metav1.GetOptions{})
 						Expect(err).ShouldNot(HaveOccurred())
 
 						Expect(sa.Annotations).To(HaveLen(1))
@@ -405,7 +406,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					}
 
 					{
-						sa, err := clientSet.CoreV1().ServiceAccounts("app1").Get("app-cache-access", metav1.GetOptions{})
+						sa, err := clientSet.CoreV1().ServiceAccounts("app1").Get(context.TODO(), "app-cache-access", metav1.GetOptions{})
 						Expect(err).ShouldNot(HaveOccurred())
 
 						Expect(sa.Annotations).To(HaveLen(1))

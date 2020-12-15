@@ -3,6 +3,7 @@
 package inferentia
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -111,7 +112,7 @@ var _ = PDescribe("(Integration) Inferentia nodes", func() {
 				clientSet, err := ctl.NewStdClientSet(cfg)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				_, err = clientSet.AppsV1().DaemonSets("kube-system").Get("neuron-device-plugin-daemonset", metav1.GetOptions{})
+				_, err = clientSet.AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 			})
 		})
@@ -164,7 +165,7 @@ var _ = PDescribe("(Integration) Inferentia nodes", func() {
 				clientSet, err := ctl.NewStdClientSet(cfg)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				_, err = clientSet.AppsV1().DaemonSets("kube-system").Get("neuron-device-plugin-daemonset", metav1.GetOptions{})
+				_, err = clientSet.AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
 				Expect(err).Should(BeNotFoundError())
 			})
 			When("adding a nodegroup by default", func() {
@@ -197,7 +198,7 @@ var _ = PDescribe("(Integration) Inferentia nodes", func() {
 					clientSet, err := ctl.NewStdClientSet(cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					_, err = clientSet.AppsV1().DaemonSets("kube-system").Get("neuron-device-plugin-daemonset", metav1.GetOptions{})
+					_, err = clientSet.AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})

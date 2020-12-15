@@ -36,8 +36,12 @@ check-build-image-manifest-up-to-date: update-build-image-tag ## Update build im
 	  || (git --no-pager diff $(image_manifest_file); echo "HINT: to fix this, run 'make -f Makefile.docker update-build-image-tag'"; exit 1)
 
 .PHONY: commit-new-image-tag
-commit-new-image-tag: update-build-image-tag ## Update build image manifest and commits the changes
-	git commit --quiet $(image_manifest_file) $(build_image_tag_file) Dockerfile --message 'Update build image manifest and tag file'
+commit-new-image-tag:  ## Update build image manifest and commits the changes
+	git stash
+	$(MAKE) update-build-image-tag
+	git add -u
+	git commit --message 'Update build image manifest and tag file'
+	git stash pop
 
 .PHONY: build-image
 build-image: check-build-image-manifest-up-to-date ## Build the build image that has all of external dependencies
