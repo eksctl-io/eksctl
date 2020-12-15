@@ -19,7 +19,7 @@ var _ = Describe("cloudconfig", func() {
 	const (
 		testScript1     = "curl --silen jsonip.com | jq ."
 		testScript1Name = "foo.sh"
-		testScript1Path = "/var/lib/cloud/scripts/per-instance/" + testScript1Name
+		testScript1Path = "/var/lib/cloud/scripts/eksctl/" + testScript1Name
 	)
 
 	input.AddShellCommand(testScript1)
