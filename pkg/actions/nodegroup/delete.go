@@ -15,11 +15,11 @@ import (
 )
 
 func (ng *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.ManagedNodeGroup, wait, plan bool) error {
-	var nodesWithStacks []eks.KubeNodeGroup
-	var nodesWithoutStacksDeleteTasks []*DeleteUnownedNodegroupTask
+	var nodeGroupsWithStacks []eks.KubeNodeGroup
+	var nodeGroupsWithoutStacksDeleteTasks []*DeleteUnownedNodegroupTask
 
 	for _, n := range nodeGroups {
-		nodesWithStacks = append(nodesWithStacks, n)
+		nodeGroupsWithStacks = append(nodeGroupsWithStacks, n)
 	}
 
 	for _, n := range managedNodeGroups {
@@ -29,9 +29,9 @@ func (ng *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.
 		}
 
 		if hasStacks {
-			nodesWithStacks = append(nodesWithStacks, n)
+			nodeGroupsWithStacks = append(nodeGroupsWithStacks, n)
 		} else {
-			nodesWithoutStacksDeleteTasks = append(nodesWithoutStacksDeleteTasks, &DeleteUnownedNodegroupTask{
+			nodeGroupsWithoutStacksDeleteTasks = append(nodeGroupsWithoutStacksDeleteTasks, &DeleteUnownedNodegroupTask{
 				cluster:   ng.cfg.Metadata.Name,
 				nodegroup: n.Name,
 				eksAPI:    ng.ctl.Provider.EKS(),
@@ -41,7 +41,7 @@ func (ng *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.
 	}
 
 	shouldDelete := func(ngName string) bool {
-		for _, n := range nodesWithStacks {
+		for _, n := range nodeGroupsWithStacks {
 			if n.NameString() == ngName {
 				return true
 			}
@@ -54,7 +54,7 @@ func (ng *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.
 		return err
 	}
 
-	for _, t := range nodesWithoutStacksDeleteTasks {
+	for _, t := range nodeGroupsWithoutStacksDeleteTasks {
 		tasks.Append(t)
 	}
 

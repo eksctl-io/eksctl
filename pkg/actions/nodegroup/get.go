@@ -19,7 +19,7 @@ func (ng *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 		return nil, err
 	}
 
-	var nodesWithoutStacks []string
+	var nodeGroupsWithoutStacks []string
 	for _, ng := range nodeGroups.Nodegroups {
 		found := false
 		for _, summary := range summaries {
@@ -29,14 +29,14 @@ func (ng *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 		}
 
 		if !found {
-			nodesWithoutStacks = append(nodesWithoutStacks, *ng)
+			nodeGroupsWithoutStacks = append(nodeGroupsWithoutStacks, *ng)
 		}
 	}
 
-	for _, nodeWithoutStack := range nodesWithoutStacks {
+	for _, nodeGroupWithoutStack := range nodeGroupsWithoutStacks {
 		describeOutput, err := ng.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
 			ClusterName:   &ng.cfg.Metadata.Name,
-			NodegroupName: &nodeWithoutStack,
+			NodegroupName: &nodeGroupWithoutStack,
 		})
 		if err != nil {
 			return nil, err
