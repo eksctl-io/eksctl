@@ -3,6 +3,7 @@ package disassociate
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -12,6 +13,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
+var defaultDisassociateTimeout = 35 * time.Minute
+
 func disassociateIdentityProvider(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
@@ -19,10 +22,11 @@ func disassociateIdentityProvider(cmd *cmdutils.Cmd) {
 	cmd.SetDescription("identityprovider", "Disassociate an identity provider from a cluster", "")
 
 	var provider identityproviders.DisassociateIdentityProvider
+	var timeout time.Duration
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doDisassociateIdentityProvider(cmd, provider)
+		return doDisassociateIdentityProvider(cmd, provider, timeout)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -30,8 +34,10 @@ func disassociateIdentityProvider(cmd *cmdutils.Cmd) {
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 
-		cmdutils.AddWaitFlag(fs, &cmd.Wait, "deletion of providers")
-		fs.StringVar(&provider.Name, "name", "", "name of the provider to delete")
+		cmdutils.AddWaitFlag(fs, &cmd.Wait, "providers to disassociate")
+		cmdutils.AddTimeoutFlagWithValue(fs, &timeout, defaultDisassociateTimeout)
+		fs.StringVar(&provider.Name, "name", "", "name of the provider to disassociate")
+		fs.StringVar(&provider.Type, "type", "", "type of the provider to disassociate")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
@@ -56,7 +62,7 @@ func newDisassociateIdentityProviderLoader(cmd *cmdutils.Cmd, provider identityp
 	return l.Build(cmd)
 }
 
-func doDisassociateIdentityProvider(cmd *cmdutils.Cmd, provider identityproviders.DisassociateIdentityProvider) error {
+func doDisassociateIdentityProvider(cmd *cmdutils.Cmd, provider identityproviders.DisassociateIdentityProvider, timeout time.Duration) error {
 	if err := newDisassociateIdentityProviderLoader(cmd, provider).Load(); err != nil {
 		return err
 	}
@@ -98,18 +104,18 @@ func doDisassociateIdentityProvider(cmd *cmdutils.Cmd, provider identityprovider
 			provider,
 		}
 	}
-	options := identityproviders.DisassociateIdentityProvidersOptions{
-		Providers: providers,
-	}
-	if cmd.Wait {
-		timeout := ctl.Provider.WaitTimeout()
-		options.WaitTimeout = &timeout
-	}
 
 	manager := identityproviders.NewIdentityProviderManager(
 		*cfg.Metadata,
 		ctl.Provider.EKS(),
 	)
+
+	options := identityproviders.DisassociateIdentityProvidersOptions{
+		Providers: providers,
+	}
+	if cmd.Wait {
+		options.WaitTimeout = &timeout
+	}
 
 	return manager.Disassociate(options)
 }

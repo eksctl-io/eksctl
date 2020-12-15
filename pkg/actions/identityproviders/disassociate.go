@@ -5,10 +5,9 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
 
-	"github.com/weaveworks/eksctl/pkg/utils/waiters"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/logger"
 )
 
@@ -23,64 +22,60 @@ type DisassociateIdentityProvider struct {
 }
 
 func (ipm *IdentityProviderManager) Disassociate(options DisassociateIdentityProvidersOptions) error {
-	clusterName := ipm.metadata.Name
+	taskTree := tasks.TaskTree{
+		Parallel: true,
+	}
+
 	for _, idP := range options.Providers {
-		idPConfig := eks.IdentityProviderConfig{
-			Name: aws.String(idP.Name),
-			Type: aws.String(idP.Type),
-		}
-		describeInput := eks.DescribeIdentityProviderConfigInput{
-			ClusterName:            aws.String(ipm.metadata.Name),
-			IdentityProviderConfig: &idPConfig,
-		}
-		idPDescription, err := ipm.eksAPI.DescribeIdentityProviderConfig(&describeInput)
-		if err != nil {
-			return err
-		}
-		if aws.StringValue(idPDescription.IdentityProviderConfig.Oidc.Status) == "DELETING" {
-			logger.Warning("provider already deleting")
-			return nil
-		}
-
-		disassociateInput := eks.DisassociateIdentityProviderConfigInput{
-			ClusterName:            aws.String(clusterName),
-			IdentityProviderConfig: &idPConfig,
-		}
-
-		disassociation, err := ipm.eksAPI.DisassociateIdentityProviderConfig(&disassociateInput)
-		if err != nil {
-			return err
-		}
-
-		if options.WaitTimeout != nil {
-			newRequest := func() *request.Request {
-				input := &eks.DescribeUpdateInput{
-					Name:     aws.String(ipm.metadata.Name),
-					UpdateId: disassociation.Update.Id,
+		taskTree.Append(&tasks.GenericTask{
+			Description: fmt.Sprintf("disassociate %s", idP.Name),
+			Doer: func() error {
+				idPConfig := eks.IdentityProviderConfig{
+					Name: aws.String(idP.Name),
+					Type: aws.String(idP.Type),
 				}
-				req, _ := ipm.eksAPI.DescribeUpdateRequest(input)
-				return req
-			}
+				describeInput := eks.DescribeIdentityProviderConfigInput{
+					ClusterName:            aws.String(ipm.metadata.Name),
+					IdentityProviderConfig: &idPConfig,
+				}
+				idPDescription, err := ipm.eksAPI.DescribeIdentityProviderConfig(&describeInput)
+				if err != nil {
+					return err
+				}
+				if aws.StringValue(idPDescription.IdentityProviderConfig.Oidc.Status) == "DELETING" {
+					logger.Warning("provider already deleting")
+					return nil
+				}
 
-			acceptors := waiters.MakeAcceptors(
-				"Update.Status",
-				eks.UpdateStatusSuccessful,
-				[]string{
-					eks.UpdateStatusCancelled,
-					eks.UpdateStatusFailed,
-				},
-			)
+				disassociateInput := eks.DisassociateIdentityProviderConfigInput{
+					ClusterName:            aws.String(ipm.metadata.Name),
+					IdentityProviderConfig: &idPConfig,
+				}
 
-			msg := fmt.Sprintf(
-				"waiting for requested identity provider %q in cluster %q to succeed",
-				*disassociation.Update.Type,
-				clusterName,
-			)
+				update, err := ipm.eksAPI.DisassociateIdentityProviderConfig(&disassociateInput)
+				if err != nil {
+					return err
+				}
+				logger.Debug("identity provider disassociate update: %v", *update.Update)
 
-			return waiters.Wait(clusterName, msg, acceptors, newRequest, *options.WaitTimeout, nil)
-		}
+				logger.Info("started disassociating identity provider %s", idP.Name)
 
-		logger.Info("started disassociating identity provider %s", idP.Name)
+				if options.WaitTimeout != nil {
+					if err := ipm.waitForUpdate(*update.Update, *options.WaitTimeout); err != nil {
+						return err
+					}
+				}
+				return nil
+			},
+		})
+	}
+
+	errs := taskTree.DoAllSync()
+	for _, err := range errs {
+		logger.Critical(err.Error())
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("one or more providers failed to associate")
 	}
 	return nil
 }

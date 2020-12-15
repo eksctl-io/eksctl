@@ -2,6 +2,7 @@ package associate
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -11,21 +12,28 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
+var defaultAssociateTimeout = 35 * time.Minute
+
 func associateIdentityProvider(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
 	cmd.SetDescription("identityprovider", "Associate an identity provider with a cluster", "")
 
+	var timeout time.Duration
+
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doAssociateIdentityProvider(cmd)
+		return doAssociateIdentityProvider(cmd, timeout)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
+
+		cmdutils.AddWaitFlag(fs, &cmd.Wait, "providers to associate")
+		cmdutils.AddTimeoutFlagWithValue(fs, &timeout, defaultAssociateTimeout)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
@@ -44,7 +52,7 @@ func newAssociateIdentityProviderLoader(cmd *cmdutils.Cmd) cmdutils.ClusterConfi
 	return l.Build(cmd)
 }
 
-func doAssociateIdentityProvider(cmd *cmdutils.Cmd) error {
+func doAssociateIdentityProvider(cmd *cmdutils.Cmd, timeout time.Duration) error {
 	if err := newAssociateIdentityProviderLoader(cmd).Load(); err != nil {
 		return err
 	}
@@ -68,7 +76,12 @@ func doAssociateIdentityProvider(cmd *cmdutils.Cmd) error {
 		ctl.Provider.EKS(),
 	)
 
-	return manager.Associate(identityproviders.AssociateIdentityProvidersOptions{
+	options := identityproviders.AssociateIdentityProvidersOptions{
 		Providers: cfg.IdentityProviders,
-	})
+	}
+	if cmd.Wait {
+		options.WaitTimeout = &timeout
+	}
+
+	return manager.Associate(options)
 }
