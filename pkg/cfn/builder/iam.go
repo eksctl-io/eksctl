@@ -3,6 +3,7 @@ package builder
 import (
 	"fmt"
 
+	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/iam"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -263,25 +264,31 @@ type IAMRoleResourceSet struct {
 	attachPolicyARNs []string
 	attachPolicy     api.InlineDocument
 	OutputRole       string
+	serviceAccount   string
+	namespace        string
 }
 
 // NewIAMServiceAccountResourceSet builds IAM Role stack from the give spec
-func NewIAMRoleResourceSetWithAttachPolicyARNs(name string, attachPolicyARNs []string, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
+func NewIAMRoleResourceSetWithAttachPolicyARNs(name, namespace, serviceAccount string, attachPolicyARNs []string, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
 	return &IAMRoleResourceSet{
 		template:         cft.NewTemplate(),
 		attachPolicyARNs: attachPolicyARNs,
 		name:             name,
 		oidc:             oidc,
+		serviceAccount:   serviceAccount,
+		namespace:        namespace,
 	}
 }
 
 // NewIAMServiceAccountResourceSet builds IAM Role stack from the give spec
-func NewIAMRoleResourceSetWithAttachPolicy(name string, attachPolicy api.InlineDocument, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
+func NewIAMRoleResourceSetWithAttachPolicy(name, namespace, serviceAccount string, attachPolicy api.InlineDocument, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
 	return &IAMRoleResourceSet{
-		template:     cft.NewTemplate(),
-		attachPolicy: attachPolicy,
-		name:         name,
-		oidc:         oidc,
+		template:       cft.NewTemplate(),
+		attachPolicy:   attachPolicy,
+		name:           name,
+		oidc:           oidc,
+		serviceAccount: serviceAccount,
+		namespace:      namespace,
 	}
 }
 
@@ -299,8 +306,17 @@ func (rs *IAMRoleResourceSet) AddAllResources() error {
 		templateDescriptionSuffix,
 	)
 
+	var assumeRolePolicyDocument cft.MapOfInterfaces
+	if rs.serviceAccount != "" && rs.namespace != "" {
+		logger.Debug("service account location provided: %s/%s, adding sub condition", api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name)
+		assumeRolePolicyDocument = rs.oidc.MakeAssumeRolePolicyDocumentWithServiceAccountConditions(rs.namespace, rs.serviceAccount)
+	} else {
+		assumeRolePolicyDocument = rs.oidc.MakeAssumeRolePolicyDocument()
+
+	}
+
 	role := &cft.IAMRole{
-		AssumeRolePolicyDocument: rs.oidc.MakeAssumeRolePolicyDocument(),
+		AssumeRolePolicyDocument: assumeRolePolicyDocument,
 	}
 	role.ManagedPolicyArns = append(role.ManagedPolicyArns, rs.attachPolicyARNs...)
 

@@ -39,6 +39,7 @@ func (a *Manager) Create(addon *api.Addon) error {
 	}
 
 	logger.Debug("addon: %v", addon)
+	namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
 
 	if a.withOIDC {
 		if addon.ServiceAccountRoleARN != "" {
@@ -46,14 +47,14 @@ func (a *Manager) Create(addon *api.Addon) error {
 			createAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
 		} else if addon.AttachPolicyARNs != nil && len(addon.AttachPolicyARNs) != 0 {
 			logger.Info("creating role using provided policies ARNs")
-			role, err := a.createRoleUsingAttachPolicyARNs(addon)
+			role, err := a.createRoleUsingAttachPolicyARNs(addon, namespace, serviceAccount)
 			if err != nil {
 				return err
 			}
 			createAddonInput.ServiceAccountRoleArn = &role
 		} else if addon.AttachPolicy != nil {
 			logger.Info("creating role using provided policies")
-			role, err := a.createRoleUsingAttachPolicy(addon)
+			role, err := a.createRoleUsingAttachPolicy(addon, namespace, serviceAccount)
 			if err != nil {
 				return err
 			}
@@ -63,7 +64,7 @@ func (a *Manager) Create(addon *api.Addon) error {
 			if len(policies) != 0 {
 				logger.Info("creating role using recommended policies")
 				addon.AttachPolicyARNs = policies
-				role, err := a.createRoleUsingAttachPolicyARNs(addon)
+				role, err := a.createRoleUsingAttachPolicyARNs(addon, namespace, serviceAccount)
 				if err != nil {
 					return err
 				}
@@ -176,8 +177,19 @@ func (a *Manager) getRecommendedPolicies(addon *api.Addon) []string {
 	}
 }
 
-func (a *Manager) createRoleUsingAttachPolicyARNs(addon *api.Addon) (string, error) {
-	resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, addon.AttachPolicyARNs, a.oidcManager)
+func (a *Manager) getKnownServiceAccountLocation(addon *api.Addon) (string, string) {
+	// API isn't case sensitive
+	switch strings.ToLower(addon.Name) {
+	case vpcCNIName:
+		logger.Debug("found known service account location %s/%s", api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name)
+		return api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name
+	default:
+		return "", ""
+	}
+}
+
+func (a *Manager) createRoleUsingAttachPolicyARNs(addon *api.Addon, namespace, serviceAccount string) (string, error) {
+	resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.AttachPolicyARNs, a.oidcManager)
 	err := resourceSet.AddAllResources()
 	if err != nil {
 		return "", err
@@ -190,8 +202,8 @@ func (a *Manager) createRoleUsingAttachPolicyARNs(addon *api.Addon) (string, err
 	return resourceSet.OutputRole, nil
 }
 
-func (a *Manager) createRoleUsingAttachPolicy(addon *api.Addon) (string, error) {
-	resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, addon.AttachPolicy, a.oidcManager)
+func (a *Manager) createRoleUsingAttachPolicy(addon *api.Addon, namespace, serviceAccount string) (string, error) {
+	resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, namespace, serviceAccount, addon.AttachPolicy, a.oidcManager)
 	err := resourceSet.AddAllResources()
 	if err != nil {
 		return "", err
