@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
@@ -24,7 +25,7 @@ func fmtDeprecatedStacksRegexForCluster(name string) string {
 }
 
 // DeleteTasksForDeprecatedStacks all deprecated stacks
-func (c *StackCollection) DeleteTasksForDeprecatedStacks() (*TaskTree, error) {
+func (c *StackCollection) DeleteTasksForDeprecatedStacks() (*tasks.TaskTree, error) {
 	stacks, err := c.ListStacksMatching(fmtDeprecatedStacksRegexForCluster(c.spec.Metadata.Name))
 	if err != nil {
 		return nil, errors.Wrapf(err, "describing deprecated CloudFormation stacks for %q", c.spec.Metadata.Name)
@@ -33,9 +34,9 @@ func (c *StackCollection) DeleteTasksForDeprecatedStacks() (*TaskTree, error) {
 		return nil, nil
 	}
 
-	deleteControlPlaneTask := &taskWithoutParams{
-		info: fmt.Sprintf("delete control plane %q", c.spec.Metadata.Name),
-		call: func(errs chan error) error {
+	deleteControlPlaneTask := &tasks.TaskWithoutParams{
+		Info: fmt.Sprintf("delete control plane %q", c.spec.Metadata.Name),
+		Call: func(errs chan error) error {
 			_, err := c.provider.EKS().DescribeCluster(&eks.DescribeClusterInput{
 				Name: &c.spec.Metadata.Name,
 			})
@@ -78,15 +79,15 @@ func (c *StackCollection) DeleteTasksForDeprecatedStacks() (*TaskTree, error) {
 			cpStackFound = true
 		}
 	}
-	tasks := &TaskTree{}
+	taskTree := &tasks.TaskTree{}
 
 	for _, suffix := range deprecatedStackSuffices() {
 		for _, s := range stacks {
 			if strings.HasSuffix(*s.StackName, "-"+suffix) {
 				if suffix == "-ControlPlane" && !cpStackFound {
-					tasks.Append(deleteControlPlaneTask)
+					taskTree.Append(deleteControlPlaneTask)
 				} else {
-					tasks.Append(&taskWithStackSpec{
+					taskTree.Append(&taskWithStackSpec{
 						stack: s,
 						call:  c.DeleteStackBySpecSync,
 					})
@@ -94,5 +95,5 @@ func (c *StackCollection) DeleteTasksForDeprecatedStacks() (*TaskTree, error) {
 			}
 		}
 	}
-	return tasks, nil
+	return taskTree, nil
 }

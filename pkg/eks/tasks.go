@@ -16,9 +16,9 @@ import (
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/utils"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
@@ -82,7 +82,7 @@ func (n *devicePluginTask) Do(errCh chan error) error {
 func newNvidiaDevicePluginTask(
 	clusterProvider *ClusterProvider,
 	spec *api.ClusterConfig,
-) manager.Task {
+) tasks.Task {
 	t := devicePluginTask{
 		info:            "install Nvidia device plugin",
 		clusterProvider: clusterProvider,
@@ -95,7 +95,7 @@ func newNvidiaDevicePluginTask(
 func newNeuronDevicePluginTask(
 	clusterProvider *ClusterProvider,
 	spec *api.ClusterConfig,
-) manager.Task {
+) tasks.Task {
 	t := devicePluginTask{
 		info:            "install Neuron device plugin",
 		clusterProvider: clusterProvider,
@@ -143,8 +143,8 @@ func (t *restartDaemonsetTask) Do(errCh chan error) error {
 }
 
 // CreateExtraClusterConfigTasks returns all tasks for updating cluster configuration not depending on the control plane availability
-func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, installVPCController bool) *manager.TaskTree {
-	newTasks := &manager.TaskTree{
+func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, installVPCController bool) *tasks.TaskTree {
+	newTasks := &tasks.TaskTree{
 		Parallel:  false,
 		IsSubTask: true,
 	}
@@ -201,8 +201,8 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 }
 
 // ClusterTasksForNodeGroups returns all tasks dependent on node groups
-func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, installNeuronDevicePluginParam, installNvidiaDevicePluginParam bool) *manager.TaskTree {
-	tasks := &manager.TaskTree{
+func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, installNeuronDevicePluginParam, installNvidiaDevicePluginParam bool) *tasks.TaskTree {
+	tasks := &tasks.TaskTree{
 		Parallel:  false,
 		IsSubTask: false,
 	}
@@ -223,7 +223,7 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 	return tasks
 }
 
-func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.ClusterConfig, tasks *manager.TaskTree) {
+func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.ClusterConfig, tasks *tasks.TaskTree) {
 	// we don't have all the information to construct full iamoidc.OpenIDConnectManager now,
 	// instead we just create a reference that gets updated when first task runs, and gets
 	// used by this would be more elegant if it was all done via CloudFormation and we didn't
@@ -281,7 +281,7 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 	})
 }
 
-func (c *ClusterProvider) maybeAppendTasksForEndpointAccessUpdates(cfg *api.ClusterConfig, tasks *manager.TaskTree) {
+func (c *ClusterProvider) maybeAppendTasksForEndpointAccessUpdates(cfg *api.ClusterConfig, tasks *tasks.TaskTree) {
 	// if a cluster config doesn't have the default api endpoint access, append a new task
 	// so that we update the cluster with the new access configuration.  This is a
 	// non-CloudFormation context, so we create a task to send it through the EKS API.
