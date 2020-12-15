@@ -41,7 +41,6 @@ metadata:
   name: cluster-arm-2
   region: us-west-2
 
-
 managedNodeGroups:
   - name: mng-arm-1
     instanceType: m6g.medium
@@ -52,14 +51,10 @@ managedNodeGroups:
 eksctl create cluster -f cluster-arm-2.yaml
 ```
 
-
 The AMI resolvers, `auto` and `auto-ssm`, will see that you want to use an ARM instance type and they will select the correct AMI.
 
 !!!note
     Note that currently there are only AmazonLinux2 EKS optimized AMIs for ARM.
-
-Additionally, the default add-ons will use multi-architecture docker images. This is why, when a cluster is created, and before a nodegroup
-is created, eksctl will make sure it upgrades the add-ons.
 
 !!!note
     ARM is supported for clusters with version 1.15 and higher.
