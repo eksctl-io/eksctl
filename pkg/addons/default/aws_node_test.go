@@ -40,8 +40,8 @@ var _ = Describe("default addons - aws-node", func() {
 			Expect(ct.Created()).ToNot(BeEmpty())
 			Expect(ct.CreatedItems()).To(HaveLen(10))
 		}
-		It("reports that 1.14 sample needs an update", func() {
-			loadSample("testdata/sample-1.14.json")
+		It("reports that 1.15 sample needs an update", func() {
+			loadSample("testdata/sample-1.15.json")
 			rawClient.AssumeObjectsMissing = false
 
 			needsUpdate, err := DoesAWSNodeSupportMultiArch(rawClient, "eu-west-1")
@@ -72,8 +72,8 @@ var _ = Describe("default addons - aws-node", func() {
 			ct        *testutils.CollectionTracker
 		)
 
-		It("can load sample for 1.14 and create objects that don't exist", func() {
-			sampleAddons := testutils.LoadSamples("testdata/sample-1.14.json")
+		It("can load sample for 1.15 and create objects that don't exist", func() {
+			sampleAddons := testutils.LoadSamples("testdata/sample-1.15.json")
 
 			rawClient = testutils.NewFakeRawClient()
 
@@ -105,7 +105,7 @@ var _ = Describe("default addons - aws-node", func() {
 
 		})
 
-		It("can update 1.14 sample to latest multi-architecture image", func() {
+		It("can update 1.15 sample to latest multi-architecture image", func() {
 			rawClient.AssumeObjectsMissing = false
 
 			preUpdateAwsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
@@ -133,7 +133,7 @@ var _ = Describe("default addons - aws-node", func() {
 			rawClient.ClearUpdated()
 		})
 
-		It("can update 1.14 sample for different region to multi-architecture image", func() {
+		It("can update 1.15 sample for different region to multi-architecture image", func() {
 			rawClient.ClientSetUseUpdatedObjects = false // must be set for subsequent UpdateAWSNode
 
 			preUpdateAwsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
@@ -155,7 +155,7 @@ var _ = Describe("default addons - aws-node", func() {
 			)
 		})
 
-		It("can update 1.14 sample for china region to multi-architecture image", func() {
+		It("can update 1.15 sample for china region to multi-architecture image", func() {
 			rawClient.ClientSetUseUpdatedObjects = false // must be set for subsequent UpdateAWSNode
 
 			preUpdateAwsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})

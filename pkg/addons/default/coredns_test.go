@@ -5,237 +5,132 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/weaveworks/eksctl/pkg/addons"
-	. "github.com/weaveworks/eksctl/pkg/addons/default"
+	da "github.com/weaveworks/eksctl/pkg/addons/default"
 
 	"github.com/weaveworks/eksctl/pkg/testutils"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("default addons - coredns", func() {
 	var (
-		rawClient *testutils.FakeRawClient
-		ct        *testutils.CollectionTracker
+		rawClient           *testutils.FakeRawClient
+		ct                  *testutils.CollectionTracker
+		region              string
+		controlPlaneVersion string
+		kubernetesVersion   string
 	)
 
-	loadSample := func(kubernetesVersion string, expectCount int) {
-		samplePath := "testdata/sample-" + kubernetesVersion + ".json"
-		It("can load "+samplePath+" and create objects that don't exist", func() {
-			rawClient = testutils.NewFakeRawClient()
+	BeforeEach(func() {
+		rawClient = testutils.NewFakeRawClient()
+		rawClient.UseUnionTracker = true
+		ct = rawClient.Collection
+		region = "eu-west-2"
+		controlPlaneVersion = "1.16.x"
+		kubernetesVersion = "1.15"
+	})
 
-			sampleAddons := testutils.LoadSamples(samplePath)
+	Context("UpdateCoreDNS", func() {
+		var (
+			expectedImageTag string
+		)
 
-			rawClient.UseUnionTracker = true
+		BeforeEach(func() {
+			createCoreDNSFromTestSample(rawClient, ct, kubernetesVersion)
+			expectedImageTag = "v1.6.6-eksbuild.1"
+		})
 
-			for _, item := range sampleAddons {
-				rc, err := rawClient.NewRawResource(item)
-				Expect(err).ToNot(HaveOccurred())
-				_, err = rc.CreateOrReplace(false)
-				Expect(err).ToNot(HaveOccurred())
+		It("updates coredns to the correct version", func() {
+			_, err := da.UpdateCoreDNS(rawClient, region, controlPlaneVersion, false)
+			Expect(err).ToNot(HaveOccurred())
+
+			updateReqs := []string{
+				"PUT [/namespaces/kube-system/serviceaccounts/coredns] (coredns)",
+				"PUT [/namespaces/kube-system/configmaps/coredns] (coredns)",
+				"PUT [/namespaces/kube-system/services/kube-dns] (kube-dns)",
+				"PUT [/clusterroles/system:coredns] (system:coredns)",
+				"PUT [/clusterrolebindings/system:coredns] (system:coredns)",
+				"PUT [/namespaces/kube-system/deployments/coredns] (coredns)",
 			}
 
-			ct = rawClient.Collection
+			Expect(rawClient.Collection.Updated()).To(HaveLen(len(updateReqs)))
+			for _, k := range updateReqs {
+				Expect(rawClient.Collection.Updated()).To(HaveKey(k))
+			}
 
-			Expect(ct.Updated()).To(BeEmpty())
-			Expect(ct.Created()).ToNot(BeEmpty())
-			Expect(ct.CreatedItems()).To(HaveLen(expectCount))
+			Expect(coreDNSImage(rawClient)).To(
+				Equal("602401143452.dkr.ecr." + region + ".amazonaws.com/eks/coredns:" + expectedImageTag),
+			)
 		})
-	}
+	})
 
-	loadSampleAndCheck := func(kubernetesVersion, coreDNSVersion string) {
-		Context("load "+kubernetesVersion, func() {
+	Context("IsCoreDNSUpToDate", func() {
+		BeforeEach(func() {
+			createCoreDNSFromTestSample(rawClient, ct, kubernetesVersion)
+			_, err := da.UpdateCoreDNS(rawClient, region, controlPlaneVersion, false)
+			Expect(err).ToNot(HaveOccurred())
+		})
 
-			loadSample(kubernetesVersion, 10)
+		Context("when CoreDNS is NOT up to date", func() {
+			BeforeEach(func() {
+				controlPlaneVersion = "1.18.x"
+			})
 
-			It("can load "+kubernetesVersion+" sample", func() {
-				checkCoreDNSImage(rawClient, "eu-west-1", "v"+coreDNSVersion, true)
-
-				createReqs := []string{
-					"POST [/clusterrolebindings] (aws-node)",
-					"POST [/namespaces/kube-system/serviceaccounts] (coredns)",
-					"POST [/namespaces/kube-system/configmaps] (coredns)",
-					"POST [/namespaces/kube-system/services] (kube-dns)",
-					"POST [/namespaces/kube-system/daemonsets] (aws-node)",
-					"POST [/clusterroles] (system:coredns)",
-					"POST [/clusterrolebindings] (system:coredns)",
-					"POST [/namespaces/kube-system/deployments] (coredns)",
-					"POST [/namespaces/kube-system/daemonsets] (kube-proxy)",
-					"POST [/clusterroles] (aws-node)",
-				}
-
-				Expect(rawClient.Collection.Created()).To(HaveLen(len(createReqs)))
-				for _, k := range createReqs {
-					Expect(rawClient.Collection.Created()).To(HaveKey(k))
-				}
-
-				Expect(rawClient.Collection.Updated()).To(HaveLen(0))
+			It("reports 'false'", func() {
+				isUpToDate, err := da.IsCoreDNSUpToDate(rawClient, region, controlPlaneVersion)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(isUpToDate).To(Equal(false))
 			})
 		})
-	}
 
-	loadSampleAndCheck("1.14", "1.6.0")
-
-	Context("[1.14 –> 1.15] can update coredns to multi-architecture images", func() {
-
-		loadSample("1.14", 10)
-
-		It("can load 1.14 sample", func() {
-			checkCoreDNSImage(rawClient, "eu-west-1", "v1.6.0", true)
-		})
-
-		It("can update to correct version", func() {
-			_, err := UpdateCoreDNS(rawClient, "eu-west-2", "1.15.x", false)
-			Expect(err).ToNot(HaveOccurred())
-			checkCoreDNSImage(rawClient, "eu-west-2", "v1.6.6-eksbuild.1", false)
-
-			createReqs := []string{
-				"POST [/clusterrolebindings] (aws-node)",
-				"POST [/namespaces/kube-system/serviceaccounts] (coredns)",
-				"POST [/namespaces/kube-system/configmaps] (coredns)",
-				"POST [/namespaces/kube-system/services] (kube-dns)",
-				"POST [/namespaces/kube-system/daemonsets] (aws-node)",
-				"POST [/clusterroles] (system:coredns)",
-				"POST [/clusterrolebindings] (system:coredns)",
-				"POST [/namespaces/kube-system/deployments] (coredns)",
-				"POST [/namespaces/kube-system/daemonsets] (kube-proxy)",
-				"POST [/clusterroles] (aws-node)",
-			}
-
-			Expect(rawClient.Collection.Created()).To(HaveLen(len(createReqs)))
-			for _, k := range createReqs {
-				Expect(rawClient.Collection.Created()).To(HaveKey(k))
-			}
-
-			updateReqs := []string{
-				"PUT [/namespaces/kube-system/serviceaccounts/coredns] (coredns)",
-				"PUT [/namespaces/kube-system/configmaps/coredns] (coredns)",
-				"PUT [/namespaces/kube-system/services/kube-dns] (kube-dns)",
-				"PUT [/clusterroles/system:coredns] (system:coredns)",
-				"PUT [/clusterrolebindings/system:coredns] (system:coredns)",
-				"PUT [/namespaces/kube-system/deployments/coredns] (coredns)",
-			}
-
-			Expect(rawClient.Collection.Updated()).To(HaveLen(len(updateReqs)))
-			for _, k := range updateReqs {
-				Expect(rawClient.Collection.Updated()).To(HaveKey(k))
-			}
-		})
-	})
-
-	loadSampleAndCheck("1.14", "1.6.0")
-
-	Context("[1.14 –> 1.15] can update coredns to multi-architecture image", func() {
-
-		loadSample("1.14", 10)
-
-		It("can load 1.14 sample", func() {
-			checkCoreDNSImage(rawClient, "eu-west-1", "v1.6.0", true)
-		})
-
-		It("can update to correct version", func() {
-			_, err := UpdateCoreDNS(rawClient, "eu-west-2", "1.15.x", false)
-			Expect(err).ToNot(HaveOccurred())
-			checkCoreDNSImage(rawClient, "eu-west-2", "v1.6.6-eksbuild.1", false)
-
-			createReqs := []string{
-				"POST [/clusterrolebindings] (aws-node)",
-				"POST [/namespaces/kube-system/serviceaccounts] (coredns)",
-				"POST [/namespaces/kube-system/configmaps] (coredns)",
-				"POST [/namespaces/kube-system/services] (kube-dns)",
-				"POST [/namespaces/kube-system/daemonsets] (aws-node)",
-				"POST [/clusterroles] (system:coredns)",
-				"POST [/clusterrolebindings] (system:coredns)",
-				"POST [/namespaces/kube-system/deployments] (coredns)",
-				"POST [/namespaces/kube-system/daemonsets] (kube-proxy)",
-				"POST [/clusterroles] (aws-node)",
-			}
-
-			Expect(rawClient.Collection.Created()).To(HaveLen(len(createReqs)))
-			for _, k := range createReqs {
-				Expect(rawClient.Collection.Created()).To(HaveKey(k))
-			}
-
-			updateReqs := []string{
-				"PUT [/namespaces/kube-system/serviceaccounts/coredns] (coredns)",
-				"PUT [/namespaces/kube-system/configmaps/coredns] (coredns)",
-				"PUT [/namespaces/kube-system/services/kube-dns] (kube-dns)",
-				"PUT [/clusterroles/system:coredns] (system:coredns)",
-				"PUT [/clusterrolebindings/system:coredns] (system:coredns)",
-				"PUT [/namespaces/kube-system/deployments/coredns] (coredns)",
-			}
-
-			Expect(rawClient.Collection.Updated()).To(HaveLen(len(updateReqs)))
-			for _, k := range updateReqs {
-				Expect(rawClient.Collection.Updated()).To(HaveKey(k))
-			}
-		})
-	})
-
-	loadSampleAndCheck("1.15", "1.6.6")
-
-	Context("[1.15 –> 1.16] can update coredns to a multi-architecture image", func() {
-
-		loadSample("1.15", 10)
-
-		It("can load 1.15 sample", func() {
-			checkCoreDNSImage(rawClient, "eu-west-1", "v1.6.6", true)
-		})
-
-		It("can update to correct version", func() {
-			_, err := UpdateCoreDNS(rawClient, "eu-west-2", "1.16.x", false)
-			Expect(err).ToNot(HaveOccurred())
-			checkCoreDNSImage(rawClient, "eu-west-2", "v1.6.6-eksbuild.1", false)
-
-			createReqs := []string{
-				"POST [/clusterrolebindings] (aws-node)",
-				"POST [/namespaces/kube-system/serviceaccounts] (coredns)",
-				"POST [/namespaces/kube-system/configmaps] (coredns)",
-				"POST [/namespaces/kube-system/services] (kube-dns)",
-				"POST [/namespaces/kube-system/daemonsets] (aws-node)",
-				"POST [/clusterroles] (system:coredns)",
-				"POST [/clusterrolebindings] (system:coredns)",
-				"POST [/namespaces/kube-system/deployments] (coredns)",
-				"POST [/namespaces/kube-system/daemonsets] (kube-proxy)",
-				"POST [/clusterroles] (aws-node)",
-			}
-
-			Expect(rawClient.Collection.Created()).To(HaveLen(len(createReqs)))
-			for _, k := range createReqs {
-				Expect(rawClient.Collection.Created()).To(HaveKey(k))
-			}
-
-			updateReqs := []string{
-				"PUT [/namespaces/kube-system/serviceaccounts/coredns] (coredns)",
-				"PUT [/namespaces/kube-system/configmaps/coredns] (coredns)",
-				"PUT [/namespaces/kube-system/services/kube-dns] (kube-dns)",
-				"PUT [/clusterroles/system:coredns] (system:coredns)",
-				"PUT [/clusterrolebindings/system:coredns] (system:coredns)",
-				"PUT [/namespaces/kube-system/deployments/coredns] (coredns)",
-			}
-
-			Expect(rawClient.Collection.Updated()).To(HaveLen(len(updateReqs)))
-			for _, k := range updateReqs {
-				Expect(rawClient.Collection.Updated()).To(HaveKey(k))
-			}
+		Context("when CoreDNS is up to date", func() {
+			It("reports 'true'", func() {
+				isUpToDate, err := da.IsCoreDNSUpToDate(rawClient, region, controlPlaneVersion)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(isUpToDate).To(Equal(true))
+			})
 		})
 	})
 })
 
-func checkCoreDNSImage(rawClient *testutils.FakeRawClient, region, imageTag string, setImage bool) {
-	coreDNS, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), CoreDNS, metav1.GetOptions{})
+func createCoreDNSFromTestSample(rawClient *testutils.FakeRawClient, ct *testutils.CollectionTracker, kubernetesVersion string) {
+	samplePath := "testdata/sample-" + kubernetesVersion + ".json"
+	sampleAddons := testutils.LoadSamples(samplePath)
+
+	for _, item := range sampleAddons {
+		rc, err := rawClient.NewRawResource(item)
+		Expect(err).ToNot(HaveOccurred())
+		_, err = rc.CreateOrReplace(false)
+		Expect(err).ToNot(HaveOccurred())
+	}
+
+	createReqs := []string{
+		"POST [/clusterrolebindings] (aws-node)",
+		"POST [/namespaces/kube-system/serviceaccounts] (coredns)",
+		"POST [/namespaces/kube-system/configmaps] (coredns)",
+		"POST [/namespaces/kube-system/services] (kube-dns)",
+		"POST [/namespaces/kube-system/daemonsets] (aws-node)",
+		"POST [/clusterroles] (system:coredns)",
+		"POST [/clusterrolebindings] (system:coredns)",
+		"POST [/namespaces/kube-system/deployments] (coredns)",
+		"POST [/namespaces/kube-system/daemonsets] (kube-proxy)",
+		"POST [/clusterroles] (aws-node)",
+	}
+
+	Expect(rawClient.Collection.Created()).To(HaveLen(len(createReqs)))
+	for _, k := range createReqs {
+		Expect(rawClient.Collection.Created()).To(HaveKey(k))
+	}
+
+	Expect(rawClient.Collection.Updated()).To(HaveLen(0))
+}
+
+func coreDNSImage(rawClient *testutils.FakeRawClient) string {
+	coreDNS, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), da.CoreDNS, metav1.GetOptions{})
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(coreDNS).ToNot(BeNil())
 	Expect(coreDNS.Spec.Template.Spec.Containers).To(HaveLen(1))
 
-	if setImage {
-		err := addons.UseRegionalImage(&coreDNS.Spec.Template, region)
-		Expect(err).ToNot(HaveOccurred())
-	}
-
-	Expect(coreDNS.Spec.Template.Spec.Containers[0].Image).To(
-		Equal("602401143452.dkr.ecr." + region + ".amazonaws.com/eks/coredns:" + imageTag),
-	)
+	return coreDNS.Spec.Template.Spec.Containers[0].Image
 }
