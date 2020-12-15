@@ -198,8 +198,7 @@ func getAMIType(instanceType string) string {
 		return eks.AMITypesAl2X8664Gpu
 	}
 	if utils.IsARMInstanceType(instanceType) {
-		// TODO Upgrade SDK and use constant from the eks library
-		return "AL2_ARM_64"
+		return eks.AMITypesAl2Arm64
 	}
 	return eks.AMITypesAl2X8664
 }

@@ -359,6 +359,7 @@ func DeprecatedVersions() []string {
 		Version1_11,
 		Version1_12,
 		Version1_13,
+		Version1_14,
 	}
 }
 
@@ -375,7 +376,6 @@ func IsDeprecatedVersion(version string) bool {
 // SupportedVersions are the versions of Kubernetes that EKS supports
 func SupportedVersions() []string {
 	return []string{
-		Version1_14,
 		Version1_15,
 		Version1_16,
 		Version1_17,
