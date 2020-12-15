@@ -112,7 +112,7 @@ func (f *NodeGroupFilter) GetExcludeAll() bool {
 }
 
 func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(eksAPI eksiface.EKSAPI, lister stackLister, clusterConfig *api.ClusterConfig) error {
-	nodeGroupsWithStacks, nodeGroupsWithoutStacks, err := f.findAllNodes(eksAPI, lister, clusterConfig)
+	nodeGroupsWithStacks, nodeGroupsWithoutStacks, err := f.findAllNodeGroups(eksAPI, lister, clusterConfig)
 	if err != nil {
 		return err
 	}
@@ -157,7 +157,7 @@ func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(eksAPI eksiface.EKSAPI, l
 	return nil
 }
 
-func (f *NodeGroupFilter) findAllNodes(eksAPI eksiface.EKSAPI, lister stackLister, clusterConfig *api.ClusterConfig) ([]manager.NodeGroupStack, []string, error) {
+func (f *NodeGroupFilter) findAllNodeGroups(eksAPI eksiface.EKSAPI, lister stackLister, clusterConfig *api.ClusterConfig) ([]manager.NodeGroupStack, []string, error) {
 	// Get remote nodegroups stacks
 	nodeGroupsWithStacks, err := lister.ListNodeGroupStacks()
 	if err != nil {
