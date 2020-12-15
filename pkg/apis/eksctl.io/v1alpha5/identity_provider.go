@@ -18,8 +18,7 @@ type IdentityProviderInterface interface {
 	isIdentityProvider()
 }
 
-// TODO JSON schema
-// THe idea of the `IdentityProvider` struct is to hold an identity provider
+// The idea of the `IdentityProvider` struct is to hold an identity provider
 // that can be parsed from the following JSON:
 // {
 // 	"name": "user-pool-1",
@@ -32,7 +31,12 @@ type IdentityProviderInterface interface {
 // with `.(type)` to get access to the specific type
 
 // IdentityProvider holds an identity provider
+// Schema type is one of `OIDCIdentityProvider`
 type IdentityProvider struct {
+	// Valid variants are:
+	// `"oidc"`: OIDC identity provider
+	// +required
+	Type  string `json:"type"`
 	inner IdentityProviderInterface
 }
 
@@ -79,8 +83,11 @@ func (ip *IdentityProvider) UnmarshalJSON(data []byte) error {
 // OIDCIdentityProvider holds the spec of an OIDC provider
 // to use for EKS authzn
 type OIDCIdentityProvider struct {
+	// +required
 	Name           string            `json:"name,omitempty"`
+	// +required
 	IssuerURL      string            `json:"issuerURL,omitempty"`
+	// +required
 	ClientID       string            `json:"clientID,omitempty"`
 	UsernameClaim  string            `json:"usernameClaim,omitempty"`
 	UsernamePrefix string            `json:"usernamePrefix,omitempty"`
