@@ -24,7 +24,24 @@ type Config struct {
 	// Valid variants are `Kind` constants
 	Kind string `json:"kind"`
 	// Valid entries are `Kind` constants
-	Kinds []string `json:"kinds"`
+	Kinds   []string `json:"kinds"`
+	SumType SumType  `json:"sumType"`
+}
+
+type SumTypeA struct {
+	A string `json:"a"`
+}
+
+type SumTypeB struct {
+	B string `json:"b"`
+}
+
+// Schema type is one of `SumTypeA`, `SumTypeB`
+type SumType struct {
+	// Valid variants are:
+	// `"a"`: type A
+	// `"b"`: type B
+	Type string `json:"type"`
 }
 
 // Values for `Kind`
