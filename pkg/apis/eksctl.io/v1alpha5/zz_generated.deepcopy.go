@@ -946,6 +946,11 @@ func (in *NodeGroupBase) DeepCopyInto(out *NodeGroupBase) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.OSVolumeName != nil {
+		in, out := &in.OSVolumeName, &out.OSVolumeName
+		*out = new(string)
+		**out = **in
+	}
 	if in.VolumeEncrypted != nil {
 		in, out := &in.VolumeEncrypted, &out.VolumeEncrypted
 		*out = new(bool)
