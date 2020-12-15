@@ -43,7 +43,7 @@ func IsKubeProxyUpToDate(clientSet kubernetes.Interface, controlPlaneVersion str
 	return desiredTag == imageTag, nil
 }
 
-// UpdateKubeProxyImageTag updates image tag for kube-system:damoneset/kube-proxy based to match controlPlaneVersion
+// UpdateKubeProxyImageTag updates image tag for kube-system:daemonset/kube-proxy based to match controlPlaneVersion
 func UpdateKubeProxyImageTag(clientSet kubernetes.Interface, controlPlaneVersion string, plan bool) (bool, error) {
 	printer := printers.NewJSONPrinter()
 
