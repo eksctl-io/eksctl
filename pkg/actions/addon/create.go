@@ -3,7 +3,6 @@ package addon
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -83,7 +82,7 @@ func (a *Manager) Create(addon *api.Addon) error {
 		}
 	}
 
-	if strings.ToLower(addon.Name) == vpcCNIName {
+	if addon.NameLowerCase() == vpcCNIName {
 		logger.Debug("patching AWS node")
 		err := a.patchAWSNodeSA()
 		if err != nil {
@@ -169,7 +168,7 @@ func (a *Manager) patchAWSNodeDaemonSet() error {
 }
 func (a *Manager) getRecommendedPolicies(addon *api.Addon) []string {
 	// API isn't case sensitive
-	switch strings.ToLower(addon.Name) {
+	switch addon.NameLowerCase() {
 	case vpcCNIName:
 		return []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}
 	default:
@@ -179,7 +178,7 @@ func (a *Manager) getRecommendedPolicies(addon *api.Addon) []string {
 
 func (a *Manager) getKnownServiceAccountLocation(addon *api.Addon) (string, string) {
 	// API isn't case sensitive
-	switch strings.ToLower(addon.Name) {
+	switch addon.NameLowerCase() {
 	case vpcCNIName:
 		logger.Debug("found known service account location %s/%s", api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name)
 		return api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name
