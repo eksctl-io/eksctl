@@ -149,9 +149,9 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 			},
 		}}
 
-		if n.spec.OSVolumeName != nil && *n.spec.OSVolumeName != "" {
+		if n.spec.AdditionalEncryptedVolume != nil && *n.spec.AdditionalEncryptedVolume != "" {
 			launchTemplateData.BlockDeviceMappings = append(launchTemplateData.BlockDeviceMappings, gfnec2.LaunchTemplate_BlockDeviceMapping{
-				DeviceName: gfnt.NewString(*n.spec.OSVolumeName),
+				DeviceName: gfnt.NewString(*n.spec.AdditionalEncryptedVolume),
 				Ebs: &gfnec2.LaunchTemplate_Ebs{
 					Encrypted: gfnt.NewBoolean(*n.spec.VolumeEncrypted),
 					KmsKeyId:  kmsKeyID,
