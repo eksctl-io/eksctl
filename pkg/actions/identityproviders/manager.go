@@ -5,13 +5,13 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-type IdentityProviderManager struct {
+type Manager struct {
 	metadata api.ClusterMeta
 	eksAPI   eksiface.EKSAPI
 }
 
-func NewIdentityProviderManager(metadata api.ClusterMeta, eksAPI eksiface.EKSAPI) IdentityProviderManager {
-	return IdentityProviderManager{
+func NewManager(metadata api.ClusterMeta, eksAPI eksiface.EKSAPI) Manager {
+	return Manager{
 		metadata: metadata,
 		eksAPI:   eksAPI,
 	}

@@ -40,6 +40,20 @@ type IdentityProvider struct {
 	inner IdentityProviderInterface
 }
 
+func NewIdentityProvider(inner IdentityProviderInterface) IdentityProvider {
+	var type_ string
+	switch inner.(type) {
+	case *OIDCIdentityProvider:
+		type_ = string(OIDCIdentityProviderType)
+	default:
+		panic("unknown inner identity provider in IdentityProvider")
+	}
+	return IdentityProvider{
+		Type:  type_,
+		inner: inner,
+	}
+}
+
 // DeepCopy is needed to generate kubernetes types for IdentityProvider
 func (in *IdentityProvider) DeepCopy() *IdentityProvider {
 	if in == nil {
@@ -84,9 +98,9 @@ func (ip *IdentityProvider) UnmarshalJSON(data []byte) error {
 // to use for EKS authzn
 type OIDCIdentityProvider struct {
 	// +required
-	Name           string            `json:"name,omitempty"`
+	Name string `json:"name,omitempty"`
 	// +required
-	IssuerURL      string            `json:"issuerURL,omitempty"`
+	IssuerURL string `json:"issuerURL,omitempty"`
 	// +required
 	ClientID       string            `json:"clientID,omitempty"`
 	UsernameClaim  string            `json:"usernameClaim,omitempty"`

@@ -11,21 +11,21 @@ import (
 )
 
 type waitForUpdateTask struct {
-	ipm *IdentityProviderManager
+	m *Manager
 	update eks.Update
 	timeout time.Duration
 }
 
-func (ipm *IdentityProviderManager) waitForUpdate(
+func (m *Manager) waitForUpdate(
 	update eks.Update, timeout time.Duration,
 ) error {
-	clusterName := ipm.metadata.Name
+	clusterName := m.metadata.Name
 	newRequest := func() *request.Request {
 		input := &eks.DescribeUpdateInput{
-			Name:     aws.String(ipm.metadata.Name),
+			Name:     aws.String(m.metadata.Name),
 			UpdateId: update.Id,
 		}
-		req, _ := ipm.eksAPI.DescribeUpdateRequest(input)
+		req, _ := m.eksAPI.DescribeUpdateRequest(input)
 		return req
 	}
 

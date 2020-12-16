@@ -105,7 +105,7 @@ func doDisassociateIdentityProvider(cmd *cmdutils.Cmd, provider identityprovider
 		}
 	}
 
-	manager := identityproviders.NewIdentityProviderManager(
+	manager := identityproviders.NewManager(
 		*cfg.Metadata,
 		ctl.Provider.EKS(),
 	)

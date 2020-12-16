@@ -71,7 +71,7 @@ func doAssociateIdentityProvider(cmd *cmdutils.Cmd, timeout time.Duration) error
 		return err
 	}
 
-	manager := identityproviders.NewIdentityProviderManager(
+	manager := identityproviders.NewManager(
 		*cfg.Metadata,
 		ctl.Provider.EKS(),
 	)

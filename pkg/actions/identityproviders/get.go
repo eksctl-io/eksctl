@@ -28,14 +28,14 @@ type GetIdentityProvidersOptions struct {
 	Name string
 }
 
-func (ipm *IdentityProviderManager) Get(options GetIdentityProvidersOptions) ([]Summary, error) {
+func (m *Manager) Get(options GetIdentityProvidersOptions) ([]Summary, error) {
 	summaries := []Summary{}
 	var configs []*eks.IdentityProviderConfig
 
 	input := eks.ListIdentityProviderConfigsInput{
-		ClusterName: aws.String(ipm.metadata.Name),
+		ClusterName: aws.String(m.metadata.Name),
 	}
-	list, err := ipm.eksAPI.ListIdentityProviderConfigs(&input)
+	list, err := m.eksAPI.ListIdentityProviderConfigs(&input)
 	if err != nil {
 		return summaries, err
 	}
@@ -59,10 +59,10 @@ func (ipm *IdentityProviderManager) Get(options GetIdentityProvidersOptions) ([]
 	}
 	for _, idp := range configs {
 		input := eks.DescribeIdentityProviderConfigInput{
-			ClusterName:            aws.String(ipm.metadata.Name),
+			ClusterName:            aws.String(m.metadata.Name),
 			IdentityProviderConfig: idp,
 		}
-		idP, err := ipm.eksAPI.DescribeIdentityProviderConfig(&input)
+		idP, err := m.eksAPI.DescribeIdentityProviderConfig(&input)
 		if err != nil {
 			return summaries, err
 		}

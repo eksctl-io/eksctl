@@ -59,7 +59,7 @@ func doGetIdentityProvider(cmd *cmdutils.Cmd, params getCmdParams, name string) 
 		return err
 	}
 
-	manager := identityproviders.NewIdentityProviderManager(
+	manager := identityproviders.NewManager(
 		*cfg.Metadata,
 		ctl.Provider.EKS(),
 	)

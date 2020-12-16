@@ -21,7 +21,7 @@ type DisassociateIdentityProvider struct {
 	Type string
 }
 
-func (ipm *IdentityProviderManager) Disassociate(options DisassociateIdentityProvidersOptions) error {
+func (m *Manager) Disassociate(options DisassociateIdentityProvidersOptions) error {
 	taskTree := tasks.TaskTree{
 		Parallel: true,
 	}
@@ -35,10 +35,10 @@ func (ipm *IdentityProviderManager) Disassociate(options DisassociateIdentityPro
 					Type: aws.String(idP.Type),
 				}
 				describeInput := eks.DescribeIdentityProviderConfigInput{
-					ClusterName:            aws.String(ipm.metadata.Name),
+					ClusterName:            aws.String(m.metadata.Name),
 					IdentityProviderConfig: &idPConfig,
 				}
-				idPDescription, err := ipm.eksAPI.DescribeIdentityProviderConfig(&describeInput)
+				idPDescription, err := m.eksAPI.DescribeIdentityProviderConfig(&describeInput)
 				if err != nil {
 					return err
 				}
@@ -48,11 +48,11 @@ func (ipm *IdentityProviderManager) Disassociate(options DisassociateIdentityPro
 				}
 
 				disassociateInput := eks.DisassociateIdentityProviderConfigInput{
-					ClusterName:            aws.String(ipm.metadata.Name),
+					ClusterName:            aws.String(m.metadata.Name),
 					IdentityProviderConfig: &idPConfig,
 				}
 
-				update, err := ipm.eksAPI.DisassociateIdentityProviderConfig(&disassociateInput)
+				update, err := m.eksAPI.DisassociateIdentityProviderConfig(&disassociateInput)
 				if err != nil {
 					return err
 				}
@@ -61,7 +61,7 @@ func (ipm *IdentityProviderManager) Disassociate(options DisassociateIdentityPro
 				logger.Info("started disassociating identity provider %s", idP.Name)
 
 				if options.WaitTimeout != nil {
-					if err := ipm.waitForUpdate(*update.Update, *options.WaitTimeout); err != nil {
+					if err := m.waitForUpdate(*update.Update, *options.WaitTimeout); err != nil {
 						return err
 					}
 				}

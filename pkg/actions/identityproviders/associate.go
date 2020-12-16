@@ -17,7 +17,7 @@ type AssociateIdentityProvidersOptions struct {
 	WaitTimeout *time.Duration
 }
 
-func (ipm *IdentityProviderManager) Associate(options AssociateIdentityProvidersOptions) error {
+func (m *Manager) Associate(options AssociateIdentityProvidersOptions) error {
 	taskTree := tasks.TaskTree{
 		Parallel: true,
 	}
@@ -28,14 +28,14 @@ func (ipm *IdentityProviderManager) Associate(options AssociateIdentityProviders
 			taskTree.Append(&tasks.GenericTask{
 				Description: fmt.Sprintf("associate %s", idP.Name),
 				Doer: func() error {
-					update, err := ipm.associateOIDC(*idP)
+					update, err := m.associateOIDC(*idP)
 					if err != nil {
 						return err
 					}
 
 					logger.Info("started associating identity provider %s", idP.Name)
 					if options.WaitTimeout != nil {
-						if err := ipm.waitForUpdate(update, *options.WaitTimeout); err != nil {
+						if err := m.waitForUpdate(update, *options.WaitTimeout); err != nil {
 							return err
 						}
 					}
@@ -59,7 +59,7 @@ func (ipm *IdentityProviderManager) Associate(options AssociateIdentityProviders
 	return nil
 }
 
-func (ipm *IdentityProviderManager) associateOIDC(idP api.OIDCIdentityProvider) (eks.Update, error) {
+func (m *Manager) associateOIDC(idP api.OIDCIdentityProvider) (eks.Update, error) {
 	oidc := &eks.OidcIdentityProviderConfigRequest{
 		ClientId:                   aws.String(idP.ClientID),
 		IssuerUrl:                  aws.String(idP.IssuerURL),
@@ -81,14 +81,14 @@ func (ipm *IdentityProviderManager) associateOIDC(idP api.OIDCIdentityProvider) 
 		oidc.UsernamePrefix = aws.String(idP.UsernamePrefix)
 	}
 	input := eks.AssociateIdentityProviderConfigInput{
-		ClusterName: aws.String(ipm.metadata.Name),
+		ClusterName: aws.String(m.metadata.Name),
 		Oidc:        oidc,
 	}
 	if len(idP.Tags) > 0 {
 		input.Tags = aws.StringMap(idP.Tags)
 	}
 
-	update, err := ipm.eksAPI.AssociateIdentityProviderConfig(&input)
+	update, err := m.eksAPI.AssociateIdentityProviderConfig(&input)
 	if err != nil {
 		return eks.Update{}, err
 	}
