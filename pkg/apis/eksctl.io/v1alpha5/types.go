@@ -210,6 +210,8 @@ const (
 	// NodeGroupNameLabel defines the label of the nodegroup name
 	NodeGroupNameLabel = "alpha.eksctl.io/nodegroup-name"
 
+	EKSNodeGroupNameLabel = "eks.amazonaws.com/nodegroup"
+
 	// SpotAllocationStrategyLowestPrice defines the ASG spot allocation strategy of lowest-price
 	SpotAllocationStrategyLowestPrice = "lowest-price"
 
@@ -265,6 +267,8 @@ const (
 	NodeGroupTypeManaged NodeGroupType = "managed"
 	// NodeGroupTypeUnmanaged defines an unmanaged nodegroup
 	NodeGroupTypeUnmanaged NodeGroupType = "unmanaged"
+	// NodeGroupTypeUnowned defines an unowned managed nodegroup
+	NodeGroupTypeUnowned NodeGroupType = "unowned"
 )
 
 var (
@@ -1173,7 +1177,9 @@ type Placement struct {
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
 func (n *NodeGroupBase) ListOptions() metav1.ListOptions {
-	return makeListOptions(n.Name)
+	return metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("%s=%s", NodeGroupNameLabel, n.Name),
+	}
 }
 
 // NameString returns the nodegroup name
@@ -1219,17 +1225,22 @@ type ManagedNodeGroup struct {
 	// LaunchTemplate specifies an existing launch template to use
 	// for the nodegroup
 	LaunchTemplate *LaunchTemplate `json:"launchTemplate,omitempty"`
+
+	Unowned bool
+}
+
+func (m *ManagedNodeGroup) ListOptions() metav1.ListOptions {
+	if m.Unowned {
+		return metav1.ListOptions{
+			LabelSelector: fmt.Sprintf("%s=%s", EKSNodeGroupNameLabel, m.NameString()),
+		}
+	}
+	return m.NodeGroupBase.ListOptions()
 }
 
 // BaseNodeGroup implements NodePool
 func (m *ManagedNodeGroup) BaseNodeGroup() *NodeGroupBase {
 	return m.NodeGroupBase
-}
-
-func makeListOptions(nodeGroupName string) metav1.ListOptions {
-	return metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("%s=%s", NodeGroupNameLabel, nodeGroupName),
-	}
 }
 
 // InlineDocument holds any arbitrary JSON/YAML documents, such as extra config parameters or IAM policies

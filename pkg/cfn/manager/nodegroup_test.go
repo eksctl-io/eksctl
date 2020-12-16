@@ -238,9 +238,8 @@ var _ = Describe("StackCollection NodeGroup", func() {
 					out, err = sc.GetNodeGroupSummaries("")
 				})
 
-				It("should error", func() {
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("getting nodegroup stacks: no eksctl-managed CloudFormation stacks found for \"test-cluster-non-existent\""))
+				It("should not error", func() {
+					Expect(err).ToNot(HaveOccurred())
 				})
 
 				It("should not have called AWS CloudFormation GetTemplate", func() {
