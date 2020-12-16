@@ -263,7 +263,7 @@ var _ = Describe("template builder for IAM", func() {
 		It("can construct an iamrole template with attachPolicyARNs", func() {
 			arns := []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"}
 
-			rs := NewIAMRoleResourceSetWithAttachPolicyARNs("VPC-addon", arns, oidc)
+			rs := NewIAMRoleResourceSetWithAttachPolicyARNs("VPC-addon", "", "", arns, oidc)
 
 			templateBody := []byte{}
 
@@ -299,7 +299,7 @@ var _ = Describe("template builder for IAM", func() {
 				},
 			)
 
-			rs := NewIAMRoleResourceSetWithAttachPolicy("VPC-addon", attachPolicy, oidc)
+			rs := NewIAMRoleResourceSetWithAttachPolicy("VPC-addon", "", "", attachPolicy, oidc)
 
 			templateBody := []byte{}
 
