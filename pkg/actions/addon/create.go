@@ -82,7 +82,7 @@ func (a *Manager) Create(addon *api.Addon) error {
 		}
 	}
 
-	if addon.NameLowerCase() == vpcCNIName {
+	if addon.CanonicalName() == vpcCNIName {
 		logger.Debug("patching AWS node")
 		err := a.patchAWSNodeSA()
 		if err != nil {
@@ -168,7 +168,7 @@ func (a *Manager) patchAWSNodeDaemonSet() error {
 }
 func (a *Manager) getRecommendedPolicies(addon *api.Addon) []string {
 	// API isn't case sensitive
-	switch addon.NameLowerCase() {
+	switch addon.CanonicalName() {
 	case vpcCNIName:
 		return []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}
 	default:
@@ -178,7 +178,7 @@ func (a *Manager) getRecommendedPolicies(addon *api.Addon) []string {
 
 func (a *Manager) getKnownServiceAccountLocation(addon *api.Addon) (string, string) {
 	// API isn't case sensitive
-	switch addon.NameLowerCase() {
+	switch addon.CanonicalName() {
 	case vpcCNIName:
 		logger.Debug("found known service account location %s/%s", api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name)
 		return api.AWSNodeMeta.Namespace, api.AWSNodeMeta.Name

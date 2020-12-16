@@ -23,7 +23,7 @@ type Addon struct {
 	Force bool
 }
 
-func (a Addon) NameLowerCase() string {
+func (a Addon) CanonicalName() string {
 	return strings.ToLower(a.Name)
 }
 
