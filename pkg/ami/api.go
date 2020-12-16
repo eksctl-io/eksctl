@@ -21,10 +21,11 @@ const (
 	ImageClassARM
 )
 
-// Bottlerocket disk used by kubelet
 const (
+	// used by kubelet
 	bottlerocketDataDisk = "/dev/xvdb"
-	bottlerocketOSDisk   = "/dev/xvda"
+	// used by OS
+	bottlerocketOSDisk = "/dev/xvda"
 )
 
 // ImageClasses is a list of image class names
