@@ -268,7 +268,7 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 			return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
 		}
 
-		asgName, err := c.GetAutoScalingGroupName(s)
+		asgName, err := c.getAutoScalingGroupName(s)
 		if err != nil {
 			return nil, errors.Wrap(err, "getting autoscalinggroupname")
 		}
@@ -285,8 +285,7 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 	return summaries, nil
 }
 
-// GetAutoScalingGroupName returns the AutoscalingGroupName
-func (c *StackCollection) GetAutoScalingGroupName(s *Stack) (string, error) {
+func (c *StackCollection) getAutoScalingGroupName(s *Stack) (string, error) {
 
 	nodeGroupType, err := GetNodeGroupType(s.Tags)
 	if err != nil {
@@ -327,7 +326,7 @@ func (c *StackCollection) GetNodeGroupAutoScalingGroupName(s *Stack) (string, er
 	return *res.StackResourceDetail.PhysicalResourceId, nil
 }
 
-// GetManagedNodeGroupAutoScalingGroupName  returns the managed nodegroup's AutoScalingGroupName
+// GetManagedNodeGroupAutoScalingGroupName returns the managed nodegroup's AutoScalingGroupName
 func (c *StackCollection) GetManagedNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
 	input := &eks.DescribeNodegroupInput{
 		ClusterName:   aws.String(getClusterNameTag(s)),
