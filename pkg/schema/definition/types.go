@@ -10,7 +10,7 @@ type Definition struct {
 	AdditionalProperties interface{}            `json:"additionalProperties,omitempty"`
 	Type                 string                 `json:"type,omitempty"`
 	ContentEncoding      string                 `json:"contentEncoding,omitempty"`
-	AnyOf                []*Definition          `json:"anyOf,omitempty"`
+	OneOf                []*Definition          `json:"oneOf,omitempty"`
 	Description          string                 `json:"description,omitempty"`
 	HTMLDescription      string                 `json:"x-intellij-html-description,omitempty"`
 	Default              interface{}            `json:"default,omitempty"`
