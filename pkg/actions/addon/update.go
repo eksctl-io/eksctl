@@ -82,13 +82,13 @@ func (a *Manager) updateWithNewPolicies(addon *api.Addon) (string, error) {
 		return "", err
 	}
 
-	serviceAccount, namespace := a.getKnownServiceAccountLocation(addon)
+	namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
 
 	if len(existingStacks) == 0 {
-		return a.createNewRole(addon, serviceAccount, namespace)
+		return a.createNewRole(addon, namespace, serviceAccount)
 	}
 
-	createNewTemplate, err := a.createNewTemplate(addon, serviceAccount, namespace)
+	createNewTemplate, err := a.createNewTemplate(addon, namespace, serviceAccount)
 	if err != nil {
 		return "", err
 	}
@@ -110,13 +110,13 @@ func (a *Manager) createNewTemplate(addon *api.Addon, namespace, serviceAccount 
 
 	var resourceSet *builder.IAMRoleResourceSet
 	if addon.AttachPolicyARNs != nil && len(addon.AttachPolicyARNs) != 0 {
-		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, serviceAccount, namespace, addon.AttachPolicyARNs, a.oidcManager)
+		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.AttachPolicyARNs, a.oidcManager)
 		err := resourceSet.AddAllResources()
 		if err != nil {
 			return []byte(""), err
 		}
 	} else {
-		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, serviceAccount, namespace, addon.AttachPolicy, a.oidcManager)
+		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, namespace, serviceAccount, addon.AttachPolicy, a.oidcManager)
 		err := resourceSet.AddAllResources()
 		if err != nil {
 			return []byte(""), err
@@ -129,9 +129,9 @@ func (a *Manager) createNewTemplate(addon *api.Addon, namespace, serviceAccount 
 func (a *Manager) createNewRole(addon *api.Addon, namespace, serviceAccount string) (string, error) {
 	if addon.AttachPolicyARNs != nil && len(addon.AttachPolicyARNs) != 0 {
 		logger.Info("creating role using provided policies ARNs")
-		return a.createRoleUsingAttachPolicyARNs(addon, serviceAccount, namespace)
+		return a.createRoleUsingAttachPolicyARNs(addon, namespace, serviceAccount)
 	}
 
 	logger.Info("creating role using provided policies")
-	return a.createRoleUsingAttachPolicy(addon, serviceAccount, namespace)
+	return a.createRoleUsingAttachPolicy(addon, namespace, serviceAccount)
 }

@@ -190,6 +190,7 @@ var _ = Describe("Create", func() {
 				output, err := resourceSet.RenderJSON()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(string(output)).To(ContainSubstring("arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"))
+				Expect(string(output)).To(ContainSubstring(":sub\":\"system:serviceaccount:kube-system:aws-node"))
 				Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
 				Expect(*createAddonInput.AddonName).To(Equal("vpc-cni"))
 				Expect(*createAddonInput.AddonVersion).To(Equal("1.0"))
