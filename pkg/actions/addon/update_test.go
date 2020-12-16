@@ -142,7 +142,7 @@ var _ = Describe("Update", func() {
 					}).Return(&awseks.UpdateAddonOutput{}, nil)
 
 					err := addonManager.Update(&api.Addon{
-						Name:             "my-addon",
+						Name:             "vpc-cni",
 						Version:          "1.1",
 						AttachPolicyARNs: []string{"arn-1"},
 					})
@@ -151,16 +151,18 @@ var _ = Describe("Update", func() {
 
 					Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
 					stackName, changeSetName, description, templateData, _ := fakeStackManager.UpdateStackArgsForCall(0)
-					Expect(stackName).To(Equal("eksctl-my-cluster-addon-my-addon"))
+					Expect(stackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
 					Expect(changeSetName).To(Equal("updating-policy"))
 					Expect(description).To(Equal("updating policies"))
 					Expect(err).NotTo(HaveOccurred())
 					Expect(string(templateData.(manager.TemplateBody))).To(ContainSubstring("arn-1"))
+					Expect(string(templateData.(manager.TemplateBody))).To(ContainSubstring(":sub\":\"system:serviceaccount:kube-system:aws-node"))
 
 					Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
-					Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
+					Expect(*updateAddonInput.AddonName).To(Equal("vpc-cni"))
 					Expect(*updateAddonInput.AddonVersion).To(Equal("1.1"))
 					Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("new-service-account-role-arn"))
+
 				})
 			})
 

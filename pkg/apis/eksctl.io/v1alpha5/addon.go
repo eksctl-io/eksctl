@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	"fmt"
+	"strings"
 )
 
 // Addon holds the EKS addon configuration
@@ -20,6 +21,10 @@ type Addon struct {
 	AttachPolicy InlineDocument `json:"attachPolicy,omitempty"`
 	// Force applies the add-on to overwrite an existing add-on
 	Force bool
+}
+
+func (a Addon) CanonicalName() string {
+	return strings.ToLower(a.Name)
 }
 
 func (a Addon) Validate() error {

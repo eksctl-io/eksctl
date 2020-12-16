@@ -14,7 +14,7 @@ const (
 )
 
 var (
-	awsNodeMeta = ClusterIAMMeta{
+	AWSNodeMeta = ClusterIAMMeta{
 		Name:      "aws-node",
 		Namespace: "kube-system",
 	}
@@ -59,11 +59,11 @@ func IAMServiceAccountsWithAWSNodeServiceAccount(cfg *ClusterConfig) []*ClusterI
 	if IsEnabled(cfg.IAM.WithOIDC) && !vpccniAddonSpecified(cfg) {
 		var found bool
 		for _, sa := range cfg.IAM.ServiceAccounts {
-			found = found || (sa.Name == awsNodeMeta.Name && sa.Namespace == awsNodeMeta.Namespace)
+			found = found || (sa.Name == AWSNodeMeta.Name && sa.Namespace == AWSNodeMeta.Namespace)
 		}
 		if !found {
 			awsNode := ClusterIAMServiceAccount{
-				ClusterIAMMeta: awsNodeMeta,
+				ClusterIAMMeta: AWSNodeMeta,
 				AttachPolicyARNs: []string{
 					fmt.Sprintf("arn:%s:iam::aws:policy/%s", Partition(cfg.Metadata.Region), IAMPolicyAmazonEKSCNIPolicy),
 				},
