@@ -335,13 +335,16 @@ func (c *StackCollection) GetManagedNodeGroupAutoScalingGroupName(s *Stack) (str
 
 	res, err := c.provider.EKS().DescribeNodegroup(input)
 	if err != nil {
-		return "", errors.Wrapf(err, "getting manged nodegroup details %q", *s.StackName)
+		logger.Warning("couldn't get managed nodegroup details for stack %q", *s.StackName)
+		return "", nil
 	}
 
 	asgs := []string{}
 
-	for _, v := range res.Nodegroup.Resources.AutoScalingGroups {
-		asgs = append(asgs, aws.StringValue(v.Name))
+	if res.Nodegroup.Resources != nil {
+		for _, v := range res.Nodegroup.Resources.AutoScalingGroups {
+			asgs = append(asgs, aws.StringValue(v.Name))
+		}
 	}
 	return strings.Join(asgs, ","), nil
 
