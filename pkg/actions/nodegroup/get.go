@@ -1,6 +1,9 @@
 package nodegroup
 
 import (
+	"strings"
+
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -41,17 +44,27 @@ func (ng *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		asgs := []string{}
+
+		if describeOutput.Nodegroup.Resources != nil {
+			for _, v := range describeOutput.Nodegroup.Resources.AutoScalingGroups {
+				asgs = append(asgs, aws.StringValue(v.Name))
+			}
+		}
+
 		summaries = append(summaries, &manager.NodeGroupSummary{
-			Name:                *describeOutput.Nodegroup.NodegroupName,
-			Cluster:             *describeOutput.Nodegroup.ClusterName,
-			Status:              *describeOutput.Nodegroup.Status,
-			MaxSize:             int(*describeOutput.Nodegroup.ScalingConfig.MaxSize),
-			MinSize:             int(*describeOutput.Nodegroup.ScalingConfig.MinSize),
-			DesiredCapacity:     int(*describeOutput.Nodegroup.ScalingConfig.DesiredSize),
-			InstanceType:        *describeOutput.Nodegroup.InstanceTypes[0],
-			ImageID:             *describeOutput.Nodegroup.AmiType,
-			CreationTime:        describeOutput.Nodegroup.CreatedAt,
-			NodeInstanceRoleARN: *describeOutput.Nodegroup.NodeRole,
+			Name:                 *describeOutput.Nodegroup.NodegroupName,
+			Cluster:              *describeOutput.Nodegroup.ClusterName,
+			Status:               *describeOutput.Nodegroup.Status,
+			MaxSize:              int(*describeOutput.Nodegroup.ScalingConfig.MaxSize),
+			MinSize:              int(*describeOutput.Nodegroup.ScalingConfig.MinSize),
+			DesiredCapacity:      int(*describeOutput.Nodegroup.ScalingConfig.DesiredSize),
+			InstanceType:         *describeOutput.Nodegroup.InstanceTypes[0],
+			ImageID:              *describeOutput.Nodegroup.AmiType,
+			CreationTime:         describeOutput.Nodegroup.CreatedAt,
+			NodeInstanceRoleARN:  *describeOutput.Nodegroup.NodeRole,
+			AutoScalingGroupName: strings.Join(asgs, ","),
 		})
 	}
 
