@@ -125,4 +125,7 @@ func addSummaryTableColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("IMAGE ID", func(s *manager.NodeGroupSummary) string {
 		return s.ImageID
 	})
+	printer.AddColumn("ASG NAME", func(s *manager.NodeGroupSummary) string {
+		return s.AutoScalingGroupName
+	})
 }
