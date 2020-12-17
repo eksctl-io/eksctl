@@ -70,7 +70,10 @@ func (dg *Generator) newStructDefinition(name string, typeSpec ast.Expr, structC
 				required = []string{fieldName}
 			}
 
-			def.AdditionalProperties = false
+			// Setting additional properties prevents oneOf from working
+			if len(def.OneOf) == 0 {
+				def.AdditionalProperties = false
+			}
 		}
 
 		def.PreferredOrder = append(def.PreferredOrder, preferredOrder...)

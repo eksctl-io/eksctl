@@ -1,11 +1,13 @@
 package addons
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/assetutil"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -35,7 +37,7 @@ func useRegionalImage(spec *v1.PodTemplateSpec, region string, account string) e
 }
 
 func watchDaemonSetReady(dsClientSet clientappsv1.DaemonSetInterface, dsName string) error {
-	watcher, err := dsClientSet.Watch(metav1.ListOptions{
+	watcher, err := dsClientSet.Watch(context.TODO(), metav1.ListOptions{
 		FieldSelector: fmt.Sprintf("metadata.name=%s", dsName),
 	})
 
@@ -126,7 +128,7 @@ func (n *NeuronDevicePlugin) PlanMode() bool {
 }
 
 func (n *NeuronDevicePlugin) Manifest() []byte {
-	return mustGenerateAsset(neuronDevicePluginYamlBytes)
+	return assetutil.MustLoad(neuronDevicePluginYamlBytes)
 }
 
 func (n *NeuronDevicePlugin) SetImage(t *v1.PodTemplateSpec) error {
@@ -167,7 +169,7 @@ func (n *NvidiaDevicePlugin) SetImage(t *v1.PodTemplateSpec) error {
 }
 
 func (n *NvidiaDevicePlugin) Manifest() []byte {
-	return mustGenerateAsset(nvidiaDevicePluginYamlBytes)
+	return assetutil.MustLoad(nvidiaDevicePluginYamlBytes)
 }
 
 // Deploy deploys the Nvidia device plugin to the specified cluster

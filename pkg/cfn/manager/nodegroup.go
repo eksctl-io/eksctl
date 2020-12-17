@@ -6,7 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -25,17 +27,18 @@ const (
 
 // NodeGroupSummary represents a summary of a nodegroup stack
 type NodeGroupSummary struct {
-	StackName           string
-	Cluster             string
-	Name                string
-	Status              string
-	MaxSize             int
-	MinSize             int
-	DesiredCapacity     int
-	InstanceType        string
-	ImageID             string
-	CreationTime        *time.Time
-	NodeInstanceRoleARN string
+	StackName            string
+	Cluster              string
+	Name                 string
+	Status               string
+	MaxSize              int
+	MinSize              int
+	DesiredCapacity      int
+	InstanceType         string
+	ImageID              string
+	CreationTime         *time.Time
+	NodeInstanceRoleARN  string
+	AutoScalingGroupName string
 }
 
 // NodeGroupStack represents a nodegroup and its type
@@ -86,7 +89,7 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 	}
 
 	if len(stacks) == 0 {
-		return nil, c.errStackNotFound()
+		return nil, nil
 	}
 
 	nodeGroupStacks := []*Stack{}
@@ -260,9 +263,17 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 		}
 
 		summary, err := c.mapStackToNodeGroupSummary(s, ngPaths)
+
 		if err != nil {
 			return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
 		}
+
+		asgName, err := c.getAutoScalingGroupName(s)
+		if err != nil {
+			return nil, errors.Wrap(err, "getting autoscalinggroupname")
+		}
+
+		summary.AutoScalingGroupName = asgName
 
 		if name == "" {
 			summaries = append(summaries, summary)
@@ -272,6 +283,71 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 	}
 
 	return summaries, nil
+}
+
+func (c *StackCollection) getAutoScalingGroupName(s *Stack) (string, error) {
+
+	nodeGroupType, err := GetNodeGroupType(s.Tags)
+	if err != nil {
+		return "", err
+	}
+
+	switch nodeGroupType {
+	case api.NodeGroupTypeManaged:
+		res, err := c.GetManagedNodeGroupAutoScalingGroupName(s)
+		if err != nil {
+			return "", err
+		}
+		return res, nil
+	case api.NodeGroupTypeUnmanaged, "":
+		res, err := c.GetNodeGroupAutoScalingGroupName(s)
+		if err != nil {
+			return "", err
+		}
+		return res, nil
+
+	default:
+		return "", fmt.Errorf("cant get autoscaling group name, because unexpected nodegroup type : %q", nodeGroupType)
+	}
+}
+
+// GetNodeGroupAutoScalingGroupName return the unmanaged nodegroup's AutoScalingGroupName
+func (c *StackCollection) GetNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
+	input := &cfn.DescribeStackResourceInput{
+		StackName:         s.StackName,
+		LogicalResourceId: aws.String("NodeGroup"),
+	}
+
+	res, err := c.provider.CloudFormation().DescribeStackResource(input)
+	if err != nil {
+		return "", err
+	}
+
+	return *res.StackResourceDetail.PhysicalResourceId, nil
+}
+
+// GetManagedNodeGroupAutoScalingGroupName returns the managed nodegroup's AutoScalingGroupName
+func (c *StackCollection) GetManagedNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
+	input := &eks.DescribeNodegroupInput{
+		ClusterName:   aws.String(getClusterNameTag(s)),
+		NodegroupName: aws.String(c.GetNodeGroupName(s)),
+	}
+
+	res, err := c.provider.EKS().DescribeNodegroup(input)
+	if err != nil {
+		logger.Warning("couldn't get managed nodegroup details for stack %q", *s.StackName)
+		return "", nil
+	}
+
+	asgs := []string{}
+
+	if res.Nodegroup.Resources != nil {
+		for _, v := range res.Nodegroup.Resources.AutoScalingGroups {
+			asgs = append(asgs, aws.StringValue(v.Name))
+		}
+	}
+	return strings.Join(asgs, ","), nil
+
 }
 
 // DescribeNodeGroupStack gets the specified nodegroup stack
@@ -291,9 +367,8 @@ func (c *StackCollection) GetNodeGroupStackType(name string) (api.NodeGroupType,
 
 // GetNodeGroupType returns the nodegroup type
 func GetNodeGroupType(tags []*cfn.Tag) (api.NodeGroupType, error) {
-	var (
-		nodeGroupType api.NodeGroupType
-	)
+	var nodeGroupType api.NodeGroupType
+
 	if ngNameTagValue := GetNodegroupTagName(tags); ngNameTagValue == "" {
 		return "", errors.New("failed to find the nodegroup name tag")
 	}

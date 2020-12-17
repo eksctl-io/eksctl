@@ -10,7 +10,7 @@ export GOBIN ?= $(gopath)/bin
 
 export PATH := $(GOBIN):./build/scripts:$(PATH)
 
-AWS_SDK_GO_DIR ?= $(gopath)/pkg/mod/$(shell grep 'aws-sdk-go' go.sum | awk '{print $$1 "@" $$2}' | grep -v 'go.mod' | sort | tail -1)
+AWS_SDK_GO_DIR ?= $(shell go list -m -f '{{.Dir}}' 'github.com/aws/aws-sdk-go')
 
 generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
 
@@ -113,21 +113,23 @@ integration-test: build build-integration-test ## Run the integration tests (wit
 	JUNIT_REPORT_DIR=$(git_toplevel)/test-results ./eksctl-integration-test $(INTEGRATION_TEST_ARGS)
 
 .PHONY: integration-test-container
-integration-test-container: eksctl-image ## Run the integration tests inside a Docker container
-	$(MAKE) integration-test-container-pre-built
-
-.PHONY: integration-test-container-pre-built
-integration-test-container-pre-built: ## Run the integration tests inside a Docker container
+integration-test-container:
+	sudo cp -f ${SSH_KEY_PATH} $(HOME)/project/.ssh/gitops_id_rsa
+	sudo chmod 0600 $(HOME)/project/.ssh/gitops_id_rsa
 	docker run \
-	  --env=AWS_PROFILE \
-	  --volume=$(HOME)/.aws:/root/.aws \
-	  --volume=$(HOME)/.ssh:/root/.ssh \
-	  --workdir=/usr/local/share/eksctl \
-	    $(eksctl_image_name) \
-		  eksctl-integration-test \
-		    -eksctl.path=/usr/local/bin/eksctl \
-			-eksctl.kubeconfig=/tmp/kubeconfig \
-			  $(INTEGRATION_TEST_ARGS)
+	  --env=JUNIT_REPORT_DIR=/src/test-results \
+	  --env=GOPRIVATE \
+	  --env=AWS_SESSION_TOKEN \
+	  --env=AWS_ACCESS_KEY_ID \
+	  --env=AWS_SECRET_ACCESS_KEY \
+	  --env=SSH_KEY_PATH=/root/.ssh/gitops_id_rsa \
+	  --env=TEST_V=1 \
+	  --volume=$(shell pwd):/src \
+	  --volume=$(HOME)/.cache/go-build/:/root/.cache/go-build \
+	  --volume=$(HOME)/go/pkg/mod/:/go/pkg/mod \
+	  --volume=$(HOME)/project/.ssh:/root/.ssh \
+	  weaveworks/eksctl-build:$(shell cat build/docker/image_tag) \
+          $(MAKE) integration-test
 
 TEST_CLUSTER ?= integration-test-dev
 .PHONY: integration-test-dev
@@ -144,10 +146,10 @@ integration-test-dev: build-integration-test ## Run the integration tests withou
 		-eksctl.kubeconfig=$(HOME)/.kube/eksctl/clusters/$(TEST_CLUSTER)
 
 create-integration-test-dev-cluster: build ## Create a test cluster for use when developing integration tests
-	./eksctl create cluster --name=integration-test-dev --auto-kubeconfig --nodes=1 --nodegroup-name=ng-0
+	./eksctl create cluster --name=$(TEST_CLUSTER) --auto-kubeconfig --nodes=1 --nodegroup-name=ng-0
 
 delete-integration-test-dev-cluster: build ## Delete the test cluster for use when developing integration tests
-	./eksctl delete cluster --name=integration-test-dev --auto-kubeconfig
+	./eksctl delete cluster --name=$(TEST_CLUSTER) --auto-kubeconfig
 
 ##@ Code Generation
 
@@ -163,6 +165,10 @@ generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (requi
 	go generate ./pkg/nodebootstrap
 	go generate ./pkg/addons/default/generate.go
 	go generate ./pkg/addons
+	go generate ./pkg/authconfigmap
+	# mocks
+	go generate ./pkg/eks
+	go generate ./pkg/drain
 
 .PHONY: generate-all
 generate-all: generate-always $(conditionally_generated_files) ## Re-generate all the automatically-generated source files
@@ -170,11 +176,6 @@ generate-all: generate-always $(conditionally_generated_files) ## Re-generate al
 .PHONY: check-all-generated-files-up-to-date
 check-all-generated-files-up-to-date: generate-all
 	git diff --quiet -- $(all_generated_files) || (git --no-pager diff $(all_generated_files); echo "HINT: to fix this, run 'git commit $(all_generated_files) --message \"Update generated files\"'"; exit 1)
-
-### Update AMIs in ami static resolver
-.PHONY: update-ami
-update-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
-	go generate ./pkg/ami
 
 ### Update maxpods.go from AWS
 .PHONY: update-maxpods

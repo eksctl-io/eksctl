@@ -15,6 +15,9 @@ var (
 	regexpPlusRequired  = regexp.MustCompile(`(?m)^\+required$`)
 	regexpExample       = regexp.MustCompile("(.*)For example: `(.*)`")
 	typeOverridePattern = regexp.MustCompile("(.*)Schema type is `(.*)`")
+	oneOfEntry          = "`([^`]+)`,?[ \t]*"
+	oneOfEntryPattern   = regexp.MustCompile(oneOfEntry)
+	typeOneOfPattern    = regexp.MustCompile("(.*)Schema type is one of ((?:" + oneOfEntry + ")*)")
 	pTags               = regexp.MustCompile("(<p>)|(</p>)")
 )
 
@@ -80,6 +83,23 @@ func (dg *Generator) handleComment(rawName, comment string, def *Definition) (Me
 		}
 		overrideDef, _ := dg.newPropertyRef("", expr, "", false)
 		*def = *overrideDef
+	} else if m := typeOneOfPattern.FindStringSubmatch(description); m != nil {
+		description = strings.TrimSpace(m[1])
+		n := oneOfEntryPattern.FindAllStringSubmatch(m[2], -1)
+		if n == nil {
+			panic("error matching oneOf comment with regex")
+		}
+		defs := []*Definition{}
+		for _, t := range n {
+			schemaRef := t[1]
+			expr, err := parser.ParseExpr(schemaRef)
+			if err != nil {
+				return Meta{}, errors.Wrapf(err, "couldn't parse `oneOf` type %v", schemaRef)
+			}
+			def, _ := dg.newPropertyRef("", expr, "", false)
+			defs = append(defs, def)
+		}
+		def.OneOf = defs
 	}
 
 	// Extract example

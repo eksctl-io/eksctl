@@ -148,6 +148,16 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 				Iops:       volumeIOPS,
 			},
 		}}
+
+		if n.spec.AdditionalEncryptedVolume != "" {
+			launchTemplateData.BlockDeviceMappings = append(launchTemplateData.BlockDeviceMappings, gfnec2.LaunchTemplate_BlockDeviceMapping{
+				DeviceName: gfnt.NewString(n.spec.AdditionalEncryptedVolume),
+				Ebs: &gfnec2.LaunchTemplate_Ebs{
+					Encrypted: gfnt.NewBoolean(*n.spec.VolumeEncrypted),
+					KmsKeyId:  kmsKeyID,
+				},
+			})
+		}
 	}
 
 	n.newResource("NodeGroupLaunchTemplate", &gfnec2.LaunchTemplate{

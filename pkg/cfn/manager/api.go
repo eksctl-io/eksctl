@@ -450,6 +450,17 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 	return stacks, nil
 }
 
+func IsClusterStack(stacks []*Stack) bool {
+	for _, stack := range stacks {
+		for _, output := range stack.Outputs {
+			if *output.OutputKey == "ClusterStackName" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // DescribeStackEvents describes the events that have occurred on the stack
 func (c *StackCollection) DescribeStackEvents(i *Stack) ([]*cloudformation.StackEvent, error) {
 	input := &cloudformation.DescribeStackEventsInput{

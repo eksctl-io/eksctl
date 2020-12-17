@@ -20,7 +20,7 @@ var _ = Describe("create nodegroup", func() {
 				cmd := newMockEmptyCmd(commandArgs...)
 				count := 0
 				cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-					createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options create.NodeGroupOptions, managed bool) error {
+					createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options create.NodeGroupOptions, mngOptions cmdutils.CreateManagedNGOptions) error {
 						Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
 						Expect(ng.Name).NotTo(BeNil())
 						count++
@@ -86,7 +86,7 @@ var _ = Describe("create nodegroup", func() {
 				cmd := newMockEmptyCmd(commandArgs...)
 				count := 0
 				cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-					createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options create.NodeGroupOptions, managed bool) error {
+					createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options create.NodeGroupOptions, mngOptions cmdutils.CreateManagedNGOptions) error {
 						Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
 						Expect(ng.Name).NotTo(BeNil())
 						count++

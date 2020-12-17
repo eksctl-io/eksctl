@@ -1,6 +1,7 @@
 package drain
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -24,7 +25,7 @@ import (
 // retryDelay is how long is slept before retry after an error occurs during drainage
 const retryDelay = 5 * time.Second
 
-//go:generate counterfeiter -o fakes/fake_evictor.go . Evictor
+//go:generate "$GOBIN/counterfeiter" -o fakes/fake_evictor.go . Evictor
 type Evictor interface {
 	CanUseEvictions() error
 	EvictOrDeletePod(pod corev1.Pod) error
@@ -81,7 +82,8 @@ func (n *NodeGroupDrainer) Drain() error {
 		return errors.Wrap(err, "checking if cluster implements policy API")
 	}
 
-	nodes, err := n.clientSet.CoreV1().Nodes().List(n.ng.ListOptions())
+	listOptions := n.ng.ListOptions()
+	nodes, err := n.clientSet.CoreV1().Nodes().List(context.TODO(), listOptions)
 	if err != nil {
 		return err
 	}
@@ -107,7 +109,7 @@ func (n *NodeGroupDrainer) Drain() error {
 		case <-timer.C:
 			return fmt.Errorf("timed out (after %s) waiting for nodegroup %q to be drained", n.waitTimeout, n.ng.NameString())
 		default:
-			nodes, err := n.clientSet.CoreV1().Nodes().List(n.ng.ListOptions())
+			nodes, err := n.clientSet.CoreV1().Nodes().List(context.TODO(), listOptions)
 			if err != nil {
 				return err
 			}

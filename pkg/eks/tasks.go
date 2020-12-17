@@ -1,6 +1,7 @@
 package eks
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/weaveworks/eksctl/pkg/addons"
-	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
+	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/utils"
 
@@ -104,38 +105,6 @@ func newNeuronDevicePluginTask(
 	return &t
 }
 
-// UpdateAddonsTask makes sure the default addons are up to date. This is used when creating a cluster with ARM nodes,
-// which require addons to have the multi-architecture images.
-// TODO Remove this once the multi-architecture images are used by EKS by default in new clusters
-type UpdateAddonsTask struct {
-	info            string
-	clusterProvider *ClusterProvider
-	spec            *api.ClusterConfig
-}
-
-func (t *UpdateAddonsTask) Describe() string { return t.info }
-
-func (t *UpdateAddonsTask) Do(errCh chan error) error {
-	defer close(errCh)
-	rawClient, err := t.clusterProvider.NewRawClient(t.spec)
-	if err != nil {
-		return err
-	}
-	clientSet, err := t.clusterProvider.NewStdClientSet(t.spec)
-	if err != nil {
-		return err
-	}
-	kubernetesVersion, err := rawClient.ServerVersion()
-	if err != nil {
-		return err
-	}
-	err = defaultaddons.EnsureAddonsUpToDate(clientSet, rawClient, kubernetesVersion, t.clusterProvider.Provider.Region())
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 type restartDaemonsetTask struct {
 	name            string
 	namespace       string
@@ -154,7 +123,7 @@ func (t *restartDaemonsetTask) Do(errCh chan error) error {
 		return err
 	}
 	ds := clientSet.AppsV1().DaemonSets(t.namespace)
-	dep, err := ds.Get(t.name, metav1.GetOptions{})
+	dep, err := ds.Get(context.TODO(), t.name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -166,7 +135,7 @@ func (t *restartDaemonsetTask) Do(errCh chan error) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to marshal %q deployment", t.name)
 	}
-	if _, err := ds.Patch(t.name, types.MergePatchType, bytes); err != nil {
+	if _, err := ds.Patch(context.TODO(), t.name, types.MergePatchType, bytes, metav1.PatchOptions{}); err != nil {
 		return errors.Wrap(err, "failed to patch deployment")
 	}
 	logger.Info(`daemonset "%s/%s" restarted`, t.namespace, t.name)
@@ -220,14 +189,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 			info:            "create fargate profiles",
 			spec:            cfg,
 			clusterProvider: c,
-		})
-	}
-
-	if api.ClusterHasInstanceType(cfg, utils.IsARMInstanceType) {
-		newTasks.Append(&UpdateAddonsTask{
-			info:            "update default addons",
-			clusterProvider: c,
-			spec:            cfg,
+			awsClient:       fargate.NewClientWithWaitTimeout(cfg.Metadata.Name, c.Provider.EKS(), c.Provider.WaitTimeout()),
 		})
 	}
 
@@ -304,7 +266,11 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 	// as this is non-CloudFormation context, we need to construct a new stackManager,
 	// given a clientSet getter and OpenIDConnectManager reference we can build out
 	// the list of tasks for each of the service accounts that need to be created
-	newTasks := c.NewStackManager(cfg).NewTasksToCreateIAMServiceAccounts(cfg.IAM.ServiceAccounts, oidcPlaceholder, clientSet)
+	newTasks := c.NewStackManager(cfg).NewTasksToCreateIAMServiceAccounts(
+		api.IAMServiceAccountsWithAWSNodeServiceAccount(cfg),
+		oidcPlaceholder,
+		clientSet,
+	)
 	newTasks.IsSubTask = true
 	tasks.Append(newTasks)
 	tasks.Append(&restartDaemonsetTask{

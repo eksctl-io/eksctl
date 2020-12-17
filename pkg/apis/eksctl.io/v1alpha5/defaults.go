@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	"fmt"
+	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -9,11 +10,11 @@ import (
 )
 
 const (
-	IamPolicyAmazonEKSCNIPolicy = "AmazonEKS_CNI_Policy"
+	IAMPolicyAmazonEKSCNIPolicy = "AmazonEKS_CNI_Policy"
 )
 
 var (
-	awsNodeMeta = ClusterIAMMeta{
+	AWSNodeMeta = ClusterIAMMeta{
 		Name:      "aws-node",
 		Namespace: "kube-system",
 	}
@@ -33,22 +34,6 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 		cfg.IAM.VPCResourceControllerPolicy = Enabled()
 	}
 
-	if IsEnabled(cfg.IAM.WithOIDC) {
-		var found bool
-		for _, sa := range cfg.IAM.ServiceAccounts {
-			found = found || (sa.Name == awsNodeMeta.Name && sa.Namespace == awsNodeMeta.Namespace)
-		}
-		if !found {
-			awsNode := ClusterIAMServiceAccount{
-				ClusterIAMMeta: awsNodeMeta,
-				AttachPolicyARNs: []string{
-					fmt.Sprintf("arn:%s:iam::aws:policy/%s", Partition(cfg.Metadata.Region), IamPolicyAmazonEKSCNIPolicy),
-				},
-			}
-			cfg.IAM.ServiceAccounts = append(cfg.IAM.ServiceAccounts, &awsNode)
-		}
-	}
-
 	for _, sa := range cfg.IAM.ServiceAccounts {
 		if sa.Namespace == "" {
 			sa.Namespace = metav1.NamespaceDefault
@@ -65,6 +50,37 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 	if cfg.PrivateCluster == nil {
 		cfg.PrivateCluster = &PrivateCluster{}
 	}
+}
+
+// IAMServiceAccountsWithAWSNodeServiceAccount returns the specified IAM service
+// accounts including the potentially autocreated aws-node account as well
+func IAMServiceAccountsWithAWSNodeServiceAccount(cfg *ClusterConfig) []*ClusterIAMServiceAccount {
+	serviceAccounts := cfg.IAM.ServiceAccounts
+	if IsEnabled(cfg.IAM.WithOIDC) && !vpccniAddonSpecified(cfg) {
+		var found bool
+		for _, sa := range cfg.IAM.ServiceAccounts {
+			found = found || (sa.Name == AWSNodeMeta.Name && sa.Namespace == AWSNodeMeta.Namespace)
+		}
+		if !found {
+			awsNode := ClusterIAMServiceAccount{
+				ClusterIAMMeta: AWSNodeMeta,
+				AttachPolicyARNs: []string{
+					fmt.Sprintf("arn:%s:iam::aws:policy/%s", Partition(cfg.Metadata.Region), IAMPolicyAmazonEKSCNIPolicy),
+				},
+			}
+			serviceAccounts = append(serviceAccounts, &awsNode)
+		}
+	}
+	return serviceAccounts
+}
+
+func vpccniAddonSpecified(cfg *ClusterConfig) bool {
+	for _, a := range cfg.Addons {
+		if strings.ToLower(a.Name) == "vpc-cni" {
+			return true
+		}
+	}
+	return false
 }
 
 // SetNodeGroupDefaults will set defaults for a given nodegroup
@@ -107,7 +123,7 @@ func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta) {
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = NodeImageFamilyAmazonLinux2
 	}
-	if ng.LaunchTemplate == nil && ng.InstanceType == "" {
+	if ng.LaunchTemplate == nil && ng.InstanceType == "" && len(ng.InstanceTypes) == 0 {
 		ng.InstanceType = DefaultNodeType
 	}
 
@@ -164,8 +180,8 @@ func setIAMDefaults(iamConfig *NodeGroupIAM) {
 	if iamConfig.WithAddonPolicies.CertManager == nil {
 		iamConfig.WithAddonPolicies.CertManager = Disabled()
 	}
-	if iamConfig.WithAddonPolicies.ALBIngress == nil {
-		iamConfig.WithAddonPolicies.ALBIngress = Disabled()
+	if iamConfig.WithAddonPolicies.AWSLoadBalancerController == nil {
+		iamConfig.WithAddonPolicies.AWSLoadBalancerController = Disabled()
 	}
 	if iamConfig.WithAddonPolicies.XRay == nil {
 		iamConfig.WithAddonPolicies.XRay = Disabled()

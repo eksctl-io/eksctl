@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -12,7 +14,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
-	"github.com/weaveworks/eksctl/pkg/drain"
 )
 
 func deleteNodeGroupCmd(cmd *cmdutils.Cmd) {
@@ -90,27 +91,15 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d nodegroups defined in the given config (%q) against remote state", len(cfg.NodeGroups), cmd.ClusterConfigFile)
 		if onlyMissing {
-			err = ngFilter.SetOnlyRemote(stackManager, cfg)
+			err = ngFilter.SetOnlyRemote(ctl.Provider.EKS(), stackManager, cfg)
 			if err != nil {
 				return err
 			}
 		}
 	} else {
-		nodeGroupType, err := stackManager.GetNodeGroupStackType(ng.Name)
+		err := cmdutils.PopulateNodegroup(stackManager, ng.Name, cfg, ctl.Provider)
 		if err != nil {
 			return err
-		}
-		switch nodeGroupType {
-		case api.NodeGroupTypeUnmanaged:
-			cfg.NodeGroups = []*api.NodeGroup{ng}
-		case api.NodeGroupTypeManaged:
-			cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
-				{
-					NodeGroupBase: &api.NodeGroupBase{
-						Name: ng.Name,
-					},
-				},
-			}
 		}
 	}
 
@@ -128,44 +117,21 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 			}
 		}
 	}
-
 	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 
+	nodeGroupManager := nodegroup.New(cfg, ctl, clientSet)
 	if deleteNodeGroupDrain {
-		cmdutils.LogIntendedAction(cmd.Plan, "drain %d nodegroup(s) in cluster %q", len(allNodeGroups), cfg.Metadata.Name)
-
-		if !cmd.Plan {
-			for _, ng := range allNodeGroups {
-				nodeGroupDrainer := drain.NewNodeGroupDrainer(clientSet, ng, ctl.Provider.WaitTimeout(), maxGracePeriod, false)
-				if err := nodeGroupDrainer.Drain(); err != nil {
-					logger.Warning("error occurred during drain, to skip drain use '--drain=false' flag")
-					return err
-				}
-			}
+		err := nodeGroupManager.Drain(allNodeGroups, cmd.Plan, maxGracePeriod)
+		if err != nil {
+			return err
 		}
 	}
 
 	cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
-	{
-		shouldDelete := func(ngName string) bool {
-			for _, ng := range allNodeGroups {
-				if ng.NameString() == ngName {
-					return true
-				}
-			}
-			return false
-		}
-
-		tasks, err := stackManager.NewTasksToDeleteNodeGroups(shouldDelete, cmd.Wait, nil)
-		if err != nil {
-			return err
-		}
-		tasks.PlanMode = cmd.Plan
-		logger.Info(tasks.Describe())
-		if errs := tasks.DoAllSync(); len(errs) > 0 {
-			return handleErrors(errs, "nodegroup(s)")
-		}
+	err = nodeGroupManager.Delete(cfg.NodeGroups, cfg.ManagedNodeGroups, cmd.Wait, cmd.Plan)
+	if err != nil {
+		return err
 	}
 
 	if updateAuthConfigMap {

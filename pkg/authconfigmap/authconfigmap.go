@@ -7,6 +7,7 @@
 package authconfigmap
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws/awsutil"
@@ -77,7 +78,7 @@ func New(client v1.ConfigMapInterface, cm *corev1.ConfigMap) *AuthConfigMap {
 func NewFromClientSet(clientSet kubernetes.Interface) (*AuthConfigMap, error) {
 	client := clientSet.CoreV1().ConfigMaps(ObjectNamespace)
 
-	cm, err := client.Get(ObjectName, metav1.GetOptions{})
+	cm, err := client.Get(context.TODO(), ObjectName, metav1.GetOptions{})
 	// It is fine for the configmap not to exist. Any other error is fatal.
 	if err != nil && !apierrors.IsNotFound(err) {
 		return nil, errors.Wrapf(err, "getting auth ConfigMap")
@@ -144,9 +145,22 @@ func (a *AuthConfigMap) setAccounts(accounts []string) error {
 // role or user with given groups. If you are calling
 // this as part of node creation you should use DefaultNodeGroups.
 func (a *AuthConfigMap) AddIdentity(identity iam.Identity) error {
+	return a.AddIdentityIfNotPresent(identity, nil)
+}
+
+// AddIdentityIfNotPresent adds the specified identity if the predicate exists(identity) returns false for all entries
+func (a *AuthConfigMap) AddIdentityIfNotPresent(identity iam.Identity, exists func(iam.Identity) bool) error {
 	identities, err := a.Identities()
 	if err != nil {
 		return err
+	}
+
+	if exists != nil {
+		for _, idt := range identities {
+			if idt.Type() == identity.Type() && exists(idt) {
+				return nil
+			}
+		}
 	}
 
 	identities = append(identities, identity)
@@ -241,11 +255,11 @@ func (a *AuthConfigMap) setIdentities(identities []iam.Identity) error {
 // whether to create or update by looking at the ConfigMap's UID.
 func (a *AuthConfigMap) Save() (err error) {
 	if a.cm.UID == "" {
-		a.cm, err = a.client.Create(a.cm)
+		a.cm, err = a.client.Create(context.TODO(), a.cm, metav1.CreateOptions{})
 		return err
 	}
 
-	a.cm, err = a.client.Update(a.cm)
+	a.cm, err = a.client.Update(context.TODO(), a.cm, metav1.UpdateOptions{})
 	return err
 }
 

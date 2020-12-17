@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -70,10 +72,18 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		return err
 	}
 
-	manager := ctl.NewStackManager(cfg)
-	summaries, err := manager.GetNodeGroupSummaries(ng.Name)
-	if err != nil {
-		return errors.Wrap(err, "getting nodegroup stack summaries")
+	var summaries []*manager.NodeGroupSummary
+	if ng.Name == "" {
+		summaries, err = nodegroup.New(cfg, ctl, nil).GetAll()
+		if err != nil {
+			return err
+		}
+	} else {
+		summary, err := nodegroup.New(cfg, ctl, nil).Get(ng.Name)
+		if err != nil {
+			return err
+		}
+		summaries = append(summaries, summary)
 	}
 
 	// Empty summary implies no nodegroups
@@ -124,5 +134,8 @@ func addSummaryTableColumns(printer *printers.TablePrinter) {
 	})
 	printer.AddColumn("IMAGE ID", func(s *manager.NodeGroupSummary) string {
 		return s.ImageID
+	})
+	printer.AddColumn("ASG NAME", func(s *manager.NodeGroupSummary) string {
+		return s.AutoScalingGroupName
 	})
 }

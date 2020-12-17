@@ -88,7 +88,7 @@ type (
 		// Subnets are keyed by AZ for convenience.
 		// See [this example](/examples/reusing-iam-and-vpc/)
 		// as well as [using existing
-		// VPCs](/usage/vpc-networking/#use-existing-vpc-any-custom-configuration).
+		// VPCs](/usage/vpc-networking/#use-existing-vpc-other-custom-configuration).
 		// +optional
 		Subnets *ClusterSubnets `json:"subnets,omitempty"`
 		// for additional CIDR associations, e.g. a CIDR for
@@ -221,10 +221,19 @@ func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID, cidr
 	return nil
 }
 
-// Note that the user must use EITHER AZs as keys OR names as keys and specify
-// the AZ and (the ID or the CIDR)
+// Note that the user must use
+// EITHER AZs as keys
+// OR names as keys and specify
+//    the ID (optionally with AZ and CIDR)
+//    OR AZ, optionally with CIDR
+// If a user specifies a subnet by AZ without CIDR and ID but multiple subnets
+// exist in this VPC, one will be arbitrarily chosen
 func doImportSubnet(subnets AZSubnetMapping, az, subnetID, cidr string) error {
 	subnetCIDR, _ := ipnet.ParseCIDR(cidr)
+
+	if subnets == nil {
+		return nil
+	}
 
 	if network, ok := subnets[az]; !ok {
 		newS := AZSubnetSpec{ID: subnetID, AZ: az, CIDR: subnetCIDR}

@@ -1,40 +1,41 @@
 # VPC Networking
 
-By default, `eksctl create cluster` will build a dedicated VPC, in order to avoid interference with any existing resources for a
-variety of reasons, including security, but also because it's challenging to detect all the settings in an existing VPC.
-Default VPC CIDR used by `eksctl` is `192.168.0.0/16`, it is divided into 8 (`/19`) subnets (3 private, 3 public & 2 reserved).
+By default `eksctl create cluster` will create a dedicated VPC for the cluster.
+This is done in order to avoid interference with existing resources for a
+variety of reasons, including security, but also because it is challenging to detect all settings in an existing VPC.
+
+The default VPC CIDR used by `eksctl` is `192.168.0.0/16`. It is divided into 8 (`/19`) subnets (3 private, 3 public & 2 reserved).
 The initial nodegroup is created in public subnets, with SSH access disabled unless `--allow-ssh` is specified.
 The nodegroup by default allows inbound traffic from the control plane security group on ports 1025 - 65535.
 
-If that functionality doesn't suit you, the following options are currently available.
-
-
 !!! note
-In `us-east-1` eksctl only creates 2 public and 2 private subnets by default.
+    In `us-east-1` eksctl only creates 2 public and 2 private subnets by default.
 
 !!! important
     From `eksctl` version `0.17.0` and onwards public subnets will have the property `MapPublicIpOnLaunch` enabled, and
-    the property `AssociatePublicIpAddress` disabled in the Auto Scaling Group for the nodegroups. This means that for
-    clusters created with previous versions of eksctl when a new nodegroup is created it must either be a private
-    nodegroup or have `MapPublicIpOnLaunch` enabled in its public subnets. Otherwise, the new nodes won't have access to
-    the internet and won't be able to download the basic add-ons (CNI plugin, kube-proxy, etc). To help setting up
+    the property `AssociatePublicIpAddress` disabled in the Auto Scaling Group for the nodegroups. This means that when
+    creating a **new nodegroup** on a **cluster made with an earlier version** of `eksctl`, the nodegroup must **either** be private
+    **or** have `MapPublicIpOnLaunch` enabled in its public subnets. Without one of these, the new nodes won't have access to
+    the internet and won't be able to download the basic add-ons (CNI plugin, kube-proxy, etc). To help set up
     subnets correctly for old clusters you can use the new command `eksctl utils update-legacy-subnet-settings`.
+
+If the default functionality doesn't suit you, the following options are currently available.
 
 ## Change VPC CIDR
 
-If you need to setup peering with another VPC, or simply need larger or smaller range of IPs, you can use `--vpc-cidr` flag to
-change it. You cannot use just any sort of CIDR, there only certain ranges that can be used in [AWS VPC][vpcsizing].
+If you need to setup peering with another VPC, or simply need a larger or smaller range of IPs, you can use `--vpc-cidr` flag to
+change it. Please refer to [the AWS docs][vpcsizing] for guides on choosing CIDR blocks which are permitted for use in an AWS VPC.
 
 [vpcsizing]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html#VPC_Sizing
 
 ## Use private subnets for initial nodegroup
 
-If you prefer to isolate initial nodegroup from the public internet, you can use `--node-private-networking` flag.
-When used in conjunction with `--ssh-access` flag, SSH port can only be accessed inside the VPC.
+If you prefer to isolate the initial nodegroup from the public internet, you can use the `--node-private-networking` flag.
+When used in conjunction with the `--ssh-access` flag, the SSH port can only be accessed from inside the VPC.
 
-## Use existing VPC: shared with kops
+## Use an existing VPC: shared with kops
 
-You can use a VPC of an existing Kubernetes cluster managed by kops. This feature is provided to facilitate migration and/or
+You can use the VPC of an existing Kubernetes cluster managed by [kops](https://github.com/kubernetes/kops). This feature is provided to facilitate migration and/or
 cluster peering.
 
 If you have previously created a cluster with kops, e.g. using commands similar to this:
@@ -50,46 +51,49 @@ You can create an EKS cluster in the same AZs using the same VPC subnets (NOTE: 
 eksctl create cluster --name=cluster-2 --region=us-west-2 --vpc-from-kops-cluster=cluster-1.k8s.local
 ```
 
-## Use existing VPC: any custom configuration
+## Use existing VPC: other custom configuration
 
-Use this feature if you must configure a VPC in a way that's different to how dedicated VPC is configured by `eksctl`, or have to
-use a VPC that already exists so your EKS cluster gets shared access to some resources inside that existing VPC, or you have any
-other use-case that requires you to manage VPCs separately.
+`eksctl` provides some, but not complete, flexibility for custom VPC and subnet topologies.
 
-You can use an existing VPC by supplying private and/or public subnets using `--vpc-private-subnets` and `--vpc-public-subnets` flags.
-It is up to you to ensure which subnets you use, as there is no simple way to determine automatically whether a subnets is private or
+You can use an existing VPC by supplying private and/or public subnets using the `--vpc-private-subnets` and `--vpc-public-subnets` flags.
+It is up to you to ensure the subnets you use are categorised correctly, as there is no simple way to verify whether a subnet is actually private or
 public, because configurations vary.
+
 Given these flags, `eksctl create cluster` will determine the VPC ID automatically, but it will not create any routing tables or other
 resources, such as internet/NAT gateways. It will, however, create dedicated security groups for the initial nodegroup and the control
 plane.
 
-You must ensure to provide at least 2 subnets in different AZs. There are other requirements that you will need to follow, but it's
-entirely up to you to address those. For example, tagging is not strictly necessary, tests have shown that its possible to create
+You must ensure to provide **at least 2 subnets in different AZs**. There are other requirements that you will need to follow (listed below), but it's
+entirely up to you to address those. (For example, tagging is not strictly necessary, tests have shown that it is possible to create
 a functional cluster without any tags set on the subnets, however there is no guarantee that this will always hold and tagging is
-recommended.
+recommended.)
 
-- all subnets in the same VPC, within the same block of IPs
-- sufficient IP addresses are available
-- sufficient number of subnets (minimum 2)
-- internet and/or NAT gateways are configured correctly
-- routing tables have correct entries and the network is functional
-- tagging of subnets
+Standard requirements:
+
+- all given subnets must be in the same VPC, within the same block of IPs
+- a sufficient number IP addresses are available, based on needs
+- sufficient number of subnets (minimum 2), based on needs
+- subnets are tagged with at least the following:
     - `kubernetes.io/cluster/<name>` tag set to either `shared` or `owned`
     - `kubernetes.io/role/internal-elb` tag set to `1` for _private_ subnets
     - `kubernetes.io/role/elb` tag set to `1` for _public_ subnets
+- correctly configured internet and/or NAT gateways
+- routing tables have correct entries and the network is functional
 - **NEW**: all public subnets should have the property `MapPublicIpOnLaunch` enabled (i.e. `Auto-assign public IPv4 address` in the AWS console)
 
-There maybe other requirements imposed by EKS or Kubernetes, and it is entirely up to you to stay up-to-date on any requirements and/or
+There may be other requirements imposed by EKS or Kubernetes, and it is entirely up to you to stay up-to-date on any requirements and/or
 recommendations, and implement those as needed/possible.
 
 Default security group settings applied by `eksctl` may or may not be sufficient for sharing access with resources in other security
-groups. If you wish to modify the ingress/egress rules of the either of security groups, you might need to use another tool to automate
+groups. If you wish to modify the ingress/egress rules of the security groups, you might need to use another tool to automate
 changes, or do it via EC2 console.
 
-If you are in doubt, don't use a custom VPC. Using `eksctl create cluster` without any `--vpc-*` flags will always configure the cluster
+When in doubt, don't use a custom VPC. Using `eksctl create cluster` without any `--vpc-*` flags will always configure the cluster
 with a fully-functional dedicated VPC.
 
-To create a cluster using 2x private and 2x public subnets, run:
+**Examples**
+
+Create a cluster using a custom VPC with 2x private and 2x public subnets:
 
 ```
 eksctl create cluster \
@@ -125,7 +129,7 @@ nodeGroups:
   - name: ng-1
 ```
 
-To create a cluster using 3x private subnets and make initial nodegroup use those subnets, run:
+Create a cluster using a custom VPC with 3x private subnets and make initial nodegroup use those subnets:
 
 ```
 eksctl create cluster \
@@ -160,7 +164,7 @@ nodeGroups:
 
 ```
 
-To create a cluster using 4x public subnets, run:
+Create a cluster using a custom VPC 4x public subnets:
 
 ```
 eksctl create cluster \
@@ -193,11 +197,103 @@ nodeGroups:
   - name: ng-1
 ```
 
-For more examples see this examples:
+Further examples can be found in the repo's `examples` dir:
 
 - [using an existing VPC](https://github.com/weaveworks/eksctl/blob/master/examples/04-existing-vpc.yaml)
 - [using a custom VPC CIDR](https://github.com/weaveworks/eksctl/blob/master/examples/02-custom-vpc-cidr-no-nodes.yaml)
 
+
+### Custom subnet topology
+
+`eksctl` version `0.32.0` introduced further subnet topology customisation with the ability to:
+
+- List multiple subnets per AZ in VPC configuration
+- Specify subnets in nodegroup configuration
+
+In earlier versions custom subnets had to be provided by availability zone, meaning just one subnet per AZ could be listed.
+From `0.32.0` the identifying keys can be arbitrary.
+
+```yaml
+vpc:
+  id: "vpc-11111"
+  subnets:
+    public:
+      public-one:                           # arbitrary key
+          id: "subnet-0153e560b3129a696"
+      public-two:
+          id: "subnet-0cc9c5aebe75083fd"
+      us-west-2b:                           # or list by AZ
+          id: "subnet-018fa0176ba320e45"
+    private:
+      private-one:
+          id: "subnet-0153e560b3129a696"
+      private-two:
+          id: "subnet-0cc9c5aebe75083fd"
+```
+
+!!! important
+    If using the AZ as the identifying key, the `az` value can be omitted.
+
+    If using an arbitrary string as the identifying key, like above, either:
+
+	* `id` must be set (`az` and `cidr` optional)
+	* or `az` must be set (`cidr` optional)
+
+	If a user specifies a subnet by AZ without specifying CIDR and ID, a subnet
+	in that AZ will be chosen from the VPC, arbitrarily if multiple such subnets
+	exist.
+
+!!! note
+    A complete subnet spec must be provided, ie. both `public` and `private` configurations
+    declared in the VPC spec.
+
+Nodegroups can be restricted to named subnets via the configuration.
+When specifying subnets on nodegroup configuration, use the identifying key as given in the VPC spec **not** the subnet id.
+For example:
+
+```yaml
+vpc:
+  id: "vpc-11111"
+  subnets:
+    public:
+      public-one:
+          id: "subnet-0153e560b3129a696"
+    ... # subnet spec continued
+
+nodeGroups:
+  - name: ng-1
+    instanceType: m5.xlarge
+    desiredCapacity: 2
+    subnets:
+      - public-one
+```
+
+!!! note
+    Only one of `subnets` or `availabilityZones` can be provided in nodegroup configuration.
+
+When placing nodegroups inside a private subnet, `privateNetworking` must be set to `true`
+on the nodegroup:
+
+```yaml
+vpc:
+  id: "vpc-11111"
+  subnets:
+    public:
+      private-one:
+          id: "subnet-0153e560b3129a696"
+    ... # subnet spec continued
+
+nodeGroups:
+  - name: ng-1
+    instanceType: m5.xlarge
+    desiredCapacity: 2
+    privateNetworking: true
+    subnets:
+      - private-one
+```
+
+See [here](https://github.com/weaveworks/eksctl/blob/master/examples/24-nodegroup-subnets.yaml) for a full
+configuration example.
 
 ## Custom Cluster DNS address
 

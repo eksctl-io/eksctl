@@ -1,8 +1,11 @@
 package authconfigmap_test
 
 import (
+	"context"
 	"fmt"
 	"strings"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -47,13 +50,13 @@ type mockClient struct {
 	updated *corev1.ConfigMap
 }
 
-func (c *mockClient) Create(cm *corev1.ConfigMap) (*corev1.ConfigMap, error) {
+func (c *mockClient) Create(_ context.Context, cm *corev1.ConfigMap, _ metav1.CreateOptions) (*corev1.ConfigMap, error) {
 	cm.ObjectMeta.UID = "18b9e60c-2057-11e7-8868-0eba8ef9df1a"
 	c.created = cm
 	return cm, nil
 }
 
-func (c *mockClient) Update(cm *corev1.ConfigMap) (*corev1.ConfigMap, error) {
+func (c *mockClient) Update(_ context.Context, cm *corev1.ConfigMap, _ metav1.UpdateOptions) (*corev1.ConfigMap, error) {
 	c.updated = cm
 	return cm, nil
 }

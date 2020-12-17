@@ -33,6 +33,45 @@
       ],
       "additionalProperties": false
     },
+    "Addon": {
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "attachPolicy": {
+          "$ref": "#/definitions/InlineDocument",
+          "description": "holds a policy document to attach to this service account",
+          "x-intellij-html-description": "holds a policy document to attach to this service account"
+        },
+        "attachPolicyARNs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "list of ARNs of the IAM policies to attach",
+          "x-intellij-html-description": "list of ARNs of the IAM policies to attach"
+        },
+        "name": {
+          "type": "string"
+        },
+        "serviceAccountRoleARN": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "version",
+        "serviceAccountRoleARN",
+        "attachPolicyARNs",
+        "attachPolicy"
+      ],
+      "additionalProperties": false,
+      "description": "holds the EKS addon configuration",
+      "x-intellij-html-description": "holds the EKS addon configuration"
+    },
     "ClusterCloudWatch": {
       "properties": {
         "clusterLogging": {
@@ -78,6 +117,12 @@
         "apiVersion"
       ],
       "properties": {
+        "addons": {
+          "items": {
+            "$ref": "#/definitions/Addon"
+          },
+          "type": "array"
+        },
         "apiVersion": {
           "type": "string",
           "enum": [
@@ -157,6 +202,7 @@
         "kubernetesNetworkConfig",
         "iam",
         "vpc",
+        "addons",
         "privateCluster",
         "nodeGroups",
         "managedNodeGroups",
@@ -507,8 +553,8 @@
         },
         "subnets": {
           "$ref": "#/definitions/ClusterSubnets",
-          "description": "keyed by AZ for convenience. See [this example](/examples/reusing-iam-and-vpc/) as well as [using existing VPCs](/usage/vpc-networking/#use-existing-vpc-any-custom-configuration).",
-          "x-intellij-html-description": "keyed by AZ for convenience. See <a href=\"/examples/reusing-iam-and-vpc/\">this example</a> as well as <a href=\"/usage/vpc-networking/#use-existing-vpc-any-custom-configuration\">using existing VPCs</a>."
+          "description": "keyed by AZ for convenience. See [this example](/examples/reusing-iam-and-vpc/) as well as [using existing VPCs](/usage/vpc-networking/#use-existing-vpc-other-custom-configuration).",
+          "x-intellij-html-description": "keyed by AZ for convenience. See <a href=\"/examples/reusing-iam-and-vpc/\">this example</a> as well as <a href=\"/usage/vpc-networking/#use-existing-vpc-other-custom-configuration\">using existing VPCs</a>."
         }
       },
       "preferredOrder": [
@@ -553,6 +599,11 @@
           "description": "define the rules to select workload to schedule onto Fargate.",
           "x-intellij-html-description": "define the rules to select workload to schedule onto Fargate."
         },
+        "status": {
+          "type": "string",
+          "description": "The current status of the Fargate profile.",
+          "x-intellij-html-description": "The current status of the Fargate profile."
+        },
         "subnets": {
           "items": {
             "type": "string"
@@ -576,7 +627,8 @@
         "podExecutionRoleARN",
         "selectors",
         "subnets",
-        "tags"
+        "tags",
+        "status"
       ],
       "additionalProperties": false,
       "description": "defines the settings used to schedule workload onto Fargate.",
@@ -755,6 +807,14 @@
         "instanceType": {
           "type": "string"
         },
+        "instanceTypes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "specifies a list of instance types",
+          "x-intellij-html-description": "specifies a list of instance types"
+        },
         "labels": {
           "additionalProperties": {
             "type": "string"
@@ -805,6 +865,12 @@
         },
         "securityGroups": {
           "$ref": "#/definitions/NodeGroupSGs"
+        },
+        "spot": {
+          "type": "boolean",
+          "description": "creates a spot nodegroup",
+          "x-intellij-html-description": "creates a spot nodegroup",
+          "default": "false"
         },
         "ssh": {
           "$ref": "#/definitions/NodeGroupSSH",
@@ -889,6 +955,8 @@
         "disableIMDSv1",
         "disablePodIMDS",
         "placement",
+        "instanceTypes",
+        "spot",
         "launchTemplate"
       ],
       "additionalProperties": false,

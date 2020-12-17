@@ -71,7 +71,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				"arn:aws:iam::aws:policy/Bar",
 			}
 			ng0.IAM.WithAddonPolicies.ExternalDNS = Enabled()
-			ng0.IAM.WithAddonPolicies.ALBIngress = Enabled()
+			ng0.IAM.WithAddonPolicies.AWSLoadBalancerController = Enabled()
 			ng0.IAM.WithAddonPolicies.ImageBuilder = Enabled()
 
 			ng1 = cfg.NewNodeGroup()

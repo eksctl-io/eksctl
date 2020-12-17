@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/blang/semver"
-	jsonpatch "github.com/evanphx/json-patch"
+	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -145,7 +145,7 @@ func (c *RawClient) ClientSet() Interface { return c.clientSet }
 // NewHelperFor construct a raw client helper instance for a give gvk
 // (it's based on k8s.io/kubernetes/pkg/kubectl/cmd/util/factory_client_access.go)
 func (c *RawClient) NewHelperFor(gvk schema.GroupVersionKind) (*resource.Helper, error) {
-	mapping, err := c.mapper.RESTMapping(gvk.GroupKind(), gvk.GroupVersion().Version, "")
+	mapping, err := c.mapper.RESTMapping(gvk.GroupKind(), gvk.Version, "")
 	if err != nil {
 		return nil, errors.Wrapf(err, "constructing REST client mapping for %s", gvk.String())
 	}
@@ -310,7 +310,7 @@ func (r *RawResource) CreateOrReplace(plan bool) (string, error) {
 	}
 	if !exists {
 		if !plan {
-			_, err := r.Helper.Create(r.Info.Namespace, true, r.Info.Object, &metav1.CreateOptions{})
+			_, err := r.Helper.Create(r.Info.Namespace, true, r.Info.Object)
 			if err != nil {
 				return "", err
 			}
@@ -356,7 +356,7 @@ func (r *RawResource) CreatePatchOrReplace() error {
 	}
 
 	if !exists {
-		_, err := r.Helper.Create(r.Info.Namespace, true, r.Info.Object, &metav1.CreateOptions{})
+		_, err := r.Helper.Create(r.Info.Namespace, true, r.Info.Object)
 		if err != nil {
 			return err
 		}
@@ -466,7 +466,7 @@ func (r *RawResource) Exists() (bool, error) {
 
 // Get returns the Kubernetes resource from the server
 func (r *RawResource) Get() (runtime.Object, bool, error) {
-	obj, err := r.Helper.Get(r.Info.Namespace, r.Info.Name, false)
+	obj, err := r.Helper.Get(r.Info.Namespace, r.Info.Name)
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			return nil, false, nil

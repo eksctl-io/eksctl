@@ -53,7 +53,7 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 	if !ok {
 		return fmt.Errorf("no context deadline set in call to elb.Cleanup()")
 	}
-	services, err := kubernetesCS.CoreV1().Services(metav1.NamespaceAll).List(metav1.ListOptions{})
+	services, err := kubernetesCS.CoreV1().Services(metav1.NamespaceAll).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		errStr := fmt.Sprintf("cannot list Kubernetes Services: %s", err)
 		if k8serrors.IsForbidden(err) {
@@ -62,7 +62,7 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 		return errors.New(errStr)
 	}
 
-	ingresses, err := kubernetesCS.NetworkingV1beta1().Ingresses(metav1.NamespaceAll).List(metav1.ListOptions{})
+	ingresses, err := kubernetesCS.NetworkingV1beta1().Ingresses(metav1.NamespaceAll).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		errStr := fmt.Sprintf("cannot list Kubernetes Ingresses: %s", err)
 		if k8serrors.IsForbidden(err) {
@@ -90,7 +90,7 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 		)
 		awsLoadBalancers[lb.name] = *lb
 		logger.Debug("deleting 'type: LoadBalancer' Service %s/%s", s.Namespace, s.Name)
-		if err := kubernetesCS.CoreV1().Services(s.Namespace).Delete(s.Name, &metav1.DeleteOptions{}); err != nil {
+		if err := kubernetesCS.CoreV1().Services(s.Namespace).Delete(context.TODO(), s.Name, metav1.DeleteOptions{}); err != nil {
 			errStr := fmt.Sprintf("cannot delete Kubernetes Service %s/%s: %s", s.Namespace, s.Name, err)
 			if k8serrors.IsForbidden(err) {
 				errStr = fmt.Sprintf("%s (deleting a cluster requires permission to delete Kubernetes Services)", errStr)
@@ -110,7 +110,7 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 		)
 		awsLoadBalancers[lb.name] = *lb
 		logger.Debug("deleting 'kubernetes.io/ingress.class: alb' Ingress %s/%s", i.Namespace, i.Name)
-		if err := kubernetesCS.NetworkingV1beta1().Ingresses(i.Namespace).Delete(i.Name, &metav1.DeleteOptions{}); err != nil {
+		if err := kubernetesCS.NetworkingV1beta1().Ingresses(i.Namespace).Delete(context.TODO(), i.Name, metav1.DeleteOptions{}); err != nil {
 			errStr := fmt.Sprintf("cannot delete Kubernetes Ingress %s/%s: %s", i.Namespace, i.Name, err)
 			if k8serrors.IsForbidden(err) {
 				errStr = fmt.Sprintf("%s (deleting a cluster requires permission to delete Kubernetes Ingress)", errStr)

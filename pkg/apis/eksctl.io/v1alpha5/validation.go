@@ -392,7 +392,7 @@ func validateNodeGroupIAMWithAddonPolicies(
 	if IsEnabled(policies.EFS) {
 		return fmtFieldConflictErr(prefix + "efs")
 	}
-	if IsEnabled(policies.ALBIngress) {
+	if IsEnabled(policies.AWSLoadBalancerController) {
 		return fmtFieldConflictErr(prefix + "albIngress")
 	}
 	if IsEnabled(policies.XRay) {
@@ -485,6 +485,10 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 
 	if IsEnabled(ng.SecurityGroups.WithLocal) || IsEnabled(ng.SecurityGroups.WithShared) {
 		return errors.Errorf("securityGroups.withLocal and securityGroups.withShared are not supported for managed nodegroups (%s.securityGroups)", path)
+	}
+
+	if ng.InstanceType != "" && len(ng.InstanceTypes) > 0 {
+		return errors.Errorf("only one of instanceType or instanceTypes can be specified (%s)", path)
 	}
 
 	switch {

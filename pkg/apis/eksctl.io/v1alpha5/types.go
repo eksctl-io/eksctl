@@ -171,8 +171,6 @@ const (
 	// DefaultNodeCount defines the default number of nodes to be created
 	DefaultNodeCount = 2
 
-	// NodeImageResolverStatic represents static AMI resolver (see ami package)
-	NodeImageResolverStatic = "static"
 	// NodeImageResolverAuto represents auto AMI resolver (see ami package)
 	NodeImageResolverAuto = "auto"
 	// NodeImageResolverAutoSSM is used to indicate that the latest EKS AMIs should be used for the nodes. The AMI is selected
@@ -203,11 +201,16 @@ const (
 	// IAMServiceAccountNameTag defines the tag of the IAM service account name
 	IAMServiceAccountNameTag = "alpha.eksctl.io/iamserviceaccount-name"
 
+	// AddonNameTag defines the tag of the IAM service account name
+	AddonNameTag = "alpha.eksctl.io/addon-name"
+
 	// ClusterNameLabel defines the tag of the cluster name
 	ClusterNameLabel = "alpha.eksctl.io/cluster-name"
 
 	// NodeGroupNameLabel defines the label of the nodegroup name
 	NodeGroupNameLabel = "alpha.eksctl.io/nodegroup-name"
+
+	EKSNodeGroupNameLabel = "eks.amazonaws.com/nodegroup"
 
 	// SpotAllocationStrategyLowestPrice defines the ASG spot allocation strategy of lowest-price
 	SpotAllocationStrategyLowestPrice = "lowest-price"
@@ -264,6 +267,8 @@ const (
 	NodeGroupTypeManaged NodeGroupType = "managed"
 	// NodeGroupTypeUnmanaged defines an unmanaged nodegroup
 	NodeGroupTypeUnmanaged NodeGroupType = "unmanaged"
+	// NodeGroupTypeUnowned defines an unowned managed nodegroup
+	NodeGroupTypeUnowned NodeGroupType = "unowned"
 )
 
 var (
@@ -354,6 +359,7 @@ func DeprecatedVersions() []string {
 		Version1_11,
 		Version1_12,
 		Version1_13,
+		Version1_14,
 	}
 }
 
@@ -370,7 +376,6 @@ func IsDeprecatedVersion(version string) bool {
 // SupportedVersions are the versions of Kubernetes that EKS supports
 func SupportedVersions() []string {
 	return []string{
-		Version1_14,
 		Version1_15,
 		Version1_16,
 		Version1_17,
@@ -555,6 +560,9 @@ type ClusterConfig struct {
 	// +optional
 	VPC *ClusterVPC `json:"vpc,omitempty"`
 
+	// +optional
+	Addons []*Addon `json:"addons,omitempty"`
+
 	// PrivateCluster allows configuring a fully-private cluster
 	// in which no node has outbound internet access, and private access
 	// to AWS services is enabled via VPC endpoints
@@ -667,18 +675,18 @@ func NewNodeGroup() *NodeGroup {
 			VolumeSize:        &DefaultNodeVolumeSize,
 			IAM: &NodeGroupIAM{
 				WithAddonPolicies: NodeGroupIAMAddonPolicies{
-					ImageBuilder:   Disabled(),
-					AutoScaler:     Disabled(),
-					ExternalDNS:    Disabled(),
-					CertManager:    Disabled(),
-					AppMesh:        Disabled(),
-					AppMeshPreview: Disabled(),
-					EBS:            Disabled(),
-					FSX:            Disabled(),
-					EFS:            Disabled(),
-					ALBIngress:     Disabled(),
-					XRay:           Disabled(),
-					CloudWatch:     Disabled(),
+					ImageBuilder:              Disabled(),
+					AutoScaler:                Disabled(),
+					ExternalDNS:               Disabled(),
+					CertManager:               Disabled(),
+					AppMesh:                   Disabled(),
+					AppMeshPreview:            Disabled(),
+					EBS:                       Disabled(),
+					FSX:                       Disabled(),
+					EFS:                       Disabled(),
+					AWSLoadBalancerController: Disabled(),
+					XRay:                      Disabled(),
+					CloudWatch:                Disabled(),
 				},
 			},
 			ScalingConfig: &ScalingConfig{},
@@ -716,18 +724,18 @@ func NewManagedNodeGroup() *ManagedNodeGroup {
 			},
 			IAM: &NodeGroupIAM{
 				WithAddonPolicies: NodeGroupIAMAddonPolicies{
-					ImageBuilder:   Disabled(),
-					AutoScaler:     Disabled(),
-					ExternalDNS:    Disabled(),
-					CertManager:    Disabled(),
-					AppMesh:        Disabled(),
-					AppMeshPreview: Disabled(),
-					EBS:            Disabled(),
-					FSX:            Disabled(),
-					EFS:            Disabled(),
-					ALBIngress:     Disabled(),
-					XRay:           Disabled(),
-					CloudWatch:     Disabled(),
+					ImageBuilder:              Disabled(),
+					AutoScaler:                Disabled(),
+					ExternalDNS:               Disabled(),
+					CertManager:               Disabled(),
+					AppMesh:                   Disabled(),
+					AppMeshPreview:            Disabled(),
+					EBS:                       Disabled(),
+					FSX:                       Disabled(),
+					EFS:                       Disabled(),
+					AWSLoadBalancerController: Disabled(),
+					XRay:                      Disabled(),
+					CloudWatch:                Disabled(),
 				},
 			},
 			ScalingConfig:  &ScalingConfig{},
@@ -972,7 +980,7 @@ type (
 		// +optional
 		EFS *bool `json:"efs"`
 		// +optional
-		ALBIngress *bool `json:"albIngress"`
+		AWSLoadBalancerController *bool `json:"albIngress"`
 		// +optional
 		XRay *bool `json:"xRay"`
 		// +optional
@@ -1130,6 +1138,8 @@ type NodeGroupBase struct {
 	VolumeType *string `json:"volumeType,omitempty"`
 	// +optional
 	VolumeName *string `json:"volumeName,omitempty"`
+	// Some AMIs (bottlerocket) have a separate volume for the OS
+	AdditionalEncryptedVolume string
 	// +optional
 	VolumeEncrypted *bool `json:"volumeEncrypted,omitempty"`
 	// +optional
@@ -1169,7 +1179,9 @@ type Placement struct {
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
 func (n *NodeGroupBase) ListOptions() metav1.ListOptions {
-	return makeListOptions(n.Name)
+	return metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("%s=%s", NodeGroupNameLabel, n.Name),
+	}
 }
 
 // NameString returns the nodegroup name
@@ -1206,20 +1218,31 @@ type LaunchTemplate struct {
 type ManagedNodeGroup struct {
 	*NodeGroupBase
 
+	// InstanceTypes specifies a list of instance types
+	InstanceTypes []string `json:"instanceTypes,omitempty"`
+
+	// Spot creates a spot nodegroup
+	Spot bool `json:"spot,omitempty"`
+
 	// LaunchTemplate specifies an existing launch template to use
 	// for the nodegroup
 	LaunchTemplate *LaunchTemplate `json:"launchTemplate,omitempty"`
+
+	Unowned bool
+}
+
+func (m *ManagedNodeGroup) ListOptions() metav1.ListOptions {
+	if m.Unowned {
+		return metav1.ListOptions{
+			LabelSelector: fmt.Sprintf("%s=%s", EKSNodeGroupNameLabel, m.NameString()),
+		}
+	}
+	return m.NodeGroupBase.ListOptions()
 }
 
 // BaseNodeGroup implements NodePool
 func (m *ManagedNodeGroup) BaseNodeGroup() *NodeGroupBase {
 	return m.NodeGroupBase
-}
-
-func makeListOptions(nodeGroupName string) metav1.ListOptions {
-	return metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("%s=%s", NodeGroupNameLabel, nodeGroupName),
-	}
 }
 
 // InlineDocument holds any arbitrary JSON/YAML documents, such as extra config parameters or IAM policies
@@ -1266,6 +1289,9 @@ type FargateProfile struct {
 	// Used to tag the AWS resources
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
+
+	// The current status of the Fargate profile.
+	Status string `json:"status"`
 }
 
 // FargateProfileSelector defines rules to select workload to schedule onto Fargate.

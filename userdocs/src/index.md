@@ -19,7 +19,6 @@ A cluster will be created with default parameters:
 - use the official AWS [EKS AMI](https://github.com/awslabs/amazon-eks-ami)
 - `us-west-2` region
 - a dedicated VPC (check your quotas)
-- using static AMI resolver
 
 Example output:
 

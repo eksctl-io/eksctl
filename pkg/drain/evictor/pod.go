@@ -17,6 +17,7 @@ limitations under the License.
 package evictor
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -190,7 +191,7 @@ func (d *Evictor) daemonSetFilter(pod corev1.Pod) PodDeleteStatus {
 		return makePodDeleteStatusOkay()
 	}
 
-	if _, err := d.client.AppsV1().DaemonSets(pod.Namespace).Get(controllerRef.Name, metav1.GetOptions{}); err != nil {
+	if _, err := d.client.AppsV1().DaemonSets(pod.Namespace).Get(context.TODO(), controllerRef.Name, metav1.GetOptions{}); err != nil {
 		// remove orphaned pods with a warning if --force is used
 		if apierrors.IsNotFound(err) && d.force {
 			return makePodDeleteStatusWithWarning(true, err.Error())

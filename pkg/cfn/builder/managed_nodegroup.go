@@ -87,6 +87,20 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		Tags:          m.nodeGroup.Tags,
 	}
 
+	if m.nodeGroup.Spot {
+		// TODO use constant from SDK
+		managedResource.CapacityType = gfnt.NewString("SPOT")
+	}
+
+	instanceTypes := m.nodeGroup.InstanceTypes
+	if len(instanceTypes) == 0 && m.nodeGroup.InstanceType != "" {
+		instanceTypes = []string{m.nodeGroup.InstanceType}
+	}
+
+	makeAMIType := func() *gfnt.Value {
+		return gfnt.NewString(getAMIType(selectManagedInstanceType(m.nodeGroup)))
+	}
+
 	var launchTemplate *gfneks.Nodegroup_LaunchTemplateSpecification
 
 	if m.nodeGroup.LaunchTemplate != nil {
@@ -106,7 +120,14 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		}
 
 		if launchTemplateData.ImageId == nil {
-			managedResource.AmiType = gfnt.NewString(getAMIType(*launchTemplateData.InstanceType))
+			if launchTemplateData.InstanceType == nil {
+				managedResource.AmiType = makeAMIType()
+			} else {
+				managedResource.AmiType = gfnt.NewString(getAMIType(*launchTemplateData.InstanceType))
+			}
+		}
+		if launchTemplateData.InstanceType == nil {
+			managedResource.InstanceTypes = gfnt.NewStringSlice(instanceTypes...)
 		}
 	} else {
 		launchTemplateData, err := m.makeLaunchTemplateData()
@@ -114,8 +135,9 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 			return err
 		}
 		if launchTemplateData.ImageId == nil {
-			managedResource.AmiType = gfnt.NewString(getAMIType(m.nodeGroup.InstanceType))
+			managedResource.AmiType = makeAMIType()
 		}
+		managedResource.InstanceTypes = gfnt.NewStringSlice(instanceTypes...)
 
 		ltRef := m.newResource("LaunchTemplate", &gfnec2.LaunchTemplate{
 			LaunchTemplateName: gfnt.MakeFnSubString(fmt.Sprintf("${%s}", gfnt.StackName)),
@@ -131,9 +153,27 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	return nil
 }
 
+func selectManagedInstanceType(ng *api.ManagedNodeGroup) string {
+	if len(ng.InstanceTypes) > 0 {
+		for _, instanceType := range ng.InstanceTypes {
+			if utils.IsGPUInstanceType(instanceType) {
+				return instanceType
+			}
+		}
+		return ng.InstanceTypes[0]
+	}
+	return ng.InstanceType
+}
+
 func validateLaunchTemplate(launchTemplateData *ec2.ResponseLaunchTemplateData, ng *api.ManagedNodeGroup) error {
+	const fieldName = "managedNodeGroup"
+
 	if launchTemplateData.InstanceType == nil {
-		return errors.New("instance type must be set in the launch template")
+		if len(ng.InstanceTypes) == 0 {
+			return errors.Errorf("instance type must be set in the launch template if %s.instanceTypes is not specified", fieldName)
+		}
+	} else if len(ng.InstanceTypes) > 0 {
+		return errors.Errorf("instance type must not be set in the launch template if %s.instanceTypes is specified", fieldName)
 	}
 
 	// Custom AMI
@@ -142,7 +182,7 @@ func validateLaunchTemplate(launchTemplateData *ec2.ResponseLaunchTemplateData, 
 			return errors.New("node bootstrapping script (UserData) must be set when using a custom AMI")
 		}
 		if ng.AMI != "" {
-			return errors.New("cannot set managedNodegroup.AMI when launchTemplate.ImageId is set")
+			return errors.Errorf("cannot set %s.ami when launchTemplate.ImageId is set", fieldName)
 		}
 	}
 
@@ -158,8 +198,7 @@ func getAMIType(instanceType string) string {
 		return eks.AMITypesAl2X8664Gpu
 	}
 	if utils.IsARMInstanceType(instanceType) {
-		// TODO Upgrade SDK and use constant from the eks library
-		return "AL2_ARM_64"
+		return eks.AMITypesAl2Arm64
 	}
 	return eks.AMITypesAl2X8664
 }

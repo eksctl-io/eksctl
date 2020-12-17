@@ -53,15 +53,16 @@ func (fake *FakeEvictor) CanUseEvictions() error {
 	ret, specificReturn := fake.canUseEvictionsReturnsOnCall[len(fake.canUseEvictionsArgsForCall)]
 	fake.canUseEvictionsArgsForCall = append(fake.canUseEvictionsArgsForCall, struct {
 	}{})
+	stub := fake.CanUseEvictionsStub
+	fakeReturns := fake.canUseEvictionsReturns
 	fake.recordInvocation("CanUseEvictions", []interface{}{})
 	fake.canUseEvictionsMutex.Unlock()
-	if fake.CanUseEvictionsStub != nil {
-		return fake.CanUseEvictionsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.canUseEvictionsReturns
 	return fakeReturns.result1
 }
 
@@ -106,15 +107,16 @@ func (fake *FakeEvictor) EvictOrDeletePod(arg1 v1.Pod) error {
 	fake.evictOrDeletePodArgsForCall = append(fake.evictOrDeletePodArgsForCall, struct {
 		arg1 v1.Pod
 	}{arg1})
+	stub := fake.EvictOrDeletePodStub
+	fakeReturns := fake.evictOrDeletePodReturns
 	fake.recordInvocation("EvictOrDeletePod", []interface{}{arg1})
 	fake.evictOrDeletePodMutex.Unlock()
-	if fake.EvictOrDeletePodStub != nil {
-		return fake.EvictOrDeletePodStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.evictOrDeletePodReturns
 	return fakeReturns.result1
 }
 
@@ -166,15 +168,16 @@ func (fake *FakeEvictor) GetPodsForEviction(arg1 string) (*evictor.PodDeleteList
 	fake.getPodsForEvictionArgsForCall = append(fake.getPodsForEvictionArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetPodsForEvictionStub
+	fakeReturns := fake.getPodsForEvictionReturns
 	fake.recordInvocation("GetPodsForEviction", []interface{}{arg1})
 	fake.getPodsForEvictionMutex.Unlock()
-	if fake.GetPodsForEvictionStub != nil {
-		return fake.GetPodsForEvictionStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getPodsForEvictionReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

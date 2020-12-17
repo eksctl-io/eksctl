@@ -35,6 +35,7 @@ type row struct {
 	Subnets             []string
 	Selector            api.FargateProfileSelector
 	Tags                map[string]string
+	Status              string
 }
 
 func toTable(profiles []*api.FargateProfile) []*row {
@@ -47,6 +48,7 @@ func toTable(profiles []*api.FargateProfile) []*row {
 				Subnets:             profile.Subnets,
 				Selector:            selector,
 				Tags:                profile.Tags,
+				Status:              profile.Status,
 			})
 		}
 	}
@@ -74,5 +76,8 @@ func addFargateProfileColumns(printer *printers.TablePrinter) {
 	})
 	printer.AddColumn("TAGS", func(r *row) string {
 		return labels.FormatLabels(r.Tags)
+	})
+	printer.AddColumn("STATUS", func(r *row) string {
+		return r.Status
 	})
 }

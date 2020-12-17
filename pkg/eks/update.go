@@ -34,7 +34,7 @@ func (c *ClusterProvider) GetCurrentClusterConfigForLogging(spec *api.ClusterCon
 		return nil, nil, errors.Wrap(err, "unable to retrieve current cluster logging configuration")
 	}
 
-	for _, logTypeGroup := range c.Status.clusterInfo.cluster.Logging.ClusterLogging {
+	for _, logTypeGroup := range c.Status.ClusterInfo.Cluster.Logging.ClusterLogging {
 		for _, logType := range logTypeGroup.Types {
 			if logType == nil {
 				return nil, nil, fmt.Errorf("unexpected response from EKS API - nil string")
@@ -107,7 +107,7 @@ func (c *ClusterProvider) GetCurrentClusterVPCConfig(spec *api.ClusterConfig) (*
 		return nil, errors.Wrap(err, "unable to retrieve current cluster VPC configuration")
 	}
 
-	vpcConfig := c.Status.clusterInfo.cluster.ResourcesVpcConfig
+	vpcConfig := c.Status.ClusterInfo.Cluster.ResourcesVpcConfig
 
 	return &ClusterVPCConfig{
 		ClusterEndpoints: &api.ClusterEndpoints{
@@ -175,7 +175,7 @@ func (c *ClusterProvider) UpdateClusterTags(cfg *api.ClusterConfig) error {
 		return err
 	}
 	input := &awseks.TagResourceInput{
-		ResourceArn: c.Status.clusterInfo.cluster.Arn,
+		ResourceArn: c.Status.ClusterInfo.Cluster.Arn,
 		Tags:        utilsstrings.ToPointersMap(cfg.Metadata.Tags),
 	}
 	_, err := c.Provider.EKS().TagResource(input)

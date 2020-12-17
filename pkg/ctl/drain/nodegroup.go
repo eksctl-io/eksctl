@@ -3,6 +3,8 @@ package drain
 import (
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -10,8 +12,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
-
-	"github.com/weaveworks/eksctl/pkg/drain"
 )
 
 func drainNodeGroupCmd(cmd *cmdutils.Cmd) {
@@ -22,7 +22,7 @@ func drainNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod time.Duration) error) {
 	cfg := api.NewClusterConfig()
-	ng := cfg.NewNodeGroup()
+	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
 	var undo, onlyMissing bool
@@ -85,12 +85,18 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d nodegroups defined in the given config (%q) against remote state", len(cfg.NodeGroups), cmd.ClusterConfigFile)
 		if onlyMissing {
-			err = ngFilter.SetOnlyRemote(stackManager, cfg)
+			err = ngFilter.SetOnlyRemote(ctl.Provider.EKS(), stackManager, cfg)
 			if err != nil {
 				return err
 			}
 		}
+	} else {
+		err := cmdutils.PopulateNodegroup(stackManager, ng.Name, cfg, ctl.Provider)
+		if err != nil {
+			return err
+		}
 	}
+
 	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
 
 	verb := "drain"
@@ -112,11 +118,6 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 		return nil
 	}
 	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
-	for _, ng := range allNodeGroups {
-		nodeGroupDrainer := drain.NewNodeGroupDrainer(clientSet, ng, ctl.Provider.WaitTimeout(), maxGracePeriod, undo)
-		if err := nodeGroupDrainer.Drain(); err != nil {
-			return err
-		}
-	}
-	return nil
+
+	return nodegroup.New(cfg, ctl, clientSet).Drain(allNodeGroups, cmd.Plan, maxGracePeriod)
 }
