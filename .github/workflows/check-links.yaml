@@ -48,6 +48,6 @@ jobs:
         id: lc
         uses: peter-evans/link-checker@v1
         with:
-          args: -d userdocs/site -r userdocs/site -x https://twitter.com/weaveworks|https://www.weave.works
+          args: -d userdocs/site -r userdocs/site -x https://twitter.com|https://www.weave.works
       - name: Fail if there were link errors
         run: exit ${{ steps.lc.outputs.exit_code }}
