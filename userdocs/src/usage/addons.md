@@ -6,8 +6,6 @@ CNI plugin through the EKS API
 
 ## Creating addons
 
-test if docs link checker passes
-
 You can specify what addons you want and what policies (if required) to attach to them in your config file:
 
 ```yaml
