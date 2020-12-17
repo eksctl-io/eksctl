@@ -3,6 +3,10 @@ package filter
 import (
 	"strings"
 
+	"github.com/aws/aws-sdk-go/service/eks"
+
+	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+
 	"github.com/kris-nova/logger"
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -64,10 +68,10 @@ type stackLister interface {
 // the filter to only include the nodegroups that don't exist in the cluster already.
 // Note: they are present in the config file but not in the cluster. This is used by
 // the create nodegroup command
-func (f *NodeGroupFilter) SetOnlyLocal(lister stackLister, clusterConfig *api.ClusterConfig) error {
+func (f *NodeGroupFilter) SetOnlyLocal(eksAPI eksiface.EKSAPI, lister stackLister, clusterConfig *api.ClusterConfig) error {
 	f.onlyLocal = true
 
-	err := f.loadLocalAndRemoteNodegroups(lister, clusterConfig)
+	err := f.loadLocalAndRemoteNodegroups(eksAPI, lister, clusterConfig)
 	if err != nil {
 		return err
 	}
@@ -82,10 +86,10 @@ func (f *NodeGroupFilter) SetOnlyLocal(lister stackLister, clusterConfig *api.Cl
 // SetOnlyRemote uses stackLister to list existing nodegroup stacks and configures
 // the filter to exclude nodegroups already defined in the config file. It will include the
 //  nodegroups that exist in the cluster but not in the config
-func (f *NodeGroupFilter) SetOnlyRemote(lister stackLister, clusterConfig *api.ClusterConfig) error {
+func (f *NodeGroupFilter) SetOnlyRemote(eksAPI eksiface.EKSAPI, lister stackLister, clusterConfig *api.ClusterConfig) error {
 	f.onlyRemote = true
 
-	err := f.loadLocalAndRemoteNodegroups(lister, clusterConfig)
+	err := f.loadLocalAndRemoteNodegroups(eksAPI, lister, clusterConfig)
 	if err != nil {
 		return err
 	}
@@ -107,31 +111,42 @@ func (f *NodeGroupFilter) GetExcludeAll() bool {
 	return f.delegate.ExcludeAll
 }
 
-func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(lister stackLister, clusterConfig *api.ClusterConfig) error {
-
-	// Get remote nodegroups
-	existingStacks, err := lister.ListNodeGroupStacks()
+func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(eksAPI eksiface.EKSAPI, lister stackLister, clusterConfig *api.ClusterConfig) error {
+	nodeGroupsWithStacks, nodeGroupsWithoutStacks, err := f.findAllNodeGroups(eksAPI, lister, clusterConfig)
 	if err != nil {
 		return err
 	}
-	for _, s := range existingStacks {
+	for _, s := range nodeGroupsWithStacks {
 		f.remoteNodegroups.Insert(s.NodeGroupName)
 	}
 
-	// Get local nodegroups
+	for _, s := range nodeGroupsWithoutStacks {
+		f.remoteNodegroups.Insert(s)
+	}
+
+	f.localNodegroups.Insert(clusterConfig.GetAllNodeGroupNames()...)
+
+	// Get local nodegroups and discover if any specified don't have stacks
 	for _, localNodeGroup := range clusterConfig.GetAllNodeGroupNames() {
-		f.localNodegroups.Insert(localNodeGroup)
-		if !stackExists(existingStacks, localNodeGroup) {
-			logger.Info("nodegroup %q present in the given config, but missing in the cluster", localNodeGroup)
+		if !stackExists(nodeGroupsWithStacks, localNodeGroup) && !nodeExists(nodeGroupsWithoutStacks, localNodeGroup) {
+			logger.Debug("nodegroup %q present in the given config, but missing in the cluster", localNodeGroup)
 		}
 	}
 
-	// Log remote-only nodegroups  AND add them to the cluster config
-	for _, s := range existingStacks {
+	for _, nodeGroupWithoutStack := range nodeGroupsWithoutStacks {
+		if !f.localNodegroups.Has(nodeGroupWithoutStack) {
+			ngBase := &api.NodeGroupBase{Name: nodeGroupWithoutStack}
+			logger.Debug("nodegroup %q present in the cluster, but missing from the given config", nodeGroupWithoutStack)
+			clusterConfig.ManagedNodeGroups = append(clusterConfig.ManagedNodeGroups, &api.ManagedNodeGroup{NodeGroupBase: ngBase})
+		}
+	}
+
+	// Log remote-only nodeg	roups  AND add them to the cluster config
+	for _, s := range nodeGroupsWithStacks {
 		remoteNodeGroupName := s.NodeGroupName
 		if !f.localNodegroups.Has(remoteNodeGroupName) {
 			ngBase := &api.NodeGroupBase{Name: s.NodeGroupName}
-			logger.Info("nodegroup %q present in the cluster, but missing from the given config", s.NodeGroupName)
+			logger.Debug("nodegroup %q present in the cluster, but missing from the given config", s.NodeGroupName)
 			if s.Type == api.NodeGroupTypeManaged {
 				clusterConfig.ManagedNodeGroups = append(clusterConfig.ManagedNodeGroups, &api.ManagedNodeGroup{NodeGroupBase: ngBase})
 			} else {
@@ -139,8 +154,48 @@ func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(lister stackLister, clust
 			}
 		}
 	}
-
 	return nil
+}
+
+func (f *NodeGroupFilter) findAllNodeGroups(eksAPI eksiface.EKSAPI, lister stackLister, clusterConfig *api.ClusterConfig) ([]manager.NodeGroupStack, []string, error) {
+	// Get remote nodegroups stacks
+	nodeGroupsWithStacks, err := lister.ListNodeGroupStacks()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Get all nodegroups
+	allNodeGroups, err := eksAPI.ListNodegroups(&eks.ListNodegroupsInput{
+		ClusterName: &clusterConfig.Metadata.Name,
+	})
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	nodeGroupsWithStacksSet := sets.NewString()
+	for _, s := range nodeGroupsWithStacks {
+		nodeGroupsWithStacksSet.Insert(s.NodeGroupName)
+	}
+
+	var nodeGroupsWithoutStacks []string
+
+	for _, node := range allNodeGroups.Nodegroups {
+		if !nodeGroupsWithStacksSet.Has(*node) {
+			nodeGroupsWithoutStacks = append(nodeGroupsWithoutStacks, *node)
+		}
+	}
+
+	return nodeGroupsWithStacks, nodeGroupsWithoutStacks, nil
+}
+
+func nodeExists(stacks []string, stackName string) bool {
+	for _, s := range stacks {
+		if s == stackName {
+			return true
+		}
+	}
+	return false
 }
 
 func stackExists(stacks []manager.NodeGroupStack, stackName string) bool {

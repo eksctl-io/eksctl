@@ -89,7 +89,7 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 	}
 
 	if len(stacks) == 0 {
-		return nil, c.errStackNotFound()
+		return nil, nil
 	}
 
 	nodeGroupStacks := []*Stack{}
@@ -367,9 +367,8 @@ func (c *StackCollection) GetNodeGroupStackType(name string) (api.NodeGroupType,
 
 // GetNodeGroupType returns the nodegroup type
 func GetNodeGroupType(tags []*cfn.Tag) (api.NodeGroupType, error) {
-	var (
-		nodeGroupType api.NodeGroupType
-	)
+	var nodeGroupType api.NodeGroupType
+
 	if ngNameTagValue := GetNodegroupTagName(tags); ngNameTagValue == "" {
 		return "", errors.New("failed to find the nodegroup name tag")
 	}
