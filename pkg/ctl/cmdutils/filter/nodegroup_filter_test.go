@@ -360,7 +360,7 @@ const expected = `
 			  },
 			  "volumeSize": 768,
 			  "volumeType": "io1",
-              "AdditionalEncryptedVolume": null,
+              "AdditionalEncryptedVolume": "",
 			  "volumeIOPS": 200,
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
@@ -404,7 +404,7 @@ const expected = `
 			  },
 			  "volumeSize": 80,
 			  "volumeType": "gp2",
-              "AdditionalEncryptedVolume": null,
+              "AdditionalEncryptedVolume": "",
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
 				"alpha.eksctl.io/nodegroup-name": "test-ng2a",
@@ -447,7 +447,7 @@ const expected = `
 			  },
 			  "volumeSize": 80,
 			  "volumeType": "gp2",
-              "AdditionalEncryptedVolume": null,
+              "AdditionalEncryptedVolume": "",
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
 				"alpha.eksctl.io/nodegroup-name": "test-ng3a",
@@ -489,7 +489,7 @@ const expected = `
 			  },
 			  "volumeSize": 80,
 			  "volumeType": "gp2",
-              "AdditionalEncryptedVolume": null,
+              "AdditionalEncryptedVolume": "",
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
 				"alpha.eksctl.io/nodegroup-name": "test-ng1b",
@@ -534,7 +534,7 @@ const expected = `
 			  },
 			  "volumeSize": 80,
 			  "volumeType": "gp2",
-              "AdditionalEncryptedVolume": null,
+              "AdditionalEncryptedVolume": "",
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
 				"alpha.eksctl.io/nodegroup-name": "test-ng2b",
@@ -579,7 +579,7 @@ const expected = `
 			  },
 			  "volumeSize": 192,
 			  "volumeType": "gp2",
-              "AdditionalEncryptedVolume": null,
+              "AdditionalEncryptedVolume": "",
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
 				"alpha.eksctl.io/nodegroup-name": "test-ng3b",

@@ -63,7 +63,7 @@ func Use(ec2api ec2iface.EC2API, ng *api.NodeGroupBase) error {
 			ng.VolumeName = image.RootDeviceName
 			if ng.AMIFamily == api.NodeImageFamilyBottlerocket {
 				ng.VolumeName = aws.String(bottlerocketDataDisk)
-				ng.AdditionalEncryptedVolume = aws.String(bottlerocketOSDisk)
+				ng.AdditionalEncryptedVolume = bottlerocketOSDisk
 			}
 		}
 		rootDeviceMapping, err := findRootDeviceMapping(image)
