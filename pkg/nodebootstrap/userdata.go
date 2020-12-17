@@ -22,6 +22,7 @@ import (
 const (
 	configDir            = "/etc/eksctl/"
 	kubeletDropInUnitDir = "/etc/systemd/system/kubelet.service.d/"
+	dockerConfigDir      = "/etc/docker/"
 )
 
 type configFile struct {
@@ -109,6 +110,14 @@ func getKubeReserved(info InstanceTypeInfo) api.InlineDocument {
 		"cpu":               info.DefaultCPUToReserve(),
 		"memory":            info.DefaultMemoryToReserve(),
 	}
+}
+
+func makeDockerConfigJSON(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, error) {
+	data, err := Asset("docker-daemon.json")
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }
 
 func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, error) {
