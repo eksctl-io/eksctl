@@ -37,9 +37,11 @@ func getClusterCmd(cmd *cmdutils.Cmd) {
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
 		fs.BoolVarP(&listAllRegions, "all-regions", "A", false, "List clusters across all supported regions")
+		fs.BoolVar(&cmd.Validate, "validate", false, "Allow users to control validation")
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
