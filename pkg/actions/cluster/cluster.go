@@ -1,6 +1,8 @@
 package cluster
 
 import (
+	"time"
+
 	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -9,6 +11,7 @@ import (
 
 type Cluster interface {
 	Upgrade(dryRun bool) error
+	Delete(waitTimeout time.Duration, wait bool) error
 }
 
 func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
