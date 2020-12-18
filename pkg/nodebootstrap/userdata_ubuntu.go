@@ -42,6 +42,11 @@ func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles, 
 		return nil, err
 	}
 
+	dockerConfigData, err := makeDockerConfigJSON(spec, ng)
+	if err != nil {
+		return nil, err
+	}
+
 	files := configFiles{
 		configDir: {
 			"metadata.env": {content: strings.Join(makeMetadata(spec), "\n")},
@@ -51,6 +56,9 @@ func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles, 
 			"ca.crt":          {content: string(spec.Status.CertificateAuthorityData)},
 			"kubeconfig.yaml": {content: string(clientConfigData)},
 			"max_pods.map":    {content: makeMaxPodsMapping()},
+		},
+		dockerConfigDir: {
+			"daemon.json": {content: string(dockerConfigData)},
 		},
 	}
 
