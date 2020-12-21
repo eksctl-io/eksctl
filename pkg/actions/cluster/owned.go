@@ -1,7 +1,6 @@
 package cluster
 
 import (
-	"context"
 	"time"
 
 	"github.com/kris-nova/logger"
@@ -10,13 +9,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/elb"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	"github.com/weaveworks/eksctl/pkg/gitops"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
-	ssh "github.com/weaveworks/eksctl/pkg/ssh/client"
-	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -88,38 +84,15 @@ func (c *OwnedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 			}
 			oidcSupported = false
 		}
-		if err := deleteFargateProfiles(c.cfg.Metadata, waitTimeout, c.ctl); err != nil {
-			return err
-		}
 	}
 
-	stackManager := c.ctl.NewStackManager(c.cfg)
-
-	ssh.DeleteKeys(c.cfg.Metadata.Name, c.ctl.Provider.EC2())
-
-	kubeconfig.MaybeDeleteConfig(c.cfg.Metadata)
-
-	if hasDeprecatedStacks, err := deleteDeprecatedStacks(stackManager); hasDeprecatedStacks {
-		if err != nil {
-			return err
-		}
-		return nil
+	if err := deleteCommon(c.cfg, c.ctl, clientSet, waitTimeout); err != nil {
+		return err
 	}
 
 	{
-		// only need to cleanup ELBs if the cluster has already been created.
-		if clusterOperable {
-			ctx, cleanup := context.WithTimeout(context.Background(), 10*time.Minute)
-			defer cleanup()
-
-			logger.Info("cleaning up AWS load balancers created by Kubernetes objects of Kind Service or Ingress")
-			if err := elb.Cleanup(ctx, c.ctl.Provider.EC2(), c.ctl.Provider.ELB(), c.ctl.Provider.ELBV2(), clientSet, c.cfg); err != nil {
-				return err
-			}
-		}
-
 		deleteOIDCProvider := clusterOperable && oidcSupported
-		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvider, oidc, kubernetes.NewCachedClientSet(clientSet), wait, func(errs chan error, _ string) error {
+		tasks, err := c.ctl.NewStackManager(c.cfg).NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvider, oidc, kubernetes.NewCachedClientSet(clientSet), wait, func(errs chan error, _ string) error {
 			logger.Info("trying to cleanup dangling network interfaces")
 			if err := c.ctl.LoadClusterVPC(c.cfg); err != nil {
 				return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
@@ -149,10 +122,8 @@ func (c *OwnedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 		logger.Success("all cluster resources were deleted")
 	}
 
-	{
-		if err := gitops.DeleteKey(c.cfg); err != nil {
-			return err
-		}
+	if err := gitops.DeleteKey(c.cfg); err != nil {
+		return err
 	}
 
 	return nil

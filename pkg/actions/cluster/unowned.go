@@ -36,8 +36,17 @@ func (c *UnownedCluster) Upgrade(dryRun bool) error {
 	return nil
 }
 
-func (c *UnownedCluster) Delete(waitTimeout time.Duration, _ bool) error {
+func (c *UnownedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 	clusterName := c.cfg.Metadata.Name
+
+	clientSet, err := c.ctl.NewStdClientSet(c.cfg)
+	if err != nil {
+		return err
+	}
+
+	if err := deleteCommon(c.cfg, c.ctl, clientSet, waitTimeout); err != nil {
+		return err
+	}
 
 	nodegroups, err := c.ctl.Provider.EKS().ListNodegroups(&awseks.ListNodegroupsInput{
 		ClusterName: &clusterName,
@@ -82,6 +91,13 @@ func (c *UnownedCluster) Delete(waitTimeout time.Duration, _ bool) error {
 		logger.Debug("delete cluster response: %s", out.String())
 	}
 
+	if wait {
+		return c.waitForClusterDeletion(clusterName, waitTimeout)
+	}
+	return nil
+}
+
+func (c *UnownedCluster) waitForClusterDeletion(clusterName string, waitTimeout time.Duration) error {
 	ticker := time.NewTicker(20 * time.Second)
 	defer ticker.Stop()
 
