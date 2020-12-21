@@ -8323,6 +8323,84 @@ func (_m *SSMAPI) ListComplianceSummariesWithContext(_a0 context.Context, _a1 *s
 	return r0, r1
 }
 
+// ListDocumentMetadataHistory provides a mock function with given fields: _a0
+func (_m *SSMAPI) ListDocumentMetadataHistory(_a0 *ssm.ListDocumentMetadataHistoryInput) (*ssm.ListDocumentMetadataHistoryOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ssm.ListDocumentMetadataHistoryOutput
+	if rf, ok := ret.Get(0).(func(*ssm.ListDocumentMetadataHistoryInput) *ssm.ListDocumentMetadataHistoryOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.ListDocumentMetadataHistoryOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ssm.ListDocumentMetadataHistoryInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListDocumentMetadataHistoryRequest provides a mock function with given fields: _a0
+func (_m *SSMAPI) ListDocumentMetadataHistoryRequest(_a0 *ssm.ListDocumentMetadataHistoryInput) (*request.Request, *ssm.ListDocumentMetadataHistoryOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ssm.ListDocumentMetadataHistoryInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ssm.ListDocumentMetadataHistoryOutput
+	if rf, ok := ret.Get(1).(func(*ssm.ListDocumentMetadataHistoryInput) *ssm.ListDocumentMetadataHistoryOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ssm.ListDocumentMetadataHistoryOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListDocumentMetadataHistoryWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *SSMAPI) ListDocumentMetadataHistoryWithContext(_a0 context.Context, _a1 *ssm.ListDocumentMetadataHistoryInput, _a2 ...request.Option) (*ssm.ListDocumentMetadataHistoryOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ssm.ListDocumentMetadataHistoryOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListDocumentMetadataHistoryInput, ...request.Option) *ssm.ListDocumentMetadataHistoryOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.ListDocumentMetadataHistoryOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.ListDocumentMetadataHistoryInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListDocumentVersions provides a mock function with given fields: _a0
 func (_m *SSMAPI) ListDocumentVersions(_a0 *ssm.ListDocumentVersionsInput) (*ssm.ListDocumentVersionsOutput, error) {
 	ret := _m.Called(_a0)
@@ -8627,6 +8705,119 @@ func (_m *SSMAPI) ListInventoryEntriesWithContext(_a0 context.Context, _a1 *ssm.
 	return r0, r1
 }
 
+// ListOpsItemEvents provides a mock function with given fields: _a0
+func (_m *SSMAPI) ListOpsItemEvents(_a0 *ssm.ListOpsItemEventsInput) (*ssm.ListOpsItemEventsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ssm.ListOpsItemEventsOutput
+	if rf, ok := ret.Get(0).(func(*ssm.ListOpsItemEventsInput) *ssm.ListOpsItemEventsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.ListOpsItemEventsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ssm.ListOpsItemEventsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListOpsItemEventsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) ListOpsItemEventsPages(_a0 *ssm.ListOpsItemEventsInput, _a1 func(*ssm.ListOpsItemEventsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.ListOpsItemEventsInput, func(*ssm.ListOpsItemEventsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListOpsItemEventsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) ListOpsItemEventsPagesWithContext(_a0 context.Context, _a1 *ssm.ListOpsItemEventsInput, _a2 func(*ssm.ListOpsItemEventsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListOpsItemEventsInput, func(*ssm.ListOpsItemEventsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListOpsItemEventsRequest provides a mock function with given fields: _a0
+func (_m *SSMAPI) ListOpsItemEventsRequest(_a0 *ssm.ListOpsItemEventsInput) (*request.Request, *ssm.ListOpsItemEventsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ssm.ListOpsItemEventsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ssm.ListOpsItemEventsOutput
+	if rf, ok := ret.Get(1).(func(*ssm.ListOpsItemEventsInput) *ssm.ListOpsItemEventsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ssm.ListOpsItemEventsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListOpsItemEventsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *SSMAPI) ListOpsItemEventsWithContext(_a0 context.Context, _a1 *ssm.ListOpsItemEventsInput, _a2 ...request.Option) (*ssm.ListOpsItemEventsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ssm.ListOpsItemEventsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListOpsItemEventsInput, ...request.Option) *ssm.ListOpsItemEventsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.ListOpsItemEventsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.ListOpsItemEventsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListOpsMetadata provides a mock function with given fields: _a0
 func (_m *SSMAPI) ListOpsMetadata(_a0 *ssm.ListOpsMetadataInput) (*ssm.ListOpsMetadataOutput, error) {
 	ret := _m.Called(_a0)
@@ -8648,6 +8839,41 @@ func (_m *SSMAPI) ListOpsMetadata(_a0 *ssm.ListOpsMetadataInput) (*ssm.ListOpsMe
 	}
 
 	return r0, r1
+}
+
+// ListOpsMetadataPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) ListOpsMetadataPages(_a0 *ssm.ListOpsMetadataInput, _a1 func(*ssm.ListOpsMetadataOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.ListOpsMetadataInput, func(*ssm.ListOpsMetadataOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListOpsMetadataPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) ListOpsMetadataPagesWithContext(_a0 context.Context, _a1 *ssm.ListOpsMetadataInput, _a2 func(*ssm.ListOpsMetadataOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListOpsMetadataInput, func(*ssm.ListOpsMetadataOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // ListOpsMetadataRequest provides a mock function with given fields: _a0
@@ -10179,6 +10405,84 @@ func (_m *SSMAPI) StartAutomationExecutionWithContext(_a0 context.Context, _a1 *
 	return r0, r1
 }
 
+// StartChangeRequestExecution provides a mock function with given fields: _a0
+func (_m *SSMAPI) StartChangeRequestExecution(_a0 *ssm.StartChangeRequestExecutionInput) (*ssm.StartChangeRequestExecutionOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ssm.StartChangeRequestExecutionOutput
+	if rf, ok := ret.Get(0).(func(*ssm.StartChangeRequestExecutionInput) *ssm.StartChangeRequestExecutionOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.StartChangeRequestExecutionOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ssm.StartChangeRequestExecutionInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StartChangeRequestExecutionRequest provides a mock function with given fields: _a0
+func (_m *SSMAPI) StartChangeRequestExecutionRequest(_a0 *ssm.StartChangeRequestExecutionInput) (*request.Request, *ssm.StartChangeRequestExecutionOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ssm.StartChangeRequestExecutionInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ssm.StartChangeRequestExecutionOutput
+	if rf, ok := ret.Get(1).(func(*ssm.StartChangeRequestExecutionInput) *ssm.StartChangeRequestExecutionOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ssm.StartChangeRequestExecutionOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// StartChangeRequestExecutionWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *SSMAPI) StartChangeRequestExecutionWithContext(_a0 context.Context, _a1 *ssm.StartChangeRequestExecutionInput, _a2 ...request.Option) (*ssm.StartChangeRequestExecutionOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ssm.StartChangeRequestExecutionOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.StartChangeRequestExecutionInput, ...request.Option) *ssm.StartChangeRequestExecutionOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.StartChangeRequestExecutionOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.StartChangeRequestExecutionInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // StartSession provides a mock function with given fields: _a0
 func (_m *SSMAPI) StartSession(_a0 *ssm.StartSessionInput) (*ssm.StartSessionOutput, error) {
 	ret := _m.Called(_a0)
@@ -10662,6 +10966,84 @@ func (_m *SSMAPI) UpdateDocumentDefaultVersionWithContext(_a0 context.Context, _
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ssm.UpdateDocumentDefaultVersionInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateDocumentMetadata provides a mock function with given fields: _a0
+func (_m *SSMAPI) UpdateDocumentMetadata(_a0 *ssm.UpdateDocumentMetadataInput) (*ssm.UpdateDocumentMetadataOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ssm.UpdateDocumentMetadataOutput
+	if rf, ok := ret.Get(0).(func(*ssm.UpdateDocumentMetadataInput) *ssm.UpdateDocumentMetadataOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.UpdateDocumentMetadataOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ssm.UpdateDocumentMetadataInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateDocumentMetadataRequest provides a mock function with given fields: _a0
+func (_m *SSMAPI) UpdateDocumentMetadataRequest(_a0 *ssm.UpdateDocumentMetadataInput) (*request.Request, *ssm.UpdateDocumentMetadataOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ssm.UpdateDocumentMetadataInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ssm.UpdateDocumentMetadataOutput
+	if rf, ok := ret.Get(1).(func(*ssm.UpdateDocumentMetadataInput) *ssm.UpdateDocumentMetadataOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ssm.UpdateDocumentMetadataOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UpdateDocumentMetadataWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *SSMAPI) UpdateDocumentMetadataWithContext(_a0 context.Context, _a1 *ssm.UpdateDocumentMetadataInput, _a2 ...request.Option) (*ssm.UpdateDocumentMetadataOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ssm.UpdateDocumentMetadataOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.UpdateDocumentMetadataInput, ...request.Option) *ssm.UpdateDocumentMetadataOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.UpdateDocumentMetadataOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.UpdateDocumentMetadataInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
