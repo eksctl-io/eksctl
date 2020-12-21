@@ -4,6 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
+
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
+
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+
 	"github.com/kris-nova/logger"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -78,6 +84,10 @@ func (c *UnownedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 		return err
 	}
 
+	if err := c.deleteIAMAndOIDC(wait, kubernetes.NewCachedClientSet(clientSet)); err != nil {
+		return err
+	}
+
 	out, err := c.ctl.Provider.EKS().DeleteCluster(&awseks.DeleteClusterInput{
 		Name: &clusterName,
 	})
@@ -94,6 +104,64 @@ func (c *UnownedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 	if wait {
 		return c.waitForClusterDeletion(clusterName, waitTimeout)
 	}
+	return nil
+}
+
+func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clientSetGetter kubernetes.ClientSetGetter) error {
+	clusterOperable, _ := c.ctl.CanOperate(c.cfg)
+
+	var oidc *iamoidc.OpenIDConnectManager
+	var err error
+	stackManager := c.ctl.NewStackManager(c.cfg)
+
+	oidcSupported := true
+	if clusterOperable {
+		oidc, err = c.ctl.NewOpenIDConnectManager(c.cfg)
+		if err != nil {
+			if _, ok := err.(*eks.UnsupportedOIDCError); !ok {
+				return err
+			}
+			oidcSupported = false
+		}
+	}
+
+	deleteOIDCProvider := clusterOperable && oidcSupported
+
+	tasks := &manager.TaskTree{Parallel: false}
+
+	if deleteOIDCProvider {
+		serviceAccountAndOIDCTasks, err := stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc, clientSetGetter)
+		if err != nil {
+			return err
+		}
+
+		if serviceAccountAndOIDCTasks.Len() > 0 {
+			serviceAccountAndOIDCTasks.IsSubTask = true
+			tasks.Append(serviceAccountAndOIDCTasks)
+		}
+	}
+
+	deleteAddonIAMtasks, err := stackManager.NewTaskToDeleteAddonIAM(wait)
+	if err != nil {
+		return err
+	}
+
+	if deleteAddonIAMtasks.Len() > 0 {
+		deleteAddonIAMtasks.IsSubTask = true
+		tasks.Append(deleteAddonIAMtasks)
+	}
+
+	if tasks.Len() == 0 {
+		logger.Warning("no IAM and OIDC resources were found for %q", c.cfg.Metadata.Name)
+		return nil
+	}
+
+	logger.Info(tasks.Describe())
+	if errs := tasks.DoAllSync(); len(errs) > 0 {
+		return handleErrors(errs, "deleting cluster IAM and OIDC")
+	}
+
+	logger.Info("all IAM and OIDC resources were deleted")
 	return nil
 }
 
