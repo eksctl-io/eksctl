@@ -166,47 +166,58 @@ func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clientSetGetter kubernetes.
 }
 
 func (c *UnownedCluster) waitForClusterDeletion(clusterName string, waitTimeout time.Duration) error {
-	ticker := time.NewTicker(20 * time.Second)
-	defer ticker.Stop()
-
-	timer := time.NewTimer(waitTimeout)
-	defer timer.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			clusterDeleted := true
-			clusters, err := c.ctl.Provider.EKS().ListClusters(&awseks.ListClustersInput{})
-			if err != nil {
-				return err
-			}
-			for _, cluster := range clusters.Clusters {
-				if *cluster == clusterName {
-					clusterDeleted = false
-				}
-			}
-			if clusterDeleted {
-				logger.Info("cluster %q successfully deleted", clusterName)
-				return nil
-			}
-
-			cluster, err := c.ctl.Provider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
-				Name: &clusterName,
-			})
-
-			if err == nil {
-				logger.Info("waiting for cluster %q to be deleted, current status: %q", clusterName, *cluster.Cluster.Status)
-			} else {
-				logger.Debug("failed to get cluster status %v", err)
-				logger.Info("waiting for cluster %q to be deleted")
-			}
-		case <-timer.C:
-			return fmt.Errorf("timed out waiting for cluster %q  after %s", clusterName, waitTimeout)
+	condition := func() (bool, error) {
+		clusterDeleted := true
+		clusters, err := c.ctl.Provider.EKS().ListClusters(&awseks.ListClustersInput{})
+		if err != nil {
+			return false, err
 		}
+		for _, cluster := range clusters.Clusters {
+			if *cluster == clusterName {
+				clusterDeleted = false
+			}
+		}
+		if clusterDeleted {
+			logger.Info("cluster %q successfully deleted", clusterName)
+			return true, nil
+		}
+
+		cluster, err := c.ctl.Provider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
+			Name: &clusterName,
+		})
+
+		if err == nil {
+			logger.Info("waiting for cluster %q to be deleted, current status: %q", clusterName, *cluster.Cluster.Status)
+		} else {
+			logger.Debug("failed to get cluster status %v", err)
+			logger.Info("waiting for cluster %q to be deleted")
+		}
+		return false, nil
 	}
+	return c.wait(waitTimeout, fmt.Errorf("timed out waiting for cluster %q  after %s", clusterName, waitTimeout), condition)
 }
 
 func (c *UnownedCluster) waitForNodegroupsDeletion(clusterName string, waitTimeout time.Duration) error {
+	condition := func() (bool, error) {
+		nodeGroups, err := c.ctl.Provider.EKS().ListNodegroups(&awseks.ListNodegroupsInput{
+			ClusterName: &clusterName,
+		})
+		if err != nil {
+			return false, err
+		}
+		if len(nodeGroups.Nodegroups) == 0 {
+			logger.Info("all nodegroups for cluster %q successfully deleted", clusterName)
+			return true, nil
+		}
+
+		logger.Info("waiting for nodegroups to be deleted, %d remaining", len(nodeGroups.Nodegroups))
+		return false, nil
+	}
+
+	return c.wait(waitTimeout, fmt.Errorf("timed out waiting for nodegroup deletion after %s", waitTimeout), condition)
+}
+
+func (c *UnownedCluster) wait(waitTimeout time.Duration, returnErr error, condition func() (bool, error)) error {
 	ticker := time.NewTicker(20 * time.Second)
 	defer ticker.Stop()
 
@@ -216,21 +227,17 @@ func (c *UnownedCluster) waitForNodegroupsDeletion(clusterName string, waitTimeo
 	for {
 		select {
 		case <-ticker.C:
-			nodeGroups, err := c.ctl.Provider.EKS().ListNodegroups(&awseks.ListNodegroupsInput{
-				ClusterName: &clusterName,
-			})
+			finished, err := condition()
 			if err != nil {
 				return err
 			}
-			if len(nodeGroups.Nodegroups) == 0 {
-				logger.Info("all nodegroups for cluster %q successfully deleted", clusterName)
+
+			if finished {
 				return nil
 			}
 
-			logger.Info("waiting for nodegroups to be deleted, %d remaining", len(nodeGroups.Nodegroups))
-
 		case <-timer.C:
-			return fmt.Errorf("timed out waiting for nodegroup deletion after %s", waitTimeout)
+			return returnErr
 		}
 	}
 }
