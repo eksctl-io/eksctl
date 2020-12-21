@@ -49,6 +49,7 @@ func deleteCommon(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet ku
 	logger.Success("all cluster resources were deleted")
 	return nil
 }
+
 func handleErrors(errs []error, subject string) error {
 	logger.Info("%d error(s) occurred while deleting %s", len(errs), subject)
 	for _, err := range errs {

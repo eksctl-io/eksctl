@@ -45,6 +45,10 @@ func (c *UnownedCluster) Upgrade(dryRun bool) error {
 func (c *UnownedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 	clusterName := c.cfg.Metadata.Name
 
+	if err := c.checkClusterExists(clusterName); err != nil {
+		return err
+	}
+
 	clientSet, err := c.ctl.NewStdClientSet(c.cfg)
 	if err != nil {
 		return err
@@ -104,7 +108,22 @@ func (c *UnownedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 	if wait {
 		return c.waitForClusterDeletion(clusterName, waitTimeout)
 	}
+	logger.Info("to see the status of the deletion run `eksctl get cluster --name %s --region %s`", clusterName, c.cfg.Metadata.Region)
 	return nil
+}
+
+func (c *UnownedCluster) checkClusterExists(clusterName string) error {
+	out, err := c.ctl.Provider.EKS().ListClusters(&awseks.ListClustersInput{})
+	if err != nil {
+		return err
+	}
+	for _, cluster := range out.Clusters {
+		if *cluster == clusterName {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("cluster %q not found", clusterName)
 }
 
 func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clientSetGetter kubernetes.ClientSetGetter) error {
