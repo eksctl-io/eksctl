@@ -45,7 +45,7 @@ func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 		fs.StringVar(&serviceAccount.Name, "name", "", "name of the iamserviceaccount to create")
 		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace where to create the iamserviceaccount")
 		fs.StringSliceVar(&serviceAccount.AttachPolicyARNs, "attach-policy-arn", []string{}, "ARN of the policy where to create the iamserviceaccount")
-		fs.StringVar(&serviceAccount.RoleName, "rolename", "", "Set a custom name for the created role")
+		fs.StringVar(&serviceAccount.RoleName, "role-name", "", "Set a custom name for the created role")
 
 		cmdutils.AddStringToStringVarPFlag(fs, &serviceAccount.Tags, "tags", "", map[string]string{}, "Used to tag the IAM role")
 
