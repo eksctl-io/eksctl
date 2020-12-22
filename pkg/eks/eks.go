@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
-	"time"
+
+	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
@@ -415,22 +416,14 @@ func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *
 		return nil
 	}
 
-	ticker := time.NewTicker(20 * time.Second)
-	defer ticker.Stop()
-
-	timer := time.NewTimer(c.Provider.WaitTimeout())
-	defer timer.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			_, err := clientSet.ServerVersion()
-			if err == nil {
-				return nil
-			}
-			logger.Debug("control plane not ready yet – %s", err.Error())
-		case <-timer.C:
-			return fmt.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.Provider.WaitTimeout())
+	condition := func() (bool, error) {
+		_, err := clientSet.ServerVersion()
+		if err == nil {
+			return true, nil
 		}
+		logger.Debug("control plane not ready yet – %s", err.Error())
+		return false, nil
 	}
+
+	return waiters.WaitForCondition(c.Provider.WaitTimeout(), fmt.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.Provider.WaitTimeout()), condition)
 }

@@ -90,37 +90,35 @@ func (c *OwnedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 		return err
 	}
 
-	{
-		deleteOIDCProvider := clusterOperable && oidcSupported
-		tasks, err := c.ctl.NewStackManager(c.cfg).NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvider, oidc, kubernetes.NewCachedClientSet(clientSet), wait, func(errs chan error, _ string) error {
-			logger.Info("trying to cleanup dangling network interfaces")
-			if err := c.ctl.LoadClusterVPC(c.cfg); err != nil {
-				return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
-			}
-
-			go func() {
-				errs <- vpc.CleanupNetworkInterfaces(c.ctl.Provider.EC2(), c.cfg)
-				close(errs)
-			}()
-			return nil
-		})
-
-		if err != nil {
-			return err
+	deleteOIDCProvider := clusterOperable && oidcSupported
+	tasks, err := c.ctl.NewStackManager(c.cfg).NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvider, oidc, kubernetes.NewCachedClientSet(clientSet), wait, func(errs chan error, _ string) error {
+		logger.Info("trying to cleanup dangling network interfaces")
+		if err := c.ctl.LoadClusterVPC(c.cfg); err != nil {
+			return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
 		}
 
-		if tasks.Len() == 0 {
-			logger.Warning("no cluster resources were found for %q", c.cfg.Metadata.Name)
-			return nil
-		}
+		go func() {
+			errs <- vpc.CleanupNetworkInterfaces(c.ctl.Provider.EC2(), c.cfg)
+			close(errs)
+		}()
+		return nil
+	})
 
-		logger.Info(tasks.Describe())
-		if errs := tasks.DoAllSync(); len(errs) > 0 {
-			return handleErrors(errs, "cluster with nodegroup(s)")
-		}
-
-		logger.Success("all cluster resources were deleted")
+	if err != nil {
+		return err
 	}
+
+	if tasks.Len() == 0 {
+		logger.Warning("no cluster resources were found for %q", c.cfg.Metadata.Name)
+		return nil
+	}
+
+	logger.Info(tasks.Describe())
+	if errs := tasks.DoAllSync(); len(errs) > 0 {
+		return handleErrors(errs, "cluster with nodegroup(s)")
+	}
+
+	logger.Success("all cluster resources were deleted")
 
 	if err := gitops.DeleteKey(c.cfg); err != nil {
 		return err

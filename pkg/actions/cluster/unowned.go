@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/utils/waiters"
+
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
@@ -213,7 +215,7 @@ func (c *UnownedCluster) waitForClusterDeletion(clusterName string, waitTimeout 
 		}
 		return false, nil
 	}
-	return c.wait(waitTimeout, fmt.Errorf("timed out waiting for cluster %q  after %s", clusterName, waitTimeout), condition)
+	return waiters.WaitForCondition(waitTimeout, fmt.Errorf("timed out waiting for cluster %q  after %s", clusterName, waitTimeout), condition)
 }
 
 func (c *UnownedCluster) waitForNodegroupsDeletion(clusterName string, waitTimeout time.Duration) error {
@@ -233,30 +235,5 @@ func (c *UnownedCluster) waitForNodegroupsDeletion(clusterName string, waitTimeo
 		return false, nil
 	}
 
-	return c.wait(waitTimeout, fmt.Errorf("timed out waiting for nodegroup deletion after %s", waitTimeout), condition)
-}
-
-func (c *UnownedCluster) wait(waitTimeout time.Duration, returnErr error, condition func() (bool, error)) error {
-	ticker := time.NewTicker(20 * time.Second)
-	defer ticker.Stop()
-
-	timer := time.NewTimer(waitTimeout)
-	defer timer.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			finished, err := condition()
-			if err != nil {
-				return err
-			}
-
-			if finished {
-				return nil
-			}
-
-		case <-timer.C:
-			return returnErr
-		}
-	}
+	return waiters.WaitForCondition(waitTimeout, fmt.Errorf("timed out waiting for nodegroup deletion after %s", waitTimeout), condition)
 }
