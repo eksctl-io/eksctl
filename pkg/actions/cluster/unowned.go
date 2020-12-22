@@ -56,37 +56,13 @@ func (c *UnownedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 		return err
 	}
 
-	if err := deleteCommon(c.cfg, c.ctl, clientSet, waitTimeout); err != nil {
+	if err := deleteSharedResources(c.cfg, c.ctl, clientSet, waitTimeout); err != nil {
 		return err
 	}
 
-	nodegroups, err := c.ctl.Provider.EKS().ListNodegroups(&awseks.ListNodegroupsInput{
-		ClusterName: &clusterName,
-	})
-
-	if err != nil {
-		return err
-	}
-
-	for _, nodeGroupName := range nodegroups.Nodegroups {
-		out, err := c.ctl.Provider.EKS().DeleteNodegroup(&awseks.DeleteNodegroupInput{
-			ClusterName:   &clusterName,
-			NodegroupName: nodeGroupName,
-		})
-
-		if err != nil {
-			return err
-		}
-		logger.Info("initiated deletion of nodegroup %q", *nodeGroupName)
-
-		if out != nil {
-			logger.Debug("delete nodegroup %q response: %s", *nodeGroupName, out.String())
-		}
-	}
-
-	err = c.waitForNodegroupsDeletion(clusterName, waitTimeout)
-
-	if err != nil {
+	// we have to wait for nodegroups to delete before deleting the cluster
+	// so the `wait` value is ignored here
+	if err := c.deleteAndWaitForNodegroupsDeletion(clusterName, waitTimeout); err != nil {
 		return err
 	}
 
@@ -94,24 +70,7 @@ func (c *UnownedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 		return err
 	}
 
-	out, err := c.ctl.Provider.EKS().DeleteCluster(&awseks.DeleteClusterInput{
-		Name: &clusterName,
-	})
-
-	if err != nil {
-		return err
-	}
-
-	logger.Info("initiated deletion of cluster %q", clusterName)
-	if out != nil {
-		logger.Debug("delete cluster response: %s", out.String())
-	}
-
-	if wait {
-		return c.waitForClusterDeletion(clusterName, waitTimeout)
-	}
-	logger.Info("to see the status of the deletion run `eksctl get cluster --name %s --region %s`", clusterName, c.cfg.Metadata.Region)
-	return nil
+	return c.deleteCluster(clusterName, waitTimeout, wait)
 }
 
 func (c *UnownedCluster) checkClusterExists(clusterName string) error {
@@ -186,7 +145,25 @@ func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clientSetGetter kubernetes.
 	return nil
 }
 
-func (c *UnownedCluster) waitForClusterDeletion(clusterName string, waitTimeout time.Duration) error {
+func (c *UnownedCluster) deleteCluster(clusterName string, waitTimeout time.Duration, wait bool) error {
+	out, err := c.ctl.Provider.EKS().DeleteCluster(&awseks.DeleteClusterInput{
+		Name: &clusterName,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	logger.Info("initiated deletion of cluster %q", clusterName)
+	if out != nil {
+		logger.Debug("delete cluster response: %s", out.String())
+	}
+
+	if !wait {
+		logger.Info("to see the status of the deletion run `eksctl get cluster --name %s --region %s`", clusterName, c.cfg.Metadata.Region)
+		return nil
+	}
+
 	condition := func() (bool, error) {
 		clusterDeleted := true
 		clusters, err := c.ctl.Provider.EKS().ListClusters(&awseks.ListClustersInput{})
@@ -218,7 +195,31 @@ func (c *UnownedCluster) waitForClusterDeletion(clusterName string, waitTimeout 
 	return waiters.WaitForCondition(waitTimeout, fmt.Errorf("timed out waiting for cluster %q  after %s", clusterName, waitTimeout), condition)
 }
 
-func (c *UnownedCluster) waitForNodegroupsDeletion(clusterName string, waitTimeout time.Duration) error {
+func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(clusterName string, waitTimeout time.Duration) error {
+	nodegroups, err := c.ctl.Provider.EKS().ListNodegroups(&awseks.ListNodegroupsInput{
+		ClusterName: &clusterName,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	for _, nodeGroupName := range nodegroups.Nodegroups {
+		out, err := c.ctl.Provider.EKS().DeleteNodegroup(&awseks.DeleteNodegroupInput{
+			ClusterName:   &clusterName,
+			NodegroupName: nodeGroupName,
+		})
+
+		if err != nil {
+			return err
+		}
+		logger.Info("initiated deletion of nodegroup %q", *nodeGroupName)
+
+		if out != nil {
+			logger.Debug("delete nodegroup %q response: %s", *nodeGroupName, out.String())
+		}
+	}
+
 	condition := func() (bool, error) {
 		nodeGroups, err := c.ctl.Provider.EKS().ListNodegroups(&awseks.ListNodegroupsInput{
 			ClusterName: &clusterName,

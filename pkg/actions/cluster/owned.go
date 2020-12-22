@@ -9,7 +9,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/fargate"
 	"github.com/weaveworks/eksctl/pkg/gitops"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -86,7 +85,7 @@ func (c *OwnedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 		}
 	}
 
-	if err := deleteCommon(c.cfg, c.ctl, clientSet, waitTimeout); err != nil {
+	if err := deleteSharedResources(c.cfg, c.ctl, clientSet, waitTimeout); err != nil {
 		return err
 	}
 
@@ -125,57 +124,4 @@ func (c *OwnedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 	}
 
 	return nil
-}
-
-func deleteFargateProfiles(clusterMeta *api.ClusterMeta, waitTimeout time.Duration, ctl *eks.ClusterProvider) error {
-	awsClient := fargate.NewClientWithWaitTimeout(
-		clusterMeta.Name,
-		ctl.Provider.EKS(),
-		waitTimeout,
-	)
-	profileNames, err := awsClient.ListProfiles()
-	if err != nil {
-		if fargate.IsUnauthorizedError(err) {
-			logger.Debug("Fargate: unauthorized error: %v", err)
-			logger.Info("either account is not authorized to use Fargate or region %s is not supported. Ignoring error",
-				clusterMeta.Region)
-			return nil
-		}
-		return err
-	}
-
-	// Linearise the deleting of Fargate profiles by passing as the API
-	// otherwise errors out with:
-	//   ResourceInUseException: Cannot delete Fargate Profile ${name2} because
-	//   cluster ${clusterName} currently has Fargate profile ${name1} in
-	//   status DELETING
-
-	for _, profileName := range profileNames {
-		logger.Info("deleting Fargate profile %q", *profileName)
-		// All Fargate profiles must be completely deleted by waiting for the deletion to complete, before deleting
-		// the cluster itself, otherwise it can result in this error:
-		//   Cannot delete because cluster <cluster> currently has Fargate profile <profile> in status DELETING
-		if err := awsClient.DeleteProfile(*profileName, true); err != nil {
-			return err
-		}
-		logger.Info("deleted Fargate profile %q", *profileName)
-	}
-	logger.Info("deleted %v Fargate profile(s)", len(profileNames))
-	return nil
-}
-
-func deleteDeprecatedStacks(stackManager *manager.StackCollection) (bool, error) {
-	tasks, err := stackManager.DeleteTasksForDeprecatedStacks()
-	if err != nil {
-		return true, err
-	}
-	if count := tasks.Len(); count > 0 {
-		logger.Info(tasks.Describe())
-		if errs := tasks.DoAllSync(); len(errs) > 0 {
-			return true, handleErrors(errs, "deprecated stacks")
-		}
-		logger.Success("deleted all %s deperecated stacks", count)
-		return true, nil
-	}
-	return false, nil
 }
