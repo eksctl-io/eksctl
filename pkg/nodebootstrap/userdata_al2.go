@@ -25,6 +25,11 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configF
 		return nil, err
 	}
 
+	dockerConfigData, err := makeDockerConfigJSON(spec, ng)
+	if err != nil {
+		return nil, err
+	}
+
 	files := configFiles{
 		kubeletDropInUnitDir: {
 			"10-eksclt.al2.conf": {isAsset: true},
@@ -37,6 +42,9 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configF
 			"ca.crt":          {content: string(spec.Status.CertificateAuthorityData)},
 			"kubeconfig.yaml": {content: string(clientConfigData)},
 			"max_pods.map":    {content: makeMaxPodsMapping()},
+		},
+		dockerConfigDir: {
+			"daemon.json": {content: string(dockerConfigData)},
 		},
 	}
 
