@@ -35,7 +35,7 @@ install-all-deps: install-build-deps install-site-deps ## Install all dependenci
 
 .PHONY: install-build-deps
 install-build-deps: ## Install dependencies (packages and tools)
-	build/scripts/install-build-deps.sh
+	SHELL=$(SHELL) build-image-manifest.sh
 
 ##@ Build
 
