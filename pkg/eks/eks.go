@@ -39,7 +39,7 @@ func (c *ClusterProvider) DescribeControlPlane(meta *api.ClusterMeta) (*awseks.C
 	}
 	output, err := c.Provider.EKS().DescribeCluster(input)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to describe cluster control plane")
+		return nil, errors.Wrap(err, fmt.Sprintf("Unable to describe cluster control plane in the region %q", meta.Region))
 	}
 	return output.Cluster, nil
 }
@@ -198,7 +198,7 @@ func (c *ClusterProvider) CanDelete(spec *api.ClusterConfig) (bool, error) {
 func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
 	err := c.maybeRefreshClusterStatus(spec)
 	if err != nil {
-		return false, errors.Wrapf(err, "fetching cluster status to determine operability")
+		return false, errors.Wrapf(err, "unable to fetch cluster status to determine operability")
 	}
 
 	switch status := *c.Status.ClusterInfo.Cluster.Status; status {
