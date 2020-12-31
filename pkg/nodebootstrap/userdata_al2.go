@@ -83,6 +83,14 @@ func NewUserDataForAmazonLinux2(spec *api.ClusterConfig, ng *api.NodeGroup) (str
 		scripts = append(scripts, "install-ssm.al2.sh")
 	}
 
+	// This is the worst but I am very tired
+	// When using GPU instance types, the daemon.json is removed and a service
+	// override file used instead. We can alter the daemon command by adding
+	// to the OPTIONS var in /etc/sysconfig/docker
+	if utils.IsGPUInstanceType(ng.InstanceType) {
+		config.AddShellCommand("sed -i 's/^OPTIONS=\"/&--exec-opt native.cgroupdriver=systemd /' /etc/sysconfig/docker")
+	}
+
 	for _, command := range ng.PreBootstrapCommands {
 		config.AddShellCommand(command)
 	}
