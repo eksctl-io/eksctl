@@ -7,10 +7,11 @@ import (
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
+	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
-func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles, error) {
+func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) ([]configFile, error) {
 	clientConfigData, err := makeClientConfigData(spec, kubeconfig.AWSEKSAuthenticator)
 	if err != nil {
 		return nil, err
@@ -25,27 +26,43 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configF
 		return nil, err
 	}
 
-	dockerConfigData, err := makeDockerConfigJSON(spec, ng)
-	if err != nil {
-		return nil, err
-	}
+	files := []configFile{{
+		dir:     kubeletDropInUnitDir,
+		name:    "10-eksclt.al2.conf",
+		isAsset: true,
+	}, {
+		dir:      configDir,
+		name:     "metadata.env",
+		contents: strings.Join(makeMetadata(spec), "\n"),
+	}, {
+		dir:      configDir,
+		name:     "kubelet.env",
+		contents: strings.Join(makeCommonKubeletEnvParams(ng), "\n"),
+	}, {
+		dir:      configDir,
+		name:     "kubelet.yaml",
+		contents: string(kubeletConfigData),
+	}, {
+		dir:      configDir,
+		name:     "ca.crt",
+		contents: string(spec.Status.CertificateAuthorityData),
+	}, {
+		dir:      configDir,
+		name:     "kubeconfig.yaml",
+		contents: string(clientConfigData),
+	}, {
+		dir:      configDir,
+		name:     "max_pods.map",
+		contents: makeMaxPodsMapping(),
+	}}
 
-	files := configFiles{
-		kubeletDropInUnitDir: {
-			"10-eksclt.al2.conf": {isAsset: true},
-		},
-		configDir: {
-			"metadata.env": {content: strings.Join(makeMetadata(spec), "\n")},
-			"kubelet.env":  {content: strings.Join(makeCommonKubeletEnvParams(ng), "\n")},
-			"kubelet.yaml": {content: string(kubeletConfigData)},
-			// TODO: https://github.com/weaveworks/eksctl/issues/161
-			"ca.crt":          {content: string(spec.Status.CertificateAuthorityData)},
-			"kubeconfig.yaml": {content: string(clientConfigData)},
-			"max_pods.map":    {content: makeMaxPodsMapping()},
-		},
-		dockerConfigDir: {
-			"daemon.json": {content: string(dockerConfigData)},
-		},
+	if !utils.IsGPUInstanceType(ng.InstanceType) {
+		dockerConfigData, err := makeDockerConfigJSON(spec, ng)
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, configFile{dir: dockerConfigDir, name: "daemon.json", contents: string(dockerConfigData)})
 	}
 
 	return files, nil

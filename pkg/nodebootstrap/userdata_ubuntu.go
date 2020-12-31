@@ -13,7 +13,7 @@ import (
 
 const ubuntu2004ResolveConfPath = "/run/systemd/resolve/resolv.conf"
 
-func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles, error) {
+func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) ([]configFile, error) {
 	clientConfigData, err := makeClientConfigData(spec, kubeconfig.HeptioAuthenticatorAWS)
 	if err != nil {
 		return nil, err
@@ -47,20 +47,35 @@ func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles, 
 		return nil, err
 	}
 
-	files := configFiles{
-		configDir: {
-			"metadata.env": {content: strings.Join(makeMetadata(spec), "\n")},
-			"kubelet.env":  {content: strings.Join(kubeletEnvParams, "\n")},
-			"kubelet.yaml": {content: string(kubeletConfigData)},
-			// TODO: https://github.com/weaveworks/eksctl/issues/161
-			"ca.crt":          {content: string(spec.Status.CertificateAuthorityData)},
-			"kubeconfig.yaml": {content: string(clientConfigData)},
-			"max_pods.map":    {content: makeMaxPodsMapping()},
-		},
-		dockerConfigDir: {
-			"daemon.json": {content: string(dockerConfigData)},
-		},
-	}
+	files := []configFile{{
+		dir:      configDir,
+		name:     "metadata.env",
+		contents: strings.Join(makeMetadata(spec), "\n"),
+	}, {
+		dir:      configDir,
+		name:     "kubelet.env",
+		contents: strings.Join(kubeletEnvParams, "\n"),
+	}, {
+		dir:      configDir,
+		name:     "kubelet.yaml",
+		contents: string(kubeletConfigData),
+	}, {
+		dir:      configDir,
+		name:     "ca.crt",
+		contents: string(spec.Status.CertificateAuthorityData),
+	}, {
+		dir:      configDir,
+		name:     "kubeconfig.yaml",
+		contents: string(clientConfigData),
+	}, {
+		dir:      configDir,
+		name:     "max_pods.map",
+		contents: makeMaxPodsMapping(),
+	}, {
+		dir:      dockerConfigDir,
+		name:     "daemon.json",
+		contents: string(dockerConfigData),
+	}}
 
 	return files, nil
 }
