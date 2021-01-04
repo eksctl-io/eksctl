@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -206,27 +205,28 @@ func (c *ClusterProvider) UpdateClusterVersionBlocking(cfg *api.ClusterConfig) e
 }
 
 func (c *ClusterProvider) waitForUpdateToSucceed(clusterName string, update *awseks.Update) error {
-	newRequest := func() *request.Request {
+	condition := func() (bool, error) {
 		input := &awseks.DescribeUpdateInput{
 			Name:     &clusterName,
 			UpdateId: update.Id,
 		}
-		req, _ := c.Provider.EKS().DescribeUpdateRequest(input)
-		return req
+		out, err := c.Provider.EKS().DescribeUpdate(input)
+		if err != nil {
+			return false, fmt.Errorf("failed to check update status: %v", err)
+		}
+
+		if *out.Update.Status == awseks.UpdateStatusSuccessful {
+			return true, nil
+		}
+
+		if *out.Update.Status == awseks.UpdateStatusCancelled || *out.Update.Status == awseks.UpdateStatusFailed {
+			return false, fmt.Errorf("update could not complete, status: %q", *out.Update.Status)
+		}
+		logger.Info("waiting for cluster %q to be updated, current status: %q", clusterName, *out.Update.Status)
+
+		return false, nil
 	}
-
-	acceptors := waiters.MakeAcceptors(
-		"Update.Status",
-		awseks.UpdateStatusSuccessful,
-		[]string{
-			awseks.UpdateStatusCancelled,
-			awseks.UpdateStatusFailed,
-		},
-	)
-
-	msg := fmt.Sprintf("waiting for requested %q in cluster %q to succeed", *update.Type, clusterName)
-
-	return waiters.Wait(clusterName, msg, acceptors, newRequest, c.Provider.WaitTimeout(), nil)
+	return waiters.WaitForCondition(c.Provider.WaitTimeout(), fmt.Errorf("timed out waiting for cluster %q to upgrade after %s", clusterName, c.Provider.WaitTimeout()), condition)
 }
 
 func controlPlaneIsVersion(clientSet *kubeclient.Clientset, version string) (bool, error) {
