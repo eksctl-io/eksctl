@@ -113,12 +113,8 @@ func getKubeReserved(info InstanceTypeInfo) api.InlineDocument {
 	}
 }
 
-func makeDockerConfigJSON(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, error) {
-	data, err := Asset("docker-daemon.json")
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+func makeDockerConfigJSON() (string, error) {
+	return AssetString("docker-daemon.json")
 }
 
 func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, error) {
