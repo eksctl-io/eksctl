@@ -134,10 +134,10 @@ var _ = Describe("EKS API wrapper", func() {
 				},
 			}
 
-			p.MockEKS().On("DescribeUpdate", mock.MatchedBy(func(input *awseks.DescribeUpdateInput) bool {
+			p.MockEKS().On("DescribeUpdateRequest", mock.MatchedBy(func(input *awseks.DescribeUpdateInput) bool {
 				*describeUpdateInput = *input
 				return true
-			})).Return(describeUpdateOutput, nil)
+			})).Return(p.Client.MockRequestForGivenOutput(describeUpdateInput, describeUpdateOutput), describeUpdateOutput)
 		})
 
 		It("should get current config", func() {
