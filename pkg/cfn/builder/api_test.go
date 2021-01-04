@@ -2038,10 +2038,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"NODE_TAINTS=",
 			}))
 
-			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
+			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksctl.al2.conf")
 			Expect(kubeletDropInUnit).ToNot(BeNil())
 			Expect(kubeletDropInUnit.Permissions).To(Equal("0644"))
-			checkAsset("10-eksclt.al2.conf", kubeletDropInUnit.Content)
+			checkAsset("10-eksctl.al2.conf", kubeletDropInUnit.Content)
 
 			kubeconfig := getFile(cc, "/etc/eksctl/kubeconfig.yaml")
 			Expect(kubeconfig).ToNot(BeNil())
@@ -2101,10 +2101,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"MAX_PODS=55",
 			}))
 
-			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
+			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksctl.al2.conf")
 			Expect(kubeletDropInUnit).ToNot(BeNil())
 			Expect(kubeletDropInUnit.Permissions).To(Equal("0644"))
-			checkAsset("10-eksclt.al2.conf", kubeletDropInUnit.Content)
+			checkAsset("10-eksctl.al2.conf", kubeletDropInUnit.Content)
 
 			kubeconfig := getFile(cc, "/etc/eksctl/kubeconfig.yaml")
 			Expect(kubeconfig).ToNot(BeNil())
@@ -2160,10 +2160,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"NODE_TAINTS=key1=value1:NoSchedule",
 			}))
 
-			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
+			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksctl.al2.conf")
 			Expect(kubeletDropInUnit).ToNot(BeNil())
 			Expect(kubeletDropInUnit.Permissions).To(Equal("0644"))
-			checkAsset("10-eksclt.al2.conf", kubeletDropInUnit.Content)
+			checkAsset("10-eksctl.al2.conf", kubeletDropInUnit.Content)
 
 			kubeconfig := getFile(cc, "/etc/eksctl/kubeconfig.yaml")
 			Expect(kubeconfig).ToNot(BeNil())
@@ -2217,10 +2217,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"NODE_TAINTS=",
 			}))
 
-			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
+			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksctl.al2.conf")
 			Expect(kubeletDropInUnit).ToNot(BeNil())
 			Expect(kubeletDropInUnit.Permissions).To(Equal("0644"))
-			checkAsset("10-eksclt.al2.conf", kubeletDropInUnit.Content)
+			checkAsset("10-eksctl.al2.conf", kubeletDropInUnit.Content)
 
 			kubeconfig := getFile(cc, "/etc/eksctl/kubeconfig.yaml")
 			Expect(kubeconfig).ToNot(BeNil())
