@@ -91,6 +91,10 @@ type ClusterIAMServiceAccount struct {
 	// +optional
 	Status *ClusterIAMServiceAccountStatus `json:"status,omitempty"`
 
+	// Specific role name instead of the Cloudformation-generated role name
+	// +optional
+	RoleName string `json:"roleName,omitempty"`
+
 	// AWS tags for the service account
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
