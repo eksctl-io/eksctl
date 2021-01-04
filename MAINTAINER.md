@@ -194,7 +194,8 @@ is a prioritized set in `Ready for work`.
 Depending on the complexity of tickets, we want to end up with from 5-10 issues
 teed up in `Ready for work`.
 
-- Check in with AWS to see if there are any new features coming out.
+- Check in with AWS to see if there are any new features coming out, check the [container
+  roadmap](https://github.com/aws/containers-roadmap) for new things coming out and create mirror issues in eksctl.
 - Check the `Backlog` column in `eksctl-backlog` to see if anyone has added anything
   good. Move tickets you want into `Ready for work`.
 - Check the issues. `priority/critical` issues should already be in the `Sprint In Progess`
