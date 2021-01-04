@@ -26,11 +26,11 @@ const (
 )
 
 type configFile struct {
-	content string
-	isAsset bool
+	dir      string
+	name     string
+	contents string
+	isAsset  bool
 }
-
-type configFiles = map[string]map[string]configFile
 
 func getAsset(name string) (string, error) {
 	data, err := Asset(name)
@@ -40,24 +40,25 @@ func getAsset(name string) (string, error) {
 	return string(data), nil
 }
 
-func addFilesAndScripts(config *cloudconfig.CloudConfig, files configFiles, scripts []string) error {
-	for dir, fileNames := range files {
-		for fileName, file := range fileNames {
-			f := cloudconfig.File{
-				Path: dir + fileName,
-			}
-			if file.isAsset {
-				data, err := getAsset(fileName)
-				if err != nil {
-					return err
-				}
-				f.Content = data
-			} else {
-				f.Content = file.content
-			}
-			config.AddFile(f)
+func addFilesAndScripts(config *cloudconfig.CloudConfig, files []configFile, scripts []string) error {
+	for _, file := range files {
+		f := cloudconfig.File{
+			Path: file.dir + file.name,
 		}
+
+		if file.isAsset {
+			data, err := getAsset(file.name)
+			if err != nil {
+				return err
+			}
+			f.Content = data
+		} else {
+			f.Content = file.contents
+		}
+
+		config.AddFile(f)
 	}
+
 	for _, scriptName := range scripts {
 		data, err := getAsset(scriptName)
 		if err != nil {
