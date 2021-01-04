@@ -100,7 +100,7 @@ func isRunningOnFargate(pod *v1.Pod) bool {
 	return exists &&
 		computeType == computeTypeFargate &&
 		pod.Status.Phase == v1.PodRunning &&
-		strings.HasPrefix(pod.Spec.NodeName, "fargate-ip-")
+		strings.HasPrefix(pod.Spec.NodeName, "fargate-")
 }
 
 // ScheduleOnFargate modifies EKS' coredns deployment so that it can be scheduled
