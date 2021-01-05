@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
+
+	"github.com/pkg/errors"
+
 	"github.com/aws/aws-sdk-go/aws/awserr"
 
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
@@ -11,8 +15,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
 	"github.com/kris-nova/logger"
 
@@ -76,8 +78,8 @@ func (c *UnownedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 }
 
 func (c *UnownedCluster) checkClusterExists(clusterName string) error {
-	_, err := c.provider.EKS().DescribeCluster(&eks.DescribeClusterInput{
-		Name: &c.spec.Metadata.Name,
+	_, err := c.ctl.Provider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
+		Name: &c.cfg.Metadata.Name,
 	})
 	if err != nil {
 		if isNotFound(err) {
@@ -108,7 +110,7 @@ func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clientSetGetter kubernetes.
 
 	deleteOIDCProvider := clusterOperable && oidcSupported
 
-	tasks := &manager.TaskTree{Parallel: false}
+	tasksTree := &tasks.TaskTree{Parallel: false}
 
 	if deleteOIDCProvider {
 		serviceAccountAndOIDCTasks, err := stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc, clientSetGetter)
@@ -118,7 +120,7 @@ func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clientSetGetter kubernetes.
 
 		if serviceAccountAndOIDCTasks.Len() > 0 {
 			serviceAccountAndOIDCTasks.IsSubTask = true
-			tasks.Append(serviceAccountAndOIDCTasks)
+			tasksTree.Append(serviceAccountAndOIDCTasks)
 		}
 	}
 
@@ -129,16 +131,16 @@ func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clientSetGetter kubernetes.
 
 	if deleteAddonIAMtasks.Len() > 0 {
 		deleteAddonIAMtasks.IsSubTask = true
-		tasks.Append(deleteAddonIAMtasks)
+		tasksTree.Append(deleteAddonIAMtasks)
 	}
 
-	if tasks.Len() == 0 {
+	if tasksTree.Len() == 0 {
 		logger.Warning("no IAM and OIDC resources were found for %q", c.cfg.Metadata.Name)
 		return nil
 	}
 
-	logger.Info(tasks.Describe())
-	if errs := tasks.DoAllSync(); len(errs) > 0 {
+	logger.Info(tasksTree.Describe())
+	if errs := tasksTree.DoAllSync(); len(errs) > 0 {
 		return handleErrors(errs, "deleting cluster IAM and OIDC")
 	}
 
