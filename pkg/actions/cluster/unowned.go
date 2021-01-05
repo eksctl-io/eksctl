@@ -76,17 +76,16 @@ func (c *UnownedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 }
 
 func (c *UnownedCluster) checkClusterExists(clusterName string) error {
-	out, err := c.ctl.Provider.EKS().ListClusters(&awseks.ListClustersInput{})
+	_, err := c.provider.EKS().DescribeCluster(&eks.DescribeClusterInput{
+		Name: &c.spec.Metadata.Name,
+	})
 	if err != nil {
-		return err
-	}
-	for _, cluster := range out.Clusters {
-		if *cluster == clusterName {
-			return nil
+		if isNotFound(err) {
+			return errors.Errorf("cluster %q not found", clusterName)
 		}
+		return errors.Wrapf(err, "error describing cluster %q", clusterName)
 	}
-
-	return fmt.Errorf("cluster %q not found", clusterName)
+	return nil
 }
 
 func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clientSetGetter kubernetes.ClientSetGetter) error {
