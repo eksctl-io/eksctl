@@ -47,8 +47,17 @@ func (m *Manager) upgradeAndWait(nodeGroupName, version, launchTemplateVersion s
 	}
 
 	if launchTemplateVersion != "" {
+		describeNodegroupOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
+			ClusterName:   &m.cfg.Metadata.Name,
+			NodegroupName: &nodeGroupName,
+		})
+		if err != nil {
+			return err
+		}
+
 		input.LaunchTemplate = &eks.LaunchTemplateSpecification{
 			Version: &launchTemplateVersion,
+			Id:      describeNodegroupOutput.Nodegroup.LaunchTemplate.Id,
 		}
 	}
 
