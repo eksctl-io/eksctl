@@ -39,12 +39,20 @@ func (m *Manager) Upgrade(nodeGroupName, version, launchTemplateVersion string, 
 }
 
 func (m *Manager) upgradeAndWait(nodeGroupName, version, launchTemplateVersion string, forceUpgrade bool) error {
-	upgradeResponse, err := m.ctl.Provider.EKS().UpdateNodegroupVersion(&eks.UpdateNodegroupVersionInput{
+	input := &eks.UpdateNodegroupVersionInput{
 		ClusterName:   &m.cfg.Metadata.Name,
 		Force:         &forceUpgrade,
 		NodegroupName: &nodeGroupName,
 		Version:       &version,
-	})
+	}
+
+	if launchTemplateVersion != "" {
+		input.LaunchTemplate = &eks.LaunchTemplateSpecification{
+			Version: &launchTemplateVersion,
+		}
+	}
+
+	upgradeResponse, err := m.ctl.Provider.EKS().UpdateNodegroupVersion(input)
 
 	if err != nil {
 		return err
