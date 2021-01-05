@@ -65,12 +65,12 @@ func (c *OwnedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 	var (
 		clientSet kubernetes.Interface
 		oidc      *iamoidc.OpenIDConnectManager
-		err       error
 	)
 
 	clusterOperable, _ := c.ctl.CanOperate(c.cfg)
 	oidcSupported := true
 	if clusterOperable {
+		var err error
 		clientSet, err = c.ctl.NewStdClientSet(c.cfg)
 		if err != nil {
 			return err
