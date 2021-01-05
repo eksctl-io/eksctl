@@ -148,12 +148,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		Context("and add the second nodegroup", func() {
+		Context("and add a second (GPU) nodegroup", func() {
 			It("should not return an error", func() {
 				cmd := params.EksctlCreateCmd.WithArgs(
 					"nodegroup",
 					"--cluster", params.ClusterName,
-					"--nodes", "4",
+					"--nodes", "1",
+					"--node-type", "p2.xlarge",
 					"--node-private-networking",
 					testNG,
 				)
