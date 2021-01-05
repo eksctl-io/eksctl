@@ -43,7 +43,7 @@ func makeWaiter(ctx context.Context, name, msg string, acceptors []request.Waite
 		Delay:       makeWaiterDelay(),
 		Acceptors:   acceptors,
 		NewRequest: func(_ []request.Option) (*request.Request, error) {
-			logger.Debug(msg)
+			logger.Info(msg)
 			req := newRequest()
 			req.SetContext(ctx)
 			return req, nil
