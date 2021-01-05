@@ -72,6 +72,6 @@ func (m *Manager) upgradeAndWait(nodeGroupName, version, launchTemplateVersion s
 	if err != nil {
 		return err
 	}
-	logger.Info("upgrade of nodegroup %q complete", nodeGroupName)
+	logger.Info("nodegroup successfully upgraded")
 	return nil
 }
