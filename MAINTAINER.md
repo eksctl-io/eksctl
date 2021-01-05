@@ -3,7 +3,7 @@
 This is the ["contribution doc"](CONTRIBUTING.md) for people who are also
 maintainers. It is part handbook, part responsibility guide.
 
-All new maintainers should go through this as part of onboarding and [PR](CONTRIBUTING/#submitting-prs)
+All new maintainers should go through this as part of onboarding and [PR](CONTRIBUTING.md/#submitting-prs)
 any updates.
 
 For the part of the guide which is secret (credentials and whatnot) go [here](#TODO create private issue with link to AWS only handbook doc).

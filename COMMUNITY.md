@@ -59,4 +59,4 @@ _A new schedule and format for community meetings is being worked out... watch t
 
 ## Community rules
 
-The main one is **Always be kind**, and the rest can be found in our [Code of Conduct](#CODE_OF_CONDUCT.md).
+The main one is **Always be kind**, and the rest can be found in our [Code of Conduct](/CODE_OF_CONDUCT.md).

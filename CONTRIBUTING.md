@@ -150,7 +150,7 @@ information. Add more that what is asked for if you can :smiley:.
   Please try to reduce your reproduction to the minimal necessary to help whoever is helping you
   get to the broken state without needing to recreate your entire environment.
 
-1. **Reproduce the issue with logging verbosity set to at least 4** (`-v=4`), if you have not already done so. Ensure
+1. **If possible, reproduce the issue with logging verbosity set to at least 4** (`-v=4`), if you have not already done so. Ensure
   logs are formatted with [code blocks](https://docs.github.com/en/free-pro-team@latest/github/writing-on-github/creating-and-highlighting-code-blocks).
   If they are long (>50 lines) please provide them in a Gist or collapsed using
   [HTML details tags](https://gist.github.com/ericclemmons/b146fe5da72ca1f706b2ef72a20ac39d).
@@ -265,6 +265,9 @@ wants to build up their open-source cred :muscle:.
 - [Running the integration tests](#running-the-integration-tests)
 - [Writing your solution](#writing-your-solution)
 
+> WARNING: All commands in this section have only been tested on Linux/Unix systems.
+> There is no guarantee that they will work on Windows.
+
 ### Getting started
 
 Before you begin writing code, you may want to have a play with `eksctl` to get familiar
@@ -354,6 +357,10 @@ make -f Makefile.docker test
 > cannot be run by folks outside the core team. If you are NOT contributing to the
 > gitops functionality, you can run a subset of the tests which cover your change,
 > see below.
+
+> NOTE: Integration tests a lot of infrastructure and are therefore quite expensive
+  (in both sense of the word) to run. It is therefore not essential for community
+  members to run them as the core team does this as part of the release process.
 
 The integration tests are long and unfortunately there are some flakes (help is very
 welcome!).
@@ -484,6 +491,11 @@ links to their PRs in slack to get more eyes on the work.
 We recommend that you regularly rebase from master of the original repo to keep your
 branch up to date.
 
+Please ensure that `Allow edits and access to secrets by maintainers` is checked.
+While the maintainers will of course wait for you to edit your own work, if you are
+unresponsive for over a week, they may add corrections or even complete the work for you,
+especially if what you are contributing is very cool :metal: .
+
 PRs which adhere to our guidelines are more likely to be accepted
 (when opening the PR, please use the checklist in the template):
 
@@ -492,8 +504,9 @@ PRs which adhere to our guidelines are more likely to be accepted
   you are trying to solve, not how you solved it.)
   Guide your reviewers through your solution by highlighting
   key changes and implementation choices. Try and pre-empt any obvious questions
-  they may have. Providing screenshots or snippets of output is very helpful to
-  demontrate new behaviour or UX changes.
+  they may have. Providing snippets (or screenshots) of output is very helpful to
+  demonstrate new behaviour or UX changes. (Snippets are more searchable than screenshots,
+  but we wont be mad at a sneak peek at your terminal envs :eyes: .)
 
 1. **The change has been manually tested.** If you are supplying output above
   then that can be your manual test, with proof :clap: .
