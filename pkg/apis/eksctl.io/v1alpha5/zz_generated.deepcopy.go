@@ -598,6 +598,11 @@ func (in *ClusterVPC) DeepCopyInto(out *ClusterVPC) {
 			}
 		}
 	}
+	if in.ManageSharedNodeSecurityGroupRules != nil {
+		in, out := &in.ManageSharedNodeSecurityGroupRules, &out.ManageSharedNodeSecurityGroupRules
+		*out = new(bool)
+		**out = **in
+	}
 	if in.AutoAllocateIPv6 != nil {
 		in, out := &in.AutoAllocateIPv6, &out.AutoAllocateIPv6
 		*out = new(bool)

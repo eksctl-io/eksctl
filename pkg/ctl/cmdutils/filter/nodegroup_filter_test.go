@@ -346,6 +346,7 @@ const expected = `
 		},
 		"vpc": {
 			"cidr": "192.168.0.0/16",
+			"manageSharedNodeSecurityGroupRules": true,
 			"autoAllocateIPv6": false,
 			"nat": {
 				"gateway": "Single"

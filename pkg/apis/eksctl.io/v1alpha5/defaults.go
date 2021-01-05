@@ -51,6 +51,10 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 	if cfg.PrivateCluster == nil {
 		cfg.PrivateCluster = &PrivateCluster{}
 	}
+
+	if cfg.VPC.ManageSharedNodeSecurityGroupRules == nil {
+		cfg.VPC.ManageSharedNodeSecurityGroupRules = Enabled()
+	}
 }
 
 // IAMServiceAccountsWithImplicitServiceAccounts adds implicitly created

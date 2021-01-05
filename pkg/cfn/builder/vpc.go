@@ -406,29 +406,30 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcResource *VPCResou
 			FromPort:              sgPortZero,
 			ToPort:                sgMaxNodePort,
 		})
-		if c.supportsManagedNodes {
-			// To enable communication between both managed and unmanaged nodegroups, this allows ingress traffic from
-			// the default cluster security group ID that EKS creates by default
-			// EKS attaches this to Managed Nodegroups by default, but we need to handle this for unmanaged nodegroups
-			c.newResource(cfnIngressClusterToNodeSGResource, &gfnec2.SecurityGroupIngress{
-				GroupId:               refClusterSharedNodeSG,
-				SourceSecurityGroupId: gfnt.MakeFnGetAttString("ControlPlane", outputs.ClusterDefaultSecurityGroup),
-				Description:           gfnt.NewString("Allow managed and unmanaged nodes to communicate with each other (all ports)"),
-				IpProtocol:            gfnt.NewString("-1"),
-				FromPort:              sgPortZero,
-				ToPort:                sgMaxNodePort,
-			})
-			c.newResource("IngressNodeToDefaultClusterSG", &gfnec2.SecurityGroupIngress{
-				GroupId:               gfnt.MakeFnGetAttString("ControlPlane", outputs.ClusterDefaultSecurityGroup),
-				SourceSecurityGroupId: refClusterSharedNodeSG,
-				Description:           gfnt.NewString("Allow unmanaged nodes to communicate with control plane (all ports)"),
-				IpProtocol:            gfnt.NewString("-1"),
-				FromPort:              sgPortZero,
-				ToPort:                sgMaxNodePort,
-			})
-		}
 	} else {
 		refClusterSharedNodeSG = gfnt.NewString(c.spec.VPC.SharedNodeSecurityGroup)
+	}
+
+	if c.supportsManagedNodes && api.IsEnabled(c.spec.VPC.ManageSharedNodeSecurityGroupRules) {
+		// To enable communication between both managed and unmanaged nodegroups, this allows ingress traffic from
+		// the default cluster security group ID that EKS creates by default
+		// EKS attaches this to Managed Nodegroups by default, but we need to handle this for unmanaged nodegroups
+		c.newResource(cfnIngressClusterToNodeSGResource, &gfnec2.SecurityGroupIngress{
+			GroupId:               refClusterSharedNodeSG,
+			SourceSecurityGroupId: gfnt.MakeFnGetAttString("ControlPlane", outputs.ClusterDefaultSecurityGroup),
+			Description:           gfnt.NewString("Allow managed and unmanaged nodes to communicate with each other (all ports)"),
+			IpProtocol:            gfnt.NewString("-1"),
+			FromPort:              sgPortZero,
+			ToPort:                sgMaxNodePort,
+		})
+		c.newResource("IngressNodeToDefaultClusterSG", &gfnec2.SecurityGroupIngress{
+			GroupId:               gfnt.MakeFnGetAttString("ControlPlane", outputs.ClusterDefaultSecurityGroup),
+			SourceSecurityGroupId: refClusterSharedNodeSG,
+			Description:           gfnt.NewString("Allow unmanaged nodes to communicate with control plane (all ports)"),
+			IpProtocol:            gfnt.NewString("-1"),
+			FromPort:              sgPortZero,
+			ToPort:                sgMaxNodePort,
+		})
 	}
 
 	if c.spec.VPC == nil {
