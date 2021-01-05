@@ -23,7 +23,7 @@ func (ng *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.
 	}
 
 	for _, n := range managedNodeGroups {
-		hasStacks, err := ng.hasStacks(n)
+		hasStacks, err := ng.hasStacks(n.Name)
 		if err != nil {
 			return err
 		}
@@ -66,13 +66,13 @@ func (ng *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.
 	return nil
 }
 
-func (ng *Manager) hasStacks(n *api.ManagedNodeGroup) (bool, error) {
+func (ng *Manager) hasStacks(name string) (bool, error) {
 	stacks, err := ng.manager.ListNodeGroupStacks()
 	if err != nil {
 		return false, err
 	}
 	for _, stack := range stacks {
-		if stack.NodeGroupName == n.Name {
+		if stack.NodeGroupName == name {
 			return true, nil
 		}
 	}
