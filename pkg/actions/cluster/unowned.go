@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
+
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -165,24 +167,14 @@ func (c *UnownedCluster) deleteCluster(clusterName string, waitTimeout time.Dura
 	}
 
 	condition := func() (bool, error) {
-		clusterDeleted := true
-		clusters, err := c.ctl.Provider.EKS().ListClusters(&awseks.ListClustersInput{})
-		if err != nil {
-			return false, err
-		}
-		for _, cluster := range clusters.Clusters {
-			if *cluster == clusterName {
-				clusterDeleted = false
-			}
-		}
-		if clusterDeleted {
-			logger.Info("cluster %q successfully deleted", clusterName)
-			return true, nil
-		}
-
 		cluster, err := c.ctl.Provider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
 			Name: &clusterName,
 		})
+
+		if isNotFound(err) {
+			logger.Info("cluster %q successfully deleted", clusterName)
+			return true, nil
+		}
 
 		if err == nil {
 			logger.Info("waiting for cluster %q to be deleted, current status: %q", clusterName, *cluster.Cluster.Status)
@@ -237,4 +229,9 @@ func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(clusterName string, 
 	}
 
 	return waiters.WaitForCondition(waitTimeout, fmt.Errorf("timed out waiting for nodegroup deletion after %s", waitTimeout), condition)
+}
+
+func isNotFound(err error) bool {
+	awsError, ok := err.(awserr.Error)
+	return ok && awsError.Code() == awseks.ErrCodeResourceNotFoundException
 }
