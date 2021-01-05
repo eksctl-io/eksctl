@@ -3,8 +3,11 @@ package nodegroup
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
+
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/managed"
@@ -16,6 +19,10 @@ func (m *Manager) Upgrade(nodeGroupName, version, launchTemplateVersion string, 
 	hasStacks, err := m.hasStacks(nodeGroupName)
 	if err != nil {
 		return err
+	}
+
+	if _, err := semver.ParseTolerant(version); err != nil {
+		return errors.Wrap(err, "invalid Kubernetes version")
 	}
 
 	if hasStacks {
