@@ -24,7 +24,7 @@ spec:
         - /vpc-resource-controller
         args:
         - -stderrthreshold=info
-        image: '%s.dkr.ecr.%s.%s/eks/vpc-resource-controller:0.2.3'
+        image: '%s.dkr.ecr.%s.%s/eks/windows-vpc-resource-controller:v0.2.4'
         imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 5
