@@ -205,10 +205,7 @@ func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(clusterName string, 
 			return err
 		}
 		logger.Info("initiated deletion of nodegroup %q", *nodeGroupName)
-
-		if out != nil {
-			logger.Debug("delete nodegroup %q response: %s", *nodeGroupName, out.String())
-		}
+		logger.Debug("delete nodegroup %q response: %s", *nodeGroupName, out.String())
 	}
 
 	condition := func() (bool, error) {

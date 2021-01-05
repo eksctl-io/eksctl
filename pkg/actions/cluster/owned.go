@@ -119,9 +119,5 @@ func (c *OwnedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 
 	logger.Success("all cluster resources were deleted")
 
-	if err := gitops.DeleteKey(c.cfg); err != nil {
-		return err
-	}
-
-	return nil
+	return gitops.DeleteKey(c.cfg)
 }

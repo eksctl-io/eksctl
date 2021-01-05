@@ -62,12 +62,12 @@ func handleErrors(errs []error, subject string) error {
 }
 
 func deleteFargateProfiles(clusterMeta *api.ClusterMeta, waitTimeout time.Duration, ctl *eks.ClusterProvider) error {
-	awsClient := fargate.NewClientWithWaitTimeout(
+	fargateClient := fargate.NewClientWithWaitTimeout(
 		clusterMeta.Name,
 		ctl.Provider.EKS(),
 		waitTimeout,
 	)
-	profileNames, err := awsClient.ListProfiles()
+	profileNames, err := fargateClient.ListProfiles()
 	if err != nil {
 		if fargate.IsUnauthorizedError(err) {
 			logger.Debug("Fargate: unauthorized error: %v", err)
@@ -89,7 +89,7 @@ func deleteFargateProfiles(clusterMeta *api.ClusterMeta, waitTimeout time.Durati
 		// All Fargate profiles must be completely deleted by waiting for the deletion to complete, before deleting
 		// the cluster itself, otherwise it can result in this error:
 		//   Cannot delete because cluster <cluster> currently has Fargate profile <profile> in status DELETING
-		if err := awsClient.DeleteProfile(*profileName, true); err != nil {
+		if err := fargateClient.DeleteProfile(*profileName, true); err != nil {
 			return err
 		}
 		logger.Info("deleted Fargate profile %q", *profileName)
