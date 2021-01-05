@@ -160,26 +160,24 @@ func handleGenDeclReference(importer importer.Importer, comment string, match []
 func handleVariantList(importer importer.Importer, comment string, match []string) (*enumCommentInformation, error) {
 	var enum = []string{}
 	var def *string
-	if n := regexpEnumValues.FindAllStringSubmatch(match[1], -1); n != nil {
-		for _, match := range n {
-			rawVal := match[1]
-			isDefault := match[2] != ""
-			var value string
-			if literal, err := strconv.Unquote(rawVal); err == nil {
-				value = literal
-			} else {
-				val, err := findLiteralFromString(importer, "", rawVal)
-				if err != nil {
-					return nil, errors.Wrapf(err, "couldn't resolve %s in package", rawVal)
-				}
-				value = val
-				comment = strings.ReplaceAll(comment, rawVal, fmt.Sprintf(`"%s"`, val))
+	for _, match := range regexpEnumValues.FindAllStringSubmatch(match[1], -1) {
+		rawVal := match[1]
+		isDefault := match[2] != ""
+		var value string
+		if literal, err := strconv.Unquote(rawVal); err == nil {
+			value = literal
+		} else {
+			val, err := findLiteralFromString(importer, "", rawVal)
+			if err != nil {
+				return nil, errors.Wrapf(err, "couldn't resolve %s in package", rawVal)
 			}
-			if isDefault {
-				def = &value
-			}
-			enum = append(enum, value)
+			value = val
+			comment = strings.ReplaceAll(comment, rawVal, fmt.Sprintf(`"%s"`, val))
 		}
+		if isDefault {
+			def = &value
+		}
+		enum = append(enum, value)
 	}
 	return &enumCommentInformation{
 		Enum:    enum,
