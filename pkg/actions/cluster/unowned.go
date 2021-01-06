@@ -75,7 +75,13 @@ func (c *UnownedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 		return err
 	}
 
-	return c.deleteCluster(clusterName, waitTimeout, wait)
+	err = c.deleteCluster(clusterName, waitTimeout, wait)
+	if err != nil {
+		return err
+	}
+
+	logger.Success("all cluster resources were deleted")
+	return nil
 }
 
 func (c *UnownedCluster) checkClusterExists(clusterName string) error {
