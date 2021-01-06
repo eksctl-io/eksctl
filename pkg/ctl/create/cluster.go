@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-
 	"github.com/weaveworks/eksctl/pkg/utils"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
@@ -16,7 +14,7 @@ import (
 	"github.com/spf13/pflag"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/weaveworks/eksctl/pkg/actions/create"
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -28,6 +26,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -323,17 +322,17 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			return err
 		}
 
-		var tasks *manager.TaskTree
+		var taskTree *tasks.TaskTree
 		if supported {
 			createAddonTasks := addon.CreateAddonTasks(cfg, ctl)
 			createAddonTasks.IsSubTask = true
-			tasks = stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks, createAddonTasks)
+			taskTree = stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks, createAddonTasks)
 		} else {
-			tasks = stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks)
+			taskTree = stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks)
 		}
 
-		logger.Info(tasks.Describe())
-		if errs := tasks.DoAllSync(); len(errs) > 0 {
+		logger.Info(taskTree.Describe())
+		if errs := taskTree.DoAllSync(); len(errs) > 0 {
 			logger.Warning("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", meta.Region, meta.Name)
 			for _, err := range errs {
@@ -398,7 +397,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 				return err
 			}
 
-			create.ShowDevicePluginMessageForNodeGroup(ng, params.InstallNeuronDevicePlugin, params.InstallNvidiaDevicePlugin)
+			nodegroup.ShowDevicePluginMessageForNodeGroup(ng, params.InstallNeuronDevicePlugin, params.InstallNvidiaDevicePlugin)
 		}
 
 		for _, ng := range cfg.ManagedNodeGroups {

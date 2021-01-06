@@ -327,6 +327,11 @@
           "description": "ARN of the permissions boundary to associate with the service account",
           "x-intellij-html-description": "ARN of the permissions boundary to associate with the service account"
         },
+        "roleName": {
+          "type": "string",
+          "description": "Specific role name instead of the Cloudformation-generated role name",
+          "x-intellij-html-description": "Specific role name instead of the Cloudformation-generated role name"
+        },
         "status": {
           "$ref": "#/definitions/ClusterIAMServiceAccountStatus"
         },
@@ -349,6 +354,7 @@
         "attachPolicy",
         "permissionsBoundary",
         "status",
+        "roleName",
         "tags"
       ],
       "additionalProperties": false,
