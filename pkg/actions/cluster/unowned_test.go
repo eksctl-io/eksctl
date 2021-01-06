@@ -25,7 +25,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/actions/cluster"
 )
 
-var _ = FDescribe("Delete", func() {
+var _ = Describe("Delete", func() {
 	It("deletes the cluster", func() {
 		clusterName := "my-cluster"
 		p := mockprovider.NewMockProvider()
