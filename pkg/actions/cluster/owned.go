@@ -61,7 +61,7 @@ func (c *OwnedCluster) Upgrade(dryRun bool) error {
 	return nil
 }
 
-func (c *OwnedCluster) Delete(waitTimeout time.Duration, wait bool) error {
+func (c *OwnedCluster) Delete(_ time.Duration, wait bool) error {
 	var (
 		clientSet kubernetes.Interface
 		oidc      *iamoidc.OpenIDConnectManager
@@ -89,7 +89,7 @@ func (c *OwnedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 		}
 	}
 
-	if err := deleteSharedResources(c.cfg, c.ctl, clientSet, waitTimeout); err != nil {
+	if err := deleteSharedResources(c.cfg, c.ctl, clientSet); err != nil {
 		return err
 	}
 

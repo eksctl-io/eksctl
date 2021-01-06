@@ -12,8 +12,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-func WaitForCondition(waitTimeout time.Duration, returnErr error, condition func() (bool, error)) error {
-	ticker := time.NewTicker(20 * time.Second)
+func WaitForCondition(waitTimeout, waitInterval time.Duration, returnErr error, condition func() (bool, error)) error {
+	ticker := time.NewTicker(waitInterval)
 	defer ticker.Stop()
 
 	timer := time.NewTimer(waitTimeout)

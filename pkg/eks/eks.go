@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 
@@ -425,5 +426,5 @@ func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *
 		return false, nil
 	}
 
-	return waiters.WaitForCondition(c.Provider.WaitTimeout(), fmt.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.Provider.WaitTimeout()), condition)
+	return waiters.WaitForCondition(c.Provider.WaitTimeout(), time.Second*20, fmt.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.Provider.WaitTimeout()), condition)
 }

@@ -1,6 +1,8 @@
 package delete
 
 import (
+	"time"
+
 	"github.com/weaveworks/eksctl/pkg/actions/cluster"
 
 	"github.com/kris-nova/logger"
@@ -71,5 +73,5 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	return cluster.Delete(ctl.Provider.WaitTimeout(), cmd.Wait)
+	return cluster.Delete(time.Second*20, cmd.Wait)
 }

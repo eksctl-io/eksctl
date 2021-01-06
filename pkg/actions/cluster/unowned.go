@@ -24,18 +24,21 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	kubeclient "k8s.io/client-go/kubernetes"
 )
 
 type UnownedCluster struct {
-	cfg *api.ClusterConfig
-	ctl *eks.ClusterProvider
+	cfg       *api.ClusterConfig
+	ctl       *eks.ClusterProvider
+	clientSet kubeclient.Interface
 }
 
-func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (*UnownedCluster, error) {
+func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubeclient.Interface) *UnownedCluster {
 	return &UnownedCluster{
-		cfg: cfg,
-		ctl: ctl,
-	}, nil
+		cfg:       cfg,
+		ctl:       ctl,
+		clientSet: clientSet,
+	}
 }
 
 func (c *UnownedCluster) Upgrade(dryRun bool) error {
@@ -49,33 +52,28 @@ func (c *UnownedCluster) Upgrade(dryRun bool) error {
 	return nil
 }
 
-func (c *UnownedCluster) Delete(waitTimeout time.Duration, wait bool) error {
+func (c *UnownedCluster) Delete(waitInterval time.Duration, wait bool) error {
 	clusterName := c.cfg.Metadata.Name
 
 	if err := c.checkClusterExists(clusterName); err != nil {
 		return err
 	}
 
-	clientSet, err := c.ctl.NewStdClientSet(c.cfg)
-	if err != nil {
-		return err
-	}
-
-	if err := deleteSharedResources(c.cfg, c.ctl, clientSet, waitTimeout); err != nil {
+	if err := deleteSharedResources(c.cfg, c.ctl, c.clientSet); err != nil {
 		return err
 	}
 
 	// we have to wait for nodegroups to delete before deleting the cluster
 	// so the `wait` value is ignored here
-	if err := c.deleteAndWaitForNodegroupsDeletion(clusterName, waitTimeout); err != nil {
+	if err := c.deleteAndWaitForNodegroupsDeletion(clusterName, c.ctl.Provider.WaitTimeout(), waitInterval); err != nil {
 		return err
 	}
 
-	if err := c.deleteIAMAndOIDC(wait, kubernetes.NewCachedClientSet(clientSet)); err != nil {
+	if err := c.deleteIAMAndOIDC(wait, kubernetes.NewCachedClientSet(c.clientSet)); err != nil {
 		return err
 	}
 
-	err = c.deleteCluster(clusterName, waitTimeout, wait)
+	err := c.deleteCluster(clusterName, c.ctl.Provider.WaitTimeout(), wait)
 	if err != nil {
 		return err
 	}
@@ -183,16 +181,21 @@ func (c *UnownedCluster) deleteCluster(clusterName string, waitTimeout time.Dura
 
 	msg := fmt.Sprintf("waiting for cluster %q to be deleted", clusterName)
 
-	return waiters.Wait(clusterName, msg, acceptors, newRequest, c.ctl.Provider.WaitTimeout(), nil)
+	return waiters.Wait(clusterName, msg, acceptors, newRequest, waitTimeout, nil)
 }
 
-func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(clusterName string, waitTimeout time.Duration) error {
+func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(clusterName string, waitTimeout, waitInterval time.Duration) error {
 	nodegroups, err := c.ctl.Provider.EKS().ListNodegroups(&awseks.ListNodegroupsInput{
 		ClusterName: &clusterName,
 	})
 
 	if err != nil {
 		return err
+	}
+
+	if len(nodegroups.Nodegroups) == 0 {
+		logger.Info("no nodegroups to delete")
+		return nil
 	}
 
 	for _, nodeGroupName := range nodegroups.Nodegroups {
@@ -224,7 +227,7 @@ func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(clusterName string, 
 		return false, nil
 	}
 
-	return waiters.WaitForCondition(waitTimeout, fmt.Errorf("timed out waiting for nodegroup deletion after %s", waitTimeout), condition)
+	return waiters.WaitForCondition(waitTimeout, waitInterval, fmt.Errorf("timed out waiting for nodegroup deletion after %s", waitTimeout), condition)
 }
 
 func isNotFound(err error) bool {

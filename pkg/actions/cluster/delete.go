@@ -18,13 +18,13 @@ import (
 	"github.com/kris-nova/logger"
 )
 
-func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, waitTimeout time.Duration) error {
+func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) error {
 	clusterOperable, err := ctl.CanOperate(cfg)
 	if err != nil {
 		logger.Debug("failed to check if cluster is operable: %v", err)
 	}
 	if clusterOperable {
-		if err := deleteFargateProfiles(cfg.Metadata, waitTimeout, ctl); err != nil {
+		if err := deleteFargateProfiles(cfg.Metadata, ctl.Provider.WaitTimeout(), ctl); err != nil {
 			return err
 		}
 	}
