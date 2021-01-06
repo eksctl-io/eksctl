@@ -108,11 +108,9 @@ func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clientSetGetter kubernetes.
 		}
 	}
 
-	deleteOIDCProvider := clusterOperable && oidcSupported
-
 	tasksTree := &tasks.TaskTree{Parallel: false}
 
-	if deleteOIDCProvider {
+	if clusterOperable && oidcSupported {
 		serviceAccountAndOIDCTasks, err := stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc, clientSetGetter)
 		if err != nil {
 			return err
