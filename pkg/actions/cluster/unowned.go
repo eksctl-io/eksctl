@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
+
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 
 	"github.com/pkg/errors"
-
-	"github.com/aws/aws-sdk-go/aws/awserr"
 
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 
@@ -164,26 +165,19 @@ func (c *UnownedCluster) deleteCluster(clusterName string, waitTimeout time.Dura
 		logger.Info("to see the status of the deletion run `eksctl get cluster --name %s --region %s`", clusterName, c.cfg.Metadata.Region)
 		return nil
 	}
-
-	condition := func() (bool, error) {
-		cluster, err := c.ctl.Provider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
+	newRequest := func() *request.Request {
+		input := &awseks.DescribeClusterInput{
 			Name: &clusterName,
-		})
-
-		if isNotFound(err) {
-			logger.Info("cluster %q successfully deleted", clusterName)
-			return true, nil
 		}
-
-		if err == nil {
-			logger.Info("waiting for cluster %q to be deleted, current status: %q", clusterName, *cluster.Cluster.Status)
-		} else {
-			logger.Debug("failed to get cluster status %v", err)
-			logger.Info("waiting for cluster %q to be deleted")
-		}
-		return false, nil
+		req, _ := c.ctl.Provider.EKS().DescribeClusterRequest(input)
+		return req
 	}
-	return waiters.WaitForCondition(waitTimeout, fmt.Errorf("timed out waiting for cluster %q  after %s", clusterName, waitTimeout), condition)
+
+	acceptors := waiters.MakeErrorCodeAcceptors(awseks.ErrCodeResourceNotFoundException)
+
+	msg := fmt.Sprintf("waiting for cluster %q to be deleted", clusterName)
+
+	return waiters.Wait(clusterName, msg, acceptors, newRequest, c.ctl.Provider.WaitTimeout(), nil)
 }
 
 func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(clusterName string, waitTimeout time.Duration) error {

@@ -99,6 +99,17 @@ func makeStatusAcceptor(status string, statusPath string) request.WaiterAcceptor
 	}
 }
 
+// MakeAcceptors constructs a slice of request acceptors for error codes
+func MakeErrorCodeAcceptors(errorCode string) []request.WaiterAcceptor {
+	return []request.WaiterAcceptor{
+		{
+			Matcher:  request.ErrorWaiterMatch,
+			Expected: errorCode,
+			State:    request.SuccessWaiterState,
+		},
+	}
+}
+
 // makeWaiterDelay returns delay ranging between 15s and 20s
 func makeWaiterDelay() request.WaiterDelay {
 	const (
