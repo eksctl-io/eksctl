@@ -1,4 +1,4 @@
-package create
+package nodegroup
 
 import (
 	"fmt"
@@ -21,40 +21,20 @@ import (
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
-// NodeGroupOptions controls specific steps of node group creation
-type NodeGroupOptions struct {
+// Options controls specific steps of node group creation
+type CreateOpts struct {
 	UpdateAuthConfigMap       bool
 	InstallNeuronDevicePlugin bool
 	InstallNvidiaDevicePlugin bool
 }
 
-// NodeGroup holds everything needed to create node groups
-type NodeGroup struct {
-	cfg             api.ClusterConfig
-	nodegroupFilter filter.NodeGroupFilter
-	clusterProvider eks.ClusterProvider
-	options         NodeGroupOptions
-}
-
-// NewNodeGroup returns a NodeGroup create action
-func NewNodeGroup(
-	cfg api.ClusterConfig, nodegroupFilter filter.NodeGroupFilter, clusterProvider eks.ClusterProvider, options NodeGroupOptions,
-) (*NodeGroup, error) {
-	return &NodeGroup{
-		cfg,
-		nodegroupFilter,
-		clusterProvider,
-		options,
-	}, nil
-}
-
-func (c *NodeGroup) Create() error {
-	cfg := &c.cfg
+func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFilter) error {
+	cfg := m.cfg
 	meta := cfg.Metadata
 
 	printer := printers.NewJSONPrinter()
 
-	ctl := &c.clusterProvider
+	ctl := m.ctl
 
 	cmdutils.LogRegionAndVersionInfo(meta)
 
@@ -66,21 +46,21 @@ func (c *NodeGroup) Create() error {
 		return err
 	}
 
-	if err := checkVersion(ctl, cfg.Metadata); err != nil {
+	if err := checkVersion(ctl, meta); err != nil {
 		return err
 	}
 
 	if err := ctl.LoadClusterIntoSpec(cfg); err != nil {
-		return errors.Wrapf(err, "getting existing configuration for cluster %q", cfg.Metadata.Name)
+		return errors.Wrapf(err, "getting existing configuration for cluster %q", meta.Name)
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	if err := c.nodegroupFilter.SetOnlyLocal(ctl.Provider.EKS(), stackManager, cfg); err != nil {
+	if err := nodegroupFilter.SetOnlyLocal(ctl.Provider.EKS(), stackManager, cfg); err != nil {
 		return err
 	}
 
-	logFiltered := cmdutils.ApplyFilter(cfg, &c.nodegroupFilter)
+	logFiltered := cmdutils.ApplyFilter(cfg, &nodegroupFilter)
 
 	clientSet, err := ctl.NewStdClientSet(cfg)
 	if err != nil {
@@ -126,7 +106,7 @@ func (c *NodeGroup) Create() error {
 	{
 		logFiltered()
 		logMsg := func(resource string, count int) {
-			logger.Info("will create a CloudFormation stack for each of %d %s in cluster %q", count, resource, cfg.Metadata.Name)
+			logger.Info("will create a CloudFormation stack for each of %d %s in cluster %q", count, resource, meta.Name)
 		}
 		if len(cfg.NodeGroups) > 0 {
 			logMsg("nodegroups", len(cfg.NodeGroups))
@@ -169,17 +149,17 @@ func (c *NodeGroup) Create() error {
 		errs := taskTree.DoAllSync()
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
-			logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroup", cfg.Metadata.Region, cfg.Metadata.Name)
+			logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroup", meta.Region, meta.Name)
 			for _, err := range errs {
 				if err != nil {
 					logger.Critical("%s\n", err.Error())
 				}
 			}
-			return fmt.Errorf("failed to create nodegroups for cluster %q", cfg.Metadata.Name)
+			return fmt.Errorf("failed to create nodegroups for cluster %q", meta.Name)
 		}
 	}
 
-	if err := PostNodeCreationTasks(ctl, cfg, clientSet, c.options); err != nil {
+	if err := m.postNodeCreationTasks(clientSet, options); err != nil {
 		return err
 	}
 
@@ -190,22 +170,22 @@ func (c *NodeGroup) Create() error {
 	return nil
 }
 
-func PostNodeCreationTasks(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, clientSet kubernetes.Interface, options NodeGroupOptions) error {
-	tasks := ctl.ClusterTasksForNodeGroups(cfg, options.InstallNeuronDevicePlugin, options.InstallNvidiaDevicePlugin)
+func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options CreateOpts) error {
+	tasks := m.ctl.ClusterTasksForNodeGroups(m.cfg, options.InstallNeuronDevicePlugin, options.InstallNvidiaDevicePlugin)
 	logger.Info(tasks.Describe())
 	errs := tasks.DoAllSync()
 	if len(errs) > 0 {
 		logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
-		logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroups", cfg.Metadata.Region, cfg.Metadata.Name)
+		logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroups", m.cfg.Metadata.Region, m.cfg.Metadata.Name)
 		for _, err := range errs {
 			if err != nil {
 				logger.Critical("%s\n", err.Error())
 			}
 		}
-		return fmt.Errorf("failed to create nodegroups for cluster %q", cfg.Metadata.Name)
+		return fmt.Errorf("failed to create nodegroups for cluster %q", m.cfg.Metadata.Name)
 	}
 
-	for _, ng := range cfg.NodeGroups {
+	for _, ng := range m.cfg.NodeGroups {
 		if options.UpdateAuthConfigMap {
 			// authorise nodes to join
 			if err := authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
@@ -213,18 +193,18 @@ func PostNodeCreationTasks(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, cli
 			}
 
 			// wait for nodes to join
-			if err := ctl.WaitForNodes(clientSet, ng); err != nil {
+			if err := m.ctl.WaitForNodes(clientSet, ng); err != nil {
 				return err
 			}
 		}
 
 		ShowDevicePluginMessageForNodeGroup(ng, options.InstallNeuronDevicePlugin, options.InstallNvidiaDevicePlugin)
 	}
-	logger.Success("created %d nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
+	logger.Success("created %d nodegroup(s) in cluster %q", len(m.cfg.NodeGroups), m.cfg.Metadata.Name)
 
-	for _, ng := range cfg.ManagedNodeGroups {
-		if err := ctl.WaitForNodes(clientSet, ng); err != nil {
-			if cfg.PrivateCluster.Enabled {
+	for _, ng := range m.cfg.ManagedNodeGroups {
+		if err := m.ctl.WaitForNodes(clientSet, ng); err != nil {
+			if m.cfg.PrivateCluster.Enabled {
 				logger.Info("error waiting for nodes to join the cluster; this command was likely run from outside the cluster's VPC as the API server is not reachable, nodegroup(s) should still be able to join the cluster, underlying error is: %v", err)
 				break
 			} else {
@@ -233,7 +213,7 @@ func PostNodeCreationTasks(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, cli
 		}
 	}
 
-	logger.Success("created %d managed nodegroup(s) in cluster %q", len(cfg.ManagedNodeGroups), cfg.Metadata.Name)
+	logger.Success("created %d managed nodegroup(s) in cluster %q", len(m.cfg.ManagedNodeGroups), m.cfg.Metadata.Name)
 	return nil
 }
 

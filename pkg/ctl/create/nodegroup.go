@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/weaveworks/eksctl/pkg/actions/create"
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 
@@ -16,7 +16,7 @@ import (
 )
 
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
-	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options create.NodeGroupOptions, mngOptions cmdutils.CreateManagedNGOptions) error {
+	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroup.CreateOpts, mngOptions cmdutils.CreateManagedNGOptions) error {
 		ngFilter := filter.NewNodeGroupFilter()
 		if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, mngOptions).Load(); err != nil {
 			return errors.Wrap(err, "couldn't create node group filter from command line options")
@@ -25,21 +25,12 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 		if err != nil {
 			return errors.Wrap(err, "couldn't create cluster provider from command line options")
 		}
-		c, err := create.NewNodeGroup(
-			*cmd.ClusterConfig,
-			*ngFilter,
-			*ctl,
-			options,
-		)
-		if err != nil {
-			return errors.Wrap(err, "couldn't create create node group action from command line options")
-		}
-		return c.Create()
+		manager := nodegroup.New(cmd.ClusterConfig, ctl, nil)
+		return manager.Create(options, *ngFilter)
 	})
-
 }
 
-type runFn func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options create.NodeGroupOptions, mngOptions cmdutils.CreateManagedNGOptions) error
+type runFn func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroup.CreateOpts, mngOptions cmdutils.CreateManagedNGOptions) error
 
 func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 	cfg := api.NewClusterConfig()
@@ -47,7 +38,7 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 	cmd.ClusterConfig = cfg
 
 	var (
-		options    create.NodeGroupOptions
+		options    nodegroup.CreateOpts
 		mngOptions cmdutils.CreateManagedNGOptions
 	)
 
