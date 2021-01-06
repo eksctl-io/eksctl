@@ -8,11 +8,11 @@ import (
 	"github.com/pkg/errors"
 
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -136,14 +136,14 @@ func (c *NodeGroup) Create() error {
 			logMsg("managed nodegroups", len(cfg.ManagedNodeGroups))
 		}
 
-		tasks := &manager.TaskTree{
+		taskTree := &tasks.TaskTree{
 			Parallel: false,
 		}
 		if supportsManagedNodes {
-			tasks.Append(stackManager.NewClusterCompatTask())
+			taskTree.Append(stackManager.NewClusterCompatTask())
 		}
 
-		allNodeGroupTasks := &manager.TaskTree{
+		allNodeGroupTasks := &tasks.TaskTree{
 			Parallel: true,
 		}
 		awsNodeUsesIRSA, err := eks.DoesAWSNodeUseIRSA(ctl.Provider, clientSet)
@@ -164,9 +164,9 @@ func (c *NodeGroup) Create() error {
 			allNodeGroupTasks.Append(managedTasks)
 		}
 
-		tasks.Append(allNodeGroupTasks)
-		logger.Info(tasks.Describe())
-		errs := tasks.DoAllSync()
+		taskTree.Append(allNodeGroupTasks)
+		logger.Info(taskTree.Describe())
+		errs := taskTree.DoAllSync()
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroup", cfg.Metadata.Region, cfg.Metadata.Name)

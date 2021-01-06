@@ -31,7 +31,7 @@ var _ = Describe("create iamserviceaccount", func() {
 			Expect(count).To(Equal(1))
 		},
 		Entry("with all required flags", "--cluster", "clusterName", "--name", "serviceAccountName", "--attach-policy-arn", "dummyPolicyArn"),
-		Entry("with override flags", "--cluster", "clusterName", "--name", "serviceAccountName", "--attach-policy-arn", "dummyPolicyArn", "--override-existing-serviceaccounts"),
+		Entry("with optional flags", "--cluster", "clusterName", "--name", "serviceAccountName", "--attach-policy-arn", "dummyPolicyArn", "--override-existing-serviceaccounts", "--role-name", "custom-role-name"),
 	)
 
 	DescribeTable("invalid flags or arguments",

@@ -3,14 +3,14 @@ package addon
 import (
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider) *manager.TaskTree {
-	tasks := &manager.TaskTree{Parallel: false}
+func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider) *tasks.TaskTree {
+	taskTree := &tasks.TaskTree{Parallel: false}
 
-	tasks.Append(
+	taskTree.Append(
 		&createAddonTask{
 			info:            "create addons",
 			addons:          cfg.Addons,
@@ -18,7 +18,7 @@ func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvid
 			clusterProvider: clusterProvider,
 		},
 	)
-	return tasks
+	return taskTree
 }
 
 type createAddonTask struct {
