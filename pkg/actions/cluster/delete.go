@@ -19,7 +19,10 @@ import (
 )
 
 func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, waitTimeout time.Duration) error {
-	clusterOperable, _ := ctl.CanOperate(cfg)
+	clusterOperable, err := ctl.CanOperate(cfg)
+	if err != nil {
+		logger.Debug("failed to check if cluster is operable: %v", err)
+	}
 	if clusterOperable {
 		if err := deleteFargateProfiles(cfg.Metadata, waitTimeout, ctl); err != nil {
 			return err

@@ -67,7 +67,11 @@ func (c *OwnedCluster) Delete(waitTimeout time.Duration, wait bool) error {
 		oidc      *iamoidc.OpenIDConnectManager
 	)
 
-	clusterOperable, _ := c.ctl.CanOperate(c.cfg)
+	clusterOperable, err := c.ctl.CanOperate(c.cfg)
+	if err != nil {
+		logger.Debug("failed to check if cluster is operable: %v", err)
+	}
+
 	oidcSupported := true
 	if clusterOperable {
 		var err error
