@@ -80,6 +80,8 @@ type ClusterIAMServiceAccount struct {
 	// +optional
 	AttachPolicyARNs []string `json:"attachPolicyARNs,omitempty"`
 
+	WellKnownPolicies WellKnownPolicies `json:"wellKnownPolicies,omitempty"`
+
 	// AttachPolicy holds a policy document to attach to this service account
 	// +optional
 	AttachPolicy InlineDocument `json:"attachPolicy,omitempty"`

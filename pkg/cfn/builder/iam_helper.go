@@ -18,6 +18,39 @@ type cfnTemplate interface {
 	newResource(name string, resource gfn.Resource) *gfnt.Value
 }
 
+type customPolicy struct {
+	Name          string
+	Statements    []cft.MapOfInterfaces
+	NamedPolicies []string
+}
+
+func createWellKnownPolicies(wellKnownPolicies api.WellKnownPolicies) []customPolicy {
+	var policies []customPolicy
+	if wellKnownPolicies.ImageBuilder {
+		policies = append(policies, customPolicy{NamedPolicies: []string{iamPolicyAmazonEC2ContainerRegistryPowerUser}})
+	} else if wellKnownPolicies.AutoScaler {
+		policies = append(policies, customPolicy{Name: "PolicyAutoScaling", Statements: autoScalerStatements()})
+	} else if wellKnownPolicies.AWSLoadBalancer {
+		policies = append(policies, customPolicy{Name: "PolicyAWSLoadBalancerController", Statements: loadBalancerControllerStatements()})
+	} else if wellKnownPolicies.ExternalDNS {
+		policies = append(policies,
+			customPolicy{Name: "PolicyExternalDNSChangeSet", Statements: changeSetStatements()},
+			customPolicy{Name: "PolicyExternalDNSHostedZones", Statements: externalDNSHostedZonesStatements()},
+		)
+	} else if wellKnownPolicies.CertManager {
+		policies = append(policies,
+			customPolicy{Name: "PolicyCertManagerChangeSet", Statements: changeSetStatements()},
+			customPolicy{Name: "PolicyCertManagerGetChange", Statements: certManagerGetChangeStatements()},
+		)
+		if wellKnownPolicies.ExternalDNS {
+			policies = append(policies, customPolicy{Name: "PolicyCertManagerHostedZones", Statements: certManagerHostedZonesStatements("route53:ListHostedZones", "route53:ListTagsForResource")})
+		} else {
+			policies = append(policies, customPolicy{Name: "PolicyCertManagerHostedZones", Statements: certManagerHostedZonesStatements()})
+		}
+	}
+	return policies
+}
+
 // createRole creates an IAM role with policies required for the worker nodes and addons
 func createRole(cfnTemplate cfnTemplate, clusterIAMConfig *api.ClusterIAM, iamConfig *api.NodeGroupIAM, managed, enableSSM, forceAddCNIPolicy bool) error {
 	managedPolicyARNs, err := makeManagedPolicies(clusterIAMConfig, iamConfig, managed, enableSSM, forceAddCNIPolicy)

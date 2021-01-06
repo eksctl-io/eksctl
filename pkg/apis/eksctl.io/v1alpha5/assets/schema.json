@@ -343,6 +343,9 @@
           "description": "AWS tags for the service account",
           "x-intellij-html-description": "AWS tags for the service account",
           "default": "{}"
+        },
+        "wellKnownPolicies": {
+          "$ref": "#/definitions/WellKnownPolicies"
         }
       },
       "preferredOrder": [
@@ -351,6 +354,7 @@
         "labels",
         "annotations",
         "attachPolicyARNs",
+        "wellKnownPolicies",
         "attachPolicy",
         "permissionsBoundary",
         "status",
@@ -1702,6 +1706,38 @@
       "additionalProperties": false,
       "description": "defines the configuration for KMS encryption provider",
       "x-intellij-html-description": "defines the configuration for KMS encryption provider"
+    },
+    "WellKnownPolicies": {
+      "properties": {
+        "autoScaler": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "awsLoadBalancer": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "certManager": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "externalDNS": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "imageBuilder": {
+          "type": "boolean",
+          "default": "false"
+        }
+      },
+      "preferredOrder": [
+        "imageBuilder",
+        "autoScaler",
+        "awsLoadBalancer",
+        "externalDNS",
+        "certManager"
+      ],
+      "additionalProperties": false
     },
     "github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet": {
       "type": "string",

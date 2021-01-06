@@ -224,9 +224,26 @@ func (rs *IAMServiceAccountResourceSet) AddAllResources() error {
 		PermissionsBoundary:      rs.spec.PermissionsBoundary,
 		RoleName:                 rs.spec.RoleName,
 	}
-	role.ManagedPolicyArns = append(role.ManagedPolicyArns, rs.spec.AttachPolicyARNs...)
+	for _, arn := range rs.spec.AttachPolicyARNs {
+		role.ManagedPolicyArns = append(role.ManagedPolicyArns, arn)
+	}
+
+	wellKnownPolicies := createWellKnownPolicies(rs.spec.WellKnownPolicies)
+
+	for _, p := range wellKnownPolicies {
+		for _, np := range p.NamedPolicies {
+			role.ManagedPolicyArns = append(role.ManagedPolicyArns, makePolicyARN(np))
+		}
+	}
 
 	roleRef := rs.template.NewResource("Role1", role)
+
+	for _, p := range wellKnownPolicies {
+		if p.Name != "" {
+			doc := cft.MakePolicyDocument(p.Statements...)
+			rs.template.AttachPolicy(p.Name, roleRef, doc)
+		}
+	}
 
 	// TODO: declare output collector automatically when all stack builders migrated to our template package
 	rs.template.Outputs["Role1"] = cft.Output{
@@ -321,7 +338,9 @@ func (rs *IAMRoleResourceSet) AddAllResources() error {
 	role := &cft.IAMRole{
 		AssumeRolePolicyDocument: assumeRolePolicyDocument,
 	}
-	role.ManagedPolicyArns = append(role.ManagedPolicyArns, rs.attachPolicyARNs...)
+	for _, arn := range rs.attachPolicyARNs {
+		role.ManagedPolicyArns = append(role.ManagedPolicyArns, arn)
+	}
 
 	roleRef := rs.template.NewResource("Role1", role)
 

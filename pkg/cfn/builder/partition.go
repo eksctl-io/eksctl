@@ -34,10 +34,14 @@ func MakeServiceRef(servicePrincipalName string) *gfnt.Value {
 	)
 }
 
+func makePolicyARN(policyName string) *gfnt.Value {
+	return gfnt.MakeFnSubString(fmt.Sprintf("arn:${%s}:iam::aws:policy/%s", gfnt.Partition, policyName))
+}
+
 func makePolicyARNs(policyNames ...string) []*gfnt.Value {
 	policyARNs := make([]*gfnt.Value, len(policyNames))
 	for i, policy := range policyNames {
-		policyARNs[i] = gfnt.MakeFnSubString(fmt.Sprintf("arn:${%s}:iam::aws:policy/%s", gfnt.Partition, policy))
+		policyARNs[i] = makePolicyARN(policy)
 	}
 	return policyARNs
 }
