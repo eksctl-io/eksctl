@@ -193,7 +193,7 @@ update-aws-node: ## Re-download the aws-node manifests from AWS
 
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) ## Generate Kubernetes API helpers
-	update-codegen.sh
+	SHELL=$(SHELL) update-codegen.sh
 
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 	AWS_SDK_GO_DIR=$(AWS_SDK_GO_DIR) go generate ./pkg/eks/mocks
@@ -205,11 +205,11 @@ generate-kube-reserved: ## Update instance list with respective specs
 ##@ Release
 .PHONY: prepare-release
 prepare-release:
-	tag-release.sh
+	SHELL=$(SHELL) tag-release.sh
 
 .PHONY: prepare-release-candidate
 prepare-release-candidate:
-	tag-release-candidate.sh
+	SHELL=$(SHELL) tag-release-candidate.sh
 
 .PHONY: print-version
 print-version:
