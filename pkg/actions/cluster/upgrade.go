@@ -35,6 +35,8 @@ func upgrade(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, dryRun bool) (boo
 			logger.Success("cluster %q control plane has been upgraded to version %q", cfg.Metadata.Name, cfg.Metadata.Version)
 			logger.Info(msgNodeGroupsAndAddons)
 		}
+	} else {
+		logger.Info("no cluster version update required")
 	}
 	return versionUpdateRequired, nil
 }
