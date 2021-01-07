@@ -45,8 +45,8 @@ in any form to the project.
 - End users. IOW the reason why we are all here!
 - Community contributors. These could be end users themselves, or those working
   on their open-source game.
-- Maintainers. See [the maintainer doc](MAINTAINER.md#responsibilites) for a list
-  of maintainer responsibilites.
+- Maintainers. See [the maintainer docs](link coming soon before I merge) for a list
+  of maintainer responsibilities.
 
 Decisions are made by Maintainers with input from both Amazon and the community.
 All the decisions which can be made publicly will take into account the opinions
@@ -59,4 +59,4 @@ _A new schedule and format for community meetings is being worked out... watch t
 
 ## Community rules
 
-The main one is **Always be kind**, and the rest can be found in our [Code of Conduct](/CODE_OF_CONDUCT.md).
+The main one is **Always be kind**, and the rest can be found in our [Code of Conduct](CODE_OF_CONDUCT.md).
