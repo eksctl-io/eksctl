@@ -2,6 +2,7 @@ package cluster
 
 import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
@@ -19,5 +20,7 @@ func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (*Unown
 
 func (c *UnownedCluster) Upgrade(dryRun bool) error {
 	_, err := upgrade(c.cfg, c.ctl, dryRun)
+
+	cmdutils.LogPlanModeWarning(dryRun)
 	return err
 }
