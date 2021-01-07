@@ -90,8 +90,6 @@ func listModules() []string {
 			dirs = append(dirs, path.Join(testsDir, f.Name()))
 		}
 	}
-
-	dirs = []string{path.Join(testsDir, "unowned_clusters")}
 	return dirs
 }
 
