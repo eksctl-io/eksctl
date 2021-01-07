@@ -185,20 +185,27 @@ func (c *UnownedCluster) deleteCluster(clusterName string, waitTimeout time.Dura
 }
 
 func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(clusterName string, waitTimeout, waitInterval time.Duration) error {
-	nodegroups, err := c.ctl.Provider.EKS().ListNodegroups(&awseks.ListNodegroupsInput{
+	var nodegroups []*string
+
+	pager := func(ng *awseks.ListNodegroupsOutput, _ bool) bool {
+		nodegroups = append(nodegroups, ng.Nodegroups...)
+		return true
+	}
+
+	err := c.ctl.Provider.EKS().ListNodegroupsPages(&awseks.ListNodegroupsInput{
 		ClusterName: &clusterName,
-	})
+	}, pager)
 
 	if err != nil {
 		return err
 	}
 
-	if len(nodegroups.Nodegroups) == 0 {
+	if len(nodegroups) == 0 {
 		logger.Info("no nodegroups to delete")
 		return nil
 	}
 
-	for _, nodeGroupName := range nodegroups.Nodegroups {
+	for _, nodeGroupName := range nodegroups {
 		out, err := c.ctl.Provider.EKS().DeleteNodegroup(&awseks.DeleteNodegroupInput{
 			ClusterName:   &clusterName,
 			NodegroupName: nodeGroupName,

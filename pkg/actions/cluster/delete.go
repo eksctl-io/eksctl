@@ -52,7 +52,6 @@ func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, cli
 			return err
 		}
 	}
-	logger.Success("all cluster resources were deleted")
 	return nil
 }
 

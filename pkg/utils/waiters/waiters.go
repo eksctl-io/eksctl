@@ -77,7 +77,7 @@ func makeWaiter(ctx context.Context, name, msg string, acceptors []request.Waite
 }
 
 // MakeAcceptors constructs a slice of request acceptors
-func MakeAcceptors(statusPath string, successStatus string, failureStates []string, extraAcceptors ...request.WaiterAcceptor) []request.WaiterAcceptor {
+func MakeAcceptors(statusPath string, successStatus interface{}, failureStates []string, extraAcceptors ...request.WaiterAcceptor) []request.WaiterAcceptor {
 	acceptors := []request.WaiterAcceptor{makeStatusAcceptor(successStatus, statusPath)}
 	acceptors[0].State = request.SuccessWaiterState
 
@@ -90,7 +90,7 @@ func MakeAcceptors(statusPath string, successStatus string, failureStates []stri
 	return acceptors
 }
 
-func makeStatusAcceptor(status string, statusPath string) request.WaiterAcceptor {
+func makeStatusAcceptor(status interface{}, statusPath string) request.WaiterAcceptor {
 	return request.WaiterAcceptor{
 		Matcher:  request.PathAllWaiterMatch,
 		Argument: statusPath,

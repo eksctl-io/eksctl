@@ -51,23 +51,27 @@ var _ = Describe("Delete", func() {
 
 		p.MockEC2().On("DescribeSecurityGroupsWithContext", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
 
-		//first call we list 1 nodegroup
-		p.MockEKS().On("ListNodegroups", mock.MatchedBy(func(input *awseks.ListNodegroupsInput) bool {
+		p.MockEKS().On("ListNodegroupsPages", mock.MatchedBy(func(input *awseks.ListNodegroupsInput) bool {
 			Expect(*input.ClusterName).To(Equal(clusterName))
 			return true
-		})).Once().Return(&awseks.ListNodegroupsOutput{Nodegroups: aws.StringSlice([]string{"ng-1"})}, nil)
+		}), mock.Anything).Run(func(args mock.Arguments) {
+			consume := args[1].(func(ng *awseks.ListNodegroupsOutput, _ bool) bool)
+			out := &awseks.ListNodegroupsOutput{
+				Nodegroups: aws.StringSlice([]string{"ng-1"}),
+			}
+			cont := consume(out, true)
+			if !cont {
+				panic("unexpected return value from the paging function: shouldContinue was false which isn't expected in this test scenario")
+			}
+		}).Return(nil)
+
+		p.MockEKS().On("ListNodegroups", mock.Anything).Return(&awseks.ListNodegroupsOutput{}, nil)
 
 		p.MockEKS().On("DeleteNodegroup", mock.MatchedBy(func(input *awseks.DeleteNodegroupInput) bool {
 			Expect(*input.ClusterName).To(Equal(clusterName))
 			Expect(*input.NodegroupName).To(Equal("ng-1"))
 			return true
 		})).Return(&awseks.DeleteNodegroupOutput{}, nil)
-
-		//second call we list no nodegroups as its been successfully deleted in the above call
-		p.MockEKS().On("ListNodegroups", mock.MatchedBy(func(input *awseks.ListNodegroupsInput) bool {
-			Expect(*input.ClusterName).To(Equal(clusterName))
-			return true
-		})).Once().Return(&awseks.ListNodegroupsOutput{}, nil)
 
 		p.MockEKS().On("DeleteCluster", mock.Anything).Return(&awseks.DeleteClusterOutput{}, nil)
 
