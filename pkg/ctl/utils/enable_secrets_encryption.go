@@ -33,6 +33,8 @@ func enableSecretsEncryptionWithHandler(cmd *cmdutils.Cmd, handler func(*cmdutil
 		return handler(cmd, encrypt)
 	}
 
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
+
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
@@ -43,7 +45,6 @@ func enableSecretsEncryptionWithHandler(cmd *cmdutils.Cmd, handler func(*cmdutil
 		fs.BoolVar(&encrypt, "encrypt", true, "Encrypt all existing secrets with the new key")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
 func enableSecretsEncryptionCmd(cmd *cmdutils.Cmd) {
@@ -67,7 +68,7 @@ func doEnableSecretsEncryption(cmd *cmdutils.Cmd, encrypt bool) error {
 		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
 	}
 
-	if ok, err := ctl.CanUpdate(clusterConfig); !ok {
+	if err := ctl.RefreshClusterStatus(clusterConfig); err != nil {
 		return err
 	}
 
@@ -81,8 +82,6 @@ func doEnableSecretsEncryption(cmd *cmdutils.Cmd, encrypt bool) error {
 	if err := ctl.EnableKMSEncryption(ctx, clusterConfig); err != nil {
 		return err
 	}
-
-	logger.Info("KMS encryption successfully enabled")
 
 	if encrypt {
 		logger.Info("updating all Secret resources to apply KMS encryption")

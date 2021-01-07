@@ -158,6 +158,22 @@ func (c *ClusterProvider) UpdatePublicAccessCIDRs(clusterConfig *api.ClusterConf
 // EnableKMSEncryption enables KMS encryption for the specified cluster
 func (c *ClusterProvider) EnableKMSEncryption(ctx context.Context, clusterConfig *api.ClusterConfig) error {
 	clusterName := aws.String(clusterConfig.Metadata.Name)
+	clusterOutput, err := c.Provider.EKS().DescribeCluster(&eks.DescribeClusterInput{
+		Name: clusterName,
+	})
+	if err != nil {
+		return errors.Wrap(err, "error describing cluster")
+	}
+	for _, e := range clusterOutput.Cluster.EncryptionConfig {
+		if len(e.Resources) == 1 && *e.Resources[0] == "secrets" {
+			if existingKey := *e.Provider.KeyArn; existingKey != clusterConfig.SecretsEncryption.KeyARN {
+				return errors.Errorf("KMS encryption is already enabled with key %q, changing the key is not supported", existingKey)
+			}
+			logger.Info("KMS encryption is already enabled on the cluster")
+			return nil
+		}
+	}
+
 	output, err := c.Provider.EKS().AssociateEncryptionConfigWithContext(ctx, &eks.AssociateEncryptionConfigInput{
 		ClusterName: clusterName,
 		EncryptionConfig: []*eks.EncryptionConfig{
