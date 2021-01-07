@@ -20,8 +20,11 @@ func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (*Unown
 
 func (c *UnownedCluster) Upgrade(dryRun bool) error {
 	versionUpdateRequired, err := upgrade(c.cfg, c.ctl, dryRun)
+	if err != nil {
+		return err
+	}
 
 	// if no version update is required, don't log asking them to rerun with --approve
 	cmdutils.LogPlanModeWarning(dryRun && versionUpdateRequired)
-	return err
+	return nil
 }
