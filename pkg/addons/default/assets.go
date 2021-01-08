@@ -315,7 +315,7 @@ type bintree struct {
 }
 
 var _bintree = &bintree{nil, map[string]*bintree{
-	"aws-node.yaml":     {awsNodeYaml, map[string]*bintree{}},
+	"aws-node.yaml": {awsNodeYaml, map[string]*bintree{}},
 	"coredns-1.15.json": {coredns115Json, map[string]*bintree{}},
 	"coredns-1.16.json": {coredns116Json, map[string]*bintree{}},
 	"coredns-1.17.json": {coredns117Json, map[string]*bintree{}},
