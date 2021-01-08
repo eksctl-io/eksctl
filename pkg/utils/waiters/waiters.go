@@ -12,6 +12,31 @@ import (
 	"github.com/pkg/errors"
 )
 
+func WaitForCondition(waitTimeout, waitInterval time.Duration, returnErr error, condition func() (bool, error)) error {
+	ticker := time.NewTicker(waitInterval)
+	defer ticker.Stop()
+
+	timer := time.NewTimer(waitTimeout)
+	defer timer.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			finished, err := condition()
+			if err != nil {
+				return err
+			}
+
+			if finished {
+				return nil
+			}
+
+		case <-timer.C:
+			return returnErr
+		}
+	}
+}
+
 // Wait for something with a name to reach status that is expressed by acceptors using newRequest
 // until we hit waitTimeout, on unexpected status troubleshoot will be called with the desired
 // status as an argument, so that it can find what migth have gone wrong
@@ -52,7 +77,7 @@ func makeWaiter(ctx context.Context, name, msg string, acceptors []request.Waite
 }
 
 // MakeAcceptors constructs a slice of request acceptors
-func MakeAcceptors(statusPath string, successStatus string, failureStates []string, extraAcceptors ...request.WaiterAcceptor) []request.WaiterAcceptor {
+func MakeAcceptors(statusPath string, successStatus interface{}, failureStates []string, extraAcceptors ...request.WaiterAcceptor) []request.WaiterAcceptor {
 	acceptors := []request.WaiterAcceptor{makeStatusAcceptor(successStatus, statusPath)}
 	acceptors[0].State = request.SuccessWaiterState
 
@@ -65,12 +90,23 @@ func MakeAcceptors(statusPath string, successStatus string, failureStates []stri
 	return acceptors
 }
 
-func makeStatusAcceptor(status string, statusPath string) request.WaiterAcceptor {
+func makeStatusAcceptor(status interface{}, statusPath string) request.WaiterAcceptor {
 	return request.WaiterAcceptor{
 		Matcher:  request.PathAllWaiterMatch,
 		Argument: statusPath,
 		Expected: status,
 		State:    request.FailureWaiterState,
+	}
+}
+
+// MakeAcceptors constructs a slice of request acceptors for error codes
+func MakeErrorCodeAcceptors(errorCode string) []request.WaiterAcceptor {
+	return []request.WaiterAcceptor{
+		{
+			Matcher:  request.ErrorWaiterMatch,
+			Expected: errorCode,
+			State:    request.SuccessWaiterState,
+		},
 	}
 }
 

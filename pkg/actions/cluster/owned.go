@@ -1,12 +1,18 @@
 package cluster
 
 import (
+	"time"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/gitops"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 type OwnedCluster struct {
@@ -53,4 +59,69 @@ func (c *OwnedCluster) Upgrade(dryRun bool) error {
 
 	cmdutils.LogPlanModeWarning(dryRun && (stackUpdateRequired || versionUpdateRequired))
 	return nil
+}
+
+func (c *OwnedCluster) Delete(_ time.Duration, wait bool) error {
+	var (
+		clientSet kubernetes.Interface
+		oidc      *iamoidc.OpenIDConnectManager
+	)
+
+	clusterOperable, err := c.ctl.CanOperate(c.cfg)
+	if err != nil {
+		logger.Debug("failed to check if cluster is operable: %v", err)
+	}
+
+	oidcSupported := true
+	if clusterOperable {
+		var err error
+		clientSet, err = c.ctl.NewStdClientSet(c.cfg)
+		if err != nil {
+			return err
+		}
+
+		oidc, err = c.ctl.NewOpenIDConnectManager(c.cfg)
+		if err != nil {
+			if _, ok := err.(*eks.UnsupportedOIDCError); !ok {
+				return err
+			}
+			oidcSupported = false
+		}
+	}
+
+	if err := deleteSharedResources(c.cfg, c.ctl, clientSet); err != nil {
+		return err
+	}
+
+	deleteOIDCProvider := clusterOperable && oidcSupported
+	tasks, err := c.ctl.NewStackManager(c.cfg).NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvider, oidc, kubernetes.NewCachedClientSet(clientSet), wait, func(errs chan error, _ string) error {
+		logger.Info("trying to cleanup dangling network interfaces")
+		if err := c.ctl.LoadClusterVPC(c.cfg); err != nil {
+			return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
+		}
+
+		go func() {
+			errs <- vpc.CleanupNetworkInterfaces(c.ctl.Provider.EC2(), c.cfg)
+			close(errs)
+		}()
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if tasks.Len() == 0 {
+		logger.Warning("no cluster resources were found for %q", c.cfg.Metadata.Name)
+		return nil
+	}
+
+	logger.Info(tasks.Describe())
+	if errs := tasks.DoAllSync(); len(errs) > 0 {
+		return handleErrors(errs, "cluster with nodegroup(s)")
+	}
+
+	logger.Success("all cluster resources were deleted")
+
+	return gitops.DeleteKey(c.cfg)
 }
