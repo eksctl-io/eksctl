@@ -21,14 +21,14 @@ const kmsAnnotation = "eksctl.io/kms-reencryption-timestamp"
 func RefreshSecrets(ctx context.Context, c v1.CoreV1Interface) error {
 	var cont string
 	for {
-		list, err := c.Secrets(metav1.NamespaceAll).List(metav1.ListOptions{
+		list, err := c.Secrets(metav1.NamespaceAll).List(ctx, metav1.ListOptions{
 			Continue: cont,
 		})
 		if err != nil {
 			return errors.Wrap(err, "error listing resources")
 		}
 		for _, secret := range list.Items {
-			if err := refreshSecret(c, secret); err != nil {
+			if err := refreshSecret(ctx, c, secret); err != nil {
 				return errors.Wrapf(err, "error updating secret %q", secret.Name)
 			}
 		}
@@ -66,12 +66,12 @@ func createPatch(o runtime.Object, annotationName string) ([]byte, error) {
 	return jsonpatch.CreateMergePatch(oldData, modifiedData)
 }
 
-func refreshSecret(c v1.CoreV1Interface, s corev1.Secret) error {
+func refreshSecret(ctx context.Context, c v1.CoreV1Interface, s corev1.Secret) error {
 	patch, err := createPatch(&s, kmsAnnotation)
 	if err != nil {
 		return errors.Wrap(err, "unexpected error creating JSON patch")
 	}
-	if _, err := c.Secrets(s.Namespace).Patch(s.Name, types.StrategicMergePatchType, patch); err != nil {
+	if _, err := c.Secrets(s.Namespace).Patch(ctx, s.Name, types.StrategicMergePatchType, patch, metav1.PatchOptions{}); err != nil {
 		return errors.Wrap(err, "error updating secret")
 	}
 	return nil
