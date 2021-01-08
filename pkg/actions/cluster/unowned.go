@@ -96,24 +96,24 @@ func (c *UnownedCluster) checkClusterExists(clusterName string) error {
 }
 
 func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clientSetGetter kubernetes.ClientSetGetter) error {
-	clusterOperable, _ := c.ctl.CanOperate(c.cfg)
+      var oidc *iamoidc.OpenIDConnectManager
 
-	var oidc *iamoidc.OpenIDConnectManager
-	var err error
-	stackManager := c.ctl.NewStackManager(c.cfg)
+      clusterOperable, _ := c.ctl.CanOperate(c.cfg)
+      oidcSupported := true
 
-	oidcSupported := true
-	if clusterOperable {
-		oidc, err = c.ctl.NewOpenIDConnectManager(c.cfg)
-		if err != nil {
-			if _, ok := err.(*eks.UnsupportedOIDCError); !ok {
-				return err
-			}
-			oidcSupported = false
-		}
-	}
+      if clusterOperable {
+            var err error
+            oidc, err = c.ctl.NewOpenIDConnectManager(c.cfg)
+            if err != nil {
+                  if _, ok := err.(*eks.UnsupportedOIDCError); !ok {
+                        return err
+                  }
+                  oidcSupported = false
+            }
+      }
 
-	tasksTree := &tasks.TaskTree{Parallel: false}
+      tasksTree := &tasks.TaskTree{Parallel: false}
+      stackManager := c.ctl.NewStackManager(c.cfg)
 
 	if clusterOperable && oidcSupported {
 		serviceAccountAndOIDCTasks, err := stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc, clientSetGetter)
