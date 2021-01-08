@@ -7,16 +7,17 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
 // NewTasksToCreateClusterWithNodeGroups defines all tasks required to create a cluster along
 // with some nodegroups; see CreateAllNodeGroups for how onlyNodeGroupSubset works
 func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*api.NodeGroup,
-	managedNodeGroups []*api.ManagedNodeGroup, supportsManagedNodes bool, postClusterCreationTasks ...Task) *TaskTree {
+	managedNodeGroups []*api.ManagedNodeGroup, supportsManagedNodes bool, postClusterCreationTasks ...tasks.Task) *tasks.TaskTree {
 
-	tasks := TaskTree{Parallel: false}
+	taskTree := tasks.TaskTree{Parallel: false}
 
-	tasks.Append(
+	taskTree.Append(
 		&createClusterTask{
 			info:                 fmt.Sprintf("create cluster control plane %q", c.spec.Metadata.Name),
 			stackCollection:      c,
@@ -24,12 +25,12 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 		},
 	)
 
-	appendNodeGroupTasksTo := func(taskTree *TaskTree) {
+	appendNodeGroupTasksTo := func(taskTree *tasks.TaskTree) {
 		nodeGroupTasks := c.NewUnmanagedNodeGroupTask(nodeGroups, supportsManagedNodes, false)
 
 		managedNodeGroupTasks := c.NewManagedNodeGroupTask(managedNodeGroups, false)
 		if managedNodeGroupTasks.Len() > 0 {
-			nodeGroupTasks.Append(managedNodeGroupTasks.tasks...)
+			nodeGroupTasks.Append(managedNodeGroupTasks.Tasks...)
 		}
 
 		if nodeGroupTasks.Len() > 0 {
@@ -39,26 +40,26 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 	}
 
 	if len(postClusterCreationTasks) > 0 {
-		postClusterCreationTaskTree := TaskTree{
+		postClusterCreationTaskTree := tasks.TaskTree{
 			Parallel:  false,
 			IsSubTask: true,
 		}
 		postClusterCreationTaskTree.Append(postClusterCreationTasks...)
 		appendNodeGroupTasksTo(&postClusterCreationTaskTree)
-		tasks.Append(&postClusterCreationTaskTree)
+		taskTree.Append(&postClusterCreationTaskTree)
 	} else {
-		appendNodeGroupTasksTo(&tasks)
+		appendNodeGroupTasksTo(&taskTree)
 	}
 
-	return &tasks
+	return &taskTree
 }
 
 // NewUnmanagedNodeGroupTask defines tasks required to create all of the nodegroups
-func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup, supportsManagedNodes bool, forceAddCNIPolicy bool) *TaskTree {
-	tasks := &TaskTree{Parallel: true}
+func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup, supportsManagedNodes bool, forceAddCNIPolicy bool) *tasks.TaskTree {
+	taskTree := &tasks.TaskTree{Parallel: true}
 
 	for _, ng := range nodeGroups {
-		tasks.Append(&nodeGroupTask{
+		taskTree.Append(&nodeGroupTask{
 			info:                 fmt.Sprintf("create nodegroup %q", ng.NameString()),
 			nodeGroup:            ng,
 			stackCollection:      c,
@@ -68,26 +69,26 @@ func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup,
 		// TODO: move authconfigmap tasks here using kubernetesTask and kubernetes.CallbackClientSet
 	}
 
-	return tasks
+	return taskTree
 }
 
 // NewManagedNodeGroupTask defines tasks required to create managed nodegroups
-func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool) *TaskTree {
-	tasks := &TaskTree{Parallel: true}
+func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool) *tasks.TaskTree {
+	taskTree := &tasks.TaskTree{Parallel: true}
 	for _, ng := range nodeGroups {
-		tasks.Append(&managedNodeGroupTask{
+		taskTree.Append(&managedNodeGroupTask{
 			stackCollection:   c,
 			nodeGroup:         ng,
 			forceAddCNIPolicy: forceAddCNIPolicy,
 			info:              fmt.Sprintf("create managed nodegroup %q", ng.Name),
 		})
 	}
-	return tasks
+	return taskTree
 }
 
 // NewClusterCompatTask creates a new task that checks for cluster compatibility with new features like
 // Managed Nodegroups and Fargate, and updates the CloudFormation cluster stack if the required resources are missing
-func (c *StackCollection) NewClusterCompatTask() Task {
+func (c *StackCollection) NewClusterCompatTask() tasks.Task {
 	return &clusterCompatTask{
 		stackCollection: c,
 		info:            "fix cluster compatibility",
@@ -95,12 +96,12 @@ func (c *StackCollection) NewClusterCompatTask() Task {
 }
 
 // NewTasksToCreateIAMServiceAccounts defines tasks required to create all of the IAM ServiceAccounts
-func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) *TaskTree {
-	tasks := &TaskTree{Parallel: true}
+func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) *tasks.TaskTree {
+	taskTree := &tasks.TaskTree{Parallel: true}
 
 	for i := range serviceAccounts {
 		sa := serviceAccounts[i]
-		saTasks := &TaskTree{
+		saTasks := &tasks.TaskTree{
 			Parallel:  false,
 			IsSubTask: true,
 		}
@@ -124,7 +125,7 @@ func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*
 			},
 		})
 
-		tasks.Append(saTasks)
+		taskTree.Append(saTasks)
 	}
-	return tasks
+	return taskTree
 }

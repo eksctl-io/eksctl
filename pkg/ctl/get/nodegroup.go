@@ -88,6 +88,9 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 
 	// Empty summary implies no nodegroups
 	if len(summaries) == 0 {
+		if ng.Name == "" {
+			return errors.Errorf("No nodegroups found")
+		}
 		return errors.Errorf("Nodegroup with name %v not found", ng.Name)
 	}
 
