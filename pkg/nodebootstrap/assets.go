@@ -337,12 +337,12 @@ type bintree struct {
 }
 
 var _bintree = &bintree{nil, map[string]*bintree{
-	"10-eksclt.al2.conf": {_10EkscltAl2Conf, map[string]*bintree{}},
-	"bootstrap.al2.sh": {bootstrapAl2Sh, map[string]*bintree{}},
+	"10-eksclt.al2.conf":  {_10EkscltAl2Conf, map[string]*bintree{}},
+	"bootstrap.al2.sh":    {bootstrapAl2Sh, map[string]*bintree{}},
 	"bootstrap.ubuntu.sh": {bootstrapUbuntuSh, map[string]*bintree{}},
-	"docker-daemon.json": {dockerDaemonJson, map[string]*bintree{}},
-	"install-ssm.al2.sh": {installSsmAl2Sh, map[string]*bintree{}},
-	"kubelet.yaml": {kubeletYaml, map[string]*bintree{}},
+	"docker-daemon.json":  {dockerDaemonJson, map[string]*bintree{}},
+	"install-ssm.al2.sh":  {installSsmAl2Sh, map[string]*bintree{}},
+	"kubelet.yaml":        {kubeletYaml, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory.

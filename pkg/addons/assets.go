@@ -381,14 +381,14 @@ type bintree struct {
 }
 
 var _bintree = &bintree{nil, map[string]*bintree{
-	"neuron-device-plugin.yaml": {neuronDevicePluginYaml, map[string]*bintree{}},
-	"nvidia-device-plugin.yaml": {nvidiaDevicePluginYaml, map[string]*bintree{}},
+	"neuron-device-plugin.yaml":         {neuronDevicePluginYaml, map[string]*bintree{}},
+	"nvidia-device-plugin.yaml":         {nvidiaDevicePluginYaml, map[string]*bintree{}},
 	"vpc-admission-webhook-config.yaml": {vpcAdmissionWebhookConfigYaml, map[string]*bintree{}},
-	"vpc-admission-webhook-csr.yaml": {vpcAdmissionWebhookCsrYaml, map[string]*bintree{}},
-	"vpc-admission-webhook-dep.yaml": {vpcAdmissionWebhookDepYaml, map[string]*bintree{}},
-	"vpc-admission-webhook.yaml": {vpcAdmissionWebhookYaml, map[string]*bintree{}},
-	"vpc-resource-controller-dep.yaml": {vpcResourceControllerDepYaml, map[string]*bintree{}},
-	"vpc-resource-controller.yaml": {vpcResourceControllerYaml, map[string]*bintree{}},
+	"vpc-admission-webhook-csr.yaml":    {vpcAdmissionWebhookCsrYaml, map[string]*bintree{}},
+	"vpc-admission-webhook-dep.yaml":    {vpcAdmissionWebhookDepYaml, map[string]*bintree{}},
+	"vpc-admission-webhook.yaml":        {vpcAdmissionWebhookYaml, map[string]*bintree{}},
+	"vpc-resource-controller-dep.yaml":  {vpcResourceControllerDepYaml, map[string]*bintree{}},
+	"vpc-resource-controller.yaml":      {vpcResourceControllerYaml, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory.
