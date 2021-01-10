@@ -54,6 +54,8 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMSer
 		return err
 	}
 
+	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+
 	cfg := cmd.ClusterConfig
 
 	ctl, err := cmd.NewCtl()

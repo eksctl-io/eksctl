@@ -58,6 +58,8 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 		return err
 	}
 
+	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
 	}

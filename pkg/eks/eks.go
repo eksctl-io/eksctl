@@ -39,7 +39,7 @@ func (c *ClusterProvider) DescribeControlPlane(meta *api.ClusterMeta) (*awseks.C
 	}
 	output, err := c.Provider.EKS().DescribeCluster(input)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("Unable to describe cluster control plane in the region %q", meta.Region))
+		return nil, errors.Wrap(err, "unable to describe cluster control plane")
 	}
 	return output.Cluster, nil
 }
