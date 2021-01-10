@@ -1,6 +1,8 @@
 package cluster
 
 import (
+	"time"
+
 	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -9,6 +11,7 @@ import (
 
 type Cluster interface {
 	Upgrade(dryRun bool) error
+	Delete(waitInterval time.Duration, wait bool) error
 }
 
 func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
@@ -24,5 +27,9 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
 	}
 	logger.Debug("Cluster %q was not created by eksctl", cfg.Metadata.Name)
 
-	return NewUnownedCluster(cfg, ctl)
+	clientSet, err := ctl.NewStdClientSet(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return NewUnownedCluster(cfg, ctl, clientSet), nil
 }
