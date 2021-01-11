@@ -451,14 +451,15 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 }
 
 func (c *StackCollection) IsClusterStack() (bool, error) {
+	clusterStackName := c.makeClusterStackName()
 	stacks, err := c.DescribeStacks()
 	if err != nil {
 		return false, err
 	}
 	for _, stack := range stacks {
-		if *stack.StackName == c.makeClusterStackName() {
+		if *stack.StackName == clusterStackName {
 			for _, tag := range stack.Tags {
-				if *tag.Key == api.ClusterNameTag && *tag.Value == c.spec.Metadata.Name {
+				if matchesClusterName(*tag.Key, *tag.Value, c.spec.Metadata.Name) {
 					return true, nil
 				}
 			}
