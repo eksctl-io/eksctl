@@ -5,7 +5,6 @@ import (
 
 	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
@@ -15,13 +14,17 @@ type Cluster interface {
 }
 
 func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
+	if err := ctl.RefreshClusterStatus(cfg); err != nil {
+		return nil, err
+	}
+
 	stackManager := ctl.NewStackManager(cfg)
-	stacks, err := stackManager.DescribeStacks()
+	isClusterStack, err := stackManager.IsClusterStack()
 	if err != nil {
 		return nil, err
 	}
 
-	if manager.IsClusterStack(stacks) {
+	if isClusterStack {
 		logger.Debug("Cluster %q was created by eksctl", cfg.Metadata.Name)
 		return NewOwnedCluster(cfg, ctl, stackManager)
 	}
