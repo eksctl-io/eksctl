@@ -14,7 +14,7 @@ clear, we also accept contributions to this contribution doc :smile:.
 For information on how to get in touch, or how the project is run, please see
 the [Community page](COMMUNITY.md).
 
-_(If you are a Maintainer, head over to the [Maintainers guide](link coming soon before I merge).)_
+_(If you are a Maintainer, head over to the [Maintainer's guide](https://github.com/weaveworks/eksctl-handbook).)_
 
 Reading docs is often tedious, so we'll put our most important contributing rule
 right at the top: **Always be kind!**
