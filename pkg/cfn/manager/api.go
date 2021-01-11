@@ -450,11 +450,13 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 	return stacks, nil
 }
 
-func IsClusterStack(stacks []*Stack) bool {
+func IsClusterStack(clusterName string, stacks []*Stack) bool {
 	for _, stack := range stacks {
-		for _, output := range stack.Outputs {
-			if *output.OutputKey == "ClusterStackName" {
-				return true
+		if *stack.StackName == fmt.Sprintf("eksctl-%s-cluster", clusterName) {
+			for _, tag := range stack.Tags {
+				if *tag.Key == "alpha.eksctl.io/cluster-name" && *tag.Value == clusterName {
+					return true
+				}
 			}
 		}
 	}

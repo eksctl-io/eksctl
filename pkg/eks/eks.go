@@ -348,7 +348,7 @@ func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, e
 			if err != nil {
 				managed = eksctlCreatedUnknown
 				logger.Warning("error fetching stacks for cluster %s: %v", clusterName, err)
-			} else if manager.IsClusterStack(stacks) {
+			} else if manager.IsClusterStack(*clusterName, stacks) {
 				managed = eksctlCreatedTrue
 			}
 			allClusters = append(allClusters, &api.ClusterConfig{
