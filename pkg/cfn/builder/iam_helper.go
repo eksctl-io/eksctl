@@ -45,12 +45,8 @@ func createWellKnownPolicies(wellKnownPolicies api.WellKnownPolicies) []customPo
 		policies = append(policies,
 			customPolicy{Name: "PolicyCertManagerChangeSet", Statements: changeSetStatements()},
 			customPolicy{Name: "PolicyCertManagerGetChange", Statements: certManagerGetChangeStatements()},
+			customPolicy{Name: "PolicyCertManagerHostedZones", Statements: certManagerHostedZonesStatements()},
 		)
-		if wellKnownPolicies.ExternalDNS {
-			policies = append(policies, customPolicy{Name: "PolicyCertManagerHostedZones", Statements: certManagerHostedZonesStatements("route53:ListHostedZones", "route53:ListTagsForResource")})
-		} else {
-			policies = append(policies, customPolicy{Name: "PolicyCertManagerHostedZones", Statements: certManagerHostedZonesStatements()})
-		}
 	}
 	return policies
 }
@@ -83,13 +79,10 @@ func createRole(cfnTemplate cfnTemplate, clusterIAMConfig *api.ClusterIAM, iamCo
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.CertManager) {
 		cfnTemplate.attachAllowPolicy("PolicyCertManagerChangeSet", refIR, changeSetStatements())
-		if api.IsEnabled(iamConfig.WithAddonPolicies.ExternalDNS) {
-			cfnTemplate.attachAllowPolicy("PolicyCertManagerHostedZones", refIR, certManagerHostedZonesStatements("route53:ListHostedZones", "route53:ListTagsForResource"))
-		} else {
-			cfnTemplate.attachAllowPolicy("PolicyCertManagerHostedZones", refIR, certManagerHostedZonesStatements())
-		}
+		cfnTemplate.attachAllowPolicy("PolicyCertManagerHostedZones", refIR, certManagerHostedZonesStatements())
 		cfnTemplate.attachAllowPolicy("PolicyCertManagerGetChange", refIR, certManagerGetChangeStatements())
-	} else if api.IsEnabled(iamConfig.WithAddonPolicies.ExternalDNS) {
+	}
+	if api.IsEnabled(iamConfig.WithAddonPolicies.ExternalDNS) {
 		cfnTemplate.attachAllowPolicy("PolicyExternalDNSChangeSet", refIR, changeSetStatements())
 		cfnTemplate.attachAllowPolicy("PolicyExternalDNSHostedZones", refIR, externalDNSHostedZonesStatements())
 	}
