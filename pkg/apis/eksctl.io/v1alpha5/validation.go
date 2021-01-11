@@ -274,7 +274,7 @@ func validateVolumeOpts(ng *NodeGroupBase, path string) error {
 }
 
 func ValidateIdentityProvider(idP IdentityProvider) error {
-	switch idP := idP.Inner().(type) {
+	switch idP := (idP.Inner).(type) {
 	case *OIDCIdentityProvider:
 		if idP.Name == "" {
 			return setNonEmpty("name")

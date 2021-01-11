@@ -42,7 +42,7 @@ var _ = Describe("Associate", func() {
 		manager := identityproviders.NewManager(api.ClusterMeta{}, &eksAPI)
 		err := manager.Associate(identityproviders.AssociateIdentityProvidersOptions{
 			Providers: []api.IdentityProvider{
-				api.NewIdentityProvider(&api.OIDCIdentityProvider{
+				{Inner: &api.OIDCIdentityProvider{
 					Name:           "pool-1",
 					IssuerURL:      "url",
 					ClientID:       "id",
@@ -52,7 +52,7 @@ var _ = Describe("Associate", func() {
 					GroupsPrefix:   "groupsPrefix",
 					RequiredClaims: map[string]string{"permission": "true"},
 					Tags:           map[string]string{"department": "a"},
-				}),
+				}},
 			},
 		})
 		Expect(err).NotTo(HaveOccurred())
@@ -78,7 +78,7 @@ var _ = Describe("Associate", func() {
 		err := manager.Associate(identityproviders.AssociateIdentityProvidersOptions{
 			WaitTimeout: &wait,
 			Providers: []api.IdentityProvider{
-				api.NewIdentityProvider(&api.OIDCIdentityProvider{
+				api.IdentityProvider{Inner: &api.OIDCIdentityProvider{
 					Name:           "pool-1",
 					IssuerURL:      "url",
 					ClientID:       "id",
@@ -88,7 +88,7 @@ var _ = Describe("Associate", func() {
 					GroupsPrefix:   "groupsPrefix",
 					RequiredClaims: map[string]string{"permission": "true"},
 					Tags:           map[string]string{"department": "a"},
-				}),
+				}},
 			},
 		})
 		Expect(err).NotTo(HaveOccurred())

@@ -15,7 +15,7 @@ const (
 // IdentityProviderInterface is a dummy interface
 // to give some extra type safety
 type IdentityProviderInterface interface {
-	isIdentityProvider()
+	DeepCopyIdentityProviderInterface() IdentityProviderInterface
 }
 
 // The idea of the `IdentityProvider` struct is to hold an identity provider
@@ -36,42 +36,12 @@ type IdentityProvider struct {
 	// Valid variants are:
 	// `"oidc"`: OIDC identity provider
 	// +required
-	Type  string `json:"type"`
-	inner IdentityProviderInterface
+	type_  string `json:"type"`
+	Inner IdentityProviderInterface
 }
 
-func NewIdentityProvider(inner IdentityProviderInterface) IdentityProvider {
-	var type_ string
-	switch inner.(type) {
-	case *OIDCIdentityProvider:
-		type_ = string(OIDCIdentityProviderType)
-	default:
-		panic("unknown inner identity provider in IdentityProvider")
-	}
-	return IdentityProvider{
-		Type:  type_,
-		inner: inner,
-	}
-}
-
-// DeepCopy is needed to generate kubernetes types for IdentityProvider
-func (in *IdentityProvider) DeepCopy() *IdentityProvider {
-	if in == nil {
-		return nil
-	}
-	out := new(IdentityProvider)
-	switch idP := in.inner.(type) {
-	case *OIDCIdentityProvider:
-		out.inner = idP.DeepCopy()
-	default:
-		panic("unknown inner identity provider in IdentityProvider")
-	}
-	return out
-}
-
-// Inner returns the contained identity provider
-func (ip *IdentityProvider) Inner() IdentityProviderInterface {
-	return ip.inner
+func (in *OIDCIdentityProvider) DeepCopyIdentityProviderInterface() IdentityProviderInterface {
+	return in.DeepCopy()
 }
 
 func (ip *IdentityProvider) UnmarshalJSON(data []byte) error {
@@ -81,22 +51,26 @@ func (ip *IdentityProvider) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &typ); err != nil {
 		return err
 	}
+	var inner IdentityProviderInterface
 	switch typ.Type {
 	case string(OIDCIdentityProviderType):
 		oidc := new(OIDCIdentityProvider)
 		if err := json.Unmarshal(data, oidc); err != nil {
 			return err
 		}
-		ip.inner = oidc
+		inner = oidc
 	default:
 		return errors.New("couldn't unmarshal to IdentityProvider, invalid type")
 	}
+	ip.Inner = inner
 	return nil
 }
 
 // OIDCIdentityProvider holds the spec of an OIDC provider
 // to use for EKS authzn
 type OIDCIdentityProvider struct {
+	// Valid variants are:
+	// `"oidc"`: OIDC identity provider
 	// +required
 	Name string `json:"name,omitempty"`
 	// +required

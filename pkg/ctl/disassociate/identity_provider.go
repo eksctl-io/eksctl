@@ -85,7 +85,7 @@ func doDisassociateIdentityProvider(cmd *cmdutils.Cmd, provider identityprovider
 	if provider.Name == "" {
 		for _, generalIdP := range cfg.IdentityProviders {
 			var provider identityproviders.DisassociateIdentityProvider
-			switch idP := generalIdP.Inner().(type) {
+			switch idP := (generalIdP.Inner).(type) {
 			case *api.OIDCIdentityProvider:
 				provider = identityproviders.DisassociateIdentityProvider{
 					Name: idP.Name,

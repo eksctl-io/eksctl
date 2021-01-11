@@ -23,7 +23,7 @@ func (m *Manager) Associate(options AssociateIdentityProvidersOptions) error {
 	}
 
 	for _, generalIdP := range options.Providers {
-		switch idP := generalIdP.Inner().(type) {
+		switch idP := (generalIdP.Inner).(type) {
 		case *api.OIDCIdentityProvider:
 			taskTree.Append(&tasks.GenericTask{
 				Description: fmt.Sprintf("associate %s", idP.Name),
