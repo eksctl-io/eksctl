@@ -37,12 +37,12 @@ This means that 99% of the project operates like any other open-source one,
 with 1% of things happening in slightly secretive fashion as the maintainers
 work with the folks at Amazon to synchronise the release of cool new EKS stuff :sunglasses: .
 
-For that 99%, we strive to keep development open, transparent, and unbiased.
-Work is driven by community needs and user feedback, and we welcome all contributions
-in any form to the project.
+For that 99%, we strive to keep development open, and transparent.
+Work is driven through partnership with AWS and the needs of the community.
+We welcome all contributions and user feedback to the project.
 
 **The roles in the eksctl community are as follows:**
-- End users. IOW the reason why we are all here!
+- End users. In other words the reason why we are all here!
 - Community contributors. These could be end users themselves, or those working
   on their open-source game.
 - Maintainers. See [the maintainer docs](link coming soon before I merge) for a list

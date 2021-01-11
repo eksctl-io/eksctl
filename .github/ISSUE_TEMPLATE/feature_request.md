@@ -17,13 +17,6 @@ For more information on how to contribute to eksctl, please refer to our contrib
 https://github.com/weaveworks/eksctl/blob/master/CONTRIBUTING.md#opening-issues
 -->
 
-**Why do you want this feature?**
-<!--
-A clear and concise description of why you want this feature.
-What is it you are trying to accomplish?
-Include use-cases and any specific constraints you may have.
--->
-
 **What feature/behavior/change do you want?**
 <!--
 A clear and concise description of the change you would like to see in eksctl.
@@ -32,3 +25,9 @@ Do not hesitate, when appropriate, to share the exact commands or API you would 
 and/or to share a diagram (e.g.: asciiflow.com): "a picture is worth a thousand words".
 -->
 
+**Why do you want this feature?**
+<!--
+A clear and concise description of why you want this feature.
+What is it you are trying to accomplish?
+Include use-cases and any specific constraints you may have.
+-->

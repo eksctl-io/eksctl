@@ -8,7 +8,6 @@ assignees: ''
 ---
 
 <!--
-Thank you for opening this issue! You are helping make eksctl a better project :)
 In order to help us process this issue faster, please provide as much detail as possible.
 
 Before creating a new request for help, please search existing issue to see if you find a similar one.
