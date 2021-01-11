@@ -9,8 +9,6 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -343,12 +341,12 @@ func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, e
 
 		for _, clusterName := range clusters {
 			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: *clusterName}}
-			stacks, err := c.NewStackManager(spec).ListStacks()
+			isClusterStack, err := c.NewStackManager(spec).IsClusterStack()
 			managed := eksctlCreatedFalse
 			if err != nil {
 				managed = eksctlCreatedUnknown
 				logger.Warning("error fetching stacks for cluster %s: %v", clusterName, err)
-			} else if manager.IsClusterStack(*clusterName, stacks) {
+			} else if isClusterStack {
 				managed = eksctlCreatedTrue
 			}
 			allClusters = append(allClusters, &api.ClusterConfig{

@@ -450,17 +450,21 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 	return stacks, nil
 }
 
-func IsClusterStack(clusterName string, stacks []*Stack) bool {
+func (c *StackCollection) IsClusterStack() (bool, error) {
+	stacks, err := c.DescribeStacks()
+	if err != nil {
+		return false, err
+	}
 	for _, stack := range stacks {
-		if *stack.StackName == fmt.Sprintf("eksctl-%s-cluster", clusterName) {
+		if *stack.StackName == c.makeClusterStackName() {
 			for _, tag := range stack.Tags {
-				if *tag.Key == "alpha.eksctl.io/cluster-name" && *tag.Value == clusterName {
-					return true
+				if *tag.Key == api.ClusterNameTag && *tag.Value == c.spec.Metadata.Name {
+					return true, nil
 				}
 			}
 		}
 	}
-	return false
+	return false, nil
 }
 
 // DescribeStackEvents describes the events that have occurred on the stack
