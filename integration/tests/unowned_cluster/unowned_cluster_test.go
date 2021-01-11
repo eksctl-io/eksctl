@@ -26,15 +26,15 @@ var params *tests.Params
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
-	params = tests.NewParams("e2e")
+	params = tests.NewParams("unowned_clusters")
 }
 
 func TestE2E(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-var _ = Describe("(Integration) [non-eksctl created cluster & nodegroup support]", func() {
-	Context("Get, upgrade & delete cluster", func() {
+var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func() {
+	Context("Get, upgrade & delete cluster/nodegroups", func() {
 		var (
 			clusterName, ng1, ng2 string
 		)
