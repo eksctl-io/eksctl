@@ -25,6 +25,8 @@ This is a draft list of changes that could be made in a v1.0 release. Some of th
 
   - [`wait-nodes` command](https://github.com/weaveworks/eksctl/blob/2e3ce5b9d1fcc0bed960d88bfb4251da8479ab9f/pkg/ctl/utils/wait_nodes.go#L14-L16)
 
+  - [Fix typo in asset filename](https://github.com/weaveworks/eksctl/pull/3020)
+
 - New config spec. Needs its own proposal and will be heavily linked to [eksctl apply](https://github.com/weaveworks/eksctl/pull/3037)
 
 - Refactoring to consistently use or remove the `--approve` flag. This is used in some commands such as `eksctl upgrade cluster`
