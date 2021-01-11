@@ -28,16 +28,20 @@ func createWellKnownPolicies(wellKnownPolicies api.WellKnownPolicies) []customPo
 	var policies []customPolicy
 	if wellKnownPolicies.ImageBuilder {
 		policies = append(policies, customPolicy{NamedPolicies: []string{iamPolicyAmazonEC2ContainerRegistryPowerUser}})
-	} else if wellKnownPolicies.AutoScaler {
+	}
+	if wellKnownPolicies.AutoScaler {
 		policies = append(policies, customPolicy{Name: "PolicyAutoScaling", Statements: autoScalerStatements()})
-	} else if wellKnownPolicies.AWSLoadBalancer {
+	}
+	if wellKnownPolicies.AWSLoadBalancer {
 		policies = append(policies, customPolicy{Name: "PolicyAWSLoadBalancerController", Statements: loadBalancerControllerStatements()})
-	} else if wellKnownPolicies.ExternalDNS {
+	}
+	if wellKnownPolicies.ExternalDNS {
 		policies = append(policies,
 			customPolicy{Name: "PolicyExternalDNSChangeSet", Statements: changeSetStatements()},
 			customPolicy{Name: "PolicyExternalDNSHostedZones", Statements: externalDNSHostedZonesStatements()},
 		)
-	} else if wellKnownPolicies.CertManager {
+	}
+	if wellKnownPolicies.CertManager {
 		policies = append(policies,
 			customPolicy{Name: "PolicyCertManagerChangeSet", Statements: changeSetStatements()},
 			customPolicy{Name: "PolicyCertManagerGetChange", Statements: certManagerGetChangeStatements()},
