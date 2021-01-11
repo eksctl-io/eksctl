@@ -54,8 +54,6 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		return cmdutils.ErrFlagAndArg("--name", ng.Name, cmd.NameArg)
 	}
 
-	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
-
 	if cmd.NameArg != "" {
 		ng.Name = cmd.NameArg
 	}
@@ -69,6 +67,8 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 	if err != nil {
 		return err
 	}
+
+	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err

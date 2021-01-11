@@ -51,8 +51,6 @@ func getLabels(cmd *cmdutils.Cmd, nodeGroupName string) error {
 		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
 	}
 
-	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
-
 	if cmd.NameArg != "" {
 		return cmdutils.ErrUnsupportedNameArg()
 	}
@@ -62,6 +60,8 @@ func getLabels(cmd *cmdutils.Cmd, nodeGroupName string) error {
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
+
+	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 
 	stackCollection := manager.NewStackCollection(ctl.Provider, cfg)
 	managedService := managed.NewService(ctl.Provider, stackCollection, cfg.Metadata.Name)
