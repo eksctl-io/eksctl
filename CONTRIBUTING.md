@@ -1,11 +1,51 @@
-# How to Contribute
+# eksctl :heart:s your contributions
 
-*eksctl* is [Apache 2.0 licenced](LICENSE) and accepts contributions via GitHub
-pull requests. This document outlines some of the conventions on the development
-workflow, commit message formatting, contact points and other resources to make
-it easier to get your contribution accepted.
+Thank you for taking the time to contribute to `eksctl`.
 
-We gratefully welcome improvements to documentation as well as to code.
+We gratefully welcome improvements to all areas; from code, to documentation;
+from bug reports to feature design.
+
+This guide should cover all aspects of how to interact with the project
+and how to get involved in development as smoothly as possible.
+
+If we have missed anything you think should be included, or if anything is not
+clear, we also accept contributions to this contribution doc :smile:.
+
+For information on how to get in touch, or how the project is run, please see
+the [Community page](COMMUNITY.md).
+
+_(If you are a Maintainer, head over to the [Maintainers guide](link coming soon before I merge).)_
+
+Reading docs is often tedious, so we'll put our most important contributing rule
+right at the top: **Always be kind!**
+
+Looking forward to seeing you in the repo! :sparkles:
+
+# Table of Contents
+
+- [Legal bits](#legal-bits)
+- [Where can I get involved?](#where-can-i-get-involved)
+	- [The eksctl vision](#the-eksctl-vision)
+- [Opening Issues](#opening-issues)
+	- [Bug report guide](#bug-report-guide)
+	- [Feature request guide](#feature-request-guide)
+	- [Help request guide](#help-request-guide)
+- [Submitting PRs](#submitting-prs)
+	- [Choosing something to work on](#choosing-something-to-work-on)
+	- [Developing eksctl](#developing-eksctl)
+	- [Asking for help](#asking-for-help)
+	- [PR submission guidelines](#pr-submission-guidelines)
+- [How the Maintainers process contributions](#how-the-maintainers-process-contributions)
+	- [Prioritizing issues](#prioritizing-issues)
+	- [Reviewing PRs](#reviewing-prs)
+- [Proposals](#proposals)
+
+---
+
+# Legal bits
+
+## License
+`eksctl` is [Apache 2.0 licenced](LICENSE).
 
 ## Certificate of Origin
 
@@ -15,52 +55,224 @@ simple statement that you, as a contributor, have the legal right to make the
 contribution. No action from you is required, but it's a good idea to see the
 [DCO](DCO) file for details before you start contributing code to eksctl.
 
-## Communication
+---
 
-The project uses Slack. If you get stuck or just have a question then you are encouraged to join the
-[Weave Community](https://slack.weave.works/) Slack workspace and use the
-[#eksctl](https://weave-community.slack.com/messages/eksctl/) channel and/or the [mailing
-list][maillist].
+# Where can I get involved?
 
-We use the mailing list for some discussion, potentially for sharing documents
-and for calendar invites.
+We are happy to see people in pretty much all areas of eksctl's development.
+Here is a non-exhaustive list of ways you can help out:
 
-Regular contributor meetings are held on Slack, see [`docs/contributor-meetings.md`](docs/contributor-meetings.md) for
-the latest information.
+1. Open a [PR](#submitting-prs). :woman_technologist:
 
-[maillist]: https://groups.google.com/forum/#!forum/eksctl
+    Beyond fixing bugs and submitting new features, there are other things you can submit
+    which, while less flashy, will be deeply appreciated by all who interact with the codebase:
 
-## Prioritizing issues
+      - Backfilling tests! (our coverage is super low right now.)
+      - Refactoring! (omigod such tech debt.)
+      - Reviewing and updating [documentation](https://eksctl.io/)! (seems to be we only notice the documentation that doesn't exist.)
 
-We encourage users to report bugs and feature requests in the form of [Github issues](https://github.com/weaveworks/eksctl/issues).
-On a regular basis the team will examine new requests and assign a priority which will be assigned to the issue in the
-form of a label. The scheme of priorities looks like this:
+   (See also [Choosing something to work on](#choosing-something-to-work-on) below.)
+1. Open an [issue](#opening-issues). :interrobang:
 
-- **critical-urgent**: Must be actively worked on as someone's top priority right now. If it's not being actively worked on, someone is expected to drop what they're doing immediately to work on it. Team leaders are responsible for making sure that all the issues, labeled with this priority, in their area are being actively worked on. Examples include user-visible bugs in core features, broken builds or tests and critical security issues.
+    We have 3 forms of issue: [bug reports](#bug-report-guide), [feature requests](#feature-request-guide) and [help requests](#help-request-guide).
+    If you are not sure which category you need, just make the best guess and provide as much information as possible.
+1. Help out others in the [community slack channel](https://weave-community.slack.com/messages/CAYBZBWGL/). :sos:
+1. Chime in on [bugs](https://github.com/weaveworks/eksctl/issues?q=is%3Aopen+is%3Aissue+label%3Akind%2Fbug+), [feature requests](https://github.com/weaveworks/eksctl/issues?q=is%3Aopen+is%3Aissue+label%3Akind%2Ffeature) and asks for [help](https://github.com/weaveworks/eksctl/issues?q=is%3Aopen+is%3Aissue+label%3Akind%2Fhelp). :thought_balloon:
+1. Dig into some [`needs-investigation` issues](https://github.com/weaveworks/eksctl/labels/needs-investigation) :detective:
+1. Get involved in some [PR reviews](https://github.com/weaveworks/eksctl/pulls). :nerd_face:
+1. Review old issues; poke or suggest closing ones which are stale or follow up those which still look good. :speech_balloon:
+1. Think deeply about the future of `eksctl`, then [talk about it](#proposals). :crystal_ball:
 
-  For an existing released build we will release these as hotfixes outside of the normal release cycle.
+## The eksctl vision
 
-  For functionality in the next release, we will release as part of the normal release cycle.
+... is coming soon.
 
-  We will assign an accountable person to manage the tracking and communication for this issue.
+This is the general long game we are playing. Contributions which steer us further towards
+these overarching goals will be enthusiastically welcomed, while contributions which are
+orthogonal or leading in another direction will likely be rejected.
 
-- **important-soon**: Must be staffed and worked on either currently, or very soon, ideally in time for the next release.
+For bonus points, please highlight how feature requests/PRs fit into the vision when you can!
 
-- **important-longterm**: Important over the long term, but may not be currently staffed and/or may require multiple releases to complete.
+---
 
-- **backlog**: There appears to be general agreement that this would be good to have, but we may not have anyone available to work on it right now or in the immediate future. Community contributions would be most welcome in the meantime (although it might take a while to get them reviewed if reviewers are fully occupied with higher priority issues, for example immediately before a release).
+# Opening Issues
 
-- **awaiting-more-evidence**: Possibly useful, but not yet enough support to actually get it done. These are mostly place-holders for potentially good ideas, so that they don't get completely forgotten, and can be referenced /deduped every time they come up.
+These guides aim to help you write issues in a way which will ensure that they are processed
+as quickly as possible.
 
-These priority categories have been inspired by [the Kubernetes contributing guide](https://github.com/kubernetes/community/blob/master/contributors/guide/issue-triage.md).
+_See below for [how issues are prioritized](#prioritizing-issues)_.
 
-## Getting Started
+**General rules**:
 
-- Fork the repository on GitHub
-- Read the [README](README.md) for getting started as a user and learn how/where to ask for help
-- If you want to contribute as a developer, continue reading this document for further instructions
-- Play with the project, submit bugs, submit pull requests!
+1. Before opening anything, take a good look through existing issues.
+1. More is more: give as much information as it is humanly possible to give.
+  Highly detailed issues are more likely to be picked up because they can be prioritized and
+  scheduled for work faster. They are also more accessible
+  to the community, meaning that you may not have to wait for the core team to get to it.
+1. Please do not open an issue with a description that is simply a link to another issue,
+  a link to a slack conversation, a quote from either one of those, or anything else
+  equally opaque. This raises the bar for entry and makes it hard for the community
+  to get involved. Take the time to write a proper description and summarise key points.
+1. Take care with formatting. Ensure the [markdown is tidy](https://docs.github.com/en/free-pro-team@latest/github/writing-on-github/getting-started-with-writing-and-formatting-on-github),
+  use [code blocks](https://docs.github.com/en/free-pro-team@latest/github/writing-on-github/creating-and-highlighting-code-blocks) etc etc.
+  The faster something can be read, the faster it can be dealt with.
+1. Keep it civil. Yes, it is annoying when things don't work, but it is way more fun helping out
+  someone who is not... the worst. Remember that conversing via text exacerbates
+  everyone's negativity bias, so throw in some emoji when in doubt :+1: :smiley: :rocket: :tada:.
 
+**Dedicated guides**:
+- [Bug report guide](#bug-report-guide)
+- [Feature request guide](#feature-request-guide)
+- [Help request guide](#help-request-guide)
+
+## Bug report guide
+
+We hope to get to bug reports within a couple of working days, but please wait for at least
+7 before nudging. (Unless it is a super critical end-of-the world bug, then by all means
+make some noise :loudspeaker:.)
+
+Below are the criteria we like our bug reports to cover in order to gather the bare minimum of
+information. Add more that what is asked for if you can :smiley:.
+
+1. **Search existing issues.** If something similar already exists, and is still open, please contribute to the discussion there.
+
+1. **Write a concise and descriptive title**, like you would a commit message, something which others can easily
+  find when doing step 1 above.
+
+1. **Detail what it was that you were trying to do and what you expected would happen**.
+  Give some background information around what you have already done to your cluster, any custom configuration etc.
+  With sufficient information you can pre-empt any questions others may have. This should cut out some obvious
+  back-and-forth and help get people to the heart of the issue quickly.
+
+1. **Explain what actually happened**. Provide the relevant error message and key logs.
+
+1. **Provide a reproduction**, for example the exact command or a yaml file (sensitive info redacted).
+  Please try to reduce your reproduction to the minimal necessary to help whoever is helping you
+  get to the broken state without needing to recreate your entire environment.
+
+1. **If possible, reproduce the issue with logging verbosity set to at least 4** (`-v=4`), if you have not already done so. Ensure
+  logs are formatted with [code blocks](https://docs.github.com/en/free-pro-team@latest/github/writing-on-github/creating-and-highlighting-code-blocks).
+  If they are long (>50 lines) please provide them in a Gist or collapsed using
+  [HTML details tags](https://gist.github.com/ericclemmons/b146fe5da72ca1f706b2ef72a20ac39d).
+  Take care to redact any sensitive info.
+
+1. Paste in the outputs of `eksctl version` and `kubectl version` where relevant, as
+  well as anything else you have running which you think may be relevant.
+
+1. Detail any workarounds which you tried, it may help others who experience the same problem.
+
+1. If you already have a fix in mind, note that on the report and go ahead and open a
+  PR whenever you are ready. A core team-member will assign the issue to you.
+
+## Feature request guide
+
+We hope to respond to and prioritize new feature requests within 7 working days. Please wait for
+up to 14 before nudging us.
+
+A feature request is the start of a discussion, so don't be put off if it is not
+accepted. Features which either do not contribute to or directly work against
+the project [goals](#the-eksctl-vision) will likely be rejected, as will highly
+specialised usecases.
+
+Once you have opened the ticket, feel free to post it in the community
+[slack channel](https://weave-community.slack.com/messages/CAYBZBWGL/) to get more opinions on it.
+
+Below are the steps we encourage people to take when creating a new feature request:
+
+1. **Search existing issues.** If something similar already exists, and is still open, please contribute to the discussion there.
+
+1. **Explain clearly why you want this feature.**
+
+1. **Describe the behaviour you'd like to see.** As well as an explanation, please
+  provide some example commands/config/output. Please ensure everything is formatted
+  nicely with [code blocks](https://docs.github.com/en/free-pro-team@latest/github/writing-on-github/creating-and-highlighting-code-blocks).
+  If you have strong ideas, be as detailed as you like.
+
+1. Explain how this feature would work towards the [project's vision](#the-eksctl-vision),
+  or how it would benefit the community.
+
+1. Note the deliverable of this issue: should the outcome be a simple PR to implement the
+  feature? Or does it need a design [proposal](#proposals)?
+
+1. If the feature is small (maybe it is more of an improvement) and you already have
+  a solution in mind, explain what you plan to do on the issue and open a PR!
+  A core team member will assign the task to you.
+
+## Help request guide
+
+While you can ask for general help with `eksctl` usage in the [slack channel](https://weave-community.slack.com/messages/CAYBZBWGL/),
+opening an issue creates a more searchable history for the community.
+
+We hope to respond to requests for help within a couple of working days, but please wait
+for a week before nudging us.
+
+Once you have created your issue, we recommend posting it in the slack channel
+to get more eyes on it faster.
+
+Please following these steps when opening a new help issue:
+
+1. **Search existing issues.** If something similar already exists, and is still open, please contribute to the discussion there.
+
+1. Write a title with the format "How to x".
+
+1. Explain what you are trying to accomplish, what you have tried, and the behaviour you are seeing.
+
+1. Please include your config (removing any sensitive information) or exact the commands you're using.
+   Please ensure everything is formatted nicely with [code blocks](https://docs.github.com/en/free-pro-team@latest/github/writing-on-github/creating-and-highlighting-code-blocks).
+
+1. When providing verbose logs, please use either a Gist or [HTML detail tags](https://gist.github.com/ericclemmons/b146fe5da72ca1f706b2ef72a20ac39d).
+
+---
+
+# Submitting PRs
+## Choosing something to work on
+
+If you are not here to report a bug, ask for help or request some new behaviour, this
+is the section for you. We have curated a set of issues for anyone who simply
+wants to build up their open-source cred :muscle:.
+
+- Issues labelled [`good first issue`](https://github.com/weaveworks/eksctl/labels/good%20first%20issue)
+  should be accessible to folks new to the repo, as well as to open source in general.
+
+  These issues should present a low/non-existent barrier to entry with a thorough description,
+  easy-to-follow reproduction (if relevant) and enough context for anyone to pick up.
+  The objective should be clear, possibly with a suggested solution or some pseudocode.
+  If anything similar has been done, that work should be linked.
+
+  If you have come across an issue tagged with `good first issue` which you think you would
+  like to claim but isn't 100% clear, please ask for more info! When people write issues
+  there is a _lot_ of assumed knowledge which is very often taken for granted. This is
+  something we could all get better at, so don't be shy in asking for what you need
+  to do great work :smile:.
+
+  See more on [asking for help](#asking-for-help) below!
+
+- [`help wanted` issues](https://github.com/weaveworks/eksctl/labels/help%20wanted)
+  are for those a little more familiar with the code base, but should still be accessible enough
+  to newcomers.
+
+- All other issues labelled `kind/<x>` or `priority/<x>` are also up for grabs, but
+  are likely to require a fair amount of context.
+
+## Developing eksctl
+
+**Sections:**
+- [Getting started](#getting-started)
+- [Setting up your Go environment](#setting-up-your-go-environment)
+- [Forking the repo](#forking-the-repo)
+- [Building eksctl](#building-eksctl)
+- [Running the unit tests](#running-the-unit-tests)
+- [Running the integration tests](#running-the-integration-tests)
+- [Writing your solution](#writing-your-solution)
+
+> WARNING: All commands in this section have only been tested on Linux/Unix systems.
+> There is no guarantee that they will work on Windows.
+
+### Getting started
+
+Before you begin writing code, you may want to have a play with `eksctl` to get familiar
+with the tool. Check out the [README](README.md) for basic installation and usage,
+then head to the [main docs](https://eksctl.io/) for more information.
 
 ### Setting up your Go environment
 
@@ -75,7 +287,7 @@ This project is written in Go. To be able to contribute you will need:
 3. (Optional) [User documentation](https://eksctl.io) is built and generated with [mkdocs](https://www.mkdocs.org/).
    Please make sure you have python3 and pip installed on your local system.
 
-### Cloning a fork of the repo repo
+### Forking the repo
 
 Make a fork of this repository and clone it by running:
 
@@ -83,27 +295,13 @@ Make a fork of this repository and clone it by running:
 git clone git@github.com:<yourusername>/eksctl.git
 ```
 
-It is not recommended to clone under your `GOPATH` (if you define one). Otherwise, you will need to set
+It is not recommended to clone under your `GOPATH` (if you define one), otherwise, you will need to set
 `GO111MODULE=on` explicitly.
 
-### Running the tests and building eksctl
+You may also want to add the original repo to your remotes to keep up to date
+with changes.
 
-Make sure you can run the tests and build the binary.
-
-```bash
-make install-build-deps
-make test
-make build
-```
-
-To build the user docs locally, please refer to the below steps:
-
-```bash
-# Requires python3 and pip3 installed in your local system
-make install-site-deps
-make build-pages
-make serve-pages
-```
+### Building eksctl
 
 > NOTE: If you are working on Windows, you cannot use `make` at the moment,
 > as the `Makefile` is currently not portable.
@@ -114,12 +312,37 @@ make serve-pages
 > go test .\pkg\...
 > ```
 
+
+Once in your cloned repo, you can install the dependencies and build the binary.
+The binary will be created in the root of your repo `./eksctl`.
+
+```bash
+make install-build-deps
+make build
+```
+
+To build and serve the user docs, execute the following:
+
+```bash
+# Requires python3 and pip3 installed in your local system
+make install-site-deps
+make build-pages
+make serve-pages
+```
+
+### Running the unit tests
+
+To run the tests simply run the following after `install-build-deps`:
+
+```bash
+make test
+```
+
 If you prefer to use Docker, the same way it is used in CI, you can use the
-following commands:
+following command:
 
 ```
 make -f Makefile.docker test
-make -f Makefile.docker build
 ```
 
 > NOTE: It is not the most convenient way of working on the project, as
@@ -130,11 +353,21 @@ make -f Makefile.docker build
 
 ### Running the integration tests
 
+> NOTE: Some parts of the integration tests are not configurable and therefore
+> cannot be run by folks outside the core team. If you are NOT contributing to the
+> gitops functionality, you can run a subset of the tests which cover your change,
+> see below.
+
+> NOTE: Integration tests a lot of infrastructure and are therefore quite expensive
+  (in both sense of the word) to run. It is therefore not essential for community
+  members to run them as the core team does this as part of the release process.
+
 The integration tests are long and unfortunately there are some flakes (help is very
 welcome!).
 
 There are several ways to run the tests. Requirements are:
-- An AWS account (it is recommeneded to use [gsts](https://github.com/ruimarinho/gsts) to authenticate)
+- An AWS account (it is recommended to use [gsts](https://github.com/ruimarinho/gsts) to authenticate)
+  which you are logged in to with a session token which won't expire for at least 2 hours.
 - An empty repository for testing gitops operations
 - A private key to that gitops repository
 
@@ -144,12 +377,28 @@ To run the full suite including cluster creations/teardowns:
 TEST_V=1 make integration-test
 ```
 
+To run the tests and save output to a file (recommended), run:
+
+```bash
+TEST_V=1 make integration-test 2>&1 | tee <some-name>.log
+```
+
+> NOTE: The test suites are run in parallel, which means they write to `stdout` simultaneously.
+> To parse logs for a specific test output, you can grep the logs based on the node number
+> (eg. `grep '\[9\]' int-tests.log > suite9.log`)
+
 To run the tests with a pre-created cluster for a faster turnaround:
 
 ```bash
 TEST_CLUSTER=<name> make create-integration-test-dev-cluster
 TEST_CLUSTER=<name> make integration-test-dev
 TEST_CLUSTER=<name> make delete-integration-test-dev-cluster
+```
+
+To run a specific suite:
+
+```bash
+ginkgo -tags integration -v --progress integration/tests/<suite name>/... -- -test.v -ginkgo.v
 ```
 
 To run the integration tests in a docker container:
@@ -161,65 +410,149 @@ make integration-test-container SSH_KEY_PATH=<path to gitops repo key> \
   AWS_SECRET_ACCESS_KEY=<secret access key>
 ```
 
-> Note: Killing the container tests will need more than CTRL+c.
+> NOTE: Killing the container tests will need more than CTRL+c.
 > `docker ps | awk '/make/ {print $1}' | xargs docker kill` in another window should do it
 
-### Writing your feature
+### Writing your solution
 
-- Find an [issue](https://github.com/weaveworks/eksctl/issues) to work on or
-  create your own. If you are a new contributor take a look at issues marked
-  with [good first issue](https://github.com/weaveworks/eksctl/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+Once you have your environment set up and have completed a clean run of the unit
+tests you can get to work :tada: .
 
-- Then create a topic branch from where you want to base your work (usually branched from master):
+1. First create a topic branch from where you want to base your work (this is usually
+  from master):
 
-    ```bash
-    git checkout -b <feature-name>
-    ```
+      ```bash
+      git checkout -b <feature-name>
+      ```
 
-- Write your feature. Make commits of logical units and make sure your
-  commit messages are in the [proper format](#format-of-the-commit-message).
+1. Write your solution. Try to align with existing patterns and standards.
+  _However_, there is significant tech debt, so any refactoring or changes which would
+  improve things even a little would be very welcome. (See [#2931](https://github.com/weaveworks/eksctl/issues/2931)
+  for our current efforts.)
 
-- Add automated tests to cover your changes. See the [az](https://github.com/weaveworks/eksctl/tree/master/pkg/az)
+1. Try to commit in small chunks so that changes are well described
+  and not lumped in with something unrelated. This will make debugging easier in
+  the future.
+  Make sure commit messages are in the [proper format](#commit-message-formatting).
+
+1. Be sure to include at least unit tests to cover your changes. See the [addon](https://github.com/weaveworks/eksctl/blob/master/pkg/actions/addon)
   package for a good example of tests.
 
-- If needed, update the documentation, either in the [README](README.md) or in the [docs](docs/) folder.
+      > NOTE: We are trying to move away from using [`mockery`](https://github.com/vektra/mockery)
+      > to generate our fakes. Where possible, please use [`counterfeiter`](https://github.com/maxbrunsfeld/counterfeiter)
+      > instead.
 
-- Make sure the tests are running successfully.
+1. For extra special bonus points, if you see any tests missing from the area you are
+  working on, please add them! It will be much appreciated :heart: .
 
-### Submitting a pull request
+1. Check the documentation and update it to cover your changes,
+  either in the [README](README.md) or in the [docs](docs/) folder.
+  If you have added a completely new feature please ensure that it is documented
+  thoroughly and include an [example](examples/).
 
-Push your changes to your fork and submit a pull request to the original repository. If your PR is a work in progress
-then make sure you prefix the title with `WIP: `. This lets everyone know that this is still being worked on. Once its
-ready remove the `WIP: ` title prefix and where possible squash your commits. Alternatively, you can use `Draft PR`
-feature of Github as mentioned [here](https://github.blog/2019-02-14-introducing-draft-pull-requests/)
+1. Before you [open your PR](#pr-submission-guidelines), run all the unit tests and manually
+  verify that your solution works.
+
+1. Note that editing certain things (eg. `pkg/apis/eksctl.io/v1alpha5/types.go`) will mean
+  you need to ensure autogenerated files are updated. Not doing so will result in
+  merge conflicts on your PR. Running `make test` will handle the generation. If you
+  get into a state where you have forgotten to generate, and there is a conflict,
+  you can resolve this by accepting `HEAD` in the conflict resolution, and then
+  running `make test` again. You can then commit the generated files as part of your
+  PR.
+
+## Asking for help
+
+If you need help at any stage of your work, please don't hesitate to ask!
+
+- To get more detail on the issue you have chosen, it is a good idea to start by asking
+  whoever created it to provide more information.
+  If they do not respond, or more help is needed,
+  you can then bring in one of the [core maintainers](COMMUNITY.md#core-team).
+
+- If you are struggling with something while working on your PR, or aren't quite
+  sure of your approach, you can open a [draft](https://github.blog/2019-02-14-introducing-draft-pull-requests/)
+  (prefix the title with `WIP: `) and explain what you are thinking.
+  You can tag in one of the core team, or drop the PR link into [slack](https://weave-community.slack.com/messages/eksctl/) and get
+  help from the community.
+
+- We are happy to pair with contributors over a slack call to help them fine-tune their
+  implementation. You can ping us directly, or head to the [channel](https://weave-community.slack.com/messages/eksctl/)
+  to see if anyone in the community is up for being a buddy :smiley: .
+
+## PR submission guidelines
+
+Push your changes to the branch on your fork and submit a pull request to the original repository
+against the `master` branch.
+Where possible, please squash your commits to ensure a tidy and descriptive history.
 
 ```bash
-git push <username> <feature-name>
+git push <remote-name> <feature-name>
 ```
 
+If your PR is still a work in progress, please open a [Draft PR](https://github.blog/2019-02-14-introducing-draft-pull-requests/).
+
 Our CircleCI integration will run the automated tests and give you feedback in the review section. We will review your
-changes and give you feedback as soon as possible.
+changes and give you feedback as soon as possible. We also encourage people to post
+links to their PRs in slack to get more eyes on the work.
 
-## Acceptance policy
+We recommend that you regularly rebase from master of the original repo to keep your
+branch up to date.
 
-These things will make a PR more likely to be accepted:
+Please ensure that `Allow edits and access to secrets by maintainers` is checked.
+While the maintainers will of course wait for you to edit your own work, if you are
+unresponsive for over a week, they may add corrections or even complete the work for you,
+especially if what you are contributing is very cool :metal: .
 
-- a well-described requirement
-- tests for new code
-- tests for old code!
-- new code and tests follow the conventions in old code and tests
-- a good commit message (see below)
+PRs which adhere to our guidelines are more likely to be accepted
+(when opening the PR, please use the checklist in the template):
+
+1. **The description is thorough.** When writing your description, please be as detailed as possible: don't make people
+  guess what you did or simply link back to the issue (the issue explains the problem
+  you are trying to solve, not how you solved it.)
+  Guide your reviewers through your solution by highlighting
+  key changes and implementation choices. Try and pre-empt any obvious questions
+  they may have. Providing snippets (or screenshots) of output is very helpful to
+  demonstrate new behaviour or UX changes. (Snippets are more searchable than screenshots,
+  but we wont be mad at a sneak peek at your terminal envs :eyes: .)
+
+1. **The change has been manually tested.** If you are supplying output above
+  then that can be your manual test, with proof :clap: .
+
+1. **The PR has a snappy title**. Your PR title will end up in the release notes,
+  so make it a good one. Using the same rule as for the title of a [commit message](#commit-message-formatting)
+  is generally a good idea. Try to use the imperative and centre it around the behaviour
+  or the user value it delivers, rather than any implementation detail.
+
+    eg: `"changed SomeFunc in file.go to also handle clusters in new region X"`
+    is not useful for folks stopping by to quickly see what new stuff they can do with
+    `eksctl`, save that for commit messages or the PR description.
+    The title `"Add support for region X"` conveys the intent clearly.
+
+1. **There are new tests for new code.**
+
+1. **There are new tests for old code!** This will earn you the title of "Best Loved
+  and Respected Contributor" :boom: :sunglasses: .
+
+1. **There are well-written commit messages** ([see below](#commit-message-formatting))
+  which will make future debugging fun.
+
 
 In general, we will merge a PR once a maintainer has reviewed and approved it.
 Trivial changes (e.g., corrections to spelling) may get waved through.
 For substantial changes, more people may become involved, and you might get asked to resubmit the PR or divide the
 changes into more than one PR.
 
-### Format of the Commit Message
+### Commit message formatting
+
+_For more on how to write great commit messages, and why you should, check out
+[this excellent blog post](https://chris.beams.io/posts/git-commit/)._
 
 We follow a rough convention for commit messages that is designed to answer two
-questions: what changed and why. The subject line should feature the what and
-the body of the commit should describe the why.
+questions: what changed and why.
+
+The subject line should feature the _what_ and
+the body of the commit should describe the _why_.
 
 ```text
 Added AWS Profile Support
@@ -254,107 +587,128 @@ The first line is the subject and should be no longer than 70 characters, the
 second line is always blank, and other lines should be wrapped at 80 characters.
 This allows the message to be easier to read on GitHub as well as in various git tools.
 
-## Release Process
+---
 
-1. Ensure integration tests pass (ETA: 2 hours).
-1. Determine the next release tag, e.g.:
+# How the Maintainers process contributions
 
-   - for a release candidate, `0.13.0-rc.0`, or
-   - for a release, `0.13.0`.
+## Prioritizing issues
 
-1. Create a `docs/release_notes/<version>.md` release notes file for the given tag using the contents of the release
-   draft (generated by [`release-drafter`](https://github.com/release-drafter/release-drafter)), e.g.:
+The core team regularly processes incoming issues. There may be some delay over holiday periods.
 
-    ```console
-    touch docs/release_notes/0.13.0.md
-    ```
-1.
-    a) For the first release candidate (`rc.0`) create a new branch after the major and minor numbers of the release (`release-X.Y`:
+Every issue will be assigned a `priority/<x>` label. The levels of priorities are:
 
-     ```console
-     git checkout master
-     git pull --ff-only origin master
-     git checkout -b release-0.13
-     ```
+- [`critical`](https://github.com/weaveworks/eksctl/labels/priority%2Fcritical): These are time sensitive issues which should be picked up immediately.
+  If an issue labelled `critical` is not assigned or being actively worked on,
+  someone is expected to drop what they're doing immediately to work on it.
+  This usually means the core team, but community members are welcome to claim
+  issues at any priority level if they get there first. _However, given the pressing
+  timeframe, should a non-core contributor request to be assigned to a `critical` issue,
+  they will be paired with a core team-member to manage the tracking, communication and release of any fix
+  as well as to assume responsibility of all progess._
 
-    b) If this is a subsequent release candidate or the release after an RC check out the existing release branch
+- [`important-soon`](https://github.com/weaveworks/eksctl/labels/priority%2Fimportant-soon): Must be assigned as soon as capacity becomes available.
+  Ideally something should be delivered in time for the next release.
 
-     ```console
-     git checkout release-0.13
-     ```
+- [`important-longterm`](https://github.com/weaveworks/eksctl/labels/priority%2Fimportant-longterm): Important over the long term, but may not be currently
+  staffed and/or may require multiple releases to complete.
 
-1. Create the tags so that circleci can start the release process:
+- [`backlog`](https://github.com/weaveworks/eksctl/labels/priority%2Fbacklog): There appears to be general agreement that this would be good to have,
+  but we may not have anyone available to work on it right now or in the immediate future.
+  PRs are still very welcome, although it might take a while to get them reviewed if
+  reviewers are fully occupied with higher priority issues, for example immediately before a release.
 
-   - for a release candidate: `make prepare-release-candidate`. If there was an existing RC it will increase it's number, e.g.: rc.0 -> rc.1
+- [`needs-investigation`](https://github.com/weaveworks/eksctl/labels/needs-investigation):  There is currently insufficient information to either categorize properly,
+  or to understand and implement a solution. This could be because the issue opener did
+  not provide enough relevant information, or because more in-depth research is required
+  before work can begin.
 
-   - for a release: `make prepare-release`. Regardless of whether there was a previous RC or a development version it will create a normal release
+These priority categories have been inspired by [the Kubernetes contributing guide](https://github.com/kubernetes/community/blob/master/contributors/guide/issue-triage.md).
 
-1. Ensure release jobs succeeded in [CircleCI](https://circleci.com/gh/weaveworks/eksctl).
-1. Ensure the release was successfully [published in Github](https://github.com/weaveworks/eksctl/releases).
-1. Download the binary just released, verify its checksum, and perform any relevant manual testing.
+## Reviewing PRs
 
-### Releasing snaps of eksctl
+The core team aims to clear the PR queue as quickly as possible. Community members
+should also feel free to keep an eye on things and provide their own thoughts and expertise.
 
-Snaps are software packages which run on a variety of Linux flavours.
+---
 
-*Note:* This is still somewhat [TBD](https://github.com/weaveworks/eksctl/issues/215).
+# Proposals
 
-Setting up the environment to build snaps on e.g. Ubuntu:
+For chunky features which require Serious Thought™, the first step is the submission
+of a design proposal to the [docs](docs/) folder through the standard PR process.
 
-```sh
-sudo apt install snapd
-sudo snap install snapcraft --classic
-sudo snap install multipass --classic
-```
+Proposal PRs should be shared with the core team and with the community in [slack](https://weave-community.slack.com/messages/CAYBZBWGL/).
 
-Building the snap can be done by running this command in the top-level directory:
+Before a PR is merged the author should do a "last call" in public channels to
+ensure all interested voices are heard. A proposal can only be merged and work begun
+when all core team members have signed off.
 
-```sh
-snapcraft
-```
+A proposal which has been accepted should become a living document. Even the best-laid
+plans rarely work out, so as things are learned during implementation the doc
+should be updated to accurately reflect the state of the world.
 
-*Note:* By default the `grade` of the snap is automatically set to `devel` and thus cannot be released to the e.g. `stable` channel of the snap. If you want to release a stable version, you want to check out the tag first, so e.g. `git checkout 0.12.0` and then run `snapcraft`.
+### Sections
 
-Testing the resulting package can be done via:
+Each proposal/design doc should cover the following:
 
-```sh
-sudo snap install eksctl_<version>_amd64.snap --dangerous
-```
+- **The author(s).** So that people know where to direct questions at any point in time.
 
-The `--dangerous` flag is required as it's a locally built snap and doesn't come from the store.
+- **Status.** Proposals serve as documentation on the design of our codebase.
+  It is useful to indicate whether what is documented reflects the state of the project.
+  Current status options are: `Design ongoing`, `Final: ready for implementation`,
+  `Final: implementation complete`.
 
-Publishing the snap can be done by following these steps.
+- **High level overview** of the problem that needs to be solved and a summary of the solution
+  about to be detailed in the doc. This should be written in a way that anyone can
+  understand what the proposal is for.
 
-Login to the Snap Store:
+- **Further context** on why the proposed solution is necessary, how it fits into
+  the project's goals and how it will help users in the long term.
 
-```sh
-snapcraft login
-```
+- **Goals.** The clear objectives of this solution.
 
-Or
+- **Non-Goals.** Equally important things which will be dealt with one day but
+  are not in the scope of this work. This helps make sure everyone is crystal clear
+  on the outcomes.
 
-```sh
-snapcraft login --with <login-file>
-```
+- **Walkthrough of the existing solution** (if applicable). Describe the current
+  implementation. Providing user stories or flow diagrams can be useful here.
 
-Where `<login-file>` was generated via `snapcraft export-login`.
+- **Walkthrough of the Proposed solution.** Similar to the above, describe the new
+  implementation, giving user stories and flow diagrams to guide reviewers along code
+  paths.
 
-Then publish via:
+- **Alternative solutions.** List the pros and cons of each solution considered,
+  illustrating why the final one was chosen.
 
-```sh
-snapcraft push eksctl_<version>_amd64.snap --release [stable,beta,candidate,edge]
-```
+- **Risks.** What could get in the way of this solution being implemented the way
+  you want? (This is technical stuff: do not count natural disasters or pandemics.)
 
-TODO: Further automate these steps in CircleCI, etc.
+- **Known unknowns or open questions.** The author should list any questions for things they are unsure about
+  or to direct reviewers to particular areas where their expertise is needed.
 
-### Notes on Automation
+- **Implementation stages.** These can end up being transcribed to issues, or broken
+  down further into multiple issues. These milestones are useful to understand when
+  the feature is "done", as well as helping all members of the community understand
+  all the moving parts.
 
-When you run `make prepare-release` it will push a commit to master and a tag, which will trigger [release workflow](https://github.com/weaveworks/eksctl/blob/38364943776230bcc9ad57a9f8a423c7ec3fb7fe/.circleci/config.yml#L28-L42) in Circle CI. This runs `make eksctl-image` followed by `make release`. Most of the logic is defined in [`do-release.sh`](https://github.com/weaveworks/eksctl/blob/master/build/scripts/do-release.sh).
+- **Success metrics.** A little hard to do with a CLI tool, but it is always nice
+  to plan how you will learn about the success of a feature in the wild.
 
-You want to keep an eye on Circle CI for the progress of the release ([0.3.1 example logs](https://circleci.com/workflow-run/02d8b5fb-bc7f-404c-9051-68307c124649)). It normally takes around 30 minutes.
+- (Optional) Future extensibility.
 
-### Latest release
+- (Optional) How this feature influences other features.
 
-To get the latest release you can use the link <https://github.com/weaveworks/eksctl/releases/latest>.
+### Writing tips
 
-**Note** Previously, eksctl used a floating tag called `latest_release`. This is _deprecated_ and it will stop working after release `0.14.0`.
+1. Write simply and keep your language accessible. The easier it is to understand,
+  the more input you will get from a wider range of sources. Bear in mind that your target audience
+  is anyone who comes into contact with eksctl: maintainers, contributors and end users.
+
+1. Don't assume too much knowledge. Make sure terms have explanations or links for
+  the same reason as the last point.
+
+1. Use lots of yaml and diagrams (colour-coded, if possible :wink:).
+
+---
+
+# :rocket: :tada: Thanks for reading! :tada: :rocket:
