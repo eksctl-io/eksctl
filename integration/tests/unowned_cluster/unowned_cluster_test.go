@@ -42,7 +42,8 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		BeforeEach(func() {
 			ng1 = "ng-1"
 			ng2 = "ng-2"
-			clusterName = params.NewClusterName("unowned_cluster")
+			// "unowned_clusters" lead to names longer than allowed for CF stacks
+			clusterName = params.NewClusterName("uc")
 			createClusterWithNodegroups(clusterName, ng1, ng2)
 		})
 
