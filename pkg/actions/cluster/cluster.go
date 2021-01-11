@@ -15,6 +15,10 @@ type Cluster interface {
 }
 
 func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
+	if err := ctl.RefreshClusterStatus(cfg); err != nil {
+		return nil, err
+	}
+
 	stackManager := ctl.NewStackManager(cfg)
 	stacks, err := stackManager.DescribeStacks()
 	if err != nil {
