@@ -951,9 +951,6 @@
           "description": "enables [EBS optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)",
           "x-intellij-html-description": "enables <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html\">EBS optimization</a>"
         },
-        "efaEnabled": {
-          "type": "boolean"
-        },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
         },
@@ -1121,7 +1118,6 @@
         "disableIMDSv1",
         "disablePodIMDS",
         "placement",
-        "efaEnabled",
         "instanceTypes",
         "spot",
         "launchTemplate"
@@ -1243,7 +1239,9 @@
           "x-intellij-html-description": "enables <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html\">EBS optimization</a>"
         },
         "efaEnabled": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "enables EFA network interfaces for nodes in this nodegroup",
+          "x-intellij-html-description": "enables EFA network interfaces for nodes in this nodegroup"
         },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
@@ -1416,7 +1414,6 @@
         "disableIMDSv1",
         "disablePodIMDS",
         "placement",
-        "efaEnabled",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",
@@ -1425,7 +1422,8 @@
         "targetGroupARNs",
         "bottlerocket",
         "clusterDNS",
-        "kubeletExtraConfig"
+        "kubeletExtraConfig",
+        "efaEnabled"
       ],
       "additionalProperties": false,
       "description": "holds configuration attributes that are specific to a nodegroup",

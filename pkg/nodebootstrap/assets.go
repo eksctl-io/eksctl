@@ -5,7 +5,6 @@
 // assets/bootstrap.ubuntu.sh (2.235kB)
 // assets/docker-daemon.json (231B)
 // assets/efa.al2.sh (351B)
-// assets/efa.managed.boothook (484B)
 // assets/install-ssm.al2.sh (159B)
 // assets/kubelet.yaml (463B)
 
@@ -176,26 +175,6 @@ func efaAl2Sh() (*asset, error) {
 	return a, nil
 }
 
-var _efaManagedBoothook = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x90\x4d\x4e\xc4\x30\x0c\x85\xf7\x39\x85\x2f\xe0\x04\x0d\x3b\x24\x56\x1c\x80\x23\x54\xa6\xe3\xb4\x91\x9a\x1f\x62\x47\x65\xe6\xf4\x28\xed\x88\x0d\xad\x60\x67\xf9\x3d\x7f\xcf\x7a\xe3\x92\xdb\x15\x43\x0a\x8a\x85\x2b\xe4\x34\x32\xdc\x5a\x1c\xd6\x89\xb5\x0f\x10\x92\x28\x2d\x0b\xe0\x0d\xfa\xce\x1c\x1d\x74\x61\x60\x4f\xdb\x00\xf8\x09\x88\x1a\x22\xe7\xa6\xaf\x97\x27\x98\x55\x8b\xbc\x38\x27\xcf\xd8\x04\x57\x16\xc5\x8b\xa5\x48\xf7\x9c\x68\x15\x3b\xe6\xe8\x68\x15\x64\x4f\xf8\x08\xe3\xfa\x7b\x83\x0b\x29\x8b\x5a\xa5\x6a\xa7\x3b\xe0\x3b\x38\x8d\xe5\x2f\x9f\x39\xfc\x57\xa9\x6e\xef\x2a\x55\xc0\x2f\xff\x2f\x12\xe0\xdb\xe6\x33\xa5\xc9\x7c\x3d\x39\x39\x4c\x7b\xa8\x5b\xa2\x75\xec\x69\xf8\xf1\x5b\x99\x7b\xb1\x38\x99\x92\xcb\x19\xf3\x10\xba\x63\x7c\x06\x97\x8b\xba\xbd\xcd\xce\x76\x1f\x21\x39\x1f\x76\x0d\x4b\xf7\x99\xef\x00\x00\x00\xff\xff\xd7\xd4\x31\xc2\xe4\x01\x00\x00")
-
-func efaManagedBoothookBytes() ([]byte, error) {
-	return bindataRead(
-		_efaManagedBoothook,
-		"efa.managed.boothook",
-	)
-}
-
-func efaManagedBoothook() (*asset, error) {
-	bytes, err := efaManagedBoothookBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "efa.managed.boothook", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xa6, 0x40, 0xf1, 0xae, 0x67, 0xa7, 0xe, 0xc, 0x31, 0x61, 0x86, 0x41, 0x8b, 0xd1, 0x55, 0x3f, 0x84, 0xbd, 0x4c, 0xdd, 0x84, 0xc9, 0xee, 0x9d, 0x36, 0xda, 0x8f, 0x6c, 0xbc, 0x6a, 0xaf, 0xed}}
-	return a, nil
-}
-
 var _installSsmAl2Sh = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\xca\x41\x0a\x02\x31\x0c\x05\xd0\x7d\x4f\x11\x71\x5d\xe6\x4c\xa9\x44\x0d\xa4\xe9\xd0\xff\x07\xac\xa7\x77\x35\x2b\x61\x96\x0f\xde\xfd\xb6\x35\xcf\xad\x29\xde\xa5\xc0\x28\x75\x88\xcd\x69\x1f\xe7\xc9\xdd\x77\x7b\xaa\xc7\xe9\x1c\x47\xc2\x58\xca\x3a\xba\x78\x82\x1a\x21\x75\x89\x76\xfd\x8e\xac\x40\xaf\xfa\xb2\x64\xc1\x02\xad\x3f\x18\x62\xa9\x2d\xec\x6a\x80\x3a\xf9\x1f\x7e\x01\x00\x00\xff\xff\x93\x2c\xf6\x43\x9f\x00\x00\x00")
 
 func installSsmAl2ShBytes() ([]byte, error) {
@@ -327,14 +306,13 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"10-eksclt.al2.conf":   _10EkscltAl2Conf,
-	"bootstrap.al2.sh":     bootstrapAl2Sh,
-	"bootstrap.ubuntu.sh":  bootstrapUbuntuSh,
-	"docker-daemon.json":   dockerDaemonJson,
-	"efa.al2.sh":           efaAl2Sh,
-	"efa.managed.boothook": efaManagedBoothook,
-	"install-ssm.al2.sh":   installSsmAl2Sh,
-	"kubelet.yaml":         kubeletYaml,
+	"10-eksclt.al2.conf":  _10EkscltAl2Conf,
+	"bootstrap.al2.sh":    bootstrapAl2Sh,
+	"bootstrap.ubuntu.sh": bootstrapUbuntuSh,
+	"docker-daemon.json":  dockerDaemonJson,
+	"efa.al2.sh":          efaAl2Sh,
+	"install-ssm.al2.sh":  installSsmAl2Sh,
+	"kubelet.yaml":        kubeletYaml,
 }
 
 // AssetDebug is true if the assets were built with the debug flag enabled.
@@ -386,7 +364,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"bootstrap.ubuntu.sh": {bootstrapUbuntuSh, map[string]*bintree{}},
 	"docker-daemon.json": {dockerDaemonJson, map[string]*bintree{}},
 	"efa.al2.sh": {efaAl2Sh, map[string]*bintree{}},
-	"efa.managed.boothook": {efaManagedBoothook, map[string]*bintree{}},
 	"install-ssm.al2.sh": {installSsmAl2Sh, map[string]*bintree{}},
 	"kubelet.yaml": {kubeletYaml, map[string]*bintree{}},
 }}
