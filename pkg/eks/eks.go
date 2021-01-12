@@ -198,7 +198,7 @@ func (c *ClusterProvider) CanDelete(spec *api.ClusterConfig) (bool, error) {
 func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
 	err := c.maybeRefreshClusterStatus(spec)
 	if err != nil {
-		return false, errors.Wrapf(err, "fetching cluster status to determine operability")
+		return false, errors.Wrapf(err, "unable to fetch cluster status to determine operability")
 	}
 
 	switch status := *c.Status.ClusterInfo.Cluster.Status; status {

@@ -64,6 +64,7 @@ func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
+	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 
 	supportsFargate, err := ctl.SupportsFargate(cmd.ClusterConfig)
 	if err != nil {

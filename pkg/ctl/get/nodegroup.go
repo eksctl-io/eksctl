@@ -68,6 +68,8 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		return err
 	}
 
+	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
