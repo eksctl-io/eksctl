@@ -531,6 +531,9 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 		if ng.MaxPodsPerNode != 0 {
 			return errors.Errorf("%s.maxPodsPerNode is not supported when using a custom AMI (%s.ami)", path, path)
 		}
+		if ng.SSH != nil && IsEnabled(ng.SSH.EnableSSM) {
+			return errors.Errorf("%s.enableSSM is not supported when using a custom AMI (%s.ami)", path, path)
+		}
 
 	case ng.OverrideBootstrapCommand != nil:
 		return errors.Errorf("%s.overrideBootstrapCommand can only be set when a custom AMI (%s.ami) is specified", path, path)
