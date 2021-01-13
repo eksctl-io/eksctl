@@ -101,16 +101,9 @@ func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 	}
 	stackManager := ctl.NewStackManager(cfg)
 
-	//if err := saFilter.SetExcludeExistingFilter(stackManager, clientSet, cfg.IAM.ServiceAccounts, false); err != nil {
-	//	return err
-	//}
-	//
-	//filteredServiceAccounts := saFilter.FilterMatching(cfg.IAM.ServiceAccounts)
-	//saFilter.LogInfo(cfg.IAM.ServiceAccounts)
-
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
 
-	return iam.New(cfg.Metadata.Name, ctl, stackManager, oidc, clientSet).UpdateIAMServiceAccounts(cfg.IAM.ServiceAccounts[0], cmd.Plan)
+	return iam.New(cfg.Metadata.Name, ctl, stackManager, oidc, clientSet).UpdateIAMServiceAccounts(cfg.IAM.ServiceAccounts, cmd.Plan)
 }
