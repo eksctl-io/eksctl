@@ -2,6 +2,7 @@ package builder
 
 import (
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 const (
@@ -13,7 +14,7 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 	return []cft.MapOfInterfaces{
 		{
 			"Effect":   effectAllow,
-			"Resource": "arn:aws:ec2:*:*:security-group/*",
+			"Resource": addARNPartitionPrefix("ec2:*:*:security-group/*"),
 			"Action":   []string{"ec2:CreateTags"},
 			"Condition": map[string]interface{}{
 				"StringEquals": map[string]string{
@@ -26,7 +27,7 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 		},
 		{
 			"Effect":   effectAllow,
-			"Resource": "arn:aws:ec2:*:*:security-group/*",
+			"Resource": addARNPartitionPrefix("ec2:*:*:security-group/*"),
 			"Action": []string{
 				"ec2:CreateTags",
 				"ec2:DeleteTags",
@@ -53,10 +54,10 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 		},
 		{
 			"Effect": effectAllow,
-			"Resource": []string{
-				"arn:aws:elasticloadbalancing:*:*:targetgroup/*/*",
-				"arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*/*",
-				"arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*/*",
+			"Resource": []*gfnt.Value{
+				addARNPartitionPrefix("elasticloadbalancing:*:*:targetgroup/*/*"),
+				addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/net/*/*"),
+				addARNPartitionPrefix("elasticloadbalancing:*:*:loadbalancer/app/*/*"),
 			},
 			"Action": []string{
 				"elasticloadbalancing:AddTags",
@@ -93,7 +94,7 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 		},
 		{
 			"Effect":   effectAllow,
-			"Resource": "arn:aws:elasticloadbalancing:*:*:targetgroup/*/*",
+			"Resource": addARNPartitionPrefix("elasticloadbalancing:*:*:targetgroup/*/*"),
 			"Action": []string{
 				"elasticloadbalancing:RegisterTargets",
 				"elasticloadbalancing:DeregisterTargets",
