@@ -324,7 +324,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 			})
 
-			Context("create and delete iamserviceaccounts", func() {
+			Context("create, update and delete iamserviceaccounts", func() {
 				var (
 					cfg  *api.ClusterConfig
 					ctl  *eks.ClusterProvider
@@ -346,7 +346,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 
-				It("should enable OIDC and create two iamserviceaccounts", func() {
+				It("should enable OIDC, create two iamserviceaccounts and update the policies", func() {
 					{
 						exists, err := oidc.CheckProviderExists()
 						Expect(err).ShouldNot(HaveOccurred())
@@ -414,6 +414,19 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						Expect(sa.Annotations).To(HaveKey(api.AnnotationEKSRoleARN))
 						Expect(sa.Annotations[api.AnnotationEKSRoleARN]).To(MatchRegexp("^arn:aws:iam::.*:role/eksctl-" + truncate(params.ClusterName) + ".*$"))
 					}
+
+					cmds = []Cmd{
+						params.EksctlUpdateCmd.WithArgs(
+							"iamserviceaccount",
+							"--cluster", params.ClusterName,
+							"--name", "app-cache-access",
+							"--namespace", "app1",
+							"--attach-policy-arn", "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+							"--approve",
+						),
+					}
+
+					Expect(cmds).To(RunSuccessfully())
 				})
 
 				It("should list both iamserviceaccounts", func() {
