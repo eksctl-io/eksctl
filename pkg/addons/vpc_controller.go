@@ -25,15 +25,17 @@ import (
 
 const (
 	vpcControllerNamespace = metav1.NamespaceSystem
+	vpcControllerName      = "vpc-resource-controller"
 	webhookServiceName     = "vpc-admission-webhook"
 
 	certWaitTimeout = 45 * time.Second
 )
 
 // NewVPCController creates a new VPCController
-func NewVPCController(rawClient kubernetes.RawClientInterface, clusterStatus *api.ClusterStatus, region string, planMode bool) *VPCController {
+func NewVPCController(rawClient kubernetes.RawClientInterface, irsa IRSAHelper, clusterStatus *api.ClusterStatus, region string, planMode bool) *VPCController {
 	return &VPCController{
 		rawClient:     rawClient,
+		irsa:          irsa,
 		clusterStatus: clusterStatus,
 		region:        region,
 		planMode:      planMode,
@@ -43,6 +45,7 @@ func NewVPCController(rawClient kubernetes.RawClientInterface, clusterStatus *ap
 // A VPCController deploys Windows VPC controller to a cluster
 type VPCController struct {
 	rawClient     kubernetes.RawClientInterface
+	irsa          IRSAHelper
 	clusterStatus *api.ClusterStatus
 	region        string
 	planMode      bool
@@ -209,9 +212,52 @@ func (v *VPCController) createCertSecrets(key, cert []byte) error {
 }
 
 func (v *VPCController) deployVPCResourceController() error {
+	irsaEnabled, err := v.irsa.IsSupported()
+	if err != nil {
+		return err
+	}
+	if irsaEnabled {
+		sa := &api.ClusterIAMServiceAccount{
+			ClusterIAMMeta: api.ClusterIAMMeta{
+				Name:      vpcControllerName,
+				Namespace: vpcControllerNamespace,
+			},
+			AttachPolicy: map[string]interface{}{
+				"Version": "2012-10-17",
+				"Statement": []map[string]interface{}{
+					{
+						"Effect": "Allow",
+						"Action": []string{
+							"ec2:AssignPrivateIpAddresses",
+							"ec2:DescribeInstances",
+							"ec2:DescribeNetworkInterfaces",
+							"ec2:UnassignPrivateIpAddresses",
+							"ec2:DescribeRouteTables",
+							"ec2:DescribeSubnets",
+						},
+						"Resource": "*",
+					},
+				},
+			},
+		}
+		if err := v.irsa.Create([]*api.ClusterIAMServiceAccount{sa}); err != nil {
+			return errors.Wrap(err, "error enabling IRSA")
+		}
+	} else {
+		sa := &corev1.ServiceAccount{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      vpcControllerName,
+				Namespace: vpcControllerNamespace,
+			},
+		}
+		if err := v.applyRawResource(sa); err != nil {
+			return err
+		}
+	}
 	if err := v.applyResources(assetutil.MustLoad(vpcResourceControllerYamlBytes)); err != nil {
 		return err
 	}
+
 	return v.applyDeployment(assetutil.MustLoad(vpcResourceControllerDepYamlBytes))
 }
 
