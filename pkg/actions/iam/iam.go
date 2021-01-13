@@ -1,6 +1,9 @@
 package iam
 
 import (
+	"fmt"
+
+	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -33,4 +36,16 @@ func New(clusterName string, clusterProvider *eks.ClusterProvider, stackManager 
 		stackManager:    stackManager,
 		clientSet:       clientSet,
 	}
+}
+
+func doTasks(taskTree *tasks.TaskTree) error {
+	logger.Info(taskTree.Describe())
+	if errs := taskTree.DoAllSync(); len(errs) > 0 {
+		logger.Info("%d error(s) occurred and IAM Role stacks haven't been created properly, you may wish to check CloudFormation console", len(errs))
+		for _, err := range errs {
+			logger.Critical("%s\n", err.Error())
+		}
+		return fmt.Errorf("failed to create iamserviceaccount(s)")
+	}
+	return nil
 }
