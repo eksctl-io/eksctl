@@ -31,10 +31,3 @@ subjects:
 - kind: ServiceAccount
   name: vpc-resource-controller
   namespace: kube-system
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: vpc-resource-controller
-  namespace: kube-system
-
