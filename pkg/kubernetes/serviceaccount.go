@@ -36,7 +36,7 @@ func CheckServiceAccountExists(clientSet Interface, meta metav1.ObjectMeta) (boo
 }
 
 // MaybeCreateServiceAccountOrUpdateMetadata will only create serviceaccount with the given name if
-// it doesn't already exist, it will also create namespace if needed; if serviceaccount exist - new
+// it doesn't already exist, it will also create namespace if needed; if serviceaccount exists, new
 // labels and annotations will get added, all user-set label and annotation keys that are not set in
 // meta will be retained
 func MaybeCreateServiceAccountOrUpdateMetadata(clientSet Interface, meta metav1.ObjectMeta) error {
