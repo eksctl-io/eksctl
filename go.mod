@@ -19,7 +19,7 @@ require (
 	github.com/github-release/github-release v0.9.0
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/flock v0.8.0
-	github.com/golangci/golangci-lint v1.34.1
+	github.com/golangci/golangci-lint v1.35.2
 	github.com/goreleaser/goreleaser v0.154.0
 	github.com/inconshreveable/log15 v0.0.0-20200109203555-b30bc20e4fd1 // indirect
 	github.com/instrumenta/kubeval v0.0.0-20190918223246-8d013ec9fc56
@@ -49,7 +49,7 @@ require (
 	github.com/weaveworks/goformation/v4 v4.10.2-0.20201201143936-6016cb59d8ca
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
-	golang.org/x/tools v0.0.0-20201208233053-a543418bbed2
+	golang.org/x/tools v0.0.0-20210105210202-9ed45478a130
 	k8s.io/api v0.19.4
 	k8s.io/apiextensions-apiserver v0.19.4
 	k8s.io/apimachinery v0.19.4
