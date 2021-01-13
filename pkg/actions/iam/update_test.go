@@ -87,13 +87,4 @@ var _ = Describe("Update", func() {
 			})
 		})
 	})
-
-	When("the IAMServiceAccount doesn't exist", func() {
-		It("errors", func() {
-			fakeStackManager.ListStacksMatchingReturns(nil, nil)
-
-			err := iamManager.UpdateIAMServiceAccounts(serviceAccount, false)
-			Expect(err).To(MatchError("IAMServiceAccount default/test-sa does not exist"))
-		})
-	})
 })
