@@ -38,6 +38,7 @@ func (t *updateIAMServiceAccountTask) Do(errorCh chan error) error {
 	go func() {
 		errorCh <- nil
 	}()
-	return t.stackManager.UpdateStack(stackName, "updating-policy", "updating policies", t.templateData, nil)
 
+	desc := fmt.Sprintf("updating policies for IAMServiceAccount %s/%s", t.sa.Namespace, t.sa.Name)
+	return t.stackManager.UpdateStack(stackName, "updating-policy", desc, t.templateData, nil)
 }
