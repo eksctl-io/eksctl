@@ -371,32 +371,6 @@ There are several ways to run the tests. Requirements are:
 - An empty repository for testing gitops operations
 - A private key to that gitops repository
 
-#### Prerequisites
-The integration tests require the following to be set:
-```BASH
-export IT_SUBNET_1 # Subnet used to create manual eks cluster
-export IT_SUBNET_2 # Subnet used to create manual eks cluster
-export IT_CLUSTER_ROLE_ARN # Role used to create the cluster
-export IT_NODE_ROLE_ARN # Role used to create the nodegroups
-```
-##### Creating subnets
-To setup the subnets you need toL
-1. Create a VPC
-2. Create two subnets inside the VPC
-3. Create an internet gateway and add it to the VPCs route table at destination `0.0.0.0/0`
-
-##### Creating roles
-Create the two roles with the following policies attached
-
-Cluster role:
-- `AmazonEKSClusterPolicy`
-
-Node role:
-- `AmazonEKSWorkerNodePolicy`
-- `AmazonEC2ContainerRegistryReadOnly`
-- `AmazonEKS_CNI_Policy`
-
-#### Running the tests
 To run the full suite including cluster creations/teardowns:
 
 ```bash
