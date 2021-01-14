@@ -20,6 +20,8 @@ const (
 	resourcesRootPath = "Resources"
 	outputsRootPath   = "Outputs"
 	mappingsRootPath  = "Mappings"
+	ourStackRegexFmt  = "^(eksctl|EKS)-%s-((cluster|nodegroup-.+|addon-.+)|(VPC|ServiceRole|ControlPlane|DefaultNodeGroup))$"
+	clusterStackRegex = "eksctl-.*-cluster"
 )
 
 var (
@@ -267,9 +269,9 @@ func (c *StackCollection) ListStacksMatching(nameRegex string, statusFilters ...
 }
 
 // ListStackNamesMatching gets all stack names matching regex
-func (c *StackCollection) ListStackNamesMatching(nameRegex string) ([]string, error) {
+func (c *StackCollection) ListClusterStackNamesMatching() ([]string, error) {
 	stacks := []string{}
-	re, err := regexp.Compile(nameRegex)
+	re, err := regexp.Compile(clusterStackRegex)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot list stacks")
 	}
@@ -456,7 +458,6 @@ func (c *StackCollection) DeleteStackBySpecSync(s *Stack, errs chan error) error
 }
 
 func fmtStacksRegexForCluster(name string) string {
-	const ourStackRegexFmt = "^(eksctl|EKS)-%s-((cluster|nodegroup-.+|addon-.+)|(VPC|ServiceRole|ControlPlane|DefaultNodeGroup))$"
 	return fmt.Sprintf(ourStackRegexFmt, name)
 }
 
@@ -476,7 +477,7 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 	return stacks, nil
 }
 func (c *StackCollection) IsClusterStack() (bool, error) {
-	clusterStackNames, err := c.ListStackNamesMatching("eksctl-.*-cluster")
+	clusterStackNames, err := c.ListClusterStackNamesMatching()
 	if err != nil {
 		return false, err
 	}

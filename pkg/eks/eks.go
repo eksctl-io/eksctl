@@ -333,7 +333,7 @@ func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, e
 	allClusters := []*api.ClusterConfig{}
 
 	spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: ""}}
-	allStacks, err := c.NewStackManager(spec).ListStackNamesMatching("eksctl-.*-cluster")
+	allStacks, err := c.NewStackManager(spec).ListClusterStackNamesMatching()
 	if err != nil {
 		return nil, err
 	}
