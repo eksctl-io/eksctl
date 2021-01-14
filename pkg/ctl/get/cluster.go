@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -86,7 +88,6 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 }
 
 func getAndPrinterClusters(ctl *eks.ClusterProvider, params *getCmdParams, listAllRegions bool) error {
-
 	printer, err := printers.NewPrinter(params.output)
 	if err != nil {
 		return err

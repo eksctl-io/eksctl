@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -332,6 +333,12 @@ func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*a
 func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, error) {
 	allClusters := []*api.ClusterConfig{}
 
+	spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: ""}}
+	allStacks, err := c.NewStackManager(spec).ListStackNamesMatching("eksctl-.*-cluster")
+	if err != nil {
+		return nil, err
+	}
+
 	token := ""
 	for {
 		clusters, nextToken, err := c.getClustersRequest(chunkSize, token)
@@ -341,7 +348,7 @@ func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, e
 
 		for _, clusterName := range clusters {
 			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: *clusterName}}
-			isClusterStack, err := c.NewStackManager(spec).IsClusterStack()
+			isClusterStack, err := c.NewStackManager(spec).IsClusterStackUsingCachedList(allStacks)
 			managed := eksctlCreatedFalse
 			if err != nil {
 				managed = eksctlCreatedUnknown

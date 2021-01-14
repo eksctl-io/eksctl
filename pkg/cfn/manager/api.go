@@ -269,6 +269,32 @@ func (c *StackCollection) ListStacksMatching(nameRegex string, statusFilters ...
 	return stacks, nil
 }
 
+// ListStackNamesMatching gets all stack names matching regex
+func (c *StackCollection) ListStackNamesMatching(nameRegex string) ([]string, error) {
+	stacks := []string{}
+	re, err := regexp.Compile(nameRegex)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot list stacks")
+	}
+	input := &cloudformation.ListStacksInput{
+		StackStatusFilter: defaultStackStatusFilter(),
+	}
+
+	pager := func(p *cloudformation.ListStacksOutput, _ bool) bool {
+		for _, s := range p.StackSummaries {
+			if re.MatchString(*s.StackName) {
+				stacks = append(stacks, *s.StackName)
+			}
+		}
+		return true
+	}
+	if err := c.provider.CloudFormation().ListStacksPages(input, pager); err != nil {
+		return nil, err
+	}
+
+	return stacks, nil
+}
+
 // ListStacks gets all of CloudFormation stacks
 func (c *StackCollection) ListStacks(statusFilters ...string) ([]*Stack, error) {
 	return c.ListStacksMatching(fmtStacksRegexForCluster(c.spec.Metadata.Name), statusFilters...)
@@ -452,15 +478,22 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 	}
 	return stacks, nil
 }
-
 func (c *StackCollection) IsClusterStack() (bool, error) {
-	clusterStackName := c.makeClusterStackName()
-	stacks, err := c.DescribeStacks()
+	clusterStackNames, err := c.ListStackNamesMatching("eksctl.*-cluster")
 	if err != nil {
 		return false, err
 	}
-	for _, stack := range stacks {
-		if *stack.StackName == clusterStackName {
+	return c.IsClusterStackUsingCachedList(clusterStackNames)
+}
+
+func (c *StackCollection) IsClusterStackUsingCachedList(clusterStackNames []string) (bool, error) {
+	clusterStackName := c.makeClusterStackName()
+	for _, stack := range clusterStackNames {
+		if stack == clusterStackName {
+			stack, err := c.DescribeStack(&cloudformation.Stack{StackName: &clusterStackName})
+			if err != nil {
+				return false, err
+			}
 			for _, tag := range stack.Tags {
 				if matchesClusterName(*tag.Key, *tag.Value, c.spec.Metadata.Name) {
 					return true, nil
