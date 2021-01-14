@@ -38,7 +38,7 @@ func updateIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the iamserviceaccount to")
+		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster")
 
 		fs.StringVar(&serviceAccount.Name, "name", "", "name of the iamserviceaccount to update")
 		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace where to update the iamserviceaccount")
