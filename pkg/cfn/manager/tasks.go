@@ -6,6 +6,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
@@ -57,6 +58,18 @@ func (t *clusterCompatTask) Describe() string { return t.info }
 func (t *clusterCompatTask) Do(errorCh chan error) error {
 	defer close(errorCh)
 	return t.stackCollection.FixClusterCompatibility()
+}
+
+type taskWithClusterIAMServiceAccountSpec struct {
+	info           string
+	serviceAccount *api.ClusterIAMServiceAccount
+	oidc           *iamoidc.OpenIDConnectManager
+	call           func(chan error, *api.ClusterIAMServiceAccount, *iamoidc.OpenIDConnectManager) error
+}
+
+func (t *taskWithClusterIAMServiceAccountSpec) Describe() string { return t.info }
+func (t *taskWithClusterIAMServiceAccountSpec) Do(errs chan error) error {
+	return t.call(errs, t.serviceAccount, t.oidc)
 }
 
 type taskWithStackSpec struct {

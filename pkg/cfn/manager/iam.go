@@ -18,7 +18,7 @@ func (c *StackCollection) makeIAMServiceAccountStackName(namespace, name string)
 }
 
 // createIAMServiceAccountTask creates the iamserviceaccount in CloudFormation
-func (c *StackCollection) CreateIAMServiceAccount(errs chan error, spec *api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager) error {
+func (c *StackCollection) createIAMServiceAccountTask(errs chan error, spec *api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager) error {
 	name := c.makeIAMServiceAccountStackName(spec.Namespace, spec.Name)
 	logger.Info("building iamserviceaccount stack %q", name)
 	stack := builder.NewIAMServiceAccountResourceSet(spec, oidc)
