@@ -61,7 +61,9 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMSer
 		return err
 	}
 
-	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+	if params.output == "table" {
+		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+	}
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
