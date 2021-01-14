@@ -409,7 +409,6 @@ func (c *ClusterProvider) getClustersRequest(chunkSize int64, nextToken string) 
 	if nextToken != "" {
 		input = input.SetNextToken(nextToken)
 	}
-	manager.ListCount = manager.ListCount + 1
 	output, err := c.Provider.EKS().ListClusters(input)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "listing control planes")

@@ -26,7 +26,6 @@ var (
 	stackCapabilitiesIAM      = aws.StringSlice([]string{cloudformation.CapabilityCapabilityIam})
 	stackCapabilitiesNamedIAM = aws.StringSlice([]string{cloudformation.CapabilityCapabilityNamedIam})
 )
-var DescribeCount, ListCount int
 
 // Stack represents the CloudFormation stack
 type Stack = cloudformation.Stack
@@ -188,8 +187,6 @@ func (c *StackCollection) UpdateStack(stackName, changeSetName, description stri
 
 // DescribeStack describes a cloudformation stack.
 func (c *StackCollection) DescribeStack(i *Stack) (*Stack, error) {
-	DescribeCount = DescribeCount + 1
-
 	input := &cloudformation.DescribeStacksInput{
 		StackName: i.StackName,
 	}
