@@ -3,14 +3,19 @@
 package unowned_clusters
 
 import (
-	"os"
+	"fmt"
+	"io/ioutil"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/weaveworks/eksctl/pkg/eks"
+
+	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 
 	"github.com/aws/aws-sdk-go/aws"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/eks"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/weaveworks/eksctl/integration/runner"
@@ -36,7 +41,8 @@ func TestE2E(t *testing.T) {
 var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func() {
 	Context("Get, upgrade & delete cluster/nodegroups", func() {
 		var (
-			clusterName, ng1, ng2 string
+			clusterName, stackName, ng1, ng2 string
+			ctl                              api.ClusterProvider
 		)
 
 		BeforeEach(func() {
@@ -44,7 +50,19 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			ng2 = "ng-2"
 			// "unowned_clusters" lead to names longer than allowed for CF stacks
 			clusterName = params.NewClusterName("uc")
-			createClusterWithNodegroups(clusterName, ng1, ng2)
+			stackName = fmt.Sprintf("it-%s", clusterName)
+			cfg := &api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Name:   params.ClusterName,
+					Region: params.Region,
+				},
+			}
+			ctl = eks.New(&api.ProviderConfig{Region: params.Region}, cfg).Provider
+			createClusterWithNodegroups(clusterName, stackName, ng1, ng2, ctl)
+		})
+
+		AfterEach(func() {
+			deleteStack(stackName, ctl)
 		})
 
 		It("should work", func() {
@@ -171,38 +189,30 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 	})
 })
 
-func createClusterWithNodegroups(clusterName, ng1, ng2 string) {
-	cfg := &api.ClusterConfig{
-		Metadata: &api.ClusterMeta{
-			Name:   params.ClusterName,
-			Region: params.Region,
-		},
-	}
-	ctl := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl api.ClusterProvider) {
+	subnets, clusterRoleArn, nodeRoleArn := createVPCAndRole(stackName, ctl)
 
-	subnets := []string{*getenv("IT_SUBNET_1"), *getenv("IT_SUBNET_2")}
-
-	_, err := ctl.Provider.EKS().CreateCluster(&awseks.CreateClusterInput{
+	_, err := ctl.EKS().CreateCluster(&awseks.CreateClusterInput{
 		Name: &clusterName,
 		ResourcesVpcConfig: &awseks.VpcConfigRequest{
 			SubnetIds: aws.StringSlice(subnets),
 		},
-		RoleArn: getenv("IT_CLUSTER_ROLE_ARN"),
+		RoleArn: &clusterRoleArn,
 		Version: aws.String("1.17"),
 	})
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(func() string {
-		out, err := ctl.Provider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
+		out, err := ctl.EKS().DescribeCluster(&awseks.DescribeClusterInput{
 			Name: &clusterName,
 		})
 		Expect(err).NotTo(HaveOccurred())
 		return *out.Cluster.Status
 	}, time.Minute*20, time.Second*30).Should(Equal("ACTIVE"))
 
-	_, err = ctl.Provider.EKS().CreateNodegroup(&awseks.CreateNodegroupInput{
+	_, err = ctl.EKS().CreateNodegroup(&awseks.CreateNodegroupInput{
 		NodegroupName: &ng1,
 		ClusterName:   &clusterName,
-		NodeRole:      getenv("IT_NODE_ROLE_ARN"),
+		NodeRole:      &nodeRoleArn,
 		Subnets:       aws.StringSlice(subnets),
 		ScalingConfig: &awseks.NodegroupScalingConfig{
 			MaxSize:     aws.Int64(1),
@@ -211,10 +221,10 @@ func createClusterWithNodegroups(clusterName, ng1, ng2 string) {
 		},
 	})
 	Expect(err).NotTo(HaveOccurred())
-	_, err = ctl.Provider.EKS().CreateNodegroup(&awseks.CreateNodegroupInput{
+	_, err = ctl.EKS().CreateNodegroup(&awseks.CreateNodegroupInput{
 		NodegroupName: &ng2,
 		ClusterName:   &clusterName,
-		NodeRole:      getenv("IT_NODE_ROLE_ARN"),
+		NodeRole:      &nodeRoleArn,
 		Subnets:       aws.StringSlice(subnets),
 		ScalingConfig: &awseks.NodegroupScalingConfig{
 			MaxSize:     aws.Int64(1),
@@ -225,7 +235,7 @@ func createClusterWithNodegroups(clusterName, ng1, ng2 string) {
 	Expect(err).NotTo(HaveOccurred())
 
 	Eventually(func() string {
-		out, err := ctl.Provider.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{
+		out, err := ctl.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{
 			ClusterName:   &clusterName,
 			NodegroupName: &ng1,
 		})
@@ -234,7 +244,7 @@ func createClusterWithNodegroups(clusterName, ng1, ng2 string) {
 	}, time.Minute*20, time.Second*30).Should(Equal("ACTIVE"))
 
 	Eventually(func() string {
-		out, err := ctl.Provider.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{
+		out, err := ctl.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{
 			ClusterName:   &clusterName,
 			NodegroupName: &ng2,
 		})
@@ -243,8 +253,49 @@ func createClusterWithNodegroups(clusterName, ng1, ng2 string) {
 	}, time.Minute*20, time.Second*30).Should(Equal("ACTIVE"))
 }
 
-func getenv(name string) *string {
-	val := os.Getenv(name)
-	Expect(val).NotTo(Equal(""))
-	return &val
+func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, string, string) {
+	templateBody, err := ioutil.ReadFile("cf-template.yaml")
+	Expect(err).NotTo(HaveOccurred())
+	createStackInput := &cfn.CreateStackInput{
+		StackName: &stackName,
+	}
+	createStackInput.SetTemplateBody(string(templateBody))
+	createStackInput.SetCapabilities(aws.StringSlice([]string{cfn.CapabilityCapabilityIam}))
+	createStackInput.SetCapabilities(aws.StringSlice([]string{cfn.CapabilityCapabilityNamedIam}))
+
+	_, err = ctl.CloudFormation().CreateStack(createStackInput)
+	Expect(err).NotTo(HaveOccurred())
+
+	var describeStackOut *cfn.DescribeStacksOutput
+	Eventually(func() string {
+		describeStackOut, err = ctl.CloudFormation().DescribeStacks(&cfn.DescribeStacksInput{
+			StackName: &stackName,
+		})
+		Expect(err).NotTo(HaveOccurred())
+		return *describeStackOut.Stacks[0].StackStatus
+	}, time.Minute*10, time.Second*15).Should(Equal(cfn.StackStatusCreateComplete))
+
+	var clusterRoleARN, nodeRoleARN string
+	var subnets []string
+	for _, output := range describeStackOut.Stacks[0].Outputs {
+		switch *output.OutputKey {
+		case "ClusterRoleARN":
+			clusterRoleARN = *output.OutputValue
+		case "NodeRoleARN":
+			nodeRoleARN = *output.OutputValue
+		case "SubnetIds":
+			subnets = strings.Split(*output.OutputValue, ",")
+		}
+	}
+
+	return subnets, clusterRoleARN, nodeRoleARN
+}
+
+func deleteStack(stackName string, ctl api.ClusterProvider) {
+	deleteStackInput := &cfn.DeleteStackInput{
+		StackName: &stackName,
+	}
+
+	_, err := ctl.CloudFormation().DeleteStack(deleteStackInput)
+	Expect(err).NotTo(HaveOccurred())
 }
