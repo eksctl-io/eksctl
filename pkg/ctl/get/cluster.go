@@ -6,8 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"k8s.io/apimachinery/pkg/util/sets"
 

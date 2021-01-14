@@ -476,7 +476,7 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 	return stacks, nil
 }
 func (c *StackCollection) IsClusterStack() (bool, error) {
-	clusterStackNames, err := c.ListStackNamesMatching("eksctl.*-cluster")
+	clusterStackNames, err := c.ListStackNamesMatching("eksctl-.*-cluster")
 	if err != nil {
 		return false, err
 	}
