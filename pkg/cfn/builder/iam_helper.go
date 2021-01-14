@@ -32,7 +32,7 @@ func createWellKnownPolicies(wellKnownPolicies api.WellKnownPolicies) []customPo
 	if wellKnownPolicies.AutoScaler {
 		policies = append(policies, customPolicy{Name: "PolicyAutoScaling", Statements: autoScalerStatements()})
 	}
-	if wellKnownPolicies.AWSLoadBalancer {
+	if wellKnownPolicies.AWSLoadBalancerController {
 		policies = append(policies, customPolicy{Name: "PolicyAWSLoadBalancerController", Statements: loadBalancerControllerStatements()})
 	}
 	if wellKnownPolicies.ExternalDNS {
