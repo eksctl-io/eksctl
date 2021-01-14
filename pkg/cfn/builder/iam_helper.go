@@ -18,37 +18,51 @@ type cfnTemplate interface {
 	newResource(name string, resource gfn.Resource) *gfnt.Value
 }
 
-type customPolicy struct {
-	Name          string
-	Statements    []cft.MapOfInterfaces
-	NamedPolicies []string
+type managedPolicyForRole struct {
+	name string
 }
 
-func createWellKnownPolicies(wellKnownPolicies api.WellKnownPolicies) []customPolicy {
-	var policies []customPolicy
+type customPolicyForRole struct {
+	Name       string
+	Statements []cft.MapOfInterfaces
+}
+
+func createWellKnownPolicies(wellKnownPolicies api.WellKnownPolicies) ([]managedPolicyForRole, []customPolicyForRole) {
+	var managedPolicies []managedPolicyForRole
+	var customPolicies []customPolicyForRole
 	if wellKnownPolicies.ImageBuilder {
-		policies = append(policies, customPolicy{NamedPolicies: []string{iamPolicyAmazonEC2ContainerRegistryPowerUser}})
+		managedPolicies = append(managedPolicies,
+			managedPolicyForRole{name: iamPolicyAmazonEC2ContainerRegistryPowerUser},
+		)
 	}
 	if wellKnownPolicies.AutoScaler {
-		policies = append(policies, customPolicy{Name: "PolicyAutoScaling", Statements: autoScalerStatements()})
+		customPolicies = append(customPolicies,
+			customPolicyForRole{Name: "PolicyAutoScaling", Statements: autoScalerStatements()},
+		)
 	}
 	if wellKnownPolicies.AWSLoadBalancerController {
-		policies = append(policies, customPolicy{Name: "PolicyAWSLoadBalancerController", Statements: loadBalancerControllerStatements()})
+		customPolicies = append(customPolicies,
+			customPolicyForRole{Name: "PolicyAWSLoadBalancerController", Statements: loadBalancerControllerStatements()},
+		)
 	}
 	if wellKnownPolicies.ExternalDNS {
-		policies = append(policies,
-			customPolicy{Name: "PolicyExternalDNSChangeSet", Statements: changeSetStatements()},
-			customPolicy{Name: "PolicyExternalDNSHostedZones", Statements: externalDNSHostedZonesStatements()},
+		customPolicies = append(customPolicies,
+			[]customPolicyForRole{
+				{Name: "PolicyExternalDNSChangeSet", Statements: changeSetStatements()},
+				{Name: "PolicyExternalDNSHostedZones", Statements: externalDNSHostedZonesStatements()},
+			}...,
 		)
 	}
 	if wellKnownPolicies.CertManager {
-		policies = append(policies,
-			customPolicy{Name: "PolicyCertManagerChangeSet", Statements: changeSetStatements()},
-			customPolicy{Name: "PolicyCertManagerGetChange", Statements: certManagerGetChangeStatements()},
-			customPolicy{Name: "PolicyCertManagerHostedZones", Statements: certManagerHostedZonesStatements()},
+		customPolicies = append(customPolicies,
+			[]customPolicyForRole{
+				{Name: "PolicyCertManagerChangeSet", Statements: changeSetStatements()},
+				{Name: "PolicyCertManagerGetChange", Statements: certManagerGetChangeStatements()},
+				{Name: "PolicyCertManagerHostedZones", Statements: certManagerHostedZonesStatements()},
+			}...,
 		)
 	}
-	return policies
+	return managedPolicies, customPolicies
 }
 
 // createRole creates an IAM role with policies required for the worker nodes and addons

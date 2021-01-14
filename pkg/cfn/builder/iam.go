@@ -228,21 +228,17 @@ func (rs *IAMServiceAccountResourceSet) AddAllResources() error {
 		role.ManagedPolicyArns = append(role.ManagedPolicyArns, arn)
 	}
 
-	wellKnownPolicies := createWellKnownPolicies(rs.spec.WellKnownPolicies)
+	managedPolicies, customPolicies := createWellKnownPolicies(rs.spec.WellKnownPolicies)
 
-	for _, p := range wellKnownPolicies {
-		for _, np := range p.NamedPolicies {
-			role.ManagedPolicyArns = append(role.ManagedPolicyArns, makePolicyARN(np))
-		}
+	for _, p := range managedPolicies {
+		role.ManagedPolicyArns = append(role.ManagedPolicyArns, makePolicyARN(p.name))
 	}
 
 	roleRef := rs.template.NewResource("Role1", role)
 
-	for _, p := range wellKnownPolicies {
-		if p.Name != "" {
-			doc := cft.MakePolicyDocument(p.Statements...)
-			rs.template.AttachPolicy(p.Name, roleRef, doc)
-		}
+	for _, p := range customPolicies {
+		doc := cft.MakePolicyDocument(p.Statements...)
+		rs.template.AttachPolicy(p.Name, roleRef, doc)
 	}
 
 	// TODO: declare output collector automatically when all stack builders migrated to our template package
