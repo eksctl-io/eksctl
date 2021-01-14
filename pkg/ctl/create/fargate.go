@@ -79,8 +79,8 @@ func doCreateFargateProfile(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	client := fargate.NewFromProvider(cfg.Metadata.Name, ctl.Provider)
-	if err := eks.DoCreateFargateProfiles(cmd.ClusterConfig, &client); err != nil {
+	manager := fargate.NewFromProvider(cfg.Metadata.Name, ctl.Provider)
+	if err := eks.DoCreateFargateProfiles(cmd.ClusterConfig, &manager); err != nil {
 		return err
 	}
 	clientSet, err := clientSet(cfg, ctl)

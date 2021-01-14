@@ -14,7 +14,7 @@ func NewFromProvider(clusterName string, provider api.ClusterProvider) Manager {
 	return NewWithRetryPolicy(clusterName, provider.EKS(), &retry)
 }
 
-// NewWithRetryPolicy returns a new Fargate client configured with the
+// NewWithRetryPolicy returns a new Fargate manager configured with the
 // provided retry policy for blocking/waiting operations.
 func NewWithRetryPolicy(clusterName string, api eksiface.EKSAPI, retryPolicy retry.Policy) Manager {
 	return Manager{

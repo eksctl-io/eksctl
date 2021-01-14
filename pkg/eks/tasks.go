@@ -185,12 +185,12 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 	}
 
 	if cfg.IsFargateEnabled() {
-		awsClient := fargate.NewFromProvider(cfg.Metadata.Name, c.Provider)
+		manager := fargate.NewFromProvider(cfg.Metadata.Name, c.Provider)
 		newTasks.Append(&fargateProfilesTask{
 			info:            "create fargate profiles",
 			spec:            cfg,
 			clusterProvider: c,
-			awsClient:       &awsClient,
+			manager:         &manager,
 		})
 	}
 

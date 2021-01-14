@@ -78,21 +78,21 @@ func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
 	}
 
 	clusterName := cmd.ClusterConfig.Metadata.Name
-	awsClient := fargate.NewFromProvider(clusterName, ctl.Provider)
+	manager := fargate.NewFromProvider(clusterName, ctl.Provider)
 
 	logger.Debug("getting EKS cluster %q's Fargate profile(s)", clusterName)
-	profiles, err := getProfiles(&awsClient, options.ProfileName)
+	profiles, err := getProfiles(&manager, options.ProfileName)
 	if err != nil {
 		return err
 	}
 	return fargate.PrintProfiles(profiles, os.Stdout, options.output)
 }
 
-func getProfiles(awsClient *fargate.Manager, name string) ([]*api.FargateProfile, error) {
+func getProfiles(manager *fargate.Manager, name string) ([]*api.FargateProfile, error) {
 	if name == "" {
-		return awsClient.ReadProfiles()
+		return manager.ReadProfiles()
 	}
-	profile, err := awsClient.ReadProfile(name)
+	profile, err := manager.ReadProfile(name)
 	if err != nil {
 		return nil, err
 	}

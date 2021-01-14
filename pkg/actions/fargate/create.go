@@ -48,18 +48,18 @@ func (o CreateOptions) ToFargateProfile() *api.FargateProfile {
 }
 
 // CreateProfile creates the provided Fargate profile.
-func (c *Manager) CreateProfile(profile *api.FargateProfile, waitForCreation bool) error {
+func (m *Manager) CreateProfile(profile *api.FargateProfile, waitForCreation bool) error {
 	if profile == nil {
 		return errors.New("invalid Fargate profile: nil")
 	}
 	logger.Debug("Fargate profile: create request input: %#v", profile)
-	out, err := c.api.CreateFargateProfile(createRequest(c.clusterName, profile))
+	out, err := m.api.CreateFargateProfile(createRequest(m.clusterName, profile))
 	logger.Debug("Fargate profile: create request: received: %#v", out)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create Fargate profile %q", profile.Name)
 	}
 	if waitForCreation {
-		return c.waitForCreation(profile.Name)
+		return m.waitForCreation(profile.Name)
 	}
 	return nil
 }
@@ -77,11 +77,11 @@ func createRequest(clusterName string, profile *api.FargateProfile) *eks.CreateF
 	return request
 }
 
-func (c *Manager) waitForCreation(name string) error {
-	// Clone this client's policy to ensure this method is re-entrant/thread-safe:
-	retryPolicy := c.retryPolicy.Clone()
+func (m *Manager) waitForCreation(name string) error {
+	// Clone this manager's policy to ensure this method is re-entrant/thread-safe:
+	retryPolicy := m.retryPolicy.Clone()
 	for !retryPolicy.Done() {
-		out, err := c.api.DescribeFargateProfile(describeRequest(c.clusterName, name))
+		out, err := m.api.DescribeFargateProfile(describeRequest(m.clusterName, name))
 		if err != nil {
 			return errors.Wrapf(err, "failed while waiting for Fargate profile %q's creation", name)
 		}
