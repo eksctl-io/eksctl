@@ -7,9 +7,9 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/eksctl/pkg/actions/fargate"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/fargate"
 )
 
 type options struct {
@@ -78,17 +78,17 @@ func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
 	}
 
 	clusterName := cmd.ClusterConfig.Metadata.Name
-	awsClient := fargate.NewClient(clusterName, ctl.Provider.EKS())
+	awsClient := fargate.NewFromProvider(clusterName, ctl.Provider)
 
 	logger.Debug("getting EKS cluster %q's Fargate profile(s)", clusterName)
-	profiles, err := getProfiles(awsClient, options.ProfileName)
+	profiles, err := getProfiles(&awsClient, options.ProfileName)
 	if err != nil {
 		return err
 	}
 	return fargate.PrintProfiles(profiles, os.Stdout, options.output)
 }
 
-func getProfiles(awsClient *fargate.Client, name string) ([]*api.FargateProfile, error) {
+func getProfiles(awsClient *fargate.Manager, name string) ([]*api.FargateProfile, error) {
 	if name == "" {
 		return awsClient.ReadProfiles()
 	}

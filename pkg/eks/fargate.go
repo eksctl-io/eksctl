@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/weaveworks/eksctl/pkg/fargate/coredns"
+	"github.com/weaveworks/eksctl/pkg/actions/fargate/coredns"
 	"github.com/weaveworks/eksctl/pkg/utils/retry"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 

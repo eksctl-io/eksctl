@@ -4,7 +4,7 @@ import (
 	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/eksctl/pkg/fargate"
+	"github.com/weaveworks/eksctl/pkg/actions/fargate"
 )
 
 var _ = Describe("fargate", func() {

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/actions/fargate"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/fargate"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -24,7 +24,7 @@ func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, cli
 		logger.Debug("failed to check if cluster is operable: %v", err)
 	}
 	if clusterOperable {
-		if err := deleteFargateProfiles(cfg.Metadata, ctl.Provider.WaitTimeout(), ctl); err != nil {
+		if err := deleteFargateProfiles(cfg.Metadata, ctl); err != nil {
 			return err
 		}
 	}
@@ -63,11 +63,10 @@ func handleErrors(errs []error, subject string) error {
 	return fmt.Errorf("failed to delete %s", subject)
 }
 
-func deleteFargateProfiles(clusterMeta *api.ClusterMeta, waitTimeout time.Duration, ctl *eks.ClusterProvider) error {
-	fargateClient := fargate.NewClientWithWaitTimeout(
+func deleteFargateProfiles(clusterMeta *api.ClusterMeta, ctl *eks.ClusterProvider) error {
+	fargateClient := fargate.NewFromProvider(
 		clusterMeta.Name,
-		ctl.Provider.EKS(),
-		waitTimeout,
+		ctl.Provider,
 	)
 	profileNames, err := fargateClient.ListProfiles()
 	if err != nil {
