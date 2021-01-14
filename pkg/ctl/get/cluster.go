@@ -101,6 +101,9 @@ func getAndPrinterClusters(ctl *eks.ClusterProvider, params *getCmdParams, listA
 		return err
 	}
 
+	logger.Info("DescribeCount: %d", manager.DescribeCount)
+	logger.Info("ListCount: %d", manager.ListCount)
+
 	return printer.PrintObjWithKind("clusters", clusters, os.Stdout)
 }
 
