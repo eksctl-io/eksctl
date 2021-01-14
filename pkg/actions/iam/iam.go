@@ -6,16 +6,14 @@ import (
 	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	kubeclient "k8s.io/client-go/kubernetes"
 )
 
 type Manager struct {
 	clusterName     string
-	clusterProvider *eks.ClusterProvider
+	clusterProvider api.ClusterProvider
 	oidcManager     *iamoidc.OpenIDConnectManager
 	stackManager    StackManager
 	clientSet       kubeclient.Interface
@@ -25,10 +23,10 @@ type Manager struct {
 type StackManager interface {
 	ListStacksMatching(nameRegex string, statusFilters ...string) ([]*manager.Stack, error)
 	UpdateStack(stackName, changeSetName, description string, templateData manager.TemplateData, parameters map[string]string) error
-	NewTasksToCreateIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) *tasks.TaskTree
+	CreateIAMServiceAccount(errs chan error, spec *api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager) error
 }
 
-func New(clusterName string, clusterProvider *eks.ClusterProvider, stackManager StackManager, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) *Manager {
+func New(clusterName string, clusterProvider api.ClusterProvider, stackManager StackManager, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) *Manager {
 	return &Manager{
 		clusterName:     clusterName,
 		clusterProvider: clusterProvider,
@@ -48,4 +46,10 @@ func doTasks(taskTree *tasks.TaskTree) error {
 		return fmt.Errorf("failed to create iamserviceaccount(s)")
 	}
 	return nil
+}
+
+func LogPlanModeWarning(plan bool) {
+	if plan {
+		logger.Warning("no changes were applied, run again with '--approve' to apply the changes")
+	}
 }

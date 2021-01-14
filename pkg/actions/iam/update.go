@@ -5,8 +5,6 @@ import (
 
 	"github.com/kris-nova/logger"
 
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -14,24 +12,24 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
-func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMServiceAccount, plan bool) error {
-	var nonExistingSAs []string
+func (m *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMServiceAccount, plan bool) error {
+	var missingIAMServiceAccounts []string
 	updateTasks := &tasks.TaskTree{Parallel: true}
 
 	for _, iamServiceAccount := range iamServiceAccounts {
-		stackName := makeIAMServiceAccountStackName(a.clusterName, iamServiceAccount.Namespace, iamServiceAccount.Name)
-		stacks, err := a.stackManager.ListStacksMatching(stackName)
+		stackName := makeIAMServiceAccountStackName(m.clusterName, iamServiceAccount.Namespace, iamServiceAccount.Name)
+		stacks, err := m.stackManager.ListStacksMatching(stackName)
 		if err != nil {
 			return err
 		}
 
 		if len(stacks) == 0 {
 			logger.Info("Cannot update IAMServiceAccount %s/%s as it does not exist", iamServiceAccount.Namespace, iamServiceAccount.Name)
-			nonExistingSAs = append(nonExistingSAs, fmt.Sprintf("%s/%s", iamServiceAccount.Namespace, iamServiceAccount.Name))
+			missingIAMServiceAccounts = append(missingIAMServiceAccounts, fmt.Sprintf("%s/%s", iamServiceAccount.Namespace, iamServiceAccount.Name))
 			continue
 		}
 
-		rs := builder.NewIAMServiceAccountResourceSet(iamServiceAccount, a.oidcManager)
+		rs := builder.NewIAMServiceAccountResourceSet(iamServiceAccount, m.oidcManager)
 		err = rs.AddAllResources()
 		if err != nil {
 			return err
@@ -43,17 +41,51 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 		}
 
 		var templateBody manager.TemplateBody = template
-		taskTree := UpdateIAMServiceAccountTask(a.clusterName, iamServiceAccount, a.stackManager, templateBody)
+		taskTree := UpdateIAMServiceAccountTask(m.clusterName, iamServiceAccount, m.stackManager, templateBody)
 		taskTree.PlanMode = plan
 		updateTasks.Append(taskTree)
 	}
-	if len(nonExistingSAs) > 0 {
-		logger.Info("the following IAMServiceAccounts will not be updated as they do not exist: %v", nonExistingSAs)
+	if len(missingIAMServiceAccounts) > 0 {
+		logger.Info("the following IAMServiceAccounts will not be updated as they do not exist: %v", missingIAMServiceAccounts)
 	}
 
 	err := doTasks(updateTasks)
-	cmdutils.LogPlanModeWarning(plan && len(iamServiceAccounts) > 0)
+	LogPlanModeWarning(plan && len(iamServiceAccounts) > 0)
 	return err
+
+}
+
+func UpdateIAMServiceAccountTask(clusterName string, sa *api.ClusterIAMServiceAccount, stackManager StackManager, templateData manager.TemplateData) *tasks.TaskTree {
+	taskTree := &tasks.TaskTree{Parallel: false}
+
+	taskTree.Append(
+		&updateIAMServiceAccountTask{
+			info:         fmt.Sprintf("update IAMServiceAccount %s/%s", sa.Namespace, sa.Name),
+			stackManager: stackManager,
+			templateData: templateData,
+			sa:           sa,
+			clusterName:  clusterName,
+		},
+	)
+	return taskTree
+}
+
+type updateIAMServiceAccountTask struct {
+	sa           *api.ClusterIAMServiceAccount
+	stackManager StackManager
+	templateData manager.TemplateData
+	clusterName  string
+	info         string
+}
+
+func (t *updateIAMServiceAccountTask) Describe() string { return t.info }
+
+func (t *updateIAMServiceAccountTask) Do(errorCh chan error) error {
+	stackName := makeIAMServiceAccountStackName(t.clusterName, t.sa.Namespace, t.sa.Name)
+	go func() {
+		errorCh <- nil
+	}()
+	return t.stackManager.UpdateStack(stackName, "updating-policy", "updating policies", t.templateData, nil)
 
 }
 

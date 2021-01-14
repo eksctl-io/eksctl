@@ -9,11 +9,22 @@ import (
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
-	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
 type FakeStackManager struct {
+	CreateIAMServiceAccountStub        func(chan error, *v1alpha5.ClusterIAMServiceAccount, *iamoidc.OpenIDConnectManager) error
+	createIAMServiceAccountMutex       sync.RWMutex
+	createIAMServiceAccountArgsForCall []struct {
+		arg1 chan error
+		arg2 *v1alpha5.ClusterIAMServiceAccount
+		arg3 *iamoidc.OpenIDConnectManager
+	}
+	createIAMServiceAccountReturns struct {
+		result1 error
+	}
+	createIAMServiceAccountReturnsOnCall map[int]struct {
+		result1 error
+	}
 	ListStacksMatchingStub        func(string, ...string) ([]*cloudformation.Stack, error)
 	listStacksMatchingMutex       sync.RWMutex
 	listStacksMatchingArgsForCall []struct {
@@ -27,19 +38,6 @@ type FakeStackManager struct {
 	listStacksMatchingReturnsOnCall map[int]struct {
 		result1 []*cloudformation.Stack
 		result2 error
-	}
-	NewTasksToCreateIAMServiceAccountsStub        func([]*v1alpha5.ClusterIAMServiceAccount, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter) *tasks.TaskTree
-	newTasksToCreateIAMServiceAccountsMutex       sync.RWMutex
-	newTasksToCreateIAMServiceAccountsArgsForCall []struct {
-		arg1 []*v1alpha5.ClusterIAMServiceAccount
-		arg2 *iamoidc.OpenIDConnectManager
-		arg3 kubernetes.ClientSetGetter
-	}
-	newTasksToCreateIAMServiceAccountsReturns struct {
-		result1 *tasks.TaskTree
-	}
-	newTasksToCreateIAMServiceAccountsReturnsOnCall map[int]struct {
-		result1 *tasks.TaskTree
 	}
 	UpdateStackStub        func(string, string, string, manager.TemplateData, map[string]string) error
 	updateStackMutex       sync.RWMutex
@@ -58,6 +56,69 @@ type FakeStackManager struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeStackManager) CreateIAMServiceAccount(arg1 chan error, arg2 *v1alpha5.ClusterIAMServiceAccount, arg3 *iamoidc.OpenIDConnectManager) error {
+	fake.createIAMServiceAccountMutex.Lock()
+	ret, specificReturn := fake.createIAMServiceAccountReturnsOnCall[len(fake.createIAMServiceAccountArgsForCall)]
+	fake.createIAMServiceAccountArgsForCall = append(fake.createIAMServiceAccountArgsForCall, struct {
+		arg1 chan error
+		arg2 *v1alpha5.ClusterIAMServiceAccount
+		arg3 *iamoidc.OpenIDConnectManager
+	}{arg1, arg2, arg3})
+	stub := fake.CreateIAMServiceAccountStub
+	fakeReturns := fake.createIAMServiceAccountReturns
+	fake.recordInvocation("CreateIAMServiceAccount", []interface{}{arg1, arg2, arg3})
+	fake.createIAMServiceAccountMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeStackManager) CreateIAMServiceAccountCallCount() int {
+	fake.createIAMServiceAccountMutex.RLock()
+	defer fake.createIAMServiceAccountMutex.RUnlock()
+	return len(fake.createIAMServiceAccountArgsForCall)
+}
+
+func (fake *FakeStackManager) CreateIAMServiceAccountCalls(stub func(chan error, *v1alpha5.ClusterIAMServiceAccount, *iamoidc.OpenIDConnectManager) error) {
+	fake.createIAMServiceAccountMutex.Lock()
+	defer fake.createIAMServiceAccountMutex.Unlock()
+	fake.CreateIAMServiceAccountStub = stub
+}
+
+func (fake *FakeStackManager) CreateIAMServiceAccountArgsForCall(i int) (chan error, *v1alpha5.ClusterIAMServiceAccount, *iamoidc.OpenIDConnectManager) {
+	fake.createIAMServiceAccountMutex.RLock()
+	defer fake.createIAMServiceAccountMutex.RUnlock()
+	argsForCall := fake.createIAMServiceAccountArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeStackManager) CreateIAMServiceAccountReturns(result1 error) {
+	fake.createIAMServiceAccountMutex.Lock()
+	defer fake.createIAMServiceAccountMutex.Unlock()
+	fake.CreateIAMServiceAccountStub = nil
+	fake.createIAMServiceAccountReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeStackManager) CreateIAMServiceAccountReturnsOnCall(i int, result1 error) {
+	fake.createIAMServiceAccountMutex.Lock()
+	defer fake.createIAMServiceAccountMutex.Unlock()
+	fake.CreateIAMServiceAccountStub = nil
+	if fake.createIAMServiceAccountReturnsOnCall == nil {
+		fake.createIAMServiceAccountReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.createIAMServiceAccountReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeStackManager) ListStacksMatching(arg1 string, arg2 ...string) ([]*cloudformation.Stack, error) {
@@ -123,74 +184,6 @@ func (fake *FakeStackManager) ListStacksMatchingReturnsOnCall(i int, result1 []*
 		result1 []*cloudformation.Stack
 		result2 error
 	}{result1, result2}
-}
-
-func (fake *FakeStackManager) NewTasksToCreateIAMServiceAccounts(arg1 []*v1alpha5.ClusterIAMServiceAccount, arg2 *iamoidc.OpenIDConnectManager, arg3 kubernetes.ClientSetGetter) *tasks.TaskTree {
-	var arg1Copy []*v1alpha5.ClusterIAMServiceAccount
-	if arg1 != nil {
-		arg1Copy = make([]*v1alpha5.ClusterIAMServiceAccount, len(arg1))
-		copy(arg1Copy, arg1)
-	}
-	fake.newTasksToCreateIAMServiceAccountsMutex.Lock()
-	ret, specificReturn := fake.newTasksToCreateIAMServiceAccountsReturnsOnCall[len(fake.newTasksToCreateIAMServiceAccountsArgsForCall)]
-	fake.newTasksToCreateIAMServiceAccountsArgsForCall = append(fake.newTasksToCreateIAMServiceAccountsArgsForCall, struct {
-		arg1 []*v1alpha5.ClusterIAMServiceAccount
-		arg2 *iamoidc.OpenIDConnectManager
-		arg3 kubernetes.ClientSetGetter
-	}{arg1Copy, arg2, arg3})
-	stub := fake.NewTasksToCreateIAMServiceAccountsStub
-	fakeReturns := fake.newTasksToCreateIAMServiceAccountsReturns
-	fake.recordInvocation("NewTasksToCreateIAMServiceAccounts", []interface{}{arg1Copy, arg2, arg3})
-	fake.newTasksToCreateIAMServiceAccountsMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeStackManager) NewTasksToCreateIAMServiceAccountsCallCount() int {
-	fake.newTasksToCreateIAMServiceAccountsMutex.RLock()
-	defer fake.newTasksToCreateIAMServiceAccountsMutex.RUnlock()
-	return len(fake.newTasksToCreateIAMServiceAccountsArgsForCall)
-}
-
-func (fake *FakeStackManager) NewTasksToCreateIAMServiceAccountsCalls(stub func([]*v1alpha5.ClusterIAMServiceAccount, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter) *tasks.TaskTree) {
-	fake.newTasksToCreateIAMServiceAccountsMutex.Lock()
-	defer fake.newTasksToCreateIAMServiceAccountsMutex.Unlock()
-	fake.NewTasksToCreateIAMServiceAccountsStub = stub
-}
-
-func (fake *FakeStackManager) NewTasksToCreateIAMServiceAccountsArgsForCall(i int) ([]*v1alpha5.ClusterIAMServiceAccount, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter) {
-	fake.newTasksToCreateIAMServiceAccountsMutex.RLock()
-	defer fake.newTasksToCreateIAMServiceAccountsMutex.RUnlock()
-	argsForCall := fake.newTasksToCreateIAMServiceAccountsArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
-}
-
-func (fake *FakeStackManager) NewTasksToCreateIAMServiceAccountsReturns(result1 *tasks.TaskTree) {
-	fake.newTasksToCreateIAMServiceAccountsMutex.Lock()
-	defer fake.newTasksToCreateIAMServiceAccountsMutex.Unlock()
-	fake.NewTasksToCreateIAMServiceAccountsStub = nil
-	fake.newTasksToCreateIAMServiceAccountsReturns = struct {
-		result1 *tasks.TaskTree
-	}{result1}
-}
-
-func (fake *FakeStackManager) NewTasksToCreateIAMServiceAccountsReturnsOnCall(i int, result1 *tasks.TaskTree) {
-	fake.newTasksToCreateIAMServiceAccountsMutex.Lock()
-	defer fake.newTasksToCreateIAMServiceAccountsMutex.Unlock()
-	fake.NewTasksToCreateIAMServiceAccountsStub = nil
-	if fake.newTasksToCreateIAMServiceAccountsReturnsOnCall == nil {
-		fake.newTasksToCreateIAMServiceAccountsReturnsOnCall = make(map[int]struct {
-			result1 *tasks.TaskTree
-		})
-	}
-	fake.newTasksToCreateIAMServiceAccountsReturnsOnCall[i] = struct {
-		result1 *tasks.TaskTree
-	}{result1}
 }
 
 func (fake *FakeStackManager) UpdateStack(arg1 string, arg2 string, arg3 string, arg4 manager.TemplateData, arg5 map[string]string) error {
@@ -261,10 +254,10 @@ func (fake *FakeStackManager) UpdateStackReturnsOnCall(i int, result1 error) {
 func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.createIAMServiceAccountMutex.RLock()
+	defer fake.createIAMServiceAccountMutex.RUnlock()
 	fake.listStacksMatchingMutex.RLock()
 	defer fake.listStacksMatchingMutex.RUnlock()
-	fake.newTasksToCreateIAMServiceAccountsMutex.RLock()
-	defer fake.newTasksToCreateIAMServiceAccountsMutex.RUnlock()
 	fake.updateStackMutex.RLock()
 	defer fake.updateStackMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

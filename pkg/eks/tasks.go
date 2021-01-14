@@ -7,6 +7,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/actions/iam"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -267,9 +268,8 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 	// as this is non-CloudFormation context, we need to construct a new stackManager,
 	// given a clientSet getter and OpenIDConnectManager reference we can build out
 	// the list of tasks for each of the service accounts that need to be created
-	newTasks := c.NewStackManager(cfg).NewTasksToCreateIAMServiceAccounts(
+	newTasks := iam.New(cfg.Metadata.Name, c.Provider, c.NewStackManager(cfg), oidcPlaceholder, nil).NewTasksToCreateIAMServiceAccounts(
 		api.IAMServiceAccountsWithAWSNodeServiceAccount(cfg),
-		oidcPlaceholder,
 		clientSet,
 	)
 	newTasks.IsSubTask = true
