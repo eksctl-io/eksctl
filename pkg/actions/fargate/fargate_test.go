@@ -8,44 +8,46 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/actions/fargate"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks/mocks"
-	"github.com/weaveworks/eksctl/pkg/fargate"
 	"github.com/weaveworks/eksctl/pkg/utils/retry"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 const clusterName = "non-existing-test-cluster"
 
+var retryPolicy = retry.NewTimingOutExponentialBackoff(5 * time.Minute)
+
 var _ = Describe("fargate", func() {
-	Describe("Client", func() {
+	Describe("Manager", func() {
 		Describe("CreateProfile", func() {
 			It("fails fast if the provided profile is nil", func() {
-				client := fargate.NewClient(clusterName, &mocks.EKSAPI{})
+				manager := fargate.NewWithRetryPolicy(clusterName, &mocks.EKSAPI{}, &retryPolicy)
 				waitForCreation := false
-				err := client.CreateProfile(nil, waitForCreation)
+				err := manager.CreateProfile(nil, waitForCreation)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("invalid Fargate profile: nil"))
 			})
 
 			It("creates the provided profile without tag", func() {
-				client := fargate.NewClient(clusterName, mockForCreateFargateProfileWithoutTag())
+				manager := fargate.NewWithRetryPolicy(clusterName, mockForCreateFargateProfileWithoutTag(), &retryPolicy)
 				waitForCreation := false
-				err := client.CreateProfile(createProfileWithoutTag(), waitForCreation)
+				err := manager.CreateProfile(createProfileWithoutTag(), waitForCreation)
 				Expect(err).To(Not(HaveOccurred()))
 			})
 
 			It("creates the provided profile", func() {
-				client := fargate.NewClient(clusterName, mockForCreateFargateProfile())
+				manager := fargate.NewWithRetryPolicy(clusterName, mockForCreateFargateProfile(), &retryPolicy)
 				waitForCreation := false
-				err := client.CreateProfile(testFargateProfile(), waitForCreation)
+				err := manager.CreateProfile(testFargateProfile(), waitForCreation)
 				Expect(err).To(Not(HaveOccurred()))
 			})
 
 			It("fails by wrapping the root error with some additional context for clarity", func() {
-				client := fargate.NewClient(clusterName, mockForFailureOnCreateFargateProfile())
+				manager := fargate.NewWithRetryPolicy(clusterName, mockForFailureOnCreateFargateProfile(), &retryPolicy)
 				waitForCreation := false
-				err := client.CreateProfile(testFargateProfile(), waitForCreation)
+				err := manager.CreateProfile(testFargateProfile(), waitForCreation)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("failed to create Fargate profile \"default\": the Internet broke down"))
 			})
@@ -56,9 +58,9 @@ var _ = Describe("fargate", func() {
 					Time: 0, TimeUnit: time.Second, MaxRetries: 5,
 				}
 				numRetriesAfterCreation := 3 // < MaxRetries
-				client := fargate.NewClientWithRetryPolicy(clusterName, mockForCreateFargateProfileWithWait(numRetriesAfterCreation), retryPolicy)
+				manager := fargate.NewWithRetryPolicy(clusterName, mockForCreateFargateProfileWithWait(numRetriesAfterCreation), retryPolicy)
 				waitForCreation := true
-				err := client.CreateProfile(testFargateProfile(), waitForCreation)
+				err := manager.CreateProfile(testFargateProfile(), waitForCreation)
 				Expect(err).To(Not(HaveOccurred()))
 			})
 
@@ -68,9 +70,9 @@ var _ = Describe("fargate", func() {
 					Time: 0, TimeUnit: time.Second, MaxRetries: 5,
 				}
 				numRetriesAfterCreation := 5 // == MaxRetries, i.e. we will time out.
-				client := fargate.NewClientWithRetryPolicy(clusterName, mockForCreateFargateProfileWithWait(numRetriesAfterCreation), retryPolicy)
+				manager := fargate.NewWithRetryPolicy(clusterName, mockForCreateFargateProfileWithWait(numRetriesAfterCreation), retryPolicy)
 				waitForCreation := true
-				err := client.CreateProfile(testFargateProfile(), waitForCreation)
+				err := manager.CreateProfile(testFargateProfile(), waitForCreation)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("timed out while waiting for Fargate profile \"default\"'s creation"))
 			})
@@ -78,8 +80,8 @@ var _ = Describe("fargate", func() {
 
 		Describe("ReadProfiles", func() {
 			It("returns all Fargate profiles", func() {
-				client := fargate.NewClient(clusterName, mockForReadProfiles())
-				out, err := client.ReadProfiles()
+				manager := fargate.NewWithRetryPolicy(clusterName, mockForReadProfiles(), &retryPolicy)
+				out, err := manager.ReadProfiles()
 				Expect(err).To(Not(HaveOccurred()))
 				Expect(out).To(Not(BeNil()))
 				Expect(out).To(HaveLen(2))
@@ -88,16 +90,16 @@ var _ = Describe("fargate", func() {
 			})
 
 			It("returns an empty array if no Fargate profile exists", func() {
-				client := fargate.NewClient(clusterName, mockForEmptyReadProfiles())
-				out, err := client.ReadProfiles()
+				manager := fargate.NewWithRetryPolicy(clusterName, mockForEmptyReadProfiles(), &retryPolicy)
+				out, err := manager.ReadProfiles()
 				Expect(err).To(Not(HaveOccurred()))
 				Expect(out).To(Not(BeNil()))
 				Expect(out).To(HaveLen(0))
 			})
 
 			It("fails by wrapping the root error with some additional context for clarity", func() {
-				client := fargate.NewClient(clusterName, mockForFailureOnReadProfiles())
-				out, err := client.ReadProfiles()
+				manager := fargate.NewWithRetryPolicy(clusterName, mockForFailureOnReadProfiles(), &retryPolicy)
+				out, err := manager.ReadProfiles()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("failed to get Fargate profile(s) for cluster \"non-existing-test-cluster\": the Internet broke down"))
 				Expect(out).To(BeNil())
@@ -106,15 +108,15 @@ var _ = Describe("fargate", func() {
 
 		Describe("ReadProfile", func() {
 			It("returns the Fargate profile matching the provided name, if any", func() {
-				client := fargate.NewClient(clusterName, mockForReadProfile())
-				out, err := client.ReadProfile(testGreen)
+				manager := fargate.NewWithRetryPolicy(clusterName, mockForReadProfile(), &retryPolicy)
+				out, err := manager.ReadProfile(testGreen)
 				Expect(err).To(Not(HaveOccurred()))
 				Expect(out).To(Equal(apiFargateProfile(testGreen)))
 			})
 
 			It("returns a 'not found' error if no Fargate profile matched the provided name", func() {
-				client := fargate.NewClient(clusterName, mockForEmptyReadProfile())
-				out, err := client.ReadProfile(testRed)
+				manager := fargate.NewWithRetryPolicy(clusterName, mockForEmptyReadProfile(), &retryPolicy)
+				out, err := manager.ReadProfile(testRed)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("failed to get Fargate profile \"test-red\": ResourceNotFoundException: No Fargate Profile found with name: test-red"))
 				Expect(out).To(BeNil())
@@ -123,26 +125,26 @@ var _ = Describe("fargate", func() {
 
 		Describe("DeleteProfile", func() {
 			It("fails fast if the provided profile name is empty", func() {
-				client := fargate.NewClient(clusterName, &mocks.EKSAPI{})
+				manager := fargate.NewWithRetryPolicy(clusterName, &mocks.EKSAPI{}, &retryPolicy)
 				waitForDeletion := false
-				err := client.DeleteProfile("", waitForDeletion)
+				err := manager.DeleteProfile("", waitForDeletion)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("invalid Fargate profile name: empty"))
 			})
 
 			It("deletes the profile corresponding to the provided name", func() {
 				profileName := "test-green"
-				client := fargate.NewClient(clusterName, mockForDeleteFargateProfile(profileName))
+				manager := fargate.NewWithRetryPolicy(clusterName, mockForDeleteFargateProfile(profileName), &retryPolicy)
 				waitForDeletion := false
-				err := client.DeleteProfile(profileName, waitForDeletion)
+				err := manager.DeleteProfile(profileName, waitForDeletion)
 				Expect(err).To(Not(HaveOccurred()))
 			})
 
 			It("fails by wrapping the root error with some additional context for clarity", func() {
 				profileName := "test-green"
-				client := fargate.NewClient(clusterName, mockForFailureOnDeleteFargateProfile(profileName))
+				manager := fargate.NewWithRetryPolicy(clusterName, mockForFailureOnDeleteFargateProfile(profileName), &retryPolicy)
 				waitForDeletion := false
-				err := client.DeleteProfile(profileName, waitForDeletion)
+				err := manager.DeleteProfile(profileName, waitForDeletion)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("failed to delete Fargate profile \"test-green\": the Internet broke down"))
 			})
@@ -154,9 +156,9 @@ var _ = Describe("fargate", func() {
 					Time: 0, TimeUnit: time.Second, MaxRetries: 5,
 				}
 				numRetriesBeforeDeletion := 3 // < MaxRetries
-				client := fargate.NewClientWithRetryPolicy(clusterName, mockForDeleteFargateProfileWithWait(profileName, numRetriesBeforeDeletion), retryPolicy)
+				manager := fargate.NewWithRetryPolicy(clusterName, mockForDeleteFargateProfileWithWait(profileName, numRetriesBeforeDeletion), retryPolicy)
 				waitForDeletion := true
-				err := client.DeleteProfile(profileName, waitForDeletion)
+				err := manager.DeleteProfile(profileName, waitForDeletion)
 				Expect(err).To(Not(HaveOccurred()))
 			})
 
@@ -167,9 +169,9 @@ var _ = Describe("fargate", func() {
 					Time: 0, TimeUnit: time.Second, MaxRetries: 5,
 				}
 				numRetriesBeforeDeletion := 5 // == MaxRetries, i.e. we will time out.
-				client := fargate.NewClientWithRetryPolicy(clusterName, mockForDeleteFargateProfileWithWait(profileName, numRetriesBeforeDeletion), retryPolicy)
+				manager := fargate.NewWithRetryPolicy(clusterName, mockForDeleteFargateProfileWithWait(profileName, numRetriesBeforeDeletion), retryPolicy)
 				waitForDeletion := true
-				err := client.DeleteProfile(profileName, waitForDeletion)
+				err := manager.DeleteProfile(profileName, waitForDeletion)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("timed out while waiting for Fargate profile \"test-green\"'s deletion"))
 			})
