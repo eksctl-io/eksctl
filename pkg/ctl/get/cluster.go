@@ -74,7 +74,7 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 		return err
 	}
 
-	if !listAllRegions {
+	if params.output == "table" && !listAllRegions {
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 	}
 
