@@ -3,9 +3,11 @@ package iam
 import (
 	"fmt"
 
-	"github.com/kris-nova/logger"
-
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+
+	"github.com/kris-nova/logger"
 
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 
@@ -16,14 +18,17 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 	var nonExistingSAs []string
 	updateTasks := &tasks.TaskTree{Parallel: true}
 
+	stacks, err := a.stackManager.ListStacksMatching("eksctl-.*-addon-iamserviceaccount")
+	if err != nil {
+		return err
+	}
+
+	existingStacksMap := listToMap(stacks)
+
 	for _, iamServiceAccount := range iamServiceAccounts {
 		stackName := makeIAMServiceAccountStackName(a.clusterName, iamServiceAccount.Namespace, iamServiceAccount.Name)
-		stacks, err := a.stackManager.ListStacksMatching(stackName)
-		if err != nil {
-			return err
-		}
 
-		if len(stacks) == 0 {
+		if _, ok := existingStacksMap[stackName]; !ok {
 			logger.Info("Cannot update IAMServiceAccount %s/%s as it does not exist", iamServiceAccount.Namespace, iamServiceAccount.Name)
 			nonExistingSAs = append(nonExistingSAs, fmt.Sprintf("%s/%s", iamServiceAccount.Namespace, iamServiceAccount.Name))
 			continue
@@ -40,12 +45,18 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 		logger.Info("the following IAMServiceAccounts will not be updated as they do not exist: %v", nonExistingSAs)
 	}
 
-	err := doTasks(updateTasks)
-	cmdutils.LogPlanModeWarning(plan && len(iamServiceAccounts) > 0)
-	return err
+	defer cmdutils.LogPlanModeWarning(plan && len(iamServiceAccounts) > 0)
+	return doTasks(updateTasks)
 
 }
 
+func listToMap(stacks []*manager.Stack) map[string]string {
+	stacksMap := make(map[string]string)
+	for _, stack := range stacks {
+		stacksMap[*stack.StackName] = ""
+	}
+	return stacksMap
+}
 func makeIAMServiceAccountStackName(clusterName, namespace, name string) string {
 	return fmt.Sprintf("eksctl-%s-addon-iamserviceaccount-%s-%s", clusterName, namespace, name)
 }
