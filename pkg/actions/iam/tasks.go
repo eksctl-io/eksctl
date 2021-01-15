@@ -3,12 +3,30 @@ package iam
 import (
 	"fmt"
 
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
+
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-func UpdateIAMServiceAccountTask(clusterName string, sa *api.ClusterIAMServiceAccount, stackManager StackManager, templateData manager.TemplateData) *tasks.TaskTree {
+func NewUpdateIAMServiceAccountTask(clusterName string, sa *api.ClusterIAMServiceAccount, stackManager StackManager, iamServiceAccount *api.ClusterIAMServiceAccount, oidcManager *iamoidc.OpenIDConnectManager) (*tasks.TaskTree, error) {
+
+	rs := builder.NewIAMServiceAccountResourceSet(iamServiceAccount, oidcManager)
+	err := rs.AddAllResources()
+	if err != nil {
+		return nil, err
+	}
+
+	template, err := rs.RenderJSON()
+	if err != nil {
+		return nil, err
+	}
+
+	var templateData manager.TemplateBody = template
+
 	taskTree := &tasks.TaskTree{Parallel: false}
 
 	taskTree.Append(
@@ -20,7 +38,7 @@ func UpdateIAMServiceAccountTask(clusterName string, sa *api.ClusterIAMServiceAc
 			clusterName:  clusterName,
 		},
 	)
-	return taskTree
+	return taskTree, nil
 }
 
 type updateIAMServiceAccountTask struct {

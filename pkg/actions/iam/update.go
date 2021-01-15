@@ -10,8 +10,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
 func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMServiceAccount, plan bool) error {
@@ -31,19 +29,10 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 			continue
 		}
 
-		rs := builder.NewIAMServiceAccountResourceSet(iamServiceAccount, a.oidcManager)
-		err = rs.AddAllResources()
+		taskTree, err := NewUpdateIAMServiceAccountTask(a.clusterName, iamServiceAccount, a.stackManager, iamServiceAccount, a.oidcManager)
 		if err != nil {
 			return err
 		}
-
-		template, err := rs.RenderJSON()
-		if err != nil {
-			return err
-		}
-
-		var templateBody manager.TemplateBody = template
-		taskTree := UpdateIAMServiceAccountTask(a.clusterName, iamServiceAccount, a.stackManager, templateBody)
 		taskTree.PlanMode = plan
 		updateTasks.Append(taskTree)
 	}
