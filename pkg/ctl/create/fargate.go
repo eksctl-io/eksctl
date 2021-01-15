@@ -1,16 +1,13 @@
 package create
 
 import (
-	"fmt"
-
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	actionsfargate "github.com/weaveworks/eksctl/pkg/actions/fargate"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/fargate"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 func createFargateProfileWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd) error) {
@@ -34,6 +31,15 @@ func createFargateProfile(cmd *cmdutils.Cmd) {
 	createFargateProfileWithRunFunc(cmd, doCreateFargateProfile)
 }
 
+func doCreateFargateProfile(cmd *cmdutils.Cmd) error {
+	ctl, err := cmd.NewCtl()
+	if err != nil {
+		return errors.Wrap(err, "couldn't create cluster provider from command line options")
+	}
+	manager := actionsfargate.New(cmd.ClusterConfig, ctl)
+	return manager.Create()
+}
+
 func configureCreateFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.CreateOptions {
 	var options fargate.CreateOptions
 	cmd.FlagSetGroup.InFlagSet("Fargate", func(fs *pflag.FlagSet) {
@@ -47,62 +53,4 @@ func configureCreateFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.CreateOptions 
 	})
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 	return &options
-}
-
-func doCreateFargateProfile(cmd *cmdutils.Cmd) error {
-	ctl, err := cmd.NewCtl()
-	if err != nil {
-		return err
-	}
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-	cfg := cmd.ClusterConfig
-	if ok, err := ctl.CanOperate(cfg); !ok {
-		return err
-	}
-
-	supportsFargate, err := ctl.SupportsFargate(cfg)
-	if err != nil {
-		return err
-	}
-	if !supportsFargate {
-		return fmt.Errorf("Fargate is not supported for this cluster version. Please update the cluster to be at least eks.%d", fargate.MinPlatformVersion)
-	}
-
-	if err := ctl.LoadClusterVPC(cfg); err != nil {
-		return err
-	}
-
-	// Read back the default Fargate pod execution role ARN from CloudFormation:
-	if err := ctl.NewStackManager(cfg).RefreshFargatePodExecutionRoleARN(); err != nil {
-		return err
-	}
-
-	manager := fargate.NewFromProvider(cfg.Metadata.Name, ctl.Provider)
-	if err := eks.DoCreateFargateProfiles(cmd.ClusterConfig, &manager); err != nil {
-		return err
-	}
-	clientSet, err := clientSet(cfg, ctl)
-	if err != nil {
-		return err
-	}
-	return eks.ScheduleCoreDNSOnFargateIfRelevant(cmd.ClusterConfig, ctl, clientSet)
-}
-
-func clientSet(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (kubernetes.Interface, error) {
-	kubernetesClientConfigs, err := ctl.NewClient(cfg)
-	if err != nil {
-		return nil, err
-	}
-	k8sConfig := kubernetesClientConfigs.Config
-	k8sRestConfig, err := clientcmd.NewDefaultClientConfig(*k8sConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
-	if err != nil {
-		return nil, err
-	}
-	k8sClientSet, err := kubernetes.NewForConfig(k8sRestConfig)
-	if err != nil {
-		return nil, err
-	}
-	return k8sClientSet, nil
 }

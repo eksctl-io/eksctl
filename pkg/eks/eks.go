@@ -282,9 +282,13 @@ func (c *ClusterProvider) LoadClusterIntoSpec(spec *api.ClusterConfig) error {
 
 // LoadClusterVPC loads the VPC configuration
 func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig) error {
-	stack, err := c.NewStackManager(spec).DescribeClusterStack()
+	stackManager := c.NewStackManager(spec)
+	stack, err := stackManager.DescribeClusterStack()
 	if err != nil {
 		return err
+	}
+	if stack == nil {
+		return stackManager.ErrStackNotFound()
 	}
 
 	return vpc.UseFromCluster(c.Provider, stack, spec)

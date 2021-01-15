@@ -1,6 +1,9 @@
 package builder
 
 import (
+	"fmt"
+
+	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
@@ -9,12 +12,57 @@ import (
 )
 
 const (
-	fargateRoleName        = "FargatePodExecutionRole"
-	fargateRoleDescription = "EKS Fargate pod execution IAM role [created by eksctl]"
+	fargateTemplateDescription = "Fargate IAM"
+	fargateRoleName            = "FargatePodExecutionRole"
+	fargateRoleDescription     = "EKS Fargate pod execution IAM role [created by eksctl]"
 )
 
-// AddResourcesForFargate adds resources for Fargate.
-func AddResourcesForFargate(rs *resourceSet, cfg *api.ClusterConfig) error {
+// FargateResourceSet manages only fargate resources
+type FargateResourceSet struct {
+	rs   *resourceSet
+	spec *api.ClusterConfig
+}
+
+// NewFargateResourceSet returns a resource set for managing fargate resources
+func NewFargateResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig) *FargateResourceSet {
+	rs := newResourceSet()
+	rs.withIAM = true
+	rs.withNamedIAM = true
+	return &FargateResourceSet{
+		rs,
+		spec,
+	}
+}
+
+func (rs *FargateResourceSet) AddAllResources() error {
+	rs.rs.template.Mappings[servicePrincipalPartitionMapName] = servicePrincipalPartitionMappings
+
+	rs.rs.template.Description = fmt.Sprintf(
+		"%s %s",
+		fargateTemplateDescription,
+		templateDescriptionSuffix,
+	)
+	return addResourcesForFargate(rs.rs, rs.spec)
+}
+
+func (rs *FargateResourceSet) WithIAM() bool {
+	return true
+}
+
+func (rs *FargateResourceSet) WithNamedIAM() bool {
+	return true
+}
+
+func (rs *FargateResourceSet) RenderJSON() ([]byte, error) {
+	return rs.rs.renderJSON()
+}
+
+func (rs *FargateResourceSet) GetAllOutputs(stack cfn.Stack) error {
+	return rs.rs.GetAllOutputs(stack)
+}
+
+// addResourcesForFargate adds resources for Fargate.
+func addResourcesForFargate(rs *resourceSet, cfg *api.ClusterConfig) error {
 	if api.IsSetAndNonEmptyString(cfg.IAM.FargatePodExecutionRoleARN) {
 		rs.defineOutputWithoutCollector(outputs.FargatePodExecutionRoleARN, cfg.IAM.FargatePodExecutionRoleARN, true)
 		return nil
