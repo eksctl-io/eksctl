@@ -23,7 +23,7 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 		return err
 	}
 
-	existingStacksMap := listToMap(stacks)
+	existingStacksMap := listToSet(stacks)
 
 	for _, iamServiceAccount := range iamServiceAccounts {
 		stackName := makeIAMServiceAccountStackName(a.clusterName, iamServiceAccount.Namespace, iamServiceAccount.Name)
@@ -50,10 +50,10 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 
 }
 
-func listToMap(stacks []*manager.Stack) map[string]string {
-	stacksMap := make(map[string]string)
+func listToSet(stacks []*manager.Stack) map[string]struct{} {
+	stacksMap := make(map[string]struct{})
 	for _, stack := range stacks {
-		stacksMap[*stack.StackName] = ""
+		stacksMap[*stack.StackName] = struct{}{}
 	}
 	return stacksMap
 }
