@@ -50,7 +50,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			ng2 = "ng-2"
 			// "unowned_clusters" lead to names longer than allowed for CF stacks
 			clusterName = params.NewClusterName("uc")
-			stackName = fmt.Sprintf("it-%s", clusterName)
+			stackName = fmt.Sprintf("eksctl-%s", clusterName)
 			cfg := &api.ClusterConfig{
 				Metadata: &api.ClusterMeta{
 					Name:   params.ClusterName,
