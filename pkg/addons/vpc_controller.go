@@ -211,6 +211,26 @@ func (v *VPCController) createCertSecrets(key, cert []byte) error {
 	return err
 }
 
+func makePolicyDocument() map[string]interface{} {
+	return map[string]interface{}{
+		"Version": "2012-10-17",
+		"Statement": []map[string]interface{}{
+			{
+				"Effect": "Allow",
+				"Action": []string{
+					"ec2:AssignPrivateIpAddresses",
+					"ec2:DescribeInstances",
+					"ec2:DescribeNetworkInterfaces",
+					"ec2:UnassignPrivateIpAddresses",
+					"ec2:DescribeRouteTables",
+					"ec2:DescribeSubnets",
+				},
+				"Resource": "*",
+			},
+		},
+	}
+}
+
 func (v *VPCController) deployVPCResourceController() error {
 	irsaEnabled, err := v.irsa.IsSupported()
 	if err != nil {
@@ -222,23 +242,7 @@ func (v *VPCController) deployVPCResourceController() error {
 				Name:      vpcControllerName,
 				Namespace: vpcControllerNamespace,
 			},
-			AttachPolicy: map[string]interface{}{
-				"Version": "2012-10-17",
-				"Statement": []map[string]interface{}{
-					{
-						"Effect": "Allow",
-						"Action": []string{
-							"ec2:AssignPrivateIpAddresses",
-							"ec2:DescribeInstances",
-							"ec2:DescribeNetworkInterfaces",
-							"ec2:UnassignPrivateIpAddresses",
-							"ec2:DescribeRouteTables",
-							"ec2:DescribeSubnets",
-						},
-						"Resource": "*",
-					},
-				},
-			},
+			AttachPolicy: makePolicyDocument(),
 		}
 		if err := v.irsa.Create([]*api.ClusterIAMServiceAccount{sa}); err != nil {
 			return errors.Wrap(err, "error enabling IRSA")
