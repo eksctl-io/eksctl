@@ -8,7 +8,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
-type FakeFargateManager struct {
+type FakeFargateClient struct {
 	CreateProfileStub        func(*v1alpha5.FargateProfile, bool) error
 	createProfileMutex       sync.RWMutex
 	createProfileArgsForCall []struct {
@@ -25,7 +25,7 @@ type FakeFargateManager struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeFargateManager) CreateProfile(arg1 *v1alpha5.FargateProfile, arg2 bool) error {
+func (fake *FakeFargateClient) CreateProfile(arg1 *v1alpha5.FargateProfile, arg2 bool) error {
 	fake.createProfileMutex.Lock()
 	ret, specificReturn := fake.createProfileReturnsOnCall[len(fake.createProfileArgsForCall)]
 	fake.createProfileArgsForCall = append(fake.createProfileArgsForCall, struct {
@@ -45,26 +45,26 @@ func (fake *FakeFargateManager) CreateProfile(arg1 *v1alpha5.FargateProfile, arg
 	return fakeReturns.result1
 }
 
-func (fake *FakeFargateManager) CreateProfileCallCount() int {
+func (fake *FakeFargateClient) CreateProfileCallCount() int {
 	fake.createProfileMutex.RLock()
 	defer fake.createProfileMutex.RUnlock()
 	return len(fake.createProfileArgsForCall)
 }
 
-func (fake *FakeFargateManager) CreateProfileCalls(stub func(*v1alpha5.FargateProfile, bool) error) {
+func (fake *FakeFargateClient) CreateProfileCalls(stub func(*v1alpha5.FargateProfile, bool) error) {
 	fake.createProfileMutex.Lock()
 	defer fake.createProfileMutex.Unlock()
 	fake.CreateProfileStub = stub
 }
 
-func (fake *FakeFargateManager) CreateProfileArgsForCall(i int) (*v1alpha5.FargateProfile, bool) {
+func (fake *FakeFargateClient) CreateProfileArgsForCall(i int) (*v1alpha5.FargateProfile, bool) {
 	fake.createProfileMutex.RLock()
 	defer fake.createProfileMutex.RUnlock()
 	argsForCall := fake.createProfileArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeFargateManager) CreateProfileReturns(result1 error) {
+func (fake *FakeFargateClient) CreateProfileReturns(result1 error) {
 	fake.createProfileMutex.Lock()
 	defer fake.createProfileMutex.Unlock()
 	fake.CreateProfileStub = nil
@@ -73,7 +73,7 @@ func (fake *FakeFargateManager) CreateProfileReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeFargateManager) CreateProfileReturnsOnCall(i int, result1 error) {
+func (fake *FakeFargateClient) CreateProfileReturnsOnCall(i int, result1 error) {
 	fake.createProfileMutex.Lock()
 	defer fake.createProfileMutex.Unlock()
 	fake.CreateProfileStub = nil
@@ -87,7 +87,7 @@ func (fake *FakeFargateManager) CreateProfileReturnsOnCall(i int, result1 error)
 	}{result1}
 }
 
-func (fake *FakeFargateManager) Invocations() map[string][][]interface{} {
+func (fake *FakeFargateClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.createProfileMutex.RLock()
@@ -99,7 +99,7 @@ func (fake *FakeFargateManager) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeFargateManager) recordInvocation(key string, args []interface{}) {
+func (fake *FakeFargateClient) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -111,4 +111,4 @@ func (fake *FakeFargateManager) recordInvocation(key string, args []interface{})
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ eks.FargateManager = new(FakeFargateManager)
+var _ eks.FargateClient = new(FakeFargateClient)

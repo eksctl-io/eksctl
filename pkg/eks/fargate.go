@@ -8,15 +8,15 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/weaveworks/eksctl/pkg/actions/fargate/coredns"
+	"github.com/weaveworks/eksctl/pkg/fargate/coredns"
 	"github.com/weaveworks/eksctl/pkg/utils/retry"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-//go:generate "$GOBIN/counterfeiter" -o fakes/fargate_client.go . FargateClient
-type FargateManager interface {
+//go:generate counterfeiter -o fakes/fargate_client.go . FargateClient
+type FargateClient interface {
 	CreateProfile(profile *api.FargateProfile, waitForCreation bool) error
 }
 
@@ -24,7 +24,7 @@ type fargateProfilesTask struct {
 	info            string
 	clusterProvider *ClusterProvider
 	spec            *api.ClusterConfig
-	manager         FargateManager
+	manager         FargateClient
 }
 
 func (fpt *fargateProfilesTask) Describe() string { return fpt.info }
@@ -49,7 +49,7 @@ func (fpt *fargateProfilesTask) Do(errCh chan error) error {
 }
 
 // DoCreateFargateProfiles creates fargate profiles as specified in the config
-func DoCreateFargateProfiles(config *api.ClusterConfig, awsClient FargateManager) error {
+func DoCreateFargateProfiles(config *api.ClusterConfig, fargateClient FargateClient) error {
 	clusterName := config.Metadata.Name
 	for _, profile := range config.FargateProfiles {
 		logger.Info("creating Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
@@ -64,7 +64,7 @@ func DoCreateFargateProfiles(config *api.ClusterConfig, awsClient FargateManager
 		//
 		// In the case that a ResourceInUseException is thrown on a profile which was
 		// created on an earlier call, we do not error but continue to the next one
-		err := awsClient.CreateProfile(profile, true)
+		err := fargateClient.CreateProfile(profile, true)
 		switch errors.Cause(err).(type) {
 		case nil:
 			logger.Info("created Fargate profile %q on EKS cluster %q", profile.Name, clusterName)

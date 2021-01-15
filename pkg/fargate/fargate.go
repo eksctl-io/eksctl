@@ -9,23 +9,23 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
-func NewFromProvider(clusterName string, provider api.ClusterProvider) Manager {
+func NewFromProvider(clusterName string, provider api.ClusterProvider) Client {
 	retry := retry.NewTimingOutExponentialBackoff(provider.WaitTimeout())
 	return NewWithRetryPolicy(clusterName, provider.EKS(), &retry)
 }
 
-// NewWithRetryPolicy returns a new Fargate manager configured with the
+// NewWithRetryPolicy returns a new Fargate client configured with the
 // provided retry policy for blocking/waiting operations.
-func NewWithRetryPolicy(clusterName string, api eksiface.EKSAPI, retryPolicy retry.Policy) Manager {
-	return Manager{
+func NewWithRetryPolicy(clusterName string, api eksiface.EKSAPI, retryPolicy retry.Policy) Client {
+	return Client{
 		clusterName: clusterName,
 		api:         api,
 		retryPolicy: retryPolicy,
 	}
 }
 
-// Manager wraps around an EKS API client to expose high-level methods.
-type Manager struct {
+// Client wraps around an EKS API client to expose high-level methods.
+type Client struct {
 	clusterName string
 	api         eksiface.EKSAPI
 	retryPolicy retry.Policy
