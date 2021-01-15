@@ -53,7 +53,9 @@ func getAddon(cmd *cmdutils.Cmd, params *getCmdParams) error {
 		return err
 	}
 
-	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+	if params.output == "table" {
+		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+	}
 
 	stackManager := clusterProvider.NewStackManager(cmd.ClusterConfig)
 

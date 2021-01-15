@@ -7,9 +7,9 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/eksctl/pkg/actions/fargate"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/fargate"
 )
 
 type options struct {
@@ -64,7 +64,10 @@ func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
-	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+
+	if options.output == "table" {
+		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+	}
 
 	supportsFargate, err := ctl.SupportsFargate(cmd.ClusterConfig)
 	if err != nil {
@@ -75,21 +78,21 @@ func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
 	}
 
 	clusterName := cmd.ClusterConfig.Metadata.Name
-	awsClient := fargate.NewClient(clusterName, ctl.Provider.EKS())
+	manager := fargate.NewFromProvider(clusterName, ctl.Provider)
 
 	logger.Debug("getting EKS cluster %q's Fargate profile(s)", clusterName)
-	profiles, err := getProfiles(awsClient, options.ProfileName)
+	profiles, err := getProfiles(&manager, options.ProfileName)
 	if err != nil {
 		return err
 	}
 	return fargate.PrintProfiles(profiles, os.Stdout, options.output)
 }
 
-func getProfiles(awsClient *fargate.Client, name string) ([]*api.FargateProfile, error) {
+func getProfiles(manager *fargate.Manager, name string) ([]*api.FargateProfile, error) {
 	if name == "" {
-		return awsClient.ReadProfiles()
+		return manager.ReadProfiles()
 	}
-	profile, err := awsClient.ReadProfile(name)
+	profile, err := manager.ReadProfile(name)
 	if err != nil {
 		return nil, err
 	}
