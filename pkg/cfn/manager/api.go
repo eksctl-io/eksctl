@@ -450,15 +450,22 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 	return stacks, nil
 }
 
-func IsClusterStack(stacks []*Stack) bool {
+func (c *StackCollection) IsClusterStack() (bool, error) {
+	clusterStackName := c.makeClusterStackName()
+	stacks, err := c.DescribeStacks()
+	if err != nil {
+		return false, err
+	}
 	for _, stack := range stacks {
-		for _, output := range stack.Outputs {
-			if *output.OutputKey == "ClusterStackName" {
-				return true
+		if *stack.StackName == clusterStackName {
+			for _, tag := range stack.Tags {
+				if matchesClusterName(*tag.Key, *tag.Value, c.spec.Metadata.Name) {
+					return true, nil
+				}
 			}
 		}
 	}
-	return false
+	return false, nil
 }
 
 // DescribeStackEvents describes the events that have occurred on the stack

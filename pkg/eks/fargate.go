@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/weaveworks/eksctl/pkg/fargate/coredns"
+	"github.com/weaveworks/eksctl/pkg/actions/fargate/coredns"
 	"github.com/weaveworks/eksctl/pkg/utils/retry"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 
@@ -16,7 +16,7 @@ import (
 )
 
 //go:generate "$GOBIN/counterfeiter" -o fakes/fargate_client.go . FargateClient
-type FargateClient interface {
+type FargateManager interface {
 	CreateProfile(profile *api.FargateProfile, waitForCreation bool) error
 }
 
@@ -24,14 +24,14 @@ type fargateProfilesTask struct {
 	info            string
 	clusterProvider *ClusterProvider
 	spec            *api.ClusterConfig
-	awsClient       FargateClient
+	manager         FargateManager
 }
 
 func (fpt *fargateProfilesTask) Describe() string { return fpt.info }
 
 func (fpt *fargateProfilesTask) Do(errCh chan error) error {
 	defer close(errCh)
-	if err := DoCreateFargateProfiles(fpt.spec, fpt.awsClient); err != nil {
+	if err := DoCreateFargateProfiles(fpt.spec, fpt.manager); err != nil {
 		return err
 	}
 	// Make sure control plane is reachable
@@ -49,7 +49,7 @@ func (fpt *fargateProfilesTask) Do(errCh chan error) error {
 }
 
 // DoCreateFargateProfiles creates fargate profiles as specified in the config
-func DoCreateFargateProfiles(config *api.ClusterConfig, awsClient FargateClient) error {
+func DoCreateFargateProfiles(config *api.ClusterConfig, awsClient FargateManager) error {
 	clusterName := config.Metadata.Name
 	for _, profile := range config.FargateProfiles {
 		logger.Info("creating Fargate profile %q on EKS cluster %q", profile.Name, clusterName)

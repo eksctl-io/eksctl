@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"strings"
 
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 
@@ -159,11 +160,24 @@ func createMimeMessage(writer io.Writer, scripts []string, mimeBoundary string) 
 	return mw.Close()
 }
 
+func makeCustomAMIUserData(ng *api.NodeGroupBase) (string, error) {
+	if ng.OverrideBootstrapCommand != nil {
+		return base64.StdEncoding.EncodeToString([]byte(*ng.OverrideBootstrapCommand)), nil
+	}
+
+	return "", nil
+}
+
 func makeUserData(ng *api.NodeGroupBase, mimeBoundary string) (string, error) {
 	var (
 		buf     bytes.Buffer
 		scripts []string
 	)
+
+	// We don't use MIME format when launching managed nodegroups with a custom AMI
+	if strings.HasPrefix(ng.AMI, "ami-") {
+		return makeCustomAMIUserData(ng)
+	}
 
 	if ng.SSH.EnableSSM != nil && *ng.SSH.EnableSSM {
 		installSSMScript, err := nodebootstrap.Asset("install-ssm.al2.sh")

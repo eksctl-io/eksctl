@@ -12,8 +12,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 
+	"github.com/weaveworks/eksctl/pkg/actions/fargate"
 	"github.com/weaveworks/eksctl/pkg/addons"
-	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
@@ -185,11 +185,12 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 	}
 
 	if cfg.IsFargateEnabled() {
+		manager := fargate.NewFromProvider(cfg.Metadata.Name, c.Provider)
 		newTasks.Append(&fargateProfilesTask{
 			info:            "create fargate profiles",
 			spec:            cfg,
 			clusterProvider: c,
-			awsClient:       fargate.NewClientWithWaitTimeout(cfg.Metadata.Name, c.Provider.EKS(), c.Provider.WaitTimeout()),
+			manager:         &manager,
 		})
 	}
 

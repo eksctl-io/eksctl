@@ -47,6 +47,15 @@ type TimingOutExponentialBackoff struct {
 	TimeUnit       time.Duration
 }
 
+// NewTimingOutExponentialBackoff creates a new TimingOutExponentialBackoff
+// with seconds as TimeUnit
+func NewTimingOutExponentialBackoff(timeout time.Duration) TimingOutExponentialBackoff {
+	return TimingOutExponentialBackoff{
+		Timeout:  timeout,
+		TimeUnit: time.Second,
+	}
+}
+
 // Done implements retry.Policy#Done() bool.
 func (b TimingOutExponentialBackoff) Done() bool {
 	return b.totalTimeSoFar == b.Timeout

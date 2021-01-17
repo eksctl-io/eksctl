@@ -53,6 +53,10 @@ func getAddon(cmd *cmdutils.Cmd, params *getCmdParams) error {
 		return err
 	}
 
+	if params.output == "table" {
+		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+	}
+
 	stackManager := clusterProvider.NewStackManager(cmd.ClusterConfig)
 
 	output, err := clusterProvider.Provider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
