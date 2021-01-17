@@ -8,8 +8,6 @@ gocache := $(shell go env GOCACHE)
 
 export GOBIN ?= $(gopath)/bin
 
-export PATH := $(GOBIN):./build/scripts:$(PATH)
-
 AWS_SDK_GO_DIR ?= $(shell go list -m -f '{{.Dir}}' 'github.com/aws/aws-sdk-go')
 
 generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
@@ -35,7 +33,7 @@ install-all-deps: install-build-deps install-site-deps ## Install all dependenci
 
 .PHONY: install-build-deps
 install-build-deps: ## Install dependencies (packages and tools)
-	SHELL=$(SHELL) build-image-manifest.sh
+	build/scripts/build-image-manifest.sh
 
 ##@ Build
 
@@ -193,7 +191,7 @@ update-aws-node: ## Re-download the aws-node manifests from AWS
 
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) ## Generate Kubernetes API helpers
-	SHELL=$(SHELL) update-codegen.sh
+	build/scripts/update-codegen.sh
 
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 	AWS_SDK_GO_DIR=$(AWS_SDK_GO_DIR) go generate ./pkg/eks/mocks
@@ -205,11 +203,11 @@ generate-kube-reserved: ## Update instance list with respective specs
 ##@ Release
 .PHONY: prepare-release
 prepare-release:
-	SHELL=$(SHELL) tag-release.sh
+	build/scripts/tag-release.sh
 
 .PHONY: prepare-release-candidate
 prepare-release-candidate:
-	SHELL=$(SHELL) tag-release-candidate.sh
+	build/scripts/tag-release-candidate.sh
 
 .PHONY: print-version
 print-version:
