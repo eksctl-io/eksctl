@@ -249,8 +249,10 @@ const (
 
 // Values for `VolumeType`
 const (
-	// NodeVolumeTypeGP2 is General Purpose SSD (default)
+	// NodeVolumeTypeGP2 is General Purpose SSD
 	NodeVolumeTypeGP2 = "gp2"
+	// NodeVolumeTypeGP3 is General Purpose SSD which can be optimised for high throughput (default)
+	NodeVolumeTypeGP3 = "gp3"
 	// NodeVolumeTypeIO1 is Provisioned IOPS SSD
 	NodeVolumeTypeIO1 = "io1"
 	// NodeVolumeTypeSC1 is Cold HDD
@@ -269,6 +271,12 @@ const (
 	NodeGroupTypeUnmanaged NodeGroupType = "unmanaged"
 	// NodeGroupTypeUnowned defines an unowned managed nodegroup
 	NodeGroupTypeUnowned NodeGroupType = "unowned"
+	// DefaultNodeVolumeThroughput defines the default throughput for gp3 volumes, set to the min value
+	DefaultNodeVolumeThroughput = 125
+	// DefaultNodeVolumeIO1IOPS defines the default throughput for io1 volumes, set to the min value
+	DefaultNodeVolumeIO1IOPS = 100
+	// DefaultNodeVolumeGP3IOPS defines the default throughput for gp3, set to the min value
+	DefaultNodeVolumeGP3IOPS = 3000
 )
 
 var (
@@ -279,7 +287,7 @@ var (
 	DefaultNodeSSHPublicKeyPath = "~/.ssh/id_rsa.pub"
 
 	// DefaultNodeVolumeType defines the default root volume type to use
-	DefaultNodeVolumeType = NodeVolumeTypeGP2
+	DefaultNodeVolumeType = NodeVolumeTypeGP3
 
 	// DefaultNodeVolumeSize defines the default root volume size
 	DefaultNodeVolumeSize = 80
@@ -397,6 +405,7 @@ func IsSupportedVersion(version string) bool {
 func SupportedNodeVolumeTypes() []string {
 	return []string{
 		NodeVolumeTypeGP2,
+		NodeVolumeTypeGP3,
 		NodeVolumeTypeIO1,
 		NodeVolumeTypeSC1,
 		NodeVolumeTypeST1,
@@ -1146,6 +1155,8 @@ type NodeGroupBase struct {
 	VolumeKmsKeyID *string `json:"volumeKmsKeyID,omitempty"`
 	// +optional
 	VolumeIOPS *int `json:"volumeIOPS,omitempty"`
+	// +optional
+	VolumeThroughput *int `json:"volumeThroughput,omitempty"`
 
 	// PreBootstrapCommands are executed before bootstrapping instances to the
 	// cluster

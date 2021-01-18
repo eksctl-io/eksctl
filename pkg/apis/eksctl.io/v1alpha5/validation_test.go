@@ -1,6 +1,9 @@
 package v1alpha5
 
 import (
+	"fmt"
+
+	"github.com/aws/aws-sdk-go/aws"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -8,11 +11,6 @@ import (
 )
 
 var _ = Describe("ClusterConfig validation", func() {
-	newNodeGroup := func() *NodeGroup {
-		return &NodeGroup{
-			NodeGroupBase: &NodeGroupBase{},
-		}
-	}
 	Describe("nodeGroups[*].name", func() {
 		var (
 			cfg *ClusterConfig
@@ -50,6 +48,117 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			err = ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	Describe("nodeGroups[*].volumeX", func() {
+		var (
+			cfg *ClusterConfig
+			ng0 *NodeGroup
+		)
+
+		BeforeEach(func() {
+			cfg = NewClusterConfig()
+			ng0 = cfg.NewNodeGroup()
+			ng0.Name = "ng0"
+		})
+
+		When("volumeIOPS is set", func() {
+			BeforeEach(func() {
+				ng0.VolumeIOPS = aws.Int(3000)
+			})
+
+			When("VolumeType is gp3", func() {
+				BeforeEach(func() {
+					*ng0.VolumeType = NodeVolumeTypeGP3
+				})
+
+				It("does not fail", func() {
+					Expect(ValidateNodeGroup(0, ng0)).To(Succeed())
+				})
+
+				When(fmt.Sprintf("the value of volumeIOPS is < %d", minGP3Iops), func() {
+					It("returns an error", func() {
+						ng0.VolumeIOPS = aws.Int(minGP3Iops - 1)
+						Expect(ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeIOPS must be within range 3000-16000"))
+					})
+				})
+
+				When(fmt.Sprintf("the value of volumeIOPS is > %d", maxGP3Iops), func() {
+					It("returns an error", func() {
+						ng0.VolumeIOPS = aws.Int(maxGP3Iops + 1)
+						Expect(ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeIOPS must be within range 3000-16000"))
+					})
+				})
+			})
+
+			When("VolumeType is io1", func() {
+				BeforeEach(func() {
+					*ng0.VolumeType = NodeVolumeTypeIO1
+				})
+
+				It("does not fail", func() {
+					Expect(ValidateNodeGroup(0, ng0)).To(Succeed())
+				})
+
+				When(fmt.Sprintf("the value of volumeIOPS is < %d", minIO1Iops), func() {
+					It("returns an error", func() {
+						ng0.VolumeIOPS = aws.Int(minIO1Iops - 1)
+						Expect(ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeIOPS must be within range 100-64000"))
+					})
+				})
+
+				When(fmt.Sprintf("the value of volumeIOPS is > %d", maxIO1Iops), func() {
+					It("returns an error", func() {
+						ng0.VolumeIOPS = aws.Int(maxIO1Iops + 1)
+						Expect(ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeIOPS must be within range 100-64000"))
+					})
+				})
+			})
+
+			When("VolumeType is one for which IOPS is not supported", func() {
+				It("returns an error", func() {
+					*ng0.VolumeType = NodeVolumeTypeGP2
+					Expect(ValidateNodeGroup(0, ng0)).To(MatchError("nodeGroups[0].volumeIOPS is only supported for io1 and gp3 volume types"))
+				})
+			})
+		})
+
+		When("volumeThroughput is set", func() {
+			BeforeEach(func() {
+				ng0.VolumeThroughput = aws.Int(125)
+			})
+
+			When("VolumeType is gp3", func() {
+				BeforeEach(func() {
+					*ng0.VolumeType = NodeVolumeTypeGP3
+				})
+
+				It("does not fail", func() {
+					Expect(ValidateNodeGroup(0, ng0)).To(Succeed())
+				})
+
+				When(fmt.Sprintf("the value of volumeThroughput is < %d", minThroughput), func() {
+					It("returns an error", func() {
+						ng0.VolumeThroughput = aws.Int(minThroughput - 1)
+						Expect(ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeThroughput must be within range 125-1000"))
+					})
+				})
+
+				When(fmt.Sprintf("the value of volumeIOPS is > %d", maxThroughput), func() {
+					It("returns an error", func() {
+						ng0.VolumeThroughput = aws.Int(maxThroughput + 1)
+						Expect(ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeThroughput must be within range 125-1000"))
+					})
+				})
+			})
+
+			When("VolumeType is one for which Throughput is not supported", func() {
+				It("returns an error", func() {
+					*ng0.VolumeType = NodeVolumeTypeGP2
+					Expect(ValidateNodeGroup(0, ng0)).To(MatchError("nodeGroups[0].volumeThroughput is only supported for gp3 volume type"))
+				})
+			})
 		})
 	})
 
@@ -873,4 +982,10 @@ func checkItDetectsError(SSHConfig *NodeGroupSSH) {
 func newInt(value int) *int {
 	v := value
 	return &v
+}
+
+func newNodeGroup() *NodeGroup {
+	return &NodeGroup{
+		NodeGroupBase: &NodeGroupBase{},
+	}
 }

@@ -6,6 +6,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/weaveworks/eksctl/pkg/git"
 )
 
@@ -97,13 +98,7 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 		ng.AMIFamily = DefaultNodeImageFamily
 	}
 
-	if !IsSetAndNonEmptyString(ng.VolumeType) {
-		ng.VolumeType = &DefaultNodeVolumeType
-	}
-
-	if ng.VolumeSize == nil {
-		ng.VolumeSize = &DefaultNodeVolumeSize
-	}
+	setVolumeDefaults(ng.NodeGroupBase, nil)
 
 	if ng.SecurityGroups.WithLocal == nil {
 		ng.SecurityGroups.WithLocal = Enabled()
@@ -132,6 +127,8 @@ func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta) {
 	}
 	ng.Tags[NodeGroupNameTag] = ng.Name
 	ng.Tags[NodeGroupTypeTag] = string(NodeGroupTypeManaged)
+
+	setVolumeDefaults(ng.NodeGroupBase, ng.LaunchTemplate)
 }
 
 func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
@@ -164,6 +161,26 @@ func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
 	}
 	if ng.DisablePodIMDS == nil {
 		ng.DisablePodIMDS = Disabled()
+	}
+}
+
+func setVolumeDefaults(ng *NodeGroupBase, template *LaunchTemplate) {
+	if ng.VolumeType == nil {
+		ng.VolumeType = &DefaultNodeVolumeType
+	}
+	if ng.VolumeSize == nil && template == nil {
+		ng.VolumeSize = &DefaultNodeVolumeSize
+	}
+	if *ng.VolumeType == NodeVolumeTypeGP3 {
+		if ng.VolumeIOPS == nil {
+			ng.VolumeIOPS = aws.Int(DefaultNodeVolumeGP3IOPS)
+		}
+		if ng.VolumeThroughput == nil {
+			ng.VolumeThroughput = aws.Int(DefaultNodeVolumeThroughput)
+		}
+	}
+	if *ng.VolumeType == NodeVolumeTypeIO1 && ng.VolumeIOPS == nil {
+		ng.VolumeIOPS = aws.Int(DefaultNodeVolumeIO1IOPS)
 	}
 }
 

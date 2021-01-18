@@ -961,6 +961,11 @@ func (in *NodeGroupBase) DeepCopyInto(out *NodeGroupBase) {
 		*out = new(int)
 		**out = **in
 	}
+	if in.VolumeThroughput != nil {
+		in, out := &in.VolumeThroughput, &out.VolumeThroughput
+		*out = new(int)
+		**out = **in
+	}
 	if in.PreBootstrapCommands != nil {
 		in, out := &in.PreBootstrapCommands, &out.PreBootstrapCommands
 		*out = make([]string, len(*in))
