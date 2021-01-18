@@ -16,3 +16,5 @@ jobs:
         stale-issue-label: 'stale'
         days-before-stale: 30
         days-before-close: 5
+        start-date: '2018-06-01T00:00:00+00:00'
+        exempt-issue-labels: 'priority/critical,priority/important-longterm,priority/important-soon,priority/weave,good first issue,pinned'
