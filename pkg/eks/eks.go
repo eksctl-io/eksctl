@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -19,8 +19,8 @@ import (
 
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/weaveworks/eksctl/pkg/actions/fargate"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/vpc"
@@ -198,7 +198,7 @@ func (c *ClusterProvider) CanDelete(spec *api.ClusterConfig) (bool, error) {
 func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
 	err := c.maybeRefreshClusterStatus(spec)
 	if err != nil {
-		return false, errors.Wrapf(err, "fetching cluster status to determine operability")
+		return false, errors.Wrapf(err, "unable to fetch cluster status to determine operability")
 	}
 
 	switch status := *c.Status.ClusterInfo.Cluster.Status; status {
@@ -341,12 +341,12 @@ func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, e
 
 		for _, clusterName := range clusters {
 			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: *clusterName}}
-			stacks, err := c.NewStackManager(spec).ListStacks()
+			isClusterStack, err := c.NewStackManager(spec).IsClusterStack()
 			managed := eksctlCreatedFalse
 			if err != nil {
 				managed = eksctlCreatedUnknown
 				logger.Warning("error fetching stacks for cluster %s: %v", clusterName, err)
-			} else if manager.IsClusterStack(stacks) {
+			} else if isClusterStack {
 				managed = eksctlCreatedTrue
 			}
 			allClusters = append(allClusters, &api.ClusterConfig{
@@ -415,22 +415,14 @@ func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *
 		return nil
 	}
 
-	ticker := time.NewTicker(20 * time.Second)
-	defer ticker.Stop()
-
-	timer := time.NewTimer(c.Provider.WaitTimeout())
-	defer timer.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			_, err := clientSet.ServerVersion()
-			if err == nil {
-				return nil
-			}
-			logger.Debug("control plane not ready yet – %s", err.Error())
-		case <-timer.C:
-			return fmt.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.Provider.WaitTimeout())
+	condition := func() (bool, error) {
+		_, err := clientSet.ServerVersion()
+		if err == nil {
+			return true, nil
 		}
+		logger.Debug("control plane not ready yet – %s", err.Error())
+		return false, nil
 	}
+
+	return waiters.WaitForCondition(c.Provider.WaitTimeout(), time.Second*20, fmt.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.Provider.WaitTimeout()), condition)
 }

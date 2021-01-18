@@ -61,6 +61,8 @@ func getLabels(cmd *cmdutils.Cmd, nodeGroupName string) error {
 		return err
 	}
 
+	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+
 	stackCollection := manager.NewStackCollection(ctl.Provider, cfg)
 	managedService := managed.NewService(ctl.Provider, stackCollection, cfg.Metadata.Name)
 	ngLabels, err := managedService.GetLabels(nodeGroupName)

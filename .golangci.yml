@@ -142,6 +142,7 @@ linters-settings:
     for-loops: false # Report preallocation suggestions on for loops, false by default
 
 issues:
+  max-same-issues: 20
   # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
     - linters: [golint]

@@ -3,14 +3,14 @@ package upgrade
 import (
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/managed"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 const upgradeNodegroupTimeout = 35 * time.Minute
@@ -65,13 +65,24 @@ func upgradeNodeGroup(cmd *cmdutils.Cmd, options managed.UpgradeOptions) error {
 		return cmdutils.ErrMustBeSet("name")
 	}
 
-	ctl := eks.New(&cmd.ProviderConfig, cmd.ClusterConfig)
+	ctl, err := cmd.NewCtl()
+	if err != nil {
+		return err
+	}
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
 
-	stackCollection := manager.NewStackCollection(ctl.Provider, cfg)
-	managedService := managed.NewService(ctl.Provider, stackCollection, cfg.Metadata.Name)
-	return managedService.UpgradeNodeGroup(options)
+	if ok, err := ctl.CanOperate(cfg); !ok {
+		return err
+	}
+
+	clientSet, err := ctl.NewStdClientSet(cfg)
+	if err != nil {
+		return err
+	}
+
+	return nodegroup.New(cfg, ctl, clientSet).Upgrade(options.NodegroupName, options.KubernetesVersion, options.LaunchTemplateVersion, options.ForceUpgrade)
+
 }

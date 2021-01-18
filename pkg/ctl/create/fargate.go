@@ -5,10 +5,10 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/eksctl/pkg/actions/fargate"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/fargate"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -79,8 +79,8 @@ func doCreateFargateProfile(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	client := fargate.NewClientWithWaitTimeout(cfg.Metadata.Name, ctl.Provider.EKS(), ctl.Provider.WaitTimeout())
-	if err := eks.DoCreateFargateProfiles(cmd.ClusterConfig, client); err != nil {
+	manager := fargate.NewFromProvider(cfg.Metadata.Name, ctl.Provider)
+	if err := eks.DoCreateFargateProfiles(cmd.ClusterConfig, &manager); err != nil {
 		return err
 	}
 	clientSet, err := clientSet(cfg, ctl)

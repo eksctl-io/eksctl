@@ -1138,6 +1138,8 @@ type NodeGroupBase struct {
 	VolumeType *string `json:"volumeType,omitempty"`
 	// +optional
 	VolumeName *string `json:"volumeName,omitempty"`
+	// Some AMIs (bottlerocket) have a separate volume for the OS
+	AdditionalEncryptedVolume string
 	// +optional
 	VolumeEncrypted *bool `json:"volumeEncrypted,omitempty"`
 	// +optional
