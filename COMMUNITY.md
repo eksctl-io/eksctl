@@ -23,12 +23,7 @@ and Claudia Beresford ([@Callisto13](https://github.com/Callisto13)).
 
 The project uses Slack. If you get stuck or just have a question then you are encouraged to join the
 [Weave Community](https://slack.weave.works/) Slack workspace and use the
-[#eksctl](https://weave-community.slack.com/messages/eksctl/) channel and/or the [mailing
-list][maillist].
-
-We use the mailing list for some discussion, for sharing documents and for calendar invites.
-
-[maillist]: https://groups.google.com/forum/#!forum/eksctl
+[#eksctl](https://weave-community.slack.com/messages/eksctl/) channel.
 
 ## How eksctl is run
 
