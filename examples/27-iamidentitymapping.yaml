@@ -1,0 +1,15 @@
+# An example of ClusterConfig with identityMapping:
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-27
+  region: us-west-2
+
+iam:
+  identityMappings:
+    - arn: arn:aws:iam::123456:role/testing
+      groups:
+      - system:masters
+      username: admin

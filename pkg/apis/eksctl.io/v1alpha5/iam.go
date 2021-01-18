@@ -44,6 +44,17 @@ type ClusterIAM struct {
 	// necessary to run the VPC controller in the control plane
 	// Defaults to `true`
 	VPCResourceControllerPolicy *bool `json:"vpcResourceControllerPolicy,omitempty"`
+
+	IdentityMapping []*IAMIdentityMapping `json:"identityMappings,omitempty"`
+}
+
+type IAMIdentityMapping struct {
+	ARN         string   `json:"arn,omitempty"`
+	Username    string   `json:"username,omitempty"`
+	Groups      []string `json:"groups,omitempty"`
+	Account     string   `json:"account,omitempty"`
+	ServiceName string   `json:"serviceName,omitempty"`
+	Namespace   string   `json:"namespace,omitempty"`
 }
 
 // ClusterIAMMeta holds information we can use to create ObjectMeta for service

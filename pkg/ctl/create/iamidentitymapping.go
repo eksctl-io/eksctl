@@ -13,15 +13,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/iam"
 )
 
-type iamIdentityMappingOptions struct {
-	ARN         string
-	Username    string
-	Groups      []string
-	Account     string
-	ServiceName string
-	Namespace   string
-}
-
 func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
@@ -35,11 +26,13 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 		`),
 	)
 
-	var options iamIdentityMappingOptions
+	options := &api.IAMIdentityMapping{}
+
+	cfg.IAM.IdentityMapping = append(cfg.IAM.IdentityMapping, options)
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doCreateIAMIdentityMapping(cmd, options)
+		return doCreateIAMIdentityMapping(cmd)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -58,7 +51,7 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
-func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOptions) error {
+func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd) error {
 	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
@@ -87,75 +80,80 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 		return err
 	}
 
-	hasARNOptions := func() bool {
-		return !(options.ARN == "" && options.Username == "" && len(options.Groups) == 0)
-	}
-
-	validateNonServiceOptions := func() error {
-		if options.Namespace != "" {
-			return errors.New("--namespace is only valid with --service-name")
+	for _, identityMapping := range cfg.IAM.IdentityMapping {
+		hasARNOptions := func() bool {
+			return !(identityMapping.ARN == "" && identityMapping.Username == "" && len(identityMapping.Groups) == 0)
 		}
-		return nil
-	}
 
-	acm, err := authconfigmap.NewFromClientSet(clientSet)
-	if err != nil {
-		return err
-	}
-
-	if options.ServiceName != "" {
-		if hasARNOptions() {
-			return errors.New("cannot use --arn, --username, and --groups with --service-name")
+		validateNonServiceOptions := func() error {
+			if identityMapping.Namespace != "" {
+				return errors.New("namespace is only valid with service-name")
+			}
+			return nil
 		}
-		rawClient, err := ctl.NewRawClient(cfg)
+
+		acm, err := authconfigmap.NewFromClientSet(clientSet)
 		if err != nil {
 			return err
 		}
-		parsedARN, err := arn.Parse(cfg.Status.ARN)
-		if err != nil {
-			return errors.Wrap(err, "error parsing cluster ARN")
-		}
-		sa := authconfigmap.NewServiceAccess(rawClient, acm, parsedARN.AccountID)
-		return sa.Grant(options.ServiceName, options.Namespace)
-	}
 
-	if options.Account == "" {
-		if err := validateNonServiceOptions(); err != nil {
-			return err
-		}
-		id, err := iam.NewIdentity(options.ARN, options.Username, options.Groups)
-		if err != nil {
-			return err
+		if identityMapping.ServiceName != "" {
+			if hasARNOptions() {
+				return errors.New("cannot use arn, username, and groups with service-name")
+			}
+			rawClient, err := ctl.NewRawClient(cfg)
+			if err != nil {
+				return err
+			}
+			parsedARN, err := arn.Parse(cfg.Status.ARN)
+			if err != nil {
+				return errors.Wrap(err, "error parsing cluster ARN")
+			}
+			sa := authconfigmap.NewServiceAccess(rawClient, acm, parsedARN.AccountID)
+			return sa.Grant(identityMapping.ServiceName, identityMapping.Namespace)
 		}
 
 		// Check whether role already exists.
-		identities, err := acm.Identities()
+		if identityMapping.Account == "" {
+			if err := validateNonServiceOptions(); err != nil {
+				return err
+			}
+			id, err := iam.NewIdentity(identityMapping.ARN, identityMapping.Username, identityMapping.Groups)
+			if err != nil {
+				return err
+			}
+			identities, err := acm.Identities()
+			if err != nil {
+				return err
+			}
+
+			createdArn := id.ARN() // The call to Valid above makes sure this cannot error
+			for _, identity := range identities {
+				arn := identity.ARN()
+
+				if createdArn == arn {
+					logger.Warning("found existing mappings with same arn %q (which will be shadowed by your new mapping)", createdArn)
+					break
+				}
+			}
+
+			if err := acm.AddIdentity(id); err != nil {
+				return err
+			}
+		} else if hasARNOptions() {
+			if err := validateNonServiceOptions(); err != nil {
+				return err
+			}
+			if err := acm.AddAccount(identityMapping.Account); err != nil {
+				return err
+			}
+		} else {
+			return errors.New("account can only be set alone")
+		}
+		err = acm.Save()
 		if err != nil {
 			return err
 		}
-
-		createdArn := id.ARN() // The call to Valid above makes sure this cannot error
-		for _, identity := range identities {
-			arn := identity.ARN()
-
-			if createdArn == arn {
-				logger.Warning("found existing mappings with same arn %q (which will be shadowed by your new mapping)", createdArn)
-				break
-			}
-		}
-
-		if err := acm.AddIdentity(id); err != nil {
-			return err
-		}
-	} else if hasARNOptions() {
-		if err := validateNonServiceOptions(); err != nil {
-			return err
-		}
-		if err := acm.AddAccount(options.Account); err != nil {
-			return err
-		}
-	} else {
-		return errors.New("account can only be set alone")
 	}
-	return acm.Save()
+	return nil
 }
