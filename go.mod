@@ -59,7 +59,7 @@ require (
 	k8s.io/code-generator v0.19.4
 	k8s.io/kops v1.19.0-beta.2
 	k8s.io/kubelet v0.19.4
-	k8s.io/kubernetes v1.19.4
+	k8s.io/kubernetes v1.20.2
 	k8s.io/legacy-cloud-providers v0.19.4
 	sigs.k8s.io/aws-iam-authenticator v0.5.2
 	sigs.k8s.io/yaml v1.2.0
