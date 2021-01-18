@@ -19,7 +19,7 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
-	isClusterStack, err := stackManager.IsClusterStack()
+	isClusterStack, err := stackManager.HasClusterStack()
 	if err != nil {
 		return nil, err
 	}

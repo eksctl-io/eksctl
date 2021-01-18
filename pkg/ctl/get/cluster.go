@@ -86,7 +86,6 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 }
 
 func getAndPrinterClusters(ctl *eks.ClusterProvider, params *getCmdParams, listAllRegions bool) error {
-
 	printer, err := printers.NewPrinter(params.output)
 	if err != nil {
 		return err
