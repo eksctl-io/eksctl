@@ -476,15 +476,15 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 	}
 	return stacks, nil
 }
-func (c *StackCollection) IsClusterStack() (bool, error) {
+func (c *StackCollection) HasClusterStack() (bool, error) {
 	clusterStackNames, err := c.ListClusterStackNames()
 	if err != nil {
 		return false, err
 	}
-	return c.IsClusterStackUsingCachedList(clusterStackNames)
+	return c.HasClusterStackUsingCachedList(clusterStackNames)
 }
 
-func (c *StackCollection) IsClusterStackUsingCachedList(clusterStackNames []string) (bool, error) {
+func (c *StackCollection) HasClusterStackUsingCachedList(clusterStackNames []string) (bool, error) {
 	clusterStackName := c.makeClusterStackName()
 	for _, stack := range clusterStackNames {
 		if stack == clusterStackName {
