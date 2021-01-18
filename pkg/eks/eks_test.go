@@ -249,7 +249,7 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				It("should check if the clusters are eksctl created", func() {
-					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 2)).To(BeTrue())
+					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 1)).To(BeTrue())
 				})
 			})
 		})
@@ -313,6 +313,8 @@ var _ = Describe("EKS API wrapper", func() {
 			p.MockEKS().On("ListClusters", mock.MatchedBy(func(input *awseks.ListClustersInput) bool {
 				return *input.MaxResults == int64(chunkSize)
 			})).Return(mockResultFn, nil)
+
+			p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(nil)
 
 			clusters, err := c.ListClusters(chunkSize, false)
 			Expect(err).ToNot(HaveOccurred())

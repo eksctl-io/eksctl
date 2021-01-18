@@ -3,6 +3,15 @@
         "Type": "AWS::EC2::LaunchTemplate",
         "Properties": {
             "LaunchTemplateData": {
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/xvda",
+                        "Ebs": {
+                            "VolumeSize": 80,
+                            "VolumeType": "gp3"
+                        }
+                    }
+                ],
                 "MetadataOptions": {
                     "HttpPutResponseHopLimit": 2,
                     "HttpTokens": "optional"
