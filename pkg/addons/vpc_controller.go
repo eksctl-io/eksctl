@@ -248,6 +248,8 @@ func (v *VPCController) deployVPCResourceController() error {
 			return errors.Wrap(err, "error enabling IRSA")
 		}
 	} else {
+		// If an OIDC provider isn't associated with the cluster, the VPC controller relies on the managed policy
+		// attached to the node role for the AWS VPC CNI plugin.
 		sa := &corev1.ServiceAccount{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      vpcControllerName,
