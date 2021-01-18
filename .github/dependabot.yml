@@ -4,3 +4,6 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    labels:
+    - "skip-release-notes"
+    - "dependencies"
