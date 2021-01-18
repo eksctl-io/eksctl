@@ -69,7 +69,7 @@ func DoCreateFargateProfiles(config *api.ClusterConfig, fargateClient FargateCli
 		case nil:
 			logger.Info("created Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
 		case *eks.ResourceInUseException:
-			logger.Info("Fargate profile %q already exists on EKS cluster %q, no action taken", profile.Name, clusterName)
+			logger.Info("Either Fargate profile %q already exists on EKS cluster %q or another profile is being created/deleted, no action taken", profile.Name, clusterName)
 		default:
 			return errors.Wrapf(err, "failed to create Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
 		}
