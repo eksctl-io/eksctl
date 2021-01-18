@@ -127,25 +127,33 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 
 	if volumeSize := n.spec.VolumeSize; volumeSize != nil && *volumeSize > 0 {
 		var (
-			kmsKeyID   *gfnt.Value
-			volumeIOPS *gfnt.Value
+			kmsKeyID         *gfnt.Value
+			volumeIOPS       *gfnt.Value
+			volumeThroughput *gfnt.Value
+			volumeType       = *n.spec.VolumeType
 		)
+
 		if api.IsSetAndNonEmptyString(n.spec.VolumeKmsKeyID) {
 			kmsKeyID = gfnt.NewString(*n.spec.VolumeKmsKeyID)
 		}
 
-		if *n.spec.VolumeType == api.NodeVolumeTypeIO1 {
+		if volumeType == api.NodeVolumeTypeIO1 || volumeType == api.NodeVolumeTypeGP3 {
 			volumeIOPS = gfnt.NewInteger(*n.spec.VolumeIOPS)
+		}
+
+		if volumeType == api.NodeVolumeTypeGP3 {
+			volumeThroughput = gfnt.NewInteger(*n.spec.VolumeThroughput)
 		}
 
 		launchTemplateData.BlockDeviceMappings = []gfnec2.LaunchTemplate_BlockDeviceMapping{{
 			DeviceName: gfnt.NewString(*n.spec.VolumeName),
 			Ebs: &gfnec2.LaunchTemplate_Ebs{
 				VolumeSize: gfnt.NewInteger(*volumeSize),
-				VolumeType: gfnt.NewString(*n.spec.VolumeType),
+				VolumeType: gfnt.NewString(volumeType),
 				Encrypted:  gfnt.NewBoolean(*n.spec.VolumeEncrypted),
 				KmsKeyId:   kmsKeyID,
 				Iops:       volumeIOPS,
+				Throughput: volumeThroughput,
 			},
 		}}
 

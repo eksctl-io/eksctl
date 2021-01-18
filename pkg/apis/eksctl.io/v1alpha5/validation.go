@@ -13,6 +13,16 @@ import (
 	kubeletapis "k8s.io/kubernetes/pkg/kubelet/apis"
 )
 
+// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-blockdevicemapping-ebs.html
+const (
+	minThroughput = DefaultNodeVolumeThroughput
+	maxThroughput = 1000
+	minIO1Iops    = DefaultNodeVolumeIO1IOPS
+	maxIO1Iops    = 64000
+	minGP3Iops    = DefaultNodeVolumeGP3IOPS
+	maxGP3Iops    = 16000
+)
+
 var (
 	// ErrClusterEndpointNoAccess indicates the config prevents API access
 	ErrClusterEndpointNoAccess = errors.New("Kubernetes API access must have one of public or private clusterEndpoints enabled")
@@ -175,9 +185,6 @@ func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
 		errCantSet := func(field string) error {
 			return fmt.Errorf("%s.%s cannot be set without %s.volumeSize", path, field, path)
 		}
-		if IsSetAndNonEmptyString(ng.VolumeType) {
-			return errCantSet("volumeType")
-		}
 		if IsSetAndNonEmptyString(ng.VolumeName) {
 			return errCantSet("volumeName")
 		}
@@ -189,12 +196,8 @@ func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
 		}
 	}
 
-	if ng.VolumeType != nil && *ng.VolumeType == NodeVolumeTypeIO1 {
-		if ng.VolumeIOPS == nil {
-			return fmt.Errorf("%s.volumeIOPS is required for %s volume type", path, NodeVolumeTypeIO1)
-		}
-	} else if ng.VolumeIOPS != nil {
-		return fmt.Errorf("%s.volumeIOPS is only supported for %s volume type", path, NodeVolumeTypeIO1)
+	if err := validateVolumeOpts(ng, path); err != nil {
+		return err
 	}
 
 	if ng.VolumeEncrypted == nil || IsDisabled(ng.VolumeEncrypted) {
@@ -222,6 +225,36 @@ func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
 	if ng.Placement != nil {
 		if ng.Placement.GroupName == "" {
 			return fmt.Errorf("%s.placement.groupName must be set and non-empty", path)
+		}
+	}
+
+	return nil
+}
+
+func validateVolumeOpts(ng *NodeGroupBase, path string) error {
+	if ng.VolumeType != nil {
+		if ng.VolumeIOPS != nil && !(*ng.VolumeType == NodeVolumeTypeIO1 || *ng.VolumeType == NodeVolumeTypeGP3) {
+			return fmt.Errorf("%s.volumeIOPS is only supported for %s and %s volume types", path, NodeVolumeTypeIO1, NodeVolumeTypeGP3)
+		}
+
+		if *ng.VolumeType == NodeVolumeTypeIO1 {
+			if ng.VolumeIOPS != nil && !(*ng.VolumeIOPS >= minIO1Iops && *ng.VolumeIOPS <= maxIO1Iops) {
+				return fmt.Errorf("value for %s.volumeIOPS must be within range %d-%d", path, minIO1Iops, maxIO1Iops)
+			}
+		}
+
+		if ng.VolumeThroughput != nil && *ng.VolumeType != NodeVolumeTypeGP3 {
+			return fmt.Errorf("%s.volumeThroughput is only supported for %s volume type", path, NodeVolumeTypeGP3)
+		}
+	}
+
+	if ng.VolumeType == nil || *ng.VolumeType == NodeVolumeTypeGP3 {
+		if ng.VolumeIOPS != nil && !(*ng.VolumeIOPS >= minGP3Iops && *ng.VolumeIOPS <= maxGP3Iops) {
+			return fmt.Errorf("value for %s.volumeIOPS must be within range %d-%d", path, minGP3Iops, maxGP3Iops)
+		}
+
+		if ng.VolumeThroughput != nil && !(*ng.VolumeThroughput >= minThroughput && *ng.VolumeThroughput <= maxThroughput) {
+			return fmt.Errorf("value for %s.volumeThroughput must be within range %d-%d", path, minThroughput, maxThroughput)
 		}
 	}
 
@@ -478,9 +511,6 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 
 	if ng.DesiredCapacity == nil {
 		ng.DesiredCapacity = ng.MinSize
-	}
-	if ng.VolumeType == nil {
-		ng.VolumeType = &DefaultNodeVolumeType
 	}
 
 	if IsEnabled(ng.SecurityGroups.WithLocal) || IsEnabled(ng.SecurityGroups.WithShared) {
