@@ -58,7 +58,7 @@ var _ = Describe("Update", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.ListStacksMatchingCallCount()).To(Equal(1))
-			Expect(fakeStackManager.ListStacksMatchingArgsForCall(0)).To(Equal("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"))
+			Expect(fakeStackManager.ListStacksMatchingArgsForCall(0)).To(Equal("eksctl-.*-addon-iamserviceaccount"))
 			Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
 			fakeStackManager.UpdateStackArgsForCall(0)
 			stackName, changeSetName, description, templateData, _ := fakeStackManager.UpdateStackArgsForCall(0)
@@ -82,7 +82,7 @@ var _ = Describe("Update", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeStackManager.ListStacksMatchingCallCount()).To(Equal(1))
-				Expect(fakeStackManager.ListStacksMatchingArgsForCall(0)).To(Equal("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"))
+				Expect(fakeStackManager.ListStacksMatchingArgsForCall(0)).To(Equal("eksctl-.*-addon-iamserviceaccount"))
 				Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(0))
 			})
 		})
