@@ -476,6 +476,7 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 	}
 	return stacks, nil
 }
+
 func (c *StackCollection) HasClusterStack() (bool, error) {
 	clusterStackNames, err := c.ListClusterStackNames()
 	if err != nil {

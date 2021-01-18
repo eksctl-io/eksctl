@@ -347,12 +347,12 @@ func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, e
 
 		for _, clusterName := range clusters {
 			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: *clusterName}}
-			isClusterStack, err := c.NewStackManager(spec).HasClusterStackUsingCachedList(allStacks)
+			hasClusterStack, err := c.NewStackManager(spec).HasClusterStackUsingCachedList(allStacks)
 			managed := eksctlCreatedFalse
 			if err != nil {
 				managed = eksctlCreatedUnknown
 				logger.Warning("error fetching stacks for cluster %s: %v", clusterName, err)
-			} else if isClusterStack {
+			} else if hasClusterStack {
 				managed = eksctlCreatedTrue
 			}
 			allClusters = append(allClusters, &api.ClusterConfig{
