@@ -678,8 +678,8 @@ github.com/goreleaser/chglog v0.1.2 h1:tdzAb/ILeMnphzI9zQ7Nkq+T8R9qyXli8GydD8plF
 github.com/goreleaser/chglog v0.1.2/go.mod h1:tTZsFuSZK4epDXfjMkxzcGbrIOXprf0JFp47BjIr3B8=
 github.com/goreleaser/fileglob v0.3.1 h1:OTFDWqUUHjQazk2N5GdUqEbqT/grBnRARaAXsV07q1Y=
 github.com/goreleaser/fileglob v0.3.1/go.mod h1:kNcPrPzjCp+Ox3jmXLU5QEsjhqrtLBm6OnXAif8KRl8=
-github.com/goreleaser/goreleaser v0.154.0 h1:+8mDDEkUAMcIu1HHcHXEKSQwGMuwFwuDINIg6Mtjrmo=
-github.com/goreleaser/goreleaser v0.154.0/go.mod h1:Gd3nknYm5h8B9NMNqDy1WHRINvtFr16NcbfnwEQYVZg=
+github.com/goreleaser/goreleaser v0.155.0 h1:+1WcjG3NFWJg5lb91d8n7Mo9/qsNxlx1tPWKl9ipj0w=
+github.com/goreleaser/goreleaser v0.155.0/go.mod h1:2zpmKlkp5Qd0U/7mqKrqbW4fg5ylKUBqNKKskUDJ8+w=
 github.com/goreleaser/nfpm/v2 v2.2.2 h1:aLGEqhMDcSNg1RHwzUBHwRUbmiK8HfD1sTq8bG7/WMc=
 github.com/goreleaser/nfpm/v2 v2.2.2/go.mod h1:WtPzYQh+Ls57prS9RzXegrGejqILUS1aZibXHTTJ8eI=
 github.com/gorilla/context v1.1.1/go.mod h1:kBGZzfjB9CEq2AlWe17Uuf7NDRt0dE0s8S51q0aT7Yg=
@@ -1304,8 +1304,8 @@ github.com/weppos/publicsuffix-go v0.13.0/go.mod h1:z3LCPQ38eedDQSwmsSRW4Y7t2L8L
 github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0 h1:qqllXPzXh+So+mmANlX/gCJrgo+1kQyshMoQ+NASzm0=
 github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0/go.mod h1:2rx5KE5FLD0HRfkkpyn8JwbVLBdhgeiOb2D2D9LLKM4=
 github.com/xanzy/go-gitlab v0.33.0/go.mod h1:sPLojNBn68fMUWSxIJtdVVIP8uSBYqesTfDUseX11Ug=
-github.com/xanzy/go-gitlab v0.41.0 h1:DG6NpFf1WHl3cvtEC+K/XEOyDDXTnFAMh3UlsEsEAdQ=
-github.com/xanzy/go-gitlab v0.41.0/go.mod h1:sPLojNBn68fMUWSxIJtdVVIP8uSBYqesTfDUseX11Ug=
+github.com/xanzy/go-gitlab v0.42.0 h1:daNdMFnw2FG+lDRBcX+YLnKbqIKMdefVyVztMHwsFhk=
+github.com/xanzy/go-gitlab v0.42.0/go.mod h1:sPLojNBn68fMUWSxIJtdVVIP8uSBYqesTfDUseX11Ug=
 github.com/xanzy/ssh-agent v0.2.1/go.mod h1:mLlQY/MoOhWBj+gOGMQkOeiEvkx+8pJSI+0Bx9h2kr4=
 github.com/xanzy/ssh-agent v0.3.0 h1:wUMzuKtKilRgBAD1sUb8gOwwRr2FGoBVumcjoOACClI=
 github.com/xanzy/ssh-agent v0.3.0/go.mod h1:3s9xbODqPuuhK9JV1R321M/FlMZSBvE5aY6eAcqrDh0=
