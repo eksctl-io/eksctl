@@ -12,7 +12,7 @@ require (
 	github.com/cloudflare/cfssl v1.5.0
 	github.com/dave/jennifer v1.4.1
 	github.com/dlespiau/kube-test-harness v0.0.0-20200915102055-a03579200ae8
-	github.com/evanphx/json-patch/v5 v5.1.0
+	github.com/evanphx/json-patch/v5 v5.2.0
 	github.com/fluxcd/flux/pkg/install v0.0.0-20201001122558-cb08da1b356a // flux 1.21.0
 	github.com/fluxcd/go-git-providers v0.0.3
 	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200729150005-1467489f7ee4 // helm-operator 1.2.0
