@@ -3,6 +3,8 @@ package nodegroup
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
+
 	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -21,8 +23,10 @@ func (m *Manager) Upgrade(nodeGroupName, version, launchTemplateVersion string, 
 		return err
 	}
 
-	if _, err := semver.ParseTolerant(version); err != nil {
-		return errors.Wrap(err, "invalid Kubernetes version")
+	if version != "" {
+		if _, err := semver.ParseTolerant(version); err != nil {
+			return errors.Wrap(err, "invalid Kubernetes version")
+		}
 	}
 
 	if hasStacks {
@@ -46,19 +50,40 @@ func (m *Manager) upgradeAndWait(nodeGroupName, version, launchTemplateVersion s
 		Version:       &version,
 	}
 
+	describeNodegroupOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
+		ClusterName:   &m.cfg.Metadata.Name,
+		NodegroupName: &nodeGroupName,
+	})
+
+	if err != nil {
+		return err
+	}
+
 	if launchTemplateVersion != "" {
-		describeNodegroupOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
-			ClusterName:   &m.cfg.Metadata.Name,
-			NodegroupName: &nodeGroupName,
-		})
-		if err != nil {
-			return err
+		lt := describeNodegroupOutput.Nodegroup.LaunchTemplate
+		if lt == nil || (lt.Id == nil && lt.Name == nil) {
+			return errors.New("cannot update launch template version because the nodegroup is not configured to use one")
 		}
 
 		input.LaunchTemplate = &eks.LaunchTemplateSpecification{
 			Version: &launchTemplateVersion,
-			Id:      describeNodegroupOutput.Nodegroup.LaunchTemplate.Id,
 		}
+
+		if lt.Id != nil {
+			input.LaunchTemplate.Id = describeNodegroupOutput.Nodegroup.LaunchTemplate.Id
+		} else {
+			input.LaunchTemplate.Name = describeNodegroupOutput.Nodegroup.LaunchTemplate.Name
+
+		}
+	}
+
+	if version == "" {
+		// Use the current Kubernetes version
+		version, err := semver.ParseTolerant(*describeNodegroupOutput.Nodegroup.Version)
+		if err != nil {
+			return errors.Wrapf(err, "unexpected error parsing Kubernetes version %q", *describeNodegroupOutput.Nodegroup.Version)
+		}
+		input.Version = aws.String(fmt.Sprintf("%v.%v", version.Major, version.Minor))
 	}
 
 	upgradeResponse, err := m.ctl.Provider.EKS().UpdateNodegroupVersion(input)
