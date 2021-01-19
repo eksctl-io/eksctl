@@ -7,9 +7,9 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/eksctl/pkg/actions/fargate"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/fargate"
 )
 
 type options struct {
@@ -88,7 +88,7 @@ func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
 	return fargate.PrintProfiles(profiles, os.Stdout, options.output)
 }
 
-func getProfiles(manager *fargate.Manager, name string) ([]*api.FargateProfile, error) {
+func getProfiles(manager *fargate.Client, name string) ([]*api.FargateProfile, error) {
 	if name == "" {
 		return manager.ReadProfiles()
 	}

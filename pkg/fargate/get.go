@@ -10,8 +10,8 @@ import (
 
 // ReadProfile reads the Fargate profile corresponding to the provided name if
 // it exists.
-func (m *Manager) ReadProfile(name string) (*api.FargateProfile, error) {
-	out, err := m.api.DescribeFargateProfile(describeRequest(m.clusterName, name))
+func (c *Client) ReadProfile(name string) (*api.FargateProfile, error) {
+	out, err := c.api.DescribeFargateProfile(describeRequest(c.clusterName, name))
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get Fargate profile %q", name)
 	}
@@ -20,14 +20,14 @@ func (m *Manager) ReadProfile(name string) (*api.FargateProfile, error) {
 }
 
 // ReadProfiles reads all existing Fargate profiles.
-func (m *Manager) ReadProfiles() ([]*api.FargateProfile, error) {
-	names, err := m.ListProfiles()
+func (c *Client) ReadProfiles() ([]*api.FargateProfile, error) {
+	names, err := c.ListProfiles()
 	if err != nil {
 		return nil, err
 	}
 	profiles := []*api.FargateProfile{}
 	for _, name := range names {
-		profile, err := m.ReadProfile(*name)
+		profile, err := c.ReadProfile(*name)
 		if err != nil {
 			return nil, err
 		}
@@ -37,10 +37,10 @@ func (m *Manager) ReadProfiles() ([]*api.FargateProfile, error) {
 }
 
 // ListProfiles lists all existing Fargate profiles.
-func (m *Manager) ListProfiles() ([]*string, error) {
-	out, err := m.api.ListFargateProfiles(listRequest(m.clusterName))
+func (c *Client) ListProfiles() ([]*string, error) {
+	out, err := c.api.ListFargateProfiles(listRequest(c.clusterName))
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get Fargate profile(s) for cluster %q", m.clusterName)
+		return nil, errors.Wrapf(err, "failed to get Fargate profile(s) for cluster %q", c.clusterName)
 	}
 	logger.Debug("Fargate profile: list request: received %v profile(s): %#v", len(out.FargateProfileNames), out)
 	return out.FargateProfileNames, nil

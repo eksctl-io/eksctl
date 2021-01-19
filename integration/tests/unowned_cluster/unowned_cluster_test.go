@@ -155,6 +155,41 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				ContainElement(ContainSubstring("vpc-cni")),
 			))
 
+			By("Creating a fargate profile")
+			cmd = params.EksctlCreateCmd.
+				WithArgs(
+					"fargateprofile",
+					"--cluster", clusterName,
+					"--name", "fp-test",
+					"--namespace", "default",
+				)
+			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+				ContainElement(SatisfyAll(ContainSubstring("created"), ContainSubstring("fp-test"))),
+			))
+
+			By("Getting a fargate profile")
+			cmd = params.EksctlGetCmd.
+				WithArgs(
+					"fargateprofile",
+					"--cluster", clusterName,
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+				ContainElement(ContainSubstring("fp-test")),
+			))
+
+			By("Deleting a fargate profile")
+			cmd = params.EksctlDeleteCmd.
+				WithArgs(
+					"fargateprofile",
+					"--cluster", clusterName,
+					"--name", "fp-test",
+					"--wait",
+				)
+			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+				ContainElement(SatisfyAll(ContainSubstring("deleted"), ContainSubstring("fp-test"))),
+			))
+
 			By("Upgrading one of the nodegroups")
 			cmd = params.EksctlUpgradeCmd.
 				WithArgs(

@@ -19,6 +19,9 @@ func (c *ClusterProvider) ValidateClusterForCompatibility(cfg *api.ClusterConfig
 	if err != nil {
 		return errors.Wrap(err, "getting cluster stacks")
 	}
+	if cluster == nil {
+		return stackManager.ErrStackNotFound()
+	}
 
 	err = outputs.Collect(*cluster,
 		map[string]outputs.Collector{

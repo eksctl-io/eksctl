@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/actions/fargate"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/fargate"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"

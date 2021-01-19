@@ -13,8 +13,8 @@ import (
 
 var _ = Describe("Fargate", func() {
 	var (
-		config      *api.ClusterConfig
-		fakeManager *fakes.FakeFargateManager
+		config     *api.ClusterConfig
+		fakeClient *fakes.FakeFargateClient
 
 		clusterName         string
 		fargateProfileName  string
@@ -25,7 +25,7 @@ var _ = Describe("Fargate", func() {
 		clusterName = "imaginative-cluster-name"
 		fargateProfileName = "a-cool-name-here"
 		podExecutionRoleArn = "shrug-emoji"
-		fakeManager = new(fakes.FakeFargateManager)
+		fakeClient = new(fakes.FakeFargateClient)
 
 		config = &api.ClusterConfig{
 			Metadata: &api.ClusterMeta{
@@ -45,26 +45,26 @@ var _ = Describe("Fargate", func() {
 
 	Describe("DoCreateFargateProfiles", func() {
 		It("should create profiles", func() {
-			fakeManager.CreateProfileReturns(nil)
-			Expect(pkg_eks.DoCreateFargateProfiles(config, fakeManager)).To(Succeed())
+			fakeClient.CreateProfileReturns(nil)
+			Expect(pkg_eks.DoCreateFargateProfiles(config, fakeClient)).To(Succeed())
 		})
 
 		When("a profile already exists", func() {
 			BeforeEach(func() {
-				fakeManager.CreateProfileReturnsOnCall(0, nil)
-				Expect(pkg_eks.DoCreateFargateProfiles(config, fakeManager)).To(Succeed())
+				fakeClient.CreateProfileReturnsOnCall(0, nil)
+				Expect(pkg_eks.DoCreateFargateProfiles(config, fakeClient)).To(Succeed())
 			})
 
 			It("should not error", func() {
-				fakeManager.CreateProfileReturnsOnCall(1, &eks.ResourceInUseException{})
-				Expect(pkg_eks.DoCreateFargateProfiles(config, fakeManager)).To(Succeed())
+				fakeClient.CreateProfileReturnsOnCall(1, &eks.ResourceInUseException{})
+				Expect(pkg_eks.DoCreateFargateProfiles(config, fakeClient)).To(Succeed())
 			})
 		})
 
 		When("profile creation fails", func() {
 			It("should return the error", func() {
-				fakeManager.CreateProfileReturns(errors.New("omigod"))
-				Expect(pkg_eks.DoCreateFargateProfiles(config, fakeManager)).To(MatchError(ContainSubstring("omigod")))
+				fakeClient.CreateProfileReturns(errors.New("omigod"))
+				Expect(pkg_eks.DoCreateFargateProfiles(config, fakeClient)).To(MatchError(ContainSubstring("omigod")))
 			})
 		})
 	})

@@ -20,7 +20,7 @@ const (
 	resourcesRootPath = "Resources"
 	outputsRootPath   = "Outputs"
 	mappingsRootPath  = "Mappings"
-	ourStackRegexFmt  = "^(eksctl|EKS)-%s-((cluster|nodegroup-.+|addon-.+)|(VPC|ServiceRole|ControlPlane|DefaultNodeGroup))$"
+	ourStackRegexFmt  = "^(eksctl|EKS)-%s-((cluster|nodegroup-.+|addon-.+|fargate)|(VPC|ServiceRole|ControlPlane|DefaultNodeGroup))$"
 	clusterStackRegex = "eksctl-.*-cluster"
 )
 
@@ -461,7 +461,7 @@ func fmtStacksRegexForCluster(name string) string {
 	return fmt.Sprintf(ourStackRegexFmt, name)
 }
 
-func (c *StackCollection) errStackNotFound() error {
+func (c *StackCollection) ErrStackNotFound() error {
 	return fmt.Errorf("no eksctl-managed CloudFormation stacks found for %q", c.spec.Metadata.Name)
 }
 
@@ -476,6 +476,7 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 	}
 	return stacks, nil
 }
+
 func (c *StackCollection) HasClusterStack() (bool, error) {
 	clusterStackNames, err := c.ListClusterStackNames()
 	if err != nil {
