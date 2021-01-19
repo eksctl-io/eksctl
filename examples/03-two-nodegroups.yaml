@@ -10,6 +10,7 @@ metadata:
 nodeGroups:
   - name: ng1-public
     instanceType: m5.xlarge
+    instanceName: custom-node-name
     desiredCapacity: 4
   - name: ng2-private
     instanceType: m5.large
