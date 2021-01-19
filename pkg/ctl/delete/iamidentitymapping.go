@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/actions/identitymapping"
+	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -72,5 +73,9 @@ func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, all bool) error {
 		return err
 	}
 
-	return identitymapping.New(nil, clientSet).Delete(cfg.IAM.IdentityMapping, all)
+	acm, err := authconfigmap.NewFromClientSet(clientSet)
+	if err != nil {
+		return err
+	}
+	return identitymapping.New(nil, acm).Delete(cfg.IAM.IdentityMapping, all)
 }

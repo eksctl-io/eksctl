@@ -1,18 +1,19 @@
 package identitymapping
 
 import (
+	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
-	"k8s.io/client-go/kubernetes"
 )
 
 type Manager struct {
 	rawClient *kubewrapper.RawClient
-	clientSet *kubernetes.Clientset
+	acm       *authconfigmap.AuthConfigMap
 }
 
-func New(rawClient *kubewrapper.RawClient, clientSet *kubernetes.Clientset) *Manager {
+func New(rawClient *kubewrapper.RawClient, acm *authconfigmap.AuthConfigMap) *Manager {
+
 	return &Manager{
 		rawClient: rawClient,
-		clientSet: clientSet,
+		acm:       acm,
 	}
 }

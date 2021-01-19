@@ -3,25 +3,19 @@ package identitymapping
 import (
 	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 )
 
 func (m *Manager) Delete(identityMappings []*api.IAMIdentityMapping, all bool) error {
-	acm, err := authconfigmap.NewFromClientSet(m.clientSet)
-	if err != nil {
-		return err
-	}
-
 	for _, identityMapping := range identityMappings {
-		if err := acm.RemoveIdentity(identityMapping.ARN, all); err != nil {
+		if err := m.acm.RemoveIdentity(identityMapping.ARN, all); err != nil {
 			return err
 		}
-		if err := acm.Save(); err != nil {
+		if err := m.acm.Save(); err != nil {
 			return err
 		}
 
 		// Check whether we have more roles that match
-		identities, err := acm.Identities()
+		identities, err := m.acm.Identities()
 		if err != nil {
 			return err
 		}

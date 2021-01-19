@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/actions/identitymapping"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
@@ -81,5 +82,9 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	return identitymapping.New(rawClient, clientSet).Create(cfg.IAM.IdentityMapping, cfg.Status.ARN)
+	acm, err := authconfigmap.NewFromClientSet(clientSet)
+	if err != nil {
+		return err
+	}
+	return identitymapping.New(rawClient, acm).Create(cfg.IAM.IdentityMapping, cfg.Status.ARN)
 }

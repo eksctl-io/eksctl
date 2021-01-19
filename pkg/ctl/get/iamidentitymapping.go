@@ -4,6 +4,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/weaveworks/eksctl/pkg/authconfigmap"
+
 	"github.com/weaveworks/eksctl/pkg/actions/identitymapping"
 
 	"github.com/spf13/cobra"
@@ -74,7 +76,11 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 		return err
 	}
 
-	identities, err := identitymapping.New(nil, clientSet).Get(arn)
+	acm, err := authconfigmap.NewFromClientSet(clientSet)
+	if err != nil {
+		return err
+	}
+	identities, err := identitymapping.New(nil, acm).Get(arn)
 	if err != nil {
 		return err
 	}

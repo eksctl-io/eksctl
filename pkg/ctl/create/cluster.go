@@ -419,7 +419,11 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 				return err
 			}
 
-			if err := identitymapping.New(rawClient, clientSet).Create(cfg.IAM.IdentityMapping, cfg.Status.ARN); err != nil {
+			acm, err := authconfigmap.NewFromClientSet(clientSet)
+			if err != nil {
+				return err
+			}
+			if err := identitymapping.New(rawClient, acm).Create(cfg.IAM.IdentityMapping, cfg.Status.ARN); err != nil {
 				return err
 			}
 		}

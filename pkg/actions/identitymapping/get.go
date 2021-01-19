@@ -3,16 +3,11 @@ package identitymapping
 import (
 	"fmt"
 
-	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/iam"
 )
 
 func (m *Manager) Get(arn string) ([]iam.Identity, error) {
-	acm, err := authconfigmap.NewFromClientSet(m.clientSet)
-	if err != nil {
-		return nil, err
-	}
-	identities, err := acm.Identities()
+	identities, err := m.acm.Identities()
 	if err != nil {
 		return nil, err
 	}
