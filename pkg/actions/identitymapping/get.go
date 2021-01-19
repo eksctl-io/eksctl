@@ -7,7 +7,7 @@ import (
 )
 
 func (m *Manager) Get(arn string) ([]iam.Identity, error) {
-	identities, err := m.acm.Identities()
+	identities, err := m.acmManager.Identities()
 	if err != nil {
 		return nil, err
 	}

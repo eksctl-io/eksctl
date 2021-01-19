@@ -47,7 +47,7 @@ func (m *Manager) create(identityMapping *api.IAMIdentityMapping, arn string) er
 		if err != nil {
 			return errors.Wrap(err, "error parsing cluster ARN")
 		}
-		sa := authconfigmap.NewServiceAccess(m.rawClient, m.acm, parsedARN.AccountID)
+		sa := authconfigmap.NewServiceAccess(m.rawClient, m.acmManager, parsedARN.AccountID)
 		return sa.Grant(identityMapping.ServiceName, identityMapping.Namespace)
 	}
 
@@ -60,7 +60,7 @@ func (m *Manager) create(identityMapping *api.IAMIdentityMapping, arn string) er
 		if err != nil {
 			return err
 		}
-		identities, err := m.acm.Identities()
+		identities, err := m.acmManager.Identities()
 		if err != nil {
 			return err
 		}
@@ -75,19 +75,19 @@ func (m *Manager) create(identityMapping *api.IAMIdentityMapping, arn string) er
 			}
 		}
 
-		if err := m.acm.AddIdentity(id); err != nil {
+		if err := m.acmManager.AddIdentity(id); err != nil {
 			return err
 		}
 	} else if hasARNOptions() {
 		if err := validateNonServiceOptions(); err != nil {
 			return err
 		}
-		if err := m.acm.AddAccount(identityMapping.Account); err != nil {
+		if err := m.acmManager.AddAccount(identityMapping.Account); err != nil {
 			return err
 		}
 	} else {
 		return errors.New("account can only be set alone")
 	}
 
-	return m.acm.Save()
+	return m.acmManager.Save()
 }

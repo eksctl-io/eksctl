@@ -37,12 +37,12 @@ var (
 // Grants an AWS service access to an EKS cluster
 type ServiceAccess struct {
 	rawClient kubernetes.RawClientInterface
-	acm       *AuthConfigMap
+	acm       AuthConfigMapManager
 	accountID string
 }
 
 // NewServiceAccess creates a new ServiceAccess
-func NewServiceAccess(rawClient kubernetes.RawClientInterface, acm *AuthConfigMap, accountID string) *ServiceAccess {
+func NewServiceAccess(rawClient kubernetes.RawClientInterface, acm AuthConfigMapManager, accountID string) *ServiceAccess {
 	return &ServiceAccess{
 		rawClient: rawClient,
 		acm:       acm,

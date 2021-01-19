@@ -58,6 +58,16 @@ type AuthConfigMap struct {
 	cm     *corev1.ConfigMap
 }
 
+//go:generate counterfeiter -o fakes/acm.go . AuthConfigMapManager
+type AuthConfigMapManager interface {
+	RemoveIdentity(arnToDelete string, all bool) error
+	Identities() ([]iam.Identity, error)
+	AddIdentity(identity iam.Identity) error
+	AddAccount(account string) error
+	Save() (err error)
+	AddIdentityIfNotPresent(identity iam.Identity, exists func(iam.Identity) bool) error
+}
+
 // New creates an AuthConfigMap instance that manipulates
 // a ConfigMap. If it is nil, one is created.
 func New(client v1.ConfigMapInterface, cm *corev1.ConfigMap) *AuthConfigMap {

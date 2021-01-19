@@ -7,15 +7,15 @@ import (
 
 func (m *Manager) Delete(identityMappings []*api.IAMIdentityMapping, all bool) error {
 	for _, identityMapping := range identityMappings {
-		if err := m.acm.RemoveIdentity(identityMapping.ARN, all); err != nil {
+		if err := m.acmManager.RemoveIdentity(identityMapping.ARN, all); err != nil {
 			return err
 		}
-		if err := m.acm.Save(); err != nil {
+		if err := m.acmManager.Save(); err != nil {
 			return err
 		}
 
 		// Check whether we have more roles that match
-		identities, err := m.acm.Identities()
+		identities, err := m.acmManager.Identities()
 		if err != nil {
 			return err
 		}
