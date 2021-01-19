@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/weaveworks/eksctl/pkg/actions/identitymapping"
+
 	"github.com/weaveworks/eksctl/pkg/utils"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
@@ -402,6 +404,22 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 
 		for _, ng := range cfg.ManagedNodeGroups {
 			if err := ctl.WaitForNodes(clientSet, ng); err != nil {
+				return err
+			}
+		}
+
+		if len(cfg.IAM.IdentityMapping) > 0 {
+			logger.Info("creating IAMIdentityMappings")
+			//refresh to ensure cfg.Status.ARN is up to date
+			if err := ctl.RefreshClusterStatus(cfg); err != nil {
+				return err
+			}
+			rawClient, err := ctl.NewRawClient(cfg)
+			if err != nil {
+				return err
+			}
+
+			if err := identitymapping.New(rawClient, clientSet).Create(cfg.IAM.IdentityMapping, cfg.Status.ARN); err != nil {
 				return err
 			}
 		}

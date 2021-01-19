@@ -75,6 +75,9 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 	}
 
 	identities, err := identitymapping.New(nil, clientSet).Get(arn)
+	if err != nil {
+		return err
+	}
 
 	printer, err := printers.NewPrinter(params.output)
 	if err != nil {

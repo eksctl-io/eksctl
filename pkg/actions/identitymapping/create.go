@@ -11,10 +11,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/iam"
 )
 
-func (m *Manager) Create(identityMappings []*api.IAMIdentityMapping, arn string) error {
+func (m *Manager) Create(identityMappings []*api.IAMIdentityMapping, clusterARN string) error {
 	var failedIdentityMappings []string
 	for _, identityMapping := range identityMappings {
-		err := m.create(identityMapping, arn)
+		err := m.create(identityMapping, clusterARN)
 		if err != nil {
 			logger.Warning("failed to create identity mapping %s: %v", identityMapping.ARN, err)
 			failedIdentityMappings = append(failedIdentityMappings, identityMapping.ARN)
