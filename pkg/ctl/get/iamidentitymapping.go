@@ -1,15 +1,15 @@
 package get
 
 import (
-	"fmt"
 	"os"
 	"strings"
+
+	"github.com/weaveworks/eksctl/pkg/actions/identitymapping"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/iam"
 	"github.com/weaveworks/eksctl/pkg/printers"
@@ -73,30 +73,8 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 	if err != nil {
 		return err
 	}
-	acm, err := authconfigmap.NewFromClientSet(clientSet)
-	if err != nil {
-		return err
-	}
-	identities, err := acm.Identities()
-	if err != nil {
-		return err
-	}
 
-	if arn != "" {
-		selectedIdentities := []iam.Identity{}
-
-		for _, identity := range identities {
-			if identity.ARN() == arn {
-				selectedIdentities = append(selectedIdentities, identity)
-			}
-		}
-
-		identities = selectedIdentities
-		// If a filter was given, we error if none was found
-		if len(identities) == 0 {
-			return fmt.Errorf("no iamidentitymapping with arn %q found", arn)
-		}
-	}
+	identities, err := identitymapping.New(nil, clientSet).Get(arn)
 
 	printer, err := printers.NewPrinter(params.output)
 	if err != nil {
