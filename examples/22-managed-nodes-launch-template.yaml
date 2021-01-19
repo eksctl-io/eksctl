@@ -4,7 +4,7 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: managed-cluster
+  name: cluster-22
   region: us-west-2
 
 managedNodeGroups:
@@ -30,4 +30,4 @@ managedNodeGroups:
   securityGroups:
     attachIDs: ["sg-123", "sg-321"]
   overrideBootstrapCommand: |
-    /etc/eks/bootstrap.sh managed-cluster --kubelet-extra-args '--node-labels=eks.amazonaws.com/nodegroup=custom-ng,eks.amazonaws.com/nodegroup-image=ami-0e124de4755b2734d'
+    /etc/eks/bootstrap.sh cluster-22 --kubelet-extra-args '--node-labels=eks.amazonaws.com/nodegroup=custom-ng,eks.amazonaws.com/nodegroup-image=ami-0e124de4755b2734d'
