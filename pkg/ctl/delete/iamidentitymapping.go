@@ -1,12 +1,11 @@
 package delete
 
 import (
-	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/eksctl/pkg/actions/identitymapping"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
@@ -15,19 +14,22 @@ func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmd.ClusterConfig = cfg
 
 	var (
-		arn string
 		all bool
 	)
 
 	cmd.SetDescription("iamidentitymapping", "Delete a IAM identity mapping", "")
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
-		return doDeleteIAMIdentityMapping(cmd, arn, all)
+		return doDeleteIAMIdentityMapping(cmd, all)
 	}
+
+	options := &api.IAMIdentityMapping{}
+
+	cfg.IAM.IdentityMapping = append(cfg.IAM.IdentityMapping, options)
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.BoolVar(&all, "all", false, "Delete all matching mappings instead of just one")
-		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &arn)
+		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &options.ARN)
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
@@ -37,7 +39,7 @@ func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
-func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, all bool) error {
+func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, all bool) error {
 	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
@@ -54,9 +56,10 @@ func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, all bool) error {
 		return err
 	}
 
-	if arn == "" {
+	if len(cfg.IAM.IdentityMapping) == 0 {
 		return cmdutils.ErrMustBeSet("--arn")
 	}
+
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
 	}
@@ -68,34 +71,6 @@ func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, all bool) error {
 	if err != nil {
 		return err
 	}
-	acm, err := authconfigmap.NewFromClientSet(clientSet)
-	if err != nil {
-		return err
-	}
 
-	if err := acm.RemoveIdentity(arn, all); err != nil {
-		return err
-	}
-	if err := acm.Save(); err != nil {
-		return err
-	}
-
-	// Check whether we have more roles that match
-	identities, err := acm.Identities()
-	if err != nil {
-		return err
-	}
-
-	duplicates := 0
-	for _, identity := range identities {
-
-		if arn == identity.ARN() {
-			duplicates++
-		}
-	}
-
-	if duplicates > 0 {
-		logger.Warning("there are %d mappings left with same arn %q (use --all to delete them at once)", duplicates, arn)
-	}
-	return nil
+	return identitymapping.New(nil, clientSet).Delete(cfg.IAM.IdentityMapping, all)
 }
