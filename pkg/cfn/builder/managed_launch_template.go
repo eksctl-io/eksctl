@@ -112,8 +112,15 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 		if api.IsSetAndNonEmptyString(mng.VolumeKmsKeyID) {
 			mapping.Ebs.KmsKeyId = gfnt.NewString(*mng.VolumeKmsKeyID)
 		}
-		if *mng.VolumeType == api.NodeVolumeTypeIO1 {
-			mapping.Ebs.Iops = gfnt.NewInteger(*mng.VolumeIOPS)
+
+		if *mng.VolumeType == api.NodeVolumeTypeIO1 || *mng.VolumeType == api.NodeVolumeTypeGP3 {
+			if mng.VolumeIOPS != nil {
+				mapping.Ebs.Iops = gfnt.NewInteger(*mng.VolumeIOPS)
+			}
+		}
+
+		if *mng.VolumeType == api.NodeVolumeTypeGP3 && mng.VolumeThroughput != nil {
+			mapping.Ebs.Throughput = gfnt.NewInteger(*mng.VolumeThroughput)
 		}
 
 		if mng.VolumeName != nil {
