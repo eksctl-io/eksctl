@@ -392,17 +392,15 @@ func (c *StackCollection) DeleteStackByName(name string) (*Stack, error) {
 // DeleteStackByNameSync sends a request to delete the stack, and waits until status is DELETE_COMPLETE;
 // any errors will be written to errs channel, assume completion when nil is written, do not expect
 // more then one error value on the channel, it's closed immediately after it is written to
-func (c *StackCollection) DeleteStackByNameSync(name string, errs chan error) error {
-	i, err := c.DeleteStackByName(name)
+func (c *StackCollection) DeleteStackByNameSync(name string) error {
+	stack, err := c.DeleteStackByName(name)
 	if err != nil {
 		return err
 	}
 
-	logger.Info("waiting for stack %q to get deleted", *i.StackName)
+	logger.Info("waiting for stack %q to get deleted", *stack.StackName)
 
-	go c.waitUntilStackIsDeleted(i, errs)
-
-	return nil
+	return c.doWaitUntilStackIsDeleted(stack)
 }
 
 // DeleteStackBySpec sends a request to delete the stack
