@@ -225,6 +225,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 })
 
 func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl api.ClusterProvider) {
+	timeoutDuration := time.Minute * 30
 	subnets, clusterRoleArn, nodeRoleArn := createVPCAndRole(stackName, ctl)
 
 	_, err := ctl.EKS().CreateCluster(&awseks.CreateClusterInput{
@@ -242,7 +243,7 @@ func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl ap
 		})
 		Expect(err).NotTo(HaveOccurred())
 		return *out.Cluster.Status
-	}, time.Minute*20, time.Second*30).Should(Equal("ACTIVE"))
+	}, timeoutDuration, time.Second*30).Should(Equal("ACTIVE"))
 
 	_, err = ctl.EKS().CreateNodegroup(&awseks.CreateNodegroupInput{
 		NodegroupName: &ng1,
@@ -276,7 +277,7 @@ func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl ap
 		})
 		Expect(err).NotTo(HaveOccurred())
 		return *out.Nodegroup.Status
-	}, time.Minute*20, time.Second*30).Should(Equal("ACTIVE"))
+	}, timeoutDuration, time.Second*30).Should(Equal("ACTIVE"))
 
 	Eventually(func() string {
 		out, err := ctl.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{
@@ -285,7 +286,7 @@ func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl ap
 		})
 		Expect(err).NotTo(HaveOccurred())
 		return *out.Nodegroup.Status
-	}, time.Minute*20, time.Second*30).Should(Equal("ACTIVE"))
+	}, timeoutDuration, time.Second*30).Should(Equal("ACTIVE"))
 }
 
 func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, string, string) {
