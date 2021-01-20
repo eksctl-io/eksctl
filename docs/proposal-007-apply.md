@@ -1,7 +1,7 @@
 # `eksctl apply`
 
 This proposal addresses a GitOps-compatible subcommand of `eksctl` called
-_tentatively_ `apply`. Its purpose is to subsume the various imperative commands
+`apply`. Its purpose is to subsume the various imperative commands
 `eksctl` provides now into one `apply` command that reconciles the actual state
 of an EKS cluster with the intended state as specified in the `eksctl` config file.
 
@@ -10,35 +10,64 @@ and commands are unaffected. Continuing to support them shouldn't complicate
 the implementation too much as they are more or less subsets of
 operations performed by `apply`.
 
-## Questions to be answered
+## Motivation
 
--   Does the config represent the entire state of the config vs a partial
-    spec?
-    -   e.g. if I `apply` with a list of 1 nodegroups, are any other existing
-        nodegroups deleted?
-    -   do we also delete non-eksctl managed/created resources? i.e. does `eksctl`
-        own the cluster by default? (potential for configurability here)
--   Surfacing which fields are immutable (i.e. only settable during
-    cluster/nodegroup creation)
-    -   One possibility might be structuring the config in such a way that
-        immutable fields are separated out
--   How to introduce gradual, partial support?
--   How do we handle the config
-    1. Leave config alone
-    2. Introduce a _new_ type which only specifies
-       those parts of the config currently supported by `apply`
-       and put it under a new top level field
-    3. Restructure the config gradually
+`eksctl` supplies users with imperative commands for clusters and cluster
+resources that allow them to take explicit actions, like `create` or `delete`.
+We also encourage the use of a config file in which the desired state of the
+cluster is described. Still, users are required to figure out which imperative
+steps to take to reconcile the cluster with the desired state.
+The missing capability is to give `eksctl` the ability to do this.
+Conceptually, `eksctl` would gather all of the information it can about the
+current state of the cluster in order to build a `ClusterConfig` describing
+the real-world cluster and then `diff` this config with the user-provided
+`ClusterConfig`. The `diff` is used to setup a plan of modification to the
+cluster and resources.
+
+### Questions for discussion
+
+This proposal also opens the floor for discussion around non-straightforward
+questions around reconciliation.
+
+#### Deletion of resources
+
+When looking at a list of nodegroups in a cluster, it's not clear how to handle
+deletion.
+
+-   Is the given list intended to be a complete list of nodegroups and
+    no others should exist? Are they automatically deleted?
+-   How do we handle non-eksctl managed resources?
+
+#### Immutability
+
+In order to change some properties, entire resource will have to be recreated.
+This should be explicit to the user.
+
+#### Gradual support and config
+
+Because it's impractical to introduce complete support for reconciliation at
+once, we need to instead gradually support properties and resources of a
+cluster.
+
+This leads to the question of whether the current `ClusterConfig` is a good
+structure for a config meant for reconciliation.
 
 ## Proposal
 
+Introduce a subcommand `apply` which has only a config file argument.
+`apply` would reconcile desired with real-world state
+[as described in the motivation](#motivation).
+The exact details per resource will potentially differ depending on
+the resources and won't be enumerated here.
+
 1. `apply` is put behind the explicit "experimental" flag (cf `enable profile/repo`)
-2. We take full ownership of `eksctl`-managed resources (i.e. delete missing resources by default)
+2. Take full ownership of `eksctl`-managed resources (i.e. delete missing resources by default)
 3. Options for non-`eksctl`-managed resources as well as resources where
    ownership is unknowable are covered below
-4. Immutability is surfaced by erroring when discrepancies are detected
+4. Changing immutable fields through recreation is the default
 5. We gradually expand `apply` support to different parts of the cluster
-6. As we expand `apply` support, we reevaluate the config structure
+6. As we expand `apply` support, we reevaluate and update the config structure as
+   necessary in a new API version.
 
 Some further discussion/justification follows.
 
@@ -67,12 +96,20 @@ do we delete it?
 The proposed answer is yes, it should be deleted. With `apply` we assume that all
 previous changes initiated by `eksctl` were initiated through the same config
 file/reconciliation process and that this nodegroup must have been
-deleted from this file.
+deleted from this file with the intention of deleting it from the cluster.
+
+##### Non-authoritative resources
+
+There is precedent for adding the ability to specify resources in a
+non-authoritative list. For example, the [`google` terraform provider supports IAM with 3 different levels of authoritativeness](
+https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/storage_bucket_iam#google_storage_bucket_iam_policy#iam-policy-for-cloud-storage-bucket).
+
+Initial `apply` support will focus on authoritative resource specification.
 
 #### Non-taggable resources
 
 Some resources may not be taggable as owned by `eksctl`.
-Imagine there weren't a `tags` field on addons, for example. `eksctl`-created
+If there weren't a `tags` field on addons, for example. `eksctl`-created
 addons would then be indistinguishable from addons created in the AWS console.
 There are at least 2 ways to deal with this case:
 
@@ -86,7 +123,6 @@ delete any not listed in the config.
 Storing some kind of state/config "somewhere" is another option and has been discussed in
 https://github.com/weaveworks/eksctl/issues/642
 
-
 #### Ignore resource option
 
 An `ignore` flag (cf `terraform`'s `prevent_destroy`) in the schema for all objects
@@ -134,4 +170,4 @@ automatically rewrite the previous version into the current version.
     -   What does it mean if
         the user specifies a VPC not created by `eksctl` but `eksctl` finds a
         discrepancy between the actual state and the config
-    -   `terraform`'s answer here is `resource` vs `data`.
+    -   `terraform`'s answer here is explicitness: `resource` vs `data`.
