@@ -1,4 +1,4 @@
-name: automerge
+name: Automerge PRs
 on:
   pull_request_target:
     types:
@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: automerge
-        uses: "michaelbeaumont/automerge-action@a7256bf"
+        uses: "pascalgn/automerge-action@v0.13.0"
         env:
           MERGE_LABELS: ""
           MERGE_METHOD: "merge"
