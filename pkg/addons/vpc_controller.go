@@ -25,15 +25,17 @@ import (
 
 const (
 	vpcControllerNamespace = metav1.NamespaceSystem
+	vpcControllerName      = "vpc-resource-controller"
 	webhookServiceName     = "vpc-admission-webhook"
 
 	certWaitTimeout = 45 * time.Second
 )
 
 // NewVPCController creates a new VPCController
-func NewVPCController(rawClient kubernetes.RawClientInterface, clusterStatus *api.ClusterStatus, region string, planMode bool) *VPCController {
+func NewVPCController(rawClient kubernetes.RawClientInterface, irsa IRSAHelper, clusterStatus *api.ClusterStatus, region string, planMode bool) *VPCController {
 	return &VPCController{
 		rawClient:     rawClient,
+		irsa:          irsa,
 		clusterStatus: clusterStatus,
 		region:        region,
 		planMode:      planMode,
@@ -43,6 +45,7 @@ func NewVPCController(rawClient kubernetes.RawClientInterface, clusterStatus *ap
 // A VPCController deploys Windows VPC controller to a cluster
 type VPCController struct {
 	rawClient     kubernetes.RawClientInterface
+	irsa          IRSAHelper
 	clusterStatus *api.ClusterStatus
 	region        string
 	planMode      bool
@@ -208,10 +211,59 @@ func (v *VPCController) createCertSecrets(key, cert []byte) error {
 	return err
 }
 
+func makePolicyDocument() map[string]interface{} {
+	return map[string]interface{}{
+		"Version": "2012-10-17",
+		"Statement": []map[string]interface{}{
+			{
+				"Effect": "Allow",
+				"Action": []string{
+					"ec2:AssignPrivateIpAddresses",
+					"ec2:DescribeInstances",
+					"ec2:DescribeNetworkInterfaces",
+					"ec2:UnassignPrivateIpAddresses",
+					"ec2:DescribeRouteTables",
+					"ec2:DescribeSubnets",
+				},
+				"Resource": "*",
+			},
+		},
+	}
+}
+
 func (v *VPCController) deployVPCResourceController() error {
+	irsaEnabled, err := v.irsa.IsSupported()
+	if err != nil {
+		return err
+	}
+	if irsaEnabled {
+		sa := &api.ClusterIAMServiceAccount{
+			ClusterIAMMeta: api.ClusterIAMMeta{
+				Name:      vpcControllerName,
+				Namespace: vpcControllerNamespace,
+			},
+			AttachPolicy: makePolicyDocument(),
+		}
+		if err := v.irsa.Create([]*api.ClusterIAMServiceAccount{sa}); err != nil {
+			return errors.Wrap(err, "error enabling IRSA")
+		}
+	} else {
+		// If an OIDC provider isn't associated with the cluster, the VPC controller relies on the managed policy
+		// attached to the node role for the AWS VPC CNI plugin.
+		sa := &corev1.ServiceAccount{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      vpcControllerName,
+				Namespace: vpcControllerNamespace,
+			},
+		}
+		if err := v.applyRawResource(sa); err != nil {
+			return err
+		}
+	}
 	if err := v.applyResources(assetutil.MustLoad(vpcResourceControllerYamlBytes)); err != nil {
 		return err
 	}
+
 	return v.applyDeployment(assetutil.MustLoad(vpcResourceControllerDepYamlBytes))
 }
 
