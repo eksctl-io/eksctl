@@ -1,0 +1,217 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Resources": {
+        "PrivateRouteTableCNNORTH1A": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/PrivateRouteTableCNNORTH1A"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "PrivateRouteTableCNNORTH1B": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/PrivateRouteTableCNNORTH1B"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "RouteTableAssociationPrivateCNNORTH1A": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "PrivateRouteTableCNNORTH1A"
+                },
+                "SubnetId": {
+                    "Ref": "SubnetPrivateCNNORTH1A"
+                }
+            }
+        },
+        "RouteTableAssociationPrivateCNNORTH1B": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "PrivateRouteTableCNNORTH1B"
+                },
+                "SubnetId": {
+                    "Ref": "SubnetPrivateCNNORTH1B"
+                }
+            }
+        },
+        "SubnetPrivateCNNORTH1A": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": "cn-north-1a",
+                "CidrBlock": "192.168.64.0/19",
+                "Tags": [
+                    {
+                        "Key": "kubernetes.io/role/internal-elb",
+                        "Value": "1"
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/SubnetPrivateCNNORTH1A"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "SubnetPrivateCNNORTH1B": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": "cn-north-1b",
+                "CidrBlock": "192.168.96.0/19",
+                "Tags": [
+                    {
+                        "Key": "kubernetes.io/role/internal-elb",
+                        "Value": "1"
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/SubnetPrivateCNNORTH1B"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "VPC": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": "192.168.0.0/16",
+                "EnableDnsHostnames": true,
+                "EnableDnsSupport": true,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}/VPC"
+                        }
+                    }
+                ]
+            }
+        },
+        "VPCEndpointEC2": {
+            "Type": "AWS::EC2::VPCEndpoint",
+            "Properties": {
+                "PrivateDnsEnabled": true,
+                "SecurityGroupIds": ["sg-test"],
+                "ServiceName": "cn.com.amazonaws.cn-north-1.ec2",
+                "SubnetIds": [
+                    {
+                        "Ref": "SubnetPrivateCNNORTH1A"
+                    },
+                    {
+                        "Ref": "SubnetPrivateCNNORTH1B"
+                    }
+                ],
+                "VpcEndpointType": "Interface",
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "VPCEndpointECRAPI": {
+            "Type": "AWS::EC2::VPCEndpoint",
+            "Properties": {
+                "PrivateDnsEnabled": true,
+                "SecurityGroupIds": ["sg-test"],
+                "ServiceName": "cn.com.amazonaws.cn-north-1.ecr.api",
+                "SubnetIds": [
+                    {
+                        "Ref": "SubnetPrivateCNNORTH1A"
+                    },
+                    {
+                        "Ref": "SubnetPrivateCNNORTH1B"
+                    }
+                ],
+                "VpcEndpointType": "Interface",
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "VPCEndpointECRDKR": {
+            "Type": "AWS::EC2::VPCEndpoint",
+            "Properties": {
+                "PrivateDnsEnabled": true,
+                "SecurityGroupIds": ["sg-test"],
+                "ServiceName": "cn.com.amazonaws.cn-north-1.ecr.dkr",
+                "SubnetIds": [
+                    {
+                        "Ref": "SubnetPrivateCNNORTH1A"
+                    },
+                    {
+                        "Ref": "SubnetPrivateCNNORTH1B"
+                    }
+                ],
+                "VpcEndpointType": "Interface",
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "VPCEndpointS3": {
+            "Type": "AWS::EC2::VPCEndpoint",
+            "Properties": {
+                "RouteTableIds": [
+                    {
+                        "Ref": "PrivateRouteTableCNNORTH1A"
+                    },
+                    {
+                        "Ref": "PrivateRouteTableCNNORTH1B"
+                    }
+                ],
+                "ServiceName": "com.amazonaws.cn-north-1.s3",
+                "VpcEndpointType": "Gateway",
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "VPCEndpointSTS": {
+            "Type": "AWS::EC2::VPCEndpoint",
+            "Properties": {
+                "PrivateDnsEnabled": true,
+                "SecurityGroupIds": ["sg-test"],
+                "ServiceName": "cn.com.amazonaws.cn-north-1.sts",
+                "SubnetIds": [
+                    {
+                        "Ref": "SubnetPrivateCNNORTH1A"
+                    },
+                    {
+                        "Ref": "SubnetPrivateCNNORTH1B"
+                    }
+                ],
+                "VpcEndpointType": "Interface",
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        }
+    }
+}
