@@ -121,7 +121,7 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 		logger.Warning("metadata of serviceaccounts that exist in Kubernetes will be updated, as --override-existing-serviceaccounts was set")
 	}
 
-	tasks := stackManager.NewTasksToCreateIAMServiceAccounts(filteredServiceAccounts, oidc, kubernetes.NewCachedClientSet(clientSet))
+	tasks := stackManager.NewTasksToCreateIAMServiceAccounts(filteredServiceAccounts, oidc, kubernetes.NewCachedClientSet(clientSet), false)
 	tasks.PlanMode = cmd.Plan
 
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {

@@ -155,12 +155,6 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 
 	nodeGroup := output.Nodegroup
 
-	if options.KubernetesVersion != "" {
-		if _, err := semver.ParseTolerant(options.KubernetesVersion); err != nil {
-			return errors.Wrap(err, "invalid Kubernetes version")
-		}
-	}
-
 	template, err := m.stackCollection.GetManagedNodeGroupTemplate(options.NodegroupName)
 	if err != nil {
 		return errors.Wrap(err, "error fetching nodegroup template")

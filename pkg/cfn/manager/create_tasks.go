@@ -107,10 +107,11 @@ func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*
 		}
 
 		saTasks.Append(&taskWithClusterIAMServiceAccountSpec{
-			info:           fmt.Sprintf("create IAM role for serviceaccount %q", sa.NameString()),
-			serviceAccount: sa,
-			oidc:           oidc,
-			call:           c.createIAMServiceAccountTask,
+			info:                fmt.Sprintf("create IAM role for serviceaccount %q", sa.NameString()),
+			stackCollection:     c,
+			serviceAccount:      sa,
+			oidc:                oidc,
+			replaceExistingRole: replaceExistingRole,
 		})
 
 		saTasks.Append(&kubernetesTask{
