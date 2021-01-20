@@ -140,7 +140,11 @@ func buildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 	serviceDomain := fmt.Sprintf("com.amazonaws.%s", region)
 	for i, endpoint := range endpoints {
 		name := fmt.Sprintf("%s.%s", serviceDomain, endpoint)
-		if api.Partition(region) == api.PartitionChina && chinaPartitionServiceHasChinaPrefix[endpoint] {
+		hasChinaPrefix, ok := chinaPartitionServiceHasChinaPrefix[endpoint]
+		if !ok {
+			return nil, errors.Errorf("couldn't determine endpoint domain for service %s", endpoint)
+		}
+		if api.Partition(region) == api.PartitionChina && hasChinaPrefix {
 			name = "cn." + name
 		}
 		serviceNames[i] = name
