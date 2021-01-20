@@ -97,6 +97,10 @@ type ClusterIAMServiceAccount struct {
 	// +optional
 	RoleName string `json:"roleName,omitempty"`
 
+	// Specify if only the IAM Service Account role should be created without creating/annotating the service account
+	// +optional
+	RoleOnly *bool `json:"roleOnly,omitempty"`
+
 	// AWS tags for the service account
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`

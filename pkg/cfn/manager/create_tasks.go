@@ -113,17 +113,19 @@ func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*
 			oidc:            oidc,
 		})
 
-		saTasks.Append(&kubernetesTask{
-			info:       fmt.Sprintf("create serviceaccount %q", sa.NameString()),
-			kubernetes: clientSetGetter,
-			call: func(clientSet kubernetes.Interface) error {
-				sa.SetAnnotations()
-				if err := kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa.ClusterIAMMeta.AsObjectMeta()); err != nil {
-					return errors.Wrapf(err, "failed to create service account %s", sa.NameString())
-				}
-				return nil
-			},
-		})
+		if !api.IsEnabled(sa.RoleOnly) {
+			saTasks.Append(&kubernetesTask{
+				info:       fmt.Sprintf("create serviceaccount %q", sa.NameString()),
+				kubernetes: clientSetGetter,
+				call: func(clientSet kubernetes.Interface) error {
+					sa.SetAnnotations()
+					if err := kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa.ClusterIAMMeta.AsObjectMeta()); err != nil {
+						return errors.Wrapf(err, "failed to create service account %s", sa.NameString())
+					}
+					return nil
+				},
+			})
+		}
 
 		taskTree.Append(saTasks)
 	}

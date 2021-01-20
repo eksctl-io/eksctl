@@ -347,6 +347,11 @@
           "description": "Specific role name instead of the Cloudformation-generated role name",
           "x-intellij-html-description": "Specific role name instead of the Cloudformation-generated role name"
         },
+        "roleOnly": {
+          "type": "boolean",
+          "description": "Specify if only the IAM Service Account role should be created without creating/annotating the service account",
+          "x-intellij-html-description": "Specify if only the IAM Service Account role should be created without creating/annotating the service account"
+        },
         "status": {
           "$ref": "#/definitions/ClusterIAMServiceAccountStatus"
         },
@@ -374,6 +379,7 @@
         "permissionsBoundary",
         "status",
         "roleName",
+        "roleOnly",
         "tags"
       ],
       "additionalProperties": false,
