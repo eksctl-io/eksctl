@@ -116,7 +116,7 @@ jobs:
       - docker-run:
           cmd: go mod download
       - docker-run:
-          cmd: make test build
+          cmd: make circleci-test build
       - docker-run:
           cmd: make build-integration-test
       - docker-run:
