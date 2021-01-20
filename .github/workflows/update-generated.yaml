@@ -1,4 +1,4 @@
-name: Update generated files and open PRs
+name: Update generated files
 on:
   workflow_dispatch: {}
   schedule:
