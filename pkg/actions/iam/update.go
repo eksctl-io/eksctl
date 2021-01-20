@@ -11,6 +11,8 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 
+	"strings"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
@@ -42,7 +44,7 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 		updateTasks.Append(taskTree)
 	}
 	if len(nonExistingSAs) > 0 {
-		logger.Info("the following IAMServiceAccounts will not be updated as they do not exist: %v", nonExistingSAs)
+		logger.Info("the following IAMServiceAccounts will not be updated as they do not exist: %v", strings.Join(nonExistingSAs, ", "))
 	}
 
 	defer cmdutils.LogPlanModeWarning(plan && len(iamServiceAccounts) > 0)
