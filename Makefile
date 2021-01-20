@@ -90,6 +90,12 @@ test:
 	$(MAKE) unit-test
 	$(MAKE) build-integration-test
 
+.PHONY: circleci-test
+circleci-test:
+	$(MAKE) check-all-generated-files-up-to-date
+	$(MAKE) unit-test
+	$(MAKE) build-integration-test
+
 .PHONY: unit-test
 unit-test: ## Run unit test only
 	CGO_ENABLED=0 go test  -tags=release ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
