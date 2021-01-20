@@ -8,7 +8,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/iam"
 )
 
-type FakeAuthConfigMapManager struct {
+type FakeManager struct {
 	AddAccountStub        func(string) error
 	addAccountMutex       sync.RWMutex
 	addAccountArgsForCall []struct {
@@ -81,7 +81,7 @@ type FakeAuthConfigMapManager struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeAuthConfigMapManager) AddAccount(arg1 string) error {
+func (fake *FakeManager) AddAccount(arg1 string) error {
 	fake.addAccountMutex.Lock()
 	ret, specificReturn := fake.addAccountReturnsOnCall[len(fake.addAccountArgsForCall)]
 	fake.addAccountArgsForCall = append(fake.addAccountArgsForCall, struct {
@@ -100,26 +100,26 @@ func (fake *FakeAuthConfigMapManager) AddAccount(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeAuthConfigMapManager) AddAccountCallCount() int {
+func (fake *FakeManager) AddAccountCallCount() int {
 	fake.addAccountMutex.RLock()
 	defer fake.addAccountMutex.RUnlock()
 	return len(fake.addAccountArgsForCall)
 }
 
-func (fake *FakeAuthConfigMapManager) AddAccountCalls(stub func(string) error) {
+func (fake *FakeManager) AddAccountCalls(stub func(string) error) {
 	fake.addAccountMutex.Lock()
 	defer fake.addAccountMutex.Unlock()
 	fake.AddAccountStub = stub
 }
 
-func (fake *FakeAuthConfigMapManager) AddAccountArgsForCall(i int) string {
+func (fake *FakeManager) AddAccountArgsForCall(i int) string {
 	fake.addAccountMutex.RLock()
 	defer fake.addAccountMutex.RUnlock()
 	argsForCall := fake.addAccountArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeAuthConfigMapManager) AddAccountReturns(result1 error) {
+func (fake *FakeManager) AddAccountReturns(result1 error) {
 	fake.addAccountMutex.Lock()
 	defer fake.addAccountMutex.Unlock()
 	fake.AddAccountStub = nil
@@ -128,7 +128,7 @@ func (fake *FakeAuthConfigMapManager) AddAccountReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeAuthConfigMapManager) AddAccountReturnsOnCall(i int, result1 error) {
+func (fake *FakeManager) AddAccountReturnsOnCall(i int, result1 error) {
 	fake.addAccountMutex.Lock()
 	defer fake.addAccountMutex.Unlock()
 	fake.AddAccountStub = nil
@@ -142,7 +142,7 @@ func (fake *FakeAuthConfigMapManager) AddAccountReturnsOnCall(i int, result1 err
 	}{result1}
 }
 
-func (fake *FakeAuthConfigMapManager) AddIdentity(arg1 iam.Identity) error {
+func (fake *FakeManager) AddIdentity(arg1 iam.Identity) error {
 	fake.addIdentityMutex.Lock()
 	ret, specificReturn := fake.addIdentityReturnsOnCall[len(fake.addIdentityArgsForCall)]
 	fake.addIdentityArgsForCall = append(fake.addIdentityArgsForCall, struct {
@@ -161,26 +161,26 @@ func (fake *FakeAuthConfigMapManager) AddIdentity(arg1 iam.Identity) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeAuthConfigMapManager) AddIdentityCallCount() int {
+func (fake *FakeManager) AddIdentityCallCount() int {
 	fake.addIdentityMutex.RLock()
 	defer fake.addIdentityMutex.RUnlock()
 	return len(fake.addIdentityArgsForCall)
 }
 
-func (fake *FakeAuthConfigMapManager) AddIdentityCalls(stub func(iam.Identity) error) {
+func (fake *FakeManager) AddIdentityCalls(stub func(iam.Identity) error) {
 	fake.addIdentityMutex.Lock()
 	defer fake.addIdentityMutex.Unlock()
 	fake.AddIdentityStub = stub
 }
 
-func (fake *FakeAuthConfigMapManager) AddIdentityArgsForCall(i int) iam.Identity {
+func (fake *FakeManager) AddIdentityArgsForCall(i int) iam.Identity {
 	fake.addIdentityMutex.RLock()
 	defer fake.addIdentityMutex.RUnlock()
 	argsForCall := fake.addIdentityArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeAuthConfigMapManager) AddIdentityReturns(result1 error) {
+func (fake *FakeManager) AddIdentityReturns(result1 error) {
 	fake.addIdentityMutex.Lock()
 	defer fake.addIdentityMutex.Unlock()
 	fake.AddIdentityStub = nil
@@ -189,7 +189,7 @@ func (fake *FakeAuthConfigMapManager) AddIdentityReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeAuthConfigMapManager) AddIdentityReturnsOnCall(i int, result1 error) {
+func (fake *FakeManager) AddIdentityReturnsOnCall(i int, result1 error) {
 	fake.addIdentityMutex.Lock()
 	defer fake.addIdentityMutex.Unlock()
 	fake.AddIdentityStub = nil
@@ -203,7 +203,7 @@ func (fake *FakeAuthConfigMapManager) AddIdentityReturnsOnCall(i int, result1 er
 	}{result1}
 }
 
-func (fake *FakeAuthConfigMapManager) AddIdentityIfNotPresent(arg1 iam.Identity, arg2 func(iam.Identity) bool) error {
+func (fake *FakeManager) AddIdentityIfNotPresent(arg1 iam.Identity, arg2 func(iam.Identity) bool) error {
 	fake.addIdentityIfNotPresentMutex.Lock()
 	ret, specificReturn := fake.addIdentityIfNotPresentReturnsOnCall[len(fake.addIdentityIfNotPresentArgsForCall)]
 	fake.addIdentityIfNotPresentArgsForCall = append(fake.addIdentityIfNotPresentArgsForCall, struct {
@@ -223,26 +223,26 @@ func (fake *FakeAuthConfigMapManager) AddIdentityIfNotPresent(arg1 iam.Identity,
 	return fakeReturns.result1
 }
 
-func (fake *FakeAuthConfigMapManager) AddIdentityIfNotPresentCallCount() int {
+func (fake *FakeManager) AddIdentityIfNotPresentCallCount() int {
 	fake.addIdentityIfNotPresentMutex.RLock()
 	defer fake.addIdentityIfNotPresentMutex.RUnlock()
 	return len(fake.addIdentityIfNotPresentArgsForCall)
 }
 
-func (fake *FakeAuthConfigMapManager) AddIdentityIfNotPresentCalls(stub func(iam.Identity, func(iam.Identity) bool) error) {
+func (fake *FakeManager) AddIdentityIfNotPresentCalls(stub func(iam.Identity, func(iam.Identity) bool) error) {
 	fake.addIdentityIfNotPresentMutex.Lock()
 	defer fake.addIdentityIfNotPresentMutex.Unlock()
 	fake.AddIdentityIfNotPresentStub = stub
 }
 
-func (fake *FakeAuthConfigMapManager) AddIdentityIfNotPresentArgsForCall(i int) (iam.Identity, func(iam.Identity) bool) {
+func (fake *FakeManager) AddIdentityIfNotPresentArgsForCall(i int) (iam.Identity, func(iam.Identity) bool) {
 	fake.addIdentityIfNotPresentMutex.RLock()
 	defer fake.addIdentityIfNotPresentMutex.RUnlock()
 	argsForCall := fake.addIdentityIfNotPresentArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeAuthConfigMapManager) AddIdentityIfNotPresentReturns(result1 error) {
+func (fake *FakeManager) AddIdentityIfNotPresentReturns(result1 error) {
 	fake.addIdentityIfNotPresentMutex.Lock()
 	defer fake.addIdentityIfNotPresentMutex.Unlock()
 	fake.AddIdentityIfNotPresentStub = nil
@@ -251,7 +251,7 @@ func (fake *FakeAuthConfigMapManager) AddIdentityIfNotPresentReturns(result1 err
 	}{result1}
 }
 
-func (fake *FakeAuthConfigMapManager) AddIdentityIfNotPresentReturnsOnCall(i int, result1 error) {
+func (fake *FakeManager) AddIdentityIfNotPresentReturnsOnCall(i int, result1 error) {
 	fake.addIdentityIfNotPresentMutex.Lock()
 	defer fake.addIdentityIfNotPresentMutex.Unlock()
 	fake.AddIdentityIfNotPresentStub = nil
@@ -265,7 +265,7 @@ func (fake *FakeAuthConfigMapManager) AddIdentityIfNotPresentReturnsOnCall(i int
 	}{result1}
 }
 
-func (fake *FakeAuthConfigMapManager) Identities() ([]iam.Identity, error) {
+func (fake *FakeManager) Identities() ([]iam.Identity, error) {
 	fake.identitiesMutex.Lock()
 	ret, specificReturn := fake.identitiesReturnsOnCall[len(fake.identitiesArgsForCall)]
 	fake.identitiesArgsForCall = append(fake.identitiesArgsForCall, struct {
@@ -283,19 +283,19 @@ func (fake *FakeAuthConfigMapManager) Identities() ([]iam.Identity, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeAuthConfigMapManager) IdentitiesCallCount() int {
+func (fake *FakeManager) IdentitiesCallCount() int {
 	fake.identitiesMutex.RLock()
 	defer fake.identitiesMutex.RUnlock()
 	return len(fake.identitiesArgsForCall)
 }
 
-func (fake *FakeAuthConfigMapManager) IdentitiesCalls(stub func() ([]iam.Identity, error)) {
+func (fake *FakeManager) IdentitiesCalls(stub func() ([]iam.Identity, error)) {
 	fake.identitiesMutex.Lock()
 	defer fake.identitiesMutex.Unlock()
 	fake.IdentitiesStub = stub
 }
 
-func (fake *FakeAuthConfigMapManager) IdentitiesReturns(result1 []iam.Identity, result2 error) {
+func (fake *FakeManager) IdentitiesReturns(result1 []iam.Identity, result2 error) {
 	fake.identitiesMutex.Lock()
 	defer fake.identitiesMutex.Unlock()
 	fake.IdentitiesStub = nil
@@ -305,7 +305,7 @@ func (fake *FakeAuthConfigMapManager) IdentitiesReturns(result1 []iam.Identity, 
 	}{result1, result2}
 }
 
-func (fake *FakeAuthConfigMapManager) IdentitiesReturnsOnCall(i int, result1 []iam.Identity, result2 error) {
+func (fake *FakeManager) IdentitiesReturnsOnCall(i int, result1 []iam.Identity, result2 error) {
 	fake.identitiesMutex.Lock()
 	defer fake.identitiesMutex.Unlock()
 	fake.IdentitiesStub = nil
@@ -321,7 +321,7 @@ func (fake *FakeAuthConfigMapManager) IdentitiesReturnsOnCall(i int, result1 []i
 	}{result1, result2}
 }
 
-func (fake *FakeAuthConfigMapManager) RemoveIdentity(arg1 string, arg2 bool) error {
+func (fake *FakeManager) RemoveIdentity(arg1 string, arg2 bool) error {
 	fake.removeIdentityMutex.Lock()
 	ret, specificReturn := fake.removeIdentityReturnsOnCall[len(fake.removeIdentityArgsForCall)]
 	fake.removeIdentityArgsForCall = append(fake.removeIdentityArgsForCall, struct {
@@ -341,26 +341,26 @@ func (fake *FakeAuthConfigMapManager) RemoveIdentity(arg1 string, arg2 bool) err
 	return fakeReturns.result1
 }
 
-func (fake *FakeAuthConfigMapManager) RemoveIdentityCallCount() int {
+func (fake *FakeManager) RemoveIdentityCallCount() int {
 	fake.removeIdentityMutex.RLock()
 	defer fake.removeIdentityMutex.RUnlock()
 	return len(fake.removeIdentityArgsForCall)
 }
 
-func (fake *FakeAuthConfigMapManager) RemoveIdentityCalls(stub func(string, bool) error) {
+func (fake *FakeManager) RemoveIdentityCalls(stub func(string, bool) error) {
 	fake.removeIdentityMutex.Lock()
 	defer fake.removeIdentityMutex.Unlock()
 	fake.RemoveIdentityStub = stub
 }
 
-func (fake *FakeAuthConfigMapManager) RemoveIdentityArgsForCall(i int) (string, bool) {
+func (fake *FakeManager) RemoveIdentityArgsForCall(i int) (string, bool) {
 	fake.removeIdentityMutex.RLock()
 	defer fake.removeIdentityMutex.RUnlock()
 	argsForCall := fake.removeIdentityArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeAuthConfigMapManager) RemoveIdentityReturns(result1 error) {
+func (fake *FakeManager) RemoveIdentityReturns(result1 error) {
 	fake.removeIdentityMutex.Lock()
 	defer fake.removeIdentityMutex.Unlock()
 	fake.RemoveIdentityStub = nil
@@ -369,7 +369,7 @@ func (fake *FakeAuthConfigMapManager) RemoveIdentityReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeAuthConfigMapManager) RemoveIdentityReturnsOnCall(i int, result1 error) {
+func (fake *FakeManager) RemoveIdentityReturnsOnCall(i int, result1 error) {
 	fake.removeIdentityMutex.Lock()
 	defer fake.removeIdentityMutex.Unlock()
 	fake.RemoveIdentityStub = nil
@@ -383,7 +383,7 @@ func (fake *FakeAuthConfigMapManager) RemoveIdentityReturnsOnCall(i int, result1
 	}{result1}
 }
 
-func (fake *FakeAuthConfigMapManager) Save() error {
+func (fake *FakeManager) Save() error {
 	fake.saveMutex.Lock()
 	ret, specificReturn := fake.saveReturnsOnCall[len(fake.saveArgsForCall)]
 	fake.saveArgsForCall = append(fake.saveArgsForCall, struct {
@@ -401,19 +401,19 @@ func (fake *FakeAuthConfigMapManager) Save() error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeAuthConfigMapManager) SaveCallCount() int {
+func (fake *FakeManager) SaveCallCount() int {
 	fake.saveMutex.RLock()
 	defer fake.saveMutex.RUnlock()
 	return len(fake.saveArgsForCall)
 }
 
-func (fake *FakeAuthConfigMapManager) SaveCalls(stub func() error) {
+func (fake *FakeManager) SaveCalls(stub func() error) {
 	fake.saveMutex.Lock()
 	defer fake.saveMutex.Unlock()
 	fake.SaveStub = stub
 }
 
-func (fake *FakeAuthConfigMapManager) SaveReturns(result1 error) {
+func (fake *FakeManager) SaveReturns(result1 error) {
 	fake.saveMutex.Lock()
 	defer fake.saveMutex.Unlock()
 	fake.SaveStub = nil
@@ -422,7 +422,7 @@ func (fake *FakeAuthConfigMapManager) SaveReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeAuthConfigMapManager) SaveReturnsOnCall(i int, result1 error) {
+func (fake *FakeManager) SaveReturnsOnCall(i int, result1 error) {
 	fake.saveMutex.Lock()
 	defer fake.saveMutex.Unlock()
 	fake.SaveStub = nil
@@ -436,7 +436,7 @@ func (fake *FakeAuthConfigMapManager) SaveReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeAuthConfigMapManager) Invocations() map[string][][]interface{} {
+func (fake *FakeManager) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.addAccountMutex.RLock()
@@ -458,7 +458,7 @@ func (fake *FakeAuthConfigMapManager) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeAuthConfigMapManager) recordInvocation(key string, args []interface{}) {
+func (fake *FakeManager) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -470,4 +470,4 @@ func (fake *FakeAuthConfigMapManager) recordInvocation(key string, args []interf
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ authconfigmap.AuthConfigMapManager = new(FakeAuthConfigMapManager)
+var _ authconfigmap.Manager = new(FakeManager)

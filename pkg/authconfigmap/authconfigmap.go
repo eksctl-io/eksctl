@@ -58,8 +58,8 @@ type AuthConfigMap struct {
 	cm     *corev1.ConfigMap
 }
 
-//go:generate counterfeiter -o fakes/acm.go . AuthConfigMapManager
-type AuthConfigMapManager interface {
+//go:generate counterfeiter -o fakes/acm.go . Manager
+type Manager interface {
 	RemoveIdentity(arnToDelete string, all bool) error
 	Identities() ([]iam.Identity, error)
 	AddIdentity(identity iam.Identity) error

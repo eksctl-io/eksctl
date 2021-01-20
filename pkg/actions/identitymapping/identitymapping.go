@@ -7,10 +7,10 @@ import (
 
 type Manager struct {
 	rawClient  kubernetes.RawClientInterface
-	acmManager authconfigmap.AuthConfigMapManager
+	acmManager authconfigmap.Manager
 }
 
-func New(rawClient kubernetes.RawClientInterface, acm authconfigmap.AuthConfigMapManager) *Manager {
+func New(rawClient kubernetes.RawClientInterface, acm authconfigmap.Manager) *Manager {
 	return &Manager{
 		rawClient:  rawClient,
 		acmManager: acm,

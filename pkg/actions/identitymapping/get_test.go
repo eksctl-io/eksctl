@@ -12,7 +12,7 @@ import (
 var _ = Describe("Get", func() {
 	It("returns the identity mappings matching the arn", func() {
 		rawClient := testutils.NewFakeRawClient()
-		fakeACM := new(fakes.FakeAuthConfigMapManager)
+		fakeACM := new(fakes.FakeManager)
 		manager := identitymapping.New(rawClient, fakeACM)
 		fakeACM.IdentitiesReturns([]iam.Identity{
 			iam.UserIdentity{UserARN: "foo"},

@@ -12,7 +12,7 @@ import (
 var _ = Describe("Delete", func() {
 	It("delete the identity mapping", func() {
 		rawClient := testutils.NewFakeRawClient()
-		fakeACM := new(fakes.FakeAuthConfigMapManager)
+		fakeACM := new(fakes.FakeManager)
 		manager := identitymapping.New(rawClient, fakeACM)
 		err := manager.Delete([]*api.IAMIdentityMapping{
 			{
