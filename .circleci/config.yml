@@ -118,7 +118,7 @@ jobs:
       - docker-run:
           cmd: make check-all-generated-files-up-to-date
       - docker-run:
-          cmd: make test build
+          cmd: make circleci-test build
       - docker-run:
           cmd: make build-integration-test
       - docker-run:
