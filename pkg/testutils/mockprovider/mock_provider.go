@@ -48,6 +48,7 @@ type MockState struct {
 type MockProvider struct {
 	Client *MockAWSClient
 
+	region     string
 	cfnRoleARN string
 	cfn        *mocks.CloudFormationAPI
 	eks        *mocks.EKSAPI
@@ -141,7 +142,17 @@ func (m MockProvider) MockCloudTrail() *mocks.CloudTrailAPI {
 func (m MockProvider) Profile() string { return ProviderConfig.Profile }
 
 // Region returns current region setting
-func (m MockProvider) Region() string { return ProviderConfig.Region }
+func (m MockProvider) Region() string {
+	if m.region != "" {
+		return m.region
+	}
+	return ProviderConfig.Region
+}
+
+// SetRegion can be used to set the region of the provider
+func (m *MockProvider) SetRegion(r string) {
+	m.region = r
+}
 
 // WaitTimeout returns current timeout setting
 func (m MockProvider) WaitTimeout() time.Duration { return ProviderConfig.WaitTimeout }
