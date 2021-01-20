@@ -85,7 +85,7 @@ lint: ## Run linter over the codebase
 
 .PHONY: test
 test:
-    $(MAKE) lint
+	$(MAKE) lint
 	$(MAKE) check-all-generated-files-up-to-date
 	$(MAKE) unit-test
 	$(MAKE) build-integration-test
