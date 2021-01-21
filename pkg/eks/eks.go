@@ -45,7 +45,7 @@ func (c *ClusterProvider) DescribeControlPlane(meta *api.ClusterMeta) (*awseks.C
 }
 
 // RefreshClusterStatus calls c.DescribeControlPlane and caches the results;
-// it parses the credentials (endpoint, CA certificate) and stores them in spec.Status,
+// it parses the credentials (endpoint, CA certificate) and stores them in ClusterConfig.Status,
 // so that a Kubernetes client can be constructed; additionally it caches Kubernetes
 // version (use ctl.ControlPlaneVersion to retrieve it) and other properties in
 // c.Status.cachedClusterInfo

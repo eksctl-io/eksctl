@@ -7,6 +7,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -36,21 +37,34 @@ func (t *clusterConfigTask) Do(errs chan error) error {
 	return err
 }
 
-type vpcControllerTask struct {
-	info            string
-	clusterProvider *ClusterProvider
-	spec            *api.ClusterConfig
+// VPCControllerTask represents a task to install the VPC controller
+type VPCControllerTask struct {
+	Info            string
+	ClusterProvider *ClusterProvider
+	ClusterConfig   *api.ClusterConfig
+	PlanMode        bool
 }
 
-func (v *vpcControllerTask) Describe() string { return v.info }
+// Describe implements Task
+func (v *VPCControllerTask) Describe() string { return v.Info }
 
-func (v *vpcControllerTask) Do(errCh chan error) error {
+// Do implements Task
+func (v *VPCControllerTask) Do(errCh chan error) error {
 	defer close(errCh)
-	rawClient, err := v.clusterProvider.NewRawClient(v.spec)
+	rawClient, err := v.ClusterProvider.NewRawClient(v.ClusterConfig)
 	if err != nil {
 		return err
 	}
-	vpcController := addons.NewVPCController(rawClient, v.spec.Status, v.clusterProvider.Provider.Region(), false)
+	oidc, err := v.ClusterProvider.NewOpenIDConnectManager(v.ClusterConfig)
+	if err != nil {
+		return err
+	}
+
+	stackCollection := manager.NewStackCollection(v.ClusterProvider.Provider, v.ClusterConfig)
+	irsa := addons.NewIRSAHelper(oidc, stackCollection, kubernetes.NewCachedClientSet(rawClient.ClientSet()))
+
+	// TODO PlanMode doesn't work as intended
+	vpcController := addons.NewVPCController(rawClient, irsa, v.ClusterConfig.Status, v.ClusterProvider.Provider.Region(), v.PlanMode)
 	if err := vpcController.Deploy(); err != nil {
 		return errors.Wrap(err, "error installing VPC controller")
 	}
@@ -176,14 +190,6 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 		})
 	}
 
-	if installVPCController {
-		newTasks.Append(&vpcControllerTask{
-			info:            "install Windows VPC controller",
-			spec:            cfg,
-			clusterProvider: c,
-		})
-	}
-
 	if cfg.IsFargateEnabled() {
 		manager := fargate.NewFromProvider(cfg.Metadata.Name, c.Provider)
 		newTasks.Append(&fargateProfilesTask{
@@ -196,6 +202,14 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 
 	if api.IsEnabled(cfg.IAM.WithOIDC) {
 		c.appendCreateTasksForIAMServiceAccounts(cfg, newTasks)
+	}
+
+	if installVPCController {
+		newTasks.Append(&VPCControllerTask{
+			Info:            "install Windows VPC controller",
+			ClusterConfig:   cfg,
+			ClusterProvider: c,
+		})
 	}
 
 	return newTasks
@@ -271,6 +285,7 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 		api.IAMServiceAccountsWithAWSNodeServiceAccount(cfg),
 		oidcPlaceholder,
 		clientSet,
+		false,
 	)
 	newTasks.IsSubTask = true
 	tasks.Append(newTasks)
