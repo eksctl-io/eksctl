@@ -117,7 +117,7 @@ func (m *Manager) upgradeAndWait(nodeGroupName, version, launchTemplateVersion s
 		},
 	)
 
-	err = waiters.Wait(nodeGroupName, msg, acceptors, newRequest, m.ctl.Provider.WaitTimeout(), nil)
+	err = m.wait(nodeGroupName, msg, acceptors, newRequest, m.ctl.Provider.WaitTimeout(), nil)
 	if err != nil {
 		return err
 	}
