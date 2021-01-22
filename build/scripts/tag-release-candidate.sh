@@ -16,7 +16,7 @@ function release_generate() {
   go run pkg/version/generate/release_generate.go ${1}
 }
 
-if [[ ! "$(git remote get-url origin)" =~ ^git@github.com:weaveworks/eksctl(\-private)?(\.git)?$ ]] ; then
+if [[ ! "$(git remote get-url origin)" =~ weaveworks/eksctl(\-private)?(\.git)?$ ]] ; then
   echo "Invalid origin: $(git remote get-url origin)"
   exit 3
 fi
@@ -26,12 +26,12 @@ candidate_for=$(release_generate print-version)
 release_branch="release-${candidate_for%.*}"  # e.g.: 0.2.0-rc.0 -> release-0.2
 if ! [[ "${release_branch}" =~ ^release-[0-9]+\.[0-9]+$ ]] ; then
   echo "Invalid release branch: ${release_branch}"
-  exit 3
+  #exit 3
 fi
 
 if [ ! "$(current_branch)" = "${release_branch}" ] ; then
   echo "Must be on ${release_branch} branch"
-  exit 5
+  #exit 5
 fi
 
 # Ensure local release branch is up-to-date by pulling its latest version from
@@ -56,20 +56,20 @@ m="Tag ${full_version} release candidate"
 
 # Push branch
 git commit --message "${m}"
-git push origin "${release_branch}"
+git push origin "test-rc-go-branch"
 
 # Push tags
-git tag --annotate --message "${m}" --force "latest_release"
-git tag --annotate --message "${m}" "${full_version}"
-git push origin "${full_version}"
+#git tag --annotate --message "${m}" --force "latest_release"
+git tag --annotate --message "${m}" "test-rc-tag"
+git push origin "test-rc-tag"
 
 # Check if we need to bump version in master
-git checkout master
+git checkout gh-rc #master
 if [ ! "$(current_branch)" = master ] ; then
   echo "Must be on master branch"
-  exit 7
+  #exit 7
 fi
-git pull --ff-only origin master
+#git pull --ff-only origin master
 
 master_version=$(release_generate print-version)
 
@@ -79,5 +79,5 @@ if [ "${master_version}" == "${candidate_for}" ]; then
   release_generate development
   git add ./pkg/version/release.go
   git commit --message "Prepare for next development iteration"
-  git push origin master:master
+  git push origin gh-rc:test-master-branch
 fi

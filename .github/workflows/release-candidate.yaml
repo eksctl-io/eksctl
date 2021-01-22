@@ -1,0 +1,56 @@
+name: Release candidate
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - gh-rc
+
+env:
+  GOPRIVATE: github.com/weaveworks/aws-sdk-go-private
+
+jobs:
+  rc:
+    name: Tag RC
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:6bfc53c9862b0c44697dddd14df9e571eec0cdfa
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Get draft release
+        id: release-body
+        uses: actions/github-script@v3
+        with:
+          result-encoding: string
+          script: |
+            const { data: release } = await github.repos.getRelease({
+              ...context.repo,
+              release_id: "23562346",
+            });
+            return release.body;
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
+      - name: Setup as weaveworksbot
+        run: |
+          git config user.name "weaveworksbot"
+          git config user.email "weaveworksbot@users.noreply.github.com"
+      - name: Make RC branch
+        run: |
+          RC_BRANCH_VER=$(go run pkg/version/generate/release_generate.go print-major-minor-version)
+          git checkout -b test-rc-go-branch # "release-${RC_BRANCH_VER}"
+      - name: Save draft release notes as release notes
+        run: |
+          RELEASE_NAME=$(go run pkg/version/generate/release_generate.go release)
+          echo "${{steps.release-body.outputs.result}}" > "docs/release_notes/${RELEASE_NAME}.md"
+          cat "docs/release_notes/${RELEASE_NAME}.md"
+      - name: Prepare RC
+        run: make prepare-release-candidate
