@@ -20,23 +20,6 @@ jobs:
             ~/.cache/go-build/
             ~/go/pkg/mod/
           key: ${{ hashFiles('go.sum') }}
-      - name: Get release name
-        id: release-name
-        run: |
-          echo "::set-output name=release-name::$(go run pkg/version/generate/release_generate.go release)"
-      - name: Save draft release notes as release notes
-        uses: actions/github-script@v3
-        env:
-          release_name: ${{steps.release-name.outputs.release-name}}
-        with:
-          script: |
-            const { data: release } = await github.repos.getRelease({
-              ...context.repo,
-              // this is the existing draft release
-              release_id: "23562346",
-            });
-            const fs = require("fs");
-            fs.writeFileSync(`docs/release_notes/${process.env.release_name}.md`, release.body);
       - name: Setup git config as weaveworksbot
         run: |
           git config user.name "weaveworksbot"
