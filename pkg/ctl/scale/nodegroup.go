@@ -1,7 +1,7 @@
 package scale
 
 import (
-	"fmt"
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -70,12 +70,5 @@ func doScaleNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup) error {
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
-
-	stackManager := ctl.NewStackManager(cfg)
-	err = stackManager.ScaleNodeGroup(ng)
-	if err != nil {
-		return fmt.Errorf("failed to scale nodegroup for cluster %q, error %v", cfg.Metadata.Name, err)
-	}
-
-	return nil
+	return nodegroup.New(cfg, ctl, nil).Scale(ng)
 }
