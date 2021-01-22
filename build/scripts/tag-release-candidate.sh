@@ -18,7 +18,7 @@ function release_generate() {
   go run pkg/version/generate/release_generate.go ${1}
 }
 
-if [[ ! "$(git remote get-url origin)" =~ ^git@github.com:weaveworks/eksctl(\-private)?(\.git)?$ ]] ; then
+if [[ ! "$(git remote get-url origin)" =~ weaveworks/eksctl(\-private)?(\.git)?$ ]] ; then
   echo "Invalid origin: $(git remote get-url origin)"
   exit 3
 fi
