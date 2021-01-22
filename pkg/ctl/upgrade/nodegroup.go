@@ -13,7 +13,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-const upgradeNodegroupTimeout = 35 * time.Minute
+const upgradeNodegroupTimeout = 45 * time.Minute
 
 func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
