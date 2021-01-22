@@ -95,5 +95,5 @@ if [ "${dev_version}" == "${candidate_for}" ]; then
   release_generate development
   git add ./pkg/version/release.go
   git commit --message "Prepare for next development iteration"
-  git push origin "${default_branch}":"${default_branch}"
+  git push origin "${default_branch}":"${default_branch}" || gh pr create --fill --label "skip-release-notes"
 fi
