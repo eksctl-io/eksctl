@@ -1,9 +1,36 @@
 # `eksctl apply`
 
 This proposal addresses a GitOps-compatible subcommand of `eksctl` called
-`apply`. Its purpose is to subsume the various imperative commands
+`apply`.
+
+* [Goals](#goals)
+* [Non-goals](#non-goals)
+* [Motivation](#motivation)
+   * [Questions for discussion](#questions-for-discussion)
+      * [Deletion of resources](#deletion-of-resources)
+      * [Immutability](#immutability)
+      * [Gradual support and config](#gradual-support-and-config)
+* [Proposal](#proposal)
+   * [Experimental flag](#experimental-flag)
+   * [Ownership](#ownership)
+      * [eksctl-managed resources](#eksctl-managed-resources)
+         * [Non-authoritative resources](#non-authoritative-resources)
+      * [Non-taggable resources](#non-taggable-resources)
+         * [eksctl owns everything](#eksctl-owns-everything)
+         * [terraform-style state](#terraform-style-state)
+      * [Ignore resource option](#ignore-resource-option)
+      * [non-eksctl-managed resources](#non-eksctl-managed-resources)
+   * [New config](#new-config)
+      * [Goals/justification for config refactors](#goalsjustification-for-config-refactors)
+* [Open questions](#open-questions)
+
+## Goals
+
+The purpose of `apply` is to subsume the various imperative commands
 `eksctl` provides now into one `apply` command that reconciles the actual state
 of an EKS cluster with the intended state as specified in the `eksctl` config file.
+
+## Non-goals
 
 This proposal is only concerned with the `apply` subcommand. Existing behavior
 and commands are unaffected. Continuing to support them shouldn't complicate
