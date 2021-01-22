@@ -24,11 +24,20 @@ if [[ ! "$(git remote get-url origin)" =~ weaveworks/eksctl(\-private)?(\.git)?$
 fi
 
 candidate_for=$(release_generate print-version)
+release_branch="release-$(release_generate print-major-minor-version)"
 
-release_branch="release-${candidate_for%.*}"  # e.g.: 0.2.0-rc.0 -> release-0.2
 if ! [[ "${release_branch}" =~ ^release-[0-9]+\.[0-9]+$ ]] ; then
   echo "Invalid release branch: ${release_branch}"
   exit 3
+fi
+
+if [ ! "$(current_branch)" = "${release_branch}" ] ; then
+    echo "Creating ${release_branch} from ${default_branch}"
+    if [ ! "$(current_branch)" = "${default_branch}" ] ; then
+      echo "Must be on ${default_branch} branch"
+      exit 7
+    fi
+    git checkout -b "${release_branch}"
 fi
 
 if [ ! "$(current_branch)" = "${release_branch}" ] ; then
