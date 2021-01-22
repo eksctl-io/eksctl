@@ -1,16 +1,13 @@
 package get
 
 import (
-	"fmt"
 	"os"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/eksctl/pkg/actions/iam"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
-
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
@@ -19,10 +16,8 @@ func getIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	serviceAccount := &api.ClusterIAMServiceAccount{}
-
+	var name, namespace string
 	cfg.IAM.WithOIDC = api.Enabled()
-	cfg.IAM.ServiceAccounts = append(cfg.IAM.ServiceAccounts, serviceAccount)
 
 	params := &getCmdParams{}
 
@@ -30,14 +25,14 @@ func getIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doGetIAMServiceAccount(cmd, serviceAccount, params)
+		return doGetIAMServiceAccount(cmd, namespace, name, params)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
 
-		fs.StringVar(&serviceAccount.Name, "name", "", "name of iamserviceaccount to get")
-		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace to look for iamserviceaccount")
+		fs.StringVar(&namespace, "namespace", "", "namespace to look for iamserviceaccount")
+		fs.StringVar(&name, "name", "", "name of iamserviceaccount to get")
 
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
@@ -49,8 +44,8 @@ func getIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
-func doGetIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, params *getCmdParams) error {
-	if err := cmdutils.NewGetIAMServiceAccountLoader(cmd, serviceAccount).Load(); err != nil {
+func doGetIAMServiceAccount(cmd *cmdutils.Cmd, namespace, name string, params *getCmdParams) error {
+	if err := cmdutils.NewGetIAMServiceAccountLoader(cmd).Load(); err != nil {
 		return err
 	}
 
@@ -74,44 +69,9 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMSer
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
+	iamServiceAccountManager := iam.New(cfg.Metadata.Name, ctl, stackManager, nil, nil)
+	serviceAccounts, err := iamServiceAccountManager.Get(namespace, name)
 
-	remoteServiceAccounts, err := stackManager.GetIAMServiceAccounts()
-	if err != nil {
-		return errors.Wrap(err, "getting iamserviceaccounts")
-	}
-	// we will show user the object based on given config file,
-	// and what we have learned about the iamserviceaccounts;
-	// that is not ideal, but we don't have a better option yet
-	cfg.IAM.ServiceAccounts = []*api.ClusterIAMServiceAccount{}
-
-	saFilter := filter.NewIAMServiceAccountFilter()
-
-	if cmd.ClusterConfigFile == "" {
-		// reset defaulted fields to avoid output being a complete lie
-		cfg.VPC = nil
-		cfg.CloudWatch = nil
-		// only return the iamserviceaccount that user asked for
-		var notFoundErr error
-		if serviceAccount.Name != "" { // name was given
-			notFoundErr = fmt.Errorf("iamserviceaccount %q not found", serviceAccount.NameString())
-			saFilter.AppendIncludeNames(serviceAccount.NameString())
-		} else if cmd.CobraCommand.Flag("namespace").Changed { // only namespace was given
-			notFoundErr = fmt.Errorf("no iamserviceaccounts found in namespace %q", serviceAccount.Namespace)
-			err = saFilter.AppendIncludeGlobs(remoteServiceAccounts, serviceAccount.Namespace+"/*")
-			if err != nil {
-				return fmt.Errorf("unable to append include globs in namespace %q", serviceAccount.Namespace)
-			}
-		}
-		saSubset, _ := saFilter.MatchAll(remoteServiceAccounts)
-		if saSubset.Len() == 0 {
-			return notFoundErr
-		}
-	}
-
-	err = saFilter.ForEach(remoteServiceAccounts, func(_ int, remoteServiceAccount *api.ClusterIAMServiceAccount) error {
-		cfg.IAM.ServiceAccounts = append(cfg.IAM.ServiceAccounts, remoteServiceAccount)
-		return nil
-	})
 	if err != nil {
 		return err
 	}
@@ -124,8 +84,9 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMSer
 	var obj interface{}
 	if params.output == "table" {
 		addIAMServiceAccountSummaryTableColumns(printer.(*printers.TablePrinter))
-		obj = cfg.IAM.ServiceAccounts
+		obj = serviceAccounts
 	} else {
+		cfg.IAM.ServiceAccounts = serviceAccounts
 		obj = cfg
 	}
 	return printer.PrintObjWithKind("iamserviceaccounts", obj, os.Stdout)

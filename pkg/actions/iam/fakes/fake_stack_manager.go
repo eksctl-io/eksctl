@@ -14,6 +14,18 @@ import (
 )
 
 type FakeStackManager struct {
+	GetIAMServiceAccountsStub        func() ([]*v1alpha5.ClusterIAMServiceAccount, error)
+	getIAMServiceAccountsMutex       sync.RWMutex
+	getIAMServiceAccountsArgsForCall []struct {
+	}
+	getIAMServiceAccountsReturns struct {
+		result1 []*v1alpha5.ClusterIAMServiceAccount
+		result2 error
+	}
+	getIAMServiceAccountsReturnsOnCall map[int]struct {
+		result1 []*v1alpha5.ClusterIAMServiceAccount
+		result2 error
+	}
 	ListStacksMatchingStub        func(string, ...string) ([]*cloudformation.Stack, error)
 	listStacksMatchingMutex       sync.RWMutex
 	listStacksMatchingArgsForCall []struct {
@@ -59,6 +71,62 @@ type FakeStackManager struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeStackManager) GetIAMServiceAccounts() ([]*v1alpha5.ClusterIAMServiceAccount, error) {
+	fake.getIAMServiceAccountsMutex.Lock()
+	ret, specificReturn := fake.getIAMServiceAccountsReturnsOnCall[len(fake.getIAMServiceAccountsArgsForCall)]
+	fake.getIAMServiceAccountsArgsForCall = append(fake.getIAMServiceAccountsArgsForCall, struct {
+	}{})
+	stub := fake.GetIAMServiceAccountsStub
+	fakeReturns := fake.getIAMServiceAccountsReturns
+	fake.recordInvocation("GetIAMServiceAccounts", []interface{}{})
+	fake.getIAMServiceAccountsMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStackManager) GetIAMServiceAccountsCallCount() int {
+	fake.getIAMServiceAccountsMutex.RLock()
+	defer fake.getIAMServiceAccountsMutex.RUnlock()
+	return len(fake.getIAMServiceAccountsArgsForCall)
+}
+
+func (fake *FakeStackManager) GetIAMServiceAccountsCalls(stub func() ([]*v1alpha5.ClusterIAMServiceAccount, error)) {
+	fake.getIAMServiceAccountsMutex.Lock()
+	defer fake.getIAMServiceAccountsMutex.Unlock()
+	fake.GetIAMServiceAccountsStub = stub
+}
+
+func (fake *FakeStackManager) GetIAMServiceAccountsReturns(result1 []*v1alpha5.ClusterIAMServiceAccount, result2 error) {
+	fake.getIAMServiceAccountsMutex.Lock()
+	defer fake.getIAMServiceAccountsMutex.Unlock()
+	fake.GetIAMServiceAccountsStub = nil
+	fake.getIAMServiceAccountsReturns = struct {
+		result1 []*v1alpha5.ClusterIAMServiceAccount
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) GetIAMServiceAccountsReturnsOnCall(i int, result1 []*v1alpha5.ClusterIAMServiceAccount, result2 error) {
+	fake.getIAMServiceAccountsMutex.Lock()
+	defer fake.getIAMServiceAccountsMutex.Unlock()
+	fake.GetIAMServiceAccountsStub = nil
+	if fake.getIAMServiceAccountsReturnsOnCall == nil {
+		fake.getIAMServiceAccountsReturnsOnCall = make(map[int]struct {
+			result1 []*v1alpha5.ClusterIAMServiceAccount
+			result2 error
+		})
+	}
+	fake.getIAMServiceAccountsReturnsOnCall[i] = struct {
+		result1 []*v1alpha5.ClusterIAMServiceAccount
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeStackManager) ListStacksMatching(arg1 string, arg2 ...string) ([]*cloudformation.Stack, error) {
@@ -263,6 +331,8 @@ func (fake *FakeStackManager) UpdateStackReturnsOnCall(i int, result1 error) {
 func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.getIAMServiceAccountsMutex.RLock()
+	defer fake.getIAMServiceAccountsMutex.RUnlock()
 	fake.listStacksMatchingMutex.RLock()
 	defer fake.listStacksMatchingMutex.RUnlock()
 	fake.newTasksToCreateIAMServiceAccountsMutex.RLock()
