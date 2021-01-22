@@ -2,7 +2,8 @@ package create
 
 import (
 	"errors"
-	"fmt"
+
+	"github.com/weaveworks/eksctl/pkg/actions/iam"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
@@ -11,7 +12,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
@@ -106,7 +106,6 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 		logger.Warning("no IAM OIDC provider associated with cluster, try 'eksctl utils associate-iam-oidc-provider --region=%s --cluster=%s'", meta.Region, meta.Name)
 		return errors.New("unable to create iamserviceaccount(s) without IAM OIDC provider enabled")
 	}
-
 	stackManager := ctl.NewStackManager(cfg)
 
 	if err := saFilter.SetExcludeExistingFilter(stackManager, clientSet, cfg.IAM.ServiceAccounts, overrideExistingServiceAccounts); err != nil {
@@ -121,23 +120,9 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 		logger.Warning("metadata of serviceaccounts that exist in Kubernetes will be updated, as --override-existing-serviceaccounts was set")
 	}
 
-	tasks := stackManager.NewTasksToCreateIAMServiceAccounts(filteredServiceAccounts, oidc, kubernetes.NewCachedClientSet(clientSet), false)
-	tasks.PlanMode = cmd.Plan
-
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
 
-	logger.Info(tasks.Describe())
-	if errs := tasks.DoAllSync(); len(errs) > 0 {
-		logger.Info("%d error(s) occurred and IAM Role stacks haven't been created properly, you may wish to check CloudFormation console", len(errs))
-		for _, err := range errs {
-			logger.Critical("%s\n", err.Error())
-		}
-		return fmt.Errorf("failed to create iamserviceaccount(s)")
-	}
-
-	cmdutils.LogPlanModeWarning(cmd.Plan && len(filteredServiceAccounts) > 0)
-
-	return nil
+	return iam.New(cfg.Metadata.Name, ctl, stackManager, oidc, clientSet).CreateIAMServiceAccount(filteredServiceAccounts, cmd.Plan)
 }
