@@ -159,7 +159,7 @@ func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(shouldDelete func(s
 			Parallel:  false,
 			IsSubTask: true,
 		}
-		name := c.GetIAMServiceAccountName(s)
+		name := GetIAMServiceAccountName(s)
 
 		if !shouldDelete(name) {
 			continue

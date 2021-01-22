@@ -64,7 +64,7 @@ func (c *StackCollection) DescribeIAMServiceAccountStacks() ([]*Stack, error) {
 		if *s.StackStatus == cfn.StackStatusDeleteComplete {
 			continue
 		}
-		if c.GetIAMServiceAccountName(s) != "" {
+		if GetIAMServiceAccountName(s) != "" {
 			iamServiceAccountStacks = append(iamServiceAccountStacks, s)
 		}
 	}
@@ -81,7 +81,7 @@ func (c *StackCollection) ListIAMServiceAccountStacks() ([]string, error) {
 
 	names := []string{}
 	for _, s := range stacks {
-		names = append(names, c.GetIAMServiceAccountName(s))
+		names = append(names, GetIAMServiceAccountName(s))
 	}
 	return names, nil
 }
@@ -95,7 +95,7 @@ func (c *StackCollection) GetIAMServiceAccounts() ([]*api.ClusterIAMServiceAccou
 
 	results := []*api.ClusterIAMServiceAccount{}
 	for _, s := range stacks {
-		meta, err := api.ClusterIAMServiceAccountNameStringToClusterIAMMeta(c.GetIAMServiceAccountName(s))
+		meta, err := api.ClusterIAMServiceAccountNameStringToClusterIAMMeta(GetIAMServiceAccountName(s))
 		if err != nil {
 			return nil, err
 		}
@@ -127,7 +127,7 @@ func (c *StackCollection) GetIAMServiceAccounts() ([]*api.ClusterIAMServiceAccou
 }
 
 // GetIAMServiceAccountName will return iamserviceaccount name based on tags
-func (*StackCollection) GetIAMServiceAccountName(s *Stack) string {
+func GetIAMServiceAccountName(s *Stack) string {
 	for _, tag := range s.Tags {
 		if *tag.Key == api.IAMServiceAccountNameTag {
 			return *tag.Value

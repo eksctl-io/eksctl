@@ -7,10 +7,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/weaveworks/eksctl/pkg/actions/iam"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
@@ -45,7 +45,7 @@ func deleteIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace where to delete the iamserviceaccount")
 
 		cmdutils.AddIAMServiceAccountFilterFlags(fs, &cmd.Include, &cmd.Exclude)
-		fs.BoolVar(&onlyMissing, "only-missing", false, "Only delete nodegroups that are not defined in the given config file")
+		fs.BoolVar(&onlyMissing, "only-missing", false, "Only delete iamserviceaccounts that are not defined in the given config file")
 		cmdutils.AddApproveFlag(fs, cmd)
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
@@ -116,26 +116,10 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 
 	saSubset, _ := saFilter.MatchAll(cfg.IAM.ServiceAccounts)
 
-	tasks, err := stackManager.NewTasksToDeleteIAMServiceAccounts(saSubset.Has, kubernetes.NewCachedClientSet(clientSet), cmd.Wait)
-	if err != nil {
-		return err
-	}
-	tasks.PlanMode = cmd.Plan
+	iamServiceAccountManager := iam.New(cfg.Metadata.Name, ctl, stackManager, oidc, clientSet)
 
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
-
-	logger.Info(tasks.Describe())
-	if errs := tasks.DoAllSync(); len(errs) > 0 {
-		logger.Info("%d error(s) occurred and IAM Role stacks haven't been deleted properly, you may wish to check CloudFormation console", len(errs))
-		for _, err := range errs {
-			logger.Critical("%s\n", err.Error())
-		}
-		return fmt.Errorf("failed to delete iamserviceaccount(s)")
-	}
-
-	cmdutils.LogPlanModeWarning(cmd.Plan && saSubset.Len() > 0)
-
-	return nil
+	return iamServiceAccountManager.Delete(saSubset.Has, cmd.Plan, cmd.Wait)
 }

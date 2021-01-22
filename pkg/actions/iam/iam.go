@@ -27,6 +27,7 @@ type StackManager interface {
 	UpdateStack(stackName, changeSetName, description string, templateData manager.TemplateData, parameters map[string]string) error
 	NewTasksToCreateIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, replaceExistingRole bool) *tasks.TaskTree
 	GetIAMServiceAccounts() ([]*api.ClusterIAMServiceAccount, error)
+	NewTasksToDeleteIAMServiceAccounts(shouldDelete func(string) bool, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*tasks.TaskTree, error)
 }
 
 func New(clusterName string, clusterProvider *eks.ClusterProvider, stackManager StackManager, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) *Manager {
