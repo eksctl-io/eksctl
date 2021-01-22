@@ -162,7 +162,6 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	clusterName := c.makeClusterStackName()
 	c.spec.Status = &api.ClusterStatus{StackName: clusterName}
 	name := c.makeNodeGroupStackName(ng.Name)
-	logger.Info("scaling nodegroup stack %q in cluster %s", name, clusterName)
 
 	stack, err := c.DescribeStack(&Stack{StackName: &name})
 	if err != nil {

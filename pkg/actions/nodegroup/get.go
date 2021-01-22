@@ -9,14 +9,14 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
-func (ng *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
-	summaries, err := ng.manager.GetNodeGroupSummaries("")
+func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
+	summaries, err := m.manager.GetNodeGroupSummaries("")
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stack summaries")
 	}
 
-	nodeGroups, err := ng.ctl.Provider.EKS().ListNodegroups(&eks.ListNodegroupsInput{
-		ClusterName: &ng.cfg.Metadata.Name,
+	nodeGroups, err := m.ctl.Provider.EKS().ListNodegroups(&eks.ListNodegroupsInput{
+		ClusterName: &m.cfg.Metadata.Name,
 	})
 	if err != nil {
 		return nil, err
@@ -37,8 +37,8 @@ func (ng *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 	}
 
 	for _, nodeGroupWithoutStack := range nodeGroupsWithoutStacks {
-		describeOutput, err := ng.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
-			ClusterName:   &ng.cfg.Metadata.Name,
+		describeOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
+			ClusterName:   &m.cfg.Metadata.Name,
 			NodegroupName: &nodeGroupWithoutStack,
 		})
 		if err != nil {
@@ -71,8 +71,8 @@ func (ng *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 	return summaries, nil
 }
 
-func (ng *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
-	summaries, err := ng.manager.GetNodeGroupSummaries(name)
+func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
+	summaries, err := m.manager.GetNodeGroupSummaries(name)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stack summaries")
 	}
@@ -81,8 +81,8 @@ func (ng *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
 		return summaries[0], nil
 	}
 
-	describeOutput, err := ng.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
-		ClusterName:   &ng.cfg.Metadata.Name,
+	describeOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
+		ClusterName:   &m.cfg.Metadata.Name,
 		NodegroupName: &name,
 	})
 

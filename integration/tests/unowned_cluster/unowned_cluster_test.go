@@ -202,6 +202,17 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				)
 			Expect(cmd).To(RunSuccessfully())
 
+			By("Scaling a nodegroup")
+			cmd = params.EksctlScaleNodeGroupCmd.
+				WithArgs(
+					"--name", ng1,
+					"--nodes", "2",
+					"--nodes-max", "3",
+					"--cluster", clusterName,
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfully())
+
 			By("Deleting a nodegroup")
 			cmd = params.EksctlDeleteCmd.
 				WithArgs(
