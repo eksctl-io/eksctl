@@ -45,10 +45,10 @@ func NewVPCEndpointResourceSet(provider provider, rs *resourceSet, clusterConfig
 
 // VPCEndpointServiceDetails holds the details for a VPC endpoint service
 type VPCEndpointServiceDetails struct {
-	ServiceName       string
-	Service           string
-	EndpointType      string
-	AvailabilityZones []string
+	ServiceName         string
+	ServiceReadableName string
+	EndpointType        string
+	AvailabilityZones   []string
 }
 
 // AddResources adds resources for VPC endpoints
@@ -57,7 +57,7 @@ func (e *VPCEndpointResourceSet) AddResources() error {
 	if e.clusterConfig.HasClusterCloudWatchLogging() && !e.hasEndpoint(api.EndpointServiceCloudWatch) {
 		endpointServices = append(endpointServices, api.EndpointServiceCloudWatch)
 	}
-	endpointServiceDetails, err := BuildVPCEndpointServices(e.provider.EC2(), e.provider.Region(), endpointServices)
+	endpointServiceDetails, err := buildVPCEndpointServices(e.provider.EC2(), e.provider.Region(), endpointServices)
 	if err != nil {
 		return errors.Wrap(err, "error building endpoint service details")
 	}
@@ -78,7 +78,7 @@ func (e *VPCEndpointResourceSet) AddResources() error {
 		}
 
 		resourceName := fmt.Sprintf("VPCEndpoint%s", strings.ToUpper(
-			strings.ReplaceAll(endpointDetail.Service, ".", ""),
+			strings.ReplaceAll(endpointDetail.ServiceReadableName, ".", ""),
 		))
 
 		// TODO attach policy document
@@ -123,16 +123,31 @@ func (e *VPCEndpointResourceSet) hasEndpoint(endpoint string) bool {
 	return false
 }
 
-// BuildVPCEndpointServices builds a slice of VPCEndpointServiceDetails for the specified endpoint names
-func BuildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints []string) ([]VPCEndpointServiceDetails, error) {
+var chinaPartitionServiceHasChinaPrefix = map[string]bool{
+	api.EndpointServiceEC2:            true,
+	api.EndpointServiceECRAPI:         true,
+	api.EndpointServiceECRDKR:         true,
+	api.EndpointServiceS3:             false,
+	api.EndpointServiceSTS:            true,
+	api.EndpointServiceCloudFormation: true,
+	api.EndpointServiceAutoscaling:    true,
+	api.EndpointServiceCloudWatch:     false,
+}
+
+// buildVPCEndpointServices builds a slice of VPCEndpointServiceDetails for the specified endpoint names
+func buildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints []string) ([]VPCEndpointServiceDetails, error) {
 	serviceNames := make([]string, len(endpoints))
-	servicePrefix := ""
-	if api.Partition(region) == api.PartitionChina {
-		servicePrefix = "cn."
-	}
-	serviceRegionPrefix := fmt.Sprintf("%scom.amazonaws.%s.", servicePrefix, region)
+	serviceDomain := fmt.Sprintf("com.amazonaws.%s", region)
 	for i, endpoint := range endpoints {
-		serviceNames[i] = serviceRegionPrefix + endpoint
+		name := fmt.Sprintf("%s.%s", serviceDomain, endpoint)
+		hasChinaPrefix, ok := chinaPartitionServiceHasChinaPrefix[endpoint]
+		if !ok {
+			return nil, errors.Errorf("couldn't determine endpoint domain for service %s", endpoint)
+		}
+		if api.Partition(region) == api.PartitionChina && hasChinaPrefix {
+			name = "cn." + name
+		}
+		serviceNames[i] = name
 	}
 
 	var serviceDetails []*ec2.ServiceDetail
@@ -167,11 +182,18 @@ func BuildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 			return nil, errors.Errorf("endpoint service %q with multiple service types isn't supported", *sd.ServiceName)
 		}
 
+		// Trim the domain (potentially with a partition-specific part) from the `ServiceName`
+		parts := strings.Split(*sd.ServiceName, fmt.Sprintf("%s.", serviceDomain))
+		if len(parts) != 2 {
+			return nil, errors.Errorf("error parsing service name %s %s", *sd.ServiceName, serviceDomain)
+		}
+		readableName := parts[1]
+
 		ret[i] = VPCEndpointServiceDetails{
-			ServiceName:       *sd.ServiceName,
-			Service:           strings.TrimPrefix(*sd.ServiceName, serviceRegionPrefix),
-			EndpointType:      *sd.ServiceType[0].ServiceType,
-			AvailabilityZones: aws.StringValueSlice(sd.AvailabilityZones),
+			ServiceName:         *sd.ServiceName,
+			ServiceReadableName: readableName,
+			EndpointType:        *sd.ServiceType[0].ServiceType,
+			AvailabilityZones:   aws.StringValueSlice(sd.AvailabilityZones),
 		}
 	}
 

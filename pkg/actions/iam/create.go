@@ -7,7 +7,7 @@ import (
 )
 
 func (a *Manager) CreateIAMServiceAccount(iamServiceAccounts []*api.ClusterIAMServiceAccount, plan bool) error {
-	taskTree := a.stackManager.NewTasksToCreateIAMServiceAccounts(iamServiceAccounts, a.oidcManager, kubernetes.NewCachedClientSet(a.clientSet))
+	taskTree := a.stackManager.NewTasksToCreateIAMServiceAccounts(iamServiceAccounts, a.oidcManager, kubernetes.NewCachedClientSet(a.clientSet), false)
 	taskTree.PlanMode = plan
 
 	err := doTasks(taskTree)

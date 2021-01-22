@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/eksctl/pkg/actions/fargate"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/fargate"
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 

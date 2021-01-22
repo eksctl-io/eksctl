@@ -53,6 +53,9 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvid
 	if err != nil {
 		return nil, err
 	}
+	if clusterStack == nil {
+		return nil, c.ErrStackNotFound()
+	}
 
 	info := fmt.Sprintf("delete cluster control plane %q", c.spec.Metadata.Name)
 	if wait {

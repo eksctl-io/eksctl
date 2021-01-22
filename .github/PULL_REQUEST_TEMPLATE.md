@@ -15,7 +15,7 @@ A good, clear description == a faster review :)
 - [ ] Added/modified documentation as required (such as the `README.md`, or the `userdocs` directory)
 - [ ] Manually tested
 - [ ] Made sure the title of the PR is a good description that can go into the release notes
-- [ ] (Core team) Added labels for change area (e.g. `area/nodegroup`), target version (e.g. `version/0.12.0`) and kind (e.g. `kind/improvement`)
+- [ ] (Core team) Added labels for change area (e.g. `area/nodegroup`) and kind (e.g. `kind/improvement`)
 
 ### BONUS POINTS checklist: complete for good vibes and maybe prizes?! :exploding_head:
 - [ ] Backfilled missing tests for code in same general area :tada:

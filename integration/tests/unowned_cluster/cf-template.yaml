@@ -17,18 +17,33 @@ Parameters:
 
   Subnet01Block:
     Type: String
-    Default: 192.168.64.0/18
+    Default: 192.168.0.0/19
     Description: CidrBlock for subnet 01 within the VPC
 
   Subnet02Block:
     Type: String
-    Default: 192.168.128.0/18
+    Default: 192.168.32.0/19
     Description: CidrBlock for subnet 02 within the VPC
 
   Subnet03Block:
     Type: String
-    Default: 192.168.192.0/18
+    Default: 192.168.64.0/19
     Description: CidrBlock for subnet 03 within the VPC. This is used only if the region has more than 2 AZs.
+
+  Subnet04Block:
+    Type: String
+    Default: 192.168.96.0/19
+    Description: CidrBlock for private subnet 04 within the VPC.
+
+  Subnet05Block:
+    Type: String
+    Default: 192.168.128.0/19
+    Description: CidrBlock for private subnet 05 within the VPC.
+
+  Subnet06Block:
+    Type: String
+    Default: 192.168.160.0/19
+    Description: CidrBlock for private subnet 06 within the VPC. This is used only if the region has more than 2 AZs.
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -41,6 +56,9 @@ Metadata:
           - Subnet01Block
           - Subnet02Block
           - Subnet03Block
+          - Subnet04Block
+          - Subnet05Block
+          - Subnet06Block
 
 Conditions:
   Has2Azs:
@@ -148,6 +166,16 @@ Resources:
       - Key: Network
         Value: Public
 
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: Private Subnets
+      - Key: Network
+        Value: Private
+
   Route:
     DependsOn: VPCGatewayAttachment
     Type: AWS::EC2::Route
@@ -220,6 +248,61 @@ Resources:
       - Key: kubernetes.io/role/elb
         Value: 1
 
+  Subnet04:
+    Type: AWS::EC2::Subnet
+    Metadata:
+      Comment: Subnet 04
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+        - '1'
+        - Fn::GetAZs:
+            Ref: AWS::Region
+      CidrBlock:
+        Ref: Subnet04Block
+      VpcId:
+        Ref: VPC
+      Tags:
+      - Key: Name
+        Value: !Sub "${AWS::StackName}-Subnet04"
+
+  Subnet05:
+    Type: AWS::EC2::Subnet
+    Metadata:
+      Comment: Subnet 05
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+        - '1'
+        - Fn::GetAZs:
+            Ref: AWS::Region
+      CidrBlock:
+        Ref: Subnet05Block
+      VpcId:
+        Ref: VPC
+      Tags:
+      - Key: Name
+        Value: !Sub "${AWS::StackName}-Subnet05"
+
+  Subnet06:
+    Condition: HasMoreThan2Azs
+    Type: AWS::EC2::Subnet
+    Metadata:
+      Comment: Subnet 06
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+        - '1'
+        - Fn::GetAZs:
+            Ref: AWS::Region
+      CidrBlock:
+        Ref: Subnet06Block
+      VpcId:
+        Ref: VPC
+      Tags:
+      - Key: Name
+        Value: !Sub "${AWS::StackName}-Subnet06"
+
   Subnet01RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -238,6 +321,25 @@ Resources:
     Properties:
       SubnetId: !Ref Subnet03
       RouteTableId: !Ref RouteTable
+
+  Subnet04RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet04
+      RouteTableId: !Ref PrivateRouteTable
+
+  Subnet05RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet05
+      RouteTableId: !Ref PrivateRouteTable
+
+  Subnet06RouteTableAssociation:
+    Condition: HasMoreThan2Azs
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet06
+      RouteTableId: !Ref PrivateRouteTable
 
   ControlPlaneSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -269,8 +371,8 @@ Outputs:
     Value:
       Fn::If:
       - HasMoreThan2Azs
-      - !Join [ ",", [ !Ref Subnet01, !Ref Subnet02, !Ref Subnet03 ] ]
-      - !Join [ ",", [ !Ref Subnet01, !Ref Subnet02 ] ]
+      - !Join [ ",", [ !Ref Subnet01, !Ref Subnet02, !Ref Subnet03, !Ref Subnet04, !Ref Subnet05, !Ref Subnet06 ] ]
+      - !Join [ ",", [ !Ref Subnet01, !Ref Subnet02, !Ref Subnet04, !Ref Subnet05 ] ]
 
   SecurityGroups:
     Description: Security group for the cluster control plane communication with worker nodes

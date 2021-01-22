@@ -7,6 +7,8 @@
                     {
                         "DeviceName": "/dev/xvda",
                         "Ebs": {
+                            "Iops": 3000,
+                            "Throughput": 125,
                             "VolumeSize": 80,
                             "VolumeType": "gp3"
                         }

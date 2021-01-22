@@ -25,7 +25,7 @@ type Manager struct {
 type StackManager interface {
 	ListStacksMatching(nameRegex string, statusFilters ...string) ([]*manager.Stack, error)
 	UpdateStack(stackName, changeSetName, description string, templateData manager.TemplateData, parameters map[string]string) error
-	NewTasksToCreateIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) *tasks.TaskTree
+	NewTasksToCreateIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, replaceExistingRole bool) *tasks.TaskTree
 }
 
 func New(clusterName string, clusterProvider *eks.ClusterProvider, stackManager StackManager, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) *Manager {
