@@ -324,7 +324,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 			})
 
-			Context("create, update and delete iamserviceaccounts", func() {
+			Context("create, update, and delete iamserviceaccounts", func() {
 				var (
 					cfg  *api.ClusterConfig
 					ctl  *eks.ClusterProvider
