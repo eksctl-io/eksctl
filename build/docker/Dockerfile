@@ -3,6 +3,9 @@
 
 FROM golang:1.15.2-alpine3.12@sha256:fc801399d044a8e01f125eeb5aa3f160a0d12d6e03ba17a1d0b22ce50dfede81 AS base
 
+# Add kubectl and aws-iam-authenticator to the PATH
+ENV PATH="${PATH}:/out/usr/bin:/out/usr/local/bin"
+
 # Build-time dependencies
 RUN apk add --no-cache \
     bash \
@@ -33,6 +36,10 @@ ENV KUBECTL_VERSION v1.15.11
 RUN curl --silent --location "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" --output /out/usr/local/bin/kubectl \
     && chmod +x /out/usr/local/bin/kubectl
 
+ENV GITHUB_CLI_VERSION 1.5.0
+RUN curl --silent --location "https://github.com/cli/cli/releases/download/v${GITHUB_CLI_VERSION}/gh_${GITHUB_CLI_VERSION}_linux_amd64.tar.gz" \
+    | tar xvz -C /out/usr/local/bin --strip-components=2 gh_${GITHUB_CLI_VERSION}_linux_amd64/bin/gh && gh --version
+
 # Remaining dependencies are controlled by go.mod
 WORKDIR /src
 ENV CGO_ENABLED=0 GOPROXY=https://proxy.golang.org,direct
@@ -45,6 +52,3 @@ COPY .requirements install-build-deps.sh go.mod go.sum /src/
 
 # Install all build tools dependencies
 RUN ./install-build-deps.sh
-
-# Add kubectl and aws-iam-authenticator to the PATH
-ENV PATH="${PATH}:/out/usr/bin:/out/usr/local/bin"
