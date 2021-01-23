@@ -71,7 +71,7 @@ eksctl create iamserviceaccount --cluster=<clusterName> --name=<serviceAccountNa
 ```
 
 When the service account is created and managed by some other tool, such as helm, use `--role-only` to prevent conflicts.
-The other toll is then responsible for adding the role ARN annotation.
+The other tool is then responsible for maintaining the role ARN annotation.
 
 ```console
 eksctl create iamserviceaccount --cluster=<clusterName> --name=<serviceAccountName> --role-only --role-name "custom-role-name"
@@ -80,7 +80,7 @@ eksctl create iamserviceaccount --cluster=<clusterName> --name=<serviceAccountNa
 Currently, to update a role you will need to re-create, run `eksctl delete iamserviceaccount` followed by `eksctl create iamserviceaccount` to achieve that.
 
 !!!note
-    `eksctl delete iamserviceaccount` deletes service accounts even if they were not created by `eksctl create iamserviceaccount`.
+    `eksctl delete iamserviceaccount` deletes Kubernetes `ServiceAccounts` even if they were not created by `eksctl`.
 
 ### Usage with config files
 
