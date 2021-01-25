@@ -107,7 +107,7 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d iamserviceaccounts defined in the given config (%q) against remote state", len(cfg.IAM.ServiceAccounts), cmd.ClusterConfigFile)
-		if err := saFilter.SetIncludeOrExcludeMissingFilter(stackManager, onlyMissing, &cfg.IAM.ServiceAccounts); err != nil {
+		if err := saFilter.SetDeleteFilter(stackManager, onlyMissing, cfg); err != nil {
 			return err
 		}
 	}
