@@ -237,12 +237,12 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 
 func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl api.ClusterProvider) {
 	timeoutDuration := time.Minute * 30
-	subnets, clusterRoleArn, nodeRoleArn := createVPCAndRole(stackName, ctl)
+	publicSubnets, privateSubnets, clusterRoleArn, nodeRoleArn := createVPCAndRole(stackName, ctl)
 
 	_, err := ctl.EKS().CreateCluster(&awseks.CreateClusterInput{
 		Name: &clusterName,
 		ResourcesVpcConfig: &awseks.VpcConfigRequest{
-			SubnetIds: aws.StringSlice(subnets),
+			SubnetIds: aws.StringSlice(append(publicSubnets, privateSubnets...)),
 		},
 		RoleArn: &clusterRoleArn,
 		Version: aws.String("1.17"),
@@ -260,7 +260,7 @@ func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl ap
 		NodegroupName: &ng1,
 		ClusterName:   &clusterName,
 		NodeRole:      &nodeRoleArn,
-		Subnets:       aws.StringSlice(subnets),
+		Subnets:       aws.StringSlice(publicSubnets),
 		ScalingConfig: &awseks.NodegroupScalingConfig{
 			MaxSize:     aws.Int64(1),
 			DesiredSize: aws.Int64(1),
@@ -272,7 +272,7 @@ func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl ap
 		NodegroupName: &ng2,
 		ClusterName:   &clusterName,
 		NodeRole:      &nodeRoleArn,
-		Subnets:       aws.StringSlice(subnets),
+		Subnets:       aws.StringSlice(publicSubnets),
 		ScalingConfig: &awseks.NodegroupScalingConfig{
 			MaxSize:     aws.Int64(1),
 			DesiredSize: aws.Int64(1),
@@ -300,7 +300,7 @@ func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl ap
 	}, timeoutDuration, time.Second*30).Should(Equal("ACTIVE"))
 }
 
-func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, string, string) {
+func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, []string, string, string) {
 	templateBody, err := ioutil.ReadFile("cf-template.yaml")
 	Expect(err).NotTo(HaveOccurred())
 	createStackInput := &cfn.CreateStackInput{
@@ -323,19 +323,21 @@ func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, stri
 	}, time.Minute*10, time.Second*15).Should(Equal(cfn.StackStatusCreateComplete))
 
 	var clusterRoleARN, nodeRoleARN string
-	var subnets []string
+	var publicSubnets, privateSubnets []string
 	for _, output := range describeStackOut.Stacks[0].Outputs {
 		switch *output.OutputKey {
 		case "ClusterRoleARN":
 			clusterRoleARN = *output.OutputValue
 		case "NodeRoleARN":
 			nodeRoleARN = *output.OutputValue
-		case "SubnetIds":
-			subnets = strings.Split(*output.OutputValue, ",")
+		case "PublicSubnetIds":
+			publicSubnets = strings.Split(*output.OutputValue, ",")
+		case "PrivateSubnetIds":
+			privateSubnets = strings.Split(*output.OutputValue, ",")
 		}
 	}
 
-	return subnets, clusterRoleARN, nodeRoleARN
+	return publicSubnets, privateSubnets, clusterRoleARN, nodeRoleARN
 }
 
 func deleteStack(stackName string, ctl api.ClusterProvider) {

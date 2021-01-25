@@ -366,13 +366,21 @@ Outputs:
       Name:
         Fn::Sub: "${AWS::StackName}::NodeRoleARN"
 
-  SubnetIds:
-    Description: All subnets in the VPC
+  PrivateSubnetIds:
+    Description: All private subnets in the VPC
     Value:
       Fn::If:
       - HasMoreThan2Azs
-      - !Join [ ",", [ !Ref Subnet01, !Ref Subnet02, !Ref Subnet03, !Ref Subnet04, !Ref Subnet05, !Ref Subnet06 ] ]
-      - !Join [ ",", [ !Ref Subnet01, !Ref Subnet02, !Ref Subnet04, !Ref Subnet05 ] ]
+      - !Join [ ",", [ !Ref Subnet04, !Ref Subnet05, !Ref Subnet06 ] ]
+      - !Join [ ",", [ !Ref Subnet04, !Ref Subnet05 ] ]
+
+  PublicSubnetIds:
+    Description: All public subnets in the VPC
+    Value:
+      Fn::If:
+      - HasMoreThan2Azs
+      - !Join [ ",", [ !Ref Subnet01, !Ref Subnet02, !Ref Subnet03 ] ]
+      - !Join [ ",", [ !Ref Subnet01, !Ref Subnet02 ] ]
 
   SecurityGroups:
     Description: Security group for the cluster control plane communication with worker nodes
