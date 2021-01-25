@@ -29,9 +29,11 @@ ensure_exists "${default_branch}"
 
 create_branch_from_if_not_current "${release_branch}" "${default_branch}"
 
+git checkout "${default_branch}"
 check_current_branch "${default_branch}"
 ensure_up_to_date "${default_branch}"
 
+git checkout "${release_branch}"
 check_current_branch "${release_branch}"
 ensure_up_to_date "${release_branch}" || echo "${release_branch} not found in origin, will push new branch upstream."
 
