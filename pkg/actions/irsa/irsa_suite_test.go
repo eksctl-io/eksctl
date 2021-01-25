@@ -1,4 +1,4 @@
-package iam_test
+package irsa_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestIam(t *testing.T) {
+func TestIRSA(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Iam Suite")
+	RunSpecs(t, "IRSA Suite")
 }

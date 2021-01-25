@@ -1,4 +1,4 @@
-package iam
+package irsa
 
 import (
 	"github.com/pkg/errors"

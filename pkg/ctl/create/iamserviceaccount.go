@@ -3,7 +3,7 @@ package create
 import (
 	"errors"
 
-	"github.com/weaveworks/eksctl/pkg/actions/iam"
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
@@ -124,5 +124,5 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 		return err
 	}
 
-	return iam.New(cfg.Metadata.Name, stackManager, oidc, clientSet).CreateIAMServiceAccount(filteredServiceAccounts, cmd.Plan)
+	return irsa.New(cfg.Metadata.Name, stackManager, oidc, clientSet).CreateIAMServiceAccount(filteredServiceAccounts, cmd.Plan)
 }

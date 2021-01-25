@@ -3,7 +3,7 @@ package update
 import (
 	"errors"
 
-	"github.com/weaveworks/eksctl/pkg/actions/iam"
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
@@ -105,5 +105,5 @@ func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	return iam.New(cfg.Metadata.Name, stackManager, oidc, clientSet).UpdateIAMServiceAccounts(cfg.IAM.ServiceAccounts, cmd.Plan)
+	return irsa.New(cfg.Metadata.Name, stackManager, oidc, clientSet).UpdateIAMServiceAccounts(cfg.IAM.ServiceAccounts, cmd.Plan)
 }

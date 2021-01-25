@@ -1,25 +1,25 @@
-package iam_test
+package irsa_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/weaveworks/eksctl/pkg/actions/iam"
-	"github.com/weaveworks/eksctl/pkg/actions/iam/fakes"
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
+	"github.com/weaveworks/eksctl/pkg/actions/irsa/fakes"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 var _ = Describe("Get", func() {
 
 	var (
-		iamManager       *iam.Manager
+		irsaManager      *irsa.Manager
 		fakeStackManager *fakes.FakeStackManager
 	)
 
 	BeforeEach(func() {
 		fakeStackManager = new(fakes.FakeStackManager)
 
-		iamManager = iam.New("my-cluster", fakeStackManager, nil, nil)
+		irsaManager = irsa.New("my-cluster", fakeStackManager, nil, nil)
 	})
 
 	When("no options are specified", func() {
@@ -41,7 +41,7 @@ var _ = Describe("Get", func() {
 				},
 			}, nil)
 
-			serviceAccounts, err := iamManager.Get("", "")
+			serviceAccounts, err := irsaManager.Get("", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.GetIAMServiceAccountsCallCount()).To(Equal(1))
@@ -83,7 +83,7 @@ var _ = Describe("Get", func() {
 				},
 			}, nil)
 
-			serviceAccounts, err := iamManager.Get("", "test-sa")
+			serviceAccounts, err := irsaManager.Get("", "test-sa")
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.GetIAMServiceAccountsCallCount()).To(Equal(1))
@@ -118,7 +118,7 @@ var _ = Describe("Get", func() {
 				},
 			}, nil)
 
-			serviceAccounts, err := iamManager.Get("not-default", "")
+			serviceAccounts, err := irsaManager.Get("not-default", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.GetIAMServiceAccountsCallCount()).To(Equal(1))
@@ -153,7 +153,7 @@ var _ = Describe("Get", func() {
 				},
 			}, nil)
 
-			serviceAccounts, err := iamManager.Get("default", "test-sa")
+			serviceAccounts, err := irsaManager.Get("default", "test-sa")
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.GetIAMServiceAccountsCallCount()).To(Equal(1))

@@ -1,4 +1,4 @@
-package iam
+package irsa
 
 import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"

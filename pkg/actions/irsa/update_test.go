@@ -1,4 +1,4 @@
-package iam_test
+package irsa_test
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
-	"github.com/weaveworks/eksctl/pkg/actions/iam"
-	"github.com/weaveworks/eksctl/pkg/actions/iam/fakes"
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
+	"github.com/weaveworks/eksctl/pkg/actions/irsa/fakes"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 )
@@ -16,7 +16,7 @@ import (
 var _ = Describe("Update", func() {
 
 	var (
-		iamManager       *iam.Manager
+		irsaManager      *irsa.Manager
 		oidc             *iamoidc.OpenIDConnectManager
 		fakeStackManager *fakes.FakeStackManager
 		serviceAccount   []*api.ClusterIAMServiceAccount
@@ -39,7 +39,7 @@ var _ = Describe("Update", func() {
 		oidc, err = iamoidc.NewOpenIDConnectManager(nil, "456123987123", "https://oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E", "aws")
 		Expect(err).ToNot(HaveOccurred())
 		oidc.ProviderARN = "arn:aws:iam::456123987123:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E"
-		iamManager = iam.New("my-cluster", fakeStackManager, oidc, nil)
+		irsaManager = irsa.New("my-cluster", fakeStackManager, oidc, nil)
 	})
 
 	When("the IAMServiceAccount exists", func() {
@@ -50,7 +50,7 @@ var _ = Describe("Update", func() {
 				},
 			}, nil)
 
-			err := iamManager.UpdateIAMServiceAccounts(serviceAccount, false)
+			err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.ListStacksMatchingCallCount()).To(Equal(1))
@@ -74,7 +74,7 @@ var _ = Describe("Update", func() {
 					},
 				}, nil)
 
-				err := iamManager.UpdateIAMServiceAccounts(serviceAccount, true)
+				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeStackManager.ListStacksMatchingCallCount()).To(Equal(1))

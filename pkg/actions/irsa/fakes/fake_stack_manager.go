@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/weaveworks/eksctl/pkg/actions/iam"
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
@@ -439,4 +439,4 @@ func (fake *FakeStackManager) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ iam.StackManager = new(FakeStackManager)
+var _ irsa.StackManager = new(FakeStackManager)

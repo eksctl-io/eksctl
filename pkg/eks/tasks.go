@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/actions/iam"
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -68,8 +68,8 @@ func (v *VPCControllerTask) Do(errCh chan error) error {
 	if err != nil {
 		return err
 	}
-	iamManager := iam.New(v.ClusterConfig.Metadata.Name, stackCollection, oidc, clientSet)
-	irsa := addons.NewIRSAHelper(oidc, stackCollection, iamManager, v.ClusterConfig.Metadata.Name)
+	irsaManager := irsa.New(v.ClusterConfig.Metadata.Name, stackCollection, oidc, clientSet)
+	irsa := addons.NewIRSAHelper(oidc, stackCollection, irsaManager, v.ClusterConfig.Metadata.Name)
 
 	// TODO PlanMode doesn't work as intended
 	vpcController := addons.NewVPCController(rawClient, irsa, v.ClusterConfig.Status, v.ClusterProvider.Provider.Region(), v.PlanMode)

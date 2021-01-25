@@ -3,7 +3,7 @@ package addons
 import (
 	"fmt"
 
-	"github.com/weaveworks/eksctl/pkg/actions/iam"
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
@@ -21,17 +21,17 @@ type IRSAHelper interface {
 // irsaHelper applies the annotations required for a ServiceAccount to work with IRSA
 type irsaHelper struct {
 	oidc         *iamoidc.OpenIDConnectManager
-	iamManager   *iam.Manager
+	irsaManager  *irsa.Manager
 	stackManager *manager.StackCollection
 	clusterName  string
 }
 
 // NewIRSAHelper creates a new IRSAHelper
-func NewIRSAHelper(oidc *iamoidc.OpenIDConnectManager, stackManager *manager.StackCollection, iamManager *iam.Manager, clusterName string) IRSAHelper {
+func NewIRSAHelper(oidc *iamoidc.OpenIDConnectManager, stackManager *manager.StackCollection, irsaManager *irsa.Manager, clusterName string) IRSAHelper {
 	return &irsaHelper{
 		oidc:         oidc,
 		stackManager: stackManager,
-		iamManager:   iamManager,
+		irsaManager:  irsaManager,
 		clusterName:  clusterName,
 	}
 }
@@ -53,9 +53,9 @@ func (h *irsaHelper) CreateOrUpdate(sa *api.ClusterIAMServiceAccount) error {
 		return errors.Wrapf(err, "error checking if iamserviceaccount %s/%s exists", sa.Namespace, sa.Name)
 	}
 	if len(stacks) == 0 {
-		err = h.iamManager.CreateIAMServiceAccount(serviceAccounts, false)
+		err = h.irsaManager.CreateIAMServiceAccount(serviceAccounts, false)
 	} else {
-		err = h.iamManager.UpdateIAMServiceAccounts(serviceAccounts, false)
+		err = h.irsaManager.UpdateIAMServiceAccounts(serviceAccounts, false)
 	}
 	return err
 }

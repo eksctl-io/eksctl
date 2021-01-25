@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/eksctl/pkg/actions/iam"
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -69,8 +69,8 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, namespace, name string, params *g
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
-	iamServiceAccountManager := iam.New(cfg.Metadata.Name, stackManager, nil, nil)
-	serviceAccounts, err := iamServiceAccountManager.Get(namespace, name)
+	irsaManager := irsa.New(cfg.Metadata.Name, stackManager, nil, nil)
+	serviceAccounts, err := irsaManager.Get(namespace, name)
 
 	if err != nil {
 		return err

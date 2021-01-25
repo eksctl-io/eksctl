@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/weaveworks/eksctl/pkg/actions/iam"
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
@@ -116,10 +116,10 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 
 	saSubset, _ := saFilter.MatchAll(cfg.IAM.ServiceAccounts)
 
-	iamServiceAccountManager := iam.New(cfg.Metadata.Name, stackManager, oidc, clientSet)
+	irsaManager := irsa.New(cfg.Metadata.Name, stackManager, oidc, clientSet)
 
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
-	return iamServiceAccountManager.Delete(saSubset.Has, cmd.Plan, cmd.Wait)
+	return irsaManager.Delete(saSubset.Has, cmd.Plan, cmd.Wait)
 }
