@@ -1,4 +1,4 @@
-package irsa
+package iam
 
 import (
 	"fmt"
