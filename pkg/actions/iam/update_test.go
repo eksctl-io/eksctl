@@ -6,13 +6,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/eks"
 
 	"github.com/weaveworks/eksctl/pkg/actions/iam"
 	"github.com/weaveworks/eksctl/pkg/actions/iam/fakes"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
 var _ = Describe("Update", func() {
@@ -21,7 +19,6 @@ var _ = Describe("Update", func() {
 		iamManager       *iam.Manager
 		oidc             *iamoidc.OpenIDConnectManager
 		fakeStackManager *fakes.FakeStackManager
-		mockProvider     *mockprovider.MockProvider
 		serviceAccount   []*api.ClusterIAMServiceAccount
 	)
 
@@ -38,12 +35,11 @@ var _ = Describe("Update", func() {
 		var err error
 
 		fakeStackManager = new(fakes.FakeStackManager)
-		mockProvider = mockprovider.NewMockProvider()
 
 		oidc, err = iamoidc.NewOpenIDConnectManager(nil, "456123987123", "https://oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E", "aws")
 		Expect(err).ToNot(HaveOccurred())
 		oidc.ProviderARN = "arn:aws:iam::456123987123:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E"
-		iamManager = iam.New("my-cluster", &eks.ClusterProvider{Provider: mockProvider}, fakeStackManager, oidc, nil)
+		iamManager = iam.New("my-cluster", fakeStackManager, oidc, nil)
 	})
 
 	When("the IAMServiceAccount exists", func() {

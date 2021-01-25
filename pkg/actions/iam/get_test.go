@@ -3,7 +3,6 @@ package iam_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/eksctl/pkg/eks"
 
 	"github.com/weaveworks/eksctl/pkg/actions/iam"
 	"github.com/weaveworks/eksctl/pkg/actions/iam/fakes"
@@ -20,7 +19,7 @@ var _ = Describe("Get", func() {
 	BeforeEach(func() {
 		fakeStackManager = new(fakes.FakeStackManager)
 
-		iamManager = iam.New("my-cluster", &eks.ClusterProvider{}, fakeStackManager, nil, nil)
+		iamManager = iam.New("my-cluster", fakeStackManager, nil, nil)
 	})
 
 	When("no options are specified", func() {

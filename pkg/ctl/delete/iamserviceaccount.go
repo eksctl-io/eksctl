@@ -116,7 +116,7 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 
 	saSubset, _ := saFilter.MatchAll(cfg.IAM.ServiceAccounts)
 
-	iamServiceAccountManager := iam.New(cfg.Metadata.Name, ctl, stackManager, oidc, clientSet)
+	iamServiceAccountManager := iam.New(cfg.Metadata.Name, stackManager, oidc, clientSet)
 
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err

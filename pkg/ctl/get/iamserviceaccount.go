@@ -69,7 +69,7 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, namespace, name string, params *g
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
-	iamServiceAccountManager := iam.New(cfg.Metadata.Name, ctl, stackManager, nil, nil)
+	iamServiceAccountManager := iam.New(cfg.Metadata.Name, stackManager, nil, nil)
 	serviceAccounts, err := iamServiceAccountManager.Get(namespace, name)
 
 	if err != nil {

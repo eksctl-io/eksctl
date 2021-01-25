@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/kris-nova/logger"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
@@ -24,6 +23,6 @@ func (m *Manager) Delete(shouldDelete func(string) bool, plan, wait bool) error 
 		return fmt.Errorf("failed to delete iamserviceaccount(s)")
 	}
 
-	cmdutils.LogPlanModeWarning(plan && taskTree.Len() > 0)
+	logPlanModeWarning(plan && taskTree.Len() > 0)
 	return nil
 }

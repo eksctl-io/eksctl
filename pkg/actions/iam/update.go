@@ -3,8 +3,6 @@ package iam
 import (
 	"fmt"
 
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
 	"github.com/kris-nova/logger"
@@ -47,7 +45,7 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 		logger.Info("the following IAMServiceAccounts will not be updated as they do not exist: %v", strings.Join(nonExistingSAs, ", "))
 	}
 
-	defer cmdutils.LogPlanModeWarning(plan && len(iamServiceAccounts) > 0)
+	defer logPlanModeWarning(plan && len(iamServiceAccounts) > 0)
 	return doTasks(updateTasks)
 
 }
