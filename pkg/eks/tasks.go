@@ -282,7 +282,7 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 	// given a clientSet getter and OpenIDConnectManager reference we can build out
 	// the list of tasks for each of the service accounts that need to be created
 	newTasks := c.NewStackManager(cfg).NewTasksToCreateIAMServiceAccounts(
-		api.IAMServiceAccountsWithAWSNodeServiceAccount(cfg),
+		api.IAMServiceAccountsWithImplicitServiceAccounts(cfg),
 		oidcPlaceholder,
 		clientSet,
 		false,
