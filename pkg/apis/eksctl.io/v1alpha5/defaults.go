@@ -53,9 +53,9 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 	}
 }
 
-// IAMServiceAccountsWithAWSNodeServiceAccount returns the specified IAM service
-// accounts including the potentially autocreated aws-node account as well
-func IAMServiceAccountsWithAWSNodeServiceAccount(cfg *ClusterConfig) []*ClusterIAMServiceAccount {
+// IAMServiceAccountsWithImplicitServiceAccounts adds implicitly created
+// IAM SAs that need to be explicitly deleted.
+func IAMServiceAccountsWithImplicitServiceAccounts(cfg *ClusterConfig) []*ClusterIAMServiceAccount {
 	serviceAccounts := cfg.IAM.ServiceAccounts
 	if IsEnabled(cfg.IAM.WithOIDC) && !vpccniAddonSpecified(cfg) {
 		var found bool
