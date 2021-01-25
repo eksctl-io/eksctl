@@ -2,38 +2,37 @@ package addons
 
 import (
 	"fmt"
-	"strings"
+
+	"github.com/weaveworks/eksctl/pkg/actions/iam"
+
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
-	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
-
-type serviceAccountCreator interface {
-	NewTasksToCreateIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, replaceExistingRole bool) *tasks.TaskTree
-}
 
 // IRSAHelper provides methods for enabling IRSA
 type IRSAHelper interface {
 	IsSupported() (bool, error)
-	Create(serviceAccounts []*api.ClusterIAMServiceAccount) error
+	CreateOrUpdate(serviceAccounts *api.ClusterIAMServiceAccount) error
 }
 
 // irsaHelper applies the annotations required for a ServiceAccount to work with IRSA
 type irsaHelper struct {
-	oidc *iamoidc.OpenIDConnectManager
-	serviceAccountCreator
-	clientSet kubernetes.ClientSetGetter
+	oidc         *iamoidc.OpenIDConnectManager
+	iamManager   *iam.Manager
+	stackManager *manager.StackCollection
+	clusterName  string
 }
 
 // NewIRSAHelper creates a new IRSAHelper
-func NewIRSAHelper(oidc *iamoidc.OpenIDConnectManager, saCreator serviceAccountCreator, clientSet kubernetes.ClientSetGetter) IRSAHelper {
+func NewIRSAHelper(oidc *iamoidc.OpenIDConnectManager, stackManager *manager.StackCollection, iamManager *iam.Manager, clusterName string) IRSAHelper {
 	return &irsaHelper{
-		oidc:                  oidc,
-		serviceAccountCreator: saCreator,
-		clientSet:             clientSet,
+		oidc:         oidc,
+		stackManager: stackManager,
+		iamManager:   iamManager,
+		clusterName:  clusterName,
 	}
 }
 
@@ -47,21 +46,20 @@ func (h *irsaHelper) IsSupported() (bool, error) {
 }
 
 // Create creates IRSA for the specified IAM service accounts
-func (h *irsaHelper) Create(serviceAccounts []*api.ClusterIAMServiceAccount) error {
-	taskTree := h.NewTasksToCreateIAMServiceAccounts(serviceAccounts, h.oidc, h.clientSet, true)
-	if errs := taskTree.DoAllSync(); len(errs) > 0 {
-		return errors.Wrap(joinErrors(errs), "error creating IAM service account")
+func (h *irsaHelper) CreateOrUpdate(sa *api.ClusterIAMServiceAccount) error {
+	serviceAccounts := []*api.ClusterIAMServiceAccount{sa}
+	stacks, err := h.stackManager.ListStacksMatching(makeIAMServiceAccountStackName(h.clusterName, sa.Namespace, sa.Name))
+	if err != nil {
+		return errors.Wrapf(err, "error checking if iamserviceaccount %s/%s exists", sa.Namespace, sa.Name)
 	}
-	return nil
+	if len(stacks) == 0 {
+		err = h.iamManager.CreateIAMServiceAccount(serviceAccounts, false)
+	} else {
+		err = h.iamManager.UpdateIAMServiceAccounts(serviceAccounts, false)
+	}
+	return err
 }
 
-func joinErrors(errs []error) error {
-	if len(errs) == 1 {
-		return errs[0]
-	}
-	allErrs := []string{"errors:\n"}
-	for _, err := range errs {
-		allErrs = append(allErrs, fmt.Sprintf("- %v", err))
-	}
-	return errors.New(strings.Join(allErrs, "\n"))
+func makeIAMServiceAccountStackName(clusterName, namespace, name string) string {
+	return fmt.Sprintf("eksctl-%s-addon-iamserviceaccount-%s-%s", clusterName, namespace, name)
 }

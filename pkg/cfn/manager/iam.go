@@ -3,9 +3,6 @@ package manager
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
-
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kris-nova/logger"
 
@@ -21,7 +18,7 @@ func (c *StackCollection) makeIAMServiceAccountStackName(namespace, name string)
 }
 
 // createIAMServiceAccountTask creates the iamserviceaccount in CloudFormation
-func (c *StackCollection) createIAMServiceAccountTask(errs chan error, spec *api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, replaceExistingRole bool) error {
+func (c *StackCollection) createIAMServiceAccountTask(errs chan error, spec *api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager) error {
 	name := c.makeIAMServiceAccountStackName(spec.Namespace, spec.Name)
 	logger.Info("building iamserviceaccount stack %q", name)
 	stack := builder.NewIAMServiceAccountResourceSet(spec, oidc)
@@ -35,18 +32,6 @@ func (c *StackCollection) createIAMServiceAccountTask(errs chan error, spec *api
 	spec.Tags[api.IAMServiceAccountNameTag] = spec.NameString()
 
 	if err := c.CreateStack(name, stack, spec.Tags, nil, errs); err != nil {
-		if !replaceExistingRole {
-			return err
-		}
-		var awsErr awserr.Error
-		if errors.As(err, &awsErr) && awsErr.Code() == cfn.ErrCodeAlreadyExistsException {
-			logger.Debug("CFN stack for IRSA already exists, replacing it with a new stack")
-			if err := c.DeleteStackByNameSync(name); err != nil {
-				close(errs)
-				return errors.Wrap(err, "error deleting stack")
-			}
-			return c.createIAMServiceAccountTask(errs, spec, oidc, false)
-		}
 		return err
 	}
 	return nil

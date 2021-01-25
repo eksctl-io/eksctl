@@ -23,7 +23,7 @@ type Manager struct {
 type StackManager interface {
 	ListStacksMatching(nameRegex string, statusFilters ...string) ([]*manager.Stack, error)
 	UpdateStack(stackName, changeSetName, description string, templateData manager.TemplateData, parameters map[string]string) error
-	NewTasksToCreateIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, replaceExistingRole bool) *tasks.TaskTree
+	NewTasksToCreateIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) *tasks.TaskTree
 	GetIAMServiceAccounts() ([]*api.ClusterIAMServiceAccount, error)
 	NewTasksToDeleteIAMServiceAccounts(shouldDelete func(string) bool, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*tasks.TaskTree, error)
 }
