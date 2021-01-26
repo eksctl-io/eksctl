@@ -855,6 +855,16 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
+		Context("and drain the initial nodegroup", func() {
+			It("should not return an error", func() {
+				cmd := params.EksctlDrainNodeGroupCmd.WithArgs(
+					"--cluster", params.ClusterName,
+					"--name", initNG,
+				)
+				Expect(cmd).To(RunSuccessfully())
+			})
+		})
+
 		Context("and deleting the cluster", func() {
 			It("should not return an error", func() {
 				if params.SkipDelete {

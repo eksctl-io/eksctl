@@ -35,6 +35,7 @@ type Params struct {
 	EksctlGetCmd            runner.Cmd
 	EksctlDeleteCmd         runner.Cmd
 	EksctlDeleteClusterCmd  runner.Cmd
+	EksctlDrainNodeGroupCmd runner.Cmd
 	EksctlScaleNodeGroupCmd runner.Cmd
 	EksctlUtilsCmd          runner.Cmd
 	// Keep track of created clusters, for post-tests clean-up.
@@ -82,6 +83,10 @@ func (p *Params) GenerateCommands() {
 
 	p.EksctlDeleteClusterCmd = p.EksctlDeleteCmd.
 		WithArgs("cluster", "--verbose", "4")
+
+	p.EksctlDrainNodeGroupCmd = p.EksctlCmd.
+		WithArgs("drain", "nodegroup", "--verbose", "4").
+		WithTimeout(5 * time.Minute)
 
 	p.EksctlScaleNodeGroupCmd = p.EksctlCmd.
 		WithArgs("scale", "nodegroup", "--verbose", "4").
