@@ -34,5 +34,5 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewUnownedCluster(cfg, ctl, clientSet), nil
+	return NewUnownedCluster(cfg, ctl, clientSet, stackManager), nil
 }
