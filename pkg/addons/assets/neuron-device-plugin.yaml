@@ -1,3 +1,62 @@
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: neuron-device-plugin
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - nodes
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - update
+      - patch
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - nodes/status
+    verbs:
+      - patch
+      - update
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: neuron-device-plugin
+  namespace: kube-system
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: neuron-device-plugin
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: neuron-device-plugin
+subjects:
+  - kind: ServiceAccount
+    name: neuron-device-plugin
+    namespace: kube-system
+---
 # https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/device-plugins/
 apiVersion: apps/v1
 kind: DaemonSet
@@ -17,6 +76,7 @@ spec:
       labels:
         name: neuron-device-plugin-ds
     spec:
+      serviceAccount: neuron-device-plugin
       tolerations:
         - key: CriticalAddonsOnly
           operator: Exists
@@ -50,8 +110,15 @@ spec:
                       - inf1.24xlarge
       containers:
         - image: "%s.dkr.ecr.%s.%s/neuron-device-plugin:1.3.2.0"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           name: k8s-neuron-device-plugin-ctr
+          env:
+            - name: KUBECONFIG
+              value: /etc/kubernetes/kubelet.conf
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -59,7 +126,12 @@ spec:
           volumeMounts:
             - name: device-plugin
               mountPath: /var/lib/kubelet/device-plugins
+            - name: infa-map
+              mountPath: /run
       volumes:
         - name: device-plugin
           hostPath:
             path: /var/lib/kubelet/device-plugins
+        - name: infa-map
+          hostPath:
+            path: /run
