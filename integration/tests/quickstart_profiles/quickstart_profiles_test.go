@@ -113,7 +113,7 @@ var _ = Describe("Enable and use GitOps quickstart profiles", func() {
 			AssertFluxManifestsPresentInGit(branch)
 			AssertFluxPodsPresentInKubernetes(params.KubeconfigPath)
 			// Clean-up:
-			err := git.DeleteBranch(branch, cloneDir)
+			err := git.CleanupBranchAndRepo(branch, cloneDir)
 			Expect(err).NotTo(HaveOccurred()) // Deleting the branch should have succeeded.
 		})
 	})
