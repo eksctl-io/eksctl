@@ -213,6 +213,15 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				)
 			Expect(cmd).To(RunSuccessfully())
 
+			By("Draining a nodegroup")
+			cmd = params.EksctlDrainNodeGroupCmd.
+				WithArgs(
+					"--cluster", clusterName,
+					"--name", ng2,
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfully())
+
 			By("Deleting a nodegroup")
 			cmd = params.EksctlDeleteCmd.
 				WithArgs(
