@@ -78,6 +78,10 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait bool) error {
 		return err
 	}
 
+	if err := checkForUndeletedStacks(c.ctl.NewStackManager(c.cfg)); err != nil {
+		return err
+	}
+
 	logger.Success("all cluster resources were deleted")
 	return nil
 }
