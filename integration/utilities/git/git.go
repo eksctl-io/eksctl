@@ -28,8 +28,10 @@ func CreateBranch(branch string) (string, error) {
 			Bootstrap: true,
 		},
 	)
-	cli.Push()
 	if err != nil {
+		return "", err
+	}
+	if err := cli.Push(); err != nil {
 		return "", err
 	}
 	return cloneDir, nil

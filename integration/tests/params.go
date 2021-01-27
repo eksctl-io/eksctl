@@ -21,13 +21,13 @@ type Params struct {
 	Region     string
 	Version    string
 	// Flags to help with the development of the integration tests
-	clusterNamePrefix string
-	ClusterName       string
-	SkipCreate        bool
-	SkipDelete        bool
-	KubeconfigPath    string
-	KubeconfigTemp    bool
-	TestDirectory     string
+	clusterNamePrefix       string
+	ClusterName             string
+	SkipCreate              bool
+	SkipDelete              bool
+	KubeconfigPath          string
+	KubeconfigTemp          bool
+	TestDirectory           string
 	EksctlCmd               runner.Cmd
 	EksctlCreateCmd         runner.Cmd
 	EksctlUpgradeCmd        runner.Cmd
@@ -126,7 +126,7 @@ func (p Params) DeleteClusters() {
 }
 
 const (
-	defaultTestDirectory     = "test_profile"
+	defaultTestDirectory = "test_profile"
 )
 
 // NewParams creates a new Test instance from CLI args, grouping all test parameters.
