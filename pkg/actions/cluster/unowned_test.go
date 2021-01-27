@@ -66,16 +66,20 @@ var _ = Describe("Delete", func() {
 		}, nil)
 
 		p.MockCloudFormation().On("DeleteStack", mock.Anything).Return(nil, nil)
+		firstListStacksCall := true
 		p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 			Expect(args).To(HaveLen(2))
-			pager := args[1].(func(*cloudformation.ListStacksOutput, bool) bool)
-			pager(&cloudformation.ListStacksOutput{
-				StackSummaries: []*cloudformation.StackSummary{
-					{
-						StackName: fargateStackName,
+			if firstListStacksCall {
+				pager := args[1].(func(*cloudformation.ListStacksOutput, bool) bool)
+				pager(&cloudformation.ListStacksOutput{
+					StackSummaries: []*cloudformation.StackSummary{
+						{
+							StackName: fargateStackName,
+						},
 					},
-				},
-			}, false)
+				}, false)
+			}
+			firstListStacksCall = false
 		}).Return(nil)
 
 		p.MockEC2().On("DescribeKeyPairs", mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
