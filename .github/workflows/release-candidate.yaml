@@ -17,7 +17,7 @@ jobs:
         name: Get integration tests status
         id: it-status
         with:
-          github-token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             // There's no other way to identify the integration test job
             // GH branch protections are also just a string
