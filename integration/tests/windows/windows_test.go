@@ -40,7 +40,7 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 		By("creating a new cluster with Windows nodegroups")
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = params.NewClusterName("windows")
-		clusterConfig.Metadata.Version = "1.18"
+		clusterConfig.Metadata.Version = api.LatestVersion
 		clusterConfig.Metadata.Region = api.DefaultRegion
 		clusterConfig.IAM.WithOIDC = &withOIDC
 
