@@ -3,7 +3,10 @@ package cluster
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
+
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/fargate"
@@ -113,4 +116,27 @@ func deleteDeprecatedStacks(stackManager *manager.StackCollection) (bool, error)
 		return true, nil
 	}
 	return false, nil
+}
+
+func logUndeletedStacks(stackManager *manager.StackCollection) error {
+	stacks, err := stackManager.DescribeStacks()
+	if err != nil {
+		return err
+	}
+
+	var undeletedStacks []string
+
+	for _, stack := range stacks {
+		if *stack.StackStatus == cloudformation.StackStatusDeleteInProgress {
+			continue
+		}
+
+		undeletedStacks = append(undeletedStacks, *stack.StackName)
+	}
+
+	if len(undeletedStacks) > 0 {
+		logger.Warning("found the following undeleted stacks: %s", strings.Join(undeletedStacks, ","))
+	}
+
+	return nil
 }
