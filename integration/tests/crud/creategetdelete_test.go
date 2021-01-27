@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"k8s.io/client-go/kubernetes"
+
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -132,6 +134,56 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			It("should return the previously created cluster", func() {
 				cmd := params.EksctlGetCmd.WithArgs("clusters", "--all-regions")
 				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(params.ClusterName)))
+			})
+		})
+
+		Context("toggling kubernetes API access", func() {
+			var (
+				clientSet *kubernetes.Clientset
+			)
+			BeforeEach(func() {
+				cfg := &api.ClusterConfig{
+					Metadata: &api.ClusterMeta{
+						Name:   params.ClusterName,
+						Region: params.Region,
+					},
+				}
+				ctl := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+				err := ctl.RefreshClusterStatus(cfg)
+				Expect(err).ShouldNot(HaveOccurred())
+				clientSet, err = ctl.NewStdClientSet(cfg)
+				Expect(err).ShouldNot(HaveOccurred())
+			})
+
+			It("should be publicly accessible by default", func() {
+				_, err := clientSet.CoreV1().ServiceAccounts(metav1.NamespaceDefault).List(context.TODO(), metav1.ListOptions{})
+				Expect(err).ShouldNot(HaveOccurred())
+			})
+
+			It("should be able to disable public access", func() {
+				cmd := params.EksctlUtilsCmd.WithArgs(
+					"set-public-access-cidrs",
+					"--cluster", params.ClusterName,
+					"1.1.1.1/32,2.2.2.0/24",
+					"--approve",
+				)
+				Expect(cmd).To(RunSuccessfully())
+
+				_, err := clientSet.CoreV1().ServiceAccounts(metav1.NamespaceDefault).List(context.TODO(), metav1.ListOptions{})
+				Expect(err).Should(HaveOccurred())
+			})
+
+			It("should be able to re-enable public access", func() {
+				cmd := params.EksctlUtilsCmd.WithArgs(
+					"set-public-access-cidrs",
+					"--cluster", params.ClusterName,
+					"0.0.0.0/0",
+					"--approve",
+				)
+				Expect(cmd).To(RunSuccessfully())
+
+				_, err := clientSet.CoreV1().ServiceAccounts(metav1.NamespaceDefault).List(context.TODO(), metav1.ListOptions{})
+				Expect(err).ShouldNot(HaveOccurred())
 			})
 		})
 
@@ -849,6 +901,16 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--nodes-min", "1",
 					"--nodes", "1",
 					"--nodes-max", "1",
+					"--name", initNG,
+				)
+				Expect(cmd).To(RunSuccessfully())
+			})
+		})
+
+		Context("and drain the initial nodegroup", func() {
+			It("should not return an error", func() {
+				cmd := params.EksctlDrainNodeGroupCmd.WithArgs(
+					"--cluster", params.ClusterName,
 					"--name", initNG,
 				)
 				Expect(cmd).To(RunSuccessfully())
