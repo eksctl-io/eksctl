@@ -1,7 +1,11 @@
 name: Release candidate
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      skipIntegrationTests:
+        description: 'Skip check for successful integration tests:'
+        default: 'false'
 
 jobs:
   rc:
@@ -28,7 +32,7 @@ jobs:
               cr.status === "completed" && cr.conclusion === "success"
             );
       - name: Fail if integration tests not passed
-        if: "!fromJson(steps.it-status.outputs.result)"
+        if: "!fromJson(steps.it-status.outputs.result) && !fromJson(github.event.inputs.skipIntegrationTests)"
         run: echo "Integration tests haven't passed yet!" && exit 1
       - name: Checkout
         uses: actions/checkout@v2
