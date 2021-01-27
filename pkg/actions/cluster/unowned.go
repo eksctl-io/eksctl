@@ -78,7 +78,7 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait bool) error {
 		return err
 	}
 
-	if err := logUndeletedStacks(c.ctl.NewStackManager(c.cfg)); err != nil {
+	if err := checkForUndeletedStacks(c.ctl.NewStackManager(c.cfg)); err != nil {
 		return err
 	}
 

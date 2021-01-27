@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/fargate"
@@ -118,7 +119,7 @@ func deleteDeprecatedStacks(stackManager *manager.StackCollection) (bool, error)
 	return false, nil
 }
 
-func logUndeletedStacks(stackManager *manager.StackCollection) error {
+func checkForUndeletedStacks(stackManager *manager.StackCollection) error {
 	stacks, err := stackManager.DescribeStacks()
 	if err != nil {
 		return err
@@ -136,6 +137,7 @@ func logUndeletedStacks(stackManager *manager.StackCollection) error {
 
 	if len(undeletedStacks) > 0 {
 		logger.Warning("found the following undeleted stacks: %s", strings.Join(undeletedStacks, ","))
+		return errors.New("failed to delete all resources")
 	}
 
 	return nil

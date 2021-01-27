@@ -121,7 +121,7 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait bool) error {
 		return handleErrors(errs, "cluster with nodegroup(s)")
 	}
 
-	if err := logUndeletedStacks(c.stackManager); err != nil {
+	if err := checkForUndeletedStacks(c.stackManager); err != nil {
 		return err
 	}
 
