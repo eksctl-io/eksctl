@@ -225,7 +225,7 @@ jobs:
       - docker-pull-build-image
       - run: mkdir test-results
       - docker-run:
-          cmd: make integration-test TEST_V=1 SSH_KEY_PATH="/root/.ssh/${SSH_KEY_NAME}"
+          cmd: TEST_V=1 GIT_SSH_COMMAND="ssh -i /root/.ssh/${SSH_KEY_NAME}" make integration-test
           timeout: 35m
           options: >-
             --init

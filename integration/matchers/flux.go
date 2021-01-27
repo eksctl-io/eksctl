@@ -26,16 +26,16 @@ const (
 )
 
 // AssertFluxManifestsAbsentInGit asserts expected Flux manifests are not present in Git.
-func AssertFluxManifestsAbsentInGit(branch, privateSSHKeyPath string) {
-	dir, err := git.GetBranch(branch, privateSSHKeyPath)
+func AssertFluxManifestsAbsentInGit(branch string) {
+	dir, err := git.GetBranch(branch)
 	defer os.RemoveAll(dir)
 	Expect(err).ShouldNot(HaveOccurred())
 	assertDoesNotContainFluxDir(dir)
 }
 
 // AssertFluxManifestsPresentInGit asserts expected Flux manifests are present in Git.
-func AssertFluxManifestsPresentInGit(branch, privateSSHKeyPath string) {
-	dir, err := git.GetBranch(branch, privateSSHKeyPath)
+func AssertFluxManifestsPresentInGit(branch string) {
+	dir, err := git.GetBranch(branch)
 	defer os.RemoveAll(dir)
 	Expect(err).ShouldNot(HaveOccurred())
 	assertContainsFluxDir(dir)

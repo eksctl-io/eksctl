@@ -14,8 +14,8 @@ import (
 
 // AssertQuickStartComponentsPresentInGit asserts that the expected quickstart
 // components are present in Git, under the provided branch.
-func AssertQuickStartComponentsPresentInGit(branch, privateSSHKeyPath string) {
-	dir, err := git.GetBranch(branch, privateSSHKeyPath)
+func AssertQuickStartComponentsPresentInGit(branch string) {
+	dir, err := git.GetBranch(branch)
 	Expect(err).ShouldNot(HaveOccurred())
 	defer os.RemoveAll(dir)
 	FS := afero.Afero{Fs: afero.NewOsFs()}

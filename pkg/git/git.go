@@ -74,6 +74,12 @@ type CloneOptions struct {
 	Bootstrap bool // create the branch if the repository is empty
 }
 
+// WithDir directly sets the Client to use a directory, without havine to clone
+// it
+func (git *Client) WithDir(dir string) {
+	git.dir = dir
+}
+
 // CloneRepoInTmpDir clones a repo specified in the gitURL in a temporary directory and checks out the specified branch
 func (git *Client) CloneRepoInTmpDir(tmpDirPrefix string, options CloneOptions) (string, error) {
 	cloneDir, err := ioutil.TempDir(os.TempDir(), tmpDirPrefix)
@@ -181,6 +187,10 @@ func (git Client) Push() error {
 	}
 	err := git.runGitCmd("push")
 	return err
+}
+
+func (git Client) DeleteRemoteBranch(branch string) error {
+	return git.runGitCmd("push", "origin", "--delete", branch)
 }
 
 // DeleteLocalRepo deletes the local copy of a repository, including the directory
