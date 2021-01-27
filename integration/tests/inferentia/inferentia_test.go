@@ -40,7 +40,7 @@ func TestInferentia(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-var _ = PDescribe("(Integration) Inferentia nodes", func() {
+var _ = Describe("(Integration) Inferentia nodes", func() {
 	const (
 		initNG = "inf1-ng-0"
 		newNG  = "inf1-ng-1"
