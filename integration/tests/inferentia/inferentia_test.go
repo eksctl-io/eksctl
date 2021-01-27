@@ -20,6 +20,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -114,6 +115,24 @@ var _ = PDescribe("(Integration) Inferentia nodes", func() {
 
 				_, err = clientSet.AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
+			})
+			It("should not have installed the nvidia device plugin", func() {
+				cfg := &api.ClusterConfig{
+					Metadata: &api.ClusterMeta{
+						Name:   defaultCluster,
+						Region: params.Region,
+					},
+				}
+				ctl := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+				err := ctl.RefreshClusterStatus(cfg)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				clientSet, err := ctl.NewStdClientSet(cfg)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				_, err = clientSet.AppsV1().DaemonSets("kube-system").Get(context.TODO(), "nvidia-device-plugin-daemonset", metav1.GetOptions{})
+				Expect(err).Should(HaveOccurred())
+				Expect(errors.IsNotFound(err)).To(BeTrue())
 			})
 		})
 		Context("with --install-neuron-plugin=false", func() {
