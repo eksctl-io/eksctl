@@ -47,7 +47,7 @@ func (c *StackCollection) DescribeClusterStack() (*Stack, error) {
 	}
 
 	if len(stacks) == 0 {
-		return nil, c.errStackNotFound()
+		return nil, nil
 	}
 
 	for _, s := range stacks {
@@ -58,12 +58,13 @@ func (c *StackCollection) DescribeClusterStack() (*Stack, error) {
 			return s, nil
 		}
 	}
-	return nil, c.errStackNotFound()
+	return nil, nil
 }
 
 // RefreshFargatePodExecutionRoleARN reads the CloudFormation stacks and
 // their output values, and sets the Fargate pod execution role ARN to
-// the ClusterConfig.
+// the ClusterConfig. If there is no cluster stack found but a fargate stack
+// exists, use the output from that stack.
 func (c *StackCollection) RefreshFargatePodExecutionRoleARN() error {
 	fargateOutputs := map[string]outputs.Collector{
 		outputs.FargatePodExecutionRoleARN: func(v string) error {
@@ -75,21 +76,31 @@ func (c *StackCollection) RefreshFargatePodExecutionRoleARN() error {
 	if err != nil {
 		return err
 	}
-	if err := outputs.Collect(*stack, nil, fargateOutputs); err != nil {
-		return err
-	}
+	if stack != nil {
+		if err := outputs.Collect(*stack, nil, fargateOutputs); err != nil {
+			return err
+		}
 
-	if c.spec.IAM.FargatePodExecutionRoleARN == nil {
-		logger.Info("Fargate pod execution role is missing, fixing cluster stack to add Fargate resources")
-		if err := c.FixClusterCompatibility(); err != nil {
-			return errors.Wrap(err, "error fixing cluster compatibility")
+		if c.spec.IAM.FargatePodExecutionRoleARN == nil {
+			logger.Info("Fargate pod execution role is missing, fixing cluster stack to add Fargate resources")
+			if err := c.FixClusterCompatibility(); err != nil {
+				return errors.Wrap(err, "error fixing cluster compatibility")
+			}
+		}
+		stack, err = c.DescribeClusterStack()
+		if err != nil {
+			return err
+		}
+		if stack == nil {
+			return c.ErrStackNotFound()
+		}
+	} else {
+		stack, err = c.GetFargateStack()
+		if err != nil {
+			return err
 		}
 	}
 
-	stack, err = c.DescribeClusterStack()
-	if err != nil {
-		return err
-	}
 	return outputs.Collect(*stack, fargateOutputs, nil)
 }
 

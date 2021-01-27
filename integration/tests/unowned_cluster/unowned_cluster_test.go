@@ -50,7 +50,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			ng2 = "ng-2"
 			// "unowned_clusters" lead to names longer than allowed for CF stacks
 			clusterName = params.NewClusterName("uc")
-			stackName = fmt.Sprintf("it-%s", clusterName)
+			stackName = fmt.Sprintf("eksctl-%s", clusterName)
 			cfg := &api.ClusterConfig{
 				Metadata: &api.ClusterMeta{
 					Name:   params.ClusterName,
@@ -155,6 +155,41 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				ContainElement(ContainSubstring("vpc-cni")),
 			))
 
+			By("Creating a fargate profile")
+			cmd = params.EksctlCreateCmd.
+				WithArgs(
+					"fargateprofile",
+					"--cluster", clusterName,
+					"--name", "fp-test",
+					"--namespace", "default",
+				)
+			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+				ContainElement(SatisfyAll(ContainSubstring("created"), ContainSubstring("fp-test"))),
+			))
+
+			By("Getting a fargate profile")
+			cmd = params.EksctlGetCmd.
+				WithArgs(
+					"fargateprofile",
+					"--cluster", clusterName,
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+				ContainElement(ContainSubstring("fp-test")),
+			))
+
+			By("Deleting a fargate profile")
+			cmd = params.EksctlDeleteCmd.
+				WithArgs(
+					"fargateprofile",
+					"--cluster", clusterName,
+					"--name", "fp-test",
+					"--wait",
+				)
+			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+				ContainElement(SatisfyAll(ContainSubstring("deleted"), ContainSubstring("fp-test"))),
+			))
+
 			By("Upgrading one of the nodegroups")
 			cmd = params.EksctlUpgradeCmd.
 				WithArgs(
@@ -163,6 +198,26 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 					"--cluster", clusterName,
 					"--kubernetes-version", "1.18",
 					"--wait",
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfully())
+
+			By("Scaling a nodegroup")
+			cmd = params.EksctlScaleNodeGroupCmd.
+				WithArgs(
+					"--name", ng1,
+					"--nodes", "2",
+					"--nodes-max", "3",
+					"--cluster", clusterName,
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfully())
+
+			By("Draining a nodegroup")
+			cmd = params.EksctlDrainNodeGroupCmd.
+				WithArgs(
+					"--cluster", clusterName,
+					"--name", ng2,
 					"--verbose", "2",
 				)
 			Expect(cmd).To(RunSuccessfully())
@@ -190,12 +245,13 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 })
 
 func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl api.ClusterProvider) {
-	subnets, clusterRoleArn, nodeRoleArn := createVPCAndRole(stackName, ctl)
+	timeoutDuration := time.Minute * 30
+	publicSubnets, privateSubnets, clusterRoleArn, nodeRoleArn := createVPCAndRole(stackName, ctl)
 
 	_, err := ctl.EKS().CreateCluster(&awseks.CreateClusterInput{
 		Name: &clusterName,
 		ResourcesVpcConfig: &awseks.VpcConfigRequest{
-			SubnetIds: aws.StringSlice(subnets),
+			SubnetIds: aws.StringSlice(append(publicSubnets, privateSubnets...)),
 		},
 		RoleArn: &clusterRoleArn,
 		Version: aws.String("1.17"),
@@ -207,13 +263,13 @@ func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl ap
 		})
 		Expect(err).NotTo(HaveOccurred())
 		return *out.Cluster.Status
-	}, time.Minute*20, time.Second*30).Should(Equal("ACTIVE"))
+	}, timeoutDuration, time.Second*30).Should(Equal("ACTIVE"))
 
 	_, err = ctl.EKS().CreateNodegroup(&awseks.CreateNodegroupInput{
 		NodegroupName: &ng1,
 		ClusterName:   &clusterName,
 		NodeRole:      &nodeRoleArn,
-		Subnets:       aws.StringSlice(subnets),
+		Subnets:       aws.StringSlice(publicSubnets),
 		ScalingConfig: &awseks.NodegroupScalingConfig{
 			MaxSize:     aws.Int64(1),
 			DesiredSize: aws.Int64(1),
@@ -225,7 +281,7 @@ func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl ap
 		NodegroupName: &ng2,
 		ClusterName:   &clusterName,
 		NodeRole:      &nodeRoleArn,
-		Subnets:       aws.StringSlice(subnets),
+		Subnets:       aws.StringSlice(publicSubnets),
 		ScalingConfig: &awseks.NodegroupScalingConfig{
 			MaxSize:     aws.Int64(1),
 			DesiredSize: aws.Int64(1),
@@ -241,7 +297,7 @@ func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl ap
 		})
 		Expect(err).NotTo(HaveOccurred())
 		return *out.Nodegroup.Status
-	}, time.Minute*20, time.Second*30).Should(Equal("ACTIVE"))
+	}, timeoutDuration, time.Second*30).Should(Equal("ACTIVE"))
 
 	Eventually(func() string {
 		out, err := ctl.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{
@@ -250,10 +306,10 @@ func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl ap
 		})
 		Expect(err).NotTo(HaveOccurred())
 		return *out.Nodegroup.Status
-	}, time.Minute*20, time.Second*30).Should(Equal("ACTIVE"))
+	}, timeoutDuration, time.Second*30).Should(Equal("ACTIVE"))
 }
 
-func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, string, string) {
+func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, []string, string, string) {
 	templateBody, err := ioutil.ReadFile("cf-template.yaml")
 	Expect(err).NotTo(HaveOccurred())
 	createStackInput := &cfn.CreateStackInput{
@@ -276,19 +332,21 @@ func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, stri
 	}, time.Minute*10, time.Second*15).Should(Equal(cfn.StackStatusCreateComplete))
 
 	var clusterRoleARN, nodeRoleARN string
-	var subnets []string
+	var publicSubnets, privateSubnets []string
 	for _, output := range describeStackOut.Stacks[0].Outputs {
 		switch *output.OutputKey {
 		case "ClusterRoleARN":
 			clusterRoleARN = *output.OutputValue
 		case "NodeRoleARN":
 			nodeRoleARN = *output.OutputValue
-		case "SubnetIds":
-			subnets = strings.Split(*output.OutputValue, ",")
+		case "PublicSubnetIds":
+			publicSubnets = strings.Split(*output.OutputValue, ",")
+		case "PrivateSubnetIds":
+			privateSubnets = strings.Split(*output.OutputValue, ",")
 		}
 	}
 
-	return subnets, clusterRoleARN, nodeRoleARN
+	return publicSubnets, privateSubnets, clusterRoleARN, nodeRoleARN
 }
 
 func deleteStack(stackName string, ctl api.ClusterProvider) {

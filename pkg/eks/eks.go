@@ -19,8 +19,8 @@ import (
 
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/weaveworks/eksctl/pkg/actions/fargate"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/vpc"
@@ -45,7 +45,7 @@ func (c *ClusterProvider) DescribeControlPlane(meta *api.ClusterMeta) (*awseks.C
 }
 
 // RefreshClusterStatus calls c.DescribeControlPlane and caches the results;
-// it parses the credentials (endpoint, CA certificate) and stores them in spec.Status,
+// it parses the credentials (endpoint, CA certificate) and stores them in ClusterConfig.Status,
 // so that a Kubernetes client can be constructed; additionally it caches Kubernetes
 // version (use ctl.ControlPlaneVersion to retrieve it) and other properties in
 // c.Status.cachedClusterInfo
@@ -282,9 +282,13 @@ func (c *ClusterProvider) LoadClusterIntoSpec(spec *api.ClusterConfig) error {
 
 // LoadClusterVPC loads the VPC configuration
 func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig) error {
-	stack, err := c.NewStackManager(spec).DescribeClusterStack()
+	stackManager := c.NewStackManager(spec)
+	stack, err := stackManager.DescribeClusterStack()
 	if err != nil {
 		return err
+	}
+	if stack == nil {
+		return stackManager.ErrStackNotFound()
 	}
 
 	return vpc.UseFromCluster(c.Provider, stack, spec)
@@ -332,6 +336,12 @@ func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*a
 func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, error) {
 	allClusters := []*api.ClusterConfig{}
 
+	spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: ""}}
+	allStacks, err := c.NewStackManager(spec).ListClusterStackNames()
+	if err != nil {
+		return nil, err
+	}
+
 	token := ""
 	for {
 		clusters, nextToken, err := c.getClustersRequest(chunkSize, token)
@@ -341,12 +351,12 @@ func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, e
 
 		for _, clusterName := range clusters {
 			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: *clusterName}}
-			isClusterStack, err := c.NewStackManager(spec).IsClusterStack()
+			hasClusterStack, err := c.NewStackManager(spec).HasClusterStackUsingCachedList(allStacks)
 			managed := eksctlCreatedFalse
 			if err != nil {
 				managed = eksctlCreatedUnknown
 				logger.Warning("error fetching stacks for cluster %s: %v", clusterName, err)
-			} else if isClusterStack {
+			} else if hasClusterStack {
 				managed = eksctlCreatedTrue
 			}
 			allClusters = append(allClusters, &api.ClusterConfig{

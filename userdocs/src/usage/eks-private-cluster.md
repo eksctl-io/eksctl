@@ -52,7 +52,7 @@ privateCluster:
   # For Cluster Autoscaler
   - "autoscaling"
   # CloudWatch logging
-  - "log"
+  - "logs"
 ```
 
 The endpoints supported in `additionalEndpointServices` are `autoscaling`, `cloudformation` and `logs`.

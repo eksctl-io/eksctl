@@ -21,15 +21,13 @@ type Params struct {
 	Region     string
 	Version    string
 	// Flags to help with the development of the integration tests
-	clusterNamePrefix string
-	ClusterName       string
-	SkipCreate        bool
-	SkipDelete        bool
-	KubeconfigPath    string
-	KubeconfigTemp    bool
-	TestDirectory     string
-	// privateSSHKeyPath is the SSH key to use for Git operations.
-	PrivateSSHKeyPath       string
+	clusterNamePrefix       string
+	ClusterName             string
+	SkipCreate              bool
+	SkipDelete              bool
+	KubeconfigPath          string
+	KubeconfigTemp          bool
+	TestDirectory           string
 	EksctlCmd               runner.Cmd
 	EksctlCreateCmd         runner.Cmd
 	EksctlUpgradeCmd        runner.Cmd
@@ -37,6 +35,7 @@ type Params struct {
 	EksctlGetCmd            runner.Cmd
 	EksctlDeleteCmd         runner.Cmd
 	EksctlDeleteClusterCmd  runner.Cmd
+	EksctlDrainNodeGroupCmd runner.Cmd
 	EksctlScaleNodeGroupCmd runner.Cmd
 	EksctlUtilsCmd          runner.Cmd
 	// Keep track of created clusters, for post-tests clean-up.
@@ -85,6 +84,10 @@ func (p *Params) GenerateCommands() {
 	p.EksctlDeleteClusterCmd = p.EksctlDeleteCmd.
 		WithArgs("cluster", "--verbose", "4")
 
+	p.EksctlDrainNodeGroupCmd = p.EksctlCmd.
+		WithArgs("drain", "nodegroup", "--verbose", "4").
+		WithTimeout(5 * time.Minute)
+
 	p.EksctlScaleNodeGroupCmd = p.EksctlCmd.
 		WithArgs("scale", "nodegroup", "--verbose", "4").
 		WithTimeout(5 * time.Minute)
@@ -128,8 +131,7 @@ func (p Params) DeleteClusters() {
 }
 
 const (
-	defaultTestDirectory     = "test_profile"
-	defaultPrivateSSHKeyPath = "~/.ssh/eksctl-bot_id_rsa"
+	defaultTestDirectory = "test_profile"
 )
 
 // NewParams creates a new Test instance from CLI args, grouping all test parameters.
@@ -145,7 +147,6 @@ func NewParams(clusterNamePrefix string) *Params {
 	flag.BoolVar(&params.SkipCreate, "eksctl.skip.create", false, "Skip the creation tests. Useful for debugging the tests")
 	flag.BoolVar(&params.SkipDelete, "eksctl.skip.delete", false, "Skip the cleanup after the tests have run")
 	flag.StringVar(&params.KubeconfigPath, "eksctl.kubeconfig", "", "Path to kubeconfig (default: create a temporary file)")
-	flag.StringVar(&params.PrivateSSHKeyPath, "eksctl.git.sshkeypath", defaultPrivateSSHKeyPath, fmt.Sprintf("Path to the SSH key to use for Git operations (default: %s)", defaultPrivateSSHKeyPath))
 
 	// go1.13+ testing flags regression fix: https://github.com/golang/go/issues/31859
 	flag.Parse()

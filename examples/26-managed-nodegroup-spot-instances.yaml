@@ -4,7 +4,7 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: spot-cluster
+  name: cluster-26
   region: us-west-2
 
 managedNodeGroups:

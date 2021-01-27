@@ -11,26 +11,26 @@ import (
 )
 
 // DeleteProfile drains and delete the Fargate profile with the provided name.
-func (m *Manager) DeleteProfile(name string, waitForDeletion bool) error {
+func (c *Client) DeleteProfile(name string, waitForDeletion bool) error {
 	if name == "" {
 		return errors.New("invalid Fargate profile name: empty")
 	}
-	out, err := m.api.DeleteFargateProfile(deleteRequest(m.clusterName, name))
+	out, err := c.api.DeleteFargateProfile(deleteRequest(c.clusterName, name))
 	logger.Debug("Fargate profile: delete request: received: %#v", out)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete Fargate profile %q", name)
 	}
 	if waitForDeletion {
-		return m.waitForDeletion(name)
+		return c.waitForDeletion(name)
 	}
 	return nil
 }
 
-func (m *Manager) waitForDeletion(name string) error {
-	// Clone this manager's policy to ensure this method is re-entrant/thread-safe:
-	retryPolicy := m.retryPolicy.Clone()
+func (c *Client) waitForDeletion(name string) error {
+	// Clone this client's policy to ensure this method is re-entrant/thread-safe:
+	retryPolicy := c.retryPolicy.Clone()
 	for !retryPolicy.Done() {
-		names, err := m.ListProfiles()
+		names, err := c.ListProfiles()
 		if err != nil {
 			return err
 		}

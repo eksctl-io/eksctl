@@ -8,8 +8,6 @@ gocache := $(shell go env GOCACHE)
 
 export GOBIN ?= $(gopath)/bin
 
-export PATH := $(GOBIN):./build/scripts:$(PATH)
-
 AWS_SDK_GO_DIR ?= $(shell go list -m -f '{{.Dir}}' 'github.com/aws/aws-sdk-go')
 
 generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
@@ -35,7 +33,7 @@ install-all-deps: install-build-deps install-site-deps ## Install all dependenci
 
 .PHONY: install-build-deps
 install-build-deps: ## Install dependencies (packages and tools)
-	install-build-deps.sh
+	build/scripts/build-image-manifest.sh
 
 ##@ Build
 
@@ -75,11 +73,6 @@ INTEGRATION_TEST_ARGS += -eksctl.version=$(INTEGRATION_TEST_VERSION)
 $(info will launch integration tests for Kubernetes version $(INTEGRATION_TEST_VERSION))
 endif
 
-ifneq ($(SSH_KEY_PATH),)
-INTEGRATION_TEST_ARGS += -eksctl.git.sshkeypath=$(SSH_KEY_PATH)
-$(info will launch integration tests with ssh key path $(SSH_KEY_PATH))
-endif
-
 .PHONY: lint
 lint: ## Run linter over the codebase
 	golangci-lint run
@@ -88,6 +81,12 @@ lint: ## Run linter over the codebase
 .PHONY: test
 test:
 	$(MAKE) lint
+	$(MAKE) check-all-generated-files-up-to-date
+	$(MAKE) unit-test
+	$(MAKE) build-integration-test
+
+.PHONY: circleci-test
+circleci-test:
 	$(MAKE) check-all-generated-files-up-to-date
 	$(MAKE) unit-test
 	$(MAKE) build-integration-test
@@ -193,7 +192,7 @@ update-aws-node: ## Re-download the aws-node manifests from AWS
 
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) ## Generate Kubernetes API helpers
-	update-codegen.sh
+	build/scripts/update-codegen.sh
 
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 	AWS_SDK_GO_DIR=$(AWS_SDK_GO_DIR) go generate ./pkg/eks/mocks
@@ -205,11 +204,11 @@ generate-kube-reserved: ## Update instance list with respective specs
 ##@ Release
 .PHONY: prepare-release
 prepare-release:
-	tag-release.sh
+	build/scripts/tag-release.sh
 
 .PHONY: prepare-release-candidate
 prepare-release-candidate:
-	tag-release-candidate.sh
+	build/scripts/tag-release-candidate.sh
 
 .PHONY: print-version
 print-version:

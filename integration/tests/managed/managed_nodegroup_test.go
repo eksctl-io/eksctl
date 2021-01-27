@@ -104,6 +104,18 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			})
 		})
 
+		Context("and checking the nodegroup health", func() {
+			It("should return healthy", func() {
+				cmd := params.EksctlUtilsCmd.WithArgs(
+					"nodegroup-health",
+					"--cluster", params.ClusterName,
+					"--name", initialNodeGroup,
+				)
+
+				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("active")))
+			})
+		})
+
 		Context("and scale the initial nodegroup", func() {
 			It("should not return an error", func() {
 				cmd := params.EksctlScaleNodeGroupCmd.WithArgs(

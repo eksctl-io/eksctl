@@ -127,7 +127,6 @@ var _ = Describe("create nodegroup", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("%s is not supported for Managed Nodegroups (--managed=true)", args[0])))
 			},
-			Entry("node-volume-type", "--node-volume-type", "gp2"),
 			Entry("max-pods-per-node", "--max-pods-per-node", "2"),
 			Entry("node-ami", "--node-ami", "ami-dummy-123"),
 			Entry("node-security-groups", "--node-security-groups", "sg-123"),

@@ -152,19 +152,19 @@ there are 3 distinct commands that you will need to run.
 To update `kube-proxy`, run:
 
 ```
-eksctl utils update-kube-proxy
+eksctl utils update-kube-proxy --cluster=<clusterName>
 ```
 
 To update `aws-node`, run:
 
 ```
-eksctl utils update-aws-node
+eksctl utils update-aws-node --cluster=<clusterName>
 ```
 
 To update `coredns`, run:
 
 ```
-eksctl utils update-coredns
+eksctl utils update-coredns --cluster=<clusterName>
 ```
 
 Once upgraded, be sure to run `kubectl get pods -n kube-system` and check if all addon pods are in ready state, you should see

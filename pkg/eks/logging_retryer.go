@@ -18,10 +18,12 @@ package eks
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/kris-nova/logger"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/request"
 )
@@ -42,6 +44,22 @@ func newLoggingRetryer() *LoggingRetryer {
 	return &LoggingRetryer{
 		client.DefaultRetryer{NumMaxRetries: maxRetries},
 	}
+}
+
+// ShouldRetry uses DefaultRetryer.ShouldRetry but also checks for non-retryable
+// EC2MetadataError (see #2564)
+func (l LoggingRetryer) ShouldRetry(r *request.Request) bool {
+	shouldRetry := l.DefaultRetryer.ShouldRetry(r)
+	if !shouldRetry {
+		return false
+	}
+	if aerr, ok := r.Error.(awserr.RequestFailure); ok && aerr != nil && aerr.Code() == "EC2MetadataError" {
+		switch aerr.StatusCode() {
+		case http.StatusForbidden, http.StatusNotFound, http.StatusMethodNotAllowed:
+			return false
+		}
+	}
+	return true
 }
 
 // RetryRules extends on DefaultRetryer.RetryRules

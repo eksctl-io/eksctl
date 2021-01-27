@@ -14,7 +14,7 @@ import (
 	"github.com/kris-nova/logger"
 )
 
-func (ng *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.ManagedNodeGroup, wait, plan bool) error {
+func (m *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.ManagedNodeGroup, wait, plan bool) error {
 	var nodeGroupsWithStacks []eks.KubeNodeGroup
 	var nodeGroupsWithoutStacksDeleteTasks []*DeleteUnownedNodegroupTask
 
@@ -23,7 +23,7 @@ func (ng *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.
 	}
 
 	for _, n := range managedNodeGroups {
-		hasStacks, err := ng.hasStacks(n.Name)
+		hasStacks, err := m.hasStacks(n.Name)
 		if err != nil {
 			return err
 		}
@@ -32,9 +32,9 @@ func (ng *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.
 			nodeGroupsWithStacks = append(nodeGroupsWithStacks, n)
 		} else {
 			nodeGroupsWithoutStacksDeleteTasks = append(nodeGroupsWithoutStacksDeleteTasks, &DeleteUnownedNodegroupTask{
-				cluster:   ng.cfg.Metadata.Name,
+				cluster:   m.cfg.Metadata.Name,
 				nodegroup: n.Name,
-				eksAPI:    ng.ctl.Provider.EKS(),
+				eksAPI:    m.ctl.Provider.EKS(),
 				info:      fmt.Sprintf("delete unowned nodegroup %q", n.Name),
 			})
 		}
@@ -49,7 +49,7 @@ func (ng *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.
 		return false
 	}
 
-	tasks, err := ng.manager.NewTasksToDeleteNodeGroups(shouldDelete, wait, nil)
+	tasks, err := m.manager.NewTasksToDeleteNodeGroups(shouldDelete, wait, nil)
 	if err != nil {
 		return err
 	}
@@ -64,19 +64,6 @@ func (ng *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.
 		return handleErrors(errs, "nodegroup(s)")
 	}
 	return nil
-}
-
-func (ng *Manager) hasStacks(name string) (bool, error) {
-	stacks, err := ng.manager.ListNodeGroupStacks()
-	if err != nil {
-		return false, err
-	}
-	for _, stack := range stacks {
-		if stack.NodeGroupName == name {
-			return true, nil
-		}
-	}
-	return false, nil
 }
 
 type DeleteUnownedNodegroupTask struct {
