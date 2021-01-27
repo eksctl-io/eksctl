@@ -250,12 +250,10 @@ func (v *VPCController) deployVPCResourceController() error {
 	} else {
 		// If an OIDC provider isn't associated with the cluster, the VPC controller relies on the managed policy
 		// attached to the node role for the AWS VPC CNI plugin.
-		sa := &corev1.ServiceAccount{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      vpcControllerName,
-				Namespace: vpcControllerNamespace,
-			},
-		}
+		sa := kubernetes.NewServiceAccount(metav1.ObjectMeta{
+			Name:      vpcControllerName,
+			Namespace: vpcControllerNamespace,
+		})
 		if err := v.applyRawResource(sa); err != nil {
 			return err
 		}
