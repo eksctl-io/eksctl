@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+
 	"github.com/aws/aws-sdk-go/aws/awserr"
 
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -28,16 +30,18 @@ import (
 )
 
 type UnownedCluster struct {
-	cfg       *api.ClusterConfig
-	ctl       *eks.ClusterProvider
-	clientSet kubeclient.Interface
+	cfg          *api.ClusterConfig
+	ctl          *eks.ClusterProvider
+	clientSet    kubeclient.Interface
+	stackManager *manager.StackCollection
 }
 
-func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubeclient.Interface) *UnownedCluster {
+func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubeclient.Interface, stackManager *manager.StackCollection) *UnownedCluster {
 	return &UnownedCluster{
-		cfg:       cfg,
-		ctl:       ctl,
-		clientSet: clientSet,
+		cfg:          cfg,
+		ctl:          ctl,
+		clientSet:    clientSet,
+		stackManager: stackManager,
 	}
 }
 
@@ -63,6 +67,10 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait bool) error {
 		return err
 	}
 
+	if err := c.deleteFargateRoleIfExists(); err != nil {
+		return err
+	}
+
 	// we have to wait for nodegroups to delete before deleting the cluster
 	// so the `wait` value is ignored here
 	if err := c.deleteAndWaitForNodegroupsDeletion(clusterName, c.ctl.Provider.WaitTimeout(), waitInterval); err != nil {
@@ -83,6 +91,22 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait bool) error {
 	}
 
 	logger.Success("all cluster resources were deleted")
+	return nil
+}
+
+func (c *UnownedCluster) deleteFargateRoleIfExists() error {
+	stack, err := c.stackManager.GetFargateStack()
+	if err != nil {
+		return err
+	}
+
+	if stack != nil {
+		logger.Info("deleting fargate role")
+		_, err = c.stackManager.DeleteStackBySpec(stack)
+		return err
+	}
+
+	logger.Debug("no fargate role found")
 	return nil
 }
 
@@ -117,10 +141,9 @@ func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clientSetGetter kubernetes.
 	}
 
 	tasksTree := &tasks.TaskTree{Parallel: false}
-	stackManager := c.ctl.NewStackManager(c.cfg)
 
 	if clusterOperable && oidcSupported {
-		serviceAccountAndOIDCTasks, err := stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc, clientSetGetter)
+		serviceAccountAndOIDCTasks, err := c.stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc, clientSetGetter)
 		if err != nil {
 			return err
 		}
@@ -131,7 +154,7 @@ func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clientSetGetter kubernetes.
 		}
 	}
 
-	deleteAddonIAMtasks, err := stackManager.NewTaskToDeleteAddonIAM(wait)
+	deleteAddonIAMtasks, err := c.stackManager.NewTaskToDeleteAddonIAM(wait)
 	if err != nil {
 		return err
 	}
