@@ -50,5 +50,4 @@ jobs:
           git config user.name "weaveworksbot"
           git config user.email "weaveworksbot@users.noreply.github.com"
       - name: Push release branch, tag RC and update main branch
-        run: |
-          echo "test"
+        run: make prepare-release-candidate
