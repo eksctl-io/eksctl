@@ -78,29 +78,45 @@ type DevicePlugin interface {
 	Deploy() error
 }
 
-func applyDevicePlugin(dp DevicePlugin) error { //, manifest []byte, account string) error {
-	rawExtension, err := kubernetes.NewRawExtension(dp.Manifest())
+func applyDevicePlugin(dp DevicePlugin) error {
+	list, err := kubernetes.NewList(dp.Manifest())
 	if err != nil {
-		return err
-	}
-	daemonSet, ok := rawExtension.Object.(*appsv1.DaemonSet)
-	if !ok {
-		return &typeAssertionError{&appsv1.DaemonSet{}, rawExtension}
-	}
-	if err := dp.SetImage(&daemonSet.Spec.Template); err != nil {
-		return err
+		return errors.Wrap(err, "creating list from device plugin manifest")
 	}
 
-	rawResource, err := dp.RawClient().NewRawResource(rawExtension.Object)
-	if err != nil {
-		return err
+	rawClient := dp.RawClient()
+	for _, rawObj := range list.Items {
+		rawResource, err := rawClient.NewRawResource(rawObj.Object)
+		if err != nil {
+			return errors.Wrap(err, "creating raw resource from list item")
+		}
+		switch rawResource.GVK.Kind {
+		case "DaemonSet":
+			daemonSet, ok := rawResource.Info.Object.(*appsv1.DaemonSet)
+			if !ok {
+				return &typeAssertionError{&appsv1.DaemonSet{}, rawResource}
+			}
+			if err := dp.SetImage(&daemonSet.Spec.Template); err != nil {
+				return errors.Wrap(err, "setting image of device plugin daemonset")
+			}
+
+			msg, err := rawResource.CreateOrReplace(dp.PlanMode())
+			if err != nil {
+				return errors.Wrap(err, "calling create or replace on raw device plugin daemonset")
+			}
+			logger.Info(msg)
+			if err := watchDaemonSetReady(dp.RawClient().ClientSet().AppsV1().DaemonSets(daemonSet.Namespace), daemonSet.Name); err != nil {
+				return errors.Wrap(err, "waiting for device plugin daemonset to become ready")
+			}
+		default:
+			status, err := rawResource.CreateOrReplace(dp.PlanMode())
+			if err != nil {
+				return errors.Wrap(err, "calling create or replace on raw device plugin rawResource")
+			}
+			logger.Info(status)
+		}
 	}
-	msg, err := rawResource.CreateOrReplace(dp.PlanMode())
-	if err != nil {
-		return err
-	}
-	logger.Info(msg)
-	return watchDaemonSetReady(dp.RawClient().ClientSet().AppsV1().DaemonSets(daemonSet.Namespace), daemonSet.Name)
+	return nil
 }
 
 // NewNeuronDevicePlugin creates a new NeuronDevicePlugin
