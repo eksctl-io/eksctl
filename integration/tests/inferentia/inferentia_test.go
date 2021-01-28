@@ -20,7 +20,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -131,8 +130,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 
 				_, err = clientSet.AppsV1().DaemonSets("kube-system").Get(context.TODO(), "nvidia-device-plugin-daemonset", metav1.GetOptions{})
-				Expect(err).Should(HaveOccurred())
-				Expect(errors.IsNotFound(err)).To(BeTrue())
+				Expect(err).Should(BeNotFoundError())
 			})
 		})
 		Context("with --install-neuron-plugin=false", func() {
