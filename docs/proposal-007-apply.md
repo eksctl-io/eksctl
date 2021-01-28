@@ -29,6 +29,8 @@ This proposal addresses a GitOps-compatible subcommand of `eksctl` called
 The purpose of `apply` is to subsume the various imperative commands
 `eksctl` provides now into one `apply` command that reconciles the actual state
 of an EKS cluster with the intended state as specified in the `eksctl` config file.
+It should be GitOpsable aka GitOps-compatible, i.e. usuable as part of a GitOps
+pipeline.
 
 ## Non-goals
 
