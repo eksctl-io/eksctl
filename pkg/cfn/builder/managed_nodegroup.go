@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
@@ -146,6 +147,10 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		launchTemplate = &gfneks.Nodegroup_LaunchTemplateSpecification{
 			Id: ltRef,
 		}
+	}
+	if api.IsEnabled(m.nodeGroup.EFAEnabled) {
+		desc := "worker nodes in group " + m.nodeGroup.Name
+		m.addEFASecurityGroup(makeImportValue(m.clusterStackName, outputs.ClusterVPC), m.clusterConfig.Metadata.Name, desc)
 	}
 
 	managedResource.LaunchTemplate = launchTemplate

@@ -102,6 +102,14 @@ func MakeManagedUserData(ng *api.ManagedNodeGroup, mimeBoundary string) (string,
 		scripts = append(scripts, makeMaxPodsScript(ng.MaxPodsPerNode))
 	}
 
+	if api.IsEnabled(ng.EFAEnabled) {
+		data, err := getAsset("efa.managed.boothook")
+		if err != nil {
+			return "", err
+		}
+		cloudboot = append(cloudboot, data)
+	}
+
 	if len(scripts) == 0 && len(cloudboot) == 0 {
 		return "", nil
 	}

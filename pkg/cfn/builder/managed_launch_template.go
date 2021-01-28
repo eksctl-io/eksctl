@@ -50,10 +50,37 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 		}
 	}
 
-	launchTemplateData.SecurityGroupIds = gfnt.NewValue(securityGroupIDs)
+	if api.IsEnabled(mng.EFAEnabled) {
+		launchTemplateData.NetworkInterfaces = []gfnec2.LaunchTemplate_NetworkInterface{{
+			// Explicitly un-setting this so that it doesn't get defaulted to true
+			AssociatePublicIpAddress: nil,
+			DeviceIndex:              gfnt.NewInteger(0),
+			Groups:                   gfnt.NewSlice(securityGroupIDs...),
+			InterfaceType:            gfnt.NewString("efa"),
+		}}
+		if mng.Placement == nil {
+			groupName := m.newResource("NodeGroupPlacementGroup", &gfnec2.PlacementGroup{
+				Strategy: gfnt.NewString("cluster"),
+			})
+			launchTemplateData.Placement = &gfnec2.LaunchTemplate_Placement{
+				GroupName: groupName,
+			}
+		}
+	} else {
+		launchTemplateData.SecurityGroupIds = gfnt.NewValue(securityGroupIDs)
+	}
 
 	if mng.EBSOptimized != nil {
 		launchTemplateData.EbsOptimized = gfnt.NewBoolean(*mng.EBSOptimized)
+	}
+
+	if api.IsEnabled(mng.EFAEnabled) && mng.Placement == nil {
+		groupName := m.newResource("NodeGroupPlacementGroup", &gfnec2.PlacementGroup{
+			Strategy: gfnt.NewString("cluster"),
+		})
+		launchTemplateData.Placement = &gfnec2.LaunchTemplate_Placement{
+			GroupName: groupName,
+		}
 	}
 
 	if volumeSize := mng.VolumeSize; volumeSize != nil && *volumeSize > 0 {

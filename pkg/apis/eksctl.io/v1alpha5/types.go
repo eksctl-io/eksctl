@@ -816,9 +816,6 @@ type NodeGroup struct {
 	// [Customize `kubelet` config](/usage/customizing-the-kubelet/)
 	// +optional
 	KubeletExtraConfig *InlineDocument `json:"kubeletExtraConfig,omitempty"`
-
-	// EFAEnabled enables EFA network interfaces for nodes in this nodegroup
-	EFAEnabled *bool `json:"efaEnabled,omitempty"`
 }
 
 // BaseNodeGroup implements NodePool
@@ -1256,6 +1253,8 @@ type NodeGroupBase struct {
 	// be spawned
 	// +optional
 	Placement *Placement `json:"placement,omitempty"`
+
+	EFAEnabled *bool `json:"efaEnabled,omitempty"`
 
 	// Internal fields
 	// Some AMIs (bottlerocket) have a separate volume for the OS

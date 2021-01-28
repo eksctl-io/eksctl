@@ -935,11 +935,6 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		in, out := &in.KubeletExtraConfig, &out.KubeletExtraConfig
 		*out = (*in).DeepCopy()
 	}
-	if in.EFAEnabled != nil {
-		in, out := &in.EFAEnabled, &out.EFAEnabled
-		*out = new(bool)
-		**out = **in
-	}
 	return
 }
 
@@ -1068,6 +1063,11 @@ func (in *NodeGroupBase) DeepCopyInto(out *NodeGroupBase) {
 	if in.Placement != nil {
 		in, out := &in.Placement, &out.Placement
 		*out = new(Placement)
+		**out = **in
+	}
+	if in.EFAEnabled != nil {
+		in, out := &in.EFAEnabled, &out.EFAEnabled
+		*out = new(bool)
 		**out = **in
 	}
 	return
