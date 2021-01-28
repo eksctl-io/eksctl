@@ -254,6 +254,44 @@ var _ = Describe("template builder for IAM", func() {
 			Expect(t).To(HaveOutputWithValue("Role1", `{ "Fn::GetAtt": "Role1.Arn" }`))
 		})
 
+		It("can construct an iamserviceaccount addon template with wellKnownPolicies", func() {
+			serviceAccount := &api.ClusterIAMServiceAccount{}
+
+			serviceAccount.Name = "sa-1"
+
+			serviceAccount.WellKnownPolicies = api.WellKnownPolicies{
+				ImageBuilder: true,
+			}
+
+			appendServiceAccountToClusterConfig(cfg, serviceAccount)
+
+			rs := NewIAMServiceAccountResourceSet(serviceAccount, oidc)
+
+			templateBody := []byte{}
+
+			Expect(rs).To(RenderWithoutErrors(&templateBody))
+
+			t := cft.NewTemplate()
+
+			Expect(t).To(LoadBytesWithoutErrors(templateBody))
+
+			Expect(t.Description).To(Equal("IAM role for serviceaccount \"default/sa-1\" [created and managed by eksctl]"))
+
+			Expect(t.Resources).To(HaveLen(1))
+			Expect(t.Outputs).To(HaveLen(1))
+
+			Expect(t).To(HaveResource("Role1", "AWS::IAM::Role"))
+
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "AssumeRolePolicyDocument", expectedServiceAccountAssumeRolePolicyDocument))
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "ManagedPolicyArns", `[
+              {
+                "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
+		      }
+            ]`))
+
+			Expect(t).To(HaveOutputWithValue("Role1", `{ "Fn::GetAtt": "Role1.Arn" }`))
+		})
+
 		It("can parse an iamserviceaccount addon template", func() {
 			t := cft.NewTemplate()
 

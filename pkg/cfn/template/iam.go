@@ -25,7 +25,7 @@ type IAMRole struct {
 	Path string `json:",omitempty"`
 
 	AssumeRolePolicyDocument MapOfInterfaces `json:",omitempty"`
-	ManagedPolicyArns        []string        `json:",omitempty"`
+	ManagedPolicyArns        []interface{}   `json:",omitempty"`
 	PermissionsBoundary      string          `json:",omitempty"`
 }
 

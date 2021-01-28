@@ -164,11 +164,11 @@ func (m *ResourcePropertiesMatcher) Match(actualTemplate interface{}) (bool, err
 }
 
 func (m *ResourcePropertiesMatcher) FailureMessage(_ interface{}) string {
-	return m.failureMessageWithError(fmt.Sprintf("Expected the template to have resoruce %q with propertes %v", m.resourceName, m.propertyNames))
+	return m.failureMessageWithError(fmt.Sprintf("Expected the template to have resource %q with propertes %v", m.resourceName, m.propertyNames))
 }
 
 func (m *ResourcePropertiesMatcher) NegatedFailureMessage(_ interface{}) string {
-	return fmt.Sprintf("Expected the template to NOT have resoruce %q with properties %v", m.resourceName, m.propertyNames)
+	return fmt.Sprintf("Expected the template to NOT have resource %q with properties %v", m.resourceName, m.propertyNames)
 }
 
 type ResourceWithPropertyValueMatcher struct {

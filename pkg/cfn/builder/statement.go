@@ -184,18 +184,15 @@ func cloudWatchMetricsStatements() []cft.MapOfInterfaces {
 	}
 }
 
-func certManagerHostedZonesStatements(appendActions ...string) []cft.MapOfInterfaces {
-	actions := []string{
-		"route53:ListResourceRecordSets",
-		"route53:ListHostedZonesByName",
-	}
-	actions = append(actions, appendActions...)
-
+func certManagerHostedZonesStatements() []cft.MapOfInterfaces {
 	return []cft.MapOfInterfaces{
 		{
 			"Effect":   effectAllow,
 			"Resource": resourceAll,
-			"Action":   actions,
+			"Action": []string{
+				"route53:ListResourceRecordSets",
+				"route53:ListHostedZonesByName",
+			},
 		},
 	}
 }
