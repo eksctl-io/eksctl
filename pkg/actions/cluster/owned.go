@@ -121,6 +121,10 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait bool) error {
 		return handleErrors(errs, "cluster with nodegroup(s)")
 	}
 
+	if err := checkForUndeletedStacks(c.stackManager); err != nil {
+		return err
+	}
+
 	logger.Success("all cluster resources were deleted")
 
 	return gitops.DeleteKey(c.cfg)
