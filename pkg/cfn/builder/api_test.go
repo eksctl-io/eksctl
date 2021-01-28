@@ -426,6 +426,22 @@ var _ = Describe("CloudFormation template builder API", func() {
 		}
 		testVPC := testVPC()
 
+		p.MockEC2().On("DescribeInstanceTypes",
+			&ec2.DescribeInstanceTypesInput{
+				InstanceTypes: aws.StringSlice([]string{"p4d.24xlarge"}),
+			},
+		).Return(
+			&ec2.DescribeInstanceTypesOutput{
+				InstanceTypes: []*ec2.InstanceTypeInfo{
+					{
+						NetworkInfo: &ec2.NetworkInfo{
+							MaximumNetworkCards: aws.Int64(4),
+						},
+					},
+				},
+			}, nil,
+		)
+
 		p.MockEC2().On("DescribeVpcs", mock.MatchedBy(func(input *ec2.DescribeVpcsInput) bool {
 			return *input.VpcIds[0] == vpcID
 		})).Return(&ec2.DescribeVpcsOutput{
