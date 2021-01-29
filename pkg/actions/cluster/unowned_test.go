@@ -3,6 +3,8 @@ package cluster_test
 import (
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/cloudformation"
+
 	"github.com/aws/aws-sdk-go/aws"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -45,7 +47,40 @@ var _ = Describe("Delete", func() {
 			ClusterName: strings.Pointer(clusterName),
 		}).Once().Return(&awseks.ListFargateProfilesOutput{}, nil)
 
-		p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(nil)
+		fargateStackName := aws.String("eksctl-my-cluster-fargate")
+		p.MockCloudFormation().On("DescribeStacks", &cloudformation.DescribeStacksInput{
+			StackName: fargateStackName,
+		}).Return(&cloudformation.DescribeStacksOutput{
+			Stacks: []*cloudformation.Stack{
+				{
+					StackName: fargateStackName,
+					Tags: []*cloudformation.Tag{
+						{
+							Key:   aws.String("alpha.eksctl.io/cluster-name"),
+							Value: aws.String(clusterName),
+						},
+					},
+					StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+				},
+			},
+		}, nil)
+
+		p.MockCloudFormation().On("DeleteStack", mock.Anything).Return(nil, nil)
+		firstListStacksCall := true
+		p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+			Expect(args).To(HaveLen(2))
+			if firstListStacksCall {
+				pager := args[1].(func(*cloudformation.ListStacksOutput, bool) bool)
+				pager(&cloudformation.ListStacksOutput{
+					StackSummaries: []*cloudformation.StackSummary{
+						{
+							StackName: fargateStackName,
+						},
+					},
+				}, false)
+			}
+			firstListStacksCall = false
+		}).Return(nil)
 
 		p.MockEC2().On("DescribeKeyPairs", mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
 
@@ -74,8 +109,8 @@ var _ = Describe("Delete", func() {
 		})).Return(&awseks.DeleteNodegroupOutput{}, nil)
 
 		p.MockEKS().On("DeleteCluster", mock.Anything).Return(&awseks.DeleteClusterOutput{}, nil)
-
-		c := cluster.NewUnownedCluster(cfg, &eks.ClusterProvider{Provider: p, Status: &eks.ProviderStatus{}}, clientSet)
+		ctl := &eks.ClusterProvider{Provider: p, Status: &eks.ProviderStatus{}}
+		c := cluster.NewUnownedCluster(cfg, ctl, clientSet, ctl.NewStackManager(cfg))
 		err := c.Delete(time.Microsecond, false)
 		Expect(err).NotTo(HaveOccurred())
 	})

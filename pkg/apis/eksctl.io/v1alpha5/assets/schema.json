@@ -343,6 +343,9 @@
           "description": "AWS tags for the service account",
           "x-intellij-html-description": "AWS tags for the service account",
           "default": "{}"
+        },
+        "wellKnownPolicies": {
+          "$ref": "#/definitions/WellKnownPolicies"
         }
       },
       "preferredOrder": [
@@ -351,6 +354,7 @@
         "labels",
         "annotations",
         "attachPolicyARNs",
+        "wellKnownPolicies",
         "attachPolicy",
         "permissionsBoundary",
         "status",
@@ -1712,6 +1716,50 @@
       "additionalProperties": false,
       "description": "defines the configuration for KMS encryption provider",
       "x-intellij-html-description": "defines the configuration for KMS encryption provider"
+    },
+    "WellKnownPolicies": {
+      "properties": {
+        "autoScaler": {
+          "type": "boolean",
+          "description": "adds policies for cluster-autoscaler. See [autoscaler AWS docs](https://docs.aws.amazon.com/eks/latest/userguide/cluster-autoscaler.html).",
+          "x-intellij-html-description": "adds policies for cluster-autoscaler. See <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/cluster-autoscaler.html\">autoscaler AWS docs</a>.",
+          "default": "false"
+        },
+        "awsLoadBalancerController": {
+          "type": "boolean",
+          "description": "adds policies for using the aws-load-balancer-controller. See [Load Balancer docs](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html).",
+          "x-intellij-html-description": "adds policies for using the aws-load-balancer-controller. See <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html\">Load Balancer docs</a>.",
+          "default": "false"
+        },
+        "certManager": {
+          "type": "boolean",
+          "description": "adds cert-manager policies. See [cert-manager docs](https://cert-manager.io/docs/configuration/acme/dns01/route53).",
+          "x-intellij-html-description": "adds cert-manager policies. See <a href=\"https://cert-manager.io/docs/configuration/acme/dns01/route53\">cert-manager docs</a>.",
+          "default": "false"
+        },
+        "externalDNS": {
+          "type": "boolean",
+          "description": "adds external-dns policies for Amazon Route 53. See [external-dns docs](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/aws.md).",
+          "x-intellij-html-description": "adds external-dns policies for Amazon Route 53. See <a href=\"https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/aws.md\">external-dns docs</a>.",
+          "default": "false"
+        },
+        "imageBuilder": {
+          "type": "boolean",
+          "description": "allows for full ECR (Elastic Container Registry) access.",
+          "x-intellij-html-description": "allows for full ECR (Elastic Container Registry) access.",
+          "default": "false"
+        }
+      },
+      "preferredOrder": [
+        "imageBuilder",
+        "autoScaler",
+        "awsLoadBalancerController",
+        "externalDNS",
+        "certManager"
+      ],
+      "additionalProperties": false,
+      "description": "for attaching common IAM policies",
+      "x-intellij-html-description": "for attaching common IAM policies"
     },
     "github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet": {
       "type": "string",
