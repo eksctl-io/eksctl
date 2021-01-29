@@ -171,7 +171,17 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				p.MockCloudFormation().On("GetTemplate", mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
 					return input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345"
 				})).Return(&cfn.GetTemplateOutput{
-					TemplateBody: aws.String("TEMPLATE_BODY"),
+					TemplateBody: aws.String(`{
+						"Resources": {
+							"NodeGroup": {
+								"Properties": {
+									"DesiredCapacity": 2,
+									"MinSize": 1,
+									"MaxSize": 3
+								}
+							}
+						}
+					}`),
 				}, nil)
 
 				p.MockCloudFormation().On("GetTemplate", mock.Anything).Return(nil, fmt.Errorf("GetTemplate failed"))
