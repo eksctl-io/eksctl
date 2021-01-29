@@ -225,10 +225,12 @@ jobs:
       - docker-pull-build-image
       - run: mkdir test-results
       - docker-run:
-          cmd: make integration-test TEST_V=1 SSH_KEY_PATH="/root/.ssh/${SSH_KEY_NAME}"
+          cmd: make integration-test
           timeout: 35m
           options: >-
             --init
+            --env=TEST_V=1
+            --env=GIT_SSH_COMMAND="ssh -i /root/.ssh/${SSH_KEY_NAME}"
             --env=AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             --env=AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
       - store_test_results:

@@ -1,0 +1,45 @@
+name: Integration tests
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  it:
+    name: Run integration tests
+    environment: "Integration tests"
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:0b095fa3825b2a5bfb98b9b7ff7135ae1a94c127
+    env:
+      SSH: "/root/.ssh"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup SSH known hosts
+        shell: bash
+        run: |
+          mkdir -p ${SSH} && chmod 700 ${SSH}
+          ssh-keyscan github.com >> ${SSH}/known_hosts
+      - name: Setup SSH key
+        shell: bash
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.EKSCTLBOT_SSH_KEY }}"
+      - name: Run integration tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          TEST_V: "1"
+        run: make integration-test
+
