@@ -254,7 +254,8 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 		return nil, errors.Wrap(err, "getting nodegroup stacks")
 	}
 
-	var summaries []*NodeGroupSummary
+	// Create an empty array here so that an object is returned rather than null
+	summaries := []*NodeGroupSummary{}
 	for _, s := range stacks {
 		ngPaths, err := getNodeGroupPaths(s.Tags)
 		if err != nil {

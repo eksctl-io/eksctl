@@ -18,6 +18,53 @@ type cfnTemplate interface {
 	newResource(name string, resource gfn.Resource) *gfnt.Value
 }
 
+type managedPolicyForRole struct {
+	name string
+}
+
+type customPolicyForRole struct {
+	Name       string
+	Statements []cft.MapOfInterfaces
+}
+
+func createWellKnownPolicies(wellKnownPolicies api.WellKnownPolicies) ([]managedPolicyForRole, []customPolicyForRole) {
+	var managedPolicies []managedPolicyForRole
+	var customPolicies []customPolicyForRole
+	if wellKnownPolicies.ImageBuilder {
+		managedPolicies = append(managedPolicies,
+			managedPolicyForRole{name: iamPolicyAmazonEC2ContainerRegistryPowerUser},
+		)
+	}
+	if wellKnownPolicies.AutoScaler {
+		customPolicies = append(customPolicies,
+			customPolicyForRole{Name: "PolicyAutoScaling", Statements: autoScalerStatements()},
+		)
+	}
+	if wellKnownPolicies.AWSLoadBalancerController {
+		customPolicies = append(customPolicies,
+			customPolicyForRole{Name: "PolicyAWSLoadBalancerController", Statements: loadBalancerControllerStatements()},
+		)
+	}
+	if wellKnownPolicies.ExternalDNS {
+		customPolicies = append(customPolicies,
+			[]customPolicyForRole{
+				{Name: "PolicyExternalDNSChangeSet", Statements: changeSetStatements()},
+				{Name: "PolicyExternalDNSHostedZones", Statements: externalDNSHostedZonesStatements()},
+			}...,
+		)
+	}
+	if wellKnownPolicies.CertManager {
+		customPolicies = append(customPolicies,
+			[]customPolicyForRole{
+				{Name: "PolicyCertManagerChangeSet", Statements: changeSetStatements()},
+				{Name: "PolicyCertManagerGetChange", Statements: certManagerGetChangeStatements()},
+				{Name: "PolicyCertManagerHostedZones", Statements: certManagerHostedZonesStatements()},
+			}...,
+		)
+	}
+	return managedPolicies, customPolicies
+}
+
 // createRole creates an IAM role with policies required for the worker nodes and addons
 func createRole(cfnTemplate cfnTemplate, clusterIAMConfig *api.ClusterIAM, iamConfig *api.NodeGroupIAM, managed, enableSSM, forceAddCNIPolicy bool) error {
 	managedPolicyARNs, err := makeManagedPolicies(clusterIAMConfig, iamConfig, managed, enableSSM, forceAddCNIPolicy)
@@ -46,13 +93,10 @@ func createRole(cfnTemplate cfnTemplate, clusterIAMConfig *api.ClusterIAM, iamCo
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.CertManager) {
 		cfnTemplate.attachAllowPolicy("PolicyCertManagerChangeSet", refIR, changeSetStatements())
-		if api.IsEnabled(iamConfig.WithAddonPolicies.ExternalDNS) {
-			cfnTemplate.attachAllowPolicy("PolicyCertManagerHostedZones", refIR, certManagerHostedZonesStatements("route53:ListHostedZones", "route53:ListTagsForResource"))
-		} else {
-			cfnTemplate.attachAllowPolicy("PolicyCertManagerHostedZones", refIR, certManagerHostedZonesStatements())
-		}
+		cfnTemplate.attachAllowPolicy("PolicyCertManagerHostedZones", refIR, certManagerHostedZonesStatements())
 		cfnTemplate.attachAllowPolicy("PolicyCertManagerGetChange", refIR, certManagerGetChangeStatements())
-	} else if api.IsEnabled(iamConfig.WithAddonPolicies.ExternalDNS) {
+	}
+	if api.IsEnabled(iamConfig.WithAddonPolicies.ExternalDNS) {
 		cfnTemplate.attachAllowPolicy("PolicyExternalDNSChangeSet", refIR, changeSetStatements())
 		cfnTemplate.attachAllowPolicy("PolicyExternalDNSHostedZones", refIR, externalDNSHostedZonesStatements())
 	}

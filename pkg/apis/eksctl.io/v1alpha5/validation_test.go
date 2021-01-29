@@ -364,7 +364,11 @@ var _ = Describe("ClusterConfig validation", func() {
 			err = ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
 
-			Expect(err.Error()).To(HavePrefix("iam.serviceAccounts[1].attachPolicyARNs or iam.serviceAccounts[1].attachPolicy must be set"))
+			Expect(err.Error()).To(SatisfyAll(
+				ContainSubstring("iam.serviceAccounts[1]"),
+				ContainSubstring("attachPolicy"),
+				ContainSubstring("must be set"),
+			))
 		})
 
 		It("should fail when non-uniquely named iam.serviceAccounts are given", func() {
