@@ -1,99 +1,54 @@
 #!/bin/bash
 
-set -o errexit
-set -o pipefail
-set -o nounset
+DIR="${BASH_SOURCE%/*}"
 
-default_branch="master"
+# shellcheck source=tag-common.sh
+source "${DIR}/tag-common.sh"
 
-function branch_exists() {
-  git ls-remote --heads origin "${1}" | grep -q "${1}"
+function create_branch_from_if_not_current() {
+  wanted_branch="$1"
+  source_branch="$2"
+  if [ ! "$(current_branch)" = "${wanted_branch}" ] ; then
+      echo "Creating ${wanted_branch} from ${source_branch}"
+      if [ ! "$(current_branch)" = "${source_branch}" ] ; then
+        echo "Must be on ${source_branch} branch"
+        exit 7
+      fi
+      git checkout -b "${wanted_branch}"
+  fi
 }
 
-function current_branch() {
-  git rev-parse --abbrev-ref @
-}
+release_branch=$(release_branch)
+candidate_for_version=$(release_generate print-version)
+release_notes_file=$(ensure_release_notes "${candidate_for_version}")
 
-function release_generate() {
-  go run pkg/version/generate/release_generate.go ${1}
-}
+# Check all conditions
+check_origin
 
-if [[ ! "$(git remote get-url origin)" =~ weaveworks/eksctl(\-private)?(\.git)?$ ]] ; then
-  echo "Invalid origin: $(git remote get-url origin)"
-  exit 3
-fi
+ensure_exists "${default_branch}"
 
-candidate_for=$(release_generate print-version)
-release_branch="release-$(release_generate print-major-minor-version)"
+create_branch_from_if_not_current "${release_branch}" "${default_branch}"
 
-if ! [[ "${release_branch}" =~ ^release-[0-9]+\.[0-9]+$ ]] ; then
-  echo "Invalid release branch: ${release_branch}"
-  exit 3
-fi
+git checkout "${default_branch}"
+check_current_branch "${default_branch}"
+ensure_up_to_date "${default_branch}"
 
-if [ ! "$(current_branch)" = "${release_branch}" ] ; then
-    echo "Creating ${release_branch} from ${default_branch}"
-    if [ ! "$(current_branch)" = "${default_branch}" ] ; then
-      echo "Must be on ${default_branch} branch"
-      exit 7
-    fi
-    git checkout -b "${release_branch}"
-fi
+git checkout "${release_branch}"
+check_current_branch "${release_branch}"
+ensure_up_to_date "${release_branch}" || echo "${release_branch} not found in origin, will push new branch upstream."
 
-if [ ! "$(current_branch)" = "${release_branch}" ] ; then
-  echo "Must be on ${release_branch} branch"
-  exit 5
-fi
+# Update eksctl version to release-candidate
+rc_version=$(release_generate release-candidate)
+m="Tag ${rc_version} release candidate"
 
-if ! git show-ref --verify --quiet "refs/heads/${default_branch}"; then
-  echo "The ${default_branch} branch must exist"
-  exit 7
-fi
+commit "${m}" "${release_notes_file}"
 
-# Ensure local release branch is up-to-date by pulling its latest version from
-# origin and fast-forwarding the local branch:
-git pull --ff-only origin "${release_branch}" || echo "${release_branch} not found in origin. Will push new branch upstream"
-
-RELEASE_NOTES_FILE="docs/release_notes/${candidate_for}.md"
-
-if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then
-  echo "Must have release notes ${RELEASE_NOTES_FILE}"
-  exit 6
-fi
-
-
-# Update eksctl version
-full_version=$(release_generate release-candidate)
-export RELEASE_GIT_TAG="${full_version}"
-git add ./pkg/version/release.go
-git add "${RELEASE_NOTES_FILE}"
-
-m="Tag ${full_version} release candidate"
-
-# Push branch
-git commit --message "${m}"
-git push origin "${release_branch}"
-
-# Push tags
-git tag --annotate --message "${m}" --force "latest_release"
-git tag --annotate --message "${m}" "${full_version}"
-git push origin "${full_version}"
+tag_version_and_latest "${m}" "${rc_version}"
 
 # Check if we need to bump version in the default branch
 git checkout "${default_branch}"
-if [ ! "$(current_branch)" = "${default_branch}" ] ; then
-  echo "Must be on ${default_branch} branch"
-  exit 7
-fi
-git pull --ff-only origin "${default_branch}"
+prepare_for_next_version_if_at "${candidate_for_version}"
 
-dev_version=$(release_generate print-version)
-
-# Increase next development iteration if needed
-if [ "${dev_version}" == "${candidate_for}" ]; then
-  echo "Preparing for next development iteration"
-  release_generate development
-  git add ./pkg/version/release.go
-  git commit --message "Prepare for next development iteration"
-  git push origin "${default_branch}":"${default_branch}" || gh pr create --fill --label "skip-release-notes"
-fi
+git push origin "${release_branch}:${release_branch}"
+git push origin "${rc_version}"
+git push origin "${default_branch}:${default_branch}" || gh pr create --fill --label "skip-release-notes"
