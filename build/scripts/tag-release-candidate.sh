@@ -5,15 +5,12 @@ DIR="${BASH_SOURCE%/*}"
 # shellcheck source=tag-common.sh
 source "${DIR}/tag-common.sh"
 
-function create_branch_from_if_not_current() {
+function create_branch_from_if_doesnt_exist() {
   wanted_branch="$1"
   source_branch="$2"
-  if [ ! "$(current_branch)" = "${wanted_branch}" ] ; then
+  if ! git checkout "${wanted_branch}" >/dev/null; then
+      git checkout "${source_branch}"
       echo "Creating ${wanted_branch} from ${source_branch}"
-      if [ ! "$(current_branch)" = "${source_branch}" ] ; then
-        echo "Must be on ${source_branch} branch"
-        exit 7
-      fi
       git checkout -b "${wanted_branch}"
   fi
 }
@@ -25,13 +22,11 @@ release_notes_file=$(ensure_release_notes "${candidate_for_version}")
 # Check all conditions
 check_origin
 
-ensure_exists "${default_branch}"
-
-create_branch_from_if_not_current "${release_branch}" "${default_branch}"
-
 git checkout "${default_branch}"
 check_current_branch "${default_branch}"
 ensure_up_to_date "${default_branch}"
+
+create_branch_from_if_doesnt_exist "${release_branch}" "${default_branch}"
 
 git checkout "${release_branch}"
 check_current_branch "${release_branch}"

@@ -36,13 +36,6 @@ function check_current_branch() {
   fi
 }
 
-function ensure_exists() {
-  if ! git show-ref --verify --quiet "refs/heads/${1}"; then
-    echo "The ${1} branch must exist"
-    exit 7
-  fi
-}
-
 function ensure_up_to_date() {
   git pull --ff-only origin "$1"
 }
