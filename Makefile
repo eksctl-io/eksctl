@@ -76,7 +76,7 @@ endif
 .PHONY: lint
 lint: ## Run linter over the codebase
 	golangci-lint run
-	@for config_file in $(shell ls .goreleaser*); do goreleaser check -f $${config_file}; done
+	@for config_file in $(shell ls .goreleaser*); do goreleaser check -f $${config_file} || exit 1; done
 
 .PHONY: test
 test:
