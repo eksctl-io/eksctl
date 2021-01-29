@@ -363,16 +363,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			params.KubeconfigPath = ""
 		}
 
-		// create Kubernetes client
-		clientSet, err := ctl.NewStdClientSet(cfg)
-		if err != nil {
-			return err
-		}
-
-		if err = ctl.WaitForControlPlane(meta, clientSet); err != nil {
-			return err
-		}
-
 		ngTasks := ctl.ClusterTasksForNodeGroups(cfg, params.InstallNeuronDevicePlugin, params.InstallNvidiaDevicePlugin)
 
 		logger.Info(ngTasks.Describe())
@@ -385,6 +375,12 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			return fmt.Errorf("failed to create cluster %q", meta.Name)
 		}
 		logger.Success("all EKS cluster resources for %q have been created", meta.Name)
+
+		// create Kubernetes client
+		clientSet, err := ctl.NewStdClientSet(cfg)
+		if err != nil {
+			return err
+		}
 
 		for _, ng := range cfg.NodeGroups {
 			// authorise nodes to join
