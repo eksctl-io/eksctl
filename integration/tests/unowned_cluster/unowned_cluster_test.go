@@ -90,6 +90,40 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				ContainElement(ContainSubstring("ng-2")),
 			))
 
+			By("Setting labels on a nodegroup")
+			cmd = params.EksctlSetCmd.
+				WithArgs(
+					"labels",
+					"--cluster", clusterName,
+					"--nodegroup", ng1,
+					"--labels", "key=value",
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfully())
+
+			By("Getting labels for a nodegroup")
+			cmd = params.EksctlGetCmd.
+				WithArgs(
+					"labels",
+					"--cluster", clusterName,
+					"--nodegroup", ng1,
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+				ContainElement(ContainSubstring("key=value")),
+			))
+
+			By("Unsetting labels on a nodegroup")
+			cmd = params.EksctlUnsetCmd.
+				WithArgs(
+					"labels",
+					"--cluster", clusterName,
+					"--nodegroup", ng1,
+					"--labels", "key",
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfully())
+
 			By("Enabling OIDC")
 			cmd = params.EksctlUtilsCmd.
 				WithArgs(
@@ -99,6 +133,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 					"--verbose", "2",
 				)
 			Expect(cmd).To(RunSuccessfully())
+
 			By("Creating an IAMServiceAccount")
 			cmd = params.EksctlCreateCmd.
 				WithArgs(
@@ -112,6 +147,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 					"--verbose", "2",
 				)
 			Expect(cmd).To(RunSuccessfully())
+
 			By("Getting IAMServiceAccounts")
 			cmd = params.EksctlGetCmd.
 				WithArgs(
