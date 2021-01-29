@@ -215,7 +215,14 @@
       ],
       "additionalProperties": false,
       "description": "a simple config, to be replaced with Cluster API",
-      "x-intellij-html-description": "a simple config, to be replaced with Cluster API"
+      "x-intellij-html-description": "a simple config, to be replaced with Cluster API",
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "eksctl.io",
+          "version": "v1alpha5",
+          "kind": "ClusterConfig"
+        }
+      ]
     },
     "ClusterEndpoints": {
       "properties": {
