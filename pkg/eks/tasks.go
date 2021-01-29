@@ -239,7 +239,9 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 	}
 	var haveNvidiaInstanceType bool
 	for _, ng := range cfg.NodeGroups {
-		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceType(ng, utils.IsGPUInstanceType)
+		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceType(ng, func(t string) bool {
+			return utils.IsGPUInstanceType(t) && !utils.IsInferentiaInstanceType(t)
+		})
 	}
 	if haveNeuronInstanceType && installNeuronDevicePluginParam {
 		tasks.Append(newNeuronDevicePluginTask(c, cfg))
