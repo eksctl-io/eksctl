@@ -162,6 +162,18 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 		Parallel:  false,
 		IsSubTask: true,
 	}
+
+	newTasks.Append(&tasks.GenericTask{
+		Description: "wait for control plane to become ready",
+		Doer: func() error {
+			clientSet, err := c.NewStdClientSet(cfg)
+			if err != nil {
+				return errors.Wrap(err, "error creating Clientset")
+			}
+			return c.WaitForControlPlane(cfg.Metadata, clientSet)
+		},
+	})
+
 	if len(cfg.Metadata.Tags) > 0 {
 		newTasks.Append(&clusterConfigTask{
 			info: "tag cluster",
