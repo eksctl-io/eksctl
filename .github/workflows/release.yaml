@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  rc:
+    name: Trigger release build
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:0b095fa3825b2a5bfb98b9b7ff7135ae1a94c127
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup git config as weaveworksbot
+        run: |
+          git config user.name "weaveworksbot"
+          git config user.email "weaveworksbot@users.noreply.github.com"
+      - name: Tag release and update main branch
+        run: make prepare-release
