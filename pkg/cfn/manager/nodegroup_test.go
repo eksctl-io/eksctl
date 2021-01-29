@@ -22,6 +22,21 @@ var _ = Describe("StackCollection NodeGroup", func() {
 		p *mockprovider.MockProvider
 	)
 
+	const nodegroupResource = `
+{
+  "Resources": {
+    "NodeGroup": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "DesiredCapacity": "2",
+        "MaxSize": "3",
+        "MinSize": "1"
+      }
+    }
+  }
+}
+`
+
 	testAZs := []string{"us-west-2b", "us-west-2a", "us-west-2c"}
 
 	newClusterConfig := func(clusterName string) *api.ClusterConfig {
@@ -77,17 +92,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 					On("GetTemplate", mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
 						return input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345"
 					})).Return(&cfn.GetTemplateOutput{
-					TemplateBody: aws.String(`{
-						"Resources": {
-							"NodeGroup": {
-								"Properties": {
-									"DesiredCapacity": 2,
-									"MinSize": 1,
-									"MaxSize": 3
-								}
-							}
-						}
-					}`),
+					TemplateBody: aws.String(nodegroupResource),
 				}, nil)
 			})
 
@@ -171,17 +176,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				p.MockCloudFormation().On("GetTemplate", mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
 					return input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345"
 				})).Return(&cfn.GetTemplateOutput{
-					TemplateBody: aws.String(`{
-						"Resources": {
-							"NodeGroup": {
-								"Properties": {
-									"DesiredCapacity": 2,
-									"MinSize": 1,
-									"MaxSize": 3
-								}
-							}
-						}
-					}`),
+					TemplateBody: aws.String(nodegroupResource),
 				}, nil)
 
 				p.MockCloudFormation().On("GetTemplate", mock.Anything).Return(nil, fmt.Errorf("GetTemplate failed"))

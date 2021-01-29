@@ -36,7 +36,7 @@ var _ = Describe("StackCollection Template", func() {
 		return cfg
 	}
 
-	rawJsonTemplate := `{"Outputs":{"ARN":{"Value":{"Fn::GetAtt":["ControlPlane","Arn"]},"Export":{"Name":{"Fn::Sub":"${AWS::StackName}::ARN"}}}}}`
+	rawJSONTemplate := `{"Outputs":{"ARN":{"Value":{"Fn::GetAtt":["ControlPlane","Arn"]},"Export":{"Name":{"Fn::Sub":"${AWS::StackName}::ARN"}}}}}`
 	rawYamlTemplate := `
 Outputs:
   ARN:
@@ -86,7 +86,7 @@ Outputs:
 					p.MockCloudFormation().On("GetTemplate", mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
 						return input.StackName != nil && *input.StackName == "foobar"
 					})).Return(&cfn.GetTemplateOutput{
-						TemplateBody: &rawJsonTemplate,
+						TemplateBody: &rawJSONTemplate,
 					}, nil)
 					out, err = sc.GetStackTemplate("foobar")
 				})
