@@ -103,7 +103,7 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 			if ng.Name == "" {
 				return errors.Errorf("No nodegroups found")
 			}
-			return errors.Errorf("Nodegroup with name %v not found", ng.Name)
+			return errors.Errorf("nodegroup with name %v not found", ng.Name)
 		}
 		addSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
