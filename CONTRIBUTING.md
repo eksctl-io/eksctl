@@ -158,7 +158,7 @@ information. Add more that what is asked for if you can :smiley:.
   [HTML details tags](https://gist.github.com/ericclemmons/b146fe5da72ca1f706b2ef72a20ac39d).
   Take care to redact any sensitive info.
 
-1. Paste in the outputs of `eksctl version` and `kubectl version` where relevant, as
+1. Paste in the outputs of `eksctl info` where relevant, as
   well as anything else you have running which you think may be relevant.
 
 1. Detail any workarounds which you tried, it may help others who experience the same problem.
