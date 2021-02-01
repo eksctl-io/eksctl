@@ -96,7 +96,7 @@ func (c *StackCollection) NewClusterCompatTask() tasks.Task {
 }
 
 // NewTasksToCreateIAMServiceAccounts defines tasks required to create all of the IAM ServiceAccounts
-func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, replaceExistingRole bool) *tasks.TaskTree {
+func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}
 
 	for i := range serviceAccounts {
@@ -107,11 +107,10 @@ func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*
 		}
 
 		saTasks.Append(&taskWithClusterIAMServiceAccountSpec{
-			info:                fmt.Sprintf("create IAM role for serviceaccount %q", sa.NameString()),
-			stackCollection:     c,
-			serviceAccount:      sa,
-			oidc:                oidc,
-			replaceExistingRole: replaceExistingRole,
+			info:            fmt.Sprintf("create IAM role for serviceaccount %q", sa.NameString()),
+			stackCollection: c,
+			serviceAccount:  sa,
+			oidc:            oidc,
 		})
 
 		saTasks.Append(&kubernetesTask{

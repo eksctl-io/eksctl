@@ -608,7 +608,7 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *filter.IAMServiceAccou
 }
 
 // NewGetIAMServiceAccountLoader will load config or use flags for 'eksctl get iamserviceaccount'
-func NewGetIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount) ClusterConfigLoader {
+func NewGetIAMServiceAccountLoader(cmd *Cmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.validateWithConfigFile = func() error {
@@ -619,18 +619,8 @@ func NewGetIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount) C
 	}
 
 	l.validateWithoutConfigFile = func() error {
-		sa.AttachPolicyARNs = []string{""} // force to pass general validation
-
 		if l.ClusterConfig.Metadata.Name == "" {
 			return ErrMustBeSet(ClusterNameFlag(cmd))
-		}
-
-		if l.NameArg != "" {
-			sa.Name = l.NameArg
-		}
-
-		if sa.Name == "" {
-			l.ClusterConfig.IAM.ServiceAccounts = nil
 		}
 
 		l.Plan = false

@@ -244,7 +244,7 @@ func (v *VPCController) deployVPCResourceController() error {
 			},
 			AttachPolicy: makePolicyDocument(),
 		}
-		if err := v.irsa.Create([]*api.ClusterIAMServiceAccount{sa}); err != nil {
+		if err := v.irsa.CreateOrUpdate(sa); err != nil {
 			return errors.Wrap(err, "error enabling IRSA")
 		}
 	} else {
