@@ -636,11 +636,25 @@ should also feel free to keep an eye on things and provide their own thoughts an
 For chunky features which require Serious Thought™, the first step is the submission
 of a design proposal to the [docs](docs/) folder through the standard PR process.
 
-Proposal PRs should be shared with the core team and with the community in [slack](https://weave-community.slack.com/messages/CAYBZBWGL/).
+### Process
 
-Before a PR is merged the author should do a "last call" in public channels to
-ensure all interested voices are heard. A proposal can only be merged and work begun
-when all core team members have signed off.
+A template can be found in [`docs/proposal-000-template.md`](docs/proposal-000-template.md). Simply create a copy
+of the file (replacing the number with the next in the sequence, and 'template'
+with your feature name), and fill in the required fields. When ready, open a PR.
+
+For the initial PR, we can try to avoid getting hung up on specific details
+and instead aim to get the motivation and the goals/non-goals sections of the
+proposal clarified and merged quickly.
+The best way to do this is to just start with the high-level sections and
+fill out details incrementally in subsequent PRs.
+
+Initial bare-bones merging does not mean that the proposal is approved, the Status
+section will convey whether the proposal has been accepted and work has begun.
+Any proposals not marked as 'approved' is a working document and subject to change.
+
+When editing proposals, aim for tightly-scoped, single-topic PRs to keep discussions
+focused. If you disagree with what is already in a document, open a new PR
+with suggested changes.
 
 A proposal which has been accepted should become a living document. Even the best-laid
 plans rarely work out, so as things are learned during implementation the doc
@@ -648,61 +662,40 @@ should be updated to accurately reflect the state of the world.
 
 ### Sections
 
-Each proposal/design doc should cover the following:
+Each proposal/design doc should cover the following _at a minimum_:
 
 - **The author(s).** So that people know where to direct questions at any point in time.
 
 - **Status.** Proposals serve as documentation on the design of our codebase.
   It is useful to indicate whether what is documented reflects the state of the project.
-  Current status options are: `Design ongoing`, `Final: ready for implementation`,
-  `Final: implementation complete`.
 
-- **High level overview** of the problem that needs to be solved and a summary of the solution
-  about to be detailed in the doc. This should be written in a way that anyone can
-  understand what the proposal is for.
+- **Summary** A TLDR of everything that is discussed in the doc.This should be
+  written in a way that anyone can come by and quickly understand what the proposal is for.
 
-- **Further context** on why the proposed solution is necessary, how it fits into
-  the project's goals and how it will help users in the long term.
+- **Motivation** for why we should do this, how it fits into
+  the project's goals and how it will help users in the long term. What is the
+  problem this proposal aims to solve? (Includes clear-cut Goals and Non-Goals,
+  and all possible Context.)
 
-- **Goals.** The clear objectives of this solution.
+- **Proposal** of the solution to the above problem. This can be high-level, detail
+  comes later. (This includes User Stories as well as Risks and Mitigations.)
 
-- **Non-Goals.** Equally important things which will be dealt with one day but
-  are not in the scope of this work. This helps make sure everyone is crystal clear
-  on the outcomes.
+- **Design details.** How the proposal should be implemented. (Includes Test Plans,
+  and Graduation Criteria.)
 
-- **Walkthrough of the existing solution** (if applicable). Describe the current
-  implementation. Providing user stories or flow diagrams can be useful here.
-
-- **Walkthrough of the Proposed solution.** Similar to the above, describe the new
-  implementation, giving user stories and flow diagrams to guide reviewers along code
-  paths.
-
-- **Alternative solutions.** List the pros and cons of each solution considered,
+- **Alternatives.** List the pros and cons of each solution considered,
   illustrating why the final one was chosen.
-
-- **Risks.** What could get in the way of this solution being implemented the way
-  you want? (This is technical stuff: do not count natural disasters or pandemics.)
 
 - **Known unknowns or open questions.** The author should list any questions for things they are unsure about
   or to direct reviewers to particular areas where their expertise is needed.
-
-- **Implementation stages.** These can end up being transcribed to issues, or broken
-  down further into multiple issues. These milestones are useful to understand when
-  the feature is "done", as well as helping all members of the community understand
-  all the moving parts.
-
-- **Success metrics.** A little hard to do with a CLI tool, but it is always nice
-  to plan how you will learn about the success of a feature in the wild.
-
-- (Optional) Future extensibility.
-
-- (Optional) How this feature influences other features.
 
 ### Writing tips
 
 1. Write simply and keep your language accessible. The easier it is to understand,
   the more input you will get from a wider range of sources. Bear in mind that your target audience
   is anyone who comes into contact with eksctl: maintainers, contributors and end users.
+
+1. Refer to the [Kubernetes documentation style guide](https://github.com/kubernetes/community/blob/master/contributors/guide/style-guide.md).
 
 1. Don't assume too much knowledge. Make sure terms have explanations or links for
   the same reason as the last point.
