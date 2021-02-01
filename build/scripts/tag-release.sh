@@ -11,8 +11,6 @@ release_notes_file=$(ensure_release_notes "${release_version}")
 
 check_origin
 
-ensure_exists "${default_branch}"
-
 git checkout "${default_branch}"
 check_current_branch "${default_branch}"
 ensure_up_to_date "${default_branch}"
