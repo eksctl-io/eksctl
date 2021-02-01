@@ -23,6 +23,7 @@ func getFargateProfileWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.
 		"fargateprofile",
 		"Get Fargate profile(s)",
 		"",
+		"fargateprofiles",
 	)
 	options := configureGetFargateProfileCmd(cmd)
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
