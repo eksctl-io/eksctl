@@ -32,6 +32,7 @@ require (
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0
+	github.com/miekg/coredns v0.0.0-20161111164017-20e25559d5ea
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.4
 	github.com/pelletier/go-toml v1.8.1
