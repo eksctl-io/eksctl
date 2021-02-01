@@ -170,7 +170,7 @@ var _ = Describe("Labels", func() {
 		})
 	})
 
-	Describe("Set", func() {
+	Describe("Unset", func() {
 		var labels []string
 
 		BeforeEach(func() {
@@ -206,7 +206,7 @@ var _ = Describe("Labels", func() {
 				fakeManagedService.UpdateLabelsReturns(awserr.New("ValidationError", "stack not found", errors.New("omg")))
 			})
 
-			It("returns the labels from the EKS api", func() {
+			It("removes the labels through the EKS api", func() {
 				mockProvider.MockEKS().On("UpdateNodegroupConfig", &awseks.UpdateNodegroupConfigInput{
 					ClusterName:   aws.String(clusterName),
 					NodegroupName: aws.String(nodegroupName),

@@ -7,22 +7,14 @@ import (
 
 func (m *Manager) Set(nodeGroupName string, labels map[string]string) error {
 	err := m.service.UpdateLabels(nodeGroupName, labels, nil)
-	if err != nil {
-		switch {
-		case isValidationError(err):
-			return m.setLabelsOnUnownedNodeGroup(nodeGroupName, labels)
-		default:
-			return err
-		}
+	if err != nil && isValidationError(err) {
+		return m.setLabelsOnUnownedNodeGroup(nodeGroupName, labels)
 	}
-	return nil
+	return err
 }
 
 func (m *Manager) setLabelsOnUnownedNodeGroup(nodeGroupName string, labels map[string]string) error {
-	pointyLabels := make(map[string]*string, len(labels))
-	for k, v := range labels {
-		pointyLabels[k] = &v
-	}
+	pointyLabels := aws.StringMap(labels)
 	_, err := m.eksAPI.UpdateNodegroupConfig(&eks.UpdateNodegroupConfigInput{
 		ClusterName:   aws.String(m.clusterName),
 		NodegroupName: aws.String(nodeGroupName),

@@ -91,9 +91,8 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			))
 
 			By("Setting labels on a nodegroup")
-			cmd = params.EksctlSetCmd.
+			cmd = params.EksctlSetLabelsCmd.
 				WithArgs(
-					"labels",
 					"--cluster", clusterName,
 					"--nodegroup", ng1,
 					"--labels", "key=value",
@@ -114,9 +113,8 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			))
 
 			By("Unsetting labels on a nodegroup")
-			cmd = params.EksctlUnsetCmd.
+			cmd = params.EksctlUnsetLabelsCmd.
 				WithArgs(
-					"labels",
 					"--cluster", clusterName,
 					"--nodegroup", ng1,
 					"--labels", "key",
