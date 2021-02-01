@@ -638,7 +638,7 @@ of a design proposal to the [docs](docs/) folder through the standard PR process
 
 ### Process
 
-A template can be found in [`docs/proposal-000-template.md`](/docs/proposal-000-template.md). Simply create a copy
+A template can be found in [`docs/proposal-000-template.md`](docs/proposal-000-template.md). Simply create a copy
 of the file (replacing the number with the next in the sequence, and 'template'
 with your feature name), and fill in the required fields. When ready, open a PR.
 
