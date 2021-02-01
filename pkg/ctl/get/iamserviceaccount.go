@@ -81,13 +81,11 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, namespace, name string, params *g
 		return err
 	}
 
-	var obj interface{}
 	if params.output == "table" {
 		addIAMServiceAccountSummaryTableColumns(printer.(*printers.TablePrinter))
-		obj = serviceAccounts
 	}
-	obj = serviceAccounts
-	return printer.PrintObjWithKind("iamserviceaccounts", obj, os.Stdout)
+
+	return printer.PrintObjWithKind("iamserviceaccounts", serviceAccounts, os.Stdout)
 }
 
 func addIAMServiceAccountSummaryTableColumns(printer *printers.TablePrinter) {
