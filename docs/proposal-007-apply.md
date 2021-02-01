@@ -3,6 +3,8 @@
 This proposal addresses a GitOps-compatible subcommand of `eksctl` called
 `apply`.
 
+**Status**: WIP
+
 * [Goals](#goals)
 * [Non-goals](#non-goals)
 * [Motivation](#motivation)
