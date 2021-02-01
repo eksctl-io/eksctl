@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -166,10 +166,16 @@ func buildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 		})
 
 		if err != nil {
+			if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "InvalidServiceName" {
+				return nil, &api.UnsupportedFeatureError{
+					Message: fmt.Sprintf("fully-private clusters are not supported in region %q, please retry with a different region", region),
+					Err:     err,
+				}
+			}
 			return nil, errors.Wrap(err, "error describing VPC endpoint services")
 		}
-		serviceDetails = append(serviceDetails, output.ServiceDetails...)
 
+		serviceDetails = append(serviceDetails, output.ServiceDetails...)
 		if nextToken = output.NextToken; nextToken == nil {
 			break
 		}
