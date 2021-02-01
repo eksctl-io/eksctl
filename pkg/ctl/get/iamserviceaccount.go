@@ -85,10 +85,8 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, namespace, name string, params *g
 	if params.output == "table" {
 		addIAMServiceAccountSummaryTableColumns(printer.(*printers.TablePrinter))
 		obj = serviceAccounts
-	} else {
-		cfg.IAM.ServiceAccounts = serviceAccounts
-		obj = cfg
 	}
+	obj = serviceAccounts
 	return printer.PrintObjWithKind("iamserviceaccounts", obj, os.Stdout)
 }
 
