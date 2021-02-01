@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -61,7 +63,13 @@ func (v *VPCControllerTask) Do(errCh chan error) error {
 	}
 
 	stackCollection := manager.NewStackCollection(v.ClusterProvider.Provider, v.ClusterConfig)
-	irsa := addons.NewIRSAHelper(oidc, stackCollection, kubernetes.NewCachedClientSet(rawClient.ClientSet()))
+
+	clientSet, err := v.ClusterProvider.NewStdClientSet(v.ClusterConfig)
+	if err != nil {
+		return err
+	}
+	irsaManager := irsa.New(v.ClusterConfig.Metadata.Name, stackCollection, oidc, clientSet)
+	irsa := addons.NewIRSAHelper(oidc, stackCollection, irsaManager, v.ClusterConfig.Metadata.Name)
 
 	// TODO PlanMode doesn't work as intended
 	vpcController := addons.NewVPCController(rawClient, irsa, v.ClusterConfig.Status, v.ClusterProvider.Provider.Region(), v.PlanMode)
@@ -299,7 +307,6 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 		api.IAMServiceAccountsWithImplicitServiceAccounts(cfg),
 		oidcPlaceholder,
 		clientSet,
-		false,
 	)
 	newTasks.IsSubTask = true
 	tasks.Append(newTasks)

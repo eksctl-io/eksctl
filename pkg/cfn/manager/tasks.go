@@ -61,16 +61,15 @@ func (t *clusterCompatTask) Do(errorCh chan error) error {
 }
 
 type taskWithClusterIAMServiceAccountSpec struct {
-	info                string
-	stackCollection     *StackCollection
-	serviceAccount      *api.ClusterIAMServiceAccount
-	oidc                *iamoidc.OpenIDConnectManager
-	replaceExistingRole bool
+	info            string
+	stackCollection *StackCollection
+	serviceAccount  *api.ClusterIAMServiceAccount
+	oidc            *iamoidc.OpenIDConnectManager
 }
 
 func (t *taskWithClusterIAMServiceAccountSpec) Describe() string { return t.info }
 func (t *taskWithClusterIAMServiceAccountSpec) Do(errs chan error) error {
-	return t.stackCollection.createIAMServiceAccountTask(errs, t.serviceAccount, t.oidc, t.replaceExistingRole)
+	return t.stackCollection.createIAMServiceAccountTask(errs, t.serviceAccount, t.oidc)
 }
 
 type taskWithStackSpec struct {

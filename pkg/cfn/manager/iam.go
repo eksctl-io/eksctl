@@ -3,9 +3,6 @@ package manager
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
-
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kris-nova/logger"
 
@@ -21,7 +18,7 @@ func (c *StackCollection) makeIAMServiceAccountStackName(namespace, name string)
 }
 
 // createIAMServiceAccountTask creates the iamserviceaccount in CloudFormation
-func (c *StackCollection) createIAMServiceAccountTask(errs chan error, spec *api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, replaceExistingRole bool) error {
+func (c *StackCollection) createIAMServiceAccountTask(errs chan error, spec *api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager) error {
 	name := c.makeIAMServiceAccountStackName(spec.Namespace, spec.Name)
 	logger.Info("building iamserviceaccount stack %q", name)
 	stack := builder.NewIAMServiceAccountResourceSet(spec, oidc)
@@ -35,18 +32,6 @@ func (c *StackCollection) createIAMServiceAccountTask(errs chan error, spec *api
 	spec.Tags[api.IAMServiceAccountNameTag] = spec.NameString()
 
 	if err := c.CreateStack(name, stack, spec.Tags, nil, errs); err != nil {
-		if !replaceExistingRole {
-			return err
-		}
-		var awsErr awserr.Error
-		if errors.As(err, &awsErr) && awsErr.Code() == cfn.ErrCodeAlreadyExistsException {
-			logger.Debug("CFN stack for IRSA already exists, replacing it with a new stack")
-			if err := c.DeleteStackByNameSync(name); err != nil {
-				close(errs)
-				return errors.Wrap(err, "error deleting stack")
-			}
-			return c.createIAMServiceAccountTask(errs, spec, oidc, false)
-		}
 		return err
 	}
 	return nil
@@ -64,7 +49,7 @@ func (c *StackCollection) DescribeIAMServiceAccountStacks() ([]*Stack, error) {
 		if *s.StackStatus == cfn.StackStatusDeleteComplete {
 			continue
 		}
-		if c.GetIAMServiceAccountName(s) != "" {
+		if GetIAMServiceAccountName(s) != "" {
 			iamServiceAccountStacks = append(iamServiceAccountStacks, s)
 		}
 	}
@@ -81,7 +66,7 @@ func (c *StackCollection) ListIAMServiceAccountStacks() ([]string, error) {
 
 	names := []string{}
 	for _, s := range stacks {
-		names = append(names, c.GetIAMServiceAccountName(s))
+		names = append(names, GetIAMServiceAccountName(s))
 	}
 	return names, nil
 }
@@ -95,7 +80,7 @@ func (c *StackCollection) GetIAMServiceAccounts() ([]*api.ClusterIAMServiceAccou
 
 	results := []*api.ClusterIAMServiceAccount{}
 	for _, s := range stacks {
-		meta, err := api.ClusterIAMServiceAccountNameStringToClusterIAMMeta(c.GetIAMServiceAccountName(s))
+		meta, err := api.ClusterIAMServiceAccountNameStringToClusterIAMMeta(GetIAMServiceAccountName(s))
 		if err != nil {
 			return nil, err
 		}
@@ -127,7 +112,7 @@ func (c *StackCollection) GetIAMServiceAccounts() ([]*api.ClusterIAMServiceAccou
 }
 
 // GetIAMServiceAccountName will return iamserviceaccount name based on tags
-func (*StackCollection) GetIAMServiceAccountName(s *Stack) string {
+func GetIAMServiceAccountName(s *Stack) string {
 	for _, tag := range s.Tags {
 		if *tag.Key == api.IAMServiceAccountNameTag {
 			return *tag.Value

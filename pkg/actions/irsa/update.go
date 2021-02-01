@@ -1,9 +1,7 @@
-package iam
+package irsa
 
 import (
 	"fmt"
-
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
@@ -36,7 +34,7 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 			continue
 		}
 
-		taskTree, err := NewUpdateIAMServiceAccountTask(a.clusterName, iamServiceAccount, a.stackManager, iamServiceAccount, a.oidcManager)
+		taskTree, err := NewUpdateIAMServiceAccountTask(a.clusterName, iamServiceAccount, a.stackManager, a.oidcManager)
 		if err != nil {
 			return err
 		}
@@ -47,7 +45,7 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 		logger.Info("the following IAMServiceAccounts will not be updated as they do not exist: %v", strings.Join(nonExistingSAs, ", "))
 	}
 
-	defer cmdutils.LogPlanModeWarning(plan && len(iamServiceAccounts) > 0)
+	defer logPlanModeWarning(plan && len(iamServiceAccounts) > 0)
 	return doTasks(updateTasks)
 
 }
