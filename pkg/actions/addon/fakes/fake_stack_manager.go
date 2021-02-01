@@ -82,15 +82,16 @@ func (fake *FakeStackManager) CreateStack(arg1 string, arg2 builder.ResourceSet,
 		arg4 map[string]string
 		arg5 chan error
 	}{arg1, arg2, arg3, arg4, arg5})
+	stub := fake.CreateStackStub
+	fakeReturns := fake.createStackReturns
 	fake.recordInvocation("CreateStack", []interface{}{arg1, arg2, arg3, arg4, arg5})
 	fake.createStackMutex.Unlock()
-	if fake.CreateStackStub != nil {
-		return fake.CreateStackStub(arg1, arg2, arg3, arg4, arg5)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.createStackReturns
 	return fakeReturns.result1
 }
 
@@ -142,15 +143,16 @@ func (fake *FakeStackManager) DeleteStackByName(arg1 string) (*cloudformation.St
 	fake.deleteStackByNameArgsForCall = append(fake.deleteStackByNameArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.DeleteStackByNameStub
+	fakeReturns := fake.deleteStackByNameReturns
 	fake.recordInvocation("DeleteStackByName", []interface{}{arg1})
 	fake.deleteStackByNameMutex.Unlock()
-	if fake.DeleteStackByNameStub != nil {
-		return fake.DeleteStackByNameStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.deleteStackByNameReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -206,15 +208,16 @@ func (fake *FakeStackManager) ListStacksMatching(arg1 string, arg2 ...string) ([
 		arg1 string
 		arg2 []string
 	}{arg1, arg2})
+	stub := fake.ListStacksMatchingStub
+	fakeReturns := fake.listStacksMatchingReturns
 	fake.recordInvocation("ListStacksMatching", []interface{}{arg1, arg2})
 	fake.listStacksMatchingMutex.Unlock()
-	if fake.ListStacksMatchingStub != nil {
-		return fake.ListStacksMatchingStub(arg1, arg2...)
+	if stub != nil {
+		return stub(arg1, arg2...)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.listStacksMatchingReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -273,15 +276,16 @@ func (fake *FakeStackManager) UpdateStack(arg1 string, arg2 string, arg3 string,
 		arg4 manager.TemplateData
 		arg5 map[string]string
 	}{arg1, arg2, arg3, arg4, arg5})
+	stub := fake.UpdateStackStub
+	fakeReturns := fake.updateStackReturns
 	fake.recordInvocation("UpdateStack", []interface{}{arg1, arg2, arg3, arg4, arg5})
 	fake.updateStackMutex.Unlock()
-	if fake.UpdateStackStub != nil {
-		return fake.UpdateStackStub(arg1, arg2, arg3, arg4, arg5)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.updateStackReturns
 	return fakeReturns.result1
 }
 

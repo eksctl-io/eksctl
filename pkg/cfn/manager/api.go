@@ -225,7 +225,7 @@ func (c *StackCollection) GetManagedNodeGroupTemplate(nodeGroupName string) (str
 // UpdateNodeGroupStack updates the nodegroup stack with the specified template
 func (c *StackCollection) UpdateNodeGroupStack(nodeGroupName, template string) error {
 	stackName := c.makeNodeGroupStackName(nodeGroupName)
-	return c.UpdateStack(stackName, c.MakeChangeSetName("update-nodegroup"), "Update nodegroup stack", TemplateBody(template), nil)
+	return c.UpdateStack(stackName, c.MakeChangeSetName("update-nodegroup"), "updating nodegroup stack", TemplateBody(template), nil)
 }
 
 // ListStacksMatching gets all of CloudFormation stacks with names matching nameRegex.
