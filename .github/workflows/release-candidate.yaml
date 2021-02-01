@@ -1,7 +1,11 @@
 name: Release candidate
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      skipIntegrationTests:
+        description: 'Skip check for successful integration tests:'
+        default: 'false'
 
 jobs:
   rc:
@@ -9,6 +13,27 @@ jobs:
     runs-on: ubuntu-latest
     container: weaveworks/eksctl-build:0b095fa3825b2a5bfb98b9b7ff7135ae1a94c127
     steps:
+      - uses: actions/github-script@v3
+        name: Get integration tests status
+        id: it-status
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // There's no other way to identify the integration test job
+            // GH branch protections are also just a string
+            // must be in sync with integration-tests.yaml
+            const integrationTestsCheckName = "Run integration tests";
+            const { data } = await github.checks.listForRef({
+              ...context.repo,
+              ref: "${{ github.sha }}",
+              check_name: integrationTestsCheckName,
+            });
+            return data.check_runs.some(cr =>
+              cr.status === "completed" && cr.conclusion === "success"
+            );
+      - name: Fail if integration tests not passed
+        if: "!fromJson(steps.it-status.outputs.result) && !fromJson(github.event.inputs.skipIntegrationTests)"
+        run: echo "Integration tests haven't passed yet!" && exit 1
       - name: Checkout
         uses: actions/checkout@v2
         with:
