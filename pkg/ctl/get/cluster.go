@@ -131,11 +131,7 @@ func getAndPrintCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, params
 		return err
 	}
 
-	if err := printer.PrintObjWithKind("clusters", []*awseks.Cluster{cluster}, os.Stdout); err != nil {
-		return err
-	}
-
-	return nil
+	return printer.PrintObjWithKind("clusters", []*awseks.Cluster{cluster}, os.Stdout)
 }
 
 func addGetClusterSummaryTableColumns(printer *printers.TablePrinter) {

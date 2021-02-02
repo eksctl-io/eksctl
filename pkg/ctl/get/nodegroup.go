@@ -108,11 +108,7 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		addSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	if err := printer.PrintObjWithKind("nodegroups", summaries, os.Stdout); err != nil {
-		return err
-	}
-
-	return nil
+	return printer.PrintObjWithKind("nodegroups", summaries, os.Stdout)
 }
 
 func addSummaryTableColumns(printer *printers.TablePrinter) {
