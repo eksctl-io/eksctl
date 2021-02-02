@@ -343,10 +343,7 @@ func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interfa
 		}
 	}
 
-	rollingUpdate := map[string]interface{}{
-		"MinInstancesInService": "0",
-		"MaxBatchSize":          "1",
-	}
+	rollingUpdate := map[string]interface{}{}
 	if len(ng.ASGSuspendProcesses) > 0 {
 		rollingUpdate["SuspendProcesses"] = ng.ASGSuspendProcesses
 	}
