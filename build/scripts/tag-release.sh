@@ -32,7 +32,7 @@ tag_version_and_latest "${m}" "${release_version}"
 git push --force origin "${release_branch}":docs
 
 git checkout "${default_branch}"
-git pull --ff-only origin master
+git pull --ff-only origin "${default_branch}"
 
 prepare_for_next_version_if_at "${release_version}"
 

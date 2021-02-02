@@ -1,11 +1,11 @@
-name: Merge release changes to master
+name: Merge release changes to main
 on:
   push:
     branches:
       - "release-[0-9]+.[0-9]+"
 env:
   VERSION_FILE: pkg/version/release.go
-  DEFAULT_BRANCH: master
+  DEFAULT_BRANCH: main
 jobs:
   merge_release:
     name: Merge release

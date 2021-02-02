@@ -9,7 +9,7 @@ on:
       - '.github/workflows/check-links.yaml'
   push:
     branches:
-      - master
+      - main
     paths:
       - 'userdocs/**'
       - '**.md'
