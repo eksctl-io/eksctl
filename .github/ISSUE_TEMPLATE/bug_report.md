@@ -18,7 +18,7 @@ For verbose output, for example logs, please either create a gist or use html de
 <!--
 Before you start writing, please search through existing issues to see whether your problem has already been reported.
 For more information on how to open a bug report in eksctl, please refer to our issue submission guide.
-https://github.com/weaveworks/eksctl/blob/master/CONTRIBUTING.md#opening-issues
+https://github.com/weaveworks/eksctl/blob/main/CONTRIBUTING.md#opening-issues
 -->
 
 **What were you trying to accomplish?**

@@ -419,7 +419,7 @@ Once you have your environment set up and have completed a clean run of the unit
 tests you can get to work :tada: .
 
 1. First create a topic branch from where you want to base your work (this is usually
-  from master):
+  from `main`):
 
       ```bash
       git checkout -b <feature-name>
@@ -435,7 +435,7 @@ tests you can get to work :tada: .
   the future.
   Make sure commit messages are in the [proper format](#commit-message-formatting).
 
-1. Be sure to include at least unit tests to cover your changes. See the [addon](https://github.com/weaveworks/eksctl/blob/master/pkg/actions/addon)
+1. Be sure to include at least unit tests to cover your changes. See the [addon](https://github.com/weaveworks/eksctl/blob/main/pkg/actions/addon)
   package for a good example of tests.
 
       > NOTE: We are trying to move away from using [`mockery`](https://github.com/vektra/mockery)
@@ -483,7 +483,7 @@ If you need help at any stage of your work, please don't hesitate to ask!
 ## PR submission guidelines
 
 Push your changes to the branch on your fork and submit a pull request to the original repository
-against the `master` branch.
+against the `main` branch.
 Where possible, please squash your commits to ensure a tidy and descriptive history.
 
 ```bash
@@ -496,7 +496,7 @@ Our CircleCI integration will run the automated tests and give you feedback in t
 changes and give you feedback as soon as possible. We also encourage people to post
 links to their PRs in slack to get more eyes on the work.
 
-We recommend that you regularly rebase from master of the original repo to keep your
+We recommend that you regularly rebase from `main` of the original repo to keep your
 branch up to date.
 
 Please ensure that `Allow edits and access to secrets by maintainers` is checked.

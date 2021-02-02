@@ -130,7 +130,7 @@ jobs:
       - store_artifacts:
           path: ./bin
       - notify-slack:
-          only_for_branches: master
+          only_for_branches: main
   build-all-distros:
     machine:
       image: ubuntu-1604:201903-01
@@ -154,7 +154,7 @@ jobs:
       - store_artifacts:
           path: dist/
       - notify-slack:
-          only_for_branches: master
+          only_for_branches: main
   release-candidate:
     machine:
       image: ubuntu-1604:201903-01
@@ -239,7 +239,7 @@ jobs:
           path: ./test-results
       - notify-slack:
           fail_only: false
-          only_for_branches: master
+          only_for_branches: main
 
 workflows:
   version: 2
@@ -285,7 +285,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
     jobs:
       - integration-tests
   nightly-build:
@@ -295,6 +295,6 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
     jobs:
       - build-all-distros

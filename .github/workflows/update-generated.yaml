@@ -5,7 +5,7 @@ on:
     - cron: "0 5 * * Thu"
 
 env:
-  DEFAULT_BRANCH: master
+  DEFAULT_BRANCH: main
 
 jobs:
   update_maxpods:
