@@ -58,7 +58,7 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 		return err
 	}
 
-	if params.output == "table" {
+	if params.output == printers.TableType {
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 	}
 
@@ -102,7 +102,7 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 	if err != nil {
 		return err
 	}
-	if params.output == "table" {
+	if params.output == printers.TableType {
 		addIAMIdentityMappingTableColumns(printer.(*printers.TablePrinter))
 	}
 
