@@ -1,11 +1,12 @@
 package manager
 
 import (
+	"errors"
+
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -36,113 +37,62 @@ var _ = Describe("StackCollection Template", func() {
 		return cfg
 	}
 
-	rawJSONTemplate := `{"Outputs":{"ARN":{"Value":{"Fn::GetAtt":["ControlPlane","Arn"]},"Export":{"Name":{"Fn::Sub":"${AWS::StackName}::ARN"}}}}}`
-	rawYamlTemplate := `
-Outputs:
-  ARN:
-    Value: !GetAtt
-      - ControlPlane
-      - Arn
-    Export:
-      Name: !Sub '${AWS::StackName}::ARN'`
-	expectedJSONResponse := `{
-  "Outputs": {
-    "ARN": {
-      "Value": {
-        "Fn::GetAtt": [
-          "ControlPlane",
-          "Arn"
-        ]
-      },
-      "Export": {
-        "Name": {
-          "Fn::Sub": "${AWS::StackName}::ARN"
-        }
-      }
-    }
-  }
-}`
-
 	Describe("GetTemplate", func() {
-		var (
-			clusterName string
-			err         error
-			out         string
-		)
+		Context("With a cluster name", func() {
+			var (
+				clusterName string
+				err         error
+				out         string
+			)
 
-		BeforeEach(func() {
-			clusterName = "test-cluster"
-
-			p = mockprovider.NewMockProvider()
-
-			cc = newClusterConfig(clusterName)
-
-			sc = NewStackCollection(p, cc)
-		})
-
-		Context("With an existing stack name", func() {
-			Context("and a json template response", func() {
-				BeforeEach(func() {
-					p.MockCloudFormation().On("GetTemplate", mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
-						return input.StackName != nil && *input.StackName == "foobar"
-					})).Return(&cfn.GetTemplateOutput{
-						TemplateBody: &rawJSONTemplate,
-					}, nil)
-					out, err = sc.GetStackTemplate("foobar")
-				})
-
-				It("returns the template", func() {
-					Expect(err).NotTo(HaveOccurred())
-					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "GetTemplate", 1)).To(BeTrue())
-					Expect(out).To(Equal(expectedJSONResponse))
-				})
-			})
-
-			Context("and a yaml template response", func() {
-				BeforeEach(func() {
-					p.MockCloudFormation().On("GetTemplate", mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
-						return input.StackName != nil && *input.StackName == "foobar"
-					})).Return(&cfn.GetTemplateOutput{
-						TemplateBody: &rawYamlTemplate,
-					}, nil)
-					out, err = sc.GetStackTemplate("foobar")
-				})
-
-				It("returns the template in json format", func() {
-					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "GetTemplate", 1)).To(BeTrue())
-					Expect(err).NotTo(HaveOccurred())
-					Expect(out).To(Equal(expectedJSONResponse))
-				})
-			})
-		})
-
-		Context("With a non-existing stack name", func() {
 			BeforeEach(func() {
-				p.MockCloudFormation().On("GetTemplate", mock.Anything).Return(nil, errors.New("GetTemplate failed"))
-				out, err = sc.GetStackTemplate("non_existing_stack")
-			})
+				clusterName = "test-cluster"
 
-			It("returns an error", func() {
-				Expect(err).To(HaveOccurred())
-				Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "GetTemplate", 1)).To(BeTrue())
-			})
-		})
+				p = mockprovider.NewMockProvider()
 
-		When("the response isn't valid json or yaml", func() {
-			BeforeEach(func() {
+				cc = newClusterConfig(clusterName)
+
+				sc = NewStackCollection(p, cc)
+
 				p.MockCloudFormation().On("GetTemplate", mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
 					return input.StackName != nil && *input.StackName == "foobar"
 				})).Return(&cfn.GetTemplateOutput{
-					TemplateBody: aws.String("~123"),
+					TemplateBody: aws.String("TEMPLATE_BODY"),
 				}, nil)
 
-				out, err = sc.GetStackTemplate("foobar")
+				p.MockCloudFormation().On("GetTemplate", mock.Anything).Return(nil, errors.New("GetTemplate failed"))
 			})
 
-			It("returns an error", func() {
-				Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "GetTemplate", 1)).To(BeTrue())
-				Expect(out).To(Equal(""))
-				Expect(err).To(MatchError(ContainSubstring("failed to parse GetStackTemplate response")))
+			Context("With a non-existing stack name", func() {
+				JustBeforeEach(func() {
+					out, err = sc.GetStackTemplate("non_existing_stack")
+				})
+
+				It("should error", func() {
+					Expect(err).To(HaveOccurred())
+				})
+
+				It("should have called AWS CloudFormation service once", func() {
+					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "GetTemplate", 1)).To(BeTrue())
+				})
+			})
+
+			Context("With an existing stack name", func() {
+				JustBeforeEach(func() {
+					out, err = sc.GetStackTemplate("foobar")
+				})
+
+				It("should not error", func() {
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				It("should have called AWS CloudFormation service once", func() {
+					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "GetTemplate", 1)).To(BeTrue())
+				})
+
+				It("the output should equal the expectation", func() {
+					Expect(out).To(Equal("TEMPLATE_BODY"))
+				})
 			})
 		})
 	})
