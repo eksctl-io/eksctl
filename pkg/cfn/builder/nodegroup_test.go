@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
 func TestGenerateNodeName(t *testing.T) {
@@ -52,7 +53,8 @@ func TestGenerateNodeName(t *testing.T) {
 			nodeGroup.InstancePrefix = tt.prefix
 			nodeGroup.InstanceName = tt.name
 
-			n := NewNodeGroupResourceSet(nil, clusterConfig, "cluster", nodeGroup, false, false)
+			p := mockprovider.NewMockProvider()
+			n := NewNodeGroupResourceSet(p.EC2(), p.IAM(), clusterConfig, "cluster", nodeGroup, false, false)
 			nodeName := generateNodeName(n.spec.NodeGroupBase, clusterConfig.Metadata)
 
 			assert.Equal(t, tt.expected, nodeName)

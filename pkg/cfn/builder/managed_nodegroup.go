@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -21,6 +22,7 @@ type ManagedNodeGroupResourceSet struct {
 	forceAddCNIPolicy     bool
 	nodeGroup             *api.ManagedNodeGroup
 	launchTemplateFetcher *LaunchTemplateFetcher
+	ec2API                ec2iface.EC2API
 	*resourceSet
 
 	// UserDataMimeBoundary sets the MIME boundary for user data
@@ -30,13 +32,14 @@ type ManagedNodeGroupResourceSet struct {
 const ManagedNodeGroupResourceName = "ManagedNodeGroup"
 
 // NewManagedNodeGroup creates a new ManagedNodeGroupResourceSet
-func NewManagedNodeGroup(cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher *LaunchTemplateFetcher, clusterStackName string, forceAddCNIPolicy bool) *ManagedNodeGroupResourceSet {
+func NewManagedNodeGroup(ec2API ec2iface.EC2API, cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher *LaunchTemplateFetcher, clusterStackName string, forceAddCNIPolicy bool) *ManagedNodeGroupResourceSet {
 	return &ManagedNodeGroupResourceSet{
 		clusterConfig:         cluster,
 		clusterStackName:      clusterStackName,
 		forceAddCNIPolicy:     forceAddCNIPolicy,
 		nodeGroup:             nodeGroup,
 		launchTemplateFetcher: launchTemplateFetcher,
+		ec2API:                ec2API,
 		resourceSet:           newResourceSet(),
 	}
 }

@@ -3,6 +3,7 @@ package builder
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
@@ -19,15 +20,20 @@ func defaultNetworkInterface(securityGroups []*gfnt.Value, device, card int) gfn
 	}
 }
 
-func (n *NodeGroupResourceSet) buildNetworkInterfaces(launchTemplateData *gfnec2.LaunchTemplate_LaunchTemplateData) error {
-	firstNI := defaultNetworkInterface(n.securityGroups, 0, 0)
-	if api.IsEnabled(n.spec.EFAEnabled) {
+func buildNetworkInterfaces(
+	launchTemplateData *gfnec2.LaunchTemplate_LaunchTemplateData,
+	spec *api.NodeGroupBase,
+	securityGroups []*gfnt.Value,
+	ec2api ec2iface.EC2API,
+) error {
+	firstNI := defaultNetworkInterface(securityGroups, 0, 0)
+	if api.IsEnabled(spec.EFAEnabled) {
 		input := ec2.DescribeInstanceTypesInput{
-			InstanceTypes: aws.StringSlice([]string{n.spec.InstanceType}),
+			InstanceTypes: aws.StringSlice([]string{spec.InstanceType}),
 		}
-		info, err := n.provider.EC2().DescribeInstanceTypes(&input)
+		info, err := ec2api.DescribeInstanceTypes(&input)
 		if err != nil {
-			return errors.Wrapf(err, "couldn't retrieve instance type description for %s", n.spec.InstanceType)
+			return errors.Wrapf(err, "couldn't retrieve instance type description for %s", spec.InstanceType)
 		}
 		numEFAs := int(aws.Int64Value(info.InstanceTypes[0].NetworkInfo.MaximumNetworkCards))
 		firstNI.InterfaceType = gfnt.NewString("efa")
@@ -37,7 +43,7 @@ func (n *NodeGroupResourceSet) buildNetworkInterfaces(launchTemplateData *gfnec2
 		// Due to ASG incompatibilities, we create each network card
 		// with its own device
 		for i := 1; i < numEFAs; i++ {
-			ni := defaultNetworkInterface(n.securityGroups, i, i)
+			ni := defaultNetworkInterface(securityGroups, i, i)
 			ni.InterfaceType = gfnt.NewString("efa")
 			nis = append(nis, ni)
 		}

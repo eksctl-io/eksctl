@@ -3,6 +3,7 @@ package builder
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
@@ -51,13 +52,11 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 	}
 
 	if api.IsEnabled(mng.EFAEnabled) {
-		launchTemplateData.NetworkInterfaces = []gfnec2.LaunchTemplate_NetworkInterface{{
-			// Explicitly un-setting this so that it doesn't get defaulted to true
-			AssociatePublicIpAddress: nil,
-			DeviceIndex:              gfnt.NewInteger(0),
-			Groups:                   gfnt.NewSlice(securityGroupIDs...),
-			InterfaceType:            gfnt.NewString("efa"),
-		}}
+		// we don't want to touch the network interfaces at all if we have a
+		// managed nodegroup, unless EFA is enabled
+		if err := buildNetworkInterfaces(launchTemplateData, mng.BaseNodeGroup(), securityGroupIDs, m.ec2API); err != nil {
+			return nil, errors.Wrap(err, "couldn't build network interfaces for launch template data")
+		}
 		if mng.Placement == nil {
 			groupName := m.newResource("NodeGroupPlacementGroup", &gfnec2.PlacementGroup{
 				Strategy: gfnt.NewString("cluster"),
@@ -67,20 +66,11 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 			}
 		}
 	} else {
-		launchTemplateData.SecurityGroupIds = gfnt.NewValue(securityGroupIDs)
+		launchTemplateData.SecurityGroupIds = gfnt.NewSlice(securityGroupIDs...)
 	}
 
 	if mng.EBSOptimized != nil {
 		launchTemplateData.EbsOptimized = gfnt.NewBoolean(*mng.EBSOptimized)
-	}
-
-	if api.IsEnabled(mng.EFAEnabled) && mng.Placement == nil {
-		groupName := m.newResource("NodeGroupPlacementGroup", &gfnec2.PlacementGroup{
-			Strategy: gfnt.NewString("cluster"),
-		})
-		launchTemplateData.Placement = &gfnec2.LaunchTemplate_Placement{
-			GroupName: groupName,
-		}
 	}
 
 	if volumeSize := mng.VolumeSize; volumeSize != nil && *volumeSize > 0 {

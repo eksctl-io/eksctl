@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"github.com/pkg/errors"
-
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/pkg/errors"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
@@ -28,6 +27,7 @@ type NodeGroupResourceSet struct {
 	spec                 *api.NodeGroup
 	supportsManagedNodes bool
 	forceAddCNIPolicy    bool
+	ec2API               ec2iface.EC2API
 	iamAPI               iamiface.IAMAPI
 	clusterStackName     string
 	instanceProfileARN   *gfnt.Value
@@ -37,7 +37,7 @@ type NodeGroupResourceSet struct {
 }
 
 // NewNodeGroupResourceSet returns a resource set for a nodegroup embedded in a cluster config
-func NewNodeGroupResourceSet(iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup,
+func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup,
 	supportsManagedNodes, forceAddCNIPolicy bool) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
 		rs:                   newResourceSet(),
@@ -46,6 +46,7 @@ func NewNodeGroupResourceSet(iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, cl
 		forceAddCNIPolicy:    forceAddCNIPolicy,
 		clusterSpec:          spec,
 		spec:                 ng,
+		ec2API:               ec2API,
 		iamAPI:               iamAPI,
 	}
 }
@@ -278,11 +279,11 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_Laun
 		MetadataOptions: makeMetadataOptions(n.spec.NodeGroupBase),
 	}
 
-	if err := n.buildNetworkInterfaces(launchTemplateData); err != nil {
+	if err := buildNetworkInterfaces(launchTemplateData, n.spec.BaseNodeGroup(), n.securityGroups, n.ec2API); err != nil {
 		return nil, errors.Wrap(err, "couldn't build network interfaces for launch template data")
 	}
 
-	if n.spec.Placement == nil {
+	if api.IsEnabled(n.spec.EFAEnabled) && n.spec.Placement == nil {
 		groupName := n.newResource("NodeGroupPlacementGroup", &gfnec2.PlacementGroup{
 			Strategy: gfnt.NewString("cluster"),
 		})
