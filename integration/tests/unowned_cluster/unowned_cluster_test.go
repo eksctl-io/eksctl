@@ -24,6 +24,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 )
 
 var params *tests.Params
@@ -108,9 +109,8 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 					"--nodegroup", ng1,
 					"--verbose", "2",
 				)
-			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-				ContainElement(ContainSubstring("key=value")),
-			))
+				// It takes a second or 2 for the above set to take effect
+			Eventually(func() *gbytes.Buffer { return cmd.Run().Out }, time.Second*10).Should(gbytes.Say("key=value"))
 
 			By("Unsetting labels on a nodegroup")
 			cmd = params.EksctlUnsetLabelsCmd.
