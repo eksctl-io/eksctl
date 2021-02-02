@@ -1392,6 +1392,7 @@ type PrivateCluster struct {
 }
 
 // UnsupportedFeatureError is an error that represents an unsupported feature
+// +k8s:deepcopy-gen=false
 type UnsupportedFeatureError struct {
 	Message string
 	Err     error
