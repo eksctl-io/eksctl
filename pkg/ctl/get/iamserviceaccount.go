@@ -56,7 +56,7 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, namespace, name string, params *g
 		return err
 	}
 
-	if params.output == "table" {
+	if params.output == printers.TableType {
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 	}
 
@@ -81,7 +81,7 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, namespace, name string, params *g
 		return err
 	}
 
-	if params.output == "table" {
+	if params.output == printers.TableType {
 		addIAMServiceAccountSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 

@@ -53,7 +53,7 @@ func getAddon(cmd *cmdutils.Cmd, params *getCmdParams) error {
 		return err
 	}
 
-	if params.output == "table" {
+	if params.output == printers.TableType {
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 	}
 
@@ -99,7 +99,7 @@ func getAddon(cmd *cmdutils.Cmd, params *getCmdParams) error {
 		return err
 	}
 
-	if params.output == "table" {
+	if params.output == printers.TableType {
 		addAddonSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
