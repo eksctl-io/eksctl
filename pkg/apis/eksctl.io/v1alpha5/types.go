@@ -1254,6 +1254,9 @@ type NodeGroupBase struct {
 	// +optional
 	Placement *Placement `json:"placement,omitempty"`
 
+	// EFAEnabled creates the maximum allowed number of EFA-enabled network
+	// cards on nodes in this group.
+	// +optional
 	EFAEnabled *bool `json:"efaEnabled,omitempty"`
 
 	// Internal fields
