@@ -147,10 +147,14 @@
           "type": "array"
         },
         "git": {
-          "$ref": "#/definitions/Git"
+          "$ref": "#/definitions/Git",
+          "description": "exposes configuration for Flux v1 and an earlier iteration of gitops",
+          "x-intellij-html-description": "exposes configuration for Flux v1 and an earlier iteration of gitops"
         },
         "gitops": {
-          "$ref": "#/definitions/GitOps"
+          "$ref": "#/definitions/GitOps",
+          "description": "exposes configuration for Flux v2 and will continue to be used in future gitops plans, replacing the Git configuration above",
+          "x-intellij-html-description": "exposes configuration for Flux v2 and will continue to be used in future gitops plans, replacing the Git configuration above"
         },
         "iam": {
           "$ref": "#/definitions/ClusterIAM"
