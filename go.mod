@@ -33,7 +33,7 @@ require (
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0
 	github.com/onsi/ginkgo v1.14.2
-	github.com/onsi/gomega v1.10.4
+	github.com/onsi/gomega v1.10.5
 	github.com/pelletier/go-toml v1.8.1
 	github.com/pkg/errors v0.9.1
 	github.com/russross/blackfriday/v2 v2.1.0
@@ -46,7 +46,7 @@ require (
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
-	github.com/weaveworks/goformation/v4 v4.10.2-0.20210115145130-4565586043b7
+	github.com/weaveworks/goformation/v4 v4.10.2-0.20210202192510-c984c16fe84b
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
 	golang.org/x/tools v0.0.0-20210105210202-9ed45478a130
@@ -62,7 +62,7 @@ require (
 	k8s.io/kubernetes v1.19.4
 	k8s.io/legacy-cloud-providers v0.19.4
 	sigs.k8s.io/aws-iam-authenticator v0.5.2
-	sigs.k8s.io/mdtoc v1.0.1 // indirect
+	sigs.k8s.io/mdtoc v1.0.1
 	sigs.k8s.io/yaml v1.2.0
 )
 

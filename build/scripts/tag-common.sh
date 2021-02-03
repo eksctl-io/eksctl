@@ -4,7 +4,7 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-export default_branch="master"
+export default_branch="main"
 
 function branch_exists() {
   git ls-remote --heads origin "${1}" | grep -q "${1}"
