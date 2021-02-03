@@ -10,43 +10,36 @@ import (
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
+	"github.com/weaveworks/eksctl/pkg/actions/flux"
+	"github.com/weaveworks/eksctl/pkg/actions/repo"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/git"
 	"github.com/weaveworks/eksctl/pkg/gitops/deploykey"
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
-	"github.com/weaveworks/eksctl/pkg/gitops/flux"
 )
 
 // DefaultPodReadyTimeout is the time it will wait for Flux and Helm Operator to become ready
 const DefaultPodReadyTimeout = 5 * time.Minute
 
-// Setup sets up gitops in a repository for a cluster. Installs flux, helm and a quickstart profile into the cluster
+type FluxInstaller interface {
+	Run() error
+}
+
+// Setup sets up gitops in a repository for a cluster.
 func Setup(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, cfg *api.ClusterConfig, timeout time.Duration) error {
-	installer, err := flux.NewInstaller(k8sRestConfig, k8sClientSet, cfg, timeout)
+	installer, profilesSupported, err := newFluxInstaller(k8sRestConfig, k8sClientSet, cfg, timeout)
 	if err != nil {
+		return errors.Wrapf(err, "could not initialise Flux installer")
+	}
+
+	if err := installer.Run(); err != nil {
 		return err
 	}
 
-	fluxIsInstalled, err := installer.IsFluxInstalled()
-	if err != nil {
-		// Continue with installation
-		logger.Warning(err.Error())
-	} else if fluxIsInstalled {
-		logger.Warning("found existing flux deployment in namespace %q. Skipping installation",
-			cfg.Git.Operator.Namespace)
-		return nil
+	if profilesSupported {
+		return InstallProfile(cfg)
 	}
 
-	userInstructions, err := installer.Run(context.Background())
-	if err != nil {
-		return errors.Wrapf(err, "unable to install flux")
-	}
-
-	if err = InstallProfile(cfg); err != nil {
-		return err
-	}
-
-	logger.Info(userInstructions)
 	return nil
 }
 
@@ -100,7 +93,7 @@ func DeleteKey(cfg *api.ClusterConfig) error {
 		return nil
 	}
 
-	clusterKeyTitle := flux.KeyTitle(*cfg.Metadata)
+	clusterKeyTitle := repo.KeyTitle(*cfg.Metadata)
 	logger.Info("deleting SSH key %q from repo %q", clusterKeyTitle, cfg.Git.Repo.URL)
 
 	key, err := deployKeyClient.Get(ctx, clusterKeyTitle)
@@ -111,5 +104,24 @@ func DeleteKey(cfg *api.ClusterConfig) error {
 		return errors.Wrapf(err, "unable to delete authorized key")
 	}
 	return nil
+}
 
+func newFluxInstaller(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, cfg *api.ClusterConfig, timeout time.Duration) (FluxInstaller, bool, error) {
+	var (
+		installer         FluxInstaller
+		profilesSupported bool
+		err               error
+	)
+
+	if cfg.GitOps != nil && cfg.GitOps.Flux != nil {
+		installer, err = flux.New(k8sClientSet, cfg.GitOps)
+		profilesSupported = false
+		logger.Info("gitops configuration detected, setting installer to Flux v2")
+	} else {
+		installer, err = repo.New(k8sRestConfig, k8sClientSet, cfg, timeout)
+		profilesSupported = true
+		logger.Info("git.repo configuration detected, setting installer to Flux v1")
+	}
+
+	return installer, profilesSupported, err
 }

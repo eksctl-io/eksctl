@@ -1,9 +1,11 @@
-package flux
+package repo
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,17 +14,17 @@ import (
 	fluxinstall "github.com/fluxcd/flux/pkg/install"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmopinstall "github.com/fluxcd/helm-operator/pkg/install"
+	portforward "github.com/justinbarrick/go-k8s-portforward"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	apierrs "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	kubeclient "k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/git"
 	"github.com/weaveworks/eksctl/pkg/gitops/deploykey"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	apierrs "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kubeclient "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 const (
@@ -30,20 +32,23 @@ const (
 	fluxPrivateSSHKeyFileName   = "flux-secret.yaml"
 	fluxPrivateSSHKeySecretName = "flux-git-deploy"
 	fluxHelmVersions            = "v3"
+	portForwardingTimeout       = 120 * time.Second
+	portForwardingRetryPeriod   = 2 * time.Second
 )
 
-// Installer installs Flux
 type Installer struct {
-	cfg           *api.ClusterConfig
-	opts          *api.Git
-	timeout       time.Duration
-	k8sRestConfig *rest.Config
-	k8sClientSet  kubeclient.Interface
-	gitClient     *git.Client
+	Cfg           *api.ClusterConfig
+	Opts          *api.Git
+	Timeout       time.Duration
+	K8sRestConfig *rest.Config
+	K8sClientSet  kubeclient.Interface
+	GitClient     *git.Client
 }
 
-// NewInstaller creates a new Flux installer
-func NewInstaller(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, cfg *api.ClusterConfig, timeout time.Duration) (*Installer, error) {
+func New(
+	k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface,
+	cfg *api.ClusterConfig, timeout time.Duration,
+) (*Installer, error) {
 	if cfg.Git == nil {
 		return nil, errors.New("expected git configuration in cluster configuration but found nil")
 	}
@@ -53,48 +58,80 @@ func NewInstaller(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface,
 	gitClient := git.NewGitClient(git.ClientParams{
 		PrivateSSHKeyPath: cfg.Git.Repo.PrivateSSHKeyPath,
 	})
-	fi := &Installer{
-		cfg:           cfg,
-		opts:          cfg.Git,
-		k8sRestConfig: k8sRestConfig,
-		k8sClientSet:  k8sClientSet,
-		gitClient:     gitClient,
-		timeout:       timeout,
+	installer := &Installer{
+		Cfg:           cfg,
+		Opts:          cfg.Git,
+		K8sRestConfig: k8sRestConfig,
+		K8sClientSet:  k8sClientSet,
+		GitClient:     gitClient,
+		Timeout:       timeout,
 	}
-	return fi, nil
+	return installer, nil
 }
 
-// Run runs the Flux installer
-func (fi *Installer) Run(ctx context.Context) (string, error) {
+func (fi *Installer) Run() error {
+	fluxIsInstalled, err := fi.isFluxInstalled()
+	if err != nil {
+		// Continue with installation
+		logger.Warning(err.Error())
+	}
 
+	if fluxIsInstalled {
+		logger.Warning("found existing flux deployment in namespace %q. Skipping installation", fi.Opts.Operator.Namespace)
+		return nil
+	}
+
+	userInstructions, err := fi.installFlux(context.Background())
+	if err != nil {
+		logger.Critical("unable to set up gitops repo: %s", err.Error())
+		return err
+	}
+	logger.Info(userInstructions)
+
+	return nil
+}
+
+func (fi *Installer) isFluxInstalled() (bool, error) {
+	_, err := fi.K8sClientSet.AppsV1().Deployments(fi.Opts.Operator.Namespace).Get(context.TODO(), "flux", metav1.GetOptions{})
+	if err != nil {
+		if apierrs.IsNotFound(err) {
+			logger.Warning("flux deployment was not found")
+			return false, nil
+		}
+		return false, errors.Wrapf(err, "error while looking for flux pod")
+	}
+	return true, nil
+}
+
+func (fi *Installer) installFlux(ctx context.Context) (string, error) {
 	logger.Info("Generating manifests")
-	manifests, err := fi.getManifests()
+	manifests, err := fi.GetManifests()
 	if err != nil {
 		return "", err
 	}
 
-	logger.Info("Cloning %s", fi.opts.Repo.URL)
+	logger.Info("Cloning %s", fi.Opts.Repo.URL)
 	options := git.CloneOptions{
-		URL:       fi.opts.Repo.URL,
-		Branch:    fi.opts.Repo.Branch,
+		URL:       fi.Opts.Repo.URL,
+		Branch:    fi.Opts.Repo.Branch,
 		Bootstrap: true,
 	}
-	cloneDir, err := fi.gitClient.CloneRepoInTmpDir("eksctl-install-flux-clone-", options)
+	cloneDir, err := fi.GitClient.CloneRepoInTmpDir("eksctl-install-flux-clone-", options)
 	if err != nil {
-		return "", errors.Wrapf(err, "cannot clone repository %s", fi.opts.Repo.URL)
+		return "", errors.Wrapf(err, "cannot clone repository %s", fi.Opts.Repo.URL)
 	}
 	cleanCloneDir := false
 	defer func() {
 		if cleanCloneDir {
-			_ = fi.gitClient.DeleteLocalRepo()
+			_ = fi.GitClient.DeleteLocalRepo()
 		} else {
 			logger.Critical("You may find the local clone of %s used by eksctl at %s",
-				fi.opts.Repo.URL,
+				fi.Opts.Repo.URL,
 				cloneDir)
 		}
 	}()
 	logger.Info("Writing Flux manifests")
-	fluxManifestDir := filepath.Join(cloneDir, fi.opts.Repo.FluxPath)
+	fluxManifestDir := filepath.Join(cloneDir, fi.Opts.Repo.FluxPath)
 	if err := writeFluxManifests(fluxManifestDir, manifests); err != nil {
 		return "", err
 	}
@@ -108,9 +145,9 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	if api.IsEnabled(fi.opts.Operator.WithHelm) {
+	if api.IsEnabled(fi.Opts.Operator.WithHelm) {
 		logger.Info("Waiting for Helm Operator to start")
-		if err := waitForHelmOpToStart(fi.opts.Operator.Namespace, fi.timeout, fi.k8sClientSet); err != nil {
+		if err := waitForHelmOpToStart(fi.Opts.Operator.Namespace, fi.Timeout, fi.K8sClientSet); err != nil {
 			return "", err
 		}
 		logger.Info("Helm Operator started successfully")
@@ -118,12 +155,12 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 	}
 
 	logger.Info("Waiting for Flux to start")
-	err = waitForFluxToStart(fi.opts.Operator.Namespace, fi.timeout, fi.k8sClientSet)
+	err = waitForFluxToStart(fi.Opts.Operator.Namespace, fi.Timeout, fi.K8sClientSet)
 	if err != nil {
 		return "", err
 	}
 	logger.Info("fetching public SSH key from Flux")
-	fluxSSHKey, err := getPublicKeyFromFlux(ctx, fi.opts.Operator.Namespace, fi.timeout, fi.k8sRestConfig, fi.k8sClientSet)
+	fluxSSHKey, err := getPublicKeyFromFlux(ctx, fi.Opts.Operator.Namespace, fi.Timeout, fi.K8sRestConfig, fi.K8sClientSet)
 	if err != nil {
 		return "", err
 	}
@@ -131,8 +168,8 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 	logger.Info("Flux started successfully")
 	logger.Info("see https://docs.fluxcd.io/projects/flux for details on how to use Flux")
 
-	if api.IsEnabled(fi.opts.Operator.CommitOperatorManifests) {
-		logger.Info("Committing and pushing manifests to %s", fi.opts.Repo.URL)
+	if api.IsEnabled(fi.Opts.Operator.CommitOperatorManifests) {
+		logger.Info("Committing and pushing manifests to %s", fi.Opts.Repo.URL)
 		if err = fi.addFilesToRepo(); err != nil {
 			return "", err
 		}
@@ -141,23 +178,23 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 
 	logger.Info("Flux will only operate properly once it has write-access to the Git repository")
 	instruction := fmt.Sprintf("please configure %s so that the following Flux SSH public key has write access to it\n%s",
-		fi.opts.Repo.URL, fluxSSHKey.Key)
+		fi.Opts.Repo.URL, fluxSSHKey.Key)
 
-	client, err := deploykey.GetDeployKeyClient(ctx, fi.cfg.Git.Repo.URL)
+	client, err := deploykey.GetDeployKeyClient(ctx, fi.Opts.Repo.URL)
 	if err != nil {
 		logger.Warning(
 			"could not find git provider implementation for url %q: %q. Skipping authorization of SSH key",
-			fi.cfg.Git.Repo.URL,
+			fi.Opts.Repo.URL,
 			err.Error(),
 		)
 		return instruction, nil
 	}
 
-	keyTitle := KeyTitle(*fi.cfg.Metadata)
+	keyTitle := KeyTitle(*fi.Cfg.Metadata)
 	_, _, err = client.Reconcile(ctx, gitprovider.DeployKeyInfo{
 		Name:     keyTitle,
 		Key:      []byte(fluxSSHKey.Key),
-		ReadOnly: &fi.cfg.Git.Operator.ReadOnly,
+		ReadOnly: &fi.Opts.Operator.ReadOnly,
 	})
 	if err != nil {
 		return instruction, errors.Wrapf(err, "could not authorize SSH key")
@@ -167,39 +204,25 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 	return instruction, nil
 }
 
-// IsFluxInstalled returns an error if Flux is not installed in the cluster. To determine that it looks for the flux
-// pod
-func (fi *Installer) IsFluxInstalled() (bool, error) {
-	_, err := fi.k8sClientSet.AppsV1().Deployments(fi.opts.Operator.Namespace).Get(context.TODO(), "flux", metav1.GetOptions{})
-	if err != nil {
-		if apierrs.IsNotFound(err) {
-			logger.Warning("flux deployment was not found")
-			return false, nil
-		}
-		return false, errors.Wrapf(err, "error while looking for flux pod")
-	}
-	return true, nil
-}
-
 func (fi *Installer) addFilesToRepo() error {
-	if err := fi.gitClient.Add(fi.opts.Repo.FluxPath); err != nil {
+	if err := fi.GitClient.Add(fi.Opts.Repo.FluxPath); err != nil {
 		return err
 	}
 
 	// Confirm there is something to commit, otherwise move on
-	if err := fi.gitClient.Commit("Add Initial Flux configuration", fi.opts.Repo.User, fi.opts.Repo.Email); err != nil {
+	if err := fi.GitClient.Commit("Add Initial Flux configuration", fi.Opts.Repo.User, fi.Opts.Repo.Email); err != nil {
 		return err
 	}
 
 	// git push
-	if err := fi.gitClient.Push(); err != nil {
+	if err := fi.GitClient.Push(); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (fi *Installer) createFluxNamespaceIfMissing(manifestsMap map[string][]byte) error {
-	client, err := kubernetes.NewRawClient(fi.k8sClientSet, fi.k8sRestConfig)
+	client, err := kubernetes.NewRawClient(fi.K8sClientSet, fi.K8sRestConfig)
 	if err != nil {
 		return err
 	}
@@ -217,7 +240,7 @@ func (fi *Installer) createFluxNamespaceIfMissing(manifestsMap map[string][]byte
 }
 
 func (fi *Installer) applyManifests(manifestsMap map[string][]byte) error {
-	client, err := kubernetes.NewRawClient(fi.k8sClientSet, fi.k8sRestConfig)
+	client, err := kubernetes.NewRawClient(fi.K8sClientSet, fi.K8sRestConfig)
 	if err != nil {
 		return err
 	}
@@ -231,7 +254,7 @@ func (fi *Installer) applyManifests(manifestsMap map[string][]byte) error {
 		// the flux-secret.yaml file, as it contains Flux's private SSH key,
 		// and deleting it would force the user to set Flux's permissions up
 		// again in their Git repository, which is not very "friendly".
-		if existence[fi.opts.Operator.Namespace][fluxPrivateSSHKeySecretName] {
+		if existence[fi.Opts.Operator.Namespace][fluxPrivateSSHKeySecretName] {
 			delete(manifestsMap, fluxPrivateSSHKeyFileName)
 		}
 	}
@@ -243,7 +266,7 @@ func (fi *Installer) applyManifests(manifestsMap map[string][]byte) error {
 			if err != nil {
 				return err
 			}
-			for _, found := range existence[fi.opts.Operator.Namespace] {
+			for _, found := range existence[fi.Opts.Operator.Namespace] {
 				if found {
 					delete(manifestsMap, m)
 				}
@@ -272,20 +295,20 @@ func writeFluxManifests(baseDir string, manifests map[string][]byte) error {
 	return nil
 }
 
-func (fi *Installer) getManifests() (map[string][]byte, error) {
+func (fi *Installer) GetManifests() (map[string][]byte, error) {
 	var manifests map[string][]byte
 
 	// Flux
 	var err error
-	if manifests, err = getFluxManifests(fi.opts, fi.k8sClientSet); err != nil {
+	if manifests, err = getFluxManifests(fi.Opts, fi.K8sClientSet); err != nil {
 		return nil, err
 	}
 
 	// Helm Operator
-	if !api.IsEnabled(fi.opts.Operator.WithHelm) {
+	if !api.IsEnabled(fi.Opts.Operator.WithHelm) {
 		return manifests, nil
 	}
-	helmOpManifests, err := getHelmOpManifests(fi.opts.Operator.Namespace, fi.opts.Operator.AdditionalHelmOperatorArgs)
+	helmOpManifests, err := getHelmOpManifests(fi.Opts.Operator.Namespace, fi.Opts.Operator.AdditionalHelmOperatorArgs)
 	if err != nil {
 		return nil, err
 	}
@@ -352,6 +375,100 @@ func mergeMaps(m1 map[string][]byte, m2 map[string][]byte) map[string][]byte {
 		result[k] = v
 	}
 	return result
+}
+
+// PublicKey represents a public SSH key as it is returned by flux
+type PublicKey struct {
+	Key string `json:"key"`
+}
+
+func getPublicKeyFromFlux(
+	ctx context.Context, namespace string, timeout time.Duration, restConfig *rest.Config,
+	cs kubeclient.Interface,
+) (PublicKey, error) {
+	var deployKey PublicKey
+	try := func(rootURL string) error {
+		fluxURL := rootURL + "api/flux/v6/identity.pub"
+		req, reqErr := http.NewRequest("GET", fluxURL, nil)
+		if reqErr != nil {
+			return fmt.Errorf("failed to create request: %s", reqErr)
+		}
+		repoCtx, repoCtxCancel := context.WithTimeout(ctx, timeout)
+		defer repoCtxCancel()
+		req = req.WithContext(repoCtx)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return fmt.Errorf("failed to query Flux API: %s", err)
+		}
+		if resp.Body == nil {
+			return fmt.Errorf("failed to fetch Flux deploy key from: %s", fluxURL)
+		}
+		defer resp.Body.Close()
+
+		jsonErr := json.NewDecoder(resp.Body).Decode(&deployKey)
+		if jsonErr != nil {
+			return fmt.Errorf("failed to decode Flux API response: %s", jsonErr)
+		}
+
+		if deployKey.Key == "" {
+			return fmt.Errorf("failed to fetch Flux deploy key from: %s", fluxURL)
+		}
+		return nil
+	}
+	err := portForward(namespace, "flux", 3030, "Flux", restConfig, cs, try)
+	return deployKey, err
+}
+
+type tryFunc func(rootURL string) error
+
+func portForward(
+	namespace string, nameLabelValue string, port int, name string,
+	restConfig *rest.Config, cs kubeclient.Interface, try tryFunc,
+) error {
+	fluxSelector := metav1.LabelSelector{
+		MatchExpressions: []metav1.LabelSelectorRequirement{
+			{
+				Key:      "name",
+				Operator: metav1.LabelSelectorOpIn,
+				Values:   []string{nameLabelValue},
+			},
+		},
+	}
+	portforwarder := portforward.PortForward{
+		Labels:          fluxSelector,
+		Config:          restConfig,
+		Clientset:       cs,
+		DestinationPort: port,
+		Namespace:       namespace,
+	}
+	podDeadline := time.Now().Add(portForwardingTimeout)
+	for ; time.Now().Before(podDeadline); time.Sleep(portForwardingRetryPeriod) {
+		err := portforwarder.Start(context.TODO())
+		if err == nil {
+			defer portforwarder.Stop()
+			break
+		}
+		if !strings.Contains(err.Error(), "Could not find running pod for selector") {
+			logger.Warning("%s is not ready yet (%s), retrying ...", name, err)
+		}
+	}
+	if time.Now().After(podDeadline) {
+		return fmt.Errorf("timed out waiting for %s's pod to be created", name)
+	}
+	baseURL := fmt.Sprintf("http://127.0.0.1:%d/", portforwarder.ListenPort)
+	// Make sure it's alive
+	retryDeadline := time.Now().Add(30 * time.Second)
+	for ; time.Now().Before(retryDeadline); time.Sleep(2 * time.Second) {
+		err := try(baseURL)
+		if err == nil {
+			break
+		}
+		logger.Warning("%s is not ready yet (%s), retrying ...", name, err)
+	}
+	if time.Now().After(retryDeadline) {
+		return fmt.Errorf("timed out waiting for %s to be operative", name)
+	}
+	return nil
 }
 
 // KeyTitle returns the title for the SSH key used to access the gitops repo

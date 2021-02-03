@@ -213,22 +213,44 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 		}
 
 		if clusterConfig.HasAnySubnets() && len(clusterConfig.AvailabilityZones) != 0 {
-			return fmt.Errorf("vpc.subnets and availabilityZones cannot be set at the same time")
+			return errors.New("vpc.subnets and availabilityZones cannot be set at the same time")
+		}
+
+		if clusterConfig.GitOps != nil && clusterConfig.Git != nil {
+			return errors.New("git cannot be configured alongside gitops")
+		}
+
+		if clusterConfig.GitOps != nil {
+			fluxCfg := clusterConfig.GitOps.Flux
+
+			if fluxCfg != nil {
+				if fluxCfg.GitProvider == "" {
+					return ErrMustBeSet("gitops.flux.gitProvider")
+				}
+				if fluxCfg.Owner == "" {
+					return ErrMustBeSet("gitops.flux.owner")
+				}
+				if fluxCfg.Repository == "" {
+					return ErrMustBeSet("gitops.flux.repo")
+				}
+			}
 		}
 
 		if clusterConfig.Git != nil {
 			repo := clusterConfig.Git.Repo
-			if repo == nil || repo.URL == "" {
-				return ErrMustBeSet("git.repo.URL")
-			}
+			if repo != nil {
+				if repo.URL == "" {
+					return ErrMustBeSet("git.repo.url")
+				}
 
-			if repo.Email == "" {
-				return ErrMustBeSet("git.repo.email")
-			}
+				if repo.Email == "" {
+					return ErrMustBeSet("git.repo.email")
+				}
 
-			profile := clusterConfig.Git.BootstrapProfile
-			if profile != nil && profile.Source == "" {
-				return ErrMustBeSet("git.bootstrapProfile.source")
+				profile := clusterConfig.Git.BootstrapProfile
+				if profile != nil && profile.Source == "" {
+					return ErrMustBeSet("git.bootstrapProfile.source")
+				}
 			}
 		}
 

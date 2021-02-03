@@ -26,7 +26,7 @@ func generateProfileWithRunFunc(cmd *cmdutils.Cmd, runFunc func(*cmdutils.Cmd) e
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
 
-		if err := cmdutils.NewGitOpsConfigLoader(cmd, opts).
+		if err := cmdutils.NewGitConfigLoader(cmd, opts).
 			WithProfileValidation().Load(); err != nil {
 			return err
 		}

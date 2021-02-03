@@ -12,6 +12,7 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, enableProfile)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, enableRepo)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, enableFlux2)
 
 	return verbCmd
 }
