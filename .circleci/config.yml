@@ -118,8 +118,6 @@ jobs:
       - docker-run:
           cmd: make circleci-test build
       - docker-run:
-          cmd: make build-integration-test
-      - docker-run:
           cmd: make -f Makefile.docker check-build-image-manifest-up-to-date
       - run: mkdir bin; mv eksctl "bin/eksctl-$(./eksctl version)"
       - save-cache
