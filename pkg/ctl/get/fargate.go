@@ -10,6 +10,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/fargate"
+	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
 type options struct {
@@ -66,7 +67,7 @@ func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
 		return err
 	}
 
-	if options.output == "table" {
+	if options.output == printers.TableType {
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 	}
 

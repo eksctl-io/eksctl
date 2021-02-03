@@ -68,7 +68,7 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		return err
 	}
 
-	if params.output == "table" {
+	if params.output == printers.TableType {
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 	}
 
@@ -95,7 +95,7 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		return err
 	}
 
-	if params.output == "table" {
+	if params.output == printers.TableType {
 		// Empty summary implies no nodegroups
 		// We only error if the output is table, since if the output
 		// is yaml or json we should return an empty object.
@@ -108,11 +108,7 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		addSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	if err := printer.PrintObjWithKind("nodegroups", summaries, os.Stdout); err != nil {
-		return err
-	}
-
-	return nil
+	return printer.PrintObjWithKind("nodegroups", summaries, os.Stdout)
 }
 
 func addSummaryTableColumns(printer *printers.TablePrinter) {
