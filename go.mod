@@ -45,7 +45,7 @@ require (
 	github.com/tidwall/gjson v1.6.8
 	github.com/tidwall/sjson v1.1.5
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
-	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
+	github.com/vektra/mockery v1.1.2
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
 	github.com/weaveworks/goformation/v4 v4.10.2-0.20210202192510-c984c16fe84b
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
