@@ -165,10 +165,10 @@ generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (requi
 	go generate ./pkg/addons/default/generate.go
 	go generate ./pkg/addons
 	go generate ./pkg/authconfigmap
-	# mocks
 	go generate ./pkg/eks
 	go generate ./pkg/drain
 	go generate ./pkg/actions/...
+	go generate ./pkg/executor
 
 .PHONY: generate-all
 generate-all: generate-always $(conditionally_generated_files) ## Re-generate all the automatically-generated source files
