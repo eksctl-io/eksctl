@@ -149,6 +149,9 @@
         "git": {
           "$ref": "#/definitions/Git"
         },
+        "gitops": {
+          "$ref": "#/definitions/GitOps"
+        },
         "iam": {
           "$ref": "#/definitions/ClusterIAM"
         },
@@ -211,7 +214,8 @@
         "cloudWatch",
         "secretsEncryption",
         "status",
-        "git"
+        "git",
+        "gitops"
       ],
       "additionalProperties": false,
       "description": "a simple config, to be replaced with Cluster API",
@@ -673,6 +677,64 @@
       "description": "defines rules to select workload to schedule onto Fargate.",
       "x-intellij-html-description": "defines rules to select workload to schedule onto Fargate."
     },
+    "Flux": {
+      "properties": {
+        "authTokenPath": {
+          "type": "string",
+          "description": "Path to a file containing a Personal Access Token with repo permissions Not required if GITHUB_TOKEN or GITLAB_TOKEN set on the environment",
+          "x-intellij-html-description": "Path to a file containing a Personal Access Token with repo permissions Not required if GITHUB<em>TOKEN or GITLAB</em>TOKEN set on the environment"
+        },
+        "branch": {
+          "type": "string",
+          "description": "The name of the branch which Flux will commit to",
+          "x-intellij-html-description": "The name of the branch which Flux will commit to"
+        },
+        "gitProvider": {
+          "type": "string",
+          "description": "The repository hosting service. Can be either Github or Gitlab.",
+          "x-intellij-html-description": "The repository hosting service. Can be either Github or Gitlab."
+        },
+        "namespace": {
+          "type": "string",
+          "description": "The kubernetes namespace into which Flux v2 components will be deployed",
+          "x-intellij-html-description": "The kubernetes namespace into which Flux v2 components will be deployed"
+        },
+        "owner": {
+          "type": "string",
+          "description": "The Username or Org name under which Flux v2 will create a repo",
+          "x-intellij-html-description": "The Username or Org name under which Flux v2 will create a repo"
+        },
+        "path": {
+          "type": "string",
+          "description": "A relative path within the repository. Gitops sync will be scoped to files under this path",
+          "x-intellij-html-description": "A relative path within the repository. Gitops sync will be scoped to files under this path"
+        },
+        "personal": {
+          "type": "boolean",
+          "description": "If true, Flux will create the Gitops repo in a personal account. If false, Flux will create the Gitops repo in an org.",
+          "x-intellij-html-description": "If true, Flux will create the Gitops repo in a personal account. If false, Flux will create the Gitops repo in an org.",
+          "default": "false"
+        },
+        "repository": {
+          "type": "string",
+          "description": "The name of the repository which Flux v2 will create to store gitops configuration",
+          "x-intellij-html-description": "The name of the repository which Flux v2 will create to store gitops configuration"
+        }
+      },
+      "preferredOrder": [
+        "gitProvider",
+        "owner",
+        "repository",
+        "namespace",
+        "branch",
+        "path",
+        "personal",
+        "authTokenPath"
+      ],
+      "additionalProperties": false,
+      "description": "groups all configuration options related to a Git repository used for GitOps Toolkit (Flux v2).",
+      "x-intellij-html-description": "groups all configuration options related to a Git repository used for GitOps Toolkit (Flux v2)."
+    },
     "Git": {
       "properties": {
         "bootstrapProfile": {
@@ -682,13 +744,13 @@
         },
         "operator": {
           "$ref": "#/definitions/Operator",
-          "description": "[Enable Repo](/usage/gitops/#installing-flux)",
-          "x-intellij-html-description": "<a href=\"/usage/gitops/#installing-flux\">Enable Repo</a>"
+          "description": "[Enable Repo](/usage/gitops/#installing-flux-v1)",
+          "x-intellij-html-description": "<a href=\"/usage/gitops/#installing-flux-v1\">Enable Repo</a>"
         },
         "repo": {
           "$ref": "#/definitions/Repo",
-          "description": "[Enable Repo](/usage/gitops/#installing-flux)",
-          "x-intellij-html-description": "<a href=\"/usage/gitops/#installing-flux\">Enable Repo</a>"
+          "description": "[Enable Repo](/usage/gitops/#installing-flux-v1)",
+          "x-intellij-html-description": "<a href=\"/usage/gitops/#installing-flux-v1\">Enable Repo</a>"
         }
       },
       "preferredOrder": [
@@ -699,6 +761,21 @@
       "additionalProperties": false,
       "description": "groups all configuration options related to enabling GitOps on a cluster and linking it to a Git repository. [Gitops Guide](/gitops-quickstart/)",
       "x-intellij-html-description": "groups all configuration options related to enabling GitOps on a cluster and linking it to a Git repository. <a href=\"/gitops-quickstart/\">Gitops Guide</a>"
+    },
+    "GitOps": {
+      "properties": {
+        "flux": {
+          "$ref": "#/definitions/Flux",
+          "description": "[Enable Toolkit](/usage/gitops/#experimental-installing-gitops-toolkit-flux-v2)",
+          "x-intellij-html-description": "<a href=\"/usage/gitops/#experimental-installing-gitops-toolkit-flux-v2\">Enable Toolkit</a>"
+        }
+      },
+      "preferredOrder": [
+        "flux"
+      ],
+      "additionalProperties": false,
+      "description": "groups all configuration options related to enabling GitOps Toolkit on a cluster and linking it to a Git repository. Note: this will replace the older Git types",
+      "x-intellij-html-description": "groups all configuration options related to enabling GitOps Toolkit on a cluster and linking it to a Git repository. Note: this will replace the older Git types"
     },
     "InlineDocument": {
       "additionalProperties": {},
