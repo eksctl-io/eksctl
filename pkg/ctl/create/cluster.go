@@ -402,7 +402,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			}
 		}
 
-		if cfg.HasGitopsRepoConfigured() {
+		if cfg.HasGitopsRepoConfigured() || cfg.HasGitOpsFluxConfigured() {
 			kubernetesClientConfigs, err := ctl.NewClient(cfg)
 			if err != nil {
 				return err

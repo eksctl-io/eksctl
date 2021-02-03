@@ -975,6 +975,11 @@ func (c *ClusterConfig) HasGitopsRepoConfigured() bool {
 	return c.Git != nil && c.Git.Repo != nil && c.Git.Repo.URL != ""
 }
 
+// HasGitOpsFluxConfigured returns true if there is a profile with a source specified
+func (c *ClusterConfig) HasGitOpsFluxConfigured() bool {
+	return c.GitOps != nil && c.GitOps.Flux != nil
+}
+
 type (
 	// NodeGroupSGs controls security groups for this nodegroup
 	NodeGroupSGs struct {
