@@ -37,7 +37,7 @@ func enableRepoWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd) er
 			return cmdutils.ErrUnsupportedNameArg()
 		}
 
-		if err := cmdutils.NewGitOpsConfigLoader(cmd, &opts.cfg).WithRepoValidation().Load(); err != nil {
+		if err := cmdutils.NewGitConfigLoader(cmd, &opts.cfg).WithRepoValidation().Load(); err != nil {
 			return err
 		}
 

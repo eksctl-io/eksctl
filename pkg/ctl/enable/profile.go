@@ -26,7 +26,7 @@ func enableProfileWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd)
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
 
-		if err := cmdutils.NewGitOpsConfigLoader(cmd, opts).
+		if err := cmdutils.NewGitConfigLoader(cmd, opts).
 			WithRepoValidation().
 			WithProfileValidation().
 			Load(); err != nil {
@@ -45,7 +45,7 @@ func configureProfileCmd(cmd *cmdutils.Cmd) *api.Git {
 
 	cmd.FlagSetGroup.InFlagSet("Enable profile", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForProfile(fs, opts.BootstrapProfile)
-		cmdutils.AddCommonFlagsForGit(fs, opts.Repo)
+		cmdutils.AddCommonFlagsForGitRepo(fs, opts.Repo)
 	})
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cmd.ClusterConfig.Metadata.Name, "cluster", "", "name of the EKS cluster to enable this Quick Start profile on")
