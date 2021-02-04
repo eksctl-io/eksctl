@@ -2,11 +2,12 @@ package cluster
 
 import (
 	"errors"
+	"time"
+
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/logger"
-	"time"
 )
 
 type Cluster interface {
@@ -20,7 +21,7 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
 	var resourceNotFoundErr *awseks.ResourceNotFoundException
 
 	//if the cluster doesn't exist it might still have stacks to delete
-	if err := ctl.RefreshClusterStatus(cfg); err != nil && !errors.As(err, &resourceNotFoundErr)  {
+	if err := ctl.RefreshClusterStatus(cfg); err != nil && !errors.As(err, &resourceNotFoundErr) {
 		return nil, err
 	}
 
