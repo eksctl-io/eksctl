@@ -30,4 +30,5 @@ managedNodeGroups:
   securityGroups:
     attachIDs: ["sg-123", "sg-321"]
   overrideBootstrapCommand: |
+    #!/bin/bash
     /etc/eks/bootstrap.sh cluster-22 --kubelet-extra-args '--node-labels=eks.amazonaws.com/nodegroup=custom-ng,eks.amazonaws.com/nodegroup-image=ami-0e124de4755b2734d'

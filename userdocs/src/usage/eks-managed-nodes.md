@@ -136,6 +136,7 @@ managedNodeGroups:
     volumeEncrypted: true
     disableIMDSv1: true
     overrideBootstrapCommand: |
+      #!/bin/bash
       /etc/eks/bootstrap.sh managed-cluster --kubelet-extra-args '--node-labels=eks.amazonaws.com/nodegroup=custom-ng,eks.amazonaws.com/nodegroup-image=ami-0e124de4755b2734d'
 ```
 
