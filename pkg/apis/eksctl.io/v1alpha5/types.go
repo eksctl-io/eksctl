@@ -1171,6 +1171,8 @@ type NodeGroupBase struct {
 	// for nodegroup
 	// +optional
 	PrivateNetworking bool `json:"privateNetworking"`
+	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
+	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
 	// +optional
