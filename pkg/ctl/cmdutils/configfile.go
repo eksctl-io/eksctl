@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/util/sets"
 
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -630,7 +631,7 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *filter.IAMServiceAccou
 }
 
 // NewGetIAMServiceAccountLoader will load config or use flags for 'eksctl get iamserviceaccount'
-func NewGetIAMServiceAccountLoader(cmd *Cmd) ClusterConfigLoader {
+func NewGetIAMServiceAccountLoader(cmd *Cmd, options *irsa.GetOptions) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.validateWithConfigFile = func() error {
@@ -643,6 +644,12 @@ func NewGetIAMServiceAccountLoader(cmd *Cmd) ClusterConfigLoader {
 	l.validateWithoutConfigFile = func() error {
 		if l.ClusterConfig.Metadata.Name == "" {
 			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+		if options.Name != "" && l.NameArg != "" {
+			return ErrFlagAndArg("--name", options.Name, l.NameArg)
+		}
+		if options.Name == "" && cmd.NameArg != "" {
+			options.Name = cmd.NameArg
 		}
 
 		l.Plan = false
