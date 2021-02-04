@@ -39,7 +39,7 @@ func (c *ClusterProvider) DescribeControlPlane(meta *api.ClusterMeta) (*awseks.C
 	}
 	output, err := c.Provider.EKS().DescribeCluster(input)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to describe cluster control plane")
+		return nil, err
 	}
 	return output.Cluster, nil
 }
@@ -184,7 +184,7 @@ func (c *ClusterProvider) maybeRefreshClusterStatus(spec *api.ClusterConfig) err
 func (c *ClusterProvider) CanDelete(spec *api.ClusterConfig) (bool, error) {
 	err := c.maybeRefreshClusterStatus(spec)
 	if err != nil {
-		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); ok &&
+		if awsError, ok := err.(awserr.Error); ok &&
 			awsError.Code() == awseks.ErrCodeResourceNotFoundException {
 			return true, nil
 		}
