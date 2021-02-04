@@ -1,7 +1,7 @@
 package cluster
 
 import (
-	"github.com/aws/aws-sdk-go/aws/awserr"
+	"errors"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -17,12 +17,11 @@ type Cluster interface {
 func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
 	err := ctl.RefreshClusterStatus(cfg)
 
-	if err != nil  {
-		awsError, ok :=  err.(awserr.Error)
-		//if the cluster doesn't exist it might still have stacks to delete
-		if !ok || awsError.Code() != awseks.ErrCodeResourceNotFoundException {
-			return nil, err
-		}
+	var resourceNotFoundErr *awseks.ResourceNotFoundException
+
+	//if the cluster doesn't exist it might still have stacks to delete
+	if err := ctl.RefreshClusterStatus(cfg); err != nil && !errors.As(err, &resourceNotFoundErr)  {
+		return nil, err
 	}
 
 	stackManager := ctl.NewStackManager(cfg)

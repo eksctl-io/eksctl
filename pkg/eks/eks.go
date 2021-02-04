@@ -11,7 +11,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/logger"
 
@@ -39,7 +38,7 @@ func (c *ClusterProvider) DescribeControlPlane(meta *api.ClusterMeta) (*awseks.C
 	}
 	output, err := c.Provider.EKS().DescribeCluster(input)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "unable to describe cluster control plane")
 	}
 	return output.Cluster, nil
 }
@@ -184,8 +183,8 @@ func (c *ClusterProvider) maybeRefreshClusterStatus(spec *api.ClusterConfig) err
 func (c *ClusterProvider) CanDelete(spec *api.ClusterConfig) (bool, error) {
 	err := c.maybeRefreshClusterStatus(spec)
 	if err != nil {
-		if awsError, ok := err.(awserr.Error); ok &&
-			awsError.Code() == awseks.ErrCodeResourceNotFoundException {
+		var resourceNotFoundErr *awseks.ResourceNotFoundException
+		if errors.As(err, &resourceNotFoundErr) {
 			return true, nil
 		}
 		return false, errors.Wrapf(err, "fetching cluster status to determine if it can be deleted")
