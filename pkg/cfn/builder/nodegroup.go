@@ -9,7 +9,7 @@ import (
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
-	"github.com/kris-nova/logger"
+	"github.com/weaveworks/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"

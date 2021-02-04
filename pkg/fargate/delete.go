@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/logger"
 )
 
 // DeleteProfile drains and delete the Fargate profile with the provided name.

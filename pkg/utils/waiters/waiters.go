@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/logger"
 )
 
 func WaitForCondition(waitTimeout, waitInterval time.Duration, returnErr error, condition func() (bool, error)) error {

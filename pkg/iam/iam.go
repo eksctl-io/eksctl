@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/logger"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	awsiam "github.com/aws/aws-sdk-go/service/iam"

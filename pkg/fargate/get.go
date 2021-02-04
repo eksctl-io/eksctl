@@ -2,10 +2,10 @@ package fargate
 
 import (
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
+	"github.com/weaveworks/logger"
 )
 
 // ReadProfile reads the Fargate profile corresponding to the provided name if

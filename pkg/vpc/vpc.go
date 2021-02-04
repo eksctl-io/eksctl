@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	"github.com/kris-nova/logger"
+	"github.com/weaveworks/logger"
 
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"

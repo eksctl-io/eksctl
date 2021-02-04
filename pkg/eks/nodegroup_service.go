@@ -1,10 +1,10 @@
 package eks
 
 import (
-	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ssh"
+	"github.com/weaveworks/logger"
 )
 
 // A NodeGroupService provides helpers for nodegroup creation

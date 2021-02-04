@@ -8,8 +8,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/logger"
 	"k8s.io/kops/util/pkg/tables"
 )
 
