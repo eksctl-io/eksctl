@@ -51,7 +51,7 @@ To enable running Windows workloads on an existing cluster with Linux nodes (`Am
 
 ```console
 eksctl create nodegroup --cluster=existing-cluster --node-ami-family=WindowsServer2019CoreContainer
-eksctl utils install-vpc-controllers --cluster=windows-cluster --approve
+eksctl utils install-vpc-controllers --cluster=existing-cluster --approve
 ```
 
 To ensure workloads are scheduled on the right OS, they must have a `nodeSelector` targeting the OS it must run on:

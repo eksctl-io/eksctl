@@ -1,0 +1,24 @@
+# An example of ClusterConfig object enabling gitops Flux v2
+# in a cluster:
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-12
+  region: eu-north-1
+
+nodeGroups:
+  - name: ng-1
+    instanceType: m5.large
+    desiredCapacity: 1
+
+gitops:
+  flux:
+    gitProvider: github             # required. options are github or gitlab
+    owner: dr-who                   # required
+    repository: my-cluster-gitops   # required
+    personal: true                  # optional. if left false, assumes 'owner' is an org
+    branch: main                    # optional
+    namespace: "flux-system"        # optional
+    path: "clusters/cluster-27"     # optional

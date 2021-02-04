@@ -15,7 +15,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-//go:generate "$GOBIN/counterfeiter" -o fakes/fargate_client.go . FargateClient
+//go:generate counterfeiter -o fakes/fargate_client.go . FargateClient
 type FargateClient interface {
 	CreateProfile(profile *api.FargateProfile, waitForCreation bool) error
 }
@@ -24,14 +24,14 @@ type fargateProfilesTask struct {
 	info            string
 	clusterProvider *ClusterProvider
 	spec            *api.ClusterConfig
-	awsClient       FargateClient
+	manager         FargateClient
 }
 
 func (fpt *fargateProfilesTask) Describe() string { return fpt.info }
 
 func (fpt *fargateProfilesTask) Do(errCh chan error) error {
 	defer close(errCh)
-	if err := DoCreateFargateProfiles(fpt.spec, fpt.awsClient); err != nil {
+	if err := DoCreateFargateProfiles(fpt.spec, fpt.manager); err != nil {
 		return err
 	}
 	// Make sure control plane is reachable
@@ -49,7 +49,7 @@ func (fpt *fargateProfilesTask) Do(errCh chan error) error {
 }
 
 // DoCreateFargateProfiles creates fargate profiles as specified in the config
-func DoCreateFargateProfiles(config *api.ClusterConfig, awsClient FargateClient) error {
+func DoCreateFargateProfiles(config *api.ClusterConfig, fargateClient FargateClient) error {
 	clusterName := config.Metadata.Name
 	for _, profile := range config.FargateProfiles {
 		logger.Info("creating Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
@@ -64,12 +64,12 @@ func DoCreateFargateProfiles(config *api.ClusterConfig, awsClient FargateClient)
 		//
 		// In the case that a ResourceInUseException is thrown on a profile which was
 		// created on an earlier call, we do not error but continue to the next one
-		err := awsClient.CreateProfile(profile, true)
+		err := fargateClient.CreateProfile(profile, true)
 		switch errors.Cause(err).(type) {
 		case nil:
 			logger.Info("created Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
 		case *eks.ResourceInUseException:
-			logger.Info("Fargate profile %q already exists on EKS cluster %q, no action taken", profile.Name, clusterName)
+			logger.Info("Either Fargate profile %q already exists on EKS cluster %q or another profile is being created/deleted, no action taken", profile.Name, clusterName)
 		default:
 			return errors.Wrapf(err, "failed to create Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
 		}

@@ -1,18 +1,19 @@
 "github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0"
 "github.com/cloudflare/cfssl v1.5.0"
 "github.com/cloudflare/cfssl v1.5.0"
-"github.com/golangci/golangci-lint v1.33.0"
-"github.com/goreleaser/goreleaser v0.149.0"
+"github.com/golangci/golangci-lint v1.35.2"
+"github.com/goreleaser/goreleaser v0.154.0"
 "github.com/kevinburke/go-bindata v3.22.0+incompatible"
-"github.com/onsi/ginkgo v1.14.2"
-"github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5"
-"github.com/github-release/github-release v0.9.0"
-"golang.org/x/tools v0.0.0-20201023174141-c8cfbd0f21e6"
+"github.com/onsi/ginkgo v1.15.0"
+"github.com/vektra/mockery v1.1.2"
+"github.com/github-release/github-release v0.10.0"
+"golang.org/x/tools v0.1.0"
 "k8s.io/code-generator v0.19.4"
 "k8s.io/code-generator v0.19.4"
 "k8s.io/code-generator v0.19.4"
 "k8s.io/code-generator v0.19.4"
 "k8s.io/code-generator v0.19.4"
-100644 blob 1561a36101fca1244074ca113b8371bf29b05d5e	build/docker/Dockerfile
-100644 blob dd4fbcfba40125dfc32df14c63c4ce2b5e6fadd4	.requirements
+"sigs.k8s.io/mdtoc v1.0.1"
+100644 blob d0da2eeffc01f18bc56343b44f11a5c0efc9fc55	build/docker/Dockerfile
+100644 blob f48c355ec5e7d3162f15daf529e7474e409fbb85	.requirements
 100755 blob 1ec4ce65165cf21e3767ee34d56fb635c51b4a5a	build/scripts/install-build-deps.sh

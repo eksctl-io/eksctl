@@ -74,6 +74,10 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 		return err
 	}
 
+	if params.output == printers.TableType && !listAllRegions {
+		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+	}
+
 	if cfg.Metadata.Name == "" {
 		return getAndPrinterClusters(ctl, params, listAllRegions)
 	}
@@ -82,13 +86,12 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 }
 
 func getAndPrinterClusters(ctl *eks.ClusterProvider, params *getCmdParams, listAllRegions bool) error {
-
 	printer, err := printers.NewPrinter(params.output)
 	if err != nil {
 		return err
 	}
 
-	if params.output == "table" {
+	if params.output == printers.TableType {
 		addGetClustersSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
@@ -118,7 +121,7 @@ func getAndPrintCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, params
 		return err
 	}
 
-	if params.output == "table" {
+	if params.output == printers.TableType {
 		addGetClusterSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
@@ -128,11 +131,7 @@ func getAndPrintCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, params
 		return err
 	}
 
-	if err := printer.PrintObjWithKind("clusters", []*awseks.Cluster{cluster}, os.Stdout); err != nil {
-		return err
-	}
-
-	return nil
+	return printer.PrintObjWithKind("clusters", []*awseks.Cluster{cluster}, os.Stdout)
 }
 
 func addGetClusterSummaryTableColumns(printer *printers.TablePrinter) {

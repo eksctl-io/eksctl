@@ -6,10 +6,8 @@ set -o nounset
 
 SCRIPT_ROOT=$(git rev-parse --show-toplevel)
 
-# Grab code-generator version from go.sum.
-CODEGEN_VERSION=$(grep 'k8s.io/code-generator' go.sum | awk '{print $2}' | head -1)
-CODEGEN_PKG=$(echo `go env GOPATH`"/pkg/mod/k8s.io/code-generator@${CODEGEN_VERSION}")
-
+# Grab code-generator pkg
+CODEGEN_PKG=$(go list -m -f '{{.Dir}}' 'k8s.io/code-generator')
 echo ">> Using ${CODEGEN_PKG}"
 
 # code-generator does work with go.mod but makes assumptions about
@@ -19,16 +17,16 @@ echo ">> Using ${CODEGEN_PKG}"
 TEMP_DIR=$(mktemp -d)
 cleanup() {
     echo ">> Removing ${TEMP_DIR}"
-    rm -rf ${TEMP_DIR}
+    rm -rf "${TEMP_DIR}"
 }
 trap "cleanup" EXIT SIGINT
 
 echo ">> Temporary output directory ${TEMP_DIR}"
 
 # Ensure we can execute.
-chmod +x ${CODEGEN_PKG}/generate-groups.sh
+chmod +x "${CODEGEN_PKG}"/generate-groups.sh
 
-GOPATH=$(go env GOPATH) ${CODEGEN_PKG}/generate-groups.sh deepcopy,defaulter \
+GOPATH=$(go env GOPATH) "${CODEGEN_PKG}"/generate-groups.sh deepcopy,defaulter \
     _ github.com/weaveworks/eksctl/pkg/apis \
     eksctl.io:v1alpha5 \
     --go-header-file <(printf "/*\n%s\n*/\n" "$(cat LICENSE)") \

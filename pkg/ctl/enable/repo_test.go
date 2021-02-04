@@ -202,7 +202,7 @@ var _ = Describe("enable repo", func() {
 			cmd := newMockEnableRepoCmd("repo", "-f", configFile)
 			_, err := cmd.Execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("git.repo.URL must be set"))
+			Expect(err.Error()).To(Equal("git.repo.url must be set"))
 		})
 
 		It("fails without a user email", func() {
@@ -223,6 +223,16 @@ var _ = Describe("enable repo", func() {
 			_, err := cmd.Execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("please supply a valid file for git.repo.privateSSHKeyPath: invalid path to private SSH key: non-existent-file"))
+		})
+
+		It("fails with new gitops configuration", func() {
+			cfg.GitOps = &api.GitOps{}
+			configFile = CreateConfigFile(cfg)
+
+			cmd := newMockEnableRepoCmd("repo", "-f", configFile)
+			_, err := cmd.Execute()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("config cannot be provided for gitops alongside git"))
 		})
 
 		It("loads the correct defaults", func() {

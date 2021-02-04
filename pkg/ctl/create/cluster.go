@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/pflag"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/weaveworks/eksctl/pkg/actions/create"
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -363,16 +363,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			params.KubeconfigPath = ""
 		}
 
-		// create Kubernetes client
-		clientSet, err := ctl.NewStdClientSet(cfg)
-		if err != nil {
-			return err
-		}
-
-		if err = ctl.WaitForControlPlane(meta, clientSet); err != nil {
-			return err
-		}
-
 		ngTasks := ctl.ClusterTasksForNodeGroups(cfg, params.InstallNeuronDevicePlugin, params.InstallNvidiaDevicePlugin)
 
 		logger.Info(ngTasks.Describe())
@@ -386,6 +376,12 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		}
 		logger.Success("all EKS cluster resources for %q have been created", meta.Name)
 
+		// create Kubernetes client
+		clientSet, err := ctl.NewStdClientSet(cfg)
+		if err != nil {
+			return err
+		}
+
 		for _, ng := range cfg.NodeGroups {
 			// authorise nodes to join
 			if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
@@ -397,7 +393,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 				return err
 			}
 
-			create.ShowDevicePluginMessageForNodeGroup(ng, params.InstallNeuronDevicePlugin, params.InstallNvidiaDevicePlugin)
+			nodegroup.ShowDevicePluginMessageForNodeGroup(ng, params.InstallNeuronDevicePlugin, params.InstallNvidiaDevicePlugin)
 		}
 
 		for _, ng := range cfg.ManagedNodeGroups {
@@ -406,7 +402,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			}
 		}
 
-		if cfg.HasGitopsRepoConfigured() {
+		if cfg.HasGitopsRepoConfigured() || cfg.HasGitOpsFluxConfigured() {
 			kubernetesClientConfigs, err := ctl.NewClient(cfg)
 			if err != nil {
 				return err

@@ -147,7 +147,14 @@
           "type": "array"
         },
         "git": {
-          "$ref": "#/definitions/Git"
+          "$ref": "#/definitions/Git",
+          "description": "exposes configuration for Flux v1 and an earlier iteration of gitops",
+          "x-intellij-html-description": "exposes configuration for Flux v1 and an earlier iteration of gitops"
+        },
+        "gitops": {
+          "$ref": "#/definitions/GitOps",
+          "description": "exposes configuration for Flux v2 and will continue to be used in future gitops plans, replacing the Git configuration above",
+          "x-intellij-html-description": "exposes configuration for Flux v2 and will continue to be used in future gitops plans, replacing the Git configuration above"
         },
         "iam": {
           "$ref": "#/definitions/ClusterIAM"
@@ -211,11 +218,19 @@
         "cloudWatch",
         "secretsEncryption",
         "status",
-        "git"
+        "git",
+        "gitops"
       ],
       "additionalProperties": false,
       "description": "a simple config, to be replaced with Cluster API",
-      "x-intellij-html-description": "a simple config, to be replaced with Cluster API"
+      "x-intellij-html-description": "a simple config, to be replaced with Cluster API",
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "eksctl.io",
+          "version": "v1alpha5",
+          "kind": "ClusterConfig"
+        }
+      ]
     },
     "ClusterEndpoints": {
       "properties": {
@@ -343,6 +358,9 @@
           "description": "AWS tags for the service account",
           "x-intellij-html-description": "AWS tags for the service account",
           "default": "{}"
+        },
+        "wellKnownPolicies": {
+          "$ref": "#/definitions/WellKnownPolicies"
         }
       },
       "preferredOrder": [
@@ -351,6 +369,7 @@
         "labels",
         "annotations",
         "attachPolicyARNs",
+        "wellKnownPolicies",
         "attachPolicy",
         "permissionsBoundary",
         "status",
@@ -662,6 +681,64 @@
       "description": "defines rules to select workload to schedule onto Fargate.",
       "x-intellij-html-description": "defines rules to select workload to schedule onto Fargate."
     },
+    "Flux": {
+      "properties": {
+        "authTokenPath": {
+          "type": "string",
+          "description": "Path to a file containing a Personal Access Token with repo permissions Not required if GITHUB_TOKEN or GITLAB_TOKEN set on the environment",
+          "x-intellij-html-description": "Path to a file containing a Personal Access Token with repo permissions Not required if GITHUB<em>TOKEN or GITLAB</em>TOKEN set on the environment"
+        },
+        "branch": {
+          "type": "string",
+          "description": "The name of the branch which Flux will commit to",
+          "x-intellij-html-description": "The name of the branch which Flux will commit to"
+        },
+        "gitProvider": {
+          "type": "string",
+          "description": "The repository hosting service. Can be either Github or Gitlab.",
+          "x-intellij-html-description": "The repository hosting service. Can be either Github or Gitlab."
+        },
+        "namespace": {
+          "type": "string",
+          "description": "The kubernetes namespace into which Flux v2 components will be deployed",
+          "x-intellij-html-description": "The kubernetes namespace into which Flux v2 components will be deployed"
+        },
+        "owner": {
+          "type": "string",
+          "description": "The Username or Org name under which Flux v2 will create a repo",
+          "x-intellij-html-description": "The Username or Org name under which Flux v2 will create a repo"
+        },
+        "path": {
+          "type": "string",
+          "description": "A relative path within the repository. Gitops sync will be scoped to files under this path",
+          "x-intellij-html-description": "A relative path within the repository. Gitops sync will be scoped to files under this path"
+        },
+        "personal": {
+          "type": "boolean",
+          "description": "If true, Flux will create the Gitops repo in a personal account. If false, Flux will create the Gitops repo in an org.",
+          "x-intellij-html-description": "If true, Flux will create the Gitops repo in a personal account. If false, Flux will create the Gitops repo in an org.",
+          "default": "false"
+        },
+        "repository": {
+          "type": "string",
+          "description": "The name of the repository which Flux v2 will create to store gitops configuration",
+          "x-intellij-html-description": "The name of the repository which Flux v2 will create to store gitops configuration"
+        }
+      },
+      "preferredOrder": [
+        "gitProvider",
+        "owner",
+        "repository",
+        "namespace",
+        "branch",
+        "path",
+        "personal",
+        "authTokenPath"
+      ],
+      "additionalProperties": false,
+      "description": "groups all configuration options related to a Git repository used for GitOps Toolkit (Flux v2).",
+      "x-intellij-html-description": "groups all configuration options related to a Git repository used for GitOps Toolkit (Flux v2)."
+    },
     "Git": {
       "properties": {
         "bootstrapProfile": {
@@ -671,13 +748,13 @@
         },
         "operator": {
           "$ref": "#/definitions/Operator",
-          "description": "[Enable Repo](/usage/gitops/#installing-flux)",
-          "x-intellij-html-description": "<a href=\"/usage/gitops/#installing-flux\">Enable Repo</a>"
+          "description": "[Enable Repo](/usage/gitops/#installing-flux-v1)",
+          "x-intellij-html-description": "<a href=\"/usage/gitops/#installing-flux-v1\">Enable Repo</a>"
         },
         "repo": {
           "$ref": "#/definitions/Repo",
-          "description": "[Enable Repo](/usage/gitops/#installing-flux)",
-          "x-intellij-html-description": "<a href=\"/usage/gitops/#installing-flux\">Enable Repo</a>"
+          "description": "[Enable Repo](/usage/gitops/#installing-flux-v1)",
+          "x-intellij-html-description": "<a href=\"/usage/gitops/#installing-flux-v1\">Enable Repo</a>"
         }
       },
       "preferredOrder": [
@@ -688,6 +765,21 @@
       "additionalProperties": false,
       "description": "groups all configuration options related to enabling GitOps on a cluster and linking it to a Git repository. [Gitops Guide](/gitops-quickstart/)",
       "x-intellij-html-description": "groups all configuration options related to enabling GitOps on a cluster and linking it to a Git repository. <a href=\"/gitops-quickstart/\">Gitops Guide</a>"
+    },
+    "GitOps": {
+      "properties": {
+        "flux": {
+          "$ref": "#/definitions/Flux",
+          "description": "[Enable Toolkit](/usage/gitops/#experimental-installing-gitops-toolkit-flux-v2)",
+          "x-intellij-html-description": "<a href=\"/usage/gitops/#experimental-installing-gitops-toolkit-flux-v2\">Enable Toolkit</a>"
+        }
+      },
+      "preferredOrder": [
+        "flux"
+      ],
+      "additionalProperties": false,
+      "description": "groups all configuration options related to enabling GitOps Toolkit on a cluster and linking it to a Git repository. Note: this will replace the older Git types",
+      "x-intellij-html-description": "groups all configuration options related to enabling GitOps Toolkit on a cluster and linking it to a Git repository. Note: this will replace the older Git types"
     },
     "InlineDocument": {
       "additionalProperties": {},
@@ -910,13 +1002,17 @@
           "x-intellij-html-description": "gigabytes",
           "default": 80
         },
+        "volumeThroughput": {
+          "type": "integer"
+        },
         "volumeType": {
           "type": "string",
-          "description": "Valid variants are: `\"gp2\"` is General Purpose SSD (default), `\"io1\"` is Provisioned IOPS SSD, `\"sc1\"` is Cold HDD, `\"st1\"` is Throughput Optimized HDD.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;gp2&quot;</code> is General Purpose SSD (default), <code>&quot;io1&quot;</code> is Provisioned IOPS SSD, <code>&quot;sc1&quot;</code> is Cold HDD, <code>&quot;st1&quot;</code> is Throughput Optimized HDD.",
-          "default": "gp2",
+          "description": "Valid variants are: `\"gp2\"` is General Purpose SSD, `\"gp3\"` is General Purpose SSD which can be optimised for high throughput (default), `\"io1\"` is Provisioned IOPS SSD, `\"sc1\"` is Cold HDD, `\"st1\"` is Throughput Optimized HDD.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;gp2&quot;</code> is General Purpose SSD, <code>&quot;gp3&quot;</code> is General Purpose SSD which can be optimised for high throughput (default), <code>&quot;io1&quot;</code> is Provisioned IOPS SSD, <code>&quot;sc1&quot;</code> is Cold HDD, <code>&quot;st1&quot;</code> is Throughput Optimized HDD.",
+          "default": "gp3",
           "enum": [
             "gp2",
+            "gp3",
             "io1",
             "sc1",
             "st1"
@@ -950,6 +1046,7 @@
         "volumeEncrypted",
         "volumeKmsKeyID",
         "volumeIOPS",
+        "volumeThroughput",
         "preBootstrapCommands",
         "overrideBootstrapCommand",
         "disableIMDSv1",
@@ -1194,13 +1291,17 @@
           "x-intellij-html-description": "gigabytes",
           "default": 80
         },
+        "volumeThroughput": {
+          "type": "integer"
+        },
         "volumeType": {
           "type": "string",
-          "description": "Valid variants are: `\"gp2\"` is General Purpose SSD (default), `\"io1\"` is Provisioned IOPS SSD, `\"sc1\"` is Cold HDD, `\"st1\"` is Throughput Optimized HDD.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;gp2&quot;</code> is General Purpose SSD (default), <code>&quot;io1&quot;</code> is Provisioned IOPS SSD, <code>&quot;sc1&quot;</code> is Cold HDD, <code>&quot;st1&quot;</code> is Throughput Optimized HDD.",
-          "default": "gp2",
+          "description": "Valid variants are: `\"gp2\"` is General Purpose SSD, `\"gp3\"` is General Purpose SSD which can be optimised for high throughput (default), `\"io1\"` is Provisioned IOPS SSD, `\"sc1\"` is Cold HDD, `\"st1\"` is Throughput Optimized HDD.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;gp2&quot;</code> is General Purpose SSD, <code>&quot;gp3&quot;</code> is General Purpose SSD which can be optimised for high throughput (default), <code>&quot;io1&quot;</code> is Provisioned IOPS SSD, <code>&quot;sc1&quot;</code> is Cold HDD, <code>&quot;st1&quot;</code> is Throughput Optimized HDD.",
+          "default": "gp3",
           "enum": [
             "gp2",
+            "gp3",
             "io1",
             "sc1",
             "st1"
@@ -1234,6 +1335,7 @@
         "volumeEncrypted",
         "volumeKmsKeyID",
         "volumeIOPS",
+        "volumeThroughput",
         "preBootstrapCommands",
         "overrideBootstrapCommand",
         "disableIMDSv1",
@@ -1702,6 +1804,50 @@
       "additionalProperties": false,
       "description": "defines the configuration for KMS encryption provider",
       "x-intellij-html-description": "defines the configuration for KMS encryption provider"
+    },
+    "WellKnownPolicies": {
+      "properties": {
+        "autoScaler": {
+          "type": "boolean",
+          "description": "adds policies for cluster-autoscaler. See [autoscaler AWS docs](https://docs.aws.amazon.com/eks/latest/userguide/cluster-autoscaler.html).",
+          "x-intellij-html-description": "adds policies for cluster-autoscaler. See <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/cluster-autoscaler.html\">autoscaler AWS docs</a>.",
+          "default": "false"
+        },
+        "awsLoadBalancerController": {
+          "type": "boolean",
+          "description": "adds policies for using the aws-load-balancer-controller. See [Load Balancer docs](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html).",
+          "x-intellij-html-description": "adds policies for using the aws-load-balancer-controller. See <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html\">Load Balancer docs</a>.",
+          "default": "false"
+        },
+        "certManager": {
+          "type": "boolean",
+          "description": "adds cert-manager policies. See [cert-manager docs](https://cert-manager.io/docs/configuration/acme/dns01/route53).",
+          "x-intellij-html-description": "adds cert-manager policies. See <a href=\"https://cert-manager.io/docs/configuration/acme/dns01/route53\">cert-manager docs</a>.",
+          "default": "false"
+        },
+        "externalDNS": {
+          "type": "boolean",
+          "description": "adds external-dns policies for Amazon Route 53. See [external-dns docs](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/aws.md).",
+          "x-intellij-html-description": "adds external-dns policies for Amazon Route 53. See <a href=\"https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/aws.md\">external-dns docs</a>.",
+          "default": "false"
+        },
+        "imageBuilder": {
+          "type": "boolean",
+          "description": "allows for full ECR (Elastic Container Registry) access.",
+          "x-intellij-html-description": "allows for full ECR (Elastic Container Registry) access.",
+          "default": "false"
+        }
+      },
+      "preferredOrder": [
+        "imageBuilder",
+        "autoScaler",
+        "awsLoadBalancerController",
+        "externalDNS",
+        "certManager"
+      ],
+      "additionalProperties": false,
+      "description": "for attaching common IAM policies",
+      "x-intellij-html-description": "for attaching common IAM policies"
     },
     "github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet": {
       "type": "string",

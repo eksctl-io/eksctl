@@ -197,7 +197,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *subnetDe
 }
 
 func (c *ClusterResourceSet) addResourcesForFargate() {
-	_ = AddResourcesForFargate(c.rs, c.spec)
+	_ = addResourcesForFargate(c.rs, c.spec)
 }
 
 // GetAllOutputs collects all outputs of the cluster

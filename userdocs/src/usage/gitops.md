@@ -4,15 +4,24 @@
 Kubernetes resources. With Git at the center of your delivery pipelines, developers can make pull requests to accelerate
 and simplify application deployments and operations tasks to Kubernetes.
 
-`eksctl` provides an easy way to set up gitops in an existing cluster with the `eksctl enable repo` command.
-
 [gitops]: https://www.weave.works/technologies/gitops/
 
+!!!new
+    Partial experimental support for [Flux v2 (part of the GitOps Toolkit)](https://toolkit.fluxcd.io/)
+    is available from `eksctl` version `0.38.0`. See [below](#experimental-installing-flux-v2-gitops-toolkit).
 
-### Installing Flux
+!!!warn
+    As full support for Flux v2 (GitOps Toolkit) is rolled out, Flux v1 (Repo, Operator, BootstrapProfile) functionality
+    will be deprecated. Any significant changes or disruptions will be noted in [releases](https://github.com/weaveworks/eksctl/releases).
 
-Installing Flux on the cluster is the first step towards a gitops workflow. To install it, you need a Git repository
-and an existing EKS cluster. Then run the following command:
+## Installing Flux v1
+
+`eksctl` provides an easy way to set up gitops in an existing cluster with the `eksctl enable repo` command.
+
+Installing Flux v1 on the cluster is the first step towards a gitops workflow.
+To install it, you need a Git repository.
+
+To install Flux v1 on an existing cluster, use the `enable repo` command:
 
 ```console
 eksctl enable repo --cluster=<cluster_name> --region=<region> --git-url=<git_repo> --git-email=<git_user_email>
@@ -46,9 +55,13 @@ git:
     revision: master
 ```
 
+Then:
 ```console
 eksctl enable repo -f cluster-21.yaml
 ```
+
+To install Flux v1 components into a new cluster as part of a `create cluster`
+operation, simply add the above configuration to your config file.
 
 Note that, by default, `eksctl enable repo` installs [Flux Helm Operator](https://github.com/fluxcd/helm-operator) with Helm v3 support.
 To disable the installation of the Helm Operator, pass the flag `--with-helm=false` or set `git.operator.withHelm` to `false`.
@@ -98,9 +111,7 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYYsPuHzo1L29u3zhr4uAOF29HNyMcS8zJmOTDNZC4
 
 ```
 
-At this point Flux and the Helm Operator should be installed in the specified cluster. The only thing left to
-do is to give Flux write access to the repository. Configure your repository to allow write access to that ssh key,
-for example, through the Deploy keys if it lives in GitHub.
+At this point Flux and the Helm Operator should be installed in the specified cluster.
 
 ```console
 $ kubectl get pods --namespace flux
@@ -110,6 +121,9 @@ memcached-958f745c-qdfgz
 flux-helm-operator-6bc7c85bb5-l2nzn
 ```
 
+The only thing left to do is to give Flux write access to the repository.
+Configure your repository to allow write access to that ssh key,
+for example, through the Deploy keys if it lives in GitHub.
 
 CLI arguments for `eksctl enable repo`
 
@@ -136,6 +150,64 @@ CLI arguments for `eksctl enable repo`
 
 To deploy a new workload on the cluster using gitops just add a kubernetes manifest to the repository. After a few
 minutes you should see the resources appearing in the cluster.
+
+## Experimental: Installing Flux v2 (GitOps Toolkit)
+
+From version `0.38.0`, `eksctl` provides an option to alternatively bootstrap [Flux v2](https://toolkit.fluxcd.io/)
+components into an EKS cluster, with the `enable flux` subcommand.
+
+```console
+eksctl enable flux --config-file <config-file>
+```
+
+Flux v2 configuration can only be provided via configuration file (note: only a subset
+of Flux v2 configuration is available through `eksctl` while this feature is experimental):
+
+```YAML
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-12
+  region: eu-north-1
+
+# other cluster config ...
+
+gitops:
+  flux:
+    gitProvider: github               # required. options are github or gitlab
+    owner: dr-who                     # required
+    repository: my-cluster-gitops     # required
+    personal: true                    # optional. if left false, assumes 'owner' is an org
+    branch: main                      # optional
+    namespace: "flux-system"          # optional
+    path: "clusters/cluster12"        # optional
+    authTokenPath: "/home/foo/token"  # optional. path to file containing PAT, if not set will draw from env
+```
+
+This example configuration can be found [here](https://github.com/weaveworks/eksctl/blob/master/examples/12-gitops-toolkit.yaml).
+
+!!!note
+    `gitops.flux` configuration cannot be provided alongside `git.repo`, `git.bootstrapProfile` or `git.operator` configuration.
+
+Flux will install default toolkit components to the cluster:
+
+```console
+kubectl get pods --namespace flux-system
+NAME                                       READY   STATUS    RESTARTS   AGE
+helm-controller-7cfb98d895-zmmfc           1/1     Running   0          3m30s
+kustomize-controller-557986cf44-2jwjh      1/1     Running   0          3m35s
+notification-controller-65694dc94d-rhbxk   1/1     Running   0          3m20s
+source-controller-7f856877cf-jgwdk         1/1     Running   0          3m39s
+```
+
+For instructions on how to use your newly installed Gitops Toolkit,
+refer to the [official docs](https://toolkit.fluxcd.io/).
+
+!!!warning
+    Flux v2 support for Quickstart profiles is not yet supported by `eksctl`.
+    BootstrapProfile configuration cannot be provided alongside Flux v2 configuration.
 
 ## Installing a Quickstart profile in your cluster
 
@@ -259,6 +331,10 @@ All CLI arguments:
 | `--git-private-ssh-key-path` |               | string | optional       | Optional path to the private SSH key to use with the gitops repo |
 
 
+!!!note
+    Quickstart profiles can only be applied when used with Flux v1 (`git.repo`).
+    Support for profiles with Flux v2 (`gitops.flux`) is not yet available.
+
 #### Further reading
 
 To learn more about gitops and Flux, check the [Flux documentation][flux].
@@ -345,6 +421,10 @@ git push origin master
 
 After a few minutes, Flux and Helm should have installed all the components in your cluster.
 
+!!!note
+    Quickstart profiles can only be applied when used with Flux v1 (`git.repo`).
+    Support for profiles with Flux v2 (`gitops.flux`) is not yet available.
+
 ## Creating your own Quick Start profile
 
 A Quick Start profile is a Git repository that contains Kubernetes manifests that can be installed in a cluster using
@@ -416,6 +496,10 @@ eksctl enable profile --cluster team1 --region eu-west-1 --git-url git@github.co
 In this example we provide `github.com:myorg/production-infra` as the Quick Start profile and
 `github.com:myorg/team1-cluster` as the gitops repository that is connected to the Flux instance in the cluster named
 `cluster1`.
+
+!!!note
+    Quickstart profiles can only be applied when used with Flux v1 (`git.repo`).
+    Support for profiles with Flux v2 (`gitops.flux`) is not yet available.
 
 
 For a full example of a Quick Start profile, check out [App Dev][app-dev].

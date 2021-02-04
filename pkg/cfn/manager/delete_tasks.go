@@ -53,6 +53,9 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvid
 	if err != nil {
 		return nil, err
 	}
+	if clusterStack == nil {
+		return nil, c.ErrStackNotFound()
+	}
 
 	info := fmt.Sprintf("delete cluster control plane %q", c.spec.Metadata.Name)
 	if wait {
@@ -156,7 +159,7 @@ func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(shouldDelete func(s
 			Parallel:  false,
 			IsSubTask: true,
 		}
-		name := c.GetIAMServiceAccountName(s)
+		name := GetIAMServiceAccountName(s)
 
 		if !shouldDelete(name) {
 			continue

@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 	giturls "github.com/whilp/git-urls"
 
-	"github.com/weaveworks/eksctl/pkg/git/executor"
+	"github.com/weaveworks/eksctl/pkg/executor"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
 
@@ -47,15 +47,15 @@ func NewGitClient(params ClientParams) *Client {
 	}
 }
 
-func envVars(params ClientParams) []string {
-	envVars := []string{
-		fmt.Sprintf("PATH=%s", os.Getenv("PATH")),
+func envVars(params ClientParams) executor.EnvVars {
+	envVars := executor.EnvVars{
+		"PATH": os.Getenv("PATH"),
 	}
 	if sshAuthSock, ok := os.LookupEnv("SSH_AUTH_SOCK"); ok {
-		envVars = append(envVars, fmt.Sprintf("SSH_AUTH_SOCK=%s", sshAuthSock))
+		envVars["SSH_AUTH_SOCK"] = sshAuthSock
 	}
 	if params.PrivateSSHKeyPath != "" {
-		envVars = append(envVars, fmt.Sprintf("GIT_SSH_COMMAND=ssh -i %s", params.PrivateSSHKeyPath))
+		envVars["GIT_SSH_COMMAND"] = "ssh -i " + params.PrivateSSHKeyPath
 	}
 	return envVars
 }
@@ -72,6 +72,12 @@ type CloneOptions struct {
 	URL       string
 	Branch    string
 	Bootstrap bool // create the branch if the repository is empty
+}
+
+// WithDir directly sets the Client to use a directory, without havine to clone
+// it
+func (git *Client) WithDir(dir string) {
+	git.dir = dir
 }
 
 // CloneRepoInTmpDir clones a repo specified in the gitURL in a temporary directory and checks out the specified branch
@@ -183,6 +189,10 @@ func (git Client) Push() error {
 	return err
 }
 
+func (git Client) DeleteRemoteBranch(branch string) error {
+	return git.runGitCmd("push", "origin", "--delete", branch)
+}
+
 // DeleteLocalRepo deletes the local copy of a repository, including the directory
 func (git Client) DeleteLocalRepo() error {
 	if git.dir != "" {
@@ -193,7 +203,7 @@ func (git Client) DeleteLocalRepo() error {
 
 func (git Client) runGitCmd(args ...string) error {
 	logger.Debug(fmt.Sprintf("running git %v in %s", args, git.dir))
-	return git.executor.Exec("git", git.dir, args...)
+	return git.executor.ExecInDir("git", git.dir, args...)
 }
 
 // RepoName returns the name of the repository given its URL

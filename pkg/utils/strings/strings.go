@@ -1,8 +1,15 @@
 package strings
 
+import "strings"
+
 // Pointer returns a pointer to the provided string.
 func Pointer(s string) *string {
 	return &s
+}
+
+// HasPrefix tests whether the string s begins with prefix.
+func HasPrefix(s, prefix string) bool {
+	return strings.HasPrefix(s, prefix)
 }
 
 // NilIfEmpty returns nil if the provided string is empty, or else a pointer to

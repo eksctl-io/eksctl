@@ -22,6 +22,9 @@ func (c *StackCollection) FixClusterCompatibility() error {
 	if err != nil {
 		return err
 	}
+	if stack == nil {
+		return c.ErrStackNotFound()
+	}
 
 	var (
 		clusterDefaultSG string

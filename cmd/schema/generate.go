@@ -9,6 +9,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io"
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	schemapkg "github.com/weaveworks/eksctl/pkg/schema"
+	"github.com/weaveworks/eksctl/pkg/schema/definition"
 )
 
 func main() {
@@ -36,6 +37,11 @@ func main() {
 		t.HTMLDescription = ""
 	}
 	cc.Required = append(cc.Required, "kind", "apiVersion")
+	cc.KubernetesGvk = append(cc.KubernetesGvk, &definition.GroupVersionKind{
+		Group:   api.GroupName,
+		Version: v1alpha5.CurrentGroupVersion,
+		Kind:    "ClusterConfig",
+	})
 
 	bytes, err := schemapkg.ToJSON(schema)
 	if err != nil {

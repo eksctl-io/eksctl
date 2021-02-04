@@ -19,7 +19,7 @@ var _ = Describe("CloudFormation template", func() {
 
 		roleRef := t.NewResource("aRole", &IAMRole{
 			RoleName:          "foo",
-			ManagedPolicyArns: []string{"abc"},
+			ManagedPolicyArns: []interface{}{"abc"},
 		})
 
 		t.Outputs["aRole"] = Output{

@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -36,21 +39,40 @@ func (t *clusterConfigTask) Do(errs chan error) error {
 	return err
 }
 
-type vpcControllerTask struct {
-	info            string
-	clusterProvider *ClusterProvider
-	spec            *api.ClusterConfig
+// VPCControllerTask represents a task to install the VPC controller
+type VPCControllerTask struct {
+	Info            string
+	ClusterProvider *ClusterProvider
+	ClusterConfig   *api.ClusterConfig
+	PlanMode        bool
 }
 
-func (v *vpcControllerTask) Describe() string { return v.info }
+// Describe implements Task
+func (v *VPCControllerTask) Describe() string { return v.Info }
 
-func (v *vpcControllerTask) Do(errCh chan error) error {
+// Do implements Task
+func (v *VPCControllerTask) Do(errCh chan error) error {
 	defer close(errCh)
-	rawClient, err := v.clusterProvider.NewRawClient(v.spec)
+	rawClient, err := v.ClusterProvider.NewRawClient(v.ClusterConfig)
 	if err != nil {
 		return err
 	}
-	vpcController := addons.NewVPCController(rawClient, v.spec.Status, v.clusterProvider.Provider.Region(), false)
+	oidc, err := v.ClusterProvider.NewOpenIDConnectManager(v.ClusterConfig)
+	if err != nil {
+		return err
+	}
+
+	stackCollection := manager.NewStackCollection(v.ClusterProvider.Provider, v.ClusterConfig)
+
+	clientSet, err := v.ClusterProvider.NewStdClientSet(v.ClusterConfig)
+	if err != nil {
+		return err
+	}
+	irsaManager := irsa.New(v.ClusterConfig.Metadata.Name, stackCollection, oidc, clientSet)
+	irsa := addons.NewIRSAHelper(oidc, stackCollection, irsaManager, v.ClusterConfig.Metadata.Name)
+
+	// TODO PlanMode doesn't work as intended
+	vpcController := addons.NewVPCController(rawClient, irsa, v.ClusterConfig.Status, v.ClusterProvider.Provider.Region(), v.PlanMode)
 	if err := vpcController.Deploy(); err != nil {
 		return errors.Wrap(err, "error installing VPC controller")
 	}
@@ -148,6 +170,18 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 		Parallel:  false,
 		IsSubTask: true,
 	}
+
+	newTasks.Append(&tasks.GenericTask{
+		Description: "wait for control plane to become ready",
+		Doer: func() error {
+			clientSet, err := c.NewStdClientSet(cfg)
+			if err != nil {
+				return errors.Wrap(err, "error creating Clientset")
+			}
+			return c.WaitForControlPlane(cfg.Metadata, clientSet)
+		},
+	})
+
 	if len(cfg.Metadata.Tags) > 0 {
 		newTasks.Append(&clusterConfigTask{
 			info: "tag cluster",
@@ -176,25 +210,26 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 		})
 	}
 
-	if installVPCController {
-		newTasks.Append(&vpcControllerTask{
-			info:            "install Windows VPC controller",
-			spec:            cfg,
-			clusterProvider: c,
-		})
-	}
-
 	if cfg.IsFargateEnabled() {
+		manager := fargate.NewFromProvider(cfg.Metadata.Name, c.Provider)
 		newTasks.Append(&fargateProfilesTask{
 			info:            "create fargate profiles",
 			spec:            cfg,
 			clusterProvider: c,
-			awsClient:       fargate.NewClientWithWaitTimeout(cfg.Metadata.Name, c.Provider.EKS(), c.Provider.WaitTimeout()),
+			manager:         &manager,
 		})
 	}
 
 	if api.IsEnabled(cfg.IAM.WithOIDC) {
 		c.appendCreateTasksForIAMServiceAccounts(cfg, newTasks)
+	}
+
+	if installVPCController {
+		newTasks.Append(&VPCControllerTask{
+			Info:            "install Windows VPC controller",
+			ClusterConfig:   cfg,
+			ClusterProvider: c,
+		})
 	}
 
 	return newTasks
@@ -212,7 +247,9 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 	}
 	var haveNvidiaInstanceType bool
 	for _, ng := range cfg.NodeGroups {
-		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceType(ng, utils.IsGPUInstanceType)
+		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceType(ng, func(t string) bool {
+			return utils.IsGPUInstanceType(t) && !utils.IsInferentiaInstanceType(t)
+		})
 	}
 	if haveNeuronInstanceType && installNeuronDevicePluginParam {
 		tasks.Append(newNeuronDevicePluginTask(c, cfg))
@@ -267,7 +304,7 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 	// given a clientSet getter and OpenIDConnectManager reference we can build out
 	// the list of tasks for each of the service accounts that need to be created
 	newTasks := c.NewStackManager(cfg).NewTasksToCreateIAMServiceAccounts(
-		api.IAMServiceAccountsWithAWSNodeServiceAccount(cfg),
+		api.IAMServiceAccountsWithImplicitServiceAccounts(cfg),
 		oidcPlaceholder,
 		clientSet,
 	)

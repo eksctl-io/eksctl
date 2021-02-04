@@ -61,7 +61,6 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGrou
 
 func incompatibleManagedNodesFlags() []string {
 	return []string{
-		"node-volume-type",
 		"max-pods-per-node",
 		"node-ami",
 		"node-security-groups",

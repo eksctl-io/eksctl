@@ -3,6 +3,7 @@ package filter
 import (
 	"bytes"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/stretchr/testify/mock"
 
@@ -274,14 +275,13 @@ func addGroupA(cfg *api.ClusterConfig) {
 
 	var (
 		ng1aVolSize = 768
-		ng1aVolType = api.NodeVolumeTypeIO1
-		ng1aVolIOPS = 200
+		ng1aVolIOPS = 100
 	)
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng1a"
 	ng.VolumeSize = &ng1aVolSize
-	ng.VolumeType = &ng1aVolType
+	ng.VolumeType = aws.String(api.NodeVolumeTypeIO1)
 	ng.VolumeIOPS = &ng1aVolIOPS
 	ng.IAM.AttachPolicyARNs = []string{"arn:aws:iam::aws:policy/Foo"}
 	ng.Labels = map[string]string{"group": "a", "seq": "1"}
@@ -289,6 +289,7 @@ func addGroupA(cfg *api.ClusterConfig) {
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng2a"
+	ng.VolumeType = aws.String(api.NodeVolumeTypeGP2)
 	ng.IAM.AttachPolicyARNs = []string{"arn:aws:iam::aws:policy/Bar"}
 	ng.Labels = map[string]string{"group": "a", "seq": "2"}
 	ng.SSH = nil
@@ -370,7 +371,7 @@ const expected = `
 			  "volumeSize": 768,
 			  "volumeType": "io1",
               "AdditionalEncryptedVolume": "",
-			  "volumeIOPS": 200,
+			  "volumeIOPS": 100,
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
 				"alpha.eksctl.io/nodegroup-name": "test-ng1a",
@@ -455,7 +456,9 @@ const expected = `
 			    "withLocal": true
 			  },
 			  "volumeSize": 80,
-			  "volumeType": "gp2",
+			  "volumeType": "gp3",
+				"volumeIOPS": 3000,
+				"volumeThroughput": 125,
               "AdditionalEncryptedVolume": "",
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
@@ -497,7 +500,9 @@ const expected = `
 			    "withLocal": true
 			  },
 			  "volumeSize": 80,
-			  "volumeType": "gp2",
+			  "volumeType": "gp3",
+				"volumeIOPS": 3000,
+				"volumeThroughput": 125,
               "AdditionalEncryptedVolume": "",
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
@@ -542,7 +547,9 @@ const expected = `
 			    "withLocal": false
 			  },
 			  "volumeSize": 80,
-			  "volumeType": "gp2",
+			  "volumeType": "gp3",
+				"volumeIOPS": 3000,
+				"volumeThroughput": 125,
               "AdditionalEncryptedVolume": "",
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
@@ -587,7 +594,9 @@ const expected = `
 			    "withLocal": false
 			  },
 			  "volumeSize": 192,
-			  "volumeType": "gp2",
+			  "volumeType": "gp3",
+				"volumeIOPS": 3000,
+				"volumeThroughput": 125,
               "AdditionalEncryptedVolume": "",
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",

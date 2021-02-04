@@ -249,8 +249,10 @@ const (
 
 // Values for `VolumeType`
 const (
-	// NodeVolumeTypeGP2 is General Purpose SSD (default)
+	// NodeVolumeTypeGP2 is General Purpose SSD
 	NodeVolumeTypeGP2 = "gp2"
+	// NodeVolumeTypeGP3 is General Purpose SSD which can be optimised for high throughput (default)
+	NodeVolumeTypeGP3 = "gp3"
 	// NodeVolumeTypeIO1 is Provisioned IOPS SSD
 	NodeVolumeTypeIO1 = "io1"
 	// NodeVolumeTypeSC1 is Cold HDD
@@ -269,6 +271,12 @@ const (
 	NodeGroupTypeUnmanaged NodeGroupType = "unmanaged"
 	// NodeGroupTypeUnowned defines an unowned managed nodegroup
 	NodeGroupTypeUnowned NodeGroupType = "unowned"
+	// DefaultNodeVolumeThroughput defines the default throughput for gp3 volumes, set to the min value
+	DefaultNodeVolumeThroughput = 125
+	// DefaultNodeVolumeIO1IOPS defines the default throughput for io1 volumes, set to the min value
+	DefaultNodeVolumeIO1IOPS = 100
+	// DefaultNodeVolumeGP3IOPS defines the default throughput for gp3, set to the min value
+	DefaultNodeVolumeGP3IOPS = 3000
 )
 
 var (
@@ -279,7 +287,7 @@ var (
 	DefaultNodeSSHPublicKeyPath = "~/.ssh/id_rsa.pub"
 
 	// DefaultNodeVolumeType defines the default root volume type to use
-	DefaultNodeVolumeType = NodeVolumeTypeGP2
+	DefaultNodeVolumeType = NodeVolumeTypeGP3
 
 	// DefaultNodeVolumeSize defines the default root volume size
 	DefaultNodeVolumeSize = 80
@@ -397,6 +405,7 @@ func IsSupportedVersion(version string) bool {
 func SupportedNodeVolumeTypes() []string {
 	return []string{
 		NodeVolumeTypeGP2,
+		NodeVolumeTypeGP3,
 		NodeVolumeTypeIO1,
 		NodeVolumeTypeSC1,
 		NodeVolumeTypeST1,
@@ -593,8 +602,14 @@ type ClusterConfig struct {
 
 	Status *ClusterStatus `json:"status,omitempty"`
 
+	// Git exposes configuration for Flux v1 and an earlier iteration of gitops
 	// +optional
 	Git *Git `json:"git,omitempty"`
+
+	// GitOps exposes configuration for Flux v2 and will continue to be used in
+	// future gitops plans, replacing the Git configuration above
+	// +optional
+	GitOps *GitOps `json:"gitops,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -799,15 +814,22 @@ func (n *NodeGroup) BaseNodeGroup() *NodeGroupBase {
 	return n.NodeGroupBase
 }
 
+// GitOps groups all configuration options related to enabling GitOps Toolkit on a
+// cluster and linking it to a Git repository.
+// Note: this will replace the older Git types
+type GitOps struct {
+	// [Enable Toolkit](/usage/gitops/#experimental-installing-gitops-toolkit-flux-v2)
+	Flux *Flux `json:"flux,omitempty"`
+}
+
 // Git groups all configuration options related to enabling GitOps on a
 // cluster and linking it to a Git repository.
 // [Gitops Guide](/gitops-quickstart/)
 type Git struct {
-
-	// [Enable Repo](/usage/gitops/#installing-flux)
+	// [Enable Repo](/usage/gitops/#installing-flux-v1)
 	Repo *Repo `json:"repo,omitempty"`
 
-	// [Enable Repo](/usage/gitops/#installing-flux)
+	// [Enable Repo](/usage/gitops/#installing-flux-v1)
 	// +optional
 	Operator Operator `json:"operator,omitempty"`
 
@@ -823,6 +845,42 @@ func NewGit() *Git {
 		Operator:         Operator{},
 		BootstrapProfile: &Profile{},
 	}
+}
+
+// Flux groups all configuration options related to a Git repository used for
+// GitOps Toolkit (Flux v2).
+type Flux struct {
+	// The repository hosting service. Can be either Github or Gitlab.
+	GitProvider string `json:"gitProvider,omitempty"`
+
+	// The Username or Org name under which Flux v2 will create a repo
+	Owner string `json:"owner,omitempty"`
+
+	// The name of the repository which Flux v2 will create to store gitops configuration
+	Repository string `json:"repository,omitempty"`
+
+	// The kubernetes namespace into which Flux v2 components will be deployed
+	// +optional
+	Namespace string `json:"namespace,omitempty"`
+
+	// The name of the branch which Flux will commit to
+	// +optional
+	Branch string `json:"branch,omitempty"`
+
+	// A relative path within the repository. Gitops sync will be scoped to files
+	// under this path
+	// +optional
+	Path string `json:"path,omitempty"`
+
+	// If true, Flux will create the Gitops repo in a personal account.
+	// If false, Flux will create the Gitops repo in an org.
+	// +optional
+	Personal bool `json:"personal,omitempty"`
+
+	// Path to a file containing a Personal Access Token with repo permissions
+	// Not required if GITHUB_TOKEN or GITLAB_TOKEN set on the environment
+	// +optional
+	AuthTokenPath string `json:"authTokenPath,omitempty"`
 }
 
 // Repo groups all configuration options related to a Git repository used for
@@ -915,6 +973,11 @@ func (c *ClusterConfig) HasBootstrapProfile() bool {
 // HasGitopsRepoConfigured returns true if there is a profile with a source specified
 func (c *ClusterConfig) HasGitopsRepoConfigured() bool {
 	return c.Git != nil && c.Git.Repo != nil && c.Git.Repo.URL != ""
+}
+
+// HasGitOpsFluxConfigured returns true if there is a profile with a source specified
+func (c *ClusterConfig) HasGitOpsFluxConfigured() bool {
+	return c.GitOps != nil && c.GitOps.Flux != nil
 }
 
 type (
@@ -1146,6 +1209,8 @@ type NodeGroupBase struct {
 	VolumeKmsKeyID *string `json:"volumeKmsKeyID,omitempty"`
 	// +optional
 	VolumeIOPS *int `json:"volumeIOPS,omitempty"`
+	// +optional
+	VolumeThroughput *int `json:"volumeThroughput,omitempty"`
 
 	// PreBootstrapCommands are executed before bootstrapping instances to the
 	// cluster

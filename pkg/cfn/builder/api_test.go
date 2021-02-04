@@ -1066,13 +1066,22 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(policy2.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"route53:ListResourceRecordSets",
 				"route53:ListHostedZonesByName",
+			}))
+
+			policy3 := ngTemplate.Resources["PolicyExternalDNSHostedZones"].Properties
+
+			Expect(policy3.Roles).To(HaveLen(1))
+			isRefTo(policy3.Roles[0], "NodeInstanceRole")
+			Expect(policy3.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy3.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy3.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(policy3.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"route53:ListHostedZones",
+				"route53:ListResourceRecordSets",
 				"route53:ListTagsForResource",
 			}))
 
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAutoScaling"))
-			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyExternalDNSChangeSet"))
-			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyExternalDNSHostedZones"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAppMesh"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAppMeshPreview"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEBS"))
@@ -1314,12 +1323,20 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(policy.PolicyDocument.Statement).To(HaveLen(7))
 
 			Expect(policy.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(policy.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:ec2:*:*:security-group/*"))
+			Expect(policy.PolicyDocument.Statement[0].Resource).To(Equal(
+				map[string]interface{}{
+					"Fn::Sub": "arn:${AWS::Partition}:ec2:*:*:security-group/*",
+				},
+			))
 			Expect(policy.PolicyDocument.Statement[0].Action).To(Equal([]string{"ec2:CreateTags"}))
 			Expect(policy.PolicyDocument.Statement[0].Condition).To(HaveLen(2))
 
 			Expect(policy.PolicyDocument.Statement[1].Effect).To(Equal("Allow"))
-			Expect(policy.PolicyDocument.Statement[1].Resource).To(Equal("arn:aws:ec2:*:*:security-group/*"))
+			Expect(policy.PolicyDocument.Statement[1].Resource).To(Equal(
+				map[string]interface{}{
+					"Fn::Sub": "arn:${AWS::Partition}:ec2:*:*:security-group/*",
+				},
+			))
 			Expect(policy.PolicyDocument.Statement[1].Action).To(Equal([]string{"ec2:CreateTags", "ec2:DeleteTags"}))
 			Expect(policy.PolicyDocument.Statement[1].Condition).To(HaveLen(1))
 
@@ -1333,9 +1350,15 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(policy.PolicyDocument.Statement[3].Effect).To(Equal("Allow"))
 			Expect(policy.PolicyDocument.Statement[3].Resource).To(Equal([]interface{}{
-				"arn:aws:elasticloadbalancing:*:*:targetgroup/*/*",
-				"arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*/*",
-				"arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*/*",
+				map[string]interface{}{
+					"Fn::Sub": "arn:${AWS::Partition}:elasticloadbalancing:*:*:targetgroup/*/*",
+				},
+				map[string]interface{}{
+					"Fn::Sub": "arn:${AWS::Partition}:elasticloadbalancing:*:*:loadbalancer/net/*/*",
+				},
+				map[string]interface{}{
+					"Fn::Sub": "arn:${AWS::Partition}:elasticloadbalancing:*:*:loadbalancer/app/*/*",
+				},
 			}))
 			Expect(policy.PolicyDocument.Statement[3].Action).To(Equal([]string{
 				"elasticloadbalancing:AddTags",
@@ -1361,7 +1384,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(policy.PolicyDocument.Statement[4].Condition).To(HaveLen(1))
 
 			Expect(policy.PolicyDocument.Statement[5].Effect).To(Equal("Allow"))
-			Expect(policy.PolicyDocument.Statement[5].Resource).To(Equal("arn:aws:elasticloadbalancing:*:*:targetgroup/*/*"))
+			Expect(policy.PolicyDocument.Statement[5].Resource).To(Equal(
+				map[string]interface{}{
+					"Fn::Sub": "arn:${AWS::Partition}:elasticloadbalancing:*:*:targetgroup/*/*",
+				},
+			))
 			Expect(policy.PolicyDocument.Statement[5].Action).To(Equal([]string{
 				"elasticloadbalancing:RegisterTargets",
 				"elasticloadbalancing:DeregisterTargets",

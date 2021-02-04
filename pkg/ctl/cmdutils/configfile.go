@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/util/sets"
 
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -213,22 +214,44 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 		}
 
 		if clusterConfig.HasAnySubnets() && len(clusterConfig.AvailabilityZones) != 0 {
-			return fmt.Errorf("vpc.subnets and availabilityZones cannot be set at the same time")
+			return errors.New("vpc.subnets and availabilityZones cannot be set at the same time")
+		}
+
+		if clusterConfig.GitOps != nil && clusterConfig.Git != nil {
+			return errors.New("git cannot be configured alongside gitops")
+		}
+
+		if clusterConfig.GitOps != nil {
+			fluxCfg := clusterConfig.GitOps.Flux
+
+			if fluxCfg != nil {
+				if fluxCfg.GitProvider == "" {
+					return ErrMustBeSet("gitops.flux.gitProvider")
+				}
+				if fluxCfg.Owner == "" {
+					return ErrMustBeSet("gitops.flux.owner")
+				}
+				if fluxCfg.Repository == "" {
+					return ErrMustBeSet("gitops.flux.repo")
+				}
+			}
 		}
 
 		if clusterConfig.Git != nil {
 			repo := clusterConfig.Git.Repo
-			if repo == nil || repo.URL == "" {
-				return ErrMustBeSet("git.repo.URL")
-			}
+			if repo != nil {
+				if repo.URL == "" {
+					return ErrMustBeSet("git.repo.url")
+				}
 
-			if repo.Email == "" {
-				return ErrMustBeSet("git.repo.email")
-			}
+				if repo.Email == "" {
+					return ErrMustBeSet("git.repo.email")
+				}
 
-			profile := clusterConfig.Git.BootstrapProfile
-			if profile != nil && profile.Source == "" {
-				return ErrMustBeSet("git.bootstrapProfile.source")
+				profile := clusterConfig.Git.BootstrapProfile
+				if profile != nil && profile.Source == "" {
+					return ErrMustBeSet("git.bootstrapProfile.source")
+				}
 			}
 		}
 
@@ -608,7 +631,7 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *filter.IAMServiceAccou
 }
 
 // NewGetIAMServiceAccountLoader will load config or use flags for 'eksctl get iamserviceaccount'
-func NewGetIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount) ClusterConfigLoader {
+func NewGetIAMServiceAccountLoader(cmd *Cmd, options *irsa.GetOptions) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.validateWithConfigFile = func() error {
@@ -619,18 +642,14 @@ func NewGetIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount) C
 	}
 
 	l.validateWithoutConfigFile = func() error {
-		sa.AttachPolicyARNs = []string{""} // force to pass general validation
-
 		if l.ClusterConfig.Metadata.Name == "" {
 			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
-
-		if l.NameArg != "" {
-			sa.Name = l.NameArg
+		if options.Name != "" && l.NameArg != "" {
+			return ErrFlagAndArg("--name", options.Name, l.NameArg)
 		}
-
-		if sa.Name == "" {
-			l.ClusterConfig.IAM.ServiceAccounts = nil
+		if options.Name == "" && cmd.NameArg != "" {
+			options.Name = cmd.NameArg
 		}
 
 		l.Plan = false

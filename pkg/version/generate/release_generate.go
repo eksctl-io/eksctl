@@ -38,8 +38,11 @@ func main() {
 		// Print simplified version X.Y.Z
 		fmt.Println(version.Version)
 		return
+	case "print-major-minor-version":
+		fmt.Println(printMajorMinor())
+		return
 	default:
-		log.Fatalf("unknown option %q. Expected 'release', 'release-candidate', 'development' or 'print-version'", command)
+		log.Fatalf("unknown option %q. Expected 'release', 'release-candidate', 'development', 'print-version' or 'print-major-minor-version'", command)
 	}
 
 	if err := writeVersionToFile(newVersion, newPreRelease, versionFilename); err != nil {
@@ -66,6 +69,11 @@ func prepareReleaseCandidate() (string, string) {
 		return version.Version, fmt.Sprintf("rc.%d", newRC)
 	}
 	return version.Version, defaultReleaseCandidate
+}
+
+func printMajorMinor() string {
+	ver := semver.MustParse(version.Version)
+	return fmt.Sprintf("%v.%v", ver.Major, ver.Minor)
 }
 
 func nextDevelopmentIteration() (string, string) {

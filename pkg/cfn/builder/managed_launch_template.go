@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"strings"
 
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 
@@ -111,8 +112,15 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 		if api.IsSetAndNonEmptyString(mng.VolumeKmsKeyID) {
 			mapping.Ebs.KmsKeyId = gfnt.NewString(*mng.VolumeKmsKeyID)
 		}
-		if *mng.VolumeType == api.NodeVolumeTypeIO1 {
-			mapping.Ebs.Iops = gfnt.NewInteger(*mng.VolumeIOPS)
+
+		if *mng.VolumeType == api.NodeVolumeTypeIO1 || *mng.VolumeType == api.NodeVolumeTypeGP3 {
+			if mng.VolumeIOPS != nil {
+				mapping.Ebs.Iops = gfnt.NewInteger(*mng.VolumeIOPS)
+			}
+		}
+
+		if *mng.VolumeType == api.NodeVolumeTypeGP3 && mng.VolumeThroughput != nil {
+			mapping.Ebs.Throughput = gfnt.NewInteger(*mng.VolumeThroughput)
 		}
 
 		if mng.VolumeName != nil {
@@ -159,11 +167,24 @@ func createMimeMessage(writer io.Writer, scripts []string, mimeBoundary string) 
 	return mw.Close()
 }
 
+func makeCustomAMIUserData(ng *api.NodeGroupBase) (string, error) {
+	if ng.OverrideBootstrapCommand != nil {
+		return base64.StdEncoding.EncodeToString([]byte(*ng.OverrideBootstrapCommand)), nil
+	}
+
+	return "", nil
+}
+
 func makeUserData(ng *api.NodeGroupBase, mimeBoundary string) (string, error) {
 	var (
 		buf     bytes.Buffer
 		scripts []string
 	)
+
+	// We don't use MIME format when launching managed nodegroups with a custom AMI
+	if strings.HasPrefix(ng.AMI, "ami-") {
+		return makeCustomAMIUserData(ng)
+	}
 
 	if ng.SSH.EnableSSM != nil && *ng.SSH.EnableSSM {
 		installSSMScript, err := nodebootstrap.Asset("install-ssm.al2.sh")

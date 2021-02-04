@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -45,7 +45,7 @@ func (c *ClusterProvider) DescribeControlPlane(meta *api.ClusterMeta) (*awseks.C
 }
 
 // RefreshClusterStatus calls c.DescribeControlPlane and caches the results;
-// it parses the credentials (endpoint, CA certificate) and stores them in spec.Status,
+// it parses the credentials (endpoint, CA certificate) and stores them in ClusterConfig.Status,
 // so that a Kubernetes client can be constructed; additionally it caches Kubernetes
 // version (use ctl.ControlPlaneVersion to retrieve it) and other properties in
 // c.Status.cachedClusterInfo
@@ -198,7 +198,7 @@ func (c *ClusterProvider) CanDelete(spec *api.ClusterConfig) (bool, error) {
 func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
 	err := c.maybeRefreshClusterStatus(spec)
 	if err != nil {
-		return false, errors.Wrapf(err, "fetching cluster status to determine operability")
+		return false, errors.Wrapf(err, "unable to fetch cluster status to determine operability")
 	}
 
 	switch status := *c.Status.ClusterInfo.Cluster.Status; status {
@@ -282,9 +282,13 @@ func (c *ClusterProvider) LoadClusterIntoSpec(spec *api.ClusterConfig) error {
 
 // LoadClusterVPC loads the VPC configuration
 func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig) error {
-	stack, err := c.NewStackManager(spec).DescribeClusterStack()
+	stackManager := c.NewStackManager(spec)
+	stack, err := stackManager.DescribeClusterStack()
 	if err != nil {
 		return err
+	}
+	if stack == nil {
+		return stackManager.ErrStackNotFound()
 	}
 
 	return vpc.UseFromCluster(c.Provider, stack, spec)
@@ -332,6 +336,12 @@ func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*a
 func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, error) {
 	allClusters := []*api.ClusterConfig{}
 
+	spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: ""}}
+	allStacks, err := c.NewStackManager(spec).ListClusterStackNames()
+	if err != nil {
+		return nil, err
+	}
+
 	token := ""
 	for {
 		clusters, nextToken, err := c.getClustersRequest(chunkSize, token)
@@ -341,12 +351,12 @@ func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, e
 
 		for _, clusterName := range clusters {
 			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: *clusterName}}
-			stacks, err := c.NewStackManager(spec).ListStacks()
+			hasClusterStack, err := c.NewStackManager(spec).HasClusterStackUsingCachedList(allStacks)
 			managed := eksctlCreatedFalse
 			if err != nil {
 				managed = eksctlCreatedUnknown
 				logger.Warning("error fetching stacks for cluster %s: %v", clusterName, err)
-			} else if manager.IsClusterStack(stacks) {
+			} else if hasClusterStack {
 				managed = eksctlCreatedTrue
 			}
 			allClusters = append(allClusters, &api.ClusterConfig{
@@ -415,22 +425,14 @@ func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *
 		return nil
 	}
 
-	ticker := time.NewTicker(20 * time.Second)
-	defer ticker.Stop()
-
-	timer := time.NewTimer(c.Provider.WaitTimeout())
-	defer timer.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			_, err := clientSet.ServerVersion()
-			if err == nil {
-				return nil
-			}
-			logger.Debug("control plane not ready yet – %s", err.Error())
-		case <-timer.C:
-			return fmt.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.Provider.WaitTimeout())
+	condition := func() (bool, error) {
+		_, err := clientSet.ServerVersion()
+		if err == nil {
+			return true, nil
 		}
+		logger.Debug("control plane not ready yet – %s", err.Error())
+		return false, nil
 	}
+
+	return waiters.WaitForCondition(c.Provider.WaitTimeout(), time.Second*20, fmt.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.Provider.WaitTimeout()), condition)
 }
