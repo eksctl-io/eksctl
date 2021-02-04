@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/kris-nova/logger"
+	"github.com/weaveworks/logger"
 )
 
 // Type is the type representing all supported printer types.

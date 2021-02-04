@@ -10,10 +10,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/blang/semver"
-	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/managed"
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
+	"github.com/weaveworks/logger"
 )
 
 func (m *Manager) Upgrade(nodeGroupName, version, launchTemplateVersion string, forceUpgrade bool) error {

@@ -3,10 +3,10 @@ package fargate
 import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/retry"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
+	"github.com/weaveworks/logger"
 )
 
 func NewFromProvider(clusterName string, provider api.ClusterProvider) Client {

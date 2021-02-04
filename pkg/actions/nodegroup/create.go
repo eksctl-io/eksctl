@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/logger"
 
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"

@@ -8,10 +8,10 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/logger"
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"

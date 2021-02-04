@@ -19,7 +19,7 @@ import (
 
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 
-	"github.com/kris-nova/logger"
+	"github.com/weaveworks/logger"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 

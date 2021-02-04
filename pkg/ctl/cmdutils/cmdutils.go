@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -14,6 +13,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/version"
+	"github.com/weaveworks/logger"
 )
 
 // IncompatibleFlags is a common substring of an error message

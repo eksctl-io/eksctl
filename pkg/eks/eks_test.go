@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
-	"github.com/kris-nova/logger"
+	"github.com/weaveworks/logger"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"

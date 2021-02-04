@@ -2,7 +2,6 @@ package create
 
 import (
 	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/kris-nova/logger"
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -11,6 +10,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/iam"
+	"github.com/weaveworks/logger"
 )
 
 type iamIdentityMappingOptions struct {

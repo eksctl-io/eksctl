@@ -3,11 +3,11 @@ package authconfigmap
 import (
 	"fmt"
 
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/assetutil"
 	"github.com/weaveworks/eksctl/pkg/iam"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/logger"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 )

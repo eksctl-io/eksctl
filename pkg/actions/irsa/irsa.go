@@ -3,12 +3,12 @@ package irsa
 import (
 	"fmt"
 
-	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
+	"github.com/weaveworks/logger"
 	kubeclient "k8s.io/client-go/kubernetes"
 )
 

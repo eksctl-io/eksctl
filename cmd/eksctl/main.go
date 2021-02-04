@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/eksctl/pkg/ctl/set"
 	"github.com/weaveworks/eksctl/pkg/ctl/unset"
 	"github.com/weaveworks/eksctl/pkg/ctl/upgrade"
+	"github.com/weaveworks/logger"
 
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/completion"

@@ -10,10 +10,10 @@ import (
 	"os/exec"
 
 	"github.com/gofrs/flock"
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
+	"github.com/weaveworks/logger"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )

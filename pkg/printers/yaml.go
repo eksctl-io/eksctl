@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/kris-nova/logger"
+	"github.com/weaveworks/logger"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	cliruntime "k8s.io/cli-runtime/pkg/printers"

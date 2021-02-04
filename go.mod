@@ -27,8 +27,6 @@ require (
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kevinburke/go-bindata v3.22.0+incompatible
 	github.com/kevinburke/rest v0.0.0-20210106114233-22cd0577e450 // indirect
-	github.com/kris-nova/logger v0.0.0-20181127235838-fd0d87064b06
-	github.com/kris-nova/lolgopher v0.0.0-20180921204813-313b3abb0d9b // indirect
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0
@@ -49,6 +47,7 @@ require (
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
 	github.com/weaveworks/goformation/v4 v4.10.2-0.20210202192510-c984c16fe84b
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
+	github.com/weaveworks/logger v0.0.0-20210204141807-28118249ac72
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
 	golang.org/x/mod v0.4.1 // indirect
 	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect

@@ -2,10 +2,10 @@ package kops
 
 import (
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/vpc"
+	"github.com/weaveworks/logger"
 	"k8s.io/kops/pkg/resources/aws"
 	"k8s.io/kops/upup/pkg/fi/cloudup/awsup"
 )
