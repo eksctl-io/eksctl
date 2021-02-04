@@ -1,4 +1,4 @@
-name: docs
+name: CI
 
 on:
   pull_request:
@@ -18,6 +18,7 @@ on:
 
 jobs:
   markdown-link-checker:
+    name: Check markdown links
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -29,6 +30,7 @@ jobs:
           max-depth: 1
 
   site-link-checker:
+    name: Check site links
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -39,7 +41,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+      - name: Install doc dependencies
         run: make install-site-deps
       - name: Build docs for link check
         run: make build-pages
