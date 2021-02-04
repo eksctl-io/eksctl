@@ -41,7 +41,7 @@ var _ = Describe("Get", func() {
 				},
 			}, nil)
 
-			serviceAccounts, err := irsaManager.Get("", "")
+			serviceAccounts, err := irsaManager.Get(irsa.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.GetIAMServiceAccountsCallCount()).To(Equal(1))
@@ -83,7 +83,7 @@ var _ = Describe("Get", func() {
 				},
 			}, nil)
 
-			serviceAccounts, err := irsaManager.Get("", "test-sa")
+			serviceAccounts, err := irsaManager.Get(irsa.GetOptions{Name: "test-sa"})
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.GetIAMServiceAccountsCallCount()).To(Equal(1))
@@ -118,7 +118,7 @@ var _ = Describe("Get", func() {
 				},
 			}, nil)
 
-			serviceAccounts, err := irsaManager.Get("not-default", "")
+			serviceAccounts, err := irsaManager.Get(irsa.GetOptions{Namespace: "not-default"})
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.GetIAMServiceAccountsCallCount()).To(Equal(1))
@@ -153,7 +153,7 @@ var _ = Describe("Get", func() {
 				},
 			}, nil)
 
-			serviceAccounts, err := irsaManager.Get("default", "test-sa")
+			serviceAccounts, err := irsaManager.Get(irsa.GetOptions{Namespace: "default", Name: "test-sa"})
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.GetIAMServiceAccountsCallCount()).To(Equal(1))

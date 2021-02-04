@@ -25,7 +25,10 @@ func getIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doGetIAMServiceAccount(cmd, namespace, name, params)
+		return doGetIAMServiceAccount(cmd, IAMServiceAccountOptions{
+			GetOptions:   irsa.GetOptions{Name: name, Namespace: namespace},
+			getCmdParams: params,
+		})
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -44,8 +47,15 @@ func getIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
-func doGetIAMServiceAccount(cmd *cmdutils.Cmd, namespace, name string, params *getCmdParams) error {
-	if err := cmdutils.NewGetIAMServiceAccountLoader(cmd).Load(); err != nil {
+// IAMServiceAccountOptions holds the configuration for the get
+// iamserviceaccounts action
+type IAMServiceAccountOptions struct {
+	irsa.GetOptions
+	*getCmdParams
+}
+
+func doGetIAMServiceAccount(cmd *cmdutils.Cmd, options IAMServiceAccountOptions) error {
+	if err := cmdutils.NewGetIAMServiceAccountLoader(cmd, &options.GetOptions).Load(); err != nil {
 		return err
 	}
 
@@ -56,7 +66,7 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, namespace, name string, params *g
 		return err
 	}
 
-	if params.output == printers.TableType {
+	if options.output == printers.TableType {
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 	}
 
@@ -70,18 +80,18 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, namespace, name string, params *g
 
 	stackManager := ctl.NewStackManager(cfg)
 	irsaManager := irsa.New(cfg.Metadata.Name, stackManager, nil, nil)
-	serviceAccounts, err := irsaManager.Get(namespace, name)
+	serviceAccounts, err := irsaManager.Get(options.GetOptions)
 
 	if err != nil {
 		return err
 	}
 
-	printer, err := printers.NewPrinter(params.output)
+	printer, err := printers.NewPrinter(options.output)
 	if err != nil {
 		return err
 	}
 
-	if params.output == printers.TableType {
+	if options.output == printers.TableType {
 		addIAMServiceAccountSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
