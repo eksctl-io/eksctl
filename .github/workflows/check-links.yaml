@@ -1,4 +1,4 @@
-name: CI / Docs
+name: docs
 
 on:
   pull_request:
@@ -17,8 +17,18 @@ on:
       - '.github/workflows/check-links.yaml'
 
 jobs:
-  build-check-docs:
-    name: Build and check links
+  markdown-link-checker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # Using markdown-link-check to check markdown docs
+      - uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-verbose-mode: 'yes'
+          config-file: '.github/workflows/markdown-link-check-config.json'
+          max-depth: 1
+
+  site-link-checker:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -29,12 +39,15 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install doc dependencies
+      - name: Install dependencies
         run: make install-site-deps
-      - name: Build docs
+      - name: Build docs for link check
         run: make build-pages
-      - name: Check links
-        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        # Using liche action to check generated HTML site
+      - name: Link Checker (generated site)
+        id: lc
+        uses: peter-evans/link-checker@v1
         with:
-          use-verbose-mode: 'yes'
-          config-file: '.github/workflows/markdown-link-check-config.json'
+          args: -d userdocs/site -r userdocs/site -x https://twitter.com|https://www.weave.works
+      - name: Fail if there were link errors
+        run: exit ${{ steps.lc.outputs.exit_code }}
