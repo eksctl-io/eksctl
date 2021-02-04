@@ -16,10 +16,7 @@ type Cluster interface {
 }
 
 func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
-	err := ctl.RefreshClusterStatus(cfg)
-
 	var resourceNotFoundErr *awseks.ResourceNotFoundException
-
 	//if the cluster doesn't exist it might still have stacks to delete
 	if err := ctl.RefreshClusterStatus(cfg); err != nil && !errors.As(err, &resourceNotFoundErr) {
 		return nil, err
