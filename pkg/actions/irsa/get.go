@@ -5,18 +5,24 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-func (m *Manager) Get(namespace, name string) ([]*api.ClusterIAMServiceAccount, error) {
+// GetOptions holds the configuration for the IRSA get action
+type GetOptions struct {
+	Name      string
+	Namespace string
+}
+
+func (m *Manager) Get(options GetOptions) ([]*api.ClusterIAMServiceAccount, error) {
 	remoteServiceAccounts, err := m.stackManager.GetIAMServiceAccounts()
 	if err != nil {
 		return nil, errors.Wrap(err, "getting iamserviceaccounts")
 	}
 
-	if namespace != "" {
-		remoteServiceAccounts = filterByNamespace(remoteServiceAccounts, namespace)
+	if options.Namespace != "" {
+		remoteServiceAccounts = filterByNamespace(remoteServiceAccounts, options.Namespace)
 	}
 
-	if name != "" {
-		remoteServiceAccounts = filterByName(remoteServiceAccounts, name)
+	if options.Name != "" {
+		remoteServiceAccounts = filterByName(remoteServiceAccounts, options.Name)
 	}
 
 	return remoteServiceAccounts, nil
