@@ -21,7 +21,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kris-nova/logger"
+	"github.com/weaveworks/logger"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/client"

@@ -19,7 +19,7 @@ import (
 	ssh "github.com/weaveworks/eksctl/pkg/ssh/client"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 
-	"github.com/kris-nova/logger"
+	"github.com/weaveworks/logger"
 )
 
 func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) error {

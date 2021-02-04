@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
-	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
+	"github.com/weaveworks/logger"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"

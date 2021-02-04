@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
+	"github.com/weaveworks/logger"
 
 	"github.com/aws/aws-sdk-go/aws"
 

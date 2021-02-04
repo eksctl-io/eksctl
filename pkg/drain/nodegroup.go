@@ -11,9 +11,9 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/logger"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"

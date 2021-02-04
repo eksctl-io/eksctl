@@ -6,8 +6,8 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/kballard/go-shellquote"
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/logger"
 
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/launcher/pkg/kubectl"

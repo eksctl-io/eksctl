@@ -11,7 +11,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
-	"github.com/kris-nova/logger"
+	"github.com/weaveworks/logger"
 )
 
 func (m *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.ManagedNodeGroup, wait, plan bool) error {

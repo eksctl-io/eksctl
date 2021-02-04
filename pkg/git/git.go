@@ -7,8 +7,8 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/logger"
 	giturls "github.com/whilp/git-urls"
 
 	"github.com/weaveworks/eksctl/pkg/executor"

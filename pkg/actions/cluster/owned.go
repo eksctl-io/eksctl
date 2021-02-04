@@ -3,7 +3,6 @@ package cluster
 import (
 	"time"
 
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -13,6 +12,7 @@ import (
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/vpc"
+	"github.com/weaveworks/logger"
 )
 
 type OwnedCluster struct {

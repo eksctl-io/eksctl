@@ -3,9 +3,9 @@ package cluster
 import (
 	"time"
 
-	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/logger"
 )
 
 type Cluster interface {
