@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
+
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -183,8 +185,8 @@ func (c *ClusterProvider) maybeRefreshClusterStatus(spec *api.ClusterConfig) err
 func (c *ClusterProvider) CanDelete(spec *api.ClusterConfig) (bool, error) {
 	err := c.maybeRefreshClusterStatus(spec)
 	if err != nil {
-		var resourceNotFoundErr *awseks.ResourceNotFoundException
-		if errors.As(err, &resourceNotFoundErr) {
+		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); ok &&
+			awsError.Code() == awseks.ErrCodeResourceNotFoundException {
 			return true, nil
 		}
 		return false, errors.Wrapf(err, "fetching cluster status to determine if it can be deleted")
