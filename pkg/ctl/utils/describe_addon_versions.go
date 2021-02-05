@@ -70,7 +70,7 @@ func describeAddonVersions(cmd *cmdutils.Cmd, addonName, k8sVersion, clusterName
 
 	stackManager := clusterProvider.NewStackManager(cmd.ClusterConfig)
 
-	addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider, stackManager, *cmd.ClusterConfig.IAM.WithOIDC, nil, nil)
+	addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.Provider.EKS(), stackManager, *cmd.ClusterConfig.IAM.WithOIDC, nil, nil)
 
 	if err != nil {
 		return err

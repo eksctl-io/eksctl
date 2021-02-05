@@ -96,7 +96,7 @@ func (a *Manager) Create(addon *api.Addon) error {
 	}
 
 	logger.Info("creating addon")
-	output, err := a.clusterProvider.Provider.EKS().CreateAddon(createAddonInput)
+	output, err := a.eksAPI.CreateAddon(createAddonInput)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create addon %q", addon.Name)
 	}

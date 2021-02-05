@@ -65,7 +65,7 @@ func (a *Manager) Update(addon *api.Addon) error {
 	logger.Info("updating addon")
 	logger.Debug(updateAddonInput.String())
 
-	output, err := a.clusterProvider.Provider.EKS().UpdateAddon(updateAddonInput)
+	output, err := a.eksAPI.UpdateAddon(updateAddonInput)
 	if err != nil {
 		return fmt.Errorf("failed to update addon %q: %v", addon.Name, err)
 	}

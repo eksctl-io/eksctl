@@ -52,7 +52,7 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 
 	stackManager := t.clusterProvider.NewStackManager(t.cfg)
 
-	addonManager, err := New(t.cfg, t.clusterProvider, stackManager, oidcProviderExists, oidc, clientSet)
+	addonManager, err := New(t.cfg, t.clusterProvider.Provider.EKS(), stackManager, oidcProviderExists, oidc, clientSet)
 	if err != nil {
 		return err
 	}
