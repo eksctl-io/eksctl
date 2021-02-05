@@ -238,7 +238,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 // ClusterTasksForNodeGroups returns all tasks dependent on node groups
 func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, installNeuronDevicePluginParam, installNvidiaDevicePluginParam bool) *tasks.TaskTree {
 	tasks := &tasks.TaskTree{
-		Parallel:  false,
+		Parallel:  true,
 		IsSubTask: false,
 	}
 	var haveNeuronInstanceType bool
