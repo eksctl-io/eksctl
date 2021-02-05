@@ -364,7 +364,7 @@ func ValidateExistingPublicSubnets(provider api.ClusterProvider, subnetIDs []str
 }
 
 // EnsureMapPublicIPOnLaunchEnabled will enable MapPublicIpOnLaunch in EC2 for all given subnet IDs
-func EnsureMapPublicIPOnLaunchEnabled(provider api.ClusterProvider, subnetIDs []string) error {
+func EnsureMapPublicIPOnLaunchEnabled(ec2API ec2iface.EC2API, subnetIDs []string) error {
 	if len(subnetIDs) == 0 {
 		logger.Debug("no subnets to update")
 		return nil
@@ -377,7 +377,7 @@ func EnsureMapPublicIPOnLaunchEnabled(provider api.ClusterProvider, subnetIDs []
 		}
 
 		logger.Debug("enabling MapPublicIpOnLaunch for subnet %q", s)
-		_, err := provider.EC2().ModifySubnetAttribute(input)
+		_, err := ec2API.ModifySubnetAttribute(input)
 		if err != nil {
 			return errors.Wrapf(err, "unable to set MapPublicIpOnLaunch attribute to true for subnet %q", s)
 		}
