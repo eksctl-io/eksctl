@@ -602,6 +602,7 @@ type ClusterConfig struct {
 
 	Status *ClusterStatus `json:"status,omitempty"`
 
+	// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 	// Git exposes configuration for Flux v1 and an earlier iteration of gitops
 	// +optional
 	Git *Git `json:"git,omitempty"`
@@ -838,6 +839,7 @@ type Git struct {
 	BootstrapProfile *Profile `json:"bootstrapProfile,omitempty"` // one or many profiles to enable on this cluster once it is created
 }
 
+// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 // NewGit returns a new empty Git configuration
 func NewGit() *Git {
 	return &Git{
@@ -965,17 +967,19 @@ type Profile struct {
 	OutputPath string `json:"outputPath,omitempty"`
 }
 
+// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 // HasBootstrapProfile returns true if there is a profile with a source specified
 func (c *ClusterConfig) HasBootstrapProfile() bool {
 	return c.Git != nil && c.Git.BootstrapProfile != nil && c.Git.BootstrapProfile.Source != ""
 }
 
-// HasGitopsRepoConfigured returns true if there is a profile with a source specified
+// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
+// HasGitopsRepoConfigured returns true if git.repo and git.repo.url are not nil
 func (c *ClusterConfig) HasGitopsRepoConfigured() bool {
 	return c.Git != nil && c.Git.Repo != nil && c.Git.Repo.URL != ""
 }
 
-// HasGitOpsFluxConfigured returns true if there is a profile with a source specified
+// HasGitOpsFluxConfigured returns true if gitops.flux configuration is not nil
 func (c *ClusterConfig) HasGitOpsFluxConfigured() bool {
 	return c.GitOps != nil && c.GitOps.Flux != nil
 }

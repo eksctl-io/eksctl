@@ -1,3 +1,4 @@
+// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 package fileprocessor
 
 // File represents the contents and the path to a file

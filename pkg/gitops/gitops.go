@@ -75,6 +75,7 @@ func InstallProfile(cfg *api.ClusterConfig) error {
 	return nil
 }
 
+// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 // DeleteKey deletes the authorized SSH key for the gitops repo if gitops are configured
 // Will not fail if the key was not previously authorized
 func DeleteKey(cfg *api.ClusterConfig) error {
@@ -118,6 +119,7 @@ func newFluxInstaller(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interf
 		profilesSupported = false
 		logger.Info("gitops configuration detected, setting installer to Flux v2")
 	} else {
+		// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 		installer, err = repo.New(k8sRestConfig, k8sClientSet, cfg, timeout)
 		profilesSupported = true
 		logger.Info("git.repo configuration detected, setting installer to Flux v1")

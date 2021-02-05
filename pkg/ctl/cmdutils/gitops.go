@@ -3,6 +3,7 @@ package cmdutils
 import (
 	"fmt"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -34,6 +35,7 @@ const (
 	profileRevision = "profile-revision"
 )
 
+// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 // AddCommonFlagsForFlux configures the flags required to install Flux on an
 // EKS cluster and have it point to the specified Git repository.
 func AddCommonFlagsForFlux(fs *pflag.FlagSet, opts *api.Git) {
@@ -58,6 +60,7 @@ func AddCommonFlagsForFlux(fs *pflag.FlagSet, opts *api.Git) {
 		"Additional command line arguments for the Helm Operator")
 }
 
+// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 // AddCommonFlagsForGitRepo configures the flags required to interact with a Git
 // repository.
 func AddCommonFlagsForGitRepo(fs *pflag.FlagSet, repo *api.Repo) {
@@ -81,6 +84,7 @@ func AddCommonFlagsForProfile(fs *pflag.FlagSet, opts *api.Profile) {
 	fs.StringVarP(&opts.Revision, profileRevision, "", "master", "revision of the Quick Start profile.")
 }
 
+// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 // GitConfigLoader handles loading of ClusterConfigFile v.s. using CLI
 // flags for Git-related commands.
 type GitConfigLoader struct {
@@ -92,6 +96,7 @@ type GitConfigLoader struct {
 	gitConfig                          *api.Git
 }
 
+// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 // NewGitConfigLoader creates a new ClusterConfigLoader which handles
 // loading of ClusterConfigFile v.s. using CLI flags for Git-related
 // commands.
@@ -161,6 +166,7 @@ func NewGitConfigLoader(cmd *Cmd, cfg *api.Git) *GitConfigLoader {
 	return l
 }
 
+// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 // WithRepoValidation adds extra validation to make sure that the git url and the email are provided as they
 // are required for the commands enable profile and enable repo (but not for generate profile)
 func (l *GitConfigLoader) WithRepoValidation() *GitConfigLoader {
@@ -199,6 +205,7 @@ func (l *GitConfigLoader) WithRepoValidation() *GitConfigLoader {
 	return &newLoader
 }
 
+// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 // WithProfileValidation adds extra validation to make sure that the git url and the email are provided as they
 // are required for the commands enable profile and enable repo (but not for generate profile)
 func (l *GitConfigLoader) WithProfileValidation() *GitConfigLoader {
@@ -221,11 +228,14 @@ func (l *GitConfigLoader) WithProfileValidation() *GitConfigLoader {
 	return &newLoader
 }
 
+// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 // Load ClusterConfig or use CLI flags.
 func (l *GitConfigLoader) Load() error {
 	if err := api.Register(); err != nil {
 		return err
 	}
+
+	logger.Warning("the `enable repo` command and related git.X are marked for deprecation: Please see https://github.com/weaveworks/eksctl/issues/2963")
 
 	if l.cmd.ClusterConfigFile == "" {
 		l.cmd.ClusterConfig.Metadata.Region = l.cmd.ProviderConfig.Region

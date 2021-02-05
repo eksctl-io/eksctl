@@ -27,6 +27,7 @@ require (
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kevinburke/go-bindata v3.22.0+incompatible
 	github.com/kevinburke/rest v0.0.0-20210106114233-22cd0577e450 // indirect
+	github.com/kris-nova/logger v0.0.0-20181127235838-fd0d87064b06
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0
