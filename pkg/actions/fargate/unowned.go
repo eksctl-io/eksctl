@@ -22,7 +22,7 @@ func makeClusterStackName(clusterName string) string {
 
 func (t *createFargateStackTask) Do(errs chan error) error {
 	stackCollection := manager.NewStackCollection(t.provider, t.cfg)
-	rs := builder.NewFargateResourceSet(t.provider, t.cfg)
+	rs := builder.NewFargateResourceSet(t.cfg)
 	if err := rs.AddAllResources(); err != nil {
 		return errors.Wrap(err, "couldn't add all resources to fargate resource set")
 	}
