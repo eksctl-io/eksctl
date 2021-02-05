@@ -336,6 +336,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			logger.Warning("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", meta.Region, meta.Name)
 			for _, err := range errs {
+				ufe := &api.UnsupportedFeatureError{}
+				if errors.As(err, &ufe) {
+					logger.Critical(ufe.Message)
+				}
 				logger.Critical("%s\n", err.Error())
 			}
 			return fmt.Errorf("failed to create cluster %q", meta.Name)

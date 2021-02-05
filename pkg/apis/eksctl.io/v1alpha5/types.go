@@ -1390,3 +1390,14 @@ type PrivateCluster struct {
 	// Valid entries are `AdditionalEndpointServices` constants
 	AdditionalEndpointServices []string `json:"additionalEndpointServices,omitempty"`
 }
+
+// UnsupportedFeatureError is an error that represents an unsupported feature
+// +k8s:deepcopy-gen=false
+type UnsupportedFeatureError struct {
+	Message string
+	Err     error
+}
+
+func (u *UnsupportedFeatureError) Error() string {
+	return fmt.Sprintf("%s: %v", u.Message, u.Err)
+}

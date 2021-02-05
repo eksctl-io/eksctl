@@ -26,6 +26,9 @@ privateCluster:
 !!!note
     VPC endpoints are charged by the hour and based on usage. More details about pricing can be found at
     [AWS PrivateLink pricing](https://aws.amazon.com/privatelink/pricing/)
+    
+!!!note
+    Fully-private clusters are not supported in `eu-south-1`.
 
 ## Configuring private access to additional AWS services
 
