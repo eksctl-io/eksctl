@@ -1,8 +1,13 @@
 package cluster
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
+
+	awseks "github.com/aws/aws-sdk-go/service/eks"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/logger"
@@ -14,8 +19,15 @@ type Cluster interface {
 }
 
 func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
-	if err := ctl.RefreshClusterStatus(cfg); err != nil {
-		return nil, err
+	clusterExists := true
+	err := ctl.RefreshClusterStatus(cfg)
+	if err != nil {
+		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); ok &&
+			awsError.Code() == awseks.ErrCodeResourceNotFoundException {
+			clusterExists = false
+		} else {
+			return nil, err
+		}
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
@@ -28,7 +40,12 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
 		logger.Debug("Cluster %q was created by eksctl", cfg.Metadata.Name)
 		return NewOwnedCluster(cfg, ctl, stackManager)
 	}
-	logger.Debug("Cluster %q was not created by eksctl", cfg.Metadata.Name)
+
+	if !clusterExists {
+		return nil, fmt.Errorf("cluster %q does not exist", cfg.Metadata.Name)
+	}
+
+	logger.Debug("cluster %q was not created by eksctl", cfg.Metadata.Name)
 
 	clientSet, err := ctl.NewStdClientSet(cfg)
 	if err != nil {
