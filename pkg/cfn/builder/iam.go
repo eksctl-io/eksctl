@@ -128,7 +128,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() error {
 		}
 		// if instance role is not given, export profile and use the getter to call importer function
 		n.rs.defineOutput(outputs.NodeGroupInstanceProfileARN, n.spec.IAM.InstanceProfileARN, true, func(v string) error {
-			return iam.ImportInstanceRoleFromProfileARN(n.provider, n.spec, v)
+			return iam.ImportInstanceRoleFromProfileARN(n.iamAPI, n.spec, v)
 		})
 
 		return nil

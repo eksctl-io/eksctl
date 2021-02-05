@@ -18,7 +18,8 @@ import (
 
 // A VPCEndpointResourceSet represents the resources required for VPC endpoints
 type VPCEndpointResourceSet struct {
-	provider        provider
+	ec2API          ec2iface.EC2API
+	region          string
 	rs              *resourceSet
 	vpc             *gfnt.Value
 	clusterConfig   *api.ClusterConfig
@@ -26,15 +27,11 @@ type VPCEndpointResourceSet struct {
 	clusterSharedSG *gfnt.Value
 }
 
-type provider interface {
-	EC2() ec2iface.EC2API
-	Region() string
-}
-
 // NewVPCEndpointResourceSet creates a new VPCEndpointResourceSet
-func NewVPCEndpointResourceSet(provider provider, rs *resourceSet, clusterConfig *api.ClusterConfig, vpc *gfnt.Value, subnets []subnetResource, clusterSharedSG *gfnt.Value) *VPCEndpointResourceSet {
+func NewVPCEndpointResourceSet(ec2API ec2iface.EC2API, region string, rs *resourceSet, clusterConfig *api.ClusterConfig, vpc *gfnt.Value, subnets []subnetResource, clusterSharedSG *gfnt.Value) *VPCEndpointResourceSet {
 	return &VPCEndpointResourceSet{
-		provider:        provider,
+		ec2API:          ec2API,
+		region:          region,
 		rs:              rs,
 		clusterConfig:   clusterConfig,
 		vpc:             vpc,
@@ -57,7 +54,7 @@ func (e *VPCEndpointResourceSet) AddResources() error {
 	if e.clusterConfig.HasClusterCloudWatchLogging() && !e.hasEndpoint(api.EndpointServiceCloudWatch) {
 		endpointServices = append(endpointServices, api.EndpointServiceCloudWatch)
 	}
-	endpointServiceDetails, err := buildVPCEndpointServices(e.provider.EC2(), e.provider.Region(), endpointServices)
+	endpointServiceDetails, err := buildVPCEndpointServices(e.ec2API, e.region, endpointServices)
 	if err != nil {
 		return errors.Wrap(err, "error building endpoint service details")
 	}

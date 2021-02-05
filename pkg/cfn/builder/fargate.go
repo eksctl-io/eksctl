@@ -24,7 +24,7 @@ type FargateResourceSet struct {
 }
 
 // NewFargateResourceSet returns a resource set for managing fargate resources
-func NewFargateResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig) *FargateResourceSet {
+func NewFargateResourceSet(spec *api.ClusterConfig) *FargateResourceSet {
 	rs := newResourceSet()
 	rs.withIAM = true
 	rs.withNamedIAM = true

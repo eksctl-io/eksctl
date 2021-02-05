@@ -30,7 +30,7 @@ const (
 type VPCResourceSet struct {
 	*resourceSet
 	clusterConfig *api.ClusterConfig
-	provider      api.ClusterProvider
+	ec2API        ec2iface.EC2API
 
 	vpcResource *VPCResource
 }
@@ -69,7 +69,7 @@ func (s *subnetDetails) PrivateSubnetRefs() []*gfnt.Value {
 }
 
 // NewVPCResourceSet creates and returns a new VPCResourceSet
-func NewVPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, provider api.ClusterProvider) *VPCResourceSet {
+func NewVPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec2API ec2iface.EC2API) *VPCResourceSet {
 	var vpcRef *gfnt.Value
 	if clusterConfig.VPC.ID == "" {
 		vpcRef = rs.newResource("VPC", &gfnec2.VPC{
@@ -84,7 +84,7 @@ func NewVPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, provid
 	return &VPCResourceSet{
 		resourceSet:   rs,
 		clusterConfig: clusterConfig,
-		provider:      provider,
+		ec2API:        ec2API,
 
 		vpcResource: &VPCResource{
 			VPC:           vpcRef,
@@ -263,7 +263,7 @@ func (v *VPCResourceSet) importResources() error {
 			err          error
 		)
 		if v.isFullyPrivate() {
-			subnetRoutes, err = importRouteTables(v.provider.EC2(), v.clusterConfig.VPC.Subnets.Private)
+			subnetRoutes, err = importRouteTables(v.ec2API, v.clusterConfig.VPC.Subnets.Private)
 			if err != nil {
 				return err
 			}
@@ -342,7 +342,7 @@ func (v *VPCResourceSet) AddOutputs() {
 
 	addSubnetOutput := func(subnetRefs []*gfnt.Value, topology api.SubnetTopology, outputName string) {
 		v.defineJoinedOutput(outputName, subnetRefs, true, func(value string) error {
-			return vpc.ImportSubnetsFromList(v.provider, v.clusterConfig, topology, strings.Split(value, ","))
+			return vpc.ImportSubnetsFromList(v.ec2API, v.clusterConfig, topology, strings.Split(value, ","))
 		})
 	}
 

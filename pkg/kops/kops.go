@@ -66,7 +66,7 @@ func (k *Wrapper) UseVPC(provider api.ClusterProvider, spec *api.ClusterConfig) 
 		}
 	}
 	for t, subnets := range subnetsByTopology {
-		if err := vpc.ImportSubnets(provider, spec, t, subnets); err != nil {
+		if err := vpc.ImportSubnets(provider.EC2(), spec, t, subnets); err != nil {
 			return err
 		}
 	}
