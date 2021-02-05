@@ -148,8 +148,8 @@
         },
         "git": {
           "$ref": "#/definitions/Git",
-          "description": "exposes configuration for Flux v1 and an earlier iteration of gitops",
-          "x-intellij-html-description": "exposes configuration for Flux v1 and an earlier iteration of gitops"
+          "description": "FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963 Git exposes configuration for Flux v1 and an earlier iteration of gitops",
+          "x-intellij-html-description": "FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963 Git exposes configuration for Flux v1 and an earlier iteration of gitops"
         },
         "gitops": {
           "$ref": "#/definitions/GitOps",

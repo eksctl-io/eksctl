@@ -406,6 +406,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			}
 		}
 
+		// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
+		if cfg.HasGitopsRepoConfigured() {
+			logger.Warning("git.X configuration is marked for deprecation: Please see https://github.com/weaveworks/eksctl/issues/2963")
+		}
 		if cfg.HasGitopsRepoConfigured() || cfg.HasGitOpsFluxConfigured() {
 			kubernetesClientConfigs, err := ctl.NewClient(cfg)
 			if err != nil {
