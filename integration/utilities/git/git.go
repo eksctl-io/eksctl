@@ -11,10 +11,6 @@ const (
 	Repository = "git@github.com:eksctl-bot/my-gitops-repo.git"
 	// Email is the default testing Git email.
 	Email = "eksctl-bot@weave.works"
-	// Name is the default cluster name to test against.
-	Name = "autoscaler"
-	// Region is the default region to test against.
-	Region = "ap-northeast-1"
 )
 
 // CreateBranch creates the provided branch.

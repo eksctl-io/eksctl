@@ -117,6 +117,8 @@ jobs:
           cmd: go mod download
       - docker-run:
           cmd: make circleci-test build
+          options:
+            --env=GITHUB_TOKEN=$EKSCTLBOT_TOKEN
       - docker-run:
           cmd: make -f Makefile.docker check-build-image-manifest-up-to-date
       - run: mkdir bin; mv eksctl "bin/eksctl-$(./eksctl version)"

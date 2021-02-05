@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/executor"
@@ -68,7 +69,7 @@ func setEnvVars(tokenPath, gitProvider string) executor.EnvVars {
 			logger.Warning("reading auth token file %s", err)
 		}
 
-		token = string(data)
+		token = strings.Replace(string(data), "\n", "", -1)
 	}
 
 	switch gitProvider {
