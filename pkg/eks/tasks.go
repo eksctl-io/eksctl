@@ -257,6 +257,20 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 	if haveNvidiaInstanceType && installNvidiaDevicePluginParam {
 		tasks.Append(newNvidiaDevicePluginTask(c, cfg))
 	}
+
+	var ngs []*api.NodeGroupBase
+	for _, ng := range cfg.NodeGroups {
+		ngs = append(ngs, ng.NodeGroupBase)
+	}
+	for _, ng := range cfg.ManagedNodeGroups {
+		ngs = append(ngs, ng.NodeGroupBase)
+	}
+	for _, ng := range ngs {
+		if len(ng.ASGSuspendProcesses) > 0 {
+			tasks.Append(newSuspendProcesses(c, cfg, ng))
+		}
+	}
+
 	return tasks
 }
 
