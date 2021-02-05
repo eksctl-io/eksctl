@@ -21,8 +21,13 @@ import (
 )
 
 const (
-	// Namespace is the default Kubernetes namespace under which to install Flux.
-	Namespace = "flux"
+	fluxNamespace  = "flux"
+	flux2Namespace = "flux-system"
+)
+
+var (
+	fluxComponents  = []string{"memcached", "helm-operator", "flux"}
+	flux2Components = []string{"helm-controller", "kustomize-controller", "notification-controller", "source-controller"}
 )
 
 // AssertFluxManifestsAbsentInGit asserts expected Flux manifests are not present in Git.
@@ -39,7 +44,7 @@ func AssertFluxManifestsPresentInGit(branch string) {
 	defer os.RemoveAll(dir)
 	Expect(err).ShouldNot(HaveOccurred())
 	assertContainsFluxDir(dir)
-	assertContainsFluxManifests(filepath.Join(dir, Namespace))
+	assertContainsFluxManifests(filepath.Join(dir, fluxNamespace))
 }
 
 func assertContainsFluxDir(dir string) {
@@ -60,7 +65,7 @@ func dirExists(dir string) (bool, error) {
 		return false, err
 	}
 	for _, f := range files {
-		if f.Name() == Namespace && f.IsDir() {
+		if f.Name() == fluxNamespace && f.IsDir() {
 			return true, nil
 		}
 	}
@@ -120,7 +125,7 @@ func assertValidFluxAccountManifest(fileName string) {
 			sa, ok := item.Object.(*corev1.ServiceAccount)
 			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
 			Expect(sa.Kind).To(Equal("ServiceAccount"))
-			Expect(sa.Namespace).To(Equal(Namespace))
+			Expect(sa.Namespace).To(Equal(fluxNamespace))
 			Expect(sa.Name).To(Equal("flux"))
 			Expect(sa.Labels["name"]).To(Equal("flux"))
 		} else if gvk.Version == "v1beta1" && gvk.Kind == "ClusterRole" {
@@ -154,7 +159,7 @@ func assertValidFluxDeploymentManifest(fileName string) {
 			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
 			Expect(deployment.Kind).To(Equal("Deployment"))
 
-			Expect(deployment.Namespace).To(Equal(Namespace))
+			Expect(deployment.Namespace).To(Equal(fluxNamespace))
 			Expect(deployment.Name).To(Equal("flux"))
 			Expect(*deployment.Spec.Replicas).To(Equal(int32(1)))
 			Expect(deployment.Spec.Template.Labels["name"]).To(Equal("flux"))
@@ -180,7 +185,7 @@ func assertValidFluxSecretManifest(fileName string) {
 			secret, ok := item.Object.(*corev1.Secret)
 			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
 			Expect(secret.Kind).To(Equal("Secret"))
-			Expect(secret.Namespace).To(Equal(Namespace))
+			Expect(secret.Namespace).To(Equal(fluxNamespace))
 			Expect(secret.Name).To(Equal("flux-git-deploy"))
 			Expect(secret.Type).To(Equal(corev1.SecretTypeOpaque))
 		} else {
@@ -201,7 +206,7 @@ func assertValidFluxMemcacheDeploymentManifest(fileName string) {
 			deployment, ok := item.Object.(*appsv1.Deployment)
 			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
 			Expect(deployment.Kind).To(Equal("Deployment"))
-			Expect(deployment.Namespace).To(Equal(Namespace))
+			Expect(deployment.Namespace).To(Equal(fluxNamespace))
 			Expect(deployment.Name).To(Equal("memcached"))
 			Expect(*deployment.Spec.Replicas).To(Equal(int32(1)))
 			Expect(deployment.Spec.Template.Labels["name"]).To(Equal("memcached"))
@@ -230,7 +235,7 @@ func assertValidFluxMemcacheServiceManifest(fileName string) {
 			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
 			Expect(service.Kind).To(Equal("Service"))
 
-			Expect(service.Namespace).To(Equal(Namespace))
+			Expect(service.Namespace).To(Equal(fluxNamespace))
 			Expect("memcached").To(Equal(service.Name))
 			Expect(service.Spec.Ports).To(HaveLen(1))
 			Expect(service.Spec.Ports[0].Name).To(Equal("memcached"))
@@ -255,7 +260,7 @@ func assertValidFluxNamespaceManifest(fileName string) {
 			ns, ok := item.Object.(*corev1.Namespace)
 			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
 			Expect(ns.Kind).To(Equal("Namespace"))
-			Expect(ns.Name).To(Equal(Namespace))
+			Expect(ns.Name).To(Equal(fluxNamespace))
 		} else {
 			Fail(fmt.Sprintf("Unsupported Kubernetes object. Got %s object with version %s in: %s", gvk.Kind, gvk.Version, fileName))
 		}
@@ -274,7 +279,7 @@ func assertValidFluxHelmOperatorAccount(fileName string) {
 			sa, ok := item.Object.(*corev1.ServiceAccount)
 			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
 			Expect(sa.Kind).To(Equal("ServiceAccount"))
-			Expect(sa.Namespace).To(Equal(Namespace))
+			Expect(sa.Namespace).To(Equal(fluxNamespace))
 			Expect(sa.Name).To(Equal("helm-operator"))
 			Expect(sa.Labels["name"]).To(Equal("helm-operator"))
 		} else if gvk.Version == "v1beta1" && gvk.Kind == "ClusterRole" {
@@ -328,7 +333,7 @@ func assertValidHelmOperatorDeployment(fileName string) {
 			deployment, ok := item.Object.(*appsv1.Deployment)
 			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
 			Expect(deployment.Kind).To(Equal("Deployment"))
-			Expect(deployment.Namespace).To(Equal(Namespace))
+			Expect(deployment.Namespace).To(Equal(fluxNamespace))
 			Expect(deployment.Name).To(Equal("helm-operator"))
 			Expect(*deployment.Spec.Replicas).To(Equal(int32(1)))
 			Expect(deployment.Spec.Template.Labels["name"]).To(Equal("helm-operator"))
@@ -342,21 +347,29 @@ func assertValidHelmOperatorDeployment(fileName string) {
 	}
 }
 
-func AssertFluxPodsAbsentInKubernetes(kubeconfigPath string) {
-	pods := fluxPods(kubeconfigPath)
+func AssertFluxPodsAbsentInKubernetes(kubeconfigPath, namespace string) {
+	pods := fluxPods(kubeconfigPath, namespace)
 	Expect(pods.Items).To(HaveLen(0))
 }
 
 func AssertFluxPodsPresentInKubernetes(kubeconfigPath string) {
-	pods := fluxPods(kubeconfigPath)
-	Expect(pods.Items).To(HaveLen(3))
-	Expect(pods.Items[0].Labels["name"]).To(Equal("flux"))
-	Expect(pods.Items[1].Labels["name"]).To(Equal("helm-operator"))
-	Expect(pods.Items[2].Labels["name"]).To(Equal("memcached"))
+	assertLabelPresent(kubeconfigPath, fluxNamespace, "name", fluxComponents)
 }
 
-func fluxPods(kubeconfigPath string) *corev1.PodList {
-	output, err := kubectl("get", "pods", "--namespace", "flux", "--output", "json", "--kubeconfig", kubeconfigPath)
+func AssertFlux2PodsPresentInKubernetes(kubeconfigPath string) {
+	assertLabelPresent(kubeconfigPath, flux2Namespace, "app", flux2Components)
+}
+
+func assertLabelPresent(kubeconfigPath, namespace, label string, components []string) {
+	pods := fluxPods(kubeconfigPath, namespace)
+	Expect(len(pods.Items)).To(Equal(len(components)))
+	for i, component := range components {
+		Expect(pods.Items[i].Labels[label]).To(Equal(component))
+	}
+}
+
+func fluxPods(kubeconfigPath, namespace string) *corev1.PodList {
+	output, err := kubectl("get", "pods", "--namespace", namespace, "--output", "json", "--kubeconfig", kubeconfigPath)
 	Expect(err).ShouldNot(HaveOccurred())
 	var pods corev1.PodList
 	err = yaml.Unmarshal(output, &pods)

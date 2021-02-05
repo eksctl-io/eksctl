@@ -16,7 +16,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var params *tests.Params
+var (
+	params *tests.Params
+)
 
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
@@ -59,7 +61,7 @@ var _ = Describe("Enable and use GitOps quickstart profiles", func() {
 		It("should add Flux to the repo and the cluster", func() {
 			Expect(err).NotTo(HaveOccurred()) // Creating the branch should have succeeded.
 			AssertFluxManifestsAbsentInGit(branch)
-			AssertFluxPodsAbsentInKubernetes(params.KubeconfigPath)
+			AssertFluxPodsAbsentInKubernetes(params.KubeconfigPath, "flux")
 
 			cmd := params.EksctlCmd.WithArgs(
 				"enable", "repo",

@@ -15,6 +15,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 )
 
+const (
+	owner = "eksctl-bot"
+)
+
 // Params groups all test parameters.
 type Params struct {
 	EksctlPath string
@@ -26,6 +30,7 @@ type Params struct {
 	SkipCreate              bool
 	SkipDelete              bool
 	KubeconfigPath          string
+	GitopsOwner             string
 	KubeconfigTemp          bool
 	TestDirectory           string
 	EksctlCmd               runner.Cmd
@@ -40,6 +45,7 @@ type Params struct {
 	EksctlDrainNodeGroupCmd runner.Cmd
 	EksctlScaleNodeGroupCmd runner.Cmd
 	EksctlUtilsCmd          runner.Cmd
+	EksctlEnableCmd         runner.Cmd
 	// Keep track of created clusters, for post-tests clean-up.
 	clustersToDelete []string
 }
@@ -105,6 +111,10 @@ func (p *Params) GenerateCommands() {
 	p.EksctlUtilsCmd = p.EksctlCmd.
 		WithArgs("utils").
 		WithTimeout(5 * time.Minute)
+
+	p.EksctlEnableCmd = runner.NewCmd(p.EksctlPath).
+		WithArgs("enable").
+		WithTimeout(10 * time.Minute)
 }
 
 // NewClusterName generates a new cluster name using the provided prefix, and
@@ -157,6 +167,7 @@ func NewParams(clusterNamePrefix string) *Params {
 	flag.BoolVar(&params.SkipCreate, "eksctl.skip.create", false, "Skip the creation tests. Useful for debugging the tests")
 	flag.BoolVar(&params.SkipDelete, "eksctl.skip.delete", false, "Skip the cleanup after the tests have run")
 	flag.StringVar(&params.KubeconfigPath, "eksctl.kubeconfig", "", "Path to kubeconfig (default: create a temporary file)")
+	flag.StringVar(&params.GitopsOwner, "eksctl.owner", "", "User or org name to create gitops repo under")
 
 	// go1.13+ testing flags regression fix: https://github.com/golang/go/issues/31859
 	flag.Parse()
@@ -167,6 +178,9 @@ func NewParams(clusterNamePrefix string) *Params {
 	}
 	if params.KubeconfigPath == "" {
 		params.GenerateKubeconfigPath()
+	}
+	if params.GitopsOwner == "" {
+		params.GitopsOwner = owner
 	}
 	params.GenerateCommands()
 	return &params
