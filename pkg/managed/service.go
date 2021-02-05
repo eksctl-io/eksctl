@@ -31,7 +31,7 @@ type Service struct {
 	provider              api.ClusterProvider
 	launchTemplateFetcher *builder.LaunchTemplateFetcher
 	clusterName           string
-	stackCollection       *manager.StackCollection
+	stackCollection       manager.StackManager
 }
 
 // HealthIssue represents a health issue with a managed nodegroup
@@ -59,7 +59,7 @@ const (
 )
 
 // NewService creates a new Service
-func NewService(provider api.ClusterProvider, stackCollection *manager.StackCollection, clusterName string) *Service {
+func NewService(provider api.ClusterProvider, stackCollection manager.StackManager, clusterName string) *Service {
 	return &Service{
 		provider:              provider,
 		stackCollection:       stackCollection,

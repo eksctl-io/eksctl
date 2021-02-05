@@ -14,7 +14,7 @@ import (
 
 // ValidateClusterForCompatibility looks at the cluster stack and check if it's
 // compatible with current nodegroup configuration, if it find issues it returns an error
-func (c *ClusterProvider) ValidateClusterForCompatibility(cfg *api.ClusterConfig, stackManager *manager.StackCollection) error {
+func (c *ClusterProvider) ValidateClusterForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error {
 	cluster, err := stackManager.DescribeClusterStack()
 	if err != nil {
 		return errors.Wrap(err, "getting cluster stacks")
@@ -101,7 +101,7 @@ func isNodeGroupCompatible(name string, info manager.StackInfo) (bool, error) {
 
 // ValidateExistingNodeGroupsForCompatibility looks at each of the existing nodegroups and
 // validates configuration, if it find issues it logs messages
-func (c *ClusterProvider) ValidateExistingNodeGroupsForCompatibility(cfg *api.ClusterConfig, stackManager *manager.StackCollection) error {
+func (c *ClusterProvider) ValidateExistingNodeGroupsForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error {
 	infoByNodeGroup, err := stackManager.DescribeNodeGroupStacksAndResources()
 	if err != nil {
 		return errors.Wrap(err, "getting resources for all nodegroup stacks")

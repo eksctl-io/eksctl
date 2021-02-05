@@ -70,4 +70,5 @@ type StackManager interface {
 	GetIAMAddonsStacks() ([]*Stack, error)
 	GetIAMAddonName(s *Stack) string
 	EnsureMapPublicIPOnLaunchEnabled() error
+	GetAutoScalingGroupName(s *Stack) (string, error)
 }

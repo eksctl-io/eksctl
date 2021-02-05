@@ -275,6 +275,19 @@ type FakeStackManager struct {
 	fixClusterCompatibilityReturnsOnCall map[int]struct {
 		result1 error
 	}
+	GetAutoScalingGroupNameStub        func(*cloudformation.Stack) (string, error)
+	getAutoScalingGroupNameMutex       sync.RWMutex
+	getAutoScalingGroupNameArgsForCall []struct {
+		arg1 *cloudformation.Stack
+	}
+	getAutoScalingGroupNameReturns struct {
+		result1 string
+		result2 error
+	}
+	getAutoScalingGroupNameReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	GetFargateStackStub        func() (*cloudformation.Stack, error)
 	getFargateStackMutex       sync.RWMutex
 	getFargateStackArgsForCall []struct {
@@ -1991,6 +2004,70 @@ func (fake *FakeStackManager) FixClusterCompatibilityReturnsOnCall(i int, result
 	fake.fixClusterCompatibilityReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
+}
+
+func (fake *FakeStackManager) GetAutoScalingGroupName(arg1 *cloudformation.Stack) (string, error) {
+	fake.getAutoScalingGroupNameMutex.Lock()
+	ret, specificReturn := fake.getAutoScalingGroupNameReturnsOnCall[len(fake.getAutoScalingGroupNameArgsForCall)]
+	fake.getAutoScalingGroupNameArgsForCall = append(fake.getAutoScalingGroupNameArgsForCall, struct {
+		arg1 *cloudformation.Stack
+	}{arg1})
+	stub := fake.GetAutoScalingGroupNameStub
+	fakeReturns := fake.getAutoScalingGroupNameReturns
+	fake.recordInvocation("GetAutoScalingGroupName", []interface{}{arg1})
+	fake.getAutoScalingGroupNameMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStackManager) GetAutoScalingGroupNameCallCount() int {
+	fake.getAutoScalingGroupNameMutex.RLock()
+	defer fake.getAutoScalingGroupNameMutex.RUnlock()
+	return len(fake.getAutoScalingGroupNameArgsForCall)
+}
+
+func (fake *FakeStackManager) GetAutoScalingGroupNameCalls(stub func(*cloudformation.Stack) (string, error)) {
+	fake.getAutoScalingGroupNameMutex.Lock()
+	defer fake.getAutoScalingGroupNameMutex.Unlock()
+	fake.GetAutoScalingGroupNameStub = stub
+}
+
+func (fake *FakeStackManager) GetAutoScalingGroupNameArgsForCall(i int) *cloudformation.Stack {
+	fake.getAutoScalingGroupNameMutex.RLock()
+	defer fake.getAutoScalingGroupNameMutex.RUnlock()
+	argsForCall := fake.getAutoScalingGroupNameArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeStackManager) GetAutoScalingGroupNameReturns(result1 string, result2 error) {
+	fake.getAutoScalingGroupNameMutex.Lock()
+	defer fake.getAutoScalingGroupNameMutex.Unlock()
+	fake.GetAutoScalingGroupNameStub = nil
+	fake.getAutoScalingGroupNameReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) GetAutoScalingGroupNameReturnsOnCall(i int, result1 string, result2 error) {
+	fake.getAutoScalingGroupNameMutex.Lock()
+	defer fake.getAutoScalingGroupNameMutex.Unlock()
+	fake.GetAutoScalingGroupNameStub = nil
+	if fake.getAutoScalingGroupNameReturnsOnCall == nil {
+		fake.getAutoScalingGroupNameReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.getAutoScalingGroupNameReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeStackManager) GetFargateStack() (*cloudformation.Stack, error) {
@@ -4281,6 +4358,8 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.errStackNotFoundMutex.RUnlock()
 	fake.fixClusterCompatibilityMutex.RLock()
 	defer fake.fixClusterCompatibilityMutex.RUnlock()
+	fake.getAutoScalingGroupNameMutex.RLock()
+	defer fake.getAutoScalingGroupNameMutex.RUnlock()
 	fake.getFargateStackMutex.RLock()
 	defer fake.getFargateStackMutex.RUnlock()
 	fake.getIAMAddonNameMutex.RLock()
