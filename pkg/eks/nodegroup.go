@@ -261,7 +261,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNo
 }
 
 // GetNodeGroupIAM retrieves the IAM configuration of the given nodegroup
-func (c *ClusterProvider) GetNodeGroupIAM(stackManager *manager.StackCollection, ng *api.NodeGroup) error {
+func (c *ClusterProvider) GetNodeGroupIAM(stackManager manager.StackManager, ng *api.NodeGroup) error {
 	stacks, err := stackManager.DescribeNodeGroupStacks()
 	if err != nil {
 		return err
@@ -331,7 +331,7 @@ func DoesAWSNodeUseIRSA(provider api.ClusterProvider, clientSet kubernetes.Inter
 type suspendProcesses struct {
 	asg             autoscalingiface.AutoScalingAPI
 	nodegroup       *api.NodeGroupBase
-	stackCollection *manager.StackCollection
+	stackCollection manager.StackManager
 }
 
 func (t *suspendProcesses) Describe() string {

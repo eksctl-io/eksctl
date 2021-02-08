@@ -413,6 +413,6 @@ func (c *ClusterProvider) newSession(spec *api.ProviderConfig) *session.Session 
 }
 
 // NewStackManager returns a new stack manager
-func (c *ClusterProvider) NewStackManager(spec *api.ClusterConfig) *manager.StackCollection {
+func (c *ClusterProvider) NewStackManager(spec *api.ClusterConfig) manager.StackManager {
 	return manager.NewStackCollection(c.Provider, spec)
 }
