@@ -12676,6 +12676,119 @@ func (_m *EC2API) DescribeAddresses(_a0 *ec2.DescribeAddressesInput) (*ec2.Descr
 	return r0, r1
 }
 
+// DescribeAddressesAttribute provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeAddressesAttribute(_a0 *ec2.DescribeAddressesAttributeInput) (*ec2.DescribeAddressesAttributeOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeAddressesAttributeOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeAddressesAttributeInput) *ec2.DescribeAddressesAttributeOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeAddressesAttributeOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeAddressesAttributeInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeAddressesAttributePages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeAddressesAttributePages(_a0 *ec2.DescribeAddressesAttributeInput, _a1 func(*ec2.DescribeAddressesAttributeOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeAddressesAttributeInput, func(*ec2.DescribeAddressesAttributeOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeAddressesAttributePagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeAddressesAttributePagesWithContext(_a0 context.Context, _a1 *ec2.DescribeAddressesAttributeInput, _a2 func(*ec2.DescribeAddressesAttributeOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeAddressesAttributeInput, func(*ec2.DescribeAddressesAttributeOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeAddressesAttributeRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeAddressesAttributeRequest(_a0 *ec2.DescribeAddressesAttributeInput) (*request.Request, *ec2.DescribeAddressesAttributeOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeAddressesAttributeInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeAddressesAttributeOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeAddressesAttributeInput) *ec2.DescribeAddressesAttributeOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeAddressesAttributeOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeAddressesAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeAddressesAttributeWithContext(_a0 context.Context, _a1 *ec2.DescribeAddressesAttributeInput, _a2 ...request.Option) (*ec2.DescribeAddressesAttributeOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeAddressesAttributeOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeAddressesAttributeInput, ...request.Option) *ec2.DescribeAddressesAttributeOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeAddressesAttributeOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeAddressesAttributeInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DescribeAddressesRequest provides a mock function with given fields: _a0
 func (_m *EC2API) DescribeAddressesRequest(_a0 *ec2.DescribeAddressesInput) (*request.Request, *ec2.DescribeAddressesOutput) {
 	ret := _m.Called(_a0)
@@ -29636,6 +29749,84 @@ func (_m *EC2API) ImportVolumeWithContext(_a0 context.Context, _a1 *ec2.ImportVo
 	return r0, r1
 }
 
+// ModifyAddressAttribute provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyAddressAttribute(_a0 *ec2.ModifyAddressAttributeInput) (*ec2.ModifyAddressAttributeOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ModifyAddressAttributeOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyAddressAttributeInput) *ec2.ModifyAddressAttributeOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyAddressAttributeOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyAddressAttributeInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyAddressAttributeRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyAddressAttributeRequest(_a0 *ec2.ModifyAddressAttributeInput) (*request.Request, *ec2.ModifyAddressAttributeOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyAddressAttributeInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ModifyAddressAttributeOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyAddressAttributeInput) *ec2.ModifyAddressAttributeOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ModifyAddressAttributeOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ModifyAddressAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ModifyAddressAttributeWithContext(_a0 context.Context, _a1 *ec2.ModifyAddressAttributeInput, _a2 ...request.Option) (*ec2.ModifyAddressAttributeOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ModifyAddressAttributeOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyAddressAttributeInput, ...request.Option) *ec2.ModifyAddressAttributeOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyAddressAttributeOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyAddressAttributeInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ModifyAvailabilityZoneGroup provides a mock function with given fields: _a0
 func (_m *EC2API) ModifyAvailabilityZoneGroup(_a0 *ec2.ModifyAvailabilityZoneGroupInput) (*ec2.ModifyAvailabilityZoneGroupOutput, error) {
 	ret := _m.Called(_a0)
@@ -35088,6 +35279,84 @@ func (_m *EC2API) RequestSpotInstancesWithContext(_a0 context.Context, _a1 *ec2.
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RequestSpotInstancesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ResetAddressAttribute provides a mock function with given fields: _a0
+func (_m *EC2API) ResetAddressAttribute(_a0 *ec2.ResetAddressAttributeInput) (*ec2.ResetAddressAttributeOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ResetAddressAttributeOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ResetAddressAttributeInput) *ec2.ResetAddressAttributeOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ResetAddressAttributeOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ResetAddressAttributeInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ResetAddressAttributeRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ResetAddressAttributeRequest(_a0 *ec2.ResetAddressAttributeInput) (*request.Request, *ec2.ResetAddressAttributeOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ResetAddressAttributeInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ResetAddressAttributeOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ResetAddressAttributeInput) *ec2.ResetAddressAttributeOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ResetAddressAttributeOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ResetAddressAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ResetAddressAttributeWithContext(_a0 context.Context, _a1 *ec2.ResetAddressAttributeInput, _a2 ...request.Option) (*ec2.ResetAddressAttributeOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ResetAddressAttributeOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ResetAddressAttributeInput, ...request.Option) *ec2.ResetAddressAttributeOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ResetAddressAttributeOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ResetAddressAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
