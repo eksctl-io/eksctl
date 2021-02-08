@@ -377,6 +377,29 @@ var serviceDetailsJSON = `
             ],
             "Tags": [],
             "ManagesVpcEndpoints": false,
+            "AcceptanceRequired": false,
+            "ServiceName": "com.amazonaws.us-west-2.s3",
+            "VpcEndpointPolicySupported": true,
+            "ServiceId": "vpce-svc-0b5d83f29260cde0d",
+            "Owner": "amazon",
+            "AvailabilityZones": [
+                "us-west-2a",
+                "us-west-2b",
+                "us-west-2c",
+                "us-west-2d"
+            ],
+            "BaseEndpointDnsNames": [
+                "s3.us-west-2.amazonaws.com"
+            ]
+        },
+        {
+            "ServiceType": [
+                {
+                    "ServiceType": "Interface"
+                }
+            ],
+            "Tags": [],
+            "ManagesVpcEndpoints": false,
             "PrivateDnsName": "sts.us-west-2.amazonaws.com",
             "ServiceName": "com.amazonaws.us-west-2.sts",
             "VpcEndpointPolicySupported": true,
