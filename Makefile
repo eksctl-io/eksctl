@@ -41,7 +41,10 @@ godeps_cmd = go list -deps -f '{{if not .Standard}}{{ $$dep := . }}{{range .GoFi
 godeps = $(shell $(call godeps_cmd,$(1)))
 
 .PHONY: build
-build: generate-always ## Build main binary
+build: generate-always binary
+
+.PHONY: binary
+binary:
 	CGO_ENABLED=0 go build -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).buildDate=$(build_date)" ./cmd/eksctl
 
 # Build binaries for Linux, Windows and Mac and place them in dist/
