@@ -238,7 +238,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 // ClusterTasksForNodeGroups returns all tasks dependent on node groups
 func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, installNeuronDevicePluginParam, installNvidiaDevicePluginParam bool) *tasks.TaskTree {
 	tasks := &tasks.TaskTree{
-		Parallel:  false,
+		Parallel:  true,
 		IsSubTask: false,
 	}
 	var haveNeuronInstanceType bool
@@ -257,6 +257,20 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 	if haveNvidiaInstanceType && installNvidiaDevicePluginParam {
 		tasks.Append(newNvidiaDevicePluginTask(c, cfg))
 	}
+
+	var ngs []*api.NodeGroupBase
+	for _, ng := range cfg.NodeGroups {
+		ngs = append(ngs, ng.NodeGroupBase)
+	}
+	for _, ng := range cfg.ManagedNodeGroups {
+		ngs = append(ngs, ng.NodeGroupBase)
+	}
+	for _, ng := range ngs {
+		if len(ng.ASGSuspendProcesses) > 0 {
+			tasks.Append(newSuspendProcesses(c, cfg, ng))
+		}
+	}
+
 	return tasks
 }
 

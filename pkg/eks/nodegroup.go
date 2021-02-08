@@ -8,6 +8,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/aws/aws-sdk-go/service/autoscaling"
+	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	awsiam "github.com/aws/aws-sdk-go/service/iam"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/logger"
@@ -16,6 +18,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/iam"
 	"github.com/weaveworks/eksctl/pkg/utils"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
@@ -323,4 +326,43 @@ func DoesAWSNodeUseIRSA(provider api.ClusterProvider, clientSet kubernetes.Inter
 		}
 	}
 	return false, nil
+}
+
+type suspendProcesses struct {
+	asg             autoscalingiface.AutoScalingAPI
+	nodegroup       *api.NodeGroupBase
+	stackCollection *manager.StackCollection
+}
+
+func (t *suspendProcesses) Describe() string {
+	return fmt.Sprintf("suspend ASG processes for nodegroup %s", t.nodegroup.Name)
+}
+
+func (t *suspendProcesses) Do() error {
+	ngStack, err := t.stackCollection.DescribeNodeGroupStack(t.nodegroup.Name)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't describe nodegroup stack for nodegroup %s", t.nodegroup.Name)
+	}
+	asgName, err := t.stackCollection.GetAutoScalingGroupName(ngStack)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't get autoscalinggroup name nodegroup %s", t.nodegroup.Name)
+	}
+	_, err = t.asg.SuspendProcesses(&autoscaling.ScalingProcessQuery{
+		AutoScalingGroupName: aws.String(asgName),
+		ScalingProcesses:     aws.StringSlice(t.nodegroup.ASGSuspendProcesses),
+	})
+	logger.Info("suspended ASG processes %v for %s", t.nodegroup.ASGSuspendProcesses, t.nodegroup.Name)
+	return err
+}
+
+// newSuspendProcesses returns a task that suspends the given processes for this
+// AutoScalingGroup
+func newSuspendProcesses(c *ClusterProvider, spec *api.ClusterConfig, nodegroup *api.NodeGroupBase) tasks.Task {
+	return tasks.SynchronousTask{
+		SynchronousTaskIface: &suspendProcesses{
+			asg:             c.Provider.ASG(),
+			stackCollection: c.NewStackManager(spec),
+			nodegroup:       nodegroup,
+		},
+	}
 }

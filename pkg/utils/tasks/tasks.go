@@ -27,6 +27,20 @@ func (t *GenericTask) Do(errCh chan error) error {
 	return t.Doer()
 }
 
+type SynchronousTaskIface interface {
+	Describe() string
+	Do() error
+}
+
+type SynchronousTask struct {
+	SynchronousTaskIface
+}
+
+func (t SynchronousTask) Do(errCh chan error) error {
+	defer close(errCh)
+	return t.SynchronousTaskIface.Do()
+}
+
 // TaskTree wraps a set of tasks
 type TaskTree struct {
 	Tasks     []Task
