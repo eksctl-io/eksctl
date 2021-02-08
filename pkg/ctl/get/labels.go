@@ -59,7 +59,7 @@ func getLabels(cmd *cmdutils.Cmd, nodeGroupName string) error {
 	}
 	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 
-	service := managed.NewService(ctl.Provider, manager.NewStackCollection(ctl.Provider, cfg), cfg.Metadata.Name)
+	service := managed.NewService(ctl.Provider.EKS(), ctl.Provider.SSM(), ctl.Provider.EC2(), manager.NewStackCollection(ctl.Provider, cfg), cfg.Metadata.Name)
 	manager := label.New(cfg.Metadata.Name, service, ctl.Provider.EKS())
 	labels, err := manager.Get(nodeGroupName)
 	if err != nil {

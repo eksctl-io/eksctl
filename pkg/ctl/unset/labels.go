@@ -62,7 +62,7 @@ func unsetLabels(cmd *cmdutils.Cmd, nodeGroupName string, removeLabels []string)
 	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 	logger.Info("removing label(s) from nodegroup %s in cluster %s", nodeGroupName, cmd.ClusterConfig.Metadata)
 
-	service := managed.NewService(ctl.Provider, manager.NewStackCollection(ctl.Provider, cfg), cfg.Metadata.Name)
+	service := managed.NewService(ctl.Provider.EKS(), ctl.Provider.SSM(), ctl.Provider.EC2(), manager.NewStackCollection(ctl.Provider, cfg), cfg.Metadata.Name)
 	manager := label.New(cfg.Metadata.Name, service, ctl.Provider.EKS())
 	if err := manager.Unset(nodeGroupName, removeLabels); err != nil {
 		return err
