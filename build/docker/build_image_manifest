@@ -14,6 +14,6 @@
 "k8s.io/code-generator v0.19.4"
 "k8s.io/code-generator v0.19.4"
 "sigs.k8s.io/mdtoc v1.0.1"
-100644 blob d0da2eeffc01f18bc56343b44f11a5c0efc9fc55	build/docker/Dockerfile
+100644 blob 4cf6dc609b4674bbe0eb39a31b322345114f5e64	build/docker/Dockerfile
 100644 blob f48c355ec5e7d3162f15daf529e7474e409fbb85	.requirements
 100755 blob 1ec4ce65165cf21e3767ee34d56fb635c51b4a5a	build/scripts/install-build-deps.sh
