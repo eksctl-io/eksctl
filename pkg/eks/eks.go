@@ -321,7 +321,14 @@ func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*a
 				Profile:     c.Provider.Profile(),
 				WaitTimeout: c.Provider.WaitTimeout(),
 			}
-			newClusters, err := New(spec, nil).listClusters(int64(chunkSize))
+
+			ctl, err := New(spec, nil)
+			if err != nil {
+				logger.Critical("error creating provider in %q region: %s", region, err.Error())
+				continue
+			}
+
+			newClusters, err := ctl.listClusters(int64(chunkSize))
 			if err != nil {
 				logger.Critical("error listing clusters in %q region: %s", region, err.Error())
 			}

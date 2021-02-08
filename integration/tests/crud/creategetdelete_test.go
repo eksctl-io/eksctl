@@ -148,8 +148,9 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						Region: params.Region,
 					},
 				}
-				ctl := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
-				err := ctl.RefreshClusterStatus(cfg)
+				ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+				Expect(err).NotTo(HaveOccurred())
+				err = ctl.RefreshClusterStatus(cfg)
 				Expect(err).ShouldNot(HaveOccurred())
 				clientSet, err = ctl.NewStdClientSet(cfg)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -267,7 +268,9 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 							Region: params.Region,
 						},
 					}
-					ctl = eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+					var err error
+					ctl, err = eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+					Expect(err).NotTo(HaveOccurred())
 				})
 
 				It("should have all types disabled by default", func() {
@@ -391,7 +394,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 							Region: params.Region,
 						},
 					}
-					ctl = eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+					ctl, err = eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+					Expect(err).NotTo(HaveOccurred())
 					err = ctl.RefreshClusterStatus(cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 					oidc, err = ctl.NewOpenIDConnectManager(cfg)

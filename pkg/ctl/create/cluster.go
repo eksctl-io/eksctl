@@ -141,10 +141,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		logger.Warning(api.ErrClusterEndpointPrivateOnly.Error())
 	}
 
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-
 	if params.AutoKubeconfigPath {
 		if params.KubeconfigPath != kubeconfig.DefaultPath() {
 			return fmt.Errorf("--kubeconfig and --auto-kubeconfig %s", cmdutils.IncompatibleFlags)

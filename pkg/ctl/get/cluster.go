@@ -70,10 +70,6 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 		return fmt.Errorf("--all-regions is for listing all clusters, it must be used without cluster name flag/argument")
 	}
 
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-
 	if params.output == printers.TableType && !listAllRegions {
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 	}

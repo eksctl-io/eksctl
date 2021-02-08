@@ -13,6 +13,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/autoscaling"
+	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
@@ -57,6 +59,7 @@ type ClusterProvider struct {
 type ProviderServices struct {
 	spec  *api.ProviderConfig
 	cfn   cloudformationiface.CloudFormationAPI
+	asg   autoscalingiface.AutoScalingAPI
 	eks   eksiface.EKSAPI
 	ec2   ec2iface.EC2API
 	elb   elbiface.ELBAPI
@@ -78,6 +81,9 @@ func (p ProviderServices) CloudFormationRoleARN() string { return p.spec.CloudFo
 func (p ProviderServices) CloudFormationDisableRollback() bool {
 	return p.spec.CloudFormationDisableRollback
 }
+
+// ASG returns a representation of the AutoScaling API
+func (p ProviderServices) ASG() autoscalingiface.AutoScalingAPI { return p.asg }
 
 // EKS returns a representation of the EKS API
 func (p ProviderServices) EKS() eksiface.EKSAPI { return p.eks }
@@ -120,7 +126,7 @@ type ProviderStatus struct {
 }
 
 // New creates a new setup of the used AWS APIs
-func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvider {
+func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProvider, error) {
 	provider := &ProviderServices{
 		spec: spec,
 	}
@@ -131,6 +137,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 	// later re-use if overriding sessions due to custom URL
 	s := c.newSession(spec)
 
+	provider.asg = autoscaling.New(s)
 	provider.cfn = cloudformation.New(s)
 	provider.eks = awseks.New(s)
 	provider.ec2 = ec2.New(s)
@@ -194,7 +201,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 		clusterSpec.Metadata.Region = c.Provider.Region()
 	}
 
-	return c
+	return c, c.checkAuth()
 }
 
 // LoadConfigFromFile loads ClusterConfig from configFile
@@ -256,7 +263,7 @@ func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 }
 
 // CheckAuth checks the AWS authentication
-func (c *ClusterProvider) CheckAuth() error {
+func (c *ClusterProvider) checkAuth() error {
 
 	input := &sts.GetCallerIdentityInput{}
 	output, err := c.Provider.STS().GetCallerIdentity(input)

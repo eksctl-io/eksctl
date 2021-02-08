@@ -58,7 +58,10 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 		}
 	}
 
-	ctl := eks.New(&c.ProviderConfig, c.ClusterConfig)
+	ctl, err := eks.New(&c.ProviderConfig, c.ClusterConfig)
+	if err != nil {
+		return nil, err
+	}
 
 	if !ctl.IsSupportedRegion() {
 		return nil, ErrUnsupportedRegion(&c.ProviderConfig)

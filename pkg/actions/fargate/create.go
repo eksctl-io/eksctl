@@ -12,9 +12,6 @@ import (
 func (m *Manager) Create() error {
 	ctl := m.ctl
 	cfg := m.cfg
-	if err := ctl.CheckAuth(); err != nil {
-		return errors.Wrap(err, "couldn't check cluster auth")
-	}
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return errors.Wrap(err, "couldn't check cluster operable status")
 	}

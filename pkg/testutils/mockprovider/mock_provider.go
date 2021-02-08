@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
@@ -50,6 +51,7 @@ type MockProvider struct {
 
 	region     string
 	cfnRoleARN string
+	asg        *mocks.AutoScalingAPI
 	cfn        *mocks.CloudFormationAPI
 	eks        *mocks.EKSAPI
 	ec2        *mocks.EC2API
@@ -66,6 +68,7 @@ func NewMockProvider() *MockProvider {
 	return &MockProvider{
 		Client: NewMockAWSClient(),
 
+		asg:        &mocks.AutoScalingAPI{},
 		cfn:        &mocks.CloudFormationAPI{},
 		eks:        &mocks.EKSAPI{},
 		ec2:        &mocks.EC2API{},
@@ -93,6 +96,9 @@ func (m MockProvider) CloudFormationDisableRollback() bool {
 func (m MockProvider) MockCloudFormation() *mocks.CloudFormationAPI {
 	return m.CloudFormation().(*mocks.CloudFormationAPI)
 }
+
+// ASG returns a representation of the ASG API
+func (m MockProvider) ASG() autoscalingiface.AutoScalingAPI { return m.asg }
 
 // EKS returns a representation of the EKS API
 func (m MockProvider) EKS() eksiface.EKSAPI { return m.eks }
