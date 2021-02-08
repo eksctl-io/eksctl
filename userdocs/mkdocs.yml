@@ -41,6 +41,7 @@ nav:
         - usage/schema.md
         - usage/troubleshooting.md
         - usage/minimum-iam-policies.md
+        - usage/emr-access.md
         - FAQ: usage/faq.md
     - 'GitOps Quickstart': gitops-quickstart.md
     - Examples:
