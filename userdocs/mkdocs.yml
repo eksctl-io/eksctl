@@ -44,8 +44,7 @@ nav:
         - usage/emr-access.md
         - FAQ: usage/faq.md
     - 'GitOps Quickstart': gitops-quickstart.md
-    - Examples:
-        - examples/reusing-iam-and-vpc.md
+    - Examples: "https://github.com/weaveworks/eksctl/tree/main/examples"
     - Community: community.md
 
 extra:
