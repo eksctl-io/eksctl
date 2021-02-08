@@ -11,7 +11,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 func getLabelsCmd(cmd *cmdutils.Cmd) {
@@ -51,12 +50,10 @@ func getLabels(cmd *cmdutils.Cmd, nodeGroupName string) error {
 		return cmdutils.ErrUnsupportedNameArg()
 	}
 
-	ctl := eks.New(&cmd.ProviderConfig, cmd.ClusterConfig)
-
-	if err := ctl.CheckAuth(); err != nil {
+	ctl, err := cmd.NewCtl()
+	if err != nil {
 		return err
 	}
-
 	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 
 	manager := label.New(cfg, ctl)

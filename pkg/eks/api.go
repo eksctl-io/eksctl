@@ -126,7 +126,7 @@ type ProviderStatus struct {
 }
 
 // New creates a new setup of the used AWS APIs
-func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvider {
+func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProvider, error) {
 	provider := &ProviderServices{
 		spec: spec,
 	}
@@ -201,7 +201,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 		clusterSpec.Metadata.Region = c.Provider.Region()
 	}
 
-	return c
+	return c, c.checkAuth()
 }
 
 // LoadConfigFromFile loads ClusterConfig from configFile
@@ -263,7 +263,7 @@ func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 }
 
 // CheckAuth checks the AWS authentication
-func (c *ClusterProvider) CheckAuth() error {
+func (c *ClusterProvider) checkAuth() error {
 
 	input := &sts.GetCallerIdentityInput{}
 	output, err := c.Provider.STS().GetCallerIdentity(input)

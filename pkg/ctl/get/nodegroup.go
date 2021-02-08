@@ -72,10 +72,6 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 	}
 
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-
 	var summaries []*manager.NodeGroupSummary
 	if ng.Name == "" {
 		summaries, err = nodegroup.New(cfg, ctl, nil).GetAll()

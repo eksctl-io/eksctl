@@ -67,8 +67,5 @@ func doScaleNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup) error {
 		return err
 	}
 
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
 	return nodegroup.New(cfg, ctl, nil).Scale(ng)
 }

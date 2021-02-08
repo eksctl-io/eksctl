@@ -47,10 +47,6 @@ func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 	}
 	cmdutils.LogRegionAndVersionInfo(meta)
 
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
 	}

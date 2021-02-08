@@ -5,7 +5,6 @@ import (
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -39,9 +38,10 @@ func waitNodesCmd(cmd *cmdutils.Cmd) {
 }
 
 func doWaitNodes(cmd *cmdutils.Cmd, ng *api.NodeGroup, kubeconfigPath string) error {
-	cfg := cmd.ClusterConfig
-
-	ctl := eks.New(&cmd.ProviderConfig, cfg)
+	ctl, err := cmd.NewCtl()
+	if err != nil {
+		return err
+	}
 
 	if kubeconfigPath == "" {
 		return cmdutils.ErrMustBeSet("--kubeconfig")

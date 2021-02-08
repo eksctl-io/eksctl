@@ -9,6 +9,8 @@ import (
 	"os"
 	"testing"
 
+	"k8s.io/client-go/kubernetes"
+
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -98,38 +100,15 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 				)
 				Expect(cmd).To(RunSuccessfully())
 			})
+
 			It("should have installed the neuron device plugin", func() {
-				cfg := &api.ClusterConfig{
-					Metadata: &api.ClusterMeta{
-						Name:   defaultCluster,
-						Region: params.Region,
-					},
-				}
-				ctl := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
-				err := ctl.RefreshClusterStatus(cfg)
-				Expect(err).ShouldNot(HaveOccurred())
-
-				clientSet, err := ctl.NewStdClientSet(cfg)
-				Expect(err).ShouldNot(HaveOccurred())
-
-				_, err = clientSet.AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
+				clientSet := newClientSet()
+				_, err := clientSet.AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 			})
+
 			It("should not have installed the nvidia device plugin", func() {
-				cfg := &api.ClusterConfig{
-					Metadata: &api.ClusterMeta{
-						Name:   defaultCluster,
-						Region: params.Region,
-					},
-				}
-				ctl := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
-				err := ctl.RefreshClusterStatus(cfg)
-				Expect(err).ShouldNot(HaveOccurred())
-
-				clientSet, err := ctl.NewStdClientSet(cfg)
-				Expect(err).ShouldNot(HaveOccurred())
-
-				_, err = clientSet.AppsV1().DaemonSets("kube-system").Get(context.TODO(), "nvidia-device-plugin-daemonset", metav1.GetOptions{})
+				_, err := newClientSet().AppsV1().DaemonSets("kube-system").Get(context.TODO(), "nvidia-device-plugin-daemonset", metav1.GetOptions{})
 				Expect(err).Should(BeNotFoundError())
 			})
 		})
@@ -168,23 +147,12 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 				)
 				Expect(cmd).To(RunSuccessfully())
 			})
+
 			It("should not have installed the neuron device plugin", func() {
-				cfg := &api.ClusterConfig{
-					Metadata: &api.ClusterMeta{
-						Name:   noInstallCluster,
-						Region: params.Region,
-					},
-				}
-				ctl := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
-				err := ctl.RefreshClusterStatus(cfg)
-				Expect(err).ShouldNot(HaveOccurred())
-
-				clientSet, err := ctl.NewStdClientSet(cfg)
-				Expect(err).ShouldNot(HaveOccurred())
-
-				_, err = clientSet.AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
+				_, err := newClientSet().AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
 				Expect(err).Should(BeNotFoundError())
 			})
+
 			When("adding a nodegroup by default", func() {
 				It("should install without error", func() {
 					cmd := params.EksctlCreateCmd.WithArgs(
@@ -202,23 +170,28 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 					Expect(cmd).To(RunSuccessfully())
 				})
 				It("should install the neuron device plugin", func() {
-					cfg := &api.ClusterConfig{
-						Metadata: &api.ClusterMeta{
-							Name:   noInstallCluster,
-							Region: params.Region,
-						},
-					}
-					ctl := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
-					err := ctl.RefreshClusterStatus(cfg)
-					Expect(err).ShouldNot(HaveOccurred())
-
-					clientSet, err := ctl.NewStdClientSet(cfg)
-					Expect(err).ShouldNot(HaveOccurred())
-
-					_, err = clientSet.AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
+					_, err := newClientSet().AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})
 		})
 	})
 })
+
+func newClientSet() *kubernetes.Clientset {
+	cfg := &api.ClusterConfig{
+		Metadata: &api.ClusterMeta{
+			Name:   defaultCluster,
+			Region: params.Region,
+		},
+	}
+	ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = ctl.RefreshClusterStatus(cfg)
+	Expect(err).ShouldNot(HaveOccurred())
+
+	clientSet, err := ctl.NewStdClientSet(cfg)
+	Expect(err).ShouldNot(HaveOccurred())
+	return clientSet
+}
