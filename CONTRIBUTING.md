@@ -25,7 +25,7 @@ Looking forward to seeing you in the repo! :sparkles:
 
 - [Legal bits](#legal-bits)
 - [Where can I get involved?](#where-can-i-get-involved)
-	- [The eksctl vision](#the-eksctl-vision)
+	- [The eksctl roadmap](#the-eksctl-roadmap)
 - [Opening Issues](#opening-issues)
 	- [Bug report guide](#bug-report-guide)
 	- [Feature request guide](#feature-request-guide)
@@ -83,15 +83,15 @@ Here is a non-exhaustive list of ways you can help out:
 1. Review old issues; poke or suggest closing ones which are stale or follow up those which still look good. :speech_balloon:
 1. Think deeply about the future of `eksctl`, then [talk about it](#proposals). :crystal_ball:
 
-## The eksctl vision
+## The eksctl roadmap
 
-... is coming soon.
+... can be found [here](https://eksctl.io/community/).
 
 This is the general long game we are playing. Contributions which steer us further towards
 these overarching goals will be enthusiastically welcomed, while contributions which are
 orthogonal or leading in another direction will likely be rejected.
 
-For bonus points, please highlight how feature requests/PRs fit into the vision when you can!
+For bonus points, please highlight how feature requests/PRs fit into the roadmap when you can!
 
 ---
 

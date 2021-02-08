@@ -10,7 +10,7 @@ any other data services (RDS, MQ, STS, DynamoDB), or Kubernetes components like 
 You can easily create IAM Role and Service Account pairs with `eksctl`.
 
 !!!note
-    If you used [instance roles](https://eksctl.io/usage/iam-policies/), and are considering to use IRSA instead, you shouldn't mix the two.
+    If you used [instance roles](/usage/iam-policies), and are considering to use IRSA instead, you shouldn't mix the two.
 
 ## How it works
 
