@@ -175,23 +175,53 @@ func DefaultCIDR() ipnet.IPNet {
 	}
 }
 
-// PrivateSubnetIDs returns list of subnets
-func (c *ClusterConfig) PrivateSubnetIDs() []string {
+// PrivateSubnetsWithIDs returns list of subnets
+func (c *ClusterConfig) PrivateSubnetsWithIDs() []string {
 	subnets := []string{}
 	if c.VPC.Subnets != nil {
 		for _, s := range c.VPC.Subnets.Private {
-			subnets = append(subnets, s.ID)
+			if s.ID != "" {
+				subnets = append(subnets, s.ID)
+			}
 		}
 	}
 	return subnets
 }
 
-// PublicSubnetIDs returns list of subnets
-func (c *ClusterConfig) PublicSubnetIDs() []string {
+// PrivateSubnetsWithCIDRs returns list of subnets
+func (c *ClusterConfig) PrivateSubnetsWithCIDRs() []string {
+	subnets := []string{}
+	if c.VPC.Subnets != nil {
+		for _, s := range c.VPC.Subnets.Private {
+			if s.CIDR != nil {
+				subnets = append(subnets, s.CIDR.String())
+			}
+		}
+	}
+	return subnets
+}
+
+// PublicSubnetsWithIDs returns list of subnets
+func (c *ClusterConfig) PublicSubnetsWithIDs() []string {
 	subnets := []string{}
 	if c.VPC.Subnets != nil {
 		for _, s := range c.VPC.Subnets.Public {
-			subnets = append(subnets, s.ID)
+			if s.ID != "" {
+				subnets = append(subnets, s.ID)
+			}
+		}
+	}
+	return subnets
+}
+
+// PublicSubnetsWithCIDRs returns list of subnets
+func (c *ClusterConfig) PublicSubnetsWithCIDRs() []string {
+	subnets := []string{}
+	if c.VPC.Subnets != nil {
+		for _, s := range c.VPC.Subnets.Public {
+			if s.CIDR != nil {
+				subnets = append(subnets, s.CIDR.String())
+			}
 		}
 	}
 	return subnets
@@ -289,16 +319,10 @@ func (c *ClusterConfig) HasAnySubnets() bool {
 	return c.VPC.Subnets != nil && len(c.VPC.Subnets.Private)+len(c.VPC.Subnets.Public) != 0
 }
 
-// HasSufficientPrivateSubnets validates if there is a sufficient
-// number of private subnets available to create a cluster
-func (c *ClusterConfig) HasSufficientPrivateSubnets() bool {
-	return len(c.PrivateSubnetIDs()) >= MinRequiredSubnets
-}
-
-// HasSufficientPublicSubnets validates if there is a sufficient
-// number of public subnets available to create a cluster
-func (c *ClusterConfig) HasSufficientPublicSubnets() bool {
-	return len(c.PublicSubnetIDs()) >= MinRequiredSubnets
+// HasSufficientPrivateSubnetsForPrivateNodegroup validates if there is a sufficient
+// number of private subnets available to create a private nodegroup
+func (c *ClusterConfig) HasSufficientPrivateSubnetsForPrivateNodegroup() bool {
+	return c.VPC.Subnets != nil && len(c.VPC.Subnets.Private) >= MinRequiredSubnets
 }
 
 var errInsufficientSubnets = fmt.Errorf(
@@ -311,17 +335,15 @@ var errInsufficientSubnets = fmt.Errorf(
 // less then MinRequiredSubnets of each, but allowing to have
 // public-only or private-only
 func (c *ClusterConfig) HasSufficientSubnets() error {
-	numPublic := len(c.PublicSubnetIDs())
-	if numPublic > 0 && numPublic < MinRequiredSubnets {
+	if !c.HasAnySubnets() {
 		return errInsufficientSubnets
 	}
 
-	numPrivate := len(c.PrivateSubnetIDs())
-	if numPrivate > 0 && numPrivate < MinRequiredSubnets {
+	if numPublic := len(c.VPC.Subnets.Public); numPublic > 0 && numPublic < MinRequiredSubnets {
 		return errInsufficientSubnets
 	}
 
-	if numPublic == 0 && numPrivate == 0 {
+	if numPrivate := len(c.VPC.Subnets.Private); numPrivate > 0 && numPrivate < MinRequiredSubnets {
 		return errInsufficientSubnets
 	}
 
