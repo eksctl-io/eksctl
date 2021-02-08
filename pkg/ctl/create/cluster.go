@@ -217,7 +217,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 				return err
 			}
 
-			if err := kw.UseVPC(ctl.Provider, cfg); err != nil {
+			if err := kw.UseVPC(ctl.Provider.EC2(), cfg); err != nil {
 				return err
 			}
 
