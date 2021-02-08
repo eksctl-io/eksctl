@@ -3,10 +3,8 @@ package irsa
 import (
 	"fmt"
 
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/logger"
 	kubeclient "k8s.io/client-go/kubernetes"
@@ -15,20 +13,11 @@ import (
 type Manager struct {
 	clusterName  string
 	oidcManager  *iamoidc.OpenIDConnectManager
-	stackManager StackManager
+	stackManager manager.StackManager
 	clientSet    kubeclient.Interface
 }
 
-//go:generate counterfeiter -o fakes/fake_stack_manager.go . StackManager
-type StackManager interface {
-	ListStacksMatching(nameRegex string, statusFilters ...string) ([]*manager.Stack, error)
-	UpdateStack(stackName, changeSetName, description string, templateData manager.TemplateData, parameters map[string]string) error
-	NewTasksToCreateIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) *tasks.TaskTree
-	GetIAMServiceAccounts() ([]*api.ClusterIAMServiceAccount, error)
-	NewTasksToDeleteIAMServiceAccounts(shouldDelete func(string) bool, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*tasks.TaskTree, error)
-}
-
-func New(clusterName string, stackManager StackManager, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) *Manager {
+func New(clusterName string, stackManager manager.StackManager, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) *Manager {
 	return &Manager{
 		clusterName:  clusterName,
 		oidcManager:  oidcManager,

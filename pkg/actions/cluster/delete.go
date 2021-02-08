@@ -103,7 +103,7 @@ func deleteFargateProfiles(clusterMeta *api.ClusterMeta, ctl *eks.ClusterProvide
 	return nil
 }
 
-func deleteDeprecatedStacks(stackManager *manager.StackCollection) (bool, error) {
+func deleteDeprecatedStacks(stackManager manager.StackManager) (bool, error) {
 	tasks, err := stackManager.DeleteTasksForDeprecatedStacks()
 	if err != nil {
 		return true, err
@@ -119,7 +119,7 @@ func deleteDeprecatedStacks(stackManager *manager.StackCollection) (bool, error)
 	return false, nil
 }
 
-func checkForUndeletedStacks(stackManager *manager.StackCollection) error {
+func checkForUndeletedStacks(stackManager manager.StackManager) error {
 	stacks, err := stackManager.DescribeStacks()
 	if err != nil {
 		return err

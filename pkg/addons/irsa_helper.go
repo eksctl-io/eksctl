@@ -22,12 +22,12 @@ type IRSAHelper interface {
 type irsaHelper struct {
 	oidc         *iamoidc.OpenIDConnectManager
 	irsaManager  *irsa.Manager
-	stackManager *manager.StackCollection
+	stackManager manager.StackManager
 	clusterName  string
 }
 
 // NewIRSAHelper creates a new IRSAHelper
-func NewIRSAHelper(oidc *iamoidc.OpenIDConnectManager, stackManager *manager.StackCollection, irsaManager *irsa.Manager, clusterName string) IRSAHelper {
+func NewIRSAHelper(oidc *iamoidc.OpenIDConnectManager, stackManager manager.StackManager, irsaManager *irsa.Manager, clusterName string) IRSAHelper {
 	return &irsaHelper{
 		oidc:         oidc,
 		stackManager: stackManager,
