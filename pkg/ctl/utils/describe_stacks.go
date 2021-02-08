@@ -71,10 +71,6 @@ func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool, printer pri
 		cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
 	}
 
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-
 	if cfg.Metadata.Name != "" && cmd.NameArg != "" {
 		return cmdutils.ErrFlagAndArg(cmdutils.ClusterNameFlag(cmd), cfg.Metadata.Name, cmd.NameArg)
 	}

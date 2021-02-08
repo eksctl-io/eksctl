@@ -50,10 +50,6 @@ func doUpdatePublicAccessCIDRs(cmd *cmdutils.Cmd) error {
 	}
 	logger.Info("using region %s", meta.Region)
 
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-
 	if ok, err := ctl.CanUpdate(cfg); !ok {
 		return err
 	}

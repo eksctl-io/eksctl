@@ -79,10 +79,6 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 	}
 	cmdutils.LogRegionAndVersionInfo(meta)
 
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
 	}

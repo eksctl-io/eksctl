@@ -41,10 +41,6 @@ func doUpdateLegacySubnetSettings(cmd *cmdutils.Cmd) error {
 	}
 	cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
 
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-
 	if meta.Name != "" && cmd.NameArg != "" {
 		return cmdutils.ErrFlagAndArg(cmdutils.ClusterNameFlag(cmd), meta.Name, cmd.NameArg)
 	}
