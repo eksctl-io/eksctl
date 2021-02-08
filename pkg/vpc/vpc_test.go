@@ -346,7 +346,7 @@ var _ = Describe("VPC - Import VPC", func() {
 				},
 			},
 			describeVPCError: nil,
-			error:            fmt.Errorf("VPC CIDR block %q is not the same as %q", "192.168.0.0/16", "10.168.0.0/16"),
+			error:            nil,
 		}),
 		Entry("VPC with nil CIDR and invalid CIDR", importVPCCase{
 			cfg: &api.ClusterConfig{
