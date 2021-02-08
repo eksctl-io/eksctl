@@ -139,15 +139,11 @@ func buildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 	serviceNames := make([]string, len(endpoints))
 	serviceDomain := fmt.Sprintf("com.amazonaws.%s", region)
 	for i, endpoint := range endpoints {
-		name := fmt.Sprintf("%s.%s", serviceDomain, endpoint)
-		hasChinaPrefix, ok := chinaPartitionServiceHasChinaPrefix[endpoint]
-		if !ok {
-			return nil, errors.Errorf("couldn't determine endpoint domain for service %s", endpoint)
+		serviceName, err := makeServiceName(region, endpoint)
+		if err != nil {
+			return nil, err
 		}
-		if api.Partition(region) == api.PartitionChina && hasChinaPrefix {
-			name = "cn." + name
-		}
-		serviceNames[i] = name
+		serviceNames[i] = serviceName
 	}
 
 	var serviceDetails []*ec2.ServiceDetail
@@ -181,11 +177,20 @@ func buildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 		}
 	}
 
-	ret := make([]VPCEndpointServiceDetails, len(serviceDetails))
+	var ret []VPCEndpointServiceDetails
+	s3EndpointName, err := makeServiceName(region, api.EndpointServiceS3)
+	if err != nil {
+		return nil, err
+	}
 
-	for i, sd := range serviceDetails {
+	for _, sd := range serviceDetails {
 		if len(sd.ServiceType) > 1 {
 			return nil, errors.Errorf("endpoint service %q with multiple service types isn't supported", *sd.ServiceName)
+		}
+
+		endpointType := *sd.ServiceType[0].ServiceType
+		if *sd.ServiceName == s3EndpointName && endpointType == ec2.VpcEndpointTypeInterface {
+			continue
 		}
 
 		// Trim the domain (potentially with a partition-specific part) from the `ServiceName`
@@ -195,13 +200,25 @@ func buildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 		}
 		readableName := parts[1]
 
-		ret[i] = VPCEndpointServiceDetails{
+		ret = append(ret, VPCEndpointServiceDetails{
 			ServiceName:         *sd.ServiceName,
 			ServiceReadableName: readableName,
-			EndpointType:        *sd.ServiceType[0].ServiceType,
+			EndpointType:        endpointType,
 			AvailabilityZones:   aws.StringValueSlice(sd.AvailabilityZones),
-		}
+		})
 	}
 
 	return ret, nil
+}
+
+func makeServiceName(region, endpoint string) (string, error) {
+	serviceName := fmt.Sprintf("com.amazonaws.%s.%s", region, endpoint)
+	hasChinaPrefix, ok := chinaPartitionServiceHasChinaPrefix[endpoint]
+	if !ok {
+		return "", errors.Errorf("couldn't determine endpoint domain for service %s", endpoint)
+	}
+	if api.Partition(region) == api.PartitionChina && hasChinaPrefix {
+		serviceName = "cn." + serviceName
+	}
+	return serviceName, nil
 }
