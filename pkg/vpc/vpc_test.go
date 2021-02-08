@@ -318,7 +318,7 @@ var _ = Describe("VPC - Import VPC", func() {
 				},
 			},
 			describeVPCError: nil,
-			error:            fmt.Errorf("VPC CIDR block %q is not the same as %q", "192.168.0.0/16", "10.168.0.0/16"),
+			error:            fmt.Errorf("VPC CIDR block %q not found in VPC", "192.168.0.0/16"),
 		}),
 		Entry("VPC with nil CIDR", importVPCCase{
 			cfg: &api.ClusterConfig{
@@ -375,6 +375,52 @@ var _ = Describe("VPC - Import VPC", func() {
 			},
 			describeVPCError: nil,
 			error:            fmt.Errorf("invalid CIDR address: *"),
+		}),
+		Entry("VPC with secondary CIDR", importVPCCase{
+			cfg: func() *api.ClusterConfig {
+				cfg := api.NewClusterConfig()
+				cfg.VPC.CIDR = ipnet.MustParseCIDR("10.1.0.0/16")
+				return cfg
+			}(),
+			id: "validID",
+			describeVPCOutput: &ec2.DescribeVpcsOutput{
+				Vpcs: []*ec2.Vpc{
+					{
+						CidrBlock: strings.Pointer("10.0.0.0/16"),
+						CidrBlockAssociationSet: []*ec2.VpcCidrBlockAssociation{
+							{
+								CidrBlock: strings.Pointer("10.1.0.0/16"),
+							},
+						},
+						VpcId: strings.Pointer("validID"),
+					},
+				},
+			},
+			describeVPCError: nil,
+			error:            nil,
+		}),
+		Entry("VPC with mismatching secondary CIDR", importVPCCase{
+			cfg: func() *api.ClusterConfig {
+				cfg := api.NewClusterConfig()
+				cfg.VPC.CIDR = ipnet.MustParseCIDR("10.2.0.0/16")
+				return cfg
+			}(),
+			id: "validID",
+			describeVPCOutput: &ec2.DescribeVpcsOutput{
+				Vpcs: []*ec2.Vpc{
+					{
+						CidrBlock: strings.Pointer("10.0.0.0/16"),
+						CidrBlockAssociationSet: []*ec2.VpcCidrBlockAssociation{
+							{
+								CidrBlock: strings.Pointer("10.1.0.0/16"),
+							},
+						},
+						VpcId: strings.Pointer("validID"),
+					},
+				},
+			},
+			describeVPCError: nil,
+			error:            fmt.Errorf(`VPC CIDR block "10.2.0.0/16" not found in VPC`),
 		}),
 	)
 })
