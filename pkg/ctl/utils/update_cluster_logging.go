@@ -69,10 +69,6 @@ func doEnableLogging(cmd *cmdutils.Cmd, logTypesToEnable []string, logTypesToDis
 	}
 	cmdutils.LogRegionAndVersionInfo(meta)
 
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-
 	currentlyEnabled, _, err := ctl.GetCurrentClusterConfigForLogging(cfg)
 	if err != nil {
 		return err

@@ -55,10 +55,6 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 	}
 	cmdutils.LogRegionAndVersionInfo(meta)
 
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-
 	logger.Info("deleting EKS cluster %q", meta.Name)
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err

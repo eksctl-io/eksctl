@@ -12,7 +12,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-func NewUpdateIAMServiceAccountTask(clusterName string, sa *api.ClusterIAMServiceAccount, stackManager StackManager, oidcManager *iamoidc.OpenIDConnectManager) (*tasks.TaskTree, error) {
+func NewUpdateIAMServiceAccountTask(clusterName string, sa *api.ClusterIAMServiceAccount, stackManager manager.StackManager, oidcManager *iamoidc.OpenIDConnectManager) (*tasks.TaskTree, error) {
 
 	rs := builder.NewIAMServiceAccountResourceSet(sa, oidcManager)
 	err := rs.AddAllResources()
@@ -43,7 +43,7 @@ func NewUpdateIAMServiceAccountTask(clusterName string, sa *api.ClusterIAMServic
 
 type updateIAMServiceAccountTask struct {
 	sa           *api.ClusterIAMServiceAccount
-	stackManager StackManager
+	stackManager manager.StackManager
 	templateData manager.TemplateData
 	clusterName  string
 	info         string

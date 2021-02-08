@@ -50,10 +50,6 @@ func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, all bool) error {
 	}
 	cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
 
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-
 	if arn == "" {
 		return cmdutils.ErrMustBeSet("--arn")
 	}

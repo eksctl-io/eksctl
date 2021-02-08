@@ -246,9 +246,6 @@ var _ = Describe("cmdutils configfile", func() {
 						Expect(cmd.ClusterConfig.NodeGroups[0]).To(Equal(loaderTest.ng))
 					}
 				}
-
-				_, err := cmd.NewCtl()
-				Expect(err).ToNot(HaveOccurred())
 			}
 		})
 
@@ -303,9 +300,6 @@ var _ = Describe("cmdutils configfile", func() {
 					Expect(cmd.ClusterConfig.NodeGroups).To(HaveLen(loaderTest.nodeGroupCount))
 					Expect(cmd.ClusterConfig.ManagedNodeGroups).To(BeEmpty())
 				}
-
-				_, err := cmd.NewCtl()
-				Expect(err).ToNot(HaveOccurred())
 			}
 
 		})

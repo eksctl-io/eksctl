@@ -57,7 +57,9 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				Region: params.Region,
 			},
 		}
-		ctl = eks.New(&api.ProviderConfig{Region: params.Region}, cfg).Provider
+		clusterProvider, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+		Expect(err).NotTo(HaveOccurred())
+		ctl = clusterProvider.Provider
 		createClusterWithNodegroups(clusterName, stackName, ng1, ng2, ctl)
 	})
 

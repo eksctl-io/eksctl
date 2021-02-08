@@ -33,10 +33,10 @@ type UnownedCluster struct {
 	cfg          *api.ClusterConfig
 	ctl          *eks.ClusterProvider
 	clientSet    kubeclient.Interface
-	stackManager *manager.StackCollection
+	stackManager manager.StackManager
 }
 
-func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubeclient.Interface, stackManager *manager.StackCollection) *UnownedCluster {
+func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubeclient.Interface, stackManager manager.StackManager) *UnownedCluster {
 	return &UnownedCluster{
 		cfg:          cfg,
 		ctl:          ctl,

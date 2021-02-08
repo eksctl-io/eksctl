@@ -13,7 +13,7 @@ import (
 )
 
 type Manager struct {
-	manager   *manager.StackCollection
+	manager   manager.StackManager
 	ctl       *eks.ClusterProvider
 	cfg       *api.ClusterConfig
 	clientSet *kubernetes.Clientset

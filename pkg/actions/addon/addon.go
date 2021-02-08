@@ -9,8 +9,6 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -22,19 +20,11 @@ type Manager struct {
 	clusterProvider *eks.ClusterProvider
 	withOIDC        bool
 	oidcManager     *iamoidc.OpenIDConnectManager
-	stackManager    StackManager
+	stackManager    manager.StackManager
 	clientSet       kubeclient.Interface
 }
 
-//go:generate counterfeiter -o fakes/fake_stack_manager.go . StackManager
-type StackManager interface {
-	CreateStack(name string, stack builder.ResourceSet, tags, parameters map[string]string, errs chan error) error
-	DeleteStackByName(name string) (*manager.Stack, error)
-	ListStacksMatching(nameRegex string, statusFilters ...string) ([]*manager.Stack, error)
-	UpdateStack(stackName, changeSetName, description string, templateData manager.TemplateData, parameters map[string]string) error
-}
-
-func New(clusterConfig *api.ClusterConfig, clusterProvider *eks.ClusterProvider, stackManager StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) (*Manager, error) {
+func New(clusterConfig *api.ClusterConfig, clusterProvider *eks.ClusterProvider, stackManager manager.StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) (*Manager, error) {
 	if err := supportedVersion(clusterConfig.Metadata.Version); err != nil {
 		return nil, err
 	}

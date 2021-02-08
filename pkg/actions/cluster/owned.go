@@ -18,10 +18,10 @@ import (
 type OwnedCluster struct {
 	cfg          *api.ClusterConfig
 	ctl          *eks.ClusterProvider
-	stackManager *manager.StackCollection
+	stackManager manager.StackManager
 }
 
-func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager *manager.StackCollection) (*OwnedCluster, error) {
+func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) (*OwnedCluster, error) {
 	return &OwnedCluster{
 		cfg:          cfg,
 		ctl:          ctl,
