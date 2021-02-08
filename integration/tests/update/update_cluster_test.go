@@ -215,8 +215,10 @@ func getRawClient() *kubewrapper.RawClient {
 			Region: params.Region,
 		},
 	}
-	ctl := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
-	err := ctl.RefreshClusterStatus(cfg)
+	ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = ctl.RefreshClusterStatus(cfg)
 	Expect(err).ShouldNot(HaveOccurred())
 	rawClient, err := ctl.NewRawClient(cfg)
 	Expect(err).ToNot(HaveOccurred())
@@ -230,8 +232,10 @@ func getClientSet() *kubernetes.Clientset {
 			Region: params.Region,
 		},
 	}
-	ctl := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
-	err := ctl.RefreshClusterStatus(cfg)
+	ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = ctl.RefreshClusterStatus(cfg)
 	Expect(err).ShouldNot(HaveOccurred())
 	clientSet, err := ctl.NewStdClientSet(cfg)
 	Expect(err).ToNot(HaveOccurred())
