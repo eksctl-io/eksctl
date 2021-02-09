@@ -86,7 +86,7 @@ commands:
         default: ':red_circle: A $CIRCLE_JOB job has failed!'
       channel:
         type: string
-        default: pitch-black-team
+        default: team-pitch-black
     steps:
       - run: exit 0
       - slack/status:

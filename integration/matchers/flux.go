@@ -26,7 +26,7 @@ const (
 )
 
 var (
-	fluxComponents  = []string{"memcached", "helm-operator", "flux"}
+	fluxComponents  = []string{"flux", "helm-operator", "memcached"}
 	flux2Components = []string{"helm-controller", "kustomize-controller", "notification-controller", "source-controller"}
 )
 
