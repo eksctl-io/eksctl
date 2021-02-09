@@ -13,7 +13,7 @@ jobs:
         env:
           LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
         run: |
-          if ! jq --exit-status 'any(test("kind/feature") or test("kind/improvement") or test("kind/bug") or test("skip-release-notes"))' >/dev/null <<< $LABELS; then
+          if ! jq --exit-status 'any(test("kind/feature") or test("kind/docs") or test("kind/improvement") or test("kind/bug") or test("skip-release-notes"))' >/dev/null <<< $LABELS; then
             echo "::error ::Please set either kind/feature, kind/improvement, kind/bug or skip-release-notes as label"
             exit 1
           fi
