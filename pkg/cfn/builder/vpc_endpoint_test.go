@@ -267,277 +267,300 @@ var _ = Describe("VPC Endpoint Builder", func() {
 
 var serviceDetailsJSON = `
 {
-    "ServiceNames": [
-        "com.amazonaws.us-west-2.ec2",
-        "com.amazonaws.us-west-2.ecr.api",
-        "com.amazonaws.us-west-2.ecr.dkr",
-        "com.amazonaws.us-west-2.s3",
-        "com.amazonaws.us-west-2.sts"
-    ],
-    "ServiceDetails": [
+  "ServiceNames": [
+    "com.amazonaws.us-west-2.ec2",
+    "com.amazonaws.us-west-2.ecr.api",
+    "com.amazonaws.us-west-2.ecr.dkr",
+    "com.amazonaws.us-west-2.s3",
+    "com.amazonaws.us-west-2.sts"
+  ],
+  "ServiceDetails": [
+    {
+      "ServiceType": [
         {
-            "ServiceType": [
-                {
-                    "ServiceType": "Interface"
-                }
-            ],
-            "Tags": [],
-            "ManagesVpcEndpoints": false,
-            "PrivateDnsName": "ec2.us-west-2.amazonaws.com",
-            "ServiceName": "com.amazonaws.us-west-2.ec2",
-            "VpcEndpointPolicySupported": true,
-            "ServiceId": "vpce-svc-0ee6723c76642b3d8",
-            "Owner": "amazon",
-            "AvailabilityZones": [
-                "us-west-2a",
-                "us-west-2b",
-                "us-west-2c"
-            ],
-            "AcceptanceRequired": false,
-            "BaseEndpointDnsNames": [
-                "ec2.us-west-2.vpce.amazonaws.com"
-            ]
-        },
-        {
-            "ServiceType": [
-                {
-                    "ServiceType": "Interface"
-                }
-            ],
-            "Tags": [],
-            "ManagesVpcEndpoints": false,
-            "PrivateDnsName": "api.ecr.us-west-2.amazonaws.com",
-            "ServiceName": "com.amazonaws.us-west-2.ecr.api",
-            "VpcEndpointPolicySupported": true,
-            "ServiceId": "vpce-svc-07d1f428f072fd172",
-            "Owner": "amazon",
-            "AvailabilityZones": [
-                "us-west-2a",
-                "us-west-2b",
-                "us-west-2c",
-                "us-west-2d"
-            ],
-            "AcceptanceRequired": false,
-            "BaseEndpointDnsNames": [
-                "api.ecr.us-west-2.vpce.amazonaws.com"
-            ]
-        },
-        {
-            "ServiceType": [
-                {
-                    "ServiceType": "Interface"
-                }
-            ],
-            "Tags": [],
-            "ManagesVpcEndpoints": false,
-            "PrivateDnsName": "*.dkr.ecr.us-west-2.amazonaws.com",
-            "ServiceName": "com.amazonaws.us-west-2.ecr.dkr",
-            "VpcEndpointPolicySupported": true,
-            "ServiceId": "vpce-svc-09d74a28015a69002",
-            "Owner": "amazon",
-            "AvailabilityZones": [
-                "us-west-2a",
-                "us-west-2b",
-                "us-west-2c",
-                "us-west-2d"
-            ],
-            "AcceptanceRequired": false,
-            "BaseEndpointDnsNames": [
-                "dkr.ecr.us-west-2.vpce.amazonaws.com"
-            ]
-        },
-        {
-            "ServiceType": [
-                {
-                    "ServiceType": "Gateway"
-                }
-            ],
-            "Tags": [],
-            "ManagesVpcEndpoints": false,
-            "AcceptanceRequired": false,
-            "ServiceName": "com.amazonaws.us-west-2.s3",
-            "VpcEndpointPolicySupported": true,
-            "ServiceId": "vpce-svc-0001be97e1865c74e",
-            "Owner": "amazon",
-            "AvailabilityZones": [
-                "us-west-2a",
-                "us-west-2b",
-                "us-west-2c",
-                "us-west-2d"
-            ],
-            "BaseEndpointDnsNames": [
-                "s3.us-west-2.amazonaws.com"
-            ]
-        },
-        {
-            "ServiceType": [
-                {
-                    "ServiceType": "Interface"
-                }
-            ],
-            "Tags": [],
-            "ManagesVpcEndpoints": false,
-            "AcceptanceRequired": false,
-            "ServiceName": "com.amazonaws.us-west-2.s3",
-            "VpcEndpointPolicySupported": true,
-            "ServiceId": "vpce-svc-0b5d83f29260cde0d",
-            "Owner": "amazon",
-            "AvailabilityZones": [
-                "us-west-2a",
-                "us-west-2b",
-                "us-west-2c",
-                "us-west-2d"
-            ],
-            "BaseEndpointDnsNames": [
-                "s3.us-west-2.amazonaws.com"
-            ]
-        },
-        {
-            "ServiceType": [
-                {
-                    "ServiceType": "Interface"
-                }
-            ],
-            "Tags": [],
-            "ManagesVpcEndpoints": false,
-            "PrivateDnsName": "sts.us-west-2.amazonaws.com",
-            "ServiceName": "com.amazonaws.us-west-2.sts",
-            "VpcEndpointPolicySupported": true,
-            "ServiceId": "vpce-svc-06681ce20e9a3e8c4",
-            "Owner": "amazon",
-            "AvailabilityZones": [
-                "us-west-2a",
-                "us-west-2b",
-                "us-west-2c"
-            ],
-            "AcceptanceRequired": false,
-            "BaseEndpointDnsNames": [
-                "sts.us-west-2.vpce.amazonaws.com"
-            ]
+          "ServiceType": "Interface"
         }
-    ]
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "PrivateDnsName": "ec2.us-west-2.amazonaws.com",
+      "ServiceName": "com.amazonaws.us-west-2.ec2",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-0ee6723c76642b3d8",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "us-west-2a",
+        "us-west-2b",
+        "us-west-2c"
+      ],
+      "AcceptanceRequired": false,
+      "BaseEndpointDnsNames": [
+        "ec2.us-west-2.vpce.amazonaws.com"
+      ]
+    },
+    {
+      "ServiceType": [
+        {
+          "ServiceType": "Interface"
+        }
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "PrivateDnsName": "api.ecr.us-west-2.amazonaws.com",
+      "ServiceName": "com.amazonaws.us-west-2.ecr.api",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-07d1f428f072fd172",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "us-west-2a",
+        "us-west-2b",
+        "us-west-2c",
+        "us-west-2d"
+      ],
+      "AcceptanceRequired": false,
+      "BaseEndpointDnsNames": [
+        "api.ecr.us-west-2.vpce.amazonaws.com"
+      ]
+    },
+    {
+      "ServiceType": [
+        {
+          "ServiceType": "Interface"
+        }
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "PrivateDnsName": "*.dkr.ecr.us-west-2.amazonaws.com",
+      "ServiceName": "com.amazonaws.us-west-2.ecr.dkr",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-09d74a28015a69002",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "us-west-2a",
+        "us-west-2b",
+        "us-west-2c",
+        "us-west-2d"
+      ],
+      "AcceptanceRequired": false,
+      "BaseEndpointDnsNames": [
+        "dkr.ecr.us-west-2.vpce.amazonaws.com"
+      ]
+    },
+    {
+      "ServiceType": [
+        {
+          "ServiceType": "Gateway"
+        }
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "AcceptanceRequired": false,
+      "ServiceName": "com.amazonaws.us-west-2.s3",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-0001be97e1865c74e",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "us-west-2a",
+        "us-west-2b",
+        "us-west-2c",
+        "us-west-2d"
+      ],
+      "BaseEndpointDnsNames": [
+        "s3.us-west-2.amazonaws.com"
+      ]
+    },
+    {
+      "ServiceType": [
+        {
+          "ServiceType": "Interface"
+        }
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "AcceptanceRequired": false,
+      "ServiceName": "com.amazonaws.us-west-2.s3",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-0b5d83f29260cde0d",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "us-west-2a",
+        "us-west-2b",
+        "us-west-2c",
+        "us-west-2d"
+      ],
+      "BaseEndpointDnsNames": [
+        "s3.us-west-2.amazonaws.com"
+      ]
+    },
+    {
+      "ServiceType": [
+        {
+          "ServiceType": "Interface"
+        }
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "PrivateDnsName": "sts.us-west-2.amazonaws.com",
+      "ServiceName": "com.amazonaws.us-west-2.sts",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-06681ce20e9a3e8c4",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "us-west-2a",
+        "us-west-2b",
+        "us-west-2c"
+      ],
+      "AcceptanceRequired": false,
+      "BaseEndpointDnsNames": [
+        "sts.us-west-2.vpce.amazonaws.com"
+      ]
+    },
+    {
+      "ServiceType": [
+        {
+          "ServiceType": "Gateway"
+        }
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "AcceptanceRequired": false,
+      "ServiceName": "com.amazonaws.us-west-2.ec2",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-non-existing-endpoint-type",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "us-west-2a",
+        "us-west-2b",
+        "us-west-2c",
+        "us-west-2d"
+      ],
+      "BaseEndpointDnsNames": [
+        "ec2.us-west-2.amazonaws.com"
+      ]
+    }
+  ]
 }
 `
 var serviceDetailsJSONChina = `
 {
-    "ServiceNames": [
-        "cn.com.amazonaws.cn-north-1.ec2",
-        "cn.com.amazonaws.cn-north-1.ecr.api",
-        "cn.com.amazonaws.cn-north-1.ecr.dkr",
-        "com.amazonaws.cn-north-1.s3",
-        "cn.com.amazonaws.cn-north-1.sts"
-    ],
-    "ServiceDetails": [
+  "ServiceNames": [
+    "cn.com.amazonaws.cn-north-1.ec2",
+    "cn.com.amazonaws.cn-north-1.ecr.api",
+    "cn.com.amazonaws.cn-north-1.ecr.dkr",
+    "com.amazonaws.cn-north-1.s3",
+    "cn.com.amazonaws.cn-north-1.sts"
+  ],
+  "ServiceDetails": [
+    {
+      "ServiceType": [
         {
-            "ServiceType": [
-                {
-                    "ServiceType": "Interface"
-                }
-            ],
-            "Tags": [],
-            "ManagesVpcEndpoints": false,
-            "PrivateDnsName": "ec2.cn-north-1.amazonaws.com.cn",
-            "ServiceName": "cn.com.amazonaws.cn-north-1.ec2",
-            "VpcEndpointPolicySupported": true,
-            "ServiceId": "vpce-svc-0ee6723c76642b3d8",
-            "Owner": "amazon",
-            "AvailabilityZones": [
-                "cn-north-1a",
-                "cn-north-1b"
-            ],
-            "AcceptanceRequired": false,
-            "BaseEndpointDnsNames": [
-                "ec2.cn-north-1.vpce.amazonaws.com.cn"
-            ]
-        },
-        {
-            "ServiceType": [
-                {
-                    "ServiceType": "Interface"
-                }
-            ],
-            "Tags": [],
-            "ManagesVpcEndpoints": false,
-            "PrivateDnsName": "api.ecr.cn-north-1.amazonaws.com.cn",
-            "ServiceName": "cn.com.amazonaws.cn-north-1.ecr.api",
-            "VpcEndpointPolicySupported": true,
-            "ServiceId": "vpce-svc-07d1f428f072fd172",
-            "Owner": "amazon",
-            "AvailabilityZones": [
-                "cn-north-1a",
-                "cn-north-1b"
-            ],
-            "AcceptanceRequired": false,
-            "BaseEndpointDnsNames": [
-                "api.ecr.cn-north-1.vpce.amazonaws.com.cn"
-            ]
-        },
-        {
-            "ServiceType": [
-                {
-                    "ServiceType": "Interface"
-                }
-            ],
-            "Tags": [],
-            "ManagesVpcEndpoints": false,
-            "PrivateDnsName": "*.dkr.ecr.cn-north-1.amazonaws.com.cn",
-            "ServiceName": "cn.com.amazonaws.cn-north-1.ecr.dkr",
-            "VpcEndpointPolicySupported": true,
-            "ServiceId": "vpce-svc-09d74a28015a69002",
-            "Owner": "amazon",
-            "AvailabilityZones": [
-                "cn-north-1a",
-                "cn-north-1b"
-            ],
-            "AcceptanceRequired": false,
-            "BaseEndpointDnsNames": [
-                "dkr.ecr.cn-north-1.vpce.amazonaws.com.cn"
-            ]
-        },
-        {
-            "ServiceType": [
-                {
-                    "ServiceType": "Gateway"
-                }
-            ],
-            "Tags": [],
-            "ManagesVpcEndpoints": false,
-            "AcceptanceRequired": false,
-            "ServiceName": "com.amazonaws.cn-north-1.s3",
-            "VpcEndpointPolicySupported": true,
-            "ServiceId": "vpce-svc-0001be97e1865c74e",
-            "Owner": "amazon",
-            "AvailabilityZones": [
-                "cn-north-1a",
-                "cn-north-1b"
-            ],
-            "BaseEndpointDnsNames": [
-                "s3.cn-north-1.amazonaws.com"
-            ]
-        },
-        {
-            "ServiceType": [
-                {
-                    "ServiceType": "Interface"
-                }
-            ],
-            "Tags": [],
-            "ManagesVpcEndpoints": false,
-            "PrivateDnsName": "sts.cn-north-1.amazonaws.com.cn",
-            "ServiceName": "cn.com.amazonaws.cn-north-1.sts",
-            "VpcEndpointPolicySupported": true,
-            "ServiceId": "vpce-svc-06681ce20e9a3e8c4",
-            "Owner": "amazon",
-            "AvailabilityZones": [
-                "cn-north-1a",
-                "cn-north-1b"
-            ],
-            "AcceptanceRequired": false,
-            "BaseEndpointDnsNames": [
-                "sts.cn-north-1.vpce.amazonaws.com.cn"
-            ]
+          "ServiceType": "Interface"
         }
-    ]
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "PrivateDnsName": "ec2.cn-north-1.amazonaws.com.cn",
+      "ServiceName": "cn.com.amazonaws.cn-north-1.ec2",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-0ee6723c76642b3d8",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "cn-north-1a",
+        "cn-north-1b"
+      ],
+      "AcceptanceRequired": false,
+      "BaseEndpointDnsNames": [
+        "ec2.cn-north-1.vpce.amazonaws.com.cn"
+      ]
+    },
+    {
+      "ServiceType": [
+        {
+          "ServiceType": "Interface"
+        }
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "PrivateDnsName": "api.ecr.cn-north-1.amazonaws.com.cn",
+      "ServiceName": "cn.com.amazonaws.cn-north-1.ecr.api",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-07d1f428f072fd172",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "cn-north-1a",
+        "cn-north-1b"
+      ],
+      "AcceptanceRequired": false,
+      "BaseEndpointDnsNames": [
+        "api.ecr.cn-north-1.vpce.amazonaws.com.cn"
+      ]
+    },
+    {
+      "ServiceType": [
+        {
+          "ServiceType": "Interface"
+        }
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "PrivateDnsName": "*.dkr.ecr.cn-north-1.amazonaws.com.cn",
+      "ServiceName": "cn.com.amazonaws.cn-north-1.ecr.dkr",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-09d74a28015a69002",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "cn-north-1a",
+        "cn-north-1b"
+      ],
+      "AcceptanceRequired": false,
+      "BaseEndpointDnsNames": [
+        "dkr.ecr.cn-north-1.vpce.amazonaws.com.cn"
+      ]
+    },
+    {
+      "ServiceType": [
+        {
+          "ServiceType": "Gateway"
+        }
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "AcceptanceRequired": false,
+      "ServiceName": "com.amazonaws.cn-north-1.s3",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-0001be97e1865c74e",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "cn-north-1a",
+        "cn-north-1b"
+      ],
+      "BaseEndpointDnsNames": [
+        "s3.cn-north-1.amazonaws.com"
+      ]
+    },
+    {
+      "ServiceType": [
+        {
+          "ServiceType": "Interface"
+        }
+      ],
+      "Tags": [],
+      "ManagesVpcEndpoints": false,
+      "PrivateDnsName": "sts.cn-north-1.amazonaws.com.cn",
+      "ServiceName": "cn.com.amazonaws.cn-north-1.sts",
+      "VpcEndpointPolicySupported": true,
+      "ServiceId": "vpce-svc-06681ce20e9a3e8c4",
+      "Owner": "amazon",
+      "AvailabilityZones": [
+        "cn-north-1a",
+        "cn-north-1b"
+      ],
+      "AcceptanceRequired": false,
+      "BaseEndpointDnsNames": [
+        "sts.cn-north-1.vpce.amazonaws.com.cn"
+      ]
+    }
+  ]
 }
 `
 
