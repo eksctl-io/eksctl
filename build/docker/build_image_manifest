@@ -8,11 +8,11 @@
 "github.com/vektra/mockery v1.1.2"
 "github.com/github-release/github-release v0.10.0"
 "golang.org/x/tools v0.1.0"
-"k8s.io/code-generator v0.19.4"
-"k8s.io/code-generator v0.19.4"
-"k8s.io/code-generator v0.19.4"
-"k8s.io/code-generator v0.19.4"
-"k8s.io/code-generator v0.19.4"
+"k8s.io/code-generator v0.19.5"
+"k8s.io/code-generator v0.19.5"
+"k8s.io/code-generator v0.19.5"
+"k8s.io/code-generator v0.19.5"
+"k8s.io/code-generator v0.19.5"
 "sigs.k8s.io/mdtoc v1.0.1"
 100644 blob 4cf6dc609b4674bbe0eb39a31b322345114f5e64	build/docker/Dockerfile
 100644 blob f48c355ec5e7d3162f15daf529e7474e409fbb85	.requirements
