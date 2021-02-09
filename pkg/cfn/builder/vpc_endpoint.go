@@ -189,7 +189,12 @@ func buildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 		}
 
 		endpointType := *sd.ServiceType[0].ServiceType
-		if *sd.ServiceName == s3EndpointName && endpointType == ec2.VpcEndpointTypeInterface {
+
+		if *sd.ServiceName == s3EndpointName {
+			if endpointType != ec2.VpcEndpointTypeGateway {
+				continue
+			}
+		} else if endpointType != ec2.VpcEndpointTypeInterface {
 			continue
 		}
 
