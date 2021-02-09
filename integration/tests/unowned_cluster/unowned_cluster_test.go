@@ -45,7 +45,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		ctl                              api.ClusterProvider
 	)
 
-	BeforeEach(func() {
+	BeforeSuite(func() {
 		ng1 = "ng-1"
 		ng2 = "ng-2"
 		// "unowned_clusters" lead to names longer than allowed for CF stacks
@@ -63,7 +63,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		createClusterWithNodegroups(clusterName, stackName, ng1, ng2, ctl)
 	})
 
-	AfterEach(func() {
+	AfterSuite(func() {
 		deleteStack(stackName, ctl)
 	})
 
