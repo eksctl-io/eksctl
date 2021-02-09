@@ -189,12 +189,7 @@ func buildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 		}
 
 		endpointType := *sd.ServiceType[0].ServiceType
-
-		if *sd.ServiceName == s3EndpointName {
-			if endpointType != ec2.VpcEndpointTypeGateway {
-				continue
-			}
-		} else if endpointType != ec2.VpcEndpointTypeInterface {
+		if !serviceEndpointTypeExpected(*sd.ServiceName, endpointType, s3EndpointName) {
 			continue
 		}
 
@@ -214,6 +209,14 @@ func buildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 	}
 
 	return ret, nil
+}
+
+// serviceEndpointTypeExpected returns true if the endpoint service is expected to use the specified endpoint type
+func serviceEndpointTypeExpected(serviceName, endpointType, s3EndpointName string) bool {
+	if serviceName == s3EndpointName {
+		return endpointType == ec2.VpcEndpointTypeGateway
+	}
+	return endpointType == ec2.VpcEndpointTypeInterface
 }
 
 func makeServiceName(region, endpoint string) (string, error) {
