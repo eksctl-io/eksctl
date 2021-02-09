@@ -32,7 +32,7 @@ func (t *createFargateStackTask) Do(errs chan error) error {
 // EnsureUnownedClusterReadyForFargate creates fargate IAM resources if they
 // don't exist and are needed.
 func EnsureUnownedClusterReadyForFargate(
-	cfg *api.ClusterConfig, provider api.ClusterProvider, stackManager *manager.StackCollection,
+	cfg *api.ClusterConfig, provider api.ClusterProvider, stackManager manager.StackManager,
 ) error {
 	if api.IsSetAndNonEmptyString(cfg.IAM.FargatePodExecutionRoleARN) {
 		return nil

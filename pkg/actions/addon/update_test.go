@@ -11,7 +11,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 
-	"github.com/weaveworks/eksctl/pkg/actions/addon/fakes"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 
 	"github.com/aws/aws-sdk-go/aws"
 	awseks "github.com/aws/aws-sdk-go/service/eks"

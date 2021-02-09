@@ -1,7 +1,8 @@
 package mocks
 
 import (
-	_ "github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface" // used for testing
+	_ "github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface" // used for testing
+	_ "github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	_ "github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
 	_ "github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	_ "github.com/aws/aws-sdk-go/service/eks/eksiface"
@@ -13,6 +14,7 @@ import (
 )
 
 // Run make check-all-generated-files-up-to-date to generate the mocks
+//go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/autoscaling/autoscalingiface --name=AutoScalingAPI --output=./
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/cloudformation/cloudformationiface --name=CloudFormationAPI --output=./
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/eks/eksiface --name=EKSAPI --output=./
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/ec2/ec2iface --name=EC2API --output=./

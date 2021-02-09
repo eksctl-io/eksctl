@@ -63,9 +63,6 @@ func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
 	if err != nil {
 		return err
 	}
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
 
 	if options.output == printers.TableType {
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)

@@ -8,7 +8,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 type labelOptions struct {
@@ -55,9 +54,8 @@ func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
 		return cmdutils.ErrUnsupportedNameArg()
 	}
 
-	ctl := eks.New(&cmd.ProviderConfig, cmd.ClusterConfig)
-
-	if err := ctl.CheckAuth(); err != nil {
+	ctl, err := cmd.NewCtl()
+	if err != nil {
 		return err
 	}
 

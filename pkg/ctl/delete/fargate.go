@@ -55,9 +55,6 @@ func doDeleteFargateProfile(cmd *cmdutils.Cmd, opts *fargate.Options) error {
 	if err != nil {
 		return err
 	}
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
 
 	supportsFargate, err := ctl.SupportsFargate(cmd.ClusterConfig)
 	if err != nil {

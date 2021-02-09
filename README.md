@@ -124,6 +124,8 @@ To learn more about what `eksctl` can do check [eksctl.io](https://eksctl.io). A
 Code contributions are very welcome. If you are interested in helping make `eksctl` great then see our [contributing guide](CONTRIBUTING.md).
 Or join the discussion on our [mailing list][maillist].
 
+We follow the [CNCF Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## Releases
 
 Minor releases of `eksctl` should be expected every two weeks and patch releases will be made available as needed.

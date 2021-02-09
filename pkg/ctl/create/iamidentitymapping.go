@@ -71,10 +71,6 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 	}
 	cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
 
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
 	}

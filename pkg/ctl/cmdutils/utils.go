@@ -14,9 +14,6 @@ func KubernetesClientAndConfigFrom(cmd *Cmd) (*kubernetes.Clientset, *rest.Confi
 	if err != nil {
 		return nil, nil, err
 	}
-	if err := ctl.CheckAuth(); err != nil {
-		return nil, nil, err
-	}
 	cfg := cmd.ClusterConfig
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return nil, nil, err

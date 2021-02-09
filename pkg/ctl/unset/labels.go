@@ -8,7 +8,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 func unsetLabelsCmd(cmd *cmdutils.Cmd) {
@@ -54,12 +53,10 @@ func unsetLabels(cmd *cmdutils.Cmd, nodeGroupName string, removeLabels []string)
 		return cmdutils.ErrUnsupportedNameArg()
 	}
 
-	ctl := eks.New(&cmd.ProviderConfig, cmd.ClusterConfig)
-
-	if err := ctl.CheckAuth(); err != nil {
+	ctl, err := cmd.NewCtl()
+	if err != nil {
 		return err
 	}
-
 	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 	logger.Info("removing label(s) from nodegroup %s in cluster %s", nodeGroupName, cmd.ClusterConfig.Metadata)
 
