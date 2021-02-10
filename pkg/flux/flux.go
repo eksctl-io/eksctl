@@ -58,8 +58,10 @@ func (c *Client) runFluxCmd(args ...string) error {
 
 func setEnvVars(tokenPath, gitProvider string) executor.EnvVars {
 	envVars := executor.EnvVars{
-		"PATH": os.Getenv("PATH"),
-		"HOME": os.Getenv("HOME"),
+		"PATH":                  os.Getenv("PATH"),
+		"HOME":                  os.Getenv("HOME"),
+		"AWS_ACCESS_KEY_ID":     os.Getenv("AWS_ACCESS_KEY_ID"),
+		"AWS_SECRET_ACCESS_KEY": os.Getenv("AWS_SECRET_ACCESS_KEY"),
 	}
 
 	var token string
