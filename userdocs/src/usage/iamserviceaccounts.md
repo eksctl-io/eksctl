@@ -16,6 +16,7 @@ You can easily create IAM Role and Service Account pairs with `eksctl`.
 
 It works via IAM OpenID Connect Provider (OIDC) that EKS exposes, and IAM Roles must be constructed with reference to the IAM OIDC Provider (specific to a given EKS cluster), and a reference to the Kubernetes Service Account it will be bound to.
 Once an IAM Role is created, a service account should include the ARN of that role as an annotation (`eks.amazonaws.com/role-arn`).
+By default the service account will be created or updated to include the role annotation, this can be disabled using the flag `--role-only`.
 
 Inside EKS, there is an [admission controller](https://github.com/aws/amazon-eks-pod-identity-webhook/) that injects AWS session credentials into pods respectively of the roles based on the annotation on the Service Account used by the pod. The credentials will get exposed by `AWS_ROLE_ARN` & `AWS_WEB_IDENTITY_TOKEN_FILE` environment variables. Given a recent version of AWS SDK is used (see [AWS documentation][eks-user-guide-sdk] for details of exact version), the application will use these credentials.
 
@@ -69,7 +70,17 @@ CloudFormation will generate a role name that includes a random string. If you p
 eksctl create iamserviceaccount --cluster=<clusterName> --name=<serviceAccountName> --role-name "custom-role-name"
 ```
 
+When the service account is created and managed by some other tool, such as helm, use `--role-only` to prevent conflicts.
+The other tool is then responsible for maintaining the role ARN annotation. Note that `--override-existing-serviceaccounts` has no effect on `roleOnly`/`--role-only` service accounts, the role will always be created.
+
+```console
+eksctl create iamserviceaccount --cluster=<clusterName> --name=<serviceAccountName> --role-only --role-name=<customRoleName>
+```
+
 Currently, to update a role you will need to re-create, run `eksctl delete iamserviceaccount` followed by `eksctl create iamserviceaccount` to achieve that.
+
+!!!note
+    `eksctl delete iamserviceaccount` deletes Kubernetes `ServiceAccounts` even if they were not created by `eksctl`.
 
 ### Usage with config files
 
@@ -131,6 +142,7 @@ iam:
         - "ec2:DescribeLaunchTemplateVersions"
         Resource: '*'
     roleName: eksctl-cluster-autoscaler-role
+    roleOnly: true
 
 nodeGroups:
   - name: "ng-1"
