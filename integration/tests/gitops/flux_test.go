@@ -56,7 +56,7 @@ var _ = AfterSuite(func() {
 	params.DeleteClusters()
 })
 
-var _ = Describe("Enable GitOps", func() {
+var _ = XDescribe("Enable GitOps", func() {
 	var (
 		branch     string
 		cmd        runner.Cmd
