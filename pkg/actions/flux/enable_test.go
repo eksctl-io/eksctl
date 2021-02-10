@@ -39,7 +39,6 @@ var _ = Describe("Gitops", func() {
 		Expect(installer.Run()).To(Succeed())
 		Expect(fakeFluxClient.PreFlightCallCount()).To(Equal(1))
 		Expect(fakeFluxClient.BootstrapCallCount()).To(Equal(1))
-		Expect(fakeFluxClient.BootstrapArgsForCall(0)).To(Equal(opts.Flux))
 	})
 
 	Context("Flux v2 pre-check execution fails", func() {

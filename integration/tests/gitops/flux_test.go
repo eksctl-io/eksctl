@@ -86,6 +86,7 @@ var _ = XDescribe("Enable GitOps", func() {
 					Branch:      branch,
 					GitProvider: "github",
 					Owner:       params.GitopsOwner,
+					Kubeconfig:  params.KubeconfigPath,
 				},
 			},
 		}

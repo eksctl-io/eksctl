@@ -5,14 +5,12 @@ import (
 	"sync"
 
 	"github.com/weaveworks/eksctl/pkg/actions/flux"
-	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 type FakeInstallerClient struct {
-	BootstrapStub        func(*v1alpha5.Flux) error
+	BootstrapStub        func() error
 	bootstrapMutex       sync.RWMutex
 	bootstrapArgsForCall []struct {
-		arg1 *v1alpha5.Flux
 	}
 	bootstrapReturns struct {
 		result1 error
@@ -34,18 +32,17 @@ type FakeInstallerClient struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeInstallerClient) Bootstrap(arg1 *v1alpha5.Flux) error {
+func (fake *FakeInstallerClient) Bootstrap() error {
 	fake.bootstrapMutex.Lock()
 	ret, specificReturn := fake.bootstrapReturnsOnCall[len(fake.bootstrapArgsForCall)]
 	fake.bootstrapArgsForCall = append(fake.bootstrapArgsForCall, struct {
-		arg1 *v1alpha5.Flux
-	}{arg1})
+	}{})
 	stub := fake.BootstrapStub
 	fakeReturns := fake.bootstrapReturns
-	fake.recordInvocation("Bootstrap", []interface{}{arg1})
+	fake.recordInvocation("Bootstrap", []interface{}{})
 	fake.bootstrapMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
@@ -59,17 +56,10 @@ func (fake *FakeInstallerClient) BootstrapCallCount() int {
 	return len(fake.bootstrapArgsForCall)
 }
 
-func (fake *FakeInstallerClient) BootstrapCalls(stub func(*v1alpha5.Flux) error) {
+func (fake *FakeInstallerClient) BootstrapCalls(stub func() error) {
 	fake.bootstrapMutex.Lock()
 	defer fake.bootstrapMutex.Unlock()
 	fake.BootstrapStub = stub
-}
-
-func (fake *FakeInstallerClient) BootstrapArgsForCall(i int) *v1alpha5.Flux {
-	fake.bootstrapMutex.RLock()
-	defer fake.bootstrapMutex.RUnlock()
-	argsForCall := fake.bootstrapArgsForCall[i]
-	return argsForCall.arg1
 }
 
 func (fake *FakeInstallerClient) BootstrapReturns(result1 error) {

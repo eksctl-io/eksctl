@@ -17,13 +17,18 @@ var _ = Describe("Flux", func() {
 	var (
 		fakeExecutor *fakes.FakeExecutor
 		fluxClient   *flux.Client
+		opts         *api.Flux
 
 		binDir string
 	)
 
 	BeforeEach(func() {
+		opts = &api.Flux{
+			GitProvider: "github",
+		}
+
 		fakeExecutor = new(fakes.FakeExecutor)
-		fluxClient = flux.NewClient("", "github")
+		fluxClient = flux.NewClient(opts)
 		fluxClient.SetExecutor(fakeExecutor)
 
 		binDir, err := ioutil.TempDir("", "bin")
@@ -44,6 +49,19 @@ var _ = Describe("Flux", func() {
 			Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
 			_, receivedArgs := fakeExecutor.ExecArgsForCall(0)
 			Expect(receivedArgs).To(Equal([]string{"check", "--pre"}))
+		})
+
+		When("kubeconfig is set", func() {
+			BeforeEach(func() {
+				opts.Kubeconfig = "long/and/winding/road"
+			})
+
+			It("executes the Flux binary with the --path flag", func() {
+				Expect(fluxClient.PreFlight()).To(Succeed())
+				Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
+				_, receivedArgs := fakeExecutor.ExecArgsForCall(0)
+				Expect(receivedArgs).To(Equal([]string{"check", "--pre", "--kubeconfig", opts.Kubeconfig}))
+			})
 		})
 
 		When("the flux binary is not found on the path", func() {
@@ -70,22 +88,17 @@ var _ = Describe("Flux", func() {
 
 	Context("Bootstrap", func() {
 		var (
-			opts         *api.Flux
 			standardArgs []string
 		)
 
 		BeforeEach(func() {
-			opts = &api.Flux{
-				GitProvider: "github",
-				Repository:  "some-repo",
-				Owner:       "theadversary_destroyerofkings_angelofthebottomlesspit_princeofthisworld_and_lordofdarkness",
-			}
-
+			opts.Repository = "some-repo"
+			opts.Owner = "theadversary_destroyerofkings_angelofthebottomlesspit_princeofthisworld_and_lordofdarkness"
 			standardArgs = []string{"bootstrap", opts.GitProvider, "--repository", opts.Repository, "--owner", opts.Owner}
 		})
 
 		It("executes the Flux binary with the correct default args", func() {
-			Expect(fluxClient.Bootstrap(opts)).To(Succeed())
+			Expect(fluxClient.Bootstrap()).To(Succeed())
 			Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
 			_, receivedArgs := fakeExecutor.ExecArgsForCall(0)
 			Expect(receivedArgs).To(Equal(standardArgs))
@@ -97,7 +110,7 @@ var _ = Describe("Flux", func() {
 			})
 
 			It("executes the Flux binary with the --personal flag", func() {
-				Expect(fluxClient.Bootstrap(opts)).To(Succeed())
+				Expect(fluxClient.Bootstrap()).To(Succeed())
 				Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
 				_, receivedArgs := fakeExecutor.ExecArgsForCall(0)
 				Expect(receivedArgs).To(Equal(append(standardArgs, "--personal")))
@@ -110,7 +123,7 @@ var _ = Describe("Flux", func() {
 			})
 
 			It("executes the Flux binary with the --path flag", func() {
-				Expect(fluxClient.Bootstrap(opts)).To(Succeed())
+				Expect(fluxClient.Bootstrap()).To(Succeed())
 				Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
 				_, receivedArgs := fakeExecutor.ExecArgsForCall(0)
 				Expect(receivedArgs).To(Equal(append(standardArgs, "--path", opts.Path)))
@@ -123,7 +136,7 @@ var _ = Describe("Flux", func() {
 			})
 
 			It("executes the Flux binary with the --path flag", func() {
-				Expect(fluxClient.Bootstrap(opts)).To(Succeed())
+				Expect(fluxClient.Bootstrap()).To(Succeed())
 				Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
 				_, receivedArgs := fakeExecutor.ExecArgsForCall(0)
 				Expect(receivedArgs).To(Equal(append(standardArgs, "--branch", opts.Branch)))
@@ -136,10 +149,23 @@ var _ = Describe("Flux", func() {
 			})
 
 			It("executes the Flux binary with the --path flag", func() {
-				Expect(fluxClient.Bootstrap(opts)).To(Succeed())
+				Expect(fluxClient.Bootstrap()).To(Succeed())
 				Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
 				_, receivedArgs := fakeExecutor.ExecArgsForCall(0)
 				Expect(receivedArgs).To(Equal(append(standardArgs, "--namespace", opts.Namespace)))
+			})
+		})
+
+		When("opts.Kubeconfig is set", func() {
+			BeforeEach(func() {
+				opts.Kubeconfig = "long/and/winding/road"
+			})
+
+			It("executes the Flux binary with the --path flag", func() {
+				Expect(fluxClient.Bootstrap()).To(Succeed())
+				Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
+				_, receivedArgs := fakeExecutor.ExecArgsForCall(0)
+				Expect(receivedArgs).To(Equal(append(standardArgs, "--kubeconfig", opts.Kubeconfig)))
 			})
 		})
 
@@ -149,7 +175,7 @@ var _ = Describe("Flux", func() {
 			})
 
 			It("returns the error", func() {
-				Expect(fluxClient.Bootstrap(opts)).To(MatchError("omg"))
+				Expect(fluxClient.Bootstrap()).To(MatchError("omg"))
 				Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
 			})
 		})

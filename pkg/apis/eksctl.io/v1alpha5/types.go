@@ -867,6 +867,10 @@ type Flux struct {
 	// +optional
 	Namespace string `json:"namespace,omitempty"`
 
+	// Path to the kubernetes config for the cluster
+	// +optional
+	Kubeconfig string `json:"kubeconfig,omitempty"`
+
 	// The name of the branch which Flux will commit to
 	// +optional
 	Branch string `json:"branch,omitempty"`
