@@ -57,7 +57,7 @@ and our [proposal contributing guide](https://github.com/weaveworks/eksctl/blob/
 ### Flux v2 integration (GitOps Toolkit)
 
 In 2019 `eksctl` gave users a way to easily create a Gitops-ready ([Flux v1](https://docs.fluxcd.io/en/1.21.1/))
-cluster and to declare a set of pre-installed applications ([Quickstart profiles](/gitops-quickstart/#enabling-a-quick-start-profile))
+cluster and to declare a set of pre-installed applications ([Quickstart profiles](/usage/gitops/#installing-a-quickstart-profile-in-your-cluster))
 which can be managed via a git repo.
 
 Since then, the practice of GitOps has matured, therefore `eksctl`'s support of

@@ -1,8 +1,10 @@
-# gitops
+# GitOps
 
-[gitops][gitops] is a way to do Kubernetes application delivery. It works by using Git as a single source of truth for
-Kubernetes resources. With Git at the center of your delivery pipelines, developers can make pull requests to accelerate
-and simplify application deployments and operations tasks to Kubernetes.
+[Gitops][gitops] is a way to do Kubernetes application delivery. It
+works by using Git as a single source of truth for Kubernetes resources
+and everything else. With Git at the center of your delivery pipelines,
+you and your team can make pull requests to accelerate and simplify
+application deployments and operations tasks to Kubernetes.
 
 [gitops]: https://www.weave.works/technologies/gitops/
 
@@ -18,13 +20,25 @@ and simplify application deployments and operations tasks to Kubernetes.
 
 `eksctl` provides an easy way to set up gitops in an existing cluster with the `eksctl enable repo` command.
 
-Installing Flux v1 on the cluster is the first step towards a gitops workflow.
-To install it, you need a Git repository.
+The main point of gitops is to keep everything (config, alerts, dashboards,
+apps, literally everything) in Git and use it as a single source of truth.
+
+![Install Flux](../img/gitops-diagram1.svg#content)
+
+Installing [Flux v1](https://github.com/fluxcd/flux) on the cluster is the first step towards a gitops workflow.
+To install it, you need a Git repository so first please go ahead and create an
+_empty_ repository. On GitHub, for example, follow [these steps][github-repo].
+
+[github-repo]: https://help.github.com/articles/create-a-repo
 
 To install Flux v1 on an existing cluster, use the `enable repo` command:
 
 ```console
-eksctl enable repo --cluster=<cluster_name> --region=<region> --git-url=<git_repo> --git-email=<git_user_email>
+eksctl enable repo \
+    --cluster=<cluster_name> \
+    --region=<region> \
+    --git-url=<git_repo> \
+    --git-email=<git_user_email>
 ```
 
 Or use a config file:
@@ -50,9 +64,6 @@ git:
   operator:
     namespace: "flux"
     withHelm: true
-  bootstrapProfile:
-    source: app-dev
-    revision: master
 ```
 
 Then:
@@ -61,7 +72,8 @@ eksctl enable repo -f cluster-21.yaml
 ```
 
 To install Flux v1 components into a new cluster as part of a `create cluster`
-operation, simply add the above configuration to your config file.
+operation, simply add the above configuration to your config file, and run the create
+command as normal.
 
 Note that, by default, `eksctl enable repo` installs [Flux Helm Operator](https://github.com/fluxcd/helm-operator) with Helm v3 support.
 To disable the installation of the Helm Operator, pass the flag `--with-helm=false` or set `git.operator.withHelm` to `false`.
@@ -108,8 +120,13 @@ To github.com:weaveworks/cluster-1-gitops.git
 [ℹ]  Flux will only operate properly once it has write-access to the Git repository
 [ℹ]  please configure git@github.com:weaveworks/cluster-1-gitops.git  so that the following Flux SSH public key has write access to it
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYYsPuHzo1L29u3zhr4uAOF29HNyMcS8zJmOTDNZC4EiIwa5BXgg/IBDKudxQ+NBJ7mknPlNv17cqo4ncEq1xiQidfaUawwx3xxtDkZWam5nCBMXEJwkr4VXx/6QQ9Z1QGXpaFwdoVRcY/kM4NaxM54pEh5m43yeqkcpRMKraE0EgbdqFNNARN8rIEHY/giDorCrXp7e6AbzBgZSvc/in7Ul9FQhJ6K4+7QuMFpJt3O/N8KDumoTG0e5ssJGp5L1ugIqhzqvbHdmHVfnXsEvq6cR1SJtYKi2GLCscypoF3XahfjK+xGV/92a1E7X+6fHXSq+bdOKfBc4Z3f9NBwz0v
-
 ```
+
+The only thing left to do is to give Flux write access to the repository.
+Copy the lines starting with `ssh-rsa` and give it read/write access to your
+repository. For example, in GitHub, by adding it as a deploy key. There you
+can easily do this in the `Settings > Deploy keys > Add deploy key`. Just
+make sure you check `Allow write access` as well.
 
 At this point Flux and the Helm Operator should be installed in the specified cluster.
 
@@ -120,10 +137,6 @@ flux-699cc7f4cb-9qc45
 memcached-958f745c-qdfgz
 flux-helm-operator-6bc7c85bb5-l2nzn
 ```
-
-The only thing left to do is to give Flux write access to the repository.
-Configure your repository to allow write access to that ssh key,
-for example, through the Deploy keys if it lives in GitHub.
 
 CLI arguments for `eksctl enable repo`
 
@@ -150,6 +163,8 @@ CLI arguments for `eksctl enable repo`
 
 To deploy a new workload on the cluster using gitops just add a kubernetes manifest to the repository. After a few
 minutes you should see the resources appearing in the cluster.
+
+![Deploying with gitops](../img/gitops-diagram2.svg#content)
 
 ## Experimental: Installing Flux v2 (GitOps Toolkit)
 
@@ -211,27 +226,69 @@ refer to the [official docs](https://toolkit.fluxcd.io/).
 
 ## Installing a Quickstart profile in your cluster
 
-Configuring gitops can be done easily with eksctl. The command `eksctl enable profile` takes an existing EKS cluster and
-an empty repository and sets them up with gitops and a specified Quick Start profile. This means that with one command
-the cluster will have all the components provided by the Quick Start profile installed in the cluster and you can enjoy
-the advantages of gitops moving forward.
+In this part of the guide we will show you how to launch fully-configured Kubernetes
+clusters that are ready to run production workloads in minutes.
+At the end of this, you will have a Kubernetes cluster including control
+plane, worker nodes, and all of the software needed for code deployment,
+monitoring, and logging.
 
-The basic command usage looks like this:
+![Enabling a profile](../img/gitops-diagram3.svg#content)
+
+The following command will set up your cluster with the
+[app-dev](https://github.com/weaveworks/eks-quickstart-app-dev) profile,
+the first gitops Quick Start. All of the config files you need for a
+production-ready cluster will be in the git repo you have provided and
+those components will be deployed to your cluster. When you make changes
+in the configuration they will be reflected on your cluster.
 
 ```console
-eksctl enable profile --cluster <cluster-name> --region <region> --git-url=<url_to_your_repo> --git-email=<your-email> app-dev
+eksctl enable profile \
+    --cluster <cluster-name> \
+    --region <region> \
+    --git-url=<url_to_your_repo> \
+    --git-email=<your-email> \
+    app-dev
 ```
-or with a config file (in this case [taken from the examples directory](https://github.com/weaveworks/eksctl/blob/master/examples/21-eks-quickstart-app-dev.yaml)):
 
-```console
-eksctl enable profile --config-file=example/21-eks-quickstart-app-dev.yaml
+or with a config file similar to the `enable repo` config, with the addition of
+`bootstrapProfile` configuration:
+
+```YAML
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-21
+  region: eu-north-1
+
+# other cluster config ...
+
+git:
+  repo:
+    url: "git@github.com:myorg/cluster-21.git"
+    branch: master
+    fluxPath: "flux/"
+    user: "gitops"
+    email: "<username>@users.noreply.github.com"
+  operator:
+    namespace: "flux"
+    withHelm: true
+  bootstrapProfile:
+    source: app-dev
+    revision: master
 ```
 
-This command will create a temporary clone of the specified repository and then it will follow these steps:
+To install your Quickstart components into a new cluster as part of a `create cluster`
+operation, simply add the above configuration to your config file, and run the create
+command as normal.
+
+The `enable profile` command will create a temporary clone of the specified repository and then it will follow these steps:
 
   1. add the component manifests of the Quick Start profile to your repository inside the `base/` folder
-  2. commit the Quick Start files and push the changes to the origin remote
-  3. Flux will install the components from the `base/` folder into your cluster
+  2. template values (eg cluster name) into configuration so that components can work
+  3. commit the Quick Start files and push the changes to the origin remote
+  4. Flux will install the components from the `base/` folder into your cluster
 
 Example:
 
@@ -314,15 +371,44 @@ monitoring             prometheus-operator-prometheus-node-exporter-tllwl       
 monitoring             prometheus-prometheus-operator-prometheus-0               3/3     Running                      1          72s
 ```
 
+If you fetch the latest changes to your configuration repository,
+you will see that eksctl has updated it with the templated files from the
+Quick Start. The next time Flux syncs from this repo, it will start updating
+the cluster with the current configuration.
 
-All CLI arguments:
+It's easy to confirm that all the [eks-quickstart-app-dev components](https://github.com/weaveworks/eks-quickstart-app-dev#components)
+are up and running for you by checking the `podinfo` app:
+
+```console
+kubectl get service --namespace demo
+```
+
+```console
+NAME      TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+podinfo   ClusterIP   10.100.255.220   <none>        9898/TCP   2m
+```
+
+Now let's port-forward the service, so we can easily access it:
+
+```console
+kubectl port-forward -n demo svc/podinfo 9898:9898
+```
+
+If you open `localhost:9898` in your browser, you will see
+
+![podinfo up and running](../img/podinfo-screenshot.png)
+
+For any further changes you wish to make to your cluster you can simply PR more
+manifests to your repo, and let Flux take care of the rest.
+
+All CLI arguments for `gitops enable profile`:
 
 | Flag                         | Default value | Type   | Required       | Use                                                              |
 |------------------------------|---------------|--------|----------------|------------------------------------------------------------------|
 | `--cluster`                  |               | string | required       | Name of the EKS cluster                 |
 | `--region`                   |               | string | required       | AWS region where the cluster exists                              |
 | `--profile-source`           |               | string | required       | Name or URL of the Quickstart profile. For example, app-dev      |
-| <name positional argument>   |               | string | required       | Same as `--profile-source`                                       |
+| `<name positional argument>`   |               | string | required       | Same as `--profile-source`                                       |
 | `--profile-revision`         | master        | string | optional       | Git Branch of the Quickstart profile repository                  |
 | `--git-url`                  |               | string | required       | URL                                                              |
 | `--git-branch`               | master        | string | optional       | Git branch                                                       |
@@ -337,8 +423,8 @@ All CLI arguments:
 
 #### Further reading
 
-To learn more about gitops and Flux, check the [Flux documentation][flux].
-
+To learn more about gitops and Flux, check the Flux documentation for [v1](https://docs.fluxcd.io/en/1.21.1/)
+and [v2](https://fluxcd.io/).
 
 ### Installing components from a Quickstart profile on a specific directory without pushing
 
@@ -346,7 +432,11 @@ To install the components from a Quickstart profile in a specified folder withou
 repo the `generate profile` command can be used:
 
 ```console
-eksctl generate profile --cluster=<cluster-name> --region=<region> --profile-source git@github.com:weaveworks/eks-quickstart-app-dev.git --profile-path <output_directory>
+eksctl generate profile \
+    --cluster=<cluster-name> \
+    --region=<region> \
+    --profile-source git@github.com:weaveworks/eks-quickstart-app-dev.git \
+    --profile-path <output_directory>
 ```
 
 For example:
@@ -430,8 +520,8 @@ After a few minutes, Flux and Helm should have installed all the components in y
 A Quick Start profile is a Git repository that contains Kubernetes manifests that can be installed in a cluster using
 gitops (through [Flux][flux]).
 
-These manifests, will probably need some information about the cluster they will be installed in, such as the cluster
-name or the AWS region. That's why they are templated using [Go templates][go-templates].
+Some components will probably need some information about the cluster they will be installed in, such as the cluster
+name or the AWS region. We can template these in via the manifests you add to your profile using [Go templates][go-templates].
 
 The variables that can be templated are shown below:
 
@@ -501,8 +591,18 @@ In this example we provide `github.com:myorg/production-infra` as the Quick Star
     Quickstart profiles can only be applied when used with Flux v1 (`git.repo`).
     Support for profiles with Flux v2 (`gitops.flux`) is not yet available.
 
-
 For a full example of a Quick Start profile, check out [App Dev][app-dev].
+
+All CLI arguments for `gitops generate profile`:
+
+| Flag                         | Default value | Type   | Required       | Use                                                              |
+|------------------------------|---------------|--------|----------------|------------------------------------------------------------------|
+| `--cluster`                  |               | string | required       | Name of the EKS cluster                 |
+| `--region`                   |               | string | required       | AWS region where the cluster exists                              |
+| `--profile-source`           |               | string | required       | Name or URL of the Quickstart profile. For example, app-dev      |
+| `--profile-revision`         | master        | string | optional       | Git Branch of the Quickstart profile repository                  |
+| `--profile-path`             | ./<quickstart-repo-name\>        | string | optional       | Path to generate the profile in                   |
+| `<name positional argument>`   |               | string | required       | Same as `--profile-source`                                       |
 
 
 [flux]: https://docs.fluxcd.io/en/latest/
