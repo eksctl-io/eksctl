@@ -43,7 +43,6 @@ nav:
         - usage/minimum-iam-policies.md
         - usage/emr-access.md
         - FAQ: usage/faq.md
-    - 'GitOps Quickstart': gitops-quickstart.md
     - Examples: "https://github.com/weaveworks/eksctl/tree/main/examples"
     - Community: community.md
 
