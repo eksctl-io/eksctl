@@ -1322,8 +1322,8 @@ github.com/weaveworks/goformation/v4 v4.10.2-0.20210202192510-c984c16fe84b h1:zm
 github.com/weaveworks/goformation/v4 v4.10.2-0.20210202192510-c984c16fe84b/go.mod h1:x92o12+Azh6DQ4yoXT5oEuE7dhQHR5V2vy/fmZ6pO7k=
 github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15 h1:i/RhLevywqC6cuUWtGdoaNrsJd+/zWh3PXbkXZIyZsU=
 github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15/go.mod h1:w9Z1vnQmPobkEZ0F3oyiqRYP+62qDqTGnK6t5uhe1kg=
-github.com/weaveworks/logger v0.0.0-20210204141807-28118249ac72 h1:Krh10v8oU268Iq5G/cIhAWwNmHAOQR5HCTBqLkCdsbs=
-github.com/weaveworks/logger v0.0.0-20210204141807-28118249ac72/go.mod h1:bP09VFOFc69sBzZ3WmvolgcJi4qv07quNk13fYSjXSQ=
+github.com/weaveworks/logger v0.0.0-20210210175120-de9359622dfc h1:1sCkSiPvTPq2UQnomwNdVWfrpBkq2N4Z0iEqLR1WycI=
+github.com/weaveworks/logger v0.0.0-20210210175120-de9359622dfc/go.mod h1:bP09VFOFc69sBzZ3WmvolgcJi4qv07quNk13fYSjXSQ=
 github.com/weaveworks/mesh v0.0.0-20170419100114-1f158d31de55/go.mod h1:mcON9Ws1aW0crSErpXWp7U1ErCDEKliDX2OhVlbWRKk=
 github.com/weppos/publicsuffix-go v0.4.0/go.mod h1:z3LCPQ38eedDQSwmsSRW4Y7t2L8Ln16JPQ02lHAdn5k=
 github.com/weppos/publicsuffix-go v0.13.0 h1:0Tu1uzLBd1jPn4k6OnMmOPZH/l/9bj9kUOMMkoRs6Gg=

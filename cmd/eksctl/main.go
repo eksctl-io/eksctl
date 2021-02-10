@@ -67,8 +67,7 @@ func main() {
 		// Control colored output
 		logger.Color = *colorValue == "true"
 		logger.Fabulous = *colorValue == "fabulous"
-		// Add timestamps for debugging
-		logger.Timestamps = logger.Level >= 4
+		logger.Timestamps = true
 	})
 
 	rootCmd.SetUsageFunc(flagGrouping.Usage)
