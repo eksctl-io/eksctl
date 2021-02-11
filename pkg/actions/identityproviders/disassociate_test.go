@@ -58,7 +58,7 @@ var _ = Describe("Disassociate", func() {
 		Expect(err).NotTo(HaveOccurred())
 		eksAPI.AssertExpectations(GinkgoT())
 	})
-	It("associates with all providers and waits", func() {
+	It("disassociates from all providers and waits", func() {
 		manager := identityproviders.NewManager(api.ClusterMeta{}, &eksAPI)
 		client := mockprovider.NewMockAWSClient()
 		updateInput := eks.DescribeUpdateInput{

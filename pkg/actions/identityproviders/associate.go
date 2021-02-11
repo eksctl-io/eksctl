@@ -44,8 +44,7 @@ func (m *Manager) Associate(options AssociateIdentityProvidersOptions) error {
 			})
 
 		default:
-			logger.Warning("unable to associate identity provider: %v", idP)
-			continue
+			panic("unsupported identity provider")
 		}
 	}
 

@@ -91,7 +91,7 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return nil
 	}
 
-	if err := ValidateIdentityProviders(cfg.IdentityProviders); err != nil {
+	if err := validateIdentityProviders(cfg.IdentityProviders); err != nil {
 		return err
 	}
 
@@ -273,7 +273,7 @@ func validateVolumeOpts(ng *NodeGroupBase, path string) error {
 	return nil
 }
 
-func ValidateIdentityProvider(idP IdentityProvider) error {
+func validateIdentityProvider(idP IdentityProvider) error {
 	switch idP := (idP.Inner).(type) {
 	case *OIDCIdentityProvider:
 		if idP.Name == "" {
@@ -289,9 +289,9 @@ func ValidateIdentityProvider(idP IdentityProvider) error {
 	return nil
 }
 
-func ValidateIdentityProviders(idPs []IdentityProvider) error {
+func validateIdentityProviders(idPs []IdentityProvider) error {
 	for k, idP := range idPs {
-		if err := ValidateIdentityProvider(idP); err != nil {
+		if err := validateIdentityProvider(idP); err != nil {
 			return errors.Wrapf(err, "identityProviders[%d] is invalid", k)
 		}
 	}

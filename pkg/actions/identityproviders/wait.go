@@ -22,7 +22,7 @@ func (m *Manager) waitForUpdate(
 	clusterName := m.metadata.Name
 	newRequest := func() *request.Request {
 		input := &eks.DescribeUpdateInput{
-			Name:     aws.String(m.metadata.Name),
+			Name:     aws.String(clusterName),
 			UpdateId: update.Id,
 		}
 		req, _ := m.eksAPI.DescribeUpdateRequest(input)
