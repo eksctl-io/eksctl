@@ -1988,10 +1988,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ltd.NetworkInterfaces[0].DeviceIndex).To(Equal(0))
 			Expect(ltd.NetworkInterfaces[0].AssociatePublicIPAddress).To(BeFalse())
 
-			Expect(ngTemplate.Resources).ToNot(HaveKey("SSHIPv4"))
-
-			Expect(ngTemplate.Resources).ToNot(HaveKey("SSHIPv6"))
-
+			assertSSHRules(`null`)
 		})
 	})
 
