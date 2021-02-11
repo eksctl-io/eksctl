@@ -293,9 +293,6 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		if err := validateNodeGroupSSH(ng.SSH); err != nil {
 			return err
 		}
-		if len(ng.SSH.SourceSecurityGroupIDs) > 0 {
-			return fmt.Errorf("%s.sourceSecurityGroupIds is not supported for unmanaged nodegroups", path)
-		}
 	}
 
 	if ng.Bottlerocket != nil && ng.AMIFamily != NodeImageFamilyBottlerocket {

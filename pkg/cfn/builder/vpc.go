@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-
 	"github.com/pkg/errors"
 
 	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
@@ -467,8 +466,6 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 
 	desc := "worker nodes in group " + n.spec.Name
 
-	allInternalIPv4 := gfnt.NewString(n.clusterSpec.VPC.CIDR.String())
-
 	refControlPlaneSG := makeImportValue(n.clusterStackName, outputs.ClusterSecurityGroup)
 
 	refNodeGroupLocalSG := n.newResource("SG", &gfnec2.SecurityGroup{
@@ -478,6 +475,7 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 			Key:   gfnt.NewString("kubernetes.io/cluster/" + n.clusterSpec.Metadata.Name),
 			Value: gfnt.NewString("owned"),
 		}},
+		SecurityGroupIngress: makeSSHIngressRules(n.spec.NodeGroupBase, n.clusterSpec.VPC.CIDR.String(), desc),
 	})
 
 	n.securityGroups = append(n.securityGroups, refNodeGroupLocalSG)
@@ -522,35 +520,48 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 		FromPort:              sgPortHTTPS,
 		ToPort:                sgPortHTTPS,
 	})
-	if *n.spec.SSH.Allow {
-		if n.spec.PrivateNetworking {
-			n.newResource("SSHIPv4", &gfnec2.SecurityGroupIngress{
-				GroupId:     refNodeGroupLocalSG,
-				CidrIp:      allInternalIPv4,
-				Description: gfnt.NewString("Allow SSH access to " + desc + " (private, only inside VPC)"),
-				IpProtocol:  sgProtoTCP,
-				FromPort:    sgPortSSH,
-				ToPort:      sgPortSSH,
-			})
+}
+
+func makeSSHIngressRules(n *api.NodeGroupBase, vpcCIDR, description string) []gfnec2.SecurityGroup_Ingress {
+	allInternalIPv4 := gfnt.NewString(vpcCIDR)
+	var sgIngressRules []gfnec2.SecurityGroup_Ingress
+	if *n.SSH.Allow {
+		if len(n.SSH.SourceSecurityGroupIDs) > 0 {
+			for _, sgID := range n.SSH.SourceSecurityGroupIDs {
+				sgIngressRules = append(sgIngressRules, gfnec2.SecurityGroup_Ingress{
+					FromPort:              sgPortSSH,
+					ToPort:                sgPortSSH,
+					IpProtocol:            sgProtoTCP,
+					SourceSecurityGroupId: gfnt.NewString(sgID),
+				})
+			}
 		} else {
-			n.newResource("SSHIPv4", &gfnec2.SecurityGroupIngress{
-				GroupId:     refNodeGroupLocalSG,
-				CidrIp:      sgSourceAnywhereIPv4,
-				Description: gfnt.NewString("Allow SSH access to " + desc),
-				IpProtocol:  sgProtoTCP,
-				FromPort:    sgPortSSH,
-				ToPort:      sgPortSSH,
-			})
-			n.newResource("SSHIPv6", &gfnec2.SecurityGroupIngress{
-				GroupId:     refNodeGroupLocalSG,
-				CidrIpv6:    sgSourceAnywhereIPv6,
-				Description: gfnt.NewString("Allow SSH access to " + desc),
-				IpProtocol:  sgProtoTCP,
-				FromPort:    sgPortSSH,
-				ToPort:      sgPortSSH,
-			})
+			if n.PrivateNetworking {
+				sgIngressRules = append(sgIngressRules, gfnec2.SecurityGroup_Ingress{
+					CidrIp:      allInternalIPv4,
+					Description: gfnt.NewString("Allow SSH access to " + description + " (private, only inside VPC)"),
+					IpProtocol:  sgProtoTCP,
+					FromPort:    sgPortSSH,
+					ToPort:      sgPortSSH,
+				})
+			} else {
+				sgIngressRules = append(sgIngressRules, gfnec2.SecurityGroup_Ingress{
+					CidrIp:      sgSourceAnywhereIPv4,
+					Description: gfnt.NewString("Allow SSH access to " + description),
+					IpProtocol:  sgProtoTCP,
+					FromPort:    sgPortSSH,
+					ToPort:      sgPortSSH,
+				}, gfnec2.SecurityGroup_Ingress{
+					CidrIpv6:    sgSourceAnywhereIPv6,
+					Description: gfnt.NewString("Allow SSH access to " + description),
+					IpProtocol:  sgProtoTCP,
+					FromPort:    sgPortSSH,
+					ToPort:      sgPortSSH,
+				})
+			}
 		}
 	}
+	return sgIngressRules
 }
 
 func (v *VPCResourceSet) haNAT() {
