@@ -25,14 +25,14 @@ type Manager struct {
 	clientSet     kubeclient.Interface
 }
 
-func New(clusterConfig *api.ClusterConfig, clusterProvider eksiface.EKSAPI, stackManager manager.StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) (*Manager, error) {
+func New(clusterConfig *api.ClusterConfig, eksAPI eksiface.EKSAPI, stackManager manager.StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) (*Manager, error) {
 	if err := supportedVersion(clusterConfig.Metadata.Version); err != nil {
 		return nil, err
 	}
 
 	return &Manager{
 		clusterConfig: clusterConfig,
-		eksAPI:        clusterProvider,
+		eksAPI:        eksAPI,
 		withOIDC:      withOIDC,
 		oidcManager:   oidcManager,
 		stackManager:  stackManager,
