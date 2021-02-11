@@ -41,6 +41,13 @@ type IdentityProvider struct {
 	Inner IdentityProviderInterface
 }
 
+func FromIdentityProvider(idp IdentityProviderInterface) IdentityProvider {
+	return IdentityProvider{
+		type_: string(idp.Type()),
+		Inner: idp,
+	}
+}
+
 func (ip *IdentityProvider) UnmarshalJSON(data []byte) error {
 	var typ struct {
 		Type string `json:"type"`

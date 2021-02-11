@@ -85,8 +85,26 @@ func doDisassociateIdentityProvider(cmd *cmdutils.Cmd, cliProvidedIDP cliProvide
 		return err
 	}
 
-	providers := []identityproviders.DisassociateIdentityProvider{}
+	providers := cliToProviders(cfg, cliProvidedIDP)
+
+	manager := identityproviders.NewManager(
+		*cfg.Metadata,
+		ctl.Provider.EKS(),
+	)
+
+	options := identityproviders.DisassociateIdentityProvidersOptions{
+		Providers: providers,
+	}
+	if cmd.Wait {
+		options.WaitTimeout = &timeout
+	}
+
+	return manager.Disassociate(options)
+}
+
+func cliToProviders(cfg *api.ClusterConfig, cliProvidedIDP cliProvidedIDP) []identityproviders.DisassociateIdentityProvider {
 	if cliProvidedIDP.Name == "" {
+		providers := []identityproviders.DisassociateIdentityProvider{}
 		for _, generalIDP := range cfg.IdentityProviders {
 			var provider identityproviders.DisassociateIdentityProvider
 			switch idP := (generalIDP.Inner).(type) {
@@ -103,26 +121,13 @@ func doDisassociateIdentityProvider(cmd *cmdutils.Cmd, cliProvidedIDP cliProvide
 				provider,
 			)
 		}
-	} else {
-		providers = []identityproviders.DisassociateIdentityProvider{
-			{
-				Name: cliProvidedIDP.Name,
-				Type: api.IdentityProviderType(cliProvidedIDP.Type),
-			},
-		}
+		return providers
 	}
 
-	manager := identityproviders.NewManager(
-		*cfg.Metadata,
-		ctl.Provider.EKS(),
-	)
-
-	options := identityproviders.DisassociateIdentityProvidersOptions{
-		Providers: providers,
+	return []identityproviders.DisassociateIdentityProvider{
+		{
+			Name: cliProvidedIDP.Name,
+			Type: api.IdentityProviderType(cliProvidedIDP.Type),
+		},
 	}
-	if cmd.Wait {
-		options.WaitTimeout = &timeout
-	}
-
-	return manager.Disassociate(options)
 }
