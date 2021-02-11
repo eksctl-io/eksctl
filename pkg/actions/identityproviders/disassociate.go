@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/logger"
 )
@@ -18,7 +19,7 @@ type DisassociateIdentityProvidersOptions struct {
 
 type DisassociateIdentityProvider struct {
 	Name string
-	Type string
+	Type api.IdentityProviderType
 }
 
 func (m *Manager) Disassociate(options DisassociateIdentityProvidersOptions) error {
@@ -32,7 +33,7 @@ func (m *Manager) Disassociate(options DisassociateIdentityProvidersOptions) err
 			Doer: func() error {
 				idPConfig := eks.IdentityProviderConfig{
 					Name: aws.String(idP.Name),
-					Type: aws.String(idP.Type),
+					Type: aws.String(string(idP.Type)),
 				}
 				describeInput := eks.DescribeIdentityProviderConfigInput{
 					ClusterName:            aws.String(m.metadata.Name),

@@ -1,7 +1,6 @@
 package disassociate
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -15,18 +14,23 @@ import (
 
 var defaultDisassociateTimeout = 35 * time.Minute
 
+type cliProvidedIDP struct {
+	Name string
+	Type string
+}
+
 func disassociateIdentityProvider(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
 	cmd.SetDescription("identityprovider", "Disassociate an identity provider from a cluster", "")
 
-	var provider identityproviders.DisassociateIdentityProvider
+	var cliProvidedIDP cliProvidedIDP
 	var timeout time.Duration
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doDisassociateIdentityProvider(cmd, provider, timeout)
+		return doDisassociateIdentityProvider(cmd, cliProvidedIDP, timeout)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -36,14 +40,14 @@ func disassociateIdentityProvider(cmd *cmdutils.Cmd) {
 
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "providers to disassociate")
 		cmdutils.AddTimeoutFlagWithValue(fs, &timeout, defaultDisassociateTimeout)
-		fs.StringVar(&provider.Name, "name", "", "name of the provider to disassociate")
-		fs.StringVar(&provider.Type, "type", "", "type of the provider to disassociate")
+		fs.StringVar(&cliProvidedIDP.Name, "name", "", "name of the provider to disassociate")
+		fs.StringVar(&cliProvidedIDP.Type, "type", "", "type of the provider to disassociate")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
-func newDisassociateIdentityProviderLoader(cmd *cmdutils.Cmd, provider identityproviders.DisassociateIdentityProvider) cmdutils.ClusterConfigLoader {
+func newDisassociateIdentityProviderLoader(cmd *cmdutils.Cmd, cliProvidedIDP cliProvidedIDP) cmdutils.ClusterConfigLoader {
 	l := cmdutils.NewConfigLoaderBuilder()
 
 	l.ValidateWithConfigFile(func(cmd *cmdutils.Cmd) error {
@@ -53,7 +57,7 @@ func newDisassociateIdentityProviderLoader(cmd *cmdutils.Cmd, provider identityp
 		return nil
 	})
 	l.ValidateWithoutConfigFile(func(cmd *cmdutils.Cmd) error {
-		if len(cmd.ClusterConfig.IdentityProviders) == 0 && provider.Name == "" {
+		if len(cmd.ClusterConfig.IdentityProviders) == 0 && cliProvidedIDP.Name == "" {
 			return fmt.Errorf("No identity providers provided")
 		}
 		return nil
@@ -62,8 +66,8 @@ func newDisassociateIdentityProviderLoader(cmd *cmdutils.Cmd, provider identityp
 	return l.Build(cmd)
 }
 
-func doDisassociateIdentityProvider(cmd *cmdutils.Cmd, provider identityproviders.DisassociateIdentityProvider, timeout time.Duration) error {
-	if err := newDisassociateIdentityProviderLoader(cmd, provider).Load(); err != nil {
+func doDisassociateIdentityProvider(cmd *cmdutils.Cmd, cliProvidedIDP cliProvidedIDP, timeout time.Duration) error {
+	if err := newDisassociateIdentityProviderLoader(cmd, cliProvidedIDP).Load(); err != nil {
 		return err
 	}
 
@@ -82,17 +86,17 @@ func doDisassociateIdentityProvider(cmd *cmdutils.Cmd, provider identityprovider
 	}
 
 	providers := []identityproviders.DisassociateIdentityProvider{}
-	if provider.Name == "" {
-		for _, generalIdP := range cfg.IdentityProviders {
+	if cliProvidedIDP.Name == "" {
+		for _, generalIDP := range cfg.IdentityProviders {
 			var provider identityproviders.DisassociateIdentityProvider
-			switch idP := (generalIdP.Inner).(type) {
+			switch idP := (generalIDP.Inner).(type) {
 			case *api.OIDCIdentityProvider:
 				provider = identityproviders.DisassociateIdentityProvider{
 					Name: idP.Name,
-					Type: string(api.OIDCIdentityProviderType),
+					Type: idP.Type(),
 				}
 			default:
-				return errors.New("can't disassociate provider")
+				panic("unsupported identity provider")
 			}
 			providers = append(
 				providers,
@@ -101,7 +105,10 @@ func doDisassociateIdentityProvider(cmd *cmdutils.Cmd, provider identityprovider
 		}
 	} else {
 		providers = []identityproviders.DisassociateIdentityProvider{
-			provider,
+			{
+				Name: cliProvidedIDP.Name,
+				Type: api.IdentityProviderType(cliProvidedIDP.Type),
+			},
 		}
 	}
 

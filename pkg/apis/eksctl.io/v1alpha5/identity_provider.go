@@ -16,6 +16,7 @@ const (
 // to give some extra type safety
 type IdentityProviderInterface interface {
 	DeepCopyIdentityProviderInterface() IdentityProviderInterface
+	Type() IdentityProviderType
 }
 
 // The idea of the `IdentityProvider` struct is to hold an identity provider
@@ -36,12 +37,8 @@ type IdentityProvider struct {
 	// Valid variants are:
 	// `"oidc"`: OIDC identity provider
 	// +required
-	type_  string `json:"type"`
+	type_ string `json:"type"`
 	Inner IdentityProviderInterface
-}
-
-func (in *OIDCIdentityProvider) DeepCopyIdentityProviderInterface() IdentityProviderInterface {
-	return in.DeepCopy()
 }
 
 func (ip *IdentityProvider) UnmarshalJSON(data []byte) error {
@@ -69,8 +66,6 @@ func (ip *IdentityProvider) UnmarshalJSON(data []byte) error {
 // OIDCIdentityProvider holds the spec of an OIDC provider
 // to use for EKS authzn
 type OIDCIdentityProvider struct {
-	// Valid variants are:
-	// `"oidc"`: OIDC identity provider
 	// +required
 	Name string `json:"name,omitempty"`
 	// +required
@@ -85,4 +80,10 @@ type OIDCIdentityProvider struct {
 	Tags           map[string]string `json:"tags,omitempty"`
 }
 
-func (*OIDCIdentityProvider) isIdentityProvider() {}
+func (p *OIDCIdentityProvider) DeepCopyIdentityProviderInterface() IdentityProviderInterface {
+	return p.DeepCopy()
+}
+
+func (p *OIDCIdentityProvider) Type() IdentityProviderType {
+	return OIDCIdentityProviderType
+}

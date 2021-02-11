@@ -1668,12 +1668,7 @@
           "type": "string"
         },
         "name": {
-          "type": "string",
-          "description": "Valid variants are: `\"oidc\"`: OIDC identity provider",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;oidc&quot;</code>: OIDC identity provider",
-          "enum": [
-            "oidc"
-          ]
+          "type": "string"
         },
         "requiredClaims": {
           "additionalProperties": {
