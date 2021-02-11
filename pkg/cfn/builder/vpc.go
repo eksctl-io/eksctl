@@ -522,48 +522,6 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	})
 }
 
-func makeSSHIngressRules(n *api.NodeGroupBase, vpcCIDR, description string) []gfnec2.SecurityGroup_Ingress {
-	allInternalIPv4 := gfnt.NewString(vpcCIDR)
-	var sgIngressRules []gfnec2.SecurityGroup_Ingress
-	if *n.SSH.Allow {
-		if len(n.SSH.SourceSecurityGroupIDs) > 0 {
-			for _, sgID := range n.SSH.SourceSecurityGroupIDs {
-				sgIngressRules = append(sgIngressRules, gfnec2.SecurityGroup_Ingress{
-					FromPort:              sgPortSSH,
-					ToPort:                sgPortSSH,
-					IpProtocol:            sgProtoTCP,
-					SourceSecurityGroupId: gfnt.NewString(sgID),
-				})
-			}
-		} else {
-			if n.PrivateNetworking {
-				sgIngressRules = append(sgIngressRules, gfnec2.SecurityGroup_Ingress{
-					CidrIp:      allInternalIPv4,
-					Description: gfnt.NewString("Allow SSH access to " + description + " (private, only inside VPC)"),
-					IpProtocol:  sgProtoTCP,
-					FromPort:    sgPortSSH,
-					ToPort:      sgPortSSH,
-				})
-			} else {
-				sgIngressRules = append(sgIngressRules, gfnec2.SecurityGroup_Ingress{
-					CidrIp:      sgSourceAnywhereIPv4,
-					Description: gfnt.NewString("Allow SSH access to " + description),
-					IpProtocol:  sgProtoTCP,
-					FromPort:    sgPortSSH,
-					ToPort:      sgPortSSH,
-				}, gfnec2.SecurityGroup_Ingress{
-					CidrIpv6:    sgSourceAnywhereIPv6,
-					Description: gfnt.NewString("Allow SSH access to " + description),
-					IpProtocol:  sgProtoTCP,
-					FromPort:    sgPortSSH,
-					ToPort:      sgPortSSH,
-				})
-			}
-		}
-	}
-	return sgIngressRules
-}
-
 func (v *VPCResourceSet) haNAT() {
 	for _, az := range v.clusterConfig.AvailabilityZones {
 		alphanumericUpperAZ := strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
