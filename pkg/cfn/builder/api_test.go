@@ -15,6 +15,7 @@ import (
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/goformation/v4"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -1768,6 +1769,19 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
+	assertSSHRules := func(expectedIngressRules string) {
+		bytes, err := ngrs.RenderJSON()
+		Expect(err).ToNot(HaveOccurred())
+		template, err := goformation.ParseJSON(bytes)
+		Expect(err).ToNot(HaveOccurred())
+
+		securityGroup, err := template.GetEC2SecurityGroupWithName("SG")
+		Expect(err).ToNot(HaveOccurred())
+		ingressRules, err := json.Marshal(securityGroup.SecurityGroupIngress)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(string(ingressRules)).To(MatchJSON(expectedIngressRules))
+	}
+
 	Context("NodeGroup{PrivateNetworking=true SSH.Allow=true}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
@@ -1817,11 +1831,16 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ltd.NetworkInterfaces[0].DeviceIndex).To(Equal(0))
 			Expect(ltd.NetworkInterfaces[0].AssociatePublicIPAddress).To(BeFalse())
 
-			Expect(ngTemplate.Resources["SSHIPv4"].Properties.CidrIP).To(Equal("192.168.0.0/16"))
-			Expect(ngTemplate.Resources["SSHIPv4"].Properties.FromPort).To(Equal(22))
-			Expect(ngTemplate.Resources["SSHIPv4"].Properties.ToPort).To(Equal(22))
-
-			Expect(ngTemplate.Resources).ToNot(HaveKey("SSHIPv6"))
+			expectedIngressRules := `[
+  {
+    "CidrIp": "192.168.0.0/16",
+    "Description": "Allow SSH access to worker nodes in group ng-abcd1234 (private, only inside VPC)",
+    "FromPort": 22,
+    "IpProtocol": "tcp",
+    "ToPort": 22
+  }
+]`
+			assertSSHRules(expectedIngressRules)
 		})
 	})
 
@@ -1871,13 +1890,24 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ltd.NetworkInterfaces[0].DeviceIndex).To(Equal(0))
 			Expect(ltd.NetworkInterfaces[0].AssociatePublicIPAddress).To(BeFalse())
 
-			Expect(ngTemplate.Resources["SSHIPv4"].Properties.CidrIP).To(Equal("0.0.0.0/0"))
-			Expect(ngTemplate.Resources["SSHIPv4"].Properties.FromPort).To(Equal(22))
-			Expect(ngTemplate.Resources["SSHIPv4"].Properties.ToPort).To(Equal(22))
+			expectedIngressRules := `[
+  {
+    "CidrIp": "0.0.0.0/0",
+    "Description": "Allow SSH access to worker nodes in group ng-abcd1234",
+    "FromPort": 22,
+    "IpProtocol": "tcp",
+    "ToPort": 22
+  },
+  {
+    "CidrIpv6": "::/0",
+    "Description": "Allow SSH access to worker nodes in group ng-abcd1234",
+    "FromPort": 22,
+    "IpProtocol": "tcp",
+    "ToPort": 22
+  }
+]`
 
-			Expect(ngTemplate.Resources["SSHIPv6"].Properties.CidrIpv6).To(Equal("::/0"))
-			Expect(ngTemplate.Resources["SSHIPv6"].Properties.FromPort).To(Equal(22))
-			Expect(ngTemplate.Resources["SSHIPv6"].Properties.ToPort).To(Equal(22))
+			assertSSHRules(expectedIngressRules)
 		})
 	})
 
