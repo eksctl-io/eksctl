@@ -52,12 +52,11 @@ type useFromClusterCase struct {
 }
 
 type endpointAccessCase struct {
-	cfg                   *api.ClusterConfig
-	clusterName           string
-	private               bool
-	public                bool
-	describeClusterOutput *eks.DescribeClusterOutput
-	error                 error
+	cfg         *api.ClusterConfig
+	clusterName string
+	private     bool
+	public      bool
+	error       error
 }
 
 type importAllSubnetsCase struct {
@@ -77,11 +76,6 @@ type selectSubnetsCase struct {
 	subnets          api.AZSubnetMapping
 	expectIDs        []string
 }
-
-var (
-	cluster *eks.Cluster
-	p       *mockprovider.MockProvider
-)
 
 func newFakeClusterWithEndpoints(private, public bool, name string) *eks.Cluster {
 	cluster := NewFakeCluster(name, eks.ClusterStatusActive)
@@ -222,7 +216,7 @@ var _ = Describe("VPC", func() {
 	DescribeTable("Use from Cluster",
 		func(clusterCase useFromClusterCase) {
 			p := mockprovider.NewMockProvider()
-			cluster = newFakeClusterWithEndpoints(true, true, "dummy cluster")
+			cluster := newFakeClusterWithEndpoints(true, true, "dummy cluster")
 			mockResultFn := func(_ *eks.DescribeClusterInput) *eks.DescribeClusterOutput {
 				return &eks.DescribeClusterOutput{Cluster: cluster}
 			}
@@ -428,7 +422,7 @@ var _ = Describe("VPC", func() {
 		func(e endpointAccessCase) {
 			p := mockprovider.NewMockProvider()
 			p.MockEKS()
-			cluster = newFakeClusterWithEndpoints(e.private, e.public, e.clusterName)
+			cluster := newFakeClusterWithEndpoints(e.private, e.public, e.clusterName)
 			mockResultFn := func(_ *eks.DescribeClusterInput) *eks.DescribeClusterOutput {
 				return &eks.DescribeClusterOutput{Cluster: cluster}
 			}
@@ -445,36 +439,32 @@ var _ = Describe("VPC", func() {
 			}
 		},
 		Entry("Private=false, Public=true", endpointAccessCase{
-			cfg:                   api.NewClusterConfig(),
-			clusterName:           "false-true-cluster",
-			private:               false,
-			public:                true,
-			describeClusterOutput: &eks.DescribeClusterOutput{Cluster: cluster},
-			error:                 nil,
+			cfg:         api.NewClusterConfig(),
+			clusterName: "false-true-cluster",
+			private:     false,
+			public:      true,
+			error:       nil,
 		}),
 		Entry("Private=true, Public=false", endpointAccessCase{
-			cfg:                   api.NewClusterConfig(),
-			clusterName:           "true-false-cluster",
-			private:               true,
-			public:                false,
-			describeClusterOutput: &eks.DescribeClusterOutput{Cluster: cluster},
-			error:                 nil,
+			cfg:         api.NewClusterConfig(),
+			clusterName: "true-false-cluster",
+			private:     true,
+			public:      false,
+			error:       nil,
 		}),
 		Entry("Private=true, Public=true", endpointAccessCase{
-			cfg:                   api.NewClusterConfig(),
-			clusterName:           "true-true-cluster",
-			private:               true,
-			public:                true,
-			describeClusterOutput: &eks.DescribeClusterOutput{Cluster: cluster},
-			error:                 nil,
+			cfg:         api.NewClusterConfig(),
+			clusterName: "true-true-cluster",
+			private:     true,
+			public:      true,
+			error:       nil,
 		}),
 		Entry("Private=false, Public=false", endpointAccessCase{
-			cfg:                   api.NewClusterConfig(),
-			clusterName:           "notFoundCluster",
-			private:               false,
-			public:                false,
-			describeClusterOutput: nil,
-			error:                 errors.New(eks.ErrCodeResourceNotFoundException),
+			cfg:         api.NewClusterConfig(),
+			clusterName: "notFoundCluster",
+			private:     false,
+			public:      false,
+			error:       errors.New(eks.ErrCodeResourceNotFoundException),
 		}),
 		Entry("Nil Cluster endpoint from config", endpointAccessCase{
 			cfg: &api.ClusterConfig{
@@ -490,11 +480,10 @@ var _ = Describe("VPC", func() {
 					ClusterLogging: &api.ClusterCloudWatchLogging{},
 				},
 			},
-			clusterName:           "notFoundCluster",
-			private:               false,
-			public:                false,
-			describeClusterOutput: nil,
-			error:                 nil,
+			clusterName: "notFoundCluster",
+			private:     false,
+			public:      false,
+			error:       nil,
 		}),
 	)
 
