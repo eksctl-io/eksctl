@@ -89,7 +89,7 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait bool) error {
 		}
 	}
 
-	if err := deleteSharedResources(c.cfg, c.ctl, clientSet); err != nil {
+	if err := deleteSharedResources(c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {
 		return err
 	}
 

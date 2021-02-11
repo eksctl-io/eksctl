@@ -11,29 +11,23 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/fargate"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/elb"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	ssh "github.com/weaveworks/eksctl/pkg/ssh/client"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 
 	"github.com/weaveworks/logger"
 )
 
-func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) error {
-	clusterOperable, err := ctl.CanOperate(cfg)
-	if err != nil {
-		logger.Debug("failed to check if cluster is operable: %v", err)
-	}
+func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clusterOperable bool, clientSet kubernetes.Interface) error {
 	if clusterOperable {
 		if err := deleteFargateProfiles(cfg.Metadata, ctl); err != nil {
 			return err
 		}
 	}
-
-	stackManager := ctl.NewStackManager(cfg)
 
 	if hasDeprecatedStacks, err := deleteDeprecatedStacks(stackManager); hasDeprecatedStacks {
 		if err != nil {

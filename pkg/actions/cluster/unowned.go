@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
+
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -15,8 +17,6 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
-
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 
 	"github.com/weaveworks/logger"
@@ -26,22 +26,23 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	kubeclient "k8s.io/client-go/kubernetes"
 )
 
 type UnownedCluster struct {
 	cfg          *api.ClusterConfig
 	ctl          *eks.ClusterProvider
-	clientSet    kubeclient.Interface
 	stackManager manager.StackManager
+	newClientSet func() (kubernetes.Interface, error)
 }
 
-func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubeclient.Interface, stackManager manager.StackManager) *UnownedCluster {
+func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) *UnownedCluster {
 	return &UnownedCluster{
 		cfg:          cfg,
 		ctl:          ctl,
-		clientSet:    clientSet,
 		stackManager: stackManager,
+		newClientSet: func() (kubernetes.Interface, error) {
+			return ctl.NewStdClientSet(cfg)
+		},
 	}
 }
 
@@ -63,7 +64,20 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait bool) error {
 		return err
 	}
 
-	if err := deleteSharedResources(c.cfg, c.ctl, c.clientSet); err != nil {
+	clusterOperable, err := c.ctl.CanOperate(c.cfg)
+	if err != nil {
+		logger.Debug("failed to check if cluster is operable: %v", err)
+	}
+
+	var clientSet kubernetes.Interface
+	if clusterOperable {
+		clientSet, err = c.newClientSet()
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := deleteSharedResources(c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {
 		return err
 	}
 
@@ -77,16 +91,15 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait bool) error {
 		return err
 	}
 
-	if err := c.deleteIAMAndOIDC(wait, kubernetes.NewCachedClientSet(c.clientSet)); err != nil {
+	if err := c.deleteIAMAndOIDC(wait, clusterOperable, clientSet); err != nil {
 		return err
 	}
 
-	err := c.deleteCluster(clusterName, c.ctl.Provider.WaitTimeout(), wait)
-	if err != nil {
+	if err := c.deleteCluster(clusterName, c.ctl.Provider.WaitTimeout(), wait); err != nil {
 		return err
 	}
 
-	if err := checkForUndeletedStacks(c.ctl.NewStackManager(c.cfg)); err != nil {
+	if err := checkForUndeletedStacks(c.stackManager); err != nil {
 		return err
 	}
 
@@ -123,10 +136,8 @@ func (c *UnownedCluster) checkClusterExists(clusterName string) error {
 	return nil
 }
 
-func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clientSetGetter kubernetes.ClientSetGetter) error {
+func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clusterOperable bool, clientSet kubernetes.Interface) error {
 	var oidc *iamoidc.OpenIDConnectManager
-
-	clusterOperable, _ := c.ctl.CanOperate(c.cfg)
 	oidcSupported := true
 
 	if clusterOperable {
@@ -143,6 +154,7 @@ func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clientSetGetter kubernetes.
 	tasksTree := &tasks.TaskTree{Parallel: false}
 
 	if clusterOperable && oidcSupported {
+		clientSetGetter := kubernetes.NewCachedClientSet(clientSet)
 		serviceAccountAndOIDCTasks, err := c.stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc, clientSetGetter)
 		if err != nil {
 			return err

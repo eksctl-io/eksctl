@@ -47,9 +47,5 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
 
 	logger.Debug("cluster %q was not created by eksctl", cfg.Metadata.Name)
 
-	clientSet, err := ctl.NewStdClientSet(cfg)
-	if err != nil {
-		return nil, err
-	}
-	return NewUnownedCluster(cfg, ctl, clientSet, stackManager), nil
+	return NewUnownedCluster(cfg, ctl, stackManager), nil
 }
