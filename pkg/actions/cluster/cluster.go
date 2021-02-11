@@ -38,7 +38,7 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
 
 	if hasClusterStack {
 		logger.Debug("Cluster %q was created by eksctl", cfg.Metadata.Name)
-		return NewOwnedCluster(cfg, ctl, stackManager)
+		return NewOwnedCluster(cfg, ctl, stackManager), nil
 	}
 
 	if !clusterExists {
