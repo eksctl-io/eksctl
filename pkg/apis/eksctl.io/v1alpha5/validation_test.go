@@ -953,7 +953,7 @@ var _ = Describe("ClusterConfig validation", func() {
 	})
 
 	DescribeTable("Nodegroup label validation", func(labels map[string]string, valid bool) {
-		err := ValidateNodeGroupLabels(labels)
+		err := validateNodeGroupLabels(labels)
 		if valid {
 			Expect(err).ToNot(HaveOccurred())
 		} else {
