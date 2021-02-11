@@ -35,6 +35,16 @@ type importVPCCase struct {
 	error             error
 }
 
+func describeImportVPCCase(desc string) func(importVPCCase) string {
+	return func(c importVPCCase) string {
+		var expect = "works"
+		if c.error != nil {
+			expect = "returns error"
+		}
+		return fmt.Sprintf("%s %s", desc, expect)
+	}
+}
+
 type useFromClusterCase struct {
 	cfg   *api.ClusterConfig
 	stack *cfn.Stack
@@ -81,7 +91,7 @@ func newFakeClusterWithEndpoints(private, public bool, name string) *eks.Cluster
 	return cluster
 }
 
-var _ = Describe("VPC - Set Subnets", func() {
+var _ = Describe("VPC", func() {
 	Describe("SplitInto16", func() {
 		It("splits the block into 16", func() {
 			expected := []string{
@@ -208,15 +218,10 @@ var _ = Describe("VPC - Set Subnets", func() {
 			availabilityZones: []string{"1", "2", "3"},
 		}),
 	)
-})
-
-var _ = Describe("VPC - Use From Cluster", func() {
-	BeforeEach(func() {
-		p = mockprovider.NewMockProvider()
-	})
 
 	DescribeTable("Use from Cluster",
 		func(clusterCase useFromClusterCase) {
+			p := mockprovider.NewMockProvider()
 			cluster = newFakeClusterWithEndpoints(true, true, "dummy cluster")
 			mockResultFn := func(_ *eks.DescribeClusterInput) *eks.DescribeClusterOutput {
 				return &eks.DescribeClusterOutput{Cluster: cluster}
@@ -239,15 +244,10 @@ var _ = Describe("VPC - Use From Cluster", func() {
 			error: fmt.Errorf("no output"),
 		}),
 	)
-})
 
-var _ = Describe("VPC - Import VPC", func() {
-	BeforeEach(func() {
-		p = mockprovider.NewMockProvider()
-	})
-
-	DescribeTable("can import VPC",
+	DescribeTable("importVPC",
 		func(vpcCase importVPCCase) {
+			p := mockprovider.NewMockProvider()
 			p.MockEC2()
 
 			mockResultFn := func(_ *ec2.DescribeVpcsInput) *ec2.DescribeVpcsOutput {
@@ -267,7 +267,7 @@ var _ = Describe("VPC - Import VPC", func() {
 				Expect(vpcCase.cfg.VPC.ID == vpcCase.id)
 			}
 		},
-		Entry("VPC with valid details", importVPCCase{
+		Entry(describeImportVPCCase("VPC with valid details"), importVPCCase{
 			cfg: api.NewClusterConfig(),
 			id:  "validID",
 			describeVPCOutput: &ec2.DescribeVpcsOutput{
@@ -281,13 +281,13 @@ var _ = Describe("VPC - Import VPC", func() {
 			describeVPCError: nil,
 			error:            nil,
 		}),
-		Entry("VPC with invalid id", importVPCCase{
+		Entry(describeImportVPCCase("VPC with invalid id"), importVPCCase{
 			cfg:              api.NewClusterConfig(),
 			id:               "invalidID",
 			describeVPCError: errors.New("unable to describe vpc"),
 			error:            errors.New("unable to describe vpc"),
 		}),
-		Entry("VPC with id mismatch", importVPCCase{
+		Entry(describeImportVPCCase("VPC with id mismatch"), importVPCCase{
 			cfg: &api.ClusterConfig{
 				VPC: &api.ClusterVPC{
 					Network: api.Network{
@@ -306,7 +306,7 @@ var _ = Describe("VPC - Import VPC", func() {
 			describeVPCError: nil,
 			error:            fmt.Errorf("VPC ID %q is not the same as %q", "anotherID", "validID"),
 		}),
-		Entry("VPC with CIDR mismatch", importVPCCase{
+		Entry(describeImportVPCCase("VPC with CIDR mismatch"), importVPCCase{
 			cfg: api.NewClusterConfig(),
 			id:  "validID",
 			describeVPCOutput: &ec2.DescribeVpcsOutput{
@@ -320,7 +320,7 @@ var _ = Describe("VPC - Import VPC", func() {
 			describeVPCError: nil,
 			error:            fmt.Errorf("VPC CIDR block %q not found in VPC", "192.168.0.0/16"),
 		}),
-		Entry("VPC with nil CIDR", importVPCCase{
+		Entry(describeImportVPCCase("VPC with nil CIDR"), importVPCCase{
 			cfg: &api.ClusterConfig{
 				TypeMeta: api.ClusterConfigTypeMeta(),
 				Metadata: &api.ClusterMeta{
@@ -348,7 +348,7 @@ var _ = Describe("VPC - Import VPC", func() {
 			describeVPCError: nil,
 			error:            nil,
 		}),
-		Entry("VPC with nil CIDR and invalid CIDR", importVPCCase{
+		Entry(describeImportVPCCase("VPC with nil CIDR and invalid CIDR"), importVPCCase{
 			cfg: &api.ClusterConfig{
 				TypeMeta: api.ClusterConfigTypeMeta(),
 				Metadata: &api.ClusterMeta{
@@ -376,7 +376,7 @@ var _ = Describe("VPC - Import VPC", func() {
 			describeVPCError: nil,
 			error:            fmt.Errorf("invalid CIDR address: *"),
 		}),
-		Entry("VPC with secondary CIDR", importVPCCase{
+		Entry(describeImportVPCCase("VPC with secondary CIDR"), importVPCCase{
 			cfg: func() *api.ClusterConfig {
 				cfg := api.NewClusterConfig()
 				cfg.VPC.CIDR = ipnet.MustParseCIDR("10.1.0.0/16")
@@ -399,7 +399,7 @@ var _ = Describe("VPC - Import VPC", func() {
 			describeVPCError: nil,
 			error:            nil,
 		}),
-		Entry("VPC with mismatching secondary CIDR", importVPCCase{
+		Entry(describeImportVPCCase("VPC with mismatching secondary CIDR"), importVPCCase{
 			cfg: func() *api.ClusterConfig {
 				cfg := api.NewClusterConfig()
 				cfg.VPC.CIDR = ipnet.MustParseCIDR("10.2.0.0/16")
@@ -423,15 +423,10 @@ var _ = Describe("VPC - Import VPC", func() {
 			error:            fmt.Errorf(`VPC CIDR block "10.2.0.0/16" not found in VPC`),
 		}),
 	)
-})
-
-var _ = Describe("VPC - Cluster Endpoints", func() {
-	BeforeEach(func() {
-		p = mockprovider.NewMockProvider()
-	})
 
 	DescribeTable("can set cluster endpoint configuration on VPC from running Cluster",
 		func(e endpointAccessCase) {
+			p := mockprovider.NewMockProvider()
 			p.MockEKS()
 			cluster = newFakeClusterWithEndpoints(e.private, e.public, e.clusterName)
 			mockResultFn := func(_ *eks.DescribeClusterInput) *eks.DescribeClusterOutput {
@@ -502,9 +497,7 @@ var _ = Describe("VPC - Cluster Endpoints", func() {
 			error:                 nil,
 		}),
 	)
-})
 
-var _ = Describe("VPC - Clean up subnets", func() {
 	cfgWithAllAZ := &api.ClusterConfig{
 		VPC: &api.ClusterVPC{
 			Subnets: &api.ClusterSubnets{
@@ -644,15 +637,10 @@ var _ = Describe("VPC - Clean up subnets", func() {
 			want: cfgWithAllAZ,
 		}),
 	)
-})
-
-var _ = Describe("VPC - Import all subnets", func() {
-	BeforeEach(func() {
-		p = mockprovider.NewMockProvider()
-	})
 
 	DescribeTable("Can import all subnets",
 		func(e importAllSubnetsCase) {
+			p := mockprovider.NewMockProvider()
 			p.MockEC2()
 
 			mockResultFn := func(input *ec2.DescribeSubnetsInput) *ec2.DescribeSubnetsOutput {
@@ -825,9 +813,7 @@ var _ = Describe("VPC - Import all subnets", func() {
 			error: nil,
 		}),
 	)
-})
 
-var _ = Describe("VPC", func() {
 	DescribeTable("select subnets",
 		func(e selectSubnetsCase) {
 			ids, err := SelectNodeGroupSubnets(e.nodegroupAZs, e.nodegroupSubnets, e.subnets)
