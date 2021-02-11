@@ -158,13 +158,15 @@
                     "CidrIp": "0.0.0.0/0",
                     "FromPort": 22,
                     "IpProtocol": "tcp",
-                    "ToPort": 22
+                    "ToPort": 22,
+                    "Description": "Allow SSH access to managed worker nodes in group ssh-enabled"
                 },
                 {
                     "CidrIpv6": "::/0",
                     "FromPort": 22,
                     "IpProtocol": "tcp",
-                    "ToPort": 22
+                    "ToPort": 22,
+                    "Description": "Allow SSH access to managed worker nodes in group ssh-enabled"
                 }
             ],
             "Tags": [
