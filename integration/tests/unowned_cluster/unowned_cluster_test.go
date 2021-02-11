@@ -32,7 +32,8 @@ var params *tests.Params
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
-	params = tests.NewParams("unowned_clusters")
+	// "unowned_clusters" lead to names longer than allowed for CF stacks
+	params = tests.NewParams("uc")
 }
 
 func TestE2E(t *testing.T) {
@@ -41,30 +42,33 @@ func TestE2E(t *testing.T) {
 
 var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func() {
 	var (
-		clusterName, stackName, ng1, ng2 string
-		ctl                              api.ClusterProvider
+		stackName, ng1, ng2 string
+		ctl                 api.ClusterProvider
 	)
 
 	BeforeSuite(func() {
 		ng1 = "ng-1"
 		ng2 = "ng-2"
-		// "unowned_clusters" lead to names longer than allowed for CF stacks
-		clusterName = params.NewClusterName("uc")
-		stackName = fmt.Sprintf("eksctl-%s", clusterName)
+		stackName = fmt.Sprintf("eksctl-%s", params.ClusterName)
 		cfg := &api.ClusterConfig{
 			Metadata: &api.ClusterMeta{
 				Name:   params.ClusterName,
 				Region: params.Region,
 			},
 		}
-		clusterProvider, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
-		Expect(err).NotTo(HaveOccurred())
-		ctl = clusterProvider.Provider
-		createClusterWithNodegroups(clusterName, stackName, ng1, ng2, ctl)
+
+		if !params.SkipCreate {
+			clusterProvider, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+			Expect(err).NotTo(HaveOccurred())
+			ctl = clusterProvider.Provider
+			createClusterWithNodegroups(params.ClusterName, stackName, ng1, ng2, ctl)
+		}
 	})
 
 	AfterSuite(func() {
-		deleteStack(stackName, ctl)
+		if !params.SkipDelete {
+			deleteStack(stackName, ctl)
+		}
 	})
 
 	It("supports getting non-eksctl resources", func() {
@@ -75,14 +79,14 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-			ContainElement(ContainSubstring(clusterName)),
+			ContainElement(ContainSubstring(params.ClusterName)),
 		))
 
 		By("getting nodegroups")
 		cmd = params.EksctlGetCmd.
 			WithArgs(
 				"nodegroups",
-				"--cluster", clusterName,
+				"--cluster", params.ClusterName,
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
@@ -97,7 +101,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		By("setting labels on a nodegroup")
 		cmd := params.EksctlSetLabelsCmd.
 			WithArgs(
-				"--cluster", clusterName,
+				"--cluster", params.ClusterName,
 				"--nodegroup", ng1,
 				"--labels", "key=value",
 				"--verbose", "2",
@@ -108,17 +112,17 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		cmd = params.EksctlGetCmd.
 			WithArgs(
 				"labels",
-				"--cluster", clusterName,
+				"--cluster", params.ClusterName,
 				"--nodegroup", ng1,
 				"--verbose", "2",
 			)
-			// It sometimes takes more than 20 seconds for the above set to take effect
-		Eventually(func() *gbytes.Buffer { return cmd.Run().Out }, time.Second*30).Should(gbytes.Say("key=value"))
+			// It sometimes takes forever for the above set to take effect
+		Eventually(func() *gbytes.Buffer { return cmd.Run().Out }, time.Minute*2).Should(gbytes.Say("key=value"))
 
 		By("unsetting labels on a nodegroup")
 		cmd = params.EksctlUnsetLabelsCmd.
 			WithArgs(
-				"--cluster", clusterName,
+				"--cluster", params.ClusterName,
 				"--nodegroup", ng1,
 				"--labels", "key",
 				"--verbose", "2",
@@ -131,7 +135,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		cmd := params.EksctlUtilsCmd.
 			WithArgs(
 				"associate-iam-oidc-provider",
-				"--name", clusterName,
+				"--name", params.ClusterName,
 				"--approve",
 				"--verbose", "2",
 			)
@@ -141,7 +145,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		cmd = params.EksctlCreateCmd.
 			WithArgs(
 				"iamserviceaccount",
-				"--cluster", clusterName,
+				"--cluster", params.ClusterName,
 				"--name", "test-sa",
 				"--namespace", "default",
 				"--attach-policy-arn",
@@ -155,7 +159,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		cmd = params.EksctlGetCmd.
 			WithArgs(
 				"iamserviceaccounts",
-				"--cluster", clusterName,
+				"--cluster", params.ClusterName,
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
@@ -168,7 +172,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		cmd := params.EksctlUpgradeCmd.
 			WithArgs(
 				"cluster",
-				"--name", clusterName,
+				"--name", params.ClusterName,
 				"--version", "1.18",
 				"--approve",
 				"--verbose", "2",
@@ -181,7 +185,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		cmd := params.EksctlCreateCmd.
 			WithArgs(
 				"addon",
-				"--cluster", clusterName,
+				"--cluster", params.ClusterName,
 				"--name", "vpc-cni",
 				"--verbose", "2",
 			)
@@ -191,7 +195,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		cmd = params.EksctlGetCmd.
 			WithArgs(
 				"addons",
-				"--cluster", clusterName,
+				"--cluster", params.ClusterName,
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
@@ -204,7 +208,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		cmd := params.EksctlCreateCmd.
 			WithArgs(
 				"fargateprofile",
-				"--cluster", clusterName,
+				"--cluster", params.ClusterName,
 				"--name", "fp-test",
 				"--namespace", "default",
 			)
@@ -216,7 +220,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		cmd = params.EksctlGetCmd.
 			WithArgs(
 				"fargateprofile",
-				"--cluster", clusterName,
+				"--cluster", params.ClusterName,
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
@@ -227,7 +231,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		cmd = params.EksctlDeleteCmd.
 			WithArgs(
 				"fargateprofile",
-				"--cluster", clusterName,
+				"--cluster", params.ClusterName,
 				"--name", "fp-test",
 				"--wait",
 			)
@@ -241,7 +245,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			WithArgs(
 				"nodegroup",
 				"--name", ng1,
-				"--cluster", clusterName,
+				"--cluster", params.ClusterName,
 				"--kubernetes-version", "1.18",
 				"--wait",
 				"--verbose", "2",
@@ -256,7 +260,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"--name", ng1,
 				"--nodes", "2",
 				"--nodes-max", "3",
-				"--cluster", clusterName,
+				"--cluster", params.ClusterName,
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfully())
@@ -264,7 +268,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		By("draining a nodegroup")
 		cmd = params.EksctlDrainNodeGroupCmd.
 			WithArgs(
-				"--cluster", clusterName,
+				"--cluster", params.ClusterName,
 				"--name", ng2,
 				"--verbose", "2",
 			)
@@ -276,18 +280,21 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			WithArgs(
 				"nodegroup",
 				"--name", ng2,
-				"--cluster", clusterName,
+				"--cluster", params.ClusterName,
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfully())
 	})
 
 	It("supports deleting clusters", func() {
+		if !params.SkipDelete {
+			Skip("params.SkipDelete is true")
+		}
 		By("deleting the cluster")
 		cmd := params.EksctlDeleteCmd.
 			WithArgs(
 				"cluster",
-				"--name", clusterName,
+				"--name", params.ClusterName,
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfully())
