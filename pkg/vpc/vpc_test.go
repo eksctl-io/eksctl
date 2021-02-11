@@ -154,11 +154,11 @@ var _ = Describe("VPC", func() {
 
 	DescribeTable("Set subnets",
 		func(subnetsCase setSubnetsCase) {
-			if err := SetSubnets(subnetsCase.vpc, subnetsCase.availabilityZones); err != nil {
-				Expect(err).To(Equal(subnetsCase.error))
+			err := SetSubnets(subnetsCase.vpc, subnetsCase.availabilityZones)
+			if subnetsCase.error != nil {
+				Expect(err).To(MatchError(subnetsCase.error.Error()))
 			} else {
-				// make sure that expected error is nil as well
-				Expect(subnetsCase.error).Should(BeNil())
+				Expect(err).NotTo(HaveOccurred())
 			}
 		},
 		Entry("VPC with valid details", setSubnetsCase{
@@ -225,17 +225,17 @@ var _ = Describe("VPC", func() {
 				return input != nil
 			})).Return(mockResultFn, nil)
 
-			if err := UseFromCluster(p, clusterCase.stack, clusterCase.cfg); err != nil {
-				Expect(err.Error()).To(ContainSubstring(clusterCase.error.Error()))
+			err := UseFromCluster(p, clusterCase.stack, clusterCase.cfg)
+			if clusterCase.error != nil {
+				Expect(err).To(MatchError(clusterCase.error.Error()))
 			} else {
-				// make sure that expected error is nil as well
-				Expect(clusterCase.error).Should(BeNil())
+				Expect(err).NotTo(HaveOccurred())
 			}
 		},
 		Entry("No output", useFromClusterCase{
 			cfg:   api.NewClusterConfig(),
 			stack: &cfn.Stack{},
-			error: fmt.Errorf("no output"),
+			error: fmt.Errorf(`no output "VPC"`),
 		}),
 	)
 
@@ -254,8 +254,7 @@ var _ = Describe("VPC", func() {
 
 			err := importVPC(p, vpcCase.cfg, vpcCase.id)
 			if vpcCase.error != nil {
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal(vpcCase.error.Error()))
+				Expect(err).To(MatchError(vpcCase.error.Error()))
 			} else {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(vpcCase.cfg.VPC.ID == vpcCase.id)
@@ -431,9 +430,11 @@ var _ = Describe("VPC", func() {
 				return input != nil
 			})).Return(mockResultFn, e.error)
 
-			if err := UseEndpointAccessFromCluster(p, e.cfg); err != nil {
-				Expect(err.Error()).To(Equal(eks.ErrCodeResourceNotFoundException))
+			err := UseEndpointAccessFromCluster(p, e.cfg)
+			if e.error != nil {
+				Expect(err).To(MatchError(e.error.Error()))
 			} else {
+				Expect(err).NotTo(HaveOccurred())
 				Expect(e.cfg.VPC.ClusterEndpoints.PrivateAccess).To(Equal(&e.private))
 				Expect(e.cfg.VPC.ClusterEndpoints.PublicAccess).To(Equal(&e.public))
 			}
@@ -679,7 +680,7 @@ var _ = Describe("VPC", func() {
 
 			err := ImportAllSubnets(p, &e.cfg)
 			if e.error != nil {
-				Expect(err.Error()).To(ContainSubstring(e.error.Error()))
+				Expect(err).To(MatchError(e.error.Error()))
 			} else {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(*e.cfg.VPC.Subnets).To(Equal(e.expected))
