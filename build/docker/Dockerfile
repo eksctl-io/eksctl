@@ -32,8 +32,7 @@ RUN apk add --no-cache --initdb --root /out \
     openssh \
     && true
 
-ENV KUBECTL_VERSION v1.15.11
-RUN curl --silent --location "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" --output /out/usr/local/bin/kubectl \
+RUN curl --silent --location "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" --output /out/usr/local/bin/kubectl \
     && chmod +x /out/usr/local/bin/kubectl
 
 ENV GITHUB_CLI_VERSION 1.5.0

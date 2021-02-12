@@ -704,6 +704,11 @@
           "description": "The repository hosting service. Can be either Github or Gitlab.",
           "x-intellij-html-description": "The repository hosting service. Can be either Github or Gitlab."
         },
+        "kubeconfig": {
+          "type": "string",
+          "description": "Path to the kubernetes config for the cluster. Defaults to $HOME/.kube/config",
+          "x-intellij-html-description": "Path to the kubernetes config for the cluster. Defaults to $HOME/.kube/config"
+        },
         "namespace": {
           "type": "string",
           "description": "The kubernetes namespace into which Flux v2 components will be deployed",
@@ -736,6 +741,7 @@
         "owner",
         "repository",
         "namespace",
+        "kubeconfig",
         "branch",
         "path",
         "personal",

@@ -117,8 +117,6 @@ jobs:
           cmd: go mod download
       - docker-run:
           cmd: make circleci-test build
-          options:
-            --env=GITHUB_TOKEN=$EKSCTLBOT_TOKEN
       - docker-run:
           cmd: make -f Makefile.docker check-build-image-manifest-up-to-date
       - run: mkdir bin; mv eksctl "bin/eksctl-$(./eksctl version)"
@@ -233,6 +231,7 @@ jobs:
             --env=GIT_SSH_COMMAND="ssh -i /root/.ssh/${SSH_KEY_NAME}"
             --env=AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             --env=AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            --env=GITHUB_TOKEN=$EKSCTLBOT_TOKEN
       - store_test_results:
           path: ./test-results
       - store_artifacts:

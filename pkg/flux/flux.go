@@ -17,10 +17,14 @@ const fluxBin = "flux"
 
 type Client struct {
 	executor executor.Executor
+	opts     *api.Flux
 }
 
-func NewClient(tokenPath, gitProvider string) *Client {
-	return &Client{executor.NewShellExecutor(setEnvVars(tokenPath, gitProvider))}
+func NewClient(opts *api.Flux) *Client {
+	return &Client{
+		executor: executor.NewShellExecutor(setEnvVars(opts.AuthTokenPath, opts.GitProvider)),
+		opts:     opts,
+	}
 }
 
 func (c *Client) PreFlight() error {
@@ -29,23 +33,32 @@ func (c *Client) PreFlight() error {
 		return errors.New("flux not found, required")
 	}
 
-	return c.runFluxCmd("check", "--pre")
+	args := []string{"check", "--pre"}
+
+	if c.opts.Kubeconfig != "" {
+		args = append(args, "--kubeconfig", c.opts.Kubeconfig)
+	}
+
+	return c.runFluxCmd(args...)
 }
 
-func (c *Client) Bootstrap(opts *api.Flux) error {
-	args := []string{"bootstrap", opts.GitProvider, "--repository", opts.Repository, "--owner", opts.Owner}
+func (c *Client) Bootstrap() error {
+	args := []string{"bootstrap", c.opts.GitProvider, "--repository", c.opts.Repository, "--owner", c.opts.Owner}
 
-	if opts.Personal {
+	if c.opts.Personal {
 		args = append(args, "--personal")
 	}
-	if opts.Path != "" {
-		args = append(args, "--path", opts.Path)
+	if c.opts.Path != "" {
+		args = append(args, "--path", c.opts.Path)
 	}
-	if opts.Branch != "" {
-		args = append(args, "--branch", opts.Branch)
+	if c.opts.Branch != "" {
+		args = append(args, "--branch", c.opts.Branch)
 	}
-	if opts.Namespace != "" {
-		args = append(args, "--namespace", opts.Namespace)
+	if c.opts.Namespace != "" {
+		args = append(args, "--namespace", c.opts.Namespace)
+	}
+	if c.opts.Kubeconfig != "" {
+		args = append(args, "--kubeconfig", c.opts.Kubeconfig)
 	}
 
 	return c.runFluxCmd(args...)
@@ -58,8 +71,10 @@ func (c *Client) runFluxCmd(args ...string) error {
 
 func setEnvVars(tokenPath, gitProvider string) executor.EnvVars {
 	envVars := executor.EnvVars{
-		"PATH": os.Getenv("PATH"),
-		"HOME": os.Getenv("HOME"),
+		"PATH":                  os.Getenv("PATH"),
+		"HOME":                  os.Getenv("HOME"),
+		"AWS_ACCESS_KEY_ID":     os.Getenv("AWS_ACCESS_KEY_ID"),
+		"AWS_SECRET_ACCESS_KEY": os.Getenv("AWS_SECRET_ACCESS_KEY"),
 	}
 
 	var token string
