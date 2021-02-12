@@ -159,6 +159,12 @@
         "iam": {
           "$ref": "#/definitions/ClusterIAM"
         },
+        "identityProviders": {
+          "items": {
+            "$ref": "#/definitions/IdentityProvider"
+          },
+          "type": "array"
+        },
         "kind": {
           "type": "string",
           "enum": [
@@ -208,6 +214,7 @@
         "metadata",
         "kubernetesNetworkConfig",
         "iam",
+        "identityProviders",
         "vpc",
         "addons",
         "privateCluster",
@@ -792,6 +799,31 @@
       "additionalProperties": false,
       "description": "groups all configuration options related to enabling GitOps Toolkit on a cluster and linking it to a Git repository. Note: this will replace the older Git types",
       "x-intellij-html-description": "groups all configuration options related to enabling GitOps Toolkit on a cluster and linking it to a Git repository. Note: this will replace the older Git types"
+    },
+    "IdentityProvider": {
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Valid variants are: `\"oidc\"`: OIDC identity provider",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;oidc&quot;</code>: OIDC identity provider",
+          "enum": [
+            "oidc"
+          ]
+        }
+      },
+      "preferredOrder": [
+        "type"
+      ],
+      "oneOf": [
+        {
+          "$ref": "#/definitions/OIDCIdentityProvider"
+        }
+      ],
+      "description": "holds an identity provider",
+      "x-intellij-html-description": "holds an identity provider"
     },
     "InlineDocument": {
       "additionalProperties": {},
@@ -1615,6 +1647,64 @@
       "additionalProperties": false,
       "description": "holds all the ssh access configuration to a NodeGroup",
       "x-intellij-html-description": "holds all the ssh access configuration to a NodeGroup"
+    },
+    "OIDCIdentityProvider": {
+      "required": [
+        "name",
+        "issuerURL",
+        "clientID"
+      ],
+      "properties": {
+        "clientID": {
+          "type": "string"
+        },
+        "groupsClaim": {
+          "type": "string"
+        },
+        "groupsPrefix": {
+          "type": "string"
+        },
+        "issuerURL": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "requiredClaims": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "default": "{}"
+        },
+        "tags": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "default": "{}"
+        },
+        "usernameClaim": {
+          "type": "string"
+        },
+        "usernamePrefix": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "issuerURL",
+        "clientID",
+        "usernameClaim",
+        "usernamePrefix",
+        "groupsClaim",
+        "groupsPrefix",
+        "requiredClaims",
+        "tags"
+      ],
+      "additionalProperties": false,
+      "description": "holds the spec of an OIDC provider to use for EKS authzn",
+      "x-intellij-html-description": "holds the spec of an OIDC provider to use for EKS authzn"
     },
     "Operator": {
       "properties": {
