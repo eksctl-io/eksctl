@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/actions/identityproviders"
 	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 
 	"github.com/pkg/errors"
@@ -222,6 +223,10 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 
 	if api.IsEnabled(cfg.IAM.WithOIDC) {
 		c.appendCreateTasksForIAMServiceAccounts(cfg, newTasks)
+	}
+
+	if len(cfg.IdentityProviders) > 0 {
+		newTasks.Append(identityproviders.NewAssociateProvidersTask(*cfg.Metadata, cfg.IdentityProviders, c.Provider.EKS()))
 	}
 
 	if installVPCController {
