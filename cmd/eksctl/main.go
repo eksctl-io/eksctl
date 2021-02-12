@@ -5,26 +5,29 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/eksctl/pkg/ctl/set"
-	"github.com/weaveworks/eksctl/pkg/ctl/unset"
-	"github.com/weaveworks/eksctl/pkg/ctl/upgrade"
-	"github.com/weaveworks/logger"
-
+	"github.com/weaveworks/eksctl/pkg/ctl/associate"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/completion"
 	"github.com/weaveworks/eksctl/pkg/ctl/create"
 	"github.com/weaveworks/eksctl/pkg/ctl/delete"
+	"github.com/weaveworks/eksctl/pkg/ctl/disassociate"
 	"github.com/weaveworks/eksctl/pkg/ctl/drain"
 	"github.com/weaveworks/eksctl/pkg/ctl/enable"
 	"github.com/weaveworks/eksctl/pkg/ctl/generate"
 	"github.com/weaveworks/eksctl/pkg/ctl/get"
 	"github.com/weaveworks/eksctl/pkg/ctl/scale"
+	"github.com/weaveworks/eksctl/pkg/ctl/set"
+	"github.com/weaveworks/eksctl/pkg/ctl/unset"
 	"github.com/weaveworks/eksctl/pkg/ctl/update"
+	"github.com/weaveworks/eksctl/pkg/ctl/upgrade"
 	"github.com/weaveworks/eksctl/pkg/ctl/utils"
+	"github.com/weaveworks/logger"
 )
 
 func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
+	rootCmd.AddCommand(associate.Command(flagGrouping))
 	rootCmd.AddCommand(create.Command(flagGrouping))
+	rootCmd.AddCommand(disassociate.Command(flagGrouping))
 	rootCmd.AddCommand(get.Command(flagGrouping))
 	rootCmd.AddCommand(update.Command(flagGrouping))
 	rootCmd.AddCommand(upgrade.Command(flagGrouping))
