@@ -67,6 +67,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 
 	When("creating a cluster with inf1 nodes", func() {
 		Context("by default", func() {
+			clusterName := defaultCluster
 			It("should not return an error", func() {
 				if params.SkipCreate {
 					fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", defaultCluster)
@@ -76,7 +77,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 						cmd := params.EksctlUtilsCmd.WithArgs(
 							"write-kubeconfig",
 							"--verbose", "4",
-							"--cluster", defaultCluster,
+							"--cluster", clusterName,
 							"--kubeconfig", params.KubeconfigPath,
 						)
 						Expect(cmd).To(RunSuccessfully())
@@ -89,7 +90,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 				cmd := params.EksctlCreateCmd.WithArgs(
 					"cluster",
 					"--verbose", "4",
-					"--name", defaultCluster,
+					"--name", clusterName,
 					"--tags", "alpha.eksctl.io/description=eksctl integration test",
 					"--nodegroup-name", initNG,
 					"--node-labels", "ng-name="+initNG,
@@ -102,17 +103,18 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 			})
 
 			It("should have installed the neuron device plugin", func() {
-				clientSet := newClientSet()
+				clientSet := newClientSet(clusterName)
 				_, err := clientSet.AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
 				Expect(err).ShouldNot(HaveOccurred())
 			})
 
 			It("should not have installed the nvidia device plugin", func() {
-				_, err := newClientSet().AppsV1().DaemonSets("kube-system").Get(context.TODO(), "nvidia-device-plugin-daemonset", metav1.GetOptions{})
+				_, err := newClientSet(clusterName).AppsV1().DaemonSets("kube-system").Get(context.TODO(), "nvidia-device-plugin-daemonset", metav1.GetOptions{})
 				Expect(err).Should(BeNotFoundError())
 			})
 		})
 		Context("with --install-neuron-plugin=false", func() {
+			clusterName := noInstallCluster
 			It("should not return an error", func() {
 				if params.SkipCreate {
 					fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", noInstallCluster)
@@ -122,7 +124,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 						cmd := params.EksctlUtilsCmd.WithArgs(
 							"write-kubeconfig",
 							"--verbose", "4",
-							"--cluster", noInstallCluster,
+							"--cluster", clusterName,
 							"--kubeconfig", params.KubeconfigPath,
 						)
 						Expect(cmd).To(RunSuccessfully())
@@ -135,7 +137,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 				cmd := params.EksctlCreateCmd.WithArgs(
 					"cluster",
 					"--verbose", "4",
-					"--name", noInstallCluster,
+					"--name", clusterName,
 					"--tags", "alpha.eksctl.io/description=eksctl integration test",
 					"--install-neuron-plugin=false",
 					"--nodegroup-name", initNG,
@@ -149,7 +151,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 			})
 
 			It("should not have installed the neuron device plugin", func() {
-				_, err := newClientSet().AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
+				_, err := newClientSet(clusterName).AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
 				Expect(err).Should(BeNotFoundError())
 			})
 
@@ -157,7 +159,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 				It("should install without error", func() {
 					cmd := params.EksctlCreateCmd.WithArgs(
 						"nodegroup",
-						"--cluster", noInstallCluster,
+						"--cluster", clusterName,
 						"--nodes", "1",
 						"--verbose", "4",
 						"--name", newNG,
@@ -170,7 +172,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 					Expect(cmd).To(RunSuccessfully())
 				})
 				It("should install the neuron device plugin", func() {
-					_, err := newClientSet().AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
+					_, err := newClientSet(clusterName).AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 			})
@@ -178,10 +180,10 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 	})
 })
 
-func newClientSet() *kubernetes.Clientset {
+func newClientSet(name string) *kubernetes.Clientset {
 	cfg := &api.ClusterConfig{
 		Metadata: &api.ClusterMeta{
-			Name:   defaultCluster,
+			Name:   name,
 			Region: params.Region,
 		},
 	}
