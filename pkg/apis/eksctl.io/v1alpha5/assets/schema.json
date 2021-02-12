@@ -706,8 +706,8 @@
         },
         "kubeconfig": {
           "type": "string",
-          "description": "Path to the kubernetes config for the cluster",
-          "x-intellij-html-description": "Path to the kubernetes config for the cluster"
+          "description": "Path to the kubernetes config for the cluster. Defaults to $HOME/.kube/config",
+          "x-intellij-html-description": "Path to the kubernetes config for the cluster. Defaults to $HOME/.kube/config"
         },
         "namespace": {
           "type": "string",

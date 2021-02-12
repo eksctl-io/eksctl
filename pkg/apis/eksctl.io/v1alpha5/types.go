@@ -867,7 +867,7 @@ type Flux struct {
 	// +optional
 	Namespace string `json:"namespace,omitempty"`
 
-	// Path to the kubernetes config for the cluster
+	// Path to the kubernetes config for the cluster. Defaults to $HOME/.kube/config
 	// +optional
 	Kubeconfig string `json:"kubeconfig,omitempty"`
 
