@@ -57,6 +57,9 @@ func (f *IAMServiceAccountFilter) SetExcludeExistingFilter(stackManager serviceA
 
 	if !overrideExistingServiceAccounts {
 		err := f.ForEach(serviceAccounts, func(_ int, sa *api.ClusterIAMServiceAccount) error {
+			if api.IsEnabled(sa.RoleOnly) {
+				return nil
+			}
 			exists, err := kubernetes.CheckServiceAccountExists(clientSet, sa.ClusterIAMMeta.AsObjectMeta())
 			if err != nil {
 				return err

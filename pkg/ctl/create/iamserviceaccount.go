@@ -25,7 +25,9 @@ func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	serviceAccount := &api.ClusterIAMServiceAccount{}
+	serviceAccount := &api.ClusterIAMServiceAccount{
+		RoleOnly: api.Disabled(),
+	}
 
 	cfg.IAM.WithOIDC = api.Enabled()
 	cfg.IAM.ServiceAccounts = append(cfg.IAM.ServiceAccounts, serviceAccount)
@@ -46,6 +48,7 @@ func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace where to create the iamserviceaccount")
 		fs.StringSliceVar(&serviceAccount.AttachPolicyARNs, "attach-policy-arn", []string{}, "ARN of the policy where to create the iamserviceaccount")
 		fs.StringVar(&serviceAccount.RoleName, "role-name", "", "Set a custom name for the created role")
+		fs.BoolVar(serviceAccount.RoleOnly, "role-only", false, "disable service account creation, only the role will be created")
 
 		cmdutils.AddStringToStringVarPFlag(fs, &serviceAccount.Tags, "tags", "", map[string]string{}, "Used to tag the IAM role")
 

@@ -86,7 +86,7 @@ commands:
         default: ':red_circle: A $CIRCLE_JOB job has failed!'
       channel:
         type: string
-        default: pitch-black-team
+        default: team-pitch-black
     steps:
       - run: exit 0
       - slack/status:
@@ -270,14 +270,14 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: /[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+/
+              only: /v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+/
       - release:
           requires: [test-and-build]
           filters:
             branches:
               ignore: /.*/
             tags:
-              only: /[0-9]+\.[0-9]+\.[0-9]+/
+              only: /v[0-9]+\.[0-9]+\.[0-9]+/
   scheduled-integration-tests:
     triggers:
       - schedule:

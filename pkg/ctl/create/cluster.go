@@ -128,10 +128,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return err
 	}
 
-	if err := cfg.ValidateKubernetesNetworkConfig(); err != nil {
-		return err
-	}
-
 	if err := cfg.ValidateClusterEndpointConfig(); err != nil {
 		return err
 	}

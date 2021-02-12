@@ -417,6 +417,11 @@ func (in *ClusterIAMServiceAccount) DeepCopyInto(out *ClusterIAMServiceAccount) 
 		*out = new(ClusterIAMServiceAccountStatus)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.RoleOnly != nil {
+		in, out := &in.RoleOnly, &out.RoleOnly
+		*out = new(bool)
+		**out = **in
+	}
 	if in.Tags != nil {
 		in, out := &in.Tags, &out.Tags
 		*out = make(map[string]string, len(*in))

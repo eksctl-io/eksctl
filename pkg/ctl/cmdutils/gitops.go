@@ -3,9 +3,9 @@ package cmdutils
 import (
 	"fmt"
 
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/logger"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
