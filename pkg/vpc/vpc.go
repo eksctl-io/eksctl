@@ -222,10 +222,12 @@ func importVPC(provider api.ClusterProvider, spec *api.ClusterConfig, id string)
 			return err
 		}
 	} else if cidr := spec.VPC.CIDR.String(); cidr != *vpc.CidrBlock {
-		return fmt.Errorf("VPC CIDR block %q is not the same as %q",
-			cidr,
-			*vpc.CidrBlock,
-		)
+		for _, cidrAssoc := range vpc.CidrBlockAssociationSet {
+			if aws.StringValue(cidrAssoc.CidrBlock) == cidr {
+				return nil
+			}
+		}
+		return fmt.Errorf("VPC CIDR block %q not found in VPC", cidr)
 	}
 
 	return nil
