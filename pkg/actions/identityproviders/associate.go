@@ -22,8 +22,8 @@ func (m *Manager) Associate(options AssociateIdentityProvidersOptions) error {
 		Parallel: true,
 	}
 
-	for _, generalIdP := range options.Providers {
-		switch idP := (generalIdP.Inner).(type) {
+	for _, generalIDP := range options.Providers {
+		switch idP := (generalIDP.Inner).(type) {
 		case *api.OIDCIdentityProvider:
 			taskTree.Append(&tasks.GenericTask{
 				Description: fmt.Sprintf("associate %s", idP.Name),

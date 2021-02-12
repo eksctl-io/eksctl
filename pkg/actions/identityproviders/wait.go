@@ -10,12 +10,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
-type waitForUpdateTask struct {
-	m *Manager
-	update eks.Update
-	timeout time.Duration
-}
-
 func (m *Manager) waitForUpdate(
 	update eks.Update, timeout time.Duration,
 ) error {

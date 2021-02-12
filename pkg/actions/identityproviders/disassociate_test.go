@@ -28,7 +28,7 @@ var _ = Describe("Disassociate", func() {
 			IdentityProviderConfig: &eks.IdentityProviderConfigResponse{
 				Oidc: &eks.OidcIdentityProviderConfig{
 					IdentityProviderConfigName: aws.String("pool-1"),
-					Status: aws.String(eks.ConfigStatusActive),
+					Status:                     aws.String(eks.ConfigStatusActive),
 				},
 			},
 		}, nil)

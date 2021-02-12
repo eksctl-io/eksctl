@@ -37,7 +37,7 @@ type IdentityProvider struct {
 	// Valid variants are:
 	// `"oidc"`: OIDC identity provider
 	// +required
-	type_ string `json:"type"`
+	type_ string `json:"type"` //nolint
 	Inner IdentityProviderInterface
 }
 
