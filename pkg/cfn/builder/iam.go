@@ -198,6 +198,12 @@ func NewIAMRoleResourceSetForServiceAccount(spec *api.ClusterIAMServiceAccount, 
 			templateDescriptionSuffix,
 		),
 		oidc: oidc,
+		roleNameCollector: func(v string) error {
+			spec.Status = &api.ClusterIAMServiceAccountStatus{
+				RoleARN: &v,
+			}
+			return nil
+		},
 	}
 }
 
@@ -210,6 +216,7 @@ type IAMRoleResourceSet struct {
 	wellKnownPolicies   api.WellKnownPolicies
 	attachPolicyARNs    []string
 	attachPolicy        api.InlineDocument
+	roleNameCollector   func(string) error
 	OutputRole          string
 	serviceAccount      string
 	namespace           string
@@ -219,7 +226,7 @@ type IAMRoleResourceSet struct {
 
 // NewIAMRoleResourceSetForServiceAccount builds IAM Role stack from the give spec
 func NewIAMRoleResourceSetWithAttachPolicyARNs(name, namespace, serviceAccount, permissionsBoundary string, attachPolicyARNs []string, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
-	return &IAMRoleResourceSet{
+	rs := &IAMRoleResourceSet{
 		template:            cft.NewTemplate(),
 		attachPolicyARNs:    attachPolicyARNs,
 		oidc:                oidc,
@@ -232,11 +239,17 @@ func NewIAMRoleResourceSetWithAttachPolicyARNs(name, namespace, serviceAccount, 
 			templateDescriptionSuffix,
 		),
 	}
+
+	rs.roleNameCollector = func(v string) error {
+		rs.OutputRole = v
+		return nil
+	}
+	return rs
 }
 
 // NewIAMRoleResourceSetForServiceAccount builds IAM Role stack from the give spec
 func NewIAMRoleResourceSetWithAttachPolicy(name, namespace, serviceAccount, permissionsBoundary string, attachPolicy api.InlineDocument, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
-	return &IAMRoleResourceSet{
+	rs := &IAMRoleResourceSet{
 		template:            cft.NewTemplate(),
 		attachPolicy:        attachPolicy,
 		oidc:                oidc,
@@ -249,6 +262,13 @@ func NewIAMRoleResourceSetWithAttachPolicy(name, namespace, serviceAccount, perm
 			templateDescriptionSuffix,
 		),
 	}
+
+	rs.roleNameCollector = func(v string) error {
+		rs.OutputRole = v
+		return nil
+	}
+
+	return rs
 }
 
 // WithIAM returns true
@@ -296,10 +316,7 @@ func (rs *IAMRoleResourceSet) AddAllResources() error {
 		Value: cft.MakeFnGetAttString("Role1.Arn"),
 	}
 	rs.outputs = outputs.NewCollectorSet(map[string]outputs.Collector{
-		"Role1": func(v string) error {
-			rs.OutputRole = v
-			return nil
-		},
+		"Role1": rs.roleNameCollector,
 	})
 
 	if len(rs.attachPolicy) != 0 {

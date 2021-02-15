@@ -107,7 +107,6 @@ func (a *Manager) updateWithNewPolicies(addon *api.Addon) (string, error) {
 }
 
 func (a *Manager) createNewTemplate(addon *api.Addon, namespace, serviceAccount string) ([]byte, error) {
-
 	var resourceSet *builder.IAMRoleResourceSet
 	if addon.AttachPolicyARNs != nil && len(addon.AttachPolicyARNs) != 0 {
 		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicyARNs, a.oidcManager)
