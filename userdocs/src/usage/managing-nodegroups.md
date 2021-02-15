@@ -160,6 +160,35 @@ There are no specific commands in `eksctl`to update the labels of a nodegroup bu
 kubectl label nodes -l alpha.eksctl.io/nodegroup-name=ng-1 new-label=foo
 ```
 
+### SSH Access
+You can enable SSH access for nodegroups by configuring one of `publicKey`, `publicKeyName` and `publicKeyPath` in your
+nodegroup configuration. Alternatively you can use [AWS Systems Manager (SSM)](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html#sessions-start-cli) to SSH onto nodes, by configuring the nodegroup with `enableSsm`:
+
+
+```yaml
+nodeGroups:
+  - name: ng-1
+    instanceType: m5.large
+    desiredCapacity: 1
+    ssh: # import public key from file
+      publicKeyPath: ~/.ssh/id_rsa_tests.pub
+  - name: ng-2
+    instanceType: m5.large
+    desiredCapacity: 1
+    ssh: # use existing EC2 key
+      publicKeyName: ec2_dev_key
+  - name: ng-3
+    instanceType: m5.large
+    desiredCapacity: 1
+    ssh: # import inline public key
+      publicKey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDqZEdzvHnK/GVP8nLngRHu/GDi/3PeES7+Bx6l3koXn/Oi/UmM9/jcW5XGziZ/oe1cPJ777eZV7muEvXg5ZMQBrYxUtYCdvd8Rt6DIoSqDLsIPqbuuNlQoBHq/PU2IjpWnp/wrJQXMk94IIrGjY8QHfCnpuMENCucVaifgAhwyeyuO5KiqUmD8E0RmcsotHKBV9X8H5eqLXd8zMQaPl+Ub7j5PG+9KftQu0F/QhdFvpSLsHaxvBzA5nhIltjkaFcwGQnD1rpCM3+UnQE7Izoa5Yt1xoUWRwnF+L2TKovW7+bYQ1kxsuuiX149jXTCJDVjkYCqi7HkrXYqcC1sbsror someuser@hostname"
+  - name: ng-4
+    instanceType: m5.large
+    desiredCapacity: 1
+    ssh: # enable SSH using SSM
+      enableSsm: true
+```
+
 ### Deleting and draining
 
 To delete a nodegroup, run:

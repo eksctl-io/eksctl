@@ -1612,8 +1612,8 @@
       "properties": {
         "allow": {
           "type": "boolean",
-          "description": "Enables/Disables the security group configuration. Values provided by SourceSecurityGroupIDs are ignored if set to false",
-          "x-intellij-html-description": "Enables/Disables the security group configuration. Values provided by SourceSecurityGroupIDs are ignored if set to false"
+          "description": "If Allow is true the SSH configuration provided is used, otherwise it is ignored. Only one of PublicKeyPath, PublicKey and PublicKeyName can be configured",
+          "x-intellij-html-description": "If Allow is true the SSH configuration provided is used, otherwise it is ignored. Only one of PublicKeyPath, PublicKey and PublicKeyName can be configured"
         },
         "enableSsm": {
           "type": "boolean",
@@ -1621,13 +1621,19 @@
           "x-intellij-html-description": "Enables the ability to <a href=\"/introduction#ssh-access\">SSH onto nodes using SSM</a>"
         },
         "publicKey": {
-          "type": "string"
+          "type": "string",
+          "description": "Public key to be added to the nodes SSH keychain. If Allow is false this value is ignored.",
+          "x-intellij-html-description": "Public key to be added to the nodes SSH keychain. If Allow is false this value is ignored."
         },
         "publicKeyName": {
-          "type": "string"
+          "type": "string",
+          "description": "Public key name in EC2 to be added to the nodes SSH keychain. If Allow is false this value is ignored.",
+          "x-intellij-html-description": "Public key name in EC2 to be added to the nodes SSH keychain. If Allow is false this value is ignored."
         },
         "publicKeyPath": {
-          "type": "string"
+          "type": "string",
+          "description": "The path to the SSH public key to be added to the nodes SSH keychain. If Allow is true this value defaults to \"~/.ssh/id_rsa.pub\", otherwise the value is ignored.",
+          "x-intellij-html-description": "The path to the SSH public key to be added to the nodes SSH keychain. If Allow is true this value defaults to &quot;~/.ssh/id_rsa.pub&quot;, otherwise the value is ignored."
         },
         "sourceSecurityGroupIds": {
           "items": {
