@@ -646,7 +646,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		It("SG should have correct tags", func() {
 			Expect(ngTemplate.Resources).ToNot(BeNil())
-			Expect(ngTemplate.Resources).To(HaveLen(10))
+			Expect(ngTemplate.Resources).To(HaveLen(8))
 			Expect(ngTemplate.Resources["SG"].Properties.Tags).To(HaveLen(2))
 			Expect(ngTemplate.Resources["SG"].Properties.Tags[0].Key).To(Equal("kubernetes.io/cluster/" + clusterName))
 			Expect(ngTemplate.Resources["SG"].Properties.Tags[0].Value).To(Equal("owned"))
