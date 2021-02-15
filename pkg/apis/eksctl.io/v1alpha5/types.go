@@ -1065,14 +1065,16 @@ type (
 
 	// NodeGroupSSH holds all the ssh access configuration to a NodeGroup
 	NodeGroupSSH struct {
-		// +optional Enables/Disables the security group configuration. Values provided by SourceSecurityGroupIDs
-		// are ignored if set to false
+		// +optional If Allow is true the SSH configuration provided is used, otherwise it is ignored. Only one of
+		// PublicKeyPath, PublicKey and PublicKeyName can be configured
 		Allow *bool `json:"allow"`
-		// +optional
+		// +optional The path to the SSH public key to be added to the nodes SSH keychain. If Allow is true this value
+		// defaults to "~/.ssh/id_rsa.pub", otherwise the value is ignored.
 		PublicKeyPath *string `json:"publicKeyPath,omitempty"`
-		// +optional
+		// +optional Public key to be added to the nodes SSH keychain. If Allow is false this value is ignored.
 		PublicKey *string `json:"publicKey,omitempty"`
-		// +optional
+		// +optional Public key name in EC2 to be added to the nodes SSH keychain. If Allow is false this value
+		// is ignored.
 		PublicKeyName *string `json:"publicKeyName,omitempty"`
 		// +optional
 		SourceSecurityGroupIDs []string `json:"sourceSecurityGroupIds,omitempty"`
