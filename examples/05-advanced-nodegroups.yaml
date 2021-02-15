@@ -34,7 +34,7 @@ nodeGroups:
     privateNetworking: true
     preBootstrapCommands:
       # allow docker registries to be deployed as cluster service
-      - 'echo {\"insecure-registries\": [\"172.20.0.0/16\",\"10.100.0.0/16\"]} > /etc/docker/daemon.json'
+      - "sed '2i \"insecure-registries\": [\"172.20.0.0/16\",\"10.100.0.0/16\"],'  /etc/docker/daemon.json"
       - "systemctl restart docker"
 
   - name: ng3-private-b

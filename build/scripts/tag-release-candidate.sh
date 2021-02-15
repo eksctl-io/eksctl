@@ -38,12 +38,12 @@ m="Tag ${rc_version} release candidate"
 
 commit "${m}" "${release_notes_file}"
 
-tag_version_and_latest "${m}" "v${rc_version}"
+tag_version_and_latest "${m}" "${rc_version}"
 
 # Check if we need to bump version in the default branch
 git checkout "${default_branch}"
 prepare_for_next_version_if_at "${candidate_for_version}"
 
 git push origin "${release_branch}:${release_branch}"
-git push origin "v${rc_version}"
+git push origin "${rc_version}"
 git push origin "${default_branch}:${default_branch}" || gh pr create --fill --label "skip-release-notes"

@@ -74,7 +74,6 @@ func DeleteKeys(clusterName string, ec2API ec2iface.EC2API) {
 	}
 	var matching []*string
 	prefix := getKeyName(clusterName, "", "")
-	logger.Debug("existing = %#v", existing)
 	for _, e := range existing.KeyPairs {
 		if !strings.HasPrefix(*e.KeyName, prefix) {
 			continue

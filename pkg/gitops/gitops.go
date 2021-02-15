@@ -26,8 +26,8 @@ type FluxInstaller interface {
 }
 
 // Setup sets up gitops in a repository for a cluster.
-func Setup(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, cfg *api.ClusterConfig, timeout time.Duration) error {
-	installer, profilesSupported, err := newFluxInstaller(k8sRestConfig, k8sClientSet, cfg, timeout)
+func Setup(kubeconfigPath string, k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, cfg *api.ClusterConfig, timeout time.Duration) error {
+	installer, profilesSupported, err := newFluxInstaller(kubeconfigPath, k8sRestConfig, k8sClientSet, cfg, timeout)
 	if err != nil {
 		return errors.Wrapf(err, "could not initialise Flux installer")
 	}
@@ -107,7 +107,7 @@ func DeleteKey(cfg *api.ClusterConfig) error {
 	return nil
 }
 
-func newFluxInstaller(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, cfg *api.ClusterConfig, timeout time.Duration) (FluxInstaller, bool, error) {
+func newFluxInstaller(kubeconfigPath string, k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, cfg *api.ClusterConfig, timeout time.Duration) (FluxInstaller, bool, error) {
 	var (
 		installer         FluxInstaller
 		profilesSupported bool
@@ -115,6 +115,7 @@ func newFluxInstaller(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interf
 	)
 
 	if cfg.GitOps != nil && cfg.GitOps.Flux != nil {
+		cfg.GitOps.Flux.Kubeconfig = kubeconfigPath
 		installer, err = flux.New(k8sClientSet, cfg.GitOps)
 		profilesSupported = false
 		logger.Info("gitops configuration detected, setting installer to Flux v2")

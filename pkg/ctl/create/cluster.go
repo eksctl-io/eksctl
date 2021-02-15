@@ -128,10 +128,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return err
 	}
 
-	if err := cfg.ValidateKubernetesNetworkConfig(); err != nil {
-		return err
-	}
-
 	if err := cfg.ValidateClusterEndpointConfig(); err != nil {
 		return err
 	}
@@ -416,7 +412,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			if err != nil {
 				return errors.Wrap(err, "cannot create Kubernetes client configuration")
 			}
-			err = gitops.Setup(k8sRestConfig, clientSet, cfg, gitops.DefaultPodReadyTimeout)
+			err = gitops.Setup(params.KubeconfigPath, k8sRestConfig, clientSet, cfg, gitops.DefaultPodReadyTimeout)
 			if err != nil {
 				return err
 			}

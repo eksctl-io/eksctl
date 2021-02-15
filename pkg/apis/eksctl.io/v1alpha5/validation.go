@@ -48,6 +48,10 @@ func (s nameSet) checkUnique(path, name string) (bool, error) {
 	return true, nil
 }
 
+func setNonEmpty(field string) error {
+	return fmt.Errorf("%s must be set and non-empty", field)
+}
+
 // ValidateClusterConfig checks compatible fields of a given ClusterConfig
 func ValidateClusterConfig(cfg *ClusterConfig) error {
 	if IsDisabled(cfg.IAM.WithOIDC) && len(cfg.IAM.ServiceAccounts) > 0 {
@@ -68,6 +72,10 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 	}
 
+	if err := cfg.validateKubernetesNetworkConfig(); err != nil {
+		return err
+	}
+
 	// names must be unique across both managed and unmanaged nodegroups
 	ngNames := nameSet{}
 	validateNg := func(ng *NodeGroupBase, path string) error {
@@ -81,6 +89,10 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 			return fmt.Errorf("%s.privateNetworking must be enabled for a fully-private cluster", path)
 		}
 		return nil
+	}
+
+	if err := validateIdentityProviders(cfg.IdentityProviders); err != nil {
+		return err
 	}
 
 	for i, ng := range cfg.NodeGroups {
@@ -132,7 +144,7 @@ func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
 		return ErrClusterEndpointNoAccess
 	}
 	endpts := c.VPC.ClusterEndpoints
-	if NoAccess(endpts) {
+	if noAccess(endpts) {
 		return ErrClusterEndpointNoAccess
 	}
 	return nil
@@ -159,8 +171,8 @@ func (c *ClusterConfig) ValidatePrivateCluster() error {
 	return nil
 }
 
-// ValidateKubernetesNetworkConfig validates the network config
-func (c *ClusterConfig) ValidateKubernetesNetworkConfig() error {
+// validateKubernetesNetworkConfig validates the network config
+func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 	if c.KubernetesNetworkConfig != nil {
 		serviceIP := c.KubernetesNetworkConfig.ServiceIPv4CIDR
 		if _, _, err := net.ParseCIDR(serviceIP); serviceIP != "" && err != nil {
@@ -171,7 +183,7 @@ func (c *ClusterConfig) ValidateKubernetesNetworkConfig() error {
 }
 
 // NoAccess returns true if neither public are private cluster endpoint access is enabled and false otherwise
-func NoAccess(ces *ClusterEndpoints) bool {
+func noAccess(ces *ClusterEndpoints) bool {
 	return !(*ces.PublicAccess || *ces.PrivateAccess)
 }
 
@@ -261,6 +273,31 @@ func validateVolumeOpts(ng *NodeGroupBase, path string) error {
 	return nil
 }
 
+func validateIdentityProvider(idP IdentityProvider) error {
+	switch idP := (idP.Inner).(type) {
+	case *OIDCIdentityProvider:
+		if idP.Name == "" {
+			return setNonEmpty("name")
+		}
+		if idP.ClientID == "" {
+			return setNonEmpty("clientID")
+		}
+		if idP.IssuerURL == "" {
+			return setNonEmpty("issuerURL")
+		}
+	}
+	return nil
+}
+
+func validateIdentityProviders(idPs []IdentityProvider) error {
+	for k, idP := range idPs {
+		if err := validateIdentityProvider(idP); err != nil {
+			return errors.Wrapf(err, "identityProviders[%d] is invalid", k)
+		}
+	}
+	return nil
+}
+
 // ValidateNodeGroup checks compatible fields of a given nodegroup
 func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	path := fmt.Sprintf("nodeGroups[%d]", i)
@@ -285,16 +322,13 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 	}
 
-	if err := ValidateNodeGroupLabels(ng.Labels); err != nil {
+	if err := validateNodeGroupLabels(ng.Labels); err != nil {
 		return err
 	}
 
 	if ng.SSH != nil {
 		if err := validateNodeGroupSSH(ng.SSH); err != nil {
 			return err
-		}
-		if len(ng.SSH.SourceSecurityGroupIDs) > 0 {
-			return fmt.Errorf("%s.sourceSecurityGroupIds is not supported for unmanaged nodegroups", path)
 		}
 	}
 
@@ -345,10 +379,10 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	return nil
 }
 
-// ValidateNodeGroupLabels uses proper Kubernetes label validation,
+// validateNodeGroupLabels uses proper Kubernetes label validation,
 // it's designed to make sure users don't pass weird labels to the
 // nodes, which would prevent kubelets to startup properly
-func ValidateNodeGroupLabels(labels map[string]string) error {
+func validateNodeGroupLabels(labels map[string]string) error {
 	// compact version based on:
 	// - https://github.com/kubernetes/kubernetes/blob/v1.13.2/cmd/kubelet/app/options/options.go#L257-L267
 	// - https://github.com/kubernetes/kubernetes/blob/v1.13.2/pkg/kubelet/apis/well_known_labels.go

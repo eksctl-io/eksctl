@@ -46,47 +46,11 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 	if mng.SSH != nil && api.IsSetAndNonEmptyString(mng.SSH.PublicKeyName) {
 		launchTemplateData.KeyName = gfnt.NewString(*mng.SSH.PublicKeyName)
 
-		var sgIngressRules []gfnec2.SecurityGroup_Ingress
 		if *mng.SSH.Allow {
-			if len(mng.SSH.SourceSecurityGroupIDs) > 0 {
-				for _, sgID := range mng.SSH.SourceSecurityGroupIDs {
-					sgIngressRules = append(sgIngressRules, gfnec2.SecurityGroup_Ingress{
-						FromPort:              sgPortSSH,
-						ToPort:                sgPortSSH,
-						IpProtocol:            sgProtoTCP,
-						SourceSecurityGroupId: gfnt.NewString(sgID),
-					})
-				}
-			} else {
-				makeSSHIngress := func(cidrIP *gfnt.Value) gfnec2.SecurityGroup_Ingress {
-					return gfnec2.SecurityGroup_Ingress{
-						FromPort:   sgPortSSH,
-						ToPort:     sgPortSSH,
-						IpProtocol: sgProtoTCP,
-						CidrIp:     cidrIP,
-					}
-				}
-
-				if mng.PrivateNetworking {
-					allInternalIPv4 := gfnt.NewString(m.clusterConfig.VPC.CIDR.String())
-					sgIngressRules = []gfnec2.SecurityGroup_Ingress{makeSSHIngress(allInternalIPv4)}
-				} else {
-					sgIngressRules = []gfnec2.SecurityGroup_Ingress{
-						makeSSHIngress(sgSourceAnywhereIPv4),
-						{
-							FromPort:   sgPortSSH,
-							ToPort:     sgPortSSH,
-							IpProtocol: sgProtoTCP,
-							CidrIpv6:   sgSourceAnywhereIPv6,
-						},
-					}
-				}
-			}
-
 			sshRef := m.newResource("SSH", &gfnec2.SecurityGroup{
 				GroupName:            gfnt.MakeFnSubString(fmt.Sprintf("${%s}-remoteAccess", gfnt.StackName)),
 				VpcId:                makeImportValue(m.clusterStackName, outputs.ClusterVPC),
-				SecurityGroupIngress: sgIngressRules,
+				SecurityGroupIngress: makeSSHIngressRules(mng.NodeGroupBase, m.clusterConfig.VPC.CIDR.String(), fmt.Sprintf("managed worker nodes in group %s", mng.Name)),
 				GroupDescription:     gfnt.NewString("Allow SSH access"),
 			})
 			securityGroupIDs = append(securityGroupIDs, sshRef)
@@ -139,6 +103,50 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 	}
 
 	return launchTemplateData, nil
+}
+
+func makeSSHIngressRules(n *api.NodeGroupBase, vpcCIDR, description string) []gfnec2.SecurityGroup_Ingress {
+	var sgIngressRules []gfnec2.SecurityGroup_Ingress
+	if *n.SSH.Allow {
+		if len(n.SSH.SourceSecurityGroupIDs) > 0 {
+			for _, sgID := range n.SSH.SourceSecurityGroupIDs {
+				sgIngressRules = append(sgIngressRules, gfnec2.SecurityGroup_Ingress{
+					FromPort:              sgPortSSH,
+					ToPort:                sgPortSSH,
+					IpProtocol:            sgProtoTCP,
+					SourceSecurityGroupId: gfnt.NewString(sgID),
+				})
+			}
+		} else {
+			makeSSHIngress := func(cidrIP *gfnt.Value, sshDesc string) gfnec2.SecurityGroup_Ingress {
+				return gfnec2.SecurityGroup_Ingress{
+					FromPort:    sgPortSSH,
+					ToPort:      sgPortSSH,
+					IpProtocol:  sgProtoTCP,
+					CidrIp:      cidrIP,
+					Description: gfnt.NewString(sshDesc),
+				}
+			}
+
+			sshDesc := "Allow SSH access to " + description
+
+			if n.PrivateNetworking {
+				allInternalIPv4 := gfnt.NewString(vpcCIDR)
+				sgIngressRules = []gfnec2.SecurityGroup_Ingress{makeSSHIngress(allInternalIPv4, sshDesc+" (private, only inside VPC)")}
+			} else {
+				sgIngressRules = append(sgIngressRules,
+					makeSSHIngress(sgSourceAnywhereIPv4, sshDesc),
+					gfnec2.SecurityGroup_Ingress{
+						CidrIpv6:    sgSourceAnywhereIPv6,
+						Description: gfnt.NewString(sshDesc),
+						IpProtocol:  sgProtoTCP,
+						FromPort:    sgPortSSH,
+						ToPort:      sgPortSSH,
+					})
+			}
+		}
+	}
+	return sgIngressRules
 }
 
 func createMimeMessage(writer io.Writer, scripts []string, mimeBoundary string) error {

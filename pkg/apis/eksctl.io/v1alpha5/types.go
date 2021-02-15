@@ -569,6 +569,9 @@ type ClusterConfig struct {
 	IAM *ClusterIAM `json:"iam,omitempty"`
 
 	// +optional
+	IdentityProviders []IdentityProvider `json:"identityProviders,omitempty"`
+
+	// +optional
 	VPC *ClusterVPC `json:"vpc,omitempty"`
 
 	// +optional
@@ -866,6 +869,10 @@ type Flux struct {
 	// The kubernetes namespace into which Flux v2 components will be deployed
 	// +optional
 	Namespace string `json:"namespace,omitempty"`
+
+	// Path to the kubernetes config for the cluster. Defaults to $HOME/.kube/config
+	// +optional
+	Kubeconfig string `json:"kubeconfig,omitempty"`
 
 	// The name of the branch which Flux will commit to
 	// +optional

@@ -19,7 +19,7 @@ var DefaultFluxComponents = []string{"helm-controller", "kustomize-controller", 
 //go:generate counterfeiter -o fakes/fake_flux_client.go . InstallerClient
 type InstallerClient interface {
 	PreFlight() error
-	Bootstrap(opts *api.Flux) error
+	Bootstrap() error
 }
 
 type Installer struct {
@@ -36,7 +36,7 @@ func New(k8sClientSet kubeclient.Interface, opts *api.GitOps) (*Installer, error
 	installer := &Installer{
 		opts:       opts.Flux,
 		kubeClient: k8sClientSet,
-		fluxClient: flux.NewClient(opts.Flux.AuthTokenPath, opts.Flux.GitProvider),
+		fluxClient: flux.NewClient(opts.Flux),
 	}
 
 	return installer, nil
@@ -69,7 +69,7 @@ func (ti *Installer) Run() error {
 	}
 
 	logger.Info("bootstrapping Flux v2 into cluster")
-	if err := ti.fluxClient.Bootstrap(ti.opts); err != nil {
+	if err := ti.fluxClient.Bootstrap(); err != nil {
 		return errors.Wrap(err, "running Flux Bootstrap")
 	}
 

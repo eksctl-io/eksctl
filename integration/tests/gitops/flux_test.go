@@ -56,7 +56,7 @@ var _ = AfterSuite(func() {
 	params.DeleteClusters()
 })
 
-var _ = XDescribe("Enable GitOps", func() {
+var _ = Describe("Enable GitOps", func() {
 	var (
 		branch     string
 		cmd        runner.Cmd
@@ -86,6 +86,7 @@ var _ = XDescribe("Enable GitOps", func() {
 					Branch:      branch,
 					GitProvider: "github",
 					Owner:       params.GitopsOwner,
+					Kubeconfig:  params.KubeconfigPath,
 				},
 			},
 		}
