@@ -1833,6 +1833,24 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			expectedIngressRules := `[
   {
+    "Description": "[IngressInterCluster] Allow worker nodes in group ng-abcd1234 to communicate with control plane (kubelet and workload TCP ports)",
+    "FromPort": 1025,
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+      "Fn::ImportValue": "eksctl-test-private-ng::SecurityGroup"
+    },
+    "ToPort": 65535
+  },
+  {
+    "Description": "[IngressInterClusterAPI] Allow worker nodes in group ng-abcd1234 to communicate with control plane (workloads using HTTPS port, commonly used with extension API servers)",
+    "FromPort": 443,
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+      "Fn::ImportValue": "eksctl-test-private-ng::SecurityGroup"
+    },
+    "ToPort": 443
+  },
+  {
     "CidrIp": "192.168.0.0/16",
     "Description": "Allow SSH access to worker nodes in group ng-abcd1234 (private, only inside VPC)",
     "FromPort": 22,
@@ -1891,6 +1909,24 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ltd.NetworkInterfaces[0].AssociatePublicIPAddress).To(BeFalse())
 
 			expectedIngressRules := `[
+  {
+    "Description": "[IngressInterCluster] Allow worker nodes in group ng-abcd1234 to communicate with control plane (kubelet and workload TCP ports)",
+    "FromPort": 1025,
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+      "Fn::ImportValue": "eksctl-test-public-ng::SecurityGroup"
+    },
+    "ToPort": 65535
+  },
+  {
+    "Description": "[IngressInterClusterAPI] Allow worker nodes in group ng-abcd1234 to communicate with control plane (workloads using HTTPS port, commonly used with extension API servers)",
+    "FromPort": 443,
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+      "Fn::ImportValue": "eksctl-test-public-ng::SecurityGroup"
+    },
+    "ToPort": 443
+  },
   {
     "CidrIp": "0.0.0.0/0",
     "Description": "Allow SSH access to worker nodes in group ng-abcd1234",
@@ -1988,7 +2024,26 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ltd.NetworkInterfaces[0].DeviceIndex).To(Equal(0))
 			Expect(ltd.NetworkInterfaces[0].AssociatePublicIPAddress).To(BeFalse())
 
-			assertSSHRules(`null`)
+			assertSSHRules(`[
+  {
+    "Description": "[IngressInterCluster] Allow worker nodes in group ng-abcd1234 to communicate with control plane (kubelet and workload TCP ports)",
+    "FromPort": 1025,
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+      "Fn::ImportValue": "eksctl-test-public-ng::SecurityGroup"
+    },
+    "ToPort": 65535
+  },
+  {
+    "Description": "[IngressInterClusterAPI] Allow worker nodes in group ng-abcd1234 to communicate with control plane (workloads using HTTPS port, commonly used with extension API servers)",
+    "FromPort": 443,
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+      "Fn::ImportValue": "eksctl-test-public-ng::SecurityGroup"
+    },
+    "ToPort": 443
+  }
+]`)
 		})
 	})
 
