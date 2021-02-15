@@ -273,38 +273,41 @@ func (rs *IAMServiceAccountResourceSet) GetAllOutputs(stack cfn.Stack) error {
 
 // IAMRoleResourceSet holds IAM Role stack build-time information
 type IAMRoleResourceSet struct {
-	template         *cft.Template
-	oidc             *iamoidc.OpenIDConnectManager
-	outputs          *outputs.CollectorSet
-	name             string
-	attachPolicyARNs []string
-	attachPolicy     api.InlineDocument
-	OutputRole       string
-	serviceAccount   string
-	namespace        string
+	template            *cft.Template
+	oidc                *iamoidc.OpenIDConnectManager
+	outputs             *outputs.CollectorSet
+	name                string
+	attachPolicyARNs    []string
+	attachPolicy        api.InlineDocument
+	OutputRole          string
+	serviceAccount      string
+	namespace           string
+	permissionsBoundary string
 }
 
 // NewIAMServiceAccountResourceSet builds IAM Role stack from the give spec
-func NewIAMRoleResourceSetWithAttachPolicyARNs(name, namespace, serviceAccount string, attachPolicyARNs []string, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
+func NewIAMRoleResourceSetWithAttachPolicyARNs(name, namespace, serviceAccount, permissionsBoundary string, attachPolicyARNs []string, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
 	return &IAMRoleResourceSet{
-		template:         cft.NewTemplate(),
-		attachPolicyARNs: attachPolicyARNs,
-		name:             name,
-		oidc:             oidc,
-		serviceAccount:   serviceAccount,
-		namespace:        namespace,
+		template:            cft.NewTemplate(),
+		attachPolicyARNs:    attachPolicyARNs,
+		name:                name,
+		oidc:                oidc,
+		serviceAccount:      serviceAccount,
+		namespace:           namespace,
+		permissionsBoundary: permissionsBoundary,
 	}
 }
 
 // NewIAMServiceAccountResourceSet builds IAM Role stack from the give spec
-func NewIAMRoleResourceSetWithAttachPolicy(name, namespace, serviceAccount string, attachPolicy api.InlineDocument, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
+func NewIAMRoleResourceSetWithAttachPolicy(name, namespace, serviceAccount, permissionsBoundary string, attachPolicy api.InlineDocument, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
 	return &IAMRoleResourceSet{
-		template:       cft.NewTemplate(),
-		attachPolicy:   attachPolicy,
-		name:           name,
-		oidc:           oidc,
-		serviceAccount: serviceAccount,
-		namespace:      namespace,
+		template:            cft.NewTemplate(),
+		attachPolicy:        attachPolicy,
+		name:                name,
+		oidc:                oidc,
+		serviceAccount:      serviceAccount,
+		namespace:           namespace,
+		permissionsBoundary: permissionsBoundary,
 	}
 }
 
@@ -328,11 +331,11 @@ func (rs *IAMRoleResourceSet) AddAllResources() error {
 		assumeRolePolicyDocument = rs.oidc.MakeAssumeRolePolicyDocumentWithServiceAccountConditions(rs.namespace, rs.serviceAccount)
 	} else {
 		assumeRolePolicyDocument = rs.oidc.MakeAssumeRolePolicyDocument()
-
 	}
 
 	role := &cft.IAMRole{
 		AssumeRolePolicyDocument: assumeRolePolicyDocument,
+		PermissionsBoundary:      rs.permissionsBoundary,
 	}
 	for _, arn := range rs.attachPolicyARNs {
 		role.ManagedPolicyArns = append(role.ManagedPolicyArns, arn)

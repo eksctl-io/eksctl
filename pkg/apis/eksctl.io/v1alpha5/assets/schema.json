@@ -40,8 +40,8 @@
       "properties": {
         "attachPolicy": {
           "$ref": "#/definitions/InlineDocument",
-          "description": "holds a policy document to attach to this service account",
-          "x-intellij-html-description": "holds a policy document to attach to this service account"
+          "description": "holds a policy document to attach",
+          "x-intellij-html-description": "holds a policy document to attach"
         },
         "attachPolicyARNs": {
           "items": {
@@ -53,6 +53,11 @@
         },
         "name": {
           "type": "string"
+        },
+        "permissionsBoundary": {
+          "type": "string",
+          "description": "ARN of the permissions boundary to associate",
+          "x-intellij-html-description": "ARN of the permissions boundary to associate"
         },
         "serviceAccountRoleARN": {
           "type": "string"
@@ -66,7 +71,8 @@
         "version",
         "serviceAccountRoleARN",
         "attachPolicyARNs",
-        "attachPolicy"
+        "attachPolicy",
+        "permissionsBoundary"
       ],
       "additionalProperties": false,
       "description": "holds the EKS addon configuration",
