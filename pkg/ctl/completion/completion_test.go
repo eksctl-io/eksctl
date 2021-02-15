@@ -34,7 +34,7 @@ var _ = Describe("completion", func() {
 	It("with powershell", func() {
 		cmd := newMockCmd("powershell")
 		out, _ := cmd.execute()
-		Expect(out).To(ContainSubstring("Register-ArgumentCompleter -Native -CommandName 'eksctl'"))
+		Expect(out).To(ContainSubstring("Register-ArgumentCompleter -CommandName 'eksctl'"))
 	})
 
 	It("with invalid shell", func() {
