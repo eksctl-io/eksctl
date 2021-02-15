@@ -19,14 +19,18 @@ type OwnedCluster struct {
 	cfg          *api.ClusterConfig
 	ctl          *eks.ClusterProvider
 	stackManager manager.StackManager
+	newClientSet func() (kubernetes.Interface, error)
 }
 
-func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) (*OwnedCluster, error) {
+func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) *OwnedCluster {
 	return &OwnedCluster{
 		cfg:          cfg,
 		ctl:          ctl,
 		stackManager: stackManager,
-	}, nil
+		newClientSet: func() (kubernetes.Interface, error) {
+			return ctl.NewStdClientSet(cfg)
+		},
+	}
 }
 
 func (c *OwnedCluster) Upgrade(dryRun bool) error {
@@ -75,7 +79,7 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait bool) error {
 	oidcSupported := true
 	if clusterOperable {
 		var err error
-		clientSet, err = c.ctl.NewStdClientSet(c.cfg)
+		clientSet, err = c.newClientSet()
 		if err != nil {
 			return err
 		}
@@ -89,12 +93,12 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait bool) error {
 		}
 	}
 
-	if err := deleteSharedResources(c.cfg, c.ctl, clientSet); err != nil {
+	if err := deleteSharedResources(c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {
 		return err
 	}
 
 	deleteOIDCProvider := clusterOperable && oidcSupported
-	tasks, err := c.ctl.NewStackManager(c.cfg).NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvider, oidc, kubernetes.NewCachedClientSet(clientSet), wait, func(errs chan error, _ string) error {
+	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvider, oidc, kubernetes.NewCachedClientSet(clientSet), wait, func(errs chan error, _ string) error {
 		logger.Info("trying to cleanup dangling network interfaces")
 		if err := c.ctl.LoadClusterVPC(c.cfg); err != nil {
 			return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
