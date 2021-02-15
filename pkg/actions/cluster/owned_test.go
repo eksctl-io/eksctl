@@ -6,7 +6,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
 
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
@@ -35,6 +34,7 @@ var _ = Describe("Delete", func() {
 		cfg                      *api.ClusterConfig
 		fakeStackManager         *fakes.FakeStackManager
 		ranDeleteDeprecatedTasks bool
+		ranDeleteClusterTasks    bool
 		ctl                      *eks.ClusterProvider
 	)
 
@@ -45,6 +45,7 @@ var _ = Describe("Delete", func() {
 		cfg.Metadata.Name = clusterName
 		fakeStackManager = new(fakes.FakeStackManager)
 		ranDeleteDeprecatedTasks = false
+		ranDeleteClusterTasks = false
 		ctl = &eks.ClusterProvider{Provider: p, Status: &eks.ProviderStatus{}}
 	})
 
@@ -52,7 +53,8 @@ var _ = Describe("Delete", func() {
 		It("deletes the cluster", func() {
 			//mocks are in order of being called
 			p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
-				return *input.Name == clusterName
+				Expect(*input.Name).To(Equal(clusterName))
+				return true
 			})).Return(&awseks.DescribeClusterOutput{
 				Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive),
 			}, nil)
@@ -70,26 +72,6 @@ var _ = Describe("Delete", func() {
 				ClusterName: strings.Pointer(clusterName),
 			}).Once().Return(&awseks.ListFargateProfilesOutput{}, nil)
 
-			fargateStackName := aws.String("eksctl-my-cluster-fargate")
-			p.MockCloudFormation().On("DescribeStacks", &cloudformation.DescribeStacksInput{
-				StackName: fargateStackName,
-			}).Return(&cloudformation.DescribeStacksOutput{
-				Stacks: []*cloudformation.Stack{
-					{
-						StackName: fargateStackName,
-						Tags: []*cloudformation.Tag{
-							{
-								Key:   aws.String("alpha.eksctl.io/cluster-name"),
-								Value: aws.String(clusterName),
-							},
-						},
-						StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
-					},
-				},
-			}, nil)
-
-			p.MockCloudFormation().On("DeleteStack", mock.Anything).Return(nil, nil)
-
 			fakeStackManager.DeleteTasksForDeprecatedStacksReturns(&tasks.TaskTree{
 				Tasks: []tasks.Task{&tasks.GenericTask{Doer: func() error {
 					ranDeleteDeprecatedTasks = true
@@ -101,33 +83,14 @@ var _ = Describe("Delete", func() {
 
 			p.MockEC2().On("DescribeSecurityGroupsWithContext", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
 
-			fakeStackManager.GetFargateStackReturns(&cloudformation.Stack{StackName: aws.String("fargate-role")}, nil)
-			fakeStackManager.DeleteStackByNameReturns(nil, nil)
+			fakeStackManager.NewTasksToDeleteClusterWithNodeGroupsReturns(&tasks.TaskTree{
+				Tasks: []tasks.Task{&tasks.GenericTask{Doer: func() error {
+					ranDeleteClusterTasks = true
+					return nil
+				}}},
+			}, nil)
 
-			p.MockEKS().On("ListNodegroupsPages", mock.MatchedBy(func(input *awseks.ListNodegroupsInput) bool {
-				Expect(*input.ClusterName).To(Equal(clusterName))
-				return true
-			}), mock.Anything).Run(func(args mock.Arguments) {
-				consume := args[1].(func(ng *awseks.ListNodegroupsOutput, _ bool) bool)
-				out := &awseks.ListNodegroupsOutput{
-					Nodegroups: aws.StringSlice([]string{"ng-1"}),
-				}
-				cont := consume(out, true)
-				if !cont {
-					panic("unexpected return value from the paging function: shouldContinue was false which isn't expected in this test scenario")
-				}
-			}).Return(nil)
-
-			p.MockEKS().On("ListNodegroups", mock.Anything).Return(&awseks.ListNodegroupsOutput{}, nil)
-
-			p.MockEKS().On("DeleteNodegroup", mock.MatchedBy(func(input *awseks.DeleteNodegroupInput) bool {
-				Expect(*input.ClusterName).To(Equal(clusterName))
-				Expect(*input.NodegroupName).To(Equal("ng-1"))
-				return true
-			})).Return(&awseks.DeleteNodegroupOutput{}, nil)
-
-			p.MockEKS().On("DeleteCluster", mock.Anything).Return(&awseks.DeleteClusterOutput{}, nil)
-			c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager)
+			c := cluster.NewOwnedCluster(cfg, ctl, fakeStackManager)
 			fakeClientSet := fake.NewSimpleClientset()
 
 			c.SetNewClientSet(func() (kubernetes.Interface, error) {
@@ -138,8 +101,8 @@ var _ = Describe("Delete", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
-			Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
-			Expect(*fakeStackManager.DeleteStackBySpecArgsForCall(0).StackName).To(Equal("fargate-role"))
+			Expect(fakeStackManager.NewTasksToDeleteClusterWithNodeGroupsCallCount()).To(Equal(1))
+			Expect(ranDeleteClusterTasks).To(BeTrue())
 		})
 	})
 
@@ -164,35 +127,21 @@ var _ = Describe("Delete", func() {
 
 			p.MockEC2().On("DescribeSecurityGroupsWithContext", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
 
-			p.MockEKS().On("ListNodegroupsPages", mock.MatchedBy(func(input *awseks.ListNodegroupsInput) bool {
-				Expect(*input.ClusterName).To(Equal(clusterName))
-				return true
-			}), mock.Anything).Run(func(args mock.Arguments) {
-				consume := args[1].(func(ng *awseks.ListNodegroupsOutput, _ bool) bool)
-				out := &awseks.ListNodegroupsOutput{
-					Nodegroups: aws.StringSlice([]string{"ng-1"}),
-				}
-				cont := consume(out, true)
-				if !cont {
-					panic("unexpected return value from the paging function: shouldContinue was false which isn't expected in this test scenario")
-				}
-			}).Return(nil)
+			fakeStackManager.NewTasksToDeleteClusterWithNodeGroupsReturns(&tasks.TaskTree{
+				Tasks: []tasks.Task{&tasks.GenericTask{Doer: func() error {
+					ranDeleteClusterTasks = true
+					return nil
+				}}},
+			}, nil)
 
-			p.MockEKS().On("ListNodegroups", mock.Anything).Return(&awseks.ListNodegroupsOutput{}, nil)
+			c := cluster.NewOwnedCluster(cfg, ctl, fakeStackManager)
 
-			p.MockEKS().On("DeleteNodegroup", mock.MatchedBy(func(input *awseks.DeleteNodegroupInput) bool {
-				Expect(*input.ClusterName).To(Equal(clusterName))
-				Expect(*input.NodegroupName).To(Equal("ng-1"))
-				return true
-			})).Return(&awseks.DeleteNodegroupOutput{}, nil)
-
-			p.MockEKS().On("DeleteCluster", mock.Anything).Return(&awseks.DeleteClusterOutput{}, nil)
-
-			c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager)
 			err := c.Delete(time.Microsecond, false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
+			Expect(fakeStackManager.NewTasksToDeleteClusterWithNodeGroupsCallCount()).To(Equal(1))
+			Expect(ranDeleteClusterTasks).To(BeTrue())
 		})
 	})
 })
