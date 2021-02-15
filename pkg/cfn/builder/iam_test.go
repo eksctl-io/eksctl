@@ -42,7 +42,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			appendServiceAccountToClusterConfig(cfg, serviceAccount)
 
-			rs := NewIAMServiceAccountResourceSet(serviceAccount, oidc)
+			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 
@@ -84,7 +84,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			appendServiceAccountToClusterConfig(cfg, serviceAccount)
 
-			rs := NewIAMServiceAccountResourceSet(serviceAccount, oidc)
+			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 
@@ -139,7 +139,7 @@ var _ = Describe("template builder for IAM", func() {
 				},
 			)
 
-			rs := NewIAMServiceAccountResourceSet(serviceAccount, oidc)
+			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 
@@ -176,7 +176,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			appendServiceAccountToClusterConfig(cfg, serviceAccount)
 
-			rs := NewIAMServiceAccountResourceSet(serviceAccount, oidc)
+			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 
@@ -228,7 +228,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			appendServiceAccountToClusterConfig(cfg, serviceAccount)
 
-			rs := NewIAMServiceAccountResourceSet(serviceAccount, oidc)
+			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 
@@ -265,7 +265,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			appendServiceAccountToClusterConfig(cfg, serviceAccount)
 
-			rs := NewIAMServiceAccountResourceSet(serviceAccount, oidc)
+			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 

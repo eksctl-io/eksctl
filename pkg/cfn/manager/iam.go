@@ -21,7 +21,7 @@ func (c *StackCollection) makeIAMServiceAccountStackName(namespace, name string)
 func (c *StackCollection) createIAMServiceAccountTask(errs chan error, spec *api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager) error {
 	name := c.makeIAMServiceAccountStackName(spec.Namespace, spec.Name)
 	logger.Info("building iamserviceaccount stack %q", name)
-	stack := builder.NewIAMServiceAccountResourceSet(spec, oidc)
+	stack := builder.NewIAMRoleResourceSetForServiceAccount(spec, oidc)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
