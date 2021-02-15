@@ -52,8 +52,7 @@ var _ = Describe("Delete", func() {
 		It("deletes the cluster", func() {
 			//mocks are in order of being called
 			p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
-				Expect(*input.Name).To(Equal(clusterName))
-				return true
+				return *input.Name == clusterName
 			})).Return(&awseks.DescribeClusterOutput{
 				Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive),
 			}, nil)
