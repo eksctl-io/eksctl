@@ -8,6 +8,7 @@ import (
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/onsi/gomega/types"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 
@@ -46,9 +47,9 @@ func describeImportVPCCase(desc string) func(importVPCCase) string {
 }
 
 type useFromClusterCase struct {
-	cfg   *api.ClusterConfig
-	stack *cfn.Stack
-	error error
+	cfg          *api.ClusterConfig
+	stack        *cfn.Stack
+	errorMatcher types.GomegaMatcher
 }
 
 type endpointAccessCase struct {
@@ -226,16 +227,16 @@ var _ = Describe("VPC", func() {
 			})).Return(mockResultFn, nil)
 
 			err := UseFromCluster(p, clusterCase.stack, clusterCase.cfg)
-			if clusterCase.error != nil {
-				Expect(err).To(MatchError(clusterCase.error.Error()))
+			if clusterCase.errorMatcher != nil {
+				Expect(err.Error()).To(clusterCase.errorMatcher)
 			} else {
 				Expect(err).NotTo(HaveOccurred())
 			}
 		},
 		Entry("No output", useFromClusterCase{
-			cfg:   api.NewClusterConfig(),
-			stack: &cfn.Stack{},
-			error: fmt.Errorf(`no output "VPC"`),
+			cfg:          api.NewClusterConfig(),
+			stack:        &cfn.Stack{},
+			errorMatcher: MatchRegexp(`no output "(?:VPC|SecurityGroup)"`),
 		}),
 	)
 
