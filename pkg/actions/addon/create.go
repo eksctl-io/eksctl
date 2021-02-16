@@ -188,7 +188,7 @@ func (a *Manager) getKnownServiceAccountLocation(addon *api.Addon) (string, stri
 }
 
 func (a *Manager) createRoleUsingAttachPolicyARNs(addon *api.Addon, namespace, serviceAccount string) (string, error) {
-	resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.AttachPolicyARNs, a.oidcManager)
+	resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicyARNs, a.oidcManager)
 	err := resourceSet.AddAllResources()
 	if err != nil {
 		return "", err
@@ -202,7 +202,7 @@ func (a *Manager) createRoleUsingAttachPolicyARNs(addon *api.Addon, namespace, s
 }
 
 func (a *Manager) createRoleUsingAttachPolicy(addon *api.Addon, namespace, serviceAccount string) (string, error) {
-	resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, namespace, serviceAccount, addon.AttachPolicy, a.oidcManager)
+	resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicy, a.oidcManager)
 	err := resourceSet.AddAllResources()
 	if err != nil {
 		return "", err

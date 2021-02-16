@@ -42,7 +42,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			appendServiceAccountToClusterConfig(cfg, serviceAccount)
 
-			rs := NewIAMServiceAccountResourceSet(serviceAccount, oidc)
+			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 
@@ -84,7 +84,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			appendServiceAccountToClusterConfig(cfg, serviceAccount)
 
-			rs := NewIAMServiceAccountResourceSet(serviceAccount, oidc)
+			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 
@@ -139,7 +139,7 @@ var _ = Describe("template builder for IAM", func() {
 				},
 			)
 
-			rs := NewIAMServiceAccountResourceSet(serviceAccount, oidc)
+			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 
@@ -176,7 +176,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			appendServiceAccountToClusterConfig(cfg, serviceAccount)
 
-			rs := NewIAMServiceAccountResourceSet(serviceAccount, oidc)
+			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 
@@ -228,7 +228,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			appendServiceAccountToClusterConfig(cfg, serviceAccount)
 
-			rs := NewIAMServiceAccountResourceSet(serviceAccount, oidc)
+			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 
@@ -265,7 +265,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			appendServiceAccountToClusterConfig(cfg, serviceAccount)
 
-			rs := NewIAMServiceAccountResourceSet(serviceAccount, oidc)
+			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 
@@ -333,7 +333,7 @@ var _ = Describe("template builder for IAM", func() {
 		It("can construct an iamrole template with attachPolicyARNs", func() {
 			arns := []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"}
 
-			rs := NewIAMRoleResourceSetWithAttachPolicyARNs("VPC-addon", "", "", arns, oidc)
+			rs := NewIAMRoleResourceSetWithAttachPolicyARNs("VPC-addon", "", "", "boundary-arn", arns, oidc)
 
 			templateBody := []byte{}
 
@@ -349,6 +349,7 @@ var _ = Describe("template builder for IAM", func() {
 			Expect(t.Outputs).To(HaveLen(1))
 
 			Expect(t).To(HaveResource("Role1", "AWS::IAM::Role"))
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "PermissionsBoundary", `"boundary-arn"`))
 
 			Expect(t).To(HaveResourceWithPropertyValue("Role1", "AssumeRolePolicyDocument", expectedAssumeRolePolicyDocument))
 			Expect(t).To(HaveResourceWithPropertyValue("Role1", "ManagedPolicyArns", `[
@@ -369,7 +370,7 @@ var _ = Describe("template builder for IAM", func() {
 				},
 			)
 
-			rs := NewIAMRoleResourceSetWithAttachPolicy("VPC-addon", "", "", attachPolicy, oidc)
+			rs := NewIAMRoleResourceSetWithAttachPolicy("VPC-addon", "", "", "boundary-arn", attachPolicy, oidc)
 
 			templateBody := []byte{}
 
@@ -385,6 +386,8 @@ var _ = Describe("template builder for IAM", func() {
 			Expect(t.Outputs).To(HaveLen(1))
 
 			Expect(t).To(HaveResource("Role1", "AWS::IAM::Role"))
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "PermissionsBoundary", `"boundary-arn"`))
+
 			Expect(t).To(HaveResource("Policy1", "AWS::IAM::Policy"))
 
 			Expect(t).ToNot(HaveResourceWithProperties("Role1", "ManagedPolicyArns"))

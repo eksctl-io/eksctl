@@ -16,9 +16,12 @@ type Addon struct {
 	// list of ARNs of the IAM policies to attach
 	// +optional
 	AttachPolicyARNs []string `json:"attachPolicyARNs,omitempty"`
-	// AttachPolicy holds a policy document to attach to this service account
+	// AttachPolicy holds a policy document to attach
 	// +optional
 	AttachPolicy InlineDocument `json:"attachPolicy,omitempty"`
+	// ARN of the permissions boundary to associate
+	// +optional
+	PermissionsBoundary string `json:"permissionsBoundary,omitempty"`
 	// Force applies the add-on to overwrite an existing add-on
 	Force bool
 }
