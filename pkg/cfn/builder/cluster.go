@@ -4,6 +4,8 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -19,14 +21,15 @@ import (
 type ClusterResourceSet struct {
 	rs                   *resourceSet
 	spec                 *api.ClusterConfig
-	provider             api.ClusterProvider
+	ec2API               ec2iface.EC2API
+	region               string
 	supportsManagedNodes bool
 	vpcResourceSet       *VPCResourceSet
 	securityGroups       []*gfnt.Value
 }
 
 // NewClusterResourceSet returns a resource set for the new cluster
-func NewClusterResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig, supportsManagedNodes bool, existingStack *gjson.Result) *ClusterResourceSet {
+func NewClusterResourceSet(ec2API ec2iface.EC2API, region string, spec *api.ClusterConfig, supportsManagedNodes bool, existingStack *gjson.Result) *ClusterResourceSet {
 	if existingStack != nil {
 		unsetExistingResources(existingStack, spec)
 	}
@@ -34,9 +37,9 @@ func NewClusterResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig
 	return &ClusterResourceSet{
 		rs:                   rs,
 		spec:                 spec,
-		provider:             provider,
+		ec2API:               ec2API,
 		supportsManagedNodes: supportsManagedNodes,
-		vpcResourceSet:       NewVPCResourceSet(rs, spec, provider),
+		vpcResourceSet:       NewVPCResourceSet(rs, spec, ec2API),
 	}
 }
 
@@ -69,7 +72,7 @@ func (c *ClusterResourceSet) AddAllResources() error {
 	clusterSG := c.addResourcesForSecurityGroups(vpcResource)
 
 	if privateCluster := c.spec.PrivateCluster; privateCluster.Enabled {
-		vpcEndpointResourceSet := NewVPCEndpointResourceSet(c.provider, c.rs, c.spec, vpcResource.VPC, vpcResource.SubnetDetails.Private, clusterSG.ClusterSharedNode)
+		vpcEndpointResourceSet := NewVPCEndpointResourceSet(c.ec2API, c.region, c.rs, c.spec, vpcResource.VPC, vpcResource.SubnetDetails.Private, clusterSG.ClusterSharedNode)
 
 		if err := vpcEndpointResourceSet.AddResources(); err != nil {
 			return errors.Wrap(err, "error adding resources for VPC endpoints")

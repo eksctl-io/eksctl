@@ -91,6 +91,13 @@ The `eksctl create iamserviceaccount` command supports `--include` and `--exclud
 [this section](/usage/managing-nodegroups#include-and-exclude-rules) for more details about how these work).
 And the `eksctl delete iamserviceaccount` command supports `--only-missing` as well, so you can perform deletions the same way as nodegroups.
 
+The option to enable `wellKnownPolicies` is included for using IRSA with well-known
+use cases like `cluster-autoscaler` and `cert-manager`, as a shorthand for lists
+of policies.
+
+Other properties of `serviceAccounts` are documented at
+[the config schema](https://eksctl.io/usage/schema/#iam-serviceAccounts).
+
 You use the following config example with `eksctl create cluster`:
 
 ```YAML
@@ -128,19 +135,8 @@ iam:
       name: cluster-autoscaler
       namespace: kube-system
       labels: {aws-usage: "cluster-ops"}
-    attachPolicy: # inline policy can be defined along with `attachPolicyARNs`
-      Version: "2012-10-17"
-      Statement:
-      - Effect: Allow
-        Action:
-        - "autoscaling:DescribeAutoScalingGroups"
-        - "autoscaling:DescribeAutoScalingInstances"
-        - "autoscaling:DescribeLaunchConfigurations"
-        - "autoscaling:DescribeTags"
-        - "autoscaling:SetDesiredCapacity"
-        - "autoscaling:TerminateInstanceInAutoScalingGroup"
-        - "ec2:DescribeLaunchTemplateVersions"
-        Resource: '*'
+    wellKnownPolicies:
+      autoScaler: true
     roleName: eksctl-cluster-autoscaler-role
     roleOnly: true
 

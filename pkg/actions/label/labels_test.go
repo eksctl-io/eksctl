@@ -11,8 +11,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/weaveworks/eksctl/pkg/actions/label"
 	"github.com/weaveworks/eksctl/pkg/actions/label/fakes"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
@@ -20,7 +18,6 @@ var _ = Describe("Labels", func() {
 	var (
 		fakeManagedService *fakes.FakeService
 		mockProvider       *mockprovider.MockProvider
-		cfg                *api.ClusterConfig
 		manager            *label.Manager
 
 		clusterName   string
@@ -32,12 +29,7 @@ var _ = Describe("Labels", func() {
 		mockProvider = mockprovider.NewMockProvider()
 		clusterName = "foo"
 		nodegroupName = "bar"
-		cfg = &api.ClusterConfig{
-			Metadata: &api.ClusterMeta{
-				Name: clusterName,
-			},
-		}
-		manager = label.New(cfg, &eks.ClusterProvider{Provider: mockProvider})
+		manager = label.New(clusterName, fakeManagedService, mockProvider.EKS())
 		manager.SetService(fakeManagedService)
 	})
 

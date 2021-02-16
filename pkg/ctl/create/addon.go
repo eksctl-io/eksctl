@@ -83,7 +83,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 			return err
 		}
 
-		addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider, stackManager, oidcProviderExists, oidc, clientSet)
+		addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.Provider.EKS(), stackManager, oidcProviderExists, oidc, clientSet)
 		if err != nil {
 			return err
 		}

@@ -14,7 +14,7 @@ func (c *StackCollection) GetStackTemplate(stackName string) (string, error) {
 		StackName: aws.String(stackName),
 	}
 
-	output, err := c.provider.CloudFormation().GetTemplate(input)
+	output, err := c.cloudformationAPI.GetTemplate(input)
 	if err != nil {
 		return "", err
 	}

@@ -6,6 +6,8 @@ import (
 	"net"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -125,22 +127,22 @@ func SplitInto8(parent *net.IPNet) ([]*net.IPNet, error) {
 }
 
 // describeSubnets fetches subnet metadata from EC2
-func describeSubnets(provider api.ClusterProvider, subnetIDs ...string) ([]*ec2.Subnet, error) {
+func describeSubnets(ec2API ec2iface.EC2API, subnetIDs ...string) ([]*ec2.Subnet, error) {
 	input := &ec2.DescribeSubnetsInput{
 		SubnetIds: aws.StringSlice(subnetIDs),
 	}
-	output, err := provider.EC2().DescribeSubnets(input)
+	output, err := ec2API.DescribeSubnets(input)
 	if err != nil {
 		return nil, err
 	}
 	return output.Subnets, nil
 }
 
-func describeVPC(provider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
+func describeVPC(ec2API ec2iface.EC2API, vpcID string) (*ec2.Vpc, error) {
 	input := &ec2.DescribeVpcsInput{
 		VpcIds: []*string{aws.String(vpcID)},
 	}
-	output, err := provider.EC2().DescribeVpcs(input)
+	output, err := ec2API.DescribeVpcs(input)
 	if err != nil {
 		return nil, err
 	}
@@ -182,10 +184,10 @@ func UseFromCluster(provider api.ClusterProvider, stack *cfn.Stack, spec *api.Cl
 			return nil
 		},
 		outputs.ClusterSubnetsPrivate: func(v string) error {
-			return ImportSubnetsFromList(provider, spec, api.SubnetTopologyPrivate, strings.Split(v, ","))
+			return ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPrivate, strings.Split(v, ","))
 		},
 		outputs.ClusterSubnetsPublic: func(v string) error {
-			return ImportSubnetsFromList(provider, spec, api.SubnetTopologyPublic, strings.Split(v, ","))
+			return ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPublic, strings.Split(v, ","))
 		},
 		outputs.ClusterFullyPrivate: func(v string) error {
 			spec.PrivateCluster.Enabled = v == "true"
@@ -196,7 +198,7 @@ func UseFromCluster(provider api.ClusterProvider, stack *cfn.Stack, spec *api.Cl
 	if !outputs.Exists(*stack, outputs.ClusterSubnetsPublic) &&
 		outputs.Exists(*stack, outputs.ClusterSubnetsPublicLegacy) {
 		optionalCollectors[outputs.ClusterSubnetsPublicLegacy] = func(v string) error {
-			return ImportSubnetsFromList(provider, spec, api.SubnetTopologyPublic, strings.Split(v, ","))
+			return ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPublic, strings.Split(v, ","))
 		}
 	}
 
@@ -206,8 +208,8 @@ func UseFromCluster(provider api.ClusterProvider, stack *cfn.Stack, spec *api.Cl
 // importVPC will update spec with VPC ID/CIDR
 // NOTE: it does respect all fields set in spec.VPC, and will error if
 // there is a mismatch of local vs remote states
-func importVPC(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error {
-	vpc, err := describeVPC(provider, id)
+func importVPC(ec2API ec2iface.EC2API, spec *api.ClusterConfig, id string) error {
+	vpc, err := describeVPC(ec2API, id)
 	if err != nil {
 		return err
 	}
@@ -238,7 +240,7 @@ func importVPC(provider api.ClusterProvider, spec *api.ClusterConfig, id string)
 // first subnet; all subnets must be in the same VPC
 // NOTE: it does respect all fields set in spec.VPC, and will error if
 // there is a mismatch of local vs remote states
-func ImportSubnets(provider api.ClusterProvider, spec *api.ClusterConfig, topology api.SubnetTopology, subnets []*ec2.Subnet) error {
+func ImportSubnets(ec2API ec2iface.EC2API, spec *api.ClusterConfig, topology api.SubnetTopology, subnets []*ec2.Subnet) error {
 	if spec.VPC.ID != "" {
 		// ensure managed NAT is disabled
 		// if we are importing an existing VPC/subnets, the expectation is that the user has
@@ -249,7 +251,7 @@ func ImportSubnets(provider api.ClusterProvider, spec *api.ClusterConfig, topolo
 		}
 
 		// ensure VPC gets imported and validated first, if it's already set
-		if err := importVPC(provider, spec, spec.VPC.ID); err != nil {
+		if err := importVPC(ec2API, spec, spec.VPC.ID); err != nil {
 			return err
 		}
 	}
@@ -258,7 +260,7 @@ func ImportSubnets(provider api.ClusterProvider, spec *api.ClusterConfig, topolo
 		if spec.VPC.ID == "" {
 			// if VPC wasn't defined, import it based on VPC of the first
 			// subnet that we have
-			if err := importVPC(provider, spec, *sn.VpcId); err != nil {
+			if err := importVPC(ec2API, spec, *sn.VpcId); err != nil {
 				return err
 			}
 		} else if spec.VPC.ID != *sn.VpcId { // be sure to use the same VPC
@@ -277,16 +279,16 @@ func ImportSubnets(provider api.ClusterProvider, spec *api.ClusterConfig, topolo
 // then pass resulting subnets to ImportSubnets
 // NOTE: it does respect all fields set in spec.VPC, and will error if
 // there is a mismatch of local vs remote states
-func ImportSubnetsFromList(provider api.ClusterProvider, spec *api.ClusterConfig, topology api.SubnetTopology, subnetIDs []string) error {
+func ImportSubnetsFromList(ec2API ec2iface.EC2API, spec *api.ClusterConfig, topology api.SubnetTopology, subnetIDs []string) error {
 	if len(subnetIDs) == 0 {
 		return nil
 	}
-	subnets, err := describeSubnets(provider, subnetIDs...)
+	subnets, err := describeSubnets(ec2API, subnetIDs...)
 	if err != nil {
 		return err
 	}
 
-	return ImportSubnets(provider, spec, topology, subnets)
+	return ImportSubnets(ec2API, spec, topology, subnets)
 }
 
 func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.ClusterProvider) error {
@@ -351,7 +353,7 @@ func ValidateExistingPublicSubnets(provider api.ClusterProvider, subnetIDs []str
 	if len(subnetIDs) == 0 {
 		return nil
 	}
-	subnets, err := describeSubnets(provider, subnetIDs...)
+	subnets, err := describeSubnets(provider.EC2(), subnetIDs...)
 	if err != nil {
 		return err
 	}
@@ -362,7 +364,7 @@ func ValidateExistingPublicSubnets(provider api.ClusterProvider, subnetIDs []str
 }
 
 // EnsureMapPublicIPOnLaunchEnabled will enable MapPublicIpOnLaunch in EC2 for all given subnet IDs
-func EnsureMapPublicIPOnLaunchEnabled(provider api.ClusterProvider, subnetIDs []string) error {
+func EnsureMapPublicIPOnLaunchEnabled(ec2API ec2iface.EC2API, subnetIDs []string) error {
 	if len(subnetIDs) == 0 {
 		logger.Debug("no subnets to update")
 		return nil
@@ -375,7 +377,7 @@ func EnsureMapPublicIPOnLaunchEnabled(provider api.ClusterProvider, subnetIDs []
 		}
 
 		logger.Debug("enabling MapPublicIpOnLaunch for subnet %q", s)
-		_, err := provider.EC2().ModifySubnetAttribute(input)
+		_, err := ec2API.ModifySubnetAttribute(input)
 		if err != nil {
 			return errors.Wrapf(err, "unable to set MapPublicIpOnLaunch attribute to true for subnet %q", s)
 		}
@@ -390,14 +392,14 @@ func EnsureMapPublicIPOnLaunchEnabled(provider api.ClusterProvider, subnetIDs []
 func ImportAllSubnets(provider api.ClusterProvider, spec *api.ClusterConfig) error {
 	if spec.VPC.ID != "" {
 		// ensure VPC gets imported and validated first, if it's already set
-		if err := importVPC(provider, spec, spec.VPC.ID); err != nil {
+		if err := importVPC(provider.EC2(), spec, spec.VPC.ID); err != nil {
 			return err
 		}
 	}
-	if err := ImportSubnetsFromList(provider, spec, api.SubnetTopologyPrivate, spec.PrivateSubnetIDs()); err != nil {
+	if err := ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPrivate, spec.PrivateSubnetIDs()); err != nil {
 		return err
 	}
-	if err := ImportSubnetsFromList(provider, spec, api.SubnetTopologyPublic, spec.PublicSubnetIDs()); err != nil {
+	if err := ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPublic, spec.PublicSubnetIDs()); err != nil {
 		return err
 	}
 	// to clean up invalid subnets based on AZ after imported both private and public subnets

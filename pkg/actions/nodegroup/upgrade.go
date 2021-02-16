@@ -30,7 +30,7 @@ func (m *Manager) Upgrade(nodeGroupName, version, launchTemplateVersion string, 
 	}
 
 	if hasStacks {
-		managedService := managed.NewService(m.ctl.Provider, stackCollection, m.cfg.Metadata.Name)
+		managedService := managed.NewService(m.ctl.Provider.EKS(), m.ctl.Provider.SSM(), m.ctl.Provider.EC2(), stackCollection, m.cfg.Metadata.Name)
 		return managedService.UpgradeNodeGroup(managed.UpgradeOptions{
 			NodegroupName:         nodeGroupName,
 			KubernetesVersion:     version,

@@ -3,6 +3,9 @@ package get
 import (
 	"os"
 
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/managed"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/actions/label"
@@ -56,7 +59,8 @@ func getLabels(cmd *cmdutils.Cmd, nodeGroupName string) error {
 	}
 	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 
-	manager := label.New(cfg, ctl)
+	service := managed.NewService(ctl.Provider.EKS(), ctl.Provider.SSM(), ctl.Provider.EC2(), manager.NewStackCollection(ctl.Provider, cfg), cfg.Metadata.Name)
+	manager := label.New(cfg.Metadata.Name, service, ctl.Provider.EKS())
 	labels, err := manager.Get(nodeGroupName)
 	if err != nil {
 		return err
