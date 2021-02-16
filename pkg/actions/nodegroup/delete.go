@@ -49,7 +49,7 @@ func (m *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.M
 		return false
 	}
 
-	tasks, err := m.manager.NewTasksToDeleteNodeGroups(shouldDelete, wait, nil)
+	tasks, err := m.stackManager.NewTasksToDeleteNodeGroups(shouldDelete, wait, nil)
 	if err != nil {
 		return err
 	}

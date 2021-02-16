@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
 
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -268,8 +269,8 @@ func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iam
 
 // LoadClusterIntoSpec loads the cluster configuration into the spec
 // At the moment VPC and KubernetesNetworkConfig are respected
-func (c *ClusterProvider) LoadClusterIntoSpec(spec *api.ClusterConfig) error {
-	if err := c.LoadClusterVPC(spec); err != nil {
+func (c *ClusterProvider) LoadClusterIntoSpec(spec *api.ClusterConfig, stackManager manager.StackManager) error {
+	if err := c.LoadClusterVPC(spec, stackManager); err != nil {
 		return err
 	}
 	if err := c.RefreshClusterStatus(spec); err != nil {
@@ -282,8 +283,7 @@ func (c *ClusterProvider) LoadClusterIntoSpec(spec *api.ClusterConfig) error {
 }
 
 // LoadClusterVPC loads the VPC configuration
-func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig) error {
-	stackManager := c.NewStackManager(spec)
+func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig, stackManager manager.StackManager) error {
 	stack, err := stackManager.DescribeClusterStack()
 	if err != nil {
 		return err

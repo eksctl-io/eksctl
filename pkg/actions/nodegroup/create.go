@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -116,7 +117,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 			Parallel: false,
 		}
 		if supportsManagedNodes {
-			taskTree.Append(stackManager.NewClusterCompatTask())
+			taskTree.Append(m.stackManager.NewClusterCompatTask())
 		}
 
 		allNodeGroupTasks := &tasks.TaskTree{
@@ -159,7 +160,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 		return err
 	}
 
-	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, stackManager); err != nil {
+	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, m.stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
