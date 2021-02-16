@@ -1,0 +1,65 @@
+name: "Wait for workflow job"
+description: "Wait for a workflow job to complete, triggering the workflow if necessary"
+
+inputs:
+  workflow-name:
+    description: "Name of workflow file to trigger"
+    required: true
+  workflow-job:
+    description: "Name of workflow job to wait on"
+    required: true
+  github-token:
+    description: "Token to access APIs with, shouldn't be a GH action token"
+    required: true
+  timeout-minutes:
+    description: "Max number of minutes to wait for check to finish"
+    required: true
+  check-interval-seconds:
+    description: "Number of seconds to wait between checking the API"
+    default: 30
+outputs: {}
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/github-script@v3
+      with:
+        # Important because GH actions can't start workflows
+        github-token: ${{ inputs.github-token }}
+        script: |
+          async function checkStatus() {
+            // There's no other way to identify the job
+            // GH branch protections are also just a string
+            // must be in sync with inputs.workflow-name
+            const checkName = "${{ inputs.workflow-job }}";
+            const { data } = await github.checks.listForRef({
+              ...context.repo,
+              ref: "${{ github.ref }}",
+              check_name: checkName,
+            });
+            return data.check_runs.some(cr =>
+              cr.status === "completed" && cr.conclusion === "success"
+            );
+          }
+          if (!(await checkStatus())) {
+            await github.actions.createWorkflowDispatch({
+              ...context.repo,
+              ref: "${{ github.ref }}",
+              workflow_id: "${{ inputs.workflow-name }}",
+            });
+          }
+          const timeoutMs = ${{ fromJson(inputs.timeout-minutes) }}*60*1000;
+          const waitTimeMs = ${{ fromJson(inputs.check-interval-seconds) }}*1000;
+          return await new Promise((resolve, reject) => {
+            let timeWaited = 0;
+            let go = () => {
+              if (timeWaited > timeoutMs) {
+                return reject("Timed out waiting for check to complete!");
+              }
+              timeWaited = timeWaited + waitTimeMs;
+              checkStatus().then(
+                success => success ? resolve("Check completed successfully!") : setTimeout(go, waitTimeMs)
+              );
+            }
+            go();
+          });
