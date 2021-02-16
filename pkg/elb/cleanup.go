@@ -19,7 +19,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/weaveworks/logger"
 	corev1 "k8s.io/api/core/v1"
-	networkingv1beta1 "k8s.io/api/networking/v1beta1"
 
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -53,6 +52,7 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 	if !ok {
 		return fmt.Errorf("no context deadline set in call to elb.Cleanup()")
 	}
+
 	services, err := kubernetesCS.CoreV1().Services(metav1.NamespaceAll).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		errStr := fmt.Sprintf("cannot list Kubernetes Services: %s", err)
@@ -62,7 +62,7 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 		return errors.New(errStr)
 	}
 
-	ingresses, err := kubernetesCS.NetworkingV1beta1().Ingresses(metav1.NamespaceAll).List(context.TODO(), metav1.ListOptions{})
+	ingresses, err := listIngress(kubernetesCS, clusterConfig)
 	if err != nil {
 		errStr := fmt.Sprintf("cannot list Kubernetes Ingresses: %s", err)
 		if k8serrors.IsForbidden(err) {
@@ -99,8 +99,9 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 		}
 	}
 	// For k8s Kind Ingress
-	for _, i := range ingresses.Items {
-		lb := getIngressLoadBalancer(ctx, i)
+	for _, i := range ingresses {
+		lb := getIngressLoadBalancer(i)
+		ingressMetadata := i.GetMetadata()
 		if lb == nil {
 			continue
 		}
@@ -109,9 +110,9 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 			lb.name, lb.kind, convertStringSetToSlice(lb.ownedSecurityGroupIDs),
 		)
 		awsLoadBalancers[lb.name] = *lb
-		logger.Debug("deleting 'kubernetes.io/ingress.class: alb' Ingress %s/%s", i.Namespace, i.Name)
-		if err := kubernetesCS.NetworkingV1beta1().Ingresses(i.Namespace).Delete(context.TODO(), i.Name, metav1.DeleteOptions{}); err != nil {
-			errStr := fmt.Sprintf("cannot delete Kubernetes Ingress %s/%s: %s", i.Namespace, i.Name, err)
+		logger.Debug("deleting 'kubernetes.io/ingress.class: alb' Ingress %s/%s", ingressMetadata.Namespace, ingressMetadata.Name)
+		if err := i.Delete(kubernetesCS); err != nil {
+			errStr := fmt.Sprintf("cannot delete Kubernetes Ingress %s/%s: %s", ingressMetadata.Namespace, ingressMetadata.Name, err)
 			if k8serrors.IsForbidden(err) {
 				errStr = fmt.Sprintf("%s (deleting a cluster requires permission to delete Kubernetes Ingress)", errStr)
 			}
@@ -173,25 +174,26 @@ func getServiceLoadBalancer(ctx context.Context, ec2API ec2iface.EC2API, elbAPI 
 	return &lb, nil
 }
 
-func getIngressLoadBalancer(ctx context.Context, ingress networkingv1beta1.Ingress) (lb *loadBalancer) {
+func getIngressLoadBalancer(ingress Ingress) (lb *loadBalancer) {
+	metadata := ingress.GetMetadata()
 	ingressCls := "kubernetes.io/ingress.class"
-	if ingress.Annotations[ingressCls] != "alb" {
-		logger.Debug("%s is not ALB Ingress, it is '%s': '%s', skip", ingress.Name, ingressCls, ingress.Annotations[ingressCls])
+	if metadata.Annotations[ingressCls] != "alb" {
+		logger.Debug("%s is not ALB Ingress, it is '%s': '%s', skip", metadata.Name, ingressCls, metadata.Annotations[ingressCls])
 		return nil
 	}
 
 	// Check if field status.loadBalancer.ingress[].hostname is set, value corresponds with name for AWS ALB
 	// if does not pass ALB hadn't been provisioned so nothing to return.
-	if len(ingress.Status.LoadBalancer.Ingress) == 0 ||
-		len(ingress.Status.LoadBalancer.Ingress[0].Hostname) == 0 {
-		logger.Debug("%s is ALB Ingress, but probably not provisioned, skip", ingress.Name)
+	hosts := ingress.GetLoadBalancersHosts()
+	if len(hosts) == 0 {
+		logger.Debug("%s is ALB Ingress, but probably not provisioned, skip", metadata.Name)
 		return nil
 	}
 	// Expected e.g. bf647c9e-default-appingres-350b-1622159649.eu-central-1.elb.amazonaws.com where AWS ALB name is
 	// bf647c9e-default-appingres-350b (cannot be longer than 32 characters).
-	hostNameParts := strings.Split(ingress.Status.LoadBalancer.Ingress[0].Hostname, ".")
+	hostNameParts := strings.Split(hosts[0], ".")
 	if len(hostNameParts[0]) == 0 {
-		logger.Debug("%s is ALB Ingress, but probably not provisioned or something other unexpected, skip", ingress.Name)
+		logger.Debug("%s is ALB Ingress, but probably not provisioned or something other unexpected, skip", metadata.Name)
 		return nil
 	}
 	name := strings.TrimPrefix(hostNameParts[0], "internal-") // Trim 'internal-' prefix for ALB DNS name which is not a part of name.

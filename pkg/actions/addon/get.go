@@ -99,6 +99,10 @@ func (a *Manager) findNewerVersions(addon *api.Addon) (string, error) {
 		return "", err
 	}
 
+	if len(versions.Addons) == 0 {
+		return "-", nil
+	}
+
 	for _, versionInfo := range versions.Addons[0].AddonVersions {
 		version, err := semver.Parse(strings.TrimPrefix(*versionInfo.AddonVersion, "v"))
 		if err != nil {
