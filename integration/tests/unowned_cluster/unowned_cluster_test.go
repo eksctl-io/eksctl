@@ -173,7 +173,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			WithArgs(
 				"cluster",
 				"--name", params.ClusterName,
-				"--version", "1.18",
+				"--version", "1.19",
 				"--approve",
 				"--verbose", "2",
 			)
@@ -246,7 +246,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"nodegroup",
 				"--name", ng1,
 				"--cluster", params.ClusterName,
-				"--kubernetes-version", "1.18",
+				"--kubernetes-version", "1.19",
 				"--wait",
 				"--verbose", "2",
 			)
@@ -311,7 +311,7 @@ func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl ap
 			SubnetIds: aws.StringSlice(append(publicSubnets, privateSubnets...)),
 		},
 		RoleArn: &clusterRoleArn,
-		Version: aws.String("1.17"),
+		Version: aws.String("1.18"),
 	})
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(func() string {

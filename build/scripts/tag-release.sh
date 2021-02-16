@@ -6,8 +6,6 @@ DIR="${BASH_SOURCE%/*}"
 source "${DIR}/tag-common.sh"
 
 release_branch=$(release_branch)
-release_version=$(release_generate release)
-release_notes_file=$(ensure_release_notes "${release_version}")
 
 check_origin
 
@@ -20,6 +18,8 @@ check_current_branch "${release_branch}"
 ensure_up_to_date "${release_branch}"
 
 # Update eksctl version by removing the pre-release id
+release_version=$(release_generate release)
+release_notes_file=$(ensure_release_notes "${release_version}")
 
 m="Release ${release_version}"
 
