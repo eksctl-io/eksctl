@@ -32,7 +32,7 @@ func (m *Manager) Create() error {
 	}
 
 	if !hasClusterStack {
-		if err := EnsureUnownedClusterReadyForFargate(cfg, ctl.Provider, stackManager); err != nil {
+		if err := ensureUnownedClusterReadyForFargate(cfg, ctl.Provider, stackManager); err != nil {
 			return errors.Wrap(err, "couldn't ensure unowned cluster is ready for fargate")
 		}
 	} else {
