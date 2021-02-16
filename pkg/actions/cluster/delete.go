@@ -51,6 +51,8 @@ func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, cli
 		ctx, cleanup := context.WithTimeout(context.Background(), 10*time.Minute)
 		defer cleanup()
 
+		cfg.Metadata.Version = *ctl.Status.ClusterInfo.Cluster.Version
+
 		logger.Info("cleaning up AWS load balancers created by Kubernetes objects of Kind Service or Ingress")
 		if err := elb.Cleanup(ctx, ctl.Provider.EC2(), ctl.Provider.ELB(), ctl.Provider.ELBV2(), clientSet, cfg); err != nil {
 			return err
