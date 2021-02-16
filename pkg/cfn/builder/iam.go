@@ -226,31 +226,20 @@ type IAMRoleResourceSet struct {
 
 // NewIAMRoleResourceSetForServiceAccount builds IAM Role stack from the give spec
 func NewIAMRoleResourceSetWithAttachPolicyARNs(name, namespace, serviceAccount, permissionsBoundary string, attachPolicyARNs []string, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
-	rs := &IAMRoleResourceSet{
-		template:            cft.NewTemplate(),
-		attachPolicyARNs:    attachPolicyARNs,
-		oidc:                oidc,
-		serviceAccount:      serviceAccount,
-		namespace:           namespace,
-		permissionsBoundary: permissionsBoundary,
-		description: fmt.Sprintf(
-			"IAM role for %q %s",
-			name,
-			templateDescriptionSuffix,
-		),
-	}
+	return newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary, nil, attachPolicyARNs, oidc)
 
-	rs.roleNameCollector = func(v string) error {
-		rs.OutputRole = v
-		return nil
-	}
-	return rs
 }
 
 // NewIAMRoleResourceSetForServiceAccount builds IAM Role stack from the give spec
 func NewIAMRoleResourceSetWithAttachPolicy(name, namespace, serviceAccount, permissionsBoundary string, attachPolicy api.InlineDocument, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
+	return newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary, attachPolicy, nil, oidc)
+}
+
+// NewIAMRoleResourceSetForServiceAccount builds IAM Role stack from the give spec
+func newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary string, attachPolicy api.InlineDocument, attachPolicyARNs []string, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
 	rs := &IAMRoleResourceSet{
 		template:            cft.NewTemplate(),
+		attachPolicyARNs:    attachPolicyARNs,
 		attachPolicy:        attachPolicy,
 		oidc:                oidc,
 		serviceAccount:      serviceAccount,
@@ -267,7 +256,6 @@ func NewIAMRoleResourceSetWithAttachPolicy(name, namespace, serviceAccount, perm
 		rs.OutputRole = v
 		return nil
 	}
-
 	return rs
 }
 
