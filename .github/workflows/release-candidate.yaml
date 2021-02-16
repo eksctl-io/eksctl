@@ -14,26 +14,48 @@ jobs:
     container: weaveworks/eksctl-build:5705efb32cdbf4531b282dba24dae03a872f5b31
     steps:
       - uses: actions/github-script@v3
-        name: Get integration tests status
-        id: it-status
+        name: Wait for integration tests to pass
+        if: "!fromJson(github.event.inputs.skipIntegrationTests)"
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Important because GH actions can't start workflows
+          github-token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
           script: |
-            // There's no other way to identify the integration test job
-            // GH branch protections are also just a string
-            // must be in sync with integration-tests.yaml
-            const integrationTestsCheckName = "Run integration tests";
-            const { data } = await github.checks.listForRef({
-              ...context.repo,
-              ref: "${{ github.sha }}",
-              check_name: integrationTestsCheckName,
+            async function checkStatus() {
+              // There's no other way to identify the integration test job
+              // GH branch protections are also just a string
+              // must be in sync with integration-tests.yaml
+              const integrationTestsCheckName = "Run integration tests";
+              const { data } = await github.checks.listForRef({
+                ...context.repo,
+                ref: "${{ github.ref }}",
+                check_name: integrationTestsCheckName,
+              });
+              return data.check_runs.some(cr =>
+                cr.status === "completed" && cr.conclusion === "success"
+              );
+            }
+            if (!(await checkStatus())) {
+              await github.actions.createWorkflowDispatch({
+                ...context.repo,
+                ref: "${{ github.ref }}",
+                workflow_id: "integration-tests.yaml",
+              });
+            }
+            const timeoutMs = 130*60*1000;
+            const waitTimeMs = 30*1000;
+            return await new Promise((resolve, reject) => {
+              let timeWaited = 0;
+              let go = () => {
+                if (timeWaited > timeoutMs) {
+                  return reject("Timed out waiting for tests to complete!");
+                }
+                timeWaited = timeWaited + waitTimeMs;
+                checkStatus().then(
+                  success => success ? resolve("Tests completed successfully!") : setTimeout(go, waitTimeMs)
+                );
+              }
+              go();
             });
-            return data.check_runs.some(cr =>
-              cr.status === "completed" && cr.conclusion === "success"
-            );
-      - name: Fail if integration tests not passed
-        if: "!fromJson(steps.it-status.outputs.result) && !fromJson(github.event.inputs.skipIntegrationTests)"
-        run: echo "Integration tests haven't passed yet!" && exit 1
       - name: Checkout
         uses: actions/checkout@v2
         with:

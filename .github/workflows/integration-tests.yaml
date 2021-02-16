@@ -1,3 +1,5 @@
+# The name of this file is important
+# it's how the workflow is identified by the API
 name: Integration tests
 
 on:
