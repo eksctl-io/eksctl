@@ -309,7 +309,7 @@
       "description": "holds all IAM attributes of a cluster",
       "x-intellij-html-description": "holds all IAM attributes of a cluster"
     },
-    "ClusterIAMServiceAccount": {
+    "ClusterIAMMeta": {
       "properties": {
         "annotations": {
           "additionalProperties": {
@@ -317,19 +317,6 @@
           },
           "type": "object",
           "default": "{}"
-        },
-        "attachPolicy": {
-          "$ref": "#/definitions/InlineDocument",
-          "description": "holds a policy document to attach to this service account",
-          "x-intellij-html-description": "holds a policy document to attach to this service account"
-        },
-        "attachPolicyARNs": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "description": "list of ARNs of the IAM policies to attach",
-          "x-intellij-html-description": "list of ARNs of the IAM policies to attach"
         },
         "labels": {
           "additionalProperties": {
@@ -343,6 +330,35 @@
         },
         "namespace": {
           "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "name",
+        "namespace",
+        "labels",
+        "annotations"
+      ],
+      "additionalProperties": false,
+      "description": "holds information we can use to create ObjectMeta for service accounts",
+      "x-intellij-html-description": "holds information we can use to create ObjectMeta for service accounts"
+    },
+    "ClusterIAMServiceAccount": {
+      "properties": {
+        "attachPolicy": {
+          "$ref": "#/definitions/InlineDocument",
+          "description": "holds a policy document to attach to this service account",
+          "x-intellij-html-description": "holds a policy document to attach to this service account"
+        },
+        "attachPolicyARNs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "list of ARNs of the IAM policies to attach",
+          "x-intellij-html-description": "list of ARNs of the IAM policies to attach"
+        },
+        "metadata": {
+          "$ref": "#/definitions/ClusterIAMMeta"
         },
         "permissionsBoundary": {
           "type": "string",
@@ -376,10 +392,7 @@
         }
       },
       "preferredOrder": [
-        "name",
-        "namespace",
-        "labels",
-        "annotations",
+        "metadata",
         "attachPolicyARNs",
         "wellKnownPolicies",
         "attachPolicy",
@@ -442,15 +455,16 @@
         },
         "version": {
           "type": "string",
-          "description": "Valid variants are: `\"1.14\"`, `\"1.15\"`, `\"1.16\"`, `\"1.17\"`, `\"1.18\"` (default).",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;1.14&quot;</code>, <code>&quot;1.15&quot;</code>, <code>&quot;1.16&quot;</code>, <code>&quot;1.17&quot;</code>, <code>&quot;1.18&quot;</code> (default).",
+          "description": "Valid variants are: `\"1.14\"`, `\"1.15\"`, `\"1.16\"`, `\"1.17\"`, `\"1.18\"` (default), `\"1.19\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;1.14&quot;</code>, <code>&quot;1.15&quot;</code>, <code>&quot;1.16&quot;</code>, <code>&quot;1.17&quot;</code>, <code>&quot;1.18&quot;</code> (default), <code>&quot;1.19&quot;</code>.",
           "default": "1.18",
           "enum": [
             "1.14",
             "1.15",
             "1.16",
             "1.17",
-            "1.18"
+            "1.18",
+            "1.19"
           ]
         }
       },

@@ -70,7 +70,7 @@ function prepare_for_next_version_if_at() {
   local dev_version
   dev_version=$(release_generate print-version)
   if [ "${dev_version}" != "$1" ]; then
-    exit 0
+    return 0
   fi
   echo "Preparing for next development iteration"
   release_generate development
