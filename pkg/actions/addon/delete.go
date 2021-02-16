@@ -18,7 +18,7 @@ func (a *Manager) Delete(addon *api.Addon) error {
 	addonExists := true
 	logger.Debug("addon: %v", addon)
 	logger.Info("deleting addon: %s", addon.Name)
-	_, err := a.clusterProvider.Provider.EKS().DeleteAddon(&eks.DeleteAddonInput{
+	_, err := a.eksAPI.DeleteAddon(&eks.DeleteAddonInput{
 		AddonName:   &addon.Name,
 		ClusterName: &a.clusterConfig.Metadata.Name,
 	})

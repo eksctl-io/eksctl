@@ -2,6 +2,7 @@ package kops
 
 import (
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/vpc"
@@ -40,7 +41,7 @@ func (k *Wrapper) topologyOf(s *ec2.Subnet) api.SubnetTopology {
 }
 
 // UseVPC finds VPC and subnets that give kops cluster uses and add those to EKS cluster config
-func (k *Wrapper) UseVPC(provider api.ClusterProvider, spec *api.ClusterConfig) error {
+func (k *Wrapper) UseVPC(ec2API ec2iface.EC2API, spec *api.ClusterConfig) error {
 	spec.VPC.CIDR = nil // ensure to reset the CIDR
 
 	allSubnets, err := aws.ListSubnets(k.cloud, k.clusterName)
@@ -66,7 +67,7 @@ func (k *Wrapper) UseVPC(provider api.ClusterProvider, spec *api.ClusterConfig) 
 		}
 	}
 	for t, subnets := range subnetsByTopology {
-		if err := vpc.ImportSubnets(provider, spec, t, subnets); err != nil {
+		if err := vpc.ImportSubnets(ec2API, spec, t, subnets); err != nil {
 			return err
 		}
 	}

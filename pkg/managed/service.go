@@ -4,6 +4,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+
+	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
+
+	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/eks"
@@ -28,7 +34,8 @@ import (
 
 // A Service provides methods for managing managed nodegroups
 type Service struct {
-	provider              api.ClusterProvider
+	eksAPI                eksiface.EKSAPI
+	ssmAPI                ssmiface.SSMAPI
 	launchTemplateFetcher *builder.LaunchTemplateFetcher
 	clusterName           string
 	stackCollection       manager.StackManager
@@ -58,12 +65,13 @@ const (
 	labelsPath = "Resources.ManagedNodeGroup.Properties.Labels"
 )
 
-// NewService creates a new Service
-func NewService(provider api.ClusterProvider, stackCollection manager.StackManager, clusterName string) *Service {
+func NewService(eksAPI eksiface.EKSAPI, ssmAPI ssmiface.SSMAPI, ec2API ec2iface.EC2API,
+	stackCollection manager.StackManager, clusterName string) *Service {
 	return &Service{
-		provider:              provider,
+		eksAPI:                eksAPI,
+		ssmAPI:                ssmAPI,
 		stackCollection:       stackCollection,
-		launchTemplateFetcher: builder.NewLaunchTemplateFetcher(provider.EC2()),
+		launchTemplateFetcher: builder.NewLaunchTemplateFetcher(ec2API),
 		clusterName:           clusterName,
 	}
 }
@@ -75,7 +83,7 @@ func (m *Service) GetHealth(nodeGroupName string) ([]HealthIssue, error) {
 		NodegroupName: &nodeGroupName,
 	}
 
-	output, err := m.provider.EKS().DescribeNodegroup(input)
+	output, err := m.eksAPI.DescribeNodegroup(input)
 	if err != nil {
 		if isNotFound(err) {
 			return nil, errors.Wrapf(err, "could not find a managed nodegroup with name %q", nodeGroupName)
@@ -141,7 +149,7 @@ func (m *Service) GetLabels(nodeGroupName string) (map[string]string, error) {
 // the current Kubernetes version if the version isn't specified
 // If options.LaunchTemplateVersion is set, it also upgrades the nodegroup to the specified launch template version
 func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
-	output, err := m.provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
+	output, err := m.eksAPI.DescribeNodegroup(&eks.DescribeNodegroupInput{
 		ClusterName:   &m.clusterName,
 		NodegroupName: &options.NodegroupName,
 	})
@@ -326,7 +334,7 @@ func (m *Service) getLatestReleaseVersion(kubernetesVersion string, nodeGroup *e
 		return "", err
 	}
 
-	ssmOutput, err := m.provider.SSM().GetParameter(&ssm.GetParameterInput{
+	ssmOutput, err := m.ssmAPI.GetParameter(&ssm.GetParameterInput{
 		Name: &ssmParameterName,
 	})
 	if err != nil {

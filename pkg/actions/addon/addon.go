@@ -3,6 +3,8 @@ package addon
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+
 	kubeclient "k8s.io/client-go/kubernetes"
 
 	"github.com/weaveworks/eksctl/pkg/utils"
@@ -12,30 +14,29 @@ import (
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 type Manager struct {
-	clusterConfig   *api.ClusterConfig
-	clusterProvider *eks.ClusterProvider
-	withOIDC        bool
-	oidcManager     *iamoidc.OpenIDConnectManager
-	stackManager    manager.StackManager
-	clientSet       kubeclient.Interface
+	clusterConfig *api.ClusterConfig
+	eksAPI        eksiface.EKSAPI
+	withOIDC      bool
+	oidcManager   *iamoidc.OpenIDConnectManager
+	stackManager  manager.StackManager
+	clientSet     kubeclient.Interface
 }
 
-func New(clusterConfig *api.ClusterConfig, clusterProvider *eks.ClusterProvider, stackManager manager.StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) (*Manager, error) {
+func New(clusterConfig *api.ClusterConfig, eksAPI eksiface.EKSAPI, stackManager manager.StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) (*Manager, error) {
 	if err := supportedVersion(clusterConfig.Metadata.Version); err != nil {
 		return nil, err
 	}
 
 	return &Manager{
-		clusterConfig:   clusterConfig,
-		clusterProvider: clusterProvider,
-		withOIDC:        withOIDC,
-		oidcManager:     oidcManager,
-		stackManager:    stackManager,
-		clientSet:       clientSet,
+		clusterConfig: clusterConfig,
+		eksAPI:        eksAPI,
+		withOIDC:      withOIDC,
+		oidcManager:   oidcManager,
+		stackManager:  stackManager,
+		clientSet:     clientSet,
 	}, nil
 }
 

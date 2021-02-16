@@ -33,7 +33,7 @@ func (c *StackCollection) waitWithAcceptors(i *Stack, acceptors []request.Waiter
 		if api.IsSetAndNonEmptyString(i.StackId) {
 			input.StackName = i.StackId
 		}
-		req, _ := c.provider.CloudFormation().DescribeStacksRequest(input)
+		req, _ := c.cloudformationAPI.DescribeStacksRequest(input)
 		return req
 	}
 
@@ -48,7 +48,7 @@ func (c *StackCollection) waitWithAcceptors(i *Stack, acceptors []request.Waiter
 		return nil
 	}
 
-	return waiters.Wait(*i.StackName, msg, acceptors, newRequest, c.provider.WaitTimeout(), troubleshoot)
+	return waiters.Wait(*i.StackName, msg, acceptors, newRequest, c.waitTimeout, troubleshoot)
 }
 
 type noChangeError struct {
@@ -67,7 +67,7 @@ func (c *StackCollection) waitWithAcceptorsChangeSet(i *Stack, changesetName str
 			StackName:     i.StackName,
 			ChangeSetName: &changesetName,
 		}
-		req, _ := c.provider.CloudFormation().DescribeChangeSetRequest(input)
+		req, _ := c.cloudformationAPI.DescribeChangeSetRequest(input)
 		return req
 	}
 
@@ -86,7 +86,7 @@ func (c *StackCollection) waitWithAcceptorsChangeSet(i *Stack, changesetName str
 		return nil
 	}
 
-	return waiters.Wait(*i.StackName, msg, acceptors, newRequest, c.provider.WaitTimeout(), troubleshoot)
+	return waiters.Wait(*i.StackName, msg, acceptors, newRequest, c.waitTimeout, troubleshoot)
 }
 
 func (c *StackCollection) troubleshootStackFailureCause(i *Stack, desiredStatus string) {

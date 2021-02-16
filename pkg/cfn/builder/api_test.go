@@ -558,7 +558,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		}
 
 		It("should add all resources and collect outputs without errors", func() {
-			crs = NewClusterResourceSet(p, cfg, false, nil)
+			crs = NewClusterResourceSet(p.EC2(), p.Region(), cfg, false, nil)
 			err := crs.AddAllResources()
 			Expect(err).ShouldNot(HaveOccurred())
 			sampleStack := newStackWithOutputs(sampleOutputs)
@@ -577,11 +577,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 	assertBuildChecks := func(cfg *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup, managedNodesSupport bool) {
 		It("should add all resources without errors", func() {
-			crs = NewClusterResourceSet(p, cfg, managedNodesSupport, nil)
+			crs = NewClusterResourceSet(p.EC2(), p.Region(), cfg, managedNodesSupport, nil)
 			err = crs.AddAllResources()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			ngrs = NewNodeGroupResourceSet(p, cfg, clusterStackName, ng, managedNodesSupport, false)
+			ngrs = NewNodeGroupResourceSet(p.IAM(), cfg, clusterStackName, ng, managedNodesSupport, false)
 			err = ngrs.AddAllResources()
 			Expect(err).ShouldNot(HaveOccurred())
 

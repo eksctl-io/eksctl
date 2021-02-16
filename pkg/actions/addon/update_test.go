@@ -20,7 +20,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
@@ -66,7 +65,7 @@ var _ = Describe("Update", func() {
 		addonManager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
 			Version: "1.18",
 			Name:    "my-cluster",
-		}}, &eks.ClusterProvider{Provider: mockProvider}, fakeStackManager, true, oidc, nil)
+		}}, mockProvider.EKS(), fakeStackManager, true, oidc, nil)
 		Expect(err).NotTo(HaveOccurred())
 
 	})

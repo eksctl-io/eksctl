@@ -23,7 +23,7 @@ type Summary struct {
 
 func (a *Manager) Get(addon *api.Addon) (Summary, error) {
 	logger.Debug("addon: %v", addon)
-	output, err := a.clusterProvider.Provider.EKS().DescribeAddon(&eks.DescribeAddonInput{
+	output, err := a.eksAPI.DescribeAddon(&eks.DescribeAddonInput{
 		ClusterName: &a.clusterConfig.Metadata.Name,
 		AddonName:   &addon.Name,
 	})
@@ -65,7 +65,7 @@ func (a *Manager) Get(addon *api.Addon) (Summary, error) {
 
 func (a *Manager) GetAll() ([]Summary, error) {
 	logger.Info("getting all addons")
-	output, err := a.clusterProvider.Provider.EKS().ListAddons(&eks.ListAddonsInput{
+	output, err := a.eksAPI.ListAddons(&eks.ListAddonsInput{
 		ClusterName: &a.clusterConfig.Metadata.Name,
 	})
 	if err != nil {

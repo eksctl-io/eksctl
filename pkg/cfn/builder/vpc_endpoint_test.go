@@ -54,7 +54,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 		}
 
 		rs := newResourceSet()
-		vpcResourceSet := NewVPCResourceSet(rs, vc.clusterConfig, provider)
+		vpcResourceSet := NewVPCResourceSet(rs, vc.clusterConfig, provider.EC2())
 		vpcResource, err := vpcResourceSet.AddResources()
 		if vc.err != "" {
 			Expect(err).To(HaveOccurred())
@@ -64,7 +64,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 
 		Expect(err).ToNot(HaveOccurred())
 		if vc.clusterConfig.PrivateCluster.Enabled {
-			vpcEndpointResourceSet := NewVPCEndpointResourceSet(provider, rs, vc.clusterConfig, vpcResource.VPC, vpcResource.SubnetDetails.Private, gfnt.NewString("sg-test"))
+			vpcEndpointResourceSet := NewVPCEndpointResourceSet(provider.EC2(), provider.Region(), rs, vc.clusterConfig, vpcResource.VPC, vpcResource.SubnetDetails.Private, gfnt.NewString("sg-test"))
 			Expect(vpcEndpointResourceSet.AddResources()).To(Succeed())
 			s3Endpoint := rs.template.Resources["VPCEndpointS3"].(*gfnec2.VPCEndpoint)
 			routeIdsSlice, ok := s3Endpoint.RouteTableIds.Raw().(gfnt.Slice)

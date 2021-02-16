@@ -56,7 +56,7 @@ func (c *StackCollection) makeNodeGroupStackName(name string) string {
 func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup, supportsManagedNodes, forceAddCNIPolicy bool) error {
 	name := c.makeNodeGroupStackName(ng.Name)
 	logger.Info("building nodegroup stack %q", name)
-	stack := builder.NewNodeGroupResourceSet(c.provider, c.spec, c.makeClusterStackName(), ng, supportsManagedNodes, forceAddCNIPolicy)
+	stack := builder.NewNodeGroupResourceSet(c.iamAPI, c.spec, c.makeClusterStackName(), ng, supportsManagedNodes, forceAddCNIPolicy)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup
 func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool) error {
 	name := c.makeNodeGroupStackName(ng.Name)
 	logger.Info("building managed nodegroup stack %q", name)
-	stack := builder.NewManagedNodeGroup(c.spec, ng, builder.NewLaunchTemplateFetcher(c.provider.EC2()), c.makeClusterStackName(), forceAddCNIPolicy)
+	stack := builder.NewManagedNodeGroup(c.spec, ng, builder.NewLaunchTemplateFetcher(c.ec2API), c.makeClusterStackName(), forceAddCNIPolicy)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]Stac
 		if err != nil {
 			return nil, errors.Wrapf(err, "getting template for %q stack", *s.StackName)
 		}
-		resources, err := c.provider.CloudFormation().DescribeStackResources(input)
+		resources, err := c.cloudformationAPI.DescribeStackResources(input)
 		if err != nil {
 			return nil, errors.Wrapf(err, "getting all resources for %q stack", *s.StackName)
 		}
@@ -318,7 +318,7 @@ func (c *StackCollection) GetNodeGroupAutoScalingGroupName(s *Stack) (string, er
 		LogicalResourceId: aws.String("NodeGroup"),
 	}
 
-	res, err := c.provider.CloudFormation().DescribeStackResource(input)
+	res, err := c.cloudformationAPI.DescribeStackResource(input)
 	if err != nil {
 		return "", err
 	}
@@ -333,7 +333,7 @@ func (c *StackCollection) GetManagedNodeGroupAutoScalingGroupName(s *Stack) (str
 		NodegroupName: aws.String(c.GetNodeGroupName(s)),
 	}
 
-	res, err := c.provider.EKS().DescribeNodegroup(input)
+	res, err := c.eksAPI.DescribeNodegroup(input)
 	if err != nil {
 		logger.Warning("couldn't get managed nodegroup details for stack %q", *s.StackName)
 		return "", nil

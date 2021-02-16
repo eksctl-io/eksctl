@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/service/iam/iamiface"
+
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
@@ -24,7 +26,7 @@ type NodeGroupResourceSet struct {
 	spec                 *api.NodeGroup
 	supportsManagedNodes bool
 	forceAddCNIPolicy    bool
-	provider             api.ClusterProvider
+	iamAPI               iamiface.IAMAPI
 	clusterStackName     string
 	instanceProfileARN   *gfnt.Value
 	securityGroups       []*gfnt.Value
@@ -33,7 +35,7 @@ type NodeGroupResourceSet struct {
 }
 
 // NewNodeGroupResourceSet returns a resource set for a nodegroup embedded in a cluster config
-func NewNodeGroupResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup,
+func NewNodeGroupResourceSet(iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup,
 	supportsManagedNodes, forceAddCNIPolicy bool) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
 		rs:                   newResourceSet(),
@@ -42,7 +44,7 @@ func NewNodeGroupResourceSet(provider api.ClusterProvider, spec *api.ClusterConf
 		forceAddCNIPolicy:    forceAddCNIPolicy,
 		clusterSpec:          spec,
 		spec:                 ng,
-		provider:             provider,
+		iamAPI:               iamAPI,
 	}
 }
 

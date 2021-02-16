@@ -93,7 +93,7 @@ func (c *StackCollection) EnsureMapPublicIPOnLaunchEnabled() error {
 	// if the stacks in Cloudformation have the setting enabled (since a stack update would produce "nothing to change"
 	// and therefore the setting would not be updated)
 	logger.Debug("enabling attribute MapPublicIpOnLaunch via EC2 on subnets %q", c.spec.PublicSubnetIDs())
-	err := vpc.EnsureMapPublicIPOnLaunchEnabled(c.provider, c.spec.PublicSubnetIDs())
+	err := vpc.EnsureMapPublicIPOnLaunchEnabled(c.ec2API, c.spec.PublicSubnetIDs())
 	if err != nil {
 		return err
 	}

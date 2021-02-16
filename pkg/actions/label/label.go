@@ -4,10 +4,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/pkg/errors"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/managed"
 )
 
 //go:generate counterfeiter -o fakes/fake_managed_service.go . Service
@@ -22,13 +18,11 @@ type Manager struct {
 	clusterName string
 }
 
-func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) *Manager {
-	sc := manager.NewStackCollection(ctl.Provider, cfg)
-	mc := managed.NewService(ctl.Provider, sc, cfg.Metadata.Name)
+func New(clusterName string, service Service, eksAPI eksiface.EKSAPI) *Manager {
 	return &Manager{
-		service:     mc,
-		eksAPI:      ctl.Provider.EKS(),
-		clusterName: cfg.Metadata.Name,
+		service:     service,
+		eksAPI:      eksAPI,
+		clusterName: clusterName,
 	}
 }
 

@@ -37,7 +37,7 @@ func (a *Manager) describeVersions(addon *api.Addon) (*eks.DescribeAddonVersions
 		input.AddonName = &addon.Name
 	}
 
-	output, err := a.clusterProvider.Provider.EKS().DescribeAddonVersions(input)
+	output, err := a.eksAPI.DescribeAddonVersions(input)
 	if err != nil {
 		return nil, fmt.Errorf("failed to describe addon versions: %v", err)
 	}

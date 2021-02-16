@@ -37,14 +37,14 @@ func (c *StackCollection) DeleteTasksForDeprecatedStacks() (*tasks.TaskTree, err
 	deleteControlPlaneTask := &tasks.TaskWithoutParams{
 		Info: fmt.Sprintf("delete control plane %q", c.spec.Metadata.Name),
 		Call: func(errs chan error) error {
-			_, err := c.provider.EKS().DescribeCluster(&eks.DescribeClusterInput{
+			_, err := c.eksAPI.DescribeCluster(&eks.DescribeClusterInput{
 				Name: &c.spec.Metadata.Name,
 			})
 			if err != nil {
 				return err
 			}
 
-			_, err = c.provider.EKS().DeleteCluster(&eks.DeleteClusterInput{
+			_, err = c.eksAPI.DeleteCluster(&eks.DeleteClusterInput{
 				Name: &c.spec.Metadata.Name,
 			})
 			if err != nil {
@@ -55,7 +55,7 @@ func (c *StackCollection) DeleteTasksForDeprecatedStacks() (*tasks.TaskTree, err
 				input := &eks.DescribeClusterInput{
 					Name: &c.spec.Metadata.Name,
 				}
-				req, _ := c.provider.EKS().DescribeClusterRequest(input)
+				req, _ := c.eksAPI.DescribeClusterRequest(input)
 				return req
 			}
 
@@ -69,7 +69,7 @@ func (c *StackCollection) DeleteTasksForDeprecatedStacks() (*tasks.TaskTree, err
 				},
 			)
 
-			return waiters.Wait(c.spec.Metadata.Name, msg, acceptors, newRequest, c.provider.WaitTimeout(), nil)
+			return waiters.Wait(c.spec.Metadata.Name, msg, acceptors, newRequest, c.waitTimeout, nil)
 		},
 	}
 

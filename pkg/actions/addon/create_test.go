@@ -15,7 +15,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
@@ -83,7 +82,7 @@ var _ = Describe("Create", func() {
 		manager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
 			Version: "1.18",
 			Name:    "my-cluster",
-		}}, &eks.ClusterProvider{Provider: mockProvider}, fakeStackManager, withOIDC, oidc, rawClient.ClientSet())
+		}}, mockProvider.EKS(), fakeStackManager, withOIDC, oidc, rawClient.ClientSet())
 		Expect(err).NotTo(HaveOccurred())
 	})
 

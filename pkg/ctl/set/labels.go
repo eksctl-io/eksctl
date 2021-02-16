@@ -4,6 +4,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/actions/label"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/managed"
 	"github.com/weaveworks/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -62,7 +64,8 @@ func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
 	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 	logger.Info("setting label(s) on nodegroup %s in cluster %s", options.nodeGroupName, cmd.ClusterConfig.Metadata)
 
-	manager := label.New(cfg, ctl)
+	service := managed.NewService(ctl.Provider.EKS(), ctl.Provider.SSM(), ctl.Provider.EC2(), manager.NewStackCollection(ctl.Provider, cfg), cfg.Metadata.Name)
+	manager := label.New(cfg.Metadata.Name, service, ctl.Provider.EKS())
 	if err := manager.Set(options.nodeGroupName, options.labels); err != nil {
 		return err
 	}
