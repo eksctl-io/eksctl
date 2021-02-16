@@ -7,6 +7,7 @@ source "${DIR}/tag-common.sh"
 
 release_branch=$(release_branch)
 
+check_prereqs
 check_origin
 
 git checkout "${default_branch}"
@@ -25,17 +26,14 @@ m="Release ${release_version}"
 
 commit "${m}" "${release_notes_file}"
 
-
 tag_version_and_latest "${m}" "${release_version}"
 
 # Update the site by putting everything from the release into the docs branch
 git push --force origin "${release_branch}":docs
 
-git checkout "${default_branch}"
-git pull --ff-only origin "${default_branch}"
-
-prepare_for_next_version_if_at "${release_version}"
-
 git push origin "${release_branch}:${release_branch}"
 git push origin "${release_version}"
-git push origin "${default_branch}:${default_branch}" || gh pr create --fill --label "skip-release-notes"
+
+# Make PR to update default branch if necessary
+git checkout "${default_branch}"
+bump_version_if_not_at "${release_version}"
