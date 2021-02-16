@@ -811,6 +811,41 @@ var _ = Describe("VPC", func() {
 			},
 			error: nil,
 		}),
+		Entry("Subnets given names and identified by various params", importAllSubnetsCase{
+			cfg: api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					Network: api.Network{
+						ID: "vpc1",
+					},
+					Subnets: &api.ClusterSubnets{
+						Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+							"subone": {
+								ID: "private1",
+							},
+							"subtwo": {
+								AZ:   "az2",
+								CIDR: ipnet.MustParseCIDR("192.168.64.0/18"),
+							},
+						}),
+					},
+				},
+			},
+			expected: api.ClusterSubnets{
+				Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+					"subone": {
+						ID:   "private1",
+						AZ:   "az1",
+						CIDR: ipnet.MustParseCIDR("192.168.0.0/20"),
+					},
+					"subtwo": {
+						ID:   "private2",
+						AZ:   "az2",
+						CIDR: ipnet.MustParseCIDR("192.168.64.0/18"),
+					},
+				}),
+			},
+			error: nil,
+		}),
 		Entry("Subnets identified by CIDR", importAllSubnetsCase{
 			cfg: api.ClusterConfig{
 				VPC: &api.ClusterVPC{
