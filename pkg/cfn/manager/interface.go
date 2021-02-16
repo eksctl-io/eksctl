@@ -38,7 +38,6 @@ type StackManager interface {
 	DeleteStackByNameSync(name string) error
 	DeleteStackBySpec(s *Stack) (*Stack, error)
 	DeleteStackBySpecSync(s *Stack, errs chan error) error
-	ErrStackNotFound() error
 	DescribeStacks() ([]*Stack, error)
 	HasClusterStack() (bool, error)
 	HasClusterStackUsingCachedList(clusterStackNames []string) (bool, error)

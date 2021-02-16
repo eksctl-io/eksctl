@@ -23,7 +23,7 @@ func (c *StackCollection) FixClusterCompatibility() error {
 		return err
 	}
 	if stack == nil {
-		return c.ErrStackNotFound()
+		return &StackNotFoundErr{ClusterName: c.spec.Metadata.Name}
 	}
 
 	var (

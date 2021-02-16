@@ -255,16 +255,6 @@ type FakeStackManager struct {
 	ensureMapPublicIPOnLaunchEnabledReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ErrStackNotFoundStub        func() error
-	errStackNotFoundMutex       sync.RWMutex
-	errStackNotFoundArgsForCall []struct {
-	}
-	errStackNotFoundReturns struct {
-		result1 error
-	}
-	errStackNotFoundReturnsOnCall map[int]struct {
-		result1 error
-	}
 	FixClusterCompatibilityStub        func() error
 	fixClusterCompatibilityMutex       sync.RWMutex
 	fixClusterCompatibilityArgsForCall []struct {

@@ -92,7 +92,7 @@ func (c *StackCollection) RefreshFargatePodExecutionRoleARN() error {
 			return err
 		}
 		if stack == nil {
-			return c.ErrStackNotFound()
+			return &StackNotFoundErr{ClusterName: c.spec.Metadata.Name}
 		}
 	} else {
 		stack, err = c.GetFargateStack()
