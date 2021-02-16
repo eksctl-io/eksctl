@@ -6,6 +6,10 @@ set -o nounset
 
 export default_branch="main"
 
+function check_prereqs() {
+    gh version
+}
+
 function branch_exists() {
   git ls-remote --heads origin "${1}" | grep -q "${1}"
 }
@@ -66,7 +70,7 @@ function tag_version_and_latest() {
   git tag --annotate --message "${commit_msg}" "${tag}"
 }
 
-function prepare_for_next_version_if_at() {
+function bump_version_if_not_at() {
   local dev_version
   dev_version=$(release_generate print-version)
   if [ "${dev_version}" != "$1" ]; then
@@ -76,4 +80,5 @@ function prepare_for_next_version_if_at() {
   release_generate development
   git add ./pkg/version/release.go
   git commit --message "Prepare for next development iteration"
+  gh pr create --fill --label "skip-release-notes"
 }
