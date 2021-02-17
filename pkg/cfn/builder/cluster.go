@@ -58,7 +58,6 @@ func unsetExistingResources(existingStack *gjson.Result, clusterConfig *api.Clus
 
 // AddAllResources adds all the information about the cluster to the resource set
 func (c *ClusterResourceSet) AddAllResources() error {
-
 	if err := c.spec.HasSufficientSubnets(); err != nil {
 		return err
 	}

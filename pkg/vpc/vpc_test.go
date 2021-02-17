@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
@@ -632,52 +633,59 @@ var _ = Describe("VPC", func() {
 	DescribeTable("Can import all subnets",
 		func(e importAllSubnetsCase) {
 			p := mockprovider.NewMockProvider()
-			p.MockEC2()
 
-			mockResultFn := func(input *ec2.DescribeSubnetsInput) *ec2.DescribeSubnetsOutput {
-				if *input.SubnetIds[0] == "private1" {
-					return &ec2.DescribeSubnetsOutput{
-						Subnets: []*ec2.Subnet{
-							{
-								AvailabilityZone: strings.Pointer("az1"),
-								CidrBlock:        strings.Pointer("192.168.0.0/20"),
-								SubnetId:         strings.Pointer("private1"),
-								VpcId:            strings.Pointer("vpc1"),
-							},
-						},
-					}
-				}
-				return &ec2.DescribeSubnetsOutput{
-					Subnets: []*ec2.Subnet{
-						{
-							AvailabilityZone: strings.Pointer("az1"),
-							CidrBlock:        strings.Pointer("192.168.1.0/20"),
-							SubnetId:         strings.Pointer("public1"),
-							VpcId:            strings.Pointer("vpc1"),
-						},
+			p.MockEC2().On("DescribeSubnets",
+				&ec2.DescribeSubnetsInput{Filters: []*ec2.Filter{{
+					Name: strings.Pointer("vpc-id"), Values: aws.StringSlice([]string{"vpc1"}),
+				}, {
+					Name: strings.Pointer("cidr-block"), Values: aws.StringSlice([]string{"192.168.64.0/18"}),
+				}}},
+			).Return(&ec2.DescribeSubnetsOutput{
+				Subnets: []*ec2.Subnet{
+					{
+						AvailabilityZone: strings.Pointer("az2"),
+						CidrBlock:        strings.Pointer("192.168.64.0/18"),
+						SubnetId:         strings.Pointer("private2"),
+						VpcId:            strings.Pointer("vpc1"),
 					},
-				}
-			}
-
-			mockVpcResultFn := func(_ *ec2.DescribeVpcsInput) *ec2.DescribeVpcsOutput {
-				return &ec2.DescribeVpcsOutput{
-					NextToken: nil,
-					Vpcs: []*ec2.Vpc{
-						{
-							CidrBlock: strings.Pointer("192.168.0.0/16"),
-							VpcId:     strings.Pointer("vpc1"),
-						},
+				},
+			}, nil)
+			p.MockEC2().On("DescribeSubnets",
+				&ec2.DescribeSubnetsInput{SubnetIds: aws.StringSlice([]string{"private1"})},
+			).Return(&ec2.DescribeSubnetsOutput{
+				Subnets: []*ec2.Subnet{
+					{
+						AvailabilityZone: strings.Pointer("az1"),
+						CidrBlock:        strings.Pointer("192.168.0.0/20"),
+						SubnetId:         strings.Pointer("private1"),
+						VpcId:            strings.Pointer("vpc1"),
 					},
-				}
-			}
+				},
+			}, nil)
+			p.MockEC2().On("DescribeSubnets",
+				&ec2.DescribeSubnetsInput{SubnetIds: aws.StringSlice([]string{"public1"})},
+			).Return(&ec2.DescribeSubnetsOutput{
+				Subnets: []*ec2.Subnet{
+					{
+						AvailabilityZone: strings.Pointer("az1"),
+						CidrBlock:        strings.Pointer("192.168.1.0/20"),
+						SubnetId:         strings.Pointer("public1"),
+						VpcId:            strings.Pointer("vpc1"),
+					},
+				},
+			}, nil)
 
-			p.MockEC2().On("DescribeVpcs", MatchedBy(func(input *ec2.DescribeVpcsInput) bool {
-				return input != nil
-			})).Return(mockVpcResultFn, nil)
-
-			p.MockEC2().On("DescribeSubnets", MatchedBy(func(input *ec2.DescribeSubnetsInput) bool {
-				return input != nil
-			})).Return(mockResultFn, nil)
+			p.MockEC2().On("DescribeVpcs",
+				&ec2.DescribeVpcsInput{VpcIds: aws.StringSlice([]string{"vpc1"})},
+			).Return(&ec2.DescribeVpcsOutput{
+				NextToken: nil,
+				Vpcs: []*ec2.Vpc{
+					{
+						CidrBlock: strings.Pointer("192.168.0.0/16"),
+						VpcId:     strings.Pointer("vpc1"),
+					},
+				},
+			}, nil)
 
 			err := ImportAllSubnets(p, &e.cfg)
 			if e.error != nil {
@@ -791,6 +799,52 @@ var _ = Describe("VPC", func() {
 						ID:   "private1",
 						AZ:   "az1",
 						CIDR: ipnet.MustParseCIDR("192.168.0.0/20"),
+					},
+				}),
+				Public: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+					"invalidAZ": {
+						ID:   "public1",
+						AZ:   "az1",
+						CIDR: ipnet.MustParseCIDR("192.168.1.0/20"),
+					},
+				}),
+			},
+			error: nil,
+		}),
+		Entry("Subnets identified by CIDR", importAllSubnetsCase{
+			cfg: api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					Network: api.Network{
+						ID: "vpc1",
+					},
+					Subnets: &api.ClusterSubnets{
+						Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+							"az1": {
+								ID: "private1",
+							},
+							"az2": {
+								CIDR: ipnet.MustParseCIDR("192.168.64.0/18"),
+							},
+						}),
+						Public: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+							"invalidAZ": {
+								ID: "public1",
+							},
+						}),
+					},
+				},
+			},
+			expected: api.ClusterSubnets{
+				Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+					"az1": {
+						ID:   "private1",
+						AZ:   "az1",
+						CIDR: ipnet.MustParseCIDR("192.168.0.0/20"),
+					},
+					"az2": {
+						ID:   "private2",
+						AZ:   "az2",
+						CIDR: ipnet.MustParseCIDR("192.168.64.0/18"),
 					},
 				}),
 				Public: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
