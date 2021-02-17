@@ -22,7 +22,7 @@ vpc:
         id: subnet-03a1260affe6f9944
     private:
       private-one:
-        id: subnet-05373e0e6d03065cc
+        cidr: "192.168.160.0/19"
       private-two:
         id: subnet-00110ffa3ef259d0c
       private-three:

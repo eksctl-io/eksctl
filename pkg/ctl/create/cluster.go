@@ -151,7 +151,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		cfg.VPC.CIDR = nil
 		// load subnets from local map created from flags, into the config
 		for topology := range params.Subnets {
-			if err := vpc.ImportSubnetsFromList(ctl.Provider.EC2(), cfg, topology, *params.Subnets[topology]); err != nil {
+			if err := vpc.ImportSubnetsFromList(ctl.Provider.EC2(), cfg, topology, *params.Subnets[topology], []string{}); err != nil {
 				return err
 			}
 		}
@@ -175,14 +175,16 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	createOrImportVPC := func() error {
 
 		subnetInfo := func() string {
-			return fmt.Sprintf("VPC (%s) and subnets (private:%v public:%v)",
-				cfg.VPC.ID, cfg.PrivateSubnetIDs(), cfg.PublicSubnetIDs())
+			return fmt.Sprintf(
+				"VPC (%s) and subnets (private:%v public:%v)",
+				cfg.VPC.ID, cfg.VPC.Subnets.Private, cfg.VPC.Subnets.Public,
+			)
 		}
 
 		customNetworkingNotice := "custom VPC/subnets will be used; if resulting cluster doesn't function as expected, make sure to review the configuration of VPC/subnets"
 
 		canUseForPrivateNodeGroups := func(ng *api.NodeGroup) error {
-			if ng.PrivateNetworking && !cfg.HasSufficientPrivateSubnets() {
+			if ng.PrivateNetworking && !cfg.HasSufficientPrivateSubnetsForPrivateNodegroup() {
 				return errors.New("none or too few private subnets to use with --node-private-networking")
 			}
 			return nil
