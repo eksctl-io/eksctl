@@ -38,21 +38,19 @@ const (
 var _ = Describe("(Integration) Create & Delete before Active", func() {
 	const initNG = "ng-0"
 
-	Context("when creating a new cluster", func() {
-		It("should not return an error", func() {
-			cmd := params.EksctlCreateCmd.WithArgs(
-				"cluster",
-				"--verbose", "2",
-				"--name", params.ClusterName,
-				"--tags", "alpha.eksctl.io/description=eksctl delete before active test",
-				"--without-nodegroup",
-				"--version", params.Version,
-			)
-			cmd.Start()
-			awsSession := NewSession(params.Region)
-			Eventually(awsSession, timeOutSeconds, pollInterval).Should(
-				HaveExistingCluster(params.ClusterName, awseks.ClusterStatusCreating, params.Version))
-		})
+	BeforeSuite(func() {
+		cmd := params.EksctlCreateCmd.WithArgs(
+			"cluster",
+			"--verbose", "2",
+			"--name", params.ClusterName,
+			"--tags", "alpha.eksctl.io/description=eksctl delete before active test",
+			"--without-nodegroup",
+			"--version", params.Version,
+		)
+		cmd.Start()
+		awsSession := NewSession(params.Region)
+		Eventually(awsSession, timeOutSeconds, pollInterval).Should(
+			HaveExistingCluster(params.ClusterName, awseks.ClusterStatusCreating, params.Version))
 	})
 
 	Context("when deleting the cluster in process of being created", func() {
