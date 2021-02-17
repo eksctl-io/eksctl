@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       skipIntegrationTests:
-        description: "Skip check for successful integration tests:"
-        default: "false"
+        description: 'Skip check for successful integration tests:'
+        default: 'false'
 
 jobs:
   rc:
@@ -13,19 +13,54 @@ jobs:
     runs-on: ubuntu-latest
     container: weaveworks/eksctl-build:5705efb32cdbf4531b282dba24dae03a872f5b31
     steps:
+      - uses: actions/github-script@v3
+        name: Wait for integration tests to pass
+        if: "!fromJson(github.event.inputs.skipIntegrationTests)"
+        with:
+          # Important because GH actions can't start workflows
+          github-token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
+          script: |
+            async function checkStatus() {
+              // There's no other way to identify the integration test job
+              // GH branch protections are also just a string
+              // must be in sync with integration-tests.yaml
+              const integrationTestsCheckName = "Run integration tests";
+              const { data } = await github.checks.listForRef({
+                ...context.repo,
+                ref: "${{ github.ref }}",
+                check_name: integrationTestsCheckName,
+              });
+              return data.check_runs.some(cr =>
+                cr.status === "completed" && cr.conclusion === "success"
+              );
+            }
+            if (!(await checkStatus())) {
+              await github.actions.createWorkflowDispatch({
+                ...context.repo,
+                ref: "${{ github.ref }}",
+                workflow_id: "integration-tests.yaml",
+              });
+            }
+            const timeoutMs = 130*60*1000;
+            const waitTimeMs = 30*1000;
+            return await new Promise((resolve, reject) => {
+              let timeWaited = 0;
+              let go = () => {
+                if (timeWaited > timeoutMs) {
+                  return reject("Timed out waiting for tests to complete!");
+                }
+                timeWaited = timeWaited + waitTimeMs;
+                checkStatus().then(
+                  success => success ? resolve("Tests completed successfully!") : setTimeout(go, waitTimeMs)
+                );
+              }
+              go();
+            });
       - name: Checkout
         uses: actions/checkout@v2
         with:
           token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
           fetch-depth: 0
-      - name: Wait for integration tests
-        uses: "./.github/actions/wait-for-workflow-job"
-        if: "!fromJson(github.event.inputs.skipIntegrationTests)"
-        with:
-          workflow-name: "integration-tests.yaml"
-          workflow-job: "Run integration tests"
-          github-token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
-          timeout-minutes: 130
       - name: Cache go-build and mod
         uses: actions/cache@v2
         with:
@@ -33,9 +68,9 @@ jobs:
             ~/.cache/go-build/
             ~/go/pkg/mod/
           key: ${{ hashFiles('go.sum') }}
-          #- name: Setup git config as weaveworksbot
-          #  run: |
-          #    git config user.name "weaveworksbot"
-          #    git config user.email "weaveworksbot@users.noreply.github.com"
-          #- name: Push release branch, tag RC and update main branch
-          #  run: make prepare-release-candidate
+      - name: Setup git config as weaveworksbot
+        run: |
+          git config user.name "weaveworksbot"
+          git config user.email "weaveworksbot@users.noreply.github.com"
+      - name: Push release branch, tag RC and update main branch
+        run: make prepare-release-candidate
