@@ -341,7 +341,7 @@ func (v *VPCResourceSet) AddOutputs() {
 
 	addSubnetOutput := func(subnetRefs []*gfnt.Value, topology api.SubnetTopology, outputName string) {
 		v.defineJoinedOutput(outputName, subnetRefs, true, func(value string) error {
-			return vpc.ImportSubnetsFromList(v.ec2API, v.clusterConfig, topology, strings.Split(value, ","), []string{})
+			return vpc.ImportSubnetsFromList(v.ec2API, v.clusterConfig, topology, strings.Split(value, ","), []string{}, []string{})
 		})
 	}
 

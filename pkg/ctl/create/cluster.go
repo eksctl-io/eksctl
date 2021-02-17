@@ -151,7 +151,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		cfg.VPC.CIDR = nil
 		// load subnets from local map created from flags, into the config
 		for topology := range params.Subnets {
-			if err := vpc.ImportSubnetsFromList(ctl.Provider.EC2(), cfg, topology, *params.Subnets[topology], []string{}); err != nil {
+			if err := vpc.ImportSubnetsFromList(ctl.Provider.EC2(), cfg, topology, *params.Subnets[topology], []string{}, []string{}); err != nil {
 				return err
 			}
 		}
