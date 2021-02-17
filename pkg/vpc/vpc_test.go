@@ -651,6 +651,22 @@ var _ = Describe("VPC", func() {
 				},
 			}, nil)
 			p.MockEC2().On("DescribeSubnets",
+				&ec2.DescribeSubnetsInput{Filters: []*ec2.Filter{{
+					Name: strings.Pointer("vpc-id"), Values: aws.StringSlice([]string{"vpc1"}),
+				}, {
+					Name: strings.Pointer("availability-zone"), Values: aws.StringSlice([]string{"az3"}),
+				}}},
+			).Return(&ec2.DescribeSubnetsOutput{
+				Subnets: []*ec2.Subnet{
+					{
+						AvailabilityZone: strings.Pointer("az3"),
+						CidrBlock:        strings.Pointer("192.168.128.0/18"),
+						SubnetId:         strings.Pointer("private3"),
+						VpcId:            strings.Pointer("vpc1"),
+					},
+				},
+			}, nil)
+			p.MockEC2().On("DescribeSubnets",
 				&ec2.DescribeSubnetsInput{SubnetIds: aws.StringSlice([]string{"private1"})},
 			).Return(&ec2.DescribeSubnetsOutput{
 				Subnets: []*ec2.Subnet{
@@ -826,6 +842,9 @@ var _ = Describe("VPC", func() {
 								AZ:   "az2",
 								CIDR: ipnet.MustParseCIDR("192.168.64.0/18"),
 							},
+							"subthree": {
+								AZ: "az3",
+							},
 						}),
 					},
 				},
@@ -841,6 +860,11 @@ var _ = Describe("VPC", func() {
 						ID:   "private2",
 						AZ:   "az2",
 						CIDR: ipnet.MustParseCIDR("192.168.64.0/18"),
+					},
+					"subthree": {
+						ID:   "private3",
+						AZ:   "az3",
+						CIDR: ipnet.MustParseCIDR("192.168.128.0/18"),
 					},
 				}),
 			},
