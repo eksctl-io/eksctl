@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
-
 	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -475,19 +474,11 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 			Key:   gfnt.NewString("kubernetes.io/cluster/" + n.clusterSpec.Metadata.Name),
 			Value: gfnt.NewString("owned"),
 		}},
-		SecurityGroupIngress: makeSSHIngressRules(n.spec.NodeGroupBase, n.clusterSpec.VPC.CIDR.String(), desc),
+		SecurityGroupIngress: makeNodeIngressRules(n.spec.NodeGroupBase, refControlPlaneSG, n.clusterSpec.VPC.CIDR.String(), desc),
 	})
 
 	n.securityGroups = append(n.securityGroups, refNodeGroupLocalSG)
 
-	n.newResource("IngressInterCluster", &gfnec2.SecurityGroupIngress{
-		GroupId:               refNodeGroupLocalSG,
-		SourceSecurityGroupId: refControlPlaneSG,
-		Description:           gfnt.NewString("Allow " + desc + " to communicate with control plane (kubelet and workload TCP ports)"),
-		IpProtocol:            sgProtoTCP,
-		FromPort:              sgMinNodePort,
-		ToPort:                sgMaxNodePort,
-	})
 	n.newResource("EgressInterCluster", &gfnec2.SecurityGroupEgress{
 		GroupId:                    refControlPlaneSG,
 		DestinationSecurityGroupId: refNodeGroupLocalSG,
@@ -495,14 +486,6 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 		IpProtocol:                 sgProtoTCP,
 		FromPort:                   sgMinNodePort,
 		ToPort:                     sgMaxNodePort,
-	})
-	n.newResource("IngressInterClusterAPI", &gfnec2.SecurityGroupIngress{
-		GroupId:               refNodeGroupLocalSG,
-		SourceSecurityGroupId: refControlPlaneSG,
-		Description:           gfnt.NewString("Allow " + desc + " to communicate with control plane (workloads using HTTPS port, commonly used with extension API servers)"),
-		IpProtocol:            sgProtoTCP,
-		FromPort:              sgPortHTTPS,
-		ToPort:                sgPortHTTPS,
 	})
 	n.newResource("EgressInterClusterAPI", &gfnec2.SecurityGroupEgress{
 		GroupId:                    refControlPlaneSG,
@@ -520,6 +503,27 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 		FromPort:              sgPortHTTPS,
 		ToPort:                sgPortHTTPS,
 	})
+}
+
+func makeNodeIngressRules(ng *api.NodeGroupBase, controlPlaneSG *gfnt.Value, vpcCIDR, description string) []gfnec2.SecurityGroup_Ingress {
+	ingressRules := []gfnec2.SecurityGroup_Ingress{
+		{
+			SourceSecurityGroupId: controlPlaneSG,
+			Description:           gfnt.NewString(fmt.Sprintf("[IngressInterCluster] Allow %s to communicate with control plane (kubelet and workload TCP ports)", description)),
+			IpProtocol:            sgProtoTCP,
+			FromPort:              sgMinNodePort,
+			ToPort:                sgMaxNodePort,
+		},
+		{
+			SourceSecurityGroupId: controlPlaneSG,
+			Description:           gfnt.NewString(fmt.Sprintf("[IngressInterClusterAPI] Allow %s to communicate with control plane (workloads using HTTPS port, commonly used with extension API servers)", description)),
+			IpProtocol:            sgProtoTCP,
+			FromPort:              sgPortHTTPS,
+			ToPort:                sgPortHTTPS,
+		},
+	}
+
+	return append(ingressRules, makeSSHIngressRules(ng, vpcCIDR, description)...)
 }
 
 func (v *VPCResourceSet) haNAT() {
