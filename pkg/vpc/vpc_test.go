@@ -703,7 +703,7 @@ var _ = Describe("VPC", func() {
 				},
 			}, nil)
 
-			err := ImportAllSubnets(p, &e.cfg)
+			err := ImportSubnetsFromSpec(p, &e.cfg)
 			if e.error != nil {
 				Expect(err).To(MatchError(e.error.Error()))
 			} else {
