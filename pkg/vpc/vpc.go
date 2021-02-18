@@ -448,7 +448,7 @@ func ImportAllSubnets(provider api.ClusterProvider, spec *api.ClusterConfig) err
 	if err := ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPrivate, spec.PrivateSubnetsWithIDs(), spec.PrivateSubnetsWithCIDRs(), spec.PrivateSubnetsWithAZs()); err != nil {
 		return err
 	}
-	if err := ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPublic, spec.PublicSubnetsWithIDs(), spec.PublicSubnetsWithCIDRs(), spec.PrivateSubnetsWithAZs()); err != nil {
+	if err := ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPublic, spec.PublicSubnetsWithIDs(), spec.PublicSubnetsWithCIDRs(), spec.PublicSubnetsWithAZs()); err != nil {
 		return err
 	}
 	// to clean up invalid subnets based on AZ after imported both private and public subnets
