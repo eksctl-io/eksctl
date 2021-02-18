@@ -85,7 +85,7 @@ func (m *AZSubnetMapping) WithCIDRs() []string {
 	}
 	subnets := []string{}
 	for _, s := range *m {
-		if s.CIDR != nil {
+		if s.CIDR != nil && s.ID == "" {
 			subnets = append(subnets, s.CIDR.String())
 		}
 	}
