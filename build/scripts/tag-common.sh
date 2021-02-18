@@ -57,7 +57,7 @@ function commit() {
   echo "Committing version changes"
   local commit_msg=$1
   local release_notes_file=$2
-  git add ./pkg/version/release.go
+  git add pkg/version/release.go
   git add "${release_notes_file}"
   git commit --message "${commit_msg}"
 }
@@ -78,7 +78,7 @@ function bump_version_if_not_at() {
   fi
   echo "Preparing for next development iteration"
   release_generate development
-  git add ./pkg/version/release.go
+  git add pkg/version/release.go
   git commit --message "Prepare for next development iteration"
   gh pr create --fill --label "skip-release-notes"
 }
