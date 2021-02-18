@@ -1,0 +1,48 @@
+name: "Notify slack"
+description: "Send a message by webhook"
+inputs:
+  webhook-url:
+    description: "Webhook URL to send the message to"
+    required: true
+  message:
+    description: "Message text"
+    required: true
+  channel:
+    description: "Slack channel"
+    required: true
+outputs: {}
+runs:
+  using: "composite"
+  steps:
+    - name: Notify slack
+      shell: bash
+      env:
+        msg: |
+          {
+            "channel": "${{ inputs.channel }}",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "${{ inputs.message }}"
+                }
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "View run"
+                    },
+                    "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                ]
+              }
+            ]
+          }
+      # Using curl here is just hard to read (and
+      # https://github.com/curl/curl/issues/1978)
+      run: printenv msg | http --body --check-status "${{ inputs.webhook-url }}"
