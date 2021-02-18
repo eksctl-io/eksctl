@@ -10,7 +10,6 @@ jobs:
     name: Cleanup AWS resources
     environment: "cleanup AWS"
     runs-on: ubuntu-latest
-    container: rebuy/aws-nuke:v2.15.0-rc.3
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -22,7 +21,11 @@ jobs:
         run: # Cloudformation deletes are slow and not in parallel, so your better off deleting all EKS resources first as they
           # run in parallel.
           sed -i "s/AWS_ACCOUNT_ID_REPLACE_ME/$AWS_ACCOUNT_ID/" aws-nuke-config.yaml
-          aws-nuke -c aws-nuke-config.yaml --force --no-dry-run --target=EKSNodegroups,EKSFargateProfiles,EKSCluster
-          aws-nuke -c aws-nuke-config.yaml --force --no-dry-run --target=CloudFormationStack
+          wget https://github.com/rebuy-de/aws-nuke/releases/download/v2.15.0-rc.3/aws-nuke-v2.15.0.rc.3-linux-amd64.tar.gz
+          tar -xvf aws-nuke-v2.15.0.rc.3-linux-amd64.tar.gz
+          mv aws-nuke-v2.15.0.rc.3-linux-amd64 aws-nuke
+          chmod +x aws-nuke
+          ./aws-nuke -c aws-nuke-config.yaml --force --no-dry-run --target=EKSNodegroups,EKSFargateProfiles,EKSCluster
+          ./aws-nuke -c aws-nuke-config.yaml --force --no-dry-run --target=CloudFormationStack
 
 
