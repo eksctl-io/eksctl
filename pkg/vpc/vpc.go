@@ -129,7 +129,7 @@ func SplitInto8(parent *net.IPNet) ([]*net.IPNet, error) {
 // describeSubnets fetches subnet metadata from EC2
 // directly using `subnetIDs` (`vpcID` can be empty) or
 // indirectly by specifying `cidrBlocks` AND `vpcID`
-func describeSubnets(ec2API ec2iface.EC2API, vpcID string, subnetIDs, cidrBlocks []string) ([]*ec2.Subnet, error) {
+func describeSubnets(ec2API ec2iface.EC2API, vpcID string, subnetIDs, cidrBlocks, azs []string) ([]*ec2.Subnet, error) {
 	var byID []*ec2.Subnet
 	if len(subnetIDs) > 0 {
 		input := &ec2.DescribeSubnetsInput{
@@ -164,7 +164,30 @@ func describeSubnets(ec2API ec2iface.EC2API, vpcID string, subnetIDs, cidrBlocks
 		}
 		byCIDR = output.Subnets
 	}
-	return append(byID, byCIDR...), nil
+	var byAZ []*ec2.Subnet
+	if len(azs) > 0 {
+		if vpcID == "" {
+			return nil, errors.New("can't describe subnet by AZ without VPC id")
+		}
+		input := &ec2.DescribeSubnetsInput{
+			Filters: []*ec2.Filter{
+				{
+					Name:   aws.String("vpc-id"),
+					Values: aws.StringSlice([]string{vpcID}),
+				},
+				{
+					Name:   aws.String("availability-zone"),
+					Values: aws.StringSlice(azs),
+				},
+			},
+		}
+		output, err := ec2API.DescribeSubnets(input)
+		if err != nil {
+			return nil, err
+		}
+		byAZ = output.Subnets
+	}
+	return append(append(byID, byCIDR...), byAZ...), nil
 }
 
 func describeVPC(ec2API ec2iface.EC2API, vpcID string) (*ec2.Vpc, error) {
@@ -213,10 +236,10 @@ func UseFromCluster(provider api.ClusterProvider, stack *cfn.Stack, spec *api.Cl
 			return nil
 		},
 		outputs.ClusterSubnetsPrivate: func(v string) error {
-			return ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPrivate, strings.Split(v, ","), []string{})
+			return ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPrivate, strings.Split(v, ","), []string{}, []string{})
 		},
 		outputs.ClusterSubnetsPublic: func(v string) error {
-			return ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPublic, strings.Split(v, ","), []string{})
+			return ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPublic, strings.Split(v, ","), []string{}, []string{})
 		},
 		outputs.ClusterFullyPrivate: func(v string) error {
 			spec.PrivateCluster.Enabled = v == "true"
@@ -227,7 +250,7 @@ func UseFromCluster(provider api.ClusterProvider, stack *cfn.Stack, spec *api.Cl
 	if !outputs.Exists(*stack, outputs.ClusterSubnetsPublic) &&
 		outputs.Exists(*stack, outputs.ClusterSubnetsPublicLegacy) {
 		optionalCollectors[outputs.ClusterSubnetsPublicLegacy] = func(v string) error {
-			return ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPublic, strings.Split(v, ","), []string{})
+			return ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPublic, strings.Split(v, ","), []string{}, []string{})
 		}
 	}
 
@@ -308,8 +331,8 @@ func ImportSubnets(ec2API ec2iface.EC2API, spec *api.ClusterConfig, topology api
 // then pass resulting subnets to ImportSubnets
 // NOTE: it does respect all fields set in spec.VPC, and will error if
 // there is a mismatch of local vs remote states
-func ImportSubnetsFromList(ec2API ec2iface.EC2API, spec *api.ClusterConfig, topology api.SubnetTopology, subnetIDs []string, cidrs []string) error {
-	subnets, err := describeSubnets(ec2API, spec.VPC.ID, subnetIDs, cidrs)
+func ImportSubnetsFromList(ec2API ec2iface.EC2API, spec *api.ClusterConfig, topology api.SubnetTopology, subnetIDs, cidrs, azs []string) error {
+	subnets, err := describeSubnets(ec2API, spec.VPC.ID, subnetIDs, cidrs, azs)
 	if err != nil {
 		return err
 	}
@@ -379,7 +402,7 @@ func ValidateExistingPublicSubnets(provider api.ClusterProvider, vpcID string, s
 	if len(subnetIDs) == 0 {
 		return nil
 	}
-	subnets, err := describeSubnets(provider.EC2(), vpcID, subnetIDs, []string{})
+	subnets, err := describeSubnets(provider.EC2(), vpcID, subnetIDs, []string{}, []string{})
 	if err != nil {
 		return err
 	}
@@ -422,10 +445,10 @@ func ImportAllSubnets(provider api.ClusterProvider, spec *api.ClusterConfig) err
 			return err
 		}
 	}
-	if err := ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPrivate, spec.PrivateSubnetsWithIDs(), spec.PrivateSubnetsWithCIDRs()); err != nil {
+	if err := ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPrivate, spec.PrivateSubnetsWithIDs(), spec.PrivateSubnetsWithCIDRs(), spec.PrivateSubnetsWithAZs()); err != nil {
 		return err
 	}
-	if err := ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPublic, spec.PublicSubnetsWithIDs(), spec.PublicSubnetsWithCIDRs()); err != nil {
+	if err := ImportSubnetsFromList(provider.EC2(), spec, api.SubnetTopologyPublic, spec.PublicSubnetsWithIDs(), spec.PublicSubnetsWithCIDRs(), spec.PublicSubnetsWithAZs()); err != nil {
 		return err
 	}
 	// to clean up invalid subnets based on AZ after imported both private and public subnets

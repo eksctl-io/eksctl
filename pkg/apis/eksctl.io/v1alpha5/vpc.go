@@ -201,6 +201,19 @@ func (c *ClusterConfig) PrivateSubnetsWithCIDRs() []string {
 	return subnets
 }
 
+// PrivateSubnetsWithAZs returns list of subnets that only specify an AZ
+func (c *ClusterConfig) PrivateSubnetsWithAZs() []string {
+	subnets := []string{}
+	if c.VPC.Subnets != nil {
+		for _, s := range c.VPC.Subnets.Private {
+			if s.AZ != "" && s.CIDR == nil && s.ID == "" {
+				subnets = append(subnets, s.AZ)
+			}
+		}
+	}
+	return subnets
+}
+
 // PublicSubnetsWithIDs returns list of subnets
 func (c *ClusterConfig) PublicSubnetsWithIDs() []string {
 	subnets := []string{}
@@ -221,6 +234,19 @@ func (c *ClusterConfig) PublicSubnetsWithCIDRs() []string {
 		for _, s := range c.VPC.Subnets.Public {
 			if s.CIDR != nil {
 				subnets = append(subnets, s.CIDR.String())
+			}
+		}
+	}
+	return subnets
+}
+
+// PrivateSubnetsWithAZs returns list of subnets that only specify an AZ
+func (c *ClusterConfig) PublicSubnetsWithAZs() []string {
+	subnets := []string{}
+	if c.VPC.Subnets != nil {
+		for _, s := range c.VPC.Subnets.Public {
+			if s.AZ != "" && s.CIDR == nil && s.ID == "" {
+				subnets = append(subnets, s.AZ)
 			}
 		}
 	}
