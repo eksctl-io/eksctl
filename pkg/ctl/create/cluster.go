@@ -151,7 +151,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		cfg.VPC.CIDR = nil
 		// load subnets from local map created from flags, into the config
 		for topology := range params.Subnets {
-			if err := vpc.ImportSubnetsFromList(ctl.Provider.EC2(), cfg, topology, *params.Subnets[topology], []string{}, []string{}); err != nil {
+			if err := vpc.ImportSubnetsFromIDList(ctl.Provider.EC2(), cfg, topology, *params.Subnets[topology]); err != nil {
 				return err
 			}
 		}
@@ -243,7 +243,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --vpc-cidr %s", cmdutils.IncompatibleFlags)
 		}
 
-		if err := vpc.ImportAllSubnets(ctl.Provider, cfg); err != nil {
+		if err := vpc.ImportSubnetsFromSpec(ctl.Provider, cfg); err != nil {
 			return err
 		}
 

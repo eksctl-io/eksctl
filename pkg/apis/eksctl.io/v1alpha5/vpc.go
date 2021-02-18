@@ -64,6 +64,48 @@ func (m *AZSubnetMapping) SetAZ(az string, spec Network) {
 	}
 }
 
+// WithIDs returns list of subnet ids
+func (m *AZSubnetMapping) WithIDs() []string {
+	if m == nil {
+		return nil
+	}
+	subnets := []string{}
+	for _, s := range *m {
+		if s.ID != "" {
+			subnets = append(subnets, s.ID)
+		}
+	}
+	return subnets
+}
+
+// WithCIDRs returns list of subnet CIDRs
+func (m *AZSubnetMapping) WithCIDRs() []string {
+	if m == nil {
+		return nil
+	}
+	subnets := []string{}
+	for _, s := range *m {
+		if s.CIDR != nil && s.ID == "" {
+			subnets = append(subnets, s.CIDR.String())
+		}
+	}
+	return subnets
+}
+
+// WithAZs returns list of subnet AZs
+func (m *AZSubnetMapping) WithAZs() []string {
+	if m == nil {
+		return nil
+	}
+	subnets := []string{}
+	for _, s := range *m {
+		if s.AZ != "" && s.CIDR == nil && s.ID == "" {
+			subnets = append(subnets, s.AZ)
+		}
+	}
+	return subnets
+}
+
 // UnmarshalJSON parses JSON data into a value
 func (m *AZSubnetMapping) UnmarshalJSON(b []byte) error {
 	// TODO we need to validate that the AZ property is maintained
@@ -175,84 +217,6 @@ func DefaultCIDR() ipnet.IPNet {
 	}
 }
 
-// PrivateSubnetsWithIDs returns list of subnets
-func (c *ClusterConfig) PrivateSubnetsWithIDs() []string {
-	subnets := []string{}
-	if c.VPC.Subnets != nil {
-		for _, s := range c.VPC.Subnets.Private {
-			if s.ID != "" {
-				subnets = append(subnets, s.ID)
-			}
-		}
-	}
-	return subnets
-}
-
-// PrivateSubnetsWithCIDRs returns list of subnets
-func (c *ClusterConfig) PrivateSubnetsWithCIDRs() []string {
-	subnets := []string{}
-	if c.VPC.Subnets != nil {
-		for _, s := range c.VPC.Subnets.Private {
-			if s.CIDR != nil {
-				subnets = append(subnets, s.CIDR.String())
-			}
-		}
-	}
-	return subnets
-}
-
-// PrivateSubnetsWithAZs returns list of subnets that only specify an AZ
-func (c *ClusterConfig) PrivateSubnetsWithAZs() []string {
-	subnets := []string{}
-	if c.VPC.Subnets != nil {
-		for _, s := range c.VPC.Subnets.Private {
-			if s.AZ != "" && s.CIDR == nil && s.ID == "" {
-				subnets = append(subnets, s.AZ)
-			}
-		}
-	}
-	return subnets
-}
-
-// PublicSubnetsWithIDs returns list of subnets
-func (c *ClusterConfig) PublicSubnetsWithIDs() []string {
-	subnets := []string{}
-	if c.VPC.Subnets != nil {
-		for _, s := range c.VPC.Subnets.Public {
-			if s.ID != "" {
-				subnets = append(subnets, s.ID)
-			}
-		}
-	}
-	return subnets
-}
-
-// PublicSubnetsWithCIDRs returns list of subnets
-func (c *ClusterConfig) PublicSubnetsWithCIDRs() []string {
-	subnets := []string{}
-	if c.VPC.Subnets != nil {
-		for _, s := range c.VPC.Subnets.Public {
-			if s.CIDR != nil {
-				subnets = append(subnets, s.CIDR.String())
-			}
-		}
-	}
-	return subnets
-}
-
-// PrivateSubnetsWithAZs returns list of subnets that only specify an AZ
-func (c *ClusterConfig) PublicSubnetsWithAZs() []string {
-	subnets := []string{}
-	if c.VPC.Subnets != nil {
-		for _, s := range c.VPC.Subnets.Public {
-			if s.AZ != "" && s.CIDR == nil && s.ID == "" {
-				subnets = append(subnets, s.AZ)
-			}
-		}
-	}
-	return subnets
-}
-
 // ImportSubnet loads a given subnet into cluster config
 func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID, cidr string) error {
 	if c.VPC.Subnets == nil {
@@ -262,17 +226,18 @@ func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID, cidr
 		}
 	}
 
+	var subnetMapping AZSubnetMapping
 	switch topology {
 	case SubnetTopologyPrivate:
-		if err := doImportSubnet(c.VPC.Subnets.Private, az, subnetID, cidr); err != nil {
-			return errors.Wrapf(err, "couldn't import subnet %s", subnetID)
-		}
+		subnetMapping = c.VPC.Subnets.Private
 	case SubnetTopologyPublic:
-		if err := doImportSubnet(c.VPC.Subnets.Public, az, subnetID, cidr); err != nil {
-			return errors.Wrapf(err, "couldn't import subnet %s", subnetID)
-		}
+		subnetMapping = c.VPC.Subnets.Public
 	default:
-		return fmt.Errorf("unexpected subnet topology: %s", topology)
+		panic(fmt.Sprintf("unexpected subnet topology: %s", topology))
+	}
+
+	if err := doImportSubnet(subnetMapping, az, subnetID, cidr); err != nil {
+		return errors.Wrapf(err, "couldn't import subnet %s", subnetID)
 	}
 	return nil
 }
