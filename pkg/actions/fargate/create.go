@@ -5,6 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 )
@@ -24,26 +25,35 @@ func (m *Manager) Create() error {
 		return fmt.Errorf("Fargate is not supported for this cluster version. Please update the cluster to be at least eks.%d", fargate.MinPlatformVersion)
 	}
 
-	stackManager := ctl.NewStackManager(cfg)
-
-	hasClusterStack, err := stackManager.HasClusterStack()
+	hasClusterStack, err := m.stackManager.HasClusterStack()
 	if err != nil {
 		return errors.Wrap(err, "couldn't check stack")
 	}
 
-	if !hasClusterStack {
-		if err := ensureUnownedClusterReadyForFargate(cfg, ctl.Provider, stackManager); err != nil {
-			return errors.Wrap(err, "couldn't ensure unowned cluster is ready for fargate")
+	if hasClusterStack {
+		exists, err := m.fargateRoleExistsOnClusterStack()
+		if err != nil {
+			return err
+		}
+
+		if !exists {
+			err := ensureFargateRoleStackExists(cfg, ctl.Provider, m.stackManager)
+			if err != nil {
+				return err
+			}
+		}
+
+		if err := ctl.LoadClusterIntoSpecFromStack(cfg, m.stackManager); err != nil {
+			return errors.Wrap(err, "couldn't load cluster into spec")
 		}
 	} else {
-		if err := ctl.LoadClusterIntoSpecFromStack(cfg, stackManager); err != nil {
-			return errors.Wrap(err, "couldn't load cluster into spec")
+		if err := ensureFargateRoleStackExists(cfg, ctl.Provider, m.stackManager); err != nil {
+			return errors.Wrap(err, "couldn't ensure unowned cluster is ready for fargate")
 		}
 	}
 
 	if !api.IsSetAndNonEmptyString(cfg.IAM.FargatePodExecutionRoleARN) {
-		// Read back the default Fargate pod execution role ARN from CloudFormation:
-		if err := stackManager.RefreshFargatePodExecutionRoleARN(); err != nil {
+		if err := m.stackManager.RefreshFargatePodExecutionRoleARN(); err != nil {
 			return errors.Wrap(err, "couldn't refresh role arn")
 		}
 	}
@@ -52,9 +62,24 @@ func (m *Manager) Create() error {
 	if err := eks.DoCreateFargateProfiles(cfg, &manager); err != nil {
 		return err
 	}
-	clientSet, err := ctl.NewStdClientSet(cfg)
+	clientSet, err := m.newStdClientSet()
 	if err != nil {
 		return err
 	}
 	return eks.ScheduleCoreDNSOnFargateIfRelevant(cfg, ctl, clientSet)
+}
+
+func (m *Manager) fargateRoleExistsOnClusterStack() (bool, error) {
+	stack, err := m.stackManager.DescribeClusterStack()
+	if err != nil {
+		return false, err
+	}
+
+	for _, output := range stack.Outputs {
+		if *output.OutputKey == outputs.FargatePodExecutionRoleARN {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
