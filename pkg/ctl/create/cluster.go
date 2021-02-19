@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/utils"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
@@ -20,7 +21,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/gitops"
-	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
@@ -169,100 +169,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		eks.LogWindowsCompatibility(kubeNodeGroups, cfg.Metadata)
 	}
 
-	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets
-
-	createOrImportVPC := func() error {
-
-		subnetInfo := func() string {
-			return fmt.Sprintf(
-				"VPC (%s) and subnets (private:%v public:%v)",
-				cfg.VPC.ID, cfg.VPC.Subnets.Private, cfg.VPC.Subnets.Public,
-			)
-		}
-
-		customNetworkingNotice := "custom VPC/subnets will be used; if resulting cluster doesn't function as expected, make sure to review the configuration of VPC/subnets"
-
-		canUseForPrivateNodeGroups := func(ng *api.NodeGroup) error {
-			if ng.PrivateNetworking && !cfg.HasSufficientPrivateSubnetsForPrivateNodegroup() {
-				return errors.New("none or too few private subnets to use with --node-private-networking")
-			}
-			return nil
-		}
-
-		if !subnetsGiven && params.KopsClusterNameForVPC == "" {
-			// default: create dedicated VPC
-			if err := ctl.SetAvailabilityZones(cfg, params.AvailabilityZones); err != nil {
-				return err
-			}
-			if err := vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones); err != nil {
-				return err
-			}
-			return nil
-		}
-
-		if params.KopsClusterNameForVPC != "" {
-			// import VPC from a given kops cluster
-			if len(params.AvailabilityZones) != 0 {
-				return fmt.Errorf("--vpc-from-kops-cluster and --zones %s", cmdutils.IncompatibleFlags)
-			}
-			if cmd.CobraCommand.Flag("vpc-cidr").Changed {
-				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-cidr %s", cmdutils.IncompatibleFlags)
-			}
-
-			if subnetsGiven {
-				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-private-subnets/--vpc-public-subnets %s", cmdutils.IncompatibleFlags)
-			}
-
-			kw, err := kops.NewWrapper(cmd.ProviderConfig.Region, params.KopsClusterNameForVPC)
-			if err != nil {
-				return err
-			}
-
-			if err := kw.UseVPC(ctl.Provider.EC2(), cfg); err != nil {
-				return err
-			}
-
-			for _, ng := range cfg.NodeGroups {
-				if err := canUseForPrivateNodeGroups(ng); err != nil {
-					return err
-				}
-			}
-
-			logger.Success("using %s from kops cluster %q", subnetInfo(), params.KopsClusterNameForVPC)
-			logger.Warning(customNetworkingNotice)
-			return nil
-		}
-
-		// use subnets as specified by --vpc-{private,public}-subnets flags
-
-		if len(params.AvailabilityZones) != 0 {
-			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --zones %s", cmdutils.IncompatibleFlags)
-		}
-		if cmd.CobraCommand.Flag("vpc-cidr").Changed {
-			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --vpc-cidr %s", cmdutils.IncompatibleFlags)
-		}
-
-		if err := vpc.ImportSubnetsFromSpec(ctl.Provider, cfg); err != nil {
-			return err
-		}
-
-		if err := cfg.HasSufficientSubnets(); err != nil {
-			logger.Critical("unable to use given %s", subnetInfo())
-			return err
-		}
-
-		for _, ng := range cfg.NodeGroups {
-			if err := canUseForPrivateNodeGroups(ng); err != nil {
-				return err
-			}
-		}
-
-		logger.Success("using existing %s", subnetInfo())
-		logger.Warning(customNetworkingNotice)
-		return nil
-	}
-
-	if err := createOrImportVPC(); err != nil {
+	if err := createOrImportVPC(cmd, cfg, params, ctl); err != nil {
 		return err
 	}
 
@@ -444,6 +351,79 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return err
 	}
 
+	return nil
+}
+
+func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmdutils.CreateClusterCmdParams, ctl *eks.ClusterProvider) error {
+	customNetworkingNotice := "custom VPC/subnets will be used; if resulting cluster doesn't function as expected, make sure to review the configuration of VPC/subnets"
+
+	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets
+	if !subnetsGiven && params.KopsClusterNameForVPC == "" {
+		// default: create dedicated VPC
+		if err := ctl.SetAvailabilityZones(cfg, params.AvailabilityZones); err != nil {
+			return err
+		}
+		if err := vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if params.KopsClusterNameForVPC != "" {
+		// import VPC from a given kops cluster
+		if len(params.AvailabilityZones) != 0 {
+			return fmt.Errorf("--vpc-from-kops-cluster and --zones %s", cmdutils.IncompatibleFlags)
+		}
+		if cmd.CobraCommand.Flag("vpc-cidr").Changed {
+			return fmt.Errorf("--vpc-from-kops-cluster and --vpc-cidr %s", cmdutils.IncompatibleFlags)
+		}
+
+		if subnetsGiven {
+			return fmt.Errorf("--vpc-from-kops-cluster and --vpc-private-subnets/--vpc-public-subnets %s", cmdutils.IncompatibleFlags)
+		}
+
+		kw, err := kops.NewWrapper(cmd.ProviderConfig.Region, params.KopsClusterNameForVPC)
+		if err != nil {
+			return err
+		}
+
+		if err := kw.UseVPC(ctl.Provider, cfg); err != nil {
+			return err
+		}
+
+		if err := cfg.CanUseForPrivateNodeGroups(); err != nil {
+			return err
+		}
+
+		logger.Success("using %s from kops cluster %q", cfg.SubnetInfo(), params.KopsClusterNameForVPC)
+		logger.Warning(customNetworkingNotice)
+		return nil
+	}
+
+	// use subnets as specified by --vpc-{private,public}-subnets flags
+
+	if len(params.AvailabilityZones) != 0 {
+		return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --zones %s", cmdutils.IncompatibleFlags)
+	}
+	if cmd.CobraCommand.Flag("vpc-cidr").Changed {
+		return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --vpc-cidr %s", cmdutils.IncompatibleFlags)
+	}
+
+	if err := vpc.ImportAllSubnets(ctl.Provider, cfg); err != nil {
+		return err
+	}
+
+	if err := cfg.HasSufficientSubnets(); err != nil {
+		logger.Critical("unable to use given %s", cfg.SubnetInfo())
+		return err
+	}
+
+	if err := cfg.CanUseForPrivateNodeGroups(); err != nil {
+		return err
+	}
+
+	logger.Success("using existing %s", cfg.SubnetInfo())
+	logger.Warning(customNetworkingNotice)
 	return nil
 }
 
