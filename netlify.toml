@@ -2,7 +2,7 @@
   base = "userdocs"
   publish = "userdocs/site"
   command = "cd .. && make -f Makefile.docs build-pages"
-  ignore = "git diff --quiet HEAD^ HEAD userdocs/"
+  ignore = "git diff --quiet HEAD^ HEAD ./"
 
 [build.environment]
   PYTHON_VERSION = "3.7"
