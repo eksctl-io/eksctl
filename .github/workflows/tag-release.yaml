@@ -16,6 +16,7 @@ jobs:
       contains(github.event.pull_request.labels.*.name, '/trigger-release') && github.event.pull_request.merge_commit_sha != null
       || contains(github.event.head_commit.message, '/trigger-release')
     name: Tag release from version
+    environment: release
     runs-on: ubuntu-latest
     container: weaveworks/eksctl-build:5705efb32cdbf4531b282dba24dae03a872f5b31
     steps:
