@@ -57,25 +57,25 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 
 	defaultTimeout := 20 * time.Minute
 
-	Describe("when creating a cluster with 1 managed nodegroup", func() {
-		It("should not return an error", func() {
-			fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
+	BeforeSuite(func() {
+		fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
 
-			cmd := params.EksctlCreateCmd.WithArgs(
-				"cluster",
-				"--verbose", "4",
-				"--name", params.ClusterName,
-				"--tags", "alpha.eksctl.io/description=eksctl integration test",
-				"--managed",
-				"--nodegroup-name", initialNodeGroup,
-				"--node-labels", "ng-name="+initialNodeGroup,
-				"--nodes", "2",
-				"--version", params.Version,
-				"--kubeconfig", params.KubeconfigPath,
-			)
-			Expect(cmd).To(RunSuccessfully())
-		})
+		cmd := params.EksctlCreateCmd.WithArgs(
+			"cluster",
+			"--verbose", "4",
+			"--name", params.ClusterName,
+			"--tags", "alpha.eksctl.io/description=eksctl integration test",
+			"--managed",
+			"--nodegroup-name", initialNodeGroup,
+			"--node-labels", "ng-name="+initialNodeGroup,
+			"--nodes", "2",
+			"--version", params.Version,
+			"--kubeconfig", params.KubeconfigPath,
+		)
+		Expect(cmd).To(RunSuccessfully())
+	})
 
+	Context("cluster with 1 managed nodegroup", func() {
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
 			awsSession := NewSession(params.Region)
 
