@@ -8,6 +8,7 @@ export default_branch="main"
 
 function check_prereqs() {
     gh version
+    gh auth status
 }
 
 function branch_exists() {
