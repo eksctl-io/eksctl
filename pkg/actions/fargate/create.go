@@ -30,31 +30,43 @@ func (m *Manager) Create() error {
 		return errors.Wrap(err, "couldn't check stack")
 	}
 
-	if hasClusterStack {
-		exists, err := m.fargateRoleExistsOnClusterStack()
-		if err != nil {
-			return err
-		}
+	fargateRoleNeeded := false
 
-		if !exists {
-			err := ensureFargateRoleStackExists(cfg, ctl.Provider, m.stackManager)
-			if err != nil {
-				return err
-			}
-		}
-
-		if err := ctl.LoadClusterIntoSpecFromStack(cfg, m.stackManager); err != nil {
-			return errors.Wrap(err, "couldn't load cluster into spec")
-		}
-	} else {
-		if err := ensureFargateRoleStackExists(cfg, ctl.Provider, m.stackManager); err != nil {
-			return errors.Wrap(err, "couldn't ensure unowned cluster is ready for fargate")
+	for _, profile := range cfg.FargateProfiles {
+		if profile.PodExecutionRoleARN == "" {
+			fargateRoleNeeded = true
+			break
 		}
 	}
 
-	if !api.IsSetAndNonEmptyString(cfg.IAM.FargatePodExecutionRoleARN) {
-		if err := m.stackManager.RefreshFargatePodExecutionRoleARN(); err != nil {
-			return errors.Wrap(err, "couldn't refresh role arn")
+	if fargateRoleNeeded {
+		if hasClusterStack {
+			exists, err := m.fargateRoleExistsOnClusterStack()
+			if err != nil {
+				return err
+			}
+
+			if !exists {
+				err := ensureFargateRoleStackExists(cfg, ctl.Provider, m.stackManager)
+				if err != nil {
+					return err
+				}
+			}
+
+			if err := ctl.LoadClusterIntoSpecFromStack(cfg, m.stackManager); err != nil {
+				return errors.Wrap(err, "couldn't load cluster into spec")
+			}
+		} else {
+			if err := ensureFargateRoleStackExists(cfg, ctl.Provider, m.stackManager); err != nil {
+				return errors.Wrap(err, "couldn't ensure unowned cluster is ready for fargate")
+			}
+		}
+
+		if !api.IsSetAndNonEmptyString(cfg.IAM.FargatePodExecutionRoleARN) {
+			// Read back the default Fargate pod execution role ARN from CloudFormation:
+			if err := m.stackManager.RefreshFargatePodExecutionRoleARN(); err != nil {
+				return errors.Wrap(err, "couldn't refresh role arn")
+			}
 		}
 	}
 
