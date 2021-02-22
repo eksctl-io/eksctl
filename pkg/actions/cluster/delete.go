@@ -24,7 +24,7 @@ import (
 
 func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clusterOperable bool, clientSet kubernetes.Interface) error {
 	if clusterOperable {
-		if err := deleteFargateProfiles(cfg.Metadata, ctl); err != nil {
+		if err := deleteFargateProfiles(cfg.Metadata, ctl, stackManager); err != nil {
 			return err
 		}
 	}
@@ -63,10 +63,11 @@ func handleErrors(errs []error, subject string) error {
 	return fmt.Errorf("failed to delete %s", subject)
 }
 
-func deleteFargateProfiles(clusterMeta *api.ClusterMeta, ctl *eks.ClusterProvider) error {
+func deleteFargateProfiles(clusterMeta *api.ClusterMeta, ctl *eks.ClusterProvider, stackManager manager.StackManager) error {
 	manager := fargate.NewFromProvider(
 		clusterMeta.Name,
 		ctl.Provider,
+		stackManager,
 	)
 	profileNames, err := manager.ListProfiles()
 	if err != nil {

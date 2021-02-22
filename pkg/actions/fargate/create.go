@@ -58,7 +58,7 @@ func (m *Manager) Create() error {
 		}
 	}
 
-	manager := fargate.NewFromProvider(cfg.Metadata.Name, ctl.Provider)
+	manager := fargate.NewFromProvider(cfg.Metadata.Name, ctl.Provider, m.stackManager)
 	if err := eks.DoCreateFargateProfiles(cfg, &manager); err != nil {
 		return err
 	}
