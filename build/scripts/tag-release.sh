@@ -31,8 +31,7 @@ tag_version_and_latest "${m}" "${release_version}"
 # Update the site by putting everything from the release into the docs branch
 git push --force origin "${release_branch}":docs
 
-git push origin "${release_branch}:${release_branch}"
-git push origin "${release_version}"
+make_pr "${release_branch}"
 
 # Make PR to update default branch if necessary
 git checkout "${default_branch}"

@@ -17,7 +17,7 @@ jobs:
         name: Get integration tests status
         id: it-status
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
           script: |
             // There's no other way to identify the integration test job
             // GH branch protections are also just a string
@@ -50,5 +50,6 @@ jobs:
         run: |
           git config user.name "weaveworksbot"
           git config user.email "weaveworksbot@users.noreply.github.com"
-      - name: Push release branch, tag RC and update main branch
+          echo "${{ secrets.WEAVEWORKSBOT_TOKEN }}" | gh auth login --with-token
+      - name: Open PRs to release branch and default branch
         run: make prepare-release-candidate
