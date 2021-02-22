@@ -37,6 +37,7 @@ func (c *Client) DeleteProfile(name string, waitForDeletion bool) error {
 		stack, err := c.stackManager.GetFargateStack()
 		if err != nil {
 			logger.Debug("failed to fetch fargate stack to delete, skipping deletion")
+			return nil
 		}
 
 		if stack == nil {
