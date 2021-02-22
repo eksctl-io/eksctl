@@ -58,7 +58,7 @@ func doUpdateLegacySubnetSettings(cmd *cmdutils.Cmd) error {
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	logger.Info("updating settings { MapPublicIpOnLaunch: enabled } for public subnets %q", cfg.PublicSubnetIDs())
+	logger.Info("updating settings { MapPublicIpOnLaunch: enabled } for public subnets %v", cfg.VPC.Subnets.Public)
 	err = stackManager.EnsureMapPublicIPOnLaunchEnabled()
 	if err != nil {
 		logger.Warning(err.Error())

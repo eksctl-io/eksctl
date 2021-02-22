@@ -66,7 +66,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 	})
 
 	AfterSuite(func() {
-		if !params.SkipDelete {
+		if !params.SkipCreate && !params.SkipDelete {
 			deleteStack(stackName, ctl)
 		}
 	})
@@ -287,7 +287,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 	})
 
 	It("supports deleting clusters", func() {
-		if !params.SkipDelete {
+		if params.SkipDelete {
 			Skip("params.SkipDelete is true")
 		}
 		By("deleting the cluster")

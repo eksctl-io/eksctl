@@ -15,7 +15,7 @@ import (
 
 // updating from 1.15 to 1.16 has been observed to take longer than the default value of 25 minutes
 // increased to 50 for flex fleet changes
-const upgradeClusterTimeout = 50 * time.Minute
+const upgradeClusterTimeout = 65 * time.Minute
 
 func upgradeCluster(cmd *cmdutils.Cmd) {
 	upgradeClusterWithRunFunc(cmd, DoUpgradeCluster)
