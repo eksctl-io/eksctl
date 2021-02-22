@@ -1,0 +1,39 @@
+name: Tag release
+# This workflow watches release branches for PRs merged with a certain label
+# and commits with the label in their commit message and then creates a tag
+# for the version eksctl reports at that commit
+
+on:
+  pull_request: 
+    types: [closed]
+  push:
+    branches:
+      - release-[0-9]+.[0-9]+
+
+jobs:
+  tag:
+    if: |
+      contains(github.event.pull_request.labels.*.name, '/trigger-release') && github.event.pull_request.merge_commit_sha != null
+      || contains(github.event.head_commit.message, '/trigger-release')
+    name: Tag release from version
+    environment: release
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:5705efb32cdbf4531b282dba24dae03a872f5b31
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
+          fetch-depth: 0
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Tag from version
+        run: |
+          tag=$(go run pkg/version/generate/release_generate.go full-version)
+          git tag "${tag}"
+          git push origin "${tag}"

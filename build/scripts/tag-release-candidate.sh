@@ -43,8 +43,8 @@ commit "${m}" "${release_notes_file}"
 
 tag_version_and_latest "${m}" "${rc_version}"
 
-git push origin "${release_branch}:${release_branch}"
-git push origin "${rc_version}"
+# Make PR to release branch
+make_pr "${release_branch}"
 
 # Make PR to update default branch if necessary
 git checkout "${default_branch}"
