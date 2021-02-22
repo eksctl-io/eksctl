@@ -19,7 +19,7 @@ require (
 	github.com/github-release/github-release v0.10.0
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/flock v0.8.0
-	github.com/golangci/golangci-lint v1.35.2
+	github.com/golangci/golangci-lint v1.37.1
 	github.com/gomarkdown/markdown v0.0.0-20201113031856-722100d81a8e // indirect
 	github.com/goreleaser/goreleaser v0.154.0
 	github.com/instrumenta/kubeval v0.0.0-20190918223246-8d013ec9fc56
