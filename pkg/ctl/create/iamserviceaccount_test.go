@@ -49,9 +49,9 @@ var _ = Describe("create iamserviceaccount", func() {
 			args:  []string{"iamserviceaccount", "--cluster", "clusterName", "--name", "serviceAccountName", "serviceAccountName"},
 			error: fmt.Errorf("Error: --name=serviceAccountName and argument serviceAccountName cannot be used at the same time"),
 		}),
-		Entry("without required flag --attach-policy-arn", invalidParamsCase{
+		Entry("without required flags --attach-policy-arn or --attach-policy-role", invalidParamsCase{
 			args:  []string{"iamserviceaccount", "--cluster", "clusterName", "serviceAccountName"},
-			error: fmt.Errorf("Error: --attach-policy-arn must be set"),
+			error: fmt.Errorf("Error: --attach-policy-arn or --attach-role-arn must be set"),
 		}),
 		Entry("with invalid flags", invalidParamsCase{
 			args:  []string{"iamserviceaccount", "--invalid", "dummy"},
