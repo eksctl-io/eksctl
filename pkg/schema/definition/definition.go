@@ -55,7 +55,7 @@ func (dg *Generator) newStructDefinition(name string, typeSpec ast.Expr, structC
 			preferredOrder = ref.PreferredOrder
 			required = ref.Required
 		} else {
-			if fieldName == "" {
+			if fieldName == "" || fieldName == "-" {
 				// private field
 				continue
 			}
