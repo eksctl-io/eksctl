@@ -574,11 +574,21 @@ func SelectNodeGroupSubnets(nodegroupAZs, nodegroupSubnets []string, subnets api
 		subnetIDs = append(subnetIDs, azSubnetIDs...)
 	}
 	for _, subnetName := range nodegroupSubnets {
-		subnet, ok := subnets[subnetName]
-		if !ok {
-			return nil, fmt.Errorf("VPC doesn't have subnet with name %s %s", subnetName, makeErrorDesc())
+		var subnetID string
+		if subnet, ok := subnets[subnetName]; !ok {
+			for _, s := range subnets {
+				if s.ID != subnetName {
+					continue
+				}
+				subnetID = s.ID
+			}
+		} else {
+			subnetID = subnet.ID
 		}
-		subnetIDs = append(subnetIDs, subnet.ID)
+		if subnetID == "" {
+			return nil, fmt.Errorf("VPC doesn't have subnet with name or id %s: %s", subnetName, makeErrorDesc())
+		}
+		subnetIDs = append(subnetIDs, subnetID)
 	}
 	return subnetIDs, nil
 }
