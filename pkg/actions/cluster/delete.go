@@ -97,6 +97,18 @@ func deleteFargateProfiles(clusterMeta *api.ClusterMeta, ctl *eks.ClusterProvide
 		logger.Info("deleted Fargate profile %q", *profileName)
 	}
 	logger.Info("deleted %v Fargate profile(s)", len(profileNames))
+
+	stack, err := stackManager.GetFargateStack()
+	if err != nil {
+		return err
+	}
+
+	if stack != nil {
+		_, err := stackManager.DeleteStackByName(*stack.StackName)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
