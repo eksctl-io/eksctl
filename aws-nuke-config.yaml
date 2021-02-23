@@ -1,0 +1,9 @@
+---
+regions:
+  - "us-west-2"
+
+account-blocklist:
+  - "we-dont-have-a-prod-account-to-blacklist-but-this-field-is-mandatory"
+
+accounts:
+  AWS_ACCOUNT_ID_REPLACE_ME: {}
