@@ -40,7 +40,7 @@ type NodeGroupDrainer struct {
 	undo        bool
 }
 
-func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout time.Duration, maxGracePeriod time.Duration, undo bool) NodeGroupDrainer {
+func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout time.Duration, maxGracePeriod time.Duration, undo bool, disableEviction bool) NodeGroupDrainer {
 	ignoreDaemonSets := []metav1.ObjectMeta{
 		{
 			Namespace: "kube-system",
@@ -68,7 +68,7 @@ func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, w
 	}
 
 	return NodeGroupDrainer{
-		evictor:     evictor.New(clientSet, maxGracePeriod, ignoreDaemonSets),
+		evictor:     evictor.New(clientSet, maxGracePeriod, ignoreDaemonSets, disableEviction),
 		clientSet:   clientSet,
 		ng:          ng,
 		waitTimeout: waitTimeout,
@@ -76,7 +76,7 @@ func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, w
 	}
 }
 
-// NodeGroup drains a nodegroup
+// Drain drains a nodegroup
 func (n *NodeGroupDrainer) Drain() error {
 	if err := n.evictor.CanUseEvictions(); err != nil {
 		return errors.Wrap(err, "checking if cluster implements policy API")

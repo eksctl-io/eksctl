@@ -73,7 +73,7 @@ var _ = Describe("Drain", func() {
 		})
 
 		It("does not error", func() {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, false)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, false, false)
 			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
 			err := nodeGroupDrainer.Drain()
@@ -117,7 +117,7 @@ var _ = Describe("Drain", func() {
 		})
 
 		It("times out and errors", func() {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*2, time.Second, false)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*2, time.Second, false, false)
 			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
 			err := nodeGroupDrainer.Drain()
@@ -131,11 +131,63 @@ var _ = Describe("Drain", func() {
 		})
 
 		It("errors", func() {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second, time.Second, false)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second, time.Second, false, false)
 			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
 			err := nodeGroupDrainer.Drain()
 			Expect(err).To(MatchError("checking if cluster implements policy API: error1"))
+		})
+	})
+
+	When("Evictions are disabled", func() {
+		var pod corev1.Pod
+
+		BeforeEach(func() {
+			pod = corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "pod-1",
+				},
+			}
+
+			fakeEvictor.GetPodsForEvictionReturnsOnCall(0, &evictor.PodDeleteList{
+				Items: []evictor.PodDelete{
+					{
+						Pod: pod,
+						Status: evictor.PodDeleteStatus{
+							Delete: true,
+						},
+					},
+				},
+			}, nil)
+			fakeEvictor.GetPodsForEvictionReturnsOnCall(1, &evictor.PodDeleteList{}, nil)
+
+			fakeEvictor.EvictOrDeletePodReturns(nil)
+
+			_, err := fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: nodeName,
+				},
+				Spec: corev1.NodeSpec{
+					Unschedulable: false,
+				},
+			}, metav1.CreateOptions{})
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("does not error", func() {
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, false, true)
+			nodeGroupDrainer.SetDrainer(fakeEvictor)
+
+			err := nodeGroupDrainer.Drain()
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(Equal(2))
+			Expect(fakeEvictor.EvictOrDeletePodCallCount()).To(Equal(1))
+			Expect(fakeEvictor.EvictOrDeletePodArgsForCall(0)).To(Equal(pod))
+
+			node, err := fakeClientSet.CoreV1().Nodes().Get(context.TODO(), nodeName, metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(node.Spec.Unschedulable).To(BeTrue())
 		})
 	})
 
@@ -153,7 +205,7 @@ var _ = Describe("Drain", func() {
 		})
 
 		It("uncordons all the nodes", func() {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, true)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, true, false)
 			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
 			err := nodeGroupDrainer.Drain()

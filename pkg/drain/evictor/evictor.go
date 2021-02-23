@@ -49,12 +49,13 @@ type Evictor struct {
 	ignoreAllDaemonSets bool
 	ignoreDaemonSets    []metav1.ObjectMeta
 	deleteLocalData     bool
+	disableEviction     bool
 
 	policyAPIGroupVersion string
 	UseEvictions          bool
 }
 
-func New(clientSet kubernetes.Interface, maxGracePeriod time.Duration, ignoreDaemonSets []metav1.ObjectMeta) *Evictor {
+func New(clientSet kubernetes.Interface, maxGracePeriod time.Duration, ignoreDaemonSets []metav1.ObjectMeta, disableEviction bool) *Evictor {
 	return &Evictor{
 		client: clientSet,
 		// TODO: force, DeleteLocalData & IgnoreAllDaemonSets shouldn't
@@ -67,11 +68,16 @@ func New(clientSet kubernetes.Interface, maxGracePeriod time.Duration, ignoreDae
 		ignoreAllDaemonSets:   true,
 		maxGracePeriodSeconds: int(maxGracePeriod.Seconds()),
 		ignoreDaemonSets:      ignoreDaemonSets,
+		disableEviction:       disableEviction,
 	}
 }
 
 // CanUseEvictions uses Discovery API to find out if evictions are supported
 func (d *Evictor) CanUseEvictions() error {
+	if d.disableEviction {
+		d.UseEvictions = false
+		return nil
+	}
 	discoveryClient := d.client.Discovery()
 	groupList, err := discoveryClient.ServerGroups()
 	if err != nil {
@@ -117,7 +123,7 @@ func (d *Evictor) makeDeleteOptions(pod corev1.Pod) metav1.DeleteOptions {
 	return deleteOptions
 }
 
-// EvictOrDeletePod will evict Pod if policy API is available, otherwise deletes it
+// EvictOrDeletePod will evict Pod if policy API is available, otherwise deletes it. If disableEviction is true, we skip straight to the delete step
 // NOTE: CanUseEvictions must be called prior to this
 func (d *Evictor) EvictOrDeletePod(pod corev1.Pod) error {
 	if d.UseEvictions {
