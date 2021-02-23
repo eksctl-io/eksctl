@@ -246,15 +246,18 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 		Parallel:  true,
 		IsSubTask: false,
 	}
-	var haveNeuronInstanceType bool
-	for _, ng := range cfg.NodeGroups {
-		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceType(ng, utils.IsInferentiaInstanceType)
+	var needsNvidiaButNotNeuron = func(t string) bool {
+		return utils.IsGPUInstanceType(t) && !utils.IsInferentiaInstanceType(t)
 	}
+	var haveNeuronInstanceType bool
 	var haveNvidiaInstanceType bool
 	for _, ng := range cfg.NodeGroups {
-		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceType(ng, func(t string) bool {
-			return utils.IsGPUInstanceType(t) && !utils.IsInferentiaInstanceType(t)
-		})
+		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceType(ng, utils.IsInferentiaInstanceType)
+		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceType(ng, needsNvidiaButNotNeuron)
+	}
+	for _, ng := range cfg.ManagedNodeGroups {
+		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceTypeManaged(ng, utils.IsInferentiaInstanceType)
+		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceTypeManaged(ng, needsNvidiaButNotNeuron)
 	}
 	if haveNeuronInstanceType && installNeuronDevicePluginParam {
 		tasks.Append(newNeuronDevicePluginTask(c, cfg))
