@@ -77,7 +77,14 @@ The other tool is then responsible for maintaining the role ARN annotation. Note
 eksctl create iamserviceaccount --cluster=<clusterName> --name=<serviceAccountName> --role-only --role-name=<customRoleName>
 ```
 
-Currently, to update a role you will need to re-create, run `eksctl delete iamserviceaccount` followed by `eksctl create iamserviceaccount` to achieve that.
+When you have an existing role you want to use with a service account you can provide the `--attach-role-arn` flag instead of providing the policies.
+
+```console
+eksctl create iamserviceaccount --cluster=<clusterName> --name=<serviceAccountName> --attach-role-arn=<customRoleARN>
+```
+
+
+To update a service accounts roles permissions you can run `eksctl update iamserviceaccount`
 
 !!!note
     `eksctl delete iamserviceaccount` deletes Kubernetes `ServiceAccounts` even if they were not created by `eksctl`.
@@ -139,7 +146,10 @@ iam:
       autoScaler: true
     roleName: eksctl-cluster-autoscaler-role
     roleOnly: true
-
+  - metadata:
+      name: some-app
+      namespace: default
+    attachRoleARN: arn:aws:iam::123:role/already-created-role-for-app
 nodeGroups:
   - name: "ng-1"
     tags:
