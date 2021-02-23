@@ -385,7 +385,7 @@ func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.Cl
 			// Check only the public subnets that this ng has
 			subnetIDs, err := SelectNodeGroupSubnets(ng.AvailabilityZones, ng.Subnets, spec.VPC.Subnets.Public)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "couldn't find public subnets")
 			}
 			subnetsToValidate.Insert(subnetIDs...)
 		} else {
@@ -557,7 +557,7 @@ func SelectNodeGroupSubnets(nodegroupAZs, nodegroupSubnets []string, subnets api
 		return fmt.Sprintf("(allSubnets=%#v AZs=%#v subnets=%#v)", subnets, nodegroupAZs, nodegroupSubnets)
 	}
 	if len(subnets) < numNodeGroupsAZs || len(subnets) < numNodeGroupsSubnets {
-		return nil, fmt.Errorf("VPC doesn't have enough subnets for nodegroup AZs or subnets %s", makeErrorDesc())
+		return nil, fmt.Errorf("mapping doesn't have enough subnets: %s", makeErrorDesc())
 	}
 	subnetIDs := []string{}
 	// We validate previously that either AZs or subnets is set
@@ -569,7 +569,7 @@ func SelectNodeGroupSubnets(nodegroupAZs, nodegroupSubnets []string, subnets api
 			}
 		}
 		if len(azSubnetIDs) == 0 {
-			return nil, fmt.Errorf("VPC doesn't have subnets in %s %s", az, makeErrorDesc())
+			return nil, fmt.Errorf("mapping doesn't have subnet with AZ %s: %s", az, makeErrorDesc())
 		}
 		subnetIDs = append(subnetIDs, azSubnetIDs...)
 	}
@@ -586,7 +586,7 @@ func SelectNodeGroupSubnets(nodegroupAZs, nodegroupSubnets []string, subnets api
 			subnetID = subnet.ID
 		}
 		if subnetID == "" {
-			return nil, fmt.Errorf("VPC doesn't have subnet with name or id %s: %s", subnetName, makeErrorDesc())
+			return nil, fmt.Errorf("mapping doesn't have subnet with name or id %s: %s", subnetName, makeErrorDesc())
 		}
 		subnetIDs = append(subnetIDs, subnetID)
 	}
