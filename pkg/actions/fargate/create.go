@@ -43,13 +43,13 @@ func (m *Manager) Create() error {
 		if hasClusterStack {
 			exists, err := m.fargateRoleExistsOnClusterStack()
 			if err != nil {
-				return err
+				return errors.Wrap(err, "couldn't check if fargate role already exists")
 			}
 
 			if !exists {
 				err := ensureFargateRoleStackExists(cfg, ctl.Provider, m.stackManager)
 				if err != nil {
-					return err
+					return errors.Wrap(err, "couldn't ensure fargate role exists")
 				}
 			}
 
@@ -72,11 +72,11 @@ func (m *Manager) Create() error {
 
 	manager := fargate.NewFromProvider(cfg.Metadata.Name, ctl.Provider, m.stackManager)
 	if err := eks.DoCreateFargateProfiles(cfg, &manager); err != nil {
-		return err
+		return errors.Wrap(err, "couldnt' create fargate profiles")
 	}
 	clientSet, err := m.newStdClientSet()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "couldn't create kubernetes client")
 	}
 	return eks.ScheduleCoreDNSOnFargateIfRelevant(cfg, ctl, clientSet)
 }
