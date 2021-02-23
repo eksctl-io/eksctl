@@ -32,6 +32,7 @@ func (c *StackCollection) createIAMServiceAccountTask(errs chan error, spec *api
 	spec.Tags[api.IAMServiceAccountNameTag] = spec.NameString()
 
 	if err := c.CreateStack(name, stack, spec.Tags, nil, errs); err != nil {
+		logger.Info("an error occurred creating the stack, to cleanup resources, run 'eksctl delete iamserviceaccount --region=%s --name=%s --namespace=%s'", c.spec.Metadata.Region, spec.Name, spec.Namespace)
 		return err
 	}
 	return nil
