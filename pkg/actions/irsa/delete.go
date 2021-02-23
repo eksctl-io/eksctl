@@ -7,8 +7,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
-func (m *Manager) Delete(shouldDelete func(string) bool, plan, wait bool) error {
-	taskTree, err := m.stackManager.NewTasksToDeleteIAMServiceAccounts(shouldDelete, kubernetes.NewCachedClientSet(m.clientSet), wait)
+func (m *Manager) Delete(serviceAccounts []string, plan, wait bool) error {
+	taskTree, err := m.stackManager.NewTasksToDeleteIAMServiceAccounts(serviceAccounts, kubernetes.NewCachedClientSet(m.clientSet), wait)
 	if err != nil {
 		return err
 	}
