@@ -15,6 +15,19 @@ func HasInstanceType(nodeGroup *NodeGroup, hasType func(string) bool) bool {
 	return false
 }
 
+// HasInstanceTypeManaged returns whether some node in the managed group fulfils the type check
+func HasInstanceTypeManaged(nodeGroup *ManagedNodeGroup, hasType func(string) bool) bool {
+	if hasType(nodeGroup.InstanceType) {
+		return true
+	}
+	for _, instanceType := range nodeGroup.InstanceTypes {
+		if hasType(instanceType) {
+			return true
+		}
+	}
+	return false
+}
+
 // ClusterHasInstanceType checks all nodegroups and managed nodegroups for a specific instance type
 func ClusterHasInstanceType(cfg *ClusterConfig, hasType func(string) bool) bool {
 	for _, ng := range cfg.NodeGroups {
