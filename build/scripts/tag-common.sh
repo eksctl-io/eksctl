@@ -8,6 +8,7 @@ export default_branch="main"
 
 function check_prereqs() {
     gh version
+    gh auth status
 }
 
 function branch_exists() {
@@ -77,8 +78,17 @@ function bump_version_if_not_at() {
     return 0
   fi
   echo "Preparing for next development iteration"
+  git checkout -b "${default_branch}-$(git rev-parse --short HEAD)"
   release_generate development
   git add pkg/version/release.go
   git commit --message "Prepare for next development iteration"
+  git push origin "$(git branch --show-current)"
   gh pr create --fill --label "skip-release-notes"
+}
+
+function make_pr() {
+  local base_branch=$1
+  git checkout -b "${base_branch}-$(git rev-parse --short HEAD)"
+  git push origin "$(git branch --show-current)"
+  gh pr create --base "${base_branch}" --fill --label "skip-release-notes" --label "/trigger-release"
 }

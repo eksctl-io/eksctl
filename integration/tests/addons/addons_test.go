@@ -33,7 +33,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 	Context("Creating a cluster with addons", func() {
 		clusterName := params.NewClusterName("addons")
 
-		BeforeEach(func() {
+		BeforeSuite(func() {
 			clusterConfig := api.NewClusterConfig()
 			clusterConfig.Metadata.Name = clusterName
 			clusterConfig.Metadata.Version = "1.19"
@@ -68,6 +68,14 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 
 		})
 
+		AfterSuite(func() {
+			cmd := params.EksctlDeleteCmd.WithArgs(
+				"cluster", clusterName,
+				"--verbose", "2",
+			)
+			Expect(cmd).To(RunSuccessfully())
+		})
+
 		It("should support addons", func() {
 			By("Asserting the addon is listed in `get addons`")
 			cmd := params.EksctlGetCmd.
@@ -98,14 +106,6 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 					"--cluster", clusterName,
 					"--verbose", "2",
 				)
-			Expect(cmd).To(RunSuccessfully())
-		})
-
-		AfterEach(func() {
-			cmd := params.EksctlDeleteCmd.WithArgs(
-				"cluster", clusterName,
-				"--verbose", "2",
-			)
 			Expect(cmd).To(RunSuccessfully())
 		})
 	})

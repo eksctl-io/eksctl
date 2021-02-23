@@ -15,6 +15,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -24,10 +27,6 @@ import (
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
 )
 
 const (
@@ -63,6 +62,38 @@ var _ = Describe("(Integration) Update addons", func() {
 			params.KubeconfigPath = f.Name()
 			params.KubeconfigTemp = true
 		}
+
+		if params.SkipCreate {
+			fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", defaultCluster)
+			if !file.Exists(params.KubeconfigPath) {
+				// Generate the Kubernetes configuration that eksctl create
+				// would have generated otherwise:
+				cmd := params.EksctlUtilsCmd.WithArgs(
+					"write-kubeconfig",
+					"--verbose", "4",
+					"--cluster", defaultCluster,
+					"--kubeconfig", params.KubeconfigPath,
+				)
+				Expect(cmd).To(RunSuccessfully())
+			}
+			return
+		}
+
+		fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
+
+		cmd := params.EksctlCreateCmd.WithArgs(
+			"cluster",
+			"--verbose", "4",
+			"--name", defaultCluster,
+			"--tags", "alpha.eksctl.io/description=eksctl integration test",
+			"--nodegroup-name", initNG,
+			"--node-labels", "ng-name="+initNG,
+			"--nodes", "1",
+			"--node-type", "t3.large",
+			"--version", "1.15",
+			"--kubeconfig", params.KubeconfigPath,
+		)
+		Expect(cmd).To(RunSuccessfully())
 	})
 
 	AfterSuite(func() {
@@ -75,41 +106,7 @@ var _ = Describe("(Integration) Update addons", func() {
 	})
 
 	// Chose 1.15 because the upgrade to 1.16 takes less time than upgrading to 1.17
-	When("creating a cluster with version 1.15", func() {
-		It("should not return an error", func() {
-			if params.SkipCreate {
-				fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", defaultCluster)
-				if !file.Exists(params.KubeconfigPath) {
-					// Generate the Kubernetes configuration that eksctl create
-					// would have generated otherwise:
-					cmd := params.EksctlUtilsCmd.WithArgs(
-						"write-kubeconfig",
-						"--verbose", "4",
-						"--cluster", defaultCluster,
-						"--kubeconfig", params.KubeconfigPath,
-					)
-					Expect(cmd).To(RunSuccessfully())
-				}
-				return
-			}
-
-			fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
-
-			cmd := params.EksctlCreateCmd.WithArgs(
-				"cluster",
-				"--verbose", "4",
-				"--name", defaultCluster,
-				"--tags", "alpha.eksctl.io/description=eksctl integration test",
-				"--nodegroup-name", initNG,
-				"--node-labels", "ng-name="+initNG,
-				"--nodes", "1",
-				"--node-type", "t3.large",
-				"--version", "1.15",
-				"--kubeconfig", params.KubeconfigPath,
-			)
-			Expect(cmd).To(RunSuccessfully())
-		})
-
+	Context("cluster with version 1.15", func() {
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
 			awsSession := NewSession(params.Region)
 

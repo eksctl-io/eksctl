@@ -34,6 +34,9 @@ func main() {
 		newVersion, newPreRelease = prepareReleaseCandidate()
 	case "development":
 		newVersion, newPreRelease = nextDevelopmentIteration()
+	case "full-version":
+		fmt.Println(version.GetVersion())
+		return
 	case "print-version":
 		// Print simplified version X.Y.Z
 		fmt.Println(version.Version)

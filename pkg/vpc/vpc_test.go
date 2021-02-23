@@ -703,7 +703,7 @@ var _ = Describe("VPC", func() {
 				},
 			}, nil)
 
-			err := ImportAllSubnets(p, &e.cfg)
+			err := ImportSubnetsFromSpec(p, &e.cfg)
 			if e.error != nil {
 				Expect(err).To(MatchError(e.error.Error()))
 			} else {
@@ -928,25 +928,35 @@ var _ = Describe("VPC", func() {
 			nodegroupSubnets: []string{"a"},
 			subnets: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 				"a": {
-					ID: "a",
+					ID: "id-1",
 					AZ: "us-east-1a",
 				},
 			}),
-			expectIDs: []string{"a"},
+			expectIDs: []string{"id-1"},
+		}),
+		Entry("one subnet by id", selectSubnetsCase{
+			nodegroupSubnets: []string{"id-1"},
+			subnets: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+				"a": {
+					ID: "id-1",
+					AZ: "us-east-1a",
+				},
+			}),
+			expectIDs: []string{"id-1"},
 		}),
 		Entry("one AZ", selectSubnetsCase{
 			nodegroupAZs: []string{"us-east-1a"},
 			subnets: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 				"a": {
-					ID: "a",
+					ID: "id-1",
 					AZ: "us-east-1a",
 				},
 				"b": {
-					ID: "b",
+					ID: "id-2",
 					AZ: "us-east-1a",
 				},
 			}),
-			expectIDs: []string{"a", "b"},
+			expectIDs: []string{"id-1", "id-2"},
 		}),
 	)
 })

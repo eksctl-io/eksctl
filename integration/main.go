@@ -100,7 +100,7 @@ const (
 
 func runGinkgo(ctx context.Context, wg *sync.WaitGroup, summaries chan []string, statuses chan int, id int, dir string) {
 	defer wg.Done()
-	args := []string{"-tags", "integration", "-v", "--progress", fmt.Sprintf("%s/...", dir), "--"}
+	args := []string{"--noColor", "-tags", "integration", "-v", "--progress", fmt.Sprintf("%s/...", dir), "--"}
 	args = append(args, os.Args[1:]...)
 	name := "ginkgo"
 	prefix := fmt.Sprintf("[%d]", id)

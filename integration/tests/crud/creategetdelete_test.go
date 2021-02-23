@@ -12,8 +12,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/utils/file"
+
 	"k8s.io/client-go/kubernetes"
 
+	awseks "github.com/aws/aws-sdk-go/service/eks"
+	harness "github.com/dlespiau/kube-test-harness"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -23,13 +30,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/iam"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-	"github.com/weaveworks/eksctl/pkg/utils/file"
-
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	harness "github.com/dlespiau/kube-test-harness"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/yaml"
@@ -64,6 +64,37 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			params.KubeconfigPath = f.Name()
 			params.KubeconfigTemp = true
 		}
+
+		if params.SkipCreate {
+			fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", params.ClusterName)
+			if !file.Exists(params.KubeconfigPath) {
+				// Generate the Kubernetes configuration that eksctl create
+				// would have generated otherwise:
+				cmd := params.EksctlUtilsCmd.WithArgs(
+					"write-kubeconfig",
+					"--verbose", "4",
+					"--cluster", params.ClusterName,
+					"--kubeconfig", params.KubeconfigPath,
+				)
+				Expect(cmd).To(RunSuccessfully())
+			}
+			return
+		}
+
+		fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
+
+		cmd := params.EksctlCreateCmd.WithArgs(
+			"cluster",
+			"--verbose", "4",
+			"--name", params.ClusterName,
+			"--tags", "alpha.eksctl.io/description=eksctl integration test",
+			"--nodegroup-name", initNG,
+			"--node-labels", "ng-name="+initNG,
+			"--nodes", "1",
+			"--version", params.Version,
+			"--kubeconfig", params.KubeconfigPath,
+		)
+		Expect(cmd).To(RunSuccessfully())
 	})
 
 	AfterSuite(func() {
@@ -75,40 +106,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		os.RemoveAll(params.TestDirectory)
 	})
 
-	Describe("when creating a cluster with 1 node", func() {
-		It("should not return an error", func() {
-			if params.SkipCreate {
-				fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", params.ClusterName)
-				if !file.Exists(params.KubeconfigPath) {
-					// Generate the Kubernetes configuration that eksctl create
-					// would have generated otherwise:
-					cmd := params.EksctlUtilsCmd.WithArgs(
-						"write-kubeconfig",
-						"--verbose", "4",
-						"--cluster", params.ClusterName,
-						"--kubeconfig", params.KubeconfigPath,
-					)
-					Expect(cmd).To(RunSuccessfully())
-				}
-				return
-			}
-
-			fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
-
-			cmd := params.EksctlCreateCmd.WithArgs(
-				"cluster",
-				"--verbose", "4",
-				"--name", params.ClusterName,
-				"--tags", "alpha.eksctl.io/description=eksctl integration test",
-				"--nodegroup-name", initNG,
-				"--node-labels", "ng-name="+initNG,
-				"--nodes", "1",
-				"--version", params.Version,
-				"--kubeconfig", params.KubeconfigPath,
-			)
-			Expect(cmd).To(RunSuccessfully())
-		})
-
+	Describe("cluster with 1 node", func() {
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
 			awsSession := NewSession(params.Region)
 
