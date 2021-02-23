@@ -68,7 +68,7 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 			return err
 		}
 		if !sa.WellKnownPolicies.HasPolicy() && len(sa.AttachPolicyARNs) == 0 && sa.AttachPolicy == nil && sa.AttachRoleARN == "" {
-			return fmt.Errorf("%[1]s.wellKnownPolicies, %[1]s.attachPolicyARNs or %[1]s.attachPolicy must be set", path)
+			return fmt.Errorf("%[1]s.wellKnownPolicies, %[1]s.attachPolicyARNs,%[1]s.attachRoleARN  or %[1]s.attachPolicy must be set", path)
 		}
 	}
 

@@ -628,6 +628,10 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *filter.IAMServiceAccou
 			return ErrMustBeSet("--attach-policy-arn or --attach-role-arn")
 		}
 
+		if serviceAccount.AttachRoleARN != "" && (*serviceAccount.RoleOnly || serviceAccount.RoleName != "") {
+			return fmt.Errorf("cannot provde --role-name or --role-only when --attach-role-arn is configured")
+		}
+
 		return nil
 	}
 
