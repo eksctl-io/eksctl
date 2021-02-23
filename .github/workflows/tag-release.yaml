@@ -34,6 +34,7 @@ jobs:
           key: ${{ hashFiles('go.sum') }}
       - name: Tag from version
         run: |
-          tag=$(go run pkg/version/generate/release_generate.go full-version)
-          git tag "${tag}"
-          git push origin "${tag}"
+          version=$(go run pkg/version/generate/release_generate.go full-version)
+          git tag "${version}"
+          git tag "v${version}"
+          git push origin "${version}" "v${version}"
