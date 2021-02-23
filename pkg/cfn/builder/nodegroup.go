@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
+	"github.com/pkg/errors"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
@@ -235,11 +236,13 @@ func AssignSubnets(spec *api.NodeGroupBase, clusterStackName string, clusterSpec
 
 	if numNodeGroupsAZs, numNodeGroupsSubnets := len(spec.AvailabilityZones), len(spec.Subnets); numNodeGroupsAZs > 0 || numNodeGroupsSubnets > 0 {
 		subnets := clusterSpec.VPC.Subnets.Public
+		typ := "public"
 		if spec.PrivateNetworking {
 			subnets = clusterSpec.VPC.Subnets.Private
+			typ = "private"
 		}
 		subnetIDs, err := vpc.SelectNodeGroupSubnets(spec.AvailabilityZones, spec.Subnets, subnets)
-		return gfnt.NewStringSlice(subnetIDs...), err
+		return gfnt.NewStringSlice(subnetIDs...), errors.Wrapf(err, "couldn't find %s subnets", typ)
 	}
 
 	var subnets *gfnt.Value
