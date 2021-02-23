@@ -8,7 +8,7 @@ on:
 jobs:
   cleanup:
     name: Cleanup AWS resources
-    environment: "cleanup AWS"
+    environment: "Integration tests"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -27,5 +27,4 @@ jobs:
           chmod +x aws-nuke
           ./aws-nuke -c aws-nuke-config.yaml --force --no-dry-run --target=EKSNodegroups,EKSFargateProfiles,EKSCluster
           ./aws-nuke -c aws-nuke-config.yaml --force --no-dry-run --target=CloudFormationStack
-
 
