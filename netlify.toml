@@ -1,6 +1,6 @@
 [build]
   base = "userdocs"
-  publish = "userdocs/site"
+  publish = "site"
   command = "cd .. && make -f Makefile.docs build-pages"
 [context.deploy-preview]
   ignore = "git diff --quiet HEAD^ HEAD ./"
