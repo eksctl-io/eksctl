@@ -77,12 +77,11 @@ The other tool is then responsible for maintaining the role ARN annotation. Note
 eksctl create iamserviceaccount --cluster=<clusterName> --name=<serviceAccountName> --role-only --role-name=<customRoleName>
 ```
 
-When you have an existing role you want to use with a service account you can provide the `--attach-role-arn` flag instead of providing the policies.
+When you have an existing role you want to use with a service account you can provide the `--attach-role-arn` flag instead of providing the policies. To ensure the role can only be assumed by the specified service account you should set a [trust relationship policy doucment.](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-technical-overview.html#iam-role-configuration)
 
 ```console
 eksctl create iamserviceaccount --cluster=<clusterName> --name=<serviceAccountName> --attach-role-arn=<customRoleARN>
 ```
-
 
 To update a service accounts roles permissions you can run `eksctl update iamserviceaccount`
 
