@@ -1221,8 +1221,6 @@ type NodeGroupBase struct {
 	VolumeType *string `json:"volumeType,omitempty"`
 	// +optional
 	VolumeName *string `json:"volumeName,omitempty"`
-	// Some AMIs (bottlerocket) have a separate volume for the OS
-	AdditionalEncryptedVolume string
 	// +optional
 	VolumeEncrypted *bool `json:"volumeEncrypted,omitempty"`
 	// +optional
@@ -1255,6 +1253,10 @@ type NodeGroupBase struct {
 	// be spawned
 	// +optional
 	Placement *Placement `json:"placement,omitempty"`
+
+	// Internal fields
+	// Some AMIs (bottlerocket) have a separate volume for the OS
+	AdditionalEncryptedVolume string `json:"-"`
 }
 
 // Placement specifies placement group information
