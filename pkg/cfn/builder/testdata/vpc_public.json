@@ -289,6 +289,10 @@
                         "Value": "1"
                     },
                     {
+                        "Key": "kubernetes.io/cluster/my-cluster",
+                        "Value": "shared"
+                    },
+                    {
                         "Key": "Name",
                         "Value": {
                             "Fn::Sub": "${AWS::StackName}/SubnetPrivateUSWEST2A"
@@ -309,6 +313,10 @@
                     {
                         "Key": "kubernetes.io/role/internal-elb",
                         "Value": "1"
+                    },
+                    {
+                        "Key": "kubernetes.io/cluster/my-cluster",
+                        "Value": "shared"
                     },
                     {
                         "Key": "Name",
@@ -333,6 +341,10 @@
                         "Value": "1"
                     },
                     {
+                        "Key": "kubernetes.io/cluster/my-cluster",
+                        "Value": "shared"
+                    },
+                    {
                         "Key": "Name",
                         "Value": {
                             "Fn::Sub": "${AWS::StackName}/SubnetPrivateUSWEST2C"
@@ -353,6 +365,10 @@
                     {
                         "Key": "kubernetes.io/role/internal-elb",
                         "Value": "1"
+                    },
+                    {
+                        "Key": "kubernetes.io/cluster/my-cluster",
+                        "Value": "shared"
                     },
                     {
                         "Key": "Name",
@@ -378,6 +394,10 @@
                         "Value": "1"
                     },
                     {
+                        "Key": "kubernetes.io/cluster/my-cluster",
+                        "Value": "shared"
+                    },
+                    {
                         "Key": "Name",
                         "Value": {
                             "Fn::Sub": "${AWS::StackName}/SubnetPublicUSWEST2A"
@@ -399,6 +419,10 @@
                     {
                         "Key": "kubernetes.io/role/elb",
                         "Value": "1"
+                    },
+                    {
+                        "Key": "kubernetes.io/cluster/my-cluster",
+                        "Value": "shared"
                     },
                     {
                         "Key": "Name",
@@ -424,6 +448,10 @@
                         "Value": "1"
                     },
                     {
+                        "Key": "kubernetes.io/cluster/my-cluster",
+                        "Value": "shared"
+                    },
+                    {
                         "Key": "Name",
                         "Value": {
                             "Fn::Sub": "${AWS::StackName}/SubnetPublicUSWEST2C"
@@ -445,6 +473,10 @@
                     {
                         "Key": "kubernetes.io/role/elb",
                         "Value": "1"
+                    },
+                    {
+                        "Key": "kubernetes.io/cluster/my-cluster",
+                        "Value": "shared"
                     },
                     {
                         "Key": "Name",

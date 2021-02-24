@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -157,6 +158,11 @@ func (v *VPCResourceSet) addSubnets(refRT *gfnt.Value, topology api.SubnetTopolo
 
 	var subnetResources []subnetResource
 
+	kubernetesClusterTag := cloudformation.Tag{
+		Key:   gfnt.NewString(fmt.Sprintf("kubernetes.io/cluster/%s", v.clusterConfig.Metadata.Name)),
+		Value: gfnt.NewString("shared"),
+	}
+
 	for name, subnet := range subnets {
 		az := subnet.AZ
 		nameAlias := strings.ToUpper(strings.Join(strings.Split(name, "-"), ""))
@@ -170,15 +176,21 @@ func (v *VPCResourceSet) addSubnets(refRT *gfnt.Value, topology api.SubnetTopolo
 		case api.SubnetTopologyPrivate:
 			// Choose the appropriate route table for private subnets
 			refRT = gfnt.MakeRef("PrivateRouteTable" + nameAlias)
-			subnet.Tags = []gfncfn.Tag{{
-				Key:   gfnt.NewString("kubernetes.io/role/internal-elb"),
-				Value: gfnt.NewString("1"),
-			}}
+			subnet.Tags = []gfncfn.Tag{
+				{
+					Key:   gfnt.NewString("kubernetes.io/role/internal-elb"),
+					Value: gfnt.NewString("1"),
+				},
+				kubernetesClusterTag,
+			}
 		case api.SubnetTopologyPublic:
-			subnet.Tags = []gfncfn.Tag{{
-				Key:   gfnt.NewString("kubernetes.io/role/elb"),
-				Value: gfnt.NewString("1"),
-			}}
+			subnet.Tags = []gfncfn.Tag{
+				{
+					Key:   gfnt.NewString("kubernetes.io/role/elb"),
+					Value: gfnt.NewString("1"),
+				},
+				kubernetesClusterTag,
+			}
 			subnet.MapPublicIpOnLaunch = gfnt.True()
 		}
 		subnetAlias := string(topology) + nameAlias

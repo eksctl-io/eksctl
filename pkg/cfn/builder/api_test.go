@@ -3028,7 +3028,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 				for _, suffix2 := range []string{"A", "B", "C"} {
 					Expect(subnetRefs.Has("Subnet" + suffix1 + suffix2)).To(BeTrue())
 					subnet := clusterTemplate.Resources["Subnet"+suffix1+suffix2].Properties
-					Expect(subnet.Tags).To(HaveLen(2))
+					Expect(subnet.Tags).To(HaveLen(3))
+					Expect(subnet.Tags).To(ContainElement(Tag{
+						Key:   fmt.Sprintf("kubernetes.io/cluster/%s", cfg.Metadata.Name),
+						Value: "shared",
+					}))
 					isRefTo(subnet.VpcID, "VPC")
 					Expect(subnet.AvailabilityZone).To(HavePrefix("us-west-2"))
 					Expect(subnet.CidrBlock).To(HavePrefix("192.168."))
@@ -3126,7 +3130,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 				for _, suffix2 := range []string{"A", "B", "C"} {
 					Expect(subnetRefs.Has("Subnet" + suffix1 + suffix2)).To(BeTrue())
 					subnet := clusterTemplate.Resources["Subnet"+suffix1+suffix2].Properties
-					Expect(subnet.Tags).To(HaveLen(2))
+					Expect(subnet.Tags).To(HaveLen(3))
+					Expect(subnet.Tags).To(ContainElement(Tag{
+						Key:   fmt.Sprintf("kubernetes.io/cluster/%s", cfg.Metadata.Name),
+						Value: "shared",
+					}))
 					isRefTo(subnet.VpcID, "VPC")
 					Expect(subnet.AvailabilityZone).To(HavePrefix("us-west-2"))
 					Expect(subnet.CidrBlock).To(HavePrefix("10.2."))

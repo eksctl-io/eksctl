@@ -66,6 +66,10 @@
                         "Value": "1"
                     },
                     {
+                        "Key": "kubernetes.io/cluster/my-cluster",
+                        "Value": "shared"
+                    },
+                    {
                         "Key": "Name",
                         "Value": {
                             "Fn::Sub": "${AWS::StackName}/SubnetPrivateCNNORTH1A"
@@ -86,6 +90,10 @@
                     {
                         "Key": "kubernetes.io/role/internal-elb",
                         "Value": "1"
+                    },
+                    {
+                        "Key": "kubernetes.io/cluster/my-cluster",
+                        "Value": "shared"
                     },
                     {
                         "Key": "Name",

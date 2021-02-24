@@ -31,6 +31,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 
 	DescribeTable("Add resources", func(vc vpcResourceSetCase) {
 		api.SetClusterConfigDefaults(vc.clusterConfig)
+		vc.clusterConfig.Metadata.Name = "my-cluster"
 
 		if len(vc.clusterConfig.AvailabilityZones) == 0 {
 			switch api.Partition(vc.clusterConfig.Metadata.Region) {
