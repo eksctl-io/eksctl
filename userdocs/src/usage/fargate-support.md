@@ -47,7 +47,11 @@ $ eksctl create cluster --fargate
 [✔]  EKS cluster "ridiculous-painting-1574859263" in "ap-northeast-1" region is ready
 ```
 
-This command will have created a cluster and a Fargate profile. This profile contains certain information needed by AWS to instantiate
+When the profile is not specified but support for Fargate is enabled with `--fargate` a default Fargate profile is
+created. The default profile targets the `default` and the `kube-system` namespaces so pods in those namespaces will run on
+Fargate.
+
+The default profile also contains certain information needed by AWS to instantiate
 pods in Fargate. These are:
 
 - pod execution role to define the permissions required to run the pod and the
@@ -56,10 +60,6 @@ pods in Fargate. These are:
   easier to migrate existing pods on a cluster to Fargate.
 - Selector to define which pods should run on Fargate. This is composed by a
   `namespace` and `labels`.
-
-When the profile is not specified but support for Fargate is enabled with `--fargate` a default Fargate profile is
-created. This profile targets the `default` and the `kube-system` namespaces so pods in those namespaces will run on
-Fargate.
 
 The Fargate profile that was created can be checked with the following command:
 
@@ -109,15 +109,15 @@ fargateProfiles:
       # All workloads in the "kube-system" Kubernetes namespace will be
       # scheduled onto Fargate:
       - namespace: kube-system
-  - name: fp-dev
-    selectors:
-      # All workloads in the "dev" Kubernetes namespace matching the following
-      # label selectors will be scheduled onto Fargate:
-      - namespace: dev
-        labels:
-          env: dev
-          checks: passed
 ```
+
+!!!note
+    There is no direct equivalent to the `--fargate` flag in the config file, and
+    they cannot be used together.
+
+    The `--fargate` flag will create a the default profile, as shown in the above config.
+    When enabling fargate via the config file the profiles have to be deliberately
+    specified.
 
 ```console
 $ eksctl create cluster -f cluster-fargate.yaml
