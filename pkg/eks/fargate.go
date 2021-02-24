@@ -8,6 +8,7 @@ import (
 	"github.com/weaveworks/logger"
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/weaveworks/eksctl/pkg/fargate"
 	"github.com/weaveworks/eksctl/pkg/fargate/coredns"
 	"github.com/weaveworks/eksctl/pkg/utils/retry"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
@@ -64,12 +65,15 @@ func DoCreateFargateProfiles(config *api.ClusterConfig, fargateClient FargateCli
 		//
 		// In the case that a ResourceInUseException is thrown on a profile which was
 		// created on an earlier call, we do not error but continue to the next one
+		var e *eks.ResourceInUseException
 		err := fargateClient.CreateProfile(profile, true)
-		switch errors.Cause(err).(type) {
-		case nil:
+		switch {
+		case err == nil:
 			logger.Info("created Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
-		case *eks.ResourceInUseException:
+		case errors.As(err, &e):
 			logger.Info("Either Fargate profile %q already exists on EKS cluster %q or another profile is being created/deleted, no action taken", profile.Name, clusterName)
+		case fargate.IsUnauthorizedError(err):
+			return errors.Wrapf(err, "either account is not authorized to use Fargate or region %s is not supported", config.Metadata.Region)
 		default:
 			return errors.Wrapf(err, "failed to create Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
 		}

@@ -6,6 +6,9 @@ manage servers or clusters.
 [Amazon EKS can now launch pods onto AWS Fargate][eks-fargate]. This removes the need to worry about how you provision or manage
 infrastructure for pods and makes it easier to build and run performant, highly-available Kubernetes applications on AWS.
 
+!!!warn
+    Fargate is not yet supported in Osaka (`ap-northeast-3`) region.
+
 ## Creating a cluster with Fargate support
 
 You can add a cluster with Fargate support with:
