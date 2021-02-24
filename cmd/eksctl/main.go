@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+
 	"github.com/weaveworks/eksctl/pkg/ctl/associate"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/completion"
@@ -21,7 +23,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/update"
 	"github.com/weaveworks/eksctl/pkg/ctl/upgrade"
 	"github.com/weaveworks/eksctl/pkg/ctl/utils"
-	"github.com/weaveworks/logger"
 )
 
 func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
@@ -62,15 +63,12 @@ func main() {
 	checkCommand(rootCmd)
 
 	rootCmd.PersistentFlags().BoolP("help", "h", false, "help for this command")
-	rootCmd.PersistentFlags().IntVarP(&logger.Level, "verbose", "v", 3, "set log level, use 0 to silence, 4 for debugging and 5 for debugging with AWS debug logging")
 
+	loggerLevel := rootCmd.PersistentFlags().IntP("verbose", "v", 3, "set log level, use 0 to silence, 4 for debugging and 5 for debugging with AWS debug logging")
 	colorValue := rootCmd.PersistentFlags().StringP("color", "C", "true", "toggle colorized logs (valid options: true, false, fabulous)")
 
 	cobra.OnInitialize(func() {
-		// Control colored output
-		logger.Color = *colorValue == "true"
-		logger.Fabulous = *colorValue == "fabulous"
-		logger.Timestamps = true
+		initLogger(*loggerLevel, *colorValue)
 	})
 
 	rootCmd.SetUsageFunc(flagGrouping.Usage)

@@ -8,9 +8,9 @@ import (
 	"github.com/weaveworks/eksctl/pkg/actions/identityproviders"
 	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/logger"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"

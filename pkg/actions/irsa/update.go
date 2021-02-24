@@ -5,7 +5,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
-	"github.com/weaveworks/logger"
+	"github.com/kris-nova/logger"
 
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 

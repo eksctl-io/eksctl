@@ -2,9 +2,9 @@ package cmdutils
 
 import (
 	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/logger"
 )
 
 func PopulateNodegroup(stackManager manager.StackManager, name string, cfg *api.ClusterConfig, ctl api.ClusterProvider) error {

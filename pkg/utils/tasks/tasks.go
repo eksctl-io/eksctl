@@ -5,7 +5,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/weaveworks/logger"
+	"github.com/kris-nova/logger"
 )
 
 // Task is a common interface for the stack manager tasks

@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/logger"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"

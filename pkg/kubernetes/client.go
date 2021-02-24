@@ -6,8 +6,8 @@ import (
 
 	"github.com/blang/semver"
 	jsonpatch "github.com/evanphx/json-patch/v5"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/logger"
 
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"

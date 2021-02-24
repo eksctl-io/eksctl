@@ -15,12 +15,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/blang/semver"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"github.com/weaveworks/eksctl/pkg/version"
 	"github.com/weaveworks/goformation/v4/cloudformation"
-	"github.com/weaveworks/logger"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"

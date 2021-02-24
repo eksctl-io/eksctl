@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"path"
 
-	"github.com/weaveworks/logger"
+	"github.com/kris-nova/logger"
 
 	"sigs.k8s.io/yaml"
 )

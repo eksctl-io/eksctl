@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/gobwas/glob"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/logger"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 )

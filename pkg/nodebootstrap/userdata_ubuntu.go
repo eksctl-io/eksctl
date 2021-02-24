@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
-	"github.com/weaveworks/logger"
 )
 
 const ubuntu2004ResolveConfPath = "/run/systemd/resolve/resolv.conf"
