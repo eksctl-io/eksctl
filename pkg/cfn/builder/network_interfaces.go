@@ -1,11 +1,12 @@
 package builder
 
 import (
+	"math"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
@@ -22,27 +23,38 @@ func defaultNetworkInterface(securityGroups []*gfnt.Value, device, card int) gfn
 
 func buildNetworkInterfaces(
 	launchTemplateData *gfnec2.LaunchTemplate_LaunchTemplateData,
-	spec *api.NodeGroupBase,
+	instanceTypes []string,
+	efaEnabled bool,
 	securityGroups []*gfnt.Value,
 	ec2api ec2iface.EC2API,
 ) error {
 	firstNI := defaultNetworkInterface(securityGroups, 0, 0)
-	if api.IsEnabled(spec.EFAEnabled) {
+	if efaEnabled {
 		input := ec2.DescribeInstanceTypesInput{
-			InstanceTypes: aws.StringSlice([]string{spec.InstanceType}),
+			InstanceTypes: aws.StringSlice(instanceTypes),
 		}
+
 		info, err := ec2api.DescribeInstanceTypes(&input)
 		if err != nil {
-			return errors.Wrapf(err, "couldn't retrieve instance type description for %s", spec.InstanceType)
+			return errors.Wrapf(err, "couldn't retrieve instance type description for %v", instanceTypes)
 		}
-		numEFAs := int(aws.Int64Value(info.InstanceTypes[0].NetworkInfo.MaximumNetworkCards))
+
+		var numEFAs float64 = math.MaxFloat64
+		for _, it := range info.InstanceTypes {
+			networkInfo := it.NetworkInfo
+			numEFAs = math.Min(float64(aws.Int64Value(networkInfo.MaximumNetworkCards)), numEFAs)
+			if !aws.BoolValue(networkInfo.EfaSupported) {
+				return errors.Errorf("instance type %s does not support EFA", *it.InstanceType)
+			}
+		}
+
 		firstNI.InterfaceType = gfnt.NewString("efa")
 		nis := []gfnec2.LaunchTemplate_NetworkInterface{firstNI}
 		// Only one card can be on deviceIndex=0
 		// Additional cards are on deviceIndex=1
 		// Due to ASG incompatibilities, we create each network card
 		// with its own device
-		for i := 1; i < numEFAs; i++ {
+		for i := 1; i < int(numEFAs); i++ {
 			ni := defaultNetworkInterface(securityGroups, i, i)
 			ni.InterfaceType = gfnt.NewString("efa")
 			nis = append(nis, ni)

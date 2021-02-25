@@ -279,7 +279,7 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_Laun
 		MetadataOptions: makeMetadataOptions(n.spec.NodeGroupBase),
 	}
 
-	if err := buildNetworkInterfaces(launchTemplateData, n.spec.BaseNodeGroup(), n.securityGroups, n.ec2API); err != nil {
+	if err := buildNetworkInterfaces(launchTemplateData, n.spec.InstanceTypeList(), api.IsEnabled(n.spec.EFAEnabled), n.securityGroups, n.ec2API); err != nil {
 		return nil, errors.Wrap(err, "couldn't build network interfaces for launch template data")
 	}
 

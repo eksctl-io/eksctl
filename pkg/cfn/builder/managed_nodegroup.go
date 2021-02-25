@@ -96,10 +96,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		managedResource.CapacityType = gfnt.NewString("SPOT")
 	}
 
-	instanceTypes := m.nodeGroup.InstanceTypes
-	if len(instanceTypes) == 0 && m.nodeGroup.InstanceType != "" {
-		instanceTypes = []string{m.nodeGroup.InstanceType}
-	}
+	instanceTypes := m.nodeGroup.InstanceTypeList()
 
 	makeAMIType := func() *gfnt.Value {
 		return gfnt.NewString(getAMIType(selectManagedInstanceType(m.nodeGroup)))
