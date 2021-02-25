@@ -126,7 +126,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	launchTemplateName := gfnt.MakeFnSubString(fmt.Sprintf("${%s}", gfnt.StackName))
 	launchTemplateData, err := newLaunchTemplateData(n)
 	if err != nil {
-		return errors.Wrap(err, "couldn't add resources for nodegroup")
+		return errors.Wrap(err, "could not add resources for nodegroup")
 	}
 
 	if n.spec.SSH != nil && api.IsSetAndNonEmptyString(n.spec.SSH.PublicKeyName) {
