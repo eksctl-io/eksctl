@@ -69,7 +69,7 @@ require (
 )
 
 replace (
-	github.com/aws/aws-sdk-go => github.com/weaveworks/aws-sdk-go v0.0.0-20210212091355-35b293563a18
+	github.com/aws/aws-sdk-go => github.com/weaveworks/aws-sdk-go v1.25.14-0.20201211131523-cf453e8e79b7
 	// Used to pin the k8s library versions regardless of what other dependencies enforce
 	k8s.io/api => k8s.io/api v0.19.5
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.19.5
