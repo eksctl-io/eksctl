@@ -606,7 +606,7 @@ var _ = Describe("EKS API wrapper", func() {
 		clusterConfig.Metadata.Version = k.kubernetesVersion
 
 		clusterConfig.SecretsEncryption = &api.SecretsEncryption{
-			KeyARN: aws.String(k.key),
+			KeyARN: k.key,
 		}
 		err := ValidateFeatureCompatibility(clusterConfig, nil)
 		if k.errSubstr != "" {

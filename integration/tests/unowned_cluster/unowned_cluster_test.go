@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/weaveworks/eksctl/pkg/eks"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -284,6 +285,47 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfully())
+	})
+
+	Context("KMS", func() {
+		var kmsKeyARN *string
+
+		BeforeEach(func() {
+			kmsClient := kms.New(ctl.ConfigProvider())
+			output, err := kmsClient.CreateKey(&kms.CreateKeyInput{
+				Description: aws.String("Key to test KMS encryption on EKS clusters"),
+			})
+			Expect(err).NotTo(HaveOccurred())
+			kmsKeyARN = output.KeyMetadata.Arn
+		})
+
+		It("supports enabling KMS encryption", func() {
+			enableEncryptionCMD := func() Cmd {
+				return params.EksctlUtilsCmd.
+					WithTimeout(1*time.Hour).
+					WithArgs(
+						"enable-secrets-encryption",
+						"--cluster", params.ClusterName,
+						"--key-arn", *kmsKeyARN,
+					)
+			}
+
+			By("enabling KMS encryption on the cluster using the new key")
+			cmd := enableEncryptionCMD()
+			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+				ContainElement(ContainSubstring(" initiated KMS encryption")),
+				ContainElement(ContainSubstring("KMS encryption applied to all Secret resources")),
+			))
+		})
+
+		AfterEach(func() {
+			kmsClient := kms.New(ctl.ConfigProvider())
+			_, err := kmsClient.ScheduleKeyDeletion(&kms.ScheduleKeyDeletionInput{
+				KeyId:               kmsKeyARN,
+				PendingWindowInDays: aws.Int64(7),
+			})
+			Expect(err).NotTo(HaveOccurred())
+		})
 	})
 
 	It("supports deleting clusters", func() {
