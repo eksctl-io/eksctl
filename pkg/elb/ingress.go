@@ -3,7 +3,7 @@ package elb
 import (
 	"context"
 
-	"github.com/weaveworks/logger"
+	"github.com/kris-nova/logger"
 
 	v1 "k8s.io/api/networking/v1"
 	"k8s.io/api/networking/v1beta1"

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/logger"
 )
 
 func NewUserDataForWindows(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {

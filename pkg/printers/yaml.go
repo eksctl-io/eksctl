@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/weaveworks/logger"
+	"github.com/kris-nova/logger"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	cliruntime "k8s.io/cli-runtime/pkg/printers"
@@ -52,7 +52,7 @@ func (y *YAMLPrinter) PrintObjWithKind(kind string, obj interface{}, writer io.W
 
 // LogObj will print the passed object formatted as YAML to
 // the logger.
-func (y *YAMLPrinter) LogObj(log logger.Logger, msgFmt string, obj interface{}) error {
+func (y *YAMLPrinter) LogObj(log logger.LoggerFunc, msgFmt string, obj interface{}) error {
 	b := &bytes.Buffer{}
 	if err := y.PrintObj(obj, b); err != nil {
 		return err

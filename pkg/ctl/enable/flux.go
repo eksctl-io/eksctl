@@ -1,13 +1,13 @@
 package enable
 
 import (
+	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/actions/flux"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/version"
-	"github.com/weaveworks/logger"
 )
 
 func enableFlux2(cmd *cmdutils.Cmd) {

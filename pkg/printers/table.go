@@ -8,8 +8,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/logger"
 	"k8s.io/kops/util/pkg/tables"
 )
 
@@ -55,7 +55,7 @@ func (t *TablePrinter) PrintObjWithKind(kind string, obj interface{}, writer io.
 
 // LogObj will print the passed object formatted as a table to
 // the logger.
-func (t *TablePrinter) LogObj(log logger.Logger, msgFmt string, obj interface{}) error {
+func (t *TablePrinter) LogObj(log logger.LoggerFunc, msgFmt string, obj interface{}) error {
 	b := &bytes.Buffer{}
 	if err := t.PrintObj(obj, b); err != nil {
 		return err

@@ -2,10 +2,10 @@ package ssh
 
 import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ssh/client"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
-	"github.com/weaveworks/logger"
 )
 
 // LoadKey loads the SSH public key specified in NodeGroupSSH and returns it. The key should be specified

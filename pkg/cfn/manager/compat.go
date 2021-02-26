@@ -3,11 +3,11 @@ package manager
 import (
 	"fmt"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
-	"github.com/weaveworks/logger"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
