@@ -15,7 +15,7 @@ import (
 	"k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-const kmsAnnotation = "eksctl.io/kms-reencryption-timestamp"
+const kmsAnnotation = "eksctl.io/kms-encryption-timestamp"
 
 // RefreshSecrets updates all secrets to apply KMS encryption
 func RefreshSecrets(ctx context.Context, c v1.CoreV1Interface) error {

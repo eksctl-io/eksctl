@@ -14,7 +14,7 @@ import (
 	"github.com/weaveworks/logger"
 )
 
-const enableKMSTimeout = 1 * time.Hour
+const enableKMSTimeout = (1 * time.Hour) + (20 * time.Minute)
 
 func enableSecretsEncryptionWithHandler(cmd *cmdutils.Cmd, handler func(*cmdutils.Cmd, bool) error) {
 	cfg := api.NewClusterConfig()

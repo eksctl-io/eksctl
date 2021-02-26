@@ -46,7 +46,7 @@ $ eksctl utils enable-secrets-encryption --cluster=kms-cluster --key-arn=arn:aws
 ```
 
 In addition to enabling KMS encryption on the EKS cluster, eksctl also re-encrypts all existing Kubernetes secrets using the new KMS key
-by updating them with the annotation `eksctl.io/kms-re-encryption-timestamp`. This behaviour can be disabled by passing `--encrypt-existing-secrets=false`, as in:
+by updating them with the annotation `eksctl.io/kms-encryption-timestamp`. This behaviour can be disabled by passing `--encrypt-existing-secrets=false`, as in:
 
 
 ```shell
