@@ -23,14 +23,14 @@ func enableSecretsEncryptionWithHandler(cmd *cmdutils.Cmd, handler func(*cmdutil
 
 	cmd.SetDescription("enable-secrets-encryption", "Enable secrets encryption", "Enable secrets encryption on a cluster")
 
-	var encrypt bool
+	var encryptExistingSecrets bool
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
 		if err := cmdutils.NewUtilsKMSLoader(cmd).Load(); err != nil {
 			return err
 		}
-		return handler(cmd, encrypt)
+		return handler(cmd, encryptExistingSecrets)
 	}
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
@@ -42,7 +42,7 @@ func enableSecretsEncryptionWithHandler(cmd *cmdutils.Cmd, handler func(*cmdutil
 		cmdutils.AddApproveFlag(fs, cmd)
 		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, enableKMSTimeout)
 		fs.StringVar(&cmd.ClusterConfig.SecretsEncryption.KeyARN, "key-arn", "", "KMS key ARN")
-		fs.BoolVar(&encrypt, "encrypt", true, "Encrypt all existing secrets with the new key")
+		fs.BoolVar(&encryptExistingSecrets, "encrypt-existing-secrets", true, "Encrypt all existing secrets with the new KMS key")
 	})
 
 }
@@ -51,7 +51,7 @@ func enableSecretsEncryptionCmd(cmd *cmdutils.Cmd) {
 	enableSecretsEncryptionWithHandler(cmd, doEnableSecretsEncryption)
 }
 
-func doEnableSecretsEncryption(cmd *cmdutils.Cmd, encrypt bool) error {
+func doEnableSecretsEncryption(cmd *cmdutils.Cmd, encryptExistingSecrets bool) error {
 	clusterConfig := cmd.ClusterConfig
 
 	ctl, err := cmd.NewCtl()
@@ -79,7 +79,7 @@ func doEnableSecretsEncryption(cmd *cmdutils.Cmd, encrypt bool) error {
 		return err
 	}
 
-	if encrypt {
+	if encryptExistingSecrets {
 		logger.Info("updating all Secret resources to apply KMS encryption")
 		clientSet, err := ctl.NewStdClientSet(clusterConfig)
 		if err != nil {
