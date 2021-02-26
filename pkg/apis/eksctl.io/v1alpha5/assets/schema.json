@@ -842,8 +842,8 @@
           "$ref": "#/definitions/OIDCIdentityProvider"
         }
       ],
-      "description": "holds an identity provider",
-      "x-intellij-html-description": "holds an identity provider"
+      "description": "holds an identity provider configuration. See [the example eksctl config](https://github.com/weaveworks/eksctl/blob/main/examples/27-oidc-provider.yaml).",
+      "x-intellij-html-description": "holds an identity provider configuration. See <a href=\"https://github.com/weaveworks/eksctl/blob/main/examples/27-oidc-provider.yaml\">the example eksctl config</a>."
     },
     "InlineDocument": {
       "additionalProperties": {},
