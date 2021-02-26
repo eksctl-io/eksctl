@@ -2,9 +2,6 @@ name: CI
 
 on:
   pull_request: {}
-  push:
-    branches:
-      - gh-lint
 
 env:
   GOPRIVATE: github.com/weaveworks/aws-sdk-go-private
@@ -13,7 +10,7 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    container: weaveworks/eksctl-build:b3df6d07d20a57b3818d901ec424c1df564a4d9c
+    container: weaveworks/eksctl-build:014553f5553855abb719627546a0ac54685f8143
     steps:
       - name: Checkout
         uses: actions/checkout@v2
