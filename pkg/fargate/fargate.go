@@ -1,12 +1,14 @@
 package fargate
 
 import (
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/retry"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
-	"github.com/weaveworks/logger"
 )
 
 func NewFromProvider(clusterName string, provider api.ClusterProvider) Client {
@@ -49,4 +51,16 @@ func toSelectors(in []*eks.FargateProfileSelector) []api.FargateProfileSelector 
 		}
 	}
 	return out
+}
+
+// IsUnauthorizedError reports whether the error is an authorization error
+// Unauthorized errors are of the form:
+//   AccessDeniedException: Account <account> is not authorized to use this service
+func IsUnauthorizedError(err error) bool {
+	awsErr, ok := errors.Cause(err).(awserr.Error)
+	if !ok {
+		return false
+	}
+
+	return awsErr.Code() == "AccessDeniedException"
 }

@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 
-	"github.com/weaveworks/logger"
+	"github.com/kris-nova/logger"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"

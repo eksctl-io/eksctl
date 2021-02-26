@@ -3,12 +3,12 @@ package nodebootstrap
 import (
 	"strings"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
-	"github.com/weaveworks/logger"
 )
 
 func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) ([]configFile, error) {

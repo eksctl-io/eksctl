@@ -5,9 +5,9 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/eks"
 
+	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/drain"
-	"github.com/weaveworks/logger"
 )
 
 func (m *Manager) Drain(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod time.Duration, disableEviction bool) error {

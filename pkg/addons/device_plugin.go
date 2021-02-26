@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/assetutil"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
-	"github.com/weaveworks/logger"
 
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"

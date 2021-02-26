@@ -3,7 +3,7 @@ package ami
 import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
-	"github.com/weaveworks/logger"
+	"github.com/kris-nova/logger"
 )
 
 // MultiResolver is a Resolver that delegates to one or more Resolvers.

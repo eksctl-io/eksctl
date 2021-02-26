@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/logger"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 

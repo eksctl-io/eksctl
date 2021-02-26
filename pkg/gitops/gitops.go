@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
-	"github.com/weaveworks/logger"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 

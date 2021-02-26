@@ -3,7 +3,7 @@ package utils
 import (
 	"fmt"
 
-	"github.com/weaveworks/logger"
+	"github.com/kris-nova/logger"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 

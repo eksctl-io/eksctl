@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/logger"
 )
 
 // DeleteProfile drains and delete the Fargate profile with the provided name.
@@ -58,15 +57,4 @@ func contains(array []*string, target string) bool {
 		}
 	}
 	return false
-}
-
-// IsUnauthorizedError reports whether the error is an authorization error
-// Unauthorized errors are of the form:
-//   AccessDeniedException: Account <account> is not authorized to use this service
-func IsUnauthorizedError(err error) bool {
-	awsErr, ok := errors.Cause(err).(awserr.Error)
-	if !ok {
-		return false
-	}
-	return awsErr.Code() == "AccessDeniedException"
 }
