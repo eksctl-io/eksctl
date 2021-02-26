@@ -18,6 +18,7 @@ jobs:
           AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
           AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
           AWS_ACCOUNT_ID: "${{ secrets.AWS_ACCOUNT_ID }}"
+        working-directory: .github
         # Cloudformation deletes are slow and not in parallel, so your better off deleting all EKS resources first as they
         # run in parallel.
         run: |
