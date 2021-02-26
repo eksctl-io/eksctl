@@ -14,12 +14,14 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+      - name: Setup identity as weaveworksbot
+        uses: ./.github/actions/setup-identity
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
       - name: Merge release branch into ${{env.DEFAULT_BRANCH}}
         run: |
           git checkout $DEFAULT_BRANCH
           git checkout -b merge-${{ github.sha }}
-          git config user.name "weaveworksbot"
-          git config user.email "weaveworksbot@users.noreply.github.com"
           git merge --no-commit --no-ff ${{ github.ref }}
           git checkout ORIG_HEAD -- $VERSION_FILE
           git add $VERSION_FILE
