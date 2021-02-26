@@ -7,6 +7,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/assetutil"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
@@ -190,5 +191,43 @@ func (n *NvidiaDevicePlugin) Manifest() []byte {
 
 // Deploy deploys the Nvidia device plugin to the specified cluster
 func (n *NvidiaDevicePlugin) Deploy() error {
+	return applyDevicePlugin(n)
+}
+
+// A EFADevicePlugin deploys the EFA Device Plugin to a cluster
+type EFADevicePlugin struct {
+	rawClient kubernetes.RawClientInterface
+	region    string
+	planMode  bool
+}
+
+func (n *EFADevicePlugin) RawClient() kubernetes.RawClientInterface {
+	return n.rawClient
+}
+
+func (n *EFADevicePlugin) PlanMode() bool {
+	return n.planMode
+}
+
+func (n *EFADevicePlugin) Manifest() []byte {
+	return assetutil.MustLoad(efaDevicePluginYamlBytes)
+}
+
+func (n *EFADevicePlugin) SetImage(t *v1.PodTemplateSpec) error {
+	account := api.EKSResourceAccountID(n.region)
+	return useRegionalImage(t, n.region, account)
+}
+
+// NewEFADevicePlugin creates a new EFADevicePlugin
+func NewEFADevicePlugin(rawClient kubernetes.RawClientInterface, region string, planMode bool) DevicePlugin {
+	return &EFADevicePlugin{
+		rawClient,
+		region,
+		planMode,
+	}
+}
+
+// Deploy deploys the EFA device plugin to the specified cluster
+func (n *EFADevicePlugin) Deploy() error {
 	return applyDevicePlugin(n)
 }

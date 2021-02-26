@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	awsiam "github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"

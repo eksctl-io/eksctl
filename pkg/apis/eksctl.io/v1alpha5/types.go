@@ -822,6 +822,13 @@ type NodeGroup struct {
 	KubeletExtraConfig *InlineDocument `json:"kubeletExtraConfig,omitempty"`
 }
 
+func (n *NodeGroup) InstanceTypeList() []string {
+	if HasMixedInstances(n) {
+		return n.InstancesDistribution.InstanceTypes
+	}
+	return []string{n.InstanceType}
+}
+
 // BaseNodeGroup implements NodePool
 func (n *NodeGroup) BaseNodeGroup() *NodeGroupBase {
 	return n.NodeGroupBase
@@ -1258,6 +1265,11 @@ type NodeGroupBase struct {
 	// +optional
 	Placement *Placement `json:"placement,omitempty"`
 
+	// EFAEnabled creates the maximum allowed number of EFA-enabled network
+	// cards on nodes in this group.
+	// +optional
+	EFAEnabled *bool `json:"efaEnabled,omitempty"`
+
 	// Internal fields
 	// Some AMIs (bottlerocket) have a separate volume for the OS
 	AdditionalEncryptedVolume string `json:"-"`
@@ -1320,6 +1332,13 @@ type ManagedNodeGroup struct {
 	LaunchTemplate *LaunchTemplate `json:"launchTemplate,omitempty"`
 
 	Unowned bool
+}
+
+func (m *ManagedNodeGroup) InstanceTypeList() []string {
+	if len(m.InstanceTypes) > 0 {
+		return m.InstanceTypes
+	}
+	return []string{m.InstanceType}
 }
 
 func (m *ManagedNodeGroup) ListOptions() metav1.ListOptions {

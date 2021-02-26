@@ -449,6 +449,29 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcResource *VPCResou
 	}
 }
 
+func (rs *resourceSet) addEFASecurityGroup(vpcID *gfnt.Value, clusterName, desc string) {
+	efaSG := rs.newResource("EFASG", &gfnec2.SecurityGroup{
+		VpcId:            vpcID,
+		GroupDescription: gfnt.NewString("EFA-enabled security group"),
+		Tags: []gfncfn.Tag{{
+			Key:   gfnt.NewString("kubernetes.io/cluster/" + clusterName),
+			Value: gfnt.NewString("owned"),
+		}},
+	})
+	rs.newResource("EFAIngressSelf", &gfnec2.SecurityGroupIngress{
+		GroupId:               efaSG,
+		SourceSecurityGroupId: efaSG,
+		Description:           gfnt.NewString("Allow " + desc + " to communicate to itself (EFA-enabled)"),
+		IpProtocol:            gfnt.NewString("-1"),
+	})
+	rs.newResource("EFAEgressSelf", &gfnec2.SecurityGroupEgress{
+		GroupId:                    efaSG,
+		DestinationSecurityGroupId: efaSG,
+		Description:                gfnt.NewString("Allow " + desc + " to communicate to itself (EFA-enabled)"),
+		IpProtocol:                 gfnt.NewString("-1"),
+	})
+}
+
 func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	for _, id := range n.spec.SecurityGroups.AttachIDs {
 		n.securityGroups = append(n.securityGroups, gfnt.NewString(id))
@@ -478,6 +501,10 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	})
 
 	n.securityGroups = append(n.securityGroups, refNodeGroupLocalSG)
+
+	if api.IsEnabled(n.spec.EFAEnabled) {
+		n.rs.addEFASecurityGroup(makeImportValue(n.clusterStackName, outputs.ClusterVPC), n.clusterSpec.Metadata.Name, desc)
+	}
 
 	n.newResource("EgressInterCluster", &gfnec2.SecurityGroupEgress{
 		GroupId:                    refControlPlaneSG,
