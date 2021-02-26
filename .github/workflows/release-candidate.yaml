@@ -46,10 +46,9 @@ jobs:
             ~/.cache/go-build/
             ~/go/pkg/mod/
           key: ${{ hashFiles('go.sum') }}
-      - name: Setup git config as weaveworksbot
-        run: |
-          git config user.name "weaveworksbot"
-          git config user.email "weaveworksbot@users.noreply.github.com"
-          echo "${{ secrets.WEAVEWORKSBOT_TOKEN }}" | gh auth login --with-token
+      - name: Setup identity as weaveworksbot
+        uses: ./.github/actions/setup-identity
+        with:
+          token: "${{ secrets.WEAVEWORKSBOT_TOKEN }}"
       - name: Open PRs to release branch and default branch
         run: make prepare-release-candidate

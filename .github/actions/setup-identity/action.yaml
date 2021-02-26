@@ -1,0 +1,27 @@
+name: "Setup identity"
+description: "Setup git config with name and email and log in with GH CLI"
+inputs:
+  token:
+    description: "Token to use with GH CLI"
+    required: true
+  name:
+    description: "Git config name"
+    required: false
+    default: "weaveworksbot"
+  email:
+    description: "Git config email"
+    required: false
+    default: "weaveworksbot@users.noreply.github.com"
+outputs: {}
+runs:
+  using: "composite"
+  steps:
+    - name: Setup git config
+      shell: bash
+      run: |
+        git config user.name "${{ inputs.name }}"
+        git config user.email "${{ inputs.email }}"
+    - name: Log in with GH CLI
+      shell: bash
+      run: |
+        echo "${{ inputs.token }}" | gh auth login --with-token
