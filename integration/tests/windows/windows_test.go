@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/weaveworks/eksctl/integration/utilities/unowned"
+
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -28,7 +30,10 @@ func TestWindowsCluster(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-var params *tests.Params
+var (
+	params         *tests.Params
+	unownedCluster *unowned.Cluster
+)
 
 var _ = BeforeSuite(func() {
 	params = tests.NewParams("windows")
@@ -63,17 +68,51 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 		data, err := json.Marshal(clusterConfig)
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd := params.EksctlCreateCmd.
-			WithArgs(
-				"cluster",
-				"--config-file", "-",
+		if params.UnownedCluster {
+			unownedCluster = unowned.NewCluster(clusterConfig)
+			cmd := params.EksctlUtilsCmd.WithArgs(
+				"write-kubeconfig",
 				"--verbose", "4",
+				"--cluster", params.ClusterName,
 				"--kubeconfig", params.KubeconfigPath,
-				"--install-vpc-controllers",
-			).
-			WithoutArg("--region", params.Region).
-			WithStdin(bytes.NewReader(data))
-		Expect(cmd).To(RunSuccessfully())
+			)
+			Expect(cmd).To(RunSuccessfully())
+
+			if withOIDC {
+				cmd = params.EksctlUtilsCmd.
+					WithArgs(
+						"associate-iam-oidc-provider",
+						"--name", params.ClusterName,
+						"--approve",
+						"--verbose", "2",
+					)
+				Expect(cmd).To(RunSuccessfully())
+			}
+
+			cmd = params.EksctlCreateCmd.
+				WithArgs(
+					"nodegroup",
+					"--config-file", "-",
+					"--verbose", "4",
+					"--install-vpc-controllers",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(data))
+			Expect(cmd).To(RunSuccessfully())
+		} else {
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"cluster",
+					"--config-file", "-",
+					"--verbose", "4",
+					"--kubeconfig", params.KubeconfigPath,
+					"--install-vpc-controllers",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(bytes.NewReader(data))
+			Expect(cmd).To(RunSuccessfully())
+		}
+
 	}
 
 	runWindowsPod := func() {

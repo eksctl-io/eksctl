@@ -8,17 +8,25 @@ import (
 	"testing"
 	"time"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+
 	harness "github.com/dlespiau/kube-test-harness"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"strconv"
+
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
+	"github.com/weaveworks/eksctl/integration/utilities/unowned"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
-var params *tests.Params
+var (
+	params         *tests.Params
+	unownedCluster *unowned.Cluster
+)
 
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
@@ -35,6 +43,7 @@ var _ = Describe("(Integration) Fargate", func() {
 	deleteCluster := func(clusterName string) {
 		cmd := params.EksctlDeleteCmd.WithArgs(
 			"cluster", clusterName,
+			"--wait",
 			"--verbose", "4",
 		)
 		Expect(cmd).To(RunSuccessfully())
@@ -45,25 +54,48 @@ var _ = Describe("(Integration) Fargate", func() {
 		kubeTest    *harness.Test
 	}
 
-	setup := func(ft *fargateTest, createArgs ...string) {
-		prefix := strings.ReplaceAll("fgate-"+strings.ReplaceAll(strings.Join(createArgs, ""), "-", ""), "--", "-")
+	setup := func(ft *fargateTest, fargate, managed bool) {
+		prefix := strings.ReplaceAll("fgate-"+strings.ReplaceAll(strings.Join([]string{strconv.FormatBool(fargate), strconv.FormatBool(managed)}, ""), "-", ""), "--", "-")
 		ft.clusterName = params.NewClusterName(prefix)
-		args := []string{
-			"cluster",
-			"--name", ft.clusterName,
-			"--verbose", "4",
-			"--kubeconfig", params.KubeconfigPath,
-			"--nodes", "1",
-			"--timeout", "1h10m",
+		params.ClusterName = ft.clusterName
+
+		if params.UnownedCluster {
+			unownedCluster = unowned.NewCluster(&api.ClusterConfig{
+				Metadata: &api.ClusterMeta{
+					Name:    params.ClusterName,
+					Region:  params.Region,
+					Version: params.Version,
+				},
+			})
+
+			if managed {
+				cmd := params.EksctlCreateCmd.WithArgs(
+					"nodegroup",
+					"--verbose", "4",
+					"--cluster", params.ClusterName,
+					"--managed",
+				)
+				Expect(cmd).To(RunSuccessfully())
+			}
+		} else {
+			args := []string{
+				"cluster",
+				"--name", ft.clusterName,
+				"--verbose", "4",
+				"--kubeconfig", params.KubeconfigPath,
+				"--nodes", "1",
+				"--timeout", "1h10m",
+				"--fargate", strconv.FormatBool(fargate),
+				"--managed", strconv.FormatBool(managed),
+			}
+
+			cmd := params.EksctlCreateCmd.WithArgs(args...)
+			Expect(cmd).To(RunSuccessfully())
+
+			var err error
+			ft.kubeTest, err = kube.NewTest(params.KubeconfigPath)
+			Expect(err).ToNot(HaveOccurred())
 		}
-
-		args = append(args, createArgs...)
-		cmd := params.EksctlCreateCmd.WithArgs(args...)
-		Expect(cmd).To(RunSuccessfully())
-
-		var err error
-		ft.kubeTest, err = kube.NewTest(params.KubeconfigPath)
-		Expect(err).ToNot(HaveOccurred())
 	}
 
 	testDefaultFargateProfile := func(clusterName string, kubeTest *harness.Test) {
@@ -131,53 +163,48 @@ var _ = Describe("(Integration) Fargate", func() {
 		Expect(cmd).To(RunSuccessfully())
 	}
 
-	Context("Creating a cluster with --fargate", func() {
-		ft := &fargateTest{}
+	ft := &fargateTest{}
 
+	AfterEach(func() {
+		deleteCluster(ft.clusterName)
+		if params.UnownedCluster {
+			unownedCluster.DeleteStack()
+		}
+	})
+
+	Context("Creating a cluster with --fargate", func() {
 		BeforeEach(func() {
-			setup(ft, "--fargate")
+			setup(ft, true, false)
 		})
 
 		It("should support Fargate", func() {
-			testDefaultFargateProfile(ft.clusterName, ft.kubeTest)
+			if !params.UnownedCluster {
+				testDefaultFargateProfile(ft.clusterName, ft.kubeTest)
+			}
 			testCreateFargateProfile(ft.clusterName, ft.kubeTest)
-		})
-
-		AfterEach(func() {
-			deleteCluster(ft.clusterName)
 		})
 	})
 
 	Context("Creating a cluster with --fargate and --managed", func() {
-		ft := &fargateTest{}
-
 		BeforeEach(func() {
-			setup(ft, "--fargate", "--managed")
+			setup(ft, true, true)
 		})
 
 		It("should support Fargate", func() {
-			testDefaultFargateProfile(ft.clusterName, ft.kubeTest)
+			if !params.UnownedCluster {
+				testDefaultFargateProfile(ft.clusterName, ft.kubeTest)
+			}
 			testCreateFargateProfile(ft.clusterName, ft.kubeTest)
-		})
-
-		AfterEach(func() {
-			deleteCluster(ft.clusterName)
 		})
 	})
 
 	Context("Creating a cluster without --fargate", func() {
-		ft := &fargateTest{}
-
 		BeforeEach(func() {
-			setup(ft)
+			setup(ft, false, false)
 		})
 
 		It("should allow creation of new Fargate profiles", func() {
 			testCreateFargateProfile(ft.clusterName, ft.kubeTest)
-		})
-
-		AfterEach(func() {
-			deleteCluster(ft.clusterName)
 		})
 	})
 })

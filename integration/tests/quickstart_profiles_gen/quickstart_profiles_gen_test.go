@@ -10,6 +10,8 @@ import (
 
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	"github.com/weaveworks/eksctl/integration/utilities/unowned"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 
 	. "github.com/onsi/ginkgo"
@@ -17,7 +19,10 @@ import (
 	"github.com/spf13/afero"
 )
 
-var params *tests.Params
+var (
+	params         *tests.Params
+	unownedCluster *unowned.Cluster
+)
 
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
@@ -30,13 +35,31 @@ func TestQuickstartProfilesGen(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	cmd := params.EksctlCreateCmd.WithArgs(
-		"cluster",
-		"--verbose", "4",
-		"--name", params.ClusterName,
-		"--region", params.Region,
-	)
-	Expect(cmd).To(RunSuccessfully())
+	if params.UnownedCluster {
+		unownedCluster = unowned.NewCluster(&api.ClusterConfig{
+			Metadata: &api.ClusterMeta{
+				Name:    params.ClusterName,
+				Region:  params.Region,
+				Version: params.Version,
+			},
+		})
+	} else {
+		cmd := params.EksctlCreateCmd.WithArgs(
+			"cluster",
+			"--verbose", "4",
+			"--name", params.ClusterName,
+			"--region", params.Region,
+		)
+		Expect(cmd).To(RunSuccessfully())
+	}
+})
+
+var _ = AfterSuite(func() {
+	params.DeleteClusters()
+	os.RemoveAll(params.TestDirectory)
+	if params.UnownedCluster {
+		unownedCluster.DeleteStack()
+	}
 })
 
 var _ = Describe("(Integration) generate profile", func() {
@@ -98,9 +121,4 @@ anotherkey:
 
 		})
 	})
-})
-
-var _ = AfterSuite(func() {
-	params.DeleteClusters()
-	os.RemoveAll(params.TestDirectory)
 })

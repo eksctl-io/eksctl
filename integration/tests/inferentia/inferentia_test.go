@@ -16,17 +16,20 @@ import (
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	"github.com/weaveworks/eksctl/integration/utilities/unowned"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	defaultCluster          string
-	noInstallCluster        string
-	params                  *tests.Params
-	clusterWithNeuronPlugin string
-	clusterWithoutPlugin    string
+	defaultCluster                 string
+	noInstallCluster               string
+	params                         *tests.Params
+	clusterWithNeuronPlugin        string
+	clusterWithoutPlugin           string
+	unownedClusterWithNeuronPlugin *unowned.Cluster
+	unownedClusterWithoutPlugin    *unowned.Cluster
 )
 
 func init() {
@@ -59,34 +62,80 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 		clusterWithNeuronPlugin = defaultCluster
 
 		if !params.SkipCreate {
-			cmd := params.EksctlCreateCmd.WithArgs(
-				"cluster",
-				"--verbose", "4",
-				"--name", clusterWithoutPlugin,
-				"--tags", "alpha.eksctl.io/description=eksctl integration test",
-				"--install-neuron-plugin=false",
-				"--nodegroup-name", initNG,
-				"--node-labels", "ng-name="+initNG,
-				"--nodes", "1",
-				"--node-type", "inf1.xlarge",
-				"--version", params.Version,
-				"--kubeconfig", params.KubeconfigPath,
-			)
-			Expect(cmd).To(RunSuccessfully())
+			if params.UnownedCluster {
+				unownedClusterWithoutPlugin = unowned.NewCluster(&api.ClusterConfig{
+					Metadata: &api.ClusterMeta{
+						Name:    clusterWithoutPlugin,
+						Region:  params.Region,
+						Version: params.Version,
+					},
+				})
 
-			cmd = params.EksctlCreateCmd.WithArgs(
-				"cluster",
-				"--verbose", "4",
-				"--name", clusterWithNeuronPlugin,
-				"--tags", "alpha.eksctl.io/description=eksctl integration test",
-				"--nodegroup-name", initNG,
-				"--node-labels", "ng-name="+initNG,
-				"--nodes", "1",
-				"--node-type", "inf1.xlarge",
-				"--version", params.Version,
-				"--kubeconfig", params.KubeconfigPath,
-			)
-			Expect(cmd).To(RunSuccessfully())
+				unownedClusterWithNeuronPlugin = unowned.NewCluster(&api.ClusterConfig{
+					Metadata: &api.ClusterMeta{
+						Name:    clusterWithNeuronPlugin,
+						Region:  params.Region,
+						Version: params.Version,
+					},
+				})
+
+				cmd := params.EksctlCreateCmd.WithArgs(
+					"nodegroup",
+					"--verbose", "4",
+					"--name", clusterWithoutPlugin,
+					"--tags", "alpha.eksctl.io/description=eksctl integration test",
+					"--install-neuron-plugin=false",
+					"--name", initNG,
+					"--node-labels", "ng-name="+initNG,
+					"--nodes", "1",
+					"--node-type", "inf1.xlarge",
+					"--version", params.Version,
+					"--kubeconfig", params.KubeconfigPath,
+				)
+				Expect(cmd).To(RunSuccessfully())
+				cmd = params.EksctlCreateCmd.WithArgs(
+					"nodegroup",
+					"--verbose", "4",
+					"--name", clusterWithNeuronPlugin,
+					"--tags", "alpha.eksctl.io/description=eksctl integration test",
+					"--name", initNG,
+					"--node-labels", "ng-name="+initNG,
+					"--nodes", "1",
+					"--node-type", "inf1.xlarge",
+					"--version", params.Version,
+					"--kubeconfig", params.KubeconfigPath,
+				)
+				Expect(cmd).To(RunSuccessfully())
+			} else {
+				cmd := params.EksctlCreateCmd.WithArgs(
+					"cluster",
+					"--verbose", "4",
+					"--name", clusterWithoutPlugin,
+					"--tags", "alpha.eksctl.io/description=eksctl integration test",
+					"--install-neuron-plugin=false",
+					"--nodegroup-name", initNG,
+					"--node-labels", "ng-name="+initNG,
+					"--nodes", "1",
+					"--node-type", "inf1.xlarge",
+					"--version", params.Version,
+					"--kubeconfig", params.KubeconfigPath,
+				)
+				Expect(cmd).To(RunSuccessfully())
+
+				cmd = params.EksctlCreateCmd.WithArgs(
+					"cluster",
+					"--verbose", "4",
+					"--name", clusterWithNeuronPlugin,
+					"--tags", "alpha.eksctl.io/description=eksctl integration test",
+					"--nodegroup-name", initNG,
+					"--node-labels", "ng-name="+initNG,
+					"--nodes", "1",
+					"--node-type", "inf1.xlarge",
+					"--version", params.Version,
+					"--kubeconfig", params.KubeconfigPath,
+				)
+				Expect(cmd).To(RunSuccessfully())
+			}
 		}
 	})
 
@@ -97,6 +146,10 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 			os.Remove(params.KubeconfigPath)
 		}
 		os.RemoveAll(params.TestDirectory)
+		if params.UnownedCluster {
+			unownedClusterWithoutPlugin.DeleteStack()
+			unownedClusterWithNeuronPlugin.DeleteStack()
+		}
 	})
 
 	Context("cluster with inf1 nodes", func() {
