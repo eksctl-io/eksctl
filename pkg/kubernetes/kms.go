@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/evanphx/json-patch/v5"
+	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes/typed/core/v1"
+	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 const kmsAnnotation = "eksctl.io/kms-encryption-timestamp"
@@ -47,6 +47,9 @@ func RefreshSecrets(ctx context.Context, c v1.CoreV1Interface) error {
 func createPatch(o runtime.Object, annotationName string) ([]byte, error) {
 	metaAccessor := meta.NewAccessor()
 	oldData, err := json.Marshal(o)
+	if err != nil {
+		return nil, err
+	}
 
 	annotations, err := metaAccessor.Annotations(o)
 	if err != nil {
