@@ -5,7 +5,7 @@ module github.com/weaveworks/eksctl
 go 1.15
 
 require (
-	github.com/aws/aws-sdk-go v1.37.15
+	github.com/aws/aws-sdk-go v1.37.20
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
@@ -69,7 +69,6 @@ require (
 )
 
 replace (
-	github.com/aws/aws-sdk-go => github.com/weaveworks/aws-sdk-go v1.25.14-0.20210226162545-0aecbf1c3ea0
 	// Used to pin the k8s library versions regardless of what other dependencies enforce
 	k8s.io/api => k8s.io/api v0.19.5
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.19.5
