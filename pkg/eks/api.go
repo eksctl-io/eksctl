@@ -69,6 +69,8 @@ type ProviderServices struct {
 	iam   iamiface.IAMAPI
 
 	cloudtrail cloudtrailiface.CloudTrailAPI
+
+	configProvider client.ConfigProvider
 }
 
 // CloudFormation returns a representation of the CloudFormation API
@@ -118,6 +120,10 @@ func (p ProviderServices) Profile() string { return p.spec.Profile }
 // WaitTimeout returns provider-level duration after which any wait operation has to timeout
 func (p ProviderServices) WaitTimeout() time.Duration { return p.spec.WaitTimeout }
 
+func (p ProviderServices) ConfigProvider() client.ConfigProvider {
+	return p.configProvider
+}
+
 // ProviderStatus stores information about the used IAM role and the resulting session
 type ProviderStatus struct {
 	iamRoleARN   string
@@ -137,6 +143,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	// later re-use if overriding sessions due to custom URL
 	s := c.newSession(spec)
 
+	provider.configProvider = s
 	provider.asg = autoscaling.New(s)
 	provider.cfn = cloudformation.New(s)
 	provider.eks = awseks.New(s)
@@ -358,7 +365,7 @@ func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []
 }
 
 func (c *ClusterProvider) newSession(spec *api.ProviderConfig) *session.Session {
-	// we might want to use bits from kops, although right now it seems like too many thing we
+	// we might want to use bits from kops, although right now it seems like too many things we
 	// don't want yet
 	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
 	config := aws.NewConfig().WithCredentialsChainVerboseErrors(true)

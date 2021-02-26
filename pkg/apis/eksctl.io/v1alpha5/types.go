@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
@@ -543,6 +544,7 @@ type ClusterProvider interface {
 	Region() string
 	Profile() string
 	WaitTimeout() time.Duration
+	ConfigProvider() client.ConfigProvider
 }
 
 // ProviderConfig holds global parameters for all interactions with AWS APIs
