@@ -44,14 +44,14 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
         run: make integration-test
       - name: Notify slack on success
-        if: success() && github.event_name == "schedule"
+        if: success() && github.event_name == 'schedule'
         uses: ./.github/actions/notify-slack
         with:
           webhook-url: "${{ secrets.SLACK_WEBHOOK }}"
           message: ":deal-with-it-parrot: An integration test run succeeded!"
           channel: team-pitch-black
       - name: Notify slack on failure
-        if: success() && github.event_name == "schedule"
+        if: success() && github.event_name == 'schedule'
         uses: ./.github/actions/notify-slack
         with:
           webhook-url: "${{ secrets.SLACK_WEBHOOK }}"
