@@ -2,25 +2,22 @@ package manager
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 
-	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
-	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
+
+func deleteAll(_ string) bool { return true }
 
 // NewTasksToDeleteClusterWithNodeGroups defines tasks required to delete the given cluster along with all of its resources
 func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvider bool, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error) {
 	taskTree := &tasks.TaskTree{Parallel: false}
 
-	nodeGroupTasks, err := c.NewTasksToDeleteNodeGroups(true, cleanup)
+	nodeGroupTasks, err := c.NewTasksToDeleteNodeGroups(deleteAll, true, cleanup)
 
 	if err != nil {
 		return nil, err
@@ -57,7 +54,7 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvid
 		return nil, err
 	}
 	if clusterStack == nil {
-		return nil, &StackNotFoundErr{ClusterName: c.spec.Metadata.Name}
+		return nil, c.ErrStackNotFound()
 	}
 
 	info := fmt.Sprintf("delete cluster control plane %q", c.spec.Metadata.Name)
@@ -79,7 +76,7 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvid
 }
 
 // NewTasksToDeleteNodeGroups defines tasks required to delete all of the nodegroups
-func (c *StackCollection) NewTasksToDeleteNodeGroups(wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error) {
+func (c *StackCollection) NewTasksToDeleteNodeGroups(shouldDelete func(string) bool, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error) {
 	nodeGroupStacks, err := c.DescribeNodeGroupStacks()
 	if err != nil {
 		return nil, err
@@ -90,6 +87,9 @@ func (c *StackCollection) NewTasksToDeleteNodeGroups(wait bool, cleanup func(cha
 	for _, s := range nodeGroupStacks {
 		name := c.GetNodeGroupName(s)
 
+		if !shouldDelete(name) {
+			continue
+		}
 		if *s.StackStatus == cloudformation.StackStatusDeleteFailed && cleanup != nil {
 			taskTree.Append(&tasks.TaskWithNameParam{
 				Info: fmt.Sprintf("cleanup for nodegroup %q", name),
@@ -114,60 +114,6 @@ func (c *StackCollection) NewTasksToDeleteNodeGroups(wait bool, cleanup func(cha
 
 	return taskTree, nil
 }
-
-type DeleteWaitCondition struct {
-	Condition func() (bool, error)
-	Timeout   time.Duration
-	Interval  time.Duration
-}
-
-type DeleteUnownedNodegroupTask struct {
-	cluster   string
-	nodegroup string
-	wait      *DeleteWaitCondition
-	info      string
-	eksAPI    eksiface.EKSAPI
-}
-
-func (d *DeleteUnownedNodegroupTask) Describe() string {
-	return d.info
-}
-
-func (d *DeleteUnownedNodegroupTask) Do() error {
-	out, err := d.eksAPI.DeleteNodegroup(&eks.DeleteNodegroupInput{
-		ClusterName:   &d.cluster,
-		NodegroupName: &d.nodegroup,
-	})
-	if err != nil {
-		return err
-	}
-
-	if d.wait != nil {
-		err := waiters.WaitForCondition(d.wait.Timeout, d.wait.Interval, fmt.Errorf("timed out waiting for nodegroup deletion after %s", d.wait.Timeout), d.wait.Condition)
-		if err != nil {
-			return err
-		}
-	}
-
-	if out != nil {
-		logger.Debug("Delete nodegroup %q output: %s", d.nodegroup, out.String())
-	}
-	return nil
-}
-
-func (c *StackCollection) NewTaskToDeleteUnownedNodeGroup(clusterName, nodegroup string, eksAPI eksiface.EKSAPI, waitCondition *DeleteWaitCondition) tasks.Task {
-	return tasks.SynchronousTask{
-		SynchronousTaskIface: &DeleteUnownedNodegroupTask{
-			cluster:   clusterName,
-			nodegroup: nodegroup,
-			eksAPI:    eksAPI,
-			wait:      waitCondition,
-			info:      fmt.Sprintf("delete unowned nodegroup %s", nodegroup),
-		}}
-}
-
-// think Jake is deleting this soon
-func deleteAll(_ string) bool { return true }
 
 // NewTasksToDeleteOIDCProviderWithIAMServiceAccounts defines tasks required to delete all of the iamserviceaccounts
 // along with associated IAM ODIC provider

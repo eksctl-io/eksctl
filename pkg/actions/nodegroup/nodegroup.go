@@ -13,27 +13,27 @@ import (
 )
 
 type Manager struct {
-	stackManager manager.StackManager
-	ctl          *eks.ClusterProvider
-	cfg          *api.ClusterConfig
-	clientSet    *kubernetes.Clientset
-	wait         WaitFunc
+	manager   manager.StackManager
+	ctl       *eks.ClusterProvider
+	cfg       *api.ClusterConfig
+	clientSet *kubernetes.Clientset
+	wait      WaitFunc
 }
 
 type WaitFunc func(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error
 
 func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet *kubernetes.Clientset) *Manager {
 	return &Manager{
-		stackManager: ctl.NewStackManager(cfg),
-		ctl:          ctl,
-		cfg:          cfg,
-		clientSet:    clientSet,
-		wait:         waiters.Wait,
+		manager:   ctl.NewStackManager(cfg),
+		ctl:       ctl,
+		cfg:       cfg,
+		clientSet: clientSet,
+		wait:      waiters.Wait,
 	}
 }
 
 func (m *Manager) hasStacks(name string) (bool, error) {
-	stacks, err := m.stackManager.ListNodeGroupStacks()
+	stacks, err := m.manager.ListNodeGroupStacks()
 	if err != nil {
 		return false, err
 	}

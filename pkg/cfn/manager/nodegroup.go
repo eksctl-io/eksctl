@@ -19,7 +19,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/version"
-	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 const (
@@ -54,11 +53,10 @@ func (c *StackCollection) makeNodeGroupStackName(name string) string {
 }
 
 // createNodeGroupTask creates the nodegroup
-func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup, supportsManagedNodes, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
+func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup, supportsManagedNodes, forceAddCNIPolicy bool) error {
 	name := c.makeNodeGroupStackName(ng.Name)
-
 	logger.Info("building nodegroup stack %q", name)
-	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, c.spec, ng, supportsManagedNodes, forceAddCNIPolicy, vpcImporter)
+	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, c.spec, c.makeClusterStackName(), ng, supportsManagedNodes, forceAddCNIPolicy)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
@@ -73,15 +71,13 @@ func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup
 	return c.CreateStack(name, stack, ng.Tags, nil, errs)
 }
 
-func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
+func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool) error {
 	name := c.makeNodeGroupStackName(ng.Name)
-
 	logger.Info("building managed nodegroup stack %q", name)
-	stack := builder.NewManagedNodeGroup(c.ec2API, c.spec, ng, builder.NewLaunchTemplateFetcher(c.ec2API), forceAddCNIPolicy, vpcImporter)
+	stack := builder.NewManagedNodeGroup(c.ec2API, c.spec, ng, builder.NewLaunchTemplateFetcher(c.ec2API), c.makeClusterStackName(), forceAddCNIPolicy)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
-
 	return c.CreateStack(name, stack, ng.Tags, nil, errorCh)
 }
 
@@ -163,7 +159,7 @@ func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]Stac
 
 // ScaleNodeGroup will scale an existing nodegroup
 func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
-	clusterName := c.MakeClusterStackName()
+	clusterName := c.makeClusterStackName()
 	c.spec.Status = &api.ClusterStatus{StackName: clusterName}
 	name := c.makeNodeGroupStackName(ng.Name)
 

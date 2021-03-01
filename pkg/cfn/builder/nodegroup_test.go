@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
-	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
 )
 
 func TestGenerateNodeName(t *testing.T) {
@@ -53,10 +52,9 @@ func TestGenerateNodeName(t *testing.T) {
 		t.Run(fmt.Sprintf("%d: %s", i, tt.description), func(t *testing.T) {
 			nodeGroup.InstancePrefix = tt.prefix
 			nodeGroup.InstanceName = tt.name
-			fakeVPCImporter := new(vpcfakes.FakeImporter)
 
 			p := mockprovider.NewMockProvider()
-			n := NewNodeGroupResourceSet(p.EC2(), nil, clusterConfig, nodeGroup, false, false, fakeVPCImporter)
+			n := NewNodeGroupResourceSet(p.EC2(), p.IAM(), clusterConfig, "cluster", nodeGroup, false, false)
 			nodeName := generateNodeName(n.spec.NodeGroupBase, clusterConfig.Metadata)
 
 			assert.Equal(t, tt.expected, nodeName)

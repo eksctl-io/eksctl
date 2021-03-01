@@ -25,18 +25,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 		if err != nil {
 			return errors.Wrap(err, "couldn't create cluster provider from command line options")
 		}
-		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
-
-		if ok, err := ctl.CanOperate(cmd.ClusterConfig); !ok {
-			return err
-		}
-
-		clientSet, err := ctl.NewStdClientSet(cmd.ClusterConfig)
-		if err != nil {
-			return err
-		}
-
-		manager := nodegroup.New(cmd.ClusterConfig, ctl, clientSet)
+		manager := nodegroup.New(cmd.ClusterConfig, ctl, nil)
 		return manager.Create(options, *ngFilter)
 	})
 }

@@ -31,7 +31,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 	"github.com/weaveworks/eksctl/pkg/vpc"
-	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
 )
 
 const (
@@ -605,15 +604,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			err = crs.AddAllResources()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			// TODO: yes I know this is terrible, I will improve this whole disaster
-			// of a test file in another PR
-			fakeVPCImporter := new(vpcfakes.FakeImporter)
-			fakeVPCImporter.ControlPlaneSecurityGroupReturns(gfnt.MakeFnImportValueString(clusterStackName + "::SecurityGroup"))
-			fakeVPCImporter.SharedNodeSecurityGroupReturns(gfnt.MakeFnImportValueString(clusterStackName + "::SecurityGroup"))
-			fakeVPCImporter.SubnetsPrivateReturns(gfnt.MakeFnSplit(",", gfnt.MakeFnImportValueString(clusterStackName+"::SubnetsPrivate")))
-			fakeVPCImporter.SubnetsPublicReturns(gfnt.MakeFnSplit(",", gfnt.MakeFnImportValueString(clusterStackName+"::SubnetsPublic")))
-
-			ngrs = NewNodeGroupResourceSet(p.EC2(), p.IAM(), cfg, ng, managedNodesSupport, false, fakeVPCImporter)
+			ngrs = NewNodeGroupResourceSet(p.EC2(), p.IAM(), cfg, clusterStackName, ng, managedNodesSupport, false)
 			err = ngrs.AddAllResources()
 			Expect(err).ShouldNot(HaveOccurred())
 
