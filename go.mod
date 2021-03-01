@@ -52,7 +52,7 @@ require (
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
 	golang.org/x/mod v0.4.1 // indirect
-	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
+	golang.org/x/sys v0.0.0-20210301091718-77cc2087c03b // indirect
 	golang.org/x/tools v0.1.0
 	k8s.io/api v0.19.5
 	k8s.io/apiextensions-apiserver v0.19.5

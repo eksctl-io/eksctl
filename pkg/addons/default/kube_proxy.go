@@ -3,6 +3,7 @@ package defaultaddons
 import (
 	"context"
 	"fmt"
+	v1 "k8s.io/api/apps/v1"
 	"strings"
 
 	"github.com/kris-nova/logger"
@@ -44,7 +45,7 @@ func IsKubeProxyUpToDate(clientSet kubernetes.Interface, controlPlaneVersion str
 }
 
 // UpdateKubeProxyImageTag updates image tag for kube-system:daemonset/kube-proxy based to match controlPlaneVersion
-func UpdateKubeProxyImageTag(clientSet kubernetes.Interface, controlPlaneVersion string, plan bool) (bool, error) {
+func UpdateKubeProxy(clientSet kubernetes.Interface, controlPlaneVersion string, plan bool) (bool, error) {
 	printer := printers.NewJSONPrinter()
 
 	d, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), KubeProxy, metav1.GetOptions{})
@@ -55,6 +56,12 @@ func UpdateKubeProxyImageTag(clientSet kubernetes.Interface, controlPlaneVersion
 		}
 		return false, errors.Wrapf(err, "getting %q", KubeProxy)
 	}
+
+	missingArm64NodeSelector := isMissingArm64NodeSelector(d)
+	if missingArm64NodeSelector {
+		logger.Info("missing arm64 nodeSelector")
+	}
+
 	if numContainers := len(d.Spec.Template.Spec.Containers); !(numContainers >= 1) {
 		return false, fmt.Errorf("%s has %d containers, expected at least 1", KubeProxy, numContainers)
 	}
@@ -72,7 +79,7 @@ func UpdateKubeProxyImageTag(clientSet kubernetes.Interface, controlPlaneVersion
 
 	desiredTag := kubeProxyImageTag(controlPlaneVersion)
 
-	if imageParts[1] == desiredTag {
+	if imageParts[1] == desiredTag && !missingArm64NodeSelector {
 		logger.Debug("imageParts = %v, desiredTag = %s", imageParts, desiredTag)
 		logger.Info("%q is already up-to-date", KubeProxy)
 		return false, nil
@@ -89,12 +96,50 @@ func UpdateKubeProxyImageTag(clientSet kubernetes.Interface, controlPlaneVersion
 	if err := printer.LogObj(logger.Debug, KubeProxy+" [updated] = \\\n%s\n", d); err != nil {
 		return false, err
 	}
+
+	if missingArm64NodeSelector {
+		addArm64NodeSelector(d)
+	}
+
 	if _, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Update(context.TODO(), d, metav1.UpdateOptions{}); err != nil {
 		return false, err
 	}
 
 	logger.Info("%q is now up-to-date", KubeProxy)
 	return false, nil
+}
+
+func isMissingArm64NodeSelector(daemonSet *v1.DaemonSet) bool {
+	if daemonSet.Spec.Template.Spec.Affinity != nil &&
+		daemonSet.Spec.Template.Spec.Affinity.NodeAffinity != nil &&
+		daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution != nil {
+		for _, nodeSelectorTerms := range daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms {
+			for _, nodeSelector := range nodeSelectorTerms.MatchExpressions {
+				if nodeSelector.Key == "beta.kubernetes.io/arch" {
+					for _, value := range nodeSelector.Values {
+						if value == "arm64" {
+							return false
+						}
+					}
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+func addArm64NodeSelector(daemonSet *v1.DaemonSet) {
+	for nodeSelectorTermsIndex, nodeSelectorTerms := range daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.
+		RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms {
+		for nodeSelectorIndex, nodeSelector := range nodeSelectorTerms.MatchExpressions {
+			if nodeSelector.Key == "beta.kubernetes.io/arch" {
+				logger.Info("adding arm64 node selector")
+				daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.
+					NodeSelectorTerms[nodeSelectorTermsIndex].MatchExpressions[nodeSelectorIndex].Values = append(nodeSelector.Values, "arm64")
+			}
+		}
+	}
 }
 
 func kubeProxyImageTag(controlPlaneVersion string) string {
