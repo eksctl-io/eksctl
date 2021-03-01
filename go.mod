@@ -59,7 +59,7 @@ require (
 	k8s.io/apiextensions-apiserver v0.19.5
 	k8s.io/apimachinery v0.19.5
 	k8s.io/cli-runtime v0.19.5
-	k8s.io/client-go v0.19.5
+	k8s.io/client-go v0.20.4
 	k8s.io/cloud-provider v0.19.5
 	k8s.io/code-generator v0.19.5
 	k8s.io/kops v1.19.0
