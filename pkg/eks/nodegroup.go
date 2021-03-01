@@ -63,7 +63,7 @@ func getNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) (int, error) {
 // Bottlerocket nodegroups are only supported on EKS version 1.15 and above
 // If the version requirement isn't met, an error is returned
 func ValidateFeatureCompatibility(clusterConfig *api.ClusterConfig, kubeNodeGroups []KubeNodeGroup) error {
-	if err := validateKMSSupport(clusterConfig); err != nil {
+	if err := ValidateKMSSupport(clusterConfig, clusterConfig.Metadata.Version); err != nil {
 		return err
 	}
 	if err := ValidateManagedNodesSupport(clusterConfig); err != nil {
@@ -137,13 +137,14 @@ func ValidateWindowsCompatibility(kubeNodeGroups []KubeNodeGroup, controlPlaneVe
 	return nil
 }
 
-func validateKMSSupport(clusterConfig *api.ClusterConfig) error {
+// ValidateKMSSupport validates support for KMS encryption
+func ValidateKMSSupport(clusterConfig *api.ClusterConfig, eksVersion string) error {
 	if clusterConfig.SecretsEncryption == nil {
 		return nil
 	}
 
 	const minReqVersion = api.Version1_13
-	supportsKMS, err := utils.IsMinVersion(minReqVersion, clusterConfig.Metadata.Version)
+	supportsKMS, err := utils.IsMinVersion(minReqVersion, eksVersion)
 	if err != nil {
 		return errors.Wrap(err, "error validating KMS support")
 	}
@@ -151,9 +152,8 @@ func validateKMSSupport(clusterConfig *api.ClusterConfig) error {
 		return fmt.Errorf("secrets encryption with KMS is only supported for EKS version %s and above", minReqVersion)
 	}
 
-	keyARN := *clusterConfig.SecretsEncryption.KeyARN
-	if _, err := arn.Parse(keyARN); err != nil {
-		return errors.Wrapf(err, "invalid ARN in secretsEncryption.keyARN: %q", keyARN)
+	if _, err := arn.Parse(clusterConfig.SecretsEncryption.KeyARN); err != nil {
+		return errors.Wrapf(err, "invalid ARN in secretsEncryption.keyARN: %q", clusterConfig.SecretsEncryption.KeyARN)
 	}
 	return nil
 }

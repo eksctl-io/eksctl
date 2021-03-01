@@ -17,6 +17,84 @@ type EKSAPI struct {
 	mock.Mock
 }
 
+// AssociateEncryptionConfig provides a mock function with given fields: _a0
+func (_m *EKSAPI) AssociateEncryptionConfig(_a0 *eks.AssociateEncryptionConfigInput) (*eks.AssociateEncryptionConfigOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.AssociateEncryptionConfigOutput
+	if rf, ok := ret.Get(0).(func(*eks.AssociateEncryptionConfigInput) *eks.AssociateEncryptionConfigOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.AssociateEncryptionConfigOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.AssociateEncryptionConfigInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AssociateEncryptionConfigRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) AssociateEncryptionConfigRequest(_a0 *eks.AssociateEncryptionConfigInput) (*request.Request, *eks.AssociateEncryptionConfigOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.AssociateEncryptionConfigInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.AssociateEncryptionConfigOutput
+	if rf, ok := ret.Get(1).(func(*eks.AssociateEncryptionConfigInput) *eks.AssociateEncryptionConfigOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.AssociateEncryptionConfigOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// AssociateEncryptionConfigWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) AssociateEncryptionConfigWithContext(_a0 context.Context, _a1 *eks.AssociateEncryptionConfigInput, _a2 ...request.Option) (*eks.AssociateEncryptionConfigOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.AssociateEncryptionConfigOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.AssociateEncryptionConfigInput, ...request.Option) *eks.AssociateEncryptionConfigOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.AssociateEncryptionConfigOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.AssociateEncryptionConfigInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AssociateIdentityProviderConfig provides a mock function with given fields: _a0
 func (_m *EKSAPI) AssociateIdentityProviderConfig(_a0 *eks.AssociateIdentityProviderConfigInput) (*eks.AssociateIdentityProviderConfigOutput, error) {
 	ret := _m.Called(_a0)

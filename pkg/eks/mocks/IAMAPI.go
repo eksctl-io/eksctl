@@ -7110,6 +7110,84 @@ func (_m *IAMAPI) ListGroupsWithContext(_a0 context.Context, _a1 *iam.ListGroups
 	return r0, r1
 }
 
+// ListInstanceProfileTags provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListInstanceProfileTags(_a0 *iam.ListInstanceProfileTagsInput) (*iam.ListInstanceProfileTagsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.ListInstanceProfileTagsOutput
+	if rf, ok := ret.Get(0).(func(*iam.ListInstanceProfileTagsInput) *iam.ListInstanceProfileTagsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListInstanceProfileTagsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.ListInstanceProfileTagsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListInstanceProfileTagsRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListInstanceProfileTagsRequest(_a0 *iam.ListInstanceProfileTagsInput) (*request.Request, *iam.ListInstanceProfileTagsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.ListInstanceProfileTagsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.ListInstanceProfileTagsOutput
+	if rf, ok := ret.Get(1).(func(*iam.ListInstanceProfileTagsInput) *iam.ListInstanceProfileTagsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.ListInstanceProfileTagsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListInstanceProfileTagsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) ListInstanceProfileTagsWithContext(_a0 context.Context, _a1 *iam.ListInstanceProfileTagsInput, _a2 ...request.Option) (*iam.ListInstanceProfileTagsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.ListInstanceProfileTagsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListInstanceProfileTagsInput, ...request.Option) *iam.ListInstanceProfileTagsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListInstanceProfileTagsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListInstanceProfileTagsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListInstanceProfiles provides a mock function with given fields: _a0
 func (_m *IAMAPI) ListInstanceProfiles(_a0 *iam.ListInstanceProfilesInput) (*iam.ListInstanceProfilesOutput, error) {
 	ret := _m.Called(_a0)
@@ -7336,6 +7414,84 @@ func (_m *IAMAPI) ListInstanceProfilesWithContext(_a0 context.Context, _a1 *iam.
 	return r0, r1
 }
 
+// ListMFADeviceTags provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListMFADeviceTags(_a0 *iam.ListMFADeviceTagsInput) (*iam.ListMFADeviceTagsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.ListMFADeviceTagsOutput
+	if rf, ok := ret.Get(0).(func(*iam.ListMFADeviceTagsInput) *iam.ListMFADeviceTagsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListMFADeviceTagsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.ListMFADeviceTagsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListMFADeviceTagsRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListMFADeviceTagsRequest(_a0 *iam.ListMFADeviceTagsInput) (*request.Request, *iam.ListMFADeviceTagsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.ListMFADeviceTagsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.ListMFADeviceTagsOutput
+	if rf, ok := ret.Get(1).(func(*iam.ListMFADeviceTagsInput) *iam.ListMFADeviceTagsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.ListMFADeviceTagsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListMFADeviceTagsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) ListMFADeviceTagsWithContext(_a0 context.Context, _a1 *iam.ListMFADeviceTagsInput, _a2 ...request.Option) (*iam.ListMFADeviceTagsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.ListMFADeviceTagsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListMFADeviceTagsInput, ...request.Option) *iam.ListMFADeviceTagsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListMFADeviceTagsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListMFADeviceTagsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListMFADevices provides a mock function with given fields: _a0
 func (_m *IAMAPI) ListMFADevices(_a0 *iam.ListMFADevicesInput) (*iam.ListMFADevicesOutput, error) {
 	ret := _m.Called(_a0)
@@ -7441,6 +7597,84 @@ func (_m *IAMAPI) ListMFADevicesWithContext(_a0 context.Context, _a1 *iam.ListMF
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListMFADevicesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListOpenIDConnectProviderTags provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListOpenIDConnectProviderTags(_a0 *iam.ListOpenIDConnectProviderTagsInput) (*iam.ListOpenIDConnectProviderTagsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.ListOpenIDConnectProviderTagsOutput
+	if rf, ok := ret.Get(0).(func(*iam.ListOpenIDConnectProviderTagsInput) *iam.ListOpenIDConnectProviderTagsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListOpenIDConnectProviderTagsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.ListOpenIDConnectProviderTagsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListOpenIDConnectProviderTagsRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListOpenIDConnectProviderTagsRequest(_a0 *iam.ListOpenIDConnectProviderTagsInput) (*request.Request, *iam.ListOpenIDConnectProviderTagsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.ListOpenIDConnectProviderTagsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.ListOpenIDConnectProviderTagsOutput
+	if rf, ok := ret.Get(1).(func(*iam.ListOpenIDConnectProviderTagsInput) *iam.ListOpenIDConnectProviderTagsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.ListOpenIDConnectProviderTagsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListOpenIDConnectProviderTagsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) ListOpenIDConnectProviderTagsWithContext(_a0 context.Context, _a1 *iam.ListOpenIDConnectProviderTagsInput, _a2 ...request.Option) (*iam.ListOpenIDConnectProviderTagsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.ListOpenIDConnectProviderTagsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListOpenIDConnectProviderTagsInput, ...request.Option) *iam.ListOpenIDConnectProviderTagsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListOpenIDConnectProviderTagsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListOpenIDConnectProviderTagsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7710,6 +7944,84 @@ func (_m *IAMAPI) ListPoliciesWithContext(_a0 context.Context, _a1 *iam.ListPoli
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListPoliciesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListPolicyTags provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListPolicyTags(_a0 *iam.ListPolicyTagsInput) (*iam.ListPolicyTagsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.ListPolicyTagsOutput
+	if rf, ok := ret.Get(0).(func(*iam.ListPolicyTagsInput) *iam.ListPolicyTagsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListPolicyTagsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.ListPolicyTagsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListPolicyTagsRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListPolicyTagsRequest(_a0 *iam.ListPolicyTagsInput) (*request.Request, *iam.ListPolicyTagsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.ListPolicyTagsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.ListPolicyTagsOutput
+	if rf, ok := ret.Get(1).(func(*iam.ListPolicyTagsInput) *iam.ListPolicyTagsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.ListPolicyTagsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListPolicyTagsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) ListPolicyTagsWithContext(_a0 context.Context, _a1 *iam.ListPolicyTagsInput, _a2 ...request.Option) (*iam.ListPolicyTagsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.ListPolicyTagsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListPolicyTagsInput, ...request.Option) *iam.ListPolicyTagsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListPolicyTagsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListPolicyTagsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8135,6 +8447,84 @@ func (_m *IAMAPI) ListRolesWithContext(_a0 context.Context, _a1 *iam.ListRolesIn
 	return r0, r1
 }
 
+// ListSAMLProviderTags provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListSAMLProviderTags(_a0 *iam.ListSAMLProviderTagsInput) (*iam.ListSAMLProviderTagsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.ListSAMLProviderTagsOutput
+	if rf, ok := ret.Get(0).(func(*iam.ListSAMLProviderTagsInput) *iam.ListSAMLProviderTagsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListSAMLProviderTagsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.ListSAMLProviderTagsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListSAMLProviderTagsRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListSAMLProviderTagsRequest(_a0 *iam.ListSAMLProviderTagsInput) (*request.Request, *iam.ListSAMLProviderTagsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.ListSAMLProviderTagsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.ListSAMLProviderTagsOutput
+	if rf, ok := ret.Get(1).(func(*iam.ListSAMLProviderTagsInput) *iam.ListSAMLProviderTagsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.ListSAMLProviderTagsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListSAMLProviderTagsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) ListSAMLProviderTagsWithContext(_a0 context.Context, _a1 *iam.ListSAMLProviderTagsInput, _a2 ...request.Option) (*iam.ListSAMLProviderTagsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.ListSAMLProviderTagsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListSAMLProviderTagsInput, ...request.Option) *iam.ListSAMLProviderTagsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListSAMLProviderTagsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListSAMLProviderTagsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListSAMLProviders provides a mock function with given fields: _a0
 func (_m *IAMAPI) ListSAMLProviders(_a0 *iam.ListSAMLProvidersInput) (*iam.ListSAMLProvidersOutput, error) {
 	ret := _m.Called(_a0)
@@ -8318,6 +8708,84 @@ func (_m *IAMAPI) ListSSHPublicKeysWithContext(_a0 context.Context, _a1 *iam.Lis
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListSSHPublicKeysInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListServerCertificateTags provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListServerCertificateTags(_a0 *iam.ListServerCertificateTagsInput) (*iam.ListServerCertificateTagsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.ListServerCertificateTagsOutput
+	if rf, ok := ret.Get(0).(func(*iam.ListServerCertificateTagsInput) *iam.ListServerCertificateTagsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListServerCertificateTagsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.ListServerCertificateTagsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListServerCertificateTagsRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListServerCertificateTagsRequest(_a0 *iam.ListServerCertificateTagsInput) (*request.Request, *iam.ListServerCertificateTagsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.ListServerCertificateTagsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.ListServerCertificateTagsOutput
+	if rf, ok := ret.Get(1).(func(*iam.ListServerCertificateTagsInput) *iam.ListServerCertificateTagsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.ListServerCertificateTagsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListServerCertificateTagsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) ListServerCertificateTagsWithContext(_a0 context.Context, _a1 *iam.ListServerCertificateTagsInput, _a2 ...request.Option) (*iam.ListServerCertificateTagsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.ListServerCertificateTagsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListServerCertificateTagsInput, ...request.Option) *iam.ListServerCertificateTagsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListServerCertificateTagsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListServerCertificateTagsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10209,6 +10677,318 @@ func (_m *IAMAPI) SimulatePrincipalPolicyWithContext(_a0 context.Context, _a1 *i
 	return r0, r1
 }
 
+// TagInstanceProfile provides a mock function with given fields: _a0
+func (_m *IAMAPI) TagInstanceProfile(_a0 *iam.TagInstanceProfileInput) (*iam.TagInstanceProfileOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.TagInstanceProfileOutput
+	if rf, ok := ret.Get(0).(func(*iam.TagInstanceProfileInput) *iam.TagInstanceProfileOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.TagInstanceProfileOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.TagInstanceProfileInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagInstanceProfileRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) TagInstanceProfileRequest(_a0 *iam.TagInstanceProfileInput) (*request.Request, *iam.TagInstanceProfileOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.TagInstanceProfileInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.TagInstanceProfileOutput
+	if rf, ok := ret.Get(1).(func(*iam.TagInstanceProfileInput) *iam.TagInstanceProfileOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.TagInstanceProfileOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// TagInstanceProfileWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) TagInstanceProfileWithContext(_a0 context.Context, _a1 *iam.TagInstanceProfileInput, _a2 ...request.Option) (*iam.TagInstanceProfileOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.TagInstanceProfileOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.TagInstanceProfileInput, ...request.Option) *iam.TagInstanceProfileOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.TagInstanceProfileOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.TagInstanceProfileInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagMFADevice provides a mock function with given fields: _a0
+func (_m *IAMAPI) TagMFADevice(_a0 *iam.TagMFADeviceInput) (*iam.TagMFADeviceOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.TagMFADeviceOutput
+	if rf, ok := ret.Get(0).(func(*iam.TagMFADeviceInput) *iam.TagMFADeviceOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.TagMFADeviceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.TagMFADeviceInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagMFADeviceRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) TagMFADeviceRequest(_a0 *iam.TagMFADeviceInput) (*request.Request, *iam.TagMFADeviceOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.TagMFADeviceInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.TagMFADeviceOutput
+	if rf, ok := ret.Get(1).(func(*iam.TagMFADeviceInput) *iam.TagMFADeviceOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.TagMFADeviceOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// TagMFADeviceWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) TagMFADeviceWithContext(_a0 context.Context, _a1 *iam.TagMFADeviceInput, _a2 ...request.Option) (*iam.TagMFADeviceOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.TagMFADeviceOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.TagMFADeviceInput, ...request.Option) *iam.TagMFADeviceOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.TagMFADeviceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.TagMFADeviceInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagOpenIDConnectProvider provides a mock function with given fields: _a0
+func (_m *IAMAPI) TagOpenIDConnectProvider(_a0 *iam.TagOpenIDConnectProviderInput) (*iam.TagOpenIDConnectProviderOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.TagOpenIDConnectProviderOutput
+	if rf, ok := ret.Get(0).(func(*iam.TagOpenIDConnectProviderInput) *iam.TagOpenIDConnectProviderOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.TagOpenIDConnectProviderOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.TagOpenIDConnectProviderInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagOpenIDConnectProviderRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) TagOpenIDConnectProviderRequest(_a0 *iam.TagOpenIDConnectProviderInput) (*request.Request, *iam.TagOpenIDConnectProviderOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.TagOpenIDConnectProviderInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.TagOpenIDConnectProviderOutput
+	if rf, ok := ret.Get(1).(func(*iam.TagOpenIDConnectProviderInput) *iam.TagOpenIDConnectProviderOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.TagOpenIDConnectProviderOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// TagOpenIDConnectProviderWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) TagOpenIDConnectProviderWithContext(_a0 context.Context, _a1 *iam.TagOpenIDConnectProviderInput, _a2 ...request.Option) (*iam.TagOpenIDConnectProviderOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.TagOpenIDConnectProviderOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.TagOpenIDConnectProviderInput, ...request.Option) *iam.TagOpenIDConnectProviderOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.TagOpenIDConnectProviderOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.TagOpenIDConnectProviderInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagPolicy provides a mock function with given fields: _a0
+func (_m *IAMAPI) TagPolicy(_a0 *iam.TagPolicyInput) (*iam.TagPolicyOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.TagPolicyOutput
+	if rf, ok := ret.Get(0).(func(*iam.TagPolicyInput) *iam.TagPolicyOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.TagPolicyOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.TagPolicyInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagPolicyRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) TagPolicyRequest(_a0 *iam.TagPolicyInput) (*request.Request, *iam.TagPolicyOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.TagPolicyInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.TagPolicyOutput
+	if rf, ok := ret.Get(1).(func(*iam.TagPolicyInput) *iam.TagPolicyOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.TagPolicyOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// TagPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) TagPolicyWithContext(_a0 context.Context, _a1 *iam.TagPolicyInput, _a2 ...request.Option) (*iam.TagPolicyOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.TagPolicyOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.TagPolicyInput, ...request.Option) *iam.TagPolicyOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.TagPolicyOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.TagPolicyInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // TagRole provides a mock function with given fields: _a0
 func (_m *IAMAPI) TagRole(_a0 *iam.TagRoleInput) (*iam.TagRoleOutput, error) {
 	ret := _m.Called(_a0)
@@ -10279,6 +11059,162 @@ func (_m *IAMAPI) TagRoleWithContext(_a0 context.Context, _a1 *iam.TagRoleInput,
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *iam.TagRoleInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagSAMLProvider provides a mock function with given fields: _a0
+func (_m *IAMAPI) TagSAMLProvider(_a0 *iam.TagSAMLProviderInput) (*iam.TagSAMLProviderOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.TagSAMLProviderOutput
+	if rf, ok := ret.Get(0).(func(*iam.TagSAMLProviderInput) *iam.TagSAMLProviderOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.TagSAMLProviderOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.TagSAMLProviderInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagSAMLProviderRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) TagSAMLProviderRequest(_a0 *iam.TagSAMLProviderInput) (*request.Request, *iam.TagSAMLProviderOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.TagSAMLProviderInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.TagSAMLProviderOutput
+	if rf, ok := ret.Get(1).(func(*iam.TagSAMLProviderInput) *iam.TagSAMLProviderOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.TagSAMLProviderOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// TagSAMLProviderWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) TagSAMLProviderWithContext(_a0 context.Context, _a1 *iam.TagSAMLProviderInput, _a2 ...request.Option) (*iam.TagSAMLProviderOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.TagSAMLProviderOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.TagSAMLProviderInput, ...request.Option) *iam.TagSAMLProviderOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.TagSAMLProviderOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.TagSAMLProviderInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagServerCertificate provides a mock function with given fields: _a0
+func (_m *IAMAPI) TagServerCertificate(_a0 *iam.TagServerCertificateInput) (*iam.TagServerCertificateOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.TagServerCertificateOutput
+	if rf, ok := ret.Get(0).(func(*iam.TagServerCertificateInput) *iam.TagServerCertificateOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.TagServerCertificateOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.TagServerCertificateInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagServerCertificateRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) TagServerCertificateRequest(_a0 *iam.TagServerCertificateInput) (*request.Request, *iam.TagServerCertificateOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.TagServerCertificateInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.TagServerCertificateOutput
+	if rf, ok := ret.Get(1).(func(*iam.TagServerCertificateInput) *iam.TagServerCertificateOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.TagServerCertificateOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// TagServerCertificateWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) TagServerCertificateWithContext(_a0 context.Context, _a1 *iam.TagServerCertificateInput, _a2 ...request.Option) (*iam.TagServerCertificateOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.TagServerCertificateOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.TagServerCertificateInput, ...request.Option) *iam.TagServerCertificateOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.TagServerCertificateOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.TagServerCertificateInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10365,6 +11301,318 @@ func (_m *IAMAPI) TagUserWithContext(_a0 context.Context, _a1 *iam.TagUserInput,
 	return r0, r1
 }
 
+// UntagInstanceProfile provides a mock function with given fields: _a0
+func (_m *IAMAPI) UntagInstanceProfile(_a0 *iam.UntagInstanceProfileInput) (*iam.UntagInstanceProfileOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.UntagInstanceProfileOutput
+	if rf, ok := ret.Get(0).(func(*iam.UntagInstanceProfileInput) *iam.UntagInstanceProfileOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.UntagInstanceProfileOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.UntagInstanceProfileInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagInstanceProfileRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) UntagInstanceProfileRequest(_a0 *iam.UntagInstanceProfileInput) (*request.Request, *iam.UntagInstanceProfileOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.UntagInstanceProfileInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.UntagInstanceProfileOutput
+	if rf, ok := ret.Get(1).(func(*iam.UntagInstanceProfileInput) *iam.UntagInstanceProfileOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.UntagInstanceProfileOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UntagInstanceProfileWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) UntagInstanceProfileWithContext(_a0 context.Context, _a1 *iam.UntagInstanceProfileInput, _a2 ...request.Option) (*iam.UntagInstanceProfileOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.UntagInstanceProfileOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UntagInstanceProfileInput, ...request.Option) *iam.UntagInstanceProfileOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.UntagInstanceProfileOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UntagInstanceProfileInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagMFADevice provides a mock function with given fields: _a0
+func (_m *IAMAPI) UntagMFADevice(_a0 *iam.UntagMFADeviceInput) (*iam.UntagMFADeviceOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.UntagMFADeviceOutput
+	if rf, ok := ret.Get(0).(func(*iam.UntagMFADeviceInput) *iam.UntagMFADeviceOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.UntagMFADeviceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.UntagMFADeviceInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagMFADeviceRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) UntagMFADeviceRequest(_a0 *iam.UntagMFADeviceInput) (*request.Request, *iam.UntagMFADeviceOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.UntagMFADeviceInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.UntagMFADeviceOutput
+	if rf, ok := ret.Get(1).(func(*iam.UntagMFADeviceInput) *iam.UntagMFADeviceOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.UntagMFADeviceOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UntagMFADeviceWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) UntagMFADeviceWithContext(_a0 context.Context, _a1 *iam.UntagMFADeviceInput, _a2 ...request.Option) (*iam.UntagMFADeviceOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.UntagMFADeviceOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UntagMFADeviceInput, ...request.Option) *iam.UntagMFADeviceOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.UntagMFADeviceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UntagMFADeviceInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagOpenIDConnectProvider provides a mock function with given fields: _a0
+func (_m *IAMAPI) UntagOpenIDConnectProvider(_a0 *iam.UntagOpenIDConnectProviderInput) (*iam.UntagOpenIDConnectProviderOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.UntagOpenIDConnectProviderOutput
+	if rf, ok := ret.Get(0).(func(*iam.UntagOpenIDConnectProviderInput) *iam.UntagOpenIDConnectProviderOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.UntagOpenIDConnectProviderOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.UntagOpenIDConnectProviderInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagOpenIDConnectProviderRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) UntagOpenIDConnectProviderRequest(_a0 *iam.UntagOpenIDConnectProviderInput) (*request.Request, *iam.UntagOpenIDConnectProviderOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.UntagOpenIDConnectProviderInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.UntagOpenIDConnectProviderOutput
+	if rf, ok := ret.Get(1).(func(*iam.UntagOpenIDConnectProviderInput) *iam.UntagOpenIDConnectProviderOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.UntagOpenIDConnectProviderOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UntagOpenIDConnectProviderWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) UntagOpenIDConnectProviderWithContext(_a0 context.Context, _a1 *iam.UntagOpenIDConnectProviderInput, _a2 ...request.Option) (*iam.UntagOpenIDConnectProviderOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.UntagOpenIDConnectProviderOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UntagOpenIDConnectProviderInput, ...request.Option) *iam.UntagOpenIDConnectProviderOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.UntagOpenIDConnectProviderOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UntagOpenIDConnectProviderInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagPolicy provides a mock function with given fields: _a0
+func (_m *IAMAPI) UntagPolicy(_a0 *iam.UntagPolicyInput) (*iam.UntagPolicyOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.UntagPolicyOutput
+	if rf, ok := ret.Get(0).(func(*iam.UntagPolicyInput) *iam.UntagPolicyOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.UntagPolicyOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.UntagPolicyInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagPolicyRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) UntagPolicyRequest(_a0 *iam.UntagPolicyInput) (*request.Request, *iam.UntagPolicyOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.UntagPolicyInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.UntagPolicyOutput
+	if rf, ok := ret.Get(1).(func(*iam.UntagPolicyInput) *iam.UntagPolicyOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.UntagPolicyOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UntagPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) UntagPolicyWithContext(_a0 context.Context, _a1 *iam.UntagPolicyInput, _a2 ...request.Option) (*iam.UntagPolicyOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.UntagPolicyOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UntagPolicyInput, ...request.Option) *iam.UntagPolicyOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.UntagPolicyOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UntagPolicyInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UntagRole provides a mock function with given fields: _a0
 func (_m *IAMAPI) UntagRole(_a0 *iam.UntagRoleInput) (*iam.UntagRoleOutput, error) {
 	ret := _m.Called(_a0)
@@ -10435,6 +11683,162 @@ func (_m *IAMAPI) UntagRoleWithContext(_a0 context.Context, _a1 *iam.UntagRoleIn
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *iam.UntagRoleInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagSAMLProvider provides a mock function with given fields: _a0
+func (_m *IAMAPI) UntagSAMLProvider(_a0 *iam.UntagSAMLProviderInput) (*iam.UntagSAMLProviderOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.UntagSAMLProviderOutput
+	if rf, ok := ret.Get(0).(func(*iam.UntagSAMLProviderInput) *iam.UntagSAMLProviderOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.UntagSAMLProviderOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.UntagSAMLProviderInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagSAMLProviderRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) UntagSAMLProviderRequest(_a0 *iam.UntagSAMLProviderInput) (*request.Request, *iam.UntagSAMLProviderOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.UntagSAMLProviderInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.UntagSAMLProviderOutput
+	if rf, ok := ret.Get(1).(func(*iam.UntagSAMLProviderInput) *iam.UntagSAMLProviderOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.UntagSAMLProviderOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UntagSAMLProviderWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) UntagSAMLProviderWithContext(_a0 context.Context, _a1 *iam.UntagSAMLProviderInput, _a2 ...request.Option) (*iam.UntagSAMLProviderOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.UntagSAMLProviderOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UntagSAMLProviderInput, ...request.Option) *iam.UntagSAMLProviderOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.UntagSAMLProviderOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UntagSAMLProviderInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagServerCertificate provides a mock function with given fields: _a0
+func (_m *IAMAPI) UntagServerCertificate(_a0 *iam.UntagServerCertificateInput) (*iam.UntagServerCertificateOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.UntagServerCertificateOutput
+	if rf, ok := ret.Get(0).(func(*iam.UntagServerCertificateInput) *iam.UntagServerCertificateOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.UntagServerCertificateOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.UntagServerCertificateInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagServerCertificateRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) UntagServerCertificateRequest(_a0 *iam.UntagServerCertificateInput) (*request.Request, *iam.UntagServerCertificateOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.UntagServerCertificateInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.UntagServerCertificateOutput
+	if rf, ok := ret.Get(1).(func(*iam.UntagServerCertificateInput) *iam.UntagServerCertificateOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.UntagServerCertificateOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UntagServerCertificateWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) UntagServerCertificateWithContext(_a0 context.Context, _a1 *iam.UntagServerCertificateInput, _a2 ...request.Option) (*iam.UntagServerCertificateOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.UntagServerCertificateOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UntagServerCertificateInput, ...request.Option) *iam.UntagServerCertificateOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.UntagServerCertificateOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UntagServerCertificateInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)

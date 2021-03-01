@@ -131,7 +131,7 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		cfg.VPC.PublicAccessCIDRs = cidrs
 	}
 
-	if cfg.SecretsEncryption != nil && cfg.SecretsEncryption.KeyARN == nil {
+	if cfg.SecretsEncryption != nil && cfg.SecretsEncryption.KeyARN == "" {
 		return errors.New("field secretsEncryption.keyARN is required for enabling secrets encryption")
 	}
 

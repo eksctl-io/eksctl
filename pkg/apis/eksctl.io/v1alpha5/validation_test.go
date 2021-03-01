@@ -906,14 +906,12 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).ToNot(HaveOccurred())
 		}
 	},
-		Entry("nil secretsEncryption", kmsFieldCase{
+		Entry("Nil secretsEncryption", kmsFieldCase{
 			secretsEncryption: nil,
 		}),
-		Entry("nil secretsEncryption.keyARN", kmsFieldCase{
-			secretsEncryption: &SecretsEncryption{
-				KeyARN: nil,
-			},
-			errSubstr: "secretsEncryption.keyARN is required",
+		Entry("Empty secretsEncryption.keyARN", kmsFieldCase{
+			secretsEncryption: &SecretsEncryption{},
+			errSubstr:         "secretsEncryption.keyARN is required",
 		}),
 	)
 

@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
@@ -547,6 +548,7 @@ type ClusterProvider interface {
 	Region() string
 	Profile() string
 	WaitTimeout() time.Duration
+	ConfigProvider() client.ConfigProvider
 }
 
 // ProviderConfig holds global parameters for all interactions with AWS APIs
@@ -1419,7 +1421,7 @@ type FargateProfileSelector struct {
 // SecretsEncryption defines the configuration for KMS encryption provider
 type SecretsEncryption struct {
 	// +required
-	KeyARN *string `json:"keyARN,omitempty"`
+	KeyARN string `json:"keyARN,omitempty"`
 }
 
 // PrivateCluster defines the configuration for a fully-private cluster
