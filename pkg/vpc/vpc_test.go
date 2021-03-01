@@ -227,7 +227,7 @@ var _ = Describe("VPC", func() {
 				return input != nil
 			})).Return(mockResultFn, nil)
 
-			err := UseFromCluster(p, clusterCase.stack, clusterCase.cfg)
+			err := UseFromClusterStack(p, clusterCase.stack, clusterCase.cfg)
 			if clusterCase.errorMatcher != nil {
 				Expect(err.Error()).To(clusterCase.errorMatcher)
 			} else {

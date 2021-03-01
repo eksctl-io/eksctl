@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
 )
 
 type task struct{ id int }
@@ -85,24 +86,26 @@ var _ = Describe("StackCollection Tasks", func() {
 					}
 					return managedNodeGroups
 				}
+
+				fakeVPCImporter := new(vpcfakes.FakeImporter)
 				// TODO use DescribeTable
 
 				// The supportsManagedNodes argument has no effect on the Describe call, so the values are alternated
 				// in these tests
 				{
-					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("bar", "foo"), true, false)
+					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("bar", "foo"), true, false, fakeVPCImporter)
 					Expect(tasks.Describe()).To(Equal(`2 parallel tasks: { create nodegroup "bar", create nodegroup "foo" }`))
 				}
 				{
-					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("bar"), false, false)
+					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("bar"), false, false, fakeVPCImporter)
 					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "bar" }`))
 				}
 				{
-					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("foo"), true, false)
+					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("foo"), true, false, fakeVPCImporter)
 					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "foo" }`))
 				}
 				{
-					tasks := stackManager.NewUnmanagedNodeGroupTask(nil, false, false)
+					tasks := stackManager.NewUnmanagedNodeGroupTask(nil, false, false, fakeVPCImporter)
 					Expect(tasks.Describe()).To(Equal(`no tasks`))
 				}
 				{
@@ -131,6 +134,5 @@ var _ = Describe("StackCollection Tasks", func() {
 				}
 			})
 		})
-
 	})
 })
