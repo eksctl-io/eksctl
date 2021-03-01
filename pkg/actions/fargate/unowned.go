@@ -29,9 +29,9 @@ func (t *createFargateStackTask) Do(errs chan error) error {
 	return stackCollection.CreateStack(makeClusterStackName(t.cfg.Metadata.Name), rs, nil, nil, errs)
 }
 
-// ensureUnownedClusterReadyForFargate creates fargate IAM resources if they
+// EnsureUnownedClusterReadyForFargate creates fargate IAM resources if they
 // don't exist and are needed.
-func ensureUnownedClusterReadyForFargate(
+func EnsureUnownedClusterReadyForFargate(
 	cfg *api.ClusterConfig, provider api.ClusterProvider, stackManager manager.StackManager,
 ) error {
 	if api.IsSetAndNonEmptyString(cfg.IAM.FargatePodExecutionRoleARN) {

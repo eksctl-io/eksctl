@@ -34,7 +34,7 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackMana
 }
 
 func (c *OwnedCluster) Upgrade(dryRun bool) error {
-	if err := c.ctl.LoadClusterVPC(c.cfg, c.stackManager); err != nil {
+	if err := c.ctl.LoadClusterVPC(c.cfg); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
 	}
 
@@ -100,7 +100,7 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait bool) error {
 	deleteOIDCProvider := clusterOperable && oidcSupported
 	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvider, oidc, kubernetes.NewCachedClientSet(clientSet), wait, func(errs chan error, _ string) error {
 		logger.Info("trying to cleanup dangling network interfaces")
-		if err := c.ctl.LoadClusterVPC(c.cfg, c.stackManager); err != nil {
+		if err := c.ctl.LoadClusterVPC(c.cfg); err != nil {
 			return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
 		}
 

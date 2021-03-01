@@ -52,10 +52,11 @@ func doUpdateLegacySubnetSettings(cmd *cmdutils.Cmd) error {
 		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
 	}
 
-	stackManager := ctl.NewStackManager(cfg)
-	if err := ctl.LoadClusterVPC(cfg, stackManager); err != nil {
+	if err := ctl.LoadClusterVPC(cfg); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
 	}
+
+	stackManager := ctl.NewStackManager(cfg)
 
 	logger.Info("updating settings { MapPublicIpOnLaunch: enabled } for public subnets %v", cfg.VPC.Subnets.Public)
 	err = stackManager.EnsureMapPublicIPOnLaunchEnabled()

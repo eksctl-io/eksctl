@@ -22,13 +22,13 @@ func (c *StackCollection) MakeChangeSetName(action string) string {
 	return fmt.Sprintf("eksctl-%s-%d", action, time.Now().Unix())
 }
 
-func (c *StackCollection) MakeClusterStackName() string {
+func (c *StackCollection) makeClusterStackName() string {
 	return "eksctl-" + c.spec.Metadata.Name + "-cluster"
 }
 
 // createClusterTask creates the cluster
 func (c *StackCollection) createClusterTask(errs chan error, supportsManagedNodes bool) error {
-	name := c.MakeClusterStackName()
+	name := c.makeClusterStackName()
 	logger.Info("building cluster stack %q", name)
 	stack := builder.NewClusterResourceSet(c.ec2API, c.region, c.spec, supportsManagedNodes, nil)
 	if err := stack.AddAllResources(); err != nil {
@@ -92,7 +92,7 @@ func (c *StackCollection) RefreshFargatePodExecutionRoleARN() error {
 			return err
 		}
 		if stack == nil {
-			return &StackNotFoundErr{ClusterName: c.spec.Metadata.Name}
+			return c.ErrStackNotFound()
 		}
 	} else {
 		stack, err = c.GetFargateStack()
@@ -107,7 +107,7 @@ func (c *StackCollection) RefreshFargatePodExecutionRoleARN() error {
 // AppendNewClusterStackResource will update cluster
 // stack with new resources in append-only way
 func (c *StackCollection) AppendNewClusterStackResource(plan, supportsManagedNodes bool) (bool, error) {
-	name := c.MakeClusterStackName()
+	name := c.makeClusterStackName()
 
 	// NOTE: currently we can only append new resources to the stack,
 	// as there are a few limitations:

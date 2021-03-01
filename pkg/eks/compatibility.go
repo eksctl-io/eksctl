@@ -20,7 +20,7 @@ func (c *ClusterProvider) ValidateClusterForCompatibility(cfg *api.ClusterConfig
 		return errors.Wrap(err, "getting cluster stacks")
 	}
 	if cluster == nil {
-		return &manager.StackNotFoundErr{ClusterName: cfg.Metadata.Name}
+		return stackManager.ErrStackNotFound()
 	}
 
 	err = outputs.Collect(*cluster,

@@ -595,8 +595,8 @@
         },
         "securityGroup": {
           "type": "string",
-          "description": "(aka the ControlPlaneSecurityGroup) for communication between control plane and nodes",
-          "x-intellij-html-description": "(aka the ControlPlaneSecurityGroup) for communication between control plane and nodes"
+          "description": "for communication between control plane and nodes",
+          "x-intellij-html-description": "for communication between control plane and nodes"
         },
         "sharedNodeSecurityGroup": {
           "type": "string",

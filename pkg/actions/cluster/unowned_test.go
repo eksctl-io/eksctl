@@ -11,7 +11,6 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -105,30 +104,27 @@ var _ = Describe("Delete", func() {
 			fakeStackManager.GetFargateStackReturns(&cloudformation.Stack{StackName: aws.String("fargate-role")}, nil)
 			fakeStackManager.DeleteStackByNameReturns(nil, nil)
 
-			p.MockEKS().On("ListNodegroups", mock.Anything).Return(&awseks.ListNodegroupsOutput{
-				Nodegroups: aws.StringSlice([]string{"ng-1", "ng-2"}),
-			}, nil)
+			p.MockEKS().On("ListNodegroupsPages", mock.MatchedBy(func(input *awseks.ListNodegroupsInput) bool {
+				Expect(*input.ClusterName).To(Equal(clusterName))
+				return true
+			}), mock.Anything).Run(func(args mock.Arguments) {
+				consume := args[1].(func(ng *awseks.ListNodegroupsOutput, _ bool) bool)
+				out := &awseks.ListNodegroupsOutput{
+					Nodegroups: aws.StringSlice([]string{"ng-1"}),
+				}
+				cont := consume(out, true)
+				if !cont {
+					panic("unexpected return value from the paging function: shouldContinue was false which isn't expected in this test scenario")
+				}
+			}).Return(nil)
 
-			fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: "ng-1"}}, nil)
+			p.MockEKS().On("ListNodegroups", mock.Anything).Return(&awseks.ListNodegroupsOutput{}, nil)
 
-			var deleteCallCount int
-			fakeStackManager.NewTasksToDeleteNodeGroupsReturns(&tasks.TaskTree{
-				Tasks: []tasks.Task{&tasks.GenericTask{Doer: func() error {
-					deleteCallCount++
-					return nil
-				}}},
-			}, nil)
-
-			var unownedDeleteCallCount int
-			fakeStackManager.NewTaskToDeleteUnownedNodeGroupReturns(&tasks.TaskTree{
-				Tasks: []tasks.Task{&tasks.GenericTask{Doer: func() error {
-					unownedDeleteCallCount++
-					return nil
-				}}},
-			})
-
-			p.MockEKS().On("DeleteNodegroup", &awseks.DeleteNodegroupInput{ClusterName: &clusterName, NodegroupName: aws.String("ng-1")}).Return(&awseks.DeleteNodegroupOutput{}, nil)
-			p.MockEKS().On("DeleteNodegroup", &awseks.DeleteNodegroupInput{ClusterName: &clusterName, NodegroupName: aws.String("ng-2")}).Return(&awseks.DeleteNodegroupOutput{}, nil)
+			p.MockEKS().On("DeleteNodegroup", mock.MatchedBy(func(input *awseks.DeleteNodegroupInput) bool {
+				Expect(*input.ClusterName).To(Equal(clusterName))
+				Expect(*input.NodegroupName).To(Equal("ng-1"))
+				return true
+			})).Return(&awseks.DeleteNodegroupOutput{}, nil)
 
 			p.MockEKS().On("DeleteCluster", mock.Anything).Return(&awseks.DeleteClusterOutput{}, nil)
 			c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager)
@@ -140,8 +136,6 @@ var _ = Describe("Delete", func() {
 
 			err := c.Delete(time.Microsecond, false)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(deleteCallCount).To(Equal(1))
-			Expect(unownedDeleteCallCount).To(Equal(1))
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
 			Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
@@ -170,27 +164,21 @@ var _ = Describe("Delete", func() {
 
 			p.MockEC2().On("DescribeSecurityGroupsWithContext", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
 
-			p.MockEKS().On("ListNodegroups", mock.Anything).Return(&awseks.ListNodegroupsOutput{
-				Nodegroups: aws.StringSlice([]string{"ng-1", "ng-2"}),
-			}, nil)
+			p.MockEKS().On("ListNodegroupsPages", mock.MatchedBy(func(input *awseks.ListNodegroupsInput) bool {
+				Expect(*input.ClusterName).To(Equal(clusterName))
+				return true
+			}), mock.Anything).Run(func(args mock.Arguments) {
+				consume := args[1].(func(ng *awseks.ListNodegroupsOutput, _ bool) bool)
+				out := &awseks.ListNodegroupsOutput{
+					Nodegroups: aws.StringSlice([]string{"ng-1"}),
+				}
+				cont := consume(out, true)
+				if !cont {
+					panic("unexpected return value from the paging function: shouldContinue was false which isn't expected in this test scenario")
+				}
+			}).Return(nil)
 
-			fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: "ng-1"}}, nil)
-
-			var deleteCallCount int
-			fakeStackManager.NewTasksToDeleteNodeGroupsReturns(&tasks.TaskTree{
-				Tasks: []tasks.Task{&tasks.GenericTask{Doer: func() error {
-					deleteCallCount++
-					return nil
-				}}},
-			}, nil)
-
-			var unownedDeleteCallCount int
-			fakeStackManager.NewTaskToDeleteUnownedNodeGroupReturns(&tasks.TaskTree{
-				Tasks: []tasks.Task{&tasks.GenericTask{Doer: func() error {
-					unownedDeleteCallCount++
-					return nil
-				}}},
-			})
+			p.MockEKS().On("ListNodegroups", mock.Anything).Return(&awseks.ListNodegroupsOutput{}, nil)
 
 			p.MockEKS().On("DeleteNodegroup", mock.MatchedBy(func(input *awseks.DeleteNodegroupInput) bool {
 				Expect(*input.ClusterName).To(Equal(clusterName))
@@ -204,8 +192,6 @@ var _ = Describe("Delete", func() {
 			err := c.Delete(time.Microsecond, false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
-			Expect(deleteCallCount).To(Equal(1))
-			Expect(unownedDeleteCallCount).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
 		})
 	})
