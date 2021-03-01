@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/utils"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -18,11 +18,11 @@ import (
 // ManagedNodeGroupResourceSet defines the CloudFormation resources required for a managed nodegroup
 type ManagedNodeGroupResourceSet struct {
 	clusterConfig         *api.ClusterConfig
-	clusterStackName      string
 	forceAddCNIPolicy     bool
 	nodeGroup             *api.ManagedNodeGroup
 	launchTemplateFetcher *LaunchTemplateFetcher
 	ec2API                ec2iface.EC2API
+	vpcImporter           vpc.Importer
 	*resourceSet
 
 	// UserDataMimeBoundary sets the MIME boundary for user data
@@ -32,15 +32,15 @@ type ManagedNodeGroupResourceSet struct {
 const ManagedNodeGroupResourceName = "ManagedNodeGroup"
 
 // NewManagedNodeGroup creates a new ManagedNodeGroupResourceSet
-func NewManagedNodeGroup(ec2API ec2iface.EC2API, cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher *LaunchTemplateFetcher, clusterStackName string, forceAddCNIPolicy bool) *ManagedNodeGroupResourceSet {
+func NewManagedNodeGroup(ec2API ec2iface.EC2API, cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher *LaunchTemplateFetcher, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *ManagedNodeGroupResourceSet {
 	return &ManagedNodeGroupResourceSet{
 		clusterConfig:         cluster,
-		clusterStackName:      clusterStackName,
 		forceAddCNIPolicy:     forceAddCNIPolicy,
 		nodeGroup:             nodeGroup,
 		launchTemplateFetcher: launchTemplateFetcher,
 		ec2API:                ec2API,
 		resourceSet:           newResourceSet(),
+		vpcImporter:           vpcImporter,
 	}
 }
 
@@ -66,7 +66,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		nodeRole = gfnt.NewString(NormalizeARN(m.nodeGroup.IAM.InstanceRoleARN))
 	}
 
-	subnets, err := AssignSubnets(m.nodeGroup.NodeGroupBase, m.clusterStackName, m.clusterConfig)
+	subnets, err := AssignSubnets(m.nodeGroup.NodeGroupBase, m.vpcImporter, m.clusterConfig)
 	if err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	}
 	if api.IsEnabled(m.nodeGroup.EFAEnabled) {
 		desc := "worker nodes in group " + m.nodeGroup.Name
-		m.addEFASecurityGroup(makeImportValue(m.clusterStackName, outputs.ClusterVPC), m.clusterConfig.Metadata.Name, desc)
+		m.addEFASecurityGroup(m.vpcImporter.VPC(), m.clusterConfig.Metadata.Name, desc)
 	}
 
 	managedResource.LaunchTemplate = launchTemplate

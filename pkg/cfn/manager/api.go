@@ -504,7 +504,7 @@ func (c *StackCollection) HasClusterStack() (bool, error) {
 }
 
 func (c *StackCollection) HasClusterStackUsingCachedList(clusterStackNames []string) (bool, error) {
-	clusterStackName := c.makeClusterStackName()
+	clusterStackName := c.MakeClusterStackName()
 	for _, stack := range clusterStackNames {
 		if stack == clusterStackName {
 			stack, err := c.DescribeStack(&cloudformation.Stack{StackName: &clusterStackName})

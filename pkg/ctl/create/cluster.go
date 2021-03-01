@@ -387,7 +387,7 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 			return err
 		}
 
-		if err := kw.UseVPC(ctl.Provider, cfg); err != nil {
+		if err := kw.UseVPC(ctl.Provider.EC2(), cfg); err != nil {
 			return err
 		}
 
@@ -409,7 +409,7 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 		return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --vpc-cidr %s", cmdutils.IncompatibleFlags)
 	}
 
-	if err := vpc.ImportAllSubnets(ctl.Provider, cfg); err != nil {
+	if err := vpc.ImportSubnetsFromSpec(ctl.Provider, cfg); err != nil {
 		return err
 	}
 

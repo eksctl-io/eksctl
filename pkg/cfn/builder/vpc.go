@@ -478,8 +478,7 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	}
 
 	if api.IsEnabled(n.spec.SecurityGroups.WithShared) {
-		refClusterSharedNodeSG := makeImportValue(n.clusterStackName, outputs.ClusterSharedNodeSecurityGroup)
-		n.securityGroups = append(n.securityGroups, refClusterSharedNodeSG)
+		n.securityGroups = append(n.securityGroups, n.vpcImporter.SharedNodeSecurityGroup())
 	}
 
 	if api.IsDisabled(n.spec.SecurityGroups.WithLocal) {
@@ -487,11 +486,11 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	}
 
 	desc := "worker nodes in group " + n.spec.Name
-
-	refControlPlaneSG := makeImportValue(n.clusterStackName, outputs.ClusterSecurityGroup)
+	vpcID := n.vpcImporter.VPC()
+	refControlPlaneSG := n.vpcImporter.ControlPlaneSecurityGroup()
 
 	refNodeGroupLocalSG := n.newResource("SG", &gfnec2.SecurityGroup{
-		VpcId:            makeImportValue(n.clusterStackName, outputs.ClusterVPC),
+		VpcId:            vpcID,
 		GroupDescription: gfnt.NewString("Communication between the control plane and " + desc),
 		Tags: []gfncfn.Tag{{
 			Key:   gfnt.NewString("kubernetes.io/cluster/" + n.clusterSpec.Metadata.Name),
@@ -503,7 +502,7 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	n.securityGroups = append(n.securityGroups, refNodeGroupLocalSG)
 
 	if api.IsEnabled(n.spec.EFAEnabled) {
-		n.rs.addEFASecurityGroup(makeImportValue(n.clusterStackName, outputs.ClusterVPC), n.clusterSpec.Metadata.Name, desc)
+		n.rs.addEFASecurityGroup(vpcID, n.clusterSpec.Metadata.Name, desc)
 	}
 
 	n.newResource("EgressInterCluster", &gfnec2.SecurityGroupEgress{

@@ -17,6 +17,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
+	"github.com/aws/aws-sdk-go/service/eks"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 
 	"k8s.io/client-go/kubernetes"
@@ -233,6 +234,14 @@ func (c *ClusterProvider) ControlPlaneVersion() string {
 		return ""
 	}
 	return *c.Status.ClusterInfo.Cluster.Version
+}
+
+// ControlPlaneVPCInfo returns cached version (EKS API)
+func (c *ClusterProvider) ControlPlaneVPCInfo() eks.VpcConfigResponse {
+	if c.Status.ClusterInfo == nil || c.Status.ClusterInfo.Cluster == nil || c.Status.ClusterInfo.Cluster.ResourcesVpcConfig == nil {
+		return eks.VpcConfigResponse{}
+	}
+	return *c.Status.ClusterInfo.Cluster.ResourcesVpcConfig
 }
 
 // UnsupportedOIDCError represents an unsupported OIDC error

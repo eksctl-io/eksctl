@@ -8,6 +8,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 type createClusterTask struct {
@@ -27,12 +28,13 @@ type nodeGroupTask struct {
 	nodeGroup            *api.NodeGroup
 	supportsManagedNodes bool
 	forceAddCNIPolicy    bool
+	vpcImporter          vpc.Importer
 	stackCollection      *StackCollection
 }
 
 func (t *nodeGroupTask) Describe() string { return t.info }
 func (t *nodeGroupTask) Do(errs chan error) error {
-	return t.stackCollection.createNodeGroupTask(errs, t.nodeGroup, t.supportsManagedNodes, t.forceAddCNIPolicy)
+	return t.stackCollection.createNodeGroupTask(errs, t.nodeGroup, t.supportsManagedNodes, t.forceAddCNIPolicy, t.vpcImporter)
 }
 
 type managedNodeGroupTask struct {
@@ -40,12 +42,13 @@ type managedNodeGroupTask struct {
 	nodeGroup         *api.ManagedNodeGroup
 	stackCollection   *StackCollection
 	forceAddCNIPolicy bool
+	vpcImporter       vpc.Importer
 }
 
 func (t *managedNodeGroupTask) Describe() string { return t.info }
 
 func (t *managedNodeGroupTask) Do(errorCh chan error) error {
-	return t.stackCollection.createManagedNodeGroupTask(errorCh, t.nodeGroup, t.forceAddCNIPolicy)
+	return t.stackCollection.createManagedNodeGroupTask(errorCh, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
 }
 
 type clusterCompatTask struct {

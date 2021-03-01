@@ -8,6 +8,7 @@ import (
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 //go:generate counterfeiter -o fakes/fake_stack_manager.go . StackManager
@@ -50,10 +51,11 @@ type StackManager interface {
 	AppendNewClusterStackResource(plan, supportsManagedNodes bool) (bool, error)
 	GetFargateStack() (*Stack, error)
 	GetStackTemplate(stackName string) (string, error)
+	MakeClusterStackName() string
 	NewTasksToCreateClusterWithNodeGroups(nodeGroups []*v1alpha5.NodeGroup,
 		managedNodeGroups []*v1alpha5.ManagedNodeGroup, supportsManagedNodes bool, postClusterCreationTasks ...tasks.Task) *tasks.TaskTree
-	NewUnmanagedNodeGroupTask(nodeGroups []*v1alpha5.NodeGroup, supportsManagedNodes bool, forceAddCNIPolicy bool) *tasks.TaskTree
-	NewManagedNodeGroupTask(nodeGroups []*v1alpha5.ManagedNodeGroup, forceAddCNIPolicy bool) *tasks.TaskTree
+	NewUnmanagedNodeGroupTask(nodeGroups []*v1alpha5.NodeGroup, supportsManagedNodes bool, forceAddCNIPolicy bool, importer vpc.Importer) *tasks.TaskTree
+	NewManagedNodeGroupTask(nodeGroups []*v1alpha5.ManagedNodeGroup, forceAddCNIPolicy bool, importer vpc.Importer) *tasks.TaskTree
 	NewClusterCompatTask() tasks.Task
 	NewTasksToCreateIAMServiceAccounts(serviceAccounts []*v1alpha5.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) *tasks.TaskTree
 	DeleteTasksForDeprecatedStacks() (*tasks.TaskTree, error)

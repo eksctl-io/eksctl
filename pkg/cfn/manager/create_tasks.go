@@ -8,6 +8,7 @@ import (
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 // NewTasksToCreateClusterWithNodeGroups defines all tasks required to create a cluster along
@@ -26,9 +27,9 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 	)
 
 	appendNodeGroupTasksTo := func(taskTree *tasks.TaskTree) {
-		nodeGroupTasks := c.NewUnmanagedNodeGroupTask(nodeGroups, supportsManagedNodes, false)
-
-		managedNodeGroupTasks := c.NewManagedNodeGroupTask(managedNodeGroups, false)
+		vpcImporter := vpc.NewStackConfigImporter(c.spec.Metadata.Name)
+		nodeGroupTasks := c.NewUnmanagedNodeGroupTask(nodeGroups, supportsManagedNodes, false, vpcImporter)
+		managedNodeGroupTasks := c.NewManagedNodeGroupTask(managedNodeGroups, false, vpcImporter)
 		if managedNodeGroupTasks.Len() > 0 {
 			nodeGroupTasks.Append(managedNodeGroupTasks.Tasks...)
 		}
@@ -55,7 +56,7 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 }
 
 // NewUnmanagedNodeGroupTask defines tasks required to create all of the nodegroups
-func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup, supportsManagedNodes bool, forceAddCNIPolicy bool) *tasks.TaskTree {
+func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup, supportsManagedNodes bool, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}
 
 	for _, ng := range nodeGroups {
@@ -65,6 +66,7 @@ func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup,
 			stackCollection:      c,
 			supportsManagedNodes: supportsManagedNodes,
 			forceAddCNIPolicy:    forceAddCNIPolicy,
+			vpcImporter:          vpcImporter,
 		})
 		// TODO: move authconfigmap tasks here using kubernetesTask and kubernetes.CallbackClientSet
 	}
@@ -73,13 +75,14 @@ func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup,
 }
 
 // NewManagedNodeGroupTask defines tasks required to create managed nodegroups
-func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool) *tasks.TaskTree {
+func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}
 	for _, ng := range nodeGroups {
 		taskTree.Append(&managedNodeGroupTask{
 			stackCollection:   c,
 			nodeGroup:         ng,
 			forceAddCNIPolicy: forceAddCNIPolicy,
+			vpcImporter:       vpcImporter,
 			info:              fmt.Sprintf("create managed nodegroup %q", ng.Name),
 		})
 	}
