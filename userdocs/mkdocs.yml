@@ -37,6 +37,7 @@ nav:
         - usage/eks-private-cluster.md
         - usage/fargate-support.md
         - usage/addons.md
+        - usage/kms-encryption.md
         - usage/gitops.md
         - usage/schema.md
         - usage/troubleshooting.md
