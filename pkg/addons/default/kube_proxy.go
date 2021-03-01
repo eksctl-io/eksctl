@@ -134,7 +134,6 @@ func addArm64NodeSelector(daemonSet *v1.DaemonSet) {
 		RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms {
 		for nodeSelectorIndex, nodeSelector := range nodeSelectorTerms.MatchExpressions {
 			if nodeSelector.Key == "beta.kubernetes.io/arch" {
-				logger.Info("adding arm64 node selector")
 				daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.
 					NodeSelectorTerms[nodeSelectorTermsIndex].MatchExpressions[nodeSelectorIndex].Values = append(nodeSelector.Values, "arm64")
 			}
