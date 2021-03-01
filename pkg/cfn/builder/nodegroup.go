@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/aws/aws-sdk-go/service/iam/iamiface"
+	"github.com/pkg/errors"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
-	"github.com/weaveworks/logger"
+	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -26,6 +27,7 @@ type NodeGroupResourceSet struct {
 	spec                 *api.NodeGroup
 	supportsManagedNodes bool
 	forceAddCNIPolicy    bool
+	ec2API               ec2iface.EC2API
 	iamAPI               iamiface.IAMAPI
 	clusterStackName     string
 	instanceProfileARN   *gfnt.Value
@@ -35,7 +37,7 @@ type NodeGroupResourceSet struct {
 }
 
 // NewNodeGroupResourceSet returns a resource set for a nodegroup embedded in a cluster config
-func NewNodeGroupResourceSet(iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup,
+func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup,
 	supportsManagedNodes, forceAddCNIPolicy bool) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
 		rs:                   newResourceSet(),
@@ -44,6 +46,7 @@ func NewNodeGroupResourceSet(iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, cl
 		forceAddCNIPolicy:    forceAddCNIPolicy,
 		clusterSpec:          spec,
 		spec:                 ng,
+		ec2API:               ec2API,
 		iamAPI:               iamAPI,
 	}
 }
@@ -121,7 +124,10 @@ func (n *NodeGroupResourceSet) newResource(name string, resource gfn.Resource) *
 
 func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	launchTemplateName := gfnt.MakeFnSubString(fmt.Sprintf("${%s}", gfnt.StackName))
-	launchTemplateData := newLaunchTemplateData(n)
+	launchTemplateData, err := newLaunchTemplateData(n)
+	if err != nil {
+		return errors.Wrap(err, "could not add resources for nodegroup")
+	}
 
 	if n.spec.SSH != nil && api.IsSetAndNonEmptyString(n.spec.SSH.PublicKeyName) {
 		launchTemplateData.KeyName = gfnt.NewString(*n.spec.SSH.PublicKeyName)
@@ -233,13 +239,19 @@ func AssignSubnets(spec *api.NodeGroupBase, clusterStackName string, clusterSpec
 	// currently goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
 
-	if numNodeGroupsAZs, numNodeGroupsSubnets := len(spec.AvailabilityZones), len(spec.Subnets); numNodeGroupsAZs > 0 || numNodeGroupsSubnets > 0 {
-		subnets := clusterSpec.VPC.Subnets.Public
+	if numNodeGroupsAZs, numNodeGroupsSubnets := len(spec.AvailabilityZones), len(spec.Subnets); api.IsEnabled(spec.EFAEnabled) || numNodeGroupsAZs > 0 || numNodeGroupsSubnets > 0 {
+		allSubnets := clusterSpec.VPC.Subnets.Public
+		typ := "public"
 		if spec.PrivateNetworking {
-			subnets = clusterSpec.VPC.Subnets.Private
+			allSubnets = clusterSpec.VPC.Subnets.Private
+			typ = "private"
 		}
-		subnetIDs, err := vpc.SelectNodeGroupSubnets(spec.AvailabilityZones, spec.Subnets, subnets)
-		return gfnt.NewStringSlice(subnetIDs...), err
+		subnetIDs, err := vpc.SelectNodeGroupSubnets(spec.AvailabilityZones, spec.Subnets, allSubnets)
+		if api.IsEnabled(spec.EFAEnabled) && len(subnetIDs) > 1 {
+			subnetIDs = []string{subnetIDs[0]}
+			logger.Info("EFA requires all nodes be in a single subnet, arbitrarily choosing one: %s", subnetIDs)
+		}
+		return gfnt.NewStringSlice(subnetIDs...), errors.Wrapf(err, "couldn't find %s subnets", typ)
 	}
 
 	var subnets *gfnt.Value
@@ -257,21 +269,27 @@ func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
 	return n.rs.GetAllOutputs(stack)
 }
 
-func newLaunchTemplateData(n *NodeGroupResourceSet) *gfnec2.LaunchTemplate_LaunchTemplateData {
-
+func newLaunchTemplateData(n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
 		IamInstanceProfile: &gfnec2.LaunchTemplate_IamInstanceProfile{
 			Arn: n.instanceProfileARN,
 		},
-		ImageId:  gfnt.NewString(n.spec.AMI),
-		UserData: n.userData,
-		NetworkInterfaces: []gfnec2.LaunchTemplate_NetworkInterface{{
-			// Explicitly un-setting this so that it doesn't get defaulted to true
-			AssociatePublicIpAddress: nil,
-			DeviceIndex:              gfnt.NewInteger(0),
-			Groups:                   gfnt.NewSlice(n.securityGroups...),
-		}},
+		ImageId:         gfnt.NewString(n.spec.AMI),
+		UserData:        n.userData,
 		MetadataOptions: makeMetadataOptions(n.spec.NodeGroupBase),
+	}
+
+	if err := buildNetworkInterfaces(launchTemplateData, n.spec.InstanceTypeList(), api.IsEnabled(n.spec.EFAEnabled), n.securityGroups, n.ec2API); err != nil {
+		return nil, errors.Wrap(err, "couldn't build network interfaces for launch template data")
+	}
+
+	if api.IsEnabled(n.spec.EFAEnabled) && n.spec.Placement == nil {
+		groupName := n.newResource("NodeGroupPlacementGroup", &gfnec2.PlacementGroup{
+			Strategy: gfnt.NewString("cluster"),
+		})
+		launchTemplateData.Placement = &gfnec2.LaunchTemplate_Placement{
+			GroupName: groupName,
+		}
 	}
 
 	if !api.HasMixedInstances(n.spec) {
@@ -295,7 +313,7 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfnec2.LaunchTemplate_Launc
 		}
 	}
 
-	return launchTemplateData
+	return launchTemplateData, nil
 }
 
 func makeMetadataOptions(ng *api.NodeGroupBase) *gfnec2.LaunchTemplate_MetadataOptions {

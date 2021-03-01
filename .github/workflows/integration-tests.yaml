@@ -10,7 +10,7 @@ jobs:
     name: Run integration tests
     environment: "Integration tests"
     runs-on: ubuntu-latest
-    container: weaveworks/eksctl-build:b3df6d07d20a57b3818d901ec424c1df564a4d9c
+    container: weaveworks/eksctl-build:014553f5553855abb719627546a0ac54685f8143
     env:
       SSH: "/root/.ssh"
     steps:
@@ -43,4 +43,17 @@ jobs:
           TEST_V: "1"
           GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
         run: make integration-test
-
+      - name: Notify slack on success
+        if: success() && github.event_name == 'schedule'
+        uses: ./.github/actions/notify-slack
+        with:
+          webhook-url: "${{ secrets.SLACK_WEBHOOK }}"
+          message: ":deal-with-it-parrot: An integration test run succeeded!"
+          channel: team-pitch-black
+      - name: Notify slack on failure
+        if: failure() && github.event_name == 'schedule'
+        uses: ./.github/actions/notify-slack
+        with:
+          webhook-url: "${{ secrets.SLACK_WEBHOOK }}"
+          message: ":ahhhhhhhhh: An integration test run failed!"
+          channel: team-pitch-black

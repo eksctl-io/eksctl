@@ -45,6 +45,8 @@ const (
 	subnetsPublic  = "subnet-0f98135715dfcf55f,subnet-0ade11bad78dced9e,subnet-0e2e63ff1712bf6ef"
 	subnetsPrivate = "subnet-0f98135715dfcf55a,subnet-0ade11bad78dced9f,subnet-0e2e63ff1712bf6ea"
 	scriptPath     = "/var/lib/cloud/scripts/eksctl/"
+
+	p4InstanceType = "p4d.24xlarge"
 )
 
 var overrideBootstrapCommand = "echo foo > /etc/test_foo; echo bar > /etc/test_bar; poweroff -fn;"
@@ -120,16 +122,19 @@ type Properties struct {
 	}
 }
 
+type NetworkInterface struct {
+	DeviceIndex              int
+	AssociatePublicIPAddress bool
+	NetworkCardIndex         int
+	InterfaceType            string
+}
 type LaunchTemplateData struct {
 	IamInstanceProfile              struct{ Arn interface{} }
 	UserData, InstanceType, ImageID string
 	BlockDeviceMappings             []interface{}
 	EbsOptimized                    *bool
-	NetworkInterfaces               []struct {
-		DeviceIndex              int
-		AssociatePublicIPAddress bool
-	}
-	InstanceMarketOptions *struct {
+	NetworkInterfaces               []NetworkInterface
+	InstanceMarketOptions           *struct {
 		MarketType  string
 		SpotOptions struct {
 			SpotInstanceType string
@@ -423,6 +428,24 @@ var _ = Describe("CloudFormation template builder API", func() {
 		}
 		testVPC := testVPC()
 
+		p.MockEC2().On("DescribeInstanceTypes",
+			&ec2.DescribeInstanceTypesInput{
+				InstanceTypes: aws.StringSlice([]string{p4InstanceType}),
+			},
+		).Return(
+			&ec2.DescribeInstanceTypesOutput{
+				InstanceTypes: []*ec2.InstanceTypeInfo{
+					{
+						InstanceType: aws.String(p4InstanceType),
+						NetworkInfo: &ec2.NetworkInfo{
+							EfaSupported:        aws.Bool(true),
+							MaximumNetworkCards: aws.Int64(4),
+						},
+					},
+				},
+			}, nil,
+		)
+
 		p.MockEC2().On("DescribeVpcs", mock.MatchedBy(func(input *ec2.DescribeVpcsInput) bool {
 			return *input.VpcIds[0] == vpcID
 		})).Return(&ec2.DescribeVpcsOutput{
@@ -581,7 +604,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			err = crs.AddAllResources()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			ngrs = NewNodeGroupResourceSet(p.IAM(), cfg, clusterStackName, ng, managedNodesSupport, false)
+			ngrs = NewNodeGroupResourceSet(p.EC2(), p.IAM(), cfg, clusterStackName, ng, managedNodesSupport, false)
 			err = ngrs.AddAllResources()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -3439,6 +3462,46 @@ var _ = Describe("CloudFormation template builder API", func() {
 					HaveKey("SuspendProcesses"),
 				)
 			})
+		})
+	})
+
+	Context("p4 NodeGroup with EFA enabled", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.EFAEnabled = aws.Bool(true)
+		ng.InstanceType = p4InstanceType
+		build(cfg, "eksctl-test-nodegroup-p4-efa", ng)
+
+		roundtrip()
+
+		It("should have correct interfaces", func() {
+			Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
+			launchTemplate := ngTemplate.Resources["NodeGroupLaunchTemplate"]
+			Expect(ng).ToNot(BeNil())
+			Expect(launchTemplate.Properties.LaunchTemplateData.NetworkInterfaces).To(Equal(
+				[]NetworkInterface{
+					{
+						InterfaceType:    "efa",
+						DeviceIndex:      0,
+						NetworkCardIndex: 0,
+					},
+					{
+						InterfaceType:    "efa",
+						DeviceIndex:      1,
+						NetworkCardIndex: 1,
+					},
+					{
+						InterfaceType:    "efa",
+						DeviceIndex:      2,
+						NetworkCardIndex: 2,
+					},
+					{
+						InterfaceType:    "efa",
+						DeviceIndex:      3,
+						NetworkCardIndex: 3,
+					},
+				},
+			))
 		})
 	})
 

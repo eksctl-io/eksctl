@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
-	"github.com/weaveworks/logger"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 

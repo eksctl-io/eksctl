@@ -10,8 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/logger"
 	"k8s.io/apimachinery/pkg/util/sets"
 	kubeclient "k8s.io/client-go/kubernetes"
 

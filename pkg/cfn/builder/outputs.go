@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
-	"github.com/weaveworks/logger"
 )
 
 // makeImportValue imports output of another stack

@@ -3,8 +3,8 @@ package builder
 import (
 	"fmt"
 
+	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/iam"
-	"github.com/weaveworks/logger"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"

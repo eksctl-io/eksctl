@@ -13,6 +13,7 @@ require (
 	github.com/dave/jennifer v1.4.1
 	github.com/dlespiau/kube-test-harness v0.0.0-20200915102055-a03579200ae8
 	github.com/evanphx/json-patch/v5 v5.2.0
+	github.com/fatih/color v1.10.0
 	github.com/fluxcd/flux/pkg/install v0.0.0-20201001122558-cb08da1b356a // flux 1.21.0
 	github.com/fluxcd/go-git-providers v0.0.3
 	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200729150005-1467489f7ee4 // helm-operator 1.2.0
@@ -27,6 +28,9 @@ require (
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kevinburke/go-bindata v3.22.0+incompatible
 	github.com/kevinburke/rest v0.0.0-20210106114233-22cd0577e450 // indirect
+	github.com/kris-nova/logger v0.2.1
+	github.com/kris-nova/lolgopher v0.0.0-20210112022122-73f0047e8b65
+	github.com/kris-nova/novaarchive v0.0.0-20210219195539-c7c1cabb2577 // indirect
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0
@@ -47,7 +51,6 @@ require (
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
 	github.com/weaveworks/goformation/v4 v4.10.2-0.20210202192510-c984c16fe84b
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
-	github.com/weaveworks/logger v0.0.0-20210210175120-de9359622dfc
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
 	golang.org/x/mod v0.4.1 // indirect
 	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect

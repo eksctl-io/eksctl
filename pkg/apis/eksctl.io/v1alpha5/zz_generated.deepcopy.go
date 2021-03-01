@@ -1065,6 +1065,11 @@ func (in *NodeGroupBase) DeepCopyInto(out *NodeGroupBase) {
 		*out = new(Placement)
 		**out = **in
 	}
+	if in.EFAEnabled != nil {
+		in, out := &in.EFAEnabled, &out.EFAEnabled
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 

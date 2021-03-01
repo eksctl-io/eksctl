@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/logger"
 
 	"github.com/weaveworks/eksctl/pkg/addons"
 	"github.com/weaveworks/eksctl/pkg/printers"

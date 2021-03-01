@@ -201,7 +201,13 @@ eksctl delete nodegroup --cluster=<clusterName> --name=<nodegroupName>
 
 
 !!!note
-    This will drain all pods from that nodegroup before the instances are deleted.
+This will drain all pods from that nodegroup before the instances are deleted.
+
+To skip eviction rules during the drain process, run:
+
+```
+eksctl delete nodegroup --cluster=<clusterName> --name=<nodegroupName> --disable-eviction
+```
 
 All nodes are cordoned and all pods are evicted from a nodegroup on deletion,
 but if you need to drain a nodegroup without deleting it, run:
@@ -214,6 +220,12 @@ To uncordon a nodegroup, run:
 
 ```
 eksctl drain nodegroup --cluster=<clusterName> --name=<nodegroupName> --undo
+```
+
+To ignore eviction rules such as PodDisruptionBudget settings, run:
+
+```
+eksctl drain nodegroup --cluster=<clusterName> --name=<nodegroupName> --disable-eviction
 ```
 
 ### Nodegroup selection in config files

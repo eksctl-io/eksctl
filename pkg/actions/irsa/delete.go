@@ -3,8 +3,8 @@ package irsa
 import (
 	"fmt"
 
+	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
-	"github.com/weaveworks/logger"
 )
 
 func (m *Manager) Delete(shouldDelete func(string) bool, plan, wait bool) error {

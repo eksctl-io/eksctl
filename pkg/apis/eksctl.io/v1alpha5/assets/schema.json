@@ -951,6 +951,11 @@
           "description": "enables [EBS optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)",
           "x-intellij-html-description": "enables <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html\">EBS optimization</a>"
         },
+        "efaEnabled": {
+          "type": "boolean",
+          "description": "creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
+          "x-intellij-html-description": "creates the maximum allowed number of EFA-enabled network cards on nodes in this group."
+        },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
         },
@@ -1118,6 +1123,7 @@
         "disableIMDSv1",
         "disablePodIMDS",
         "placement",
+        "efaEnabled",
         "instanceTypes",
         "spot",
         "launchTemplate"
@@ -1237,6 +1243,11 @@
           "type": "boolean",
           "description": "enables [EBS optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)",
           "x-intellij-html-description": "enables <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html\">EBS optimization</a>"
+        },
+        "efaEnabled": {
+          "type": "boolean",
+          "description": "creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
+          "x-intellij-html-description": "creates the maximum allowed number of EFA-enabled network cards on nodes in this group."
         },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
@@ -1409,6 +1420,7 @@
         "disableIMDSv1",
         "disablePodIMDS",
         "placement",
+        "efaEnabled",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",

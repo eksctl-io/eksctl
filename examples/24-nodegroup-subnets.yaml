@@ -34,7 +34,7 @@ nodeGroups:
     desiredCapacity: 2
     subnets:
       - public-one
-      - public-two
+      - subnet-083814b087bad140b
   - name: ng-2
     instanceType: m5.xlarge
     desiredCapacity: 2

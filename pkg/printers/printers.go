@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/weaveworks/logger"
+	"github.com/kris-nova/logger"
 )
 
 // Type is the type representing all supported printer types.
@@ -24,7 +24,7 @@ const (
 type OutputPrinter interface {
 	PrintObjWithKind(kind string, obj interface{}, writer io.Writer) error
 	PrintObj(obj interface{}, writer io.Writer) error
-	LogObj(log logger.Logger, msgFmt string, obj interface{}) error
+	LogObj(log logger.LoggerFunc, msgFmt string, obj interface{}) error
 }
 
 // NewPrinter creates a new printer based in the printer type requested.

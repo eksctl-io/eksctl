@@ -14,6 +14,7 @@ RUN apk add --no-cache \
     g++ \
     gcc \
     git \
+    httpie \
     libsass-dev \
     make \
     musl-dev \

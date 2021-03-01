@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/request"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"

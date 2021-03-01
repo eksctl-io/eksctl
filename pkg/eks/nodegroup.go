@@ -11,8 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	awsiam "github.com/aws/aws-sdk-go/service/iam"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/logger"
 
 	addons "github.com/weaveworks/eksctl/pkg/addons/default"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"

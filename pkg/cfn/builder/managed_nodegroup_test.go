@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	"github.com/weaveworks/goformation/v4"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -78,7 +79,8 @@ func TestManagedPolicyResources(t *testing.T) {
 			ng.IAM.WithAddonPolicies = tt.addons
 			ng.IAM.AttachPolicyARNs = prefixPolicies(tt.attachPolicyARNs...)
 
-			stack := NewManagedNodeGroup(clusterConfig, ng, nil, "iam-test", false)
+			p := mockprovider.NewMockProvider()
+			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, ng, nil, "iam-test", false)
 			err := stack.AddAllResources()
 			require.Nil(err)
 
@@ -144,7 +146,8 @@ func TestManagedNodeRole(t *testing.T) {
 			require := require.New(t)
 			clusterConfig := api.NewClusterConfig()
 			api.SetManagedNodeGroupDefaults(tt.nodeGroup, clusterConfig.Metadata)
-			stack := NewManagedNodeGroup(clusterConfig, tt.nodeGroup, nil, "iam-test", false)
+			p := mockprovider.NewMockProvider()
+			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, tt.nodeGroup, nil, "iam-test", false)
 			err := stack.AddAllResources()
 			require.NoError(err)
 

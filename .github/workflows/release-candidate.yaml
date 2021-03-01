@@ -11,7 +11,7 @@ jobs:
   rc:
     name: Trigger release candidate build
     runs-on: ubuntu-latest
-    container: weaveworks/eksctl-build:b3df6d07d20a57b3818d901ec424c1df564a4d9c
+    container: weaveworks/eksctl-build:014553f5553855abb719627546a0ac54685f8143
     steps:
       - uses: actions/github-script@v3
         name: Get integration tests status

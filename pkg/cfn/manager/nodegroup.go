@@ -10,10 +10,10 @@ import (
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/blang/semver"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
-	"github.com/weaveworks/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -56,7 +56,7 @@ func (c *StackCollection) makeNodeGroupStackName(name string) string {
 func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup, supportsManagedNodes, forceAddCNIPolicy bool) error {
 	name := c.makeNodeGroupStackName(ng.Name)
 	logger.Info("building nodegroup stack %q", name)
-	stack := builder.NewNodeGroupResourceSet(c.iamAPI, c.spec, c.makeClusterStackName(), ng, supportsManagedNodes, forceAddCNIPolicy)
+	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, c.spec, c.makeClusterStackName(), ng, supportsManagedNodes, forceAddCNIPolicy)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup
 func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool) error {
 	name := c.makeNodeGroupStackName(ng.Name)
 	logger.Info("building managed nodegroup stack %q", name)
-	stack := builder.NewManagedNodeGroup(c.spec, ng, builder.NewLaunchTemplateFetcher(c.ec2API), c.makeClusterStackName(), forceAddCNIPolicy)
+	stack := builder.NewManagedNodeGroup(c.ec2API, c.spec, ng, builder.NewLaunchTemplateFetcher(c.ec2API), c.makeClusterStackName(), forceAddCNIPolicy)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}

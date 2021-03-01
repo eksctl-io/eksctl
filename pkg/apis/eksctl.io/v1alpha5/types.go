@@ -108,6 +108,9 @@ const (
 	// RegionAPNorthEast2 represents the Asia-Pacific North East Region Seoul
 	RegionAPNorthEast2 = "ap-northeast-2"
 
+	// RegionAPNorthEast3 represents the Asia-Pacific North East region Osaka
+	RegionAPNorthEast3 = "ap-northeast-3"
+
 	// RegionAPSouthEast1 represents the Asia-Pacific South East Region Singapore
 	RegionAPSouthEast1 = "ap-southeast-1"
 
@@ -336,6 +339,7 @@ func SupportedRegions() []string {
 		RegionEUSouth1,
 		RegionAPNorthEast1,
 		RegionAPNorthEast2,
+		RegionAPNorthEast3,
 		RegionAPSouthEast1,
 		RegionAPSouthEast2,
 		RegionAPSouth1,
@@ -820,6 +824,13 @@ type NodeGroup struct {
 	KubeletExtraConfig *InlineDocument `json:"kubeletExtraConfig,omitempty"`
 }
 
+func (n *NodeGroup) InstanceTypeList() []string {
+	if HasMixedInstances(n) {
+		return n.InstancesDistribution.InstanceTypes
+	}
+	return []string{n.InstanceType}
+}
+
 // BaseNodeGroup implements NodePool
 func (n *NodeGroup) BaseNodeGroup() *NodeGroupBase {
 	return n.NodeGroupBase
@@ -1223,8 +1234,6 @@ type NodeGroupBase struct {
 	VolumeType *string `json:"volumeType,omitempty"`
 	// +optional
 	VolumeName *string `json:"volumeName,omitempty"`
-	// Some AMIs (bottlerocket) have a separate volume for the OS
-	AdditionalEncryptedVolume string
 	// +optional
 	VolumeEncrypted *bool `json:"volumeEncrypted,omitempty"`
 	// +optional
@@ -1257,6 +1266,15 @@ type NodeGroupBase struct {
 	// be spawned
 	// +optional
 	Placement *Placement `json:"placement,omitempty"`
+
+	// EFAEnabled creates the maximum allowed number of EFA-enabled network
+	// cards on nodes in this group.
+	// +optional
+	EFAEnabled *bool `json:"efaEnabled,omitempty"`
+
+	// Internal fields
+	// Some AMIs (bottlerocket) have a separate volume for the OS
+	AdditionalEncryptedVolume string `json:"-"`
 }
 
 // Placement specifies placement group information
@@ -1316,6 +1334,13 @@ type ManagedNodeGroup struct {
 	LaunchTemplate *LaunchTemplate `json:"launchTemplate,omitempty"`
 
 	Unowned bool
+}
+
+func (m *ManagedNodeGroup) InstanceTypeList() []string {
+	if len(m.InstanceTypes) > 0 {
+		return m.InstanceTypes
+	}
+	return []string{m.InstanceType}
 }
 
 func (m *ManagedNodeGroup) ListOptions() metav1.ListOptions {
