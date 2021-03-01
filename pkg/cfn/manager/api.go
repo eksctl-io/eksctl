@@ -483,10 +483,6 @@ func fmtStacksRegexForCluster(name string) string {
 	return fmt.Sprintf(ourStackRegexFmt, name)
 }
 
-func (c *StackCollection) ErrStackNotFound() error {
-	return fmt.Errorf("no eksctl-managed CloudFormation stacks found for %q", c.spec.Metadata.Name)
-}
-
 // DescribeStacks describes the existing stacks
 func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 	stacks, err := c.ListStacks()
@@ -508,7 +504,7 @@ func (c *StackCollection) HasClusterStack() (bool, error) {
 }
 
 func (c *StackCollection) HasClusterStackUsingCachedList(clusterStackNames []string) (bool, error) {
-	clusterStackName := c.makeClusterStackName()
+	clusterStackName := c.MakeClusterStackName()
 	for _, stack := range clusterStackNames {
 		if stack == clusterStackName {
 			stack, err := c.DescribeStack(&cloudformation.Stack{StackName: &clusterStackName})

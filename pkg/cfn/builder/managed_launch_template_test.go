@@ -2,7 +2,6 @@ package builder
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"path"
 
@@ -16,7 +15,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
 	"github.com/weaveworks/goformation/v4"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 type mngCase struct {
@@ -38,7 +39,12 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 			m.mockFetcherFn(provider)
 		}
 
-		stack := NewManagedNodeGroup(provider.MockEC2(), clusterConfig, m.ng, NewLaunchTemplateFetcher(provider.MockEC2()), fmt.Sprintf("eksctl-%s", clusterConfig.Metadata.Name), false)
+		fakeVPCImporter := new(vpcfakes.FakeImporter)
+		fakeVPCImporter.VPCReturns(gfnt.MakeFnImportValueString("eksctl-lt::VPC"))
+		fakeVPCImporter.SecurityGroupsReturns(gfnt.Slice{gfnt.MakeFnImportValueString("eksctl-lt::ClusterSecurityGroupId")})
+		fakeVPCImporter.SubnetsPublicReturns(gfnt.MakeFnSplit(",", gfnt.MakeFnImportValueString("eksctl-lt::SubnetsPublic")))
+
+		stack := NewManagedNodeGroup(provider.MockEC2(), clusterConfig, m.ng, NewLaunchTemplateFetcher(provider.MockEC2()), false, fakeVPCImporter)
 		stack.UserDataMimeBoundary = "//"
 		err := stack.AddAllResources()
 		if m.errMsg != "" {

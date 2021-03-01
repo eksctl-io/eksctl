@@ -8,9 +8,11 @@ import (
 	"github.com/pkg/errors"
 
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
@@ -18,7 +20,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
 // Options controls specific steps of node group creation
@@ -31,40 +32,29 @@ type CreateOpts struct {
 func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFilter) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
-
-	printer := printers.NewJSONPrinter()
-
 	ctl := m.ctl
-
-	cmdutils.LogRegionAndVersionInfo(meta)
-
-	if ok, err := ctl.CanOperate(cfg); !ok {
-		return err
-	}
 
 	if err := checkVersion(ctl, meta); err != nil {
 		return err
 	}
 
-	if err := ctl.LoadClusterIntoSpec(cfg); err != nil {
-		return errors.Wrapf(err, "getting existing configuration for cluster %q", meta.Name)
-	}
-
-	stackManager := ctl.NewStackManager(cfg)
-
-	if err := nodegroupFilter.SetOnlyLocal(ctl.Provider.EKS(), stackManager, cfg); err != nil {
+	if err := checkARMSupport(ctl, m.clientSet, cfg); err != nil {
 		return err
 	}
 
-	logFiltered := cmdutils.ApplyFilter(cfg, &nodegroupFilter)
+	var isOwnedCluster = true
+	if err := ctl.LoadClusterIntoSpecFromStack(cfg, m.stackManager); err != nil {
+		switch e := err.(type) {
+		case *manager.StackNotFoundErr:
+			logger.Warning("%s, will attempt to create nodegroup(s) on non eksctl-managed cluster", e.Error())
+			if err := loadVPCFromConfig(ctl.Provider, cfg); err != nil {
+				return errors.Wrapf(err, "loading VPC spec for cluster %q", meta.Name)
+			}
 
-	clientSet, err := ctl.NewStdClientSet(cfg)
-	if err != nil {
-		return err
-	}
-
-	if err := checkARMSupport(ctl, clientSet, cfg); err != nil {
-		return err
+			isOwnedCluster = false
+		default:
+			return errors.Wrapf(e, "getting existing configuration for cluster %q", meta.Name)
+		}
 	}
 
 	// EKS 1.14 clusters created with prior versions of eksctl may not support Managed Nodes
@@ -86,13 +76,15 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 		return err
 	}
 
+	printer := printers.NewJSONPrinter()
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
 
-	// TODO
-	if err := ctl.ValidateClusterForCompatibility(cfg, stackManager); err != nil {
-		return errors.Wrap(err, "cluster compatibility check failed")
+	if isOwnedCluster {
+		if err := ctl.ValidateClusterForCompatibility(cfg, m.stackManager); err != nil {
+			return errors.Wrap(err, "cluster compatibility check failed")
+		}
 	}
 
 	if err := vpc.ValidateLegacySubnetsForNodeGroups(cfg, ctl.Provider); err != nil {
@@ -100,6 +92,11 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 	}
 
 	{
+		if err := nodegroupFilter.SetOnlyLocal(ctl.Provider.EKS(), m.stackManager, cfg); err != nil {
+			return err
+		}
+
+		logFiltered := cmdutils.ApplyFilter(cfg, &nodegroupFilter)
 		logFiltered()
 		logMsg := func(resource string, count int) {
 			logger.Info("will create a CloudFormation stack for each of %d %s in cluster %q", count, resource, meta.Name)
@@ -115,14 +112,12 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 		taskTree := &tasks.TaskTree{
 			Parallel: false,
 		}
-		if supportsManagedNodes {
-			taskTree.Append(stackManager.NewClusterCompatTask())
+
+		if supportsManagedNodes && isOwnedCluster {
+			taskTree.Append(m.stackManager.NewClusterCompatTask())
 		}
 
-		allNodeGroupTasks := &tasks.TaskTree{
-			Parallel: true,
-		}
-		awsNodeUsesIRSA, err := eks.DoesAWSNodeUseIRSA(ctl.Provider, clientSet)
+		awsNodeUsesIRSA, err := eks.DoesAWSNodeUseIRSA(ctl.Provider, m.clientSet)
 		if err != nil {
 			return errors.Wrap(err, "couldn't check aws-node for annotation")
 		}
@@ -131,11 +126,21 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 			logger.Debug("cluster has withOIDC enabled but is not using IRSA for CNI, will add CNI policy to node role")
 		}
 
-		nodeGroupTasks := stackManager.NewUnmanagedNodeGroupTask(cfg.NodeGroups, supportsManagedNodes, !awsNodeUsesIRSA)
+		var vpcImporter vpc.Importer
+		if isOwnedCluster {
+			vpcImporter = vpc.NewStackConfigImporter(m.stackManager.MakeClusterStackName())
+		} else {
+			vpcImporter = vpc.NewSpecConfigImporter(*ctl.Status.ClusterInfo.Cluster.ResourcesVpcConfig.ClusterSecurityGroupId, cfg.VPC)
+		}
+
+		allNodeGroupTasks := &tasks.TaskTree{
+			Parallel: true,
+		}
+		nodeGroupTasks := m.stackManager.NewUnmanagedNodeGroupTask(cfg.NodeGroups, supportsManagedNodes, !awsNodeUsesIRSA, vpcImporter)
 		if nodeGroupTasks.Len() > 0 {
 			allNodeGroupTasks.Append(nodeGroupTasks)
 		}
-		managedTasks := stackManager.NewManagedNodeGroupTask(cfg.ManagedNodeGroups, !awsNodeUsesIRSA)
+		managedTasks := m.stackManager.NewManagedNodeGroupTask(cfg.ManagedNodeGroups, !awsNodeUsesIRSA, vpcImporter)
 		if managedTasks.Len() > 0 {
 			allNodeGroupTasks.Append(managedTasks)
 		}
@@ -155,11 +160,11 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 		}
 	}
 
-	if err := m.postNodeCreationTasks(clientSet, options); err != nil {
+	if err := m.postNodeCreationTasks(m.clientSet, options); err != nil {
 		return err
 	}
 
-	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, stackManager); err != nil {
+	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, m.stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
@@ -266,5 +271,26 @@ func checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes.Interface, c
 			return errors.New("expected default addons up to date")
 		}
 	}
+	return nil
+}
+
+func loadVPCFromConfig(provider api.ClusterProvider, cfg *api.ClusterConfig) error {
+	if cfg.VPC == nil {
+		return errors.New("VPC configuration required for creating nodegroup")
+	}
+
+	if err := vpc.ImportSubnetsFromSpec(provider, cfg); err != nil {
+		return err
+	}
+
+	if err := cfg.HasSufficientSubnets(); err != nil {
+		logger.Critical("unable to use given %s", cfg.SubnetInfo())
+		return err
+	}
+
+	if err := cfg.CanUseForPrivateNodeGroups(); err != nil {
+		return err
+	}
+
 	return nil
 }
