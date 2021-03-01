@@ -54,7 +54,7 @@ func kubeProxyNodeSelectorValues(clientSet *fake.Clientset) []string {
 	Expect(err).ToNot(HaveOccurred())
 	Expect(kubeProxy).ToNot(BeNil())
 
-	for _, nodeSelector := range  kubeProxy.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions {
+	for _, nodeSelector := range kubeProxy.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions {
 		if nodeSelector.Key == "beta.kubernetes.io/arch" {
 			return nodeSelector.Values
 		}

@@ -3,8 +3,9 @@ package defaultaddons
 import (
 	"context"
 	"fmt"
-	v1 "k8s.io/api/apps/v1"
 	"strings"
+
+	v1 "k8s.io/api/apps/v1"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
