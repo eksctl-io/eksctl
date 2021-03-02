@@ -36,7 +36,7 @@ func (m *Manager) Create() error {
 			return errors.Wrap(err, "couldn't ensure unowned cluster is ready for fargate")
 		}
 	} else {
-		if err := ctl.LoadClusterIntoSpec(cfg, stackManager); err != nil {
+		if err := ctl.LoadClusterIntoSpecFromStack(cfg, stackManager); err != nil {
 			return errors.Wrap(err, "couldn't load cluster into spec")
 		}
 	}

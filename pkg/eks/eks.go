@@ -267,9 +267,10 @@ func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iam
 	return iamoidc.NewOpenIDConnectManager(c.Provider.IAM(), parsedARN.AccountID, *c.Status.ClusterInfo.Cluster.Identity.Oidc.Issuer, parsedARN.Partition)
 }
 
-// LoadClusterIntoSpec loads the cluster configuration into the spec
+// LoadClusterIntoSpecFromStack uses stack information to load the cluster
+// configuration into the spec
 // At the moment VPC and KubernetesNetworkConfig are respected
-func (c *ClusterProvider) LoadClusterIntoSpec(spec *api.ClusterConfig, stackManager manager.StackManager) error {
+func (c *ClusterProvider) LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, stackManager manager.StackManager) error {
 	if err := c.LoadClusterVPC(spec, stackManager); err != nil {
 		return err
 	}
@@ -292,7 +293,7 @@ func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig, stackManager m
 		return &manager.StackNotFoundErr{ClusterName: spec.Metadata.Name}
 	}
 
-	return vpc.UseFromCluster(c.Provider, stack, spec)
+	return vpc.UseFromClusterStack(c.Provider, stack, spec)
 }
 
 // loadClusterKubernetesNetworkConfig gets the network config of an existing
