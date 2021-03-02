@@ -58,9 +58,9 @@ func UpdateKubeProxy(clientSet kubernetes.Interface, controlPlaneVersion string,
 		return false, errors.Wrapf(err, "getting %q", KubeProxy)
 	}
 
-	missingArm64NodeSelector := isMissingArm64NodeSelector(d)
-	if missingArm64NodeSelector {
-		logger.Info("missing arm64 nodeSelector")
+	hasArm64NodeSelector := hasArm64NodeSelector(d)
+	if hasArm64NodeSelector {
+		logger.Info("missing arm64 nodeSelector value")
 	}
 
 	if numContainers := len(d.Spec.Template.Spec.Containers); !(numContainers >= 1) {
@@ -80,7 +80,7 @@ func UpdateKubeProxy(clientSet kubernetes.Interface, controlPlaneVersion string,
 
 	desiredTag := kubeProxyImageTag(controlPlaneVersion)
 
-	if imageParts[1] == desiredTag && !missingArm64NodeSelector {
+	if imageParts[1] == desiredTag && hasArm64NodeSelector {
 		logger.Debug("imageParts = %v, desiredTag = %s", imageParts, desiredTag)
 		logger.Info("%q is already up-to-date", KubeProxy)
 		return false, nil
@@ -98,7 +98,7 @@ func UpdateKubeProxy(clientSet kubernetes.Interface, controlPlaneVersion string,
 		return false, err
 	}
 
-	if missingArm64NodeSelector {
+	if !hasArm64NodeSelector {
 		addArm64NodeSelector(d)
 	}
 
@@ -110,7 +110,7 @@ func UpdateKubeProxy(clientSet kubernetes.Interface, controlPlaneVersion string,
 	return false, nil
 }
 
-func isMissingArm64NodeSelector(daemonSet *v1.DaemonSet) bool {
+func hasArm64NodeSelector(daemonSet *v1.DaemonSet) bool {
 	if daemonSet.Spec.Template.Spec.Affinity != nil &&
 		daemonSet.Spec.Template.Spec.Affinity.NodeAffinity != nil &&
 		daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution != nil {
@@ -119,10 +119,9 @@ func isMissingArm64NodeSelector(daemonSet *v1.DaemonSet) bool {
 				if nodeSelector.Key == "beta.kubernetes.io/arch" {
 					for _, value := range nodeSelector.Values {
 						if value == "arm64" {
-							return false
+							return true
 						}
 					}
-					return true
 				}
 			}
 		}
