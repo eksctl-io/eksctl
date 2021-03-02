@@ -5,7 +5,6 @@ import (
 
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
@@ -28,7 +27,7 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 		launchTemplateData.UserData = gfnt.NewString(userData)
 	}
 
-	securityGroupIDs := gfnt.Slice{makeImportValue(m.clusterStackName, outputs.ClusterDefaultSecurityGroup)}
+	securityGroupIDs := m.vpcImporter.SecurityGroups()
 	for _, sgID := range mng.SecurityGroups.AttachIDs {
 		securityGroupIDs = append(securityGroupIDs, gfnt.NewString(sgID))
 	}
@@ -41,9 +40,10 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 		launchTemplateData.KeyName = gfnt.NewString(*mng.SSH.PublicKeyName)
 
 		if *mng.SSH.Allow {
+			vpcID := m.vpcImporter.VPC()
 			sshRef := m.newResource("SSH", &gfnec2.SecurityGroup{
 				GroupName:            gfnt.MakeFnSubString(fmt.Sprintf("${%s}-remoteAccess", gfnt.StackName)),
-				VpcId:                makeImportValue(m.clusterStackName, outputs.ClusterVPC),
+				VpcId:                vpcID,
 				SecurityGroupIngress: makeSSHIngressRules(mng.NodeGroupBase, m.clusterConfig.VPC.CIDR.String(), fmt.Sprintf("managed worker nodes in group %s", mng.Name)),
 				GroupDescription:     gfnt.NewString("Allow SSH access"),
 			})

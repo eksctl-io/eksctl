@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
 	"github.com/weaveworks/goformation/v4"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -80,7 +81,8 @@ func TestManagedPolicyResources(t *testing.T) {
 			ng.IAM.AttachPolicyARNs = prefixPolicies(tt.attachPolicyARNs...)
 
 			p := mockprovider.NewMockProvider()
-			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, ng, nil, "iam-test", false)
+			fakeVPCImporter := new(vpcfakes.FakeImporter)
+			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, ng, nil, false, fakeVPCImporter)
 			err := stack.AddAllResources()
 			require.Nil(err)
 
@@ -147,7 +149,8 @@ func TestManagedNodeRole(t *testing.T) {
 			clusterConfig := api.NewClusterConfig()
 			api.SetManagedNodeGroupDefaults(tt.nodeGroup, clusterConfig.Metadata)
 			p := mockprovider.NewMockProvider()
-			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, tt.nodeGroup, nil, "iam-test", false)
+			fakeVPCImporter := new(vpcfakes.FakeImporter)
+			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, tt.nodeGroup, nil, false, fakeVPCImporter)
 			err := stack.AddAllResources()
 			require.NoError(err)
 
