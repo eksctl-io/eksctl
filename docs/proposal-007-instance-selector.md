@@ -21,14 +21,14 @@ This proposal adds support for the EC2 instance selector for both managed and se
 
 ## Motivation
 
-eksctl supports specifying multiple instance types for managed and unmanaged nodegroups, but with over 270 EC2 instance types, users have to spend time figuring out which instance types would be well suited for their nodegroup. It's even harder when using Spot instances because you need to choose a set
+eksctl supports specifying multiple instance types for managed and self-managed nodegroups, but with over 270 EC2 instance types, users have to spend time figuring out which instance types would be well suited for their nodegroup. It's even harder when using Spot instances because you need to choose a set
 of instances that works together well with the Cluster Autoscaler.
 
 The [EC2 Instance Selector](https://github.com/aws/amazon-ec2-instance-selector) tool addresses this problem by generating a list of instance types based on resource criteria such as vCPUs, memory, etc. This proposal aims to integrate the EC2 instance selector with eksctl to enable creating nodegroups with multiple instance types by passing the resource criteria.
 
 ## Proposal
 
-This design proposes adding a new field `instanceSelector` to both managed and unmanaged nodegroups, that accepts the instance selector resource criteria,
+This design proposes adding a new field `instanceSelector` to both managed and self-managed nodegroups, that accepts the instance selector resource criteria,
 and creates nodegroups using instance types matching the criteria.
 
 
@@ -80,7 +80,7 @@ There are certain one-off options that cannot be represented in the ClusterConfi
 Users would expect `eksctl create cluster --<options...> --dry-run > config.yaml` followed by `eksctl create cluster -f config.yaml` to be equivalent to running the first command without `--dry-run`. eksctl would therefore disallow passing options that cannot be represented in the config file when `--dry-run` is passed.
 
 ## Design
-Two new options `--instance-selector-vcpus` and `--instance-selector-memory` will be added to `eksctl create cluster` and `eksctl create nodegroup`. These options will also be supported in the ClusterConfig file for both managed and unmanaged nodegroups with the following schema:
+Two new options `--instance-selector-vcpus` and `--instance-selector-memory` will be added to `eksctl create cluster` and `eksctl create nodegroup`. These options will also be supported in the ClusterConfig file for both managed and self-managed nodegroups with the following schema:
 
 ```yaml
 instanceSelector:
