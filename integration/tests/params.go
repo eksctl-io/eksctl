@@ -25,27 +25,28 @@ type Params struct {
 	Region     string
 	Version    string
 	// Flags to help with the development of the integration tests
-	clusterNamePrefix       string
-	ClusterName             string
-	SkipCreate              bool
-	SkipDelete              bool
-	KubeconfigPath          string
-	GitopsOwner             string
-	KubeconfigTemp          bool
-	TestDirectory           string
-	EksctlCmd               runner.Cmd
-	EksctlCreateCmd         runner.Cmd
-	EksctlUpgradeCmd        runner.Cmd
-	EksctlUpdateCmd         runner.Cmd
-	EksctlGetCmd            runner.Cmd
-	EksctlSetLabelsCmd      runner.Cmd
-	EksctlUnsetLabelsCmd    runner.Cmd
-	EksctlDeleteCmd         runner.Cmd
-	EksctlDeleteClusterCmd  runner.Cmd
-	EksctlDrainNodeGroupCmd runner.Cmd
-	EksctlScaleNodeGroupCmd runner.Cmd
-	EksctlUtilsCmd          runner.Cmd
-	EksctlEnableCmd         runner.Cmd
+	clusterNamePrefix        string
+	ClusterName              string
+	SkipCreate               bool
+	SkipDelete               bool
+	KubeconfigPath           string
+	GitopsOwner              string
+	KubeconfigTemp           bool
+	TestDirectory            string
+	EksctlCmd                runner.Cmd
+	EksctlCreateCmd          runner.Cmd
+	EksctlCreateNodegroupCmd runner.Cmd
+	EksctlUpgradeCmd         runner.Cmd
+	EksctlUpdateCmd          runner.Cmd
+	EksctlGetCmd             runner.Cmd
+	EksctlSetLabelsCmd       runner.Cmd
+	EksctlUnsetLabelsCmd     runner.Cmd
+	EksctlDeleteCmd          runner.Cmd
+	EksctlDeleteClusterCmd   runner.Cmd
+	EksctlDrainNodeGroupCmd  runner.Cmd
+	EksctlScaleNodeGroupCmd  runner.Cmd
+	EksctlUtilsCmd           runner.Cmd
+	EksctlEnableCmd          runner.Cmd
 	// Keep track of created clusters, for post-tests clean-up.
 	clustersToDelete []string
 }
@@ -115,6 +116,11 @@ func (p *Params) GenerateCommands() {
 	p.EksctlEnableCmd = runner.NewCmd(p.EksctlPath).
 		WithArgs("enable").
 		WithTimeout(10 * time.Minute)
+
+	p.EksctlCreateNodegroupCmd = runner.NewCmd(p.EksctlPath).
+		WithArgs("create", "nodegroup").
+		WithTimeout(30 * time.Minute)
+
 }
 
 // NewClusterName generates a new cluster name using the provided prefix, and
