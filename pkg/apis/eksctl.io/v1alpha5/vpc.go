@@ -305,6 +305,13 @@ func doImportSubnet(subnets AZSubnetMapping, az, subnetID, cidr string) error {
 	return nil
 }
 
+// SubnetInfo returns a string containing VPC subnet information
+// Useful for error messages and logs
+func (c *ClusterConfig) SubnetInfo() string {
+	return fmt.Sprintf("VPC (%s) and subnets (private:%v public:%v)",
+		c.VPC.ID, c.PrivateSubnetIDs(), c.PublicSubnetIDs())
+}
+
 // HasAnySubnets checks if any subnets were set
 func (c *ClusterConfig) HasAnySubnets() bool {
 	return c.VPC.Subnets != nil && len(c.VPC.Subnets.Private)+len(c.VPC.Subnets.Public) != 0
@@ -314,6 +321,29 @@ func (c *ClusterConfig) HasAnySubnets() bool {
 // number of private subnets available to create a private nodegroup
 func (c *ClusterConfig) HasSufficientPrivateSubnetsForPrivateNodegroup() bool {
 	return c.VPC.Subnets != nil && len(c.VPC.Subnets.Private) >= MinRequiredSubnets
+}
+
+// HasSufficientPrivateSubnets validates if there is a sufficient
+// number of private subnets available to create a cluster
+func (c *ClusterConfig) HasSufficientPrivateSubnets() bool {
+	return len(c.PrivateSubnetIDs()) >= MinRequiredSubnets
+}
+
+// CanUseForPrivateNodeGroups checks whether specified NodeGroups have enough
+// private subnets when private networking is enabled
+func (c *ClusterConfig) CanUseForPrivateNodeGroups() error {
+	for _, ng := range c.NodeGroups {
+		if ng.PrivateNetworking && !c.HasSufficientPrivateSubnets() {
+			return errors.New("none or too few private subnets to use with --node-private-networking")
+		}
+	}
+	return nil
+}
+
+// HasSufficientPublicSubnets validates if there is a sufficient
+// number of public subnets available to create a cluster
+func (c *ClusterConfig) HasSufficientPublicSubnets() bool {
+	return len(c.PublicSubnetIDs()) >= MinRequiredSubnets
 }
 
 var errInsufficientSubnets = fmt.Errorf(
