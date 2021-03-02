@@ -2,7 +2,7 @@
 // ` make -f Makefile.docker update-build-image-tag && make -f Makefile.docker push-build-image`
 module github.com/weaveworks/eksctl
 
-go 1.15
+go 1.16
 
 require (
 	github.com/aws/aws-sdk-go v1.37.20

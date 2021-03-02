@@ -7,7 +7,7 @@ jobs:
   rc:
     name: Trigger release build
     runs-on: ubuntu-latest
-    container: weaveworks/eksctl-build:014553f5553855abb719627546a0ac54685f8143
+    container: weaveworks/eksctl-build:14be6b9ba69f34b813b06538f3fc6fc61cf1ca9f
     steps:
       - name: Checkout
         uses: actions/checkout@v2
