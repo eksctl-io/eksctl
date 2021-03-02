@@ -289,7 +289,7 @@ func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig) error {
 		return err
 	}
 	if stack == nil {
-		return stackManager.ErrStackNotFound()
+		return &manager.StackNotFoundErr{ClusterName: spec.Metadata.Name}
 	}
 
 	return vpc.UseFromCluster(c.Provider, stack, spec)
