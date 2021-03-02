@@ -336,6 +336,11 @@ func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interfa
 		"VPCZoneIdentifier": vpcZoneIdentifier,
 		"Tags":              tags,
 	}
+
+	if ng.InstancesDistribution != nil && ng.InstancesDistribution.CapacityRebalance {
+		ngProps["CapacityRebalance"] = ng.InstancesDistribution.CapacityRebalance
+	}
+
 	if ng.DesiredCapacity != nil {
 		ngProps["DesiredCapacity"] = fmt.Sprintf("%d", *ng.DesiredCapacity)
 	}

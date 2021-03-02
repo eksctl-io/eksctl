@@ -1572,6 +1572,12 @@
         "instanceTypes"
       ],
       "properties": {
+        "capacityRebalance": {
+          "type": "boolean",
+          "description": "Enable [capacity rebalancing](https://docs.aws.amazon.com/autoscaling/ec2/userguide/capacity-rebalance.html) for spot instances",
+          "x-intellij-html-description": "Enable <a href=\"https://docs.aws.amazon.com/autoscaling/ec2/userguide/capacity-rebalance.html\">capacity rebalancing</a> for spot instances",
+          "default": "false"
+        },
         "instanceTypes": {
           "items": {
             "type": "string"
@@ -1608,7 +1614,8 @@
         "onDemandBaseCapacity",
         "onDemandPercentageAboveBaseCapacity",
         "spotInstancePools",
-        "spotAllocationStrategy"
+        "spotAllocationStrategy",
+        "capacityRebalance"
       ],
       "additionalProperties": false,
       "description": "holds the configuration for [spot instances](/usage/spot-instances/)",

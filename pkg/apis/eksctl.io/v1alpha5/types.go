@@ -1120,6 +1120,11 @@ type (
 		SpotInstancePools *int `json:"spotInstancePools,omitempty"`
 		// +optional
 		SpotAllocationStrategy *string `json:"spotAllocationStrategy,omitempty"`
+		// Enable [capacity
+		// rebalancing](https://docs.aws.amazon.com/autoscaling/ec2/userguide/capacity-rebalance.html)
+		// for spot instances
+		// +optional
+		CapacityRebalance bool `json:"capacityRebalance"`
 	}
 
 	// NodeGroupBottlerocket holds the configuration for Bottlerocket based
