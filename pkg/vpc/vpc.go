@@ -201,11 +201,11 @@ func describeVPC(ec2API ec2iface.EC2API, vpcID string) (*ec2.Vpc, error) {
 	return output.Vpcs[0], nil
 }
 
-// UseFromCluster retrieves the VPC configuration from an existing cluster
+// UseFromClusterStack retrieves the VPC configuration from an existing cluster
 // based on stack outputs
 // NOTE: it doesn't expect any fields in spec.VPC to be set, the remote state
 // is treated as the source of truth
-func UseFromCluster(provider api.ClusterProvider, stack *cfn.Stack, spec *api.ClusterConfig) error {
+func UseFromClusterStack(provider api.ClusterProvider, stack *cfn.Stack, spec *api.ClusterConfig) error {
 	if spec.VPC == nil {
 		spec.VPC = api.NewClusterVPC()
 	}
