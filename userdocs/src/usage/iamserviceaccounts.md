@@ -83,7 +83,7 @@ When you have an existing role you want to use with a service account you can pr
 eksctl create iamserviceaccount --cluster=<clusterName> --name=<serviceAccountName> --attach-role-arn=<customRoleARN>
 ```
 
-To update a service accounts roles permissions you can run `eksctl update iamserviceaccount`
+To update a service accounts roles permissions you can run `eksctl update iamserviceaccount`.
 
 !!!note
     `eksctl delete iamserviceaccount` deletes Kubernetes `ServiceAccounts` even if they were not created by `eksctl`.
