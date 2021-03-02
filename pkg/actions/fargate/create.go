@@ -36,14 +36,14 @@ func (m *Manager) Create() error {
 			return errors.Wrap(err, "couldn't ensure unowned cluster is ready for fargate")
 		}
 	} else {
-		if err := ctl.LoadClusterIntoSpec(cfg); err != nil {
+		if err := ctl.LoadClusterIntoSpec(cfg, stackManager); err != nil {
 			return errors.Wrap(err, "couldn't load cluster into spec")
 		}
 	}
 
 	if !api.IsSetAndNonEmptyString(cfg.IAM.FargatePodExecutionRoleARN) {
 		// Read back the default Fargate pod execution role ARN from CloudFormation:
-		if err := ctl.NewStackManager(cfg).RefreshFargatePodExecutionRoleARN(); err != nil {
+		if err := stackManager.RefreshFargatePodExecutionRoleARN(); err != nil {
 			return errors.Wrap(err, "couldn't refresh role arn")
 		}
 	}
