@@ -172,6 +172,7 @@ generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (requi
 	go generate ./pkg/drain
 	go generate ./pkg/actions/...
 	go generate ./pkg/executor
+	go generate ./pkg/cfn/manager
 
 .PHONY: generate-all
 generate-all: generate-always $(conditionally_generated_files) ## Re-generate all the automatically-generated source files
