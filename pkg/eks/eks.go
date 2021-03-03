@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
 
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -16,6 +17,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
+	"github.com/aws/aws-sdk-go/service/eks"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 
 	"k8s.io/client-go/kubernetes"
@@ -234,6 +236,14 @@ func (c *ClusterProvider) ControlPlaneVersion() string {
 	return *c.Status.ClusterInfo.Cluster.Version
 }
 
+// ControlPlaneVPCInfo returns cached version (EKS API)
+func (c *ClusterProvider) ControlPlaneVPCInfo() eks.VpcConfigResponse {
+	if c.Status.ClusterInfo == nil || c.Status.ClusterInfo.Cluster == nil || c.Status.ClusterInfo.Cluster.ResourcesVpcConfig == nil {
+		return eks.VpcConfigResponse{}
+	}
+	return *c.Status.ClusterInfo.Cluster.ResourcesVpcConfig
+}
+
 // UnsupportedOIDCError represents an unsupported OIDC error
 type UnsupportedOIDCError struct {
 	msg string
@@ -266,10 +276,11 @@ func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iam
 	return iamoidc.NewOpenIDConnectManager(c.Provider.IAM(), parsedARN.AccountID, *c.Status.ClusterInfo.Cluster.Identity.Oidc.Issuer, parsedARN.Partition)
 }
 
-// LoadClusterIntoSpec loads the cluster configuration into the spec
+// LoadClusterIntoSpecFromStack uses stack information to load the cluster
+// configuration into the spec
 // At the moment VPC and KubernetesNetworkConfig are respected
-func (c *ClusterProvider) LoadClusterIntoSpec(spec *api.ClusterConfig) error {
-	if err := c.LoadClusterVPC(spec); err != nil {
+func (c *ClusterProvider) LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, stackManager manager.StackManager) error {
+	if err := c.LoadClusterVPC(spec, stackManager); err != nil {
 		return err
 	}
 	if err := c.RefreshClusterStatus(spec); err != nil {
@@ -282,17 +293,16 @@ func (c *ClusterProvider) LoadClusterIntoSpec(spec *api.ClusterConfig) error {
 }
 
 // LoadClusterVPC loads the VPC configuration
-func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig) error {
-	stackManager := c.NewStackManager(spec)
+func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig, stackManager manager.StackManager) error {
 	stack, err := stackManager.DescribeClusterStack()
 	if err != nil {
 		return err
 	}
 	if stack == nil {
-		return stackManager.ErrStackNotFound()
+		return &manager.StackNotFoundErr{ClusterName: spec.Metadata.Name}
 	}
 
-	return vpc.UseFromCluster(c.Provider, stack, spec)
+	return vpc.UseFromClusterStack(c.Provider, stack, spec)
 }
 
 // loadClusterKubernetesNetworkConfig gets the network config of an existing

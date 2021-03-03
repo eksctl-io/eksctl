@@ -87,7 +87,7 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait bool) error {
 
 	// we have to wait for nodegroups to delete before deleting the cluster
 	// so the `wait` value is ignored here
-	if err := c.deleteAndWaitForNodegroupsDeletion(clusterName, c.ctl.Provider.WaitTimeout(), waitInterval); err != nil {
+	if err := c.deleteAndWaitForNodegroupsDeletion(waitInterval); err != nil {
 		return err
 	}
 
@@ -95,7 +95,7 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait bool) error {
 		return err
 	}
 
-	if err := c.deleteCluster(clusterName, c.ctl.Provider.WaitTimeout(), wait); err != nil {
+	if err := c.deleteCluster(wait); err != nil {
 		return err
 	}
 
@@ -190,7 +190,9 @@ func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clusterOperable bool, clien
 	return nil
 }
 
-func (c *UnownedCluster) deleteCluster(clusterName string, waitTimeout time.Duration, wait bool) error {
+func (c *UnownedCluster) deleteCluster(wait bool) error {
+	clusterName := c.cfg.Metadata.Name
+
 	out, err := c.ctl.Provider.EKS().DeleteCluster(&awseks.DeleteClusterInput{
 		Name: &clusterName,
 	})
@@ -220,63 +222,87 @@ func (c *UnownedCluster) deleteCluster(clusterName string, waitTimeout time.Dura
 
 	msg := fmt.Sprintf("waiting for cluster %q to be deleted", clusterName)
 
-	return waiters.Wait(clusterName, msg, acceptors, newRequest, waitTimeout, nil)
+	return waiters.Wait(clusterName, msg, acceptors, newRequest, c.ctl.Provider.WaitTimeout(), nil)
 }
 
-func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(clusterName string, waitTimeout, waitInterval time.Duration) error {
-	var nodegroups []*string
+func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(waitInterval time.Duration) error {
+	clusterName := c.cfg.Metadata.Name
+	eksAPI := c.ctl.Provider.EKS()
 
-	pager := func(ng *awseks.ListNodegroupsOutput, _ bool) bool {
-		nodegroups = append(nodegroups, ng.Nodegroups...)
-		return true
-	}
-
-	err := c.ctl.Provider.EKS().ListNodegroupsPages(&awseks.ListNodegroupsInput{
+	// get all managed nodegroups for this cluster
+	nodeGroups, err := eksAPI.ListNodegroups(&awseks.ListNodegroupsInput{
 		ClusterName: &clusterName,
-	}, pager)
-
+	})
 	if err != nil {
 		return err
 	}
 
-	if len(nodegroups) == 0 {
-		logger.Info("no nodegroups to delete")
+	// get all nodegroup stacks for this cluster
+	allStacks, err := c.stackManager.ListNodeGroupStacks()
+	if err != nil {
+		return err
+	}
+
+	if len(allStacks) == 0 && len(nodeGroups.Nodegroups) == 0 {
+		logger.Warning("no nodegroups found for %s", clusterName)
 		return nil
 	}
 
-	for _, nodeGroupName := range nodegroups {
-		out, err := c.ctl.Provider.EKS().DeleteNodegroup(&awseks.DeleteNodegroupInput{
-			ClusterName:   &clusterName,
-			NodegroupName: nodeGroupName,
-		})
-
-		if err != nil {
-			return err
-		}
-		logger.Info("initiated deletion of nodegroup %q", *nodeGroupName)
-		logger.Debug("delete nodegroup %q response: %s", *nodeGroupName, out.String())
+	// we kill every nodegroup with a stack the standard way. wait is always true
+	tasks, err := c.stackManager.NewTasksToDeleteNodeGroups(func(_ string) bool { return true }, true, nil)
+	if err != nil {
+		return err
 	}
 
-	condition := func() (bool, error) {
-		nodeGroups, err := c.ctl.Provider.EKS().ListNodegroups(&awseks.ListNodegroupsInput{
-			ClusterName: &clusterName,
-		})
-		if err != nil {
-			return false, err
-		}
-		if len(nodeGroups.Nodegroups) == 0 {
-			logger.Info("all nodegroups for cluster %q successfully deleted", clusterName)
-			return true, nil
+	for _, n := range nodeGroups.Nodegroups {
+		isUnowned := func() bool {
+			for _, stack := range allStacks {
+				if stack.NodeGroupName == *n {
+					return false
+				}
+			}
+			return true
 		}
 
-		logger.Info("waiting for nodegroups to be deleted, %d remaining", len(nodeGroups.Nodegroups))
-		return false, nil
+		if isUnowned() {
+			// if a managed ng does not have a stack, we queue if for deletion via api
+			tasks.Append(c.stackManager.NewTaskToDeleteUnownedNodeGroup(clusterName, *n, eksAPI, c.waitForUnownedNgsDeletion(waitInterval)))
+		}
 	}
 
-	return waiters.WaitForCondition(waitTimeout, waitInterval, fmt.Errorf("timed out waiting for nodegroup deletion after %s", waitTimeout), condition)
+	// TODO what dis?
+	tasks.PlanMode = false
+	logger.Info(tasks.Describe())
+	if errs := tasks.DoAllSync(); len(errs) > 0 {
+		return handleErrors(errs, "nodegroup(s)")
+	}
+	return nil
 }
 
 func isNotFound(err error) bool {
 	awsError, ok := err.(awserr.Error)
 	return ok && awsError.Code() == awseks.ErrCodeResourceNotFoundException
+}
+
+func (c *UnownedCluster) waitForUnownedNgsDeletion(interval time.Duration) *manager.DeleteWaitCondition {
+	condition := func() (bool, error) {
+		nodeGroups, err := c.ctl.Provider.EKS().ListNodegroups(&awseks.ListNodegroupsInput{
+			ClusterName: &c.cfg.Metadata.Name,
+		})
+		if err != nil {
+			return false, err
+		}
+		if len(nodeGroups.Nodegroups) == 0 {
+			return true, nil
+		}
+
+		logger.Info("waiting for all non eksctl-owned nodegroups to be deleted")
+		return false, nil
+	}
+
+	return &manager.DeleteWaitCondition{
+		Condition: condition,
+		Timeout:   c.ctl.Provider.WaitTimeout(),
+		Interval:  interval,
+	}
 }

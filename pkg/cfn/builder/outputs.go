@@ -1,18 +1,11 @@
 package builder
 
 import (
-	"fmt"
-
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
-
-// makeImportValue imports output of another stack
-func makeImportValue(stackName, output string) *gfnt.Value {
-	return gfnt.MakeFnImportValueString(fmt.Sprintf("%s::%s", stackName, output))
-}
 
 func (r *resourceSet) defineOutput(name string, value interface{}, export bool, fn outputs.Collector) {
 	r.outputs.Define(r.template, name, value, export, fn)

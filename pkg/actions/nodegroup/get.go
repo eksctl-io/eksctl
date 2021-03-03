@@ -10,7 +10,7 @@ import (
 )
 
 func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
-	summaries, err := m.manager.GetNodeGroupSummaries("")
+	summaries, err := m.stackManager.GetNodeGroupSummaries("")
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stack summaries")
 	}
@@ -72,7 +72,7 @@ func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 }
 
 func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
-	summaries, err := m.manager.GetNodeGroupSummaries(name)
+	summaries, err := m.stackManager.GetNodeGroupSummaries(name)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stack summaries")
 	}
