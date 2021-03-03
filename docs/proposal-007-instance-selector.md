@@ -46,6 +46,7 @@ managedNodeGroups:
   instanceSelector:
     vCPUs: 2
     memory: 4
+    gpus: 2
 
 nodeGroups:
 - name: windows
@@ -53,6 +54,7 @@ nodeGroups:
   instanceSelector:
     vCPUs: 2
     memory: 4
+    gpus: 2
   instancesDistribution:
     maxPrice: 0.017
     onDemandBaseCapacity: 0
@@ -80,17 +82,18 @@ There are certain one-off options that cannot be represented in the ClusterConfi
 Users would expect `eksctl create cluster --<options...> --dry-run > config.yaml` followed by `eksctl create cluster -f config.yaml` to be equivalent to running the first command without `--dry-run`. eksctl would therefore disallow passing options that cannot be represented in the config file when `--dry-run` is passed.
 
 ## Design
-Two new options `--instance-selector-vcpus` and `--instance-selector-memory` will be added to `eksctl create cluster` and `eksctl create nodegroup`. These options will also be supported in the ClusterConfig file for both managed and self-managed nodegroups with the following schema:
+Three new options `--instance-selector-vcpus`, `--instance-selector-memory` and `--instance-selector-gpus` will be added to `eksctl create cluster` and `eksctl create nodegroup`. These options will also be supported in the ClusterConfig file for both managed and self-managed nodegroups with the following schema:
 
 ```yaml
 instanceSelector:
   vCPUs: <integer>
   memory: <integer>
+  gpus: <integer>
 ```
 
 A `--dry-run` flag will also be added to generate a ClusterConfig from the supplied CLI options.
 
-At launch only the `vCPUs` and `memory` options will be supported, additional options may be added later based on community feedback.
+At launch only the `vCPUs`, `memory` and `gpus` options will be supported, additional options may be added later based on community feedback.
 
 **Note:** Because fields are case-sensitive, `vCPUs` may be difficult to get right, especially for users unfamiliar with Go naming conventions. However, `vCPUs` with the same case is standard enough that it's widely used by all major cloud providers. `vcpus` is easier to remember but it's inconsistent with the other field names.
 
@@ -344,6 +347,7 @@ A new type `InstanceSelector` will be added to represent the instance selector o
 type InstanceSelector struct {
 	VCPUs  int `json:"vCPUs"`
 	Memory int `json:"memory"`
+	GPUs int `json:"gpus"`
 }
 ```
 
