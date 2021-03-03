@@ -1,4 +1,4 @@
-# EC2 Instance Selector Support for Nodegroups
+# Support for EC2 Instance Selector for Nodegroups and Dry Run
 
 ## Table of Contents
 
