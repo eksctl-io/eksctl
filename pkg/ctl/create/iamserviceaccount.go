@@ -47,6 +47,7 @@ func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 		fs.StringVar(&serviceAccount.Name, "name", "", "name of the iamserviceaccount to create")
 		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace where to create the iamserviceaccount")
 		fs.StringSliceVar(&serviceAccount.AttachPolicyARNs, "attach-policy-arn", []string{}, "ARN of the policy where to create the iamserviceaccount")
+		fs.StringVar(&serviceAccount.AttachRoleARN, "attach-role-arn", "", "ARN of the role to attach to the iamserviceaccount")
 		fs.StringVar(&serviceAccount.RoleName, "role-name", "", "Set a custom name for the created role")
 		fs.BoolVar(serviceAccount.RoleOnly, "role-only", false, "disable service account creation, only the role will be created")
 

@@ -363,6 +363,11 @@
           "description": "list of ARNs of the IAM policies to attach",
           "x-intellij-html-description": "list of ARNs of the IAM policies to attach"
         },
+        "attachRoleARN": {
+          "type": "string",
+          "description": "ARN of the role to attach to the service account",
+          "x-intellij-html-description": "ARN of the role to attach to the service account"
+        },
         "metadata": {
           "$ref": "#/definitions/ClusterIAMMeta"
         },
@@ -402,6 +407,7 @@
         "attachPolicyARNs",
         "wellKnownPolicies",
         "attachPolicy",
+        "attachRoleARN",
         "permissionsBoundary",
         "status",
         "roleName",

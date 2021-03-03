@@ -3,6 +3,7 @@ package manager
 import (
 	"fmt"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
@@ -109,12 +110,19 @@ func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*
 			IsSubTask: true,
 		}
 
-		saTasks.Append(&taskWithClusterIAMServiceAccountSpec{
-			info:            fmt.Sprintf("create IAM role for serviceaccount %q", sa.NameString()),
-			stackCollection: c,
-			serviceAccount:  sa,
-			oidc:            oidc,
-		})
+		if sa.AttachRoleARN == "" {
+			saTasks.Append(&taskWithClusterIAMServiceAccountSpec{
+				info:            fmt.Sprintf("create IAM role for serviceaccount %q", sa.NameString()),
+				stackCollection: c,
+				serviceAccount:  sa,
+				oidc:            oidc,
+			})
+		} else {
+			logger.Debug("attachRoleARN was provided, skipping role creation")
+			sa.Status = &api.ClusterIAMServiceAccountStatus{
+				RoleARN: &sa.AttachRoleARN,
+			}
+		}
 
 		if !api.IsEnabled(sa.RoleOnly) {
 			saTasks.Append(&kubernetesTask{

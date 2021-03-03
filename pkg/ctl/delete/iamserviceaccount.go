@@ -117,5 +117,5 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
-	return irsaManager.Delete(saSubset.Has, cmd.Plan, cmd.Wait)
+	return irsaManager.Delete(saSubset.List(), cmd.Plan, cmd.Wait)
 }

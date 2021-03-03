@@ -632,10 +632,10 @@ type FakeStackManager struct {
 		result1 *tasks.TaskTree
 		result2 error
 	}
-	NewTasksToDeleteIAMServiceAccountsStub        func(func(string) bool, kubernetes.ClientSetGetter, bool) (*tasks.TaskTree, error)
+	NewTasksToDeleteIAMServiceAccountsStub        func([]string, kubernetes.ClientSetGetter, bool) (*tasks.TaskTree, error)
 	newTasksToDeleteIAMServiceAccountsMutex       sync.RWMutex
 	newTasksToDeleteIAMServiceAccountsArgsForCall []struct {
-		arg1 func(string) bool
+		arg1 []string
 		arg2 kubernetes.ClientSetGetter
 		arg3 bool
 	}
@@ -3768,17 +3768,22 @@ func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsReturnsOnCall
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteIAMServiceAccounts(arg1 func(string) bool, arg2 kubernetes.ClientSetGetter, arg3 bool) (*tasks.TaskTree, error) {
+func (fake *FakeStackManager) NewTasksToDeleteIAMServiceAccounts(arg1 []string, arg2 kubernetes.ClientSetGetter, arg3 bool) (*tasks.TaskTree, error) {
+	var arg1Copy []string
+	if arg1 != nil {
+		arg1Copy = make([]string, len(arg1))
+		copy(arg1Copy, arg1)
+	}
 	fake.newTasksToDeleteIAMServiceAccountsMutex.Lock()
 	ret, specificReturn := fake.newTasksToDeleteIAMServiceAccountsReturnsOnCall[len(fake.newTasksToDeleteIAMServiceAccountsArgsForCall)]
 	fake.newTasksToDeleteIAMServiceAccountsArgsForCall = append(fake.newTasksToDeleteIAMServiceAccountsArgsForCall, struct {
-		arg1 func(string) bool
+		arg1 []string
 		arg2 kubernetes.ClientSetGetter
 		arg3 bool
-	}{arg1, arg2, arg3})
+	}{arg1Copy, arg2, arg3})
 	stub := fake.NewTasksToDeleteIAMServiceAccountsStub
 	fakeReturns := fake.newTasksToDeleteIAMServiceAccountsReturns
-	fake.recordInvocation("NewTasksToDeleteIAMServiceAccounts", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("NewTasksToDeleteIAMServiceAccounts", []interface{}{arg1Copy, arg2, arg3})
 	fake.newTasksToDeleteIAMServiceAccountsMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2, arg3)
@@ -3795,13 +3800,13 @@ func (fake *FakeStackManager) NewTasksToDeleteIAMServiceAccountsCallCount() int 
 	return len(fake.newTasksToDeleteIAMServiceAccountsArgsForCall)
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteIAMServiceAccountsCalls(stub func(func(string) bool, kubernetes.ClientSetGetter, bool) (*tasks.TaskTree, error)) {
+func (fake *FakeStackManager) NewTasksToDeleteIAMServiceAccountsCalls(stub func([]string, kubernetes.ClientSetGetter, bool) (*tasks.TaskTree, error)) {
 	fake.newTasksToDeleteIAMServiceAccountsMutex.Lock()
 	defer fake.newTasksToDeleteIAMServiceAccountsMutex.Unlock()
 	fake.NewTasksToDeleteIAMServiceAccountsStub = stub
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteIAMServiceAccountsArgsForCall(i int) (func(string) bool, kubernetes.ClientSetGetter, bool) {
+func (fake *FakeStackManager) NewTasksToDeleteIAMServiceAccountsArgsForCall(i int) ([]string, kubernetes.ClientSetGetter, bool) {
 	fake.newTasksToDeleteIAMServiceAccountsMutex.RLock()
 	defer fake.newTasksToDeleteIAMServiceAccountsMutex.RUnlock()
 	argsForCall := fake.newTasksToDeleteIAMServiceAccountsArgsForCall[i]
