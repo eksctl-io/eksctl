@@ -29,25 +29,25 @@ type NodeGroupResourceSet struct {
 	forceAddCNIPolicy    bool
 	ec2API               ec2iface.EC2API
 	iamAPI               iamiface.IAMAPI
-	clusterStackName     string
 	instanceProfileARN   *gfnt.Value
 	securityGroups       []*gfnt.Value
 	vpc                  *gfnt.Value
 	userData             *gfnt.Value
+	vpcImporter          vpc.Importer
 }
 
 // NewNodeGroupResourceSet returns a resource set for a nodegroup embedded in a cluster config
-func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup,
-	supportsManagedNodes, forceAddCNIPolicy bool) *NodeGroupResourceSet {
+func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, ng *api.NodeGroup,
+	supportsManagedNodes, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
 		rs:                   newResourceSet(),
-		clusterStackName:     clusterStackName,
 		supportsManagedNodes: supportsManagedNodes,
 		forceAddCNIPolicy:    forceAddCNIPolicy,
 		clusterSpec:          spec,
 		spec:                 ng,
 		ec2API:               ec2API,
 		iamAPI:               iamAPI,
+		vpcImporter:          vpcImporter,
 	}
 }
 
@@ -65,7 +65,7 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureSharedSecurityGroup, n.spec.SecurityGroups.WithShared, false)
 	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureLocalSecurityGroup, n.spec.SecurityGroups.WithLocal, false)
 
-	n.vpc = makeImportValue(n.clusterStackName, outputs.ClusterVPC)
+	n.vpc = n.vpcImporter.VPC()
 
 	userData, err := nodebootstrap.NewUserData(n.clusterSpec, n.spec)
 	if err != nil {
@@ -181,7 +181,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		LaunchTemplateData: launchTemplateData,
 	})
 
-	vpcZoneIdentifier, err := AssignSubnets(n.spec.NodeGroupBase, n.clusterStackName, n.clusterSpec)
+	vpcZoneIdentifier, err := AssignSubnets(n.spec.NodeGroupBase, n.vpcImporter, n.clusterSpec)
 	if err != nil {
 		return err
 	}
@@ -235,18 +235,18 @@ func generateNodeName(ng *api.NodeGroupBase, meta *api.ClusterMeta) string {
 }
 
 // AssignSubnets subnets based on the specified availability zones
-func AssignSubnets(spec *api.NodeGroupBase, clusterStackName string, clusterSpec *api.ClusterConfig) (*gfnt.Value, error) {
+func AssignSubnets(spec *api.NodeGroupBase, vpcImporter vpc.Importer, clusterSpec *api.ClusterConfig) (*gfnt.Value, error) {
 	// currently goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
 
-	if numNodeGroupsAZs, numNodeGroupsSubnets := len(spec.AvailabilityZones), len(spec.Subnets); api.IsEnabled(spec.EFAEnabled) || numNodeGroupsAZs > 0 || numNodeGroupsSubnets > 0 {
-		allSubnets := clusterSpec.VPC.Subnets.Public
+	if len(spec.AvailabilityZones) > 0 || len(spec.Subnets) > 0 || api.IsEnabled(spec.EFAEnabled) {
+		subnets := clusterSpec.VPC.Subnets.Public
 		typ := "public"
 		if spec.PrivateNetworking {
-			allSubnets = clusterSpec.VPC.Subnets.Private
+			subnets = clusterSpec.VPC.Subnets.Private
 			typ = "private"
 		}
-		subnetIDs, err := vpc.SelectNodeGroupSubnets(spec.AvailabilityZones, spec.Subnets, allSubnets)
+		subnetIDs, err := vpc.SelectNodeGroupSubnets(spec.AvailabilityZones, spec.Subnets, subnets)
 		if api.IsEnabled(spec.EFAEnabled) && len(subnetIDs) > 1 {
 			subnetIDs = []string{subnetIDs[0]}
 			logger.Info("EFA requires all nodes be in a single subnet, arbitrarily choosing one: %s", subnetIDs)
@@ -256,12 +256,12 @@ func AssignSubnets(spec *api.NodeGroupBase, clusterStackName string, clusterSpec
 
 	var subnets *gfnt.Value
 	if spec.PrivateNetworking {
-		subnets = makeImportValue(clusterStackName, outputs.ClusterSubnetsPrivate)
+		subnets = vpcImporter.SubnetsPrivate()
 	} else {
-		subnets = makeImportValue(clusterStackName, outputs.ClusterSubnetsPublic)
+		subnets = vpcImporter.SubnetsPublic()
 	}
 
-	return gfnt.MakeFnSplit(",", subnets), nil
+	return subnets, nil
 }
 
 // GetAllOutputs collects all outputs of the nodegroup
