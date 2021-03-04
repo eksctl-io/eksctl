@@ -38,6 +38,7 @@ func NewClusterResourceSet(ec2API ec2iface.EC2API, region string, spec *api.Clus
 		rs:                   rs,
 		spec:                 spec,
 		ec2API:               ec2API,
+		region:               region,
 		supportsManagedNodes: supportsManagedNodes,
 		vpcResourceSet:       NewVPCResourceSet(rs, spec, ec2API),
 	}
