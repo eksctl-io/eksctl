@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+
 	"github.com/weaveworks/eksctl/pkg/utils/file"
 
 	"k8s.io/client-go/kubernetes"
@@ -39,6 +41,7 @@ import (
 var (
 	params         *tests.Params
 	unownedCluster *unowned.Cluster
+	cfg            *api.ClusterConfig
 )
 
 func init() {
@@ -69,6 +72,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			params.KubeconfigTemp = true
 		}
 
+		cfg = api.NewClusterConfig()
+		cfg.Metadata = &api.ClusterMeta{
+			Name:    params.ClusterName,
+			Region:  params.Region,
+			Version: params.Version,
+		}
+
 		if params.SkipCreate {
 			fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", params.ClusterName)
 			if !file.Exists(params.KubeconfigPath) {
@@ -84,24 +94,26 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			}
 			return
 		} else if params.UnownedCluster {
-			unownedCluster = unowned.NewCluster(&api.ClusterConfig{
-				Metadata: &api.ClusterMeta{
-					Name:    params.ClusterName,
-					Region:  params.Region,
-					Version: params.Version,
+			unownedCluster = unowned.NewCluster(cfg)
+			cfg.VPC = unownedCluster.VPC
+
+			cfg.NodeGroups = []*api.NodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name: initNG,
+					},
 				},
-			})
-			cmd := params.EksctlCreateCmd.WithArgs(
-				"nodegroup",
-				"--verbose", "4",
-				"--cluster", params.ClusterName,
-				"--tags", "alpha.eksctl.io/description=eksctl integration test",
-				"--name", initNG,
-				"--node-labels", "ng-name="+initNG,
-				"--nodes", "1",
-				"--version", params.Version,
-			)
+			}
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"nodegroup",
+					"--config-file", "-",
+					"--verbose", "4",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdinJSONContent(cfg)
 			Expect(cmd).To(RunSuccessfully())
+
 			cmd = params.EksctlUtilsCmd.WithArgs(
 				"write-kubeconfig",
 				"--verbose", "4",
@@ -139,12 +151,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 	})
 
 	Describe("cluster with 1 node", func() {
-		It("should have created an EKS cluster and two CloudFormation stacks", func() {
+		It("should have created an EKS cluster and CloudFormation stacks", func() {
 			awsSession := NewSession(params.Region)
 
 			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, awseks.ClusterStatusActive, params.Version))
 
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
+			if !params.UnownedCluster {
+				Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
+			}
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initNG)))
 		})
 
@@ -233,14 +247,26 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("and add a second (GPU) nodegroup", func() {
 			PIt("should not return an error", func() {
-				cmd := params.EksctlCreateCmd.WithArgs(
-					"nodegroup",
-					"--cluster", params.ClusterName,
-					"--nodes", "1",
-					"--node-type", "p2.xlarge",
-					"--node-private-networking",
-					testNG,
-				)
+				cfg.NodeGroups = []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name: testNG,
+							ScalingConfig: &api.ScalingConfig{
+								DesiredCapacity: aws.Int(1),
+							},
+							InstanceType:      "p2.xlarge",
+							PrivateNetworking: false,
+						},
+					},
+				}
+				cmd := params.EksctlCreateCmd.
+					WithArgs(
+						"nodegroup",
+						"--config-file", "-",
+						"--verbose", "4",
+					).
+					WithoutArg("--region", params.Region).
+					WithStdinJSONContent(cfg)
 				Expect(cmd).To(RunSuccessfully())
 			})
 
@@ -285,6 +311,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
 						HaveLen(1),
 						ContainElement(initNG),
+						//ContainElement(testNG),
 					)))
 				}
 			})

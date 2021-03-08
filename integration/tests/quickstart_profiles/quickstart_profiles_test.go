@@ -10,12 +10,12 @@ import (
 	"github.com/weaveworks/eksctl/integration/tests"
 	"github.com/weaveworks/eksctl/integration/utilities/git"
 	"github.com/weaveworks/eksctl/integration/utilities/unowned"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 
 	"github.com/kubicorn/kubicorn/pkg/namer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 var (
@@ -36,13 +36,23 @@ func TestQuickstartProfiles(t *testing.T) {
 var _ = BeforeSuite(func() {
 	if !params.SkipCreate {
 		if params.UnownedCluster {
-			unownedCluster = unowned.NewCluster(&api.ClusterConfig{
-				Metadata: &api.ClusterMeta{
-					Name:    params.ClusterName,
-					Region:  params.Region,
-					Version: params.Version,
-				},
-			})
+			cfg := api.NewClusterConfig()
+			cfg.Metadata = &api.ClusterMeta{
+				Version: params.Version,
+				Name:    params.ClusterName,
+				Region:  params.Region,
+			}
+			unownedCluster = unowned.NewCluster(cfg)
+
+			unownedCluster.CreateNodegroups("ng-1")
+
+			cmd := params.EksctlUtilsCmd.WithArgs(
+				"write-kubeconfig",
+				"--verbose", "4",
+				"--cluster", params.ClusterName,
+				"--kubeconfig", params.KubeconfigPath,
+			)
+			Expect(cmd).To(RunSuccessfully())
 		} else {
 			cmd := params.EksctlCreateCmd.WithArgs(
 				"cluster",

@@ -24,6 +24,7 @@ type Cluster struct {
 	PrivateSubnets   []string
 	ClusterRoleARN   string
 	NodeRoleARN      string
+	VPC              *api.ClusterVPC
 }
 
 var timeoutDuration = time.Minute * 30
@@ -34,7 +35,7 @@ func NewCluster(cfg *api.ClusterConfig) *Cluster {
 	clusterProvider, err := eks.New(&api.ProviderConfig{Region: cfg.Metadata.Region}, cfg)
 	Expect(err).NotTo(HaveOccurred())
 	ctl := clusterProvider.Provider
-	publicSubnets, privateSubnets, clusterRoleARN, nodeRoleARN := createVPCAndRole(stackName, ctl)
+	publicSubnets, privateSubnets, clusterRoleARN, nodeRoleARN, vpc := createVPCAndRole(stackName, ctl)
 
 	uc := &Cluster{
 		Cfg:              cfg,
@@ -45,6 +46,7 @@ func NewCluster(cfg *api.ClusterConfig) *Cluster {
 		PrivateSubnets:   privateSubnets,
 		ClusterRoleARN:   clusterRoleARN,
 		NodeRoleARN:      nodeRoleARN,
+		VPC:              vpc,
 	}
 
 	uc.createCluster()
@@ -76,7 +78,7 @@ func (uc *Cluster) createCluster() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 		return *out.Cluster.Status
-	}, timeoutDuration, time.Second*30).Should(Equal("ACTIVE"))
+	}, timeoutDuration, time.Minute*4).Should(Equal("ACTIVE"))
 }
 
 func (uc Cluster) CreateNodegroups(names ...string) {
@@ -107,7 +109,7 @@ func (uc Cluster) CreateNodegroups(names ...string) {
 	}
 }
 
-func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, []string, string, string) {
+func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, []string, string, string, *api.ClusterVPC) {
 	templateBody, err := ioutil.ReadFile("../../utilities/unowned/cf-template.yaml")
 	Expect(err).NotTo(HaveOccurred())
 	createStackInput := &cfn.CreateStackInput{
@@ -129,8 +131,8 @@ func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, []st
 		return *describeStackOut.Stacks[0].StackStatus
 	}, time.Minute*10, time.Second*15).Should(Equal(cfn.StackStatusCreateComplete))
 
-	var clusterRoleARN, nodeRoleARN string
-	var publicSubnets, privateSubnets []string
+	var clusterRoleARN, nodeRoleARN, vpcID string
+	var publicSubnets, privateSubnets, securityGroups []string
 	for _, output := range describeStackOut.Stacks[0].Outputs {
 		switch *output.OutputKey {
 		case "ClusterRoleARN":
@@ -141,8 +143,40 @@ func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, []st
 			publicSubnets = strings.Split(*output.OutputValue, ",")
 		case "PrivateSubnetIds":
 			privateSubnets = strings.Split(*output.OutputValue, ",")
+		case "VpcId":
+			vpcID = *output.OutputValue
+		case "SecurityGroups":
+			securityGroups = strings.Split(*output.OutputValue, ",")
 		}
 	}
 
-	return publicSubnets, privateSubnets, clusterRoleARN, nodeRoleARN
+	newVPC := api.NewClusterVPC()
+	newVPC.ID = vpcID
+	newVPC.SecurityGroup = securityGroups[0]
+	newVPC.Subnets = &api.ClusterSubnets{
+		Public: api.AZSubnetMapping{
+			"public1": api.AZSubnetSpec{
+				ID: publicSubnets[0],
+			},
+			"public2": api.AZSubnetSpec{
+				ID: publicSubnets[1],
+			},
+			"public3": api.AZSubnetSpec{
+				ID: publicSubnets[2],
+			},
+		},
+		Private: api.AZSubnetMapping{
+			"private4": api.AZSubnetSpec{
+				ID: privateSubnets[0],
+			},
+			"private5": api.AZSubnetSpec{
+				ID: privateSubnets[1],
+			},
+			"private6": api.AZSubnetSpec{
+				ID: privateSubnets[2],
+			},
+		},
+	}
+
+	return publicSubnets, privateSubnets, clusterRoleARN, nodeRoleARN, newVPC
 }

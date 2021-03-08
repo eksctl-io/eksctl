@@ -1,6 +1,8 @@
 package runner
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -91,6 +93,17 @@ func (c Cmd) WithTimeout(timeout time.Duration) Cmd {
 // WithStdin returns a copy of the command with Stdin set
 func (c Cmd) WithStdin(stdin io.Reader) Cmd {
 	c.stdin = stdin
+	return c
+}
+
+// WithStdin returns a copy of the command with Stdin set
+func (c Cmd) WithStdinJSONContent(content interface{}) Cmd {
+	data, err := json.Marshal(content)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(data))
+	c.stdin = bytes.NewReader(data)
 	return c
 }
 

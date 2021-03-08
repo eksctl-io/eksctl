@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -81,24 +82,32 @@ var _ = Describe("(Integration) Update addons", func() {
 				Expect(cmd).To(RunSuccessfully())
 			}
 		} else if params.UnownedCluster {
-			unownedCluster = unowned.NewCluster(&api.ClusterConfig{
-				Metadata: &api.ClusterMeta{
-					Name:    params.ClusterName,
-					Region:  params.Region,
-					Version: "1.15",
+			cfg := api.NewClusterConfig()
+			cfg.Metadata = &api.ClusterMeta{
+				Name:    params.ClusterName,
+				Region:  params.Region,
+				Version: "1.15",
+			}
+			unownedCluster = unowned.NewCluster(cfg)
+			cfg.VPC = unownedCluster.VPC
+			cfg.NodeGroups = []*api.NodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name: initNG,
+						ScalingConfig: &api.ScalingConfig{
+							DesiredCapacity: aws.Int(1),
+						},
+					},
 				},
-			})
-
-			cmd := params.EksctlCreateCmd.WithArgs(
-				"nodegroup",
-				"--verbose", "4",
-				"--cluster", params.ClusterName,
-				"--tags", "alpha.eksctl.io/description=eksctl integration test",
-				"--name", initNG,
-				"--node-labels", "ng-name="+initNG,
-				"--nodes", "1",
-				"--version", params.Version,
-			)
+			}
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"nodegroup",
+					"--config-file", "-",
+					"--verbose", "4",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdinJSONContent(cfg)
 			Expect(cmd).To(RunSuccessfully())
 
 			cmd = params.EksctlUtilsCmd.WithArgs(
@@ -146,7 +155,7 @@ var _ = Describe("(Integration) Update addons", func() {
 
 			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, awseks.ClusterStatusActive, api.Version1_15))
 
-			if params.UnownedCluster {
+			if !params.UnownedCluster {
 				Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
 			}
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initNG)))
