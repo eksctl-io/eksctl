@@ -293,11 +293,13 @@ func ResolveAMI(provider api.ClusterProvider, version string, ng *api.NodeGroup)
 		resolver = ami.NewAutoResolver(provider.EC2())
 	case api.NodeImageResolverAutoSSM:
 		resolver = ami.NewSSMResolver(provider.SSM())
-	default:
+	case "":
 		resolver = ami.NewMultiResolver(
 			ami.NewSSMResolver(provider.SSM()),
 			ami.NewAutoResolver(provider.EC2()),
 		)
+	default:
+		return errors.Errorf("invalid AMI value: %q", ng.AMI)
 	}
 
 	instanceType := selectInstanceType(ng)
