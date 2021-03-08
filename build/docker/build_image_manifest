@@ -1,7 +1,7 @@
 "github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0"
 "github.com/cloudflare/cfssl v1.5.0"
 "github.com/cloudflare/cfssl v1.5.0"
-"github.com/golangci/golangci-lint v1.37.1"
+"github.com/golangci/golangci-lint v1.38.0"
 "github.com/goreleaser/goreleaser v0.154.0"
 "github.com/kevinburke/go-bindata v3.22.0+incompatible"
 "github.com/onsi/ginkgo v1.15.1"
