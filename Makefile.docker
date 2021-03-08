@@ -8,7 +8,7 @@ image_manifest_file = build/docker/build_image_manifest
 # E.g. given `weaveworks/eksctl-build:e6e8800773d3adf8e7999a23dcdb07414c66a4da` one can
 # run `git show e6e8800773d3adf8e7999a23dcdb07414c66a4da` to get contents of `.build_image_manifest`,
 # and `git show <hash>` for each of the hashes in the manifest to determine contents of each of the
-# files used in `$(build_image_input)` at the time.
+# files used in `$(build_image_input)` at the 
 build_image_tag_file = build/docker/image_tag
 build_image_tag = $(shell cat $(build_image_tag_file))
 
@@ -18,7 +18,7 @@ build_image_name = $(build_image):$(build_image_tag)
 eksctl_image = weaveworks/eksctl
 eksctl_image_name = "$(eksctl_image):$${EKSCTL_IMAGE_VERSION}"
 
-docker_build := time docker build
+docker_build := docker build
 # We should eventually switch to buildkit, as it has a many feature and cleaner output with timing info,
 # but right now 'docker build' doesn't allow us to export build cache images, so we cannot use it yet
 # docker_build := env DOCKER_BUILDKIT=1 $(docker_build)
@@ -69,7 +69,7 @@ push-eksctl-image: eksctl-image
 
 .PHONY: build test
 build test: ## Run targets from Makefile using the build image
-	time docker run \
+	docker run \
 	  --tty \
 	  --rm \
 	  --volume=$(git_toplevel):/src \
