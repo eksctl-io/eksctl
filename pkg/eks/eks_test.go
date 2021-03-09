@@ -69,11 +69,11 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				It("should have called AWS EKS service once", func() {
-					Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)).To(BeTrue())
+					p.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)
 				})
 
 				It("should not call AWS CFN ListStacksPages", func() {
-					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 0)).To(BeTrue())
+					p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 0)
 				})
 			})
 
@@ -125,11 +125,11 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				It("should have called AWS EKS service once", func() {
-					Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)).To(BeTrue())
+					p.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)
 				})
 
 				It("should have called AWS CFN ListStacksPages", func() {
-					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 1)).To(BeTrue())
+					p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 1)
 				})
 			})
 		})
@@ -161,11 +161,11 @@ var _ = Describe("EKS API wrapper", func() {
 			})
 
 			It("should have called AWS EKS service once", func() {
-				Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)).To(BeTrue())
+				p.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)
 			})
 
 			It("should not call AWS CFN ListStacksPages", func() {
-				Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 0)).To(BeTrue())
+				p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 0)
 			})
 		})
 
@@ -249,11 +249,11 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				It("should have called AWS EKS service twice", func() {
-					Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "ListClusters", 2)).To(BeTrue())
+					p.MockEKS().AssertNumberOfCalls(GinkgoT(), "ListClusters", 2)
 				})
 
 				It("should check if the clusters are eksctl created", func() {
-					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 1)).To(BeTrue())
+					p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 1)
 				})
 			})
 		})
@@ -285,7 +285,7 @@ var _ = Describe("EKS API wrapper", func() {
 			})
 
 			It("should have called AWS EKS service once", func() {
-				Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "ListClusters", 1)).To(BeTrue())
+				p.MockEKS().AssertNumberOfCalls(GinkgoT(), "ListClusters", 1)
 			})
 		})
 
@@ -302,7 +302,7 @@ var _ = Describe("EKS API wrapper", func() {
 			})
 
 			It("should have called AWS EC2 service once", func() {
-				Expect(p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeRegions", 1)).To(BeTrue())
+				p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeRegions", 1)
 			})
 		})
 	})
