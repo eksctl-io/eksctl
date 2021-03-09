@@ -17,7 +17,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 
 	"k8s.io/client-go/kubernetes"
@@ -237,9 +237,9 @@ func (c *ClusterProvider) ControlPlaneVersion() string {
 }
 
 // ControlPlaneVPCInfo returns cached version (EKS API)
-func (c *ClusterProvider) ControlPlaneVPCInfo() eks.VpcConfigResponse {
+func (c *ClusterProvider) ControlPlaneVPCInfo() awseks.VpcConfigResponse {
 	if c.Status.ClusterInfo == nil || c.Status.ClusterInfo.Cluster == nil || c.Status.ClusterInfo.Cluster.ResourcesVpcConfig == nil {
-		return eks.VpcConfigResponse{}
+		return awseks.VpcConfigResponse{}
 	}
 	return *c.Status.ClusterInfo.Cluster.ResourcesVpcConfig
 }
@@ -325,9 +325,14 @@ func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*a
 	if listAllRegions {
 		var clusters []*api.ClusterConfig
 		// reset region and re-create the client, then make a recursive call
-		for _, region := range api.SupportedRegions() {
+		authorizedRegions, err := c.Provider.EC2().DescribeRegions(&ec2.DescribeRegionsInput{})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, region := range authorizedRegions.Regions {
 			spec := &api.ProviderConfig{
-				Region:      region,
+				Region:      *region.RegionName,
 				Profile:     c.Provider.Profile(),
 				WaitTimeout: c.Provider.WaitTimeout(),
 			}
