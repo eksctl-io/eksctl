@@ -58,8 +58,8 @@ func UpdateKubeProxy(clientSet kubernetes.Interface, controlPlaneVersion string,
 		return false, errors.Wrapf(err, "getting %q", KubeProxy)
 	}
 
-	hasArm64NodeSelector := hasArm64NodeSelector(d)
-	if hasArm64NodeSelector {
+	hasArm64NodeSelector := daemeonSetHasArm64NodeSelector(d)
+	if !hasArm64NodeSelector {
 		logger.Info("missing arm64 nodeSelector value")
 	}
 
@@ -110,7 +110,7 @@ func UpdateKubeProxy(clientSet kubernetes.Interface, controlPlaneVersion string,
 	return false, nil
 }
 
-func hasArm64NodeSelector(daemonSet *v1.DaemonSet) bool {
+func daemeonSetHasArm64NodeSelector(daemonSet *v1.DaemonSet) bool {
 	if daemonSet.Spec.Template.Spec.Affinity != nil &&
 		daemonSet.Spec.Template.Spec.Affinity.NodeAffinity != nil &&
 		daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution != nil {
