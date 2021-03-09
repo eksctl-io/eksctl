@@ -18,7 +18,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/eks"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 
 	"k8s.io/client-go/kubernetes"
@@ -238,9 +237,9 @@ func (c *ClusterProvider) ControlPlaneVersion() string {
 }
 
 // ControlPlaneVPCInfo returns cached version (EKS API)
-func (c *ClusterProvider) ControlPlaneVPCInfo() eks.VpcConfigResponse {
+func (c *ClusterProvider) ControlPlaneVPCInfo() awseks.VpcConfigResponse {
 	if c.Status.ClusterInfo == nil || c.Status.ClusterInfo.Cluster == nil || c.Status.ClusterInfo.Cluster.ResourcesVpcConfig == nil {
-		return eks.VpcConfigResponse{}
+		return awseks.VpcConfigResponse{}
 	}
 	return *c.Status.ClusterInfo.Cluster.ResourcesVpcConfig
 }
