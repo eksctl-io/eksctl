@@ -57,3 +57,54 @@ jobs:
           webhook-url: "${{ secrets.SLACK_WEBHOOK }}"
           message: ":ahhhhhhhhh: An integration test run failed!"
           channel: team-pitch-black
+  unowned-it:
+    name: Run unowned integration tests
+    environment: "Integration tests"
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:f1a6b5abd010943a9272cf195ec37ea4e20153a2
+    env:
+      SSH: "/root/.ssh"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup SSH known hosts
+        shell: bash
+        run: |
+          mkdir -p ${SSH} && chmod 700 ${SSH}
+          ssh-keyscan github.com >> ${SSH}/known_hosts
+      - name: Setup SSH key
+        shell: bash
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.EKSCTLBOT_SSH_KEY }}"
+      - name: Run unowned integration tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          TEST_V: "1"
+          GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
+        run: make unowned-integration-test
+      - name: Notify slack on success
+        if: success() && github.event_name == 'schedule'
+        uses: ./.github/actions/notify-slack
+        with:
+          webhook-url: "${{ secrets.SLACK_WEBHOOK }}"
+          message: ":deal-with-it-parrot: An unowned integration test run succeeded!"
+          channel: team-pitch-black
+      - name: Notify slack on failure
+        if: failure() && github.event_name == 'schedule'
+        uses: ./.github/actions/notify-slack
+        with:
+          webhook-url: "${{ secrets.SLACK_WEBHOOK }}"
+          message: ":ahhhhhhhhh: An unowned integration test run failed!"
+          channel: team-pitch-black
