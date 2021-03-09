@@ -17,6 +17,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 
@@ -325,9 +326,14 @@ func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*a
 	if listAllRegions {
 		var clusters []*api.ClusterConfig
 		// reset region and re-create the client, then make a recursive call
-		for _, region := range api.SupportedRegions() {
+		authorizedRegions, err := c.Provider.EC2().DescribeRegions(&ec2.DescribeRegionsInput{})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, region := range authorizedRegions.Regions {
 			spec := &api.ProviderConfig{
-				Region:      region,
+				Region:      *region.RegionName,
 				Profile:     c.Provider.Profile(),
 				WaitTimeout: c.Provider.WaitTimeout(),
 			}

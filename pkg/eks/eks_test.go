@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
 
@@ -170,12 +171,21 @@ var _ = Describe("EKS API wrapper", func() {
 
 	})
 
-	Describe("ListAll", func() {
+	Describe("ListClusters", func() {
 		var (
-			err       error
-			chunkSize int
-			clusters  []*api.ClusterConfig
+			err            error
+			chunkSize      int
+			listAllRegions bool
+			clusters       []*api.ClusterConfig
 		)
+
+		BeforeEach(func() {
+			p = mockprovider.NewMockProvider()
+			c = &ClusterProvider{
+				Provider: p,
+			}
+			listAllRegions = false
+		})
 
 		When("and chunk-size of 1", func() {
 			When("the clusters are not eksctl created", func() {
@@ -186,12 +196,6 @@ var _ = Describe("EKS API wrapper", func() {
 				BeforeEach(func() {
 					chunkSize = 1
 					callNumber = 0
-
-					p = mockprovider.NewMockProvider()
-
-					c = &ClusterProvider{
-						Provider: p,
-					}
 
 					mockResultFn := func(_ *awseks.ListClustersInput) *awseks.ListClustersOutput {
 						clusterName := fmt.Sprintf("cluster-%d", callNumber)
@@ -214,7 +218,7 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				JustBeforeEach(func() {
-					clusters, err = c.ListClusters(chunkSize, false)
+					clusters, err = c.ListClusters(chunkSize, listAllRegions)
 				})
 
 				It("should not error", func() {
@@ -258,12 +262,6 @@ var _ = Describe("EKS API wrapper", func() {
 			BeforeEach(func() {
 				chunkSize = 100
 
-				p = mockprovider.NewMockProvider()
-
-				c = &ClusterProvider{
-					Provider: p,
-				}
-
 				mockResultFn := func(_ *awseks.ListClustersInput) *awseks.ListClustersOutput {
 					output := &awseks.ListClustersOutput{
 						Clusters: []*string{aws.String("cluster-1"), aws.String("cluster-2")},
@@ -279,7 +277,7 @@ var _ = Describe("EKS API wrapper", func() {
 			})
 
 			JustBeforeEach(func() {
-				clusters, err = c.ListClusters(chunkSize, false)
+				clusters, err = c.ListClusters(chunkSize, listAllRegions)
 			})
 
 			It("should not error", func() {
@@ -288,6 +286,23 @@ var _ = Describe("EKS API wrapper", func() {
 
 			It("should have called AWS EKS service once", func() {
 				Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "ListClusters", 1)).To(BeTrue())
+			})
+		})
+
+		Context("`listAllRegions` is true", func() {
+			BeforeEach(func() {
+				chunkSize = 100
+				listAllRegions = true
+
+				p.MockEC2().On("DescribeRegions", mock.Anything).Return(&ec2.DescribeRegionsOutput{}, nil)
+			})
+
+			JustBeforeEach(func() {
+				clusters, err = c.ListClusters(chunkSize, listAllRegions)
+			})
+
+			It("should have called AWS EC2 service once", func() {
+				Expect(p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeRegions", 1)).To(BeTrue())
 			})
 		})
 	})
