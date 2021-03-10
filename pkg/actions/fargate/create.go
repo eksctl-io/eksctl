@@ -3,6 +3,8 @@ package fargate
 import (
 	"fmt"
 
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -25,9 +27,9 @@ func (m *Manager) Create() error {
 		return fmt.Errorf("Fargate is not supported for this cluster version. Please update the cluster to be at least eks.%d", fargate.MinPlatformVersion)
 	}
 
-	hasClusterStack, err := m.stackManager.HasClusterStack()
+	clusterStack, err := m.stackManager.DescribeClusterStack()
 	if err != nil {
-		return errors.Wrap(err, "couldn't check stack")
+		return errors.Wrap(err, "couldn't check cluster stack")
 	}
 
 	fargateRoleNeeded := false
@@ -40,19 +42,13 @@ func (m *Manager) Create() error {
 	}
 
 	if fargateRoleNeeded {
-		if hasClusterStack {
-			exists, err := m.fargateRoleExistsOnClusterStack()
-			if err != nil {
-				return errors.Wrap(err, "couldn't check if fargate role already exists")
-			}
-
-			if !exists {
+		if clusterStack != nil {
+			if !m.fargateRoleExistsOnClusterStack(clusterStack) {
 				err := ensureFargateRoleStackExists(cfg, ctl.Provider, m.stackManager)
 				if err != nil {
 					return errors.Wrap(err, "couldn't ensure fargate role exists")
 				}
 			}
-
 			if err := ctl.LoadClusterIntoSpecFromStack(cfg, m.stackManager); err != nil {
 				return errors.Wrap(err, "couldn't load cluster into spec")
 			}
@@ -70,8 +66,8 @@ func (m *Manager) Create() error {
 		}
 	}
 
-	manager := fargate.NewFromProvider(cfg.Metadata.Name, ctl.Provider, m.stackManager)
-	if err := eks.DoCreateFargateProfiles(cfg, &manager); err != nil {
+	fargateClient := fargate.NewFromProvider(cfg.Metadata.Name, ctl.Provider, m.stackManager)
+	if err := eks.DoCreateFargateProfiles(cfg, &fargateClient); err != nil {
 		return errors.Wrap(err, "couldnt' create fargate profiles")
 	}
 	clientSet, err := m.newStdClientSet()
@@ -81,17 +77,11 @@ func (m *Manager) Create() error {
 	return eks.ScheduleCoreDNSOnFargateIfRelevant(cfg, ctl, clientSet)
 }
 
-func (m *Manager) fargateRoleExistsOnClusterStack() (bool, error) {
-	stack, err := m.stackManager.DescribeClusterStack()
-	if err != nil {
-		return false, err
-	}
-
-	for _, output := range stack.Outputs {
+func (m *Manager) fargateRoleExistsOnClusterStack(clusterStack *manager.Stack) bool {
+	for _, output := range clusterStack.Outputs {
 		if *output.OutputKey == outputs.FargatePodExecutionRoleARN {
-			return true, nil
+			return true
 		}
 	}
-
-	return false, nil
+	return false
 }
