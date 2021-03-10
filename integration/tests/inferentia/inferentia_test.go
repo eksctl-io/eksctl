@@ -47,14 +47,13 @@ func TestInferentia(t *testing.T) {
 	//testutils.RegisterAndRun(t)
 }
 
-var _ = PDescribe("(Integration) Inferentia nodes", func() {
+var _ = Describe("(Integration) Inferentia nodes", func() {
 	const (
 		initNG = "inf1-ng-0"
 		newNG  = "inf1-ng-1"
 	)
 
 	BeforeSuite(func() {
-		return
 		params.KubeconfigTemp = false
 		if params.KubeconfigPath == "" {
 			wd, _ := os.Getwd()
@@ -164,7 +163,6 @@ var _ = PDescribe("(Integration) Inferentia nodes", func() {
 	})
 
 	AfterSuite(func() {
-		return
 		params.DeleteClusters()
 		gexec.KillAndWait()
 		if params.KubeconfigTemp {
