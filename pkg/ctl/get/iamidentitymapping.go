@@ -31,7 +31,7 @@ func getIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &arn)
+		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &arn, "get")
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
