@@ -14,7 +14,7 @@ import (
 // NextDelay returns the amount of time to wait before the next retry given the number of attempts.
 type NextDelay func(attempts int) time.Duration
 
-// WaitForStack waits for the cluster stack to reach a success or failure state.
+// WaitForStack waits for the cluster stack to reach a success or failure state, and returns the stack.
 func WaitForStack(ctx context.Context, cfnAPI cloudformationiface.CloudFormationAPI, stackID, stackName string, nextDelay NextDelay) (*cloudformation.Stack, error) {
 	var lastStack *cloudformation.Stack
 	waiter := &Waiter{

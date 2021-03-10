@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// A Waiter keeps retrying the specified operation until it returns true, or an error
+// A Waiter keeps retrying the specified operation until it returns true, or an error.
 type Waiter struct {
 	// NextDelay is the amount of time to wait before the next retry given the number of attempts.
 	NextDelay NextDelay
@@ -14,7 +14,7 @@ type Waiter struct {
 	Operation func() (bool, error)
 }
 
-// Wait waits for the specified operation to complete
+// Wait waits for the specified operation to complete.
 func (p *Waiter) Wait(ctx context.Context) error {
 	for attempts := 1; ; attempts++ {
 		done, err := p.wait(ctx, p.NextDelay(attempts))
