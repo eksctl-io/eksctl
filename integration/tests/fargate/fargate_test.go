@@ -4,7 +4,6 @@ package fargate
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -103,8 +102,6 @@ var _ = Describe("(Integration) Fargate", func() {
 				"--kubeconfig", params.KubeconfigPath,
 				"--nodes", "1",
 				"--timeout", "1h10m",
-				"--fargate", strconv.FormatBool(fargate),
-				"--managed", strconv.FormatBool(managed),
 			}
 
 			args = append(args, createArgs...)

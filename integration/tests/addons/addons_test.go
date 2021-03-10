@@ -127,7 +127,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				WithArgs(
 					"addon",
 					"--name", "vpc-cni",
-					"--cluster", clusterName,
+					"--cluster", params.ClusterName,
 					"--wait",
 					"--verbose", "2",
 				)

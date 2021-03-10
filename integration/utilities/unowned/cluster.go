@@ -16,14 +16,14 @@ import (
 )
 
 type Cluster struct {
-	Cfg              *api.ClusterConfig
-	Ctl              api.ClusterProvider
-	ClusterName      string
-	ClusterStackName string
-	PublicSubnets    []string
-	PrivateSubnets   []string
-	ClusterRoleARN   string
-	NodeRoleARN      string
+	cfg              *api.ClusterConfig
+	ctl              api.ClusterProvider
+	clusterName      string
+	clusterStackName string
+	publicSubnets    []string
+	privateSubnets   []string
+	clusterRoleARN   string
+	nodeRoleARN      string
 	VPC              *api.ClusterVPC
 }
 
@@ -38,14 +38,14 @@ func NewCluster(cfg *api.ClusterConfig) *Cluster {
 	publicSubnets, privateSubnets, clusterRoleARN, nodeRoleARN, vpc := createVPCAndRole(stackName, ctl)
 
 	uc := &Cluster{
-		Cfg:              cfg,
-		Ctl:              ctl,
-		ClusterStackName: stackName,
-		ClusterName:      cfg.Metadata.Name,
-		PublicSubnets:    publicSubnets,
-		PrivateSubnets:   privateSubnets,
-		ClusterRoleARN:   clusterRoleARN,
-		NodeRoleARN:      nodeRoleARN,
+		cfg:              cfg,
+		ctl:              ctl,
+		clusterStackName: stackName,
+		clusterName:      cfg.Metadata.Name,
+		publicSubnets:    publicSubnets,
+		privateSubnets:   privateSubnets,
+		clusterRoleARN:   clusterRoleARN,
+		nodeRoleARN:      nodeRoleARN,
 		VPC:              vpc,
 	}
 
@@ -55,26 +55,26 @@ func NewCluster(cfg *api.ClusterConfig) *Cluster {
 
 func (uc *Cluster) DeleteStack() {
 	deleteStackInput := &cfn.DeleteStackInput{
-		StackName: &uc.ClusterStackName,
+		StackName: &uc.clusterStackName,
 	}
 
-	_, err := uc.Ctl.CloudFormation().DeleteStack(deleteStackInput)
+	_, err := uc.ctl.CloudFormation().DeleteStack(deleteStackInput)
 	Expect(err).NotTo(HaveOccurred())
 }
 
 func (uc *Cluster) createCluster() {
-	_, err := uc.Ctl.EKS().CreateCluster(&awseks.CreateClusterInput{
-		Name: &uc.ClusterName,
+	_, err := uc.ctl.EKS().CreateCluster(&awseks.CreateClusterInput{
+		Name: &uc.clusterName,
 		ResourcesVpcConfig: &awseks.VpcConfigRequest{
-			SubnetIds: aws.StringSlice(append(uc.PublicSubnets, uc.PrivateSubnets...)),
+			SubnetIds: aws.StringSlice(append(uc.publicSubnets, uc.privateSubnets...)),
 		},
-		RoleArn: &uc.ClusterRoleARN,
-		Version: &uc.Cfg.Metadata.Version,
+		RoleArn: &uc.clusterRoleARN,
+		Version: &uc.cfg.Metadata.Version,
 	})
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(func() string {
-		out, err := uc.Ctl.EKS().DescribeCluster(&awseks.DescribeClusterInput{
-			Name: &uc.ClusterName,
+		out, err := uc.ctl.EKS().DescribeCluster(&awseks.DescribeClusterInput{
+			Name: &uc.clusterName,
 		})
 		Expect(err).NotTo(HaveOccurred())
 		return *out.Cluster.Status
@@ -83,11 +83,11 @@ func (uc *Cluster) createCluster() {
 
 func (uc Cluster) CreateNodegroups(names ...string) {
 	for _, name := range names {
-		_, err := uc.Ctl.EKS().CreateNodegroup(&awseks.CreateNodegroupInput{
+		_, err := uc.ctl.EKS().CreateNodegroup(&awseks.CreateNodegroupInput{
 			NodegroupName: &name,
-			ClusterName:   &uc.ClusterName,
-			NodeRole:      &uc.NodeRoleARN,
-			Subnets:       aws.StringSlice(uc.PublicSubnets),
+			ClusterName:   &uc.clusterName,
+			NodeRole:      &uc.nodeRoleARN,
+			Subnets:       aws.StringSlice(uc.publicSubnets),
 			ScalingConfig: &awseks.NodegroupScalingConfig{
 				MaxSize:     aws.Int64(1),
 				DesiredSize: aws.Int64(1),
@@ -99,8 +99,8 @@ func (uc Cluster) CreateNodegroups(names ...string) {
 
 	for _, name := range names {
 		Eventually(func() string {
-			out, err := uc.Ctl.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{
-				ClusterName:   &uc.ClusterName,
+			out, err := uc.ctl.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{
+				ClusterName:   &uc.clusterName,
 				NodegroupName: &name,
 			})
 			Expect(err).NotTo(HaveOccurred())
