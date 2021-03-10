@@ -35,8 +35,7 @@ func (c *StackCollection) createClusterTask(errs chan error, supportsManagedNode
 		return err
 	}
 
-	// Unlike with `createNodeGroupTask`, all tags are already set for the cluster stack
-	return c.CreateStack(name, stack, nil, nil, errs)
+	return c.createClusterStack(name, stack, errs)
 }
 
 // DescribeClusterStack calls DescribeStacks and filters out cluster stack
