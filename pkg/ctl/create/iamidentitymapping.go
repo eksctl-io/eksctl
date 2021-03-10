@@ -48,7 +48,7 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 		fs.StringArrayVar(&options.Groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
 		fs.StringVar(&options.ServiceName, "service-name", "", "Service name; valid value: emr-containers")
 		fs.StringVar(&options.Namespace, "namespace", "", "Namespace in which to create RBAC resources (only valid with --service-name)")
-		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &options.ARN)
+		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &options.ARN, "create")
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
