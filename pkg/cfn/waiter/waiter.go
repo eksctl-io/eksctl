@@ -15,9 +15,9 @@ type Waiter struct {
 }
 
 // Wait waits for the specified operation to complete.
-func (p *Waiter) Wait(ctx context.Context) error {
+func (w *Waiter) Wait(ctx context.Context) error {
 	for attempts := 1; ; attempts++ {
-		done, err := p.wait(ctx, p.NextDelay(attempts))
+		done, err := w.wait(ctx, w.NextDelay(attempts))
 		if err != nil {
 			return err
 		}
@@ -27,11 +27,20 @@ func (p *Waiter) Wait(ctx context.Context) error {
 	}
 }
 
-func (p *Waiter) wait(ctx context.Context, d time.Duration) (bool, error) {
+// WaitWithTimeout is a wrapper around Wait that takes a timeout value instead of a Context,
+// and returns a DeadlineExceeded error when the timeout expires.
+// It exists to allow interfacing with code that is not using contexts yet.
+func (w *Waiter) WaitWithTimeout(timeout time.Duration) error {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	return w.Wait(ctx)
+}
+
+func (w *Waiter) wait(ctx context.Context, d time.Duration) (bool, error) {
 	waitTimer := time.NewTimer(d)
 	select {
 	case <-waitTimer.C:
-		return p.Operation()
+		return w.Operation()
 
 	case <-ctx.Done():
 		waitTimer.Stop()
