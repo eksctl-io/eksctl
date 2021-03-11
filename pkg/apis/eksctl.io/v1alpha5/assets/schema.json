@@ -62,6 +62,15 @@
         "serviceAccountRoleARN": {
           "type": "string"
         },
+        "tags": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "The metadata to apply to the cluster to assist with categorization and organization. Each tag consists of a key and an optional value, both of which you define.",
+          "x-intellij-html-description": "The metadata to apply to the cluster to assist with categorization and organization. Each tag consists of a key and an optional value, both of which you define.",
+          "default": "{}"
+        },
         "version": {
           "type": "string"
         }
@@ -72,7 +81,8 @@
         "serviceAccountRoleARN",
         "attachPolicyARNs",
         "attachPolicy",
-        "permissionsBoundary"
+        "permissionsBoundary",
+        "tags"
       ],
       "additionalProperties": false,
       "description": "holds the EKS addon configuration",

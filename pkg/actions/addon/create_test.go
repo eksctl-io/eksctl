@@ -259,4 +259,21 @@ var _ = Describe("Create", func() {
 			Expect(*createAddonInput.ServiceAccountRoleArn).To(Equal("foo"))
 		})
 	})
+
+	When("tags are configured", func() {
+		It("uses the Tags to create the addon", func() {
+			err := manager.Create(&api.Addon{
+				Name:    "my-addon",
+				Version: "1.0",
+				Tags:    map[string]string{"foo": "bar", "fox": "brown"},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
+			Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
+			Expect(*createAddonInput.AddonName).To(Equal("my-addon"))
+			Expect(*createAddonInput.AddonVersion).To(Equal("1.0"))
+			Expect(*createAddonInput.Tags["foo"]).To(Equal("bar"))
+			Expect(*createAddonInput.Tags["fox"]).To(Equal("brown"))
+		})
+	})
 })
