@@ -168,7 +168,7 @@ func (d *DeleteUnownedNodegroupTask) Do() error {
 	}
 
 	if out != nil {
-		logger.Debug("Delete nodegroup %q output: %s", d.nodegroup, out.String())
+		logger.Debug("delete nodegroup %q output: %s", d.nodegroup, out.String())
 	}
 	return nil
 }
