@@ -10,8 +10,9 @@ import (
 )
 
 type createFargateStackTask struct {
-	cfg      *api.ClusterConfig
-	provider api.ClusterProvider
+	cfg          *api.ClusterConfig
+	provider     api.ClusterProvider
+	stackManager manager.StackManager
 }
 
 func (t *createFargateStackTask) Describe() string { return "create fargate IAM stacK" }
@@ -21,17 +22,15 @@ func makeClusterStackName(clusterName string) string {
 }
 
 func (t *createFargateStackTask) Do(errs chan error) error {
-	stackCollection := manager.NewStackCollection(t.provider, t.cfg)
 	rs := builder.NewFargateResourceSet(t.cfg)
 	if err := rs.AddAllResources(); err != nil {
 		return errors.Wrap(err, "couldn't add all resources to fargate resource set")
 	}
-	return stackCollection.CreateStack(makeClusterStackName(t.cfg.Metadata.Name), rs, nil, nil, errs)
+	return t.stackManager.CreateStack(makeClusterStackName(t.cfg.Metadata.Name), rs, nil, nil, errs)
 }
 
-// ensureUnownedClusterReadyForFargate creates fargate IAM resources if they
-// don't exist and are needed.
-func ensureUnownedClusterReadyForFargate(
+// ensureFargateRoleStackExists creates fargate IAM resources if they
+func ensureFargateRoleStackExists(
 	cfg *api.ClusterConfig, provider api.ClusterProvider, stackManager manager.StackManager,
 ) error {
 	if api.IsSetAndNonEmptyString(cfg.IAM.FargatePodExecutionRoleARN) {
@@ -42,16 +41,20 @@ func ensureUnownedClusterReadyForFargate(
 	if err != nil {
 		return err
 	}
+
 	if fargateStack == nil {
 		var taskTree tasks.TaskTree
 		taskTree.Append(&createFargateStackTask{
-			cfg:      cfg,
-			provider: provider,
+			cfg:          cfg,
+			provider:     provider,
+			stackManager: stackManager,
 		})
+
 		errs := taskTree.DoAllSync()
 		for _, e := range errs {
 			logger.Critical("%s\n", e.Error())
 		}
+
 		if len(errs) > 0 {
 			return errors.New("couldn't create fargate stack")
 		}
