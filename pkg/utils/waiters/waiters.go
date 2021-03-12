@@ -39,7 +39,7 @@ func WaitForCondition(waitTimeout, waitInterval time.Duration, returnErr error, 
 
 // Wait for something with a name to reach status that is expressed by acceptors using newRequest
 // until we hit waitTimeout, on unexpected status troubleshoot will be called with the desired
-// status as an argument, so that it can find what migth have gone wrong
+// status as an argument, so that it can find what might have gone wrong
 func Wait(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error {
 	desiredStatus := fmt.Sprintf("%v", acceptors[0].Expected)
 	name = strings.Join([]string{"wait", name, desiredStatus}, "_")
