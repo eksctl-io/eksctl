@@ -65,7 +65,7 @@ func doDeleteFargateProfile(cmd *cmdutils.Cmd, opts *fargate.Options) error {
 	}
 
 	clusterName := cmd.ClusterConfig.Metadata.Name
-	manager := fargate.NewFromProvider(clusterName, ctl.Provider)
+	manager := fargate.NewFromProvider(clusterName, ctl.Provider, ctl.NewStackManager(cmd.ClusterConfig))
 	if cmd.Wait {
 		logger.Info(deletingFargateProfileMsg(clusterName, opts.ProfileName))
 	} else {
