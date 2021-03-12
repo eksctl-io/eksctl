@@ -1,6 +1,7 @@
 package eks
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"regexp"
@@ -8,9 +9,9 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -448,7 +449,7 @@ func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *
 		return nil
 	}
 
-	condition := func() (bool, error) {
+	operation := func() (bool, error) {
 		_, err := clientSet.ServerVersion()
 		if err == nil {
 			return true, nil
@@ -457,5 +458,18 @@ func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *
 		return false, nil
 	}
 
-	return waiters.WaitForCondition(c.Provider.WaitTimeout(), time.Second*20, fmt.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.Provider.WaitTimeout()), condition)
+	w := waiter.Waiter{
+		Operation: operation,
+		NextDelay: func(_ int) time.Duration {
+			return 20 * time.Second
+		},
+	}
+
+	if err := w.WaitWithTimeout(c.Provider.WaitTimeout()); err != nil {
+		if err == context.DeadlineExceeded {
+			return errors.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.Provider.WaitTimeout())
+		}
+		return err
+	}
+	return nil
 }

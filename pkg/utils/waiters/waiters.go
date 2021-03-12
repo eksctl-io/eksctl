@@ -12,31 +12,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-func WaitForCondition(waitTimeout, waitInterval time.Duration, returnErr error, condition func() (bool, error)) error {
-	ticker := time.NewTicker(waitInterval)
-	defer ticker.Stop()
-
-	timer := time.NewTimer(waitTimeout)
-	defer timer.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			finished, err := condition()
-			if err != nil {
-				return err
-			}
-
-			if finished {
-				return nil
-			}
-
-		case <-timer.C:
-			return returnErr
-		}
-	}
-}
-
 // Wait for something with a name to reach status that is expressed by acceptors using newRequest
 // until we hit waitTimeout, on unexpected status troubleshoot will be called with the desired
 // status as an argument, so that it can find what might have gone wrong

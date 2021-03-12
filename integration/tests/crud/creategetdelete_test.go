@@ -200,7 +200,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		})
 
 		Context("and add a second (GPU) nodegroup", func() {
-			It("should not return an error", func() {
+			PIt("should not return an error", func() {
 				cmd := params.EksctlCreateCmd.WithArgs(
 					"nodegroup",
 					"--cluster", params.ClusterName,
@@ -226,29 +226,33 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						Not(ContainElement(testNG)),
 					)))
 				}
+				//{
+				//	cmd := params.EksctlGetCmd.WithArgs(
+				//		"nodegroup",
+				//		"-o", "json",
+				//		"--cluster", params.ClusterName,
+				//		testNG,
+				//	)
+				//	Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
+				//		HaveLen(1),
+				//		ContainElement(testNG),
+				//		Not(ContainElement(initNG)),
+				//	)))
+				//}
 				{
 					cmd := params.EksctlGetCmd.WithArgs(
 						"nodegroup",
 						"-o", "json",
 						"--cluster", params.ClusterName,
-						testNG,
 					)
+					//Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
+					//	HaveLen(2),
+					//	ContainElement(initNG),
+					//	ContainElement(testNG),
+					//)))
 					Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
 						HaveLen(1),
-						ContainElement(testNG),
-						Not(ContainElement(initNG)),
-					)))
-				}
-				{
-					cmd := params.EksctlGetCmd.WithArgs(
-						"nodegroup",
-						"-o", "json",
-						"--cluster", params.ClusterName,
-					)
-					Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
-						HaveLen(2),
 						ContainElement(initNG),
-						ContainElement(testNG),
 					)))
 				}
 			})
@@ -884,7 +888,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 
 			Context("and delete the second nodegroup", func() {
-				It("should not return an error", func() {
+				PIt("should not return an error", func() {
 					cmd := params.EksctlDeleteCmd.WithArgs(
 						"nodegroup",
 						"--verbose", "4",

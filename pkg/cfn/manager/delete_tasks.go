@@ -1,19 +1,21 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 
 	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
-	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
 // think Jake is deleting this soon
@@ -150,14 +152,23 @@ func (d *DeleteUnownedNodegroupTask) Do() error {
 	}
 
 	if d.wait != nil {
-		err := waiters.WaitForCondition(d.wait.Timeout, d.wait.Interval, fmt.Errorf("timed out waiting for nodegroup deletion after %s", d.wait.Timeout), d.wait.Condition)
-		if err != nil {
+		w := waiter.Waiter{
+			NextDelay: func(_ int) time.Duration {
+				return d.wait.Interval
+			},
+			Operation: d.wait.Condition,
+		}
+
+		if err := w.WaitWithTimeout(d.wait.Timeout); err != nil {
+			if err == context.DeadlineExceeded {
+				return errors.Errorf("timed out waiting for nodegroup deletion after %s", d.wait.Timeout)
+			}
 			return err
 		}
 	}
 
 	if out != nil {
-		logger.Debug("Delete nodegroup %q output: %s", d.nodegroup, out.String())
+		logger.Debug("delete nodegroup %q output: %s", d.nodegroup, out.String())
 	}
 	return nil
 }
