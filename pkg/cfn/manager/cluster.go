@@ -76,29 +76,21 @@ func (c *StackCollection) RefreshFargatePodExecutionRoleARN() error {
 	if err != nil {
 		return err
 	}
+	//check if fargate role is on the cluster stack
 	if stack != nil {
 		if err := outputs.Collect(*stack, nil, fargateOutputs); err != nil {
 			return err
 		}
 
-		if c.spec.IAM.FargatePodExecutionRoleARN == nil {
-			logger.Info("Fargate pod execution role is missing, fixing cluster stack to add Fargate resources")
-			if err := c.FixClusterCompatibility(); err != nil {
-				return errors.Wrap(err, "error fixing cluster compatibility")
-			}
+		if c.spec.IAM.FargatePodExecutionRoleARN != nil {
+			return nil
 		}
-		stack, err = c.DescribeClusterStack()
-		if err != nil {
-			return err
-		}
-		if stack == nil {
-			return &StackNotFoundErr{ClusterName: c.spec.Metadata.Name}
-		}
-	} else {
-		stack, err = c.GetFargateStack()
-		if err != nil {
-			return err
-		}
+	}
+
+	//check if fargate role is in separate stack
+	stack, err = c.GetFargateStack()
+	if err != nil {
+		return err
 	}
 
 	return outputs.Collect(*stack, fargateOutputs, nil)

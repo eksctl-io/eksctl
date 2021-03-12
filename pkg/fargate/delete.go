@@ -22,6 +22,33 @@ func (c *Client) DeleteProfile(name string, waitForDeletion bool) error {
 	if waitForDeletion {
 		return c.waitForDeletion(name)
 	}
+
+	profiles, err := c.api.ListFargateProfiles(&eks.ListFargateProfilesInput{
+		ClusterName: &c.clusterName,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	//If waitForDeletion is false then the profile might still exist until deletion finishes
+	if len(profiles.FargateProfileNames) == 0 ||
+		(len(profiles.FargateProfileNames) == 1 && *profiles.FargateProfileNames[0] == name) {
+		stack, err := c.stackManager.GetFargateStack()
+		if err != nil {
+			logger.Debug("failed to fetch fargate stack to delete, skipping deletion")
+			return nil
+		}
+
+		if stack == nil {
+			logger.Info("no fargate stack to delete")
+		} else {
+			logger.Info("deleting unused fargate role")
+			_, err = c.stackManager.DeleteStackByName(*stack.StackName)
+			return err
+		}
+	}
+
 	return nil
 }
 

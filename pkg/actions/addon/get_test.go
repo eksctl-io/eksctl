@@ -215,7 +215,6 @@ var _ = Describe("Get", func() {
 				_, err := manager.GetAll()
 				Expect(err).To(MatchError(`failed to list addons: foo`))
 				Expect(*listAddonsInput.ClusterName).To(Equal("my-cluster"))
-
 			})
 		})
 	})

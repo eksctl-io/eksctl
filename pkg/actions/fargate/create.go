@@ -3,8 +3,11 @@ package fargate
 import (
 	"fmt"
 
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 )
@@ -24,37 +27,61 @@ func (m *Manager) Create() error {
 		return fmt.Errorf("Fargate is not supported for this cluster version. Please update the cluster to be at least eks.%d", fargate.MinPlatformVersion)
 	}
 
-	stackManager := ctl.NewStackManager(cfg)
-
-	hasClusterStack, err := stackManager.HasClusterStack()
+	clusterStack, err := m.stackManager.DescribeClusterStack()
 	if err != nil {
-		return errors.Wrap(err, "couldn't check stack")
+		return errors.Wrap(err, "couldn't check cluster stack")
 	}
 
-	if !hasClusterStack {
-		if err := ensureUnownedClusterReadyForFargate(cfg, ctl.Provider, stackManager); err != nil {
-			return errors.Wrap(err, "couldn't ensure unowned cluster is ready for fargate")
-		}
-	} else {
-		if err := ctl.LoadClusterIntoSpecFromStack(cfg, stackManager); err != nil {
-			return errors.Wrap(err, "couldn't load cluster into spec")
-		}
-	}
+	fargateRoleNeeded := false
 
-	if !api.IsSetAndNonEmptyString(cfg.IAM.FargatePodExecutionRoleARN) {
-		// Read back the default Fargate pod execution role ARN from CloudFormation:
-		if err := stackManager.RefreshFargatePodExecutionRoleARN(); err != nil {
-			return errors.Wrap(err, "couldn't refresh role arn")
+	for _, profile := range cfg.FargateProfiles {
+		if profile.PodExecutionRoleARN == "" {
+			fargateRoleNeeded = true
+			break
 		}
 	}
 
-	manager := fargate.NewFromProvider(cfg.Metadata.Name, ctl.Provider)
-	if err := eks.DoCreateFargateProfiles(cfg, &manager); err != nil {
-		return err
+	if fargateRoleNeeded {
+		if clusterStack != nil {
+			if !m.fargateRoleExistsOnClusterStack(clusterStack) {
+				err := ensureFargateRoleStackExists(cfg, ctl.Provider, m.stackManager)
+				if err != nil {
+					return errors.Wrap(err, "couldn't ensure fargate role exists")
+				}
+			}
+			if err := ctl.LoadClusterIntoSpecFromStack(cfg, m.stackManager); err != nil {
+				return errors.Wrap(err, "couldn't load cluster into spec")
+			}
+		} else {
+			if err := ensureFargateRoleStackExists(cfg, ctl.Provider, m.stackManager); err != nil {
+				return errors.Wrap(err, "couldn't ensure unowned cluster is ready for fargate")
+			}
+		}
+
+		if !api.IsSetAndNonEmptyString(cfg.IAM.FargatePodExecutionRoleARN) {
+			// Read back the default Fargate pod execution role ARN from CloudFormation:
+			if err := m.stackManager.RefreshFargatePodExecutionRoleARN(); err != nil {
+				return errors.Wrap(err, "couldn't refresh role arn")
+			}
+		}
 	}
-	clientSet, err := ctl.NewStdClientSet(cfg)
+
+	fargateClient := fargate.NewFromProvider(cfg.Metadata.Name, ctl.Provider, m.stackManager)
+	if err := eks.DoCreateFargateProfiles(cfg, &fargateClient); err != nil {
+		return errors.Wrap(err, "could not create fargate profiles")
+	}
+	clientSet, err := m.newStdClientSet()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "couldn't create kubernetes client")
 	}
 	return eks.ScheduleCoreDNSOnFargateIfRelevant(cfg, ctl, clientSet)
+}
+
+func (m *Manager) fargateRoleExistsOnClusterStack(clusterStack *manager.Stack) bool {
+	for _, output := range clusterStack.Outputs {
+		if *output.OutputKey == outputs.FargatePodExecutionRoleARN {
+			return true
+		}
+	}
+	return false
 }
