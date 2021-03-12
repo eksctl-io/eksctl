@@ -18,7 +18,6 @@ import (
 	"github.com/weaveworks/eksctl/integration/tests"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/testutils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -39,7 +38,7 @@ func init() {
 }
 
 func TestInferentia(t *testing.T) {
-	testutils.RegisterAndRun(t)
+	//testutils.RegisterAndRun(t)
 }
 
 var _ = Describe("(Integration) Inferentia nodes", func() {
