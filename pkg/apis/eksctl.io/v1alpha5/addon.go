@@ -22,6 +22,10 @@ type Addon struct {
 	// ARN of the permissions boundary to associate
 	// +optional
 	PermissionsBoundary string `json:"permissionsBoundary,omitempty"`
+	// The metadata to apply to the cluster to assist with categorization and organization.
+	// Each tag consists of a key and an optional value, both of which you define.
+	// +optional
+	Tags map[string]string `json:"tags,omitempty"`
 	// Force applies the add-on to overwrite an existing add-on
 	Force bool
 }

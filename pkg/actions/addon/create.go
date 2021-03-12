@@ -40,6 +40,9 @@ func (a *Manager) Create(addon *api.Addon) error {
 	logger.Debug("addon: %v", addon)
 	namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
 
+	if len(addon.Tags) > 0 {
+		createAddonInput.Tags = aws.StringMap(addon.Tags)
+	}
 	if a.withOIDC {
 		if addon.ServiceAccountRoleARN != "" {
 			logger.Info("using provided ServiceAccountRoleARN %q", addon.ServiceAccountRoleARN)

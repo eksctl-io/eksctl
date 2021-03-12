@@ -25,6 +25,8 @@ addons:
   attachPolicyARNs: #optional
   - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
   serviceAccountRoleARN: arn:aws:iam::aws:policy/AmazonEKSCNIAccess # optional
+  tags: # optional
+    team: eks
   attachPolicy: # optional
     Statement:
     - Effect: Allow
