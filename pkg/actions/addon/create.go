@@ -40,7 +40,7 @@ func (a *Manager) Create(addon *api.Addon) error {
 	logger.Debug("addon: %v", addon)
 	namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
 
-	if addon.Tags != nil && len(addon.Tags) > 0 {
+	if len(addon.Tags) > 0 {
 		logger.Info("using provided Tags %q", addon.Tags)
 		awsTags := map[string]*string{}
 		for k, v := range addon.Tags {
