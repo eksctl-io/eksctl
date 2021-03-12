@@ -42,11 +42,7 @@ func (a *Manager) Create(addon *api.Addon) error {
 
 	if len(addon.Tags) > 0 {
 		logger.Info("using provided Tags %q", addon.Tags)
-		awsTags := map[string]*string{}
-		for k, v := range addon.Tags {
-			awsTags[k] = aws.String(v)
-		}
-		createAddonInput.Tags = awsTags
+		createAddonInput.Tags = aws.StringMap(addon.Tags)
 	}
 	if a.withOIDC {
 		if addon.ServiceAccountRoleARN != "" {
