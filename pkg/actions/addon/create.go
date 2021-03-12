@@ -41,7 +41,6 @@ func (a *Manager) Create(addon *api.Addon) error {
 	namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
 
 	if len(addon.Tags) > 0 {
-		logger.Info("using provided Tags %q", addon.Tags)
 		createAddonInput.Tags = aws.StringMap(addon.Tags)
 	}
 	if a.withOIDC {
