@@ -36,6 +36,7 @@ var _ = Describe("Delete", func() {
 		ranDeleteDeprecatedTasks bool
 		ranDeleteClusterTasks    bool
 		ctl                      *eks.ClusterProvider
+		fakeClientSet            *fake.Clientset
 	)
 
 	BeforeEach(func() {
@@ -91,7 +92,7 @@ var _ = Describe("Delete", func() {
 			}, nil)
 
 			c := cluster.NewOwnedCluster(cfg, ctl, fakeStackManager)
-			fakeClientSet := fake.NewSimpleClientset()
+			fakeClientSet = fake.NewSimpleClientset()
 
 			c.SetNewClientSet(func() (kubernetes.Interface, error) {
 				return fakeClientSet, nil

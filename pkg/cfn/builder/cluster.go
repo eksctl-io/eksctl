@@ -82,7 +82,7 @@ func (c *ClusterResourceSet) AddAllResources() error {
 	c.addResourcesForIAM()
 	c.addResourcesForControlPlane(vpcResource.SubnetDetails)
 
-	if c.fargateProfileRequired() {
+	if len(c.spec.FargateProfiles) > 0 {
 		c.addResourcesForFargate()
 	}
 
@@ -197,16 +197,6 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *subnetDe
 				return nil
 			})
 	}
-}
-
-func (c *ClusterResourceSet) fargateProfileRequired() bool {
-	for _, profile := range c.spec.FargateProfiles {
-		if profile.PodExecutionRoleARN == "" {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (c *ClusterResourceSet) addResourcesForFargate() {

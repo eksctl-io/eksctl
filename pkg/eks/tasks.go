@@ -234,7 +234,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 	}
 
 	if cfg.IsFargateEnabled() {
-		manager := fargate.NewFromProvider(cfg.Metadata.Name, c.Provider)
+		manager := fargate.NewFromProvider(cfg.Metadata.Name, c.Provider, c.NewStackManager(cfg))
 		newTasks.Append(&fargateProfilesTask{
 			info:            "create fargate profiles",
 			spec:            cfg,
