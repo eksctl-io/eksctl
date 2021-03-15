@@ -37,14 +37,14 @@ type commonClusterConfigLoader struct {
 }
 
 var (
-	defaultFlagsIncompatibleWithConfigFile = [...]string{
+	defaultFlagsIncompatibleWithConfigFile = []string{
 		"name",
 		"region",
 		"version",
 		"cluster",
 		"namepace",
 	}
-	defaultFlagsIncompatibleWithoutConfigFile = [...]string{
+	defaultFlagsIncompatibleWithoutConfigFile = []string{
 		"only",
 		"include",
 		"exclude",
@@ -59,9 +59,9 @@ func newCommonClusterConfigLoader(cmd *Cmd) *commonClusterConfigLoader {
 		Cmd: cmd,
 
 		validateWithConfigFile:             nilValidatorFunc,
-		flagsIncompatibleWithConfigFile:    sets.NewString(defaultFlagsIncompatibleWithConfigFile[:]...),
+		flagsIncompatibleWithConfigFile:    sets.NewString(defaultFlagsIncompatibleWithConfigFile...),
 		validateWithoutConfigFile:          nilValidatorFunc,
-		flagsIncompatibleWithoutConfigFile: sets.NewString(defaultFlagsIncompatibleWithoutConfigFile[:]...),
+		flagsIncompatibleWithoutConfigFile: sets.NewString(defaultFlagsIncompatibleWithoutConfigFile...),
 	}
 }
 
