@@ -15,10 +15,16 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
+type nodegroupOptions struct {
+	cmdutils.CreateNGOptions
+	cmdutils.CreateManagedNGOptions
+	UpdateAuthConfigMap bool
+}
+
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
-	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroup.CreateOpts, mngOptions cmdutils.CreateManagedNGOptions) error {
+	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroupOptions) error {
 		ngFilter := filter.NewNodeGroupFilter()
-		if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, mngOptions).Load(); err != nil {
+		if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, options.CreateManagedNGOptions).Load(); err != nil {
 			return errors.Wrap(err, "couldn't create node group filter from command line options")
 		}
 		ctl, err := cmd.NewCtl()
@@ -37,21 +43,22 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 		}
 
 		manager := nodegroup.New(cmd.ClusterConfig, ctl, clientSet)
-		return manager.Create(options, *ngFilter)
+		return manager.Create(nodegroup.CreateOpts{
+			InstallNeuronDevicePlugin: options.InstallNeuronDevicePlugin,
+			InstallNvidiaDevicePlugin: options.InstallNvidiaDevicePlugin,
+			UpdateAuthConfigMap:       options.UpdateAuthConfigMap,
+		}, *ngFilter)
 	})
 }
 
-type runFn func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroup.CreateOpts, mngOptions cmdutils.CreateManagedNGOptions) error
+type runFn func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroupOptions) error
 
 func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
-	var (
-		options    nodegroup.CreateOpts
-		mngOptions cmdutils.CreateManagedNGOptions
-	)
+	var options nodegroupOptions
 
 	cfg.Metadata.Version = "auto"
 
@@ -59,7 +66,7 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return runFunc(cmd, ng, options, mngOptions)
+		return runFunc(cmd, ng, options)
 	}
 
 	exampleNodeGroupName := names.ForNodeGroup("", "")
@@ -77,7 +84,7 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 
 	cmd.FlagSetGroup.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&ng.Name, "name", "n", "", fmt.Sprintf("name of the new nodegroup (generated if unspecified, e.g. %q)", exampleNodeGroupName))
-		cmdutils.AddCommonCreateNodeGroupFlags(fs, cmd, ng, &mngOptions)
+		cmdutils.AddCommonCreateNodeGroupFlags(fs, cmd, ng, &options.CreateManagedNGOptions)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Addons", func(fs *pflag.FlagSet) {
