@@ -72,10 +72,8 @@ func (l *commonClusterConfigLoader) Load() error {
 	}
 
 	if l.ClusterConfigFile == "" {
-		for f := range l.flagsIncompatibleWithoutConfigFile {
-			if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
-				return fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f)
-			}
+		if flagName, found := findChangedFlag(l.CobraCommand, l.flagsIncompatibleWithoutConfigFile.List()); found {
+			return errors.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", flagName)
 		}
 		return l.validateWithoutConfigFile()
 	}
@@ -94,10 +92,8 @@ func (l *commonClusterConfigLoader) Load() error {
 		return ErrMustBeSet("metadata")
 	}
 
-	for f := range l.flagsIncompatibleWithConfigFile {
-		if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
-			return ErrCannotUseWithConfigFile(fmt.Sprintf("--%s", f))
-		}
+	if flagName, found := findChangedFlag(l.CobraCommand, l.flagsIncompatibleWithConfigFile.List()); found {
+		return ErrCannotUseWithConfigFile(fmt.Sprintf("--%s", flagName))
 	}
 
 	if l.flagsIncompatibleWithConfigFile.Has("name") && l.NameArg != "" {
@@ -115,6 +111,15 @@ func (l *commonClusterConfigLoader) Load() error {
 
 	api.SetDefaultGitSettings(l.ClusterConfig)
 	return l.validateWithConfigFile()
+}
+
+func findChangedFlag(cmd *cobra.Command, flagNames []string) (string, bool) {
+	for _, f := range flagNames {
+		if flag := cmd.Flag(f); flag != nil && flag.Changed {
+			return f, true
+		}
+	}
+	return "", false
 }
 
 func validateMetadataWithoutConfigFile(cmd *Cmd) error {
@@ -406,18 +411,15 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup, options CreateManagedNGOptio
 
 func validateManagedNGFlags(cmd *cobra.Command, managed bool) error {
 	if managed {
-		for _, f := range incompatibleManagedNodesFlags() {
-			if flag := cmd.Flag(f); flag != nil && flag.Changed {
-				return ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", f))
-			}
+		if flagName, found := findChangedFlag(cmd, incompatibleManagedNodesFlags()); found {
+			return ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", flagName))
 		}
 		return nil
 	}
 	flagsValidOnlyWithMNG := []string{"spot", "instance-types"}
-	for _, f := range flagsValidOnlyWithMNG {
-		if flag := cmd.Flag(f); flag != nil && flag.Changed {
-			return errors.Errorf("--%s is only valid with managed nodegroups (--managed)", f)
-		}
+
+	if flagName, found := findChangedFlag(cmd, flagsValidOnlyWithMNG); found {
+		return errors.Errorf("--%s is only valid with managed nodegroups (--managed)", flagName)
 	}
 	return nil
 }
