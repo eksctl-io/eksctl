@@ -68,7 +68,14 @@ func incompatibleManagedNodesFlags() []string {
 }
 
 // AddCommonCreateNodeGroupIAMAddonsFlags adds flags to set ng.IAM.WithAddonPolicies
-func AddCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup) {
+func AddCommonCreateNodeGroupAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup, options CreateNGOptions) {
+	addCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
+	fs.BoolVarP(&options.InstallNeuronDevicePlugin, "install-neuron-plugin", "", true, "install Neuron plugin for Inferentia nodes")
+	fs.BoolVarP(&options.InstallNvidiaDevicePlugin, "install-nvidia-plugin", "", true, "install Nvidia plugin for GPU nodes")
+}
+
+// addCommonCreateNodeGroupIAMAddonsFlags adds flags to set ng.IAM.WithAddonPolicies
+func addCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup) {
 	ng.IAM.WithAddonPolicies.AutoScaler = new(bool)
 	ng.IAM.WithAddonPolicies.ExternalDNS = new(bool)
 	ng.IAM.WithAddonPolicies.ImageBuilder = new(bool)
