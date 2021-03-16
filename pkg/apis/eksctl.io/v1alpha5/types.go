@@ -673,9 +673,10 @@ func NewClusterVPC() *ClusterVPC {
 		Network: Network{
 			CIDR: &cidr,
 		},
-		NAT:              DefaultClusterNAT(),
-		AutoAllocateIPv6: Disabled(),
-		ClusterEndpoints: &ClusterEndpoints{},
+		ManageSharedNodeSecurityGroupRules: Enabled(),
+		NAT:                                DefaultClusterNAT(),
+		AutoAllocateIPv6:                   Disabled(),
+		ClusterEndpoints:                   &ClusterEndpoints{},
 	}
 }
 

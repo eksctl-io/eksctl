@@ -136,6 +136,11 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		logger.Warning(api.ErrClusterEndpointPrivateOnly.Error())
 	}
 
+	// if using a custom shared node security group, warn that the rules are managed by default
+	if cfg.VPC.SharedNodeSecurityGroup != "" && api.IsEnabled(cfg.VPC.ManageSharedNodeSecurityGroupRules) {
+		logger.Warning("security group rules may be added by eksctl; see vpc.manageSharedNodeSecurityGroupRules to disable this behavior")
+	}
+
 	if params.AutoKubeconfigPath {
 		if params.KubeconfigPath != kubeconfig.DefaultPath() {
 			return fmt.Errorf("--kubeconfig and --auto-kubeconfig %s", cmdutils.IncompatibleFlags)

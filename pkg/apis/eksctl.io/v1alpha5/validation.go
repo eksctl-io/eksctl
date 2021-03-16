@@ -135,6 +135,11 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return errors.New("field secretsEncryption.keyARN is required for enabling secrets encryption")
 	}
 
+	// manageSharedNodeSecurityGroupRules cannot be disabled if using eksctl managed security groups
+	if cfg.VPC.SharedNodeSecurityGroup == "" && IsDisabled(cfg.VPC.ManageSharedNodeSecurityGroupRules) {
+		return errors.New("vpc.manageSharedNodeSecurityGroupRules must be enabled when using ekstcl-managed security groups")
+	}
+
 	return nil
 }
 
