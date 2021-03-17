@@ -186,8 +186,8 @@ func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options 
 		return fmt.Errorf("failed to create nodegroups for cluster %q", m.cfg.Metadata.Name)
 	}
 
-	for _, ng := range m.cfg.NodeGroups {
-		if options.UpdateAuthConfigMap {
+	if options.UpdateAuthConfigMap {
+		for _, ng := range m.cfg.NodeGroups {
 			// authorise nodes to join
 			if err := authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
 				return err

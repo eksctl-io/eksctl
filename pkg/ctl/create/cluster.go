@@ -76,9 +76,7 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Cluster and nodegroup add-ons", func(fs *pflag.FlagSet) {
-		fs.BoolVarP(&params.InstallNeuronDevicePlugin, "install-neuron-plugin", "", true, "install Neuron plugin for Inferentia nodes")
-		fs.BoolVarP(&params.InstallNvidiaDevicePlugin, "install-nvidia-plugin", "", true, "install Nvidia plugin for GPU nodes")
-		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
+		cmdutils.AddCommonCreateNodeGroupAddonsFlags(fs, ng, params.CreateNGOptions)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {
