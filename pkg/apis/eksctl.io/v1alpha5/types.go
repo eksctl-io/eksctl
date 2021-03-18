@@ -614,7 +614,7 @@ type ClusterConfig struct {
 	// +optional
 	SecretsEncryption *SecretsEncryption `json:"secretsEncryption,omitempty"`
 
-	Status *ClusterStatus `json:"status,omitempty"`
+	Status *ClusterStatus `json:"-"`
 
 	// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 	// Git exposes configuration for Flux v1 and an earlier iteration of gitops
@@ -1339,7 +1339,9 @@ type ManagedNodeGroup struct {
 	// for the nodegroup
 	LaunchTemplate *LaunchTemplate `json:"launchTemplate,omitempty"`
 
-	Unowned bool
+	// Internal fields
+
+	Unowned bool `json:"-"`
 }
 
 func (m *ManagedNodeGroup) InstanceTypeList() []string {
