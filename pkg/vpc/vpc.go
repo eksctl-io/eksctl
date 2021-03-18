@@ -37,8 +37,8 @@ func SetSubnets(vpc *api.ClusterVPC, availabilityZones []string) error {
 		vpc.CIDR = &cidr
 	}
 	prefix, _ := vpc.CIDR.Mask.Size()
-	if (prefix < 16) || (prefix > 24) {
-		return fmt.Errorf("VPC CIDR prefix must be between /16 and /24")
+	if prefix < 16 || prefix > 24 {
+		return errors.New("VPC CIDR prefix must be between /16 and /24")
 	}
 	zonesTotal := len(availabilityZones)
 
@@ -488,7 +488,7 @@ func ImportSubnetsFromSpec(provider api.ClusterProvider, spec *api.ClusterConfig
 	if err := importSubnetsForTopology(provider.EC2(), spec, api.SubnetTopologyPublic); err != nil {
 		return err
 	}
-	// to clean up invalid subnets based on AZ after imported both private and public subnets
+	// to clean up invalid subnets based on AZ after importing both private and public subnets
 	cleanupSubnets(spec)
 	return nil
 }
