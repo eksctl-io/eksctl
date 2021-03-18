@@ -50,6 +50,15 @@ var (
 		"exclude",
 		"only-missing",
 	}
+
+	commonCreateFlagsIncompatibleWithDryRun = []string{
+		"cfn-disable-rollback",
+		"cfn-role-arn",
+		"install-neuron-plugin",
+		"install-nvidia-plugin",
+		"profile",
+		"timeout",
+	}
 )
 
 func newCommonClusterConfigLoader(cmd *Cmd) *commonClusterConfigLoader {
@@ -196,6 +205,23 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 
 	l.flagsIncompatibleWithoutConfigFile.Insert("install-vpc-controllers")
 
+	validateDryRun := func() error {
+		if !params.DryRun {
+			return nil
+		}
+
+		flagsIncompatibleWithDryRun := append([]string{
+			"authenticator-role-arn",
+			"auto-kubeconfig",
+			"install-vpc-controllers",
+			"kubeconfig",
+			"set-kubeconfig-context",
+			"write-kubeconfig",
+		}, commonCreateFlagsIncompatibleWithDryRun...)
+
+		return validateDryRunOptions(l.CobraCommand, flagsIncompatibleWithDryRun)
+	}
+
 	l.validateWithConfigFile = func() error {
 		clusterConfig := l.ClusterConfig
 		if clusterConfig.VPC == nil {
@@ -264,7 +290,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			}
 		}
 
-		return nil
+		return validateDryRun()
 	}
 
 	l.validateWithoutConfigFile = func() error {
@@ -314,10 +340,17 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			ng.Name = names.ForNodeGroup(ng.Name, "")
 		}
 
-		return nil
+		return validateDryRun()
 	}
 
 	return l
+}
+
+func validateDryRunOptions(cmd *cobra.Command, incompatibleFlags []string) error {
+	if flagName, found := findChangedFlag(cmd, incompatibleFlags); found {
+		return errors.Errorf("cannot use --%s with --dry-run as this option cannot be represented in ClusterConfig", flagName)
+	}
+	return nil
 }
 
 // NewCreateNodeGroupLoader will load config or use flags for 'eksctl create nodegroup'
