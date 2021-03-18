@@ -7,7 +7,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider) *tasks.TaskTree {
+func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, forceAll bool) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: false}
 
 	taskTree.Append(
@@ -16,6 +16,7 @@ func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvid
 			addons:          cfg.Addons,
 			cfg:             cfg,
 			clusterProvider: clusterProvider,
+			forceAll:        forceAll,
 		},
 	)
 	return taskTree
@@ -26,6 +27,7 @@ type createAddonTask struct {
 	cfg             *api.ClusterConfig
 	clusterProvider *eks.ClusterProvider
 	addons          []*api.Addon
+	forceAll        bool
 }
 
 func (t *createAddonTask) Describe() string { return t.info }
@@ -58,6 +60,9 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 	}
 
 	for _, a := range t.addons {
+		if t.forceAll {
+			a.Force = true
+		}
 		err := addonManager.Create(a)
 		if err != nil {
 			go func() {
