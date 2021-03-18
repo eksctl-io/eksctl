@@ -18,6 +18,7 @@ type CreateClusterCmdParams struct {
 	Subnets               map[api.SubnetTopology]*[]string
 	WithoutNodeGroup      bool
 	Fargate               bool
+	DryRun                bool
 	CreateNGOptions
 	CreateManagedNGOptions
 }

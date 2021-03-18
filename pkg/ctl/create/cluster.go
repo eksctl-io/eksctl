@@ -2,6 +2,8 @@ package create
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"strings"
 
 	"github.com/weaveworks/eksctl/pkg/kops"
@@ -67,6 +69,7 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 		fs.BoolVarP(&params.InstallWindowsVPCController, "install-vpc-controllers", "", false, "Install VPC controller that's required for Windows workloads")
 		fs.BoolVarP(&params.Fargate, "fargate", "", false, "Create a Fargate profile scheduling pods in the default and kube-system namespaces onto Fargate")
+		fs.BoolVarP(&params.DryRun, "dry-run", "", false, "Dry-run mode that skips cluster creation and outputs a ClusterConfig")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
@@ -107,6 +110,11 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	if err != nil {
 		return err
 	}
+
+	if params.DryRun {
+		logger.Writer = io.Discard
+	}
+
 	cmdutils.LogRegionAndVersionInfo(meta)
 
 	if cfg.Metadata.Version == "" || cfg.Metadata.Version == "auto" {
@@ -174,6 +182,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 
 	if err := createOrImportVPC(cmd, cfg, params, ctl); err != nil {
 		return err
+	}
+
+	if params.DryRun {
+		return cmdutils.PrintDryRunConfig(cfg, os.Stdout)
 	}
 
 	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider)
@@ -362,6 +374,12 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 
 	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets
 	if !subnetsGiven && params.KopsClusterNameForVPC == "" {
+		// Skip setting AZs and subnets
+		// The default subnet config set by SetSubnets will fail validation on a subsequent run of `create cluster`
+		// because those fields indicate usage of pre-existing VPC and subnets
+		if params.DryRun {
+			return nil
+		}
 		// default: create dedicated VPC
 		if err := ctl.SetAvailabilityZones(cfg, params.AvailabilityZones); err != nil {
 			return err
@@ -390,6 +408,10 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 			return err
 		}
 
+		if params.DryRun {
+			return nil
+		}
+
 		if err := kw.UseVPC(ctl.Provider.EC2(), cfg); err != nil {
 			return err
 		}
@@ -410,6 +432,10 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 	}
 	if cmd.CobraCommand.Flag("vpc-cidr").Changed {
 		return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --vpc-cidr %s", cmdutils.IncompatibleFlags)
+	}
+
+	if params.DryRun {
+		return nil
 	}
 
 	if err := vpc.ImportSubnetsFromSpec(ctl.Provider, cfg); err != nil {
