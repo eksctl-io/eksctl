@@ -52,7 +52,7 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 		cfg.PrivateCluster = &PrivateCluster{}
 	}
 
-	if cfg.VPC.ManageSharedNodeSecurityGroupRules == nil {
+	if cfg.VPC != nil && cfg.VPC.ManageSharedNodeSecurityGroupRules == nil {
 		cfg.VPC.ManageSharedNodeSecurityGroupRules = Enabled()
 	}
 }
