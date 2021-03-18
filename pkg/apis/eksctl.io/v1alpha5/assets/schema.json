@@ -217,9 +217,6 @@
         "secretsEncryption": {
           "$ref": "#/definitions/SecretsEncryption"
         },
-        "status": {
-          "$ref": "#/definitions/ClusterStatus"
-        },
         "vpc": {
           "$ref": "#/definitions/ClusterVPC"
         }
@@ -240,7 +237,6 @@
         "availabilityZones",
         "cloudWatch",
         "secretsEncryption",
-        "status",
         "git",
         "gitops"
       ],
@@ -522,39 +518,6 @@
       "description": "NAT config",
       "x-intellij-html-description": "NAT config"
     },
-    "ClusterStatus": {
-      "properties": {
-        "arn": {
-          "type": "string"
-        },
-        "certificateAuthorityData": {
-          "items": {
-            "type": "string",
-            "contentEncoding": "base64"
-          },
-          "type": "array"
-        },
-        "eksctlCreated": {
-          "$ref": "#/definitions/EKSCTLCreated"
-        },
-        "endpoint": {
-          "type": "string"
-        },
-        "stackName": {
-          "type": "string"
-        }
-      },
-      "preferredOrder": [
-        "endpoint",
-        "certificateAuthorityData",
-        "arn",
-        "stackName",
-        "eksctlCreated"
-      ],
-      "additionalProperties": false,
-      "description": "hold read-only attributes of a cluster",
-      "x-intellij-html-description": "hold read-only attributes of a cluster"
-    },
     "ClusterSubnets": {
       "properties": {
         "private": {
@@ -647,9 +610,6 @@
       "additionalProperties": false,
       "description": "holds global subnet and all child subnets",
       "x-intellij-html-description": "holds global subnet and all child subnets"
-    },
-    "EKSCTLCreated": {
-      "type": "string"
     },
     "FargateProfile": {
       "required": [
