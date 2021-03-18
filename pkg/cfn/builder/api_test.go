@@ -261,9 +261,10 @@ func testVPC() *api.ClusterVPC {
 		NAT: &api.ClusterNAT{
 			Gateway: &disable,
 		},
-		SecurityGroup:           "sg-0b44c48bcba5b7362",
-		SharedNodeSecurityGroup: "sg-shared",
-		AutoAllocateIPv6:        api.Disabled(),
+		SecurityGroup:                      "sg-0b44c48bcba5b7362",
+		SharedNodeSecurityGroup:            "sg-shared",
+		ManageSharedNodeSecurityGroupRules: api.Enabled(),
+		AutoAllocateIPv6:                   api.Disabled(),
 		Subnets: &api.ClusterSubnets{
 			Public: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 				"us-west-2b": {

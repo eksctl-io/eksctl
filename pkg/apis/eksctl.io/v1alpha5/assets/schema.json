@@ -598,6 +598,12 @@
         "id": {
           "type": "string"
         },
+        "manageSharedNodeSecurityGroupRules": {
+          "type": "boolean",
+          "description": "Automatically add security group rules to and from the default cluster security group and the shared node security group. This allows unmanaged nodes to communicate with the control plane and managed nodes. This option cannot be disabled when using eksctl created security groups.",
+          "x-intellij-html-description": "Automatically add security group rules to and from the default cluster security group and the shared node security group. This allows unmanaged nodes to communicate with the control plane and managed nodes. This option cannot be disabled when using eksctl created security groups.",
+          "default": true
+        },
         "nat": {
           "$ref": "#/definitions/ClusterNAT"
         },
@@ -632,6 +638,7 @@
         "subnets",
         "extraCIDRs",
         "sharedNodeSecurityGroup",
+        "manageSharedNodeSecurityGroupRules",
         "autoAllocateIPv6",
         "nat",
         "clusterEndpoints",

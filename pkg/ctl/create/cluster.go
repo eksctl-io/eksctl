@@ -76,9 +76,7 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Cluster and nodegroup add-ons", func(fs *pflag.FlagSet) {
-		fs.BoolVarP(&params.InstallNeuronDevicePlugin, "install-neuron-plugin", "", true, "install Neuron plugin for Inferentia nodes")
-		fs.BoolVarP(&params.InstallNvidiaDevicePlugin, "install-nvidia-plugin", "", true, "install Nvidia plugin for GPU nodes")
-		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
+		cmdutils.AddCommonCreateNodeGroupAddonsFlags(fs, ng, params.CreateNGOptions)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {
@@ -134,6 +132,11 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	// if it's a private only cluster warn the user
 	if api.PrivateOnly(cfg.VPC.ClusterEndpoints) {
 		logger.Warning(api.ErrClusterEndpointPrivateOnly.Error())
+	}
+
+	// if using a custom shared node security group, warn that the rules are managed by default
+	if cfg.VPC.SharedNodeSecurityGroup != "" && api.IsEnabled(cfg.VPC.ManageSharedNodeSecurityGroupRules) {
+		logger.Warning("security group rules may be added by eksctl; see vpc.manageSharedNodeSecurityGroupRules to disable this behavior")
 	}
 
 	if params.AutoKubeconfigPath {

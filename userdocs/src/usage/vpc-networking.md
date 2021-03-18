@@ -334,6 +334,33 @@ nodeGroups:
         clusterDNS: ["169.254.20.10","172.20.0.10"]
 ```
 
+## Custom Shared Node Security Group
+
+`eksctl` will create and manage a shared node security group that allows communication between
+unmanaged nodes and the cluster control plane and managed nodes.
+
+If you wish to provide your own custom security group instead, you may override the `sharedNodeSecurityGroup`
+field in the config file:
+
+
+```yaml
+vpc:
+  sharedNodeSecurityGroup: sg-0123456789
+```
+
+By default, when creating the cluster, `eksctl` will add rules to this security group to allow communication to and
+from the default cluster security group that EKS creates. The default cluster security group is used by both
+the EKS control plane and managed node groups.
+
+If you wish to manage the security group rules yourself, you may prevent `eksctl` from creating the rules
+by setting `manageSharedNodeSecurityGroupRules` to `false` in the config file:
+
+```yaml
+vpc:
+  sharedNodeSecurityGroup: sg-0123456789
+  manageSharedNodeSecurityGroupRules: false
+```
+
 ## NAT Gateway
 
 The NAT Gateway for a cluster can be configured to be `Disabled`, `Single` (default) or `HighlyAvailable`.

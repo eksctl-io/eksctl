@@ -139,6 +139,14 @@ type (
 		ExtraCIDRs []*ipnet.IPNet `json:"extraCIDRs,omitempty"`
 		// for pre-defined shared node SG
 		SharedNodeSecurityGroup string `json:"sharedNodeSecurityGroup,omitempty"`
+		// Automatically add security group rules to and from the default
+		// cluster security group and the shared node security group.
+		// This allows unmanaged nodes to communicate with the control plane
+		// and managed nodes.
+		// This option cannot be disabled when using eksctl created security groups.
+		// Defaults to `true`
+		// +optional
+		ManageSharedNodeSecurityGroupRules *bool `json:"manageSharedNodeSecurityGroupRules,omitempty"`
 		// AutoAllocateIPV6 requests an IPv6 CIDR block with /56 prefix for the VPC
 		// +optional
 		AutoAllocateIPv6 *bool `json:"autoAllocateIPv6,omitempty"`
