@@ -207,38 +207,6 @@ jobs:
           only_for_branches: ""
           failure_message: ':red_circle: `eksctl` $CIRCLE_TAG release failed!'
           success_message: ':tada: `eksctl` $CIRCLE_TAG released!'
-  integration-tests:
-    machine:
-      image: ubuntu-1604:201903-01
-    environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:242d3cf855385c4cb174cd0fadf6dc7ac4f76a55
-    steps:
-      - checkout
-      - add_ssh_keys:
-          fingerprints:
-            - "82:cb:ed:40:f3:27:05:e6:16:9d:68:25:40:7d:83:07"
-            - "81:df:39:29:89:d6:34:ed:2e:4e:70:71:f1:f3:f6:0c"
-      - prepare-ssh-keys
-      - restore-cache
-      - docker-pull-build-image
-      - run: mkdir test-results
-      - docker-run:
-          cmd: make integration-test
-          timeout: 35m
-          options: >-
-            --init
-            --env=TEST_V=1
-            --env=GIT_SSH_COMMAND="ssh -i /root/.ssh/${SSH_KEY_NAME}"
-            --env=AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            --env=AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            --env=GITHUB_TOKEN=$EKSCTLBOT_TOKEN
-      - store_test_results:
-          path: ./test-results
-      - store_artifacts:
-          path: ./test-results
-      - notify-slack:
-          fail_only: false
-          only_for_branches: main
 
 workflows:
   version: 2
@@ -277,16 +245,6 @@ workflows:
               ignore: /.*/
             tags:
               only: /^[0-9]+\.[0-9]+\.[0-9]+/
-  scheduled-integration-tests:
-    triggers:
-      - schedule:
-          cron: "0 3 * * *"
-          filters:
-            branches:
-              only:
-                - main
-    jobs:
-      - integration-tests
   nightly-build:
     triggers:
       - schedule:
