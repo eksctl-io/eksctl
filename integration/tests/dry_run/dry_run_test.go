@@ -203,12 +203,12 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 		Expect(output).To(ContainSubstring(fmt.Sprintf("cannot use %s with --dry-run", strings.Split(flag, "=")[0])))
 
 	},
-		Entry("Install NVIDIA plugin", "--install-nvidia-plugin"),
-		Entry("Install Neuron plugin", "--install-neuron-plugin"),
-		Entry("Set kubectl config", "--set-kubeconfig-context"),
-		Entry("Write kubectl config", "--write-kubeconfig"),
-		Entry("Set CFN flag", "--cfn-disable-rollback"),
-		Entry("Set profile flag", "--profile=aws"),
+		Entry("install NVIDIA plugin", "--install-nvidia-plugin"),
+		Entry("install Neuron plugin", "--install-neuron-plugin"),
+		Entry("set kubectl config", "--set-kubeconfig-context"),
+		Entry("write kubectl config", "--write-kubeconfig"),
+		Entry("set CFN flag", "--cfn-disable-rollback"),
+		Entry("set profile option", "--profile=aws"),
 	)
 
 })
