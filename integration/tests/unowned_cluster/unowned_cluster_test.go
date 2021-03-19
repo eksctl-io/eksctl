@@ -226,7 +226,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"cluster",
 				"--name", params.ClusterName,
 				"--version", "1.19",
-				"--timeout", "1h30m0s",
+				"--timeout", "1h30m",
 				"--approve",
 				"--verbose", "2",
 			)
