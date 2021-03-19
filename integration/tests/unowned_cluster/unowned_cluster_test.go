@@ -300,7 +300,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"--name", mng1,
 				"--cluster", params.ClusterName,
 				"--kubernetes-version", "1.19",
-				"--timeout", "1h30m0s",
+				"--timeout", "1h30m",
 				"--wait",
 				"--verbose", "2",
 			)
