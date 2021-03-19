@@ -156,7 +156,7 @@ const (
 )
 
 // Values for `NodeAMIFamily`
-// All valid values should go in this block
+// All valid values of supported families should go in this block
 const (
 	// DefaultNodeImageFamily (default)
 	DefaultNodeImageFamily      = NodeImageFamilyAmazonLinux2
@@ -167,7 +167,6 @@ const (
 
 	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
 	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
-	NodeImageFamilyWindowsServer1909CoreContainer = "WindowsServer1909CoreContainer"
 	NodeImageFamilyWindowsServer2004CoreContainer = "WindowsServer2004CoreContainer"
 )
 
@@ -418,6 +417,19 @@ func SupportedNodeVolumeTypes() []string {
 		NodeVolumeTypeIO1,
 		NodeVolumeTypeSC1,
 		NodeVolumeTypeST1,
+	}
+}
+
+// supportedAMIFamilies are the AMI families supported by EKS
+func supportedAMIFamilies() []string {
+	return []string{
+		NodeImageFamilyAmazonLinux2,
+		NodeImageFamilyUbuntu2004,
+		NodeImageFamilyUbuntu1804,
+		NodeImageFamilyBottlerocket,
+		NodeImageFamilyWindowsServer2019CoreContainer,
+		NodeImageFamilyWindowsServer2019FullContainer,
+		NodeImageFamilyWindowsServer2004CoreContainer,
 	}
 }
 

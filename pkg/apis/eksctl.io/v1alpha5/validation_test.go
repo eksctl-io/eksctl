@@ -1,4 +1,4 @@
-package v1alpha5
+package v1alpha5_test
 
 import (
 	"fmt"
@@ -7,18 +7,19 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 var _ = Describe("ClusterConfig validation", func() {
 	Describe("nodeGroups[*].name", func() {
 		var (
-			cfg *ClusterConfig
+			cfg *api.ClusterConfig
 			err error
 		)
 
 		BeforeEach(func() {
-			cfg = NewClusterConfig()
+			cfg = api.NewClusterConfig()
 			ng0 := cfg.NewNodeGroup()
 			ng0.Name = "ng0"
 			ng1 := cfg.NewNodeGroup()
@@ -26,11 +27,11 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 
 		It("should handle unique nodegroups", func() {
-			err = ValidateClusterConfig(cfg)
+			err = api.ValidateClusterConfig(cfg)
 			Expect(err).ToNot(HaveOccurred())
 
 			for i, ng := range cfg.NodeGroups {
-				err = ValidateNodeGroup(i, ng)
+				err = api.ValidateNodeGroup(i, ng)
 				Expect(err).ToNot(HaveOccurred())
 			}
 		})
@@ -39,26 +40,26 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg.NodeGroups[0].Name = "ng"
 			cfg.NodeGroups[1].Name = "ng"
 
-			err = ValidateClusterConfig(cfg)
+			err = api.ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
 		})
 
 		It("should handle unamed nodegroups", func() {
 			cfg.NodeGroups[0].Name = ""
 
-			err = ValidateClusterConfig(cfg)
+			err = api.ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
 		})
 	})
 
 	Describe("nodeGroups[*].volumeX", func() {
 		var (
-			cfg *ClusterConfig
-			ng0 *NodeGroup
+			cfg *api.ClusterConfig
+			ng0 *api.NodeGroup
 		)
 
 		BeforeEach(func() {
-			cfg = NewClusterConfig()
+			cfg = api.NewClusterConfig()
 			ng0 = cfg.NewNodeGroup()
 			ng0.Name = "ng0"
 		})
@@ -70,56 +71,56 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			When("VolumeType is gp3", func() {
 				BeforeEach(func() {
-					*ng0.VolumeType = NodeVolumeTypeGP3
+					*ng0.VolumeType = api.NodeVolumeTypeGP3
 				})
 
 				It("does not fail", func() {
-					Expect(ValidateNodeGroup(0, ng0)).To(Succeed())
+					Expect(api.ValidateNodeGroup(0, ng0)).To(Succeed())
 				})
 
-				When(fmt.Sprintf("the value of volumeIOPS is < %d", minGP3Iops), func() {
+				When(fmt.Sprintf("the value of volumeIOPS is < %d", api.MinGP3Iops), func() {
 					It("returns an error", func() {
-						ng0.VolumeIOPS = aws.Int(minGP3Iops - 1)
-						Expect(ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeIOPS must be within range 3000-16000"))
+						ng0.VolumeIOPS = aws.Int(api.MinGP3Iops - 1)
+						Expect(api.ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeIOPS must be within range 3000-16000"))
 					})
 				})
 
-				When(fmt.Sprintf("the value of volumeIOPS is > %d", maxGP3Iops), func() {
+				When(fmt.Sprintf("the value of volumeIOPS is > %d", api.MaxGP3Iops), func() {
 					It("returns an error", func() {
-						ng0.VolumeIOPS = aws.Int(maxGP3Iops + 1)
-						Expect(ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeIOPS must be within range 3000-16000"))
+						ng0.VolumeIOPS = aws.Int(api.MaxGP3Iops + 1)
+						Expect(api.ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeIOPS must be within range 3000-16000"))
 					})
 				})
 			})
 
 			When("VolumeType is io1", func() {
 				BeforeEach(func() {
-					*ng0.VolumeType = NodeVolumeTypeIO1
+					*ng0.VolumeType = api.NodeVolumeTypeIO1
 				})
 
 				It("does not fail", func() {
-					Expect(ValidateNodeGroup(0, ng0)).To(Succeed())
+					Expect(api.ValidateNodeGroup(0, ng0)).To(Succeed())
 				})
 
-				When(fmt.Sprintf("the value of volumeIOPS is < %d", minIO1Iops), func() {
+				When(fmt.Sprintf("the value of volumeIOPS is < %d", api.MinIO1Iops), func() {
 					It("returns an error", func() {
-						ng0.VolumeIOPS = aws.Int(minIO1Iops - 1)
-						Expect(ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeIOPS must be within range 100-64000"))
+						ng0.VolumeIOPS = aws.Int(api.MinIO1Iops - 1)
+						Expect(api.ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeIOPS must be within range 100-64000"))
 					})
 				})
 
-				When(fmt.Sprintf("the value of volumeIOPS is > %d", maxIO1Iops), func() {
+				When(fmt.Sprintf("the value of volumeIOPS is > %d", api.MaxIO1Iops), func() {
 					It("returns an error", func() {
-						ng0.VolumeIOPS = aws.Int(maxIO1Iops + 1)
-						Expect(ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeIOPS must be within range 100-64000"))
+						ng0.VolumeIOPS = aws.Int(api.MaxIO1Iops + 1)
+						Expect(api.ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeIOPS must be within range 100-64000"))
 					})
 				})
 			})
 
 			When("VolumeType is one for which IOPS is not supported", func() {
 				It("returns an error", func() {
-					*ng0.VolumeType = NodeVolumeTypeGP2
-					Expect(ValidateNodeGroup(0, ng0)).To(MatchError("nodeGroups[0].volumeIOPS is only supported for io1 and gp3 volume types"))
+					*ng0.VolumeType = api.NodeVolumeTypeGP2
+					Expect(api.ValidateNodeGroup(0, ng0)).To(MatchError("nodeGroups[0].volumeIOPS is only supported for io1 and gp3 volume types"))
 				})
 			})
 		})
@@ -131,32 +132,32 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			When("VolumeType is gp3", func() {
 				BeforeEach(func() {
-					*ng0.VolumeType = NodeVolumeTypeGP3
+					*ng0.VolumeType = api.NodeVolumeTypeGP3
 				})
 
 				It("does not fail", func() {
-					Expect(ValidateNodeGroup(0, ng0)).To(Succeed())
+					Expect(api.ValidateNodeGroup(0, ng0)).To(Succeed())
 				})
 
-				When(fmt.Sprintf("the value of volumeThroughput is < %d", minThroughput), func() {
+				When(fmt.Sprintf("the value of volumeThroughput is < %d", api.MinThroughput), func() {
 					It("returns an error", func() {
-						ng0.VolumeThroughput = aws.Int(minThroughput - 1)
-						Expect(ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeThroughput must be within range 125-1000"))
+						ng0.VolumeThroughput = aws.Int(api.MinThroughput - 1)
+						Expect(api.ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeThroughput must be within range 125-1000"))
 					})
 				})
 
-				When(fmt.Sprintf("the value of volumeIOPS is > %d", maxThroughput), func() {
+				When(fmt.Sprintf("the value of volumeIOPS is > %d", api.MaxThroughput), func() {
 					It("returns an error", func() {
-						ng0.VolumeThroughput = aws.Int(maxThroughput + 1)
-						Expect(ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeThroughput must be within range 125-1000"))
+						ng0.VolumeThroughput = aws.Int(api.MaxThroughput + 1)
+						Expect(api.ValidateNodeGroup(0, ng0)).To(MatchError("value for nodeGroups[0].volumeThroughput must be within range 125-1000"))
 					})
 				})
 			})
 
 			When("VolumeType is one for which Throughput is not supported", func() {
 				It("returns an error", func() {
-					*ng0.VolumeType = NodeVolumeTypeGP2
-					Expect(ValidateNodeGroup(0, ng0)).To(MatchError("nodeGroups[0].volumeThroughput is only supported for gp3 volume type"))
+					*ng0.VolumeType = api.NodeVolumeTypeGP2
+					Expect(api.ValidateNodeGroup(0, ng0)).To(MatchError("nodeGroups[0].volumeThroughput is only supported for gp3 volume type"))
 				})
 			})
 		})
@@ -164,13 +165,13 @@ var _ = Describe("ClusterConfig validation", func() {
 
 	Describe("nodeGroups[*].iam", func() {
 		var (
-			cfg *ClusterConfig
+			cfg *api.ClusterConfig
 			err error
-			ng1 *NodeGroup
+			ng1 *api.NodeGroup
 		)
 
 		BeforeEach(func() {
-			cfg = NewClusterConfig()
+			cfg = api.NewClusterConfig()
 
 			ng0 := cfg.NewNodeGroup()
 			ng0.Name = "ng0"
@@ -179,20 +180,20 @@ var _ = Describe("ClusterConfig validation", func() {
 				"arn:aws:iam::aws:policy/Foo",
 				"arn:aws:iam::aws:policy/Bar",
 			}
-			ng0.IAM.WithAddonPolicies.ExternalDNS = Enabled()
-			ng0.IAM.WithAddonPolicies.AWSLoadBalancerController = Enabled()
-			ng0.IAM.WithAddonPolicies.ImageBuilder = Enabled()
+			ng0.IAM.WithAddonPolicies.ExternalDNS = api.Enabled()
+			ng0.IAM.WithAddonPolicies.AWSLoadBalancerController = api.Enabled()
+			ng0.IAM.WithAddonPolicies.ImageBuilder = api.Enabled()
 
 			ng1 = cfg.NewNodeGroup()
 			ng1.Name = "ng1"
 		})
 
 		JustBeforeEach(func() {
-			err = ValidateClusterConfig(cfg)
+			err = api.ValidateClusterConfig(cfg)
 			Expect(err).ToNot(HaveOccurred())
 
 			for i, ng := range cfg.NodeGroups {
-				err = ValidateNodeGroup(i, ng)
+				err = api.ValidateNodeGroup(i, ng)
 				Expect(err).ToNot(HaveOccurred())
 			}
 		})
@@ -200,14 +201,14 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("should allow setting only instanceProfileARN", func() {
 			ng1.IAM.InstanceProfileARN = "p1"
 
-			err = ValidateNodeGroup(1, ng1)
+			err = api.ValidateNodeGroup(1, ng1)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should allow setting only instanceRoleARN", func() {
 			ng1.IAM.InstanceRoleARN = "r1"
 
-			err = ValidateNodeGroup(1, ng1)
+			err = api.ValidateNodeGroup(1, ng1)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -215,7 +216,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng1.IAM.InstanceProfileARN = "p1"
 			ng1.IAM.InstanceRoleARN = "r1"
 
-			err = ValidateNodeGroup(1, ng1)
+			err = api.ValidateNodeGroup(1, ng1)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -223,7 +224,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng1.IAM.InstanceProfileARN = "p1"
 			ng1.IAM.InstanceRoleName = "aRole"
 
-			err = ValidateNodeGroup(1, ng1)
+			err = api.ValidateNodeGroup(1, ng1)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceProfileARN and nodeGroups[1].iam.instanceRoleName cannot be set at the same time"))
 		})
@@ -232,7 +233,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng1.IAM.InstanceProfileARN = "p1"
 			ng1.IAM.InstanceRolePermissionsBoundary = "aPolicy"
 
-			err = ValidateNodeGroup(1, ng1)
+			err = api.ValidateNodeGroup(1, ng1)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceProfileARN and nodeGroups[1].iam.instanceRolePermissionsBoundary cannot be set at the same time"))
 		})
@@ -241,7 +242,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng1.IAM.InstanceRoleARN = "r1"
 			ng1.IAM.InstanceRolePermissionsBoundary = "p1"
 
-			err = ValidateNodeGroup(1, ng1)
+			err = api.ValidateNodeGroup(1, ng1)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceRoleARN and nodeGroups[1].iam.instanceRolePermissionsBoundary cannot be set at the same time"))
 		})
@@ -250,7 +251,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng1.IAM.InstanceRoleARN = "r1"
 			ng1.IAM.InstanceRoleName = "aRole"
 
-			err = ValidateNodeGroup(1, ng1)
+			err = api.ValidateNodeGroup(1, ng1)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceRoleARN and nodeGroups[1].iam.instanceRoleName cannot be set at the same time"))
 		})
@@ -262,7 +263,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				"arn:aws:iam::aws:policy/Bar",
 			}
 
-			err = ValidateNodeGroup(1, ng1)
+			err = api.ValidateNodeGroup(1, ng1)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceRoleARN and nodeGroups[1].iam.attachPolicyARNs cannot be set at the same time"))
 		})
@@ -270,9 +271,9 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("should not allow setting instanceRoleARN and withAddonPolicies", func() {
 			ng1.IAM.InstanceRoleARN = "r1"
 
-			ng1.IAM.WithAddonPolicies.ExternalDNS = Enabled()
+			ng1.IAM.WithAddonPolicies.ExternalDNS = api.Enabled()
 
-			err = ValidateNodeGroup(1, ng1)
+			err = api.ValidateNodeGroup(1, ng1)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceRoleARN and nodeGroups[1].iam.withAddonPolicies.externalDNS cannot be set at the same time"))
 		})
@@ -281,51 +282,51 @@ var _ = Describe("ClusterConfig validation", func() {
 
 	Describe("iam.{withOIDC,serviceAccounts}", func() {
 		var (
-			cfg *ClusterConfig
+			cfg *api.ClusterConfig
 			err error
 		)
 
 		BeforeEach(func() {
-			cfg = NewClusterConfig()
+			cfg = api.NewClusterConfig()
 		})
 
 		It("should pass when iam.withOIDC is unset", func() {
 			cfg.IAM.WithOIDC = nil
 
-			err = ValidateClusterConfig(cfg)
+			err = api.ValidateClusterConfig(cfg)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should pass when iam.withOIDC is disabled", func() {
-			cfg.IAM.WithOIDC = Disabled()
+			cfg.IAM.WithOIDC = api.Disabled()
 
-			err = ValidateClusterConfig(cfg)
+			err = api.ValidateClusterConfig(cfg)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should pass when iam.withOIDC is enabled", func() {
-			cfg.IAM.WithOIDC = Enabled()
+			cfg.IAM.WithOIDC = api.Enabled()
 
-			err = ValidateClusterConfig(cfg)
+			err = api.ValidateClusterConfig(cfg)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should fail when iam.withOIDC is disabled and some iam.serviceAccounts are given", func() {
-			cfg.IAM.WithOIDC = Disabled()
+			cfg.IAM.WithOIDC = api.Disabled()
 
-			cfg.IAM.ServiceAccounts = []*ClusterIAMServiceAccount{{}, {}}
+			cfg.IAM.ServiceAccounts = []*api.ClusterIAMServiceAccount{{}, {}}
 			cfg.IAM.ServiceAccounts[0].Name = "sa-1"
 			cfg.IAM.ServiceAccounts[1].Name = "sa-2"
 
-			err = ValidateClusterConfig(cfg)
+			err = api.ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(HavePrefix("iam.withOIDC must be enabled explicitly"))
 		})
 
 		It("should pass when iam.withOIDC is enabled and some iam.serviceAccounts are given", func() {
-			cfg.IAM.WithOIDC = Enabled()
+			cfg.IAM.WithOIDC = api.Enabled()
 
-			cfg.IAM.ServiceAccounts = []*ClusterIAMServiceAccount{{}, {}}
+			cfg.IAM.ServiceAccounts = []*api.ClusterIAMServiceAccount{{}, {}}
 
 			cfg.IAM.ServiceAccounts[0].Name = "sa-1"
 			cfg.IAM.ServiceAccounts[0].AttachPolicyARNs = []string{""}
@@ -333,35 +334,35 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg.IAM.ServiceAccounts[1].Name = "sa-2"
 			cfg.IAM.ServiceAccounts[1].AttachPolicy = map[string]interface{}{"Statement": "foo"}
 
-			err = ValidateClusterConfig(cfg)
+			err = api.ValidateClusterConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should fail when unnamed iam.serviceAccounts[1] is given", func() {
-			cfg.IAM.WithOIDC = Enabled()
+			cfg.IAM.WithOIDC = api.Enabled()
 
-			cfg.IAM.ServiceAccounts = []*ClusterIAMServiceAccount{{}, {}}
+			cfg.IAM.ServiceAccounts = []*api.ClusterIAMServiceAccount{{}, {}}
 			cfg.IAM.ServiceAccounts[0].Name = "sa-1"
 			cfg.IAM.ServiceAccounts[0].AttachPolicyARNs = []string{""}
 
 			cfg.IAM.ServiceAccounts[1].Name = ""
 			cfg.IAM.ServiceAccounts[1].AttachPolicy = map[string]interface{}{"Statement": "foo"}
 
-			err = ValidateClusterConfig(cfg)
+			err = api.ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(HavePrefix("iam.serviceAccounts[1].name must be set"))
 		})
 
 		It("should fail when iam.serviceAccounts[1] has no policy", func() {
-			cfg.IAM.WithOIDC = Enabled()
+			cfg.IAM.WithOIDC = api.Enabled()
 
-			cfg.IAM.ServiceAccounts = []*ClusterIAMServiceAccount{{}, {}}
+			cfg.IAM.ServiceAccounts = []*api.ClusterIAMServiceAccount{{}, {}}
 			cfg.IAM.ServiceAccounts[0].Name = "sa-1"
 			cfg.IAM.ServiceAccounts[0].AttachPolicyARNs = []string{""}
 
 			cfg.IAM.ServiceAccounts[1].Name = "sa-2"
 
-			err = ValidateClusterConfig(cfg)
+			err = api.ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
 
 			Expect(err.Error()).To(SatisfyAll(
@@ -372,9 +373,9 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 
 		It("should fail when non-uniquely named iam.serviceAccounts are given", func() {
-			cfg.IAM.WithOIDC = Enabled()
+			cfg.IAM.WithOIDC = api.Enabled()
 
-			cfg.IAM.ServiceAccounts = []*ClusterIAMServiceAccount{{}, {}, {}, {}, {}}
+			cfg.IAM.ServiceAccounts = []*api.ClusterIAMServiceAccount{{}, {}, {}, {}, {}}
 			cfg.IAM.ServiceAccounts[0].Name = "sa-1"
 			cfg.IAM.ServiceAccounts[0].AttachPolicyARNs = []string{""}
 
@@ -392,13 +393,13 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg.IAM.ServiceAccounts[4].Name = "sa-1"
 			cfg.IAM.ServiceAccounts[4].AttachPolicy = map[string]interface{}{"Statement": "foo"}
 
-			err = ValidateClusterConfig(cfg)
+			err = api.ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(HavePrefix("<namespace>/<name> of iam.serviceAccounts[2] \"ns-2/sa-2\" is not unique"))
 
 			cfg.IAM.ServiceAccounts[2].Namespace = "ns-3"
 
-			err = ValidateClusterConfig(cfg)
+			err = api.ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(HavePrefix("<namespace>/<name> of iam.serviceAccounts[4] \"/sa-1\" is not unique"))
 		})
@@ -406,77 +407,77 @@ var _ = Describe("ClusterConfig validation", func() {
 
 	Describe("cloudWatch.clusterLogging", func() {
 		var (
-			cfg *ClusterConfig
+			cfg *api.ClusterConfig
 			err error
 		)
 
 		BeforeEach(func() {
-			cfg = NewClusterConfig()
+			cfg = api.NewClusterConfig()
 		})
 
 		It("should handle known types", func() {
 			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"api"}
 
-			err = ValidateClusterConfig(cfg)
+			err = api.ValidateClusterConfig(cfg)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should handle unknown types", func() {
 			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"anything"}
 
-			err = ValidateClusterConfig(cfg)
+			err = api.ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
 		})
 	})
 
 	Describe("cluster endpoint access config", func() {
 		var (
-			cfg *ClusterConfig
-			vpc *ClusterVPC
+			cfg *api.ClusterConfig
+			vpc *api.ClusterVPC
 			err error
 		)
 
 		BeforeEach(func() {
-			cfg = NewClusterConfig()
-			vpc = NewClusterVPC()
+			cfg = api.NewClusterConfig()
+			vpc = api.NewClusterVPC()
 			cfg.VPC = vpc
 		})
 
 		It("should not error on private=true, public=true", func() {
 			cfg.VPC.ClusterEndpoints =
-				&ClusterEndpoints{PrivateAccess: Enabled(), PublicAccess: Enabled()}
+				&api.ClusterEndpoints{PrivateAccess: api.Enabled(), PublicAccess: api.Enabled()}
 			err = cfg.ValidateClusterEndpointConfig()
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should not error on private=false, public=true", func() {
 			cfg.VPC.ClusterEndpoints =
-				&ClusterEndpoints{PrivateAccess: Disabled(), PublicAccess: Enabled()}
+				&api.ClusterEndpoints{PrivateAccess: api.Disabled(), PublicAccess: api.Enabled()}
 			err = cfg.ValidateClusterEndpointConfig()
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should not error on private=true, public=false", func() {
 			cfg.VPC.ClusterEndpoints =
-				&ClusterEndpoints{PrivateAccess: Enabled(), PublicAccess: Disabled()}
+				&api.ClusterEndpoints{PrivateAccess: api.Enabled(), PublicAccess: api.Disabled()}
 			err = cfg.ValidateClusterEndpointConfig()
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should error on private=false, public=false", func() {
-			cfg.VPC.ClusterEndpoints = &ClusterEndpoints{PrivateAccess: Disabled(), PublicAccess: Disabled()}
+			cfg.VPC.ClusterEndpoints = &api.ClusterEndpoints{PrivateAccess: api.Disabled(), PublicAccess: api.Disabled()}
 			err = cfg.ValidateClusterEndpointConfig()
-			Expect(err).To(BeIdenticalTo(ErrClusterEndpointNoAccess))
+			Expect(err).To(BeIdenticalTo(api.ErrClusterEndpointNoAccess))
 		})
 	})
 
 	Describe("cpuCredits", func() {
-		var ng *NodeGroup
+		var ng *api.NodeGroup
 		BeforeEach(func() {
 			unlimited := "unlimited"
-			ng = &NodeGroup{
-				NodeGroupBase: &NodeGroupBase{},
-				InstancesDistribution: &NodeGroupInstancesDistribution{
+			ng = &api.NodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{},
+				InstancesDistribution: &api.NodeGroupInstancesDistribution{
 					InstanceTypes: []string{"t3.medium", "t3.large"},
 				},
 				CPUCredits: &unlimited,
@@ -485,25 +486,25 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		It("works independent of instanceType", func() {
 			Context("unset", func() {
-				err := validateCPUCredits(ng)
+				err := api.ValidateNodeGroup(0, ng)
 				Expect(err).ToNot(HaveOccurred())
 			})
 			Context("set", func() {
 				ng.InstanceType = "mixed"
-				err := validateCPUCredits(ng)
+				err := api.ValidateNodeGroup(0, ng)
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 
 		It("errors if no instance distribution", func() {
 			ng.InstancesDistribution = nil
-			err := validateCPUCredits(ng)
+			err := api.ValidateNodeGroup(0, ng)
 			Expect(err).To(HaveOccurred())
 		})
 
-		It("errors if no t instance types", func() {
+		It("errors if no instance types", func() {
 			ng.InstancesDistribution.InstanceTypes = []string{}
-			err := validateCPUCredits(ng)
+			err := api.ValidateNodeGroup(0, ng)
 			Expect(err).To(HaveOccurred())
 		})
 	})
@@ -513,142 +514,143 @@ var _ = Describe("ClusterConfig validation", func() {
 			testKeyPath = "some/path/to/file.pub"
 			testKeyName = "id_rsa.pub"
 			testKey     = "THIS IS A KEY"
+			ng          *api.NodeGroup
 		)
 
+		BeforeEach(func() {
+			ng = newNodeGroup()
+		})
+
 		It("fails when a key path and a key name are specified", func() {
-			SSHConfig := &NodeGroupSSH{
-				Allow:         Enabled(),
+			SSHConfig := &api.NodeGroupSSH{
+				Allow:         api.Enabled(),
 				PublicKeyPath: &testKeyPath,
 				PublicKeyName: &testKeyName,
 			}
 
-			checkItDetectsError(SSHConfig)
+			ng.SSH = SSHConfig
+			err := api.ValidateNodeGroup(0, ng)
+			Expect(err).To(MatchError("only one of PublicKeyName, PublicKeyPath or PublicKey public key can be specified for SSH per node-group"))
 		})
 
 		It("fails when a key path and a key are specified", func() {
-			SSHConfig := &NodeGroupSSH{
-				Allow:         Enabled(),
+			SSHConfig := &api.NodeGroupSSH{
+				Allow:         api.Enabled(),
 				PublicKeyPath: &testKeyPath,
 				PublicKey:     &testKey,
 			}
 
-			checkItDetectsError(SSHConfig)
+			ng.SSH = SSHConfig
+			err := api.ValidateNodeGroup(0, ng)
+			Expect(err).To(MatchError("only one of PublicKeyName, PublicKeyPath or PublicKey public key can be specified for SSH per node-group"))
 		})
 
 		It("fails when a key name and a key are specified", func() {
-			SSHConfig := &NodeGroupSSH{
-				Allow:         Enabled(),
+			SSHConfig := &api.NodeGroupSSH{
+				Allow:         api.Enabled(),
 				PublicKeyName: &testKeyName,
 				PublicKey:     &testKey,
 			}
 
-			checkItDetectsError(SSHConfig)
+			ng.SSH = SSHConfig
+			err := api.ValidateNodeGroup(0, ng)
+			Expect(err).To(MatchError("only one of PublicKeyName, PublicKeyPath or PublicKey public key can be specified for SSH per node-group"))
 		})
 
 		Context("Instances distribution", func() {
-
-			var ng *NodeGroup
+			var ng *api.NodeGroup
 			BeforeEach(func() {
-				ng = &NodeGroup{
-					NodeGroupBase: &NodeGroupBase{},
-					InstancesDistribution: &NodeGroupInstancesDistribution{
-						InstanceTypes: []string{"t3.medium", "t3.large"},
+				ng = &api.NodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{},
+					InstancesDistribution: &api.NodeGroupInstancesDistribution{
+						InstanceTypes:                       []string{"t3.medium", "t3.large"},
+						OnDemandBaseCapacity:                newInt(1),
+						SpotInstancePools:                   newInt(2),
+						OnDemandPercentageAboveBaseCapacity: newInt(50),
 					},
 				}
 			})
 
 			It("It doesn't panic when instance distribution is not enabled", func() {
 				ng.InstancesDistribution = nil
-				err := validateInstancesDistribution(ng)
+				err := api.ValidateNodeGroup(0, ng)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("It fails when instance distribution is enabled and instanceType is not empty or \"mixed\"", func() {
-				err := validateInstancesDistribution(ng)
-				Expect(err).ToNot(HaveOccurred())
+			It("It doesn't fail when instance distribution is enabled and instanceType is \"mixed\"", func() {
+				ng.InstanceType = "mixed"
+				ng.InstancesDistribution.InstanceTypes = []string{"t3.medium"}
 
+				err := api.ValidateNodeGroup(0, ng)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("It fails when instance distribution is enabled and instanceType set", func() {
 				ng.InstanceType = "t3.small"
 
-				err = validateInstancesDistribution(ng)
+				err := api.ValidateNodeGroup(0, ng)
 				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("instanceType should be \"mixed\" or unset when using the instances distribution feature"))
 			})
 
 			It("It fails when the instance distribution doesn't have any instance type", func() {
 				ng.InstanceType = "mixed"
 				ng.InstancesDistribution.InstanceTypes = []string{}
 
-				err := validateInstancesDistribution(ng)
-				Expect(err).To(HaveOccurred())
-
-				ng.InstanceType = "mixed"
-				ng.InstancesDistribution.InstanceTypes = []string{"t3.medium"}
-
-				err = validateInstancesDistribution(ng)
-				Expect(err).ToNot(HaveOccurred())
+				err := api.ValidateNodeGroup(0, ng)
+				Expect(err).To(MatchError("at least two instance types have to be specified for mixed nodegroups"))
 			})
 
 			It("It fails when the onDemandBaseCapacity is not above 0", func() {
 				ng.InstancesDistribution.OnDemandBaseCapacity = newInt(-1)
 
-				err := validateInstancesDistribution(ng)
-				Expect(err).To(HaveOccurred())
-
-				ng.InstancesDistribution.OnDemandBaseCapacity = newInt(1)
-
-				err = validateInstancesDistribution(ng)
-				Expect(err).ToNot(HaveOccurred())
+				err := api.ValidateNodeGroup(0, ng)
+				Expect(err).To(MatchError("onDemandBaseCapacity should be 0 or more"))
 			})
 
 			It("It fails when the spotInstancePools is not between 1 and 20", func() {
 				ng.InstancesDistribution.SpotInstancePools = newInt(0)
 
-				err := validateInstancesDistribution(ng)
-				Expect(err).To(HaveOccurred())
+				err := api.ValidateNodeGroup(0, ng)
+				Expect(err).To(MatchError("spotInstancePools should be between 1 and 20"))
 
 				ng.InstancesDistribution.SpotInstancePools = newInt(21)
-				err = validateInstancesDistribution(ng)
+				err = api.ValidateNodeGroup(0, ng)
 				Expect(err).To(HaveOccurred())
-
-				ng.InstancesDistribution.SpotInstancePools = newInt(2)
-				err = validateInstancesDistribution(ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).To(MatchError("spotInstancePools should be between 1 and 20"))
 			})
 
 			It("It fails when the onDemandPercentageAboveBaseCapacity is not between 0 and 100", func() {
 				ng.InstancesDistribution.OnDemandPercentageAboveBaseCapacity = newInt(-1)
 
-				err := validateInstancesDistribution(ng)
-				Expect(err).To(HaveOccurred())
+				err := api.ValidateNodeGroup(0, ng)
+				Expect(err).To(MatchError("percentageAboveBase should be between 0 and 100"))
 
 				ng.InstancesDistribution.OnDemandPercentageAboveBaseCapacity = newInt(101)
-				err = validateInstancesDistribution(ng)
-				Expect(err).To(HaveOccurred())
-
-				ng.InstancesDistribution.OnDemandPercentageAboveBaseCapacity = newInt(50)
-				err = validateInstancesDistribution(ng)
-				Expect(err).ToNot(HaveOccurred())
+				err = api.ValidateNodeGroup(0, ng)
+				Expect(err).To(MatchError("percentageAboveBase should be between 0 and 100"))
 			})
 
 			It("It fails when the spotAllocationStrategy is not a supported strategy", func() {
 				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("unsupported-strategy")
 
-				err := validateInstancesDistribution(ng)
-				Expect(err).To(HaveOccurred())
+				err := api.ValidateNodeGroup(0, ng)
+				Expect(err).To(MatchError("spotAllocationStrategy should be one of: lowest-price, capacity-optimized"))
 			})
 
 			It("It fails when the spotAllocationStrategy is capacity-optimized and spotInstancePools is specified", func() {
 				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("capacity-optimized")
 				ng.InstancesDistribution.SpotInstancePools = newInt(2)
 
-				err := validateInstancesDistribution(ng)
-				Expect(err).To(HaveOccurred())
+				err := api.ValidateNodeGroup(0, ng)
+				Expect(err).To(MatchError("spotInstancePools cannot be specified when also specifying spotAllocationStrategy: capacity-optimized"))
 			})
 
 			It("It does not fail when the spotAllocationStrategy is lowest-price and spotInstancePools is specified", func() {
 				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("lowest-price")
 				ng.InstancesDistribution.SpotInstancePools = newInt(2)
 
-				err := validateInstancesDistribution(ng)
+				err := api.ValidateNodeGroup(0, ng)
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -657,7 +659,7 @@ var _ = Describe("ClusterConfig validation", func() {
 	Describe("kubelet extra config", func() {
 		Context("Instances distribution", func() {
 
-			var ng *NodeGroup
+			var ng *api.NodeGroup
 			BeforeEach(func() {
 				ng = newNodeGroup()
 			})
@@ -667,16 +669,16 @@ var _ = Describe("ClusterConfig validation", func() {
 					"authorization", "serverTLSBootstrap"}
 
 				for _, key := range testKeys {
-					ng.KubeletExtraConfig = &InlineDocument{
+					ng.KubeletExtraConfig = &api.InlineDocument{
 						key: "should-not-be-allowed",
 					}
-					err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig)
-					Expect(err).To(HaveOccurred())
+					err := api.ValidateNodeGroup(0, ng)
+					Expect(err).To(MatchError(fmt.Sprintf("cannot override \"%s\" in kubelet config, as it's critical to eksctl functionality", key)))
 				}
 			})
 
 			It("Allows other kubelet options", func() {
-				ng.KubeletExtraConfig = &InlineDocument{
+				ng.KubeletExtraConfig = &api.InlineDocument{
 					"kubeReserved": map[string]string{
 						"cpu":               "300m",
 						"memory":            "300Mi",
@@ -689,10 +691,9 @@ var _ = Describe("ClusterConfig validation", func() {
 						"VolumeSnapshotDataSource": true,
 					},
 				}
-				err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig)
+				err := api.ValidateNodeGroup(0, ng)
 				Expect(err).ToNot(HaveOccurred())
 			})
-
 		})
 	})
 
@@ -707,7 +708,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		Context("Encrypted workers", func() {
 
-			var ng *NodeGroup
+			var ng *api.NodeGroup
 			BeforeEach(func() {
 				ng = newNodeGroup()
 			})
@@ -717,7 +718,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				ng.VolumeSize = &volSize
 				ng.VolumeEncrypted = nil
 				ng.VolumeKmsKeyID = &kmsKeyID
-				err := ValidateNodeGroup(0, ng)
+				err := api.ValidateNodeGroup(0, ng)
 				Expect(err).To(HaveOccurred())
 			})
 
@@ -726,7 +727,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				ng.VolumeSize = &volSize
 				ng.VolumeEncrypted = &disabled
 				ng.VolumeKmsKeyID = &kmsKeyID
-				err := ValidateNodeGroup(0, ng)
+				err := api.ValidateNodeGroup(0, ng)
 				Expect(err).To(HaveOccurred())
 			})
 
@@ -735,7 +736,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				ng.VolumeSize = &volSize
 				ng.VolumeEncrypted = &enabled
 				ng.VolumeKmsKeyID = &kmsKeyID
-				err := ValidateNodeGroup(0, ng)
+				err := api.ValidateNodeGroup(0, ng)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -745,8 +746,8 @@ var _ = Describe("ClusterConfig validation", func() {
 	Describe("FargateProfile", func() {
 		Describe("Validate", func() {
 			It("returns an error when the profile's name is empty", func() {
-				profile := FargateProfile{
-					Selectors: []FargateProfileSelector{
+				profile := api.FargateProfile{
+					Selectors: []api.FargateProfileSelector{
 						{Namespace: "default"},
 					},
 				}
@@ -756,7 +757,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 
 			It("returns an error when the profile has a nil selectors array", func() {
-				profile := FargateProfile{
+				profile := api.FargateProfile{
 					Name: "default",
 				}
 				err := profile.Validate()
@@ -765,9 +766,9 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 
 			It("returns an error when the profile has an empty selectors array", func() {
-				profile := FargateProfile{
+				profile := api.FargateProfile{
 					Name:      "default",
-					Selectors: []FargateProfileSelector{},
+					Selectors: []api.FargateProfileSelector{},
 				}
 				err := profile.Validate()
 				Expect(err).To(HaveOccurred())
@@ -775,9 +776,9 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 
 			It("returns an error when the profile's selectors do not have any namespace defined", func() {
-				profile := FargateProfile{
+				profile := api.FargateProfile{
 					Name: "default",
-					Selectors: []FargateProfileSelector{
+					Selectors: []api.FargateProfileSelector{
 						{},
 					},
 				}
@@ -787,9 +788,9 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 
 			It("returns an error when the profile's name starts with eks-", func() {
-				profile := FargateProfile{
+				profile := api.FargateProfile{
 					Name: "eks-foo",
-					Selectors: []FargateProfileSelector{
+					Selectors: []api.FargateProfileSelector{
 						{Namespace: "default"},
 					},
 				}
@@ -799,9 +800,9 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 
 			It("passes when a name and at least one selector with a namespace is defined", func() {
-				profile := FargateProfile{
+				profile := api.FargateProfile{
 					Name: "default",
-					Selectors: []FargateProfileSelector{
+					Selectors: []api.FargateProfileSelector{
 						{Namespace: "default"},
 					},
 				}
@@ -810,9 +811,9 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 
 			It("passes when a name and multiple selectors with a namespace is defined", func() {
-				profile := FargateProfile{
+				profile := api.FargateProfile{
 					Name: "default",
-					Selectors: []FargateProfileSelector{
+					Selectors: []api.FargateProfileSelector{
 						{
 							Namespace: "default",
 						},
@@ -830,23 +831,23 @@ var _ = Describe("ClusterConfig validation", func() {
 	Describe("Bottlerocket node groups", func() {
 		It("returns an error with unsupported fields", func() {
 			cmd := "/usr/bin/some-command"
-			doc := InlineDocument{
+			doc := api.InlineDocument{
 				"cgroupDriver": "systemd",
 			}
 
-			ngs := map[string]*NodeGroup{
+			ngs := map[string]*api.NodeGroup{
 				"PreBootstrapCommands": {
-					NodeGroupBase: &NodeGroupBase{
+					NodeGroupBase: &api.NodeGroupBase{
 						PreBootstrapCommands: []string{"/usr/bin/env true"},
 					}},
 				"OverrideBootstrapCommand": {
-					NodeGroupBase: &NodeGroupBase{
+					NodeGroupBase: &api.NodeGroupBase{
 						OverrideBootstrapCommand: &cmd,
 					}},
 				"KubeletExtraConfig": {KubeletExtraConfig: &doc},
 				"overlapping Bottlerocket settings": {
-					Bottlerocket: &NodeGroupBottlerocket{
-						Settings: &InlineDocument{
+					Bottlerocket: &api.NodeGroupBottlerocket{
+						Settings: &api.InlineDocument{
 							"kubernetes": map[string]interface{}{
 								"node-labels": map[string]string{
 									"mylabel.example.com": "value",
@@ -859,22 +860,22 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			for name, ng := range ngs {
 				if ng.NodeGroupBase == nil {
-					ng.NodeGroupBase = &NodeGroupBase{}
+					ng.NodeGroupBase = &api.NodeGroupBase{}
 				}
-				ng.AMIFamily = NodeImageFamilyBottlerocket
-				err := ValidateNodeGroup(0, ng)
-				Expect(err).To(HaveOccurred(), "Expected an error when provided %s", name)
+				ng.AMIFamily = api.NodeImageFamilyBottlerocket
+				err := api.ValidateNodeGroup(0, ng)
+				Expect(err).To(HaveOccurred(), "foo", name)
 			}
 		})
 
 		It("has no error with supported fields", func() {
 			x := 32
-			ngs := []*NodeGroup{
-				{NodeGroupBase: &NodeGroupBase{Labels: map[string]string{"label": "label-value"}}},
-				{NodeGroupBase: &NodeGroupBase{MaxPodsPerNode: x}},
+			ngs := []*api.NodeGroup{
+				{NodeGroupBase: &api.NodeGroupBase{Labels: map[string]string{"label": "label-value"}}},
+				{NodeGroupBase: &api.NodeGroupBase{MaxPodsPerNode: x}},
 				{
-					NodeGroupBase: &NodeGroupBase{
-						ScalingConfig: &ScalingConfig{
+					NodeGroupBase: &api.NodeGroupBase{
+						ScalingConfig: &api.ScalingConfig{
 							MinSize: &x,
 						},
 					},
@@ -882,23 +883,23 @@ var _ = Describe("ClusterConfig validation", func() {
 			}
 
 			for i, ng := range ngs {
-				ng.AMIFamily = NodeImageFamilyBottlerocket
-				Expect(ValidateNodeGroup(i, ng)).To(Succeed())
+				ng.AMIFamily = api.NodeImageFamilyBottlerocket
+				Expect(api.ValidateNodeGroup(i, ng)).To(Succeed())
 			}
 		})
 	})
 
 	type kmsFieldCase struct {
-		secretsEncryption *SecretsEncryption
+		secretsEncryption *api.SecretsEncryption
 		errSubstr         string
 	}
 
 	DescribeTable("KMS field validation", func(k kmsFieldCase) {
-		clusterConfig := NewClusterConfig()
+		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Version = "1.15"
 
 		clusterConfig.SecretsEncryption = k.secretsEncryption
-		err := ValidateClusterConfig(clusterConfig)
+		err := api.ValidateClusterConfig(clusterConfig)
 		if k.errSubstr != "" {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(k.errSubstr))
@@ -910,48 +911,69 @@ var _ = Describe("ClusterConfig validation", func() {
 			secretsEncryption: nil,
 		}),
 		Entry("Empty secretsEncryption.keyARN", kmsFieldCase{
-			secretsEncryption: &SecretsEncryption{},
+			secretsEncryption: &api.SecretsEncryption{},
 			errSubstr:         "secretsEncryption.keyARN is required",
 		}),
 	)
 
+	Describe("Supported AMI Families", func() {
+		var ng *api.NodeGroup
+		BeforeEach(func() {
+			ng = api.NewNodeGroup()
+		})
+
+		It("succeeds when AMI family is in supported list", func() {
+			ng.AMIFamily = "AmazonLinux2"
+			err := api.ValidateNodeGroup(0, ng)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("fails when the AMIFamily is not supported", func() {
+			ng.AMIFamily = "SomeTrash"
+			err := api.ValidateNodeGroup(0, ng)
+			Expect(err).To(MatchError("AMI Family SomeTrash is not supported - use one of: AmazonLinux2, Ubuntu2004, Ubuntu1804, Bottlerocket, WindowsServer2019CoreContainer, WindowsServer2019FullContainer, WindowsServer2004CoreContainer"))
+		})
+	})
+
 	Describe("Windows node groups", func() {
 		It("returns an error with unsupported fields", func() {
 			cmd := "start /wait msiexec.exe"
-			doc := InlineDocument{
+			doc := api.InlineDocument{
 				"cgroupDriver": "systemd",
 			}
 
-			ngs := map[string]*NodeGroup{
-				"OverrideBootstrapCommand": {NodeGroupBase: &NodeGroupBase{OverrideBootstrapCommand: &cmd}},
-				"KubeletExtraConfig":       {KubeletExtraConfig: &doc, NodeGroupBase: &NodeGroupBase{}},
+			ngs := map[string]*api.NodeGroup{
+				"OverrideBootstrapCommand": {NodeGroupBase: &api.NodeGroupBase{OverrideBootstrapCommand: &cmd}},
+				"KubeletExtraConfig":       {KubeletExtraConfig: &doc, NodeGroupBase: &api.NodeGroupBase{}},
 			}
 
 			for name, ng := range ngs {
-				ng.AMIFamily = NodeImageFamilyWindowsServer2019CoreContainer
-				err := ValidateNodeGroup(0, ng)
+				ng.AMIFamily = api.NodeImageFamilyWindowsServer2019CoreContainer
+				err := api.ValidateNodeGroup(0, ng)
 				Expect(err).To(HaveOccurred(), "Expected an error when provided %s", name)
 			}
 		})
 
 		It("has no error with supported fields", func() {
 			x := 32
-			ngs := []*NodeGroup{
-				{NodeGroupBase: &NodeGroupBase{Labels: map[string]string{"label": "label-value"}}},
-				{NodeGroupBase: &NodeGroupBase{MaxPodsPerNode: x}},
-				{NodeGroupBase: &NodeGroupBase{ScalingConfig: &ScalingConfig{MinSize: &x}}},
-				{NodeGroupBase: &NodeGroupBase{PreBootstrapCommands: []string{"start /wait msiexec.exe"}}},
+			ngs := []*api.NodeGroup{
+				{NodeGroupBase: &api.NodeGroupBase{Labels: map[string]string{"label": "label-value"}}},
+				{NodeGroupBase: &api.NodeGroupBase{MaxPodsPerNode: x}},
+				{NodeGroupBase: &api.NodeGroupBase{ScalingConfig: &api.ScalingConfig{MinSize: &x}}},
+				{NodeGroupBase: &api.NodeGroupBase{PreBootstrapCommands: []string{"start /wait msiexec.exe"}}},
 			}
 
 			for i, ng := range ngs {
-				ng.AMIFamily = NodeImageFamilyWindowsServer2019CoreContainer
-				Expect(ValidateNodeGroup(i, ng)).To(Succeed())
+				ng.AMIFamily = api.NodeImageFamilyWindowsServer2019CoreContainer
+				Expect(api.ValidateNodeGroup(i, ng)).To(Succeed())
 			}
 		})
 	})
 
 	DescribeTable("Nodegroup label validation", func(labels map[string]string, valid bool) {
-		err := validateNodeGroupLabels(labels)
+		ng := newNodeGroup()
+		ng.Labels = labels
+		err := api.ValidateNodeGroup(0, ng)
 		if valid {
 			Expect(err).ToNot(HaveOccurred())
 		} else {
@@ -976,18 +998,13 @@ var _ = Describe("ClusterConfig validation", func() {
 	)
 })
 
-func checkItDetectsError(SSHConfig *NodeGroupSSH) {
-	err := validateNodeGroupSSH(SSHConfig)
-	Expect(err).To(HaveOccurred())
-}
-
 func newInt(value int) *int {
 	v := value
 	return &v
 }
 
-func newNodeGroup() *NodeGroup {
-	return &NodeGroup{
-		NodeGroupBase: &NodeGroupBase{},
+func newNodeGroup() *api.NodeGroup {
+	return &api.NodeGroup{
+		NodeGroupBase: &api.NodeGroupBase{},
 	}
 }

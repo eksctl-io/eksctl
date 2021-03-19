@@ -29,7 +29,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 		}
 		ctl, err := cmd.NewCtl()
 		if err != nil {
-			return errors.Wrap(err, "couldn't create cluster provider from command line options")
+			return errors.Wrap(err, "couldn't create cluster provider from options")
 		}
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 
