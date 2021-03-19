@@ -2,6 +2,7 @@ package nodegroup
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/kris-nova/logger"
@@ -27,12 +28,17 @@ type CreateOpts struct {
 	UpdateAuthConfigMap       bool
 	InstallNeuronDevicePlugin bool
 	InstallNvidiaDevicePlugin bool
+	DryRun                    bool
+	ConfigFileProvided        bool
 }
 
 func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFilter) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
 	ctl := m.ctl
+
+	// For dry-run.
+	clusterConfigCopy := cfg.DeepCopy()
 
 	if err := checkVersion(ctl, meta); err != nil {
 		return err
@@ -71,9 +77,11 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 		return err
 	}
 
-	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider)
-	if err := nodeGroupService.Normalize(cmdutils.ToNodePools(cfg)); err != nil {
-		return err
+	if !options.DryRun {
+		nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider)
+		if err := nodeGroupService.Normalize(cmdutils.ToNodePools(cfg)); err != nil {
+			return err
+		}
 	}
 
 	printer := printers.NewJSONPrinter()
@@ -107,6 +115,16 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 
 		if len(cfg.ManagedNodeGroups) > 0 {
 			logMsg("managed nodegroups", len(cfg.ManagedNodeGroups))
+		}
+
+		if options.DryRun {
+			// Set filtered nodegroups
+			clusterConfigCopy.NodeGroups = cfg.NodeGroups
+			clusterConfigCopy.ManagedNodeGroups = cfg.ManagedNodeGroups
+			if options.ConfigFileProvided {
+				return cmdutils.PrintDryRunConfig(clusterConfigCopy, os.Stdout)
+			}
+			return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, os.Stdout)
 		}
 
 		taskTree := &tasks.TaskTree{

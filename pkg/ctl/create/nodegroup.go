@@ -2,7 +2,9 @@ package create
 
 import (
 	"fmt"
+	"io"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -24,12 +26,15 @@ type nodegroupOptions struct {
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroupOptions) error {
 		ngFilter := filter.NewNodeGroupFilter()
-		if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, options.CreateManagedNGOptions).Load(); err != nil {
+		if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, options.CreateNGOptions, options.CreateManagedNGOptions).Load(); err != nil {
 			return errors.Wrap(err, "couldn't create node group filter from command line options")
 		}
 		ctl, err := cmd.NewCtl()
 		if err != nil {
 			return errors.Wrap(err, "couldn't create cluster provider from options")
+		}
+		if options.DryRun {
+			logger.Writer = io.Discard
 		}
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 
@@ -47,6 +52,8 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 			InstallNeuronDevicePlugin: options.InstallNeuronDevicePlugin,
 			InstallNvidiaDevicePlugin: options.InstallNvidiaDevicePlugin,
 			UpdateAuthConfigMap:       options.UpdateAuthConfigMap,
+			DryRun:                    options.DryRun,
+			ConfigFileProvided:        cmd.ClusterConfigFile != "",
 		}, *ngFilter)
 	})
 }
@@ -80,6 +87,7 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 		cmdutils.AddNodeGroupFilterFlags(fs, &cmd.Include, &cmd.Exclude)
 		cmdutils.AddUpdateAuthConfigMap(fs, &options.UpdateAuthConfigMap, "Add nodegroup IAM role to aws-auth configmap")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		fs.BoolVarP(&options.DryRun, "dry-run", "", false, "Dry-run mode that skips nodegroup creation and outputs a ClusterConfig")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {

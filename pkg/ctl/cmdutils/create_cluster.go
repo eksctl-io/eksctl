@@ -34,4 +34,5 @@ type CreateManagedNGOptions struct {
 type CreateNGOptions struct {
 	InstallNeuronDevicePlugin bool
 	InstallNvidiaDevicePlugin bool
+	DryRun                    bool
 }
