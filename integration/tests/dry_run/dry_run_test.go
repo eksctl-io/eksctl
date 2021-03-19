@@ -3,6 +3,8 @@
 package dry_run
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -187,6 +189,26 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			c.VPC.NAT.Gateway = aws.String("HighlyAvailable")
 			c.IAM.WithOIDC = aws.Bool(true)
 		}, "--vpc-cidr=192.168.0.0/24", "--without-nodegroup", "--vpc-nat-mode=HighlyAvailable", "--with-oidc"),
+	)
+
+	DescribeTable("Flags incompatible with dry-run", func(flag string) {
+		cmd := params.EksctlCreateCmd.
+			WithArgs("cluster", "--dry-run").
+			WithArgs(flag)
+
+		// TODO consider using a custom matcher
+		session := cmd.Run()
+		Expect(session.ExitCode()).ToNot(Equal(0))
+		output := string(session.Err.Contents())
+		Expect(output).To(ContainSubstring(fmt.Sprintf("cannot use %s with --dry-run", strings.Split(flag, "=")[0])))
+
+	},
+		Entry("Install NVIDIA plugin", "--install-nvidia-plugin"),
+		Entry("Install Neuron plugin", "--install-neuron-plugin"),
+		Entry("Set kubectl config", "--set-kubeconfig-context"),
+		Entry("Write kubectl config", "--write-kubeconfig"),
+		Entry("Set CFN flag", "--cfn-disable-rollback"),
+		Entry("Set profile flag", "--profile=aws"),
 	)
 
 })
