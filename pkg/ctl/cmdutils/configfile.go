@@ -354,7 +354,7 @@ func validateDryRunOptions(cmd *cobra.Command, incompatibleFlags []string) error
 }
 
 // NewCreateNodeGroupLoader will load config or use flags for 'eksctl create nodegroup'
-func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.NodeGroupFilter, mngOptions CreateManagedNGOptions) ClusterConfigLoader {
+func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.NodeGroupFilter, ngOptions CreateNGOptions, mngOptions CreateManagedNGOptions) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
@@ -382,8 +382,23 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 		"full-ecr-access",
 	)
 
+	validateDryRun := func() error {
+		if !ngOptions.DryRun {
+			return nil
+		}
+		// Filters (--include / --exclude) cannot be represented in ClusterConfig, however, they affect the output, so they're allowed
+		flagsIncompatibleWithDryRun := append([]string{
+			"update-auth-configmap",
+		}, commonCreateFlagsIncompatibleWithDryRun...)
+
+		return validateDryRunOptions(l.CobraCommand, flagsIncompatibleWithDryRun)
+	}
+
 	l.validateWithConfigFile = func() error {
-		return ngFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.GetAllNodeGroupNames())
+		if err := ngFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.GetAllNodeGroupNames()); err != nil {
+			return err
+		}
+		return validateDryRun()
 	}
 
 	l.validateWithoutConfigFile = func() error {
@@ -395,7 +410,6 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 		}
 		if mngOptions.Managed {
 			l.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{makeManagedNodegroup(ng, mngOptions)}
-
 		} else {
 			l.ClusterConfig.NodeGroups = []*api.NodeGroup{ng}
 		}
@@ -422,7 +436,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 				}
 			}
 		}
-		return nil
+		return validateDryRun()
 	}
 
 	return l
