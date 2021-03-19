@@ -5,7 +5,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
@@ -98,7 +97,7 @@ func (r *AutoResolver) Resolve(region, version, instanceType, imageFamily string
 
 	id, err := FindImage(r.api, ownerAccount, namePattern)
 	if err != nil {
-		return "", errors.Wrap(err, "error getting AMI")
+		return "", fmt.Errorf("error getting AMI from EC2 API: %w. please verify that AMI Family is supported", err)
 	}
 
 	return id, nil

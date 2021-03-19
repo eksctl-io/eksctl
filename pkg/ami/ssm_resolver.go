@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
@@ -35,7 +34,7 @@ func (r *SSMResolver) Resolve(region, version, instanceType, imageFamily string)
 	}
 	output, err := r.ssmAPI.GetParameter(&input)
 	if err != nil {
-		return "", errors.Wrap(err, "error getting AMI from SSM Parameter Store")
+		return "", fmt.Errorf("error getting AMI from SSM Parameter Store: %w. please verify that AMI Family is supported", err)
 	}
 
 	if output == nil || output.Parameter == nil || *output.Parameter.Value == "" {
