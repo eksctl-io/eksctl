@@ -420,6 +420,19 @@ func SupportedNodeVolumeTypes() []string {
 	}
 }
 
+// supportedAMIFamilies are the AMI families supported by EKS
+func supportedAMIFamilies() []string {
+	return []string{
+		NodeImageFamilyAmazonLinux2,
+		NodeImageFamilyUbuntu2004,
+		NodeImageFamilyUbuntu1804,
+		NodeImageFamilyBottlerocket,
+		NodeImageFamilyWindowsServer2019CoreContainer,
+		NodeImageFamilyWindowsServer2019FullContainer,
+		NodeImageFamilyWindowsServer2004CoreContainer,
+	}
+}
+
 // supportedSpotAllocationStrategies are the spot allocation strategies supported by ASG
 func supportedSpotAllocationStrategies() []string {
 	return []string{

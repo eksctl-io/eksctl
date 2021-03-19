@@ -15,12 +15,12 @@ import (
 
 // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-blockdevicemapping-ebs.html
 const (
-	minThroughput = DefaultNodeVolumeThroughput
-	maxThroughput = 1000
-	minIO1Iops    = DefaultNodeVolumeIO1IOPS
-	maxIO1Iops    = 64000
-	minGP3Iops    = DefaultNodeVolumeGP3IOPS
-	maxGP3Iops    = 16000
+	MinThroughput = DefaultNodeVolumeThroughput
+	MaxThroughput = 1000
+	MinIO1Iops    = DefaultNodeVolumeIO1IOPS
+	MaxIO1Iops    = 64000
+	MinGP3Iops    = DefaultNodeVolumeGP3IOPS
+	MaxGP3Iops    = 16000
 )
 
 var (
@@ -251,6 +251,10 @@ func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
 		}
 	}
 
+	if ng.AMIFamily != "" && !isSupportedAMIFamily(ng.AMIFamily) {
+		return fmt.Errorf("AMI Family %s is not supported - use one of: %s", ng.AMIFamily, strings.Join(supportedAMIFamilies(), ", "))
+	}
+
 	return nil
 }
 
@@ -261,8 +265,8 @@ func validateVolumeOpts(ng *NodeGroupBase, path string) error {
 		}
 
 		if *ng.VolumeType == NodeVolumeTypeIO1 {
-			if ng.VolumeIOPS != nil && !(*ng.VolumeIOPS >= minIO1Iops && *ng.VolumeIOPS <= maxIO1Iops) {
-				return fmt.Errorf("value for %s.volumeIOPS must be within range %d-%d", path, minIO1Iops, maxIO1Iops)
+			if ng.VolumeIOPS != nil && !(*ng.VolumeIOPS >= MinIO1Iops && *ng.VolumeIOPS <= MaxIO1Iops) {
+				return fmt.Errorf("value for %s.volumeIOPS must be within range %d-%d", path, MinIO1Iops, MaxIO1Iops)
 			}
 		}
 
@@ -272,12 +276,12 @@ func validateVolumeOpts(ng *NodeGroupBase, path string) error {
 	}
 
 	if ng.VolumeType == nil || *ng.VolumeType == NodeVolumeTypeGP3 {
-		if ng.VolumeIOPS != nil && !(*ng.VolumeIOPS >= minGP3Iops && *ng.VolumeIOPS <= maxGP3Iops) {
-			return fmt.Errorf("value for %s.volumeIOPS must be within range %d-%d", path, minGP3Iops, maxGP3Iops)
+		if ng.VolumeIOPS != nil && !(*ng.VolumeIOPS >= MinGP3Iops && *ng.VolumeIOPS <= MaxGP3Iops) {
+			return fmt.Errorf("value for %s.volumeIOPS must be within range %d-%d", path, MinGP3Iops, MaxGP3Iops)
 		}
 
-		if ng.VolumeThroughput != nil && !(*ng.VolumeThroughput >= minThroughput && *ng.VolumeThroughput <= maxThroughput) {
-			return fmt.Errorf("value for %s.volumeThroughput must be within range %d-%d", path, minThroughput, maxThroughput)
+		if ng.VolumeThroughput != nil && !(*ng.VolumeThroughput >= MinThroughput && *ng.VolumeThroughput <= MaxThroughput) {
+			return fmt.Errorf("value for %s.volumeThroughput must be within range %d-%d", path, MinThroughput, MaxThroughput)
 		}
 	}
 
@@ -623,7 +627,7 @@ func validateInstancesDistribution(ng *NodeGroup) error {
 	}
 
 	if ng.InstanceType != "" && ng.InstanceType != "mixed" {
-		return fmt.Errorf(`instanceType should be "mixed" or unset when using the mixed instances feature`)
+		return fmt.Errorf(`instanceType should be "mixed" or unset when using the instances distribution feature`)
 	}
 
 	distribution := ng.InstancesDistribution
@@ -723,7 +727,7 @@ func validateNodeGroupSSH(SSH *NodeGroupSSH) error {
 		SSH.PublicKeyName)
 
 	if numSSHFlagsEnabled > 1 {
-		return errors.New("only one SSH public key can be specified per node-group")
+		return errors.New("only one of PublicKeyName, PublicKeyPath or PublicKey public key can be specified for SSH per node-group")
 	}
 	return nil
 }
@@ -759,6 +763,15 @@ func validateNodeGroupKubeletExtraConfig(kubeletConfig *InlineDocument) error {
 		}
 	}
 	return nil
+}
+
+func isSupportedAMIFamily(imageFamily string) bool {
+	for _, image := range supportedAMIFamilies() {
+		if imageFamily == image {
+			return true
+		}
+	}
+	return false
 }
 
 // IsWindowsImage reports whether the AMI family is for Windows
