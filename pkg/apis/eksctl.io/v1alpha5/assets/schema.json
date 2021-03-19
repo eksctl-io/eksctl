@@ -884,8 +884,8 @@
         },
         "amiFamily": {
           "type": "string",
-          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer1909CoreContainer\"`, `\"WindowsServer2004CoreContainer\"`.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer1909CoreContainer&quot;</code>, <code>&quot;WindowsServer2004CoreContainer&quot;</code>.",
+          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2004CoreContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2004CoreContainer&quot;</code>.",
           "default": "AmazonLinux2",
           "enum": [
             "AmazonLinux2",
@@ -894,7 +894,6 @@
             "Bottlerocket",
             "WindowsServer2019CoreContainer",
             "WindowsServer2019FullContainer",
-            "WindowsServer1909CoreContainer",
             "WindowsServer2004CoreContainer"
           ]
         },
@@ -1150,8 +1149,8 @@
         },
         "amiFamily": {
           "type": "string",
-          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer1909CoreContainer\"`, `\"WindowsServer2004CoreContainer\"`.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer1909CoreContainer&quot;</code>, <code>&quot;WindowsServer2004CoreContainer&quot;</code>.",
+          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2004CoreContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2004CoreContainer&quot;</code>.",
           "default": "AmazonLinux2",
           "enum": [
             "AmazonLinux2",
@@ -1160,7 +1159,6 @@
             "Bottlerocket",
             "WindowsServer2019CoreContainer",
             "WindowsServer2019FullContainer",
-            "WindowsServer1909CoreContainer",
             "WindowsServer2004CoreContainer"
           ]
         },
