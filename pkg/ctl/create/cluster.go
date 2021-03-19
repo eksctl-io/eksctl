@@ -112,7 +112,11 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	}
 
 	if params.DryRun {
+		originalWriter := logger.Writer
 		logger.Writer = io.Discard
+		defer func() {
+			logger.Writer = originalWriter
+		}()
 	}
 
 	cmdutils.LogRegionAndVersionInfo(meta)

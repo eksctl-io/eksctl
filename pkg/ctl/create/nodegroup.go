@@ -34,7 +34,11 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 			return errors.Wrap(err, "couldn't create cluster provider from options")
 		}
 		if options.DryRun {
+			originalWriter := logger.Writer
 			logger.Writer = io.Discard
+			defer func() {
+				logger.Writer = originalWriter
+			}()
 		}
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 
