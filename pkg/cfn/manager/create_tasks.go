@@ -12,6 +12,11 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
+const (
+	managedByKubernetesLabelKey   = "app.kubernetes.io/managed-by"
+	managedByKubernetesLabelValue = "eksctl"
+)
+
 // NewTasksToCreateClusterWithNodeGroups defines all tasks required to create a cluster along
 // with some nodegroups; see CreateAllNodeGroups for how onlyNodeGroupSubset works
 func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*api.NodeGroup,
@@ -130,6 +135,11 @@ func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*
 				kubernetes: clientSetGetter,
 				call: func(clientSet kubernetes.Interface) error {
 					sa.SetAnnotations()
+					if sa.Labels == nil {
+						sa.Labels = make(map[string]string)
+					}
+
+					sa.Labels[managedByKubernetesLabelKey] = managedByKubernetesLabelValue
 					if err := kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa.ClusterIAMMeta.AsObjectMeta()); err != nil {
 						return errors.Wrapf(err, "failed to create service account %s", sa.NameString())
 					}
