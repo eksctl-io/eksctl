@@ -23,8 +23,10 @@ docker_build := time docker build
 # but right now 'docker build' doesn't allow us to export build cache images, so we cannot use it yet
 # docker_build := env DOCKER_BUILDKIT=1 $(docker_build)
 
+##@ Docker
+
 .PHONY: update-build-image-tag
-update-build-image-tag:
+update-build-image-tag: ## Update the build image tag as referenced across the repo
 	build-image-manifest.sh > $(image_manifest_file)
 	git hash-object $(image_manifest_file) > $(build_image_tag_file)
 	sed -i -e "1s|\(BUILD_IMAGE=\).*|\1/$(build_image):$$(cat $(build_image_tag_file))|" Dockerfile
@@ -64,11 +66,11 @@ eksctl-image: ## Build the eksctl image that has release artefacts and no build 
 	  $(git_toplevel)
 
 .PHONY: eksctl-image
-push-eksctl-image: eksctl-image
+push-eksctl-image: eksctl-image ## Push the eksctl image to the Docker Hub registry
 	docker push $(eksctl_image_name)
 
-.PHONY: build test
-build test: ## Run targets from Makefile using the build image
+.PHONY: build-test
+build-test: ## Run targets from Makefile using the build image
 	time docker run \
 	  --tty \
 	  --rm \

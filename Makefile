@@ -1,5 +1,6 @@
 include Makefile.common
 include Makefile.docs
+include Makefile.docker
 
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
@@ -27,6 +28,16 @@ all_generated_files := \
 
 .DEFAULT_GOAL := help
 
+##@ Utility
+
+.PHONY: help
+help:  ## Display this help. Thanks to https://www.thapaliya.com/en/writings/well-documented-makefiles/
+ifeq ($(OS),Windows_NT)
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make <target>\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  %-40s %s\n", $$1, $$2 } /^##@/ { printf "\n%s\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+else
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-40s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+endif
+
 ##@ Dependencies
 .PHONY: install-all-deps
 install-all-deps: install-build-deps install-site-deps ## Install all dependencies for building both binary and user docs)
@@ -41,15 +52,15 @@ godeps_cmd = go list -deps -f '{{if not .Standard}}{{ $$dep := . }}{{range .GoFi
 godeps = $(shell $(call godeps_cmd,$(1)))
 
 .PHONY: build
-build: generate-always binary
+build: generate-always binary ## Generate, lint and build eksctl binary for current OS and place it at ./eksctl
 
 .PHONY: binary
-binary:
+binary: ## Build eksctl binary for current OS and place it at ./eksctl
 	CGO_ENABLED=0 go build -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).buildDate=$(build_date)" ./cmd/eksctl
 
-# Build binaries for Linux, Windows and Mac and place them in dist/
+
 .PHONY: build-all
-build-all: generate-always
+build-all: generate-always ## Build binaries for Linux, Windows and Mac and place them in dist/
 	goreleaser --config=.goreleaser-local.yaml --snapshot --skip-publish --rm-dist
 
 clean: ## Remove artefacts or generated files from previous build
@@ -82,7 +93,7 @@ lint: ## Run linter over the codebase
 	@for config_file in $(shell ls .goreleaser*); do goreleaser check -f $${config_file} || exit 1; done
 
 .PHONY: test
-test:
+test: ## Lint, generate and run unit tests. Also ensure that integration tests compile
 	$(MAKE) lint
 	$(MAKE) check-all-generated-files-up-to-date
 	$(MAKE) unit-test
@@ -103,7 +114,7 @@ unit-test-race: ## Run unit test with race detection
 	CGO_ENABLED=1 go test -race ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: build-integration-test
-build-integration-test: $(all_generated_code)
+build-integration-test: $(all_generated_code) ## Ensure integration tests compile
 	@# Compile integration test binary without running any.
 	@# Required as build failure aren't listed when running go build below. See also: https://github.com/golang/go/issues/15513
 	go test -tags integration -run=^$$ ./integration/...
@@ -115,7 +126,7 @@ integration-test: build build-integration-test ## Run the integration tests (wit
 	JUNIT_REPORT_DIR=$(git_toplevel)/test-results ./eksctl-integration-test $(INTEGRATION_TEST_ARGS)
 
 .PHONY: integration-test-container
-integration-test-container:
+integration-test-container: ## Run integration tests in a local container
 	sudo cp -f ${SSH_KEY_PATH} $(HOME)/project/.ssh/gitops_id_rsa
 	sudo chmod 0600 $(HOME)/project/.ssh/gitops_id_rsa
 	docker run \
@@ -179,7 +190,7 @@ generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (requi
 generate-all: generate-always $(conditionally_generated_files) ## Re-generate all the automatically-generated source files
 
 .PHONY: check-all-generated-files-up-to-date
-check-all-generated-files-up-to-date: generate-all
+check-all-generated-files-up-to-date: generate-all ## Run the generate all command and verify there is no new diff
 	git diff --quiet -- $(all_generated_files) || (git --no-pager diff $(all_generated_files); echo "HINT: to fix this, run 'git commit $(all_generated_files) --message \"Update generated files\"'"; exit 1)
 
 ### Update maxpods.go from AWS
@@ -200,7 +211,7 @@ deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(ge
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) ## Generate Kubernetes API helpers
 	build/scripts/update-codegen.sh
 
-$(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
+$(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go) ## Generate aws sdk mocks
 	AWS_SDK_GO_DIR=$(AWS_SDK_GO_DIR) go generate ./pkg/eks/mocks
 
 .PHONY: generate-kube-reserved
@@ -208,30 +219,19 @@ generate-kube-reserved: ## Update instance list with respective specs
 	@cd ./pkg/nodebootstrap/ && go run reserved_generate.go
 
 ##@ Release
+# .PHONY: eksctl-image
+# eksctl-image: ## Build the eksctl image that has release artefacts and no build dependencies
+# 	$(MAKE) -f Makefile.docker $@
+
 .PHONY: prepare-release
-prepare-release:
+prepare-release: ## Create release
 	build/scripts/tag-release.sh
 
 .PHONY: prepare-release-candidate
-prepare-release-candidate:
+prepare-release-candidate: ## Create release candidate
 	build/scripts/tag-release-candidate.sh
 
 .PHONY: print-version
-print-version:
+print-version: ## Prints the upcoming release number
 	@go run pkg/version/generate/release_generate.go print-version
 
-##@ Docker
-
-.PHONY: eksctl-image
-eksctl-image: ## Build the eksctl image that has release artefacts and no build dependencies
-	$(MAKE) -f Makefile.docker $@
-
-##@ Utility
-
-.PHONY: help
-help:  ## Display this help. Thanks to https://suva.sh/posts/well-documented-makefiles/
-ifeq ($(OS),Windows_NT)
-	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make <target>\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  %-40s %s\n", $$1, $$2 } /^##@/ { printf "\n%s\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
-else
-	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-40s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
-endif
