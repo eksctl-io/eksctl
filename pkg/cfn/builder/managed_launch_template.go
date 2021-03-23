@@ -11,7 +11,7 @@ import (
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
-func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
+func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData(efaSG *gfnt.Value) (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
 	mng := m.nodeGroup
 
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
@@ -30,6 +30,10 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 	securityGroupIDs := m.vpcImporter.SecurityGroups()
 	for _, sgID := range mng.SecurityGroups.AttachIDs {
 		securityGroupIDs = append(securityGroupIDs, gfnt.NewString(sgID))
+	}
+
+	if efaSG != nil {
+		securityGroupIDs = append(securityGroupIDs, efaSG)
 	}
 
 	if mng.AMI != "" {
