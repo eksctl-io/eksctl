@@ -77,9 +77,14 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 		return err
 	}
 
+	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider)
+	nodePools := cmdutils.ToNodePools(cfg)
+	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools); err != nil {
+		return err
+	}
+
 	if !options.DryRun {
-		nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider)
-		if err := nodeGroupService.Normalize(cmdutils.ToNodePools(cfg)); err != nil {
+		if err := nodeGroupService.Normalize(nodePools); err != nil {
 			return err
 		}
 	}
