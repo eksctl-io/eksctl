@@ -686,9 +686,9 @@ func NewClusterVPC() *ClusterVPC {
 			CIDR: &cidr,
 		},
 		ManageSharedNodeSecurityGroupRules: Enabled(),
-		NAT:                                DefaultClusterNAT(),
-		AutoAllocateIPv6:                   Disabled(),
-		ClusterEndpoints:                   &ClusterEndpoints{},
+		NAT:              DefaultClusterNAT(),
+		AutoAllocateIPv6: Disabled(),
+		ClusterEndpoints: &ClusterEndpoints{},
 	}
 }
 
@@ -718,18 +718,18 @@ func NewNodeGroup() *NodeGroup {
 			VolumeSize:        &DefaultNodeVolumeSize,
 			IAM: &NodeGroupIAM{
 				WithAddonPolicies: NodeGroupIAMAddonPolicies{
-					ImageBuilder:              Disabled(),
-					AutoScaler:                Disabled(),
-					ExternalDNS:               Disabled(),
-					CertManager:               Disabled(),
-					AppMesh:                   Disabled(),
-					AppMeshPreview:            Disabled(),
-					EBS:                       Disabled(),
-					FSX:                       Disabled(),
-					EFS:                       Disabled(),
+					ImageBuilder:   Disabled(),
+					AutoScaler:     Disabled(),
+					ExternalDNS:    Disabled(),
+					CertManager:    Disabled(),
+					AppMesh:        Disabled(),
+					AppMeshPreview: Disabled(),
+					EBS:            Disabled(),
+					FSX:            Disabled(),
+					EFS:            Disabled(),
 					AWSLoadBalancerController: Disabled(),
-					XRay:                      Disabled(),
-					CloudWatch:                Disabled(),
+					XRay:       Disabled(),
+					CloudWatch: Disabled(),
 				},
 			},
 			ScalingConfig: &ScalingConfig{},
@@ -743,8 +743,9 @@ func NewNodeGroup() *NodeGroup {
 				WithLocal:  Enabled(),
 				WithShared: Enabled(),
 			},
-			DisableIMDSv1:  Disabled(),
-			DisablePodIMDS: Disabled(),
+			DisableIMDSv1:    Disabled(),
+			DisablePodIMDS:   Disabled(),
+			InstanceSelector: &InstanceSelector{},
 		},
 	}
 }
@@ -767,18 +768,18 @@ func NewManagedNodeGroup() *ManagedNodeGroup {
 			},
 			IAM: &NodeGroupIAM{
 				WithAddonPolicies: NodeGroupIAMAddonPolicies{
-					ImageBuilder:              Disabled(),
-					AutoScaler:                Disabled(),
-					ExternalDNS:               Disabled(),
-					CertManager:               Disabled(),
-					AppMesh:                   Disabled(),
-					AppMeshPreview:            Disabled(),
-					EBS:                       Disabled(),
-					FSX:                       Disabled(),
-					EFS:                       Disabled(),
+					ImageBuilder:   Disabled(),
+					AutoScaler:     Disabled(),
+					ExternalDNS:    Disabled(),
+					CertManager:    Disabled(),
+					AppMesh:        Disabled(),
+					AppMeshPreview: Disabled(),
+					EBS:            Disabled(),
+					FSX:            Disabled(),
+					EFS:            Disabled(),
 					AWSLoadBalancerController: Disabled(),
-					XRay:                      Disabled(),
-					CloudWatch:                Disabled(),
+					XRay:       Disabled(),
+					CloudWatch: Disabled(),
 				},
 			},
 			ScalingConfig:  &ScalingConfig{},
@@ -1290,6 +1291,9 @@ type NodeGroupBase struct {
 	// +optional
 	EFAEnabled *bool `json:"efaEnabled,omitempty"`
 
+	// InstanceSelector specifies options for EC2 instance selector
+	InstanceSelector *InstanceSelector `json:"instanceSelector,omitempty"`
+
 	// Internal fields
 	// Some AMIs (bottlerocket) have a separate volume for the OS
 	AdditionalEncryptedVolume string `json:"-"`
@@ -1357,6 +1361,7 @@ type ManagedNodeGroup struct {
 }
 
 func (m *ManagedNodeGroup) InstanceTypeList() []string {
+	// TODO unset instanceType if instance selector options are set
 	if len(m.InstanceTypes) > 0 {
 		return m.InstanceTypes
 	}
@@ -1454,6 +1459,18 @@ type PrivateCluster struct {
 	// must be enabled for private access.
 	// Valid entries are `AdditionalEndpointServices` constants
 	AdditionalEndpointServices []string `json:"additionalEndpointServices,omitempty"`
+}
+
+// InstanceSelector holds EC2 instance selector options
+type InstanceSelector struct {
+	VCPUs  int    `json:"vCPUs,omitempty"`
+	Memory string `json:"memory,omitempty"`
+	GPUs   int    `json:"gpus,omitempty"`
+}
+
+// IsZero returns true if all fields hold a zero value
+func (is InstanceSelector) IsZero() bool {
+	return is == InstanceSelector{}
 }
 
 // UnsupportedFeatureError is an error that represents an unsupported feature
