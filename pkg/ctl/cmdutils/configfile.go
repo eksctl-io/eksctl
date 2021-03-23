@@ -52,6 +52,10 @@ var (
 	}
 )
 
+func NewCommonClusterConfigLoader(cmd *Cmd) *commonClusterConfigLoader {
+	return newCommonClusterConfigLoader(cmd)
+}
+
 func newCommonClusterConfigLoader(cmd *Cmd) *commonClusterConfigLoader {
 	nilValidatorFunc := func() error { return nil }
 

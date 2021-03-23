@@ -13,13 +13,13 @@ import (
 )
 
 // makeIAMServiceAccountStackName generates the name of the iamserviceaccount stack identified by its name, isolated by the cluster this StackCollection operates on and 'addon' suffix
-func (c *StackCollection) makeIAMServiceAccountStackName(namespace, name string) string {
-	return fmt.Sprintf("eksctl-%s-addon-iamserviceaccount-%s-%s", c.spec.Metadata.Name, namespace, name)
+func MakeIAMServiceAccountStackName(clusterName, namespace, name string) string {
+	return fmt.Sprintf("eksctl-%s-addon-iamserviceaccount-%s-%s", clusterName, namespace, name)
 }
 
 // createIAMServiceAccountTask creates the iamserviceaccount in CloudFormation
 func (c *StackCollection) createIAMServiceAccountTask(errs chan error, spec *api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager) error {
-	name := c.makeIAMServiceAccountStackName(spec.Namespace, spec.Name)
+	name := MakeIAMServiceAccountStackName(c.spec.Metadata.Name, spec.Namespace, spec.Name)
 	logger.Info("building iamserviceaccount stack %q", name)
 	stack := builder.NewIAMRoleResourceSetForServiceAccount(spec, oidc)
 	if err := stack.AddAllResources(); err != nil {

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/weaveworks/eksctl/pkg/ctl/apply"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 
@@ -43,6 +45,8 @@ func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
 	rootCmd.AddCommand(completion.Command(rootCmd))
 
 	cmdutils.AddResourceCmd(flagGrouping, rootCmd, versionCmd)
+	cmdutils.AddResourceCmd(flagGrouping, rootCmd, apply.Command)
+
 }
 
 func main() {

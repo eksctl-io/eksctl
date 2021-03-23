@@ -3,6 +3,8 @@ package irsa
 import (
 	"fmt"
 
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
+
 	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
@@ -25,4 +27,8 @@ func (m *Manager) Delete(serviceAccounts []string, plan, wait bool) error {
 
 	logPlanModeWarning(plan && taskTree.Len() > 0)
 	return nil
+}
+
+func (m *Manager) DeleteTasks(serviceAccounts []string) (*tasks.TaskTree, error) {
+	return m.stackManager.NewTasksToDeleteIAMServiceAccounts(serviceAccounts, kubernetes.NewCachedClientSet(m.clientSet), true)
 }
