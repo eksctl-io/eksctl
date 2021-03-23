@@ -70,7 +70,7 @@ spec:
                       - p4d.24xlarge
       hostNetwork: true
       containers:
-        - image: "%s.dkr.ecr.%s.%s/eks/aws-efa-k8s-device-plugin:v0.3-linux_amd64"
+        - image: "%s.dkr.ecr.%s.%s/eks/aws-efa-k8s-device-plugin:v0.3.3"
           name: aws-efa-k8s-device-plugin
           securityContext:
             allowPrivilegeEscalation: false
