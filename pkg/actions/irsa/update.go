@@ -91,7 +91,6 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 }
 
 func (a *Manager) UpdateTasks(iamServiceAccounts []*api.ClusterIAMServiceAccount) (*tasks.TaskTree, error) {
-	var nonExistingSAs []string
 	updateTasks := &tasks.TaskTree{Parallel: true}
 
 	existingIAMStacks, err := a.stackManager.ListStacksMatching("eksctl-.*-addon-iamserviceaccount")
@@ -105,8 +104,7 @@ func (a *Manager) UpdateTasks(iamServiceAccounts []*api.ClusterIAMServiceAccount
 		stackName := makeIAMServiceAccountStackName(a.clusterName, iamServiceAccount.Namespace, iamServiceAccount.Name)
 
 		if _, ok := existingIAMStacksMap[stackName]; !ok {
-			logger.Info("cannot update IAMServiceAccount %s/%s as it does not exist", iamServiceAccount.Namespace, iamServiceAccount.Name)
-			nonExistingSAs = append(nonExistingSAs, fmt.Sprintf("%s/%s", iamServiceAccount.Namespace, iamServiceAccount.Name))
+			logger.Debug("cannot update IAMServiceAccount %s/%s as it does not exist", iamServiceAccount.Namespace, iamServiceAccount.Name)
 			continue
 		}
 

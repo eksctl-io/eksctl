@@ -24,7 +24,9 @@ func (r *Reconciler) ReconcileIAMServiceAccounts() (*tasks.TaskTree, *tasks.Task
 		return nil, nil, nil, fmt.Errorf("failed to discover existing service accounts: %w", err)
 	}
 
+	//map[serviceAccountName string]*manager.Stack
 	existingServiceAccountsNameToStackMap := listOfStacksToServiceAccountMap(stacks)
+	//map[serviceAccountName string]*api.ClusterIAMServiceAccount
 	desiredServiceAccountsNameMapSpec := listOfServiceAccountsToMap(r.cfg.IAM.ServiceAccounts)
 
 	var toDelete []string
@@ -46,7 +48,7 @@ func (r *Reconciler) ReconcileIAMServiceAccounts() (*tasks.TaskTree, *tasks.Task
 		}
 	}
 
-	for saName, _ := range existingServiceAccountsNameToStackMap {
+	for saName := range existingServiceAccountsNameToStackMap {
 		if _, ok := desiredServiceAccountsNameMapSpec[saName]; !ok {
 			toDelete = append(toDelete, saName)
 		}
