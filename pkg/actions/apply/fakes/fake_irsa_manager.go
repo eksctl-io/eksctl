@@ -22,10 +22,10 @@ type FakeIRSAManager struct {
 	createTasksReturnsOnCall map[int]struct {
 		result1 *tasks.TaskTree
 	}
-	DeleteTasksStub        func([]string) (*tasks.TaskTree, error)
+	DeleteTasksStub        func(map[string]*cloudformation.Stack) (*tasks.TaskTree, error)
 	deleteTasksMutex       sync.RWMutex
 	deleteTasksArgsForCall []struct {
-		arg1 []string
+		arg1 map[string]*cloudformation.Stack
 	}
 	deleteTasksReturns struct {
 		result1 *tasks.TaskTree
@@ -132,20 +132,15 @@ func (fake *FakeIRSAManager) CreateTasksReturnsOnCall(i int, result1 *tasks.Task
 	}{result1}
 }
 
-func (fake *FakeIRSAManager) DeleteTasks(arg1 []string) (*tasks.TaskTree, error) {
-	var arg1Copy []string
-	if arg1 != nil {
-		arg1Copy = make([]string, len(arg1))
-		copy(arg1Copy, arg1)
-	}
+func (fake *FakeIRSAManager) DeleteTasks(arg1 map[string]*cloudformation.Stack) (*tasks.TaskTree, error) {
 	fake.deleteTasksMutex.Lock()
 	ret, specificReturn := fake.deleteTasksReturnsOnCall[len(fake.deleteTasksArgsForCall)]
 	fake.deleteTasksArgsForCall = append(fake.deleteTasksArgsForCall, struct {
-		arg1 []string
-	}{arg1Copy})
+		arg1 map[string]*cloudformation.Stack
+	}{arg1})
 	stub := fake.DeleteTasksStub
 	fakeReturns := fake.deleteTasksReturns
-	fake.recordInvocation("DeleteTasks", []interface{}{arg1Copy})
+	fake.recordInvocation("DeleteTasks", []interface{}{arg1})
 	fake.deleteTasksMutex.Unlock()
 	if stub != nil {
 		return stub(arg1)
@@ -162,13 +157,13 @@ func (fake *FakeIRSAManager) DeleteTasksCallCount() int {
 	return len(fake.deleteTasksArgsForCall)
 }
 
-func (fake *FakeIRSAManager) DeleteTasksCalls(stub func([]string) (*tasks.TaskTree, error)) {
+func (fake *FakeIRSAManager) DeleteTasksCalls(stub func(map[string]*cloudformation.Stack) (*tasks.TaskTree, error)) {
 	fake.deleteTasksMutex.Lock()
 	defer fake.deleteTasksMutex.Unlock()
 	fake.DeleteTasksStub = stub
 }
 
-func (fake *FakeIRSAManager) DeleteTasksArgsForCall(i int) []string {
+func (fake *FakeIRSAManager) DeleteTasksArgsForCall(i int) map[string]*cloudformation.Stack {
 	fake.deleteTasksMutex.RLock()
 	defer fake.deleteTasksMutex.RUnlock()
 	argsForCall := fake.deleteTasksArgsForCall[i]

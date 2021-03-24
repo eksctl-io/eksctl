@@ -65,6 +65,7 @@ type StackManager interface {
 	NewTaskToDeleteUnownedNodeGroup(clusterName, nodegroup string, eksAPI eksiface.EKSAPI, waitCondition *DeleteWaitCondition) tasks.Task
 	NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) (*tasks.TaskTree, error)
 	NewTasksToDeleteIAMServiceAccounts(serviceAccounts []string, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*tasks.TaskTree, error)
+	NewTasksToDeleteIAMServiceAccountsWithStack(serviceAccounts map[string]*Stack, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*tasks.TaskTree, error)
 	NewTaskToDeleteAddonIAM(wait bool) (*tasks.TaskTree, error)
 	FixClusterCompatibility() error
 	DescribeIAMServiceAccountStacks() ([]*Stack, error)

@@ -55,7 +55,7 @@ var _ = Describe("apply", func() {
 		}
 
 		if params.SkipCreate {
-			// params.ClusterName = "jk"
+			params.ClusterName = "jk"
 			fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", params.ClusterName)
 			if !file.Exists(params.KubeconfigPath) {
 				// Generate the Kubernetes configuration that eksctl create

@@ -13,7 +13,7 @@ import (
 //go:generate counterfeiter -o fakes/fake_irsa_manager.go . IRSAManager
 type IRSAManager interface {
 	CreateTasks(iamServiceAccounts []*api.ClusterIAMServiceAccount) *tasks.TaskTree
-	DeleteTasks(serviceAccounts []string) (*tasks.TaskTree, error)
+	DeleteTasks(serviceAccounts map[string]*manager.Stack) (*tasks.TaskTree, error)
 	UpdateTasks(iamServiceAccounts []*api.ClusterIAMServiceAccount) (*tasks.TaskTree, error)
 	IsUpToDate(iamServiceAccount *api.ClusterIAMServiceAccount, stack *manager.Stack) (bool, error)
 }
@@ -29,7 +29,7 @@ func (r *Reconciler) ReconcileIAMServiceAccounts() (*tasks.TaskTree, *tasks.Task
 	//map[serviceAccountName string]*api.ClusterIAMServiceAccount
 	desiredServiceAccountsNameMapSpec := listOfServiceAccountsToMap(r.cfg.IAM.ServiceAccounts)
 
-	var toDelete []string
+	toDelete := make(map[string]*manager.Stack)
 	var toCreate, toUpdate []*api.ClusterIAMServiceAccount
 
 	for saName, saSpec := range desiredServiceAccountsNameMapSpec {
@@ -48,9 +48,9 @@ func (r *Reconciler) ReconcileIAMServiceAccounts() (*tasks.TaskTree, *tasks.Task
 		}
 	}
 
-	for saName := range existingServiceAccountsNameToStackMap {
+	for saName, saStack := range existingServiceAccountsNameToStackMap {
 		if _, ok := desiredServiceAccountsNameMapSpec[saName]; !ok {
-			toDelete = append(toDelete, saName)
+			toDelete[saName] = saStack
 		}
 	}
 

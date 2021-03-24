@@ -647,6 +647,21 @@ type FakeStackManager struct {
 		result1 *tasks.TaskTree
 		result2 error
 	}
+	NewTasksToDeleteIAMServiceAccountsWithStackStub        func(map[string]*cloudformation.Stack, kubernetes.ClientSetGetter, bool) (*tasks.TaskTree, error)
+	newTasksToDeleteIAMServiceAccountsWithStackMutex       sync.RWMutex
+	newTasksToDeleteIAMServiceAccountsWithStackArgsForCall []struct {
+		arg1 map[string]*cloudformation.Stack
+		arg2 kubernetes.ClientSetGetter
+		arg3 bool
+	}
+	newTasksToDeleteIAMServiceAccountsWithStackReturns struct {
+		result1 *tasks.TaskTree
+		result2 error
+	}
+	newTasksToDeleteIAMServiceAccountsWithStackReturnsOnCall map[int]struct {
+		result1 *tasks.TaskTree
+		result2 error
+	}
 	NewTasksToDeleteNodeGroupsStub        func(func(_ string) bool, bool, func(chan error, string) error) (*tasks.TaskTree, error)
 	newTasksToDeleteNodeGroupsMutex       sync.RWMutex
 	newTasksToDeleteNodeGroupsArgsForCall []struct {
@@ -3839,6 +3854,72 @@ func (fake *FakeStackManager) NewTasksToDeleteIAMServiceAccountsReturnsOnCall(i 
 	}{result1, result2}
 }
 
+func (fake *FakeStackManager) NewTasksToDeleteIAMServiceAccountsWithStack(arg1 map[string]*cloudformation.Stack, arg2 kubernetes.ClientSetGetter, arg3 bool) (*tasks.TaskTree, error) {
+	fake.newTasksToDeleteIAMServiceAccountsWithStackMutex.Lock()
+	ret, specificReturn := fake.newTasksToDeleteIAMServiceAccountsWithStackReturnsOnCall[len(fake.newTasksToDeleteIAMServiceAccountsWithStackArgsForCall)]
+	fake.newTasksToDeleteIAMServiceAccountsWithStackArgsForCall = append(fake.newTasksToDeleteIAMServiceAccountsWithStackArgsForCall, struct {
+		arg1 map[string]*cloudformation.Stack
+		arg2 kubernetes.ClientSetGetter
+		arg3 bool
+	}{arg1, arg2, arg3})
+	stub := fake.NewTasksToDeleteIAMServiceAccountsWithStackStub
+	fakeReturns := fake.newTasksToDeleteIAMServiceAccountsWithStackReturns
+	fake.recordInvocation("NewTasksToDeleteIAMServiceAccountsWithStack", []interface{}{arg1, arg2, arg3})
+	fake.newTasksToDeleteIAMServiceAccountsWithStackMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStackManager) NewTasksToDeleteIAMServiceAccountsWithStackCallCount() int {
+	fake.newTasksToDeleteIAMServiceAccountsWithStackMutex.RLock()
+	defer fake.newTasksToDeleteIAMServiceAccountsWithStackMutex.RUnlock()
+	return len(fake.newTasksToDeleteIAMServiceAccountsWithStackArgsForCall)
+}
+
+func (fake *FakeStackManager) NewTasksToDeleteIAMServiceAccountsWithStackCalls(stub func(map[string]*cloudformation.Stack, kubernetes.ClientSetGetter, bool) (*tasks.TaskTree, error)) {
+	fake.newTasksToDeleteIAMServiceAccountsWithStackMutex.Lock()
+	defer fake.newTasksToDeleteIAMServiceAccountsWithStackMutex.Unlock()
+	fake.NewTasksToDeleteIAMServiceAccountsWithStackStub = stub
+}
+
+func (fake *FakeStackManager) NewTasksToDeleteIAMServiceAccountsWithStackArgsForCall(i int) (map[string]*cloudformation.Stack, kubernetes.ClientSetGetter, bool) {
+	fake.newTasksToDeleteIAMServiceAccountsWithStackMutex.RLock()
+	defer fake.newTasksToDeleteIAMServiceAccountsWithStackMutex.RUnlock()
+	argsForCall := fake.newTasksToDeleteIAMServiceAccountsWithStackArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeStackManager) NewTasksToDeleteIAMServiceAccountsWithStackReturns(result1 *tasks.TaskTree, result2 error) {
+	fake.newTasksToDeleteIAMServiceAccountsWithStackMutex.Lock()
+	defer fake.newTasksToDeleteIAMServiceAccountsWithStackMutex.Unlock()
+	fake.NewTasksToDeleteIAMServiceAccountsWithStackStub = nil
+	fake.newTasksToDeleteIAMServiceAccountsWithStackReturns = struct {
+		result1 *tasks.TaskTree
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) NewTasksToDeleteIAMServiceAccountsWithStackReturnsOnCall(i int, result1 *tasks.TaskTree, result2 error) {
+	fake.newTasksToDeleteIAMServiceAccountsWithStackMutex.Lock()
+	defer fake.newTasksToDeleteIAMServiceAccountsWithStackMutex.Unlock()
+	fake.NewTasksToDeleteIAMServiceAccountsWithStackStub = nil
+	if fake.newTasksToDeleteIAMServiceAccountsWithStackReturnsOnCall == nil {
+		fake.newTasksToDeleteIAMServiceAccountsWithStackReturnsOnCall = make(map[int]struct {
+			result1 *tasks.TaskTree
+			result2 error
+		})
+	}
+	fake.newTasksToDeleteIAMServiceAccountsWithStackReturnsOnCall[i] = struct {
+		result1 *tasks.TaskTree
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeStackManager) NewTasksToDeleteNodeGroups(arg1 func(_ string) bool, arg2 bool, arg3 func(chan error, string) error) (*tasks.TaskTree, error) {
 	fake.newTasksToDeleteNodeGroupsMutex.Lock()
 	ret, specificReturn := fake.newTasksToDeleteNodeGroupsReturnsOnCall[len(fake.newTasksToDeleteNodeGroupsArgsForCall)]
@@ -4505,6 +4586,8 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.newTasksToDeleteClusterWithNodeGroupsMutex.RUnlock()
 	fake.newTasksToDeleteIAMServiceAccountsMutex.RLock()
 	defer fake.newTasksToDeleteIAMServiceAccountsMutex.RUnlock()
+	fake.newTasksToDeleteIAMServiceAccountsWithStackMutex.RLock()
+	defer fake.newTasksToDeleteIAMServiceAccountsWithStackMutex.RUnlock()
 	fake.newTasksToDeleteNodeGroupsMutex.RLock()
 	defer fake.newTasksToDeleteNodeGroupsMutex.RUnlock()
 	fake.newTasksToDeleteOIDCProviderWithIAMServiceAccountsMutex.RLock()

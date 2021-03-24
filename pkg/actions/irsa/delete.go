@@ -3,6 +3,7 @@ package irsa
 import (
 	"fmt"
 
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 
 	"github.com/kris-nova/logger"
@@ -29,6 +30,6 @@ func (m *Manager) Delete(serviceAccounts []string, plan, wait bool) error {
 	return nil
 }
 
-func (m *Manager) DeleteTasks(serviceAccounts []string) (*tasks.TaskTree, error) {
-	return m.stackManager.NewTasksToDeleteIAMServiceAccounts(serviceAccounts, kubernetes.NewCachedClientSet(m.clientSet), true)
+func (m *Manager) DeleteTasks(serviceAccounts map[string]*manager.Stack) (*tasks.TaskTree, error) {
+	return m.stackManager.NewTasksToDeleteIAMServiceAccountsWithStack(serviceAccounts, kubernetes.NewCachedClientSet(m.clientSet), true)
 }

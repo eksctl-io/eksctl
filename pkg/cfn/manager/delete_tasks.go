@@ -239,40 +239,42 @@ func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(serviceAccounts []s
 		return nil, err
 	}
 
-	stacksMap := stacksToServiceAccountMap(serviceAccountStacks)
-	taskTree := &tasks.TaskTree{Parallel: true}
+	stacksMap := stacksToServiceAccountMap(serviceAccounts, serviceAccountStacks)
+	return c.NewTasksToDeleteIAMServiceAccountsWithStack(stacksMap, clientSetGetter, wait)
+}
 
-	for _, serviceAccount := range serviceAccounts {
+func (c *StackCollection) NewTasksToDeleteIAMServiceAccountsWithStack(serviceAccounts map[string]*Stack, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*tasks.TaskTree, error) {
+	taskTree := &tasks.TaskTree{Parallel: true}
+	for serviceAccount, stack := range serviceAccounts {
 		saTasks := &tasks.TaskTree{
 			Parallel:  false,
 			IsSubTask: true,
 		}
 
-		if s, ok := stacksMap[serviceAccount]; ok {
-			info := fmt.Sprintf("delete IAM role for serviceaccount %q", serviceAccount)
-			if wait {
-				saTasks.Append(&taskWithStackSpec{
-					info:  info,
-					stack: s,
-					call:  c.DeleteStackBySpecSync,
-				})
-			} else {
-				saTasks.Append(&asyncTaskWithStackSpec{
-					info:  info,
-					stack: s,
-					call:  c.DeleteStackBySpec,
-				})
-			}
+		info := fmt.Sprintf("delete IAM role for serviceaccount %q", serviceAccount)
+		if wait {
+			saTasks.Append(&taskWithStackSpec{
+				info:  info,
+				stack: stack,
+				call:  c.DeleteStackBySpecSync,
+			})
+		} else {
+			saTasks.Append(&asyncTaskWithStackSpec{
+				info:  info,
+				stack: stack,
+				call:  c.DeleteStackBySpec,
+			})
+		}
+
+		meta, err := api.ClusterIAMServiceAccountNameStringToClusterIAMMeta(serviceAccount)
+		if err != nil {
+			return nil, err
 		}
 
 		saTasks.Append(&kubernetesTask{
 			info:       fmt.Sprintf("delete serviceaccount %q", serviceAccount),
 			kubernetes: clientSetGetter,
 			call: func(clientSet kubernetes.Interface) error {
-				meta, err := api.ClusterIAMServiceAccountNameStringToClusterIAMMeta(serviceAccount)
-				if err != nil {
-					return err
-				}
 				return kubernetes.MaybeDeleteServiceAccount(clientSet, meta.AsObjectMeta())
 			},
 		})
@@ -282,10 +284,15 @@ func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(serviceAccounts []s
 	return taskTree, nil
 }
 
-func stacksToServiceAccountMap(stacks []*cloudformation.Stack) map[string]*cloudformation.Stack {
+func stacksToServiceAccountMap(serviceAccounts []string, stacks []*cloudformation.Stack) map[string]*cloudformation.Stack {
 	stackMap := make(map[string]*cloudformation.Stack)
-	for _, stack := range stacks {
-		stackMap[GetIAMServiceAccountName(stack)] = stack
+	for _, sa := range serviceAccounts {
+		for _, stack := range stacks {
+			if sa == GetIAMServiceAccountName(stack) {
+				stackMap[GetIAMServiceAccountName(stack)] = stack
+				break
+			}
+		}
 	}
 
 	return stackMap

@@ -146,7 +146,16 @@ var _ = Describe("Iamserviceaccounts", func() {
 
 			By("deleting the undesired SA")
 			Expect(fakeManager.DeleteTasksCallCount()).To(Equal(1))
-			Expect(fakeManager.DeleteTasksArgsForCall(0)).To(ConsistOf("delete/me"))
+			Expect(fakeManager.DeleteTasksArgsForCall(0)).To(HaveKey("delete/me"))
+			Expect(*fakeManager.DeleteTasksArgsForCall(0)["delete/me"]).To(Equal(manager.Stack{
+				StackName: aws.String(manager.MakeIAMServiceAccountStackName("mycluster", "delete", "me")),
+				Tags: []*cloudformation.Tag{
+					{
+						Key:   aws.String(api.IAMServiceAccountNameTag),
+						Value: aws.String("delete/me"),
+					},
+				},
+			}))
 			Expect(deleteTasks.Tasks).To(HaveLen(1))
 			Expect(deleteTasks).To(Equal(deleteTasksReturnValue))
 		})
