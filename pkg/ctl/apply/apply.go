@@ -3,6 +3,8 @@ package apply
 import (
 	"fmt"
 
+	"github.com/kris-nova/logger"
+
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -73,7 +75,18 @@ func doApply(cmd *cmdutils.Cmd) error {
 
 	stackManager := manager.NewStackCollection(ctl.Provider, cfg)
 
-	return apply.New(cfg, ctl, stackManager, oidc, clientSet, cmd.Plan).Reconcile()
+	logger.Warning("EXPERIMENTAL: eksctl apply is an experimental command, the currently supported resources are: IAMServiceAccounts")
+
+	err = apply.New(cfg, ctl, stackManager, oidc, clientSet, cmd.Plan).Reconcile()
+	if err != nil {
+		return err
+	}
+
+	if cmd.Plan {
+		logger.Warning("no changes were applied, run again with '--approve' to apply the changes")
+
+	}
+	return nil
 }
 
 func newConfigLoader(cmd *cmdutils.Cmd) cmdutils.ClusterConfigLoader {
