@@ -33,7 +33,7 @@ func (m *existingStack) Match(actual interface{}) (success bool, err error) {
 		return false, errors.New("not a AWS session")
 	}
 
-	found, err := stackExists(m.expectedStackName, actual.(*session.Session))
+	found, err := StackExists(m.expectedStackName, actual.(*session.Session))
 	if err != nil {
 		return false, err
 	}

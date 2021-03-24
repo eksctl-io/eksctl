@@ -14,7 +14,7 @@ const (
 )
 
 // stackExists checks to see if a CloudFormation stack exists
-func stackExists(stackName string, session *session.Session) (bool, error) {
+func StackExists(stackName string, session *session.Session) (bool, error) {
 	cfn := cloudformation.New(session)
 
 	input := &cloudformation.ListStackResourcesInput{

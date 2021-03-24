@@ -47,6 +47,7 @@ type Params struct {
 	EksctlScaleNodeGroupCmd  runner.Cmd
 	EksctlUtilsCmd           runner.Cmd
 	EksctlEnableCmd          runner.Cmd
+	EksctlApplyCmd           runner.Cmd
 	// Keep track of created clusters, for post-tests clean-up.
 	clustersToDelete []string
 }
@@ -119,6 +120,10 @@ func (p *Params) GenerateCommands() {
 
 	p.EksctlCreateNodegroupCmd = runner.NewCmd(p.EksctlPath).
 		WithArgs("create", "nodegroup").
+		WithTimeout(30 * time.Minute)
+
+	p.EksctlApplyCmd = runner.NewCmd(p.EksctlPath).
+		WithArgs("apply").
 		WithTimeout(30 * time.Minute)
 
 }
