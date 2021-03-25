@@ -15,6 +15,7 @@ nav:
     - Introduction: introduction.md
     - Usage:
         - usage/creating-and-managing-clusters.md
+        - usage/unowned-clusters.md
         - usage/managing-nodegroups.md
         - usage/security.md
         - usage/cluster-upgrade.md
@@ -77,3 +78,5 @@ markdown_extensions:
     - codehilite:
         linenums: true
     - pymdownx.superfences
+    - pymdownx.tasklist:
+        custom_checkbox: true
