@@ -52,7 +52,7 @@ var _ = Describe("Update", func() {
 		irsaManager = irsa.New("my-cluster", fakeStackManager, oidc, clientSet)
 	})
 
-	Context("UpdateIAMServiceAccounts", func() {
+	Context("UpdateRolePoliciesForIAMServiceAccounts", func() {
 		When("the IAMServiceAccount exists", func() {
 			It("updates the role", func() {
 				fakeStackManager.ListStacksMatchingReturns([]*cloudformation.Stack{
@@ -61,7 +61,7 @@ var _ = Describe("Update", func() {
 					},
 				}, nil)
 
-				err := irsaManager.UpdateIAMServiceAccounts(serviceAccounts, false)
+				err := irsaManager.UpdateRolePoliciesForIAMServiceAccounts(serviceAccounts, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeStackManager.ListStacksMatchingCallCount()).To(Equal(1))
@@ -85,7 +85,7 @@ var _ = Describe("Update", func() {
 						},
 					}, nil)
 
-					err := irsaManager.UpdateIAMServiceAccounts(serviceAccounts, true)
+					err := irsaManager.UpdateRolePoliciesForIAMServiceAccounts(serviceAccounts, true)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(fakeStackManager.ListStacksMatchingCallCount()).To(Equal(1))

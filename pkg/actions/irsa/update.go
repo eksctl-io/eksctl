@@ -86,7 +86,7 @@ func (a *Manager) IsUpToDate(sa api.ClusterIAMServiceAccount, stack *manager.Sta
 	return reflect.DeepEqual(sa.Annotations, existingSA.Annotations), nil
 }
 
-func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMServiceAccount, plan bool) error {
+func (a *Manager) UpdateRolePoliciesForIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMServiceAccount, plan bool) error {
 	var nonExistingSAs []string
 	updateTasks := &tasks.TaskTree{Parallel: true}
 

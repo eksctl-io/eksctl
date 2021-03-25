@@ -101,5 +101,5 @@ func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	return irsa.New(cfg.Metadata.Name, stackManager, oidc, clientSet).UpdateIAMServiceAccounts(cfg.IAM.ServiceAccounts, cmd.Plan)
+	return irsa.New(cfg.Metadata.Name, stackManager, oidc, clientSet).UpdateRolePoliciesForIAMServiceAccounts(cfg.IAM.ServiceAccounts, cmd.Plan)
 }

@@ -55,7 +55,7 @@ func (h *irsaHelper) CreateOrUpdate(sa *api.ClusterIAMServiceAccount) error {
 	if len(stacks) == 0 {
 		err = h.irsaManager.CreateIAMServiceAccount(serviceAccounts, false)
 	} else {
-		err = h.irsaManager.UpdateIAMServiceAccounts(serviceAccounts, false)
+		err = h.irsaManager.UpdateRolePoliciesForIAMServiceAccounts(serviceAccounts, false)
 	}
 	return err
 }
