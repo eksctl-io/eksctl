@@ -75,7 +75,6 @@ func addResourcesForFargate(rs *resourceSet, cfg *api.ClusterConfig) error {
 	rs.template.Description = fargateRoleDescription
 	role := &gfniam.Role{
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
-			MakeServiceRef("EKS"),
 			MakeServiceRef("EKSFargatePods"), // Ensure that EKS can schedule pods onto Fargate.
 		),
 		ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(

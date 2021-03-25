@@ -80,9 +80,6 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 	role := &gfniam.Role{
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
 			MakeServiceRef("EKS"),
-			// Ensure that EKS can schedule pods onto Fargate, should the user
-			// define so-called "Fargate profiles" in order to do so:
-			MakeServiceRef("EKSFargatePods"),
 		),
 		ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(managedPolicyArns...)...),
 	}
