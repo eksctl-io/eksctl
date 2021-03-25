@@ -54,6 +54,9 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 	if api.IsEnabled(mng.EFAEnabled) {
 		// we don't want to touch the network interfaces at all if we have a
 		// managed nodegroup, unless EFA is enabled
+		desc := "worker nodes in group " + m.nodeGroup.Name
+		efaSG := m.addEFASecurityGroup(m.vpcImporter.VPC(), m.clusterConfig.Metadata.Name, desc)
+		securityGroupIDs = append(securityGroupIDs, efaSG)
 		if err := buildNetworkInterfaces(launchTemplateData, mng.InstanceTypeList(), true, securityGroupIDs, m.ec2API); err != nil {
 			return nil, errors.Wrap(err, "couldn't build network interfaces for launch template data")
 		}

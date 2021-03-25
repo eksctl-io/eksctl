@@ -450,7 +450,7 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcResource *VPCResou
 	}
 }
 
-func (rs *resourceSet) addEFASecurityGroup(vpcID *gfnt.Value, clusterName, desc string) {
+func (rs *resourceSet) addEFASecurityGroup(vpcID *gfnt.Value, clusterName, desc string) *gfnt.Value {
 	efaSG := rs.newResource("EFASG", &gfnec2.SecurityGroup{
 		VpcId:            vpcID,
 		GroupDescription: gfnt.NewString("EFA-enabled security group"),
@@ -471,6 +471,8 @@ func (rs *resourceSet) addEFASecurityGroup(vpcID *gfnt.Value, clusterName, desc 
 		Description:                gfnt.NewString("Allow " + desc + " to communicate to itself (EFA-enabled)"),
 		IpProtocol:                 gfnt.NewString("-1"),
 	})
+
+	return efaSG
 }
 
 func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
@@ -503,7 +505,8 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	n.securityGroups = append(n.securityGroups, refNodeGroupLocalSG)
 
 	if api.IsEnabled(n.spec.EFAEnabled) {
-		n.rs.addEFASecurityGroup(vpcID, n.clusterSpec.Metadata.Name, desc)
+		efaSG := n.rs.addEFASecurityGroup(vpcID, n.clusterSpec.Metadata.Name, desc)
+		n.securityGroups = append(n.securityGroups, efaSG)
 	}
 
 	n.newResource("EgressInterCluster", &gfnec2.SecurityGroupEgress{

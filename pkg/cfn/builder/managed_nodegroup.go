@@ -148,10 +148,6 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 			Id: ltRef,
 		}
 	}
-	if api.IsEnabled(m.nodeGroup.EFAEnabled) {
-		desc := "worker nodes in group " + m.nodeGroup.Name
-		m.addEFASecurityGroup(m.vpcImporter.VPC(), m.clusterConfig.Metadata.Name, desc)
-	}
 
 	managedResource.LaunchTemplate = launchTemplate
 	m.newResource(ManagedNodeGroupResourceName, managedResource)
