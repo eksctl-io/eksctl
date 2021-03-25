@@ -686,9 +686,9 @@ func NewClusterVPC() *ClusterVPC {
 			CIDR: &cidr,
 		},
 		ManageSharedNodeSecurityGroupRules: Enabled(),
-		NAT:              DefaultClusterNAT(),
-		AutoAllocateIPv6: Disabled(),
-		ClusterEndpoints: &ClusterEndpoints{},
+		NAT:                                DefaultClusterNAT(),
+		AutoAllocateIPv6:                   Disabled(),
+		ClusterEndpoints:                   &ClusterEndpoints{},
 	}
 }
 
@@ -718,18 +718,18 @@ func NewNodeGroup() *NodeGroup {
 			VolumeSize:        &DefaultNodeVolumeSize,
 			IAM: &NodeGroupIAM{
 				WithAddonPolicies: NodeGroupIAMAddonPolicies{
-					ImageBuilder:   Disabled(),
-					AutoScaler:     Disabled(),
-					ExternalDNS:    Disabled(),
-					CertManager:    Disabled(),
-					AppMesh:        Disabled(),
-					AppMeshPreview: Disabled(),
-					EBS:            Disabled(),
-					FSX:            Disabled(),
-					EFS:            Disabled(),
+					ImageBuilder:              Disabled(),
+					AutoScaler:                Disabled(),
+					ExternalDNS:               Disabled(),
+					CertManager:               Disabled(),
+					AppMesh:                   Disabled(),
+					AppMeshPreview:            Disabled(),
+					EBS:                       Disabled(),
+					FSX:                       Disabled(),
+					EFS:                       Disabled(),
 					AWSLoadBalancerController: Disabled(),
-					XRay:       Disabled(),
-					CloudWatch: Disabled(),
+					XRay:                      Disabled(),
+					CloudWatch:                Disabled(),
 				},
 			},
 			ScalingConfig: &ScalingConfig{},
@@ -768,18 +768,18 @@ func NewManagedNodeGroup() *ManagedNodeGroup {
 			},
 			IAM: &NodeGroupIAM{
 				WithAddonPolicies: NodeGroupIAMAddonPolicies{
-					ImageBuilder:   Disabled(),
-					AutoScaler:     Disabled(),
-					ExternalDNS:    Disabled(),
-					CertManager:    Disabled(),
-					AppMesh:        Disabled(),
-					AppMeshPreview: Disabled(),
-					EBS:            Disabled(),
-					FSX:            Disabled(),
-					EFS:            Disabled(),
+					ImageBuilder:              Disabled(),
+					AutoScaler:                Disabled(),
+					ExternalDNS:               Disabled(),
+					CertManager:               Disabled(),
+					AppMesh:                   Disabled(),
+					AppMeshPreview:            Disabled(),
+					EBS:                       Disabled(),
+					FSX:                       Disabled(),
+					EFS:                       Disabled(),
 					AWSLoadBalancerController: Disabled(),
-					XRay:       Disabled(),
-					CloudWatch: Disabled(),
+					XRay:                      Disabled(),
+					CloudWatch:                Disabled(),
 				},
 			},
 			ScalingConfig:  &ScalingConfig{},
@@ -1462,9 +1462,14 @@ type PrivateCluster struct {
 
 // InstanceSelector holds EC2 instance selector options
 type InstanceSelector struct {
-	VCPUs           int    `json:"vCPUs,omitempty"`
-	Memory          string `json:"memory,omitempty"`
-	GPUs            int    `json:"gpus,omitempty"`
+	// VCPUs specifies the number of vCPUs
+	VCPUs int `json:"vCPUs,omitempty"`
+	// Memory specifies the memory in GiB
+	Memory string `json:"memory,omitempty"`
+	// GPUs specifies the number of GPUs
+	GPUs int `json:"gpus,omitempty"`
+	// CPUArchitecture of the EC2 instance type
+	// Possible values are: x86_64/amd64 or arm64
 	CPUArchitecture string `json:"cpuArchitecture,omitempty"`
 }
 
