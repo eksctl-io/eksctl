@@ -35,10 +35,10 @@ type FakeIRSAManager struct {
 		result1 *tasks.TaskTree
 		result2 error
 	}
-	IsUpToDateStub        func(*v1alpha5.ClusterIAMServiceAccount, *cloudformation.Stack) (bool, error)
+	IsUpToDateStub        func(v1alpha5.ClusterIAMServiceAccount, *cloudformation.Stack) (bool, error)
 	isUpToDateMutex       sync.RWMutex
 	isUpToDateArgsForCall []struct {
-		arg1 *v1alpha5.ClusterIAMServiceAccount
+		arg1 v1alpha5.ClusterIAMServiceAccount
 		arg2 *cloudformation.Stack
 	}
 	isUpToDateReturns struct {
@@ -49,16 +49,17 @@ type FakeIRSAManager struct {
 		result1 bool
 		result2 error
 	}
-	UpdateTasksStub        func([]*v1alpha5.ClusterIAMServiceAccount) (*tasks.TaskTree, error)
-	updateTasksMutex       sync.RWMutex
-	updateTasksArgsForCall []struct {
-		arg1 []*v1alpha5.ClusterIAMServiceAccount
+	UpdateTaskStub        func(*v1alpha5.ClusterIAMServiceAccount, *cloudformation.Stack) (*tasks.TaskTree, error)
+	updateTaskMutex       sync.RWMutex
+	updateTaskArgsForCall []struct {
+		arg1 *v1alpha5.ClusterIAMServiceAccount
+		arg2 *cloudformation.Stack
 	}
-	updateTasksReturns struct {
+	updateTaskReturns struct {
 		result1 *tasks.TaskTree
 		result2 error
 	}
-	updateTasksReturnsOnCall map[int]struct {
+	updateTaskReturnsOnCall map[int]struct {
 		result1 *tasks.TaskTree
 		result2 error
 	}
@@ -196,11 +197,11 @@ func (fake *FakeIRSAManager) DeleteTasksReturnsOnCall(i int, result1 *tasks.Task
 	}{result1, result2}
 }
 
-func (fake *FakeIRSAManager) IsUpToDate(arg1 *v1alpha5.ClusterIAMServiceAccount, arg2 *cloudformation.Stack) (bool, error) {
+func (fake *FakeIRSAManager) IsUpToDate(arg1 v1alpha5.ClusterIAMServiceAccount, arg2 *cloudformation.Stack) (bool, error) {
 	fake.isUpToDateMutex.Lock()
 	ret, specificReturn := fake.isUpToDateReturnsOnCall[len(fake.isUpToDateArgsForCall)]
 	fake.isUpToDateArgsForCall = append(fake.isUpToDateArgsForCall, struct {
-		arg1 *v1alpha5.ClusterIAMServiceAccount
+		arg1 v1alpha5.ClusterIAMServiceAccount
 		arg2 *cloudformation.Stack
 	}{arg1, arg2})
 	stub := fake.IsUpToDateStub
@@ -222,13 +223,13 @@ func (fake *FakeIRSAManager) IsUpToDateCallCount() int {
 	return len(fake.isUpToDateArgsForCall)
 }
 
-func (fake *FakeIRSAManager) IsUpToDateCalls(stub func(*v1alpha5.ClusterIAMServiceAccount, *cloudformation.Stack) (bool, error)) {
+func (fake *FakeIRSAManager) IsUpToDateCalls(stub func(v1alpha5.ClusterIAMServiceAccount, *cloudformation.Stack) (bool, error)) {
 	fake.isUpToDateMutex.Lock()
 	defer fake.isUpToDateMutex.Unlock()
 	fake.IsUpToDateStub = stub
 }
 
-func (fake *FakeIRSAManager) IsUpToDateArgsForCall(i int) (*v1alpha5.ClusterIAMServiceAccount, *cloudformation.Stack) {
+func (fake *FakeIRSAManager) IsUpToDateArgsForCall(i int) (v1alpha5.ClusterIAMServiceAccount, *cloudformation.Stack) {
 	fake.isUpToDateMutex.RLock()
 	defer fake.isUpToDateMutex.RUnlock()
 	argsForCall := fake.isUpToDateArgsForCall[i]
@@ -261,23 +262,19 @@ func (fake *FakeIRSAManager) IsUpToDateReturnsOnCall(i int, result1 bool, result
 	}{result1, result2}
 }
 
-func (fake *FakeIRSAManager) UpdateTasks(arg1 []*v1alpha5.ClusterIAMServiceAccount) (*tasks.TaskTree, error) {
-	var arg1Copy []*v1alpha5.ClusterIAMServiceAccount
-	if arg1 != nil {
-		arg1Copy = make([]*v1alpha5.ClusterIAMServiceAccount, len(arg1))
-		copy(arg1Copy, arg1)
-	}
-	fake.updateTasksMutex.Lock()
-	ret, specificReturn := fake.updateTasksReturnsOnCall[len(fake.updateTasksArgsForCall)]
-	fake.updateTasksArgsForCall = append(fake.updateTasksArgsForCall, struct {
-		arg1 []*v1alpha5.ClusterIAMServiceAccount
-	}{arg1Copy})
-	stub := fake.UpdateTasksStub
-	fakeReturns := fake.updateTasksReturns
-	fake.recordInvocation("UpdateTasks", []interface{}{arg1Copy})
-	fake.updateTasksMutex.Unlock()
+func (fake *FakeIRSAManager) UpdateTask(arg1 *v1alpha5.ClusterIAMServiceAccount, arg2 *cloudformation.Stack) (*tasks.TaskTree, error) {
+	fake.updateTaskMutex.Lock()
+	ret, specificReturn := fake.updateTaskReturnsOnCall[len(fake.updateTaskArgsForCall)]
+	fake.updateTaskArgsForCall = append(fake.updateTaskArgsForCall, struct {
+		arg1 *v1alpha5.ClusterIAMServiceAccount
+		arg2 *cloudformation.Stack
+	}{arg1, arg2})
+	stub := fake.UpdateTaskStub
+	fakeReturns := fake.updateTaskReturns
+	fake.recordInvocation("UpdateTask", []interface{}{arg1, arg2})
+	fake.updateTaskMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -285,46 +282,46 @@ func (fake *FakeIRSAManager) UpdateTasks(arg1 []*v1alpha5.ClusterIAMServiceAccou
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeIRSAManager) UpdateTasksCallCount() int {
-	fake.updateTasksMutex.RLock()
-	defer fake.updateTasksMutex.RUnlock()
-	return len(fake.updateTasksArgsForCall)
+func (fake *FakeIRSAManager) UpdateTaskCallCount() int {
+	fake.updateTaskMutex.RLock()
+	defer fake.updateTaskMutex.RUnlock()
+	return len(fake.updateTaskArgsForCall)
 }
 
-func (fake *FakeIRSAManager) UpdateTasksCalls(stub func([]*v1alpha5.ClusterIAMServiceAccount) (*tasks.TaskTree, error)) {
-	fake.updateTasksMutex.Lock()
-	defer fake.updateTasksMutex.Unlock()
-	fake.UpdateTasksStub = stub
+func (fake *FakeIRSAManager) UpdateTaskCalls(stub func(*v1alpha5.ClusterIAMServiceAccount, *cloudformation.Stack) (*tasks.TaskTree, error)) {
+	fake.updateTaskMutex.Lock()
+	defer fake.updateTaskMutex.Unlock()
+	fake.UpdateTaskStub = stub
 }
 
-func (fake *FakeIRSAManager) UpdateTasksArgsForCall(i int) []*v1alpha5.ClusterIAMServiceAccount {
-	fake.updateTasksMutex.RLock()
-	defer fake.updateTasksMutex.RUnlock()
-	argsForCall := fake.updateTasksArgsForCall[i]
-	return argsForCall.arg1
+func (fake *FakeIRSAManager) UpdateTaskArgsForCall(i int) (*v1alpha5.ClusterIAMServiceAccount, *cloudformation.Stack) {
+	fake.updateTaskMutex.RLock()
+	defer fake.updateTaskMutex.RUnlock()
+	argsForCall := fake.updateTaskArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIRSAManager) UpdateTasksReturns(result1 *tasks.TaskTree, result2 error) {
-	fake.updateTasksMutex.Lock()
-	defer fake.updateTasksMutex.Unlock()
-	fake.UpdateTasksStub = nil
-	fake.updateTasksReturns = struct {
+func (fake *FakeIRSAManager) UpdateTaskReturns(result1 *tasks.TaskTree, result2 error) {
+	fake.updateTaskMutex.Lock()
+	defer fake.updateTaskMutex.Unlock()
+	fake.UpdateTaskStub = nil
+	fake.updateTaskReturns = struct {
 		result1 *tasks.TaskTree
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeIRSAManager) UpdateTasksReturnsOnCall(i int, result1 *tasks.TaskTree, result2 error) {
-	fake.updateTasksMutex.Lock()
-	defer fake.updateTasksMutex.Unlock()
-	fake.UpdateTasksStub = nil
-	if fake.updateTasksReturnsOnCall == nil {
-		fake.updateTasksReturnsOnCall = make(map[int]struct {
+func (fake *FakeIRSAManager) UpdateTaskReturnsOnCall(i int, result1 *tasks.TaskTree, result2 error) {
+	fake.updateTaskMutex.Lock()
+	defer fake.updateTaskMutex.Unlock()
+	fake.UpdateTaskStub = nil
+	if fake.updateTaskReturnsOnCall == nil {
+		fake.updateTaskReturnsOnCall = make(map[int]struct {
 			result1 *tasks.TaskTree
 			result2 error
 		})
 	}
-	fake.updateTasksReturnsOnCall[i] = struct {
+	fake.updateTaskReturnsOnCall[i] = struct {
 		result1 *tasks.TaskTree
 		result2 error
 	}{result1, result2}
@@ -339,8 +336,8 @@ func (fake *FakeIRSAManager) Invocations() map[string][][]interface{} {
 	defer fake.deleteTasksMutex.RUnlock()
 	fake.isUpToDateMutex.RLock()
 	defer fake.isUpToDateMutex.RUnlock()
-	fake.updateTasksMutex.RLock()
-	defer fake.updateTasksMutex.RUnlock()
+	fake.updateTaskMutex.RLock()
+	defer fake.updateTaskMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

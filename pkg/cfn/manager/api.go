@@ -240,13 +240,19 @@ func (c *StackCollection) createStackRequest(stackName string, resourceSet build
 
 // UpdateStack will update a CloudFormation stack by creating and executing a ChangeSet
 func (c *StackCollection) UpdateStack(stackName, changeSetName, description string, templateData TemplateData, parameters map[string]string) error {
-	logger.Info(description)
 	i := &Stack{StackName: &stackName}
-	// Read existing tags
 	s, err := c.DescribeStack(i)
 	if err != nil {
 		return err
 	}
+	return c.UpdateCachedStack(s, changeSetName, description, templateData, parameters)
+}
+
+// UpdateStack will update a CloudFormation stack by creating and executing a ChangeSet
+func (c *StackCollection) UpdateCachedStack(s *Stack, changeSetName, description string, templateData TemplateData, parameters map[string]string) error {
+	logger.Info(description)
+	i := &Stack{StackName: s.StackName}
+	// Read existing tags
 	i.SetTags(s.Tags)
 	if err := c.doCreateChangeSetRequest(i, changeSetName, description, templateData, parameters, true); err != nil {
 		return err
@@ -262,8 +268,8 @@ func (c *StackCollection) UpdateStack(stackName, changeSetName, description stri
 		return err
 	}
 	logger.Debug("changes = %#v", changeSet.Changes)
-	if err := c.doExecuteChangeSet(stackName, changeSetName); err != nil {
-		logger.Warning("error executing Cloudformation changeSet %s in stack %s. Check the Cloudformation console for further details", changeSetName, stackName)
+	if err := c.doExecuteChangeSet(*s.StackName, changeSetName); err != nil {
+		logger.Warning("error executing Cloudformation changeSet %s in stack %s. Check the Cloudformation console for further details", changeSetName, *s.StackName)
 		return err
 	}
 	return c.doWaitUntilStackIsUpdated(i)

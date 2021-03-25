@@ -3,6 +3,8 @@ package irsa_test
 import (
 	"context"
 
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	. "github.com/onsi/ginkgo"
@@ -27,6 +29,8 @@ var _ = Describe("Update", func() {
 		serviceAccounts  []*api.ClusterIAMServiceAccount
 		serviceAccount   api.ClusterIAMServiceAccount
 		clientSet        *fake.Clientset
+		stack            *manager.Stack
+		ctx              = context.Background()
 	)
 
 	BeforeEach(func() {
@@ -96,10 +100,63 @@ var _ = Describe("Update", func() {
 		})
 	})
 
+	Context("UpdateTask", func() {
+		var updateSAInvoked bool
+		BeforeEach(func() {
+			updateSAInvoked = false
+			_, err := clientSet.CoreV1().ServiceAccounts("default").Create(ctx, &corev1.ServiceAccount{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "ServiceAccount",
+					APIVersion: corev1.SchemeGroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace:   "default",
+					Name:        "test-sa",
+					Labels:      map[string]string{"foo": "bar"},
+					Annotations: map[string]string{api.AnnotationEKSRoleARN: "arn123"},
+				},
+			}, metav1.CreateOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			stack = &cloudformation.Stack{
+				StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
+				Outputs: []*cloudformation.Output{
+					{
+						OutputKey:   aws.String("Role1"),
+						OutputValue: aws.String("arn123"),
+					},
+				},
+			}
+			fakeStackManager.CreateOrUpdateServiceAccountReturns(&tasks.GenericTask{Description: "create", Doer: func() error {
+				updateSAInvoked = true
+				return nil
+			}})
+		})
+
+		It("returns a task to update the IAMServiceAccounts policies and service account", func() {
+			taskTree, err := irsaManager.UpdateTask(&serviceAccount, stack)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(len(taskTree.Tasks)).To(Equal(2))
+			Expect(taskTree.DoAllSync()).To(HaveLen(0))
+
+			By("updating the policies")
+			Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
+			fakeStackManager.UpdateStackArgsForCall(0)
+			stackName, changeSetName, description, templateData, _ := fakeStackManager.UpdateStackArgsForCall(0)
+			Expect(stackName).To(Equal("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"))
+			Expect(changeSetName).To(Equal("updating-policy"))
+			Expect(description).To(Equal("updating policies for IAMServiceAccount default/test-sa"))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(string(templateData.(manager.TemplateBody))).To(ContainSubstring("arn-123"))
+			Expect(string(templateData.(manager.TemplateBody))).To(ContainSubstring(":sub\":\"system:serviceaccount:default:test-sa"))
+
+			By("updating the service account")
+			Expect(updateSAInvoked).To(BeTrue())
+		})
+	})
+
 	Context("IsUpToDate", func() {
-		ctx := context.Background()
 		const template = `{"AWSTemplateFormatVersion":"2010-09-09","Description":"IAM role for serviceaccount \"default/test-sa\" [created and managed by eksctl]","Resources":{"Role1":{"Type":"AWS::IAM::Role","Properties":{"AssumeRolePolicyDocument":{"Statement":[{"Action":["sts:AssumeRoleWithWebIdentity"],"Condition":{"StringEquals":{"oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E:aud":"sts.amazonaws.com","oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E:sub":"system:serviceaccount:default:test-sa"}},"Effect":"Allow","Principal":{"Federated":"arn:aws:iam::456123987123:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E"}}],"Version":"2012-10-17"},"ManagedPolicyArns":["arn-123"]}}},"Outputs":{"Role1":{"Value":{"Fn::GetAtt":"Role1.Arn"}}}}`
-		var stack *manager.Stack
 		BeforeEach(func() {
 			_, err := clientSet.CoreV1().ServiceAccounts("default").Create(ctx, &corev1.ServiceAccount{
 				TypeMeta: metav1.TypeMeta{
@@ -134,6 +191,16 @@ var _ = Describe("Update", func() {
 			Expect(updateNeeded).To(BeTrue())
 		})
 
+		It("returns true when its up to date and labels exists on the SA that are not defined in the spec", func() {
+			serviceAccount.Labels = make(map[string]string)
+			fakeStackManager.GetStackTemplateReturns(template, nil)
+			updateNeeded, err := irsaManager.IsUpToDate(serviceAccount, stack)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeStackManager.GetStackTemplateCallCount()).To(Equal(1))
+			Expect(fakeStackManager.GetStackTemplateArgsForCall(0)).To(Equal("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"))
+			Expect(updateNeeded).To(BeTrue())
+		})
+
 		It("returns false when the stack template has changed", func() {
 			fakeStackManager.GetStackTemplateReturns(`{"new":"template"}`, nil)
 			updateNeeded, err := irsaManager.IsUpToDate(serviceAccount, stack)
@@ -158,7 +225,7 @@ var _ = Describe("Update", func() {
 			Expect(updateNeeded).To(BeFalse())
 		})
 
-		It("returns false when the service account labels are out of date", func() {
+		It("returns false when the service account spec defines a label that is out of date", func() {
 			serviceAccount.Labels = map[string]string{"new": "label"}
 			fakeStackManager.GetStackTemplateReturns(template, nil)
 			updateNeeded, err := irsaManager.IsUpToDate(serviceAccount, stack)
@@ -168,8 +235,8 @@ var _ = Describe("Update", func() {
 			Expect(updateNeeded).To(BeFalse())
 		})
 
-		It("returns false when the service account annotations are out of date", func() {
-			stack.Outputs = []*cloudformation.Output{}
+		It("returns false when the service account spec defines a annotation that is out of date", func() {
+			serviceAccount.Annotations = map[string]string{"new": "label"}
 			fakeStackManager.GetStackTemplateReturns(template, nil)
 			updateNeeded, err := irsaManager.IsUpToDate(serviceAccount, stack)
 			Expect(err).NotTo(HaveOccurred())

@@ -7,6 +7,7 @@ import (
 	"reflect"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
@@ -63,9 +64,7 @@ func (a *Manager) IsUpToDate(sa api.ClusterIAMServiceAccount, stack *manager.Sta
 		return false, err
 	}
 
-	labelsUpToDate := reflect.DeepEqual(existingSA.Labels, sa.Labels)
-
-	if !labelsUpToDate {
+	if !mapIsSubsetOfMap(sa.Labels, existingSA.Labels) {
 		return false, nil
 	}
 
@@ -83,7 +82,16 @@ func (a *Manager) IsUpToDate(sa api.ClusterIAMServiceAccount, stack *manager.Sta
 	}
 	sa.Annotations[api.AnnotationEKSRoleARN] = roleARN
 
-	return reflect.DeepEqual(sa.Annotations, existingSA.Annotations), nil
+	return mapIsSubsetOfMap(sa.Annotations, existingSA.Annotations), nil
+}
+
+func mapIsSubsetOfMap(smallSet, bigSet map[string]string) bool {
+	for key := range smallSet {
+		if _, ok := bigSet[key]; !ok {
+			return false
+		}
+	}
+	return true
 }
 
 func (a *Manager) UpdateRolePoliciesForIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMServiceAccount, plan bool) error {
@@ -122,33 +130,26 @@ func (a *Manager) UpdateRolePoliciesForIAMServiceAccounts(iamServiceAccounts []*
 
 }
 
-func (a *Manager) UpdateTasks(iamServiceAccounts []*api.ClusterIAMServiceAccount) (*tasks.TaskTree, error) {
-	updateTasks := &tasks.TaskTree{Parallel: true}
+func (a *Manager) UpdateTask(sa *api.ClusterIAMServiceAccount, stack *manager.Stack) (*tasks.TaskTree, error) {
+	updateTasks := &tasks.TaskTree{Parallel: false}
 
-	existingIAMStacks, err := a.stackManager.ListStacksMatching("eksctl-.*-addon-iamserviceaccount")
+	taskTree, err := NewUpdateIAMServiceAccountTask(a.clusterName, sa, a.stackManager, a.oidcManager)
 	if err != nil {
 		return nil, err
 	}
-
-	existingIAMStacksMap := listToSet(existingIAMStacks)
-
-	for _, iamServiceAccount := range iamServiceAccounts {
-		stackName := makeIAMServiceAccountStackName(a.clusterName, iamServiceAccount.Namespace, iamServiceAccount.Name)
-
-		if _, ok := existingIAMStacksMap[stackName]; !ok {
-			logger.Debug("cannot update IAMServiceAccount %s/%s as it does not exist", iamServiceAccount.Namespace, iamServiceAccount.Name)
-			continue
+	updateTasks.Append(taskTree)
+	// TODO: refactor this, currently when creating the Role stack, an output collector
+	// sets the roleArn on the SA spec(HACKY!). Here we need to do it manually.
+	for _, output := range stack.Outputs {
+		if *output.OutputKey == "Role1" {
+			sa.Status = &api.ClusterIAMServiceAccountStatus{
+				RoleARN: output.OutputValue,
+			}
 		}
-
-		taskTree, err := NewUpdateIAMServiceAccountTask(a.clusterName, iamServiceAccount, a.stackManager, a.oidcManager)
-		if err != nil {
-			return nil, err
-		}
-		taskTree.PlanMode = false
-		updateTasks.Append(taskTree)
 	}
-	return updateTasks, nil
 
+	updateTasks.Append(a.stackManager.CreateOrUpdateServiceAccount(sa, kubernetes.NewCachedClientSet(a.clientSet)))
+	return updateTasks, nil
 }
 
 func listToSet(stacks []*manager.Stack) map[string]struct{} {

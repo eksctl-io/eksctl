@@ -130,25 +130,29 @@ func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*
 		}
 
 		if !api.IsEnabled(sa.RoleOnly) {
-			saTasks.Append(&kubernetesTask{
-				info:       fmt.Sprintf("create serviceaccount %q", sa.NameString()),
-				kubernetes: clientSetGetter,
-				call: func(clientSet kubernetes.Interface) error {
-					sa.SetAnnotations()
-					if sa.Labels == nil {
-						sa.Labels = make(map[string]string)
-					}
-
-					sa.Labels[managedByKubernetesLabelKey] = managedByKubernetesLabelValue
-					if err := kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa.ClusterIAMMeta.AsObjectMeta()); err != nil {
-						return errors.Wrapf(err, "failed to create service account %s", sa.NameString())
-					}
-					return nil
-				},
-			})
+			saTasks.Append(c.CreateOrUpdateServiceAccount(sa, clientSetGetter))
 		}
 
 		taskTree.Append(saTasks)
 	}
 	return taskTree
+}
+
+func (c *StackCollection) CreateOrUpdateServiceAccount(sa *api.ClusterIAMServiceAccount, clientSetGetter kubernetes.ClientSetGetter) tasks.Task {
+	return &kubernetesTask{
+		info:       fmt.Sprintf("create or update serviceaccount %q", sa.NameString()),
+		kubernetes: clientSetGetter,
+		call: func(clientSet kubernetes.Interface) error {
+			sa.SetAnnotations()
+			if sa.Labels == nil {
+				sa.Labels = make(map[string]string)
+			}
+
+			sa.Labels[managedByKubernetesLabelKey] = managedByKubernetesLabelValue
+			if err := kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa.ClusterIAMMeta.AsObjectMeta()); err != nil {
+				return errors.Wrapf(err, "failed to create service account %s", sa.NameString())
+			}
+			return nil
+		},
+	}
 }

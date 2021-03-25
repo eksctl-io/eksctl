@@ -78,7 +78,7 @@ func (c *StackCollection) waitWithAcceptorsChangeSet(i *Stack, changesetName str
 		} else {
 			if strings.Contains(*s.StatusReason, "The submitted information didn't contain changes") {
 				// ignore this error
-				logger.Info("nothing to update")
+				logger.Debug("nothing to update")
 				return &noChangeError{*s.StatusReason}
 			}
 			logger.Critical("unexpected status %q while %s, reason: %s", *s.Status, msg, *s.StatusReason)

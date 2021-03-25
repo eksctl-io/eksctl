@@ -14,8 +14,8 @@ import (
 type IRSAManager interface {
 	CreateTasks(iamServiceAccounts []*api.ClusterIAMServiceAccount) *tasks.TaskTree
 	DeleteTasks(serviceAccounts map[string]*manager.Stack) (*tasks.TaskTree, error)
-	UpdateTasks(iamServiceAccounts []*api.ClusterIAMServiceAccount) (*tasks.TaskTree, error)
-	IsUpToDate(iamServiceAccount *api.ClusterIAMServiceAccount, stack *manager.Stack) (bool, error)
+	UpdateTask(iamServiceAccount *api.ClusterIAMServiceAccount, stack *manager.Stack) (*tasks.TaskTree, error)
+	IsUpToDate(iamServiceAccount api.ClusterIAMServiceAccount, stack *manager.Stack) (bool, error)
 }
 
 func (r *Reconciler) ReconcileIAMServiceAccounts() (*tasks.TaskTree, *tasks.TaskTree, *tasks.TaskTree, error) {
@@ -34,7 +34,7 @@ func (r *Reconciler) ReconcileIAMServiceAccounts() (*tasks.TaskTree, *tasks.Task
 
 	for saName, saSpec := range desiredServiceAccountsNameMapSpec {
 		if stack, ok := existingServiceAccountsNameToStackMap[saName]; ok {
-			isUpToDate, err := r.irsaManager.IsUpToDate(saSpec, stack)
+			isUpToDate, err := r.irsaManager.IsUpToDate(*saSpec, stack)
 			if err != nil {
 				return nil, nil, nil, fmt.Errorf("failed to check if service account is up to date: %w", err)
 			}
@@ -55,11 +55,14 @@ func (r *Reconciler) ReconcileIAMServiceAccounts() (*tasks.TaskTree, *tasks.Task
 	}
 
 	createTasks := r.irsaManager.CreateTasks(toCreate)
-	updateTasks, err := r.irsaManager.UpdateTasks(toUpdate)
-	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to generate update tasks: %w", err)
+	updateTasks := &tasks.TaskTree{Parallel: false}
+	for _, sa := range toUpdate {
+		task, err := r.irsaManager.UpdateTask(sa, existingServiceAccountsNameToStackMap[sa.NameString()])
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("failed to generate update tasks: %w", err)
+		}
+		updateTasks.Append(task)
 	}
-
 	deleteTasks, err := r.irsaManager.DeleteTasks(toDelete)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to generate delete tasks: %w", err)

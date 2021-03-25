@@ -44,7 +44,7 @@ var _ = Describe("Iamserviceaccounts", func() {
 		deleteTasksReturnValue = &tasks.TaskTree{Tasks: []tasks.Task{&tasks.GenericTask{Description: "delete"}}}
 
 		fakeManager.CreateTasksReturns(createTasksReturnValue)
-		fakeManager.UpdateTasksReturns(updateTasksReturnValue, nil)
+		fakeManager.UpdateTaskReturns(updateTasksReturnValue, nil)
 		fakeManager.DeleteTasksReturns(deleteTasksReturnValue, nil)
 	})
 
@@ -101,7 +101,7 @@ var _ = Describe("Iamserviceaccounts", func() {
 				},
 			}, nil)
 
-			fakeManager.IsUpToDateStub = func(sa *api.ClusterIAMServiceAccount, _ *cloudformation.Stack) (bool, error) {
+			fakeManager.IsUpToDateStub = func(sa api.ClusterIAMServiceAccount, _ *cloudformation.Stack) (bool, error) {
 				if sa.NameString() == "update/me" {
 					return false, nil
 				}
@@ -133,16 +133,24 @@ var _ = Describe("Iamserviceaccounts", func() {
 
 			By("updating only the out of date SA")
 			Expect(fakeManager.IsUpToDateCallCount()).To(Equal(2))
-			Expect(fakeManager.UpdateTasksCallCount()).To(Equal(1))
-			Expect(fakeManager.UpdateTasksArgsForCall(0)).To(ConsistOf(
-				&api.ClusterIAMServiceAccount{
-					ClusterIAMMeta: api.ClusterIAMMeta{
-						Namespace: "update",
-						Name:      "me",
+			Expect(fakeManager.UpdateTaskCallCount()).To(Equal(1))
+			sa, stack := fakeManager.UpdateTaskArgsForCall(0)
+			Expect(sa).To(Equal(&api.ClusterIAMServiceAccount{
+				ClusterIAMMeta: api.ClusterIAMMeta{
+					Namespace: "update",
+					Name:      "me",
+				},
+			}))
+			Expect(stack).To(Equal(&manager.Stack{
+				StackName: aws.String(manager.MakeIAMServiceAccountStackName("mycluster", "update", "me")),
+				Tags: []*cloudformation.Tag{
+					{
+						Key:   aws.String(api.IAMServiceAccountNameTag),
+						Value: aws.String("update/me"),
 					},
 				},
-			))
-			Expect(updateTasks).To(Equal(updateTasksReturnValue))
+			}))
+			Expect(updateTasks).To(Equal(&tasks.TaskTree{Tasks: []tasks.Task{updateTasksReturnValue}}))
 
 			By("deleting the undesired SA")
 			Expect(fakeManager.DeleteTasksCallCount()).To(Equal(1))
@@ -184,7 +192,7 @@ var _ = Describe("Iamserviceaccounts", func() {
 
 		When("the generate update tasks call fails", func() {
 			BeforeEach(func() {
-				fakeManager.UpdateTasksReturns(nil, fmt.Errorf("foo"))
+				fakeManager.UpdateTaskReturns(nil, fmt.Errorf("foo"))
 			})
 
 			It("returns an error", func() {

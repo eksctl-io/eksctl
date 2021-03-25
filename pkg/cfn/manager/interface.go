@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -28,6 +29,7 @@ type StackManager interface {
 	DoCreateStackRequest(i *Stack, templateData TemplateData, tags, parameters map[string]string, withIAM bool, withNamedIAM bool) error
 	CreateStack(name string, stack builder.ResourceSet, tags, parameters map[string]string, errs chan error) error
 	UpdateStack(stackName, changeSetName, description string, templateData TemplateData, parameters map[string]string) error
+	UpdateCachedStack(s *Stack, changeSetName, description string, templateData TemplateData, parameters map[string]string) error
 	DescribeStack(i *Stack) (*Stack, error)
 	GetManagedNodeGroupTemplate(nodeGroupName string) (string, error)
 	UpdateNodeGroupStack(nodeGroupName, template string) error
@@ -43,6 +45,7 @@ type StackManager interface {
 	DescribeStacks() ([]*Stack, error)
 	HasClusterStack() (bool, error)
 	HasClusterStackUsingCachedList(clusterStackNames []string) (bool, error)
+	CreateOrUpdateServiceAccount(sa *api.ClusterIAMServiceAccount, clientSetGetter kubernetes.ClientSetGetter) tasks.Task
 	DescribeStackEvents(i *Stack) ([]*cloudformation.StackEvent, error)
 	LookupCloudTrailEvents(i *Stack) ([]*cloudtrail.Event, error)
 	DescribeStackChangeSet(i *Stack, changeSetName string) (*ChangeSet, error)

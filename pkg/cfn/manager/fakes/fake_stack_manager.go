@@ -31,6 +31,18 @@ type FakeStackManager struct {
 		result1 bool
 		result2 error
 	}
+	CreateOrUpdateServiceAccountStub        func(*v1alpha5.ClusterIAMServiceAccount, kubernetes.ClientSetGetter) tasks.Task
+	createOrUpdateServiceAccountMutex       sync.RWMutex
+	createOrUpdateServiceAccountArgsForCall []struct {
+		arg1 *v1alpha5.ClusterIAMServiceAccount
+		arg2 kubernetes.ClientSetGetter
+	}
+	createOrUpdateServiceAccountReturns struct {
+		result1 tasks.Task
+	}
+	createOrUpdateServiceAccountReturnsOnCall map[int]struct {
+		result1 tasks.Task
+	}
 	CreateStackStub        func(string, builder.ResourceSet, map[string]string, map[string]string, chan error) error
 	createStackMutex       sync.RWMutex
 	createStackArgsForCall []struct {
@@ -748,6 +760,21 @@ type FakeStackManager struct {
 	stackStatusIsNotTransitionalReturnsOnCall map[int]struct {
 		result1 bool
 	}
+	UpdateCachedStackStub        func(*cloudformation.Stack, string, string, manager.TemplateData, map[string]string) error
+	updateCachedStackMutex       sync.RWMutex
+	updateCachedStackArgsForCall []struct {
+		arg1 *cloudformation.Stack
+		arg2 string
+		arg3 string
+		arg4 manager.TemplateData
+		arg5 map[string]string
+	}
+	updateCachedStackReturns struct {
+		result1 error
+	}
+	updateCachedStackReturnsOnCall map[int]struct {
+		result1 error
+	}
 	UpdateNodeGroupStackStub        func(string, string) error
 	updateNodeGroupStackMutex       sync.RWMutex
 	updateNodeGroupStackArgsForCall []struct {
@@ -842,6 +869,68 @@ func (fake *FakeStackManager) AppendNewClusterStackResourceReturnsOnCall(i int, 
 		result1 bool
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeStackManager) CreateOrUpdateServiceAccount(arg1 *v1alpha5.ClusterIAMServiceAccount, arg2 kubernetes.ClientSetGetter) tasks.Task {
+	fake.createOrUpdateServiceAccountMutex.Lock()
+	ret, specificReturn := fake.createOrUpdateServiceAccountReturnsOnCall[len(fake.createOrUpdateServiceAccountArgsForCall)]
+	fake.createOrUpdateServiceAccountArgsForCall = append(fake.createOrUpdateServiceAccountArgsForCall, struct {
+		arg1 *v1alpha5.ClusterIAMServiceAccount
+		arg2 kubernetes.ClientSetGetter
+	}{arg1, arg2})
+	stub := fake.CreateOrUpdateServiceAccountStub
+	fakeReturns := fake.createOrUpdateServiceAccountReturns
+	fake.recordInvocation("CreateOrUpdateServiceAccount", []interface{}{arg1, arg2})
+	fake.createOrUpdateServiceAccountMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeStackManager) CreateOrUpdateServiceAccountCallCount() int {
+	fake.createOrUpdateServiceAccountMutex.RLock()
+	defer fake.createOrUpdateServiceAccountMutex.RUnlock()
+	return len(fake.createOrUpdateServiceAccountArgsForCall)
+}
+
+func (fake *FakeStackManager) CreateOrUpdateServiceAccountCalls(stub func(*v1alpha5.ClusterIAMServiceAccount, kubernetes.ClientSetGetter) tasks.Task) {
+	fake.createOrUpdateServiceAccountMutex.Lock()
+	defer fake.createOrUpdateServiceAccountMutex.Unlock()
+	fake.CreateOrUpdateServiceAccountStub = stub
+}
+
+func (fake *FakeStackManager) CreateOrUpdateServiceAccountArgsForCall(i int) (*v1alpha5.ClusterIAMServiceAccount, kubernetes.ClientSetGetter) {
+	fake.createOrUpdateServiceAccountMutex.RLock()
+	defer fake.createOrUpdateServiceAccountMutex.RUnlock()
+	argsForCall := fake.createOrUpdateServiceAccountArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeStackManager) CreateOrUpdateServiceAccountReturns(result1 tasks.Task) {
+	fake.createOrUpdateServiceAccountMutex.Lock()
+	defer fake.createOrUpdateServiceAccountMutex.Unlock()
+	fake.CreateOrUpdateServiceAccountStub = nil
+	fake.createOrUpdateServiceAccountReturns = struct {
+		result1 tasks.Task
+	}{result1}
+}
+
+func (fake *FakeStackManager) CreateOrUpdateServiceAccountReturnsOnCall(i int, result1 tasks.Task) {
+	fake.createOrUpdateServiceAccountMutex.Lock()
+	defer fake.createOrUpdateServiceAccountMutex.Unlock()
+	fake.CreateOrUpdateServiceAccountStub = nil
+	if fake.createOrUpdateServiceAccountReturnsOnCall == nil {
+		fake.createOrUpdateServiceAccountReturnsOnCall = make(map[int]struct {
+			result1 tasks.Task
+		})
+	}
+	fake.createOrUpdateServiceAccountReturnsOnCall[i] = struct {
+		result1 tasks.Task
+	}{result1}
 }
 
 func (fake *FakeStackManager) CreateStack(arg1 string, arg2 builder.ResourceSet, arg3 map[string]string, arg4 map[string]string, arg5 chan error) error {
@@ -4356,6 +4445,71 @@ func (fake *FakeStackManager) StackStatusIsNotTransitionalReturnsOnCall(i int, r
 	}{result1}
 }
 
+func (fake *FakeStackManager) UpdateCachedStack(arg1 *cloudformation.Stack, arg2 string, arg3 string, arg4 manager.TemplateData, arg5 map[string]string) error {
+	fake.updateCachedStackMutex.Lock()
+	ret, specificReturn := fake.updateCachedStackReturnsOnCall[len(fake.updateCachedStackArgsForCall)]
+	fake.updateCachedStackArgsForCall = append(fake.updateCachedStackArgsForCall, struct {
+		arg1 *cloudformation.Stack
+		arg2 string
+		arg3 string
+		arg4 manager.TemplateData
+		arg5 map[string]string
+	}{arg1, arg2, arg3, arg4, arg5})
+	stub := fake.UpdateCachedStackStub
+	fakeReturns := fake.updateCachedStackReturns
+	fake.recordInvocation("UpdateCachedStack", []interface{}{arg1, arg2, arg3, arg4, arg5})
+	fake.updateCachedStackMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeStackManager) UpdateCachedStackCallCount() int {
+	fake.updateCachedStackMutex.RLock()
+	defer fake.updateCachedStackMutex.RUnlock()
+	return len(fake.updateCachedStackArgsForCall)
+}
+
+func (fake *FakeStackManager) UpdateCachedStackCalls(stub func(*cloudformation.Stack, string, string, manager.TemplateData, map[string]string) error) {
+	fake.updateCachedStackMutex.Lock()
+	defer fake.updateCachedStackMutex.Unlock()
+	fake.UpdateCachedStackStub = stub
+}
+
+func (fake *FakeStackManager) UpdateCachedStackArgsForCall(i int) (*cloudformation.Stack, string, string, manager.TemplateData, map[string]string) {
+	fake.updateCachedStackMutex.RLock()
+	defer fake.updateCachedStackMutex.RUnlock()
+	argsForCall := fake.updateCachedStackArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+}
+
+func (fake *FakeStackManager) UpdateCachedStackReturns(result1 error) {
+	fake.updateCachedStackMutex.Lock()
+	defer fake.updateCachedStackMutex.Unlock()
+	fake.UpdateCachedStackStub = nil
+	fake.updateCachedStackReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeStackManager) UpdateCachedStackReturnsOnCall(i int, result1 error) {
+	fake.updateCachedStackMutex.Lock()
+	defer fake.updateCachedStackMutex.Unlock()
+	fake.UpdateCachedStackStub = nil
+	if fake.updateCachedStackReturnsOnCall == nil {
+		fake.updateCachedStackReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.updateCachedStackReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeStackManager) UpdateNodeGroupStack(arg1 string, arg2 string) error {
 	fake.updateNodeGroupStackMutex.Lock()
 	ret, specificReturn := fake.updateNodeGroupStackReturnsOnCall[len(fake.updateNodeGroupStackArgsForCall)]
@@ -4488,6 +4642,8 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.appendNewClusterStackResourceMutex.RLock()
 	defer fake.appendNewClusterStackResourceMutex.RUnlock()
+	fake.createOrUpdateServiceAccountMutex.RLock()
+	defer fake.createOrUpdateServiceAccountMutex.RUnlock()
 	fake.createStackMutex.RLock()
 	defer fake.createStackMutex.RUnlock()
 	fake.deleteStackByNameMutex.RLock()
@@ -4602,6 +4758,8 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.stackStatusIsNotReadyMutex.RUnlock()
 	fake.stackStatusIsNotTransitionalMutex.RLock()
 	defer fake.stackStatusIsNotTransitionalMutex.RUnlock()
+	fake.updateCachedStackMutex.RLock()
+	defer fake.updateCachedStackMutex.RUnlock()
 	fake.updateNodeGroupStackMutex.RLock()
 	defer fake.updateNodeGroupStackMutex.RUnlock()
 	fake.updateStackMutex.RLock()
