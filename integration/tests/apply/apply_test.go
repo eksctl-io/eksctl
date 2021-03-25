@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/cloudformation"
+
 	"github.com/aws/aws-sdk-go/aws"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +41,7 @@ func init() {
 	params = tests.NewParams("apply")
 }
 
-func TestCRUD(t *testing.T) {
+func TestApply(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
@@ -55,7 +57,6 @@ var _ = Describe("apply", func() {
 		}
 
 		if params.SkipCreate {
-			params.ClusterName = "jk"
 			fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", params.ClusterName)
 			if !file.Exists(params.KubeconfigPath) {
 				// Generate the Kubernetes configuration that eksctl create
@@ -131,35 +132,35 @@ var _ = Describe("apply", func() {
 					{
 						ClusterIAMMeta: api.ClusterIAMMeta{
 							Namespace: "default",
-							Name:      "create",
+							Name:      "unmodified",
 						},
 						AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"},
 					},
 					{
 						ClusterIAMMeta: api.ClusterIAMMeta{
 							Namespace: "default",
-							Name:      "deleted-sa",
+							Name:      "created-then-k8s-sa-deleted",
 						},
 						AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"},
 					},
 					{
 						ClusterIAMMeta: api.ClusterIAMMeta{
 							Namespace: "default",
-							Name:      "modified-sa",
+							Name:      "created-then-k8s-sa-modified",
 						},
 						AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"},
 					},
 					{
 						ClusterIAMMeta: api.ClusterIAMMeta{
 							Namespace: "default",
-							Name:      "update",
+							Name:      "created-then-policies-updated",
 						},
 						AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"},
 					},
 					{
 						ClusterIAMMeta: api.ClusterIAMMeta{
 							Namespace: "default",
-							Name:      "delete",
+							Name:      "created-then-removed",
 						},
 						AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"},
 					},
@@ -178,7 +179,7 @@ var _ = Describe("apply", func() {
 				clientSet, err := ctl.NewStdClientSet(cfg)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				for _, saName := range []string{"create", "update", "delete", "deleted-sa", "modified-sa"} {
+				for _, saName := range []string{"unmodified", "created-then-policies-updated", "created-then-removed", "created-then-k8s-sa-deleted", "created-then-k8s-sa-modified"} {
 					Expect(awsSession).To(HaveExistingStack(stackNamePrefix + "default-" + saName))
 					sa, err := clientSet.CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get(context.TODO(), saName, metav1.GetOptions{})
 					Expect(err).ShouldNot(HaveOccurred())
@@ -188,21 +189,25 @@ var _ = Describe("apply", func() {
 					Expect(sa.Annotations[api.AnnotationEKSRoleARN]).To(MatchRegexp("^arn:aws:iam::.*:role/eksctl-" + truncate(params.ClusterName) + ".*$"))
 				}
 
-				By("removing one IAMServiceAccounts,creating a new one, updating the policys of one, adding a label to one and removing one of the kubernetes SA")
-				err = clientSet.CoreV1().ServiceAccounts("default").Delete(context.Background(), "deleted-sa", metav1.DeleteOptions{})
+				By(`deleting the SA of "created-then-k8s-sa-deleted"`)
+				err = clientSet.CoreV1().ServiceAccounts("default").Delete(context.Background(), "created-then-k8s-sa-deleted", metav1.DeleteOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
-				modifiedSA, err := clientSet.CoreV1().ServiceAccounts("default").Get(context.Background(), "modified-sa", metav1.GetOptions{})
+				By(`modifying the SA of "created-then-k8s-sa-modified"`)
+				modifiedSA, err := clientSet.CoreV1().ServiceAccounts("default").Get(context.Background(), "created-then-k8s-sa-modified", metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				modifiedSA.Annotations = nil
 				_, err = clientSet.CoreV1().ServiceAccounts("default").Update(context.Background(), modifiedSA, metav1.UpdateOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
+				By(`removing "created-then-removed"`)
+				By(`updating the policies of "created-then-policies-updated"`)
+				By(`adding a SA "new"`)
 				cfg.IAM.ServiceAccounts = []*api.ClusterIAMServiceAccount{
 					{
 						ClusterIAMMeta: api.ClusterIAMMeta{
 							Namespace: "default",
-							Name:      "create",
+							Name:      "unmodified",
 						},
 						AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"},
 					},
@@ -216,21 +221,21 @@ var _ = Describe("apply", func() {
 					{
 						ClusterIAMMeta: api.ClusterIAMMeta{
 							Namespace: "default",
-							Name:      "deleted-sa",
+							Name:      "created-then-k8s-sa-deleted",
 						},
 						AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"},
 					},
 					{
 						ClusterIAMMeta: api.ClusterIAMMeta{
 							Namespace: "default",
-							Name:      "modified-sa",
+							Name:      "created-then-k8s-sa-modified",
 						},
 						AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"},
 					},
 					{
 						ClusterIAMMeta: api.ClusterIAMMeta{
 							Namespace: "default",
-							Name:      "update",
+							Name:      "created-then-policies-updated",
 						},
 						AttachPolicyARNs: []string{
 							"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
@@ -255,7 +260,7 @@ var _ = Describe("apply", func() {
 					return exists
 				}, time.Minute, time.Second*10).Should(BeFalse())
 
-				for _, saName := range []string{"create", "update", "new", "deleted-sa", "modified-sa"} {
+				for _, saName := range []string{"unmodified", "created-then-policies-updated", "new", "created-then-k8s-sa-deleted", "created-then-k8s-sa-modified"} {
 					Expect(awsSession).To(HaveExistingStack(stackNamePrefix + "default-" + saName))
 					sa, err := clientSet.CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get(context.TODO(), saName, metav1.GetOptions{})
 					Expect(err).ShouldNot(HaveOccurred())
@@ -265,11 +270,17 @@ var _ = Describe("apply", func() {
 					Expect(sa.Annotations[api.AnnotationEKSRoleARN]).To(MatchRegexp("^arn:aws:iam::.*:role/eksctl-" + truncate(params.ClusterName) + ".*$"))
 				}
 
-				_, err = clientSet.CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get(context.TODO(), "delete", metav1.GetOptions{})
+				_, err = clientSet.CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get(context.TODO(), "created-then-removed", metav1.GetOptions{})
 				Expect(err).Should(HaveOccurred())
 				Expect(apierrors.IsNotFound(err)).To(BeTrue())
 
+				output, err := cloudformation.New(awsSession).GetTemplate(&cloudformation.GetTemplateInput{
+					StackName: aws.String(stackNamePrefix + "default-created-then-policies-updated"),
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(output.String()).To(ContainSubstring("arn:aws:iam::aws:policy/AmazonElastiCacheFullAccess"))
 			})
+
 		})
 	})
 })

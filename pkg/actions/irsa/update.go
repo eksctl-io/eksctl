@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
 	"github.com/kris-nova/logger"
@@ -23,6 +23,44 @@ import (
 )
 
 func (a *Manager) IsUpToDate(sa api.ClusterIAMServiceAccount, stack *manager.Stack) (bool, error) {
+	isUpToDate, err := a.policiesAreUpToDate(sa, stack)
+	if err != nil || !isUpToDate {
+		return false, err
+	}
+	return a.serviceAccountIsUpToDate(sa, stack)
+}
+
+func (a *Manager) serviceAccountIsUpToDate(sa api.ClusterIAMServiceAccount, stack *manager.Stack) (bool, error) {
+	existingSA, err := a.clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	if !mapIsSubsetOfMap(sa.Labels, existingSA.Labels) {
+		return false, nil
+	}
+
+	var roleARN string
+	for _, output := range stack.Outputs {
+		if *output.OutputKey == "Role1" {
+			roleARN = *output.OutputValue
+			break
+		}
+	}
+
+	//the EKSRoleARN annotation is not set on the provided spec, so we have to set it ourselves in order to compare annotations
+	if sa.Annotations == nil {
+		sa.Annotations = make(map[string]string)
+	}
+	sa.Annotations[api.AnnotationEKSRoleARN] = roleARN
+
+	return mapIsSubsetOfMap(sa.Annotations, existingSA.Annotations), nil
+}
+
+func (a *Manager) policiesAreUpToDate(sa api.ClusterIAMServiceAccount, stack *manager.Stack) (bool, error) {
 	rs := builder.NewIAMRoleResourceSetForServiceAccount(&sa, a.oidcManager)
 	err := rs.AddAllResources()
 	if err != nil {
@@ -55,34 +93,7 @@ func (a *Manager) IsUpToDate(sa api.ClusterIAMServiceAccount, stack *manager.Sta
 	if !templateUpToDate {
 		return false, nil
 	}
-
-	existingSA, err := a.clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			return false, nil
-		}
-		return false, err
-	}
-
-	if !mapIsSubsetOfMap(sa.Labels, existingSA.Labels) {
-		return false, nil
-	}
-
-	var roleARN string
-	for _, output := range stack.Outputs {
-		if *output.OutputKey == "Role1" {
-			roleARN = *output.OutputValue
-			break
-		}
-	}
-
-	//the EKSRoleARN annotation is not set on the provided spec, so we have to set it ourselves in order to compare annotations
-	if sa.Annotations == nil {
-		sa.Annotations = make(map[string]string)
-	}
-	sa.Annotations[api.AnnotationEKSRoleARN] = roleARN
-
-	return mapIsSubsetOfMap(sa.Annotations, existingSA.Annotations), nil
+	return true, nil
 }
 
 func mapIsSubsetOfMap(smallSet, bigSet map[string]string) bool {
