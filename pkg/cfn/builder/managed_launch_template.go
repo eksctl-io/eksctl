@@ -11,7 +11,7 @@ import (
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
-func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData(efaSG *gfnt.Value) (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
+func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
 	mng := m.nodeGroup
 
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
@@ -30,10 +30,6 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData(efaSG *gfnt.Value) 
 	securityGroupIDs := m.vpcImporter.SecurityGroups()
 	for _, sgID := range mng.SecurityGroups.AttachIDs {
 		securityGroupIDs = append(securityGroupIDs, gfnt.NewString(sgID))
-	}
-
-	if efaSG != nil {
-		securityGroupIDs = append(securityGroupIDs, efaSG)
 	}
 
 	if mng.AMI != "" {
@@ -58,6 +54,9 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData(efaSG *gfnt.Value) 
 	if api.IsEnabled(mng.EFAEnabled) {
 		// we don't want to touch the network interfaces at all if we have a
 		// managed nodegroup, unless EFA is enabled
+		desc := "worker nodes in group " + m.nodeGroup.Name
+		efaSG := m.addEFASecurityGroup(m.vpcImporter.VPC(), m.clusterConfig.Metadata.Name, desc)
+		securityGroupIDs = append(securityGroupIDs, efaSG)
 		if err := buildNetworkInterfaces(launchTemplateData, mng.InstanceTypeList(), true, securityGroupIDs, m.ec2API); err != nil {
 			return nil, errors.Wrap(err, "couldn't build network interfaces for launch template data")
 		}

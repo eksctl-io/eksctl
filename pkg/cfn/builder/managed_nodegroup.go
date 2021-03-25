@@ -102,11 +102,6 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		return gfnt.NewString(getAMIType(selectManagedInstanceType(m.nodeGroup)))
 	}
 
-	var efaSG *gfnt.Value
-	if api.IsEnabled(m.nodeGroup.EFAEnabled) {
-		desc := "worker nodes in group " + m.nodeGroup.Name
-		efaSG = m.addEFASecurityGroup(m.vpcImporter.VPC(), m.clusterConfig.Metadata.Name, desc)
-	}
 	var launchTemplate *gfneks.Nodegroup_LaunchTemplateSpecification
 
 	if m.nodeGroup.LaunchTemplate != nil {
@@ -136,7 +131,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 			managedResource.InstanceTypes = gfnt.NewStringSlice(instanceTypes...)
 		}
 	} else {
-		launchTemplateData, err := m.makeLaunchTemplateData(efaSG)
+		launchTemplateData, err := m.makeLaunchTemplateData()
 		if err != nil {
 			return err
 		}
