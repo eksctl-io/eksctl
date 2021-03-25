@@ -1,6 +1,7 @@
 package irsa
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -16,10 +17,12 @@ import (
 	"strings"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (a *Manager) IsUpToDate(sa *api.ClusterIAMServiceAccount, stack *manager.Stack) (bool, error) {
-	rs := builder.NewIAMRoleResourceSetForServiceAccount(sa, a.oidcManager)
+func (a *Manager) IsUpToDate(sa api.ClusterIAMServiceAccount, stack *manager.Stack) (bool, error) {
+	rs := builder.NewIAMRoleResourceSetForServiceAccount(&sa, a.oidcManager)
 	err := rs.AddAllResources()
 	if err != nil {
 		return false, err
@@ -35,23 +38,52 @@ func (a *Manager) IsUpToDate(sa *api.ClusterIAMServiceAccount, stack *manager.St
 		return false, err
 	}
 
-	//logger.Info("existing stack:\n%s", existingTemplate)
-	//logger.Info("would be created stack:\n%s", template)
-
-	var j, j2 interface{}
-	err = json.Unmarshal(template, &j)
+	var originalJSON, newJSON interface{}
+	err = json.Unmarshal(template, &originalJSON)
 	if err != nil {
-		logger.Info("marshal1")
 		logger.Info(string(template))
 		return false, err
 	}
 
-	err = json.Unmarshal([]byte(existingTemplate), &j2)
+	err = json.Unmarshal([]byte(existingTemplate), &newJSON)
 	if err != nil {
-		logger.Info("marshal2")
 		return false, err
 	}
-	return reflect.DeepEqual(j2, j), nil
+
+	templateUpToDate := reflect.DeepEqual(originalJSON, newJSON)
+	if !templateUpToDate {
+		return false, nil
+	}
+
+	existingSA, err := a.clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	labelsUpToDate := reflect.DeepEqual(existingSA.Labels, sa.Labels)
+
+	if !labelsUpToDate {
+		return false, nil
+	}
+
+	var roleARN string
+	for _, output := range stack.Outputs {
+		if *output.OutputKey == "Role1" {
+			roleARN = *output.OutputValue
+			break
+		}
+	}
+
+	//the EKSRoleARN annotation is not set on the provided spec, so we have to set it ourselves in order to compare annotations
+	if sa.Annotations == nil {
+		sa.Annotations = make(map[string]string)
+	}
+	sa.Annotations[api.AnnotationEKSRoleARN] = roleARN
+
+	return reflect.DeepEqual(sa.Annotations, existingSA.Annotations), nil
 }
 
 func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMServiceAccount, plan bool) error {

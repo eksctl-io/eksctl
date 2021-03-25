@@ -138,6 +138,13 @@ var _ = Describe("apply", func() {
 					{
 						ClusterIAMMeta: api.ClusterIAMMeta{
 							Namespace: "default",
+							Name:      "no-sa",
+						},
+						AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"},
+					},
+					{
+						ClusterIAMMeta: api.ClusterIAMMeta{
+							Namespace: "default",
 							Name:      "update",
 						},
 						AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"},
@@ -165,11 +172,12 @@ var _ = Describe("apply", func() {
 				Expect(awsSession).To(HaveExistingStack(stackNamePrefix + "default-create"))
 				Expect(awsSession).To(HaveExistingStack(stackNamePrefix + "default-update"))
 				Expect(awsSession).To(HaveExistingStack(stackNamePrefix + "default-delete"))
+				Expect(awsSession).To(HaveExistingStack(stackNamePrefix + "default-no-sa"))
 
 				clientSet, err := ctl.NewStdClientSet(cfg)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				for _, saName := range []string{"create", "update", "delete"} {
+				for _, saName := range []string{"create", "update", "delete", "no-sa"} {
 					sa, err := clientSet.CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get(context.TODO(), saName, metav1.GetOptions{})
 					Expect(err).ShouldNot(HaveOccurred())
 
@@ -177,6 +185,11 @@ var _ = Describe("apply", func() {
 					Expect(sa.Annotations).To(HaveKey(api.AnnotationEKSRoleARN))
 					Expect(sa.Annotations[api.AnnotationEKSRoleARN]).To(MatchRegexp("^arn:aws:iam::.*:role/eksctl-" + truncate(params.ClusterName) + ".*$"))
 				}
+
+				By("removing one IAMServiceAccounts,creating a new one, updating the policys of one and removing one of the kubernetes SA")
+
+				err = clientSet.CoreV1().ServiceAccounts("default").Delete(context.Background(), "no-sa", metav1.DeleteOptions{})
+				Expect(err).NotTo(HaveOccurred())
 
 				cfg.IAM.ServiceAccounts = []*api.ClusterIAMServiceAccount{
 					{
@@ -190,6 +203,13 @@ var _ = Describe("apply", func() {
 						ClusterIAMMeta: api.ClusterIAMMeta{
 							Namespace: "default",
 							Name:      "new",
+						},
+						AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"},
+					},
+					{
+						ClusterIAMMeta: api.ClusterIAMMeta{
+							Namespace: "default",
+							Name:      "no-sa",
 						},
 						AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"},
 					},
@@ -219,6 +239,7 @@ var _ = Describe("apply", func() {
 				Expect(awsSession).To(HaveExistingStack(stackNamePrefix + "default-create"))
 				Expect(awsSession).To(HaveExistingStack(stackNamePrefix + "default-new"))
 				Expect(awsSession).To(HaveExistingStack(stackNamePrefix + "default-update"))
+				Expect(awsSession).To(HaveExistingStack(stackNamePrefix + "default-no-sa"))
 				Eventually(func() bool {
 					stackName := stackNamePrefix + "default-delete"
 					exists, err := matchers.StackExists(stackName, awsSession)
@@ -226,7 +247,7 @@ var _ = Describe("apply", func() {
 					return exists
 				}, time.Minute, time.Second*10).Should(BeFalse())
 
-				for _, saName := range []string{"create", "update", "new"} {
+				for _, saName := range []string{"create", "update", "new", "no-sa"} {
 					sa, err := clientSet.CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get(context.TODO(), saName, metav1.GetOptions{})
 					Expect(err).ShouldNot(HaveOccurred())
 
