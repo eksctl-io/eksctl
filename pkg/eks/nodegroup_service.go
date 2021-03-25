@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/bytequantity"
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -126,7 +127,9 @@ func (m *NodeGroupService) expandInstanceSelector(instanceSelector *selector.Sel
 		}
 	}
 
-	var filters selector.Filters
+	filters := selector.Filters{
+		Service: aws.String("eks"),
+	}
 	if ins.VCPUs != 0 {
 		filters.VCpusRange = makeRange(ins.VCPUs)
 	}
@@ -143,6 +146,11 @@ func (m *NodeGroupService) expandInstanceSelector(instanceSelector *selector.Sel
 	if ins.GPUs != 0 {
 		filters.GpusRange = makeRange(ins.GPUs)
 	}
+	cpuArch := ins.CPUArchitecture
+	if cpuArch == "" {
+		cpuArch = "x86_64"
+	}
+	filters.CPUArchitecture = aws.String(cpuArch)
 
 	instanceTypes, err := instanceSelector.Filter(filters)
 	if err != nil {

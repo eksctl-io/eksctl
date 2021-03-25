@@ -1361,7 +1361,6 @@ type ManagedNodeGroup struct {
 }
 
 func (m *ManagedNodeGroup) InstanceTypeList() []string {
-	// TODO unset instanceType if instance selector options are set
 	if len(m.InstanceTypes) > 0 {
 		return m.InstanceTypes
 	}
@@ -1463,9 +1462,10 @@ type PrivateCluster struct {
 
 // InstanceSelector holds EC2 instance selector options
 type InstanceSelector struct {
-	VCPUs  int    `json:"vCPUs,omitempty"`
-	Memory string `json:"memory,omitempty"`
-	GPUs   int    `json:"gpus,omitempty"`
+	VCPUs           int    `json:"vCPUs,omitempty"`
+	Memory          string `json:"memory,omitempty"`
+	GPUs            int    `json:"gpus,omitempty"`
+	CPUArchitecture string `json:"cpuArchitecture,omitempty"`
 }
 
 // IsZero returns true if all fields hold a zero value
