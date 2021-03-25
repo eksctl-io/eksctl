@@ -92,7 +92,7 @@ func vpccniAddonSpecified(cfg *ClusterConfig) bool {
 func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 	setNodeGroupBaseDefaults(ng.NodeGroupBase, meta)
 	if ng.InstanceType == "" {
-		if HasMixedInstances(ng) {
+		if HasMixedInstances(ng) || !ng.InstanceSelector.IsZero() {
 			ng.InstanceType = "mixed"
 		} else {
 			ng.InstanceType = DefaultNodeType
