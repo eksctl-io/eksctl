@@ -1,3 +1,10 @@
+## Eksctl
+
+!!! question "Can I use `eksctl` to manage clusters which weren't created by `eksctl`?"
+
+    Yes! From version `0.40.0` you can run `eksctl` against any cluster, whether it was created
+    by `eksctl` or not. Find out more [here](/usage/unowned-clusters).
+
 ## Nodegroups
 
 !!! question "How can I change the instance type of my nodegroup?"
