@@ -26,6 +26,7 @@ The `--node-ami-family` can take following keywords:
 | AmazonLinux2                   | Indicates that the EKS AMI image based on Amazon Linux 2 should be used (default).           |
 | Ubuntu2004                     | Indicates that the EKS AMI image based on Ubuntu 20.04 LTS (Focal) should be used.           |
 | Ubuntu1804                     | Indicates that the EKS AMI image based on Ubuntu 18.04 LTS (Bionic) should be used.          |
+| Bottlerocket                   | Indicates that the EKS AMI image based on Bottlerocket should be used.                       |
 | WindowsServer2019FullContainer | Indicates that the EKS AMI image based on Windows Server 2019 Full Container should be used. |
 | WindowsServer2019CoreContainer | Indicates that the EKS AMI image based on Windows Server 2019 Core Container should be used. |
 | WindowsServer1909CoreContainer | Indicates that the EKS AMI image based on Windows Server 1909 Core Container should be used. |
