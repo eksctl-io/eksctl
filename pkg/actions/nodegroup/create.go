@@ -275,8 +275,8 @@ func checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes.Interface, c
 }
 
 func loadVPCFromConfig(provider api.ClusterProvider, cfg *api.ClusterConfig) error {
-	if cfg.VPC == nil {
-		return errors.New("VPC configuration required for creating nodegroup")
+	if cfg.VPC.Subnets == nil || cfg.VPC.SecurityGroup == "" || cfg.VPC.ID == "" {
+		return errors.New("VPC configuration required for creating nodegroups on clusters not owned by eksctl: vpc.subnets, vpc.id, vpc.securityGroup")
 	}
 
 	if err := vpc.ImportSubnetsFromSpec(provider, cfg); err != nil {
