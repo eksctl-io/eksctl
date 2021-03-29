@@ -5,7 +5,7 @@ module github.com/weaveworks/eksctl
 go 1.16
 
 require (
-	github.com/aws/aws-sdk-go v1.37.30
+	github.com/aws/aws-sdk-go v1.38.7
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
