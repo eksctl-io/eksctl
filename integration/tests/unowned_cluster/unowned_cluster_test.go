@@ -390,6 +390,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			WithArgs(
 				"cluster",
 				"--name", params.ClusterName,
+				"--timeout", "1h",
 				"--verbose", "3",
 			)
 		Expect(cmd).To(RunSuccessfully())
