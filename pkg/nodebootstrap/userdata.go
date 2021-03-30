@@ -42,6 +42,47 @@ func NewBootstrapper(clusterSpec *api.ClusterConfig, ng *api.NodeGroup) Bootstra
 	}
 }
 
+func linuxConfig(bootScript, clusterName string, ng *api.NodeGroup, scripts ...string) (string, error) {
+	config := cloudconfig.New()
+
+	for _, command := range ng.PreBootstrapCommands {
+		config.AddShellCommand(command)
+	}
+
+	var files []cloudconfig.File
+	if len(scripts) == 0 {
+		scripts = []string{}
+	}
+
+	if ng.OverrideBootstrapCommand != nil {
+		config.AddShellCommand(*ng.OverrideBootstrapCommand)
+	} else {
+		scripts = append(scripts, commonLinuxBootScript, bootScript)
+
+		if ng.KubeletExtraConfig != nil {
+			kubeletConf, err := makeKubeletExtraConf(ng)
+			if err != nil {
+				return "", err
+			}
+			files = append(files, kubeletConf)
+		}
+		envFile := makeBootstrapEnv(clusterName, ng)
+
+		files = append(files, envFile)
+	}
+
+	if err := addFilesAndScripts(config, files, scripts); err != nil {
+		return "", err
+	}
+
+	body, err := config.Encode()
+	if err != nil {
+		return "", errors.Wrap(err, "encoding user data")
+	}
+
+	return body, nil
+}
+
 func makeKubeletExtraConf(ng *api.NodeGroup) (cloudconfig.File, error) {
 	data, err := json.Marshal(ng.KubeletExtraConfig)
 	if err != nil {
