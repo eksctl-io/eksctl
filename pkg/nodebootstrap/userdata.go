@@ -17,8 +17,9 @@ import (
 const (
 	configDir             = "/etc/eksctl/"
 	envFile               = "kubelet.env"
-	extraConfFile         = "kubelet-extra.json"
-	commonLinuxBootScript = "bootstrap.linux.sh"
+	extraKubeConfFile     = "kubelet-extra.json"
+	extraDockerConfFile   = "docker-extra.json"
+	commonLinuxBootScript = "bootstrap.helper.sh"
 )
 
 //go:generate counterfeiter -o fakes/fake_bootstrapper.go . Bootstrapper
@@ -59,15 +60,19 @@ func linuxConfig(bootScript, clusterName string, ng *api.NodeGroup, scripts ...s
 	} else {
 		scripts = append(scripts, commonLinuxBootScript, bootScript)
 
-		if ng.KubeletExtraConfig != nil {
-			kubeletConf, err := makeKubeletExtraConf(ng)
-			if err != nil {
-				return "", err
-			}
-			files = append(files, kubeletConf)
+		kubeletConf, err := makeKubeletExtraConf(ng)
+		if err != nil {
+			return "", err
 		}
-		envFile := makeBootstrapEnv(clusterName, ng)
+		files = append(files, kubeletConf)
 
+		dockerDaemonConf, err := makeDockerDaemonExtraConf()
+		if err != nil {
+			return "", err
+		}
+		files = append(files, dockerDaemonConf)
+
+		envFile := makeBootstrapEnv(clusterName, ng)
 		files = append(files, envFile)
 	}
 
@@ -84,6 +89,11 @@ func linuxConfig(bootScript, clusterName string, ng *api.NodeGroup, scripts ...s
 }
 
 func makeKubeletExtraConf(ng *api.NodeGroup) (cloudconfig.File, error) {
+	if ng.KubeletExtraConfig == nil {
+		ng.KubeletExtraConfig = &api.InlineDocument{}
+	}
+	(*ng.KubeletExtraConfig)["cgroupDriver"] = "systemd"
+
 	data, err := json.Marshal(ng.KubeletExtraConfig)
 	if err != nil {
 		return cloudconfig.File{}, err
@@ -95,7 +105,20 @@ func makeKubeletExtraConf(ng *api.NodeGroup) (cloudconfig.File, error) {
 	}
 
 	return cloudconfig.File{
-		Path:    configDir + extraConfFile,
+		Path:    configDir + extraKubeConfFile,
+		Content: string(data),
+	}, nil
+}
+
+func makeDockerDaemonExtraConf() (cloudconfig.File, error) {
+	config := map[string][]string{"exec-opts": {"native.cgroupdriver=systemd"}}
+	data, err := json.Marshal(config)
+	if err != nil {
+		return cloudconfig.File{}, err
+	}
+
+	return cloudconfig.File{
+		Path:    configDir + extraDockerConfFile,
 		Content: string(data),
 	}, nil
 }
