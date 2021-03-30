@@ -176,7 +176,7 @@ type runCmdOutputMatcher struct {
 	*runCmdMatcher
 }
 
-// RunSuccessfullyWithOutputString matches successful excution of a command and passes the output string
+// RunSuccessfullyWithOutputString matches successful execution of a command and passes the output string
 // to another matcher (the string will include stdout and stderr)
 func RunSuccessfullyWithOutputString(outputMatchers ...types.GomegaMatcher) types.GomegaMatcher {
 	return &runCmdOutputMatcher{
@@ -186,7 +186,7 @@ func RunSuccessfullyWithOutputString(outputMatchers ...types.GomegaMatcher) type
 	}
 }
 
-// RunSuccessfullyWithOutputStringLines matches successful excution of a command and passes the output string
+// RunSuccessfullyWithOutputStringLines matches successful execution of a command and passes the output string
 // to another matcher split into lines (the string will include stdout and stderr)
 func RunSuccessfullyWithOutputStringLines(outputMatchers ...types.GomegaMatcher) types.GomegaMatcher {
 	return &runCmdOutputMatcher{

@@ -37,18 +37,27 @@ type commonClusterConfigLoader struct {
 }
 
 var (
-	defaultFlagsIncompatibleWithConfigFile = [...]string{
+	defaultFlagsIncompatibleWithConfigFile = []string{
 		"name",
 		"region",
 		"version",
 		"cluster",
 		"namepace",
 	}
-	defaultFlagsIncompatibleWithoutConfigFile = [...]string{
+	defaultFlagsIncompatibleWithoutConfigFile = []string{
 		"only",
 		"include",
 		"exclude",
 		"only-missing",
+	}
+
+	commonCreateFlagsIncompatibleWithDryRun = []string{
+		"cfn-disable-rollback",
+		"cfn-role-arn",
+		"install-neuron-plugin",
+		"install-nvidia-plugin",
+		"profile",
+		"timeout",
 	}
 )
 
@@ -59,9 +68,9 @@ func newCommonClusterConfigLoader(cmd *Cmd) *commonClusterConfigLoader {
 		Cmd: cmd,
 
 		validateWithConfigFile:             nilValidatorFunc,
-		flagsIncompatibleWithConfigFile:    sets.NewString(defaultFlagsIncompatibleWithConfigFile[:]...),
+		flagsIncompatibleWithConfigFile:    sets.NewString(defaultFlagsIncompatibleWithConfigFile...),
 		validateWithoutConfigFile:          nilValidatorFunc,
-		flagsIncompatibleWithoutConfigFile: sets.NewString(defaultFlagsIncompatibleWithoutConfigFile[:]...),
+		flagsIncompatibleWithoutConfigFile: sets.NewString(defaultFlagsIncompatibleWithoutConfigFile...),
 	}
 }
 
@@ -72,10 +81,8 @@ func (l *commonClusterConfigLoader) Load() error {
 	}
 
 	if l.ClusterConfigFile == "" {
-		for f := range l.flagsIncompatibleWithoutConfigFile {
-			if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
-				return fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f)
-			}
+		if flagName, found := findChangedFlag(l.CobraCommand, l.flagsIncompatibleWithoutConfigFile.List()); found {
+			return errors.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", flagName)
 		}
 		return l.validateWithoutConfigFile()
 	}
@@ -94,10 +101,8 @@ func (l *commonClusterConfigLoader) Load() error {
 		return ErrMustBeSet("metadata")
 	}
 
-	for f := range l.flagsIncompatibleWithConfigFile {
-		if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
-			return ErrCannotUseWithConfigFile(fmt.Sprintf("--%s", f))
-		}
+	if flagName, found := findChangedFlag(l.CobraCommand, l.flagsIncompatibleWithConfigFile.List()); found {
+		return ErrCannotUseWithConfigFile(fmt.Sprintf("--%s", flagName))
 	}
 
 	if l.flagsIncompatibleWithConfigFile.Has("name") && l.NameArg != "" {
@@ -115,6 +120,15 @@ func (l *commonClusterConfigLoader) Load() error {
 
 	api.SetDefaultGitSettings(l.ClusterConfig)
 	return l.validateWithConfigFile()
+}
+
+func findChangedFlag(cmd *cobra.Command, flagNames []string) (string, bool) {
+	for _, f := range flagNames {
+		if flag := cmd.Flag(f); flag != nil && flag.Changed {
+			return f, true
+		}
+	}
+	return "", false
 }
 
 func validateMetadataWithoutConfigFile(cmd *Cmd) error {
@@ -191,6 +205,23 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 
 	l.flagsIncompatibleWithoutConfigFile.Insert("install-vpc-controllers")
 
+	validateDryRun := func() error {
+		if !params.DryRun {
+			return nil
+		}
+
+		flagsIncompatibleWithDryRun := append([]string{
+			"authenticator-role-arn",
+			"auto-kubeconfig",
+			"install-vpc-controllers",
+			"kubeconfig",
+			"set-kubeconfig-context",
+			"write-kubeconfig",
+		}, commonCreateFlagsIncompatibleWithDryRun...)
+
+		return validateDryRunOptions(l.CobraCommand, flagsIncompatibleWithDryRun)
+	}
+
 	l.validateWithConfigFile = func() error {
 		clusterConfig := l.ClusterConfig
 		if clusterConfig.VPC == nil {
@@ -259,7 +290,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			}
 		}
 
-		return nil
+		return validateDryRun()
 	}
 
 	l.validateWithoutConfigFile = func() error {
@@ -309,14 +340,21 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			ng.Name = names.ForNodeGroup(ng.Name, "")
 		}
 
-		return nil
+		return validateDryRun()
 	}
 
 	return l
 }
 
+func validateDryRunOptions(cmd *cobra.Command, incompatibleFlags []string) error {
+	if flagName, found := findChangedFlag(cmd, incompatibleFlags); found {
+		return errors.Errorf("cannot use --%s with --dry-run as this option cannot be represented in ClusterConfig", flagName)
+	}
+	return nil
+}
+
 // NewCreateNodeGroupLoader will load config or use flags for 'eksctl create nodegroup'
-func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.NodeGroupFilter, mngOptions CreateManagedNGOptions) ClusterConfigLoader {
+func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.NodeGroupFilter, ngOptions CreateNGOptions, mngOptions CreateManagedNGOptions) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
@@ -344,8 +382,23 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 		"full-ecr-access",
 	)
 
+	validateDryRun := func() error {
+		if !ngOptions.DryRun {
+			return nil
+		}
+		// Filters (--include / --exclude) cannot be represented in ClusterConfig, however, they affect the output, so they're allowed
+		flagsIncompatibleWithDryRun := append([]string{
+			"update-auth-configmap",
+		}, commonCreateFlagsIncompatibleWithDryRun...)
+
+		return validateDryRunOptions(l.CobraCommand, flagsIncompatibleWithDryRun)
+	}
+
 	l.validateWithConfigFile = func() error {
-		return ngFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.GetAllNodeGroupNames())
+		if err := ngFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.GetAllNodeGroupNames()); err != nil {
+			return err
+		}
+		return validateDryRun()
 	}
 
 	l.validateWithoutConfigFile = func() error {
@@ -357,7 +410,6 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 		}
 		if mngOptions.Managed {
 			l.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{makeManagedNodegroup(ng, mngOptions)}
-
 		} else {
 			l.ClusterConfig.NodeGroups = []*api.NodeGroup{ng}
 		}
@@ -384,7 +436,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 				}
 			}
 		}
-		return nil
+		return validateDryRun()
 	}
 
 	return l
@@ -406,18 +458,15 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup, options CreateManagedNGOptio
 
 func validateManagedNGFlags(cmd *cobra.Command, managed bool) error {
 	if managed {
-		for _, f := range incompatibleManagedNodesFlags() {
-			if flag := cmd.Flag(f); flag != nil && flag.Changed {
-				return ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", f))
-			}
+		if flagName, found := findChangedFlag(cmd, incompatibleManagedNodesFlags()); found {
+			return ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", flagName))
 		}
 		return nil
 	}
 	flagsValidOnlyWithMNG := []string{"spot", "instance-types"}
-	for _, f := range flagsValidOnlyWithMNG {
-		if flag := cmd.Flag(f); flag != nil && flag.Changed {
-			return errors.Errorf("--%s is only valid with managed nodegroups (--managed)", f)
-		}
+
+	if flagName, found := findChangedFlag(cmd, flagsValidOnlyWithMNG); found {
+		return errors.Errorf("--%s is only valid with managed nodegroups (--managed)", flagName)
 	}
 	return nil
 }

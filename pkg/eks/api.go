@@ -211,25 +211,20 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	return c, c.checkAuth()
 }
 
-// LoadConfigFromFile loads ClusterConfig from configFile
-func LoadConfigFromFile(configFile string) (*api.ClusterConfig, error) {
-	data, err := readConfig(configFile)
-	if err != nil {
-		return nil, errors.Wrapf(err, "reading config file %q", configFile)
-	}
-
+// ParseConfig parses data into a ClusterConfig
+func ParseConfig(data []byte) (*api.ClusterConfig, error) {
 	// strict mode is not available in runtime.Decode, so we use the parser
 	// directly; we don't store the resulting object, this is just the means
 	// of detecting any unknown keys
 	// NOTE: we must use sigs.k8s.io/yaml, as it behaves differently from
 	// github.com/ghodss/yaml, which didn't handle nested structs well
 	if err := yaml.UnmarshalStrict(data, &api.ClusterConfig{}); err != nil {
-		return nil, errors.Wrapf(err, "loading config file %q", configFile)
+		return nil, err
 	}
 
 	obj, err := runtime.Decode(scheme.Codecs.UniversalDeserializer(), data)
 	if err != nil {
-		return nil, errors.Wrapf(err, "loading config file %q", configFile)
+		return nil, err
 	}
 
 	cfg, ok := obj.(*api.ClusterConfig)
@@ -237,6 +232,20 @@ func LoadConfigFromFile(configFile string) (*api.ClusterConfig, error) {
 		return nil, fmt.Errorf("expected to decode object of type %T; got %T", &api.ClusterConfig{}, cfg)
 	}
 	return cfg, nil
+}
+
+// LoadConfigFromFile loads ClusterConfig from configFile
+func LoadConfigFromFile(configFile string) (*api.ClusterConfig, error) {
+	data, err := readConfig(configFile)
+	if err != nil {
+		return nil, errors.Wrapf(err, "reading config file %q", configFile)
+	}
+	clusterConfig, err := ParseConfig(data)
+	if err != nil {
+		return nil, errors.Wrapf(err, "loading config file %q", configFile)
+	}
+	return clusterConfig, nil
+
 }
 
 func readConfig(configFile string) ([]byte, error) {

@@ -18,6 +18,7 @@ type CreateClusterCmdParams struct {
 	Subnets               map[api.SubnetTopology]*[]string
 	WithoutNodeGroup      bool
 	Fargate               bool
+	DryRun                bool
 	CreateNGOptions
 	CreateManagedNGOptions
 }
@@ -33,4 +34,5 @@ type CreateManagedNGOptions struct {
 type CreateNGOptions struct {
 	InstallNeuronDevicePlugin bool
 	InstallNvidiaDevicePlugin bool
+	DryRun                    bool
 }
