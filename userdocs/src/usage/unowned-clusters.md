@@ -73,18 +73,18 @@ metadata:
 
 vpc:
   id: "vpc-12345"
-  securityGroup: "sg-12345"
+  securityGroup: "sg-12345"    # this is the ControlPlaneSecurityGroup
   subnets:
     private:
       private1:
           id: "subnet-12345"
-      private1:
-          id: "subnet-12345"
+      private2:
+          id: "subnet-67890"
     public:
       public1:
           id: "subnet-12345"
       public2:
-          id: "subnet-12345"
+          id: "subnet-67890"
 
 ...
 ```
