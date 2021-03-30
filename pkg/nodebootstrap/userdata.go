@@ -21,27 +21,25 @@ const (
 	commonLinuxBootScript = "bootstrap.linux.sh"
 )
 
+//go:generate counterfeiter -o fakes/fake_bootstrapper.go . Bootstrapper
 type Bootstrapper interface {
+	// UserData returns userdata for bootstrapping nodes
 	UserData() (string, error)
 }
 
-// NewUserData creates new user data for a given node image family
-func NewUserData(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
-	var bootstrapper Bootstrapper
-	switch ng.AMIFamily {
-	case api.NodeImageFamilyAmazonLinux2: // this is almost identical to ubuntu
-		bootstrapper = NewAL2Bootstrapper(spec.Metadata.Name, ng)
-	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
-		bootstrapper = NewUbuntuBootstrapper(spec.Metadata.Name, ng)
-	case api.NodeImageFamilyBottlerocket:
-		bootstrapper = NewBottlerocketBootstrapper(spec, ng)
-	default:
-		if api.IsWindowsImage(ng.AMIFamily) {
-			bootstrapper = NewWindowsBootstrapper(spec.Metadata.Name, ng)
-		}
+// NewBootstrapper returns the correct bootstrapper for the AMI family
+func NewBootstrapper(clusterSpec *api.ClusterConfig, ng *api.NodeGroup) Bootstrapper {
+	if api.IsWindowsImage(ng.AMIFamily) {
+		return NewWindowsBootstrapper(clusterSpec.Metadata.Name, ng)
 	}
-
-	return bootstrapper.UserData()
+	switch ng.AMIFamily {
+	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
+		return NewUbuntuBootstrapper(clusterSpec.Metadata.Name, ng)
+	case api.NodeImageFamilyBottlerocket:
+		return NewBottlerocketBootstrapper(clusterSpec, ng)
+	default:
+		return NewAL2Bootstrapper(clusterSpec.Metadata.Name, ng)
+	}
 }
 
 func makeKubeletExtraConf(ng *api.NodeGroup) (cloudconfig.File, error) {

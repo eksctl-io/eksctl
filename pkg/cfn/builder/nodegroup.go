@@ -32,8 +32,8 @@ type NodeGroupResourceSet struct {
 	instanceProfileARN   *gfnt.Value
 	securityGroups       []*gfnt.Value
 	vpc                  *gfnt.Value
-	userData             *gfnt.Value
 	vpcImporter          vpc.Importer
+	bootstrapper         nodebootstrap.Bootstrapper
 }
 
 // NewNodeGroupResourceSet returns a resource set for a nodegroup embedded in a cluster config
@@ -48,6 +48,7 @@ func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spe
 		ec2API:               ec2API,
 		iamAPI:               iamAPI,
 		vpcImporter:          vpcImporter,
+		bootstrapper:         nodebootstrap.NewBootstrapper(spec, ng),
 	}
 }
 
@@ -66,12 +67,6 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureLocalSecurityGroup, n.spec.SecurityGroups.WithLocal, false)
 
 	n.vpc = n.vpcImporter.VPC()
-
-	userData, err := nodebootstrap.NewUserData(n.clusterSpec, n.spec)
-	if err != nil {
-		return err
-	}
-	n.userData = gfnt.NewString(userData)
 
 	// Ensure MinSize is set, as it is required by the ASG cfn resource
 	if n.spec.MinSize == nil {
@@ -270,12 +265,17 @@ func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
 }
 
 func newLaunchTemplateData(n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
+	userData, err := n.bootstrapper.UserData()
+	if err != nil {
+		return nil, err
+	}
+
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
 		IamInstanceProfile: &gfnec2.LaunchTemplate_IamInstanceProfile{
 			Arn: n.instanceProfileARN,
 		},
 		ImageId:         gfnt.NewString(n.spec.AMI),
-		UserData:        n.userData,
+		UserData:        gfnt.NewString(userData),
 		MetadataOptions: makeMetadataOptions(n.spec.NodeGroupBase),
 	}
 
