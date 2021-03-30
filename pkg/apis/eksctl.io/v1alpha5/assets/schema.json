@@ -835,6 +835,39 @@
       "x-intellij-html-description": "holds any arbitrary JSON/YAML documents, such as extra config parameters or IAM policies",
       "default": "{}"
     },
+    "InstanceSelector": {
+      "properties": {
+        "cpuArchitecture": {
+          "type": "string",
+          "description": "of the EC2 instance type Possible values are: x86_64/amd64 or arm64",
+          "x-intellij-html-description": "of the EC2 instance type Possible values are: x86_64/amd64 or arm64"
+        },
+        "gpus": {
+          "type": "integer",
+          "description": "specifies the number of GPUs",
+          "x-intellij-html-description": "specifies the number of GPUs"
+        },
+        "memory": {
+          "type": "string",
+          "description": "specifies the memory in GiB",
+          "x-intellij-html-description": "specifies the memory in GiB"
+        },
+        "vCPUs": {
+          "type": "integer",
+          "description": "specifies the number of vCPUs",
+          "x-intellij-html-description": "specifies the number of vCPUs"
+        }
+      },
+      "preferredOrder": [
+        "vCPUs",
+        "memory",
+        "gpus",
+        "cpuArchitecture"
+      ],
+      "additionalProperties": false,
+      "description": "holds EC2 instance selector options",
+      "x-intellij-html-description": "holds EC2 instance selector options"
+    },
     "KubernetesNetworkConfig": {
       "properties": {
         "serviceIPv4CIDR": {
@@ -946,6 +979,11 @@
         },
         "instancePrefix": {
           "type": "string"
+        },
+        "instanceSelector": {
+          "$ref": "#/definitions/InstanceSelector",
+          "description": "specifies options for EC2 instance selector",
+          "x-intellij-html-description": "specifies options for EC2 instance selector"
         },
         "instanceType": {
           "type": "string"
@@ -1106,6 +1144,7 @@
         "disablePodIMDS",
         "placement",
         "efaEnabled",
+        "instanceSelector",
         "instanceTypes",
         "spot",
         "launchTemplate"
@@ -1238,6 +1277,11 @@
         },
         "instancePrefix": {
           "type": "string"
+        },
+        "instanceSelector": {
+          "$ref": "#/definitions/InstanceSelector",
+          "description": "specifies options for EC2 instance selector",
+          "x-intellij-html-description": "specifies options for EC2 instance selector"
         },
         "instanceType": {
           "type": "string"
@@ -1402,6 +1446,7 @@
         "disablePodIMDS",
         "placement",
         "efaEnabled",
+        "instanceSelector",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",
