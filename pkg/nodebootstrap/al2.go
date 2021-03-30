@@ -4,7 +4,6 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 )
 
 const (
@@ -24,12 +23,7 @@ func NewAL2Bootstrapper(clusterName string, ng *api.NodeGroup) *AmazonLinux2 {
 }
 
 func (b *AmazonLinux2) UserData() (string, error) {
-	config := cloudconfig.New()
-
-	var (
-		scripts []string
-		files   []cloudconfig.File
-	)
+	var scripts []string
 
 	if api.IsEnabled(b.ng.SSH.EnableSSM) {
 		scripts = append(scripts, "install-ssm.al2.sh")
@@ -39,33 +33,7 @@ func (b *AmazonLinux2) UserData() (string, error) {
 		scripts = append(scripts, "efa.al2.sh")
 	}
 
-	for _, command := range b.ng.PreBootstrapCommands {
-		config.AddShellCommand(command)
-	}
-
-	if b.ng.OverrideBootstrapCommand != nil {
-		config.AddShellCommand(*b.ng.OverrideBootstrapCommand)
-	} else {
-		scripts = append(scripts, commonLinuxBootScript, al2BootScript)
-
-		// TODO: should this happen even if override is set? do more scripting
-		if b.ng.KubeletExtraConfig != nil {
-			kubeletConf, err := makeKubeletExtraConf(b.ng)
-			if err != nil {
-				return "", err
-			}
-			files = append(files, kubeletConf)
-		}
-		envFile := makeBootstrapEnv(b.clusterName, b.ng)
-
-		files = append(files, envFile)
-	}
-
-	if err := addFilesAndScripts(config, files, scripts); err != nil {
-		return "", err
-	}
-
-	body, err := config.Encode()
+	body, err := linuxConfig(al2BootScript, b.clusterName, b.ng, scripts...)
 	if err != nil {
 		return "", errors.Wrap(err, "encoding user data")
 	}
@@ -73,5 +41,3 @@ func (b *AmazonLinux2) UserData() (string, error) {
 	logger.Debug("user-data = %s", body)
 	return body, nil
 }
-
-// TODO instance distribution?
