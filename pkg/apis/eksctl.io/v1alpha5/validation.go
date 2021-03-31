@@ -740,7 +740,7 @@ func validateNodeGroupSSH(SSH *NodeGroupSSH) error {
 		SSH.PublicKeyName)
 
 	if numSSHFlagsEnabled > 1 {
-		return errors.New("only one of PublicKeyName, PublicKeyPath or PublicKey public key can be specified for SSH per node-group")
+		return errors.New("only one of publicKeyName, publicKeyPath or publicKey can be specified for SSH per node-group")
 	}
 	return nil
 }

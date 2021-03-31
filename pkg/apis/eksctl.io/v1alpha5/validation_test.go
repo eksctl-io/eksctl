@@ -530,7 +530,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			ng.SSH = SSHConfig
 			err := api.ValidateNodeGroup(0, ng)
-			Expect(err).To(MatchError("only one of PublicKeyName, PublicKeyPath or PublicKey public key can be specified for SSH per node-group"))
+			Expect(err).To(MatchError("only one of publicKeyName, publicKeyPath or publicKey can be specified for SSH per node-group"))
 		})
 
 		It("fails when a key path and a key are specified", func() {
@@ -542,7 +542,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			ng.SSH = SSHConfig
 			err := api.ValidateNodeGroup(0, ng)
-			Expect(err).To(MatchError("only one of PublicKeyName, PublicKeyPath or PublicKey public key can be specified for SSH per node-group"))
+			Expect(err).To(MatchError("only one of publicKeyName, publicKeyPath or publicKey can be specified for SSH per node-group"))
 		})
 
 		It("fails when a key name and a key are specified", func() {
@@ -554,7 +554,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			ng.SSH = SSHConfig
 			err := api.ValidateNodeGroup(0, ng)
-			Expect(err).To(MatchError("only one of PublicKeyName, PublicKeyPath or PublicKey public key can be specified for SSH per node-group"))
+			Expect(err).To(MatchError("only one of publicKeyName, publicKeyPath or publicKey can be specified for SSH per node-group"))
 		})
 
 		Context("Instances distribution", func() {
