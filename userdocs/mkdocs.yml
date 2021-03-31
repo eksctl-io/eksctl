@@ -25,6 +25,8 @@ nav:
         - usage/gpu-support.md
         - usage/arm-support.md
         - usage/spot-instances.md
+        - usage/instance-selector.md
+        - usage/dry-run.md
         - IAM:
             - usage/iam-permissions-boundary.md
             - usage/iam-policies.md
