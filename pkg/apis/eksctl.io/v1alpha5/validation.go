@@ -622,7 +622,7 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 }
 
 func validateInstancesDistribution(ng *NodeGroup) error {
-	hasInstanceSelector := !ng.InstanceSelector.IsZero()
+	hasInstanceSelector := ng.InstanceSelector != nil && !ng.InstanceSelector.IsZero()
 	if ng.InstancesDistribution == nil && !hasInstanceSelector {
 		return nil
 	}

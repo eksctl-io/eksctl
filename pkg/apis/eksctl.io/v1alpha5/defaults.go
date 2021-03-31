@@ -166,6 +166,9 @@ func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
 	if ng.DisablePodIMDS == nil {
 		ng.DisablePodIMDS = Disabled()
 	}
+	if ng.InstanceSelector == nil {
+		ng.InstanceSelector = &InstanceSelector{}
+	}
 }
 
 func setVolumeDefaults(ng *NodeGroupBase, template *LaunchTemplate) {
