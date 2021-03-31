@@ -101,6 +101,29 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 				},
 			},
 		}),
+		Entry("instanceSelector and instanceTypes", &nodeGroupCase{
+			ng: &ManagedNodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					InstanceSelector: &InstanceSelector{
+						VCPUs:  2,
+						Memory: "4",
+					},
+				},
+				InstanceTypes: []string{"c3.large", "c4.large"},
+			},
+		}),
+		Entry("instanceSelector and instanceType", &nodeGroupCase{
+			ng: &ManagedNodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					InstanceSelector: &InstanceSelector{
+						VCPUs:  2,
+						Memory: "4",
+					},
+					InstanceType: "c4.large",
+				},
+			},
+			errMsg: "cannot set instanceType when instanceSelector is specified",
+		}),
 	)
 
 	DescribeTable("User-supplied launch template with unsupported fields", func(ngBase *NodeGroupBase) {

@@ -28,6 +28,8 @@ func NewNodeGroupService(clusterConfig *api.ClusterConfig, provider api.ClusterP
 	}
 }
 
+const defaultCPUArch = "x86_64"
+
 // Normalize normalizes nodegroups
 func (m *NodeGroupService) Normalize(nodePools []api.NodePool) error {
 	for _, np := range nodePools {
@@ -148,7 +150,7 @@ func (m *NodeGroupService) expandInstanceSelector(instanceSelector *selector.Sel
 	}
 	cpuArch := ins.CPUArchitecture
 	if cpuArch == "" {
-		cpuArch = "x86_64"
+		cpuArch = defaultCPUArch
 	}
 	filters.CPUArchitecture = aws.String(cpuArch)
 
