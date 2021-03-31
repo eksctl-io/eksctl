@@ -267,6 +267,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			expected.NodeGroups = nil
 			ng := expected.ManagedNodeGroups[0]
 			ng.InstanceTypes = nil
+			ng.InstanceType = ""
 			ng.InstanceSelector = &api.InstanceSelector{
 				VCPUs:           2,
 				Memory:          "4",
