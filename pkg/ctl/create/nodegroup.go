@@ -80,8 +80,6 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 		return runFunc(cmd, ng, options)
 	}
 
-	exampleNodeGroupName := names.ForNodeGroup("", "")
-
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
 		cmdutils.AddStringToStringVarPFlag(fs, &cfg.Metadata.Tags, "tags", "", map[string]string{}, "Used to tag the AWS resources")
@@ -95,6 +93,7 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {
+		exampleNodeGroupName := names.ForNodeGroup("", "")
 		fs.StringVarP(&ng.Name, "name", "n", "", fmt.Sprintf("name of the new nodegroup (generated if unspecified, e.g. %q)", exampleNodeGroupName))
 		cmdutils.AddCommonCreateNodeGroupFlags(fs, cmd, ng, &options.CreateManagedNGOptions)
 	})
@@ -102,6 +101,8 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 	cmd.FlagSetGroup.InFlagSet("Addons", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonCreateNodeGroupAddonsFlags(fs, ng, options.CreateNGOptions)
 	})
+
+	cmdutils.AddInstanceSelectorOptions(cmd.FlagSetGroup, ng)
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
 }

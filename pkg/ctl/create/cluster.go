@@ -92,6 +92,8 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 		fs.StringVar(cfg.VPC.NAT.Gateway, "vpc-nat-mode", api.ClusterSingleNAT, "VPC NAT mode, valid options: HighlyAvailable, Single, Disable")
 	})
 
+	cmdutils.AddInstanceSelectorOptions(cmd.FlagSetGroup, ng)
+
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
 
 	cmd.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
@@ -188,12 +190,17 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return err
 	}
 
+	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider)
+	nodePools := cmdutils.ToNodePools(cfg)
+	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools); err != nil {
+		return err
+	}
+
 	if params.DryRun {
 		return cmdutils.PrintDryRunConfig(cfg, os.Stdout)
 	}
 
-	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider)
-	if err := nodeGroupService.Normalize(cmdutils.ToNodePools(cfg)); err != nil {
+	if err := nodeGroupService.Normalize(nodePools); err != nil {
 		return err
 	}
 

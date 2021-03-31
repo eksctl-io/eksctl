@@ -743,8 +743,9 @@ func NewNodeGroup() *NodeGroup {
 				WithLocal:  Enabled(),
 				WithShared: Enabled(),
 			},
-			DisableIMDSv1:  Disabled(),
-			DisablePodIMDS: Disabled(),
+			DisableIMDSv1:    Disabled(),
+			DisablePodIMDS:   Disabled(),
+			InstanceSelector: &InstanceSelector{},
 		},
 	}
 }
@@ -1290,6 +1291,9 @@ type NodeGroupBase struct {
 	// +optional
 	EFAEnabled *bool `json:"efaEnabled,omitempty"`
 
+	// InstanceSelector specifies options for EC2 instance selector
+	InstanceSelector *InstanceSelector `json:"instanceSelector,omitempty"`
+
 	// Internal fields
 	// Some AMIs (bottlerocket) have a separate volume for the OS
 	AdditionalEncryptedVolume string `json:"-"`
@@ -1454,6 +1458,28 @@ type PrivateCluster struct {
 	// must be enabled for private access.
 	// Valid entries are `AdditionalEndpointServices` constants
 	AdditionalEndpointServices []string `json:"additionalEndpointServices,omitempty"`
+}
+
+// InstanceSelector holds EC2 instance selector options
+type InstanceSelector struct {
+	// VCPUs specifies the number of vCPUs
+	VCPUs int `json:"vCPUs,omitempty"`
+	// Memory specifies the memory
+	// The unit defaults to GiB
+	Memory string `json:"memory,omitempty"`
+	// GPUs specifies the number of GPUs
+	GPUs int `json:"gpus,omitempty"`
+	// CPU Architecture of the EC2 instance type.
+	// Valid variants are:
+	// `"x86_64"`
+	// `"amd64"`
+	// `"arm64"`
+	CPUArchitecture string `json:"cpuArchitecture,omitempty"`
+}
+
+// IsZero returns true if all fields hold a zero value
+func (is InstanceSelector) IsZero() bool {
+	return is == InstanceSelector{}
 }
 
 // UnsupportedFeatureError is an error that represents an unsupported feature

@@ -566,8 +566,13 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 		return errors.Errorf("securityGroups.withLocal and securityGroups.withShared are not supported for managed nodegroups (%s.securityGroups)", path)
 	}
 
-	if ng.InstanceType != "" && len(ng.InstanceTypes) > 0 {
-		return errors.Errorf("only one of instanceType or instanceTypes can be specified (%s)", path)
+	if ng.InstanceType != "" {
+		if len(ng.InstanceTypes) > 0 {
+			return errors.Errorf("only one of instanceType or instanceTypes can be specified (%s)", path)
+		}
+		if !ng.InstanceSelector.IsZero() {
+			return errors.Errorf("cannot set instanceType when instanceSelector is specified (%s)", path)
+		}
 	}
 
 	switch {
@@ -622,26 +627,39 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 }
 
 func validateInstancesDistribution(ng *NodeGroup) error {
-	if ng.InstancesDistribution == nil {
+	hasInstanceSelector := ng.InstanceSelector != nil && !ng.InstanceSelector.IsZero()
+	if ng.InstancesDistribution == nil && !hasInstanceSelector {
 		return nil
 	}
 
 	if ng.InstanceType != "" && ng.InstanceType != "mixed" {
-		return fmt.Errorf(`instanceType should be "mixed" or unset when using the instances distribution feature`)
+		makeError := func(featureStr string) error {
+			return errors.Errorf(`instanceType should be "mixed" or unset when using the %s feature`, featureStr)
+		}
+		if ng.InstancesDistribution != nil {
+			return makeError("instances distribution")
+		}
+		return makeError("instance selector")
+	}
+
+	if ng.InstancesDistribution == nil {
+		return nil
 	}
 
 	distribution := ng.InstancesDistribution
-	if distribution.InstanceTypes == nil || len(distribution.InstanceTypes) == 0 {
+	if len(distribution.InstanceTypes) == 0 && !hasInstanceSelector {
 		return fmt.Errorf("at least two instance types have to be specified for mixed nodegroups")
 	}
 
-	allInstanceTypes := make(map[string]bool)
-	for _, instanceType := range distribution.InstanceTypes {
-		allInstanceTypes[instanceType] = true
-	}
+	if !hasInstanceSelector {
+		uniqueInstanceTypes := make(map[string]struct{})
+		for _, instanceType := range distribution.InstanceTypes {
+			uniqueInstanceTypes[instanceType] = struct{}{}
+		}
 
-	if len(allInstanceTypes) < 1 || len(allInstanceTypes) > 20 {
-		return fmt.Errorf("mixed nodegroups should have between 1 and 20 different instance types")
+		if len(uniqueInstanceTypes) > 20 {
+			return fmt.Errorf("mixed nodegroups should have between 1 and 20 different instance types")
+		}
 	}
 
 	if distribution.OnDemandBaseCapacity != nil && *distribution.OnDemandBaseCapacity < 0 {
@@ -727,7 +745,7 @@ func validateNodeGroupSSH(SSH *NodeGroupSSH) error {
 		SSH.PublicKeyName)
 
 	if numSSHFlagsEnabled > 1 {
-		return errors.New("only one of PublicKeyName, PublicKeyPath or PublicKey public key can be specified for SSH per node-group")
+		return errors.New("only one of publicKeyName, publicKeyPath or publicKey can be specified for SSH per node-group")
 	}
 	return nil
 }

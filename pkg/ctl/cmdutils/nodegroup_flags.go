@@ -74,6 +74,16 @@ func AddCommonCreateNodeGroupAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup, o
 	fs.BoolVarP(&options.InstallNvidiaDevicePlugin, "install-nvidia-plugin", "", true, "install Nvidia plugin for GPU nodes")
 }
 
+// AddInstanceSelectorOptions adds flags for EC2 instance selector
+func AddInstanceSelectorOptions(flagSetGroup *NamedFlagSetGroup, ng *api.NodeGroup) {
+	flagSetGroup.InFlagSet("Instance Selector options", func(fs *pflag.FlagSet) {
+		fs.IntVar(&ng.InstanceSelector.VCPUs, "instance-selector-vcpus", 0, "an integer value (2, 4 etc)")
+		fs.StringVar(&ng.InstanceSelector.Memory, "instance-selector-memory", "", "4 or 4GiB")
+		fs.IntVar(&ng.InstanceSelector.GPUs, "instance-selector-gpus", 0, "an integer value")
+		fs.StringVar(&ng.InstanceSelector.CPUArchitecture, "instance-selector-cpu-architecture", "", "x86_64, or arm64")
+	})
+}
+
 // addCommonCreateNodeGroupIAMAddonsFlags adds flags to set ng.IAM.WithAddonPolicies
 func addCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup) {
 	ng.IAM.WithAddonPolicies.AutoScaler = new(bool)

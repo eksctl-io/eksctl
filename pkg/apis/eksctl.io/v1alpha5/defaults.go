@@ -92,7 +92,7 @@ func vpccniAddonSpecified(cfg *ClusterConfig) bool {
 func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 	setNodeGroupBaseDefaults(ng.NodeGroupBase, meta)
 	if ng.InstanceType == "" {
-		if HasMixedInstances(ng) {
+		if HasMixedInstances(ng) || !ng.InstanceSelector.IsZero() {
 			ng.InstanceType = "mixed"
 		} else {
 			ng.InstanceType = DefaultNodeType
@@ -122,7 +122,7 @@ func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta) {
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = NodeImageFamilyAmazonLinux2
 	}
-	if ng.LaunchTemplate == nil && ng.InstanceType == "" && len(ng.InstanceTypes) == 0 {
+	if ng.LaunchTemplate == nil && ng.InstanceType == "" && len(ng.InstanceTypes) == 0 && ng.InstanceSelector.IsZero() {
 		ng.InstanceType = DefaultNodeType
 	}
 
@@ -165,6 +165,9 @@ func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
 	}
 	if ng.DisablePodIMDS == nil {
 		ng.DisablePodIMDS = Disabled()
+	}
+	if ng.InstanceSelector == nil {
+		ng.InstanceSelector = &InstanceSelector{}
 	}
 }
 

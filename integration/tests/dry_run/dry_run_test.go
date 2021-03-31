@@ -55,6 +55,7 @@ nodeGroups:
 - amiFamily: AmazonLinux2
   disableIMDSv1: false
   disablePodIMDS: false
+  instanceSelector: {}
   iam:
     withAddonPolicies:
       albIngress: false
@@ -91,6 +92,7 @@ managedNodeGroups:
   desiredCapacity: 2
   disableIMDSv1: false
   disablePodIMDS: false
+  instanceSelector: {}
   iam:
     withAddonPolicies:
       albIngress: false
@@ -142,15 +144,20 @@ vpc:
 `
 
 var _ = Describe("(Integration) [Dry-Run test]", func() {
-	assertDryRun := func(output []byte, setValues func(*api.ClusterConfig)) {
+	parseOutput := func(output []byte) (*api.ClusterConfig, *api.ClusterConfig) {
 		actual, err := eks.ParseConfig(output)
 		Expect(err).ToNot(HaveOccurred())
-
 		expected, err := eks.ParseConfig([]byte(defaultClusterConfig))
 		Expect(err).ToNot(HaveOccurred())
+		return actual, expected
+	}
+
+	assertDryRun := func(output []byte, setValues func(*api.ClusterConfig)) {
+		actual, expected := parseOutput(output)
 		setValues(expected)
 		Expect(actual).To(Equal(expected))
 	}
+
 	DescribeTable("`create cluster` with --dry-run", func(setValues func(*api.ClusterConfig), createArgs ...string) {
 		cmd := params.EksctlCreateCmd.
 			WithArgs(
@@ -214,6 +221,58 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 		Entry("write kubectl config", "--write-kubeconfig"),
 		Entry("set CFN flag", "--cfn-disable-rollback"),
 		Entry("set profile option", "--profile=aws"),
+	)
+
+	DescribeTable("create cluster with instance selector options", func(setValues func(actual, expected *api.ClusterConfig), createArgs ...string) {
+		cmd := params.EksctlCreateCmd.
+			WithArgs(
+				"cluster",
+				"--name=dry-run-cluster",
+				"--dry-run",
+				"--nodegroup-name=ng-default",
+			).
+			WithArgs(createArgs...)
+
+		session := cmd.Run()
+		Expect(session.ExitCode()).To(Equal(0))
+		output := session.Buffer().Contents()
+
+		actual, expected := parseOutput(output)
+		setValues(actual, expected)
+		Expect(actual).To(Equal(expected))
+
+	}, Entry("instance selector options with unmanaged nodegroup", func(actual, expected *api.ClusterConfig) {
+		// This does not do an exact match because instance types matching the instance selector criteria may
+		// change over time as EC2 adds more instance types
+		Expect(actual.NodeGroups[0].InstancesDistribution.InstanceTypes).ToNot(BeEmpty())
+		actual.NodeGroups[0].InstancesDistribution.InstanceTypes = nil
+
+		expected.ManagedNodeGroups = nil
+		ng := expected.NodeGroups[0]
+		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
+			InstanceTypes: nil,
+		}
+		ng.InstanceType = "mixed"
+		ng.InstanceSelector = &api.InstanceSelector{
+			VCPUs:  2,
+			Memory: "4",
+		}
+
+	}, "--instance-selector-vcpus=2", "--instance-selector-memory=4"),
+
+		Entry("instance selector options with managed nodegroup", func(actual, expected *api.ClusterConfig) {
+			Expect(actual.ManagedNodeGroups[0].InstanceTypes).ToNot(BeEmpty())
+			actual.ManagedNodeGroups[0].InstanceTypes = nil
+
+			expected.NodeGroups = nil
+			ng := expected.ManagedNodeGroups[0]
+			ng.InstanceTypes = nil
+			ng.InstanceSelector = &api.InstanceSelector{
+				VCPUs:           2,
+				Memory:          "4",
+				CPUArchitecture: "x86_64",
+			}
+		}, "--managed", "--instance-selector-vcpus=2", "--instance-selector-memory=4", "--instance-selector-cpu-architecture=x86_64"),
 	)
 
 	Describe("create cluster and nodegroups from the output of dry-run", func() {
