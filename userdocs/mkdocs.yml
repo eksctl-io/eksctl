@@ -14,38 +14,43 @@ extra_css:
 nav:
     - Introduction: introduction.md
     - Usage:
-        - usage/creating-and-managing-clusters.md
-        - usage/unowned-clusters.md
-        - usage/managing-nodegroups.md
-        - usage/security.md
-        - usage/cluster-upgrade.md
-        - usage/autoscaling.md
-        - usage/custom-ami-support.md
-        - usage/vpc-networking.md
-        - usage/gpu-support.md
-        - usage/arm-support.md
-        - usage/spot-instances.md
-        - usage/instance-selector.md
-        - usage/dry-run.md
+        - Clusters:
+            - usage/creating-and-managing-clusters.md
+            - usage/unowned-clusters.md
+            - usage/customizing-the-kubelet.md
+            - usage/cloudwatch-cluster-logging.md
+            - usage/eks-private-cluster.md
+            - usage/addons.md
+            - usage/gitops.md
+            - usage/emr-access.md
+            - usage/fargate-support.md
+            - usage/cluster-upgrade.md
+            - usage/addon-upgrade.md
+        - Nodegroups:
+            - usage/managing-nodegroups.md
+            - usage/nodegroup-upgrade.md
+            - usage/eks-managed-nodes.md
+            - usage/launch-template-support.md
+            - usage/spot-instances.md
+            - usage/gpu-support.md
+            - usage/arm-support.md
+            - usage/autoscaling.md
+            - usage/custom-ami-support.md
+            - usage/windows-worker-nodes.md
+        - Security:
+            - usage/security.md
+            - usage/kms-encryption.md
+        - Networking:
+            - usage/vpc-networking.md
         - IAM:
+            - usage/minimum-iam-policies.md
             - usage/iam-permissions-boundary.md
             - usage/iam-policies.md
             - usage/iam-identity-mappings.md
             - usage/iamserviceaccounts.md
-        - usage/customizing-the-kubelet.md
-        - usage/cloudwatch-cluster-logging.md
-        - usage/windows-worker-nodes.md
-        - usage/eks-managed-nodes.md
-        - usage/launch-template-support.md
-        - usage/eks-private-cluster.md
-        - usage/fargate-support.md
-        - usage/addons.md
-        - usage/kms-encryption.md
-        - usage/gitops.md
+        - usage/dry-run.md
         - usage/schema.md
         - usage/troubleshooting.md
-        - usage/minimum-iam-policies.md
-        - usage/emr-access.md
         - FAQ: usage/faq.md
     - Examples: "https://github.com/weaveworks/eksctl/tree/main/examples"
     - Community: community.md
