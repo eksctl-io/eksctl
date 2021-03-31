@@ -1468,8 +1468,11 @@ type InstanceSelector struct {
 	Memory string `json:"memory,omitempty"`
 	// GPUs specifies the number of GPUs
 	GPUs int `json:"gpus,omitempty"`
-	// CPUArchitecture of the EC2 instance type
-	// Possible values are: x86_64/amd64 or arm64
+	// CPU Architecture of the EC2 instance type
+	// Valid variants are:
+	// `"x86_64"`
+	// `"amd64"`
+	// `"arm64"`
 	CPUArchitecture string `json:"cpuArchitecture,omitempty"`
 }
 

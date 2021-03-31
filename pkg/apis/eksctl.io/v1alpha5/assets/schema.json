@@ -839,8 +839,13 @@
       "properties": {
         "cpuArchitecture": {
           "type": "string",
-          "description": "of the EC2 instance type Possible values are: x86_64/amd64 or arm64",
-          "x-intellij-html-description": "of the EC2 instance type Possible values are: x86_64/amd64 or arm64"
+          "description": "CPU Architecture of the EC2 instance type Valid variants are: `\"x86_64\"` `\"amd64\"` `\"arm64\"`",
+          "x-intellij-html-description": "CPU Architecture of the EC2 instance type Valid variants are: <code>&quot;x86_64&quot;</code> <code>&quot;amd64&quot;</code> <code>&quot;arm64&quot;</code>",
+          "enum": [
+            "x86_64",
+            "amd64",
+            "arm64"
+          ]
         },
         "gpus": {
           "type": "integer",
