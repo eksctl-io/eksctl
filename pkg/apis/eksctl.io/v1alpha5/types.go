@@ -1464,11 +1464,12 @@ type PrivateCluster struct {
 type InstanceSelector struct {
 	// VCPUs specifies the number of vCPUs
 	VCPUs int `json:"vCPUs,omitempty"`
-	// Memory specifies the memory in GiB
+	// Memory specifies the memory
+	// The unit defaults to GiB
 	Memory string `json:"memory,omitempty"`
 	// GPUs specifies the number of GPUs
 	GPUs int `json:"gpus,omitempty"`
-	// CPU Architecture of the EC2 instance type
+	// CPU Architecture of the EC2 instance type.
 	// Valid variants are:
 	// `"x86_64"`
 	// `"amd64"`
