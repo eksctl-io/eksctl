@@ -3,7 +3,7 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: cluster-27
+  name: cluster-28
   region: us-west-2
 
 nodeGroups:
