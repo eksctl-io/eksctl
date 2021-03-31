@@ -1,4 +1,4 @@
-ARG BUILD_IMAGE=/weaveworks/eksctl-build:1d80859fb0f6bb4c08c5d59beed49b4e37267426
+ARG BUILD_IMAGE=/weaveworks/eksctl-build:f6356cc88a3197f2bfe24090cb89d4d28199f943
 FROM $BUILD_IMAGE as build
 
 WORKDIR /src
