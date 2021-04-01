@@ -61,9 +61,9 @@ var _ = Describe("scale", func() {
 				args:  []string{"nodegroup", "ng", "--cluster", "dummy", "--name", "ng"},
 				error: fmt.Errorf("Error: --name=ng and argument ng cannot be used at the same time"),
 			}),
-			Entry("missing required nodes flag --nodes", invalidParamsCase{
+			Entry("missing required nodes flag", invalidParamsCase{
 				args:  []string{"nodegroup", "ng", "--cluster", "dummy"},
-				error: fmt.Errorf("Error: number of nodes must be 0 or greater"),
+				error: fmt.Errorf("Error: atleast one of minmum, maximum and desired nodes must be set"),
 			}),
 			Entry("invalid flag", invalidParamsCase{
 				args:  []string{"nodegroup", "--invalid", "dummy"},
@@ -81,10 +81,6 @@ var _ = Describe("scale", func() {
 			Entry("desired node less than min nodes", invalidParamsCase{
 				args:  []string{"nodegroup", "ng", "--cluster", "dummy", "--nodes", "2", "--nodes-min", "3"},
 				error: fmt.Errorf("Error: minimum number of nodes must be less than or equal to number of nodes"),
-			}),
-			Entry("desired node outside the range [min, max]", invalidParamsCase{
-				args:  []string{"nodegroup", "ng", "--cluster", "dummy", "--nodes", "2", "--nodes-min", "1", "--nodes-max", "1"},
-				error: fmt.Errorf("Error: number of nodes must be within range of min nodes and max nodes"),
 			}),
 			Entry("with config file and no name flags", invalidParamsCase{
 				args:  []string{"nodegroup", "-f", "../cmdutils/test_data/scale-ng-test.yaml"},
