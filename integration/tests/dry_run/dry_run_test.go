@@ -48,7 +48,7 @@ iam:
   withOIDC: false
 kind: ClusterConfig
 metadata:
-  name: dry-run-cluster
+  name: %[1]s
   region: us-west-2
   version: "1.18"
 nodeGroups:
@@ -72,7 +72,7 @@ nodeGroups:
       xRay: false
   instanceType: m5.large
   labels:
-    alpha.eksctl.io/cluster-name: dry-run-cluster
+    alpha.eksctl.io/cluster-name: %[1]s
     alpha.eksctl.io/nodegroup-name: ng-default
   name: ng-default
   privateNetworking: false
@@ -109,7 +109,7 @@ managedNodeGroups:
       xRay: false
   instanceType: m5.large
   labels:
-    alpha.eksctl.io/cluster-name: dry-run-cluster
+    alpha.eksctl.io/cluster-name: %[1]s
     alpha.eksctl.io/nodegroup-name: ng-default
   maxSize: 2
   minSize: 2
@@ -147,7 +147,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 	parseOutput := func(output []byte) (*api.ClusterConfig, *api.ClusterConfig) {
 		actual, err := eks.ParseConfig(output)
 		Expect(err).ToNot(HaveOccurred())
-		expected, err := eks.ParseConfig([]byte(defaultClusterConfig))
+		expected, err := eks.ParseConfig([]byte(fmt.Sprintf(defaultClusterConfig, params.ClusterName)))
 		Expect(err).ToNot(HaveOccurred())
 		return actual, expected
 	}
@@ -163,7 +163,8 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			WithArgs(
 				"cluster",
 				"--dry-run",
-				"--name=dry-run-cluster",
+				"--name",
+				params.ClusterName,
 			).
 			WithArgs(createArgs...)
 
@@ -227,7 +228,8 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 		cmd := params.EksctlCreateCmd.
 			WithArgs(
 				"cluster",
-				"--name=dry-run-cluster",
+				"--name",
+				params.ClusterName,
 				"--dry-run",
 				"--nodegroup-name=ng-default",
 			).
