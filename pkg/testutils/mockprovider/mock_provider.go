@@ -102,6 +102,9 @@ func (m MockProvider) MockCloudFormation() *mocks.CloudFormationAPI {
 // ASG returns a representation of the ASG API
 func (m MockProvider) ASG() autoscalingiface.AutoScalingAPI { return m.asg }
 
+// MockASG returns a mocked ASG API
+func (m MockProvider) MockASG() *mocks.AutoScalingAPI { return m.ASG().(*mocks.AutoScalingAPI) }
+
 // EKS returns a representation of the EKS API
 func (m MockProvider) EKS() eksiface.EKSAPI { return m.eks }
 
