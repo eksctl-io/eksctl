@@ -24,6 +24,11 @@ func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 	var options managed.UpgradeOptions
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
+
+		if err := cmdutils.NewUpgradeNodeGroupLoader(cmd).Load(); err != nil {
+			return err
+		}
+
 		return upgradeNodeGroup(cmd, options)
 	}
 

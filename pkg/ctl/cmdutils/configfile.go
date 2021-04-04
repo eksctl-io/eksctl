@@ -529,6 +529,13 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 	return l
 }
 
+// NewUpgradeNodeGroupLoader will load config or use flags for 'eksctl upgrade nodegroup'
+func NewUpgradeNodeGroupLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+	l.flagsIncompatibleWithConfigFile.Delete("name")
+	return l
+}
+
 // NewUtilsEnableLoggingLoader will load config or use flags for 'eksctl utils update-cluster-logging'
 func NewUtilsEnableLoggingLoader(cmd *Cmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
