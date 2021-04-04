@@ -117,6 +117,21 @@ nodeGroups:
       spotAllocationStrategy: "capacity-optimized"
 ```
 
+This example uses the capacity-optimized-prioritized spot allocation strategy:
+
+```yaml
+nodeGroups:
+  - name: ng-capacity-optimized-prioritized
+    minSize: 2
+    maxSize: 5
+    instancesDistribution:
+      maxPrice: 0.017
+      instanceTypes: ["t3a.small", "t3.small"] # At least two instance types should be specified
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 0
+      spotAllocationStrategy: "capacity-optimized-prioritized"
+```
+
 Note that the `spotInstancePools` field shouldn't be set when using the `spotAllocationStrategy` field. If the `spotAllocationStrategy` is not specified, EC2 will default to use the `lowest-price` strategy.
 
 Here is a minimal example:

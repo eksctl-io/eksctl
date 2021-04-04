@@ -224,6 +224,9 @@ const (
 	// SpotAllocationStrategyCapacityOptimized defines the ASG spot allocation strategy of capacity-optimized
 	SpotAllocationStrategyCapacityOptimized = "capacity-optimized"
 
+	// SpotAllocationStrategyCapacityOptimized defines the ASG spot allocation strategy of capacity-optimized
+	SpotAllocationStrategyCapacityOptimizedPrioritized = "capacity-optimized-prioritized"
+
 	// eksResourceAccountStandard defines the AWS EKS account ID that provides node resources in default regions
 	// for standard AWS partition
 	eksResourceAccountStandard = "602401143452"
@@ -438,6 +441,7 @@ func supportedSpotAllocationStrategies() []string {
 	return []string{
 		SpotAllocationStrategyLowestPrice,
 		SpotAllocationStrategyCapacityOptimized,
+		SpotAllocationStrategyCapacityOptimizedPrioritized,
 	}
 }
 
