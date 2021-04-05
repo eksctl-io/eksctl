@@ -45,7 +45,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.7.4
-	github.com/tidwall/sjson v1.1.5
+	github.com/tidwall/sjson v1.1.6
 	github.com/tj/assert v0.0.3
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/vektra/mockery v1.1.2
