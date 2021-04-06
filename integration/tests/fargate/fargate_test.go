@@ -54,7 +54,7 @@ var _ = Describe("(Integration) Fargate", func() {
 			"--verbose", "4",
 			"--kubeconfig", params.KubeconfigPath,
 			"--nodes", "1",
-			"--timeout", "55m",
+			"--timeout", "1h10m",
 		}
 
 		args = append(args, createArgs...)
