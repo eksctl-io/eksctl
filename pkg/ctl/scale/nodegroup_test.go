@@ -63,7 +63,7 @@ var _ = Describe("scale", func() {
 			}),
 			Entry("missing required nodes flag", invalidParamsCase{
 				args:  []string{"nodegroup", "ng", "--cluster", "dummy"},
-				error: fmt.Errorf("Error: atleast one of minmum, maximum and desired nodes must be set"),
+				error: fmt.Errorf("Error: at least one of minimum, maximum and desired nodes must be set"),
 			}),
 			Entry("invalid flag", invalidParamsCase{
 				args:  []string{"nodegroup", "--invalid", "dummy"},
