@@ -109,7 +109,7 @@ func validateNumberOfNodesCLI(ng *api.NodeGroup) error {
 	}
 
 	if ng.DesiredCapacity == nil && ng.MinSize == nil && ng.MaxSize == nil {
-		return fmt.Errorf("atleast one of minmum, maximum and desired nodes must be set")
+		return fmt.Errorf("at least one of minimum, maximum and desired nodes must be set")
 	}
 
 	if ng.DesiredCapacity != nil && *ng.DesiredCapacity < 0 {
