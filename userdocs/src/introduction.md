@@ -23,7 +23,7 @@ eksctl create cluster --name=cluster-1 --nodes=4
 
 ```
 
-EKS supports versions `1.15`, `1.16`, `1.17`, `1.18` (default) and `1.19`.
+EKS supports versions `1.15`, `1.16`, `1.17`, `1.18` and `1.19` (default).
 With `eksctl` you can deploy any of the supported versions by passing `--version`.
 
 ```
