@@ -132,7 +132,7 @@ func validateNumberOfNodesCLI(ng *api.NodeGroup) error {
 	}
 
 	if ng.MinSize != nil && ng.DesiredCapacity != nil && *ng.MinSize > *ng.DesiredCapacity {
-		return fmt.Errorf("minimum number of nodes must be less than or equal to number of nodes")
+		return fmt.Errorf("minimum number of nodes must be fewer than or equal to number of nodes")
 	}
 	return nil
 }
