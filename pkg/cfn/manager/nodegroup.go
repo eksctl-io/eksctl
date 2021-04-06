@@ -163,31 +163,41 @@ func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]Stac
 
 // ScaleNodeGroup will scale an existing nodegroup
 func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
+	template, description, err := c.ScaleNodeGroupTemplate(ng)
+	if err != nil {
+		return nil
+	}
+
+	if template == "" {
+		return nil
+	}
+
+	return c.UpdateStack(c.makeNodeGroupStackName(ng.Name), c.MakeChangeSetName("scale-nodegroup"), description, TemplateBody(template), nil)
+}
+
+func (c *StackCollection) ScaleNodeGroupTemplate(ng *api.NodeGroup) (string, string, error) {
 	clusterName := c.MakeClusterStackName()
 	c.spec.Status = &api.ClusterStatus{StackName: clusterName}
 	name := c.makeNodeGroupStackName(ng.Name)
 
 	stack, err := c.DescribeStack(&Stack{StackName: &name})
 	if err != nil {
-		return errors.Wrapf(err, "error describing nodegroup stack %s", name)
+		return "", "", errors.Wrapf(err, "error describing nodegroup stack %s", name)
 	}
 
 	// Get current stack
 	template, err := c.GetStackTemplate(name)
 	if err != nil {
-		return errors.Wrapf(err, "error getting stack template %s", name)
+		return "", "", errors.Wrapf(err, "error getting stack template %s", name)
 	}
 	logger.Debug("stack template (pre-scale change): %s", template)
-
-	//TODO: In the future we might want to use Goformation for strongly typed
-	//manipulation of the template.
 
 	var descriptionBuffer bytes.Buffer
 	descriptionBuffer.WriteString("scaling nodegroup")
 
 	ngPaths, err := getNodeGroupPaths(stack.Tags)
 	if err != nil {
-		return err
+		return "", "", err
 	}
 	var (
 		desiredCapacityPath = ngPaths.DesiredCapacity
@@ -197,58 +207,67 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 
 	// TODO rewrite this using types
 	// Get the current values
-	currentCapacity := gjson.Get(template, desiredCapacityPath)
-	currentMaxSize := gjson.Get(template, maxSizePath)
-	currentMinSize := gjson.Get(template, minSizePath)
+	currentCapacity := gjson.Get(template, desiredCapacityPath).Int()
+	currentMaxSize := gjson.Get(template, maxSizePath).Int()
+	currentMinSize := gjson.Get(template, minSizePath).Int()
 
-	hasChanged := func(desiredVal *int, currentVal gjson.Result) bool {
-		return desiredVal != nil && int64(*desiredVal) != currentVal.Int()
+	desiredCapacity := currentCapacity
+	if ng.DesiredCapacity != nil {
+		desiredCapacity = int64(*ng.DesiredCapacity)
 	}
-	changed := hasChanged(ng.DesiredCapacity, currentCapacity) || hasChanged(ng.MaxSize, currentMaxSize) || hasChanged(ng.MinSize, currentMinSize)
 
-	if !changed {
+	desiredMinSize := currentMinSize
+	if ng.MinSize != nil {
+		desiredMinSize = int64(*ng.MinSize)
+	}
+
+	desiredMaxSize := currentMaxSize
+	if ng.MaxSize != nil {
+		desiredMaxSize = int64(*ng.MaxSize)
+	}
+
+	if desiredCapacity == currentCapacity && desiredMinSize == currentMinSize && desiredMaxSize == currentMaxSize {
 		logger.Info("no change for nodegroup %q in cluster %q: nodes-min %d, desired %d, nodes-max %d", ng.Name,
-			clusterName, currentMinSize.Int(), *ng.DesiredCapacity, currentMaxSize.Int())
-		return nil
+			clusterName, currentMinSize, desiredCapacity, currentMaxSize)
+		return "", "", nil
 	}
 
-	if ng.MinSize == nil && int64(*ng.DesiredCapacity) < currentMinSize.Int() {
-		logger.Warning("the desired nodes %d is less than current nodes-min/minSize %d", *ng.DesiredCapacity, currentMinSize.Int())
-		return errors.Errorf("the desired nodes %d is less than current nodes-min/minSize %d", *ng.DesiredCapacity, currentMinSize.Int())
+	if desiredCapacity < desiredMinSize {
+		logger.Warning("the desired nodes %d is less than the nodes-min/minSize %d", desiredCapacity, desiredMinSize)
+		return "", "", errors.Errorf("the desired nodes %d is less than the nodes-min/minSize %d", desiredCapacity, desiredMinSize)
 	}
 
-	if ng.MaxSize == nil && int64(*ng.DesiredCapacity) > currentMaxSize.Int() {
-		logger.Warning("the desired nodes %d is greater than current nodes-max/maxSize %d", *ng.DesiredCapacity, currentMaxSize.Int())
-		return errors.Errorf("the desired nodes %d is greater than current nodes-max/maxSize %d", *ng.DesiredCapacity, currentMaxSize.Int())
+	if desiredCapacity > desiredMaxSize {
+		logger.Warning("the desired nodes %d is greater than the nodes-max/maxSize %d", desiredCapacity, desiredMaxSize)
+		return "", "", errors.Errorf("the desired nodes %d is greater than the nodes-max/maxSize %d", desiredCapacity, desiredMaxSize)
 	}
 
 	// Set the new values
-	updateField := func(path, fieldName string, newVal *int, oldVal gjson.Result) error {
-		if !hasChanged(newVal, oldVal) {
+	updateField := func(path, fieldName string, newVal, oldVal int64) error {
+		if newVal == oldVal {
 			return nil
 		}
-		template, err = sjson.Set(template, path, fmt.Sprintf("%d", *newVal))
+		template, err = sjson.Set(template, path, fmt.Sprintf("%d", newVal))
 		if err != nil {
 			return errors.Wrapf(err, "error setting %s", fieldName)
 		}
-		descriptionBuffer.WriteString(fmt.Sprintf(", %s from %d to %d", fieldName, oldVal.Int(), *newVal))
+		descriptionBuffer.WriteString(fmt.Sprintf(", %s from %d to %d", fieldName, oldVal, newVal))
 		return nil
 	}
 
-	if err := updateField(desiredCapacityPath, "desired capacity", ng.DesiredCapacity, currentCapacity); err != nil {
-		return err
+	if err := updateField(desiredCapacityPath, "desired capacity", desiredCapacity, currentCapacity); err != nil {
+		return "", "", err
 	}
 
-	if err := updateField(minSizePath, "min size", ng.MinSize, currentMinSize); err != nil {
-		return err
+	if err := updateField(minSizePath, "min size", desiredMinSize, currentMinSize); err != nil {
+		return "", "", err
 	}
 
-	if err := updateField(maxSizePath, "max size", ng.MaxSize, currentMaxSize); err != nil {
-		return err
+	if err := updateField(maxSizePath, "max size", desiredMaxSize, currentMaxSize); err != nil {
+		return "", "", err
 	}
 	logger.Debug("stack template (post-scale change): %s", template)
-
-	return c.UpdateStack(name, c.MakeChangeSetName("scale-nodegroup"), descriptionBuffer.String(), TemplateBody(template), nil)
+	return template, descriptionBuffer.String(), nil
 }
 
 // GetNodeGroupSummaries returns a list of summaries for the nodegroups of a cluster

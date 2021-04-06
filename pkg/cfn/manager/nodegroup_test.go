@@ -28,14 +28,16 @@ var _ = Describe("StackCollection NodeGroup", func() {
     "NodeGroup": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
-        "DesiredCapacity": "2",
-        "MaxSize": "3",
+        "DesiredCapacity": "3",
+        "MaxSize": "6",
         "MinSize": "1"
       }
     }
   }
 }
+
 `
+	const nodegroupTemplate = "{\n  \"Resources\": {\n    \"NodeGroup\": {\n      \"Type\": \"AWS::AutoScaling::AutoScalingGroup\",\n      \"Properties\": {\n        \"DesiredCapacity\": \"%d\",\n        \"MaxSize\": \"%d\",\n        \"MinSize\": \"%d\"\n      }\n    }\n  }\n}"
 
 	testAZs := []string{"us-west-2b", "us-west-2a", "us-west-2c"}
 
@@ -72,6 +74,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 			JustBeforeEach(func() {
 				cc = newClusterConfig("test-cluster")
 				ng = newNodeGroup(cc)
+				ng.Name = "12345"
 				sc = NewStackCollection(p, cc)
 
 				p.MockCloudFormation().
@@ -96,62 +99,96 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				}, nil)
 			})
 
-			It("should be a no-op if attempting to scale to the existing desired capacity", func() {
-				ng.Name = "12345"
-				capacity := 2
+			It("update the nodegroup if the desired capacity has changed", func() {
+				capacity := 4
 				ng.DesiredCapacity = &capacity
-				err := sc.ScaleNodeGroup(ng)
+				template, _, err := sc.ScaleNodeGroupTemplate(ng)
 				Expect(err).NotTo(HaveOccurred())
+				Expect(template).To(Equal(fmt.Sprintf(nodegroupTemplate, 4, 6, 1)))
+			})
+
+			It("update the nodegroup if the min capacity has changed", func() {
+				capacity := 2
+				ng.MinSize = &capacity
+				template, _, err := sc.ScaleNodeGroupTemplate(ng)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(template).To(Equal(fmt.Sprintf(nodegroupTemplate, 3, 6, 2)))
+			})
+
+			It("update the nodegroup if the max capacity has changed", func() {
+				capacity := 10
+				ng.MaxSize = &capacity
+				template, _, err := sc.ScaleNodeGroupTemplate(ng)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(template).To(Equal(fmt.Sprintf(nodegroupTemplate, 3, 10, 1)))
+			})
+
+			It("update the nodegroup if all the configuration has changed", func() {
+				minCapacity := 2
+				ng.MinSize = &minCapacity
+				desiredCapacity := 4
+				ng.DesiredCapacity = &desiredCapacity
+				maxCapacity := 10
+				ng.MaxSize = &maxCapacity
+				template, _, err := sc.ScaleNodeGroupTemplate(ng)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(template).To(Equal(fmt.Sprintf(nodegroupTemplate, 4, 10, 2)))
+			})
+
+			It("should be a no-op if attempting to scale to the existing desired capacity", func() {
+				capacity := 3
+				ng.DesiredCapacity = &capacity
+				template, _, err := sc.ScaleNodeGroupTemplate(ng)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(template).To(Equal(""))
 			})
 
 			It("should be a no-op if attempting to scale to the existing desired capacity, min size", func() {
-				ng.Name = "12345"
 				minSize := 1
-				capacity := 2
+				capacity := 3
 				ng.MinSize = &minSize
 				ng.DesiredCapacity = &capacity
-				err := sc.ScaleNodeGroup(ng)
+				template, _, err := sc.ScaleNodeGroupTemplate(ng)
 				Expect(err).NotTo(HaveOccurred())
+				Expect(template).To(Equal(""))
 			})
 
 			It("should be a no-op if attempting to scale to the existing desired capacity, max size", func() {
-				ng.Name = "12345"
-				capacity := 2
-				maxSize := 3
+				capacity := 3
+				maxSize := 6
 				ng.DesiredCapacity = &capacity
 				ng.MaxSize = &maxSize
-				err := sc.ScaleNodeGroup(ng)
+				template, _, err := sc.ScaleNodeGroupTemplate(ng)
 				Expect(err).NotTo(HaveOccurred())
+				Expect(template).To(Equal(""))
 			})
 
 			It("should be a no-op if attempting to scale to the existing desired capacity, min size and max size", func() {
-				ng.Name = "12345"
 				minSize := 1
-				capacity := 2
-				maxSize := 3
+				capacity := 3
+				maxSize := 6
 				ng.MinSize = &minSize
 				ng.DesiredCapacity = &capacity
 				ng.MaxSize = &maxSize
-				err := sc.ScaleNodeGroup(ng)
+				template, _, err := sc.ScaleNodeGroupTemplate(ng)
 				Expect(err).NotTo(HaveOccurred())
+				Expect(template).To(Equal(""))
 			})
 
-			It("should be a error if the desired capacity is greater than current CF maxSize", func() {
-				ng.Name = "12345"
-				capacity := 5
+			It("should be a error if the desired capacity is greater than the CF maxSize", func() {
+				capacity := 10
 				ng.DesiredCapacity = &capacity
-				err := sc.ScaleNodeGroup(ng)
+				_, _, err := sc.ScaleNodeGroupTemplate(ng)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("the desired nodes 5 is greater than current nodes-max/maxSize 3"))
+				Expect(err.Error()).To(Equal("the desired nodes 10 is greater than the nodes-max/maxSize 6"))
 			})
 
-			It("should be a error if the desired capacity is less than current CF minSize", func() {
-				ng.Name = "12345"
+			It("should be a error if the desired capacity is less than the CF minSize", func() {
 				capacity := 0
 				ng.DesiredCapacity = &capacity
-				err := sc.ScaleNodeGroup(ng)
+				_, _, err := sc.ScaleNodeGroupTemplate(ng)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("the desired nodes 0 is less than current nodes-min/minSize 1"))
+				Expect(err.Error()).To(Equal("the desired nodes 0 is less than the nodes-min/minSize 1"))
 			})
 		})
 	})
