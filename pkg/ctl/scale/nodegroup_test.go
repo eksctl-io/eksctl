@@ -69,18 +69,18 @@ var _ = Describe("scale", func() {
 				args:  []string{"nodegroup", "--invalid", "dummy"},
 				error: fmt.Errorf("Error: unknown flag: --invalid"),
 			}),
-			Entry("desired node less than min nodes", invalidParamsCase{
+			Entry("desired node fewer than min nodes", invalidParamsCase{
 				args:  []string{"nodegroup", "ng", "--cluster", "dummy", "--nodes", "2", "--nodes-min", "3"},
-				error: fmt.Errorf("Error: minimum number of nodes must be less than or equal to number of nodes"),
+				error: fmt.Errorf("Error: minimum number of nodes must be fewer than or equal to number of nodes"),
 			}),
 
 			Entry("desired node greater than max nodes", invalidParamsCase{
 				args:  []string{"nodegroup", "ng", "--cluster", "dummy", "--nodes", "2", "--nodes-max", "1"},
 				error: fmt.Errorf("Error: maximum number of nodes must be greater than or equal to number of nodes"),
 			}),
-			Entry("desired node less than min nodes", invalidParamsCase{
+			Entry("desired node fewer than min nodes", invalidParamsCase{
 				args:  []string{"nodegroup", "ng", "--cluster", "dummy", "--nodes", "2", "--nodes-min", "3"},
-				error: fmt.Errorf("Error: minimum number of nodes must be less than or equal to number of nodes"),
+				error: fmt.Errorf("Error: minimum number of nodes must be fewer than or equal to number of nodes"),
 			}),
 			Entry("with config file and no name flags", invalidParamsCase{
 				args:  []string{"nodegroup", "-f", "../cmdutils/test_data/scale-ng-test.yaml"},

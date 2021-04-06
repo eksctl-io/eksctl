@@ -149,21 +149,21 @@ var _ = Describe("scale node group config file loader", func() {
 			maxSize:     aws.Int(1),
 			err:         fmt.Errorf("maximum number of nodes must be greater than or equal to number of nodes"),
 		}),
-		Entry("desiredSize less than min", scaleNodeGroupCLICase{
+		Entry("desiredSize fewer than min", scaleNodeGroupCLICase{
 			name:        "ng-with-max",
 			desiredSize: aws.Int(2),
 			minSize:     aws.Int(3),
-			err:         fmt.Errorf("minimum number of nodes must be less than or equal to number of nodes"),
+			err:         fmt.Errorf("minimum number of nodes must be fewer than or equal to number of nodes"),
 		}),
 		Entry("min greater than max", scaleNodeGroupCLICase{
 			name:    "ng-with-max",
 			minSize: aws.Int(3),
 			maxSize: aws.Int(2),
-			err:     fmt.Errorf("maximum number of nodes must be greater than minmum number of nodes"),
+			err:     fmt.Errorf("maximum number of nodes must be greater than minimum number of nodes"),
 		}),
 		Entry("not specifying any", scaleNodeGroupCLICase{
 			name: "ng-with-max",
-			err:  fmt.Errorf("atleast one of minmum, maximum and desired nodes must be set"),
+			err:  fmt.Errorf("at least one of minimum, maximum and desired nodes must be set"),
 		}),
 	)
 })
