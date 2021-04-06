@@ -72,15 +72,15 @@ func (p *Params) GenerateCommands() {
 
 	p.EksctlCreateCmd = p.EksctlCmd.
 		WithArgs("create").
-		WithTimeout(30 * time.Minute)
+		WithTimeout(90 * time.Minute)
 
 	p.EksctlUpgradeCmd = p.EksctlCmd.
 		WithArgs("upgrade").
-		WithTimeout(50 * time.Minute)
+		WithTimeout(90 * time.Minute)
 
 	p.EksctlUpdateCmd = p.EksctlCmd.
 		WithArgs("update").
-		WithTimeout(20 * time.Minute)
+		WithTimeout(90 * time.Minute)
 
 	p.EksctlGetCmd = p.EksctlCmd.
 		WithArgs("get").
@@ -99,11 +99,12 @@ func (p *Params) GenerateCommands() {
 		WithTimeout(15 * time.Minute)
 
 	p.EksctlDeleteClusterCmd = p.EksctlDeleteCmd.
-		WithArgs("cluster", "--verbose", "4")
+		WithArgs("cluster", "--verbose", "4").
+		WithTimeout(40 * time.Minute)
 
 	p.EksctlDrainNodeGroupCmd = p.EksctlCmd.
 		WithArgs("drain", "nodegroup", "--verbose", "4").
-		WithTimeout(5 * time.Minute)
+		WithTimeout(10 * time.Minute)
 
 	p.EksctlScaleNodeGroupCmd = p.EksctlCmd.
 		WithArgs("scale", "nodegroup", "--verbose", "4").
@@ -119,7 +120,7 @@ func (p *Params) GenerateCommands() {
 
 	p.EksctlCreateNodegroupCmd = runner.NewCmd(p.EksctlPath).
 		WithArgs("create", "nodegroup").
-		WithTimeout(30 * time.Minute)
+		WithTimeout(40 * time.Minute)
 
 }
 
