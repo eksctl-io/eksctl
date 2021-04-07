@@ -50,7 +50,7 @@ kind: ClusterConfig
 metadata:
   name: %[1]s
   region: us-west-2
-  version: "1.18"
+  version: "1.19"
 nodeGroups:
 - amiFamily: AmazonLinux2
   disableIMDSv1: false
