@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -77,7 +78,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 		return err
 	}
 
-	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider)
+	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider, selector.New(ctl.Provider.Session()))
 	nodePools := cmdutils.ToNodePools(cfg)
 	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools); err != nil {
 		return err
