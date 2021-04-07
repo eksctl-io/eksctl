@@ -6,7 +6,6 @@ import (
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/bytequantity"
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/ami"
@@ -14,17 +13,26 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ssh"
 )
 
+// InstanceSelector selects a set of instance types matching the specified instance selector criteria
+//go:generate counterfeiter -o fakes/fake_instance_selector.go . InstanceSelector
+type InstanceSelector interface {
+	// Filter returns a set of instance types matching the specified instance selector filters
+	Filter(selector.Filters) ([]string, error)
+}
+
 // A NodeGroupService provides helpers for nodegroup creation
 type NodeGroupService struct {
-	cluster  *api.ClusterConfig
-	provider api.ClusterProvider
+	cluster          *api.ClusterConfig
+	provider         api.ClusterProvider
+	instanceSelector InstanceSelector
 }
 
 // NewNodeGroupService creates a new NodeGroupService
-func NewNodeGroupService(clusterConfig *api.ClusterConfig, provider api.ClusterProvider) *NodeGroupService {
+func NewNodeGroupService(clusterConfig *api.ClusterConfig, provider api.ClusterProvider, instanceSelector InstanceSelector) *NodeGroupService {
 	return &NodeGroupService{
-		cluster:  clusterConfig,
-		provider: provider,
+		cluster:          clusterConfig,
+		provider:         provider,
+		instanceSelector: instanceSelector,
 	}
 }
 
@@ -67,12 +75,6 @@ func (m *NodeGroupService) Normalize(nodePools []api.NodePool) error {
 
 // ExpandInstanceSelectorOptions sets instance types to instances matched by the instance selector criteria
 func (m *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePool) error {
-	sess, ok := m.provider.ConfigProvider().(*session.Session)
-	if !ok {
-		return errors.Errorf("expected ConfigProvider to be of type %T; got %T", &session.Session{}, m.provider.ConfigProvider())
-	}
-	instanceSelector := selector.New(sess)
-
 	instanceTypesMatch := func(a, b []string) bool {
 		return reflect.DeepEqual(a, b)
 	}
@@ -87,7 +89,7 @@ func (m *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePoo
 			continue
 		}
 
-		instanceTypes, err := m.expandInstanceSelector(instanceSelector, baseNG.InstanceSelector)
+		instanceTypes, err := m.expandInstanceSelector(baseNG.InstanceSelector)
 		if err != nil {
 			return errors.Wrapf(err, "error expanding instance selector options for nodegroup %q", baseNG.Name)
 		}
@@ -121,7 +123,7 @@ func (m *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePoo
 	return nil
 }
 
-func (m *NodeGroupService) expandInstanceSelector(instanceSelector *selector.Selector, ins *api.InstanceSelector) ([]string, error) {
+func (m *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector) ([]string, error) {
 	makeRange := func(val int) *selector.IntRangeFilter {
 		return &selector.IntRangeFilter{
 			LowerBound: val,
@@ -154,7 +156,7 @@ func (m *NodeGroupService) expandInstanceSelector(instanceSelector *selector.Sel
 	}
 	filters.CPUArchitecture = aws.String(cpuArch)
 
-	instanceTypes, err := instanceSelector.Filter(filters)
+	instanceTypes, err := m.instanceSelector.Filter(filters)
 	if err != nil {
 		return nil, errors.Wrap(err, "error querying instance types for the specified instance selector criteria")
 	}
