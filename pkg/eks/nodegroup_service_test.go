@@ -33,7 +33,7 @@ var _ = Describe("Instance Selector", func() {
 		for _, np := range isc.nodePools {
 			np.BaseNodeGroup().InstanceSelector = isc.selector
 		}
-		nodeGroupService := eks.NewNodeGroupService(nil, nil, isc.createInstanceSelector())
+		nodeGroupService := eks.NewNodeGroupService(nil, isc.createInstanceSelector())
 		err := nodeGroupService.ExpandInstanceSelectorOptions(isc.nodePools)
 		if isc.err != "" {
 			Expect(err.Error()).To(ContainSubstring(isc.err))

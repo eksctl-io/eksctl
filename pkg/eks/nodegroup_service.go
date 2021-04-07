@@ -22,15 +22,13 @@ type InstanceSelector interface {
 
 // A NodeGroupService provides helpers for nodegroup creation
 type NodeGroupService struct {
-	cluster          *api.ClusterConfig
 	provider         api.ClusterProvider
 	instanceSelector InstanceSelector
 }
 
 // NewNodeGroupService creates a new NodeGroupService
-func NewNodeGroupService(clusterConfig *api.ClusterConfig, provider api.ClusterProvider, instanceSelector InstanceSelector) *NodeGroupService {
+func NewNodeGroupService(provider api.ClusterProvider, instanceSelector InstanceSelector) *NodeGroupService {
 	return &NodeGroupService{
-		cluster:          clusterConfig,
 		provider:         provider,
 		instanceSelector: instanceSelector,
 	}
@@ -39,17 +37,17 @@ func NewNodeGroupService(clusterConfig *api.ClusterConfig, provider api.ClusterP
 const defaultCPUArch = "x86_64"
 
 // Normalize normalizes nodegroups
-func (m *NodeGroupService) Normalize(nodePools []api.NodePool) error {
+func (m *NodeGroupService) Normalize(nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error {
 	for _, np := range nodePools {
 		switch ng := np.(type) {
 		case *api.NodeGroup:
 			// resolve AMI
 			if !api.IsAMI(ng.AMI) {
-				if err := ResolveAMI(m.provider, m.cluster.Metadata.Version, ng); err != nil {
+				if err := ResolveAMI(m.provider, clusterMeta.Version, ng); err != nil {
 					return err
 				}
 			}
-			logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, m.cluster.Metadata.Version)
+			logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, clusterMeta.Version)
 		}
 
 		ng := np.BaseNodeGroup()
@@ -62,7 +60,7 @@ func (m *NodeGroupService) Normalize(nodePools []api.NodePool) error {
 		// fingerprint, so if unique keys are provided, each will get
 		// loaded and used as intended and there is no need to have
 		// nodegroup name in the key name
-		publicKeyName, err := ssh.LoadKey(ng.SSH, m.cluster.Metadata.Name, ng.Name, m.provider.EC2())
+		publicKeyName, err := ssh.LoadKey(ng.SSH, clusterMeta.Name, ng.Name, m.provider.EC2())
 		if err != nil {
 			return err
 		}
