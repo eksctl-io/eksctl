@@ -635,7 +635,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("unsupported-strategy")
 
 				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).To(MatchError("spotAllocationStrategy should be one of: lowest-price, capacity-optimized"))
+				Expect(err).To(MatchError("spotAllocationStrategy should be one of: lowest-price, capacity-optimized, capacity-optimized-prioritized"))
 			})
 
 			It("It fails when the spotAllocationStrategy is capacity-optimized and spotInstancePools is specified", func() {
@@ -644,6 +644,14 @@ var _ = Describe("ClusterConfig validation", func() {
 
 				err := api.ValidateNodeGroup(0, ng)
 				Expect(err).To(MatchError("spotInstancePools cannot be specified when also specifying spotAllocationStrategy: capacity-optimized"))
+			})
+
+			It("It fails when the spotAllocationStrategy is capacity-optimized-prioritized and spotInstancePools is specified", func() {
+				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("capacity-optimized-prioritized")
+				ng.InstancesDistribution.SpotInstancePools = newInt(2)
+
+				err := api.ValidateNodeGroup(0, ng)
+				Expect(err).To(MatchError("spotInstancePools cannot be specified when also specifying spotAllocationStrategy: capacity-optimized-prioritized"))
 			})
 
 			It("It does not fail when the spotAllocationStrategy is lowest-price and spotInstancePools is specified", func() {
