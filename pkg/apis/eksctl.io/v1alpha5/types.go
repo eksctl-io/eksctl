@@ -224,6 +224,15 @@ const (
 	// SpotAllocationStrategyCapacityOptimized defines the ASG spot allocation strategy of capacity-optimized
 	SpotAllocationStrategyCapacityOptimized = "capacity-optimized"
 
+	// SpotAllocationStrategyCapacityOptimizedPrioritized defines the ASG spot allocation strategy of capacity-optimized-prioritized
+	// Use the capacity-optimized-prioritized allocation strategy and then set the order of instance types in
+	// the list of launch template overrides from highest to lowest priority (first to last in the list).
+	// Amazon EC2 Auto Scaling honors the instance type priorities on a best-effort basis but optimizes
+	// for capacity first. This is a good option for workloads where the possibility of disruption must be
+	// minimized, but also the preference for certain instance types matters.
+	// https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-purchase-options.html#asg-spot-strategy
+	SpotAllocationStrategyCapacityOptimizedPrioritized = "capacity-optimized-prioritized"
+
 	// eksResourceAccountStandard defines the AWS EKS account ID that provides node resources in default regions
 	// for standard AWS partition
 	eksResourceAccountStandard = "602401143452"
@@ -438,6 +447,7 @@ func supportedSpotAllocationStrategies() []string {
 	return []string{
 		SpotAllocationStrategyLowestPrice,
 		SpotAllocationStrategyCapacityOptimized,
+		SpotAllocationStrategyCapacityOptimizedPrioritized,
 	}
 }
 

@@ -678,6 +678,10 @@ func validateInstancesDistribution(ng *NodeGroup) error {
 		return fmt.Errorf("spotInstancePools cannot be specified when also specifying spotAllocationStrategy: %s", SpotAllocationStrategyCapacityOptimized)
 	}
 
+	if distribution.SpotInstancePools != nil && distribution.SpotAllocationStrategy != nil && (*distribution.SpotAllocationStrategy == SpotAllocationStrategyCapacityOptimized || *distribution.SpotAllocationStrategy == SpotAllocationStrategyCapacityOptimizedPrioritized) {
+		return fmt.Errorf("spotInstancePools cannot be specified when also specifying spotAllocationStrategy: %s", SpotAllocationStrategyCapacityOptimizedPrioritized)
+	}
+
 	if distribution.SpotAllocationStrategy != nil {
 		if !isSpotAllocationStrategySupported(*distribution.SpotAllocationStrategy) {
 			return fmt.Errorf("spotAllocationStrategy should be one of: %v", strings.Join(supportedSpotAllocationStrategies(), ", "))
