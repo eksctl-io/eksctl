@@ -74,7 +74,6 @@ var _ = Describe("Instance Selector", func() {
 			},
 			createInstanceSelector: makeInstanceSelector("t2.medium"),
 			instanceTypes:          []string{"t2.medium"},
-			err:                    "",
 		}),
 
 		Entry("no instance selector criteria", instanceSelectorCase{
@@ -88,8 +87,6 @@ var _ = Describe("Instance Selector", func() {
 			},
 			selector:               &api.InstanceSelector{},
 			createInstanceSelector: makeInstanceSelector("c5.large", "c4.large"),
-			instanceTypes:          nil,
-			err:                    "",
 		}),
 
 		Entry("no matching instances", instanceSelectorCase{
@@ -106,7 +103,6 @@ var _ = Describe("Instance Selector", func() {
 				Memory: "400GiB",
 			},
 			createInstanceSelector: makeInstanceSelector(),
-			instanceTypes:          nil,
 			err:                    "instance selector criteria matched no instances",
 		}),
 
@@ -161,6 +157,28 @@ var _ = Describe("Instance Selector", func() {
 			},
 			createInstanceSelector: makeInstanceSelector("c3.large", "c4.xlarge", "c5.large"),
 			err:                    "instance types matched by instance selector criteria do not match",
+		}),
+
+		Entry("matching instanceTypes and instance selector criteria", instanceSelectorCase{
+			nodePools: []api.NodePool{
+				&api.ManagedNodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{},
+					InstanceTypes: []string{"c3.large", "c4.large", "c5.large"},
+				},
+				&api.NodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{},
+					InstancesDistribution: &api.NodeGroupInstancesDistribution{
+						SpotInstancePools: aws.Int(4),
+						InstanceTypes:     []string{"c3.large", "c4.large", "c5.large"},
+					},
+				},
+			},
+			selector: &api.InstanceSelector{
+				VCPUs:  2,
+				Memory: "4",
+			},
+			createInstanceSelector: makeInstanceSelector("c3.large", "c4.large", "c5.large"),
+			instanceTypes:          []string{"c3.large", "c4.large", "c5.large"},
 		}),
 	)
 })
