@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/autoscaling"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/blang/semver"
@@ -298,6 +299,14 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 
 		summary.AutoScalingGroupName = asgName
 
+		asgDesiredCapacity, err := c.GetAutoScalingGroupDesiredCapacity(asgName)
+		if err != nil {
+			return nil, errors.Wrap(err, "getting autoscalinggroup desired capacity")
+		}
+		if asgDesiredCapacity != nil {
+			summary.DesiredCapacity = int(*asgDesiredCapacity)
+		}
+
 		if name == "" {
 			summaries = append(summaries, summary)
 		} else if summary.Name == name {
@@ -370,7 +379,24 @@ func (c *StackCollection) GetManagedNodeGroupAutoScalingGroupName(s *Stack) (str
 		}
 	}
 	return strings.Join(asgs, ","), nil
+}
 
+// GetAutoScalingGroupDesiredCapacity returns the AutoScalingGroup's desired capacity
+func (c *StackCollection) GetAutoScalingGroupDesiredCapacity(name string) (*int64, error) {
+	asg, err := c.asgAPI.DescribeAutoScalingGroups(&autoscaling.DescribeAutoScalingGroupsInput{
+		AutoScalingGroupNames: []*string{
+			&name,
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("couldn't describe ASG: %s", name)
+	}
+	if len(asg.AutoScalingGroups) != 1 {
+		logger.Warning("couldn't find ASG %s", name)
+		return nil, nil
+	}
+
+	return asg.AutoScalingGroups[0].DesiredCapacity, nil
 }
 
 // DescribeNodeGroupStack gets the specified nodegroup stack
