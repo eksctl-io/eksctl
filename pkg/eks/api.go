@@ -70,7 +70,7 @@ type ProviderServices struct {
 
 	cloudtrail cloudtrailiface.CloudTrailAPI
 
-	configProvider client.ConfigProvider
+	session *session.Session
 }
 
 // CloudFormation returns a representation of the CloudFormation API
@@ -121,7 +121,11 @@ func (p ProviderServices) Profile() string { return p.spec.Profile }
 func (p ProviderServices) WaitTimeout() time.Duration { return p.spec.WaitTimeout }
 
 func (p ProviderServices) ConfigProvider() client.ConfigProvider {
-	return p.configProvider
+	return p.session
+}
+
+func (p ProviderServices) Session() *session.Session {
+	return p.session
 }
 
 // ProviderStatus stores information about the used IAM role and the resulting session
@@ -143,7 +147,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	// later re-use if overriding sessions due to custom URL
 	s := c.newSession(spec)
 
-	provider.configProvider = s
+	provider.session = s
 	provider.asg = autoscaling.New(s)
 	provider.cfn = cloudformation.New(s)
 	provider.eks = awseks.New(s)
