@@ -612,11 +612,17 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 		if ng.OverrideBootstrapCommand == nil {
 			return errors.Errorf("%s.overrideBootstrapCommand is required when using a custom AMI (%s.ami)", path, path)
 		}
+		notSupportedWithCustomAMIErr := func(field string) error {
+			return errors.Errorf("%s.%s is not supported when using a custom AMI (%s.ami)", path, field, path)
+		}
 		if ng.MaxPodsPerNode != 0 {
-			return errors.Errorf("%s.maxPodsPerNode is not supported when using a custom AMI (%s.ami)", path, path)
+			return notSupportedWithCustomAMIErr("maxPodsPerNode")
 		}
 		if ng.SSH != nil && IsEnabled(ng.SSH.EnableSSM) {
-			return errors.Errorf("%s.enableSSM is not supported when using a custom AMI (%s.ami)", path, path)
+			return notSupportedWithCustomAMIErr("enableSSM")
+		}
+		if ng.ReleaseVersion != "" {
+			return notSupportedWithCustomAMIErr("releaseVersion")
 		}
 
 	case ng.OverrideBootstrapCommand != nil:
