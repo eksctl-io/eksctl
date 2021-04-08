@@ -327,19 +327,6 @@ type FakeStackManager struct {
 		result1 []*v1alpha5.ClusterIAMServiceAccount
 		result2 error
 	}
-	GetManagedNodeGroupAutoScalingGroupNameStub        func(*cloudformation.Stack) (string, error)
-	getManagedNodeGroupAutoScalingGroupNameMutex       sync.RWMutex
-	getManagedNodeGroupAutoScalingGroupNameArgsForCall []struct {
-		arg1 *cloudformation.Stack
-	}
-	getManagedNodeGroupAutoScalingGroupNameReturns struct {
-		result1 string
-		result2 error
-	}
-	getManagedNodeGroupAutoScalingGroupNameReturnsOnCall map[int]struct {
-		result1 string
-		result2 error
-	}
 	GetManagedNodeGroupTemplateStub        func(string) (string, error)
 	getManagedNodeGroupTemplateMutex       sync.RWMutex
 	getManagedNodeGroupTemplateArgsForCall []struct {
@@ -350,19 +337,6 @@ type FakeStackManager struct {
 		result2 error
 	}
 	getManagedNodeGroupTemplateReturnsOnCall map[int]struct {
-		result1 string
-		result2 error
-	}
-	GetNodeGroupAutoScalingGroupNameStub        func(*cloudformation.Stack) (string, error)
-	getNodeGroupAutoScalingGroupNameMutex       sync.RWMutex
-	getNodeGroupAutoScalingGroupNameArgsForCall []struct {
-		arg1 *cloudformation.Stack
-	}
-	getNodeGroupAutoScalingGroupNameReturns struct {
-		result1 string
-		result2 error
-	}
-	getNodeGroupAutoScalingGroupNameReturnsOnCall map[int]struct {
 		result1 string
 		result2 error
 	}
@@ -390,19 +364,6 @@ type FakeStackManager struct {
 		result1 v1alpha5.NodeGroupType
 		result2 error
 	}
-	GetNodeGroupSummariesStub        func(string) ([]*manager.NodeGroupSummary, error)
-	getNodeGroupSummariesMutex       sync.RWMutex
-	getNodeGroupSummariesArgsForCall []struct {
-		arg1 string
-	}
-	getNodeGroupSummariesReturns struct {
-		result1 []*manager.NodeGroupSummary
-		result2 error
-	}
-	getNodeGroupSummariesReturnsOnCall map[int]struct {
-		result1 []*manager.NodeGroupSummary
-		result2 error
-	}
 	GetStackTemplateStub        func(string) (string, error)
 	getStackTemplateMutex       sync.RWMutex
 	getStackTemplateArgsForCall []struct {
@@ -414,6 +375,19 @@ type FakeStackManager struct {
 	}
 	getStackTemplateReturnsOnCall map[int]struct {
 		result1 string
+		result2 error
+	}
+	GetUnmanagedNodeGroupSummariesStub        func(string) ([]*manager.NodeGroupSummary, error)
+	getUnmanagedNodeGroupSummariesMutex       sync.RWMutex
+	getUnmanagedNodeGroupSummariesArgsForCall []struct {
+		arg1 string
+	}
+	getUnmanagedNodeGroupSummariesReturns struct {
+		result1 []*manager.NodeGroupSummary
+		result2 error
+	}
+	getUnmanagedNodeGroupSummariesReturnsOnCall map[int]struct {
+		result1 []*manager.NodeGroupSummary
 		result2 error
 	}
 	HasClusterStackStub        func() (bool, error)
@@ -698,17 +672,6 @@ type FakeStackManager struct {
 		result1 error
 	}
 	refreshFargatePodExecutionRoleARNReturnsOnCall map[int]struct {
-		result1 error
-	}
-	ScaleNodeGroupStub        func(*v1alpha5.NodeGroup) error
-	scaleNodeGroupMutex       sync.RWMutex
-	scaleNodeGroupArgsForCall []struct {
-		arg1 *v1alpha5.NodeGroup
-	}
-	scaleNodeGroupReturns struct {
-		result1 error
-	}
-	scaleNodeGroupReturnsOnCall map[int]struct {
 		result1 error
 	}
 	StackStatusIsNotReadyStub        func(*cloudformation.Stack) bool
@@ -2264,70 +2227,6 @@ func (fake *FakeStackManager) GetIAMServiceAccountsReturnsOnCall(i int, result1 
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetManagedNodeGroupAutoScalingGroupName(arg1 *cloudformation.Stack) (string, error) {
-	fake.getManagedNodeGroupAutoScalingGroupNameMutex.Lock()
-	ret, specificReturn := fake.getManagedNodeGroupAutoScalingGroupNameReturnsOnCall[len(fake.getManagedNodeGroupAutoScalingGroupNameArgsForCall)]
-	fake.getManagedNodeGroupAutoScalingGroupNameArgsForCall = append(fake.getManagedNodeGroupAutoScalingGroupNameArgsForCall, struct {
-		arg1 *cloudformation.Stack
-	}{arg1})
-	stub := fake.GetManagedNodeGroupAutoScalingGroupNameStub
-	fakeReturns := fake.getManagedNodeGroupAutoScalingGroupNameReturns
-	fake.recordInvocation("GetManagedNodeGroupAutoScalingGroupName", []interface{}{arg1})
-	fake.getManagedNodeGroupAutoScalingGroupNameMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeStackManager) GetManagedNodeGroupAutoScalingGroupNameCallCount() int {
-	fake.getManagedNodeGroupAutoScalingGroupNameMutex.RLock()
-	defer fake.getManagedNodeGroupAutoScalingGroupNameMutex.RUnlock()
-	return len(fake.getManagedNodeGroupAutoScalingGroupNameArgsForCall)
-}
-
-func (fake *FakeStackManager) GetManagedNodeGroupAutoScalingGroupNameCalls(stub func(*cloudformation.Stack) (string, error)) {
-	fake.getManagedNodeGroupAutoScalingGroupNameMutex.Lock()
-	defer fake.getManagedNodeGroupAutoScalingGroupNameMutex.Unlock()
-	fake.GetManagedNodeGroupAutoScalingGroupNameStub = stub
-}
-
-func (fake *FakeStackManager) GetManagedNodeGroupAutoScalingGroupNameArgsForCall(i int) *cloudformation.Stack {
-	fake.getManagedNodeGroupAutoScalingGroupNameMutex.RLock()
-	defer fake.getManagedNodeGroupAutoScalingGroupNameMutex.RUnlock()
-	argsForCall := fake.getManagedNodeGroupAutoScalingGroupNameArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeStackManager) GetManagedNodeGroupAutoScalingGroupNameReturns(result1 string, result2 error) {
-	fake.getManagedNodeGroupAutoScalingGroupNameMutex.Lock()
-	defer fake.getManagedNodeGroupAutoScalingGroupNameMutex.Unlock()
-	fake.GetManagedNodeGroupAutoScalingGroupNameStub = nil
-	fake.getManagedNodeGroupAutoScalingGroupNameReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeStackManager) GetManagedNodeGroupAutoScalingGroupNameReturnsOnCall(i int, result1 string, result2 error) {
-	fake.getManagedNodeGroupAutoScalingGroupNameMutex.Lock()
-	defer fake.getManagedNodeGroupAutoScalingGroupNameMutex.Unlock()
-	fake.GetManagedNodeGroupAutoScalingGroupNameStub = nil
-	if fake.getManagedNodeGroupAutoScalingGroupNameReturnsOnCall == nil {
-		fake.getManagedNodeGroupAutoScalingGroupNameReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 error
-		})
-	}
-	fake.getManagedNodeGroupAutoScalingGroupNameReturnsOnCall[i] = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeStackManager) GetManagedNodeGroupTemplate(arg1 string) (string, error) {
 	fake.getManagedNodeGroupTemplateMutex.Lock()
 	ret, specificReturn := fake.getManagedNodeGroupTemplateReturnsOnCall[len(fake.getManagedNodeGroupTemplateArgsForCall)]
@@ -2387,70 +2286,6 @@ func (fake *FakeStackManager) GetManagedNodeGroupTemplateReturnsOnCall(i int, re
 		})
 	}
 	fake.getManagedNodeGroupTemplateReturnsOnCall[i] = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeStackManager) GetNodeGroupAutoScalingGroupName(arg1 *cloudformation.Stack) (string, error) {
-	fake.getNodeGroupAutoScalingGroupNameMutex.Lock()
-	ret, specificReturn := fake.getNodeGroupAutoScalingGroupNameReturnsOnCall[len(fake.getNodeGroupAutoScalingGroupNameArgsForCall)]
-	fake.getNodeGroupAutoScalingGroupNameArgsForCall = append(fake.getNodeGroupAutoScalingGroupNameArgsForCall, struct {
-		arg1 *cloudformation.Stack
-	}{arg1})
-	stub := fake.GetNodeGroupAutoScalingGroupNameStub
-	fakeReturns := fake.getNodeGroupAutoScalingGroupNameReturns
-	fake.recordInvocation("GetNodeGroupAutoScalingGroupName", []interface{}{arg1})
-	fake.getNodeGroupAutoScalingGroupNameMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeStackManager) GetNodeGroupAutoScalingGroupNameCallCount() int {
-	fake.getNodeGroupAutoScalingGroupNameMutex.RLock()
-	defer fake.getNodeGroupAutoScalingGroupNameMutex.RUnlock()
-	return len(fake.getNodeGroupAutoScalingGroupNameArgsForCall)
-}
-
-func (fake *FakeStackManager) GetNodeGroupAutoScalingGroupNameCalls(stub func(*cloudformation.Stack) (string, error)) {
-	fake.getNodeGroupAutoScalingGroupNameMutex.Lock()
-	defer fake.getNodeGroupAutoScalingGroupNameMutex.Unlock()
-	fake.GetNodeGroupAutoScalingGroupNameStub = stub
-}
-
-func (fake *FakeStackManager) GetNodeGroupAutoScalingGroupNameArgsForCall(i int) *cloudformation.Stack {
-	fake.getNodeGroupAutoScalingGroupNameMutex.RLock()
-	defer fake.getNodeGroupAutoScalingGroupNameMutex.RUnlock()
-	argsForCall := fake.getNodeGroupAutoScalingGroupNameArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeStackManager) GetNodeGroupAutoScalingGroupNameReturns(result1 string, result2 error) {
-	fake.getNodeGroupAutoScalingGroupNameMutex.Lock()
-	defer fake.getNodeGroupAutoScalingGroupNameMutex.Unlock()
-	fake.GetNodeGroupAutoScalingGroupNameStub = nil
-	fake.getNodeGroupAutoScalingGroupNameReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeStackManager) GetNodeGroupAutoScalingGroupNameReturnsOnCall(i int, result1 string, result2 error) {
-	fake.getNodeGroupAutoScalingGroupNameMutex.Lock()
-	defer fake.getNodeGroupAutoScalingGroupNameMutex.Unlock()
-	fake.GetNodeGroupAutoScalingGroupNameStub = nil
-	if fake.getNodeGroupAutoScalingGroupNameReturnsOnCall == nil {
-		fake.getNodeGroupAutoScalingGroupNameReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 error
-		})
-	}
-	fake.getNodeGroupAutoScalingGroupNameReturnsOnCall[i] = struct {
 		result1 string
 		result2 error
 	}{result1, result2}
@@ -2581,70 +2416,6 @@ func (fake *FakeStackManager) GetNodeGroupStackTypeReturnsOnCall(i int, result1 
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetNodeGroupSummaries(arg1 string) ([]*manager.NodeGroupSummary, error) {
-	fake.getNodeGroupSummariesMutex.Lock()
-	ret, specificReturn := fake.getNodeGroupSummariesReturnsOnCall[len(fake.getNodeGroupSummariesArgsForCall)]
-	fake.getNodeGroupSummariesArgsForCall = append(fake.getNodeGroupSummariesArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.GetNodeGroupSummariesStub
-	fakeReturns := fake.getNodeGroupSummariesReturns
-	fake.recordInvocation("GetNodeGroupSummaries", []interface{}{arg1})
-	fake.getNodeGroupSummariesMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeStackManager) GetNodeGroupSummariesCallCount() int {
-	fake.getNodeGroupSummariesMutex.RLock()
-	defer fake.getNodeGroupSummariesMutex.RUnlock()
-	return len(fake.getNodeGroupSummariesArgsForCall)
-}
-
-func (fake *FakeStackManager) GetNodeGroupSummariesCalls(stub func(string) ([]*manager.NodeGroupSummary, error)) {
-	fake.getNodeGroupSummariesMutex.Lock()
-	defer fake.getNodeGroupSummariesMutex.Unlock()
-	fake.GetNodeGroupSummariesStub = stub
-}
-
-func (fake *FakeStackManager) GetNodeGroupSummariesArgsForCall(i int) string {
-	fake.getNodeGroupSummariesMutex.RLock()
-	defer fake.getNodeGroupSummariesMutex.RUnlock()
-	argsForCall := fake.getNodeGroupSummariesArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeStackManager) GetNodeGroupSummariesReturns(result1 []*manager.NodeGroupSummary, result2 error) {
-	fake.getNodeGroupSummariesMutex.Lock()
-	defer fake.getNodeGroupSummariesMutex.Unlock()
-	fake.GetNodeGroupSummariesStub = nil
-	fake.getNodeGroupSummariesReturns = struct {
-		result1 []*manager.NodeGroupSummary
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeStackManager) GetNodeGroupSummariesReturnsOnCall(i int, result1 []*manager.NodeGroupSummary, result2 error) {
-	fake.getNodeGroupSummariesMutex.Lock()
-	defer fake.getNodeGroupSummariesMutex.Unlock()
-	fake.GetNodeGroupSummariesStub = nil
-	if fake.getNodeGroupSummariesReturnsOnCall == nil {
-		fake.getNodeGroupSummariesReturnsOnCall = make(map[int]struct {
-			result1 []*manager.NodeGroupSummary
-			result2 error
-		})
-	}
-	fake.getNodeGroupSummariesReturnsOnCall[i] = struct {
-		result1 []*manager.NodeGroupSummary
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeStackManager) GetStackTemplate(arg1 string) (string, error) {
 	fake.getStackTemplateMutex.Lock()
 	ret, specificReturn := fake.getStackTemplateReturnsOnCall[len(fake.getStackTemplateArgsForCall)]
@@ -2705,6 +2476,70 @@ func (fake *FakeStackManager) GetStackTemplateReturnsOnCall(i int, result1 strin
 	}
 	fake.getStackTemplateReturnsOnCall[i] = struct {
 		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) GetUnmanagedNodeGroupSummaries(arg1 string) ([]*manager.NodeGroupSummary, error) {
+	fake.getUnmanagedNodeGroupSummariesMutex.Lock()
+	ret, specificReturn := fake.getUnmanagedNodeGroupSummariesReturnsOnCall[len(fake.getUnmanagedNodeGroupSummariesArgsForCall)]
+	fake.getUnmanagedNodeGroupSummariesArgsForCall = append(fake.getUnmanagedNodeGroupSummariesArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.GetUnmanagedNodeGroupSummariesStub
+	fakeReturns := fake.getUnmanagedNodeGroupSummariesReturns
+	fake.recordInvocation("GetUnmanagedNodeGroupSummaries", []interface{}{arg1})
+	fake.getUnmanagedNodeGroupSummariesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStackManager) GetUnmanagedNodeGroupSummariesCallCount() int {
+	fake.getUnmanagedNodeGroupSummariesMutex.RLock()
+	defer fake.getUnmanagedNodeGroupSummariesMutex.RUnlock()
+	return len(fake.getUnmanagedNodeGroupSummariesArgsForCall)
+}
+
+func (fake *FakeStackManager) GetUnmanagedNodeGroupSummariesCalls(stub func(string) ([]*manager.NodeGroupSummary, error)) {
+	fake.getUnmanagedNodeGroupSummariesMutex.Lock()
+	defer fake.getUnmanagedNodeGroupSummariesMutex.Unlock()
+	fake.GetUnmanagedNodeGroupSummariesStub = stub
+}
+
+func (fake *FakeStackManager) GetUnmanagedNodeGroupSummariesArgsForCall(i int) string {
+	fake.getUnmanagedNodeGroupSummariesMutex.RLock()
+	defer fake.getUnmanagedNodeGroupSummariesMutex.RUnlock()
+	argsForCall := fake.getUnmanagedNodeGroupSummariesArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeStackManager) GetUnmanagedNodeGroupSummariesReturns(result1 []*manager.NodeGroupSummary, result2 error) {
+	fake.getUnmanagedNodeGroupSummariesMutex.Lock()
+	defer fake.getUnmanagedNodeGroupSummariesMutex.Unlock()
+	fake.GetUnmanagedNodeGroupSummariesStub = nil
+	fake.getUnmanagedNodeGroupSummariesReturns = struct {
+		result1 []*manager.NodeGroupSummary
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) GetUnmanagedNodeGroupSummariesReturnsOnCall(i int, result1 []*manager.NodeGroupSummary, result2 error) {
+	fake.getUnmanagedNodeGroupSummariesMutex.Lock()
+	defer fake.getUnmanagedNodeGroupSummariesMutex.Unlock()
+	fake.GetUnmanagedNodeGroupSummariesStub = nil
+	if fake.getUnmanagedNodeGroupSummariesReturnsOnCall == nil {
+		fake.getUnmanagedNodeGroupSummariesReturnsOnCall = make(map[int]struct {
+			result1 []*manager.NodeGroupSummary
+			result2 error
+		})
+	}
+	fake.getUnmanagedNodeGroupSummariesReturnsOnCall[i] = struct {
+		result1 []*manager.NodeGroupSummary
 		result2 error
 	}{result1, result2}
 }
@@ -4092,67 +3927,6 @@ func (fake *FakeStackManager) RefreshFargatePodExecutionRoleARNReturnsOnCall(i i
 	}{result1}
 }
 
-func (fake *FakeStackManager) ScaleNodeGroup(arg1 *v1alpha5.NodeGroup) error {
-	fake.scaleNodeGroupMutex.Lock()
-	ret, specificReturn := fake.scaleNodeGroupReturnsOnCall[len(fake.scaleNodeGroupArgsForCall)]
-	fake.scaleNodeGroupArgsForCall = append(fake.scaleNodeGroupArgsForCall, struct {
-		arg1 *v1alpha5.NodeGroup
-	}{arg1})
-	stub := fake.ScaleNodeGroupStub
-	fakeReturns := fake.scaleNodeGroupReturns
-	fake.recordInvocation("ScaleNodeGroup", []interface{}{arg1})
-	fake.scaleNodeGroupMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeStackManager) ScaleNodeGroupCallCount() int {
-	fake.scaleNodeGroupMutex.RLock()
-	defer fake.scaleNodeGroupMutex.RUnlock()
-	return len(fake.scaleNodeGroupArgsForCall)
-}
-
-func (fake *FakeStackManager) ScaleNodeGroupCalls(stub func(*v1alpha5.NodeGroup) error) {
-	fake.scaleNodeGroupMutex.Lock()
-	defer fake.scaleNodeGroupMutex.Unlock()
-	fake.ScaleNodeGroupStub = stub
-}
-
-func (fake *FakeStackManager) ScaleNodeGroupArgsForCall(i int) *v1alpha5.NodeGroup {
-	fake.scaleNodeGroupMutex.RLock()
-	defer fake.scaleNodeGroupMutex.RUnlock()
-	argsForCall := fake.scaleNodeGroupArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeStackManager) ScaleNodeGroupReturns(result1 error) {
-	fake.scaleNodeGroupMutex.Lock()
-	defer fake.scaleNodeGroupMutex.Unlock()
-	fake.ScaleNodeGroupStub = nil
-	fake.scaleNodeGroupReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeStackManager) ScaleNodeGroupReturnsOnCall(i int, result1 error) {
-	fake.scaleNodeGroupMutex.Lock()
-	defer fake.scaleNodeGroupMutex.Unlock()
-	fake.ScaleNodeGroupStub = nil
-	if fake.scaleNodeGroupReturnsOnCall == nil {
-		fake.scaleNodeGroupReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.scaleNodeGroupReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeStackManager) StackStatusIsNotReady(arg1 *cloudformation.Stack) bool {
 	fake.stackStatusIsNotReadyMutex.Lock()
 	ret, specificReturn := fake.stackStatusIsNotReadyReturnsOnCall[len(fake.stackStatusIsNotReadyArgsForCall)]
@@ -4455,20 +4229,16 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.getIAMAddonsStacksMutex.RUnlock()
 	fake.getIAMServiceAccountsMutex.RLock()
 	defer fake.getIAMServiceAccountsMutex.RUnlock()
-	fake.getManagedNodeGroupAutoScalingGroupNameMutex.RLock()
-	defer fake.getManagedNodeGroupAutoScalingGroupNameMutex.RUnlock()
 	fake.getManagedNodeGroupTemplateMutex.RLock()
 	defer fake.getManagedNodeGroupTemplateMutex.RUnlock()
-	fake.getNodeGroupAutoScalingGroupNameMutex.RLock()
-	defer fake.getNodeGroupAutoScalingGroupNameMutex.RUnlock()
 	fake.getNodeGroupNameMutex.RLock()
 	defer fake.getNodeGroupNameMutex.RUnlock()
 	fake.getNodeGroupStackTypeMutex.RLock()
 	defer fake.getNodeGroupStackTypeMutex.RUnlock()
-	fake.getNodeGroupSummariesMutex.RLock()
-	defer fake.getNodeGroupSummariesMutex.RUnlock()
 	fake.getStackTemplateMutex.RLock()
 	defer fake.getStackTemplateMutex.RUnlock()
+	fake.getUnmanagedNodeGroupSummariesMutex.RLock()
+	defer fake.getUnmanagedNodeGroupSummariesMutex.RUnlock()
 	fake.hasClusterStackMutex.RLock()
 	defer fake.hasClusterStackMutex.RUnlock()
 	fake.hasClusterStackUsingCachedListMutex.RLock()
@@ -4513,8 +4283,6 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.newUnmanagedNodeGroupTaskMutex.RUnlock()
 	fake.refreshFargatePodExecutionRoleARNMutex.RLock()
 	defer fake.refreshFargatePodExecutionRoleARNMutex.RUnlock()
-	fake.scaleNodeGroupMutex.RLock()
-	defer fake.scaleNodeGroupMutex.RUnlock()
 	fake.stackStatusIsNotReadyMutex.RLock()
 	defer fake.stackStatusIsNotReadyMutex.RUnlock()
 	fake.stackStatusIsNotTransitionalMutex.RLock()
