@@ -16,57 +16,52 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
-func (m *Manager) Upgrade(nodeGroupName, version, launchTemplateVersion string, forceUpgrade bool) error {
+func (m *Manager) Upgrade(options managed.UpgradeOptions) error {
 	stackCollection := manager.NewStackCollection(m.ctl.Provider, m.cfg)
-	hasStacks, err := m.hasStacks(nodeGroupName)
+	hasStacks, err := m.hasStacks(options.NodegroupName)
 	if err != nil {
 		return err
 	}
 
-	if version != "" {
-		if _, err := semver.ParseTolerant(version); err != nil {
+	if options.KubernetesVersion != "" {
+		if _, err := semver.ParseTolerant(options.KubernetesVersion); err != nil {
 			return errors.Wrap(err, "invalid Kubernetes version")
 		}
 	}
 
 	if hasStacks {
 		managedService := managed.NewService(m.ctl.Provider.EKS(), m.ctl.Provider.SSM(), m.ctl.Provider.EC2(), stackCollection, m.cfg.Metadata.Name)
-		return managedService.UpgradeNodeGroup(managed.UpgradeOptions{
-			NodegroupName:         nodeGroupName,
-			KubernetesVersion:     version,
-			LaunchTemplateVersion: launchTemplateVersion,
-			ForceUpgrade:          forceUpgrade,
-		})
+		return managedService.UpgradeNodeGroup(options)
 	}
 
-	return m.upgradeAndWait(nodeGroupName, version, launchTemplateVersion, forceUpgrade)
+	return m.upgradeAndWait(options)
 }
 
-func (m *Manager) upgradeAndWait(nodeGroupName, version, launchTemplateVersion string, forceUpgrade bool) error {
+func (m *Manager) upgradeAndWait(options managed.UpgradeOptions) error {
 	input := &eks.UpdateNodegroupVersionInput{
 		ClusterName:   &m.cfg.Metadata.Name,
-		Force:         &forceUpgrade,
-		NodegroupName: &nodeGroupName,
-		Version:       &version,
+		Force:         &options.ForceUpgrade,
+		NodegroupName: &options.NodegroupName,
+		Version:       &options.KubernetesVersion,
 	}
 
 	describeNodegroupOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
 		ClusterName:   &m.cfg.Metadata.Name,
-		NodegroupName: &nodeGroupName,
+		NodegroupName: &options.NodegroupName,
 	})
 
 	if err != nil {
 		return err
 	}
 
-	if launchTemplateVersion != "" {
+	if options.LaunchTemplateVersion != "" {
 		lt := describeNodegroupOutput.Nodegroup.LaunchTemplate
 		if lt == nil || (lt.Id == nil && lt.Name == nil) {
 			return errors.New("cannot update launch template version because the nodegroup is not configured to use one")
 		}
 
 		input.LaunchTemplate = &eks.LaunchTemplateSpecification{
-			Version: &launchTemplateVersion,
+			Version: &options.LaunchTemplateVersion,
 		}
 
 		if lt.Id != nil {
@@ -77,7 +72,7 @@ func (m *Manager) upgradeAndWait(nodeGroupName, version, launchTemplateVersion s
 		}
 	}
 
-	if version == "" {
+	if options.KubernetesVersion == "" {
 		// Use the current Kubernetes version
 		version, err := semver.ParseTolerant(*describeNodegroupOutput.Nodegroup.Version)
 		if err != nil {
@@ -93,21 +88,21 @@ func (m *Manager) upgradeAndWait(nodeGroupName, version, launchTemplateVersion s
 	}
 
 	if upgradeResponse != nil {
-		logger.Debug("upgrade response for %q: %s", nodeGroupName, upgradeResponse.String())
+		logger.Debug("upgrade response for %q: %s", options.NodegroupName, upgradeResponse.String())
 	}
 
-	logger.Info("upgrade of nodegroup %q in progress", nodeGroupName)
+	logger.Info("upgrade of nodegroup %q in progress", options.NodegroupName)
 
 	newRequest := func() *request.Request {
 		input := &eks.DescribeNodegroupInput{
 			ClusterName:   &m.cfg.Metadata.Name,
-			NodegroupName: &nodeGroupName,
+			NodegroupName: &options.NodegroupName,
 		}
 		req, _ := m.ctl.Provider.EKS().DescribeNodegroupRequest(input)
 		return req
 	}
 
-	msg := fmt.Sprintf("waiting for upgrade of nodegroup %q to complete", nodeGroupName)
+	msg := fmt.Sprintf("waiting for upgrade of nodegroup %q to complete", options.NodegroupName)
 
 	acceptors := waiters.MakeAcceptors(
 		"Nodegroup.Status",
@@ -117,7 +112,7 @@ func (m *Manager) upgradeAndWait(nodeGroupName, version, launchTemplateVersion s
 		},
 	)
 
-	err = m.wait(nodeGroupName, msg, acceptors, newRequest, m.ctl.Provider.WaitTimeout(), nil)
+	err = m.wait(options.NodegroupName, msg, acceptors, newRequest, m.ctl.Provider.WaitTimeout(), nil)
 	if err != nil {
 		return err
 	}
