@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
 	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 
@@ -74,6 +75,7 @@ type StackCollection struct {
 	eksAPI            eksiface.EKSAPI
 	iamAPI            iamiface.IAMAPI
 	cloudTrailAPI     cloudtrailiface.CloudTrailAPI
+	asgAPI            autoscalingiface.AutoScalingAPI
 	spec              *api.ClusterConfig
 	disableRollback   bool
 	roleARN           string
@@ -104,6 +106,7 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *
 		eksAPI:            provider.EKS(),
 		iamAPI:            provider.IAM(),
 		cloudTrailAPI:     provider.CloudTrail(),
+		asgAPI:            provider.ASG(),
 		disableRollback:   provider.CloudFormationDisableRollback(),
 		roleARN:           provider.CloudFormationRoleARN(),
 		region:            provider.Region(),

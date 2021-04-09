@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/autoscaling"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
@@ -269,6 +270,17 @@ var _ = Describe("StackCollection NodeGroup", func() {
 
 				p.MockCloudFormation().On("DescribeStackResource", mock.Anything).Return(nil, fmt.Errorf("DescribeStackResource failed"))
 
+				p.MockASG().On("DescribeAutoScalingGroups", mock.MatchedBy(func(input *autoscaling.DescribeAutoScalingGroupsInput) bool {
+					return len(input.AutoScalingGroupNames) == 1 && *input.AutoScalingGroupNames[0] == "eksctl-test-cluster-nodegroup-123451-NodeGroup-1N68LL8H1EH27"
+				})).Return(&autoscaling.DescribeAutoScalingGroupsOutput{
+					AutoScalingGroups: []*autoscaling.Group{
+						{
+							DesiredCapacity: aws.Int64(7),
+						},
+					},
+				}, nil)
+
+				p.MockASG().On("DescribeAutoScalingGroups", mock.Anything).Return(nil, fmt.Errorf("DescribeAutoScalingGroups failed"))
 			})
 
 			Context("With no matching stacks", func() {
@@ -318,6 +330,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 					Expect(out).To(HaveLen(1))
 					Expect(out[0].StackName).To(Equal("eksctl-test-cluster-nodegroup-12345"))
 					Expect(out[0].NodeInstanceRoleARN).To(Equal("arn:aws:iam::1111:role/eks-nodes-base-role"))
+					Expect(out[0].DesiredCapacity).To(Equal(7))
 				})
 			})
 		})
