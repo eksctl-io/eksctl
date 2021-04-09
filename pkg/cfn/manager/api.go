@@ -250,8 +250,7 @@ func (c *StackCollection) UpdateStack(stackName, changeSetName, description stri
 	if err != nil {
 		return err
 	}
-	i.SetTags(s.Tags)
-	if err := c.doCreateChangeSetRequest(i, changeSetName, description, templateData, parameters, true); err != nil {
+	if err := c.doCreateChangeSetRequest(stackName, changeSetName, description, templateData, parameters, s.Capabilities, s.Tags); err != nil {
 		return err
 	}
 	if err := c.doWaitUntilChangeSetIsCreated(i, changeSetName); err != nil {
@@ -626,13 +625,13 @@ func (c *StackCollection) LookupCloudTrailEvents(i *Stack) ([]*cloudtrail.Event,
 	return events, nil
 }
 
-func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName string, description string, templateData TemplateData,
-	parameters map[string]string, withIAM bool) error {
+func (c *StackCollection) doCreateChangeSetRequest(stackName, changeSetName, description string, templateData TemplateData,
+	parameters map[string]string, capabilities []*string, tags []*cloudformation.Tag) error {
 	input := &cloudformation.CreateChangeSetInput{
-		StackName:     i.StackName,
+		StackName:     &stackName,
 		ChangeSetName: &changeSetName,
 		Description:   &description,
-		Tags:          append(i.Tags, c.sharedTags...),
+		Tags:          append(tags, c.sharedTags...),
 	}
 
 	input.SetChangeSetType(cloudformation.ChangeSetTypeUpdate)
@@ -646,10 +645,7 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName strin
 		return fmt.Errorf("unknown template data type: %T", templateData)
 	}
 
-	if withIAM {
-		input.SetCapabilities(stackCapabilitiesIAM)
-	}
-
+	input.SetCapabilities(capabilities)
 	if cfnRole := c.roleARN; cfnRole != "" {
 		input.SetRoleARN(cfnRole)
 	}
@@ -665,7 +661,7 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName strin
 	logger.Debug("creating changeSet, input = %#v", input)
 	s, err := c.cloudformationAPI.CreateChangeSet(input)
 	if err != nil {
-		return errors.Wrapf(err, "creating ChangeSet %q for stack %q", changeSetName, *i.StackName)
+		return errors.Wrapf(err, "creating ChangeSet %q for stack %q", changeSetName, stackName)
 	}
 	logger.Debug("changeSet = %#v", s)
 	return nil
