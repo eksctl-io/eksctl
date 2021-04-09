@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	. "github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	bootstrapfakes "github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
@@ -271,8 +271,8 @@ func newStackWithOutputs(outputs map[string]string) cfn.Stack {
 
 var _ = Describe("CloudFormation template builder API", func() {
 	var (
-		crs  *ClusterResourceSet
-		ngrs *NodeGroupResourceSet
+		crs  *builder.ClusterResourceSet
+		ngrs *builder.NodeGroupResourceSet
 
 		clusterTemplate, ngTemplate *Template
 
@@ -493,7 +493,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		}
 
 		It("should add all resources and collect outputs without errors", func() {
-			crs = NewClusterResourceSet(p.EC2(), p.Region(), cfg, false, nil)
+			crs = builder.NewClusterResourceSet(p.EC2(), p.Region(), cfg, false, nil)
 			err := crs.AddAllResources()
 			Expect(err).ShouldNot(HaveOccurred())
 			sampleStack := newStackWithOutputs(sampleOutputs)
@@ -512,7 +512,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 	assertBuildChecks := func(cfg *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup, managedNodesSupport bool) {
 		It("should add all resources without errors", func() {
-			crs = NewClusterResourceSet(p.EC2(), p.Region(), cfg, managedNodesSupport, nil)
+			crs = builder.NewClusterResourceSet(p.EC2(), p.Region(), cfg, managedNodesSupport, nil)
 			err = crs.AddAllResources()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -528,7 +528,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			fakeBootstrapper := new(bootstrapfakes.FakeBootstrapper)
 			fakeBootstrapper.UserDataReturns("lovely data right here", nil)
 
-			ngrs = NewNodeGroupResourceSet(p.EC2(), p.IAM(), cfg, ng, managedNodesSupport, false, fakeVPCImporter)
+			ngrs = builder.NewNodeGroupResourceSet(p.EC2(), p.IAM(), cfg, ng, managedNodesSupport, false, fakeVPCImporter)
 			ngrs.SetBootstrapper(fakeBootstrapper)
 
 			err = ngrs.AddAllResources()
@@ -2846,7 +2846,7 @@ func getLaunchTemplateData(obj *Template) LaunchTemplateData {
 func checkARPD(services []string, arpd interface{}) {
 	var serviceRefs []*gfnt.Value
 	for _, service := range services {
-		serviceRefs = append(serviceRefs, MakeServiceRef(service))
+		serviceRefs = append(serviceRefs, builder.MakeServiceRef(service))
 	}
 	servicesJSON, err := json.Marshal(serviceRefs)
 	Expect(err).ToNot(HaveOccurred())
