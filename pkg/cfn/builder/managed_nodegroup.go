@@ -96,6 +96,10 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		managedResource.CapacityType = gfnt.NewString("SPOT")
 	}
 
+	if m.nodeGroup.ReleaseVersion != "" {
+		managedResource.ReleaseVersion = gfnt.NewString(m.nodeGroup.ReleaseVersion)
+	}
+
 	instanceTypes := m.nodeGroup.InstanceTypeList()
 
 	makeAMIType := func() *gfnt.Value {
@@ -167,14 +171,14 @@ func selectManagedInstanceType(ng *api.ManagedNodeGroup) string {
 }
 
 func validateLaunchTemplate(launchTemplateData *ec2.ResponseLaunchTemplateData, ng *api.ManagedNodeGroup) error {
-	const fieldName = "managedNodeGroup"
+	const mngFieldName = "managedNodeGroup"
 
 	if launchTemplateData.InstanceType == nil {
 		if len(ng.InstanceTypes) == 0 {
-			return errors.Errorf("instance type must be set in the launch template if %s.instanceTypes is not specified", fieldName)
+			return errors.Errorf("instance type must be set in the launch template if %s.instanceTypes is not specified", mngFieldName)
 		}
 	} else if len(ng.InstanceTypes) > 0 {
-		return errors.Errorf("instance type must not be set in the launch template if %s.instanceTypes is specified", fieldName)
+		return errors.Errorf("instance type must not be set in the launch template if %s.instanceTypes is specified", mngFieldName)
 	}
 
 	// Custom AMI
@@ -182,8 +186,15 @@ func validateLaunchTemplate(launchTemplateData *ec2.ResponseLaunchTemplateData, 
 		if launchTemplateData.UserData == nil {
 			return errors.New("node bootstrapping script (UserData) must be set when using a custom AMI")
 		}
+		notSupportedErr := func(fieldName string) error {
+			return errors.Errorf("cannot set %s.%s when launchTemplate.ImageId is set", mngFieldName, fieldName)
+
+		}
 		if ng.AMI != "" {
-			return errors.Errorf("cannot set %s.ami when launchTemplate.ImageId is set", fieldName)
+			return notSupportedErr("ami")
+		}
+		if ng.ReleaseVersion != "" {
+			return notSupportedErr("releaseVersion")
 		}
 	}
 
