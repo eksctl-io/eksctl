@@ -46,7 +46,7 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 		fs.StringVar(&options.Account, "account", "", "Account ID to automatically map to its username")
 		fs.StringVar(&options.Username, "username", "", "User name within Kubernetes to map to IAM role")
 		fs.StringArrayVar(&options.Groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
-		fs.StringVar(&options.ServiceName, "service-name", "", "Service name; valid value: emr-containers")
+		fs.StringVar(&options.ServiceName, "service-name", "", "Service name; valid values: emr-containers, ssm-containers")
 		fs.StringVar(&options.Namespace, "namespace", "", "Namespace in which to create RBAC resources (only valid with --service-name)")
 		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &options.ARN, "create")
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
@@ -98,7 +98,6 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 	if err != nil {
 		return err
 	}
-
 	if options.ServiceName != "" {
 		if hasARNOptions() {
 			return errors.New("cannot use --arn, --username, and --groups with --service-name")

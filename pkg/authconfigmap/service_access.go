@@ -18,6 +18,7 @@ type ServiceName string
 
 const (
 	emrContainers ServiceName = "emr-containers"
+	ssmContainers ServiceName = "ssm-containers"
 )
 
 type serviceDetails struct {
@@ -31,6 +32,11 @@ var (
 		User:        emrContainers,
 		IAMRoleName: "AWSServiceRoleForAmazonEMRContainers",
 		Namespaced:  true,
+	}
+
+	ssmContainersService = serviceDetails{
+		User:        ssmContainers,
+		IAMRoleName: "AWSServiceRoleForAmazonSSMContainers",
 	}
 )
 
@@ -127,6 +133,8 @@ func lookupService(serviceName string) (resources []byte, sd serviceDetails, err
 	switch ServiceName(serviceName) {
 	case emrContainers:
 		return assetutil.MustLoad(emrContainersRbacYamlBytes), emrContainersService, nil
+	case ssmContainers:
+		return assetutil.MustLoad(ssmContainersRbacYamlBytes), ssmContainersService, nil
 	default:
 		return nil, sd, errors.Errorf("invalid service name %q", serviceName)
 	}

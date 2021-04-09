@@ -1,0 +1,29 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ssm-containers
+rules:
+  - apiGroups: [""]
+    resources: ["services", "configmaps", "events", "pods", "pods/log", "nodes", "secrets", "namespaces"]
+    verbs: ["get", "list", "watch", "create", "update", "delete", "deletecollection", "patch"]
+  - apiGroups: ["apps"]
+    resources: ["statefulsets", "deployments", "replicasets"]
+    verbs: ["get", "list", "watch", "create", "update", "delete", "deletecollection", "patch"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch", "create", "update", "delete", "deletecollection", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ssm-containers
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ssm-containers
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: ssm-containers
