@@ -10,36 +10,22 @@ import (
 )
 
 func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
-	summaries, err := m.stackManager.GetNodeGroupSummaries("")
+	summaries, err := m.stackManager.GetUnmanagedNodeGroupSummaries("")
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stack summaries")
 	}
 
-	nodeGroups, err := m.ctl.Provider.EKS().ListNodegroups(&eks.ListNodegroupsInput{
+	managedNodeGroups, err := m.ctl.Provider.EKS().ListNodegroups(&eks.ListNodegroupsInput{
 		ClusterName: &m.cfg.Metadata.Name,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	var nodeGroupsWithoutStacks []string
-	for _, ng := range nodeGroups.Nodegroups {
-		found := false
-		for _, summary := range summaries {
-			if summary.Name == *ng {
-				found = true
-			}
-		}
-
-		if !found {
-			nodeGroupsWithoutStacks = append(nodeGroupsWithoutStacks, *ng)
-		}
-	}
-
-	for _, nodeGroupWithoutStack := range nodeGroupsWithoutStacks {
+	for _, managedNodeGroup := range managedNodeGroups.Nodegroups {
 		describeOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
 			ClusterName:   &m.cfg.Metadata.Name,
-			NodegroupName: &nodeGroupWithoutStack,
+			NodegroupName: managedNodeGroup,
 		})
 		if err != nil {
 			return nil, err
@@ -72,7 +58,7 @@ func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 }
 
 func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
-	summaries, err := m.stackManager.GetNodeGroupSummaries(name)
+	summaries, err := m.stackManager.GetUnmanagedNodeGroupSummaries(name)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stack summaries")
 	}

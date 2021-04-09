@@ -1,7 +1,6 @@
 package manager
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 	"time"
@@ -14,7 +13,6 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -162,117 +160,8 @@ func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]Stac
 	return allResources, nil
 }
 
-// ScaleNodeGroup will scale an existing nodegroup
-func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
-	template, description, err := c.ScaleNodeGroupTemplate(ng)
-	if err != nil {
-		return nil
-	}
-
-	if template == "" {
-		return nil
-	}
-
-	return c.UpdateStack(c.makeNodeGroupStackName(ng.Name), c.MakeChangeSetName("scale-nodegroup"), description, TemplateBody(template), nil)
-}
-
-func (c *StackCollection) ScaleNodeGroupTemplate(ng *api.NodeGroup) (string, string, error) {
-	clusterName := c.MakeClusterStackName()
-	c.spec.Status = &api.ClusterStatus{StackName: clusterName}
-	name := c.makeNodeGroupStackName(ng.Name)
-
-	stack, err := c.DescribeStack(&Stack{StackName: &name})
-	if err != nil {
-		return "", "", errors.Wrapf(err, "error describing nodegroup stack %s", name)
-	}
-
-	// Get current stack
-	template, err := c.GetStackTemplate(name)
-	if err != nil {
-		return "", "", errors.Wrapf(err, "error getting stack template %s", name)
-	}
-	logger.Debug("stack template (pre-scale change): %s", template)
-
-	var descriptionBuffer bytes.Buffer
-	descriptionBuffer.WriteString("scaling nodegroup")
-
-	ngPaths, err := getNodeGroupPaths(stack.Tags)
-	if err != nil {
-		return "", "", err
-	}
-	var (
-		desiredCapacityPath = ngPaths.DesiredCapacity
-		maxSizePath         = ngPaths.MaxSize
-		minSizePath         = ngPaths.MinSize
-	)
-
-	// TODO rewrite this using types
-	// Get the current values
-	currentCapacity := gjson.Get(template, desiredCapacityPath).Int()
-	currentMaxSize := gjson.Get(template, maxSizePath).Int()
-	currentMinSize := gjson.Get(template, minSizePath).Int()
-
-	desiredCapacity := currentCapacity
-	if ng.DesiredCapacity != nil {
-		desiredCapacity = int64(*ng.DesiredCapacity)
-	}
-
-	desiredMinSize := currentMinSize
-	if ng.MinSize != nil {
-		desiredMinSize = int64(*ng.MinSize)
-	}
-
-	desiredMaxSize := currentMaxSize
-	if ng.MaxSize != nil {
-		desiredMaxSize = int64(*ng.MaxSize)
-	}
-
-	if desiredCapacity == currentCapacity && desiredMinSize == currentMinSize && desiredMaxSize == currentMaxSize {
-		logger.Info("no change for nodegroup %q in cluster %q: nodes-min %d, desired %d, nodes-max %d", ng.Name,
-			clusterName, currentMinSize, desiredCapacity, currentMaxSize)
-		return "", "", nil
-	}
-
-	if desiredCapacity < desiredMinSize {
-		logger.Warning("the desired nodes %d is less than the nodes-min/minSize %d", desiredCapacity, desiredMinSize)
-		return "", "", errors.Errorf("the desired nodes %d is less than the nodes-min/minSize %d", desiredCapacity, desiredMinSize)
-	}
-
-	if desiredCapacity > desiredMaxSize {
-		logger.Warning("the desired nodes %d is greater than the nodes-max/maxSize %d", desiredCapacity, desiredMaxSize)
-		return "", "", errors.Errorf("the desired nodes %d is greater than the nodes-max/maxSize %d", desiredCapacity, desiredMaxSize)
-	}
-
-	// Set the new values
-	updateField := func(path, fieldName string, newVal, oldVal int64) error {
-		if newVal == oldVal {
-			return nil
-		}
-		template, err = sjson.Set(template, path, fmt.Sprintf("%d", newVal))
-		if err != nil {
-			return errors.Wrapf(err, "error setting %s", fieldName)
-		}
-		descriptionBuffer.WriteString(fmt.Sprintf(", %s from %d to %d", fieldName, oldVal, newVal))
-		return nil
-	}
-
-	if err := updateField(desiredCapacityPath, "desired capacity", desiredCapacity, currentCapacity); err != nil {
-		return "", "", err
-	}
-
-	if err := updateField(minSizePath, "min size", desiredMinSize, currentMinSize); err != nil {
-		return "", "", err
-	}
-
-	if err := updateField(maxSizePath, "max size", desiredMaxSize, currentMaxSize); err != nil {
-		return "", "", err
-	}
-	logger.Debug("stack template (post-scale change): %s", template)
-	return template, descriptionBuffer.String(), nil
-}
-
-// GetNodeGroupSummaries returns a list of summaries for the nodegroups of a cluster
-func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummary, error) {
+// GetUnmanagedNodeGroupSummaries returns a list of summaries for the unmanaged nodegroups of a cluster
+func (c *StackCollection) GetUnmanagedNodeGroupSummaries(name string) ([]*NodeGroupSummary, error) {
 	stacks, err := c.DescribeNodeGroupStacks()
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stacks")
@@ -281,36 +170,41 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 	// Create an empty array here so that an object is returned rather than null
 	summaries := []*NodeGroupSummary{}
 	for _, s := range stacks {
-		ngPaths, err := getNodeGroupPaths(s.Tags)
+		nodeGroupType, err := GetNodeGroupType(s.Tags)
 		if err != nil {
 			return nil, err
 		}
 
-		summary, err := c.mapStackToNodeGroupSummary(s, ngPaths)
+		if nodeGroupType == api.NodeGroupTypeUnmanaged {
+			ngPaths, err := getNodeGroupPaths(s.Tags)
+			if err != nil {
+				return nil, err
+			}
 
-		if err != nil {
-			return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
-		}
+			summary, err := c.mapStackToNodeGroupSummary(s, ngPaths)
 
-		asgName, err := c.GetAutoScalingGroupName(s)
-		if err != nil {
-			return nil, errors.Wrap(err, "getting autoscalinggroupname")
-		}
+			if err != nil {
+				return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
+			}
 
-		summary.AutoScalingGroupName = asgName
+			asgName, err := c.getUnmanagedNodeGroupAutoScalingGroupName(s)
+			if err != nil {
+				return nil, errors.Wrap(err, "getting autoscalinggroupname")
+			}
 
-		asgDesiredCapacity, err := c.GetAutoScalingGroupDesiredCapacity(asgName)
-		if err != nil {
-			return nil, errors.Wrap(err, "getting autoscalinggroup desired capacity")
-		}
-		if asgDesiredCapacity != nil {
-			summary.DesiredCapacity = int(*asgDesiredCapacity)
-		}
+			summary.AutoScalingGroupName = asgName
 
-		if name == "" {
-			summaries = append(summaries, summary)
-		} else if summary.Name == name {
-			summaries = append(summaries, summary)
+			scalingGroup, err := c.GetAutoScalingGroupDesiredCapacity(asgName)
+			if err != nil {
+				return nil, errors.Wrap(err, "getting autoscalinggroup desired capacity")
+			}
+			summary.DesiredCapacity = int(*scalingGroup.DesiredCapacity)
+			summary.MinSize = int(*scalingGroup.MinSize)
+			summary.MaxSize = int(*scalingGroup.MaxSize)
+
+			if name == "" || summary.Name == name {
+				summaries = append(summaries, summary)
+			}
 		}
 	}
 
@@ -326,13 +220,13 @@ func (c *StackCollection) GetAutoScalingGroupName(s *Stack) (string, error) {
 
 	switch nodeGroupType {
 	case api.NodeGroupTypeManaged:
-		res, err := c.GetManagedNodeGroupAutoScalingGroupName(s)
+		res, err := c.getManagedNodeGroupAutoScalingGroupName(s)
 		if err != nil {
 			return "", err
 		}
 		return res, nil
 	case api.NodeGroupTypeUnmanaged, "":
-		res, err := c.GetNodeGroupAutoScalingGroupName(s)
+		res, err := c.getUnmanagedNodeGroupAutoScalingGroupName(s)
 		if err != nil {
 			return "", err
 		}
@@ -344,7 +238,7 @@ func (c *StackCollection) GetAutoScalingGroupName(s *Stack) (string, error) {
 }
 
 // GetNodeGroupAutoScalingGroupName return the unmanaged nodegroup's AutoScalingGroupName
-func (c *StackCollection) GetNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
+func (c *StackCollection) getUnmanagedNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
 	input := &cfn.DescribeStackResourceInput{
 		StackName:         s.StackName,
 		LogicalResourceId: aws.String("NodeGroup"),
@@ -359,7 +253,7 @@ func (c *StackCollection) GetNodeGroupAutoScalingGroupName(s *Stack) (string, er
 }
 
 // GetManagedNodeGroupAutoScalingGroupName returns the managed nodegroup's AutoScalingGroupName
-func (c *StackCollection) GetManagedNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
+func (c *StackCollection) getManagedNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
 	input := &eks.DescribeNodegroupInput{
 		ClusterName:   aws.String(getClusterNameTag(s)),
 		NodegroupName: aws.String(c.GetNodeGroupName(s)),
@@ -382,21 +276,21 @@ func (c *StackCollection) GetManagedNodeGroupAutoScalingGroupName(s *Stack) (str
 }
 
 // GetAutoScalingGroupDesiredCapacity returns the AutoScalingGroup's desired capacity
-func (c *StackCollection) GetAutoScalingGroupDesiredCapacity(name string) (*int64, error) {
+func (c *StackCollection) GetAutoScalingGroupDesiredCapacity(name string) (autoscaling.Group, error) {
 	asg, err := c.asgAPI.DescribeAutoScalingGroups(&autoscaling.DescribeAutoScalingGroupsInput{
 		AutoScalingGroupNames: []*string{
 			&name,
 		},
 	})
 	if err != nil {
-		return nil, fmt.Errorf("couldn't describe ASG: %s", name)
+		return autoscaling.Group{}, fmt.Errorf("couldn't describe ASG: %s", name)
 	}
 	if len(asg.AutoScalingGroups) != 1 {
 		logger.Warning("couldn't find ASG %s", name)
-		return nil, nil
+		return autoscaling.Group{}, fmt.Errorf("couldn't find ASG: %s", name)
 	}
 
-	return asg.AutoScalingGroups[0].DesiredCapacity, nil
+	return *asg.AutoScalingGroups[0], nil
 }
 
 // DescribeNodeGroupStack gets the specified nodegroup stack
