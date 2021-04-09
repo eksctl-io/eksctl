@@ -172,6 +172,12 @@ the latest AMI release for Kubernetes 1.15 using:
 eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --kubernetes-version=1.15
 ```
 
+To upgrade to a specific AMI release version instead of the latest version, pass `--release-version`:
+
+```console
+eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --release-version=1.19.6-20210310
+```
+
 ## Nodegroup Health issues
 EKS Managed Nodegroups automatically checks the configuration of your nodegroup and nodes for health issues and reports
 them through the EKS API and console.
