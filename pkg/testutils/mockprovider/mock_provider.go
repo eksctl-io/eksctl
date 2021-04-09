@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
@@ -176,6 +177,10 @@ func (m MockProvider) ConfigProvider() client.ConfigProvider {
 // MockConfigProvider returns a mocked ConfigProvider
 func (m MockProvider) MockConfigProvider() client.ConfigProvider {
 	return m.configProvider
+}
+
+func (m MockProvider) Session() *session.Session {
+	panic("not implemented")
 }
 
 func NewMockAWSClient() *MockAWSClient {

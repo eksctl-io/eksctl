@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/utils"
 
@@ -190,7 +191,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return err
 	}
 
-	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider)
+	nodeGroupService := eks.NewNodeGroupService(ctl.Provider, selector.New(ctl.Provider.Session()))
 	nodePools := cmdutils.ToNodePools(cfg)
 	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools); err != nil {
 		return err
@@ -200,7 +201,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return cmdutils.PrintDryRunConfig(cfg, os.Stdout)
 	}
 
-	if err := nodeGroupService.Normalize(nodePools); err != nil {
+	if err := nodeGroupService.Normalize(nodePools, cfg.Metadata); err != nil {
 		return err
 	}
 
