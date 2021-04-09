@@ -1367,6 +1367,9 @@ type ManagedNodeGroup struct {
 	// for the nodegroup
 	LaunchTemplate *LaunchTemplate `json:"launchTemplate,omitempty"`
 
+	// ReleaseVersion the AMI version of the EKS optimized AMI to use
+	ReleaseVersion string `json:"releaseVersion"`
+
 	// Internal fields
 
 	Unowned bool `json:"-"`

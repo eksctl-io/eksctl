@@ -10,7 +10,7 @@ jobs:
     name: Run integration tests
     environment: "Integration tests"
     runs-on: ubuntu-latest
-    container: weaveworks/eksctl-build:f6356cc88a3197f2bfe24090cb89d4d28199f943
+    container: weaveworks/eksctl-build:8a9698d66b5bc16412820073614db0dddd213c09
     env:
       SSH: "/root/.ssh"
     steps:

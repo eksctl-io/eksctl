@@ -1049,6 +1049,11 @@
           "x-intellij-html-description": "Enable <a href=\"/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup\">private networking</a> for nodegroup",
           "default": "false"
         },
+        "releaseVersion": {
+          "type": "string",
+          "description": "the AMI version of the EKS optimized AMI to use",
+          "x-intellij-html-description": "the AMI version of the EKS optimized AMI to use"
+        },
         "securityGroups": {
           "$ref": "#/definitions/NodeGroupSGs"
         },
@@ -1152,7 +1157,8 @@
         "instanceSelector",
         "instanceTypes",
         "spot",
-        "launchTemplate"
+        "launchTemplate",
+        "releaseVersion"
       ],
       "additionalProperties": false,
       "description": "represents an EKS-managed nodegroup TODO Validate for unmapped fields and throw an error",

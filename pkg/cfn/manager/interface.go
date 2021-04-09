@@ -16,10 +16,7 @@ import (
 type StackManager interface {
 	ListNodeGroupStacks() ([]NodeGroupStack, error)
 	DescribeNodeGroupStacksAndResources() (map[string]StackInfo, error)
-	ScaleNodeGroup(ng *v1alpha5.NodeGroup) error
-	GetNodeGroupSummaries(name string) ([]*NodeGroupSummary, error)
-	GetNodeGroupAutoScalingGroupName(s *Stack) (string, error)
-	GetManagedNodeGroupAutoScalingGroupName(s *Stack) (string, error)
+	GetUnmanagedNodeGroupSummaries(name string) ([]*NodeGroupSummary, error)
 	DescribeNodeGroupStack(nodeGroupName string) (*Stack, error)
 	DescribeNodeGroupStacks() ([]*Stack, error)
 	GetNodeGroupStackType(name string) (v1alpha5.NodeGroupType, error)

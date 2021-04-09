@@ -5,7 +5,7 @@ import (
 
 	"github.com/onsi/gomega/types"
 
-	. "github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
 
 type ResourceSetRenderingMatcher struct {
@@ -24,16 +24,16 @@ func (m *ResourceSetRenderingMatcher) Match(actualResourceSet interface{}) (bool
 		return false, fmt.Errorf("resourceset is nil")
 	}
 
-	if _, ok := actualResourceSet.(ResourceSet); !ok {
+	if _, ok := actualResourceSet.(builder.ResourceSet); !ok {
 		return false, fmt.Errorf("not a resourceset")
 	}
 
-	m.err = actualResourceSet.(ResourceSet).AddAllResources()
+	m.err = actualResourceSet.(builder.ResourceSet).AddAllResources()
 	if m.err != nil {
 		return false, nil
 	}
 
-	*m.templateBody, m.err = actualResourceSet.(ResourceSet).RenderJSON()
+	*m.templateBody, m.err = actualResourceSet.(builder.ResourceSet).RenderJSON()
 	if m.err != nil {
 		return false, nil
 	}
