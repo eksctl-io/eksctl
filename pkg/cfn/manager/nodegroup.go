@@ -202,9 +202,7 @@ func (c *StackCollection) GetUnmanagedNodeGroupSummaries(name string) ([]*NodeGr
 			summary.MinSize = int(*scalingGroup.MinSize)
 			summary.MaxSize = int(*scalingGroup.MaxSize)
 
-			if name == "" {
-				summaries = append(summaries, summary)
-			} else if summary.Name == name {
+			if name == "" || summary.Name == name {
 				summaries = append(summaries, summary)
 			}
 		}
