@@ -1,165 +1,62 @@
 package nodebootstrap
 
 import (
-	"encoding/json"
 	"fmt"
+	"net"
+	"sort"
 	"strings"
 
 	"github.com/pkg/errors"
+	"k8s.io/client-go/tools/clientcmd"
+	kubeletapi "k8s.io/kubelet/config/v1beta1"
+
+	"sigs.k8s.io/yaml"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
-	kubeletapi "k8s.io/kubelet/config/v1beta1"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 //go:generate ${GOBIN}/go-bindata -pkg ${GOPACKAGE} -prefix assets -nometadata -o assets.go assets
 
 const (
-	configDir             = "/etc/eksctl/"
-	envFile               = "kubelet.env"
-	extraKubeConfFile     = "kubelet-extra.json"
-	extraDockerConfFile   = "docker-extra.json"
-	commonLinuxBootScript = "bootstrap.helper.sh"
+	configDir            = "/etc/eksctl/"
+	kubeletDropInUnitDir = "/etc/systemd/system/kubelet.service.d/"
+	dockerConfigDir      = "/etc/docker/"
 )
 
-//go:generate counterfeiter -o fakes/fake_bootstrapper.go . Bootstrapper
-type Bootstrapper interface {
-	// UserData returns userdata for bootstrapping nodes
-	UserData() (string, error)
+type configFile struct {
+	dir      string
+	name     string
+	contents string
+	isAsset  bool
 }
 
-// NewBootstrapper returns the correct bootstrapper for the AMI family
-func NewBootstrapper(clusterSpec *api.ClusterConfig, ng *api.NodeGroup) Bootstrapper {
-	if api.IsWindowsImage(ng.AMIFamily) {
-		return NewWindowsBootstrapper(clusterSpec.Metadata.Name, ng)
-	}
-	switch ng.AMIFamily {
-	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
-		return NewUbuntuBootstrapper(clusterSpec.Metadata.Name, ng)
-	case api.NodeImageFamilyBottlerocket:
-		return NewBottlerocketBootstrapper(clusterSpec, ng)
-	default:
-		return NewAL2Bootstrapper(clusterSpec.Metadata.Name, ng)
-	}
-}
-
-func linuxConfig(bootScript, clusterName string, ng *api.NodeGroup, scripts ...string) (string, error) {
-	config := cloudconfig.New()
-
-	for _, command := range ng.PreBootstrapCommands {
-		config.AddShellCommand(command)
-	}
-
-	var files []cloudconfig.File
-	if len(scripts) == 0 {
-		scripts = []string{}
-	}
-
-	if ng.OverrideBootstrapCommand != nil {
-		config.AddShellCommand(*ng.OverrideBootstrapCommand)
-	} else {
-		scripts = append(scripts, commonLinuxBootScript, bootScript)
-
-		kubeletConf, err := makeKubeletExtraConf(ng)
-		if err != nil {
-			return "", err
-		}
-		files = append(files, kubeletConf)
-
-		dockerDaemonConf, err := makeDockerDaemonExtraConf()
-		if err != nil {
-			return "", err
-		}
-		files = append(files, dockerDaemonConf)
-
-		envFile := makeBootstrapEnv(clusterName, ng)
-		files = append(files, envFile)
-	}
-
-	if err := addFilesAndScripts(config, files, scripts); err != nil {
-		return "", err
-	}
-
-	body, err := config.Encode()
+func getAsset(name string) (string, error) {
+	data, err := Asset(name)
 	if err != nil {
-		return "", errors.Wrap(err, "encoding user data")
+		return "", errors.Wrapf(err, "decoding embedded file %q", name)
 	}
-
-	return body, nil
+	return string(data), nil
 }
 
-func makeKubeletExtraConf(ng *api.NodeGroup) (cloudconfig.File, error) {
-	if ng.KubeletExtraConfig == nil {
-		ng.KubeletExtraConfig = &api.InlineDocument{}
-	}
-	(*ng.KubeletExtraConfig)["cgroupDriver"] = "systemd"
-
-	data, err := json.Marshal(ng.KubeletExtraConfig)
-	if err != nil {
-		return cloudconfig.File{}, err
-	}
-
-	// validate that data can be decoded as legit KubeletConfiguration
-	if err := json.Unmarshal(data, &kubeletapi.KubeletConfiguration{}); err != nil {
-		return cloudconfig.File{}, err
-	}
-
-	return cloudconfig.File{
-		Path:    configDir + extraKubeConfFile,
-		Content: string(data),
-	}, nil
-}
-
-func makeDockerDaemonExtraConf() (cloudconfig.File, error) {
-	config := map[string][]string{"exec-opts": {"native.cgroupdriver=systemd"}}
-	data, err := json.Marshal(config)
-	if err != nil {
-		return cloudconfig.File{}, err
-	}
-
-	return cloudconfig.File{
-		Path:    configDir + extraDockerConfFile,
-		Content: string(data),
-	}, nil
-}
-
-func makeBootstrapEnv(clusterName string, ng *api.NodeGroup) cloudconfig.File {
-	variables := []string{
-		fmt.Sprintf("NODE_LABELS=%s", kvs(ng.Labels)),
-		fmt.Sprintf("NODE_TAINTS=%s", mapTaints(ng.Taints)),
-		fmt.Sprintf("CLUSTER_NAME=%s", clusterName),
-	}
-
-	if ng.ClusterDNS != "" {
-		variables = append(variables, fmt.Sprintf("CLUSTER_DNS=%s", ng.ClusterDNS))
-	}
-
-	return cloudconfig.File{
-		Path:    configDir + envFile,
-		Content: strings.Join(variables, "\n"),
-	}
-}
-
-func mapTaints(kv map[string]string) string {
-	var params []string
-	for k, v := range kv {
-		params = append(params, fmt.Sprintf("%s=:%s", k, v))
-	}
-	return strings.Join(params, ",")
-}
-
-func kvs(kv map[string]string) string {
-	var params []string
-	for k, v := range kv {
-		params = append(params, fmt.Sprintf("%s=%s", k, v))
-	}
-
-	return strings.Join(params, ",")
-}
-
-func addFilesAndScripts(config *cloudconfig.CloudConfig, files []cloudconfig.File, scripts []string) error {
+func addFilesAndScripts(config *cloudconfig.CloudConfig, files []configFile, scripts []string) error {
 	for _, file := range files {
-		config.AddFile(file)
+		f := cloudconfig.File{
+			Path: file.dir + file.name,
+		}
+
+		if file.isAsset {
+			data, err := getAsset(file.name)
+			if err != nil {
+				return err
+			}
+			f.Content = data
+		} else {
+			f.Content = file.contents
+		}
+
+		config.AddFile(f)
 	}
 
 	for _, scriptName := range scripts {
@@ -169,15 +66,185 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files []cloudconfig.Fil
 		}
 		config.RunScript(scriptName, data)
 	}
-
 	return nil
 }
 
-func getAsset(name string) (string, error) {
-	data, err := Asset(name)
+func makeClientConfigData(spec *api.ClusterConfig, authenticatorCMD string) ([]byte, error) {
+	clientConfig := kubeconfig.
+		NewBuilder(spec.Metadata, spec.Status, "kubelet").
+		UseCertificateAuthorityFile(configDir + "ca.crt").
+		Build()
+	kubeconfig.AppendAuthenticator(clientConfig, spec.Metadata, authenticatorCMD, "", "")
+	clientConfigData, err := clientcmd.Write(*clientConfig)
 	if err != nil {
-		return "", errors.Wrapf(err, "decoding embedded file %q", name)
+		return nil, errors.Wrap(err, "serialising kubeconfig for nodegroup")
+	}
+	return clientConfigData, nil
+}
+
+func clusterDNS(spec *api.ClusterConfig, ng *api.NodeGroup) string {
+	if ng.ClusterDNS != "" {
+		return ng.ClusterDNS
+	}
+	if spec.KubernetesNetworkConfig != nil && spec.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
+		if _, ipnet, err := net.ParseCIDR(spec.KubernetesNetworkConfig.ServiceIPv4CIDR); err != nil {
+			panic(errors.Wrap(err, "invalid IPv4 CIDR for kubernetesNetworkConfig.serviceIPv4CIDR"))
+		} else {
+			prefix := strings.Split(ipnet.IP.String(), ".")
+			if len(prefix) != 4 {
+				panic(errors.Wrap(err, "invalid IPv4 CIDR for kubernetesNetworkConfig.serviceIPv4CIDR"))
+			}
+			return strings.Join([]string{prefix[0], prefix[1], prefix[2], "10"}, ".")
+		}
+	}
+	// Default service network is 10.100.0.0, but it gets set 172.20.0.0 automatically when pod network
+	// is anywhere within 10.0.0.0/8
+	if spec.VPC.CIDR != nil && spec.VPC.CIDR.IP[0] == 10 {
+		return "172.20.0.10"
+	}
+	return "10.100.0.10"
+}
+
+func getKubeReserved(info InstanceTypeInfo) api.InlineDocument {
+	return api.InlineDocument{
+		"ephemeral-storage": info.DefaultStorageToReserve(),
+		"cpu":               info.DefaultCPUToReserve(),
+		"memory":            info.DefaultMemoryToReserve(),
+	}
+}
+
+func makeDockerConfigJSON() (string, error) {
+	return AssetString("docker-daemon.json")
+}
+
+func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, error) {
+	data, err := Asset("kubelet.yaml")
+	if err != nil {
+		return nil, err
 	}
 
-	return string(data), nil
+	// use a map here, as using struct will require us to add defaulting etc,
+	// and we only need to add a few top-level fields
+	obj := api.InlineDocument{}
+	if err := yaml.UnmarshalStrict(data, &obj); err != nil {
+		return nil, err
+	}
+
+	obj["clusterDNS"] = []string{
+		clusterDNS(spec, ng),
+	}
+
+	// Set default reservations if specs about instance is available
+	if info, ok := instanceTypeInfos[ng.InstanceType]; ok {
+		// This is a NodeGroup with a single instanceType defined
+		if _, ok := obj["kubeReserved"]; !ok {
+			obj["kubeReserved"] = api.InlineDocument{}
+		}
+		obj["kubeReserved"] = getKubeReserved(info)
+	} else if ng.InstancesDistribution != nil {
+		// This is a NodeGroup using mixed instance types
+		var minCPU, minMaxPodsPerNode int64
+		for _, instanceType := range ng.InstancesDistribution.InstanceTypes {
+			if info, ok := instanceTypeInfos[instanceType]; ok {
+				if instanceCPU := info.CPU; minCPU == 0 || instanceCPU < minCPU {
+					minCPU = instanceCPU
+				}
+				if instanceMaxPodsPerNode := info.MaxPodsPerNode; minMaxPodsPerNode == 0 || instanceMaxPodsPerNode < minMaxPodsPerNode {
+					minMaxPodsPerNode = instanceMaxPodsPerNode
+				}
+			}
+		}
+		if minCPU > 0 && minMaxPodsPerNode > 0 {
+			info = InstanceTypeInfo{
+				MaxPodsPerNode: minMaxPodsPerNode,
+				CPU:            minCPU,
+			}
+			if _, ok := obj["kubeReserved"]; !ok {
+				obj["kubeReserved"] = api.InlineDocument{}
+			}
+			obj["kubeReserved"] = getKubeReserved(info)
+		}
+	}
+
+	// Add extra configuration from configfile
+	if ng.KubeletExtraConfig != nil {
+		for k, v := range *ng.KubeletExtraConfig {
+			obj[k] = v
+		}
+	}
+
+	data, err = yaml.Marshal(obj)
+	if err != nil {
+		return nil, err
+	}
+
+	// validate if data can be decoded as KubeletConfiguration
+	if err := yaml.UnmarshalStrict(data, &kubeletapi.KubeletConfiguration{}); err != nil {
+		return nil, errors.Wrap(err, "validating generated KubeletConfiguration object")
+	}
+
+	return data, nil
+}
+
+func kvs(kv map[string]string) string {
+	var params []string
+	for k, v := range kv {
+		params = append(params, fmt.Sprintf("%s=%s", k, v))
+	}
+	return strings.Join(params, ",")
+}
+
+func toCLIArgs(values map[string]string) string {
+	var args []string
+	for k, v := range values {
+		args = append(args, fmt.Sprintf("--%s=%s", k, v))
+	}
+	sort.Strings(args)
+	return strings.Join(args, " ")
+}
+
+func makeCommonKubeletEnvParams(ng *api.NodeGroup) []string {
+	variables := []string{
+		fmt.Sprintf("NODE_LABELS=%s", kvs(ng.Labels)),
+		fmt.Sprintf("NODE_TAINTS=%s", kvs(ng.Taints)),
+	}
+
+	if ng.MaxPodsPerNode != 0 {
+		variables = append(variables, fmt.Sprintf("MAX_PODS=%d", ng.MaxPodsPerNode))
+	}
+	return variables
+}
+
+func makeMetadata(spec *api.ClusterConfig) []string {
+	return []string{
+		fmt.Sprintf("AWS_DEFAULT_REGION=%s", spec.Metadata.Region),
+		fmt.Sprintf("AWS_EKS_CLUSTER_NAME=%s", spec.Metadata.Name),
+		fmt.Sprintf("AWS_EKS_ENDPOINT=%s", spec.Status.Endpoint),
+		fmt.Sprintf("AWS_EKS_ECR_ACCOUNT=%s", api.EKSResourceAccountID(spec.Metadata.Region)),
+	}
+}
+
+func makeMaxPodsMapping() string {
+	var text strings.Builder
+	for k, v := range maxPodsPerNodeType {
+		text.WriteString(fmt.Sprintf("%s %d\n", k, v))
+	}
+	return text.String()
+}
+
+// NewUserData creates new user data for a given node image family
+func NewUserData(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
+	switch ng.AMIFamily {
+	case api.NodeImageFamilyAmazonLinux2:
+		return NewUserDataForAmazonLinux2(spec, ng)
+	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
+		return NewUserDataForUbuntu(spec, ng)
+	case api.NodeImageFamilyBottlerocket:
+		return NewUserDataForBottlerocket(spec, ng)
+	default:
+		if api.IsWindowsImage(ng.AMIFamily) {
+			return NewUserDataForWindows(spec, ng)
+		}
+		return "", nil
+	}
 }

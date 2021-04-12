@@ -4,26 +4,42 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-source /var/lib/cloud/scripts/eksctl/bootstrap.helper.sh
+function get_max_pods() {
+  while read instance_type pods; do
+    if  [[ "${instance_type}" == "${1}" ]] && [[ "${pods}" =~ ^[0-9]+$ ]] ; then
+      echo ${pods}
+      return
+    fi
+  done < /etc/eksctl/max_pods.map
+}
 
-echo "eksctl: running /etc/eks/bootstrap"
-/etc/eks/bootstrap.sh "${CLUSTER_NAME}" \
-  --dns-cluster-ip "${CLUSTER_DNS}" \
-  --kubelet-extra-args "--register-with-taints=${NODE_TAINTS} --node-labels=${NODE_LABELS}"
+# Use IMDSv2 to get metadata
+TOKEN="$(curl --silent -X PUT -H "X-aws-ec2-metadata-token-ttl-seconds: 600" http://169.254.169.254/latest/api/token)"
+function get_metadata() {
+  curl --silent -H "X-aws-ec2-metadata-token: $TOKEN" "http://169.254.169.254/latest/meta-data/$1"
+}
 
-echo "eksctl: merging user options into kubelet-config.json"
-trap 'rm -f ${TMP_KUBE_CONF}' EXIT
-jq -s '.[0] * .[1]' "${KUBELET_CONFIG}" "${KUBELET_EXTRA_ARGS}" > "${TMP_KUBE_CONF}"
-mv "${TMP_KUBE_CONF}" "${KUBELET_CONFIG}"
+NODE_IP="$(get_metadata local-ipv4)"
+INSTANCE_ID="$(get_metadata instance-id)"
+INSTANCE_TYPE="$(get_metadata instance-type)"
+AWS_SERVICES_DOMAIN="$(get_metadata services/domain)"
 
-echo "eksctl: merging user options into docker daemon.json"
-trap 'rm -f ${TMP_DOCKER_CONF}' EXIT
-jq -s '.[0] * .[1]' "${DOCKER_CONFIG}" "${DOCKER_EXTRA_CONFIG}" > "${TMP_DOCKER_CONF}"
-mv "${TMP_DOCKER_CONF}" "${DOCKER_CONFIG}"
+
+source /etc/eksctl/kubelet.env # this can override MAX_PODS
+
+INSTANCE_LIFECYCLE="$(get_metadata instance-life-cycle)"
+NODE_LABELS="${NODE_LABELS},node-lifecycle=${INSTANCE_LIFECYCLE}"
+
+
+cat > /etc/eksctl/kubelet.local.env <<EOF
+NODE_IP=${NODE_IP}
+INSTANCE_ID=${INSTANCE_ID}
+INSTANCE_TYPE=${INSTANCE_TYPE}
+AWS_SERVICES_DOMAIN=${AWS_SERVICES_DOMAIN}
+MAX_PODS=${MAX_PODS:-$(get_max_pods "${INSTANCE_TYPE}")}
+NODE_LABELS=${NODE_LABELS}
+EOF
 
 systemctl daemon-reload
-echo "eksctl: restarting docker daemon"
-systemctl restart docker
-echo "eksctl: restarting kubelet-eks"
-systemctl restart kubelet
-echo "eksctl: done"
+systemctl enable kubelet
+systemctl start kubelet
