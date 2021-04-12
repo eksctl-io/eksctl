@@ -9,7 +9,7 @@ if [ -z "${CIRCLE_PULL_REQUEST}" ] && [ -n "${CIRCLE_TAG}" ] && [ "${CIRCLE_PROJ
     exit 1
   fi
 
-  goreleaser release --skip-validate --config=./.goreleaser.yml --release-notes="${RELEASE_NOTES_FILE}"
+  goreleaser release  --timeout 60m --skip-validate --config=./.goreleaser.yml --release-notes="${RELEASE_NOTES_FILE}"
 
   # By moving the latest_release tag to the latest release candidate we ensure the rc is accessible through
   # the `head` statement in the brew tap formula
