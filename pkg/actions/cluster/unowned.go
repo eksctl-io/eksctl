@@ -183,7 +183,7 @@ func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clusterOperable bool, clien
 
 	logger.Info(tasksTree.Describe())
 	if errs := tasksTree.DoAllSync(); len(errs) > 0 {
-		return handleErrors(errs, "deleting cluster IAM and OIDC")
+		return handleErrors(errs, "cluster IAM and OIDC")
 	}
 
 	logger.Info("all IAM and OIDC resources were deleted")
