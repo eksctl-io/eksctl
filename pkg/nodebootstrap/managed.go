@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"path/filepath"
 	"strings"
 
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap/bindata"
 )
 
 // MakeManagedUserData returns user data for managed nodegroups
@@ -27,7 +29,7 @@ func MakeManagedUserData(ng *api.ManagedNodeGroup, mimeBoundary string) (string,
 	}
 
 	if ng.SSH.EnableSSM != nil && *ng.SSH.EnableSSM {
-		installSSMScript, err := Asset("install-ssm.al2.sh")
+		installSSMScript, err := bindata.Asset(filepath.Join(dataDir, "install-ssm.al2.sh"))
 		if err != nil {
 			return "", err
 		}

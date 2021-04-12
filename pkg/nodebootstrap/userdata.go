@@ -3,18 +3,21 @@ package nodebootstrap
 import (
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap/bindata"
 	kubeletapi "k8s.io/kubelet/config/v1beta1"
 )
 
-//go:generate ${GOBIN}/go-bindata -pkg ${GOPACKAGE} -prefix assets -nometadata -o assets.go assets
+//go:generate ${GOBIN}/go-bindata -pkg bindata -prefix assets -nometadata -o bindata/assets.go bindata/assets
 
 const (
+	dataDir               = "bindata/assets"
 	configDir             = "/etc/eksctl/"
 	envFile               = "kubelet.env"
 	extraKubeConfFile     = "kubelet-extra.json"
@@ -174,7 +177,7 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files []cloudconfig.Fil
 }
 
 func getAsset(name string) (string, error) {
-	data, err := Asset(name)
+	data, err := bindata.Asset(filepath.Join(dataDir, name))
 	if err != nil {
 		return "", errors.Wrapf(err, "decoding embedded file %q", name)
 	}
