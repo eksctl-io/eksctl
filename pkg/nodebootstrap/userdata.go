@@ -6,11 +6,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/bindata"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap/legacy"
 	kubeletapi "k8s.io/kubelet/config/v1beta1"
 )
 
@@ -38,12 +40,24 @@ func NewBootstrapper(clusterSpec *api.ClusterConfig, ng *api.NodeGroup) Bootstra
 	}
 	switch ng.AMIFamily {
 	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
+		// TODO remove
+		if ng.CustomAMI {
+			logger.Warning("Custom AMI detected for nodegroup %s, using legacy nodebootstrap mechanism. Please refer to https://github.com/weaveworks/eksctl/issues/3563 for upcoming breaking changes", ng.Name)
+			return legacy.NewUbuntuBootstrapper(clusterSpec, ng)
+		}
 		return NewUbuntuBootstrapper(clusterSpec.Metadata.Name, ng)
 	case api.NodeImageFamilyBottlerocket:
 		return NewBottlerocketBootstrapper(clusterSpec, ng)
-	default:
+	case api.NodeImageFamilyAmazonLinux2:
+		// TODO remove
+		if ng.CustomAMI {
+			logger.Warning("Custom AMI detected for nodegroup %s, using legacy nodebootstrap mechanism. Please refer to https://github.com/weaveworks/eksctl/issues/3563 for upcoming breaking changes", ng.Name)
+			return legacy.NewAL2Bootstrapper(clusterSpec, ng)
+		}
 		return NewAL2Bootstrapper(clusterSpec.Metadata.Name, ng)
 	}
+
+	return nil
 }
 
 func linuxConfig(bootScript, clusterName string, ng *api.NodeGroup, scripts ...string) (string, error) {
