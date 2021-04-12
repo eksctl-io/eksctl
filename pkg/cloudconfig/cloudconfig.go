@@ -130,6 +130,7 @@ func DecodeCloudConfig(s string) (*CloudConfig, error) {
 	if s == "" {
 		return nil, fmt.Errorf("cannot decode empty string")
 	}
+	c := New()
 
 	data, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
@@ -146,7 +147,6 @@ func DecodeCloudConfig(s string) (*CloudConfig, error) {
 		return nil, err
 	}
 
-	c := New()
 	err = yaml.Unmarshal(data, c)
 	if err != nil {
 		return nil, err
