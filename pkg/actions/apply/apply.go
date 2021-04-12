@@ -42,22 +42,20 @@ func (r *Reconciler) Reconcile() error {
 	logger.Info("Updating: %s", updateTasks.Describe())
 	logger.Info("Deleting: %s", deleteTasks.Describe())
 
-	if !r.plan {
-		createErrs := createTasks.DoAllSync()
-		updateErrs := updateTasks.DoAllSync()
-		deleteErrs := deleteTasks.DoAllSync()
-		logErrors(createErrs)
-		logErrors(updateErrs)
-		logErrors(deleteErrs)
-		if len(createErrs) != 0 || len(updateErrs) != 0 || len(deleteErrs) != 0 {
-			return fmt.Errorf("failed to reconcile cluster")
+	if r.plan {
+		return nil
+	}
+
+	errs := make([]error, 0)
+	errs = append(errs, createTasks.DoAllSync()...)
+	errs = append(errs, updateTasks.DoAllSync()...)
+	errs = append(errs, deleteTasks.DoAllSync()...)
+
+	if len(errs) != 0 {
+		for _, err := range errs {
+			logger.Info("%v", err)
 		}
+		return fmt.Errorf("failed to reconcile cluster")
 	}
 	return nil
-}
-
-func logErrors(errs []error) {
-	for _, err := range errs {
-		logger.Info("%v", err)
-	}
 }
