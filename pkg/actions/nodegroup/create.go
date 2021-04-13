@@ -30,6 +30,7 @@ type CreateOpts struct {
 	InstallNeuronDevicePlugin bool
 	InstallNvidiaDevicePlugin bool
 	DryRun                    bool
+	SkipOutdatedAddonsCheck   bool
 	ConfigFileProvided        bool
 }
 
@@ -45,7 +46,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 		return err
 	}
 
-	if err := checkARMSupport(ctl, m.clientSet, cfg); err != nil {
+	if err := checkARMSupport(ctl, m.clientSet, cfg, options.SkipOutdatedAddonsCheck); err != nil {
 		return err
 	}
 
@@ -274,7 +275,7 @@ func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
 	return nil
 }
 
-func checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes.Interface, cfg *api.ClusterConfig) error {
+func checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes.Interface, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
 	rawClient, err := ctl.NewRawClient(cfg)
 	if err != nil {
 		return err
@@ -289,9 +290,10 @@ func checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes.Interface, c
 		if err != nil {
 			return err
 		}
-		if !upToDate {
+		if !skipOutdatedAddonsCheck && !upToDate {
 			logger.Critical("to create an ARM nodegroup kube-proxy, coredns and aws-node addons should be up to date. " +
-				"Please use `eksctl utils update-coredns`, `eksctl utils update-kube-proxy` and `eksctl utils update-aws-node` before proceeding.")
+				"Please use `eksctl utils update-coredns`, `eksctl utils update-kube-proxy` and `eksctl utils update-aws-node` before proceeding.\n" +
+				"To ignore this check and proceed with the nodegroup creation, please run again with --skip-outdated-addons-check=true.")
 			return errors.New("expected default addons up to date")
 		}
 	}
