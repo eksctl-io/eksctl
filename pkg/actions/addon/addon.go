@@ -3,10 +3,12 @@ package addon
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -81,6 +83,30 @@ func (a *Manager) waitForAddonToBeActive(addon *api.Addon) error {
 	}
 	logger.Info("addon %q active", addon.Name)
 	return nil
+}
+
+func (a *Manager) getLatestVersion(addon *api.Addon) (string, error) {
+	addonInfos, err := a.describeVersions(addon)
+	if err != nil {
+		return "", err
+	}
+	if len(addonInfos.Addons) == 0 || len(addonInfos.Addons[0].AddonVersions) == 0 {
+		return "", fmt.Errorf("no versions available for %q", addon.Name)
+	}
+
+	var versions []*version.Version
+	for _, addonVersionInfo := range addonInfos.Addons[0].AddonVersions {
+		v, err := version.NewVersion(*addonVersionInfo.AddonVersion)
+		if err != nil {
+			return "", fmt.Errorf("failed to parse version %q: %w", *addonVersionInfo.AddonVersion, err)
+		}
+		versions = append(versions, v)
+	}
+
+	sort.SliceStable(versions, func(i, j int) bool {
+		return versions[j].LessThan(versions[i])
+	})
+	return versions[0].Original(), nil
 }
 
 func supportedVersion(version string) error {
