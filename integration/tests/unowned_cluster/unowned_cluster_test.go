@@ -340,7 +340,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		Expect(cmd).To(RunSuccessfully())
 	})
 
-	Context("KMS", func() {
+	PContext("KMS", func() {
 		var kmsKeyARN *string
 
 		BeforeEach(func() {
