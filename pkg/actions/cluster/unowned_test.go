@@ -138,7 +138,7 @@ var _ = Describe("Delete", func() {
 				return fakeClientSet, nil
 			})
 
-			err := c.Delete(time.Microsecond, false)
+			err := c.Delete(time.Microsecond, false, false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deleteCallCount).To(Equal(1))
 			Expect(unownedDeleteCallCount).To(Equal(1))
@@ -201,7 +201,7 @@ var _ = Describe("Delete", func() {
 			p.MockEKS().On("DeleteCluster", mock.Anything).Return(&awseks.DeleteClusterOutput{}, nil)
 
 			c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager)
-			err := c.Delete(time.Microsecond, false)
+			err := c.Delete(time.Microsecond, false, false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(deleteCallCount).To(Equal(1))
