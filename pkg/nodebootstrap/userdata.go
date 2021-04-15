@@ -1,6 +1,7 @@
 package nodebootstrap
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"sort"
@@ -113,8 +114,20 @@ func getKubeReserved(info InstanceTypeInfo) api.InlineDocument {
 	}
 }
 
-func makeDockerConfigJSON() (string, error) {
-	return AssetString("docker-daemon.json")
+func makeDockerConfigJSON(ng *api.NodeGroup) ([]byte, error) {
+	data, err := Asset("docker-daemon.json")
+	if err != nil {
+		return nil, err
+	}
+
+	obj := api.InlineDocument{}
+	if err := json.Unmarshal(data, &obj); err != nil {
+		return nil, err
+	}
+
+	obj["registry-mirrors"] = ng.DockerRegistryMirrors
+
+	return json.MarshalIndent(obj, "", "  ")
 }
 
 func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, error) {

@@ -1283,6 +1283,10 @@ type NodeGroupBase struct {
 	// +optional
 	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
 
+	// Add registry mirrors to Docker's daemon.json file
+	// +optional
+	DockerRegistryMirrors []string `json:"dockerRegistryMirrors,omitempty"`
+
 	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
 	// Defaults to `false`
 	// +optional

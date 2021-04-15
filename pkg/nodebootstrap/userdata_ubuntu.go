@@ -42,7 +42,7 @@ func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) ([]configFile,
 		return nil, err
 	}
 
-	dockerConfigData, err := makeDockerConfigJSON()
+	dockerConfigData, err := makeDockerConfigJSON(ng)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) ([]configFile,
 	}, {
 		dir:      dockerConfigDir,
 		name:     "daemon.json",
-		contents: dockerConfigData,
+		contents: string(dockerConfigData),
 	}}
 
 	return files, nil

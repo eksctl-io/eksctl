@@ -1,6 +1,7 @@
 package nodebootstrap
 
 import (
+	"encoding/json"
 	"strconv"
 	"strings"
 
@@ -185,6 +186,46 @@ var _ = Describe("User data", func() {
 			Expect(kubelet.FeatureGates["HugePages"]).To(Equal(false))
 			Expect(kubelet.FeatureGates["DynamicKubeletConfig"]).To(Equal(true))
 			Expect(kubelet.FeatureGates["RotateKubeletServerCertificate"]).To(Equal(false))
+		})
+	})
+
+	Describe("creating /etc/docker/daemon.json config", func() {
+		var (
+			ng *api.NodeGroup
+		)
+		BeforeEach(func() {
+			ng = &api.NodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{},
+			}
+		})
+
+		It("the file is serialized with the correct format", func() {
+			data, err := makeDockerConfigJSON(ng)
+			Expect(err).ToNot(HaveOccurred())
+
+			obj := api.InlineDocument{}
+
+			errUnmarshal := json.Unmarshal(data, &obj)
+			Expect(errUnmarshal).ToNot(HaveOccurred())
+		})
+
+		It("the file contains provided registry-mirrors", func() {
+			ng.DockerRegistryMirrors = []string{
+				"https://example.com",
+				"https://blah.example.com",
+			}
+			data, err := makeDockerConfigJSON(ng)
+			Expect(err).ToNot(HaveOccurred())
+
+			dockerDaemon := api.InlineDocument{}
+
+			errUnmarshal := json.Unmarshal(data, &dockerDaemon)
+			Expect(errUnmarshal).ToNot(HaveOccurred())
+
+			Expect(dockerDaemon["registry-mirrors"]).To(ContainElements(
+				"https://example.com",
+				"https://blah.example.com",
+			))
 		})
 	})
 })

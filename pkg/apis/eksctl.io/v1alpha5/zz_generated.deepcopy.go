@@ -1078,6 +1078,11 @@ func (in *NodeGroupBase) DeepCopyInto(out *NodeGroupBase) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.DockerRegistryMirrors != nil {
+		in, out := &in.DockerRegistryMirrors, &out.DockerRegistryMirrors
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.DisableIMDSv1 != nil {
 		in, out := &in.DisableIMDSv1, &out.DisableIMDSv1
 		*out = new(bool)

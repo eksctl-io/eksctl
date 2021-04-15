@@ -1,0 +1,18 @@
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-29
+  region: us-west-2
+
+nodeGroups:
+- name: ng
+  dockerRegistryMirrors:
+    - https://example.com
+
+managedNodeGroups:
+- name: mng
+  dockerRegistryMirrors:
+    - https://example.com
+    - https://blah.example.com

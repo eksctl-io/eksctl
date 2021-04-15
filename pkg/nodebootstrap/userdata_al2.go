@@ -57,12 +57,12 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) ([]confi
 	}}
 
 	if !utils.IsGPUInstanceType(ng.InstanceType) {
-		dockerConfigData, err := makeDockerConfigJSON()
+		dockerConfigData, err := makeDockerConfigJSON(ng)
 		if err != nil {
 			return nil, err
 		}
 
-		files = append(files, configFile{dir: dockerConfigDir, name: "daemon.json", contents: dockerConfigData})
+		files = append(files, configFile{dir: dockerConfigDir, name: "daemon.json", contents: string(dockerConfigData)})
 	}
 
 	return files, nil

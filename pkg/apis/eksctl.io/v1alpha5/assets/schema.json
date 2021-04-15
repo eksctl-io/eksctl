@@ -966,6 +966,14 @@
           "x-intellij-html-description": "blocks all IMDS requests from non host networking pods",
           "default": false
         },
+        "dockerRegistryMirrors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Add registry mirrors to Docker's daemon.json file",
+          "x-intellij-html-description": "Add registry mirrors to Docker's daemon.json file"
+        },
         "ebsOptimized": {
           "type": "boolean",
           "description": "enables [EBS optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)",
@@ -1150,6 +1158,7 @@
         "volumeThroughput",
         "preBootstrapCommands",
         "overrideBootstrapCommand",
+        "dockerRegistryMirrors",
         "disableIMDSv1",
         "disablePodIMDS",
         "placement",
@@ -1269,6 +1278,14 @@
           "description": "blocks all IMDS requests from non host networking pods",
           "x-intellij-html-description": "blocks all IMDS requests from non host networking pods",
           "default": false
+        },
+        "dockerRegistryMirrors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Add registry mirrors to Docker's daemon.json file",
+          "x-intellij-html-description": "Add registry mirrors to Docker's daemon.json file"
         },
         "ebsOptimized": {
           "type": "boolean",
@@ -1453,6 +1470,7 @@
         "volumeThroughput",
         "preBootstrapCommands",
         "overrideBootstrapCommand",
+        "dockerRegistryMirrors",
         "disableIMDSv1",
         "disablePodIMDS",
         "placement",
