@@ -20,17 +20,18 @@ func deleteClusterCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("cluster", "Delete a cluster", "")
 
+	var force bool
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doDeleteCluster(cmd)
+		return doDeleteCluster(cmd, force)
 	}
-
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 
 		cmd.Wait = false
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "deletion of all resources")
+		fs.BoolVar(&force, "force", false, "Force deletion to continue when errors occur")
 
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
@@ -39,7 +40,7 @@ func deleteClusterCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
 }
 
-func doDeleteCluster(cmd *cmdutils.Cmd) error {
+func doDeleteCluster(cmd *cmdutils.Cmd, force bool) error {
 	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
@@ -69,5 +70,5 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	return cluster.Delete(time.Second*20, cmd.Wait)
+	return cluster.Delete(time.Second*20, cmd.Wait, force)
 }
