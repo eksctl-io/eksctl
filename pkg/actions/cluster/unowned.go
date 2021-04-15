@@ -57,7 +57,7 @@ func (c *UnownedCluster) Upgrade(dryRun bool) error {
 	return nil
 }
 
-func (c *UnownedCluster) Delete(waitInterval time.Duration, wait bool) error {
+func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force bool) error {
 	clusterName := c.cfg.Metadata.Name
 
 	if err := c.checkClusterExists(clusterName); err != nil {
@@ -78,7 +78,13 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait bool) error {
 	}
 
 	if err := deleteSharedResources(c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {
-		return err
+		if err != nil {
+			if force {
+				logger.Warning("error occurred during deletion: %v", err)
+			} else {
+				return err
+			}
+		}
 	}
 
 	if err := c.deleteFargateRoleIfExists(); err != nil {
@@ -92,7 +98,13 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait bool) error {
 	}
 
 	if err := c.deleteIAMAndOIDC(wait, clusterOperable, clientSet); err != nil {
-		return err
+		if err != nil {
+			if force {
+				logger.Warning("error occurred during deletion: %v", err)
+			} else {
+				return err
+			}
+		}
 	}
 
 	if err := c.deleteCluster(wait); err != nil {
