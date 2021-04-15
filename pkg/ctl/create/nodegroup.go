@@ -20,7 +20,8 @@ import (
 type nodegroupOptions struct {
 	cmdutils.CreateNGOptions
 	cmdutils.CreateManagedNGOptions
-	UpdateAuthConfigMap bool
+	UpdateAuthConfigMap     bool
+	SkipOutdatedAddonsCheck bool
 }
 
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
@@ -57,6 +58,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 			InstallNvidiaDevicePlugin: options.InstallNvidiaDevicePlugin,
 			UpdateAuthConfigMap:       options.UpdateAuthConfigMap,
 			DryRun:                    options.DryRun,
+			SkipOutdatedAddonsCheck:   options.SkipOutdatedAddonsCheck,
 			ConfigFileProvided:        cmd.ClusterConfigFile != "",
 		}, *ngFilter)
 	})
@@ -90,6 +92,7 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 		cmdutils.AddUpdateAuthConfigMap(fs, &options.UpdateAuthConfigMap, "Add nodegroup IAM role to aws-auth configmap")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 		fs.BoolVarP(&options.DryRun, "dry-run", "", false, "Dry-run mode that skips nodegroup creation and outputs a ClusterConfig")
+		fs.BoolVarP(&options.SkipOutdatedAddonsCheck, "skip-outdated-addons-check", "", false, "whether the creation of ARM nodegroups should proceed when the cluster addons are outdated")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {
