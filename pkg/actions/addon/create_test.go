@@ -159,7 +159,7 @@ var _ = Describe("Create", func() {
 					}, nil)
 			})
 
-			It("creates the addon and waits for it to be running", func() {
+			It("creates the addon and waits for it to be active", func() {
 				err := manager.Create(&api.Addon{
 					Name:    "my-addon",
 					Version: "1.0",
