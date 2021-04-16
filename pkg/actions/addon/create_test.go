@@ -2,6 +2,7 @@ package addon_test
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/weaveworks/eksctl/pkg/testutils"
 
@@ -9,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
+	"github.com/aws/aws-sdk-go/aws"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -84,6 +86,7 @@ var _ = Describe("Create", func() {
 			Name:    "my-cluster",
 		}}, mockProvider.EKS(), fakeStackManager, withOIDC, oidc, rawClient.ClientSet())
 		Expect(err).NotTo(HaveOccurred())
+		manager.SetTimeout(time.Second)
 	})
 
 	When("it fails to create addon", func() {
@@ -94,7 +97,7 @@ var _ = Describe("Create", func() {
 			err := manager.Create(&api.Addon{
 				Name:    "my-addon",
 				Version: "1.0",
-			})
+			}, false)
 			Expect(err).To(MatchError(`failed to create addon "my-addon": foo`))
 
 		})
@@ -109,7 +112,7 @@ var _ = Describe("Create", func() {
 				Name:             "my-addon",
 				Version:          "1.0",
 				AttachPolicyARNs: []string{"arn-1"},
-			})
+			}, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
@@ -131,7 +134,7 @@ var _ = Describe("Create", func() {
 				Version:          "1.0",
 				AttachPolicyARNs: []string{"arn-1"},
 				Force:            true,
-			})
+			}, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
@@ -143,13 +146,62 @@ var _ = Describe("Create", func() {
 		})
 	})
 
+	When("wait is true", func() {
+		When("the addon creation succeeds", func() {
+			BeforeEach(func() {
+				withOIDC = false
+				mockProvider.MockEKS().On("DescribeAddon", mock.Anything).
+					Return(&awseks.DescribeAddonOutput{
+						Addon: &awseks.Addon{
+							AddonName: aws.String("my-addon"),
+							Status:    aws.String("ACTIVE"),
+						},
+					}, nil)
+			})
+
+			It("creates the addon and waits for it to be active", func() {
+				err := manager.Create(&api.Addon{
+					Name:    "my-addon",
+					Version: "1.0",
+				}, true)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
+				Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
+				Expect(*createAddonInput.AddonName).To(Equal("my-addon"))
+				Expect(*createAddonInput.AddonVersion).To(Equal("1.0"))
+			})
+		})
+
+		When("the addon creation fails", func() {
+			BeforeEach(func() {
+				withOIDC = false
+				mockProvider.MockEKS().On("DescribeAddon", mock.Anything).
+					Return(&awseks.DescribeAddonOutput{
+						Addon: &awseks.Addon{
+							AddonName: aws.String("my-addon"),
+							Status:    aws.String("DEGRADED"),
+						},
+					}, nil)
+			})
+
+			It("returns an error", func() {
+				err := manager.Create(&api.Addon{
+					Name:    "my-addon",
+					Version: "1.0",
+				}, true)
+				Expect(err).To(MatchError("timed out waiting for addon \"my-addon\" to become active, status: \"DEGRADED\""))
+			})
+		})
+	})
+
 	When("No policy/role is specified", func() {
 		When("we don't know the recommended policies for the specified addon", func() {
 			It("does not provide a role", func() {
 				err := manager.Create(&api.Addon{
 					Name:    "my-addon",
 					Version: "1.0",
-				})
+				}, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
@@ -176,7 +228,7 @@ var _ = Describe("Create", func() {
 				err := manager.Create(&api.Addon{
 					Name:    "vpc-cni",
 					Version: "1.0",
-				})
+				}, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
@@ -204,7 +256,7 @@ var _ = Describe("Create", func() {
 				Name:             "my-addon",
 				Version:          "1.0",
 				AttachPolicyARNs: []string{"arn-1"},
-			})
+			}, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
@@ -228,7 +280,7 @@ var _ = Describe("Create", func() {
 				AttachPolicy: api.InlineDocument{
 					"foo": "policy-bar",
 				},
-			})
+			}, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
@@ -250,7 +302,7 @@ var _ = Describe("Create", func() {
 				Name:                  "my-addon",
 				Version:               "1.0",
 				ServiceAccountRoleARN: "foo",
-			})
+			}, false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
 			Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
@@ -266,7 +318,7 @@ var _ = Describe("Create", func() {
 				Name:    "my-addon",
 				Version: "1.0",
 				Tags:    map[string]string{"foo": "bar", "fox": "brown"},
-			})
+			}, false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
 			Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))

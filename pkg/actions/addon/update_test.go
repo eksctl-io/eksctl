@@ -2,6 +2,7 @@ package addon_test
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 
@@ -60,14 +61,14 @@ var _ = Describe("Update", func() {
 				ServiceAccountRoleArn: aws.String("original-arn"),
 				Status:                aws.String("created"),
 			},
-		}, nil)
+		}, nil).Once()
 
 		addonManager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
 			Version: "1.18",
 			Name:    "my-cluster",
 		}}, mockProvider.EKS(), fakeStackManager, true, oidc, nil)
 		Expect(err).NotTo(HaveOccurred())
-
+		addonManager.SetTimeout(time.Second)
 	})
 
 	When("Updating the version", func() {
@@ -82,7 +83,7 @@ var _ = Describe("Update", func() {
 				Name:    "my-addon",
 				Version: "1.1",
 				Force:   true,
-			})
+			}, false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
 			Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
@@ -91,6 +92,69 @@ var _ = Describe("Update", func() {
 			Expect(*updateAddonInput.AddonVersion).To(Equal("1.1"))
 			Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("original-arn"))
 			Expect(*updateAddonInput.ResolveConflicts).To(Equal("overwrite"))
+		})
+	})
+
+	When("wait is true", func() {
+		When("the addon update succeeds", func() {
+			BeforeEach(func() {
+				mockProvider.MockEKS().On("DescribeAddon", mock.Anything).
+					Return(&awseks.DescribeAddonOutput{
+						Addon: &awseks.Addon{
+							AddonName: aws.String("my-addon"),
+							Status:    aws.String("ACTIVE"),
+						},
+					}, nil)
+			})
+
+			It("creates the addon and waits for it to be running", func() {
+				mockProvider.MockEKS().On("UpdateAddon", mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(1))
+					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.UpdateAddonInput{}))
+					updateAddonInput = args[0].(*awseks.UpdateAddonInput)
+				}).Return(&awseks.UpdateAddonOutput{}, nil)
+
+				err := addonManager.Update(&api.Addon{
+					Name:    "my-addon",
+					Version: "1.1",
+					Force:   true,
+				}, true)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
+				Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
+				Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
+				Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
+				Expect(*updateAddonInput.AddonVersion).To(Equal("1.1"))
+				Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("original-arn"))
+				Expect(*updateAddonInput.ResolveConflicts).To(Equal("overwrite"))
+			})
+		})
+
+		When("the addon update fails", func() {
+			BeforeEach(func() {
+				mockProvider.MockEKS().On("DescribeAddon", mock.Anything).
+					Return(&awseks.DescribeAddonOutput{
+						Addon: &awseks.Addon{
+							AddonName: aws.String("my-addon"),
+							Status:    aws.String("DEGRADED"),
+						},
+					}, nil)
+			})
+
+			It("returns an error", func() {
+				mockProvider.MockEKS().On("UpdateAddon", mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(1))
+					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.UpdateAddonInput{}))
+					updateAddonInput = args[0].(*awseks.UpdateAddonInput)
+				}).Return(&awseks.UpdateAddonOutput{}, nil)
+
+				err := addonManager.Update(&api.Addon{
+					Name:    "my-addon",
+					Version: "1.1",
+					Force:   true,
+				}, true)
+				Expect(err).To(MatchError("timed out waiting for addon \"my-addon\" to become active, status: \"DEGRADED\""))
+			})
 		})
 	})
 
@@ -107,7 +171,7 @@ var _ = Describe("Update", func() {
 					Name:                  "my-addon",
 					Version:               "1.1",
 					ServiceAccountRoleARN: "new-arn",
-				})
+				}, false)
 
 				Expect(err).NotTo(HaveOccurred())
 				Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
@@ -144,7 +208,7 @@ var _ = Describe("Update", func() {
 						Name:             "vpc-cni",
 						Version:          "1.1",
 						AttachPolicyARNs: []string{"arn-1"},
-					})
+					}, false)
 
 					Expect(err).NotTo(HaveOccurred())
 
@@ -177,7 +241,7 @@ var _ = Describe("Update", func() {
 						Name:             "my-addon",
 						Version:          "1.1",
 						AttachPolicyARNs: []string{"arn-1"},
-					})
+					}, false)
 
 					Expect(err).NotTo(HaveOccurred())
 
@@ -211,7 +275,7 @@ var _ = Describe("Update", func() {
 
 			err := addonManager.Update(&api.Addon{
 				Name: "my-addon",
-			})
+			}, false)
 			Expect(err).To(MatchError(`failed to update addon "my-addon": foo`))
 			Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
 			Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))

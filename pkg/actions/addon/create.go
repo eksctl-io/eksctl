@@ -25,7 +25,7 @@ const (
 	vpcCNIName          = "vpc-cni"
 )
 
-func (a *Manager) Create(addon *api.Addon) error {
+func (a *Manager) Create(addon *api.Addon, wait bool) error {
 	createAddonInput := &eks.CreateAddonInput{
 		AddonName:    &addon.Name,
 		AddonVersion: &addon.Version,
@@ -114,6 +114,9 @@ func (a *Manager) Create(addon *api.Addon) error {
 		logger.Debug("EKS Create Addon output: %s", output.String())
 	}
 
+	if wait {
+		return a.waitForAddonToBeActive(addon)
+	}
 	logger.Info("successfully created addon")
 	return nil
 }

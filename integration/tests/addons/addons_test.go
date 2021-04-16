@@ -94,6 +94,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 					"addon",
 					"--name", "vpc-cni",
 					"--cluster", clusterName,
+					"--wait",
 					"--verbose", "2",
 				)
 			Expect(cmd).To(RunSuccessfully())

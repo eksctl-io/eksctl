@@ -13,7 +13,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-func (a *Manager) Update(addon *api.Addon) error {
+func (a *Manager) Update(addon *api.Addon, wait bool) error {
 	logger.Debug("addon: %v", addon)
 
 	updateAddonInput := &eks.UpdateAddonInput{
@@ -71,6 +71,9 @@ func (a *Manager) Update(addon *api.Addon) error {
 	}
 	if output != nil {
 		logger.Debug(output.String())
+	}
+	if wait {
+		return a.waitForAddonToBeActive(addon)
 	}
 	return nil
 }

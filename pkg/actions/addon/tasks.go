@@ -63,7 +63,7 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 		if t.forceAll {
 			a.Force = true
 		}
-		err := addonManager.Create(a)
+		err := addonManager.Create(a, true)
 		if err != nil {
 			go func() {
 				errorCh <- err
