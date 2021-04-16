@@ -72,7 +72,7 @@ func (m *NodeGroupService) Normalize(nodePools []api.NodePool, clusterMeta *api.
 }
 
 // ExpandInstanceSelectorOptions sets instance types to instances matched by the instance selector criteria
-func (m *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePool) error {
+func (m *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePool, clusterAZs []string) error {
 	instanceTypesMatch := func(a, b []string) bool {
 		return reflect.DeepEqual(a, b)
 	}
@@ -87,7 +87,11 @@ func (m *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePoo
 			continue
 		}
 
-		instanceTypes, err := m.expandInstanceSelector(baseNG.InstanceSelector)
+		azs := clusterAZs
+		if len(baseNG.AvailabilityZones) != 0 {
+			azs = baseNG.AvailabilityZones
+		}
+		instanceTypes, err := m.expandInstanceSelector(baseNG.InstanceSelector, azs)
 		if err != nil {
 			return errors.Wrapf(err, "error expanding instance selector options for nodegroup %q", baseNG.Name)
 		}
@@ -121,7 +125,7 @@ func (m *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePoo
 	return nil
 }
 
-func (m *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector) ([]string, error) {
+func (m *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs []string) ([]string, error) {
 	makeRange := func(val int) *selector.IntRangeFilter {
 		return &selector.IntRangeFilter{
 			LowerBound: val,
@@ -130,7 +134,8 @@ func (m *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector) ([]
 	}
 
 	filters := selector.Filters{
-		Service: aws.String("eks"),
+		Service:           aws.String("eks"),
+		AvailabilityZones: &azs,
 	}
 	if ins.VCPUs != 0 {
 		filters.VCpusRange = makeRange(ins.VCPUs)
