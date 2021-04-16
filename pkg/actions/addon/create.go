@@ -3,6 +3,7 @@ package addon
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -35,6 +36,11 @@ func (a *Manager) Create(addon *api.Addon) error {
 	if addon.Force {
 		createAddonInput.ResolveConflicts = aws.String("overwrite")
 		logger.Debug("setting resolve conflicts to overwrite")
+	} else {
+		addonName := strings.ToLower(addon.Name)
+		if addonName == "coredns" || addonName == "kube-proxy" || addonName == "vpc-cni" {
+			logger.Info("when creating an addon to replace an existing application, e.g. CoreDNS, kube-proxy & VPC-CNI the --force flag will ensure the currently deployed configuration is replaced")
+		}
 	}
 
 	logger.Debug("addon: %v", addon)
