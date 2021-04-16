@@ -50,8 +50,8 @@ func New(clusterConfig *api.ClusterConfig, eksAPI eksiface.EKSAPI, stackManager 
 
 func (a *Manager) waitForAddonToBeActive(addon *api.Addon) error {
 	var out *awseks.DescribeAddonOutput
-	var err error
 	operation := func() (bool, error) {
+		var err error
 		out, err = a.eksAPI.DescribeAddon(&awseks.DescribeAddonInput{
 			ClusterName: &a.clusterConfig.Metadata.Name,
 			AddonName:   &addon.Name,
