@@ -72,7 +72,7 @@ func (a *Manager) waitForAddonToBeActive(addon *api.Addon) error {
 		},
 	}
 
-	err = w.WaitWithTimeout(a.timeout)
+	err := w.WaitWithTimeout(a.timeout)
 	if err != nil {
 		if err == context.DeadlineExceeded {
 			return errors.Errorf("timed out waiting for addon %q to become active, status: %q", addon.Name, *out.Addon.Status)
