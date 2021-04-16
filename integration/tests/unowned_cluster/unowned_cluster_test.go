@@ -377,6 +377,13 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			ContainElement(ContainSubstring("initiated KMS encryption")),
 			ContainElement(ContainSubstring("KMS encryption applied to all Secret resources")),
 		))
+
+		By("ensuring `enable-secrets-encryption` works when KMS encryption is already enabled on the cluster")
+		cmd = enableEncryptionCMD()
+		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+			ContainElement(ContainSubstring("KMS encryption is already enabled on the cluster")),
+			ContainElement(ContainSubstring("KMS encryption applied to all Secret resources")),
+		))
 	})
 
 	It("supports deleting clusters", func() {
