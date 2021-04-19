@@ -41,6 +41,9 @@ func TestDryRun(t *testing.T) {
 
 const defaultClusterConfig = `
 apiVersion: eksctl.io/v1alpha5
+availabilityZones:
+- us-west-2a
+- us-west-2b
 cloudWatch:
   clusterLogging: {}
 iam:
@@ -165,6 +168,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				"--dry-run",
 				"--name",
 				params.ClusterName,
+				"--zones", "us-west-2a,us-west-2b",
 			).
 			WithArgs(createArgs...)
 
@@ -231,6 +235,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				"--name",
 				params.ClusterName,
 				"--dry-run",
+				"--zones", "us-west-2a,us-west-2b",
 				"--nodegroup-name=ng-default",
 			).
 			WithArgs(createArgs...)
@@ -289,6 +294,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 					"cluster",
 					"--dry-run",
 					"--name="+params.ClusterName,
+					"--zones", "us-west-2a,us-west-2b",
 					"--nodegroup-name=ng-default",
 				)
 			session := cmd.Run()
@@ -335,6 +341,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				c.CloudWatch = nil
 				c.PrivateCluster = nil
 				c.NodeGroups = nil
+				c.AvailabilityZones = nil
 
 				ng := c.ManagedNodeGroups[0]
 				ng.Name = "private-ng"
