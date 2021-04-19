@@ -101,7 +101,7 @@ The option to enable `wellKnownPolicies` is included for using IRSA with well-kn
 use cases like `cluster-autoscaler` and `cert-manager`, as a shorthand for lists
 of policies.
 
-Other properties of `serviceAccounts` are documented at
+Supported well-known policies and other properties of `serviceAccounts` are documented at
 [the config schema](https://eksctl.io/usage/schema/#iam-serviceAccounts).
 
 You use the following config example with `eksctl create cluster`:
