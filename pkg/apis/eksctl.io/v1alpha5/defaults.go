@@ -43,7 +43,7 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 
 	if cfg.HasClusterCloudWatchLogging() && len(cfg.CloudWatch.ClusterLogging.EnableTypes) == 1 {
 		switch cfg.CloudWatch.ClusterLogging.EnableTypes[0] {
-		case "all", "*":
+		case allLogging, wildcardLogging:
 			cfg.CloudWatch.ClusterLogging.EnableTypes = SupportedCloudWatchClusterLogTypes()
 		}
 	}
