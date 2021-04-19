@@ -44,19 +44,6 @@ func NewClusterResourceSet(ec2API ec2iface.EC2API, region string, spec *api.Clus
 	}
 }
 
-// unsetExistingResources unsets fields for CloudFormation resources that were created by eksctl (and not user-supplied)
-// in order to trigger execution of code that relies on these fields
-func unsetExistingResources(existingStack *gjson.Result, clusterConfig *api.ClusterConfig) {
-	controlPlaneSG := existingStack.Get(cfnControlPlaneSGResource)
-	if controlPlaneSG.Exists() {
-		clusterConfig.VPC.SecurityGroup = ""
-	}
-	sharedNodeSG := existingStack.Get(cfnSharedNodeSGResource)
-	if sharedNodeSG.Exists() {
-		clusterConfig.VPC.SharedNodeSecurityGroup = ""
-	}
-}
-
 // AddAllResources adds all the information about the cluster to the resource set
 func (c *ClusterResourceSet) AddAllResources() error {
 	if err := c.spec.HasSufficientSubnets(); err != nil {
@@ -117,10 +104,28 @@ func (c *ClusterResourceSet) Template() gfn.Template {
 	return *c.rs.template
 }
 
+// GetAllOutputs collects all outputs of the cluster
+func (c *ClusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
+	return c.rs.GetAllOutputs(stack)
+}
+
 // HasManagedNodesSG reports whether the stack has the security group required for communication between
 // managed and unmanaged nodegroups
 func HasManagedNodesSG(stackResources *gjson.Result) bool {
 	return stackResources.Get(cfnIngressClusterToNodeSGResource).Exists()
+}
+
+// unsetExistingResources unsets fields for CloudFormation resources that were created by eksctl (and not user-supplied)
+// in order to trigger execution of code that relies on these fields
+func unsetExistingResources(existingStack *gjson.Result, clusterConfig *api.ClusterConfig) {
+	controlPlaneSG := existingStack.Get(cfnControlPlaneSGResource)
+	if controlPlaneSG.Exists() {
+		clusterConfig.VPC.SecurityGroup = ""
+	}
+	sharedNodeSG := existingStack.Get(cfnSharedNodeSGResource)
+	if sharedNodeSG.Exists() {
+		clusterConfig.VPC.SharedNodeSecurityGroup = ""
+	}
 }
 
 func (c *ClusterResourceSet) newResource(name string, resource gfn.Resource) *gfnt.Value {
@@ -201,9 +206,4 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *subnetDe
 
 func (c *ClusterResourceSet) addResourcesForFargate() {
 	_ = addResourcesForFargate(c.rs, c.spec)
-}
-
-// GetAllOutputs collects all outputs of the cluster
-func (c *ClusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
-	return c.rs.GetAllOutputs(stack)
 }

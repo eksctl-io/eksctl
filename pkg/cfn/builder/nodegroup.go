@@ -74,6 +74,7 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 	n.userData = gfnt.NewString(userData)
 
 	// Ensure MinSize is set, as it is required by the ASG cfn resource
+	// TODO this validation and default setting should happen way earlier than this
 	if n.spec.MinSize == nil {
 		if n.spec.DesiredCapacity == nil {
 			defaultNodeCount := api.DefaultNodeCount
@@ -83,7 +84,7 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		}
 		logger.Info("--nodes-min=%d was set automatically for nodegroup %s", *n.spec.MinSize, n.spec.Name)
 	} else if n.spec.DesiredCapacity != nil && *n.spec.DesiredCapacity < *n.spec.MinSize {
-		return fmt.Errorf("cannot use --nodes-min=%d and --nodes=%d at the same time", *n.spec.MinSize, *n.spec.DesiredCapacity)
+		return fmt.Errorf("--nodes value (%d) cannot be lower than --nodes-min value (%d)", *n.spec.DesiredCapacity, *n.spec.MinSize)
 	}
 
 	// Ensure MaxSize is set, as it is required by the ASG cfn resource
@@ -95,9 +96,9 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		}
 		logger.Info("--nodes-max=%d was set automatically for nodegroup %s", *n.spec.MaxSize, n.spec.Name)
 	} else if n.spec.DesiredCapacity != nil && *n.spec.DesiredCapacity > *n.spec.MaxSize {
-		return fmt.Errorf("cannot use --nodes-max=%d and --nodes=%d at the same time", *n.spec.MaxSize, *n.spec.DesiredCapacity)
+		return fmt.Errorf("--nodes value (%d) cannot be greater than --nodes-max value (%d)", *n.spec.DesiredCapacity, *n.spec.MaxSize)
 	} else if *n.spec.MaxSize < *n.spec.MinSize {
-		return fmt.Errorf("cannot use --nodes-min=%d and --nodes-max=%d at the same time", *n.spec.MinSize, *n.spec.MaxSize)
+		return fmt.Errorf("--nodes-min value (%d) cannot be greater than --nodes-max value (%d)", *n.spec.MinSize, *n.spec.MaxSize)
 	}
 
 	if err := n.addResourcesForIAM(); err != nil {
