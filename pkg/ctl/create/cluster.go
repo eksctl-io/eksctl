@@ -193,7 +193,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 
 	nodeGroupService := eks.NewNodeGroupService(ctl.Provider, selector.New(ctl.Provider.Session()))
 	nodePools := cmdutils.ToNodePools(cfg)
-	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools); err != nil {
+	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err
 	}
 
@@ -386,15 +386,16 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 
 	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets
 	if !subnetsGiven && params.KopsClusterNameForVPC == "" {
-		// Skip setting AZs and subnets
-		// The default subnet config set by SetSubnets will fail validation on a subsequent run of `create cluster`
-		// because those fields indicate usage of pre-existing VPC and subnets
-		if params.DryRun {
-			return nil
-		}
-		// default: create dedicated VPC
 		if err := ctl.SetAvailabilityZones(cfg, params.AvailabilityZones); err != nil {
 			return err
+		}
+
+		// Skip setting subnets
+		// The default subnet config set by SetSubnets will fail validation on a subsequent run of `create cluster`
+		// because those fields indicate usage of pre-existing VPC and subnets
+		// default: create dedicated VPC
+		if params.DryRun {
+			return nil
 		}
 		if err := vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones); err != nil {
 			return err
