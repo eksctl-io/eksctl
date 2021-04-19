@@ -60,11 +60,7 @@ func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 }
 func getInstanceTypes(ng *awseks.Nodegroup) string {
 	if len(ng.InstanceTypes) > 0 {
-		instanceTypes := []string{}
-		for _, instanceType := range ng.InstanceTypes {
-			instanceTypes = append(instanceTypes, *instanceType)
-		}
-		return strings.Join(instanceTypes, ",")
+		return strings.Join(aws.StringValueSlice(ng.InstanceTypes), ",")
 	}
 	logger.Info("no instance types reported by EKS for nodegroup %q", *ng.NodegroupName)
 	return "-"
