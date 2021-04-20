@@ -2013,6 +2013,12 @@
           "x-intellij-html-description": "adds cert-manager policies. See <a href=\"https://cert-manager.io/docs/configuration/acme/dns01/route53\">cert-manager docs</a>.",
           "default": "false"
         },
+        "ebsCSIController": {
+          "type": "boolean",
+          "description": "adds policies for using the ebs-csi-controller. See [aws-ebs-csi-driver docs](https://github.com/kubernetes-sigs/aws-ebs-csi-driver#set-up-driver-permission).",
+          "x-intellij-html-description": "adds policies for using the ebs-csi-controller. See <a href=\"https://github.com/kubernetes-sigs/aws-ebs-csi-driver#set-up-driver-permission\">aws-ebs-csi-driver docs</a>.",
+          "default": "false"
+        },
         "externalDNS": {
           "type": "boolean",
           "description": "adds external-dns policies for Amazon Route 53. See [external-dns docs](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/aws.md).",
@@ -2031,7 +2037,8 @@
         "autoScaler",
         "awsLoadBalancerController",
         "externalDNS",
-        "certManager"
+        "certManager",
+        "ebsCSIController"
       ],
       "additionalProperties": false,
       "description": "for attaching common IAM policies",

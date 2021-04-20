@@ -5,6 +5,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
@@ -46,7 +48,7 @@ func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 			MaxSize:              int(*describeOutput.Nodegroup.ScalingConfig.MaxSize),
 			MinSize:              int(*describeOutput.Nodegroup.ScalingConfig.MinSize),
 			DesiredCapacity:      int(*describeOutput.Nodegroup.ScalingConfig.DesiredSize),
-			InstanceType:         *describeOutput.Nodegroup.InstanceTypes[0],
+			InstanceType:         getInstanceTypes(describeOutput.Nodegroup),
 			ImageID:              *describeOutput.Nodegroup.AmiType,
 			CreationTime:         describeOutput.Nodegroup.CreatedAt,
 			NodeInstanceRoleARN:  *describeOutput.Nodegroup.NodeRole,
@@ -55,6 +57,13 @@ func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 	}
 
 	return summaries, nil
+}
+func getInstanceTypes(ng *awseks.Nodegroup) string {
+	if len(ng.InstanceTypes) > 0 {
+		return strings.Join(aws.StringValueSlice(ng.InstanceTypes), ",")
+	}
+	logger.Info("no instance types reported by EKS for nodegroup %q", *ng.NodegroupName)
+	return "-"
 }
 
 func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {

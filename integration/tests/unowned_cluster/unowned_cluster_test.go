@@ -257,6 +257,8 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"addon",
 				"--cluster", params.ClusterName,
 				"--name", "vpc-cni",
+				"--wait",
+				"--force",
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfully())
@@ -270,6 +272,9 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 			ContainElement(ContainSubstring("vpc-cni")),
+		))
+		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+			ContainElement(ContainSubstring("ACTIVE")),
 		))
 	})
 
