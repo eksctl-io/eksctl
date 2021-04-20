@@ -1,0 +1,82 @@
+name: test-and-build
+
+on:
+  pull_request: {}
+
+jobs:
+  unit-test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.x
+      - name: Setup deps
+        run: |
+          make install-build-deps
+      - name: Unit test
+        run: |
+          PATH=$PATH:$(go env GOPATH)/bin make build
+          PATH=$PATH:$(go env GOPATH)/bin make unit-test
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.x
+      - name: Setup deps
+        run: |
+          make install-build-deps
+      - name: Lint
+        run: |
+          PATH=$PATH:$(go env GOPATH)/bin make lint
+  image:
+    name: Build and check image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.x
+      - name: Setup deps
+        run: |
+          make install-build-deps
+      - name: build
+        run: |
+          PATH=$PATH:$(go env GOPATH)/bin make -f Makefile.docker check-build-image-manifest-up-to-date
