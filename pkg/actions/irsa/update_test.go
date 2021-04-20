@@ -59,7 +59,7 @@ var _ = Describe("Update", func() {
 			fakeStackManager.UpdateStackArgsForCall(0)
 			stackName, changeSetName, description, templateData, _ := fakeStackManager.UpdateStackArgsForCall(0)
 			Expect(stackName).To(Equal("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"))
-			Expect(changeSetName).To(Equal("updating-policy"))
+			Expect(changeSetName).To(ContainSubstring("updating-policy"))
 			Expect(description).To(Equal("updating policies for IAMServiceAccount default/test-sa"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(templateData.(manager.TemplateBody))).To(ContainSubstring("arn-123"))

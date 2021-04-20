@@ -59,14 +59,17 @@ To ensure workloads are scheduled on the right OS, they must have a `nodeSelecto
 ```yaml
 # Targeting Windows
   nodeSelector:
-    beta.kubernetes.io/os: windows
-    beta.kubernetes.io/arch: amd64
+    kubernetes.io/os: windows
+    kubernetes.io/arch: amd64
 
 # Targeting Linux
   nodeSelector:
-    beta.kubernetes.io/os: linux
-    beta.kubernetes.io/arch: amd64
+    kubernetes.io/os: linux
+    kubernetes.io/arch: amd64
 ```
+
+If you are using a cluster older than `1.19` the `kubernetes.io/os` and `kubernetes.io/arch` labels need to be replaced with `beta.kubernetes.io/os` and `beta.kubernetes.io/arch` respectively.
+
 ### Further information
 
 - [EKS Windows Support][eks-user-guide]
