@@ -33,10 +33,15 @@ func New(k8sClientSet kubeclient.Interface, opts *api.GitOps) (*Installer, error
 		return nil, errors.New("expected gitops.flux in cluster configuration but found nil")
 	}
 
+	fluxClient, err := flux.NewClient(opts.Flux)
+	if err != nil {
+		return nil, err
+	}
+
 	installer := &Installer{
 		opts:       opts.Flux,
 		kubeClient: k8sClientSet,
-		fluxClient: flux.NewClient(opts.Flux),
+		fluxClient: fluxClient,
 	}
 
 	return installer, nil

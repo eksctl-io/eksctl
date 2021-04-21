@@ -28,7 +28,9 @@ var _ = Describe("Flux", func() {
 		}
 
 		fakeExecutor = new(fakes.FakeExecutor)
-		fluxClient = flux.NewClient(opts)
+		var err error
+		fluxClient, err = flux.NewClient(opts)
+		Expect(err).NotTo(HaveOccurred())
 		fluxClient.SetExecutor(fakeExecutor)
 
 		binDir, err := ioutil.TempDir("", "bin")
@@ -177,6 +179,19 @@ var _ = Describe("Flux", func() {
 			It("returns the error", func() {
 				Expect(fluxClient.Bootstrap()).To(MatchError("omg"))
 				Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
+			})
+		})
+	})
+
+	Context("setting token env", func() {
+		When("given PAT file does not exist", func() {
+			BeforeEach(func() {
+				opts.AuthTokenPath = "/road/to/nowhere"
+			})
+
+			It("creating the client should fail", func() {
+				_, err := flux.NewClient(opts)
+				Expect(err).To(MatchError(ContainSubstring("reading auth token file open /road/to/nowhere: no such file or directory")))
 			})
 		})
 	})
