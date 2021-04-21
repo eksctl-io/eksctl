@@ -81,7 +81,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 
 	nodeGroupService := eks.NewNodeGroupService(ctl.Provider, selector.New(ctl.Provider.Session()))
 	nodePools := cmdutils.ToNodePools(cfg)
-	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools); err != nil {
+	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err
 	}
 

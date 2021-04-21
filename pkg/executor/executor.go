@@ -45,6 +45,7 @@ func (e ShellExecutor) ExecInDir(command string, dir string, args ...string) err
 func (e ShellExecutor) buildCmd(command string, args ...string) *exec.Cmd {
 	cmd := exec.Command(command, args...)
 
+	cmd.Env = os.Environ()
 	for k, v := range e.envVars {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", k, v))
 	}

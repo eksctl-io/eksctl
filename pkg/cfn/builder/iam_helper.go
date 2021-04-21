@@ -62,6 +62,11 @@ func createWellKnownPolicies(wellKnownPolicies api.WellKnownPolicies) ([]managed
 			}...,
 		)
 	}
+	if wellKnownPolicies.EBSCSIController {
+		customPolicies = append(customPolicies,
+			customPolicyForRole{Name: "PolicyEBSCSIController", Statements: ebsStatements()},
+		)
+	}
 	return managedPolicies, customPolicies
 }
 

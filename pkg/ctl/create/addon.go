@@ -21,13 +21,14 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 		"",
 	)
 
-	var force bool
+	var force, wait bool
 	cmd.ClusterConfig.Addons = []*api.Addon{{}}
 	cmd.FlagSetGroup.InFlagSet("Addon", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cmd.ClusterConfig.Addons[0].Name, "name", "", "Add-on name")
 		fs.StringVar(&cmd.ClusterConfig.Addons[0].Version, "version", "", "Add-on version")
 		fs.StringVar(&cmd.ClusterConfig.Addons[0].ServiceAccountRoleARN, "service-account-role-arn", "", "Add-on serviceAccountRoleARN")
 		fs.BoolVar(&force, "force", false, "Force applies the add-on to overwrite an existing add-on")
+		fs.BoolVar(&wait, "wait", false, "Wait for the addon creation to complete")
 
 		fs.StringSliceVar(&cmd.ClusterConfig.Addons[0].AttachPolicyARNs, "attach-policy-arn", []string{}, "ARN of the policies to attach")
 	})
@@ -92,7 +93,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 			if force { //force is specified at cmdline level
 				a.Force = true
 			}
-			err := addonManager.Create(a)
+			err := addonManager.Create(a, wait)
 			if err != nil {
 				return err
 			}

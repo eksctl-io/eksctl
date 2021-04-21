@@ -15,7 +15,7 @@ if [ -z "${CIRCLE_PULL_REQUEST}" ] && [ -n "${CIRCLE_TAG}" ] && [ "${CIRCLE_PROJ
   fi
 
   cat ./.goreleaser.yml ./.goreleaser.brew.yml > .goreleaser.brew.combined.yml
-  goreleaser release --skip-validate --config=./.goreleaser.brew.combined.yml --release-notes="${RELEASE_NOTES_FILE}"
+  goreleaser release --timeout 60m --skip-validate --config=./.goreleaser.brew.combined.yml --release-notes="${RELEASE_NOTES_FILE}"
 
   sleep 90 # GitHub API resolves the time to the nearest minute, so in order to control the sorting oder we need this
 

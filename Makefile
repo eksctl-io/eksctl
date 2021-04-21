@@ -95,7 +95,6 @@ lint: ## Run linter over the codebase
 .PHONY: test
 test: ## Lint, generate and run unit tests. Also ensure that integration tests compile
 	$(MAKE) lint
-	$(MAKE) check-all-generated-files-up-to-date
 	$(MAKE) unit-test
 	$(MAKE) build-integration-test
 
@@ -106,7 +105,7 @@ circleci-test:
 	$(MAKE) build-integration-test
 
 .PHONY: unit-test
-unit-test: ## Run unit test only
+unit-test: check-all-generated-files-up-to-date ## Run unit test only
 	CGO_ENABLED=0 go test  -tags=release ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: unit-test-race

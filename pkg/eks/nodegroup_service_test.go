@@ -12,17 +12,18 @@ import (
 )
 
 type instanceSelectorCase struct {
-	nodePools              []api.NodePool
-	selector               *api.InstanceSelector
-	createInstanceSelector func() eks.InstanceSelector
-	instanceTypes          []string
-	err                    string
+	nodeGroups                 []api.NodePool
+	instanceSelectorValue      *api.InstanceSelector
+	createFakeInstanceSelector func() *fakes.FakeInstanceSelector
+	expectedInstanceTypes      []string
+	clusterAZs                 []string
+	expectedErr                string
+	expectedAZs                []string
 }
 
 var _ = Describe("Instance Selector", func() {
-
-	makeInstanceSelector := func(instanceTypes ...string) func() eks.InstanceSelector {
-		return func() eks.InstanceSelector {
+	makeInstanceSelector := func(instanceTypes ...string) func() *fakes.FakeInstanceSelector {
+		return func() *fakes.FakeInstanceSelector {
 			s := &fakes.FakeInstanceSelector{}
 			s.FilterReturns(instanceTypes, nil)
 			return s
@@ -30,28 +31,34 @@ var _ = Describe("Instance Selector", func() {
 	}
 
 	DescribeTable("Expand instance selector options", func(isc instanceSelectorCase) {
-		for _, np := range isc.nodePools {
-			np.BaseNodeGroup().InstanceSelector = isc.selector
+		for _, np := range isc.nodeGroups {
+			np.BaseNodeGroup().InstanceSelector = isc.instanceSelectorValue
 		}
-		nodeGroupService := eks.NewNodeGroupService(nil, isc.createInstanceSelector())
-		err := nodeGroupService.ExpandInstanceSelectorOptions(isc.nodePools)
-		if isc.err != "" {
-			Expect(err.Error()).To(ContainSubstring(isc.err))
+		instanceSelectorFake := isc.createFakeInstanceSelector()
+		nodeGroupService := eks.NewNodeGroupService(nil, instanceSelectorFake)
+		err := nodeGroupService.ExpandInstanceSelectorOptions(isc.nodeGroups, isc.clusterAZs)
+		if isc.expectedErr != "" {
+			Expect(err.Error()).To(ContainSubstring(isc.expectedErr))
 			return
+		}
+		Expect(instanceSelectorFake.FilterCallCount()).To(Equal(len(isc.nodeGroups)))
+
+		for i := range isc.nodeGroups {
+			Expect(*instanceSelectorFake.FilterArgsForCall(i).AvailabilityZones).To(Equal(isc.expectedAZs))
 		}
 
 		Expect(err).ToNot(HaveOccurred())
-		for _, np := range isc.nodePools {
+		for _, np := range isc.nodeGroups {
 			switch ng := np.(type) {
 			case *api.NodeGroup:
-				if len(isc.instanceTypes) > 0 {
-					Expect(ng.InstancesDistribution.InstanceTypes).To(Equal(isc.instanceTypes))
+				if len(isc.expectedInstanceTypes) > 0 {
+					Expect(ng.InstancesDistribution.InstanceTypes).To(Equal(isc.expectedInstanceTypes))
 				} else {
 					Expect(ng.InstancesDistribution == nil || len(ng.InstancesDistribution.InstanceTypes) == 0).To(BeTrue())
 				}
 
 			case *api.ManagedNodeGroup:
-				Expect(ng.InstanceTypes).To(Equal(isc.instanceTypes))
+				Expect(ng.InstanceTypes).To(Equal(isc.expectedInstanceTypes))
 
 			default:
 				panic("unreachable code")
@@ -60,7 +67,7 @@ var _ = Describe("Instance Selector", func() {
 	},
 
 		Entry("valid instance selector criteria", instanceSelectorCase{
-			nodePools: []api.NodePool{
+			nodeGroups: []api.NodePool{
 				&api.NodeGroup{
 					NodeGroupBase: &api.NodeGroupBase{},
 				},
@@ -68,29 +75,41 @@ var _ = Describe("Instance Selector", func() {
 					NodeGroupBase: &api.NodeGroupBase{},
 				},
 			},
-			selector: &api.InstanceSelector{
+			instanceSelectorValue: &api.InstanceSelector{
 				VCPUs:           1,
 				CPUArchitecture: "x86_64",
 			},
-			createInstanceSelector: makeInstanceSelector("t2.medium"),
-			instanceTypes:          []string{"t2.medium"},
+			createFakeInstanceSelector: makeInstanceSelector("t2.medium"),
+			expectedInstanceTypes:      []string{"t2.medium"},
+			clusterAZs:                 []string{"az1", "az2"},
+			expectedAZs:                []string{"az1", "az2"},
 		}),
 
-		Entry("no instance selector criteria", instanceSelectorCase{
-			nodePools: []api.NodePool{
+		Entry("valid instance selector criteria with ng-specific AZs", instanceSelectorCase{
+			nodeGroups: []api.NodePool{
 				&api.NodeGroup{
-					NodeGroupBase: &api.NodeGroupBase{},
+					NodeGroupBase: &api.NodeGroupBase{
+						AvailabilityZones: []string{"az3", "az4"},
+					},
 				},
 				&api.ManagedNodeGroup{
-					NodeGroupBase: &api.NodeGroupBase{},
+					NodeGroupBase: &api.NodeGroupBase{
+						AvailabilityZones: []string{"az3", "az4"},
+					},
 				},
 			},
-			selector:               &api.InstanceSelector{},
-			createInstanceSelector: makeInstanceSelector("c5.large", "c4.large"),
+			instanceSelectorValue: &api.InstanceSelector{
+				VCPUs:           1,
+				CPUArchitecture: "x86_64",
+			},
+			createFakeInstanceSelector: makeInstanceSelector("t2.medium"),
+			expectedInstanceTypes:      []string{"t2.medium"},
+			clusterAZs:                 []string{"az1", "az2"},
+			expectedAZs:                []string{"az3", "az4"},
 		}),
 
 		Entry("no matching instances", instanceSelectorCase{
-			nodePools: []api.NodePool{
+			nodeGroups: []api.NodePool{
 				&api.NodeGroup{
 					NodeGroupBase: &api.NodeGroupBase{},
 				},
@@ -98,16 +117,16 @@ var _ = Describe("Instance Selector", func() {
 					NodeGroupBase: &api.NodeGroupBase{},
 				},
 			},
-			selector: &api.InstanceSelector{
+			instanceSelectorValue: &api.InstanceSelector{
 				VCPUs:  1000,
 				Memory: "400GiB",
 			},
-			createInstanceSelector: makeInstanceSelector(),
-			err:                    "instance selector criteria matched no instances",
+			createFakeInstanceSelector: makeInstanceSelector(),
+			expectedErr:                "instance selector criteria matched no instances",
 		}),
 
 		Entry("nodeGroup with instancesDistribution set", instanceSelectorCase{
-			nodePools: []api.NodePool{
+			nodeGroups: []api.NodePool{
 				&api.NodeGroup{
 					NodeGroupBase: &api.NodeGroupBase{},
 					InstancesDistribution: &api.NodeGroupInstancesDistribution{
@@ -118,16 +137,16 @@ var _ = Describe("Instance Selector", func() {
 					NodeGroupBase: &api.NodeGroupBase{},
 				},
 			},
-			selector: &api.InstanceSelector{
+			instanceSelectorValue: &api.InstanceSelector{
 				VCPUs:  2,
 				Memory: "4",
 			},
-			createInstanceSelector: makeInstanceSelector("m5.large", "m5.xlarge"),
-			instanceTypes:          []string{"m5.large", "m5.xlarge"},
+			createFakeInstanceSelector: makeInstanceSelector("m5.large", "m5.xlarge"),
+			expectedInstanceTypes:      []string{"m5.large", "m5.xlarge"},
 		}),
 
 		Entry("mismatching instanceTypes and instance selector criteria for unmanaged nodegroup", instanceSelectorCase{
-			nodePools: []api.NodePool{
+			nodeGroups: []api.NodePool{
 				&api.NodeGroup{
 					NodeGroupBase: &api.NodeGroupBase{},
 					InstancesDistribution: &api.NodeGroupInstancesDistribution{
@@ -136,31 +155,31 @@ var _ = Describe("Instance Selector", func() {
 					},
 				},
 			},
-			selector: &api.InstanceSelector{
+			instanceSelectorValue: &api.InstanceSelector{
 				VCPUs:  2,
 				Memory: "4",
 			},
-			createInstanceSelector: makeInstanceSelector("c3.large", "c4.xlarge", "c5.large"),
-			err:                    "instance types matched by instance selector criteria do not match",
+			createFakeInstanceSelector: makeInstanceSelector("c3.large", "c4.xlarge", "c5.large"),
+			expectedErr:                "instance types matched by instance selector criteria do not match",
 		}),
 
 		Entry("mismatching instanceTypes and instance selector criteria for managed nodegroup", instanceSelectorCase{
-			nodePools: []api.NodePool{
+			nodeGroups: []api.NodePool{
 				&api.ManagedNodeGroup{
 					NodeGroupBase: &api.NodeGroupBase{},
 					InstanceTypes: []string{"c3.large", "c4.large"},
 				},
 			},
-			selector: &api.InstanceSelector{
+			instanceSelectorValue: &api.InstanceSelector{
 				VCPUs:  2,
 				Memory: "4",
 			},
-			createInstanceSelector: makeInstanceSelector("c3.large", "c4.xlarge", "c5.large"),
-			err:                    "instance types matched by instance selector criteria do not match",
+			createFakeInstanceSelector: makeInstanceSelector("c3.large", "c4.xlarge", "c5.large"),
+			expectedErr:                "instance types matched by instance selector criteria do not match",
 		}),
 
 		Entry("matching instanceTypes and instance selector criteria", instanceSelectorCase{
-			nodePools: []api.NodePool{
+			nodeGroups: []api.NodePool{
 				&api.ManagedNodeGroup{
 					NodeGroupBase: &api.NodeGroupBase{},
 					InstanceTypes: []string{"c3.large", "c4.large", "c5.large"},
@@ -173,12 +192,12 @@ var _ = Describe("Instance Selector", func() {
 					},
 				},
 			},
-			selector: &api.InstanceSelector{
+			instanceSelectorValue: &api.InstanceSelector{
 				VCPUs:  2,
 				Memory: "4",
 			},
-			createInstanceSelector: makeInstanceSelector("c3.large", "c4.large", "c5.large"),
-			instanceTypes:          []string{"c3.large", "c4.large", "c5.large"},
+			createFakeInstanceSelector: makeInstanceSelector("c3.large", "c4.large", "c5.large"),
+			expectedInstanceTypes:      []string{"c3.large", "c4.large", "c5.large"},
 		}),
 	)
 })

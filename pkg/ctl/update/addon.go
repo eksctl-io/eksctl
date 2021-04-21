@@ -21,13 +21,14 @@ func updateAddonCmd(cmd *cmdutils.Cmd) {
 		"",
 	)
 
-	var force bool
+	var force, wait bool
 	cmd.ClusterConfig.Addons = []*api.Addon{{}}
 	cmd.FlagSetGroup.InFlagSet("Addon", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cmd.ClusterConfig.Addons[0].Name, "name", "", "Addon name")
 		fs.StringVar(&cmd.ClusterConfig.Addons[0].Version, "version", "", "Addon version")
 		fs.StringVar(&cmd.ClusterConfig.Addons[0].ServiceAccountRoleARN, "service-account-role-arn", "", "Addon serviceAccountRoleARN")
 		fs.BoolVar(&force, "force", false, "Force applies the add-on to overwrite an existing add-on")
+		fs.BoolVar(&wait, "wait", false, "Wait for the addon update to complete")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -40,11 +41,11 @@ func updateAddonCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return updateAddon(cmd, force)
+		return updateAddon(cmd, force, wait)
 	}
 }
 
-func updateAddon(cmd *cmdutils.Cmd, force bool) error {
+func updateAddon(cmd *cmdutils.Cmd, force, wait bool) error {
 	if err := cmdutils.NewCreateOrUpgradeAddonLoader(cmd).Load(); err != nil {
 		return err
 	}
@@ -90,7 +91,7 @@ func updateAddon(cmd *cmdutils.Cmd, force bool) error {
 		if force { //force is specified at cmdline level
 			a.Force = true
 		}
-		err := addonManager.Update(a)
+		err := addonManager.Update(a, wait)
 		if err != nil {
 			return err
 		}

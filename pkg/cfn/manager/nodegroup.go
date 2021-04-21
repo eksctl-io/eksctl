@@ -100,6 +100,10 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 		if *s.StackStatus == cfn.StackStatusDeleteComplete {
 			continue
 		}
+		if *s.StackStatus == cfn.StackStatusDeleteFailed {
+			logger.Warning("stack's status of nodegroup named %s is %s", *s.StackName, *s.StackStatus)
+			continue
+		}
 		if c.GetNodeGroupName(s) != "" {
 			nodeGroupStacks = append(nodeGroupStacks, s)
 		}
@@ -248,7 +252,6 @@ func (c *StackCollection) getUnmanagedNodeGroupAutoScalingGroupName(s *Stack) (s
 	if err != nil {
 		return "", err
 	}
-
 	return *res.StackResourceDetail.PhysicalResourceId, nil
 }
 
