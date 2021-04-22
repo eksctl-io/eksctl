@@ -1,4 +1,4 @@
-package nodebootstrap
+package legacy
 
 import (
 	"fmt"
@@ -12,6 +12,51 @@ import (
 )
 
 const ubuntu2004ResolveConfPath = "/run/systemd/resolve/resolv.conf"
+
+type UbuntuBootstrapper struct {
+	clusterSpec *api.ClusterConfig
+	ng          *api.NodeGroup
+}
+
+func NewUbuntuBootstrapper(clusterSpec *api.ClusterConfig, ng *api.NodeGroup) UbuntuBootstrapper {
+	return UbuntuBootstrapper{
+		clusterSpec: clusterSpec,
+		ng:          ng,
+	}
+}
+
+func (b UbuntuBootstrapper) UserData() (string, error) {
+	config := cloudconfig.New()
+
+	files, err := makeUbuntuConfig(b.clusterSpec, b.ng)
+	if err != nil {
+		return "", err
+	}
+
+	scripts := []string{}
+
+	for _, command := range b.ng.PreBootstrapCommands {
+		config.AddShellCommand(command)
+	}
+
+	if b.ng.OverrideBootstrapCommand != nil {
+		config.AddShellCommand(*b.ng.OverrideBootstrapCommand)
+	} else {
+		scripts = append(scripts, "bootstrap.legacy.ubuntu.sh")
+	}
+
+	if err = addFilesAndScripts(config, files, scripts); err != nil {
+		return "", err
+	}
+
+	body, err := config.Encode()
+	if err != nil {
+		return "", errors.Wrap(err, "encoding user data")
+	}
+
+	logger.Debug("user-data = %s", body)
+	return body, nil
+}
 
 func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) ([]configFile, error) {
 	clientConfigData, err := makeClientConfigData(spec, kubeconfig.HeptioAuthenticatorAWS)
@@ -78,38 +123,4 @@ func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) ([]configFile,
 	}}
 
 	return files, nil
-}
-
-// NewUserDataForUbuntu creates new user data for Ubuntu 18.04 & 20.04 nodes
-func NewUserDataForUbuntu(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
-	config := cloudconfig.New()
-
-	files, err := makeUbuntuConfig(spec, ng)
-	if err != nil {
-		return "", err
-	}
-
-	scripts := []string{}
-
-	for _, command := range ng.PreBootstrapCommands {
-		config.AddShellCommand(command)
-	}
-
-	if ng.OverrideBootstrapCommand != nil {
-		config.AddShellCommand(*ng.OverrideBootstrapCommand)
-	} else {
-		scripts = append(scripts, "bootstrap.ubuntu.sh")
-	}
-
-	if err = addFilesAndScripts(config, files, scripts); err != nil {
-		return "", err
-	}
-
-	body, err := config.Encode()
-	if err != nil {
-		return "", errors.Wrap(err, "encoding user data")
-	}
-
-	logger.Debug("user-data = %s", body)
-	return body, nil
 }

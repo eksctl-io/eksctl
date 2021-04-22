@@ -98,6 +98,7 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 			ng.InstanceType = DefaultNodeType
 		}
 	}
+
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = DefaultNodeImageFamily
 	}

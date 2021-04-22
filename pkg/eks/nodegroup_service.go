@@ -41,6 +41,13 @@ func (m *NodeGroupService) Normalize(nodePools []api.NodePool, clusterMeta *api.
 	for _, np := range nodePools {
 		switch ng := np.(type) {
 		case *api.NodeGroup:
+			// TODO remove
+			// This is a temporary hack to go down a legacy bootstrap codepath for Ubuntu
+			// and AL2 images
+			if ng.AMI != "" {
+				logger.Warning("Custom AMI detected for nodegroup %s. Please refer to https://github.com/weaveworks/eksctl/issues/3563 for upcoming breaking changes", ng.Name)
+				ng.CustomAMI = true
+			}
 			// resolve AMI
 			if !api.IsAMI(ng.AMI) {
 				if err := ResolveAMI(m.provider, clusterMeta.Version, ng); err != nil {
