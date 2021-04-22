@@ -96,6 +96,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		NodeRole:      nodeRole,
 		Labels:        m.nodeGroup.Labels,
 		Tags:          m.nodeGroup.Tags,
+		Taints:        m.nodeGroup.Taints,
 	}
 
 	if m.nodeGroup.Spot {

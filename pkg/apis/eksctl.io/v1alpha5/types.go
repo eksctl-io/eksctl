@@ -825,9 +825,6 @@ type NodeGroup struct {
 	// +optional
 	CPUCredits *string `json:"cpuCredits,omitempty"`
 
-	// +optional
-	Taints map[string]string `json:"taints,omitempty"`
-
 	// Associate load balancers with auto scaling group
 	// +optional
 	ClassicLoadBalancerNames []string `json:"classicLoadBalancerNames,omitempty"`
@@ -1237,6 +1234,9 @@ type NodeGroupBase struct {
 	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
+	// Taints taints to apply to the nodegroup
+	// +optional
+	Taints map[string]string `json:"taints,omitempty"`
 	// +optional
 	IAM *NodeGroupIAM `json:"iam,omitempty"`
 
