@@ -1,4 +1,4 @@
-package nodebootstrap
+package legacy
 
 import (
 	"fmt"

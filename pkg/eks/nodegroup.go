@@ -47,7 +47,6 @@ func getNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) (int, error) {
 	logger.Info("nodegroup %q has %d node(s)", ng.NameString(), len(nodes.Items))
 	counter := 0
 	for _, node := range nodes.Items {
-		// logger.Debug("node[%d]=%#v", n, node)
 		ready := "not ready"
 		if isNodeReady(&node) {
 			ready = "ready"

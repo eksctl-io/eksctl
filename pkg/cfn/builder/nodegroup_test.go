@@ -2,6 +2,7 @@ package builder_test
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -12,6 +13,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder/fakes"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/eks/mocks"
+	bootstrapfakes "github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
@@ -24,6 +26,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 		supportsManagedNodes bool
 		forceAddCNIPolicy    bool
 		fakeVPCImporter      *vpcfakes.FakeImporter
+		fakeBootstrapper     *bootstrapfakes.FakeBootstrapper
 		mockEC2              = &mocks.EC2API{}
 		mockIAM              = &mocks.IAMAPI{}
 	)
@@ -32,11 +35,13 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 		supportsManagedNodes = false
 		forceAddCNIPolicy = false
 		fakeVPCImporter = new(vpcfakes.FakeImporter)
+		fakeBootstrapper = new(bootstrapfakes.FakeBootstrapper)
 		cfg, ng = newClusterAndNodeGroup()
 	})
 
 	JustBeforeEach(func() {
 		ngrs = builder.NewNodeGroupResourceSet(mockEC2, mockIAM, cfg, ng, supportsManagedNodes, forceAddCNIPolicy, fakeVPCImporter)
+		ngrs.SetBootstrapper(fakeBootstrapper)
 	})
 
 	Describe("AddAllResources", func() {
@@ -590,6 +595,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 		Context("adding resources for nodegroup", func() {
 			BeforeEach(func() {
 				ng.AMI = "ami-123"
+				fakeBootstrapper.UserDataReturns("lovely data right here", nil)
 			})
 
 			It("creates new NodeGroupLaunchTemplate resource", func() {
@@ -598,10 +604,20 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				Expect(properties.LaunchTemplateName).To(Equal(map[string]interface{}{"Fn::Sub": "${AWS::StackName}"}))
 				Expect(properties.LaunchTemplateData.IamInstanceProfile.Arn).To(Equal(makeIamInstanceProfileRef()))
 				Expect(properties.LaunchTemplateData.ImageID).To(Equal("ami-123"))
-				Expect(properties.LaunchTemplateData.UserData).To(Equal(""))
+				Expect(properties.LaunchTemplateData.UserData).To(Equal("lovely data right here"))
 				Expect(properties.LaunchTemplateData.InstanceType).To(Equal("m5.large"))
 				Expect(properties.LaunchTemplateData.MetadataOptions.HTTPPutResponseHopLimit).To(Equal(float64(2)))
 				Expect(properties.LaunchTemplateData.MetadataOptions.HTTPTokens).To(Equal("optional"))
+			})
+
+			Context("creating userdata fails", func() {
+				BeforeEach(func() {
+					fakeBootstrapper.UserDataReturns("", errors.New("this is fine"))
+				})
+
+				It("returns the error", func() {
+					Expect(addErr).To(MatchError(ContainSubstring("this is fine")))
+				})
 			})
 
 			Context("ng.DisableIMDSv1 is enabled", func() {
