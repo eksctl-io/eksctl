@@ -51,6 +51,26 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			Expect(cfg.CloudWatch.ClusterLogging.EnableTypes).To(Equal(SupportedCloudWatchClusterLogTypes()))
 		})
+
+		It("should expand `['api', '*', 'audit']` to all", func() {
+			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"api", "*", "audit"}
+
+			SetClusterConfigDefaults(cfg)
+			err = ValidateClusterConfig(cfg)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(cfg.CloudWatch.ClusterLogging.EnableTypes).To(Equal(SupportedCloudWatchClusterLogTypes()))
+		})
+
+		It("should expand `['authenticator', 'controllermanager', 'all']` to all", func() {
+			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"authenticator", "controllermanager", "all"}
+
+			SetClusterConfigDefaults(cfg)
+			err = ValidateClusterConfig(cfg)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(cfg.CloudWatch.ClusterLogging.EnableTypes).To(Equal(SupportedCloudWatchClusterLogTypes()))
+		})
 	})
 
 	Context("SSH settings", func() {
