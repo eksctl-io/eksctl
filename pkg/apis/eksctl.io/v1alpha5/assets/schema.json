@@ -1087,6 +1087,15 @@
           "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
           "default": "{}"
         },
+        "taints": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "taints to apply to the nodegroup",
+          "x-intellij-html-description": "taints to apply to the nodegroup",
+          "default": "{}"
+        },
         "volumeEncrypted": {
           "type": "boolean"
         },
@@ -1138,6 +1147,7 @@
         "labels",
         "privateNetworking",
         "tags",
+        "taints",
         "iam",
         "ami",
         "securityGroups",
@@ -1380,6 +1390,8 @@
             "type": "string"
           },
           "type": "object",
+          "description": "taints to apply to the nodegroup",
+          "x-intellij-html-description": "taints to apply to the nodegroup",
           "default": "{}"
         },
         "targetGroupARNs": {
@@ -1441,6 +1453,7 @@
         "labels",
         "privateNetworking",
         "tags",
+        "taints",
         "iam",
         "ami",
         "securityGroups",
@@ -1463,7 +1476,6 @@
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",
-        "taints",
         "classicLoadBalancerNames",
         "targetGroupARNs",
         "bottlerocket",

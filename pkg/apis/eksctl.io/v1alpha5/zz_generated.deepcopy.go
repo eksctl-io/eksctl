@@ -937,13 +937,6 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		*out = new(string)
 		**out = **in
 	}
-	if in.Taints != nil {
-		in, out := &in.Taints, &out.Taints
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
-	}
 	if in.ClassicLoadBalancerNames != nil {
 		in, out := &in.ClassicLoadBalancerNames, &out.ClassicLoadBalancerNames
 		*out = make([]string, len(*in))
@@ -1013,6 +1006,13 @@ func (in *NodeGroupBase) DeepCopyInto(out *NodeGroupBase) {
 	}
 	if in.Tags != nil {
 		in, out := &in.Tags, &out.Tags
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
+	if in.Taints != nil {
+		in, out := &in.Taints, &out.Taints
 		*out = make(map[string]string, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val
