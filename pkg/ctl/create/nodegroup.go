@@ -102,7 +102,7 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Addons", func(fs *pflag.FlagSet) {
-		cmdutils.AddCommonCreateNodeGroupAddonsFlags(fs, ng, options.CreateNGOptions)
+		cmdutils.AddCommonCreateNodeGroupAddonsFlags(fs, ng, &options.CreateNGOptions)
 	})
 
 	cmdutils.AddInstanceSelectorOptions(cmd.FlagSetGroup, ng)
