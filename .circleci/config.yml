@@ -210,12 +210,6 @@ jobs:
 
 workflows:
   version: 2
-  any-commit:
-    jobs:
-      - test-and-build:
-          filters:
-            tags:
-              ignore: /.*/
   # Uncomment this to create binaries for all distros in a PR
 #  build-all:
 #    jobs:

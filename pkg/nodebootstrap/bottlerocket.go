@@ -10,21 +10,33 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
+type Bottlerocket struct {
+	spec *api.ClusterConfig
+	ng   *api.NodeGroup
+}
+
+func NewBottlerocketBootstrapper(spec *api.ClusterConfig, ng *api.NodeGroup) *Bottlerocket {
+	return &Bottlerocket{
+		spec: spec,
+		ng:   ng,
+	}
+}
+
 // NewUserDataForBottlerocket generates TOML userdata for bootstrapping a Bottlerocket node.
-func NewUserDataForBottlerocket(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
-	if ng.Bottlerocket.Settings == nil {
-		ng.Bottlerocket.Settings = &api.InlineDocument{}
+func (b *Bottlerocket) UserData() (string, error) {
+	if b.ng.Bottlerocket.Settings == nil {
+		b.ng.Bottlerocket.Settings = &api.InlineDocument{}
 	}
 
 	// Update settings based on NodeGroup configuration. Values set here are not
 	// allowed to be set by the user - the values are owned by the NodeGroup and
 	// expressly written into settings.
-	if err := setDerivedBottlerocketSettings(ng); err != nil {
+	if err := setDerivedBottlerocketSettings(b.ng); err != nil {
 		return "", err
 	}
 
 	settings, err := toml.TreeFromMap(map[string]interface{}{
-		"settings": *ng.Bottlerocket.Settings,
+		"settings": *b.ng.Bottlerocket.Settings,
 	})
 	if err != nil {
 		return "", errors.Wrap(err, "error loading user provided settings")
@@ -32,10 +44,10 @@ func NewUserDataForBottlerocket(spec *api.ClusterConfig, ng *api.NodeGroup) (str
 
 	// All input settings key names need to be checked & protected against
 	// TOML's dotted key semantics.
-	protectTOMLKeys([]string{"settings"}, settings)
+	ProtectTOMLKeys([]string{"settings"}, settings)
 
 	// Generate TOML for launch in this NodeGroup.
-	data, err := bottlerocketSettingsTOML(spec, ng, settings)
+	data, err := bottlerocketSettingsTOML(b.spec, b.ng, settings)
 	if err != nil {
 		return "", err
 	}
@@ -73,12 +85,12 @@ func setDerivedBottlerocketSettings(ng *api.NodeGroup) error {
 	return nil
 }
 
-// protectTOMLKeys processes a tree finding and replacing dotted keys
+// ProtectTOMLKeys processes a tree finding and replacing dotted keys
 // with quoted keys to retain the configured settings. This prevents
 // TOML parsers from deserializing keys into nested key-value pairs at
 // each dot encountered - which is not uncommon in the context of
 // Kubernetes' labels, annotations, and taints.
-func protectTOMLKeys(path []string, tree *toml.Tree) {
+func ProtectTOMLKeys(path []string, tree *toml.Tree) {
 	pathTree, ok := tree.GetPath(path).(*toml.Tree)
 	if !ok {
 		return
@@ -99,7 +111,7 @@ func protectTOMLKeys(path []string, tree *toml.Tree) {
 			}
 		}
 		if _, ok := val.(*toml.Tree); ok {
-			protectTOMLKeys(keyPath, tree)
+			ProtectTOMLKeys(keyPath, tree)
 		}
 	}
 }

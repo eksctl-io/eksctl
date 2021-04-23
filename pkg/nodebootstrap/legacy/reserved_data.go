@@ -1,4 +1,4 @@
-package nodebootstrap
+package legacy
 
 // This file was generated 2020-07-16T12:21:47-04:00 by reserved_generate.go; DO NOT EDIT.
 

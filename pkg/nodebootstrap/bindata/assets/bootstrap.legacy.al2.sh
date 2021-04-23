@@ -1,4 +1,5 @@
 #!/bin/bash
+# TODO Deprecated, will be removed soon
 
 set -o errexit
 set -o pipefail

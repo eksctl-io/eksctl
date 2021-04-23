@@ -1309,6 +1309,11 @@ type NodeGroupBase struct {
 	// Internal fields
 	// Some AMIs (bottlerocket) have a separate volume for the OS
 	AdditionalEncryptedVolume string `json:"-"`
+
+	// TODO remove this
+	// This is a hack, will be removed shortly. When this is true for Ubuntu and
+	// AL2 images a legacy bootstrapper will be used.
+	CustomAMI bool `json:"-"`
 }
 
 // Placement specifies placement group information
