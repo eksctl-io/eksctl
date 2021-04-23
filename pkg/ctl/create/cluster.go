@@ -80,7 +80,7 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Cluster and nodegroup add-ons", func(fs *pflag.FlagSet) {
-		cmdutils.AddCommonCreateNodeGroupAddonsFlags(fs, ng, params.CreateNGOptions)
+		cmdutils.AddCommonCreateNodeGroupAddonsFlags(fs, ng, &params.CreateNGOptions)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {
