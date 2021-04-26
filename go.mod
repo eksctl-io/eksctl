@@ -23,7 +23,7 @@ require (
 	github.com/gofrs/flock v0.8.0
 	github.com/golangci/golangci-lint v1.39.0
 	github.com/gomarkdown/markdown v0.0.0-20201113031856-722100d81a8e // indirect
-	github.com/google/uuid v1.2.0 // indirect
+	github.com/google/uuid v1.2.0
 	github.com/goreleaser/goreleaser v0.162.0
 	github.com/instrumenta/kubeval v0.0.0-20190918223246-8d013ec9fc56
 	github.com/justinbarrick/go-k8s-portforward v1.0.4-0.20200904152830-b575325c1855
@@ -45,7 +45,7 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
-	github.com/tidwall/gjson v1.7.4
+	github.com/tidwall/gjson v1.7.5
 	github.com/tidwall/sjson v1.1.6
 	github.com/tj/assert v0.0.3
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
