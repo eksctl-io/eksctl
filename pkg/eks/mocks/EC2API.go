@@ -5711,6 +5711,84 @@ func (_m *EC2API) CreateReservedInstancesListingWithContext(_a0 context.Context,
 	return r0, r1
 }
 
+// CreateRestoreImageTask provides a mock function with given fields: _a0
+func (_m *EC2API) CreateRestoreImageTask(_a0 *ec2.CreateRestoreImageTaskInput) (*ec2.CreateRestoreImageTaskOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.CreateRestoreImageTaskOutput
+	if rf, ok := ret.Get(0).(func(*ec2.CreateRestoreImageTaskInput) *ec2.CreateRestoreImageTaskOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateRestoreImageTaskOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.CreateRestoreImageTaskInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateRestoreImageTaskRequest provides a mock function with given fields: _a0
+func (_m *EC2API) CreateRestoreImageTaskRequest(_a0 *ec2.CreateRestoreImageTaskInput) (*request.Request, *ec2.CreateRestoreImageTaskOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.CreateRestoreImageTaskInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.CreateRestoreImageTaskOutput
+	if rf, ok := ret.Get(1).(func(*ec2.CreateRestoreImageTaskInput) *ec2.CreateRestoreImageTaskOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.CreateRestoreImageTaskOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateRestoreImageTaskWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) CreateRestoreImageTaskWithContext(_a0 context.Context, _a1 *ec2.CreateRestoreImageTaskInput, _a2 ...request.Option) (*ec2.CreateRestoreImageTaskOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.CreateRestoreImageTaskOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateRestoreImageTaskInput, ...request.Option) *ec2.CreateRestoreImageTaskOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateRestoreImageTaskOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateRestoreImageTaskInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateRoute provides a mock function with given fields: _a0
 func (_m *EC2API) CreateRoute(_a0 *ec2.CreateRouteInput) (*ec2.CreateRouteOutput, error) {
 	ret := _m.Called(_a0)
@@ -6171,6 +6249,84 @@ func (_m *EC2API) CreateSpotDatafeedSubscriptionWithContext(_a0 context.Context,
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateSpotDatafeedSubscriptionInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateStoreImageTask provides a mock function with given fields: _a0
+func (_m *EC2API) CreateStoreImageTask(_a0 *ec2.CreateStoreImageTaskInput) (*ec2.CreateStoreImageTaskOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.CreateStoreImageTaskOutput
+	if rf, ok := ret.Get(0).(func(*ec2.CreateStoreImageTaskInput) *ec2.CreateStoreImageTaskOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateStoreImageTaskOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.CreateStoreImageTaskInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateStoreImageTaskRequest provides a mock function with given fields: _a0
+func (_m *EC2API) CreateStoreImageTaskRequest(_a0 *ec2.CreateStoreImageTaskInput) (*request.Request, *ec2.CreateStoreImageTaskOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.CreateStoreImageTaskInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.CreateStoreImageTaskOutput
+	if rf, ok := ret.Get(1).(func(*ec2.CreateStoreImageTaskInput) *ec2.CreateStoreImageTaskOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.CreateStoreImageTaskOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateStoreImageTaskWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) CreateStoreImageTaskWithContext(_a0 context.Context, _a1 *ec2.CreateStoreImageTaskInput, _a2 ...request.Option) (*ec2.CreateStoreImageTaskOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.CreateStoreImageTaskOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateStoreImageTaskInput, ...request.Option) *ec2.CreateStoreImageTaskOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateStoreImageTaskOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateStoreImageTaskInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -21913,6 +22069,119 @@ func (_m *EC2API) DescribeStaleSecurityGroupsWithContext(_a0 context.Context, _a
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeStaleSecurityGroupsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeStoreImageTasks provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeStoreImageTasks(_a0 *ec2.DescribeStoreImageTasksInput) (*ec2.DescribeStoreImageTasksOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeStoreImageTasksOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeStoreImageTasksInput) *ec2.DescribeStoreImageTasksOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeStoreImageTasksOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeStoreImageTasksInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeStoreImageTasksPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeStoreImageTasksPages(_a0 *ec2.DescribeStoreImageTasksInput, _a1 func(*ec2.DescribeStoreImageTasksOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeStoreImageTasksInput, func(*ec2.DescribeStoreImageTasksOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeStoreImageTasksPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeStoreImageTasksPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeStoreImageTasksInput, _a2 func(*ec2.DescribeStoreImageTasksOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeStoreImageTasksInput, func(*ec2.DescribeStoreImageTasksOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeStoreImageTasksRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeStoreImageTasksRequest(_a0 *ec2.DescribeStoreImageTasksInput) (*request.Request, *ec2.DescribeStoreImageTasksOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeStoreImageTasksInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeStoreImageTasksOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeStoreImageTasksInput) *ec2.DescribeStoreImageTasksOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeStoreImageTasksOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeStoreImageTasksWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeStoreImageTasksWithContext(_a0 context.Context, _a1 *ec2.DescribeStoreImageTasksInput, _a2 ...request.Option) (*ec2.DescribeStoreImageTasksOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeStoreImageTasksOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeStoreImageTasksInput, ...request.Option) *ec2.DescribeStoreImageTasksOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeStoreImageTasksOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeStoreImageTasksInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
