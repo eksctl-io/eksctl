@@ -13,7 +13,6 @@ import (
 
 func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
 	mng := m.nodeGroup
-
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
 		TagSpecifications: makeTags(mng.NodeGroupBase, m.clusterConfig.Metadata),
 		MetadataOptions:   makeMetadataOptions(mng.NodeGroupBase),
@@ -178,6 +177,18 @@ func makeTags(ng *api.NodeGroupBase, meta *api.ClusterMeta) []gfnec2.LaunchTempl
 	return []gfnec2.LaunchTemplate_TagSpecification{
 		{
 			ResourceType: gfnt.NewString("instance"),
+			Tags:         cfnTags,
+		},
+		{
+			ResourceType: gfnt.NewString("volume"),
+			Tags:         cfnTags,
+		},
+		{
+			ResourceType: gfnt.NewString("elastic-gpu"),
+			Tags:         cfnTags,
+		},
+		{
+			ResourceType: gfnt.NewString("spot-instances-request"),
 			Tags:         cfnTags,
 		},
 	}
