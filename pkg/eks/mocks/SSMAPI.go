@@ -10717,6 +10717,84 @@ func (_m *SSMAPI) TerminateSessionWithContext(_a0 context.Context, _a1 *ssm.Term
 	return r0, r1
 }
 
+// UnlabelParameterVersion provides a mock function with given fields: _a0
+func (_m *SSMAPI) UnlabelParameterVersion(_a0 *ssm.UnlabelParameterVersionInput) (*ssm.UnlabelParameterVersionOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ssm.UnlabelParameterVersionOutput
+	if rf, ok := ret.Get(0).(func(*ssm.UnlabelParameterVersionInput) *ssm.UnlabelParameterVersionOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.UnlabelParameterVersionOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ssm.UnlabelParameterVersionInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UnlabelParameterVersionRequest provides a mock function with given fields: _a0
+func (_m *SSMAPI) UnlabelParameterVersionRequest(_a0 *ssm.UnlabelParameterVersionInput) (*request.Request, *ssm.UnlabelParameterVersionOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ssm.UnlabelParameterVersionInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ssm.UnlabelParameterVersionOutput
+	if rf, ok := ret.Get(1).(func(*ssm.UnlabelParameterVersionInput) *ssm.UnlabelParameterVersionOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ssm.UnlabelParameterVersionOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UnlabelParameterVersionWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *SSMAPI) UnlabelParameterVersionWithContext(_a0 context.Context, _a1 *ssm.UnlabelParameterVersionInput, _a2 ...request.Option) (*ssm.UnlabelParameterVersionOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ssm.UnlabelParameterVersionOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.UnlabelParameterVersionInput, ...request.Option) *ssm.UnlabelParameterVersionOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.UnlabelParameterVersionOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.UnlabelParameterVersionInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateAssociation provides a mock function with given fields: _a0
 func (_m *SSMAPI) UpdateAssociation(_a0 *ssm.UpdateAssociationInput) (*ssm.UpdateAssociationOutput, error) {
 	ret := _m.Called(_a0)
