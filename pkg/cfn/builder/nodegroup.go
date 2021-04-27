@@ -288,7 +288,7 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_Laun
 		ImageId:         gfnt.NewString(n.spec.AMI),
 		UserData:        gfnt.NewString(userData),
 		MetadataOptions: makeMetadataOptions(n.spec.NodeGroupBase),
-		TagSpecifications: makeTags(n.spec.NodeGroupBase, n.clusterSpec.Metadata),
+		TagSpecifications: makeTags(n.spec.NodeGroupBase, n.clusterSpec.Metadata, false),
 	}
 
 	if err := buildNetworkInterfaces(launchTemplateData, n.spec.InstanceTypeList(), api.IsEnabled(n.spec.EFAEnabled), n.securityGroups, n.ec2API); err != nil {
