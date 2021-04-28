@@ -41,6 +41,23 @@
                 "Value": "managed"
               }
             ]
+          },
+          {
+            "ResourceType": "volume",
+            "Tags": [
+              {
+                "Key": "Name",
+                "Value": "lt-ssh-disabled-Node"
+              },
+              {
+                "Key": "alpha.eksctl.io/nodegroup-name",
+                "Value": "ssh-disabled"
+              },
+              {
+                "Key": "alpha.eksctl.io/nodegroup-type",
+                "Value": "managed"
+              }
+            ]
           }
         ],
         "UserData": "TUlNRS1WZXJzaW9uOiAxLjANCkNvbnRlbnQtVHlwZTogbXVsdGlwYXJ0L21peGVkOyBib3VuZGFyeT0vLw0KDQotLS8vDQpDb250ZW50LVR5cGU6IHRleHQveC1zaGVsbHNjcmlwdA0KQ29udGVudC1UeXBlOiBjaGFyc2V0PSJ1cy1hc2NpaSINCg0KIyEvYmluL2Jhc2gKCnNldCAtbyBlcnJleGl0CnNldCAtbyBwaXBlZmFpbApzZXQgLW8gbm91bnNldAoKeXVtIGluc3RhbGwgLXkgYW1hem9uLXNzbS1hZ2VudApzeXN0ZW1jdGwgZW5hYmxlIGFtYXpvbi1zc20tYWdlbnQKc3lzdGVtY3RsIHN0YXJ0IGFtYXpvbi1zc20tYWdlbnQKDQotLS8vLS0NCg=="

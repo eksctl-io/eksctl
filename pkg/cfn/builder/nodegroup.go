@@ -285,9 +285,9 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_Laun
 		IamInstanceProfile: &gfnec2.LaunchTemplate_IamInstanceProfile{
 			Arn: n.instanceProfileARN,
 		},
-		ImageId:         gfnt.NewString(n.spec.AMI),
-		UserData:        gfnt.NewString(userData),
-		MetadataOptions: makeMetadataOptions(n.spec.NodeGroupBase),
+		ImageId:           gfnt.NewString(n.spec.AMI),
+		UserData:          gfnt.NewString(userData),
+		MetadataOptions:   makeMetadataOptions(n.spec.NodeGroupBase),
 		TagSpecifications: makeTags(n.spec.NodeGroupBase, n.clusterSpec.Metadata, false),
 	}
 
