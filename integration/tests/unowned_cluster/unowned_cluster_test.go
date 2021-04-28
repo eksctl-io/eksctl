@@ -259,6 +259,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"--name", "vpc-cni",
 				"--wait",
 				"--force",
+				"--version", "latest",
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfully())

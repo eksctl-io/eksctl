@@ -93,6 +93,54 @@ var _ = Describe("Update", func() {
 			Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("original-arn"))
 			Expect(*updateAddonInput.ResolveConflicts).To(Equal("overwrite"))
 		})
+		When("the version is set to latest", func() {
+			BeforeEach(func() {
+				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(1))
+					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+				}).Return(&awseks.DescribeAddonVersionsOutput{
+					Addons: []*awseks.AddonInfo{
+						{
+							AddonName: aws.String("my-addon"),
+							Type:      aws.String("type"),
+							AddonVersions: []*awseks.AddonVersionInfo{
+								{
+									AddonVersion: aws.String("v1.7.5-eksbuild.1"),
+								},
+								{
+									//not sure if all versions come with v prefix or not, so test a mix
+									AddonVersion: aws.String("v1.7.7-eksbuild.1"),
+								},
+								{
+									AddonVersion: aws.String("v1.7.6"),
+								},
+							},
+						},
+					},
+				}, nil)
+
+				mockProvider.MockEKS().On("UpdateAddon", mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(1))
+					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.UpdateAddonInput{}))
+					updateAddonInput = args[0].(*awseks.UpdateAddonInput)
+				}).Return(&awseks.UpdateAddonOutput{}, nil)
+			})
+
+			It("discovers and uses the latest available version", func() {
+				err := addonManager.Update(&api.Addon{
+					Name:    "my-addon",
+					Version: "latest",
+				}, false)
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
+				Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
+				Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
+				Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
+				Expect(*updateAddonInput.AddonVersion).To(Equal("v1.7.7-eksbuild.1"))
+				Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("original-arn"))
+			})
+		})
 	})
 
 	When("wait is true", func() {

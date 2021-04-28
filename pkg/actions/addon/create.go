@@ -26,9 +26,17 @@ const (
 )
 
 func (a *Manager) Create(addon *api.Addon, wait bool) error {
+	version := addon.Version
+	if addon.Version == "latest" {
+		var err error
+		version, err = a.getLatestVersion(addon)
+		if err != nil {
+			return fmt.Errorf("failed to fetch latest addon version: %w", err)
+		}
+	}
 	createAddonInput := &eks.CreateAddonInput{
 		AddonName:    &addon.Name,
-		AddonVersion: &addon.Version,
+		AddonVersion: &version,
 		ClusterName:  &a.clusterConfig.Metadata.Name,
 		//ResolveConflicts: 		"enum":["OVERWRITE","NONE"]
 	}

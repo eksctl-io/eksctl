@@ -25,7 +25,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 	cmd.ClusterConfig.Addons = []*api.Addon{{}}
 	cmd.FlagSetGroup.InFlagSet("Addon", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cmd.ClusterConfig.Addons[0].Name, "name", "", "Add-on name")
-		fs.StringVar(&cmd.ClusterConfig.Addons[0].Version, "version", "", "Add-on version")
+		fs.StringVar(&cmd.ClusterConfig.Addons[0].Version, "version", "", "Add-on version. Use `eksctl utils describe-addon-versions` to discover a version or set to \"latest\"")
 		fs.StringVar(&cmd.ClusterConfig.Addons[0].ServiceAccountRoleARN, "service-account-role-arn", "", "Add-on serviceAccountRoleARN")
 		fs.BoolVar(&force, "force", false, "Force applies the add-on to overwrite an existing add-on")
 		fs.BoolVar(&wait, "wait", false, "Wait for the addon creation to complete")
