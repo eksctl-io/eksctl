@@ -265,16 +265,15 @@ func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(serviceAccounts []s
 			}
 		}
 
+		meta, err := api.ClusterIAMServiceAccountNameStringToClusterIAMMeta(serviceAccount)
+		if err != nil {
+			return nil, err
+		}
 		saTasks.Append(&kubernetesTask{
 			info:       fmt.Sprintf("delete serviceaccount %q", serviceAccount),
 			kubernetes: clientSetGetter,
-			call: func(clientSet kubernetes.Interface) error {
-				meta, err := api.ClusterIAMServiceAccountNameStringToClusterIAMMeta(serviceAccount)
-				if err != nil {
-					return err
-				}
-				return kubernetes.MaybeDeleteServiceAccount(clientSet, meta.AsObjectMeta())
-			},
+			objectMeta: meta.AsObjectMeta(),
+			call:       kubernetes.MaybeDeleteServiceAccount,
 		})
 		taskTree.Append(saTasks)
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -130,18 +131,19 @@ func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*
 		}
 
 		if !api.IsEnabled(sa.RoleOnly) {
+			sa.SetAnnotations()
+			if sa.Labels == nil {
+				sa.Labels = make(map[string]string)
+			}
+
+			sa.Labels[managedByKubernetesLabelKey] = managedByKubernetesLabelValue
 			saTasks.Append(&kubernetesTask{
 				info:       fmt.Sprintf("create serviceaccount %q", sa.NameString()),
 				kubernetes: clientSetGetter,
-				call: func(clientSet kubernetes.Interface) error {
-					sa.SetAnnotations()
-					if sa.Labels == nil {
-						sa.Labels = make(map[string]string)
-					}
-
-					sa.Labels[managedByKubernetesLabelKey] = managedByKubernetesLabelValue
-					if err := kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa.ClusterIAMMeta.AsObjectMeta()); err != nil {
-						return errors.Wrapf(err, "failed to create service account %s", sa.NameString())
+				objectMeta: sa.ClusterIAMMeta.AsObjectMeta(),
+				call: func(clientSet kubernetes.Interface, objectMeta v1.ObjectMeta) error {
+					if err := kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, objectMeta); err != nil {
+						return errors.Wrapf(err, "failed to create service account %s/%s", objectMeta.GetNamespace(), objectMeta.GetName())
 					}
 					return nil
 				},
