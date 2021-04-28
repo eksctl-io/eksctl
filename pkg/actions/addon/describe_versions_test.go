@@ -2,6 +2,7 @@ package addon_test
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -25,7 +26,7 @@ var _ = Describe("DescribeVersions", func() {
 		manager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
 			Version: "1.18",
 			Name:    "my-cluster",
-		}}, mockProvider.EKS(), nil, false, nil, nil)
+		}}, mockProvider.EKS(), nil, false, nil, nil, 5*time.Minute)
 		Expect(err).NotTo(HaveOccurred())
 	})
 

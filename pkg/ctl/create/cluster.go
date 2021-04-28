@@ -251,7 +251,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 
 		var taskTree *tasks.TaskTree
 		if supported {
-			createAddonTasks := addon.CreateAddonTasks(cfg, ctl, true)
+			createAddonTasks := addon.CreateAddonTasks(cfg, ctl, true, cmd.ProviderConfig.WaitTimeout)
 			createAddonTasks.IsSubTask = true
 			taskTree = stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks, createAddonTasks)
 		} else {
