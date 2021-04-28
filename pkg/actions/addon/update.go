@@ -40,10 +40,20 @@ func (a *Manager) Update(addon *api.Addon, wait bool) error {
 
 		updateAddonInput.AddonVersion = &summary.Version
 	} else {
-		if summary.Version != addon.Version {
-			logger.Info("new version provided %s", addon.Version)
+		version := addon.Version
+		if version == "latest" {
+			var err error
+			version, err = a.getLatestVersion(addon)
+			if err != nil {
+				return fmt.Errorf("failed to fetch latest addon version: %w", err)
+			}
 		}
-		updateAddonInput.AddonVersion = &addon.Version
+
+		if summary.Version != version {
+			logger.Info("new version provided %s", version)
+		}
+
+		updateAddonInput.AddonVersion = &version
 	}
 
 	//check if we have been provided a different set of policies/role

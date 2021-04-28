@@ -123,6 +123,120 @@ var _ = Describe("Create", func() {
 		})
 	})
 
+	When("version is set to latest", func() {
+		When("the versions are valid", func() {
+			BeforeEach(func() {
+				withOIDC = false
+
+				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(1))
+					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+				}).Return(&awseks.DescribeAddonVersionsOutput{
+					Addons: []*awseks.AddonInfo{
+						{
+							AddonName: aws.String("my-addon"),
+							Type:      aws.String("type"),
+							AddonVersions: []*awseks.AddonVersionInfo{
+								{
+									AddonVersion: aws.String("v1.7.5-eksbuild.1"),
+								},
+								{
+									//not sure if all versions come with v prefix or not, so test a mix
+									AddonVersion: aws.String("v1.7.7-eksbuild.1"),
+								},
+								{
+									AddonVersion: aws.String("v1.7.6"),
+								},
+							},
+						},
+					},
+				}, nil)
+			})
+
+			It("discovers and uses the latest available version", func() {
+				err := manager.Create(&api.Addon{
+					Name:             "my-addon",
+					Version:          "latest",
+					AttachPolicyARNs: []string{"arn-1"},
+				}, false)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
+				Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
+				Expect(*createAddonInput.AddonName).To(Equal("my-addon"))
+				Expect(*createAddonInput.AddonVersion).To(Equal("v1.7.7-eksbuild.1"))
+				Expect(createAddonInput.ServiceAccountRoleArn).To(BeNil())
+			})
+		})
+
+		When("the versions are invalid", func() {
+			BeforeEach(func() {
+				withOIDC = false
+
+				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(1))
+					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+				}).Return(&awseks.DescribeAddonVersionsOutput{
+					Addons: []*awseks.AddonInfo{
+						{
+							AddonName: aws.String("my-addon"),
+							Type:      aws.String("type"),
+							AddonVersions: []*awseks.AddonVersionInfo{
+								{
+									AddonVersion: aws.String("v1.7.5-eksbuild.1"),
+								},
+								{
+									//not sure if all versions come with v prefix or not, so test a mix
+									AddonVersion: aws.String("v1.7.7-eksbuild.1"),
+								},
+								{
+									AddonVersion: aws.String("tottaly not semver"),
+								},
+							},
+						},
+					},
+				}, nil)
+			})
+
+			It("returns an error", func() {
+				err := manager.Create(&api.Addon{
+					Name:             "my-addon",
+					Version:          "latest",
+					AttachPolicyARNs: []string{"arn-1"},
+				}, false)
+				Expect(err).To(MatchError(ContainSubstring("failed to parse version \"tottaly not semver\":")))
+			})
+		})
+
+		When("there are no versions returned", func() {
+			BeforeEach(func() {
+				withOIDC = false
+
+				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(1))
+					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+				}).Return(&awseks.DescribeAddonVersionsOutput{
+					Addons: []*awseks.AddonInfo{
+						{
+							AddonName:     aws.String("my-addon"),
+							Type:          aws.String("type"),
+							AddonVersions: []*awseks.AddonVersionInfo{},
+						},
+					},
+				}, nil)
+			})
+
+			It("returns an error", func() {
+				err := manager.Create(&api.Addon{
+					Name:             "my-addon",
+					Version:          "latest",
+					AttachPolicyARNs: []string{"arn-1"},
+				}, false)
+				Expect(err).To(MatchError(ContainSubstring("no versions available for \"my-addon\"")))
+			})
+		})
+	})
+
 	When("force is true", func() {
 		BeforeEach(func() {
 			withOIDC = false
