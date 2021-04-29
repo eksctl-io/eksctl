@@ -57,23 +57,6 @@
                         "Value": "managed"
                       }
                     ]
-                  },
-                  {
-                    "ResourceType": "spot-instances-request",
-                    "Tags": [
-                      {
-                        "Key": "Name",
-                        "Value": "lt-spot-Node"
-                      },
-                      {
-                        "Key": "alpha.eksctl.io/nodegroup-name",
-                        "Value": "spot"
-                      },
-                      {
-                        "Key": "alpha.eksctl.io/nodegroup-type",
-                        "Value": "managed"
-                      }
-                    ]
                   }
                 ]
             },

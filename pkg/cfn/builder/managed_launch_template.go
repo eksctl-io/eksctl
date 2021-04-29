@@ -14,7 +14,7 @@ import (
 func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
 	mng := m.nodeGroup
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
-		TagSpecifications: makeTags(mng.NodeGroupBase, m.clusterConfig.Metadata, m.nodeGroup.Spot),
+		TagSpecifications: makeTags(mng.NodeGroupBase, m.clusterConfig.Metadata),
 		MetadataOptions:   makeMetadataOptions(mng.NodeGroupBase),
 	}
 
@@ -161,7 +161,7 @@ func makeSSHIngressRules(n *api.NodeGroupBase, vpcCIDR, description string) []gf
 	return sgIngressRules
 }
 
-func makeTags(ng *api.NodeGroupBase, meta *api.ClusterMeta, spotInstances bool) []gfnec2.LaunchTemplate_TagSpecification {
+func makeTags(ng *api.NodeGroupBase, meta *api.ClusterMeta) []gfnec2.LaunchTemplate_TagSpecification {
 	cfnTags := []cloudformation.Tag{
 		{
 			Key:   gfnt.NewString("Name"),
@@ -185,14 +185,6 @@ func makeTags(ng *api.NodeGroupBase, meta *api.ClusterMeta, spotInstances bool) 
 			ResourceType: gfnt.NewString("volume"),
 			Tags:         cfnTags,
 		})
-
-	if spotInstances {
-		launchTemplateTagSpecs = append(launchTemplateTagSpecs,
-			gfnec2.LaunchTemplate_TagSpecification{
-				ResourceType: gfnt.NewString("spot-instances-request"),
-				Tags:         cfnTags,
-			})
-	}
 
 	return launchTemplateTagSpecs
 }
