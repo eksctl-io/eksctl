@@ -68,6 +68,16 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 
 	n.vpc = n.vpcImporter.VPC()
 
+	if n.spec.Tags == nil {
+		n.spec.Tags = map[string]string{}
+	}
+
+	for k, v := range n.clusterSpec.Metadata.Tags {
+		if _, exists := n.spec.Tags[k]; !exists {
+			n.spec.Tags[k] = v
+		}
+	}
+
 	// Ensure MinSize is set, as it is required by the ASG cfn resource
 	// TODO this validation and default setting should happen way earlier than this
 	if n.spec.MinSize == nil {
@@ -275,9 +285,10 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_Laun
 		IamInstanceProfile: &gfnec2.LaunchTemplate_IamInstanceProfile{
 			Arn: n.instanceProfileARN,
 		},
-		ImageId:         gfnt.NewString(n.spec.AMI),
-		UserData:        gfnt.NewString(userData),
-		MetadataOptions: makeMetadataOptions(n.spec.NodeGroupBase),
+		ImageId:           gfnt.NewString(n.spec.AMI),
+		UserData:          gfnt.NewString(userData),
+		MetadataOptions:   makeMetadataOptions(n.spec.NodeGroupBase),
+		TagSpecifications: makeTags(n.spec.NodeGroupBase, n.clusterSpec.Metadata),
 	}
 
 	if err := buildNetworkInterfaces(launchTemplateData, n.spec.InstanceTypeList(), api.IsEnabled(n.spec.EFAEnabled), n.securityGroups, n.ec2API); err != nil {

@@ -81,6 +81,13 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	if m.nodeGroup.DesiredCapacity != nil {
 		scalingConfig.DesiredSize = gfnt.NewInteger(*m.nodeGroup.DesiredCapacity)
 	}
+
+	for k, v := range m.clusterConfig.Metadata.Tags {
+		if _, exists := m.nodeGroup.Tags[k]; !exists {
+			m.nodeGroup.Tags[k] = v
+		}
+	}
+
 	managedResource := &gfneks.Nodegroup{
 		ClusterName:   gfnt.NewString(m.clusterConfig.Metadata.Name),
 		NodegroupName: gfnt.NewString(m.nodeGroup.Name),
