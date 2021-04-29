@@ -50,6 +50,36 @@ var _ = Describe("Update", func() {
 		Expect(err).ToNot(HaveOccurred())
 		oidc.ProviderARN = "arn:aws:iam::456123987123:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E"
 
+		mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything).Run(func(args mock.Arguments) {
+			Expect(args).To(HaveLen(1))
+			Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+		}).Return(&awseks.DescribeAddonVersionsOutput{
+			Addons: []*awseks.AddonInfo{
+				{
+					AddonName: aws.String("my-addon"),
+					Type:      aws.String("type"),
+					AddonVersions: []*awseks.AddonVersionInfo{
+						{
+							AddonVersion: aws.String("v1.7.5-eksbuild.1"),
+						},
+						{
+							AddonVersion: aws.String("v1.7.5-eksbuild.2"),
+						},
+						{
+							//not sure if all versions come with v prefix or not, so test a mix
+							AddonVersion: aws.String("v1.7.7-eksbuild.2"),
+						},
+						{
+							AddonVersion: aws.String("v1.7.6"),
+						},
+						{
+							AddonVersion: aws.String("v1.0.0-eksbuild.2"),
+						},
+					},
+				},
+			},
+		}, nil)
+
 		mockProvider.MockEKS().On("DescribeAddon", mock.Anything).Run(func(args mock.Arguments) {
 			Expect(args).To(HaveLen(1))
 			Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
@@ -57,7 +87,7 @@ var _ = Describe("Update", func() {
 		}).Return(&awseks.DescribeAddonOutput{
 			Addon: &awseks.Addon{
 				AddonName:             aws.String("my-addon"),
-				AddonVersion:          aws.String("1.0"),
+				AddonVersion:          aws.String("v1.0.0-eksbuild.2"),
 				ServiceAccountRoleArn: aws.String("original-arn"),
 				Status:                aws.String("created"),
 			},
@@ -72,60 +102,66 @@ var _ = Describe("Update", func() {
 	})
 
 	When("Updating the version", func() {
-		It("updates the addon and preserves the existing role", func() {
+		BeforeEach(func() {
 			mockProvider.MockEKS().On("UpdateAddon", mock.Anything).Run(func(args mock.Arguments) {
 				Expect(args).To(HaveLen(1))
 				Expect(args[0]).To(BeAssignableToTypeOf(&awseks.UpdateAddonInput{}))
 				updateAddonInput = args[0].(*awseks.UpdateAddonInput)
 			}).Return(&awseks.UpdateAddonOutput{}, nil)
+		})
 
+		It("updates the addon and preserves the existing role", func() {
 			err := addonManager.Update(&api.Addon{
 				Name:    "my-addon",
-				Version: "1.1",
+				Version: "v1.0.0-eksbuild.2",
 				Force:   true,
 			}, false)
+
 			Expect(err).NotTo(HaveOccurred())
 			Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
 			Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
 			Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
 			Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
-			Expect(*updateAddonInput.AddonVersion).To(Equal("1.1"))
+			Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.2"))
 			Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("original-arn"))
 			Expect(*updateAddonInput.ResolveConflicts).To(Equal("overwrite"))
 		})
-		When("the version is set to latest", func() {
-			BeforeEach(func() {
-				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(1))
-					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
-				}).Return(&awseks.DescribeAddonVersionsOutput{
-					Addons: []*awseks.AddonInfo{
-						{
-							AddonName: aws.String("my-addon"),
-							Type:      aws.String("type"),
-							AddonVersions: []*awseks.AddonVersionInfo{
-								{
-									AddonVersion: aws.String("v1.7.5-eksbuild.1"),
-								},
-								{
-									//not sure if all versions come with v prefix or not, so test a mix
-									AddonVersion: aws.String("v1.7.7-eksbuild.1"),
-								},
-								{
-									AddonVersion: aws.String("v1.7.6"),
-								},
-							},
-						},
-					},
-				}, nil)
 
-				mockProvider.MockEKS().On("UpdateAddon", mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(1))
-					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.UpdateAddonInput{}))
-					updateAddonInput = args[0].(*awseks.UpdateAddonInput)
-				}).Return(&awseks.UpdateAddonOutput{}, nil)
+		When("the version is not set", func() {
+			It("preserves the existing addon version", func() {
+				err := addonManager.Update(&api.Addon{
+					Name:    "my-addon",
+					Version: "",
+				}, false)
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
+				Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
+				Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
+				Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
+				Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.2"))
+				Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("original-arn"))
 			})
+		})
 
+		When("the version is set to a numeric version", func() {
+			It("discovers and uses the latest available version", func() {
+				err := addonManager.Update(&api.Addon{
+					Name:    "my-addon",
+					Version: "1.7.5",
+				}, false)
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
+				Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
+				Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
+				Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
+				Expect(*updateAddonInput.AddonVersion).To(Equal("v1.7.5-eksbuild.2"))
+				Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("original-arn"))
+			})
+		})
+
+		When("the version is set to latest", func() {
 			It("discovers and uses the latest available version", func() {
 				err := addonManager.Update(&api.Addon{
 					Name:    "my-addon",
@@ -137,7 +173,7 @@ var _ = Describe("Update", func() {
 				Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
 				Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
 				Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
-				Expect(*updateAddonInput.AddonVersion).To(Equal("v1.7.7-eksbuild.1"))
+				Expect(*updateAddonInput.AddonVersion).To(Equal("v1.7.7-eksbuild.2"))
 				Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("original-arn"))
 			})
 		})
@@ -164,7 +200,7 @@ var _ = Describe("Update", func() {
 
 				err := addonManager.Update(&api.Addon{
 					Name:    "my-addon",
-					Version: "1.1",
+					Version: "v1.0.0-eksbuild.2",
 					Force:   true,
 				}, true)
 				Expect(err).NotTo(HaveOccurred())
@@ -172,7 +208,7 @@ var _ = Describe("Update", func() {
 				Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
 				Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
 				Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
-				Expect(*updateAddonInput.AddonVersion).To(Equal("1.1"))
+				Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.2"))
 				Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("original-arn"))
 				Expect(*updateAddonInput.ResolveConflicts).To(Equal("overwrite"))
 			})
@@ -198,7 +234,7 @@ var _ = Describe("Update", func() {
 
 				err := addonManager.Update(&api.Addon{
 					Name:    "my-addon",
-					Version: "1.1",
+					Version: "v1.0.0-eksbuild.2",
 					Force:   true,
 				}, true)
 				Expect(err).To(MatchError("timed out waiting for addon \"my-addon\" to become active, status: \"DEGRADED\""))
@@ -217,7 +253,7 @@ var _ = Describe("Update", func() {
 
 				err := addonManager.Update(&api.Addon{
 					Name:                  "my-addon",
-					Version:               "1.1",
+					Version:               "v1.0.0-eksbuild.2",
 					ServiceAccountRoleARN: "new-arn",
 				}, false)
 
@@ -226,7 +262,7 @@ var _ = Describe("Update", func() {
 				Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
 				Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
 				Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
-				Expect(*updateAddonInput.AddonVersion).To(Equal("1.1"))
+				Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.2"))
 				Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("new-arn"))
 			})
 		})
@@ -254,7 +290,7 @@ var _ = Describe("Update", func() {
 
 					err := addonManager.Update(&api.Addon{
 						Name:             "vpc-cni",
-						Version:          "1.1",
+						Version:          "v1.0.0-eksbuild.2",
 						AttachPolicyARNs: []string{"arn-1"},
 					}, false)
 
@@ -271,7 +307,7 @@ var _ = Describe("Update", func() {
 
 					Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
 					Expect(*updateAddonInput.AddonName).To(Equal("vpc-cni"))
-					Expect(*updateAddonInput.AddonVersion).To(Equal("1.1"))
+					Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.2"))
 					Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("new-service-account-role-arn"))
 
 				})
@@ -287,7 +323,7 @@ var _ = Describe("Update", func() {
 
 					err := addonManager.Update(&api.Addon{
 						Name:             "my-addon",
-						Version:          "1.1",
+						Version:          "v1.0.0-eksbuild.2",
 						AttachPolicyARNs: []string{"arn-1"},
 					}, false)
 
@@ -306,7 +342,7 @@ var _ = Describe("Update", func() {
 
 					Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
 					Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
-					Expect(*updateAddonInput.AddonVersion).To(Equal("1.1"))
+					Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.2"))
 					Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("new-service-account-role-arn"))
 				})
 			})

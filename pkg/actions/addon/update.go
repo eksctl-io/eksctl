@@ -2,6 +2,7 @@ package addon
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
@@ -41,7 +42,7 @@ func (a *Manager) Update(addon *api.Addon, wait bool) error {
 		updateAddonInput.AddonVersion = &summary.Version
 	} else {
 		version := addon.Version
-		if version == "latest" {
+		if version == "latest" || !strings.Contains(version, "eksbuild") {
 			var err error
 			version, err = a.getLatestVersion(addon)
 			if err != nil {
