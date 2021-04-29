@@ -35,7 +35,7 @@ type Manager struct {
 	timeout       time.Duration
 }
 
-func New(clusterConfig *api.ClusterConfig, eksAPI eksiface.EKSAPI, stackManager manager.StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface) (*Manager, error) {
+func New(clusterConfig *api.ClusterConfig, eksAPI eksiface.EKSAPI, stackManager manager.StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface, timeout time.Duration) (*Manager, error) {
 	if err := supportedVersion(clusterConfig.Metadata.Version); err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func New(clusterConfig *api.ClusterConfig, eksAPI eksiface.EKSAPI, stackManager 
 		oidcManager:   oidcManager,
 		stackManager:  stackManager,
 		clientSet:     clientSet,
-		timeout:       5 * time.Minute,
+		timeout:       timeout,
 	}, nil
 }
 

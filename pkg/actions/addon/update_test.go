@@ -66,7 +66,7 @@ var _ = Describe("Update", func() {
 		addonManager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
 			Version: "1.18",
 			Name:    "my-cluster",
-		}}, mockProvider.EKS(), fakeStackManager, true, oidc, nil)
+		}}, mockProvider.EKS(), fakeStackManager, true, oidc, nil, 5*time.Minute)
 		Expect(err).NotTo(HaveOccurred())
 		addonManager.SetTimeout(time.Second)
 	})
