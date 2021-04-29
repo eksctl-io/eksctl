@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -100,7 +101,15 @@ func (a *Manager) getLatestVersion(addon *api.Addon) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("failed to parse version %q: %w", *addonVersionInfo.AddonVersion, err)
 		}
-		versions = append(versions, v)
+
+		switch addon.Version {
+		case "latest":
+			versions = append(versions, v)
+		default:
+			if strings.Contains(*addonVersionInfo.AddonVersion, addon.Version) {
+				versions = append(versions, v)
+			}
+		}
 	}
 
 	sort.SliceStable(versions, func(i, j int) bool {
