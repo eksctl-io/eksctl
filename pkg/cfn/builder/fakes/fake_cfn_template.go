@@ -136,9 +136,10 @@ type LaunchTemplateData struct {
 	CreditSpecification *struct {
 		CPUCredits string
 	}
-	MetadataOptions MetadataOptions
-	Placement       Placement
-	KeyName         string
+	MetadataOptions   MetadataOptions
+	TagSpecifications []TagSpecification
+	Placement         Placement
+	KeyName           string
 }
 
 type Placement struct {
@@ -153,6 +154,11 @@ type BlockDeviceMappings struct {
 type MetadataOptions struct {
 	HTTPPutResponseHopLimit float64
 	HTTPTokens              string
+}
+
+type TagSpecification struct {
+	ResourceType *string
+	Tags         []Tag
 }
 
 type NetworkInterface struct {

@@ -40,7 +40,24 @@
                                 "Value": "managed"
                             }
                         ]
-                    }
+                    },
+                  {
+                    "ResourceType": "volume",
+                    "Tags": [
+                      {
+                        "Key": "Name",
+                        "Value": "lt-spot-Node"
+                      },
+                      {
+                        "Key": "alpha.eksctl.io/nodegroup-name",
+                        "Value": "spot"
+                      },
+                      {
+                        "Key": "alpha.eksctl.io/nodegroup-type",
+                        "Value": "managed"
+                      }
+                    ]
+                  }
                 ]
             },
             "LaunchTemplateName": {

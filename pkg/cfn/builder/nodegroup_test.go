@@ -608,6 +608,13 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				Expect(properties.LaunchTemplateData.InstanceType).To(Equal("m5.large"))
 				Expect(properties.LaunchTemplateData.MetadataOptions.HTTPPutResponseHopLimit).To(Equal(float64(2)))
 				Expect(properties.LaunchTemplateData.MetadataOptions.HTTPTokens).To(Equal("optional"))
+				Expect(properties.LaunchTemplateData.TagSpecifications).To(HaveLen(2))
+				Expect(properties.LaunchTemplateData.TagSpecifications[0].ResourceType).To(Equal(aws.String("instance")))
+				Expect(properties.LaunchTemplateData.TagSpecifications[0].Tags[0].Key).To(Equal("Name"))
+				Expect(properties.LaunchTemplateData.TagSpecifications[0].Tags[0].Value).To(Equal("bonsai-ng-abcd1234-Node"))
+				Expect(properties.LaunchTemplateData.TagSpecifications[1].ResourceType).To(Equal(aws.String("volume")))
+				Expect(properties.LaunchTemplateData.TagSpecifications[1].Tags[0].Key).To(Equal("Name"))
+				Expect(properties.LaunchTemplateData.TagSpecifications[1].Tags[0].Value).To(Equal("bonsai-ng-abcd1234-Node"))
 			})
 
 			Context("creating userdata fails", func() {
