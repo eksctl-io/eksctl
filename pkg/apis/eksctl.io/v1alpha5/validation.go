@@ -402,6 +402,8 @@ func validateNodeGroupLabels(labels map[string]string) error {
 	// - https://github.com/kubernetes/kubernetes/blob/v1.13.2/cmd/kubelet/app/options/options.go#L257-L267
 	// - https://github.com/kubernetes/kubernetes/blob/v1.13.2/pkg/kubelet/apis/well_known_labels.go
 	// we cannot import those packages because they break other dependencies
+	// Don't forget to allow commonLabels.
+	// https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/
 
 	unknownKubernetesLabels := []string{}
 
@@ -433,10 +435,19 @@ func validateNodeGroupLabels(labels map[string]string) error {
 	return nil
 }
 
+func isKubernetesRecommendedLabel(namespace string) bool {
+	for _, domain := range []string{"app.kubernetes.io"} {
+		if namespace == domain {
+			return true
+		}
+	}
+	return false
+}
+
 func isKubernetesLabel(namespace string) bool {
 	for _, domain := range []string{"kubernetes.io", "k8s.io"} {
 		if namespace == domain || strings.HasSuffix(namespace, "."+domain) {
-			return true
+			return !isKubernetesRecommendedLabel(namespace)
 		}
 	}
 	return false
