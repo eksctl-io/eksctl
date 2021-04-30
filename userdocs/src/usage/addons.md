@@ -74,6 +74,14 @@ You can see what addons are enabled in your cluster by running:
 eksctl get addons --cluster <cluster-name>
 ```
 
+## Setting the addon's version
+
+Setting the version of the addon is optional. If it is not set, `eks` will set the default version for this addon. Note that this might not necessarily be the latest version available. 
+
+The addon version can be set to `latest`. Alternatively, the version can be set with the EKS built specified, such as `v1.7.5-eksbuild.1` or `v1.7.5-eksbuild.2`. It can also be set to the release version of the addon, such as `v1.7.5` or `1.7.5`, and the `eksbuild` will be discovered and set for you.
+
+See the section below on how to discover available addons and their versions.
+
 ## Discovering addons
 You can discover what addons are available to install on your cluster by running:
 ```console
