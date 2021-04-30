@@ -70,7 +70,7 @@ func getAddon(cmd *cmdutils.Cmd, params *getCmdParams) error {
 	logger.Info("Kubernetes version %q in use by cluster %q", *output.Cluster.Version, cmd.ClusterConfig.Metadata.Name)
 	cmd.ClusterConfig.Metadata.Version = *output.Cluster.Version
 
-	addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.Provider.EKS(), stackManager, *cmd.ClusterConfig.IAM.WithOIDC, nil, nil)
+	addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.Provider.EKS(), stackManager, *cmd.ClusterConfig.IAM.WithOIDC, nil, nil, cmd.ProviderConfig.WaitTimeout)
 
 	if err != nil {
 		return err

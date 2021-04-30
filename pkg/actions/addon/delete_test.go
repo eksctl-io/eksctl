@@ -2,6 +2,7 @@ package addon_test
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
 
@@ -34,7 +35,7 @@ var _ = Describe("Delete", func() {
 		manager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
 			Version: "1.18",
 			Name:    "my-cluster",
-		}}, mockProvider.EKS(), fakeStackManager, withOIDC, nil, nil)
+		}}, mockProvider.EKS(), fakeStackManager, withOIDC, nil, nil, 5*time.Minute)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
