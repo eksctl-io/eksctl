@@ -95,6 +95,7 @@ func (a *Manager) getLatestVersion(addon *api.Addon) (string, error) {
 		return "", fmt.Errorf("no versions available for %q", addon.Name)
 	}
 
+	addonVersion := addon.Version
 	var versions []*version.Version
 	for _, addonVersionInfo := range addonInfos.Addons[0].AddonVersions {
 		v, err := version.NewVersion(*addonVersionInfo.AddonVersion)
@@ -102,18 +103,18 @@ func (a *Manager) getLatestVersion(addon *api.Addon) (string, error) {
 			return "", fmt.Errorf("failed to parse version %q: %w", *addonVersionInfo.AddonVersion, err)
 		}
 
-		switch addon.Version {
+		switch addonVersion {
 		case "latest":
 			versions = append(versions, v)
 		default:
-			if strings.Contains(*addonVersionInfo.AddonVersion, addon.Version) {
+			if strings.Contains(*addonVersionInfo.AddonVersion, addonVersion) {
 				versions = append(versions, v)
 			}
 		}
 	}
 
 	if len(versions) == 0 {
-		return "", fmt.Errorf("no versions available for %q", addon.Name)
+		return "", fmt.Errorf("version %s not available for %q", addonVersion, addon.Name)
 	}
 
 	sort.SliceStable(versions, func(i, j int) bool {

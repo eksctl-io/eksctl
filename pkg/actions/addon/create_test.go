@@ -198,7 +198,7 @@ var _ = Describe("Create", func() {
 						AttachPolicyARNs: []string{"arn-1"},
 					}, false)
 					Expect(err).To(HaveOccurred())
-					Expect(err).To(MatchError(ContainSubstring("no versions available for \"my-addon\"")))
+					Expect(err).To(MatchError(ContainSubstring("version 1.7.8 not available for \"my-addon\"")))
 				})
 			})
 		})
