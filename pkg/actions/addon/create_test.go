@@ -189,6 +189,18 @@ var _ = Describe("Create", func() {
 					Expect(createAddonInput.ServiceAccountRoleArn).To(BeNil())
 				})
 			})
+
+			When("the version is set to a version that does not exist", func() {
+				It("returns an error", func() {
+					err := manager.Create(&api.Addon{
+						Name:             "my-addon",
+						Version:          "1.7.8",
+						AttachPolicyARNs: []string{"arn-1"},
+					}, false)
+					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring("no versions available for \"my-addon\"")))
+				})
+			})
 		})
 
 		When("the versions are invalid", func() {

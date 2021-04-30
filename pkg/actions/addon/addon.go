@@ -112,6 +112,10 @@ func (a *Manager) getLatestVersion(addon *api.Addon) (string, error) {
 		}
 	}
 
+	if len(versions) == 0 {
+		return "", fmt.Errorf("no versions available for %q", addon.Name)
+	}
+
 	sort.SliceStable(versions, func(i, j int) bool {
 		return versions[j].LessThan(versions[i])
 	})

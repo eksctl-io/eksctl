@@ -179,6 +179,18 @@ var _ = Describe("Update", func() {
 					Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("original-arn"))
 				})
 			})
+
+			When("the version is set to a version that does not exist", func() {
+				It("returns an error", func() {
+					err := addonManager.Update(&api.Addon{
+						Name:             "my-addon",
+						Version:          "1.7.8",
+						AttachPolicyARNs: []string{"arn-1"},
+					}, false)
+					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring("no versions available for \"my-addon\"")))
+				})
+			})
 		})
 
 		When("wait is true", func() {
