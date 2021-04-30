@@ -150,6 +150,12 @@ existing cluster:
 $ eksctl create nodegroup --managed
 ```
 
+Tip : if you are using only one *`YOUR_CLUSTER.yaml`* file to describe your whole cluster, describe your new managed node group in its `managedNodeGroups` directive and run\:
+
+```console
+$ eksctl create nodegroup --config-file=YOUR_CLUSTER.yaml --include='YOUR_MANAGEDNODEGROUP_NAME'
+```
+
 ## Upgrading managed nodegroups
 You can update a nodegroup to the latest EKS-optimized AMI release version for the AMI type you are using at any time.
 
