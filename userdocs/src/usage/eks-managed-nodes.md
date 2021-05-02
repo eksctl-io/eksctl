@@ -153,7 +153,7 @@ $ eksctl create nodegroup --managed
 Tip : if you are using a `ClusterConfig` file to describe your whole cluster, describe your new managed node group in its `managedNodeGroups` field and run\:
 
 ```console
-$ eksctl create nodegroup --config-file=YOUR_CLUSTER.yaml --include='YOUR_MANAGEDNODEGROUP_NAME'
+$ eksctl create nodegroup --config-file=YOUR_CLUSTER.yaml'
 ```
 
 ## Upgrading managed nodegroups
