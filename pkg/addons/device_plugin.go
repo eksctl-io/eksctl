@@ -18,14 +18,6 @@ import (
 	clientappsv1 "k8s.io/client-go/kubernetes/typed/apps/v1"
 )
 
-const (
-	// Currently only us-east-1 and us-west-2 are available
-	// and both use this AWS account
-	neuronResourceAccount = "790709498068"
-)
-
-// useRegionalImage is specific to the neuron device plugin
-// we assume that only us-east-1 and us-west-2 support inferentia for now
 func useRegionalImage(spec *v1.PodTemplateSpec, region string, account string) error {
 	imageFormat := spec.Spec.Containers[0].Image
 	dnsSuffix, err := awsDNSSuffixForRegion(region)
@@ -149,7 +141,7 @@ func (n *NeuronDevicePlugin) Manifest() []byte {
 }
 
 func (n *NeuronDevicePlugin) SetImage(t *v1.PodTemplateSpec) error {
-	return useRegionalImage(t, n.region, neuronResourceAccount)
+	return nil
 }
 
 // Deploy deploys the Neuron device plugin to the specified cluster
