@@ -44,7 +44,7 @@ func (a *Manager) Update(addon *api.Addon, wait bool) error {
 		version := addon.Version
 		if version == "latest" || !strings.Contains(version, "eksbuild") {
 			var err error
-			version, err = a.getLatestVersion(addon)
+			version, err = a.getLatestMatchingVersion(addon)
 			if err != nil {
 				return fmt.Errorf("failed to fetch latest addon version: %w", err)
 			}

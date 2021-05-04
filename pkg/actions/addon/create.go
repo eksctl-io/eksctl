@@ -29,7 +29,7 @@ func (a *Manager) Create(addon *api.Addon, wait bool) error {
 	version := addon.Version
 	if version == "latest" || !strings.Contains(version, "eksbuild") && version != "" {
 		var err error
-		version, err = a.getLatestVersion(addon)
+		version, err = a.getLatestMatchingVersion(addon)
 		if err != nil {
 			return fmt.Errorf("failed to fetch version %s for addon %s: %w", version, addon.Name, err)
 		}

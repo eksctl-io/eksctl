@@ -86,15 +86,7 @@ func (a *Manager) waitForAddonToBeActive(addon *api.Addon) error {
 	return nil
 }
 
-func (a *Manager) getLatestVersion(addon *api.Addon) (string, error) {
-	addonVersion := addon.Version
-	if addonVersion != "latest" {
-		_, err := a.parseVersion(addonVersion)
-		if err != nil {
-			return "", err
-		}
-	}
-
+func (a *Manager) getLatestMatchingVersion(addon *api.Addon) (string, error) {
 	addonInfos, err := a.describeVersions(addon)
 	if err != nil {
 		return "", err
@@ -103,6 +95,7 @@ func (a *Manager) getLatestVersion(addon *api.Addon) (string, error) {
 		return "", fmt.Errorf("no versions available for %q", addon.Name)
 	}
 
+	addonVersion := addon.Version
 	var versions []*version.Version
 	for _, addonVersionInfo := range addonInfos.Addons[0].AddonVersions {
 		v, err := a.parseVersion(*addonVersionInfo.AddonVersion)
@@ -111,7 +104,7 @@ func (a *Manager) getLatestVersion(addon *api.Addon) (string, error) {
 		}
 
 		if addonVersion == "latest" || strings.Contains(*addonVersionInfo.AddonVersion, addonVersion) {
-		  versions = append(versions, v)
+			versions = append(versions, v)
 		}
 	}
 
