@@ -110,13 +110,8 @@ func (a *Manager) getLatestVersion(addon *api.Addon) (string, error) {
 			return "", err
 		}
 
-		switch addonVersion {
-		case "latest":
-			versions = append(versions, v)
-		default:
-			if strings.Contains(*addonVersionInfo.AddonVersion, addonVersion) {
-				versions = append(versions, v)
-			}
+		if addonVersion == "latest" || strings.Contains(*addonVersionInfo.AddonVersion, addonVersion) {
+		  versions = append(versions, v)
 		}
 	}
 
