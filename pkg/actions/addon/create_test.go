@@ -201,6 +201,18 @@ var _ = Describe("Create", func() {
 					Expect(err).To(MatchError(ContainSubstring("version 1.7.8 not available for \"my-addon\"")))
 				})
 			})
+
+			When("the version is set to an invalid value", func() {
+				It("returns an error", func() {
+					err := manager.Create(&api.Addon{
+						Name:             "my-addon",
+						Version:          "eks",
+						AttachPolicyARNs: []string{"arn-1"},
+					}, false)
+					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring("Malformed version: eks")))
+				})
+			})
 		})
 
 		When("the versions are invalid", func() {

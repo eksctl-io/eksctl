@@ -87,6 +87,14 @@ func (a *Manager) waitForAddonToBeActive(addon *api.Addon) error {
 }
 
 func (a *Manager) getLatestVersion(addon *api.Addon) (string, error) {
+	addonVersion := addon.Version
+	if addonVersion != "latest" {
+		_, err := a.parseVersion(addonVersion)
+		if err != nil {
+			return "", err
+		}
+	}
+
 	addonInfos, err := a.describeVersions(addon)
 	if err != nil {
 		return "", err
@@ -95,12 +103,11 @@ func (a *Manager) getLatestVersion(addon *api.Addon) (string, error) {
 		return "", fmt.Errorf("no versions available for %q", addon.Name)
 	}
 
-	addonVersion := addon.Version
 	var versions []*version.Version
 	for _, addonVersionInfo := range addonInfos.Addons[0].AddonVersions {
-		v, err := version.NewVersion(*addonVersionInfo.AddonVersion)
+		v, err := a.parseVersion(*addonVersionInfo.AddonVersion)
 		if err != nil {
-			return "", fmt.Errorf("failed to parse version %q: %w", *addonVersionInfo.AddonVersion, err)
+			return "", err
 		}
 
 		switch addonVersion {
@@ -138,4 +145,12 @@ func supportedVersion(version string) error {
 
 func (a *Manager) makeAddonName(name string) string {
 	return fmt.Sprintf("eksctl-%s-addon-%s", a.clusterConfig.Metadata.Name, name)
+}
+
+func (a *Manager) parseVersion(v string) (*version.Version, error) {
+	version, err := version.NewVersion(v)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse version %q: %w", v, err)
+	}
+	return version, nil
 }
