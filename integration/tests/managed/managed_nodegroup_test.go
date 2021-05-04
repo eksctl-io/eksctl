@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	harness "github.com/dlespiau/kube-test-harness"
 	. "github.com/onsi/ginkgo"
@@ -17,6 +19,7 @@ import (
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
+	"github.com/weaveworks/eksctl/integration/utilities/unowned"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 
@@ -30,7 +33,10 @@ const (
 	k8sUpdatePollTimeout  = "3m"
 )
 
-var params *tests.Params
+var (
+	params *tests.Params
+	cfg    *api.ClusterConfig
+)
 
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
@@ -56,23 +62,70 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 	)
 
 	defaultTimeout := 20 * time.Minute
+	var unownedCluster *unowned.Cluster
 
 	BeforeSuite(func() {
 		fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
+		cfg = api.NewClusterConfig()
+		cfg.Metadata = &api.ClusterMeta{
+			Name:    params.ClusterName,
+			Region:  params.Region,
+			Version: params.Version,
+		}
 
-		cmd := params.EksctlCreateCmd.WithArgs(
-			"cluster",
-			"--verbose", "4",
-			"--name", params.ClusterName,
-			"--tags", "alpha.eksctl.io/description=eksctl integration test",
-			"--managed",
-			"--nodegroup-name", initialNodeGroup,
-			"--node-labels", "ng-name="+initialNodeGroup,
-			"--nodes", "2",
-			"--version", params.Version,
-			"--kubeconfig", params.KubeconfigPath,
-		)
-		Expect(cmd).To(RunSuccessfully())
+		if params.UnownedCluster {
+			unownedCluster = unowned.NewCluster(cfg)
+			cfg.VPC = unownedCluster.VPC
+
+			cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name: initialNodeGroup,
+						ScalingConfig: &api.ScalingConfig{
+							DesiredCapacity: aws.Int(2),
+						},
+					},
+				},
+			}
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"nodegroup",
+					"--config-file", "-",
+					"--verbose", "4",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdinJSONContent(cfg)
+			Expect(cmd).To(RunSuccessfully())
+
+			cmd = params.EksctlUtilsCmd.WithArgs(
+				"write-kubeconfig",
+				"--verbose", "4",
+				"--cluster", params.ClusterName,
+				"--kubeconfig", params.KubeconfigPath,
+			)
+			Expect(cmd).To(RunSuccessfully())
+		} else {
+			cmd := params.EksctlCreateCmd.WithArgs(
+				"cluster",
+				"--verbose", "4",
+				"--name", params.ClusterName,
+				"--tags", "alpha.eksctl.io/description=eksctl integration test",
+				"--managed",
+				"--nodegroup-name", initialNodeGroup,
+				"--node-labels", "ng-name="+initialNodeGroup,
+				"--nodes", "2",
+				"--version", params.Version,
+				"--kubeconfig", params.KubeconfigPath,
+			)
+			Expect(cmd).To(RunSuccessfully())
+		}
+	})
+
+	AfterSuite(func() {
+		params.DeleteClusters()
+		if params.UnownedCluster {
+			unownedCluster.DeleteStack()
+		}
 	})
 
 	Context("cluster with 1 managed nodegroup", func() {
@@ -81,7 +134,10 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 
 			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, awseks.ClusterStatusActive, params.Version))
 
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
+			if !params.UnownedCluster {
+				Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
+			}
+
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initialNodeGroup)))
 		})
 
@@ -131,25 +187,48 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 
 		Context("and add two managed nodegroups (one public and one private)", func() {
 			It("should not return an error for public node group", func() {
-				cmd := params.EksctlCreateCmd.WithArgs(
-					"nodegroup",
-					"--cluster", params.ClusterName,
-					"--nodes", "4",
-					"--managed",
-					newPublicNodeGroup,
-				)
+				cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name: newPublicNodeGroup,
+							ScalingConfig: &api.ScalingConfig{
+								DesiredCapacity: aws.Int(4),
+							},
+							PrivateNetworking: false,
+						},
+					},
+				}
+				cmd := params.EksctlCreateCmd.
+					WithArgs(
+						"nodegroup",
+						"--config-file", "-",
+						"--verbose", "4",
+					).
+					WithoutArg("--region", params.Region).
+					WithStdinJSONContent(cfg)
 				Expect(cmd).To(RunSuccessfully())
 			})
 
 			It("should not return an error for private node group", func() {
-				cmd := params.EksctlCreateCmd.WithArgs(
-					"nodegroup",
-					"--cluster", params.ClusterName,
-					"--nodes", "2",
-					"--managed",
-					"--node-private-networking",
-					newPrivateNodeGroup,
-				)
+				cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name: newPrivateNodeGroup,
+							ScalingConfig: &api.ScalingConfig{
+								DesiredCapacity: aws.Int(2),
+							},
+							PrivateNetworking: true,
+						},
+					},
+				}
+				cmd := params.EksctlCreateCmd.
+					WithArgs(
+						"nodegroup",
+						"--config-file", "-",
+						"--verbose", "4",
+					).
+					WithoutArg("--region", params.Region).
+					WithStdinJSONContent(cfg)
 				Expect(cmd).To(RunSuccessfully())
 			})
 
@@ -290,8 +369,4 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			})
 		})
 	})
-})
-
-var _ = AfterSuite(func() {
-	params.DeleteClusters()
 })

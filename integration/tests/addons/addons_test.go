@@ -6,6 +6,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"testing"
+	"time"
+
+	"github.com/weaveworks/eksctl/integration/utilities/unowned"
 
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -16,7 +19,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var params *tests.Params
+var (
+	params  *tests.Params
+	cluster *unowned.Cluster
+)
 
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
@@ -29,13 +35,10 @@ func TestEKSAddons(t *testing.T) {
 }
 
 var _ = Describe("(Integration) [EKS Addons test]", func() {
-
 	Context("Creating a cluster with addons", func() {
-		clusterName := params.NewClusterName("addons")
-
 		BeforeSuite(func() {
 			clusterConfig := api.NewClusterConfig()
-			clusterConfig.Metadata.Name = clusterName
+			clusterConfig.Metadata.Name = params.ClusterName
 			clusterConfig.Metadata.Version = "1.19"
 			clusterConfig.Metadata.Region = params.Region
 			clusterConfig.IAM.WithOIDC = api.Enabled()
@@ -53,47 +56,78 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			}
 			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{ng}
 
-			data, err := json.Marshal(clusterConfig)
-			Expect(err).ToNot(HaveOccurred())
+			if params.UnownedCluster {
+				cluster = unowned.NewCluster(clusterConfig)
+				cluster.CreateNodegroups("ng")
+			} else {
+				data, err := json.Marshal(clusterConfig)
+				Expect(err).ToNot(HaveOccurred())
 
-			cmd := params.EksctlCreateCmd.
-				WithArgs(
-					"cluster",
-					"--config-file", "-",
-					"--verbose", "4",
-				).
-				WithoutArg("--region", params.Region).
-				WithStdin(bytes.NewReader(data))
-			Expect(cmd).To(RunSuccessfully())
+				cmd := params.EksctlCreateCmd.
+					WithArgs(
+						"cluster",
+						"--config-file", "-",
+						"--verbose", "4",
+					).
+					WithoutArg("--region", params.Region).
+					WithStdin(bytes.NewReader(data))
+				Expect(cmd).To(RunSuccessfully())
+			}
 
 		})
 
 		AfterSuite(func() {
 			cmd := params.EksctlDeleteCmd.WithArgs(
-				"cluster", clusterName,
+				"cluster", params.ClusterName,
+				"--wait",
 				"--verbose", "2",
 			)
 			Expect(cmd).To(RunSuccessfully())
+
+			if params.UnownedCluster {
+				cluster.DeleteStack()
+			}
 		})
 
 		It("should support addons", func() {
 			By("Asserting the addon is listed in `get addons`")
+			//its created as part of create cluster for owned clusters
+			if params.UnownedCluster {
+				cmd := params.EksctlCreateCmd.
+					WithArgs(
+						"addon",
+						"--cluster", params.ClusterName,
+						"--name", "vpc-cni",
+						"--verbose", "2",
+					)
+				Expect(cmd).To(RunSuccessfully())
+			}
 			cmd := params.EksctlGetCmd.
 				WithArgs(
 					"addons",
-					"--cluster", clusterName,
+					"--cluster", params.ClusterName,
 					"--verbose", "2",
 				)
 			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 				ContainElement(ContainSubstring("vpc-cni")),
 			))
 
+			Eventually(func() string {
+				cmd = params.EksctlGetCmd.
+					WithArgs(
+						"addons",
+						"--cluster", params.ClusterName,
+						"--verbose", "2",
+					)
+				return string(cmd.Run().Out.Contents())
+			}, time.Minute*5, time.Second*30).Should(ContainSubstring("ACTIVE"))
+
 			By("Updating the addon")
 			cmd = params.EksctlUpdateCmd.
 				WithArgs(
 					"addon",
 					"--name", "vpc-cni",
-					"--cluster", clusterName,
+					"--cluster", params.ClusterName,
 					"--wait",
 					"--verbose", "2",
 				)
@@ -104,7 +138,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				WithArgs(
 					"addon",
 					"--name", "vpc-cni",
-					"--cluster", clusterName,
+					"--cluster", params.ClusterName,
 					"--verbose", "2",
 				)
 			Expect(cmd).To(RunSuccessfully())
