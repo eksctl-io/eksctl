@@ -8,6 +8,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
+
 	"k8s.io/client-go/kubernetes"
 
 	. "github.com/onsi/ginkgo"
@@ -16,17 +18,21 @@ import (
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	"github.com/weaveworks/eksctl/integration/utilities/unowned"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	defaultCluster          string
-	noInstallCluster        string
-	params                  *tests.Params
-	clusterWithNeuronPlugin string
-	clusterWithoutPlugin    string
+	defaultCluster                 string
+	noInstallCluster               string
+	params                         *tests.Params
+	clusterWithNeuronPlugin        string
+	clusterWithoutPlugin           string
+	unownedClusterWithNeuronPlugin *unowned.Cluster
+	unownedClusterWithoutPlugin    *unowned.Cluster
+	withoutPluginCfg               *api.ClusterConfig
 )
 
 func init() {
@@ -46,6 +52,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 		initNG = "inf1-ng-0"
 		newNG  = "inf1-ng-1"
 	)
+
 	BeforeSuite(func() {
 		params.KubeconfigTemp = false
 		if params.KubeconfigPath == "" {
@@ -58,35 +65,100 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 		clusterWithoutPlugin = noInstallCluster
 		clusterWithNeuronPlugin = defaultCluster
 
-		if !params.SkipCreate {
-			cmd := params.EksctlCreateCmd.WithArgs(
-				"cluster",
-				"--verbose", "4",
-				"--name", clusterWithoutPlugin,
-				"--tags", "alpha.eksctl.io/description=eksctl integration test",
-				"--install-neuron-plugin=false",
-				"--nodegroup-name", initNG,
-				"--node-labels", "ng-name="+initNG,
-				"--nodes", "1",
-				"--node-type", "inf1.xlarge",
-				"--version", params.Version,
-				"--kubeconfig", params.KubeconfigPath,
-			)
-			Expect(cmd).To(RunSuccessfully())
+		withoutPluginCfg = api.NewClusterConfig()
+		withoutPluginCfg.Metadata = &api.ClusterMeta{
+			Name:    clusterWithoutPlugin,
+			Region:  params.Region,
+			Version: params.Version,
+		}
 
-			cmd = params.EksctlCreateCmd.WithArgs(
-				"cluster",
-				"--verbose", "4",
-				"--name", clusterWithNeuronPlugin,
-				"--tags", "alpha.eksctl.io/description=eksctl integration test",
-				"--nodegroup-name", initNG,
-				"--node-labels", "ng-name="+initNG,
-				"--nodes", "1",
-				"--node-type", "inf1.xlarge",
-				"--version", params.Version,
-				"--kubeconfig", params.KubeconfigPath,
-			)
-			Expect(cmd).To(RunSuccessfully())
+		if !params.SkipCreate {
+			if params.UnownedCluster {
+				unownedClusterWithoutPlugin = unowned.NewCluster(withoutPluginCfg)
+				withoutPluginCfg.VPC = unownedClusterWithoutPlugin.VPC
+
+				withoutPluginCfg.NodeGroups = []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name: initNG,
+							ScalingConfig: &api.ScalingConfig{
+								DesiredCapacity: aws.Int(1),
+							},
+							InstanceType: "inf1.xlarge",
+						},
+					},
+				}
+				cmd := params.EksctlCreateCmd.
+					WithArgs(
+						"nodegroup",
+						"--config-file", "-",
+						"--verbose", "4",
+						"--install-neuron-plugin=false",
+					).
+					WithoutArg("--region", params.Region).
+					WithStdinJSONContent(withoutPluginCfg)
+				Expect(cmd).To(RunSuccessfully())
+
+				cfgWithPlugin := api.NewClusterConfig()
+				cfgWithPlugin.Metadata = &api.ClusterMeta{
+					Name:    clusterWithNeuronPlugin,
+					Region:  params.Region,
+					Version: params.Version,
+				}
+
+				unownedClusterWithNeuronPlugin = unowned.NewCluster(cfgWithPlugin)
+				cfgWithPlugin.VPC = unownedClusterWithNeuronPlugin.VPC
+
+				cfgWithPlugin.NodeGroups = []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name: initNG,
+							ScalingConfig: &api.ScalingConfig{
+								DesiredCapacity: aws.Int(1),
+							},
+							InstanceType: "inf1.xlarge",
+						},
+					},
+				}
+				cmd = params.EksctlCreateCmd.
+					WithArgs(
+						"nodegroup",
+						"--config-file", "-",
+						"--verbose", "4",
+					).
+					WithoutArg("--region", params.Region).
+					WithStdinJSONContent(cfgWithPlugin)
+				Expect(cmd).To(RunSuccessfully())
+			} else {
+				cmd := params.EksctlCreateCmd.WithArgs(
+					"cluster",
+					"--verbose", "4",
+					"--name", clusterWithoutPlugin,
+					"--tags", "alpha.eksctl.io/description=eksctl integration test",
+					"--install-neuron-plugin=false",
+					"--nodegroup-name", initNG,
+					"--node-labels", "ng-name="+initNG,
+					"--nodes", "1",
+					"--node-type", "inf1.xlarge",
+					"--version", params.Version,
+					"--kubeconfig", params.KubeconfigPath,
+				)
+				Expect(cmd).To(RunSuccessfully())
+
+				cmd = params.EksctlCreateCmd.WithArgs(
+					"cluster",
+					"--verbose", "4",
+					"--name", clusterWithNeuronPlugin,
+					"--tags", "alpha.eksctl.io/description=eksctl integration test",
+					"--nodegroup-name", initNG,
+					"--node-labels", "ng-name="+initNG,
+					"--nodes", "1",
+					"--node-type", "inf1.xlarge",
+					"--version", params.Version,
+					"--kubeconfig", params.KubeconfigPath,
+				)
+				Expect(cmd).To(RunSuccessfully())
+			}
 		}
 	})
 
@@ -97,6 +169,10 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 			os.Remove(params.KubeconfigPath)
 		}
 		os.RemoveAll(params.TestDirectory)
+		if params.UnownedCluster {
+			unownedClusterWithoutPlugin.DeleteStack()
+			unownedClusterWithNeuronPlugin.DeleteStack()
+		}
 	})
 
 	Context("cluster with inf1 nodes", func() {
@@ -105,7 +181,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 				cmd := params.EksctlUtilsCmd.WithArgs(
 					"write-kubeconfig",
 					"--verbose", "4",
-					"--cluster", clusterWithoutPlugin,
+					"--cluster", clusterWithNeuronPlugin,
 					"--kubeconfig", params.KubeconfigPath,
 				)
 				Expect(cmd).To(RunSuccessfully())
@@ -141,20 +217,28 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 
 			When("adding a nodegroup by default", func() {
 				It("should install without error", func() {
-					cmd := params.EksctlCreateCmd.WithArgs(
-						"nodegroup",
-						"--cluster", clusterWithoutPlugin,
-						"--nodes", "1",
-						"--verbose", "4",
-						"--name", newNG,
-						"--tags", "alpha.eksctl.io/description=eksctl integration test",
-						"--node-labels", "ng-name="+newNG,
-						"--nodes", "1",
-						"--node-type", "inf1.xlarge",
-						"--version", params.Version,
-					)
+					withoutPluginCfg.NodeGroups = []*api.NodeGroup{
+						{
+							NodeGroupBase: &api.NodeGroupBase{
+								Name: newNG,
+								ScalingConfig: &api.ScalingConfig{
+									DesiredCapacity: aws.Int(1),
+								},
+								InstanceType: "inf1.xlarge",
+							},
+						},
+					}
+					cmd := params.EksctlCreateCmd.
+						WithArgs(
+							"nodegroup",
+							"--config-file", "-",
+							"--verbose", "4",
+						).
+						WithoutArg("--region", params.Region).
+						WithStdinJSONContent(withoutPluginCfg)
 					Expect(cmd).To(RunSuccessfully())
 				})
+
 				It("should install the neuron device plugin", func() {
 					_, err := newClientSet(clusterWithoutPlugin).AppsV1().DaemonSets("kube-system").Get(context.TODO(), "neuron-device-plugin-daemonset", metav1.GetOptions{})
 					Expect(err).ShouldNot(HaveOccurred())

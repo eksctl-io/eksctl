@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -21,6 +22,7 @@ import (
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	"github.com/weaveworks/eksctl/integration/utilities/unowned"
 	"github.com/weaveworks/eksctl/pkg/addons"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -34,9 +36,12 @@ const (
 	k8sUpdatePollTimeout  = "3m"
 )
 
-var defaultCluster string
-var noInstallCluster string
-var params *tests.Params
+var (
+	defaultCluster   string
+	noInstallCluster string
+	params           *tests.Params
+	unownedCluster   *unowned.Cluster
+)
 
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
@@ -76,24 +81,59 @@ var _ = Describe("(Integration) Update addons", func() {
 				)
 				Expect(cmd).To(RunSuccessfully())
 			}
-			return
+		} else if params.UnownedCluster {
+			cfg := api.NewClusterConfig()
+			cfg.Metadata = &api.ClusterMeta{
+				Name:    params.ClusterName,
+				Region:  params.Region,
+				Version: "1.15",
+			}
+			unownedCluster = unowned.NewCluster(cfg)
+			cfg.VPC = unownedCluster.VPC
+			cfg.NodeGroups = []*api.NodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name: initNG,
+						ScalingConfig: &api.ScalingConfig{
+							DesiredCapacity: aws.Int(1),
+						},
+					},
+				},
+			}
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"nodegroup",
+					"--config-file", "-",
+					"--verbose", "4",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdinJSONContent(cfg)
+			Expect(cmd).To(RunSuccessfully())
+
+			cmd = params.EksctlUtilsCmd.WithArgs(
+				"write-kubeconfig",
+				"--verbose", "4",
+				"--cluster", params.ClusterName,
+				"--kubeconfig", params.KubeconfigPath,
+			)
+			Expect(cmd).To(RunSuccessfully())
+		} else {
+			fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
+
+			cmd := params.EksctlCreateCmd.WithArgs(
+				"cluster",
+				"--verbose", "4",
+				"--name", defaultCluster,
+				"--tags", "alpha.eksctl.io/description=eksctl integration test",
+				"--nodegroup-name", initNG,
+				"--node-labels", "ng-name="+initNG,
+				"--nodes", "1",
+				"--node-type", "t3.large",
+				"--version", "1.15",
+				"--kubeconfig", params.KubeconfigPath,
+			)
+			Expect(cmd).To(RunSuccessfully())
 		}
-
-		fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
-
-		cmd := params.EksctlCreateCmd.WithArgs(
-			"cluster",
-			"--verbose", "4",
-			"--name", defaultCluster,
-			"--tags", "alpha.eksctl.io/description=eksctl integration test",
-			"--nodegroup-name", initNG,
-			"--node-labels", "ng-name="+initNG,
-			"--nodes", "1",
-			"--node-type", "t3.large",
-			"--version", "1.15",
-			"--kubeconfig", params.KubeconfigPath,
-		)
-		Expect(cmd).To(RunSuccessfully())
 	})
 
 	AfterSuite(func() {
@@ -103,6 +143,9 @@ var _ = Describe("(Integration) Update addons", func() {
 			os.Remove(params.KubeconfigPath)
 		}
 		os.RemoveAll(params.TestDirectory)
+		if params.UnownedCluster {
+			unownedCluster.DeleteStack()
+		}
 	})
 
 	// Chose 1.15 because the upgrade to 1.16 takes less time than upgrading to 1.17
@@ -112,7 +155,9 @@ var _ = Describe("(Integration) Update addons", func() {
 
 			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, awseks.ClusterStatusActive, api.Version1_15))
 
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
+			if !params.UnownedCluster {
+				Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
+			}
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initNG)))
 		})
 
