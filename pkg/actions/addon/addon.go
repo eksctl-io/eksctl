@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -85,7 +86,7 @@ func (a *Manager) waitForAddonToBeActive(addon *api.Addon) error {
 	return nil
 }
 
-func (a *Manager) getLatestVersion(addon *api.Addon) (string, error) {
+func (a *Manager) getLatestMatchingVersion(addon *api.Addon) (string, error) {
 	addonInfos, err := a.describeVersions(addon)
 	if err != nil {
 		return "", err
@@ -94,13 +95,21 @@ func (a *Manager) getLatestVersion(addon *api.Addon) (string, error) {
 		return "", fmt.Errorf("no versions available for %q", addon.Name)
 	}
 
+	addonVersion := addon.Version
 	var versions []*version.Version
 	for _, addonVersionInfo := range addonInfos.Addons[0].AddonVersions {
-		v, err := version.NewVersion(*addonVersionInfo.AddonVersion)
+		v, err := a.parseVersion(*addonVersionInfo.AddonVersion)
 		if err != nil {
-			return "", fmt.Errorf("failed to parse version %q: %w", *addonVersionInfo.AddonVersion, err)
+			return "", err
 		}
-		versions = append(versions, v)
+
+		if addonVersion == "latest" || strings.Contains(*addonVersionInfo.AddonVersion, addonVersion) {
+			versions = append(versions, v)
+		}
+	}
+
+	if len(versions) == 0 {
+		return "", fmt.Errorf("no version(s) found matching %q for %q", addonVersion, addon.Name)
 	}
 
 	sort.SliceStable(versions, func(i, j int) bool {
@@ -124,4 +133,12 @@ func supportedVersion(version string) error {
 
 func (a *Manager) makeAddonName(name string) string {
 	return fmt.Sprintf("eksctl-%s-addon-%s", a.clusterConfig.Metadata.Name, name)
+}
+
+func (a *Manager) parseVersion(v string) (*version.Version, error) {
+	version, err := version.NewVersion(v)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse version %q: %w", v, err)
+	}
+	return version, nil
 }
