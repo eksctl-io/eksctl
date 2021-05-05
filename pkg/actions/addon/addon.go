@@ -109,7 +109,7 @@ func (a *Manager) getLatestMatchingVersion(addon *api.Addon) (string, error) {
 	}
 
 	if len(versions) == 0 {
-		return "", fmt.Errorf("version %s not available for %q", addonVersion, addon.Name)
+		return "", fmt.Errorf("no version(s) found matching %q for %q", addonVersion, addon.Name)
 	}
 
 	sort.SliceStable(versions, func(i, j int) bool {

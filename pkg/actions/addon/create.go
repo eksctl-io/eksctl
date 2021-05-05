@@ -27,7 +27,7 @@ const (
 
 func (a *Manager) Create(addon *api.Addon, wait bool) error {
 	version := addon.Version
-	if version == "latest" || !strings.Contains(version, "eksbuild") && version != "" {
+	if version != "" {
 		var err error
 		version, err = a.getLatestMatchingVersion(addon)
 		if err != nil {
