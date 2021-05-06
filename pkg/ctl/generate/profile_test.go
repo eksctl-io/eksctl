@@ -7,13 +7,13 @@ import (
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	. "github.com/weaveworks/eksctl/pkg/ctl/ctltest"
+	"github.com/weaveworks/eksctl/pkg/ctl/ctltest"
 )
 
 var _ = Describe("generate profile", func() {
 
-	newMockGenerateProfileCmd := func(args ...string) *MockCmd {
-		return NewMockCmd(generateProfileWithRunFunc, "generate", args...)
+	newMockGenerateProfileCmd := func(args ...string) *ctltest.MockCmd {
+		return ctltest.NewMockCmd(generateProfileWithRunFunc, "generate", args...)
 	}
 
 	Describe("without a config file", func() {
@@ -148,7 +148,7 @@ var _ = Describe("generate profile", func() {
 			})
 
 			It("succeeds with the basic configuration", func() {
-				configFile = CreateConfigFile(cfg)
+				configFile = ctltest.CreateConfigFile(cfg)
 
 				cmd := newMockGenerateProfileCmd("profile", "-f", configFile)
 				_, err := cmd.Execute()
@@ -157,7 +157,7 @@ var _ = Describe("generate profile", func() {
 
 			It("fails without a cluster name", func() {
 				cfg.Metadata.Name = ""
-				configFile = CreateConfigFile(cfg)
+				configFile = ctltest.CreateConfigFile(cfg)
 
 				cmd := newMockGenerateProfileCmd("profile", "-f", configFile)
 				_, err := cmd.Execute()
@@ -167,7 +167,7 @@ var _ = Describe("generate profile", func() {
 
 			It("fails without a region", func() {
 				cfg.Metadata.Region = ""
-				configFile = CreateConfigFile(cfg)
+				configFile = ctltest.CreateConfigFile(cfg)
 
 				cmd := newMockGenerateProfileCmd("profile", "-f", configFile)
 				_, err := cmd.Execute()
@@ -177,7 +177,7 @@ var _ = Describe("generate profile", func() {
 
 			It("fails without bootstrap profiles", func() {
 				cfg.Git.BootstrapProfile = nil
-				configFile = CreateConfigFile(cfg)
+				configFile = ctltest.CreateConfigFile(cfg)
 
 				cmd := newMockGenerateProfileCmd("profile", "-f", configFile)
 				_, err := cmd.Execute()
@@ -187,7 +187,7 @@ var _ = Describe("generate profile", func() {
 
 			It("fails with empty bootstrap profile", func() {
 				cfg.Git.BootstrapProfile = &api.Profile{}
-				configFile = CreateConfigFile(cfg)
+				configFile = ctltest.CreateConfigFile(cfg)
 
 				cmd := newMockGenerateProfileCmd("profile", "-f", configFile)
 				_, err := cmd.Execute()
@@ -196,7 +196,7 @@ var _ = Describe("generate profile", func() {
 			})
 
 			It("defaults the outputPath to the profile name", func() {
-				configFile = CreateConfigFile(cfg)
+				configFile = ctltest.CreateConfigFile(cfg)
 
 				cmd := newMockGenerateProfileCmd("profile", "-f", configFile)
 				_, err := cmd.Execute()
@@ -210,7 +210,7 @@ var _ = Describe("generate profile", func() {
 
 			It("defaults the outputPath to the repo name", func() {
 				cfg.Git.BootstrapProfile.Source = "git@github.com:some-org/some-repo.git"
-				configFile = CreateConfigFile(cfg)
+				configFile = ctltest.CreateConfigFile(cfg)
 
 				cmd := newMockGenerateProfileCmd("profile", "-f", configFile)
 				_, err := cmd.Execute()
