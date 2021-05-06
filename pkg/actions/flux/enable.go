@@ -65,6 +65,7 @@ func (ti *Installer) Run() error {
 
 	logger.Info("bootstrapping Flux v2 into cluster")
 	if err := ti.fluxClient.Bootstrap(); err != nil {
+		logger.Info("Flux v2 failed to install successfully. check configuration and re-run `eksctl enable flux`")
 		return errors.Wrap(err, "running Flux Bootstrap")
 	}
 
