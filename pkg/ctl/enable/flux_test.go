@@ -7,15 +7,15 @@ import (
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	. "github.com/weaveworks/eksctl/pkg/ctl/ctltest"
+	"github.com/weaveworks/eksctl/pkg/ctl/ctltest"
 )
 
 var _ = Describe("enable flux", func() {
-	var mockEnableFluxCmd func(args ...string) *MockCmd
+	var mockEnableFluxCmd func(args ...string) *ctltest.MockCmd
 
 	BeforeEach(func() {
-		mockEnableFluxCmd = func(args ...string) *MockCmd {
-			return NewMockCmd(configureAndRun, "enable", args...)
+		mockEnableFluxCmd = func(args ...string) *ctltest.MockCmd {
+			return ctltest.NewMockCmd(configureAndRun, "enable", args...)
 		}
 	})
 
@@ -44,7 +44,7 @@ var _ = Describe("enable flux", func() {
 			configFile string
 			cfg        *api.ClusterConfig
 
-			cmd *MockCmd
+			cmd *ctltest.MockCmd
 			err error
 		)
 
@@ -67,7 +67,7 @@ var _ = Describe("enable flux", func() {
 		})
 
 		JustBeforeEach(func() {
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 			cmd = mockEnableFluxCmd("flux", "-f", configFile)
 			_, err = cmd.Execute()
 		})
