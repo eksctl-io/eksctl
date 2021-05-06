@@ -40,13 +40,9 @@ func (a *Manager) Update(addon *api.Addon, wait bool) error {
 
 		updateAddonInput.AddonVersion = &summary.Version
 	} else {
-		version := addon.Version
-		if version == "latest" {
-			var err error
-			version, err = a.getLatestVersion(addon)
-			if err != nil {
-				return fmt.Errorf("failed to fetch latest addon version: %w", err)
-			}
+		version, err := a.getLatestMatchingVersion(addon)
+		if err != nil {
+			return fmt.Errorf("failed to fetch addon version: %w", err)
 		}
 
 		if summary.Version != version {

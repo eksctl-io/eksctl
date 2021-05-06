@@ -166,6 +166,31 @@ Resources:
       - Key: Network
         Value: Public
 
+  NATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt
+        - NATIP
+        - AllocationId
+      SubnetId: !Ref Subnet01
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/NATGateway'
+  NATIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/NATIP'
+
+  NATPrivateSubnetRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGateway
+      RouteTableId: !Ref PrivateRouteTable
+
   PrivateRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -255,7 +280,7 @@ Resources:
     Properties:
       AvailabilityZone:
         Fn::Select:
-        - '1'
+        - '0'
         - Fn::GetAZs:
             Ref: AWS::Region
       CidrBlock:
@@ -292,7 +317,7 @@ Resources:
     Properties:
       AvailabilityZone:
         Fn::Select:
-        - '1'
+        - '2'
         - Fn::GetAZs:
             Ref: AWS::Region
       CidrBlock:

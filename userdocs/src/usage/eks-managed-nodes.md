@@ -150,6 +150,12 @@ existing cluster:
 $ eksctl create nodegroup --managed
 ```
 
+Tip : if you are using a `ClusterConfig` file to describe your whole cluster, describe your new managed node group in its `managedNodeGroups` field and run\:
+
+```console
+$ eksctl create nodegroup --config-file=YOUR_CLUSTER.yaml
+```
+
 ## Upgrading managed nodegroups
 You can update a nodegroup to the latest EKS-optimized AMI release version for the AMI type you are using at any time.
 
@@ -248,4 +254,3 @@ the naming convention `eksctl-<cluster>-cluster-ClusterSharedNodeSecurityGroup-<
 - [EKS Managed Nodegroups][eks-user-guide]
 
 [eks-user-guide]: https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html
-
