@@ -160,6 +160,10 @@ func makeBootstrapEnv(clusterName string, ng *api.NodeGroup) cloudconfig.File {
 func mapTaints(kv map[string]string) string {
 	var params []string
 	for k, v := range kv {
+		if strings.Contains(v, ":") {
+			params = append(params, fmt.Sprintf("%s=%s", k, v))
+			continue
+		}
 		params = append(params, fmt.Sprintf("%s=:%s", k, v))
 	}
 	return strings.Join(params, ",")

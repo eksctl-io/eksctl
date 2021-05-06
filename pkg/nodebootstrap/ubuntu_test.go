@@ -107,7 +107,7 @@ var _ = Describe("Ubuntu User Data", func() {
 
 	When("taints are set on the node config", func() {
 		BeforeEach(func() {
-			ng.Taints = map[string]string{"foo": "bar"}
+			ng.Taints = map[string]string{"foo": "bar", "one": "two:three"}
 			bootstrapper = nodebootstrap.NewUbuntuBootstrapper(clusterName, ng)
 		})
 
@@ -117,7 +117,9 @@ var _ = Describe("Ubuntu User Data", func() {
 
 			cloudCfg := decode(userData)
 			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/etc/eksctl/kubelet.env"))
-			Expect(cloudCfg.WriteFiles[2].Content).To(ContainSubstring("NODE_TAINTS=foo=:bar"))
+			Expect(cloudCfg.WriteFiles[2].Content).To(ContainSubstring("NODE_TAINTS"))
+			Expect(cloudCfg.WriteFiles[2].Content).To(ContainSubstring("foo=:bar"))
+			Expect(cloudCfg.WriteFiles[2].Content).To(ContainSubstring("one=two:three"))
 			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0644"))
 		})
 	})
