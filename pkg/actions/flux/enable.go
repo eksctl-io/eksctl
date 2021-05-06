@@ -7,14 +7,11 @@ import (
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/flux"
-	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
 )
 
 const allNamespaces = ""
-
-var DefaultFluxComponents = []string{"helm-controller", "kustomize-controller", "notification-controller", "source-controller"}
 
 //go:generate counterfeiter -o fakes/fake_flux_client.go . InstallerClient
 type InstallerClient interface {
@@ -61,13 +58,6 @@ func (ti *Installer) Run() error {
 		return nil
 	}
 
-	logger.Info("checking whether Flux v2 components already installed")
-	alreadyInstalled := ti.checkInstallation()
-	if alreadyInstalled {
-		logger.Warning("found existing Flux v2 components in namespace %q. skipping installation", ti.opts.Namespace)
-		return nil
-	}
-
 	logger.Info("running pre-flight checks")
 	if err := ti.fluxClient.PreFlight(); err != nil {
 		return errors.Wrap(err, "running Flux pre-flight checks")
@@ -97,33 +87,4 @@ func (ti *Installer) checkV1() (string, error) {
 	}
 
 	return "", nil
-}
-
-func (ti *Installer) checkInstallation() bool {
-	var count int
-	// TODO: this is the default set, we should maybe have an option to add whatever
-	for _, c := range DefaultFluxComponents {
-		// TODO: this checks for components in the currently configured namespace,
-		// but it is possible that a previous bootstrap installed them elsewhere
-		if found := ti.checkComponent(ti.opts.Namespace, c); found {
-			count++
-		}
-	}
-
-	return count == len(DefaultFluxComponents)
-}
-
-func (ti *Installer) checkComponent(namespace, component string) bool {
-	_, err := ti.kubeClient.AppsV1().Deployments(namespace).Get(context.Background(), component, metav1.GetOptions{})
-	if err != nil {
-		if apierrs.IsNotFound(err) {
-			logger.Warning("%s deployment was not found", component)
-			return false
-		}
-		logger.Warning("error while looking for %s deployment: %s", component, err)
-		return false
-	}
-
-	logger.Info("component %s found", component)
-	return true
 }

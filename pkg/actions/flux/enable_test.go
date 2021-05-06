@@ -75,36 +75,4 @@ var _ = Describe("Gitops", func() {
 			Expect(fakeFluxClient.BootstrapCallCount()).To(Equal(0))
 		})
 	})
-
-	Context("some (not all) Flux v2 components are already installed", func() {
-		BeforeEach(func() {
-			_, err := fakeClientSet.AppsV1().Deployments(opts.Flux.Namespace).Create(context.TODO(), &v1.Deployment{
-				ObjectMeta: metav1.ObjectMeta{Name: "kustomize-controller"}},
-				metav1.CreateOptions{})
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		It("continues with install", func() {
-			Expect(installer.Run()).To(Succeed())
-			Expect(fakeFluxClient.PreFlightCallCount()).To(Equal(1))
-			Expect(fakeFluxClient.BootstrapCallCount()).To(Equal(1))
-		})
-	})
-
-	Context("all Flux v2 components are already installed", func() {
-		BeforeEach(func() {
-			for _, component := range flux.DefaultFluxComponents {
-				_, err := fakeClientSet.AppsV1().Deployments(opts.Flux.Namespace).Create(context.TODO(), &v1.Deployment{
-					ObjectMeta: metav1.ObjectMeta{Name: component}},
-					metav1.CreateOptions{})
-				Expect(err).NotTo(HaveOccurred())
-			}
-		})
-
-		It("does not error, does not continue with installation", func() {
-			Expect(installer.Run()).To(Succeed())
-			Expect(fakeFluxClient.PreFlightCallCount()).To(Equal(0))
-			Expect(fakeFluxClient.BootstrapCallCount()).To(Equal(0))
-		})
-	})
 })
