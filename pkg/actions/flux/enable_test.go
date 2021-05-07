@@ -25,7 +25,7 @@ var _ = Describe("Gitops", func() {
 	BeforeEach(func() {
 		fakeClientSet = fake.NewSimpleClientset()
 		fakeFluxClient = new(fakes.FakeInstallerClient)
-		opts = &api.GitOps{Flux: &api.Flux{Namespace: "fluxv2"}}
+		opts = &api.GitOps{Flux: &api.Flux{}}
 	})
 
 	JustBeforeEach(func() {

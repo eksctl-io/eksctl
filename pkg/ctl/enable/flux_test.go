@@ -59,8 +59,10 @@ var _ = Describe("enable flux", func() {
 				GitOps: &api.GitOps{
 					Flux: &api.Flux{
 						GitProvider: "github",
-						Repository:  "repo1",
-						Owner:       "username",
+						Flags: api.FluxFlags{
+							"repository": "repo1",
+							"owner":      "username",
+						},
 					},
 				},
 			}
@@ -81,17 +83,7 @@ var _ = Describe("enable flux", func() {
 
 			fluxCfg := cmd.Cmd.ClusterConfig.GitOps.Flux
 			Expect(fluxCfg).ToNot(BeNil())
-			Expect(fluxCfg.Repository).To(Equal("repo1"))
 			Expect(fluxCfg.GitProvider).To(Equal("github"))
-			Expect(fluxCfg.Owner).To(Equal("username"))
-		})
-
-		It("loads the correct default", func() {
-			Expect(err).ToNot(HaveOccurred())
-
-			fluxCfg := cmd.Cmd.ClusterConfig.GitOps.Flux
-			Expect(fluxCfg).ToNot(BeNil())
-			Expect(fluxCfg.Namespace).To(Equal("flux-system"))
 		})
 
 		When("metadata.cluster is not provided", func() {
@@ -134,23 +126,13 @@ var _ = Describe("enable flux", func() {
 			})
 		})
 
-		When("gitops.flux.repository is not provided", func() {
+		When("gitops.flux.flags are not provided", func() {
 			BeforeEach(func() {
-				cfg.GitOps.Flux.Repository = ""
+				cfg.GitOps.Flux.Flags = api.FluxFlags{}
 			})
 
 			It("fails", func() {
-				Expect(err).To(MatchError("gitops.flux.repository must be set"))
-			})
-		})
-
-		When("gitops.flux.owner is not provided", func() {
-			BeforeEach(func() {
-				cfg.GitOps.Flux.Owner = ""
-			})
-
-			It("fails", func() {
-				Expect(err).To(MatchError("gitops.flux.owner must be set"))
+				Expect(err).To(MatchError("gitops.flux.flags must be set"))
 			})
 		})
 
