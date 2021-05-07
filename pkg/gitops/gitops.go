@@ -115,7 +115,6 @@ func newFluxInstaller(kubeconfigPath string, k8sRestConfig *rest.Config, k8sClie
 	)
 
 	if cfg.GitOps != nil && cfg.GitOps.Flux != nil {
-		cfg.GitOps.Flux.Kubeconfig = kubeconfigPath
 		installer, err = flux.New(k8sClientSet, cfg.GitOps)
 		profilesSupported = false
 		logger.Info("gitops configuration detected, setting installer to Flux v2")

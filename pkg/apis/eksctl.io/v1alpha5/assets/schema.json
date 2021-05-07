@@ -701,67 +701,33 @@
     },
     "Flux": {
       "properties": {
-        "authTokenPath": {
-          "type": "string",
-          "description": "Path to a file containing a Personal Access Token with repo permissions Not required if GITHUB_TOKEN or GITLAB_TOKEN set on the environment",
-          "x-intellij-html-description": "Path to a file containing a Personal Access Token with repo permissions Not required if GITHUB<em>TOKEN or GITLAB</em>TOKEN set on the environment"
-        },
-        "branch": {
-          "type": "string",
-          "description": "The name of the branch which Flux will commit to",
-          "x-intellij-html-description": "The name of the branch which Flux will commit to"
+        "flags": {
+          "$ref": "#/definitions/FluxFlags",
+          "description": "an arbitrary map of string to string to pass any flags to Flux bootstrap via eksctl see https://fluxcd.io/docs/ for information on all flags",
+          "x-intellij-html-description": "an arbitrary map of string to string to pass any flags to Flux bootstrap via eksctl see https://fluxcd.io/docs/ for information on all flags"
         },
         "gitProvider": {
           "type": "string",
           "description": "The repository hosting service. Can be either Github or Gitlab.",
           "x-intellij-html-description": "The repository hosting service. Can be either Github or Gitlab."
-        },
-        "kubeconfig": {
-          "type": "string",
-          "description": "Path to the kubernetes config for the cluster. Defaults to $HOME/.kube/config",
-          "x-intellij-html-description": "Path to the kubernetes config for the cluster. Defaults to $HOME/.kube/config"
-        },
-        "namespace": {
-          "type": "string",
-          "description": "The kubernetes namespace into which Flux v2 components will be deployed",
-          "x-intellij-html-description": "The kubernetes namespace into which Flux v2 components will be deployed"
-        },
-        "owner": {
-          "type": "string",
-          "description": "The Username or Org name under which Flux v2 will create a repo",
-          "x-intellij-html-description": "The Username or Org name under which Flux v2 will create a repo"
-        },
-        "path": {
-          "type": "string",
-          "description": "A relative path within the repository. Gitops sync will be scoped to files under this path",
-          "x-intellij-html-description": "A relative path within the repository. Gitops sync will be scoped to files under this path"
-        },
-        "personal": {
-          "type": "boolean",
-          "description": "If true, Flux will create the Gitops repo in a personal account. If false, Flux will create the Gitops repo in an org.",
-          "x-intellij-html-description": "If true, Flux will create the Gitops repo in a personal account. If false, Flux will create the Gitops repo in an org.",
-          "default": "false"
-        },
-        "repository": {
-          "type": "string",
-          "description": "The name of the repository which Flux v2 will create to store gitops configuration",
-          "x-intellij-html-description": "The name of the repository which Flux v2 will create to store gitops configuration"
         }
       },
       "preferredOrder": [
         "gitProvider",
-        "owner",
-        "repository",
-        "namespace",
-        "kubeconfig",
-        "branch",
-        "path",
-        "personal",
-        "authTokenPath"
+        "flags"
       ],
       "additionalProperties": false,
       "description": "groups all configuration options related to a Git repository used for GitOps Toolkit (Flux v2).",
       "x-intellij-html-description": "groups all configuration options related to a Git repository used for GitOps Toolkit (Flux v2)."
+    },
+    "FluxFlags": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object",
+      "description": "a map of string for passing arbitrary flags to Flux bootstrap",
+      "x-intellij-html-description": "a map of string for passing arbitrary flags to Flux bootstrap",
+      "default": "{}"
     },
     "Git": {
       "properties": {
@@ -794,8 +760,8 @@
       "properties": {
         "flux": {
           "$ref": "#/definitions/Flux",
-          "description": "[Enable Toolkit](/usage/gitops/#experimental-installing-gitops-toolkit-flux-v2)",
-          "x-intellij-html-description": "<a href=\"/usage/gitops/#experimental-installing-gitops-toolkit-flux-v2\">Enable Toolkit</a>"
+          "description": "[Enable Flux](/usage/gitops/#experimental-installing-gitops-toolkit-flux-v2)",
+          "x-intellij-html-description": "<a href=\"/usage/gitops/#experimental-installing-gitops-toolkit-flux-v2\">Enable Flux</a>"
         }
       },
       "preferredOrder": [

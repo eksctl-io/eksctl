@@ -356,23 +356,3 @@ func SetDefaultGitSettings(c *ClusterConfig) {
 		}
 	}
 }
-
-// SetDefaultGitOpsSettings sets the default values for the gitops repo and operator settings
-func SetDefaultGitOpsSettings(c *ClusterConfig) {
-	if c.GitOps == nil {
-		return
-	}
-
-	if c.GitOps.Flux != nil {
-		fluxCfg := c.GitOps.Flux
-		if fluxCfg.Namespace == "" {
-			fluxCfg.Namespace = "flux-system"
-		}
-
-		if fluxCfg.Path == "" {
-			fluxCfg.Path = "clusters/" + c.Metadata.Name
-		}
-
-		return
-	}
-}
