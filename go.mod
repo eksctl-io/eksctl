@@ -5,6 +5,7 @@ module github.com/weaveworks/eksctl
 go 1.16
 
 require (
+	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.3-0.20210303155736-3e43512d88f8
 	github.com/aws/aws-sdk-go v1.38.25
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
@@ -25,7 +26,7 @@ require (
 	github.com/gomarkdown/markdown v0.0.0-20201113031856-722100d81a8e // indirect
 	github.com/google/uuid v1.2.0
 	github.com/goreleaser/goreleaser v0.162.0
-	github.com/hashicorp/go-version v1.3.0 // indirect
+	github.com/hashicorp/go-version v1.3.0
 	github.com/instrumenta/kubeval v0.0.0-20190918223246-8d013ec9fc56
 	github.com/justinbarrick/go-k8s-portforward v1.0.4-0.20200904152830-b575325c1855
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
