@@ -20,7 +20,7 @@ template: |
   Weaveworks would like to sincerely thank:
   $CONTRIBUTORS
 replacers:
-  - search: '/@(Callisto13|aclevername|cPu1|weaveworksbot|dependabot(?:\[bot\])?)(?:,| |$)/gm'
+  - search: '/@(Callisto13|aclevername|nikimanoledaki|Skarlso|cPu1|weaveworksbot|dependabot(?:\[bot\])?)(?:,| |$)/gm'
     replace: ''
 exclude-labels:
   - 'skip-release-notes'
