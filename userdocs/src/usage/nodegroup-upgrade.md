@@ -1,6 +1,6 @@
 # Unmanaged nodegroup upgrades
 
-You should upgrading nodegroups only after you ran `eksctl upgrade cluster`.
+You should be upgrading nodegroups only after you ran `eksctl upgrade cluster`.
 (See [Upgrading clusters](/usage/cluster-upgrade).)
 
 If you have a simple cluster with just an initial nodegroup (i.e. created with
