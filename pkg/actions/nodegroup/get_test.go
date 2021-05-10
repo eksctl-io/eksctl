@@ -38,7 +38,7 @@ var _ = Describe("Get", func() {
 		m.SetStackManager(fakeStackManager)
 	})
 
-	Describe("Managed Nodegroup", func() {
+	Describe("GetAll", func() {
 		BeforeEach(func() {
 			p.MockEKS().On("ListNodegroups", mock.Anything).Run(func(args mock.Arguments) {
 				Expect(args).To(HaveLen(1))
