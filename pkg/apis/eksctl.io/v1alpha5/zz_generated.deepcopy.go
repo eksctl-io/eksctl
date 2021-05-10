@@ -22,6 +22,7 @@ package v1alpha5
 
 import (
 	ipnet "github.com/weaveworks/eksctl/pkg/utils/ipnet"
+	v1 "k8s.io/api/core/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -857,6 +858,13 @@ func (in *ManagedNodeGroup) DeepCopyInto(out *ManagedNodeGroup) {
 		in, out := &in.LaunchTemplate, &out.LaunchTemplate
 		*out = new(LaunchTemplate)
 		(*in).DeepCopyInto(*out)
+	}
+	if in.ParsedTaints != nil {
+		in, out := &in.ParsedTaints, &out.ParsedTaints
+		*out = make([]v1.Taint, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 	return
 }
