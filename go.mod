@@ -13,7 +13,7 @@ require (
 	github.com/cloudflare/cfssl v1.5.0
 	github.com/dave/jennifer v1.4.1
 	github.com/dlespiau/kube-test-harness v0.0.0-20200915102055-a03579200ae8
-	github.com/evanphx/json-patch/v5 v5.2.0
+	github.com/evanphx/json-patch/v5 v5.3.0
 	github.com/fatih/color v1.10.0
 	github.com/fluxcd/flux/pkg/install v0.0.0-20201001122558-cb08da1b356a // flux 1.21.0
 	github.com/fluxcd/go-git-providers v0.0.3
@@ -25,7 +25,7 @@ require (
 	github.com/gomarkdown/markdown v0.0.0-20201113031856-722100d81a8e // indirect
 	github.com/google/uuid v1.2.0
 	github.com/goreleaser/goreleaser v0.162.0
-	github.com/hashicorp/go-version v1.3.0 // indirect
+	github.com/hashicorp/go-version v1.3.0
 	github.com/instrumenta/kubeval v0.0.0-20190918223246-8d013ec9fc56
 	github.com/justinbarrick/go-k8s-portforward v1.0.4-0.20200904152830-b575325c1855
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
