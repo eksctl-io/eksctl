@@ -13,7 +13,7 @@ import (
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
-	"k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // ManagedNodeGroupResourceSet defines the CloudFormation resources required for a managed nodegroup
@@ -167,16 +167,16 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	return nil
 }
 
-func mapTaints(taints []v1.Taint) []*gfneks.Nodegroup_Taints {
+func mapTaints(taints []corev1.Taint) []*gfneks.Nodegroup_Taints {
 	var ret []*gfneks.Nodegroup_Taints
 
-	mapEffect := func(effect v1.TaintEffect) string {
+	mapEffect := func(effect corev1.TaintEffect) string {
 		switch effect {
-		case v1.TaintEffectNoSchedule:
+		case corev1.TaintEffectNoSchedule:
 			return "NO_SCHEDULE"
-		case v1.TaintEffectPreferNoSchedule:
+		case corev1.TaintEffectPreferNoSchedule:
 			return "PREFER_NO_SCHEDULE"
-		case v1.TaintEffectNoExecute:
+		case corev1.TaintEffectNoExecute:
 			return "NO_EXECUTE"
 		}
 		panic(fmt.Sprintf("unexpected taint effect: %v", effect))
