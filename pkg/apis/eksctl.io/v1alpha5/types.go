@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -1378,6 +1379,8 @@ type ManagedNodeGroup struct {
 	// Internal fields
 
 	Unowned bool `json:"-"`
+
+	ParsedTaints []corev1.Taint `json:"-"`
 }
 
 func (m *ManagedNodeGroup) InstanceTypeList() []string {
