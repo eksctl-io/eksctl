@@ -90,11 +90,9 @@ var _ = Describe("Get", func() {
 
 		When("a nodegroup is associated to a CF Stack", func() {
 			It("returns a summary of the node group and its StackName", func() {
-				p.MockCloudFormation().On("DescribeNodeGroupStack", aws.String(ngName)).Return(nil, nil)
-				cfStack := cloudformation.Stack{
+				fakeStackManager.DescribeNodeGroupStackReturns(&cloudformation.Stack{
 					StackName: aws.String(stackName),
-				}
-				fakeStackManager.DescribeNodeGroupStackReturns(&cfStack, nil)
+				}, nil)
 
 				ngSummary, err := m.GetAll()
 				Expect(err).NotTo(HaveOccurred())
@@ -115,9 +113,7 @@ var _ = Describe("Get", func() {
 
 		When("a nodegroup is not associated to a CF Stack", func() {
 			It("returns a summary of the node group without a StackName", func() {
-				p.MockCloudFormation().On("DescribeNodeGroupStack", aws.String(ngName)).Return(nil, nil)
-				err := fmt.Errorf("error describing cloudformation stack")
-				fakeStackManager.DescribeNodeGroupStackReturns(nil, err)
+				fakeStackManager.DescribeNodeGroupStackReturns(nil, fmt.Errorf("error describing cloudformation stack"))
 
 				ngSummary, err := m.GetAll()
 				Expect(err).NotTo(HaveOccurred())
