@@ -3,6 +3,9 @@
 package managed
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -278,6 +281,72 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					"--kubernetes-version", nextVersion,
 				)
 				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("nodegroup successfully upgraded")))
+			})
+		})
+
+		Context("and creating a nodegroup with taints", func() {
+			It("should create nodegroups with taints applied", func() {
+				taints := []api.NodeGroupTaint{
+					{
+						Key:    "key1",
+						Value:  "value1",
+						Effect: "NoSchedule",
+					},
+					{
+						Key:    "key2",
+						Effect: "NoSchedule",
+					},
+					{
+						Key:    "key3",
+						Value:  "value2",
+						Effect: "NoExecute",
+					},
+				}
+				clusterConfig := api.NewClusterConfig()
+				clusterConfig.Metadata.Name = params.ClusterName
+				clusterConfig.Metadata.Region = params.Region
+				clusterConfig.Metadata.Version = params.Version
+				clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name: "taints",
+						},
+						Taints: taints,
+					},
+				}
+
+				data, err := json.Marshal(clusterConfig)
+				Expect(err).ToNot(HaveOccurred())
+
+				cmd := params.EksctlCreateCmd.
+					WithArgs(
+						"nodegroup",
+						"--config-file", "-",
+						"--verbose", "4",
+					).
+					WithoutArg("--region", params.Region).
+					WithStdin(bytes.NewReader(data))
+				Expect(cmd).To(RunSuccessfully())
+
+				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
+				Expect(err).ToNot(HaveOccurred())
+				clientset, err := kubernetes.NewForConfig(config)
+				Expect(err).ToNot(HaveOccurred())
+
+				nodeList, err := clientset.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{
+					LabelSelector: fmt.Sprintf("%s=%s", api.NodeGroupNameLabel, "taints"),
+				})
+				Expect(err).ToNot(HaveOccurred())
+
+				for _, node := range nodeList.Items {
+					for i, t := range node.Spec.Taints {
+						expected := taints[i]
+						Expect(t.Key).To(Equal(expected.Key))
+						Expect(t.Value).To(Equal(expected.Value))
+						Expect(t.Effect).To(Equal(expected.Effect))
+					}
+				}
+
 			})
 		})
 
