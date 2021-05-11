@@ -41,7 +41,9 @@ var _ = Describe("Get", func() {
 
 	Describe("GetAll", func() {
 		BeforeEach(func() {
-			p.MockEKS().On("ListNodegroups", mock.Anything).Run(func(args mock.Arguments) {
+			p.MockEKS().On("ListNodegroups", &awseks.ListNodegroupsInput{
+				ClusterName: aws.String(clusterName),
+			}).Run(func(args mock.Arguments) {
 				Expect(args).To(HaveLen(1))
 				Expect(args[0]).To(BeAssignableToTypeOf(&awseks.ListNodegroupsInput{
 					ClusterName: aws.String(clusterName),
@@ -52,7 +54,10 @@ var _ = Describe("Get", func() {
 				},
 			}, nil)
 
-			p.MockEKS().On("DescribeNodegroup", mock.Anything).Run(func(args mock.Arguments) {
+			p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+				ClusterName:   aws.String(clusterName),
+				NodegroupName: aws.String(ngName),
+			}).Run(func(args mock.Arguments) {
 				Expect(args).To(HaveLen(1))
 				Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeNodegroupInput{
 					ClusterName:   aws.String(clusterName),
@@ -85,7 +90,7 @@ var _ = Describe("Get", func() {
 
 		When("a nodegroup is associated to a CF Stack", func() {
 			It("returns a summary of the node group and its StackName", func() {
-				p.MockCloudFormation().On("DescribeNodeGroupStack", mock.Anything, mock.Anything).Return(nil, nil)
+				p.MockCloudFormation().On("DescribeNodeGroupStack", aws.String(ngName)).Return(nil, nil)
 				cfStack := cloudformation.Stack{
 					StackName: aws.String(stackName),
 				}
@@ -110,7 +115,7 @@ var _ = Describe("Get", func() {
 
 		When("a nodegroup is not associated to a CF Stack", func() {
 			It("returns a summary of the node group without a StackName", func() {
-				p.MockCloudFormation().On("DescribeNodeGroupStack", mock.Anything, mock.Anything).Return(nil, nil)
+				p.MockCloudFormation().On("DescribeNodeGroupStack", aws.String(ngName)).Return(nil, nil)
 				err := fmt.Errorf("error describing cloudformation stack")
 				fakeStackManager.DescribeNodeGroupStackReturns(nil, err)
 
