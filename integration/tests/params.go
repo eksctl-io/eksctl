@@ -16,42 +16,8 @@ import (
 )
 
 const (
-	defaultTestDirectory = "test_profile"
-	owner                = "eksctl-bot"
+	owner = "eksctl-bot"
 )
-
-// NewParams creates a new Test instance from CLI args, grouping all test parameters.
-func NewParams(clusterNamePrefix string) *Params {
-	params := Params{clusterNamePrefix: clusterNamePrefix}
-
-	flag.StringVar(&params.EksctlPath, "eksctl.path", "../../../eksctl", "Path to eksctl")
-	flag.StringVar(&params.Region, "eksctl.region", api.DefaultRegion, "Region to use for the tests")
-	flag.StringVar(&params.Version, "eksctl.version", api.DefaultVersion, "Version of Kubernetes to test")
-	flag.StringVar(&params.TestDirectory, "eksctl.test.dir", defaultTestDirectory, "Test directory. Defaulted to: "+defaultTestDirectory)
-	// Flags to help with the development of the integration tests
-	flag.StringVar(&params.ClusterName, "eksctl.cluster", "", "Cluster name (default: generate one)")
-	flag.BoolVar(&params.SkipCreate, "eksctl.skip.create", false, "Skip the creation tests. Useful for debugging the tests")
-	flag.BoolVar(&params.SkipDelete, "eksctl.skip.delete", false, "Skip the cleanup after the tests have run")
-	flag.BoolVar(&params.UnownedCluster, "eksctl.unownedcluster", false, "run the suite against an unowned cluster")
-	flag.StringVar(&params.KubeconfigPath, "eksctl.kubeconfig", "", "Path to kubeconfig (default: create a temporary file)")
-	flag.StringVar(&params.GitopsOwner, "eksctl.owner", "", "User or org name to create gitops repo under")
-
-	// go1.13+ testing flags regression fix: https://github.com/golang/go/issues/31859
-	flag.Parse()
-	if params.ClusterName == "" {
-		params.ClusterName = params.NewClusterName(clusterNamePrefix)
-	} else {
-		params.addToDeleteList(params.ClusterName)
-	}
-	if params.KubeconfigPath == "" {
-		params.GenerateKubeconfigPath()
-	}
-	if params.GitopsOwner == "" {
-		params.GitopsOwner = owner
-	}
-	params.GenerateCommands()
-	return &params
-}
 
 // Params groups all test parameters.
 type Params struct {
@@ -63,7 +29,6 @@ type Params struct {
 	ClusterName              string
 	SkipCreate               bool
 	SkipDelete               bool
-	UnownedCluster           bool
 	KubeconfigPath           string
 	GitopsOwner              string
 	KubeconfigTemp           bool
@@ -119,7 +84,7 @@ func (p *Params) GenerateCommands() {
 
 	p.EksctlGetCmd = p.EksctlCmd.
 		WithArgs("get").
-		WithTimeout(2 * time.Minute)
+		WithTimeout(1 * time.Minute)
 
 	p.EksctlSetLabelsCmd = p.EksctlCmd.
 		WithArgs("set", "labels").
@@ -184,11 +149,46 @@ func (p Params) DeleteClusters() {
 	for _, clusterName := range p.clustersToDelete {
 		cmd := p.EksctlDeleteClusterCmd.WithArgs(
 			"--name", clusterName,
-			"--wait",
 		)
 		session := cmd.Run()
 		if session.ExitCode() != 0 {
 			fmt.Fprintf(GinkgoWriter, "Warning: cluster %s's deletion failed", clusterName)
 		}
 	}
+}
+
+const (
+	defaultTestDirectory = "test_profile"
+)
+
+// NewParams creates a new Test instance from CLI args, grouping all test parameters.
+func NewParams(clusterNamePrefix string) *Params {
+	params := Params{clusterNamePrefix: clusterNamePrefix}
+
+	flag.StringVar(&params.EksctlPath, "eksctl.path", "../../../eksctl", "Path to eksctl")
+	flag.StringVar(&params.Region, "eksctl.region", api.DefaultRegion, "Region to use for the tests")
+	flag.StringVar(&params.Version, "eksctl.version", api.DefaultVersion, "Version of Kubernetes to test")
+	flag.StringVar(&params.TestDirectory, "eksctl.test.dir", defaultTestDirectory, "Test directory. Defaulted to: "+defaultTestDirectory)
+	// Flags to help with the development of the integration tests
+	flag.StringVar(&params.ClusterName, "eksctl.cluster", "", "Cluster name (default: generate one)")
+	flag.BoolVar(&params.SkipCreate, "eksctl.skip.create", false, "Skip the creation tests. Useful for debugging the tests")
+	flag.BoolVar(&params.SkipDelete, "eksctl.skip.delete", false, "Skip the cleanup after the tests have run")
+	flag.StringVar(&params.KubeconfigPath, "eksctl.kubeconfig", "", "Path to kubeconfig (default: create a temporary file)")
+	flag.StringVar(&params.GitopsOwner, "eksctl.owner", "", "User or org name to create gitops repo under")
+
+	// go1.13+ testing flags regression fix: https://github.com/golang/go/issues/31859
+	flag.Parse()
+	if params.ClusterName == "" {
+		params.ClusterName = params.NewClusterName(clusterNamePrefix)
+	} else {
+		params.addToDeleteList(params.ClusterName)
+	}
+	if params.KubeconfigPath == "" {
+		params.GenerateKubeconfigPath()
+	}
+	if params.GitopsOwner == "" {
+		params.GitopsOwner = owner
+	}
+	params.GenerateCommands()
+	return &params
 }

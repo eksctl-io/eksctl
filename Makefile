@@ -124,10 +124,6 @@ build-integration-test: $(all_generated_code) ## Ensure integration tests compil
 integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup)
 	JUNIT_REPORT_DIR=$(git_toplevel)/test-results ./eksctl-integration-test $(INTEGRATION_TEST_ARGS)
 
-.PHONY: unowned-integration-test
-unowned-integration-test: build build-integration-test ## Run the integration tests for unowned clusters (with cluster creation and cleanup)
-	JUNIT_REPORT_DIR=$(git_toplevel)/test-results ./eksctl-integration-test $(INTEGRATION_TEST_ARGS) --eksctl.unownedcluster
-
 .PHONY: integration-test-container
 integration-test-container: ## Run integration tests in a local container
 	sudo cp -f ${SSH_KEY_PATH} $(HOME)/project/.ssh/gitops_id_rsa
