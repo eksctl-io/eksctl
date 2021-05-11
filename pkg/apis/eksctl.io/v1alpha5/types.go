@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -825,9 +826,6 @@ type NodeGroup struct {
 	// +optional
 	CPUCredits *string `json:"cpuCredits,omitempty"`
 
-	// +optional
-	Taints map[string]string `json:"taints,omitempty"`
-
 	// Associate load balancers with auto scaling group
 	// +optional
 	ClassicLoadBalancerNames []string `json:"classicLoadBalancerNames,omitempty"`
@@ -835,6 +833,10 @@ type NodeGroup struct {
 	// Associate target group with auto scaling group
 	// +optional
 	TargetGroupARNs []string `json:"targetGroupARNs,omitempty"`
+
+	// Taints taints to apply to the nodegroup
+	// +optional
+	Taints map[string]string `json:"taints,omitempty"`
 
 	// +optional
 	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
@@ -1357,6 +1359,13 @@ type LaunchTemplate struct {
 	// TODO support Name?
 }
 
+// NodeGroupTaint represents a Kubernetes taint
+type NodeGroupTaint struct {
+	Key    string             `json:"key,omitempty"`
+	Value  string             `json:"value,omitempty"`
+	Effect corev1.TaintEffect `json:"effect,omitempty"`
+}
+
 // ManagedNodeGroup represents an EKS-managed nodegroup
 // TODO Validate for unmapped fields and throw an error
 type ManagedNodeGroup struct {
@@ -1367,6 +1376,9 @@ type ManagedNodeGroup struct {
 
 	// Spot creates a spot nodegroup
 	Spot bool `json:"spot,omitempty"`
+
+	// Taints taints to apply to the nodegroup
+	Taints []NodeGroupTaint `json:"taints,omitempty"`
 
 	// LaunchTemplate specifies an existing launch template to use
 	// for the nodegroup
