@@ -1,6 +1,7 @@
 package nodegroup_test
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -80,29 +81,54 @@ var _ = Describe("Get", func() {
 					},
 				},
 			}, nil)
-
-			p.MockCloudFormation().On("DescribeNodeGroupStack", mock.Anything, mock.Anything).Return(nil, nil)
-			cfStack := cloudformation.Stack{
-				StackName: aws.String(stackName),
-			}
-			fakeStackManager.DescribeNodeGroupStackReturns(&cfStack, nil)
 		})
 
-		It("returns a summary of the node group", func() {
-			ngSummary, err := m.GetAll()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(ngSummary[0].StackName).To(Equal(stackName))
-			Expect(ngSummary[0].Name).To(Equal(ngName))
-			Expect(ngSummary[0].Cluster).To(Equal(clusterName))
-			Expect(ngSummary[0].Status).To(Equal("my-status"))
-			Expect(ngSummary[0].MaxSize).To(Equal(4))
-			Expect(ngSummary[0].MinSize).To(Equal(0))
-			Expect(ngSummary[0].DesiredCapacity).To(Equal(2))
-			Expect(ngSummary[0].InstanceType).To(Equal("-"))
-			Expect(ngSummary[0].ImageID).To(Equal("ami-type"))
-			Expect(ngSummary[0].CreationTime).To(Equal(&t))
-			Expect(ngSummary[0].NodeInstanceRoleARN).To(Equal("node-role"))
-			Expect(ngSummary[0].AutoScalingGroupName).To(Equal("asg-name"))
+		When("a nodegroup is associated to a CF Stack", func() {
+			It("returns a summary of the node group and its StackName", func() {
+				p.MockCloudFormation().On("DescribeNodeGroupStack", mock.Anything, mock.Anything).Return(nil, nil)
+				cfStack := cloudformation.Stack{
+					StackName: aws.String(stackName),
+				}
+				fakeStackManager.DescribeNodeGroupStackReturns(&cfStack, nil)
+
+				ngSummary, err := m.GetAll()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(ngSummary[0].StackName).To(Equal(stackName))
+				Expect(ngSummary[0].Name).To(Equal(ngName))
+				Expect(ngSummary[0].Cluster).To(Equal(clusterName))
+				Expect(ngSummary[0].Status).To(Equal("my-status"))
+				Expect(ngSummary[0].MaxSize).To(Equal(4))
+				Expect(ngSummary[0].MinSize).To(Equal(0))
+				Expect(ngSummary[0].DesiredCapacity).To(Equal(2))
+				Expect(ngSummary[0].InstanceType).To(Equal("-"))
+				Expect(ngSummary[0].ImageID).To(Equal("ami-type"))
+				Expect(ngSummary[0].CreationTime).To(Equal(&t))
+				Expect(ngSummary[0].NodeInstanceRoleARN).To(Equal("node-role"))
+				Expect(ngSummary[0].AutoScalingGroupName).To(Equal("asg-name"))
+			})
+		})
+
+		When("a nodegroup is not associated to a CF Stack", func() {
+			It("returns a summary of the node group without a StackName", func() {
+				p.MockCloudFormation().On("DescribeNodeGroupStack", mock.Anything, mock.Anything).Return(nil, nil)
+				err := fmt.Errorf("error describing cloudformation stack")
+				fakeStackManager.DescribeNodeGroupStackReturns(nil, err)
+
+				ngSummary, err := m.GetAll()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(ngSummary[0].StackName).To(Equal(""))
+				Expect(ngSummary[0].Name).To(Equal(ngName))
+				Expect(ngSummary[0].Cluster).To(Equal(clusterName))
+				Expect(ngSummary[0].Status).To(Equal("my-status"))
+				Expect(ngSummary[0].MaxSize).To(Equal(4))
+				Expect(ngSummary[0].MinSize).To(Equal(0))
+				Expect(ngSummary[0].DesiredCapacity).To(Equal(2))
+				Expect(ngSummary[0].InstanceType).To(Equal("-"))
+				Expect(ngSummary[0].ImageID).To(Equal("ami-type"))
+				Expect(ngSummary[0].CreationTime).To(Equal(&t))
+				Expect(ngSummary[0].NodeInstanceRoleARN).To(Equal("node-role"))
+				Expect(ngSummary[0].AutoScalingGroupName).To(Equal("asg-name"))
+			})
 		})
 	})
 })
