@@ -8,6 +8,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/utils/taints"
+	corev1 "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/util/validation"
 	kubeletapis "k8s.io/kubernetes/pkg/kubelet/apis"
@@ -572,6 +574,16 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 		}
 		if !ng.InstanceSelector.IsZero() {
 			return errors.Errorf("cannot set instanceType when instanceSelector is specified (%s)", path)
+		}
+	}
+
+	for _, t := range ng.Taints {
+		if err := taints.Validate(corev1.Taint{
+			Key:    t.Key,
+			Value:  t.Value,
+			Effect: t.Effect,
+		}); err != nil {
+			return err
 		}
 	}
 
