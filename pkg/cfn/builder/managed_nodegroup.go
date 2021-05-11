@@ -89,6 +89,10 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		}
 	}
 
+	taints, err := mapTaints(m.nodeGroup.Taints)
+	if err != nil {
+		return err
+	}
 	managedResource := &gfneks.Nodegroup{
 		ClusterName:   gfnt.NewString(m.clusterConfig.Metadata.Name),
 		NodegroupName: gfnt.NewString(m.nodeGroup.Name),
@@ -97,7 +101,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		NodeRole:      nodeRole,
 		Labels:        m.nodeGroup.Labels,
 		Tags:          m.nodeGroup.Tags,
-		Taints:        mapTaints(m.nodeGroup.ParsedTaints),
+		Taints:        taints,
 	}
 
 	if m.nodeGroup.Spot {
@@ -167,7 +171,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	return nil
 }
 
-func mapTaints(taints []corev1.Taint) []*gfneks.Nodegroup_Taints {
+func mapTaints(taints []api.NodeGroupTaint) ([]*gfneks.Nodegroup_Taints, error) {
 	var ret []*gfneks.Nodegroup_Taints
 
 	mapEffect := func(effect corev1.TaintEffect) string {
@@ -178,18 +182,23 @@ func mapTaints(taints []corev1.Taint) []*gfneks.Nodegroup_Taints {
 			return "PREFER_NO_SCHEDULE"
 		case corev1.TaintEffectNoExecute:
 			return "NO_EXECUTE"
+		default:
+			return ""
 		}
-		panic(fmt.Sprintf("unexpected taint effect: %v", effect))
 	}
 
 	for _, t := range taints {
+		effect := mapEffect(t.Effect)
+		if effect == "" {
+			return nil, errors.Errorf("unexpected taint effect: %v", t.Effect)
+		}
 		ret = append(ret, &gfneks.Nodegroup_Taints{
 			Key:    gfnt.NewString(t.Key),
 			Value:  gfnt.NewString(t.Value),
-			Effect: gfnt.NewString(mapEffect(t.Effect)),
+			Effect: gfnt.NewString(effect),
 		})
 	}
-	return ret
+	return ret, nil
 }
 
 func selectManagedInstanceType(ng *api.ManagedNodeGroup) string {

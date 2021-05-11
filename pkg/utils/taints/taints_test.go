@@ -16,17 +16,12 @@ func TestUtilsTaints(t *testing.T) {
 }
 
 type taintsEntry struct {
-	key         string
-	valueEffect string
-
-	expectedTaint corev1.Taint
-	expectedErr   string
+	taint       corev1.Taint
+	expectedErr string
 }
 
 var _ = DescribeTable("Parse", func(t taintsEntry) {
-	parsedTaints, err := taints.Parse(map[string]string{
-		t.key: t.valueEffect,
-	})
+	err := taints.Validate(t.taint)
 	if t.expectedErr != "" {
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(MatchError(ContainSubstring(t.expectedErr)))
@@ -34,12 +29,9 @@ var _ = DescribeTable("Parse", func(t taintsEntry) {
 	}
 
 	Expect(err).NotTo(HaveOccurred())
-	Expect(parsedTaints[0]).To(Equal(t.expectedTaint))
 },
 	Entry("valid", taintsEntry{
-		key:         "key1",
-		valueEffect: "value1:NoSchedule",
-		expectedTaint: corev1.Taint{
+		taint: corev1.Taint{
 			Key:    "key1",
 			Value:  "value1",
 			Effect: corev1.TaintEffectNoSchedule,
@@ -47,34 +39,43 @@ var _ = DescribeTable("Parse", func(t taintsEntry) {
 	}),
 
 	Entry("missing value", taintsEntry{
-		key:         "key2",
-		valueEffect: ":NoExecute",
-		expectedTaint: corev1.Taint{
+		taint: corev1.Taint{
 			Key:    "key2",
 			Effect: corev1.TaintEffectNoExecute,
 		},
 	}),
 
 	Entry("missing value and effect", taintsEntry{
-		key:         "key3",
+		taint: corev1.Taint{
+			Key: "key3",
+		},
 		expectedErr: "invalid taint effect",
 	}),
 
 	Entry("invalid key", taintsEntry{
-		key:         "key1=",
-		valueEffect: "value1:NoSchedule",
+		taint: corev1.Taint{
+			Key:    "key1=",
+			Value:  "value1",
+			Effect: corev1.TaintEffectNoSchedule,
+		},
 		expectedErr: "invalid taint key",
 	}),
 
 	Entry("invalid value", taintsEntry{
-		key:         "key1",
-		valueEffect: "v&lue:NoSchedule",
+		taint: corev1.Taint{
+			Key:    "key1",
+			Value:  "v&lue",
+			Effect: corev1.TaintEffectNoSchedule,
+		},
 		expectedErr: "invalid taint value",
 	}),
 
 	Entry("unsupported effect", taintsEntry{
-		key:         "key1",
-		valueEffect: "value1:NoEffect",
+		taint: corev1.Taint{
+			Key:    "key1",
+			Value:  "value1",
+			Effect: "NoEffect",
+		},
 		expectedErr: "invalid taint effect",
 	}),
 )

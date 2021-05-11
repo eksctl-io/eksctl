@@ -1088,13 +1088,12 @@
           "default": "{}"
         },
         "taints": {
-          "additionalProperties": {
-            "type": "string"
+          "items": {
+            "$ref": "#/definitions/NodeGroupTaint"
           },
-          "type": "object",
+          "type": "array",
           "description": "taints to apply to the nodegroup",
-          "x-intellij-html-description": "taints to apply to the nodegroup",
-          "default": "{}"
+          "x-intellij-html-description": "taints to apply to the nodegroup"
         },
         "volumeEncrypted": {
           "type": "boolean"
@@ -1147,7 +1146,6 @@
         "labels",
         "privateNetworking",
         "tags",
-        "taints",
         "iam",
         "ami",
         "securityGroups",
@@ -1169,6 +1167,7 @@
         "instanceSelector",
         "instanceTypes",
         "spot",
+        "taints",
         "launchTemplate",
         "releaseVersion"
       ],
@@ -1453,7 +1452,6 @@
         "labels",
         "privateNetworking",
         "tags",
-        "taints",
         "iam",
         "ami",
         "securityGroups",
@@ -1478,6 +1476,7 @@
         "cpuCredits",
         "classicLoadBalancerNames",
         "targetGroupARNs",
+        "taints",
         "bottlerocket",
         "clusterDNS",
         "kubeletExtraConfig"
@@ -1743,6 +1742,27 @@
       "additionalProperties": false,
       "description": "holds all the ssh access configuration to a NodeGroup",
       "x-intellij-html-description": "holds all the ssh access configuration to a NodeGroup"
+    },
+    "NodeGroupTaint": {
+      "properties": {
+        "effect": {
+          "$ref": "#/definitions/k8s.io|api|core|v1.TaintEffect"
+        },
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "preferredOrder": [
+        "key",
+        "value",
+        "effect"
+      ],
+      "additionalProperties": false,
+      "description": "represents a Kubernetes taint",
+      "x-intellij-html-description": "represents a Kubernetes taint"
     },
     "OIDCIdentityProvider": {
       "required": [
@@ -2062,6 +2082,9 @@
       "type": "string",
       "description": "an IP address in CIDR notation",
       "x-intellij-html-description": "an IP address in CIDR notation"
+    },
+    "k8s.io|api|core|v1.TaintEffect": {
+      "type": "string"
     }
   }
 }
