@@ -1,5 +1,7 @@
 # Unmanaged nodegroup upgrades
 
+In `eksctl`, creating a new cluster or nodegroup will create an unmanaged nodegroup by default, unless otherwise specified, such as by adding `--managed`. Bear in mind that this does not apply to the EKS console, which as a general rule only knows about EKS-managed nodegroups.
+
 You should be upgrading nodegroups only after you ran `eksctl upgrade cluster`.
 (See [Upgrading clusters](/usage/cluster-upgrade).)
 
