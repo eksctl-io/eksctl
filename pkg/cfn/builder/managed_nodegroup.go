@@ -177,11 +177,11 @@ func mapTaints(taints []api.NodeGroupTaint) ([]*gfneks.Nodegroup_Taints, error) 
 	mapEffect := func(effect corev1.TaintEffect) string {
 		switch effect {
 		case corev1.TaintEffectNoSchedule:
-			return "NO_SCHEDULE"
+			return eks.TaintEffectNoSchedule
 		case corev1.TaintEffectPreferNoSchedule:
-			return "PREFER_NO_SCHEDULE"
+			return eks.TaintEffectPreferNoSchedule
 		case corev1.TaintEffectNoExecute:
-			return "NO_EXECUTE"
+			return eks.TaintEffectNoExecute
 		default:
 			return ""
 		}
