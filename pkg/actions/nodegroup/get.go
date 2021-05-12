@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/eks"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
@@ -33,6 +34,12 @@ func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 			return nil, err
 		}
 
+		var stack *cloudformation.Stack
+		stack, err = m.stackManager.DescribeNodeGroupStack(*managedNodeGroup)
+		if err != nil {
+			stack = &cloudformation.Stack{}
+		}
+
 		asgs := []string{}
 
 		if describeOutput.Nodegroup.Resources != nil {
@@ -42,6 +49,7 @@ func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 		}
 
 		summaries = append(summaries, &manager.NodeGroupSummary{
+			StackName:            aws.StringValue(stack.StackName),
 			Name:                 *describeOutput.Nodegroup.NodegroupName,
 			Cluster:              *describeOutput.Nodegroup.ClusterName,
 			Status:               *describeOutput.Nodegroup.Status,
@@ -58,6 +66,7 @@ func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 
 	return summaries, nil
 }
+
 func getInstanceTypes(ng *awseks.Nodegroup) string {
 	if len(ng.InstanceTypes) > 0 {
 		return strings.Join(aws.StringValueSlice(ng.InstanceTypes), ",")
