@@ -349,6 +349,19 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			})
 		})
 
+		Context("and creating a nodegroup with an update config", func() {
+			It("should not return an error", func() {
+				cmd := params.EksctlCreateCmd.WithArgs(
+					"nodegroup",
+					"--cluster", params.ClusterName,
+					"--nodes", "4",
+					"--managed",
+					"--update-config", "max-parallel=20",
+				)
+				Expect(cmd).To(RunSuccessfully())
+			})
+		})
+
 		Context("and deleting the cluster", func() {
 			It("should not return an error", func() {
 				cmd := params.EksctlDeleteClusterCmd.WithArgs(
