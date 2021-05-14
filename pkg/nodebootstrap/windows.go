@@ -9,6 +9,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap/utils"
 )
 
 type Windows struct {
@@ -33,7 +34,7 @@ func (b *Windows) UserData() (string, error) {
 
 	kubeletOptions := map[string]string{
 		"node-labels":          kvs(b.ng.Labels),
-		"register-with-taints": kvs(b.ng.Taints),
+		"register-with-taints": utils.FormatTaints(b.ng.Taints),
 	}
 	if b.ng.MaxPodsPerNode != 0 {
 		kubeletOptions["max-pods"] = strconv.Itoa(b.ng.MaxPodsPerNode)

@@ -8,6 +8,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap/utils"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
@@ -119,7 +120,7 @@ func makeKubeletExtraConf(ng *api.NodeGroup) (cloudconfig.File, error) {
 func makeBootstrapEnv(clusterName string, ng *api.NodeGroup) cloudconfig.File {
 	variables := []string{
 		fmt.Sprintf("NODE_LABELS=%s", kvs(ng.Labels)),
-		fmt.Sprintf("NODE_TAINTS=%s", mapTaints(ng.Taints)),
+		fmt.Sprintf("NODE_TAINTS=%s", utils.FormatTaints(ng.Taints)),
 		fmt.Sprintf("CLUSTER_NAME=%s", clusterName),
 	}
 
@@ -131,18 +132,6 @@ func makeBootstrapEnv(clusterName string, ng *api.NodeGroup) cloudconfig.File {
 		Path:    configDir + envFile,
 		Content: strings.Join(variables, "\n"),
 	}
-}
-
-func mapTaints(kv map[string]string) string {
-	var params []string
-	for k, v := range kv {
-		if strings.Contains(v, ":") {
-			params = append(params, fmt.Sprintf("%s=%s", k, v))
-			continue
-		}
-		params = append(params, fmt.Sprintf("%s=:%s", k, v))
-	}
-	return strings.Join(params, ",")
 }
 
 func kvs(kv map[string]string) string {
