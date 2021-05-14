@@ -117,14 +117,14 @@
                     {
                       "matchExpressions": [
                         {
-                          "key": "beta.kubernetes.io/os",
+                          "key": "kubernetes.io/os",
                           "operator": "In",
                           "values": [
                             "linux"
                           ]
                         },
                         {
-                          "key": "beta.kubernetes.io/arch",
+                          "key": "kubernetes.io/arch",
                           "operator": "In",
                           "values": [
                             "amd64",
@@ -164,7 +164,7 @@
                   "-conf",
                   "/etc/coredns/Corefile"
                 ],
-                "image": "%s.dkr.ecr.%s.%s/eks/coredns:v1.8.0-eksbuild.1",
+                "image": "%s.dkr.ecr.%s.%s/eks/coredns:v1.8.3-eksbuild.1",
                 "imagePullPolicy": "IfNotPresent",
                 "livenessProbe": {
                   "failureThreshold": 5,
@@ -321,6 +321,18 @@
           ],
           "verbs": [
             "get"
+          ]
+        },
+        {
+          "apiGroups": [
+            "discovery.k8s.io"
+          ],
+          "resources": [
+            "endpointslices"
+          ],
+          "verbs": [
+            "list",
+            "watch"
           ]
         }
       ]
