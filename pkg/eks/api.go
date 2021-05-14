@@ -43,6 +43,8 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/version"
 )
@@ -53,6 +55,16 @@ type ClusterProvider struct {
 	Provider api.ClusterProvider
 	// informative fields, i.e. used as outputs
 	Status *ProviderStatus
+	// field for k8s client and k8s config
+	KubeProvider KubeProvider
+}
+
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o fakes/fake_kube_provider.go . KubeProvider
+// KubeProvider is the interface to helper funcs relating to k8s API,
+// k8s config and AWS APIs
+type KubeProvider interface {
+	NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error)
+	ServerVersion(rawClient *kubernetes.RawClient) (string, error)
 }
 
 // ProviderServices stores the used APIs

@@ -276,12 +276,12 @@ func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
 }
 
 func checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes.Interface, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
-	rawClient, err := ctl.NewRawClient(cfg)
+	rawClient, err := ctl.KubeProvider.NewRawClient(cfg)
 	if err != nil {
 		return err
 	}
 
-	kubernetesVersion, err := rawClient.ServerVersion()
+	kubernetesVersion, err := ctl.KubeProvider.ServerVersion(rawClient)
 	if err != nil {
 		return err
 	}
