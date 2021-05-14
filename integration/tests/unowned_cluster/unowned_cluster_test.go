@@ -186,7 +186,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"--verbose", "2",
 			)
 			// It sometimes takes forever for the above set to take effect
-		Eventually(func() *gbytes.Buffer { return cmd.Run().Out }, time.Minute*2).Should(gbytes.Say("key=value"))
+		Eventually(func() *gbytes.Buffer { return cmd.Run().Out }, time.Minute*4).Should(gbytes.Say("key=value"))
 
 		By("unsetting labels on a managed nodegroup")
 		cmd = params.EksctlUnsetLabelsCmd.
