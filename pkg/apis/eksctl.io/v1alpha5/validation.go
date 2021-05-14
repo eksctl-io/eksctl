@@ -339,7 +339,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 	}
 
-	if _, err := taints.Parse(ng.Taints); err != nil {
+	if err := validateTaints(ng.Taints); err != nil {
 		return err
 	}
 
@@ -581,14 +581,8 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 		}
 	}
 
-	for _, t := range ng.Taints {
-		if err := taints.Validate(corev1.Taint{
-			Key:    t.Key,
-			Value:  t.Value,
-			Effect: t.Effect,
-		}); err != nil {
-			return err
-		}
+	if err := validateTaints(ng.Taints); err != nil {
+		return err
 	}
 
 	switch {
@@ -841,6 +835,19 @@ func validateCIDRs(cidrs []string) ([]string, error) {
 		validCIDRs = append(validCIDRs, ipNet.String())
 	}
 	return validCIDRs, nil
+}
+
+func validateTaints(ngTaints []NodeGroupTaint) error {
+	for _, t := range ngTaints {
+		if err := taints.Validate(corev1.Taint{
+			Key:    t.Key,
+			Value:  t.Value,
+			Effect: t.Effect,
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ReservedProfileNamePrefix defines the Fargate profile name prefix reserved
