@@ -53,7 +53,7 @@ kind: ClusterConfig
 metadata:
   name: %[1]s
   region: us-west-2
-  version: "1.19"
+  version: "1.20"
 nodeGroups:
 - amiFamily: AmazonLinux2
   disableIMDSv1: false
@@ -166,6 +166,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			WithArgs(
 				"cluster",
 				"--dry-run",
+				"--version 1.20",
 				"--name",
 				params.ClusterName,
 				"--zones", "us-west-2a,us-west-2b",
