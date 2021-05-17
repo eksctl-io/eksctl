@@ -56,7 +56,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		ng1 = "ng-1"
 		mng1 = "mng-1"
 		mng2 = "mng-2"
-		version = "1.18"
+		version = "1.19"
 		stackName = fmt.Sprintf("eksctl-%s", params.ClusterName)
 		cfg = &api.ClusterConfig{
 			TypeMeta: api.ClusterConfigTypeMeta(),
