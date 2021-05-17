@@ -65,6 +65,8 @@ type ClusterProvider struct {
 type KubeProvider interface {
 	NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error)
 	ServerVersion(rawClient *kubernetes.RawClient) (string, error)
+	LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, stackManager manager.StackManager) error
+	SupportsManagedNodes(clusterConfig *api.ClusterConfig) (bool, error)
 }
 
 // ProviderServices stores the used APIs

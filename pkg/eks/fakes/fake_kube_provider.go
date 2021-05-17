@@ -5,11 +5,24 @@ import (
 	"sync"
 
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
 type FakeKubeProvider struct {
+	LoadClusterIntoSpecFromStackStub        func(*v1alpha5.ClusterConfig, manager.StackManager) error
+	loadClusterIntoSpecFromStackMutex       sync.RWMutex
+	loadClusterIntoSpecFromStackArgsForCall []struct {
+		arg1 *v1alpha5.ClusterConfig
+		arg2 manager.StackManager
+	}
+	loadClusterIntoSpecFromStackReturns struct {
+		result1 error
+	}
+	loadClusterIntoSpecFromStackReturnsOnCall map[int]struct {
+		result1 error
+	}
 	NewRawClientStub        func(*v1alpha5.ClusterConfig) (*kubernetes.RawClient, error)
 	newRawClientMutex       sync.RWMutex
 	newRawClientArgsForCall []struct {
@@ -36,8 +49,83 @@ type FakeKubeProvider struct {
 		result1 string
 		result2 error
 	}
+	SupportsManagedNodesStub        func(*v1alpha5.ClusterConfig) (bool, error)
+	supportsManagedNodesMutex       sync.RWMutex
+	supportsManagedNodesArgsForCall []struct {
+		arg1 *v1alpha5.ClusterConfig
+	}
+	supportsManagedNodesReturns struct {
+		result1 bool
+		result2 error
+	}
+	supportsManagedNodesReturnsOnCall map[int]struct {
+		result1 bool
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStack(arg1 *v1alpha5.ClusterConfig, arg2 manager.StackManager) error {
+	fake.loadClusterIntoSpecFromStackMutex.Lock()
+	ret, specificReturn := fake.loadClusterIntoSpecFromStackReturnsOnCall[len(fake.loadClusterIntoSpecFromStackArgsForCall)]
+	fake.loadClusterIntoSpecFromStackArgsForCall = append(fake.loadClusterIntoSpecFromStackArgsForCall, struct {
+		arg1 *v1alpha5.ClusterConfig
+		arg2 manager.StackManager
+	}{arg1, arg2})
+	stub := fake.LoadClusterIntoSpecFromStackStub
+	fakeReturns := fake.loadClusterIntoSpecFromStackReturns
+	fake.recordInvocation("LoadClusterIntoSpecFromStack", []interface{}{arg1, arg2})
+	fake.loadClusterIntoSpecFromStackMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackCallCount() int {
+	fake.loadClusterIntoSpecFromStackMutex.RLock()
+	defer fake.loadClusterIntoSpecFromStackMutex.RUnlock()
+	return len(fake.loadClusterIntoSpecFromStackArgsForCall)
+}
+
+func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackCalls(stub func(*v1alpha5.ClusterConfig, manager.StackManager) error) {
+	fake.loadClusterIntoSpecFromStackMutex.Lock()
+	defer fake.loadClusterIntoSpecFromStackMutex.Unlock()
+	fake.LoadClusterIntoSpecFromStackStub = stub
+}
+
+func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackArgsForCall(i int) (*v1alpha5.ClusterConfig, manager.StackManager) {
+	fake.loadClusterIntoSpecFromStackMutex.RLock()
+	defer fake.loadClusterIntoSpecFromStackMutex.RUnlock()
+	argsForCall := fake.loadClusterIntoSpecFromStackArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackReturns(result1 error) {
+	fake.loadClusterIntoSpecFromStackMutex.Lock()
+	defer fake.loadClusterIntoSpecFromStackMutex.Unlock()
+	fake.LoadClusterIntoSpecFromStackStub = nil
+	fake.loadClusterIntoSpecFromStackReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackReturnsOnCall(i int, result1 error) {
+	fake.loadClusterIntoSpecFromStackMutex.Lock()
+	defer fake.loadClusterIntoSpecFromStackMutex.Unlock()
+	fake.LoadClusterIntoSpecFromStackStub = nil
+	if fake.loadClusterIntoSpecFromStackReturnsOnCall == nil {
+		fake.loadClusterIntoSpecFromStackReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.loadClusterIntoSpecFromStackReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeKubeProvider) NewRawClient(arg1 *v1alpha5.ClusterConfig) (*kubernetes.RawClient, error) {
@@ -168,13 +256,81 @@ func (fake *FakeKubeProvider) ServerVersionReturnsOnCall(i int, result1 string, 
 	}{result1, result2}
 }
 
+func (fake *FakeKubeProvider) SupportsManagedNodes(arg1 *v1alpha5.ClusterConfig) (bool, error) {
+	fake.supportsManagedNodesMutex.Lock()
+	ret, specificReturn := fake.supportsManagedNodesReturnsOnCall[len(fake.supportsManagedNodesArgsForCall)]
+	fake.supportsManagedNodesArgsForCall = append(fake.supportsManagedNodesArgsForCall, struct {
+		arg1 *v1alpha5.ClusterConfig
+	}{arg1})
+	stub := fake.SupportsManagedNodesStub
+	fakeReturns := fake.supportsManagedNodesReturns
+	fake.recordInvocation("SupportsManagedNodes", []interface{}{arg1})
+	fake.supportsManagedNodesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeKubeProvider) SupportsManagedNodesCallCount() int {
+	fake.supportsManagedNodesMutex.RLock()
+	defer fake.supportsManagedNodesMutex.RUnlock()
+	return len(fake.supportsManagedNodesArgsForCall)
+}
+
+func (fake *FakeKubeProvider) SupportsManagedNodesCalls(stub func(*v1alpha5.ClusterConfig) (bool, error)) {
+	fake.supportsManagedNodesMutex.Lock()
+	defer fake.supportsManagedNodesMutex.Unlock()
+	fake.SupportsManagedNodesStub = stub
+}
+
+func (fake *FakeKubeProvider) SupportsManagedNodesArgsForCall(i int) *v1alpha5.ClusterConfig {
+	fake.supportsManagedNodesMutex.RLock()
+	defer fake.supportsManagedNodesMutex.RUnlock()
+	argsForCall := fake.supportsManagedNodesArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeKubeProvider) SupportsManagedNodesReturns(result1 bool, result2 error) {
+	fake.supportsManagedNodesMutex.Lock()
+	defer fake.supportsManagedNodesMutex.Unlock()
+	fake.SupportsManagedNodesStub = nil
+	fake.supportsManagedNodesReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKubeProvider) SupportsManagedNodesReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.supportsManagedNodesMutex.Lock()
+	defer fake.supportsManagedNodesMutex.Unlock()
+	fake.SupportsManagedNodesStub = nil
+	if fake.supportsManagedNodesReturnsOnCall == nil {
+		fake.supportsManagedNodesReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 error
+		})
+	}
+	fake.supportsManagedNodesReturnsOnCall[i] = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeKubeProvider) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.loadClusterIntoSpecFromStackMutex.RLock()
+	defer fake.loadClusterIntoSpecFromStackMutex.RUnlock()
 	fake.newRawClientMutex.RLock()
 	defer fake.newRawClientMutex.RUnlock()
 	fake.serverVersionMutex.RLock()
 	defer fake.serverVersionMutex.RUnlock()
+	fake.supportsManagedNodesMutex.RLock()
+	defer fake.supportsManagedNodesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

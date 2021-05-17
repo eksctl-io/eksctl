@@ -51,7 +51,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 	}
 
 	var isOwnedCluster = true
-	if err := ctl.LoadClusterIntoSpecFromStack(cfg, m.stackManager); err != nil {
+	if err := ctl.KubeProvider.LoadClusterIntoSpecFromStack(cfg, m.stackManager); err != nil {
 		switch e := err.(type) {
 		case *manager.StackNotFoundErr:
 			logger.Warning("%s, will attempt to create nodegroup(s) on non eksctl-managed cluster", e.Error())
@@ -66,7 +66,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 	}
 
 	// EKS 1.14 clusters created with prior versions of eksctl may not support Managed Nodes
-	supportsManagedNodes, err := ctl.SupportsManagedNodes(cfg)
+	supportsManagedNodes, err := ctl.KubeProvider.SupportsManagedNodes(cfg)
 	if err != nil {
 		return err
 	}

@@ -15,6 +15,7 @@ import (
 	"sigs.k8s.io/aws-iam-authenticator/pkg/token"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
@@ -103,4 +104,18 @@ func (c *ClusterProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig)
 	}
 
 	return client, clientSet, nil
+}
+
+// NewRawClient creates a new raw REST client in one go with an embedded STS token
+func (c *ClusterProvider) NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error) {
+	client, clientSet, err := c.newClientSetWithEmbeddedToken(spec)
+	if err != nil {
+		return nil, err
+	}
+
+	return kubewrapper.NewRawClient(clientSet, client.rawConfig)
+}
+
+func (c *ClusterProvider) ServerVersion(rawClient *kubewrapper.RawClient) (string, error) {
+	return rawClient.ServerVersion()
 }
