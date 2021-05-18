@@ -30,8 +30,6 @@ managedNodeGroups:
       effect: NoSchedule
     - key: key2
       effect: NoExecute
-    updateConfig:
-      maxParallel: 20
     tags:
       nodegroup-role: worker
     iam:
