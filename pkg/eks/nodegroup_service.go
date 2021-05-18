@@ -22,6 +22,7 @@ type InstanceSelector interface {
 	Filter(selector.Filters) ([]string, error)
 }
 
+// NodeGroupInitialiser is an interface that provides helpers for nodegroup creation.
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o fakes/fake_nodegroup_initialiser.go . NodeGroupInitialiser
 type NodeGroupInitialiser interface {
 	Normalize(nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error

@@ -67,6 +67,7 @@ type KubeProvider interface {
 	ServerVersion(rawClient *kubernetes.RawClient) (string, error)
 	LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, stackManager manager.StackManager) error
 	SupportsManagedNodes(clusterConfig *api.ClusterConfig) (bool, error)
+	ValidateClusterForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error
 }
 
 // ProviderServices stores the used APIs

@@ -39,7 +39,7 @@ var _ = Describe("nodegroup filter", func() {
 			addGroupA(cfg)
 			addGroupB(cfg)
 
-			filter = NewNodeGroupFilter()
+			filter = New()
 
 			mockProvider = mockprovider.NewMockProvider()
 			mockProvider.MockEKS().On("ListNodegroups", mock.Anything).Return(&eks.ListNodegroupsOutput{Nodegroups: nil}, nil)
@@ -145,7 +145,7 @@ var _ = Describe("nodegroup filter", func() {
 			addGroupA(cfg)
 			addGroupB(cfg)
 
-			filter := NewNodeGroupFilter()
+			filter := New()
 			printer := printers.NewJSONPrinter()
 			names := []string{}
 
@@ -177,7 +177,7 @@ var _ = Describe("nodegroup filter", func() {
 			addGroupA(cfg)
 			addGroupB(cfg)
 
-			filter := NewNodeGroupFilter()
+			filter := New()
 			filter.delegate.ExcludeAll = true
 
 			err := filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
@@ -201,7 +201,7 @@ var _ = Describe("nodegroup filter", func() {
 			cfg := newClusterConfig()
 			addGroupA(cfg)
 
-			filter := NewNodeGroupFilter()
+			filter := New()
 			names := []string{}
 
 			err := filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
@@ -231,7 +231,7 @@ var _ = Describe("nodegroup filter", func() {
 			addGroupA(cfg)
 			addGroupB(cfg)
 
-			filter := NewNodeGroupFilter()
+			filter := New()
 			names := []string{}
 
 			err := filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {

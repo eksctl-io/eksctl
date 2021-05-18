@@ -62,6 +62,18 @@ type FakeKubeProvider struct {
 		result1 bool
 		result2 error
 	}
+	ValidateClusterForCompatibilityStub        func(*v1alpha5.ClusterConfig, manager.StackManager) error
+	validateClusterForCompatibilityMutex       sync.RWMutex
+	validateClusterForCompatibilityArgsForCall []struct {
+		arg1 *v1alpha5.ClusterConfig
+		arg2 manager.StackManager
+	}
+	validateClusterForCompatibilityReturns struct {
+		result1 error
+	}
+	validateClusterForCompatibilityReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -320,6 +332,68 @@ func (fake *FakeKubeProvider) SupportsManagedNodesReturnsOnCall(i int, result1 b
 	}{result1, result2}
 }
 
+func (fake *FakeKubeProvider) ValidateClusterForCompatibility(arg1 *v1alpha5.ClusterConfig, arg2 manager.StackManager) error {
+	fake.validateClusterForCompatibilityMutex.Lock()
+	ret, specificReturn := fake.validateClusterForCompatibilityReturnsOnCall[len(fake.validateClusterForCompatibilityArgsForCall)]
+	fake.validateClusterForCompatibilityArgsForCall = append(fake.validateClusterForCompatibilityArgsForCall, struct {
+		arg1 *v1alpha5.ClusterConfig
+		arg2 manager.StackManager
+	}{arg1, arg2})
+	stub := fake.ValidateClusterForCompatibilityStub
+	fakeReturns := fake.validateClusterForCompatibilityReturns
+	fake.recordInvocation("ValidateClusterForCompatibility", []interface{}{arg1, arg2})
+	fake.validateClusterForCompatibilityMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeKubeProvider) ValidateClusterForCompatibilityCallCount() int {
+	fake.validateClusterForCompatibilityMutex.RLock()
+	defer fake.validateClusterForCompatibilityMutex.RUnlock()
+	return len(fake.validateClusterForCompatibilityArgsForCall)
+}
+
+func (fake *FakeKubeProvider) ValidateClusterForCompatibilityCalls(stub func(*v1alpha5.ClusterConfig, manager.StackManager) error) {
+	fake.validateClusterForCompatibilityMutex.Lock()
+	defer fake.validateClusterForCompatibilityMutex.Unlock()
+	fake.ValidateClusterForCompatibilityStub = stub
+}
+
+func (fake *FakeKubeProvider) ValidateClusterForCompatibilityArgsForCall(i int) (*v1alpha5.ClusterConfig, manager.StackManager) {
+	fake.validateClusterForCompatibilityMutex.RLock()
+	defer fake.validateClusterForCompatibilityMutex.RUnlock()
+	argsForCall := fake.validateClusterForCompatibilityArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeKubeProvider) ValidateClusterForCompatibilityReturns(result1 error) {
+	fake.validateClusterForCompatibilityMutex.Lock()
+	defer fake.validateClusterForCompatibilityMutex.Unlock()
+	fake.ValidateClusterForCompatibilityStub = nil
+	fake.validateClusterForCompatibilityReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeKubeProvider) ValidateClusterForCompatibilityReturnsOnCall(i int, result1 error) {
+	fake.validateClusterForCompatibilityMutex.Lock()
+	defer fake.validateClusterForCompatibilityMutex.Unlock()
+	fake.ValidateClusterForCompatibilityStub = nil
+	if fake.validateClusterForCompatibilityReturnsOnCall == nil {
+		fake.validateClusterForCompatibilityReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.validateClusterForCompatibilityReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeKubeProvider) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -331,6 +405,8 @@ func (fake *FakeKubeProvider) Invocations() map[string][][]interface{} {
 	defer fake.serverVersionMutex.RUnlock()
 	fake.supportsManagedNodesMutex.RLock()
 	defer fake.supportsManagedNodesMutex.RUnlock()
+	fake.validateClusterForCompatibilityMutex.RLock()
+	defer fake.validateClusterForCompatibilityMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

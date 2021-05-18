@@ -33,7 +33,7 @@ type CreateOpts struct {
 	ConfigFileProvided        bool
 }
 
-func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFilter) error {
+func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFilter) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
 	ctl := m.ctl
@@ -98,7 +98,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 	}
 
 	if isOwnedCluster {
-		if err := ctl.ValidateClusterForCompatibility(cfg, m.stackManager); err != nil {
+		if err := kubeProvider.ValidateClusterForCompatibility(cfg, m.stackManager); err != nil {
 			return errors.Wrap(err, "cluster compatibility check failed")
 		}
 	}
@@ -112,7 +112,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 			return err
 		}
 
-		logFiltered := cmdutils.ApplyFilter(cfg, &nodegroupFilter)
+		logFiltered := cmdutils.ApplyFilter(cfg, nodegroupFilter.New())
 		logFiltered()
 		logMsg := func(resource string, count int) {
 			logger.Info("will create a CloudFormation stack for each of %d %s in cluster %q", count, resource, meta.Name)
