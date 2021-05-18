@@ -65,8 +65,14 @@ func (m *NodeGroupService) NewAWSSelectorSession(provider api.ClusterProvider) *
 func (m *NodeGroupService) Normalize(nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error {
 	for _, np := range nodePools {
 		switch ng := np.(type) {
+		case *api.ManagedNodeGroup:
+			if ng.AMIFamily != api.NodeImageFamilyAmazonLinux2 && !api.IsAMI(ng.AMI) {
+				if err := ResolveAMI(m.Provider, clusterMeta.Version, np); err != nil {
+					return err
+				}
+			}
+
 		case *api.NodeGroup:
-			// resolve AMI
 			if !api.IsAMI(ng.AMI) {
 				if err := ResolveAMI(m.Provider, clusterMeta.Version, ng); err != nil {
 					return err
@@ -78,10 +84,12 @@ func (m *NodeGroupService) Normalize(nodePools []api.NodePool, clusterMeta *api.
 				logger.Warning("Custom AMI detected for nodegroup %s. Please refer to https://github.com/weaveworks/eksctl/issues/3563 for upcoming breaking changes", ng.Name)
 				ng.CustomAMI = true
 			}
-			logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, clusterMeta.Version)
 		}
 
 		ng := np.BaseNodeGroup()
+		// resolve AMI
+		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, clusterMeta.Version)
+
 		if ng.AMI != "" {
 			if err := ami.Use(m.Provider.EC2(), ng); err != nil {
 				return err

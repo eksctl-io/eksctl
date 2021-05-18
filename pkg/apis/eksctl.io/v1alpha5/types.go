@@ -844,9 +844,6 @@ type NodeGroup struct {
 	// +optional
 	Taints taintsWrapper `json:"taints,omitempty"`
 
-	// +optional
-	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
-
 	// [Custom
 	// address](/usage/vpc-networking/#custom-cluster-dns-address) used for DNS
 	// lookups
@@ -863,6 +860,11 @@ func (n *NodeGroup) InstanceTypeList() []string {
 		return n.InstancesDistribution.InstanceTypes
 	}
 	return []string{n.InstanceType}
+}
+
+// NGTaints implements NodePool
+func (n *NodeGroup) NGTaints() []NodeGroupTaint {
+	return n.Taints
 }
 
 // BaseNodeGroup implements NodePool
@@ -1173,6 +1175,9 @@ type ScalingConfig struct {
 type NodePool interface {
 	// BaseNodeGroup returns the base nodegroup
 	BaseNodeGroup() *NodeGroupBase
+
+	// NGTaints returns the taints to apply for this nodegroup
+	NGTaints() []NodeGroupTaint
 }
 
 // NodeGroupBase represents the base nodegroup config for self-managed and managed nodegroups
@@ -1292,6 +1297,10 @@ type NodeGroupBase struct {
 	// Some AMIs (bottlerocket) have a separate volume for the OS
 	AdditionalEncryptedVolume string `json:"-"`
 
+	// Bottlerocket specifies settings for Bottlerocket nodes
+	// +optional
+	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
+
 	// TODO remove this
 	// This is a hack, will be removed shortly. When this is true for Ubuntu and
 	// AL2 images a legacy bootstrapper will be used.
@@ -1386,6 +1395,11 @@ func (m *ManagedNodeGroup) ListOptions() metav1.ListOptions {
 		}
 	}
 	return m.NodeGroupBase.ListOptions()
+}
+
+// NGTaints implements NodePool
+func (m *ManagedNodeGroup) NGTaints() []NodeGroupTaint {
+	return m.Taints
 }
 
 // BaseNodeGroup implements NodePool

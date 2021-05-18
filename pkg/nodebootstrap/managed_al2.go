@@ -15,13 +15,29 @@ import (
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/bindata"
 )
 
-// MakeManagedUserData returns user data for managed nodegroups
-func MakeManagedUserData(ng *api.ManagedNodeGroup, mimeBoundary string) (string, error) {
+// ManagedAL2 is a bootstrapper for managed Amazon Linux 2 nodegroups
+type ManagedAL2 struct {
+	ng *api.ManagedNodeGroup
+	// UserDataMimeBoundary sets the MIME boundary for user data
+	UserDataMimeBoundary string
+}
+
+// NewManagedAL2Bootstrapper creates a new ManagedAL2 bootstrapper
+func NewManagedAL2Bootstrapper(ng *api.ManagedNodeGroup) *ManagedAL2 {
+	return &ManagedAL2{
+		ng: ng,
+	}
+}
+
+// UserData returns user data for AL2 managed nodegroups
+func (m *ManagedAL2) UserData() (string, error) {
 	var (
 		buf       bytes.Buffer
 		scripts   []string
 		cloudboot []string
 	)
+
+	ng := m.ng
 
 	// We don't use MIME format when launching managed nodegroups with a custom AMI
 	if strings.HasPrefix(ng.AMI, "ami-") {
@@ -59,7 +75,7 @@ func MakeManagedUserData(ng *api.ManagedNodeGroup, mimeBoundary string) (string,
 		return "", nil
 	}
 
-	if err := createMimeMessage(&buf, scripts, cloudboot, mimeBoundary); err != nil {
+	if err := createMimeMessage(&buf, scripts, cloudboot, m.UserDataMimeBoundary); err != nil {
 		return "", err
 	}
 

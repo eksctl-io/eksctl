@@ -13,6 +13,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -76,7 +77,8 @@ func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api
 	name := c.makeNodeGroupStackName(ng.Name)
 
 	logger.Info("building managed nodegroup stack %q", name)
-	stack := builder.NewManagedNodeGroup(c.ec2API, c.spec, ng, builder.NewLaunchTemplateFetcher(c.ec2API), forceAddCNIPolicy, vpcImporter)
+	bootstrapper := nodebootstrap.NewManagedBootstrapper(c.spec, ng)
+	stack := builder.NewManagedNodeGroup(c.ec2API, c.spec, ng, builder.NewLaunchTemplateFetcher(c.ec2API), bootstrapper, forceAddCNIPolicy, vpcImporter)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
@@ -97,10 +99,10 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 
 	nodeGroupStacks := []*Stack{}
 	for _, s := range stacks {
-		if *s.StackStatus == cfn.StackStatusDeleteComplete {
+		switch *s.StackStatus {
+		case cfn.StackStatusDeleteComplete:
 			continue
-		}
-		if *s.StackStatus == cfn.StackStatusDeleteFailed {
+		case cfn.StackStatusDeleteFailed:
 			logger.Warning("stack's status of nodegroup named %s is %s", *s.StackName, *s.StackStatus)
 			continue
 		}
