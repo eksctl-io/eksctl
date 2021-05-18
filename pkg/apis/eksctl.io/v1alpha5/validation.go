@@ -339,6 +339,10 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 	}
 
+	if _, err := taints.Parse(ng.Taints); err != nil {
+		return err
+	}
+
 	if err := validateNodeGroupLabels(ng.Labels); err != nil {
 		return err
 	}

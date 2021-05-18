@@ -978,32 +978,78 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
-	DescribeTable("Nodegroup label validation", func(labels map[string]string, valid bool) {
+	type labelsTaintsEntry struct {
+		labels map[string]string
+		taints map[string]string
+		valid  bool
+	}
+
+	DescribeTable("Nodegroup label and taints validation", func(e labelsTaintsEntry) {
 		ng := newNodeGroup()
-		ng.Labels = labels
+		ng.Labels = e.labels
+		ng.Taints = e.taints
 		err := api.ValidateNodeGroup(0, ng)
-		if valid {
+		if e.valid {
 			Expect(err).ToNot(HaveOccurred())
 		} else {
 			Expect(err).To(HaveOccurred())
 		}
 	},
-		Entry("Disallowed label", map[string]string{
-			"node-role.kubernetes.io/os": "linux",
-		}, false),
+		Entry("disallowed label", labelsTaintsEntry{
+			labels: map[string]string{
+				"node-role.kubernetes.io/os": "linux",
+			},
+		}),
 
-		Entry("Disallowed label", map[string]string{
-			"alpha.service-controller.kubernetes.io/test": "value",
-		}, false),
+		Entry("disallowed label 2", labelsTaintsEntry{
+			labels: map[string]string{
+				"alpha.service-controller.kubernetes.io/test": "value",
+			},
+		}),
 
-		Entry("No labels", map[string]string{}, true),
+		Entry("empty labels and taints", labelsTaintsEntry{
+			labels: map[string]string{},
+			taints: map[string]string{},
+			valid:  true,
+		}),
 
-		Entry("Allowed labels", map[string]string{
-			"kubernetes.io/hostname":           "supercomputer",
-			"beta.kubernetes.io/os":            "linux",
-			"kubelet.kubernetes.io/palindrome": "telebuk",
-		}, true),
+		Entry("allowed labels", labelsTaintsEntry{
+			labels: map[string]string{
+				"kubernetes.io/hostname":           "supercomputer",
+				"beta.kubernetes.io/os":            "linux",
+				"kubelet.kubernetes.io/palindrome": "telebuk",
+			},
+			valid: true,
+		}),
+
+		Entry("valid taints", labelsTaintsEntry{
+			taints: map[string]string{
+				"key1": "value1:NoSchedule",
+				"key2": ":NoSchedule",
+				"key3": ":PreferNoSchedule",
+			},
+			valid: true,
+		}),
+
+		Entry("missing taint effect", labelsTaintsEntry{
+			taints: map[string]string{
+				"key1": "value1",
+			},
+		}),
+
+		Entry("unsupported taint effect", labelsTaintsEntry{
+			taints: map[string]string{
+				"key2": "value1:NoEffect",
+			},
+		}),
+
+		Entry("invalid value", labelsTaintsEntry{
+			taints: map[string]string{
+				"key3": "v@lue:NoSchedule",
+			},
+		}),
 	)
+
 })
 
 func newInt(value int) *int {
