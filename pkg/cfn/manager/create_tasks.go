@@ -81,6 +81,23 @@ func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup,
 	return taskTree
 }
 
+// DoAllNodegroupStackTasks iterates over nodegroup tasks and returns any errors.
+func (c *StackCollection) DoAllNodegroupStackTasks(taskTree *tasks.TaskTree, region, name string) error {
+	logger.Info(taskTree.Describe())
+	errs := taskTree.DoAllSync()
+	if len(errs) > 0 {
+		logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
+		logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroup", region, name)
+		for _, err := range errs {
+			if err != nil {
+				logger.Critical("%s\n", err.Error())
+			}
+		}
+		return fmt.Errorf("failed to create nodegroups for cluster %q", name)
+	}
+	return nil
+}
+
 // NewManagedNodeGroupTask defines tasks required to create managed nodegroups
 func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}

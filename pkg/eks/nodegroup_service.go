@@ -1,7 +1,10 @@
 package eks
 
 import (
+	"context"
+	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/bytequantity"
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
@@ -10,7 +13,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/authconfigmap"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/ssh"
+	"github.com/weaveworks/eksctl/pkg/vpc"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/apimachinery/pkg/watch"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -28,6 +37,10 @@ type NodeGroupInitialiser interface {
 	Normalize(nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error
 	ExpandInstanceSelectorOptions(nodePools []api.NodePool, clusterAZs []string) error
 	NewAWSSelectorSession(provider api.ClusterProvider) *selector.Selector
+	ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.ClusterProvider) error
+	DoesAWSNodeUseIRSA(provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error)
+	WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup, p KubeProvider) error
+	UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface, p KubeProvider) error
 }
 
 // A NodeGroupService provides helpers for nodegroup creation
@@ -189,4 +202,76 @@ func (m *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 	}
 
 	return instanceTypes, nil
+}
+
+func (m *NodeGroupService) ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.ClusterProvider) error {
+	return vpc.ValidateLegacySubnetsForNodeGroups(spec, provider)
+}
+
+// WaitForNodes waits till the nodes are ready
+func (m *NodeGroupService) WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup, p KubeProvider) error {
+	minSize := ng.Size()
+	if minSize == 0 {
+		return nil
+	}
+	timer := time.After(p.WaitTimeout())
+	timeout := false
+	readyNodes := sets.NewString()
+	watcher, err := clientSet.CoreV1().Nodes().Watch(context.TODO(), ng.ListOptions())
+	if err != nil {
+		return errors.Wrap(err, "creating node watcher")
+	}
+
+	counter, err := getNodes(clientSet, ng)
+	if err != nil {
+		return errors.Wrap(err, "listing nodes")
+	}
+
+	logger.Info("waiting for at least %d node(s) to become ready in %q", minSize, ng.NameString())
+	for !timeout && counter < minSize {
+		select {
+		case event := <-watcher.ResultChan():
+			logger.Debug("event = %#v", event)
+			if event.Object != nil && event.Type != watch.Deleted {
+				if node, ok := event.Object.(*corev1.Node); ok {
+					if isNodeReady(node) {
+						readyNodes.Insert(node.Name)
+						counter = readyNodes.Len()
+						logger.Debug("node %q is ready in %q", node.Name, ng.NameString())
+					} else {
+						logger.Debug("node %q seen in %q, but not ready yet", node.Name, ng.NameString())
+						logger.Debug("node = %#v", *node)
+					}
+				}
+			}
+		case <-timer:
+			timeout = true
+		}
+	}
+	watcher.Stop()
+	if timeout {
+		return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", p.WaitTimeout(), minSize, ng.NameString())
+	}
+
+	if _, err = getNodes(clientSet, ng); err != nil {
+		return errors.Wrap(err, "re-listing nodes")
+	}
+
+	return nil
+}
+
+// UpdateAuthConfigMap creates or adds a nodegroup IAM role in the auth ConfigMap for the given nodegroup.
+func (m *NodeGroupService) UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface, p KubeProvider) error {
+	for _, ng := range nodeGroups {
+		// authorise nodes to join
+		if err := authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
+			return err
+		}
+
+		// wait for nodes to join
+		if err := m.WaitForNodes(clientSet, ng, p); err != nil {
+			return err
+		}
+	}
+	return nil
 }

@@ -3,6 +3,7 @@ package fakes
 
 import (
 	"sync"
+	"time"
 
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -73,6 +74,16 @@ type FakeKubeProvider struct {
 	}
 	validateClusterForCompatibilityReturnsOnCall map[int]struct {
 		result1 error
+	}
+	WaitTimeoutStub        func() time.Duration
+	waitTimeoutMutex       sync.RWMutex
+	waitTimeoutArgsForCall []struct {
+	}
+	waitTimeoutReturns struct {
+		result1 time.Duration
+	}
+	waitTimeoutReturnsOnCall map[int]struct {
+		result1 time.Duration
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -394,6 +405,59 @@ func (fake *FakeKubeProvider) ValidateClusterForCompatibilityReturnsOnCall(i int
 	}{result1}
 }
 
+func (fake *FakeKubeProvider) WaitTimeout() time.Duration {
+	fake.waitTimeoutMutex.Lock()
+	ret, specificReturn := fake.waitTimeoutReturnsOnCall[len(fake.waitTimeoutArgsForCall)]
+	fake.waitTimeoutArgsForCall = append(fake.waitTimeoutArgsForCall, struct {
+	}{})
+	stub := fake.WaitTimeoutStub
+	fakeReturns := fake.waitTimeoutReturns
+	fake.recordInvocation("WaitTimeout", []interface{}{})
+	fake.waitTimeoutMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeKubeProvider) WaitTimeoutCallCount() int {
+	fake.waitTimeoutMutex.RLock()
+	defer fake.waitTimeoutMutex.RUnlock()
+	return len(fake.waitTimeoutArgsForCall)
+}
+
+func (fake *FakeKubeProvider) WaitTimeoutCalls(stub func() time.Duration) {
+	fake.waitTimeoutMutex.Lock()
+	defer fake.waitTimeoutMutex.Unlock()
+	fake.WaitTimeoutStub = stub
+}
+
+func (fake *FakeKubeProvider) WaitTimeoutReturns(result1 time.Duration) {
+	fake.waitTimeoutMutex.Lock()
+	defer fake.waitTimeoutMutex.Unlock()
+	fake.WaitTimeoutStub = nil
+	fake.waitTimeoutReturns = struct {
+		result1 time.Duration
+	}{result1}
+}
+
+func (fake *FakeKubeProvider) WaitTimeoutReturnsOnCall(i int, result1 time.Duration) {
+	fake.waitTimeoutMutex.Lock()
+	defer fake.waitTimeoutMutex.Unlock()
+	fake.WaitTimeoutStub = nil
+	if fake.waitTimeoutReturnsOnCall == nil {
+		fake.waitTimeoutReturnsOnCall = make(map[int]struct {
+			result1 time.Duration
+		})
+	}
+	fake.waitTimeoutReturnsOnCall[i] = struct {
+		result1 time.Duration
+	}{result1}
+}
+
 func (fake *FakeKubeProvider) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -407,6 +471,8 @@ func (fake *FakeKubeProvider) Invocations() map[string][][]interface{} {
 	defer fake.supportsManagedNodesMutex.RUnlock()
 	fake.validateClusterForCompatibilityMutex.RLock()
 	defer fake.validateClusterForCompatibilityMutex.RUnlock()
+	fake.waitTimeoutMutex.RLock()
+	defer fake.waitTimeoutMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

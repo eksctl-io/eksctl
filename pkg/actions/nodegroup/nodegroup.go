@@ -34,9 +34,14 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet *kubernetes
 	}
 }
 
-// MockNodeGroupService is a setter intended for passing a mock of the nodegroup initialiser.
+// MockNodeGroupService can be used for passing a mock of the nodegroup initialiser.
 func (m *Manager) MockNodeGroupService(ngSvc eks.NodeGroupInitialiser) {
 	m.init = ngSvc
+}
+
+// MockStackManager can be used for passing a mock of the stack manager.
+func (m *Manager) MockStackManager(sm manager.StackManager) {
+	m.stackManager = sm
 }
 
 func (m *Manager) hasStacks(name string) (bool, error) {

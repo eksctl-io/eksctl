@@ -19,7 +19,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
@@ -39,9 +38,6 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 	ctl := m.ctl
 	kubeProvider := m.ctl.KubeProvider
 	init := m.init
-
-	// For dry-run.
-	clusterConfigCopy := cfg.DeepCopy()
 
 	if err := checkVersion(ctl, meta); err != nil {
 		return err
@@ -103,87 +99,12 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 		}
 	}
 
-	if err := vpc.ValidateLegacySubnetsForNodeGroups(cfg, ctl.Provider); err != nil {
+	if err := init.ValidateLegacySubnetsForNodeGroups(cfg, ctl.Provider); err != nil {
 		return err
 	}
 
-	{
-		if err := nodegroupFilter.SetOnlyLocal(ctl.Provider.EKS(), m.stackManager, cfg); err != nil {
-			return err
-		}
-
-		logFiltered := cmdutils.ApplyFilter(cfg, nodegroupFilter.New())
-		logFiltered()
-		logMsg := func(resource string, count int) {
-			logger.Info("will create a CloudFormation stack for each of %d %s in cluster %q", count, resource, meta.Name)
-		}
-		if len(cfg.NodeGroups) > 0 {
-			logMsg("nodegroups", len(cfg.NodeGroups))
-		}
-
-		if len(cfg.ManagedNodeGroups) > 0 {
-			logMsg("managed nodegroups", len(cfg.ManagedNodeGroups))
-		}
-
-		if options.DryRun {
-			// Set filtered nodegroups
-			clusterConfigCopy.NodeGroups = cfg.NodeGroups
-			clusterConfigCopy.ManagedNodeGroups = cfg.ManagedNodeGroups
-			if options.ConfigFileProvided {
-				return cmdutils.PrintDryRunConfig(clusterConfigCopy, os.Stdout)
-			}
-			return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, os.Stdout)
-		}
-
-		taskTree := &tasks.TaskTree{
-			Parallel: false,
-		}
-
-		if supportsManagedNodes && isOwnedCluster {
-			taskTree.Append(m.stackManager.NewClusterCompatTask())
-		}
-
-		awsNodeUsesIRSA, err := eks.DoesAWSNodeUseIRSA(ctl.Provider, m.clientSet)
-		if err != nil {
-			return errors.Wrap(err, "couldn't check aws-node for annotation")
-		}
-
-		if !awsNodeUsesIRSA && api.IsEnabled(cfg.IAM.WithOIDC) {
-			logger.Debug("cluster has withOIDC enabled but is not using IRSA for CNI, will add CNI policy to node role")
-		}
-
-		var vpcImporter vpc.Importer
-		if isOwnedCluster {
-			vpcImporter = vpc.NewStackConfigImporter(m.stackManager.MakeClusterStackName())
-		} else {
-			vpcImporter = vpc.NewSpecConfigImporter(*ctl.Status.ClusterInfo.Cluster.ResourcesVpcConfig.ClusterSecurityGroupId, cfg.VPC)
-		}
-
-		allNodeGroupTasks := &tasks.TaskTree{
-			Parallel: true,
-		}
-		nodeGroupTasks := m.stackManager.NewUnmanagedNodeGroupTask(cfg.NodeGroups, supportsManagedNodes, !awsNodeUsesIRSA, vpcImporter)
-		if nodeGroupTasks.Len() > 0 {
-			allNodeGroupTasks.Append(nodeGroupTasks)
-		}
-		managedTasks := m.stackManager.NewManagedNodeGroupTask(cfg.ManagedNodeGroups, !awsNodeUsesIRSA, vpcImporter)
-		if managedTasks.Len() > 0 {
-			allNodeGroupTasks.Append(managedTasks)
-		}
-
-		taskTree.Append(allNodeGroupTasks)
-		logger.Info(taskTree.Describe())
-		errs := taskTree.DoAllSync()
-		if len(errs) > 0 {
-			logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
-			logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroup", meta.Region, meta.Name)
-			for _, err := range errs {
-				if err != nil {
-					logger.Critical("%s\n", err.Error())
-				}
-			}
-			return fmt.Errorf("failed to create nodegroups for cluster %q", meta.Name)
-		}
+	if err := m.nodeCreationTasks(options, nodegroupFilter, supportsManagedNodes, isOwnedCluster); err != nil {
+		return err
 	}
 
 	if err := m.postNodeCreationTasks(m.clientSet, options); err != nil {
@@ -192,6 +113,83 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 
 	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, m.stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
+	}
+
+	return nil
+}
+
+func (m *Manager) nodeCreationTasks(options CreateOpts, nodegroupFilter filter.NodegroupFilter, supportsManagedNodes, isOwnedCluster bool) error {
+	cfg := m.cfg
+	meta := cfg.Metadata
+	init := m.init
+
+	if err := nodegroupFilter.SetOnlyLocal(m.ctl.Provider.EKS(), m.stackManager, cfg); err != nil {
+		return err
+	}
+
+	logFiltered := cmdutils.ApplyFilter(cfg, filter.NewNodeGroupFilter())
+	logFiltered()
+	logMsg := func(resource string, count int) {
+		logger.Info("will create a CloudFormation stack for each of %d %s in cluster %q", count, resource, meta.Name)
+	}
+	if len(m.cfg.NodeGroups) > 0 {
+		logMsg("nodegroups", len(cfg.NodeGroups))
+	}
+
+	if len(m.cfg.ManagedNodeGroups) > 0 {
+		logMsg("managed nodegroups", len(cfg.ManagedNodeGroups))
+	}
+
+	if options.DryRun {
+		clusterConfigCopy := cfg.DeepCopy()
+		// Set filtered nodegroups
+		clusterConfigCopy.NodeGroups = cfg.NodeGroups
+		clusterConfigCopy.ManagedNodeGroups = cfg.ManagedNodeGroups
+		if options.ConfigFileProvided {
+			return cmdutils.PrintDryRunConfig(clusterConfigCopy, os.Stdout)
+		}
+		return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, os.Stdout)
+	}
+
+	taskTree := &tasks.TaskTree{
+		Parallel: false,
+	}
+
+	if supportsManagedNodes && isOwnedCluster {
+		taskTree.Append(m.stackManager.NewClusterCompatTask())
+	}
+
+	awsNodeUsesIRSA, err := init.DoesAWSNodeUseIRSA(m.ctl.Provider, m.clientSet)
+	if err != nil {
+		return errors.Wrap(err, "couldn't check aws-node for annotation")
+	}
+
+	if !awsNodeUsesIRSA && api.IsEnabled(cfg.IAM.WithOIDC) {
+		logger.Debug("cluster has withOIDC enabled but is not using IRSA for CNI, will add CNI policy to node role")
+	}
+
+	var vpcImporter vpc.Importer
+	if isOwnedCluster {
+		vpcImporter = vpc.NewStackConfigImporter(m.stackManager.MakeClusterStackName())
+	} else {
+		vpcImporter = vpc.NewSpecConfigImporter(*m.ctl.Status.ClusterInfo.Cluster.ResourcesVpcConfig.ClusterSecurityGroupId, cfg.VPC)
+	}
+
+	allNodeGroupTasks := &tasks.TaskTree{
+		Parallel: true,
+	}
+	nodeGroupTasks := m.stackManager.NewUnmanagedNodeGroupTask(cfg.NodeGroups, supportsManagedNodes, !awsNodeUsesIRSA, vpcImporter)
+	if nodeGroupTasks.Len() > 0 {
+		allNodeGroupTasks.Append(nodeGroupTasks)
+	}
+	managedTasks := m.stackManager.NewManagedNodeGroupTask(cfg.ManagedNodeGroups, !awsNodeUsesIRSA, vpcImporter)
+	if managedTasks.Len() > 0 {
+		allNodeGroupTasks.Append(managedTasks)
+	}
+
+	taskTree.Append(allNodeGroupTasks)
+	if err := m.stackManager.DoAllNodegroupStackTasks(taskTree, meta.Region, meta.Name); err != nil {
+		return err
 	}
 
 	return nil
@@ -213,22 +211,14 @@ func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options 
 	}
 
 	if options.UpdateAuthConfigMap {
-		for _, ng := range m.cfg.NodeGroups {
-			// authorise nodes to join
-			if err := authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
-				return err
-			}
-
-			// wait for nodes to join
-			if err := m.ctl.WaitForNodes(clientSet, ng); err != nil {
-				return err
-			}
+		if err := m.init.UpdateAuthConfigMap(m.cfg.NodeGroups, clientSet, m.ctl.KubeProvider); err != nil {
+			return err
 		}
 	}
 	logger.Success("created %d nodegroup(s) in cluster %q", len(m.cfg.NodeGroups), m.cfg.Metadata.Name)
 
 	for _, ng := range m.cfg.ManagedNodeGroups {
-		if err := m.ctl.WaitForNodes(clientSet, ng); err != nil {
+		if err := m.init.WaitForNodes(clientSet, ng, m.ctl.KubeProvider); err != nil {
 			if m.cfg.PrivateCluster.Enabled {
 				logger.Info("error waiting for nodes to join the cluster; this command was likely run from outside the cluster's VPC as the API server is not reachable, nodegroup(s) should still be able to join the cluster, underlying error is: %v", err)
 				break

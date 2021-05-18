@@ -10,16 +10,6 @@ import (
 )
 
 type FakeNodegroupFilter struct {
-	NewStub        func() *filter.NodeGroupFilter
-	newMutex       sync.RWMutex
-	newArgsForCall []struct {
-	}
-	newReturns struct {
-		result1 *filter.NodeGroupFilter
-	}
-	newReturnsOnCall map[int]struct {
-		result1 *filter.NodeGroupFilter
-	}
 	SetOnlyLocalStub        func(eksiface.EKSAPI, filter.StackLister, *v1alpha5.ClusterConfig) error
 	setOnlyLocalMutex       sync.RWMutex
 	setOnlyLocalArgsForCall []struct {
@@ -35,59 +25,6 @@ type FakeNodegroupFilter struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
-}
-
-func (fake *FakeNodegroupFilter) New() *filter.NodeGroupFilter {
-	fake.newMutex.Lock()
-	ret, specificReturn := fake.newReturnsOnCall[len(fake.newArgsForCall)]
-	fake.newArgsForCall = append(fake.newArgsForCall, struct {
-	}{})
-	stub := fake.NewStub
-	fakeReturns := fake.newReturns
-	fake.recordInvocation("New", []interface{}{})
-	fake.newMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeNodegroupFilter) NewCallCount() int {
-	fake.newMutex.RLock()
-	defer fake.newMutex.RUnlock()
-	return len(fake.newArgsForCall)
-}
-
-func (fake *FakeNodegroupFilter) NewCalls(stub func() *filter.NodeGroupFilter) {
-	fake.newMutex.Lock()
-	defer fake.newMutex.Unlock()
-	fake.NewStub = stub
-}
-
-func (fake *FakeNodegroupFilter) NewReturns(result1 *filter.NodeGroupFilter) {
-	fake.newMutex.Lock()
-	defer fake.newMutex.Unlock()
-	fake.NewStub = nil
-	fake.newReturns = struct {
-		result1 *filter.NodeGroupFilter
-	}{result1}
-}
-
-func (fake *FakeNodegroupFilter) NewReturnsOnCall(i int, result1 *filter.NodeGroupFilter) {
-	fake.newMutex.Lock()
-	defer fake.newMutex.Unlock()
-	fake.NewStub = nil
-	if fake.newReturnsOnCall == nil {
-		fake.newReturnsOnCall = make(map[int]struct {
-			result1 *filter.NodeGroupFilter
-		})
-	}
-	fake.newReturnsOnCall[i] = struct {
-		result1 *filter.NodeGroupFilter
-	}{result1}
 }
 
 func (fake *FakeNodegroupFilter) SetOnlyLocal(arg1 eksiface.EKSAPI, arg2 filter.StackLister, arg3 *v1alpha5.ClusterConfig) error {
@@ -156,8 +93,6 @@ func (fake *FakeNodegroupFilter) SetOnlyLocalReturnsOnCall(i int, result1 error)
 func (fake *FakeNodegroupFilter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.newMutex.RLock()
-	defer fake.newMutex.RUnlock()
 	fake.setOnlyLocalMutex.RLock()
 	defer fake.setOnlyLocalMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

@@ -17,7 +17,6 @@ import (
 //go:generate counterfeiter -o fakes/fake_nodegroup_filter.go . NodegroupFilter
 type NodegroupFilter interface {
 	SetOnlyLocal(eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) error
-	New() *NodeGroupFilter
 }
 
 // NodeGroupFilter holds filter configuration
@@ -30,7 +29,7 @@ type NodeGroupFilter struct {
 }
 
 // New create new NodeGroupFilter instance
-func New() *NodeGroupFilter {
+func NewNodeGroupFilter() *NodeGroupFilter {
 	return &NodeGroupFilter{
 		delegate: &Filter{
 			ExcludeAll:   false,

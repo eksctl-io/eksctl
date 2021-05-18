@@ -116,6 +116,7 @@ func (c *ClusterProvider) NewRawClient(spec *api.ClusterConfig) (*kubewrapper.Ra
 	return kubewrapper.NewRawClient(clientSet, client.rawConfig)
 }
 
+// ServerVersion will use discovery API to fetch version of Kubernetes control plane
 func (c *ClusterProvider) ServerVersion(rawClient *kubewrapper.RawClient) (string, error) {
 	return rawClient.ServerVersion()
 }

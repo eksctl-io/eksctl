@@ -68,6 +68,7 @@ type KubeProvider interface {
 	LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, stackManager manager.StackManager) error
 	SupportsManagedNodes(clusterConfig *api.ClusterConfig) (bool, error)
 	ValidateClusterForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error
+	WaitTimeout() time.Duration
 }
 
 // ProviderServices stores the used APIs
