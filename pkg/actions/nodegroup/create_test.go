@@ -22,14 +22,14 @@ func TestCreateNodegroups(t *testing.T) {
 	tests := map[string]struct {
 		version   string
 		pStatus   *eks.ProviderStatus
-		mockCalls func(*mockprovider.MockProvider, *fakes.FakeKubeProvider)
+		mockCalls func(*mockprovider.MockProvider, *fakes.FakeKubeProvider, *fakes.FakeNodeGroupInitialiser)
 
 		expErr error
 	}{
 		"cluster version is not supported": {
 			version:   "1.14",
 			pStatus:   &eks.ProviderStatus{},
-			mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider) {},
+			mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser) {},
 			expErr:    fmt.Errorf("invalid version, %s is no longer supported, supported values: auto, default, latest, %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", "1.14", strings.Join(api.SupportedVersions(), ", ")),
 		},
 		"fails ARM support check": {
@@ -39,7 +39,7 @@ func TestCreateNodegroups(t *testing.T) {
 					Cluster: testutils.NewFakeCluster("my-cluster", ""),
 				},
 			},
-			mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider) {
+			mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser) {
 				k.NewRawClientReturns(nil, fmt.Errorf("err"))
 			},
 			expErr: fmt.Errorf("err"),
@@ -51,7 +51,7 @@ func TestCreateNodegroups(t *testing.T) {
 					Cluster: testutils.NewFakeCluster("my-cluster", ""),
 				},
 			},
-			mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider) {
+			mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser) {
 				k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 				k.ServerVersionReturns("1.17", nil)
 				k.LoadClusterIntoSpecFromStackReturns(&manager.StackNotFoundErr{})
@@ -65,7 +65,7 @@ func TestCreateNodegroups(t *testing.T) {
 					Cluster: testutils.NewFakeCluster("my-cluster", ""),
 				},
 			},
-			mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider) {
+			mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser) {
 				k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 				k.ServerVersionReturns("1.17", nil)
 				k.LoadClusterIntoSpecFromStackReturns(nil)
@@ -80,12 +80,13 @@ func TestCreateNodegroups(t *testing.T) {
 					Cluster: testutils.NewFakeCluster("my-cluster", ""),
 				},
 			},
-			mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider) {
+			mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser) {
 				k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 				k.ServerVersionReturns("1.17", nil)
 				k.LoadClusterIntoSpecFromStackReturns(nil)
 				k.SupportsManagedNodesReturns(true, nil)
-
+				init.NewSessionReturns(nil)
+				init.ExpandInstanceSelectorOptionsReturns(errors.New("bang"))
 			},
 			expErr: errors.New("bang"),
 		},
@@ -114,6 +115,7 @@ func TestCreateNodegroups(t *testing.T) {
 			}
 
 			k := &fakes.FakeKubeProvider{}
+			init := &fakes.FakeNodeGroupInitialiser{}
 			p := mockprovider.NewMockProvider()
 			ctl := &eks.ClusterProvider{
 				Provider:     p,
@@ -121,8 +123,9 @@ func TestCreateNodegroups(t *testing.T) {
 				KubeProvider: k,
 			}
 			m := nodegroup.New(cfg, ctl, nil)
+			m.MockNodeGroupService(init)
 			if tc.mockCalls != nil {
-				tc.mockCalls(p, k)
+				tc.mockCalls(p, k, init)
 			}
 
 			err := m.Create(nodegroup.CreateOpts{}, *filter.NewNodeGroupFilter())

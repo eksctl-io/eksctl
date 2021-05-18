@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -38,6 +37,8 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 	cfg := m.cfg
 	meta := cfg.Metadata
 	ctl := m.ctl
+	kubeProvider := m.ctl.KubeProvider
+	init := m.init
 
 	// For dry-run.
 	clusterConfigCopy := cfg.DeepCopy()
@@ -51,7 +52,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 	}
 
 	var isOwnedCluster = true
-	if err := ctl.KubeProvider.LoadClusterIntoSpecFromStack(cfg, m.stackManager); err != nil {
+	if err := kubeProvider.LoadClusterIntoSpecFromStack(cfg, m.stackManager); err != nil {
 		switch e := err.(type) {
 		case *manager.StackNotFoundErr:
 			logger.Warning("%s, will attempt to create nodegroup(s) on non eksctl-managed cluster", e.Error())
@@ -66,7 +67,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 	}
 
 	// EKS 1.14 clusters created with prior versions of eksctl may not support Managed Nodes
-	supportsManagedNodes, err := ctl.KubeProvider.SupportsManagedNodes(cfg)
+	supportsManagedNodes, err := kubeProvider.SupportsManagedNodes(cfg)
 	if err != nil {
 		return err
 	}
@@ -79,14 +80,14 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 		return err
 	}
 
-	nodeGroupService := eks.NewNodeGroupService(ctl.Provider, selector.New(ctl.Provider.Session()))
+	init.NewAWSSelectorSession(ctl.Provider)
 	nodePools := cmdutils.ToNodePools(cfg)
-	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
+	if err := init.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err
 	}
 
 	if !options.DryRun {
-		if err := nodeGroupService.Normalize(nodePools, cfg.Metadata); err != nil {
+		if err := init.Normalize(nodePools, cfg.Metadata); err != nil {
 			return err
 		}
 	}
@@ -276,12 +277,13 @@ func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
 }
 
 func checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes.Interface, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
-	rawClient, err := ctl.KubeProvider.NewRawClient(cfg)
+	kubeProvider := ctl.KubeProvider
+	rawClient, err := kubeProvider.NewRawClient(cfg)
 	if err != nil {
 		return err
 	}
 
-	kubernetesVersion, err := ctl.KubeProvider.ServerVersion(rawClient)
+	kubernetesVersion, err := kubeProvider.ServerVersion(rawClient)
 	if err != nil {
 		return err
 	}
