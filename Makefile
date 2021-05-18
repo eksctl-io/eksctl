@@ -20,7 +20,7 @@ conditionally_generated_files := \
   $(generated_code_deep_copy_helper) $(generated_code_aws_sdk_mocks)
 
 all_generated_files := \
-  pkg/nodebootstrap/assets.go \
+  pkg/nodebootstrap/bindata/assets.go \
   pkg/addons/default/assets.go \
   pkg/addons/assets.go \
   pkg/apis/eksctl.io/v1alpha5 \
