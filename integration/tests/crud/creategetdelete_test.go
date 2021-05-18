@@ -3,6 +3,7 @@
 package crud
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -12,7 +13,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
+	corev1 "k8s.io/api/core/v1"
 
 	"k8s.io/client-go/kubernetes"
 
@@ -40,7 +43,11 @@ var params *tests.Params
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
+	if err := api.Register(); err != nil {
+		panic(errors.Wrap(err, "unexpected error registering API scheme"))
+	}
 	params = tests.NewParams("crud")
+
 }
 
 func TestCRUD(t *testing.T) {
@@ -199,6 +206,59 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
+		Context("and create a new nodegroup with taints", func() {
+			It("should support both formats for taints", func() {
+				data, err := os.ReadFile("testdata/taints.yaml")
+				Expect(err).ToNot(HaveOccurred())
+				clusterConfig, err := eks.ParseConfig(data)
+				Expect(err).ToNot(HaveOccurred())
+				clusterConfig.Metadata.Name = params.ClusterName
+				clusterConfig.Metadata.Region = params.Region
+
+				data, err = json.Marshal(clusterConfig)
+				Expect(err).ToNot(HaveOccurred())
+				cmd := params.EksctlCreateCmd.
+					WithArgs(
+						"nodegroup",
+						"--config-file", "-",
+						"--verbose", "4",
+					).
+					WithoutArg("--region", params.Region).
+					WithStdin(bytes.NewReader(data))
+				Expect(cmd).To(RunSuccessfully())
+
+				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
+				Expect(err).ToNot(HaveOccurred())
+				clientset, err := kubernetes.NewForConfig(config)
+				Expect(err).ToNot(HaveOccurred())
+
+				tests.AssertNodeTaints(clientset, "n1", []corev1.Taint{
+					{
+						Key:    "key1",
+						Value:  "val1",
+						Effect: "NoSchedule",
+					},
+					{
+						Key:    "key2",
+						Effect: "NoExecute",
+					},
+				})
+
+				tests.AssertNodeTaints(clientset, "n2", []corev1.Taint{
+					{
+						Key:    "key1",
+						Value:  "value1",
+						Effect: "NoSchedule",
+					},
+					{
+						Key:    "key2",
+						Effect: "NoExecute",
+					},
+				})
+
+			})
+		})
+
 		Context("and add a second (GPU) nodegroup", func() {
 			It("should not return an error", func() {
 				cmd := params.EksctlCreateCmd.WithArgs(
@@ -244,7 +304,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--cluster", params.ClusterName,
 				)
 				Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
-					HaveLen(2),
+					HaveLen(3),
 					ContainElement(initNG),
 					ContainElement(testNG),
 				)))
