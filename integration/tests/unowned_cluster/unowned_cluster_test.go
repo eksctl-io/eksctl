@@ -369,7 +369,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		}
 		enableEncryptionCMD := func() Cmd {
 			return params.EksctlUtilsCmd.
-				WithTimeout(1*time.Hour).
+				WithTimeout(2*time.Hour).
 				WithArgs(
 					"enable-secrets-encryption",
 					"--cluster", params.ClusterName,
