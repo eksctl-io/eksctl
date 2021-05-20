@@ -95,7 +95,17 @@ var _ = Describe("Ubuntu User Data", func() {
 
 	When("taints are set on the node config", func() {
 		BeforeEach(func() {
-			ng.Taints = map[string]string{"foo": ":NoExecute", "one": "two:NoSchedule"}
+			ng.Taints = []api.NodeGroupTaint{
+				{
+					Key:    "foo",
+					Effect: "NoExecute",
+				},
+				{
+					Key:    "one",
+					Value:  "two",
+					Effect: "NoSchedule",
+				},
+			}
 			bootstrapper = nodebootstrap.NewUbuntuBootstrapper(clusterName, ng)
 		})
 
