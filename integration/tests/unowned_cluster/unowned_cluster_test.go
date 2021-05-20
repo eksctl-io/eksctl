@@ -56,7 +56,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		ng1 = "ng-1"
 		mng1 = "mng-1"
 		mng2 = "mng-2"
-		version = "1.18"
+		version = "1.19"
 		stackName = fmt.Sprintf("eksctl-%s", params.ClusterName)
 		cfg = &api.ClusterConfig{
 			TypeMeta: api.ClusterConfigTypeMeta(),
@@ -242,7 +242,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			WithArgs(
 				"cluster",
 				"--name", params.ClusterName,
-				"--version", "1.19",
+				"--version", "1.20",
 				"--timeout", "1h30m",
 				"--approve",
 				"--verbose", "2",
@@ -322,7 +322,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"nodegroup",
 				"--name", mng1,
 				"--cluster", params.ClusterName,
-				"--kubernetes-version", "1.19",
+				"--kubernetes-version", "1.20",
 				"--timeout", "1h30m",
 				"--wait",
 				"--verbose", "2",
@@ -369,7 +369,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		}
 		enableEncryptionCMD := func() Cmd {
 			return params.EksctlUtilsCmd.
-				WithTimeout(1*time.Hour).
+				WithTimeout(2*time.Hour).
 				WithArgs(
 					"enable-secrets-encryption",
 					"--cluster", params.ClusterName,
