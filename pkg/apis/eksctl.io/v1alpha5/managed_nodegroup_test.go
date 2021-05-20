@@ -164,7 +164,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 		Entry("overrideBootstrapCommand", &NodeGroupBase{
 			OverrideBootstrapCommand: aws.String("bootstrap.sh"),
 		}),
-		Entry("overrideBootstrapCommand", &NodeGroupBase{
+		Entry("securityGroups.attachIDs", &NodeGroupBase{
 			SecurityGroups: &NodeGroupSGs{
 				AttachIDs: []string{"sg-custom"},
 			},

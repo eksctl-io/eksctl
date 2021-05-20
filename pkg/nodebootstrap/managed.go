@@ -28,7 +28,7 @@ func MakeManagedUserData(ng *api.ManagedNodeGroup, mimeBoundary string) (string,
 		return makeCustomAMIUserData(ng.NodeGroupBase)
 	}
 
-	if ng.SSH.EnableSSM != nil && *ng.SSH.EnableSSM {
+	if api.IsEnabled(ng.SSH.EnableSSM) {
 		installSSMScript, err := bindata.Asset(filepath.Join(dataDir, "install-ssm.al2.sh"))
 		if err != nil {
 			return "", err
