@@ -51,12 +51,12 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 	sm := &cfFakes.FakeStackManager{}
 	m.MockStackManager(sm)
 
-	ngFilter := &utilFakes.FakeNodegroupFilter{}
+	ngFilter := utilFakes.FakeNodegroupFilter{}
 	if t.mockCalls != nil {
-		t.mockCalls(k, init, ngFilter, sm)
+		t.mockCalls(k, init, &ngFilter, sm)
 	}
 
-	err := m.Create(t.opts, ngFilter)
+	err := m.Create(t.opts, &ngFilter)
 	if err != nil {
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(MatchError(ContainSubstring(t.expErr.Error())))

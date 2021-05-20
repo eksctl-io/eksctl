@@ -10,6 +10,22 @@ import (
 )
 
 type FakeNodegroupFilter struct {
+	LogInfoStub        func(*v1alpha5.ClusterConfig)
+	logInfoMutex       sync.RWMutex
+	logInfoArgsForCall []struct {
+		arg1 *v1alpha5.ClusterConfig
+	}
+	MatchStub        func(string) bool
+	matchMutex       sync.RWMutex
+	matchArgsForCall []struct {
+		arg1 string
+	}
+	matchReturns struct {
+		result1 bool
+	}
+	matchReturnsOnCall map[int]struct {
+		result1 bool
+	}
 	SetOnlyLocalStub        func(eksiface.EKSAPI, filter.StackLister, *v1alpha5.ClusterConfig) error
 	setOnlyLocalMutex       sync.RWMutex
 	setOnlyLocalArgsForCall []struct {
@@ -25,6 +41,99 @@ type FakeNodegroupFilter struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeNodegroupFilter) LogInfo(arg1 *v1alpha5.ClusterConfig) {
+	fake.logInfoMutex.Lock()
+	fake.logInfoArgsForCall = append(fake.logInfoArgsForCall, struct {
+		arg1 *v1alpha5.ClusterConfig
+	}{arg1})
+	stub := fake.LogInfoStub
+	fake.recordInvocation("LogInfo", []interface{}{arg1})
+	fake.logInfoMutex.Unlock()
+	if stub != nil {
+		fake.LogInfoStub(arg1)
+	}
+}
+
+func (fake *FakeNodegroupFilter) LogInfoCallCount() int {
+	fake.logInfoMutex.RLock()
+	defer fake.logInfoMutex.RUnlock()
+	return len(fake.logInfoArgsForCall)
+}
+
+func (fake *FakeNodegroupFilter) LogInfoCalls(stub func(*v1alpha5.ClusterConfig)) {
+	fake.logInfoMutex.Lock()
+	defer fake.logInfoMutex.Unlock()
+	fake.LogInfoStub = stub
+}
+
+func (fake *FakeNodegroupFilter) LogInfoArgsForCall(i int) *v1alpha5.ClusterConfig {
+	fake.logInfoMutex.RLock()
+	defer fake.logInfoMutex.RUnlock()
+	argsForCall := fake.logInfoArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeNodegroupFilter) Match(arg1 string) bool {
+	fake.matchMutex.Lock()
+	ret, specificReturn := fake.matchReturnsOnCall[len(fake.matchArgsForCall)]
+	fake.matchArgsForCall = append(fake.matchArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.MatchStub
+	fakeReturns := fake.matchReturns
+	fake.recordInvocation("Match", []interface{}{arg1})
+	fake.matchMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeNodegroupFilter) MatchCallCount() int {
+	fake.matchMutex.RLock()
+	defer fake.matchMutex.RUnlock()
+	return len(fake.matchArgsForCall)
+}
+
+func (fake *FakeNodegroupFilter) MatchCalls(stub func(string) bool) {
+	fake.matchMutex.Lock()
+	defer fake.matchMutex.Unlock()
+	fake.MatchStub = stub
+}
+
+func (fake *FakeNodegroupFilter) MatchArgsForCall(i int) string {
+	fake.matchMutex.RLock()
+	defer fake.matchMutex.RUnlock()
+	argsForCall := fake.matchArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeNodegroupFilter) MatchReturns(result1 bool) {
+	fake.matchMutex.Lock()
+	defer fake.matchMutex.Unlock()
+	fake.MatchStub = nil
+	fake.matchReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeNodegroupFilter) MatchReturnsOnCall(i int, result1 bool) {
+	fake.matchMutex.Lock()
+	defer fake.matchMutex.Unlock()
+	fake.MatchStub = nil
+	if fake.matchReturnsOnCall == nil {
+		fake.matchReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.matchReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
 }
 
 func (fake *FakeNodegroupFilter) SetOnlyLocal(arg1 eksiface.EKSAPI, arg2 filter.StackLister, arg3 *v1alpha5.ClusterConfig) error {
@@ -93,6 +202,10 @@ func (fake *FakeNodegroupFilter) SetOnlyLocalReturnsOnCall(i int, result1 error)
 func (fake *FakeNodegroupFilter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.logInfoMutex.RLock()
+	defer fake.logInfoMutex.RUnlock()
+	fake.matchMutex.RLock()
+	defer fake.matchMutex.RUnlock()
 	fake.setOnlyLocalMutex.RLock()
 	defer fake.setOnlyLocalMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

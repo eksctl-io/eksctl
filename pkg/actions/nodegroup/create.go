@@ -127,7 +127,7 @@ func (m *Manager) nodeCreationTasks(options CreateOpts, nodegroupFilter filter.N
 		return err
 	}
 
-	logFiltered := cmdutils.ApplyFilter(cfg, filter.NewNodeGroupFilter())
+	logFiltered := cmdutils.ApplyFilter(cfg, nodegroupFilter)
 	logFiltered()
 	logMsg := func(resource string, count int) {
 		logger.Info("will create a CloudFormation stack for each of %d %s in cluster %q", count, resource, meta.Name)

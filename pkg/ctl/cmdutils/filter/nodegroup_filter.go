@@ -17,6 +17,8 @@ import (
 //go:generate counterfeiter -o fakes/fake_nodegroup_filter.go . NodegroupFilter
 type NodegroupFilter interface {
 	SetOnlyLocal(eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) error
+	Match(ngName string) bool
+	LogInfo(cfg *api.ClusterConfig)
 }
 
 // NodeGroupFilter holds filter configuration
