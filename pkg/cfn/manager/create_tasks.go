@@ -52,8 +52,8 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 			Parallel:  false,
 			IsSubTask: true,
 		}
-		postClusterCreationTaskTree.Append(postClusterCreationTasks...)
 		appendNodeGroupTasksTo(&postClusterCreationTaskTree)
+		postClusterCreationTaskTree.Append(postClusterCreationTasks...)
 		taskTree.Append(&postClusterCreationTaskTree)
 	} else {
 		appendNodeGroupTasksTo(&taskTree)
