@@ -33,6 +33,20 @@ type FakeExecutor struct {
 	execInDirReturnsOnCall map[int]struct {
 		result1 error
 	}
+	ExecWithOutStub        func(string, ...string) ([]byte, error)
+	execWithOutMutex       sync.RWMutex
+	execWithOutArgsForCall []struct {
+		arg1 string
+		arg2 []string
+	}
+	execWithOutReturns struct {
+		result1 []byte
+		result2 error
+	}
+	execWithOutReturnsOnCall map[int]struct {
+		result1 []byte
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -162,6 +176,71 @@ func (fake *FakeExecutor) ExecInDirReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeExecutor) ExecWithOut(arg1 string, arg2 ...string) ([]byte, error) {
+	fake.execWithOutMutex.Lock()
+	ret, specificReturn := fake.execWithOutReturnsOnCall[len(fake.execWithOutArgsForCall)]
+	fake.execWithOutArgsForCall = append(fake.execWithOutArgsForCall, struct {
+		arg1 string
+		arg2 []string
+	}{arg1, arg2})
+	stub := fake.ExecWithOutStub
+	fakeReturns := fake.execWithOutReturns
+	fake.recordInvocation("ExecWithOut", []interface{}{arg1, arg2})
+	fake.execWithOutMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2...)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeExecutor) ExecWithOutCallCount() int {
+	fake.execWithOutMutex.RLock()
+	defer fake.execWithOutMutex.RUnlock()
+	return len(fake.execWithOutArgsForCall)
+}
+
+func (fake *FakeExecutor) ExecWithOutCalls(stub func(string, ...string) ([]byte, error)) {
+	fake.execWithOutMutex.Lock()
+	defer fake.execWithOutMutex.Unlock()
+	fake.ExecWithOutStub = stub
+}
+
+func (fake *FakeExecutor) ExecWithOutArgsForCall(i int) (string, []string) {
+	fake.execWithOutMutex.RLock()
+	defer fake.execWithOutMutex.RUnlock()
+	argsForCall := fake.execWithOutArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeExecutor) ExecWithOutReturns(result1 []byte, result2 error) {
+	fake.execWithOutMutex.Lock()
+	defer fake.execWithOutMutex.Unlock()
+	fake.ExecWithOutStub = nil
+	fake.execWithOutReturns = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeExecutor) ExecWithOutReturnsOnCall(i int, result1 []byte, result2 error) {
+	fake.execWithOutMutex.Lock()
+	defer fake.execWithOutMutex.Unlock()
+	fake.ExecWithOutStub = nil
+	if fake.execWithOutReturnsOnCall == nil {
+		fake.execWithOutReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 error
+		})
+	}
+	fake.execWithOutReturnsOnCall[i] = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeExecutor) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -169,6 +248,8 @@ func (fake *FakeExecutor) Invocations() map[string][][]interface{} {
 	defer fake.execMutex.RUnlock()
 	fake.execInDirMutex.RLock()
 	defer fake.execInDirMutex.RUnlock()
+	fake.execWithOutMutex.RLock()
+	defer fake.execWithOutMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

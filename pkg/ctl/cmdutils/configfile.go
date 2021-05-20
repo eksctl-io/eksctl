@@ -263,11 +263,8 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				if fluxCfg.GitProvider == "" {
 					return ErrMustBeSet("gitops.flux.gitProvider")
 				}
-				if fluxCfg.Owner == "" {
-					return ErrMustBeSet("gitops.flux.owner")
-				}
-				if fluxCfg.Repository == "" {
-					return ErrMustBeSet("gitops.flux.repo")
+				if len(fluxCfg.Flags) == 0 {
+					return ErrMustBeSet("gitops.flux.flags")
 				}
 			}
 		}

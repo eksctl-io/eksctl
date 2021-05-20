@@ -8,13 +8,13 @@ import (
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	. "github.com/weaveworks/eksctl/pkg/ctl/ctltest"
+	"github.com/weaveworks/eksctl/pkg/ctl/ctltest"
 )
 
 var _ = Describe("enable repo", func() {
 
-	newMockEnableRepoCmd := func(args ...string) *MockCmd {
-		return NewMockCmd(enableRepoWithRunFunc, "enable", args...)
+	newMockEnableRepoCmd := func(args ...string) *ctltest.MockCmd {
+		return ctltest.NewMockCmd(enableRepoWithRunFunc, "enable", args...)
 	}
 
 	Describe("without a config file", func() {
@@ -169,7 +169,7 @@ var _ = Describe("enable repo", func() {
 		})
 
 		It("succeeds with the basic configuration", func() {
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableRepoCmd("repo", "-f", configFile)
 			_, err := cmd.Execute()
@@ -178,7 +178,7 @@ var _ = Describe("enable repo", func() {
 
 		It("fails without a cluster name", func() {
 			cfg.Metadata.Name = ""
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableRepoCmd("repo", "-f", configFile)
 			_, err := cmd.Execute()
@@ -188,7 +188,7 @@ var _ = Describe("enable repo", func() {
 
 		It("fails without a region", func() {
 			cfg.Metadata.Region = ""
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableRepoCmd("repo", "-f", configFile)
 			_, err := cmd.Execute()
@@ -198,7 +198,7 @@ var _ = Describe("enable repo", func() {
 
 		It("fails without a git url", func() {
 			cfg.Git.Repo.URL = ""
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableRepoCmd("repo", "-f", configFile)
 			_, err := cmd.Execute()
@@ -208,7 +208,7 @@ var _ = Describe("enable repo", func() {
 
 		It("fails without a user email", func() {
 			cfg.Git.Repo.Email = ""
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableRepoCmd("repo", "-f", configFile)
 			_, err := cmd.Execute()
@@ -218,7 +218,7 @@ var _ = Describe("enable repo", func() {
 
 		It("fails when the private ssh key file does not exist", func() {
 			cfg.Git.Repo.PrivateSSHKeyPath = "non-existent-file"
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableRepoCmd("repo", "-f", configFile)
 			_, err := cmd.Execute()
@@ -228,7 +228,7 @@ var _ = Describe("enable repo", func() {
 
 		It("fails with new gitops configuration", func() {
 			cfg.GitOps = &api.GitOps{}
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableRepoCmd("repo", "-f", configFile)
 			_, err := cmd.Execute()
@@ -237,7 +237,7 @@ var _ = Describe("enable repo", func() {
 		})
 
 		It("loads the correct defaults", func() {
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableRepoCmd("repo", "-f", configFile)
 			_, err := cmd.Execute()
