@@ -153,19 +153,6 @@ var _ = Describe("create cluster", func() {
 			Entry("with alb-ingress-access flag", "--alb-ingress-access", "true"),
 		)
 
-		DescribeTable("with un-supported flags",
-			func(args ...string) {
-				commandArgs := append([]string{"cluster", "--managed"}, args...)
-				cmd := newDefaultCmd(commandArgs...)
-				_, err := cmd.execute()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(fmt.Errorf("Error: %s is not supported for Managed Nodegroups (--managed=true)", args[0]).Error()))
-			},
-			Entry("max-pods-per-node", "--max-pods-per-node", "2"),
-			Entry("node-ami", "--node-ami", "ami-dummy-123"),
-			Entry("node-security-groups", "--node-security-groups", "sg-123"),
-		)
-
 		DescribeTable("invalid flags or arguments",
 			func(c invalidParamsCase) {
 				commandArgs := append([]string{"cluster", "--managed"}, c.args...)
