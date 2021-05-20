@@ -20,7 +20,7 @@ conditionally_generated_files := \
   $(generated_code_deep_copy_helper) $(generated_code_aws_sdk_mocks)
 
 all_generated_files := \
-  pkg/nodebootstrap/assets.go \
+  pkg/nodebootstrap/bindata/assets.go \
   pkg/addons/default/assets.go \
   pkg/addons/assets.go \
   pkg/apis/eksctl.io/v1alpha5 \
@@ -123,10 +123,6 @@ build-integration-test: $(all_generated_code) ## Ensure integration tests compil
 .PHONY: integration-test
 integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup)
 	JUNIT_REPORT_DIR=$(git_toplevel)/test-results ./eksctl-integration-test $(INTEGRATION_TEST_ARGS)
-
-.PHONY: unowned-integration-test
-unowned-integration-test: build build-integration-test ## Run the integration tests for unowned clusters (with cluster creation and cleanup)
-	JUNIT_REPORT_DIR=$(git_toplevel)/test-results ./eksctl-integration-test $(INTEGRATION_TEST_ARGS) --eksctl.unownedcluster
 
 .PHONY: integration-test-container
 integration-test-container: ## Run integration tests in a local container

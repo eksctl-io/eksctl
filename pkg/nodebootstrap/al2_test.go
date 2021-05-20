@@ -143,7 +143,7 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 
 	When("taints are set on the node config", func() {
 		BeforeEach(func() {
-			ng.Taints = map[string]string{"foo": "bar"}
+			ng.Taints = map[string]string{"foo": ":NoSchedule"}
 			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterName, ng)
 		})
 
@@ -153,7 +153,7 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 
 			cloudCfg := decode(userData)
 			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/etc/eksctl/kubelet.env"))
-			Expect(cloudCfg.WriteFiles[2].Content).To(ContainSubstring("NODE_TAINTS=foo=:bar"))
+			Expect(cloudCfg.WriteFiles[2].Content).To(ContainSubstring("NODE_TAINTS=foo=:NoSchedule"))
 			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0644"))
 		})
 	})

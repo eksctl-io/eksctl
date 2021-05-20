@@ -9,18 +9,15 @@ import (
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	"github.com/weaveworks/eksctl/integration/utilities/git"
-	"github.com/weaveworks/eksctl/integration/utilities/unowned"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 
 	"github.com/kubicorn/kubicorn/pkg/namer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 var (
-	params         *tests.Params
-	unownedCluster *unowned.Cluster
+	params *tests.Params
 )
 
 func init() {
@@ -35,41 +32,14 @@ func TestQuickstartProfiles(t *testing.T) {
 
 var _ = BeforeSuite(func() {
 	if !params.SkipCreate {
-		if params.UnownedCluster {
-			cfg := api.NewClusterConfig()
-			cfg.Metadata = &api.ClusterMeta{
-				Version: params.Version,
-				Name:    params.ClusterName,
-				Region:  params.Region,
-			}
-			unownedCluster = unowned.NewCluster(cfg)
-
-			unownedCluster.CreateNodegroups("ng-1")
-
-			cmd := params.EksctlUtilsCmd.WithArgs(
-				"write-kubeconfig",
-				"--verbose", "4",
-				"--cluster", params.ClusterName,
-				"--kubeconfig", params.KubeconfigPath,
-			)
-			Expect(cmd).To(RunSuccessfully())
-		} else {
-			cmd := params.EksctlCreateCmd.WithArgs(
-				"cluster",
-				"--name", params.ClusterName,
-				"--verbose", "4",
-				"--region", params.Region,
-				"--kubeconfig", params.KubeconfigPath,
-			)
-			Expect(cmd).To(RunSuccessfully())
-		}
-	}
-})
-
-var _ = AfterSuite(func() {
-	params.DeleteClusters()
-	if params.UnownedCluster {
-		unownedCluster.DeleteStack()
+		cmd := params.EksctlCreateCmd.WithArgs(
+			"cluster",
+			"--name", params.ClusterName,
+			"--verbose", "4",
+			"--region", params.Region,
+			"--kubeconfig", params.KubeconfigPath,
+		)
+		Expect(cmd).To(RunSuccessfully())
 	}
 })
 
@@ -149,4 +119,8 @@ var _ = Describe("Enable and use GitOps quickstart profiles", func() {
 			Expect(err).NotTo(HaveOccurred()) // Deleting the branch should have succeeded.
 		})
 	})
+})
+
+var _ = AfterSuite(func() {
+	params.DeleteClusters()
 })

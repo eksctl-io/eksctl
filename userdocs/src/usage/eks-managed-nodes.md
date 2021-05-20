@@ -235,7 +235,7 @@ They do not propagate to the provisioned Autoscaling Group like in unmanaged nod
 - The `amiFamily` field supports only `AmazonLinux2`
 - `instancesDistribution` field is not supported
 - Full control over the node bootstrapping process and customization of the kubelet are not supported. This includes the
-following fields: `classicLoadBalancerNames`, `taints`, `targetGroupARNs`, `clusterDNS` and `kubeletExtraConfig`.
+following fields: `classicLoadBalancerNames`, `targetGroupARNs`, `clusterDNS` and `kubeletExtraConfig`.
 - No support for enabling metrics on AutoScalingGroups using `asgMetricsCollection`
 
 ## Note for eksctl versions below 0.12.0

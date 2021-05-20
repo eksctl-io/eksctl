@@ -94,6 +94,84 @@ func (_m *SSMAPI) AddTagsToResourceWithContext(_a0 context.Context, _a1 *ssm.Add
 	return r0, r1
 }
 
+// AssociateOpsItemRelatedItem provides a mock function with given fields: _a0
+func (_m *SSMAPI) AssociateOpsItemRelatedItem(_a0 *ssm.AssociateOpsItemRelatedItemInput) (*ssm.AssociateOpsItemRelatedItemOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ssm.AssociateOpsItemRelatedItemOutput
+	if rf, ok := ret.Get(0).(func(*ssm.AssociateOpsItemRelatedItemInput) *ssm.AssociateOpsItemRelatedItemOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.AssociateOpsItemRelatedItemOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ssm.AssociateOpsItemRelatedItemInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AssociateOpsItemRelatedItemRequest provides a mock function with given fields: _a0
+func (_m *SSMAPI) AssociateOpsItemRelatedItemRequest(_a0 *ssm.AssociateOpsItemRelatedItemInput) (*request.Request, *ssm.AssociateOpsItemRelatedItemOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ssm.AssociateOpsItemRelatedItemInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ssm.AssociateOpsItemRelatedItemOutput
+	if rf, ok := ret.Get(1).(func(*ssm.AssociateOpsItemRelatedItemInput) *ssm.AssociateOpsItemRelatedItemOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ssm.AssociateOpsItemRelatedItemOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// AssociateOpsItemRelatedItemWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *SSMAPI) AssociateOpsItemRelatedItemWithContext(_a0 context.Context, _a1 *ssm.AssociateOpsItemRelatedItemInput, _a2 ...request.Option) (*ssm.AssociateOpsItemRelatedItemOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ssm.AssociateOpsItemRelatedItemOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.AssociateOpsItemRelatedItemInput, ...request.Option) *ssm.AssociateOpsItemRelatedItemOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.AssociateOpsItemRelatedItemOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.AssociateOpsItemRelatedItemInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CancelCommand provides a mock function with given fields: _a0
 func (_m *SSMAPI) CancelCommand(_a0 *ssm.CancelCommandInput) (*ssm.CancelCommandOutput, error) {
 	ret := _m.Called(_a0)
@@ -5520,6 +5598,84 @@ func (_m *SSMAPI) DescribeSessionsWithContext(_a0 context.Context, _a1 *ssm.Desc
 	return r0, r1
 }
 
+// DisassociateOpsItemRelatedItem provides a mock function with given fields: _a0
+func (_m *SSMAPI) DisassociateOpsItemRelatedItem(_a0 *ssm.DisassociateOpsItemRelatedItemInput) (*ssm.DisassociateOpsItemRelatedItemOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ssm.DisassociateOpsItemRelatedItemOutput
+	if rf, ok := ret.Get(0).(func(*ssm.DisassociateOpsItemRelatedItemInput) *ssm.DisassociateOpsItemRelatedItemOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.DisassociateOpsItemRelatedItemOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ssm.DisassociateOpsItemRelatedItemInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DisassociateOpsItemRelatedItemRequest provides a mock function with given fields: _a0
+func (_m *SSMAPI) DisassociateOpsItemRelatedItemRequest(_a0 *ssm.DisassociateOpsItemRelatedItemInput) (*request.Request, *ssm.DisassociateOpsItemRelatedItemOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ssm.DisassociateOpsItemRelatedItemInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ssm.DisassociateOpsItemRelatedItemOutput
+	if rf, ok := ret.Get(1).(func(*ssm.DisassociateOpsItemRelatedItemInput) *ssm.DisassociateOpsItemRelatedItemOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ssm.DisassociateOpsItemRelatedItemOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DisassociateOpsItemRelatedItemWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *SSMAPI) DisassociateOpsItemRelatedItemWithContext(_a0 context.Context, _a1 *ssm.DisassociateOpsItemRelatedItemInput, _a2 ...request.Option) (*ssm.DisassociateOpsItemRelatedItemOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ssm.DisassociateOpsItemRelatedItemOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.DisassociateOpsItemRelatedItemInput, ...request.Option) *ssm.DisassociateOpsItemRelatedItemOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.DisassociateOpsItemRelatedItemOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.DisassociateOpsItemRelatedItemInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAutomationExecution provides a mock function with given fields: _a0
 func (_m *SSMAPI) GetAutomationExecution(_a0 *ssm.GetAutomationExecutionInput) (*ssm.GetAutomationExecutionOutput, error) {
 	ret := _m.Called(_a0)
@@ -8810,6 +8966,119 @@ func (_m *SSMAPI) ListOpsItemEventsWithContext(_a0 context.Context, _a1 *ssm.Lis
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ssm.ListOpsItemEventsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListOpsItemRelatedItems provides a mock function with given fields: _a0
+func (_m *SSMAPI) ListOpsItemRelatedItems(_a0 *ssm.ListOpsItemRelatedItemsInput) (*ssm.ListOpsItemRelatedItemsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ssm.ListOpsItemRelatedItemsOutput
+	if rf, ok := ret.Get(0).(func(*ssm.ListOpsItemRelatedItemsInput) *ssm.ListOpsItemRelatedItemsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.ListOpsItemRelatedItemsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ssm.ListOpsItemRelatedItemsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListOpsItemRelatedItemsPages provides a mock function with given fields: _a0, _a1
+func (_m *SSMAPI) ListOpsItemRelatedItemsPages(_a0 *ssm.ListOpsItemRelatedItemsInput, _a1 func(*ssm.ListOpsItemRelatedItemsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ssm.ListOpsItemRelatedItemsInput, func(*ssm.ListOpsItemRelatedItemsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListOpsItemRelatedItemsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SSMAPI) ListOpsItemRelatedItemsPagesWithContext(_a0 context.Context, _a1 *ssm.ListOpsItemRelatedItemsInput, _a2 func(*ssm.ListOpsItemRelatedItemsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListOpsItemRelatedItemsInput, func(*ssm.ListOpsItemRelatedItemsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListOpsItemRelatedItemsRequest provides a mock function with given fields: _a0
+func (_m *SSMAPI) ListOpsItemRelatedItemsRequest(_a0 *ssm.ListOpsItemRelatedItemsInput) (*request.Request, *ssm.ListOpsItemRelatedItemsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ssm.ListOpsItemRelatedItemsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ssm.ListOpsItemRelatedItemsOutput
+	if rf, ok := ret.Get(1).(func(*ssm.ListOpsItemRelatedItemsInput) *ssm.ListOpsItemRelatedItemsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ssm.ListOpsItemRelatedItemsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListOpsItemRelatedItemsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *SSMAPI) ListOpsItemRelatedItemsWithContext(_a0 context.Context, _a1 *ssm.ListOpsItemRelatedItemsInput, _a2 ...request.Option) (*ssm.ListOpsItemRelatedItemsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ssm.ListOpsItemRelatedItemsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.ListOpsItemRelatedItemsInput, ...request.Option) *ssm.ListOpsItemRelatedItemsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.ListOpsItemRelatedItemsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.ListOpsItemRelatedItemsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)

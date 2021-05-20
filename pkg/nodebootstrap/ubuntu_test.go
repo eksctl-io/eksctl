@@ -107,7 +107,7 @@ var _ = Describe("Ubuntu User Data", func() {
 
 	When("taints are set on the node config", func() {
 		BeforeEach(func() {
-			ng.Taints = map[string]string{"foo": "bar", "one": "two:three"}
+			ng.Taints = map[string]string{"foo": ":NoExecute", "one": "two:NoSchedule"}
 			bootstrapper = nodebootstrap.NewUbuntuBootstrapper(clusterName, ng)
 		})
 
@@ -116,11 +116,12 @@ var _ = Describe("Ubuntu User Data", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/etc/eksctl/kubelet.env"))
-			Expect(cloudCfg.WriteFiles[2].Content).To(ContainSubstring("NODE_TAINTS"))
-			Expect(cloudCfg.WriteFiles[2].Content).To(ContainSubstring("foo=:bar"))
-			Expect(cloudCfg.WriteFiles[2].Content).To(ContainSubstring("one=two:three"))
-			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0644"))
+			file := cloudCfg.WriteFiles[2]
+			Expect(file.Path).To(Equal("/etc/eksctl/kubelet.env"))
+			Expect(file.Content).To(ContainSubstring("NODE_TAINTS"))
+			Expect(file.Content).To(ContainSubstring("foo=:NoExecute"))
+			Expect(file.Content).To(ContainSubstring("one=two:NoSchedule"))
+			Expect(file.Permissions).To(Equal("0644"))
 		})
 	})
 

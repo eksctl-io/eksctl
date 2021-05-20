@@ -13,6 +13,7 @@ import (
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // ManagedNodeGroupResourceSet defines the CloudFormation resources required for a managed nodegroup
@@ -88,6 +89,10 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		}
 	}
 
+	taints, err := mapTaints(m.nodeGroup.Taints)
+	if err != nil {
+		return err
+	}
 	managedResource := &gfneks.Nodegroup{
 		ClusterName:   gfnt.NewString(m.clusterConfig.Metadata.Name),
 		NodegroupName: gfnt.NewString(m.nodeGroup.Name),
@@ -96,6 +101,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		NodeRole:      nodeRole,
 		Labels:        m.nodeGroup.Labels,
 		Tags:          m.nodeGroup.Tags,
+		Taints:        taints,
 	}
 
 	if m.nodeGroup.Spot {
@@ -163,6 +169,36 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	managedResource.LaunchTemplate = launchTemplate
 	m.newResource(ManagedNodeGroupResourceName, managedResource)
 	return nil
+}
+
+func mapTaints(taints []api.NodeGroupTaint) ([]*gfneks.Nodegroup_Taints, error) {
+	var ret []*gfneks.Nodegroup_Taints
+
+	mapEffect := func(effect corev1.TaintEffect) string {
+		switch effect {
+		case corev1.TaintEffectNoSchedule:
+			return eks.TaintEffectNoSchedule
+		case corev1.TaintEffectPreferNoSchedule:
+			return eks.TaintEffectPreferNoSchedule
+		case corev1.TaintEffectNoExecute:
+			return eks.TaintEffectNoExecute
+		default:
+			return ""
+		}
+	}
+
+	for _, t := range taints {
+		effect := mapEffect(t.Effect)
+		if effect == "" {
+			return nil, errors.Errorf("unexpected taint effect: %v", t.Effect)
+		}
+		ret = append(ret, &gfneks.Nodegroup_Taints{
+			Key:    gfnt.NewString(t.Key),
+			Value:  gfnt.NewString(t.Value),
+			Effect: gfnt.NewString(effect),
+		})
+	}
+	return ret, nil
 }
 
 func selectManagedInstanceType(ng *api.ManagedNodeGroup) string {
