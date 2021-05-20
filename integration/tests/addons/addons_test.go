@@ -45,7 +45,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 					AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
 				},
 				{
-					Name:    "kube-proxy",
+					Name:    "coredns",
 					Version: "latest",
 				},
 			}
@@ -90,7 +90,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				)
 			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 				ContainElement(ContainSubstring("vpc-cni")),
-				ContainElement(ContainSubstring("kube-proxy")),
+				ContainElement(ContainSubstring("core-dns")),
 			))
 
 			By("Asserting the addons are healthy")
@@ -106,18 +106,18 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			cmd = params.EksctlGetCmd.
 				WithArgs(
 					"addon",
-					"--name", "kube-proxy",
+					"--name", "coredns",
 					"--cluster", clusterName,
 					"--verbose", "2",
 				)
 			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
 
-			By("successfully creating the coredns addon")
+			By("successfully creating the kube-proxy addon")
 
 			cmd = params.EksctlCreateCmd.
 				WithArgs(
 					"addon",
-					"--name", "coredns",
+					"--name", "kube-proxy",
 					"--cluster", clusterName,
 					"--force",
 					"--wait",
@@ -128,17 +128,17 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			cmd = params.EksctlGetCmd.
 				WithArgs(
 					"addon",
-					"--name", "coredns",
+					"--name", "kube-proxy",
 					"--cluster", clusterName,
 					"--verbose", "2",
 				)
 			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
 
-			By("Updating the coredns addon")
+			By("Updating the kube-proxy addon")
 			cmd = params.EksctlUpdateCmd.
 				WithArgs(
 					"addon",
-					"--name", "coredns",
+					"--name", "kube-proxy",
 					"--cluster", clusterName,
 					"--version", "latest",
 					"--wait",
@@ -146,11 +146,11 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				)
 			Expect(cmd).To(RunSuccessfully())
 
-			By("Deleting the coredns addon")
+			By("Deleting the kube-proxy addon")
 			cmd = params.EksctlDeleteCmd.
 				WithArgs(
 					"addon",
-					"--name", "coredns",
+					"--name", "kube-proxy",
 					"--cluster", clusterName,
 					"--verbose", "2",
 				)
