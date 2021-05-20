@@ -5,7 +5,6 @@ import (
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -58,8 +57,7 @@ func doWaitNodes(cmd *cmdutils.Cmd, ng *api.NodeGroup, kubeconfigPath string) er
 		return err
 	}
 
-	ngSvc := eks.NodeGroupService{}
-	if err := ngSvc.WaitForNodes(clientSet, ng, ctl.KubeProvider); err != nil {
+	if err := ctl.WaitForNodes(clientSet, ng); err != nil {
 		return err
 	}
 

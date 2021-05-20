@@ -60,19 +60,6 @@ type FakeNodeGroupInitialiser struct {
 	normalizeReturnsOnCall map[int]struct {
 		result1 error
 	}
-	UpdateAuthConfigMapStub        func([]*v1alpha5.NodeGroup, kubernetes.Interface, eks.KubeProvider) error
-	updateAuthConfigMapMutex       sync.RWMutex
-	updateAuthConfigMapArgsForCall []struct {
-		arg1 []*v1alpha5.NodeGroup
-		arg2 kubernetes.Interface
-		arg3 eks.KubeProvider
-	}
-	updateAuthConfigMapReturns struct {
-		result1 error
-	}
-	updateAuthConfigMapReturnsOnCall map[int]struct {
-		result1 error
-	}
 	ValidateLegacySubnetsForNodeGroupsStub        func(*v1alpha5.ClusterConfig, v1alpha5.ClusterProvider) error
 	validateLegacySubnetsForNodeGroupsMutex       sync.RWMutex
 	validateLegacySubnetsForNodeGroupsArgsForCall []struct {
@@ -83,19 +70,6 @@ type FakeNodeGroupInitialiser struct {
 		result1 error
 	}
 	validateLegacySubnetsForNodeGroupsReturnsOnCall map[int]struct {
-		result1 error
-	}
-	WaitForNodesStub        func(kubernetes.Interface, eks.KubeNodeGroup, eks.KubeProvider) error
-	waitForNodesMutex       sync.RWMutex
-	waitForNodesArgsForCall []struct {
-		arg1 kubernetes.Interface
-		arg2 eks.KubeNodeGroup
-		arg3 eks.KubeProvider
-	}
-	waitForNodesReturns struct {
-		result1 error
-	}
-	waitForNodesReturnsOnCall map[int]struct {
 		result1 error
 	}
 	invocations      map[string][][]interface{}
@@ -367,74 +341,6 @@ func (fake *FakeNodeGroupInitialiser) NormalizeReturnsOnCall(i int, result1 erro
 	}{result1}
 }
 
-func (fake *FakeNodeGroupInitialiser) UpdateAuthConfigMap(arg1 []*v1alpha5.NodeGroup, arg2 kubernetes.Interface, arg3 eks.KubeProvider) error {
-	var arg1Copy []*v1alpha5.NodeGroup
-	if arg1 != nil {
-		arg1Copy = make([]*v1alpha5.NodeGroup, len(arg1))
-		copy(arg1Copy, arg1)
-	}
-	fake.updateAuthConfigMapMutex.Lock()
-	ret, specificReturn := fake.updateAuthConfigMapReturnsOnCall[len(fake.updateAuthConfigMapArgsForCall)]
-	fake.updateAuthConfigMapArgsForCall = append(fake.updateAuthConfigMapArgsForCall, struct {
-		arg1 []*v1alpha5.NodeGroup
-		arg2 kubernetes.Interface
-		arg3 eks.KubeProvider
-	}{arg1Copy, arg2, arg3})
-	stub := fake.UpdateAuthConfigMapStub
-	fakeReturns := fake.updateAuthConfigMapReturns
-	fake.recordInvocation("UpdateAuthConfigMap", []interface{}{arg1Copy, arg2, arg3})
-	fake.updateAuthConfigMapMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeNodeGroupInitialiser) UpdateAuthConfigMapCallCount() int {
-	fake.updateAuthConfigMapMutex.RLock()
-	defer fake.updateAuthConfigMapMutex.RUnlock()
-	return len(fake.updateAuthConfigMapArgsForCall)
-}
-
-func (fake *FakeNodeGroupInitialiser) UpdateAuthConfigMapCalls(stub func([]*v1alpha5.NodeGroup, kubernetes.Interface, eks.KubeProvider) error) {
-	fake.updateAuthConfigMapMutex.Lock()
-	defer fake.updateAuthConfigMapMutex.Unlock()
-	fake.UpdateAuthConfigMapStub = stub
-}
-
-func (fake *FakeNodeGroupInitialiser) UpdateAuthConfigMapArgsForCall(i int) ([]*v1alpha5.NodeGroup, kubernetes.Interface, eks.KubeProvider) {
-	fake.updateAuthConfigMapMutex.RLock()
-	defer fake.updateAuthConfigMapMutex.RUnlock()
-	argsForCall := fake.updateAuthConfigMapArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
-}
-
-func (fake *FakeNodeGroupInitialiser) UpdateAuthConfigMapReturns(result1 error) {
-	fake.updateAuthConfigMapMutex.Lock()
-	defer fake.updateAuthConfigMapMutex.Unlock()
-	fake.UpdateAuthConfigMapStub = nil
-	fake.updateAuthConfigMapReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeNodeGroupInitialiser) UpdateAuthConfigMapReturnsOnCall(i int, result1 error) {
-	fake.updateAuthConfigMapMutex.Lock()
-	defer fake.updateAuthConfigMapMutex.Unlock()
-	fake.UpdateAuthConfigMapStub = nil
-	if fake.updateAuthConfigMapReturnsOnCall == nil {
-		fake.updateAuthConfigMapReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.updateAuthConfigMapReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroups(arg1 *v1alpha5.ClusterConfig, arg2 v1alpha5.ClusterProvider) error {
 	fake.validateLegacySubnetsForNodeGroupsMutex.Lock()
 	ret, specificReturn := fake.validateLegacySubnetsForNodeGroupsReturnsOnCall[len(fake.validateLegacySubnetsForNodeGroupsArgsForCall)]
@@ -497,69 +403,6 @@ func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroupsReturnsO
 	}{result1}
 }
 
-func (fake *FakeNodeGroupInitialiser) WaitForNodes(arg1 kubernetes.Interface, arg2 eks.KubeNodeGroup, arg3 eks.KubeProvider) error {
-	fake.waitForNodesMutex.Lock()
-	ret, specificReturn := fake.waitForNodesReturnsOnCall[len(fake.waitForNodesArgsForCall)]
-	fake.waitForNodesArgsForCall = append(fake.waitForNodesArgsForCall, struct {
-		arg1 kubernetes.Interface
-		arg2 eks.KubeNodeGroup
-		arg3 eks.KubeProvider
-	}{arg1, arg2, arg3})
-	stub := fake.WaitForNodesStub
-	fakeReturns := fake.waitForNodesReturns
-	fake.recordInvocation("WaitForNodes", []interface{}{arg1, arg2, arg3})
-	fake.waitForNodesMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeNodeGroupInitialiser) WaitForNodesCallCount() int {
-	fake.waitForNodesMutex.RLock()
-	defer fake.waitForNodesMutex.RUnlock()
-	return len(fake.waitForNodesArgsForCall)
-}
-
-func (fake *FakeNodeGroupInitialiser) WaitForNodesCalls(stub func(kubernetes.Interface, eks.KubeNodeGroup, eks.KubeProvider) error) {
-	fake.waitForNodesMutex.Lock()
-	defer fake.waitForNodesMutex.Unlock()
-	fake.WaitForNodesStub = stub
-}
-
-func (fake *FakeNodeGroupInitialiser) WaitForNodesArgsForCall(i int) (kubernetes.Interface, eks.KubeNodeGroup, eks.KubeProvider) {
-	fake.waitForNodesMutex.RLock()
-	defer fake.waitForNodesMutex.RUnlock()
-	argsForCall := fake.waitForNodesArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
-}
-
-func (fake *FakeNodeGroupInitialiser) WaitForNodesReturns(result1 error) {
-	fake.waitForNodesMutex.Lock()
-	defer fake.waitForNodesMutex.Unlock()
-	fake.WaitForNodesStub = nil
-	fake.waitForNodesReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeNodeGroupInitialiser) WaitForNodesReturnsOnCall(i int, result1 error) {
-	fake.waitForNodesMutex.Lock()
-	defer fake.waitForNodesMutex.Unlock()
-	fake.WaitForNodesStub = nil
-	if fake.waitForNodesReturnsOnCall == nil {
-		fake.waitForNodesReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.waitForNodesReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeNodeGroupInitialiser) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -571,12 +414,8 @@ func (fake *FakeNodeGroupInitialiser) Invocations() map[string][][]interface{} {
 	defer fake.newAWSSelectorSessionMutex.RUnlock()
 	fake.normalizeMutex.RLock()
 	defer fake.normalizeMutex.RUnlock()
-	fake.updateAuthConfigMapMutex.RLock()
-	defer fake.updateAuthConfigMapMutex.RUnlock()
 	fake.validateLegacySubnetsForNodeGroupsMutex.RLock()
 	defer fake.validateLegacySubnetsForNodeGroupsMutex.RUnlock()
-	fake.waitForNodesMutex.RLock()
-	defer fake.waitForNodesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

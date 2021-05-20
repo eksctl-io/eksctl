@@ -60,15 +60,15 @@ type ClusterProvider struct {
 }
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o fakes/fake_kube_provider.go . KubeProvider
-// KubeProvider is the interface to helper funcs relating to k8s API,
-// k8s config and AWS APIs
+// KubeProvider is an interface with helper funcs for k8s and EKS
 type KubeProvider interface {
 	NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error)
 	ServerVersion(rawClient *kubernetes.RawClient) (string, error)
 	LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, stackManager manager.StackManager) error
 	SupportsManagedNodes(clusterConfig *api.ClusterConfig) (bool, error)
 	ValidateClusterForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error
-	WaitTimeout() time.Duration
+	UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error
+	WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error
 }
 
 // ProviderServices stores the used APIs

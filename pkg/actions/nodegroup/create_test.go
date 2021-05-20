@@ -197,7 +197,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			f.SetOnlyLocalReturns(nil)
 			init.DoesAWSNodeUseIRSAReturns(false, nil)
 			sm.DoAllNodegroupStackTasksReturns(nil)
-			init.UpdateAuthConfigMapReturns(errors.New("err"))
+			k.UpdateAuthConfigMapReturns(errors.New("err"))
 		},
 		expErr: errors.New("err"),
 	}),
@@ -238,7 +238,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			f.SetOnlyLocalReturns(nil)
 			init.DoesAWSNodeUseIRSAReturns(false, nil)
 			sm.DoAllNodegroupStackTasksReturns(nil)
-			init.UpdateAuthConfigMapReturns(nil)
+			k.UpdateAuthConfigMapReturns(nil)
 		},
 		expErr: nil,
 	}),

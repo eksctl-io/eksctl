@@ -211,14 +211,14 @@ func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options 
 	}
 
 	if options.UpdateAuthConfigMap {
-		if err := m.init.UpdateAuthConfigMap(m.cfg.NodeGroups, clientSet, m.ctl.KubeProvider); err != nil {
+		if err := m.ctl.KubeProvider.UpdateAuthConfigMap(m.cfg.NodeGroups, clientSet); err != nil {
 			return err
 		}
 	}
 	logger.Success("created %d nodegroup(s) in cluster %q", len(m.cfg.NodeGroups), m.cfg.Metadata.Name)
 
 	for _, ng := range m.cfg.ManagedNodeGroups {
-		if err := m.init.WaitForNodes(clientSet, ng, m.ctl.KubeProvider); err != nil {
+		if err := m.ctl.KubeProvider.WaitForNodes(clientSet, ng); err != nil {
 			if m.cfg.PrivateCluster.Enabled {
 				logger.Info("error waiting for nodes to join the cluster; this command was likely run from outside the cluster's VPC as the API server is not reachable, nodegroup(s) should still be able to join the cluster, underlying error is: %v", err)
 				break
