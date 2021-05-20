@@ -64,6 +64,8 @@ func incompatibleManagedNodesFlags() []string {
 		"max-pods-per-node",
 		"node-ami",
 		"node-security-groups",
+		"instance-name",
+		"instance-prefix",
 	}
 }
 
