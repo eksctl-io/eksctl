@@ -19,6 +19,7 @@ type Manager struct {
 	clientSet    *kubernetes.Clientset
 	wait         WaitFunc
 	init         eks.NodeGroupInitialiser
+	kubeProvider eks.KubeProvider
 }
 
 type WaitFunc func(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error
@@ -30,8 +31,16 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet *kubernetes
 		cfg:          cfg,
 		clientSet:    clientSet,
 		wait:         waiters.Wait,
-		init:         &eks.NodeGroupService{},
+		init: &eks.NodeGroupService{
+			Provider: ctl.Provider,
+		},
+		kubeProvider: ctl,
 	}
+}
+
+// MockKubeProvider can be used for passing a mock of the kube provider.
+func (m *Manager) MockKubeProvider(k eks.KubeProvider) {
+	m.kubeProvider = k
 }
 
 // MockNodeGroupService can be used for passing a mock of the nodegroup initialiser.

@@ -36,14 +36,14 @@ type NodeGroupInitialiser interface {
 
 // A NodeGroupService provides helpers for nodegroup creation
 type NodeGroupService struct {
-	provider         api.ClusterProvider
+	Provider         api.ClusterProvider
 	instanceSelector InstanceSelector
 }
 
 // NewNodeGroupService creates a new NodeGroupService
 func NewNodeGroupService(provider api.ClusterProvider, instanceSelector InstanceSelector) *NodeGroupService {
 	return &NodeGroupService{
-		provider:         provider,
+		Provider:         provider,
 		instanceSelector: instanceSelector,
 	}
 }
@@ -62,7 +62,7 @@ func (m *NodeGroupService) Normalize(nodePools []api.NodePool, clusterMeta *api.
 		case *api.NodeGroup:
 			// resolve AMI
 			if !api.IsAMI(ng.AMI) {
-				if err := ResolveAMI(m.provider, clusterMeta.Version, ng); err != nil {
+				if err := ResolveAMI(m.Provider, clusterMeta.Version, ng); err != nil {
 					return err
 				}
 			} else {
@@ -77,7 +77,7 @@ func (m *NodeGroupService) Normalize(nodePools []api.NodePool, clusterMeta *api.
 
 		ng := np.BaseNodeGroup()
 		if ng.AMI != "" {
-			if err := ami.Use(m.provider.EC2(), ng); err != nil {
+			if err := ami.Use(m.Provider.EC2(), ng); err != nil {
 				return err
 			}
 		}
@@ -85,7 +85,7 @@ func (m *NodeGroupService) Normalize(nodePools []api.NodePool, clusterMeta *api.
 		// fingerprint, so if unique keys are provided, each will get
 		// loaded and used as intended and there is no need to have
 		// nodegroup name in the key name
-		publicKeyName, err := ssh.LoadKey(ng.SSH, clusterMeta.Name, ng.Name, m.provider.EC2())
+		publicKeyName, err := ssh.LoadKey(ng.SSH, clusterMeta.Name, ng.Name, m.Provider.EC2())
 		if err != nil {
 			return err
 		}

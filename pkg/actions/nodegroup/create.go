@@ -36,14 +36,13 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 	cfg := m.cfg
 	meta := cfg.Metadata
 	ctl := m.ctl
-	kubeProvider := m.ctl.KubeProvider
-	init := m.init
+	kubeProvider := m.kubeProvider
 
 	if err := checkVersion(ctl, meta); err != nil {
 		return err
 	}
 
-	if err := checkARMSupport(ctl, m.clientSet, cfg, options.SkipOutdatedAddonsCheck); err != nil {
+	if err := m.checkARMSupport(ctl, m.clientSet, cfg, options.SkipOutdatedAddonsCheck); err != nil {
 		return err
 	}
 
@@ -76,14 +75,15 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 		return err
 	}
 
-	init.NewAWSSelectorSession(ctl.Provider)
+	m.init.NewAWSSelectorSession(ctl.Provider)
 	nodePools := cmdutils.ToNodePools(cfg)
-	if err := init.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
+
+	if err := m.init.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err
 	}
 
 	if !options.DryRun {
-		if err := init.Normalize(nodePools, cfg.Metadata); err != nil {
+		if err := m.init.Normalize(nodePools, cfg.Metadata); err != nil {
 			return err
 		}
 	}
@@ -99,7 +99,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 		}
 	}
 
-	if err := init.ValidateLegacySubnetsForNodeGroups(cfg, ctl.Provider); err != nil {
+	if err := m.init.ValidateLegacySubnetsForNodeGroups(cfg, ctl.Provider); err != nil {
 		return err
 	}
 
@@ -211,14 +211,14 @@ func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options 
 	}
 
 	if options.UpdateAuthConfigMap {
-		if err := m.ctl.KubeProvider.UpdateAuthConfigMap(m.cfg.NodeGroups, clientSet); err != nil {
+		if err := m.kubeProvider.UpdateAuthConfigMap(m.cfg.NodeGroups, clientSet); err != nil {
 			return err
 		}
 	}
 	logger.Success("created %d nodegroup(s) in cluster %q", len(m.cfg.NodeGroups), m.cfg.Metadata.Name)
 
 	for _, ng := range m.cfg.ManagedNodeGroups {
-		if err := m.ctl.KubeProvider.WaitForNodes(clientSet, ng); err != nil {
+		if err := m.kubeProvider.WaitForNodes(clientSet, ng); err != nil {
 			if m.cfg.PrivateCluster.Enabled {
 				logger.Info("error waiting for nodes to join the cluster; this command was likely run from outside the cluster's VPC as the API server is not reachable, nodegroup(s) should still be able to join the cluster, underlying error is: %v", err)
 				break
@@ -266,8 +266,8 @@ func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
 	return nil
 }
 
-func checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes.Interface, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
-	kubeProvider := ctl.KubeProvider
+func (m *Manager) checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes.Interface, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
+	kubeProvider := m.kubeProvider
 	rawClient, err := kubeProvider.NewRawClient(cfg)
 	if err != nil {
 		return err

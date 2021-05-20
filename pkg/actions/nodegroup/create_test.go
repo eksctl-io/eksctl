@@ -23,7 +23,7 @@ import (
 type ngEntry struct {
 	version   string
 	opts      nodegroup.CreateOpts
-	mockCalls func(*mockprovider.MockProvider, *fakes.FakeKubeProvider, *fakes.FakeNodeGroupInitialiser, *utilFakes.FakeNodegroupFilter, *cfFakes.FakeStackManager)
+	mockCalls func(*fakes.FakeKubeProvider, *fakes.FakeNodeGroupInitialiser, *utilFakes.FakeNodegroupFilter, *cfFakes.FakeStackManager)
 	expErr    error
 }
 
@@ -31,7 +31,6 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 	cfg := newClusterConfig()
 	cfg.Metadata.Version = t.version
 
-	k := &fakes.FakeKubeProvider{}
 	p := mockprovider.NewMockProvider()
 	ctl := &eks.ClusterProvider{
 		Provider: p,
@@ -40,9 +39,11 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 				Cluster: testutils.NewFakeCluster("my-cluster", ""),
 			},
 		},
-		KubeProvider: k,
 	}
 	m := nodegroup.New(cfg, ctl, nil)
+
+	k := &fakes.FakeKubeProvider{}
+	m.MockKubeProvider(k)
 
 	init := &fakes.FakeNodeGroupInitialiser{}
 	m.MockNodeGroupService(init)
@@ -52,7 +53,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 
 	ngFilter := &utilFakes.FakeNodegroupFilter{}
 	if t.mockCalls != nil {
-		t.mockCalls(p, k, init, ngFilter, sm)
+		t.mockCalls(k, init, ngFilter, sm)
 	}
 
 	err := m.Create(t.opts, ngFilter)
@@ -66,20 +67,20 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 },
 	Entry("fails when cluster version is not supported", ngEntry{
 		version: "1.14",
-		mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
+		mockCalls: func(k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
 		},
 		expErr: fmt.Errorf("invalid version, %s is no longer supported, supported values: auto, default, latest, %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", "1.14", strings.Join(api.SupportedVersions(), ", ")),
 	}),
 
 	Entry("fails when it does not support ARM", ngEntry{
-		mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
+		mockCalls: func(k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
 			k.NewRawClientReturns(nil, fmt.Errorf("err"))
 		},
 		expErr: fmt.Errorf("err"),
 	}),
 
 	Entry("fails to load VPC from config", ngEntry{
-		mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
+		mockCalls: func(k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
 			k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 			k.ServerVersionReturns("1.17", nil)
 			k.LoadClusterIntoSpecFromStackReturns(&manager.StackNotFoundErr{})
@@ -88,7 +89,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 	}),
 
 	Entry("fails when cluster does not support managed nodes", ngEntry{
-		mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
+		mockCalls: func(k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
 			k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 			k.ServerVersionReturns("1.17", nil)
 			k.LoadClusterIntoSpecFromStackReturns(nil)
@@ -98,7 +99,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 	}),
 
 	Entry("fails when NodeGroupService fails to match instances", ngEntry{
-		mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
+		mockCalls: func(k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
 			k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 			k.ServerVersionReturns("1.17", nil)
 			k.LoadClusterIntoSpecFromStackReturns(nil)
@@ -110,7 +111,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 	}),
 
 	Entry("fails when cluster is not compatible with ng config", ngEntry{
-		mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
+		mockCalls: func(k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
 			k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 			k.ServerVersionReturns("1.17", nil)
 			k.LoadClusterIntoSpecFromStackReturns(nil)
@@ -123,7 +124,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 	}),
 
 	Entry("fails when it cannot validate legacy subnets for ng", ngEntry{
-		mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
+		mockCalls: func(k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
 			k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 			k.ServerVersionReturns("1.17", nil)
 			k.LoadClusterIntoSpecFromStackReturns(nil)
@@ -137,7 +138,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 	}),
 
 	Entry("fails when existing local ng stacks in config file is not listed", ngEntry{
-		mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
+		mockCalls: func(k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
 			k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 			k.ServerVersionReturns("1.17", nil)
 			k.LoadClusterIntoSpecFromStackReturns(nil)
@@ -151,7 +152,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 	}),
 
 	Entry("fails to evaluate whether aws-node uses IRSA", ngEntry{
-		mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
+		mockCalls: func(k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
 			k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 			k.ServerVersionReturns("1.17", nil)
 			k.LoadClusterIntoSpecFromStackReturns(nil)
@@ -166,7 +167,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 	}),
 
 	Entry("stack manager fails to do ng tasks", ngEntry{
-		mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
+		mockCalls: func(k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
 			k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 			k.ServerVersionReturns("1.17", nil)
 			k.LoadClusterIntoSpecFromStackReturns(nil)
@@ -186,7 +187,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			DryRun:              true,
 			UpdateAuthConfigMap: true,
 		},
-		mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
+		mockCalls: func(k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
 			k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 			k.ServerVersionReturns("1.17", nil)
 			k.LoadClusterIntoSpecFromStackReturns(nil)
@@ -203,7 +204,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 	}),
 
 	Entry("[happy path] creates nodegroup with no options", ngEntry{
-		mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
+		mockCalls: func(k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
 			k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 			k.ServerVersionReturns("1.17", nil)
 			k.LoadClusterIntoSpecFromStackReturns(nil)
@@ -227,7 +228,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 			SkipOutdatedAddonsCheck:   true,
 			ConfigFileProvided:        true,
 		},
-		mockCalls: func(p *mockprovider.MockProvider, k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
+		mockCalls: func(k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter, sm *cfFakes.FakeStackManager) {
 			k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 			k.ServerVersionReturns("1.17", nil)
 			k.LoadClusterIntoSpecFromStackReturns(nil)
