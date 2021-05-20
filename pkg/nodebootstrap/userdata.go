@@ -1,6 +1,7 @@
 package nodebootstrap
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
@@ -45,7 +46,7 @@ func NewBootstrapper(clusterSpec *api.ClusterConfig, ng *api.NodeGroup) Bootstra
 			logger.Warning("Custom AMI detected for nodegroup %s, using legacy nodebootstrap mechanism. Please refer to https://github.com/weaveworks/eksctl/issues/3563 for upcoming breaking changes", ng.Name)
 			return legacy.NewUbuntuBootstrapper(clusterSpec, ng)
 		}
-		return NewUbuntuBootstrapper(clusterSpec.Metadata.Name, ng)
+		return NewUbuntuBootstrapper(clusterSpec, ng)
 	case api.NodeImageFamilyBottlerocket:
 		return NewBottlerocketBootstrapper(clusterSpec, ng)
 	case api.NodeImageFamilyAmazonLinux2:
@@ -54,13 +55,13 @@ func NewBootstrapper(clusterSpec *api.ClusterConfig, ng *api.NodeGroup) Bootstra
 			logger.Warning("Custom AMI detected for nodegroup %s, using legacy nodebootstrap mechanism. Please refer to https://github.com/weaveworks/eksctl/issues/3563 for upcoming breaking changes", ng.Name)
 			return legacy.NewAL2Bootstrapper(clusterSpec, ng)
 		}
-		return NewAL2Bootstrapper(clusterSpec.Metadata.Name, ng)
+		return NewAL2Bootstrapper(clusterSpec, ng)
 	}
 
 	return nil
 }
 
-func linuxConfig(bootScript, clusterName string, ng *api.NodeGroup, scripts ...string) (string, error) {
+func linuxConfig(clusterConfig *api.ClusterConfig, bootScript string, ng *api.NodeGroup, scripts ...string) (string, error) {
 	config := cloudconfig.New()
 
 	for _, command := range ng.PreBootstrapCommands {
@@ -80,7 +81,7 @@ func linuxConfig(bootScript, clusterName string, ng *api.NodeGroup, scripts ...s
 		if err != nil {
 			return "", err
 		}
-		envFile := makeBootstrapEnv(clusterName, ng)
+		envFile := makeBootstrapEnv(clusterConfig, ng)
 		files = append(files, kubeletConf, envFile)
 	}
 
@@ -117,11 +118,13 @@ func makeKubeletExtraConf(ng *api.NodeGroup) (cloudconfig.File, error) {
 	}, nil
 }
 
-func makeBootstrapEnv(clusterName string, ng *api.NodeGroup) cloudconfig.File {
+func makeBootstrapEnv(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) cloudconfig.File {
 	variables := []string{
+		fmt.Sprintf("CLUSTER_NAME=%s", clusterConfig.Metadata.Name),
+		fmt.Sprintf("API_SERVER_URL=%s", clusterConfig.Status.Endpoint),
+		fmt.Sprintf("B64_CLUSTER_CA=%s", base64.StdEncoding.EncodeToString(clusterConfig.Status.CertificateAuthorityData)),
 		fmt.Sprintf("NODE_LABELS=%s", kvs(ng.Labels)),
 		fmt.Sprintf("NODE_TAINTS=%s", utils.FormatTaints(ng.Taints)),
-		fmt.Sprintf("CLUSTER_NAME=%s", clusterName),
 	}
 
 	if ng.ClusterDNS != "" {
