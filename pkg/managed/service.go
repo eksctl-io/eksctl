@@ -58,6 +58,8 @@ type UpgradeOptions struct {
 	LaunchTemplateVersion string
 	//ForceUpgrade enables force upgrade
 	ForceUpgrade bool
+	// ReleaseVersion AMI version of the EKS optimized AMI to use
+	ReleaseVersion string
 }
 
 // TODO use goformation types
@@ -161,6 +163,10 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 		return err
 	}
 
+	if options.KubernetesVersion != "" && options.ReleaseVersion != "" {
+		return errors.New("only one of kubernetes-version or release-version can be specified")
+	}
+
 	nodeGroup := output.Nodegroup
 
 	template, err := m.stackCollection.GetManagedNodeGroupTemplate(options.NodegroupName)
@@ -218,11 +224,13 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 		return err
 	}
 
-	if usesCustomAMI && options.KubernetesVersion != "" {
-		return errors.New("cannot specify kubernetes-version when using a custom AMI")
+	if usesCustomAMI && (options.KubernetesVersion != "" || options.ReleaseVersion != "") {
+		return errors.New("cannot specify kubernetes-version or release-version when using a custom AMI")
 	}
 
-	if !usesCustomAMI {
+	if options.ReleaseVersion != "" {
+		ngResource.ReleaseVersion = gfnt.NewString(options.ReleaseVersion)
+	} else if !usesCustomAMI {
 		kubernetesVersion := options.KubernetesVersion
 		if kubernetesVersion == "" {
 			// Use the current Kubernetes version

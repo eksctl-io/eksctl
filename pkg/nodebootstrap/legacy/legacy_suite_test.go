@@ -1,4 +1,4 @@
-package builder_test
+package legacy_test
 
 import (
 	"testing"
@@ -6,6 +6,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
-func TestCfnBuilder(t *testing.T) {
+func TestLegacyNodebootstrap(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }

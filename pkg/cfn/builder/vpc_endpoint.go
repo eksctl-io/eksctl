@@ -23,12 +23,12 @@ type VPCEndpointResourceSet struct {
 	rs              *resourceSet
 	vpc             *gfnt.Value
 	clusterConfig   *api.ClusterConfig
-	subnets         []subnetResource
+	subnets         []SubnetResource
 	clusterSharedSG *gfnt.Value
 }
 
 // NewVPCEndpointResourceSet creates a new VPCEndpointResourceSet
-func NewVPCEndpointResourceSet(ec2API ec2iface.EC2API, region string, rs *resourceSet, clusterConfig *api.ClusterConfig, vpc *gfnt.Value, subnets []subnetResource, clusterSharedSG *gfnt.Value) *VPCEndpointResourceSet {
+func NewVPCEndpointResourceSet(ec2API ec2iface.EC2API, region string, rs *resourceSet, clusterConfig *api.ClusterConfig, vpc *gfnt.Value, subnets []SubnetResource, clusterSharedSG *gfnt.Value) *VPCEndpointResourceSet {
 	return &VPCEndpointResourceSet{
 		ec2API:          ec2API,
 		region:          region,

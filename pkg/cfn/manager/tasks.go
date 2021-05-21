@@ -3,6 +3,7 @@ package manager
 import (
 	"fmt"
 
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -114,7 +115,8 @@ func (t *asyncTaskWithoutParams) Do(errs chan error) error {
 type kubernetesTask struct {
 	info       string
 	kubernetes kubewrapper.ClientSetGetter
-	call       func(kubernetes.Interface) error
+	objectMeta v1.ObjectMeta
+	call       func(kubernetes.Interface, v1.ObjectMeta) error
 }
 
 func (t *kubernetesTask) Describe() string { return t.info }
@@ -126,7 +128,7 @@ func (t *kubernetesTask) Do(errs chan error) error {
 	if err != nil {
 		return err
 	}
-	err = t.call(clientSet)
+	err = t.call(clientSet, t.objectMeta)
 	close(errs)
 	return err
 }

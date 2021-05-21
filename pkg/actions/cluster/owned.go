@@ -65,7 +65,7 @@ func (c *OwnedCluster) Upgrade(dryRun bool) error {
 	return nil
 }
 
-func (c *OwnedCluster) Delete(_ time.Duration, wait bool) error {
+func (c *OwnedCluster) Delete(_ time.Duration, wait, force bool) error {
 	var (
 		clientSet kubernetes.Interface
 		oidc      *iamoidc.OpenIDConnectManager
@@ -81,20 +81,34 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait bool) error {
 		var err error
 		clientSet, err = c.newClientSet()
 		if err != nil {
-			return err
+			if force {
+				logger.Warning("error occurred during deletion: %v", err)
+			} else {
+				return err
+			}
 		}
 
 		oidc, err = c.ctl.NewOpenIDConnectManager(c.cfg)
 		if err != nil {
 			if _, ok := err.(*eks.UnsupportedOIDCError); !ok {
-				return err
+				if force {
+					logger.Warning("error occurred during deletion: %v", err)
+				} else {
+					return err
+				}
 			}
 			oidcSupported = false
 		}
 	}
 
 	if err := deleteSharedResources(c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {
-		return err
+		if err != nil {
+			if force {
+				logger.Warning("error occurred during deletion: %v", err)
+			} else {
+				return err
+			}
+		}
 	}
 
 	deleteOIDCProvider := clusterOperable && oidcSupported

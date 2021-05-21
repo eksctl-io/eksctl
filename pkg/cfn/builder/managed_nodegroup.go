@@ -13,6 +13,7 @@ import (
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // ManagedNodeGroupResourceSet defines the CloudFormation resources required for a managed nodegroup
@@ -81,6 +82,17 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	if m.nodeGroup.DesiredCapacity != nil {
 		scalingConfig.DesiredSize = gfnt.NewInteger(*m.nodeGroup.DesiredCapacity)
 	}
+
+	for k, v := range m.clusterConfig.Metadata.Tags {
+		if _, exists := m.nodeGroup.Tags[k]; !exists {
+			m.nodeGroup.Tags[k] = v
+		}
+	}
+
+	taints, err := mapTaints(m.nodeGroup.Taints)
+	if err != nil {
+		return err
+	}
 	managedResource := &gfneks.Nodegroup{
 		ClusterName:   gfnt.NewString(m.clusterConfig.Metadata.Name),
 		NodegroupName: gfnt.NewString(m.nodeGroup.Name),
@@ -89,11 +101,16 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		NodeRole:      nodeRole,
 		Labels:        m.nodeGroup.Labels,
 		Tags:          m.nodeGroup.Tags,
+		Taints:        taints,
 	}
 
 	if m.nodeGroup.Spot {
 		// TODO use constant from SDK
 		managedResource.CapacityType = gfnt.NewString("SPOT")
+	}
+
+	if m.nodeGroup.ReleaseVersion != "" {
+		managedResource.ReleaseVersion = gfnt.NewString(m.nodeGroup.ReleaseVersion)
 	}
 
 	instanceTypes := m.nodeGroup.InstanceTypeList()
@@ -154,6 +171,36 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	return nil
 }
 
+func mapTaints(taints []api.NodeGroupTaint) ([]*gfneks.Nodegroup_Taints, error) {
+	var ret []*gfneks.Nodegroup_Taints
+
+	mapEffect := func(effect corev1.TaintEffect) string {
+		switch effect {
+		case corev1.TaintEffectNoSchedule:
+			return eks.TaintEffectNoSchedule
+		case corev1.TaintEffectPreferNoSchedule:
+			return eks.TaintEffectPreferNoSchedule
+		case corev1.TaintEffectNoExecute:
+			return eks.TaintEffectNoExecute
+		default:
+			return ""
+		}
+	}
+
+	for _, t := range taints {
+		effect := mapEffect(t.Effect)
+		if effect == "" {
+			return nil, errors.Errorf("unexpected taint effect: %v", t.Effect)
+		}
+		ret = append(ret, &gfneks.Nodegroup_Taints{
+			Key:    gfnt.NewString(t.Key),
+			Value:  gfnt.NewString(t.Value),
+			Effect: gfnt.NewString(effect),
+		})
+	}
+	return ret, nil
+}
+
 func selectManagedInstanceType(ng *api.ManagedNodeGroup) string {
 	if len(ng.InstanceTypes) > 0 {
 		for _, instanceType := range ng.InstanceTypes {
@@ -167,14 +214,14 @@ func selectManagedInstanceType(ng *api.ManagedNodeGroup) string {
 }
 
 func validateLaunchTemplate(launchTemplateData *ec2.ResponseLaunchTemplateData, ng *api.ManagedNodeGroup) error {
-	const fieldName = "managedNodeGroup"
+	const mngFieldName = "managedNodeGroup"
 
 	if launchTemplateData.InstanceType == nil {
 		if len(ng.InstanceTypes) == 0 {
-			return errors.Errorf("instance type must be set in the launch template if %s.instanceTypes is not specified", fieldName)
+			return errors.Errorf("instance type must be set in the launch template if %s.instanceTypes is not specified", mngFieldName)
 		}
 	} else if len(ng.InstanceTypes) > 0 {
-		return errors.Errorf("instance type must not be set in the launch template if %s.instanceTypes is specified", fieldName)
+		return errors.Errorf("instance type must not be set in the launch template if %s.instanceTypes is specified", mngFieldName)
 	}
 
 	// Custom AMI
@@ -182,8 +229,15 @@ func validateLaunchTemplate(launchTemplateData *ec2.ResponseLaunchTemplateData, 
 		if launchTemplateData.UserData == nil {
 			return errors.New("node bootstrapping script (UserData) must be set when using a custom AMI")
 		}
+		notSupportedErr := func(fieldName string) error {
+			return errors.Errorf("cannot set %s.%s when launchTemplate.ImageId is set", mngFieldName, fieldName)
+
+		}
 		if ng.AMI != "" {
-			return errors.Errorf("cannot set %s.ami when launchTemplate.ImageId is set", fieldName)
+			return notSupportedErr("ami")
+		}
+		if ng.ReleaseVersion != "" {
+			return notSupportedErr("releaseVersion")
 		}
 	}
 

@@ -18,8 +18,12 @@ type WellKnownPolicies struct {
 	// CertManager adds cert-manager policies. See [cert-manager
 	// docs](https://cert-manager.io/docs/configuration/acme/dns01/route53).
 	CertManager bool `json:"certManager,inline"`
+	// EBSCSIController adds policies for using the
+	// ebs-csi-controller. See [aws-ebs-csi-driver
+	// docs](https://github.com/kubernetes-sigs/aws-ebs-csi-driver#set-up-driver-permission).
+	EBSCSIController bool `json:"ebsCSIController,inline"`
 }
 
 func (p *WellKnownPolicies) HasPolicy() bool {
-	return p.ImageBuilder || p.AutoScaler || p.AWSLoadBalancerController || p.ExternalDNS || p.CertManager
+	return p.ImageBuilder || p.AutoScaler || p.AWSLoadBalancerController || p.ExternalDNS || p.CertManager || p.EBSCSIController
 }

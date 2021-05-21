@@ -8,6 +8,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/utils/taints"
+	corev1 "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/util/validation"
 	kubeletapis "k8s.io/kubernetes/pkg/kubelet/apis"
@@ -337,6 +339,10 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 	}
 
+	if err := validateTaints(ng.Taints); err != nil {
+		return err
+	}
+
 	if err := validateNodeGroupLabels(ng.Labels); err != nil {
 		return err
 	}
@@ -575,6 +581,10 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 		}
 	}
 
+	if err := validateTaints(ng.Taints); err != nil {
+		return err
+	}
+
 	switch {
 	case ng.LaunchTemplate != nil:
 		if ng.LaunchTemplate.ID == "" {
@@ -612,11 +622,17 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 		if ng.OverrideBootstrapCommand == nil {
 			return errors.Errorf("%s.overrideBootstrapCommand is required when using a custom AMI (%s.ami)", path, path)
 		}
+		notSupportedWithCustomAMIErr := func(field string) error {
+			return errors.Errorf("%s.%s is not supported when using a custom AMI (%s.ami)", path, field, path)
+		}
 		if ng.MaxPodsPerNode != 0 {
-			return errors.Errorf("%s.maxPodsPerNode is not supported when using a custom AMI (%s.ami)", path, path)
+			return notSupportedWithCustomAMIErr("maxPodsPerNode")
 		}
 		if ng.SSH != nil && IsEnabled(ng.SSH.EnableSSM) {
-			return errors.Errorf("%s.enableSSM is not supported when using a custom AMI (%s.ami)", path, path)
+			return notSupportedWithCustomAMIErr("enableSSM")
+		}
+		if ng.ReleaseVersion != "" {
+			return notSupportedWithCustomAMIErr("releaseVersion")
 		}
 
 	case ng.OverrideBootstrapCommand != nil:
@@ -676,6 +692,10 @@ func validateInstancesDistribution(ng *NodeGroup) error {
 
 	if distribution.SpotInstancePools != nil && distribution.SpotAllocationStrategy != nil && *distribution.SpotAllocationStrategy == SpotAllocationStrategyCapacityOptimized {
 		return fmt.Errorf("spotInstancePools cannot be specified when also specifying spotAllocationStrategy: %s", SpotAllocationStrategyCapacityOptimized)
+	}
+
+	if distribution.SpotInstancePools != nil && distribution.SpotAllocationStrategy != nil && (*distribution.SpotAllocationStrategy == SpotAllocationStrategyCapacityOptimized || *distribution.SpotAllocationStrategy == SpotAllocationStrategyCapacityOptimizedPrioritized) {
+		return fmt.Errorf("spotInstancePools cannot be specified when also specifying spotAllocationStrategy: %s", SpotAllocationStrategyCapacityOptimizedPrioritized)
 	}
 
 	if distribution.SpotAllocationStrategy != nil {
@@ -815,6 +835,19 @@ func validateCIDRs(cidrs []string) ([]string, error) {
 		validCIDRs = append(validCIDRs, ipNet.String())
 	}
 	return validCIDRs, nil
+}
+
+func validateTaints(ngTaints []NodeGroupTaint) error {
+	for _, t := range ngTaints {
+		if err := taints.Validate(corev1.Taint{
+			Key:    t.Key,
+			Value:  t.Value,
+			Effect: t.Effect,
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ReservedProfileNamePrefix defines the Fargate profile name prefix reserved

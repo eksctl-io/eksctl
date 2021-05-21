@@ -1,25 +1,50 @@
 package addon
 
 import (
+	"strings"
+	"time"
+
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, forceAll bool) *tasks.TaskTree {
-	taskTree := &tasks.TaskTree{Parallel: false}
+func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree) {
+	preTasks := &tasks.TaskTree{Parallel: false}
+	postTasks := &tasks.TaskTree{Parallel: false}
+	var preAddons []*api.Addon
+	var postAddons []*api.Addon
+	for _, addon := range cfg.Addons {
+		if strings.ToLower(addon.Name) == "vpc-cni" {
+			preAddons = append(preAddons, addon)
+		} else {
+			postAddons = append(postAddons, addon)
+		}
+	}
 
-	taskTree.Append(
+	preTasks.Append(
 		&createAddonTask{
 			info:            "create addons",
-			addons:          cfg.Addons,
+			addons:          preAddons,
 			cfg:             cfg,
 			clusterProvider: clusterProvider,
 			forceAll:        forceAll,
+			timeout:         timeout,
 		},
 	)
-	return taskTree
+
+	postTasks.Append(
+		&createAddonTask{
+			info:            "create addons",
+			addons:          postAddons,
+			cfg:             cfg,
+			clusterProvider: clusterProvider,
+			forceAll:        forceAll,
+			timeout:         timeout,
+		},
+	)
+	return preTasks, postTasks
 }
 
 type createAddonTask struct {
@@ -28,6 +53,7 @@ type createAddonTask struct {
 	clusterProvider *eks.ClusterProvider
 	addons          []*api.Addon
 	forceAll        bool
+	timeout         time.Duration
 }
 
 func (t *createAddonTask) Describe() string { return t.info }
@@ -54,7 +80,7 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 
 	stackManager := t.clusterProvider.NewStackManager(t.cfg)
 
-	addonManager, err := New(t.cfg, t.clusterProvider.Provider.EKS(), stackManager, oidcProviderExists, oidc, clientSet)
+	addonManager, err := New(t.cfg, t.clusterProvider.Provider.EKS(), stackManager, oidcProviderExists, oidc, clientSet, t.timeout)
 	if err != nil {
 		return err
 	}
@@ -63,7 +89,7 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 		if t.forceAll {
 			a.Force = true
 		}
-		err := addonManager.Create(a)
+		err := addonManager.Create(a, true)
 		if err != nil {
 			go func() {
 				errorCh <- err

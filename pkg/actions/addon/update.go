@@ -13,7 +13,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-func (a *Manager) Update(addon *api.Addon) error {
+func (a *Manager) Update(addon *api.Addon, wait bool) error {
 	logger.Debug("addon: %v", addon)
 
 	updateAddonInput := &eks.UpdateAddonInput{
@@ -40,10 +40,16 @@ func (a *Manager) Update(addon *api.Addon) error {
 
 		updateAddonInput.AddonVersion = &summary.Version
 	} else {
-		if summary.Version != addon.Version {
-			logger.Info("new version provided %s", addon.Version)
+		version, err := a.getLatestMatchingVersion(addon)
+		if err != nil {
+			return fmt.Errorf("failed to fetch addon version: %w", err)
 		}
-		updateAddonInput.AddonVersion = &addon.Version
+
+		if summary.Version != version {
+			logger.Info("new version provided %s", version)
+		}
+
+		updateAddonInput.AddonVersion = &version
 	}
 
 	//check if we have been provided a different set of policies/role
@@ -71,6 +77,9 @@ func (a *Manager) Update(addon *api.Addon) error {
 	}
 	if output != nil {
 		logger.Debug(output.String())
+	}
+	if wait {
+		return a.waitForAddonToBeActive(addon)
 	}
 	return nil
 }

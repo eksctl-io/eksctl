@@ -49,13 +49,14 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		ctl                                 api.ClusterProvider
 		configFile                          *os.File
 		cfg                                 *api.ClusterConfig
+		kmsKeyARN                           *string
 	)
 
 	BeforeSuite(func() {
 		ng1 = "ng-1"
 		mng1 = "mng-1"
 		mng2 = "mng-2"
-		version = "1.18"
+		version = "1.19"
 		stackName = fmt.Sprintf("eksctl-%s", params.ClusterName)
 		cfg = &api.ClusterConfig{
 			TypeMeta: api.ClusterConfigTypeMeta(),
@@ -65,6 +66,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				Region:  params.Region,
 			},
 		}
+
 		var err error
 		configFile, err = ioutil.TempFile("", "")
 		Expect(err).NotTo(HaveOccurred())
@@ -74,14 +76,29 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			Expect(err).NotTo(HaveOccurred())
 			ctl = clusterProvider.Provider
 			cfg.VPC = createClusterWithNodeGroup(params.ClusterName, stackName, mng1, version, ctl)
+
+			kmsClient := kms.New(ctl.ConfigProvider())
+			output, err := kmsClient.CreateKey(&kms.CreateKeyInput{
+				Description: aws.String(fmt.Sprintf("Key to test KMS encryption on EKS cluster %s", params.ClusterName)),
+			})
+			Expect(err).NotTo(HaveOccurred())
+			kmsKeyARN = output.KeyMetadata.Arn
 		}
 	})
 
 	AfterSuite(func() {
 		if !params.SkipCreate && !params.SkipDelete {
 			deleteStack(stackName, ctl)
+
+			kmsClient := kms.New(ctl.ConfigProvider())
+			_, err := kmsClient.ScheduleKeyDeletion(&kms.ScheduleKeyDeletionInput{
+				KeyId:               kmsKeyARN,
+				PendingWindowInDays: aws.Int64(7),
+			})
+			Expect(err).NotTo(HaveOccurred())
 		}
 		Expect(os.RemoveAll(configFile.Name())).To(Succeed())
+
 	})
 
 	It("supports creating nodegroups", func() {
@@ -169,7 +186,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"--verbose", "2",
 			)
 			// It sometimes takes forever for the above set to take effect
-		Eventually(func() *gbytes.Buffer { return cmd.Run().Out }, time.Minute*2).Should(gbytes.Say("key=value"))
+		Eventually(func() *gbytes.Buffer { return cmd.Run().Out }, time.Minute*4).Should(gbytes.Say("key=value"))
 
 		By("unsetting labels on a managed nodegroup")
 		cmd = params.EksctlUnsetLabelsCmd.
@@ -225,7 +242,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			WithArgs(
 				"cluster",
 				"--name", params.ClusterName,
-				"--version", "1.19",
+				"--version", "1.20",
 				"--timeout", "1h30m",
 				"--approve",
 				"--verbose", "2",
@@ -240,6 +257,9 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"addon",
 				"--cluster", params.ClusterName,
 				"--name", "vpc-cni",
+				"--wait",
+				"--force",
+				"--version", "latest",
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfully())
@@ -253,6 +273,9 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 			ContainElement(ContainSubstring("vpc-cni")),
+		))
+		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+			ContainElement(ContainSubstring("ACTIVE")),
 		))
 	})
 
@@ -299,7 +322,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"nodegroup",
 				"--name", mng1,
 				"--cluster", params.ClusterName,
-				"--kubernetes-version", "1.19",
+				"--kubernetes-version", "1.20",
 				"--timeout", "1h30m",
 				"--wait",
 				"--verbose", "2",
@@ -340,45 +363,33 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		Expect(cmd).To(RunSuccessfully())
 	})
 
-	Context("KMS", func() {
-		var kmsKeyARN *string
+	It("supports enabling KMS encryption", func() {
+		if params.SkipCreate {
+			Skip("not enabling KMS encryption because params.SkipCreate is true")
+		}
+		enableEncryptionCMD := func() Cmd {
+			return params.EksctlUtilsCmd.
+				WithTimeout(2*time.Hour).
+				WithArgs(
+					"enable-secrets-encryption",
+					"--cluster", params.ClusterName,
+					"--key-arn", *kmsKeyARN,
+				)
+		}
 
-		BeforeEach(func() {
-			kmsClient := kms.New(ctl.ConfigProvider())
-			output, err := kmsClient.CreateKey(&kms.CreateKeyInput{
-				Description: aws.String("Key to test KMS encryption on EKS clusters"),
-			})
-			Expect(err).NotTo(HaveOccurred())
-			kmsKeyARN = output.KeyMetadata.Arn
-		})
+		By(fmt.Sprintf("enabling KMS encryption on the cluster using key %q", *kmsKeyARN))
+		cmd := enableEncryptionCMD()
+		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+			ContainElement(ContainSubstring("initiated KMS encryption")),
+			ContainElement(ContainSubstring("KMS encryption applied to all Secret resources")),
+		))
 
-		It("supports enabling KMS encryption", func() {
-			enableEncryptionCMD := func() Cmd {
-				return params.EksctlUtilsCmd.
-					WithTimeout(1*time.Hour).
-					WithArgs(
-						"enable-secrets-encryption",
-						"--cluster", params.ClusterName,
-						"--key-arn", *kmsKeyARN,
-					)
-			}
-
-			By("enabling KMS encryption on the cluster using the new key")
-			cmd := enableEncryptionCMD()
-			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-				ContainElement(ContainSubstring(" initiated KMS encryption")),
-				ContainElement(ContainSubstring("KMS encryption applied to all Secret resources")),
-			))
-		})
-
-		AfterEach(func() {
-			kmsClient := kms.New(ctl.ConfigProvider())
-			_, err := kmsClient.ScheduleKeyDeletion(&kms.ScheduleKeyDeletionInput{
-				KeyId:               kmsKeyARN,
-				PendingWindowInDays: aws.Int64(7),
-			})
-			Expect(err).NotTo(HaveOccurred())
-		})
+		By("ensuring `enable-secrets-encryption` works when KMS encryption is already enabled on the cluster")
+		cmd = enableEncryptionCMD()
+		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+			ContainElement(ContainSubstring("KMS encryption is already enabled on the cluster")),
+			ContainElement(ContainSubstring("KMS encryption applied to all Secret resources")),
+		))
 	})
 
 	It("supports deleting clusters", func() {

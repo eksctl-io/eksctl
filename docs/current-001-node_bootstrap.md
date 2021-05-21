@@ -1,4 +1,4 @@
-# THIS DESIGN DEPRECATED AS OF 0.45.0
+# THIS DESIGN DEPRECATED AS OF 0.47.0
 
 See [pkg/nodebootstrap/README.md](/pkg/nodebootstrap/README.md) for current implementation details.
 

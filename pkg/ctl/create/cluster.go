@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/utils"
 
@@ -79,7 +80,7 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Cluster and nodegroup add-ons", func(fs *pflag.FlagSet) {
-		cmdutils.AddCommonCreateNodeGroupAddonsFlags(fs, ng, params.CreateNGOptions)
+		cmdutils.AddCommonCreateNodeGroupAddonsFlags(fs, ng, &params.CreateNGOptions)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {
@@ -190,9 +191,9 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return err
 	}
 
-	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider)
+	nodeGroupService := eks.NewNodeGroupService(ctl.Provider, selector.New(ctl.Provider.Session()))
 	nodePools := cmdutils.ToNodePools(cfg)
-	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools); err != nil {
+	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err
 	}
 
@@ -200,7 +201,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return cmdutils.PrintDryRunConfig(cfg, os.Stdout)
 	}
 
-	if err := nodeGroupService.Normalize(nodePools); err != nil {
+	if err := nodeGroupService.Normalize(nodePools, cfg.Metadata); err != nil {
 		return err
 	}
 
@@ -215,61 +216,58 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return err
 	}
 
-	{ // core action
-		stackManager := ctl.NewStackManager(cfg)
-		if cmd.ClusterConfigFile == "" {
-			logMsg := func(resource string) {
-				logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial %s", resource)
+	stackManager := ctl.NewStackManager(cfg)
+	if cmd.ClusterConfigFile == "" {
+		logMsg := func(resource string) {
+			logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial %s", resource)
+		}
+		if len(cfg.NodeGroups) == 1 {
+			logMsg("nodegroup")
+		} else if len(cfg.ManagedNodeGroups) == 1 {
+			logMsg("managed nodegroup")
+		}
+	} else {
+		logMsg := func(resource string, count int) {
+			logger.Info("will create a CloudFormation stack for cluster itself and %d %s stack(s)", count, resource)
+		}
+		logFiltered()
+
+		logMsg("nodegroup", len(cfg.NodeGroups))
+		logMsg("managed nodegroup", len(cfg.ManagedNodeGroups))
+	}
+
+	logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
+	supportsManagedNodes, err := eks.VersionSupportsManagedNodes(cfg.Metadata.Version)
+	if err != nil {
+		return err
+	}
+	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(cfg, params.InstallWindowsVPCController)
+
+	supported, err := utils.IsMinVersion(api.Version1_18, cfg.Metadata.Version)
+	if err != nil {
+		return err
+	}
+
+	var taskTree, preNodegroupAddons, postNodegroupAddons *tasks.TaskTree
+	if supported {
+		preNodegroupAddons, postNodegroupAddons = addon.CreateAddonTasks(cfg, ctl, true, cmd.ProviderConfig.WaitTimeout)
+		taskTree = stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks, preNodegroupAddons)
+	} else {
+		taskTree = stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks)
+	}
+
+	logger.Info(taskTree.Describe())
+	if errs := taskTree.DoAllSync(); len(errs) > 0 {
+		logger.Warning("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
+		logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", meta.Region, meta.Name)
+		for _, err := range errs {
+			ufe := &api.UnsupportedFeatureError{}
+			if errors.As(err, &ufe) {
+				logger.Critical(ufe.Message)
 			}
-			if len(cfg.NodeGroups) == 1 {
-				logMsg("nodegroup")
-			} else if len(cfg.ManagedNodeGroups) == 1 {
-				logMsg("managed nodegroup")
-			}
-		} else {
-			logMsg := func(resource string, count int) {
-				logger.Info("will create a CloudFormation stack for cluster itself and %d %s stack(s)", count, resource)
-			}
-			logFiltered()
-
-			logMsg("nodegroup", len(cfg.NodeGroups))
-			logMsg("managed nodegroup", len(cfg.ManagedNodeGroups))
+			logger.Critical("%s\n", err.Error())
 		}
-
-		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
-		supportsManagedNodes, err := eks.VersionSupportsManagedNodes(cfg.Metadata.Version)
-		if err != nil {
-			return err
-		}
-		postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(cfg, params.InstallWindowsVPCController)
-
-		supported, err := utils.IsMinVersion(api.Version1_18, cfg.Metadata.Version)
-		if err != nil {
-			return err
-		}
-
-		var taskTree *tasks.TaskTree
-		if supported {
-			createAddonTasks := addon.CreateAddonTasks(cfg, ctl, true)
-			createAddonTasks.IsSubTask = true
-			taskTree = stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks, createAddonTasks)
-		} else {
-			taskTree = stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks)
-		}
-
-		logger.Info(taskTree.Describe())
-		if errs := taskTree.DoAllSync(); len(errs) > 0 {
-			logger.Warning("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
-			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", meta.Region, meta.Name)
-			for _, err := range errs {
-				ufe := &api.UnsupportedFeatureError{}
-				if errors.As(err, &ufe) {
-					logger.Critical(ufe.Message)
-				}
-				logger.Critical("%s\n", err.Error())
-			}
-			return fmt.Errorf("failed to create cluster %q", meta.Name)
-		}
+		return fmt.Errorf("failed to create cluster %q", meta.Name)
 	}
 
 	logger.Info("waiting for the control plane availability...")
@@ -329,6 +327,15 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 				return err
 			}
 		}
+		if postNodegroupAddons != nil && postNodegroupAddons.Len() > 0 {
+			if errs := postNodegroupAddons.DoAllSync(); len(errs) > 0 {
+				logger.Warning("%d error(s) occurred while creating addons", len(errs))
+				for _, err := range errs {
+					logger.Critical("%s\n", err.Error())
+				}
+				return fmt.Errorf("failed to create addons")
+			}
+		}
 
 		// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 		if cfg.HasGitopsRepoConfigured() {
@@ -385,15 +392,16 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 
 	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets
 	if !subnetsGiven && params.KopsClusterNameForVPC == "" {
-		// Skip setting AZs and subnets
-		// The default subnet config set by SetSubnets will fail validation on a subsequent run of `create cluster`
-		// because those fields indicate usage of pre-existing VPC and subnets
-		if params.DryRun {
-			return nil
-		}
-		// default: create dedicated VPC
 		if err := ctl.SetAvailabilityZones(cfg, params.AvailabilityZones); err != nil {
 			return err
+		}
+
+		// Skip setting subnets
+		// The default subnet config set by SetSubnets will fail validation on a subsequent run of `create cluster`
+		// because those fields indicate usage of pre-existing VPC and subnets
+		// default: create dedicated VPC
+		if params.DryRun {
+			return nil
 		}
 		if err := vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones); err != nil {
 			return err

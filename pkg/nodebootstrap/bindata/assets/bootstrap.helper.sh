@@ -12,6 +12,8 @@ function get_metadata() {
   curl --silent -H "X-aws-ec2-metadata-token: $TOKEN" "http://169.254.169.254/latest/meta-data/$1"
 }
 
+API_SERVER_URL="${API_SERVER_URL}"
+B64_CLUSTER_CA="${B64_CLUSTER_CA}"
 INSTANCE_ID="$(get_metadata instance-id)"
 INSTANCE_LIFECYCLE="$(get_metadata instance-life-cycle)"
 CLUSTER_DNS="${CLUSTER_DNS:-}"

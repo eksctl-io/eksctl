@@ -1,11 +1,14 @@
 package v1alpha5
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws/client"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
@@ -16,6 +19,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
+	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/utils/taints"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -35,10 +41,12 @@ const (
 
 	Version1_19 = "1.19"
 
-	// DefaultVersion (default)
-	DefaultVersion = Version1_18
+	Version1_20 = "1.20"
 
-	LatestVersion = Version1_19
+	// DefaultVersion (default)
+	DefaultVersion = Version1_19
+
+	LatestVersion = Version1_20
 )
 
 // No longer supported versions
@@ -58,8 +66,8 @@ const (
 
 // Not yet supported versions
 const (
-	// Version1_20 represents Kubernetes version 1.20.x
-	Version1_20 = "1.20"
+	// Version1_21 represents Kubernetes version 1.21.x
+	Version1_21 = "1.21"
 )
 
 const (
@@ -223,6 +231,15 @@ const (
 
 	// SpotAllocationStrategyCapacityOptimized defines the ASG spot allocation strategy of capacity-optimized
 	SpotAllocationStrategyCapacityOptimized = "capacity-optimized"
+
+	// SpotAllocationStrategyCapacityOptimizedPrioritized defines the ASG spot allocation strategy of capacity-optimized-prioritized
+	// Use the capacity-optimized-prioritized allocation strategy and then set the order of instance types in
+	// the list of launch template overrides from highest to lowest priority (first to last in the list).
+	// Amazon EC2 Auto Scaling honors the instance type priorities on a best-effort basis but optimizes
+	// for capacity first. This is a good option for workloads where the possibility of disruption must be
+	// minimized, but also the preference for certain instance types matters.
+	// https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-purchase-options.html#asg-spot-strategy
+	SpotAllocationStrategyCapacityOptimizedPrioritized = "capacity-optimized-prioritized"
 
 	// eksResourceAccountStandard defines the AWS EKS account ID that provides node resources in default regions
 	// for standard AWS partition
@@ -396,6 +413,7 @@ func SupportedVersions() []string {
 		Version1_17,
 		Version1_18,
 		Version1_19,
+		Version1_20,
 	}
 }
 
@@ -438,6 +456,7 @@ func supportedSpotAllocationStrategies() []string {
 	return []string{
 		SpotAllocationStrategyLowestPrice,
 		SpotAllocationStrategyCapacityOptimized,
+		SpotAllocationStrategyCapacityOptimizedPrioritized,
 	}
 }
 
@@ -561,6 +580,7 @@ type ClusterProvider interface {
 	Profile() string
 	WaitTimeout() time.Duration
 	ConfigProvider() client.ConfigProvider
+	Session() *session.Session
 }
 
 // ProviderConfig holds global parameters for all interactions with AWS APIs
@@ -813,9 +833,6 @@ type NodeGroup struct {
 	// +optional
 	CPUCredits *string `json:"cpuCredits,omitempty"`
 
-	// +optional
-	Taints map[string]string `json:"taints,omitempty"`
-
 	// Associate load balancers with auto scaling group
 	// +optional
 	ClassicLoadBalancerNames []string `json:"classicLoadBalancerNames,omitempty"`
@@ -823,6 +840,10 @@ type NodeGroup struct {
 	// Associate target group with auto scaling group
 	// +optional
 	TargetGroupARNs []string `json:"targetGroupARNs,omitempty"`
+
+	// Taints taints to apply to the nodegroup
+	// +optional
+	Taints taintsWrapper `json:"taints,omitempty"`
 
 	// +optional
 	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
@@ -1297,6 +1318,11 @@ type NodeGroupBase struct {
 	// Internal fields
 	// Some AMIs (bottlerocket) have a separate volume for the OS
 	AdditionalEncryptedVolume string `json:"-"`
+
+	// TODO remove this
+	// This is a hack, will be removed shortly. When this is true for Ubuntu and
+	// AL2 images a legacy bootstrapper will be used.
+	CustomAMI bool `json:"-"`
 }
 
 // Placement specifies placement group information
@@ -1340,6 +1366,13 @@ type LaunchTemplate struct {
 	// TODO support Name?
 }
 
+// NodeGroupTaint represents a Kubernetes taint
+type NodeGroupTaint struct {
+	Key    string             `json:"key,omitempty"`
+	Value  string             `json:"value,omitempty"`
+	Effect corev1.TaintEffect `json:"effect,omitempty"`
+}
+
 // ManagedNodeGroup represents an EKS-managed nodegroup
 // TODO Validate for unmapped fields and throw an error
 type ManagedNodeGroup struct {
@@ -1351,9 +1384,15 @@ type ManagedNodeGroup struct {
 	// Spot creates a spot nodegroup
 	Spot bool `json:"spot,omitempty"`
 
+	// Taints taints to apply to the nodegroup
+	Taints []NodeGroupTaint `json:"taints,omitempty"`
+
 	// LaunchTemplate specifies an existing launch template to use
 	// for the nodegroup
 	LaunchTemplate *LaunchTemplate `json:"launchTemplate,omitempty"`
+
+	// ReleaseVersion the AMI version of the EKS optimized AMI to use
+	ReleaseVersion string `json:"releaseVersion"`
 
 	// Internal fields
 
@@ -1480,6 +1519,35 @@ type InstanceSelector struct {
 // IsZero returns true if all fields hold a zero value
 func (is InstanceSelector) IsZero() bool {
 	return is == InstanceSelector{}
+}
+
+// taintsWrapper handles unmarshalling both map[string]string and []NodeGroupTaint
+type taintsWrapper []NodeGroupTaint
+
+// UnmarshalJSON implements json.Unmarshaler
+func (t *taintsWrapper) UnmarshalJSON(data []byte) error {
+	taintsMap := map[string]string{}
+	err := json.Unmarshal(data, &taintsMap)
+	if err == nil {
+		parsed := taints.Parse(taintsMap)
+		for _, p := range parsed {
+			*t = append(*t, NodeGroupTaint{
+				Key:    p.Key,
+				Value:  p.Value,
+				Effect: p.Effect,
+			})
+		}
+		return nil
+	}
+
+	var ngTaints []NodeGroupTaint
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&ngTaints); err != nil {
+		return errors.Wrap(err, "taints must be a {string: string} or a [{key, value, effect}]")
+	}
+	*t = ngTaints
+	return nil
 }
 
 // UnsupportedFeatureError is an error that represents an unsupported feature

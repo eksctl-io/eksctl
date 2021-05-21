@@ -41,6 +41,9 @@ func TestDryRun(t *testing.T) {
 
 const defaultClusterConfig = `
 apiVersion: eksctl.io/v1alpha5
+availabilityZones:
+- us-west-2a
+- us-west-2b
 cloudWatch:
   clusterLogging: {}
 iam:
@@ -48,9 +51,9 @@ iam:
   withOIDC: false
 kind: ClusterConfig
 metadata:
-  name: dry-run-cluster
+  name: %[1]s
   region: us-west-2
-  version: "1.18"
+  version: "1.20"
 nodeGroups:
 - amiFamily: AmazonLinux2
   disableIMDSv1: false
@@ -72,7 +75,7 @@ nodeGroups:
       xRay: false
   instanceType: m5.large
   labels:
-    alpha.eksctl.io/cluster-name: dry-run-cluster
+    alpha.eksctl.io/cluster-name: %[1]s
     alpha.eksctl.io/nodegroup-name: ng-default
   name: ng-default
   privateNetworking: false
@@ -109,7 +112,7 @@ managedNodeGroups:
       xRay: false
   instanceType: m5.large
   labels:
-    alpha.eksctl.io/cluster-name: dry-run-cluster
+    alpha.eksctl.io/cluster-name: %[1]s
     alpha.eksctl.io/nodegroup-name: ng-default
   maxSize: 2
   minSize: 2
@@ -147,7 +150,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 	parseOutput := func(output []byte) (*api.ClusterConfig, *api.ClusterConfig) {
 		actual, err := eks.ParseConfig(output)
 		Expect(err).ToNot(HaveOccurred())
-		expected, err := eks.ParseConfig([]byte(defaultClusterConfig))
+		expected, err := eks.ParseConfig([]byte(fmt.Sprintf(defaultClusterConfig, params.ClusterName)))
 		Expect(err).ToNot(HaveOccurred())
 		return actual, expected
 	}
@@ -163,7 +166,11 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			WithArgs(
 				"cluster",
 				"--dry-run",
-				"--name=dry-run-cluster",
+				"--version",
+				"1.20",
+				"--name",
+				params.ClusterName,
+				"--zones", "us-west-2a,us-west-2b",
 			).
 			WithArgs(createArgs...)
 
@@ -227,8 +234,12 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 		cmd := params.EksctlCreateCmd.
 			WithArgs(
 				"cluster",
-				"--name=dry-run-cluster",
+				"--name",
+				params.ClusterName,
+				"--version",
+				"1.20",
 				"--dry-run",
+				"--zones", "us-west-2a,us-west-2b",
 				"--nodegroup-name=ng-default",
 			).
 			WithArgs(createArgs...)
@@ -286,7 +297,10 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				WithArgs(
 					"cluster",
 					"--dry-run",
+					"--version",
+					"1.20",
 					"--name="+params.ClusterName,
+					"--zones", "us-west-2a,us-west-2b",
 					"--nodegroup-name=ng-default",
 				)
 			session := cmd.Run()
@@ -333,6 +347,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				c.CloudWatch = nil
 				c.PrivateCluster = nil
 				c.NodeGroups = nil
+				c.AvailabilityZones = nil
 
 				ng := c.ManagedNodeGroups[0]
 				ng.Name = "private-ng"

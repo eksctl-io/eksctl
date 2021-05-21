@@ -35,6 +35,7 @@ run:
   #  - ".*\\.my\\.go$"
   #  - lib/bad.go
     - ^pkg\/nodebootstrap\/assets.go
+    - .*\/export_test.go
 
 
 # output configuration options

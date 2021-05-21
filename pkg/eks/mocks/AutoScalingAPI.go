@@ -1343,6 +1343,84 @@ func (_m *AutoScalingAPI) DeleteTagsWithContext(_a0 context.Context, _a1 *autosc
 	return r0, r1
 }
 
+// DeleteWarmPool provides a mock function with given fields: _a0
+func (_m *AutoScalingAPI) DeleteWarmPool(_a0 *autoscaling.DeleteWarmPoolInput) (*autoscaling.DeleteWarmPoolOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *autoscaling.DeleteWarmPoolOutput
+	if rf, ok := ret.Get(0).(func(*autoscaling.DeleteWarmPoolInput) *autoscaling.DeleteWarmPoolOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*autoscaling.DeleteWarmPoolOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*autoscaling.DeleteWarmPoolInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteWarmPoolRequest provides a mock function with given fields: _a0
+func (_m *AutoScalingAPI) DeleteWarmPoolRequest(_a0 *autoscaling.DeleteWarmPoolInput) (*request.Request, *autoscaling.DeleteWarmPoolOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*autoscaling.DeleteWarmPoolInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *autoscaling.DeleteWarmPoolOutput
+	if rf, ok := ret.Get(1).(func(*autoscaling.DeleteWarmPoolInput) *autoscaling.DeleteWarmPoolOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*autoscaling.DeleteWarmPoolOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteWarmPoolWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *AutoScalingAPI) DeleteWarmPoolWithContext(_a0 context.Context, _a1 *autoscaling.DeleteWarmPoolInput, _a2 ...request.Option) (*autoscaling.DeleteWarmPoolOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *autoscaling.DeleteWarmPoolOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *autoscaling.DeleteWarmPoolInput, ...request.Option) *autoscaling.DeleteWarmPoolOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*autoscaling.DeleteWarmPoolOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *autoscaling.DeleteWarmPoolInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DescribeAccountLimits provides a mock function with given fields: _a0
 func (_m *AutoScalingAPI) DescribeAccountLimits(_a0 *autoscaling.DescribeAccountLimitsInput) (*autoscaling.DescribeAccountLimitsOutput, error) {
 	ret := _m.Called(_a0)
@@ -3105,6 +3183,84 @@ func (_m *AutoScalingAPI) DescribeTerminationPolicyTypesWithContext(_a0 context.
 	return r0, r1
 }
 
+// DescribeWarmPool provides a mock function with given fields: _a0
+func (_m *AutoScalingAPI) DescribeWarmPool(_a0 *autoscaling.DescribeWarmPoolInput) (*autoscaling.DescribeWarmPoolOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *autoscaling.DescribeWarmPoolOutput
+	if rf, ok := ret.Get(0).(func(*autoscaling.DescribeWarmPoolInput) *autoscaling.DescribeWarmPoolOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*autoscaling.DescribeWarmPoolOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*autoscaling.DescribeWarmPoolInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeWarmPoolRequest provides a mock function with given fields: _a0
+func (_m *AutoScalingAPI) DescribeWarmPoolRequest(_a0 *autoscaling.DescribeWarmPoolInput) (*request.Request, *autoscaling.DescribeWarmPoolOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*autoscaling.DescribeWarmPoolInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *autoscaling.DescribeWarmPoolOutput
+	if rf, ok := ret.Get(1).(func(*autoscaling.DescribeWarmPoolInput) *autoscaling.DescribeWarmPoolOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*autoscaling.DescribeWarmPoolOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeWarmPoolWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *AutoScalingAPI) DescribeWarmPoolWithContext(_a0 context.Context, _a1 *autoscaling.DescribeWarmPoolInput, _a2 ...request.Option) (*autoscaling.DescribeWarmPoolOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *autoscaling.DescribeWarmPoolOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *autoscaling.DescribeWarmPoolInput, ...request.Option) *autoscaling.DescribeWarmPoolOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*autoscaling.DescribeWarmPoolOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *autoscaling.DescribeWarmPoolInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DetachInstances provides a mock function with given fields: _a0
 func (_m *AutoScalingAPI) DetachInstances(_a0 *autoscaling.DetachInstancesInput) (*autoscaling.DetachInstancesOutput, error) {
 	ret := _m.Called(_a0)
@@ -4033,6 +4189,84 @@ func (_m *AutoScalingAPI) PutScheduledUpdateGroupActionWithContext(_a0 context.C
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *autoscaling.PutScheduledUpdateGroupActionInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PutWarmPool provides a mock function with given fields: _a0
+func (_m *AutoScalingAPI) PutWarmPool(_a0 *autoscaling.PutWarmPoolInput) (*autoscaling.PutWarmPoolOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *autoscaling.PutWarmPoolOutput
+	if rf, ok := ret.Get(0).(func(*autoscaling.PutWarmPoolInput) *autoscaling.PutWarmPoolOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*autoscaling.PutWarmPoolOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*autoscaling.PutWarmPoolInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PutWarmPoolRequest provides a mock function with given fields: _a0
+func (_m *AutoScalingAPI) PutWarmPoolRequest(_a0 *autoscaling.PutWarmPoolInput) (*request.Request, *autoscaling.PutWarmPoolOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*autoscaling.PutWarmPoolInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *autoscaling.PutWarmPoolOutput
+	if rf, ok := ret.Get(1).(func(*autoscaling.PutWarmPoolInput) *autoscaling.PutWarmPoolOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*autoscaling.PutWarmPoolOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// PutWarmPoolWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *AutoScalingAPI) PutWarmPoolWithContext(_a0 context.Context, _a1 *autoscaling.PutWarmPoolInput, _a2 ...request.Option) (*autoscaling.PutWarmPoolOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *autoscaling.PutWarmPoolOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *autoscaling.PutWarmPoolInput, ...request.Option) *autoscaling.PutWarmPoolOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*autoscaling.PutWarmPoolOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *autoscaling.PutWarmPoolInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)

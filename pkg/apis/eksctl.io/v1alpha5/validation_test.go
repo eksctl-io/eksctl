@@ -635,7 +635,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("unsupported-strategy")
 
 				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).To(MatchError("spotAllocationStrategy should be one of: lowest-price, capacity-optimized"))
+				Expect(err).To(MatchError("spotAllocationStrategy should be one of: lowest-price, capacity-optimized, capacity-optimized-prioritized"))
 			})
 
 			It("It fails when the spotAllocationStrategy is capacity-optimized and spotInstancePools is specified", func() {
@@ -644,6 +644,14 @@ var _ = Describe("ClusterConfig validation", func() {
 
 				err := api.ValidateNodeGroup(0, ng)
 				Expect(err).To(MatchError("spotInstancePools cannot be specified when also specifying spotAllocationStrategy: capacity-optimized"))
+			})
+
+			It("It fails when the spotAllocationStrategy is capacity-optimized-prioritized and spotInstancePools is specified", func() {
+				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("capacity-optimized-prioritized")
+				ng.InstancesDistribution.SpotInstancePools = newInt(2)
+
+				err := api.ValidateNodeGroup(0, ng)
+				Expect(err).To(MatchError("spotInstancePools cannot be specified when also specifying spotAllocationStrategy: capacity-optimized-prioritized"))
 			})
 
 			It("It does not fail when the spotAllocationStrategy is lowest-price and spotInstancePools is specified", func() {
@@ -970,32 +978,99 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
-	DescribeTable("Nodegroup label validation", func(labels map[string]string, valid bool) {
+	type labelsTaintsEntry struct {
+		labels map[string]string
+		taints []api.NodeGroupTaint
+		valid  bool
+	}
+
+	DescribeTable("Nodegroup label and taints validation", func(e labelsTaintsEntry) {
 		ng := newNodeGroup()
-		ng.Labels = labels
+		ng.Labels = e.labels
+		ng.Taints = e.taints
 		err := api.ValidateNodeGroup(0, ng)
-		if valid {
+		if e.valid {
 			Expect(err).ToNot(HaveOccurred())
 		} else {
 			Expect(err).To(HaveOccurred())
 		}
 	},
-		Entry("Disallowed label", map[string]string{
-			"node-role.kubernetes.io/os": "linux",
-		}, false),
+		Entry("disallowed label", labelsTaintsEntry{
+			labels: map[string]string{
+				"node-role.kubernetes.io/os": "linux",
+			},
+		}),
 
-		Entry("Disallowed label", map[string]string{
-			"alpha.service-controller.kubernetes.io/test": "value",
-		}, false),
+		Entry("disallowed label 2", labelsTaintsEntry{
+			labels: map[string]string{
+				"alpha.service-controller.kubernetes.io/test": "value",
+			},
+		}),
 
-		Entry("No labels", map[string]string{}, true),
+		Entry("empty labels and taints", labelsTaintsEntry{
+			labels: map[string]string{},
+			taints: []api.NodeGroupTaint{},
+			valid:  true,
+		}),
 
-		Entry("Allowed labels", map[string]string{
-			"kubernetes.io/hostname":           "supercomputer",
-			"beta.kubernetes.io/os":            "linux",
-			"kubelet.kubernetes.io/palindrome": "telebuk",
-		}, true),
+		Entry("allowed labels", labelsTaintsEntry{
+			labels: map[string]string{
+				"kubernetes.io/hostname":           "supercomputer",
+				"beta.kubernetes.io/os":            "linux",
+				"kubelet.kubernetes.io/palindrome": "telebuk",
+			},
+			valid: true,
+		}),
+
+		Entry("valid taints", labelsTaintsEntry{
+			taints: []api.NodeGroupTaint{
+				{
+					Key:    "key1",
+					Value:  "value1",
+					Effect: "NoSchedule",
+				},
+				{
+					Key:    "key2",
+					Effect: "NoSchedule",
+				},
+				{
+					Key:    "key3",
+					Effect: "PreferNoSchedule",
+				},
+			},
+			valid: true,
+		}),
+
+		Entry("missing taint effect", labelsTaintsEntry{
+			taints: []api.NodeGroupTaint{
+				{
+					Key:   "key1",
+					Value: "value1",
+				},
+			},
+		}),
+
+		Entry("unsupported taint effect", labelsTaintsEntry{
+			taints: []api.NodeGroupTaint{
+				{
+					Key:    "key2",
+					Value:  "value1",
+					Effect: "NoEffect",
+				},
+			},
+		}),
+
+		Entry("invalid value", labelsTaintsEntry{
+			taints: []api.NodeGroupTaint{
+				{
+					Key:    "key3",
+					Value:  "v@lue",
+					Effect: "NoSchedule",
+				},
+			},
+		}),
 	)
+
 })
 
 func newInt(value int) *int {

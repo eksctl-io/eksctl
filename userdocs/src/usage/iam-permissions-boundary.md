@@ -14,7 +14,7 @@ metadata:
 
 iam:
   withOIDC: true
-  serviceRolePermissionsBoundary: "arn:aws:iam:11111:policy/entity/boundary"
+  serviceRolePermissionsBoundary: "arn:aws:iam::11111:policy/entity/boundary"
   fargatePodExecutionRolePermissionsBoundary: "arn:aws:iam::11111:policy/entity/boundary"
   serviceAccounts:
     - metadata:

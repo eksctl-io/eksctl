@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -29,6 +30,7 @@ type CreateOpts struct {
 	InstallNeuronDevicePlugin bool
 	InstallNvidiaDevicePlugin bool
 	DryRun                    bool
+	SkipOutdatedAddonsCheck   bool
 	ConfigFileProvided        bool
 }
 
@@ -44,7 +46,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 		return err
 	}
 
-	if err := checkARMSupport(ctl, m.clientSet, cfg); err != nil {
+	if err := checkARMSupport(ctl, m.clientSet, cfg, options.SkipOutdatedAddonsCheck); err != nil {
 		return err
 	}
 
@@ -77,14 +79,14 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodeGroupFil
 		return err
 	}
 
-	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider)
+	nodeGroupService := eks.NewNodeGroupService(ctl.Provider, selector.New(ctl.Provider.Session()))
 	nodePools := cmdutils.ToNodePools(cfg)
-	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools); err != nil {
+	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err
 	}
 
 	if !options.DryRun {
-		if err := nodeGroupService.Normalize(nodePools); err != nil {
+		if err := nodeGroupService.Normalize(nodePools, cfg.Metadata); err != nil {
 			return err
 		}
 	}
@@ -273,7 +275,7 @@ func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
 	return nil
 }
 
-func checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes.Interface, cfg *api.ClusterConfig) error {
+func checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes.Interface, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
 	rawClient, err := ctl.NewRawClient(cfg)
 	if err != nil {
 		return err
@@ -288,9 +290,10 @@ func checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes.Interface, c
 		if err != nil {
 			return err
 		}
-		if !upToDate {
+		if !skipOutdatedAddonsCheck && !upToDate {
 			logger.Critical("to create an ARM nodegroup kube-proxy, coredns and aws-node addons should be up to date. " +
-				"Please use `eksctl utils update-coredns`, `eksctl utils update-kube-proxy` and `eksctl utils update-aws-node` before proceeding.")
+				"Please use `eksctl utils update-coredns`, `eksctl utils update-kube-proxy` and `eksctl utils update-aws-node` before proceeding.\n" +
+				"To ignore this check and proceed with the nodegroup creation, please run again with --skip-outdated-addons-check=true.")
 			return errors.New("expected default addons up to date")
 		}
 	}

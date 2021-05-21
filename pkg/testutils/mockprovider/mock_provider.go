@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
@@ -102,6 +103,9 @@ func (m MockProvider) MockCloudFormation() *mocks.CloudFormationAPI {
 // ASG returns a representation of the ASG API
 func (m MockProvider) ASG() autoscalingiface.AutoScalingAPI { return m.asg }
 
+// MockASG returns a mocked ASG API
+func (m MockProvider) MockASG() *mocks.AutoScalingAPI { return m.ASG().(*mocks.AutoScalingAPI) }
+
 // EKS returns a representation of the EKS API
 func (m MockProvider) EKS() eksiface.EKSAPI { return m.eks }
 
@@ -173,6 +177,10 @@ func (m MockProvider) ConfigProvider() client.ConfigProvider {
 // MockConfigProvider returns a mocked ConfigProvider
 func (m MockProvider) MockConfigProvider() client.ConfigProvider {
 	return m.configProvider
+}
+
+func (m MockProvider) Session() *session.Session {
+	panic("not implemented")
 }
 
 func NewMockAWSClient() *MockAWSClient {

@@ -68,7 +68,18 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 
 	n.vpc = n.vpcImporter.VPC()
 
+	if n.spec.Tags == nil {
+		n.spec.Tags = map[string]string{}
+	}
+
+	for k, v := range n.clusterSpec.Metadata.Tags {
+		if _, exists := n.spec.Tags[k]; !exists {
+			n.spec.Tags[k] = v
+		}
+	}
+
 	// Ensure MinSize is set, as it is required by the ASG cfn resource
+	// TODO this validation and default setting should happen way earlier than this
 	if n.spec.MinSize == nil {
 		if n.spec.DesiredCapacity == nil {
 			defaultNodeCount := api.DefaultNodeCount
@@ -78,7 +89,7 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		}
 		logger.Info("--nodes-min=%d was set automatically for nodegroup %s", *n.spec.MinSize, n.spec.Name)
 	} else if n.spec.DesiredCapacity != nil && *n.spec.DesiredCapacity < *n.spec.MinSize {
-		return fmt.Errorf("cannot use --nodes-min=%d and --nodes=%d at the same time", *n.spec.MinSize, *n.spec.DesiredCapacity)
+		return fmt.Errorf("--nodes value (%d) cannot be lower than --nodes-min value (%d)", *n.spec.DesiredCapacity, *n.spec.MinSize)
 	}
 
 	// Ensure MaxSize is set, as it is required by the ASG cfn resource
@@ -90,9 +101,9 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		}
 		logger.Info("--nodes-max=%d was set automatically for nodegroup %s", *n.spec.MaxSize, n.spec.Name)
 	} else if n.spec.DesiredCapacity != nil && *n.spec.DesiredCapacity > *n.spec.MaxSize {
-		return fmt.Errorf("cannot use --nodes-max=%d and --nodes=%d at the same time", *n.spec.MaxSize, *n.spec.DesiredCapacity)
+		return fmt.Errorf("--nodes value (%d) cannot be greater than --nodes-max value (%d)", *n.spec.DesiredCapacity, *n.spec.MaxSize)
 	} else if *n.spec.MaxSize < *n.spec.MinSize {
-		return fmt.Errorf("cannot use --nodes-min=%d and --nodes-max=%d at the same time", *n.spec.MinSize, *n.spec.MaxSize)
+		return fmt.Errorf("--nodes-min value (%d) cannot be greater than --nodes-max value (%d)", *n.spec.MinSize, *n.spec.MaxSize)
 	}
 
 	if err := n.addResourcesForIAM(); err != nil {
@@ -274,9 +285,10 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_Laun
 		IamInstanceProfile: &gfnec2.LaunchTemplate_IamInstanceProfile{
 			Arn: n.instanceProfileARN,
 		},
-		ImageId:         gfnt.NewString(n.spec.AMI),
-		UserData:        gfnt.NewString(userData),
-		MetadataOptions: makeMetadataOptions(n.spec.NodeGroupBase),
+		ImageId:           gfnt.NewString(n.spec.AMI),
+		UserData:          gfnt.NewString(userData),
+		MetadataOptions:   makeMetadataOptions(n.spec.NodeGroupBase),
+		TagSpecifications: makeTags(n.spec.NodeGroupBase, n.clusterSpec.Metadata),
 	}
 
 	if err := buildNetworkInterfaces(launchTemplateData, n.spec.InstanceTypeList(), api.IsEnabled(n.spec.EFAEnabled), n.securityGroups, n.ec2API); err != nil {

@@ -71,6 +71,19 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 			},
 		},
 		{
+			"Effect": effectAllow,
+			"Resource": []*gfnt.Value{
+				addARNPartitionPrefix("elasticloadbalancing:*:*:listener/net/*/*/*"),
+				addARNPartitionPrefix("elasticloadbalancing:*:*:listener/app/*/*/*"),
+				addARNPartitionPrefix("elasticloadbalancing:*:*:listener-rule/net/*/*/*"),
+				addARNPartitionPrefix("elasticloadbalancing:*:*:listener-rule/app/*/*/*"),
+			},
+			"Action": []string{
+				"elasticloadbalancing:AddTags",
+				"elasticloadbalancing:RemoveTags",
+			},
+		},
+		{
 			"Effect":   effectAllow,
 			"Resource": resourceAll,
 			"Action": []string{
@@ -107,6 +120,7 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 				"iam:CreateServiceLinkedRole",
 				"ec2:DescribeAccountAttributes",
 				"ec2:DescribeAddresses",
+				"ec2:DescribeAvailabilityZones",
 				"ec2:DescribeInternetGateways",
 				"ec2:DescribeVpcs",
 				"ec2:DescribeSubnets",

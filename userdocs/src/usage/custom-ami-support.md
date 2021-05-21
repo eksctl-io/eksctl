@@ -1,23 +1,67 @@
-# Custom AMI support
+# Latest & Custom AMI support
 
-## Latest & Custom AMI Support
+!!! warning
+    From `eksctl` version `0.52.0` **unmanaged** nodegroups created with **custom AmazonLinux2** or **custom Ubuntu** images
+    will need to have the `overrideBootstrapCommand` configuration option set. This is to ensure that nodes are able
+    to join the cluster. For more information please see [this issue](https://github.com/weaveworks/eksctl/issues/3563).
 
-With the 0.1.2 release we have introduced the `--node-ami` flag for use when creating a cluster. This enables a number of advanced use cases such as using a custom AMI or querying AWS in realtime to determine which AMI to use (non-GPU and GPU instances).
+    ```yaml
+    nodeGroups:
+      - name: ng-1
+        ami: ami-custom1234
+        instanceType: m5.large
+        overrideBootstrapCommand: |
+          #!/bin/bash
+          ... bootstrap script
+    ```
 
-The `--node-ami` can take the AMI image id for an image to explicitly use. It also can take the following 'special' keywords:
+## Setting the node AMI ID
+
+The `--node-ami` flag enables a number of advanced use cases such as using a custom AMI or querying AWS in realtime to determine which AMI to use.
+The flag can be used for both non-GPU and GPU images.
+
+The flag can take the AMI image id for an image to explicitly use. It also can take the following 'special' keywords:
 
 | Keyword   | Description                                                                                                         |
 | --------- | ------------------------------------------------------------------------------------------------------------------- |
 | auto      | Indicates that the AMI to use for the nodes should be found by querying AWS EC2. This relates to the auto resolver. |
 | auto-ssm  | Indicates that the AMI to use for the nodes should be found by querying AWS SSM Parameter Store.                    |
 
-If, for example, AWS release a new version of the EKS node AMIs and a new version of `eksctl` hasn't been released you can use the latest AMI by doing the following:
 
-```
+!!! note
+    When setting `--node-ami` to an ID string, `eksctl` will assume that a custom AMI has been requested.
+    For managed nodes this will mean that `overrideBootstrapCommand` is required. For unmanaged nodes
+    `overrideBootstrapCommand` is recommended for AmazonLinux2 and Ubuntu custom images.
+
+CLI flag examples:
+```sh
 eksctl create cluster --node-ami=auto
+
+# with a custom ami id
+eksctl create cluster --node-ami=ami-custom1234
 ```
 
-With the 0.1.9 release we have introduced the `--node-ami-family` flag for use when creating the cluster. This makes it possible to choose between different officially supported EKS AMI families.
+Config file example:
+```yaml
+nodeGroups:
+  - name: ng1
+    instanceType: p2.xlarge
+    ami: auto
+  - name: ng2
+    instanceType: m5.large
+    ami: ami-custom1234
+managedNodeGroups:
+  - name: m-ng-2
+    ami: ami-custom1234
+    instanceType: m5.large
+    overrideBootstrapCommand: |
+      #!/bin/bash
+      /etc/eks/bootstrap.sh <cluster-name>
+```
+
+The `--node-ami` flag can also be used with `eksctl create nodegroup`.
+
+## Setting the node AMI Family
 
 The `--node-ami-family` can take following keywords:
 
@@ -29,13 +73,23 @@ The `--node-ami-family` can take following keywords:
 | Bottlerocket                   | Indicates that the EKS AMI image based on Bottlerocket should be used.                       |
 | WindowsServer2019FullContainer | Indicates that the EKS AMI image based on Windows Server 2019 Full Container should be used. |
 | WindowsServer2019CoreContainer | Indicates that the EKS AMI image based on Windows Server 2019 Core Container should be used. |
-| WindowsServer1909CoreContainer | Indicates that the EKS AMI image based on Windows Server 1909 Core Container should be used. |
 | WindowsServer2004CoreContainer | Indicates that the EKS AMI image based on Windows Server 2004 Core Container should be used. |
 
-<!-- TODO for 0.3.0
-To use more advanced configuration options, [Cluster API](https://github.com/kubernetes-sigs/cluster-api):
+CLI flag example:
+```sh
+eksctl create cluster --node-ami-family=AmazonLinux2
+```
 
+Config file example:
+```yaml
+nodeGroups:
+  - name: ng1
+    instanceType: m5.large
+    amiFamily: AmazonLinux2
+managedNodeGroups:
+  - name: m-ng-2
+    instanceType: m5.large
+    amiFamily: Ubuntu2004
 ```
-eksctl apply --cluster-config advanced-cluster.yaml
-```
--->
+
+The `--node-ami-family` flag can also be used with `eksctl create nodegroup`.

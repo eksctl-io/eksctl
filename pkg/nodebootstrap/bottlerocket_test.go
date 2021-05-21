@@ -188,7 +188,13 @@ var _ = Describe("Bottlerocket", func() {
 
 		When("taints are set on the node", func() {
 			BeforeEach(func() {
-				ng.Taints = map[string]string{"foo": "bar"}
+				ng.Taints = []api.NodeGroupTaint{
+					{
+						Key:    "foo",
+						Value:  "bar",
+						Effect: "NoExecute",
+					},
+				}
 			})
 
 			It("adds the taints to the userdata", func() {
@@ -201,7 +207,7 @@ var _ = Describe("Bottlerocket", func() {
 				Expect(parseErr).ToNot(HaveOccurred())
 
 				Expect(tree.HasPath(append(taintsPath, "foo"))).To(BeTrue())
-				Expect(tree.GetPath(append(taintsPath, "foo"))).To(Equal("bar"))
+				Expect(tree.GetPath(append(taintsPath, "foo"))).To(Equal("bar:NoExecute"))
 			})
 		})
 

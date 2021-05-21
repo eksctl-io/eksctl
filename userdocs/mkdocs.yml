@@ -31,6 +31,7 @@ nav:
             - usage/nodegroup-upgrade.md
             - usage/eks-managed-nodes.md
             - usage/launch-template-support.md
+            - usage/instance-selector.md
             - usage/spot-instances.md
             - usage/gpu-support.md
             - usage/arm-support.md

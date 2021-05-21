@@ -2,7 +2,7 @@ name: Integration tests
 
 on:
   schedule:
-    - cron: '0 2 * * *'
+    - cron: '0 */4 * * *'
   workflow_dispatch: {}
 
 jobs:
@@ -10,7 +10,7 @@ jobs:
     name: Run addons suite
     environment: "Integration tests"
     runs-on: ubuntu-latest
-    container: weaveworks/eksctl-build:f6356cc88a3197f2bfe24090cb89d4d28199f943
+    container: weaveworks/eksctl-build:f7ca8ff60e5531bf7fce280d3be21771edcc946e
     env:
       SSH: "/root/.ssh"
     steps:

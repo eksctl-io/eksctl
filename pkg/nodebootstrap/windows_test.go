@@ -58,7 +58,13 @@ var _ = Describe("Windows", func() {
 
 	When("taints are set on the node", func() {
 		It("adds them to the userdata", func() {
-			ng.Taints = map[string]string{"foo": "bar"}
+			ng.Taints = []api.NodeGroupTaint{
+				{
+					Key:    "foo",
+					Value:  "bar",
+					Effect: "NoSchedule",
+				},
+			}
 			bootstrap := nodebootstrap.NewWindowsBootstrapper(clusterName, ng)
 			userdata, err := bootstrap.UserData()
 			Expect(err).ToNot(HaveOccurred())
@@ -66,7 +72,7 @@ var _ = Describe("Windows", func() {
 			Expect(decodeData(userdata)).To(Equal(strings.TrimSpace(`
 <powershell>
 [string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"
-& $EKSBootstrapScriptFile -EKSClusterName "windohs" -KubeletExtraArgs "--node-labels= --register-with-taints=foo=bar" 3>&1 4>&1 5>&1 6>&1
+& $EKSBootstrapScriptFile -EKSClusterName "windohs" -KubeletExtraArgs "--node-labels= --register-with-taints=foo=bar:NoSchedule" 3>&1 4>&1 5>&1 6>&1
 </powershell>
 `)))
 		})

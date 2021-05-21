@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"os/exec"
 	"strings"
 
@@ -20,11 +19,16 @@ type Client struct {
 	opts     *api.Flux
 }
 
-func NewClient(opts *api.Flux) *Client {
-	return &Client{
-		executor: executor.NewShellExecutor(setEnvVars(opts.AuthTokenPath, opts.GitProvider)),
-		opts:     opts,
+func NewClient(opts *api.Flux) (*Client, error) {
+	env, err := setTokenEnv(opts.AuthTokenPath, opts.GitProvider)
+	if err != nil {
+		return nil, err
 	}
+
+	return &Client{
+		executor: executor.NewShellExecutor(env),
+		opts:     opts,
+	}, nil
 }
 
 func (c *Client) PreFlight() error {
@@ -69,40 +73,25 @@ func (c *Client) runFluxCmd(args ...string) error {
 	return c.executor.Exec(fluxBin, args...)
 }
 
-func setEnvVars(tokenPath, gitProvider string) executor.EnvVars {
-	envVars := executor.EnvVars{
-		"PATH":                  os.Getenv("PATH"),
-		"HOME":                  os.Getenv("HOME"),
-		"AWS_ACCESS_KEY_ID":     os.Getenv("AWS_ACCESS_KEY_ID"),
-		"AWS_SECRET_ACCESS_KEY": os.Getenv("AWS_SECRET_ACCESS_KEY"),
+func setTokenEnv(tokenPath, gitProvider string) (executor.EnvVars, error) {
+	if tokenPath == "" {
+		return executor.EnvVars{}, nil
 	}
 
 	var token string
-	if tokenPath != "" {
-		data, err := ioutil.ReadFile(tokenPath)
-		if err != nil {
-			logger.Warning("reading auth token file %s", err)
-		}
-
-		token = strings.Replace(string(data), "\n", "", -1)
+	data, err := ioutil.ReadFile(tokenPath)
+	if err != nil {
+		return executor.EnvVars{}, fmt.Errorf("reading auth token file %w", err)
 	}
 
+	token = strings.Replace(string(data), "\n", "", -1)
+	envVars := executor.EnvVars{}
 	switch gitProvider {
 	case "github":
-		if token == "" {
-			if githubToken, ok := os.LookupEnv("GITHUB_TOKEN"); ok {
-				token = githubToken
-			}
-		}
 		envVars["GITHUB_TOKEN"] = token
 	case "gitlab":
-		if token == "" {
-			if gitlabToken, ok := os.LookupEnv("GITLAB_TOKEN"); ok {
-				token = gitlabToken
-			}
-		}
 		envVars["GITLAB_TOKEN"] = token
 	}
 
-	return envVars
+	return envVars, nil
 }

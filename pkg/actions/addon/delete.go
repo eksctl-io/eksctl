@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-
 	"github.com/aws/aws-sdk-go/aws/awserr"
 
 	"github.com/kris-nova/logger"
@@ -24,7 +22,7 @@ func (a *Manager) Delete(addon *api.Addon) error {
 	})
 
 	if err != nil {
-		if awsError, ok := err.(awserr.Error); ok && awsError.Code() == awseks.ErrCodeResourceNotFoundException {
+		if awsError, ok := err.(awserr.Error); ok && awsError.Code() == eks.ErrCodeResourceNotFoundException {
 			logger.Info("addon not found")
 			addonExists = false
 		} else {
