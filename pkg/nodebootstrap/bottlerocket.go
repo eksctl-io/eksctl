@@ -11,14 +11,14 @@ import (
 )
 
 type Bottlerocket struct {
-	spec *api.ClusterConfig
-	ng   *api.NodeGroup
+	clusterConfig *api.ClusterConfig
+	ng            *api.NodeGroup
 }
 
-func NewBottlerocketBootstrapper(spec *api.ClusterConfig, ng *api.NodeGroup) *Bottlerocket {
+func NewBottlerocketBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) *Bottlerocket {
 	return &Bottlerocket{
-		spec: spec,
-		ng:   ng,
+		clusterConfig: clusterConfig,
+		ng:            ng,
 	}
 }
 
@@ -47,7 +47,7 @@ func (b *Bottlerocket) UserData() (string, error) {
 	ProtectTOMLKeys([]string{"settings"}, settings)
 
 	// Generate TOML for launch in this NodeGroup.
-	data, err := bottlerocketSettingsTOML(b.spec, b.ng, settings)
+	data, err := bottlerocketSettingsTOML(b.clusterConfig, b.ng, settings)
 	if err != nil {
 		return "", err
 	}

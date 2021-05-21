@@ -10,13 +10,15 @@ import (
 
 var _ = Describe("Ubuntu User Data", func() {
 	var (
-		clusterName  string
-		ng           *api.NodeGroup
-		bootstrapper *nodebootstrap.Ubuntu
+		clusterConfig *api.ClusterConfig
+		ng            *api.NodeGroup
+		bootstrapper  *nodebootstrap.Ubuntu
 	)
 
 	BeforeEach(func() {
-		clusterName = "something-awesome"
+		clusterConfig = api.NewClusterConfig()
+		clusterConfig.Metadata.Name = "something-awesome"
+		clusterConfig.Status = &api.ClusterStatus{}
 		ng = &api.NodeGroup{
 			NodeGroupBase: &api.NodeGroupBase{},
 		}
@@ -29,7 +31,7 @@ var _ = Describe("Ubuntu User Data", func() {
 		)
 
 		BeforeEach(func() {
-			bootstrapper = nodebootstrap.NewUbuntuBootstrapper(clusterName, ng)
+			bootstrapper = nodebootstrap.NewUbuntuBootstrapper(clusterConfig, ng)
 			userData, err = bootstrapper.UserData()
 		})
 
@@ -38,7 +40,11 @@ var _ = Describe("Ubuntu User Data", func() {
 
 			cloudCfg := decode(userData)
 			Expect(cloudCfg.WriteFiles[1].Path).To(Equal("/etc/eksctl/kubelet.env"))
-			Expect(cloudCfg.WriteFiles[1].Content).To(Equal("NODE_LABELS=\nNODE_TAINTS=\nCLUSTER_NAME=something-awesome"))
+			Expect(cloudCfg.WriteFiles[1].Content).To(Equal(`CLUSTER_NAME=something-awesome
+API_SERVER_URL=
+B64_CLUSTER_CA=
+NODE_LABELS=
+NODE_TAINTS=`))
 			Expect(cloudCfg.WriteFiles[1].Permissions).To(Equal("0644"))
 		})
 
@@ -62,7 +68,7 @@ var _ = Describe("Ubuntu User Data", func() {
 	When("KubeletExtraConfig is provided by the user", func() {
 		BeforeEach(func() {
 			ng.KubeletExtraConfig = &api.InlineDocument{"foo": "bar"}
-			bootstrapper = nodebootstrap.NewUbuntuBootstrapper(clusterName, ng)
+			bootstrapper = nodebootstrap.NewUbuntuBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds the settings to the kubelet extra args file in the userdata", func() {
@@ -79,7 +85,7 @@ var _ = Describe("Ubuntu User Data", func() {
 	When("labels are set on the node config", func() {
 		BeforeEach(func() {
 			ng.Labels = map[string]string{"foo": "bar"}
-			bootstrapper = nodebootstrap.NewUbuntuBootstrapper(clusterName, ng)
+			bootstrapper = nodebootstrap.NewUbuntuBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds the labels to the env file", func() {
@@ -106,7 +112,7 @@ var _ = Describe("Ubuntu User Data", func() {
 					Effect: "NoSchedule",
 				},
 			}
-			bootstrapper = nodebootstrap.NewUbuntuBootstrapper(clusterName, ng)
+			bootstrapper = nodebootstrap.NewUbuntuBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds the taints to the env file", func() {
@@ -126,7 +132,7 @@ var _ = Describe("Ubuntu User Data", func() {
 	When("clusterDNS is set on the node config", func() {
 		BeforeEach(func() {
 			ng.ClusterDNS = "1.2.3.4"
-			bootstrapper = nodebootstrap.NewUbuntuBootstrapper(clusterName, ng)
+			bootstrapper = nodebootstrap.NewUbuntuBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds the taints to the env file", func() {
@@ -143,7 +149,7 @@ var _ = Describe("Ubuntu User Data", func() {
 	When("PreBootstrapCommands are set", func() {
 		BeforeEach(func() {
 			ng.PreBootstrapCommands = []string{"echo 'rubarb'"}
-			bootstrapper = nodebootstrap.NewUbuntuBootstrapper(clusterName, ng)
+			bootstrapper = nodebootstrap.NewUbuntuBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds them to the userdata", func() {
@@ -164,7 +170,7 @@ var _ = Describe("Ubuntu User Data", func() {
 		BeforeEach(func() {
 			override := "echo 'crashoverride'"
 			ng.OverrideBootstrapCommand = &override
-			bootstrapper = nodebootstrap.NewUbuntuBootstrapper(clusterName, ng)
+			bootstrapper = nodebootstrap.NewUbuntuBootstrapper(clusterConfig, ng)
 
 			userData, err = bootstrapper.UserData()
 		})
