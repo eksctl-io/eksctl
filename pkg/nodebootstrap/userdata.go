@@ -23,7 +23,6 @@ const (
 	configDir             = "/etc/eksctl/"
 	envFile               = "kubelet.env"
 	extraKubeConfFile     = "kubelet-extra.json"
-	extraDockerConfFile   = "docker-extra.json"
 	commonLinuxBootScript = "bootstrap.helper.sh"
 )
 
@@ -76,21 +75,12 @@ func linuxConfig(bootScript, clusterName string, ng *api.NodeGroup, scripts ...s
 		config.AddShellCommand(*ng.OverrideBootstrapCommand)
 	} else {
 		scripts = append(scripts, commonLinuxBootScript, bootScript)
-
 		kubeletConf, err := makeKubeletExtraConf(ng)
 		if err != nil {
 			return "", err
 		}
-		files = append(files, kubeletConf)
-
-		dockerDaemonConf, err := makeDockerDaemonExtraConf()
-		if err != nil {
-			return "", err
-		}
-		files = append(files, dockerDaemonConf)
-
 		envFile := makeBootstrapEnv(clusterName, ng)
-		files = append(files, envFile)
+		files = append(files, kubeletConf, envFile)
 	}
 
 	if err := addFilesAndScripts(config, files, scripts); err != nil {
@@ -109,7 +99,6 @@ func makeKubeletExtraConf(ng *api.NodeGroup) (cloudconfig.File, error) {
 	if ng.KubeletExtraConfig == nil {
 		ng.KubeletExtraConfig = &api.InlineDocument{}
 	}
-	(*ng.KubeletExtraConfig)["cgroupDriver"] = "systemd"
 
 	data, err := json.Marshal(ng.KubeletExtraConfig)
 	if err != nil {
@@ -123,19 +112,6 @@ func makeKubeletExtraConf(ng *api.NodeGroup) (cloudconfig.File, error) {
 
 	return cloudconfig.File{
 		Path:    configDir + extraKubeConfFile,
-		Content: string(data),
-	}, nil
-}
-
-func makeDockerDaemonExtraConf() (cloudconfig.File, error) {
-	config := map[string][]string{"exec-opts": {"native.cgroupdriver=systemd"}}
-	data, err := json.Marshal(config)
-	if err != nil {
-		return cloudconfig.File{}, err
-	}
-
-	return cloudconfig.File{
-		Path:    configDir + extraDockerConfFile,
 		Content: string(data),
 	}, nil
 }

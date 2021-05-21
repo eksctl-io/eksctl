@@ -33,41 +33,29 @@ var _ = Describe("Ubuntu User Data", func() {
 			userData, err = bootstrapper.UserData()
 		})
 
-		It("adds the kubelet extra args and docker daemon extra args files to the userdata (sets cgroupDriver to systemd", func() {
-			Expect(err).NotTo(HaveOccurred())
-
-			cloudCfg := decode(userData)
-			Expect(cloudCfg.WriteFiles[0].Path).To(Equal("/etc/eksctl/kubelet-extra.json"))
-			Expect(cloudCfg.WriteFiles[0].Content).To(Equal("{\"cgroupDriver\":\"systemd\"}"))
-			Expect(cloudCfg.WriteFiles[0].Permissions).To(Equal("0644"))
-			Expect(cloudCfg.WriteFiles[1].Path).To(Equal("/etc/eksctl/docker-extra.json"))
-			Expect(cloudCfg.WriteFiles[1].Content).To(Equal("{\"exec-opts\":[\"native.cgroupdriver=systemd\"]}"))
-			Expect(cloudCfg.WriteFiles[1].Permissions).To(Equal("0644"))
-		})
-
 		It("adds the boot script environment variable file to the userdata", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/etc/eksctl/kubelet.env"))
-			Expect(cloudCfg.WriteFiles[2].Content).To(Equal("NODE_LABELS=\nNODE_TAINTS=\nCLUSTER_NAME=something-awesome"))
-			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0644"))
+			Expect(cloudCfg.WriteFiles[1].Path).To(Equal("/etc/eksctl/kubelet.env"))
+			Expect(cloudCfg.WriteFiles[1].Content).To(Equal("NODE_LABELS=\nNODE_TAINTS=\nCLUSTER_NAME=something-awesome"))
+			Expect(cloudCfg.WriteFiles[1].Permissions).To(Equal("0644"))
 		})
 
 		It("adds the common linux boot script to the userdata", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.WriteFiles[3].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.helper.sh"))
-			Expect(cloudCfg.WriteFiles[3].Permissions).To(Equal("0755"))
+			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.helper.sh"))
+			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0755"))
 		})
 
 		It("adds the ubuntu boot script to the userdata", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.WriteFiles[4].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.ubuntu.sh"))
-			Expect(cloudCfg.WriteFiles[4].Permissions).To(Equal("0755"))
+			Expect(cloudCfg.WriteFiles[3].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.ubuntu.sh"))
+			Expect(cloudCfg.WriteFiles[3].Permissions).To(Equal("0755"))
 		})
 	})
 
@@ -83,7 +71,7 @@ var _ = Describe("Ubuntu User Data", func() {
 
 			cloudCfg := decode(userData)
 			Expect(cloudCfg.WriteFiles[0].Path).To(Equal("/etc/eksctl/kubelet-extra.json"))
-			Expect(cloudCfg.WriteFiles[0].Content).To(Equal("{\"cgroupDriver\":\"systemd\",\"foo\":\"bar\"}"))
+			Expect(cloudCfg.WriteFiles[0].Content).To(Equal("{\"foo\":\"bar\"}"))
 			Expect(cloudCfg.WriteFiles[0].Permissions).To(Equal("0644"))
 		})
 	})
@@ -99,9 +87,9 @@ var _ = Describe("Ubuntu User Data", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/etc/eksctl/kubelet.env"))
-			Expect(cloudCfg.WriteFiles[2].Content).To(ContainSubstring("NODE_LABELS=foo=bar"))
-			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0644"))
+			Expect(cloudCfg.WriteFiles[1].Path).To(Equal("/etc/eksctl/kubelet.env"))
+			Expect(cloudCfg.WriteFiles[1].Content).To(ContainSubstring("NODE_LABELS=foo=bar"))
+			Expect(cloudCfg.WriteFiles[1].Permissions).To(Equal("0644"))
 		})
 	})
 
@@ -116,7 +104,7 @@ var _ = Describe("Ubuntu User Data", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			file := cloudCfg.WriteFiles[2]
+			file := cloudCfg.WriteFiles[1]
 			Expect(file.Path).To(Equal("/etc/eksctl/kubelet.env"))
 			Expect(file.Content).To(ContainSubstring("NODE_TAINTS"))
 			Expect(file.Content).To(ContainSubstring("foo=:NoExecute"))
@@ -136,9 +124,9 @@ var _ = Describe("Ubuntu User Data", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/etc/eksctl/kubelet.env"))
-			Expect(cloudCfg.WriteFiles[2].Content).To(ContainSubstring("CLUSTER_DNS=1.2.3.4"))
-			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0644"))
+			Expect(cloudCfg.WriteFiles[1].Path).To(Equal("/etc/eksctl/kubelet.env"))
+			Expect(cloudCfg.WriteFiles[1].Content).To(ContainSubstring("CLUSTER_DNS=1.2.3.4"))
+			Expect(cloudCfg.WriteFiles[1].Permissions).To(Equal("0644"))
 		})
 	})
 
