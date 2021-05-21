@@ -10,6 +10,7 @@ import (
 //go:generate counterfeiter -o fakes/fake_executor.go . Executor
 type Executor interface {
 	Exec(command string, args ...string) error
+	ExecWithOut(command string, args ...string) ([]byte, error)
 	ExecInDir(command string, dir string, args ...string) error
 }
 
@@ -29,20 +30,23 @@ func NewShellExecutor(envVars EnvVars) Executor {
 
 // Exec execute the command with the specified args
 func (e ShellExecutor) Exec(command string, args ...string) error {
-	return e.buildCmd(command, args...).Run()
+	return e.buildCmd(command, true, args...).Run()
 }
 
-// Exec execute the command inside the directory with the specified args
+// ExecWithOut executes the command with the specified args and returns the output
+func (e ShellExecutor) ExecWithOut(command string, args ...string) ([]byte, error) {
+	return e.buildCmd(command, false, args...).Output()
+}
+
+// ExecInDir executes the command inside the directory with the specified args
 func (e ShellExecutor) ExecInDir(command string, dir string, args ...string) error {
-	cmd := e.buildCmd(command, args...)
-	if dir != "" {
-		cmd.Dir = dir
-	}
+	cmd := e.buildCmd(command, true, args...)
+	cmd.Dir = dir
 
 	return cmd.Run()
 }
 
-func (e ShellExecutor) buildCmd(command string, args ...string) *exec.Cmd {
+func (e ShellExecutor) buildCmd(command string, setOut bool, args ...string) *exec.Cmd {
 	cmd := exec.Command(command, args...)
 
 	cmd.Env = os.Environ()
@@ -50,8 +54,10 @@ func (e ShellExecutor) buildCmd(command string, args ...string) *exec.Cmd {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", k, v))
 	}
 
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	if setOut {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+	}
 
 	return cmd
 }

@@ -8,13 +8,13 @@ import (
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	. "github.com/weaveworks/eksctl/pkg/ctl/ctltest"
+	"github.com/weaveworks/eksctl/pkg/ctl/ctltest"
 )
 
 var _ = Describe("enable profile", func() {
 
-	newMockEnableProfileCmd := func(args ...string) *MockCmd {
-		return NewMockCmd(enableProfileWithRunFunc, "enable", args...)
+	newMockEnableProfileCmd := func(args ...string) *ctltest.MockCmd {
+		return ctltest.NewMockCmd(enableProfileWithRunFunc, "enable", args...)
 	}
 
 	Describe("without a config file", func() {
@@ -155,7 +155,7 @@ var _ = Describe("enable profile", func() {
 		})
 
 		It("succeeds with the basic configuration", func() {
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableProfileCmd("profile", "-f", configFile)
 			_, err := cmd.Execute()
@@ -163,7 +163,7 @@ var _ = Describe("enable profile", func() {
 		})
 
 		It("loads the correct defaults", func() {
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableProfileCmd("profile", "-f", configFile)
 			_, err := cmd.Execute()
@@ -188,7 +188,7 @@ var _ = Describe("enable profile", func() {
 
 		It("fails without a cluster name", func() {
 			cfg.Metadata.Name = ""
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableProfileCmd("profile", "-f", configFile)
 			_, err := cmd.Execute()
@@ -198,7 +198,7 @@ var _ = Describe("enable profile", func() {
 
 		It("fails without a region", func() {
 			cfg.Metadata.Region = ""
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableProfileCmd("profile", "-f", configFile)
 			_, err := cmd.Execute()
@@ -208,7 +208,7 @@ var _ = Describe("enable profile", func() {
 
 		It("fails without a nil repo", func() {
 			cfg.Git.Repo = nil
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableProfileCmd("profile", "-f", configFile)
 			_, err := cmd.Execute()
@@ -218,7 +218,7 @@ var _ = Describe("enable profile", func() {
 
 		It("fails without a git url", func() {
 			cfg.Git.Repo.URL = ""
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableProfileCmd("profile", "-f", configFile)
 			_, err := cmd.Execute()
@@ -228,7 +228,7 @@ var _ = Describe("enable profile", func() {
 
 		It("fails without a user email", func() {
 			cfg.Git.Repo.Email = ""
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableProfileCmd("profile", "-f", configFile)
 			_, err := cmd.Execute()
@@ -238,7 +238,7 @@ var _ = Describe("enable profile", func() {
 
 		It("fails when the private ssh key file does not exist", func() {
 			cfg.Git.Repo.PrivateSSHKeyPath = "non-existent-file"
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableProfileCmd("profile", "-f", configFile)
 			_, err := cmd.Execute()
@@ -248,7 +248,7 @@ var _ = Describe("enable profile", func() {
 
 		It("fails without bootstrap profiles", func() {
 			cfg.Git.BootstrapProfile = nil
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableProfileCmd("profile", "-f", configFile)
 			_, err := cmd.Execute()
@@ -258,7 +258,7 @@ var _ = Describe("enable profile", func() {
 
 		It("fails with empty bootstrap profile", func() {
 			cfg.Git.BootstrapProfile = &api.Profile{}
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockEnableProfileCmd("profile", "-f", configFile)
 			_, err := cmd.Execute()
