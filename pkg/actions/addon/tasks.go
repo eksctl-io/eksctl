@@ -21,7 +21,6 @@ func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvid
 		} else {
 			postAddons = append(postAddons, addon)
 		}
-
 	}
 
 	preTasks.Append(
