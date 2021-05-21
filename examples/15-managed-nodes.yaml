@@ -15,6 +15,8 @@ managedNodeGroups:
     maxSize: 4
     availabilityZones: ["us-west-2a", "us-west-2b"]
     volumeSize: 20
+    updateConfig:
+      maxUnavailable: 20 # or maxUnavailablePercentage if specified in percentage
     securityGroups:
       attachIDs: ["sg-1", "sg-2"]
     ssh:
