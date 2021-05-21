@@ -30,21 +30,17 @@ func Validate(t corev1.Taint) error {
 }
 
 // Parse parses taints but does not validate the fields for correctness
-func Parse(taints map[string]string) ([]corev1.Taint, error) {
+func Parse(taints map[string]string) []corev1.Taint {
 	var parsedTaints []corev1.Taint
 	for k, v := range taints {
-		taint, err := parseTaint(k, v)
-		if err != nil {
-			return nil, err
-		}
-		parsedTaints = append(parsedTaints, taint)
+		parsedTaints = append(parsedTaints, parseTaint(k, v))
 	}
-	return parsedTaints, nil
+	return parsedTaints
 }
 
 // parseTaint parses a taint from valueEffect, whose form must be either
 // '<value>:<effect>' or ':<effect>'.
-func parseTaint(key, valueEffect string) (corev1.Taint, error) {
+func parseTaint(key, valueEffect string) corev1.Taint {
 	var (
 		value  string
 		effect corev1.TaintEffect
@@ -61,7 +57,7 @@ func parseTaint(key, valueEffect string) (corev1.Taint, error) {
 		Key:    key,
 		Value:  value,
 		Effect: effect,
-	}, nil
+	}
 }
 
 func validateTaintEffect(effect corev1.TaintEffect) error {

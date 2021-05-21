@@ -1529,10 +1529,7 @@ func (t *taintsWrapper) UnmarshalJSON(data []byte) error {
 	taintsMap := map[string]string{}
 	err := json.Unmarshal(data, &taintsMap)
 	if err == nil {
-		parsed, err := taints.Parse(taintsMap)
-		if err != nil {
-			return err
-		}
+		parsed := taints.Parse(taintsMap)
 		for _, p := range parsed {
 			*t = append(*t, NodeGroupTaint{
 				Key:    p.Key,

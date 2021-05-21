@@ -26,7 +26,6 @@ type parseTaintsEntry struct {
 	valueEffect string
 
 	expectedTaint corev1.Taint
-	expectedErr   string
 }
 
 var _ = Describe("Taints", func() {
@@ -91,16 +90,9 @@ var _ = Describe("Taints", func() {
 	)
 
 	DescribeTable("Parse", func(t parseTaintsEntry) {
-		parsedTaints, err := taints.Parse(map[string]string{
+		parsedTaints := taints.Parse(map[string]string{
 			t.key: t.valueEffect,
 		})
-		if t.expectedErr != "" {
-			Expect(err).To(HaveOccurred())
-			Expect(err).To(MatchError(ContainSubstring(t.expectedErr)))
-			return
-		}
-
-		Expect(err).NotTo(HaveOccurred())
 		Expect(parsedTaints[0]).To(Equal(t.expectedTaint))
 	},
 		Entry("valid", parseTaintsEntry{
@@ -120,29 +112,6 @@ var _ = Describe("Taints", func() {
 				Key:    "key2",
 				Effect: corev1.TaintEffectNoExecute,
 			},
-		}),
-
-		Entry("missing value and effect", parseTaintsEntry{
-			key:         "key3",
-			expectedErr: "invalid taint effect",
-		}),
-
-		Entry("invalid key", parseTaintsEntry{
-			key:         "key1=",
-			valueEffect: "value1:NoSchedule",
-			expectedErr: "invalid taint key",
-		}),
-
-		Entry("invalid value", parseTaintsEntry{
-			key:         "key1",
-			valueEffect: "v&lue:NoSchedule",
-			expectedErr: "invalid taint value",
-		}),
-
-		Entry("unsupported effect", parseTaintsEntry{
-			key:         "key1",
-			valueEffect: "value1:NoEffect",
-			expectedErr: "invalid taint effect",
 		}),
 	)
 })
