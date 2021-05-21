@@ -1,6 +1,7 @@
 package addon
 
 import (
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -9,20 +10,41 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, forceAll bool, timeout time.Duration) *tasks.TaskTree {
-	taskTree := &tasks.TaskTree{Parallel: false}
+func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree) {
+	preTasks := &tasks.TaskTree{Parallel: false}
+	postTasks := &tasks.TaskTree{Parallel: false}
+	var preAddons []*api.Addon
+	var postAddons []*api.Addon
+	for _, addon := range cfg.Addons {
+		if strings.ToLower(addon.Name) == "vpc-cni" {
+			preAddons = append(preAddons, addon)
+		} else {
+			postAddons = append(postAddons, addon)
+		}
+	}
 
-	taskTree.Append(
+	preTasks.Append(
 		&createAddonTask{
 			info:            "create addons",
-			addons:          cfg.Addons,
+			addons:          preAddons,
 			cfg:             cfg,
 			clusterProvider: clusterProvider,
 			forceAll:        forceAll,
 			timeout:         timeout,
 		},
 	)
-	return taskTree
+
+	postTasks.Append(
+		&createAddonTask{
+			info:            "create addons",
+			addons:          postAddons,
+			cfg:             cfg,
+			clusterProvider: clusterProvider,
+			forceAll:        forceAll,
+			timeout:         timeout,
+		},
+	)
+	return preTasks, postTasks
 }
 
 type createAddonTask struct {

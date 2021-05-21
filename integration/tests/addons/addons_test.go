@@ -44,6 +44,10 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 					Name:             "vpc-cni",
 					AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
 				},
+				{
+					Name:    "coredns",
+					Version: "latest",
+				},
 			}
 
 			ng := &api.ManagedNodeGroup{
@@ -86,24 +90,55 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				)
 			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 				ContainElement(ContainSubstring("vpc-cni")),
+				ContainElement(ContainSubstring("coredns")),
 			))
 
-			By("Updating the addon")
-			cmd = params.EksctlUpdateCmd.
+			By("Asserting the addons are healthy")
+			cmd = params.EksctlGetCmd.
 				WithArgs(
 					"addon",
 					"--name", "vpc-cni",
 					"--cluster", clusterName,
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
+
+			cmd = params.EksctlGetCmd.
+				WithArgs(
+					"addon",
+					"--name", "coredns",
+					"--cluster", clusterName,
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
+
+			By("successfully creating the kube-proxy addon")
+
+			cmd = params.EksctlCreateCmd.
+				WithArgs(
+					"addon",
+					"--name", "kube-proxy",
+					"--cluster", clusterName,
+					"--force",
 					"--wait",
 					"--verbose", "2",
 				)
 			Expect(cmd).To(RunSuccessfully())
 
-			By("Deleting the addon")
+			cmd = params.EksctlGetCmd.
+				WithArgs(
+					"addon",
+					"--name", "kube-proxy",
+					"--cluster", clusterName,
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
+
+			By("Deleting the kube-proxy addon")
 			cmd = params.EksctlDeleteCmd.
 				WithArgs(
 					"addon",
-					"--name", "vpc-cni",
+					"--name", "kube-proxy",
 					"--cluster", clusterName,
 					"--verbose", "2",
 				)
