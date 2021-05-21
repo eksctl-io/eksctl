@@ -82,13 +82,11 @@ var _ = Describe("Enable GitOps", func() {
 			},
 			GitOps: &api.GitOps{
 				Flux: &api.Flux{
+					Repository:  repository,
+					Branch:      branch,
 					GitProvider: "github",
-					Flags: api.FluxFlags{
-						"owner":      params.GitopsOwner,
-						"branch":     branch,
-						"repository": repository,
-						"kubeconfig": params.KubeconfigPath,
-					},
+					Owner:       params.GitopsOwner,
+					Kubeconfig:  params.KubeconfigPath,
 				},
 			},
 		}
@@ -105,14 +103,21 @@ var _ = Describe("Enable GitOps", func() {
 	})
 
 	Context("enable flux", func() {
-		It("should deploy Flux v2 components to the cluster", func() {
-			AssertFluxPodsAbsentInKubernetes(params.KubeconfigPath, "flux-system")
+		BeforeEach(func() {
 			cmd = params.EksctlEnableCmd.WithArgs(
 				"flux",
 				"--config-file", configFile.Name(),
 			)
+		})
+
+		It("should deploy Flux v2 components to the cluster", func() {
+			AssertFluxPodsAbsentInKubernetes(params.KubeconfigPath, "flux-system")
 			Expect(cmd).To(RunSuccessfully())
 			AssertFlux2PodsPresentInKubernetes(params.KubeconfigPath)
+		})
+
+		It("should not add Flux to the cluster if there is a flux deployment already", func() {
+			Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("skipping installation")))
 		})
 	})
 })
