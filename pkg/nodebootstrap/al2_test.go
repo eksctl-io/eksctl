@@ -76,7 +76,11 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 
 			cloudCfg := decode(userData)
 			Expect(cloudCfg.WriteFiles[1].Path).To(Equal("/etc/eksctl/kubelet.env"))
-			Expect(cloudCfg.WriteFiles[1].Content).To(Equal("NODE_LABELS=\nNODE_TAINTS=\nCLUSTER_NAME=something-awesome"))
+			Expect(cloudCfg.WriteFiles[1].Content).To(Equal(`CLUSTER_NAME=something-awesome
+API_SERVER_URL=
+B64_CLUSTER_CA=
+NODE_LABELS=
+NODE_TAINTS=`))
 			Expect(cloudCfg.WriteFiles[1].Permissions).To(Equal("0644"))
 		})
 
