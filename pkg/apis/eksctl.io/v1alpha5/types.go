@@ -1387,7 +1387,7 @@ type ManagedNodeGroup struct {
 	Taints []NodeGroupTaint `json:"taints,omitempty"`
 
 	// UpdateConfig configures how to update NodeGroups.
-	// +pptional
+	// +optional
 	UpdateConfig *NodeGroupUpdateConfig `json:"updateConfig,omitempty"`
 
 	// LaunchTemplate specifies an existing launch template to use
