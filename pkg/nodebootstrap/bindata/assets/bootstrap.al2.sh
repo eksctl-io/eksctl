@@ -8,6 +8,8 @@ source /var/lib/cloud/scripts/eksctl/bootstrap.helper.sh
 
 echo "eksctl: running /etc/eks/bootstrap"
 /etc/eks/bootstrap.sh "${CLUSTER_NAME}" \
+  --apiserver-endpoint "${API_SERVER_URL}" \
+  --b64-cluster-ca "${B64_CLUSTER_CA}" \
   --dns-cluster-ip "${CLUSTER_DNS}" \
   --kubelet-extra-args "--register-with-taints=${NODE_TAINTS} --node-labels=${NODE_LABELS}"
 
