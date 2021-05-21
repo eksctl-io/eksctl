@@ -316,12 +316,16 @@ func NewGitOpsConfigLoader(cmd *Cmd) *GitOpsConfigLoader {
 		}
 
 		fluxCfg := l.cmd.ClusterConfig.GitOps.Flux
+		if fluxCfg.Repository == "" {
+			return ErrMustBeSet("gitops.flux.repository")
+		}
+
 		if fluxCfg.GitProvider == "" {
 			return ErrMustBeSet("gitops.flux.gitProvider")
 		}
 
-		if len(fluxCfg.Flags) == 0 {
-			return ErrMustBeSet("gitops.flux.flags")
+		if fluxCfg.Owner == "" {
+			return ErrMustBeSet("gitops.flux.owner")
 		}
 
 		return nil
@@ -357,5 +361,6 @@ func (l *GitOpsConfigLoader) Load() error {
 		l.cmd.ProviderConfig.Region = meta.Region
 	}
 
+	api.SetDefaultGitOpsSettings(l.cmd.ClusterConfig)
 	return l.validateWithConfigFile()
 }
