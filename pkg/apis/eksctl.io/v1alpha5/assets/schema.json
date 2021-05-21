@@ -1386,13 +1386,9 @@
           "default": "{}"
         },
         "taints": {
-          "additionalProperties": {
-            "type": "string"
-          },
-          "type": "object",
+          "$ref": "#/definitions/taintsWrapper",
           "description": "taints to apply to the nodegroup",
-          "x-intellij-html-description": "taints to apply to the nodegroup",
-          "default": "{}"
+          "x-intellij-html-description": "taints to apply to the nodegroup"
         },
         "targetGroupARNs": {
           "items": {
@@ -2086,6 +2082,14 @@
     },
     "k8s.io|api|core|v1.TaintEffect": {
       "type": "string"
+    },
+    "taintsWrapper": {
+      "items": {
+        "$ref": "#/definitions/NodeGroupTaint"
+      },
+      "type": "array",
+      "description": "handles unmarshalling both map[string]string and []NodeGroupTaint",
+      "x-intellij-html-description": "handles unmarshalling both map[string]string and []NodeGroupTaint"
     }
   }
 }

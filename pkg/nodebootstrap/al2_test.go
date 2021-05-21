@@ -131,7 +131,12 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 
 	When("taints are set on the node config", func() {
 		BeforeEach(func() {
-			ng.Taints = map[string]string{"foo": ":NoSchedule"}
+			ng.Taints = []api.NodeGroupTaint{
+				{
+					Key:    "foo",
+					Effect: "NoSchedule",
+				},
+			}
 			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterName, ng)
 		})
 

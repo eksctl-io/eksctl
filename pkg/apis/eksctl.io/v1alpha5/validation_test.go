@@ -980,7 +980,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 	type labelsTaintsEntry struct {
 		labels map[string]string
-		taints map[string]string
+		taints []api.NodeGroupTaint
 		valid  bool
 	}
 
@@ -1009,7 +1009,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		Entry("empty labels and taints", labelsTaintsEntry{
 			labels: map[string]string{},
-			taints: map[string]string{},
+			taints: []api.NodeGroupTaint{},
 			valid:  true,
 		}),
 
@@ -1023,29 +1023,50 @@ var _ = Describe("ClusterConfig validation", func() {
 		}),
 
 		Entry("valid taints", labelsTaintsEntry{
-			taints: map[string]string{
-				"key1": "value1:NoSchedule",
-				"key2": ":NoSchedule",
-				"key3": ":PreferNoSchedule",
+			taints: []api.NodeGroupTaint{
+				{
+					Key:    "key1",
+					Value:  "value1",
+					Effect: "NoSchedule",
+				},
+				{
+					Key:    "key2",
+					Effect: "NoSchedule",
+				},
+				{
+					Key:    "key3",
+					Effect: "PreferNoSchedule",
+				},
 			},
 			valid: true,
 		}),
 
 		Entry("missing taint effect", labelsTaintsEntry{
-			taints: map[string]string{
-				"key1": "value1",
+			taints: []api.NodeGroupTaint{
+				{
+					Key:   "key1",
+					Value: "value1",
+				},
 			},
 		}),
 
 		Entry("unsupported taint effect", labelsTaintsEntry{
-			taints: map[string]string{
-				"key2": "value1:NoEffect",
+			taints: []api.NodeGroupTaint{
+				{
+					Key:    "key2",
+					Value:  "value1",
+					Effect: "NoEffect",
+				},
 			},
 		}),
 
 		Entry("invalid value", labelsTaintsEntry{
-			taints: map[string]string{
-				"key3": "v@lue:NoSchedule",
+			taints: []api.NodeGroupTaint{
+				{
+					Key:    "key3",
+					Value:  "v@lue",
+					Effect: "NoSchedule",
+				},
 			},
 		}),
 	)

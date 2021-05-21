@@ -954,10 +954,8 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 	}
 	if in.Taints != nil {
 		in, out := &in.Taints, &out.Taints
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
+		*out = make(taintsWrapper, len(*in))
+		copy(*out, *in)
 	}
 	if in.Bottlerocket != nil {
 		in, out := &in.Bottlerocket, &out.Bottlerocket

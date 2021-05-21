@@ -4,7 +4,6 @@ package managed
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	harness "github.com/dlespiau/kube-test-harness"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
@@ -333,20 +333,19 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				clientset, err := kubernetes.NewForConfig(config)
 				Expect(err).ToNot(HaveOccurred())
 
-				nodeList, err := clientset.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{
-					LabelSelector: fmt.Sprintf("%s=%s", api.NodeGroupNameLabel, "taints"),
-				})
-				Expect(err).ToNot(HaveOccurred())
-
-				for _, node := range nodeList.Items {
-					for i, t := range node.Spec.Taints {
-						expected := taints[i]
-						Expect(t.Key).To(Equal(expected.Key))
-						Expect(t.Value).To(Equal(expected.Value))
-						Expect(t.Effect).To(Equal(expected.Effect))
+				mapTaints := func(taints []api.NodeGroupTaint) []corev1.Taint {
+					var ret []corev1.Taint
+					for _, t := range taints {
+						ret = append(ret, corev1.Taint{
+							Key:    t.Key,
+							Value:  t.Value,
+							Effect: t.Effect,
+						})
 					}
+					return ret
 				}
 
+				tests.AssertNodeTaints(clientset, "taints", mapTaints(taints))
 			})
 		})
 

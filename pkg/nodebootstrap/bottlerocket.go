@@ -74,7 +74,7 @@ func setDerivedBottlerocketSettings(ng *api.NodeGroup) error {
 		kubernetesSettings["node-labels"] = ng.Labels
 	}
 	if len(ng.Taints) != 0 {
-		kubernetesSettings["node-taints"] = ng.Taints
+		kubernetesSettings["node-taints"] = mapTaints(ng.Taints)
 	}
 	if ng.MaxPodsPerNode != 0 {
 		kubernetesSettings["max-pods"] = ng.MaxPodsPerNode
@@ -83,6 +83,14 @@ func setDerivedBottlerocketSettings(ng *api.NodeGroup) error {
 		kubernetesSettings["cluster-dns-ip"] = ng.ClusterDNS
 	}
 	return nil
+}
+
+func mapTaints(taints []api.NodeGroupTaint) map[string]string {
+	ret := map[string]string{}
+	for _, t := range taints {
+		ret[t.Key] = fmt.Sprintf("%s:%s", t.Value, t.Effect)
+	}
+	return ret
 }
 
 // ProtectTOMLKeys processes a tree finding and replacing dotted keys

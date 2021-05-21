@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap/utils"
 	"k8s.io/client-go/tools/clientcmd"
 	kubeletapi "k8s.io/kubelet/config/v1beta1"
 
@@ -197,7 +198,7 @@ func kvs(kv map[string]string) string {
 func makeCommonKubeletEnvParams(ng *api.NodeGroup) []string {
 	variables := []string{
 		fmt.Sprintf("NODE_LABELS=%s", kvs(ng.Labels)),
-		fmt.Sprintf("NODE_TAINTS=%s", kvs(ng.Taints)),
+		fmt.Sprintf("NODE_TAINTS=%s", utils.FormatTaints(ng.Taints)),
 	}
 
 	if ng.MaxPodsPerNode != 0 {

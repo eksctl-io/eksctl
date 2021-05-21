@@ -1,6 +1,8 @@
 package v1alpha5
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -17,6 +19,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
+	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/utils/taints"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -839,7 +843,7 @@ type NodeGroup struct {
 
 	// Taints taints to apply to the nodegroup
 	// +optional
-	Taints map[string]string `json:"taints,omitempty"`
+	Taints taintsWrapper `json:"taints,omitempty"`
 
 	// +optional
 	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
@@ -1515,6 +1519,35 @@ type InstanceSelector struct {
 // IsZero returns true if all fields hold a zero value
 func (is InstanceSelector) IsZero() bool {
 	return is == InstanceSelector{}
+}
+
+// taintsWrapper handles unmarshalling both map[string]string and []NodeGroupTaint
+type taintsWrapper []NodeGroupTaint
+
+// UnmarshalJSON implements json.Unmarshaler
+func (t *taintsWrapper) UnmarshalJSON(data []byte) error {
+	taintsMap := map[string]string{}
+	err := json.Unmarshal(data, &taintsMap)
+	if err == nil {
+		parsed := taints.Parse(taintsMap)
+		for _, p := range parsed {
+			*t = append(*t, NodeGroupTaint{
+				Key:    p.Key,
+				Value:  p.Value,
+				Effect: p.Effect,
+			})
+		}
+		return nil
+	}
+
+	var ngTaints []NodeGroupTaint
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&ngTaints); err != nil {
+		return errors.Wrap(err, "taints must be a {string: string} or a [{key, value, effect}]")
+	}
+	*t = ngTaints
+	return nil
 }
 
 // UnsupportedFeatureError is an error that represents an unsupported feature

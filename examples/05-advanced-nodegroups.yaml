@@ -56,7 +56,9 @@ nodeGroups:
           - GroupTerminatingInstances
           - GroupTotalInstances
     taints:
-      special: "true:NoSchedule"
+      - key: special
+        value: "true"
+        effect: NoSchedule
     privateNetworking: true
     availabilityZones: ["eu-west-2a"] # use single AZ to optimise data transfer between instances
     preBootstrapCommands:
