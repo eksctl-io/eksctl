@@ -16,11 +16,6 @@ trap 'rm -f ${TMP_KUBE_CONF}' EXIT
 jq -s '.[0] * .[1]' "${KUBELET_CONFIG}" "${KUBELET_EXTRA_ARGS}" > "${TMP_KUBE_CONF}"
 mv "${TMP_KUBE_CONF}" "${KUBELET_CONFIG}"
 
-echo "eksctl: merging user options into docker daemon.json"
-trap 'rm -f ${TMP_DOCKER_CONF}' EXIT
-jq -s '.[0] * .[1]' "${DOCKER_CONFIG}" "${DOCKER_EXTRA_CONFIG}" > "${TMP_DOCKER_CONF}"
-mv "${TMP_DOCKER_CONF}" "${DOCKER_CONFIG}"
-
 systemctl daemon-reload
 echo "eksctl: restarting docker daemon"
 systemctl restart docker
