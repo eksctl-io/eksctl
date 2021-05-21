@@ -6,8 +6,8 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  it:
-    name: Run integration tests
+  addons:
+    name: Run addons suite
     environment: "Integration tests"
     runs-on: ubuntu-latest
     container: weaveworks/eksctl-build:f7ca8ff60e5531bf7fce280d3be21771edcc946e
@@ -42,18 +42,566 @@ jobs:
           AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
           TEST_V: "1"
           GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
-        run: make integration-test
-      - name: Notify slack on success
-        if: success() && github.event_name == 'schedule'
-        uses: ./.github/actions/notify-slack
+        run: |
+          make build
+          ginkgo -tags integration -v --progress integration/tests/addons/... -- -test.v -ginkgo.v
+
+  backwardCompat:
+    name: Run backward compat suite
+    environment: "Integration tests"
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:f6356cc88a3197f2bfe24090cb89d4d28199f943
+    env:
+      SSH: "/root/.ssh"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
         with:
-          webhook-url: "${{ secrets.SLACK_WEBHOOK }}"
-          message: ":deal-with-it-parrot: An integration test run succeeded!"
-          channel: team-pitch-black
-      - name: Notify slack on failure
-        if: failure() && github.event_name == 'schedule'
-        uses: ./.github/actions/notify-slack
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup SSH known hosts
+        shell: bash
+        run: |
+          mkdir -p ${SSH} && chmod 700 ${SSH}
+          ssh-keyscan github.com >> ${SSH}/known_hosts
+      - name: Setup SSH key
+        shell: bash
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.EKSCTLBOT_SSH_KEY }}"
+      - name: Run integration tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          TEST_V: "1"
+          GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
+        run: |
+          make build
+          ginkgo -tags integration -v --progress integration/tests/backwards_compat/... -- -test.v -ginkgo.v
+
+  beforeActive:
+    name: Run before active suite
+    environment: "Integration tests"
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:f6356cc88a3197f2bfe24090cb89d4d28199f943
+    env:
+      SSH: "/root/.ssh"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
         with:
-          webhook-url: "${{ secrets.SLACK_WEBHOOK }}"
-          message: ":ahhhhhhhhh: An integration test run failed!"
-          channel: team-pitch-black
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup SSH known hosts
+        shell: bash
+        run: |
+          mkdir -p ${SSH} && chmod 700 ${SSH}
+          ssh-keyscan github.com >> ${SSH}/known_hosts
+      - name: Setup SSH key
+        shell: bash
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.EKSCTLBOT_SSH_KEY }}"
+      - name: Run integration tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          TEST_V: "1"
+          GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
+        run: |
+          make build
+          ginkgo -tags integration -v --progress integration/tests/before_active/... -- -test.v -ginkgo.v
+
+  clusterAPI:
+    name: Run cluster api suite
+    environment: "Integration tests"
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:f6356cc88a3197f2bfe24090cb89d4d28199f943
+    env:
+      SSH: "/root/.ssh"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup SSH known hosts
+        shell: bash
+        run: |
+          mkdir -p ${SSH} && chmod 700 ${SSH}
+          ssh-keyscan github.com >> ${SSH}/known_hosts
+      - name: Setup SSH key
+        shell: bash
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.EKSCTLBOT_SSH_KEY }}"
+      - name: Run integration tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          TEST_V: "1"
+          GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
+        run: |
+          make build
+          ginkgo -tags integration -v --progress integration/tests/cluster_api/... -- -test.v -ginkgo.v
+
+  crud:
+    name: Run cruid suite
+    environment: "Integration tests"
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:f6356cc88a3197f2bfe24090cb89d4d28199f943
+    env:
+      SSH: "/root/.ssh"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup SSH known hosts
+        shell: bash
+        run: |
+          mkdir -p ${SSH} && chmod 700 ${SSH}
+          ssh-keyscan github.com >> ${SSH}/known_hosts
+      - name: Setup SSH key
+        shell: bash
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.EKSCTLBOT_SSH_KEY }}"
+      - name: Run integration tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          TEST_V: "1"
+          GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
+        run: |
+          make build
+          ginkgo -tags integration -v --progress integration/tests/crud/... -- -test.v -ginkgo.v
+
+  dryRun:
+    name: Run dry run suite
+    environment: "Integration tests"
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:f6356cc88a3197f2bfe24090cb89d4d28199f943
+    env:
+      SSH: "/root/.ssh"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup SSH known hosts
+        shell: bash
+        run: |
+          mkdir -p ${SSH} && chmod 700 ${SSH}
+          ssh-keyscan github.com >> ${SSH}/known_hosts
+      - name: Setup SSH key
+        shell: bash
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.EKSCTLBOT_SSH_KEY }}"
+      - name: Run integration tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          TEST_V: "1"
+          GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
+        run: |
+          make build
+          ginkgo -tags integration -v --progress integration/tests/dry_run/... -- -test.v -ginkgo.v
+
+  fargate:
+    name: Run fargate suite
+    environment: "Integration tests"
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:f6356cc88a3197f2bfe24090cb89d4d28199f943
+    env:
+      SSH: "/root/.ssh"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup SSH known hosts
+        shell: bash
+        run: |
+          mkdir -p ${SSH} && chmod 700 ${SSH}
+          ssh-keyscan github.com >> ${SSH}/known_hosts
+      - name: Setup SSH key
+        shell: bash
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.EKSCTLBOT_SSH_KEY }}"
+      - name: Run integration tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          TEST_V: "1"
+          GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
+        run: |
+          make build
+          ginkgo -tags integration -v --progress integration/tests/fargate/... -- -test.v -ginkgo.v
+
+  gitops:
+    name: Run gitops suite
+    environment: "Integration tests"
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:f6356cc88a3197f2bfe24090cb89d4d28199f943
+    env:
+      SSH: "/root/.ssh"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup SSH known hosts
+        shell: bash
+        run: |
+          mkdir -p ${SSH} && chmod 700 ${SSH}
+          ssh-keyscan github.com >> ${SSH}/known_hosts
+      - name: Setup SSH key
+        shell: bash
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.EKSCTLBOT_SSH_KEY }}"
+      - name: Run integration tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          TEST_V: "1"
+          GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
+        run: |
+          make build
+          ginkgo -tags integration -v --progress integration/tests/gitops/... -- -test.v -ginkgo.v
+
+  inferentia:
+    name: Run inferentia suite
+    environment: "Integration tests"
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:f6356cc88a3197f2bfe24090cb89d4d28199f943
+    env:
+      SSH: "/root/.ssh"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup SSH known hosts
+        shell: bash
+        run: |
+          mkdir -p ${SSH} && chmod 700 ${SSH}
+          ssh-keyscan github.com >> ${SSH}/known_hosts
+      - name: Setup SSH key
+        shell: bash
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.EKSCTLBOT_SSH_KEY }}"
+      - name: Run integration tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          TEST_V: "1"
+          GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
+        run: |
+          make build
+          ginkgo -tags integration -v --progress integration/tests/inferentia/... -- -test.v -ginkgo.v
+
+  managed:
+    name: Run managed suite
+    environment: "Integration tests"
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:f6356cc88a3197f2bfe24090cb89d4d28199f943
+    env:
+      SSH: "/root/.ssh"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup SSH known hosts
+        shell: bash
+        run: |
+          mkdir -p ${SSH} && chmod 700 ${SSH}
+          ssh-keyscan github.com >> ${SSH}/known_hosts
+      - name: Setup SSH key
+        shell: bash
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.EKSCTLBOT_SSH_KEY }}"
+      - name: Run integration tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          TEST_V: "1"
+          GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
+        run: |
+          make build
+          ginkgo -tags integration -v --progress integration/tests/managed/... -- -test.v -ginkgo.v
+
+  quickstartProfiles:
+    name: Run quickstart profiles suite
+    environment: "Integration tests"
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:f6356cc88a3197f2bfe24090cb89d4d28199f943
+    env:
+      SSH: "/root/.ssh"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup SSH known hosts
+        shell: bash
+        run: |
+          mkdir -p ${SSH} && chmod 700 ${SSH}
+          ssh-keyscan github.com >> ${SSH}/known_hosts
+      - name: Setup SSH key
+        shell: bash
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.EKSCTLBOT_SSH_KEY }}"
+      - name: Run integration tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          TEST_V: "1"
+          GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
+        run: |
+          make build
+          ginkgo -tags integration -v --progress integration/tests/quickstart_profiles/... -- -test.v -ginkgo.v
+
+  quickstartProfilesGen:
+    name: Run quickstart profiles gen suite
+    environment: "Integration tests"
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:f6356cc88a3197f2bfe24090cb89d4d28199f943
+    env:
+      SSH: "/root/.ssh"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup SSH known hosts
+        shell: bash
+        run: |
+          mkdir -p ${SSH} && chmod 700 ${SSH}
+          ssh-keyscan github.com >> ${SSH}/known_hosts
+      - name: Setup SSH key
+        shell: bash
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.EKSCTLBOT_SSH_KEY }}"
+      - name: Run integration tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          TEST_V: "1"
+          GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
+        run: |
+          make build
+          ginkgo -tags integration -v --progress integration/tests/quickstart_profiles_gen/... -- -test.v -ginkgo.v
+
+  unownedCluster:
+    name: Run unowned cluster suite
+    environment: "Integration tests"
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:f6356cc88a3197f2bfe24090cb89d4d28199f943
+    env:
+      SSH: "/root/.ssh"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup SSH known hosts
+        shell: bash
+        run: |
+          mkdir -p ${SSH} && chmod 700 ${SSH}
+          ssh-keyscan github.com >> ${SSH}/known_hosts
+      - name: Setup SSH key
+        shell: bash
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.EKSCTLBOT_SSH_KEY }}"
+      - name: Run integration tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          TEST_V: "1"
+          GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
+        run: |
+          make build
+          ginkgo -tags integration -v --progress integration/tests/unowned_cluster/... -- -test.v -ginkgo.v
+
+  update:
+    name: Run update suite
+    environment: "Integration tests"
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:f6356cc88a3197f2bfe24090cb89d4d28199f943
+    env:
+      SSH: "/root/.ssh"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup SSH known hosts
+        shell: bash
+        run: |
+          mkdir -p ${SSH} && chmod 700 ${SSH}
+          ssh-keyscan github.com >> ${SSH}/known_hosts
+      - name: Setup SSH key
+        shell: bash
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.EKSCTLBOT_SSH_KEY }}"
+      - name: Run integration tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          TEST_V: "1"
+          GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
+        run: |
+          make build
+          ginkgo -tags integration -v --progress integration/tests/update/... -- -test.v -ginkgo.v
+
+  windows:
+    name: Run windows suite
+    environment: "Integration tests"
+    runs-on: ubuntu-latest
+    container: weaveworks/eksctl-build:f6356cc88a3197f2bfe24090cb89d4d28199f943
+    env:
+      SSH: "/root/.ssh"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache go-build and mod
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/go-build/
+            ~/go/pkg/mod/
+          key: ${{ hashFiles('go.sum') }}
+      - name: Setup SSH known hosts
+        shell: bash
+        run: |
+          mkdir -p ${SSH} && chmod 700 ${SSH}
+          ssh-keyscan github.com >> ${SSH}/known_hosts
+      - name: Setup SSH key
+        shell: bash
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.EKSCTLBOT_SSH_KEY }}"
+      - name: Run integration tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          TEST_V: "1"
+          GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
+        run: |
+          make build
+          ginkgo -tags integration -v --progress integration/tests/windows/... -- -test.v -ginkgo.v
