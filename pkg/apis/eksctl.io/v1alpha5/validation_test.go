@@ -1080,12 +1080,13 @@ var _ = Describe("ClusterConfig validation", func() {
 	}
 
 	DescribeTable("UpdateConfig", func(e updateConfigEntry) {
-		ng := newNodeGroup()
-		ng.UpdateConfig = &api.NodeGroupUpdateConfig{
-			MaxUnavailable:             e.unavailable,
-			MaxUnavailableInPercentage: e.unavailablePercentage,
+		ng := &api.ManagedNodeGroup{
+			UpdateConfig: &api.NodeGroupUpdateConfig{
+				MaxUnavailable:             e.unavailable,
+				MaxUnavailableInPercentage: e.unavailablePercentage,
+			},
 		}
-		err := api.ValidateNodeGroup(0, ng)
+		err := api.ValidateManagedNodeGroup(ng, 0)
 		if e.valid {
 			Expect(err).ToNot(HaveOccurred())
 		} else {
