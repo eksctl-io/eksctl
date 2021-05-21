@@ -90,7 +90,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				)
 			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 				ContainElement(ContainSubstring("vpc-cni")),
-				ContainElement(ContainSubstring("core-dns")),
+				ContainElement(ContainSubstring("coredns")),
 			))
 
 			By("Asserting the addons are healthy")
@@ -133,18 +133,6 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 					"--verbose", "2",
 				)
 			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(ContainElement(ContainSubstring("ACTIVE"))))
-
-			By("Updating the kube-proxy addon")
-			cmd = params.EksctlUpdateCmd.
-				WithArgs(
-					"addon",
-					"--name", "kube-proxy",
-					"--cluster", clusterName,
-					"--version", "latest",
-					"--wait",
-					"--verbose", "2",
-				)
-			Expect(cmd).To(RunSuccessfully())
 
 			By("Deleting the kube-proxy addon")
 			cmd = params.EksctlDeleteCmd.
