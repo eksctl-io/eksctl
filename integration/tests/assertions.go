@@ -17,12 +17,17 @@ func AssertNodeTaints(clientset kubernetes.Interface, nodeGroupName string, expe
 	})
 	Expect(err).ToNot(HaveOccurred())
 
+	//unset the time so the structs can be compared
 	for _, node := range nodeList.Items {
-		for i, t := range node.Spec.Taints {
-			expected := expectedTaints[i]
-			Expect(t.Key).To(Equal(expected.Key))
-			Expect(t.Value).To(Equal(expected.Value))
-			Expect(t.Effect).To(Equal(expected.Effect))
+		for _, t := range node.Spec.Taints {
+			t.TimeAdded = nil
+		}
+	}
+
+	for _, node := range nodeList.Items {
+		Expect(node.Spec.Taints).To(HaveLen(len(expectedTaints)))
+		for _, taint := range expectedTaints {
+			Expect(node.Spec.Taints).To(ContainElement(taint))
 		}
 	}
 }
