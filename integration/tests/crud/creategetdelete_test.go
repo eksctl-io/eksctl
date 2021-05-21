@@ -203,7 +203,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			It("should not return an error", func() {
 				cmd := params.EksctlCreateCmd.WithArgs(
 					"nodegroup",
-					"--timeout=45m0s",
+					"--timeout=45m",
 					"--cluster", params.ClusterName,
 					"--nodes", "1",
 					"--node-type", "p2.xlarge",
