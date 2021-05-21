@@ -844,6 +844,10 @@ type NodeGroup struct {
 	// +optional
 	Taints taintsWrapper `json:"taints,omitempty"`
 
+	// UpdateConfig configures how to update NodeGroups.
+	// +pptional
+	UpdateConfig *NodeGroupUpdateConfig `json:"updateConfig,omitempty"`
+
 	// [Custom
 	// address](/usage/vpc-networking/#custom-cluster-dns-address) used for DNS
 	// lookups
@@ -1147,6 +1151,19 @@ type (
 		// +optional
 		Settings *InlineDocument `json:"settings,omitempty"`
 	}
+
+	// NodeGroupUpdateConfig contains the configuration for updating NodeGroups.
+	NodeGroupUpdateConfig struct {
+		// MaxUnavailable sets the max number of nodes that can become unavailable
+		// when updating a nodegroup (specified as number)
+		// +optional
+		MaxUnavailable *int64 `json:"maxUnavailable,omitempty"`
+
+		// MaxUnavailableInPercentage sets the max number of nodes that can become unavailable
+		// when updating a nodegroup (specified as percentage)
+		// +optional
+		MaxUnavailableInPercentage *int64 `json:"maxUnavailablePercentage,omitempty"`
+	}
 )
 
 // MetricsCollection used by the scaling config,
@@ -1368,6 +1385,10 @@ type ManagedNodeGroup struct {
 
 	// Taints taints to apply to the nodegroup
 	Taints []NodeGroupTaint `json:"taints,omitempty"`
+
+	// UpdateConfig configures how to update NodeGroups.
+	// +pptional
+	UpdateConfig *NodeGroupUpdateConfig `json:"updateConfig,omitempty"`
 
 	// LaunchTemplate specifies an existing launch template to use
 	// for the nodegroup
