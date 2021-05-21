@@ -21,6 +21,7 @@ nav:
             - usage/cloudwatch-cluster-logging.md
             - usage/eks-private-cluster.md
             - usage/addons.md
+            - usage/gitops.md
             - usage/emr-access.md
             - usage/fargate-support.md
             - usage/cluster-upgrade.md
@@ -37,9 +38,6 @@ nav:
             - usage/autoscaling.md
             - usage/custom-ami-support.md
             - usage/windows-worker-nodes.md
-        - GitOps:
-            - usage/gitops-v2.md
-            - usage/gitops-v1.md
         - Security:
             - usage/security.md
             - usage/kms-encryption.md
