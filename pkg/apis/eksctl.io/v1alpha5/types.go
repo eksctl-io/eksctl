@@ -845,7 +845,7 @@ type NodeGroup struct {
 	Taints taintsWrapper `json:"taints,omitempty"`
 
 	// UpdateConfig configures how to update NodeGroups.
-	// +pptional
+	// +optional
 	UpdateConfig *NodeGroupUpdateConfig `json:"updateConfig,omitempty"`
 
 	// [Custom

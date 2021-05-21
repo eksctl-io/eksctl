@@ -585,6 +585,12 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 		ng.DesiredCapacity = ng.MinSize
 	}
 
+	if ng.UpdateConfig != nil {
+		if ng.UpdateConfig.MaxUnavailable != nil && ng.UpdateConfig.MaxUnavailableInPercentage != nil {
+			return fmt.Errorf("cannot use --max-unavailable and --max-unavailable-in-percentage at the same time")
+		}
+	}
+
 	if IsEnabled(ng.SecurityGroups.WithLocal) || IsEnabled(ng.SecurityGroups.WithShared) {
 		return errors.Errorf("securityGroups.withLocal and securityGroups.withShared are not supported for managed nodegroups (%s.securityGroups)", path)
 	}
