@@ -3,19 +3,16 @@ package flux
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os/exec"
 	"strings"
 
-	"github.com/Masterminds/semver/v3"
 	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/executor"
 )
 
-const (
-	fluxBin             = "flux"
-	minSupportedVersion = ">= 0.13.3"
-)
+const fluxBin = "flux"
 
 type Client struct {
 	executor executor.Executor
@@ -23,8 +20,13 @@ type Client struct {
 }
 
 func NewClient(opts *api.Flux) (*Client, error) {
+	env, err := setTokenEnv(opts.AuthTokenPath, opts.GitProvider)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Client{
-		executor: executor.NewShellExecutor(executor.EnvVars{}),
+		executor: executor.NewShellExecutor(env),
 		opts:     opts,
 	}, nil
 }
@@ -35,18 +37,32 @@ func (c *Client) PreFlight() error {
 		return errors.New("flux not found, required")
 	}
 
-	if err := c.checkFluxVersion(); err != nil {
-		return err
+	args := []string{"check", "--pre"}
+
+	if c.opts.Kubeconfig != "" {
+		args = append(args, "--kubeconfig", c.opts.Kubeconfig)
 	}
 
-	return c.runFluxCmd("check", "--pre")
+	return c.runFluxCmd(args...)
 }
 
 func (c *Client) Bootstrap() error {
-	args := []string{"bootstrap", c.opts.GitProvider}
+	args := []string{"bootstrap", c.opts.GitProvider, "--repository", c.opts.Repository, "--owner", c.opts.Owner}
 
-	for k, v := range c.opts.Flags {
-		args = append(args, fmt.Sprintf("--%s", k), v)
+	if c.opts.Personal {
+		args = append(args, "--personal")
+	}
+	if c.opts.Path != "" {
+		args = append(args, "--path", c.opts.Path)
+	}
+	if c.opts.Branch != "" {
+		args = append(args, "--branch", c.opts.Branch)
+	}
+	if c.opts.Namespace != "" {
+		args = append(args, "--namespace", c.opts.Namespace)
+	}
+	if c.opts.Kubeconfig != "" {
+		args = append(args, "--kubeconfig", c.opts.Kubeconfig)
 	}
 
 	return c.runFluxCmd(args...)
@@ -57,32 +73,25 @@ func (c *Client) runFluxCmd(args ...string) error {
 	return c.executor.Exec(fluxBin, args...)
 }
 
-func (c *Client) checkFluxVersion() error {
-	logger.Debug(fmt.Sprintf("checking flux version is %s", minSupportedVersion))
-	out, err := c.executor.ExecWithOut(fluxBin, "--version")
+func setTokenEnv(tokenPath, gitProvider string) (executor.EnvVars, error) {
+	if tokenPath == "" {
+		return executor.EnvVars{}, nil
+	}
+
+	var token string
+	data, err := ioutil.ReadFile(tokenPath)
 	if err != nil {
-		return err
+		return executor.EnvVars{}, fmt.Errorf("reading auth token file %w", err)
 	}
 
-	parts := strings.Split(string(out), " ")
-	if len(parts) < 3 {
-		return fmt.Errorf("unexpected format returned from 'flux --version': %s", parts)
+	token = strings.Replace(string(data), "\n", "", -1)
+	envVars := executor.EnvVars{}
+	switch gitProvider {
+	case "github":
+		envVars["GITHUB_TOKEN"] = token
+	case "gitlab":
+		envVars["GITLAB_TOKEN"] = token
 	}
 
-	v, err := semver.NewVersion(parts[2])
-	if err != nil {
-		return err
-	}
-
-	constraint, err := semver.NewConstraint(minSupportedVersion)
-	if err != nil {
-		return err
-	}
-
-	withinBounds := constraint.Check(v)
-	if !withinBounds {
-		return fmt.Errorf("found flux version 0.13.2, eksctl requires %s", minSupportedVersion)
-	}
-
-	return nil
+	return envVars, nil
 }
