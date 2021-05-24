@@ -170,4 +170,43 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 			},
 		}),
 	)
+
+	type updateConfigEntry struct {
+		unavailable           *int64
+		unavailablePercentage *int64
+		valid                 bool
+	}
+
+	DescribeTable("UpdateConfig", func(e updateConfigEntry) {
+		mng := &ManagedNodeGroup{
+			NodeGroupBase: &NodeGroupBase{
+				AMIFamily: "AmazonLinux2",
+			},
+			UpdateConfig: &NodeGroupUpdateConfig{
+				MaxUnavailable:             e.unavailable,
+				MaxUnavailableInPercentage: e.unavailablePercentage,
+			},
+		}
+		SetManagedNodeGroupDefaults(mng, &ClusterMeta{Name: "managed-cluster"})
+		err := ValidateManagedNodeGroup(mng, 0)
+		if e.valid {
+			Expect(err).ToNot(HaveOccurred())
+		} else {
+			Expect(err).To(HaveOccurred())
+		}
+	},
+		Entry("max unavailable set", updateConfigEntry{
+			unavailable: aws.Int64(1),
+			valid:       true,
+		}),
+		Entry("max unavailable specified in percentage", updateConfigEntry{
+			unavailablePercentage: aws.Int64(1),
+			valid:                 true,
+		}),
+		Entry("both set", updateConfigEntry{
+			unavailable:           aws.Int64(1),
+			unavailablePercentage: aws.Int64(1),
+			valid:                 false,
+		}),
+	)
 })

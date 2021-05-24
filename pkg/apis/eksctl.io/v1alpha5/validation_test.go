@@ -1073,40 +1073,39 @@ var _ = Describe("ClusterConfig validation", func() {
 		}),
 	)
 
-	type updateConfigEntry struct {
-		unavailable           *int64
-		unavailablePercentage *int64
-		valid                 bool
-	}
+	// type updateConfigEntry struct {
+	// 	unavailable           *int64
+	// 	unavailablePercentage *int64
+	// 	valid                 bool
+	// }
 
-	DescribeTable("UpdateConfig", func(e updateConfigEntry) {
-		ng := &api.ManagedNodeGroup{
-			UpdateConfig: &api.NodeGroupUpdateConfig{
-				MaxUnavailable:             e.unavailable,
-				MaxUnavailableInPercentage: e.unavailablePercentage,
-			},
-		}
-		err := api.ValidateManagedNodeGroup(ng, 0)
-		if e.valid {
-			Expect(err).ToNot(HaveOccurred())
-		} else {
-			Expect(err).To(HaveOccurred())
-		}
-	},
-		Entry("max unavailable set", updateConfigEntry{
-			unavailable: aws.Int64(1),
-			valid:       true,
-		}),
-		Entry("max unavailable specified in percentage", updateConfigEntry{
-			unavailablePercentage: aws.Int64(1),
-			valid:                 true,
-		}),
-		Entry("both set", updateConfigEntry{
-			unavailable:           aws.Int64(1),
-			unavailablePercentage: aws.Int64(1),
-			valid:                 false,
-		}),
-	)
+	// DescribeTable("UpdateConfig", func(e updateConfigEntry) {
+	// 	ng := newNodeGroup()
+	// 	ng.UpdateConfig = &api.NodeGroupUpdateConfig{
+	// 		MaxUnavailable:             e.unavailable,
+	// 		MaxUnavailableInPercentage: e.unavailablePercentage,
+	// 	}
+	// 	err := api.ValidateNodeGroup(0, ng)
+	// 	if e.valid {
+	// 		Expect(err).ToNot(HaveOccurred())
+	// 	} else {
+	// 		Expect(err).To(HaveOccurred())
+	// 	}
+	// },
+	// 	Entry("max unavailable set", updateConfigEntry{
+	// 		unavailable: aws.Int64(1),
+	// 		valid:       false,
+	// 	}),
+	// 	Entry("max unavailable specified in percentage", updateConfigEntry{
+	// 		unavailablePercentage: aws.Int64(1),
+	// 		valid:                 false,
+	// 	}),
+	// 	Entry("both set", updateConfigEntry{
+	// 		unavailable:           aws.Int64(1),
+	// 		unavailablePercentage: aws.Int64(1),
+	// 		valid:                 false,
+	// 	}),
+	// )
 })
 
 func newInt(value int) *int {
