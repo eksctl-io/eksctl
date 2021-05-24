@@ -172,8 +172,8 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 	)
 
 	type updateConfigEntry struct {
-		unavailable           *int
-		unavailablePercentage *int
+		unavailable           *int64
+		unavailablePercentage *int64
 		valid                 bool
 	}
 
@@ -196,16 +196,16 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 		}
 	},
 		Entry("max unavailable set", updateConfigEntry{
-			unavailable: aws.Int(1),
+			unavailable: aws.Int64(1),
 			valid:       true,
 		}),
 		Entry("max unavailable specified in percentage", updateConfigEntry{
-			unavailablePercentage: aws.Int(1),
+			unavailablePercentage: aws.Int64(1),
 			valid:                 true,
 		}),
 		Entry("both set", updateConfigEntry{
-			unavailable:           aws.Int(1),
-			unavailablePercentage: aws.Int(1),
+			unavailable:           aws.Int64(1),
+			unavailablePercentage: aws.Int64(1),
 			valid:                 false,
 		}),
 	)
