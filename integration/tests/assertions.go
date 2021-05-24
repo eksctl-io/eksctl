@@ -25,7 +25,6 @@ func AssertNodeTaints(clientset kubernetes.Interface, nodeGroupName string, expe
 	}
 
 	for _, node := range nodeList.Items {
-		Expect(node.Spec.Taints).To(HaveLen(len(expectedTaints)))
 		for _, taint := range expectedTaints {
 			Expect(node.Spec.Taints).To(ContainElement(taint))
 		}
