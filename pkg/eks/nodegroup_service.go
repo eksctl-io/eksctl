@@ -13,8 +13,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ssh"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
 // InstanceSelector selects a set of instance types matching the specified instance selector criteria
-//go:generate counterfeiter -o fakes/fake_instance_selector.go . InstanceSelector
+//counterfeiter:generate -o fakes/fake_instance_selector.go . InstanceSelector
 type InstanceSelector interface {
 	// Filter returns a set of instance types matching the specified instance selector filters
 	Filter(selector.Filters) ([]string, error)
