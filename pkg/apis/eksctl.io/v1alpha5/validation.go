@@ -353,10 +353,6 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		return err
 	}
 
-	// if ng.UpdateConfig != nil {
-	// 	return fmt.Errorf("cannot use --update-config for unmanaged nodegroups")
-	// }
-
 	if err := validateNodeGroupLabels(ng.Labels); err != nil {
 		return err
 	}
