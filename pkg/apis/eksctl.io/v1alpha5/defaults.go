@@ -126,10 +126,6 @@ func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta) {
 	ng.Tags[NodeGroupNameTag] = ng.Name
 	ng.Tags[NodeGroupTypeTag] = string(NodeGroupTypeManaged)
 
-	if ng.UpdateConfig == nil {
-		ng.UpdateConfig = &NodeGroupUpdateConfig{}
-	}
-
 	setVolumeDefaults(ng.NodeGroupBase, ng.LaunchTemplate)
 }
 
