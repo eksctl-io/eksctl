@@ -586,7 +586,7 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 	}
 
 	if ng.UpdateConfig != nil {
-		if ng.UpdateConfig.MaxUnavailable != nil && ng.UpdateConfig.MaxUnavailableInPercentage != nil {
+		if ng.UpdateConfig.MaxUnavailable != nil && ng.UpdateConfig.MaxUnavailablePercentage != nil {
 			return fmt.Errorf("cannot use --max-unavailable and --max-unavailable-in-percentage at the same time")
 		}
 	}

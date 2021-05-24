@@ -183,8 +183,8 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 				AMIFamily: "AmazonLinux2",
 			},
 			UpdateConfig: &NodeGroupUpdateConfig{
-				MaxUnavailable:             e.unavailable,
-				MaxUnavailableInPercentage: e.unavailablePercentage,
+				MaxUnavailable:           e.unavailable,
+				MaxUnavailablePercentage: e.unavailablePercentage,
 			},
 		}
 		SetManagedNodeGroupDefaults(mng, &ClusterMeta{Name: "managed-cluster"})

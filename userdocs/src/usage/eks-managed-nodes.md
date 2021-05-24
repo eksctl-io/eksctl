@@ -187,7 +187,7 @@ eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --release
 
 ## Handling parallel upgrades for nodes
 
-Multiple managed nodes can be upgraded simultaneously. `upgradeConfig` can be used to handle parallel upgrades. To avoid any downtime to your workloads due to upgrading multiple nodes at once, limit the number of nodes that can become unavailable during an upgrade as `maximumUnavailable`. Alternatively, use `maxiumumUnavailableInPercentage`, which defines the maximum number of unavailable nodes as a percentage of the total number of nodes. Note that this feature is only available for managed nodes.
+Multiple managed nodes can be upgraded simultaneously. `upgradeConfig` can be used to handle parallel upgrades. To avoid any downtime to your workloads due to upgrading multiple nodes at once, limit the number of nodes that can become unavailable during an upgrade as `maxnavailable`. Alternatively, use `maxUnavailablePercentage`, which defines the maximum number of unavailable nodes as a percentage of the total number of nodes. Note that this feature is only available for managed nodes.
 
 
 ## Nodegroup Health issues

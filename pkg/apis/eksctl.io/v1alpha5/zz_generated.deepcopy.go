@@ -1423,8 +1423,8 @@ func (in *NodeGroupUpdateConfig) DeepCopyInto(out *NodeGroupUpdateConfig) {
 		*out = new(int)
 		**out = **in
 	}
-	if in.MaxUnavailableInPercentage != nil {
-		in, out := &in.MaxUnavailableInPercentage, &out.MaxUnavailableInPercentage
+	if in.MaxUnavailablePercentage != nil {
+		in, out := &in.MaxUnavailablePercentage, &out.MaxUnavailablePercentage
 		*out = new(int)
 		**out = **in
 	}

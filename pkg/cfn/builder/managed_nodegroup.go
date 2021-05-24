@@ -108,10 +108,10 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	if m.nodeGroup.UpdateConfig != nil {
 		updateConfig := &gfneks.Nodegroup_UpdateConfig{}
 		if m.nodeGroup.UpdateConfig.MaxUnavailable != nil {
-			updateConfig.MaxParallel = gfnt.NewInteger(*m.nodeGroup.UpdateConfig.MaxUnavailable)
+			updateConfig.MaxUnavailable = gfnt.NewInteger(*m.nodeGroup.UpdateConfig.MaxUnavailable)
 		}
-		if m.nodeGroup.UpdateConfig.MaxUnavailableInPercentage != nil {
-			updateConfig.MaxParallelInPercentage = gfnt.NewInteger(*m.nodeGroup.UpdateConfig.MaxUnavailableInPercentage)
+		if m.nodeGroup.UpdateConfig.MaxUnavailablePercentage != nil {
+			updateConfig.MaxUnavailablePercentage = gfnt.NewInteger(*m.nodeGroup.UpdateConfig.MaxUnavailablePercentage)
 		}
 		managedResource.UpdateConfig = updateConfig
 	}
