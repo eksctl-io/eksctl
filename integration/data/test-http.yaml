@@ -11,8 +11,11 @@ spec:
       labels: {test: http}
     spec:
       containers:
-      - image: tutum/curl@sha256:b6f16e88387acd4e6326176b212b3dae63f5b2134e69560d0b0673cfb0fb976f
+      - image: curlimages/curl@sha256:fa32ef426092b88ee0b569d6f81ab0203ee527692a94ec2e6ceb2fd0b6b2755c
         name: https-test-eksctl
+        command:
+        - sleep
+        - "3600"
         stdin: true
         tty: true
         readinessProbe:
@@ -27,8 +30,11 @@ spec:
             - --silent
             - --head
             - eksctl.io
-      - image: tutum/curl@sha256:b6f16e88387acd4e6326176b212b3dae63f5b2134e69560d0b0673cfb0fb976f
+      - image: curlimages/curl@sha256:fa32ef426092b88ee0b569d6f81ab0203ee527692a94ec2e6ceb2fd0b6b2755c
         name: https-test-kubernetes
+        command:
+        - sleep
+        - "3600"
         stdin: true
         tty: true
         readinessProbe:
@@ -43,8 +49,11 @@ spec:
             - --silent
             - --head
             - kubernetes.io
-      - image: tutum/curl@sha256:b6f16e88387acd4e6326176b212b3dae63f5b2134e69560d0b0673cfb0fb976f
+      - image: curlimages/curl@sha256:fa32ef426092b88ee0b569d6f81ab0203ee527692a94ec2e6ceb2fd0b6b2755c
         name: https-test-metadata
+        command:
+        - sleep
+        - "3600"
         stdin: true
         tty: true
         readinessProbe:

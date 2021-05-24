@@ -304,9 +304,11 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--cluster", params.ClusterName,
 				)
 				Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
-					HaveLen(3),
+					HaveLen(4),
 					ContainElement(initNG),
 					ContainElement(testNG),
+					ContainElement("n1"),
+					ContainElement("n2"),
 				)))
 			})
 
