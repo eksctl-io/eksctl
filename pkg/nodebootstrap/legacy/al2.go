@@ -93,6 +93,11 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) ([]confi
 		return nil, err
 	}
 
+	metadata, err := makeMetadata(spec)
+	if err != nil {
+		return nil, err
+	}
+
 	files := []configFile{{
 		dir:     kubeletDropInUnitDir,
 		name:    "10-eksctl.al2.conf",
@@ -100,7 +105,7 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) ([]confi
 	}, {
 		dir:      configDir,
 		name:     "metadata.env",
-		contents: strings.Join(makeMetadata(spec), "\n"),
+		contents: strings.Join(metadata, "\n"),
 	}, {
 		dir:      configDir,
 		name:     "kubelet.env",

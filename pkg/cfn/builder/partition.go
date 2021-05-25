@@ -3,24 +3,35 @@ package builder
 import (
 	"fmt"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 var servicePrincipalPartitionMappings = map[string]map[string]string{
-	"aws": {
+	api.PartitionAWS: {
 		"EC2":            "ec2.amazonaws.com",
 		"EKS":            "eks.amazonaws.com",
 		"EKSFargatePods": "eks-fargate-pods.amazonaws.com",
 	},
-	"aws-us-gov": {
+	api.PartitionUSGov: {
 		"EC2":            "ec2.amazonaws.com",
 		"EKS":            "eks.amazonaws.com",
 		"EKSFargatePods": "eks-fargate-pods.amazonaws.com",
 	},
-	"aws-cn": {
+	api.PartitionChina: {
 		"EC2":            "ec2.amazonaws.com.cn",
-		"EKS":            "eks.amazonaws.com",
+		"EKS":            "eks.amazonaws.com.cn",
 		"EKSFargatePods": "eks-fargate-pods.amazonaws.com",
+	},
+	api.PartitionUSIso: {
+		"EC2":            "ec2.c2s.ic.gov",
+		"EKS":            "eks.c2s.ic.gov",
+		"EKSFargatePods": "eks-fargate-pods.c2s.ic.gov",
+	},
+	api.PartitionUSIsob: {
+		"EC2":            "ec2.sc2s.sgov.gov",
+		"EKS":            "eks.sc2s.sgov.gov",
+		"EKSFargatePods": "eks-fargate-pods.sc2s.sgov.gov",
 	},
 }
 

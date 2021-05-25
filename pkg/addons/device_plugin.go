@@ -206,7 +206,10 @@ func (n *EFADevicePlugin) Manifest() []byte {
 }
 
 func (n *EFADevicePlugin) SetImage(t *v1.PodTemplateSpec) error {
-	account := api.EKSResourceAccountID(n.region)
+	account, err := api.EKSResourceAccountID(n.region)
+	if err != nil {
+		return err
+	}
 	return useRegionalImage(t, n.region, account)
 }
 

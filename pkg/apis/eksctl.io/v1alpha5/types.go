@@ -152,15 +152,23 @@ const (
 	// RegionUSGovEast1 represents the region GovCloud (US-East)
 	RegionUSGovEast1 = "us-gov-east-1"
 
+	// RegionUSIsoEast1 represents the region ISO (US-East)
+	RegionUSIsoEast1 = "us-iso-east-1"
+
+	// RegionUSIsobEast1 represents the region ISOB (US-East)
+	RegionUSIsobEast1 = "us-isob-east-1"
+
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 )
 
 // Partitions
 const (
-	PartitionAWS   = "aws"
-	PartitionChina = "aws-cn"
-	PartitionUSGov = "aws-us-gov"
+	PartitionAWS    = "aws"
+	PartitionChina  = "aws-cn"
+	PartitionUSGov  = "aws-us-gov"
+	PartitionUSIso  = "aws-iso"
+	PartitionUSIsob = "aws-iso-b"
 )
 
 // Values for `NodeAMIFamily`
@@ -240,34 +248,6 @@ const (
 	// minimized, but also the preference for certain instance types matters.
 	// https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-purchase-options.html#asg-spot-strategy
 	SpotAllocationStrategyCapacityOptimizedPrioritized = "capacity-optimized-prioritized"
-
-	// eksResourceAccountStandard defines the AWS EKS account ID that provides node resources in default regions
-	// for standard AWS partition
-	eksResourceAccountStandard = "602401143452"
-
-	// eksResourceAccountAPEast1 defines the AWS EKS account ID that provides node resources in ap-east-1 region
-	eksResourceAccountAPEast1 = "800184023465"
-
-	// eksResourceAccountMESouth1 defines the AWS EKS account ID that provides node resources in me-south-1 region
-	eksResourceAccountMESouth1 = "558608220178"
-
-	// eksResourceAccountCNNorthWest1 defines the AWS EKS account ID that provides node resources in cn-northwest-1 region
-	eksResourceAccountCNNorthWest1 = "961992271922"
-
-	// eksResourceAccountCNNorth1 defines the AWS EKS account ID that provides node resources in cn-north-1
-	eksResourceAccountCNNorth1 = "918309763551"
-
-	// eksResourceAccountAFSouth1 defines the AWS EKS account ID that provides node resources in af-south-1
-	eksResourceAccountAFSouth1 = "877085696533"
-
-	// eksResourceAccountEUSouth1 defines the AWS EKS account ID that provides node resources in eu-south-1
-	eksResourceAccountEUSouth1 = "590381155156"
-
-	// eksResourceAccountUSGovWest1 defines the AWS EKS account ID that provides node resources in us-gov-west-1
-	eksResourceAccountUSGovWest1 = "013241004608"
-
-	// eksResourceAccountUSGovEast1 defines the AWS EKS account ID that provides node resources in us-gov-east-1
-	eksResourceAccountUSGovEast1 = "151742754352"
 )
 
 // Values for `VolumeType`
@@ -367,6 +347,8 @@ func SupportedRegions() []string {
 		RegionCNNorth1,
 		RegionUSGovWest1,
 		RegionUSGovEast1,
+		RegionUSIsoEast1,
+		RegionUSIsobEast1,
 	}
 }
 
@@ -375,6 +357,10 @@ func Partition(region string) string {
 	switch region {
 	case RegionUSGovWest1, RegionUSGovEast1:
 		return PartitionUSGov
+	case RegionUSIsoEast1:
+		return PartitionUSIso
+	case RegionUSIsobEast1:
+		return PartitionUSIsob
 	case RegionCNNorth1, RegionCNNorthwest1:
 		return PartitionChina
 	default:
@@ -468,31 +454,6 @@ func isSpotAllocationStrategySupported(allocationStrategy string) bool {
 		}
 	}
 	return false
-}
-
-// EKSResourceAccountID provides worker node resources(ami/ecr image) in different aws account
-// for different aws partitions & opt-in regions.
-func EKSResourceAccountID(region string) string {
-	switch region {
-	case RegionAPEast1:
-		return eksResourceAccountAPEast1
-	case RegionMESouth1:
-		return eksResourceAccountMESouth1
-	case RegionCNNorthwest1:
-		return eksResourceAccountCNNorthWest1
-	case RegionCNNorth1:
-		return eksResourceAccountCNNorth1
-	case RegionUSGovWest1:
-		return eksResourceAccountUSGovWest1
-	case RegionUSGovEast1:
-		return eksResourceAccountUSGovEast1
-	case RegionAFSouth1:
-		return eksResourceAccountAFSouth1
-	case RegionEUSouth1:
-		return eksResourceAccountEUSouth1
-	default:
-		return eksResourceAccountStandard
-	}
 }
 
 // ClusterMeta contains general cluster information

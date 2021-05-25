@@ -49,7 +49,7 @@ func OwnerAccountID(imageFamily, region string) (string, error) {
 	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
 		return ownerIDUbuntuFamily, nil
 	case api.NodeImageFamilyAmazonLinux2:
-		return api.EKSResourceAccountID(region), nil
+		return api.EKSResourceAccountID(region)
 	default:
 		if api.IsWindowsImage(imageFamily) {
 			return ownerIDWindowsFamily, nil

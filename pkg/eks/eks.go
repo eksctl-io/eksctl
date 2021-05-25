@@ -269,7 +269,7 @@ func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iam
 		return nil, errors.Wrapf(err, "unexpected invalid ARN: %q", spec.Status.ARN)
 	}
 	switch parsedARN.Partition {
-	case "aws", "aws-cn", "aws-us-gov":
+	case api.PartitionAWS, api.PartitionChina, api.PartitionUSGov, api.PartitionUSIso, api.PartitionUSIsob:
 	default:
 		return nil, fmt.Errorf("unknown EKS ARN: %q", spec.Status.ARN)
 	}
@@ -325,7 +325,6 @@ func (c *ClusterProvider) loadClusterKubernetesNetworkConfig(spec *api.ClusterCo
 func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*api.ClusterConfig, error) {
 	if listAllRegions {
 		var clusters []*api.ClusterConfig
-		// reset region and re-create the client, then make a recursive call
 		authorizedRegions, err := c.Provider.EC2().DescribeRegions(&ec2.DescribeRegionsInput{})
 		if err != nil {
 			return nil, err

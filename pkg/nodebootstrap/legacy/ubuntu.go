@@ -90,12 +90,18 @@ func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) ([]configFile,
 	dockerConfigData, err := makeDockerConfigJSON()
 	if err != nil {
 		return nil, err
+
+	}
+
+	metadata, err := makeMetadata(spec)
+	if err != nil {
+		return nil, err
 	}
 
 	files := []configFile{{
 		dir:      configDir,
 		name:     "metadata.env",
-		contents: strings.Join(makeMetadata(spec), "\n"),
+		contents: strings.Join(metadata, "\n"),
 	}, {
 		dir:      configDir,
 		name:     "kubelet.env",

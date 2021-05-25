@@ -67,6 +67,10 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 		return nil, ErrUnsupportedRegion(&c.ProviderConfig)
 	}
 
+	if err := api.ValidateEKSAccountID(ctl.Provider.Region()); err != nil {
+		return nil, err
+	}
+
 	return ctl, nil
 }
 

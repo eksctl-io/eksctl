@@ -305,6 +305,23 @@ var _ = Describe("EKS API wrapper", func() {
 				p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeRegions", 1)
 			})
 		})
+
+		When("`listAllRegions` is true", func() {
+			BeforeEach(func() {
+				chunkSize = 100
+				listAllRegions = true
+
+				p.MockEC2().On("DescribeRegions", mock.Anything).Return(&ec2.DescribeRegionsOutput{}, nil)
+			})
+
+			JustBeforeEach(func() {
+				clusters, err = c.ListClusters(chunkSize, listAllRegions)
+			})
+
+			It("should have called AWS EC2 service once", func() {
+				Expect(p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeRegions", 1)).To(BeTrue())
+			})
+		})
 	})
 
 	Describe("ListClusters when no clusters exist", func() {
