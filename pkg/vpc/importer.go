@@ -8,7 +8,9 @@ import (
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
-//go:generate counterfeiter -o fakes/fake_vpc_importer.go . Importer
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate -o fakes/fake_vpc_importer.go . Importer
 type Importer interface {
 	VPC() *gfnt.Value
 	ClusterSecurityGroup() *gfnt.Value

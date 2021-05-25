@@ -6,7 +6,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-//go:generate counterfeiter -o fakes/fake_managed_service.go . Service
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_managed_service.go . Service
 type Service interface {
 	GetLabels(nodeGroupName string) (map[string]string, error)
 	UpdateLabels(nodeGroupName string, labelsToAdd map[string]string, labelsToRemove []string) error
