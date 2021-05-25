@@ -12,7 +12,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
-//go:generate counterfeiter -o fakes/fake_stack_manager.go . StackManager
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_stack_manager.go . StackManager
 type StackManager interface {
 	ListNodeGroupStacks() ([]NodeGroupStack, error)
 	DescribeNodeGroupStacksAndResources() (map[string]StackInfo, error)

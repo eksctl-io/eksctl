@@ -28,7 +28,9 @@ const (
 	commonLinuxBootScript = "bootstrap.helper.sh"
 )
 
-//go:generate counterfeiter -o fakes/fake_bootstrapper.go . Bootstrapper
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate -o fakes/fake_bootstrapper.go . Bootstrapper
 type Bootstrapper interface {
 	// UserData returns userdata for bootstrapping nodes
 	UserData() (string, error)

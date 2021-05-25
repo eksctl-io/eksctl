@@ -16,7 +16,8 @@ const allNamespaces = ""
 
 var DefaultFluxComponents = []string{"helm-controller", "kustomize-controller", "notification-controller", "source-controller"}
 
-//go:generate counterfeiter -o fakes/fake_flux_client.go . InstallerClient
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_flux_client.go . InstallerClient
 type InstallerClient interface {
 	PreFlight() error
 	Bootstrap() error
