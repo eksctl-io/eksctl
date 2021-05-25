@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// RegisterAndRun setup and run Ginkgo tests
+// RegisterAndRun sets up and runs Ginkgo tests
 func RegisterAndRun(t *testing.T) {
 	_, suitePath, _, _ := runtime.Caller(1)
 	RegisterFailHandler(Fail)

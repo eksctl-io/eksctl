@@ -3,7 +3,6 @@ package manager
 import (
 	"fmt"
 
-	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
@@ -42,7 +41,6 @@ func (t *nodeGroupTask) Do(errs chan error) error {
 type managedNodeGroupTask struct {
 	info              string
 	nodeGroup         *api.ManagedNodeGroup
-	bootstrapper      nodebootstrap.Bootstrapper
 	stackCollection   *StackCollection
 	forceAddCNIPolicy bool
 	vpcImporter       vpc.Importer
