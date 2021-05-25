@@ -1,7 +1,9 @@
 package eks
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/bytequantity"
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
@@ -10,8 +12,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/ssh"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -32,6 +36,8 @@ type NodeGroupInitialiser interface {
 	NewAWSSelectorSession(provider api.ClusterProvider) *selector.Selector
 	ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.ClusterProvider) error
 	DoesAWSNodeUseIRSA(provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error)
+	DoAllNodegroupStackTasks(taskTree *tasks.TaskTree, region, name string) error
+	ValidateExistingNodeGroupsForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error
 }
 
 // A NodeGroupService provides helpers for nodegroup creation
@@ -197,4 +203,66 @@ func (m *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 
 func (m *NodeGroupService) ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.ClusterProvider) error {
 	return vpc.ValidateLegacySubnetsForNodeGroups(spec, provider)
+}
+
+// DoAllNodegroupStackTasks iterates over nodegroup tasks and returns any errors.
+func (m *NodeGroupService) DoAllNodegroupStackTasks(taskTree *tasks.TaskTree, region, name string) error {
+	logger.Info(taskTree.Describe())
+	errs := taskTree.DoAllSync()
+	if len(errs) > 0 {
+		logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
+		logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroup", region, name)
+		for _, err := range errs {
+			if err != nil {
+				logger.Critical("%s\n", err.Error())
+			}
+		}
+		return fmt.Errorf("failed to create nodegroups for cluster %q", name)
+	}
+	return nil
+}
+
+// ValidateExistingNodeGroupsForCompatibility looks at each of the existing nodegroups and
+// validates configuration, if it find issues it logs messages
+func (m *NodeGroupService) ValidateExistingNodeGroupsForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error {
+	infoByNodeGroup, err := stackManager.DescribeNodeGroupStacksAndResources()
+	if err != nil {
+		return errors.Wrap(err, "getting resources for all nodegroup stacks")
+	}
+	if len(infoByNodeGroup) == 0 {
+		return nil
+	}
+
+	logger.Info("checking security group configuration for all nodegroups")
+	incompatibleNodeGroups := []string{}
+	for ng, info := range infoByNodeGroup {
+		if stackManager.StackStatusIsNotTransitional(info.Stack) {
+			isCompatible, err := isNodeGroupCompatible(ng, info)
+			if err != nil {
+				return err
+			}
+			if isCompatible {
+				logger.Debug("nodegroup %q is compatible", ng)
+			} else {
+				logger.Debug("nodegroup %q is incompatible", ng)
+				incompatibleNodeGroups = append(incompatibleNodeGroups, ng)
+			}
+		}
+	}
+
+	numIncompatibleNodeGroups := len(incompatibleNodeGroups)
+	if numIncompatibleNodeGroups == 0 {
+		logger.Info("all nodegroups have up-to-date configuration")
+		return nil
+	}
+
+	logger.Critical("found %d nodegroup(s) (%s) without shared security group, cluster networking maybe be broken",
+		numIncompatibleNodeGroups, strings.Join(incompatibleNodeGroups, ", "))
+	logger.Critical("it's recommended to create new nodegroups, then delete old ones")
+	if cfg.VPC.SharedNodeSecurityGroup != "" {
+		logger.Critical("as a temporary fix, you can patch the configuration and add each of these nodegroup(s) to %q",
+			cfg.VPC.SharedNodeSecurityGroup)
+	}
+
+	return nil
 }

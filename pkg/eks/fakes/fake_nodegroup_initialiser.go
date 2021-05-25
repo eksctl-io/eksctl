@@ -6,11 +6,26 @@ import (
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"k8s.io/client-go/kubernetes"
 )
 
 type FakeNodeGroupInitialiser struct {
+	DoAllNodegroupStackTasksStub        func(*tasks.TaskTree, string, string) error
+	doAllNodegroupStackTasksMutex       sync.RWMutex
+	doAllNodegroupStackTasksArgsForCall []struct {
+		arg1 *tasks.TaskTree
+		arg2 string
+		arg3 string
+	}
+	doAllNodegroupStackTasksReturns struct {
+		result1 error
+	}
+	doAllNodegroupStackTasksReturnsOnCall map[int]struct {
+		result1 error
+	}
 	DoesAWSNodeUseIRSAStub        func(v1alpha5.ClusterProvider, kubernetes.Interface) (bool, error)
 	doesAWSNodeUseIRSAMutex       sync.RWMutex
 	doesAWSNodeUseIRSAArgsForCall []struct {
@@ -60,6 +75,18 @@ type FakeNodeGroupInitialiser struct {
 	normalizeReturnsOnCall map[int]struct {
 		result1 error
 	}
+	ValidateExistingNodeGroupsForCompatibilityStub        func(*v1alpha5.ClusterConfig, manager.StackManager) error
+	validateExistingNodeGroupsForCompatibilityMutex       sync.RWMutex
+	validateExistingNodeGroupsForCompatibilityArgsForCall []struct {
+		arg1 *v1alpha5.ClusterConfig
+		arg2 manager.StackManager
+	}
+	validateExistingNodeGroupsForCompatibilityReturns struct {
+		result1 error
+	}
+	validateExistingNodeGroupsForCompatibilityReturnsOnCall map[int]struct {
+		result1 error
+	}
 	ValidateLegacySubnetsForNodeGroupsStub        func(*v1alpha5.ClusterConfig, v1alpha5.ClusterProvider) error
 	validateLegacySubnetsForNodeGroupsMutex       sync.RWMutex
 	validateLegacySubnetsForNodeGroupsArgsForCall []struct {
@@ -74,6 +101,69 @@ type FakeNodeGroupInitialiser struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeNodeGroupInitialiser) DoAllNodegroupStackTasks(arg1 *tasks.TaskTree, arg2 string, arg3 string) error {
+	fake.doAllNodegroupStackTasksMutex.Lock()
+	ret, specificReturn := fake.doAllNodegroupStackTasksReturnsOnCall[len(fake.doAllNodegroupStackTasksArgsForCall)]
+	fake.doAllNodegroupStackTasksArgsForCall = append(fake.doAllNodegroupStackTasksArgsForCall, struct {
+		arg1 *tasks.TaskTree
+		arg2 string
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.DoAllNodegroupStackTasksStub
+	fakeReturns := fake.doAllNodegroupStackTasksReturns
+	fake.recordInvocation("DoAllNodegroupStackTasks", []interface{}{arg1, arg2, arg3})
+	fake.doAllNodegroupStackTasksMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeNodeGroupInitialiser) DoAllNodegroupStackTasksCallCount() int {
+	fake.doAllNodegroupStackTasksMutex.RLock()
+	defer fake.doAllNodegroupStackTasksMutex.RUnlock()
+	return len(fake.doAllNodegroupStackTasksArgsForCall)
+}
+
+func (fake *FakeNodeGroupInitialiser) DoAllNodegroupStackTasksCalls(stub func(*tasks.TaskTree, string, string) error) {
+	fake.doAllNodegroupStackTasksMutex.Lock()
+	defer fake.doAllNodegroupStackTasksMutex.Unlock()
+	fake.DoAllNodegroupStackTasksStub = stub
+}
+
+func (fake *FakeNodeGroupInitialiser) DoAllNodegroupStackTasksArgsForCall(i int) (*tasks.TaskTree, string, string) {
+	fake.doAllNodegroupStackTasksMutex.RLock()
+	defer fake.doAllNodegroupStackTasksMutex.RUnlock()
+	argsForCall := fake.doAllNodegroupStackTasksArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeNodeGroupInitialiser) DoAllNodegroupStackTasksReturns(result1 error) {
+	fake.doAllNodegroupStackTasksMutex.Lock()
+	defer fake.doAllNodegroupStackTasksMutex.Unlock()
+	fake.DoAllNodegroupStackTasksStub = nil
+	fake.doAllNodegroupStackTasksReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeNodeGroupInitialiser) DoAllNodegroupStackTasksReturnsOnCall(i int, result1 error) {
+	fake.doAllNodegroupStackTasksMutex.Lock()
+	defer fake.doAllNodegroupStackTasksMutex.Unlock()
+	fake.DoAllNodegroupStackTasksStub = nil
+	if fake.doAllNodegroupStackTasksReturnsOnCall == nil {
+		fake.doAllNodegroupStackTasksReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.doAllNodegroupStackTasksReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeNodeGroupInitialiser) DoesAWSNodeUseIRSA(arg1 v1alpha5.ClusterProvider, arg2 kubernetes.Interface) (bool, error) {
@@ -341,6 +431,68 @@ func (fake *FakeNodeGroupInitialiser) NormalizeReturnsOnCall(i int, result1 erro
 	}{result1}
 }
 
+func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibility(arg1 *v1alpha5.ClusterConfig, arg2 manager.StackManager) error {
+	fake.validateExistingNodeGroupsForCompatibilityMutex.Lock()
+	ret, specificReturn := fake.validateExistingNodeGroupsForCompatibilityReturnsOnCall[len(fake.validateExistingNodeGroupsForCompatibilityArgsForCall)]
+	fake.validateExistingNodeGroupsForCompatibilityArgsForCall = append(fake.validateExistingNodeGroupsForCompatibilityArgsForCall, struct {
+		arg1 *v1alpha5.ClusterConfig
+		arg2 manager.StackManager
+	}{arg1, arg2})
+	stub := fake.ValidateExistingNodeGroupsForCompatibilityStub
+	fakeReturns := fake.validateExistingNodeGroupsForCompatibilityReturns
+	fake.recordInvocation("ValidateExistingNodeGroupsForCompatibility", []interface{}{arg1, arg2})
+	fake.validateExistingNodeGroupsForCompatibilityMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibilityCallCount() int {
+	fake.validateExistingNodeGroupsForCompatibilityMutex.RLock()
+	defer fake.validateExistingNodeGroupsForCompatibilityMutex.RUnlock()
+	return len(fake.validateExistingNodeGroupsForCompatibilityArgsForCall)
+}
+
+func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibilityCalls(stub func(*v1alpha5.ClusterConfig, manager.StackManager) error) {
+	fake.validateExistingNodeGroupsForCompatibilityMutex.Lock()
+	defer fake.validateExistingNodeGroupsForCompatibilityMutex.Unlock()
+	fake.ValidateExistingNodeGroupsForCompatibilityStub = stub
+}
+
+func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibilityArgsForCall(i int) (*v1alpha5.ClusterConfig, manager.StackManager) {
+	fake.validateExistingNodeGroupsForCompatibilityMutex.RLock()
+	defer fake.validateExistingNodeGroupsForCompatibilityMutex.RUnlock()
+	argsForCall := fake.validateExistingNodeGroupsForCompatibilityArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibilityReturns(result1 error) {
+	fake.validateExistingNodeGroupsForCompatibilityMutex.Lock()
+	defer fake.validateExistingNodeGroupsForCompatibilityMutex.Unlock()
+	fake.ValidateExistingNodeGroupsForCompatibilityStub = nil
+	fake.validateExistingNodeGroupsForCompatibilityReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibilityReturnsOnCall(i int, result1 error) {
+	fake.validateExistingNodeGroupsForCompatibilityMutex.Lock()
+	defer fake.validateExistingNodeGroupsForCompatibilityMutex.Unlock()
+	fake.ValidateExistingNodeGroupsForCompatibilityStub = nil
+	if fake.validateExistingNodeGroupsForCompatibilityReturnsOnCall == nil {
+		fake.validateExistingNodeGroupsForCompatibilityReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.validateExistingNodeGroupsForCompatibilityReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroups(arg1 *v1alpha5.ClusterConfig, arg2 v1alpha5.ClusterProvider) error {
 	fake.validateLegacySubnetsForNodeGroupsMutex.Lock()
 	ret, specificReturn := fake.validateLegacySubnetsForNodeGroupsReturnsOnCall[len(fake.validateLegacySubnetsForNodeGroupsArgsForCall)]
@@ -406,6 +558,8 @@ func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroupsReturnsO
 func (fake *FakeNodeGroupInitialiser) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.doAllNodegroupStackTasksMutex.RLock()
+	defer fake.doAllNodegroupStackTasksMutex.RUnlock()
 	fake.doesAWSNodeUseIRSAMutex.RLock()
 	defer fake.doesAWSNodeUseIRSAMutex.RUnlock()
 	fake.expandInstanceSelectorOptionsMutex.RLock()
@@ -414,6 +568,8 @@ func (fake *FakeNodeGroupInitialiser) Invocations() map[string][][]interface{} {
 	defer fake.newAWSSelectorSessionMutex.RUnlock()
 	fake.normalizeMutex.RLock()
 	defer fake.normalizeMutex.RUnlock()
+	fake.validateExistingNodeGroupsForCompatibilityMutex.RLock()
+	defer fake.validateExistingNodeGroupsForCompatibilityMutex.RUnlock()
 	fake.validateLegacySubnetsForNodeGroupsMutex.RLock()
 	defer fake.validateLegacySubnetsForNodeGroupsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

@@ -111,7 +111,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 		return err
 	}
 
-	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, m.stackManager); err != nil {
+	if err := m.init.ValidateExistingNodeGroupsForCompatibility(cfg, m.stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
@@ -188,7 +188,7 @@ func (m *Manager) nodeCreationTasks(options CreateOpts, nodegroupFilter filter.N
 	}
 
 	taskTree.Append(allNodeGroupTasks)
-	if err := m.stackManager.DoAllNodegroupStackTasks(taskTree, meta.Region, meta.Name); err != nil {
+	if err := m.init.DoAllNodegroupStackTasks(taskTree, meta.Region, meta.Name); err != nil {
 		return err
 	}
 

@@ -55,7 +55,6 @@ type StackManager interface {
 		managedNodeGroups []*v1alpha5.ManagedNodeGroup, supportsManagedNodes bool, postClusterCreationTasks ...tasks.Task) *tasks.TaskTree
 	NewUnmanagedNodeGroupTask(nodeGroups []*v1alpha5.NodeGroup, supportsManagedNodes bool, forceAddCNIPolicy bool, importer vpc.Importer) *tasks.TaskTree
 	NewManagedNodeGroupTask(nodeGroups []*v1alpha5.ManagedNodeGroup, forceAddCNIPolicy bool, importer vpc.Importer) *tasks.TaskTree
-	DoAllNodegroupStackTasks(taskTree *tasks.TaskTree, region, name string) error
 	NewClusterCompatTask() tasks.Task
 	NewTasksToCreateIAMServiceAccounts(serviceAccounts []*v1alpha5.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) *tasks.TaskTree
 	DeleteTasksForDeprecatedStacks() (*tasks.TaskTree, error)

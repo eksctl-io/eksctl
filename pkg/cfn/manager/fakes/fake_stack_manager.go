@@ -220,19 +220,6 @@ type FakeStackManager struct {
 		result1 []*cloudformation.Stack
 		result2 error
 	}
-	DoAllNodegroupStackTasksStub        func(*tasks.TaskTree, string, string) error
-	doAllNodegroupStackTasksMutex       sync.RWMutex
-	doAllNodegroupStackTasksArgsForCall []struct {
-		arg1 *tasks.TaskTree
-		arg2 string
-		arg3 string
-	}
-	doAllNodegroupStackTasksReturns struct {
-		result1 error
-	}
-	doAllNodegroupStackTasksReturnsOnCall map[int]struct {
-		result1 error
-	}
 	DoCreateStackRequestStub        func(*cloudformation.Stack, manager.TemplateData, map[string]string, map[string]string, bool, bool) error
 	doCreateStackRequestMutex       sync.RWMutex
 	doCreateStackRequestArgsForCall []struct {
@@ -1712,69 +1699,6 @@ func (fake *FakeStackManager) DescribeStacksReturnsOnCall(i int, result1 []*clou
 		result1 []*cloudformation.Stack
 		result2 error
 	}{result1, result2}
-}
-
-func (fake *FakeStackManager) DoAllNodegroupStackTasks(arg1 *tasks.TaskTree, arg2 string, arg3 string) error {
-	fake.doAllNodegroupStackTasksMutex.Lock()
-	ret, specificReturn := fake.doAllNodegroupStackTasksReturnsOnCall[len(fake.doAllNodegroupStackTasksArgsForCall)]
-	fake.doAllNodegroupStackTasksArgsForCall = append(fake.doAllNodegroupStackTasksArgsForCall, struct {
-		arg1 *tasks.TaskTree
-		arg2 string
-		arg3 string
-	}{arg1, arg2, arg3})
-	stub := fake.DoAllNodegroupStackTasksStub
-	fakeReturns := fake.doAllNodegroupStackTasksReturns
-	fake.recordInvocation("DoAllNodegroupStackTasks", []interface{}{arg1, arg2, arg3})
-	fake.doAllNodegroupStackTasksMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeStackManager) DoAllNodegroupStackTasksCallCount() int {
-	fake.doAllNodegroupStackTasksMutex.RLock()
-	defer fake.doAllNodegroupStackTasksMutex.RUnlock()
-	return len(fake.doAllNodegroupStackTasksArgsForCall)
-}
-
-func (fake *FakeStackManager) DoAllNodegroupStackTasksCalls(stub func(*tasks.TaskTree, string, string) error) {
-	fake.doAllNodegroupStackTasksMutex.Lock()
-	defer fake.doAllNodegroupStackTasksMutex.Unlock()
-	fake.DoAllNodegroupStackTasksStub = stub
-}
-
-func (fake *FakeStackManager) DoAllNodegroupStackTasksArgsForCall(i int) (*tasks.TaskTree, string, string) {
-	fake.doAllNodegroupStackTasksMutex.RLock()
-	defer fake.doAllNodegroupStackTasksMutex.RUnlock()
-	argsForCall := fake.doAllNodegroupStackTasksArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
-}
-
-func (fake *FakeStackManager) DoAllNodegroupStackTasksReturns(result1 error) {
-	fake.doAllNodegroupStackTasksMutex.Lock()
-	defer fake.doAllNodegroupStackTasksMutex.Unlock()
-	fake.DoAllNodegroupStackTasksStub = nil
-	fake.doAllNodegroupStackTasksReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeStackManager) DoAllNodegroupStackTasksReturnsOnCall(i int, result1 error) {
-	fake.doAllNodegroupStackTasksMutex.Lock()
-	defer fake.doAllNodegroupStackTasksMutex.Unlock()
-	fake.DoAllNodegroupStackTasksStub = nil
-	if fake.doAllNodegroupStackTasksReturnsOnCall == nil {
-		fake.doAllNodegroupStackTasksReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.doAllNodegroupStackTasksReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
 }
 
 func (fake *FakeStackManager) DoCreateStackRequest(arg1 *cloudformation.Stack, arg2 manager.TemplateData, arg3 map[string]string, arg4 map[string]string, arg5 bool, arg6 bool) error {
@@ -4287,8 +4211,6 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.describeStackEventsMutex.RUnlock()
 	fake.describeStacksMutex.RLock()
 	defer fake.describeStacksMutex.RUnlock()
-	fake.doAllNodegroupStackTasksMutex.RLock()
-	defer fake.doAllNodegroupStackTasksMutex.RUnlock()
 	fake.doCreateStackRequestMutex.RLock()
 	defer fake.doCreateStackRequestMutex.RUnlock()
 	fake.doWaitUntilStackIsCreatedMutex.RLock()
