@@ -854,11 +854,13 @@ var _ = Describe("ClusterConfig validation", func() {
 					}},
 				"KubeletExtraConfig": {KubeletExtraConfig: &doc},
 				"overlapping Bottlerocket settings": {
-					Bottlerocket: &api.NodeGroupBottlerocket{
-						Settings: &api.InlineDocument{
-							"kubernetes": map[string]interface{}{
-								"node-labels": map[string]string{
-									"mylabel.example.com": "value",
+					NodeGroupBase: &api.NodeGroupBase{
+						Bottlerocket: &api.NodeGroupBottlerocket{
+							Settings: &api.InlineDocument{
+								"kubernetes": map[string]interface{}{
+									"node-labels": map[string]string{
+										"mylabel.example.com": "value",
+									},
 								},
 							},
 						},

@@ -154,7 +154,6 @@ var _ = Describe("ClusterConfig validation", func() {
 			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
 
 			Expect(testNodeGroup.Bottlerocket).ToNot(BeNil())
-			Expect(testNodeGroup.AMI).To(Equal(NodeImageResolverAutoSSM))
 			Expect(*testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeFalse())
 		})
 	})
