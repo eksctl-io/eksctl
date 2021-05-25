@@ -986,6 +986,11 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.Taints != nil {
+		in, out := &in.Taints, &out.Taints
+		*out = make(taintsWrapper, len(*in))
+		copy(*out, *in)
+	}
 	if in.UpdateConfig != nil {
 		in, out := &in.UpdateConfig, &out.UpdateConfig
 		*out = new(NodeGroupUpdateConfig)
