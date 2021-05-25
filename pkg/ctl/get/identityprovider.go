@@ -3,6 +3,7 @@ package get
 import (
 	"os"
 
+	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -53,6 +54,9 @@ func doGetIdentityProvider(cmd *cmdutils.Cmd, params getCmdParams, name string) 
 
 	if params.output == printers.TableType {
 		cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
+	} else {
+		//log warnings and errors to stderr
+		logger.Writer = os.Stderr
 	}
 
 	if ok, err := ctl.CanOperate(cfg); !ok {
