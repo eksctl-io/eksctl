@@ -175,10 +175,15 @@ var _ = Describe("(Integration) Update addons", func() {
 
 		It("should upgrade aws-node", func() {
 			rawClient := getRawClient()
-			preUpdateAWSNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "aws-node", metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
-			preUpdateAWSNodeVersion, err := addons.ImageTag(preUpdateAWSNode.Spec.Template.Spec.Containers[0].Image)
-			Expect(err).ToNot(HaveOccurred())
+			getAWSNodeVersion := func() string {
+				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "aws-node", metav1.GetOptions{})
+				Expect(err).ToNot(HaveOccurred())
+				imageTag, err := addons.ImageTag(awsNode.Spec.Template.Spec.Containers[0].Image)
+				Expect(err).ToNot(HaveOccurred())
+				return imageTag
+			}
+			preUpdateAWSNodeVersion := getAWSNodeVersion()
+
 			cmd := params.EksctlUtilsCmd.WithArgs(
 				"update-aws-node",
 				"--cluster", params.ClusterName,
@@ -187,19 +192,19 @@ var _ = Describe("(Integration) Update addons", func() {
 			)
 			Expect(cmd).To(RunSuccessfully())
 
-			Eventually(func() string {
-				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "aws-node", metav1.GetOptions{})
-				Expect(err).ToNot(HaveOccurred())
-				awsNodeVersion, err := addons.ImageTag(awsNode.Spec.Template.Spec.Containers[0].Image)
-				Expect(err).ToNot(HaveOccurred())
-				return awsNodeVersion
-			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).ShouldNot(Equal(preUpdateAWSNodeVersion))
+			Eventually(getAWSNodeVersion, k8sUpdatePollTimeout, k8sUpdatePollInterval).ShouldNot(Equal(preUpdateAWSNodeVersion))
 		})
 
 		It("should upgrade coredns", func() {
 			rawClient := getRawClient()
-			preUpdateCoreDNS, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), "coredns", metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			getCoreDNSVersion := func() string {
+				coreDNS, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), "coredns", metav1.GetOptions{})
+				Expect(err).ToNot(HaveOccurred())
+				imageTag, err := addons.ImageTag(coreDNS.Spec.Template.Spec.Containers[0].Image)
+				Expect(err).ToNot(HaveOccurred())
+				return imageTag
+			}
+			preUpdateCoreDNSVersion := getCoreDNSVersion()
 
 			cmd := params.EksctlUtilsCmd.WithArgs(
 				"update-coredns",
@@ -209,16 +214,7 @@ var _ = Describe("(Integration) Update addons", func() {
 			)
 			Expect(cmd).To(RunSuccessfully())
 
-			preUpdateCoreDNSVersion, err := addons.ImageTag(preUpdateCoreDNS.Spec.Template.Spec.Containers[0].Image)
-			Expect(err).ToNot(HaveOccurred())
-
-			Eventually(func() string {
-				coreDNSDeployment, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), "coredns", metav1.GetOptions{})
-				Expect(err).ToNot(HaveOccurred())
-				coreDNSVersion, err := addons.ImageTag(coreDNSDeployment.Spec.Template.Spec.Containers[0].Image)
-				Expect(err).ToNot(HaveOccurred())
-				return coreDNSVersion
-			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).ShouldNot(Equal(preUpdateCoreDNSVersion))
+			Eventually(getCoreDNSVersion, k8sUpdatePollTimeout, k8sUpdatePollInterval).ShouldNot(Equal(preUpdateCoreDNSVersion))
 		})
 
 	})
