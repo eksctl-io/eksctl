@@ -408,7 +408,6 @@ func IsDeprecatedVersion(version string) bool {
 // SupportedVersions are the versions of Kubernetes that EKS supports
 func SupportedVersions() []string {
 	return []string{
-		Version1_15,
 		Version1_16,
 		Version1_17,
 		Version1_18,
@@ -417,7 +416,7 @@ func SupportedVersions() []string {
 	}
 }
 
-// IsSupportedVersion returns true if the given version is a Kubernetes supported by eksctl and EKS
+// IsSupportedVersion returns true if the given Kubernetes version is supported by eksctl and EKS
 func IsSupportedVersion(version string) bool {
 	for _, v := range SupportedVersions() {
 		if version == v {
