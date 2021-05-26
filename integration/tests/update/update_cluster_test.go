@@ -54,6 +54,11 @@ var _ = Describe("(Integration) Update addons", func() {
 	const (
 		initNG = "kp-ng-0"
 	)
+	var (
+		eksVersion     string
+		nextEKSVersion string
+	)
+
 	BeforeSuite(func() {
 		params.KubeconfigTemp = false
 		if params.KubeconfigPath == "" {
@@ -81,6 +86,14 @@ var _ = Describe("(Integration) Update addons", func() {
 
 		fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
 
+		supportedVersions := api.SupportedVersions()
+		if len(supportedVersions) < 2 {
+			Fail("Update cluster test requires at least two supported EKS versions")
+		}
+
+		// Use the lowest supported version
+		eksVersion, nextEKSVersion = supportedVersions[0], supportedVersions[1]
+
 		cmd := params.EksctlCreateCmd.WithArgs(
 			"cluster",
 			"--verbose", "4",
@@ -90,7 +103,7 @@ var _ = Describe("(Integration) Update addons", func() {
 			"--node-labels", "ng-name="+initNG,
 			"--nodes", "1",
 			"--node-type", "t3.large",
-			"--version", "1.15",
+			"--version", eksVersion,
 			"--kubeconfig", params.KubeconfigPath,
 		)
 		Expect(cmd).To(RunSuccessfully())
@@ -105,18 +118,16 @@ var _ = Describe("(Integration) Update addons", func() {
 		os.RemoveAll(params.TestDirectory)
 	})
 
-	// Chose 1.15 because the upgrade to 1.16 takes less time than upgrading to 1.17
-	Context("cluster with version 1.15", func() {
+	Context(fmt.Sprintf("cluster with version %s", eksVersion), func() {
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
 			awsSession := NewSession(params.Region)
 
-			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, awseks.ClusterStatusActive, api.Version1_15))
-
+			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, awseks.ClusterStatusActive, eksVersion))
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initNG)))
 		})
 
-		It("should upgrade the control plane to version 1.16", func() {
+		It(fmt.Sprintf("should upgrade the control plane to version %s", nextEKSVersion), func() {
 
 			cmd := params.EksctlUpgradeCmd.
 				WithArgs(
@@ -127,7 +138,7 @@ var _ = Describe("(Integration) Update addons", func() {
 				)
 			Expect(cmd).To(RunSuccessfully())
 
-			By(fmt.Sprintf("checking that control plane is updated to %v", "1.16"))
+			By(fmt.Sprintf("checking that control plane is updated to %v", nextEKSVersion))
 			config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -138,7 +149,7 @@ var _ = Describe("(Integration) Update addons", func() {
 				serverVersion, err := clientSet.ServerVersion()
 				Expect(err).ToNot(HaveOccurred())
 				return fmt.Sprintf("%s.%s", serverVersion.Major, strings.TrimSuffix(serverVersion.Minor, "+"))
-			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal("1.16"))
+			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal(nextEKSVersion))
 		})
 
 		It("should upgrade kube-proxy", func() {
@@ -150,14 +161,16 @@ var _ = Describe("(Integration) Update addons", func() {
 			)
 			Expect(cmd).To(RunSuccessfully())
 
-			clientSet := getClientSet()
+			rawClient := getRawClient()
+			kubernetesVersion, err := rawClient.ServerVersion()
+			Expect(err).ToNot(HaveOccurred())
 			Eventually(func() string {
-				daemonSet, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "kube-proxy", metav1.GetOptions{})
+				daemonSet, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "kube-proxy", metav1.GetOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				kubeProxyVersion, err := addons.ImageTag(daemonSet.Spec.Template.Spec.Containers[0].Image)
 				Expect(err).ToNot(HaveOccurred())
 				return kubeProxyVersion
-			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal("v1.16.15-eksbuild.1"))
+			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal(fmt.Sprintf("v%s-eksbuild.1", kubernetesVersion)))
 		})
 
 		It("should upgrade aws-node", func() {
@@ -184,6 +197,10 @@ var _ = Describe("(Integration) Update addons", func() {
 		})
 
 		It("should upgrade coredns", func() {
+			rawClient := getRawClient()
+			preUpdateCoreDNS, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), "coredns", metav1.GetOptions{})
+			Expect(err).ToNot(HaveOccurred())
+
 			cmd := params.EksctlUtilsCmd.WithArgs(
 				"update-coredns",
 				"--cluster", params.ClusterName,
@@ -192,14 +209,16 @@ var _ = Describe("(Integration) Update addons", func() {
 			)
 			Expect(cmd).To(RunSuccessfully())
 
-			rawClient := getRawClient()
+			preUpdateCoreDNSVersion, err := addons.ImageTag(preUpdateCoreDNS.Spec.Template.Spec.Containers[0].Image)
+			Expect(err).ToNot(HaveOccurred())
+
 			Eventually(func() string {
 				coreDNSDeployment, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), "coredns", metav1.GetOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				coreDNSVersion, err := addons.ImageTag(coreDNSDeployment.Spec.Template.Spec.Containers[0].Image)
 				Expect(err).ToNot(HaveOccurred())
 				return coreDNSVersion
-			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal("v1.6.6-eksbuild.1"))
+			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).ShouldNot(Equal(preUpdateCoreDNSVersion))
 		})
 
 	})
