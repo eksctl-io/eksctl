@@ -34,16 +34,16 @@ const (
 	k8sUpdatePollTimeout  = "3m"
 )
 
-var defaultCluster string
-var noInstallCluster string
-var params *tests.Params
+var (
+	defaultCluster string
+	params         *tests.Params
+)
 
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
 	params = tests.NewParams("up")
 	defaultCluster = params.ClusterName
-	noInstallCluster = params.NewClusterName("update")
 }
 
 func TestUpdate(t *testing.T) {
