@@ -31,18 +31,18 @@ func NewManagedAL2Bootstrapper(ng *api.ManagedNodeGroup) *ManagedAL2 {
 
 // UserData returns user data for AL2 managed nodegroups
 func (m *ManagedAL2) UserData() (string, error) {
-	var (
-		buf       bytes.Buffer
-		scripts   []string
-		cloudboot []string
-	)
-
 	ng := m.ng
 
 	// We don't use MIME format when launching managed nodegroups with a custom AMI
 	if strings.HasPrefix(ng.AMI, "ami-") {
 		return makeCustomAMIUserData(ng.NodeGroupBase)
 	}
+
+	var (
+		buf       bytes.Buffer
+		scripts   []string
+		cloudboot []string
+	)
 
 	if api.IsEnabled(ng.SSH.EnableSSM) {
 		installSSMScript, err := bindata.Asset(filepath.Join(dataDir, "install-ssm.al2.sh"))
