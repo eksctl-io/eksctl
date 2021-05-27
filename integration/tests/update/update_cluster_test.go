@@ -196,16 +196,6 @@ var _ = Describe("(Integration) Update addons", func() {
 		})
 
 		It("should upgrade coredns", func() {
-			rawClient := getRawClient()
-			getCoreDNSVersion := func() string {
-				coreDNS, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), "coredns", metav1.GetOptions{})
-				Expect(err).ToNot(HaveOccurred())
-				imageTag, err := addons.ImageTag(coreDNS.Spec.Template.Spec.Containers[0].Image)
-				Expect(err).ToNot(HaveOccurred())
-				return imageTag
-			}
-			preUpdateCoreDNSVersion := getCoreDNSVersion()
-
 			cmd := params.EksctlUtilsCmd.WithArgs(
 				"update-coredns",
 				"--cluster", params.ClusterName,
@@ -213,8 +203,6 @@ var _ = Describe("(Integration) Update addons", func() {
 				"--approve",
 			)
 			Expect(cmd).To(RunSuccessfully())
-
-			Eventually(getCoreDNSVersion, k8sUpdatePollTimeout, k8sUpdatePollInterval).ShouldNot(Equal(preUpdateCoreDNSVersion))
 		})
 
 	})
