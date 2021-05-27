@@ -449,7 +449,7 @@ func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *
 	operation := func() (bool, error) {
 		_, err := clientSet.ServerVersion()
 		if err == nil {
-			if successCount >= 10 {
+			if successCount >= 5 {
 				return true, nil
 			}
 			successCount++
