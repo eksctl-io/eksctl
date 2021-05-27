@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 
 	"github.com/pkg/errors"
@@ -70,6 +71,9 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 
 	if params.output == printers.TableType {
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+	} else {
+		//log warnings and errors to stderr
+		logger.Writer = os.Stderr
 	}
 
 	var summaries []*manager.NodeGroupSummary
