@@ -60,7 +60,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 			DryRun:                    options.DryRun,
 			SkipOutdatedAddonsCheck:   options.SkipOutdatedAddonsCheck,
 			ConfigFileProvided:        cmd.ClusterConfigFile != "",
-		}, *ngFilter)
+		}, ngFilter)
 	})
 }
 

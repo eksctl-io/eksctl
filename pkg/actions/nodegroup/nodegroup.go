@@ -18,6 +18,8 @@ type Manager struct {
 	cfg          *api.ClusterConfig
 	clientSet    *kubernetes.Clientset
 	wait         WaitFunc
+	init         eks.NodeGroupInitialiser
+	kubeProvider eks.KubeProvider
 }
 
 type WaitFunc func(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error
@@ -29,6 +31,10 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet *kubernetes
 		cfg:          cfg,
 		clientSet:    clientSet,
 		wait:         waiters.Wait,
+		init: &eks.NodeGroupService{
+			Provider: ctl.Provider,
+		},
+		kubeProvider: ctl,
 	}
 }
 
