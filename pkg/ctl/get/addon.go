@@ -55,6 +55,9 @@ func getAddon(cmd *cmdutils.Cmd, params *getCmdParams) error {
 
 	if params.output == printers.TableType {
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+	} else {
+		//log warnings and errors to stdout
+		logger.Writer = os.Stderr
 	}
 
 	stackManager := clusterProvider.NewStackManager(cmd.ClusterConfig)
