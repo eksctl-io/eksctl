@@ -16,9 +16,12 @@ nodeGroups:
 gitops:
   flux:
     gitProvider: github             # required. options are github or gitlab
-    owner: dr-who                   # required
-    repository: my-cluster-gitops   # required
-    personal: true                  # optional. if left false, assumes 'owner' is an org
-    branch: main                    # optional
-    namespace: "flux-system"        # optional
-    path: "clusters/cluster-27"     # optional
+    flags:                          # required. arbitrary map[string]string for all flux args.
+    # these args are not controlled by eksctl. see https://fluxcd.io/docs/get-started/ for all available flags
+      owner: "dr-who"
+      repository: "our-org-gitops-repo"
+      private: "true"
+      branch: "main"
+      namespace: "flux-system"
+      path: "clusters/cluster-12"
+      team: "team1,team2"
