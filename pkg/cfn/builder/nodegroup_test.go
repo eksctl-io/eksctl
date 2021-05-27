@@ -719,7 +719,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				Expect(ngTemplate.Resources["NodeGroup"].Properties.LaunchTemplate.LaunchTemplateName).To(Equal(map[string]interface{}{"Fn::Sub": "${AWS::StackName}"}))
 				Expect(ngTemplate.Resources["NodeGroup"].Properties.LaunchTemplate.Version["Fn::GetAtt"]).To(Equal([]interface{}{"NodeGroupLaunchTemplate", "LatestVersionNumber"}))
 				tags := ngTemplate.Resources["NodeGroup"].Properties.Tags
-				Expect(tags).To(HaveLen(3))
+				Expect(tags).To(HaveLen(2))
 				Expect(tags[0].Key).To(Equal("Name"))
 				Expect(tags[0].Value).To(Equal("bonsai-ng-abcd1234-Node"))
 				Expect(tags[0].PropagateAtLaunch).To(Equal("true"))
