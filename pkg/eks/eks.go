@@ -445,14 +445,15 @@ func (c *ClusterProvider) getClustersRequest(chunkSize int64, nextToken string) 
 
 // WaitForControlPlane waits till the control plane is ready
 func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *kubernetes.Clientset) error {
-	if _, err := clientSet.ServerVersion(); err == nil {
-		return nil
-	}
-
+	successCount := 0
 	operation := func() (bool, error) {
 		_, err := clientSet.ServerVersion()
 		if err == nil {
-			return true, nil
+			if successCount >= 5 {
+				return true, nil
+			}
+			successCount++
+			return false, nil
 		}
 		logger.Debug("control plane not ready yet – %s", err.Error())
 		return false, nil
