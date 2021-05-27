@@ -315,6 +315,16 @@ func validateIdentityProviders(idPs []IdentityProvider) error {
 	return nil
 }
 
+type unsupportedFieldError struct {
+	ng    *NodeGroupBase
+	path  string
+	field string
+}
+
+func (ue *unsupportedFieldError) Error() string {
+	return fmt.Sprintf("%s is not supported for %s nodegroups (path=%s.%s)", ue.field, ue.ng.AMIFamily, ue.path, ue.field)
+}
+
 // ValidateNodeGroup checks compatible fields of a given nodegroup
 func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	path := fmt.Sprintf("nodeGroups[%d]", i)
@@ -360,15 +370,18 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 
 	if IsWindowsImage(ng.AMIFamily) || ng.AMIFamily == NodeImageFamilyBottlerocket {
 		fieldNotSupported := func(field string) error {
-			return fmt.Errorf("%s is not supported for %s nodegroups (path=%s.%s)", field, ng.AMIFamily, path, field)
+			return &unsupportedFieldError{
+				ng:    ng.NodeGroupBase,
+				path:  path,
+				field: field,
+			}
 		}
 		if ng.KubeletExtraConfig != nil {
 			return fieldNotSupported("kubeletExtraConfig")
 		}
-		if ng.AMIFamily == NodeImageFamilyBottlerocket {
-			if ng.PreBootstrapCommands != nil {
-				return fieldNotSupported("preBootstrapCommands")
-			}
+		if ng.AMIFamily == NodeImageFamilyBottlerocket && ng.PreBootstrapCommands != nil {
+			return fieldNotSupported("preBootstrapCommands")
+
 		}
 		if ng.OverrideBootstrapCommand != nil {
 			return fieldNotSupported("overrideBootstrapCommand")
@@ -517,7 +530,7 @@ func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) erro
 // ValidateManagedNodeGroup validates a ManagedNodeGroup and sets some defaults
 func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 	switch ng.AMIFamily {
-	case NodeImageFamilyAmazonLinux2, NodeImageFamilyBottlerocket:
+	case NodeImageFamilyAmazonLinux2, NodeImageFamilyBottlerocket, NodeImageFamilyUbuntu1804, NodeImageFamilyUbuntu2004:
 
 	default:
 		return errors.Errorf("%q is not supported for managed nodegroups", ng.AMIFamily)
@@ -582,6 +595,22 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 		}
 		if !ng.InstanceSelector.IsZero() {
 			return errors.Errorf("cannot set instanceType when instanceSelector is specified (%s)", path)
+		}
+	}
+
+	if ng.AMIFamily == NodeImageFamilyBottlerocket {
+		fieldNotSupported := func(field string) error {
+			return &unsupportedFieldError{
+				ng:    ng.NodeGroupBase,
+				path:  path,
+				field: field,
+			}
+		}
+		if ng.PreBootstrapCommands != nil {
+			return fieldNotSupported("preBootstrapCommands")
+		}
+		if ng.OverrideBootstrapCommand != nil {
+			return fieldNotSupported("overrideBootstrapCommand")
 		}
 	}
 
