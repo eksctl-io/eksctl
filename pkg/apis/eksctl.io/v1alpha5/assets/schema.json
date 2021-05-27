@@ -2024,6 +2024,12 @@
           "x-intellij-html-description": "adds policies for using the ebs-csi-controller. See <a href=\"https://github.com/kubernetes-sigs/aws-ebs-csi-driver#set-up-driver-permission\">aws-ebs-csi-driver docs</a>.",
           "default": "false"
         },
+        "efsCSIController": {
+          "type": "boolean",
+          "description": "adds policies for using the efs-csi-controller. See [aws-efs-csi-driver docs](https://aws.amazon.com/blogs/containers/introducing-efs-csi-dynamic-provisioning).",
+          "x-intellij-html-description": "adds policies for using the efs-csi-controller. See <a href=\"https://aws.amazon.com/blogs/containers/introducing-efs-csi-dynamic-provisioning\">aws-efs-csi-driver docs</a>.",
+          "default": "false"
+        },
         "externalDNS": {
           "type": "boolean",
           "description": "adds external-dns policies for Amazon Route 53. See [external-dns docs](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/aws.md).",
@@ -2043,7 +2049,8 @@
         "awsLoadBalancerController",
         "externalDNS",
         "certManager",
-        "ebsCSIController"
+        "ebsCSIController",
+        "efsCSIController"
       ],
       "additionalProperties": false,
       "description": "for attaching common IAM policies",
