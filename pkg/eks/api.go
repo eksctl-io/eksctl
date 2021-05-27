@@ -57,7 +57,7 @@ type ClusterProvider struct {
 	Status *ProviderStatus
 }
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o fakes/fake_kube_provider.go . KubeProvider
+//counterfeiter:generate -o fakes/fake_kube_provider.go . KubeProvider
 // KubeProvider is an interface with helper funcs for k8s and EKS that are part of ClusterProvider
 type KubeProvider interface {
 	NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error)

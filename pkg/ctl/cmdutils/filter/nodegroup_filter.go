@@ -14,11 +14,18 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
-//go:generate counterfeiter -o fakes/fake_nodegroup_filter.go . NodegroupFilter
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate . NodegroupFilter
+// NodegroupFilter is an interface that holds filter configuration
 type NodegroupFilter interface {
 	SetOnlyLocal(eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) error
 	Match(ngName string) bool
 	LogInfo(cfg *api.ClusterConfig)
+}
+
+// StackLister lists nodegroup stacks
+type StackLister interface {
+	ListNodeGroupStacks() ([]manager.NodeGroupStack, error)
 }
 
 // NodeGroupFilter holds filter configuration
@@ -30,7 +37,7 @@ type NodeGroupFilter struct {
 	remoteNodegroups sets.String
 }
 
-// New create new NodeGroupFilter instance
+// NewNodeGroupFilter creates a new NodeGroupFilter struct
 func NewNodeGroupFilter() *NodeGroupFilter {
 	return &NodeGroupFilter{
 		delegate: &Filter{
@@ -64,11 +71,6 @@ func (f *NodeGroupFilter) AppendExcludeGlobs(globExprs ...string) error {
 // AppendIncludeNames sets globs for inclusion rules
 func (f *NodeGroupFilter) AppendIncludeNames(names ...string) {
 	f.delegate.AppendIncludeNames(names...)
-}
-
-// StackLister lists nodegroup stacks
-type StackLister interface {
-	ListNodeGroupStacks() ([]manager.NodeGroupStack, error)
 }
 
 // SetOnlyLocal uses StackLister to list existing nodegroup stacks and configures

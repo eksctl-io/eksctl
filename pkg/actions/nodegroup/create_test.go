@@ -75,7 +75,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		expErr: fmt.Errorf("err"),
 	}),
 
-	Entry("fails to load VPC from config", ngEntry{
+	Entry("when cluster is unowned, fails to load VPC from config if config is not supplied", ngEntry{
 		mockCalls: func(k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter) {
 			k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 			k.ServerVersionReturns("1.17", nil)
@@ -94,7 +94,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		expErr: errors.New("err"),
 	}),
 
-	Entry("fails when NodeGroupService fails to match instances", ngEntry{
+	Entry("fails to set instance types to instances matched by instance selector criteria", ngEntry{
 		mockCalls: func(k *fakes.FakeKubeProvider, init *fakes.FakeNodeGroupInitialiser, f *utilFakes.FakeNodegroupFilter) {
 			k.NewRawClientReturns(&kubernetes.RawClient{}, nil)
 			k.ServerVersionReturns("1.17", nil)

@@ -21,15 +21,15 @@ import (
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
-// InstanceSelector selects a set of instance types matching the specified instance selector criteria
 //counterfeiter:generate -o fakes/fake_instance_selector.go . InstanceSelector
+// InstanceSelector selects a set of instance types matching the specified instance selector criteria
 type InstanceSelector interface {
 	// Filter returns a set of instance types matching the specified instance selector filters
 	Filter(selector.Filters) ([]string, error)
 }
 
+//counterfeiter:generate -o fakes/fake_nodegroup_initialiser.go . NodeGroupInitialiser
 // NodeGroupInitialiser is an interface that provides helpers for nodegroup creation.
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o fakes/fake_nodegroup_initialiser.go . NodeGroupInitialiser
 type NodeGroupInitialiser interface {
 	Normalize(nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error
 	ExpandInstanceSelectorOptions(nodePools []api.NodePool, clusterAZs []string) error
