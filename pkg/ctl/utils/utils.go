@@ -9,7 +9,6 @@ import (
 func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	verbCmd := cmdutils.NewVerbCmd("utils", "Various utils", "")
 
-	cmdutils.AddResourceCmd(flagGrouping, verbCmd, waitNodesCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, writeKubeconfigCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, describeStacksCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateClusterStackCmd)
