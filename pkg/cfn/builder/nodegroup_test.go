@@ -608,13 +608,16 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				Expect(properties.LaunchTemplateData.InstanceType).To(Equal("m5.large"))
 				Expect(properties.LaunchTemplateData.MetadataOptions.HTTPPutResponseHopLimit).To(Equal(float64(2)))
 				Expect(properties.LaunchTemplateData.MetadataOptions.HTTPTokens).To(Equal("optional"))
-				Expect(properties.LaunchTemplateData.TagSpecifications).To(HaveLen(2))
+				Expect(properties.LaunchTemplateData.TagSpecifications).To(HaveLen(3))
 				Expect(properties.LaunchTemplateData.TagSpecifications[0].ResourceType).To(Equal(aws.String("instance")))
 				Expect(properties.LaunchTemplateData.TagSpecifications[0].Tags[0].Key).To(Equal("Name"))
 				Expect(properties.LaunchTemplateData.TagSpecifications[0].Tags[0].Value).To(Equal("bonsai-ng-abcd1234-Node"))
 				Expect(properties.LaunchTemplateData.TagSpecifications[1].ResourceType).To(Equal(aws.String("volume")))
 				Expect(properties.LaunchTemplateData.TagSpecifications[1].Tags[0].Key).To(Equal("Name"))
 				Expect(properties.LaunchTemplateData.TagSpecifications[1].Tags[0].Value).To(Equal("bonsai-ng-abcd1234-Node"))
+				Expect(properties.LaunchTemplateData.TagSpecifications[2].ResourceType).To(Equal(aws.String("network-interface")))
+				Expect(properties.LaunchTemplateData.TagSpecifications[2].Tags[0].Key).To(Equal("Name"))
+				Expect(properties.LaunchTemplateData.TagSpecifications[2].Tags[0].Value).To(Equal("bonsai-ng-abcd1234-Node"))
 			})
 
 			Context("creating userdata fails", func() {
@@ -716,7 +719,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				Expect(ngTemplate.Resources["NodeGroup"].Properties.LaunchTemplate.LaunchTemplateName).To(Equal(map[string]interface{}{"Fn::Sub": "${AWS::StackName}"}))
 				Expect(ngTemplate.Resources["NodeGroup"].Properties.LaunchTemplate.Version["Fn::GetAtt"]).To(Equal([]interface{}{"NodeGroupLaunchTemplate", "LatestVersionNumber"}))
 				tags := ngTemplate.Resources["NodeGroup"].Properties.Tags
-				Expect(tags).To(HaveLen(2))
+				Expect(tags).To(HaveLen(3))
 				Expect(tags[0].Key).To(Equal("Name"))
 				Expect(tags[0].Value).To(Equal("bonsai-ng-abcd1234-Node"))
 				Expect(tags[0].PropagateAtLaunch).To(Equal("true"))
