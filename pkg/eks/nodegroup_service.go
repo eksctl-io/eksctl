@@ -66,7 +66,8 @@ func (m *NodeGroupService) Normalize(nodePools []api.NodePool, clusterMeta *api.
 	for _, np := range nodePools {
 		switch ng := np.(type) {
 		case *api.ManagedNodeGroup:
-			if ng.AMIFamily != api.NodeImageFamilyAmazonLinux2 && !api.IsAMI(ng.AMI) {
+			hasNativeAMIFamilySupport := ng.AMIFamily == api.NodeImageFamilyAmazonLinux2
+			if !hasNativeAMIFamilySupport && !api.IsAMI(ng.AMI) {
 				if err := ResolveAMI(m.Provider, clusterMeta.Version, np); err != nil {
 					return err
 				}
