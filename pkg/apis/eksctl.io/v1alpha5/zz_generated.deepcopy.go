@@ -986,11 +986,6 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		*out = make(taintsWrapper, len(*in))
 		copy(*out, *in)
 	}
-	if in.Bottlerocket != nil {
-		in, out := &in.Bottlerocket, &out.Bottlerocket
-		*out = new(NodeGroupBottlerocket)
-		(*in).DeepCopyInto(*out)
-	}
 	if in.KubeletExtraConfig != nil {
 		in, out := &in.KubeletExtraConfig, &out.KubeletExtraConfig
 		*out = (*in).DeepCopy()
@@ -1134,6 +1129,11 @@ func (in *NodeGroupBase) DeepCopyInto(out *NodeGroupBase) {
 		in, out := &in.InstanceSelector, &out.InstanceSelector
 		*out = new(InstanceSelector)
 		**out = **in
+	}
+	if in.Bottlerocket != nil {
+		in, out := &in.Bottlerocket, &out.Bottlerocket
+		*out = new(NodeGroupBottlerocket)
+		(*in).DeepCopyInto(*out)
 	}
 	return
 }

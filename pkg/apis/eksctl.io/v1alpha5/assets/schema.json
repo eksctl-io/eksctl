@@ -920,6 +920,11 @@
           "description": "Limit [nodes to specific AZs](/usage/autoscaling/#zone-aware-auto-scaling)",
           "x-intellij-html-description": "Limit <a href=\"/usage/autoscaling/#zone-aware-auto-scaling\">nodes to specific AZs</a>"
         },
+        "bottlerocket": {
+          "$ref": "#/definitions/NodeGroupBottlerocket",
+          "description": "specifies settings for Bottlerocket nodes",
+          "x-intellij-html-description": "specifies settings for Bottlerocket nodes"
+        },
         "desiredCapacity": {
           "type": "integer"
         },
@@ -1132,6 +1137,7 @@
         "placement",
         "efaEnabled",
         "instanceSelector",
+        "bottlerocket",
         "instanceTypes",
         "spot",
         "taints",
@@ -1213,7 +1219,9 @@
           "x-intellij-html-description": "Limit <a href=\"/usage/autoscaling/#zone-aware-auto-scaling\">nodes to specific AZs</a>"
         },
         "bottlerocket": {
-          "$ref": "#/definitions/NodeGroupBottlerocket"
+          "$ref": "#/definitions/NodeGroupBottlerocket",
+          "description": "specifies settings for Bottlerocket nodes",
+          "x-intellij-html-description": "specifies settings for Bottlerocket nodes"
         },
         "classicLoadBalancerNames": {
           "items": {
@@ -1434,13 +1442,13 @@
         "placement",
         "efaEnabled",
         "instanceSelector",
+        "bottlerocket",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",
         "classicLoadBalancerNames",
         "targetGroupARNs",
         "taints",
-        "bottlerocket",
         "clusterDNS",
         "kubeletExtraConfig"
       ],

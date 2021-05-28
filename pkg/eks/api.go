@@ -313,8 +313,9 @@ func (c *ClusterProvider) checkAuth() error {
 }
 
 // ResolveAMI ensures that the node AMI is set and is available
-func ResolveAMI(provider api.ClusterProvider, version string, ng *api.NodeGroup) error {
+func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) error {
 	var resolver ami.Resolver
+	ng := np.BaseNodeGroup()
 	switch ng.AMI {
 	case api.NodeImageResolverAuto:
 		resolver = ami.NewAutoResolver(provider.EC2())
@@ -329,7 +330,7 @@ func ResolveAMI(provider api.ClusterProvider, version string, ng *api.NodeGroup)
 		return errors.Errorf("invalid AMI value: %q", ng.AMI)
 	}
 
-	instanceType := selectInstanceType(ng)
+	instanceType := selectInstanceType(np)
 	id, err := resolver.Resolve(provider.Region(), version, instanceType, ng.AMIFamily)
 	if err != nil {
 		return errors.Wrap(err, "unable to determine AMI to use")
@@ -344,8 +345,8 @@ func ResolveAMI(provider api.ClusterProvider, version string, ng *api.NodeGroup)
 // selectInstanceType determines which instanceType is relevant for selecting an AMI
 // If the nodegroup has mixed instances it will prefer a GPU instance type over a general class one
 // This is to make sure that the AMI that is selected later is valid for all the types
-func selectInstanceType(ng *api.NodeGroup) string {
-	if api.HasMixedInstances(ng) {
+func selectInstanceType(np api.NodePool) string {
+	if ng, ok := np.(*api.NodeGroup); ok && api.HasMixedInstances(ng) {
 		for _, instanceType := range ng.InstancesDistribution.InstanceTypes {
 			if utils.IsGPUInstanceType(instanceType) {
 				return instanceType
@@ -353,7 +354,7 @@ func selectInstanceType(ng *api.NodeGroup) string {
 		}
 		return ng.InstancesDistribution.InstanceTypes[0]
 	}
-	return ng.InstanceType
+	return np.BaseNodeGroup().InstanceType
 }
 
 func errTooFewAvailabilityZones(azs []string) error {

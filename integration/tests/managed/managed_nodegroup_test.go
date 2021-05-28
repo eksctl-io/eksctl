@@ -3,14 +3,13 @@
 package managed
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
 	"time"
 
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/eks"
 	harness "github.com/dlespiau/kube-test-harness"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -58,6 +57,14 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 		newPrivateNodeGroup = "ng-private-1"
 	)
 
+	makeClusterConfig := func() *api.ClusterConfig {
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.Metadata.Name = params.ClusterName
+		clusterConfig.Metadata.Region = params.Region
+		clusterConfig.Metadata.Version = params.Version
+		return clusterConfig
+	}
+
 	defaultTimeout := 20 * time.Minute
 
 	BeforeSuite(func() {
@@ -78,11 +85,43 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 		Expect(cmd).To(RunSuccessfully())
 	})
 
+	Context("Bottlerocket nodegroups", func() {
+		It("should work as a node AMI family", func() {
+			clusterConfig := makeClusterConfig()
+			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name:       "bottlerocket",
+						VolumeSize: aws.Int(35),
+						AMIFamily:  "Bottlerocket",
+					},
+					Taints: []api.NodeGroupTaint{
+						{
+							Key:    "key1",
+							Value:  "value1",
+							Effect: "PreferNoSchedule",
+						},
+					},
+				},
+			}
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"nodegroup",
+					"--config-file", "-",
+					"--verbose", "4",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(testutils.ClusterConfigReader(clusterConfig))
+
+			Expect(cmd).To(RunSuccessfully())
+		})
+	})
+
 	Context("cluster with 1 managed nodegroup", func() {
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
 			awsSession := NewSession(params.Region)
 
-			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, awseks.ClusterStatusActive, params.Version))
+			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, eks.ClusterStatusActive, params.Version))
 
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initialNodeGroup)))
@@ -302,10 +341,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 						Effect: "NoExecute",
 					},
 				}
-				clusterConfig := api.NewClusterConfig()
-				clusterConfig.Metadata.Name = params.ClusterName
-				clusterConfig.Metadata.Region = params.Region
-				clusterConfig.Metadata.Version = params.Version
+				clusterConfig := makeClusterConfig()
 				clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
 					{
 						NodeGroupBase: &api.NodeGroupBase{
@@ -315,9 +351,6 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					},
 				}
 
-				data, err := json.Marshal(clusterConfig)
-				Expect(err).ToNot(HaveOccurred())
-
 				cmd := params.EksctlCreateCmd.
 					WithArgs(
 						"nodegroup",
@@ -325,7 +358,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 						"--verbose", "4",
 					).
 					WithoutArg("--region", params.Region).
-					WithStdin(bytes.NewReader(data))
+					WithStdin(testutils.ClusterConfigReader(clusterConfig))
 				Expect(cmd).To(RunSuccessfully())
 
 				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)

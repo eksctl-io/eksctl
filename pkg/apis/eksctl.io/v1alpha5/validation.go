@@ -516,9 +516,13 @@ func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) erro
 
 // ValidateManagedNodeGroup validates a ManagedNodeGroup and sets some defaults
 func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
-	if ng.AMIFamily != NodeImageFamilyAmazonLinux2 {
-		return fmt.Errorf("only %s is supported for Managed Nodegroups", NodeImageFamilyAmazonLinux2)
+	switch ng.AMIFamily {
+	case NodeImageFamilyAmazonLinux2, NodeImageFamilyBottlerocket:
+
+	default:
+		return errors.Errorf("%q is not supported for managed nodegroups", ng.AMIFamily)
 	}
+
 	path := fmt.Sprintf("managedNodeGroups[%d]", index)
 
 	if err := validateNodeGroupBase(ng.NodeGroupBase, path); err != nil {
@@ -551,7 +555,7 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 		return fmt.Errorf("cannot use --nodes-min=%d and --nodes=%d at the same time", *ng.MinSize, *ng.DesiredCapacity)
 	}
 
-	// Ensure MaxSize is set, as it is required by the ASG cfn resource
+	// Ensure MaxSize is set, as it is required by the ASG CFN resource
 	if ng.MaxSize == nil {
 		if ng.DesiredCapacity == nil {
 			ng.MaxSize = ng.MinSize
@@ -618,6 +622,9 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 	case ng.AMI != "":
 		if !IsAMI(ng.AMI) {
 			return errors.Errorf("invalid AMI %q (%s.%s)", ng.AMI, path, "ami")
+		}
+		if ng.AMIFamily != NodeImageFamilyAmazonLinux2 {
+			return errors.Errorf("cannot set amiFamily to %s when using a custom AMI", ng.AMIFamily)
 		}
 		if ng.OverrideBootstrapCommand == nil {
 			return errors.Errorf("%s.overrideBootstrapCommand is required when using a custom AMI (%s.ami)", path, path)

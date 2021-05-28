@@ -33,7 +33,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 					AMIFamily:                "Ubuntu1804",
 				},
 			},
-			errMsg: "only AmazonLinux2 is supported",
+			errMsg: `"Ubuntu1804" is not supported for managed nodegroups`,
 		}),
 		Entry("Supported AMI family", &nodeGroupCase{
 			ng: &ManagedNodeGroup{

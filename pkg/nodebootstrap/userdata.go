@@ -63,6 +63,17 @@ func NewBootstrapper(clusterSpec *api.ClusterConfig, ng *api.NodeGroup) Bootstra
 	return nil
 }
 
+// NewManagedBootstrapper creates a new bootstrapper for managed nodegroups based on the AMI family
+func NewManagedBootstrapper(clusterConfig *api.ClusterConfig, ng *api.ManagedNodeGroup) Bootstrapper {
+	switch ng.AMIFamily {
+	case api.NodeImageFamilyAmazonLinux2:
+		return NewManagedAL2Bootstrapper(ng)
+	case api.NodeImageFamilyBottlerocket:
+		return NewBottlerocketBootstrapper(clusterConfig, ng)
+	}
+	return nil
+}
+
 func linuxConfig(clusterConfig *api.ClusterConfig, bootScript string, ng *api.NodeGroup, scripts ...string) (string, error) {
 	config := cloudconfig.New()
 

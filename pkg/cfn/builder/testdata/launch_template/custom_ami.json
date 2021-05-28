@@ -60,7 +60,7 @@
                     ]
                   }
                 ],
-                "UserData": "CiMhL2Jpbi9iYXNoCnNldCAtZXgKQjY0X0NMVVNURVJfQ0E9ZEdWemRBbz0KQVBJX1NFUlZFUl9VUkw9aHR0cHM6Ly90ZXN0LmNvbQovZXRjL2Vrcy9ib290c3RyYXAuc2ggbGF1bmNoLXRlbXBsYXRlIC0tYjY0LWNsdXN0ZXItY2EgJEI2NF9DTFVTVEVSX0NBIC0tYXBpc2VydmVyLWVuZHBvaW50ICRBUElfU0VSVkVSX1VSTAo="
+                "UserData": "L2V0Yy9la3MvYm9vdHN0cmFwLnNoIGx0"
             },
             "LaunchTemplateName": {
                 "Fn::Sub": "${AWS::StackName}"

@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
@@ -24,16 +25,14 @@ type ManagedNodeGroupResourceSet struct {
 	launchTemplateFetcher *LaunchTemplateFetcher
 	ec2API                ec2iface.EC2API
 	vpcImporter           vpc.Importer
+	bootstrapper          nodebootstrap.Bootstrapper
 	*resourceSet
-
-	// UserDataMimeBoundary sets the MIME boundary for user data
-	UserDataMimeBoundary string
 }
 
 const ManagedNodeGroupResourceName = "ManagedNodeGroup"
 
 // NewManagedNodeGroup creates a new ManagedNodeGroupResourceSet
-func NewManagedNodeGroup(ec2API ec2iface.EC2API, cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher *LaunchTemplateFetcher, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *ManagedNodeGroupResourceSet {
+func NewManagedNodeGroup(ec2API ec2iface.EC2API, cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher *LaunchTemplateFetcher, bootstrapper nodebootstrap.Bootstrapper, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *ManagedNodeGroupResourceSet {
 	return &ManagedNodeGroupResourceSet{
 		clusterConfig:         cluster,
 		forceAddCNIPolicy:     forceAddCNIPolicy,
@@ -42,6 +41,7 @@ func NewManagedNodeGroup(ec2API ec2iface.EC2API, cluster *api.ClusterConfig, nod
 		ec2API:                ec2API,
 		resourceSet:           newResourceSet(),
 		vpcImporter:           vpcImporter,
+		bootstrapper:          bootstrapper,
 	}
 }
 
