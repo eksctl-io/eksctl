@@ -103,26 +103,6 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 		return err
 	}
 
-	if err := m.nodeCreationTasks(options, nodegroupFilter, supportsManagedNodes, isOwnedCluster); err != nil {
-		return err
-	}
-
-	if err := m.postNodeCreationTasks(m.clientSet, options); err != nil {
-		return err
-	}
-
-	if err := m.init.ValidateExistingNodeGroupsForCompatibility(cfg, m.stackManager); err != nil {
-		logger.Critical("failed checking nodegroups", err.Error())
-	}
-
-	return nil
-}
-
-func (m *Manager) nodeCreationTasks(options CreateOpts, nodegroupFilter filter.NodegroupFilter, supportsManagedNodes, isOwnedCluster bool) error {
-	cfg := m.cfg
-	meta := cfg.Metadata
-	init := m.init
-
 	if err := nodegroupFilter.SetOnlyLocal(m.ctl.Provider.EKS(), m.stackManager, cfg); err != nil {
 		return err
 	}
@@ -150,6 +130,26 @@ func (m *Manager) nodeCreationTasks(options CreateOpts, nodegroupFilter filter.N
 		}
 		return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, os.Stdout)
 	}
+
+	if err := m.nodeCreationTasks(options, nodegroupFilter, supportsManagedNodes, isOwnedCluster); err != nil {
+		return err
+	}
+
+	if err := m.postNodeCreationTasks(m.clientSet, options); err != nil {
+		return err
+	}
+
+	if err := m.init.ValidateExistingNodeGroupsForCompatibility(cfg, m.stackManager); err != nil {
+		logger.Critical("failed checking nodegroups", err.Error())
+	}
+
+	return nil
+}
+
+func (m *Manager) nodeCreationTasks(options CreateOpts, nodegroupFilter filter.NodegroupFilter, supportsManagedNodes, isOwnedCluster bool) error {
+	cfg := m.cfg
+	meta := cfg.Metadata
+	init := m.init
 
 	taskTree := &tasks.TaskTree{
 		Parallel: false,
