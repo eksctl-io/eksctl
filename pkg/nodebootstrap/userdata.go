@@ -70,12 +70,15 @@ func NewManagedBootstrapper(clusterConfig *api.ClusterConfig, ng *api.ManagedNod
 		return NewManagedAL2Bootstrapper(ng)
 	case api.NodeImageFamilyBottlerocket:
 		return NewBottlerocketBootstrapper(clusterConfig, ng)
+	case api.NodeImageFamilyUbuntu1804, api.NodeImageFamilyUbuntu2004:
+		return NewUbuntuBootstrapper(clusterConfig, ng)
 	}
 	return nil
 }
 
-func linuxConfig(clusterConfig *api.ClusterConfig, bootScript string, ng *api.NodeGroup, scripts ...string) (string, error) {
+func linuxConfig(clusterConfig *api.ClusterConfig, bootScript string, np api.NodePool, scripts ...string) (string, error) {
 	config := cloudconfig.New()
+	ng := np.BaseNodeGroup()
 
 	for _, command := range ng.PreBootstrapCommands {
 		config.AddShellCommand(command)
@@ -90,12 +93,15 @@ func linuxConfig(clusterConfig *api.ClusterConfig, bootScript string, ng *api.No
 		config.AddShellCommand(*ng.OverrideBootstrapCommand)
 	} else {
 		scripts = append(scripts, commonLinuxBootScript, bootScript)
-		kubeletConf, err := makeKubeletExtraConf(ng)
-		if err != nil {
-			return "", err
+		if unmanaged, ok := np.(*api.NodeGroup); ok {
+			kubeletConf, err := makeKubeletExtraConf(unmanaged)
+			if err != nil {
+				return "", err
+			}
+			files = append(files, kubeletConf)
 		}
-		envFile := makeBootstrapEnv(clusterConfig, ng)
-		files = append(files, kubeletConf, envFile)
+		envFile := makeBootstrapEnv(clusterConfig, np)
+		files = append(files, envFile)
 	}
 
 	if err := addFilesAndScripts(config, files, scripts); err != nil {
@@ -131,17 +137,17 @@ func makeKubeletExtraConf(ng *api.NodeGroup) (cloudconfig.File, error) {
 	}, nil
 }
 
-func makeBootstrapEnv(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) cloudconfig.File {
+func makeBootstrapEnv(clusterConfig *api.ClusterConfig, np api.NodePool) cloudconfig.File {
 	variables := []string{
 		fmt.Sprintf("CLUSTER_NAME=%s", clusterConfig.Metadata.Name),
 		fmt.Sprintf("API_SERVER_URL=%s", clusterConfig.Status.Endpoint),
 		fmt.Sprintf("B64_CLUSTER_CA=%s", base64.StdEncoding.EncodeToString(clusterConfig.Status.CertificateAuthorityData)),
-		fmt.Sprintf("NODE_LABELS=%s", kvs(ng.Labels)),
-		fmt.Sprintf("NODE_TAINTS=%s", utils.FormatTaints(ng.Taints)),
+		fmt.Sprintf("NODE_LABELS=%s", kvs(np.BaseNodeGroup().Labels)),
+		fmt.Sprintf("NODE_TAINTS=%s", utils.FormatTaints(np.NGTaints())),
 	}
 
-	if ng.ClusterDNS != "" {
-		variables = append(variables, fmt.Sprintf("CLUSTER_DNS=%s", ng.ClusterDNS))
+	if unmanaged, ok := np.(*api.NodeGroup); ok && unmanaged.ClusterDNS != "" {
+		variables = append(variables, fmt.Sprintf("CLUSTER_DNS=%s", unmanaged.ClusterDNS))
 	}
 
 	return cloudconfig.File{

@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	harness "github.com/dlespiau/kube-test-harness"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 
@@ -84,6 +85,44 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 		)
 		Expect(cmd).To(RunSuccessfully())
 	})
+
+	DescribeTable("Bottlerocket and Ubuntu support", func(ng *api.ManagedNodeGroup) {
+		clusterConfig := makeClusterConfig()
+		clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{ng}
+		cmd := params.EksctlCreateCmd.
+			WithArgs(
+				"nodegroup",
+				"--config-file", "-",
+				"--verbose", "4",
+			).
+			WithoutArg("--region", params.Region).
+			WithStdin(testutils.ClusterConfigReader(clusterConfig))
+
+		Expect(cmd).To(RunSuccessfully())
+	},
+		Entry("Bottlerocket", &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:       "bottlerocket",
+				VolumeSize: aws.Int(35),
+				AMIFamily:  "Bottlerocket",
+			},
+			Taints: []api.NodeGroupTaint{
+				{
+					Key:    "key2",
+					Value:  "value2",
+					Effect: "PreferNoSchedule",
+				},
+			},
+		}),
+
+		Entry("Ubuntu", &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:       "ubuntu",
+				VolumeSize: aws.Int(25),
+				AMIFamily:  "Ubuntu1804",
+			},
+		}),
+	)
 
 	Context("Bottlerocket nodegroups", func() {
 		It("should work as a node AMI family", func() {
