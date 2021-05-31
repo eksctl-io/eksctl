@@ -178,7 +178,10 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 		Expect(session.ExitCode()).To(Equal(0))
 
 		output := session.Buffer().Contents()
-		assertDryRun(output, setValues)
+		assertDryRun(output, func(clusterConfig *api.ClusterConfig) {
+			clusterConfig.Metadata.Version = eksVersion
+			setValues(clusterConfig)
+		})
 	},
 		Entry("default values", func(c *api.ClusterConfig) {
 			c.ManagedNodeGroups = nil
@@ -248,6 +251,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 		output := session.Buffer().Contents()
 
 		actual, expected := parseOutput(output)
+		expected.Metadata.Version = eksVersion
 		setValues(actual, expected)
 		Expect(actual).To(Equal(expected))
 
