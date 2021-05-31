@@ -310,6 +310,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			output := session.Buffer().Contents()
 			assertDryRun(output, func(c *api.ClusterConfig) {
 				c.Metadata.Name = params.ClusterName
+				c.Metadata.Version = eksVersion
 				c.ManagedNodeGroups = nil
 				setClusterLabel(c.NodeGroups[0])
 			})
