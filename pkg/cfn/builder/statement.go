@@ -392,3 +392,36 @@ func efsEc2Statements() []cft.MapOfInterfaces {
 		},
 	}
 }
+
+func efsCSIControllerStatements() []cft.MapOfInterfaces {
+	return []cft.MapOfInterfaces{
+		{
+			"Effect":   effectAllow,
+			"Resource": resourceAll,
+			"Action": []string{
+				"elasticfilesystem:DescribeAccessPoints",
+				"elasticfilesystem:DescribeFileSystems",
+			},
+		},
+		{
+			"Effect":   effectAllow,
+			"Resource": resourceAll,
+			"Action":   []string{"elasticfilesystem:CreateAccessPoint"},
+			"Condition": map[string]interface{}{
+				"StringLike": map[string]string{
+					"aws:RequestTag/efs.csi.aws.com/cluster": "true",
+				},
+			},
+		},
+		{
+			"Effect":   effectAllow,
+			"Resource": resourceAll,
+			"Action":   []string{"elasticfilesystem:DeleteAccessPoint"},
+			"Condition": map[string]interface{}{
+				"StringLike": map[string]string{
+					"aws:ResourceTag/efs.csi.aws.com/cluster": "true",
+				},
+			},
+		},
+	}
+}

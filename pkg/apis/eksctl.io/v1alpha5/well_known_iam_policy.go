@@ -22,8 +22,12 @@ type WellKnownPolicies struct {
 	// ebs-csi-controller. See [aws-ebs-csi-driver
 	// docs](https://github.com/kubernetes-sigs/aws-ebs-csi-driver#set-up-driver-permission).
 	EBSCSIController bool `json:"ebsCSIController,inline"`
+	// EFSCSIController adds policies for using the
+	// efs-csi-controller. See [aws-efs-csi-driver
+	// docs](https://aws.amazon.com/blogs/containers/introducing-efs-csi-dynamic-provisioning).
+	EFSCSIController bool `json:"efsCSIController,inline"`
 }
 
 func (p *WellKnownPolicies) HasPolicy() bool {
-	return p.ImageBuilder || p.AutoScaler || p.AWSLoadBalancerController || p.ExternalDNS || p.CertManager || p.EBSCSIController
+	return p.ImageBuilder || p.AutoScaler || p.AWSLoadBalancerController || p.ExternalDNS || p.CertManager || p.EBSCSIController || p.EFSCSIController
 }
