@@ -93,13 +93,15 @@ func linuxConfig(clusterConfig *api.ClusterConfig, bootScript string, np api.Nod
 		config.AddShellCommand(*ng.OverrideBootstrapCommand)
 	} else {
 		scripts = append(scripts, commonLinuxBootScript, bootScript)
+		var kubeletExtraConf *api.InlineDocument
 		if unmanaged, ok := np.(*api.NodeGroup); ok {
-			kubeletConf, err := makeKubeletExtraConf(unmanaged)
-			if err != nil {
-				return "", err
-			}
-			files = append(files, kubeletConf)
+			kubeletExtraConf = unmanaged.KubeletExtraConfig
 		}
+		kubeletConf, err := makeKubeletExtraConf(kubeletExtraConf)
+		if err != nil {
+			return "", err
+		}
+		files = append(files, kubeletConf)
 		envFile := makeBootstrapEnv(clusterConfig, np)
 		files = append(files, envFile)
 	}
@@ -116,12 +118,11 @@ func linuxConfig(clusterConfig *api.ClusterConfig, bootScript string, np api.Nod
 	return body, nil
 }
 
-func makeKubeletExtraConf(ng *api.NodeGroup) (cloudconfig.File, error) {
-	if ng.KubeletExtraConfig == nil {
-		ng.KubeletExtraConfig = &api.InlineDocument{}
+func makeKubeletExtraConf(kubeletExtraConf *api.InlineDocument) (cloudconfig.File, error) {
+	if kubeletExtraConf == nil {
+		kubeletExtraConf = &api.InlineDocument{}
 	}
-
-	data, err := json.Marshal(ng.KubeletExtraConfig)
+	data, err := json.Marshal(kubeletExtraConf)
 	if err != nil {
 		return cloudconfig.File{}, err
 	}
