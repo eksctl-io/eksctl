@@ -6,11 +6,8 @@ set -o nounset
 
 source /var/lib/cloud/scripts/eksctl/bootstrap.helper.sh
 
-sed -i 's/cgroupfs/systemd/g' /etc/eks/bootstrap.sh
-
 echo "eksctl: running /etc/eks/bootstrap"
 /etc/eks/bootstrap.sh "${CLUSTER_NAME}" \
-  --docker-config-json "$(cat "${DOCKER_EXTRA_CONFIG}")" \
   --dns-cluster-ip "${CLUSTER_DNS}" \
   --kubelet-extra-args "--register-with-taints=${NODE_TAINTS} --node-labels=${NODE_LABELS}"
 
