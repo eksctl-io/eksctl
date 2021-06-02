@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/utils/taints"
@@ -587,7 +588,10 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 
 	if ng.UpdateConfig != nil {
 		if ng.UpdateConfig.MaxUnavailable != nil && ng.UpdateConfig.MaxUnavailablePercentage != nil {
-			return fmt.Errorf("cannot use --max-unavailable and --max-unavailable-in-percentage at the same time")
+			return fmt.Errorf("cannot use maxUnavailable and maxUnavailablePercentage at the same time")
+		}
+		if aws.IntValue(ng.UpdateConfig.MaxUnavailable) > aws.IntValue(ng.MaxSize) || aws.IntValue(ng.UpdateConfig.MaxUnavailablePercentage) > aws.IntValue(ng.MaxSize) {
+			return fmt.Errorf("maxUnavailable and maxUnavailablePercentage cannot be greater than MaxSize")
 		}
 	}
 

@@ -174,6 +174,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 	type updateConfigEntry struct {
 		unavailable           *int
 		unavailablePercentage *int
+		maxSize               *int
 		valid                 bool
 	}
 
@@ -181,6 +182,9 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 		mng := &ManagedNodeGroup{
 			NodeGroupBase: &NodeGroupBase{
 				AMIFamily: "AmazonLinux2",
+				ScalingConfig: &ScalingConfig{
+					MaxSize: e.maxSize,
+				},
 			},
 			UpdateConfig: &NodeGroupUpdateConfig{
 				MaxUnavailable:           e.unavailable,
@@ -203,9 +207,19 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 			unavailablePercentage: aws.Int(1),
 			valid:                 true,
 		}),
-		Entry("both set", updateConfigEntry{
+		Entry("returns an error if both are set", updateConfigEntry{
 			unavailable:           aws.Int(1),
 			unavailablePercentage: aws.Int(1),
+			valid:                 false,
+		}),
+		Entry("returns an error if max unavailable is greater than maxSize", updateConfigEntry{
+			unavailable: aws.Int(100),
+			maxSize:     aws.Int(5),
+			valid:       false,
+		}),
+		Entry("returns an error if max unavailable percentage is greater than maxSize", updateConfigEntry{
+			unavailablePercentage: aws.Int(100),
+			maxSize:               aws.Int(5),
 			valid:                 false,
 		}),
 	)
