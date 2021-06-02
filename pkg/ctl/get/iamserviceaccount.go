@@ -3,6 +3,7 @@ package get
 import (
 	"os"
 
+	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/actions/irsa"
@@ -68,6 +69,9 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, options IAMServiceAccountOptions)
 
 	if options.output == printers.TableType {
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+	} else {
+		//log warnings and errors to stderr
+		logger.Writer = os.Stderr
 	}
 
 	if ok, err := ctl.CanOperate(cfg); !ok {

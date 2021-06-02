@@ -63,8 +63,22 @@ func NewBootstrapper(clusterSpec *api.ClusterConfig, ng *api.NodeGroup) Bootstra
 	return nil
 }
 
-func linuxConfig(clusterConfig *api.ClusterConfig, bootScript string, ng *api.NodeGroup, scripts ...string) (string, error) {
+// NewManagedBootstrapper creates a new bootstrapper for managed nodegroups based on the AMI family
+func NewManagedBootstrapper(clusterConfig *api.ClusterConfig, ng *api.ManagedNodeGroup) Bootstrapper {
+	switch ng.AMIFamily {
+	case api.NodeImageFamilyAmazonLinux2:
+		return NewManagedAL2Bootstrapper(ng)
+	case api.NodeImageFamilyBottlerocket:
+		return NewBottlerocketBootstrapper(clusterConfig, ng)
+	case api.NodeImageFamilyUbuntu1804, api.NodeImageFamilyUbuntu2004:
+		return NewUbuntuBootstrapper(clusterConfig, ng)
+	}
+	return nil
+}
+
+func linuxConfig(clusterConfig *api.ClusterConfig, bootScript string, np api.NodePool, scripts ...string) (string, error) {
 	config := cloudconfig.New()
+	ng := np.BaseNodeGroup()
 
 	for _, command := range ng.PreBootstrapCommands {
 		config.AddShellCommand(command)
@@ -79,12 +93,17 @@ func linuxConfig(clusterConfig *api.ClusterConfig, bootScript string, ng *api.No
 		config.AddShellCommand(*ng.OverrideBootstrapCommand)
 	} else {
 		scripts = append(scripts, commonLinuxBootScript, bootScript)
-		kubeletConf, err := makeKubeletExtraConf(ng)
+		var kubeletExtraConf *api.InlineDocument
+		if unmanaged, ok := np.(*api.NodeGroup); ok {
+			kubeletExtraConf = unmanaged.KubeletExtraConfig
+		}
+		kubeletConf, err := makeKubeletExtraConf(kubeletExtraConf)
 		if err != nil {
 			return "", err
 		}
-		envFile := makeBootstrapEnv(clusterConfig, ng)
-		files = append(files, kubeletConf, envFile)
+		files = append(files, kubeletConf)
+		envFile := makeBootstrapEnv(clusterConfig, np)
+		files = append(files, envFile)
 	}
 
 	if err := addFilesAndScripts(config, files, scripts); err != nil {
@@ -99,12 +118,11 @@ func linuxConfig(clusterConfig *api.ClusterConfig, bootScript string, ng *api.No
 	return body, nil
 }
 
-func makeKubeletExtraConf(ng *api.NodeGroup) (cloudconfig.File, error) {
-	if ng.KubeletExtraConfig == nil {
-		ng.KubeletExtraConfig = &api.InlineDocument{}
+func makeKubeletExtraConf(kubeletExtraConf *api.InlineDocument) (cloudconfig.File, error) {
+	if kubeletExtraConf == nil {
+		kubeletExtraConf = &api.InlineDocument{}
 	}
-
-	data, err := json.Marshal(ng.KubeletExtraConfig)
+	data, err := json.Marshal(kubeletExtraConf)
 	if err != nil {
 		return cloudconfig.File{}, err
 	}
@@ -120,17 +138,17 @@ func makeKubeletExtraConf(ng *api.NodeGroup) (cloudconfig.File, error) {
 	}, nil
 }
 
-func makeBootstrapEnv(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) cloudconfig.File {
+func makeBootstrapEnv(clusterConfig *api.ClusterConfig, np api.NodePool) cloudconfig.File {
 	variables := []string{
 		fmt.Sprintf("CLUSTER_NAME=%s", clusterConfig.Metadata.Name),
 		fmt.Sprintf("API_SERVER_URL=%s", clusterConfig.Status.Endpoint),
 		fmt.Sprintf("B64_CLUSTER_CA=%s", base64.StdEncoding.EncodeToString(clusterConfig.Status.CertificateAuthorityData)),
-		fmt.Sprintf("NODE_LABELS=%s", kvs(ng.Labels)),
-		fmt.Sprintf("NODE_TAINTS=%s", utils.FormatTaints(ng.Taints)),
+		fmt.Sprintf("NODE_LABELS=%s", kvs(np.BaseNodeGroup().Labels)),
+		fmt.Sprintf("NODE_TAINTS=%s", utils.FormatTaints(np.NGTaints())),
 	}
 
-	if ng.ClusterDNS != "" {
-		variables = append(variables, fmt.Sprintf("CLUSTER_DNS=%s", ng.ClusterDNS))
+	if unmanaged, ok := np.(*api.NodeGroup); ok && unmanaged.ClusterDNS != "" {
+		variables = append(variables, fmt.Sprintf("CLUSTER_DNS=%s", unmanaged.ClusterDNS))
 	}
 
 	return cloudconfig.File{

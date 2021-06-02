@@ -30,10 +30,10 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 					AMI:                      "",
 					OverrideBootstrapCommand: nil,
 					PreBootstrapCommands:     nil,
-					AMIFamily:                "Ubuntu1804",
+					AMIFamily:                "WindowsServer2019FullContainer",
 				},
 			},
-			errMsg: "only AmazonLinux2 is supported",
+			errMsg: `"WindowsServer2019FullContainer" is not supported for managed nodegroups`,
 		}),
 		Entry("Supported AMI family", &nodeGroupCase{
 			ng: &ManagedNodeGroup{

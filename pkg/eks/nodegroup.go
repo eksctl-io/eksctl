@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -25,8 +24,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -207,58 +204,6 @@ type KubeNodeGroup interface {
 	GetAMIFamily() string
 }
 
-// WaitForNodes waits till the nodes are ready
-func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error {
-	minSize := ng.Size()
-	if minSize == 0 {
-		return nil
-	}
-	timer := time.After(c.Provider.WaitTimeout())
-	timeout := false
-	readyNodes := sets.NewString()
-	watcher, err := clientSet.CoreV1().Nodes().Watch(context.TODO(), ng.ListOptions())
-	if err != nil {
-		return errors.Wrap(err, "creating node watcher")
-	}
-
-	counter, err := getNodes(clientSet, ng)
-	if err != nil {
-		return errors.Wrap(err, "listing nodes")
-	}
-
-	logger.Info("waiting for at least %d node(s) to become ready in %q", minSize, ng.NameString())
-	for !timeout && counter < minSize {
-		select {
-		case event := <-watcher.ResultChan():
-			logger.Debug("event = %#v", event)
-			if event.Object != nil && event.Type != watch.Deleted {
-				if node, ok := event.Object.(*corev1.Node); ok {
-					if isNodeReady(node) {
-						readyNodes.Insert(node.Name)
-						counter = readyNodes.Len()
-						logger.Debug("node %q is ready in %q", node.Name, ng.NameString())
-					} else {
-						logger.Debug("node %q seen in %q, but not ready yet", node.Name, ng.NameString())
-						logger.Debug("node = %#v", *node)
-					}
-				}
-			}
-		case <-timer:
-			timeout = true
-		}
-	}
-	watcher.Stop()
-	if timeout {
-		return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.Provider.WaitTimeout(), minSize, ng.NameString())
-	}
-
-	if _, err = getNodes(clientSet, ng); err != nil {
-		return errors.Wrap(err, "re-listing nodes")
-	}
-
-	return nil
-}
-
 // GetNodeGroupIAM retrieves the IAM configuration of the given nodegroup
 func (c *ClusterProvider) GetNodeGroupIAM(stackManager manager.StackManager, ng *api.NodeGroup) error {
 	stacks, err := stackManager.DescribeNodeGroupStacks()
@@ -299,7 +244,8 @@ func getAWSNodeSAARNAnnotation(clientSet kubernetes.Interface) (string, error) {
 	return clusterDaemonSet.Annotations[api.AnnotationEKSRoleARN], nil
 }
 
-func DoesAWSNodeUseIRSA(provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error) {
+// DoesAWSNodeUseIRSA evaluates whether an aws-node uses IRSA
+func (n *NodeGroupService) DoesAWSNodeUseIRSA(provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error) {
 	roleArn, err := getAWSNodeSAARNAnnotation(clientSet)
 	if err != nil {
 		return false, errors.Wrap(err, "error retrieving aws-node arn")

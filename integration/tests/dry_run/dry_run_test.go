@@ -39,6 +39,8 @@ func TestDryRun(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
+const eksVersion = "1.20"
+
 const defaultClusterConfig = `
 apiVersion: eksctl.io/v1alpha5
 availabilityZones:
@@ -53,7 +55,6 @@ kind: ClusterConfig
 metadata:
   name: %[1]s
   region: us-west-2
-  version: "1.20"
 nodeGroups:
 - amiFamily: AmazonLinux2
   disableIMDSv1: false
@@ -166,8 +167,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			WithArgs(
 				"cluster",
 				"--dry-run",
-				"--version",
-				"1.20",
+				"--version", eksVersion,
 				"--name",
 				params.ClusterName,
 				"--zones", "us-west-2a,us-west-2b",
@@ -178,7 +178,10 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 		Expect(session.ExitCode()).To(Equal(0))
 
 		output := session.Buffer().Contents()
-		assertDryRun(output, setValues)
+		assertDryRun(output, func(clusterConfig *api.ClusterConfig) {
+			clusterConfig.Metadata.Version = eksVersion
+			setValues(clusterConfig)
+		})
 	},
 		Entry("default values", func(c *api.ClusterConfig) {
 			c.ManagedNodeGroups = nil
@@ -236,8 +239,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				"cluster",
 				"--name",
 				params.ClusterName,
-				"--version",
-				"1.20",
+				"--version", eksVersion,
 				"--dry-run",
 				"--zones", "us-west-2a,us-west-2b",
 				"--nodegroup-name=ng-default",
@@ -249,6 +251,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 		output := session.Buffer().Contents()
 
 		actual, expected := parseOutput(output)
+		expected.Metadata.Version = eksVersion
 		setValues(actual, expected)
 		Expect(actual).To(Equal(expected))
 
@@ -297,8 +300,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				WithArgs(
 					"cluster",
 					"--dry-run",
-					"--version",
-					"1.20",
+					"--version", eksVersion,
 					"--name="+params.ClusterName,
 					"--zones", "us-west-2a,us-west-2b",
 					"--nodegroup-name=ng-default",
@@ -308,6 +310,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			output := session.Buffer().Contents()
 			assertDryRun(output, func(c *api.ClusterConfig) {
 				c.Metadata.Name = params.ClusterName
+				c.Metadata.Version = eksVersion
 				c.ManagedNodeGroups = nil
 				setClusterLabel(c.NodeGroups[0])
 			})
@@ -341,7 +344,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			output = session.Buffer().Contents()
 			assertDryRun(output, func(c *api.ClusterConfig) {
 				c.Metadata.Name = params.ClusterName
-				c.Metadata.Version = "auto"
+				c.Metadata.Version = eksVersion
 				c.VPC = nil
 				c.IAM = nil
 				c.CloudWatch = nil

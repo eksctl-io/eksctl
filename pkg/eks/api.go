@@ -43,6 +43,8 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/version"
 )
@@ -53,6 +55,18 @@ type ClusterProvider struct {
 	Provider api.ClusterProvider
 	// informative fields, i.e. used as outputs
 	Status *ProviderStatus
+}
+
+//counterfeiter:generate -o fakes/fake_kube_provider.go . KubeProvider
+// KubeProvider is an interface with helper funcs for k8s and EKS that are part of ClusterProvider
+type KubeProvider interface {
+	NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error)
+	ServerVersion(rawClient *kubernetes.RawClient) (string, error)
+	LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, stackManager manager.StackManager) error
+	SupportsManagedNodes(clusterConfig *api.ClusterConfig) (bool, error)
+	ValidateClusterForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error
+	UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error
+	WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error
 }
 
 // ProviderServices stores the used APIs
@@ -299,8 +313,9 @@ func (c *ClusterProvider) checkAuth() error {
 }
 
 // ResolveAMI ensures that the node AMI is set and is available
-func ResolveAMI(provider api.ClusterProvider, version string, ng *api.NodeGroup) error {
+func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) error {
 	var resolver ami.Resolver
+	ng := np.BaseNodeGroup()
 	switch ng.AMI {
 	case api.NodeImageResolverAuto:
 		resolver = ami.NewAutoResolver(provider.EC2())
@@ -315,7 +330,7 @@ func ResolveAMI(provider api.ClusterProvider, version string, ng *api.NodeGroup)
 		return errors.Errorf("invalid AMI value: %q", ng.AMI)
 	}
 
-	instanceType := selectInstanceType(ng)
+	instanceType := selectInstanceType(np)
 	id, err := resolver.Resolve(provider.Region(), version, instanceType, ng.AMIFamily)
 	if err != nil {
 		return errors.Wrap(err, "unable to determine AMI to use")
@@ -330,8 +345,8 @@ func ResolveAMI(provider api.ClusterProvider, version string, ng *api.NodeGroup)
 // selectInstanceType determines which instanceType is relevant for selecting an AMI
 // If the nodegroup has mixed instances it will prefer a GPU instance type over a general class one
 // This is to make sure that the AMI that is selected later is valid for all the types
-func selectInstanceType(ng *api.NodeGroup) string {
-	if api.HasMixedInstances(ng) {
+func selectInstanceType(np api.NodePool) string {
+	if ng, ok := np.(*api.NodeGroup); ok && api.HasMixedInstances(ng) {
 		for _, instanceType := range ng.InstancesDistribution.InstanceTypes {
 			if utils.IsGPUInstanceType(instanceType) {
 				return instanceType
@@ -339,7 +354,7 @@ func selectInstanceType(ng *api.NodeGroup) string {
 		}
 		return ng.InstancesDistribution.InstanceTypes[0]
 	}
-	return ng.InstanceType
+	return np.BaseNodeGroup().InstanceType
 }
 
 func errTooFewAvailabilityZones(azs []string) error {

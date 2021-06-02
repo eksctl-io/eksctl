@@ -1,7 +1,9 @@
 package builder
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"path"
 
@@ -11,6 +13,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"
 
 	"github.com/stretchr/testify/mock"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -24,7 +27,9 @@ type mngCase struct {
 	ng                *api.ManagedNodeGroup
 	resourcesFilename string
 	mockFetcherFn     func(*mockprovider.MockProvider)
-	errMsg            string
+
+	hasUserData bool
+	errMsg      string
 }
 
 var _ = Describe("ManagedNodeGroup builder", func() {
@@ -44,8 +49,16 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 		fakeVPCImporter.SecurityGroupsReturns(gfnt.Slice{gfnt.MakeFnImportValueString("eksctl-lt::ClusterSecurityGroupId")})
 		fakeVPCImporter.SubnetsPublicReturns(gfnt.MakeFnSplit(",", gfnt.MakeFnImportValueString("eksctl-lt::SubnetsPublic")))
 
-		stack := NewManagedNodeGroup(provider.MockEC2(), clusterConfig, m.ng, NewLaunchTemplateFetcher(provider.MockEC2()), false, fakeVPCImporter)
-		stack.UserDataMimeBoundary = "//"
+		bootstrapper := &fakes.FakeBootstrapper{}
+		bootstrapper.UserDataStub = func() (string, error) {
+			if !m.hasUserData {
+				return "", nil
+			}
+			userData := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf(`/etc/eks/bootstrap.sh %s`, clusterConfig.Metadata.Name)))
+			return userData, nil
+		}
+
+		stack := NewManagedNodeGroup(provider.MockEC2(), clusterConfig, m.ng, NewLaunchTemplateFetcher(provider.MockEC2()), bootstrapper, false, fakeVPCImporter)
 		err := stack.AddAllResources()
 		if m.errMsg != "" {
 			Expect(err).To(HaveOccurred())
@@ -93,6 +106,8 @@ API_SERVER_URL=https://test.com
 `),
 				},
 			},
+			hasUserData: true,
+
 			resourcesFilename: "custom_ami.json",
 		}),
 
@@ -148,6 +163,7 @@ API_SERVER_URL=https://test.com
 					},
 				},
 			},
+			hasUserData: true,
 
 			resourcesFilename: "ssh_enabled.json",
 		}),
@@ -163,6 +179,8 @@ API_SERVER_URL=https://test.com
 					},
 				},
 			},
+			hasUserData: true,
+
 			// The SG should not be created
 			resourcesFilename: "ssh_disabled.json",
 		}),

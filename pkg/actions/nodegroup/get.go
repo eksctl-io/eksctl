@@ -94,16 +94,24 @@ func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
 		return nil, err
 	}
 
+	var asg string
+	if describeOutput.Nodegroup.Resources != nil {
+		for _, v := range describeOutput.Nodegroup.Resources.AutoScalingGroups {
+			asg = aws.StringValue(v.Name)
+		}
+	}
+
 	return &manager.NodeGroupSummary{
-		Name:                *describeOutput.Nodegroup.NodegroupName,
-		Cluster:             *describeOutput.Nodegroup.ClusterName,
-		Status:              *describeOutput.Nodegroup.Status,
-		MaxSize:             int(*describeOutput.Nodegroup.ScalingConfig.MaxSize),
-		MinSize:             int(*describeOutput.Nodegroup.ScalingConfig.MinSize),
-		DesiredCapacity:     int(*describeOutput.Nodegroup.ScalingConfig.DesiredSize),
-		InstanceType:        *describeOutput.Nodegroup.InstanceTypes[0],
-		ImageID:             *describeOutput.Nodegroup.AmiType,
-		CreationTime:        describeOutput.Nodegroup.CreatedAt,
-		NodeInstanceRoleARN: *describeOutput.Nodegroup.NodeRole,
+		Name:                 *describeOutput.Nodegroup.NodegroupName,
+		Cluster:              *describeOutput.Nodegroup.ClusterName,
+		Status:               *describeOutput.Nodegroup.Status,
+		MaxSize:              int(*describeOutput.Nodegroup.ScalingConfig.MaxSize),
+		MinSize:              int(*describeOutput.Nodegroup.ScalingConfig.MinSize),
+		DesiredCapacity:      int(*describeOutput.Nodegroup.ScalingConfig.DesiredSize),
+		InstanceType:         *describeOutput.Nodegroup.InstanceTypes[0],
+		ImageID:              *describeOutput.Nodegroup.AmiType,
+		CreationTime:         describeOutput.Nodegroup.CreatedAt,
+		NodeInstanceRoleARN:  *describeOutput.Nodegroup.NodeRole,
+		AutoScalingGroupName: asg,
 	}, nil
 }

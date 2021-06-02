@@ -2,7 +2,6 @@ package eks
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -97,49 +96,4 @@ func isNodeGroupCompatible(name string, info manager.StackInfo) (bool, error) {
 	}
 
 	return true, nil
-}
-
-// ValidateExistingNodeGroupsForCompatibility looks at each of the existing nodegroups and
-// validates configuration, if it find issues it logs messages
-func (c *ClusterProvider) ValidateExistingNodeGroupsForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error {
-	infoByNodeGroup, err := stackManager.DescribeNodeGroupStacksAndResources()
-	if err != nil {
-		return errors.Wrap(err, "getting resources for all nodegroup stacks")
-	}
-	if len(infoByNodeGroup) == 0 {
-		return nil
-	}
-
-	logger.Info("checking security group configuration for all nodegroups")
-	incompatibleNodeGroups := []string{}
-	for ng, info := range infoByNodeGroup {
-		if stackManager.StackStatusIsNotTransitional(info.Stack) {
-			isCompatible, err := isNodeGroupCompatible(ng, info)
-			if err != nil {
-				return err
-			}
-			if isCompatible {
-				logger.Debug("nodegroup %q is compatible", ng)
-			} else {
-				logger.Debug("nodegroup %q is incompatible", ng)
-				incompatibleNodeGroups = append(incompatibleNodeGroups, ng)
-			}
-		}
-	}
-
-	numIncompatibleNodeGroups := len(incompatibleNodeGroups)
-	if numIncompatibleNodeGroups == 0 {
-		logger.Info("all nodegroups have up-to-date configuration")
-		return nil
-	}
-
-	logger.Critical("found %d nodegroup(s) (%s) without shared security group, cluster networking maybe be broken",
-		numIncompatibleNodeGroups, strings.Join(incompatibleNodeGroups, ", "))
-	logger.Critical("it's recommended to create new nodegroups, then delete old ones")
-	if cfg.VPC.SharedNodeSecurityGroup != "" {
-		logger.Critical("as a temporary fix, you can patch the configuration and add each of these nodegroup(s) to %q",
-			cfg.VPC.SharedNodeSecurityGroup)
-	}
-
-	return nil
 }

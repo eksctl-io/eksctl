@@ -5,7 +5,6 @@ import (
 
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -18,7 +17,7 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 		MetadataOptions:   makeMetadataOptions(mng.NodeGroupBase),
 	}
 
-	userData, err := nodebootstrap.MakeManagedUserData(mng, m.UserDataMimeBoundary)
+	userData, err := m.bootstrapper.UserData()
 	if err != nil {
 		return nil, err
 	}

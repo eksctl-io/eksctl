@@ -12,31 +12,32 @@ import (
 
 type Bottlerocket struct {
 	clusterConfig *api.ClusterConfig
-	ng            *api.NodeGroup
+	np            api.NodePool
 }
 
-func NewBottlerocketBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) *Bottlerocket {
+func NewBottlerocketBootstrapper(clusterConfig *api.ClusterConfig, np api.NodePool) *Bottlerocket {
 	return &Bottlerocket{
 		clusterConfig: clusterConfig,
-		ng:            ng,
+		np:            np,
 	}
 }
 
 // NewUserDataForBottlerocket generates TOML userdata for bootstrapping a Bottlerocket node.
 func (b *Bottlerocket) UserData() (string, error) {
-	if b.ng.Bottlerocket.Settings == nil {
-		b.ng.Bottlerocket.Settings = &api.InlineDocument{}
+	ng := b.np.BaseNodeGroup()
+	if ng.Bottlerocket.Settings == nil {
+		ng.Bottlerocket.Settings = &api.InlineDocument{}
 	}
 
 	// Update settings based on NodeGroup configuration. Values set here are not
 	// allowed to be set by the user - the values are owned by the NodeGroup and
 	// expressly written into settings.
-	if err := setDerivedBottlerocketSettings(b.ng); err != nil {
+	if err := setDerivedBottlerocketSettings(b.np); err != nil {
 		return "", err
 	}
 
 	settings, err := toml.TreeFromMap(map[string]interface{}{
-		"settings": *b.ng.Bottlerocket.Settings,
+		"settings": *ng.Bottlerocket.Settings,
 	})
 	if err != nil {
 		return "", errors.Wrap(err, "error loading user provided settings")
@@ -47,7 +48,7 @@ func (b *Bottlerocket) UserData() (string, error) {
 	ProtectTOMLKeys([]string{"settings"}, settings)
 
 	// Generate TOML for launch in this NodeGroup.
-	data, err := bottlerocketSettingsTOML(b.clusterConfig, b.ng, settings)
+	data, err := bottlerocketSettingsTOML(b.clusterConfig, ng, settings)
 	if err != nil {
 		return "", err
 	}
@@ -55,7 +56,8 @@ func (b *Bottlerocket) UserData() (string, error) {
 	return base64.StdEncoding.EncodeToString([]byte(data)), nil
 }
 
-func setDerivedBottlerocketSettings(ng *api.NodeGroup) error {
+func setDerivedBottlerocketSettings(np api.NodePool) error {
+	ng := np.BaseNodeGroup()
 	settings := *ng.Bottlerocket.Settings
 
 	var kubernetesSettings map[string]interface{}
@@ -73,19 +75,22 @@ func setDerivedBottlerocketSettings(ng *api.NodeGroup) error {
 	if len(ng.Labels) != 0 {
 		kubernetesSettings["node-labels"] = ng.Labels
 	}
-	if len(ng.Taints) != 0 {
-		kubernetesSettings["node-taints"] = mapTaints(ng.Taints)
-	}
 	if ng.MaxPodsPerNode != 0 {
 		kubernetesSettings["max-pods"] = ng.MaxPodsPerNode
 	}
-	if ng.ClusterDNS != "" {
-		kubernetesSettings["cluster-dns-ip"] = ng.ClusterDNS
+	if taints := np.NGTaints(); len(taints) != 0 {
+		kubernetesSettings["node-taints"] = taintsToMap(taints)
+	}
+
+	if ng, ok := np.(*api.NodeGroup); ok {
+		if ng.ClusterDNS != "" {
+			kubernetesSettings["cluster-dns-ip"] = ng.ClusterDNS
+		}
 	}
 	return nil
 }
 
-func mapTaints(taints []api.NodeGroupTaint) map[string]string {
+func taintsToMap(taints []api.NodeGroupTaint) map[string]string {
 	ret := map[string]string{}
 	for _, t := range taints {
 		ret[t.Key] = fmt.Sprintf("%s:%s", t.Value, t.Effect)
@@ -126,7 +131,7 @@ func ProtectTOMLKeys(path []string, tree *toml.Tree) {
 
 // bottlerocketSettingsTOML generates TOML userdata for configuring
 // settings on Bottlerocket nodes.
-func bottlerocketSettingsTOML(spec *api.ClusterConfig, ng *api.NodeGroup, tree *toml.Tree) (string, error) {
+func bottlerocketSettingsTOML(spec *api.ClusterConfig, ng *api.NodeGroupBase, tree *toml.Tree) (string, error) {
 	const insertWithoutComment = false // `false` indicates that the item should be inserted without commenting it out
 	// Set, or override, cluster settings' keys to provide latest EKS cluster
 	// data.

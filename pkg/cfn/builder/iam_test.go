@@ -253,13 +253,19 @@ var _ = Describe("template builder for IAM", func() {
 			Expect(t).To(HaveOutputWithValue("Role1", `{ "Fn::GetAtt": "Role1.Arn" }`))
 		})
 
-		It("can construct an iamserviceaccount addon template with wellKnownPolicies", func() {
+		It("can construct an iamserviceaccount addon template with all the wellKnownPolicies", func() {
 			serviceAccount := &api.ClusterIAMServiceAccount{}
 
 			serviceAccount.Name = "sa-1"
 
 			serviceAccount.WellKnownPolicies = api.WellKnownPolicies{
-				ImageBuilder: true,
+				ImageBuilder:              true,
+				AutoScaler:                true,
+				AWSLoadBalancerController: true,
+				ExternalDNS:               true,
+				CertManager:               true,
+				EBSCSIController:          true,
+				EFSCSIController:          true,
 			}
 
 			appendServiceAccountToClusterConfig(cfg, serviceAccount)
@@ -276,7 +282,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			Expect(t.Description).To(Equal("IAM role for serviceaccount \"default/sa-1\" [created and managed by eksctl]"))
 
-			Expect(t.Resources).To(HaveLen(1))
+			Expect(t.Resources).To(HaveLen(10))
 			Expect(t.Outputs).To(HaveLen(1))
 
 			Expect(t).To(HaveResource("Role1", "AWS::IAM::Role"))

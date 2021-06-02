@@ -844,9 +844,6 @@ type NodeGroup struct {
 	// +optional
 	Taints taintsWrapper `json:"taints,omitempty"`
 
-	// +optional
-	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
-
 	// [Custom
 	// address](/usage/vpc-networking/#custom-cluster-dns-address) used for DNS
 	// lookups
@@ -865,6 +862,11 @@ func (n *NodeGroup) InstanceTypeList() []string {
 	return []string{n.InstanceType}
 }
 
+// NGTaints implements NodePool
+func (n *NodeGroup) NGTaints() []NodeGroupTaint {
+	return n.Taints
+}
+
 // BaseNodeGroup implements NodePool
 func (n *NodeGroup) BaseNodeGroup() *NodeGroupBase {
 	return n.NodeGroupBase
@@ -874,7 +876,7 @@ func (n *NodeGroup) BaseNodeGroup() *NodeGroupBase {
 // cluster and linking it to a Git repository.
 // Note: this will replace the older Git types
 type GitOps struct {
-	// [Enable Toolkit](/usage/gitops/#experimental-installing-gitops-toolkit-flux-v2)
+	// [Enable Flux](/usage/gitops/#experimental-installing-gitops-toolkit-flux-v2)
 	Flux *Flux `json:"flux,omitempty"`
 }
 
@@ -910,39 +912,13 @@ type Flux struct {
 	// The repository hosting service. Can be either Github or Gitlab.
 	GitProvider string `json:"gitProvider,omitempty"`
 
-	// The Username or Org name under which Flux v2 will create a repo
-	Owner string `json:"owner,omitempty"`
-
-	// The name of the repository which Flux v2 will create to store gitops configuration
-	Repository string `json:"repository,omitempty"`
-
-	// The kubernetes namespace into which Flux v2 components will be deployed
-	// +optional
-	Namespace string `json:"namespace,omitempty"`
-
-	// Path to the kubernetes config for the cluster. Defaults to $HOME/.kube/config
-	// +optional
-	Kubeconfig string `json:"kubeconfig,omitempty"`
-
-	// The name of the branch which Flux will commit to
-	// +optional
-	Branch string `json:"branch,omitempty"`
-
-	// A relative path within the repository. Gitops sync will be scoped to files
-	// under this path
-	// +optional
-	Path string `json:"path,omitempty"`
-
-	// If true, Flux will create the Gitops repo in a personal account.
-	// If false, Flux will create the Gitops repo in an org.
-	// +optional
-	Personal bool `json:"personal,omitempty"`
-
-	// Path to a file containing a Personal Access Token with repo permissions
-	// Not required if GITHUB_TOKEN or GITLAB_TOKEN set on the environment
-	// +optional
-	AuthTokenPath string `json:"authTokenPath,omitempty"`
+	// Flags is an arbitrary map of string to string to pass any flags to Flux bootstrap
+	// via eksctl see https://fluxcd.io/docs/ for information on all flags
+	Flags FluxFlags `json:"flags,omitempty"`
 }
+
+// FluxFlags is a map of string for passing arbitrary flags to Flux bootstrap
+type FluxFlags map[string]string
 
 // Repo groups all configuration options related to a Git repository used for
 // GitOps.
@@ -1199,6 +1175,9 @@ type ScalingConfig struct {
 type NodePool interface {
 	// BaseNodeGroup returns the base nodegroup
 	BaseNodeGroup() *NodeGroupBase
+
+	// NGTaints returns the taints to apply for this nodegroup
+	NGTaints() []NodeGroupTaint
 }
 
 // NodeGroupBase represents the base nodegroup config for self-managed and managed nodegroups
@@ -1318,6 +1297,10 @@ type NodeGroupBase struct {
 	// Some AMIs (bottlerocket) have a separate volume for the OS
 	AdditionalEncryptedVolume string `json:"-"`
 
+	// Bottlerocket specifies settings for Bottlerocket nodes
+	// +optional
+	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
+
 	// TODO remove this
 	// This is a hack, will be removed shortly. When this is true for Ubuntu and
 	// AL2 images a legacy bootstrapper will be used.
@@ -1412,6 +1395,11 @@ func (m *ManagedNodeGroup) ListOptions() metav1.ListOptions {
 		}
 	}
 	return m.NodeGroupBase.ListOptions()
+}
+
+// NGTaints implements NodePool
+func (m *ManagedNodeGroup) NGTaints() []NodeGroupTaint {
+	return m.Taints
 }
 
 // BaseNodeGroup implements NodePool
