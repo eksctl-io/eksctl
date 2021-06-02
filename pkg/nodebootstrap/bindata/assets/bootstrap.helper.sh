@@ -22,7 +22,4 @@ NODE_LABELS="${NODE_LABELS},node-lifecycle=${INSTANCE_LIFECYCLE},alpha.eksctl.io
 CLUSTER_NAME="${CLUSTER_NAME}"
 KUBELET_CONFIG='/etc/kubernetes/kubelet/kubelet-config.json'
 KUBELET_EXTRA_ARGS='/etc/eksctl/kubelet-extra.json'
-DOCKER_CONFIG='/etc/docker/daemon.json'
-DOCKER_EXTRA_CONFIG='/etc/eksctl/docker-extra.json'
 TMP_KUBE_CONF='/tmp/kubelet-conf.json'
-TMP_DOCKER_CONF='/tmp/docker-conf.json'
