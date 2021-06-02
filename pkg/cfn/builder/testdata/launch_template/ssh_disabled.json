@@ -58,6 +58,23 @@
                 "Value": "managed"
               }
             ]
+          },
+          {
+            "ResourceType": "network-interface",
+            "Tags": [
+              {
+                "Key": "Name",
+                "Value": "lt-ssh-disabled-Node"
+              },
+              {
+                "Key": "alpha.eksctl.io/nodegroup-name",
+                "Value": "ssh-disabled"
+              },
+              {
+                "Key": "alpha.eksctl.io/nodegroup-type",
+                "Value": "managed"
+              }
+            ]
           }
         ],
         "UserData": "L2V0Yy9la3MvYm9vdHN0cmFwLnNoIGx0"

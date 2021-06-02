@@ -183,6 +183,9 @@ func makeTags(ng *api.NodeGroupBase, meta *api.ClusterMeta) []gfnec2.LaunchTempl
 		}, gfnec2.LaunchTemplate_TagSpecification{
 			ResourceType: gfnt.NewString("volume"),
 			Tags:         cfnTags,
+		}, gfnec2.LaunchTemplate_TagSpecification{
+			ResourceType: gfnt.NewString("network-interface"),
+			Tags:         cfnTags,
 		})
 
 	return launchTemplateTagSpecs

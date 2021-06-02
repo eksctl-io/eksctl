@@ -41,23 +41,40 @@
                             }
                         ]
                     },
-                  {
-                    "ResourceType": "volume",
-                    "Tags": [
-                      {
-                        "Key": "Name",
-                        "Value": "lt-standard-Node"
-                      },
-                      {
-                        "Key": "alpha.eksctl.io/nodegroup-name",
-                        "Value": "standard"
-                      },
-                      {
-                        "Key": "alpha.eksctl.io/nodegroup-type",
-                        "Value": "managed"
-                      }
-                    ]
-                  }
+                    {
+                        "ResourceType": "volume",
+                        "Tags": [
+                        {
+                            "Key": "Name",
+                            "Value": "lt-standard-Node"
+                        },
+                        {
+                            "Key": "alpha.eksctl.io/nodegroup-name",
+                            "Value": "standard"
+                        },
+                        {
+                            "Key": "alpha.eksctl.io/nodegroup-type",
+                            "Value": "managed"
+                        }
+                        ]
+                    },
+                    {
+                        "ResourceType": "network-interface",
+                        "Tags": [
+                        {
+                            "Key": "Name",
+                            "Value": "lt-standard-Node"
+                        },
+                        {
+                            "Key": "alpha.eksctl.io/nodegroup-name",
+                            "Value": "standard"
+                        },
+                        {
+                            "Key": "alpha.eksctl.io/nodegroup-type",
+                            "Value": "managed"
+                        }
+                        ]
+                    }
                 ]
             },
             "LaunchTemplateName": {
