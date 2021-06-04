@@ -84,6 +84,7 @@ var _ = Describe("Get", func() {
 							},
 						},
 					},
+					Version: aws.String("1.18"),
 				},
 			}, nil)
 		})
@@ -108,6 +109,7 @@ var _ = Describe("Get", func() {
 				Expect(ngSummary[0].CreationTime).To(Equal(&t))
 				Expect(ngSummary[0].NodeInstanceRoleARN).To(Equal("node-role"))
 				Expect(ngSummary[0].AutoScalingGroupName).To(Equal("asg-name"))
+				Expect(ngSummary[0].Version).To(Equal("1.18"))
 			})
 		})
 
@@ -129,6 +131,7 @@ var _ = Describe("Get", func() {
 				Expect(ngSummary[0].CreationTime).To(Equal(&t))
 				Expect(ngSummary[0].NodeInstanceRoleARN).To(Equal("node-role"))
 				Expect(ngSummary[0].AutoScalingGroupName).To(Equal("asg-name"))
+				Expect(ngSummary[0].Version).To(Equal("1.18"))
 			})
 		})
 	})

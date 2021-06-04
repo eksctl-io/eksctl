@@ -40,6 +40,7 @@ type NodeGroupSummary struct {
 	CreationTime         *time.Time
 	NodeInstanceRoleARN  string
 	AutoScalingGroupName string
+	Version              string
 }
 
 // NodeGroupStack represents a nodegroup and its type

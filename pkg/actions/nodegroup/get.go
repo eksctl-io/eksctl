@@ -61,6 +61,7 @@ func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 			CreationTime:         describeOutput.Nodegroup.CreatedAt,
 			NodeInstanceRoleARN:  *describeOutput.Nodegroup.NodeRole,
 			AutoScalingGroupName: strings.Join(asgs, ","),
+			Version:              *describeOutput.Nodegroup.Version,
 		})
 	}
 
