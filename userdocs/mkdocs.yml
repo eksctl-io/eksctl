@@ -3,7 +3,6 @@ site_description: 'The official CLI for Amazon EKS'
 site_author: 'eksctl authors'
 repo_name: 'weaveworks/eksctl'
 repo_url: 'https://github.com/weaveworks/eksctl'
-copyright: 'Copyright &copy; 2021 Weaveworks'
 docs_dir: src
 edit_uri: ""
 
