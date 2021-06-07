@@ -67,6 +67,19 @@ var _ = Describe("Flux", func() {
 			})
 		})
 
+		When("a context is provided in flags", func() {
+			BeforeEach(func() {
+				opts.Flags = api.FluxFlags{"context": "foo"}
+			})
+
+			It("sets the kubeconfig flag on the command", func() {
+				Expect(fluxClient.PreFlight()).To(Succeed())
+				Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
+				_, receivedArgs := fakeExecutor.ExecArgsForCall(0)
+				Expect(receivedArgs).To(Equal([]string{"check", "--pre", "--context", "foo"}))
+			})
+		})
+
 		When("the flux binary is not found on the path", func() {
 			BeforeEach(func() {
 				Expect(os.Unsetenv("PATH")).To(Succeed())

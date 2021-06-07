@@ -1,12 +1,16 @@
 package enable
 
 import (
+	"io/ioutil"
+	"os"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/actions/flux"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/version"
 )
 
@@ -46,6 +50,32 @@ func flux2Install(cmd *cmdutils.Cmd) error {
 	logger.Info("eksctl version %s", version.GetVersion())
 	logger.Info("will install Flux v2 components on cluster %s", cmd.ClusterConfig.Metadata.Name)
 
+	if kubeconfAndContextNotSet(cmd.ClusterConfig.GitOps.Flux.Flags) {
+		ctl, err := cmd.NewCtl()
+		if err != nil {
+			return err
+		}
+		if ok, err := ctl.CanOperate(cmd.ClusterConfig); !ok {
+			return err
+		}
+
+		kubeCfgPath, err := ioutil.TempFile("", cmd.ClusterConfig.Metadata.Name)
+		if err != nil {
+			return err
+		}
+		defer func() {
+			if err := os.Remove(kubeCfgPath.Name()); err != nil {
+				logger.Critical("failed to remove temporary kubeconfig", kubeCfgPath)
+			}
+		}()
+		logger.Debug("writing temporary kubeconfig to %s", kubeCfgPath.Name())
+		kubectlConfig := kubeconfig.NewForKubectl(cmd.ClusterConfig, ctl.GetUsername(), "", ctl.Provider.Profile())
+		if _, err := kubeconfig.Write(kubeCfgPath.Name(), *kubectlConfig, true); err != nil {
+			return err
+		}
+		cmd.ClusterConfig.GitOps.Flux.Flags["kubeconfig"] = kubeCfgPath.Name()
+	}
+
 	k8sClientSet, _, err := cmdutils.KubernetesClientAndConfigFrom(cmd)
 	if err != nil {
 		return err
@@ -61,4 +91,10 @@ func flux2Install(cmd *cmdutils.Cmd) error {
 	}
 
 	return nil
+}
+
+func kubeconfAndContextNotSet(flags map[string]string) bool {
+	_, cfg := flags["kubeconfig"]
+	_, ctx := flags["context"]
+	return !cfg && !ctx
 }
