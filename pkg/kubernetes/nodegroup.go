@@ -12,7 +12,6 @@ import (
 )
 
 func GetNodegroupKubernetesVersion(nodes v1.NodeInterface, ngName string) (string, error) {
-	fmt.Printf("ngName: %v", ngName)
 	n, err := nodes.List(context.TODO(), metav1.ListOptions{
 		LabelSelector: fmt.Sprintf("%s=%s", api.NodeGroupNameLabel, ngName),
 	})
