@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"k8s.io/client-go/kubernetes/fake"
 )
 
 var _ = Describe("Get", func() {
@@ -25,6 +26,7 @@ var _ = Describe("Get", func() {
 		cfg                            *api.ClusterConfig
 		m                              *nodegroup.Manager
 		fakeStackManager               *fakes.FakeStackManager
+		fakeClientSet                  *fake.Clientset
 	)
 	BeforeEach(func() {
 		t = time.Now()
@@ -33,7 +35,8 @@ var _ = Describe("Get", func() {
 		cfg = api.NewClusterConfig()
 		cfg.Metadata.Name = clusterName
 		p = mockprovider.NewMockProvider()
-		m = nodegroup.New(cfg, &eks.ClusterProvider{Provider: p}, nil)
+		fakeClientSet = fake.NewSimpleClientset()
+		m = nodegroup.New(cfg, &eks.ClusterProvider{Provider: p}, fakeClientSet)
 
 		fakeStackManager = new(fakes.FakeStackManager)
 		m.SetStackManager(fakeStackManager)

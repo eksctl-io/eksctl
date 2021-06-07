@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,17 +11,22 @@ import (
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes/fake"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("StackCollection NodeGroup", func() {
 	var (
-		cc *api.ClusterConfig
-		sc *StackCollection
+		cc     *api.ClusterConfig
+		sc     *StackCollection
+		ngName string
 
-		p *mockprovider.MockProvider
+		p             *mockprovider.MockProvider
+		fakeClientSet *fake.Clientset
 	)
 
 	const nodegroupResource = `
@@ -38,6 +44,8 @@ var _ = Describe("StackCollection NodeGroup", func() {
 }
 
 `
+	ngName = "12345"
+
 	testAZs := []string{"us-west-2b", "us-west-2a", "us-west-2c"}
 
 	newClusterConfig := func(clusterName string) *api.ClusterConfig {
@@ -56,6 +64,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 		ng := cfg.NewNodeGroup()
 		ng.InstanceType = "t2.medium"
 		ng.AMIFamily = "AmazonLinux2"
+		ng.Name = "12345"
 
 		return ng
 	}
@@ -130,14 +139,14 @@ var _ = Describe("StackCollection NodeGroup", func() {
 					return input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345" && input.LogicalResourceId != nil && *input.LogicalResourceId == "NodeGroup"
 				})).Return(&cfn.DescribeStackResourceOutput{
 					StackResourceDetail: &cfn.StackResourceDetail{
-						PhysicalResourceId: aws.String("eksctl-test-cluster-nodegroup-123451-NodeGroup-1N68LL8H1EH27"),
+						PhysicalResourceId: aws.String("eksctl-test-cluster-nodegroup-12345-NodeGroup-1N68LL8H1EH27"),
 					},
 				}, nil)
 
 				p.MockCloudFormation().On("DescribeStackResource", mock.Anything).Return(nil, fmt.Errorf("DescribeStackResource failed"))
 
 				p.MockASG().On("DescribeAutoScalingGroups", mock.MatchedBy(func(input *autoscaling.DescribeAutoScalingGroupsInput) bool {
-					return len(input.AutoScalingGroupNames) == 1 && *input.AutoScalingGroupNames[0] == "eksctl-test-cluster-nodegroup-123451-NodeGroup-1N68LL8H1EH27"
+					return len(input.AutoScalingGroupNames) == 1 && *input.AutoScalingGroupNames[0] == "eksctl-test-cluster-nodegroup-12345-NodeGroup-1N68LL8H1EH27"
 				})).Return(&autoscaling.DescribeAutoScalingGroupsOutput{
 					AutoScalingGroups: []*autoscaling.Group{
 						{
@@ -157,7 +166,24 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				})
 
 				JustBeforeEach(func() {
-					out, err = sc.GetUnmanagedNodeGroupSummaries("")
+					fakeClientSet = fake.NewSimpleClientset()
+
+					_, err = fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &v1.Node{
+						ObjectMeta: metav1.ObjectMeta{
+							Name: "test-node",
+							Labels: map[string]string{
+								api.NodeGroupNameLabel: ngName,
+							},
+						},
+						Status: v1.NodeStatus{
+							NodeInfo: v1.NodeSystemInfo{
+								KubeletVersion: "v1.19.6-eks-49a6c0",
+							},
+						},
+					}, metav1.CreateOptions{})
+					Expect(err).NotTo(HaveOccurred())
+
+					out, err = sc.GetUnmanagedNodeGroupSummaries("", fakeClientSet.CoreV1().Nodes())
 				})
 
 				It("should not error", func() {
@@ -179,7 +205,24 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				})
 
 				JustBeforeEach(func() {
-					out, err = sc.GetUnmanagedNodeGroupSummaries("")
+					fakeClientSet = fake.NewSimpleClientset()
+
+					_, err = fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &v1.Node{
+						ObjectMeta: metav1.ObjectMeta{
+							Name: "test-node",
+							Labels: map[string]string{
+								api.NodeGroupNameLabel: ngName,
+							},
+						},
+						Status: v1.NodeStatus{
+							NodeInfo: v1.NodeSystemInfo{
+								KubeletVersion: "v1.19.6-eks-49a6c0",
+							},
+						},
+					}, metav1.CreateOptions{})
+					Expect(err).NotTo(HaveOccurred())
+
+					out, err = sc.GetUnmanagedNodeGroupSummaries("", fakeClientSet.CoreV1().Nodes())
 				})
 
 				It("should not error", func() {

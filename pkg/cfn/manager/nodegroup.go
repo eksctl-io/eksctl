@@ -13,6 +13,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
+	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -20,6 +21,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/version"
 	"github.com/weaveworks/eksctl/pkg/vpc"
+	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 const (
@@ -168,7 +170,7 @@ func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]Stac
 }
 
 // GetUnmanagedNodeGroupSummaries returns a list of summaries for the unmanaged nodegroups of a cluster
-func (c *StackCollection) GetUnmanagedNodeGroupSummaries(name string) ([]*NodeGroupSummary, error) {
+func (c *StackCollection) GetUnmanagedNodeGroupSummaries(name string, nodes v1.NodeInterface) ([]*NodeGroupSummary, error) {
 	stacks, err := c.DescribeNodeGroupStacks()
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stacks")
@@ -208,6 +210,11 @@ func (c *StackCollection) GetUnmanagedNodeGroupSummaries(name string) ([]*NodeGr
 			summary.DesiredCapacity = int(*scalingGroup.DesiredCapacity)
 			summary.MinSize = int(*scalingGroup.MinSize)
 			summary.MaxSize = int(*scalingGroup.MaxSize)
+
+			summary.Version, err = kubewrapper.GetNodegroupKubernetesVersion(nodes, summary.Name)
+			if err != nil {
+				return nil, errors.Wrap(err, "getting nodegroup's kubernetes version")
+			}
 
 			if name == "" || summary.Name == name {
 				summaries = append(summaries, summary)
@@ -370,7 +377,6 @@ func getNodeGroupPaths(tags []*cfn.Tag) (*nodeGroupPaths, error) {
 		}
 		makeScalingPath := func(field string) string {
 			return makePath(fmt.Sprintf("ScalingConfig.%s", field))
-
 		}
 		return &nodeGroupPaths{
 			InstanceType:    makePath("InstanceTypes.0"),

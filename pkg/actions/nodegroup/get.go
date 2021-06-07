@@ -13,7 +13,7 @@ import (
 )
 
 func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
-	summaries, err := m.stackManager.GetUnmanagedNodeGroupSummaries("")
+	summaries, err := m.stackManager.GetUnmanagedNodeGroupSummaries("", m.clientSet.CoreV1().Nodes())
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stack summaries")
 	}
@@ -77,7 +77,7 @@ func getInstanceTypes(ng *awseks.Nodegroup) string {
 }
 
 func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
-	summaries, err := m.stackManager.GetUnmanagedNodeGroupSummaries(name)
+	summaries, err := m.stackManager.GetUnmanagedNodeGroupSummaries(name, m.clientSet.CoreV1().Nodes())
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stack summaries")
 	}
@@ -114,5 +114,6 @@ func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
 		CreationTime:         describeOutput.Nodegroup.CreatedAt,
 		NodeInstanceRoleARN:  *describeOutput.Nodegroup.NodeRole,
 		AutoScalingGroupName: asg,
+		Version:              *describeOutput.Nodegroup.Version,
 	}, nil
 }

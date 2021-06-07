@@ -14,6 +14,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
+	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 type FakeStackManager struct {
@@ -377,10 +378,11 @@ type FakeStackManager struct {
 		result1 string
 		result2 error
 	}
-	GetUnmanagedNodeGroupSummariesStub        func(string) ([]*manager.NodeGroupSummary, error)
+	GetUnmanagedNodeGroupSummariesStub        func(string, v1.NodeInterface) ([]*manager.NodeGroupSummary, error)
 	getUnmanagedNodeGroupSummariesMutex       sync.RWMutex
 	getUnmanagedNodeGroupSummariesArgsForCall []struct {
 		arg1 string
+		arg2 v1.NodeInterface
 	}
 	getUnmanagedNodeGroupSummariesReturns struct {
 		result1 []*manager.NodeGroupSummary
@@ -2480,18 +2482,19 @@ func (fake *FakeStackManager) GetStackTemplateReturnsOnCall(i int, result1 strin
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetUnmanagedNodeGroupSummaries(arg1 string) ([]*manager.NodeGroupSummary, error) {
+func (fake *FakeStackManager) GetUnmanagedNodeGroupSummaries(arg1 string, arg2 v1.NodeInterface) ([]*manager.NodeGroupSummary, error) {
 	fake.getUnmanagedNodeGroupSummariesMutex.Lock()
 	ret, specificReturn := fake.getUnmanagedNodeGroupSummariesReturnsOnCall[len(fake.getUnmanagedNodeGroupSummariesArgsForCall)]
 	fake.getUnmanagedNodeGroupSummariesArgsForCall = append(fake.getUnmanagedNodeGroupSummariesArgsForCall, struct {
 		arg1 string
-	}{arg1})
+		arg2 v1.NodeInterface
+	}{arg1, arg2})
 	stub := fake.GetUnmanagedNodeGroupSummariesStub
 	fakeReturns := fake.getUnmanagedNodeGroupSummariesReturns
-	fake.recordInvocation("GetUnmanagedNodeGroupSummaries", []interface{}{arg1})
+	fake.recordInvocation("GetUnmanagedNodeGroupSummaries", []interface{}{arg1, arg2})
 	fake.getUnmanagedNodeGroupSummariesMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -2505,17 +2508,17 @@ func (fake *FakeStackManager) GetUnmanagedNodeGroupSummariesCallCount() int {
 	return len(fake.getUnmanagedNodeGroupSummariesArgsForCall)
 }
 
-func (fake *FakeStackManager) GetUnmanagedNodeGroupSummariesCalls(stub func(string) ([]*manager.NodeGroupSummary, error)) {
+func (fake *FakeStackManager) GetUnmanagedNodeGroupSummariesCalls(stub func(string, v1.NodeInterface) ([]*manager.NodeGroupSummary, error)) {
 	fake.getUnmanagedNodeGroupSummariesMutex.Lock()
 	defer fake.getUnmanagedNodeGroupSummariesMutex.Unlock()
 	fake.GetUnmanagedNodeGroupSummariesStub = stub
 }
 
-func (fake *FakeStackManager) GetUnmanagedNodeGroupSummariesArgsForCall(i int) string {
+func (fake *FakeStackManager) GetUnmanagedNodeGroupSummariesArgsForCall(i int) (string, v1.NodeInterface) {
 	fake.getUnmanagedNodeGroupSummariesMutex.RLock()
 	defer fake.getUnmanagedNodeGroupSummariesMutex.RUnlock()
 	argsForCall := fake.getUnmanagedNodeGroupSummariesArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeStackManager) GetUnmanagedNodeGroupSummariesReturns(result1 []*manager.NodeGroupSummary, result2 error) {
