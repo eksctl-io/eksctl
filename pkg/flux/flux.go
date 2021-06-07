@@ -41,7 +41,7 @@ func (c *Client) PreFlight() error {
 
 	args := []string{"check", "--pre"}
 	for k, v := range c.opts.Flags {
-		if k == "kubeconfig" {
+		if k == "kubeconfig" || k == "context" {
 			args = append(args, fmt.Sprintf("--%s", k), v)
 		}
 	}

@@ -83,7 +83,6 @@ var _ = Describe("Enable GitOps", func() {
 						"owner":      params.GitopsOwner,
 						"branch":     branch,
 						"repository": repository,
-						"kubeconfig": params.KubeconfigPath,
 					},
 				},
 			},
