@@ -1,7 +1,6 @@
 package manager
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,22 +10,17 @@ import (
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes/fake"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("StackCollection NodeGroup", func() {
 	var (
-		cc     *api.ClusterConfig
-		sc     *StackCollection
-		ngName string
+		cc *api.ClusterConfig
+		sc *StackCollection
 
-		p             *mockprovider.MockProvider
-		fakeClientSet *fake.Clientset
+		p *mockprovider.MockProvider
 	)
 
 	const nodegroupResource = `
@@ -44,8 +38,6 @@ var _ = Describe("StackCollection NodeGroup", func() {
 }
 
 `
-	ngName = "12345"
-
 	testAZs := []string{"us-west-2b", "us-west-2a", "us-west-2c"}
 
 	newClusterConfig := func(clusterName string) *api.ClusterConfig {
@@ -166,24 +158,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				})
 
 				JustBeforeEach(func() {
-					fakeClientSet = fake.NewSimpleClientset()
-
-					_, err = fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &v1.Node{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "test-node",
-							Labels: map[string]string{
-								api.NodeGroupNameLabel: ngName,
-							},
-						},
-						Status: v1.NodeStatus{
-							NodeInfo: v1.NodeSystemInfo{
-								KubeletVersion: "v1.19.6-eks-49a6c0",
-							},
-						},
-					}, metav1.CreateOptions{})
-					Expect(err).NotTo(HaveOccurred())
-
-					out, err = sc.GetUnmanagedNodeGroupSummaries("", fakeClientSet.CoreV1().Nodes())
+					out, err = sc.GetUnmanagedNodeGroupSummaries("")
 				})
 
 				It("should not error", func() {
@@ -205,24 +180,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				})
 
 				JustBeforeEach(func() {
-					fakeClientSet = fake.NewSimpleClientset()
-
-					_, err = fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &v1.Node{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "test-node",
-							Labels: map[string]string{
-								api.NodeGroupNameLabel: ngName,
-							},
-						},
-						Status: v1.NodeStatus{
-							NodeInfo: v1.NodeSystemInfo{
-								KubeletVersion: "v1.19.6-eks-49a6c0",
-							},
-						},
-					}, metav1.CreateOptions{})
-					Expect(err).NotTo(HaveOccurred())
-
-					out, err = sc.GetUnmanagedNodeGroupSummaries("", fakeClientSet.CoreV1().Nodes())
+					out, err = sc.GetUnmanagedNodeGroupSummaries("")
 				})
 
 				It("should not error", func() {

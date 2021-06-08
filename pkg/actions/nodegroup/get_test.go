@@ -28,6 +28,7 @@ var _ = Describe("Get", func() {
 		fakeStackManager               *fakes.FakeStackManager
 		fakeClientSet                  *fake.Clientset
 	)
+
 	BeforeEach(func() {
 		t = time.Now()
 		ngName = "my-nodegroup"

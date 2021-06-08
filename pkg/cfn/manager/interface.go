@@ -10,7 +10,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
-	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -18,7 +17,7 @@ import (
 type StackManager interface {
 	ListNodeGroupStacks() ([]NodeGroupStack, error)
 	DescribeNodeGroupStacksAndResources() (map[string]StackInfo, error)
-	GetUnmanagedNodeGroupSummaries(name string, nodeClient v1.NodeInterface) ([]*NodeGroupSummary, error)
+	GetUnmanagedNodeGroupSummaries(name string) ([]*NodeGroupSummary, error)
 	DescribeNodeGroupStack(nodeGroupName string) (*Stack, error)
 	DescribeNodeGroupStacks() ([]*Stack, error)
 	GetNodeGroupStackType(name string) (v1alpha5.NodeGroupType, error)
