@@ -340,6 +340,7 @@ func MaybeDeleteConfig(meta *api.ClusterMeta) {
 	fl, err := lockConfigFile(defaultFilename)
 	if err != nil {
 		logger.Critical(err.Error())
+		return
 	}
 
 	defer func() {
