@@ -76,14 +76,23 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		logger.Writer = os.Stderr
 	}
 
+	if ok, err := ctl.CanOperate(cfg); !ok {
+		return err
+	}
+
+	clientSet, err := ctl.NewStdClientSet(cfg)
+	if err != nil {
+		return err
+	}
+
 	var summaries []*manager.NodeGroupSummary
 	if ng.Name == "" {
-		summaries, err = nodegroup.New(cfg, ctl, nil).GetAll()
+		summaries, err = nodegroup.New(cfg, ctl, clientSet).GetAll()
 		if err != nil {
 			return err
 		}
 	} else {
-		summary, err := nodegroup.New(cfg, ctl, nil).Get(ng.Name)
+		summary, err := nodegroup.New(cfg, ctl, clientSet).Get(ng.Name)
 		if err != nil {
 			return err
 		}

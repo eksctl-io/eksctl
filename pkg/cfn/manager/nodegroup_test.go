@@ -56,6 +56,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 		ng := cfg.NewNodeGroup()
 		ng.InstanceType = "t2.medium"
 		ng.AMIFamily = "AmazonLinux2"
+		ng.Name = "12345"
 
 		return ng
 	}
@@ -130,14 +131,14 @@ var _ = Describe("StackCollection NodeGroup", func() {
 					return input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345" && input.LogicalResourceId != nil && *input.LogicalResourceId == "NodeGroup"
 				})).Return(&cfn.DescribeStackResourceOutput{
 					StackResourceDetail: &cfn.StackResourceDetail{
-						PhysicalResourceId: aws.String("eksctl-test-cluster-nodegroup-123451-NodeGroup-1N68LL8H1EH27"),
+						PhysicalResourceId: aws.String("eksctl-test-cluster-nodegroup-12345-NodeGroup-1N68LL8H1EH27"),
 					},
 				}, nil)
 
 				p.MockCloudFormation().On("DescribeStackResource", mock.Anything).Return(nil, fmt.Errorf("DescribeStackResource failed"))
 
 				p.MockASG().On("DescribeAutoScalingGroups", mock.MatchedBy(func(input *autoscaling.DescribeAutoScalingGroupsInput) bool {
-					return len(input.AutoScalingGroupNames) == 1 && *input.AutoScalingGroupNames[0] == "eksctl-test-cluster-nodegroup-123451-NodeGroup-1N68LL8H1EH27"
+					return len(input.AutoScalingGroupNames) == 1 && *input.AutoScalingGroupNames[0] == "eksctl-test-cluster-nodegroup-12345-NodeGroup-1N68LL8H1EH27"
 				})).Return(&autoscaling.DescribeAutoScalingGroupsOutput{
 					AutoScalingGroups: []*autoscaling.Group{
 						{

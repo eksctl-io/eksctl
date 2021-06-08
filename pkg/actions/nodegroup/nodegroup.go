@@ -16,7 +16,7 @@ type Manager struct {
 	stackManager manager.StackManager
 	ctl          *eks.ClusterProvider
 	cfg          *api.ClusterConfig
-	clientSet    *kubernetes.Clientset
+	clientSet    kubernetes.Interface
 	wait         WaitFunc
 	init         eks.NodeGroupInitialiser
 	kubeProvider eks.KubeProvider
@@ -24,7 +24,7 @@ type Manager struct {
 
 type WaitFunc func(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error
 
-func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet *kubernetes.Clientset) *Manager {
+func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) *Manager {
 	return &Manager{
 		stackManager: ctl.NewStackManager(cfg),
 		ctl:          ctl,

@@ -285,6 +285,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					ContainElement(initNG),
 					Not(ContainElement(testNG)),
 				)))
+				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(params.Version)))
 
 				cmd = params.EksctlGetCmd.WithArgs(
 					"nodegroup",
@@ -297,6 +298,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					ContainElement(testNG),
 					Not(ContainElement(initNG)),
 				)))
+				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(params.Version)))
 
 				cmd = params.EksctlGetCmd.WithArgs(
 					"nodegroup",
@@ -310,6 +312,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					ContainElement("n1"),
 					ContainElement("n2"),
 				)))
+				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(params.Version)))
 			})
 
 			Context("toggle CloudWatch logging", func() {

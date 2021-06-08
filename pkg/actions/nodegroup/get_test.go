@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"k8s.io/client-go/kubernetes/fake"
 )
 
 var _ = Describe("Get", func() {
@@ -25,7 +26,9 @@ var _ = Describe("Get", func() {
 		cfg                            *api.ClusterConfig
 		m                              *nodegroup.Manager
 		fakeStackManager               *fakes.FakeStackManager
+		fakeClientSet                  *fake.Clientset
 	)
+
 	BeforeEach(func() {
 		t = time.Now()
 		ngName = "my-nodegroup"
@@ -33,7 +36,8 @@ var _ = Describe("Get", func() {
 		cfg = api.NewClusterConfig()
 		cfg.Metadata.Name = clusterName
 		p = mockprovider.NewMockProvider()
-		m = nodegroup.New(cfg, &eks.ClusterProvider{Provider: p}, nil)
+		fakeClientSet = fake.NewSimpleClientset()
+		m = nodegroup.New(cfg, &eks.ClusterProvider{Provider: p}, fakeClientSet)
 
 		fakeStackManager = new(fakes.FakeStackManager)
 		m.SetStackManager(fakeStackManager)
@@ -84,6 +88,7 @@ var _ = Describe("Get", func() {
 							},
 						},
 					},
+					Version: aws.String("1.18"),
 				},
 			}, nil)
 		})
@@ -108,6 +113,7 @@ var _ = Describe("Get", func() {
 				Expect(ngSummary[0].CreationTime).To(Equal(&t))
 				Expect(ngSummary[0].NodeInstanceRoleARN).To(Equal("node-role"))
 				Expect(ngSummary[0].AutoScalingGroupName).To(Equal("asg-name"))
+				Expect(ngSummary[0].Version).To(Equal("1.18"))
 			})
 		})
 
@@ -129,6 +135,7 @@ var _ = Describe("Get", func() {
 				Expect(ngSummary[0].CreationTime).To(Equal(&t))
 				Expect(ngSummary[0].NodeInstanceRoleARN).To(Equal("node-role"))
 				Expect(ngSummary[0].AutoScalingGroupName).To(Equal("asg-name"))
+				Expect(ngSummary[0].Version).To(Equal("1.18"))
 			})
 		})
 	})
