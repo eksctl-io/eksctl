@@ -587,11 +587,14 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 	}
 
 	if ng.UpdateConfig != nil {
-		if ng.UpdateConfig.MaxUnavailable != nil && ng.UpdateConfig.MaxUnavailablePercentage != nil {
-			return fmt.Errorf("cannot use maxUnavailable and maxUnavailablePercentage at the same time")
+		if ng.UpdateConfig.MaxUnavailable == nil && ng.UpdateConfig.MaxUnavailablePercentage == nil {
+			return fmt.Errorf("invalid UpdateConfig: maxUnavailable or maxUnavailablePercentage must be defined")
 		}
-		if aws.IntValue(ng.UpdateConfig.MaxUnavailable) > aws.IntValue(ng.MaxSize) || aws.IntValue(ng.UpdateConfig.MaxUnavailablePercentage) > aws.IntValue(ng.MaxSize) {
-			return fmt.Errorf("maxUnavailable and maxUnavailablePercentage cannot be greater than MaxSize")
+		if ng.UpdateConfig.MaxUnavailable != nil && ng.UpdateConfig.MaxUnavailablePercentage != nil {
+			return fmt.Errorf("cannot use maxUnavailable=%d and maxUnavailablePercentage=%d at the same time", *ng.UpdateConfig.MaxUnavailable, *ng.UpdateConfig.MaxUnavailablePercentage)
+		}
+		if aws.IntValue(ng.UpdateConfig.MaxUnavailable) > aws.IntValue(ng.MaxSize) {
+			return fmt.Errorf("maxUnavailable=%d cannot be greater than maxSize=%d", *ng.UpdateConfig.MaxUnavailable, &ng.MaxSize)
 		}
 	}
 

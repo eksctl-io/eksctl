@@ -217,10 +217,8 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 			maxSize:     aws.Int(5),
 			valid:       false,
 		}),
-		Entry("returns an error if max unavailable percentage is greater than maxSize", updateConfigEntry{
-			unavailablePercentage: aws.Int(100),
-			maxSize:               aws.Int(5),
-			valid:                 false,
+		Entry("returns an error if both maxUnavailable and maxUnavailablePercentage are not set", updateConfigEntry{
+			valid: false,
 		}),
 	)
 })
