@@ -185,9 +185,15 @@ To upgrade to a specific AMI release version instead of the latest version, pass
 eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --release-version=1.19.6-20210310
 ```
 
-## Handling parallel upgrades for nodes
+## Handling parallel upgrades for nodes
 
-Multiple managed nodes can be upgraded simultaneously. `upgradeConfig` can be used to handle parallel upgrades. To avoid any downtime to your workloads due to upgrading multiple nodes at once, limit the number of nodes that can become unavailable during an upgrade as `maxnavailable`. Alternatively, use `maxUnavailablePercentage`, which defines the maximum number of unavailable nodes as a percentage of the total number of nodes. Note that this feature is only available for managed nodes.
+Multiple managed nodes can be upgraded simultaneously. To configure parallel upgrades, define the `updateConfig` of a nodegroup when creating the nodegroup. An example `updateConfig` can be found [here](https://github.com/weaveworks/eksctl/blob/main/examples/15-managed-nodes.yaml).
+
+To avoid any downtime to your workloads due to upgrading multiple nodes at once, you can limit the number of nodes that can become unavailable during an upgrade by specifying this in the `maxUnavailable` field of an `updateConfig`. Alternatively, use `maxUnavailablePercentage`, which defines the maximum number of unavailable nodes as a percentage of the total number of nodes. 
+
+Note that `maxUnavailable` cannot be higher than `maxSize`. Also, `maxUnavailable` and `maxUnavailablePercentage` cannot be used simultaneously.
+
+This feature is only available for managed nodes.
 
 
 ## Nodegroup Health issues
