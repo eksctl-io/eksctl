@@ -15,7 +15,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/managed"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 )
 
@@ -765,7 +764,7 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 }
 
 // NewUpdateNodegroupLoader will load config or use flags for 'eksctl update nodegroup'.
-func NewUpdateNodegroupLoader(cmd *Cmd, options managed.UpdateOptions) ClusterConfigLoader {
+func NewUpdateNodegroupLoader(cmd *Cmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.validateWithConfigFile = func() error {
@@ -795,21 +794,8 @@ func NewUpdateNodegroupLoader(cmd *Cmd, options managed.UpdateOptions) ClusterCo
 	}
 
 	l.validateWithoutConfigFile = func() error {
-		cfg := cmd.ClusterConfig
-		if cfg.Metadata.Name == "" {
-			return ErrMustBeSet("cluster name")
-		}
-
-		if options.NodegroupName != "" && cmd.NameArg != "" {
-			return ErrFlagAndArg("name", options.NodegroupName, cmd.NameArg)
-		}
-
-		if cmd.NameArg != "" {
-			options.NodegroupName = cmd.NameArg
-		}
-
-		if options.NodegroupName == "" {
-			return ErrMustBeSet("nodegroup name")
+		if cmd.ClusterConfigFile == "" {
+			return ErrMustBeSet("--config-file")
 		}
 		return nil
 	}

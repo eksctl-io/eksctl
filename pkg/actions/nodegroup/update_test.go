@@ -10,7 +10,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/managed"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
@@ -19,7 +18,6 @@ var _ = Describe("Update", func() {
 		clusterName, ngName string
 		p                   *mockprovider.MockProvider
 		cfg                 *api.ClusterConfig
-		options             managed.UpdateOptions
 		m                   *Manager
 	)
 
@@ -29,19 +27,24 @@ var _ = Describe("Update", func() {
 		p = mockprovider.NewMockProvider()
 		cfg = api.NewClusterConfig()
 		cfg.Metadata.Name = clusterName
-		options = managed.UpdateOptions{
-			NodegroupName: ngName,
+		cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
+			{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: ngName,
+				},
+			},
 		}
+
 		m = New(cfg, &eks.ClusterProvider{Provider: p}, nil)
 	})
 
 	It("fails for unmanaged nodegroups", func() {
 		p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
 			ClusterName:   &m.cfg.Metadata.Name,
-			NodegroupName: &options.NodegroupName,
+			NodegroupName: &m.cfg.ManagedNodeGroups[0].Name,
 		}).Return(nil, awserr.New(awseks.ErrCodeResourceNotFoundException, "test-err", errors.New("err")))
 
-		err := m.Update(options)
+		err := m.Update()
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(MatchError(ContainSubstring("update is only supported for managed nodegroups; could not find one with name \"my-ng\"")))
 	})
@@ -49,10 +52,10 @@ var _ = Describe("Update", func() {
 	It("successfully updates nodegroup", func() {
 		p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
 			ClusterName:   &m.cfg.Metadata.Name,
-			NodegroupName: &options.NodegroupName,
+			NodegroupName: &m.cfg.ManagedNodeGroups[0].Name,
 		}).Return(nil, nil)
 
-		err := m.Update(options)
+		err := m.Update()
 		Expect(err).NotTo(HaveOccurred())
 	})
 })

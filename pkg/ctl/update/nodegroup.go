@@ -8,7 +8,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/managed"
 )
 
 func updateNodeGroupCmd(cmd *cmdutils.Cmd) {
@@ -25,14 +24,7 @@ func updateNodeGroupCmd(cmd *cmdutils.Cmd) {
 	`),
 	)
 
-	var options managed.UpdateOptions
-	cmd.FlagSetGroup.InFlagSet("Nodegroup", func(fs *pflag.FlagSet) {
-		fs.StringVar(&options.NodegroupName, "name", "", "Nodegroup name")
-	})
-
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddClusterFlag(fs, cmd.ClusterConfig.Metadata)
-		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
@@ -41,12 +33,12 @@ func updateNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return updateNodegroup(cmd, options)
+		return updateNodegroup(cmd)
 	}
 }
 
-func updateNodegroup(cmd *cmdutils.Cmd, options managed.UpdateOptions) error {
-	if err := cmdutils.NewUpdateNodegroupLoader(cmd, options).Load(); err != nil {
+func updateNodegroup(cmd *cmdutils.Cmd) error {
+	if err := cmdutils.NewUpdateNodegroupLoader(cmd).Load(); err != nil {
 		return err
 	}
 
@@ -59,5 +51,5 @@ func updateNodegroup(cmd *cmdutils.Cmd, options managed.UpdateOptions) error {
 		return err
 	}
 
-	return nodegroup.New(cmd.ClusterConfig, ctl, nil).Update(options)
+	return nodegroup.New(cmd.ClusterConfig, ctl, nil).Update()
 }

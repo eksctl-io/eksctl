@@ -9,15 +9,16 @@ import (
 	"github.com/weaveworks/eksctl/pkg/managed"
 )
 
-func (m *Manager) Update(options managed.UpdateOptions) error {
+func (m *Manager) Update() error {
+	ngName := m.cfg.ManagedNodeGroups[0].Name
 	_, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
 		ClusterName:   &m.cfg.Metadata.Name,
-		NodegroupName: &options.NodegroupName,
+		NodegroupName: &ngName,
 	})
 
 	if err != nil {
 		if managed.IsNotFound(err) {
-			return fmt.Errorf("update is only supported for managed nodegroups; could not find one with name %q", options.NodegroupName)
+			return fmt.Errorf("update is only supported for managed nodegroups; could not find one with name %q", ngName)
 		}
 		return err
 	}
