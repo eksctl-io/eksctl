@@ -74,44 +74,13 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 		launchTemplateData.EbsOptimized = gfnt.NewBoolean(*mng.EBSOptimized)
 	}
 
-	if volumeSize := mng.VolumeSize; volumeSize != nil && *volumeSize > 0 {
-		mapping := gfnec2.LaunchTemplate_BlockDeviceMapping{
-			Ebs: &gfnec2.LaunchTemplate_Ebs{
-				VolumeSize: gfnt.NewInteger(*volumeSize),
-				VolumeType: gfnt.NewString(*mng.VolumeType),
-			},
-		}
-		if mng.VolumeEncrypted != nil {
-			mapping.Ebs.Encrypted = gfnt.NewBoolean(*mng.VolumeEncrypted)
-		}
-		if api.IsSetAndNonEmptyString(mng.VolumeKmsKeyID) {
-			mapping.Ebs.KmsKeyId = gfnt.NewString(*mng.VolumeKmsKeyID)
-		}
-
-		if *mng.VolumeType == api.NodeVolumeTypeIO1 || *mng.VolumeType == api.NodeVolumeTypeGP3 {
-			if mng.VolumeIOPS != nil {
-				mapping.Ebs.Iops = gfnt.NewInteger(*mng.VolumeIOPS)
-			}
-		}
-
-		if *mng.VolumeType == api.NodeVolumeTypeGP3 && mng.VolumeThroughput != nil {
-			mapping.Ebs.Throughput = gfnt.NewInteger(*mng.VolumeThroughput)
-		}
-
-		if mng.VolumeName != nil {
-			mapping.DeviceName = gfnt.NewString(*mng.VolumeName)
-		} else {
-			mapping.DeviceName = gfnt.NewString("/dev/xvda")
-		}
-
-		launchTemplateData.BlockDeviceMappings = []gfnec2.LaunchTemplate_BlockDeviceMapping{mapping}
-	}
-
 	if mng.Placement != nil {
 		launchTemplateData.Placement = &gfnec2.LaunchTemplate_Placement{
 			GroupName: gfnt.NewString(mng.Placement.GroupName),
 		}
 	}
+
+	launchTemplateData.BlockDeviceMappings = makeBlockDeviceMappings(mng.NodeGroupBase)
 
 	return launchTemplateData, nil
 }
