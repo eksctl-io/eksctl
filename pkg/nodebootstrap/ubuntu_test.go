@@ -1,6 +1,8 @@
 package nodebootstrap_test
 
 import (
+	"strings"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -40,11 +42,12 @@ var _ = Describe("Ubuntu User Data", func() {
 
 			cloudCfg := decode(userData)
 			Expect(cloudCfg.WriteFiles[1].Path).To(Equal("/etc/eksctl/kubelet.env"))
-			Expect(cloudCfg.WriteFiles[1].Content).To(Equal(`CLUSTER_NAME=something-awesome
+			contentLines := strings.Split(cloudCfg.WriteFiles[1].Content, "\n")
+			Expect(contentLines).To(ConsistOf(strings.Split(`CLUSTER_NAME=something-awesome
 API_SERVER_URL=
 B64_CLUSTER_CA=
 NODE_LABELS=
-NODE_TAINTS=`))
+NODE_TAINTS=`, "\n")))
 			Expect(cloudCfg.WriteFiles[1].Permissions).To(Equal("0644"))
 		})
 

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/kris-nova/logger"
@@ -139,31 +140,40 @@ func makeKubeletExtraConf(kubeletExtraConf *api.InlineDocument) (cloudconfig.Fil
 }
 
 func makeBootstrapEnv(clusterConfig *api.ClusterConfig, np api.NodePool) cloudconfig.File {
-	variables := []string{
-		fmt.Sprintf("CLUSTER_NAME=%s", clusterConfig.Metadata.Name),
-		fmt.Sprintf("API_SERVER_URL=%s", clusterConfig.Status.Endpoint),
-		fmt.Sprintf("B64_CLUSTER_CA=%s", base64.StdEncoding.EncodeToString(clusterConfig.Status.CertificateAuthorityData)),
-		fmt.Sprintf("NODE_LABELS=%s", kvs(np.BaseNodeGroup().Labels)),
-		fmt.Sprintf("NODE_TAINTS=%s", utils.FormatTaints(np.NGTaints())),
+	ng := np.BaseNodeGroup()
+	variables := map[string]string{
+		"CLUSTER_NAME":   clusterConfig.Metadata.Name,
+		"API_SERVER_URL": clusterConfig.Status.Endpoint,
+		"B64_CLUSTER_CA": base64.StdEncoding.EncodeToString(clusterConfig.Status.CertificateAuthorityData),
+		"NODE_LABELS":    formatLabels(ng.Labels),
+		"NODE_TAINTS":    utils.FormatTaints(np.NGTaints()),
+	}
+
+	if ng.MaxPodsPerNode > 0 {
+		variables["MAX_PODS"] = strconv.Itoa(ng.MaxPodsPerNode)
 	}
 
 	if unmanaged, ok := np.(*api.NodeGroup); ok && unmanaged.ClusterDNS != "" {
-		variables = append(variables, fmt.Sprintf("CLUSTER_DNS=%s", unmanaged.ClusterDNS))
+		variables["CLUSTER_DNS"] = unmanaged.ClusterDNS
 	}
 
 	return cloudconfig.File{
 		Path:    configDir + envFile,
-		Content: strings.Join(variables, "\n"),
+		Content: makeKeyValues(variables, "\n"),
 	}
 }
 
-func kvs(kv map[string]string) string {
+func makeKeyValues(kv map[string]string, separator string) string {
 	var params []string
 	for k, v := range kv {
 		params = append(params, fmt.Sprintf("%s=%s", k, v))
 	}
 
-	return strings.Join(params, ",")
+	return strings.Join(params, separator)
+}
+
+func formatLabels(labels map[string]string) string {
+	return makeKeyValues(labels, ",")
 }
 
 func addFilesAndScripts(config *cloudconfig.CloudConfig, files []cloudconfig.File, scripts []string) error {

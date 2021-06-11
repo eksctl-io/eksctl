@@ -206,9 +206,9 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		Context("and create a new nodegroup with taints", func() {
-			It("should support both formats for taints", func() {
-				data, err := os.ReadFile("testdata/taints.yaml")
+		Context("and create a new nodegroup with taints and maxPods", func() {
+			It("should have taints and maxPods set", func() {
+				data, err := os.ReadFile("testdata/taints-max-pods.yaml")
 				Expect(err).ToNot(HaveOccurred())
 				clusterConfig, err := eks.ParseConfig(data)
 				Expect(err).ToNot(HaveOccurred())
@@ -217,6 +217,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 				data, err = json.Marshal(clusterConfig)
 				Expect(err).ToNot(HaveOccurred())
+				By("creating a new nodegroup with taints and maxPods set")
 				cmd := params.EksctlCreateCmd.
 					WithArgs(
 						"nodegroup",
@@ -232,7 +233,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				clientset, err := kubernetes.NewForConfig(config)
 				Expect(err).ToNot(HaveOccurred())
 
-				tests.AssertNodeTaints(clientset, "n1", []corev1.Taint{
+				By("asserting that both formats for taints are supported")
+				var (
+					nodeListN1 = tests.ListNodes(clientset, "n1")
+					nodeListN2 = tests.ListNodes(clientset, "n2")
+				)
+
+				tests.AssertNodeTaints(nodeListN1, []corev1.Taint{
 					{
 						Key:    "key1",
 						Value:  "val1",
@@ -244,7 +251,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					},
 				})
 
-				tests.AssertNodeTaints(clientset, "n2", []corev1.Taint{
+				tests.AssertNodeTaints(nodeListN2, []corev1.Taint{
 					{
 						Key:    "key1",
 						Value:  "value1",
@@ -255,6 +262,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						Effect: "NoExecute",
 					},
 				})
+
+				By("asserting that maxPods is set correctly")
+				expectedMaxPods := 123
+				for _, node := range nodeListN1.Items {
+					maxPods, _ := node.Status.Allocatable.Pods().AsInt64()
+					Expect(maxPods).To(Equal(int64(expectedMaxPods)))
+				}
 
 			})
 		})
