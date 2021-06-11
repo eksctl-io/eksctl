@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -61,6 +62,56 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0755"))
 		})
 	})
+
+	DescribeTable("Boot script environment variable in userdata", func(ng *api.NodeGroup, expectedUserData string) {
+		bootstrapper := nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+		userData, err := bootstrapper.UserData()
+		Expect(err).ToNot(HaveOccurred())
+		cloudCfg := decode(userData)
+		file := cloudCfg.WriteFiles[1]
+		Expect(file.Path).To(Equal("/etc/eksctl/kubelet.env"))
+
+		actualLines := strings.Split(file.Content, "\n")
+		expectedLines := strings.Split(expectedUserData, "\n")
+		Expect(actualLines).To(ConsistOf(expectedLines))
+	},
+		Entry("no fields set", api.NewNodeGroup(), `CLUSTER_NAME=something-awesome
+API_SERVER_URL=
+B64_CLUSTER_CA=
+NODE_LABELS=
+NODE_TAINTS=`),
+		Entry("maxPods set", &api.NodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				MaxPodsPerNode: 123,
+				SSH:            &api.NodeGroupSSH{},
+			},
+		}, `CLUSTER_NAME=something-awesome
+API_SERVER_URL=
+B64_CLUSTER_CA=
+NODE_LABELS=
+NODE_TAINTS=
+MAX_PODS=123`,
+		),
+		Entry("labels and taints set", &api.NodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Labels: map[string]string{
+					"role": "worker",
+				},
+				SSH: &api.NodeGroupSSH{},
+			},
+			Taints: []api.NodeGroupTaint{
+				{
+					Key:    "key1",
+					Value:  "value1",
+					Effect: "NoSchedule",
+				},
+			},
+		}, `CLUSTER_NAME=something-awesome
+API_SERVER_URL=
+B64_CLUSTER_CA=
+NODE_LABELS=role=worker
+NODE_TAINTS=key1=value1:NoSchedule`),
+	)
 
 	Context("standard userdata", func() {
 		var (
