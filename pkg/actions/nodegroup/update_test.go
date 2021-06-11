@@ -45,4 +45,14 @@ var _ = Describe("Update", func() {
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(MatchError(ContainSubstring("update is only supported for managed nodegroups; could not find one with name \"my-ng\"")))
 	})
+
+	It("succesfully updates nodegroup", func() {
+		p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+			ClusterName:   &m.cfg.Metadata.Name,
+			NodegroupName: &options.NodegroupName,
+		}).Return(nil, nil)
+
+		err := m.Update(options)
+		Expect(err).NotTo(HaveOccurred())
+	})
 })
