@@ -3,6 +3,7 @@ package cmdutils
 import (
 	"encoding/csv"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -14,6 +15,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/managed"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 )
 
@@ -760,4 +762,66 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 	}
 
 	return l
+}
+
+func NewUpdateNodegroupLoader(cmd *Cmd, options managed.UpdateOptions) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithConfigFile = func() error {
+		var clusterConfig *api.ClusterConfig
+		var err error
+		if clusterConfig, err = eks.LoadConfigFromFile(l.ClusterConfigFile); err != nil {
+			return err
+		}
+
+		if len(clusterConfig.ManagedNodeGroups) > 1 {
+			return errors.New("please update one NodeGroup at a time")
+		}
+
+		v := reflect.ValueOf(*clusterConfig.ManagedNodeGroups[0].NodeGroupBase)
+		t := v.Type()
+		for i := 0; i < v.NumField(); i++ {
+			if t.Field(i).Name != "Name" && !empty(v.Field(i)) {
+				return fmt.Errorf("invalid field: %s cannot be modified with `update nodegroup`", t.Field(i).Name)
+			}
+		}
+		return nil
+	}
+
+	l.validateWithoutConfigFile = func() error {
+		cfg := cmd.ClusterConfig
+		if cfg.Metadata.Name == "" {
+			return ErrMustBeSet("cluster name")
+		}
+
+		if options.NodegroupName != "" && cmd.NameArg != "" {
+			return ErrFlagAndArg("name", options.NodegroupName, cmd.NameArg)
+		}
+
+		if cmd.NameArg != "" {
+			options.NodegroupName = cmd.NameArg
+		}
+
+		if options.NodegroupName == "" {
+			return ErrMustBeSet("nodegroup name")
+		}
+		return nil
+	}
+	return l
+}
+
+func empty(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return v.Uint() == 0
+	case reflect.String:
+		return v.String() == ""
+	case reflect.Ptr, reflect.Slice, reflect.Map, reflect.Interface, reflect.Chan:
+		return v.IsNil()
+	case reflect.Bool:
+		return !v.Bool()
+	}
+	return false
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -18,8 +19,8 @@ func updateNodeGroupCmd(cmd *cmdutils.Cmd) {
 		"Update nodegroup",
 		dedent.Dedent(`Update nodegroup and its configuration.
 
+		Please consult the eksctl documentation for more info on which config fields can be updated with this command.
 		To upgrade a nodegroup, please use 'eksctl upgrade nodegroup' instead.
-		Please consult the eksctl documentation for more info on which fields can be updated through 'eksctl update nodegroup'.
 		Note that this is only available for managed nodegroups. 
 	`),
 	)
@@ -45,25 +46,8 @@ func updateNodeGroupCmd(cmd *cmdutils.Cmd) {
 }
 
 func updateNodegroup(cmd *cmdutils.Cmd, options managed.UpdateOptions) error {
-	cfg := cmd.ClusterConfig
-	if cfg.Metadata.Name == "" {
-		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
-	}
-
-	if options.NodegroupName != "" && cmd.NameArg != "" {
-		return cmdutils.ErrFlagAndArg("--name", options.NodegroupName, cmd.NameArg)
-	}
-
-	if cmd.NameArg != "" {
-		options.NodegroupName = cmd.NameArg
-	}
-
-	if options.NodegroupName == "" {
-		return cmdutils.ErrMustBeSet("--name")
-	}
-
-	if cmd.ClusterConfigFile == "" {
-		return cmdutils.ErrMustBeSet("--config-file")
+	if err := cmdutils.NewUpdateNodegroupLoader(cmd, options).Load(); err != nil {
+		return err
 	}
 
 	ctl, err := cmd.NewCtl()
@@ -71,9 +55,9 @@ func updateNodegroup(cmd *cmdutils.Cmd, options managed.UpdateOptions) error {
 		return err
 	}
 
-	if ok, err := ctl.CanOperate(cfg); !ok {
+	if ok, err := ctl.CanOperate(cmd.ClusterConfig); !ok {
 		return err
 	}
 
-	return nodegroup.New(cfg, ctl, nil).Update(options)
+	return nodegroup.New(cmd.ClusterConfig, ctl, nil).Update(options)
 }
