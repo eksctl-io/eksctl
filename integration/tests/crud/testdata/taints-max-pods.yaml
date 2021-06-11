@@ -10,6 +10,7 @@ nodeGroups:
   taints:
     key1: val1:NoSchedule
     key2: :NoExecute
+  maxPodsPerNode: 123
 - name: n2
   volumeSize: 35
   taints:

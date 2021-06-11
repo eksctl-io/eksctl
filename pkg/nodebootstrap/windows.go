@@ -33,7 +33,7 @@ func (b *Windows) UserData() (string, error) {
 	}
 
 	kubeletOptions := map[string]string{
-		"node-labels":          kvs(b.ng.Labels),
+		"node-labels":          formatLabels(b.ng.Labels),
 		"register-with-taints": utils.FormatTaints(b.ng.Taints),
 	}
 	if b.ng.MaxPodsPerNode != 0 {

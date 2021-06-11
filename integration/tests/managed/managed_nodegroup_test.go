@@ -417,7 +417,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					return ret
 				}
 
-				tests.AssertNodeTaints(clientset, "taints", mapTaints(taints))
+				tests.AssertNodeTaints(tests.ListNodes(clientset, "taints"), mapTaints(taints))
 			})
 		})
 
