@@ -6,4 +6,10 @@ account-blocklist:
   - "we-dont-have-a-prod-account-to-blacklist-but-this-field-is-mandatory"
 
 accounts:
-  AWS_ACCOUNT_ID_REPLACE_ME: {}
+  AWS_ACCOUNT_ID_REPLACE_ME:
+    filters:
+      CloudFormationStack:
+        - "EC2RoleWatchDog"
+        - "Create-PatchBaseline"
+        - "PVRE-ComplianceReporting"
+        - "aws-sam-cli-managed-default"
