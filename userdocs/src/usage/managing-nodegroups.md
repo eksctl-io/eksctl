@@ -113,8 +113,17 @@ nodeGroups:
 
 To list the details about a nodegroup or all of the nodegroups, use:
 
-```
+```bash
 eksctl get nodegroup --cluster=<clusterName> [--name=<nodegroupName>]
+```
+
+To list one or multiple nodegroup(s) in yaml or json format, which outputs more info than the default log table, use:
+```bash
+# yaml format
+eksctl get nodegroup --cluster=<clusterName> [--name=<nodegroupName>] --output=yaml
+
+# json format
+eksctl get nodegroup --cluster=<clusterName> [--name=<nodegroupName>] --output=json
 ```
 
 ### Nodegroup immutability

@@ -10,12 +10,20 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
 func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 	summaries, err := m.stackManager.GetUnmanagedNodeGroupSummaries("")
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stack summaries")
+	}
+
+	for _, summary := range summaries {
+		summary.Version, err = kubewrapper.GetNodegroupKubernetesVersion(m.clientSet.CoreV1().Nodes(), summary.Name)
+		if err != nil {
+			return nil, errors.Wrap(err, "getting nodegroup's kubernetes version")
+		}
 	}
 
 	managedNodeGroups, err := m.ctl.Provider.EKS().ListNodegroups(&eks.ListNodegroupsInput{
@@ -61,6 +69,7 @@ func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 			CreationTime:         describeOutput.Nodegroup.CreatedAt,
 			NodeInstanceRoleARN:  *describeOutput.Nodegroup.NodeRole,
 			AutoScalingGroupName: strings.Join(asgs, ","),
+			Version:              *describeOutput.Nodegroup.Version,
 		})
 	}
 
@@ -82,7 +91,13 @@ func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
 	}
 
 	if len(summaries) > 0 {
-		return summaries[0], nil
+		s := summaries[0]
+		s.Version, err = kubewrapper.GetNodegroupKubernetesVersion(m.clientSet.CoreV1().Nodes(), s.Name)
+		if err != nil {
+			return nil, errors.Wrap(err, "getting nodegroup's kubernetes version")
+		}
+
+		return s, nil
 	}
 
 	describeOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
@@ -113,5 +128,6 @@ func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
 		CreationTime:         describeOutput.Nodegroup.CreatedAt,
 		NodeInstanceRoleARN:  *describeOutput.Nodegroup.NodeRole,
 		AutoScalingGroupName: asg,
+		Version:              *describeOutput.Nodegroup.Version,
 	}, nil
 }
