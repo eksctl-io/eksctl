@@ -64,7 +64,7 @@ eksctl create addon -f config.yaml
 ```
 
 ```console
-eksctl create addon --name vpc-cni --version 1.7.5 --serivce-account-role-arn=<role-arn>
+eksctl create addon --name vpc-cni --version 1.7.5 --service-account-role-arn=<role-arn>
 ```
 
 ## Listing enabled addons
@@ -101,7 +101,7 @@ eksctl update addon -f config.yaml
 ```
 
 ```console
-eksctl update addon --name vpc-cni --version 1.8.0 --serivce-account-role-arn=<new-role>
+eksctl update addon --name vpc-cni --version 1.8.0 --service-account-role-arn=<new-role>
 ```
 
 ## Deleting addons
