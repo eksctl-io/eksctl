@@ -1,0 +1,10 @@
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-29
+  region: us-west-2
+
+managedNodeGroups:
+- name: mng
