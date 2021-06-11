@@ -139,48 +139,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		launchTemplateData.KeyName = gfnt.NewString(*n.spec.SSH.PublicKeyName)
 	}
 
-	if volumeSize := n.spec.VolumeSize; volumeSize != nil && *volumeSize > 0 {
-		var (
-			kmsKeyID         *gfnt.Value
-			volumeIOPS       *gfnt.Value
-			volumeThroughput *gfnt.Value
-			volumeType       = *n.spec.VolumeType
-		)
-
-		if api.IsSetAndNonEmptyString(n.spec.VolumeKmsKeyID) {
-			kmsKeyID = gfnt.NewString(*n.spec.VolumeKmsKeyID)
-		}
-
-		if volumeType == api.NodeVolumeTypeIO1 || volumeType == api.NodeVolumeTypeGP3 {
-			volumeIOPS = gfnt.NewInteger(*n.spec.VolumeIOPS)
-		}
-
-		if volumeType == api.NodeVolumeTypeGP3 {
-			volumeThroughput = gfnt.NewInteger(*n.spec.VolumeThroughput)
-		}
-
-		launchTemplateData.BlockDeviceMappings = []gfnec2.LaunchTemplate_BlockDeviceMapping{{
-			DeviceName: gfnt.NewString(*n.spec.VolumeName),
-			Ebs: &gfnec2.LaunchTemplate_Ebs{
-				VolumeSize: gfnt.NewInteger(*volumeSize),
-				VolumeType: gfnt.NewString(volumeType),
-				Encrypted:  gfnt.NewBoolean(*n.spec.VolumeEncrypted),
-				KmsKeyId:   kmsKeyID,
-				Iops:       volumeIOPS,
-				Throughput: volumeThroughput,
-			},
-		}}
-
-		if n.spec.AdditionalEncryptedVolume != "" {
-			launchTemplateData.BlockDeviceMappings = append(launchTemplateData.BlockDeviceMappings, gfnec2.LaunchTemplate_BlockDeviceMapping{
-				DeviceName: gfnt.NewString(n.spec.AdditionalEncryptedVolume),
-				Ebs: &gfnec2.LaunchTemplate_Ebs{
-					Encrypted: gfnt.NewBoolean(*n.spec.VolumeEncrypted),
-					KmsKeyId:  kmsKeyID,
-				},
-			})
-		}
-	}
+	launchTemplateData.BlockDeviceMappings = makeBlockDeviceMappings(n.spec.NodeGroupBase)
 
 	n.newResource("NodeGroupLaunchTemplate", &gfnec2.LaunchTemplate{
 		LaunchTemplateName: launchTemplateName,
