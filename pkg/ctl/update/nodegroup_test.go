@@ -15,11 +15,26 @@ var _ = Describe("update nodegroup", func() {
 		Expect(err).To(MatchError(ContainSubstring("cluster name must be set")))
 	})
 
-	It("returns error if nodegroup name is not set", func() {
+	It("returns error if nodegroup name is not set as flag", func() {
 		cmd := newMockCmd("nodegroup", "--cluster", "cluster-name")
 		_, err := cmd.execute()
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(MatchError(ContainSubstring("nodegroup name must be set")))
+	})
+
+	It("returns error if nodegroup is not set in config", func() {
+		cfg := &api.ClusterConfig{
+			TypeMeta: api.ClusterConfigTypeMeta(),
+			Metadata: &api.ClusterMeta{
+				Name:   "cluster-1",
+				Region: "us-west-2",
+			},
+		}
+		config := ctltest.CreateConfigFile(cfg)
+		cmd := newMockCmd("nodegroup", "--config-file", config)
+		_, err := cmd.execute()
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(MatchError(ContainSubstring("managedNodeGroups must be set")))
 	})
 
 	It("returns error if cluster is set in cfg and as flag", func() {

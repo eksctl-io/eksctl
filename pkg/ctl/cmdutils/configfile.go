@@ -775,15 +775,19 @@ func NewUpdateNodegroupLoader(cmd *Cmd, options managed.UpdateOptions) ClusterCo
 			return err
 		}
 
-		if len(clusterConfig.ManagedNodeGroups) > 1 {
+		l := len(clusterConfig.ManagedNodeGroups)
+		if l > 1 {
 			return errors.New("please update one NodeGroup at a time")
+		} else if l < 1 {
+			return ErrMustBeSet("managedNodeGroups field")
 		}
 
-		if err = validateSupportedConfigFields(*clusterConfig.ManagedNodeGroups[0], []string{"NodeGroupBase"}, "update nodegroup"); err != nil {
+		ng := clusterConfig.ManagedNodeGroups[0]
+		if err = validateSupportedConfigFields(*ng, []string{"NodeGroupBase"}, "update nodegroup"); err != nil {
 			return err
 		}
 
-		if err = validateSupportedConfigFields(*clusterConfig.ManagedNodeGroups[0].NodeGroupBase, []string{"Name"}, "update nodegroup"); err != nil {
+		if err = validateSupportedConfigFields(*ng.NodeGroupBase, []string{"Name"}, "update nodegroup"); err != nil {
 			return err
 		}
 
