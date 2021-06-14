@@ -1,19 +1,13 @@
 # Latest & Custom AMI support
 
 !!! warning
-    From `eksctl` version `0.52.0` **unmanaged** nodegroups created with **custom AmazonLinux2** or **custom Ubuntu** images
+    In a future as yet undecided release **unmanaged** nodegroups created with **custom AmazonLinux2** or **custom Ubuntu** images
     will need to have the `overrideBootstrapCommand` configuration option set. This is to ensure that nodes are able
-    to join the cluster. For more information please see [this issue](https://github.com/weaveworks/eksctl/issues/3563).
+    to join the cluster. For more information and to track this change please see [this issue](https://github.com/weaveworks/eksctl/issues/3563).
 
-    ```yaml
-    nodeGroups:
-      - name: ng-1
-        ami: ami-custom1234
-        instanceType: m5.large
-        overrideBootstrapCommand: |
-          #!/bin/bash
-          ... bootstrap script
-    ```
+    Users setting the `ami` field on **unmanaged** nodegroups to `ami-XXXX` (i.e. setting a custom AMI) will start to see
+    a warning message that they are being sent down a legacy code path. There is no action to take at this time, but in a future
+    release the users seeing this warning will be affected by the above change.
 
 ## Setting the node AMI ID
 
