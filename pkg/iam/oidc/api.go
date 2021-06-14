@@ -33,8 +33,8 @@ type OpenIDConnectManager struct {
 	iam iamiface.IAMAPI
 }
 
-// NewOpenIDConnectManager construct a new IAM OIDC management instance, it can return and error
-// when the given issue URL was invalid
+// NewOpenIDConnectManager constructs a new IAM OIDC manager instance.
+// It returns an error if the issuer URL is invalid
 func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer, partition string) (*OpenIDConnectManager, error) {
 	issuerURL, err := url.Parse(issuer)
 	if err != nil {
