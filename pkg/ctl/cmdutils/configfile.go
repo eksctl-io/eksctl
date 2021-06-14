@@ -779,11 +779,11 @@ func NewUpdateNodegroupLoader(cmd *Cmd, options managed.UpdateOptions) ClusterCo
 			return errors.New("please update one NodeGroup at a time")
 		}
 
-		if err = parseSupportedConfigFields(*clusterConfig.ManagedNodeGroups[0], "NodeGroupBase", "update nodegroup"); err != nil {
+		if err = validateSupportedConfigFields(*clusterConfig.ManagedNodeGroups[0], []string{"NodeGroupBase"}, "update nodegroup"); err != nil {
 			return err
 		}
 
-		if err = parseSupportedConfigFields(*clusterConfig.ManagedNodeGroups[0].NodeGroupBase, "Name", "update nodegroup"); err != nil {
+		if err = validateSupportedConfigFields(*clusterConfig.ManagedNodeGroups[0].NodeGroupBase, []string{"Name"}, "update nodegroup"); err != nil {
 			return err
 		}
 
@@ -812,19 +812,23 @@ func NewUpdateNodegroupLoader(cmd *Cmd, options managed.UpdateOptions) ClusterCo
 	return l
 }
 
-// parseSupportedConfigFields parses a config file's fields and returns an error if a field is not supported
-func parseSupportedConfigFields(i interface{}, supportedField, command string) error {
+// validateSupportedConfigFields parses a config file's fields, evaluates if non-empty fields are supported,
+// and returns an error if a field is not supported.
+func validateSupportedConfigFields(i interface{}, supportedFields []string, command string) error {
 	v := reflect.ValueOf(i)
 	t := v.Type()
 	for i := 0; i < v.NumField(); i++ {
-		if t.Field(i).Name != supportedField && !emptyConfigField(v.Field(i)) {
-			return ErrUnsupportedConfigField(t.Field(i).Name, command)
+		if !emptyConfigField(v.Field(i)) {
+			if !contains(supportedFields, t.Field(i).Name) {
+				return ErrUnsupportedConfigField(t.Field(i).Name, command)
+			}
 		}
 	}
 	return nil
 }
 
-// emptyConfigField parses a field's value according to its value then returns true if it is not empty/zero/nil.
+// emptyConfigField parses a field's value according to its value then returns true
+// if it is not empty/zero/nil.
 func emptyConfigField(v reflect.Value) bool {
 	switch v.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -837,6 +841,15 @@ func emptyConfigField(v reflect.Value) bool {
 		return v.IsNil()
 	case reflect.Bool:
 		return !v.Bool()
+	}
+	return false
+}
+
+func contains(supportedFields []string, fieldName string) bool {
+	for _, f := range supportedFields {
+		if f == fieldName {
+			return true
+		}
 	}
 	return false
 }
