@@ -238,3 +238,7 @@ func ErrUnsupportedManagedFlag(flag string) error {
 func ErrUnsupportedNameArg() error {
 	return errors.New("name argument is not supported")
 }
+
+func ErrUnsupportedConfigField(name, command string) error {
+	return fmt.Errorf("unsupported field: %s cannot be used with `eksctl %s`", name, command)
+}

@@ -62,12 +62,6 @@ type UpgradeOptions struct {
 	ReleaseVersion string
 }
 
-// UpdateOptions contains options to configure nodegroup updates
-type UpdateOptions struct {
-	// NodeGroupName nodegroup name
-	NodegroupName string
-}
-
 // TODO use goformation types
 const (
 	labelsPath = "Resources.ManagedNodeGroup.Properties.Labels"

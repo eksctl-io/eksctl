@@ -764,6 +764,7 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 	return l
 }
 
+// NewUpdateNodegroupLoader will load config or use flags for 'eksctl update nodegroup'.
 func NewUpdateNodegroupLoader(cmd *Cmd, options managed.UpdateOptions) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
@@ -778,13 +779,14 @@ func NewUpdateNodegroupLoader(cmd *Cmd, options managed.UpdateOptions) ClusterCo
 			return errors.New("please update one NodeGroup at a time")
 		}
 
-		v := reflect.ValueOf(*clusterConfig.ManagedNodeGroups[0].NodeGroupBase)
-		t := v.Type()
-		for i := 0; i < v.NumField(); i++ {
-			if t.Field(i).Name != "Name" && !empty(v.Field(i)) {
-				return fmt.Errorf("invalid field: %s cannot be modified with `update nodegroup`", t.Field(i).Name)
-			}
+		if err = parseSupportedConfigFields(*clusterConfig.ManagedNodeGroups[0], "NodeGroupBase", "update nodegroup"); err != nil {
+			return err
 		}
+
+		if err = parseSupportedConfigFields(*clusterConfig.ManagedNodeGroups[0].NodeGroupBase, "Name", "update nodegroup"); err != nil {
+			return err
+		}
+
 		return nil
 	}
 
@@ -810,7 +812,20 @@ func NewUpdateNodegroupLoader(cmd *Cmd, options managed.UpdateOptions) ClusterCo
 	return l
 }
 
-func empty(v reflect.Value) bool {
+// parseSupportedConfigFields parses a config file's fields and returns an error if a field is not supported
+func parseSupportedConfigFields(i interface{}, supportedField, command string) error {
+	v := reflect.ValueOf(i)
+	t := v.Type()
+	for i := 0; i < v.NumField(); i++ {
+		if t.Field(i).Name != supportedField && !emptyConfigField(v.Field(i)) {
+			return ErrUnsupportedConfigField(t.Field(i).Name, command)
+		}
+	}
+	return nil
+}
+
+// emptyConfigField parses a field's value according to its value then returns true if it is not empty/zero/nil.
+func emptyConfigField(v reflect.Value) bool {
 	switch v.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return v.Int() == 0

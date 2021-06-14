@@ -80,7 +80,7 @@ var _ = Describe("update nodegroup", func() {
 		Expect(err).To(MatchError(ContainSubstring("cannot use --region when --config-file/-f is set")))
 	})
 
-	It("returns error if cfg contains unsupported field", func() {
+	It("returns error if cfg contains unsupported field in NodeGroupBase fields", func() {
 		cfg := &api.ClusterConfig{
 			TypeMeta: api.ClusterConfigTypeMeta(),
 			Metadata: &api.ClusterMeta{
@@ -100,7 +100,30 @@ var _ = Describe("update nodegroup", func() {
 		cmd := newMockCmd("nodegroup", "--config-file", config)
 		_, err := cmd.execute()
 		Expect(err).To(HaveOccurred())
-		Expect(err).To(MatchError(ContainSubstring("invalid field: MaxPodsPerNode cannot be modified with `update nodegroup`")))
+		Expect(err).To(MatchError(ContainSubstring("unsupported field: MaxPodsPerNode cannot be used with `eksctl update nodegroup`")))
+	})
+
+	It("returns error if cfg contains unsupported field in NodeGroup fields", func() {
+		cfg := &api.ClusterConfig{
+			TypeMeta: api.ClusterConfigTypeMeta(),
+			Metadata: &api.ClusterMeta{
+				Name:   "cluster-1",
+				Region: "us-west-2",
+			},
+			ManagedNodeGroups: []*api.ManagedNodeGroup{
+				{
+					NodeGroupBase: &api.NodeGroupBase{
+						Name: "ngName",
+					},
+					Spot: true,
+				},
+			},
+		}
+		config := ctltest.CreateConfigFile(cfg)
+		cmd := newMockCmd("nodegroup", "--config-file", config)
+		_, err := cmd.execute()
+		Expect(err).To(HaveOccurred())
+		Expect(err).To(MatchError(ContainSubstring("unsupported field: Spot cannot be used with `eksctl update nodegroup`")))
 	})
 
 	It("returns error if cfg contains multiple nodegroups", func() {
