@@ -1072,7 +1072,6 @@ var _ = Describe("ClusterConfig validation", func() {
 			},
 		}),
 	)
-
 })
 
 func newInt(value int) *int {
