@@ -24,7 +24,6 @@ require (
 	github.com/gofrs/flock v0.8.0
 	github.com/golangci/golangci-lint v1.39.0
 	github.com/gomarkdown/markdown v0.0.0-20201113031856-722100d81a8e // indirect
-	github.com/google/certificate-transparency-go v1.1.1 // indirect
 	github.com/google/uuid v1.2.0
 	github.com/goreleaser/goreleaser v0.162.0
 	github.com/hashicorp/go-version v1.3.0
@@ -57,7 +56,7 @@ require (
 	github.com/weaveworks/goformation/v4 v4.10.2-0.20210609082249-532b27315cf1
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
-	golang.org/x/tools v0.1.0
+	golang.org/x/tools v0.1.3
 	k8s.io/api v0.19.5
 	k8s.io/apiextensions-apiserver v0.19.5
 	k8s.io/apimachinery v0.19.5
