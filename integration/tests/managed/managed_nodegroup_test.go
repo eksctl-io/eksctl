@@ -444,23 +444,18 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					).
 					WithoutArg("--region", params.Region).
 					WithStdin(testutils.ClusterConfigReader(clusterConfig))
-
 				Expect(cmd).To(RunSuccessfully())
-			})
-		})
 
-		Context("and updating a nodegroup", func() {
-			It("should update a nodegroup", func() {
-				clusterConfig := makeClusterConfig()
+				By("and upddating the nodegroup's UpdateConfig")
 				clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
 					{
-						NodeGroupBase: &api.NodeGroupBase{
-							Name: initialNodeGroup,
-						},
 						Spot: true,
+						UpdateConfig: &api.NodeGroupUpdateConfig{
+							MaxUnavailable: aws.Int(1),
+						},
 					},
 				}
-				cmd := params.EksctlUpdateCmd.
+				cmd = params.EksctlUpdateCmd.
 					WithArgs(
 						"nodegroup",
 						"--config-file", "-",
