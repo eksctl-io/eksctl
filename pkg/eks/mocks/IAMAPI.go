@@ -9234,6 +9234,41 @@ func (_m *IAMAPI) ListUserTags(_a0 *iam.ListUserTagsInput) (*iam.ListUserTagsOut
 	return r0, r1
 }
 
+// ListUserTagsPages provides a mock function with given fields: _a0, _a1
+func (_m *IAMAPI) ListUserTagsPages(_a0 *iam.ListUserTagsInput, _a1 func(*iam.ListUserTagsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*iam.ListUserTagsInput, func(*iam.ListUserTagsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListUserTagsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *IAMAPI) ListUserTagsPagesWithContext(_a0 context.Context, _a1 *iam.ListUserTagsInput, _a2 func(*iam.ListUserTagsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListUserTagsInput, func(*iam.ListUserTagsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListUserTagsRequest provides a mock function with given fields: _a0
 func (_m *IAMAPI) ListUserTagsRequest(_a0 *iam.ListUserTagsInput) (*request.Request, *iam.ListUserTagsOutput) {
 	ret := _m.Called(_a0)
