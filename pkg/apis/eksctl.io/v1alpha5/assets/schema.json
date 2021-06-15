@@ -1067,6 +1067,11 @@
           "description": "taints to apply to the nodegroup",
           "x-intellij-html-description": "taints to apply to the nodegroup"
         },
+        "updateConfig": {
+          "$ref": "#/definitions/NodeGroupUpdateConfig",
+          "description": "configures how to update NodeGroups.",
+          "x-intellij-html-description": "configures how to update NodeGroups."
+        },
         "volumeEncrypted": {
           "type": "boolean"
         },
@@ -1141,6 +1146,7 @@
         "instanceTypes",
         "spot",
         "taints",
+        "updateConfig",
         "launchTemplate",
         "releaseVersion"
       ],
@@ -1372,6 +1378,11 @@
           "description": "Associate target group with auto scaling group",
           "x-intellij-html-description": "Associate target group with auto scaling group"
         },
+        "updateConfig": {
+          "$ref": "#/definitions/NodeGroupUpdateConfig",
+          "description": "configures how to update NodeGroups.",
+          "x-intellij-html-description": "configures how to update NodeGroups."
+        },
         "volumeEncrypted": {
           "type": "boolean"
         },
@@ -1449,6 +1460,7 @@
         "classicLoadBalancerNames",
         "targetGroupARNs",
         "taints",
+        "updateConfig",
         "clusterDNS",
         "kubeletExtraConfig"
       ],
@@ -1734,6 +1746,27 @@
       "additionalProperties": false,
       "description": "represents a Kubernetes taint",
       "x-intellij-html-description": "represents a Kubernetes taint"
+    },
+    "NodeGroupUpdateConfig": {
+      "properties": {
+        "maxUnavailable": {
+          "type": "integer",
+          "description": "sets the max number of nodes that can become unavailable when updating a nodegroup (specified as number)",
+          "x-intellij-html-description": "sets the max number of nodes that can become unavailable when updating a nodegroup (specified as number)"
+        },
+        "maxUnavailablePercentage": {
+          "type": "integer",
+          "description": "sets the max number of nodes that can become unavailable when updating a nodegroup (specified as percentage)",
+          "x-intellij-html-description": "sets the max number of nodes that can become unavailable when updating a nodegroup (specified as percentage)"
+        }
+      },
+      "preferredOrder": [
+        "maxUnavailable",
+        "maxUnavailablePercentage"
+      ],
+      "additionalProperties": false,
+      "description": "contains the configuration for updating NodeGroups.",
+      "x-intellij-html-description": "contains the configuration for updating NodeGroups."
     },
     "OIDCIdentityProvider": {
       "required": [

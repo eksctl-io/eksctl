@@ -93,6 +93,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	if err != nil {
 		return err
 	}
+
 	managedResource := &gfneks.Nodegroup{
 		ClusterName:   gfnt.NewString(m.clusterConfig.Metadata.Name),
 		NodegroupName: gfnt.NewString(m.nodeGroup.Name),
@@ -102,6 +103,17 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		Labels:        m.nodeGroup.Labels,
 		Tags:          m.nodeGroup.Tags,
 		Taints:        taints,
+	}
+
+	if m.nodeGroup.UpdateConfig != nil {
+		updateConfig := &gfneks.Nodegroup_UpdateConfig{}
+		if m.nodeGroup.UpdateConfig.MaxUnavailable != nil {
+			updateConfig.MaxUnavailable = gfnt.NewInteger(*m.nodeGroup.UpdateConfig.MaxUnavailable)
+		}
+		if m.nodeGroup.UpdateConfig.MaxUnavailablePercentage != nil {
+			updateConfig.MaxUnavailablePercentage = gfnt.NewInteger(*m.nodeGroup.UpdateConfig.MaxUnavailablePercentage)
+		}
+		managedResource.UpdateConfig = updateConfig
 	}
 
 	if m.nodeGroup.Spot {

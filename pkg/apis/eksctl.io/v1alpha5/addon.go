@@ -27,7 +27,7 @@ type Addon struct {
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
 	// Force applies the add-on to overwrite an existing add-on
-	Force bool
+	Force bool `json:"-"`
 }
 
 func (a Addon) CanonicalName() string {

@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/utils/taints"
@@ -583,6 +584,18 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 
 	if ng.DesiredCapacity == nil {
 		ng.DesiredCapacity = ng.MinSize
+	}
+
+	if ng.UpdateConfig != nil {
+		if ng.UpdateConfig.MaxUnavailable == nil && ng.UpdateConfig.MaxUnavailablePercentage == nil {
+			return fmt.Errorf("invalid UpdateConfig: maxUnavailable or maxUnavailablePercentage must be defined")
+		}
+		if ng.UpdateConfig.MaxUnavailable != nil && ng.UpdateConfig.MaxUnavailablePercentage != nil {
+			return fmt.Errorf("cannot use maxUnavailable=%d and maxUnavailablePercentage=%d at the same time", *ng.UpdateConfig.MaxUnavailable, *ng.UpdateConfig.MaxUnavailablePercentage)
+		}
+		if aws.IntValue(ng.UpdateConfig.MaxUnavailable) > aws.IntValue(ng.MaxSize) {
+			return fmt.Errorf("maxUnavailable=%d cannot be greater than maxSize=%d", *ng.UpdateConfig.MaxUnavailable, &ng.MaxSize)
+		}
 	}
 
 	if IsEnabled(ng.SecurityGroups.WithLocal) || IsEnabled(ng.SecurityGroups.WithShared) {
