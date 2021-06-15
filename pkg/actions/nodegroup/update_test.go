@@ -40,8 +40,8 @@ var _ = Describe("Update", func() {
 
 	It("fails for unmanaged nodegroups", func() {
 		p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
-			ClusterName:   &m.cfg.Metadata.Name,
-			NodegroupName: &m.cfg.ManagedNodeGroups[0].Name,
+			ClusterName:   &clusterName,
+			NodegroupName: &ngName,
 		}).Return(nil, awserr.New(awseks.ErrCodeResourceNotFoundException, "test-err", errors.New("err")))
 
 		err := m.Update()
@@ -51,8 +51,8 @@ var _ = Describe("Update", func() {
 
 	It("successfully updates nodegroup", func() {
 		p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
-			ClusterName:   &m.cfg.Metadata.Name,
-			NodegroupName: &m.cfg.ManagedNodeGroups[0].Name,
+			ClusterName:   &clusterName,
+			NodegroupName: &ngName,
 		}).Return(nil, nil)
 
 		err := m.Update()
