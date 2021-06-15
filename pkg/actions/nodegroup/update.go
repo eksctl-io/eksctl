@@ -3,6 +3,7 @@ package nodegroup
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -30,6 +31,26 @@ func (m *Manager) Update() error {
 		}
 	}
 
-	logger.Info("nodegroup successfully updated")
+	updateConfig := &eks.NodegroupUpdateConfig{}
+
+	if ng.UpdateConfig.MaxUnavailable != nil {
+		updateConfig.MaxUnavailable = aws.Int64(int64(*ng.UpdateConfig.MaxUnavailable))
+	}
+
+	if ng.UpdateConfig.MaxUnavailablePercentage != nil {
+		updateConfig.MaxUnavailablePercentage = aws.Int64(int64(*ng.UpdateConfig.MaxUnavailablePercentage))
+	}
+	logger.Info("updating nodegroup %s's UpdateConfig", ng.Name)
+
+	_, err = m.ctl.Provider.EKS().UpdateNodegroupConfig(&eks.UpdateNodegroupConfigInput{
+		UpdateConfig:  updateConfig,
+		ClusterName:   &m.cfg.Metadata.Name,
+		NodegroupName: &ng.Name,
+	})
+	if err != nil {
+		return err
+	}
+
+	logger.Info("nodegroup %s successfully updated", ng.Name)
 	return nil
 }
