@@ -426,7 +426,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 		Context("and creating a nodegroup with an update config", func() {
 			It("defining the UpdateConfig field in the cluster config", func() {
 				updateConfig := &api.NodeGroupUpdateConfig{
-					MaxUnavailable: aws.Int(4),
+					MaxUnavailable: aws.Int(2),
 				}
 				clusterConfig := api.NewClusterConfig()
 				clusterConfig.Metadata.Name = params.ClusterName
