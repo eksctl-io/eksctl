@@ -42,6 +42,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
           TEST_V: "1"
           GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
+          _____INTERNAL_NODEGROUP_ENABLE_SSM: "true"
         run: make integration-test
       - name: Notify slack on success
         if: success() && github.event_name == 'schedule'
