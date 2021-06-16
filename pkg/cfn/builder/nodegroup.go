@@ -22,33 +22,30 @@ import (
 
 // NodeGroupResourceSet stores the resource information of the nodegroup
 type NodeGroupResourceSet struct {
-	rs                   *resourceSet
-	clusterSpec          *api.ClusterConfig
-	spec                 *api.NodeGroup
-	supportsManagedNodes bool
-	forceAddCNIPolicy    bool
-	ec2API               ec2iface.EC2API
-	iamAPI               iamiface.IAMAPI
-	instanceProfileARN   *gfnt.Value
-	securityGroups       []*gfnt.Value
-	vpc                  *gfnt.Value
-	vpcImporter          vpc.Importer
-	bootstrapper         nodebootstrap.Bootstrapper
+	rs                 *resourceSet
+	clusterSpec        *api.ClusterConfig
+	spec               *api.NodeGroup
+	forceAddCNIPolicy  bool
+	ec2API             ec2iface.EC2API
+	iamAPI             iamiface.IAMAPI
+	instanceProfileARN *gfnt.Value
+	securityGroups     []*gfnt.Value
+	vpc                *gfnt.Value
+	vpcImporter        vpc.Importer
+	bootstrapper       nodebootstrap.Bootstrapper
 }
 
 // NewNodeGroupResourceSet returns a resource set for a nodegroup embedded in a cluster config
-func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, ng *api.NodeGroup,
-	supportsManagedNodes, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *NodeGroupResourceSet {
+func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, ng *api.NodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
-		rs:                   newResourceSet(),
-		supportsManagedNodes: supportsManagedNodes,
-		forceAddCNIPolicy:    forceAddCNIPolicy,
-		clusterSpec:          spec,
-		spec:                 ng,
-		ec2API:               ec2API,
-		iamAPI:               iamAPI,
-		vpcImporter:          vpcImporter,
-		bootstrapper:         nodebootstrap.NewBootstrapper(spec, ng),
+		rs:                newResourceSet(),
+		forceAddCNIPolicy: forceAddCNIPolicy,
+		clusterSpec:       spec,
+		spec:              ng,
+		ec2API:            ec2API,
+		iamAPI:            iamAPI,
+		vpcImporter:       vpcImporter,
+		bootstrapper:      nodebootstrap.NewBootstrapper(spec, ng),
 	}
 }
 

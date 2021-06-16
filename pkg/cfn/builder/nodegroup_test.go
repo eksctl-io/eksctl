@@ -20,19 +20,17 @@ import (
 
 var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 	var (
-		ngrs                 *builder.NodeGroupResourceSet
-		cfg                  *api.ClusterConfig
-		ng                   *api.NodeGroup
-		supportsManagedNodes bool
-		forceAddCNIPolicy    bool
-		fakeVPCImporter      *vpcfakes.FakeImporter
-		fakeBootstrapper     *bootstrapfakes.FakeBootstrapper
-		mockEC2              = &mocks.EC2API{}
-		mockIAM              = &mocks.IAMAPI{}
+		ngrs              *builder.NodeGroupResourceSet
+		cfg               *api.ClusterConfig
+		ng                *api.NodeGroup
+		forceAddCNIPolicy bool
+		fakeVPCImporter   *vpcfakes.FakeImporter
+		fakeBootstrapper  *bootstrapfakes.FakeBootstrapper
+		mockEC2           = &mocks.EC2API{}
+		mockIAM           = &mocks.IAMAPI{}
 	)
 
 	BeforeEach(func() {
-		supportsManagedNodes = false
 		forceAddCNIPolicy = false
 		fakeVPCImporter = new(vpcfakes.FakeImporter)
 		fakeBootstrapper = new(bootstrapfakes.FakeBootstrapper)
@@ -40,7 +38,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 	})
 
 	JustBeforeEach(func() {
-		ngrs = builder.NewNodeGroupResourceSet(mockEC2, mockIAM, cfg, ng, supportsManagedNodes, forceAddCNIPolicy, fakeVPCImporter)
+		ngrs = builder.NewNodeGroupResourceSet(mockEC2, mockIAM, cfg, ng, forceAddCNIPolicy, fakeVPCImporter)
 		ngrs.SetBootstrapper(fakeBootstrapper)
 	})
 
