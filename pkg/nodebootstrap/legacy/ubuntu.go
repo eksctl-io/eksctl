@@ -59,7 +59,13 @@ func (b UbuntuBootstrapper) UserData() (string, error) {
 }
 
 func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) ([]configFile, error) {
-	clientConfigData, err := makeClientConfigData(spec, kubeconfig.HeptioAuthenticatorAWS)
+	authenticator := kubeconfig.HeptioAuthenticatorAWS
+	// Ubuntu 20.04 doesn't ship anymore heptio
+	if ng.AMIFamily == api.NodeImageFamilyUbuntu2004 {
+		authenticator = kubeconfig.AWSEKSAuthenticator
+	}
+
+	clientConfigData, err := makeClientConfigData(spec, authenticator)
 	if err != nil {
 		return nil, err
 	}
