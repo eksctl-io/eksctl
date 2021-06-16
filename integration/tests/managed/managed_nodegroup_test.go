@@ -433,7 +433,6 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 						NodeGroupBase: &api.NodeGroupBase{
 							Name: "update-config-ng",
 						},
-						Spot:         false,
 						UpdateConfig: updateConfig,
 					},
 				}
@@ -446,10 +445,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					WithoutArg("--region", params.Region).
 					WithStdin(testutils.ClusterConfigReader(clusterConfig))
 
-				Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-					ContainElement(ContainSubstring("unchanged fields")),
-					ContainElement(ContainSubstring("Spot")),
-				))
+				Expect(cmd).To(RunSuccessfully())
 			})
 		})
 
@@ -461,6 +457,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 						NodeGroupBase: &api.NodeGroupBase{
 							Name: initialNodeGroup,
 						},
+						Spot: false,
 					},
 				}
 				cmd := params.EksctlUpdateCmd.
@@ -472,7 +469,10 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					WithoutArg("--region", params.Region).
 					WithStdin(testutils.ClusterConfigReader(clusterConfig))
 
-				Expect(cmd).To(RunSuccessfully())
+				Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+					ContainElement(ContainSubstring("unchanged fields")),
+					ContainElement(ContainSubstring("Spot")),
+				))
 			})
 		})
 
