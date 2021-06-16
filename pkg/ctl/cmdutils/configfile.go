@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -775,21 +776,21 @@ func NewUpdateNodegroupLoader(cmd *Cmd) ClusterConfigLoader {
 		}
 
 		l := len(clusterConfig.ManagedNodeGroups)
-		if l > 1 {
-			return errors.New("please update one NodeGroup at a time")
-		} else if l < 1 {
+		if l < 1 {
 			return ErrMustBeSet("managedNodeGroups field")
 		}
 
+		var unsupportedFields []string
 		ng := clusterConfig.ManagedNodeGroups[0]
-		if err = validateSupportedConfigFields(*ng, []string{"NodeGroupBase"}, "update nodegroup"); err != nil {
+		if unsupportedFields, err = validateSupportedConfigFields(*ng.NodeGroupBase, []string{"Name"}, unsupportedFields); err != nil {
 			return err
 		}
 
-		if err = validateSupportedConfigFields(*ng.NodeGroupBase, []string{"Name"}, "update nodegroup"); err != nil {
+		if unsupportedFields, err = validateSupportedConfigFields(*ng, []string{"NodeGroupBase"}, unsupportedFields); err != nil {
 			return err
 		}
 
+		logger.Warning("unchanged fields: the following fields remain unchanged; they are not supported by `eksctl update nodegroup`: %s", strings.Join(unsupportedFields[:], ", "))
 		return nil
 	}
 
@@ -804,17 +805,17 @@ func NewUpdateNodegroupLoader(cmd *Cmd) ClusterConfigLoader {
 
 // validateSupportedConfigFields parses a config file's fields, evaluates if non-empty fields are supported,
 // and returns an error if a field is not supported.
-func validateSupportedConfigFields(i interface{}, supportedFields []string, command string) error {
+func validateSupportedConfigFields(i interface{}, supportedFields []string, unsupportedFields []string) ([]string, error) {
 	v := reflect.ValueOf(i)
 	t := v.Type()
 	for i := 0; i < v.NumField(); i++ {
 		if !emptyConfigField(v.Field(i)) {
 			if !contains(supportedFields, t.Field(i).Name) {
-				return ErrUnsupportedConfigField(t.Field(i).Name, command)
+				unsupportedFields = append(unsupportedFields, t.Field(i).Name)
 			}
 		}
 	}
-	return nil
+	return unsupportedFields, nil
 }
 
 // emptyConfigField parses a field's value according to its value then returns true
