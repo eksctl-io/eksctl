@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
+	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
@@ -59,9 +60,9 @@ func (b UbuntuBootstrapper) UserData() (string, error) {
 }
 
 func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) ([]configFile, error) {
+	supportsAWSEKS, err := utils.IsMinVersion(api.Version1_20, spec.Metadata.Version)
 	authenticator := kubeconfig.HeptioAuthenticatorAWS
-	// Ubuntu 20.04 doesn't ship anymore heptio
-	if ng.AMIFamily == api.NodeImageFamilyUbuntu2004 {
+	if supportsAWSEKS {
 		authenticator = kubeconfig.AWSEKSAuthenticator
 	}
 
