@@ -8,7 +8,6 @@ import (
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
-	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
@@ -60,16 +59,7 @@ func (b UbuntuBootstrapper) UserData() (string, error) {
 }
 
 func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) ([]configFile, error) {
-	supportsAWSEKS, err := utils.IsMinVersion(api.Version1_20, spec.Metadata.Version)
-	if err != nil {
-		return nil, err
-	}
-	authenticator := kubeconfig.HeptioAuthenticatorAWS
-	if supportsAWSEKS {
-		authenticator = kubeconfig.AWSEKSAuthenticator
-	}
-
-	clientConfigData, err := makeClientConfigData(spec, authenticator)
+	clientConfigData, err := makeClientConfigData(spec, kubeconfig.AWSEKSAuthenticator)
 	if err != nil {
 		return nil, err
 	}
