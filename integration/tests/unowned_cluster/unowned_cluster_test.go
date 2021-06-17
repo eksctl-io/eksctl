@@ -204,7 +204,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		cmd := params.EksctlUtilsCmd.
 			WithArgs(
 				"associate-iam-oidc-provider",
-				"--name", params.ClusterName,
+				"--cluster", params.ClusterName,
 				"--approve",
 				"--verbose", "2",
 			)
@@ -356,8 +356,8 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		cmd := params.EksctlDeleteCmd.
 			WithArgs(
 				"nodegroup",
-				"--name", mng1,
 				"--cluster", params.ClusterName,
+				"--name", mng1,
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfully())
