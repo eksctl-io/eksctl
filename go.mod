@@ -15,7 +15,7 @@ require (
 	github.com/dave/jennifer v1.4.1
 	github.com/dlespiau/kube-test-harness v0.0.0-20200915102055-a03579200ae8
 	github.com/evanphx/json-patch/v5 v5.2.0
-	github.com/fatih/color v1.10.0
+	github.com/fatih/color v1.12.0
 	github.com/fluxcd/flux/pkg/install v0.0.0-20201001122558-cb08da1b356a // flux 1.21.0
 	github.com/fluxcd/go-git-providers v0.0.3
 	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200729150005-1467489f7ee4 // helm-operator 1.2.0
@@ -24,7 +24,6 @@ require (
 	github.com/gofrs/flock v0.8.0
 	github.com/golangci/golangci-lint v1.39.0
 	github.com/gomarkdown/markdown v0.0.0-20201113031856-722100d81a8e // indirect
-	github.com/google/certificate-transparency-go v1.1.1 // indirect
 	github.com/google/uuid v1.2.0
 	github.com/goreleaser/goreleaser v0.162.0
 	github.com/hashicorp/go-version v1.3.0
@@ -39,16 +38,16 @@ require (
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
-	github.com/onsi/ginkgo v1.16.1
+	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.11.0
-	github.com/pelletier/go-toml v1.9.0
+	github.com/pelletier/go-toml v1.9.3
 	github.com/pkg/errors v0.9.1
 	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
-	github.com/tidwall/gjson v1.7.5
+	github.com/tidwall/gjson v1.8.0
 	github.com/tidwall/sjson v1.1.6
 	github.com/tj/assert v0.0.3
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
@@ -57,7 +56,7 @@ require (
 	github.com/weaveworks/goformation/v4 v4.10.2-0.20210609082249-532b27315cf1
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
-	golang.org/x/tools v0.1.0
+	golang.org/x/tools v0.1.3
 	k8s.io/api v0.19.5
 	k8s.io/apiextensions-apiserver v0.19.5
 	k8s.io/apimachinery v0.19.5
