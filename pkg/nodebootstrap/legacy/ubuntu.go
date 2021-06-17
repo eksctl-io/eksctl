@@ -61,6 +61,9 @@ func (b UbuntuBootstrapper) UserData() (string, error) {
 
 func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) ([]configFile, error) {
 	supportsAWSEKS, err := utils.IsMinVersion(api.Version1_20, spec.Metadata.Version)
+	if err != nil {
+		return nil, err
+	}
 	authenticator := kubeconfig.HeptioAuthenticatorAWS
 	if supportsAWSEKS {
 		authenticator = kubeconfig.AWSEKSAuthenticator
