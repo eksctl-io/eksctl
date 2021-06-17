@@ -2,7 +2,6 @@ package eks
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -70,14 +69,7 @@ func (c *ClusterProvider) RefreshClusterStatus(spec *api.ClusterConfig) error {
 	case awseks.ClusterStatusCreating, awseks.ClusterStatusDeleting, awseks.ClusterStatusFailed:
 		return nil
 	default:
-		data, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)
-		if err != nil {
-			return errors.Wrap(err, "decoding certificate authority data")
-		}
-		spec.Status.Endpoint = *cluster.Endpoint
-		spec.Status.CertificateAuthorityData = data
-		spec.Status.ARN = *cluster.Arn
-		return nil
+		return spec.SetClusterStatus(cluster)
 	}
 }
 

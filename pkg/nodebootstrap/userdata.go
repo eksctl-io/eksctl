@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -38,30 +39,38 @@ type Bootstrapper interface {
 }
 
 // NewBootstrapper returns the correct bootstrapper for the AMI family
-func NewBootstrapper(clusterSpec *api.ClusterConfig, ng *api.NodeGroup) Bootstrapper {
+func NewBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) (Bootstrapper, error) {
+	if ng.ClusterDNS == "" {
+		clusterDNS, err := getClusterDNS(clusterConfig)
+		if err != nil {
+			return nil, err
+		}
+		ng.ClusterDNS = clusterDNS
+	}
 	if api.IsWindowsImage(ng.AMIFamily) {
-		return NewWindowsBootstrapper(clusterSpec.Metadata.Name, ng)
+		return NewWindowsBootstrapper(clusterConfig.Metadata.Name, ng), nil
 	}
 	switch ng.AMIFamily {
 	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
 		// TODO remove
 		if ng.CustomAMI {
 			logger.Warning("Custom AMI detected for nodegroup %s, using legacy nodebootstrap mechanism. Please refer to https://github.com/weaveworks/eksctl/issues/3563 for upcoming breaking changes", ng.Name)
-			return legacy.NewUbuntuBootstrapper(clusterSpec, ng)
+			return legacy.NewUbuntuBootstrapper(clusterConfig, ng), nil
 		}
-		return NewUbuntuBootstrapper(clusterSpec, ng)
+		return NewUbuntuBootstrapper(clusterConfig, ng), nil
 	case api.NodeImageFamilyBottlerocket:
-		return NewBottlerocketBootstrapper(clusterSpec, ng)
+		return NewBottlerocketBootstrapper(clusterConfig, ng), nil
 	case api.NodeImageFamilyAmazonLinux2:
 		// TODO remove
 		if ng.CustomAMI {
 			logger.Warning("Custom AMI detected for nodegroup %s, using legacy nodebootstrap mechanism. Please refer to https://github.com/weaveworks/eksctl/issues/3563 for upcoming breaking changes", ng.Name)
-			return legacy.NewAL2Bootstrapper(clusterSpec, ng)
+			return legacy.NewAL2Bootstrapper(clusterConfig, ng), nil
 		}
-		return NewAL2Bootstrapper(clusterSpec, ng)
-	}
+		return NewAL2Bootstrapper(clusterConfig, ng), nil
+	default:
+		return nil, errors.Errorf("unrecognized AMI family %q for creating bootstrapper", ng.AMIFamily)
 
-	return nil
+	}
 }
 
 // NewManagedBootstrapper creates a new bootstrapper for managed nodegroups based on the AMI family
@@ -75,6 +84,20 @@ func NewManagedBootstrapper(clusterConfig *api.ClusterConfig, ng *api.ManagedNod
 		return NewUbuntuBootstrapper(clusterConfig, ng)
 	}
 	return nil
+}
+
+func getClusterDNS(clusterConfig *api.ClusterConfig) (string, error) {
+	networkConfig := clusterConfig.Status.KubernetesNetworkConfig
+	if networkConfig == nil {
+		return "", nil
+	}
+
+	ip, _, err := net.ParseCIDR(networkConfig.ServiceIPv4CIDR)
+	if err != nil {
+		return "", errors.Wrapf(err, "unexpected error parsing kubernetesNetworkConfig.serviceIPv4CIDR: %q", networkConfig.ServiceIPv4CIDR)
+	}
+	ip[net.IPv4len-1] = 10
+	return ip.String(), nil
 }
 
 func linuxConfig(clusterConfig *api.ClusterConfig, bootScript string, np api.NodePool, scripts ...string) (string, error) {
