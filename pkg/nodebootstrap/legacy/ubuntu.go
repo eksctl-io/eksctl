@@ -59,7 +59,7 @@ func (b UbuntuBootstrapper) UserData() (string, error) {
 }
 
 func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) ([]configFile, error) {
-	clientConfigData, err := makeClientConfigData(spec, kubeconfig.HeptioAuthenticatorAWS)
+	clientConfigData, err := makeClientConfigData(spec, kubeconfig.AWSEKSAuthenticator)
 	if err != nil {
 		return nil, err
 	}
