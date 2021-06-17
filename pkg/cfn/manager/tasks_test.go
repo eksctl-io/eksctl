@@ -93,19 +93,19 @@ var _ = Describe("StackCollection Tasks", func() {
 				// The supportsManagedNodes argument has no effect on the Describe call, so the values are alternated
 				// in these tests
 				{
-					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("bar", "foo"), true, false, fakeVPCImporter)
+					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("bar", "foo"), false, fakeVPCImporter)
 					Expect(tasks.Describe()).To(Equal(`2 parallel tasks: { create nodegroup "bar", create nodegroup "foo" }`))
 				}
 				{
-					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("bar"), false, false, fakeVPCImporter)
+					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("bar"), false, fakeVPCImporter)
 					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "bar" }`))
 				}
 				{
-					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("foo"), true, false, fakeVPCImporter)
+					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("foo"), false, fakeVPCImporter)
 					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "foo" }`))
 				}
 				{
-					tasks := stackManager.NewUnmanagedNodeGroupTask(nil, false, false, fakeVPCImporter)
+					tasks := stackManager.NewUnmanagedNodeGroupTask(nil, false, fakeVPCImporter)
 					Expect(tasks.Describe()).To(Equal(`no tasks`))
 				}
 				{

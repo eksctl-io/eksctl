@@ -198,7 +198,7 @@ func (c *ClusterProvider) CanDelete(spec *api.ClusterConfig) (bool, error) {
 	return true, nil
 }
 
-// CanOperate return true when a cluster can be operated, otherwise it returns false along with an error explaining the reason
+// CanOperate returns true when a cluster can be operated, otherwise it returns false along with an error explaining the reason
 func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
 	err := c.maybeRefreshClusterStatus(spec)
 	if err != nil {

@@ -82,7 +82,7 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		d := kubeTest.CreateDeploymentFromFile("default", "../../data/windows-server-iis.yaml")
-		kubeTest.WaitForDeploymentReady(d, 8*time.Minute)
+		kubeTest.WaitForDeploymentReady(d, 12*time.Minute)
 	}
 
 	Context("When creating a cluster with Windows nodegroups", func() {
