@@ -55,11 +55,11 @@ func (c *StackCollection) makeNodeGroupStackName(name string) string {
 }
 
 // createNodeGroupTask creates the nodegroup
-func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup, supportsManagedNodes, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
+func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
 	name := c.makeNodeGroupStackName(ng.Name)
 
 	logger.Info("building nodegroup stack %q", name)
-	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, c.spec, ng, supportsManagedNodes, forceAddCNIPolicy, vpcImporter)
+	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, c.spec, ng, forceAddCNIPolicy, vpcImporter)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
