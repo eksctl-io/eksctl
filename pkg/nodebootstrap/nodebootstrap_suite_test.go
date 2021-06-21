@@ -5,7 +5,9 @@ import (
 
 	. "github.com/onsi/gomega"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
@@ -18,4 +20,10 @@ func decode(userData string) *cloudconfig.CloudConfig {
 	Expect(err).NotTo(HaveOccurred())
 
 	return cloudCfg
+}
+
+func newBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) nodebootstrap.Bootstrapper {
+	bootstrapper, err := nodebootstrap.NewBootstrapper(clusterConfig, ng)
+	Expect(err).ToNot(HaveOccurred())
+	return bootstrapper
 }

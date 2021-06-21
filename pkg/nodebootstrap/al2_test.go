@@ -63,8 +63,20 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 		})
 	})
 
-	DescribeTable("Boot script environment variable in userdata", func(ng *api.NodeGroup, expectedUserData string) {
-		bootstrapper := newBootstrapper(clusterConfig, ng)
+	type bootScriptEntry struct {
+		clusterConfig    *api.ClusterConfig
+		ng               *api.NodeGroup
+		expectedUserData string
+	}
+
+	DescribeTable("Boot script environment variable in userdata", func(be bootScriptEntry) {
+		if be.clusterConfig == nil {
+			be.clusterConfig = api.NewClusterConfig()
+			be.clusterConfig.Metadata.Name = "userdata-test"
+			be.clusterConfig.Status = &api.ClusterStatus{}
+		}
+		be.ng.AMIFamily = "AmazonLinux2"
+		bootstrapper := newBootstrapper(be.clusterConfig, be.ng)
 		userData, err := bootstrapper.UserData()
 		Expect(err).ToNot(HaveOccurred())
 		cloudCfg := decode(userData)
@@ -72,45 +84,73 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 		Expect(file.Path).To(Equal("/etc/eksctl/kubelet.env"))
 
 		actualLines := strings.Split(file.Content, "\n")
-		expectedLines := strings.Split(expectedUserData, "\n")
+		expectedLines := strings.Split(be.expectedUserData, "\n")
 		Expect(actualLines).To(ConsistOf(expectedLines))
 	},
-		Entry("no fields set", api.NewNodeGroup(), `CLUSTER_NAME=something-awesome
+		Entry("no fields set", bootScriptEntry{
+			ng: api.NewNodeGroup(),
+			expectedUserData: `CLUSTER_NAME=userdata-test
 API_SERVER_URL=
 B64_CLUSTER_CA=
 NODE_LABELS=
-NODE_TAINTS=`),
-		Entry("maxPods set", &api.NodeGroup{
-			NodeGroupBase: &api.NodeGroupBase{
-				MaxPodsPerNode: 123,
-				SSH:            &api.NodeGroupSSH{},
+NODE_TAINTS=`,
+		}),
+		Entry("maxPods set", bootScriptEntry{
+			ng: &api.NodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					MaxPodsPerNode: 123,
+					SSH:            &api.NodeGroupSSH{},
+				},
 			},
-		}, `CLUSTER_NAME=something-awesome
+			expectedUserData: `CLUSTER_NAME=userdata-test
 API_SERVER_URL=
 B64_CLUSTER_CA=
 NODE_LABELS=
 NODE_TAINTS=
 MAX_PODS=123`,
-		),
-		Entry("labels and taints set", &api.NodeGroup{
-			NodeGroupBase: &api.NodeGroupBase{
-				Labels: map[string]string{
-					"role": "worker",
+		}),
+		Entry("labels and taints set", bootScriptEntry{
+			ng: &api.NodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Labels: map[string]string{
+						"role": "worker",
+					},
+					SSH: &api.NodeGroupSSH{},
 				},
-				SSH: &api.NodeGroupSSH{},
-			},
-			Taints: []api.NodeGroupTaint{
-				{
-					Key:    "key1",
-					Value:  "value1",
-					Effect: "NoSchedule",
+				Taints: []api.NodeGroupTaint{
+					{
+						Key:    "key1",
+						Value:  "value1",
+						Effect: "NoSchedule",
+					},
 				},
 			},
-		}, `CLUSTER_NAME=something-awesome
+			expectedUserData: `CLUSTER_NAME=userdata-test
 API_SERVER_URL=
 B64_CLUSTER_CA=
 NODE_LABELS=role=worker
-NODE_TAINTS=key1=value1:NoSchedule`),
+NODE_TAINTS=key1=value1:NoSchedule`,
+		}),
+
+		Entry("non-default ServiceIPv4CIDR", bootScriptEntry{
+			clusterConfig: func() *api.ClusterConfig {
+				clusterConfig := api.NewClusterConfig()
+				clusterConfig.Metadata.Name = "custom-dns"
+				clusterConfig.Status = &api.ClusterStatus{
+					KubernetesNetworkConfig: &api.KubernetesNetworkConfig{
+						ServiceIPv4CIDR: "172.16.0.0/12",
+					},
+				}
+				return clusterConfig
+			}(),
+			ng: api.NewNodeGroup(),
+			expectedUserData: `CLUSTER_NAME=custom-dns
+API_SERVER_URL=
+B64_CLUSTER_CA=
+NODE_LABELS=
+NODE_TAINTS=
+CLUSTER_DNS=172.16.0.10`,
+		}),
 	)
 
 	Context("standard userdata", func() {
@@ -274,9 +314,3 @@ NODE_TAINTS=`, "\n")))
 		})
 	})
 })
-
-func newBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) nodebootstrap.Bootstrapper {
-	bootstrapper, err := nodebootstrap.NewBootstrapper(clusterConfig, ng)
-	Expect(err).ToNot(HaveOccurred())
-	return bootstrapper
-}

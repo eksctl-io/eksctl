@@ -96,6 +96,7 @@ func getClusterDNS(clusterConfig *api.ClusterConfig) (string, error) {
 	if err != nil {
 		return "", errors.Wrapf(err, "unexpected error parsing kubernetesNetworkConfig.serviceIPv4CIDR: %q", networkConfig.ServiceIPv4CIDR)
 	}
+	ip = ip.To4()
 	ip[net.IPv4len-1] = 10
 	return ip.String(), nil
 }
