@@ -3,8 +3,10 @@ package cmdutils
 import (
 	"encoding/csv"
 	"fmt"
+	"reflect"
 	"strings"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -760,4 +762,89 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 	}
 
 	return l
+}
+
+// NewUpdateNodegroupLoader will load config or use flags for 'eksctl update nodegroup'.
+func NewUpdateNodegroupLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithConfigFile = func() error {
+		var clusterConfig *api.ClusterConfig
+		var err error
+		if clusterConfig, err = eks.LoadConfigFromFile(l.ClusterConfigFile); err != nil {
+			return err
+		}
+
+		l := len(clusterConfig.ManagedNodeGroups)
+		if l < 1 {
+			return ErrMustBeSet("managedNodeGroups field")
+		}
+
+		logger.Info("validating nodegroup %q", clusterConfig.ManagedNodeGroups[0].Name)
+
+		var unsupportedFields []string
+		ng := clusterConfig.ManagedNodeGroups[0]
+		if unsupportedFields, err = validateSupportedConfigFields(*ng.NodeGroupBase, []string{"Name"}, unsupportedFields); err != nil {
+			return err
+		}
+
+		if unsupportedFields, err = validateSupportedConfigFields(*ng, []string{"NodeGroupBase"}, unsupportedFields); err != nil {
+			return err
+		}
+
+		if len(unsupportedFields) > 0 {
+			logger.Warning("unchanged fields: the following fields remain unchanged; they are not supported by `eksctl update nodegroup`: %s", strings.Join(unsupportedFields[:], ", "))
+		}
+		return nil
+	}
+
+	l.validateWithoutConfigFile = func() error {
+		if cmd.ClusterConfigFile == "" {
+			return ErrMustBeSet("--config-file")
+		}
+		return nil
+	}
+	return l
+}
+
+// validateSupportedConfigFields parses a config file's fields, evaluates if non-empty fields are supported,
+// and returns an error if a field is not supported.
+func validateSupportedConfigFields(obj interface{}, supportedFields []string, unsupportedFields []string) ([]string, error) {
+	v := reflect.ValueOf(obj)
+	t := v.Type()
+	for fieldNumber := 0; fieldNumber < v.NumField(); fieldNumber++ {
+		if !emptyConfigField(v.Field(fieldNumber)) {
+			if !contains(supportedFields, t.Field(fieldNumber).Name) {
+				unsupportedFields = append(unsupportedFields, t.Field(fieldNumber).Name)
+			}
+		}
+	}
+	return unsupportedFields, nil
+}
+
+// emptyConfigField parses a field's value according to its value then returns true
+// if it is not empty/zero/nil.
+func emptyConfigField(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return v.Uint() == 0
+	case reflect.String:
+		return v.String() == ""
+	case reflect.Ptr, reflect.Slice, reflect.Map, reflect.Interface, reflect.Chan:
+		return v.IsNil()
+	case reflect.Bool:
+		return !v.Bool()
+	}
+	return false
+}
+
+func contains(supportedFields []string, fieldName string) bool {
+	for _, f := range supportedFields {
+		if f == fieldName {
+			return true
+		}
+	}
+	return false
 }

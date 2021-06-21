@@ -186,7 +186,6 @@ eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --release
 ```
 
 ## Handling parallel upgrades for nodes
-
 Multiple managed nodes can be upgraded simultaneously. To configure parallel upgrades, define the `updateConfig` of a nodegroup when creating the nodegroup. An example `updateConfig` can be found [here](https://github.com/weaveworks/eksctl/blob/main/examples/15-managed-nodes.yaml).
 
 To avoid any downtime to your workloads due to upgrading multiple nodes at once, you can limit the number of nodes that can become unavailable during an upgrade by specifying this in the `maxUnavailable` field of an `updateConfig`. Alternatively, use `maxUnavailablePercentage`, which defines the maximum number of unavailable nodes as a percentage of the total number of nodes. 
@@ -195,6 +194,14 @@ Note that `maxUnavailable` cannot be higher than `maxSize`. Also, `maxUnavailabl
 
 This feature is only available for managed nodes.
 
+## Updating managed nodegroups
+It is also possible to update specific fields of a managed nodegroup with the command `eksctl update nodegroup` without using `upgrade`. 
+
+This new command currently only supports a few fields. It is intended to be used as a way to modify the configuration of a nodegroup without triggering an entire upgrade. 
+
+Right now, it will only update upgrade configuration.
+
+The command `update nodegroup` should be used with a config file using the `--config-file` flag. If the config file contains fields that cannot be updated through `eksctl update nodegroup`, a log will inform you of all the fields that remained unchanged.
 
 ## Nodegroup Health issues
 EKS Managed Nodegroups automatically checks the configuration of your nodegroup and nodes for health issues and reports

@@ -3,8 +3,6 @@
 package managed
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -425,25 +423,19 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 
 		Context("and creating a nodegroup with an update config", func() {
 			PIt("defining the UpdateConfig field in the cluster config", func() {
+				By("creating it")
 				updateConfig := &api.NodeGroupUpdateConfig{
 					MaxUnavailable: aws.Int(2),
 				}
-				clusterConfig := api.NewClusterConfig()
-				clusterConfig.Metadata.Name = params.ClusterName
-				clusterConfig.Metadata.Region = params.Region
-				clusterConfig.Metadata.Version = params.Version
+				clusterConfig := makeClusterConfig()
 				clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
 					{
 						NodeGroupBase: &api.NodeGroupBase{
-							Name: "updateConfig",
+							Name: "update-config-ng",
 						},
 						UpdateConfig: updateConfig,
 					},
 				}
-
-				data, err := json.Marshal(clusterConfig)
-				Expect(err).ToNot(HaveOccurred())
-
 				cmd := params.EksctlCreateCmd.
 					WithArgs(
 						"nodegroup",
@@ -451,8 +443,36 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 						"--verbose", "4",
 					).
 					WithoutArg("--region", params.Region).
-					WithStdin(bytes.NewReader(data))
+					WithStdin(testutils.ClusterConfigReader(clusterConfig))
+
 				Expect(cmd).To(RunSuccessfully())
+			})
+		})
+
+		Context("and updating a nodegroup", func() {
+			It("should update a nodegroup", func() {
+				clusterConfig := makeClusterConfig()
+				clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name: initialNodeGroup,
+						},
+						Spot: false,
+					},
+				}
+				cmd := params.EksctlUpdateCmd.
+					WithArgs(
+						"nodegroup",
+						"--config-file", "-",
+						"--verbose", "4",
+					).
+					WithoutArg("--region", params.Region).
+					WithStdin(testutils.ClusterConfigReader(clusterConfig))
+
+				Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+					ContainElement(ContainSubstring("unchanged fields")),
+					ContainElement(ContainSubstring("Spot")),
+				))
 			})
 		})
 

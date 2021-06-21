@@ -87,7 +87,7 @@ func (m *Service) GetHealth(nodeGroupName string) ([]HealthIssue, error) {
 
 	output, err := m.eksAPI.DescribeNodegroup(input)
 	if err != nil {
-		if isNotFound(err) {
+		if IsNotFound(err) {
 			return nil, errors.Wrapf(err, "could not find a managed nodegroup with name %q", nodeGroupName)
 		}
 		return nil, err
@@ -157,7 +157,7 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 	})
 
 	if err != nil {
-		if isNotFound(err) {
+		if IsNotFound(err) {
 			return fmt.Errorf("upgrade is only supported for managed nodegroups; could not find one with name %q", options.NodegroupName)
 		}
 		return err
@@ -374,7 +374,7 @@ func (m *Service) usesCustomAMI(ltResources map[string]*gfnec2.LaunchTemplate, n
 	return customLaunchTemplate.ImageId != nil, nil
 }
 
-func isNotFound(err error) bool {
+func IsNotFound(err error) bool {
 	awsError, ok := err.(awserr.Error)
 	return ok && awsError.Code() == eks.ErrCodeResourceNotFoundException
 }
