@@ -780,6 +780,8 @@ func NewUpdateNodegroupLoader(cmd *Cmd) ClusterConfigLoader {
 			return ErrMustBeSet("managedNodeGroups field")
 		}
 
+		logger.Info("validating nodegroup %q", clusterConfig.ManagedNodeGroups[0].Name)
+
 		var unsupportedFields []string
 		ng := clusterConfig.ManagedNodeGroups[0]
 		if unsupportedFields, err = validateSupportedConfigFields(*ng.NodeGroupBase, []string{"Name"}, unsupportedFields); err != nil {
@@ -790,7 +792,9 @@ func NewUpdateNodegroupLoader(cmd *Cmd) ClusterConfigLoader {
 			return err
 		}
 
-		logger.Warning("unchanged fields: the following fields remain unchanged; they are not supported by `eksctl update nodegroup`: %s", strings.Join(unsupportedFields[:], ", "))
+		if len(unsupportedFields) > 0 {
+			logger.Warning("unchanged fields: the following fields remain unchanged; they are not supported by `eksctl update nodegroup`: %s", strings.Join(unsupportedFields[:], ", "))
+		}
 		return nil
 	}
 
@@ -805,13 +809,13 @@ func NewUpdateNodegroupLoader(cmd *Cmd) ClusterConfigLoader {
 
 // validateSupportedConfigFields parses a config file's fields, evaluates if non-empty fields are supported,
 // and returns an error if a field is not supported.
-func validateSupportedConfigFields(i interface{}, supportedFields []string, unsupportedFields []string) ([]string, error) {
-	v := reflect.ValueOf(i)
+func validateSupportedConfigFields(obj interface{}, supportedFields []string, unsupportedFields []string) ([]string, error) {
+	v := reflect.ValueOf(obj)
 	t := v.Type()
-	for i := 0; i < v.NumField(); i++ {
-		if !emptyConfigField(v.Field(i)) {
-			if !contains(supportedFields, t.Field(i).Name) {
-				unsupportedFields = append(unsupportedFields, t.Field(i).Name)
+	for fieldNumber := 0; fieldNumber < v.NumField(); fieldNumber++ {
+		if !emptyConfigField(v.Field(fieldNumber)) {
+			if !contains(supportedFields, t.Field(fieldNumber).Name) {
+				unsupportedFields = append(unsupportedFields, t.Field(fieldNumber).Name)
 			}
 		}
 	}

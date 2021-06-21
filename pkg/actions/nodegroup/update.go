@@ -18,7 +18,7 @@ func (m *Manager) Update() error {
 
 	if err != nil {
 		if managed.IsNotFound(err) {
-			return fmt.Errorf("update is only supported for managed nodegroups; could not find one with name %q", ngName)
+			return fmt.Errorf("could not find managed nodegroup with name %q", ngName)
 		}
 		return err
 	}

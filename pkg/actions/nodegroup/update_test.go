@@ -46,7 +46,7 @@ var _ = Describe("Update", func() {
 
 		err := m.Update()
 		Expect(err).To(HaveOccurred())
-		Expect(err).To(MatchError(ContainSubstring("update is only supported for managed nodegroups; could not find one with name \"my-ng\"")))
+		Expect(err).To(MatchError(ContainSubstring("could not find managed nodegroup with name \"my-ng\"")))
 	})
 
 	It("successfully updates nodegroup", func() {
