@@ -15,7 +15,7 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 	var (
 		clusterConfig *api.ClusterConfig
 		ng            *api.NodeGroup
-		bootstrapper  *nodebootstrap.AmazonLinux2
+		bootstrapper  nodebootstrap.Bootstrapper
 	)
 
 	BeforeEach(func() {
@@ -24,16 +24,16 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 		clusterConfig.Status = &api.ClusterStatus{}
 		ng = &api.NodeGroup{
 			NodeGroupBase: &api.NodeGroupBase{
-				SSH: &api.NodeGroupSSH{},
+				AMIFamily: "AmazonLinux2",
+				SSH:       &api.NodeGroupSSH{},
 			},
 		}
 	})
 
 	When("SSM is enabled", func() {
 		BeforeEach(func() {
-			enabled := true
-			ng.SSH.EnableSSM = &enabled
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			ng.SSH.EnableSSM = api.Enabled()
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds the ssm install script to the userdata", func() {
@@ -50,7 +50,7 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 		BeforeEach(func() {
 			enabled := true
 			ng.EFAEnabled = &enabled
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds the ssm install script to the userdata", func() {
@@ -64,7 +64,7 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 	})
 
 	DescribeTable("Boot script environment variable in userdata", func(ng *api.NodeGroup, expectedUserData string) {
-		bootstrapper := nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+		bootstrapper := newBootstrapper(clusterConfig, ng)
 		userData, err := bootstrapper.UserData()
 		Expect(err).ToNot(HaveOccurred())
 		cloudCfg := decode(userData)
@@ -120,7 +120,7 @@ NODE_TAINTS=key1=value1:NoSchedule`),
 		)
 
 		BeforeEach(func() {
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 			userData, err = bootstrapper.UserData()
 		})
 
@@ -158,7 +158,7 @@ NODE_TAINTS=`, "\n")))
 	When("KubeletExtraConfig is provided by the user", func() {
 		BeforeEach(func() {
 			ng.KubeletExtraConfig = &api.InlineDocument{"foo": "bar"}
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds the settings to the kubelet extra args file in the userdata", func() {
@@ -175,7 +175,7 @@ NODE_TAINTS=`, "\n")))
 	When("labels are set on the node config", func() {
 		BeforeEach(func() {
 			ng.Labels = map[string]string{"foo": "bar"}
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds the labels to the env file", func() {
@@ -197,7 +197,7 @@ NODE_TAINTS=`, "\n")))
 					Effect: "NoSchedule",
 				},
 			}
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds the taints to the env file", func() {
@@ -214,7 +214,7 @@ NODE_TAINTS=`, "\n")))
 	When("clusterDNS is set on the node config", func() {
 		BeforeEach(func() {
 			ng.ClusterDNS = "1.2.3.4"
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds the taints to the env file", func() {
@@ -231,7 +231,7 @@ NODE_TAINTS=`, "\n")))
 	When("PreBootstrapCommands are set", func() {
 		BeforeEach(func() {
 			ng.PreBootstrapCommands = []string{"echo 'rubarb'"}
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds them to the userdata", func() {
@@ -252,7 +252,7 @@ NODE_TAINTS=`, "\n")))
 		BeforeEach(func() {
 			override := "echo 'crashoverride'"
 			ng.OverrideBootstrapCommand = &override
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 
 			userData, err = bootstrapper.UserData()
 		})
@@ -274,3 +274,9 @@ NODE_TAINTS=`, "\n")))
 		})
 	})
 })
+
+func newBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) nodebootstrap.Bootstrapper {
+	bootstrapper, err := nodebootstrap.NewBootstrapper(clusterConfig, ng)
+	Expect(err).ToNot(HaveOccurred())
+	return bootstrapper
+}
