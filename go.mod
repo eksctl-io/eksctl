@@ -17,7 +17,7 @@ require (
 	github.com/evanphx/json-patch/v5 v5.2.0
 	github.com/fatih/color v1.12.0
 	github.com/fluxcd/flux/pkg/install v0.0.0-20201001122558-cb08da1b356a // flux 1.21.0
-	github.com/fluxcd/go-git-providers v0.0.3
+	github.com/fluxcd/go-git-providers v0.2.0
 	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200729150005-1467489f7ee4 // helm-operator 1.2.0
 	github.com/github-release/github-release v0.10.0
 	github.com/gobwas/glob v0.2.3
