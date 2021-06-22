@@ -60,26 +60,26 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 		})
 
 		It("should get cluster, cache status and get issuer URL", func() {
-			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", exampleIssuer, "aws")
+			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", exampleIssuer, "aws", nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(oidc.issuerURL.Port()).To(Equal("443"))
 			Expect(oidc.issuerURL.Hostname()).To(Equal("exampleIssuer.eksctl.io"))
 		})
 
 		It("should handle bad issuer URL", func() {
-			_, err = NewOpenIDConnectManager(p.IAM(), "12345", "http://foo\x7f.com/", "aws")
+			_, err = NewOpenIDConnectManager(p.IAM(), "12345", "http://foo\x7f.com/", "aws", nil)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(HavePrefix("parsing OIDC issuer URL"))
 		})
 
 		It("should handle bad issuer URL scheme", func() {
-			_, err = NewOpenIDConnectManager(p.IAM(), "12345", "http://foo.com/", "aws")
+			_, err = NewOpenIDConnectManager(p.IAM(), "12345", "http://foo.com/", "aws", nil)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(HavePrefix("unsupported URL scheme"))
 		})
 
 		It("should get cluster, and fail to connect to fake issue URL", func() {
-			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10020/", "aws")
+			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10020/", "aws", nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			err = oidc.getIssuerCAThumbprint()
@@ -91,7 +91,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 		})
 
 		It("should get OIDC issuer's CA fingerprint", func() {
-			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10028/", "aws")
+			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10028/", "aws", nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			srv, err := newServer(oidc.issuerURL.Host)
@@ -112,7 +112,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 		})
 
 		It("should get OIDC issuer's CA fingerprint for a URL that returns 403", func() {
-			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10029/fake_eks", "aws")
+			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10029/fake_eks", "aws", nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			srv, err := newServer(oidc.issuerURL.Host)
@@ -189,7 +189,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 				return false
 			})).Return(nil, nil)
 
-			oidc, err = NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10028/", "aws")
+			oidc, err = NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10028/", "aws", nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			srv, err = newServer(oidc.issuerURL.Host)
@@ -321,7 +321,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 				OpenIDConnectProviderArn: aws.String(fmt.Sprintf("arn:%s:iam::12345:oidc-provider/localhost/", partition)),
 			}, nil)
 
-			oidc, err := NewOpenIDConnectManager(provider.IAM(), "12345", "https://localhost:10028/", partition)
+			oidc, err := NewOpenIDConnectManager(provider.IAM(), "12345", "https://localhost:10028/", partition, nil)
 			oidc.insecureSkipVerify = true
 			Expect(err).ToNot(HaveOccurred())
 			Expect(oidc.CreateProvider()).To(Succeed())
