@@ -456,14 +456,6 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup, options CreateManagedNGOptio
 }
 
 func validateManagedNGFlags(cmd *cobra.Command, managed bool) error {
-	if managed {
-		for _, f := range incompatibleManagedNodesFlags() {
-			if flag := cmd.Flag(f); flag != nil && flag.Changed {
-				return ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", f))
-			}
-		}
-		return nil
-	}
 	flagsValidOnlyWithMNG := []string{"spot", "instance-types"}
 
 	if flagName, found := findChangedFlag(cmd, flagsValidOnlyWithMNG); found {
