@@ -769,21 +769,16 @@ func NewUpdateNodegroupLoader(cmd *Cmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.validateWithConfigFile = func() error {
-		var clusterConfig *api.ClusterConfig
-		var err error
-		if clusterConfig, err = eks.LoadConfigFromFile(l.ClusterConfigFile); err != nil {
-			return err
-		}
-
-		l := len(clusterConfig.ManagedNodeGroups)
-		if l < 1 {
+		length := len(l.ClusterConfig.ManagedNodeGroups)
+		if length < 1 {
 			return ErrMustBeSet("managedNodeGroups field")
 		}
 
-		logger.Info("validating nodegroup %q", clusterConfig.ManagedNodeGroups[0].Name)
+		logger.Info("validating nodegroup %q", l.ClusterConfig.ManagedNodeGroups[0].Name)
 
 		var unsupportedFields []string
-		ng := clusterConfig.ManagedNodeGroups[0]
+		ng := l.ClusterConfig.ManagedNodeGroups[0]
+		var err error
 		if unsupportedFields, err = validateSupportedConfigFields(*ng.NodeGroupBase, []string{"Name"}, unsupportedFields); err != nil {
 			return err
 		}
