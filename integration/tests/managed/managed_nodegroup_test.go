@@ -470,8 +470,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					WithStdin(testutils.ClusterConfigReader(clusterConfig))
 
 				Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-					ContainElement(ContainSubstring("unchanged fields")),
-					ContainElement(ContainSubstring("Spot")),
+					ContainElement(ContainSubstring("unchanged fields: the following fields remain unchanged; they are not supported by `eksctl update nodegroup`: Spot")),
 				))
 			})
 		})
