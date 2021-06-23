@@ -25,12 +25,15 @@ func (m *Manager) Update() error {
 		return err
 	}
 
-	if ng.UpdateConfig != nil {
-		if describeNodegroupOutput.Nodegroup.UpdateConfig == nil {
-			return errors.New("cannot update updateConfig because the nodegroup is not configured to use one")
-		}
+	if ng.UpdateConfig == nil {
+		return fmt.Errorf("the submitted config didn't contain changes for nodegroup %s", ng.Name)
 	}
 
+	if describeNodegroupOutput.Nodegroup.UpdateConfig == nil {
+		return errors.New("cannot update updateConfig because the nodegroup is not configured to use one")
+	}
+
+	logger.Info("updating nodegroup %s's UpdateConfig", ng.Name)
 	updateConfig := &eks.NodegroupUpdateConfig{}
 
 	if ng.UpdateConfig.MaxUnavailable != nil {
@@ -40,7 +43,6 @@ func (m *Manager) Update() error {
 	if ng.UpdateConfig.MaxUnavailablePercentage != nil {
 		updateConfig.MaxUnavailablePercentage = aws.Int64(int64(*ng.UpdateConfig.MaxUnavailablePercentage))
 	}
-	logger.Info("updating nodegroup %s's UpdateConfig", ng.Name)
 
 	_, err = m.ctl.Provider.EKS().UpdateNodegroupConfig(&eks.UpdateNodegroupConfigInput{
 		UpdateConfig:  updateConfig,
