@@ -457,7 +457,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 						NodeGroupBase: &api.NodeGroupBase{
 							Name: initialNodeGroup,
 						},
-						Spot: false,
+						Spot: true,
 					},
 				}
 				cmd := params.EksctlUpdateCmd.
