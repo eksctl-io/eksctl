@@ -9,11 +9,12 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go/service/eks"
 	harness "github.com/dlespiau/kube-test-harness"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	corev1 "k8s.io/api/core/v1"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
@@ -160,7 +161,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
 			awsSession := NewSession(params.Region)
 
-			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, eks.ClusterStatusActive, params.Version))
+			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, awseks.ClusterStatusActive, params.Version))
 
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initialNodeGroup)))
@@ -446,15 +447,22 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					WithStdin(testutils.ClusterConfigReader(clusterConfig))
 				Expect(cmd).To(RunSuccessfully())
 
+				clusterProvider, err := eks.New(&api.ProviderConfig{Region: params.Region}, clusterConfig)
+				Expect(err).NotTo(HaveOccurred())
+				ctl := clusterProvider.Provider
+				out, err := ctl.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{
+					ClusterName:   &params.ClusterName,
+					NodegroupName: aws.String("update-config-ng"),
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Eventually(out.Nodegroup.UpdateConfig.MaxUnavailable).Should(Equal(aws.Int64(2)))
+
 				By("and upddating the nodegroup's UpdateConfig")
-				clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
-					{
-						Spot: true,
-						UpdateConfig: &api.NodeGroupUpdateConfig{
-							MaxUnavailable: aws.Int(1),
-						},
-					},
+				clusterConfig.ManagedNodeGroups[0].Spot = true
+				clusterConfig.ManagedNodeGroups[0].UpdateConfig = &api.NodeGroupUpdateConfig{
+					MaxUnavailable: aws.Int(1),
 				}
+
 				cmd = params.EksctlUpdateCmd.
 					WithArgs(
 						"nodegroup",
@@ -467,6 +475,13 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 					ContainElement(ContainSubstring("unchanged fields: the following fields remain unchanged; they are not supported by `eksctl update nodegroup`: Spot")),
 				))
+
+				out, err = ctl.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{
+					ClusterName:   &params.ClusterName,
+					NodegroupName: aws.String("update-config-ng"),
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Eventually(out.Nodegroup.UpdateConfig.MaxUnavailable).Should(Equal(aws.Int64(1)))
 			})
 		})
 
