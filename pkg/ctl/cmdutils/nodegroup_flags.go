@@ -59,13 +59,6 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGrou
 	fs.StringSliceVar(&mngOptions.InstanceTypes, "instance-types", nil, "Comma-separated list of instance types (e.g., --instance-types=c3.large,c4.large,c5.large")
 }
 
-func incompatibleManagedNodesFlags() []string {
-	return []string{
-		"instance-name",
-		"instance-prefix",
-	}
-}
-
 // AddCommonCreateNodeGroupIAMAddonsFlags adds flags to set ng.IAM.WithAddonPolicies
 func AddCommonCreateNodeGroupAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup, options *CreateNGOptions) {
 	addCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
