@@ -35,6 +35,9 @@ var _ = Describe("(Integration) [Cluster DNS test]", func() {
 
 	Context("Cluster with non-default ServiceIPv4CIDR", func() {
 		BeforeSuite(func() {
+			if params.SkipCreate {
+				return
+			}
 			clusterConfig := api.NewClusterConfig()
 			clusterConfig.Metadata.Name = params.ClusterName
 			clusterConfig.Metadata.Region = params.Region
@@ -76,6 +79,9 @@ var _ = Describe("(Integration) [Cluster DNS test]", func() {
 		})
 
 		AfterSuite(func() {
+			if params.SkipDelete {
+				return
+			}
 			cmd := params.EksctlDeleteCmd.WithArgs(
 				"cluster", params.ClusterName,
 				"--verbose", "2",
