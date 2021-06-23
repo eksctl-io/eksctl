@@ -775,7 +775,7 @@ func NewUpdateNodegroupLoader(cmd *Cmd) ClusterConfigLoader {
 			return err
 		}
 
-		if unsupportedFields, err = validateSupportedConfigFields(*ng, []string{"NodeGroupBase"}, unsupportedFields); err != nil {
+		if unsupportedFields, err = validateSupportedConfigFields(*ng, []string{"NodeGroupBase", "UpdateConfig"}, unsupportedFields); err != nil {
 			return err
 		}
 
