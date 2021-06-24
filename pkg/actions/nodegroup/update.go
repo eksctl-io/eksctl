@@ -50,7 +50,7 @@ func (m *Manager) Update() error {
 		NodegroupName: &ng.Name,
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to update nodegroup %s: %w", ng.Name, err)
 	}
 
 	logger.Info("nodegroup %s successfully updated", ng.Name)
