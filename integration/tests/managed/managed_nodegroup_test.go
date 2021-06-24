@@ -457,7 +457,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Eventually(out.Nodegroup.UpdateConfig.MaxUnavailable).Should(Equal(aws.Int64(2)))
 
-				By("and upddating the nodegroup's UpdateConfig")
+				By("and updating the nodegroup's UpdateConfig")
 				clusterConfig.ManagedNodeGroups[0].Spot = true
 				clusterConfig.ManagedNodeGroups[0].UpdateConfig = &api.NodeGroupUpdateConfig{
 					MaxUnavailable: aws.Int(1),
