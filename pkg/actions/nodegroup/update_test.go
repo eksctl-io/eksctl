@@ -49,24 +49,6 @@ var _ = Describe("Update", func() {
 		Expect(err).To(MatchError(ContainSubstring("could not find managed nodegroup with name \"my-ng\"")))
 	})
 
-	It("fails to update nodegroup config if nodegroup does not use one", func() {
-		p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
-			ClusterName:   &clusterName,
-			NodegroupName: &ngName,
-		}).Return(&awseks.DescribeNodegroupOutput{
-			Nodegroup: &awseks.Nodegroup{},
-		}, nil)
-
-		cfg.ManagedNodeGroups[0].UpdateConfig = &api.NodeGroupUpdateConfig{
-			MaxUnavailable: aws.Int(2),
-		}
-
-		m = New(cfg, &eks.ClusterProvider{Provider: p}, nil)
-		err := m.Update()
-		Expect(err).To(HaveOccurred())
-		Expect(err).To(MatchError(ContainSubstring("cannot update updateConfig because the nodegroup is not configured to use one")))
-	})
-
 	It("[happy path] successfully updates nodegroup with updateConfig and maxUnavailable", func() {
 		p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
 			ClusterName:   &clusterName,
