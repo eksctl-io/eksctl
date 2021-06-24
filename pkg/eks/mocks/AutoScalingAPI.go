@@ -3885,6 +3885,84 @@ func (_m *AutoScalingAPI) ExitStandbyWithContext(_a0 context.Context, _a1 *autos
 	return r0, r1
 }
 
+// GetPredictiveScalingForecast provides a mock function with given fields: _a0
+func (_m *AutoScalingAPI) GetPredictiveScalingForecast(_a0 *autoscaling.GetPredictiveScalingForecastInput) (*autoscaling.GetPredictiveScalingForecastOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *autoscaling.GetPredictiveScalingForecastOutput
+	if rf, ok := ret.Get(0).(func(*autoscaling.GetPredictiveScalingForecastInput) *autoscaling.GetPredictiveScalingForecastOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*autoscaling.GetPredictiveScalingForecastOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*autoscaling.GetPredictiveScalingForecastInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPredictiveScalingForecastRequest provides a mock function with given fields: _a0
+func (_m *AutoScalingAPI) GetPredictiveScalingForecastRequest(_a0 *autoscaling.GetPredictiveScalingForecastInput) (*request.Request, *autoscaling.GetPredictiveScalingForecastOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*autoscaling.GetPredictiveScalingForecastInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *autoscaling.GetPredictiveScalingForecastOutput
+	if rf, ok := ret.Get(1).(func(*autoscaling.GetPredictiveScalingForecastInput) *autoscaling.GetPredictiveScalingForecastOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*autoscaling.GetPredictiveScalingForecastOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetPredictiveScalingForecastWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *AutoScalingAPI) GetPredictiveScalingForecastWithContext(_a0 context.Context, _a1 *autoscaling.GetPredictiveScalingForecastInput, _a2 ...request.Option) (*autoscaling.GetPredictiveScalingForecastOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *autoscaling.GetPredictiveScalingForecastOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *autoscaling.GetPredictiveScalingForecastInput, ...request.Option) *autoscaling.GetPredictiveScalingForecastOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*autoscaling.GetPredictiveScalingForecastOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *autoscaling.GetPredictiveScalingForecastInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PutLifecycleHook provides a mock function with given fields: _a0
 func (_m *AutoScalingAPI) PutLifecycleHook(_a0 *autoscaling.PutLifecycleHookInput) (*autoscaling.PutLifecycleHookOutput, error) {
 	ret := _m.Called(_a0)

@@ -25916,6 +25916,84 @@ func (_m *EC2API) DisableFastSnapshotRestoresWithContext(_a0 context.Context, _a
 	return r0, r1
 }
 
+// DisableImageDeprecation provides a mock function with given fields: _a0
+func (_m *EC2API) DisableImageDeprecation(_a0 *ec2.DisableImageDeprecationInput) (*ec2.DisableImageDeprecationOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DisableImageDeprecationOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DisableImageDeprecationInput) *ec2.DisableImageDeprecationOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisableImageDeprecationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DisableImageDeprecationInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DisableImageDeprecationRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DisableImageDeprecationRequest(_a0 *ec2.DisableImageDeprecationInput) (*request.Request, *ec2.DisableImageDeprecationOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DisableImageDeprecationInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DisableImageDeprecationOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DisableImageDeprecationInput) *ec2.DisableImageDeprecationOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DisableImageDeprecationOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DisableImageDeprecationWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DisableImageDeprecationWithContext(_a0 context.Context, _a1 *ec2.DisableImageDeprecationInput, _a2 ...request.Option) (*ec2.DisableImageDeprecationOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DisableImageDeprecationOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisableImageDeprecationInput, ...request.Option) *ec2.DisableImageDeprecationOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisableImageDeprecationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisableImageDeprecationInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DisableSerialConsoleAccess provides a mock function with given fields: _a0
 func (_m *EC2API) DisableSerialConsoleAccess(_a0 *ec2.DisableSerialConsoleAccessInput) (*ec2.DisableSerialConsoleAccessOutput, error) {
 	ret := _m.Called(_a0)
@@ -27156,6 +27234,84 @@ func (_m *EC2API) EnableFastSnapshotRestoresWithContext(_a0 context.Context, _a1
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.EnableFastSnapshotRestoresInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EnableImageDeprecation provides a mock function with given fields: _a0
+func (_m *EC2API) EnableImageDeprecation(_a0 *ec2.EnableImageDeprecationInput) (*ec2.EnableImageDeprecationOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.EnableImageDeprecationOutput
+	if rf, ok := ret.Get(0).(func(*ec2.EnableImageDeprecationInput) *ec2.EnableImageDeprecationOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.EnableImageDeprecationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.EnableImageDeprecationInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EnableImageDeprecationRequest provides a mock function with given fields: _a0
+func (_m *EC2API) EnableImageDeprecationRequest(_a0 *ec2.EnableImageDeprecationInput) (*request.Request, *ec2.EnableImageDeprecationOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.EnableImageDeprecationInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.EnableImageDeprecationOutput
+	if rf, ok := ret.Get(1).(func(*ec2.EnableImageDeprecationInput) *ec2.EnableImageDeprecationOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.EnableImageDeprecationOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// EnableImageDeprecationWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) EnableImageDeprecationWithContext(_a0 context.Context, _a1 *ec2.EnableImageDeprecationInput, _a2 ...request.Option) (*ec2.EnableImageDeprecationOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.EnableImageDeprecationOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.EnableImageDeprecationInput, ...request.Option) *ec2.EnableImageDeprecationOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.EnableImageDeprecationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.EnableImageDeprecationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
