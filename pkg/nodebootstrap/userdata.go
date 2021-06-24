@@ -41,7 +41,7 @@ type Bootstrapper interface {
 // NewBootstrapper returns the correct bootstrapper for the AMI family
 func NewBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) (Bootstrapper, error) {
 	if ng.ClusterDNS == "" {
-		clusterDNS, err := getClusterDNS(clusterConfig)
+		clusterDNS, err := GetClusterDNS(clusterConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -86,7 +86,8 @@ func NewManagedBootstrapper(clusterConfig *api.ClusterConfig, ng *api.ManagedNod
 	return nil
 }
 
-func getClusterDNS(clusterConfig *api.ClusterConfig) (string, error) {
+// GetClusterDNS returns the DNS address to use
+func GetClusterDNS(clusterConfig *api.ClusterConfig) (string, error) {
 	networkConfig := clusterConfig.Status.KubernetesNetworkConfig
 	if networkConfig == nil {
 		return "", nil
