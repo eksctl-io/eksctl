@@ -20,9 +20,11 @@ func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 	}
 
 	for _, summary := range summaries {
-		summary.Version, err = kubewrapper.GetNodegroupKubernetesVersion(m.clientSet.CoreV1().Nodes(), summary.Name)
-		if err != nil {
-			return nil, errors.Wrap(err, "getting nodegroup's kubernetes version")
+		if summary.DesiredCapacity > 0 {
+			summary.Version, err = kubewrapper.GetNodegroupKubernetesVersion(m.clientSet.CoreV1().Nodes(), summary.Name)
+			if err != nil {
+				return nil, errors.Wrap(err, "getting nodegroup's kubernetes version")
+			}
 		}
 	}
 
@@ -92,11 +94,12 @@ func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
 
 	if len(summaries) > 0 {
 		s := summaries[0]
-		s.Version, err = kubewrapper.GetNodegroupKubernetesVersion(m.clientSet.CoreV1().Nodes(), s.Name)
-		if err != nil {
-			return nil, errors.Wrap(err, "getting nodegroup's kubernetes version")
+		if s.DesiredCapacity > 0 {
+			s.Version, err = kubewrapper.GetNodegroupKubernetesVersion(m.clientSet.CoreV1().Nodes(), s.Name)
+			if err != nil {
+				return nil, errors.Wrap(err, "getting nodegroup's kubernetes version")
+			}
 		}
-
 		return s, nil
 	}
 
