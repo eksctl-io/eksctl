@@ -59,7 +59,11 @@ func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup
 	name := c.makeNodeGroupStackName(ng.Name)
 
 	logger.Info("building nodegroup stack %q", name)
-	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, c.spec, ng, forceAddCNIPolicy, vpcImporter)
+	bootstrapper, err := nodebootstrap.NewBootstrapper(c.spec, ng)
+	if err != nil {
+		return errors.Wrap(err, "error creating bootstrapper")
+	}
+	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, c.spec, ng, bootstrapper, forceAddCNIPolicy, vpcImporter)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}

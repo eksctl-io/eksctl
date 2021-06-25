@@ -15,7 +15,7 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 	var (
 		clusterConfig *api.ClusterConfig
 		ng            *api.NodeGroup
-		bootstrapper  *nodebootstrap.AmazonLinux2
+		bootstrapper  nodebootstrap.Bootstrapper
 	)
 
 	BeforeEach(func() {
@@ -24,16 +24,16 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 		clusterConfig.Status = &api.ClusterStatus{}
 		ng = &api.NodeGroup{
 			NodeGroupBase: &api.NodeGroupBase{
-				SSH: &api.NodeGroupSSH{},
+				AMIFamily: "AmazonLinux2",
+				SSH:       &api.NodeGroupSSH{},
 			},
 		}
 	})
 
 	When("SSM is enabled", func() {
 		BeforeEach(func() {
-			enabled := true
-			ng.SSH.EnableSSM = &enabled
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			ng.SSH.EnableSSM = api.Enabled()
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds the ssm install script to the userdata", func() {
@@ -50,7 +50,7 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 		BeforeEach(func() {
 			enabled := true
 			ng.EFAEnabled = &enabled
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds the ssm install script to the userdata", func() {
@@ -63,8 +63,20 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 		})
 	})
 
-	DescribeTable("Boot script environment variable in userdata", func(ng *api.NodeGroup, expectedUserData string) {
-		bootstrapper := nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+	type bootScriptEntry struct {
+		clusterConfig    *api.ClusterConfig
+		ng               *api.NodeGroup
+		expectedUserData string
+	}
+
+	DescribeTable("Boot script environment variable in userdata", func(be bootScriptEntry) {
+		if be.clusterConfig == nil {
+			be.clusterConfig = api.NewClusterConfig()
+			be.clusterConfig.Metadata.Name = "userdata-test"
+			be.clusterConfig.Status = &api.ClusterStatus{}
+		}
+		be.ng.AMIFamily = "AmazonLinux2"
+		bootstrapper := newBootstrapper(be.clusterConfig, be.ng)
 		userData, err := bootstrapper.UserData()
 		Expect(err).ToNot(HaveOccurred())
 		cloudCfg := decode(userData)
@@ -72,45 +84,73 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 		Expect(file.Path).To(Equal("/etc/eksctl/kubelet.env"))
 
 		actualLines := strings.Split(file.Content, "\n")
-		expectedLines := strings.Split(expectedUserData, "\n")
+		expectedLines := strings.Split(be.expectedUserData, "\n")
 		Expect(actualLines).To(ConsistOf(expectedLines))
 	},
-		Entry("no fields set", api.NewNodeGroup(), `CLUSTER_NAME=something-awesome
+		Entry("no fields set", bootScriptEntry{
+			ng: api.NewNodeGroup(),
+			expectedUserData: `CLUSTER_NAME=userdata-test
 API_SERVER_URL=
 B64_CLUSTER_CA=
 NODE_LABELS=
-NODE_TAINTS=`),
-		Entry("maxPods set", &api.NodeGroup{
-			NodeGroupBase: &api.NodeGroupBase{
-				MaxPodsPerNode: 123,
-				SSH:            &api.NodeGroupSSH{},
+NODE_TAINTS=`,
+		}),
+		Entry("maxPods set", bootScriptEntry{
+			ng: &api.NodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					MaxPodsPerNode: 123,
+					SSH:            &api.NodeGroupSSH{},
+				},
 			},
-		}, `CLUSTER_NAME=something-awesome
+			expectedUserData: `CLUSTER_NAME=userdata-test
 API_SERVER_URL=
 B64_CLUSTER_CA=
 NODE_LABELS=
 NODE_TAINTS=
 MAX_PODS=123`,
-		),
-		Entry("labels and taints set", &api.NodeGroup{
-			NodeGroupBase: &api.NodeGroupBase{
-				Labels: map[string]string{
-					"role": "worker",
+		}),
+		Entry("labels and taints set", bootScriptEntry{
+			ng: &api.NodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Labels: map[string]string{
+						"role": "worker",
+					},
+					SSH: &api.NodeGroupSSH{},
 				},
-				SSH: &api.NodeGroupSSH{},
-			},
-			Taints: []api.NodeGroupTaint{
-				{
-					Key:    "key1",
-					Value:  "value1",
-					Effect: "NoSchedule",
+				Taints: []api.NodeGroupTaint{
+					{
+						Key:    "key1",
+						Value:  "value1",
+						Effect: "NoSchedule",
+					},
 				},
 			},
-		}, `CLUSTER_NAME=something-awesome
+			expectedUserData: `CLUSTER_NAME=userdata-test
 API_SERVER_URL=
 B64_CLUSTER_CA=
 NODE_LABELS=role=worker
-NODE_TAINTS=key1=value1:NoSchedule`),
+NODE_TAINTS=key1=value1:NoSchedule`,
+		}),
+
+		Entry("non-default ServiceIPv4CIDR", bootScriptEntry{
+			clusterConfig: func() *api.ClusterConfig {
+				clusterConfig := api.NewClusterConfig()
+				clusterConfig.Metadata.Name = "custom-dns"
+				clusterConfig.Status = &api.ClusterStatus{
+					KubernetesNetworkConfig: &api.KubernetesNetworkConfig{
+						ServiceIPv4CIDR: "172.16.0.0/12",
+					},
+				}
+				return clusterConfig
+			}(),
+			ng: api.NewNodeGroup(),
+			expectedUserData: `CLUSTER_NAME=custom-dns
+API_SERVER_URL=
+B64_CLUSTER_CA=
+NODE_LABELS=
+NODE_TAINTS=
+CLUSTER_DNS=172.16.0.10`,
+		}),
 	)
 
 	Context("standard userdata", func() {
@@ -120,7 +160,7 @@ NODE_TAINTS=key1=value1:NoSchedule`),
 		)
 
 		BeforeEach(func() {
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 			userData, err = bootstrapper.UserData()
 		})
 
@@ -158,7 +198,7 @@ NODE_TAINTS=`, "\n")))
 	When("KubeletExtraConfig is provided by the user", func() {
 		BeforeEach(func() {
 			ng.KubeletExtraConfig = &api.InlineDocument{"foo": "bar"}
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds the settings to the kubelet extra args file in the userdata", func() {
@@ -175,7 +215,7 @@ NODE_TAINTS=`, "\n")))
 	When("labels are set on the node config", func() {
 		BeforeEach(func() {
 			ng.Labels = map[string]string{"foo": "bar"}
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds the labels to the env file", func() {
@@ -197,7 +237,7 @@ NODE_TAINTS=`, "\n")))
 					Effect: "NoSchedule",
 				},
 			}
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds the taints to the env file", func() {
@@ -214,7 +254,7 @@ NODE_TAINTS=`, "\n")))
 	When("clusterDNS is set on the node config", func() {
 		BeforeEach(func() {
 			ng.ClusterDNS = "1.2.3.4"
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds the taints to the env file", func() {
@@ -231,7 +271,7 @@ NODE_TAINTS=`, "\n")))
 	When("PreBootstrapCommands are set", func() {
 		BeforeEach(func() {
 			ng.PreBootstrapCommands = []string{"echo 'rubarb'"}
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 		})
 
 		It("adds them to the userdata", func() {
@@ -252,7 +292,7 @@ NODE_TAINTS=`, "\n")))
 		BeforeEach(func() {
 			override := "echo 'crashoverride'"
 			ng.OverrideBootstrapCommand = &override
-			bootstrapper = nodebootstrap.NewAL2Bootstrapper(clusterConfig, ng)
+			bootstrapper = newBootstrapper(clusterConfig, ng)
 
 			userData, err = bootstrapper.UserData()
 		})

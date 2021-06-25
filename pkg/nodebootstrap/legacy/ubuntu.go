@@ -68,9 +68,11 @@ func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) ([]configFile,
 		return nil, errors.New("invalid cluster config: missing CertificateAuthorityData")
 	}
 
-	kubeletEnvParams := append(makeCommonKubeletEnvParams(ng),
-		fmt.Sprintf("CLUSTER_DNS=%s", clusterDNS(spec, ng)),
-	)
+	kubeletEnvParams := makeCommonKubeletEnvParams(ng)
+
+	if ng.ClusterDNS != "" {
+		kubeletEnvParams = append(kubeletEnvParams, fmt.Sprintf("CLUSTER_DNS=%s", ng.ClusterDNS))
+	}
 
 	// Set resolvConf for Ubuntu 20.04 only, do not override user set value
 	if ng.AMIFamily == api.NodeImageFamilyUbuntu2004 {

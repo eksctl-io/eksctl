@@ -36,7 +36,7 @@ type NodeGroupResourceSet struct {
 }
 
 // NewNodeGroupResourceSet returns a resource set for a nodegroup embedded in a cluster config
-func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, ng *api.NodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *NodeGroupResourceSet {
+func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, ng *api.NodeGroup, bootstrapper nodebootstrap.Bootstrapper, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
 		rs:                newResourceSet(),
 		forceAddCNIPolicy: forceAddCNIPolicy,
@@ -45,7 +45,7 @@ func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spe
 		ec2API:            ec2API,
 		iamAPI:            iamAPI,
 		vpcImporter:       vpcImporter,
-		bootstrapper:      nodebootstrap.NewBootstrapper(spec, ng),
+		bootstrapper:      bootstrapper,
 	}
 }
 

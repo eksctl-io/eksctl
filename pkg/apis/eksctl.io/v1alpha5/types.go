@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/elb/elbiface"
 	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
@@ -521,13 +523,15 @@ type KubernetesNetworkConfig struct {
 
 type EKSCTLCreated string
 
-// ClusterStatus hold read-only attributes of a cluster
+// ClusterStatus holds read-only attributes of a cluster
 type ClusterStatus struct {
-	Endpoint                 string        `json:"endpoint,omitempty"`
-	CertificateAuthorityData []byte        `json:"certificateAuthorityData,omitempty"`
-	ARN                      string        `json:"arn,omitempty"`
-	StackName                string        `json:"stackName,omitempty"`
-	EKSCTLCreated            EKSCTLCreated `json:"eksctlCreated,omitempty"`
+	Endpoint                 string                   `json:"endpoint,omitempty"`
+	CertificateAuthorityData []byte                   `json:"certificateAuthorityData,omitempty"`
+	ARN                      string                   `json:"arn,omitempty"`
+	KubernetesNetworkConfig  *KubernetesNetworkConfig `json:"-"`
+
+	StackName     string        `json:"stackName,omitempty"`
+	EKSCTLCreated EKSCTLCreated `json:"eksctlCreated,omitempty"`
 }
 
 // String returns canonical representation of ClusterMeta
@@ -726,6 +730,23 @@ func (c *ClusterConfig) AppendAvailabilityZone(newAZ string) {
 		}
 	}
 	c.AvailabilityZones = append(c.AvailabilityZones, newAZ)
+}
+
+// SetClusterStatus populates ClusterStatus using *eks.Cluster.
+func (c *ClusterConfig) SetClusterStatus(cluster *eks.Cluster) error {
+	if networkConfig := cluster.KubernetesNetworkConfig; networkConfig != nil && networkConfig.ServiceIpv4Cidr != nil {
+		c.Status.KubernetesNetworkConfig = &KubernetesNetworkConfig{
+			ServiceIPv4CIDR: *networkConfig.ServiceIpv4Cidr,
+		}
+	}
+	data, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)
+	if err != nil {
+		return errors.Wrap(err, "decoding certificate authority data")
+	}
+	c.Status.Endpoint = *cluster.Endpoint
+	c.Status.CertificateAuthorityData = data
+	c.Status.ARN = *cluster.Arn
+	return nil
 }
 
 // NewNodeGroup creates a new NodeGroup, and returns a pointer to it
