@@ -10,7 +10,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-func updateNodeGroupCmd(cmd *cmdutils.Cmd) {
+var _ = func(cmd *cmdutils.Cmd) {
 	cmd.ClusterConfig = api.NewClusterConfig()
 
 	cmd.SetDescription(
