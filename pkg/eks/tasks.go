@@ -201,7 +201,10 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 			if err != nil {
 				return errors.Wrap(err, "error creating Clientset")
 			}
-			return c.WaitForControlPlane(cfg.Metadata, clientSet)
+			if err := c.WaitForControlPlane(cfg.Metadata, clientSet); err != nil {
+				return err
+			}
+			return c.RefreshClusterStatus(cfg)
 		},
 	})
 
@@ -330,9 +333,6 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 		info: "associate IAM OIDC provider",
 		spec: cfg,
 		call: func(cfg *api.ClusterConfig) error {
-			if err := c.RefreshClusterStatus(cfg); err != nil {
-				return err
-			}
 			oidc, err := c.NewOpenIDConnectManager(cfg)
 			if err != nil {
 				return err

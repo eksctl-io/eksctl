@@ -55,10 +55,9 @@ What type of AWS credentials are you using (i.e. default/named profile, MFA)? - 
 
 **Versions**
 <!--
-Please paste in the output of these commands:
+Please paste in the output of this command:
 -->
 ```
-$ eksctl version
-$ kubectl version
+$ eksctl info
 ```
 

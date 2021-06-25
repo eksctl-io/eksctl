@@ -32,13 +32,14 @@ var _ = Describe("Bottlerocket", func() {
 		}
 
 		ng = api.NewNodeGroup()
+		ng.AMIFamily = "Bottlerocket"
 		// SetNodeGroupDefaults ensures this is non-nil for Bottlerocket nodegroups
 		ng.Bottlerocket = &api.NodeGroupBottlerocket{}
 	})
 
 	Describe("with no user settings", func() {
 		It("produces standard TOML userdata", func() {
-			bootstrapper := nodebootstrap.NewBottlerocketBootstrapper(clusterConfig, ng)
+			bootstrapper := newBootstrapper(clusterConfig, ng)
 			userdata, err := bootstrapper.UserData()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(userdata).ToNot(Equal(""))
@@ -49,7 +50,7 @@ var _ = Describe("Bottlerocket", func() {
 		})
 
 		It("leaves settings.host-containers.admin.enabled commented", func() {
-			bootstrapper := nodebootstrap.NewBottlerocketBootstrapper(clusterConfig, ng)
+			bootstrapper := newBootstrapper(clusterConfig, ng)
 			userdata, err := bootstrapper.UserData()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(userdata).ToNot(Equal(""))
@@ -81,7 +82,7 @@ var _ = Describe("Bottlerocket", func() {
 			keyPath := []string{"settings", keyName}
 			splitKeyPath := append([]string{"settings"}, strings.Split(keyName, ".")...)
 
-			bootstrapper := nodebootstrap.NewBottlerocketBootstrapper(clusterConfig, ng)
+			bootstrapper := newBootstrapper(clusterConfig, ng)
 			userdata, err := bootstrapper.UserData()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(userdata).ToNot(Equal(""))
@@ -107,7 +108,7 @@ var _ = Describe("Bottlerocket", func() {
 			})
 
 			It("sets it on the userdata", func() {
-				bootstrapper := nodebootstrap.NewBottlerocketBootstrapper(clusterConfig, ng)
+				bootstrapper := newBootstrapper(clusterConfig, ng)
 				userdata, err := bootstrapper.UserData()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(userdata).ToNot(Equal(""))
@@ -124,7 +125,7 @@ var _ = Describe("Bottlerocket", func() {
 			})
 
 			It("enables admin container on the userdata", func() {
-				bootstrapper := nodebootstrap.NewBottlerocketBootstrapper(clusterConfig, ng)
+				bootstrapper := newBootstrapper(clusterConfig, ng)
 				userdata, err := bootstrapper.UserData()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(userdata).ToNot(Equal(""))
@@ -142,7 +143,7 @@ var _ = Describe("Bottlerocket", func() {
 				// otherwise managed key.
 				providedSettings := map[string]interface{}(*ng.Bottlerocket.Settings)
 				providedSettings["host-containers"].(map[string]interface{})["admin"] = map[string]string{"enabled": "user-val"}
-				bootstrapper := nodebootstrap.NewBottlerocketBootstrapper(clusterConfig, ng)
+				bootstrapper := newBootstrapper(clusterConfig, ng)
 				userdata, err := bootstrapper.UserData()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(userdata).ToNot(Equal(""))
@@ -173,7 +174,7 @@ var _ = Describe("Bottlerocket", func() {
 			})
 
 			It("adds the labels to the userdata", func() {
-				bootstrapper := nodebootstrap.NewBottlerocketBootstrapper(clusterConfig, ng)
+				bootstrapper := newBootstrapper(clusterConfig, ng)
 				userdata, err := bootstrapper.UserData()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(userdata).ToNot(Equal(""))
@@ -198,7 +199,7 @@ var _ = Describe("Bottlerocket", func() {
 			})
 
 			It("adds the taints to the userdata", func() {
-				bootstrapper := nodebootstrap.NewBottlerocketBootstrapper(clusterConfig, ng)
+				bootstrapper := newBootstrapper(clusterConfig, ng)
 				userdata, err := bootstrapper.UserData()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(userdata).ToNot(Equal(""))
@@ -215,7 +216,7 @@ var _ = Describe("Bottlerocket", func() {
 			It("adds clusterDNS to the userdata", func() {
 				ng.ClusterDNS = "192.2.0.53"
 
-				bootstrapper := nodebootstrap.NewBottlerocketBootstrapper(clusterConfig, ng)
+				bootstrapper := newBootstrapper(clusterConfig, ng)
 				userdata, err := bootstrapper.UserData()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(userdata).ToNot(Equal(""))
@@ -232,7 +233,7 @@ var _ = Describe("Bottlerocket", func() {
 			It("adds MaxPodsPerNode to userdata when set", func() {
 				ng.MaxPodsPerNode = 32
 
-				bootstrapper := nodebootstrap.NewBottlerocketBootstrapper(clusterConfig, ng)
+				bootstrapper := newBootstrapper(clusterConfig, ng)
 				userdata, err := bootstrapper.UserData()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(userdata).ToNot(Equal(""))
@@ -245,7 +246,7 @@ var _ = Describe("Bottlerocket", func() {
 			})
 
 			It("does not add MaxPodsPerNode when not set", func() {
-				bootstrapper := nodebootstrap.NewBottlerocketBootstrapper(clusterConfig, ng)
+				bootstrapper := newBootstrapper(clusterConfig, ng)
 				userdata, err := bootstrapper.UserData()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(userdata).ToNot(Equal(""))

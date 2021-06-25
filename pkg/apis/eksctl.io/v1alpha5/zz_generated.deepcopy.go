@@ -536,6 +536,11 @@ func (in *ClusterStatus) DeepCopyInto(out *ClusterStatus) {
 		*out = make([]byte, len(*in))
 		copy(*out, *in)
 	}
+	if in.KubernetesNetworkConfig != nil {
+		in, out := &in.KubernetesNetworkConfig, &out.KubernetesNetworkConfig
+		*out = new(KubernetesNetworkConfig)
+		**out = **in
+	}
 	return
 }
 

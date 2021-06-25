@@ -2,7 +2,6 @@ package legacy
 
 import (
 	"fmt"
-	"net"
 	"path/filepath"
 	"strings"
 
@@ -83,29 +82,6 @@ func makeClientConfigData(spec *api.ClusterConfig, authenticatorCMD string) ([]b
 	return clientConfigData, nil
 }
 
-func clusterDNS(spec *api.ClusterConfig, ng *api.NodeGroup) string {
-	if ng.ClusterDNS != "" {
-		return ng.ClusterDNS
-	}
-	if spec.KubernetesNetworkConfig != nil && spec.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
-		if _, ipnet, err := net.ParseCIDR(spec.KubernetesNetworkConfig.ServiceIPv4CIDR); err != nil {
-			panic(errors.Wrap(err, "invalid IPv4 CIDR for kubernetesNetworkConfig.serviceIPv4CIDR"))
-		} else {
-			prefix := strings.Split(ipnet.IP.String(), ".")
-			if len(prefix) != 4 {
-				panic(errors.Wrap(err, "invalid IPv4 CIDR for kubernetesNetworkConfig.serviceIPv4CIDR"))
-			}
-			return strings.Join([]string{prefix[0], prefix[1], prefix[2], "10"}, ".")
-		}
-	}
-	// Default service network is 10.100.0.0, but it gets set 172.20.0.0 automatically when pod network
-	// is anywhere within 10.0.0.0/8
-	if spec.VPC.CIDR != nil && spec.VPC.CIDR.IP[0] == 10 {
-		return "172.20.0.10"
-	}
-	return "10.100.0.10"
-}
-
 func getKubeReserved(info InstanceTypeInfo) api.InlineDocument {
 	return api.InlineDocument{
 		"ephemeral-storage": info.DefaultStorageToReserve(),
@@ -131,8 +107,8 @@ func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, 
 		return nil, err
 	}
 
-	obj["clusterDNS"] = []string{
-		clusterDNS(spec, ng),
+	if ng.ClusterDNS != "" {
+		obj["clusterDNS"] = []string{ng.ClusterDNS}
 	}
 
 	// Set default reservations if specs about instance is available

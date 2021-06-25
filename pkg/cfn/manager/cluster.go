@@ -34,7 +34,6 @@ func (c *StackCollection) createClusterTask(errs chan error, supportsManagedNode
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
-
 	return c.createClusterStack(name, stack, errs)
 }
 

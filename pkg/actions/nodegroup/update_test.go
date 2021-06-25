@@ -3,6 +3,7 @@ package nodegroup
 import (
 	"errors"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
@@ -34,8 +35,6 @@ var _ = Describe("Update", func() {
 				},
 			},
 		}
-
-		m = New(cfg, &eks.ClusterProvider{Provider: p}, nil)
 	})
 
 	It("fails for unmanaged nodegroups", func() {
@@ -44,17 +43,37 @@ var _ = Describe("Update", func() {
 			NodegroupName: &ngName,
 		}).Return(nil, awserr.New(awseks.ErrCodeResourceNotFoundException, "test-err", errors.New("err")))
 
+		m = New(cfg, &eks.ClusterProvider{Provider: p}, nil)
 		err := m.Update()
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(MatchError(ContainSubstring("could not find managed nodegroup with name \"my-ng\"")))
 	})
 
-	It("successfully updates nodegroup", func() {
+	It("[happy path] successfully updates nodegroup with updateConfig and maxUnavailable", func() {
 		p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+			ClusterName:   &clusterName,
+			NodegroupName: &ngName,
+		}).Return(&awseks.DescribeNodegroupOutput{
+			Nodegroup: &awseks.Nodegroup{
+				UpdateConfig: &awseks.NodegroupUpdateConfig{
+					MaxUnavailable: aws.Int64(4),
+				},
+			},
+		}, nil)
+
+		p.MockEKS().On("UpdateNodegroupConfig", &awseks.UpdateNodegroupConfigInput{
+			UpdateConfig: &awseks.NodegroupUpdateConfig{
+				MaxUnavailable: aws.Int64(6),
+			},
 			ClusterName:   &clusterName,
 			NodegroupName: &ngName,
 		}).Return(nil, nil)
 
+		cfg.ManagedNodeGroups[0].UpdateConfig = &api.NodeGroupUpdateConfig{
+			MaxUnavailable: aws.Int(6),
+		}
+
+		m = New(cfg, &eks.ClusterProvider{Provider: p}, nil)
 		err := m.Update()
 		Expect(err).NotTo(HaveOccurred())
 	})

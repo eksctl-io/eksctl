@@ -38,8 +38,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 	})
 
 	JustBeforeEach(func() {
-		ngrs = builder.NewNodeGroupResourceSet(mockEC2, mockIAM, cfg, ng, forceAddCNIPolicy, fakeVPCImporter)
-		ngrs.SetBootstrapper(fakeBootstrapper)
+		ngrs = builder.NewNodeGroupResourceSet(mockEC2, mockIAM, cfg, ng, fakeBootstrapper, forceAddCNIPolicy, fakeVPCImporter)
 	})
 
 	Describe("AddAllResources", func() {
