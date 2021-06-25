@@ -61,6 +61,33 @@ var (
 		"profile",
 		"timeout",
 	}
+
+	commonNGFlagsIncompatibleWithConfigFile = []string{
+		"managed",
+		"spot",
+		"instance-types",
+		"nodes",
+		"nodes-min",
+		"nodes-max",
+		"node-type",
+		"node-volume-size",
+		"node-volume-type",
+		"max-pods-per-node",
+		"node-ami",
+		"node-ami-family",
+		"ssh-access",
+		"ssh-public-key",
+		"enable-ssm",
+		"node-private-networking",
+		"node-security-groups",
+		"node-labels",
+		"node-zones",
+		"asg-access",
+		"external-dns-access",
+		"full-ecr-access",
+		"instance-name",
+		"instance-prefix",
+	}
 )
 
 func newCommonClusterConfigLoader(cmd *Cmd) *commonClusterConfigLoader {
@@ -172,38 +199,18 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 
 	ngFilter.SetExcludeAll(params.WithoutNodeGroup)
 
-	l.flagsIncompatibleWithConfigFile.Insert(
+	clusterFlagsIncompatibleWithConfigFile := []string{
 		"tags",
 		"zones",
-		"managed",
 		"fargate",
-		"spot",
-		"instance-types",
-		"nodes",
-		"nodes-min",
-		"nodes-max",
-		"node-type",
-		"node-volume-size",
-		"node-volume-type",
-		"max-pods-per-node",
-		"node-ami",
-		"node-ami-family",
-		"ssh-access",
-		"ssh-public-key",
-		"enable-ssm",
-		"node-private-networking",
-		"node-security-groups",
-		"node-labels",
-		"node-zones",
-		"asg-access",
-		"external-dns-access",
-		"full-ecr-access",
 		"vpc-private-subnets",
 		"vpc-public-subnets",
 		"vpc-cidr",
 		"vpc-nat-mode",
 		"vpc-from-kops-cluster",
-	)
+	}
+
+	l.flagsIncompatibleWithConfigFile.Insert(append(clusterFlagsIncompatibleWithConfigFile, commonNGFlagsIncompatibleWithConfigFile...)...)
 
 	l.flagsIncompatibleWithoutConfigFile.Insert("install-vpc-controllers")
 
@@ -356,30 +363,7 @@ func validateDryRunOptions(cmd *cobra.Command, incompatibleFlags []string) error
 func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.NodeGroupFilter, ngOptions CreateNGOptions, mngOptions CreateManagedNGOptions) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
-	l.flagsIncompatibleWithConfigFile.Insert(
-		"managed",
-		"nodes",
-		"nodes-min",
-		"nodes-max",
-		"node-type",
-		"node-volume-size",
-		"node-volume-type",
-		"max-pods-per-node",
-		"node-ami",
-		"node-ami-family",
-		"spot",
-		"instance-types",
-		"ssh-access",
-		"ssh-public-key",
-		"enable-ssm",
-		"node-private-networking",
-		"node-security-groups",
-		"node-labels",
-		"node-zones",
-		"asg-access",
-		"external-dns-access",
-		"full-ecr-access",
-	)
+	l.flagsIncompatibleWithConfigFile.Insert(commonNGFlagsIncompatibleWithConfigFile...)
 
 	validateDryRun := func() error {
 		if !ngOptions.DryRun {
