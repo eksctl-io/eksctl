@@ -1067,11 +1067,6 @@
           "description": "taints to apply to the nodegroup",
           "x-intellij-html-description": "taints to apply to the nodegroup"
         },
-        "updateConfig": {
-          "$ref": "#/definitions/NodeGroupUpdateConfig",
-          "description": "configures how to update NodeGroups.",
-          "x-intellij-html-description": "configures how to update NodeGroups."
-        },
         "volumeEncrypted": {
           "type": "boolean"
         },
@@ -1146,7 +1141,6 @@
         "instanceTypes",
         "spot",
         "taints",
-        "updateConfig",
         "launchTemplate",
         "releaseVersion"
       ],
