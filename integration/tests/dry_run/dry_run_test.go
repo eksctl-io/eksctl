@@ -184,14 +184,14 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 		})
 	},
 		Entry("default values", func(c *api.ClusterConfig) {
-			c.ManagedNodeGroups = nil
+			c.NodeGroups = nil
 		}, "--nodegroup-name=ng-default"),
 
 		Entry("managed nodegroup defaults", func(c *api.ClusterConfig) {
 			c.NodeGroups = nil
 			ng := c.ManagedNodeGroups[0]
 			ng.VolumeSize = aws.Int(101)
-		}, "--managed", "--nodegroup-name=ng-default", "--node-volume-size=101"),
+		}, "--nodegroup-name=ng-default", "--node-volume-size=101"),
 
 		Entry("override nodegroup defaults", func(c *api.ClusterConfig) {
 			c.NodeGroups = nil
@@ -199,7 +199,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			ng.IAM.WithAddonPolicies.ExternalDNS = aws.Bool(true)
 			ng.VolumeSize = aws.Int(42)
 			ng.PrivateNetworking = true
-		}, "--managed", "--nodegroup-name=ng-default", "--node-volume-size=42",
+		}, "--nodegroup-name=ng-default", "--node-volume-size=42",
 			"--external-dns-access", "--node-private-networking"),
 
 		Entry("override cluster-wide defaults", func(c *api.ClusterConfig) {
@@ -272,7 +272,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			Memory: "4",
 		}
 
-	}, "--instance-selector-vcpus=2", "--instance-selector-memory=4"),
+	}, "--managed=false", "--instance-selector-vcpus=2", "--instance-selector-memory=4"),
 
 		Entry("instance selector options with managed nodegroup", func(actual, expected *api.ClusterConfig) {
 			Expect(actual.ManagedNodeGroups[0].InstanceTypes).ToNot(BeEmpty())
@@ -311,8 +311,8 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			assertDryRun(output, func(c *api.ClusterConfig) {
 				c.Metadata.Name = params.ClusterName
 				c.Metadata.Version = eksVersion
-				c.ManagedNodeGroups = nil
-				setClusterLabel(c.NodeGroups[0])
+				c.NodeGroups = nil
+				setClusterLabel(c.ManagedNodeGroups[0])
 			})
 
 			By("creating a new cluster from the output of dry-run")
@@ -332,7 +332,6 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 					"nodegroup",
 					"--cluster="+params.ClusterName,
 					"--name=private-ng",
-					"--managed",
 					"--node-private-networking",
 					"--node-volume-size=82",
 					"--dry-run",
