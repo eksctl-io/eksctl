@@ -66,6 +66,9 @@ func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
 
 	if options.output == printers.TableType {
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+	} else {
+		//log warnings and errors to stderr
+		logger.Writer = os.Stderr
 	}
 
 	supportsFargate, err := ctl.SupportsFargate(cmd.ClusterConfig)
@@ -77,7 +80,7 @@ func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
 	}
 
 	clusterName := cmd.ClusterConfig.Metadata.Name
-	manager := fargate.NewFromProvider(clusterName, ctl.Provider)
+	manager := fargate.NewFromProvider(clusterName, ctl.Provider, ctl.NewStackManager(cmd.ClusterConfig))
 
 	logger.Debug("getting EKS cluster %q's Fargate profile(s)", clusterName)
 	profiles, err := getProfiles(&manager, options.ProfileName)

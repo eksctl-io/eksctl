@@ -5,7 +5,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
@@ -37,9 +36,6 @@ func MakeImageSearchPatterns(version string) map[string]map[int]string {
 		},
 		api.NodeImageFamilyWindowsServer2019FullContainer: {
 			ImageClassGeneral: fmt.Sprintf("Windows_Server-2019-English-Full-EKS_Optimized-%v-*", version),
-		},
-		api.NodeImageFamilyWindowsServer1909CoreContainer: {
-			ImageClassGeneral: fmt.Sprintf("Windows_Server-1909-English-Core-EKS_Optimized-%v-*", version),
 		},
 		api.NodeImageFamilyWindowsServer2004CoreContainer: {
 			ImageClassGeneral: fmt.Sprintf("Windows_Server-2004-English-Core-EKS_Optimized-%v-*", version),
@@ -101,7 +97,7 @@ func (r *AutoResolver) Resolve(region, version, instanceType, imageFamily string
 
 	id, err := FindImage(r.api, ownerAccount, namePattern)
 	if err != nil {
-		return "", errors.Wrap(err, "error getting AMI")
+		return "", fmt.Errorf("error getting AMI from EC2 API: %w. please verify that AMI Family is supported", err)
 	}
 
 	return id, nil

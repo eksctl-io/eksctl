@@ -28,8 +28,11 @@ var _ = Describe("Flux", func() {
 		}
 
 		fakeExecutor = new(fakes.FakeExecutor)
-		fluxClient = flux.NewClient(opts)
+		var err error
+		fluxClient, err = flux.NewClient(opts)
+		Expect(err).NotTo(HaveOccurred())
 		fluxClient.SetExecutor(fakeExecutor)
+		fakeExecutor.ExecWithOutReturns([]byte("flux version 0.13.3\n"), nil)
 
 		binDir, err := ioutil.TempDir("", "bin")
 		Expect(err).NotTo(HaveOccurred())
@@ -51,16 +54,29 @@ var _ = Describe("Flux", func() {
 			Expect(receivedArgs).To(Equal([]string{"check", "--pre"}))
 		})
 
-		When("kubeconfig is set", func() {
+		When("a kubeconfig is provided in flags", func() {
 			BeforeEach(func() {
-				opts.Kubeconfig = "long/and/winding/road"
+				opts.Flags = api.FluxFlags{"kubeconfig": "some-path"}
 			})
 
-			It("executes the Flux binary with the --path flag", func() {
+			It("sets the kubeconfig flag on the command", func() {
 				Expect(fluxClient.PreFlight()).To(Succeed())
 				Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
 				_, receivedArgs := fakeExecutor.ExecArgsForCall(0)
-				Expect(receivedArgs).To(Equal([]string{"check", "--pre", "--kubeconfig", opts.Kubeconfig}))
+				Expect(receivedArgs).To(Equal([]string{"check", "--pre", "--kubeconfig", "some-path"}))
+			})
+		})
+
+		When("a context is provided in flags", func() {
+			BeforeEach(func() {
+				opts.Flags = api.FluxFlags{"context": "foo"}
+			})
+
+			It("sets the kubeconfig flag on the command", func() {
+				Expect(fluxClient.PreFlight()).To(Succeed())
+				Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
+				_, receivedArgs := fakeExecutor.ExecArgsForCall(0)
+				Expect(receivedArgs).To(Equal([]string{"check", "--pre", "--context", "foo"}))
 			})
 		})
 
@@ -71,6 +87,38 @@ var _ = Describe("Flux", func() {
 
 			It("returns the error", func() {
 				Expect(fluxClient.PreFlight()).To(MatchError("flux not found, required"))
+			})
+		})
+
+		Context("checking the flux version", func() {
+			When("the flux version is < 0.13.3", func() {
+				BeforeEach(func() {
+					fakeExecutor.ExecWithOutReturns([]byte("flux version 0.13.2\n"), nil)
+				})
+
+				It("returns an error saying older versions are not supported", func() {
+					Expect(fluxClient.PreFlight()).To(MatchError("found flux version 0.13.2, eksctl requires >= 0.13.3"))
+				})
+			})
+
+			When("the flux version command returns unexpected output", func() {
+				BeforeEach(func() {
+					fakeExecutor.ExecWithOutReturns([]byte("hmmm"), nil)
+				})
+
+				It("returns an error", func() {
+					Expect(fluxClient.PreFlight()).To(MatchError("unexpected format returned from 'flux --version': [hmmm]"))
+				})
+			})
+
+			When("the flux version is not valid semver", func() {
+				BeforeEach(func() {
+					fakeExecutor.ExecWithOutReturns([]byte("flux version a.b.c"), nil)
+				})
+
+				It("returns an error", func() {
+					Expect(fluxClient.PreFlight()).To(MatchError("Invalid Semantic Version"))
+				})
 			})
 		})
 
@@ -92,80 +140,26 @@ var _ = Describe("Flux", func() {
 		)
 
 		BeforeEach(func() {
-			opts.Repository = "some-repo"
-			opts.Owner = "theadversary_destroyerofkings_angelofthebottomlesspit_princeofthisworld_and_lordofdarkness"
-			standardArgs = []string{"bootstrap", opts.GitProvider, "--repository", opts.Repository, "--owner", opts.Owner}
+			standardArgs = []string{"bootstrap", opts.GitProvider}
 		})
 
-		It("executes the Flux binary with the correct default args", func() {
+		It("executes the Flux binary with the correct subcommands", func() {
 			Expect(fluxClient.Bootstrap()).To(Succeed())
 			Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
 			_, receivedArgs := fakeExecutor.ExecArgsForCall(0)
 			Expect(receivedArgs).To(Equal(standardArgs))
 		})
 
-		When("opts.Personal is true", func() {
+		When("opts.Flags are set", func() {
 			BeforeEach(func() {
-				opts.Personal = true
+				opts.Flags = api.FluxFlags{"foo": "bar"}
 			})
 
-			It("executes the Flux binary with the --personal flag", func() {
+			It("parses the flags and appends them to the command args", func() {
 				Expect(fluxClient.Bootstrap()).To(Succeed())
 				Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
 				_, receivedArgs := fakeExecutor.ExecArgsForCall(0)
-				Expect(receivedArgs).To(Equal(append(standardArgs, "--personal")))
-			})
-		})
-
-		When("opts.Path is set", func() {
-			BeforeEach(func() {
-				opts.Path = "road_to_somewhere"
-			})
-
-			It("executes the Flux binary with the --path flag", func() {
-				Expect(fluxClient.Bootstrap()).To(Succeed())
-				Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
-				_, receivedArgs := fakeExecutor.ExecArgsForCall(0)
-				Expect(receivedArgs).To(Equal(append(standardArgs, "--path", opts.Path)))
-			})
-		})
-
-		When("opts.Branch is set", func() {
-			BeforeEach(func() {
-				opts.Branch = "more-of-twig-really"
-			})
-
-			It("executes the Flux binary with the --path flag", func() {
-				Expect(fluxClient.Bootstrap()).To(Succeed())
-				Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
-				_, receivedArgs := fakeExecutor.ExecArgsForCall(0)
-				Expect(receivedArgs).To(Equal(append(standardArgs, "--branch", opts.Branch)))
-			})
-		})
-
-		When("opts.Namespace is set", func() {
-			BeforeEach(func() {
-				opts.Namespace = "socially-distanced-space"
-			})
-
-			It("executes the Flux binary with the --path flag", func() {
-				Expect(fluxClient.Bootstrap()).To(Succeed())
-				Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
-				_, receivedArgs := fakeExecutor.ExecArgsForCall(0)
-				Expect(receivedArgs).To(Equal(append(standardArgs, "--namespace", opts.Namespace)))
-			})
-		})
-
-		When("opts.Kubeconfig is set", func() {
-			BeforeEach(func() {
-				opts.Kubeconfig = "long/and/winding/road"
-			})
-
-			It("executes the Flux binary with the --path flag", func() {
-				Expect(fluxClient.Bootstrap()).To(Succeed())
-				Expect(fakeExecutor.ExecCallCount()).To(Equal(1))
-				_, receivedArgs := fakeExecutor.ExecArgsForCall(0)
-				Expect(receivedArgs).To(Equal(append(standardArgs, "--kubeconfig", opts.Kubeconfig)))
+				Expect(receivedArgs).To(Equal(append(standardArgs, "--foo", "bar")))
 			})
 		})
 

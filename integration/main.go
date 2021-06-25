@@ -80,17 +80,28 @@ func handleInterruptSignals() (context.Context, chan os.Signal) {
 
 func listModules() []string {
 	testsDir := path.Join("integration", "tests")
+
+	// TEST_SUITE_DIRS is a list of test suite directories to run
+	if testSuiteDirs, found := os.LookupEnv("TEST_SUITE_DIRS"); found {
+		dirs := strings.Split(testSuiteDirs, ",")
+		var moduleDirs []string
+		for _, dir := range dirs {
+			moduleDirs = append(moduleDirs, path.Join(testsDir, dir))
+		}
+		return moduleDirs
+	}
+
 	files, err := ioutil.ReadDir(testsDir)
 	if err != nil {
 		log.Fatalf("failed to gather test suites: %v", err)
 	}
-	dirs := []string{}
+	var moduleDirs []string
 	for _, f := range files {
 		if f.IsDir() {
-			dirs = append(dirs, path.Join(testsDir, f.Name()))
+			moduleDirs = append(moduleDirs, path.Join(testsDir, f.Name()))
 		}
 	}
-	return dirs
+	return moduleDirs
 }
 
 const (

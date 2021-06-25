@@ -3,7 +3,6 @@ site_description: 'The official CLI for Amazon EKS'
 site_author: 'eksctl authors'
 repo_name: 'weaveworks/eksctl'
 repo_url: 'https://github.com/weaveworks/eksctl'
-copyright: 'Copyright &copy; 2021 Weaveworks'
 docs_dir: src
 edit_uri: ""
 
@@ -14,34 +13,46 @@ extra_css:
 nav:
     - Introduction: introduction.md
     - Usage:
-        - usage/creating-and-managing-clusters.md
-        - usage/managing-nodegroups.md
-        - usage/security.md
-        - usage/cluster-upgrade.md
-        - usage/autoscaling.md
-        - usage/custom-ami-support.md
-        - usage/vpc-networking.md
-        - usage/gpu-support.md
-        - usage/arm-support.md
-        - usage/spot-instances.md
+        - Clusters:
+            - usage/creating-and-managing-clusters.md
+            - usage/unowned-clusters.md
+            - usage/customizing-the-kubelet.md
+            - usage/cloudwatch-cluster-logging.md
+            - usage/eks-private-cluster.md
+            - usage/addons.md
+            - usage/emr-access.md
+            - usage/fargate-support.md
+            - usage/cluster-upgrade.md
+            - usage/addon-upgrade.md
+        - Nodegroups:
+            - usage/managing-nodegroups.md
+            - usage/nodegroup-upgrade.md
+            - usage/eks-managed-nodes.md
+            - usage/launch-template-support.md
+            - usage/instance-selector.md
+            - usage/spot-instances.md
+            - usage/gpu-support.md
+            - usage/arm-support.md
+            - usage/autoscaling.md
+            - usage/custom-ami-support.md
+            - usage/windows-worker-nodes.md
+        - GitOps:
+            - usage/gitops-v2.md
+            - usage/gitops-v1.md
+        - Security:
+            - usage/security.md
+            - usage/kms-encryption.md
+        - Networking:
+            - usage/vpc-networking.md
         - IAM:
+            - usage/minimum-iam-policies.md
             - usage/iam-permissions-boundary.md
             - usage/iam-policies.md
             - usage/iam-identity-mappings.md
             - usage/iamserviceaccounts.md
-        - usage/customizing-the-kubelet.md
-        - usage/cloudwatch-cluster-logging.md
-        - usage/windows-worker-nodes.md
-        - usage/eks-managed-nodes.md
-        - usage/launch-template-support.md
-        - usage/eks-private-cluster.md
-        - usage/fargate-support.md
-        - usage/addons.md
-        - usage/gitops.md
+        - usage/dry-run.md
         - usage/schema.md
         - usage/troubleshooting.md
-        - usage/minimum-iam-policies.md
-        - usage/emr-access.md
         - FAQ: usage/faq.md
     - Examples: "https://github.com/weaveworks/eksctl/tree/main/examples"
     - Community: community.md
@@ -76,3 +87,5 @@ markdown_extensions:
     - codehilite:
         linenums: true
     - pymdownx.superfences
+    - pymdownx.tasklist:
+        custom_checkbox: true

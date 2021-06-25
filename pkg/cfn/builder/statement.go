@@ -71,6 +71,19 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 			},
 		},
 		{
+			"Effect": effectAllow,
+			"Resource": []*gfnt.Value{
+				addARNPartitionPrefix("elasticloadbalancing:*:*:listener/net/*/*/*"),
+				addARNPartitionPrefix("elasticloadbalancing:*:*:listener/app/*/*/*"),
+				addARNPartitionPrefix("elasticloadbalancing:*:*:listener-rule/net/*/*/*"),
+				addARNPartitionPrefix("elasticloadbalancing:*:*:listener-rule/app/*/*/*"),
+			},
+			"Action": []string{
+				"elasticloadbalancing:AddTags",
+				"elasticloadbalancing:RemoveTags",
+			},
+		},
+		{
 			"Effect":   effectAllow,
 			"Resource": resourceAll,
 			"Action": []string{
@@ -107,6 +120,7 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 				"iam:CreateServiceLinkedRole",
 				"ec2:DescribeAccountAttributes",
 				"ec2:DescribeAddresses",
+				"ec2:DescribeAvailabilityZones",
 				"ec2:DescribeInternetGateways",
 				"ec2:DescribeVpcs",
 				"ec2:DescribeSubnets",
@@ -374,6 +388,39 @@ func efsEc2Statements() []cft.MapOfInterfaces {
 				"ec2:DeleteNetworkInterface",
 				"ec2:ModifyNetworkInterfaceAttribute",
 				"ec2:DescribeNetworkInterfaceAttribute",
+			},
+		},
+	}
+}
+
+func efsCSIControllerStatements() []cft.MapOfInterfaces {
+	return []cft.MapOfInterfaces{
+		{
+			"Effect":   effectAllow,
+			"Resource": resourceAll,
+			"Action": []string{
+				"elasticfilesystem:DescribeAccessPoints",
+				"elasticfilesystem:DescribeFileSystems",
+			},
+		},
+		{
+			"Effect":   effectAllow,
+			"Resource": resourceAll,
+			"Action":   []string{"elasticfilesystem:CreateAccessPoint"},
+			"Condition": map[string]interface{}{
+				"StringLike": map[string]string{
+					"aws:RequestTag/efs.csi.aws.com/cluster": "true",
+				},
+			},
+		},
+		{
+			"Effect":   effectAllow,
+			"Resource": resourceAll,
+			"Action":   []string{"elasticfilesystem:DeleteAccessPoint"},
+			"Condition": map[string]interface{}{
+				"StringLike": map[string]string{
+					"aws:ResourceTag/efs.csi.aws.com/cluster": "true",
+				},
 			},
 		},
 	}

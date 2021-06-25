@@ -3,11 +3,13 @@ package manager
 import (
 	"fmt"
 
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 type createClusterTask struct {
@@ -23,16 +25,16 @@ func (t *createClusterTask) Do(errorCh chan error) error {
 }
 
 type nodeGroupTask struct {
-	info                 string
-	nodeGroup            *api.NodeGroup
-	supportsManagedNodes bool
-	forceAddCNIPolicy    bool
-	stackCollection      *StackCollection
+	info              string
+	nodeGroup         *api.NodeGroup
+	forceAddCNIPolicy bool
+	vpcImporter       vpc.Importer
+	stackCollection   *StackCollection
 }
 
 func (t *nodeGroupTask) Describe() string { return t.info }
 func (t *nodeGroupTask) Do(errs chan error) error {
-	return t.stackCollection.createNodeGroupTask(errs, t.nodeGroup, t.supportsManagedNodes, t.forceAddCNIPolicy)
+	return t.stackCollection.createNodeGroupTask(errs, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
 }
 
 type managedNodeGroupTask struct {
@@ -40,12 +42,13 @@ type managedNodeGroupTask struct {
 	nodeGroup         *api.ManagedNodeGroup
 	stackCollection   *StackCollection
 	forceAddCNIPolicy bool
+	vpcImporter       vpc.Importer
 }
 
 func (t *managedNodeGroupTask) Describe() string { return t.info }
 
 func (t *managedNodeGroupTask) Do(errorCh chan error) error {
-	return t.stackCollection.createManagedNodeGroupTask(errorCh, t.nodeGroup, t.forceAddCNIPolicy)
+	return t.stackCollection.createManagedNodeGroupTask(errorCh, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
 }
 
 type clusterCompatTask struct {
@@ -111,7 +114,8 @@ func (t *asyncTaskWithoutParams) Do(errs chan error) error {
 type kubernetesTask struct {
 	info       string
 	kubernetes kubewrapper.ClientSetGetter
-	call       func(kubernetes.Interface) error
+	objectMeta v1.ObjectMeta
+	call       func(kubernetes.Interface, v1.ObjectMeta) error
 }
 
 func (t *kubernetesTask) Describe() string { return t.info }
@@ -123,7 +127,7 @@ func (t *kubernetesTask) Do(errs chan error) error {
 	if err != nil {
 		return err
 	}
-	err = t.call(clientSet)
+	err = t.call(clientSet, t.objectMeta)
 	close(errs)
 	return err
 }

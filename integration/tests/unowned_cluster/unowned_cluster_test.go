@@ -3,12 +3,15 @@
 package unowned_clusters
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/weaveworks/eksctl/pkg/eks"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -42,33 +45,96 @@ func TestE2E(t *testing.T) {
 
 var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func() {
 	var (
-		stackName, ng1, ng2 string
-		ctl                 api.ClusterProvider
+		stackName, version, ng1, mng1, mng2 string
+		ctl                                 api.ClusterProvider
+		configFile                          *os.File
+		cfg                                 *api.ClusterConfig
+		kmsKeyARN                           *string
 	)
 
 	BeforeSuite(func() {
 		ng1 = "ng-1"
-		ng2 = "ng-2"
+		mng1 = "mng-1"
+		mng2 = "mng-2"
+		version = "1.19"
 		stackName = fmt.Sprintf("eksctl-%s", params.ClusterName)
-		cfg := &api.ClusterConfig{
+		cfg = &api.ClusterConfig{
+			TypeMeta: api.ClusterConfigTypeMeta(),
 			Metadata: &api.ClusterMeta{
-				Name:   params.ClusterName,
-				Region: params.Region,
+				Version: version,
+				Name:    params.ClusterName,
+				Region:  params.Region,
 			},
 		}
+
+		var err error
+		configFile, err = ioutil.TempFile("", "")
+		Expect(err).NotTo(HaveOccurred())
 
 		if !params.SkipCreate {
 			clusterProvider, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
 			Expect(err).NotTo(HaveOccurred())
 			ctl = clusterProvider.Provider
-			createClusterWithNodegroups(params.ClusterName, stackName, ng1, ng2, ctl)
+			cfg.VPC = createClusterWithNodeGroup(params.ClusterName, stackName, mng1, version, ctl)
+
+			kmsClient := kms.New(ctl.ConfigProvider())
+			output, err := kmsClient.CreateKey(&kms.CreateKeyInput{
+				Description: aws.String(fmt.Sprintf("Key to test KMS encryption on EKS cluster %s", params.ClusterName)),
+			})
+			Expect(err).NotTo(HaveOccurred())
+			kmsKeyARN = output.KeyMetadata.Arn
 		}
 	})
 
 	AfterSuite(func() {
 		if !params.SkipCreate && !params.SkipDelete {
 			deleteStack(stackName, ctl)
+
+			kmsClient := kms.New(ctl.ConfigProvider())
+			_, err := kmsClient.ScheduleKeyDeletion(&kms.ScheduleKeyDeletionInput{
+				KeyId:               kmsKeyARN,
+				PendingWindowInDays: aws.Int64(7),
+			})
+			Expect(err).NotTo(HaveOccurred())
 		}
+		Expect(os.RemoveAll(configFile.Name())).To(Succeed())
+
+	})
+
+	It("supports creating nodegroups", func() {
+		cfg.NodeGroups = []*api.NodeGroup{{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name: ng1,
+			}},
+		}
+		// write config file so that the nodegroup creates have access to the vpc spec
+		configData, err := json.Marshal(&cfg)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(ioutil.WriteFile(configFile.Name(), configData, 0755)).To(Succeed())
+		cmd := params.EksctlCreateNodegroupCmd.
+			WithArgs(
+				"--config-file", configFile.Name(),
+				"--verbose", "2",
+			)
+		Expect(cmd).To(RunSuccessfully())
+	})
+
+	It("supports creating managed nodegroups", func() {
+		cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name: mng2,
+			}},
+		}
+		// write config file so that the nodegroup creates have access to the vpc spec
+		configData, err := json.Marshal(&cfg)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(ioutil.WriteFile(configFile.Name(), configData, 0755)).To(Succeed())
+		cmd := params.EksctlCreateNodegroupCmd.
+			WithArgs(
+				"--config-file", configFile.Name(),
+				"--verbose", "2",
+			)
+		Expect(cmd).To(RunSuccessfully())
 	})
 
 	It("supports getting non-eksctl resources", func() {
@@ -90,40 +156,43 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-			ContainElement(ContainSubstring("ng-1")),
+			ContainElement(ContainSubstring(ng1)),
 		))
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-			ContainElement(ContainSubstring("ng-2")),
+			ContainElement(ContainSubstring(mng1)),
+		))
+		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+			ContainElement(ContainSubstring(mng2)),
 		))
 	})
 
 	It("supports labels", func() {
-		By("setting labels on a nodegroup")
+		By("setting labels on a managed nodegroup")
 		cmd := params.EksctlSetLabelsCmd.
 			WithArgs(
 				"--cluster", params.ClusterName,
-				"--nodegroup", ng1,
+				"--nodegroup", mng1,
 				"--labels", "key=value",
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfully())
 
-		By("getting labels for a nodegroup")
+		By("getting labels for a managed nodegroup")
 		cmd = params.EksctlGetCmd.
 			WithArgs(
 				"labels",
 				"--cluster", params.ClusterName,
-				"--nodegroup", ng1,
+				"--nodegroup", mng1,
 				"--verbose", "2",
 			)
 			// It sometimes takes forever for the above set to take effect
-		Eventually(func() *gbytes.Buffer { return cmd.Run().Out }, time.Minute*2).Should(gbytes.Say("key=value"))
+		Eventually(func() *gbytes.Buffer { return cmd.Run().Out }, time.Minute*4).Should(gbytes.Say("key=value"))
 
-		By("unsetting labels on a nodegroup")
+		By("unsetting labels on a managed nodegroup")
 		cmd = params.EksctlUnsetLabelsCmd.
 			WithArgs(
 				"--cluster", params.ClusterName,
-				"--nodegroup", ng1,
+				"--nodegroup", mng1,
 				"--labels", "key",
 				"--verbose", "2",
 			)
@@ -135,7 +204,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		cmd := params.EksctlUtilsCmd.
 			WithArgs(
 				"associate-iam-oidc-provider",
-				"--name", params.ClusterName,
+				"--cluster", params.ClusterName,
 				"--approve",
 				"--verbose", "2",
 			)
@@ -173,7 +242,8 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			WithArgs(
 				"cluster",
 				"--name", params.ClusterName,
-				"--version", "1.19",
+				"--version", "1.20",
+				"--timeout", "1h30m",
 				"--approve",
 				"--verbose", "2",
 			)
@@ -187,6 +257,9 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"addon",
 				"--cluster", params.ClusterName,
 				"--name", "vpc-cni",
+				"--wait",
+				"--force",
+				"--version", "latest",
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfully())
@@ -200,6 +273,9 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 			ContainElement(ContainSubstring("vpc-cni")),
+		))
+		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+			ContainElement(ContainSubstring("ACTIVE")),
 		))
 	})
 
@@ -240,13 +316,14 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		))
 	})
 
-	It("supports nodegroup upgrades", func() {
+	It("supports managed nodegroup upgrades", func() {
 		cmd := params.EksctlUpgradeCmd.
 			WithArgs(
 				"nodegroup",
-				"--name", ng1,
+				"--name", mng1,
 				"--cluster", params.ClusterName,
-				"--kubernetes-version", "1.19",
+				"--kubernetes-version", "1.20",
+				"--timeout", "1h30m",
 				"--wait",
 				"--verbose", "2",
 			)
@@ -257,7 +334,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		By("scaling a nodegroup")
 		cmd := params.EksctlScaleNodeGroupCmd.
 			WithArgs(
-				"--name", ng1,
+				"--name", mng1,
 				"--nodes", "2",
 				"--nodes-max", "3",
 				"--cluster", params.ClusterName,
@@ -269,7 +346,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		cmd = params.EksctlDrainNodeGroupCmd.
 			WithArgs(
 				"--cluster", params.ClusterName,
-				"--name", ng2,
+				"--name", mng1,
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfully())
@@ -279,11 +356,40 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		cmd := params.EksctlDeleteCmd.
 			WithArgs(
 				"nodegroup",
-				"--name", ng2,
 				"--cluster", params.ClusterName,
+				"--name", mng1,
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfully())
+	})
+
+	It("supports enabling KMS encryption", func() {
+		if params.SkipCreate {
+			Skip("not enabling KMS encryption because params.SkipCreate is true")
+		}
+		enableEncryptionCMD := func() Cmd {
+			return params.EksctlUtilsCmd.
+				WithTimeout(2*time.Hour).
+				WithArgs(
+					"enable-secrets-encryption",
+					"--cluster", params.ClusterName,
+					"--key-arn", *kmsKeyARN,
+				)
+		}
+
+		By(fmt.Sprintf("enabling KMS encryption on the cluster using key %q", *kmsKeyARN))
+		cmd := enableEncryptionCMD()
+		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+			ContainElement(ContainSubstring("initiated KMS encryption")),
+			ContainElement(ContainSubstring("KMS encryption applied to all Secret resources")),
+		))
+
+		By("ensuring `enable-secrets-encryption` works when KMS encryption is already enabled on the cluster")
+		cmd = enableEncryptionCMD()
+		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+			ContainElement(ContainSubstring("KMS encryption is already enabled on the cluster")),
+			ContainElement(ContainSubstring("KMS encryption applied to all Secret resources")),
+		))
 	})
 
 	It("supports deleting clusters", func() {
@@ -295,15 +401,16 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			WithArgs(
 				"cluster",
 				"--name", params.ClusterName,
-				"--verbose", "2",
+				"--timeout", "1h",
+				"--verbose", "3",
 			)
 		Expect(cmd).To(RunSuccessfully())
 	})
 })
 
-func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl api.ClusterProvider) {
+func createClusterWithNodeGroup(clusterName, stackName, ng1, version string, ctl api.ClusterProvider) *api.ClusterVPC {
 	timeoutDuration := time.Minute * 30
-	publicSubnets, privateSubnets, clusterRoleArn, nodeRoleArn := createVPCAndRole(stackName, ctl)
+	publicSubnets, privateSubnets, clusterRoleArn, nodeRoleArn, vpcID, securityGroup := createVPCAndRole(stackName, ctl)
 
 	_, err := ctl.EKS().CreateCluster(&awseks.CreateClusterInput{
 		Name: &clusterName,
@@ -311,7 +418,7 @@ func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl ap
 			SubnetIds: aws.StringSlice(append(publicSubnets, privateSubnets...)),
 		},
 		RoleArn: &clusterRoleArn,
-		Version: aws.String("1.18"),
+		Version: aws.String(version),
 	})
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(func() string {
@@ -321,6 +428,34 @@ func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl ap
 		Expect(err).NotTo(HaveOccurred())
 		return *out.Cluster.Status
 	}, timeoutDuration, time.Second*30).Should(Equal("ACTIVE"))
+
+	newVPC := api.NewClusterVPC()
+	newVPC.ID = vpcID
+	newVPC.SecurityGroup = securityGroup
+	newVPC.Subnets = &api.ClusterSubnets{
+		Public: api.AZSubnetMapping{
+			"public1": api.AZSubnetSpec{
+				ID: publicSubnets[0],
+			},
+			"public2": api.AZSubnetSpec{
+				ID: publicSubnets[1],
+			},
+			"public3": api.AZSubnetSpec{
+				ID: publicSubnets[2],
+			},
+		},
+		Private: api.AZSubnetMapping{
+			"private4": api.AZSubnetSpec{
+				ID: privateSubnets[0],
+			},
+			"private5": api.AZSubnetSpec{
+				ID: privateSubnets[1],
+			},
+			"private6": api.AZSubnetSpec{
+				ID: privateSubnets[2],
+			},
+		},
+	}
 
 	_, err = ctl.EKS().CreateNodegroup(&awseks.CreateNodegroupInput{
 		NodegroupName: &ng1,
@@ -334,19 +469,6 @@ func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl ap
 		},
 	})
 	Expect(err).NotTo(HaveOccurred())
-	_, err = ctl.EKS().CreateNodegroup(&awseks.CreateNodegroupInput{
-		NodegroupName: &ng2,
-		ClusterName:   &clusterName,
-		NodeRole:      &nodeRoleArn,
-		Subnets:       aws.StringSlice(publicSubnets),
-		ScalingConfig: &awseks.NodegroupScalingConfig{
-			MaxSize:     aws.Int64(1),
-			DesiredSize: aws.Int64(1),
-			MinSize:     aws.Int64(1),
-		},
-	})
-	Expect(err).NotTo(HaveOccurred())
-
 	Eventually(func() string {
 		out, err := ctl.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{
 			ClusterName:   &clusterName,
@@ -356,17 +478,10 @@ func createClusterWithNodegroups(clusterName, stackName, ng1, ng2 string, ctl ap
 		return *out.Nodegroup.Status
 	}, timeoutDuration, time.Second*30).Should(Equal("ACTIVE"))
 
-	Eventually(func() string {
-		out, err := ctl.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{
-			ClusterName:   &clusterName,
-			NodegroupName: &ng2,
-		})
-		Expect(err).NotTo(HaveOccurred())
-		return *out.Nodegroup.Status
-	}, timeoutDuration, time.Second*30).Should(Equal("ACTIVE"))
+	return newVPC
 }
 
-func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, []string, string, string) {
+func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, []string, string, string, string, string) {
 	templateBody, err := ioutil.ReadFile("cf-template.yaml")
 	Expect(err).NotTo(HaveOccurred())
 	createStackInput := &cfn.CreateStackInput{
@@ -388,8 +503,8 @@ func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, []st
 		return *describeStackOut.Stacks[0].StackStatus
 	}, time.Minute*10, time.Second*15).Should(Equal(cfn.StackStatusCreateComplete))
 
-	var clusterRoleARN, nodeRoleARN string
-	var publicSubnets, privateSubnets []string
+	var clusterRoleARN, nodeRoleARN, vpcID string
+	var publicSubnets, privateSubnets, securityGroups []string
 	for _, output := range describeStackOut.Stacks[0].Outputs {
 		switch *output.OutputKey {
 		case "ClusterRoleARN":
@@ -400,10 +515,14 @@ func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, []st
 			publicSubnets = strings.Split(*output.OutputValue, ",")
 		case "PrivateSubnetIds":
 			privateSubnets = strings.Split(*output.OutputValue, ",")
+		case "VpcId":
+			vpcID = *output.OutputValue
+		case "SecurityGroups":
+			securityGroups = strings.Split(*output.OutputValue, ",")
 		}
 	}
 
-	return publicSubnets, privateSubnets, clusterRoleARN, nodeRoleARN
+	return publicSubnets, privateSubnets, clusterRoleARN, nodeRoleARN, vpcID, securityGroups[0]
 }
 
 func deleteStack(stackName string, ctl api.ClusterProvider) {

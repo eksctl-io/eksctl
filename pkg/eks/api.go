@@ -43,6 +43,8 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/version"
 )
@@ -53,6 +55,18 @@ type ClusterProvider struct {
 	Provider api.ClusterProvider
 	// informative fields, i.e. used as outputs
 	Status *ProviderStatus
+}
+
+//counterfeiter:generate -o fakes/fake_kube_provider.go . KubeProvider
+// KubeProvider is an interface with helper funcs for k8s and EKS that are part of ClusterProvider
+type KubeProvider interface {
+	NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error)
+	ServerVersion(rawClient *kubernetes.RawClient) (string, error)
+	LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, stackManager manager.StackManager) error
+	SupportsManagedNodes(clusterConfig *api.ClusterConfig) (bool, error)
+	ValidateClusterForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error
+	UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error
+	WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error
 }
 
 // ProviderServices stores the used APIs
@@ -69,6 +83,8 @@ type ProviderServices struct {
 	iam   iamiface.IAMAPI
 
 	cloudtrail cloudtrailiface.CloudTrailAPI
+
+	session *session.Session
 }
 
 // CloudFormation returns a representation of the CloudFormation API
@@ -118,6 +134,14 @@ func (p ProviderServices) Profile() string { return p.spec.Profile }
 // WaitTimeout returns provider-level duration after which any wait operation has to timeout
 func (p ProviderServices) WaitTimeout() time.Duration { return p.spec.WaitTimeout }
 
+func (p ProviderServices) ConfigProvider() client.ConfigProvider {
+	return p.session
+}
+
+func (p ProviderServices) Session() *session.Session {
+	return p.session
+}
+
 // ProviderStatus stores information about the used IAM role and the resulting session
 type ProviderStatus struct {
 	iamRoleARN   string
@@ -137,6 +161,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	// later re-use if overriding sessions due to custom URL
 	s := c.newSession(spec)
 
+	provider.session = s
 	provider.asg = autoscaling.New(s)
 	provider.cfn = cloudformation.New(s)
 	provider.eks = awseks.New(s)
@@ -204,25 +229,20 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	return c, c.checkAuth()
 }
 
-// LoadConfigFromFile loads ClusterConfig from configFile
-func LoadConfigFromFile(configFile string) (*api.ClusterConfig, error) {
-	data, err := readConfig(configFile)
-	if err != nil {
-		return nil, errors.Wrapf(err, "reading config file %q", configFile)
-	}
-
+// ParseConfig parses data into a ClusterConfig
+func ParseConfig(data []byte) (*api.ClusterConfig, error) {
 	// strict mode is not available in runtime.Decode, so we use the parser
 	// directly; we don't store the resulting object, this is just the means
 	// of detecting any unknown keys
 	// NOTE: we must use sigs.k8s.io/yaml, as it behaves differently from
 	// github.com/ghodss/yaml, which didn't handle nested structs well
 	if err := yaml.UnmarshalStrict(data, &api.ClusterConfig{}); err != nil {
-		return nil, errors.Wrapf(err, "loading config file %q", configFile)
+		return nil, err
 	}
 
 	obj, err := runtime.Decode(scheme.Codecs.UniversalDeserializer(), data)
 	if err != nil {
-		return nil, errors.Wrapf(err, "loading config file %q", configFile)
+		return nil, err
 	}
 
 	cfg, ok := obj.(*api.ClusterConfig)
@@ -230,6 +250,20 @@ func LoadConfigFromFile(configFile string) (*api.ClusterConfig, error) {
 		return nil, fmt.Errorf("expected to decode object of type %T; got %T", &api.ClusterConfig{}, cfg)
 	}
 	return cfg, nil
+}
+
+// LoadConfigFromFile loads ClusterConfig from configFile
+func LoadConfigFromFile(configFile string) (*api.ClusterConfig, error) {
+	data, err := readConfig(configFile)
+	if err != nil {
+		return nil, errors.Wrapf(err, "reading config file %q", configFile)
+	}
+	clusterConfig, err := ParseConfig(data)
+	if err != nil {
+		return nil, errors.Wrapf(err, "loading config file %q", configFile)
+	}
+	return clusterConfig, nil
+
 }
 
 func readConfig(configFile string) ([]byte, error) {
@@ -262,7 +296,7 @@ func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 	}, nil
 }
 
-// CheckAuth checks the AWS authentication
+// checkAuth checks the AWS authentication
 func (c *ClusterProvider) checkAuth() error {
 
 	input := &sts.GetCallerIdentityInput{}
@@ -279,21 +313,24 @@ func (c *ClusterProvider) checkAuth() error {
 }
 
 // ResolveAMI ensures that the node AMI is set and is available
-func ResolveAMI(provider api.ClusterProvider, version string, ng *api.NodeGroup) error {
+func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) error {
 	var resolver ami.Resolver
+	ng := np.BaseNodeGroup()
 	switch ng.AMI {
 	case api.NodeImageResolverAuto:
 		resolver = ami.NewAutoResolver(provider.EC2())
 	case api.NodeImageResolverAutoSSM:
 		resolver = ami.NewSSMResolver(provider.SSM())
-	default:
+	case "":
 		resolver = ami.NewMultiResolver(
 			ami.NewSSMResolver(provider.SSM()),
 			ami.NewAutoResolver(provider.EC2()),
 		)
+	default:
+		return errors.Errorf("invalid AMI value: %q", ng.AMI)
 	}
 
-	instanceType := selectInstanceType(ng)
+	instanceType := selectInstanceType(np)
 	id, err := resolver.Resolve(provider.Region(), version, instanceType, ng.AMIFamily)
 	if err != nil {
 		return errors.Wrap(err, "unable to determine AMI to use")
@@ -308,8 +345,8 @@ func ResolveAMI(provider api.ClusterProvider, version string, ng *api.NodeGroup)
 // selectInstanceType determines which instanceType is relevant for selecting an AMI
 // If the nodegroup has mixed instances it will prefer a GPU instance type over a general class one
 // This is to make sure that the AMI that is selected later is valid for all the types
-func selectInstanceType(ng *api.NodeGroup) string {
-	if api.HasMixedInstances(ng) {
+func selectInstanceType(np api.NodePool) string {
+	if ng, ok := np.(*api.NodeGroup); ok && api.HasMixedInstances(ng) {
 		for _, instanceType := range ng.InstancesDistribution.InstanceTypes {
 			if utils.IsGPUInstanceType(instanceType) {
 				return instanceType
@@ -317,7 +354,7 @@ func selectInstanceType(ng *api.NodeGroup) string {
 		}
 		return ng.InstancesDistribution.InstanceTypes[0]
 	}
-	return ng.InstanceType
+	return np.BaseNodeGroup().InstanceType
 }
 
 func errTooFewAvailabilityZones(azs []string) error {
@@ -358,7 +395,7 @@ func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []
 }
 
 func (c *ClusterProvider) newSession(spec *api.ProviderConfig) *session.Session {
-	// we might want to use bits from kops, although right now it seems like too many thing we
+	// we might want to use bits from kops, although right now it seems like too many things we
 	// don't want yet
 	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
 	config := aws.NewConfig().WithCredentialsChainVerboseErrors(true)

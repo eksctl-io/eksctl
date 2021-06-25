@@ -1,24 +1,25 @@
 package manager
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/autoscaling"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/version"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 const (
@@ -39,6 +40,7 @@ type NodeGroupSummary struct {
 	CreationTime         *time.Time
 	NodeInstanceRoleARN  string
 	AutoScalingGroupName string
+	Version              string
 }
 
 // NodeGroupStack represents a nodegroup and its type
@@ -53,10 +55,15 @@ func (c *StackCollection) makeNodeGroupStackName(name string) string {
 }
 
 // createNodeGroupTask creates the nodegroup
-func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup, supportsManagedNodes, forceAddCNIPolicy bool) error {
+func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
 	name := c.makeNodeGroupStackName(ng.Name)
+
 	logger.Info("building nodegroup stack %q", name)
-	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, c.spec, c.makeClusterStackName(), ng, supportsManagedNodes, forceAddCNIPolicy)
+	bootstrapper, err := nodebootstrap.NewBootstrapper(c.spec, ng)
+	if err != nil {
+		return errors.Wrap(err, "error creating bootstrapper")
+	}
+	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, c.spec, ng, bootstrapper, forceAddCNIPolicy, vpcImporter)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
@@ -71,13 +78,16 @@ func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup
 	return c.CreateStack(name, stack, ng.Tags, nil, errs)
 }
 
-func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool) error {
+func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
 	name := c.makeNodeGroupStackName(ng.Name)
+
 	logger.Info("building managed nodegroup stack %q", name)
-	stack := builder.NewManagedNodeGroup(c.ec2API, c.spec, ng, builder.NewLaunchTemplateFetcher(c.ec2API), c.makeClusterStackName(), forceAddCNIPolicy)
+	bootstrapper := nodebootstrap.NewManagedBootstrapper(c.spec, ng)
+	stack := builder.NewManagedNodeGroup(c.ec2API, c.spec, ng, builder.NewLaunchTemplateFetcher(c.ec2API), bootstrapper, forceAddCNIPolicy, vpcImporter)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
+
 	return c.CreateStack(name, stack, ng.Tags, nil, errorCh)
 }
 
@@ -94,7 +104,11 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 
 	nodeGroupStacks := []*Stack{}
 	for _, s := range stacks {
-		if *s.StackStatus == cfn.StackStatusDeleteComplete {
+		switch *s.StackStatus {
+		case cfn.StackStatusDeleteComplete:
+			continue
+		case cfn.StackStatusDeleteFailed:
+			logger.Warning("stack's status of nodegroup named %s is %s", *s.StackName, *s.StackStatus)
 			continue
 		}
 		if c.GetNodeGroupName(s) != "" {
@@ -157,98 +171,8 @@ func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]Stac
 	return allResources, nil
 }
 
-// ScaleNodeGroup will scale an existing nodegroup
-func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
-	clusterName := c.makeClusterStackName()
-	c.spec.Status = &api.ClusterStatus{StackName: clusterName}
-	name := c.makeNodeGroupStackName(ng.Name)
-
-	stack, err := c.DescribeStack(&Stack{StackName: &name})
-	if err != nil {
-		return errors.Wrapf(err, "error describing nodegroup stack %s", name)
-	}
-
-	// Get current stack
-	template, err := c.GetStackTemplate(name)
-	if err != nil {
-		return errors.Wrapf(err, "error getting stack template %s", name)
-	}
-	logger.Debug("stack template (pre-scale change): %s", template)
-
-	//TODO: In the future we might want to use Goformation for strongly typed
-	//manipulation of the template.
-
-	var descriptionBuffer bytes.Buffer
-	descriptionBuffer.WriteString("scaling nodegroup")
-
-	ngPaths, err := getNodeGroupPaths(stack.Tags)
-	if err != nil {
-		return err
-	}
-	var (
-		desiredCapacityPath = ngPaths.DesiredCapacity
-		maxSizePath         = ngPaths.MaxSize
-		minSizePath         = ngPaths.MinSize
-	)
-
-	// TODO rewrite this using types
-	// Get the current values
-	currentCapacity := gjson.Get(template, desiredCapacityPath)
-	currentMaxSize := gjson.Get(template, maxSizePath)
-	currentMinSize := gjson.Get(template, minSizePath)
-
-	hasChanged := func(desiredVal *int, currentVal gjson.Result) bool {
-		return desiredVal != nil && int64(*desiredVal) != currentVal.Int()
-	}
-	changed := hasChanged(ng.DesiredCapacity, currentCapacity) || hasChanged(ng.MaxSize, currentMaxSize) || hasChanged(ng.MinSize, currentMinSize)
-
-	if !changed {
-		logger.Info("no change for nodegroup %q in cluster %q: nodes-min %d, desired %d, nodes-max %d", ng.Name,
-			clusterName, currentMinSize.Int(), *ng.DesiredCapacity, currentMaxSize.Int())
-		return nil
-	}
-
-	if ng.MinSize == nil && int64(*ng.DesiredCapacity) < currentMinSize.Int() {
-		logger.Warning("the desired nodes %d is less than current nodes-min/minSize %d", *ng.DesiredCapacity, currentMinSize.Int())
-		return errors.Errorf("the desired nodes %d is less than current nodes-min/minSize %d", *ng.DesiredCapacity, currentMinSize.Int())
-	}
-
-	if ng.MaxSize == nil && int64(*ng.DesiredCapacity) > currentMaxSize.Int() {
-		logger.Warning("the desired nodes %d is greater than current nodes-max/maxSize %d", *ng.DesiredCapacity, currentMaxSize.Int())
-		return errors.Errorf("the desired nodes %d is greater than current nodes-max/maxSize %d", *ng.DesiredCapacity, currentMaxSize.Int())
-	}
-
-	// Set the new values
-	updateField := func(path, fieldName string, newVal *int, oldVal gjson.Result) error {
-		if !hasChanged(newVal, oldVal) {
-			return nil
-		}
-		template, err = sjson.Set(template, path, fmt.Sprintf("%d", *newVal))
-		if err != nil {
-			return errors.Wrapf(err, "error setting %s", fieldName)
-		}
-		descriptionBuffer.WriteString(fmt.Sprintf(", %s from %d to %d", fieldName, oldVal.Int(), *newVal))
-		return nil
-	}
-
-	if err := updateField(desiredCapacityPath, "desired capacity", ng.DesiredCapacity, currentCapacity); err != nil {
-		return err
-	}
-
-	if err := updateField(minSizePath, "min size", ng.MinSize, currentMinSize); err != nil {
-		return err
-	}
-
-	if err := updateField(maxSizePath, "max size", ng.MaxSize, currentMaxSize); err != nil {
-		return err
-	}
-	logger.Debug("stack template (post-scale change): %s", template)
-
-	return c.UpdateStack(name, c.MakeChangeSetName("scale-nodegroup"), descriptionBuffer.String(), TemplateBody(template), nil)
-}
-
-// GetNodeGroupSummaries returns a list of summaries for the nodegroups of a cluster
-func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummary, error) {
+// GetUnmanagedNodeGroupSummaries returns a list of summaries for the unmanaged nodegroups of a cluster
+func (c *StackCollection) GetUnmanagedNodeGroupSummaries(name string) ([]*NodeGroupSummary, error) {
 	stacks, err := c.DescribeNodeGroupStacks()
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stacks")
@@ -257,28 +181,41 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 	// Create an empty array here so that an object is returned rather than null
 	summaries := []*NodeGroupSummary{}
 	for _, s := range stacks {
-		ngPaths, err := getNodeGroupPaths(s.Tags)
+		nodeGroupType, err := GetNodeGroupType(s.Tags)
 		if err != nil {
 			return nil, err
 		}
 
-		summary, err := c.mapStackToNodeGroupSummary(s, ngPaths)
+		if nodeGroupType == api.NodeGroupTypeUnmanaged {
+			ngPaths, err := getNodeGroupPaths(s.Tags)
+			if err != nil {
+				return nil, err
+			}
 
-		if err != nil {
-			return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
-		}
+			summary, err := c.mapStackToNodeGroupSummary(s, ngPaths)
 
-		asgName, err := c.GetAutoScalingGroupName(s)
-		if err != nil {
-			return nil, errors.Wrap(err, "getting autoscalinggroupname")
-		}
+			if err != nil {
+				return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
+			}
 
-		summary.AutoScalingGroupName = asgName
+			asgName, err := c.getUnmanagedNodeGroupAutoScalingGroupName(s)
+			if err != nil {
+				return nil, errors.Wrap(err, "getting autoscalinggroupname")
+			}
 
-		if name == "" {
-			summaries = append(summaries, summary)
-		} else if summary.Name == name {
-			summaries = append(summaries, summary)
+			summary.AutoScalingGroupName = asgName
+
+			scalingGroup, err := c.GetAutoScalingGroupDesiredCapacity(asgName)
+			if err != nil {
+				return nil, errors.Wrap(err, "getting autoscalinggroup desired capacity")
+			}
+			summary.DesiredCapacity = int(*scalingGroup.DesiredCapacity)
+			summary.MinSize = int(*scalingGroup.MinSize)
+			summary.MaxSize = int(*scalingGroup.MaxSize)
+
+			if name == "" || summary.Name == name {
+				summaries = append(summaries, summary)
+			}
 		}
 	}
 
@@ -294,13 +231,13 @@ func (c *StackCollection) GetAutoScalingGroupName(s *Stack) (string, error) {
 
 	switch nodeGroupType {
 	case api.NodeGroupTypeManaged:
-		res, err := c.GetManagedNodeGroupAutoScalingGroupName(s)
+		res, err := c.getManagedNodeGroupAutoScalingGroupName(s)
 		if err != nil {
 			return "", err
 		}
 		return res, nil
 	case api.NodeGroupTypeUnmanaged, "":
-		res, err := c.GetNodeGroupAutoScalingGroupName(s)
+		res, err := c.getUnmanagedNodeGroupAutoScalingGroupName(s)
 		if err != nil {
 			return "", err
 		}
@@ -312,7 +249,7 @@ func (c *StackCollection) GetAutoScalingGroupName(s *Stack) (string, error) {
 }
 
 // GetNodeGroupAutoScalingGroupName return the unmanaged nodegroup's AutoScalingGroupName
-func (c *StackCollection) GetNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
+func (c *StackCollection) getUnmanagedNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
 	input := &cfn.DescribeStackResourceInput{
 		StackName:         s.StackName,
 		LogicalResourceId: aws.String("NodeGroup"),
@@ -322,12 +259,11 @@ func (c *StackCollection) GetNodeGroupAutoScalingGroupName(s *Stack) (string, er
 	if err != nil {
 		return "", err
 	}
-
 	return *res.StackResourceDetail.PhysicalResourceId, nil
 }
 
 // GetManagedNodeGroupAutoScalingGroupName returns the managed nodegroup's AutoScalingGroupName
-func (c *StackCollection) GetManagedNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
+func (c *StackCollection) getManagedNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
 	input := &eks.DescribeNodegroupInput{
 		ClusterName:   aws.String(getClusterNameTag(s)),
 		NodegroupName: aws.String(c.GetNodeGroupName(s)),
@@ -347,7 +283,24 @@ func (c *StackCollection) GetManagedNodeGroupAutoScalingGroupName(s *Stack) (str
 		}
 	}
 	return strings.Join(asgs, ","), nil
+}
 
+// GetAutoScalingGroupDesiredCapacity returns the AutoScalingGroup's desired capacity
+func (c *StackCollection) GetAutoScalingGroupDesiredCapacity(name string) (autoscaling.Group, error) {
+	asg, err := c.asgAPI.DescribeAutoScalingGroups(&autoscaling.DescribeAutoScalingGroupsInput{
+		AutoScalingGroupNames: []*string{
+			&name,
+		},
+	})
+	if err != nil {
+		return autoscaling.Group{}, fmt.Errorf("couldn't describe ASG: %s", name)
+	}
+	if len(asg.AutoScalingGroups) != 1 {
+		logger.Warning("couldn't find ASG %s", name)
+		return autoscaling.Group{}, fmt.Errorf("couldn't find ASG: %s", name)
+	}
+
+	return *asg.AutoScalingGroups[0], nil
 }
 
 // DescribeNodeGroupStack gets the specified nodegroup stack
@@ -421,7 +374,6 @@ func getNodeGroupPaths(tags []*cfn.Tag) (*nodeGroupPaths, error) {
 		}
 		makeScalingPath := func(field string) string {
 			return makePath(fmt.Sprintf("ScalingConfig.%s", field))
-
 		}
 		return &nodeGroupPaths{
 			InstanceType:    makePath("InstanceTypes.0"),

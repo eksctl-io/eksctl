@@ -201,7 +201,10 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 			if err != nil {
 				return errors.Wrap(err, "error creating Clientset")
 			}
-			return c.WaitForControlPlane(cfg.Metadata, clientSet)
+			if err := c.WaitForControlPlane(cfg.Metadata, clientSet); err != nil {
+				return err
+			}
+			return c.RefreshClusterStatus(cfg)
 		},
 	})
 
@@ -234,7 +237,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 	}
 
 	if cfg.IsFargateEnabled() {
-		manager := fargate.NewFromProvider(cfg.Metadata.Name, c.Provider)
+		manager := fargate.NewFromProvider(cfg.Metadata.Name, c.Provider, c.NewStackManager(cfg))
 		newTasks.Append(&fargateProfilesTask{
 			info:            "create fargate profiles",
 			spec:            cfg,
@@ -287,7 +290,7 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 			tasks.Append(newNeuronDevicePluginTask(c, cfg))
 		} else {
 			logger.Info("as you are using the EKS-Optimized Accelerated AMI with an inf1 instance type, you will need to install the AWS Neuron Kubernetes device plugin.")
-			logger.Info("\t see the following page for instructions: https://github.com/aws/aws-neuron-sdk/blob/master/docs/neuron-container-tools/tutorial-k8s.md")
+			logger.Info("\t see the following page for instructions: https://awsdocs-neuron.readthedocs-hosted.com/en/latest/neuron-deploy/tutorials/tutorial-k8s.html#tutorial-k8s-env-setup-for-neuron")
 		}
 	}
 	if haveNvidiaInstanceType {
@@ -330,9 +333,6 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 		info: "associate IAM OIDC provider",
 		spec: cfg,
 		call: func(cfg *api.ClusterConfig) error {
-			if err := c.RefreshClusterStatus(cfg); err != nil {
-				return err
-			}
 			oidc, err := c.NewOpenIDConnectManager(cfg)
 			if err != nil {
 				return err

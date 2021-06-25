@@ -7,7 +7,7 @@ import (
 )
 
 // ApplyFilter applies nodegroup filters and returns a log function
-func ApplyFilter(clusterConfig *api.ClusterConfig, ngFilter *filter.NodeGroupFilter) func() {
+func ApplyFilter(clusterConfig *api.ClusterConfig, ngFilter filter.NodegroupFilter) func() {
 	var (
 		filteredNodeGroups        []*api.NodeGroup
 		filteredManagedNodeGroups []*api.ManagedNodeGroup

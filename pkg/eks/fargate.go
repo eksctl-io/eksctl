@@ -16,7 +16,8 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-//go:generate counterfeiter -o fakes/fargate_client.go . FargateClient
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fargate_client.go . FargateClient
 type FargateClient interface {
 	CreateProfile(profile *api.FargateProfile, waitForCreation bool) error
 }
@@ -43,6 +44,9 @@ func (fpt *fargateProfilesTask) Do(errCh chan error) error {
 	if err := fpt.clusterProvider.WaitForControlPlane(fpt.spec.Metadata, clientSet); err != nil {
 		return errors.Wrap(err, "failed to wait for control plane")
 	}
+	// Add delay after cluster creation to handle a race condition
+	time.Sleep(30 * time.Second)
+
 	if err := ScheduleCoreDNSOnFargateIfRelevant(fpt.spec, fpt.clusterProvider, clientSet); err != nil {
 		return errors.Wrap(err, "failed to schedule core-dns on fargate")
 	}

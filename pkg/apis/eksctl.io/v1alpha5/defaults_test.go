@@ -51,6 +51,26 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			Expect(cfg.CloudWatch.ClusterLogging.EnableTypes).To(Equal(SupportedCloudWatchClusterLogTypes()))
 		})
+
+		It("should expand `['api', '*', 'audit']` to all", func() {
+			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"api", "*", "audit"}
+
+			SetClusterConfigDefaults(cfg)
+			err = ValidateClusterConfig(cfg)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(cfg.CloudWatch.ClusterLogging.EnableTypes).To(Equal(SupportedCloudWatchClusterLogTypes()))
+		})
+
+		It("should expand `['authenticator', 'controllermanager', 'all']` to all", func() {
+			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"authenticator", "controllermanager", "all"}
+
+			SetClusterConfigDefaults(cfg)
+			err = ValidateClusterConfig(cfg)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(cfg.CloudWatch.ClusterLogging.EnableTypes).To(Equal(SupportedCloudWatchClusterLogTypes()))
+		})
 	})
 
 	Context("SSH settings", func() {
@@ -134,7 +154,6 @@ var _ = Describe("ClusterConfig validation", func() {
 			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
 
 			Expect(testNodeGroup.Bottlerocket).ToNot(BeNil())
-			Expect(testNodeGroup.AMI).To(Equal(NodeImageResolverAutoSSM))
 			Expect(*testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeFalse())
 		})
 	})
@@ -147,6 +166,38 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			Expect(*testVpc.NAT.Gateway).To(BeIdenticalTo(ClusterSingleNAT))
 
+		})
+
+	})
+
+	Describe("Cluster Managed Shared Node Security Group settings", func() {
+		var (
+			cfg *ClusterConfig
+			err error
+		)
+
+		BeforeEach(func() {
+			cfg = NewClusterConfig()
+		})
+
+		It("should be enabled by default", func() {
+			SetClusterConfigDefaults(cfg)
+			Expect(*cfg.VPC.ManageSharedNodeSecurityGroupRules).To(BeTrue())
+		})
+
+		It("should fail validation if disabled without a defined shared node security group", func() {
+			cfg.VPC.ManageSharedNodeSecurityGroupRules = Disabled()
+			SetClusterConfigDefaults(cfg)
+			err = ValidateClusterConfig(cfg)
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("should pass validation if disabled with a defined shared node security group", func() {
+			cfg.VPC.SharedNodeSecurityGroup = "sg-0123456789"
+			cfg.VPC.ManageSharedNodeSecurityGroupRules = Disabled()
+			SetClusterConfigDefaults(cfg)
+			err = ValidateClusterConfig(cfg)
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 	})

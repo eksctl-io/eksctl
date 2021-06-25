@@ -16,7 +16,10 @@ For verbose output, for example logs, please either create a gist or use html de
 -->
 
 <!--
-Before you start writing, please search through existing issues to see whether your problem has already been reported.
+Before you start writing:
+1. Please search through existing issues to see whether your problem has already been reported.
+2. Download the latest version of eksctl to see whether the problem has already been fixed.
+
 For more information on how to open a bug report in eksctl, please refer to our issue submission guide.
 https://github.com/weaveworks/eksctl/blob/main/CONTRIBUTING.md#opening-issues
 -->
@@ -52,10 +55,9 @@ What type of AWS credentials are you using (i.e. default/named profile, MFA)? - 
 
 **Versions**
 <!--
-Please paste in the output of these commands:
+Please paste in the output of this command:
 -->
 ```
-$ eksctl version
-$ kubectl version
+$ eksctl info
 ```
 

@@ -111,3 +111,9 @@ eksctl delete cluster -f cluster.yaml
     If your delete fails or you forget the wait flag, you may have to go to the CloudFormation GUI and delete the eks stacks from there.
 
 See [`examples/`](https://github.com/weaveworks/eksctl/tree/master/examples) directory for more sample config files.
+
+## Dry Run
+The dry-run feature enables generating a ClusterConfig file that skips cluster creation and outputs a ClusterConfig file that
+represents the supplied CLI options and contains the default values set by eksctl.
+
+More info can be found on the [Dry Run](dry-run.md) page.

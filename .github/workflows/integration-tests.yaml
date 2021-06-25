@@ -2,7 +2,7 @@ name: Integration tests
 
 on:
   schedule:
-    - cron: '0 6 * * *'
+    - cron: '0 */4 * * *'
   workflow_dispatch: {}
 
 jobs:
@@ -10,7 +10,7 @@ jobs:
     name: Run integration tests
     environment: "Integration tests"
     runs-on: ubuntu-latest
-    container: weaveworks/eksctl-build:014553f5553855abb719627546a0ac54685f8143
+    container: weaveworks/eksctl-build:fc5e06ce1b53fc87889accaf131f155f49797f52
     env:
       SSH: "/root/.ssh"
     steps:
@@ -42,6 +42,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
           TEST_V: "1"
           GITHUB_TOKEN: "${{ secrets.EKSCTLBOT_TOKEN }}"
+          _____INTERNAL_NODEGROUP_ENABLE_SSM: "true"
         run: make integration-test
       - name: Notify slack on success
         if: success() && github.event_name == 'schedule'
@@ -51,7 +52,7 @@ jobs:
           message: ":deal-with-it-parrot: An integration test run succeeded!"
           channel: team-pitch-black
       - name: Notify slack on failure
-        if: success() && github.event_name == 'schedule'
+        if: failure() && github.event_name == 'schedule'
         uses: ./.github/actions/notify-slack
         with:
           webhook-url: "${{ secrets.SLACK_WEBHOOK }}"

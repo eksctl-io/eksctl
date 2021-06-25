@@ -1,0 +1,21 @@
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-28
+  region: us-west-2
+
+nodeGroups:
+- name: ng
+  instanceSelector:
+    vCPUs: 2
+    memory: "4" # 4 GiB, unit defaults to GiB
+
+managedNodeGroups:
+- name: mng
+  instanceSelector:
+    vCPUs: 2
+    memory: 2GiB #
+    cpuArchitecture: x86_64 # default value
+

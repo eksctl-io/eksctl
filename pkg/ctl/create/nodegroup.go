@@ -2,7 +2,9 @@ package create
 
 import (
 	"fmt"
+	"io"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -15,32 +17,61 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
+type nodegroupOptions struct {
+	cmdutils.CreateNGOptions
+	cmdutils.CreateManagedNGOptions
+	UpdateAuthConfigMap     bool
+	SkipOutdatedAddonsCheck bool
+}
+
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
-	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroup.CreateOpts, mngOptions cmdutils.CreateManagedNGOptions) error {
+	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroupOptions) error {
 		ngFilter := filter.NewNodeGroupFilter()
-		if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, mngOptions).Load(); err != nil {
+		if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, options.CreateNGOptions, options.CreateManagedNGOptions).Load(); err != nil {
 			return errors.Wrap(err, "couldn't create node group filter from command line options")
 		}
 		ctl, err := cmd.NewCtl()
 		if err != nil {
-			return errors.Wrap(err, "couldn't create cluster provider from command line options")
+			return errors.Wrap(err, "couldn't create cluster provider from options")
 		}
-		manager := nodegroup.New(cmd.ClusterConfig, ctl, nil)
-		return manager.Create(options, *ngFilter)
+		if options.DryRun {
+			originalWriter := logger.Writer
+			logger.Writer = io.Discard
+			defer func() {
+				logger.Writer = originalWriter
+			}()
+		}
+		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+
+		if ok, err := ctl.CanOperate(cmd.ClusterConfig); !ok {
+			return err
+		}
+
+		clientSet, err := ctl.NewStdClientSet(cmd.ClusterConfig)
+		if err != nil {
+			return err
+		}
+
+		manager := nodegroup.New(cmd.ClusterConfig, ctl, clientSet)
+		return manager.Create(nodegroup.CreateOpts{
+			InstallNeuronDevicePlugin: options.InstallNeuronDevicePlugin,
+			InstallNvidiaDevicePlugin: options.InstallNvidiaDevicePlugin,
+			UpdateAuthConfigMap:       options.UpdateAuthConfigMap,
+			DryRun:                    options.DryRun,
+			SkipOutdatedAddonsCheck:   options.SkipOutdatedAddonsCheck,
+			ConfigFileProvided:        cmd.ClusterConfigFile != "",
+		}, ngFilter)
 	})
 }
 
-type runFn func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroup.CreateOpts, mngOptions cmdutils.CreateManagedNGOptions) error
+type runFn func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroupOptions) error
 
 func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
-	var (
-		options    nodegroup.CreateOpts
-		mngOptions cmdutils.CreateManagedNGOptions
-	)
+	var options nodegroupOptions
 
 	cfg.Metadata.Version = "auto"
 
@@ -48,10 +79,8 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return runFunc(cmd, ng, options, mngOptions)
+		return runFunc(cmd, ng, options)
 	}
-
-	exampleNodeGroupName := names.ForNodeGroup("", "")
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
@@ -62,18 +91,21 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 		cmdutils.AddNodeGroupFilterFlags(fs, &cmd.Include, &cmd.Exclude)
 		cmdutils.AddUpdateAuthConfigMap(fs, &options.UpdateAuthConfigMap, "Add nodegroup IAM role to aws-auth configmap")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		fs.BoolVarP(&options.DryRun, "dry-run", "", false, "Dry-run mode that skips nodegroup creation and outputs a ClusterConfig")
+		fs.BoolVarP(&options.SkipOutdatedAddonsCheck, "skip-outdated-addons-check", "", false, "whether the creation of ARM nodegroups should proceed when the cluster addons are outdated")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {
+		exampleNodeGroupName := names.ForNodeGroup("", "")
 		fs.StringVarP(&ng.Name, "name", "n", "", fmt.Sprintf("name of the new nodegroup (generated if unspecified, e.g. %q)", exampleNodeGroupName))
-		cmdutils.AddCommonCreateNodeGroupFlags(fs, cmd, ng, &mngOptions)
+		cmdutils.AddCommonCreateNodeGroupFlags(fs, cmd, ng, &options.CreateManagedNGOptions)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Addons", func(fs *pflag.FlagSet) {
-		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
-		fs.BoolVarP(&options.InstallNeuronDevicePlugin, "install-neuron-plugin", "", true, "install Neuron plugin for Inferentia nodes")
-		fs.BoolVarP(&options.InstallNvidiaDevicePlugin, "install-nvidia-plugin", "", true, "install Nvidia plugin for GPU nodes")
+		cmdutils.AddCommonCreateNodeGroupAddonsFlags(fs, ng, &options.CreateNGOptions)
 	})
+
+	cmdutils.AddInstanceSelectorOptions(cmd.FlagSetGroup, ng)
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
 }

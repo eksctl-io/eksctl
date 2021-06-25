@@ -3,8 +3,10 @@ package cmdutils
 import (
 	"encoding/csv"
 	"fmt"
+	"reflect"
 	"strings"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -37,18 +39,54 @@ type commonClusterConfigLoader struct {
 }
 
 var (
-	defaultFlagsIncompatibleWithConfigFile = [...]string{
+	defaultFlagsIncompatibleWithConfigFile = []string{
 		"name",
 		"region",
 		"version",
 		"cluster",
 		"namepace",
 	}
-	defaultFlagsIncompatibleWithoutConfigFile = [...]string{
+	defaultFlagsIncompatibleWithoutConfigFile = []string{
 		"only",
 		"include",
 		"exclude",
 		"only-missing",
+	}
+
+	commonCreateFlagsIncompatibleWithDryRun = []string{
+		"cfn-disable-rollback",
+		"cfn-role-arn",
+		"install-neuron-plugin",
+		"install-nvidia-plugin",
+		"profile",
+		"timeout",
+	}
+
+	commonNGFlagsIncompatibleWithConfigFile = []string{
+		"managed",
+		"spot",
+		"instance-types",
+		"nodes",
+		"nodes-min",
+		"nodes-max",
+		"node-type",
+		"node-volume-size",
+		"node-volume-type",
+		"max-pods-per-node",
+		"node-ami",
+		"node-ami-family",
+		"ssh-access",
+		"ssh-public-key",
+		"enable-ssm",
+		"node-private-networking",
+		"node-security-groups",
+		"node-labels",
+		"node-zones",
+		"asg-access",
+		"external-dns-access",
+		"full-ecr-access",
+		"instance-name",
+		"instance-prefix",
 	}
 )
 
@@ -59,9 +97,9 @@ func newCommonClusterConfigLoader(cmd *Cmd) *commonClusterConfigLoader {
 		Cmd: cmd,
 
 		validateWithConfigFile:             nilValidatorFunc,
-		flagsIncompatibleWithConfigFile:    sets.NewString(defaultFlagsIncompatibleWithConfigFile[:]...),
+		flagsIncompatibleWithConfigFile:    sets.NewString(defaultFlagsIncompatibleWithConfigFile...),
 		validateWithoutConfigFile:          nilValidatorFunc,
-		flagsIncompatibleWithoutConfigFile: sets.NewString(defaultFlagsIncompatibleWithoutConfigFile[:]...),
+		flagsIncompatibleWithoutConfigFile: sets.NewString(defaultFlagsIncompatibleWithoutConfigFile...),
 	}
 }
 
@@ -72,10 +110,8 @@ func (l *commonClusterConfigLoader) Load() error {
 	}
 
 	if l.ClusterConfigFile == "" {
-		for f := range l.flagsIncompatibleWithoutConfigFile {
-			if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
-				return fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f)
-			}
+		if flagName, found := findChangedFlag(l.CobraCommand, l.flagsIncompatibleWithoutConfigFile.List()); found {
+			return errors.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", flagName)
 		}
 		return l.validateWithoutConfigFile()
 	}
@@ -94,10 +130,8 @@ func (l *commonClusterConfigLoader) Load() error {
 		return ErrMustBeSet("metadata")
 	}
 
-	for f := range l.flagsIncompatibleWithConfigFile {
-		if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
-			return ErrCannotUseWithConfigFile(fmt.Sprintf("--%s", f))
-		}
+	if flagName, found := findChangedFlag(l.CobraCommand, l.flagsIncompatibleWithConfigFile.List()); found {
+		return ErrCannotUseWithConfigFile(fmt.Sprintf("--%s", flagName))
 	}
 
 	if l.flagsIncompatibleWithConfigFile.Has("name") && l.NameArg != "" {
@@ -115,6 +149,15 @@ func (l *commonClusterConfigLoader) Load() error {
 
 	api.SetDefaultGitSettings(l.ClusterConfig)
 	return l.validateWithConfigFile()
+}
+
+func findChangedFlag(cmd *cobra.Command, flagNames []string) (string, bool) {
+	for _, f := range flagNames {
+		if flag := cmd.Flag(f); flag != nil && flag.Changed {
+			return f, true
+		}
+	}
+	return "", false
 }
 
 func validateMetadataWithoutConfigFile(cmd *Cmd) error {
@@ -156,40 +199,37 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 
 	ngFilter.SetExcludeAll(params.WithoutNodeGroup)
 
-	l.flagsIncompatibleWithConfigFile.Insert(
+	clusterFlagsIncompatibleWithConfigFile := []string{
 		"tags",
 		"zones",
-		"managed",
 		"fargate",
-		"spot",
-		"instance-types",
-		"nodes",
-		"nodes-min",
-		"nodes-max",
-		"node-type",
-		"node-volume-size",
-		"node-volume-type",
-		"max-pods-per-node",
-		"node-ami",
-		"node-ami-family",
-		"ssh-access",
-		"ssh-public-key",
-		"enable-ssm",
-		"node-private-networking",
-		"node-security-groups",
-		"node-labels",
-		"node-zones",
-		"asg-access",
-		"external-dns-access",
-		"full-ecr-access",
 		"vpc-private-subnets",
 		"vpc-public-subnets",
 		"vpc-cidr",
 		"vpc-nat-mode",
 		"vpc-from-kops-cluster",
-	)
+	}
+
+	l.flagsIncompatibleWithConfigFile.Insert(append(clusterFlagsIncompatibleWithConfigFile, commonNGFlagsIncompatibleWithConfigFile...)...)
 
 	l.flagsIncompatibleWithoutConfigFile.Insert("install-vpc-controllers")
+
+	validateDryRun := func() error {
+		if !params.DryRun {
+			return nil
+		}
+
+		flagsIncompatibleWithDryRun := append([]string{
+			"authenticator-role-arn",
+			"auto-kubeconfig",
+			"install-vpc-controllers",
+			"kubeconfig",
+			"set-kubeconfig-context",
+			"write-kubeconfig",
+		}, commonCreateFlagsIncompatibleWithDryRun...)
+
+		return validateDryRunOptions(l.CobraCommand, flagsIncompatibleWithDryRun)
+	}
 
 	l.validateWithConfigFile = func() error {
 		clusterConfig := l.ClusterConfig
@@ -232,11 +272,8 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				if fluxCfg.GitProvider == "" {
 					return ErrMustBeSet("gitops.flux.gitProvider")
 				}
-				if fluxCfg.Owner == "" {
-					return ErrMustBeSet("gitops.flux.owner")
-				}
-				if fluxCfg.Repository == "" {
-					return ErrMustBeSet("gitops.flux.repo")
+				if len(fluxCfg.Flags) == 0 {
+					return ErrMustBeSet("gitops.flux.flags")
 				}
 			}
 		}
@@ -259,7 +296,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			}
 		}
 
-		return nil
+		return validateDryRun()
 	}
 
 	l.validateWithoutConfigFile = func() error {
@@ -309,43 +346,42 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			ng.Name = names.ForNodeGroup(ng.Name, "")
 		}
 
-		return nil
+		return validateDryRun()
 	}
 
 	return l
 }
 
+func validateDryRunOptions(cmd *cobra.Command, incompatibleFlags []string) error {
+	if flagName, found := findChangedFlag(cmd, incompatibleFlags); found {
+		return errors.Errorf("cannot use --%s with --dry-run as this option cannot be represented in ClusterConfig", flagName)
+	}
+	return nil
+}
+
 // NewCreateNodeGroupLoader will load config or use flags for 'eksctl create nodegroup'
-func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.NodeGroupFilter, mngOptions CreateManagedNGOptions) ClusterConfigLoader {
+func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.NodeGroupFilter, ngOptions CreateNGOptions, mngOptions CreateManagedNGOptions) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
-	l.flagsIncompatibleWithConfigFile.Insert(
-		"managed",
-		"nodes",
-		"nodes-min",
-		"nodes-max",
-		"node-type",
-		"node-volume-size",
-		"node-volume-type",
-		"max-pods-per-node",
-		"node-ami",
-		"node-ami-family",
-		"spot",
-		"instance-types",
-		"ssh-access",
-		"ssh-public-key",
-		"enable-ssm",
-		"node-private-networking",
-		"node-security-groups",
-		"node-labels",
-		"node-zones",
-		"asg-access",
-		"external-dns-access",
-		"full-ecr-access",
-	)
+	l.flagsIncompatibleWithConfigFile.Insert(commonNGFlagsIncompatibleWithConfigFile...)
+
+	validateDryRun := func() error {
+		if !ngOptions.DryRun {
+			return nil
+		}
+		// Filters (--include / --exclude) cannot be represented in ClusterConfig, however, they affect the output, so they're allowed
+		flagsIncompatibleWithDryRun := append([]string{
+			"update-auth-configmap",
+		}, commonCreateFlagsIncompatibleWithDryRun...)
+
+		return validateDryRunOptions(l.CobraCommand, flagsIncompatibleWithDryRun)
+	}
 
 	l.validateWithConfigFile = func() error {
-		return ngFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.GetAllNodeGroupNames())
+		if err := ngFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.GetAllNodeGroupNames()); err != nil {
+			return err
+		}
+		return validateDryRun()
 	}
 
 	l.validateWithoutConfigFile = func() error {
@@ -357,7 +393,6 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 		}
 		if mngOptions.Managed {
 			l.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{makeManagedNodegroup(ng, mngOptions)}
-
 		} else {
 			l.ClusterConfig.NodeGroups = []*api.NodeGroup{ng}
 		}
@@ -384,7 +419,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 				}
 			}
 		}
-		return nil
+		return validateDryRun()
 	}
 
 	return l
@@ -405,19 +440,10 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup, options CreateManagedNGOptio
 }
 
 func validateManagedNGFlags(cmd *cobra.Command, managed bool) error {
-	if managed {
-		for _, f := range incompatibleManagedNodesFlags() {
-			if flag := cmd.Flag(f); flag != nil && flag.Changed {
-				return ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", f))
-			}
-		}
-		return nil
-	}
 	flagsValidOnlyWithMNG := []string{"spot", "instance-types"}
-	for _, f := range flagsValidOnlyWithMNG {
-		if flag := cmd.Flag(f); flag != nil && flag.Changed {
-			return errors.Errorf("--%s is only valid with managed nodegroups (--managed)", f)
-		}
+
+	if flagName, found := findChangedFlag(cmd, flagsValidOnlyWithMNG); found {
+		return errors.Errorf("--%s is only valid with managed nodegroups (--managed)", flagName)
 	}
 	return nil
 }
@@ -624,8 +650,16 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *filter.IAMServiceAccou
 			return ErrMustBeSet("--name")
 		}
 
-		if len(serviceAccount.AttachPolicyARNs) == 0 {
-			return ErrMustBeSet("--attach-policy-arn")
+		if len(serviceAccount.AttachPolicyARNs) == 0 && serviceAccount.AttachRoleARN == "" {
+			return ErrMustBeSet("--attach-policy-arn or --attach-role-arn")
+		}
+
+		if serviceAccount.AttachRoleARN != "" && (*serviceAccount.RoleOnly || serviceAccount.RoleName != "") {
+			return fmt.Errorf("cannot provde --role-name or --role-only when --attach-role-arn is configured")
+		}
+
+		if serviceAccount.AttachRoleARN != "" && (len(serviceAccount.AttachPolicyARNs) != 0 || serviceAccount.AttachPolicy != nil) {
+			return fmt.Errorf("cannot provide --attach-role-arn and specify polices to attach")
 		}
 
 		return nil
@@ -704,4 +738,84 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 	}
 
 	return l
+}
+
+// NewUpdateNodegroupLoader will load config or use flags for 'eksctl update nodegroup'.
+func NewUpdateNodegroupLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithConfigFile = func() error {
+		length := len(l.ClusterConfig.ManagedNodeGroups)
+		if length < 1 {
+			return ErrMustBeSet("managedNodeGroups field")
+		}
+
+		logger.Info("validating nodegroup %q", l.ClusterConfig.ManagedNodeGroups[0].Name)
+
+		var unsupportedFields []string
+		ng := l.ClusterConfig.ManagedNodeGroups[0]
+		var err error
+		if unsupportedFields, err = validateSupportedConfigFields(*ng.NodeGroupBase, []string{"Name"}, unsupportedFields); err != nil {
+			return err
+		}
+
+		if unsupportedFields, err = validateSupportedConfigFields(*ng, []string{"NodeGroupBase", "UpdateConfig"}, unsupportedFields); err != nil {
+			return err
+		}
+
+		if len(unsupportedFields) > 0 {
+			logger.Warning("unchanged fields: the following fields remain unchanged; they are not supported by `eksctl update nodegroup`: %s", strings.Join(unsupportedFields[:], ", "))
+		}
+		return nil
+	}
+
+	l.validateWithoutConfigFile = func() error {
+		if cmd.ClusterConfigFile == "" {
+			return ErrMustBeSet("--config-file")
+		}
+		return nil
+	}
+	return l
+}
+
+// validateSupportedConfigFields parses a config file's fields, evaluates if non-empty fields are supported,
+// and returns an error if a field is not supported.
+func validateSupportedConfigFields(obj interface{}, supportedFields []string, unsupportedFields []string) ([]string, error) {
+	v := reflect.ValueOf(obj)
+	t := v.Type()
+	for fieldNumber := 0; fieldNumber < v.NumField(); fieldNumber++ {
+		if !emptyConfigField(v.Field(fieldNumber)) {
+			if !contains(supportedFields, t.Field(fieldNumber).Name) {
+				unsupportedFields = append(unsupportedFields, t.Field(fieldNumber).Name)
+			}
+		}
+	}
+	return unsupportedFields, nil
+}
+
+// emptyConfigField parses a field's value according to its value then returns true
+// if it is not empty/zero/nil.
+func emptyConfigField(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return v.Uint() == 0
+	case reflect.String:
+		return v.String() == ""
+	case reflect.Ptr, reflect.Slice, reflect.Map, reflect.Interface, reflect.Chan:
+		return v.IsNil()
+	case reflect.Bool:
+		return !v.Bool()
+	}
+	return false
+}
+
+func contains(supportedFields []string, fieldName string) bool {
+	for _, f := range supportedFields {
+		if f == fieldName {
+			return true
+		}
+	}
+	return false
 }

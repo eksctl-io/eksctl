@@ -1,10 +1,17 @@
 package eks
 
 import (
+	"context"
+	"fmt"
 	"strings"
+	"time"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -15,6 +22,7 @@ import (
 	"sigs.k8s.io/aws-iam-authenticator/pkg/token"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
@@ -114,4 +122,77 @@ func (c *ClusterProvider) NewRawClient(spec *api.ClusterConfig) (*kubewrapper.Ra
 	}
 
 	return kubewrapper.NewRawClient(clientSet, client.rawConfig)
+}
+
+// ServerVersion will use discovery API to fetch version of Kubernetes control plane
+func (c *ClusterProvider) ServerVersion(rawClient *kubewrapper.RawClient) (string, error) {
+	return rawClient.ServerVersion()
+}
+
+// UpdateAuthConfigMap creates or adds a nodegroup IAM role in the auth ConfigMap for the given nodegroup.
+func (c *ClusterProvider) UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error {
+	for _, ng := range nodeGroups {
+		// authorise nodes to join
+		if err := authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
+			return err
+		}
+
+		// wait for nodes to join
+		if err := c.WaitForNodes(clientSet, ng); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// WaitForNodes waits till the nodes are ready
+func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error {
+	minSize := ng.Size()
+	if minSize == 0 {
+		return nil
+	}
+	timer := time.After(c.Provider.WaitTimeout())
+	timeout := false
+	readyNodes := sets.NewString()
+	watcher, err := clientSet.CoreV1().Nodes().Watch(context.TODO(), ng.ListOptions())
+	if err != nil {
+		return errors.Wrap(err, "creating node watcher")
+	}
+
+	counter, err := getNodes(clientSet, ng)
+	if err != nil {
+		return errors.Wrap(err, "listing nodes")
+	}
+
+	logger.Info("waiting for at least %d node(s) to become ready in %q", minSize, ng.NameString())
+	for !timeout && counter < minSize {
+		select {
+		case event := <-watcher.ResultChan():
+			logger.Debug("event = %#v", event)
+			if event.Object != nil && event.Type != watch.Deleted {
+				if node, ok := event.Object.(*corev1.Node); ok {
+					if isNodeReady(node) {
+						readyNodes.Insert(node.Name)
+						counter = readyNodes.Len()
+						logger.Debug("node %q is ready in %q", node.Name, ng.NameString())
+					} else {
+						logger.Debug("node %q seen in %q, but not ready yet", node.Name, ng.NameString())
+						logger.Debug("node = %#v", *node)
+					}
+				}
+			}
+		case <-timer:
+			timeout = true
+		}
+	}
+	watcher.Stop()
+	if timeout {
+		return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.Provider.WaitTimeout(), minSize, ng.NameString())
+	}
+
+	if _, err = getNodes(clientSet, ng); err != nil {
+		return errors.Wrap(err, "re-listing nodes")
+	}
+
+	return nil
 }

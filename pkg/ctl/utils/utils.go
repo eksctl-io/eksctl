@@ -9,7 +9,6 @@ import (
 func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	verbCmd := cmdutils.NewVerbCmd("utils", "Various utils", "")
 
-	cmdutils.AddResourceCmd(flagGrouping, verbCmd, waitNodesCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, writeKubeconfigCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, describeStacksCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateClusterStackCmd)
@@ -22,6 +21,7 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, installWindowsVPCController)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateClusterEndpointsCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, publicAccessCIDRsCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, enableSecretsEncryptionCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, schemaCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, nodeGroupHealthCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, describeAddonVersionsCmd)

@@ -23,7 +23,7 @@ func (c *StackCollection) FixClusterCompatibility() error {
 		return err
 	}
 	if stack == nil {
-		return c.ErrStackNotFound()
+		return &StackNotFoundErr{ClusterName: c.spec.Metadata.Name}
 	}
 
 	var (
@@ -74,12 +74,12 @@ func (c *StackCollection) FixClusterCompatibility() error {
 	}
 
 	logger.Info("adding missing resources to cluster stack")
-	_, err = c.AppendNewClusterStackResource(false, true)
+	_, err = c.AppendNewClusterStackResource(false, stackSupportsManagedNodes)
 	return err
 }
 
 func (c *StackCollection) hasManagedToUnmanagedSG() (bool, error) {
-	stackTemplate, err := c.GetStackTemplate(c.makeClusterStackName())
+	stackTemplate, err := c.GetStackTemplate(c.MakeClusterStackName())
 	if err != nil {
 		return false, errors.Wrap(err, "error getting cluster stack template")
 	}
@@ -100,7 +100,7 @@ func (c *StackCollection) EnsureMapPublicIPOnLaunchEnabled() error {
 	}
 
 	// Get stack template
-	stackName := c.makeClusterStackName()
+	stackName := c.MakeClusterStackName()
 	currentTemplate, err := c.GetStackTemplate(stackName)
 	if err != nil {
 		return errors.Wrapf(err, "unable to retrieve cluster stack %q", stackName)

@@ -36,7 +36,9 @@ func doCreateFargateProfile(cmd *cmdutils.Cmd) error {
 	if err != nil {
 		return errors.Wrap(err, "couldn't create cluster provider from command line options")
 	}
-	manager := actionsfargate.New(cmd.ClusterConfig, ctl)
+	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+
+	manager := actionsfargate.New(cmd.ClusterConfig, ctl, ctl.NewStackManager(cmd.ClusterConfig))
 	return manager.Create()
 }
 

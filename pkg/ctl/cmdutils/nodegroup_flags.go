@@ -39,7 +39,7 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGrou
 	ng.SSH.PublicKeyPath = fs.String("ssh-public-key", "", "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
 	ng.SSH.EnableSSM = fs.Bool("enable-ssm", false, "Enable AWS Systems Manager (SSM)")
 
-	fs.StringVar(&ng.AMI, "node-ami", "", "'auto-ssm', 'auto', 'static' (deprecated) or an AMI id (advanced use)")
+	fs.StringVar(&ng.AMI, "node-ami", "", "'auto-ssm', 'auto' or an AMI ID (advanced use)")
 	fs.StringVar(&ng.AMIFamily, "node-ami-family", api.DefaultNodeImageFamily, "'AmazonLinux2' for the Amazon EKS optimized AMI, or use 'Ubuntu2004' or 'Ubuntu1804' for the official Canonical EKS AMIs")
 
 	fs.BoolVarP(&ng.PrivateNetworking, "node-private-networking", "P", false, "whether to make nodegroup networking private")
@@ -59,16 +59,25 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGrou
 	fs.StringSliceVar(&mngOptions.InstanceTypes, "instance-types", nil, "Comma-separated list of instance types (e.g., --instance-types=c3.large,c4.large,c5.large")
 }
 
-func incompatibleManagedNodesFlags() []string {
-	return []string{
-		"max-pods-per-node",
-		"node-ami",
-		"node-security-groups",
-	}
+// AddCommonCreateNodeGroupIAMAddonsFlags adds flags to set ng.IAM.WithAddonPolicies
+func AddCommonCreateNodeGroupAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup, options *CreateNGOptions) {
+	addCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
+	fs.BoolVarP(&options.InstallNeuronDevicePlugin, "install-neuron-plugin", "", true, "install Neuron plugin for Inferentia nodes")
+	fs.BoolVarP(&options.InstallNvidiaDevicePlugin, "install-nvidia-plugin", "", true, "install Nvidia plugin for GPU nodes")
 }
 
-// AddCommonCreateNodeGroupIAMAddonsFlags adds flags to set ng.IAM.WithAddonPolicies
-func AddCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup) {
+// AddInstanceSelectorOptions adds flags for EC2 instance selector
+func AddInstanceSelectorOptions(flagSetGroup *NamedFlagSetGroup, ng *api.NodeGroup) {
+	flagSetGroup.InFlagSet("Instance Selector options", func(fs *pflag.FlagSet) {
+		fs.IntVar(&ng.InstanceSelector.VCPUs, "instance-selector-vcpus", 0, "an integer value (2, 4 etc)")
+		fs.StringVar(&ng.InstanceSelector.Memory, "instance-selector-memory", "", "4 or 4GiB")
+		fs.IntVar(&ng.InstanceSelector.GPUs, "instance-selector-gpus", 0, "an integer value")
+		fs.StringVar(&ng.InstanceSelector.CPUArchitecture, "instance-selector-cpu-architecture", "", "x86_64, or arm64")
+	})
+}
+
+// addCommonCreateNodeGroupIAMAddonsFlags adds flags to set ng.IAM.WithAddonPolicies
+func addCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup) {
 	ng.IAM.WithAddonPolicies.AutoScaler = new(bool)
 	ng.IAM.WithAddonPolicies.ExternalDNS = new(bool)
 	ng.IAM.WithAddonPolicies.ImageBuilder = new(bool)

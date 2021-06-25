@@ -8,13 +8,13 @@ import (
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	. "github.com/weaveworks/eksctl/pkg/ctl/ctltest"
+	"github.com/weaveworks/eksctl/pkg/ctl/ctltest"
 )
 
 var _ = Describe("upgrade cluster", func() {
 
-	newMockUpgradeClusterCmd := func(args ...string) *MockCmd {
-		return NewMockCmd(upgradeClusterWithRunFunc, "upgrade", args...)
+	newMockUpgradeClusterCmd := func(args ...string) *ctltest.MockCmd {
+		return ctltest.NewMockCmd(upgradeClusterWithRunFunc, "upgrade", args...)
 	}
 
 	Describe("without a config file", func() {
@@ -95,7 +95,7 @@ var _ = Describe("upgrade cluster", func() {
 		})
 
 		It("succeeds with the basic configuration", func() {
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockUpgradeClusterCmd("cluster", "-f", configFile)
 			_, err := cmd.Execute()
@@ -103,7 +103,7 @@ var _ = Describe("upgrade cluster", func() {
 		})
 
 		It("accepts --approve flag with the config file", func() {
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 			cmd := newMockUpgradeClusterCmd("cluster", "--config-file", configFile, "--approve")
 			_, err := cmd.Execute()
 			Expect(err).ToNot(HaveOccurred())
@@ -111,7 +111,7 @@ var _ = Describe("upgrade cluster", func() {
 
 		It("fails without a cluster name", func() {
 			cfg.Metadata.Name = ""
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockUpgradeClusterCmd("cluster", "-f", configFile)
 			_, err := cmd.Execute()
@@ -121,7 +121,7 @@ var _ = Describe("upgrade cluster", func() {
 
 		It("fails without a region", func() {
 			cfg.Metadata.Region = ""
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockUpgradeClusterCmd("cluster", "-f", configFile)
 			_, err := cmd.Execute()
@@ -130,7 +130,7 @@ var _ = Describe("upgrade cluster", func() {
 		})
 
 		It("fails if the config file and the --name are specified", func() {
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 			cmd := newMockUpgradeClusterCmd("cluster", "--name", "clus-1", "--config-file", configFile)
 			out, err := cmd.Execute()
 			Expect(err).To(HaveOccurred())
@@ -140,7 +140,7 @@ var _ = Describe("upgrade cluster", func() {
 
 		It("loads the config file correctly", func() {
 			cfg.Metadata.Version = "1.16"
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockUpgradeClusterCmd("cluster", "--config-file", configFile)
 			_, err := cmd.Execute()
@@ -154,7 +154,7 @@ var _ = Describe("upgrade cluster", func() {
 
 		It("when not specified in the config file the version is empty", func() {
 			cfg.Metadata.Version = ""
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 
 			cmd := newMockUpgradeClusterCmd("cluster", "--config-file", configFile)
 			_, err := cmd.Execute()

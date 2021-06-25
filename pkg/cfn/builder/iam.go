@@ -80,9 +80,6 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 	role := &gfniam.Role{
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
 			MakeServiceRef("EKS"),
-			// Ensure that EKS can schedule pods onto Fargate, should the user
-			// define so-called "Fargate profiles" in order to do so:
-			MakeServiceRef("EKSFargatePods"),
 		),
 		ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(managedPolicyArns...)...),
 	}
@@ -224,13 +221,13 @@ type IAMRoleResourceSet struct {
 	description         string
 }
 
-// NewIAMRoleResourceSetForServiceAccount builds IAM Role stack from the give spec
+// NewIAMRoleResourceSetWithAttachPolicyARNs builds IAM Role stack from the give spec
 func NewIAMRoleResourceSetWithAttachPolicyARNs(name, namespace, serviceAccount, permissionsBoundary string, attachPolicyARNs []string, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
 	return newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary, nil, attachPolicyARNs, oidc)
 
 }
 
-// NewIAMRoleResourceSetForServiceAccount builds IAM Role stack from the give spec
+// NewIAMRoleResourceSetWithAttachPolicy builds IAM Role stack from the give spec
 func NewIAMRoleResourceSetWithAttachPolicy(name, namespace, serviceAccount, permissionsBoundary string, attachPolicy api.InlineDocument, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
 	return newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary, attachPolicy, nil, oidc)
 }

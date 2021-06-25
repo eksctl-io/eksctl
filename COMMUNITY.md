@@ -14,9 +14,10 @@ Ready to start contributing? Head over to our [contribution docs](CONTRIBUTING.m
 
 ## Core team
 
-The core team of maintainers are Mike Beaumont ([@michaelbeaumont](https://github.com/michaelbeaumont)),
-Chetan Patwal ([@cPu1](https://github.com/cPu1)),
-Jake Klein ([@aclevername](https://github.com/aclevername))
+The core team of maintainers are Chetan Patwal ([@cPu1](https://github.com/cPu1)),
+Jake Klein ([@aclevername](https://github.com/aclevername)),
+Niki Manoledaki ([@nikimanoledaki](https://github.com/nikimanoledaki)),
+Gergely Brautigam ([@Skarlso](https://github.com/Skarlso)),
 and Claudia Beresford ([@Callisto13](https://github.com/Callisto13)).
 
 ## Join us!

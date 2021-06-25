@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -31,7 +32,7 @@ func getIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &arn)
+		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &arn, "get")
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
@@ -56,6 +57,9 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 
 	if params.output == printers.TableType {
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
+	} else {
+		//log warnings and errors to stderr
+		logger.Writer = os.Stderr
 	}
 
 	if cfg.Metadata.Name == "" {

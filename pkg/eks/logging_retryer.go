@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kris-nova/logger"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -28,7 +29,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 )
 
-const maxRetries = 13
+const (
+	maxRetries          = 13
+	cfnMinThrottleDelay = 5 * time.Second
+)
 
 // LoggingRetryer adds some logging when we are retrying, so we have some idea what is happening
 // Right now it is very basic - e.g. it only logs when we retry (so doesn't log when we fail due to too many retries)
@@ -36,13 +40,20 @@ const maxRetries = 13
 // didn't export the constructor
 type LoggingRetryer struct {
 	client.DefaultRetryer
+	cfnRetryer client.DefaultRetryer
 }
 
 var _ request.Retryer = &LoggingRetryer{}
 
 func newLoggingRetryer() *LoggingRetryer {
 	return &LoggingRetryer{
-		client.DefaultRetryer{NumMaxRetries: maxRetries},
+		DefaultRetryer: client.DefaultRetryer{
+			NumMaxRetries: maxRetries,
+		},
+		cfnRetryer: client.DefaultRetryer{
+			NumMaxRetries:    maxRetries,
+			MinThrottleDelay: cfnMinThrottleDelay,
+		},
 	}
 }
 
@@ -64,9 +75,17 @@ func (l LoggingRetryer) ShouldRetry(r *request.Request) bool {
 
 // RetryRules extends on DefaultRetryer.RetryRules
 func (l LoggingRetryer) RetryRules(r *request.Request) time.Duration {
-	duration := l.DefaultRetryer.RetryRules(r)
+	var (
+		duration time.Duration
+		service  = r.ClientInfo.ServiceName
+	)
 
-	service := r.ClientInfo.ServiceName
+	if r.IsErrorThrottle() && service == cloudformation.ServiceName && r.Operation.Name == "DescribeStacks" {
+		duration = l.cfnRetryer.RetryRules(r)
+	} else {
+		duration = l.DefaultRetryer.RetryRules(r)
+	}
+
 	name := "?"
 	if r.Operation != nil {
 		name = r.Operation.Name

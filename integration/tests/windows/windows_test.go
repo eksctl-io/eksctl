@@ -40,7 +40,7 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 		By("creating a new cluster with Windows nodegroups")
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = params.NewClusterName("windows")
-		clusterConfig.Metadata.Version = api.LatestVersion
+		clusterConfig.Metadata.Version = api.DefaultVersion
 		clusterConfig.Metadata.Region = api.DefaultRegion
 		clusterConfig.IAM.WithOIDC = &withOIDC
 
@@ -82,7 +82,7 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		d := kubeTest.CreateDeploymentFromFile("default", "../../data/windows-server-iis.yaml")
-		kubeTest.WaitForDeploymentReady(d, 8*time.Minute)
+		kubeTest.WaitForDeploymentReady(d, 12*time.Minute)
 	}
 
 	Context("When creating a cluster with Windows nodegroups", func() {

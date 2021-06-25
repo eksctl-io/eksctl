@@ -3,11 +3,19 @@ package manager
 import (
 	"fmt"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
+	"github.com/weaveworks/eksctl/pkg/vpc"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+const (
+	managedByKubernetesLabelKey   = "app.kubernetes.io/managed-by"
+	managedByKubernetesLabelValue = "eksctl"
 )
 
 // NewTasksToCreateClusterWithNodeGroups defines all tasks required to create a cluster along
@@ -26,9 +34,9 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 	)
 
 	appendNodeGroupTasksTo := func(taskTree *tasks.TaskTree) {
-		nodeGroupTasks := c.NewUnmanagedNodeGroupTask(nodeGroups, supportsManagedNodes, false)
-
-		managedNodeGroupTasks := c.NewManagedNodeGroupTask(managedNodeGroups, false)
+		vpcImporter := vpc.NewStackConfigImporter(c.MakeClusterStackName())
+		nodeGroupTasks := c.NewUnmanagedNodeGroupTask(nodeGroups, false, vpcImporter)
+		managedNodeGroupTasks := c.NewManagedNodeGroupTask(managedNodeGroups, false, vpcImporter)
 		if managedNodeGroupTasks.Len() > 0 {
 			nodeGroupTasks.Append(managedNodeGroupTasks.Tasks...)
 		}
@@ -55,16 +63,16 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 }
 
 // NewUnmanagedNodeGroupTask defines tasks required to create all of the nodegroups
-func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup, supportsManagedNodes bool, forceAddCNIPolicy bool) *tasks.TaskTree {
+func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}
 
 	for _, ng := range nodeGroups {
 		taskTree.Append(&nodeGroupTask{
-			info:                 fmt.Sprintf("create nodegroup %q", ng.NameString()),
-			nodeGroup:            ng,
-			stackCollection:      c,
-			supportsManagedNodes: supportsManagedNodes,
-			forceAddCNIPolicy:    forceAddCNIPolicy,
+			info:              fmt.Sprintf("create nodegroup %q", ng.NameString()),
+			nodeGroup:         ng,
+			stackCollection:   c,
+			forceAddCNIPolicy: forceAddCNIPolicy,
+			vpcImporter:       vpcImporter,
 		})
 		// TODO: move authconfigmap tasks here using kubernetesTask and kubernetes.CallbackClientSet
 	}
@@ -73,13 +81,14 @@ func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup,
 }
 
 // NewManagedNodeGroupTask defines tasks required to create managed nodegroups
-func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool) *tasks.TaskTree {
+func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}
 	for _, ng := range nodeGroups {
 		taskTree.Append(&managedNodeGroupTask{
 			stackCollection:   c,
 			nodeGroup:         ng,
 			forceAddCNIPolicy: forceAddCNIPolicy,
+			vpcImporter:       vpcImporter,
 			info:              fmt.Sprintf("create managed nodegroup %q", ng.Name),
 		})
 	}
@@ -106,21 +115,35 @@ func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*
 			IsSubTask: true,
 		}
 
-		saTasks.Append(&taskWithClusterIAMServiceAccountSpec{
-			info:            fmt.Sprintf("create IAM role for serviceaccount %q", sa.NameString()),
-			stackCollection: c,
-			serviceAccount:  sa,
-			oidc:            oidc,
-		})
+		if sa.AttachRoleARN == "" {
+			saTasks.Append(&taskWithClusterIAMServiceAccountSpec{
+				info:            fmt.Sprintf("create IAM role for serviceaccount %q", sa.NameString()),
+				stackCollection: c,
+				serviceAccount:  sa,
+				oidc:            oidc,
+			})
+		} else {
+			logger.Debug("attachRoleARN was provided, skipping role creation")
+			sa.Status = &api.ClusterIAMServiceAccountStatus{
+				RoleARN: &sa.AttachRoleARN,
+			}
+		}
 
+		if sa.Labels == nil {
+			sa.Labels = make(map[string]string)
+		}
+		sa.Labels[managedByKubernetesLabelKey] = managedByKubernetesLabelValue
 		if !api.IsEnabled(sa.RoleOnly) {
 			saTasks.Append(&kubernetesTask{
 				info:       fmt.Sprintf("create serviceaccount %q", sa.NameString()),
 				kubernetes: clientSetGetter,
-				call: func(clientSet kubernetes.Interface) error {
+				objectMeta: sa.ClusterIAMMeta.AsObjectMeta(),
+				call: func(clientSet kubernetes.Interface, objectMeta v1.ObjectMeta) error {
 					sa.SetAnnotations()
-					if err := kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa.ClusterIAMMeta.AsObjectMeta()); err != nil {
-						return errors.Wrapf(err, "failed to create service account %s", sa.NameString())
+					objectMeta.SetAnnotations(sa.AsObjectMeta().Annotations)
+					objectMeta.SetLabels(sa.AsObjectMeta().Labels)
+					if err := kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, objectMeta); err != nil {
+						return errors.Wrapf(err, "failed to create service account %s/%s", objectMeta.GetNamespace(), objectMeta.GetName())
 					}
 					return nil
 				},

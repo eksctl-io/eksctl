@@ -25,6 +25,8 @@ addons:
   attachPolicyARNs: #optional
   - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
   serviceAccountRoleARN: arn:aws:iam::aws:policy/AmazonEKSCNIAccess # optional
+  tags: # optional
+    team: eks
   attachPolicy: # optional
     Statement:
     - Effect: Allow
@@ -62,7 +64,7 @@ eksctl create addon -f config.yaml
 ```
 
 ```console
-eksctl create addon --name vpc-cni --version 1.7.5 --serivce-account-role-arn=<role-arn>
+eksctl create addon --name vpc-cni --version 1.7.5 --service-account-role-arn=<role-arn>
 ```
 
 ## Listing enabled addons
@@ -71,6 +73,14 @@ You can see what addons are enabled in your cluster by running:
 ```console
 eksctl get addons --cluster <cluster-name>
 ```
+
+## Setting the addon's version
+
+Setting the version of the addon is optional. If the `version` field is empty in the request sent by `eksctl`, the EKS API will set it to the default version for that specific addon. More information about which version is the default version for specific addons can be found in the AWS documentation about EKS. Note that the default version might not necessarily be the latest version available. 
+
+The addon version can be set to `latest`. Alternatively, the version can be set with the EKS build tag specified, such as `v1.7.5-eksbuild.1` or `v1.7.5-eksbuild.2`. It can also be set to the release version of the addon, such as `v1.7.5` or `1.7.5`, and the `eksbuild` suffix tag will be discovered and set for you.
+
+See the section below on how to discover available addons and their versions.
 
 ## Discovering addons
 You can discover what addons are available to install on your cluster by running:
@@ -91,7 +101,7 @@ eksctl update addon -f config.yaml
 ```
 
 ```console
-eksctl update addon --name vpc-cni --version 1.8.0 --serivce-account-role-arn=<new-role>
+eksctl update addon --name vpc-cni --version 1.8.0 --service-account-role-arn=<new-role>
 ```
 
 ## Deleting addons

@@ -86,6 +86,9 @@ type ClusterIAMServiceAccount struct {
 	// +optional
 	AttachPolicy InlineDocument `json:"attachPolicy,omitempty"`
 
+	// ARN of the role to attach to the service account
+	AttachRoleARN string `json:"attachRoleARN,omitempty"`
+
 	// ARN of the permissions boundary to associate with the service account
 	// +optional
 	PermissionsBoundary string `json:"permissionsBoundary,omitempty"`

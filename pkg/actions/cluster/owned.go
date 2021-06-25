@@ -34,7 +34,7 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackMana
 }
 
 func (c *OwnedCluster) Upgrade(dryRun bool) error {
-	if err := c.ctl.LoadClusterVPC(c.cfg); err != nil {
+	if err := c.ctl.LoadClusterVPC(c.cfg, c.stackManager); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
 	}
 
@@ -57,7 +57,8 @@ func (c *OwnedCluster) Upgrade(dryRun bool) error {
 		return err
 	}
 
-	if err := c.ctl.ValidateExistingNodeGroupsForCompatibility(c.cfg, c.stackManager); err != nil {
+	nodeGroupService := eks.NodeGroupService{Provider: c.ctl.Provider}
+	if err := nodeGroupService.ValidateExistingNodeGroupsForCompatibility(c.cfg, c.stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
@@ -65,7 +66,7 @@ func (c *OwnedCluster) Upgrade(dryRun bool) error {
 	return nil
 }
 
-func (c *OwnedCluster) Delete(_ time.Duration, wait bool) error {
+func (c *OwnedCluster) Delete(_ time.Duration, wait, force bool) error {
 	var (
 		clientSet kubernetes.Interface
 		oidc      *iamoidc.OpenIDConnectManager
@@ -81,26 +82,40 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait bool) error {
 		var err error
 		clientSet, err = c.newClientSet()
 		if err != nil {
-			return err
+			if force {
+				logger.Warning("error occurred during deletion: %v", err)
+			} else {
+				return err
+			}
 		}
 
 		oidc, err = c.ctl.NewOpenIDConnectManager(c.cfg)
 		if err != nil {
 			if _, ok := err.(*eks.UnsupportedOIDCError); !ok {
-				return err
+				if force {
+					logger.Warning("error occurred during deletion: %v", err)
+				} else {
+					return err
+				}
 			}
 			oidcSupported = false
 		}
 	}
 
 	if err := deleteSharedResources(c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {
-		return err
+		if err != nil {
+			if force {
+				logger.Warning("error occurred during deletion: %v", err)
+			} else {
+				return err
+			}
+		}
 	}
 
 	deleteOIDCProvider := clusterOperable && oidcSupported
 	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvider, oidc, kubernetes.NewCachedClientSet(clientSet), wait, func(errs chan error, _ string) error {
 		logger.Info("trying to cleanup dangling network interfaces")
-		if err := c.ctl.LoadClusterVPC(c.cfg); err != nil {
+		if err := c.ctl.LoadClusterVPC(c.cfg, c.stackManager); err != nil {
 			return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
 		}
 

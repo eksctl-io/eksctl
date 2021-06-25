@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/autoscaling"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
@@ -28,15 +29,15 @@ var _ = Describe("StackCollection NodeGroup", func() {
     "NodeGroup": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
-        "DesiredCapacity": "2",
-        "MaxSize": "3",
+        "DesiredCapacity": "3",
+        "MaxSize": "6",
         "MinSize": "1"
       }
     }
   }
 }
-`
 
+`
 	testAZs := []string{"us-west-2b", "us-west-2a", "us-west-2c"}
 
 	newClusterConfig := func(clusterName string) *api.ClusterConfig {
@@ -55,108 +56,12 @@ var _ = Describe("StackCollection NodeGroup", func() {
 		ng := cfg.NewNodeGroup()
 		ng.InstanceType = "t2.medium"
 		ng.AMIFamily = "AmazonLinux2"
+		ng.Name = "12345"
 
 		return ng
 	}
 
-	Describe("ScaleNodeGroup", func() {
-		var (
-			ng *api.NodeGroup
-		)
-
-		JustBeforeEach(func() {
-			p = mockprovider.NewMockProvider()
-		})
-
-		Context("With an existing NodeGroup", func() {
-			JustBeforeEach(func() {
-				cc = newClusterConfig("test-cluster")
-				ng = newNodeGroup(cc)
-				sc = NewStackCollection(p, cc)
-
-				p.MockCloudFormation().
-					On("DescribeStacks", mock.MatchedBy(func(input *cfn.DescribeStacksInput) bool {
-						return input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345"
-					})).Return(&cfn.DescribeStacksOutput{
-					Stacks: []*Stack{
-						{
-							Tags: []*cfn.Tag{
-								{
-									Key:   aws.String(api.NodeGroupNameTag),
-									Value: aws.String("12345"),
-								},
-							},
-						},
-					},
-				}, nil).
-					On("GetTemplate", mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
-						return input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345"
-					})).Return(&cfn.GetTemplateOutput{
-					TemplateBody: aws.String(nodegroupResource),
-				}, nil)
-			})
-
-			It("should be a no-op if attempting to scale to the existing desired capacity", func() {
-				ng.Name = "12345"
-				capacity := 2
-				ng.DesiredCapacity = &capacity
-				err := sc.ScaleNodeGroup(ng)
-				Expect(err).NotTo(HaveOccurred())
-			})
-
-			It("should be a no-op if attempting to scale to the existing desired capacity, min size", func() {
-				ng.Name = "12345"
-				minSize := 1
-				capacity := 2
-				ng.MinSize = &minSize
-				ng.DesiredCapacity = &capacity
-				err := sc.ScaleNodeGroup(ng)
-				Expect(err).NotTo(HaveOccurred())
-			})
-
-			It("should be a no-op if attempting to scale to the existing desired capacity, max size", func() {
-				ng.Name = "12345"
-				capacity := 2
-				maxSize := 3
-				ng.DesiredCapacity = &capacity
-				ng.MaxSize = &maxSize
-				err := sc.ScaleNodeGroup(ng)
-				Expect(err).NotTo(HaveOccurred())
-			})
-
-			It("should be a no-op if attempting to scale to the existing desired capacity, min size and max size", func() {
-				ng.Name = "12345"
-				minSize := 1
-				capacity := 2
-				maxSize := 3
-				ng.MinSize = &minSize
-				ng.DesiredCapacity = &capacity
-				ng.MaxSize = &maxSize
-				err := sc.ScaleNodeGroup(ng)
-				Expect(err).NotTo(HaveOccurred())
-			})
-
-			It("should be a error if the desired capacity is greater than current CF maxSize", func() {
-				ng.Name = "12345"
-				capacity := 5
-				ng.DesiredCapacity = &capacity
-				err := sc.ScaleNodeGroup(ng)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("the desired nodes 5 is greater than current nodes-max/maxSize 3"))
-			})
-
-			It("should be a error if the desired capacity is less than current CF minSize", func() {
-				ng.Name = "12345"
-				capacity := 0
-				ng.DesiredCapacity = &capacity
-				err := sc.ScaleNodeGroup(ng)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("the desired nodes 0 is less than current nodes-min/minSize 1"))
-			})
-		})
-	})
-
-	Describe("GetNodeGroupSummaries", func() {
+	Describe("GetUnmanagedNodeGroupSummaries", func() {
 		Context("With a cluster name", func() {
 			var (
 				clusterName string
@@ -226,12 +131,25 @@ var _ = Describe("StackCollection NodeGroup", func() {
 					return input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345" && input.LogicalResourceId != nil && *input.LogicalResourceId == "NodeGroup"
 				})).Return(&cfn.DescribeStackResourceOutput{
 					StackResourceDetail: &cfn.StackResourceDetail{
-						PhysicalResourceId: aws.String("eksctl-test-cluster-nodegroup-123451-NodeGroup-1N68LL8H1EH27"),
+						PhysicalResourceId: aws.String("eksctl-test-cluster-nodegroup-12345-NodeGroup-1N68LL8H1EH27"),
 					},
 				}, nil)
 
 				p.MockCloudFormation().On("DescribeStackResource", mock.Anything).Return(nil, fmt.Errorf("DescribeStackResource failed"))
 
+				p.MockASG().On("DescribeAutoScalingGroups", mock.MatchedBy(func(input *autoscaling.DescribeAutoScalingGroupsInput) bool {
+					return len(input.AutoScalingGroupNames) == 1 && *input.AutoScalingGroupNames[0] == "eksctl-test-cluster-nodegroup-12345-NodeGroup-1N68LL8H1EH27"
+				})).Return(&autoscaling.DescribeAutoScalingGroupsOutput{
+					AutoScalingGroups: []*autoscaling.Group{
+						{
+							DesiredCapacity: aws.Int64(7),
+							MinSize:         aws.Int64(1),
+							MaxSize:         aws.Int64(10),
+						},
+					},
+				}, nil)
+
+				p.MockASG().On("DescribeAutoScalingGroups", mock.Anything).Return(nil, fmt.Errorf("DescribeAutoScalingGroups failed"))
 			})
 
 			Context("With no matching stacks", func() {
@@ -240,7 +158,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				})
 
 				JustBeforeEach(func() {
-					out, err = sc.GetNodeGroupSummaries("")
+					out, err = sc.GetUnmanagedNodeGroupSummaries("")
 				})
 
 				It("should not error", func() {
@@ -262,7 +180,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				})
 
 				JustBeforeEach(func() {
-					out, err = sc.GetNodeGroupSummaries("")
+					out, err = sc.GetUnmanagedNodeGroupSummaries("")
 				})
 
 				It("should not error", func() {
@@ -281,6 +199,9 @@ var _ = Describe("StackCollection NodeGroup", func() {
 					Expect(out).To(HaveLen(1))
 					Expect(out[0].StackName).To(Equal("eksctl-test-cluster-nodegroup-12345"))
 					Expect(out[0].NodeInstanceRoleARN).To(Equal("arn:aws:iam::1111:role/eks-nodes-base-role"))
+					Expect(out[0].DesiredCapacity).To(Equal(7))
+					Expect(out[0].MinSize).To(Equal(1))
+					Expect(out[0].MaxSize).To(Equal(10))
 				})
 			})
 		})

@@ -7,15 +7,15 @@ import (
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	. "github.com/weaveworks/eksctl/pkg/ctl/ctltest"
+	"github.com/weaveworks/eksctl/pkg/ctl/ctltest"
 )
 
 var _ = Describe("enable flux", func() {
-	var mockEnableFluxCmd func(args ...string) *MockCmd
+	var mockEnableFluxCmd func(args ...string) *ctltest.MockCmd
 
 	BeforeEach(func() {
-		mockEnableFluxCmd = func(args ...string) *MockCmd {
-			return NewMockCmd(configureAndRun, "enable", args...)
+		mockEnableFluxCmd = func(args ...string) *ctltest.MockCmd {
+			return ctltest.NewMockCmd(configureAndRun, "enable", args...)
 		}
 	})
 
@@ -44,7 +44,7 @@ var _ = Describe("enable flux", func() {
 			configFile string
 			cfg        *api.ClusterConfig
 
-			cmd *MockCmd
+			cmd *ctltest.MockCmd
 			err error
 		)
 
@@ -59,15 +59,17 @@ var _ = Describe("enable flux", func() {
 				GitOps: &api.GitOps{
 					Flux: &api.Flux{
 						GitProvider: "github",
-						Repository:  "repo1",
-						Owner:       "username",
+						Flags: api.FluxFlags{
+							"repository": "repo1",
+							"owner":      "username",
+						},
 					},
 				},
 			}
 		})
 
 		JustBeforeEach(func() {
-			configFile = CreateConfigFile(cfg)
+			configFile = ctltest.CreateConfigFile(cfg)
 			cmd = mockEnableFluxCmd("flux", "-f", configFile)
 			_, err = cmd.Execute()
 		})
@@ -81,17 +83,7 @@ var _ = Describe("enable flux", func() {
 
 			fluxCfg := cmd.Cmd.ClusterConfig.GitOps.Flux
 			Expect(fluxCfg).ToNot(BeNil())
-			Expect(fluxCfg.Repository).To(Equal("repo1"))
 			Expect(fluxCfg.GitProvider).To(Equal("github"))
-			Expect(fluxCfg.Owner).To(Equal("username"))
-		})
-
-		It("loads the correct default", func() {
-			Expect(err).ToNot(HaveOccurred())
-
-			fluxCfg := cmd.Cmd.ClusterConfig.GitOps.Flux
-			Expect(fluxCfg).ToNot(BeNil())
-			Expect(fluxCfg.Namespace).To(Equal("flux-system"))
 		})
 
 		When("metadata.cluster is not provided", func() {
@@ -134,23 +126,13 @@ var _ = Describe("enable flux", func() {
 			})
 		})
 
-		When("gitops.flux.repository is not provided", func() {
+		When("gitops.flux.flags are not provided", func() {
 			BeforeEach(func() {
-				cfg.GitOps.Flux.Repository = ""
+				cfg.GitOps.Flux.Flags = api.FluxFlags{}
 			})
 
 			It("fails", func() {
-				Expect(err).To(MatchError("gitops.flux.repository must be set"))
-			})
-		})
-
-		When("gitops.flux.owner is not provided", func() {
-			BeforeEach(func() {
-				cfg.GitOps.Flux.Owner = ""
-			})
-
-			It("fails", func() {
-				Expect(err).To(MatchError("gitops.flux.owner must be set"))
+				Expect(err).To(MatchError("gitops.flux.flags must be set"))
 			})
 		})
 

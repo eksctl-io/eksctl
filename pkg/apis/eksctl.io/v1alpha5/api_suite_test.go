@@ -1,4 +1,4 @@
-package v1alpha5
+package v1alpha5_test
 
 import (
 	"testing"

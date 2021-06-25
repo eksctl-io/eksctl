@@ -5,12 +5,11 @@ import (
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 
 	. "github.com/weaveworks/eksctl/pkg/cfn/template/matchers"
-
-	. "github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
 
 var _ = Describe("template builder for IAM", func() {
@@ -42,7 +41,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			appendServiceAccountToClusterConfig(cfg, serviceAccount)
 
-			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
+			rs := builder.NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 
@@ -84,7 +83,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			appendServiceAccountToClusterConfig(cfg, serviceAccount)
 
-			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
+			rs := builder.NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 
@@ -139,7 +138,7 @@ var _ = Describe("template builder for IAM", func() {
 				},
 			)
 
-			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
+			rs := builder.NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 
@@ -176,7 +175,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			appendServiceAccountToClusterConfig(cfg, serviceAccount)
 
-			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
+			rs := builder.NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 
@@ -228,7 +227,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			appendServiceAccountToClusterConfig(cfg, serviceAccount)
 
-			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
+			rs := builder.NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 
@@ -254,18 +253,24 @@ var _ = Describe("template builder for IAM", func() {
 			Expect(t).To(HaveOutputWithValue("Role1", `{ "Fn::GetAtt": "Role1.Arn" }`))
 		})
 
-		It("can construct an iamserviceaccount addon template with wellKnownPolicies", func() {
+		It("can construct an iamserviceaccount addon template with all the wellKnownPolicies", func() {
 			serviceAccount := &api.ClusterIAMServiceAccount{}
 
 			serviceAccount.Name = "sa-1"
 
 			serviceAccount.WellKnownPolicies = api.WellKnownPolicies{
-				ImageBuilder: true,
+				ImageBuilder:              true,
+				AutoScaler:                true,
+				AWSLoadBalancerController: true,
+				ExternalDNS:               true,
+				CertManager:               true,
+				EBSCSIController:          true,
+				EFSCSIController:          true,
 			}
 
 			appendServiceAccountToClusterConfig(cfg, serviceAccount)
 
-			rs := NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
+			rs := builder.NewIAMRoleResourceSetForServiceAccount(serviceAccount, oidc)
 
 			templateBody := []byte{}
 
@@ -277,7 +282,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			Expect(t.Description).To(Equal("IAM role for serviceaccount \"default/sa-1\" [created and managed by eksctl]"))
 
-			Expect(t.Resources).To(HaveLen(1))
+			Expect(t.Resources).To(HaveLen(10))
 			Expect(t.Outputs).To(HaveLen(1))
 
 			Expect(t).To(HaveResource("Role1", "AWS::IAM::Role"))
@@ -333,7 +338,7 @@ var _ = Describe("template builder for IAM", func() {
 		It("can construct an iamrole template with attachPolicyARNs", func() {
 			arns := []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"}
 
-			rs := NewIAMRoleResourceSetWithAttachPolicyARNs("VPC-addon", "", "", "boundary-arn", arns, oidc)
+			rs := builder.NewIAMRoleResourceSetWithAttachPolicyARNs("VPC-addon", "", "", "boundary-arn", arns, oidc)
 
 			templateBody := []byte{}
 
@@ -370,7 +375,7 @@ var _ = Describe("template builder for IAM", func() {
 				},
 			)
 
-			rs := NewIAMRoleResourceSetWithAttachPolicy("VPC-addon", "", "", "boundary-arn", attachPolicy, oidc)
+			rs := builder.NewIAMRoleResourceSetWithAttachPolicy("VPC-addon", "", "", "boundary-arn", attachPolicy, oidc)
 
 			templateBody := []byte{}
 

@@ -61,7 +61,8 @@ managedNodeGroups:
     instanceType: t2.large
     minSize: 2
     maxSize: 3
-```
+``` 
+Another example of a config file for creating a managed nodegroup can be found [here](https://github.com/weaveworks/eksctl/blob/main/examples/15-managed-nodes.yaml).
 
 It's possible to have a cluster with both managed and unmanaged nodegroups. Unmanaged nodegroups do not show up in
 the AWS EKS console but `eksctl get nodegroup` will list both types of nodegroups.
@@ -150,6 +151,12 @@ existing cluster:
 $ eksctl create nodegroup --managed
 ```
 
+Tip : if you are using a `ClusterConfig` file to describe your whole cluster, describe your new managed node group in its `managedNodeGroups` field and run\:
+
+```console
+$ eksctl create nodegroup --config-file=YOUR_CLUSTER.yaml
+```
+
 ## Upgrading managed nodegroups
 You can update a nodegroup to the latest EKS-optimized AMI release version for the AMI type you are using at any time.
 
@@ -170,6 +177,12 @@ the latest AMI release for Kubernetes 1.15 using:
 
 ```console
 eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --kubernetes-version=1.15
+```
+
+To upgrade to a specific AMI release version instead of the latest version, pass `--release-version`:
+
+```console
+eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --release-version=1.19.6-20210310
 ```
 
 ## Nodegroup Health issues
@@ -223,7 +236,7 @@ They do not propagate to the provisioned Autoscaling Group like in unmanaged nod
 - The `amiFamily` field supports only `AmazonLinux2`
 - `instancesDistribution` field is not supported
 - Full control over the node bootstrapping process and customization of the kubelet are not supported. This includes the
-following fields: `classicLoadBalancerNames`, `taints`, `targetGroupARNs`, `clusterDNS` and `kubeletExtraConfig`.
+following fields: `classicLoadBalancerNames`, `targetGroupARNs`, `clusterDNS` and `kubeletExtraConfig`.
 - No support for enabling metrics on AutoScalingGroups using `asgMetricsCollection`
 
 ## Note for eksctl versions below 0.12.0
@@ -242,4 +255,3 @@ the naming convention `eksctl-<cluster>-cluster-ClusterSharedNodeSecurityGroup-<
 - [EKS Managed Nodegroups][eks-user-guide]
 
 [eks-user-guide]: https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html
-

@@ -5,8 +5,6 @@ import (
 
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
-	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -14,13 +12,12 @@ import (
 
 func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
 	mng := m.nodeGroup
-
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
 		TagSpecifications: makeTags(mng.NodeGroupBase, m.clusterConfig.Metadata),
 		MetadataOptions:   makeMetadataOptions(mng.NodeGroupBase),
 	}
 
-	userData, err := nodebootstrap.MakeManagedUserData(mng, m.UserDataMimeBoundary)
+	userData, err := m.bootstrapper.UserData()
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +25,7 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 		launchTemplateData.UserData = gfnt.NewString(userData)
 	}
 
-	securityGroupIDs := gfnt.Slice{makeImportValue(m.clusterStackName, outputs.ClusterDefaultSecurityGroup)}
+	securityGroupIDs := m.vpcImporter.SecurityGroups()
 	for _, sgID := range mng.SecurityGroups.AttachIDs {
 		securityGroupIDs = append(securityGroupIDs, gfnt.NewString(sgID))
 	}
@@ -41,9 +38,10 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 		launchTemplateData.KeyName = gfnt.NewString(*mng.SSH.PublicKeyName)
 
 		if *mng.SSH.Allow {
+			vpcID := m.vpcImporter.VPC()
 			sshRef := m.newResource("SSH", &gfnec2.SecurityGroup{
 				GroupName:            gfnt.MakeFnSubString(fmt.Sprintf("${%s}-remoteAccess", gfnt.StackName)),
-				VpcId:                makeImportValue(m.clusterStackName, outputs.ClusterVPC),
+				VpcId:                vpcID,
 				SecurityGroupIngress: makeSSHIngressRules(mng.NodeGroupBase, m.clusterConfig.VPC.CIDR.String(), fmt.Sprintf("managed worker nodes in group %s", mng.Name)),
 				GroupDescription:     gfnt.NewString("Allow SSH access"),
 			})
@@ -54,6 +52,9 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 	if api.IsEnabled(mng.EFAEnabled) {
 		// we don't want to touch the network interfaces at all if we have a
 		// managed nodegroup, unless EFA is enabled
+		desc := "worker nodes in group " + m.nodeGroup.Name
+		efaSG := m.addEFASecurityGroup(m.vpcImporter.VPC(), m.clusterConfig.Metadata.Name, desc)
+		securityGroupIDs = append(securityGroupIDs, efaSG)
 		if err := buildNetworkInterfaces(launchTemplateData, mng.InstanceTypeList(), true, securityGroupIDs, m.ec2API); err != nil {
 			return nil, errors.Wrap(err, "couldn't build network interfaces for launch template data")
 		}
@@ -73,44 +74,13 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 		launchTemplateData.EbsOptimized = gfnt.NewBoolean(*mng.EBSOptimized)
 	}
 
-	if volumeSize := mng.VolumeSize; volumeSize != nil && *volumeSize > 0 {
-		mapping := gfnec2.LaunchTemplate_BlockDeviceMapping{
-			Ebs: &gfnec2.LaunchTemplate_Ebs{
-				VolumeSize: gfnt.NewInteger(*volumeSize),
-				VolumeType: gfnt.NewString(*mng.VolumeType),
-			},
-		}
-		if mng.VolumeEncrypted != nil {
-			mapping.Ebs.Encrypted = gfnt.NewBoolean(*mng.VolumeEncrypted)
-		}
-		if api.IsSetAndNonEmptyString(mng.VolumeKmsKeyID) {
-			mapping.Ebs.KmsKeyId = gfnt.NewString(*mng.VolumeKmsKeyID)
-		}
-
-		if *mng.VolumeType == api.NodeVolumeTypeIO1 || *mng.VolumeType == api.NodeVolumeTypeGP3 {
-			if mng.VolumeIOPS != nil {
-				mapping.Ebs.Iops = gfnt.NewInteger(*mng.VolumeIOPS)
-			}
-		}
-
-		if *mng.VolumeType == api.NodeVolumeTypeGP3 && mng.VolumeThroughput != nil {
-			mapping.Ebs.Throughput = gfnt.NewInteger(*mng.VolumeThroughput)
-		}
-
-		if mng.VolumeName != nil {
-			mapping.DeviceName = gfnt.NewString(*mng.VolumeName)
-		} else {
-			mapping.DeviceName = gfnt.NewString("/dev/xvda")
-		}
-
-		launchTemplateData.BlockDeviceMappings = []gfnec2.LaunchTemplate_BlockDeviceMapping{mapping}
-	}
-
 	if mng.Placement != nil {
 		launchTemplateData.Placement = &gfnec2.LaunchTemplate_Placement{
 			GroupName: gfnt.NewString(mng.Placement.GroupName),
 		}
 	}
+
+	launchTemplateData.BlockDeviceMappings = makeBlockDeviceMappings(mng.NodeGroupBase)
 
 	return launchTemplateData, nil
 }
@@ -172,10 +142,20 @@ func makeTags(ng *api.NodeGroupBase, meta *api.ClusterMeta) []gfnec2.LaunchTempl
 			Value: gfnt.NewString(v),
 		})
 	}
-	return []gfnec2.LaunchTemplate_TagSpecification{
-		{
+
+	var launchTemplateTagSpecs []gfnec2.LaunchTemplate_TagSpecification
+
+	launchTemplateTagSpecs = append(launchTemplateTagSpecs,
+		gfnec2.LaunchTemplate_TagSpecification{
 			ResourceType: gfnt.NewString("instance"),
 			Tags:         cfnTags,
-		},
-	}
+		}, gfnec2.LaunchTemplate_TagSpecification{
+			ResourceType: gfnt.NewString("volume"),
+			Tags:         cfnTags,
+		}, gfnec2.LaunchTemplate_TagSpecification{
+			ResourceType: gfnt.NewString("network-interface"),
+			Tags:         cfnTags,
+		})
+
+	return launchTemplateTagSpecs
 }

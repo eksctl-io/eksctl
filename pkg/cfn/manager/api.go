@@ -1,11 +1,14 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
+	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
@@ -72,6 +75,7 @@ type StackCollection struct {
 	eksAPI            eksiface.EKSAPI
 	iamAPI            iamiface.IAMAPI
 	cloudTrailAPI     cloudtrailiface.CloudTrailAPI
+	asgAPI            autoscalingiface.AutoScalingAPI
 	spec              *api.ClusterConfig
 	disableRollback   bool
 	roleARN           string
@@ -102,6 +106,7 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *
 		eksAPI:            provider.EKS(),
 		iamAPI:            provider.IAM(),
 		cloudTrailAPI:     provider.CloudTrail(),
+		asgAPI:            provider.ASG(),
 		disableRollback:   provider.CloudFormationDisableRollback(),
 		roleARN:           provider.CloudFormationRoleARN(),
 		region:            provider.Region(),
@@ -162,22 +167,78 @@ func (c *StackCollection) DoCreateStackRequest(i *Stack, templateData TemplateDa
 // any errors will be written to errs channel, when nil is written,
 // assume completion, do not expect more then one error value on the
 // channel, it's closed immediately after it is written to
-func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, tags, parameters map[string]string, errs chan error) error {
-	i := &Stack{StackName: &name}
-	templateBody, err := stack.RenderJSON()
+func (c *StackCollection) CreateStack(stackName string, resourceSet builder.ResourceSet, tags, parameters map[string]string, errs chan error) error {
+	stack, err := c.createStackRequest(stackName, resourceSet, tags, parameters)
 	if err != nil {
-		return errors.Wrapf(err, "rendering template for %q stack", *i.StackName)
-	}
-
-	if err := c.DoCreateStackRequest(i, TemplateBody(templateBody), tags, parameters, stack.WithIAM(), stack.WithNamedIAM()); err != nil {
 		return err
 	}
 
-	logger.Info("deploying stack %q", name)
+	go c.waitUntilStackIsCreated(stack, resourceSet, errs)
+	return nil
+}
 
-	go c.waitUntilStackIsCreated(i, stack, errs)
+// createClusterStack creates the cluster stack
+func (c *StackCollection) createClusterStack(stackName string, resourceSet builder.ResourceSet, errCh chan error) error {
+	// Unlike with `createNodeGroupTask`, all tags are already set for the cluster stack
+	stack, err := c.createStackRequest(stackName, resourceSet, nil, nil)
+	if err != nil {
+		return err
+	}
+	go func() {
+		defer close(errCh)
+		troubleshoot := func() {
+			stack, err := c.DescribeStack(stack)
+			if err != nil {
+				logger.Info("error describing stack to troubleshoot the cause of the failure; "+
+					"check the CloudFormation console for further details", err)
+				return
+			}
+
+			logger.Critical("unexpected status %q while waiting for CloudFormation stack %q", *stack.StackStatus, *stack.StackName)
+			c.troubleshootStackFailureCause(stack, cloudformation.StackStatusCreateComplete)
+		}
+
+		ctx, cancelFunc := context.WithTimeout(context.Background(), c.waitTimeout)
+		defer cancelFunc()
+
+		stack, err := waiter.WaitForStack(ctx, c.cloudformationAPI, *stack.StackId, *stack.StackName, func(attempts int) time.Duration {
+			// Wait 30s for the first two requests, and 1m for subsequent requests.
+			if attempts <= 2 {
+				return 30 * time.Second
+			}
+			return 1 * time.Minute
+		})
+
+		if err != nil {
+			troubleshoot()
+			errCh <- err
+			return
+		}
+
+		if err := resourceSet.GetAllOutputs(*stack); err != nil {
+			errCh <- errors.Wrapf(err, "getting stack %q outputs", *stack.StackName)
+			return
+		}
+
+		errCh <- nil
+	}()
 
 	return nil
+}
+
+func (c *StackCollection) createStackRequest(stackName string, resourceSet builder.ResourceSet, tags, parameters map[string]string) (*Stack, error) {
+	stack := &Stack{StackName: &stackName}
+	templateBody, err := resourceSet.RenderJSON()
+	if err != nil {
+		return nil, errors.Wrapf(err, "rendering template for %q stack", *stack.StackName)
+	}
+
+	if err := c.DoCreateStackRequest(stack, TemplateBody(templateBody), tags, parameters, resourceSet.WithIAM(), resourceSet.WithNamedIAM()); err != nil {
+		return nil, err
+	}
+
+	logger.Info("deploying stack %q", stackName)
+	return stack, nil
 }
 
 // UpdateStack will update a CloudFormation stack by creating and executing a ChangeSet
@@ -189,8 +250,7 @@ func (c *StackCollection) UpdateStack(stackName, changeSetName, description stri
 	if err != nil {
 		return err
 	}
-	i.SetTags(s.Tags)
-	if err := c.doCreateChangeSetRequest(i, changeSetName, description, templateData, parameters, true); err != nil {
+	if err := c.doCreateChangeSetRequest(stackName, changeSetName, description, templateData, parameters, s.Capabilities, s.Tags); err != nil {
 		return err
 	}
 	if err := c.doWaitUntilChangeSetIsCreated(i, changeSetName); err != nil {
@@ -483,10 +543,6 @@ func fmtStacksRegexForCluster(name string) string {
 	return fmt.Sprintf(ourStackRegexFmt, name)
 }
 
-func (c *StackCollection) ErrStackNotFound() error {
-	return fmt.Errorf("no eksctl-managed CloudFormation stacks found for %q", c.spec.Metadata.Name)
-}
-
 // DescribeStacks describes the existing stacks
 func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 	stacks, err := c.ListStacks()
@@ -508,7 +564,7 @@ func (c *StackCollection) HasClusterStack() (bool, error) {
 }
 
 func (c *StackCollection) HasClusterStackUsingCachedList(clusterStackNames []string) (bool, error) {
-	clusterStackName := c.makeClusterStackName()
+	clusterStackName := c.MakeClusterStackName()
 	for _, stack := range clusterStackNames {
 		if stack == clusterStackName {
 			stack, err := c.DescribeStack(&cloudformation.Stack{StackName: &clusterStackName})
@@ -569,13 +625,13 @@ func (c *StackCollection) LookupCloudTrailEvents(i *Stack) ([]*cloudtrail.Event,
 	return events, nil
 }
 
-func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName string, description string, templateData TemplateData,
-	parameters map[string]string, withIAM bool) error {
+func (c *StackCollection) doCreateChangeSetRequest(stackName, changeSetName, description string, templateData TemplateData,
+	parameters map[string]string, capabilities []*string, tags []*cloudformation.Tag) error {
 	input := &cloudformation.CreateChangeSetInput{
-		StackName:     i.StackName,
+		StackName:     &stackName,
 		ChangeSetName: &changeSetName,
 		Description:   &description,
-		Tags:          append(i.Tags, c.sharedTags...),
+		Tags:          append(tags, c.sharedTags...),
 	}
 
 	input.SetChangeSetType(cloudformation.ChangeSetTypeUpdate)
@@ -589,10 +645,7 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName strin
 		return fmt.Errorf("unknown template data type: %T", templateData)
 	}
 
-	if withIAM {
-		input.SetCapabilities(stackCapabilitiesIAM)
-	}
-
+	input.SetCapabilities(capabilities)
 	if cfnRole := c.roleARN; cfnRole != "" {
 		input.SetRoleARN(cfnRole)
 	}
@@ -608,7 +661,7 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName strin
 	logger.Debug("creating changeSet, input = %#v", input)
 	s, err := c.cloudformationAPI.CreateChangeSet(input)
 	if err != nil {
-		return errors.Wrapf(err, "creating ChangeSet %q for stack %q", changeSetName, *i.StackName)
+		return errors.Wrapf(err, "creating ChangeSet %q for stack %q", changeSetName, stackName)
 	}
 	logger.Debug("changeSet = %#v", s)
 	return nil

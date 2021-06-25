@@ -22,32 +22,30 @@ import (
 
 // NodeGroupResourceSet stores the resource information of the nodegroup
 type NodeGroupResourceSet struct {
-	rs                   *resourceSet
-	clusterSpec          *api.ClusterConfig
-	spec                 *api.NodeGroup
-	supportsManagedNodes bool
-	forceAddCNIPolicy    bool
-	ec2API               ec2iface.EC2API
-	iamAPI               iamiface.IAMAPI
-	clusterStackName     string
-	instanceProfileARN   *gfnt.Value
-	securityGroups       []*gfnt.Value
-	vpc                  *gfnt.Value
-	userData             *gfnt.Value
+	rs                 *resourceSet
+	clusterSpec        *api.ClusterConfig
+	spec               *api.NodeGroup
+	forceAddCNIPolicy  bool
+	ec2API             ec2iface.EC2API
+	iamAPI             iamiface.IAMAPI
+	instanceProfileARN *gfnt.Value
+	securityGroups     []*gfnt.Value
+	vpc                *gfnt.Value
+	vpcImporter        vpc.Importer
+	bootstrapper       nodebootstrap.Bootstrapper
 }
 
 // NewNodeGroupResourceSet returns a resource set for a nodegroup embedded in a cluster config
-func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup,
-	supportsManagedNodes, forceAddCNIPolicy bool) *NodeGroupResourceSet {
+func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, ng *api.NodeGroup, bootstrapper nodebootstrap.Bootstrapper, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
-		rs:                   newResourceSet(),
-		clusterStackName:     clusterStackName,
-		supportsManagedNodes: supportsManagedNodes,
-		forceAddCNIPolicy:    forceAddCNIPolicy,
-		clusterSpec:          spec,
-		spec:                 ng,
-		ec2API:               ec2API,
-		iamAPI:               iamAPI,
+		rs:                newResourceSet(),
+		forceAddCNIPolicy: forceAddCNIPolicy,
+		clusterSpec:       spec,
+		spec:              ng,
+		ec2API:            ec2API,
+		iamAPI:            iamAPI,
+		vpcImporter:       vpcImporter,
+		bootstrapper:      bootstrapper,
 	}
 }
 
@@ -65,15 +63,20 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureSharedSecurityGroup, n.spec.SecurityGroups.WithShared, false)
 	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureLocalSecurityGroup, n.spec.SecurityGroups.WithLocal, false)
 
-	n.vpc = makeImportValue(n.clusterStackName, outputs.ClusterVPC)
+	n.vpc = n.vpcImporter.VPC()
 
-	userData, err := nodebootstrap.NewUserData(n.clusterSpec, n.spec)
-	if err != nil {
-		return err
+	if n.spec.Tags == nil {
+		n.spec.Tags = map[string]string{}
 	}
-	n.userData = gfnt.NewString(userData)
+
+	for k, v := range n.clusterSpec.Metadata.Tags {
+		if _, exists := n.spec.Tags[k]; !exists {
+			n.spec.Tags[k] = v
+		}
+	}
 
 	// Ensure MinSize is set, as it is required by the ASG cfn resource
+	// TODO this validation and default setting should happen way earlier than this
 	if n.spec.MinSize == nil {
 		if n.spec.DesiredCapacity == nil {
 			defaultNodeCount := api.DefaultNodeCount
@@ -83,7 +86,7 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		}
 		logger.Info("--nodes-min=%d was set automatically for nodegroup %s", *n.spec.MinSize, n.spec.Name)
 	} else if n.spec.DesiredCapacity != nil && *n.spec.DesiredCapacity < *n.spec.MinSize {
-		return fmt.Errorf("cannot use --nodes-min=%d and --nodes=%d at the same time", *n.spec.MinSize, *n.spec.DesiredCapacity)
+		return fmt.Errorf("--nodes value (%d) cannot be lower than --nodes-min value (%d)", *n.spec.DesiredCapacity, *n.spec.MinSize)
 	}
 
 	// Ensure MaxSize is set, as it is required by the ASG cfn resource
@@ -95,9 +98,9 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		}
 		logger.Info("--nodes-max=%d was set automatically for nodegroup %s", *n.spec.MaxSize, n.spec.Name)
 	} else if n.spec.DesiredCapacity != nil && *n.spec.DesiredCapacity > *n.spec.MaxSize {
-		return fmt.Errorf("cannot use --nodes-max=%d and --nodes=%d at the same time", *n.spec.MaxSize, *n.spec.DesiredCapacity)
+		return fmt.Errorf("--nodes value (%d) cannot be greater than --nodes-max value (%d)", *n.spec.DesiredCapacity, *n.spec.MaxSize)
 	} else if *n.spec.MaxSize < *n.spec.MinSize {
-		return fmt.Errorf("cannot use --nodes-min=%d and --nodes-max=%d at the same time", *n.spec.MinSize, *n.spec.MaxSize)
+		return fmt.Errorf("--nodes-min value (%d) cannot be greater than --nodes-max value (%d)", *n.spec.MinSize, *n.spec.MaxSize)
 	}
 
 	if err := n.addResourcesForIAM(); err != nil {
@@ -133,55 +136,14 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		launchTemplateData.KeyName = gfnt.NewString(*n.spec.SSH.PublicKeyName)
 	}
 
-	if volumeSize := n.spec.VolumeSize; volumeSize != nil && *volumeSize > 0 {
-		var (
-			kmsKeyID         *gfnt.Value
-			volumeIOPS       *gfnt.Value
-			volumeThroughput *gfnt.Value
-			volumeType       = *n.spec.VolumeType
-		)
-
-		if api.IsSetAndNonEmptyString(n.spec.VolumeKmsKeyID) {
-			kmsKeyID = gfnt.NewString(*n.spec.VolumeKmsKeyID)
-		}
-
-		if volumeType == api.NodeVolumeTypeIO1 || volumeType == api.NodeVolumeTypeGP3 {
-			volumeIOPS = gfnt.NewInteger(*n.spec.VolumeIOPS)
-		}
-
-		if volumeType == api.NodeVolumeTypeGP3 {
-			volumeThroughput = gfnt.NewInteger(*n.spec.VolumeThroughput)
-		}
-
-		launchTemplateData.BlockDeviceMappings = []gfnec2.LaunchTemplate_BlockDeviceMapping{{
-			DeviceName: gfnt.NewString(*n.spec.VolumeName),
-			Ebs: &gfnec2.LaunchTemplate_Ebs{
-				VolumeSize: gfnt.NewInteger(*volumeSize),
-				VolumeType: gfnt.NewString(volumeType),
-				Encrypted:  gfnt.NewBoolean(*n.spec.VolumeEncrypted),
-				KmsKeyId:   kmsKeyID,
-				Iops:       volumeIOPS,
-				Throughput: volumeThroughput,
-			},
-		}}
-
-		if n.spec.AdditionalEncryptedVolume != "" {
-			launchTemplateData.BlockDeviceMappings = append(launchTemplateData.BlockDeviceMappings, gfnec2.LaunchTemplate_BlockDeviceMapping{
-				DeviceName: gfnt.NewString(n.spec.AdditionalEncryptedVolume),
-				Ebs: &gfnec2.LaunchTemplate_Ebs{
-					Encrypted: gfnt.NewBoolean(*n.spec.VolumeEncrypted),
-					KmsKeyId:  kmsKeyID,
-				},
-			})
-		}
-	}
+	launchTemplateData.BlockDeviceMappings = makeBlockDeviceMappings(n.spec.NodeGroupBase)
 
 	n.newResource("NodeGroupLaunchTemplate", &gfnec2.LaunchTemplate{
 		LaunchTemplateName: launchTemplateName,
 		LaunchTemplateData: launchTemplateData,
 	})
 
-	vpcZoneIdentifier, err := AssignSubnets(n.spec.NodeGroupBase, n.clusterStackName, n.clusterSpec)
+	vpcZoneIdentifier, err := AssignSubnets(n.spec.NodeGroupBase, n.vpcImporter, n.clusterSpec)
 	if err != nil {
 		return err
 	}
@@ -235,18 +197,18 @@ func generateNodeName(ng *api.NodeGroupBase, meta *api.ClusterMeta) string {
 }
 
 // AssignSubnets subnets based on the specified availability zones
-func AssignSubnets(spec *api.NodeGroupBase, clusterStackName string, clusterSpec *api.ClusterConfig) (*gfnt.Value, error) {
+func AssignSubnets(spec *api.NodeGroupBase, vpcImporter vpc.Importer, clusterSpec *api.ClusterConfig) (*gfnt.Value, error) {
 	// currently goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
 
-	if numNodeGroupsAZs, numNodeGroupsSubnets := len(spec.AvailabilityZones), len(spec.Subnets); api.IsEnabled(spec.EFAEnabled) || numNodeGroupsAZs > 0 || numNodeGroupsSubnets > 0 {
-		allSubnets := clusterSpec.VPC.Subnets.Public
+	if len(spec.AvailabilityZones) > 0 || len(spec.Subnets) > 0 || api.IsEnabled(spec.EFAEnabled) {
+		subnets := clusterSpec.VPC.Subnets.Public
 		typ := "public"
 		if spec.PrivateNetworking {
-			allSubnets = clusterSpec.VPC.Subnets.Private
+			subnets = clusterSpec.VPC.Subnets.Private
 			typ = "private"
 		}
-		subnetIDs, err := vpc.SelectNodeGroupSubnets(spec.AvailabilityZones, spec.Subnets, allSubnets)
+		subnetIDs, err := vpc.SelectNodeGroupSubnets(spec.AvailabilityZones, spec.Subnets, subnets)
 		if api.IsEnabled(spec.EFAEnabled) && len(subnetIDs) > 1 {
 			subnetIDs = []string{subnetIDs[0]}
 			logger.Info("EFA requires all nodes be in a single subnet, arbitrarily choosing one: %s", subnetIDs)
@@ -256,12 +218,12 @@ func AssignSubnets(spec *api.NodeGroupBase, clusterStackName string, clusterSpec
 
 	var subnets *gfnt.Value
 	if spec.PrivateNetworking {
-		subnets = makeImportValue(clusterStackName, outputs.ClusterSubnetsPrivate)
+		subnets = vpcImporter.SubnetsPrivate()
 	} else {
-		subnets = makeImportValue(clusterStackName, outputs.ClusterSubnetsPublic)
+		subnets = vpcImporter.SubnetsPublic()
 	}
 
-	return gfnt.MakeFnSplit(",", subnets), nil
+	return subnets, nil
 }
 
 // GetAllOutputs collects all outputs of the nodegroup
@@ -270,13 +232,19 @@ func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
 }
 
 func newLaunchTemplateData(n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
+	userData, err := n.bootstrapper.UserData()
+	if err != nil {
+		return nil, err
+	}
+
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
 		IamInstanceProfile: &gfnec2.LaunchTemplate_IamInstanceProfile{
 			Arn: n.instanceProfileARN,
 		},
-		ImageId:         gfnt.NewString(n.spec.AMI),
-		UserData:        n.userData,
-		MetadataOptions: makeMetadataOptions(n.spec.NodeGroupBase),
+		ImageId:           gfnt.NewString(n.spec.AMI),
+		UserData:          gfnt.NewString(userData),
+		MetadataOptions:   makeMetadataOptions(n.spec.NodeGroupBase),
+		TagSpecifications: makeTags(n.spec.NodeGroupBase, n.clusterSpec.Metadata),
 	}
 
 	if err := buildNetworkInterfaces(launchTemplateData, n.spec.InstanceTypeList(), api.IsEnabled(n.spec.EFAEnabled), n.securityGroups, n.ec2API); err != nil {
@@ -336,6 +304,11 @@ func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interfa
 		"VPCZoneIdentifier": vpcZoneIdentifier,
 		"Tags":              tags,
 	}
+
+	if ng.InstancesDistribution != nil && ng.InstancesDistribution.CapacityRebalance {
+		ngProps["CapacityRebalance"] = ng.InstancesDistribution.CapacityRebalance
+	}
+
 	if ng.DesiredCapacity != nil {
 		ngProps["DesiredCapacity"] = fmt.Sprintf("%d", *ng.DesiredCapacity)
 	}

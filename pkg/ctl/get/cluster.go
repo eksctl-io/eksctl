@@ -76,6 +76,11 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 	}
 
+	if params.output != printers.TableType {
+		// log warnings and errors to stdout
+		logger.Writer = os.Stderr
+	}
+
 	if cfg.Metadata.Name == "" {
 		return getAndPrinterClusters(ctl, params, listAllRegions)
 	}

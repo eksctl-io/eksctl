@@ -1,3 +1,9 @@
+# THIS DESIGN DEPRECATED AS OF 0.47.0
+
+See [pkg/nodebootstrap/README.md](/pkg/nodebootstrap/README.md) for current implementation details.
+
+--------------
+
 # Current Design #001: Node Bootstrap
 
 > NOTE: the purpose of this document is to summarize how node bootstrap process is currently implemented in `eksctl`,

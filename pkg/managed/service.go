@@ -58,6 +58,8 @@ type UpgradeOptions struct {
 	LaunchTemplateVersion string
 	//ForceUpgrade enables force upgrade
 	ForceUpgrade bool
+	// ReleaseVersion AMI version of the EKS optimized AMI to use
+	ReleaseVersion string
 }
 
 // TODO use goformation types
@@ -85,7 +87,7 @@ func (m *Service) GetHealth(nodeGroupName string) ([]HealthIssue, error) {
 
 	output, err := m.eksAPI.DescribeNodegroup(input)
 	if err != nil {
-		if isNotFound(err) {
+		if IsNotFound(err) {
 			return nil, errors.Wrapf(err, "could not find a managed nodegroup with name %q", nodeGroupName)
 		}
 		return nil, err
@@ -155,10 +157,14 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 	})
 
 	if err != nil {
-		if isNotFound(err) {
+		if IsNotFound(err) {
 			return fmt.Errorf("upgrade is only supported for managed nodegroups; could not find one with name %q", options.NodegroupName)
 		}
 		return err
+	}
+
+	if options.KubernetesVersion != "" && options.ReleaseVersion != "" {
+		return errors.New("only one of kubernetes-version or release-version can be specified")
 	}
 
 	nodeGroup := output.Nodegroup
@@ -218,11 +224,13 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 		return err
 	}
 
-	if usesCustomAMI && options.KubernetesVersion != "" {
-		return errors.New("cannot specify kubernetes-version when using a custom AMI")
+	if usesCustomAMI && (options.KubernetesVersion != "" || options.ReleaseVersion != "") {
+		return errors.New("cannot specify kubernetes-version or release-version when using a custom AMI")
 	}
 
-	if !usesCustomAMI {
+	if options.ReleaseVersion != "" {
+		ngResource.ReleaseVersion = gfnt.NewString(options.ReleaseVersion)
+	} else if !usesCustomAMI {
 		kubernetesVersion := options.KubernetesVersion
 		if kubernetesVersion == "" {
 			// Use the current Kubernetes version
@@ -366,7 +374,7 @@ func (m *Service) usesCustomAMI(ltResources map[string]*gfnec2.LaunchTemplate, n
 	return customLaunchTemplate.ImageId != nil, nil
 }
 
-func isNotFound(err error) bool {
+func IsNotFound(err error) bool {
 	awsError, ok := err.(awserr.Error)
 	return ok && awsError.Code() == eks.ErrCodeResourceNotFoundException
 }

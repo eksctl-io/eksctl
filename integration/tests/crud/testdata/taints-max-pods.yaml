@@ -1,0 +1,21 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+# name is generated
+metadata:
+  name: <generated>
+
+nodeGroups:
+- name: n1
+  taints:
+    key1: val1:NoSchedule
+    key2: :NoExecute
+  maxPodsPerNode: 123
+- name: n2
+  volumeSize: 35
+  taints:
+  - key: key1
+    value: value1
+    effect: NoSchedule
+  - key: key2
+    effect: NoExecute

@@ -143,6 +143,9 @@ For all commands to work post cluster creation, eksctl will need private access 
 internet access (for `EKS:DescribeCluster`). Commands that do not need access to the API server will be supported if eksctl has
 outbound internet access.
 
+## Force-delete a fully-private cluster
+
+Errors are likely to occur when deleting a fully-private cluster through eksctl since eksctl does not automatically have access to all of the cluster's resources. `--force` exists to solve this: it will force delete the cluster and continue when errors occur.
 
 ## Limitations
 A limitation of the current implementation is that eksctl initially creates the cluster with both public and private endpoint

@@ -1,16 +1,24 @@
 package manager
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 
+	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
+// think Jake is deleting this soon
 func deleteAll(_ string) bool { return true }
 
 // NewTasksToDeleteClusterWithNodeGroups defines tasks required to delete the given cluster along with all of its resources
@@ -54,7 +62,7 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvid
 		return nil, err
 	}
 	if clusterStack == nil {
-		return nil, c.ErrStackNotFound()
+		return nil, &StackNotFoundErr{ClusterName: c.spec.Metadata.Name}
 	}
 
 	info := fmt.Sprintf("delete cluster control plane %q", c.spec.Metadata.Name)
@@ -90,6 +98,7 @@ func (c *StackCollection) NewTasksToDeleteNodeGroups(shouldDelete func(string) b
 		if !shouldDelete(name) {
 			continue
 		}
+
 		if *s.StackStatus == cloudformation.StackStatusDeleteFailed && cleanup != nil {
 			taskTree.Append(&tasks.TaskWithNameParam{
 				Info: fmt.Sprintf("cleanup for nodegroup %q", name),
@@ -115,12 +124,76 @@ func (c *StackCollection) NewTasksToDeleteNodeGroups(shouldDelete func(string) b
 	return taskTree, nil
 }
 
+type DeleteWaitCondition struct {
+	Condition func() (bool, error)
+	Timeout   time.Duration
+	Interval  time.Duration
+}
+
+type DeleteUnownedNodegroupTask struct {
+	cluster   string
+	nodegroup string
+	wait      *DeleteWaitCondition
+	info      string
+	eksAPI    eksiface.EKSAPI
+}
+
+func (d *DeleteUnownedNodegroupTask) Describe() string {
+	return d.info
+}
+
+func (d *DeleteUnownedNodegroupTask) Do() error {
+	out, err := d.eksAPI.DeleteNodegroup(&eks.DeleteNodegroupInput{
+		ClusterName:   &d.cluster,
+		NodegroupName: &d.nodegroup,
+	})
+	if err != nil {
+		return err
+	}
+
+	if d.wait != nil {
+		w := waiter.Waiter{
+			NextDelay: func(_ int) time.Duration {
+				return d.wait.Interval
+			},
+			Operation: d.wait.Condition,
+		}
+
+		if err := w.WaitWithTimeout(d.wait.Timeout); err != nil {
+			if err == context.DeadlineExceeded {
+				return errors.Errorf("timed out waiting for nodegroup deletion after %s", d.wait.Timeout)
+			}
+			return err
+		}
+	}
+
+	if out != nil {
+		logger.Debug("delete nodegroup %q output: %s", d.nodegroup, out.String())
+	}
+	return nil
+}
+
+func (c *StackCollection) NewTaskToDeleteUnownedNodeGroup(clusterName, nodegroup string, eksAPI eksiface.EKSAPI, waitCondition *DeleteWaitCondition) tasks.Task {
+	return tasks.SynchronousTask{
+		SynchronousTaskIface: &DeleteUnownedNodegroupTask{
+			cluster:   clusterName,
+			nodegroup: nodegroup,
+			eksAPI:    eksAPI,
+			wait:      waitCondition,
+			info:      fmt.Sprintf("delete unowned nodegroup %s", nodegroup),
+		}}
+}
+
 // NewTasksToDeleteOIDCProviderWithIAMServiceAccounts defines tasks required to delete all of the iamserviceaccounts
 // along with associated IAM ODIC provider
 func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) (*tasks.TaskTree, error) {
 	taskTree := &tasks.TaskTree{Parallel: false}
 
-	saTasks, err := c.NewTasksToDeleteIAMServiceAccounts(deleteAll, clientSetGetter, true)
+	allServiceAccountsWithStacks, err := c.getAllServiceAccounts()
+	if err != nil {
+		return nil, err
+	}
+	saTasks, err := c.NewTasksToDeleteIAMServiceAccounts(allServiceAccountsWithStacks, clientSetGetter, true)
 	if err != nil {
 		return nil, err
 	}
@@ -145,50 +218,62 @@ func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oid
 	return taskTree, nil
 }
 
-// NewTasksToDeleteIAMServiceAccounts defines tasks required to delete all of the iamserviceaccounts
-func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(shouldDelete func(string) bool, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*tasks.TaskTree, error) {
+func (c *StackCollection) getAllServiceAccounts() ([]string, error) {
 	serviceAccountStacks, err := c.DescribeIAMServiceAccountStacks()
 	if err != nil {
 		return nil, err
 	}
 
+	var serviceAccounts []string
+	for _, stack := range serviceAccountStacks {
+		serviceAccounts = append(serviceAccounts, GetIAMServiceAccountName(stack))
+	}
+
+	return serviceAccounts, nil
+}
+
+// NewTasksToDeleteIAMServiceAccounts defines tasks required to delete all of the iamserviceaccounts
+func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(serviceAccounts []string, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*tasks.TaskTree, error) {
+	serviceAccountStacks, err := c.DescribeIAMServiceAccountStacks()
+	if err != nil {
+		return nil, err
+	}
+
+	stacksMap := stacksToServiceAccountMap(serviceAccountStacks)
 	taskTree := &tasks.TaskTree{Parallel: true}
 
-	for _, s := range serviceAccountStacks {
+	for _, serviceAccount := range serviceAccounts {
 		saTasks := &tasks.TaskTree{
 			Parallel:  false,
 			IsSubTask: true,
 		}
-		name := GetIAMServiceAccountName(s)
 
-		if !shouldDelete(name) {
-			continue
+		if s, ok := stacksMap[serviceAccount]; ok {
+			info := fmt.Sprintf("delete IAM role for serviceaccount %q", serviceAccount)
+			if wait {
+				saTasks.Append(&taskWithStackSpec{
+					info:  info,
+					stack: s,
+					call:  c.DeleteStackBySpecSync,
+				})
+			} else {
+				saTasks.Append(&asyncTaskWithStackSpec{
+					info:  info,
+					stack: s,
+					call:  c.DeleteStackBySpec,
+				})
+			}
 		}
 
-		info := fmt.Sprintf("delete IAM role for serviceaccount %q", name)
-		if wait {
-			saTasks.Append(&taskWithStackSpec{
-				info:  info,
-				stack: s,
-				call:  c.DeleteStackBySpecSync,
-			})
-		} else {
-			saTasks.Append(&asyncTaskWithStackSpec{
-				info:  info,
-				stack: s,
-				call:  c.DeleteStackBySpec,
-			})
+		meta, err := api.ClusterIAMServiceAccountNameStringToClusterIAMMeta(serviceAccount)
+		if err != nil {
+			return nil, err
 		}
 		saTasks.Append(&kubernetesTask{
-			info:       fmt.Sprintf("delete serviceaccount %q", name),
+			info:       fmt.Sprintf("delete serviceaccount %q", serviceAccount),
 			kubernetes: clientSetGetter,
-			call: func(clientSet kubernetes.Interface) error {
-				meta, err := api.ClusterIAMServiceAccountNameStringToClusterIAMMeta(name)
-				if err != nil {
-					return err
-				}
-				return kubernetes.MaybeDeleteServiceAccount(clientSet, meta.AsObjectMeta())
-			},
+			objectMeta: meta.AsObjectMeta(),
+			call:       kubernetes.MaybeDeleteServiceAccount,
 		})
 		taskTree.Append(saTasks)
 	}
@@ -196,7 +281,16 @@ func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(shouldDelete func(s
 	return taskTree, nil
 }
 
-// NewTasksToDeleteIAMServiceAccounts defines tasks required to delete all of the iamserviceaccounts
+func stacksToServiceAccountMap(stacks []*cloudformation.Stack) map[string]*cloudformation.Stack {
+	stackMap := make(map[string]*cloudformation.Stack)
+	for _, stack := range stacks {
+		stackMap[GetIAMServiceAccountName(stack)] = stack
+	}
+
+	return stackMap
+}
+
+// NewTaskToDeleteAddonIAM defines tasks required to delete all of the addons
 func (c *StackCollection) NewTaskToDeleteAddonIAM(wait bool) (*tasks.TaskTree, error) {
 	stacks, err := c.GetIAMAddonsStacks()
 	if err != nil {

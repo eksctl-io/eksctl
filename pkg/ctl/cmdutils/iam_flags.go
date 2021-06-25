@@ -1,6 +1,8 @@
 package cmdutils
 
 import (
+	"fmt"
+
 	"github.com/spf13/pflag"
 )
 
@@ -14,8 +16,8 @@ func AddIAMServiceAccountFilterFlags(fs *pflag.FlagSet, includeGlobs, excludeGlo
 }
 
 // AddIAMIdentityMappingARNFlags adds --arn and deprecated --role flags
-func AddIAMIdentityMappingARNFlags(fs *pflag.FlagSet, cmd *Cmd, arn *string) {
-	fs.StringVar(arn, "arn", "", "ARN of the IAM role or user to create")
+func AddIAMIdentityMappingARNFlags(fs *pflag.FlagSet, cmd *Cmd, arn *string, verb string) {
+	fs.StringVar(arn, "arn", "", fmt.Sprintf("ARN of the IAM role or user to %s", verb))
 	fs.StringVar(arn, "role", "", "")
 	_ = fs.MarkDeprecated("role", "use --arn")
 }

@@ -3,6 +3,7 @@ package cmdutils
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -12,8 +13,16 @@ import (
 
 type scaleNodeGroupCase struct {
 	name    string
-	error   error
+	err     error
 	minSize *int
+}
+
+type scaleNodeGroupCLICase struct {
+	name        string
+	err         error
+	minSize     *int
+	maxSize     *int
+	desiredSize *int
 }
 
 var _ = Describe("scale node group config file loader", func() {
@@ -23,9 +32,8 @@ var _ = Describe("scale node group config file loader", func() {
 			Run: func(_ *cobra.Command, _ []string) {},
 		}
 	}
-	minSizeOne := 1
 
-	DescribeTable("create nodegroup successfully",
+	DescribeTable("scale nodegroup successfully via config file",
 		func(params scaleNodeGroupCase) {
 			cmd := &Cmd{
 				CobraCommand:      newCmd(),
@@ -37,9 +45,9 @@ var _ = Describe("scale node group config file loader", func() {
 
 			ng := api.NewNodeGroup()
 			err := NewScaleNodeGroupLoader(cmd, ng).Load()
-			if params.error != nil {
+			if params.err != nil {
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(params.error.Error()))
+				Expect(err.Error()).To(ContainSubstring(params.err.Error()))
 			} else {
 				if params.minSize != nil {
 					Expect(ng.MinSize).To(Equal(params.minSize))
@@ -51,34 +59,111 @@ var _ = Describe("scale node group config file loader", func() {
 			name: "ng-all-details",
 		}),
 		Entry("no node group matched", scaleNodeGroupCase{
-			name:  "123123",
-			error: fmt.Errorf("node group 123123 not found"),
+			name: "123123",
+			err:  fmt.Errorf("node group 123123 not found"),
 		}),
 		Entry("with no desired capacity", scaleNodeGroupCase{
-			name:  "ng-no-desired-capacity",
-			error: fmt.Errorf("number of nodes must be 0 or greater"),
+			name: "ng-no-desired-capacity",
+			err:  fmt.Errorf("number of nodes must be 0 or greater"),
 		}),
 		Entry("with no minSize and no maxSize", scaleNodeGroupCase{
 			name: "ng-no-min-max",
 		}),
 		Entry("ng with minSize", scaleNodeGroupCase{
 			name:    "ng-with-min",
-			minSize: &minSizeOne,
+			minSize: aws.Int(1),
 		}),
 		Entry("ng with wrong value for minSize", scaleNodeGroupCase{
-			name:  "ng-with-wrong-min",
-			error: fmt.Errorf("minimum number of nodes must be less than or equal to number of nodes"),
+			name: "ng-with-wrong-min",
+			err:  fmt.Errorf("minimum number of nodes must be less than or equal to number of nodes"),
 		}),
 		Entry("ng with maxSize", scaleNodeGroupCase{
 			name: "ng-with-max",
 		}),
 		Entry("ng with wrong value for maxSize", scaleNodeGroupCase{
-			name:  "ng-with-wrong-max",
-			error: fmt.Errorf("maximum number of nodes must be greater than or equal to number of nodes"),
+			name: "ng-with-wrong-max",
+			err:  fmt.Errorf("maximum number of nodes must be greater than or equal to number of nodes"),
 		}),
 		Entry("ng with desired nodes outside [minSize, maxSize]", scaleNodeGroupCase{
-			name:  "ng-with-wrong-desired",
-			error: fmt.Errorf("number of nodes must be within range of min nodes and max nodes"),
+			name: "ng-with-wrong-desired",
+			err:  fmt.Errorf("number of nodes must be within range of min nodes and max nodes"),
+		}),
+	)
+
+	DescribeTable("scale nodegroup successfully via cli flags",
+		func(params scaleNodeGroupCLICase) {
+			cfg := api.NewClusterConfig()
+			cfg.Metadata.Name = "cluster"
+			cmd := &Cmd{
+				CobraCommand:   newCmd(),
+				ProviderConfig: api.ProviderConfig{},
+				ClusterConfig:  cfg,
+				NameArg:        params.name,
+			}
+
+			ng := api.NewNodeGroup()
+			ng.MinSize = params.minSize
+			ng.MaxSize = params.maxSize
+			ng.DesiredCapacity = params.desiredSize
+			err := NewScaleNodeGroupLoader(cmd, ng).Load()
+			if params.err != nil {
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring(params.err.Error()))
+			} else {
+				if params.minSize != nil {
+					Expect(ng.MinSize).To(Equal(params.minSize))
+				}
+				Expect(err).ToNot(HaveOccurred())
+			}
+		},
+		Entry("only specifying min-nodes", scaleNodeGroupCLICase{
+			name:    "ng-with-max",
+			minSize: aws.Int(1),
+		}),
+		Entry("only specifying max-nodes", scaleNodeGroupCLICase{
+			name:    "ng-with-max",
+			maxSize: aws.Int(1),
+		}),
+		Entry("only specifying nodes", scaleNodeGroupCLICase{
+			name:        "ng-with-max",
+			desiredSize: aws.Int(1),
+		}),
+		Entry("minSize 0", scaleNodeGroupCLICase{
+			name:    "ng-with-max",
+			minSize: aws.Int(-1),
+			err:     fmt.Errorf("minimum of nodes must be 0 or greater"),
+		}),
+		Entry("maxSize 0", scaleNodeGroupCLICase{
+			name:    "ng-with-max",
+			maxSize: aws.Int(-1),
+			err:     fmt.Errorf("maximum of nodes must be 0 or greater"),
+		}),
+		Entry("desiredSize 0", scaleNodeGroupCLICase{
+			name:        "ng-with-max",
+			desiredSize: aws.Int(-1),
+			err:         fmt.Errorf("number of nodes must be 0 or greater"),
+		}),
+		Entry("desiredSize greater than max", scaleNodeGroupCLICase{
+			name:        "ng-with-max",
+			desiredSize: aws.Int(3),
+			maxSize:     aws.Int(1),
+			err:         fmt.Errorf("maximum number of nodes must be greater than or equal to number of nodes"),
+		}),
+		Entry("desiredSize fewer than min", scaleNodeGroupCLICase{
+			name:        "ng-with-max",
+			desiredSize: aws.Int(2),
+			minSize:     aws.Int(3),
+			err:         fmt.Errorf("minimum number of nodes must be fewer than or equal to number of nodes"),
+		}),
+		Entry("min greater than max", scaleNodeGroupCLICase{
+			name:    "ng-with-max",
+			minSize: aws.Int(3),
+			maxSize: aws.Int(2),
+			err:     fmt.Errorf("maximum number of nodes must be greater than minimum number of nodes"),
+		}),
+		Entry("not specifying any", scaleNodeGroupCLICase{
+			name: "ng-with-max",
+			err:  fmt.Errorf("at least one of minimum, maximum and desired nodes must be set"),
 		}),
 	)
 })

@@ -23,6 +23,13 @@ managedNodeGroups:
       # new feature for restricting SSH access to certain AWS security group IDs
       sourceSecurityGroupIds: ["sg-00241fbb12c607007"]
     labels: {role: worker}
+    # Note: unmanaged nodegroups (`nodeGroups` field) use a different structure (map[string]string) to express taints
+    taints:
+    - key: key1
+      value: value1
+      effect: NoSchedule
+    - key: key2
+      effect: NoExecute
     tags:
       nodegroup-role: worker
     iam:

@@ -44,7 +44,7 @@ func NewScaleNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup) ClusterConfigLoader {
 			return err
 		}
 
-		if err := validateNumberOfNodes(ng); err != nil {
+		if err := validateNumberOfNodesCLI(ng); err != nil {
 			return err
 		}
 		l.Plan = false
@@ -99,5 +99,40 @@ func validateNumberOfNodes(ng *api.NodeGroup) error {
 		return fmt.Errorf("minimum number of nodes must be less than or equal to number of nodes")
 	}
 
+	return nil
+}
+
+//only 1 of desired/min/max has to be set on the cli
+func validateNumberOfNodesCLI(ng *api.NodeGroup) error {
+	if ng.ScalingConfig == nil {
+		ng.ScalingConfig = &api.ScalingConfig{}
+	}
+
+	if ng.DesiredCapacity == nil && ng.MinSize == nil && ng.MaxSize == nil {
+		return fmt.Errorf("at least one of minimum, maximum and desired nodes must be set")
+	}
+
+	if ng.DesiredCapacity != nil && *ng.DesiredCapacity < 0 {
+		return fmt.Errorf("number of nodes must be 0 or greater")
+	}
+
+	if ng.MinSize != nil && *ng.MinSize < 0 {
+		return fmt.Errorf("minimum of nodes must be 0 or greater")
+	}
+	if ng.MaxSize != nil && *ng.MaxSize < 0 {
+		return fmt.Errorf("maximum of nodes must be 0 or greater")
+	}
+
+	if ng.MaxSize != nil && ng.MinSize != nil && *ng.MaxSize < *ng.MinSize {
+		return fmt.Errorf("maximum number of nodes must be greater than minimum number of nodes")
+	}
+
+	if ng.MaxSize != nil && ng.DesiredCapacity != nil && *ng.MaxSize < *ng.DesiredCapacity {
+		return fmt.Errorf("maximum number of nodes must be greater than or equal to number of nodes")
+	}
+
+	if ng.MinSize != nil && ng.DesiredCapacity != nil && *ng.MinSize > *ng.DesiredCapacity {
+		return fmt.Errorf("minimum number of nodes must be fewer than or equal to number of nodes")
+	}
 	return nil
 }

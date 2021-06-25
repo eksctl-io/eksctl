@@ -25,27 +25,28 @@ type Params struct {
 	Region     string
 	Version    string
 	// Flags to help with the development of the integration tests
-	clusterNamePrefix       string
-	ClusterName             string
-	SkipCreate              bool
-	SkipDelete              bool
-	KubeconfigPath          string
-	GitopsOwner             string
-	KubeconfigTemp          bool
-	TestDirectory           string
-	EksctlCmd               runner.Cmd
-	EksctlCreateCmd         runner.Cmd
-	EksctlUpgradeCmd        runner.Cmd
-	EksctlUpdateCmd         runner.Cmd
-	EksctlGetCmd            runner.Cmd
-	EksctlSetLabelsCmd      runner.Cmd
-	EksctlUnsetLabelsCmd    runner.Cmd
-	EksctlDeleteCmd         runner.Cmd
-	EksctlDeleteClusterCmd  runner.Cmd
-	EksctlDrainNodeGroupCmd runner.Cmd
-	EksctlScaleNodeGroupCmd runner.Cmd
-	EksctlUtilsCmd          runner.Cmd
-	EksctlEnableCmd         runner.Cmd
+	clusterNamePrefix        string
+	ClusterName              string
+	SkipCreate               bool
+	SkipDelete               bool
+	KubeconfigPath           string
+	GitopsOwner              string
+	KubeconfigTemp           bool
+	TestDirectory            string
+	EksctlCmd                runner.Cmd
+	EksctlCreateCmd          runner.Cmd
+	EksctlCreateNodegroupCmd runner.Cmd
+	EksctlUpgradeCmd         runner.Cmd
+	EksctlUpdateCmd          runner.Cmd
+	EksctlGetCmd             runner.Cmd
+	EksctlSetLabelsCmd       runner.Cmd
+	EksctlUnsetLabelsCmd     runner.Cmd
+	EksctlDeleteCmd          runner.Cmd
+	EksctlDeleteClusterCmd   runner.Cmd
+	EksctlDrainNodeGroupCmd  runner.Cmd
+	EksctlScaleNodeGroupCmd  runner.Cmd
+	EksctlUtilsCmd           runner.Cmd
+	EksctlEnableCmd          runner.Cmd
 	// Keep track of created clusters, for post-tests clean-up.
 	clustersToDelete []string
 }
@@ -71,15 +72,15 @@ func (p *Params) GenerateCommands() {
 
 	p.EksctlCreateCmd = p.EksctlCmd.
 		WithArgs("create").
-		WithTimeout(30 * time.Minute)
+		WithTimeout(90 * time.Minute)
 
 	p.EksctlUpgradeCmd = p.EksctlCmd.
 		WithArgs("upgrade").
-		WithTimeout(50 * time.Minute)
+		WithTimeout(90 * time.Minute)
 
 	p.EksctlUpdateCmd = p.EksctlCmd.
 		WithArgs("update").
-		WithTimeout(20 * time.Minute)
+		WithTimeout(90 * time.Minute)
 
 	p.EksctlGetCmd = p.EksctlCmd.
 		WithArgs("get").
@@ -98,11 +99,12 @@ func (p *Params) GenerateCommands() {
 		WithTimeout(15 * time.Minute)
 
 	p.EksctlDeleteClusterCmd = p.EksctlDeleteCmd.
-		WithArgs("cluster", "--verbose", "4")
+		WithArgs("cluster", "--verbose", "4").
+		WithTimeout(40 * time.Minute)
 
 	p.EksctlDrainNodeGroupCmd = p.EksctlCmd.
 		WithArgs("drain", "nodegroup", "--verbose", "4").
-		WithTimeout(5 * time.Minute)
+		WithTimeout(10 * time.Minute)
 
 	p.EksctlScaleNodeGroupCmd = p.EksctlCmd.
 		WithArgs("scale", "nodegroup", "--verbose", "4").
@@ -115,6 +117,11 @@ func (p *Params) GenerateCommands() {
 	p.EksctlEnableCmd = runner.NewCmd(p.EksctlPath).
 		WithArgs("enable").
 		WithTimeout(10 * time.Minute)
+
+	p.EksctlCreateNodegroupCmd = runner.NewCmd(p.EksctlPath).
+		WithArgs("create", "nodegroup").
+		WithTimeout(40 * time.Minute)
+
 }
 
 // NewClusterName generates a new cluster name using the provided prefix, and

@@ -136,6 +136,8 @@ information. Add more that what is asked for if you can :smiley:.
 
 1. **Search existing issues.** If something similar already exists, and is still open, please contribute to the discussion there.
 
+1. **Bump to the latest version of eksctl** to see whether your issue has already been fixed.
+
 1. **Write a concise and descriptive title**, like you would a commit message, something which others can easily
   find when doing step 1 above.
 
@@ -156,7 +158,7 @@ information. Add more that what is asked for if you can :smiley:.
   [HTML details tags](https://gist.github.com/ericclemmons/b146fe5da72ca1f706b2ef72a20ac39d).
   Take care to redact any sensitive info.
 
-1. Paste in the outputs of `eksctl version` and `kubectl version` where relevant, as
+1. Paste in the outputs of `eksctl info` where relevant, as
   well as anything else you have running which you think may be relevant.
 
 1. Detail any workarounds which you tried, it may help others who experience the same problem.

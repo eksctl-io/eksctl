@@ -41,15 +41,16 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 		}
 	}
 
-	if cfg.HasClusterCloudWatchLogging() && len(cfg.CloudWatch.ClusterLogging.EnableTypes) == 1 {
-		switch cfg.CloudWatch.ClusterLogging.EnableTypes[0] {
-		case "all", "*":
-			cfg.CloudWatch.ClusterLogging.EnableTypes = SupportedCloudWatchClusterLogTypes()
-		}
+	if cfg.HasClusterCloudWatchLogging() && cfg.ContainsWildcardCloudWatchLogging() {
+		cfg.CloudWatch.ClusterLogging.EnableTypes = SupportedCloudWatchClusterLogTypes()
 	}
 
 	if cfg.PrivateCluster == nil {
 		cfg.PrivateCluster = &PrivateCluster{}
+	}
+
+	if cfg.VPC != nil && cfg.VPC.ManageSharedNodeSecurityGroupRules == nil {
+		cfg.VPC.ManageSharedNodeSecurityGroupRules = Enabled()
 	}
 }
 
@@ -88,12 +89,13 @@ func vpccniAddonSpecified(cfg *ClusterConfig) bool {
 func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 	setNodeGroupBaseDefaults(ng.NodeGroupBase, meta)
 	if ng.InstanceType == "" {
-		if HasMixedInstances(ng) {
+		if HasMixedInstances(ng) || !ng.InstanceSelector.IsZero() {
 			ng.InstanceType = "mixed"
 		} else {
 			ng.InstanceType = DefaultNodeType
 		}
 	}
+
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = DefaultNodeImageFamily
 	}
@@ -106,10 +108,6 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 	if ng.SecurityGroups.WithShared == nil {
 		ng.SecurityGroups.WithShared = Enabled()
 	}
-
-	if ng.AMIFamily == NodeImageFamilyBottlerocket {
-		setBottlerocketNodeGroupDefaults(ng)
-	}
 }
 
 // SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
@@ -118,7 +116,7 @@ func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta) {
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = NodeImageFamilyAmazonLinux2
 	}
-	if ng.LaunchTemplate == nil && ng.InstanceType == "" && len(ng.InstanceTypes) == 0 {
+	if ng.LaunchTemplate == nil && ng.InstanceType == "" && len(ng.InstanceTypes) == 0 && ng.InstanceSelector.IsZero() {
 		ng.InstanceType = DefaultNodeType
 	}
 
@@ -161,6 +159,12 @@ func setNodeGroupBaseDefaults(ng *NodeGroupBase, meta *ClusterMeta) {
 	}
 	if ng.DisablePodIMDS == nil {
 		ng.DisablePodIMDS = Disabled()
+	}
+	if ng.InstanceSelector == nil {
+		ng.InstanceSelector = &InstanceSelector{}
+	}
+	if ng.AMIFamily == NodeImageFamilyBottlerocket {
+		setBottlerocketNodeGroupDefaults(ng)
 	}
 }
 
@@ -241,16 +245,10 @@ func setDefaultNodeLabels(labels map[string]string, clusterName, nodeGroupName s
 	labels[NodeGroupNameLabel] = nodeGroupName
 }
 
-func setBottlerocketNodeGroupDefaults(ng *NodeGroup) {
+func setBottlerocketNodeGroupDefaults(ng *NodeGroupBase) {
 	// Initialize config object if not present.
 	if ng.Bottlerocket == nil {
 		ng.Bottlerocket = &NodeGroupBottlerocket{}
-	}
-
-	// Default to resolving Bottlerocket images using SSM if not specified by
-	// the user.
-	if ng.AMI == "" {
-		ng.AMI = NodeImageResolverAutoSSM
 	}
 
 	// Use the SSH settings if the user hasn't explicitly configured the Admin
@@ -349,25 +347,5 @@ func SetDefaultGitSettings(c *ClusterConfig) {
 			}
 			profile.OutputPath = "./" + repoName
 		}
-	}
-}
-
-// SetDefaultGitOpsSettings sets the default values for the gitops repo and operator settings
-func SetDefaultGitOpsSettings(c *ClusterConfig) {
-	if c.GitOps == nil {
-		return
-	}
-
-	if c.GitOps.Flux != nil {
-		fluxCfg := c.GitOps.Flux
-		if fluxCfg.Namespace == "" {
-			fluxCfg.Namespace = "flux-system"
-		}
-
-		if fluxCfg.Path == "" {
-			fluxCfg.Path = "clusters/" + c.Metadata.Name
-		}
-
-		return
 	}
 }

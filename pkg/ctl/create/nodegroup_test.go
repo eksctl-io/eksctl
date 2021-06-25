@@ -7,7 +7,6 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
@@ -20,7 +19,7 @@ var _ = Describe("create nodegroup", func() {
 				cmd := newMockEmptyCmd(commandArgs...)
 				count := 0
 				cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-					createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroup.CreateOpts, mngOptions cmdutils.CreateManagedNGOptions) error {
+					createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroupOptions) error {
 						Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
 						Expect(ng.Name).NotTo(BeNil())
 						count++
@@ -86,7 +85,7 @@ var _ = Describe("create nodegroup", func() {
 				cmd := newMockEmptyCmd(commandArgs...)
 				count := 0
 				cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-					createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroup.CreateOpts, mngOptions cmdutils.CreateManagedNGOptions) error {
+					createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroupOptions) error {
 						Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
 						Expect(ng.Name).NotTo(BeNil())
 						count++
@@ -117,19 +116,6 @@ var _ = Describe("create nodegroup", func() {
 			Entry("with full-ecr-access flag", "--full-ecr-access", "true"),
 			Entry("with appmesh-access flag", "--appmesh-access", "true"),
 			Entry("with alb-ingress-access flag", "--alb-ingress-access", "true"),
-		)
-
-		DescribeTable("with un-supported flags",
-			func(args ...string) {
-				commandArgs := append([]string{"nodegroup", "--managed", "--cluster", "clusterName"}, args...)
-				cmd := newDefaultCmd(commandArgs...)
-				_, err := cmd.execute()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("%s is not supported for Managed Nodegroups (--managed=true)", args[0])))
-			},
-			Entry("max-pods-per-node", "--max-pods-per-node", "2"),
-			Entry("node-ami", "--node-ami", "ami-dummy-123"),
-			Entry("node-security-groups", "--node-security-groups", "sg-123"),
 		)
 
 		DescribeTable("invalid flags or arguments",

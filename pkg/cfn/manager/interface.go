@@ -3,21 +3,21 @@ package manager
 import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
+	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
-//go:generate counterfeiter -o fakes/fake_stack_manager.go . StackManager
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_stack_manager.go . StackManager
 type StackManager interface {
 	ListNodeGroupStacks() ([]NodeGroupStack, error)
 	DescribeNodeGroupStacksAndResources() (map[string]StackInfo, error)
-	ScaleNodeGroup(ng *v1alpha5.NodeGroup) error
-	GetNodeGroupSummaries(name string) ([]*NodeGroupSummary, error)
-	GetNodeGroupAutoScalingGroupName(s *Stack) (string, error)
-	GetManagedNodeGroupAutoScalingGroupName(s *Stack) (string, error)
+	GetUnmanagedNodeGroupSummaries(name string) ([]*NodeGroupSummary, error)
 	DescribeNodeGroupStack(nodeGroupName string) (*Stack, error)
 	DescribeNodeGroupStacks() ([]*Stack, error)
 	GetNodeGroupStackType(name string) (v1alpha5.NodeGroupType, error)
@@ -38,7 +38,6 @@ type StackManager interface {
 	DeleteStackByNameSync(name string) error
 	DeleteStackBySpec(s *Stack) (*Stack, error)
 	DeleteStackBySpecSync(s *Stack, errs chan error) error
-	ErrStackNotFound() error
 	DescribeStacks() ([]*Stack, error)
 	HasClusterStack() (bool, error)
 	HasClusterStackUsingCachedList(clusterStackNames []string) (bool, error)
@@ -51,17 +50,19 @@ type StackManager interface {
 	AppendNewClusterStackResource(plan, supportsManagedNodes bool) (bool, error)
 	GetFargateStack() (*Stack, error)
 	GetStackTemplate(stackName string) (string, error)
+	MakeClusterStackName() string
 	NewTasksToCreateClusterWithNodeGroups(nodeGroups []*v1alpha5.NodeGroup,
 		managedNodeGroups []*v1alpha5.ManagedNodeGroup, supportsManagedNodes bool, postClusterCreationTasks ...tasks.Task) *tasks.TaskTree
-	NewUnmanagedNodeGroupTask(nodeGroups []*v1alpha5.NodeGroup, supportsManagedNodes bool, forceAddCNIPolicy bool) *tasks.TaskTree
-	NewManagedNodeGroupTask(nodeGroups []*v1alpha5.ManagedNodeGroup, forceAddCNIPolicy bool) *tasks.TaskTree
+	NewUnmanagedNodeGroupTask(nodeGroups []*v1alpha5.NodeGroup, forceAddCNIPolicy bool, importer vpc.Importer) *tasks.TaskTree
+	NewManagedNodeGroupTask(nodeGroups []*v1alpha5.ManagedNodeGroup, forceAddCNIPolicy bool, importer vpc.Importer) *tasks.TaskTree
 	NewClusterCompatTask() tasks.Task
 	NewTasksToCreateIAMServiceAccounts(serviceAccounts []*v1alpha5.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) *tasks.TaskTree
 	DeleteTasksForDeprecatedStacks() (*tasks.TaskTree, error)
 	NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvider bool, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error)
-	NewTasksToDeleteNodeGroups(shouldDelete func(string) bool, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error)
+	NewTasksToDeleteNodeGroups(shouldDelete func(_ string) bool, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error)
+	NewTaskToDeleteUnownedNodeGroup(clusterName, nodegroup string, eksAPI eksiface.EKSAPI, waitCondition *DeleteWaitCondition) tasks.Task
 	NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) (*tasks.TaskTree, error)
-	NewTasksToDeleteIAMServiceAccounts(shouldDelete func(string) bool, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*tasks.TaskTree, error)
+	NewTasksToDeleteIAMServiceAccounts(serviceAccounts []string, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*tasks.TaskTree, error)
 	NewTaskToDeleteAddonIAM(wait bool) (*tasks.TaskTree, error)
 	FixClusterCompatibility() error
 	DescribeIAMServiceAccountStacks() ([]*Stack, error)

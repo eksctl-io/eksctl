@@ -3,6 +3,7 @@ package addon
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -24,10 +25,18 @@ const (
 	vpcCNIName          = "vpc-cni"
 )
 
-func (a *Manager) Create(addon *api.Addon) error {
+func (a *Manager) Create(addon *api.Addon, wait bool) error {
+	version := addon.Version
+	if version != "" {
+		var err error
+		version, err = a.getLatestMatchingVersion(addon)
+		if err != nil {
+			return fmt.Errorf("failed to fetch version %s for addon %s: %w", version, addon.Name, err)
+		}
+	}
 	createAddonInput := &eks.CreateAddonInput{
 		AddonName:    &addon.Name,
-		AddonVersion: &addon.Version,
+		AddonVersion: &version,
 		ClusterName:  &a.clusterConfig.Metadata.Name,
 		//ResolveConflicts: 		"enum":["OVERWRITE","NONE"]
 	}
@@ -35,11 +44,19 @@ func (a *Manager) Create(addon *api.Addon) error {
 	if addon.Force {
 		createAddonInput.ResolveConflicts = aws.String("overwrite")
 		logger.Debug("setting resolve conflicts to overwrite")
+	} else {
+		addonName := strings.ToLower(addon.Name)
+		if addonName == "coredns" || addonName == "kube-proxy" || addonName == "vpc-cni" {
+			logger.Info("when creating an addon to replace an existing application, e.g. CoreDNS, kube-proxy & VPC-CNI the --force flag will ensure the currently deployed configuration is replaced")
+		}
 	}
 
 	logger.Debug("addon: %v", addon)
 	namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
 
+	if len(addon.Tags) > 0 {
+		createAddonInput.Tags = aws.StringMap(addon.Tags)
+	}
 	if a.withOIDC {
 		if addon.ServiceAccountRoleARN != "" {
 			logger.Info("using provided ServiceAccountRoleARN %q", addon.ServiceAccountRoleARN)
@@ -105,6 +122,9 @@ func (a *Manager) Create(addon *api.Addon) error {
 		logger.Debug("EKS Create Addon output: %s", output.String())
 	}
 
+	if wait {
+		return a.waitForAddonToBeActive(addon)
+	}
 	logger.Info("successfully created addon")
 	return nil
 }
