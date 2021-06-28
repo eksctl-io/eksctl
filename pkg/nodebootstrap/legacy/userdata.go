@@ -22,7 +22,6 @@ const (
 	dataDir              = "bindata/assets"
 	configDir            = "/etc/eksctl/"
 	kubeletDropInUnitDir = "/etc/systemd/system/kubelet.service.d/"
-	dockerConfigDir      = "/etc/docker/"
 )
 
 type configFile struct {
@@ -88,10 +87,6 @@ func getKubeReserved(info InstanceTypeInfo) api.InlineDocument {
 		"cpu":               info.DefaultCPUToReserve(),
 		"memory":            info.DefaultMemoryToReserve(),
 	}
-}
-
-func makeDockerConfigJSON() (string, error) {
-	return bindata.AssetString(filepath.Join(dataDir, "docker-daemon.json"))
 }
 
 func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, error) {

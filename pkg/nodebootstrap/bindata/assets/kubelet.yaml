@@ -22,7 +22,5 @@ authorization:
 
 serverTLSBootstrap: true
 
-cgroupDriver: systemd
-
 featureGates:
   RotateKubeletServerCertificate: true

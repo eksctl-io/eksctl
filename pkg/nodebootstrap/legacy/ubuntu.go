@@ -89,11 +89,6 @@ func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) ([]configFile,
 		return nil, err
 	}
 
-	dockerConfigData, err := makeDockerConfigJSON()
-	if err != nil {
-		return nil, err
-	}
-
 	files := []configFile{{
 		dir:      configDir,
 		name:     "metadata.env",
@@ -118,10 +113,6 @@ func makeUbuntuConfig(spec *api.ClusterConfig, ng *api.NodeGroup) ([]configFile,
 		dir:      configDir,
 		name:     "max_pods.map",
 		contents: makeMaxPodsMapping(),
-	}, {
-		dir:      dockerConfigDir,
-		name:     "daemon.json",
-		contents: dockerConfigData,
 	}}
 
 	return files, nil
