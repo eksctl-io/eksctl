@@ -7,7 +7,6 @@ import (
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
-	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
@@ -35,21 +34,6 @@ func (b AL2Bootstrapper) UserData() (string, error) {
 
 	if b.ng.SSH.EnableSSM != nil && *b.ng.SSH.EnableSSM {
 		scripts = append(scripts, "install-ssm.al2.sh")
-	}
-
-	// When using GPU instance types, the daemon.json is removed and a service
-	// override file used instead. We can alter the daemon command by adding
-	// to the OPTIONS var in /etc/sysconfig/docker
-	overrideInsert := "sed -i 's/^OPTIONS=\"/&--exec-opt native.cgroupdriver=systemd /' /etc/sysconfig/docker"
-	if utils.IsGPUInstanceType(b.ng.InstanceType) {
-		config.AddShellCommand(overrideInsert)
-	}
-	if api.HasMixedInstances(b.ng) {
-		for _, it := range b.ng.InstancesDistribution.InstanceTypes {
-			if utils.IsGPUInstanceType(it) {
-				config.AddShellCommand(overrideInsert)
-			}
-		}
 	}
 
 	for _, command := range b.ng.PreBootstrapCommands {
@@ -122,15 +106,6 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) ([]confi
 		name:     "max_pods.map",
 		contents: makeMaxPodsMapping(),
 	}}
-
-	if !utils.IsGPUInstanceType(ng.InstanceType) {
-		dockerConfigData, err := makeDockerConfigJSON()
-		if err != nil {
-			return nil, err
-		}
-
-		files = append(files, configFile{dir: dockerConfigDir, name: "daemon.json", contents: dockerConfigData})
-	}
 
 	return files, nil
 }
