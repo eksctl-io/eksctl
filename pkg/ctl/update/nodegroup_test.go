@@ -8,14 +8,14 @@ import (
 )
 
 var _ = Describe("update nodegroup", func() {
-	PIt("returns error if config file is not set", func() {
+	It("returns error if config file is not set", func() {
 		cmd := newMockCmd("nodegroup")
 		_, err := cmd.execute()
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(MatchError(ContainSubstring("--config-file must be set")))
 	})
 
-	PIt("returns error if nodegroup is not set in config", func() {
+	It("returns error if nodegroup is not set in config", func() {
 		cfg := &api.ClusterConfig{
 			TypeMeta: api.ClusterConfigTypeMeta(),
 			Metadata: &api.ClusterMeta{

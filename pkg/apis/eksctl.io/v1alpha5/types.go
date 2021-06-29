@@ -1409,7 +1409,7 @@ type ManagedNodeGroup struct {
 
 	// UpdateConfig configures how to update NodeGroups.
 	// +optional
-	UpdateConfig *NodeGroupUpdateConfig `json:"-"`
+	UpdateConfig *NodeGroupUpdateConfig `json:"updateConfig,omitempty"`
 
 	// LaunchTemplate specifies an existing launch template to use
 	// for the nodegroup
