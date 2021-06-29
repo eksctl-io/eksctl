@@ -29,9 +29,9 @@ eksctl create nodegroup --config-file=<path> --include='ng-prod-*-??' --exclude=
 
 The behavior of the `eksctl create nodegroup` command is modified by these flags in the following way:
 
-- if no `--include` or `--exclude` are specified everything is included
-- if only `--include` is specified only nodegroups that mach those globs will be included
-- if only `--exclude` is specified all nodegroups that do not match those globes are included
+- if no `--include` or `--exclude` is specified everything is included
+- if only `--include` is specified, only nodegroups that match those globs will be included
+- if only `--exclude` is specified, all nodegroups that do not match those globs are included
 - if both are specified then `--exclude` rules take precedence over `--include` (i.e. nodegroups that match rules in
 both groups will be excluded)
 
@@ -48,7 +48,7 @@ metadata:
   name: dev-cluster
   region: eu-north-1
 
-nodeGroups:
+managedNodeGroups:
   - name: ng-1-workers
     labels: { role: workers }
     instanceType: m5.xlarge
@@ -70,7 +70,7 @@ eksctl create nodegroup --config-file=dev-cluster.yaml
 ```
 
 If you have already prepared for attaching existing classic load balancers or/and target groups to the nodegroups,
-you can specify these in the config file. The classic load balancers or/and target groups are automatically associated with the ASG when creating nodegroups.
+you can specify these in the config file. The classic load balancers or/and target groups are automatically associated with the ASG when creating nodegroups. This is only supported for self-managed nodegroups defined via the `nodeGroups` field.
 
 ```yaml
 apiVersion: eksctl.io/v1alpha5
@@ -117,12 +117,12 @@ To list the details about a nodegroup or all of the nodegroups, use:
 eksctl get nodegroup --cluster=<clusterName> [--name=<nodegroupName>]
 ```
 
-To list one or multiple nodegroup(s) in yaml or json format, which outputs more info than the default log table, use:
+To list one or more nodegroups in YAML or JSON format, which outputs more info than the default log table, use:
 ```bash
-# yaml format
+# YAML format
 eksctl get nodegroup --cluster=<clusterName> [--name=<nodegroupName>] --output=yaml
 
-# json format
+# JSON format
 eksctl get nodegroup --cluster=<clusterName> [--name=<nodegroupName>] --output=json
 ```
 
@@ -154,7 +154,7 @@ Scaling a nodegroup works by modifying the nodegroup CloudFormation stack via a 
 !!!note
     Scaling a nodegroup down/in (i.e. reducing the number of nodes) may result in errors as we rely purely on changes to the ASG. This means that the node(s) being removed/terminated aren't explicitly drained. This may be an area for improvement in the future.
 
-You can also enable SSH, ASG access and other feature for each particular nodegroup, e.g.:
+You can also enable SSH, ASG access and other features for a nodegroup, e.g.:
 
 ```
 eksctl create nodegroup --cluster=cluster-1 --node-labels="autoscaling=enabled,purpose=ci-worker" --asg-access --full-ecr-access --ssh-access
@@ -175,7 +175,7 @@ nodegroup configuration. Alternatively you can use [AWS Systems Manager (SSM)](h
 
 
 ```yaml
-nodeGroups:
+managedNodeGroups:
   - name: ng-1
     instanceType: m5.large
     desiredCapacity: 1

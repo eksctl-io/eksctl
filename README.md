@@ -92,14 +92,14 @@ $ eksctl create cluster
 [ℹ]  creating EKS cluster "floral-unicorn-1540567338" in "us-west-2" region
 [ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
 [ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-west-2 --cluster=floral-unicorn-1540567338'
-[ℹ]  2 sequential tasks: { create cluster control plane "floral-unicorn-1540567338", create nodegroup "ng-98b3b83a" }
+[ℹ]  2 sequential tasks: { create cluster control plane "floral-unicorn-1540567338", create managed nodegroup "ng-98b3b83a" }
 [ℹ]  building cluster stack "eksctl-floral-unicorn-1540567338-cluster"
 [ℹ]  deploying stack "eksctl-floral-unicorn-1540567338-cluster"
 [ℹ]  building nodegroup stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-98b3b83a"
 [ℹ]  --nodes-min=2 was set automatically for nodegroup ng-98b3b83a
 [ℹ]  --nodes-max=2 was set automatically for nodegroup ng-98b3b83a
 [ℹ]  deploying stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-98b3b83a"
-[✔]  all EKS cluster resource for "floral-unicorn-1540567338" had been created
+[✔]  all EKS cluster resources for "floral-unicorn-1540567338" have been created
 [✔]  saved kubeconfig as "~/.kube/config"
 [ℹ]  adding role "arn:aws:iam::376248598259:role/eksctl-ridiculous-sculpture-15547-NodeInstanceRole-1F3IHNVD03Z74" to auth ConfigMap
 [ℹ]  nodegroup "ng-98b3b83a" has 1 node(s)
