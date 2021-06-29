@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os/exec"
+	"reflect"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -286,6 +287,54 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			js, err := json.Marshal(document)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(js).To(MatchJSON(expected))
+		})
+
+	})
+
+	Describe("Tags support", func() {
+		var (
+			provider *mockprovider.MockProvider
+			srv      *testServer
+		)
+
+		BeforeEach(func() {
+			provider = mockprovider.NewMockProvider()
+			var err error
+			srv, err = newServer("localhost:10028")
+			Expect(err).NotTo(HaveOccurred())
+			go func() {
+				_ = srv.serve()
+			}()
+		})
+
+		JustAfterEach(func() {
+			srv.close()
+		})
+
+		It("should tag OIDC resources", func() {
+			oidc, err := NewOpenIDConnectManager(provider.IAM(), "12345", "https://localhost:10028/", "aws", map[string]string{
+				"cluster":  "oidc",
+				"resource": "oidc-provider",
+			})
+			Expect(err).ToNot(HaveOccurred())
+			oidc.insecureSkipVerify = true
+
+			provider.MockIAM().On("CreateOpenIDConnectProvider", mock.MatchedBy(func(input *awsiam.CreateOpenIDConnectProviderInput) bool {
+				return reflect.DeepEqual(input.Tags, []*awsiam.Tag{
+					{
+						Key:   aws.String("cluster"),
+						Value: aws.String("oidc"),
+					},
+					{
+						Key:   aws.String("resource"),
+						Value: aws.String("oidc-provider"),
+					},
+				})
+			})).Return(&awsiam.CreateOpenIDConnectProviderOutput{
+				OpenIDConnectProviderArn: aws.String(fakeProviderARN),
+			}, nil)
+
+			Expect(oidc.CreateProvider()).To(Succeed())
 		})
 
 	})
