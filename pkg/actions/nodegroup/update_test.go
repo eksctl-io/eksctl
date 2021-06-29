@@ -49,7 +49,7 @@ var _ = Describe("Update", func() {
 		Expect(err).To(MatchError(ContainSubstring("could not find managed nodegroup with name \"my-ng\"")))
 	})
 
-	It("[happy path] successfully updates nodegroup with updateConfig and maxUnavailable", func() {
+	It("[happy path] successfully updates a nodegroup with updateConfig and maxUnavailable", func() {
 		p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
 			ClusterName:   &clusterName,
 			NodegroupName: &ngName,
@@ -72,6 +72,65 @@ var _ = Describe("Update", func() {
 		cfg.ManagedNodeGroups[0].UpdateConfig = &api.NodeGroupUpdateConfig{
 			MaxUnavailable: aws.Int(6),
 		}
+
+		m = New(cfg, &eks.ClusterProvider{Provider: p}, nil)
+		err := m.Update()
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("[happy path] successfully updates multiple nodegroups with updateConfig and maxUnavailable", func() {
+		p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+			ClusterName:   &clusterName,
+			NodegroupName: &ngName,
+		}).Return(&awseks.DescribeNodegroupOutput{
+			Nodegroup: &awseks.Nodegroup{
+				UpdateConfig: &awseks.NodegroupUpdateConfig{
+					MaxUnavailable: aws.Int64(4),
+				},
+			},
+		}, nil)
+
+		p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+			ClusterName:   &clusterName,
+			NodegroupName: aws.String("ng-2"),
+		}).Return(&awseks.DescribeNodegroupOutput{
+			Nodegroup: &awseks.Nodegroup{
+				UpdateConfig: &awseks.NodegroupUpdateConfig{
+					MaxUnavailable: aws.Int64(4),
+				},
+			},
+		}, nil)
+
+		p.MockEKS().On("UpdateNodegroupConfig", &awseks.UpdateNodegroupConfigInput{
+			UpdateConfig: &awseks.NodegroupUpdateConfig{
+				MaxUnavailable: aws.Int64(6),
+			},
+			ClusterName:   &clusterName,
+			NodegroupName: &ngName,
+		}).Return(nil, nil)
+
+		p.MockEKS().On("UpdateNodegroupConfig", &awseks.UpdateNodegroupConfigInput{
+			UpdateConfig: &awseks.NodegroupUpdateConfig{
+				MaxUnavailable: aws.Int64(6),
+			},
+			ClusterName:   &clusterName,
+			NodegroupName: aws.String("ng-2"),
+		}).Return(nil, nil)
+
+		cfg.ManagedNodeGroups[0].UpdateConfig = &api.NodeGroupUpdateConfig{
+			MaxUnavailable: aws.Int(6),
+		}
+
+		newNg := &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name: "ng-2",
+			},
+			UpdateConfig: &api.NodeGroupUpdateConfig{
+				MaxUnavailable: aws.Int(6),
+			},
+		}
+
+		cfg.ManagedNodeGroups = append(cfg.ManagedNodeGroups, newNg)
 
 		m = New(cfg, &eks.ClusterProvider{Provider: p}, nil)
 		err := m.Update()
