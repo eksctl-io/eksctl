@@ -23,6 +23,7 @@ type OpenIDConnectManager struct {
 	accountID string
 	partition string
 	audience  string
+	tags      map[string]string
 
 	issuerURL          *url.URL
 	insecureSkipVerify bool
@@ -35,7 +36,7 @@ type OpenIDConnectManager struct {
 
 // NewOpenIDConnectManager constructs a new IAM OIDC manager instance.
 // It returns an error if the issuer URL is invalid
-func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer, partition string) (*OpenIDConnectManager, error) {
+func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer, partition string, tags map[string]string) (*OpenIDConnectManager, error) {
 	issuerURL, err := url.Parse(issuer)
 	if err != nil {
 		return nil, errors.Wrapf(err, "parsing OIDC issuer URL")
@@ -53,6 +54,7 @@ func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer, partitio
 		iam:       iamapi,
 		accountID: accountID,
 		partition: partition,
+		tags:      tags,
 		audience:  defaultAudience,
 		issuerURL: issuerURL,
 	}
@@ -85,11 +87,21 @@ func (m *OpenIDConnectManager) CreateProvider() error {
 	if err := m.getIssuerCAThumbprint(); err != nil {
 		return err
 	}
+
+	var tags []*awsiam.Tag
+	for k, v := range m.tags {
+		tags = append(tags, &awsiam.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v),
+		})
+	}
+
 	input := &awsiam.CreateOpenIDConnectProviderInput{
 		ClientIDList:   aws.StringSlice([]string{m.audience}),
 		ThumbprintList: []*string{&m.issuerCAThumbprint},
 		// It has no name or tags, it's keyed to the URL
-		Url: aws.String(m.issuerURL.String()),
+		Url:  aws.String(m.issuerURL.String()),
+		Tags: tags,
 	}
 	output, err := m.iam.CreateOpenIDConnectProvider(input)
 	if err != nil {

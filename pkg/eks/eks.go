@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
-
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
+	"github.com/weaveworks/eksctl/pkg/version"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -266,7 +266,16 @@ func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iam
 		return nil, fmt.Errorf("unknown EKS ARN: %q", spec.Status.ARN)
 	}
 
-	return iamoidc.NewOpenIDConnectManager(c.Provider.IAM(), parsedARN.AccountID, *c.Status.ClusterInfo.Cluster.Identity.Oidc.Issuer, parsedARN.Partition)
+	return iamoidc.NewOpenIDConnectManager(c.Provider.IAM(), parsedARN.AccountID,
+		*c.Status.ClusterInfo.Cluster.Identity.Oidc.Issuer, parsedARN.Partition, sharedTags(c.Status.ClusterInfo.Cluster))
+}
+
+func sharedTags(cluster *awseks.Cluster) map[string]string {
+	return map[string]string{
+		api.ClusterNameTag:   *cluster.Name,
+		api.EksctlVersionTag: version.GetVersion(),
+	}
+
 }
 
 // LoadClusterIntoSpecFromStack uses stack information to load the cluster

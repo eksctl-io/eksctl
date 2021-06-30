@@ -88,7 +88,7 @@ func newTag(key, value string) *cloudformation.Tag {
 	return &cloudformation.Tag{Key: &key, Value: &value}
 }
 
-// NewStackCollection create a stack manager for a single cluster
+// NewStackCollection creates a stack manager for a single cluster
 func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *StackCollection {
 	tags := []*cloudformation.Tag{
 		newTag(api.ClusterNameTag, spec.Metadata.Name),
@@ -507,7 +507,7 @@ func (c *StackCollection) DeleteStackBySpec(s *Stack) (*Stack, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("cannot delete stack %q as it doesn't bare our %q, %q tags", *s.StackName,
+	return nil, fmt.Errorf("cannot delete stack %q as it doesn't bear our %q, %q tags", *s.StackName,
 		fmt.Sprintf("%s:%s", api.OldClusterNameTag, c.spec.Metadata.Name),
 		fmt.Sprintf("%s:%s", api.ClusterNameTag, c.spec.Metadata.Name))
 }
