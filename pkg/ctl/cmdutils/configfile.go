@@ -750,22 +750,24 @@ func NewUpdateNodegroupLoader(cmd *Cmd) ClusterConfigLoader {
 			return ErrMustBeSet("managedNodeGroups field")
 		}
 
-		logger.Info("validating nodegroup %q", l.ClusterConfig.ManagedNodeGroups[0].Name)
+		for _, ng := range l.ClusterConfig.ManagedNodeGroups {
+			logger.Info("validating nodegroup %q", ng.Name)
 
-		var unsupportedFields []string
-		ng := l.ClusterConfig.ManagedNodeGroups[0]
-		var err error
-		if unsupportedFields, err = validateSupportedConfigFields(*ng.NodeGroupBase, []string{"Name"}, unsupportedFields); err != nil {
-			return err
+			var unsupportedFields []string
+			var err error
+			if unsupportedFields, err = validateSupportedConfigFields(*ng.NodeGroupBase, []string{"Name"}, unsupportedFields); err != nil {
+				return err
+			}
+
+			if unsupportedFields, err = validateSupportedConfigFields(*ng, []string{"NodeGroupBase", "UpdateConfig"}, unsupportedFields); err != nil {
+				return err
+			}
+
+			if len(unsupportedFields) > 0 {
+				logger.Warning("unchanged fields for nodegroup %s: the following fields remain unchanged; they are not supported by `eksctl update nodegroup`: %s", ng.Name, strings.Join(unsupportedFields[:], ", "))
+			}
 		}
 
-		if unsupportedFields, err = validateSupportedConfigFields(*ng, []string{"NodeGroupBase", "UpdateConfig"}, unsupportedFields); err != nil {
-			return err
-		}
-
-		if len(unsupportedFields) > 0 {
-			logger.Warning("unchanged fields: the following fields remain unchanged; they are not supported by `eksctl update nodegroup`: %s", strings.Join(unsupportedFields[:], ", "))
-		}
 		return nil
 	}
 
