@@ -6,7 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/managed"
 )
@@ -30,10 +29,6 @@ func (m *Manager) Update() error {
 
 		if ng.UpdateConfig == nil {
 			return fmt.Errorf("the submitted config didn't contain changes for nodegroup %s", ng.Name)
-		}
-
-		if describeNodegroupOutput.Nodegroup.UpdateConfig == nil {
-			return errors.New("cannot update updateConfig because the nodegroup is not configured to use one")
 		}
 
 		logger.Info("updating nodegroup %s's UpdateConfig", ng.Name)
