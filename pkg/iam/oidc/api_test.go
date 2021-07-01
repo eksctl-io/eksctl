@@ -9,7 +9,6 @@ import (
 	"net"
 	"net/http"
 	"os/exec"
-	"reflect"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -319,22 +318,25 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			Expect(err).ToNot(HaveOccurred())
 			oidc.insecureSkipVerify = true
 
+			var tagsInput []*awsiam.Tag
 			provider.MockIAM().On("CreateOpenIDConnectProvider", mock.MatchedBy(func(input *awsiam.CreateOpenIDConnectProviderInput) bool {
-				return reflect.DeepEqual(input.Tags, []*awsiam.Tag{
-					{
-						Key:   aws.String("cluster"),
-						Value: aws.String("oidc"),
-					},
-					{
-						Key:   aws.String("resource"),
-						Value: aws.String("oidc-provider"),
-					},
-				})
+				tagsInput = input.Tags
+				return true
 			})).Return(&awsiam.CreateOpenIDConnectProviderOutput{
 				OpenIDConnectProviderArn: aws.String(fakeProviderARN),
 			}, nil)
 
 			Expect(oidc.CreateProvider()).To(Succeed())
+			Expect(tagsInput).To(ConsistOf([]*awsiam.Tag{
+				{
+					Key:   aws.String("cluster"),
+					Value: aws.String("oidc"),
+				},
+				{
+					Key:   aws.String("resource"),
+					Value: aws.String("oidc-provider"),
+				},
+			}))
 		})
 
 	})
