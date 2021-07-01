@@ -423,7 +423,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 		})
 
 		Context("and creating a nodegroup with an update config", func() {
-			PIt("defining the UpdateConfig field in the cluster config", func() {
+			It("defining the UpdateConfig field in the cluster config", func() {
 				By("creating it")
 				updateConfig := &api.NodeGroupUpdateConfig{
 					MaxUnavailable: aws.Int(2),
