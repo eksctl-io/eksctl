@@ -473,7 +473,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					WithStdin(testutils.ClusterConfigReader(clusterConfig))
 
 				Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-					ContainElement(ContainSubstring("unchanged fields: the following fields remain unchanged; they are not supported by `eksctl update nodegroup`: Spot")),
+					ContainElement(ContainSubstring("unchanged fields for nodegroup update-config-ng: the following fields remain unchanged; they are not supported by `eksctl update nodegroup`: Spot")),
 				))
 
 				out, err = ctl.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{
