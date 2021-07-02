@@ -346,14 +346,24 @@ func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) e
 // If the nodegroup has mixed instances it will prefer a GPU instance type over a general class one
 // This is to make sure that the AMI that is selected later is valid for all the types
 func selectInstanceType(np api.NodePool) string {
-	if ng, ok := np.(*api.NodeGroup); ok && api.HasMixedInstances(ng) {
-		for _, instanceType := range ng.InstancesDistribution.InstanceTypes {
+	var instanceTypes []string
+	switch ng := np.(type) {
+	case *api.NodeGroup:
+		instanceTypes = ng.InstancesDistribution.InstanceTypes
+	case *api.ManagedNodeGroup:
+		instanceTypes = ng.InstanceTypes
+	}
+
+	hasMixedInstances := len(instanceTypes) > 0
+	if hasMixedInstances {
+		for _, instanceType := range instanceTypes {
 			if utils.IsGPUInstanceType(instanceType) {
 				return instanceType
 			}
 		}
-		return ng.InstancesDistribution.InstanceTypes[0]
+		return instanceTypes[0]
 	}
+
 	return np.BaseNodeGroup().InstanceType
 }
 
