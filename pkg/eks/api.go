@@ -330,7 +330,7 @@ func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) e
 		return errors.Errorf("invalid AMI value: %q", ng.AMI)
 	}
 
-	instanceType := selectInstanceType(np)
+	instanceType := SelectInstanceType(np)
 	id, err := resolver.Resolve(provider.Region(), version, instanceType, ng.AMIFamily)
 	if err != nil {
 		return errors.Wrap(err, "unable to determine AMI to use")
@@ -342,14 +342,16 @@ func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) e
 	return nil
 }
 
-// selectInstanceType determines which instanceType is relevant for selecting an AMI
+// SelectInstanceType determines which instanceType is relevant for selecting an AMI
 // If the nodegroup has mixed instances it will prefer a GPU instance type over a general class one
 // This is to make sure that the AMI that is selected later is valid for all the types
-func selectInstanceType(np api.NodePool) string {
+func SelectInstanceType(np api.NodePool) string {
 	var instanceTypes []string
 	switch ng := np.(type) {
 	case *api.NodeGroup:
-		instanceTypes = ng.InstancesDistribution.InstanceTypes
+		if ng.InstancesDistribution != nil {
+			instanceTypes = ng.InstancesDistribution.InstanceTypes
+		}
 	case *api.ManagedNodeGroup:
 		instanceTypes = ng.InstanceTypes
 	}
