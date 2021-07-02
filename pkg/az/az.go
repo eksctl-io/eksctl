@@ -93,7 +93,9 @@ type AvailabilityZoneSelector struct {
 // NewSelectorWithDefaults create a new AvailabilityZoneSelector with the
 // default selection strategy and usage rules
 func NewSelectorWithDefaults(ec2api ec2iface.EC2API) *AvailabilityZoneSelector {
-	avoidZones := map[string]bool{}
+	avoidZones := map[string]bool{
+		"cn-north-1d": true,
+	}
 
 	return &AvailabilityZoneSelector{
 		ec2api:   ec2api,
@@ -105,7 +107,9 @@ func NewSelectorWithDefaults(ec2api ec2iface.EC2API) *AvailabilityZoneSelector {
 // NewSelectorWithMinRequired create a new AvailabilityZoneSelector with the
 // minimum required selection strategy and usage rules
 func NewSelectorWithMinRequired(ec2api ec2iface.EC2API) *AvailabilityZoneSelector {
-	avoidZones := map[string]bool{}
+	avoidZones := map[string]bool{
+		"cn-north-1d": true,
+	}
 
 	return &AvailabilityZoneSelector{
 		ec2api:   ec2api,
