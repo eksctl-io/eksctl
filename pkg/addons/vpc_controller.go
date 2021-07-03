@@ -12,11 +12,11 @@ import (
 	"github.com/weaveworks/eksctl/pkg/assetutil"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"k8s.io/apimachinery/pkg/watch"
-	"k8s.io/client-go/kubernetes/typed/certificates/v1beta1"
+	v1 "k8s.io/client-go/kubernetes/typed/certificates/v1"
 
-	admv1beta1 "k8s.io/api/admissionregistration/v1beta1"
+	admregv1 "k8s.io/api/admissionregistration/v1"
 	appsv1 "k8s.io/api/apps/v1"
-	certsv1beta1 "k8s.io/api/certificates/v1beta1"
+	certsv1 "k8s.io/api/certificates/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -86,7 +86,7 @@ func (t *typeAssertionError) Error() string {
 func (v *VPCController) generateCert() error {
 	var (
 		csrName      = fmt.Sprintf("%s.%s", webhookServiceName, vpcControllerNamespace)
-		csrClientSet = v.rawClient.ClientSet().CertificatesV1beta1().CertificateSigningRequests()
+		csrClientSet = v.rawClient.ClientSet().CertificatesV1().CertificateSigningRequests()
 	)
 
 	hasApprovedCert, err := v.hasApprovedCert()
@@ -118,9 +118,9 @@ func (v *VPCController) generateCert() error {
 		return err
 	}
 
-	certificateSigningRequest, ok := rawExtension.Object.(*certsv1beta1.CertificateSigningRequest)
+	certificateSigningRequest, ok := rawExtension.Object.(*certsv1.CertificateSigningRequest)
 	if !ok {
-		return &typeAssertionError{&certsv1beta1.CertificateSigningRequest{}, rawExtension.Object}
+		return &typeAssertionError{&certsv1.CertificateSigningRequest{}, rawExtension.Object}
 	}
 
 	certificateSigningRequest.Spec.Request = csrPEM
@@ -130,16 +130,16 @@ func (v *VPCController) generateCert() error {
 		return errors.Wrap(err, "creating CertificateSigningRequest")
 	}
 
-	certificateSigningRequest.Status.Conditions = []certsv1beta1.CertificateSigningRequestCondition{
+	certificateSigningRequest.Status.Conditions = []certsv1.CertificateSigningRequestCondition{
 		{
-			Type:           certsv1beta1.CertificateApproved,
+			Type:           certsv1.CertificateApproved,
 			LastUpdateTime: metav1.NewTime(time.Now()),
 			Message:        "This CSR was approved by eksctl",
 			Reason:         "eksctl-approve",
 		},
 	}
 
-	if _, err := csrClientSet.UpdateApproval(context.TODO(), certificateSigningRequest, metav1.UpdateOptions{}); err != nil {
+	if _, err := csrClientSet.UpdateApproval(context.TODO(), csrName, certificateSigningRequest, metav1.UpdateOptions{}); err != nil {
 		return errors.Wrap(err, "updating approval")
 	}
 
@@ -153,7 +153,7 @@ func (v *VPCController) generateCert() error {
 	return v.createCertSecrets(privateKey, cert)
 }
 
-func watchCSRApproval(csrClientSet v1beta1.CertificateSigningRequestInterface, csrName string, timeout time.Duration) ([]byte, error) {
+func watchCSRApproval(csrClientSet v1.CertificateSigningRequestInterface, csrName string, timeout time.Duration) ([]byte, error) {
 	watcher, err := csrClientSet.Watch(context.TODO(), metav1.ListOptions{
 		FieldSelector: fmt.Sprintf("metadata.name=%s", csrName),
 	})
@@ -175,7 +175,7 @@ func watchCSRApproval(csrClientSet v1beta1.CertificateSigningRequestInterface, c
 			}
 			switch event.Type {
 			case watch.Added, watch.Modified:
-				req := event.Object.(*certsv1beta1.CertificateSigningRequest)
+				req := event.Object.(*certsv1.CertificateSigningRequest)
 				if cert := req.Status.Certificate; cert != nil {
 					return cert, nil
 				}
@@ -279,9 +279,9 @@ func (v *VPCController) deployVPCWebhook() error {
 		return err
 	}
 
-	mutatingWebhook, ok := rawExtension.Object.(*admv1beta1.MutatingWebhookConfiguration)
+	mutatingWebhook, ok := rawExtension.Object.(*admregv1.MutatingWebhookConfiguration)
 	if !ok {
-		return &typeAssertionError{&admv1beta1.MutatingWebhookConfiguration{}, rawExtension.Object}
+		return &typeAssertionError{&admregv1.MutatingWebhookConfiguration{}, rawExtension.Object}
 	}
 
 	mutatingWebhook.Webhooks[0].ClientConfig.CABundle = v.clusterStatus.CertificateAuthorityData
@@ -289,7 +289,7 @@ func (v *VPCController) deployVPCWebhook() error {
 }
 
 func (v *VPCController) hasApprovedCert() (bool, error) {
-	csrClientSet := v.rawClient.ClientSet().CertificatesV1beta1().CertificateSigningRequests()
+	csrClientSet := v.rawClient.ClientSet().CertificatesV1().CertificateSigningRequests()
 	request, err := csrClientSet.Get(context.TODO(), fmt.Sprintf("%s.%s", webhookServiceName, vpcControllerNamespace), metav1.GetOptions{})
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
@@ -301,7 +301,7 @@ func (v *VPCController) hasApprovedCert() (bool, error) {
 	conditions := request.Status.Conditions
 	switch len(conditions) {
 	case 1:
-		if conditions[0].Type == certsv1beta1.CertificateApproved {
+		if conditions[0].Type == certsv1.CertificateApproved {
 			return true, nil
 		}
 		return false, fmt.Errorf("expected certificate to be approved; got %q", conditions[0].Type)
@@ -363,15 +363,15 @@ func (v *VPCController) applyRawResource(object runtime.Object) error {
 			newObject.Spec.ClusterIP = service.Spec.ClusterIP
 			newObject.SetResourceVersion(service.GetResourceVersion())
 		}
-	case *admv1beta1.MutatingWebhookConfiguration:
+	case *admregv1.MutatingWebhookConfiguration:
 		r, found, err := rawResource.Get()
 		if err != nil {
 			return err
 		}
 		if found {
-			mwc, ok := r.(*admv1beta1.MutatingWebhookConfiguration)
+			mwc, ok := r.(*admregv1.MutatingWebhookConfiguration)
 			if !ok {
-				return &typeAssertionError{&admv1beta1.MutatingWebhookConfiguration{}, r}
+				return &typeAssertionError{&admregv1.MutatingWebhookConfiguration{}, r}
 			}
 			newObject.SetResourceVersion(mwc.GetResourceVersion())
 		}
