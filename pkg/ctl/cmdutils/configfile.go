@@ -440,8 +440,11 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup, options CreateManagedNGOptio
 }
 
 func validateManagedNGFlags(cmd *cobra.Command, managed bool) error {
-	flagsValidOnlyWithMNG := []string{"spot", "instance-types"}
+	if managed {
+		return nil
+	}
 
+	flagsValidOnlyWithMNG := []string{"spot", "instance-types"}
 	if flagName, found := findChangedFlag(cmd, flagsValidOnlyWithMNG); found {
 		return errors.Errorf("--%s is only valid with managed nodegroups (--managed)", flagName)
 	}
