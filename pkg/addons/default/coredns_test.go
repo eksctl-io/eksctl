@@ -26,8 +26,8 @@ var _ = Describe("default addons - coredns", func() {
 		rawClient.UseUnionTracker = true
 		ct = rawClient.Collection
 		region = "eu-west-2"
-		controlPlaneVersion = "1.16.x"
-		kubernetesVersion = "1.15"
+		controlPlaneVersion = "1.17.x"
+		kubernetesVersion = "1.16"
 	})
 
 	Context("UpdateCoreDNS", func() {
