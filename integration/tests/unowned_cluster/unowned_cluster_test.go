@@ -242,7 +242,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			WithArgs(
 				"cluster",
 				"--name", params.ClusterName,
-				"--version", "1.20",
+				"--version", api.LatestVersion,
 				"--timeout", "1h30m",
 				"--approve",
 				"--verbose", "2",
@@ -322,7 +322,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"nodegroup",
 				"--name", mng1,
 				"--cluster", params.ClusterName,
-				"--kubernetes-version", "1.20",
+				"--kubernetes-version", api.LatestVersion,
 				"--timeout", "1h30m",
 				"--wait",
 				"--verbose", "2",
