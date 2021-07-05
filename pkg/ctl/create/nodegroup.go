@@ -26,6 +26,10 @@ type nodegroupOptions struct {
 
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroupOptions) error {
+		if ng.Name != "" && !cmdutils.IsValidNameArg(ng.Name) {
+			return cmdutils.ErrInvalidName(ng.Name)
+		}
+
 		ngFilter := filter.NewNodeGroupFilter()
 		if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, options.CreateNGOptions, options.CreateManagedNGOptions).Load(); err != nil {
 			return errors.Wrap(err, "couldn't create node group filter from command line options")

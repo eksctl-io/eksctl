@@ -29,7 +29,9 @@ var _ = Describe("create nodegroup", func() {
 				Expect(count).To(Equal(1))
 			},
 			Entry("with nodegroup name as flag", "--name", "nodegroupName"),
+			Entry("with nodegroup name with a hyphen as flag", "--name", "nodegroup-name"),
 			Entry("with nodegroup name as argument", "nodegroupName"),
+			Entry("with nodegroup name with a hyphen as argument", "nodegroup-name"),
 			Entry("with node-type flag", "--node-type", "m5.large"),
 			Entry("with nodes flag", "--nodes", "2"),
 			Entry("with nodes-min flag", "--nodes-min", "2"),
@@ -81,6 +83,10 @@ var _ = Describe("create nodegroup", func() {
 				args:  []string{"--cluster", "foo", "--instance-types", "some-type"},
 				error: "--instance-types is only valid with managed nodegroups (--managed)",
 			}),
+			Entry("with nodegroup name as flag with invalid characters", invalidParamsCase{
+				args:  []string{"--cluster", "clusterName", "--name", "eksctl-ng_k8s_nodegroup1"},
+				error: fmt.Errorf("Error: validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*"),
+			}),
 		)
 	})
 
@@ -104,7 +110,9 @@ var _ = Describe("create nodegroup", func() {
 			},
 			Entry("without nodegroup name", ""),
 			Entry("with nodegroup name as flag", "--name", "nodegroupName"),
+			Entry("with nodegroup name with a hyphen as flag", "--name", "nodegroup-name"),
 			Entry("with nodegroup name as argument", "nodegroupName"),
+			Entry("with nodegroup name with a hyphen as argument", "nodegroup-name"),
 			Entry("with node-type flag", "--node-type", "m5.large"),
 			Entry("with nodes flag", "--nodes", "2"),
 			Entry("with nodes-min flag", "--nodes-min", "2"),
@@ -139,6 +147,10 @@ var _ = Describe("create nodegroup", func() {
 			Entry("with invalid flags", invalidParamsCase{
 				args:  []string{"--invalid", "dummy"},
 				error: "unknown flag: --invalid",
+			}),
+			Entry("with nodegroup name as flag with invalid characters", invalidParamsCase{
+				args:  []string{"--name", "eksctl-ng_k8s_nodegroup1"},
+				error: fmt.Errorf("Error: validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*"),
 			}),
 		)
 	})

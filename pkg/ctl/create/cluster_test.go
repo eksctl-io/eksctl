@@ -45,6 +45,8 @@ var _ = Describe("create cluster", func() {
 			Entry("without cluster name", ""),
 			Entry("with cluster name as flag", "--name", "clusterName"),
 			Entry("with cluster name as argument", "clusterName"),
+			Entry("with cluster name with hyphen as flag", "--name", "my-cluster-name-is-fine10"),
+			Entry("with cluster name with hyphen as argument", "my-Cluster-name-is-fine10"),
 			// vpc networking flags
 			Entry("with vpc-cidr flag", "--vpc-cidr", "10.0.0.0/20"),
 			Entry("with vpc-private-subnets flag", "--vpc-private-subnets", "10.0.0.0/24"),
@@ -97,6 +99,14 @@ var _ = Describe("create cluster", func() {
 				args:  []string{"cluster", "--invalid", "dummy"},
 				error: "unknown flag: --invalid",
 			}),
+			Entry("with --name option with invalid characters that are rejected by cloudformation", invalidParamsCase{
+				args:  []string{"test-k8_cluster01"},
+				error: fmt.Errorf("Error: validation for test-k8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*"),
+			}),
+			Entry("with cluster name argument with invalid characters that are rejected by cloudformation", invalidParamsCase{
+				args:  []string{"--name", "eksctl-testing-k_8_cluster01"},
+				error: fmt.Errorf("Error: validation for eksctl-testing-k_8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*"),
+			}),
 		)
 	})
 
@@ -120,6 +130,8 @@ var _ = Describe("create cluster", func() {
 			Entry("without cluster name", ""),
 			Entry("with cluster name as flag", "--name", "clusterName"),
 			Entry("with cluster name as argument", "clusterName"),
+			Entry("with cluster name with hyphen as flag", "--name", "my-cluster-name-is-fine10"),
+			Entry("with cluster name with hyphen as argument", "my-Cluster-name-is-fine10"),
 			// vpc networking flags
 			Entry("with vpc-cidr flag", "--vpc-cidr", "10.0.0.0/20"),
 			Entry("with vpc-private-subnets flag", "--vpc-private-subnets", "10.0.0.0/24"),
@@ -166,6 +178,14 @@ var _ = Describe("create cluster", func() {
 			Entry("with invalid flags", invalidParamsCase{
 				args:  []string{"cluster", "--invalid", "dummy"},
 				error: "unknown flag: --invalid",
+			}),
+			Entry("with --name option with invalid characters that are rejected by cloudformation", invalidParamsCase{
+				args:  []string{"test-k8_cluster01"},
+				error: fmt.Errorf("Error: validation for test-k8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*"),
+			}),
+			Entry("with cluster name argument with invalid characters that are rejected by cloudformation", invalidParamsCase{
+				args:  []string{"--name", "eksctl-testing-k_8_cluster01"},
+				error: fmt.Errorf("Error: validation for eksctl-testing-k_8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*"),
 			}),
 		)
 	})
