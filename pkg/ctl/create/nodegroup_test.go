@@ -57,23 +57,31 @@ var _ = Describe("create nodegroup", func() {
 
 		DescribeTable("invalid flags or arguments",
 			func(c invalidParamsCase) {
-				commandArgs := append([]string{"nodegroup"}, c.args...)
+				commandArgs := append([]string{"nodegroup", "--managed=false"}, c.args...)
 				cmd := newDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(c.error.Error()))
 			},
 			Entry("without cluster name", invalidParamsCase{
-				args:  []string{"nodegroupName", "--name", "nodegroupName"},
+				args:  []string{"--name", "nodegroupName"},
 				error: fmt.Errorf("--cluster must be set"),
 			}),
 			Entry("with nodegroup name as argument and flag", invalidParamsCase{
-				args:  []string{"nodegroupName", "--cluster", "clusterName", "--name", "nodegroupName"},
+				args:  []string{"--cluster", "clusterName", "--name", "nodegroupName", "nodegroupName"},
 				error: fmt.Errorf("--name=nodegroupName and argument nodegroupName cannot be used at the same time"),
 			}),
 			Entry("with invalid flags", invalidParamsCase{
-				args:  []string{"nodegroup", "--invalid", "dummy"},
+				args:  []string{"--invalid", "dummy"},
 				error: fmt.Errorf("unknown flag: --invalid"),
+			}),
+			Entry("with spot flag", invalidParamsCase{
+				args:  []string{"--cluster", "foo", "--spot"},
+				error: fmt.Errorf("--spot is only valid with managed nodegroups (--managed)"),
+			}),
+			Entry("with instance-types flag", invalidParamsCase{
+				args:  []string{"--cluster", "foo", "--instance-types", "some-type"},
+				error: fmt.Errorf("--instance-types is only valid with managed nodegroups (--managed)"),
 			}),
 		)
 	})
@@ -127,11 +135,11 @@ var _ = Describe("create nodegroup", func() {
 				Expect(err.Error()).To(ContainSubstring(c.error.Error()))
 			},
 			Entry("with nodegroup name as argument and flag", invalidParamsCase{
-				args:  []string{"nodegroupName", "--name", "nodegroupName"},
+				args:  []string{"--name", "nodegroupName", "nodegroupName"},
 				error: fmt.Errorf("--name=nodegroupName and argument nodegroupName cannot be used at the same time"),
 			}),
 			Entry("with invalid flags", invalidParamsCase{
-				args:  []string{"nodegroup", "--invalid", "dummy"},
+				args:  []string{"--invalid", "dummy"},
 				error: fmt.Errorf("unknown flag: --invalid"),
 			}),
 		)
