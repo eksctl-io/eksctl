@@ -54,7 +54,8 @@ func describeStackStatus(ctx context.Context, cfnAPI cloudformationiface.CloudFo
 	}
 
 	switch stack := output.Stacks[0]; *stack.StackStatus {
-	case cloudformation.StackStatusCreateComplete:
+	case cloudformation.StackStatusCreateComplete,
+		cloudformation.StackStatusUpdateComplete:
 		return stack, true, nil
 
 	case cloudformation.StackStatusCreateFailed,
