@@ -26,8 +26,8 @@ type nodegroupOptions struct {
 
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroupOptions) error {
-		if ng.Name != "" && !cmdutils.IsValidNameArg(ng.Name) {
-			return cmdutils.ErrInvalidName(ng.Name)
+		if ng.Name != "" && api.IsInvalidNameArg(ng.Name) {
+			return api.ErrInvalidName(ng.Name)
 		}
 
 		ngFilter := filter.NewNodeGroupFilter()

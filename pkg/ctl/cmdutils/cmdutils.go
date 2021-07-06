@@ -3,7 +3,6 @@ package cmdutils
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 
@@ -102,12 +101,6 @@ func GetNameArg(args []string) string {
 		return strings.TrimSpace(args[0])
 	}
 	return ""
-}
-
-// IsValidNameArg checks whether the name contains invalid characters
-func IsValidNameArg(name string) bool {
-	re := regexp.MustCompile(`[^a-zA-Z0-9\-]+`)
-	return !re.MatchString(name)
 }
 
 // AddCommonFlagsForAWS adds common flags for api.ProviderConfig
@@ -224,11 +217,6 @@ func ErrClusterFlagAndArg(cmd *Cmd, nameFlag, nameArg string) error {
 // as flags /and/ arg but only one is allowed to be used.
 func ErrFlagAndArg(kind, flag, arg string) error {
 	return fmt.Errorf("%s=%s and argument %s %s", kind, flag, arg, IncompatibleFlags)
-}
-
-// ErrInvalidName error when invalid characters for a name is provided
-func ErrInvalidName(name string) error {
-	return fmt.Errorf("validation for %s failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*", name)
 }
 
 // ErrMustBeSet is a common error message

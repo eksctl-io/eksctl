@@ -107,8 +107,8 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
-	if meta.Name != "" && !cmdutils.IsValidNameArg(meta.Name) {
-		return cmdutils.ErrInvalidName(meta.Name)
+	if meta.Name != "" && api.IsInvalidNameArg(meta.Name) {
+		return api.ErrInvalidName(meta.Name)
 	}
 
 	printer := printers.NewJSONPrinter()

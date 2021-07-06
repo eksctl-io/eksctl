@@ -47,7 +47,7 @@ func getClusterCmd(cmd *cmdutils.Cmd) {
 
 func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) error {
 	cfg := cmd.ClusterConfig
-	regionGiven := cfg.Metadata.Region != "" // eks.New resets this field, so we need to check if it was set in the fist place
+	regionGiven := cfg.Metadata.Region != "" // eks.New resets this field, so we need to check if it was set in the first place
 
 	ctl, err := cmd.NewCtl()
 	if err != nil {
