@@ -46,7 +46,7 @@ const (
 	Version1_20 = "1.20"
 
 	// DefaultVersion (default)
-	DefaultVersion = Version1_19
+	DefaultVersion = Version1_20
 
 	LatestVersion = Version1_20
 )
