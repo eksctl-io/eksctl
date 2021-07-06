@@ -1655,6 +1655,84 @@ func (_m *EC2API) AssociateTransitGatewayRouteTableWithContext(_a0 context.Conte
 	return r0, r1
 }
 
+// AssociateTrunkInterface provides a mock function with given fields: _a0
+func (_m *EC2API) AssociateTrunkInterface(_a0 *ec2.AssociateTrunkInterfaceInput) (*ec2.AssociateTrunkInterfaceOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.AssociateTrunkInterfaceOutput
+	if rf, ok := ret.Get(0).(func(*ec2.AssociateTrunkInterfaceInput) *ec2.AssociateTrunkInterfaceOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AssociateTrunkInterfaceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.AssociateTrunkInterfaceInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AssociateTrunkInterfaceRequest provides a mock function with given fields: _a0
+func (_m *EC2API) AssociateTrunkInterfaceRequest(_a0 *ec2.AssociateTrunkInterfaceInput) (*request.Request, *ec2.AssociateTrunkInterfaceOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.AssociateTrunkInterfaceInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.AssociateTrunkInterfaceOutput
+	if rf, ok := ret.Get(1).(func(*ec2.AssociateTrunkInterfaceInput) *ec2.AssociateTrunkInterfaceOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.AssociateTrunkInterfaceOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// AssociateTrunkInterfaceWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) AssociateTrunkInterfaceWithContext(_a0 context.Context, _a1 *ec2.AssociateTrunkInterfaceInput, _a2 ...request.Option) (*ec2.AssociateTrunkInterfaceOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.AssociateTrunkInterfaceOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AssociateTrunkInterfaceInput, ...request.Option) *ec2.AssociateTrunkInterfaceOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AssociateTrunkInterfaceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AssociateTrunkInterfaceInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AssociateVpcCidrBlock provides a mock function with given fields: _a0
 func (_m *EC2API) AssociateVpcCidrBlock(_a0 *ec2.AssociateVpcCidrBlockInput) (*ec2.AssociateVpcCidrBlockOutput, error) {
 	ret := _m.Called(_a0)
@@ -23659,6 +23737,84 @@ func (_m *EC2API) DescribeTransitGatewaysWithContext(_a0 context.Context, _a1 *e
 	return r0, r1
 }
 
+// DescribeTrunkInterfaceAssociations provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeTrunkInterfaceAssociations(_a0 *ec2.DescribeTrunkInterfaceAssociationsInput) (*ec2.DescribeTrunkInterfaceAssociationsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeTrunkInterfaceAssociationsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTrunkInterfaceAssociationsInput) *ec2.DescribeTrunkInterfaceAssociationsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTrunkInterfaceAssociationsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeTrunkInterfaceAssociationsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeTrunkInterfaceAssociationsRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeTrunkInterfaceAssociationsRequest(_a0 *ec2.DescribeTrunkInterfaceAssociationsInput) (*request.Request, *ec2.DescribeTrunkInterfaceAssociationsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTrunkInterfaceAssociationsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeTrunkInterfaceAssociationsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeTrunkInterfaceAssociationsInput) *ec2.DescribeTrunkInterfaceAssociationsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeTrunkInterfaceAssociationsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeTrunkInterfaceAssociationsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeTrunkInterfaceAssociationsWithContext(_a0 context.Context, _a1 *ec2.DescribeTrunkInterfaceAssociationsInput, _a2 ...request.Option) (*ec2.DescribeTrunkInterfaceAssociationsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeTrunkInterfaceAssociationsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeTrunkInterfaceAssociationsInput, ...request.Option) *ec2.DescribeTrunkInterfaceAssociationsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTrunkInterfaceAssociationsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeTrunkInterfaceAssociationsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DescribeVolumeAttribute provides a mock function with given fields: _a0
 func (_m *EC2API) DescribeVolumeAttribute(_a0 *ec2.DescribeVolumeAttributeInput) (*ec2.DescribeVolumeAttributeOutput, error) {
 	ret := _m.Called(_a0)
@@ -27000,6 +27156,84 @@ func (_m *EC2API) DisassociateTransitGatewayRouteTableWithContext(_a0 context.Co
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisassociateTransitGatewayRouteTableInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DisassociateTrunkInterface provides a mock function with given fields: _a0
+func (_m *EC2API) DisassociateTrunkInterface(_a0 *ec2.DisassociateTrunkInterfaceInput) (*ec2.DisassociateTrunkInterfaceOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DisassociateTrunkInterfaceOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DisassociateTrunkInterfaceInput) *ec2.DisassociateTrunkInterfaceOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisassociateTrunkInterfaceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DisassociateTrunkInterfaceInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DisassociateTrunkInterfaceRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DisassociateTrunkInterfaceRequest(_a0 *ec2.DisassociateTrunkInterfaceInput) (*request.Request, *ec2.DisassociateTrunkInterfaceOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DisassociateTrunkInterfaceInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DisassociateTrunkInterfaceOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DisassociateTrunkInterfaceInput) *ec2.DisassociateTrunkInterfaceOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DisassociateTrunkInterfaceOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DisassociateTrunkInterfaceWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DisassociateTrunkInterfaceWithContext(_a0 context.Context, _a1 *ec2.DisassociateTrunkInterfaceInput, _a2 ...request.Option) (*ec2.DisassociateTrunkInterfaceOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DisassociateTrunkInterfaceOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisassociateTrunkInterfaceInput, ...request.Option) *ec2.DisassociateTrunkInterfaceOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisassociateTrunkInterfaceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisassociateTrunkInterfaceInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)

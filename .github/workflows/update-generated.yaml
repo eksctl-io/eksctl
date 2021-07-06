@@ -55,7 +55,7 @@ jobs:
   update_aws_node:
     name: Update aws-node and open PR
     runs-on: ubuntu-latest
-    container: weaveworks/eksctl-build:fc5e06ce1b53fc87889accaf131f155f49797f52
+    container: weaveworks/eksctl-build:84d665711d2a14ace7bdd0696ddd286762190216
     env:
       UPDATE_BRANCH: update-aws-node
       GOPRIVATE: ""
