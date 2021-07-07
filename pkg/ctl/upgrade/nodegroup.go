@@ -39,7 +39,6 @@ func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddClusterFlag(fs, cmd.ClusterConfig.Metadata)
 
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
-		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmd.Wait = true
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "nodegroup upgrade to complete")
 
