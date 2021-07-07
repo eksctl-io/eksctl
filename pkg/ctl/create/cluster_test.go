@@ -101,11 +101,11 @@ var _ = Describe("create cluster", func() {
 			}),
 			Entry("with --name option with invalid characters that are rejected by cloudformation", invalidParamsCase{
 				args:  []string{"test-k8_cluster01"},
-				error: fmt.Errorf("Error: validation for test-k8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*"),
+				error: "validation for test-k8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
 			}),
 			Entry("with cluster name argument with invalid characters that are rejected by cloudformation", invalidParamsCase{
 				args:  []string{"--name", "eksctl-testing-k_8_cluster01"},
-				error: fmt.Errorf("Error: validation for eksctl-testing-k_8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*"),
+				error: "validation for eksctl-testing-k_8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
 			}),
 		)
 	})
@@ -181,11 +181,11 @@ var _ = Describe("create cluster", func() {
 			}),
 			Entry("with --name option with invalid characters that are rejected by cloudformation", invalidParamsCase{
 				args:  []string{"test-k8_cluster01"},
-				error: fmt.Errorf("Error: validation for test-k8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*"),
+				error: "validation for test-k8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
 			}),
 			Entry("with cluster name argument with invalid characters that are rejected by cloudformation", invalidParamsCase{
 				args:  []string{"--name", "eksctl-testing-k_8_cluster01"},
-				error: fmt.Errorf("Error: validation for eksctl-testing-k_8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*"),
+				error: "validation for eksctl-testing-k_8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
 			}),
 		)
 	})

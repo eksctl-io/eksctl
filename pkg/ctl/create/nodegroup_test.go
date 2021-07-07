@@ -85,7 +85,7 @@ var _ = Describe("create nodegroup", func() {
 			}),
 			Entry("with nodegroup name as flag with invalid characters", invalidParamsCase{
 				args:  []string{"--cluster", "clusterName", "--name", "eksctl-ng_k8s_nodegroup1"},
-				error: fmt.Errorf("Error: validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*"),
+				error: "validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
 			}),
 		)
 	})
@@ -150,7 +150,7 @@ var _ = Describe("create nodegroup", func() {
 			}),
 			Entry("with nodegroup name as flag with invalid characters", invalidParamsCase{
 				args:  []string{"--name", "eksctl-ng_k8s_nodegroup1"},
-				error: fmt.Errorf("Error: validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*"),
+				error: "validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
 			}),
 		)
 	})
