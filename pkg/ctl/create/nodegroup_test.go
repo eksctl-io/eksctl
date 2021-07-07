@@ -130,7 +130,12 @@ var _ = Describe("create nodegroup", func() {
 			Entry("with full-ecr-access flag", "--full-ecr-access", "true"),
 			Entry("with appmesh-access flag", "--appmesh-access", "true"),
 			Entry("with alb-ingress-access flag", "--alb-ingress-access", "true"),
+			Entry("with Ubuntu AMI", "--node-ami-family", "Ubuntu2004"),
+			Entry("with Bottlerocket AMI", "--node-ami-family", "Bottlerocket"),
 		)
+
+		const unsupportedWindowsError = "Windows is not supported for managed nodegroups; eksctl now creates " +
+			"managed nodegroups by default, to use a self-managed nodegroup, pass --managed=false"
 
 		DescribeTable("invalid flags or arguments",
 			func(c invalidParamsCase) {
@@ -152,6 +157,19 @@ var _ = Describe("create nodegroup", func() {
 				args:  []string{"--name", "eksctl-ng_k8s_nodegroup1"},
 				error: "validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
 			}),
+			Entry("with unsupported AMI", invalidParamsCase{
+				args:  []string{"cluster", "--node-ami-family", "WindowsServer2019FullContainer"},
+				error: unsupportedWindowsError,
+			}),
+			Entry("with unsupported AMI", invalidParamsCase{
+				args:  []string{"cluster", "--node-ami-family", "WindowsServer2019CoreContainer"},
+				error: unsupportedWindowsError,
+			}),
+			Entry("with unsupported AMI", invalidParamsCase{
+				args:  []string{"cluster", "--node-ami-family", "WindowsServer2004CoreContainer"},
+				error: unsupportedWindowsError,
+			}),
 		)
+
 	})
 })
