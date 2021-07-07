@@ -1,8 +1,6 @@
 package create
 
 import (
-	"fmt"
-
 	. "github.com/onsi/ginkgo/extensions/table"
 
 	. "github.com/onsi/ginkgo"
@@ -61,27 +59,27 @@ var _ = Describe("create nodegroup", func() {
 				cmd := newDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(c.error.Error()))
+				Expect(err).To(MatchError(ContainSubstring(c.error)))
 			},
 			Entry("without cluster name", invalidParamsCase{
 				args:  []string{"--name", "nodegroupName"},
-				error: fmt.Errorf("--cluster must be set"),
+				error: "--cluster must be set",
 			}),
 			Entry("with nodegroup name as argument and flag", invalidParamsCase{
 				args:  []string{"--cluster", "clusterName", "--name", "nodegroupName", "nodegroupName"},
-				error: fmt.Errorf("--name=nodegroupName and argument nodegroupName cannot be used at the same time"),
+				error: "--name=nodegroupName and argument nodegroupName cannot be used at the same time",
 			}),
 			Entry("with invalid flags", invalidParamsCase{
 				args:  []string{"--invalid", "dummy"},
-				error: fmt.Errorf("unknown flag: --invalid"),
+				error: "unknown flag: --invalid",
 			}),
 			Entry("with spot flag", invalidParamsCase{
 				args:  []string{"--cluster", "foo", "--spot"},
-				error: fmt.Errorf("--spot is only valid with managed nodegroups (--managed)"),
+				error: "--spot is only valid with managed nodegroups (--managed)",
 			}),
 			Entry("with instance-types flag", invalidParamsCase{
 				args:  []string{"--cluster", "foo", "--instance-types", "some-type"},
-				error: fmt.Errorf("--instance-types is only valid with managed nodegroups (--managed)"),
+				error: "--instance-types is only valid with managed nodegroups (--managed)",
 			}),
 		)
 	})
@@ -132,15 +130,15 @@ var _ = Describe("create nodegroup", func() {
 				cmd := newDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(c.error.Error()))
+				Expect(err).To(MatchError(ContainSubstring(c.error)))
 			},
 			Entry("with nodegroup name as argument and flag", invalidParamsCase{
 				args:  []string{"--name", "nodegroupName", "nodegroupName"},
-				error: fmt.Errorf("--name=nodegroupName and argument nodegroupName cannot be used at the same time"),
+				error: "--name=nodegroupName and argument nodegroupName cannot be used at the same time",
 			}),
 			Entry("with invalid flags", invalidParamsCase{
 				args:  []string{"--invalid", "dummy"},
-				error: fmt.Errorf("unknown flag: --invalid"),
+				error: "unknown flag: --invalid",
 			}),
 		)
 	})
