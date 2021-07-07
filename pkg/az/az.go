@@ -114,6 +114,7 @@ func NewSelectorWithDefaults(ec2api ec2iface.EC2API, region string) *Availabilit
 		ec2api:   ec2api,
 		strategy: NewRecommendedNumberRandomStrategy(),
 		rules:    makeDefaultZoneUsageRules(region),
+		region:   region,
 	}
 }
 
@@ -124,6 +125,7 @@ func NewSelectorWithMinRequired(ec2api ec2iface.EC2API, region string) *Availabi
 		ec2api:   ec2api,
 		strategy: NewMinRequiredNumberRandomStrategy(),
 		rules:    makeDefaultZoneUsageRules(region),
+		region:   region,
 	}
 }
 
