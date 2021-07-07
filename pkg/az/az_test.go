@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 	. "github.com/weaveworks/eksctl/pkg/az"
-	"github.com/weaveworks/eksctl/pkg/eks"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -41,7 +40,7 @@ var _ = Describe("AZ", func() {
 					region = "us-west-2"
 
 					zones = usWest2Zones(ec2.AvailabilityZoneStateAvailable)
-					_, p = createProviders()
+					p = mockprovider.NewMockProvider()
 
 					p.MockEC2().On("DescribeAvailabilityZones",
 						mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
@@ -83,7 +82,7 @@ var _ = Describe("AZ", func() {
 					expectedZoneName = westZone.ZoneName
 					zones = []*ec2.AvailabilityZone{westZone}
 
-					_, p = createProviders()
+					p = mockprovider.NewMockProvider()
 
 					p.MockEC2().On("DescribeAvailabilityZones",
 						mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
@@ -110,7 +109,7 @@ var _ = Describe("AZ", func() {
 				})
 
 				It("should have returned 3 identical availability zones", func() {
-					Expect(len(selectedZones)).To(Equal(3))
+					Expect(selectedZones).To(HaveLen(3))
 
 					for _, actualZoneName := range selectedZones {
 						Expect(actualZoneName).To(Equal(*expectedZoneName))
@@ -132,7 +131,7 @@ var _ = Describe("AZ", func() {
 				expectedZoneName = aws.String("us-east-1c")
 
 				zones = usEast1Zones(ec2.AvailabilityZoneStateAvailable)
-				_, p = createProviders()
+				p = mockprovider.NewMockProvider()
 
 				p.MockEC2().On("DescribeAvailabilityZones",
 					mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
@@ -159,7 +158,7 @@ var _ = Describe("AZ", func() {
 			})
 
 			It("should have returned 3 availability zones", func() {
-				Expect(len(selectedZones)).To(Equal(3))
+				Expect(selectedZones).To(HaveLen(3))
 			})
 
 			It("should have returned none of the zones to avoid", func() {
@@ -175,7 +174,7 @@ var _ = Describe("AZ", func() {
 				azSelector    *AvailabilityZoneSelector
 			)
 			BeforeEach(func() {
-				_, p = createProviders()
+				p = mockprovider.NewMockProvider()
 
 				p.MockEC2().On("DescribeAvailabilityZones",
 					mock.Anything,
@@ -212,7 +211,7 @@ var _ = Describe("AZ", func() {
 			BeforeEach(func() {
 				region = "us-east-1"
 				zones = usEast1Zones(ec2.AvailabilityZoneStateAvailable)
-				_, p = createProviders()
+				p = mockprovider.NewMockProvider()
 
 				p.MockEC2().On("DescribeAvailabilityZones",
 					mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
@@ -239,21 +238,11 @@ var _ = Describe("AZ", func() {
 			})
 
 			It("should have returned 2 availability zones", func() {
-				Expect(len(selectedZones)).To(Equal(2))
+				Expect(selectedZones).To(HaveLen(2))
 			})
 		})
 	})
 })
-
-func createProviders() (*eks.ClusterProvider, *mockprovider.MockProvider) {
-	p := mockprovider.NewMockProvider()
-
-	c := &eks.ClusterProvider{
-		Provider: p,
-	}
-
-	return c, p
-}
 
 func createAvailabilityZone(region string, state string, zone string) *ec2.AvailabilityZone {
 	return &ec2.AvailabilityZone{
