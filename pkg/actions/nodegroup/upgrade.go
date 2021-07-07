@@ -16,7 +16,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
-func (m *Manager) Upgrade(options managed.UpgradeOptions) error {
+func (m *Manager) Upgrade(options managed.UpgradeOptions, wait bool) error {
 	stackCollection := manager.NewStackCollection(m.ctl.Provider, m.cfg)
 	hasStacks, err := m.hasStacks(options.NodegroupName)
 	if err != nil {
@@ -34,10 +34,10 @@ func (m *Manager) Upgrade(options managed.UpgradeOptions) error {
 		return managedService.UpgradeNodeGroup(options)
 	}
 
-	return m.upgradeAndWait(options)
+	return m.upgradeAndWait(options, wait)
 }
 
-func (m *Manager) upgradeAndWait(options managed.UpgradeOptions) error {
+func (m *Manager) upgradeAndWait(options managed.UpgradeOptions, wait bool) error {
 	input := &eks.UpdateNodegroupVersionInput{
 		ClusterName:   &m.cfg.Metadata.Name,
 		Force:         &options.ForceUpgrade,
@@ -93,29 +93,32 @@ func (m *Manager) upgradeAndWait(options managed.UpgradeOptions) error {
 
 	logger.Info("upgrade of nodegroup %q in progress", options.NodegroupName)
 
-	newRequest := func() *request.Request {
-		input := &eks.DescribeNodegroupInput{
-			ClusterName:   &m.cfg.Metadata.Name,
-			NodegroupName: &options.NodegroupName,
+	if wait {
+		newRequest := func() *request.Request {
+			input := &eks.DescribeNodegroupInput{
+				ClusterName:   &m.cfg.Metadata.Name,
+				NodegroupName: &options.NodegroupName,
+			}
+			req, _ := m.ctl.Provider.EKS().DescribeNodegroupRequest(input)
+			return req
 		}
-		req, _ := m.ctl.Provider.EKS().DescribeNodegroupRequest(input)
-		return req
+
+		msg := fmt.Sprintf("waiting for upgrade of nodegroup %q to complete", options.NodegroupName)
+
+		acceptors := waiters.MakeAcceptors(
+			"Nodegroup.Status",
+			eks.NodegroupStatusActive,
+			[]string{
+				eks.NodegroupStatusDegraded,
+			},
+		)
+
+		err = m.wait(options.NodegroupName, msg, acceptors, newRequest, m.ctl.Provider.WaitTimeout(), nil)
+		if err != nil {
+			return err
+		}
+		logger.Info("nodegroup successfully upgraded")
 	}
-
-	msg := fmt.Sprintf("waiting for upgrade of nodegroup %q to complete", options.NodegroupName)
-
-	acceptors := waiters.MakeAcceptors(
-		"Nodegroup.Status",
-		eks.NodegroupStatusActive,
-		[]string{
-			eks.NodegroupStatusDegraded,
-		},
-	)
-
-	err = m.wait(options.NodegroupName, msg, acceptors, newRequest, m.ctl.Provider.WaitTimeout(), nil)
-	if err != nil {
-		return err
-	}
-	logger.Info("nodegroup successfully upgraded")
 	return nil
 }
+
