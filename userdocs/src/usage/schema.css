@@ -45,3 +45,6 @@ table#config td.type {
     filter: opacity(70%);
     color: #999999;
 }
+.md-typeset__scrollwrap {
+    overflow-x: inherit;
+}
