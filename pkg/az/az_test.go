@@ -241,6 +241,47 @@ var _ = Describe("AZ", func() {
 				Expect(selectedZones).To(HaveLen(2))
 			})
 		})
+
+		Context("with Beijing region that has an unsupported zone", func() {
+			const region = "cn-north-1"
+			var p *mockprovider.MockProvider
+
+			BeforeEach(func() {
+				p = mockprovider.NewMockProvider()
+			})
+
+			It("should avoid unsupported zones", func() {
+				p.MockEC2().On("DescribeAvailabilityZones", mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
+					filter := input.Filters[0]
+					return *filter.Name == "region-name" && *filter.Values[0] == region
+				})).Return(&ec2.DescribeAvailabilityZonesOutput{
+					AvailabilityZones: []*ec2.AvailabilityZone{
+						{
+							ZoneName: aws.String("cn-north-1a"),
+							ZoneId:   aws.String("cnn1-az2"),
+						},
+						{
+							ZoneName: aws.String("cn-north-1d"),
+							ZoneId:   aws.String("cnn1-az4"),
+						},
+						{
+							ZoneName: aws.String("cn-north-1b"),
+							ZoneId:   aws.String("cnn1-az3"),
+						},
+						{
+							ZoneName: aws.String("cn-north-1e"),
+							ZoneId:   aws.String("cnn1-az1"),
+						},
+					},
+				}, nil)
+
+				azSelector := NewSelectorWithDefaults(p.EC2(), region)
+				selectedZones, err := azSelector.SelectZones()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeAvailabilityZones", 1)).To(BeTrue())
+				Expect(selectedZones).To(ConsistOf("cn-north-1a", "cn-north-1b", "cn-north-1e"))
+			})
+		})
 	})
 })
 
