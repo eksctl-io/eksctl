@@ -71,7 +71,7 @@ func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 			CreationTime:         describeOutput.Nodegroup.CreatedAt,
 			NodeInstanceRoleARN:  *describeOutput.Nodegroup.NodeRole,
 			AutoScalingGroupName: strings.Join(asgs, ","),
-			Version:              *describeOutput.Nodegroup.Version,
+			Version:              getOptionalValue(describeOutput.Nodegroup.Version),
 		})
 	}
 
@@ -131,6 +131,13 @@ func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
 		CreationTime:         describeOutput.Nodegroup.CreatedAt,
 		NodeInstanceRoleARN:  *describeOutput.Nodegroup.NodeRole,
 		AutoScalingGroupName: asg,
-		Version:              *describeOutput.Nodegroup.Version,
+		Version:              getOptionalValue(describeOutput.Nodegroup.Version),
 	}, nil
+}
+
+func getOptionalValue(v *string) string {
+	if v == nil {
+		return "-"
+	}
+	return *v
 }
