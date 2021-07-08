@@ -1,14 +1,13 @@
 package az_test
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/aws/aws-sdk-go/aws"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 	. "github.com/weaveworks/eksctl/pkg/az"
-	"github.com/weaveworks/eksctl/pkg/eks"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -29,7 +28,7 @@ var _ = Describe("AZ", func() {
 		Context("with a region that has no zones to avoid", func() {
 			var (
 				zones  []*ec2.AvailabilityZone
-				region *string
+				region string
 			)
 
 			Context("and all zones available", func() {
@@ -38,25 +37,25 @@ var _ = Describe("AZ", func() {
 					azSelector    *AvailabilityZoneSelector
 				)
 				BeforeEach(func() {
-					region = aws.String("us-west-2")
+					region = "us-west-2"
 
 					zones = usWest2Zones(ec2.AvailabilityZoneStateAvailable)
-					_, p = createProviders()
+					p = mockprovider.NewMockProvider()
 
 					p.MockEC2().On("DescribeAvailabilityZones",
 						mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
 							filter := input.Filters[0]
-							return *filter.Name == "region-name" && *filter.Values[0] == *region
+							return *filter.Name == "region-name" && *filter.Values[0] == region
 						}),
 					).Return(&ec2.DescribeAvailabilityZonesOutput{
 						AvailabilityZones: zones,
 					}, nil)
 
-					azSelector = NewSelectorWithDefaults(p.MockEC2())
+					azSelector = NewSelectorWithDefaults(p.MockEC2(), region)
 				})
 
 				JustBeforeEach(func() {
-					selectedZones, err = azSelector.SelectZones(*region)
+					selectedZones, err = azSelector.SelectZones()
 				})
 
 				It("should not error", func() {
@@ -68,7 +67,7 @@ var _ = Describe("AZ", func() {
 				})
 
 				It("should have returned 3 availability zones", func() {
-					Expect(len(selectedZones)).To(Equal(3))
+					Expect(selectedZones).To(HaveLen(3))
 				})
 			})
 
@@ -83,22 +82,22 @@ var _ = Describe("AZ", func() {
 					expectedZoneName = westZone.ZoneName
 					zones = []*ec2.AvailabilityZone{westZone}
 
-					_, p = createProviders()
+					p = mockprovider.NewMockProvider()
 
 					p.MockEC2().On("DescribeAvailabilityZones",
 						mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
 							filter := input.Filters[0]
-							return *filter.Name == "region-name" && *filter.Values[0] == *region
+							return *filter.Name == "region-name" && *filter.Values[0] == region
 						}),
 					).Return(&ec2.DescribeAvailabilityZonesOutput{
 						AvailabilityZones: zones,
 					}, nil)
 
-					azSelector = NewSelectorWithDefaults(p.MockEC2())
+					azSelector = NewSelectorWithDefaults(p.MockEC2(), region)
 				})
 
 				JustBeforeEach(func() {
-					selectedZones, err = azSelector.SelectZones(*region)
+					selectedZones, err = azSelector.SelectZones()
 				})
 
 				It("should not error", func() {
@@ -110,7 +109,7 @@ var _ = Describe("AZ", func() {
 				})
 
 				It("should have returned 3 identical availability zones", func() {
-					Expect(len(selectedZones)).To(Equal(3))
+					Expect(selectedZones).To(HaveLen(3))
 
 					for _, actualZoneName := range selectedZones {
 						Expect(actualZoneName).To(Equal(*expectedZoneName))
@@ -123,31 +122,31 @@ var _ = Describe("AZ", func() {
 			var (
 				zones            []*ec2.AvailabilityZone
 				selectedZones    []string
-				region           *string
+				region           string
 				azSelector       *AvailabilityZoneSelector
 				expectedZoneName *string
 			)
 			BeforeEach(func() {
-				region = aws.String("us-east-1")
+				region = "us-east-1"
 				expectedZoneName = aws.String("us-east-1c")
 
 				zones = usEast1Zones(ec2.AvailabilityZoneStateAvailable)
-				_, p = createProviders()
+				p = mockprovider.NewMockProvider()
 
 				p.MockEC2().On("DescribeAvailabilityZones",
 					mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
 						filter := input.Filters[0]
-						return *filter.Name == "region-name" && *filter.Values[0] == *region
+						return *filter.Name == "region-name" && *filter.Values[0] == region
 					}),
 				).Return(&ec2.DescribeAvailabilityZonesOutput{
 					AvailabilityZones: zones,
 				}, nil)
 
-				azSelector = NewSelectorWithDefaults(p.MockEC2())
+				azSelector = NewSelectorWithDefaults(p.MockEC2(), region)
 			})
 
 			JustBeforeEach(func() {
-				selectedZones, err = azSelector.SelectZones(*region)
+				selectedZones, err = azSelector.SelectZones()
 			})
 
 			It("should not error", func() {
@@ -159,7 +158,7 @@ var _ = Describe("AZ", func() {
 			})
 
 			It("should have returned 3 availability zones", func() {
-				Expect(len(selectedZones)).To(Equal(3))
+				Expect(selectedZones).To(HaveLen(3))
 			})
 
 			It("should have returned none of the zones to avoid", func() {
@@ -175,20 +174,17 @@ var _ = Describe("AZ", func() {
 				azSelector    *AvailabilityZoneSelector
 			)
 			BeforeEach(func() {
-				_, p = createProviders()
+				p = mockprovider.NewMockProvider()
 
 				p.MockEC2().On("DescribeAvailabilityZones",
-					mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
-						// This will match an valid DescribeAvailabilityZonesInput
-						return true
-					}),
-				).Return(nil, fmt.Errorf("Some random error from AWS"))
+					mock.Anything,
+				).Return(nil, errors.New("some random error from AWS"))
 
-				azSelector = NewSelectorWithDefaults(p.MockEC2())
+				azSelector = NewSelectorWithDefaults(p.MockEC2(), "us-west-2")
 			})
 
 			JustBeforeEach(func() {
-				selectedZones, err = azSelector.SelectZones("us-west-2")
+				selectedZones, err = azSelector.SelectZones()
 			})
 
 			It("should return an error", func() {
@@ -206,31 +202,31 @@ var _ = Describe("AZ", func() {
 
 		Context("with min required zones selector", func() {
 			var (
-				region        *string
+				region        string
 				selectedZones []string
 				azSelector    *AvailabilityZoneSelector
 				zones         []*ec2.AvailabilityZone
 			)
 
 			BeforeEach(func() {
-				region = aws.String("us-east-1")
+				region = "us-east-1"
 				zones = usEast1Zones(ec2.AvailabilityZoneStateAvailable)
-				_, p = createProviders()
+				p = mockprovider.NewMockProvider()
 
 				p.MockEC2().On("DescribeAvailabilityZones",
 					mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
 						filter := input.Filters[0]
-						return *filter.Name == "region-name" && *filter.Values[0] == *region
+						return *filter.Name == "region-name" && *filter.Values[0] == region
 					}),
 				).Return(&ec2.DescribeAvailabilityZonesOutput{
 					AvailabilityZones: zones,
 				}, nil)
 
-				azSelector = NewSelectorWithMinRequired(p.MockEC2())
+				azSelector = NewSelectorWithMinRequired(p.MockEC2(), region)
 			})
 
 			JustBeforeEach(func() {
-				selectedZones, err = azSelector.SelectZones(*region)
+				selectedZones, err = azSelector.SelectZones()
 			})
 
 			It("should not error", func() {
@@ -242,21 +238,52 @@ var _ = Describe("AZ", func() {
 			})
 
 			It("should have returned 2 availability zones", func() {
-				Expect(len(selectedZones)).To(Equal(2))
+				Expect(selectedZones).To(HaveLen(2))
+			})
+		})
+
+		Context("with Beijing region that has an unsupported zone", func() {
+			const region = "cn-north-1"
+			var p *mockprovider.MockProvider
+
+			BeforeEach(func() {
+				p = mockprovider.NewMockProvider()
+			})
+
+			It("should avoid unsupported zones", func() {
+				p.MockEC2().On("DescribeAvailabilityZones", mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
+					filter := input.Filters[0]
+					return *filter.Name == "region-name" && *filter.Values[0] == region
+				})).Return(&ec2.DescribeAvailabilityZonesOutput{
+					AvailabilityZones: []*ec2.AvailabilityZone{
+						{
+							ZoneName: aws.String("cn-north-1a"),
+							ZoneId:   aws.String("cnn1-az2"),
+						},
+						{
+							ZoneName: aws.String("cn-north-1d"),
+							ZoneId:   aws.String("cnn1-az4"),
+						},
+						{
+							ZoneName: aws.String("cn-north-1b"),
+							ZoneId:   aws.String("cnn1-az3"),
+						},
+						{
+							ZoneName: aws.String("cn-north-1e"),
+							ZoneId:   aws.String("cnn1-az1"),
+						},
+					},
+				}, nil)
+
+				azSelector := NewSelectorWithDefaults(p.EC2(), region)
+				selectedZones, err := azSelector.SelectZones()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeAvailabilityZones", 1)).To(BeTrue())
+				Expect(selectedZones).To(ConsistOf("cn-north-1a", "cn-north-1b", "cn-north-1e"))
 			})
 		})
 	})
 })
-
-func createProviders() (*eks.ClusterProvider, *mockprovider.MockProvider) {
-	p := mockprovider.NewMockProvider()
-
-	c := &eks.ClusterProvider{
-		Provider: p,
-	}
-
-	return c, p
-}
 
 func createAvailabilityZone(region string, state string, zone string) *ec2.AvailabilityZone {
 	return &ec2.AvailabilityZone{

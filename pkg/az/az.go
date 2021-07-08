@@ -19,6 +19,10 @@ const (
 	MinRequiredAvailabilityZones = api.MinRequiredSubnets
 )
 
+var zoneIDsToAvoid = map[string][]string{
+	api.RegionCNNorth1: {"cnn1-az4"}, // https://github.com/weaveworks/eksctl/issues/3916
+}
+
 // SelectionStrategy provides an interface to allow changing the strategy used to
 // select availability zones to use from a list available.
 type SelectionStrategy interface {
@@ -65,62 +69,69 @@ type ZoneUsageRule interface {
 	CanUseZone(zone *ec2.AvailabilityZone) bool
 }
 
-// ZonesToAvoidRule can be used to ensure that certain az aren't used. This can be used
-// to avoid zones that are know to be overpopulated.
+// ZonesToAvoidRule can be used to ensure that certain zone IDs aren't used. This can be used
+// to avoid zones that are known to be overpopulated.
 type ZonesToAvoidRule struct {
-	zonesToAvoid map[string]bool
+	zoneIDs map[string]struct{}
 }
 
 // CanUseZone checks if the supplied zone is in the list of zones to be avoided.
 func (za *ZonesToAvoidRule) CanUseZone(zone *ec2.AvailabilityZone) bool {
-	_, avoidZone := za.zonesToAvoid[*zone.ZoneName]
+	_, avoidZone := za.zoneIDs[*zone.ZoneId]
 	return !avoidZone
 }
 
 // NewZonesToAvoidRule returns a new ZonesToAvoidRule with the supplied
 // zones set to avoid
-func NewZonesToAvoidRule(zonesToAvoid map[string]bool) *ZonesToAvoidRule {
-	return &ZonesToAvoidRule{zonesToAvoid: zonesToAvoid}
+func NewZonesToAvoidRule(zoneIDs []string) *ZonesToAvoidRule {
+	z := map[string]struct{}{}
+	for _, zoneID := range zoneIDs {
+		z[zoneID] = struct{}{}
+	}
+	return &ZonesToAvoidRule{zoneIDs: z}
+}
+
+func makeDefaultZoneUsageRules(region string) []ZoneUsageRule {
+	zoneIDs, ok := zoneIDsToAvoid[region]
+	if !ok {
+		return nil
+	}
+	return []ZoneUsageRule{NewZonesToAvoidRule(zoneIDs)}
 }
 
 // AvailabilityZoneSelector used to select availability zones to use
 type AvailabilityZoneSelector struct {
 	ec2api   ec2iface.EC2API
+	region   string
 	strategy SelectionStrategy
 	rules    []ZoneUsageRule
 }
 
-// NewSelectorWithDefaults create a new AvailabilityZoneSelector with the
+// NewSelectorWithDefaults creates a new AvailabilityZoneSelector with the
 // default selection strategy and usage rules
-func NewSelectorWithDefaults(ec2api ec2iface.EC2API) *AvailabilityZoneSelector {
-	avoidZones := map[string]bool{
-		"cn-north-1d": true,
-	}
-
+func NewSelectorWithDefaults(ec2api ec2iface.EC2API, region string) *AvailabilityZoneSelector {
 	return &AvailabilityZoneSelector{
 		ec2api:   ec2api,
 		strategy: NewRecommendedNumberRandomStrategy(),
-		rules:    []ZoneUsageRule{NewZonesToAvoidRule(avoidZones)},
+		rules:    makeDefaultZoneUsageRules(region),
+		region:   region,
 	}
 }
 
 // NewSelectorWithMinRequired create a new AvailabilityZoneSelector with the
 // minimum required selection strategy and usage rules
-func NewSelectorWithMinRequired(ec2api ec2iface.EC2API) *AvailabilityZoneSelector {
-	avoidZones := map[string]bool{
-		"cn-north-1d": true,
-	}
-
+func NewSelectorWithMinRequired(ec2api ec2iface.EC2API, region string) *AvailabilityZoneSelector {
 	return &AvailabilityZoneSelector{
 		ec2api:   ec2api,
 		strategy: NewMinRequiredNumberRandomStrategy(),
-		rules:    []ZoneUsageRule{NewZonesToAvoidRule(avoidZones)},
+		rules:    makeDefaultZoneUsageRules(region),
+		region:   region,
 	}
 }
 
 // SelectZones returns a list fo az zones to use for the supplied region
-func (a *AvailabilityZoneSelector) SelectZones(regionName string) ([]string, error) {
-	availableZones, err := a.getZonesForRegion(regionName)
+func (a *AvailabilityZoneSelector) SelectZones() ([]string, error) {
+	availableZones, err := a.getZonesForRegion()
 	if err != nil {
 		return nil, err
 	}
@@ -148,10 +159,10 @@ func (a *AvailabilityZoneSelector) getUsableZones(availableZones []*ec2.Availabi
 	return usableZones
 }
 
-func (a *AvailabilityZoneSelector) getZonesForRegion(regionName string) ([]*ec2.AvailabilityZone, error) {
+func (a *AvailabilityZoneSelector) getZonesForRegion() ([]*ec2.AvailabilityZone, error) {
 	regionFilter := &ec2.Filter{
 		Name:   aws.String("region-name"),
-		Values: []*string{aws.String(regionName)},
+		Values: []*string{aws.String(a.region)},
 	}
 	stateFilter := &ec2.Filter{
 		Name:   aws.String("state"),
@@ -164,7 +175,7 @@ func (a *AvailabilityZoneSelector) getZonesForRegion(regionName string) ([]*ec2.
 
 	output, err := a.ec2api.DescribeAvailabilityZones(input)
 	if err != nil {
-		return nil, errors.Wrapf(err, "getting availability zones for %s", regionName)
+		return nil, errors.Wrapf(err, "getting availability zones for %s", a.region)
 	}
 
 	return output.AvailabilityZones, nil
