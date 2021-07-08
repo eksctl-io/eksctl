@@ -42,6 +42,8 @@ func (m *Manager) Upgrade(options managed.UpgradeOptions, wait bool) error {
 		return m.waitForUpgrade(options)
 	}
 
+	logger.Info("nodegroup upgrade request submitted successfully")
+
 	return nil
 
 }
