@@ -3,12 +3,14 @@ package v1alpha5
 import (
 	"fmt"
 	"net"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/utils/taints"
 	corev1 "k8s.io/api/core/v1"
 
@@ -326,10 +328,33 @@ func (ue *unsupportedFieldError) Error() string {
 	return fmt.Sprintf("%s is not supported for %s nodegroups (path=%s.%s)", ue.field, ue.ng.AMIFamily, ue.path, ue.field)
 }
 
+// IsInvalidNameArg checks whether the name contains invalid characters
+func IsInvalidNameArg(name string) bool {
+	re := regexp.MustCompile(`[^a-zA-Z0-9\-]+`)
+	return re.MatchString(name)
+}
+
+// errInvalidName error when invalid characters for a name is provided
+func ErrInvalidName(name string) error {
+	return fmt.Errorf("validation for %s failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*", name)
+}
+
+func validateNodeGroupName(name string) error {
+	if name != "" && IsInvalidNameArg(name) {
+		return ErrInvalidName(name)
+	}
+
+	return nil
+}
+
 // ValidateNodeGroup checks compatible fields of a given nodegroup
 func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	path := fmt.Sprintf("nodeGroups[%d]", i)
 	if err := validateNodeGroupBase(ng.NodeGroupBase, path); err != nil {
+		return err
+	}
+
+	if err := validateNodeGroupName(ng.Name); err != nil {
 		return err
 	}
 

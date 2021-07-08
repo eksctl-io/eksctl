@@ -97,6 +97,9 @@ nodeGroups:
         imageBuilder: true
 ```
 
+!!! note
+    The cluster name or nodegroup name can contain only alphanumeric characters (case-sensitive) and hyphens. It must start with an alphabetic character and can't be longer than 128 characters otherwise you will get a validation error. More information can be found [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-using-console-create-stack-parameters.html)
+
 To delete this cluster, run:
 
 ```
