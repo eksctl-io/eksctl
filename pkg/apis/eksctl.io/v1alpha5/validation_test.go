@@ -52,6 +52,33 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	Describe("nodeGroups[*].name validation", func() {
+		var (
+			cfg *api.ClusterConfig
+			err error
+		)
+
+		BeforeEach(func() {
+			cfg = api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "ng_invalid-name-10"
+			ng1 := cfg.NewNodeGroup()
+			ng1.Name = "ng100_invalid_name"
+			ng2 := cfg.NewNodeGroup()
+			ng2.Name = "ng100@invalid-name"
+		})
+
+		It("should reject invalid nodegroup names", func() {
+			err = api.ValidateClusterConfig(cfg)
+			Expect(err).ToNot(HaveOccurred())
+
+			for i, ng := range cfg.NodeGroups {
+				err = api.ValidateNodeGroup(i, ng)
+				Expect(err).To(HaveOccurred())
+			}
+		})
+	})
+
 	Describe("nodeGroups[*].volumeX", func() {
 		var (
 			cfg *api.ClusterConfig
