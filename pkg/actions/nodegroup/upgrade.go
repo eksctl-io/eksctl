@@ -134,4 +134,3 @@ func (m *Manager) waitForUpgrade(options managed.UpgradeOptions) error {
 	logger.Info("nodegroup successfully upgraded")
 	return nil
 }
-

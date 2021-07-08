@@ -85,4 +85,3 @@ func upgradeNodeGroup(cmd *cmdutils.Cmd, options managed.UpgradeOptions) error {
 	return nodegroup.New(cfg, ctl, clientSet).Upgrade(options, cmd.Wait)
 
 }
-
