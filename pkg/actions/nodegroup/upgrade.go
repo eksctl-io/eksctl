@@ -34,10 +34,19 @@ func (m *Manager) Upgrade(options managed.UpgradeOptions, wait bool) error {
 		return managedService.UpgradeNodeGroup(options)
 	}
 
-	return m.upgradeAndWait(options, wait)
+	if err := m.upgrade(options); err != nil {
+		return err
+	}
+
+	if wait {
+		return m.waitForUpgrade(options)
+	}
+
+	return nil
+
 }
 
-func (m *Manager) upgradeAndWait(options managed.UpgradeOptions, wait bool) error {
+func (m *Manager) upgrade(options managed.UpgradeOptions) error {
 	input := &eks.UpdateNodegroupVersionInput{
 		ClusterName:   &m.cfg.Metadata.Name,
 		Force:         &options.ForceUpgrade,
@@ -92,33 +101,35 @@ func (m *Manager) upgradeAndWait(options managed.UpgradeOptions, wait bool) erro
 	}
 
 	logger.Info("upgrade of nodegroup %q in progress", options.NodegroupName)
+	return nil
+}
 
-	if wait {
-		newRequest := func() *request.Request {
-			input := &eks.DescribeNodegroupInput{
-				ClusterName:   &m.cfg.Metadata.Name,
-				NodegroupName: &options.NodegroupName,
-			}
-			req, _ := m.ctl.Provider.EKS().DescribeNodegroupRequest(input)
-			return req
+func (m *Manager) waitForUpgrade(options managed.UpgradeOptions) error {
+
+	newRequest := func() *request.Request {
+		input := &eks.DescribeNodegroupInput{
+			ClusterName:   &m.cfg.Metadata.Name,
+			NodegroupName: &options.NodegroupName,
 		}
-
-		msg := fmt.Sprintf("waiting for upgrade of nodegroup %q to complete", options.NodegroupName)
-
-		acceptors := waiters.MakeAcceptors(
-			"Nodegroup.Status",
-			eks.NodegroupStatusActive,
-			[]string{
-				eks.NodegroupStatusDegraded,
-			},
-		)
-
-		err = m.wait(options.NodegroupName, msg, acceptors, newRequest, m.ctl.Provider.WaitTimeout(), nil)
-		if err != nil {
-			return err
-		}
-		logger.Info("nodegroup successfully upgraded")
+		req, _ := m.ctl.Provider.EKS().DescribeNodegroupRequest(input)
+		return req
 	}
+
+	msg := fmt.Sprintf("waiting for upgrade of nodegroup %q to complete", options.NodegroupName)
+
+	acceptors := waiters.MakeAcceptors(
+		"Nodegroup.Status",
+		eks.NodegroupStatusActive,
+		[]string{
+			eks.NodegroupStatusDegraded,
+		},
+	)
+
+	err := m.wait(options.NodegroupName, msg, acceptors, newRequest, m.ctl.Provider.WaitTimeout(), nil)
+	if err != nil {
+		return err
+	}
+	logger.Info("nodegroup successfully upgraded")
 	return nil
 }
 
