@@ -38,7 +38,7 @@ var _ = Describe("create", func() {
 
 type invalidParamsCase struct {
 	args  []string
-	error error
+	error string
 }
 
 func newDefaultCmd(args ...string) *mockVerbCmd {

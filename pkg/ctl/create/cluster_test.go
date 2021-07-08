@@ -1,8 +1,6 @@
 package create
 
 import (
-	"fmt"
-
 	. "github.com/onsi/ginkgo/extensions/table"
 
 	. "github.com/onsi/ginkgo"
@@ -89,15 +87,15 @@ var _ = Describe("create cluster", func() {
 				cmd := newDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(c.error.Error()))
+				Expect(err).To(MatchError(ContainSubstring(c.error)))
 			},
 			Entry("with cluster name as argument and flag", invalidParamsCase{
 				args:  []string{"clusterName", "--name", "clusterName"},
-				error: fmt.Errorf("Error: --name=clusterName and argument clusterName cannot be used at the same time"),
+				error: "--name=clusterName and argument clusterName cannot be used at the same time",
 			}),
 			Entry("with invalid flags", invalidParamsCase{
 				args:  []string{"cluster", "--invalid", "dummy"},
-				error: fmt.Errorf("Error: unknown flag: --invalid"),
+				error: "unknown flag: --invalid",
 			}),
 		)
 	})
@@ -159,15 +157,15 @@ var _ = Describe("create cluster", func() {
 				cmd := newDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(c.error.Error()))
+				Expect(err).To(MatchError(ContainSubstring(c.error)))
 			},
 			Entry("with cluster name as argument and flag", invalidParamsCase{
 				args:  []string{"clusterName", "--name", "clusterName"},
-				error: fmt.Errorf("Error: --name=clusterName and argument clusterName cannot be used at the same time"),
+				error: "--name=clusterName and argument clusterName cannot be used at the same time",
 			}),
 			Entry("with invalid flags", invalidParamsCase{
 				args:  []string{"cluster", "--invalid", "dummy"},
-				error: fmt.Errorf("Error: unknown flag: --invalid"),
+				error: "unknown flag: --invalid",
 			}),
 		)
 	})

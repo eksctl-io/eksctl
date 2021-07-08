@@ -1,10 +1,10 @@
 github.com/maxbrunsfeld/counterfeiter/v6
-github.com/cloudflare/cfssl/cmd/cfssl
-github.com/cloudflare/cfssl/cmd/cfssljson
+github.com/cloudflare/cfssl/cmd/cfssl@v1.5.0
+github.com/cloudflare/cfssl/cmd/cfssljson@v1.5.0
 github.com/golangci/golangci-lint/cmd/golangci-lint
 github.com/goreleaser/goreleaser
 github.com/kevinburke/go-bindata/go-bindata
-github.com/onsi/ginkgo/ginkgo
+github.com/onsi/ginkgo/ginkgo@v1.16.4
 github.com/vektra/mockery/cmd/mockery
 github.com/github-release/github-release
 golang.org/x/tools/cmd/stringer
