@@ -2,7 +2,7 @@ package builder_test
 
 import (
 	"encoding/json"
-	
+
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo"
@@ -114,7 +114,7 @@ var _ = Describe("Cluster Template Builder", func() {
 
 		Context("when 1 extraCIDR is defined", func() {
 			BeforeEach(func() {
-				oneExtraCIDR := []string{"192.168.0.0/24"} 
+				oneExtraCIDR := []string{"192.168.0.0/24"}
 				cfg.VPC.ExtraCIDRs = oneExtraCIDR
 			})
 
@@ -132,7 +132,7 @@ var _ = Describe("Cluster Template Builder", func() {
 				threeExtraCIDRs := []string{"192.168.0.0/24", "192.168.1.0/24", "192.168.2.0/24"}
 				cfg.VPC.ExtraCIDRs = threeExtraCIDRs
 			})
-			
+
 			It("should add 3 extra control plane ingress rules", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey("IngressControlPlaneExtraCIDR0"))
 				Expect(clusterTemplate.Resources["IngressControlPlaneExtraCIDR0"].Properties.CidrIP).To(Equal("192.168.0.0/24"))
