@@ -68,6 +68,8 @@ func configureRepositoryCmd(cmd *cmdutils.Cmd) *options {
 }
 
 func doEnableRepository(cmd *cmdutils.Cmd) error {
+	logger.Warning("This command is deprecated: https://github.com/weaveworks/eksctl/issues/2963")
+
 	k8sClientSet, k8sRestConfig, err := cmdutils.KubernetesClientAndConfigFrom(cmd)
 	if err != nil {
 		return err

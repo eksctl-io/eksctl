@@ -1,6 +1,7 @@
 package generate
 
 import (
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -19,7 +20,12 @@ func generateProfile(cmd *cmdutils.Cmd) {
 
 func generateProfileWithRunFunc(cmd *cmdutils.Cmd, runFunc func(*cmdutils.Cmd) error) {
 	cmd.ClusterConfig = api.NewClusterConfig()
-	cmd.SetDescription("profile", "Generate a gitops profile", "")
+	cmd.SetDescription("profile", "", "")
+	cmd.SetDescription(
+		"profile",
+		"MARKED FOR DEPRECATION: https://github.com/weaveworks/eksctl/issues/2963. Generate a gitops profile",
+		"",
+	)
 
 	opts := configureGenerateProfileCmd(cmd)
 
@@ -55,6 +61,7 @@ func configureGenerateProfileCmd(cmd *cmdutils.Cmd) *api.Git {
 }
 
 func doGenerateProfile(cmd *cmdutils.Cmd) error {
+	logger.Warning("This command is deprecated: https://github.com/weaveworks/eksctl/issues/2963")
 	// TODO move the load of the region outside of the creation of the EKS client
 	// currently that is done inside cmd.NewCtl() but we don't need EKS here
 	cmd.ClusterConfig.Metadata.Region = cmd.ProviderConfig.Region
