@@ -9,8 +9,9 @@ eksctl create nodegroup --cluster=<clusterName> [--name=<nodegroupName>]
 ```
 
 !!!note
-    By default, new nodegroups inherit the version from the control plane (`--version=auto`), but you can specify a different
-    version e.g. `--version=1.10`, you can also use `--version=latest` to force use of whichever is the latest version.
+`--version` flag is not supported for managed nodegroup. It always inherits the version from control plane.
+
+By default, new unmanaged nodegroups inherit the version from the control plane (`--version=auto`), but you can specify a different version e.g. `--version=1.18`, you can also use `--version=latest` to force use of whichever is the latest version.
 
 Additionally, you can use the same config file used for `eksctl create cluster`:
 
@@ -29,11 +30,11 @@ eksctl create nodegroup --config-file=<path> --include='ng-prod-*-??' --exclude=
 
 The behavior of the `eksctl create nodegroup` command is modified by these flags in the following way:
 
-- if no `--include` or `--exclude` are specified everything is included
-- if only `--include` is specified only nodegroups that mach those globs will be included
-- if only `--exclude` is specified all nodegroups that do not match those globes are included
-- if both are specified then `--exclude` rules take precedence over `--include` (i.e. nodegroups that match rules in
-both groups will be excluded)
+-   if no `--include` or `--exclude` are specified everything is included
+-   if only `--include` is specified only nodegroups that mach those globs will be included
+-   if only `--exclude` is specified all nodegroups that do not match those globes are included
+-   if both are specified then `--exclude` rules take precedence over `--include` (i.e. nodegroups that match rules in
+    both groups will be excluded)
 
 ### Creating a nodegroup from a config file
 
@@ -45,22 +46,22 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: dev-cluster
-  region: eu-north-1
+    name: dev-cluster
+    region: eu-north-1
 
 nodeGroups:
-  - name: ng-1-workers
-    labels: { role: workers }
-    instanceType: m5.xlarge
-    desiredCapacity: 10
-    volumeSize: 80
-    privateNetworking: true
-  - name: ng-2-builders
-    labels: { role: builders }
-    instanceType: m5.2xlarge
-    desiredCapacity: 2
-    volumeSize: 100
-    privateNetworking: true
+    - name: ng-1-workers
+      labels: { role: workers }
+      instanceType: m5.xlarge
+      desiredCapacity: 10
+      volumeSize: 80
+      privateNetworking: true
+    - name: ng-2-builders
+      labels: { role: builders }
+      instanceType: m5.2xlarge
+      desiredCapacity: 2
+      volumeSize: 100
+      privateNetworking: true
 ```
 
 The nodegroups `ng-1-workers` and `ng-2-builders` can be created with this command:
@@ -77,36 +78,36 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: dev-cluster
-  region: eu-north-1
+    name: dev-cluster
+    region: eu-north-1
 
 nodeGroups:
-  - name: ng-1-web
-    labels: { role: web }
-    instanceType: m5.xlarge
-    desiredCapacity: 10
-    privateNetworking: true
-    classicLoadBalancerNames:
-      - dev-clb-1
-      - dev-clb-2
-    asgMetricsCollection:
-      - granularity: 1Minute
-        metrics:
-          - GroupMinSize
-          - GroupMaxSize
-          - GroupDesiredCapacity
-          - GroupInServiceInstances
-          - GroupPendingInstances
-          - GroupStandbyInstances
-          - GroupTerminatingInstances
-          - GroupTotalInstances
-  - name: ng-2-api
-    labels: { role: api }
-    instanceType: m5.2xlarge
-    desiredCapacity: 2
-    privateNetworking: true
-    targetGroupARNs:
-      - arn:aws:elasticloadbalancing:eu-north-1:01234567890:targetgroup/dev-target-group-1/abcdef0123456789
+    - name: ng-1-web
+      labels: { role: web }
+      instanceType: m5.xlarge
+      desiredCapacity: 10
+      privateNetworking: true
+      classicLoadBalancerNames:
+          - dev-clb-1
+          - dev-clb-2
+      asgMetricsCollection:
+          - granularity: 1Minute
+            metrics:
+                - GroupMinSize
+                - GroupMaxSize
+                - GroupDesiredCapacity
+                - GroupInServiceInstances
+                - GroupPendingInstances
+                - GroupStandbyInstances
+                - GroupTerminatingInstances
+                - GroupTotalInstances
+    - name: ng-2-api
+      labels: { role: api }
+      instanceType: m5.2xlarge
+      desiredCapacity: 2
+      privateNetworking: true
+      targetGroupARNs:
+          - arn:aws:elasticloadbalancing:eu-north-1:01234567890:targetgroup/dev-target-group-1/abcdef0123456789
 ```
 
 ### Listing nodegroups
@@ -118,6 +119,7 @@ eksctl get nodegroup --cluster=<clusterName> [--name=<nodegroupName>]
 ```
 
 To list one or multiple nodegroup(s) in yaml or json format, which outputs more info than the default log table, use:
+
 ```bash
 # yaml format
 eksctl get nodegroup --cluster=<clusterName> [--name=<nodegroupName>] --output=yaml
@@ -152,7 +154,7 @@ Kindly note that these values can also be passed with flags `--nodes-min` and `-
 Scaling a nodegroup works by modifying the nodegroup CloudFormation stack via a ChangeSet.
 
 !!!note
-    Scaling a nodegroup down/in (i.e. reducing the number of nodes) may result in errors as we rely purely on changes to the ASG. This means that the node(s) being removed/terminated aren't explicitly drained. This may be an area for improvement in the future.
+Scaling a nodegroup down/in (i.e. reducing the number of nodes) may result in errors as we rely purely on changes to the ASG. This means that the node(s) being removed/terminated aren't explicitly drained. This may be an area for improvement in the future.
 
 You can also enable SSH, ASG access and other feature for each particular nodegroup, e.g.:
 
@@ -170,32 +172,32 @@ kubectl label nodes -l alpha.eksctl.io/nodegroup-name=ng-1 new-label=foo
 ```
 
 ### SSH Access
+
 You can enable SSH access for nodegroups by configuring one of `publicKey`, `publicKeyName` and `publicKeyPath` in your
 nodegroup configuration. Alternatively you can use [AWS Systems Manager (SSM)](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html#sessions-start-cli) to SSH onto nodes, by configuring the nodegroup with `enableSsm`:
 
-
 ```yaml
 nodeGroups:
-  - name: ng-1
-    instanceType: m5.large
-    desiredCapacity: 1
-    ssh: # import public key from file
-      publicKeyPath: ~/.ssh/id_rsa_tests.pub
-  - name: ng-2
-    instanceType: m5.large
-    desiredCapacity: 1
-    ssh: # use existing EC2 key
-      publicKeyName: ec2_dev_key
-  - name: ng-3
-    instanceType: m5.large
-    desiredCapacity: 1
-    ssh: # import inline public key
-      publicKey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDqZEdzvHnK/GVP8nLngRHu/GDi/3PeES7+Bx6l3koXn/Oi/UmM9/jcW5XGziZ/oe1cPJ777eZV7muEvXg5ZMQBrYxUtYCdvd8Rt6DIoSqDLsIPqbuuNlQoBHq/PU2IjpWnp/wrJQXMk94IIrGjY8QHfCnpuMENCucVaifgAhwyeyuO5KiqUmD8E0RmcsotHKBV9X8H5eqLXd8zMQaPl+Ub7j5PG+9KftQu0F/QhdFvpSLsHaxvBzA5nhIltjkaFcwGQnD1rpCM3+UnQE7Izoa5Yt1xoUWRwnF+L2TKovW7+bYQ1kxsuuiX149jXTCJDVjkYCqi7HkrXYqcC1sbsror someuser@hostname"
-  - name: ng-4
-    instanceType: m5.large
-    desiredCapacity: 1
-    ssh: # enable SSH using SSM
-      enableSsm: true
+    - name: ng-1
+      instanceType: m5.large
+      desiredCapacity: 1
+      ssh: # import public key from file
+          publicKeyPath: ~/.ssh/id_rsa_tests.pub
+    - name: ng-2
+      instanceType: m5.large
+      desiredCapacity: 1
+      ssh: # use existing EC2 key
+          publicKeyName: ec2_dev_key
+    - name: ng-3
+      instanceType: m5.large
+      desiredCapacity: 1
+      ssh: # import inline public key
+          publicKey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDqZEdzvHnK/GVP8nLngRHu/GDi/3PeES7+Bx6l3koXn/Oi/UmM9/jcW5XGziZ/oe1cPJ777eZV7muEvXg5ZMQBrYxUtYCdvd8Rt6DIoSqDLsIPqbuuNlQoBHq/PU2IjpWnp/wrJQXMk94IIrGjY8QHfCnpuMENCucVaifgAhwyeyuO5KiqUmD8E0RmcsotHKBV9X8H5eqLXd8zMQaPl+Ub7j5PG+9KftQu0F/QhdFvpSLsHaxvBzA5nhIltjkaFcwGQnD1rpCM3+UnQE7Izoa5Yt1xoUWRwnF+L2TKovW7+bYQ1kxsuuiX149jXTCJDVjkYCqi7HkrXYqcC1sbsror someuser@hostname"
+    - name: ng-4
+      instanceType: m5.large
+      desiredCapacity: 1
+      ssh: # enable SSH using SSM
+          enableSsm: true
 ```
 
 ### Deleting and draining
@@ -207,7 +209,6 @@ eksctl delete nodegroup --cluster=<clusterName> --name=<nodegroupName>
 ```
 
 [Include and exclude rules](#include-and-exclude-rules) can also be used with this command.
-
 
 !!!note
 This will drain all pods from that nodegroup before the instances are deleted.
@@ -256,3 +257,4 @@ eksctl delete nodegroup --config-file=dev-cluster.yaml --include=ng-2-builders -
 ```
 
 In this case, we also need to supply the `--approve` command to actually delete the nodegroup.
+
