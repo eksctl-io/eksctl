@@ -21,7 +21,6 @@ limitations under the License.
 package v1alpha5
 
 import (
-	ipnet "github.com/weaveworks/eksctl/pkg/utils/ipnet"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -595,13 +594,8 @@ func (in *ClusterVPC) DeepCopyInto(out *ClusterVPC) {
 	}
 	if in.ExtraCIDRs != nil {
 		in, out := &in.ExtraCIDRs, &out.ExtraCIDRs
-		*out = make([]*ipnet.IPNet, len(*in))
-		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = (*in).DeepCopy()
-			}
-		}
+		*out = make([]string, len(*in))
+		copy(*out, *in)
 	}
 	if in.ManageSharedNodeSecurityGroupRules != nil {
 		in, out := &in.ManageSharedNodeSecurityGroupRules, &out.ManageSharedNodeSecurityGroupRules

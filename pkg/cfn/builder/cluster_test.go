@@ -112,6 +112,37 @@ var _ = Describe("Cluster Template Builder", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ClusterSharedNodeSecurityGroup"))
 		})
 
+		Context("when 1 extraCIDR is defined", func() {
+			BeforeEach(func() {
+				oneExtraCIDR := []string{"192.168.0.0/24"}
+				cfg.VPC.ExtraCIDRs = oneExtraCIDR
+			})
+
+			It("should add 1 extra control plane ingress rule", func() {
+				Expect(clusterTemplate.Resources).To(HaveKey("IngressControlPlaneExtraCIDR0"))
+				Expect(clusterTemplate.Resources["IngressControlPlaneExtraCIDR0"].Properties.CidrIP).To(Equal("192.168.0.0/24"))
+				Expect(clusterTemplate.Resources["IngressControlPlaneExtraCIDR0"].Properties.IPProtocol).To(Equal("tcp"))
+				Expect(clusterTemplate.Resources["IngressControlPlaneExtraCIDR0"].Properties.FromPort).To(Equal(443))
+				Expect(clusterTemplate.Resources["IngressControlPlaneExtraCIDR0"].Properties.ToPort).To(Equal(443))
+			})
+		})
+
+		Context("when 3 extraCIDRs are defined", func() {
+			BeforeEach(func() {
+				threeExtraCIDRs := []string{"192.168.0.0/24", "192.168.1.0/24", "192.168.2.0/24"}
+				cfg.VPC.ExtraCIDRs = threeExtraCIDRs
+			})
+
+			It("should add 3 extra control plane ingress rules", func() {
+				Expect(clusterTemplate.Resources).To(HaveKey("IngressControlPlaneExtraCIDR0"))
+				Expect(clusterTemplate.Resources["IngressControlPlaneExtraCIDR0"].Properties.CidrIP).To(Equal("192.168.0.0/24"))
+				Expect(clusterTemplate.Resources).To(HaveKey("IngressControlPlaneExtraCIDR1"))
+				Expect(clusterTemplate.Resources["IngressControlPlaneExtraCIDR1"].Properties.CidrIP).To(Equal("192.168.1.0/24"))
+				Expect(clusterTemplate.Resources).To(HaveKey("IngressControlPlaneExtraCIDR2"))
+				Expect(clusterTemplate.Resources["IngressControlPlaneExtraCIDR2"].Properties.CidrIP).To(Equal("192.168.2.0/24"))
+			})
+		})
+
 		Context("when supportsManagedNodes is true", func() {
 			BeforeEach(func() {
 				supportsManagedNodes = true

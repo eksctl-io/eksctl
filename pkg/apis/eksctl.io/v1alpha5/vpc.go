@@ -136,7 +136,7 @@ type (
 		// for additional CIDR associations, e.g. a CIDR for
 		// private subnets or any ad-hoc subnets
 		// +optional
-		ExtraCIDRs []*ipnet.IPNet `json:"extraCIDRs,omitempty"`
+		ExtraCIDRs []string `json:"extraCIDRs,omitempty"`
 		// for pre-defined shared node SG
 		SharedNodeSecurityGroup string `json:"sharedNodeSecurityGroup,omitempty"`
 		// Automatically add security group rules to and from the default

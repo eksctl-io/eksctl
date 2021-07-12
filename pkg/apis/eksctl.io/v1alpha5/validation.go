@@ -128,6 +128,14 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 	}
 
+	if cfg.VPC != nil && len(cfg.VPC.ExtraCIDRs) > 0 {
+		cidrs, err := validateCIDRs(cfg.VPC.ExtraCIDRs)
+		if err != nil {
+			return err
+		}
+		cfg.VPC.ExtraCIDRs = cidrs
+	}
+
 	if cfg.VPC != nil && len(cfg.VPC.PublicAccessCIDRs) > 0 {
 		cidrs, err := validateCIDRs(cfg.VPC.PublicAccessCIDRs)
 		if err != nil {

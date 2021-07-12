@@ -553,7 +553,7 @@
         },
         "extraCIDRs": {
           "items": {
-            "$ref": "#/definitions/github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet"
+            "type": "string"
           },
           "type": "array",
           "description": "for additional CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets",
