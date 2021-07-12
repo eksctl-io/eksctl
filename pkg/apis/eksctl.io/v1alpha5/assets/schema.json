@@ -556,8 +556,8 @@
             "type": "string"
           },
           "type": "array",
-          "description": "Adds extra CIDRs to the Generated ControlPlaneSecurityGroup, e.g. External VPC CIDR, CIDRs accessed via DirectConnect / TGW",
-          "x-intellij-html-description": "Adds extra CIDRs to the Generated ControlPlaneSecurityGroup, e.g. External VPC CIDR, CIDRs accessed via DirectConnect / TGW"
+          "description": "for additional CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets",
+          "x-intellij-html-description": "for additional CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets"
         },
         "id": {
           "type": "string"
