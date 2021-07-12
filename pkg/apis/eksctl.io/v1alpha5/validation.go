@@ -15,7 +15,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/util/validation"
-	kubeletapis "k8s.io/kubernetes/pkg/kubelet/apis"
+	kubeletapis "k8s.io/kubelet/pkg/apis"
 )
 
 // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-blockdevicemapping-ebs.html
