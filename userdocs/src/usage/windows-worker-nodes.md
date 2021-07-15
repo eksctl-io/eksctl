@@ -40,17 +40,20 @@ eksctl create cluster -f cluster.yaml --install-vpc-controllers
 To create a new cluster without using a config file, issue the following commands:
 
 ```console
-eksctl create cluster --name=windows-cluster --node-ami-family=WindowsServer2019CoreContainer
+eksctl create cluster --managed=false --name=windows-cluster --node-ami-family=WindowsServer2019CoreContainer
 eksctl create nodegroup --cluster=windows-cluster --node-ami-family=AmazonLinux2 --nodes-min=2 --node-type=t2.large
 eksctl utils install-vpc-controllers --cluster=windows-cluster --approve
 ```
+
+!!!note
+    Windows is only supported for self-managed (--managed=false flag) nodegroups.
 
 
 ## Adding Windows support to an existing Linux cluster
 To enable running Windows workloads on an existing cluster with Linux nodes (`AmazonLinux2` AMI family), you need to add a Windows node group and install the Windows VPC controller:
 
 ```console
-eksctl create nodegroup --cluster=existing-cluster --node-ami-family=WindowsServer2019CoreContainer
+eksctl create nodegroup --managed=false --cluster=existing-cluster --node-ami-family=WindowsServer2019CoreContainer
 eksctl utils install-vpc-controllers --cluster=existing-cluster --approve
 ```
 
