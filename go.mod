@@ -1,5 +1,6 @@
 // Make sure to run the following commands after changes to this file are made:
-// ` make -f Makefile.docker update-build-image-tag && make -f Makefile.docker push-build-image`
+// `make generate-all && make lint && make check-all-generated-files-up-to-date`
+// you may also need to run `make push-build-image` depending on what has changed
 module github.com/weaveworks/eksctl
 
 go 1.16
@@ -7,7 +8,7 @@ go 1.16
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.3-0.20210303155736-3e43512d88f8
-	github.com/aws/aws-sdk-go v1.39.0
+	github.com/aws/aws-sdk-go v1.39.4
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
@@ -21,7 +22,7 @@ require (
 	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200729150005-1467489f7ee4 // helm-operator 1.2.0
 	github.com/github-release/github-release v0.10.0
 	github.com/gobwas/glob v0.2.3
-	github.com/gofrs/flock v0.8.0
+	github.com/gofrs/flock v0.8.1
 	github.com/golangci/golangci-lint v1.41.1
 	github.com/gomarkdown/markdown v0.0.0-20201113031856-722100d81a8e // indirect
 	github.com/google/uuid v1.2.0
@@ -39,7 +40,7 @@ require (
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/onsi/ginkgo v1.16.4
-	github.com/onsi/gomega v1.13.0
+	github.com/onsi/gomega v1.14.0
 	github.com/pelletier/go-toml v1.9.3
 	github.com/pkg/errors v0.9.1
 	github.com/russross/blackfriday/v2 v2.1.0
@@ -47,7 +48,7 @@ require (
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
-	github.com/tidwall/gjson v1.8.0
+	github.com/tidwall/gjson v1.8.1
 	github.com/tidwall/sjson v1.1.7
 	github.com/tj/assert v0.0.3
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
