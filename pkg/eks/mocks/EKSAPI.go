@@ -2898,6 +2898,76 @@ func (_m *EKSAPI) WaitUntilClusterDeletedWithContext(_a0 context.Context, _a1 *e
 	return r0
 }
 
+// WaitUntilFargateProfileActive provides a mock function with given fields: _a0
+func (_m *EKSAPI) WaitUntilFargateProfileActive(_a0 *eks.DescribeFargateProfileInput) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.DescribeFargateProfileInput) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilFargateProfileActiveWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) WaitUntilFargateProfileActiveWithContext(_a0 context.Context, _a1 *eks.DescribeFargateProfileInput, _a2 ...request.WaiterOption) error {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeFargateProfileInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilFargateProfileDeleted provides a mock function with given fields: _a0
+func (_m *EKSAPI) WaitUntilFargateProfileDeleted(_a0 *eks.DescribeFargateProfileInput) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.DescribeFargateProfileInput) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilFargateProfileDeletedWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) WaitUntilFargateProfileDeletedWithContext(_a0 context.Context, _a1 *eks.DescribeFargateProfileInput, _a2 ...request.WaiterOption) error {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeFargateProfileInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // WaitUntilNodegroupActive provides a mock function with given fields: _a0
 func (_m *EKSAPI) WaitUntilNodegroupActive(_a0 *eks.DescribeNodegroupInput) error {
 	ret := _m.Called(_a0)

@@ -1,5 +1,6 @@
 // Make sure to run the following commands after changes to this file are made:
-// ` make -f Makefile.docker update-build-image-tag && make -f Makefile.docker push-build-image`
+// `make generate-all && make lint && make check-all-generated-files-up-to-date`
+// you may also need to run `make push-build-image` depending on what has changed
 module github.com/weaveworks/eksctl
 
 go 1.16
