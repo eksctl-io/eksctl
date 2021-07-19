@@ -72,6 +72,15 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		return err
 	}
 
+	tags := map[string]string{
+		"Name": generateNodeName(m.nodeGroup.NodeGroupBase, m.clusterConfig.Metadata),
+		"kubernetes.io/cluster/" + m.clusterConfig.Metadata.Name: "owned",
+	}
+	if api.IsEnabled(m.nodeGroup.IAM.WithAddonPolicies.AutoScaler) {
+		tags["k8s.io/cluster-autoscaler/enabled"] = "true"
+		tags["k8s.io/cluster-autoscaler/"+m.clusterConfig.Metadata.Name] = "owned"
+	}
+
 	scalingConfig := gfneks.Nodegroup_ScalingConfig{}
 	if m.nodeGroup.MinSize != nil {
 		scalingConfig.MinSize = gfnt.NewInteger(*m.nodeGroup.MinSize)
@@ -101,7 +110,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		Subnets:       subnets,
 		NodeRole:      nodeRole,
 		Labels:        m.nodeGroup.Labels,
-		Tags:          m.nodeGroup.Tags,
+		Tags:          merge(tags, m.nodeGroup.Tags),
 		Taints:        taints,
 	}
 
@@ -285,4 +294,15 @@ func (m *ManagedNodeGroupResourceSet) WithIAM() bool {
 // WithNamedIAM implements the ResourceSet interface
 func (m *ManagedNodeGroupResourceSet) WithNamedIAM() bool {
 	return m.nodeGroup.IAM.InstanceRoleName != ""
+}
+
+func merge(m ...map[string]string) map[string]string {
+	ans := make(map[string]string, 0)
+
+	for _, c := range m {
+		for k, v := range c {
+			ans[k] = v
+		}
+	}
+	return ans
 }
