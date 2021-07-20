@@ -100,6 +100,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			"--nodes", "1",
 			"--version", params.Version,
 			"--kubeconfig", params.KubeconfigPath,
+			"--zones", "us-west-2a,us-west-2b,us-west-2c",
 		)
 		Expect(cmd).To(RunSuccessfully())
 	})
