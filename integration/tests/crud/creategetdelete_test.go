@@ -282,6 +282,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--nodes", "1",
 					"--node-type", "p2.xlarge",
 					"--node-private-networking",
+					"--node-zones", "us-west-2a,us-west-2b,us-west-2c",
 					testNG,
 				)
 				Expect(cmd).To(RunSuccessfully())
