@@ -42,25 +42,7 @@ var _ = DescribeTable("Managed AL2", func(e managedEntry) {
 			},
 		},
 
-		expectedUserData: `MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary=//
-
---//
-Content-Type: text/x-shellscript
-Content-Type: charset="us-ascii"
-
-#!/bin/bash
-
-set -o errexit
-set -o pipefail
-set -o nounset
-
-yum install -y amazon-ssm-agent
-systemctl enable amazon-ssm-agent
-systemctl start amazon-ssm-agent
-
---//--
-`,
+		expectedUserData: "",
 	}),
 
 	Entry("Custom AMI with bootstrap script", managedEntry{
@@ -78,6 +60,7 @@ API_SERVER_URL=https://test.com
 			},
 		},
 
+		// remove gke
 		expectedUserData: `#!/bin/bash
 set -ex
 B64_CLUSTER_CA=dGVzdAo=
@@ -128,20 +111,6 @@ cloud-init-per once efa_info /opt/amazon/efa/bin/fi_info -p efa
 		},
 		expectedUserData: `MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary=//
-
---//
-Content-Type: text/x-shellscript
-Content-Type: charset="us-ascii"
-
-#!/bin/bash
-
-set -o errexit
-set -o pipefail
-set -o nounset
-
-yum install -y amazon-ssm-agent
-systemctl enable amazon-ssm-agent
-systemctl start amazon-ssm-agent
 
 --//
 Content-Type: text/cloud-boothook
