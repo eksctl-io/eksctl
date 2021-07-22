@@ -347,6 +347,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				return err
 			}
 			ng.Name = names.ForNodeGroup(ng.Name, "")
+			normalizeBaseNodeGroup(ng, l.CobraCommand)
 		}
 
 		return validateDryRun()
@@ -411,6 +412,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 					return ErrFlagAndArg("--name", ng.Name, l.NameArg)
 				}
 				ng.Name = ngName
+				normalizeBaseNodeGroup(ng, l.CobraCommand)
 			}
 		} else {
 			for _, ng := range l.ClusterConfig.NodeGroups {
@@ -481,7 +483,14 @@ func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
 		return fmt.Errorf("%s volume type is not supported via flag --node-volume-type, please use a config file", api.NodeVolumeTypeIO1)
 	}
 
+	normalizeBaseNodeGroup(ng, l.CobraCommand)
 	return nil
+}
+
+func normalizeBaseNodeGroup(np api.NodePool, cmd *cobra.Command) {
+	if !cmd.Flags().Changed("instance-selector-gpus") {
+		np.BaseNodeGroup().InstanceSelector.GPUs = nil
+	}
 }
 
 // NewDeleteNodeGroupLoader will load config or use flags for 'eksctl delete nodegroup'

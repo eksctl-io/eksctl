@@ -71,8 +71,8 @@ func AddInstanceSelectorOptions(flagSetGroup *NamedFlagSetGroup, ng *api.NodeGro
 	flagSetGroup.InFlagSet("Instance Selector options", func(fs *pflag.FlagSet) {
 		fs.IntVar(&ng.InstanceSelector.VCPUs, "instance-selector-vcpus", 0, "an integer value (2, 4 etc)")
 		fs.StringVar(&ng.InstanceSelector.Memory, "instance-selector-memory", "", "4 or 4GiB")
-		fs.IntVar(&ng.InstanceSelector.GPUs, "instance-selector-gpus", 0, "an integer value")
 		fs.StringVar(&ng.InstanceSelector.CPUArchitecture, "instance-selector-cpu-architecture", "", "x86_64, or arm64")
+		ng.InstanceSelector.GPUs = fs.Int("instance-selector-gpus", 0, "an integer value")
 	})
 }
 

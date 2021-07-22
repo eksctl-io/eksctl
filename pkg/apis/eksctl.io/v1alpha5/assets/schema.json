@@ -817,8 +817,8 @@
         },
         "gpus": {
           "type": "integer",
-          "description": "specifies the number of GPUs",
-          "x-intellij-html-description": "specifies the number of GPUs"
+          "description": "specifies the number of GPUs. It can be set to 0 to select non-GPU instance types.",
+          "x-intellij-html-description": "specifies the number of GPUs. It can be set to 0 to select non-GPU instance types."
         },
         "memory": {
           "type": "string",
