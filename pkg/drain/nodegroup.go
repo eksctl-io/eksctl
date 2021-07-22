@@ -180,7 +180,7 @@ func (n *NodeGroupDrainer) evictPods(node string) (int, error) {
 	for _, pod := range pods {
 		// TODO: handle API rate limiter error
 		if err := n.evictor.EvictOrDeletePod(pod); err != nil {
-			return pending, err
+			return pending, errors.Wrapf(err, "error evicting pod: %s/%s", pod.Namespace, pod.Name)
 		}
 	}
 	return pending, nil
