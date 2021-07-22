@@ -1541,8 +1541,9 @@ type InstanceSelector struct {
 	// Memory specifies the memory
 	// The unit defaults to GiB
 	Memory string `json:"memory,omitempty"`
-	// GPUs specifies the number of GPUs
-	GPUs int `json:"gpus,omitempty"`
+	// GPUs specifies the number of GPUs.
+	// It can be set to 0 to select non-GPU instance types.
+	GPUs *int `json:"gpus,omitempty"`
 	// CPU Architecture of the EC2 instance type.
 	// Valid variants are:
 	// `"x86_64"`
