@@ -3,11 +3,11 @@
 An _`eksctl`-managed_ cluster can be upgraded in 3 easy steps:
 
 1. upgrade control plane version with `eksctl upgrade cluster`
-2. update default add-ons:
+2. replace each of the nodegroups by creating a new one and deleting the old one
+3. update default add-ons (more about this [here](https://eksctl.io/usage/addon-upgrade/)):
     - `kube-proxy`
     - `aws-node`
     - `coredns`
-3. replace each of the nodegroups by creating a new one and deleting the old one
 
 Please make sure to read this section in full before you proceed.
 
