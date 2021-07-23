@@ -158,6 +158,15 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 
 	assertDryRun := func(output []byte, setValues func(*api.ClusterConfig)) {
 		actual, expected := parseOutput(output)
+		for _, i := range actual.NodeGroups {
+			// Instance types matching the instance selector criteria may
+			// change over time as EC2 adds more instance types
+			// So we check that something was there, then erase it
+			if i.InstanceSelector != nil {
+				Expect(i.InstancesDistribution.InstanceTypes).ToNot(BeEmpty())
+				i.InstancesDistribution.InstanceTypes = nil
+			}
+		}
 		setValues(expected)
 		Expect(actual).To(Equal(expected))
 	}
@@ -326,7 +335,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 
 			Expect(cmd).To(RunSuccessfully())
 
-			By("generating a nodegroup config using dry-run")
+			By("creating a new nodegroup from the output of dry-run")
 			cmd = params.EksctlCreateCmd.
 				WithArgs(
 					"nodegroup",
@@ -334,6 +343,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 					"--name=private-ng",
 					"--node-private-networking",
 					"--node-volume-size=82",
+					"--instance-selector-vcpus=2",
 					"--dry-run",
 				).
 				WithoutArg("--region", params.Region)
@@ -355,6 +365,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				ng.Name = "private-ng"
 				ng.PrivateNetworking = true
 				ng.VolumeSize = aws.Int(82)
+				ng.InstanceSelector = &api.InstanceSelector{VCPUs: 2}
 				setClusterLabel(ng)
 				setNodeNameKey := func(values map[string]string) {
 					values["alpha.eksctl.io/nodegroup-name"] = "private-ng"
@@ -372,9 +383,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				WithStdin(bytes.NewReader(output))
 			Expect(cmd).To(RunSuccessfully())
 		})
-
 	})
-
 })
 
 var _ = AfterSuite(func() {
