@@ -461,7 +461,7 @@ func validateUnmanagedNGFlags(cmd *cobra.Command, managed bool) error {
 
 	flagsValidOnlyWithUnmanagedNG := []string{"version"}
 	if flagName, found := findChangedFlag(cmd, flagsValidOnlyWithUnmanagedNG); found {
-		return errors.Errorf("--%s is only valid with unmanaged nodegroups", flagName)
+		return fmt.Errorf("--%s is only valid with unmanaged nodegroups", flagName)
 	}
 	return nil
 }
