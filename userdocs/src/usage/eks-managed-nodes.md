@@ -7,19 +7,20 @@ An EKS managed node group is an autoscaling group and associated EC2 instances t
 **NEW** [Launch Template support for managed nodegroups](launch-template-support.md)
 
 !!!info
-    The term "unmanaged nodegroups" has been used to refer to nodegroups that eksctl has supported since the beginning and uses by default. The `ClusterConfig` file continues to use the `nodeGroups` field for defining unmanaged nodegroups, and a new field `managedNodeGroups` has been added for defining managed nodegroups.
+    The term "unmanaged nodegroups" has been used to refer to nodegroups that eksctl has supported since the beginning (represented via the `nodeGroups` field). The `ClusterConfig` file continues to use the `nodeGroups` field for defining unmanaged nodegroups, and managed nodegroups are defined with the `managedNodeGroups` field.
 
 ## Creating managed nodegroups
 
-At the command line, add the `--managed` switch to use managed instead
-of unmanaged nodegroups.
+```
+$ eksctl create nodegroup
+```
 
 ### New clusters
 
 To create a new cluster with a managed nodegroup, run
 
 ```console
-$ eksctl create cluster --managed
+$ eksctl create cluster
 ```
 
 To create multiple managed nodegroups and have more control over the configuration, a config file can be used.
@@ -61,7 +62,7 @@ managedNodeGroups:
     instanceType: t2.large
     minSize: 2
     maxSize: 3
-``` 
+```
 Another example of a config file for creating a managed nodegroup can be found [here](https://github.com/weaveworks/eksctl/blob/main/examples/15-managed-nodes.yaml).
 
 It's possible to have a cluster with both managed and unmanaged nodegroups. Unmanaged nodegroups do not show up in
@@ -144,14 +145,11 @@ managedNodeGroups:
 
 ### Existing clusters
 
-The same switch `--managed` can be used to create a new nodegroup for an
-existing cluster:
-
 ```console
 $ eksctl create nodegroup --managed
 ```
 
-Tip : if you are using a `ClusterConfig` file to describe your whole cluster, describe your new managed node group in its `managedNodeGroups` field and run\:
+Tip : if you are using a `ClusterConfig` file to describe your whole cluster, describe your new managed node group in the `managedNodeGroups` field and run\:
 
 ```console
 $ eksctl create nodegroup --config-file=YOUR_CLUSTER.yaml
@@ -188,16 +186,16 @@ eksctl upgrade nodegroup --name=managed-ng-1 --cluster=managed-cluster --release
 ## Handling parallel upgrades for nodes
 Multiple managed nodes can be upgraded simultaneously. To configure parallel upgrades, define the `updateConfig` of a nodegroup when creating the nodegroup. An example `updateConfig` can be found [here](https://github.com/weaveworks/eksctl/blob/main/examples/15-managed-nodes.yaml).
 
-To avoid any downtime to your workloads due to upgrading multiple nodes at once, you can limit the number of nodes that can become unavailable during an upgrade by specifying this in the `maxUnavailable` field of an `updateConfig`. Alternatively, use `maxUnavailablePercentage`, which defines the maximum number of unavailable nodes as a percentage of the total number of nodes. 
+To avoid any downtime to your workloads due to upgrading multiple nodes at once, you can limit the number of nodes that can become unavailable during an upgrade by specifying this in the `maxUnavailable` field of an `updateConfig`. Alternatively, use `maxUnavailablePercentage`, which defines the maximum number of unavailable nodes as a percentage of the total number of nodes.
 
 Note that `maxUnavailable` cannot be higher than `maxSize`. Also, `maxUnavailable` and `maxUnavailablePercentage` cannot be used simultaneously.
 
 This feature is only available for managed nodes.
 
 ## Updating managed nodegroups
-It is also possible to update specific fields of a managed nodegroup with the command `eksctl update nodegroup` without using `upgrade`. 
+It is also possible to update specific fields of a managed nodegroup with the command `eksctl update nodegroup` without using `upgrade`.
 
-This new command currently only supports a few fields. It is intended to be used as a way to modify the configuration of a nodegroup without triggering an entire upgrade. 
+This new command currently only supports a few fields. It is intended to be used as a way to modify the configuration of a nodegroup without triggering an entire upgrade.
 
 Right now, it will only update upgrade configuration.
 

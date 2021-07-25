@@ -52,9 +52,9 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGrou
 	fs.StringVar(&ng.InstancePrefix, "instance-prefix", "", "add a prefix value in front of the instance's name")
 	fs.StringVar(&ng.InstanceName, "instance-name", "", "overrides the default instance's name")
 
-	fs.BoolVar(ng.DisablePodIMDS, "disable-pod-imds", false, "Blocks IMDS requests from non host networking pods")
+	fs.BoolVar(ng.DisablePodIMDS, "disable-pod-imds", false, "Blocks IMDS requests from non-host networking pods")
 
-	fs.BoolVarP(&mngOptions.Managed, "managed", "", false, "Create EKS-managed nodegroup")
+	fs.BoolVarP(&mngOptions.Managed, "managed", "", true, "Create EKS-managed nodegroup")
 	fs.BoolVar(&mngOptions.Spot, "spot", false, "Create a spot nodegroup (managed nodegroups only)")
 	fs.StringSliceVar(&mngOptions.InstanceTypes, "instance-types", nil, "Comma-separated list of instance types (e.g., --instance-types=c3.large,c4.large,c5.large")
 }
@@ -71,8 +71,8 @@ func AddInstanceSelectorOptions(flagSetGroup *NamedFlagSetGroup, ng *api.NodeGro
 	flagSetGroup.InFlagSet("Instance Selector options", func(fs *pflag.FlagSet) {
 		fs.IntVar(&ng.InstanceSelector.VCPUs, "instance-selector-vcpus", 0, "an integer value (2, 4 etc)")
 		fs.StringVar(&ng.InstanceSelector.Memory, "instance-selector-memory", "", "4 or 4GiB")
-		fs.IntVar(&ng.InstanceSelector.GPUs, "instance-selector-gpus", 0, "an integer value")
 		fs.StringVar(&ng.InstanceSelector.CPUArchitecture, "instance-selector-cpu-architecture", "", "x86_64, or arm64")
+		ng.InstanceSelector.GPUs = fs.Int("instance-selector-gpus", 0, "an integer value")
 	})
 }
 

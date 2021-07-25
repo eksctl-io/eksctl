@@ -21165,6 +21165,119 @@ func (_m *EC2API) DescribeSecurityGroupReferencesWithContext(_a0 context.Context
 	return r0, r1
 }
 
+// DescribeSecurityGroupRules provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeSecurityGroupRules(_a0 *ec2.DescribeSecurityGroupRulesInput) (*ec2.DescribeSecurityGroupRulesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeSecurityGroupRulesOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeSecurityGroupRulesInput) *ec2.DescribeSecurityGroupRulesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeSecurityGroupRulesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeSecurityGroupRulesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeSecurityGroupRulesPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeSecurityGroupRulesPages(_a0 *ec2.DescribeSecurityGroupRulesInput, _a1 func(*ec2.DescribeSecurityGroupRulesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeSecurityGroupRulesInput, func(*ec2.DescribeSecurityGroupRulesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeSecurityGroupRulesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeSecurityGroupRulesPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeSecurityGroupRulesInput, _a2 func(*ec2.DescribeSecurityGroupRulesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSecurityGroupRulesInput, func(*ec2.DescribeSecurityGroupRulesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeSecurityGroupRulesRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeSecurityGroupRulesRequest(_a0 *ec2.DescribeSecurityGroupRulesInput) (*request.Request, *ec2.DescribeSecurityGroupRulesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeSecurityGroupRulesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeSecurityGroupRulesOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeSecurityGroupRulesInput) *ec2.DescribeSecurityGroupRulesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeSecurityGroupRulesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeSecurityGroupRulesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeSecurityGroupRulesWithContext(_a0 context.Context, _a1 *ec2.DescribeSecurityGroupRulesInput, _a2 ...request.Option) (*ec2.DescribeSecurityGroupRulesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeSecurityGroupRulesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSecurityGroupRulesInput, ...request.Option) *ec2.DescribeSecurityGroupRulesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeSecurityGroupRulesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeSecurityGroupRulesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DescribeSecurityGroups provides a mock function with given fields: _a0
 func (_m *EC2API) DescribeSecurityGroups(_a0 *ec2.DescribeSecurityGroupsInput) (*ec2.DescribeSecurityGroupsOutput, error) {
 	ret := _m.Called(_a0)
@@ -32619,6 +32732,84 @@ func (_m *EC2API) ModifyReservedInstancesWithContext(_a0 context.Context, _a1 *e
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyReservedInstancesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifySecurityGroupRules provides a mock function with given fields: _a0
+func (_m *EC2API) ModifySecurityGroupRules(_a0 *ec2.ModifySecurityGroupRulesInput) (*ec2.ModifySecurityGroupRulesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ModifySecurityGroupRulesOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ModifySecurityGroupRulesInput) *ec2.ModifySecurityGroupRulesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifySecurityGroupRulesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ModifySecurityGroupRulesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifySecurityGroupRulesRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ModifySecurityGroupRulesRequest(_a0 *ec2.ModifySecurityGroupRulesInput) (*request.Request, *ec2.ModifySecurityGroupRulesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ModifySecurityGroupRulesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ModifySecurityGroupRulesOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ModifySecurityGroupRulesInput) *ec2.ModifySecurityGroupRulesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ModifySecurityGroupRulesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ModifySecurityGroupRulesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ModifySecurityGroupRulesWithContext(_a0 context.Context, _a1 *ec2.ModifySecurityGroupRulesInput, _a2 ...request.Option) (*ec2.ModifySecurityGroupRulesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ModifySecurityGroupRulesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifySecurityGroupRulesInput, ...request.Option) *ec2.ModifySecurityGroupRulesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifySecurityGroupRulesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifySecurityGroupRulesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)

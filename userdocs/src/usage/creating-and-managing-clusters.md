@@ -8,8 +8,12 @@ Create a simple cluster with the following command:
 eksctl create cluster
 ```
 
-That will create an EKS cluster in your default region (as specified by your AWS CLI configuration) with one
-nodegroup containing 2 m5.large nodes.
+That will create an EKS cluster in your default region (as specified by your AWS CLI configuration) with one managed
+nodegroup containing two m5.large nodes.
+
+!!! note
+    eksctl now creates a managed nodegroup by default when a config file isn't used. To create a self-managed nodegroup,
+    pass `--managed=false` to `eksctl create cluster` or `eksctl create nodegroup`.
 
 !!! note
     In `us-east-1` you are likely to get `UnsupportedAvailabilityZoneException`. If you do, copy the suggested zones and pass `--zones` flag, e.g. `eksctl create cluster --region=us-east-1 --zones=us-east-1a,us-east-1b,us-east-1d`. This may occur in other regions, but less likely. You shouldn't need to use `--zone` flag otherwise.

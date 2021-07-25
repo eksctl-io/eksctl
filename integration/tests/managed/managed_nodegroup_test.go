@@ -125,6 +125,70 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 		}),
 	)
 
+	type managedCLIEntry struct {
+		createArgs []string
+
+		expectedErr string
+	}
+
+	DescribeTable("Managed CLI features", func(m managedCLIEntry) {
+		runAssertions := func(createArgs ...string) {
+			cmd := params.EksctlCreateCmd.
+				WithArgs(createArgs...).
+				WithArgs(m.createArgs...)
+
+			if m.expectedErr != "" {
+				session := cmd.Run()
+				Expect(session.ExitCode()).ToNot(Equal(0))
+				output := session.Err.Contents()
+				Expect(string(output)).To(ContainSubstring(m.expectedErr))
+				return
+			}
+
+			Expect(cmd).To(RunSuccessfully())
+		}
+
+		// Run the same assertions for both `create cluster` and `create nodegroup`
+		runAssertions("cluster")
+		runAssertions(
+			"nodegroup",
+			"--cluster", params.ClusterName,
+		)
+	},
+		Entry("Windows AMI", managedCLIEntry{
+			createArgs: []string{
+				"--node-ami-family=WindowsServer2019FullContainer",
+			},
+			expectedErr: "Windows is not supported for managed nodegroups; eksctl now creates " +
+				"managed nodegroups by default, to use a self-managed nodegroup, pass --managed=false",
+		}),
+
+		Entry("Windows AMI with dry-run", managedCLIEntry{
+			createArgs: []string{
+				"--node-ami-family=WindowsServer2019FullContainer",
+				"--dry-run",
+			},
+			expectedErr: "Windows is not supported for managed nodegroups; eksctl now creates " +
+				"managed nodegroups by default, to use a self-managed nodegroup, pass --managed=false",
+		}),
+
+		Entry("Bottlerocket with dry-run", managedCLIEntry{
+			createArgs: []string{
+				"--node-ami-family=Bottlerocket",
+				"--instance-prefix=bottle",
+				"--instance-name=rocket",
+				"--dry-run",
+			},
+		}),
+
+		Entry("Ubuntu with dry-run", managedCLIEntry{
+			createArgs: []string{
+				"--node-ami-family=Ubuntu2004",
+				"--dry-run",
+			},
+		}),
+	)
+
 	Context("Bottlerocket nodegroups", func() {
 		It("should work as a node AMI family", func() {
 			clusterConfig := makeClusterConfig()

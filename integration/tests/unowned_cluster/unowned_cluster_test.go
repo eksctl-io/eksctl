@@ -45,18 +45,19 @@ func TestE2E(t *testing.T) {
 
 var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func() {
 	var (
-		stackName, version, ng1, mng1, mng2 string
-		ctl                                 api.ClusterProvider
-		configFile                          *os.File
-		cfg                                 *api.ClusterConfig
-		kmsKeyARN                           *string
+		stackName, ng1, mng1, mng2 string
+		version                    = "1.20"
+		upgradeVersion             = "1.21"
+		ctl                        api.ClusterProvider
+		configFile                 *os.File
+		cfg                        *api.ClusterConfig
+		kmsKeyARN                  *string
 	)
 
 	BeforeSuite(func() {
 		ng1 = "ng-1"
 		mng1 = "mng-1"
 		mng2 = "mng-2"
-		version = "1.19"
 		stackName = fmt.Sprintf("eksctl-%s", params.ClusterName)
 		cfg = &api.ClusterConfig{
 			TypeMeta: api.ClusterConfigTypeMeta(),
@@ -242,7 +243,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			WithArgs(
 				"cluster",
 				"--name", params.ClusterName,
-				"--version", "1.20",
+				"--version", upgradeVersion,
 				"--timeout", "1h30m",
 				"--approve",
 				"--verbose", "2",
@@ -322,7 +323,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"nodegroup",
 				"--name", mng1,
 				"--cluster", params.ClusterName,
-				"--kubernetes-version", "1.20",
+				"--kubernetes-version", upgradeVersion,
 				"--timeout", "1h30m",
 				"--wait",
 				"--verbose", "2",
