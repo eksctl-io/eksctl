@@ -129,7 +129,8 @@ func getServerVersion(discoveryClient discovery.DiscoveryInterface) (string, err
 		return "", errors.Wrapf(err, "parsing Kubernetes API version")
 	}
 
-	sv.Pre = nil // clear extra info
+	sv.Pre = nil   // clear extra info
+	sv.Build = nil // clear build information
 
 	return sv.String(), nil
 }
