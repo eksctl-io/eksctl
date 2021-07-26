@@ -9,7 +9,7 @@ eksctl create nodegroup --cluster=<clusterName> [--name=<nodegroupName>]
 ```
  
 !!!note
-    `--version` flag is not supported for managed nodegroup. It always inherits the version from control plane.
+    `--version` flag is not supported for managed nodegroups. It always inherits the version from control plane.
 
     By default, new unmanaged nodegroups inherit the version from the control plane (`--version=auto`), but you can specify a different
     version e.g. `--version=1.10`, you can also use `--version=latest` to force use of whichever is the latest version.
