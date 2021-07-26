@@ -395,6 +395,9 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 		if err := validateManagedNGFlags(l.CobraCommand, mngOptions.Managed); err != nil {
 			return err
 		}
+		if err := validateUnmanagedNGFlags(l.CobraCommand, mngOptions.Managed); err != nil {
+			return err
+		}
 		if mngOptions.Managed {
 			l.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{makeManagedNodegroup(ng, mngOptions)}
 		} else {
@@ -463,6 +466,18 @@ func validateManagedNGFlags(cmd *cobra.Command, managed bool) error {
 	flagsValidOnlyWithMNG := []string{"spot", "instance-types"}
 	if flagName, found := findChangedFlag(cmd, flagsValidOnlyWithMNG); found {
 		return errors.Errorf("--%s is only valid with managed nodegroups (--managed)", flagName)
+	}
+	return nil
+}
+
+func validateUnmanagedNGFlags(cmd *cobra.Command, managed bool) error {
+	if !managed {
+		return nil
+	}
+
+	flagsValidOnlyWithUnmanagedNG := []string{"version"}
+	if flagName, found := findChangedFlag(cmd, flagsValidOnlyWithUnmanagedNG); found {
+		return fmt.Errorf("--%s is only valid with unmanaged nodegroups", flagName)
 	}
 	return nil
 }
