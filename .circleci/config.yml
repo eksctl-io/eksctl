@@ -101,7 +101,7 @@ commands:
 jobs:
   test-and-build:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202104-01
     environment:
       GOPRIVATE: github.com/weaveworks/aws-sdk-go-private
     steps:
@@ -131,7 +131,7 @@ jobs:
           only_for_branches: main
   build-all-distros:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202104-01
     environment:
       GOPRIVATE: github.com/weaveworks/aws-sdk-go-private
     steps:
@@ -155,7 +155,7 @@ jobs:
           only_for_branches: main
   release-candidate:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202104-01
     steps:
       - checkout
       - restore-cache
@@ -182,7 +182,7 @@ jobs:
           success_message: ':tada: `eksctl` $CIRCLE_TAG released!'
   release:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202104-01
     steps:
       - checkout
       - restore-cache

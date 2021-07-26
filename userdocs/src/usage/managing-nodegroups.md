@@ -7,9 +7,11 @@ To create an additional nodegroup, use:
 ```
 eksctl create nodegroup --cluster=<clusterName> [--name=<nodegroupName>]
 ```
-
+ 
 !!!note
-    By default, new nodegroups inherit the version from the control plane (`--version=auto`), but you can specify a different
+    `--version` flag is not supported for managed nodegroups. It always inherits the version from control plane.
+
+    By default, new unmanaged nodegroups inherit the version from the control plane (`--version=auto`), but you can specify a different
     version e.g. `--version=1.10`, you can also use `--version=latest` to force use of whichever is the latest version.
 
 Additionally, you can use the same config file used for `eksctl create cluster`:
@@ -256,3 +258,4 @@ eksctl delete nodegroup --config-file=dev-cluster.yaml --include=ng-2-builders -
 ```
 
 In this case, we also need to supply the `--approve` command to actually delete the nodegroup.
+
