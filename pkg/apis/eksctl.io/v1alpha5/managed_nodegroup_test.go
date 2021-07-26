@@ -150,11 +150,6 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 				Allow: Enabled(),
 			},
 		}),
-		Entry("enableSSM", &NodeGroupBase{
-			SSH: &NodeGroupSSH{
-				EnableSSM: Enabled(),
-			},
-		}),
 		Entry("volumeSize", &NodeGroupBase{
 			VolumeSize: aws.Int(100),
 		}),

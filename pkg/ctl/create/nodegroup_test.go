@@ -89,7 +89,7 @@ var _ = Describe("create nodegroup", func() {
 				error: "validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
 			}),
 			Entry("with enableSsm disabled", invalidParamsCase{
-				args:  []string{"--cluster", "clusterName", "--name", "test", "--enable-ssm=false"},
+				args:  []string{"--cluster=test", "--enable-ssm=false"},
 				error: "SSM agent is now built into EKS AMIs and cannot be disabled",
 			}),
 		)
