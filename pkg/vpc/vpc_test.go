@@ -10,6 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/onsi/gomega/types"
+
+	"github.com/weaveworks/eksctl/pkg/eks/mocks"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 
@@ -920,7 +922,7 @@ var _ = Describe("VPC", func() {
 
 	DescribeTable("select subnets",
 		func(e selectSubnetsCase) {
-			ids, err := SelectNodeGroupSubnets(e.nodegroupAZs, e.nodegroupSubnets, e.subnets)
+			ids, err := SelectNodeGroupSubnets(e.nodegroupAZs, e.nodegroupSubnets, e.subnets, nil, "")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ids).To(ConsistOf(e.expectIDs))
 		},
@@ -959,4 +961,74 @@ var _ = Describe("VPC", func() {
 			expectIDs: []string{"id-1", "id-2"},
 		}),
 	)
+
+	Context("the user provides an optional subnet id", func() {
+		var (
+			subnetID string
+			mockEC2  *mocks.EC2API
+			vpcID    string
+			az       string
+			azMap    map[string]api.AZSubnetSpec
+		)
+		BeforeEach(func() {
+			subnetID = "user-defined-id"
+			vpcID = "vpc-id"
+			mockEC2 = &mocks.EC2API{}
+			az = "us-east-1a"
+			azMap = map[string]api.AZSubnetSpec{
+				"a": {
+					ID: "id-1",
+					AZ: az,
+				},
+				"b": {
+					ID: "id-2",
+					AZ: az,
+				},
+			}
+		})
+		When("the provided subnet exists", func() {
+			It("gets information about the subnet and returns it if it exists", func() {
+				mockEC2.On("DescribeSubnets", &ec2.DescribeSubnetsInput{
+					SubnetIds: aws.StringSlice([]string{subnetID}),
+				}).Return(&ec2.DescribeSubnetsOutput{
+					Subnets: []*ec2.Subnet{
+						{
+							SubnetId: &subnetID,
+							VpcId:    &vpcID,
+						},
+					},
+				}, nil)
+				ids, err := SelectNodeGroupSubnets([]string{az}, []string{subnetID}, api.AZSubnetMappingFromMap(azMap), mockEC2, vpcID)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(ids).To(ConsistOf("id-1", "id-2", subnetID))
+			})
+		})
+
+		When("the provided subnet doesn't exist", func() {
+			It("returns a proper error", func() {
+				mockEC2.On("DescribeSubnets", &ec2.DescribeSubnetsInput{
+					SubnetIds: aws.StringSlice([]string{subnetID}),
+				}).Return(nil, errors.New("nope"))
+				_, err := SelectNodeGroupSubnets([]string{az}, []string{subnetID}, api.AZSubnetMappingFromMap(azMap), mockEC2, vpcID)
+				Expect(err).To(MatchError(ContainSubstring("nope")))
+			})
+		})
+
+		When("the provided subnet is not part of the cluster's VPC", func() {
+			It("returns a proper error", func() {
+				mockEC2.On("DescribeSubnets", &ec2.DescribeSubnetsInput{
+					SubnetIds: aws.StringSlice([]string{subnetID}),
+				}).Return(&ec2.DescribeSubnetsOutput{
+					Subnets: []*ec2.Subnet{
+						{
+							SubnetId: &subnetID,
+							VpcId:    aws.String("different-vpc-id"),
+						},
+					},
+				}, nil)
+				_, err := SelectNodeGroupSubnets([]string{az}, []string{subnetID}, api.AZSubnetMappingFromMap(azMap), mockEC2, vpcID)
+				Expect(err).To(MatchError(ContainSubstring("subnet with id \"user-defined-id\" is not in the attached vpc with id \"vpc-id\"")))
+			})
+		})
+	})
 })

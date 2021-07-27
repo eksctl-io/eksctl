@@ -383,7 +383,7 @@ func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.Cl
 	selectSubnets := func(ng *api.NodeGroupBase) error {
 		if len(ng.AvailabilityZones) > 0 || len(ng.Subnets) > 0 {
 			// Check only the public subnets that this ng has
-			subnetIDs, err := SelectNodeGroupSubnets(ng.AvailabilityZones, ng.Subnets, spec.VPC.Subnets.Public)
+			subnetIDs, err := SelectNodeGroupSubnets(ng.AvailabilityZones, ng.Subnets, spec.VPC.Subnets.Public, provider.EC2(), spec.VPC.ID)
 			if err != nil {
 				return errors.Wrap(err, "couldn't find public subnets")
 			}
@@ -545,7 +545,22 @@ func validatePublicSubnet(subnets []*ec2.Subnet) error {
 	return nil
 }
 
-func SelectNodeGroupSubnets(nodegroupAZs, nodegroupSubnets []string, subnets api.AZSubnetMapping) ([]string, error) {
+// getSubnetByID returns a subnet based on an ID.
+func getSubnetByID(id string, ec2API ec2iface.EC2API) (*ec2.Subnet, error) {
+	input := &ec2.DescribeSubnetsInput{
+		SubnetIds: aws.StringSlice([]string{id}),
+	}
+	output, err := ec2API.DescribeSubnets(input)
+	if err != nil {
+		return nil, err
+	}
+	if len(output.Subnets) != 1 {
+		return nil, fmt.Errorf("subnet with id %q not found", id)
+	}
+	return output.Subnets[0], nil
+}
+
+func SelectNodeGroupSubnets(nodegroupAZs, nodegroupSubnets []string, subnets api.AZSubnetMapping, ec2API ec2iface.EC2API, vpcID string) ([]string, error) {
 	// We have validated that either azs are provided or subnets are provided
 	numNodeGroupsAZs := len(nodegroupAZs)
 	numNodeGroupsSubnets := len(nodegroupSubnets)
@@ -586,7 +601,14 @@ func SelectNodeGroupSubnets(nodegroupAZs, nodegroupSubnets []string, subnets api
 			subnetID = subnet.ID
 		}
 		if subnetID == "" {
-			return nil, fmt.Errorf("mapping doesn't have subnet with name or id %s: %s", subnetName, makeErrorDesc())
+			subnet, err := getSubnetByID(subnetName, ec2API)
+			if err != nil {
+				return nil, err
+			}
+			if subnet.VpcId != nil && *subnet.VpcId != vpcID {
+				return nil, fmt.Errorf("subnet with id %q is not in the attached vpc with id %q", *subnet.SubnetId, vpcID)
+			}
+			subnetID = *subnet.SubnetId
 		}
 		subnetIDs = append(subnetIDs, subnetID)
 	}
