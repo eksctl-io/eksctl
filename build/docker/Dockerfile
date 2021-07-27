@@ -19,6 +19,7 @@ RUN apk add --no-cache \
     make \
     musl-dev \
     jq \
+    py3-setuptools \
     && true
 
 # Runtime dependencies. Build the root filesystem of the eksctl image at /out
