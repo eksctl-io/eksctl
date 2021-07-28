@@ -30,7 +30,6 @@ type CreateOpts struct {
 	DryRun                    bool
 	SkipOutdatedAddonsCheck   bool
 	ConfigFileProvided        bool
-	SubnetID                  string
 }
 
 // Create creates a new nodegroup with the given options.

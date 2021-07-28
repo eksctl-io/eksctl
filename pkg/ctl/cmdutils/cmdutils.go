@@ -184,9 +184,9 @@ func AddUpdateAuthConfigMap(fs *pflag.FlagSet, updateAuthConfigMap *bool, descri
 	fs.BoolVar(updateAuthConfigMap, "update-auth-configmap", true, description)
 }
 
-// AddSubnetID adds common --subnet-id flag
-func AddSubnetID(fs *pflag.FlagSet, subnetID *string, description string) {
-	fs.StringVar(subnetID, "subnet-id", "", description)
+// AddSubnetIDs adds common --subnet-ids flag
+func AddSubnetIDs(fs *pflag.FlagSet, subnetIDs *[]string, description string) {
+	fs.StringSliceVar(subnetIDs, "subnet-ids", nil, description)
 }
 
 // AddCommonFlagsForKubeconfig adds common flags for controlling how output kubeconfig is written

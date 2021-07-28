@@ -53,6 +53,7 @@ var _ = Describe("create nodegroup", func() {
 			Entry("with full-ecr-access flag", "--full-ecr-access", "true"),
 			Entry("with appmesh-access flag", "--appmesh-access", "true"),
 			Entry("with alb-ingress-access flag", "--alb-ingress-access", "true"),
+			Entry("with subnet-ids flag", "--subnet-ids", "id1,id2,id3"),
 		)
 
 		DescribeTable("invalid flags or arguments",
@@ -132,6 +133,7 @@ var _ = Describe("create nodegroup", func() {
 			Entry("with alb-ingress-access flag", "--alb-ingress-access", "true"),
 			Entry("with Ubuntu AMI", "--node-ami-family", "Ubuntu2004"),
 			Entry("with Bottlerocket AMI", "--node-ami-family", "Bottlerocket"),
+			Entry("with subnet-ids flag", "--subnet-ids", "id1,id2,id3"),
 		)
 
 		const unsupportedWindowsError = "Windows is not supported for managed nodegroups; eksctl now creates " +
