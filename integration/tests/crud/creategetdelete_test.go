@@ -293,12 +293,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				)
 				Expect(cmd).To(RunSuccessfully())
 
-				awsSession := NewSession(params.Region)
-				ec2 := awsec2.New(awsSession)
-				output, err := ec2.DeleteSubnet(&awsec2.DeleteSubnetInput{
-					SubnetId: subnet.SubnetId,
-				})
-				Expect(err).NotTo(HaveOccurred(), output.GoString())
 			})
 			It("creates a new nodegroup", func() {
 				cfg := &api.ClusterConfig{
@@ -320,6 +314,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				Expect(len(existingSubnets.Subnets) > 0).To(BeTrue())
 				s := existingSubnets.Subnets[0]
 
+				cidr := *s.CidrBlock
+				var (
+					i1, i2, i3, i4, ic int
+				)
+				fmt.Sscanf(cidr, "%d.%d.%d.%d/%d", &i1, &i2, &i3, &i4, &ic)
+				cidr = fmt.Sprintf("%d.%d.%s.%d/%d", i1, i2, "255", i4, ic)
+
 				var tags []*awsec2.Tag
 
 				// filter aws: tags
@@ -329,8 +330,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					}
 				}
 				output, err := ec2.CreateSubnet(&awsec2.CreateSubnetInput{
-					AvailabilityZoneId: aws.String("us-west-2a"),
-					CidrBlock:          s.CidrBlock,
+					AvailabilityZone: aws.String("us-west-2a"),
+					CidrBlock:        aws.String(cidr),
 					TagSpecifications: []*awsec2.TagSpecification{
 						{
 							ResourceType: aws.String(awsec2.ResourceTypeSubnet),
@@ -340,7 +341,31 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					VpcId: s.VpcId,
 				})
 				Expect(err).NotTo(HaveOccurred())
+				moutput, err := ec2.ModifySubnetAttribute(&awsec2.ModifySubnetAttributeInput{
+					MapPublicIpOnLaunch: &awsec2.AttributeBooleanValue{
+						Value: aws.Bool(true),
+					},
+					SubnetId: output.Subnet.SubnetId,
+				})
+				Expect(err).NotTo(HaveOccurred(), moutput.GoString())
 				subnet = output.Subnet
+
+				routeTables, err := ec2.DescribeRouteTables(&awsec2.DescribeRouteTablesInput{
+					Filters: []*awsec2.Filter{
+						{
+							Name:   aws.String("association.subnet-id"),
+							Values: aws.StringSlice([]string{*s.SubnetId}),
+						},
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(len(routeTables.RouteTables) > 0).To(BeTrue(), fmt.Sprintf("route table ended up being empty: %+v", routeTables))
+				routput, err := ec2.AssociateRouteTable(&awsec2.AssociateRouteTableInput{
+					RouteTableId: routeTables.RouteTables[0].RouteTableId,
+					SubnetId:     subnet.SubnetId,
+				})
+				Expect(err).NotTo(HaveOccurred(), routput)
+
 				// create a new subnet in that given vpc and zone.
 				cmd := params.EksctlCreateCmd.WithArgs(
 					"nodegroup",
