@@ -195,8 +195,8 @@ func (m *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 			UpperBound: memory,
 		}
 	}
-	if ins.GPUs != 0 {
-		filters.GpusRange = makeRange(ins.GPUs)
+	if ins.GPUs != nil {
+		filters.GpusRange = makeRange(*ins.GPUs)
 	}
 	cpuArch := ins.CPUArchitecture
 	if cpuArch == "" {
