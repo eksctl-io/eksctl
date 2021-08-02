@@ -19,6 +19,8 @@ import (
 
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/aws/aws-sdk-go/aws"
+	awsec2 "github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	harness "github.com/dlespiau/kube-test-harness"
 	. "github.com/onsi/ginkgo"
@@ -100,7 +102,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			"--nodes", "1",
 			"--version", params.Version,
 			"--kubeconfig", params.KubeconfigPath,
-			"--zones", "us-west-2a,us-west-2b,us-west-2c",
+			"--zones", "us-west-2b,us-west-2c",
 		)
 		Expect(cmd).To(RunSuccessfully())
 	})
@@ -274,6 +276,110 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
+		Context("can add a nodegroup into a new subnet", func() {
+			var (
+				subnet        *awsec2.Subnet
+				nodegroupName string
+			)
+			BeforeEach(func() {
+				nodegroupName = "test-extra-nodegroup"
+			})
+			AfterEach(func() {
+				cmd := params.EksctlDeleteCmd.WithArgs(
+					"nodegroup",
+					"--verbose", "4",
+					"--cluster", params.ClusterName,
+					nodegroupName,
+				)
+				Expect(cmd).To(RunSuccessfully())
+
+			})
+			It("creates a new nodegroup", func() {
+				cfg := &api.ClusterConfig{
+					Metadata: &api.ClusterMeta{
+						Name:   params.ClusterName,
+						Region: params.Region,
+					},
+				}
+				ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+				Expect(err).NotTo(HaveOccurred())
+				cl, err := ctl.GetCluster(params.ClusterName)
+				Expect(err).NotTo(HaveOccurred())
+				awsSession := NewSession(params.Region)
+				ec2 := awsec2.New(awsSession)
+				existingSubnets, err := ec2.DescribeSubnets(&awsec2.DescribeSubnetsInput{
+					SubnetIds: cl.ResourcesVpcConfig.SubnetIds,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(len(existingSubnets.Subnets) > 0).To(BeTrue())
+				s := existingSubnets.Subnets[0]
+
+				cidr := *s.CidrBlock
+				var (
+					i1, i2, i3, i4, ic int
+				)
+				fmt.Sscanf(cidr, "%d.%d.%d.%d/%d", &i1, &i2, &i3, &i4, &ic)
+				cidr = fmt.Sprintf("%d.%d.%s.%d/%d", i1, i2, "255", i4, ic)
+
+				var tags []*awsec2.Tag
+
+				// filter aws: tags
+				for _, t := range s.Tags {
+					if !strings.HasPrefix(*t.Key, "aws:") {
+						tags = append(tags, t)
+					}
+				}
+				output, err := ec2.CreateSubnet(&awsec2.CreateSubnetInput{
+					AvailabilityZone: aws.String("us-west-2a"),
+					CidrBlock:        aws.String(cidr),
+					TagSpecifications: []*awsec2.TagSpecification{
+						{
+							ResourceType: aws.String(awsec2.ResourceTypeSubnet),
+							Tags:         tags,
+						},
+					},
+					VpcId: s.VpcId,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				moutput, err := ec2.ModifySubnetAttribute(&awsec2.ModifySubnetAttributeInput{
+					MapPublicIpOnLaunch: &awsec2.AttributeBooleanValue{
+						Value: aws.Bool(true),
+					},
+					SubnetId: output.Subnet.SubnetId,
+				})
+				Expect(err).NotTo(HaveOccurred(), moutput.GoString())
+				subnet = output.Subnet
+
+				routeTables, err := ec2.DescribeRouteTables(&awsec2.DescribeRouteTablesInput{
+					Filters: []*awsec2.Filter{
+						{
+							Name:   aws.String("association.subnet-id"),
+							Values: aws.StringSlice([]string{*s.SubnetId}),
+						},
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(len(routeTables.RouteTables) > 0).To(BeTrue(), fmt.Sprintf("route table ended up being empty: %+v", routeTables))
+				routput, err := ec2.AssociateRouteTable(&awsec2.AssociateRouteTableInput{
+					RouteTableId: routeTables.RouteTables[0].RouteTableId,
+					SubnetId:     subnet.SubnetId,
+				})
+				Expect(err).NotTo(HaveOccurred(), routput)
+
+				// create a new subnet in that given vpc and zone.
+				cmd := params.EksctlCreateCmd.WithArgs(
+					"nodegroup",
+					"--timeout=45m",
+					"--cluster", params.ClusterName,
+					"--nodes", "1",
+					"--node-type", "p2.xlarge",
+					"--subnet-ids", *subnet.SubnetId,
+					nodegroupName,
+				)
+				Expect(cmd).To(RunSuccessfully())
+			})
+		})
+
 		Context("and add a second (GPU) nodegroup", func() {
 			It("should not return an error", func() {
 				cmd := params.EksctlCreateCmd.WithArgs(
@@ -283,7 +389,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--nodes", "1",
 					"--node-type", "p2.xlarge",
 					"--node-private-networking",
-					"--node-zones", "us-west-2a,us-west-2b,us-west-2c",
+					"--node-zones", "us-west-2b,us-west-2c",
 					testNG,
 				)
 				Expect(cmd).To(RunSuccessfully())

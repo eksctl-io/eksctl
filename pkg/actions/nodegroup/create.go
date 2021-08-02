@@ -32,6 +32,7 @@ type CreateOpts struct {
 	ConfigFileProvided        bool
 }
 
+// Create creates a new nodegroup with the given options.
 func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFilter) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
