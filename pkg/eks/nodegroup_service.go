@@ -34,7 +34,7 @@ type InstanceSelector interface {
 type NodeGroupInitialiser interface {
 	Normalize(nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error
 	ExpandInstanceSelectorOptions(nodePools []api.NodePool, clusterAZs []string) error
-	NewAWSSelectorSession(provider api.ClusterProvider) *selector.Selector
+	NewAWSSelectorSession(provider api.ClusterProvider)
 	ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.ClusterProvider) error
 	DoesAWSNodeUseIRSA(provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error)
 	DoAllNodegroupStackTasks(taskTree *tasks.TaskTree, region, name string) error
@@ -58,8 +58,8 @@ func NewNodeGroupService(provider api.ClusterProvider, instanceSelector Instance
 const defaultCPUArch = "x86_64"
 
 // NewAWSSelectorSession returns a new instance of Selector provided an aws session
-func (m *NodeGroupService) NewAWSSelectorSession(provider api.ClusterProvider) *selector.Selector {
-	return selector.New(provider.Session())
+func (m *NodeGroupService) NewAWSSelectorSession(provider api.ClusterProvider) {
+	m.instanceSelector = selector.New(provider.Session())
 }
 
 // Normalize normalizes nodegroups
