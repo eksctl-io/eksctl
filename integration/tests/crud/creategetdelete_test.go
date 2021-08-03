@@ -289,9 +289,16 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"nodegroup",
 					"--verbose", "4",
 					"--cluster", params.ClusterName,
+					"--wait",
 					nodegroupName,
 				)
 				Expect(cmd).To(RunSuccessfully())
+				awsSession := NewSession(params.Region)
+				ec2 := awsec2.New(awsSession)
+				output, err := ec2.DeleteSubnet(&awsec2.DeleteSubnetInput{
+					SubnetId: subnet.SubnetId,
+				})
+				Expect(err).NotTo(HaveOccurred(), output.GoString())
 
 			})
 			It("creates a new nodegroup", func() {
