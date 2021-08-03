@@ -5,7 +5,7 @@ It's possible to extend an existing VPC with a new subnet and add a Nodegroup to
 ## Why
 
 Should the cluster run out of pre-configured IPs, it's possible to resize the existing VPC with
-a new CIDR to add a new subnet to it. To see how to do that, read this guid on AWS [Extending VPCs](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html#vpc-resize).
+a new CIDR to add a new subnet to it. To see how to do that, read this guide on AWS [Extending VPCs](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html#vpc-resize).
 
 ### TL;DR
 
@@ -25,7 +25,8 @@ from another subnet in the VPC. Take care that if it's a public subnet Enable Au
 Actions->Modify auto-assign IP settings->Enable auto-assign public IPv4 address.
 
 Don't forget to also copy the TAGS of the existing subnets depending on Public or Private subnet configuration.
-This is important, otherwise the subnet will not be part of the cluster and will fail to be assigned to.
+This is important, otherwise the subnet will not be part of the cluster and instances in the subnet
+will be unable to join.
 
 When finished, copy the new subnet's ID. Repeat as often as necessary.
 
@@ -39,11 +40,38 @@ eksctl create nodegroup --cluster <cluster-name> --name my-new-subnet --subnet-i
 eksctl create nodegroup --cluster <cluster-name> --name my-new-subnet --subnet-ids subnet-0edeb3a04bec27141
 ```
 
-Done. Wait for the nodegroup to be created and the new instances should have the new IP ranges of the subnet(s).
+Or, use the configuration as such:
+
+```
+eksctl create nodegroup -f cluster-managed.yaml
+```
+
+With a configuration like this:
+
+```yaml
+# A simple example of ClusterConfig object with two nodegroups:
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-3
+  region: eu-north-1
+
+nodeGroups:
+  - name: new-subnet-nodegroup
+    instanceType: m5.large
+    desiredCapacity: 1
+    subnets:
+      - subnet-id1
+      - subnet-id2
+```
+
+Wait for the nodegroup to be created and the new instances should have the new IP ranges of the subnet(s).
 
 ## Deleting the cluster
 
-Since the new addition modified the existing VPC by adding a dependency outside of the CloudFormation stack, CloudFormations
+Since the new addition modified the existing VPC by adding a dependency outside of the CloudFormation stack, CloudFormation
 can no longer remove the cluster.
 
 Before deleting the cluster, remove all created extra subnets by hand, then proceed by calling `eksctl`:
