@@ -1149,6 +1149,11 @@ func (in *NodeGroupBase) DeepCopyInto(out *NodeGroupBase) {
 		*out = new(NodeGroupBottlerocket)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.ContainerRuntime != nil {
+		in, out := &in.ContainerRuntime, &out.ContainerRuntime
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 

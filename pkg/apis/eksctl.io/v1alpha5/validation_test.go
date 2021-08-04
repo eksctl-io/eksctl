@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
@@ -76,6 +77,30 @@ var _ = Describe("ClusterConfig validation", func() {
 				err = api.ValidateNodeGroup(i, ng)
 				Expect(err).To(HaveOccurred())
 			}
+		})
+	})
+
+	Describe("nodeGroups[*].containerRuntime validation", func() {
+		It("should reject invalid container runtime", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.ContainerRuntime = aws.String("invalid")
+			err := api.ValidateClusterConfig(cfg)
+			Expect(err).ToNot(HaveOccurred())
+			err = api.ValidateNodeGroup(0, ng0)
+			Expect(err).To(HaveOccurred())
+		})
+		It("containerd is only allowed for AL2", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeContainerD)
+			ng0.AMIFamily = api.NodeImageFamilyBottlerocket
+			err := api.ValidateClusterConfig(cfg)
+			Expect(err).ToNot(HaveOccurred())
+			err = api.ValidateNodeGroup(0, ng0)
+			Expect(err).To(HaveOccurred())
 		})
 	})
 

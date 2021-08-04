@@ -924,6 +924,11 @@
           "description": "specifies settings for Bottlerocket nodes",
           "x-intellij-html-description": "specifies settings for Bottlerocket nodes"
         },
+        "containerRuntime": {
+          "type": "string",
+          "description": "defines the runtime to use for the container.",
+          "x-intellij-html-description": "defines the runtime to use for the container."
+        },
         "desiredCapacity": {
           "type": "integer"
         },
@@ -1142,6 +1147,7 @@
         "efaEnabled",
         "instanceSelector",
         "bottlerocket",
+        "containerRuntime",
         "instanceTypes",
         "spot",
         "taints",
@@ -1240,6 +1246,11 @@
           "type": "string",
           "description": "[Custom address](/usage/vpc-networking/#custom-cluster-dns-address) used for DNS lookups",
           "x-intellij-html-description": "<a href=\"/usage/vpc-networking/#custom-cluster-dns-address\">Custom address</a> used for DNS lookups"
+        },
+        "containerRuntime": {
+          "type": "string",
+          "description": "defines the runtime to use for the container.",
+          "x-intellij-html-description": "defines the runtime to use for the container."
         },
         "cpuCredits": {
           "type": "string",
@@ -1453,6 +1464,7 @@
         "efaEnabled",
         "instanceSelector",
         "bottlerocket",
+        "containerRuntime",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",

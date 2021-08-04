@@ -14,8 +14,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	corev1 "k8s.io/api/core/v1"
+
+	"github.com/weaveworks/eksctl/pkg/eks"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
@@ -546,6 +547,31 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				})
 				Expect(err).NotTo(HaveOccurred())
 				Eventually(out.Nodegroup.UpdateConfig.MaxUnavailable).Should(Equal(aws.Int64(1)))
+			})
+		})
+
+		Context("and creating a nodegroup with containerd runtime", func() {
+			It("should pass that on to the container bootstrap script", func() {
+				By("creating it")
+				clusterConfig := makeClusterConfig()
+				clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name:             "containerd",
+							ContainerRuntime: aws.String(api.ContainerRuntimeContainerD),
+						},
+					},
+				}
+
+				cmd := params.EksctlCreateCmd.
+					WithArgs(
+						"nodegroup",
+						"--config-file", "-",
+						"--verbose", "4",
+					).
+					WithoutArg("--region", params.Region).
+					WithStdin(testutils.ClusterConfigReader(clusterConfig))
+				Expect(cmd).To(RunSuccessfully())
 			})
 		})
 

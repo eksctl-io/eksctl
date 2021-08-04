@@ -11,8 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/pkg/errors"
 
-	"github.com/weaveworks/eksctl/pkg/utils/taints"
 	corev1 "k8s.io/api/core/v1"
+
+	"github.com/weaveworks/eksctl/pkg/utils/taints"
 
 	"k8s.io/apimachinery/pkg/util/validation"
 	kubeletapis "k8s.io/kubelet/pkg/apis"
@@ -266,6 +267,18 @@ func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
 
 	if ng.AMIFamily != "" && !isSupportedAMIFamily(ng.AMIFamily) {
 		return fmt.Errorf("AMI Family %s is not supported - use one of: %s", ng.AMIFamily, strings.Join(supportedAMIFamilies(), ", "))
+	}
+
+	if ng.ContainerRuntime != nil {
+		if *ng.ContainerRuntime == ContainerRuntimeContainerD && ng.AMIFamily != NodeImageFamilyAmazonLinux2 {
+			// check if it's dockerd or containerd
+			return fmt.Errorf("%s as runtime is only support for AL2 ami family", ContainerRuntimeContainerD)
+		}
+		if *ng.ContainerRuntime != ContainerRuntimeDockerD {
+			if *ng.ContainerRuntime != ContainerRuntimeContainerD {
+				return fmt.Errorf("only %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD)
+			}
+		}
 	}
 
 	return nil

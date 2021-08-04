@@ -11,13 +11,15 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/utils"
+
+	kubeletapi "k8s.io/kubelet/config/v1beta1"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/bindata"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/legacy"
-	kubeletapi "k8s.io/kubelet/config/v1beta1"
 )
 
 //go:generate ${GOBIN}/go-bindata -pkg bindata -prefix assets -nometadata -o bindata/assets.go bindata/assets
@@ -167,11 +169,12 @@ func makeKubeletExtraConf(kubeletExtraConf *api.InlineDocument) (cloudconfig.Fil
 func makeBootstrapEnv(clusterConfig *api.ClusterConfig, np api.NodePool) cloudconfig.File {
 	ng := np.BaseNodeGroup()
 	variables := map[string]string{
-		"CLUSTER_NAME":   clusterConfig.Metadata.Name,
-		"API_SERVER_URL": clusterConfig.Status.Endpoint,
-		"B64_CLUSTER_CA": base64.StdEncoding.EncodeToString(clusterConfig.Status.CertificateAuthorityData),
-		"NODE_LABELS":    formatLabels(ng.Labels),
-		"NODE_TAINTS":    utils.FormatTaints(np.NGTaints()),
+		"CLUSTER_NAME":      clusterConfig.Metadata.Name,
+		"API_SERVER_URL":    clusterConfig.Status.Endpoint,
+		"B64_CLUSTER_CA":    base64.StdEncoding.EncodeToString(clusterConfig.Status.CertificateAuthorityData),
+		"NODE_LABELS":       formatLabels(ng.Labels),
+		"NODE_TAINTS":       utils.FormatTaints(np.NGTaints()),
+		"CONTAINER_RUNTIME": np.BaseNodeGroup().GetContainerRuntime(),
 	}
 
 	if ng.MaxPodsPerNode > 0 {

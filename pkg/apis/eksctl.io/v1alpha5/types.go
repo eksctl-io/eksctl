@@ -22,10 +22,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/utils/taints"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	"github.com/weaveworks/eksctl/pkg/utils/taints"
 )
 
 // Values for `KubernetesVersion`
@@ -184,6 +185,12 @@ const (
 	NodeImageFamilyWindowsServer2004CoreContainer = "WindowsServer2004CoreContainer"
 )
 
+// Container runtime values.
+const (
+	ContainerRuntimeContainerD = "containerd"
+	ContainerRuntimeDockerD    = "dockerd"
+)
+
 const (
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
@@ -320,6 +327,11 @@ var (
 
 	// DefaultNodeVolumeSize defines the default root volume size
 	DefaultNodeVolumeSize = 80
+)
+
+var (
+	// DefaultContainerRuntime defines the default container runtime.
+	DefaultContainerRuntime = ContainerRuntimeDockerD
 )
 
 // Enabled return pointer to true value
@@ -1349,11 +1361,23 @@ type NodeGroupBase struct {
 	// This is a hack, will be removed shortly. When this is true for Ubuntu and
 	// AL2 images a legacy bootstrapper will be used.
 	CustomAMI bool `json:"-"`
+
+	// ContainerRuntime defines the runtime to use for the container.
+	// +optional
+	ContainerRuntime *string `json:"containerRuntime,omitempty"`
 }
 
 // Placement specifies placement group information
 type Placement struct {
 	GroupName string `json:"groupName,omitempty"`
+}
+
+// GetContainerRuntime returns the container runtime.
+func (n *NodeGroupBase) GetContainerRuntime() string {
+	if n.ContainerRuntime != nil {
+		return *n.ContainerRuntime
+	}
+	return ""
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup

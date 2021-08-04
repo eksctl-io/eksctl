@@ -49,7 +49,8 @@ var _ = Describe("Ubuntu User Data", func() {
 API_SERVER_URL=
 B64_CLUSTER_CA=
 NODE_LABELS=
-NODE_TAINTS=`, "\n")))
+NODE_TAINTS=
+CONTAINER_RUNTIME=`, "\n")))
 			Expect(cloudCfg.WriteFiles[1].Permissions).To(Equal("0644"))
 		})
 
