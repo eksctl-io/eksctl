@@ -4,7 +4,6 @@ package fakes
 import (
 	"sync"
 
-	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -52,16 +51,10 @@ type FakeNodeGroupInitialiser struct {
 	expandInstanceSelectorOptionsReturnsOnCall map[int]struct {
 		result1 error
 	}
-	NewAWSSelectorSessionStub        func(v1alpha5.ClusterProvider) *selector.Selector
+	NewAWSSelectorSessionStub        func(v1alpha5.ClusterProvider)
 	newAWSSelectorSessionMutex       sync.RWMutex
 	newAWSSelectorSessionArgsForCall []struct {
 		arg1 v1alpha5.ClusterProvider
-	}
-	newAWSSelectorSessionReturns struct {
-		result1 *selector.Selector
-	}
-	newAWSSelectorSessionReturnsOnCall map[int]struct {
-		result1 *selector.Selector
 	}
 	NormalizeStub        func([]v1alpha5.NodePool, *v1alpha5.ClusterMeta) error
 	normalizeMutex       sync.RWMutex
@@ -303,23 +296,17 @@ func (fake *FakeNodeGroupInitialiser) ExpandInstanceSelectorOptionsReturnsOnCall
 	}{result1}
 }
 
-func (fake *FakeNodeGroupInitialiser) NewAWSSelectorSession(arg1 v1alpha5.ClusterProvider) *selector.Selector {
+func (fake *FakeNodeGroupInitialiser) NewAWSSelectorSession(arg1 v1alpha5.ClusterProvider) {
 	fake.newAWSSelectorSessionMutex.Lock()
-	ret, specificReturn := fake.newAWSSelectorSessionReturnsOnCall[len(fake.newAWSSelectorSessionArgsForCall)]
 	fake.newAWSSelectorSessionArgsForCall = append(fake.newAWSSelectorSessionArgsForCall, struct {
 		arg1 v1alpha5.ClusterProvider
 	}{arg1})
 	stub := fake.NewAWSSelectorSessionStub
-	fakeReturns := fake.newAWSSelectorSessionReturns
 	fake.recordInvocation("NewAWSSelectorSession", []interface{}{arg1})
 	fake.newAWSSelectorSessionMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		fake.NewAWSSelectorSessionStub(arg1)
 	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
 }
 
 func (fake *FakeNodeGroupInitialiser) NewAWSSelectorSessionCallCount() int {
@@ -328,7 +315,7 @@ func (fake *FakeNodeGroupInitialiser) NewAWSSelectorSessionCallCount() int {
 	return len(fake.newAWSSelectorSessionArgsForCall)
 }
 
-func (fake *FakeNodeGroupInitialiser) NewAWSSelectorSessionCalls(stub func(v1alpha5.ClusterProvider) *selector.Selector) {
+func (fake *FakeNodeGroupInitialiser) NewAWSSelectorSessionCalls(stub func(v1alpha5.ClusterProvider)) {
 	fake.newAWSSelectorSessionMutex.Lock()
 	defer fake.newAWSSelectorSessionMutex.Unlock()
 	fake.NewAWSSelectorSessionStub = stub
@@ -339,29 +326,6 @@ func (fake *FakeNodeGroupInitialiser) NewAWSSelectorSessionArgsForCall(i int) v1
 	defer fake.newAWSSelectorSessionMutex.RUnlock()
 	argsForCall := fake.newAWSSelectorSessionArgsForCall[i]
 	return argsForCall.arg1
-}
-
-func (fake *FakeNodeGroupInitialiser) NewAWSSelectorSessionReturns(result1 *selector.Selector) {
-	fake.newAWSSelectorSessionMutex.Lock()
-	defer fake.newAWSSelectorSessionMutex.Unlock()
-	fake.NewAWSSelectorSessionStub = nil
-	fake.newAWSSelectorSessionReturns = struct {
-		result1 *selector.Selector
-	}{result1}
-}
-
-func (fake *FakeNodeGroupInitialiser) NewAWSSelectorSessionReturnsOnCall(i int, result1 *selector.Selector) {
-	fake.newAWSSelectorSessionMutex.Lock()
-	defer fake.newAWSSelectorSessionMutex.Unlock()
-	fake.NewAWSSelectorSessionStub = nil
-	if fake.newAWSSelectorSessionReturnsOnCall == nil {
-		fake.newAWSSelectorSessionReturnsOnCall = make(map[int]struct {
-			result1 *selector.Selector
-		})
-	}
-	fake.newAWSSelectorSessionReturnsOnCall[i] = struct {
-		result1 *selector.Selector
-	}{result1}
 }
 
 func (fake *FakeNodeGroupInitialiser) Normalize(arg1 []v1alpha5.NodePool, arg2 *v1alpha5.ClusterMeta) error {

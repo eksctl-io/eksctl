@@ -151,18 +151,18 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 	parseOutput := func(output []byte) (*api.ClusterConfig, *api.ClusterConfig) {
 		actual, err := eks.ParseConfig(output)
 		Expect(err).ToNot(HaveOccurred())
-		expected, err := eks.ParseConfig([]byte(fmt.Sprintf(defaultClusterConfig, params.ClusterName)))
+		defaultConfig, err := eks.ParseConfig([]byte(fmt.Sprintf(defaultClusterConfig, params.ClusterName)))
 		Expect(err).ToNot(HaveOccurred())
-		return actual, expected
+		return actual, defaultConfig
 	}
 
-	assertDryRun := func(output []byte, setValues func(*api.ClusterConfig)) {
+	assertDryRun := func(output []byte, updateConfig func(defaultConfig, actual *api.ClusterConfig)) {
 		actual, expected := parseOutput(output)
-		setValues(expected)
+		updateConfig(expected, actual)
 		Expect(actual).To(Equal(expected))
 	}
 
-	DescribeTable("`create cluster` with --dry-run", func(setValues func(*api.ClusterConfig), createArgs ...string) {
+	DescribeTable("`create cluster` with --dry-run", func(updateDefaultConfig func(*api.ClusterConfig), createArgs ...string) {
 		cmd := params.EksctlCreateCmd.
 			WithArgs(
 				"cluster",
@@ -178,9 +178,9 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 		Expect(session.ExitCode()).To(Equal(0))
 
 		output := session.Buffer().Contents()
-		assertDryRun(output, func(clusterConfig *api.ClusterConfig) {
-			clusterConfig.Metadata.Version = eksVersion
-			setValues(clusterConfig)
+		assertDryRun(output, func(c, _ *api.ClusterConfig) {
+			c.Metadata.Version = eksVersion
+			updateDefaultConfig(c)
 		})
 	},
 		Entry("default values", func(c *api.ClusterConfig) {
@@ -308,7 +308,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			session := cmd.Run()
 			Expect(session.ExitCode()).To(Equal(0))
 			output := session.Buffer().Contents()
-			assertDryRun(output, func(c *api.ClusterConfig) {
+			assertDryRun(output, func(c, _ *api.ClusterConfig) {
 				c.Metadata.Name = params.ClusterName
 				c.Metadata.Version = eksVersion
 				c.NodeGroups = nil
@@ -334,6 +334,8 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 					"--name=private-ng",
 					"--node-private-networking",
 					"--node-volume-size=82",
+					"--instance-selector-vcpus=2",
+					"--instance-selector-memory=4",
 					"--dry-run",
 				).
 				WithoutArg("--region", params.Region)
@@ -341,7 +343,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			session = cmd.Run()
 			Expect(session.ExitCode()).To(Equal(0))
 			output = session.Buffer().Contents()
-			assertDryRun(output, func(c *api.ClusterConfig) {
+			assertDryRun(output, func(c, actual *api.ClusterConfig) {
 				c.Metadata.Name = params.ClusterName
 				c.Metadata.Version = eksVersion
 				c.VPC = nil
@@ -352,6 +354,14 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				c.AvailabilityZones = nil
 
 				ng := c.ManagedNodeGroups[0]
+				actualNG := actual.ManagedNodeGroups[0]
+				Expect(actualNG.InstanceTypes).ToNot(BeEmpty())
+				actualNG.InstanceTypes = nil
+				ng.InstanceType = ""
+				ng.InstanceSelector = &api.InstanceSelector{
+					VCPUs:  2,
+					Memory: "4",
+				}
 				ng.Name = "private-ng"
 				ng.PrivateNetworking = true
 				ng.VolumeSize = aws.Int(82)
@@ -363,6 +373,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				setNodeNameKey(ng.Tags)
 			})
 
+			By("creating a new nodegroup from the output of dry-run")
 			cmd = params.EksctlCreateCmd.
 				WithArgs(
 					"nodegroup",
@@ -372,9 +383,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				WithStdin(bytes.NewReader(output))
 			Expect(cmd).To(RunSuccessfully())
 		})
-
 	})
-
 })
 
 var _ = AfterSuite(func() {
