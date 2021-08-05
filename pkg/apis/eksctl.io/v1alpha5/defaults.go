@@ -110,7 +110,7 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 		ng.SecurityGroups.WithShared = Enabled()
 	}
 
-	setContainerRuntimeDefault(ng.NodeGroupBase)
+	setContainerRuntimeDefault(ng)
 }
 
 // SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
@@ -191,7 +191,7 @@ func setVolumeDefaults(ng *NodeGroupBase, template *LaunchTemplate) {
 	}
 }
 
-func setContainerRuntimeDefault(ng *NodeGroupBase) {
+func setContainerRuntimeDefault(ng *NodeGroup) {
 	if ng.ContainerRuntime == nil {
 		ng.ContainerRuntime = &DefaultContainerRuntime
 	}

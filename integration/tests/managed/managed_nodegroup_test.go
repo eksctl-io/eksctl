@@ -550,31 +550,6 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			})
 		})
 
-		Context("and creating a nodegroup with containerd runtime", func() {
-			It("should pass that on to the container bootstrap script", func() {
-				By("creating it")
-				clusterConfig := makeClusterConfig()
-				clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
-					{
-						NodeGroupBase: &api.NodeGroupBase{
-							Name:             "containerd",
-							ContainerRuntime: aws.String(api.ContainerRuntimeContainerD),
-						},
-					},
-				}
-
-				cmd := params.EksctlCreateCmd.
-					WithArgs(
-						"nodegroup",
-						"--config-file", "-",
-						"--verbose", "4",
-					).
-					WithoutArg("--region", params.Region).
-					WithStdin(testutils.ClusterConfigReader(clusterConfig))
-				Expect(cmd).To(RunSuccessfully())
-			})
-		})
-
 		Context("and deleting the cluster", func() {
 			It("should not return an error", func() {
 				cmd := params.EksctlDeleteClusterCmd.WithArgs(

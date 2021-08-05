@@ -64,6 +64,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 	)
 
 	commonTimeout := 10 * time.Minute
+	makeClusterConfig := func() *api.ClusterConfig {
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.Metadata.Name = params.ClusterName
+		clusterConfig.Metadata.Region = params.Region
+		clusterConfig.Metadata.Version = params.Version
+		return clusterConfig
+	}
 
 	BeforeSuite(func() {
 		params.KubeconfigTemp = false
@@ -383,6 +390,52 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--subnet-ids", *subnet.SubnetId,
 					nodegroupName,
 				)
+				Expect(cmd).To(RunSuccessfully())
+			})
+		})
+
+		Context("and creating a nodegroup with containerd runtime", func() {
+			var (
+				nodegroupName string
+			)
+			BeforeEach(func() {
+				nodegroupName = "test-containerd"
+			})
+			AfterEach(func() {
+				cmd := params.EksctlDeleteCmd.WithArgs(
+					"nodegroup",
+					"--verbose", "4",
+					"--cluster", params.ClusterName,
+					"--wait",
+					nodegroupName,
+				)
+				Expect(cmd).To(RunSuccessfully())
+			})
+			It("should create the nodegroup without problems", func() {
+				clusterConfig := makeClusterConfig()
+				clusterConfig.NodeGroups = []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name:      "test-containerd",
+							AMIFamily: api.NodeImageFamilyAmazonLinux2,
+							SSH: &api.NodeGroupSSH{
+								Allow:     api.Disabled(),
+								EnableSSM: api.Disabled(),
+							},
+							InstanceType: "p2.xlarge",
+						},
+						ContainerRuntime: aws.String(api.ContainerRuntimeContainerD),
+					},
+				}
+
+				cmd := params.EksctlCreateCmd.
+					WithArgs(
+						"nodegroup",
+						"--config-file", "-",
+						"--verbose", "4",
+					).
+					WithoutArg("--region", params.Region).
+					WithStdin(testutils.ClusterConfigReader(clusterConfig))
 				Expect(cmd).To(RunSuccessfully())
 			})
 		})

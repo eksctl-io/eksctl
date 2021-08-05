@@ -896,6 +896,18 @@ type NodeGroup struct {
 	// [Customize `kubelet` config](/usage/customizing-the-kubelet/)
 	// +optional
 	KubeletExtraConfig *InlineDocument `json:"kubeletExtraConfig,omitempty"`
+
+	// ContainerRuntime defines the runtime (CRI) to use for containers on the node
+	// +optional
+	ContainerRuntime *string `json:"containerRuntime,omitempty"`
+}
+
+// GetContainerRuntime returns the container runtime.
+func (n *NodeGroup) GetContainerRuntime() string {
+	if n.ContainerRuntime != nil {
+		return *n.ContainerRuntime
+	}
+	return ""
 }
 
 func (n *NodeGroup) InstanceTypeList() []string {
@@ -1361,23 +1373,11 @@ type NodeGroupBase struct {
 	// This is a hack, will be removed shortly. When this is true for Ubuntu and
 	// AL2 images a legacy bootstrapper will be used.
 	CustomAMI bool `json:"-"`
-
-	// ContainerRuntime defines the runtime to use for the container.
-	// +optional
-	ContainerRuntime *string `json:"containerRuntime,omitempty"`
 }
 
 // Placement specifies placement group information
 type Placement struct {
 	GroupName string `json:"groupName,omitempty"`
-}
-
-// GetContainerRuntime returns the container runtime.
-func (n *NodeGroupBase) GetContainerRuntime() string {
-	if n.ContainerRuntime != nil {
-		return *n.ContainerRuntime
-	}
-	return ""
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup

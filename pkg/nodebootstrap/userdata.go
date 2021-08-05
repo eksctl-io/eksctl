@@ -169,12 +169,11 @@ func makeKubeletExtraConf(kubeletExtraConf *api.InlineDocument) (cloudconfig.Fil
 func makeBootstrapEnv(clusterConfig *api.ClusterConfig, np api.NodePool) cloudconfig.File {
 	ng := np.BaseNodeGroup()
 	variables := map[string]string{
-		"CLUSTER_NAME":      clusterConfig.Metadata.Name,
-		"API_SERVER_URL":    clusterConfig.Status.Endpoint,
-		"B64_CLUSTER_CA":    base64.StdEncoding.EncodeToString(clusterConfig.Status.CertificateAuthorityData),
-		"NODE_LABELS":       formatLabels(ng.Labels),
-		"NODE_TAINTS":       utils.FormatTaints(np.NGTaints()),
-		"CONTAINER_RUNTIME": np.BaseNodeGroup().GetContainerRuntime(),
+		"CLUSTER_NAME":   clusterConfig.Metadata.Name,
+		"API_SERVER_URL": clusterConfig.Status.Endpoint,
+		"B64_CLUSTER_CA": base64.StdEncoding.EncodeToString(clusterConfig.Status.CertificateAuthorityData),
+		"NODE_LABELS":    formatLabels(ng.Labels),
+		"NODE_TAINTS":    utils.FormatTaints(np.NGTaints()),
 	}
 
 	if ng.MaxPodsPerNode > 0 {
@@ -183,6 +182,10 @@ func makeBootstrapEnv(clusterConfig *api.ClusterConfig, np api.NodePool) cloudco
 
 	if unmanaged, ok := np.(*api.NodeGroup); ok && unmanaged.ClusterDNS != "" {
 		variables["CLUSTER_DNS"] = unmanaged.ClusterDNS
+	}
+
+	if unmanaged, ok := np.(*api.NodeGroup); ok && ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 {
+		variables["CONTAINER_RUNTIME"] = unmanaged.GetContainerRuntime()
 	}
 
 	return cloudconfig.File{

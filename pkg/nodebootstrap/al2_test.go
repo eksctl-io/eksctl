@@ -138,9 +138,9 @@ CONTAINER_RUNTIME=`,
 		Entry("container runtime set", bootScriptEntry{
 			ng: &api.NodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
-					ContainerRuntime: aws.String(api.ContainerRuntimeContainerD),
-					SSH:              &api.NodeGroupSSH{},
+					SSH: &api.NodeGroupSSH{},
 				},
+				ContainerRuntime: aws.String(api.ContainerRuntimeContainerD),
 			},
 			expectedUserData: `CLUSTER_NAME=userdata-test
 API_SERVER_URL=

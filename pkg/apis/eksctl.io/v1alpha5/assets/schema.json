@@ -924,11 +924,6 @@
           "description": "specifies settings for Bottlerocket nodes",
           "x-intellij-html-description": "specifies settings for Bottlerocket nodes"
         },
-        "containerRuntime": {
-          "type": "string",
-          "description": "defines the runtime to use for the container.",
-          "x-intellij-html-description": "defines the runtime to use for the container."
-        },
         "desiredCapacity": {
           "type": "integer"
         },
@@ -1147,7 +1142,6 @@
         "efaEnabled",
         "instanceSelector",
         "bottlerocket",
-        "containerRuntime",
         "instanceTypes",
         "spot",
         "taints",
@@ -1249,8 +1243,8 @@
         },
         "containerRuntime": {
           "type": "string",
-          "description": "defines the runtime to use for the container.",
-          "x-intellij-html-description": "defines the runtime to use for the container."
+          "description": "defines the runtime (CRI) to use for containers on the node",
+          "x-intellij-html-description": "defines the runtime (CRI) to use for containers on the node"
         },
         "cpuCredits": {
           "type": "string",
@@ -1464,7 +1458,6 @@
         "efaEnabled",
         "instanceSelector",
         "bottlerocket",
-        "containerRuntime",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",
@@ -1473,7 +1466,8 @@
         "taints",
         "updateConfig",
         "clusterDNS",
-        "kubeletExtraConfig"
+        "kubeletExtraConfig",
+        "containerRuntime"
       ],
       "additionalProperties": false,
       "description": "holds configuration attributes that are specific to a nodegroup",
