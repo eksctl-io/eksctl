@@ -27,6 +27,7 @@ nav:
         - Nodegroups:
             - usage/managing-nodegroups.md
             - usage/nodegroup-upgrade.md
+            - usage/nodegroup-with-custom-subnet.md
             - usage/eks-managed-nodes.md
             - usage/launch-template-support.md
             - usage/instance-selector.md
