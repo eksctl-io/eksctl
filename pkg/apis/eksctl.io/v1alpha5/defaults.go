@@ -7,6 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/aws/aws-sdk-go/aws"
+
 	"github.com/weaveworks/eksctl/pkg/git"
 )
 
@@ -108,6 +109,8 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 	if ng.SecurityGroups.WithShared == nil {
 		ng.SecurityGroups.WithShared = Enabled()
 	}
+
+	setContainerRuntimeDefault(ng)
 }
 
 // SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
@@ -185,6 +188,12 @@ func setVolumeDefaults(ng *NodeGroupBase, template *LaunchTemplate) {
 	}
 	if *ng.VolumeType == NodeVolumeTypeIO1 && ng.VolumeIOPS == nil {
 		ng.VolumeIOPS = aws.Int(DefaultNodeVolumeIO1IOPS)
+	}
+}
+
+func setContainerRuntimeDefault(ng *NodeGroup) {
+	if ng.ContainerRuntime == nil {
+		ng.ContainerRuntime = &DefaultContainerRuntime
 	}
 }
 
