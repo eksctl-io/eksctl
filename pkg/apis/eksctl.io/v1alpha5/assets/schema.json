@@ -1241,6 +1241,11 @@
           "description": "[Custom address](/usage/vpc-networking/#custom-cluster-dns-address) used for DNS lookups",
           "x-intellij-html-description": "<a href=\"/usage/vpc-networking/#custom-cluster-dns-address\">Custom address</a> used for DNS lookups"
         },
+        "containerRuntime": {
+          "type": "string",
+          "description": "defines the runtime (CRI) to use for containers on the node",
+          "x-intellij-html-description": "defines the runtime (CRI) to use for containers on the node"
+        },
         "cpuCredits": {
           "type": "string",
           "description": "configures [T3 Unlimited](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html), valid only for T-type instances",
@@ -1461,7 +1466,8 @@
         "taints",
         "updateConfig",
         "clusterDNS",
-        "kubeletExtraConfig"
+        "kubeletExtraConfig",
+        "containerRuntime"
       ],
       "additionalProperties": false,
       "description": "holds configuration attributes that are specific to a nodegroup",
