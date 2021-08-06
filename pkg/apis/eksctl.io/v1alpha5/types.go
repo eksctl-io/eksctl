@@ -41,10 +41,12 @@ const (
 
 	Version1_20 = "1.20"
 
+	Version1_21 = "1.21"
+
 	// DefaultVersion (default)
 	DefaultVersion = Version1_20
 
-	LatestVersion = Version1_20
+	LatestVersion = Version1_21
 )
 
 // No longer supported versions
@@ -70,8 +72,8 @@ const (
 
 // Not yet supported versions
 const (
-	// Version1_21 represents Kubernetes version 1.21.x
-	Version1_21 = "1.21"
+	// Version1_22 represents Kubernetes version 1.22.x
+	Version1_22 = "1.22"
 )
 
 const (
@@ -418,6 +420,7 @@ func SupportedVersions() []string {
 		Version1_18,
 		Version1_19,
 		Version1_20,
+		Version1_21,
 	}
 }
 
@@ -1538,8 +1541,9 @@ type InstanceSelector struct {
 	// Memory specifies the memory
 	// The unit defaults to GiB
 	Memory string `json:"memory,omitempty"`
-	// GPUs specifies the number of GPUs
-	GPUs int `json:"gpus,omitempty"`
+	// GPUs specifies the number of GPUs.
+	// It can be set to 0 to select non-GPU instance types.
+	GPUs *int `json:"gpus,omitempty"`
 	// CPU Architecture of the EC2 instance type.
 	// Valid variants are:
 	// `"x86_64"`

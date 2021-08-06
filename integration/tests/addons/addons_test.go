@@ -36,7 +36,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		BeforeSuite(func() {
 			clusterConfig := api.NewClusterConfig()
 			clusterConfig.Metadata.Name = clusterName
-			clusterConfig.Metadata.Version = "1.20"
+			clusterConfig.Metadata.Version = api.LatestVersion
 			clusterConfig.Metadata.Region = params.Region
 			clusterConfig.IAM.WithOIDC = api.Enabled()
 			clusterConfig.Addons = []*api.Addon{
@@ -150,7 +150,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		cmd := params.EksctlUtilsCmd.
 			WithArgs(
 				"describe-addon-versions",
-				"--kubernetes-version", "1.20",
+				"--kubernetes-version", api.LatestVersion,
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 			ContainElement(ContainSubstring("vpc-cni")),

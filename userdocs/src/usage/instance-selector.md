@@ -18,14 +18,14 @@ criteria passed to eksctl, run
 $ eksctl create cluster --instance-selector-vcpus=2 --instance-selector-memory=4
 ```
 
-This will create a cluster and nodegroup with the `instancesDistribution.instanceTypes` field set to
+This will create a cluster and a managed nodegroup with the `instanceTypes` field set to
 `[c5.large, c5a.large, c5ad.large, c5d.large, t2.medium, t3.medium, t3a.medium]` (the set of instance types returned may change).
 
 
-For managed nodegroups, the `instanceTypes` field will be set:
+For unmanaged nodegroups, the `instancesDistribution.instanceTypes` field will be set:
 
 ```console
-$ eksctl create cluster --managed --instance-selector-vcpus=2 --instance-selector-memory=4
+$ eksctl create cluster --managed=false --instance-selector-vcpus=2 --instance-selector-memory=4
 ```
 
 The instance selector criteria can also be specified in ClusterConfig:
@@ -69,7 +69,7 @@ The [dry-run](/usage/dry-run) feature allows you to inspect and change the insta
 to creating a nodegroup.
 
 ```console
-$ eksctl create cluster --name development --managed --instance-selector-vcpus=2 --instance-selector-memory=4 --dry-run
+$ eksctl create cluster --name development --instance-selector-vcpus=2 --instance-selector-memory=4 --dry-run
 
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig

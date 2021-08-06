@@ -15,7 +15,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/util/validation"
-	kubeletapis "k8s.io/kubernetes/pkg/kubelet/apis"
+	kubeletapis "k8s.io/kubelet/pkg/apis"
 )
 
 // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-blockdevicemapping-ebs.html
@@ -126,6 +126,14 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 				return fmt.Errorf("log type %q (cloudWatch.clusterLogging.enableTypes[%d]) is unknown", logType, i)
 			}
 		}
+	}
+
+	if cfg.VPC != nil && len(cfg.VPC.ExtraCIDRs) > 0 {
+		cidrs, err := validateCIDRs(cfg.VPC.ExtraCIDRs)
+		if err != nil {
+			return err
+		}
+		cfg.VPC.ExtraCIDRs = cidrs
 	}
 
 	if cfg.VPC != nil && len(cfg.VPC.PublicAccessCIDRs) > 0 {

@@ -1,5 +1,6 @@
 // Make sure to run the following commands after changes to this file are made:
-// ` make -f Makefile.docker update-build-image-tag && make -f Makefile.docker push-build-image`
+// `make generate-all && make lint && make check-all-generated-files-up-to-date`
+// you may also need to run `make push-build-image` depending on what has changed
 module github.com/weaveworks/eksctl
 
 go 1.16
@@ -7,7 +8,7 @@ go 1.16
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.3-0.20210303155736-3e43512d88f8
-	github.com/aws/aws-sdk-go v1.39.0
+	github.com/aws/aws-sdk-go v1.39.4
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
@@ -21,11 +22,11 @@ require (
 	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200729150005-1467489f7ee4 // helm-operator 1.2.0
 	github.com/github-release/github-release v0.10.0
 	github.com/gobwas/glob v0.2.3
-	github.com/gofrs/flock v0.8.0
+	github.com/gofrs/flock v0.8.1
 	github.com/golangci/golangci-lint v1.41.1
 	github.com/gomarkdown/markdown v0.0.0-20201113031856-722100d81a8e // indirect
 	github.com/google/uuid v1.2.0
-	github.com/goreleaser/goreleaser v0.162.0
+	github.com/goreleaser/goreleaser v0.173.2
 	github.com/hashicorp/go-version v1.3.0
 	github.com/instrumenta/kubeval v0.0.0-20190918223246-8d013ec9fc56
 	github.com/justinbarrick/go-k8s-portforward v1.0.4-0.20200904152830-b575325c1855
@@ -39,7 +40,7 @@ require (
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/onsi/ginkgo v1.16.4
-	github.com/onsi/gomega v1.13.0
+	github.com/onsi/gomega v1.14.0
 	github.com/pelletier/go-toml v1.9.3
 	github.com/pkg/errors v0.9.1
 	github.com/russross/blackfriday/v2 v2.1.0
@@ -47,7 +48,7 @@ require (
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
-	github.com/tidwall/gjson v1.8.0
+	github.com/tidwall/gjson v1.8.1
 	github.com/tidwall/sjson v1.1.7
 	github.com/tj/assert v0.0.3
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
@@ -57,17 +58,16 @@ require (
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
 	golang.org/x/tools v0.1.3
-	k8s.io/api v0.19.5
-	k8s.io/apiextensions-apiserver v0.19.5
-	k8s.io/apimachinery v0.19.5
-	k8s.io/cli-runtime v0.19.5
-	k8s.io/client-go v0.19.5
-	k8s.io/cloud-provider v0.19.5
-	k8s.io/code-generator v0.19.5
+	k8s.io/api v0.21.2
+	k8s.io/apiextensions-apiserver v0.21.2
+	k8s.io/apimachinery v0.21.2
+	k8s.io/cli-runtime v0.21.2
+	k8s.io/client-go v0.21.2
+	k8s.io/cloud-provider v0.21.2
+	k8s.io/code-generator v0.21.2
 	k8s.io/kops v1.19.0
-	k8s.io/kubelet v0.19.5
-	k8s.io/kubernetes v1.19.5
-	k8s.io/legacy-cloud-providers v0.19.5
+	k8s.io/kubelet v0.21.2
+	k8s.io/legacy-cloud-providers v0.21.2
 	sigs.k8s.io/aws-iam-authenticator v0.5.2
 	sigs.k8s.io/mdtoc v1.0.1
 	sigs.k8s.io/yaml v1.2.0
@@ -77,26 +77,26 @@ replace (
 	// Used to get around some weird etcd/grpc incompatibilty
 	google.golang.org/grpc => google.golang.org/grpc v1.29.0
 	// Used to pin the k8s library versions regardless of what other dependencies enforce
-	k8s.io/api => k8s.io/api v0.19.5
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.19.5
-	k8s.io/apimachinery => k8s.io/apimachinery v0.19.5
-	k8s.io/apiserver => k8s.io/apiserver v0.19.5
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.19.5
-	k8s.io/client-go => k8s.io/client-go v0.19.5
-	k8s.io/cloud-provider => k8s.io/cloud-provider v0.19.5
-	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.19.5
-	k8s.io/code-generator => k8s.io/code-generator v0.19.5
-	k8s.io/component-base => k8s.io/component-base v0.19.5
-	k8s.io/cri-api => k8s.io/cri-api v0.19.5
-	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.19.5
-	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.19.5
-	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.19.5
-	k8s.io/kube-proxy => k8s.io/kube-proxy v0.19.5
-	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.19.5
-	k8s.io/kubectl => k8s.io/kubectl v0.19.5
-	k8s.io/kubelet => k8s.io/kubelet v0.19.5
+	k8s.io/api => k8s.io/api v0.21.2
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.21.2
+	k8s.io/apimachinery => k8s.io/apimachinery v0.21.2
+	k8s.io/apiserver => k8s.io/apiserver v0.21.2
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.21.2
+	k8s.io/client-go => k8s.io/client-go v0.21.2
+	k8s.io/cloud-provider => k8s.io/cloud-provider v0.21.2
+	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.21.2
+	k8s.io/code-generator => k8s.io/code-generator v0.21.2
+	k8s.io/component-base => k8s.io/component-base v0.21.2
+	k8s.io/cri-api => k8s.io/cri-api v0.21.2
+	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.21.2
+	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.21.2
+	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.21.2
+	k8s.io/kube-proxy => k8s.io/kube-proxy v0.21.2
+	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.21.2
+	k8s.io/kubectl => k8s.io/kubectl v0.21.2
+	k8s.io/kubelet => k8s.io/kubelet v0.21.2
 	k8s.io/kubernetes => k8s.io/kubernetes v1.19.5
-	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.19.5
-	k8s.io/metrics => k8s.io/metrics v0.19.5
-	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.19.5
+	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.21.2
+	k8s.io/metrics => k8s.io/metrics v0.21.2
+	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.21.2
 )

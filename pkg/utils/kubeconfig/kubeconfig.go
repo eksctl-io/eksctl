@@ -143,6 +143,7 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 				Value: "regional",
 			},
 		},
+		ProvideClusterInfo: false,
 	}
 
 	switch authenticatorCMD {

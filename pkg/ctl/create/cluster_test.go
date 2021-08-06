@@ -12,7 +12,7 @@ import (
 var _ = Describe("create cluster", func() {
 	Describe("un-managed node group", func() {
 		It("understands ssh access arguments correctly", func() {
-			commandArgs := []string{"cluster", "--ssh-access=false", "--ssh-public-key", "dummy-key"}
+			commandArgs := []string{"cluster", "--managed=false", "--ssh-access=false", "--ssh-public-key=dummy-key"}
 			cmd := newMockEmptyCmd(commandArgs...)
 			count := 0
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
@@ -39,7 +39,7 @@ var _ = Describe("create cluster", func() {
 					})
 				})
 				_, err := cmd.execute()
-				Expect(err).To(Not(HaveOccurred()))
+				Expect(err).ToNot(HaveOccurred())
 				Expect(count).To(Equal(1))
 			},
 			Entry("without cluster name", ""),
@@ -81,11 +81,12 @@ var _ = Describe("create cluster", func() {
 			Entry("with full-ecr-access flag", "--full-ecr-access", "true"),
 			Entry("with appmesh-access flag", "--appmesh-access", "true"),
 			Entry("with alb-ingress-access flag", "--alb-ingress-access", "true"),
+			Entry("with managed flag unset", "--managed", "false"),
 		)
 
 		DescribeTable("invalid flags or arguments",
 			func(c invalidParamsCase) {
-				commandArgs := append([]string{"cluster"}, c.args...)
+				commandArgs := append([]string{"cluster", "--managed=false"}, c.args...)
 				cmd := newDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
@@ -113,7 +114,7 @@ var _ = Describe("create cluster", func() {
 	Describe("managed node group", func() {
 		DescribeTable("create cluster successfully",
 			func(args ...string) {
-				commandArgs := append([]string{"cluster", "--managed"}, args...)
+				commandArgs := append([]string{"cluster"}, args...)
 				cmd := newMockEmptyCmd(commandArgs...)
 				count := 0
 				cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
@@ -165,7 +166,7 @@ var _ = Describe("create cluster", func() {
 
 		DescribeTable("invalid flags or arguments",
 			func(c invalidParamsCase) {
-				commandArgs := append([]string{"cluster", "--managed"}, c.args...)
+				commandArgs := append([]string{"cluster"}, c.args...)
 				cmd := newDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())

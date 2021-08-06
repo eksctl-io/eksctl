@@ -394,6 +394,19 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcResource *VPCResou
 			GroupDescription: gfnt.NewString("Communication between the control plane and worker nodegroups"),
 			VpcId:            vpcResource.VPC,
 		})
+
+		if len(c.spec.VPC.ExtraCIDRs) > 0 {
+			for i, cidr := range c.spec.VPC.ExtraCIDRs {
+				c.newResource(fmt.Sprintf("IngressControlPlaneExtraCIDR%d", i), &gfnec2.SecurityGroupIngress{
+					GroupId:     refControlPlaneSG,
+					CidrIp:      gfnt.NewString(cidr),
+					Description: gfnt.NewString(fmt.Sprintf("Allow Extra CIDR %d (%s) to communicate to controlplane", i, cidr)),
+					IpProtocol:  gfnt.NewString("tcp"),
+					FromPort:    sgPortHTTPS,
+					ToPort:      sgPortHTTPS,
+				})
+			}
+		}
 	} else {
 		refControlPlaneSG = gfnt.NewString(c.spec.VPC.SecurityGroup)
 	}

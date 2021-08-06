@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder/fakes"
@@ -15,7 +17,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks/mocks"
 	bootstrapfakes "github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
@@ -1055,9 +1056,57 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 		})
 
 		It("returns public subnets", func() {
-			subnets, err := builder.AssignSubnets(ngBase, fakeVPCImporter, cfg)
+			subnets, err := builder.AssignSubnets(ngBase, fakeVPCImporter, cfg, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(subnets).To(Equal(gfnt.NewString("subnet-1")))
+		})
+
+		It("returns subnets if they exist and were defined by ID only", func() {
+			mockEC2 = &mocks.EC2API{}
+			mockEC2.On("DescribeSubnets", &ec2.DescribeSubnetsInput{
+				SubnetIds: aws.StringSlice([]string{"fake-id"}),
+			}).Return(&ec2.DescribeSubnetsOutput{
+				Subnets: []*ec2.Subnet{
+					{
+						SubnetId: aws.String("fake-id"),
+						VpcId:    aws.String(cfg.VPC.ID),
+					},
+				},
+			}, nil)
+			ngBase := ngBase.DeepCopy()
+			ngBase.Subnets = []string{"fake-id"}
+			subnets, err := builder.AssignSubnets(ngBase, fakeVPCImporter, cfg, mockEC2)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(subnets).To(Equal(gfnt.NewStringSlice("fake-id")))
+		})
+
+		It("returns an error if the given subnet is not part of the cluster's VPC", func() {
+			mockEC2 = &mocks.EC2API{}
+			mockEC2.On("DescribeSubnets", &ec2.DescribeSubnetsInput{
+				SubnetIds: aws.StringSlice([]string{"fake-id"}),
+			}).Return(&ec2.DescribeSubnetsOutput{
+				Subnets: []*ec2.Subnet{
+					{
+						SubnetId: aws.String("fake-id"),
+						VpcId:    aws.String("invalid-vpc-id"),
+					},
+				},
+			}, nil)
+			ngBase := ngBase.DeepCopy()
+			ngBase.Subnets = []string{"fake-id"}
+			_, err := builder.AssignSubnets(ngBase, fakeVPCImporter, cfg, mockEC2)
+			Expect(err).To(MatchError(ContainSubstring("subnet with id \"fake-id\" is not in the attached vpc with id \"\"")))
+		})
+
+		It("returns an error if ec2 api returns an error", func() {
+			mockEC2 = &mocks.EC2API{}
+			mockEC2.On("DescribeSubnets", &ec2.DescribeSubnetsInput{
+				SubnetIds: aws.StringSlice([]string{"fake-id"}),
+			}).Return(nil, errors.New("nope"))
+			ngBase := ngBase.DeepCopy()
+			ngBase.Subnets = []string{"fake-id"}
+			_, err := builder.AssignSubnets(ngBase, fakeVPCImporter, cfg, mockEC2)
+			Expect(err).To(MatchError(ContainSubstring("nope")))
 		})
 
 		Context("when private networking is enabled", func() {
@@ -1067,7 +1116,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			})
 
 			It("returns private subnets", func() {
-				subnets, err := builder.AssignSubnets(ngBase, fakeVPCImporter, cfg)
+				subnets, err := builder.AssignSubnets(ngBase, fakeVPCImporter, cfg, nil)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(subnets).To(Equal(gfnt.NewString("subnet-2")))
 			})
@@ -1080,7 +1129,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			})
 
 			It("maps subnets to azs", func() {
-				subnets, err := builder.AssignSubnets(ngBase, fakeVPCImporter, cfg)
+				subnets, err := builder.AssignSubnets(ngBase, fakeVPCImporter, cfg, nil)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(subnets).To(Equal(gfnt.NewStringSlice(publicSubnet1, publicSubnet2)))
 			})
@@ -1092,7 +1141,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				})
 
 				It("maps private subnets to azs", func() {
-					subnets, err := builder.AssignSubnets(ngBase, fakeVPCImporter, cfg)
+					subnets, err := builder.AssignSubnets(ngBase, fakeVPCImporter, cfg, nil)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(subnets).To(Equal(gfnt.NewStringSlice(privateSubnet1, privateSubnet2)))
 				})
@@ -1104,7 +1153,11 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				})
 
 				It("returns the error", func() {
-					_, err := builder.AssignSubnets(ngBase, fakeVPCImporter, cfg)
+					mockEC2 = &mocks.EC2API{}
+					mockEC2.On("DescribeSubnets", &ec2.DescribeSubnetsInput{
+						SubnetIds: aws.StringSlice([]string{"not-a-thing"}),
+					}).Return(nil, errors.New("nope"))
+					_, err := builder.AssignSubnets(ngBase, fakeVPCImporter, cfg, mockEC2)
 					Expect(err).To(MatchError(ContainSubstring("couldn't find public subnets")))
 				})
 			})
@@ -1117,7 +1170,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			})
 
 			It("choses only the first subnet", func() {
-				subnets, err := builder.AssignSubnets(ngBase, fakeVPCImporter, cfg)
+				subnets, err := builder.AssignSubnets(ngBase, fakeVPCImporter, cfg, nil)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(subnets).To(Equal(gfnt.NewStringSlice(publicSubnet1)))
 			})

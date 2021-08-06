@@ -22,12 +22,17 @@ type nodegroupOptions struct {
 	cmdutils.CreateManagedNGOptions
 	UpdateAuthConfigMap     bool
 	SkipOutdatedAddonsCheck bool
+	SubnetIDs               []string
 }
 
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, options nodegroupOptions) error {
 		if ng.Name != "" && api.IsInvalidNameArg(ng.Name) {
 			return api.ErrInvalidName(ng.Name)
+		}
+
+		if options.SubnetIDs != nil {
+			ng.Subnets = append(ng.Subnets, options.SubnetIDs...)
 		}
 
 		ngFilter := filter.NewNodeGroupFilter()
@@ -95,6 +100,7 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc runFn) {
 		cmdutils.AddNodeGroupFilterFlags(fs, &cmd.Include, &cmd.Exclude)
 		cmdutils.AddUpdateAuthConfigMap(fs, &options.UpdateAuthConfigMap, "Add nodegroup IAM role to aws-auth configmap")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddSubnetIDs(fs, &options.SubnetIDs, "Define an optional list of subnet IDs to create the nodegroup in")
 		fs.BoolVarP(&options.DryRun, "dry-run", "", false, "Dry-run mode that skips nodegroup creation and outputs a ClusterConfig")
 		fs.BoolVarP(&options.SkipOutdatedAddonsCheck, "skip-outdated-addons-check", "", false, "whether the creation of ARM nodegroups should proceed when the cluster addons are outdated")
 	})

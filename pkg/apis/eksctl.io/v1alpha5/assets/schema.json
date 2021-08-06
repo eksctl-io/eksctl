@@ -475,15 +475,16 @@
         },
         "version": {
           "type": "string",
-          "description": "Valid variants are: `\"1.16\"`, `\"1.17\"`, `\"1.18\"`, `\"1.19\"`, `\"1.20\"` (default).",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;1.16&quot;</code>, <code>&quot;1.17&quot;</code>, <code>&quot;1.18&quot;</code>, <code>&quot;1.19&quot;</code>, <code>&quot;1.20&quot;</code> (default).",
+          "description": "Valid variants are: `\"1.16\"`, `\"1.17\"`, `\"1.18\"`, `\"1.19\"`, `\"1.20\"` (default), `\"1.21\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;1.16&quot;</code>, <code>&quot;1.17&quot;</code>, <code>&quot;1.18&quot;</code>, <code>&quot;1.19&quot;</code>, <code>&quot;1.20&quot;</code> (default), <code>&quot;1.21&quot;</code>.",
           "default": "1.20",
           "enum": [
             "1.16",
             "1.17",
             "1.18",
             "1.19",
-            "1.20"
+            "1.20",
+            "1.21"
           ]
         }
       },
@@ -553,7 +554,7 @@
         },
         "extraCIDRs": {
           "items": {
-            "$ref": "#/definitions/github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet"
+            "type": "string"
           },
           "type": "array",
           "description": "for additional CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets",
@@ -816,8 +817,8 @@
         },
         "gpus": {
           "type": "integer",
-          "description": "specifies the number of GPUs",
-          "x-intellij-html-description": "specifies the number of GPUs"
+          "description": "specifies the number of GPUs. It can be set to 0 to select non-GPU instance types.",
+          "x-intellij-html-description": "specifies the number of GPUs. It can be set to 0 to select non-GPU instance types."
         },
         "memory": {
           "type": "string",
