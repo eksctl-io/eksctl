@@ -130,6 +130,7 @@ IamLimitedAccess
                 "iam:GetOpenIDConnectProvider",
                 "iam:CreateOpenIDConnectProvider",
                 "iam:DeleteOpenIDConnectProvider",
+                "iam:TagOpenIDConnectProvider",                
                 "iam:ListAttachedRolePolicies",
                 "iam:TagRole"
             ],
