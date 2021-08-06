@@ -20,8 +20,6 @@ jq -s '.[0] * .[1]' "${KUBELET_CONFIG}" "${KUBELET_EXTRA_CONFIG}" > "${TMP_KUBE_
 mv "${TMP_KUBE_CONF}" "${KUBELET_CONFIG}"
 
 systemctl daemon-reload
-echo "eksctl: restarting docker daemon"
-systemctl restart docker
 echo "eksctl: restarting kubelet-eks"
 systemctl restart kubelet
 echo "eksctl: done"
