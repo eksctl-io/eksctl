@@ -118,6 +118,30 @@ var _ = Describe("cmdutils configfile", func() {
 			})
 		})
 
+		Describe("managed nodegroup with container runtime", func() {
+			When("container runtime is set for a managed nodegroup", func() {
+				It("fails validation", func() {
+					cfg := api.NewClusterConfig()
+					cobraCmd := newCmd()
+					name := "foo-2"
+					cobraCmd.SetArgs([]string{"--name", name})
+
+					cmd := &Cmd{
+						ClusterConfig:     cfg,
+						NameArg:           name,
+						CobraCommand:      cobraCmd,
+						ClusterConfigFile: "test_data/managed-nodegroup-with-container-runtime.yaml",
+						ProviderConfig:    api.ProviderConfig{},
+					}
+					l := newCommonClusterConfigLoader(cmd)
+					l.flagsIncompatibleWithConfigFile.Delete("name")
+
+					err := l.Load()
+					Expect(err).To(MatchError(ContainSubstring("error unmarshaling JSON: while decoding JSON: json: unknown field \"containerRuntime\"")))
+				})
+			})
+		})
+
 		It("load all of example file", func() {
 			examples, err := filepath.Glob(examplesDir + "*.yaml")
 			Expect(err).ToNot(HaveOccurred())

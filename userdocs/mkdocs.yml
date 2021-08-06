@@ -36,6 +36,7 @@ nav:
             - usage/arm-support.md
             - usage/autoscaling.md
             - usage/custom-ami-support.md
+            - usage/container-runtime.md
             - usage/windows-worker-nodes.md
         - GitOps:
             - usage/gitops-v2.md

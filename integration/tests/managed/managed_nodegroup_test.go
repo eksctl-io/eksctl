@@ -14,8 +14,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	corev1 "k8s.io/api/core/v1"
+
+	"github.com/weaveworks/eksctl/pkg/eks"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
