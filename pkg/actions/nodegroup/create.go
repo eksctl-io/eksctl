@@ -32,6 +32,7 @@ type CreateOpts struct {
 	ConfigFileProvided        bool
 }
 
+// Create creates a new nodegroup with the given options.
 func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFilter) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
@@ -293,6 +294,9 @@ func (m *Manager) checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes
 }
 
 func loadVPCFromConfig(provider api.ClusterProvider, cfg *api.ClusterConfig) error {
+	if cfg.VPC == nil {
+		return errors.New("VPC configuration required for creating nodegroups on clusters not owned by eksctl.")
+	}
 	if cfg.VPC.Subnets == nil || cfg.VPC.SecurityGroup == "" || cfg.VPC.ID == "" {
 		return errors.New("VPC configuration required for creating nodegroups on clusters not owned by eksctl: vpc.subnets, vpc.id, vpc.securityGroup")
 	}
@@ -312,3 +316,4 @@ func loadVPCFromConfig(provider api.ClusterProvider, cfg *api.ClusterConfig) err
 
 	return nil
 }
+
