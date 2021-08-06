@@ -25,6 +25,7 @@ nodeGroups:
 This value is set to `dockerd` by default to preserve backwards compatibility, but will soon be
 deprecated.
 
+_Note that there is no equivalent flag for setting the container runtime, this can only be done via a config file._
 
 At the time of this writing the following container runtime values are allowed:
 
