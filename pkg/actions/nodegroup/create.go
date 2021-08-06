@@ -313,4 +313,3 @@ func loadVPCFromConfig(provider api.ClusterProvider, cfg *api.ClusterConfig) err
 
 	return nil
 }
-
