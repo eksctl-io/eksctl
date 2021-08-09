@@ -83,11 +83,17 @@ func (m *ManagedAL2) UserData() (string, error) {
 }
 
 func makeCustomAMIUserData(ng *api.NodeGroupBase) (string, error) {
-	if ng.OverrideBootstrapCommand != nil {
-		return base64.StdEncoding.EncodeToString([]byte(*ng.OverrideBootstrapCommand)), nil
+	var scripts []string
+
+	if len(ng.PreBootstrapCommands) > 0 {
+		scripts = append(scripts, ng.PreBootstrapCommands...)
 	}
 
-	return "", nil
+	if ng.OverrideBootstrapCommand != nil {
+		scripts = append(scripts, *ng.OverrideBootstrapCommand)
+	}
+
+	return base64.StdEncoding.EncodeToString([]byte(strings.Join(scripts, "\n"))), nil
 }
 
 func makeMaxPodsScript(maxPods int) string {
