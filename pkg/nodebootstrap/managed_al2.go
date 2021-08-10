@@ -9,9 +9,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/bindata"
 )
 
@@ -83,17 +85,22 @@ func (m *ManagedAL2) UserData() (string, error) {
 }
 
 func makeCustomAMIUserData(ng *api.NodeGroupBase) (string, error) {
-	var scripts []string
+	config := cloudconfig.New()
 
-	if len(ng.PreBootstrapCommands) > 0 {
-		scripts = append(scripts, ng.PreBootstrapCommands...)
+	for _, command := range ng.PreBootstrapCommands {
+		config.AddShellCommand(command)
 	}
-
 	if ng.OverrideBootstrapCommand != nil {
-		scripts = append(scripts, *ng.OverrideBootstrapCommand)
+		config.AddShellCommand(*ng.OverrideBootstrapCommand)
 	}
 
-	return base64.StdEncoding.EncodeToString([]byte(strings.Join(scripts, "\n"))), nil
+	body, err := config.Encode()
+	if err != nil {
+		return "", errors.Wrap(err, "encoding user data")
+	}
+
+	logger.Debug("user-data = %s", body)
+	return body, nil
 }
 
 func makeMaxPodsScript(maxPods int) string {
