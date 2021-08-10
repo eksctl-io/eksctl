@@ -57,7 +57,7 @@ metadata:
   region: us-west-2
 nodeGroups:
 - amiFamily: AmazonLinux2
-	containerRuntime: dockerd
+  containerRuntime: dockerd
   disableIMDSv1: false
   disablePodIMDS: false
   instanceSelector: {}
