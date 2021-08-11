@@ -13,6 +13,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/gitops"
 )
 
+// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 type options struct {
 	cfg     api.Git
 	timeout time.Duration
@@ -26,7 +27,7 @@ func enableRepoWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd) er
 	cmd.ClusterConfig = api.NewClusterConfig()
 	cmd.SetDescription(
 		"repo",
-		"MARKED FOR DEPRECATION: https://github.com/weaveworks/eksctl/issues/2963.\nSet up a repo for gitops, installing Flux in the cluster and initializing its manifests in the specified Git repository",
+		"DEPRECATED: https://github.com/weaveworks/eksctl/issues/2963. Set up a repo for gitops, installing Flux in the cluster and initializing its manifests in the specified Git repository",
 		"",
 	)
 	cmd.CobraCommand.Hidden = true
