@@ -31,4 +31,4 @@ CLUSTER_NAME="${CLUSTER_NAME}"
 KUBELET_CONFIG='/etc/kubernetes/kubelet/kubelet-config.json'
 KUBELET_EXTRA_CONFIG='/etc/eksctl/kubelet-extra.json'
 TMP_KUBE_CONF='/tmp/kubelet-conf.json'
-CONTAINER_RUNTIME="${CONTAINER_RUNTIME}"
+CONTAINER_RUNTIME="${CONTAINER_RUNTIME:-dockerd}" # default for al2 just in case, not used in ubuntu

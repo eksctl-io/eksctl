@@ -33,6 +33,11 @@ change it. Please refer to [the AWS docs][vpcsizing] for guides on choosing CIDR
 If you prefer to isolate the initial nodegroup from the public internet, you can use the `--node-private-networking` flag.
 When used in conjunction with the `--ssh-access` flag, the SSH port can only be accessed from inside the VPC.
 
+!!! note
+    Using the `--node-private-networking` flag will result in outgoing traffic to go through the NAT gateway using its
+    Elastic IP. On the other hand, if the nodes are in a public subnet, the outgoing traffic won't go through the
+    NAT gateway and hence the outgoing traffic has the IP of each individual node.
+
 ## Use an existing VPC: shared with kops
 
 You can use the VPC of an existing Kubernetes cluster managed by [kops](https://github.com/kubernetes/kops). This feature is provided to facilitate migration and/or
