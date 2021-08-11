@@ -22,7 +22,7 @@ func configureAndRun(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd) error) {
 	cmd.ClusterConfig = api.NewClusterConfig()
 	cmd.SetDescription(
 		"flux",
-		"EXPERIMENTAL. Set up GitOps Toolkit - deploys FluxV2 and creates Git repo to store manifests",
+		"Set up GitOps Toolkit - deploys FluxV2 and creates Git repo to store manifests",
 		"",
 	)
 
@@ -46,7 +46,6 @@ func configureAndRun(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd) error) {
 }
 
 func flux2Install(cmd *cmdutils.Cmd) error {
-	logger.Warning("running experimental command")
 	logger.Info("eksctl version %s", version.GetVersion())
 	logger.Info("will install Flux v2 components on cluster %s", cmd.ClusterConfig.Metadata.Name)
 

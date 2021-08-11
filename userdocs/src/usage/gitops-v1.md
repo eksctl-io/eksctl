@@ -5,8 +5,8 @@
     is available from `eksctl` version `0.38.0`. See [the v2 docs](/usage/gitops-v2).
 
 !!! Warning "Flux v1 support Deprecated"
-    As full support for Flux v2 (GitOps Toolkit) is rolled out, Flux v1 (Repo, Operator, BootstrapProfile) functionality
-    will be deprecated. Any significant changes or disruptions will be noted in [releases](https://github.com/weaveworks/eksctl/releases).
+    As full support for Flux v2 (GitOps Toolkit) has now been rolled out, Flux v1 (Repo, Operator, BootstrapProfile) functionality
+    is now deprecated. Any significant changes or disruptions will be noted in [releases](https://github.com/weaveworks/eksctl/releases).
 
 [Gitops][gitops] is a way to do Kubernetes application delivery. It
 works by using Git as a single source of truth for Kubernetes resources
