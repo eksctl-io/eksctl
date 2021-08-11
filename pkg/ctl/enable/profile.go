@@ -12,6 +12,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/gitops"
 )
 
+// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 func enableProfile(cmd *cmdutils.Cmd) {
 	enableProfileWithRunFunc(cmd, doEnableProfile)
 }
@@ -20,9 +21,10 @@ func enableProfileWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd)
 	cmd.ClusterConfig = api.NewClusterConfig()
 	cmd.SetDescription(
 		"profile",
-		"Commits the components from the selected Quick Start profile to the destination repository.",
+		"DEPRECATED: https://github.com/weaveworks/eksctl/issues/2963. Commits the components from the selected Quick Start profile to the destination repository.",
 		"",
 	)
+	cmd.CobraCommand.Hidden = true
 	opts := configureProfileCmd(cmd)
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)

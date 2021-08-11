@@ -13,13 +13,17 @@ import (
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 )
 
+// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 func generateProfile(cmd *cmdutils.Cmd) {
 	generateProfileWithRunFunc(cmd, doGenerateProfile)
 }
 
 func generateProfileWithRunFunc(cmd *cmdutils.Cmd, runFunc func(*cmdutils.Cmd) error) {
 	cmd.ClusterConfig = api.NewClusterConfig()
-	cmd.SetDescription("profile", "Generate a gitops profile", "")
+	cmd.SetDescription("profile",
+		"DEPRECATED: https://github.com/weaveworks/eksctl/issues/2963. Generate a gitops profile",
+		"",
+	)
 
 	opts := configureGenerateProfileCmd(cmd)
 

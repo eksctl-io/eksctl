@@ -235,7 +235,8 @@ func (l *GitConfigLoader) Load() error {
 		return err
 	}
 
-	logger.Warning("the `enable repo` command and related git.X are marked for deprecation: Please see https://github.com/weaveworks/eksctl/issues/2963")
+	logger.Warning("the `enable repo`, `enable profile` and `generate profile` commands DEPRECATED: see https://github.com/weaveworks/eksctl/issues/2963")
+	logger.Warning("the `git.repo`, `git.operator` and `git.bootstrapProfile` config options are DEPRECATED: see https://github.com/weaveworks/eksctl/issues/2963")
 
 	if l.cmd.ClusterConfigFile == "" {
 		l.cmd.ClusterConfig.Metadata.Region = l.cmd.ProviderConfig.Region
