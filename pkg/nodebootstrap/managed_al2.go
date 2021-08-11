@@ -9,11 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/bindata"
 )
 
@@ -35,9 +33,8 @@ func NewManagedAL2Bootstrapper(ng *api.ManagedNodeGroup) *ManagedAL2 {
 func (m *ManagedAL2) UserData() (string, error) {
 	ng := m.ng
 
-	// We don't use MIME format when launching managed nodegroups with a custom AMI
 	if strings.HasPrefix(ng.AMI, "ami-") {
-		return makeCustomAMIUserData(ng.NodeGroupBase)
+		return makeCustomAMIUserData(ng.NodeGroupBase, m.UserDataMimeBoundary)
 	}
 
 	var (
@@ -84,23 +81,29 @@ func (m *ManagedAL2) UserData() (string, error) {
 	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
 }
 
-func makeCustomAMIUserData(ng *api.NodeGroupBase) (string, error) {
-	config := cloudconfig.New()
+func makeCustomAMIUserData(ng *api.NodeGroupBase, mimeBoundary string) (string, error) {
+	var (
+		buf     bytes.Buffer
+		scripts []string
+	)
 
-	for _, command := range ng.PreBootstrapCommands {
-		config.AddShellCommand(command)
+	if len(ng.PreBootstrapCommands) > 0 {
+		scripts = append(scripts, ng.PreBootstrapCommands...)
 	}
+
 	if ng.OverrideBootstrapCommand != nil {
-		config.AddShellCommand(*ng.OverrideBootstrapCommand)
+		scripts = append(scripts, *ng.OverrideBootstrapCommand)
 	}
 
-	body, err := config.Encode()
-	if err != nil {
-		return "", errors.Wrap(err, "encoding user data")
+	if len(scripts) == 0 {
+		return "", nil
 	}
 
-	logger.Debug("user-data = %s", body)
-	return body, nil
+	if err := createMimeMessage(&buf, scripts, nil, mimeBoundary); err != nil {
+		return "", err
+	}
+
+	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
 }
 
 func makeMaxPodsScript(maxPods int) string {
