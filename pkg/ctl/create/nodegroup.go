@@ -39,10 +39,11 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 		if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, options.CreateNGOptions, options.CreateManagedNGOptions).Load(); err != nil {
 			return errors.Wrap(err, "couldn't create node group filter from command line options")
 		}
-		ctl, err := cmd.NewCtl()
+		ctl, err := cmd.NewProviderForExistingCluster()
 		if err != nil {
 			return errors.Wrap(err, "couldn't create cluster provider from options")
 		}
+
 		if options.DryRun {
 			originalWriter := logger.Writer
 			logger.Writer = io.Discard
