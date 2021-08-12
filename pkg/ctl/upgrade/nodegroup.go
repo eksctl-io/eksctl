@@ -68,7 +68,7 @@ func upgradeNodeGroup(cmd *cmdutils.Cmd, options managed.UpgradeOptions) error {
 		return cmdutils.ErrMustBeSet("name")
 	}
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}

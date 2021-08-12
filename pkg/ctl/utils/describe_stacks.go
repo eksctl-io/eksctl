@@ -63,7 +63,7 @@ func describeStacksCmd(cmd *cmdutils.Cmd) {
 func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool, printer printers.OutputPrinter) error {
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}

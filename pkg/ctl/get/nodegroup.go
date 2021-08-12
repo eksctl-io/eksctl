@@ -64,7 +64,7 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		cfg.NodeGroups = append(cfg.NodeGroups, ng)
 	}
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}

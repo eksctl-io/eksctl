@@ -83,6 +83,11 @@ func (c *ClusterProvider) SupportsManagedNodes(clusterConfig *api.ClusterConfig)
 	return ClusterSupportsManagedNodes(c.Status.ClusterInfo.Cluster)
 }
 
+// IsNonEKSCluster returns true if the cluster is external
+func (c *ClusterProvider) IsNonEKSCluster() bool {
+	return c.Status.ClusterInfo.Cluster.ConnectorConfig != nil
+}
+
 // ClusterSupportsManagedNodes reports whether the EKS cluster supports managed nodes
 func ClusterSupportsManagedNodes(cluster *awseks.Cluster) (bool, error) {
 	supportsManagedNodes, err := utils.IsMinVersion(api.Version1_15, *cluster.Version)

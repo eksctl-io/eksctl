@@ -2,6 +2,7 @@ package cmdutils
 
 import (
 	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -68,6 +69,24 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 	}
 
 	return ctl, nil
+}
+
+// NewProviderForExistingCluster is a wrapper for NewCtl that also validates that the cluster exists and is not a
+// registered/connected cluster.
+func (c *Cmd) NewProviderForExistingCluster() (*eks.ClusterProvider, error) {
+	provider, err := c.NewCtl()
+	if err != nil {
+		return nil, err
+	}
+	if err := provider.RefreshClusterStatus(c.ClusterConfig); err != nil {
+		return nil, err
+	}
+
+	if provider.IsNonEKSCluster() {
+		return nil, errors.Errorf("cannot perform this operation on a non-EKS cluster; please follow the documentation for "+
+			"cluster %s's Kubernetes provider", c.ClusterConfig.Metadata.Name)
+	}
+	return provider, nil
 }
 
 // AddResourceCmd create a registers a new command under the given verb command
