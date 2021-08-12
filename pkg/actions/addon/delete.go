@@ -42,7 +42,7 @@ func (a *Manager) Delete(addon *api.Addon) error {
 
 	if err != nil {
 		if awsError, ok := err.(awserr.Error); ok && awsError.Code() == eks.ErrCodeResourceNotFoundException {
-			logger.Info("addon not found")
+			logger.Info("addon %q does not exist", addon.Name)
 			addonExists = false
 		} else {
 			return fmt.Errorf("failed to delete addon %q: %v", addon.Name, err)

@@ -24,7 +24,7 @@ func deleteAddonCmd(cmd *cmdutils.Cmd) {
 	var preserve bool
 	cmd.FlagSetGroup.InFlagSet("Addon", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cmd.ClusterConfig.Addons[0].Name, "name", "", "Addon name")
-		fs.BoolVar(&preserve, "preserve", false, "Preserve the addon when deleting")
+		fs.BoolVar(&preserve, "preserve", false, "Delete the addon from the API but preserve its Kubernetes resources")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
