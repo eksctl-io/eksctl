@@ -74,6 +74,7 @@ require (
 )
 
 replace (
+	github.com/aws/aws-sdk-go => ../aws-sdk-go/
 	// Used to get around some weird etcd/grpc incompatibilty
 	google.golang.org/grpc => google.golang.org/grpc v1.29.0
 	// Used to pin the k8s library versions regardless of what other dependencies enforce

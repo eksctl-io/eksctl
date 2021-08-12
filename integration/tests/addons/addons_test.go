@@ -143,6 +143,17 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 					"--verbose", "2",
 				)
 			Expect(cmd).To(RunSuccessfully())
+
+			By("Deleting the vpc-cni addon with --preserve")
+			cmd = params.EksctlDeleteCmd.
+				WithArgs(
+					"addon",
+					"--name", "vpc-cni",
+					"--preserve",
+					"--cluster", clusterName,
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfully())
 		})
 	})
 
