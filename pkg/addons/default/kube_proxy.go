@@ -162,13 +162,5 @@ func addArm64NodeSelector(daemonSet *v1.DaemonSet, archLabel string) {
 }
 
 func kubeProxyImageTag(controlPlaneVersion string) (string, error) {
-	isMinVersion, err := utils.IsMinVersion(api.Version1_19, controlPlaneVersion)
-	if err != nil {
-		return "", err
-	}
-
-	if isMinVersion {
-		return fmt.Sprintf("v%s-eksbuild.2", controlPlaneVersion), nil
-	}
 	return fmt.Sprintf("v%s-eksbuild.1", controlPlaneVersion), nil
 }
