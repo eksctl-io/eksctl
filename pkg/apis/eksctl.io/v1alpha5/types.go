@@ -931,7 +931,7 @@ func (n *NodeGroup) BaseNodeGroup() *NodeGroupBase {
 // cluster and linking it to a Git repository.
 // Note: this will replace the older Git types
 type GitOps struct {
-	// [Enable Flux](/usage/gitops/#experimental-installing-gitops-toolkit-flux-v2)
+	// Flux holds options to enable Flux v2 on your cluster
 	Flux *Flux `json:"flux,omitempty"`
 }
 
@@ -939,14 +939,16 @@ type GitOps struct {
 // cluster and linking it to a Git repository.
 // [Gitops Guide](/gitops-quickstart/)
 type Git struct {
-	// [Enable Repo](/usage/gitops/#installing-flux-v1)
+	// Repo holds options to enable Flux v1 on your cluster. DEPRECATED.
 	Repo *Repo `json:"repo,omitempty"`
 
-	// [Enable Repo](/usage/gitops/#installing-flux-v1)
+	// Operator holds options to configure the Helm Operator in conjunction with
+	// a Flux v1 installation. DEPRECATED.
 	// +optional
 	Operator Operator `json:"operator,omitempty"`
 
-	// [Installing a Quickstart profile](/usage/gitops/#installing-a-quickstart-profile-in-your-cluster)
+	// BootstrapProfile holds options to install a BootstrapProfile on the cluster.
+	// DEPRECATED.
 	// +optional
 	BootstrapProfile *Profile `json:"bootstrapProfile,omitempty"` // one or many profiles to enable on this cluster once it is created
 }
@@ -980,28 +982,35 @@ type FluxFlags map[string]string
 type Repo struct {
 	// The Git SSH URL to the repository which will contain the cluster configuration
 	// For example: `git@github.com:org/repo`
+	// DEPRECATED
 	URL string `json:"url,omitempty"`
 
 	// The git branch under which cluster configuration files will be committed & pushed, e.g. master
+	// DEPRECATED
 	// +optional
 	Branch string `json:"branch,omitempty"`
 
 	// Relative paths within the Git repository which the GitOps operator will monitor to find Kubernetes manifests to apply, e.g. ["kube-system", "base"]
+	// DEPRECATED
 	//+optional
 	Paths []string `json:"paths,omitempty"`
 
 	// The directory under which Flux configuration files will be written, e.g. flux/
+	// DEPRECATED
 	// +optional
 	FluxPath string `json:"fluxPath,omitempty"`
 
 	// Git user which will be used to commit changes
+	// DEPRECATED
 	// +optional
 	User string `json:"user,omitempty"`
 
 	// Git email which will be used to commit changes
+	// DEPRECATED
 	Email string `json:"email,omitempty"`
 
 	// Path to the private SSH key to use to authenticate
+	// DEPRECATED
 	// +optional
 	PrivateSSHKeyPath string `json:"privateSSHKeyPath,omitempty"`
 }
@@ -1011,30 +1020,37 @@ type Repo struct {
 type Operator struct {
 
 	// Commit and push Flux manifests to the Git Repo on install
+	// DEPRECATED
 	// +optional
 	CommitOperatorManifests *bool `json:"commitOperatorManifests,omitempty"`
 
 	// Git label to keep track of Flux's sync progress; this is equivalent to overriding --git-sync-tag and --git-notes-ref in Flux
+	// DEPRECATED
 	// +optional
 	Label string `json:"label,omitempty"`
 
 	// Cluster namespace where to install Flux and the Helm Operator e.g. flux
+	// DEPRECATED
 	// +optional
 	Namespace string `json:"namespace,omitempty"`
 
 	// Install the Helm Operator
+	// DEPRECATED
 	// +optional
 	WithHelm *bool `json:"withHelm,omitempty"`
 
 	// Instruct Flux to read-only mode and create the deploy key as read-only
+	// DEPRECATED
 	// +optional
 	ReadOnly bool `json:"readOnly,omitempty"`
 
 	// Additional command line arguments for the Flux daemon
+	// DEPRECATED
 	// +optional
 	AdditionalFluxArgs []string `json:"additionalFluxArgs,omitempty"`
 
 	// Additional command line arguments for the Helm Operator
+	// DEPRECATED
 	// +optional
 	AdditionalHelmOperatorArgs []string `json:"additionalHelmOperatorArgs,omitempty"`
 }
@@ -1042,17 +1058,19 @@ type Operator struct {
 // Profile groups all details on a quickstart profile to enable on the cluster
 // and add to the Git repository.
 type Profile struct {
-
 	// Name or URL of the Quick Start profile
 	// For example: `app-dev`
+	// DEPRECATED.
 	Source string `json:"source,omitempty"`
 
 	// Revision of the Quick Start profile. Can be a branch, tag or commit hash
+	// DEPRECATED.
 	// +optional
 	Revision string `json:"revision,omitempty"`
 
 	// Output directory for the processed profile templates (generate profile command)
 	// Defaults to `./<quickstart-repo-name>`
+	// DEPRECATED.
 	// +optional
 	OutputPath string `json:"outputPath,omitempty"`
 }
