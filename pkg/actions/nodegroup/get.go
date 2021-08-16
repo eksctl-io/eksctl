@@ -80,28 +80,6 @@ func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 	return summaries, nil
 }
 
-func (m *Manager) getInstanceTypes(ng *awseks.Nodegroup) string {
-	if len(ng.InstanceTypes) > 0 {
-		return strings.Join(aws.StringValueSlice(ng.InstanceTypes), ",")
-	}
-
-	if ng.LaunchTemplate != nil {
-		resp, err := m.ctl.Provider.EC2().DescribeLaunchTemplateVersions(&ec2.DescribeLaunchTemplateVersionsInput{
-			LaunchTemplateId: ng.LaunchTemplate.Id,
-		})
-		if err != nil {
-			return "-"
-		}
-		for _, template := range resp.LaunchTemplateVersions {
-			if strconv.Itoa(int(*template.VersionNumber)) == *ng.LaunchTemplate.Version {
-				return *template.LaunchTemplateData.InstanceType
-			}
-		}
-	}
-	logger.Info("no instance type found for nodegroup %q", *ng.NodegroupName)
-	return "-"
-}
-
 func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
 	summaries, err := m.stackManager.GetUnmanagedNodeGroupSummaries(name)
 	if err != nil {
@@ -149,6 +127,34 @@ func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
 		AutoScalingGroupName: asg,
 		Version:              getOptionalValue(describeOutput.Nodegroup.Version),
 	}, nil
+}
+
+func (m *Manager) getInstanceTypes(ng *awseks.Nodegroup) string {
+	if len(ng.InstanceTypes) > 0 {
+		return strings.Join(aws.StringValueSlice(ng.InstanceTypes), ",")
+	}
+
+	if ng.LaunchTemplate == nil {
+		logger.Info("no instance type found for nodegroup %q", *ng.NodegroupName)
+		return "-"
+	}
+
+	resp, err := m.ctl.Provider.EC2().DescribeLaunchTemplateVersions(&ec2.DescribeLaunchTemplateVersionsInput{
+		LaunchTemplateId: ng.LaunchTemplate.Id,
+	})
+
+	if err != nil {
+		return "-"
+	}
+
+	for _, template := range resp.LaunchTemplateVersions {
+		if strconv.Itoa(int(*template.VersionNumber)) == *ng.LaunchTemplate.Version {
+			return *template.LaunchTemplateData.InstanceType
+		}
+	}
+
+	logger.Info("no instance type found for nodegroup %q", *ng.NodegroupName)
+	return "-"
 }
 
 func getOptionalValue(v *string) string {
