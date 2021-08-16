@@ -126,7 +126,7 @@ func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
 		MaxSize:              int(*describeOutput.Nodegroup.ScalingConfig.MaxSize),
 		MinSize:              int(*describeOutput.Nodegroup.ScalingConfig.MinSize),
 		DesiredCapacity:      int(*describeOutput.Nodegroup.ScalingConfig.DesiredSize),
-		InstanceType:         *describeOutput.Nodegroup.InstanceTypes[0],
+		InstanceType:         getInstanceTypes(describeOutput.Nodegroup),
 		ImageID:              *describeOutput.Nodegroup.AmiType,
 		CreationTime:         describeOutput.Nodegroup.CreatedAt,
 		NodeInstanceRoleARN:  *describeOutput.Nodegroup.NodeRole,
