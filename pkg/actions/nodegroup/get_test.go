@@ -180,7 +180,7 @@ var _ = Describe("Get", func() {
 				})
 			})
 
-			When("a nodegroup is is associated with a launch template", func() {
+			When("a nodegroup is associated with a launch template", func() {
 				BeforeEach(func() {
 					p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
 						ClusterName:   aws.String(clusterName),
