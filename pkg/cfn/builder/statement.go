@@ -299,24 +299,146 @@ func appMeshStatements(appendAction string) []cft.MapOfInterfaces {
 func ebsStatements() []cft.MapOfInterfaces {
 	return []cft.MapOfInterfaces{
 		{
-			"Effect":   effectAllow,
-			"Resource": resourceAll,
+			"Effect": "Allow",
 			"Action": []string{
-				"ec2:AttachVolume",
 				"ec2:CreateSnapshot",
-				"ec2:CreateTags",
-				"ec2:CreateVolume",
-				"ec2:DeleteSnapshot",
-				"ec2:DeleteTags",
-				"ec2:DeleteVolume",
+				"ec2:AttachVolume",
+				"ec2:DetachVolume",
+				"ec2:ModifyVolume",
 				"ec2:DescribeAvailabilityZones",
 				"ec2:DescribeInstances",
 				"ec2:DescribeSnapshots",
 				"ec2:DescribeTags",
 				"ec2:DescribeVolumes",
 				"ec2:DescribeVolumesModifications",
-				"ec2:DetachVolume",
-				"ec2:ModifyVolume",
+			},
+			"Resource": "*",
+		},
+		{
+			"Effect": "Allow",
+			"Action": []string{
+				"ec2:CreateTags",
+			},
+			"Resource": []string{
+				"arn:aws:ec2:*:*:volume/*",
+				"arn:aws:ec2:*:*:snapshot/*",
+			},
+			"Condition": cft.MapOfInterfaces{
+				"StringEquals": cft.MapOfInterfaces{
+					"ec2:CreateAction": []string{
+						"CreateVolume",
+						"CreateSnapshot",
+					},
+				},
+			},
+		},
+		{
+			"Effect": "Allow",
+			"Action": []string{
+				"ec2:DeleteTags",
+			},
+			"Resource": []string{
+				"arn:aws:ec2:*:*:volume/*",
+				"arn:aws:ec2:*:*:snapshot/*",
+			},
+		},
+		{
+			"Effect": "Allow",
+
+			"Action": []string{
+
+				"ec2:CreateVolume",
+			},
+			"Resource": "*",
+			"Condition": cft.MapOfInterfaces{
+				"StringLike": cft.MapOfInterfaces{
+					"aws:RequestTag/ebs.csi.aws.com/cluster": "true",
+				},
+			},
+		},
+		{
+			"Effect": "Allow",
+			"Action": []string{
+				"ec2:CreateVolume",
+			},
+			"Resource": "*",
+			"Condition": cft.MapOfInterfaces{
+				"StringLike": cft.MapOfInterfaces{
+					"aws:RequestTag/CSIVolumeName": "*",
+				},
+			},
+		},
+		{
+			"Effect": "Allow",
+			"Action": []string{
+				"ec2:CreateVolume",
+			},
+			"Resource": "*",
+			"Condition": cft.MapOfInterfaces{
+				"StringLike": cft.MapOfInterfaces{
+					"aws:RequestTag/kubernetes.io/cluster/*": "owned",
+				},
+			},
+		},
+		{
+			"Effect": "Allow",
+			"Action": []string{
+				"ec2:DeleteVolume",
+			},
+			"Resource": "*",
+			"Condition": cft.MapOfInterfaces{
+				"StringLike": cft.MapOfInterfaces{
+					"ec2:ResourceTag/ebs.csi.aws.com/cluster": "true",
+				},
+			},
+		},
+		{
+			"Effect": "Allow",
+
+			"Action": []string{
+				"ec2:DeleteVolume",
+			},
+			"Resource": "*",
+			"Condition": cft.MapOfInterfaces{
+				"StringLike": cft.MapOfInterfaces{
+					"ec2:ResourceTag/CSIVolumeName": "*",
+				},
+			},
+		},
+		{
+			"Effect": "Allow",
+			"Action": []string{
+				"ec2:DeleteVolume",
+			},
+			"Resource": "*",
+			"Condition": cft.MapOfInterfaces{
+				"StringLike": cft.MapOfInterfaces{
+					"ec2:ResourceTag/kubernetes.io/cluster/*": "owned",
+				},
+			},
+		},
+		{
+			"Effect": "Allow",
+			"Action": []string{
+				"ec2:DeleteSnapshot",
+			},
+			"Resource": "*",
+			"Condition": cft.MapOfInterfaces{
+				"StringLike": cft.MapOfInterfaces{
+					"ec2:ResourceTag/CSIVolumeSnapshotName": "*",
+				},
+			},
+		},
+		{
+			"Effect": "Allow",
+			"Action": []string{
+				"ec2:DeleteSnapshot",
+			},
+			"Resource": "*",
+			"Condition": cft.MapOfInterfaces{
+				"StringLike": cft.MapOfInterfaces{
+					"ec2:ResourceTag/ebs.csi.aws.com/cluster": "true",
+				},
 			},
 		},
 	}
