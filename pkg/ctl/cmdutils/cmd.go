@@ -39,10 +39,18 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 		logger.Warning("ignoring validation error: %s", err.Error())
 	}
 
+	checkDeprecationError := func(err error) error {
+		if _, ok := err.(*api.DeprecationError); ok {
+			logger.Warning(err.Error())
+			return nil
+		}
+		return err
+	}
+
 	for i, ng := range c.ClusterConfig.NodeGroups {
 		if err := api.ValidateNodeGroup(i, ng); err != nil {
 			if c.Validate {
-				return nil, err
+				return nil, checkDeprecationError(err)
 			}
 			logger.Warning("ignoring validation error: %s", err.Error())
 		}
@@ -54,7 +62,7 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 	for i, ng := range c.ClusterConfig.ManagedNodeGroups {
 		api.SetManagedNodeGroupDefaults(ng, c.ClusterConfig.Metadata)
 		if err := api.ValidateManagedNodeGroup(ng, i); err != nil {
-			return nil, err
+			return nil, checkDeprecationError(err)
 		}
 	}
 
