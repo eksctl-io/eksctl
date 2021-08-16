@@ -192,7 +192,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			})
 		})
 
-		Context("neither iam.InstanceRoleARN or ng.InstanceProfileARN are set", func() {
+		Context("neither iam.InstanceRoleARN or ng.InstanceProfileARN is set", func() {
 			It("creates a new role", func() {
 				Expect(ngTemplate.Resources).To(HaveKey("NodeInstanceRole"))
 				Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.Path).To(Equal("/"))
@@ -253,10 +253,13 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				})
 
 				It("adds the default policies to the role", func() {
-					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(HaveLen(3))
+					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(HaveLen(4))
+
 					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("AmazonEC2ContainerRegistryReadOnly")))
 					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("AmazonEKSWorkerNodePolicy")))
 					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("AmazonEKS_CNI_Policy")))
+					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("AmazonEKS_CNI_Policy")))
+					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("AmazonSSMManagedInstanceCore")))
 				})
 
 				Context("forceAddCNIPolicy is true", func() {
@@ -265,7 +268,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 					})
 
 					It("adds the AmazonEKS_CNI_Policy", func() {
-						Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(HaveLen(3))
+						Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(HaveLen(4))
 						Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("AmazonEKS_CNI_Policy")))
 					})
 				})
@@ -276,23 +279,9 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 					})
 
 					It("does not add the AmazonEKS_CNI_Policy", func() {
-						Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(HaveLen(2))
+						Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(HaveLen(3))
 						Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).ToNot(ContainElement(makePolicyARNRef("AmazonEKS_CNI_Policy")))
 					})
-				})
-			})
-
-			Context("ssm is enabled", func() {
-				BeforeEach(func() {
-					ng.SSH = &api.NodeGroupSSH{
-						Allow:     aws.Bool(true),
-						EnableSSM: aws.Bool(true),
-					}
-				})
-
-				It("adds the AmazonSSMManagedInstanceCore arn to the role", func() {
-					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(HaveLen(4))
-					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("AmazonSSMManagedInstanceCore")))
 				})
 			})
 
@@ -302,7 +291,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				})
 
 				It("adds the AmazonSSMManagedInstanceCore arn to the role", func() {
-					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(HaveLen(3))
+					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(HaveLen(4))
 					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("AmazonEC2ContainerRegistryPowerUser")))
 				})
 			})
@@ -313,7 +302,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				})
 
 				It("adds the AmazonSSMManagedInstanceCore arn to the role", func() {
-					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(HaveLen(4))
+					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(HaveLen(5))
 					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("CloudWatchAgentServerPolicy")))
 				})
 			})
@@ -324,7 +313,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				})
 
 				It("adds the AmazonSSMManagedInstanceCore arn to the role", func() {
-					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(HaveLen(4))
+					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(HaveLen(5))
 					Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(ContainElement(makePolicyARNRef("CloudWatchAgentServerPolicy")))
 				})
 			})

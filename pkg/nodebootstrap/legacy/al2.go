@@ -32,10 +32,6 @@ func (b AL2Bootstrapper) UserData() (string, error) {
 
 	var scripts []string
 
-	if b.ng.SSH.EnableSSM != nil && *b.ng.SSH.EnableSSM {
-		scripts = append(scripts, "install-ssm.al2.sh")
-	}
-
 	for _, command := range b.ng.PreBootstrapCommands {
 		config.AddShellCommand(command)
 	}

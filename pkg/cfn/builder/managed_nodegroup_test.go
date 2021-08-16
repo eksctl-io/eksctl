@@ -23,7 +23,7 @@ func TestManagedPolicyResources(t *testing.T) {
 		description             string
 	}{
 		{
-			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly"),
+			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly", "AmazonSSMManagedInstanceCore"),
 			description:             "Default policies",
 		},
 		{
@@ -31,7 +31,7 @@ func TestManagedPolicyResources(t *testing.T) {
 				ImageBuilder: api.Enabled(),
 			},
 			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy",
-				"AmazonEC2ContainerRegistryReadOnly", "AmazonEC2ContainerRegistryPowerUser"),
+				"AmazonEC2ContainerRegistryReadOnly", "AmazonEC2ContainerRegistryPowerUser", "AmazonSSMManagedInstanceCore"),
 			description: "ImageBuilder enabled",
 		},
 		{
@@ -39,7 +39,7 @@ func TestManagedPolicyResources(t *testing.T) {
 				CloudWatch: api.Enabled(),
 			},
 			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy",
-				"AmazonEC2ContainerRegistryReadOnly", "CloudWatchAgentServerPolicy"),
+				"AmazonEC2ContainerRegistryReadOnly", "AmazonSSMManagedInstanceCore", "CloudWatchAgentServerPolicy"),
 			description: "CloudWatch enabled",
 		},
 		{
