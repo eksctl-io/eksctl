@@ -119,7 +119,8 @@ eksctl create cluster --ssh-access --ssh-public-key=my_kubernetes_key --region=u
 
 ```
 
-To use [AWS Systems Manager (SSM)](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html#sessions-start-cli) to SSH onto nodes, you can specify the `--enable-ssm` flag:
+[AWS Systems Manager (SSM)](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html#sessions-start-cli) is enabled by default, so it can be used to SSH onto nodes.
+
 
 ```
 

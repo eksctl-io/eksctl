@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
@@ -37,13 +36,17 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 			bootstrapper = newBootstrapper(clusterConfig, ng)
 		})
 
-		It("adds the ssm install script to the userdata", func() {
+		It("does not add the SSM install script to the userdata", func() {
 			userData, err := bootstrapper.UserData()
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/var/lib/cloud/scripts/eksctl/install-ssm.al2.sh"))
-			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0755"))
+
+			var paths []string
+			for _, f := range cloudCfg.WriteFiles {
+				paths = append(paths, f.Path)
+			}
+			Expect(paths).ToNot(ContainElement("/var/lib/cloud/scripts/eksctl/install-ssm.al2.sh"))
 		})
 	})
 

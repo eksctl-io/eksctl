@@ -25,10 +25,6 @@ func NewAL2Bootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) *Am
 func (b *AmazonLinux2) UserData() (string, error) {
 	var scripts []string
 
-	if api.IsEnabled(b.ng.SSH.EnableSSM) {
-		scripts = append(scripts, "install-ssm.al2.sh")
-	}
-
 	if api.IsEnabled(b.ng.EFAEnabled) {
 		scripts = append(scripts, "efa.al2.sh")
 	}

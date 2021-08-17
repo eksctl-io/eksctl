@@ -58,9 +58,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 
 	var nodeRole *gfnt.Value
 	if m.nodeGroup.IAM.InstanceRoleARN == "" {
-		enableSSM := m.nodeGroup.SSH != nil && api.IsEnabled(m.nodeGroup.SSH.EnableSSM)
-
-		if err := createRole(m.resourceSet, m.clusterConfig.IAM, m.nodeGroup.IAM, true, enableSSM, m.forceAddCNIPolicy); err != nil {
+		if err := createRole(m.resourceSet, m.clusterConfig.IAM, m.nodeGroup.IAM, true, m.forceAddCNIPolicy); err != nil {
 			return err
 		}
 		nodeRole = gfnt.MakeFnGetAttString(cfnIAMInstanceRoleName, "Arn")
