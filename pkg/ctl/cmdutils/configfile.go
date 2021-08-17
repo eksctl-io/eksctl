@@ -503,8 +503,13 @@ func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
 }
 
 func normalizeBaseNodeGroup(np api.NodePool, cmd *cobra.Command) {
-	if !cmd.Flags().Changed("instance-selector-gpus") {
-		np.BaseNodeGroup().InstanceSelector.GPUs = nil
+	ng := np.BaseNodeGroup()
+	flags := cmd.Flags()
+	if !flags.Changed("instance-selector-gpus") {
+		ng.InstanceSelector.GPUs = nil
+	}
+	if !flags.Changed("enable-ssm") {
+		ng.SSH.EnableSSM = nil
 	}
 }
 
