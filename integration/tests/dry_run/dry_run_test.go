@@ -86,7 +86,6 @@ nodeGroups:
     withShared: true
   ssh:
     allow: false
-    enableSsm: false
   volumeIOPS: 3000
   volumeSize: 80
   volumeThroughput: 125
@@ -125,7 +124,6 @@ managedNodeGroups:
     withShared: null
   ssh:
     allow: false
-    enableSsm: false
     publicKeyPath: ""
   tags:
     alpha.eksctl.io/nodegroup-name: ng-default
