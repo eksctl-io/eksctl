@@ -142,7 +142,6 @@ func (m *Manager) getInstanceTypes(ng *awseks.Nodegroup) string {
 	resp, err := m.ctl.Provider.EC2().DescribeLaunchTemplateVersions(&ec2.DescribeLaunchTemplateVersionsInput{
 		LaunchTemplateId: ng.LaunchTemplate.Id,
 	})
-
 	if err != nil {
 		return "-"
 	}
