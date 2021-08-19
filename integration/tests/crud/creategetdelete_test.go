@@ -418,10 +418,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						NodeGroupBase: &api.NodeGroupBase{
 							Name:      "test-containerd",
 							AMIFamily: api.NodeImageFamilyAmazonLinux2,
-							SSH: &api.NodeGroupSSH{
-								Allow:     api.Disabled(),
-								EnableSSM: api.Disabled(),
-							},
 							InstanceType: "p2.xlarge",
 						},
 						ContainerRuntime: aws.String(api.ContainerRuntimeContainerD),
