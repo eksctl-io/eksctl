@@ -416,12 +416,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				clusterConfig.NodeGroups = []*api.NodeGroup{
 					{
 						NodeGroupBase: &api.NodeGroupBase{
-							Name:      "test-containerd",
-							AMIFamily: api.NodeImageFamilyAmazonLinux2,
-							SSH: &api.NodeGroupSSH{
-								Allow:     api.Disabled(),
-								EnableSSM: api.Disabled(),
-							},
+							Name:         "test-containerd",
+							AMIFamily:    api.NodeImageFamilyAmazonLinux2,
 							InstanceType: "p2.xlarge",
 						},
 						ContainerRuntime: aws.String(api.ContainerRuntimeContainerD),
