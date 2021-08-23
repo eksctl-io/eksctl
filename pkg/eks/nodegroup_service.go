@@ -2,7 +2,6 @@ package eks
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 	"strings"
 
@@ -64,7 +63,6 @@ func (m *NodeGroupService) NewAWSSelectorSession(provider api.ClusterProvider) {
 
 // Normalize normalizes nodegroups
 func (m *NodeGroupService) Normalize(nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error {
-	_, enableSSM := os.LookupEnv("_____INTERNAL_NODEGROUP_ENABLE_SSM")
 	for _, np := range nodePools {
 		switch ng := np.(type) {
 		case *api.ManagedNodeGroup:
@@ -108,9 +106,6 @@ func (m *NodeGroupService) Normalize(nodePools []api.NodePool, clusterMeta *api.
 		}
 		if publicKeyName != "" {
 			ng.SSH.PublicKeyName = &publicKeyName
-		}
-		if enableSSM {
-			ng.SSH.EnableSSM = api.Enabled()
 		}
 	}
 	return nil

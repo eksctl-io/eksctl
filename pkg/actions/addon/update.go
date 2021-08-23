@@ -3,6 +3,7 @@ package addon
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -102,7 +103,7 @@ func (a *Manager) updateWithNewPolicies(addon *api.Addon) (string, error) {
 		return "", err
 	}
 	var templateBody manager.TemplateBody = createNewTemplate
-	err = a.stackManager.UpdateStack(stackName, "updating-policy", "updating policies", templateBody, nil)
+	err = a.stackManager.UpdateStack(stackName, fmt.Sprintf("updating-policy-%s", uuid.NewString()), "updating policies", templateBody, nil)
 	if err != nil {
 		return "", err
 	}

@@ -188,6 +188,10 @@ var _ = Describe("create cluster", func() {
 				args:  []string{"--name", "eksctl-testing-k_8_cluster01"},
 				error: "validation for eksctl-testing-k_8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
 			}),
+			Entry("with enableSsm disabled", invalidParamsCase{
+				args:  []string{"--name=test", "--enable-ssm=false"},
+				error: "SSM agent is now built into EKS AMIs and cannot be disabled",
+			}),
 		)
 	})
 })

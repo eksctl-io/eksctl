@@ -269,6 +269,17 @@ func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
 		return fmt.Errorf("AMI Family %s is not supported - use one of: %s", ng.AMIFamily, strings.Join(supportedAMIFamilies(), ", "))
 	}
 
+	if ng.SSH != nil {
+		if enableSSM := ng.SSH.EnableSSM; enableSSM != nil {
+			if !*enableSSM {
+				return errors.New("SSM agent is now built into EKS AMIs and cannot be disabled")
+			}
+			return &DeprecationError{
+				Message: "SSM is now enabled by default; `ssh.enableSSM` is deprecated and will be removed in a future release",
+			}
+		}
+	}
+
 	return nil
 }
 
