@@ -289,7 +289,7 @@ var _ = Describe("Update", func() {
 						Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
 						stackName, changeSetName, description, templateData, _ := fakeStackManager.UpdateStackArgsForCall(0)
 						Expect(stackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
-						Expect(changeSetName).To(Equal("updating-policy"))
+						Expect(changeSetName).To(ContainSubstring("updating-policy"))
 						Expect(description).To(Equal("updating policies"))
 						Expect(err).NotTo(HaveOccurred())
 						Expect(string(templateData.(manager.TemplateBody))).To(ContainSubstring("arn-1"))

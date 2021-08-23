@@ -99,6 +99,6 @@ To learn more about how to create clusters and other features continue reading t
 ![Gophers: E, K, S, C, T, & L](img/eksctl.png)
 
 !!! credits
-    _Original Gophers drawn by [Ashley McNamara](https://twitter.com/ashleymcnamara), unique E, K, S, C, T & L Gopher identities had been produced with [Gopherize.me](https://gopherize.me/)._
+    _Original Gophers drawn by [Ashley McNamara](https://twitter.com/ashleymcnamara), unique E, K, S, C, T & L Gopher identities had been produced with [Gopherize.me](https://github.com/matryer/gopherize.me)._
 
     Site powered by [Netlify ©](https://netlify.com)

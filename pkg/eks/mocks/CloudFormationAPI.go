@@ -2965,6 +2965,84 @@ func (_m *CloudFormationAPI) GetTemplateWithContext(_a0 context.Context, _a1 *cl
 	return r0, r1
 }
 
+// ImportStacksToStackSet provides a mock function with given fields: _a0
+func (_m *CloudFormationAPI) ImportStacksToStackSet(_a0 *cloudformation.ImportStacksToStackSetInput) (*cloudformation.ImportStacksToStackSetOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudformation.ImportStacksToStackSetOutput
+	if rf, ok := ret.Get(0).(func(*cloudformation.ImportStacksToStackSetInput) *cloudformation.ImportStacksToStackSetOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.ImportStacksToStackSetOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudformation.ImportStacksToStackSetInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ImportStacksToStackSetRequest provides a mock function with given fields: _a0
+func (_m *CloudFormationAPI) ImportStacksToStackSetRequest(_a0 *cloudformation.ImportStacksToStackSetInput) (*request.Request, *cloudformation.ImportStacksToStackSetOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudformation.ImportStacksToStackSetInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudformation.ImportStacksToStackSetOutput
+	if rf, ok := ret.Get(1).(func(*cloudformation.ImportStacksToStackSetInput) *cloudformation.ImportStacksToStackSetOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudformation.ImportStacksToStackSetOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ImportStacksToStackSetWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudFormationAPI) ImportStacksToStackSetWithContext(_a0 context.Context, _a1 *cloudformation.ImportStacksToStackSetInput, _a2 ...request.Option) (*cloudformation.ImportStacksToStackSetOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudformation.ImportStacksToStackSetOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ImportStacksToStackSetInput, ...request.Option) *cloudformation.ImportStacksToStackSetOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.ImportStacksToStackSetOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ImportStacksToStackSetInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListChangeSets provides a mock function with given fields: _a0
 func (_m *CloudFormationAPI) ListChangeSets(_a0 *cloudformation.ListChangeSetsInput) (*cloudformation.ListChangeSetsOutput, error) {
 	ret := _m.Called(_a0)
