@@ -40,7 +40,7 @@ both groups will be excluded)
 ### Creating a nodegroup from a config file
 
 Nodegroups can also be created through a cluster definition or config file. Given the following example config file
-and an existing cluster called ``dev-cluster:
+and an existing cluster called `dev-cluster`:
 
 ```yaml
 apiVersion: eksctl.io/v1alpha5
