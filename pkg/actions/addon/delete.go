@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 
 	"github.com/kris-nova/logger"
@@ -11,6 +12,24 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
+
+func (a *Manager) DeleteWithPreserve(addon *api.Addon) error {
+	logger.Info("deleting addon %q and preserving its resources", addon.Name)
+	_, err := a.eksAPI.DeleteAddon(&eks.DeleteAddonInput{
+		AddonName:   &addon.Name,
+		ClusterName: &a.clusterConfig.Metadata.Name,
+		Preserve:    aws.Bool(true),
+	})
+
+	if err != nil {
+		if awsError, ok := err.(awserr.Error); ok && awsError.Code() == eks.ErrCodeResourceNotFoundException {
+			logger.Info("addon %q does not exist", addon.Name)
+		} else {
+			return fmt.Errorf("failed to delete addon %q: %v", addon.Name, err)
+		}
+	}
+	return nil
+}
 
 func (a *Manager) Delete(addon *api.Addon) error {
 	addonExists := true
@@ -23,7 +42,7 @@ func (a *Manager) Delete(addon *api.Addon) error {
 
 	if err != nil {
 		if awsError, ok := err.(awserr.Error); ok && awsError.Code() == eks.ErrCodeResourceNotFoundException {
-			logger.Info("addon not found")
+			logger.Info("addon %q does not exist", addon.Name)
 			addonExists = false
 		} else {
 			return fmt.Errorf("failed to delete addon %q: %v", addon.Name, err)

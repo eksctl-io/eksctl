@@ -4,13 +4,17 @@ package addons
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"testing"
 
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks"
+	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -143,6 +147,21 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 					"--verbose", "2",
 				)
 			Expect(cmd).To(RunSuccessfully())
+
+			By("Deleting the vpc-cni addon with --preserve")
+			cmd = params.EksctlDeleteCmd.
+				WithArgs(
+					"addon",
+					"--name", "vpc-cni",
+					"--preserve",
+					"--cluster", clusterName,
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfully())
+
+			rawClient := getRawClient(clusterName)
+			_, err := rawClient.ClientSet().AppsV1().DaemonSets("kube-system").Get(context.Background(), "aws-node", metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 
@@ -156,5 +175,21 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			ContainElement(ContainSubstring("vpc-cni")),
 		))
 	})
-
 })
+
+func getRawClient(clusterName string) *kubewrapper.RawClient {
+	cfg := &api.ClusterConfig{
+		Metadata: &api.ClusterMeta{
+			Name:   clusterName,
+			Region: params.Region,
+		},
+	}
+	ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = ctl.RefreshClusterStatus(cfg)
+	Expect(err).ShouldNot(HaveOccurred())
+	rawClient, err := ctl.NewRawClient(cfg)
+	Expect(err).ToNot(HaveOccurred())
+	return rawClient
+}
