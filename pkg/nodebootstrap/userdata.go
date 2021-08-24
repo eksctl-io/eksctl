@@ -50,7 +50,7 @@ func NewBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) (Boots
 		ng.ClusterDNS = clusterDNS
 	}
 	if api.IsWindowsImage(ng.AMIFamily) {
-		return NewWindowsBootstrapper(clusterConfig.Metadata.Name, ng), nil
+		return NewWindowsBootstrapper(clusterConfig, ng), nil
 	}
 	switch ng.AMIFamily {
 	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
