@@ -51,6 +51,10 @@ var _ = DescribeTable("Managed AL2", func(e managedEntry) {
 				Name:         "custom-ami",
 				InstanceType: "m5.xlarge",
 				AMI:          "ami-custom",
+				PreBootstrapCommands: []string{
+					"date",
+					"echo hello",
+				},
 				OverrideBootstrapCommand: aws.String(`#!/bin/bash
 set -ex
 B64_CLUSTER_CA=dGVzdAo=
@@ -60,12 +64,30 @@ API_SERVER_URL=https://test.com
 			},
 		},
 
-		// remove gke
-		expectedUserData: `#!/bin/bash
+		expectedUserData: `MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary=//
+
+--//
+Content-Type: text/x-shellscript
+Content-Type: charset="us-ascii"
+
+date
+--//
+Content-Type: text/x-shellscript
+Content-Type: charset="us-ascii"
+
+echo hello
+--//
+Content-Type: text/x-shellscript
+Content-Type: charset="us-ascii"
+
+#!/bin/bash
 set -ex
 B64_CLUSTER_CA=dGVzdAo=
 API_SERVER_URL=https://test.com
 /etc/eks/bootstrap.sh launch-template --b64-cluster-ca $B64_CLUSTER_CA --apiserver-endpoint $API_SERVER_URL
+
+--//--
 `,
 	}),
 
