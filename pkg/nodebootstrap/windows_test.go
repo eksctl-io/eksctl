@@ -5,134 +5,135 @@ import (
 	"strings"
 
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
 
 var _ = Describe("Windows", func() {
-	var (
-		clusterName string
-		ng          *api.NodeGroup
-	)
 
-	BeforeEach(func() {
-		clusterName = "windohs"
-		ng = &api.NodeGroup{
+	type windowsEntry struct {
+		updateNodeGroup func(*api.NodeGroup)
+
+		expectedUserData string
+	}
+
+	DescribeTable("Windows bootstrap", func(e windowsEntry) {
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.Metadata.Name = "windohs"
+		clusterConfig.Status = &api.ClusterStatus{
+			Endpoint:                 "https://test.com",
+			CertificateAuthorityData: []byte("test"),
+		}
+		ng := &api.NodeGroup{
 			NodeGroupBase: &api.NodeGroupBase{
 				AMIFamily: api.NodeImageFamilyWindowsServer2019CoreContainer,
 			},
 		}
-	})
+		if e.updateNodeGroup != nil {
+			e.updateNodeGroup(ng)
+		}
 
-	It("produces correct standard userdata", func() {
-		ng.PreBootstrapCommands = nil
-		bootstrap := nodebootstrap.NewWindowsBootstrapper(clusterName, ng)
-		userdata, err := bootstrap.UserData()
+		bootstrapper := nodebootstrap.NewWindowsBootstrapper(clusterConfig, ng)
+		userData, err := bootstrapper.UserData()
 		Expect(err).ToNot(HaveOccurred())
 
-		Expect(decodeData(userdata)).To(Equal(strings.TrimSpace(`
+		Expect(decodeData(userData)).To(Equal(strings.TrimSpace(e.expectedUserData)))
+	},
+		Entry("standard userdata", windowsEntry{
+
+			expectedUserData: `
 <powershell>
 [string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"
-& $EKSBootstrapScriptFile -EKSClusterName "windohs" -KubeletExtraArgs "--node-labels= --register-with-taints=" 3>&1 4>&1 5>&1 6>&1
+& $EKSBootstrapScriptFile -EKSClusterName "windohs" -APIServerEndpoint "https://test.com" -Base64ClusterCA "dGVzdA==" -KubeletExtraArgs "--node-labels= --register-with-taints=" 3>&1 4>&1 5>&1 6>&1
 </powershell>
-`)))
-	})
+`,
+		}),
 
-	When("labels are set on the node", func() {
-		It("adds them to the userdata", func() {
-			ng.Labels = map[string]string{"foo": "bar"}
-			bootstrap := nodebootstrap.NewWindowsBootstrapper(clusterName, ng)
-			userdata, err := bootstrap.UserData()
-			Expect(err).ToNot(HaveOccurred())
+		Entry("with labels", windowsEntry{
+			updateNodeGroup: func(ng *api.NodeGroup) {
+				ng.Labels = map[string]string{
+					"foo": "bar",
+				}
+			},
 
-			Expect(decodeData(userdata)).To(Equal(strings.TrimSpace(`
+			expectedUserData: `
 <powershell>
 [string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"
-& $EKSBootstrapScriptFile -EKSClusterName "windohs" -KubeletExtraArgs "--node-labels=foo=bar --register-with-taints=" 3>&1 4>&1 5>&1 6>&1
+& $EKSBootstrapScriptFile -EKSClusterName "windohs" -APIServerEndpoint "https://test.com" -Base64ClusterCA "dGVzdA==" -KubeletExtraArgs "--node-labels=foo=bar --register-with-taints=" 3>&1 4>&1 5>&1 6>&1
 </powershell>
-`)))
-		})
-	})
+`,
+		}),
 
-	When("taints are set on the node", func() {
-		It("adds them to the userdata", func() {
-			ng.Taints = []api.NodeGroupTaint{
-				{
-					Key:    "foo",
-					Value:  "bar",
-					Effect: "NoSchedule",
-				},
-			}
-			bootstrap := nodebootstrap.NewWindowsBootstrapper(clusterName, ng)
-			userdata, err := bootstrap.UserData()
-			Expect(err).ToNot(HaveOccurred())
+		Entry("with taints", windowsEntry{
+			updateNodeGroup: func(ng *api.NodeGroup) {
+				ng.Taints = []api.NodeGroupTaint{
+					{
+						Key:    "foo",
+						Value:  "bar",
+						Effect: "NoSchedule",
+					},
+				}
+			},
 
-			Expect(decodeData(userdata)).To(Equal(strings.TrimSpace(`
+			expectedUserData: `
 <powershell>
 [string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"
-& $EKSBootstrapScriptFile -EKSClusterName "windohs" -KubeletExtraArgs "--node-labels= --register-with-taints=foo=bar:NoSchedule" 3>&1 4>&1 5>&1 6>&1
+& $EKSBootstrapScriptFile -EKSClusterName "windohs" -APIServerEndpoint "https://test.com" -Base64ClusterCA "dGVzdA==" -KubeletExtraArgs "--node-labels= --register-with-taints=foo=bar:NoSchedule" 3>&1 4>&1 5>&1 6>&1
 </powershell>
-`)))
-		})
-	})
+`,
+		}),
 
-	When("MaxPodsPerNode are set", func() {
-		It("adds them to the userdata", func() {
-			ng.MaxPodsPerNode = 100
-			bootstrap := nodebootstrap.NewWindowsBootstrapper(clusterName, ng)
-			userdata, err := bootstrap.UserData()
-			Expect(err).ToNot(HaveOccurred())
+		Entry("with maxPods", windowsEntry{
+			updateNodeGroup: func(ng *api.NodeGroup) {
+				ng.MaxPodsPerNode = 100
+			},
 
-			Expect(decodeData(userdata)).To(Equal(strings.TrimSpace(`
+			expectedUserData: `
 <powershell>
 [string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"
-& $EKSBootstrapScriptFile -EKSClusterName "windohs" -KubeletExtraArgs "--max-pods=100 --node-labels= --register-with-taints=" 3>&1 4>&1 5>&1 6>&1
+& $EKSBootstrapScriptFile -EKSClusterName "windohs" -APIServerEndpoint "https://test.com" -Base64ClusterCA "dGVzdA==" -KubeletExtraArgs "--node-labels= --register-with-taints= --max-pods=100" 3>&1 4>&1 5>&1 6>&1
 </powershell>
-`)))
-		})
-	})
+`,
+		}),
 
-	When("a PreBootstrapCommands is set", func() {
-		It("adds it to the userdata", func() {
-			ng.PreBootstrapCommands = []string{
-				"wget -UseBasicParsing -O amazon-cloudwatch-agent.msi https://s3.amazonaws.com/amazoncloudwatch-agent/windows/amd64/latest/amazon-cloudwatch-agent.msi",
-			}
-			bootstrap := nodebootstrap.NewWindowsBootstrapper(clusterName, ng)
-			userdata, err := bootstrap.UserData()
-			Expect(err).ToNot(HaveOccurred())
+		Entry("with a preBootstrapCommand", windowsEntry{
+			updateNodeGroup: func(ng *api.NodeGroup) {
+				ng.PreBootstrapCommands = []string{
+					"wget -UseBasicParsing -O amazon-cloudwatch-agent.msi https://s3.amazonaws.com/amazoncloudwatch-agent/windows/amd64/latest/amazon-cloudwatch-agent.msi",
+				}
+			},
 
-			Expect(decodeData(userdata)).To(Equal(strings.TrimSpace(`
+			expectedUserData: `
 <powershell>
 [string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"
 wget -UseBasicParsing -O amazon-cloudwatch-agent.msi https://s3.amazonaws.com/amazoncloudwatch-agent/windows/amd64/latest/amazon-cloudwatch-agent.msi
-& $EKSBootstrapScriptFile -EKSClusterName "windohs" -KubeletExtraArgs "--node-labels= --register-with-taints=" 3>&1 4>&1 5>&1 6>&1
+& $EKSBootstrapScriptFile -EKSClusterName "windohs" -APIServerEndpoint "https://test.com" -Base64ClusterCA "dGVzdA==" -KubeletExtraArgs "--node-labels= --register-with-taints=" 3>&1 4>&1 5>&1 6>&1
 </powershell>
-`)))
-		})
-	})
+`,
+		}),
 
-	When("several PreBootstrapCommands are set", func() {
-		It("adds them to the userdata", func() {
-			ng.PreBootstrapCommands = []string{
-				"wget -UseBasicParsing -O amazon-cloudwatch-agent.msi https://s3.amazonaws.com/amazoncloudwatch-agent/windows/amd64/latest/amazon-cloudwatch-agent.msi",
-				"start /wait msiexec.exe /qb /i \"amazon-cloudwatch-agent.msi\"",
-			}
-			bootstrap := nodebootstrap.NewWindowsBootstrapper(clusterName, ng)
-			userdata, err := bootstrap.UserData()
-			Expect(err).ToNot(HaveOccurred())
+		Entry("with several preBootstrapCommands", windowsEntry{
+			updateNodeGroup: func(ng *api.NodeGroup) {
+				ng.PreBootstrapCommands = []string{
+					"wget -UseBasicParsing -O amazon-cloudwatch-agent.msi https://s3.amazonaws.com/amazoncloudwatch-agent/windows/amd64/latest/amazon-cloudwatch-agent.msi",
+					"start /wait msiexec.exe /qb /i \"amazon-cloudwatch-agent.msi\"",
+				}
 
-			Expect(decodeData(userdata)).To(Equal(strings.TrimSpace(`
+			},
+
+			expectedUserData: `
 <powershell>
 [string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"
 wget -UseBasicParsing -O amazon-cloudwatch-agent.msi https://s3.amazonaws.com/amazoncloudwatch-agent/windows/amd64/latest/amazon-cloudwatch-agent.msi
 start /wait msiexec.exe /qb /i "amazon-cloudwatch-agent.msi"
-& $EKSBootstrapScriptFile -EKSClusterName "windohs" -KubeletExtraArgs "--node-labels= --register-with-taints=" 3>&1 4>&1 5>&1 6>&1
+& $EKSBootstrapScriptFile -EKSClusterName "windohs" -APIServerEndpoint "https://test.com" -Base64ClusterCA "dGVzdA==" -KubeletExtraArgs "--node-labels= --register-with-taints=" 3>&1 4>&1 5>&1 6>&1
 </powershell>
-`)))
-		})
-	})
+`,
+		}),
+	)
+
 })
 
 func decodeData(userdata string) string {
