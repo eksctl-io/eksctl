@@ -343,8 +343,15 @@ func importRouteTables(ec2API ec2iface.EC2API, subnets map[string]api.AZSubnetSp
 		if err != nil {
 			return nil, errors.Wrap(err, "error describing route tables")
 		}
+		m := make(map[string]bool)
+		for _, routeTable := range output.RouteTables {
+			routeTableStr := routeTable.String()
 
-		routeTables = append(routeTables, output.RouteTables...)
+			if !m[routeTableStr] {
+				m[routeTableStr] = true
+				routeTables = append(routeTables, routeTable)
+			}
+		}
 
 		if nextToken = output.NextToken; nextToken == nil {
 			break
