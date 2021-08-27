@@ -19,6 +19,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
+// MaxInstanceTypes is the maximum number of instance types you can specify in
+// a CloudFormation template
+const maxInstanceTypes = 40
+
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 //counterfeiter:generate -o fakes/fake_instance_selector.go . InstanceSelector
@@ -134,6 +138,10 @@ func (m *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePoo
 		instanceTypes, err := m.expandInstanceSelector(baseNG.InstanceSelector, azs)
 		if err != nil {
 			return errors.Wrapf(err, "error expanding instance selector options for nodegroup %q", baseNG.Name)
+		}
+
+		if len(instanceTypes) > maxInstanceTypes {
+			return errors.Errorf("instance selector filters resulted in %d instance types, which is greater than the maximum of %d, please set more selector options", len(instanceTypes), maxInstanceTypes)
 		}
 
 		switch ng := np.(type) {
