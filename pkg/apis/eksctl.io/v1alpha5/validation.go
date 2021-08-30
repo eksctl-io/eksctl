@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	corev1 "k8s.io/api/core/v1"
@@ -274,9 +275,7 @@ func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
 			if !*enableSSM {
 				return errors.New("SSM agent is now built into EKS AMIs and cannot be disabled")
 			}
-			return &DeprecationError{
-				Message: "SSM is now enabled by default; `ssh.enableSSM` is deprecated and will be removed in a future release",
-			}
+			logger.Warning("SSM is now enabled by default; `ssh.enableSSM` is deprecated and will be removed in a future release")
 		}
 	}
 
