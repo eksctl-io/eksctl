@@ -1638,13 +1638,3 @@ type UnsupportedFeatureError struct {
 func (u *UnsupportedFeatureError) Error() string {
 	return fmt.Sprintf("%s: %v", u.Message, u.Err)
 }
-
-// DeprecationError represents a deprecation error.
-// +k8s:deepcopy-gen=false
-type DeprecationError struct {
-	Message string
-}
-
-func (d *DeprecationError) Error() string {
-	return d.Message
-}
