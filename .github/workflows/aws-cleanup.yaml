@@ -29,4 +29,5 @@ jobs:
           chmod +x aws-nuke
           ./aws-nuke -c aws-nuke-config.yaml --force --no-dry-run --target=EKSNodegroups,EKSFargateProfiles,EKSCluster
           ./aws-nuke -c aws-nuke-config.yaml --force --no-dry-run --target=CloudFormationStack
+          ./aws-nuke -c aws-nuke-config.yaml --force --no-dry-run --target=EC2VPC
 

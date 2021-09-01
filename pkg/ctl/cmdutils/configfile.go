@@ -330,8 +330,11 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 
 		if params.Fargate {
 			l.ClusterConfig.SetDefaultFargateProfile()
-			// A Fargate-only cluster should NOT have any un-managed node group:
-			l.ClusterConfig.NodeGroups = []*api.NodeGroup{}
+			// A Fargate-only cluster should have no nodegroups if the `managed` flag wasn't explicitly provided.
+			if !l.CobraCommand.Flag("managed").Changed {
+				l.ClusterConfig.ManagedNodeGroups = nil
+				l.ClusterConfig.NodeGroups = nil
+			}
 		}
 
 		for _, ng := range l.ClusterConfig.NodeGroups {
