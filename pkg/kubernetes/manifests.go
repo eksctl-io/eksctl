@@ -37,19 +37,35 @@ func NewRawExtensions(manifest []byte) ([]runtime.RawExtension, error) {
 
 // NewList decoded data into a list of Kubernetes resources
 func NewList(data []byte) (*metav1.List, error) {
-	list := metav1.List{}
+	return parseList(data, false)
+}
+
+// ParseListLax is like NewList but ignores comment and whitespace nodes
+func ParseListLax(data []byte) (*metav1.List, error) {
+	return parseList(data, true)
+}
+
+func parseList(data []byte, lax bool) (*metav1.List, error) {
+	var list metav1.List
 	decoder := yaml.NewYAMLOrJSONDecoder(bytes.NewBuffer(data), 4096)
 
 	for {
-		obj := new(runtime.RawExtension)
-		err := decoder.Decode(obj)
-		if err != nil {
+		var r runtime.RawExtension
+		if err := decoder.Decode(&r); err != nil {
 			if err == io.EOF {
 				return &list, nil
 			}
 			return nil, err
 		}
-		if err := AppendFlattened(&list, *obj); err != nil {
+
+		if lax {
+			r.Raw = bytes.TrimSpace(r.Raw)
+			if len(r.Raw) == 0 || bytes.Equal(r.Raw, []byte("null")) {
+				continue
+			}
+		}
+
+		if err := AppendFlattened(&list, r); err != nil {
 			return nil, err
 		}
 	}
