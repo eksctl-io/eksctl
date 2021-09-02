@@ -460,7 +460,7 @@ var _ = Describe("Create", func() {
 			}))
 			output, err := resourceSet.RenderJSON()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(string(output)).To(ContainSubstring("PolicyAutoScaling"))
+			Expect(string(output)).To(ContainSubstring("autoscaling:SetDesiredCapacity"))
 		})
 	})
 

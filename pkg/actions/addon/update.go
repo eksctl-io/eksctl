@@ -56,7 +56,7 @@ func (a *Manager) Update(addon *api.Addon, wait bool) error {
 	//check if we have been provided a different set of policies/role
 	if addon.ServiceAccountRoleARN != "" {
 		updateAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
-	} else if addon.AttachPolicy != nil || (addon.AttachPolicyARNs != nil && len(addon.AttachPolicyARNs) != 0) {
+	} else if addon.AttachPolicy != nil || (addon.AttachPolicyARNs != nil && len(addon.AttachPolicyARNs) != 0) || addon.WellKnownPolicies.HasPolicy() {
 		serviceAccountRoleARN, err := a.updateWithNewPolicies(addon)
 		if err != nil {
 			return err
@@ -124,6 +124,12 @@ func (a *Manager) createNewTemplate(addon *api.Addon, namespace, serviceAccount 
 		if err != nil {
 			return []byte(""), err
 		}
+	} else if addon.WellKnownPolicies.HasPolicy() {
+		resourceSet = builder.NewIAMRoleResourceSetWithWellKnownPolicies(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.WellKnownPolicies, a.oidcManager)
+		err := resourceSet.AddAllResources()
+		if err != nil {
+			return []byte(""), err
+		}
 	} else {
 		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicy, a.oidcManager)
 		err := resourceSet.AddAllResources()
@@ -139,6 +145,9 @@ func (a *Manager) createNewRole(addon *api.Addon, namespace, serviceAccount stri
 	if addon.AttachPolicyARNs != nil && len(addon.AttachPolicyARNs) != 0 {
 		logger.Info("creating role using provided policies ARNs")
 		return a.createRoleUsingAttachPolicyARNs(addon, namespace, serviceAccount)
+	} else if addon.WellKnownPolicies.HasPolicy() {
+		logger.Info("creating role using provided well known policies")
+		return a.createRoleUsingWellKnownPolicies(addon, namespace, serviceAccount)
 	}
 
 	logger.Info("creating role using provided policies")
