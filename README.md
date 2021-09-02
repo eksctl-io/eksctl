@@ -115,6 +115,7 @@ $ eksctl create cluster
 [ℹ]  --nodes-min=2 was set automatically for nodegroup ng-98b3b83a
 [ℹ]  --nodes-max=2 was set automatically for nodegroup ng-98b3b83a
 [ℹ]  deploying stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-98b3b83a"
+foo
 [✔]  all EKS cluster resources for "floral-unicorn-1540567338" have been created
 [✔]  saved kubeconfig as "~/.kube/config"
 [ℹ]  adding role "arn:aws:iam::376248598259:role/eksctl-ridiculous-sculpture-15547-NodeInstanceRole-1F3IHNVD03Z74" to auth ConfigMap
