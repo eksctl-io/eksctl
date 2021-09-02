@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package quickstart_profiles_gen
