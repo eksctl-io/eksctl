@@ -76,6 +76,7 @@ func (in *Addon) DeepCopyInto(out *Addon) {
 		copy(*out, *in)
 	}
 	in.AttachPolicy.DeepCopyInto(&out.AttachPolicy)
+	out.WellKnownPolicies = in.WellKnownPolicies
 	if in.Tags != nil {
 		in, out := &in.Tags, &out.Tags
 		*out = make(map[string]string, len(*in))

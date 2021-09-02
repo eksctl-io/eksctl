@@ -75,6 +75,13 @@ func (a *Manager) Create(addon *api.Addon, wait bool) error {
 				return err
 			}
 			createAddonInput.ServiceAccountRoleArn = &role
+		} else if addon.WellKnownPolicies.HasPolicy() {
+			logger.Info("creating role using provided well known policies")
+			role, err := a.createRoleUsingWellKnownPolicies(addon, namespace, serviceAccount)
+			if err != nil {
+				return err
+			}
+			createAddonInput.ServiceAccountRoleArn = &role
 		} else {
 			policies := a.getRecommendedPolicies(addon)
 			if len(policies) != 0 {
@@ -209,6 +216,20 @@ func (a *Manager) getKnownServiceAccountLocation(addon *api.Addon) (string, stri
 
 func (a *Manager) createRoleUsingAttachPolicyARNs(addon *api.Addon, namespace, serviceAccount string) (string, error) {
 	resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicyARNs, a.oidcManager)
+	err := resourceSet.AddAllResources()
+	if err != nil {
+		return "", err
+	}
+
+	err = a.createStack(resourceSet, addon)
+	if err != nil {
+		return "", err
+	}
+	return resourceSet.OutputRole, nil
+}
+
+func (a *Manager) createRoleUsingWellKnownPolicies(addon *api.Addon, namespace, serviceAccount string) (string, error) {
+	resourceSet := builder.NewIAMRoleResourceSetWithWellKnownPolicies(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.WellKnownPolicies, a.oidcManager)
 	err := resourceSet.AddAllResources()
 	if err != nil {
 		return "", err
