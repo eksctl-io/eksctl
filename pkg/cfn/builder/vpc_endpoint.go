@@ -67,7 +67,11 @@ func (e *VPCEndpointResourceSet) AddResources() error {
 		}
 
 		if endpointDetail.EndpointType == ec2.VpcEndpointTypeGateway {
-			endpoint.RouteTableIds = gfnt.NewSlice(e.routeTableIDs()...)
+			ids, err := e.routeTableIDs()
+			if err != nil {
+				return errors.Wrap(err, "failed to gather route table ids")
+			}
+			endpoint.RouteTableIds = gfnt.NewSlice(ids...)
 		} else {
 			endpoint.SubnetIds = gfnt.NewSlice(e.subnetsForAZs(endpointDetail.AvailabilityZones)...)
 			endpoint.PrivateDnsEnabled = gfnt.NewBoolean(true)
@@ -97,18 +101,43 @@ func (e *VPCEndpointResourceSet) subnetsForAZs(azs []string) []*gfnt.Value {
 	return subnetRefs
 }
 
-func (e *VPCEndpointResourceSet) routeTableIDs() []*gfnt.Value {
+func (e *VPCEndpointResourceSet) routeTableIDs() ([]*gfnt.Value, error) {
 	var routeTableIDs []*gfnt.Value
-	m := make(map[string]bool)
+	routeTables := make(map[string]bool)
+	routeTableDestinationPrefixListIDs := make(map[string]bool)
 	for _, subnet := range e.subnets {
 		routeTableStr := subnet.RouteTable.String()
 
-		if !m[routeTableStr] {
-			m[routeTableStr] = true
+		if !routeTables[routeTableStr] {
+			routeTables[routeTableStr] = true
+		} else {
+			continue
+		}
+
+		destinationExists := false
+		output, err := e.ec2API.DescribeRouteTables(&ec2.DescribeRouteTablesInput{
+			RouteTableIds: aws.StringSlice([]string{subnet.RouteTable.String()}),
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, routingTable := range output.RouteTables {
+			for _, r := range routingTable.Routes {
+				if r.DestinationPrefixListId != nil {
+					if !routeTableDestinationPrefixListIDs[*r.DestinationPrefixListId] {
+						routeTableDestinationPrefixListIDs[*r.DestinationPrefixListId] = true
+					} else {
+						destinationExists = true
+						break
+					}
+				}
+			}
+		}
+		if !destinationExists {
 			routeTableIDs = append(routeTableIDs, subnet.RouteTable)
 		}
 	}
-	return routeTableIDs
+	return routeTableIDs, nil
 }
 
 func (e *VPCEndpointResourceSet) hasEndpoint(endpoint string) bool {
