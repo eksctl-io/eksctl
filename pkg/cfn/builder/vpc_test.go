@@ -8,11 +8,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder/fakes"
 	"github.com/weaveworks/eksctl/pkg/eks/mocks"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 var _ = Describe("VPC Template Builder", func() {
@@ -363,6 +364,15 @@ var _ = Describe("VPC Template Builder", func() {
 						Subnet:           gfnt.NewString(publicSubnet1),
 						AvailabilityZone: azA,
 					}))
+				})
+			})
+
+			FContext("duplicate routing entries are present", func() {
+				When("there are duplicate routing tables", func() {
+					It("will not add them to the imported resources", func() {})
+				})
+				When("there are duplicate destination prefix list IDs", func() {
+					It("will not add them to the imported resources", func() {})
 				})
 			})
 		})

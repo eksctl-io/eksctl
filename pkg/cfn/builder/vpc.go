@@ -343,12 +343,31 @@ func importRouteTables(ec2API ec2iface.EC2API, subnets map[string]api.AZSubnetSp
 		if err != nil {
 			return nil, errors.Wrap(err, "error describing route tables")
 		}
-		m := make(map[string]bool)
+		routeTableIDS := make(map[string]bool)
+		// global store of destination list IDs. must not add a routeTable which already contains
+		// this ID otherwise it will collide with existing routes from other route tables.
+		routeTableDestinationListIDs := make(map[string]bool)
 		for _, routeTable := range output.RouteTables {
 			routeTableStr := routeTable.String()
 
-			if !m[routeTableStr] {
-				m[routeTableStr] = true
+			if !routeTableIDS[routeTableStr] {
+				routeTableIDS[routeTableStr] = true
+			} else {
+				continue
+			}
+
+			destinationExists := false
+			for _, r := range routeTable.Routes {
+				if r.DestinationPrefixListId != nil {
+					if !routeTableDestinationListIDs[*r.DestinationPrefixListId] {
+						routeTableDestinationListIDs[*r.DestinationPrefixListId] = true
+					} else {
+						destinationExists = true
+						break
+					}
+				}
+			}
+			if !destinationExists {
 				routeTables = append(routeTables, routeTable)
 			}
 		}
