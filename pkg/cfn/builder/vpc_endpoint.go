@@ -132,6 +132,9 @@ func (e *VPCEndpointResourceSet) routeTableIDs() ([]*gfnt.Value, error) {
 		}
 		for _, routingTable := range output.RouteTables {
 			for _, r := range routingTable.Routes {
+				// Inside a routing table it's not allowed to have
+				// two destination prefix list ids with the same value
+				// We don't have to check for that scenario here.
 				if r.DestinationPrefixListId != nil {
 					if !routeTableDestinationPrefixListIDs[*r.DestinationPrefixListId] {
 						routeTableDestinationPrefixListIDs[*r.DestinationPrefixListId] = true

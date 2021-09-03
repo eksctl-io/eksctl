@@ -31,6 +31,92 @@ type vpcResourceSetCase struct {
 
 var _ = Describe("VPC Endpoint Builder", func() {
 
+	Context("Private cluster with provided vpc and destination prefix list ids", func() {
+		When("different destinations prefix list ids are in the routing tables", func() {
+			It("will include all routing table ids", func() {
+				vc := &api.ClusterConfig{
+					Metadata: &api.ClusterMeta{
+						Region: "us-west-2",
+					},
+					VPC: &api.ClusterVPC{
+						Network: api.Network{
+							ID: "vpc-custom",
+						},
+						Subnets: &api.ClusterSubnets{
+							Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+								"us-west-2a": {
+									ID: "subnet-custom1",
+								},
+								"us-west-2b": {
+									ID: "subnet-custom2",
+								},
+							}),
+						},
+					},
+					PrivateCluster: &api.PrivateCluster{
+						Enabled: true,
+					},
+				}
+				api.SetClusterConfigDefaults(vc)
+				provider := mockprovider.NewMockProvider()
+				mockDescribeVPCEndpoints(provider, false)
+				output := &ec2.DescribeRouteTablesOutput{}
+				output.RouteTables = append(output.RouteTables, &ec2.RouteTable{
+					VpcId:        aws.String("vpc-custom"),
+					RouteTableId: aws.String("rtb-id-1"),
+					Routes: []*ec2.Route{
+						{
+							DestinationPrefixListId: aws.String("dpl-id-1"),
+						},
+					},
+				}, &ec2.RouteTable{
+					VpcId:        aws.String("vpc-custom"),
+					RouteTableId: aws.String("rtb-id-2"),
+					Routes: []*ec2.Route{
+						{
+							DestinationPrefixListId: aws.String("dpl-id-2"),
+						},
+					},
+				})
+				provider.MockEC2().On("DescribeRouteTables", mock.Anything).Return(output, nil)
+				rs := newResourceSet()
+				subnets := []SubnetResource{
+					{
+						Subnet:           gfnt.NewString("subnet-custom1"),
+						RouteTable:       gfnt.NewString("rtb-id-1"),
+						AvailabilityZone: "us-west-2a",
+					},
+					{
+						Subnet:           gfnt.NewString("subnet-custom2"),
+						RouteTable:       gfnt.NewString("rtb-id-2"),
+						AvailabilityZone: "us-west-2b",
+					},
+				}
+				vpcEndpointResourceSet := NewVPCEndpointResourceSet(provider.EC2(), provider.Region(), rs, vc, gfnt.NewString("vpc-custom"), subnets, gfnt.NewString("sg-test"))
+				Expect(vpcEndpointResourceSet.AddResources()).To(Succeed())
+				s3Endpoint := rs.template.Resources["VPCEndpointS3"].(*gfnec2.VPCEndpoint)
+				routeIdsSlice, ok := s3Endpoint.RouteTableIds.Raw().(gfnt.Slice)
+				Expect(ok).To(BeTrue())
+				sort.Slice(routeIdsSlice, func(i, j int) bool {
+					return routeIdsSlice[i].String() < routeIdsSlice[j].String()
+				})
+
+				resourceJSON, err := rs.template.JSON()
+				Expect(err).ToNot(HaveOccurred())
+
+				expectedJSON, err := ioutil.ReadFile("testdata/custom_vpc_private_endpoint_same_destination_prefix_list.json")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(resourceJSON).To(MatchJSON(expectedJSON))
+			})
+		})
+
+		When("same destinations prefix list ids are in the routing tables", func() {
+			It("should ignore the duplicate one", func() {
+
+			})
+		})
+	})
+
 	DescribeTable("Add resources", func(vc vpcResourceSetCase) {
 		api.SetClusterConfigDefaults(vc.clusterConfig)
 
