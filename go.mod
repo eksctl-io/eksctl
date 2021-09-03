@@ -136,7 +136,6 @@ require (
 	github.com/dghubble/go-twitter v0.0.0-20210609183100-2fdbf421508e // indirect
 	github.com/dghubble/oauth1 v0.7.0 // indirect
 	github.com/dghubble/sling v1.3.0 // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
@@ -170,6 +169,7 @@ require (
 	github.com/go-xmlfmt/xmlfmt v0.0.0-20191208150333-d5b6f63a941b // indirect
 	github.com/gobuffalo/flect v0.2.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-jwt/jwt/v4 v4.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.5.0 // indirect
@@ -380,7 +380,6 @@ require (
 )
 
 replace (
-	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt v3.2.2+incompatible
 	// Used to get around some weird etcd/grpc incompatibilty
 	google.golang.org/grpc => google.golang.org/grpc v1.29.0
 	// Used to pin the k8s library versions regardless of what other dependencies enforce
