@@ -12,12 +12,14 @@ import (
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+
+	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/vpc"
-	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 type vpcResourceSetCase struct {
@@ -145,6 +147,11 @@ var _ = Describe("VPC Endpoint Builder", func() {
 					},
 				},
 				AvailabilityZones: []string{"us-west-2a", "us-west-2b"},
+			},
+			createProvider: func() api.ClusterProvider {
+				provider := mockprovider.NewMockProvider()
+				mockDescribeRouteTables(provider, []string{"rtb-custom-1"})
+				return provider
 			},
 		}),
 		Entry("Private cluster with a user-supplied VPC", vpcResourceSetCase{
@@ -600,7 +607,7 @@ func mockDescribeRouteTables(provider *mockprovider.MockProvider, subnetIDs []st
 	}
 
 	provider.MockEC2().On("DescribeRouteTables", mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
-		return len(input.Filters) > 0
+		return len(input.Filters) > 0 || len(input.RouteTableIds) > 0
 	})).Return(output, nil)
 }
 
@@ -626,6 +633,6 @@ func mockDescribeRouteTablesSame(provider *mockprovider.MockProvider, subnetIDs 
 	}
 
 	provider.MockEC2().On("DescribeRouteTables", mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
-		return len(input.Filters) > 0
+		return len(input.Filters) > 0 || len(input.RouteTableIds) > 0
 	})).Return(output, nil)
 }

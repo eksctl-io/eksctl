@@ -105,12 +105,21 @@ func (e *VPCEndpointResourceSet) routeTableIDs() ([]*gfnt.Value, error) {
 	var routeTableIDs []*gfnt.Value
 	routeTables := make(map[string]bool)
 	routeTableDestinationPrefixListIDs := make(map[string]bool)
+	// Go through all the private subnets that has been previously imported
+	// and set up routing tables for them.
 	for _, subnet := range e.subnets {
 		routeTableStr := subnet.RouteTable.String()
 
 		if !routeTables[routeTableStr] {
 			routeTables[routeTableStr] = true
 		} else {
+			continue
+		}
+
+		// Only do this check if the VPC ID was provided by the user.
+		// Routing table ID will only be available then. Otherwise, it's just REF and Routing table name.
+		if e.clusterConfig.VPC.ID == "" {
+			routeTableIDs = append(routeTableIDs, subnet.RouteTable)
 			continue
 		}
 
