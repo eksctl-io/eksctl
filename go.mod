@@ -58,15 +58,13 @@ require (
 	github.com/caarlos0/env/v6 v6.6.2 // indirect
 	github.com/caarlos0/go-shellwords v1.0.12 // indirect
 	github.com/cavaliercoder/go-cpio v0.0.0-20180626203310-925f9528c45e // indirect
-	github.com/cenkalti/backoff v2.1.1+incompatible // indirect
+	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/charithe/durationcheck v0.0.8 // indirect
 	github.com/chavacava/garif v0.0.0-20210405164556-e8a0a408d6af // indirect
 	github.com/client9/misspell v0.3.4 // indirect
-	github.com/cloudflare/cfssl v1.5.0
+	github.com/cloudflare/cfssl v1.6.1-0.20210714220611-29ae05fe80e1
 	github.com/coreos/go-semver v0.3.0 // indirect
-	github.com/coreos/go-systemd v0.0.0-20190620071333-e64a0ec8b42a // indirect
-	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/daixiang0/gci v0.2.9 // indirect
 	github.com/dave/jennifer v1.4.1
@@ -89,7 +87,7 @@ require (
 	github.com/fluxcd/flux/pkg/install v0.0.0-20201001122558-cb08da1b356a // flux 1.21.0
 	github.com/fluxcd/go-git-providers v0.2.0
 	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200729150005-1467489f7ee4 // helm-operator 1.2.0
-	github.com/form3tech-oss/jwt-go v3.2.2+incompatible // indirect
+	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/fzipp/gocyclo v0.3.1 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
@@ -118,8 +116,6 @@ require (
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/flock v0.8.1
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/golang-jwt/jwt/v4 v4.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.5.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
@@ -135,8 +131,8 @@ require (
 	github.com/golangci/revgrep v0.0.0-20210208091834-cd28932614b5 // indirect
 	github.com/golangci/unconvert v0.0.0-20180507085042-28b1c447d1f4 // indirect
 	github.com/gomarkdown/markdown v0.0.0-20201113031856-722100d81a8e // indirect
-	github.com/google/btree v1.0.0 // indirect
-	github.com/google/certificate-transparency-go v1.1.1 // indirect
+	github.com/google/btree v1.0.1 // indirect
+	github.com/google/certificate-transparency-go v1.1.2-0.20210511102531-373a877eec92 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/go-github/v32 v32.1.0 // indirect
 	github.com/google/go-github/v35 v35.3.0 // indirect
@@ -160,7 +156,7 @@ require (
 	github.com/gostaticanalysis/forcetypeassert v0.0.0-20200621232751-01d4955beaa5 // indirect
 	github.com/gostaticanalysis/nilerr v0.1.1 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
-	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2 // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
@@ -183,7 +179,7 @@ require (
 	github.com/jingyugao/rowserrcheck v1.1.0 // indirect
 	github.com/jirfag/go-printf-func-name v0.0.0-20200119135958-7558a9eaa5af // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/jonboulle/clockwork v0.2.0 // indirect
+	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	github.com/julz/importas v0.0.0-20210419104244-841f0c0fe66d // indirect
@@ -213,7 +209,7 @@ require (
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-ieproxy v0.0.1 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/mattn/go-runewidth v0.0.9 // indirect
+	github.com/mattn/go-runewidth v0.0.12 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/mbilski/exhaustivestruct v1.2.0 // indirect
@@ -245,9 +241,9 @@ require (
 	github.com/pkg/sftp v1.10.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/polyfloyd/go-errorlint v0.0.0-20210510181950-ab96adb96fea // indirect
-	github.com/prometheus/client_golang v1.7.1 // indirect
+	github.com/prometheus/client_golang v1.10.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
-	github.com/prometheus/common v0.10.0 // indirect
+	github.com/prometheus/common v0.24.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/quasilyte/go-ruleguard v0.3.4 // indirect
 	github.com/quasilyte/regex/syntax v0.0.0-20200407221936-30656e2c4a95 // indirect
@@ -265,7 +261,7 @@ require (
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749 // indirect
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
-	github.com/soheilhy/cmux v0.1.4 // indirect
+	github.com/soheilhy/cmux v0.1.5 // indirect
 	github.com/sonatard/noctx v0.0.1 // indirect
 	github.com/sourcegraph/go-diff v0.6.1 // indirect
 	github.com/spf13/afero v1.6.0
@@ -287,14 +283,14 @@ require (
 	github.com/tidwall/sjson v1.1.7
 	github.com/timakin/bodyclose v0.0.0-20200424151742-cb6215831a94 // indirect
 	github.com/tj/assert v0.0.3
-	github.com/tmc/grpc-websocket-proxy v0.0.0-20200427203606-3cfed13b9966 // indirect
+	github.com/tmc/grpc-websocket-proxy v0.0.0-20201229170055-e5319fda7802 // indirect
 	github.com/tomarrell/wrapcheck/v2 v2.3.0 // indirect
 	github.com/tommy-muehle/go-mnd/v2 v2.4.0 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/ultraware/funlen v0.0.3 // indirect
 	github.com/ultraware/whitespace v0.0.4 // indirect
-	github.com/urfave/cli v1.22.2 // indirect
+	github.com/urfave/cli v1.22.5 // indirect
 	github.com/uudashr/gocognit v1.0.5 // indirect
 	github.com/vektra/mockery v1.1.2
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
@@ -311,12 +307,11 @@ require (
 	github.com/xlab/treeprint v0.0.0-20181112141820-a009c3971eca // indirect
 	github.com/yeya24/promlinter v0.1.0 // indirect
 	go.etcd.io/bbolt v1.3.5 // indirect
-	go.etcd.io/etcd v0.5.0-alpha.5.0.20200910180754-dd1b699fc489 // indirect
 	go.hein.dev/go-version v0.1.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
-	go.uber.org/multierr v1.6.0 // indirect
+	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.17.0 // indirect
 	gocloud.dev v0.23.0 // indirect
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
@@ -376,9 +371,28 @@ require (
 	sigs.k8s.io/yaml v1.2.0
 )
 
+require (
+	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
+	github.com/cncf/udpa/go v0.0.0-20210322005330-6414d713912e // indirect
+	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
+	github.com/envoyproxy/go-control-plane v0.9.9-0.20210217033140-668b12f5399d // indirect
+	github.com/envoyproxy/protoc-gen-validate v0.6.1 // indirect
+	github.com/fullstorydev/grpcurl v1.8.1 // indirect
+	github.com/jhump/protoreflect v1.8.2 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
+	go.etcd.io/etcd/api/v3 v3.5.0 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.5.0 // indirect
+	go.etcd.io/etcd/client/v2 v2.305.0 // indirect
+	go.etcd.io/etcd/client/v3 v3.5.0-alpha.0 // indirect
+	go.etcd.io/etcd/etcdctl/v3 v3.5.0-alpha.0 // indirect
+	go.etcd.io/etcd/pkg/v3 v3.5.0-alpha.0 // indirect
+	go.etcd.io/etcd/raft/v3 v3.5.0-alpha.0 // indirect
+	go.etcd.io/etcd/server/v3 v3.5.0-alpha.0 // indirect
+	go.etcd.io/etcd/tests/v3 v3.5.0-alpha.0 // indirect
+	go.etcd.io/etcd/v3 v3.5.0-alpha.0 // indirect
+)
+
 replace (
-	// Used to get around some weird etcd/grpc incompatibilty
-	google.golang.org/grpc => google.golang.org/grpc v1.29.0
 	// Used to pin the k8s library versions regardless of what other dependencies enforce
 	k8s.io/api => k8s.io/api v0.21.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.21.2
