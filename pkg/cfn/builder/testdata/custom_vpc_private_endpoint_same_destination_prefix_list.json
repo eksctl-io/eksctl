@@ -53,7 +53,8 @@
       "Type": "AWS::EC2::VPCEndpoint",
       "Properties": {
         "RouteTableIds": [
-          "rtb-id-1"
+          "rtb-id-1",
+          "rtb-id-2"
         ],
         "ServiceName": "com.amazonaws.us-west-2.s3",
         "VpcEndpointType": "Gateway",

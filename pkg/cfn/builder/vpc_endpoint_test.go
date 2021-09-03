@@ -59,26 +59,41 @@ var _ = Describe("VPC Endpoint Builder", func() {
 				}
 				api.SetClusterConfigDefaults(vc)
 				provider := mockprovider.NewMockProvider()
+				provider.SetRegion("us-west-2")
 				mockDescribeVPCEndpoints(provider, false)
+				f := provider.MockEC2().On("DescribeRouteTables", mock.Anything)
 				output := &ec2.DescribeRouteTablesOutput{}
-				output.RouteTables = append(output.RouteTables, &ec2.RouteTable{
-					VpcId:        aws.String("vpc-custom"),
-					RouteTableId: aws.String("rtb-id-1"),
-					Routes: []*ec2.Route{
-						{
-							DestinationPrefixListId: aws.String("dpl-id-1"),
-						},
-					},
-				}, &ec2.RouteTable{
-					VpcId:        aws.String("vpc-custom"),
-					RouteTableId: aws.String("rtb-id-2"),
-					Routes: []*ec2.Route{
-						{
-							DestinationPrefixListId: aws.String("dpl-id-2"),
-						},
-					},
-				})
-				provider.MockEC2().On("DescribeRouteTables", mock.Anything).Return(output, nil)
+				f.Run(func(args mock.Arguments) {
+					arg := args[0]
+					input := arg.(*ec2.DescribeRouteTablesInput)
+					id := *input.RouteTableIds[0]
+					switch id {
+					case "rtb-id-1":
+						output.RouteTables = []*ec2.RouteTable{
+							{
+								VpcId:        aws.String("vpc-custom"),
+								RouteTableId: aws.String("rtb-id-1"),
+								Routes: []*ec2.Route{
+									{
+										DestinationPrefixListId: aws.String("dpl-id-1"),
+									},
+								},
+							},
+						}
+					case "rtb-id-2":
+						output.RouteTables = []*ec2.RouteTable{
+							{
+								VpcId:        aws.String("vpc-custom"),
+								RouteTableId: aws.String("rtb-id-2"),
+								Routes: []*ec2.Route{
+									{
+										DestinationPrefixListId: aws.String("dpl-id-2"),
+									},
+								},
+							},
+						}
+					}
+				}).Return(output, nil)
 				rs := newResourceSet()
 				subnets := []SubnetResource{
 					{
