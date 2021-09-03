@@ -18,7 +18,7 @@ jobs:
     name: Tag release from version
     environment: release
     runs-on: ubuntu-latest
-    container: weaveworks/eksctl-build:f72073dff6d3bf6e47a9050f62298fdbc305307d
+    container: weaveworks/eksctl-build:451f15d62d59ae7dc67aab2eb9c2e15c97fe0ecd
     steps:
       - name: Checkout
         uses: actions/checkout@v2
