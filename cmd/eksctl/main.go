@@ -7,6 +7,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 
+	"github.com/weaveworks/eksctl/pkg/actions/anywhere"
 	"github.com/weaveworks/eksctl/pkg/ctl/associate"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/completion"
@@ -41,6 +42,8 @@ func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
 	rootCmd.AddCommand(enable.Command(flagGrouping))
 	rootCmd.AddCommand(utils.Command(flagGrouping))
 	rootCmd.AddCommand(completion.Command(rootCmd))
+	//Ensures "eksctl --help" presents eksctl anywhere as a command, but adds no subcommands since we invoke the binary.
+	rootCmd.AddCommand(cmdutils.NewVerbCmd("anywhere", "EKS anywhere", ""))
 
 	cmdutils.AddResourceCmd(flagGrouping, rootCmd, infoCmd)
 	cmdutils.AddResourceCmd(flagGrouping, rootCmd, versionCmd)
@@ -56,6 +59,21 @@ func main() {
 			}
 		},
 		SilenceUsage: true,
+	}
+
+	isAnywhereCommand, err := anywhere.IsAnywhereCommand(os.Args[1:])
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	if isAnywhereCommand {
+		exitCode, err := anywhere.RunAnywhereCommand(os.Args[1:])
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+		os.Exit(exitCode)
 	}
 
 	flagGrouping := cmdutils.NewGrouping()
