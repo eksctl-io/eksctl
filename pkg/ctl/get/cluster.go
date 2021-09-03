@@ -169,4 +169,11 @@ func addGetClusterSummaryTableColumns(printer *printers.TablePrinter) {
 		}
 		return strings.Join(groups.List(), ",")
 	})
+
+	printer.AddColumn("PROVIDER", func(c *awseks.Cluster) string {
+		if c.ConnectorConfig != nil {
+			return *c.ConnectorConfig.Provider
+		}
+		return "EKS"
+	})
 }
