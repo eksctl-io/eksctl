@@ -41,7 +41,7 @@ require (
 	github.com/ashanbrown/forbidigo v1.2.0 // indirect
 	github.com/ashanbrown/makezero v0.0.0-20210520155254-b6261585ddde // indirect
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.3-0.20210303155736-3e43512d88f8
-	github.com/aws/aws-sdk-go v1.40.27
+	github.com/aws/aws-sdk-go v1.40.38
 	github.com/awslabs/goformation/v4 v4.15.5 // indirect
 	github.com/bazelbuild/bazel-gazelle v0.19.1 // indirect
 	github.com/bazelbuild/buildtools v0.0.0-20190917191645-69366ca98f89 // indirect
@@ -58,6 +58,7 @@ require (
 	github.com/caarlos0/env/v6 v6.7.0 // indirect
 	github.com/caarlos0/go-shellwords v1.0.12 // indirect
 	github.com/cavaliercoder/go-cpio v0.0.0-20180626203310-925f9528c45e // indirect
+	github.com/cenk/backoff v2.2.1+incompatible
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/charithe/durationcheck v0.0.8 // indirect
