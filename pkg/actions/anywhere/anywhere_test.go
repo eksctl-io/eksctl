@@ -122,7 +122,7 @@ exit 33`), 0777)
 				// delete the binary
 				_ = os.RemoveAll(tmpDir)
 				exitCode, err := anywhere.RunAnywhereCommand([]string{"anywhere", "--do", "something"})
-				Expect(err).To(MatchError(fmt.Sprintf("%q binary was not found on your path", anywhere.BinaryFileName)))
+				Expect(err).To(MatchError(fmt.Sprintf("%q plugin was not found on your path", anywhere.BinaryFileName)))
 				Expect(exitCode).To(Equal(1))
 			})
 		})
