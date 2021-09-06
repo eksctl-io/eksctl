@@ -63,7 +63,7 @@ require (
 	github.com/charithe/durationcheck v0.0.8 // indirect
 	github.com/chavacava/garif v0.0.0-20210405164556-e8a0a408d6af // indirect
 	github.com/client9/misspell v0.3.4 // indirect
-	github.com/cloudflare/cfssl v1.6.1-0.20210714220611-29ae05fe80e1
+	github.com/cloudflare/cfssl v1.6.1
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/daixiang0/gci v0.2.9 // indirect

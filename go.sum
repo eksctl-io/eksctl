@@ -353,8 +353,8 @@ github.com/clbanning/x2j v0.0.0-20191024224557-825249438eec/go.mod h1:jMjuTZXRI4
 github.com/client9/misspell v0.3.4 h1:ta993UF76GwbvJcIo3Y68y/M3WxlpEHPWIGDkJYwzJI=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cloudflare/backoff v0.0.0-20161212185259-647f3cdfc87a/go.mod h1:rzgs2ZOiguV6/NpiDgADjRLPNyZlApIWxKpkT+X8SdY=
-github.com/cloudflare/cfssl v1.6.1-0.20210714220611-29ae05fe80e1 h1:AO4+noeWxtzkVwtwGLXT/q9jiDxjfCOwz6get2symWA=
-github.com/cloudflare/cfssl v1.6.1-0.20210714220611-29ae05fe80e1/go.mod h1:ENhCj4Z17+bY2XikpxVmTHDg/C2IsG2Q0ZBeXpAqhCk=
+github.com/cloudflare/cfssl v1.6.1 h1:aIOUjpeuDJOpWjVJFP2ByplF53OgqG8I1S40Ggdlk3g=
+github.com/cloudflare/cfssl v1.6.1/go.mod h1:ENhCj4Z17+bY2XikpxVmTHDg/C2IsG2Q0ZBeXpAqhCk=
 github.com/cloudflare/redoctober v0.0.0-20201013214028-99c99a8e7544/go.mod h1:6Se34jNoqrd8bTxrmJB2Bg2aoZ2CdSXonils9NsiNgo=
 github.com/clusterhq/flocker-go v0.0.0-20160920122132-2b8b7259d313/go.mod h1:P1wt9Z3DP8O6W3rvwCt0REIlshg1InHImaLW0t3ObY0=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
