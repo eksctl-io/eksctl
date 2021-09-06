@@ -433,7 +433,10 @@ func (c *ClusterProvider) GetCluster(clusterName string) (*awseks.Cluster, error
 }
 
 func (c *ClusterProvider) getClustersRequest(chunkSize int64, nextToken string) ([]*string, *string, error) {
-	input := &awseks.ListClustersInput{MaxResults: &chunkSize}
+	input := &awseks.ListClustersInput{
+		MaxResults: &chunkSize,
+		Include:    aws.StringSlice([]string{"all"}),
+	}
 	if nextToken != "" {
 		input = input.SetNextToken(nextToken)
 	}
