@@ -148,7 +148,7 @@ require (
 	github.com/gordonklaus/ineffassign v0.0.0-20210225214923-2e10b2664254 // indirect
 	github.com/goreleaser/chglog v0.1.2 // indirect
 	github.com/goreleaser/fileglob v1.2.0 // indirect
-	github.com/goreleaser/goreleaser v0.177.0
+	github.com/goreleaser/goreleaser v0.173.2
 	github.com/goreleaser/nfpm/v2 v2.6.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/gostaticanalysis/analysisutil v0.4.1 // indirect
@@ -372,6 +372,7 @@ require (
 )
 
 require (
+	github.com/campoy/unique v0.0.0-20180121183637-88950e537e7e // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
 	github.com/cncf/udpa/go v0.0.0-20210322005330-6414d713912e // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
@@ -380,8 +381,6 @@ require (
 	github.com/fullstorydev/grpcurl v1.8.1 // indirect
 	github.com/jhump/protoreflect v1.8.2 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
-	github.com/slack-go/slack v0.9.4 // indirect
-	github.com/vartanbeno/go-reddit/v2 v2.0.1 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.0 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.0 // indirect
 	go.etcd.io/etcd/client/v2 v2.305.0 // indirect
