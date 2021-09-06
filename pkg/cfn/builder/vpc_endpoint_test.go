@@ -119,7 +119,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 				resourceJSON, err := rs.template.JSON()
 				Expect(err).ToNot(HaveOccurred())
 
-				expectedJSON, err := ioutil.ReadFile("testdata/custom_vpc_private_endpoint_same_destination_prefix_list.json")
+				expectedJSON, err := ioutil.ReadFile("testdata/custom_vpc_private_endpoint_different_destination_prefix_list.json")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(resourceJSON).To(MatchJSON(expectedJSON))
 			})
@@ -127,7 +127,94 @@ var _ = Describe("VPC Endpoint Builder", func() {
 
 		When("same destinations prefix list ids are in the routing tables", func() {
 			It("should ignore the duplicate one", func() {
+				vc := &api.ClusterConfig{
+					Metadata: &api.ClusterMeta{
+						Region: "us-west-2",
+					},
+					VPC: &api.ClusterVPC{
+						Network: api.Network{
+							ID: "vpc-custom",
+						},
+						Subnets: &api.ClusterSubnets{
+							Private: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
+								"us-west-2a": {
+									ID: "subnet-custom1",
+								},
+								"us-west-2b": {
+									ID: "subnet-custom2",
+								},
+							}),
+						},
+					},
+					PrivateCluster: &api.PrivateCluster{
+						Enabled: true,
+					},
+				}
+				api.SetClusterConfigDefaults(vc)
+				provider := mockprovider.NewMockProvider()
+				provider.SetRegion("us-west-2")
+				mockDescribeVPCEndpoints(provider, false)
+				f := provider.MockEC2().On("DescribeRouteTables", mock.Anything)
+				output := &ec2.DescribeRouteTablesOutput{}
+				f.Run(func(args mock.Arguments) {
+					arg := args[0]
+					input := arg.(*ec2.DescribeRouteTablesInput)
+					id := *input.RouteTableIds[0]
+					switch id {
+					case "rtb-id-1":
+						output.RouteTables = []*ec2.RouteTable{
+							{
+								VpcId:        aws.String("vpc-custom"),
+								RouteTableId: aws.String("rtb-id-1"),
+								Routes: []*ec2.Route{
+									{
+										DestinationPrefixListId: aws.String("dpl-id-1"),
+									},
+								},
+							},
+						}
+					case "rtb-id-2":
+						output.RouteTables = []*ec2.RouteTable{
+							{
+								VpcId:        aws.String("vpc-custom"),
+								RouteTableId: aws.String("rtb-id-2"),
+								Routes: []*ec2.Route{
+									{
+										DestinationPrefixListId: aws.String("dpl-id-1"),
+									},
+								},
+							},
+						}
+					}
+				}).Return(output, nil)
+				rs := newResourceSet()
+				subnets := []SubnetResource{
+					{
+						Subnet:           gfnt.NewString("subnet-custom1"),
+						RouteTable:       gfnt.NewString("rtb-id-1"),
+						AvailabilityZone: "us-west-2a",
+					},
+					{
+						Subnet:           gfnt.NewString("subnet-custom2"),
+						RouteTable:       gfnt.NewString("rtb-id-2"),
+						AvailabilityZone: "us-west-2b",
+					},
+				}
+				vpcEndpointResourceSet := NewVPCEndpointResourceSet(provider.EC2(), provider.Region(), rs, vc, gfnt.NewString("vpc-custom"), subnets, gfnt.NewString("sg-test"))
+				Expect(vpcEndpointResourceSet.AddResources()).To(Succeed())
+				s3Endpoint := rs.template.Resources["VPCEndpointS3"].(*gfnec2.VPCEndpoint)
+				routeIdsSlice, ok := s3Endpoint.RouteTableIds.Raw().(gfnt.Slice)
+				Expect(ok).To(BeTrue())
+				sort.Slice(routeIdsSlice, func(i, j int) bool {
+					return routeIdsSlice[i].String() < routeIdsSlice[j].String()
+				})
 
+				resourceJSON, err := rs.template.JSON()
+				Expect(err).ToNot(HaveOccurred())
+
+				expectedJSON, err := ioutil.ReadFile("testdata/custom_vpc_private_endpoint_same_destination_prefix_list.json")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(resourceJSON).To(MatchJSON(expectedJSON))
 			})
 		})
 	})
