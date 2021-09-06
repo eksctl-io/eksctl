@@ -78,7 +78,7 @@ var _ = Describe("Kubernetes client toolkit", func() {
 			It("should be able to parse lists with comment nodes", func() {
 				bytes, err := ioutil.ReadFile("testdata/list-with-comment-nodes.yaml")
 				Expect(err).ToNot(HaveOccurred())
-				list, err := ParseListLax(bytes)
+				list, err := NewList(bytes)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(list).ToNot(BeNil())
 				Expect(list.Items).To(HaveLen(4))
