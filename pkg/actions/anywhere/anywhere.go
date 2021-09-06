@@ -38,9 +38,9 @@ func IsAnywhereCommand(args []string) (bool, error) {
 // RunAnywhereCommand executes the anywhere binary.
 func RunAnywhereCommand(args []string) (int, error) {
 	if _, err := exec.LookPath(BinaryFileName); errors.Is(err, exec.ErrNotFound) {
-		return 1, fmt.Errorf(fmt.Sprintf("%q binary was not found on your path", BinaryFileName))
+		return 1, fmt.Errorf(fmt.Sprintf("%q plugin was not found on your path", BinaryFileName))
 	} else if err != nil {
-		return 1, fmt.Errorf("failed to lookup anywhere binary: %w", err)
+		return 1, fmt.Errorf("failed to lookup anywhere plugin: %w", err)
 	}
 
 	cmd := exec.Command(BinaryFileName, args[1:]...)
