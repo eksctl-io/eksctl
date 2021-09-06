@@ -19,16 +19,6 @@ if [ -z "${CIRCLE_PULL_REQUEST}" ] && [ -n "${CIRCLE_TAG}" ] && [ "${CIRCLE_PROJ
 
   sleep 90 # GitHub API resolves the time to the nearest minute, so in order to control the sorting oder we need this
 
-  git tag --delete "${CIRCLE_TAG}"
-  git tag --force latest_release
-
-  if github-release info --user weaveworks --repo "${CIRCLE_PROJECT_REPONAME}" --tag latest_release > /dev/null 2>&1 ; then
-    github-release delete --user weaveworks --repo "${CIRCLE_PROJECT_REPONAME}" --tag latest_release
-  fi
-
-  export RELEASE_DESCRIPTION="${CIRCLE_TAG}"
-  goreleaser release --skip-validate --rm-dist --config=./.goreleaser.yml --release-notes="${RELEASE_NOTES_FILE}"
-
   docker login --username weaveworkseksctlci --password "${DOCKER_HUB_PASSWORD}"
   EKSCTL_IMAGE_VERSION="${CIRCLE_TAG}" make -f Makefile.docker push-eksctl-image || true
 else
