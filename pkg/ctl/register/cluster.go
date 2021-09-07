@@ -60,5 +60,6 @@ func registerCluster(cmd *cmdutils.Cmd, cluster connector.ExternalCluster) error
 
 	logger.Info("registered cluster %q successfully", cluster.Name)
 
+	// TODO consider providing a manifests-dir argument to allow writing EKS Connector resources to a specific directory.
 	return connector.WriteResources(resourceList)
 }

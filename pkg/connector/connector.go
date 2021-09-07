@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	awsarn "github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
@@ -102,7 +103,7 @@ func (c *EKSConnector) RegisterCluster(cluster ExternalCluster) (*ManifestList, 
 	clusterRoleResources := c.parseRoleBindingTemplate(roleARN)
 
 	for _, r := range [][]byte{connectorResources, clusterRoleResources} {
-		if _, err := kubernetes.ParseListLax(r); err != nil {
+		if _, err := kubernetes.NewList(r); err != nil {
 			return nil, errors.Wrapf(err, "unexpected error parsing manifests for EKS Connector: %s", string(r))
 		}
 	}
@@ -194,9 +195,12 @@ func (c *EKSConnector) DeregisterCluster(clusterName string) error {
 		return errors.Wrap(err, "unexpected error deregistering cluster")
 	}
 
-	roleARN := clusterOutput.Cluster.ConnectorConfig.RoleArn
+	roleName, err := roleNameFromARN(*clusterOutput.Cluster.ConnectorConfig.RoleArn)
+	if err != nil {
+		return errors.Wrapf(err, "error parsing role ARN %q", *clusterOutput.Cluster.ConnectorConfig.RoleArn)
+	}
 
-	ownsIAMRole, err := c.ownsIAMRole(clusterName, roleARN)
+	ownsIAMRole, err := c.ownsIAMRole(clusterName, roleName)
 	if err != nil {
 		return err
 	}
@@ -204,11 +208,11 @@ func (c *EKSConnector) DeregisterCluster(clusterName string) error {
 		return nil
 	}
 
-	logger.Info("deleting IAM role %q", *roleARN)
+	logger.Info("deleting IAM role %q", roleName)
 
 	if _, err := c.Provider.IAM().DeleteRolePolicy(&iam.DeleteRolePolicyInput{
 		PolicyName: aws.String(connectorPolicyName),
-		RoleName:   roleARN,
+		RoleName:   aws.String(roleName),
 	}); err != nil {
 		awsErr, ok := err.(awserr.Error)
 		if ok && awsErr.Code() == iam.ErrCodeNoSuchEntityException {
@@ -218,7 +222,7 @@ func (c *EKSConnector) DeregisterCluster(clusterName string) error {
 	}
 
 	if _, err := c.Provider.IAM().DeleteRole(&iam.DeleteRoleInput{
-		RoleName: roleARN,
+		RoleName: aws.String(roleName),
 	}); err != nil {
 		return errors.Wrap(err, "error deleting IAM role")
 	}
@@ -226,12 +230,27 @@ func (c *EKSConnector) DeregisterCluster(clusterName string) error {
 	return nil
 }
 
-func (c *EKSConnector) ownsIAMRole(clusterName string, roleARN *string) (bool, error) {
+func roleNameFromARN(roleARN string) (string, error) {
+	parsed, err := awsarn.Parse(roleARN)
+	if err != nil {
+		return "", err
+	}
+	parts := strings.Split(parsed.Resource, "/")
+	if len(parts) != 2 {
+		return "", errors.New("invalid format for role ARN")
+	}
+	if parts[0] != "role" {
+		return "", errors.Errorf(`expected resource type to be "role"; got %q`, parts[0])
+	}
+	return parts[1], nil
+}
+
+func (c *EKSConnector) ownsIAMRole(clusterName, roleName string) (bool, error) {
 	roleOutput, err := c.Provider.IAM().GetRole(&iam.GetRoleInput{
-		RoleName: roleARN,
+		RoleName: aws.String(roleName),
 	})
 	if err != nil {
-		return false, errors.Wrapf(err, "error getting IAM role %q", *roleARN)
+		return false, errors.Wrapf(err, "error getting IAM role %q", roleName)
 	}
 
 	for _, tag := range roleOutput.Role.Tags {

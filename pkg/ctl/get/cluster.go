@@ -137,21 +137,39 @@ func getAndPrintCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, params
 
 func addGetClusterSummaryTableColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("NAME", func(c *awseks.Cluster) string {
+		if c.Name == nil {
+			return "-"
+		}
 		return *c.Name
 	})
 	printer.AddColumn("VERSION", func(c *awseks.Cluster) string {
+		if c.Version == nil {
+			return "-"
+		}
 		return *c.Version
 	})
 	printer.AddColumn("STATUS", func(c *awseks.Cluster) string {
+		if c.Status == nil {
+			return "-"
+		}
 		return *c.Status
 	})
 	printer.AddColumn("CREATED", func(c *awseks.Cluster) string {
+		if c.CreatedAt == nil {
+			return "-"
+		}
 		return c.CreatedAt.Format(time.RFC3339)
 	})
 	printer.AddColumn("VPC", func(c *awseks.Cluster) string {
+		if c.ResourcesVpcConfig == nil {
+			return "-"
+		}
 		return *c.ResourcesVpcConfig.VpcId
 	})
 	printer.AddColumn("SUBNETS", func(c *awseks.Cluster) string {
+		if c.ResourcesVpcConfig == nil || c.ResourcesVpcConfig.SubnetIds == nil {
+			return "-"
+		}
 		subnets := sets.NewString()
 		for _, subnetid := range c.ResourcesVpcConfig.SubnetIds {
 			if api.IsSetAndNonEmptyString(subnetid) {
@@ -161,6 +179,9 @@ func addGetClusterSummaryTableColumns(printer *printers.TablePrinter) {
 		return strings.Join(subnets.List(), ",")
 	})
 	printer.AddColumn("SECURITYGROUPS", func(c *awseks.Cluster) string {
+		if c.ResourcesVpcConfig == nil || c.ResourcesVpcConfig.SecurityGroupIds == nil {
+			return "-"
+		}
 		groups := sets.NewString()
 		for _, sg := range c.ResourcesVpcConfig.SecurityGroupIds {
 			if api.IsSetAndNonEmptyString(sg) {
