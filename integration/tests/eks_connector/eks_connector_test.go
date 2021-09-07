@@ -13,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -21,8 +21,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-
-	. "github.com/onsi/ginkgo"
 )
 
 var params *tests.Params
@@ -63,15 +61,26 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 
 			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 				ContainElement(ContainSubstring(fmt.Sprintf("registered cluster %q successfully", connectedClusterName))),
-				ContainElement(Equal(fmt.Sprintf("wrote file eks-connector.yaml to %s", wd))),
-				ContainElement(Equal(fmt.Sprintf("wrote file eks-connector-binding.yaml to %s", wd))),
+				ContainElement(ContainSubstring(fmt.Sprintf("wrote file eks-connector.yaml to %s", wd))),
+				ContainElement(ContainSubstring(fmt.Sprintf("wrote file eks-connector-binding.yaml to %s", wd))),
 			))
 
+			connectorPath := path.Join(wd, "eks-connector.yaml")
+			connectorBindingPath := path.Join("eks-connector-binding.yaml")
+
+			defer func() {
+				os.Remove(connectorPath)
+				os.Remove(connectorBindingPath)
+			}()
+
 			By("applying the generated EKS Connector manifests to the EKS cluster")
+
 			rawClient := getRawClient(params.ClusterName, params.Region)
-			bytes, err := ioutil.ReadFile(path.Join(wd, "eks-connector.yaml"))
-			Expect(err).ToNot(HaveOccurred())
-			Expect(rawClient.CreateOrReplace(bytes, false)).To(Succeed())
+			for _, f := range []string{connectorPath, connectorBindingPath} {
+				bytes, err := ioutil.ReadFile(f)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(rawClient.CreateOrReplace(bytes, false)).To(Succeed())
+			}
 
 			provider, err := eks.New(&api.ProviderConfig{Region: params.Region}, &api.ClusterConfig{
 				TypeMeta: api.ClusterConfigTypeMeta(),
