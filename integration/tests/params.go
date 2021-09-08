@@ -51,6 +51,8 @@ type Params struct {
 	EksctlEnableCmd          runner.Cmd
 	EksctlAnywhereCmd        runner.Cmd
 	EksctlHelpCmd            runner.Cmd
+	EksctlRegisterCmd        runner.Cmd
+	EksctlDeregisterCmd      runner.Cmd
 	// Keep track of created clusters, for post-tests clean-up.
 	clustersToDelete []string
 }
@@ -125,6 +127,14 @@ func (p *Params) GenerateCommands() {
 	p.EksctlEnableCmd = runner.NewCmd(p.EksctlPath).
 		WithArgs("enable").
 		WithTimeout(10 * time.Minute)
+
+	p.EksctlRegisterCmd = runner.NewCmd(p.EksctlPath).
+		WithArgs("register").
+		WithTimeout(2 * time.Minute)
+
+	p.EksctlDeregisterCmd = runner.NewCmd(p.EksctlPath).
+		WithArgs("deregister").
+		WithTimeout(1 * time.Minute)
 
 	p.EksctlCreateNodegroupCmd = runner.NewCmd(p.EksctlPath).
 		WithArgs("create", "nodegroup").

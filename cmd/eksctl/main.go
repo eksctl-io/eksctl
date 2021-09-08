@@ -6,6 +6,8 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/eksctl/pkg/ctl/deregister"
+	"github.com/weaveworks/eksctl/pkg/ctl/register"
 
 	"github.com/weaveworks/eksctl/pkg/actions/anywhere"
 	"github.com/weaveworks/eksctl/pkg/ctl/associate"
@@ -40,6 +42,8 @@ func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
 	rootCmd.AddCommand(drain.Command(flagGrouping))
 	rootCmd.AddCommand(generate.Command(flagGrouping))
 	rootCmd.AddCommand(enable.Command(flagGrouping))
+	rootCmd.AddCommand(register.Command(flagGrouping))
+	rootCmd.AddCommand(deregister.Command(flagGrouping))
 	rootCmd.AddCommand(utils.Command(flagGrouping))
 	rootCmd.AddCommand(completion.Command(rootCmd))
 	//Ensures "eksctl --help" presents eksctl anywhere as a command, but adds no subcommands since we invoke the binary.

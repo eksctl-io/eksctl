@@ -66,7 +66,7 @@ func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 
 	printer := printers.NewJSONPrinter()
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
