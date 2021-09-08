@@ -104,6 +104,19 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 			cmd = params.EksctlGetCmd.WithArgs("clusters", "-n", connectedClusterName)
 			Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("OTHER")))
 
+			By("ensuring `get nodegroup` fails early with a user-friendly error")
+			cmd = params.EksctlGetCmd.
+				WithArgs(
+					"nodegroup",
+					"--cluster", connectedClusterName,
+				)
+
+			session := cmd.Run()
+			Expect(session.ExitCode()).ToNot(Equal(0))
+			output := string(session.Err.Contents())
+			Expect(output).To(ContainSubstring(fmt.Sprintf("cannot perform this operation on a non-EKS cluster; please follow the documentation for "+
+				"cluster %s's Kubernetes provider", connectedClusterName)))
+
 			By("deregistering the cluster")
 			cmd = params.EksctlDeregisterCmd.WithArgs("cluster").
 				WithArgs("--name", connectedClusterName)
