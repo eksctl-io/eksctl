@@ -1,8 +1,8 @@
 package connector_test
 
 import (
-	"fmt"
 	"io/ioutil"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -44,7 +44,7 @@ var _ = Describe("EKS Connector", func() {
 		mockProvider := mockprovider.NewMockProvider()
 
 		mockProvider.MockEKS().On("RegisterCluster", mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
-			return *input.Name == cc.cluster.Name && *input.ConnectorConfig.Provider == cc.cluster.Provider
+			return *input.Name == cc.cluster.Name && *input.ConnectorConfig.Provider == strings.ToUpper(cc.cluster.Provider)
 		})).Return(&eks.RegisterClusterOutput{
 			Cluster: &eks.Cluster{
 				ConnectorConfig: &eks.ConnectorConfigResponse{
@@ -53,24 +53,30 @@ var _ = Describe("EKS Connector", func() {
 					ActivationExpiry: aws.Time(time.Now()),
 				},
 			},
-		}, nil)
+		}, nil).On("DescribeCluster", mock.MatchedBy(func(input *eks.DescribeClusterInput) bool {
+			return *input.Name == cc.cluster.Name
+		})).Return(nil, &eks.ResourceNotFoundException{
+			ClusterName: aws.String(cc.cluster.Name),
+		})
 
 		mockProvider.MockSTS().On("GetCallerIdentity", mock.Anything).Return(&sts.GetCallerIdentityOutput{
 			Arn: aws.String("arn:aws:iam::12356:user/eksctl"),
 		}, nil)
 
 		if cc.cluster.ConnectorRole == "" {
-			roleName := fmt.Sprintf("eksctl-%s-connector-role-us-west-2", cc.cluster.Name)
+			matchesRole := func(roleName string) bool {
+				return strings.HasPrefix(roleName, "eksctl-")
+			}
 			mockProvider.MockIAM().On("CreateRole", mock.MatchedBy(func(input *iam.CreateRoleInput) bool {
-				return *input.RoleName == roleName
+				return matchesRole(*input.RoleName)
 			})).Return(&iam.CreateRoleOutput{
 				Role: &iam.Role{
-					Arn: aws.String(fmt.Sprintf("arn:aws:iam::1234567890:role/eksctl-%s-connector-role", cc.cluster.Name)),
+					Arn: aws.String("arn:aws:iam::1234567890:role/eksctl-12345"),
 				},
 			}, nil).On("PutRolePolicy", mock.MatchedBy(func(input *iam.PutRolePolicyInput) bool {
-				return *input.RoleName == roleName
+				return matchesRole(*input.RoleName)
 			})).Return(&iam.PutRolePolicyOutput{}, nil).On("WaitUntilRoleExists", mock.MatchedBy(func(input *iam.GetRoleInput) bool {
-				return *input.RoleName == roleName
+				return matchesRole(*input.RoleName)
 			})).Return(nil)
 		}
 
