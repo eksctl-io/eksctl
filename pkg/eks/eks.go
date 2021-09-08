@@ -59,6 +59,11 @@ func (c *ClusterProvider) RefreshClusterStatus(spec *api.ClusterConfig) error {
 	}
 	logger.Debug("cluster = %#v", cluster)
 
+	if isNonEKSCluster(cluster) {
+		return errors.Errorf("cannot perform this operation on a non-EKS cluster; please follow the documentation for "+
+			"cluster %s's Kubernetes provider", spec.Metadata.Name)
+	}
+
 	if spec.Status == nil {
 		spec.Status = &api.ClusterStatus{}
 	}
@@ -83,9 +88,9 @@ func (c *ClusterProvider) SupportsManagedNodes(clusterConfig *api.ClusterConfig)
 	return ClusterSupportsManagedNodes(c.Status.ClusterInfo.Cluster)
 }
 
-// IsNonEKSCluster returns true if the cluster is external
-func (c *ClusterProvider) IsNonEKSCluster() bool {
-	return c.Status.ClusterInfo.Cluster.ConnectorConfig != nil
+// isNonEKSCluster returns true if the cluster is external
+func isNonEKSCluster(cluster *awseks.Cluster) bool {
+	return cluster.ConnectorConfig != nil
 }
 
 // ClusterSupportsManagedNodes reports whether the EKS cluster supports managed nodes

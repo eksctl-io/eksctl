@@ -2,7 +2,6 @@ package cmdutils
 
 import (
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -82,10 +81,6 @@ func (c *Cmd) NewProviderForExistingCluster() (*eks.ClusterProvider, error) {
 		return nil, err
 	}
 
-	if provider.IsNonEKSCluster() {
-		return nil, errors.Errorf("cannot perform this operation on a non-EKS cluster; please follow the documentation for "+
-			"cluster %s's Kubernetes provider", c.ClusterConfig.Metadata.Name)
-	}
 	return provider, nil
 }
 
