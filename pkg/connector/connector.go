@@ -159,6 +159,10 @@ func (c *EKSConnector) registerCluster(cluster ExternalCluster, connectorRole st
 	})
 
 	if err != nil {
+		awsErr, ok := err.(awserr.Error)
+		if ok && awsErr.Code() == eks.ErrCodeInvalidRequestException && strings.Contains(awsErr.Message(), "AWSServiceRoleForAmazonEKSConnector is not available") {
+			return nil, errors.Wrap(err, "SLR for EKS Connector does not exist; please run `aws iam create-service-linked-role --aws-service-name eks-connector.amazonaws.com` first")
+		}
 		return nil, err
 	}
 
