@@ -43,7 +43,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/eks/filecache"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils"
@@ -163,7 +162,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	s := c.newSession(spec)
 
 	if s.Config != nil {
-		if cachedProvider, err := filecache.NewFileCacheProvider(clusterSpec.Metadata.Name, spec.Profile, spec.CloudFormationRoleARN, s.Config.Credentials); err == nil {
+		if cachedProvider, err := NewFileCacheProvider(spec.Profile, s.Config.Credentials); err == nil {
 			s.Config.Credentials = credentials.NewCredentials(&cachedProvider)
 		} else {
 			fmt.Println("Failed to use cached provider: ", err)
