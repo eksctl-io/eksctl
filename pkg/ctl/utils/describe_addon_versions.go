@@ -44,7 +44,7 @@ func describeAddonVersionsCmd(cmd *cmdutils.Cmd) {
 }
 
 func describeAddonVersions(cmd *cmdutils.Cmd, addonName, k8sVersion, clusterName string) error {
-	clusterProvider, err := cmd.NewProviderForExistingCluster()
+	clusterProvider, err := cmd.NewCtl()
 	if err != nil {
 		return err
 	}
