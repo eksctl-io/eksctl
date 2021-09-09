@@ -9,7 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/pkg/errors"
 
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
@@ -149,5 +151,31 @@ func checkForUndeletedStacks(stackManager manager.StackManager) error {
 		return errors.New("failed to delete all resources")
 	}
 
+	return nil
+}
+
+func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubernetes.Interface) error {
+	allStacks, err := stackManager.ListNodeGroupStacks()
+	if err != nil {
+		return err
+	}
+
+	if len(allStacks) == 0 {
+		return nil
+	}
+
+	for _, s := range allStacks {
+		if s.Type != api.NodeGroupTypeManaged {
+			if err := cmdutils.PopulateNodegroupFromStack(s.Type, s.NodeGroupName, cfg); err != nil {
+				return err
+			}
+		}
+	}
+
+	nodeGroupManager := nodegroup.New(cfg, ctl, clientSet)
+	plan, disableEviction := false, false
+	if err := nodeGroupManager.Drain(cmdutils.ToKubeNodeGroups(cfg), plan, ctl.Provider.WaitTimeout(), disableEviction); err != nil {
+		return err
+	}
 	return nil
 }

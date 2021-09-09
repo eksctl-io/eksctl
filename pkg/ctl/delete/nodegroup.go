@@ -122,6 +122,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	if deleteNodeGroupDrain {
 		err := nodeGroupManager.Drain(allNodeGroups, cmd.Plan, maxGracePeriod, disableEviction)
 		if err != nil {
+			logger.Warning("error occurred during drain, to skip drain use '--drain=false' flag")
 			return err
 		}
 	}

@@ -100,6 +100,10 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force bool) error {
 			}
 			oidcSupported = false
 		}
+
+		if err := drainAllNodegroups(c.cfg, c.ctl, c.stackManager, clientSet); err != nil {
+			return err
+		}
 	}
 
 	if err := deleteSharedResources(c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {

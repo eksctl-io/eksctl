@@ -21,12 +21,21 @@ func PopulateNodegroup(stackManager manager.StackManager, name string, cfg *api.
 		}
 		nodeGroupType = api.NodeGroupTypeUnowned
 	}
+	if err = PopulateNodegroupFromStack(nodeGroupType, name, cfg); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// PopulateNodegroupFromStack populates the nodegroup field of an api.ClusterConfig by type from its CF stack.
+func PopulateNodegroupFromStack(nodeGroupType api.NodeGroupType, nodeGroupName string, cfg *api.ClusterConfig) error {
 	switch nodeGroupType {
 	case api.NodeGroupTypeUnmanaged:
 		cfg.NodeGroups = []*api.NodeGroup{
 			{
 				NodeGroupBase: &api.NodeGroupBase{
-					Name: name,
+					Name: nodeGroupName,
 				},
 			},
 		}
@@ -34,7 +43,7 @@ func PopulateNodegroup(stackManager manager.StackManager, name string, cfg *api.
 		cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
 			{
 				NodeGroupBase: &api.NodeGroupBase{
-					Name: name,
+					Name: nodeGroupName,
 				},
 			},
 		}
@@ -42,12 +51,11 @@ func PopulateNodegroup(stackManager manager.StackManager, name string, cfg *api.
 		cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
 			{
 				NodeGroupBase: &api.NodeGroupBase{
-					Name: name,
+					Name: nodeGroupName,
 				},
 				Unowned: true,
 			},
 		}
 	}
-
 	return nil
 }
