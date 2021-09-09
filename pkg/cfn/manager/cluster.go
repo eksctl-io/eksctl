@@ -117,6 +117,10 @@ func (c *StackCollection) AppendNewClusterStackResource(plan, supportsManagedNod
 		return false, fmt.Errorf("unexpected template format of the current stack ")
 	}
 
+	if err := c.importServiceRoleARN(currentResources); err != nil {
+		return false, err
+	}
+
 	logger.Info("re-building cluster stack %q", name)
 	newStack := builder.NewClusterResourceSet(c.ec2API, c.region, c.spec, supportsManagedNodes, &currentResources)
 	if err := newStack.AddAllResources(); err != nil {
@@ -189,6 +193,31 @@ func (c *StackCollection) AppendNewClusterStackResource(plan, supportsManagedNod
 		return true, nil
 	}
 	return true, c.UpdateStack(name, c.MakeChangeSetName("update-cluster"), describeUpdate, TemplateBody(currentTemplate), nil)
+}
+
+func (c *StackCollection) importServiceRoleARN(resources gjson.Result) error {
+	s, err := c.DescribeClusterStack()
+	if err != nil {
+		return err
+	}
+	usesEksctlCreatedServiceRole := false
+	resources.ForEach(func(key, value gjson.Result) bool {
+		if key.String() == "ServiceRole" {
+			usesEksctlCreatedServiceRole = true
+		}
+		return true
+	})
+
+	if usesEksctlCreatedServiceRole {
+		return nil
+	}
+
+	for _, o := range s.Outputs {
+		if *o.OutputKey == "ServiceRoleARN" {
+			c.spec.IAM.ServiceRoleARN = o.OutputValue
+		}
+	}
+	return nil
 }
 
 func getClusterName(s *Stack) string {
