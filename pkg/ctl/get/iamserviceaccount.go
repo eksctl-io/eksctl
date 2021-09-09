@@ -62,7 +62,7 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, options IAMServiceAccountOptions)
 
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
