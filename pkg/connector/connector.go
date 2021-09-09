@@ -28,9 +28,9 @@ const (
 )
 
 type ExternalCluster struct {
-	Name          string
-	Provider      string
-	ConnectorRole string
+	Name             string
+	Provider         string
+	ConnectorRoleARN string
 }
 
 type EKSConnector struct {
@@ -75,26 +75,34 @@ func (c *EKSConnector) RegisterCluster(cluster ExternalCluster) (*ManifestList, 
 		return nil, errors.Errorf("cluster already exists; deregister the cluster first using `eksctl deregister cluster --name %s --region %s` and try again", cluster.Name, c.Provider.Region())
 	}
 
-	connectorRole := cluster.ConnectorRole
-	if connectorRole == "" {
+	connectorRoleARN := cluster.ConnectorRoleARN
+	if connectorRoleARN == "" {
 		var err error
-		connectorRole, err = c.createConnectorRole(cluster)
+		connectorRoleARN, err = c.createConnectorRole(cluster)
 		if err != nil {
 			return nil, errors.Wrap(err, "error creating IAM role for EKS Connector")
 		}
 	}
 
-	registerOutput, err := c.registerCluster(cluster, connectorRole)
+	registerOutput, err := c.registerCluster(cluster, connectorRoleARN)
 	if err != nil {
-		return nil, errors.Wrap(err, "error registering external cluster")
+		if cluster.ConnectorRoleARN == "" {
+			if deleteErr := c.deleteRoleByARN(connectorRoleARN); deleteErr != nil {
+				err = errors.Wrap(err, deleteErr.Error())
+			}
+		}
+		return nil, errors.Wrap(err, "error calling RegisterCluster")
 	}
+	return c.createManifests(registerOutput.Cluster)
+}
 
+func (c *EKSConnector) createManifests(cluster *eks.Cluster) (*ManifestList, error) {
 	stsOutput, err := c.Provider.STS().GetCallerIdentity(&sts.GetCallerIdentityInput{})
 	if err != nil {
 		return nil, err
 	}
 
-	connectorResources := c.parseConnectorTemplate(registerOutput.Cluster)
+	connectorResources := c.parseConnectorTemplate(cluster)
 	roleARN, err := arn.Canonicalize(*stsOutput.Arn)
 	if err != nil {
 		return nil, errors.Wrap(err, "error canonicalizing IAM role ARN")
@@ -111,7 +119,7 @@ func (c *EKSConnector) RegisterCluster(cluster ExternalCluster) (*ManifestList, 
 	return &ManifestList{
 		ConnectorResources:   connectorResources,
 		ClusterRoleResources: clusterRoleResources,
-		Expiry:               *registerOutput.Cluster.ConnectorConfig.ActivationExpiry,
+		Expiry:               *cluster.ConnectorConfig.ActivationExpiry,
 		IAMIdentityARN:       roleARN,
 	}, nil
 }
@@ -125,7 +133,7 @@ func validateProvider(provider string) error {
 	return errors.Errorf("invalid provider %q; must be one of %s", provider, strings.Join(ValidProviders(), ", "))
 }
 
-func (c *EKSConnector) registerCluster(cluster ExternalCluster, connectorRole string) (*eks.RegisterClusterOutput, error) {
+func (c *EKSConnector) registerCluster(cluster ExternalCluster, connectorRoleARN string) (*eks.RegisterClusterOutput, error) {
 	bo := backoff.NewExponentialBackOff()
 	bo.MaxElapsedTime = 3 * time.Minute
 
@@ -139,7 +147,7 @@ func (c *EKSConnector) registerCluster(cluster ExternalCluster, connectorRole st
 			Name: aws.String(cluster.Name),
 			ConnectorConfig: &eks.ConnectorConfigRequest{
 				Provider: aws.String(cluster.Provider),
-				RoleArn:  aws.String(connectorRole),
+				RoleArn:  aws.String(connectorRoleARN),
 				// TODO add tags when they're supported by the API.
 			},
 		})
@@ -212,6 +220,10 @@ func (c *EKSConnector) DeregisterCluster(clusterName string) error {
 		return nil
 	}
 
+	return c.deleteRole(roleName)
+}
+
+func (c *EKSConnector) deleteRole(roleName string) error {
 	logger.Info("deleting IAM role %q", roleName)
 
 	if _, err := c.Provider.IAM().DeleteRolePolicy(&iam.DeleteRolePolicyInput{
@@ -232,6 +244,14 @@ func (c *EKSConnector) DeregisterCluster(clusterName string) error {
 	}
 
 	return nil
+}
+
+func (c *EKSConnector) deleteRoleByARN(roleARN string) error {
+	connectorRoleName, err := roleNameFromARN(roleARN)
+	if err != nil {
+		return errors.Wrap(err, "error parsing connector role ARN")
+	}
+	return c.deleteRole(connectorRoleName)
 }
 
 func roleNameFromARN(roleARN string) (string, error) {

@@ -25,7 +25,7 @@ func registerClusterCmd(cmd *cmdutils.Cmd) {
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cluster.Name, "name", "", "EKS cluster name")
 		fs.StringVar(&cluster.Provider, "provider", "", fmt.Sprintf("Kubernetes provider name (one of %s)", strings.Join(connector.ValidProviders(), ", ")))
-		fs.StringVar(&cluster.ConnectorRole, "role-arn", "", "EKS Connector role")
+		fs.StringVar(&cluster.ConnectorRoleARN, "role-arn", "", "EKS Connector role ARN")
 
 		requiredFlags := []string{"name", "provider"}
 		for _, f := range requiredFlags {
