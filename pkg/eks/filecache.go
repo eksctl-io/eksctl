@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
@@ -62,7 +63,7 @@ func NewFileCacheProvider(profile string, creds *credentials.Credentials) (FileC
 	_ = os.MkdirAll(filepath.Dir(filename), 0700)
 	info, err := os.Stat(filename)
 	if os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "Cache file %s does not exist.\n", filename)
+		logger.Warning("Cache file %s does not exist.\n", filename)
 		return FileCacheProvider{
 			credentials:      creds,
 			cachedCredential: cachedCredential{},
@@ -122,7 +123,7 @@ func (f *FileCacheProvider) Retrieve() (credentials.Value, error) {
 		// use the cached credential
 		return f.cachedCredential.Credential, nil
 	}
-	fmt.Fprintf(os.Stderr, "No cached credential available.  Refreshing...\n")
+	logger.Info("No cached credential available.  Refreshing...")
 	// fetch the credentials from the underlying Provider
 	credential, err := f.credentials.Get()
 	if err != nil {
@@ -131,7 +132,7 @@ func (f *FileCacheProvider) Retrieve() (credentials.Value, error) {
 	expiration, err := f.credentials.ExpiresAt()
 	if err != nil {
 		// credential doesn't support expiration time, so can't cache, but still return the credential
-		fmt.Fprintf(os.Stderr, "Unable to cache credential: %v\n", err)
+		logger.Warning("Unable to cache credential: %v\n", err)
 		return credential, nil
 	}
 	// underlying provider supports Expirer interface, so we can cache
@@ -149,9 +150,9 @@ func (f *FileCacheProvider) Retrieve() (credentials.Value, error) {
 	cache, _ := readCacheFile(filename)
 	cache.Put(f.profile, f.cachedCredential)
 	if err := writeCache(filename, cache); err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to update credential cache %s: %v\n", filename, err)
+		logger.Warning("Unable to update credential cache %s: %v\n", filename, err)
 	}
-	fmt.Fprintf(os.Stderr, "Updated cached credential\n")
+	logger.Info("Updated cached credential\n")
 	return credential, err
 }
 
