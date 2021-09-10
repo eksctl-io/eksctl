@@ -86,6 +86,24 @@ eksctl utils write-kubeconfig --cluster=<name> [--kubeconfig=<path>][--set-kubec
 
 ```
 
+#### Caching Credentials
+
+`eksctl` supports caching credentials. This is useful when using MFA and not wanting to continuously enter the MFA
+token on each `eksctl` command run.
+
+To enable credential caching set the following environment property `EKSCTL_ENABLE_CREDENTIAL_CACHE` as such:
+
+```
+export EKSCTL_ENABLE_CREDENTIAL_CACHE=1
+```
+
+By default, this will result in a cache file under `~/.eksctl/cache/credentials.yaml` which will contain creds per profile
+that is being used. To clear the cache, delete this file.
+
+It's also possible to configure the location of this cache file using `EKSCTL_CREDENTIAL_CACHE_FILENAME` which should
+be the **full path** to a file in which to store the cached credentials. These are credentials, so make sure the access
+of this file is restricted to the current user and in a secure location.
+
 ### Autoscaling
 
 To use a 3-5 node Auto Scaling Group, run:
