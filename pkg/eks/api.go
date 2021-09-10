@@ -161,11 +161,12 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	// later re-use if overriding sessions due to custom URL
 	s := c.newSession(spec)
 
-	if s.Config != nil {
-		if cachedProvider, err := NewFileCacheProvider(spec.Profile, s.Config.Credentials); err == nil {
+	cache := os.Getenv(EksctlGlobalEnableCachingEnvName)
+	if s.Config != nil && cache != "" {
+		if cachedProvider, err := NewFileCacheProvider(spec.Profile, s.Config.Credentials, &RealClock{}); err == nil {
 			s.Config.Credentials = credentials.NewCredentials(&cachedProvider)
 		} else {
-			fmt.Println("Failed to use cached provider: ", err)
+			logger.Warning("Failed to use cached provider: ", err)
 		}
 	}
 

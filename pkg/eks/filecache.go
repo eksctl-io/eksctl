@@ -12,28 +12,39 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	// EksctlGlobalEnableCachingEnvName defines an environment property to enable the cache globally.
+	EksctlGlobalEnableCachingEnvName = "EKSCTL_ENABLE_CACHE"
+	// EksctlCacheFilenameEnvName defines an environment property to configure where the cache file should live.
+	EksctlCacheFilenameEnvName = "EKSCTL_CACHE_FILENAME"
+)
+
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+// Clock implements Now to return the current time.
+//counterfeiter:generate -o fakes/fake_clock.go . Clock
+type Clock interface {
+	Now() time.Time
+}
+
+// RealClock defines a clock using time.Now()
+type RealClock struct{}
+
+// Now returns the current time.
+func (r *RealClock) Now() time.Time {
+	return time.Now()
+}
+
 type cachedCredential struct {
 	Credential credentials.Value
 	Expiration time.Time
-	// If set will be used by IsExpired to determine the current time.
-	// Defaults to time.Now if CurrentTime is not set.  Available for testing
-	// to be able to mock out the current time.
-	currentTime func() time.Time
 }
 
-// IsExpired determines if the cached credential has expired
-func (c *cachedCredential) IsExpired() bool {
-	curTime := c.currentTime
-	if curTime == nil {
-		curTime = time.Now
-	}
-	return c.Expiration.Before(curTime())
-}
-
+// FileCacheProvider is a file based AWS Credentials Provider implementing expiry and retrieve.
 type FileCacheProvider struct {
 	credentials      *credentials.Credentials // the underlying implementation that has the *real* Provider
 	cachedCredential cachedCredential         // the cached credential, if it exists
 	profile          string
+	clock            Clock
 }
 
 type cacheFile struct {
@@ -41,10 +52,13 @@ type cacheFile struct {
 	ProfileMap map[string]cachedCredential `yaml:"profiles"`
 }
 
+// Put puts the given cachedCredential with a given key into the map. It will overwrite
+// if the key already exists.
 func (c *cacheFile) Put(key string, credential cachedCredential) {
 	c.ProfileMap[key] = credential
 }
 
+// Get returns cachedCredential if it exists in the cred store.
 func (c *cacheFile) Get(key string) (credential cachedCredential) {
 	if _, ok := c.ProfileMap[key]; ok {
 		credential = c.ProfileMap[key]
@@ -52,7 +66,11 @@ func (c *cacheFile) Get(key string) (credential cachedCredential) {
 	return
 }
 
-func NewFileCacheProvider(profile string, creds *credentials.Credentials) (FileCacheProvider, error) {
+// NewFileCacheProvider creates a new filesystem based AWS credential cache. The cache uses Expiry provided by the
+// AWS Go SDK for providers. It wraps the configured credential provider into a file based cache provider. If the provider
+// does not support caching ( I.e.: it doesn't implement IsExpired ) then this file based caching system is ignored
+// and the default credential provider is used. Caches are per profile.
+func NewFileCacheProvider(profile string, creds *credentials.Credentials, clock Clock) (FileCacheProvider, error) {
 	if creds == nil {
 		return FileCacheProvider{}, errors.New("no underlying Credentials object provided")
 	}
@@ -65,8 +83,10 @@ func NewFileCacheProvider(profile string, creds *credentials.Credentials) (FileC
 	if os.IsNotExist(err) {
 		logger.Warning("Cache file %s does not exist.\n", filename)
 		return FileCacheProvider{
+			profile:          profile,
 			credentials:      creds,
 			cachedCredential: cachedCredential{},
+			clock:            clock,
 		}, nil
 	}
 
@@ -84,6 +104,7 @@ func NewFileCacheProvider(profile string, creds *credentials.Credentials) (FileC
 		credentials:      creds,
 		cachedCredential: cache.Get(profile),
 		profile:          profile,
+		clock:            clock,
 	}, nil
 }
 
@@ -115,11 +136,11 @@ func writeCache(filename string, cache cacheFile) error {
 	return err
 }
 
-// Retrieve() implements the Provider interface, returning the cached credential if is not expired,
+// Retrieve implements the Provider interface, returning the cached credential if is not expired,
 // otherwise fetching the credential from the underlying Provider and caching the results on disk
 // with an expiration time.
 func (f *FileCacheProvider) Retrieve() (credentials.Value, error) {
-	if !f.cachedCredential.IsExpired() {
+	if !f.cachedCredential.Expiration.Before(f.clock.Now()) {
 		// use the cached credential
 		return f.cachedCredential.Credential, nil
 	}
@@ -141,9 +162,8 @@ func (f *FileCacheProvider) Retrieve() (credentials.Value, error) {
 		return credential, err
 	}
 	f.cachedCredential = cachedCredential{
-		Credential:  credential,
-		Expiration:  expiration,
-		currentTime: nil,
+		Credential: credential,
+		Expiration: expiration,
 	}
 	// overwrite whatever was there before. we don't care about multiple creds for various clusters.
 	// if user switches to another role and another profile they have to re-authenticate.
@@ -156,10 +176,10 @@ func (f *FileCacheProvider) Retrieve() (credentials.Value, error) {
 	return credential, err
 }
 
-// IsExpired() implements the Provider interface, deferring to the cached credential first,
+// IsExpired implements the Provider interface, deferring to the cached credential first,
 // but fall back to the underlying Provider if it is expired.
 func (f *FileCacheProvider) IsExpired() bool {
-	return f.cachedCredential.IsExpired() && f.credentials.IsExpired()
+	return f.cachedCredential.Expiration.Before(f.clock.Now()) && f.credentials.IsExpired()
 }
 
 // ExpiresAt implements the Expirer interface, and gives access to the expiration time of the credential
@@ -168,6 +188,9 @@ func (f *FileCacheProvider) ExpiresAt() time.Time {
 }
 
 func cacheFilename() (string, error) {
+	if filename := os.Getenv(EksctlCacheFilenameEnvName); filename != "" {
+		return filename, nil
+	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
