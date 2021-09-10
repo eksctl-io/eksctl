@@ -1,12 +1,14 @@
 package eks
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/gofrs/flock"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
@@ -14,9 +16,9 @@ import (
 
 const (
 	// EksctlGlobalEnableCachingEnvName defines an environment property to enable the cache globally.
-	EksctlGlobalEnableCachingEnvName = "EKSCTL_ENABLE_CACHE"
+	EksctlGlobalEnableCachingEnvName = "EKSCTL_ENABLE_CREDENTIAL_CACHE"
 	// EksctlCacheFilenameEnvName defines an environment property to configure where the cache file should live.
-	EksctlCacheFilenameEnvName = "EKSCTL_CACHE_FILENAME"
+	EksctlCacheFilenameEnvName = "EKSCTL_CREDENTIAL_CACHE_FILENAME"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -111,6 +113,18 @@ func NewFileCacheProvider(profile string, creds *credentials.Credentials, clock 
 // readCacheFile reads the contents of the credential cache and returns the
 // parsed yaml as a cachedCredential object.
 func readCacheFile(filename string) (cacheFile, error) {
+	lock := flock.New(filename)
+	defer func() {
+		_ = lock.Unlock()
+	}()
+	// wait up to a second for the file to lock
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Second)
+	defer cancel()
+	ok, err := lock.TryRLockContext(ctx, 250*time.Millisecond) // try to lock every 1/4 second
+	if !ok {
+		// unable to lock the cache, something is wrong, refuse to use it.
+		return cacheFile{}, fmt.Errorf("unable to read lock file %s: %v", filename, err)
+	}
 	cache := cacheFile{
 		ProfileMap: make(map[string]cachedCredential),
 	}
@@ -128,6 +142,18 @@ func readCacheFile(filename string) (cacheFile, error) {
 // writeCache writes the contents of the credential cache using the
 // yaml marshaled form of the passed cachedCredential object.
 func writeCache(filename string, cache cacheFile) error {
+	lock := flock.New(filename)
+	defer func() {
+		_ = lock.Unlock()
+	}()
+	// wait up to a second for the file to lock
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Second)
+	defer cancel()
+	ok, err := lock.TryRLockContext(ctx, 250*time.Millisecond) // try to lock every 1/4 second
+	if !ok {
+		// unable to lock the cache, something is wrong, refuse to use it.
+		return fmt.Errorf("unable to read lock file %s: %v", filename, err)
+	}
 	data, err := yaml.Marshal(cache)
 	if err == nil {
 		// write privately owned by the user
@@ -171,9 +197,10 @@ func (f *FileCacheProvider) Retrieve() (credentials.Value, error) {
 	cache.Put(f.profile, f.cachedCredential)
 	if err := writeCache(filename, cache); err != nil {
 		logger.Warning("Unable to update credential cache %s: %v\n", filename, err)
+		return credential, err
 	}
 	logger.Info("Updated cached credential\n")
-	return credential, err
+	return credential, nil
 }
 
 // IsExpired implements the Provider interface, deferring to the cached credential first,

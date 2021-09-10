@@ -1,6 +1,7 @@
 package eks_test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -104,6 +105,72 @@ var _ = Describe("filecache", func() {
 				p, err := NewFileCacheProvider("profile", c, fakeClock)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(p.IsExpired()).To(BeTrue())
+			})
+		})
+		When("the cache file already exists", func() {
+			It("will retrieve its content", func() {
+				content := []byte(`profiles:
+  profile:
+    credential:
+      accesskeyid: storedID
+      secretaccesskey: storedSecret
+      sessiontoken: storedToken
+      providername: stubProvider
+    expiration: 0001-01-01T00:00:00Z
+`)
+				err := ioutil.WriteFile(filepath.Join(tmp, "credentials.yaml"), content, 0700)
+				Expect(err).ToNot(HaveOccurred())
+				c := credentials.NewCredentials(&stubProviderExpirer{})
+				fakeClock := &fakes.FakeClock{}
+				p, err := NewFileCacheProvider("profile", c, fakeClock)
+				Expect(err).ToNot(HaveOccurred())
+				creds, err := p.Retrieve()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(creds.AccessKeyID).To(Equal("storedID"))
+				Expect(creds.SecretAccessKey).To(Equal("storedSecret"))
+				Expect(creds.SessionToken).To(Equal("storedToken"))
+			})
+		})
+		When("no underlying credentials have been supplied", func() {
+			It("returns an appropriate error", func() {
+				fakeClock := &fakes.FakeClock{}
+				_, err := NewFileCacheProvider("profile", nil, fakeClock)
+				Expect(err).To(MatchError("no underlying Credentials object provided"))
+			})
+		})
+		When("the underlying credentials provider doesn't support caching", func() {
+			It("won't create a cache file", func() {
+				fakeClock := &fakes.FakeClock{}
+				fakeClock.NowReturns(time.Date(9999, 1, 1, 1, 1, 1, 1, time.UTC))
+				p, err := NewFileCacheProvider("profile", credentials.NewStaticCredentials("id", "secret", "token"), fakeClock)
+				Expect(err).ToNot(HaveOccurred())
+				_, err = p.Retrieve()
+				Expect(err).ToNot(HaveOccurred())
+				_, err = os.Stat(filepath.Join(tmp, "credentials.yaml"))
+				Expect(os.IsNotExist(err)).To(BeTrue())
+			})
+
+		})
+		When("the cache file is not private", func() {
+			It("will refuse to use that file", func() {
+				content := []byte(`test:`)
+				err := ioutil.WriteFile(filepath.Join(tmp, "credentials.yaml"), content, 0777)
+				Expect(err).ToNot(HaveOccurred())
+				c := credentials.NewCredentials(&stubProviderExpirer{})
+				fakeClock := &fakes.FakeClock{}
+				_, err = NewFileCacheProvider("profile", c, fakeClock)
+				Expect(err).To(MatchError(fmt.Sprintf("cache file %s is not private", filepath.Join(tmp, "credentials.yaml"))))
+			})
+		})
+		When("the cache data has been corrupted", func() {
+			It("will return an appropriate error", func() {
+				content := []byte(`not valid yaml`)
+				err := ioutil.WriteFile(filepath.Join(tmp, "credentials.yaml"), content, 0600)
+				Expect(err).ToNot(HaveOccurred())
+				c := credentials.NewCredentials(&stubProviderExpirer{})
+				fakeClock := &fakes.FakeClock{}
+				_, err = NewFileCacheProvider("profile", c, fakeClock)
+				Expect(err).To(MatchError(ContainSubstring("unable to parse file")))
 			})
 		})
 	})
