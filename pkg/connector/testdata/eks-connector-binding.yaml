@@ -1,0 +1,47 @@
+###
+# This is an example manifest to demonstrate Kubernetes objects that EKS connector customer
+# is responsible of, in addition to the manifest file downloaded during cluster registration.
+#
+# To use this file, follow the TODO comments to fill in the required placeholders.
+###
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: eks-connector-service
+subjects:
+  - kind: ServiceAccount
+    name: eks-connector
+    namespace: eks-connector
+roleRef:
+  kind: ClusterRole
+  name: eks-connector-service
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: eks-connector-service
+rules:
+  - apiGroups: [ "" ]
+    resources:
+      - users
+    verbs:
+      - impersonate
+    resourceNames:
+      # TODO: 1. ADD your IAM identity arn here
+      - "%IAM_ARN%"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: eks-connector-user
+subjects:
+  - kind: User
+    # TODO: 2. ADD your IAM identity arn here
+    name: "%IAM_ARN%"
+roleRef:
+  # TODO: 3. Bind appropriate permission to your identity
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io

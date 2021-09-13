@@ -50,7 +50,7 @@ func flux2Install(cmd *cmdutils.Cmd) error {
 	logger.Info("will install Flux v2 components on cluster %s", cmd.ClusterConfig.Metadata.Name)
 
 	if kubeconfAndContextNotSet(cmd.ClusterConfig.GitOps.Flux.Flags) {
-		ctl, err := cmd.NewCtl()
+		ctl, err := cmd.NewProviderForExistingCluster()
 		if err != nil {
 			return err
 		}

@@ -45,7 +45,7 @@ func deleteAddon(cmd *cmdutils.Cmd, preserve bool) error {
 		return err
 	}
 
-	clusterProvider, err := cmd.NewCtl()
+	clusterProvider, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}

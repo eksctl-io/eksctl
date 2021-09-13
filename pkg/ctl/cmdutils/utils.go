@@ -10,7 +10,7 @@ import (
 // KubernetesClientAndConfigFrom returns a Kubernetes client set and REST
 // configuration object for the currently configured cluster.
 func KubernetesClientAndConfigFrom(cmd *Cmd) (*kubernetes.Clientset, *rest.Config, error) {
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return nil, nil, err
 	}
