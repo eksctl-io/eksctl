@@ -49,7 +49,7 @@ func updateAddon(cmd *cmdutils.Cmd, force, wait bool) error {
 	if err := cmdutils.NewCreateOrUpgradeAddonLoader(cmd).Load(); err != nil {
 		return err
 	}
-	clusterProvider, err := cmd.NewCtl()
+	clusterProvider, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}

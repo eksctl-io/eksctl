@@ -51,7 +51,7 @@ func configureDeleteFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.Options {
 }
 
 func doDeleteFargateProfile(cmd *cmdutils.Cmd, opts *fargate.Options) error {
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}

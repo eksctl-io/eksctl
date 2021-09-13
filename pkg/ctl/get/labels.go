@@ -53,7 +53,7 @@ func getLabels(cmd *cmdutils.Cmd, nodeGroupName string) error {
 		return cmdutils.ErrUnsupportedNameArg()
 	}
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
