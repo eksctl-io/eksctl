@@ -4,7 +4,6 @@
 package caching
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -16,7 +15,6 @@ import (
 
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
@@ -50,34 +48,54 @@ var _ = Describe("", func() {
 		params.DeleteClusters()
 		gexec.KillAndWait()
 	})
-	FContext("creating a new raw client", func() {
-		It("should not cache the credentials", func() {
-			a, err := eks.New(&api.ProviderConfig{
-				CloudFormationRoleARN: "arn",
-				Region:                "us-west-2",
-				Profile:               "profile",
-			}, &api.ClusterConfig{
-				Metadata: &api.ClusterMeta{
-					Name:   "test-cluster",
-					Region: "us-west-2",
-				},
-			})
-			Expect(err).ToNot(HaveOccurred())
-			fmt.Println(a.Provider)
-		})
-		When("credential caching is enabled", func() {
+	Context("accessing cluster related information", func() {
+		When("credential caching is disabled", func() {
 			var tmp string
 			BeforeEach(func() {
 				tmp, err := ioutil.TempDir("", "caching_creds")
 				Expect(err).NotTo(HaveOccurred())
-				os.Setenv(eks.EksctlCacheFilenameEnvName, filepath.Join(tmp, "credentials.yaml"))
-				os.Setenv(eks.EksctlGlobalEnableCachingEnvName, "1")
+				_ = os.Setenv(eks.EksctlCacheFilenameEnvName, filepath.Join(tmp, "credentials.yaml"))
+				// Make sure the environment property is not set on the running environment.
+				_ = os.Setenv(eks.EksctlGlobalEnableCachingEnvName, "")
 			})
 			AfterEach(func() {
 				_ = os.RemoveAll(tmp)
 			})
-			It("should cache the credentials for the given profile", func() {
+			It("should not cache the credentials", func() {
+				cmd := params.EksctlGetCmd.WithArgs(
+					"cluster",
+					"--name", clusterName,
+				).WithoutArg("--region", params.Region)
+				Expect(cmd).Should(RunSuccessfully())
 
+				_, err := os.Stat(filepath.Join(tmp, "credentials.yaml"))
+				Expect(os.IsNotExist(err)).To(BeTrue())
+			})
+		})
+		// Note: This proves to be a challenge since normal providers like, static and file providers, do not support
+		// expiry, therefore, they cannot be cached. This requires an AssumeRole or an EC2 role provider.
+		// For now, this part is tested via unit tests.
+		XWhen("credential caching is enabled", func() {
+			var tmp string
+			BeforeEach(func() {
+				tmp, err := ioutil.TempDir("", "caching_creds")
+				Expect(err).NotTo(HaveOccurred())
+				_ = os.Setenv(eks.EksctlCacheFilenameEnvName, filepath.Join(tmp, "credentials.yaml"))
+				_ = os.Setenv(eks.EksctlGlobalEnableCachingEnvName, "1")
+			})
+			AfterEach(func() {
+				_ = os.RemoveAll(tmp)
+			})
+			It("should cache the credentials", func() {
+				cmd := params.EksctlGetCmd.WithArgs(
+					"cluster",
+					"--name", clusterName,
+				).WithoutArg("--region", params.Region)
+				Expect(cmd).Should(RunSuccessfully())
+
+				content, err := ioutil.ReadFile(filepath.Join(tmp, "credentials.yaml"))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(content).NotTo(BeEmpty())
 			})
 		})
 	})
