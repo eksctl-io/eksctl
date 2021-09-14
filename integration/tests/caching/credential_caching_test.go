@@ -14,7 +14,7 @@ import (
 
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
-	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/credentials"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
@@ -37,9 +37,9 @@ var _ = Describe("", func() {
 			BeforeEach(func() {
 				tmp, err := ioutil.TempDir("", "caching_creds")
 				Expect(err).NotTo(HaveOccurred())
-				_ = os.Setenv(eks.EksctlCacheFilenameEnvName, filepath.Join(tmp, "credentials.yaml"))
+				_ = os.Setenv(credentials.EksctlCacheFilenameEnvName, filepath.Join(tmp, "credentials.yaml"))
 				// Make sure the environment property is not set on the running environment.
-				_ = os.Setenv(eks.EksctlGlobalEnableCachingEnvName, "")
+				_ = os.Setenv(credentials.EksctlGlobalEnableCachingEnvName, "")
 			})
 			AfterEach(func() {
 				_ = os.RemoveAll(tmp)
@@ -62,8 +62,8 @@ var _ = Describe("", func() {
 			BeforeEach(func() {
 				tmp, err := ioutil.TempDir("", "caching_creds")
 				Expect(err).NotTo(HaveOccurred())
-				_ = os.Setenv(eks.EksctlCacheFilenameEnvName, filepath.Join(tmp, "credentials.yaml"))
-				_ = os.Setenv(eks.EksctlGlobalEnableCachingEnvName, "1")
+				_ = os.Setenv(credentials.EksctlCacheFilenameEnvName, filepath.Join(tmp, "credentials.yaml"))
+				_ = os.Setenv(credentials.EksctlGlobalEnableCachingEnvName, "1")
 			})
 			AfterEach(func() {
 				_ = os.RemoveAll(tmp)

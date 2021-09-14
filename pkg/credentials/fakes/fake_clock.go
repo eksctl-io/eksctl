@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/credentials"
 )
 
 type FakeClock struct {
@@ -100,4 +100,4 @@ func (fake *FakeClock) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ eks.Clock = new(FakeClock)
+var _ credentials.Clock = new(FakeClock)

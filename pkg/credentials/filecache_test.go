@@ -1,4 +1,4 @@
-package eks_test
+package credentials_test
 
 import (
 	"fmt"
@@ -11,8 +11,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/eks/fakes"
+	. "github.com/weaveworks/eksctl/pkg/credentials"
+	"github.com/weaveworks/eksctl/pkg/credentials/fakes"
 )
 
 type stubProvider struct {
@@ -41,7 +41,7 @@ func (s *stubProviderExpirer) ExpiresAt() time.Time {
 }
 
 var _ = Describe("filecache", func() {
-	Context("a cached based provider is request", func() {
+	Context("credential cache has being used", func() {
 		var (
 			tmp string
 			err error
@@ -49,7 +49,7 @@ var _ = Describe("filecache", func() {
 		BeforeEach(func() {
 			tmp, err = ioutil.TempDir("", "filecache")
 			Expect(err).ToNot(HaveOccurred())
-			os.Setenv(EksctlCacheFilenameEnvName, filepath.Join(tmp, "credentials.yaml"))
+			_ = os.Setenv(EksctlCacheFilenameEnvName, filepath.Join(tmp, "credentials.yaml"))
 		})
 		AfterEach(func() {
 			_ = os.RemoveAll(tmp)
@@ -86,7 +86,6 @@ var _ = Describe("filecache", func() {
       providername: stubProvider
     expiration: 0001-01-01T00:00:00Z
 `))
-			Expect(p.IsExpired()).NotTo(BeTrue())
 		})
 		When("the cache expires", func() {
 			It("will ask to refresh it", func() {
@@ -151,7 +150,7 @@ var _ = Describe("filecache", func() {
 			})
 
 		})
-		When("the cache file is not private", func() {
+		When("the cache file's permission is too broad", func() {
 			It("will refuse to use that file", func() {
 				content := []byte(`test:`)
 				err := ioutil.WriteFile(filepath.Join(tmp, "credentials.yaml"), content, 0777)

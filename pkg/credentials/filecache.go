@@ -1,4 +1,4 @@
-package eks
+package credentials
 
 import (
 	"context"
@@ -81,7 +81,9 @@ func NewFileCacheProvider(profile string, creds *credentials.Credentials, clock 
 	if err != nil {
 		return FileCacheProvider{}, fmt.Errorf("failed to get cache file: %w", err)
 	}
-	_ = os.MkdirAll(filepath.Dir(filename), 0700)
+	if err := os.MkdirAll(filepath.Dir(filename), 0700); err != nil {
+		return FileCacheProvider{}, fmt.Errorf("failed to create folder: %w", err)
+	}
 	info, err := os.Stat(filename)
 	if os.IsNotExist(err) {
 		logger.Warning("Cache file %s does not exist.\n", filename)
