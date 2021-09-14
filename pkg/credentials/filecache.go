@@ -118,18 +118,20 @@ func NewFileCacheProvider(profile string, creds *credentials.Credentials, clock 
 func readCacheFile(filename string) (cacheFile, error) {
 	lock := flock.New(filename)
 	defer func() {
-		_ = lock.Unlock()
+		if err := lock.Unlock(); err != nil {
+			logger.Warning("Unable to unlock file %s: %v\n", filename, err)
+		}
 	}()
 	// wait up to a second for the file to lock
+	cache := cacheFile{
+		ProfileMap: make(map[string]cachedCredential),
+	}
 	ctx, cancel := context.WithTimeout(context.TODO(), time.Second)
 	defer cancel()
 	ok, err := lock.TryRLockContext(ctx, 250*time.Millisecond) // try to lock every 1/4 second
 	if !ok {
 		// unable to lock the cache, something is wrong, refuse to use it.
-		return cacheFile{}, fmt.Errorf("unable to read lock file %s: %v", filename, err)
-	}
-	cache := cacheFile{
-		ProfileMap: make(map[string]cachedCredential),
+		return cache, fmt.Errorf("unable to read lock file %s: %v", filename, err)
 	}
 	data, err := os.ReadFile(filename)
 	if err != nil {
@@ -147,7 +149,9 @@ func readCacheFile(filename string) (cacheFile, error) {
 func writeCache(filename string, cache cacheFile) error {
 	lock := flock.New(filename)
 	defer func() {
-		_ = lock.Unlock()
+		if err := lock.Unlock(); err != nil {
+			logger.Warning("Unable to unlock file %s: %v\n", filename, err)
+		}
 	}()
 	// wait up to a second for the file to lock
 	ctx, cancel := context.WithTimeout(context.TODO(), time.Second)
