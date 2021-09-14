@@ -11,7 +11,6 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
 
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -32,22 +31,6 @@ func TestCredentialsCaching(t *testing.T) {
 }
 
 var _ = Describe("", func() {
-	var (
-		clusterName string
-	)
-	BeforeSuite(func() {
-		clusterName = params.NewClusterName("cache")
-		cmd := params.EksctlCreateCmd.WithArgs(
-			"cluster",
-			"--name", clusterName,
-			"--without-nodegroup",
-		).WithoutArg("--region", params.Region)
-		Expect(cmd).Should(RunSuccessfully())
-	})
-	AfterSuite(func() {
-		params.DeleteClusters()
-		gexec.KillAndWait()
-	})
 	Context("accessing cluster related information", func() {
 		When("credential caching is disabled", func() {
 			var tmp string
@@ -64,7 +47,6 @@ var _ = Describe("", func() {
 			It("should not cache the credentials", func() {
 				cmd := params.EksctlGetCmd.WithArgs(
 					"cluster",
-					"--name", clusterName,
 				).WithoutArg("--region", params.Region)
 				Expect(cmd).Should(RunSuccessfully())
 
@@ -89,7 +71,6 @@ var _ = Describe("", func() {
 			It("should cache the credentials", func() {
 				cmd := params.EksctlGetCmd.WithArgs(
 					"cluster",
-					"--name", clusterName,
 				).WithoutArg("--region", params.Region)
 				Expect(cmd).Should(RunSuccessfully())
 

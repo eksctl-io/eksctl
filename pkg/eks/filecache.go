@@ -61,11 +61,12 @@ func (c *cacheFile) Put(key string, credential cachedCredential) {
 }
 
 // Get returns cachedCredential if it exists in the cred store.
-func (c *cacheFile) Get(key string) (credential cachedCredential) {
+func (c *cacheFile) Get(key string) cachedCredential {
+	var credential cachedCredential
 	if _, ok := c.ProfileMap[key]; ok {
 		credential = c.ProfileMap[key]
 	}
-	return
+	return credential
 }
 
 // NewFileCacheProvider creates a new filesystem based AWS credential cache. The cache uses Expiry provided by the
