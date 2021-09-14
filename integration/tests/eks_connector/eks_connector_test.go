@@ -62,21 +62,28 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 				ContainElement(ContainSubstring(fmt.Sprintf("registered cluster %q successfully", connectedClusterName))),
 				ContainElement(ContainSubstring(fmt.Sprintf("wrote file eks-connector.yaml to %s", wd))),
-				ContainElement(ContainSubstring(fmt.Sprintf("wrote file eks-connector-binding.yaml to %s", wd))),
+				ContainElement(ContainSubstring(fmt.Sprintf("wrote file eks-connector-clusterrole.yaml to %s", wd))),
+				ContainElement(ContainSubstring(fmt.Sprintf("wrote file eks-connector-console-dashboard-full-access-group.yaml to %s", wd))),
 			))
 
-			connectorPath := path.Join(wd, "eks-connector.yaml")
-			connectorBindingPath := path.Join("eks-connector-binding.yaml")
+			resourceFilenames := []string{"eks-connector.yaml", "eks-connector-clusterrole.yaml", "eks-connector-console-dashboard-full-access-group.yaml"}
+			var resourcePaths []string
+			for _, f := range resourceFilenames {
+				resourcePaths = append(resourcePaths, path.Join(wd, f))
+			}
 
 			defer func() {
-				os.Remove(connectorPath)
-				os.Remove(connectorBindingPath)
+				for _, f := range resourcePaths {
+					if err := os.Remove(f); err != nil {
+						fmt.Fprintf(GinkgoWriter, "unexpected error removing file %q", f)
+					}
+				}
 			}()
 
 			By("applying the generated EKS Connector manifests to the EKS cluster")
 
 			rawClient := getRawClient(params.ClusterName, params.Region)
-			for _, f := range []string{connectorPath, connectorBindingPath} {
+			for _, f := range resourcePaths {
 				bytes, err := ioutil.ReadFile(f)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(rawClient.CreateOrReplace(bytes, false)).To(Succeed())
