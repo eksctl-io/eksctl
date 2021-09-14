@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/kris-nova/logger"
@@ -13,13 +15,20 @@ import (
 
 const (
 	connectorManifestsURL        = "https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector/latest/eks-connector.yaml"
-	connectorBindingManifestsURL = "https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector-roles-example/latest/eks-connector-roles-example.yaml"
+	connectorBindingManifestsURL = "https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector-console-roles/eks-connector-clusterrole.yaml"
+	consoleAccessManifestsURL    = "https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector-console-roles/eks-connector-console-dashboard-full-access-group.yaml"
 )
 
-// ManifestTemplate holds the manifest templates for EKS Connector
+// ManifestTemplate holds the manifest templates for EKS Connector.
 type ManifestTemplate struct {
-	Connector   []byte
-	RoleBinding []byte
+	Connector     ManifestFile
+	ClusterRole   ManifestFile
+	ConsoleAccess ManifestFile
+}
+
+type ManifestFile struct {
+	Data     []byte
+	Filename string
 }
 
 // GetManifestTemplate returns the resources for EKS Connector.
@@ -33,26 +42,44 @@ func GetManifestTemplate() (ManifestTemplate, error) {
 		return ManifestTemplate{}, err
 	}
 
-	connectorBindingManifests, err := getResource(client, connectorBindingManifestsURL)
+	clusterRoleManifests, err := getResource(client, connectorBindingManifestsURL)
 	if err != nil {
 		return ManifestTemplate{}, err
 	}
+
+	consoleAccessManifests, err := getResource(client, consoleAccessManifestsURL)
+	if err != nil {
+		return ManifestTemplate{}, err
+	}
+
 	return ManifestTemplate{
-		Connector:   connectorManifests,
-		RoleBinding: connectorBindingManifests,
+		Connector:     connectorManifests,
+		ClusterRole:   clusterRoleManifests,
+		ConsoleAccess: consoleAccessManifests,
 	}, nil
 }
 
-func getResource(client *http.Client, url string) ([]byte, error) {
+func getResource(client *http.Client, url string) (ManifestFile, error) {
 	resp, err := client.Get(url)
 	if err != nil {
-		return nil, err
+		return ManifestFile{}, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.Errorf("expected status code %d; got %d", http.StatusOK, resp.StatusCode)
+		return ManifestFile{}, errors.Errorf("expected status code %d; got %d", http.StatusOK, resp.StatusCode)
 	}
-	return ioutil.ReadAll(resp.Body)
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return ManifestFile{}, err
+	}
+
+	_, filename := filepath.Split(resp.Request.URL.Path)
+
+	return ManifestFile{
+		Data:     data,
+		Filename: filename,
+	}, nil
 }
 
 // WriteResources writes the EKS Connector resources to the current directory.
@@ -70,16 +97,18 @@ func WriteResources(manifestList *ManifestList) error {
 		return nil
 	}
 
-	if err := writeFile("eks-connector.yaml", manifestList.ConnectorResources); err != nil {
-		return err
+	var filenames []string
+	for _, m := range []ManifestFile{manifestList.ConnectorResources, manifestList.ClusterRoleResources, manifestList.ConsoleAccessResources} {
+		if err := writeFile(m.Filename, m.Data); err != nil {
+			return errors.Wrapf(err, "error writing file %s", m.Filename)
+		}
+		filenames = append(filenames, m.Filename)
 	}
 
-	if err := writeFile("eks-connector-binding.yaml", manifestList.ClusterRoleResources); err != nil {
-		return err
-	}
-	// TODO blog link
-	logger.Warning(`note: ClusterRoleBinding in "eks-connector-binding.yaml" gives cluster-admin permissions to IAM identity %q, edit if required; read %s for more info`, manifestList.IAMIdentityARN, "https://eksctl.io/usage/eks-connector")
+	logger.Warning(`note: %q and %q give full EKS Console access to IAM identity %q, edit if required; read %s for more info`,
+		manifestList.ClusterRoleResources.Filename, manifestList.ConsoleAccessResources.Filename, manifestList.IAMIdentityARN,
+		"https://docs.aws.amazon.com/eks/latest/userguide/connector-grant-access.html")
 
-	logger.Info("run `kubectl apply -f eks-connector.yaml,eks-connector-binding.yaml` before %s to connect the cluster", manifestList.Expiry.Format(time.RFC822))
+	logger.Info("run `kubectl apply -f %s` before %s to connect the cluster", strings.Join(filenames, ","), manifestList.Expiry.Format(time.RFC822))
 	return nil
 }
