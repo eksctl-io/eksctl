@@ -32,30 +32,24 @@ func PopulateNodegroup(stackManager manager.StackManager, name string, cfg *api.
 func PopulateNodegroupFromStack(nodeGroupType api.NodeGroupType, nodeGroupName string, cfg *api.ClusterConfig) error {
 	switch nodeGroupType {
 	case api.NodeGroupTypeUnmanaged:
-		cfg.NodeGroups = []*api.NodeGroup{
-			{
-				NodeGroupBase: &api.NodeGroupBase{
-					Name: nodeGroupName,
-				},
+		cfg.NodeGroups = append(cfg.NodeGroups, &api.NodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name: nodeGroupName,
 			},
-		}
+		})
 	case api.NodeGroupTypeManaged:
-		cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
-			{
-				NodeGroupBase: &api.NodeGroupBase{
-					Name: nodeGroupName,
-				},
+		cfg.ManagedNodeGroups = append(cfg.ManagedNodeGroups, &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name: nodeGroupName,
 			},
-		}
+		})
 	case api.NodeGroupTypeUnowned:
-		cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
-			{
-				NodeGroupBase: &api.NodeGroupBase{
-					Name: nodeGroupName,
-				},
-				Unowned: true,
+		cfg.ManagedNodeGroups = append(cfg.ManagedNodeGroups, &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name: nodeGroupName,
 			},
-		}
+			Unowned: true,
+		})
 	}
 	return nil
 }
