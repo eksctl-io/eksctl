@@ -51,7 +51,7 @@ func NewServiceAccess(rawClient *kubernetes.RawClient, acm *AuthConfigMap, accou
 }
 
 // Grant grants access to the specified service
-func (s *ServiceAccess) Grant(serviceName, namespace string) error {
+func (s *ServiceAccess) Grant(serviceName, namespace string, partition string) error {
 	resources, serviceDetails, err := lookupService(serviceName)
 	if err != nil {
 		return err
@@ -75,7 +75,7 @@ func (s *ServiceAccess) Grant(serviceName, namespace string) error {
 	}
 
 	role := &iam.RoleIdentity{
-		RoleARN: fmt.Sprintf("arn:aws:iam::%s:role/%s", s.accountID, serviceDetails.IAMRoleName),
+		RoleARN: fmt.Sprintf("arn:%s:iam::%s:role/%s", partition, s.accountID, serviceDetails.IAMRoleName),
 		KubernetesIdentity: iam.KubernetesIdentity{
 			KubernetesUsername: string(serviceDetails.User),
 		},

@@ -112,7 +112,7 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 			return errors.Wrap(err, "error parsing cluster ARN")
 		}
 		sa := authconfigmap.NewServiceAccess(rawClient, acm, parsedARN.AccountID)
-		return sa.Grant(options.ServiceName, options.Namespace)
+		return sa.Grant(options.ServiceName, options.Namespace, api.Partition(cmd.ProviderConfig.Region))
 	}
 
 	if options.Account == "" {
