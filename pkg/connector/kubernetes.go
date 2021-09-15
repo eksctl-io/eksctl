@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	connectorManifestsURL        = "https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector/latest/eks-connector.yaml"
-	connectorBindingManifestsURL = "https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector-console-roles/eks-connector-clusterrole.yaml"
-	consoleAccessManifestsURL    = "https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector-console-roles/eks-connector-console-dashboard-full-access-group.yaml"
+	connectorManifestsURL     = "https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector/latest/eks-connector.yaml"
+	clusterRoleManifestsURL   = "https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector-console-roles/eks-connector-clusterrole.yaml"
+	consoleAccessManifestsURL = "https://amazon-eks.s3.us-west-2.amazonaws.com/eks-connector/manifests/eks-connector-console-roles/eks-connector-console-dashboard-full-access-group.yaml"
 )
 
 // ManifestTemplate holds the manifest templates for EKS Connector.
@@ -42,7 +42,7 @@ func GetManifestTemplate() (ManifestTemplate, error) {
 		return ManifestTemplate{}, err
 	}
 
-	clusterRoleManifests, err := getResource(client, connectorBindingManifestsURL)
+	clusterRoleManifests, err := getResource(client, clusterRoleManifestsURL)
 	if err != nil {
 		return ManifestTemplate{}, err
 	}

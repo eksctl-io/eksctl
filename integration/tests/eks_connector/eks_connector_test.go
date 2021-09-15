@@ -38,19 +38,22 @@ func TestEKSConnector(t *testing.T) {
 var _ = Describe("(Integration) [EKS Connector test]", func() {
 	Describe("EKS Connector", func() {
 		It("should register and deregister EKS clusters", func() {
-			By("creating an EKS cluster")
-			cmd := params.EksctlCreateCmd.
-				WithArgs(
-					"cluster",
-					"--name",
-					params.ClusterName,
-				)
+			if !params.SkipCreate {
+				By("creating an EKS cluster")
+				cmd := params.EksctlCreateCmd.
+					WithArgs(
+						"cluster",
+						"--name",
+						params.ClusterName,
+					)
 
-			Expect(cmd).To(RunSuccessfully())
+				Expect(cmd).To(RunSuccessfully())
+			}
 
 			By("registering the new cluster")
-			connectedClusterName := fmt.Sprintf("connected-%s", params.ClusterName)
-			cmd = params.EksctlRegisterCmd.WithArgs("cluster").
+			connectedClusterName := makeConnectedClusterName()
+
+			cmd := params.EksctlRegisterCmd.WithArgs("cluster").
 				WithArgs(
 					"--name", connectedClusterName,
 					"--provider", "OTHER",
@@ -137,8 +140,28 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 	})
 })
 
+func makeConnectedClusterName() string {
+	return fmt.Sprintf("connected-%s", params.ClusterName)
+}
+
+func deregisterCluster() {
+	connectedClusterName := makeConnectedClusterName()
+	cmd := params.EksctlDeregisterCmd.WithArgs("cluster").
+		WithArgs("--name", makeConnectedClusterName())
+
+	session := cmd.Run()
+	if session.ExitCode() == 0 {
+		fmt.Fprintf(GinkgoWriter, "cleaned up registered cluster %q successfully", connectedClusterName)
+	} else {
+		fmt.Fprintf(GinkgoWriter, "warning: failed to deregister cluster %q; this can be ignored if the test ran successfully to completion", connectedClusterName)
+	}
+}
+
 var _ = AfterSuite(func() {
-	params.DeleteClusters()
+	if !params.SkipCreate && !params.SkipDelete {
+		params.DeleteClusters()
+	}
+	deregisterCluster()
 })
 
 func getRawClient(clusterName, region string) *kubewrapper.RawClient {
