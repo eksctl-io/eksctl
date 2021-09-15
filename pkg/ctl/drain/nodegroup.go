@@ -64,7 +64,7 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}

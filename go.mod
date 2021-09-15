@@ -41,7 +41,7 @@ require (
 	github.com/ashanbrown/forbidigo v1.2.0 // indirect
 	github.com/ashanbrown/makezero v0.0.0-20210520155254-b6261585ddde // indirect
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.3-0.20210303155736-3e43512d88f8
-	github.com/aws/aws-sdk-go v1.40.27
+	github.com/aws/aws-sdk-go v1.40.38
 	github.com/awslabs/goformation/v4 v4.15.5 // indirect
 	github.com/bazelbuild/bazel-gazelle v0.19.1 // indirect
 	github.com/bazelbuild/buildtools v0.0.0-20190917191645-69366ca98f89 // indirect
@@ -55,15 +55,16 @@ require (
 	github.com/bombsimon/wsl/v3 v3.3.0 // indirect
 	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/caarlos0/ctrlc v1.0.0 // indirect
-	github.com/caarlos0/env/v6 v6.6.2 // indirect
+	github.com/caarlos0/env/v6 v6.7.0 // indirect
 	github.com/caarlos0/go-shellwords v1.0.12 // indirect
 	github.com/cavaliercoder/go-cpio v0.0.0-20180626203310-925f9528c45e // indirect
+	github.com/cenk/backoff v2.2.1+incompatible
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/charithe/durationcheck v0.0.8 // indirect
 	github.com/chavacava/garif v0.0.0-20210405164556-e8a0a408d6af // indirect
 	github.com/client9/misspell v0.3.4 // indirect
-	github.com/cloudflare/cfssl v1.6.1-0.20210714220611-29ae05fe80e1
+	github.com/cloudflare/cfssl v1.6.1
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/daixiang0/gci v0.2.9 // indirect
@@ -148,7 +149,7 @@ require (
 	github.com/gordonklaus/ineffassign v0.0.0-20210225214923-2e10b2664254 // indirect
 	github.com/goreleaser/chglog v0.1.2 // indirect
 	github.com/goreleaser/fileglob v1.2.0 // indirect
-	github.com/goreleaser/goreleaser v0.176.0
+	github.com/goreleaser/goreleaser v0.177.0
 	github.com/goreleaser/nfpm/v2 v2.6.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/gostaticanalysis/analysisutil v0.4.1 // indirect
@@ -380,6 +381,8 @@ require (
 	github.com/fullstorydev/grpcurl v1.8.1 // indirect
 	github.com/jhump/protoreflect v1.8.2 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/slack-go/slack v0.9.4 // indirect
+	github.com/vartanbeno/go-reddit/v2 v2.0.1 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.0 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.0 // indirect
 	go.etcd.io/etcd/client/v2 v2.305.0 // indirect

@@ -4711,6 +4711,84 @@ func (_m *CloudFormationAPI) RegisterTypeWithContext(_a0 context.Context, _a1 *c
 	return r0, r1
 }
 
+// RollbackStack provides a mock function with given fields: _a0
+func (_m *CloudFormationAPI) RollbackStack(_a0 *cloudformation.RollbackStackInput) (*cloudformation.RollbackStackOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudformation.RollbackStackOutput
+	if rf, ok := ret.Get(0).(func(*cloudformation.RollbackStackInput) *cloudformation.RollbackStackOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.RollbackStackOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudformation.RollbackStackInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RollbackStackRequest provides a mock function with given fields: _a0
+func (_m *CloudFormationAPI) RollbackStackRequest(_a0 *cloudformation.RollbackStackInput) (*request.Request, *cloudformation.RollbackStackOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudformation.RollbackStackInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudformation.RollbackStackOutput
+	if rf, ok := ret.Get(1).(func(*cloudformation.RollbackStackInput) *cloudformation.RollbackStackOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudformation.RollbackStackOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// RollbackStackWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudFormationAPI) RollbackStackWithContext(_a0 context.Context, _a1 *cloudformation.RollbackStackInput, _a2 ...request.Option) (*cloudformation.RollbackStackOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudformation.RollbackStackOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.RollbackStackInput, ...request.Option) *cloudformation.RollbackStackOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.RollbackStackOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.RollbackStackInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SetStackPolicy provides a mock function with given fields: _a0
 func (_m *CloudFormationAPI) SetStackPolicy(_a0 *cloudformation.SetStackPolicyInput) (*cloudformation.SetStackPolicyOutput, error) {
 	ret := _m.Called(_a0)

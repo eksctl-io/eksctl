@@ -70,7 +70,7 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 
 	printer := printers.NewJSONPrinter()
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}

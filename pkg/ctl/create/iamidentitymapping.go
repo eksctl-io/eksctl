@@ -65,15 +65,15 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewCtl()
+	if cfg.Metadata.Name == "" {
+		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
+	}
+
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
 	cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
-
-	if cfg.Metadata.Name == "" {
-		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
-	}
 
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err

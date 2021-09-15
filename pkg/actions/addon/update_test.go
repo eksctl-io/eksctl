@@ -111,7 +111,7 @@ var _ = Describe("Update", func() {
 			}).Return(&awseks.UpdateAddonOutput{}, nil)
 		})
 
-		When("Updating the version", func() {
+		When("updating the version", func() {
 			It("updates the addon and preserves the existing role", func() {
 				err := addonManager.Update(&api.Addon{
 					Name:    "my-addon",
@@ -265,7 +265,7 @@ var _ = Describe("Update", func() {
 
 			When("attachPolicyARNs is configured", func() {
 				When("its an update to an existing cloudformation", func() {
-					It("uses the updates stacks role", func() {
+					It("updates the stack", func() {
 						fakeStackManager.ListStacksMatchingReturns([]*manager.Stack{
 							{
 								StackName: aws.String("eksctl-my-cluster-addon-my-addon"),
@@ -299,12 +299,11 @@ var _ = Describe("Update", func() {
 						Expect(*updateAddonInput.AddonName).To(Equal("vpc-cni"))
 						Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.2"))
 						Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("new-service-account-role-arn"))
-
 					})
 				})
 
-				When("its a new set of arns", func() {
-					It("uses AttachPolicyARNS to create a role to attach to the addon", func() {
+				When("its a new set of ARNs", func() {
+					It("creates a role with the ARNs", func() {
 						err := addonManager.Update(&api.Addon{
 							Name:             "my-addon",
 							Version:          "v1.0.0-eksbuild.2",
@@ -323,6 +322,148 @@ var _ = Describe("Update", func() {
 						output, err := resourceSet.RenderJSON()
 						Expect(err).NotTo(HaveOccurred())
 						Expect(string(output)).To(ContainSubstring("arn-1"))
+
+						Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
+						Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
+						Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.2"))
+						Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("new-service-account-role-arn"))
+					})
+				})
+			})
+
+			When("attachPolicy is configured", func() {
+				When("its an update to an existing cloudformation", func() {
+					It("updates the stack", func() {
+						fakeStackManager.ListStacksMatchingReturns([]*manager.Stack{
+							{
+								StackName: aws.String("eksctl-my-cluster-addon-my-addon"),
+								Outputs: []*cloudformation.Output{
+									{
+										OutputValue: aws.String("new-service-account-role-arn"),
+										OutputKey:   aws.String("Role1"),
+									},
+								},
+							},
+						}, nil)
+
+						err := addonManager.Update(&api.Addon{
+							Name:    "vpc-cni",
+							Version: "v1.0.0-eksbuild.2",
+							AttachPolicy: api.InlineDocument{
+								"foo": "policy-bar",
+							},
+						}, false)
+
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
+						stackName, changeSetName, description, templateData, _ := fakeStackManager.UpdateStackArgsForCall(0)
+						Expect(stackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
+						Expect(changeSetName).To(ContainSubstring("updating-policy"))
+						Expect(description).To(Equal("updating policies"))
+						Expect(err).NotTo(HaveOccurred())
+						Expect(string(templateData.(manager.TemplateBody))).To(ContainSubstring("policy-bar"))
+
+						Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
+						Expect(*updateAddonInput.AddonName).To(Equal("vpc-cni"))
+						Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.2"))
+						Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("new-service-account-role-arn"))
+					})
+				})
+
+				When("its a new set of policies", func() {
+					It("creates a role with the policies", func() {
+						err := addonManager.Update(&api.Addon{
+							Name:    "my-addon",
+							Version: "v1.0.0-eksbuild.2",
+							AttachPolicy: api.InlineDocument{
+								"foo": "policy-bar",
+							},
+						}, false)
+
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
+						name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
+						Expect(name).To(Equal("eksctl-my-cluster-addon-my-addon"))
+						Expect(resourceSet).NotTo(BeNil())
+						Expect(tags).To(Equal(map[string]string{
+							api.AddonNameTag: "my-addon",
+						}))
+						output, err := resourceSet.RenderJSON()
+						Expect(err).NotTo(HaveOccurred())
+						Expect(string(output)).To(ContainSubstring("policy-bar"))
+
+						Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
+						Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
+						Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.2"))
+						Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("new-service-account-role-arn"))
+					})
+				})
+			})
+
+			When("wellKnownPolicies are configured", func() {
+				When("its an update to an existing cloudformation", func() {
+					It("updates the stack", func() {
+						fakeStackManager.ListStacksMatchingReturns([]*manager.Stack{
+							{
+								StackName: aws.String("eksctl-my-cluster-addon-my-addon"),
+								Outputs: []*cloudformation.Output{
+									{
+										OutputValue: aws.String("new-service-account-role-arn"),
+										OutputKey:   aws.String("Role1"),
+									},
+								},
+							},
+						}, nil)
+
+						err := addonManager.Update(&api.Addon{
+							Name:    "vpc-cni",
+							Version: "v1.0.0-eksbuild.2",
+							WellKnownPolicies: api.WellKnownPolicies{
+								AutoScaler: true,
+							},
+						}, false)
+
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
+						stackName, changeSetName, description, templateData, _ := fakeStackManager.UpdateStackArgsForCall(0)
+						Expect(stackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
+						Expect(changeSetName).To(ContainSubstring("updating-policy"))
+						Expect(description).To(Equal("updating policies"))
+						Expect(err).NotTo(HaveOccurred())
+						Expect(string(templateData.(manager.TemplateBody))).To(ContainSubstring("autoscaling:SetDesiredCapacity"))
+
+						Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
+						Expect(*updateAddonInput.AddonName).To(Equal("vpc-cni"))
+						Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.2"))
+						Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("new-service-account-role-arn"))
+					})
+				})
+
+				When("its a new set of well known policies", func() {
+					It("creates a role with the well known policies", func() {
+						err := addonManager.Update(&api.Addon{
+							Name:    "my-addon",
+							Version: "v1.0.0-eksbuild.2",
+							WellKnownPolicies: api.WellKnownPolicies{
+								AutoScaler: true,
+							},
+						}, false)
+
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
+						name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
+						Expect(name).To(Equal("eksctl-my-cluster-addon-my-addon"))
+						Expect(resourceSet).NotTo(BeNil())
+						Expect(tags).To(Equal(map[string]string{
+							api.AddonNameTag: "my-addon",
+						}))
+						output, err := resourceSet.RenderJSON()
+						Expect(err).NotTo(HaveOccurred())
+						Expect(string(output)).To(ContainSubstring("autoscaling:SetDesiredCapacity"))
 
 						Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
 						Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))

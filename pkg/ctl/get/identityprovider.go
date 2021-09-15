@@ -47,7 +47,7 @@ func doGetIdentityProvider(cmd *cmdutils.Cmd, params getCmdParams, name string) 
 
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
