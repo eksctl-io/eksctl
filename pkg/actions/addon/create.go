@@ -23,6 +23,7 @@ import (
 const (
 	kubeSystemNamespace = "kube-system"
 	vpcCNIName          = "vpc-cni"
+	ebsCSIDriverName    = "aws-ebs-csi-driver"
 )
 
 func (a *Manager) Create(addon *api.Addon, wait bool) error {
@@ -67,27 +68,20 @@ func (a *Manager) Create(addon *api.Addon, wait bool) error {
 				return err
 			}
 			createAddonInput.ServiceAccountRoleArn = &outputRole
-		} else {
-			policies := a.getRecommendedPolicies(addon)
-			if len(policies) != 0 {
-				logger.Info("creating role using recommended policies")
-				addon.AttachPolicyARNs = policies
-				resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicyARNs, a.oidcManager)
-				if err := resourceSet.AddAllResources(); err != nil {
-					return err
-				}
-				err := a.createStack(resourceSet, addon)
-				if err != nil {
-					return err
-				}
-				createAddonInput.ServiceAccountRoleArn = &resourceSet.OutputRole
-			} else {
-				logger.Info("no recommended policies found, proceeding without any IAM")
+		} else if a.hasRecommendedPolicies(addon) {
+			logger.Info("creating role using recommended policies")
+			a.setRecommendedPolicies(addon)
+			outputRole, err := a.createRole(addon, namespace, serviceAccount)
+			if err != nil {
+				return err
 			}
+			createAddonInput.ServiceAccountRoleArn = &outputRole
+		} else {
+			logger.Info("no recommended policies found, proceeding without any IAM")
 		}
 	} else {
 		//if any sort of policy is set or could be set, log a warning
-		if addon.ServiceAccountRoleARN != "" || hasPoliciesSet(addon) || len(a.getRecommendedPolicies(addon)) != 0 {
+		if addon.ServiceAccountRoleARN != "" || hasPoliciesSet(addon) || a.hasRecommendedPolicies(addon) {
 			logger.Warning("OIDC is disabled but policies are required/specified for this addon. Users are responsible for attaching the policies to all nodegroup roles")
 		}
 	}
@@ -179,13 +173,22 @@ func (a *Manager) patchAWSNodeDaemonSet() error {
 
 	return nil
 }
-func (a *Manager) getRecommendedPolicies(addon *api.Addon) []string {
+
+func (a *Manager) hasRecommendedPolicies(addon *api.Addon) bool {
+	updatedAddon := addon.DeepCopy()
+	a.setRecommendedPolicies(updatedAddon)
+	return hasPoliciesSet(updatedAddon)
+}
+
+func (a *Manager) setRecommendedPolicies(addon *api.Addon) {
 	// API isn't case sensitive
 	switch addon.CanonicalName() {
 	case vpcCNIName:
-		return []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}
-	default:
-		return []string{}
+		addon.AttachPolicyARNs = []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}
+	case ebsCSIDriverName:
+		addon.WellKnownPolicies = api.WellKnownPolicies{
+			EBSCSIController: true,
+		}
 	}
 }
 
