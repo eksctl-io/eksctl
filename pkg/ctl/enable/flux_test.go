@@ -106,13 +106,23 @@ var _ = Describe("enable flux", func() {
 			})
 		})
 
+		When("gitops is not provided", func() {
+			BeforeEach(func() {
+				cfg.GitOps = nil
+			})
+
+			It("fails", func() {
+				Expect(err).To(MatchError("gitops.flux must be set"))
+			})
+		})
+
 		When("gitops.flux is not provided", func() {
 			BeforeEach(func() {
 				cfg.GitOps.Flux = nil
 			})
 
 			It("fails", func() {
-				Expect(err).To(MatchError("no configuration found for enable flux"))
+				Expect(err).To(MatchError("gitops.flux must be set"))
 			})
 		})
 
