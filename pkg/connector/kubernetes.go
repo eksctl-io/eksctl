@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/afero"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 )
@@ -83,14 +85,14 @@ func getResource(client *http.Client, url string) (ManifestFile, error) {
 }
 
 // WriteResources writes the EKS Connector resources to the current directory.
-func WriteResources(manifestList *ManifestList) error {
+func WriteResources(fs afero.Fs, manifestList *ManifestList) error {
 	wd, err := os.Getwd()
 	if err != nil {
 		return errors.Wrap(err, "error getting current directory")
 	}
 
 	writeFile := func(filename string, data []byte) error {
-		if err := os.WriteFile(path.Join(wd, filename), data, 0664); err != nil {
+		if err := afero.WriteFile(fs, path.Join(wd, filename), data, 0664); err != nil {
 			return err
 		}
 		logger.Info("wrote file %s to %s", filename, wd)

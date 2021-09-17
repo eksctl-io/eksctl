@@ -26,18 +26,18 @@ type connectorCase struct {
 }
 
 var _ = Describe("EKS Connector", func() {
-	readResources := func() (connector.ManifestTemplate, error) {
-		readManifest := func(filename string) (connector.ManifestFile, error) {
-			data, err := ioutil.ReadFile(path.Join("testdata", filename))
-			if err != nil {
-				return connector.ManifestFile{}, nil
-			}
-			return connector.ManifestFile{
-				Data:     data,
-				Filename: filename,
-			}, nil
+	readManifest := func(filename string) (connector.ManifestFile, error) {
+		data, err := ioutil.ReadFile(path.Join("testdata", filename))
+		if err != nil {
+			return connector.ManifestFile{}, nil
 		}
+		return connector.ManifestFile{
+			Data:     data,
+			Filename: filename,
+		}, nil
+	}
 
+	readResources := func() (connector.ManifestTemplate, error) {
 		connectorResources, err := readManifest("eks-connector.yaml")
 		if err != nil {
 			return connector.ManifestTemplate{}, err

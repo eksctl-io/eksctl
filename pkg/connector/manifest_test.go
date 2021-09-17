@@ -1,17 +1,18 @@
-package connector
+package connector_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/connector"
 )
 
 var _ = Describe("Manifest template", func() {
 	Context("GetManifestTemplate", func() {
 		It("should fetch the template", func() {
-			template, err := GetManifestTemplate()
+			template, err := connector.GetManifestTemplate()
 			Expect(err).ToNot(HaveOccurred())
 
-			assertManifestFile := func(m ManifestFile, expectedFilename string) {
+			assertManifestFile := func(m connector.ManifestFile, expectedFilename string) {
 				Expect(m.Data).ToNot(BeEmpty())
 				Expect(m.Filename).To(Equal(expectedFilename))
 			}
