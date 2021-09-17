@@ -3,6 +3,7 @@ package connector
 import (
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -82,6 +83,28 @@ func getResource(client *http.Client, url string) (ManifestFile, error) {
 		Data:     data,
 		Filename: filename,
 	}, nil
+}
+
+// GetManifestFilenames gets the filenames for EKS Connector manifests
+func GetManifestFilenames() ([]string, error) {
+	var filenames []string
+	for _, u := range []string{connectorManifestsURL, clusterRoleManifestsURL, consoleAccessManifestsURL} {
+		filename, err := filenameFromURL(u)
+		if err != nil {
+			return nil, err
+		}
+		filenames = append(filenames, filename)
+	}
+	return filenames, nil
+}
+
+func filenameFromURL(u string) (string, error) {
+	parsed, err := url.Parse(u)
+	if err != nil {
+		return "", errors.Wrapf(err, "unexpected error getting filename for URL %q", u)
+	}
+	_, filename := filepath.Split(parsed.Path)
+	return filename, nil
 }
 
 // WriteResources writes the EKS Connector resources to the current directory.
