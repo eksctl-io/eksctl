@@ -1,6 +1,8 @@
 package deregister
 
 import (
+	"strings"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -45,6 +47,10 @@ func deregisterCluster(cmd *cmdutils.Cmd, clusterName string) error {
 	}
 
 	logger.Info("unregistered cluster %q successfully", clusterName)
-	logger.Info("run `kubectl delete namespace eks-connector` and `kubectl delete -f eks-connector-binding.yaml` on your cluster to remove EKS Connector resources")
+	manifestFilenames, err := connector.GetManifestFilenames()
+	if err != nil {
+		return err
+	}
+	logger.Info("run `kubectl delete -f %s` on your cluster to remove EKS Connector resources", strings.Join(manifestFilenames, ","))
 	return nil
 }

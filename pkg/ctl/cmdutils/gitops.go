@@ -312,8 +312,8 @@ func NewGitOpsConfigLoader(cmd *Cmd) *GitOpsConfigLoader {
 			return errors.New("config cannot be provided for git.repo, git.bootstrapProfile or git.operator alongside gitops.*")
 		}
 
-		if l.cmd.ClusterConfig.GitOps.Flux == nil {
-			return errors.New("no configuration found for enable flux")
+		if l.cmd.ClusterConfig.GitOps == nil || l.cmd.ClusterConfig.GitOps.Flux == nil {
+			return ErrMustBeSet("gitops.flux")
 		}
 
 		fluxCfg := l.cmd.ClusterConfig.GitOps.Flux

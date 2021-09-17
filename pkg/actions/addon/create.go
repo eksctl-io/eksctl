@@ -61,40 +61,33 @@ func (a *Manager) Create(addon *api.Addon, wait bool) error {
 		if addon.ServiceAccountRoleARN != "" {
 			logger.Info("using provided ServiceAccountRoleARN %q", addon.ServiceAccountRoleARN)
 			createAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
-		} else if addon.AttachPolicyARNs != nil && len(addon.AttachPolicyARNs) != 0 {
-			logger.Info("creating role using provided policies ARNs")
-			role, err := a.createRoleUsingAttachPolicyARNs(addon, namespace, serviceAccount)
+		} else if hasPoliciesSet(addon) {
+			outputRole, err := a.createRole(addon, namespace, serviceAccount)
 			if err != nil {
 				return err
 			}
-			createAddonInput.ServiceAccountRoleArn = &role
-		} else if addon.AttachPolicy != nil {
-			logger.Info("creating role using provided policies")
-			role, err := a.createRoleUsingAttachPolicy(addon, namespace, serviceAccount)
-			if err != nil {
-				return err
-			}
-			createAddonInput.ServiceAccountRoleArn = &role
+			createAddonInput.ServiceAccountRoleArn = &outputRole
 		} else {
 			policies := a.getRecommendedPolicies(addon)
 			if len(policies) != 0 {
 				logger.Info("creating role using recommended policies")
 				addon.AttachPolicyARNs = policies
-				role, err := a.createRoleUsingAttachPolicyARNs(addon, namespace, serviceAccount)
+				resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicyARNs, a.oidcManager)
+				if err := resourceSet.AddAllResources(); err != nil {
+					return err
+				}
+				err := a.createStack(resourceSet, addon)
 				if err != nil {
 					return err
 				}
-				createAddonInput.ServiceAccountRoleArn = &role
+				createAddonInput.ServiceAccountRoleArn = &resourceSet.OutputRole
 			} else {
 				logger.Info("no recommended policies found, proceeding without any IAM")
 			}
 		}
 	} else {
 		//if any sort of policy is set or could be set, log a warning
-		if addon.ServiceAccountRoleARN != "" ||
-			(addon.AttachPolicyARNs != nil && len(addon.AttachPolicyARNs) != 0) ||
-			addon.AttachPolicy != nil ||
-			len(a.getRecommendedPolicies(addon)) != 0 {
+		if addon.ServiceAccountRoleARN != "" || hasPoliciesSet(addon) || len(a.getRecommendedPolicies(addon)) != 0 {
 			logger.Warning("OIDC is disabled but policies are required/specified for this addon. Users are responsible for attaching the policies to all nodegroup roles")
 		}
 	}
@@ -207,9 +200,13 @@ func (a *Manager) getKnownServiceAccountLocation(addon *api.Addon) (string, stri
 	}
 }
 
-func (a *Manager) createRoleUsingAttachPolicyARNs(addon *api.Addon, namespace, serviceAccount string) (string, error) {
-	resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicyARNs, a.oidcManager)
-	err := resourceSet.AddAllResources()
+func hasPoliciesSet(addon *api.Addon) bool {
+	return len(addon.AttachPolicyARNs) != 0 || addon.WellKnownPolicies.HasPolicy() || addon.AttachPolicy != nil
+}
+
+func (a *Manager) createRole(addon *api.Addon, namespace, serviceAccount string) (string, error) {
+	resourceSet, err := a.createRoleResourceSet(addon, namespace, serviceAccount)
+
 	if err != nil {
 		return "", err
 	}
@@ -221,18 +218,19 @@ func (a *Manager) createRoleUsingAttachPolicyARNs(addon *api.Addon, namespace, s
 	return resourceSet.OutputRole, nil
 }
 
-func (a *Manager) createRoleUsingAttachPolicy(addon *api.Addon, namespace, serviceAccount string) (string, error) {
-	resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicy, a.oidcManager)
-	err := resourceSet.AddAllResources()
-	if err != nil {
-		return "", err
+func (a *Manager) createRoleResourceSet(addon *api.Addon, namespace, serviceAccount string) (*builder.IAMRoleResourceSet, error) {
+	var resourceSet *builder.IAMRoleResourceSet
+	if len(addon.AttachPolicyARNs) != 0 {
+		logger.Info("creating role using provided policies ARNs")
+		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicyARNs, a.oidcManager)
+	} else if addon.WellKnownPolicies.HasPolicy() {
+		logger.Info("creating role using provided well known policies")
+		resourceSet = builder.NewIAMRoleResourceSetWithWellKnownPolicies(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.WellKnownPolicies, a.oidcManager)
+	} else {
+		logger.Info("creating role using provided policies")
+		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicy, a.oidcManager)
 	}
-
-	err = a.createStack(resourceSet, addon)
-	if err != nil {
-		return "", err
-	}
-	return resourceSet.OutputRole, nil
+	return resourceSet, resourceSet.AddAllResources()
 }
 
 func (a *Manager) createStack(resourceSet builder.ResourceSet, addon *api.Addon) error {
