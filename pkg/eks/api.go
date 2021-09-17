@@ -43,6 +43,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	ekscreds "github.com/weaveworks/eksctl/pkg/credentials"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils"
@@ -160,6 +161,15 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	// Create a new session and save credentials for possible
 	// later re-use if overriding sessions due to custom URL
 	s := c.newSession(spec)
+
+	cache := os.Getenv(ekscreds.EksctlGlobalEnableCachingEnvName)
+	if s.Config != nil && cache != "" {
+		if cachedProvider, err := ekscreds.NewFileCacheProvider(spec.Profile, s.Config.Credentials, &ekscreds.RealClock{}); err == nil {
+			s.Config.Credentials = credentials.NewCredentials(&cachedProvider)
+		} else {
+			logger.Warning("Failed to use cached provider: ", err)
+		}
+	}
 
 	provider.session = s
 	provider.asg = autoscaling.New(s)

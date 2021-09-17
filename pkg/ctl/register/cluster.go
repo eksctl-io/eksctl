@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/afero"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -25,7 +27,7 @@ func registerClusterCmd(cmd *cmdutils.Cmd) {
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cluster.Name, "name", "", "EKS cluster name")
 		fs.StringVar(&cluster.Provider, "provider", "", fmt.Sprintf("Kubernetes provider name (one of %s)", strings.Join(connector.ValidProviders(), ", ")))
-		fs.StringVar(&cluster.ConnectorRole, "role-arn", "", "EKS Connector role")
+		fs.StringVar(&cluster.ConnectorRoleARN, "role-arn", "", "EKS Connector role ARN")
 
 		requiredFlags := []string{"name", "provider"}
 		for _, f := range requiredFlags {
@@ -61,5 +63,5 @@ func registerCluster(cmd *cmdutils.Cmd, cluster connector.ExternalCluster) error
 	logger.Info("registered cluster %q successfully", cluster.Name)
 
 	// TODO consider providing a manifests-dir argument to allow writing EKS Connector resources to a specific directory.
-	return connector.WriteResources(resourceList)
+	return connector.WriteResources(afero.NewOsFs(), resourceList)
 }

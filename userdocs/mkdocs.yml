@@ -55,6 +55,7 @@ nav:
             - usage/iamserviceaccounts.md
         - usage/dry-run.md
         - usage/schema.md
+        - usage/eksctl-anywhere.md
         - usage/troubleshooting.md
         - FAQ: usage/faq.md
     - Examples: "https://github.com/weaveworks/eksctl/tree/main/examples"

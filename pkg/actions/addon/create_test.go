@@ -440,6 +440,30 @@ var _ = Describe("Create", func() {
 		})
 	})
 
+	When("wellKnownPolicies is configured", func() {
+		It("uses wellKnownPolicies to create a role to attach to the addon", func() {
+			err := manager.Create(&api.Addon{
+				Name:    "my-addon",
+				Version: "v1.0.0-eksbuild.1",
+				WellKnownPolicies: api.WellKnownPolicies{
+					AutoScaler: true,
+				},
+			}, false)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
+			name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
+			Expect(name).To(Equal("eksctl-my-cluster-addon-my-addon"))
+			Expect(resourceSet).NotTo(BeNil())
+			Expect(tags).To(Equal(map[string]string{
+				api.AddonNameTag: "my-addon",
+			}))
+			output, err := resourceSet.RenderJSON()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(string(output)).To(ContainSubstring("autoscaling:SetDesiredCapacity"))
+		})
+	})
+
 	When("AttachPolicy is configured", func() {
 		It("uses AttachPolicy to create a role to attach to the addon", func() {
 			err := manager.Create(&api.Addon{

@@ -73,6 +73,11 @@
         },
         "version": {
           "type": "string"
+        },
+        "wellKnownPolicies": {
+          "$ref": "#/definitions/WellKnownPolicies",
+          "description": "for attaching common IAM policies",
+          "x-intellij-html-description": "for attaching common IAM policies"
         }
       },
       "preferredOrder": [
@@ -82,6 +87,7 @@
         "attachPolicyARNs",
         "attachPolicy",
         "permissionsBoundary",
+        "wellKnownPolicies",
         "tags"
       ],
       "additionalProperties": false,

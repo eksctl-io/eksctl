@@ -38,19 +38,22 @@ func TestEKSConnector(t *testing.T) {
 var _ = Describe("(Integration) [EKS Connector test]", func() {
 	Describe("EKS Connector", func() {
 		It("should register and deregister EKS clusters", func() {
-			By("creating an EKS cluster")
-			cmd := params.EksctlCreateCmd.
-				WithArgs(
-					"cluster",
-					"--name",
-					params.ClusterName,
-				)
+			if !params.SkipCreate {
+				By("creating an EKS cluster")
+				cmd := params.EksctlCreateCmd.
+					WithArgs(
+						"cluster",
+						"--name",
+						params.ClusterName,
+					)
 
-			Expect(cmd).To(RunSuccessfully())
+				Expect(cmd).To(RunSuccessfully())
+			}
 
 			By("registering the new cluster")
-			connectedClusterName := fmt.Sprintf("connected-%s", params.ClusterName)
-			cmd = params.EksctlRegisterCmd.WithArgs("cluster").
+			connectedClusterName := makeConnectedClusterName()
+
+			cmd := params.EksctlRegisterCmd.WithArgs("cluster").
 				WithArgs(
 					"--name", connectedClusterName,
 					"--provider", "OTHER",
@@ -62,21 +65,28 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 				ContainElement(ContainSubstring(fmt.Sprintf("registered cluster %q successfully", connectedClusterName))),
 				ContainElement(ContainSubstring(fmt.Sprintf("wrote file eks-connector.yaml to %s", wd))),
-				ContainElement(ContainSubstring(fmt.Sprintf("wrote file eks-connector-binding.yaml to %s", wd))),
+				ContainElement(ContainSubstring(fmt.Sprintf("wrote file eks-connector-clusterrole.yaml to %s", wd))),
+				ContainElement(ContainSubstring(fmt.Sprintf("wrote file eks-connector-console-dashboard-full-access-group.yaml to %s", wd))),
 			))
 
-			connectorPath := path.Join(wd, "eks-connector.yaml")
-			connectorBindingPath := path.Join("eks-connector-binding.yaml")
+			resourceFilenames := []string{"eks-connector.yaml", "eks-connector-clusterrole.yaml", "eks-connector-console-dashboard-full-access-group.yaml"}
+			var resourcePaths []string
+			for _, f := range resourceFilenames {
+				resourcePaths = append(resourcePaths, path.Join(wd, f))
+			}
 
 			defer func() {
-				os.Remove(connectorPath)
-				os.Remove(connectorBindingPath)
+				for _, f := range resourcePaths {
+					if err := os.Remove(f); err != nil {
+						fmt.Fprintf(GinkgoWriter, "unexpected error removing file %q", f)
+					}
+				}
 			}()
 
 			By("applying the generated EKS Connector manifests to the EKS cluster")
 
 			rawClient := getRawClient(params.ClusterName, params.Region)
-			for _, f := range []string{connectorPath, connectorBindingPath} {
+			for _, f := range resourcePaths {
 				bytes, err := ioutil.ReadFile(f)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(rawClient.CreateOrReplace(bytes, false)).To(Succeed())
@@ -130,8 +140,28 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 	})
 })
 
+func makeConnectedClusterName() string {
+	return fmt.Sprintf("connected-%s", params.ClusterName)
+}
+
+func deregisterCluster() {
+	connectedClusterName := makeConnectedClusterName()
+	cmd := params.EksctlDeregisterCmd.WithArgs("cluster").
+		WithArgs("--name", makeConnectedClusterName())
+
+	session := cmd.Run()
+	if session.ExitCode() == 0 {
+		fmt.Fprintf(GinkgoWriter, "cleaned up registered cluster %q successfully", connectedClusterName)
+	} else {
+		fmt.Fprintf(GinkgoWriter, "warning: failed to deregister cluster %q; this can be ignored if the test ran successfully to completion", connectedClusterName)
+	}
+}
+
 var _ = AfterSuite(func() {
-	params.DeleteClusters()
+	if !params.SkipCreate && !params.SkipDelete {
+		params.DeleteClusters()
+	}
+	deregisterCluster()
 })
 
 func getRawClient(clusterName, region string) *kubewrapper.RawClient {
