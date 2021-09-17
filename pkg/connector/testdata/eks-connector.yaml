@@ -36,7 +36,6 @@ kind: ServiceAccount
 metadata:
   name: eks-connector
   namespace: eks-connector
-# We are selectively mounting SA to certain containers only.
 automountServiceAccountToken: false
 ---
 apiVersion: v1
@@ -69,6 +68,9 @@ metadata:
 data:
   amazon-ssm-agent.json: |
     {
+      "Profile": {
+        "KeyAutoRotateDays": 7
+      },
       "Agent": {
         "ContainerMode": true
       },
@@ -80,15 +82,22 @@ data:
     }
   seelog.xml: |
     <seelog type="adaptive" mininterval="2000000" maxinterval="100000000" critmsgcount="500" minlevel="info">
-        <exceptions>
-            <exception filepattern="test*" minlevel="error"/>
-        </exceptions>
-        <outputs>
-            <console formatid="fmtinfo"/>
-        </outputs>
-        <formats>
-            <format id="fmtinfo" format="%Date %Time %LEVEL %Msg%n"/>
-        </formats>
+      <exceptions>
+        <exception filepattern="test*" minlevel="error"/>
+      </exceptions>
+      <outputs formatid="fmtinfo">
+        <console formatid="fmtinfo"/>
+        <rollingfile type="size" filename="/var/log/amazon/ssm/amazon-ssm-agent.log" maxsize="30000000" maxrolls="5"/>
+        <filter levels="error,critical" formatid="fmterror">
+            <console formatid="fmterror"/>
+            <rollingfile type="size" filename="/var/log/amazon/ssm/errors.log" maxsize="10000000" maxrolls="5"/>
+        </filter>
+      </outputs>
+      <formats>
+        <format id="fmterror" format="%Date %Time %LEVEL [%FuncShort @ %File.%Line] %Msg%n"/>
+        <format id="fmtdebug" format="%Date %Time %LEVEL [%FuncShort @ %File.%Line] %Msg%n"/>
+        <format id="fmtinfo" format="%Date %Time %LEVEL %Msg%n"/>
+      </formats>
     </seelog>
 ---
 apiVersion: apps/v1
@@ -129,7 +138,7 @@ spec:
           operator: Exists
       initContainers:
         - name: connector-init
-          image: public.ecr.aws/t3f3q7h5/h9ob0mzb:0.0.1
+          image: public.ecr.aws/eks-connector/eks-connector:0.0.2
           imagePullPolicy: IfNotPresent
           env:
             - name: POD_NAME
@@ -154,13 +163,17 @@ spec:
             - name: eks-agent-vault
               mountPath: /var/lib/amazon/ssm/Vault
           securityContext:
+            allowPrivilegeEscalation: false
             capabilities:
               drop:
                 - all
       containers:
         - name: connector-agent
-          image: public.ecr.aws/r9s4y3l0/amazon-ssm-agent:3.1.90.0
+          image: public.ecr.aws/amazon-ssm-agent/amazon-ssm-agent:3.1.90.0
           imagePullPolicy: IfNotPresent
+          env:
+            - name: AWS_EC2_METADATA_DISABLED
+              value: "true"
           volumeMounts:
             - name: eks-connector-shared
               mountPath: /var/eks/shared
@@ -180,8 +193,13 @@ spec:
               drop:
                 - all
         - name: connector-proxy
-          image: public.ecr.aws/t3f3q7h5/h9ob0mzb:0.0.1
+          image: public.ecr.aws/eks-connector/eks-connector:0.0.2
           imagePullPolicy: IfNotPresent
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           args:
             - "server"
           volumeMounts:
@@ -189,9 +207,13 @@ spec:
               mountPath: /var/run/secrets/kubernetes.io/serviceaccount
             - name: eks-connector-shared
               mountPath: /var/eks/shared
+            - name: eks-agent-vault
+              mountPath: /var/lib/amazon/ssm/Vault
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
+              add:
+                - DAC_OVERRIDE
               drop:
                 - all
       volumes:

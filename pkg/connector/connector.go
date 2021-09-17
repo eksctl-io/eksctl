@@ -46,10 +46,11 @@ type provider interface {
 }
 
 type ManifestList struct {
-	ConnectorResources   []byte
-	ClusterRoleResources []byte
-	Expiry               time.Time
-	IAMIdentityARN       string
+	ConnectorResources     ManifestFile
+	ClusterRoleResources   ManifestFile
+	ConsoleAccessResources ManifestFile
+	Expiry                 time.Time
+	IAMIdentityARN         string
 }
 
 var ValidProviders = eks.ConnectorConfigProvider_Values
@@ -108,19 +109,21 @@ func (c *EKSConnector) createManifests(cluster *eks.Cluster) (*ManifestList, err
 		return nil, errors.Wrap(err, "error canonicalizing IAM role ARN")
 	}
 
-	clusterRoleResources := c.parseRoleBindingTemplate(roleARN)
+	clusterRoleResources := c.applyRoleARN(c.ManifestTemplate.ClusterRole, roleARN)
+	consoleAccessResources := c.applyRoleARN(c.ManifestTemplate.ConsoleAccess, roleARN)
 
-	for _, r := range [][]byte{connectorResources, clusterRoleResources} {
-		if _, err := kubernetes.NewList(r); err != nil {
-			return nil, errors.Wrapf(err, "unexpected error parsing manifests for EKS Connector: %s", string(r))
+	for _, m := range []ManifestFile{connectorResources, clusterRoleResources, consoleAccessResources} {
+		if _, err := kubernetes.NewList(m.Data); err != nil {
+			return nil, errors.Wrapf(err, "unexpected error parsing manifests for EKS Connector: %s", m.Filename)
 		}
 	}
 
 	return &ManifestList{
-		ConnectorResources:   connectorResources,
-		ClusterRoleResources: clusterRoleResources,
-		Expiry:               *cluster.ConnectorConfig.ActivationExpiry,
-		IAMIdentityARN:       roleARN,
+		ConnectorResources:     connectorResources,
+		ClusterRoleResources:   clusterRoleResources,
+		ConsoleAccessResources: consoleAccessResources,
+		Expiry:                 *cluster.ConnectorConfig.ActivationExpiry,
+		IAMIdentityARN:         roleARN,
 	}, nil
 }
 
@@ -177,16 +180,24 @@ func (c *EKSConnector) registerCluster(cluster ExternalCluster, connectorRoleARN
 	return registerOutput, nil
 }
 
-func (c *EKSConnector) parseConnectorTemplate(cluster *eks.Cluster) []byte {
+func (c *EKSConnector) parseConnectorTemplate(cluster *eks.Cluster) ManifestFile {
 	activationCode := base64.StdEncoding.EncodeToString([]byte(*cluster.ConnectorConfig.ActivationCode))
-	connectorResources := applyVariables(c.ManifestTemplate.Connector, "%EKS_ACTIVATION_ID%", *cluster.ConnectorConfig.ActivationId)
+	manifestFile := c.ManifestTemplate.Connector
+	connectorResources := applyVariables(manifestFile.Data, "%EKS_ACTIVATION_ID%", *cluster.ConnectorConfig.ActivationId)
 	connectorResources = applyVariables(connectorResources, "%EKS_ACTIVATION_CODE%", activationCode)
 	connectorResources = applyVariables(connectorResources, "%AWS_REGION%", c.Provider.Region())
-	return connectorResources
+	return ManifestFile{
+		Data:     connectorResources,
+		Filename: manifestFile.Filename,
+	}
 }
 
-func (c *EKSConnector) parseRoleBindingTemplate(iamARN string) []byte {
-	return applyVariables(c.ManifestTemplate.RoleBinding, `%IAM_ARN%`, iamARN)
+func (c *EKSConnector) applyRoleARN(manifestFile ManifestFile, iamRoleARN string) ManifestFile {
+	resources := applyVariables(manifestFile.Data, `%IAM_ARN%`, iamRoleARN)
+	return ManifestFile{
+		Data:     resources,
+		Filename: manifestFile.Filename,
+	}
 }
 
 func applyVariables(template []byte, field, value string) []byte {
