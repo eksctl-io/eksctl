@@ -1391,6 +1391,10 @@ type NodeGroupBase struct {
 	// This is a hack, will be removed shortly. When this is true for Ubuntu and
 	// AL2 images a legacy bootstrapper will be used.
 	CustomAMI bool `json:"-"`
+
+	// Enable EC2 detailed monitoring
+	// +optional
+	EnableDetailedMonitoring *bool `json:"enableDetailedMonitoring,omitempty"`
 }
 
 // Placement specifies placement group information

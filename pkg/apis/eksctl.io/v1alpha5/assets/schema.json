@@ -955,6 +955,11 @@
           "description": "creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
           "x-intellij-html-description": "creates the maximum allowed number of EFA-enabled network cards on nodes in this group."
         },
+        "enableDetailedMonitoring": {
+          "type": "boolean",
+          "description": "Enable EC2 detailed monitoring",
+          "x-intellij-html-description": "Enable EC2 detailed monitoring"
+        },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
         },
@@ -1148,6 +1153,7 @@
         "efaEnabled",
         "instanceSelector",
         "bottlerocket",
+        "enableDetailedMonitoring",
         "instanceTypes",
         "spot",
         "taints",
@@ -1281,6 +1287,11 @@
           "type": "boolean",
           "description": "creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
           "x-intellij-html-description": "creates the maximum allowed number of EFA-enabled network cards on nodes in this group."
+        },
+        "enableDetailedMonitoring": {
+          "type": "boolean",
+          "description": "Enable EC2 detailed monitoring",
+          "x-intellij-html-description": "Enable EC2 detailed monitoring"
         },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
@@ -1464,6 +1475,7 @@
         "efaEnabled",
         "instanceSelector",
         "bottlerocket",
+        "enableDetailedMonitoring",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",
