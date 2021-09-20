@@ -17,17 +17,18 @@ $ eksctl register cluster --name <name> --provider <provider>
 2021-08-19 13:47:26 [ℹ]  wrote file eks-connector.yaml to <current directory>
 2021-08-19 13:47:26 [ℹ]  wrote file eks-connector-clusterrole.yaml to <current directory>
 2021-08-19 13:47:26 [ℹ]  wrote file eks-connector-console-dashboard-full-access-group.yaml to <current directory>
-2021-08-19 13:47:26 [!]  note: ClusterRoleBinding in "eks-connector-binding.yaml" gives cluster-admin permissions to IAM identity "<aws-arn>", edit if required; read https://eksct.io/usage/eks-connector for more info
+2021-08-19 13:47:26 [!]  note: "eks-connector-clusterrole.yaml" and "eks-connector-console-dashboard-full-access-group.yaml" give full EKS Console access to IAM identity "<aws-arn>", edit if required; read https://eksctl.io/usage/eks-connector for more info
 2021-08-19 13:47:26 [ℹ]  run `kubectl apply -f eks-connector.yaml,eks-connector-clusterrole.yaml,eks-connector-console-dashboard-full-access-group.yaml` before <expiry> to connect the cluster
 
 ```
 
-This command will register the cluster and write two files `eks-connector.yaml` and `eks-connector-binding.yaml` that contain
-the Kubernetes manifests for EKS Connector that must be applied to the external cluster before the registration expires.
+This command will register the cluster and write three files that contain the Kubernetes manifests for EKS Connector
+that must be applied to the external cluster before the registration expires.
 
 !!!note
-`eks-connector-binding.yaml` contains a `ClusterRoleBinding` that gives `cluster-admin` permissions to the calling
-IAM identity and must be edited accordingly if required before applying it to the cluster.
+`eks-connector-clusterrole.yaml` and `eks-connector-console-dashboard-full-access-clusterrole.yaml` give `get` and `list` permissions for Kubernetes resources
+in all namespaces to the calling IAM identity and must be edited accordingly if required before applying them to the cluster.
+To configure more restricted access, see [Granting access to a user to view a cluster](https://docs.aws.amazon.com/eks/latest/userguide/connector-grant-access.html).
 
 To provide an existing IAM role to use for EKS Connector, pass it via `--role-arn` as in:
 
