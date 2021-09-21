@@ -154,21 +154,14 @@ func checkForUndeletedStacks(stackManager manager.StackManager) error {
 	return nil
 }
 
-func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubernetes.Interface) error {
-	allStacks, err := stackManager.ListNodeGroupStacks()
-	if err != nil {
-		return err
-	}
-
+func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack) error {
 	if len(allStacks) == 0 {
 		return nil
 	}
 
 	for _, s := range allStacks {
 		if s.Type == api.NodeGroupTypeUnmanaged {
-			if err := cmdutils.PopulateNodegroupFromStack(s.Type, s.NodeGroupName, cfg); err != nil {
-				return err
-			}
+			cmdutils.PopulateUnmanagedNodegroup(s.NodeGroupName, cfg)
 		}
 	}
 

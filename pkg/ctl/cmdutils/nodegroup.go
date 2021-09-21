@@ -32,11 +32,7 @@ func PopulateNodegroup(stackManager manager.StackManager, name string, cfg *api.
 func PopulateNodegroupFromStack(nodeGroupType api.NodeGroupType, nodeGroupName string, cfg *api.ClusterConfig) error {
 	switch nodeGroupType {
 	case api.NodeGroupTypeUnmanaged:
-		cfg.NodeGroups = append(cfg.NodeGroups, &api.NodeGroup{
-			NodeGroupBase: &api.NodeGroupBase{
-				Name: nodeGroupName,
-			},
-		})
+		PopulateUnmanagedNodegroup(nodeGroupName, cfg)
 	case api.NodeGroupTypeManaged:
 		cfg.ManagedNodeGroups = append(cfg.ManagedNodeGroups, &api.ManagedNodeGroup{
 			NodeGroupBase: &api.NodeGroupBase{
@@ -52,4 +48,13 @@ func PopulateNodegroupFromStack(nodeGroupType api.NodeGroupType, nodeGroupName s
 		})
 	}
 	return nil
+}
+
+// PopulateUnmanagedNodegroup populates the unmanaged nodegroup field of a ClucterConfig.
+func PopulateUnmanagedNodegroup(nodeGroupName string, cfg *api.ClusterConfig) {
+	cfg.NodeGroups = append(cfg.NodeGroups, &api.NodeGroup{
+		NodeGroupBase: &api.NodeGroupBase{
+			Name: nodeGroupName,
+		},
+	})
 }

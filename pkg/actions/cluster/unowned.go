@@ -69,6 +69,11 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force bool) er
 		logger.Debug("failed to check if cluster is operable: %v", err)
 	}
 
+	allStacks, err := c.stackManager.ListNodeGroupStacks()
+	if err != nil {
+		return err
+	}
+
 	var clientSet kubernetes.Interface
 	if clusterOperable {
 		clientSet, err = c.newClientSet()
@@ -76,7 +81,7 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force bool) er
 			return err
 		}
 
-		if err := drainAllNodegroups(c.cfg, c.ctl, c.stackManager, clientSet); err != nil {
+		if err := drainAllNodegroups(c.cfg, c.ctl, c.stackManager, clientSet, allStacks); err != nil {
 			return err
 		}
 	}
@@ -97,7 +102,7 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force bool) er
 
 	// we have to wait for nodegroups to delete before deleting the cluster
 	// so the `wait` value is ignored here
-	if err := c.deleteAndWaitForNodegroupsDeletion(waitInterval); err != nil {
+	if err := c.deleteAndWaitForNodegroupsDeletion(waitInterval, allStacks); err != nil {
 		return err
 	}
 
@@ -241,7 +246,7 @@ func (c *UnownedCluster) deleteCluster(wait bool) error {
 	return waiters.Wait(clusterName, msg, acceptors, newRequest, c.ctl.Provider.WaitTimeout(), nil)
 }
 
-func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(waitInterval time.Duration) error {
+func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(waitInterval time.Duration, allStacks []manager.NodeGroupStack) error {
 	clusterName := c.cfg.Metadata.Name
 	eksAPI := c.ctl.Provider.EKS()
 
@@ -249,12 +254,6 @@ func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(waitInterval time.Du
 	nodeGroups, err := eksAPI.ListNodegroups(&awseks.ListNodegroupsInput{
 		ClusterName: &clusterName,
 	})
-	if err != nil {
-		return err
-	}
-
-	// get all nodegroup stacks for this cluster
-	allStacks, err := c.stackManager.ListNodeGroupStacks()
 	if err != nil {
 		return err
 	}
