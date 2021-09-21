@@ -125,6 +125,7 @@ type LaunchTemplateData struct {
 	UserData, InstanceType, ImageID string
 	BlockDeviceMappings             []BlockDeviceMappings
 	EbsOptimized                    *bool
+	Monitoring                      *Monitoring
 	NetworkInterfaces               []NetworkInterface
 	InstanceMarketOptions           *struct {
 		MarketType  string
@@ -166,4 +167,8 @@ type NetworkInterface struct {
 	AssociatePublicIPAddress bool
 	NetworkCardIndex         int
 	InterfaceType            string
+}
+
+type Monitoring struct {
+	Enabled bool
 }
