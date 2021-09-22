@@ -11,13 +11,15 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/utils"
+
+	kubeletapi "k8s.io/kubelet/config/v1beta1"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/bindata"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/legacy"
-	kubeletapi "k8s.io/kubelet/config/v1beta1"
 )
 
 //go:generate ${GOBIN}/go-bindata -pkg bindata -prefix assets -nometadata -o bindata/assets.go bindata/assets
@@ -48,7 +50,7 @@ func NewBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) (Boots
 		ng.ClusterDNS = clusterDNS
 	}
 	if api.IsWindowsImage(ng.AMIFamily) {
-		return NewWindowsBootstrapper(clusterConfig.Metadata.Name, ng), nil
+		return NewWindowsBootstrapper(clusterConfig, ng), nil
 	}
 	switch ng.AMIFamily {
 	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
@@ -180,6 +182,10 @@ func makeBootstrapEnv(clusterConfig *api.ClusterConfig, np api.NodePool) cloudco
 
 	if unmanaged, ok := np.(*api.NodeGroup); ok && unmanaged.ClusterDNS != "" {
 		variables["CLUSTER_DNS"] = unmanaged.ClusterDNS
+	}
+
+	if unmanaged, ok := np.(*api.NodeGroup); ok && ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 {
+		variables["CONTAINER_RUNTIME"] = unmanaged.GetContainerRuntime()
 	}
 
 	return cloudconfig.File{

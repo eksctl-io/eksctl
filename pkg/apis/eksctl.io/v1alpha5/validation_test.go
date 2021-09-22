@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
@@ -48,6 +49,57 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg.NodeGroups[0].Name = ""
 
 			err = api.ValidateClusterConfig(cfg)
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	Describe("nodeGroups[*].name validation", func() {
+		var (
+			cfg *api.ClusterConfig
+			err error
+		)
+
+		BeforeEach(func() {
+			cfg = api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "ng_invalid-name-10"
+			ng1 := cfg.NewNodeGroup()
+			ng1.Name = "ng100_invalid_name"
+			ng2 := cfg.NewNodeGroup()
+			ng2.Name = "ng100@invalid-name"
+		})
+
+		It("should reject invalid nodegroup names", func() {
+			err = api.ValidateClusterConfig(cfg)
+			Expect(err).ToNot(HaveOccurred())
+
+			for i, ng := range cfg.NodeGroups {
+				err = api.ValidateNodeGroup(i, ng)
+				Expect(err).To(HaveOccurred())
+			}
+		})
+	})
+
+	Describe("nodeGroups[*].containerRuntime validation", func() {
+		It("should reject invalid container runtime", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.ContainerRuntime = aws.String("invalid")
+			err := api.ValidateClusterConfig(cfg)
+			Expect(err).ToNot(HaveOccurred())
+			err = api.ValidateNodeGroup(0, ng0)
+			Expect(err).To(HaveOccurred())
+		})
+		It("containerd is only allowed for AL2", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeContainerD)
+			ng0.AMIFamily = api.NodeImageFamilyBottlerocket
+			err := api.ValidateClusterConfig(cfg)
+			Expect(err).ToNot(HaveOccurred())
+			err = api.ValidateNodeGroup(0, ng0)
 			Expect(err).To(HaveOccurred())
 		})
 	})

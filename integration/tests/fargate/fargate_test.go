@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package fargate
@@ -77,7 +78,7 @@ var _ = Describe("(Integration) Fargate", func() {
 
 		By("scheduling pods matching the default profile onto Fargate")
 		d := kubeTest.CreateDeploymentFromFile("default", "../../data/podinfo.yaml")
-		kubeTest.WaitForDeploymentReady(d, 5*time.Minute)
+		kubeTest.WaitForDeploymentReady(d, 10*time.Minute)
 
 		pods := kubeTest.ListPodsFromDeployment(d)
 		Expect(len(pods.Items)).To(Equal(2))
@@ -113,7 +114,7 @@ var _ = Describe("(Integration) Fargate", func() {
 		d.Spec.Template.Labels["run-on"] = "fargate"
 
 		kubeTest.CreateDeployment(kubeTest.Namespace, d)
-		kubeTest.WaitForDeploymentReady(d, 5*time.Minute)
+		kubeTest.WaitForDeploymentReady(d, 10*time.Minute)
 		pods := kubeTest.ListPodsFromDeployment(d)
 		Expect(len(pods.Items)).To(Equal(2))
 		for _, pod := range pods.Items {

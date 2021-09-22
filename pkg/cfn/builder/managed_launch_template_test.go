@@ -159,7 +159,6 @@ API_SERVER_URL=https://test.com
 					SSH: &api.NodeGroupSSH{
 						Allow:         api.Enabled(),
 						PublicKeyName: aws.String("test-keypair"),
-						EnableSSM:     api.Enabled(),
 					},
 				},
 			},
@@ -175,7 +174,6 @@ API_SERVER_URL=https://test.com
 					SSH: &api.NodeGroupSSH{
 						Allow:         api.Disabled(),
 						PublicKeyName: aws.String("test-keypair"),
-						EnableSSM:     api.Enabled(),
 					},
 				},
 			},

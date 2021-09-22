@@ -1,6 +1,7 @@
 # Unmanaged nodegroup upgrades
 
-In `eksctl`, creating a new cluster or nodegroup will create an unmanaged nodegroup by default, unless otherwise specified, such as by adding `--managed`. Bear in mind that unmanaged nodegroups do not appear in the EKS console, which as a general rule only knows about EKS-managed nodegroups.
+In `eksctl`, setting `--managed=false` or using the `nodeGroups` field creates an unmanaged nodegroup. Bear in mind that
+unmanaged nodegroups do not appear in the EKS console, which as a general rule only knows about EKS-managed nodegroups.
 
 You should be upgrading nodegroups only after you ran `eksctl upgrade cluster`.
 (See [Upgrading clusters](/usage/cluster-upgrade).)
@@ -20,7 +21,7 @@ eksctl get nodegroups --cluster=<clusterName>
 Create new nodegroup:
 
 ```
-eksctl create nodegroup --cluster=<clusterName>
+eksctl create nodegroup --cluster=<clusterName> --managed=false
 ```
 
 Delete old nodegroup:
@@ -46,7 +47,7 @@ In general terms, you are looking to:
 To create a new nodegroup:
 
 ```
-eksctl create nodegroup --cluster=<clusterName> --name=<newNodeGroupName>
+eksctl create nodegroup --cluster=<clusterName> --name=<newNodeGroupName> --managed=false
 ```
 
 To delete old nodegroup:

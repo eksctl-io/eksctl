@@ -56,7 +56,7 @@ func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
 		return cmdutils.ErrUnsupportedNameArg()
 	}
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}

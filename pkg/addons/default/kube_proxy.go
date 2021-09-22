@@ -41,7 +41,10 @@ func IsKubeProxyUpToDate(clientSet kubernetes.Interface, controlPlaneVersion str
 		return false, fmt.Errorf("%s has %d containers, expected at least 1", KubeProxy, numContainers)
 	}
 
-	desiredTag := kubeProxyImageTag(controlPlaneVersion)
+	desiredTag, err := kubeProxyImageTag(controlPlaneVersion)
+	if err != nil {
+		return false, err
+	}
 	image := d.Spec.Template.Spec.Containers[0].Image
 	imageTag, err := addons.ImageTag(image)
 	if err != nil {
@@ -92,7 +95,10 @@ func UpdateKubeProxy(clientSet kubernetes.Interface, controlPlaneVersion string,
 		return false, fmt.Errorf("unexpected image format %q for %q", *image, KubeProxy)
 	}
 
-	desiredTag := kubeProxyImageTag(controlPlaneVersion)
+	desiredTag, err := kubeProxyImageTag(controlPlaneVersion)
+	if err != nil {
+		return false, err
+	}
 
 	if imageParts[1] == desiredTag && hasArm64NodeSelector {
 		logger.Debug("imageParts = %v, desiredTag = %s", imageParts, desiredTag)
@@ -155,6 +161,6 @@ func addArm64NodeSelector(daemonSet *v1.DaemonSet, archLabel string) {
 	}
 }
 
-func kubeProxyImageTag(controlPlaneVersion string) string {
-	return fmt.Sprintf("v%s-eksbuild.1", controlPlaneVersion)
+func kubeProxyImageTag(controlPlaneVersion string) (string, error) {
+	return fmt.Sprintf("v%s-eksbuild.1", controlPlaneVersion), nil
 }

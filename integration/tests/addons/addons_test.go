@@ -1,16 +1,21 @@
+//go:build integration
 // +build integration
 
 package addons
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"testing"
 
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks"
+	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -36,7 +41,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		BeforeSuite(func() {
 			clusterConfig := api.NewClusterConfig()
 			clusterConfig.Metadata.Name = clusterName
-			clusterConfig.Metadata.Version = "1.20"
+			clusterConfig.Metadata.Version = api.LatestVersion
 			clusterConfig.Metadata.Region = params.Region
 			clusterConfig.IAM.WithOIDC = api.Enabled()
 			clusterConfig.Addons = []*api.Addon{
@@ -143,6 +148,21 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 					"--verbose", "2",
 				)
 			Expect(cmd).To(RunSuccessfully())
+
+			By("Deleting the vpc-cni addon with --preserve")
+			cmd = params.EksctlDeleteCmd.
+				WithArgs(
+					"addon",
+					"--name", "vpc-cni",
+					"--preserve",
+					"--cluster", clusterName,
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfully())
+
+			rawClient := getRawClient(clusterName)
+			_, err := rawClient.ClientSet().AppsV1().DaemonSets("kube-system").Get(context.Background(), "aws-node", metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 
@@ -150,11 +170,27 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 		cmd := params.EksctlUtilsCmd.
 			WithArgs(
 				"describe-addon-versions",
-				"--kubernetes-version", "1.20",
+				"--kubernetes-version", api.LatestVersion,
 			)
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 			ContainElement(ContainSubstring("vpc-cni")),
 		))
 	})
-
 })
+
+func getRawClient(clusterName string) *kubewrapper.RawClient {
+	cfg := &api.ClusterConfig{
+		Metadata: &api.ClusterMeta{
+			Name:   clusterName,
+			Region: params.Region,
+		},
+	}
+	ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = ctl.RefreshClusterStatus(cfg)
+	Expect(err).ShouldNot(HaveOccurred())
+	rawClient, err := ctl.NewRawClient(cfg)
+	Expect(err).ToNot(HaveOccurred())
+	return rawClient
+}

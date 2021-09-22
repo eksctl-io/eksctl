@@ -5,7 +5,8 @@ run the integration tests.
 
 > **Note**: remember to replace `<account_id>` with your own.
 
-!!!info An AWS Managed Policy is created and administered by AWS. You cannot change the permissions defined in AWS managed policies.
+!!!info
+    An AWS Managed Policy is created and administered by AWS. You cannot change the permissions defined in AWS managed policies.
 
 AmazonEC2FullAccess (AWS Managed Policy)
 ```
@@ -130,6 +131,7 @@ IamLimitedAccess
                 "iam:GetOpenIDConnectProvider",
                 "iam:CreateOpenIDConnectProvider",
                 "iam:DeleteOpenIDConnectProvider",
+                "iam:TagOpenIDConnectProvider",                
                 "iam:ListAttachedRolePolicies",
                 "iam:TagRole"
             ],

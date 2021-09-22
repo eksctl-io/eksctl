@@ -3,17 +3,21 @@ package v1alpha5
 import (
 	"fmt"
 	"net"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/utils/taints"
+
 	corev1 "k8s.io/api/core/v1"
 
+	"github.com/weaveworks/eksctl/pkg/utils/taints"
+
 	"k8s.io/apimachinery/pkg/util/validation"
-	kubeletapis "k8s.io/kubernetes/pkg/kubelet/apis"
+	kubeletapis "k8s.io/kubelet/pkg/apis"
 )
 
 // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-blockdevicemapping-ebs.html
@@ -124,6 +128,14 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 				return fmt.Errorf("log type %q (cloudWatch.clusterLogging.enableTypes[%d]) is unknown", logType, i)
 			}
 		}
+	}
+
+	if cfg.VPC != nil && len(cfg.VPC.ExtraCIDRs) > 0 {
+		cidrs, err := validateCIDRs(cfg.VPC.ExtraCIDRs)
+		if err != nil {
+			return err
+		}
+		cfg.VPC.ExtraCIDRs = cidrs
 	}
 
 	if cfg.VPC != nil && len(cfg.VPC.PublicAccessCIDRs) > 0 {
@@ -258,6 +270,15 @@ func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
 		return fmt.Errorf("AMI Family %s is not supported - use one of: %s", ng.AMIFamily, strings.Join(supportedAMIFamilies(), ", "))
 	}
 
+	if ng.SSH != nil {
+		if enableSSM := ng.SSH.EnableSSM; enableSSM != nil {
+			if !*enableSSM {
+				return errors.New("SSM agent is now built into EKS AMIs and cannot be disabled")
+			}
+			logger.Warning("SSM is now enabled by default; `ssh.enableSSM` is deprecated and will be removed in a future release")
+		}
+	}
+
 	return nil
 }
 
@@ -326,10 +347,33 @@ func (ue *unsupportedFieldError) Error() string {
 	return fmt.Sprintf("%s is not supported for %s nodegroups (path=%s.%s)", ue.field, ue.ng.AMIFamily, ue.path, ue.field)
 }
 
+// IsInvalidNameArg checks whether the name contains invalid characters
+func IsInvalidNameArg(name string) bool {
+	re := regexp.MustCompile(`[^a-zA-Z0-9\-]+`)
+	return re.MatchString(name)
+}
+
+// errInvalidName error when invalid characters for a name is provided
+func ErrInvalidName(name string) error {
+	return fmt.Errorf("validation for %s failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*", name)
+}
+
+func validateNodeGroupName(name string) error {
+	if name != "" && IsInvalidNameArg(name) {
+		return ErrInvalidName(name)
+	}
+
+	return nil
+}
+
 // ValidateNodeGroup checks compatible fields of a given nodegroup
 func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	path := fmt.Sprintf("nodeGroups[%d]", i)
 	if err := validateNodeGroupBase(ng.NodeGroupBase, path); err != nil {
+		return err
+	}
+
+	if err := validateNodeGroupName(ng.Name); err != nil {
 		return err
 	}
 
@@ -409,6 +453,16 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 
 	if err := validateASGSuspendProcesses(ng); err != nil {
 		return err
+	}
+
+	if ng.ContainerRuntime != nil {
+		if *ng.ContainerRuntime == ContainerRuntimeContainerD && ng.AMIFamily != NodeImageFamilyAmazonLinux2 {
+			// check if it's dockerd or containerd
+			return fmt.Errorf("%s as runtime is only support for AL2 ami family", ContainerRuntimeContainerD)
+		}
+		if *ng.ContainerRuntime != ContainerRuntimeDockerD && *ng.ContainerRuntime != ContainerRuntimeContainerD {
+			return fmt.Errorf("only %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD)
+		}
 	}
 
 	return nil

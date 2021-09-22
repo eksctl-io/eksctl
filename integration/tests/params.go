@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package tests
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	. "github.com/onsi/ginkgo"
+
 	"github.com/weaveworks/eksctl/integration/runner"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
@@ -47,6 +49,10 @@ type Params struct {
 	EksctlScaleNodeGroupCmd  runner.Cmd
 	EksctlUtilsCmd           runner.Cmd
 	EksctlEnableCmd          runner.Cmd
+	EksctlAnywhereCmd        runner.Cmd
+	EksctlHelpCmd            runner.Cmd
+	EksctlRegisterCmd        runner.Cmd
+	EksctlDeregisterCmd      runner.Cmd
 	// Keep track of created clusters, for post-tests clean-up.
 	clustersToDelete []string
 }
@@ -68,6 +74,10 @@ func (p *Params) GenerateKubeconfigPath() {
 func (p *Params) GenerateCommands() {
 	p.EksctlCmd = runner.NewCmd(p.EksctlPath).
 		WithArgs("--region", p.Region).
+		WithTimeout(30 * time.Minute)
+
+	p.EksctlHelpCmd = runner.NewCmd(p.EksctlPath).
+		WithArgs("--help").
 		WithTimeout(30 * time.Minute)
 
 	p.EksctlCreateCmd = p.EksctlCmd.
@@ -118,10 +128,21 @@ func (p *Params) GenerateCommands() {
 		WithArgs("enable").
 		WithTimeout(10 * time.Minute)
 
+	p.EksctlRegisterCmd = runner.NewCmd(p.EksctlPath).
+		WithArgs("register").
+		WithTimeout(2 * time.Minute)
+
+	p.EksctlDeregisterCmd = runner.NewCmd(p.EksctlPath).
+		WithArgs("deregister").
+		WithTimeout(1 * time.Minute)
+
 	p.EksctlCreateNodegroupCmd = runner.NewCmd(p.EksctlPath).
 		WithArgs("create", "nodegroup").
 		WithTimeout(40 * time.Minute)
 
+	p.EksctlAnywhereCmd = runner.NewCmd(p.EksctlPath).
+		WithArgs("anywhere").
+		WithTimeout(1 * time.Minute)
 }
 
 // NewClusterName generates a new cluster name using the provided prefix, and

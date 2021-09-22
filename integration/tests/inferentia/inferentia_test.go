@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package inferentia
@@ -140,11 +141,12 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 				Expect(err).Should(BeNotFoundError())
 			})
 
-			When("adding a nodegroup by default", func() {
+			When("adding an unmanaged nodegroup by default", func() {
 				It("should install without error", func() {
 					cmd := params.EksctlCreateCmd.WithArgs(
 						"nodegroup",
 						"--cluster", clusterWithoutPlugin,
+						"--managed=false",
 						"--nodes", "1",
 						"--verbose", "4",
 						"--name", newNG,

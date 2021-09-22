@@ -39,7 +39,6 @@ func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddClusterFlag(fs, cmd.ClusterConfig.Metadata)
 
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
-		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmd.Wait = true
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "nodegroup upgrade to complete")
 
@@ -69,7 +68,7 @@ func upgradeNodeGroup(cmd *cmdutils.Cmd, options managed.UpgradeOptions) error {
 		return cmdutils.ErrMustBeSet("name")
 	}
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
@@ -83,6 +82,6 @@ func upgradeNodeGroup(cmd *cmdutils.Cmd, options managed.UpgradeOptions) error {
 		return err
 	}
 
-	return nodegroup.New(cfg, ctl, clientSet).Upgrade(options)
+	return nodegroup.New(cfg, ctl, clientSet).Upgrade(options, cmd.Wait)
 
 }

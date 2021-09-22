@@ -16,7 +16,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
-func (m *Manager) Upgrade(options managed.UpgradeOptions) error {
+func (m *Manager) Upgrade(options managed.UpgradeOptions, wait bool) error {
 	stackCollection := manager.NewStackCollection(m.ctl.Provider, m.cfg)
 	hasStacks, err := m.hasStacks(options.NodegroupName)
 	if err != nil {
@@ -34,10 +34,21 @@ func (m *Manager) Upgrade(options managed.UpgradeOptions) error {
 		return managedService.UpgradeNodeGroup(options)
 	}
 
-	return m.upgradeAndWait(options)
+	if err := m.upgrade(options); err != nil {
+		return err
+	}
+
+	if wait {
+		return m.waitForUpgrade(options)
+	}
+
+	logger.Info("nodegroup upgrade request submitted successfully")
+
+	return nil
+
 }
 
-func (m *Manager) upgradeAndWait(options managed.UpgradeOptions) error {
+func (m *Manager) upgrade(options managed.UpgradeOptions) error {
 	input := &eks.UpdateNodegroupVersionInput{
 		ClusterName:   &m.cfg.Metadata.Name,
 		Force:         &options.ForceUpgrade,
@@ -92,6 +103,10 @@ func (m *Manager) upgradeAndWait(options managed.UpgradeOptions) error {
 	}
 
 	logger.Info("upgrade of nodegroup %q in progress", options.NodegroupName)
+	return nil
+}
+
+func (m *Manager) waitForUpgrade(options managed.UpgradeOptions) error {
 
 	newRequest := func() *request.Request {
 		input := &eks.DescribeNodegroupInput{
@@ -112,7 +127,7 @@ func (m *Manager) upgradeAndWait(options managed.UpgradeOptions) error {
 		},
 	)
 
-	err = m.wait(options.NodegroupName, msg, acceptors, newRequest, m.ctl.Provider.WaitTimeout(), nil)
+	err := m.wait(options.NodegroupName, msg, acceptors, newRequest, m.ctl.Provider.WaitTimeout(), nil)
 	if err != nil {
 		return err
 	}

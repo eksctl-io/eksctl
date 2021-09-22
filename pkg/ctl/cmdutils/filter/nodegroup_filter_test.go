@@ -339,7 +339,7 @@ const expected = `
 		"metadata": {
 		  "name": "test-3x3-ngs",
 		  "region": "eu-central-1",
-		  "version": "1.19"
+		  "version": "1.20"
 		},
 		"iam": {
 		  "withOIDC": false
@@ -402,7 +402,8 @@ const expected = `
 			  },
 			  "disableIMDSv1": false,
 			  "disablePodIMDS": false,
-			  "instanceSelector": {}
+			  "instanceSelector": {},
+			  "containerRuntime": "dockerd"
 		  },
 		  {
 			  "name": "test-ng2a",
@@ -445,7 +446,8 @@ const expected = `
 			  },
 			  "disableIMDSv1": false,
 			  "disablePodIMDS": false,
-			  "instanceSelector": {}
+			  "instanceSelector": {},
+			  "containerRuntime": "dockerd"
 		  },
 		  {
 			  "name": "test-ng3a",
@@ -489,7 +491,8 @@ const expected = `
 			  "clusterDNS": "1.2.3.4",
 			  "disableIMDSv1": false,
 			  "disablePodIMDS": false,
-			  "instanceSelector": {}
+			  "instanceSelector": {},
+			  "containerRuntime": "dockerd"
 		  },
 		  {
 			  "name": "test-ng1b",
@@ -532,7 +535,8 @@ const expected = `
 			  },
 			  "disableIMDSv1": false,
 			  "disablePodIMDS": false,
-			  "instanceSelector": {}
+			  "instanceSelector": {},
+			  "containerRuntime": "dockerd"
 		  },
 		  {
 			  "name": "test-ng2b",
@@ -579,7 +583,8 @@ const expected = `
 			  "clusterDNS": "4.2.8.14",
 			  "disableIMDSv1": false,
 			  "disablePodIMDS": false,
-			  "instanceSelector": {}
+			  "instanceSelector": {},
+			  "containerRuntime": "dockerd"
 		  },
 		  {
 			  "name": "test-ng3b",
@@ -625,7 +630,8 @@ const expected = `
 			  },
 			  "disableIMDSv1": false,
 			  "disablePodIMDS": false,
-			  "instanceSelector": {}
+			  "instanceSelector": {},
+			  "containerRuntime": "dockerd"
 		  }
 		]
   }

@@ -330,8 +330,11 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 
 		if params.Fargate {
 			l.ClusterConfig.SetDefaultFargateProfile()
-			// A Fargate-only cluster should NOT have any un-managed node group:
-			l.ClusterConfig.NodeGroups = []*api.NodeGroup{}
+			// A Fargate-only cluster should have no nodegroups if the `managed` flag wasn't explicitly provided.
+			if !l.CobraCommand.Flag("managed").Changed {
+				l.ClusterConfig.ManagedNodeGroups = nil
+				l.ClusterConfig.NodeGroups = nil
+			}
 		}
 
 		for _, ng := range l.ClusterConfig.NodeGroups {
@@ -343,7 +346,11 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 		}
 
 		for _, ng := range l.ClusterConfig.ManagedNodeGroups {
+			if err := validateUnsupportedCLIFeatures(ng); err != nil {
+				return err
+			}
 			ng.Name = names.ForNodeGroup(ng.Name, "")
+			normalizeBaseNodeGroup(ng, l.CobraCommand)
 		}
 
 		return validateDryRun()
@@ -391,6 +398,9 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 		if err := validateManagedNGFlags(l.CobraCommand, mngOptions.Managed); err != nil {
 			return err
 		}
+		if err := validateUnmanagedNGFlags(l.CobraCommand, mngOptions.Managed); err != nil {
+			return err
+		}
 		if mngOptions.Managed {
 			l.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{makeManagedNodegroup(ng, mngOptions)}
 		} else {
@@ -400,11 +410,15 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 		// Validate both filtered and unfiltered nodegroups
 		if mngOptions.Managed {
 			for _, ng := range l.ClusterConfig.ManagedNodeGroups {
+				if err := validateUnsupportedCLIFeatures(ng); err != nil {
+					return err
+				}
 				ngName := names.ForNodeGroup(ng.Name, l.NameArg)
 				if ngName == "" {
 					return ErrFlagAndArg("--name", ng.Name, l.NameArg)
 				}
 				ng.Name = ngName
+				normalizeBaseNodeGroup(ng, l.CobraCommand)
 			}
 		} else {
 			for _, ng := range l.ClusterConfig.NodeGroups {
@@ -439,6 +453,14 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup, options CreateManagedNGOptio
 	}
 }
 
+func validateUnsupportedCLIFeatures(ng *api.ManagedNodeGroup) error {
+	if api.IsWindowsImage(ng.AMIFamily) {
+		return errors.New("Windows is not supported for managed nodegroups; eksctl now creates " +
+			"managed nodegroups by default, to use a self-managed nodegroup, pass --managed=false")
+	}
+	return nil
+}
+
 func validateManagedNGFlags(cmd *cobra.Command, managed bool) error {
 	if managed {
 		return nil
@@ -447,6 +469,18 @@ func validateManagedNGFlags(cmd *cobra.Command, managed bool) error {
 	flagsValidOnlyWithMNG := []string{"spot", "instance-types"}
 	if flagName, found := findChangedFlag(cmd, flagsValidOnlyWithMNG); found {
 		return errors.Errorf("--%s is only valid with managed nodegroups (--managed)", flagName)
+	}
+	return nil
+}
+
+func validateUnmanagedNGFlags(cmd *cobra.Command, managed bool) error {
+	if !managed {
+		return nil
+	}
+
+	flagsValidOnlyWithUnmanagedNG := []string{"version"}
+	if flagName, found := findChangedFlag(cmd, flagsValidOnlyWithUnmanagedNG); found {
+		return fmt.Errorf("--%s is only valid with unmanaged nodegroups", flagName)
 	}
 	return nil
 }
@@ -467,7 +501,19 @@ func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
 		return fmt.Errorf("%s volume type is not supported via flag --node-volume-type, please use a config file", api.NodeVolumeTypeIO1)
 	}
 
+	normalizeBaseNodeGroup(ng, l.CobraCommand)
 	return nil
+}
+
+func normalizeBaseNodeGroup(np api.NodePool, cmd *cobra.Command) {
+	ng := np.BaseNodeGroup()
+	flags := cmd.Flags()
+	if !flags.Changed("instance-selector-gpus") {
+		ng.InstanceSelector.GPUs = nil
+	}
+	if !flags.Changed("enable-ssm") {
+		ng.SSH.EnableSSM = nil
+	}
 }
 
 // NewDeleteNodeGroupLoader will load config or use flags for 'eksctl delete nodegroup'

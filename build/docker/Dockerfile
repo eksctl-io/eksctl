@@ -1,7 +1,7 @@
 # Make sure to run the following commands after changes to this file are made:
 # `make -f Makefile.docker update-build-image-tag && make -f Makefile.docker push-build-image`
 
-FROM golang:1.16.0-alpine3.12@sha256:4ab868cf59933af43b9a5d528a08faad7eb673ac9734a1c186a91d0e9c11f942 AS base
+FROM golang:1.17.0-alpine3.14@sha256:4ace2a06b957dec72202e03e71ccb661f082cc9d9a1849c0efef41ddc246bdba AS base
 
 # Add kubectl and aws-iam-authenticator to the PATH
 ENV PATH="${PATH}:/out/usr/bin:/out/usr/local/bin"
@@ -19,6 +19,7 @@ RUN apk add --no-cache \
     make \
     musl-dev \
     jq \
+    py3-setuptools \
     && true
 
 # Runtime dependencies. Build the root filesystem of the eksctl image at /out
@@ -36,7 +37,7 @@ RUN apk add --no-cache --initdb --root /out \
 RUN curl --silent --location "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" --output /out/usr/local/bin/kubectl \
     && chmod +x /out/usr/local/bin/kubectl
 
-ENV GITHUB_CLI_VERSION 1.5.0
+ENV GITHUB_CLI_VERSION 1.14.0
 RUN curl --silent --location "https://github.com/cli/cli/releases/download/v${GITHUB_CLI_VERSION}/gh_${GITHUB_CLI_VERSION}_linux_amd64.tar.gz" \
     | tar xvz -C /out/usr/local/bin --strip-components=2 gh_${GITHUB_CLI_VERSION}_linux_amd64/bin/gh && gh --version
 

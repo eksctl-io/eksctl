@@ -1,0 +1,229 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: eks-connector
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: eks-connector-activation-config
+  namespace: eks-connector
+type: Opaque
+data:
+  code: YWN0aXZhdGlvbi1jb2RlLTEyMw==
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: eks-connector-secret-access
+  namespace: eks-connector
+rules:
+  - apiGroups: [ "" ]
+    resources:
+      - secrets
+    verbs: [ "get", "update" ]
+    resourceNames:
+      - eks-connector-state-0
+      - eks-connector-state-1
+  - apiGroups: [ "" ]
+    resources:
+      - secrets
+    verbs: [ "create" ]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: eks-connector
+  namespace: eks-connector
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/service-account-token
+metadata:
+  name: eks-connector-token
+  namespace: eks-connector
+  annotations:
+    kubernetes.io/service-account.name: eks-connector
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: eks-connector-secret-access
+  namespace: eks-connector
+subjects:
+  - kind: ServiceAccount
+    name: eks-connector
+roleRef:
+  kind: Role
+  name: eks-connector-secret-access
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eks-connector-agent
+  namespace: eks-connector
+data:
+  amazon-ssm-agent.json: |
+    {
+      "Profile": {
+        "KeyAutoRotateDays": 7
+      },
+      "Agent": {
+        "ContainerMode": true
+      },
+      "Identity": {
+        "ConsumptionOrder": [
+            "OnPrem"
+        ]
+      }
+    }
+  seelog.xml: |
+    <seelog type="adaptive" mininterval="2000000" maxinterval="100000000" critmsgcount="500" minlevel="info">
+      <exceptions>
+        <exception filepattern="test*" minlevel="error"/>
+      </exceptions>
+      <outputs formatid="fmtinfo">
+        <console formatid="fmtinfo"/>
+        <rollingfile type="size" filename="/var/log/amazon/ssm/amazon-ssm-agent.log" maxsize="30000000" maxrolls="5"/>
+        <filter levels="error,critical" formatid="fmterror">
+            <console formatid="fmterror"/>
+            <rollingfile type="size" filename="/var/log/amazon/ssm/errors.log" maxsize="10000000" maxrolls="5"/>
+        </filter>
+      </outputs>
+      <formats>
+        <format id="fmterror" format="%Date %Time %LEVEL [%FuncShort @ %File.%Line] %Msg%n"/>
+        <format id="fmtdebug" format="%Date %Time %LEVEL [%FuncShort @ %File.%Line] %Msg%n"/>
+        <format id="fmtinfo" format="%Date %Time %LEVEL %Msg%n"/>
+      </formats>
+    </seelog>
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: eks-connector
+  name: eks-connector
+  labels:
+    app: eks-connector
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: eks-connector
+  serviceName: "eks-connector"
+  template:
+    metadata:
+      labels:
+        app: eks-connector
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - eks-connector
+                topologyKey: "kubernetes.io/hostname"
+      serviceAccountName: eks-connector
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+        - key: CriticalAddonsOnly
+          operator: Exists
+      initContainers:
+        - name: connector-init
+          image: public.ecr.aws/eks-connector/eks-connector:0.0.2
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: EKS_ACTIVATION_CODE
+              valueFrom:
+                secretKeyRef:
+                  name: eks-connector-activation-config
+                  key: code
+            - name: EKS_ACTIVATION_ID
+              value: activation-id-123
+          args:
+            - "init"
+            - "--activation.id=$(EKS_ACTIVATION_ID)"
+            - "--activation.code=$(EKS_ACTIVATION_CODE)"
+            - "--agent.region=us-west-2"
+          volumeMounts:
+            - name: service-account-token
+              mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+            - name: eks-agent-vault
+              mountPath: /var/lib/amazon/ssm/Vault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - all
+      containers:
+        - name: connector-agent
+          image: public.ecr.aws/amazon-ssm-agent/amazon-ssm-agent:3.1.90.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: AWS_EC2_METADATA_DISABLED
+              value: "true"
+          volumeMounts:
+            - name: eks-connector-shared
+              mountPath: /var/eks/shared
+            - name: eks-agent-vault
+              mountPath: /var/lib/amazon/ssm/Vault
+            - name: eks-agent-config
+              mountPath: /etc/amazon/ssm/amazon-ssm-agent.json
+              subPath: amazon-ssm-agent.json
+            - name: eks-agent-config
+              mountPath: /etc/amazon/ssm/seelog.xml
+              subPath: seelog.xml
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              add:
+                - DAC_OVERRIDE
+              drop:
+                - all
+        - name: connector-proxy
+          image: public.ecr.aws/eks-connector/eks-connector:0.0.2
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          args:
+            - "server"
+          volumeMounts:
+            - name: service-account-token
+              mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+            - name: eks-connector-shared
+              mountPath: /var/eks/shared
+            - name: eks-agent-vault
+              mountPath: /var/lib/amazon/ssm/Vault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              add:
+                - DAC_OVERRIDE
+              drop:
+                - all
+      volumes:
+        - name: eks-connector-shared
+          emptyDir: { }
+        - name: eks-agent-vault
+          emptyDir: { }
+        - name: eks-agent-config
+          configMap:
+            name: eks-connector-agent
+        - name: service-account-token
+          secret:
+            secretName: eks-connector-token

@@ -23,5 +23,5 @@ fi
 
 # Install all other Go build requirements
 while IFS= read -r req; do
-  go install "${req}"
+  GO111MODULE=on go install "${req}"
 done < ${REQUIREMENTS_FILE}

@@ -1,8 +1,6 @@
 package create
 
 import (
-	"fmt"
-
 	. "github.com/onsi/ginkgo/extensions/table"
 
 	. "github.com/onsi/ginkgo"
@@ -31,7 +29,9 @@ var _ = Describe("create nodegroup", func() {
 				Expect(count).To(Equal(1))
 			},
 			Entry("with nodegroup name as flag", "--name", "nodegroupName"),
+			Entry("with nodegroup name with a hyphen as flag", "--name", "nodegroup-name"),
 			Entry("with nodegroup name as argument", "nodegroupName"),
+			Entry("with nodegroup name with a hyphen as argument", "nodegroup-name"),
 			Entry("with node-type flag", "--node-type", "m5.large"),
 			Entry("with nodes flag", "--nodes", "2"),
 			Entry("with nodes-min flag", "--nodes-min", "2"),
@@ -53,6 +53,7 @@ var _ = Describe("create nodegroup", func() {
 			Entry("with full-ecr-access flag", "--full-ecr-access", "true"),
 			Entry("with appmesh-access flag", "--appmesh-access", "true"),
 			Entry("with alb-ingress-access flag", "--alb-ingress-access", "true"),
+			Entry("with subnet-ids flag", "--subnet-ids", "id1,id2,id3"),
 		)
 
 		DescribeTable("invalid flags or arguments",
@@ -61,27 +62,35 @@ var _ = Describe("create nodegroup", func() {
 				cmd := newDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(c.error.Error()))
+				Expect(err).To(MatchError(ContainSubstring(c.error)))
 			},
 			Entry("without cluster name", invalidParamsCase{
 				args:  []string{"--name", "nodegroupName"},
-				error: fmt.Errorf("--cluster must be set"),
+				error: "--cluster must be set",
 			}),
 			Entry("with nodegroup name as argument and flag", invalidParamsCase{
 				args:  []string{"--cluster", "clusterName", "--name", "nodegroupName", "nodegroupName"},
-				error: fmt.Errorf("--name=nodegroupName and argument nodegroupName cannot be used at the same time"),
+				error: "--name=nodegroupName and argument nodegroupName cannot be used at the same time",
 			}),
 			Entry("with invalid flags", invalidParamsCase{
 				args:  []string{"--invalid", "dummy"},
-				error: fmt.Errorf("unknown flag: --invalid"),
+				error: "unknown flag: --invalid",
 			}),
 			Entry("with spot flag", invalidParamsCase{
 				args:  []string{"--cluster", "foo", "--spot"},
-				error: fmt.Errorf("--spot is only valid with managed nodegroups (--managed)"),
+				error: "--spot is only valid with managed nodegroups (--managed)",
 			}),
 			Entry("with instance-types flag", invalidParamsCase{
 				args:  []string{"--cluster", "foo", "--instance-types", "some-type"},
-				error: fmt.Errorf("--instance-types is only valid with managed nodegroups (--managed)"),
+				error: "--instance-types is only valid with managed nodegroups (--managed)",
+			}),
+			Entry("with nodegroup name as flag with invalid characters", invalidParamsCase{
+				args:  []string{"--cluster", "clusterName", "--name", "eksctl-ng_k8s_nodegroup1"},
+				error: "validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
+			}),
+			Entry("with enableSsm disabled", invalidParamsCase{
+				args:  []string{"--cluster=test", "--enable-ssm=false"},
+				error: "SSM agent is now built into EKS AMIs and cannot be disabled",
 			}),
 		)
 	})
@@ -106,7 +115,9 @@ var _ = Describe("create nodegroup", func() {
 			},
 			Entry("without nodegroup name", ""),
 			Entry("with nodegroup name as flag", "--name", "nodegroupName"),
+			Entry("with nodegroup name with a hyphen as flag", "--name", "nodegroup-name"),
 			Entry("with nodegroup name as argument", "nodegroupName"),
+			Entry("with nodegroup name with a hyphen as argument", "nodegroup-name"),
 			Entry("with node-type flag", "--node-type", "m5.large"),
 			Entry("with nodes flag", "--nodes", "2"),
 			Entry("with nodes-min flag", "--nodes-min", "2"),
@@ -124,7 +135,13 @@ var _ = Describe("create nodegroup", func() {
 			Entry("with full-ecr-access flag", "--full-ecr-access", "true"),
 			Entry("with appmesh-access flag", "--appmesh-access", "true"),
 			Entry("with alb-ingress-access flag", "--alb-ingress-access", "true"),
+			Entry("with Ubuntu AMI", "--node-ami-family", "Ubuntu2004"),
+			Entry("with Bottlerocket AMI", "--node-ami-family", "Bottlerocket"),
+			Entry("with subnet-ids flag", "--subnet-ids", "id1,id2,id3"),
 		)
+
+		const unsupportedWindowsError = "Windows is not supported for managed nodegroups; eksctl now creates " +
+			"managed nodegroups by default, to use a self-managed nodegroup, pass --managed=false"
 
 		DescribeTable("invalid flags or arguments",
 			func(c invalidParamsCase) {
@@ -132,16 +149,37 @@ var _ = Describe("create nodegroup", func() {
 				cmd := newDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(c.error.Error()))
+				Expect(err).To(MatchError(ContainSubstring(c.error)))
 			},
 			Entry("with nodegroup name as argument and flag", invalidParamsCase{
 				args:  []string{"--name", "nodegroupName", "nodegroupName"},
-				error: fmt.Errorf("--name=nodegroupName and argument nodegroupName cannot be used at the same time"),
+				error: "--name=nodegroupName and argument nodegroupName cannot be used at the same time",
 			}),
 			Entry("with invalid flags", invalidParamsCase{
 				args:  []string{"--invalid", "dummy"},
-				error: fmt.Errorf("unknown flag: --invalid"),
+				error: "unknown flag: --invalid",
+			}),
+			Entry("with nodegroup name as flag with invalid characters", invalidParamsCase{
+				args:  []string{"--name", "eksctl-ng_k8s_nodegroup1"},
+				error: "validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
+			}),
+			Entry("with version flag", invalidParamsCase{
+				args:  []string{"--version", "1.18"},
+				error: "--version is only valid with unmanaged nodegroups",
+			}),
+			Entry("with unsupported AMI", invalidParamsCase{
+				args:  []string{"cluster", "--node-ami-family", "WindowsServer2019FullContainer"},
+				error: unsupportedWindowsError,
+			}),
+			Entry("with unsupported AMI", invalidParamsCase{
+				args:  []string{"cluster", "--node-ami-family", "WindowsServer2019CoreContainer"},
+				error: unsupportedWindowsError,
+			}),
+			Entry("with unsupported AMI", invalidParamsCase{
+				args:  []string{"cluster", "--node-ami-family", "WindowsServer2004CoreContainer"},
+				error: unsupportedWindowsError,
 			}),
 		)
+
 	})
 })

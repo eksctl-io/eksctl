@@ -45,6 +45,8 @@ or [scoop](https://scoop.sh):
 scoop install eksctl
 ```
 
+### AWS Account
+
 You will need to have AWS API credentials configured. What works for AWS CLI or any other tools (kops, Terraform etc), should be sufficient. You can use [`~/.aws/credentials` file][awsconfig]
 or [environment variables][awsenv]. For more information read [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html).
 
@@ -52,6 +54,20 @@ or [environment variables][awsenv]. For more information read [AWS documentation
 [awsconfig]: https://docs.aws.amazon.com/cli/latest/userguide/cli-config-files.html
 
 You will also need [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) command (either `aws-iam-authenticator` or `aws eks get-token` (available in version 1.16.156 or greater of AWS CLI) in your `PATH`.
+
+The IAM account used for EKS cluster creation should have these minimal access levels. 
+
+| AWS Service      | Access Level                                           |
+|------------------|--------------------------------------------------------|
+| CloudFormation   | Full Access                                            |
+| EC2              | **Full:** Tagging **Limited:** List, Read, Write       |
+| EC2 Auto Scaling | **Limited:** List, Write                               |
+| EKS              | Full Access                                            |
+| IAM              | **Limited:** List, Read, Write, Permissions Management |
+| Systems Manager  | **Limited:** List, Read                                |
+
+
+The inline policy json is listed in [Minimal IAM Policies](https://eksctl.io/usage/minimum-iam-policies/).
 
 ### Docker
 
@@ -92,14 +108,14 @@ $ eksctl create cluster
 [ℹ]  creating EKS cluster "floral-unicorn-1540567338" in "us-west-2" region
 [ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
 [ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-west-2 --cluster=floral-unicorn-1540567338'
-[ℹ]  2 sequential tasks: { create cluster control plane "floral-unicorn-1540567338", create nodegroup "ng-98b3b83a" }
+[ℹ]  2 sequential tasks: { create cluster control plane "floral-unicorn-1540567338", create managed nodegroup "ng-98b3b83a" }
 [ℹ]  building cluster stack "eksctl-floral-unicorn-1540567338-cluster"
 [ℹ]  deploying stack "eksctl-floral-unicorn-1540567338-cluster"
 [ℹ]  building nodegroup stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-98b3b83a"
 [ℹ]  --nodes-min=2 was set automatically for nodegroup ng-98b3b83a
 [ℹ]  --nodes-max=2 was set automatically for nodegroup ng-98b3b83a
 [ℹ]  deploying stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-98b3b83a"
-[✔]  all EKS cluster resource for "floral-unicorn-1540567338" had been created
+[✔]  all EKS cluster resources for "floral-unicorn-1540567338" have been created
 [✔]  saved kubeconfig as "~/.kube/config"
 [ℹ]  adding role "arn:aws:iam::376248598259:role/eksctl-ridiculous-sculpture-15547-NodeInstanceRole-1F3IHNVD03Z74" to auth ConfigMap
 [ℹ]  nodegroup "ng-98b3b83a" has 1 node(s)
@@ -142,4 +158,4 @@ One or more release candidate(s) (RC) builds will be made available prior to eac
 
 > **_Logo Credits_**
 >
-> _Original Gophers drawn by [Ashley McNamara](https://twitter.com/ashleymcnamara), unique E, K, S, C, T & L Gopher identities had been produced with [Gopherize.me](https://gopherize.me/)._
+> _Original Gophers drawn by [Ashley McNamara](https://twitter.com/ashleymcnamara), unique E, K, S, C, T & L Gopher identities had been produced with [Gopherize.me](https://github.com/matryer/gopherize.me/)._

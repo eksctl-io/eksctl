@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package managed
@@ -14,8 +15,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	corev1 "k8s.io/api/core/v1"
+
+	"github.com/weaveworks/eksctl/pkg/eks"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
@@ -121,6 +123,70 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				Name:       "ubuntu",
 				VolumeSize: aws.Int(25),
 				AMIFamily:  "Ubuntu2004",
+			},
+		}),
+	)
+
+	type managedCLIEntry struct {
+		createArgs []string
+
+		expectedErr string
+	}
+
+	DescribeTable("Managed CLI features", func(m managedCLIEntry) {
+		runAssertions := func(createArgs ...string) {
+			cmd := params.EksctlCreateCmd.
+				WithArgs(createArgs...).
+				WithArgs(m.createArgs...)
+
+			if m.expectedErr != "" {
+				session := cmd.Run()
+				Expect(session.ExitCode()).ToNot(Equal(0))
+				output := session.Err.Contents()
+				Expect(string(output)).To(ContainSubstring(m.expectedErr))
+				return
+			}
+
+			Expect(cmd).To(RunSuccessfully())
+		}
+
+		// Run the same assertions for both `create cluster` and `create nodegroup`
+		runAssertions("cluster")
+		runAssertions(
+			"nodegroup",
+			"--cluster", params.ClusterName,
+		)
+	},
+		Entry("Windows AMI", managedCLIEntry{
+			createArgs: []string{
+				"--node-ami-family=WindowsServer2019FullContainer",
+			},
+			expectedErr: "Windows is not supported for managed nodegroups; eksctl now creates " +
+				"managed nodegroups by default, to use a self-managed nodegroup, pass --managed=false",
+		}),
+
+		Entry("Windows AMI with dry-run", managedCLIEntry{
+			createArgs: []string{
+				"--node-ami-family=WindowsServer2019FullContainer",
+				"--dry-run",
+			},
+			expectedErr: "Windows is not supported for managed nodegroups; eksctl now creates " +
+				"managed nodegroups by default, to use a self-managed nodegroup, pass --managed=false",
+		}),
+
+		Entry("Bottlerocket with dry-run", managedCLIEntry{
+			createArgs: []string{
+				"--node-ami-family=Bottlerocket",
+				"--instance-prefix=bottle",
+				"--instance-name=rocket",
+				"--dry-run",
+			},
+		}),
+
+		Entry("Ubuntu with dry-run", managedCLIEntry{
+			createArgs: []string{
+				"--node-ami-family=Ubuntu2004",
+				"--dry-run",
 			},
 		}),
 	)

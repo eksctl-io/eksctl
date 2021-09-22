@@ -3,9 +3,8 @@ package addon
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
@@ -55,7 +54,7 @@ func (a *Manager) Update(addon *api.Addon, wait bool) error {
 	//check if we have been provided a different set of policies/role
 	if addon.ServiceAccountRoleARN != "" {
 		updateAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
-	} else if addon.AttachPolicy != nil || (addon.AttachPolicyARNs != nil && len(addon.AttachPolicyARNs) != 0) {
+	} else if hasPoliciesSet(addon) {
 		serviceAccountRoleARN, err := a.updateWithNewPolicies(addon)
 		if err != nil {
 			return err
@@ -94,7 +93,7 @@ func (a *Manager) updateWithNewPolicies(addon *api.Addon) (string, error) {
 	namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
 
 	if len(existingStacks) == 0 {
-		return a.createNewRole(addon, namespace, serviceAccount)
+		return a.createRole(addon, namespace, serviceAccount)
 	}
 
 	createNewTemplate, err := a.createNewTemplate(addon, namespace, serviceAccount)
@@ -102,7 +101,7 @@ func (a *Manager) updateWithNewPolicies(addon *api.Addon) (string, error) {
 		return "", err
 	}
 	var templateBody manager.TemplateBody = createNewTemplate
-	err = a.stackManager.UpdateStack(stackName, "updating-policy", "updating policies", templateBody, nil)
+	err = a.stackManager.UpdateStack(stackName, fmt.Sprintf("updating-policy-%s", uuid.NewString()), "updating policies", templateBody, nil)
 	if err != nil {
 		return "", err
 	}
@@ -116,30 +115,9 @@ func (a *Manager) updateWithNewPolicies(addon *api.Addon) (string, error) {
 }
 
 func (a *Manager) createNewTemplate(addon *api.Addon, namespace, serviceAccount string) ([]byte, error) {
-	var resourceSet *builder.IAMRoleResourceSet
-	if addon.AttachPolicyARNs != nil && len(addon.AttachPolicyARNs) != 0 {
-		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicyARNs, a.oidcManager)
-		err := resourceSet.AddAllResources()
-		if err != nil {
-			return []byte(""), err
-		}
-	} else {
-		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicy, a.oidcManager)
-		err := resourceSet.AddAllResources()
-		if err != nil {
-			return []byte(""), err
-		}
+	resourceSet, err := a.createRoleResourceSet(addon, namespace, serviceAccount)
+	if err != nil {
+		return nil, err
 	}
-
 	return resourceSet.RenderJSON()
-}
-
-func (a *Manager) createNewRole(addon *api.Addon, namespace, serviceAccount string) (string, error) {
-	if addon.AttachPolicyARNs != nil && len(addon.AttachPolicyARNs) != 0 {
-		logger.Info("creating role using provided policies ARNs")
-		return a.createRoleUsingAttachPolicyARNs(addon, namespace, serviceAccount)
-	}
-
-	logger.Info("creating role using provided policies")
-	return a.createRoleUsingAttachPolicy(addon, namespace, serviceAccount)
 }

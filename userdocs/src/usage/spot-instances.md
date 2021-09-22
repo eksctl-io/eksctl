@@ -12,13 +12,13 @@ and EBS volumes.
 To create a cluster with a managed nodegroup using Spot instances, pass the `--spot` flag and an optional list of instance types:
 
 ```console
-$ eksctl create cluster --managed --spot --instance-types=c3.large,c4.large,c5.large
+$ eksctl create cluster --spot --instance-types=c3.large,c4.large,c5.large
 ```
 
 To create a managed nodegroup using Spot instances on an existing cluster:
 
 ```console
-$ eksctl create nodegroup --cluster=<clusterName> --managed --spot --instance-types=c3.large,c4.large,c5.large
+$ eksctl create nodegroup --cluster=<clusterName> --spot --instance-types=c3.large,c4.large,c5.large
 ```
 
 To create Spot instances using managed nodegroups via a config file:

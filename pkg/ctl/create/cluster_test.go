@@ -1,8 +1,6 @@
 package create
 
 import (
-	"fmt"
-
 	. "github.com/onsi/ginkgo/extensions/table"
 
 	. "github.com/onsi/ginkgo"
@@ -14,7 +12,7 @@ import (
 var _ = Describe("create cluster", func() {
 	Describe("un-managed node group", func() {
 		It("understands ssh access arguments correctly", func() {
-			commandArgs := []string{"cluster", "--ssh-access=false", "--ssh-public-key", "dummy-key"}
+			commandArgs := []string{"cluster", "--managed=false", "--ssh-access=false", "--ssh-public-key=dummy-key"}
 			cmd := newMockEmptyCmd(commandArgs...)
 			count := 0
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
@@ -41,12 +39,14 @@ var _ = Describe("create cluster", func() {
 					})
 				})
 				_, err := cmd.execute()
-				Expect(err).To(Not(HaveOccurred()))
+				Expect(err).ToNot(HaveOccurred())
 				Expect(count).To(Equal(1))
 			},
 			Entry("without cluster name", ""),
 			Entry("with cluster name as flag", "--name", "clusterName"),
 			Entry("with cluster name as argument", "clusterName"),
+			Entry("with cluster name with hyphen as flag", "--name", "my-cluster-name-is-fine10"),
+			Entry("with cluster name with hyphen as argument", "my-Cluster-name-is-fine10"),
 			// vpc networking flags
 			Entry("with vpc-cidr flag", "--vpc-cidr", "10.0.0.0/20"),
 			Entry("with vpc-private-subnets flag", "--vpc-private-subnets", "10.0.0.0/24"),
@@ -81,23 +81,32 @@ var _ = Describe("create cluster", func() {
 			Entry("with full-ecr-access flag", "--full-ecr-access", "true"),
 			Entry("with appmesh-access flag", "--appmesh-access", "true"),
 			Entry("with alb-ingress-access flag", "--alb-ingress-access", "true"),
+			Entry("with managed flag unset", "--managed", "false"),
 		)
 
 		DescribeTable("invalid flags or arguments",
 			func(c invalidParamsCase) {
-				commandArgs := append([]string{"cluster"}, c.args...)
+				commandArgs := append([]string{"cluster", "--managed=false"}, c.args...)
 				cmd := newDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(c.error.Error()))
+				Expect(err).To(MatchError(ContainSubstring(c.error)))
 			},
 			Entry("with cluster name as argument and flag", invalidParamsCase{
 				args:  []string{"clusterName", "--name", "clusterName"},
-				error: fmt.Errorf("Error: --name=clusterName and argument clusterName cannot be used at the same time"),
+				error: "--name=clusterName and argument clusterName cannot be used at the same time",
 			}),
 			Entry("with invalid flags", invalidParamsCase{
 				args:  []string{"cluster", "--invalid", "dummy"},
-				error: fmt.Errorf("Error: unknown flag: --invalid"),
+				error: "unknown flag: --invalid",
+			}),
+			Entry("with --name option with invalid characters that are rejected by cloudformation", invalidParamsCase{
+				args:  []string{"test-k8_cluster01"},
+				error: "validation for test-k8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
+			}),
+			Entry("with cluster name argument with invalid characters that are rejected by cloudformation", invalidParamsCase{
+				args:  []string{"--name", "eksctl-testing-k_8_cluster01"},
+				error: "validation for eksctl-testing-k_8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
 			}),
 		)
 	})
@@ -105,7 +114,7 @@ var _ = Describe("create cluster", func() {
 	Describe("managed node group", func() {
 		DescribeTable("create cluster successfully",
 			func(args ...string) {
-				commandArgs := append([]string{"cluster", "--managed"}, args...)
+				commandArgs := append([]string{"cluster"}, args...)
 				cmd := newMockEmptyCmd(commandArgs...)
 				count := 0
 				cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
@@ -122,6 +131,8 @@ var _ = Describe("create cluster", func() {
 			Entry("without cluster name", ""),
 			Entry("with cluster name as flag", "--name", "clusterName"),
 			Entry("with cluster name as argument", "clusterName"),
+			Entry("with cluster name with hyphen as flag", "--name", "my-cluster-name-is-fine10"),
+			Entry("with cluster name with hyphen as argument", "my-Cluster-name-is-fine10"),
 			// vpc networking flags
 			Entry("with vpc-cidr flag", "--vpc-cidr", "10.0.0.0/20"),
 			Entry("with vpc-private-subnets flag", "--vpc-private-subnets", "10.0.0.0/24"),
@@ -155,19 +166,31 @@ var _ = Describe("create cluster", func() {
 
 		DescribeTable("invalid flags or arguments",
 			func(c invalidParamsCase) {
-				commandArgs := append([]string{"cluster", "--managed"}, c.args...)
+				commandArgs := append([]string{"cluster"}, c.args...)
 				cmd := newDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(c.error.Error()))
+				Expect(err).To(MatchError(ContainSubstring(c.error)))
 			},
 			Entry("with cluster name as argument and flag", invalidParamsCase{
 				args:  []string{"clusterName", "--name", "clusterName"},
-				error: fmt.Errorf("Error: --name=clusterName and argument clusterName cannot be used at the same time"),
+				error: "--name=clusterName and argument clusterName cannot be used at the same time",
 			}),
 			Entry("with invalid flags", invalidParamsCase{
 				args:  []string{"cluster", "--invalid", "dummy"},
-				error: fmt.Errorf("Error: unknown flag: --invalid"),
+				error: "unknown flag: --invalid",
+			}),
+			Entry("with --name option with invalid characters that are rejected by cloudformation", invalidParamsCase{
+				args:  []string{"test-k8_cluster01"},
+				error: "validation for test-k8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
+			}),
+			Entry("with cluster name argument with invalid characters that are rejected by cloudformation", invalidParamsCase{
+				args:  []string{"--name", "eksctl-testing-k_8_cluster01"},
+				error: "validation for eksctl-testing-k_8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
+			}),
+			Entry("with enableSsm disabled", invalidParamsCase{
+				args:  []string{"--name=test", "--enable-ssm=false"},
+				error: "SSM agent is now built into EKS AMIs and cannot be disabled",
 			}),
 		)
 	})

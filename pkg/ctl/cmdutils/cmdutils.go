@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -181,6 +182,11 @@ func AddWaitFlagWithFullDescription(fs *pflag.FlagSet, wait *bool, description s
 // AddUpdateAuthConfigMap adds common --update-auth-configmap flag
 func AddUpdateAuthConfigMap(fs *pflag.FlagSet, updateAuthConfigMap *bool, description string) {
 	fs.BoolVar(updateAuthConfigMap, "update-auth-configmap", true, description)
+}
+
+// AddSubnetIDs adds common --subnet-ids flag
+func AddSubnetIDs(fs *pflag.FlagSet, subnetIDs *[]string, description string) {
+	fs.StringSliceVar(subnetIDs, "subnet-ids", nil, description)
 }
 
 // AddCommonFlagsForKubeconfig adds common flags for controlling how output kubeconfig is written

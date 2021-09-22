@@ -1,10 +1,12 @@
 package nodegroup
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
@@ -66,24 +68,16 @@ func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 			MaxSize:              int(*describeOutput.Nodegroup.ScalingConfig.MaxSize),
 			MinSize:              int(*describeOutput.Nodegroup.ScalingConfig.MinSize),
 			DesiredCapacity:      int(*describeOutput.Nodegroup.ScalingConfig.DesiredSize),
-			InstanceType:         getInstanceTypes(describeOutput.Nodegroup),
+			InstanceType:         m.getInstanceTypes(describeOutput.Nodegroup),
 			ImageID:              *describeOutput.Nodegroup.AmiType,
 			CreationTime:         describeOutput.Nodegroup.CreatedAt,
 			NodeInstanceRoleARN:  *describeOutput.Nodegroup.NodeRole,
 			AutoScalingGroupName: strings.Join(asgs, ","),
-			Version:              *describeOutput.Nodegroup.Version,
+			Version:              getOptionalValue(describeOutput.Nodegroup.Version),
 		})
 	}
 
 	return summaries, nil
-}
-
-func getInstanceTypes(ng *awseks.Nodegroup) string {
-	if len(ng.InstanceTypes) > 0 {
-		return strings.Join(aws.StringValueSlice(ng.InstanceTypes), ",")
-	}
-	logger.Info("no instance types reported by EKS for nodegroup %q", *ng.NodegroupName)
-	return "-"
 }
 
 func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
@@ -126,11 +120,45 @@ func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
 		MaxSize:              int(*describeOutput.Nodegroup.ScalingConfig.MaxSize),
 		MinSize:              int(*describeOutput.Nodegroup.ScalingConfig.MinSize),
 		DesiredCapacity:      int(*describeOutput.Nodegroup.ScalingConfig.DesiredSize),
-		InstanceType:         *describeOutput.Nodegroup.InstanceTypes[0],
+		InstanceType:         m.getInstanceTypes(describeOutput.Nodegroup),
 		ImageID:              *describeOutput.Nodegroup.AmiType,
 		CreationTime:         describeOutput.Nodegroup.CreatedAt,
 		NodeInstanceRoleARN:  *describeOutput.Nodegroup.NodeRole,
 		AutoScalingGroupName: asg,
-		Version:              *describeOutput.Nodegroup.Version,
+		Version:              getOptionalValue(describeOutput.Nodegroup.Version),
 	}, nil
+}
+
+func (m *Manager) getInstanceTypes(ng *awseks.Nodegroup) string {
+	if len(ng.InstanceTypes) > 0 {
+		return strings.Join(aws.StringValueSlice(ng.InstanceTypes), ",")
+	}
+
+	if ng.LaunchTemplate == nil {
+		logger.Info("no instance type found for nodegroup %q", *ng.NodegroupName)
+		return "-"
+	}
+
+	resp, err := m.ctl.Provider.EC2().DescribeLaunchTemplateVersions(&ec2.DescribeLaunchTemplateVersionsInput{
+		LaunchTemplateId: ng.LaunchTemplate.Id,
+	})
+	if err != nil {
+		return "-"
+	}
+
+	for _, template := range resp.LaunchTemplateVersions {
+		if strconv.Itoa(int(*template.VersionNumber)) == *ng.LaunchTemplate.Version {
+			return *template.LaunchTemplateData.InstanceType
+		}
+	}
+
+	logger.Info("no instance type found for nodegroup %q", *ng.NodegroupName)
+	return "-"
+}
+
+func getOptionalValue(v *string) string {
+	if v == nil {
+		return "-"
+	}
+	return *v
 }

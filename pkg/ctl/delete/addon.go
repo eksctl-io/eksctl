@@ -21,8 +21,10 @@ func deleteAddonCmd(cmd *cmdutils.Cmd) {
 	)
 
 	cmd.ClusterConfig.Addons = []*api.Addon{{}}
+	var preserve bool
 	cmd.FlagSetGroup.InFlagSet("Addon", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cmd.ClusterConfig.Addons[0].Name, "name", "", "Addon name")
+		fs.BoolVar(&preserve, "preserve", false, "Delete the addon from the API but preserve its Kubernetes resources")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -34,16 +36,16 @@ func deleteAddonCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return deleteAddon(cmd)
+		return deleteAddon(cmd, preserve)
 	}
 }
 
-func deleteAddon(cmd *cmdutils.Cmd) error {
+func deleteAddon(cmd *cmdutils.Cmd, preserve bool) error {
 	if err := cmdutils.NewDeleteAddonLoader(cmd).Load(); err != nil {
 		return err
 	}
 
-	clusterProvider, err := cmd.NewCtl()
+	clusterProvider, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
@@ -65,6 +67,10 @@ func deleteAddon(cmd *cmdutils.Cmd) error {
 
 	if err != nil {
 		return err
+	}
+
+	if preserve {
+		return addonManager.DeleteWithPreserve(cmd.ClusterConfig.Addons[0])
 	}
 
 	return addonManager.Delete(cmd.ClusterConfig.Addons[0])

@@ -6,13 +6,11 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
-	"path/filepath"
 	"strings"
 
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/nodebootstrap/bindata"
 )
 
 // ManagedAL2 is a bootstrapper for managed Amazon Linux 2 nodegroups
@@ -33,9 +31,8 @@ func NewManagedAL2Bootstrapper(ng *api.ManagedNodeGroup) *ManagedAL2 {
 func (m *ManagedAL2) UserData() (string, error) {
 	ng := m.ng
 
-	// We don't use MIME format when launching managed nodegroups with a custom AMI
 	if strings.HasPrefix(ng.AMI, "ami-") {
-		return makeCustomAMIUserData(ng.NodeGroupBase)
+		return makeCustomAMIUserData(ng.NodeGroupBase, m.UserDataMimeBoundary)
 	}
 
 	var (
@@ -43,15 +40,6 @@ func (m *ManagedAL2) UserData() (string, error) {
 		scripts   []string
 		cloudboot []string
 	)
-
-	if api.IsEnabled(ng.SSH.EnableSSM) {
-		installSSMScript, err := bindata.Asset(filepath.Join(dataDir, "install-ssm.al2.sh"))
-		if err != nil {
-			return "", err
-		}
-
-		scripts = append(scripts, string(installSSMScript))
-	}
 
 	if len(ng.PreBootstrapCommands) > 0 {
 		scripts = append(scripts, ng.PreBootstrapCommands...)
@@ -82,12 +70,29 @@ func (m *ManagedAL2) UserData() (string, error) {
 	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
 }
 
-func makeCustomAMIUserData(ng *api.NodeGroupBase) (string, error) {
-	if ng.OverrideBootstrapCommand != nil {
-		return base64.StdEncoding.EncodeToString([]byte(*ng.OverrideBootstrapCommand)), nil
+func makeCustomAMIUserData(ng *api.NodeGroupBase, mimeBoundary string) (string, error) {
+	var (
+		buf     bytes.Buffer
+		scripts []string
+	)
+
+	if len(ng.PreBootstrapCommands) > 0 {
+		scripts = append(scripts, ng.PreBootstrapCommands...)
 	}
 
-	return "", nil
+	if ng.OverrideBootstrapCommand != nil {
+		scripts = append(scripts, *ng.OverrideBootstrapCommand)
+	}
+
+	if len(scripts) == 0 {
+		return "", nil
+	}
+
+	if err := createMimeMessage(&buf, scripts, nil, mimeBoundary); err != nil {
+		return "", err
+	}
+
+	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
 }
 
 func makeMaxPodsScript(maxPods int) string {

@@ -33,6 +33,11 @@ change it. Please refer to [the AWS docs][vpcsizing] for guides on choosing CIDR
 If you prefer to isolate the initial nodegroup from the public internet, you can use the `--node-private-networking` flag.
 When used in conjunction with the `--ssh-access` flag, the SSH port can only be accessed from inside the VPC.
 
+!!! note
+    Using the `--node-private-networking` flag will result in outgoing traffic to go through the NAT gateway using its
+    Elastic IP. On the other hand, if the nodes are in a public subnet, the outgoing traffic won't go through the
+    NAT gateway and hence the outgoing traffic has the IP of each individual node.
+
 ## Use an existing VPC: shared with kops
 
 You can use the VPC of an existing Kubernetes cluster managed by [kops](https://github.com/kubernetes/kops). This feature is provided to facilitate migration and/or
@@ -403,11 +408,13 @@ There are some additional caveats when configuring Kubernetes API endpoint acces
    enabled.
 1. EKS does allow creating a configuration which allows only private access to be enabled, but eksctl doesn't
    support it during cluster creation as it prevents eksctl from being able to join the worker nodes to the cluster.
-1. Updating a cluster to have private only Kubernetes API endpoint access means that Kubernetes commands
+1. Updating a cluster to have private only Kubernetes API endpoint access means that Kubernetes commands, by default,
    (e.g. `kubectl`) as well as `eksctl delete cluster`, `eksctl utils write-kubeconfig`, and possibly the command
    `eksctl utils update-kube-proxy` must be run within the cluster VPC.  This requires some changes to various AWS
    resources.  See:
    [EKS user guide](https://docs.aws.amazon.com/en_pv/eks/latest/userguide/cluster-endpoint#private-access)
+   A user can elect to supply vpc.extraCIDRs which will append additional CIDR ranges to the ControlPlaneSecurityGroup,
+   allowing subnets outside the VPC to reach the kubernetes API endpoint.
 
 The following is an example of how one could configure the Kubernetes API endpoint access using the `utils` sub-command:
 

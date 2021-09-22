@@ -14,6 +14,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Run AWS nuke
+        timeout-minutes: 1200
         env:
           AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
           AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
@@ -29,4 +30,5 @@ jobs:
           chmod +x aws-nuke
           ./aws-nuke -c aws-nuke-config.yaml --force --no-dry-run --target=EKSNodegroups,EKSFargateProfiles,EKSCluster
           ./aws-nuke -c aws-nuke-config.yaml --force --no-dry-run --target=CloudFormationStack
+          ./aws-nuke -c aws-nuke-config.yaml --force --no-dry-run --target=EC2VPC
 
