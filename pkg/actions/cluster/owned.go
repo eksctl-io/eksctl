@@ -100,7 +100,6 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force bool) error {
 			}
 			oidcSupported = false
 		}
-
 		allStacks, err := c.stackManager.ListNodeGroupStacks()
 		if err != nil {
 			return err

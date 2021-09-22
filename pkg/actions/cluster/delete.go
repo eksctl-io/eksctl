@@ -159,6 +159,7 @@ func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackM
 		return nil
 	}
 
+	cfg.NodeGroups = []*api.NodeGroup{}
 	for _, s := range allStacks {
 		if s.Type == api.NodeGroupTypeUnmanaged {
 			cmdutils.PopulateUnmanagedNodegroup(s.NodeGroupName, cfg)
@@ -167,8 +168,7 @@ func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackM
 
 	logger.Info("will drain %d unmanaged nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 	nodeGroupManager := nodegroup.New(cfg, ctl, clientSet)
-	plan, disableEviction := false, false
-	if err := nodeGroupManager.Drain(cmdutils.ToKubeNodeGroups(cfg), plan, ctl.Provider.WaitTimeout(), disableEviction); err != nil {
+	if err := nodeGroupManager.Drain(cmdutils.ToKubeNodeGroups(cfg), false, ctl.Provider.WaitTimeout(), false); err != nil {
 		return err
 	}
 	return nil
