@@ -32,8 +32,6 @@ import (
 // Values for `KubernetesVersion`
 // All valid values should go in this block
 const (
-	Version1_16 = "1.16"
-
 	Version1_17 = "1.17"
 
 	Version1_18 = "1.18"
@@ -63,12 +61,14 @@ const (
 
 	// Version1_13 represents Kubernetes version 1.13.x
 	Version1_13 = "1.13"
-
 	// Version1_14 represents Kubernetes version 1.14.x
 	Version1_14 = "1.14"
 
 	// Version1_15 represents Kubernetes version 1.15.x
 	Version1_15 = "1.15"
+
+	// Version1_16 represents Kubernetes version 1.16.x
+	Version1_16 = "1.16"
 )
 
 // Not yet supported versions
@@ -411,6 +411,7 @@ func DeprecatedVersions() []string {
 		Version1_13,
 		Version1_14,
 		Version1_15,
+		Version1_16,
 	}
 }
 
@@ -427,7 +428,6 @@ func IsDeprecatedVersion(version string) bool {
 // SupportedVersions are the versions of Kubernetes that EKS supports
 func SupportedVersions() []string {
 	return []string{
-		Version1_16,
 		Version1_17,
 		Version1_18,
 		Version1_19,

@@ -55,9 +55,9 @@ var _ = Describe("upgrade cluster", func() {
 		}),
 
 		Entry("upgrades to the next version when specified", upgradeCase{
-			givenVersion:           "1.16",
-			eksVersion:             "1.15",
-			expectedUpgradeVersion: "1.16",
+			givenVersion:           "1.17",
+			eksVersion:             "1.16",
+			expectedUpgradeVersion: "1.17",
 			expectedUpgrade:        true,
 		}),
 
@@ -69,8 +69,8 @@ var _ = Describe("upgrade cluster", func() {
 		}),
 
 		Entry("fails when the upgrade jumps more than one kubernetes version", upgradeCase{
-			givenVersion:      "1.16",
-			eksVersion:        "1.14",
+			givenVersion:      "1.17",
+			eksVersion:        "1.15",
 			expectedErrorText: "upgrading more than one version at a time is not supported",
 		}),
 
