@@ -183,7 +183,7 @@ func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackM
 // to prevent a race condition in the vpc-cni #1849
 func attemptVpcCniDeletion(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
 	vpcCNI := "vpc-cni"
-	logger.Info("deleting EKS addon %q if it exists", vpcCNI)
+	logger.Debug("deleting EKS addon %q if it exists", vpcCNI)
 	_, err := ctl.Provider.EKS().DeleteAddon(&awseks.DeleteAddonInput{
 		ClusterName: &clusterName,
 		AddonName:   aws.String(vpcCNI),
@@ -191,16 +191,15 @@ func attemptVpcCniDeletion(clusterName string, ctl *eks.ClusterProvider, clientS
 
 	if err != nil {
 		if awsError, ok := err.(awserr.Error); ok && awsError.Code() == awseks.ErrCodeResourceNotFoundException {
-			logger.Info("EKS addon %q does not exist", vpcCNI)
+			logger.Debug("EKS addon %q does not exist", vpcCNI)
 		} else {
-			logger.Info("failed to delete addon %q: %v", vpcCNI, err)
-			return
+			logger.Debug("failed to delete addon %q: %v", vpcCNI, err)
 		}
 	}
 
-	logger.Info("deleting kube-system/aws-node DaemonSet")
+	logger.Debug("deleting kube-system/aws-node DaemonSet")
 	err = clientSet.AppsV1().DaemonSets("kube-system").Delete(context.TODO(), "aws-node", metav1.DeleteOptions{})
 	if err != nil {
-		logger.Info("failed to delete kube-system/aws-node DaemonSet: %w", err)
+		logger.Debug("failed to delete kube-system/aws-node DaemonSet: %w", err)
 	}
 }
