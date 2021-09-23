@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/pkg/errors"
 
@@ -15,11 +17,13 @@ import (
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
+	awseks "github.com/aws/aws-sdk-go/service/eks"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/elb"
 	ssh "github.com/weaveworks/eksctl/pkg/ssh/client"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kris-nova/logger"
 )
@@ -171,5 +175,31 @@ func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackM
 	if err := nodeGroupManager.Drain(cmdutils.ToKubeNodeGroups(cfg), false, ctl.Provider.WaitTimeout(), false); err != nil {
 		return err
 	}
+	attemptVpcCniDeletion(cfg.Metadata.Name, ctl, clientSet)
 	return nil
+}
+
+// Attempts to delete the vpc-cni, and fails silently if an error occurs. This is an attempt
+// to prevent a race condition in the vpc-cni #1849
+func attemptVpcCniDeletion(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
+	vpcCNI := "vpc-cni"
+	logger.Debug("deleting EKS addon %q if it exists", vpcCNI)
+	_, err := ctl.Provider.EKS().DeleteAddon(&awseks.DeleteAddonInput{
+		ClusterName: &clusterName,
+		AddonName:   aws.String(vpcCNI),
+	})
+
+	if err != nil {
+		if awsError, ok := err.(awserr.Error); ok && awsError.Code() == awseks.ErrCodeResourceNotFoundException {
+			logger.Debug("EKS addon %q does not exist", vpcCNI)
+		} else {
+			logger.Debug("failed to delete addon %q: %v", vpcCNI, err)
+		}
+	}
+
+	logger.Debug("deleting kube-system/aws-node DaemonSet")
+	err = clientSet.AppsV1().DaemonSets("kube-system").Delete(context.TODO(), "aws-node", metav1.DeleteOptions{})
+	if err != nil {
+		logger.Debug("failed to delete kube-system/aws-node DaemonSet: %w", err)
+	}
 }
