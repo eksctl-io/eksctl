@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pelletier/go-toml"
+	toml "github.com/pelletier/go-toml"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
@@ -25,9 +25,6 @@ func NewBottlerocketBootstrapper(clusterConfig *api.ClusterConfig, np api.NodePo
 // NewUserDataForBottlerocket generates TOML userdata for bootstrapping a Bottlerocket node.
 func (b *Bottlerocket) UserData() (string, error) {
 	ng := b.np.BaseNodeGroup()
-	if ng.Bottlerocket.Settings == nil {
-		ng.Bottlerocket.Settings = &api.InlineDocument{}
-	}
 
 	// Update settings based on NodeGroup configuration. Values set here are not
 	// allowed to be set by the user - the values are owned by the NodeGroup and
@@ -57,29 +54,20 @@ func (b *Bottlerocket) UserData() (string, error) {
 }
 
 func setDerivedBottlerocketSettings(np api.NodePool) error {
-	ng := np.BaseNodeGroup()
-	settings := *ng.Bottlerocket.Settings
-
-	var kubernetesSettings map[string]interface{}
-
-	if val, ok := settings["kubernetes"]; ok {
-		kubernetesSettings, ok = val.(map[string]interface{})
-		if !ok {
-			return errors.Errorf("expected settings.kubernetes to be of type %T; got %T", kubernetesSettings, val)
-		}
-	} else {
-		kubernetesSettings = make(map[string]interface{})
-		settings["kubernetes"] = kubernetesSettings
+	kubernetesSettings, err := extractKubernetesSettings(np)
+	if err != nil {
+		return err
 	}
 
+	ng := np.BaseNodeGroup()
 	if len(ng.Labels) != 0 {
 		kubernetesSettings["node-labels"] = ng.Labels
 	}
-	if ng.MaxPodsPerNode != 0 {
-		kubernetesSettings["max-pods"] = ng.MaxPodsPerNode
-	}
 	if taints := np.NGTaints(); len(taints) != 0 {
 		kubernetesSettings["node-taints"] = taintsToMap(taints)
+	}
+	if ng.MaxPodsPerNode != 0 {
+		kubernetesSettings["max-pods"] = ng.MaxPodsPerNode
 	}
 
 	if ng, ok := np.(*api.NodeGroup); ok {
@@ -88,6 +76,22 @@ func setDerivedBottlerocketSettings(np api.NodePool) error {
 		}
 	}
 	return nil
+}
+
+func extractKubernetesSettings(np api.NodePool) (map[string]interface{}, error) {
+	settings := *np.BaseNodeGroup().Bottlerocket.Settings
+
+	var kubernetesSettings map[string]interface{}
+	if val, ok := settings["kubernetes"]; ok {
+		kubernetesSettings, ok = val.(map[string]interface{})
+		if !ok {
+			return nil, errors.Errorf("expected settings.kubernetes to be of type %T; got %T", kubernetesSettings, val)
+		}
+	} else {
+		kubernetesSettings = make(map[string]interface{})
+		settings["kubernetes"] = kubernetesSettings
+	}
+	return kubernetesSettings, nil
 }
 
 func taintsToMap(taints []api.NodeGroupTaint) map[string]string {
@@ -150,7 +154,7 @@ func bottlerocketSettingsTOML(spec *api.ClusterConfig, ng *api.NodeGroupBase, tr
 		// Provide value only if given, with `enabled`
 		// commented out otherwise.
 		enabled := false
-		isUnset := ng.Bottlerocket == nil || ng.Bottlerocket.EnableAdminContainer == nil
+		isUnset := ng.Bottlerocket.EnableAdminContainer == nil
 		if !isUnset {
 			enabled = *ng.Bottlerocket.EnableAdminContainer
 		}
