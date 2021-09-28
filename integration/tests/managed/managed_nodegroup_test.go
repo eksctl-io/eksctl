@@ -191,37 +191,65 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 		}),
 	)
 
-	Context("Bottlerocket nodegroups", func() {
-		It("should work as a node AMI family", func() {
-			clusterConfig := makeClusterConfig()
-			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
+	DescribeTable("Bottlerocket nodegroup", func(ng *api.ManagedNodeGroup) {
+		clusterConfig := makeClusterConfig()
+		clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{ng}
+		cmd := params.EksctlCreateCmd.
+			WithArgs(
+				"nodegroup",
+				"--config-file", "-",
+				"--verbose", "4",
+			).
+			WithoutArg("--region", params.Region).
+			WithStdin(testutils.ClusterConfigReader(clusterConfig))
+
+		Expect(cmd).To(RunSuccessfully())
+	},
+		Entry("standard config", &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:       "bottlerocket",
+				VolumeSize: aws.Int(35),
+				AMIFamily:  "Bottlerocket",
+				Labels: map[string]string{
+					"ami-family": "bottlerocket",
+				},
+				Bottlerocket: &api.NodeGroupBottlerocket{
+					EnableAdminContainer: api.Enabled(),
+				},
+			},
+			Taints: []api.NodeGroupTaint{
 				{
-					NodeGroupBase: &api.NodeGroupBase{
-						Name:       "bottlerocket",
-						VolumeSize: aws.Int(35),
-						AMIFamily:  "Bottlerocket",
-					},
-					Taints: []api.NodeGroupTaint{
-						{
-							Key:    "key1",
-							Value:  "value1",
-							Effect: "PreferNoSchedule",
-						},
+					Key:    "key1",
+					Value:  "value1",
+					Effect: "PreferNoSchedule",
+				},
+			},
+		}),
+
+		Entry("with Bottlerocket settings", &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:       "bottlerocket",
+				VolumeSize: aws.Int(20),
+				AMIFamily:  "Bottlerocket",
+				Labels: map[string]string{
+					"ami-family": "bottlerocket",
+				},
+				Bottlerocket: &api.NodeGroupBottlerocket{
+					EnableAdminContainer: api.Enabled(),
+					Settings: &api.InlineDocument{
+						"motd": "Bottlerocket is the future",
 					},
 				},
-			}
-			cmd := params.EksctlCreateCmd.
-				WithArgs(
-					"nodegroup",
-					"--config-file", "-",
-					"--verbose", "4",
-				).
-				WithoutArg("--region", params.Region).
-				WithStdin(testutils.ClusterConfigReader(clusterConfig))
-
-			Expect(cmd).To(RunSuccessfully())
-		})
-	})
+			},
+			Taints: []api.NodeGroupTaint{
+				{
+					Key:    "key1",
+					Value:  "value1",
+					Effect: "PreferNoSchedule",
+				},
+			},
+		}),
+	)
 
 	Context("cluster with 1 managed nodegroup", func() {
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
