@@ -119,7 +119,9 @@ func UpdateKubeProxy(clientSet kubernetes.Interface, controlPlaneVersion string,
 	}
 
 	if !hasArm64NodeSelector {
-		addArm64NodeSelector(d, archLabel)
+		if err := addArm64NodeSelector(d, archLabel); err != nil {
+			return false, err
+		}
 	}
 
 	if _, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Update(context.TODO(), d, metav1.UpdateOptions{}); err != nil {
@@ -149,18 +151,24 @@ func daemeonSetHasArm64NodeSelector(daemonSet *v1.DaemonSet, archLabel string) b
 	return false
 }
 
-func addArm64NodeSelector(daemonSet *v1.DaemonSet, archLabel string) {
-	for nodeSelectorTermsIndex, nodeSelectorTerms := range daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.
-		RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms {
-		for nodeSelectorIndex, nodeSelector := range nodeSelectorTerms.MatchExpressions {
-			if nodeSelector.Key == archLabel {
-				daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.
-					NodeSelectorTerms[nodeSelectorTermsIndex].MatchExpressions[nodeSelectorIndex].Values = append(nodeSelector.Values, "arm64")
+func addArm64NodeSelector(daemonSet *v1.DaemonSet, archLabel string) error {
+	if daemonSet != nil && daemonSet.Spec.Template.Spec.Affinity != nil && daemonSet.Spec.Template.Spec.Affinity.NodeAffinity != nil {
+		for nodeSelectorTermsIndex, nodeSelectorTerms := range daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.
+			RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms {
+			for nodeSelectorIndex, nodeSelector := range nodeSelectorTerms.MatchExpressions {
+				if nodeSelector.Key == archLabel {
+					daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.
+						NodeSelectorTerms[nodeSelectorTermsIndex].MatchExpressions[nodeSelectorIndex].Values = append(nodeSelector.Values, "arm64")
+				}
 			}
 		}
+		return nil
 	}
+	return errors.New("unable to get the arm  64 node Selector")
+
 }
 
 func kubeProxyImageTag(controlPlaneVersion string) (string, error) {
 	return fmt.Sprintf("v%s-eksbuild.1", controlPlaneVersion), nil
 }
+
