@@ -164,11 +164,9 @@ func addArm64NodeSelector(daemonSet *v1.DaemonSet, archLabel string) error {
 		}
 		return nil
 	}
-	return errors.New("unable to get the arm  64 node Selector")
-
+	return errors.New("NodeAffinity not configured on kube-proxy. Either manually update the proxy deployment, or switch to Managed Addons"")
 }
 
 func kubeProxyImageTag(controlPlaneVersion string) (string, error) {
 	return fmt.Sprintf("v%s-eksbuild.1", controlPlaneVersion), nil
 }
-
