@@ -164,7 +164,7 @@ func addArm64NodeSelector(daemonSet *v1.DaemonSet, archLabel string) error {
 		}
 		return nil
 	}
-	return errors.New("NodeAffinity not configured on kube-proxy. Either manually update the proxy deployment, or switch to Managed Addons"")
+	return errors.New("NodeAffinity not configured on kube-proxy. Either manually update the proxy deployment, or switch to Managed Addons")
 }
 
 func kubeProxyImageTag(controlPlaneVersion string) (string, error) {
