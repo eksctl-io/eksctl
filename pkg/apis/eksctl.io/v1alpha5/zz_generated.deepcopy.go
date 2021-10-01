@@ -1156,6 +1156,11 @@ func (in *NodeGroupBase) DeepCopyInto(out *NodeGroupBase) {
 		*out = new(NodeGroupBottlerocket)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.EnableDetailedMonitoring != nil {
+		in, out := &in.EnableDetailedMonitoring, &out.EnableDetailedMonitoring
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 

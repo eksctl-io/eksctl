@@ -281,6 +281,12 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_Laun
 		}
 	}
 
+	if n.spec.EnableDetailedMonitoring != nil {
+		launchTemplateData.Monitoring = &gfnec2.LaunchTemplate_Monitoring{
+			Enabled: gfnt.NewBoolean(*n.spec.EnableDetailedMonitoring),
+		}
+	}
+
 	return launchTemplateData, nil
 }
 

@@ -1,18 +1,24 @@
-package connector
+package connector_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/connector"
 )
 
 var _ = Describe("Manifest template", func() {
 	Context("GetManifestTemplate", func() {
 		It("should fetch the template", func() {
-			template, err := GetManifestTemplate()
+			template, err := connector.GetManifestTemplate()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(template.Connector).ToNot(BeEmpty())
-			Expect(template.RoleBinding).ToNot(BeEmpty())
+			assertManifestFile := func(m connector.ManifestFile, expectedFilename string) {
+				Expect(m.Data).ToNot(BeEmpty())
+				Expect(m.Filename).To(Equal(expectedFilename))
+			}
+			assertManifestFile(template.Connector, "eks-connector.yaml")
+			assertManifestFile(template.ClusterRole, "eks-connector-clusterrole.yaml")
+			assertManifestFile(template.ConsoleAccess, "eks-connector-console-dashboard-full-access-group.yaml")
 		})
 	})
 })

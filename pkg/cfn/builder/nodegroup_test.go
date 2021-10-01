@@ -1034,6 +1034,17 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 					Expect(ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.NetworkInterfaces).To(HaveLen(4))
 				})
 			})
+
+			Context("ng.EnableDetailedMonitoring is true", func() {
+				BeforeEach(func() {
+					ng.EnableDetailedMonitoring = aws.Bool(true)
+				})
+
+				It("enables the value on the launch template", func() {
+					properties := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties
+					Expect(properties.LaunchTemplateData.Monitoring.Enabled).To(Equal(true))
+				})
+			})
 		})
 	})
 

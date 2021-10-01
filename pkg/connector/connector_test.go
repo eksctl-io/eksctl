@@ -2,6 +2,7 @@ package connector_test
 
 import (
 	"io/ioutil"
+	"path"
 	"strings"
 	"time"
 
@@ -25,18 +26,35 @@ type connectorCase struct {
 }
 
 var _ = Describe("EKS Connector", func() {
+	readManifest := func(filename string) (connector.ManifestFile, error) {
+		data, err := ioutil.ReadFile(path.Join("testdata", filename))
+		if err != nil {
+			return connector.ManifestFile{}, nil
+		}
+		return connector.ManifestFile{
+			Data:     data,
+			Filename: filename,
+		}, nil
+	}
+
 	readResources := func() (connector.ManifestTemplate, error) {
-		connectorResources, err := ioutil.ReadFile("testdata/eks-connector.yaml")
+		connectorResources, err := readManifest("eks-connector.yaml")
 		if err != nil {
 			return connector.ManifestTemplate{}, err
 		}
-		bindingResources, err := ioutil.ReadFile("testdata/eks-connector-binding.yaml")
+		clusterRole, err := readManifest("eks-connector-clusterrole.yaml")
 		if err != nil {
 			return connector.ManifestTemplate{}, nil
 		}
+		consoleAccessResources, err := readManifest("eks-connector-console-dashboard-full-access-group.yaml")
+		if err != nil {
+			return connector.ManifestTemplate{}, nil
+		}
+
 		return connector.ManifestTemplate{
-			Connector:   connectorResources,
-			RoleBinding: bindingResources,
+			Connector:     connectorResources,
+			ClusterRole:   clusterRole,
+			ConsoleAccess: consoleAccessResources,
 		}, nil
 	}
 
@@ -81,15 +99,16 @@ var _ = Describe("EKS Connector", func() {
 
 		Expect(err).ToNot(HaveOccurred())
 
-		assertFileEquals := func(filename string, actual []byte) {
-			expected, err := ioutil.ReadFile(filename)
+		assertManifestEquals := func(m connector.ManifestFile, expectedFile string) {
+			expected, err := ioutil.ReadFile(path.Join("testdata", expectedFile))
 			Expect(err).ToNot(HaveOccurred())
-			Expect(actual).To(Equal(expected), filename)
+			Expect(m.Data).To(Equal(expected), m.Filename)
 		}
 
-		assertFileEquals("testdata/eks-connector-expected.yaml", resourceList.ConnectorResources)
+		assertManifestEquals(resourceList.ConnectorResources, "eks-connector-expected.yaml")
+		assertManifestEquals(resourceList.ClusterRoleResources, "eks-connector-clusterrole-expected.yaml")
+		assertManifestEquals(resourceList.ConsoleAccessResources, "eks-connector-console-dashboard-full-access-group-expected.yaml")
 
-		assertFileEquals("testdata/eks-connector-binding-expected.yaml", resourceList.ClusterRoleResources)
 	},
 		Entry("valid name and provider", connectorCase{
 			cluster: connector.ExternalCluster{
@@ -116,7 +135,9 @@ var _ = Describe("EKS Connector", func() {
 			},
 			getManifestTemplate: func() (connector.ManifestTemplate, error) {
 				return connector.ManifestTemplate{
-					Connector: []byte("malformed"),
+					Connector: connector.ManifestFile{
+						Data: []byte("malformed"),
+					},
 				}, nil
 			},
 
@@ -145,10 +166,6 @@ var _ = Describe("EKS Connector", func() {
 
 			c := &connector.EKSConnector{
 				Provider: mockProvider,
-				ManifestTemplate: connector.ManifestTemplate{
-					Connector:   []byte("null"),
-					RoleBinding: []byte("null"),
-				},
 			}
 			_, err := c.RegisterCluster(cluster)
 			Expect(err).To(HaveOccurred())
@@ -182,10 +199,6 @@ var _ = Describe("EKS Connector", func() {
 
 			c := &connector.EKSConnector{
 				Provider: mockProvider,
-				ManifestTemplate: connector.ManifestTemplate{
-					Connector:   []byte("null"),
-					RoleBinding: []byte("null"),
-				},
 			}
 			_, err := c.RegisterCluster(cluster)
 			Expect(err).To(HaveOccurred())

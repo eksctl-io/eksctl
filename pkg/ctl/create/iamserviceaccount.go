@@ -115,7 +115,7 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 	filteredServiceAccounts := saFilter.FilterMatching(cfg.IAM.ServiceAccounts)
 	saFilter.LogInfo(cfg.IAM.ServiceAccounts)
 	if !overrideExistingServiceAccounts {
-		logger.Warning("serviceaccounts that exists in Kubernetes will be excluded, use --override-existing-serviceaccounts to override")
+		logger.Warning("serviceaccounts that exist in Kubernetes will be excluded, use --override-existing-serviceaccounts to override")
 	} else {
 		logger.Warning("metadata of serviceaccounts that exist in Kubernetes will be updated, as --override-existing-serviceaccounts was set")
 	}

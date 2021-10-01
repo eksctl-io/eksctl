@@ -481,11 +481,10 @@
         },
         "version": {
           "type": "string",
-          "description": "Valid variants are: `\"1.16\"`, `\"1.17\"`, `\"1.18\"`, `\"1.19\"`, `\"1.20\"` (default), `\"1.21\"`.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;1.16&quot;</code>, <code>&quot;1.17&quot;</code>, <code>&quot;1.18&quot;</code>, <code>&quot;1.19&quot;</code>, <code>&quot;1.20&quot;</code> (default), <code>&quot;1.21&quot;</code>.",
+          "description": "Valid variants are: `\"1.17\"`, `\"1.18\"`, `\"1.19\"`, `\"1.20\"` (default), `\"1.21\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;1.17&quot;</code>, <code>&quot;1.18&quot;</code>, <code>&quot;1.19&quot;</code>, <code>&quot;1.20&quot;</code> (default), <code>&quot;1.21&quot;</code>.",
           "default": "1.20",
           "enum": [
-            "1.16",
             "1.17",
             "1.18",
             "1.19",
@@ -955,6 +954,11 @@
           "description": "creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
           "x-intellij-html-description": "creates the maximum allowed number of EFA-enabled network cards on nodes in this group."
         },
+        "enableDetailedMonitoring": {
+          "type": "boolean",
+          "description": "Enable EC2 detailed monitoring",
+          "x-intellij-html-description": "Enable EC2 detailed monitoring"
+        },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
         },
@@ -1148,6 +1152,7 @@
         "efaEnabled",
         "instanceSelector",
         "bottlerocket",
+        "enableDetailedMonitoring",
         "instanceTypes",
         "spot",
         "taints",
@@ -1281,6 +1286,11 @@
           "type": "boolean",
           "description": "creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
           "x-intellij-html-description": "creates the maximum allowed number of EFA-enabled network cards on nodes in this group."
+        },
+        "enableDetailedMonitoring": {
+          "type": "boolean",
+          "description": "Enable EC2 detailed monitoring",
+          "x-intellij-html-description": "Enable EC2 detailed monitoring"
         },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
@@ -1464,6 +1474,7 @@
         "efaEnabled",
         "instanceSelector",
         "bottlerocket",
+        "enableDetailedMonitoring",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",

@@ -21,33 +21,40 @@ func PopulateNodegroup(stackManager manager.StackManager, name string, cfg *api.
 		}
 		nodeGroupType = api.NodeGroupTypeUnowned
 	}
-	switch nodeGroupType {
-	case api.NodeGroupTypeUnmanaged:
-		cfg.NodeGroups = []*api.NodeGroup{
-			{
-				NodeGroupBase: &api.NodeGroupBase{
-					Name: name,
-				},
-			},
-		}
-	case api.NodeGroupTypeManaged:
-		cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
-			{
-				NodeGroupBase: &api.NodeGroupBase{
-					Name: name,
-				},
-			},
-		}
-	case api.NodeGroupTypeUnowned:
-		cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
-			{
-				NodeGroupBase: &api.NodeGroupBase{
-					Name: name,
-				},
-				Unowned: true,
-			},
-		}
+	if err = PopulateNodegroupFromStack(nodeGroupType, name, cfg); err != nil {
+		return err
 	}
 
 	return nil
+}
+
+// PopulateNodegroupFromStack populates the nodegroup field of an api.ClusterConfig by type from its CF stack.
+func PopulateNodegroupFromStack(nodeGroupType api.NodeGroupType, nodeGroupName string, cfg *api.ClusterConfig) error {
+	switch nodeGroupType {
+	case api.NodeGroupTypeUnmanaged:
+		PopulateUnmanagedNodegroup(nodeGroupName, cfg)
+	case api.NodeGroupTypeManaged:
+		cfg.ManagedNodeGroups = append(cfg.ManagedNodeGroups, &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name: nodeGroupName,
+			},
+		})
+	case api.NodeGroupTypeUnowned:
+		cfg.ManagedNodeGroups = append(cfg.ManagedNodeGroups, &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name: nodeGroupName,
+			},
+			Unowned: true,
+		})
+	}
+	return nil
+}
+
+// PopulateUnmanagedNodegroup populates the unmanaged nodegroup field of a ClucterConfig.
+func PopulateUnmanagedNodegroup(nodeGroupName string, cfg *api.ClusterConfig) {
+	cfg.NodeGroups = append(cfg.NodeGroups, &api.NodeGroup{
+		NodeGroupBase: &api.NodeGroupBase{
+			Name: nodeGroupName,
+		},
+	})
 }
