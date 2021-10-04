@@ -79,7 +79,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			rawClient = getRawClient(clusterName)
 			serverVersion, err := rawClient.ServerVersion()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(serverVersion).To(ContainSubstring(api.LatestVersion))
+			Expect(serverVersion).To(HavePrefix(api.LatestVersion))
 
 		})
 
