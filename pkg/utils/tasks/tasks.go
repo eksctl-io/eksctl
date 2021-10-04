@@ -72,7 +72,7 @@ func (t *TaskTree) Describe() string {
 	}
 	var descriptions []string
 	for _, task := range t.Tasks {
-		descriptions = append(descriptions, task.Describe())
+		descriptions = append(descriptions, strings.TrimSuffix(task.Describe(), "\n"))
 	}
 	noun := "task"
 	if t.IsSubTask {
@@ -91,9 +91,11 @@ func (t *TaskTree) Describe() string {
 		mode = "parallel"
 	}
 	noun += "s"
-	head := fmt.Sprintf("%d %s %s: { ", count, mode, noun)
+	head := fmt.Sprintf("\n%d %s %s: { ", count, mode, noun)
 	var tail string
 	if t.IsSubTask {
+		// Only add a linebreak at the end if we have multiple subtasks as well. Otherwise, leave it
+		// as single line.
 		head = fmt.Sprintf("\n%s%d %s %s: { ", strings.Repeat(" ", 4), count, mode, noun)
 		tail = "\n"
 		for _, d := range descriptions {
@@ -126,7 +128,7 @@ func (t *TaskTree) Describe() string {
 	if t.PlanMode {
 		msg = "(plan) " + msg
 	}
-	return msg
+	return msg + "\n"
 }
 
 // Do will run through the set in the background, it may return an error immediately,

@@ -21,11 +21,13 @@ var _ = Describe("TaskTree", func() {
 				tasks.IsSubTask = true
 				tasks.PlanMode = true
 				tasks.Append(&TaskTree{Parallel: false, IsSubTask: true})
+				fmt.Println(tasks.Describe())
 				expected := []byte(`(plan) 
     2 sequential sub-tasks: { 
         no tasks,
         no tasks,
-    }`)
+    }
+`)
 				Expect([]byte(tasks.Describe())).To(Equal(expected))
 			}
 			{
@@ -52,7 +54,8 @@ var _ = Describe("TaskTree", func() {
 				tasks.Append(subTask2)
 				subTask1.Append(subTask3)
 
-				Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { 
+				Expect(tasks.Describe()).To(Equal(`
+2 sequential tasks: { 
     2 sequential sub-tasks: { 
         t1.1,
         2 parallel sub-tasks: { 
@@ -60,7 +63,8 @@ var _ = Describe("TaskTree", func() {
             t3.2,
         },
     }, t2.1 
-}`))
+}
+`))
 			}
 		})
 
@@ -142,7 +146,8 @@ var _ = Describe("TaskTree", func() {
 				})
 				subTask1.Append(subTask3)
 
-				Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { 
+				Expect(tasks.Describe()).To(Equal(`
+2 sequential tasks: { 
     2 sequential sub-tasks: { 
         t1.1,
         2 parallel sub-tasks: { 
@@ -150,7 +155,8 @@ var _ = Describe("TaskTree", func() {
             t3.2,
         },
     }, t2.1 
-}`))
+}
+`))
 
 				status.startTime = time.Now()
 				errs := tasks.DoAllSync()
@@ -260,7 +266,8 @@ var _ = Describe("TaskTree", func() {
 				})
 				subTask1.Append(subTask3)
 
-				Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { 
+				Expect(tasks.Describe()).To(Equal(`
+2 sequential tasks: { 
     2 sequential sub-tasks: { 
         t1.1,
         2 parallel sub-tasks: { 
@@ -268,7 +275,8 @@ var _ = Describe("TaskTree", func() {
             t3.2,
         },
     }, t2.1 
-}`))
+}
+`))
 
 				status.startTime = time.Now()
 				errs := tasks.DoAllSync()
