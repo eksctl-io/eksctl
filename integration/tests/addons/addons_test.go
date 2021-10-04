@@ -36,12 +36,13 @@ func TestEKSAddons(t *testing.T) {
 var _ = Describe("(Integration) [EKS Addons test]", func() {
 
 	Context("Creating a cluster with addons", func() {
+		var rawClient *kubewrapper.RawClient
 		clusterName := params.NewClusterName("addons")
 
 		BeforeSuite(func() {
 			clusterConfig := api.NewClusterConfig()
 			clusterConfig.Metadata.Name = clusterName
-			clusterConfig.Metadata.Version = api.LatestVersion
+			clusterConfig.Metadata.Version = "latest"
 			clusterConfig.Metadata.Region = params.Region
 			clusterConfig.IAM.WithOIDC = api.Enabled()
 			clusterConfig.Addons = []*api.Addon{
@@ -74,6 +75,11 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				WithoutArg("--region", params.Region).
 				WithStdin(bytes.NewReader(data))
 			Expect(cmd).To(RunSuccessfully())
+
+			rawClient = getRawClient(clusterName)
+			serverVersion, err := rawClient.ServerVersion()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(serverVersion).To(HavePrefix(api.LatestVersion))
 
 		})
 
@@ -160,7 +166,6 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 				)
 			Expect(cmd).To(RunSuccessfully())
 
-			rawClient := getRawClient(clusterName)
 			_, err := rawClient.ClientSet().AppsV1().DaemonSets("kube-system").Get(context.Background(), "aws-node", metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 		})
