@@ -648,6 +648,24 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 		})
 	})
+	Describe("network config", func() {
+		var (
+			cfg *api.ClusterConfig
+			vpc *api.ClusterVPC
+			err error
+		)
+
+		BeforeEach(func() {
+			cfg = api.NewClusterConfig()
+			vpc = api.NewClusterVPC()
+			cfg.VPC = vpc
+		})
+
+		It("should not error default ipFamily setting", func() {
+			err = cfg.ValidateVPCConfig()
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
 
 	Describe("cpuCredits", func() {
 		var ng *api.NodeGroup

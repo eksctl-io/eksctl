@@ -319,6 +319,20 @@ const (
 	DefaultNodeVolumeGP3IOPS = 3000
 )
 
+type IPFamily string
+
+const (
+	// IPV4Family defines an ip family of v4 to be used when creating a new VPC.
+	IPV4Family IPFamily = "ipv4"
+	// IPV6Family defines an ip family of v6 to be used when creating a new VPC.
+	IPV6Family IPFamily = "ipv6"
+)
+
+var (
+	// DefaultIPFamily defines the default IP family to use when creating a new VPC.
+	DefaultIPFamily = IPV4Family
+)
+
 var (
 	// DefaultWaitTimeout defines the default wait timeout
 	DefaultWaitTimeout = 25 * time.Minute
@@ -721,10 +735,12 @@ func NewClusterConfig() *ClusterConfig {
 // NewClusterVPC creates new VPC config for a cluster
 func NewClusterVPC() *ClusterVPC {
 	cidr := DefaultCIDR()
+	defaultIPFamily := string(DefaultIPFamily)
 
 	return &ClusterVPC{
 		Network: Network{
-			CIDR: &cidr,
+			CIDR:     &cidr,
+			IPFamily: &defaultIPFamily,
 		},
 		ManageSharedNodeSecurityGroupRules: Enabled(),
 		NAT:                                DefaultClusterNAT(),
