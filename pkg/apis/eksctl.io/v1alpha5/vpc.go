@@ -7,6 +7,7 @@ import (
 	"reflect"
 
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 )
 
@@ -182,6 +183,8 @@ type (
 		ID string `json:"id,omitempty"`
 		// +optional
 		CIDR *ipnet.IPNet `json:"cidr,omitempty"`
+		// +optional
+		IPFamily *string `json:"ipFamily,omitempty"`
 	}
 	// ClusterNAT NAT config
 	ClusterNAT struct {
