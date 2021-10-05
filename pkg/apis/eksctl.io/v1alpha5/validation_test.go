@@ -482,6 +482,47 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	type logRetentionEntry struct {
+		logging *api.ClusterCloudWatchLogging
+
+		expectedErr string
+	}
+
+	DescribeTable("CloudWatch log retention", func(l logRetentionEntry) {
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.CloudWatch.ClusterLogging = l.logging
+		err := api.ValidateClusterConfig(clusterConfig)
+		if l.expectedErr != "" {
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring(l.expectedErr)))
+			return
+		}
+
+		Expect(err).ToNot(HaveOccurred())
+	},
+		Entry("invalid value", logRetentionEntry{
+			logging: &api.ClusterCloudWatchLogging{
+				LogRetentionInDays: 42,
+				EnableTypes:        []string{"api"},
+			},
+			expectedErr: `invalid value 42 for logRetentionInDays; supported values are [1 3 5 7`,
+		}),
+
+		Entry("valid value", logRetentionEntry{
+			logging: &api.ClusterCloudWatchLogging{
+				LogRetentionInDays: 545,
+				EnableTypes:        []string{"api"},
+			},
+		}),
+
+		Entry("log retention without enableTypes", logRetentionEntry{
+			logging: &api.ClusterCloudWatchLogging{
+				LogRetentionInDays: 545,
+			},
+			expectedErr: "cannot set cloudWatch.clusterLogging.logRetentionInDays without enabling log types",
+		}),
+	)
+
 	Describe("cluster endpoint access config", func() {
 		var (
 			cfg *api.ClusterConfig

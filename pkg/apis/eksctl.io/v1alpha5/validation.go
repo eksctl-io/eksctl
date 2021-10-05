@@ -152,8 +152,12 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 
 func validateCloudWatchLogging(clusterConfig *ClusterConfig) error {
 	if !clusterConfig.HasClusterCloudWatchLogging() {
+		if clusterConfig.CloudWatch.ClusterLogging.LogRetentionInDays != 0 {
+			return errors.New("cannot set cloudWatch.clusterLogging.logRetentionInDays without enabling log types")
+		}
 		return nil
 	}
+
 	for i, logType := range clusterConfig.CloudWatch.ClusterLogging.EnableTypes {
 		isUnknown := true
 		for _, knownLogType := range SupportedCloudWatchClusterLogTypes() {
@@ -171,7 +175,7 @@ func validateCloudWatchLogging(clusterConfig *ClusterConfig) error {
 				return nil
 			}
 		}
-		return errors.Errorf("invalid value %q for logRetentionInDays; supported values are %v", logRetentionDays, LogRetentionInDaysValues)
+		return errors.Errorf("invalid value %d for logRetentionInDays; supported values are %v", logRetentionDays, LogRetentionInDaysValues)
 	}
 
 	return nil
