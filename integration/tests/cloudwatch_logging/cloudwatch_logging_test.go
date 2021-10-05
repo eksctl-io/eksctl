@@ -17,6 +17,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/eksctl/integration/tests"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 )
 
 var params *tests.Params
@@ -44,7 +45,7 @@ var _ = Describe("(Integration) [CloudWatch Logging test]", func() {
 					"--verbose=4",
 				).
 				WithoutArg("--region", params.Region).
-				WithStdin(testutils.ClusterConfigReaderFromFile(params.ClusterName, params.Region, "testdata/cloudwatch-cluster.yaml"))
+				WithStdin(clusterutils.ReaderFromFile(params.ClusterName, params.Region, "testdata/cloudwatch-cluster.yaml"))
 
 			Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("set log retention to 545 days for CloudWatch logging")))
 		})

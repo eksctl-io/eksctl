@@ -12,13 +12,13 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
-func ClusterConfigReader(clusterConfig *v1alpha5.ClusterConfig) io.Reader {
+func Reader(clusterConfig *v1alpha5.ClusterConfig) io.Reader {
 	data, err := json.Marshal(clusterConfig)
 	Expect(err).ToNot(HaveOccurred())
 	return bytes.NewReader(data)
 }
 
-func ClusterConfigReaderFromFile(clusterName, region, filename string) io.Reader {
+func ReaderFromFile(clusterName, region, filename string) io.Reader {
 	data, err := os.ReadFile(filename)
 	Expect(err).ToNot(HaveOccurred())
 	clusterConfig, err := eks.ParseConfig(data)
