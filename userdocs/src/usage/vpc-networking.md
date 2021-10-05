@@ -37,6 +37,7 @@ kind: ClusterConfig
 metadata:
   name: my-test
   region: us-west-2
+  version: "1.21"
 
 vpc:
   ipFamily: IPv6 # or IPv4
@@ -50,7 +51,12 @@ iam:
   withOIDC: true
 ```
 
-This is an in config file setting only. Managed addons need to be defined when IPv6 is set along with OIDC. 
+This is an in config file setting only. When IPv6 is set, the following restriction must be followed:
+
+- OIDC is enabled
+- managed addons are defined as shows above
+- version must be => 1.21
+
 The default value is `IPv4`.
 
 ## Change VPC CIDR

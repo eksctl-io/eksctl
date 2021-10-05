@@ -156,9 +156,9 @@ var _ = Describe("cmdutils configfile", func() {
 				}
 
 				err := NewMetadataLoader(cmd).Load()
+				Expect(err).ToNot(HaveOccurred())
 
 				cfg := cmd.ClusterConfig
-				Expect(err).ToNot(HaveOccurred())
 				Expect(cfg.Metadata.Name).ToNot(BeEmpty())
 				Expect(cfg.Metadata.Region).ToNot(BeEmpty())
 				Expect(cfg.Metadata.Region).To(Equal(cmd.ProviderConfig.Region))
