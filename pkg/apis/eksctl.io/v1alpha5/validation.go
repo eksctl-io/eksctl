@@ -130,20 +130,8 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 	}
 
-	if cfg.VPC != nil && len(cfg.VPC.ExtraCIDRs) > 0 {
-		cidrs, err := validateCIDRs(cfg.VPC.ExtraCIDRs)
-		if err != nil {
-			return err
-		}
-		cfg.VPC.ExtraCIDRs = cidrs
-	}
-
-	if cfg.VPC != nil && len(cfg.VPC.PublicAccessCIDRs) > 0 {
-		cidrs, err := validateCIDRs(cfg.VPC.PublicAccessCIDRs)
-		if err != nil {
-			return err
-		}
-		cfg.VPC.PublicAccessCIDRs = cidrs
+	if err := cfg.ValidateVPCConfig(); err != nil {
+		return err
 	}
 
 	if cfg.SecretsEncryption != nil && cfg.SecretsEncryption.KeyARN == "" {
@@ -155,6 +143,33 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return errors.New("vpc.manageSharedNodeSecurityGroupRules must be enabled when using ekstcl-managed security groups")
 	}
 
+	return nil
+}
+
+// ValidateVPCConfig validates the vpc setting if it is defined.
+func (c *ClusterConfig) ValidateVPCConfig() error {
+	if c.VPC == nil {
+		return nil
+	}
+	if len(c.VPC.ExtraCIDRs) > 0 {
+		cidrs, err := validateCIDRs(c.VPC.ExtraCIDRs)
+		if err != nil {
+			return err
+		}
+		c.VPC.ExtraCIDRs = cidrs
+	}
+	if len(c.VPC.PublicAccessCIDRs) > 0 {
+		cidrs, err := validateCIDRs(c.VPC.PublicAccessCIDRs)
+		if err != nil {
+			return err
+		}
+		c.VPC.PublicAccessCIDRs = cidrs
+	}
+	if v := c.VPC.IPFamily; v != nil {
+		if *v != string(IPV4Family) && *v != string(IPV6Family) {
+			return fmt.Errorf("invalid value %s for ipFamily; allowed are %s and %s", *v, IPV4Family, IPV6Family)
+		}
+	}
 	return nil
 }
 

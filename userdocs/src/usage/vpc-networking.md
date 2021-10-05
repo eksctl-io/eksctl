@@ -21,6 +21,29 @@ The nodegroup by default allows inbound traffic from the control plane security 
 
 If the default functionality doesn't suit you, the following options are currently available.
 
+## Define IP Family
+
+When `eksctl` creates a vpc, you can define the IP version that will be used. The following options are available to be configured:
+
+- ipv4
+- ipv6
+
+To define it, use the following example:
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: my-test
+  region: us-west-2
+
+vpc:
+  ipFamily: ipv6 # or ipv4
+```
+
+This is an in config file setting only. The default value is `ipv4`.
+
 ## Change VPC CIDR
 
 If you need to setup peering with another VPC, or simply need a larger or smaller range of IPs, you can use `--vpc-cidr` flag to

@@ -1,0 +1,14 @@
+# An example of ClusterConfig object with custom VPC ipFamily
+# set to ipv6; also without any nodegroups:
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-2
+  region: eu-north-1
+
+vpc:
+  ipFamily: ipv6
+
+managedNodeGroups: []
