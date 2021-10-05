@@ -169,6 +169,8 @@ func validateCloudWatchLogging(clusterConfig *ClusterConfig) error {
 	}
 	return nil
 }
+
+// ValidateVPCConfig validates the vpc setting if it is defined.
 func (c *ClusterConfig) ValidateVPCConfig() error {
 	if c.VPC == nil {
 		return nil
@@ -188,8 +190,8 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		c.VPC.PublicAccessCIDRs = cidrs
 	}
 	if v := c.VPC.IPFamily; v != nil {
-		if *v != string(IPV4Family) && *v == string(IPV6Family) {
-			return fmt.Errorf("allowed values for ipFamily are %s and %s", IPV4Family, IPV6Family)
+		if *v != string(IPV4Family) && *v != string(IPV6Family) {
+			return fmt.Errorf("invalid value %s for ipFamily; allowed are %s and %s", *v, IPV4Family, IPV6Family)
 		}
 	}
 	return nil
