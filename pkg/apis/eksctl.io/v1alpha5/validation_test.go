@@ -546,8 +546,24 @@ var _ = Describe("ClusterConfig validation", func() {
 				It("accepts that setting", func() {
 					ipv6 := string(api.IPV6Family)
 					cfg.VPC.IPFamily = &ipv6
+					cfg.Addons = append(cfg.Addons,
+						&api.Addon{Name: api.KubeProxyAddon},
+						&api.Addon{Name: api.CoreDNSAddon},
+						&api.Addon{Name: api.VPCCNIAddon},
+					)
 					err = cfg.ValidateVPCConfig()
 					Expect(err).ToNot(HaveOccurred())
+				})
+			})
+			When("ipFamily is set ot IPv6 but no managed addons are provided", func() {
+				It("it returns an error including which addons are missing", func() {
+					ipv6 := string(api.IPV6Family)
+					cfg.VPC.IPFamily = &ipv6
+					cfg.Addons = append(cfg.Addons,
+						&api.Addon{Name: api.KubeProxyAddon},
+					)
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError(ContainSubstring("the default core addons must be defined in case of IPv6; missing addon(s): vpc-cni, coredns")))
 				})
 			})
 			When("ipFamily isn't IPv4 or IPv6", func() {
