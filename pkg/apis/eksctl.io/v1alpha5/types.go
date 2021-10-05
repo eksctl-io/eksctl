@@ -321,11 +321,12 @@ const (
 
 type IPFamily string
 
+// Values for `IPFamily`
 const (
-	// IPV4Family defines an ip family of v4 to be used when creating a new VPC.
-	IPV4Family IPFamily = "ipv4"
-	// IPV6Family defines an ip family of v6 to be used when creating a new VPC.
-	IPV6Family IPFamily = "ipv6"
+	// IPV4Family defines an IP family of v4 to be used when creating a new VPC.
+	IPV4Family IPFamily = "IPv4"
+	// IPV6Family defines an IP family of v6 to be used when creating a new VPC.
+	IPV6Family IPFamily = "IPv6"
 )
 
 var (

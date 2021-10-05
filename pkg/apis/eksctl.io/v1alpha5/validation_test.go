@@ -667,7 +667,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(*cfg.VPC.IPFamily).To(Equal(string(api.IPV4Family)))
 			})
-			When("ipFamily is set ot ipv6", func() {
+			When("ipFamily is set ot IPv6", func() {
 				It("accepts that setting", func() {
 					ipv6 := string(api.IPV6Family)
 					cfg.VPC.IPFamily = &ipv6
@@ -675,12 +675,12 @@ var _ = Describe("ClusterConfig validation", func() {
 					Expect(err).ToNot(HaveOccurred())
 				})
 			})
-			When("ipFamily is neither ipv4 or ipv6", func() {
+			When("ipFamily isn't IPv4 or IPv6", func() {
 				It("returns an error", func() {
 					invalid := "invalid"
 					cfg.VPC.IPFamily = &invalid
 					err = cfg.ValidateVPCConfig()
-					Expect(err).To(MatchError(ContainSubstring("invalid value invalid for ipFamily; allowed are ipv4 and ipv6")))
+					Expect(err).To(MatchError(ContainSubstring("invalid value invalid for ipFamily; allowed are IPv4 and IPv6")))
 				})
 			})
 		})
