@@ -3,6 +3,7 @@ package builder_test
 import (
 	"encoding/json"
 
+	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo"
@@ -32,6 +33,7 @@ var _ = Describe("Cluster Template Builder", func() {
 		cfg = api.NewClusterConfig()
 		cfg.VPC = vpcConfig()
 		cfg.AvailabilityZones = []string{"us-west-2a", "us-west-2b"}
+		cfg.VPC.IPFamily = aws.String(string(api.IPV4Family))
 	})
 
 	JustBeforeEach(func() {
@@ -78,6 +80,46 @@ var _ = Describe("Cluster Template Builder", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey(rtaPrivateB))
 			Expect(clusterTemplate.Resources).To(HaveKey(privateSubnetRef1))
 			Expect(clusterTemplate.Resources).To(HaveKey(privateSubnetRef1))
+		})
+
+		Context("when ipFamily is set to IPv6", func() {
+			BeforeEach(func() {
+				cfg.VPC.IPFamily = aws.String(string(api.IPV6Family))
+			})
+
+			It("should add IPv6 vpc resources", func() {
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.VPCResourceKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.IPv6CIDRBlockKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.IGWKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.GAKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.EgressOnlyInternetGatewayKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.NATGatewayKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.ElasticIPKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PubRouteTableKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PubSubRouteKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PubSubIPv6RouteKey))
+				privateRouteTableA := builder.PrivateRouteTableKey + azAFormatted
+				Expect(clusterTemplate.Resources).To(HaveKey(privateRouteTableA))
+				privateRouteTableB := builder.PrivateRouteTableKey + azBFormatted
+				Expect(clusterTemplate.Resources).To(HaveKey(privateRouteTableB))
+				privateRouteA := builder.PrivateSubnetRouteKey + azAFormatted
+				Expect(clusterTemplate.Resources).To(HaveKey(privateRouteA))
+				privateRouteB := builder.PrivateSubnetRouteKey + azBFormatted
+				Expect(clusterTemplate.Resources).To(HaveKey(privateRouteB))
+				privateRouteA = builder.PrivateSubnetIpv6RouteKey + azAFormatted
+				Expect(clusterTemplate.Resources).To(HaveKey(privateRouteA))
+				privateRouteB = builder.PrivateSubnetIpv6RouteKey + azBFormatted
+				Expect(clusterTemplate.Resources).To(HaveKey(privateRouteB))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PublicSubnetKey + azAFormatted))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PublicSubnetKey + azBFormatted))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateSubnetKey + azAFormatted))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateSubnetKey + azBFormatted))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PubRouteTableAssociation + azAFormatted))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PubRouteTableAssociation + azBFormatted))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateRouteTableAssociation + azAFormatted))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateRouteTableAssociation + azBFormatted))
+
+			})
 		})
 
 		Context("when AutoAllocateIPv6 is enabled", func() {

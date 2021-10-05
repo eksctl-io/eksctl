@@ -17,7 +17,7 @@ import (
 
 var _ = Describe("VPC Template Builder", func() {
 	var (
-		vpcRs   *builder.VPCResourceSet
+		vpcRs   *builder.IPv4VPCResourceSet
 		cfg     *api.ClusterConfig
 		mockEC2 = &mocks.EC2API{}
 	)
@@ -29,18 +29,19 @@ var _ = Describe("VPC Template Builder", func() {
 	})
 
 	JustBeforeEach(func() {
-		vpcRs = builder.NewVPCResourceSet(builder.NewRS(), cfg, mockEC2)
+		vpcRs = builder.NewIPv4VPCResourceSet(builder.NewRS(), cfg, mockEC2)
 	})
 
 	Describe("AddResources", func() {
 		var (
-			addErr      error
-			result      *builder.VPCResource
-			vpcTemplate *fakes.FakeTemplate
+			addErr        error
+			vpcID         *gfnt.Value
+			subnetDetails *builder.SubnetDetails
+			vpcTemplate   *fakes.FakeTemplate
 		)
 
 		JustBeforeEach(func() {
-			result, addErr = vpcRs.AddResources()
+			vpcID, subnetDetails, addErr = vpcRs.CreateTemplate()
 			vpcTemplate = &fakes.FakeTemplate{}
 			templateBody, err := vpcRs.RenderJSON()
 			Expect(err).ShouldNot(HaveOccurred())
@@ -52,7 +53,7 @@ var _ = Describe("VPC Template Builder", func() {
 		})
 
 		It("returns the VPC resource", func() {
-			Expect(result.VPC).To(Equal(gfnt.MakeRef(vpcResourceKey)))
+			Expect(vpcID).To(Equal(gfnt.MakeRef(vpcResourceKey)))
 		})
 
 		It("adds the correct gateway resources to the resource set", func() {
@@ -73,12 +74,12 @@ var _ = Describe("VPC Template Builder", func() {
 		})
 
 		It("returns public subnet settings", func() {
-			Expect(result.SubnetDetails.Public).To(ContainElement(builder.SubnetResource{
+			Expect(subnetDetails.Public).To(ContainElement(builder.SubnetResource{
 				Subnet:           gfnt.MakeRef(publicSubnetRef2),
 				RouteTable:       gfnt.MakeRef(pubRouteTable),
 				AvailabilityZone: azB,
 			}))
-			Expect(result.SubnetDetails.Public).To(ContainElement(builder.SubnetResource{
+			Expect(subnetDetails.Public).To(ContainElement(builder.SubnetResource{
 				Subnet:           gfnt.MakeRef(publicSubnetRef1),
 				RouteTable:       gfnt.MakeRef(pubRouteTable),
 				AvailabilityZone: azA,
@@ -119,13 +120,13 @@ var _ = Describe("VPC Template Builder", func() {
 		})
 
 		It("returns private subnet settings", func() {
-			Expect(result.SubnetDetails.Private).To(HaveLen(2))
-			Expect(result.SubnetDetails.Private).To(ContainElement(builder.SubnetResource{
+			Expect(subnetDetails.Private).To(HaveLen(2))
+			Expect(subnetDetails.Private).To(ContainElement(builder.SubnetResource{
 				Subnet:           gfnt.MakeRef(privateSubnetRef2),
 				RouteTable:       gfnt.MakeRef(privRouteTableB),
 				AvailabilityZone: azB,
 			}))
-			Expect(result.SubnetDetails.Private).To(ContainElement(builder.SubnetResource{
+			Expect(subnetDetails.Private).To(ContainElement(builder.SubnetResource{
 				Subnet:           gfnt.MakeRef(privateSubnetRef1),
 				RouteTable:       gfnt.MakeRef(privRouteTableA),
 				AvailabilityZone: azA,
@@ -270,7 +271,7 @@ var _ = Describe("VPC Template Builder", func() {
 			})
 
 			It("the correct VPC resource values are loaded into the VPCResource", func() {
-				Expect(result.VPC).To(Equal(gfnt.NewString("custom-vpc")))
+				Expect(vpcID).To(Equal(gfnt.NewString("custom-vpc")))
 			})
 
 			It("no resources are added to the set", func() {
@@ -279,12 +280,12 @@ var _ = Describe("VPC Template Builder", func() {
 
 			Context("private subnets are configured", func() {
 				It("the private subnet resource values are loaded into the VPCResource", func() {
-					Expect(result.SubnetDetails.Private).To(HaveLen(2))
-					Expect(result.SubnetDetails.Private).To(ContainElement(builder.SubnetResource{
+					Expect(subnetDetails.Private).To(HaveLen(2))
+					Expect(subnetDetails.Private).To(ContainElement(builder.SubnetResource{
 						Subnet:           gfnt.NewString(privateSubnet2),
 						AvailabilityZone: azB,
 					}))
-					Expect(result.SubnetDetails.Private).To(ContainElement(builder.SubnetResource{
+					Expect(subnetDetails.Private).To(ContainElement(builder.SubnetResource{
 						Subnet:           gfnt.NewString(privateSubnet1),
 						AvailabilityZone: azA,
 					}))
@@ -310,13 +311,13 @@ var _ = Describe("VPC Template Builder", func() {
 						})
 
 						It("the private subnet resource values are loaded into the VPCResource with route table association", func() {
-							Expect(result.SubnetDetails.Private).To(HaveLen(2))
-							Expect(result.SubnetDetails.Private).To(ContainElement(builder.SubnetResource{
+							Expect(subnetDetails.Private).To(HaveLen(2))
+							Expect(subnetDetails.Private).To(ContainElement(builder.SubnetResource{
 								Subnet:           gfnt.NewString(privateSubnet2),
 								RouteTable:       gfnt.NewString("this-is-a-route-table"),
 								AvailabilityZone: azB,
 							}))
-							Expect(result.SubnetDetails.Private).To(ContainElement(builder.SubnetResource{
+							Expect(subnetDetails.Private).To(ContainElement(builder.SubnetResource{
 								Subnet:           gfnt.NewString(privateSubnet1),
 								RouteTable:       gfnt.NewString("this-is-a-route-table"),
 								AvailabilityZone: azA,
@@ -354,12 +355,12 @@ var _ = Describe("VPC Template Builder", func() {
 
 			Context("public subnets are configured", func() {
 				It("the public subnet resource values are loaded into the VPCResource", func() {
-					Expect(result.SubnetDetails.Public).To(HaveLen(2))
-					Expect(result.SubnetDetails.Public).To(ContainElement(builder.SubnetResource{
+					Expect(subnetDetails.Public).To(HaveLen(2))
+					Expect(subnetDetails.Public).To(ContainElement(builder.SubnetResource{
 						Subnet:           gfnt.NewString(publicSubnet2),
 						AvailabilityZone: azB,
 					}))
-					Expect(result.SubnetDetails.Public).To(ContainElement(builder.SubnetResource{
+					Expect(subnetDetails.Public).To(ContainElement(builder.SubnetResource{
 						Subnet:           gfnt.NewString(publicSubnet1),
 						AvailabilityZone: azA,
 					}))
@@ -372,7 +373,7 @@ var _ = Describe("VPC Template Builder", func() {
 			BeforeEach(func() {
 				autoAllocated := true
 				cfg.VPC.AutoAllocateIPv6 = &autoAllocated
-				expectedFnCIDR = `{ "Fn::Cidr": [{ "Fn::Select": [ 0, { "Fn::GetAtt": ["VPC", "Ipv6CidrBlocks"] }]}, 8, 64 ]}`
+				expectedFnCIDR = `{ "Fn::Cidr": [{ "Fn::Select": [ 0, { "Fn::GetAtt": ["VPC", "Ipv6CidrBlocks"] }]}, 6, 64 ]}`
 			})
 
 			It("adds the AutoAllocatedCIDRv6 vpc resource to the resource set", func() {
@@ -429,7 +430,7 @@ var _ = Describe("VPC Template Builder", func() {
 			})
 
 			It("does not set public subnet resources", func() {
-				Expect(result.SubnetDetails.Public).To(HaveLen(0))
+				Expect(subnetDetails.Public).To(HaveLen(0))
 				Expect(vpcTemplate.Resources).NotTo(HaveKey(pubSubnetRoute))
 				Expect(vpcTemplate.Resources).NotTo(HaveKey(pubSubnetRoute))
 				Expect(vpcTemplate.Resources).NotTo(HaveKey(publicSubnetRef1))
@@ -437,7 +438,7 @@ var _ = Describe("VPC Template Builder", func() {
 				Expect(vpcTemplate.Resources).NotTo(HaveKey(rtaPublicA))
 				Expect(vpcTemplate.Resources).NotTo(HaveKey(rtaPublicB))
 
-				Expect(result.SubnetDetails.Private).To(HaveLen(2))
+				Expect(subnetDetails.Private).To(HaveLen(2))
 				Expect(vpcTemplate.Resources).To(HaveKey(privRouteTableA))
 				Expect(vpcTemplate.Resources).To(HaveKey(privRouteTableB))
 				Expect(vpcTemplate.Resources).To(HaveKey(privateSubnetRef1))
@@ -461,9 +462,8 @@ var _ = Describe("VPC Template Builder", func() {
 		)
 
 		JustBeforeEach(func() {
-			_, err := vpcRs.AddResources()
+			_, _, err := vpcRs.CreateTemplate()
 			Expect(err).NotTo(HaveOccurred())
-			vpcRs.AddOutputs()
 			vpcTemplate = &fakes.FakeTemplate{}
 			templateBody, err := vpcRs.RenderJSON()
 			Expect(err).ShouldNot(HaveOccurred())
@@ -508,9 +508,9 @@ var _ = Describe("VPC Template Builder", func() {
 
 	Describe("PublicSubnetRefs", func() {
 		It("returns the references of public subnets", func() {
-			result, err := vpcRs.AddResources()
+			_, subnetDetails, err := vpcRs.CreateTemplate()
 			Expect(err).NotTo(HaveOccurred())
-			refs := result.SubnetDetails.PublicSubnetRefs()
+			refs := subnetDetails.PublicSubnetRefs()
 			Expect(refs).To(HaveLen(2))
 			Expect(refs).To(ContainElement(makePrimitive(publicSubnetRef1)))
 			Expect(refs).To(ContainElement(makePrimitive(publicSubnetRef2)))
@@ -519,9 +519,9 @@ var _ = Describe("VPC Template Builder", func() {
 
 	Describe("PrivateSubnetRefs", func() {
 		It("returns the references of private subnets", func() {
-			result, err := vpcRs.AddResources()
+			_, subnetDetails, err := vpcRs.CreateTemplate()
 			Expect(err).NotTo(HaveOccurred())
-			refs := result.SubnetDetails.PrivateSubnetRefs()
+			refs := subnetDetails.PrivateSubnetRefs()
 			Expect(refs).To(HaveLen(2))
 			Expect(refs).To(ContainElement(makePrimitive(privateSubnetRef1)))
 			Expect(refs).To(ContainElement(makePrimitive(privateSubnetRef2)))
