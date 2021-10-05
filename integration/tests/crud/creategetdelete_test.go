@@ -395,7 +395,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		Context("and creating a nodegroup with containerd runtime", func() {
+		PContext("and creating a nodegroup with containerd runtime", func() {
 			var (
 				nodegroupName string
 			)
