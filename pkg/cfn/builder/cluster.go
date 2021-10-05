@@ -24,7 +24,7 @@ type ClusterResourceSet struct {
 	ec2API               ec2iface.EC2API
 	region               string
 	supportsManagedNodes bool
-	vpcResourceSet       *VPCResourceSet
+	vpcResourceSet       VPCResourceSet
 	securityGroups       []*gfnt.Value
 }
 
@@ -34,13 +34,19 @@ func NewClusterResourceSet(ec2API ec2iface.EC2API, region string, spec *api.Clus
 		unsetExistingResources(existingStack, spec)
 	}
 	rs := newResourceSet()
+
+	var vpcResourceSet VPCResourceSet
+	vpcResourceSet = NewIPv4VPCResourceSet(rs, spec, ec2API)
+	if spec.VPC.IPFamily != nil && *spec.VPC.IPFamily == string(api.IPV6Family) {
+		vpcResourceSet = NewIPv6VPCResourceSet(rs, spec, ec2API)
+	}
 	return &ClusterResourceSet{
 		rs:                   rs,
 		spec:                 spec,
 		ec2API:               ec2API,
 		region:               region,
 		supportsManagedNodes: supportsManagedNodes,
-		vpcResourceSet:       NewVPCResourceSet(rs, spec, ec2API),
+		vpcResourceSet:       vpcResourceSet,
 	}
 }
 
@@ -50,16 +56,15 @@ func (c *ClusterResourceSet) AddAllResources() error {
 		return err
 	}
 
-	vpcResource, err := c.vpcResourceSet.AddResources()
+	vpcID, subnetDetails, err := c.vpcResourceSet.CreateTemplate()
 	if err != nil {
 		return errors.Wrap(err, "error adding VPC resources")
 	}
 
-	c.vpcResourceSet.AddOutputs()
-	clusterSG := c.addResourcesForSecurityGroups(vpcResource)
+	clusterSG := c.addResourcesForSecurityGroups(vpcID)
 
 	if privateCluster := c.spec.PrivateCluster; privateCluster.Enabled {
-		vpcEndpointResourceSet := NewVPCEndpointResourceSet(c.ec2API, c.region, c.rs, c.spec, vpcResource.VPC, vpcResource.SubnetDetails.Private, clusterSG.ClusterSharedNode)
+		vpcEndpointResourceSet := NewVPCEndpointResourceSet(c.ec2API, c.region, c.rs, c.spec, vpcID, subnetDetails.Private, clusterSG.ClusterSharedNode)
 
 		if err := vpcEndpointResourceSet.AddResources(); err != nil {
 			return errors.Wrap(err, "error adding resources for VPC endpoints")
@@ -67,7 +72,7 @@ func (c *ClusterResourceSet) AddAllResources() error {
 	}
 
 	c.addResourcesForIAM()
-	c.addResourcesForControlPlane(vpcResource.SubnetDetails)
+	c.addResourcesForControlPlane(subnetDetails)
 
 	if len(c.spec.FargateProfiles) > 0 {
 		c.addResourcesForFargate()
@@ -132,7 +137,7 @@ func (c *ClusterResourceSet) newResource(name string, resource gfn.Resource) *gf
 	return c.rs.newResource(name, resource)
 }
 
-func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *subnetDetails) {
+func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDetails) {
 	clusterVPC := &gfneks.Cluster_ResourcesVpcConfig{
 		SecurityGroupIds: gfnt.NewSlice(c.securityGroups...),
 	}

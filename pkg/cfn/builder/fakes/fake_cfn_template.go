@@ -1,9 +1,5 @@
 package fakes
 
-import (
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-)
-
 type FakeTemplate struct {
 	Description string
 	Resources   map[string]struct {
@@ -13,7 +9,7 @@ type FakeTemplate struct {
 		UpdatePolicy map[string]map[string]interface{}
 	}
 	Mappings map[string]interface{}
-	Outputs  map[string]cfn.Output
+	Outputs  interface{}
 }
 
 type Tag struct {
@@ -24,13 +20,14 @@ type Tag struct {
 }
 
 type Properties struct {
-	GroupDescription           string
-	Description                string
-	Tags                       []Tag
-	SecurityGroupIngress       []SGIngress
-	GroupID                    interface{}
-	SourceSecurityGroupID      interface{}
-	DestinationSecurityGroupID interface{}
+	EnableDnsHostnames, EnableDnsSupport bool
+	GroupDescription                     string
+	Description                          string
+	Tags                                 []Tag
+	SecurityGroupIngress                 []SGIngress
+	GroupID                              interface{}
+	SourceSecurityGroupID                interface{}
+	DestinationSecurityGroupID           interface{}
 
 	Path, RoleName           string
 	Roles, ManagedPolicyArns []interface{}
@@ -62,16 +59,18 @@ type Properties struct {
 	CidrIP, CidrIpv6, IPProtocol string
 	FromPort, ToPort             int
 
-	VpcID, SubnetID                            interface{}
-	RouteTableID, AllocationID                 interface{}
-	GatewayID, InternetGatewayID, NatGatewayID interface{}
-	DestinationCidrBlock                       interface{}
-	MapPublicIPOnLaunch                        bool
+	VpcID, SubnetID                                         interface{}
+	EgressOnlyInternetGatewayID, RouteTableID, AllocationID interface{}
+	GatewayID, InternetGatewayID, NatGatewayID              interface{}
+	DestinationCidrBlock, DestinationIpv6CidrBlock          interface{}
+	MapPublicIPOnLaunch                                     bool
+	AssignIpv6AddressOnCreation                             *bool
 
 	Ipv6CidrBlock map[string][]interface{}
+	CidrBlock     interface{}
 
-	AmazonProvidedIpv6CidrBlock         bool
-	AvailabilityZone, Domain, CidrBlock string
+	AmazonProvidedIpv6CidrBlock bool
+	AvailabilityZone, Domain    string
 
 	Name, Version      string
 	RoleArn            interface{}
