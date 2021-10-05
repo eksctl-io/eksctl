@@ -536,10 +536,53 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg.VPC = vpc
 		})
 
-		It("should not error default ipFamily setting", func() {
-			err = cfg.ValidateVPCConfig()
-			Expect(err).ToNot(HaveOccurred())
+		Context("ipFamily", func() {
+			It("should not error default ipFamily setting", func() {
+				err = cfg.ValidateVPCConfig()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(*cfg.VPC.IPFamily).To(Equal(string(api.IPV4Family)))
+			})
+			When("ipFamily is set ot ipv6", func() {
+				It("accepts that setting", func() {
+					ipv6 := string(api.IPV6Family)
+					cfg.VPC.IPFamily = &ipv6
+					err = cfg.ValidateVPCConfig()
+					Expect(err).ToNot(HaveOccurred())
+				})
+			})
+			When("ipFamily is neither ipv4 or ipv6", func() {
+				It("returns an error", func() {
+					invalid := "invalid"
+					cfg.VPC.IPFamily = &invalid
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError(ContainSubstring("invalid value invalid for ipFamily; allowed are ipv4 and ipv6")))
+				})
+			})
 		})
+
+		Context("CIDRs", func() {
+			It("validates cirds", func() {
+				cfg.VPC.ExtraCIDRs = []string{"192.168.0.0/24"}
+				cfg.VPC.PublicAccessCIDRs = []string{"3.48.58.68/24"}
+				err = cfg.ValidateVPCConfig()
+				Expect(err).ToNot(HaveOccurred())
+			})
+			When("extraCIDRs has an invalid cidr", func() {
+				It("returns an error", func() {
+					cfg.VPC.ExtraCIDRs = []string{"not-a-cidr"}
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(HaveOccurred())
+				})
+			})
+			When("public access cidrs has an invalid cidr", func() {
+				It("returns an error", func() {
+					cfg.VPC.PublicAccessCIDRs = []string{"48.58.68/24"}
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(HaveOccurred())
+				})
+			})
+		})
+
 	})
 
 	Describe("cpuCredits", func() {
