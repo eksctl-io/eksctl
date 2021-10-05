@@ -345,7 +345,7 @@ const expected = `
 		  "withOIDC": false
 		},
 		"vpc": {
-			"ipFamily": "ipv4",
+			"ipFamily": "IPv4",
 			"cidr": "192.168.0.0/16",
 			"manageSharedNodeSecurityGroupRules": true,
 			"autoAllocateIPv6": false,

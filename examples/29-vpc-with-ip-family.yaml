@@ -9,6 +9,6 @@ metadata:
   region: eu-north-1
 
 vpc:
-  ipFamily: ipv6
+  ipFamily: IPv6
 
 managedNodeGroups: []

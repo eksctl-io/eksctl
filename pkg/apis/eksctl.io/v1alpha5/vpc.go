@@ -183,6 +183,7 @@ type (
 		ID string `json:"id,omitempty"`
 		// +optional
 		CIDR *ipnet.IPNet `json:"cidr,omitempty"`
+		// Valid variants are `IPFamily` constants
 		// +optional
 		IPFamily *string `json:"ipFamily,omitempty"`
 	}
