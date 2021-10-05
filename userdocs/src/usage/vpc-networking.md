@@ -25,8 +25,8 @@ If the default functionality doesn't suit you, the following options are current
 
 When `eksctl` creates a vpc, you can define the IP version that will be used. The following options are available to be configured:
 
-- ipv4
-- ipv6
+- IPv4
+- IPv6
 
 To define it, use the following example:
 
@@ -39,10 +39,10 @@ metadata:
   region: us-west-2
 
 vpc:
-  ipFamily: ipv6 # or ipv4
+  ipFamily: IPv6 # or IPv4
 ```
 
-This is an in config file setting only. The default value is `ipv4`.
+This is an in config file setting only. The default value is `IPv4`.
 
 ## Change VPC CIDR
 

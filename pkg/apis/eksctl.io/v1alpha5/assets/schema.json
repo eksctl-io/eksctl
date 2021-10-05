@@ -569,7 +569,13 @@
           "type": "string"
         },
         "ipFamily": {
-          "type": "string"
+          "type": "string",
+          "description": "Valid variants are: `\"IPv4\"` defines an IP family of v4 to be used when creating a new VPC., `\"IPv6\"` defines an IP family of v6 to be used when creating a new VPC..",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;IPv4&quot;</code> defines an IP family of v4 to be used when creating a new VPC., <code>&quot;IPv6&quot;</code> defines an IP family of v6 to be used when creating a new VPC..",
+          "enum": [
+            "IPv4",
+            "IPv6"
+          ]
         },
         "manageSharedNodeSecurityGroupRules": {
           "type": "boolean",
