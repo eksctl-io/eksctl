@@ -47,7 +47,7 @@ addons:
   - name: kube-proxy
 ```
 
-This is an in config file setting only and managed addons need to be defined when IPv6 is set. The default value is `IPv4`.
+This is an in config file setting only and default core addons need to be defined when IPv6 is set. The default value is `IPv4`.
 
 ## Change VPC CIDR
 
