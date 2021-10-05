@@ -4,7 +4,6 @@
 package crud
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -218,15 +217,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("and create a new nodegroup with taints and maxPods", func() {
 			It("should have taints and maxPods set", func() {
-				data, err := os.ReadFile("testdata/taints-max-pods.yaml")
-				Expect(err).ToNot(HaveOccurred())
-				clusterConfig, err := eks.ParseConfig(data)
-				Expect(err).ToNot(HaveOccurred())
-				clusterConfig.Metadata.Name = params.ClusterName
-				clusterConfig.Metadata.Region = params.Region
-
-				data, err = json.Marshal(clusterConfig)
-				Expect(err).ToNot(HaveOccurred())
 				By("creating a new nodegroup with taints and maxPods set")
 				cmd := params.EksctlCreateCmd.
 					WithArgs(
@@ -235,7 +225,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--verbose", "4",
 					).
 					WithoutArg("--region", params.Region).
-					WithStdin(bytes.NewReader(data))
+					WithStdin(testutils.ClusterConfigReaderFromFile(params.ClusterName, params.Region, "testdata/taints-max-pods.yaml"))
 				Expect(cmd).To(RunSuccessfully())
 
 				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
