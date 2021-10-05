@@ -16,4 +16,7 @@ addons:
   - name: coredns
   - name: kube-proxy 
 
+iam:
+  withOIDC: true
+
 managedNodeGroups: []

@@ -174,6 +174,9 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 			if missing := c.addonContainsManagedAddons([]string{"vpc-cni", "coredns", "kube-proxy"}); len(missing) != 0 {
 				return fmt.Errorf("managed addons must be defined in case of IPv6; missing addon(s): %s", strings.Join(missing, ", "))
 			}
+			if c.IAM == nil || c.IAM != nil && !IsEnabled(c.IAM.WithOIDC) {
+				return fmt.Errorf("oidc needs to be enabled if IPv6 is set")
+			}
 		}
 	}
 	return nil

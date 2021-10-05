@@ -551,6 +551,9 @@ var _ = Describe("ClusterConfig validation", func() {
 						&api.Addon{Name: "coredns"},
 						&api.Addon{Name: "vpc-cni"},
 					)
+					cfg.IAM = &api.ClusterIAM{
+						WithOIDC: api.Enabled(),
+					}
 					err = cfg.ValidateVPCConfig()
 					Expect(err).ToNot(HaveOccurred())
 				})
@@ -559,11 +562,43 @@ var _ = Describe("ClusterConfig validation", func() {
 				It("it returns an error including which addons are missing", func() {
 					ipv6 := string(api.IPV6Family)
 					cfg.VPC.IPFamily = &ipv6
+					cfg.IAM = &api.ClusterIAM{
+						WithOIDC: api.Enabled(),
+					}
 					cfg.Addons = append(cfg.Addons,
 						&api.Addon{Name: "kube-proxy"},
 					)
 					err = cfg.ValidateVPCConfig()
 					Expect(err).To(MatchError(ContainSubstring("managed addons must be defined in case of IPv6; missing addon(s): vpc-cni, coredns")))
+				})
+			})
+			When("iam is not set", func() {
+				It("returns an error", func() {
+					ipv6 := string(api.IPV6Family)
+					cfg.VPC.IPFamily = &ipv6
+					cfg.Addons = append(cfg.Addons,
+						&api.Addon{Name: "kube-proxy"},
+						&api.Addon{Name: "coredns"},
+						&api.Addon{Name: "vpc-cni"},
+					)
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError(ContainSubstring("oidc needs to be enabled if IPv6 is set")))
+				})
+			})
+			When("iam is set but OIDC is disabled", func() {
+				It("returns an error", func() {
+					ipv6 := string(api.IPV6Family)
+					cfg.VPC.IPFamily = &ipv6
+					cfg.IAM = &api.ClusterIAM{
+						WithOIDC: api.Disabled(),
+					}
+					cfg.Addons = append(cfg.Addons,
+						&api.Addon{Name: "kube-proxy"},
+						&api.Addon{Name: "coredns"},
+						&api.Addon{Name: "vpc-cni"},
+					)
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError(ContainSubstring("oidc needs to be enabled if IPv6 is set")))
 				})
 			})
 			When("ipFamily isn't IPv4 or IPv6", func() {

@@ -45,9 +45,13 @@ addons:
   - name: vpc-cni
   - name: coredns
   - name: kube-proxy
+
+iam:
+  withOIDC: true
 ```
 
-This is an in config file setting only and managed addons need to be defined when IPv6 is set. The default value is `IPv4`.
+This is an in config file setting only. Managed addons need to be defined when IPv6 is set along with OIDC. 
+The default value is `IPv4`.
 
 ## Change VPC CIDR
 
