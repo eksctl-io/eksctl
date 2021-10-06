@@ -167,10 +167,10 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		}
 		// This is the new vpc check, I need this check when the user sets it.
 		if *v == string(IPV6Family) {
-			if missing := c.addonContainsManagedAddons([]string{"vpc-cni", "coredns", "kube-proxy"}); len(missing) != 0 {
-				return fmt.Errorf("managed addons must be defined in case of IPv6; missing addon(s): %s", strings.Join(missing, ", "))
+			if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
+				return fmt.Errorf("the default core addons must be defined in case of IPv6; missing addon(s): %s", strings.Join(missing, ", "))
 			}
-			if c.IAM == nil || c.IAM != nil && !IsEnabled(c.IAM.WithOIDC) {
+			if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
 				return fmt.Errorf("oidc needs to be enabled if IPv6 is set")
 			}
 
