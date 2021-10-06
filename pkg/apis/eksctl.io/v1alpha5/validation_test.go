@@ -651,6 +651,27 @@ var _ = Describe("ClusterConfig validation", func() {
 					Expect(err).To(MatchError(ContainSubstring("setting NAT is not supported with IPv6")))
 				})
 			})
+			When("ipFamily is set to IPv6 and serviceIPv4CIDR is not empty", func() {
+				It("it returns an error", func() {
+					ipv6 := string(api.IPV6Family)
+					cfg.VPC.IPFamily = &ipv6
+					cfg.Metadata.Version = api.Version1_22
+					cfg.IAM = &api.ClusterIAM{
+						WithOIDC: api.Enabled(),
+					}
+					cfg.Addons = append(cfg.Addons,
+						&api.Addon{Name: "kube-proxy"},
+						&api.Addon{Name: "coredns"},
+						&api.Addon{Name: "vpc-cni"},
+					)
+					cfg.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
+						ServiceIPv4CIDR: "192.168.0.0/24",
+					}
+					cfg.VPC.NAT = nil
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError(ContainSubstring("service ipv4 cidr is not supported with IPv6")))
+				})
+			})
 		})
 
 		Context("CIDRs", func() {
