@@ -545,6 +545,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			When("ipFamily is set ot IPv6", func() {
 				It("accepts that setting", func() {
 					ipv6 := string(api.IPV6Family)
+					cfg.VPC.NAT = nil
 					cfg.VPC.IPFamily = &ipv6
 					cfg.Addons = append(cfg.Addons,
 						&api.Addon{Name: "kube-proxy"},
@@ -563,6 +564,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				It("returns an error", func() {
 					ipv6 := string(api.IPV6Family)
 					cfg.VPC.IPFamily = &ipv6
+					cfg.VPC.NAT = nil
 					cfg.Addons = append(cfg.Addons,
 						&api.Addon{Name: "kube-proxy"},
 						&api.Addon{Name: "coredns"},
@@ -582,6 +584,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			When("ipFamily is set ot IPv6 but no managed addons are provided", func() {
 				It("it returns an error including which addons are missing", func() {
 					ipv6 := string(api.IPV6Family)
+					cfg.VPC.NAT = nil
 					cfg.VPC.IPFamily = &ipv6
 					cfg.IAM = &api.ClusterIAM{
 						WithOIDC: api.Enabled(),
@@ -628,6 +631,24 @@ var _ = Describe("ClusterConfig validation", func() {
 					cfg.VPC.IPFamily = &invalid
 					err = cfg.ValidateVPCConfig()
 					Expect(err).To(MatchError(ContainSubstring("invalid value invalid for ipFamily; allowed are IPv4 and IPv6")))
+				})
+			})
+			When("ipFamily is set to IPv6 and vpc.NAT is defined", func() {
+				It("it returns an error", func() {
+					ipv6 := string(api.IPV6Family)
+					cfg.VPC.IPFamily = &ipv6
+					cfg.Metadata.Version = api.Version1_22
+					cfg.IAM = &api.ClusterIAM{
+						WithOIDC: api.Enabled(),
+					}
+					cfg.Addons = append(cfg.Addons,
+						&api.Addon{Name: "kube-proxy"},
+						&api.Addon{Name: "coredns"},
+						&api.Addon{Name: "vpc-cni"},
+					)
+					cfg.VPC.NAT = &api.ClusterNAT{}
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError(ContainSubstring("setting NAT is not supported with IPv6")))
 				})
 			})
 		})

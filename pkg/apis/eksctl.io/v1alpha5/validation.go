@@ -179,6 +179,10 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 			} else if err == nil && version == -1 {
 				return fmt.Errorf("cluster version must be >= %s", Version1_21)
 			}
+
+			if c.VPC.NAT != nil {
+				return fmt.Errorf("setting NAT is not supported with IPv6")
+			}
 		}
 	}
 
