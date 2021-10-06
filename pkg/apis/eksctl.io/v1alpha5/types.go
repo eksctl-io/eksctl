@@ -329,6 +329,13 @@ const (
 	IPV6Family IPFamily = "IPv6"
 )
 
+// Values for core addons
+const (
+	VPCCNIAddon    = "vpc-cni"
+	KubeProxyAddon = "kube-proxy"
+	CoreDNSAddon   = "coredns"
+)
+
 var (
 	// DefaultIPFamily defines the default IP family to use when creating a new VPC.
 	DefaultIPFamily = IPV4Family
