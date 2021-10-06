@@ -198,6 +198,9 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 			if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
 				return fmt.Errorf("the default core addons must be defined in case of IPv6; missing addon(s): %s", strings.Join(missing, ", "))
 			}
+			if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
+				return fmt.Errorf("oidc needs to be enabled if IPv6 is set")
+			}
 		}
 	}
 	return nil
