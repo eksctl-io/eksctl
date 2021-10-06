@@ -169,8 +169,32 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		if *v != string(IPV4Family) && *v != string(IPV6Family) {
 			return fmt.Errorf("invalid value %s for ipFamily; allowed are %s and %s", *v, IPV4Family, IPV6Family)
 		}
+		// This is the new vpc check, I need this check when the user sets it.
+		if *v == string(IPV6Family) {
+			if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
+				return fmt.Errorf("the default core addons must be defined in case of IPv6; missing addon(s): %s", strings.Join(missing, ", "))
+			}
+		}
 	}
 	return nil
+}
+
+// addonContainsManagedAddons finds managed addons in the config and returns those it couldn't find.
+func (c *ClusterConfig) addonContainsManagedAddons(addons []string) []string {
+	var missing []string
+	for _, a := range addons {
+		found := false
+		for _, add := range c.Addons {
+			if strings.ToLower(add.Name) == a {
+				found = true
+				break
+			}
+		}
+		if !found {
+			missing = append(missing, a)
+		}
+	}
+	return missing
 }
 
 // ValidateClusterEndpointConfig checks the endpoint configuration for potential issues

@@ -11,4 +11,9 @@ metadata:
 vpc:
   ipFamily: IPv6
 
+addons:
+  - name: vpc-cni
+  - name: coredns
+  - name: kube-proxy 
+
 managedNodeGroups: []
