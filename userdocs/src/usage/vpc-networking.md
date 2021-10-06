@@ -59,6 +59,7 @@ This is an in config file setting only. When IPv6 is set, the following restrict
 - setting vpc.NAT is not allowed
 - serviceIPv4CIDR is not supported together with IPv6
 - AutoAllocateIPv6 is not supported together with IPv6
+- unmanaged nodegroups are not yet supported with IPv6 clusters
 
 The default value is `IPv4`.
 

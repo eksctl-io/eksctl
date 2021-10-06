@@ -26,6 +26,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
+	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 	"github.com/weaveworks/eksctl/pkg/utils/taints"
 )
 
@@ -743,12 +744,11 @@ func NewClusterConfig() *ClusterConfig {
 // NewClusterVPC creates new VPC config for a cluster
 func NewClusterVPC() *ClusterVPC {
 	cidr := DefaultCIDR()
-	defaultIPFamily := string(DefaultIPFamily)
 
 	return &ClusterVPC{
 		Network: Network{
 			CIDR:     &cidr,
-			IPFamily: &defaultIPFamily,
+			IPFamily: utilsstrings.Pointer(string(DefaultIPFamily)),
 		},
 		ManageSharedNodeSecurityGroupRules: Enabled(),
 		NAT:                                DefaultClusterNAT(),
