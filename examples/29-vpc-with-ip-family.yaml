@@ -14,7 +14,7 @@ vpc:
 addons:
   - name: vpc-cni
   - name: coredns
-  - name: kube-proxy 
+  - name: kube-proxy
 
 iam:
   withOIDC: true

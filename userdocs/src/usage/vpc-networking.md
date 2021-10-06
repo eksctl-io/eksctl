@@ -50,7 +50,7 @@ iam:
   withOIDC: true
 ```
 
-This is an in config file setting only. Managed addons need to be defined when IPv6 is set along with OIDC. 
+This is an in config file setting only. Managed addons need to be defined when IPv6 is set along with OIDC.
 The default value is `IPv4`.
 
 ## Change VPC CIDR
