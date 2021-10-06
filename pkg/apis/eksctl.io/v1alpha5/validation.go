@@ -187,6 +187,10 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 			if c.KubernetesNetworkConfig != nil && c.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
 				return fmt.Errorf("service ipv4 cidr is not supported with IPv6")
 			}
+
+			if IsEnabled(c.VPC.AutoAllocateIPv6) {
+				return fmt.Errorf("auto allocate ipv6 is not supported with IPv6")
+			}
 		}
 	}
 

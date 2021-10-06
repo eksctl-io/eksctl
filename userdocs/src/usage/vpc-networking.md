@@ -58,6 +58,7 @@ This is an in config file setting only. When IPv6 is set, the following restrict
 - version must be => 1.21
 - setting vpc.NAT is not allowed
 - serviceIPv4CIDR is not supported together with IPv6
+- AutoAllocateIPv6 is not supported together with IPv6
 
 The default value is `IPv4`.
 
