@@ -1,16 +1,12 @@
 package create
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/utils"
@@ -346,39 +342,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 					logger.Critical("%s\n", err.Error())
 				}
 				return fmt.Errorf("failed to create addons")
-			}
-		}
-
-		// Apply custom node labels
-		// managed nodegroups
-		opts := make(map[metav1.ListOptions]map[string]string)
-		for _, ng := range cfg.ManagedNodeGroups {
-			opts[ng.ListOptions()] = ng.AdditionalCustomLabels
-		}
-		for _, ng := range cfg.NodeGroups {
-			opts[ng.ListOptions()] = ng.AdditionalCustomLabels
-		}
-		for opt, additionalLabels := range opts {
-			nodes, err := clientSet.CoreV1().Nodes().List(context.TODO(), opt)
-			if err != nil {
-				return err
-			}
-			for _, n := range nodes.Items {
-				cn := n.DeepCopy()
-				labels := cn.GetLabels()
-				for k, v := range additionalLabels {
-					if _, ok := labels[k]; !ok {
-						labels[k] = v
-					}
-				}
-				cn.SetLabels(labels)
-				content, err := json.Marshal(cn)
-				if err != nil {
-					return err
-				}
-				if _, err := clientSet.CoreV1().Nodes().Patch(context.Background(), n.Name, types.JSONPatchType, content, metav1.PatchOptions{}); err != nil {
-					return err
-				}
 			}
 		}
 

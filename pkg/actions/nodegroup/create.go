@@ -1,12 +1,16 @@
 package nodegroup
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -230,6 +234,46 @@ func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options 
 	}
 
 	logger.Success("created %d managed nodegroup(s) in cluster %q", len(m.cfg.ManagedNodeGroups), m.cfg.Metadata.Name)
+
+	opts := make(map[metav1.ListOptions]map[string]string)
+	for _, ng := range m.cfg.ManagedNodeGroups {
+		if ng.AdditionalCustomLabels != nil {
+			opts[ng.ListOptions()] = ng.AdditionalCustomLabels
+		}
+	}
+	for _, ng := range m.cfg.NodeGroups {
+		if ng.AdditionalCustomLabels != nil {
+			opts[ng.ListOptions()] = ng.AdditionalCustomLabels
+		}
+	}
+	for opt, additionalLabels := range opts {
+		logger.Info("applying additional labels to created nodes: %v", additionalLabels)
+		nodes, err := clientSet.CoreV1().Nodes().List(context.Background(), opt)
+		if err != nil {
+			return fmt.Errorf("failed to list all nodes: %w", err)
+		}
+		for _, n := range nodes.Items {
+			node := n.DeepCopy()
+			labels := node.GetLabels()
+			for k, v := range additionalLabels {
+				if ev, ok := labels[k]; !ok {
+					labels[k] = v
+				} else {
+					logger.Info("label %s for node %s is ignored because it already exists with value ", k, n.Name, ev)
+				}
+			}
+			node.SetLabels(labels)
+			content, err := json.Marshal(node)
+			if err != nil {
+				return fmt.Errorf("failed to marshal node object: %w", err)
+			}
+			if _, err := clientSet.CoreV1().Nodes().Patch(context.Background(), n.Name, types.MergePatchType, content, metav1.PatchOptions{}); err != nil {
+				return fmt.Errorf("failed to apply patch: %w", err)
+			}
+			logger.Info("successfully applied custom labels for node %s", n.Name)
+		}
+	}
+
 	return nil
 }
 

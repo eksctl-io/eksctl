@@ -47,6 +47,7 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGrou
 	fs.StringSliceVar(&ng.SecurityGroups.AttachIDs, "node-security-groups", []string{}, "attach additional security groups to nodes")
 
 	AddStringToStringVarPFlag(fs, &ng.Labels, "node-labels", "", nil, "extra labels to add when registering the nodes in the nodegroup")
+	AddStringToStringVarPFlag(fs, &ng.AdditionalCustomLabels, "additional-custom-labels", "", nil, "labels to add after the nodes joined the cluster")
 	fs.StringSliceVar(&ng.AvailabilityZones, "node-zones", nil, "(inherited from the cluster if unspecified)")
 
 	fs.StringVar(&ng.InstancePrefix, "instance-prefix", "", "add a prefix value in front of the instance's name")
