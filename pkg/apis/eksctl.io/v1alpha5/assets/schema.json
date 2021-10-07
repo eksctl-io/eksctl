@@ -888,6 +888,15 @@
         "name"
       ],
       "properties": {
+        "additionalCustomLabels": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "Set up additional custom node labels after the cluster and nodes have been created in a post create action. These are fully arbitrary labels.",
+          "x-intellij-html-description": "Set up additional custom node labels after the cluster and nodes have been created in a post create action. These are fully arbitrary labels.",
+          "default": "{}"
+        },
         "ami": {
           "type": "string",
           "description": "Specify [custom AMIs](/usage/custom-ami-support/), `auto-ssm`, `auto`, or `static`",
@@ -1153,6 +1162,7 @@
         "instanceSelector",
         "bottlerocket",
         "enableDetailedMonitoring",
+        "additionalCustomLabels",
         "instanceTypes",
         "spot",
         "taints",
@@ -1192,6 +1202,15 @@
         "name"
       ],
       "properties": {
+        "additionalCustomLabels": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "Set up additional custom node labels after the cluster and nodes have been created in a post create action. These are fully arbitrary labels.",
+          "x-intellij-html-description": "Set up additional custom node labels after the cluster and nodes have been created in a post create action. These are fully arbitrary labels.",
+          "default": "{}"
+        },
         "ami": {
           "type": "string",
           "description": "Specify [custom AMIs](/usage/custom-ami-support/), `auto-ssm`, `auto`, or `static`",
@@ -1475,6 +1494,7 @@
         "instanceSelector",
         "bottlerocket",
         "enableDetailedMonitoring",
+        "additionalCustomLabels",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",

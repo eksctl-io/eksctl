@@ -1161,6 +1161,13 @@ func (in *NodeGroupBase) DeepCopyInto(out *NodeGroupBase) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.AdditionalCustomLabels != nil {
+		in, out := &in.AdditionalCustomLabels, &out.AdditionalCustomLabels
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 

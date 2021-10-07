@@ -1395,6 +1395,10 @@ type NodeGroupBase struct {
 	// Enable EC2 detailed monitoring
 	// +optional
 	EnableDetailedMonitoring *bool `json:"enableDetailedMonitoring,omitempty"`
+
+	// Set up additional custom node labels after the cluster and nodes have been created
+	// in a post create action. These are fully arbitrary labels.
+	AdditionalCustomLabels map[string]string `json:"additionalCustomLabels,omitempty"`
 }
 
 // Placement specifies placement group information
