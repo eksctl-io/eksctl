@@ -73,8 +73,13 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 		return errors.New("Managed Nodegroups are not supported for this cluster version. Please update the cluster before adding managed nodegroups")
 	}
 
-	if utilsstrings.Value(cfg.VPC.IPFamily) == string(api.IPV6Family) && len(cfg.NodeGroups) > 0 {
-		return errors.New("unmanaged nodegroups are not supported with IPv6 clusters")
+	if utilsstrings.Value(cfg.VPC.IPFamily) == string(api.IPV6Family) {
+		if len(cfg.NodeGroups) > 0 {
+			return errors.New("unmanaged nodegroups are not supported with IPv6 clusters")
+		}
+		if !isOwnedCluster && len(cfg.ManagedNodeGroups) > 0 {
+			return errors.New("nodegroups cannot be created on IPv6 unowned clusters")
+		}
 	}
 
 	if err := eks.ValidateBottlerocketSupport(ctl.ControlPlaneVersion(), cmdutils.ToKubeNodeGroups(cfg)); err != nil {
