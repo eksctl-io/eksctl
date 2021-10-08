@@ -171,6 +171,36 @@ There are no specific commands in `eksctl`to update the labels of a nodegroup bu
 kubectl label nodes -l alpha.eksctl.io/nodegroup-name=ng-1 new-label=foo
 ```
 
+### Setting labels during creation
+
+To have labels on the node during creation of the cluster, or creation of a nodegroup, use `--additional-custom-labels` such as:
+
+```
+eksctl create nodegroup --cluster=cluster-1 --additional-custom-labels="custom=label"
+```
+
+_Note_: `--node-labels=` is set before the nodes are registered to the cluster. Because of this, they are somewhat restricted.
+Meaning they can't contain certain prefixes like `kubernetes.io/...` or `beta.kubernetes.io/...`. To mitigate that, please use
+`--additional-custom-labes` setting. Available in config files:
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: dev-cluster
+  region: eu-north-1
+
+nodeGroups:
+  - name: ng-1
+    labels: { role: api }
+    additionalCustomLabels: { new: label }
+    instanceType: m5.2xlarge
+    desiredCapacity: 2
+```
+
+Existing labels cannot be overwritten.
+
 ### SSH Access
 You can enable SSH access for nodegroups by configuring one of `publicKey`, `publicKeyName` and `publicKeyPath` in your
 nodegroup configuration. Alternatively you can use [AWS Systems Manager (SSM)](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html#sessions-start-cli) to SSH onto nodes, by configuring the nodegroup with `enableSsm`:

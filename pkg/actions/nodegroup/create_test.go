@@ -1,13 +1,18 @@
 package nodegroup_test
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-
 	"github.com/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes/fake"
+
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -298,6 +303,79 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		expErr: nil,
 	}),
 )
+
+var _ = Describe("create with additional labels", func() {
+	var (
+		ngFilter      utilFakes.FakeNodegroupFilter
+		m             *nodegroup.Manager
+		fakeClientSet *fake.Clientset
+		cfg           *api.ClusterConfig
+	)
+	BeforeEach(func() {
+		cfg = newClusterConfig()
+		cfg.NodeGroups[0].AdditionalCustomLabels = map[string]string{
+			"new": "label",
+		}
+		p := mockprovider.NewMockProvider()
+		ctl := &eks.ClusterProvider{
+			Provider: p,
+			Status: &eks.ProviderStatus{
+				ClusterInfo: &eks.ClusterInfo{
+					Cluster: testutils.NewFakeCluster("my-cluster", ""),
+				},
+			},
+		}
+		fakeClientSet = fake.NewSimpleClientset()
+		_, err := fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Labels: map[string]string{
+					"alpha.eksctl.io/nodegroup-name": "my-ng",
+					"existing":                       "old-value",
+				},
+				Name: "my-ng",
+			},
+			Spec: corev1.NodeSpec{},
+		}, metav1.CreateOptions{})
+		Expect(err).NotTo(HaveOccurred())
+		m = nodegroup.New(cfg, ctl, fakeClientSet)
+		k := &fakes.FakeKubeProvider{}
+		k.SupportsManagedNodesReturns(true, nil)
+		m.MockKubeProvider(k)
+		init := &fakes.FakeNodeGroupInitialiser{}
+		m.MockNodeGroupService(init)
+		ngFilter = utilFakes.FakeNodegroupFilter{}
+		ngFilter.MatchReturns(true)
+	})
+	It("will add any extra labels", func() {
+		err := m.Create(nodegroup.CreateOpts{}, &ngFilter)
+		Expect(err).NotTo(HaveOccurred())
+		nodes, err := fakeClientSet.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+		Expect(err).NotTo(HaveOccurred())
+		for _, n := range nodes.Items {
+			labels := n.GetLabels()
+			v, ok := labels["new"]
+			Expect(ok).To(BeTrue())
+			Expect(v).To(Equal("label"))
+		}
+	})
+	When("a label already exists", func() {
+		It("will not overwrite that label", func() {
+			cfg.NodeGroups[0].AdditionalCustomLabels = map[string]string{
+				"existing": "new-value",
+			}
+			err := m.Create(nodegroup.CreateOpts{}, &ngFilter)
+			Expect(err).NotTo(HaveOccurred())
+			nodes, err := fakeClientSet.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			for _, n := range nodes.Items {
+				labels := n.GetLabels()
+				v, ok := labels["existing"]
+				Expect(ok).To(BeTrue())
+				Expect(v).To(Equal("old-value"))
+			}
+		})
+	})
+})
 
 func newClusterConfig() *api.ClusterConfig {
 	return &api.ClusterConfig{
