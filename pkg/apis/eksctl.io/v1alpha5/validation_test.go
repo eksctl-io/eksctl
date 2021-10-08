@@ -542,7 +542,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(*cfg.VPC.IPFamily).To(Equal(string(api.IPV4Family)))
 			})
-			When("ipFamily is set ot IPv6", func() {
+			When("ipFamily is set to IPv6", func() {
 				It("accepts that setting", func() {
 					ipv6 := string(api.IPV6Family)
 					cfg.VPC.NAT = nil
@@ -558,6 +558,29 @@ var _ = Describe("ClusterConfig validation", func() {
 					cfg.Metadata.Version = api.Version1_21
 					err = cfg.ValidateVPCConfig()
 					Expect(err).ToNot(HaveOccurred())
+					cfg.Metadata.Version = "1.31"
+					err = cfg.ValidateVPCConfig()
+					Expect(err).ToNot(HaveOccurred())
+				})
+			})
+			When("ipFamily is set ot IPv6 but version is not or too low", func() {
+				It("returns an error", func() {
+					ipv6 := string(api.IPV6Family)
+					cfg.VPC.IPFamily = &ipv6
+					cfg.Addons = append(cfg.Addons,
+						&api.Addon{Name: api.KubeProxyAddon},
+						&api.Addon{Name: api.CoreDNSAddon},
+						&api.Addon{Name: api.VPCCNIAddon},
+					)
+					cfg.IAM = &api.ClusterIAM{
+						WithOIDC: api.Enabled(),
+					}
+					cfg.Metadata.Version = ""
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError(ContainSubstring("failed to convert  cluster version to semver: unable to parse first version")))
+					cfg.Metadata.Version = api.Version1_12
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError(ContainSubstring("cluster version must be >= 1.21")))
 				})
 			})
 			When("ipFamily is set ot IPv6 but version is not or too low", func() {
@@ -640,9 +663,9 @@ var _ = Describe("ClusterConfig validation", func() {
 						WithOIDC: api.Enabled(),
 					}
 					cfg.Addons = append(cfg.Addons,
-						&api.Addon{Name: "kube-proxy"},
-						&api.Addon{Name: "coredns"},
-						&api.Addon{Name: "vpc-cni"},
+						&api.Addon{Name: api.KubeProxyAddon},
+						&api.Addon{Name: api.CoreDNSAddon},
+						&api.Addon{Name: api.VPCCNIAddon},
 					)
 					cfg.VPC.NAT = &api.ClusterNAT{}
 					err = cfg.ValidateVPCConfig()
@@ -658,9 +681,9 @@ var _ = Describe("ClusterConfig validation", func() {
 						WithOIDC: api.Enabled(),
 					}
 					cfg.Addons = append(cfg.Addons,
-						&api.Addon{Name: "kube-proxy"},
-						&api.Addon{Name: "coredns"},
-						&api.Addon{Name: "vpc-cni"},
+						&api.Addon{Name: api.KubeProxyAddon},
+						&api.Addon{Name: api.CoreDNSAddon},
+						&api.Addon{Name: api.VPCCNIAddon},
 					)
 					cfg.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
 						ServiceIPv4CIDR: "192.168.0.0/24",
