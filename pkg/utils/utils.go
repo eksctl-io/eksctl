@@ -35,7 +35,7 @@ func IsMinVersion(minimumVersion, version string) (bool, error) {
 // CompareVersions compares two version strings with the usual conventions:
 // returns 0 if a == b
 // returns 1 if a > b
-// returns -1 if b < a
+// returns -1 if a < b
 func CompareVersions(a, b string) (int, error) {
 	aVersion, err := semver.ParseTolerant(a)
 	if err != nil {

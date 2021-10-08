@@ -16,6 +16,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
+	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/taints"
 
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -130,11 +131,6 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return errors.New("field secretsEncryption.keyARN is required for enabling secrets encryption")
 	}
 
-	// manageSharedNodeSecurityGroupRules cannot be disabled if using eksctl managed security groups
-	if cfg.VPC != nil && cfg.VPC.SharedNodeSecurityGroup == "" && IsDisabled(cfg.VPC.ManageSharedNodeSecurityGroupRules) {
-		return errors.New("vpc.manageSharedNodeSecurityGroupRules must be enabled when using ekstcl-managed security groups")
-	}
-
 	return nil
 }
 
@@ -201,7 +197,18 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 			if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
 				return fmt.Errorf("oidc needs to be enabled if IPv6 is set")
 			}
+
+			if version, err := utils.CompareVersions(c.Metadata.Version, Version1_21); err != nil {
+				return fmt.Errorf("failed to convert %s cluster version to semver: %w", c.Metadata.Version, err)
+			} else if err == nil && version == -1 {
+				return fmt.Errorf("cluster version must be >= %s", Version1_21)
+			}
 		}
+	}
+
+	// manageSharedNodeSecurityGroupRules cannot be disabled if using eksctl managed security groups
+	if c.VPC.SharedNodeSecurityGroup == "" && IsDisabled(c.VPC.ManageSharedNodeSecurityGroupRules) {
+		return errors.New("vpc.manageSharedNodeSecurityGroupRules must be enabled when using ekstcl-managed security groups")
 	}
 	return nil
 }
