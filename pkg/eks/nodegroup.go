@@ -2,6 +2,7 @@ package eks
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -12,6 +13,7 @@ import (
 	awsiam "github.com/aws/aws-sdk-go/service/iam"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/types"
 
 	addons "github.com/weaveworks/eksctl/pkg/addons/default"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -308,6 +310,54 @@ func newSuspendProcesses(c *ClusterProvider, spec *api.ClusterConfig, nodegroup 
 			asg:             c.Provider.ASG(),
 			stackCollection: c.NewStackManager(spec),
 			nodegroup:       nodegroup,
+		},
+	}
+}
+
+type applyAdditionalCustomLabels struct {
+	clientSet kubernetes.Interface
+	ng        *api.NodeGroupBase
+}
+
+func (t *applyAdditionalCustomLabels) Describe() string {
+	return fmt.Sprintf("apply additional labels to %s nodegroup", t.ng.Name)
+}
+
+func (t *applyAdditionalCustomLabels) Do() error {
+	logger.Info("applying additional labels to created nodes: %v", t.ng.AdditionalCustomLabels)
+	nodes, err := t.clientSet.CoreV1().Nodes().List(context.Background(), t.ng.ListOptions())
+	if err != nil {
+		return fmt.Errorf("failed to list all nodes: %w", err)
+	}
+	for _, n := range nodes.Items {
+		node := n.DeepCopy()
+		labels := node.GetLabels()
+		for k, v := range t.ng.AdditionalCustomLabels {
+			if ev, ok := labels[k]; !ok {
+				labels[k] = v
+			} else {
+				logger.Info("label %s for node %s is ignored because it already exists with value ", k, n.Name, ev)
+			}
+		}
+		node.SetLabels(labels)
+		content, err := json.Marshal(node)
+		if err != nil {
+			return fmt.Errorf("failed to marshal node object: %w", err)
+		}
+		if _, err := t.clientSet.CoreV1().Nodes().Patch(context.Background(), n.Name, types.MergePatchType, content, metav1.PatchOptions{}); err != nil {
+			return fmt.Errorf("failed to apply patch: %w", err)
+		}
+		logger.Info("successfully applied custom labels for node %s", n.Name)
+	}
+	return nil
+}
+
+// newApplyAdditionalCustomLabels returns a task which will apply additional labels to all nodes within a nodegroup.
+func newApplyAdditionalCustomLabels(clientSet kubernetes.Interface, ng *api.NodeGroupBase) tasks.Task {
+	return tasks.SynchronousTask{
+		SynchronousTaskIface: &applyAdditionalCustomLabels{
+			clientSet: clientSet,
+			ng:        ng,
 		},
 	}
 }

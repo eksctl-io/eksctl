@@ -201,6 +201,9 @@ nodeGroups:
 
 Existing labels cannot be overwritten.
 
+_Note_: These labels will not be propagated during autoscaling for now. They have to be set manually on any new nodes, after
+they joined the cluster successfully.
+
 ### SSH Access
 You can enable SSH access for nodegroups by configuring one of `publicKey`, `publicKeyName` and `publicKeyPath` in your
 nodegroup configuration. Alternatively you can use [AWS Systems Manager (SSM)](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html#sessions-start-cli) to SSH onto nodes, by configuring the nodegroup with `enableSsm`:

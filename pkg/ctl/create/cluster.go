@@ -335,6 +335,17 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 				return err
 			}
 		}
+
+		additionalLabelsTask := ctl.CreatePostNodeRegistrationLabelerTask(cfg, clientSet)
+		if errs := additionalLabelsTask.DoAllSync(); len(errs) > 0 {
+			for _, err := range errs {
+				if err != nil {
+					logger.Critical("%s\n", err.Error())
+				}
+			}
+			return fmt.Errorf("failed to add additional labels to nodegroups for cluster %q", cfg.Metadata.Name)
+		}
+
 		if postNodegroupAddons != nil && postNodegroupAddons.Len() > 0 {
 			if errs := postNodegroupAddons.DoAllSync(); len(errs) > 0 {
 				logger.Warning("%d error(s) occurred while creating addons", len(errs))

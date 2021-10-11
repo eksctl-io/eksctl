@@ -10,11 +10,12 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
 	"github.com/weaveworks/eksctl/pkg/addons"
 	"github.com/weaveworks/eksctl/pkg/fargate"
@@ -319,6 +320,25 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 		tasks.Append(newEFADevicePluginTask(c, cfg))
 	}
 
+	return tasks
+}
+
+// CreatePostNodeRegistrationLabelerTask creates a task which will apply post registration labels to all nodes.
+func (c *ClusterProvider) CreatePostNodeRegistrationLabelerTask(cfg *api.ClusterConfig, clientSet kubernetes.Interface) *tasks.TaskTree {
+	tasks := &tasks.TaskTree{
+		Parallel:  true,
+		IsSubTask: false,
+	}
+	for _, ng := range cfg.ManagedNodeGroups {
+		if ng.AdditionalCustomLabels != nil {
+			tasks.Append(newApplyAdditionalCustomLabels(clientSet, ng.NodeGroupBase))
+		}
+	}
+	for _, ng := range cfg.NodeGroups {
+		if ng.AdditionalCustomLabels != nil {
+			tasks.Append(newApplyAdditionalCustomLabels(clientSet, ng.NodeGroupBase))
+		}
+	}
 	return tasks
 }
 
