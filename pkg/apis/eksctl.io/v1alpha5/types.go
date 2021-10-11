@@ -1116,6 +1116,10 @@ type (
 	}
 	// NodeGroupIAM holds all IAM attributes of a NodeGroup
 	NodeGroupIAM struct {
+		// AttachPolicy holds a policy document to attach
+		// +optional
+		AttachPolicy InlineDocument `json:"attachPolicy,omitempty"`
+		// list of ARNs of the IAM policies to attach
 		// +optional
 		AttachPolicyARNs []string `json:"attachPolicyARNs,omitempty"`
 		// +optional

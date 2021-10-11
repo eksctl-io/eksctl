@@ -1519,11 +1519,18 @@
     },
     "NodeGroupIAM": {
       "properties": {
+        "attachPolicy": {
+          "$ref": "#/definitions/InlineDocument",
+          "description": "holds a policy document to attach",
+          "x-intellij-html-description": "holds a policy document to attach"
+        },
         "attachPolicyARNs": {
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "description": "list of ARNs of the IAM policies to attach",
+          "x-intellij-html-description": "list of ARNs of the IAM policies to attach"
         },
         "instanceProfileARN": {
           "type": "string"
@@ -1542,6 +1549,7 @@
         }
       },
       "preferredOrder": [
+        "attachPolicy",
         "attachPolicyARNs",
         "instanceProfileARN",
         "instanceRoleARN",
