@@ -56,6 +56,7 @@ This is an in config file setting only. When IPv6 is set, the following restrict
 - OIDC is enabled
 - managed addons are defined as shows above
 - version must be => 1.21
+- `vpc.NAT` and `serviceIPv4CIDR` fields are created by eksctl for ipv6 clusters and thus, are not supported configuration options
 
 The default value is `IPv4`.
 
