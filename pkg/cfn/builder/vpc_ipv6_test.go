@@ -56,8 +56,8 @@ var _ = Describe("IPv6 VPC builder", func() {
 		cidr := &defaultCidr
 		Expect(vpcTemplate.Resources[builder.VPCResourceKey].Properties).To(Equal(fakes.Properties{
 			CidrBlock:          cidr.String(),
-			EnableDnsHostnames: true,
-			EnableDnsSupport:   true,
+			EnableDNSHostnames: true,
+			EnableDNSSupport:   true,
 			Tags: []fakes.Tag{
 				{
 					Key:   "Name",

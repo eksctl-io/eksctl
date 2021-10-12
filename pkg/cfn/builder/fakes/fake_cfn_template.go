@@ -20,7 +20,7 @@ type Tag struct {
 }
 
 type Properties struct {
-	EnableDnsHostnames, EnableDnsSupport bool
+	EnableDNSHostnames, EnableDNSSupport bool
 	GroupDescription                     string
 	Description                          string
 	Tags                                 []Tag
