@@ -203,6 +203,14 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 			} else if err == nil && version == -1 {
 				return fmt.Errorf("cluster version must be >= %s", Version1_21)
 			}
+
+			if c.VPC.NAT != nil {
+				return fmt.Errorf("setting NAT is not supported with IPv6")
+			}
+
+			if c.KubernetesNetworkConfig != nil && c.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
+				return fmt.Errorf("service ipv4 cidr is not supported with IPv6")
+			}
 		}
 	}
 
