@@ -166,12 +166,12 @@ func (v *IPv6VPCResourceSet) RenderJSON() ([]byte, error) {
 func (v *IPv6VPCResourceSet) createSubnet(az, azFormatted string, i, cidrPartitions int, private bool) *gfnt.Value {
 	var assignIpv6AddressOnCreation *gfnt.Value
 	subnetKey := PublicSubnetKey + azFormatted
-	mapPublicIpOnLaunch := gfnt.True()
+	mapPublicIPOnLaunch := gfnt.True()
 	elbTagKey := "kubernetes.io/role/elb"
 
 	if private {
 		subnetKey = PrivateSubnetKey + azFormatted
-		mapPublicIpOnLaunch = nil
+		mapPublicIPOnLaunch = nil
 		assignIpv6AddressOnCreation = gfnt.True()
 		elbTagKey = "kubernetes.io/role/internal-elb"
 	}
@@ -181,7 +181,7 @@ func (v *IPv6VPCResourceSet) createSubnet(az, azFormatted string, i, cidrPartiti
 		AvailabilityZone:            gfnt.NewString(az),
 		CidrBlock:                   gfnt.MakeFnSelect(gfnt.NewInteger(i), getSubnetIPv4CIDRBlock(cidrPartitions)),
 		Ipv6CidrBlock:               gfnt.MakeFnSelect(gfnt.NewInteger(i), getSubnetIPv6CIDRBlock(cidrPartitions)),
-		MapPublicIpOnLaunch:         mapPublicIpOnLaunch,
+		MapPublicIpOnLaunch:         mapPublicIPOnLaunch,
 		AssignIpv6AddressOnCreation: assignIpv6AddressOnCreation,
 		VpcId:                       gfnt.MakeRef(VPCResourceKey),
 		Tags: []cloudformation.Tag{{

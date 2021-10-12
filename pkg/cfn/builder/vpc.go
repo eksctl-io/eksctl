@@ -7,18 +7,35 @@ import (
 )
 
 const (
-	VPCResourceKey, IGWKey, GAKey                          = "VPC", "InternetGateway", "VPCGatewayAttachment"
-	IPv6CIDRBlockKey                                       = "IPv6CidrBlock"
-	EgressOnlyInternetGatewayKey                           = "EgressOnlyInternetGateway"
-	ElasticIPKey                                           = "EIP"
-	InternetCIDR, InternetIPv6CIDR                         = "0.0.0.0/0", "::/0"
-	PubRouteTableKey, PrivateRouteTableKey                 = "PublicRouteTable", "PrivateRouteTable"
-	PubRouteTableAssociation, PrivateRouteTableAssociation = "RouteTableAssociationPublic", "RouteTableAssociationPrivate"
-	PubSubRouteKey, PubSubIPv6RouteKey                     = "PublicSubnetDefaultRoute", "PublicSubnetIPv6DefaultRoute"
-	PrivateSubnetRouteKey, PrivateSubnetIpv6RouteKey       = "PrivateSubnetDefaultRoute", "PrivateSubnetDefaultIpv6Route"
-	PublicSubnetKey, PrivateSubnetKey                      = "PublicSubnet", "PrivateSubnet"
-	NATGatewayKey                                          = "NATGateway"
-	PublicSubnetsOutputKey, PrivateSubnetsOutputKey        = "SubnetsPublic", "SubnetsPrivate"
+	VPCResourceKey = "VPC"
+
+	// Gateways
+	IGWKey                       = "InternetGateway"
+	GAKey                        = "VPCGatewayAttachment"
+	EgressOnlyInternetGatewayKey = "EgressOnlyInternetGateway"
+	NATGatewayKey                = "NATGateway"
+	ElasticIPKey                 = "EIP"
+
+	// CIDRs
+	IPv6CIDRBlockKey = "IPv6CidrBlock"
+	InternetCIDR     = "0.0.0.0/0"
+	InternetIPv6CIDR = "::/0"
+
+	// Routing
+	PubRouteTableKey             = "PublicRouteTable"
+	PrivateRouteTableKey         = "PrivateRouteTable"
+	PubRouteTableAssociation     = "RouteTableAssociationPublic"
+	PrivateRouteTableAssociation = "RouteTableAssociationPrivate"
+	PubSubRouteKey               = "PublicSubnetDefaultRoute"
+	PubSubIPv6RouteKey           = "PublicSubnetIPv6DefaultRoute"
+	PrivateSubnetRouteKey        = "PrivateSubnetDefaultRoute"
+	PrivateSubnetIpv6RouteKey    = "PrivateSubnetDefaultIpv6Route"
+
+	// Subnets
+	PublicSubnetKey         = "PublicSubnet"
+	PrivateSubnetKey        = "PrivateSubnet"
+	PublicSubnetsOutputKey  = "SubnetsPublic"
+	PrivateSubnetsOutputKey = "SubnetsPrivate"
 )
 
 type VPCResourceSet interface {
