@@ -567,26 +567,6 @@ var _ = Describe("ClusterConfig validation", func() {
 				It("returns an error", func() {
 					ipv6 := string(api.IPV6Family)
 					cfg.VPC.IPFamily = &ipv6
-					cfg.Addons = append(cfg.Addons,
-						&api.Addon{Name: api.KubeProxyAddon},
-						&api.Addon{Name: api.CoreDNSAddon},
-						&api.Addon{Name: api.VPCCNIAddon},
-					)
-					cfg.IAM = &api.ClusterIAM{
-						WithOIDC: api.Enabled(),
-					}
-					cfg.Metadata.Version = ""
-					err = cfg.ValidateVPCConfig()
-					Expect(err).To(MatchError(ContainSubstring("failed to convert  cluster version to semver: unable to parse first version")))
-					cfg.Metadata.Version = api.Version1_12
-					err = cfg.ValidateVPCConfig()
-					Expect(err).To(MatchError(ContainSubstring("cluster version must be >= 1.21")))
-				})
-			})
-			When("ipFamily is set ot IPv6 but version is not or too low", func() {
-				It("returns an error", func() {
-					ipv6 := string(api.IPV6Family)
-					cfg.VPC.IPFamily = &ipv6
 					cfg.VPC.NAT = nil
 					cfg.Addons = append(cfg.Addons,
 						&api.Addon{Name: api.KubeProxyAddon},
@@ -691,6 +671,25 @@ var _ = Describe("ClusterConfig validation", func() {
 					cfg.VPC.NAT = nil
 					err = cfg.ValidateVPCConfig()
 					Expect(err).To(MatchError(ContainSubstring("service ipv4 cidr is not supported with IPv6")))
+				})
+			})
+			When("ipFamily is set to IPv6 and AutoAllocateIPv6 is set", func() {
+				It("it returns an error", func() {
+					ipv6 := string(api.IPV6Family)
+					cfg.VPC.IPFamily = &ipv6
+					cfg.VPC.AutoAllocateIPv6 = api.Enabled()
+					cfg.Metadata.Version = api.Version1_22
+					cfg.IAM = &api.ClusterIAM{
+						WithOIDC: api.Enabled(),
+					}
+					cfg.Addons = append(cfg.Addons,
+						&api.Addon{Name: api.KubeProxyAddon},
+						&api.Addon{Name: api.CoreDNSAddon},
+						&api.Addon{Name: api.VPCCNIAddon},
+					)
+					cfg.VPC.NAT = nil
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError(ContainSubstring("auto allocate ipv6 is not supported with IPv6")))
 				})
 			})
 		})
