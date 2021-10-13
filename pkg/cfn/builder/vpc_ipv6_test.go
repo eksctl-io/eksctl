@@ -341,7 +341,6 @@ var _ = Describe("IPv6 VPC builder", func() {
 				"Fn::Sub": fmt.Sprintf("${AWS::StackName}::%s", outputs.ClusterSubnetsPrivate),
 			},
 		}))
-
 	})
 
 	Context("when there are 3 AZs", func() {

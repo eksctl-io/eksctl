@@ -34,6 +34,9 @@ var _ = Describe("Cluster Template Builder", func() {
 		cfg.VPC = vpcConfig()
 		cfg.AvailabilityZones = []string{"us-west-2a", "us-west-2b"}
 		cfg.VPC.IPFamily = aws.String(string(api.IPV4Family))
+		cfg.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
+			ServiceIPv4CIDR: "131.10.55.70/18",
+		}
 	})
 
 	JustBeforeEach(func() {
@@ -62,6 +65,18 @@ var _ = Describe("Cluster Template Builder", func() {
 			Expect(clusterTemplate.Description).To(Equal("EKS cluster (dedicated VPC: true, dedicated IAM: true) [created and managed by eksctl]"))
 		})
 
+		It("should add control plane resources", func() {
+			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlane"))
+			Expect(clusterTemplate.Resources["ControlPlane"].Properties.Name).To(Equal(cfg.Metadata.Name))
+			Expect(clusterTemplate.Resources["ControlPlane"].Properties.Version).To(Equal(cfg.Metadata.Version))
+			Expect(clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig.SecurityGroupIds[0]).To(ContainElement("ControlPlaneSecurityGroup"))
+			Expect(clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig.SubnetIds).To(HaveLen(4))
+			Expect(clusterTemplate.Resources["ControlPlane"].Properties.RoleArn).To(ContainElement([]interface{}{"ServiceRole", "Arn"}))
+			Expect(clusterTemplate.Resources["ControlPlane"].Properties.EncryptionConfig).To(BeNil())
+			Expect(clusterTemplate.Resources["ControlPlane"].Properties.KubernetesNetworkConfig.ServiceIPv4CIDR).To(Equal("131.10.55.70/18"))
+			Expect(clusterTemplate.Resources["ControlPlane"].Properties.KubernetesNetworkConfig.IPFamily).To(Equal("ipv4"))
+		})
+
 		It("should add vpc resources", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey(vpcResourceKey))
 			Expect(clusterTemplate.Resources).To(HaveKey(igwKey))
@@ -85,6 +100,10 @@ var _ = Describe("Cluster Template Builder", func() {
 		Context("when ipFamily is set to IPv6", func() {
 			BeforeEach(func() {
 				cfg.VPC.IPFamily = aws.String(string(api.IPV6Family))
+			})
+
+			It("should add control plane resources", func() {
+				Expect(clusterTemplate.Resources["ControlPlane"].Properties.KubernetesNetworkConfig.IPFamily).To(Equal("ipv6"))
 			})
 
 			It("should add IPv6 vpc resources", func() {
@@ -118,7 +137,6 @@ var _ = Describe("Cluster Template Builder", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey(builder.PubRouteTableAssociation + azBFormatted))
 				Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateRouteTableAssociation + azAFormatted))
 				Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateRouteTableAssociation + azBFormatted))
-
 			})
 		})
 
@@ -278,16 +296,6 @@ var _ = Describe("Cluster Template Builder", func() {
 				Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(HaveLen(1))
 				Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns[0]).To(Equal(makePolicyARNRef("AmazonEKSClusterPolicy")))
 			})
-		})
-
-		It("should add control plane resources", func() {
-			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlane"))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.Name).To(Equal(cfg.Metadata.Name))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.Version).To(Equal(cfg.Metadata.Version))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig.SecurityGroupIds[0]).To(ContainElement("ControlPlaneSecurityGroup"))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig.SubnetIds).To(HaveLen(4))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.RoleArn).To(ContainElement([]interface{}{"ServiceRole", "Arn"}))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.EncryptionConfig).To(BeNil())
 		})
 
 		When("SecretsEncryption is configured", func() {
