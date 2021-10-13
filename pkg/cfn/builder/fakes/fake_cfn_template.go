@@ -66,8 +66,9 @@ type Properties struct {
 	MapPublicIPOnLaunch                                     bool
 	AssignIpv6AddressOnCreation                             *bool
 
-	Ipv6CidrBlock map[string][]interface{}
-	CidrBlock     interface{}
+	Ipv6CidrBlock           map[string][]interface{}
+	CidrBlock               interface{}
+	KubernetesNetworkConfig KubernetesNetworkConfig
 
 	AmazonProvidedIpv6CidrBlock bool
 	AvailabilityZone, Domain    string
@@ -109,6 +110,12 @@ type Properties struct {
 			SpotAllocationStrategy              string
 		}
 	}
+}
+
+type KubernetesNetworkConfig struct {
+	ServiceIPv4CIDR string
+	ServiceIPv6CIDR interface{}
+	IPFamily        string
 }
 
 type SGIngress struct {
