@@ -2,7 +2,7 @@ package eks
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"time"
 
@@ -278,9 +278,9 @@ func LoadConfigFromFile(configFile string) (*api.ClusterConfig, error) {
 
 func readConfig(configFile string) ([]byte, error) {
 	if configFile == "-" {
-		return ioutil.ReadAll(os.Stdin)
+		return io.ReadAll(os.Stdin)
 	}
-	return ioutil.ReadFile(configFile)
+	return os.ReadFile(configFile)
 }
 
 // IsSupportedRegion check if given region is supported

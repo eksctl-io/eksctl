@@ -2,7 +2,6 @@ package credentials_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -47,7 +46,7 @@ var _ = Describe("filecache", func() {
 			err error
 		)
 		BeforeEach(func() {
-			tmp, err = ioutil.TempDir("", "filecache")
+			tmp, err = os.MkdirTemp("", "filecache")
 			Expect(err).ToNot(HaveOccurred())
 			_ = os.Setenv(EksctlCacheFilenameEnvName, filepath.Join(tmp, "credentials.yaml"))
 		})
@@ -75,7 +74,7 @@ var _ = Describe("filecache", func() {
 			Expect(value.SecretAccessKey).To(Equal("secret"))
 			Expect(value.SessionToken).To(Equal("token"))
 			Expect(p.IsExpired()).NotTo(BeTrue())
-			content, err := ioutil.ReadFile(filepath.Join(tmp, "credentials.yaml"))
+			content, err := os.ReadFile(filepath.Join(tmp, "credentials.yaml"))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(string(content)).To(Equal(`profiles:
   profile:
@@ -117,7 +116,7 @@ var _ = Describe("filecache", func() {
       providername: stubProvider
     expiration: 0001-01-01T00:00:00Z
 `)
-				err := ioutil.WriteFile(filepath.Join(tmp, "credentials.yaml"), content, 0700)
+				err := os.WriteFile(filepath.Join(tmp, "credentials.yaml"), content, 0700)
 				Expect(err).ToNot(HaveOccurred())
 				c := credentials.NewCredentials(&stubProviderExpirer{})
 				fakeClock := &fakes.FakeClock{}
@@ -153,7 +152,7 @@ var _ = Describe("filecache", func() {
 		When("the cache file's permission is too broad", func() {
 			It("will refuse to use that file", func() {
 				content := []byte(`test:`)
-				err := ioutil.WriteFile(filepath.Join(tmp, "credentials.yaml"), content, 0777)
+				err := os.WriteFile(filepath.Join(tmp, "credentials.yaml"), content, 0777)
 				Expect(err).ToNot(HaveOccurred())
 				c := credentials.NewCredentials(&stubProviderExpirer{})
 				fakeClock := &fakes.FakeClock{}
@@ -164,7 +163,7 @@ var _ = Describe("filecache", func() {
 		When("the cache data has been corrupted", func() {
 			It("will return an appropriate error", func() {
 				content := []byte(`not valid yaml`)
-				err := ioutil.WriteFile(filepath.Join(tmp, "credentials.yaml"), content, 0600)
+				err := os.WriteFile(filepath.Join(tmp, "credentials.yaml"), content, 0600)
 				Expect(err).ToNot(HaveOccurred())
 				c := credentials.NewCredentials(&stubProviderExpirer{})
 				fakeClock := &fakes.FakeClock{}

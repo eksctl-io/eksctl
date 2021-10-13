@@ -1,7 +1,6 @@
 package enable
 
 import (
-	"io/ioutil"
 	"os"
 
 	"github.com/kris-nova/logger"
@@ -58,7 +57,7 @@ func flux2Install(cmd *cmdutils.Cmd) error {
 			return err
 		}
 
-		kubeCfgPath, err := ioutil.TempFile("", cmd.ClusterConfig.Metadata.Name)
+		kubeCfgPath, err := os.CreateTemp("", cmd.ClusterConfig.Metadata.Name)
 		if err != nil {
 			return err
 		}

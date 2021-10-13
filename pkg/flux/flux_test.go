@@ -2,7 +2,6 @@ package flux_test
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -34,7 +33,7 @@ var _ = Describe("Flux", func() {
 		fluxClient.SetExecutor(fakeExecutor)
 		fakeExecutor.ExecWithOutReturns([]byte("flux version 0.13.3\n"), nil)
 
-		binDir, err := ioutil.TempDir("", "bin")
+		binDir, err := os.MkdirTemp("", "bin")
 		Expect(err).NotTo(HaveOccurred())
 		f, err := os.Create(filepath.Join(binDir, "flux"))
 		Expect(err).NotTo(HaveOccurred())

@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -77,7 +77,7 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 		actual, err := json.Marshal(template.Resources)
 		Expect(err).ToNot(HaveOccurred())
 
-		expected, err := ioutil.ReadFile(path.Join("testdata", "launch_template", m.resourcesFilename))
+		expected, err := os.ReadFile(path.Join("testdata", "launch_template", m.resourcesFilename))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(actual).To(MatchOrderedJSON(expected, WithUnorderedListKeys("Tags")))
 

@@ -5,7 +5,6 @@ package integration_test
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -90,9 +89,9 @@ var _ = Describe("Enable GitOps", func() {
 		}
 		configData, err := json.Marshal(&cfg)
 		Expect(err).NotTo(HaveOccurred())
-		configFile, err = ioutil.TempFile("", "")
+		configFile, err = os.CreateTemp("", "")
 		Expect(err).NotTo(HaveOccurred())
-		Expect(ioutil.WriteFile(configFile.Name(), configData, 0755)).To(Succeed())
+		Expect(os.WriteFile(configFile.Name(), configData, 0755)).To(Succeed())
 	})
 
 	AfterEach(func() {

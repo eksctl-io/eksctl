@@ -6,7 +6,6 @@ package unowned_clusters
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -70,7 +69,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		}
 
 		var err error
-		configFile, err = ioutil.TempFile("", "")
+		configFile, err = os.CreateTemp("", "")
 		Expect(err).NotTo(HaveOccurred())
 
 		if !params.SkipCreate {
@@ -112,7 +111,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		// write config file so that the nodegroup creates have access to the vpc spec
 		configData, err := json.Marshal(&cfg)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(ioutil.WriteFile(configFile.Name(), configData, 0755)).To(Succeed())
+		Expect(os.WriteFile(configFile.Name(), configData, 0755)).To(Succeed())
 		cmd := params.EksctlCreateNodegroupCmd.
 			WithArgs(
 				"--config-file", configFile.Name(),
@@ -130,7 +129,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		// write config file so that the nodegroup creates have access to the vpc spec
 		configData, err := json.Marshal(&cfg)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(ioutil.WriteFile(configFile.Name(), configData, 0755)).To(Succeed())
+		Expect(os.WriteFile(configFile.Name(), configData, 0755)).To(Succeed())
 		cmd := params.EksctlCreateNodegroupCmd.
 			WithArgs(
 				"--config-file", configFile.Name(),
@@ -484,7 +483,7 @@ func createClusterWithNodeGroup(clusterName, stackName, ng1, version string, ctl
 }
 
 func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, []string, string, string, string, string) {
-	templateBody, err := ioutil.ReadFile("cf-template.yaml")
+	templateBody, err := os.ReadFile("cf-template.yaml")
 	Expect(err).NotTo(HaveOccurred())
 	createStackInput := &cfn.CreateStackInput{
 		StackName: &stackName,

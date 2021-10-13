@@ -1,7 +1,7 @@
 package connector
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -72,7 +72,7 @@ func getResource(client *http.Client, url string) (ManifestFile, error) {
 		return ManifestFile{}, errors.Errorf("expected status code %d; got %d", http.StatusOK, resp.StatusCode)
 	}
 
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return ManifestFile{}, err
 	}
