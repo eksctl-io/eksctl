@@ -567,47 +567,6 @@ var _ = Describe("ClusterConfig validation", func() {
 				It("returns an error", func() {
 					ipv6 := string(api.IPV6Family)
 					cfg.VPC.IPFamily = &ipv6
-					cfg.Addons = append(cfg.Addons,
-						&api.Addon{Name: api.KubeProxyAddon},
-						&api.Addon{Name: api.CoreDNSAddon},
-						&api.Addon{Name: api.VPCCNIAddon},
-					)
-					cfg.IAM = &api.ClusterIAM{
-						WithOIDC: api.Enabled(),
-					}
-					cfg.Metadata.Version = ""
-					err = cfg.ValidateVPCConfig()
-					Expect(err).To(MatchError(ContainSubstring("failed to convert  cluster version to semver: unable to parse first version")))
-					cfg.Metadata.Version = api.Version1_12
-					err = cfg.ValidateVPCConfig()
-					Expect(err).To(MatchError(ContainSubstring("cluster version must be >= 1.21")))
-				})
-			})
-			When("ipFamily is set ot IPv6 but version is not or too low", func() {
-				It("returns an error", func() {
-					ipv6 := string(api.IPV6Family)
-					cfg.VPC.IPFamily = &ipv6
-					cfg.VPC.NAT = nil
-					cfg.Addons = append(cfg.Addons,
-						&api.Addon{Name: api.KubeProxyAddon},
-						&api.Addon{Name: api.CoreDNSAddon},
-						&api.Addon{Name: api.VPCCNIAddon},
-					)
-					cfg.IAM = &api.ClusterIAM{
-						WithOIDC: api.Enabled(),
-					}
-					cfg.Metadata.Version = ""
-					err = cfg.ValidateVPCConfig()
-					Expect(err).To(MatchError(ContainSubstring("failed to convert  cluster version to semver: unable to parse first version")))
-					cfg.Metadata.Version = api.Version1_12
-					err = cfg.ValidateVPCConfig()
-					Expect(err).To(MatchError(ContainSubstring("cluster version must be >= 1.21")))
-				})
-			})
-			When("ipFamily is set ot IPv6 but version is not or too low", func() {
-				It("returns an error", func() {
-					ipv6 := string(api.IPV6Family)
-					cfg.VPC.IPFamily = &ipv6
 					cfg.VPC.NAT = nil
 					cfg.Addons = append(cfg.Addons,
 						&api.Addon{Name: api.KubeProxyAddon},
