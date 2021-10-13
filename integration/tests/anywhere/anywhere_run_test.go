@@ -5,7 +5,6 @@ package anywhere
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -51,7 +50,7 @@ var _ = Describe("(Integration) [EKS Anywhere]", func() {
 
 		BeforeEach(func() {
 			var err error
-			tmpDir, err = ioutil.TempDir("", "anywhere-command")
+			tmpDir, err = os.MkdirTemp("", "anywhere-command")
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -63,7 +62,7 @@ var _ = Describe("(Integration) [EKS Anywhere]", func() {
 			var originalPath string
 
 			BeforeEach(func() {
-				err := ioutil.WriteFile(filepath.Join(tmpDir, anywhere.BinaryFileName), []byte(`#!/usr/bin/env sh
+				err := os.WriteFile(filepath.Join(tmpDir, anywhere.BinaryFileName), []byte(`#!/usr/bin/env sh
 echo "you called?"
 exit 0`), 0777)
 				Expect(err).NotTo(HaveOccurred())

@@ -3,7 +3,7 @@ package builder
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"sort"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -80,7 +80,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 		resourceJSON, err := rs.template.JSON()
 		Expect(err).ToNot(HaveOccurred())
 
-		expectedJSON, err := ioutil.ReadFile("testdata/" + vc.expectedFile)
+		expectedJSON, err := os.ReadFile("testdata/" + vc.expectedFile)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(resourceJSON).To(MatchJSON(expectedJSON))
 	},

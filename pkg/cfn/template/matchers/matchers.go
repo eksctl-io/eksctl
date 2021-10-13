@@ -3,7 +3,7 @@ package template
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/types"
@@ -60,7 +60,7 @@ func (m *Loader) Match(actualTemplate interface{}) (bool, error) {
 	}
 
 	if m.templatePath != "" {
-		js, err := ioutil.ReadFile(m.templatePath)
+		js, err := os.ReadFile(m.templatePath)
 		if err != nil {
 			return false, err
 		}

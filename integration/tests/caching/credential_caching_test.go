@@ -4,7 +4,6 @@
 package caching
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -35,7 +34,7 @@ var _ = Describe("", func() {
 		When("credential caching is disabled", func() {
 			var tmp string
 			BeforeEach(func() {
-				tmp, err := ioutil.TempDir("", "caching_creds")
+				tmp, err := os.MkdirTemp("", "caching_creds")
 				Expect(err).NotTo(HaveOccurred())
 				_ = os.Setenv(credentials.EksctlCacheFilenameEnvName, filepath.Join(tmp, "credentials.yaml"))
 				// Make sure the environment property is not set on the running environment.
@@ -60,7 +59,7 @@ var _ = Describe("", func() {
 		XWhen("credential caching is enabled", func() {
 			var tmp string
 			BeforeEach(func() {
-				tmp, err := ioutil.TempDir("", "caching_creds")
+				tmp, err := os.MkdirTemp("", "caching_creds")
 				Expect(err).NotTo(HaveOccurred())
 				_ = os.Setenv(credentials.EksctlCacheFilenameEnvName, filepath.Join(tmp, "credentials.yaml"))
 				_ = os.Setenv(credentials.EksctlGlobalEnableCachingEnvName, "1")
@@ -74,7 +73,7 @@ var _ = Describe("", func() {
 				).WithoutArg("--region", params.Region)
 				Expect(cmd).Should(RunSuccessfully())
 
-				content, err := ioutil.ReadFile(filepath.Join(tmp, "credentials.yaml"))
+				content, err := os.ReadFile(filepath.Join(tmp, "credentials.yaml"))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(content).NotTo(BeEmpty())
 			})

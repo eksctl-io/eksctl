@@ -3,7 +3,6 @@ package git
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -83,7 +82,7 @@ func (git *Client) WithDir(dir string) {
 
 // CloneRepoInTmpDir clones a repo specified in the gitURL in a temporary directory and checks out the specified branch
 func (git *Client) CloneRepoInTmpDir(tmpDirPrefix string, options CloneOptions) (string, error) {
-	cloneDir, err := ioutil.TempDir(os.TempDir(), tmpDirPrefix)
+	cloneDir, err := os.MkdirTemp(os.TempDir(), tmpDirPrefix)
 	if err != nil {
 		return "", fmt.Errorf("cannot create temporary directory: %s", err)
 	}

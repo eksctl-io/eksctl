@@ -3,7 +3,7 @@ package printers_test
 import (
 	"bufio"
 	"bytes"
-	"io/ioutil"
+	"os"
 	"time"
 
 	. "github.com/weaveworks/eksctl/pkg/printers"
@@ -69,7 +69,7 @@ var _ = Describe("JSON Printer", func() {
 			})
 
 			It("the output should equal the golden file jsontest_single.golden", func() {
-				g, err := ioutil.ReadFile("testdata/jsontest_single.golden")
+				g, err := os.ReadFile("testdata/jsontest_single.golden")
 				if err != nil {
 					GinkgoT().Fatalf("failed reading .golden: %s", err)
 				}
@@ -126,7 +126,7 @@ var _ = Describe("JSON Printer", func() {
 			})
 
 			It("the output should equal the golden file jsontest_2clusters.golden", func() {
-				g, err := ioutil.ReadFile("testdata/jsontest_2clusters.golden")
+				g, err := os.ReadFile("testdata/jsontest_2clusters.golden")
 				if err != nil {
 					GinkgoT().Fatalf("failed reading .golden: %s", err)
 				}

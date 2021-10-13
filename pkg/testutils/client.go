@@ -3,8 +3,9 @@ package testutils
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
 
 	. "github.com/onsi/gomega"
 
@@ -27,7 +28,7 @@ func LoadSamples(manifest string) []runtime.Object {
 		samples []runtime.Object
 	)
 
-	samplesData, err := ioutil.ReadFile(manifest)
+	samplesData, err := os.ReadFile(manifest)
 	Expect(err).ToNot(HaveOccurred())
 	samplesList, err := kubernetes.NewList(samplesData)
 	Expect(err).ToNot(HaveOccurred())
@@ -207,7 +208,7 @@ func NewFakeRawResource(item runtime.Object, missing, unionised bool, ct *Collec
 		collection: ct,
 	}
 
-	emptyBody := ioutil.NopCloser(bytes.NewReader([]byte{}))
+	emptyBody := io.NopCloser(bytes.NewReader([]byte{}))
 	notFound := http.Response{StatusCode: http.StatusNotFound, Body: emptyBody}
 	conflict := http.Response{StatusCode: http.StatusConflict, Body: emptyBody}
 
@@ -218,7 +219,7 @@ func NewFakeRawResource(item runtime.Object, missing, unionised bool, ct *Collec
 	asResult := func(req *http.Request) (*http.Response, error) {
 		data, err := runtime.Encode(unstructured.UnstructuredJSONScheme, item)
 		Expect(err).To(Not(HaveOccurred()))
-		res := &http.Response{StatusCode: http.StatusOK, Body: ioutil.NopCloser(bytes.NewReader(data))}
+		res := &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(bytes.NewReader(data))}
 		return res, nil
 	}
 
