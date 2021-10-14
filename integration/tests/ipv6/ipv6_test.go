@@ -5,7 +5,6 @@ package ipv6
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -19,15 +18,10 @@ import (
 	"github.com/weaveworks/eksctl/integration/tests"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/xgfone/netaddr"
 )
 
 var params *tests.Params
@@ -135,35 +129,36 @@ var _ = Describe("(Integration) [EKS IPv6 test]", func() {
 				Expect(*s.AssignIpv6AddressOnCreation).To(BeTrue())
 			}
 
-			By("the k8s cluster's having an IP family of IPv6")
-			var clientSet *kubernetes.Clientset
-			ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, clusterConfig)
-			Expect(err).NotTo(HaveOccurred())
-			err = ctl.RefreshClusterStatus(clusterConfig)
-			Expect(err).ShouldNot(HaveOccurred())
-			clientSet, err = ctl.NewStdClientSet(clusterConfig)
-			Expect(err).ShouldNot(HaveOccurred())
+			// TODO: Uncomment and run the following test once CF handler bug is fixed from EKS side.
+			// By("the k8s cluster's having an IP family of IPv6")
+			// var clientSet *kubernetes.Clientset
+			// ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, clusterConfig)
+			// Expect(err).NotTo(HaveOccurred())
+			// err = ctl.RefreshClusterStatus(clusterConfig)
+			// Expect(err).ShouldNot(HaveOccurred())
+			// clientSet, err = ctl.NewStdClientSet(clusterConfig)
+			// Expect(err).ShouldNot(HaveOccurred())
 
-			svcName := "IPv6Service"
-			_, err = clientSet.CoreV1().Services("default").Create(context.TODO(), &corev1.Service{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: svcName,
-				},
-				Spec: corev1.ServiceSpec{
-					IPFamilies: []corev1.IPFamily{corev1.IPv6Protocol},
-					Selector:   map[string]string{"app": "IPv6App"},
-					Ports: []corev1.ServicePort{corev1.ServicePort{
-						Protocol: corev1.ProtocolTCP,
-						Port:     80,
-					}},
-				},
-			}, metav1.CreateOptions{})
-			Expect(err).ShouldNot(HaveOccurred())
+			// svcName := "IPv6Service"
+			// _, err = clientSet.CoreV1().Services("default").Create(context.TODO(), &corev1.Service{
+			// 	ObjectMeta: metav1.ObjectMeta{
+			// 		Name: svcName,
+			// 	},
+			// 	Spec: corev1.ServiceSpec{
+			// 		IPFamilies: []corev1.IPFamily{corev1.IPv6Protocol},
+			// 		Selector:   map[string]string{"app": "IPv6App"},
+			// 		Ports: []corev1.ServicePort{corev1.ServicePort{
+			// 			Protocol: corev1.ProtocolTCP,
+			// 			Port:     80,
+			// 		}},
+			// 	},
+			// }, metav1.CreateOptions{})
+			// Expect(err).ShouldNot(HaveOccurred())
 
-			svc, err := clientSet.CoreV1().Services("default").Get(context.TODO(), svcName, metav1.GetOptions{})
-			svcIP, err := netaddr.NewIPAddress(svc.Spec.ClusterIP)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(svcIP.Version()).To(Equal(6))
+			// svc, err := clientSet.CoreV1().Services("default").Get(context.TODO(), svcName, metav1.GetOptions{})
+			// svcIP, err := netaddr.NewIPAddress(svc.Spec.ClusterIP)
+			// Expect(err).NotTo(HaveOccurred())
+			// Expect(svcIP.Version()).To(Equal(6))
 		})
 	})
 })
