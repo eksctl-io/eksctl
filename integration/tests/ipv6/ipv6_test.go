@@ -47,9 +47,10 @@ var _ = Describe("(Integration) [EKS IPv6 test]", func() {
 		BeforeSuite(func() {
 			clusterConfig = api.NewClusterConfig()
 			clusterConfig.Metadata.Name = clusterName
-			clusterConfig.Metadata.Version = "latest"
+			clusterConfig.Metadata.Version = "1.21"
 			clusterConfig.Metadata.Region = params.Region
 			clusterConfig.VPC.IPFamily = aws.String("IPv6")
+			clusterConfig.VPC.NAT = nil
 			clusterConfig.IAM.WithOIDC = api.Enabled()
 			clusterConfig.Addons = []*api.Addon{
 				{

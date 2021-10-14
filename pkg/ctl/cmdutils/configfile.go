@@ -238,10 +238,12 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 		}
 
 		if clusterConfig.VPC.NAT == nil {
-			clusterConfig.VPC.NAT = api.DefaultClusterNAT()
+			if clusterConfig.VPC.IPFamily == nil || *clusterConfig.VPC.IPFamily != string(api.IPV6Family) {
+				clusterConfig.VPC.NAT = api.DefaultClusterNAT()
+			}
 		}
 
-		if !api.IsSetAndNonEmptyString(clusterConfig.VPC.NAT.Gateway) {
+		if clusterConfig.VPC.NAT != nil && !api.IsSetAndNonEmptyString(clusterConfig.VPC.NAT.Gateway) {
 			*clusterConfig.VPC.NAT.Gateway = api.ClusterSingleNAT
 		}
 
