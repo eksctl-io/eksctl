@@ -16,6 +16,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/eks/mocks"
 	bootstrapfakes "github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"
+	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
 )
 
@@ -72,6 +73,21 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			Expect(ngTemplate.Outputs).To(HaveKey(outputs.NodeGroupFeaturePrivateNetworking))
 			Expect(ngTemplate.Outputs).To(HaveKey(outputs.NodeGroupFeatureSharedSecurityGroup))
 			Expect(ngTemplate.Outputs).To(HaveKey(outputs.NodeGroupFeatureLocalSecurityGroup))
+		})
+
+		Context("ipv6 cluster", func() {
+			BeforeEach(func() {
+				cfg.VPC.IPFamily = utilsstrings.Pointer(string(api.IPV6Family))
+			})
+			AfterEach(func() {
+				cfg.VPC.IPFamily = utilsstrings.Pointer(string(api.IPV4Family))
+			})
+
+			When("an unmanaged nodegroup is created", func() {
+				It("returns an error", func() {
+					Expect(addErr).To(MatchError(ContainSubstring("unmanaged nodegroups are not supported with IPv6 clusters")))
+				})
+			})
 		})
 
 		Context("if ng.MinSize is nil", func() {
