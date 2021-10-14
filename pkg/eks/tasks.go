@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/actions/identityproviders"
+	"github.com/weaveworks/eksctl/pkg/windows"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -36,6 +37,31 @@ func (t *clusterConfigTask) Do(errs chan error) error {
 	err := t.call(t.spec)
 	close(errs)
 	return err
+}
+
+// WindowsIPAMTask is a task for enabling Windows IPAM.
+type WindowsIPAMTask struct {
+	Info          string
+	ClientsetFunc func() (kubernetes.Interface, error)
+}
+
+// Do implements Task.
+func (w *WindowsIPAMTask) Do(errCh chan error) error {
+	defer close(errCh)
+
+	clientset, err := w.ClientsetFunc()
+	if err != nil {
+		return err
+	}
+	windowsIPAM := windows.IPAM{
+		Clientset: clientset,
+	}
+	return windowsIPAM.Enable(context.TODO())
+}
+
+// Describe implements Task.
+func (w *WindowsIPAMTask) Describe() string {
+	return w.Info
 }
 
 // DeleteVPCControllerTask is a task for deleting VPC controller resources.

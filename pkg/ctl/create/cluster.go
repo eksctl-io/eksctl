@@ -190,6 +190,11 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		if !eks.SupportsWindowsWorkloads(kubeNodeGroups) {
 			return errors.New("running Windows workloads requires having both Windows and Linux (AmazonLinux2) node groups")
 		}
+		logger.Warning("you no longer need to install the VPC resource controller on Linux worker nodes to run " +
+			"Windows workloads in EKS clusters. You can enable Windows IP address management on the EKS control plane via " +
+			"a ConﬁgMap setting (see https://todo.com for details). eksctl will automatically patch the ConfigMap to enable " +
+			"Windows IP address management when a Windows nodegroup is created. For existing clusters, you can enable it manually " +
+			"and re-run this command with the --delete ﬂag to remove the worker node installation of the VPC resource controller")
 	} else {
 		eks.LogWindowsCompatibility(kubeNodeGroups, cfg.Metadata)
 	}
@@ -248,7 +253,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	if err != nil {
 		return err
 	}
-	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(cfg, params.InstallWindowsVPCController)
+	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(cfg, eks.SupportsWindowsWorkloads(kubeNodeGroups))
 
 	supported, err := utils.IsMinVersion(api.Version1_18, cfg.Metadata.Version)
 	if err != nil {
