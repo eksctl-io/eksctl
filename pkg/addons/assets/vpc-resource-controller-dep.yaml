@@ -1,0 +1,64 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vpc-resource-controller
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vpc-resource-controller
+      tier: backend
+      track: stable
+  template:
+    metadata:
+      labels:
+        app: vpc-resource-controller
+        tier: backend
+        track: stable
+    spec:
+      serviceAccount: vpc-resource-controller
+      containers:
+      - command:
+        - /vpc-resource-controller
+        args:
+        - -stderrthreshold=info
+        image: '%s.dkr.ecr.%s.%s/eks/windows-vpc-resource-controller:v0.2.6'
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            host: 127.0.0.1
+            path: /healthz
+            port: 61779
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+        name: vpc-resource-controller
+        securityContext:
+          privileged: true
+      hostNetwork: true
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: beta.kubernetes.io/os
+                operator: In
+                values:
+                - linux
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+            - matchExpressions:
+              - key: kubernetes.io/os
+                operator: In
+                values:
+                - linux
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64

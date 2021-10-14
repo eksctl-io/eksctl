@@ -71,15 +71,6 @@ type DevicePlugin interface {
 	Deploy() error
 }
 
-type typeAssertionError struct {
-	expected interface{}
-	got      interface{}
-}
-
-func (t *typeAssertionError) Error() string {
-	return fmt.Sprintf("expected type to be %T; got %T", t.expected, t.got)
-}
-
 func applyDevicePlugin(dp DevicePlugin) error {
 	list, err := kubernetes.NewList(dp.Manifest())
 	if err != nil {

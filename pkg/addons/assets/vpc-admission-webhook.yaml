@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vpc-admission-webhook
+  namespace: kube-system
+  labels:
+    app: vpc-admission-webhook
+spec:
+  ports:
+  - port: 443
+    targetPort: 443
+  selector:
+    app: vpc-admission-webhook

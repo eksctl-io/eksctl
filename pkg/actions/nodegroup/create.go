@@ -160,15 +160,6 @@ func (m *Manager) nodeCreationTasks(options CreateOpts, nodegroupFilter filter.N
 		taskTree.Append(m.stackManager.NewClusterCompatTask())
 	}
 
-	if m.cfg.HasWindowsNodeGroup() {
-		taskTree.Append(&eks.WindowsIPAMTask{
-			Info: "enable Windows IPAM",
-			ClientsetFunc: func() (kubernetes.Interface, error) {
-				return m.ctl.NewStdClientSet(m.cfg)
-			},
-		})
-	}
-
 	awsNodeUsesIRSA, err := init.DoesAWSNodeUseIRSA(m.ctl.Provider, m.clientSet)
 	if err != nil {
 		return errors.Wrap(err, "couldn't check aws-node for annotation")

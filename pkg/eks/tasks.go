@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/actions/identityproviders"
-	"github.com/weaveworks/eksctl/pkg/windows"
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -39,52 +40,44 @@ func (t *clusterConfigTask) Do(errs chan error) error {
 	return err
 }
 
-// WindowsIPAMTask is a task for enabling Windows IPAM.
-type WindowsIPAMTask struct {
-	Info          string
-	ClientsetFunc func() (kubernetes.Interface, error)
+// VPCControllerTask represents a task to install the VPC controller
+type VPCControllerTask struct {
+	Info            string
+	ClusterProvider *ClusterProvider
+	ClusterConfig   *api.ClusterConfig
+	PlanMode        bool
 }
 
-// Do implements Task.
-func (w *WindowsIPAMTask) Do(errCh chan error) error {
-	defer close(errCh)
+// Describe implements Task
+func (v *VPCControllerTask) Describe() string { return v.Info }
 
-	clientset, err := w.ClientsetFunc()
+// Do implements Task
+func (v *VPCControllerTask) Do(errCh chan error) error {
+	defer close(errCh)
+	rawClient, err := v.ClusterProvider.NewRawClient(v.ClusterConfig)
 	if err != nil {
 		return err
 	}
-	windowsIPAM := windows.IPAM{
-		Clientset: clientset,
+	oidc, err := v.ClusterProvider.NewOpenIDConnectManager(v.ClusterConfig)
+	if err != nil {
+		return err
 	}
-	return windowsIPAM.Enable(context.TODO())
-}
 
-// Describe implements Task.
-func (w *WindowsIPAMTask) Describe() string {
-	return w.Info
-}
+	stackCollection := manager.NewStackCollection(v.ClusterProvider.Provider, v.ClusterConfig)
 
-// DeleteVPCControllerTask is a task for deleting VPC controller resources.
-type DeleteVPCControllerTask struct {
-	RawClient *kubernetes.RawClient
-	PlanMode  bool
-	Info      string
-}
-
-// Do implements Task.
-func (v *DeleteVPCControllerTask) Do(errCh chan error) error {
-	defer close(errCh)
-
-	vpcController := &addons.VPCController{
-		RawClient: v.RawClient,
-		PlanMode:  v.PlanMode,
+	clientSet, err := v.ClusterProvider.NewStdClientSet(v.ClusterConfig)
+	if err != nil {
+		return err
 	}
-	return vpcController.Delete()
-}
+	irsaManager := irsa.New(v.ClusterConfig.Metadata.Name, stackCollection, oidc, clientSet)
+	irsa := addons.NewIRSAHelper(oidc, stackCollection, irsaManager, v.ClusterConfig.Metadata.Name)
 
-// Describe implements Task.
-func (v *DeleteVPCControllerTask) Describe() string {
-	return v.Info
+	// TODO PlanMode doesn't work as intended
+	vpcController := addons.NewVPCController(rawClient, irsa, v.ClusterConfig.Status, v.ClusterProvider.Provider.Region(), v.PlanMode)
+	if err := vpcController.Deploy(); err != nil {
+		return errors.Wrap(err, "error installing VPC controller")
+	}
+	return nil
 }
 
 type devicePluginTask struct {
@@ -195,7 +188,7 @@ func (t *restartDaemonsetTask) Do(errCh chan error) error {
 }
 
 // CreateExtraClusterConfigTasks returns all tasks for updating cluster configuration not depending on the control plane availability
-func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig) *tasks.TaskTree {
+func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, installVPCController bool) *tasks.TaskTree {
 	newTasks := &tasks.TaskTree{
 		Parallel:  false,
 		IsSubTask: true,
@@ -261,12 +254,11 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig) 
 		newTasks.Append(identityproviders.NewAssociateProvidersTask(*cfg.Metadata, cfg.IdentityProviders, c.Provider.EKS()))
 	}
 
-	if cfg.HasWindowsNodeGroup() {
-		newTasks.Append(&WindowsIPAMTask{
-			Info: "enable Windows IP address management",
-			ClientsetFunc: func() (kubernetes.Interface, error) {
-				return c.NewStdClientSet(cfg)
-			},
+	if installVPCController {
+		newTasks.Append(&VPCControllerTask{
+			Info:            "install Windows VPC controller",
+			ClusterConfig:   cfg,
+			ClusterProvider: c,
 		})
 	}
 
