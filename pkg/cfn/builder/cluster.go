@@ -3,7 +3,6 @@ package builder
 import (
 	"encoding/base64"
 	"fmt"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 
@@ -170,17 +169,24 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		EncryptionConfig:   encryptionConfigs,
 	}
 
-	cluster.KubernetesNetworkConfig = &gfneks.Cluster_KubernetesNetworkConfig{
-		IpFamily: gfnt.NewString(strings.ToLower(string(api.IPV4Family))),
-	}
-
-	if c.spec.VPC.IPFamily != nil && *c.spec.VPC.IPFamily == string(api.IPV6Family) {
-		cluster.KubernetesNetworkConfig.IpFamily = gfnt.NewString(strings.ToLower(string(api.IPV6Family)))
-	}
-
+	//TODO: delete this below If statement, and uncomment the code below once we can create ipv6 clusters
 	if c.spec.KubernetesNetworkConfig != nil && c.spec.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
-		cluster.KubernetesNetworkConfig.ServiceIpv4Cidr = gfnt.NewString(c.spec.KubernetesNetworkConfig.ServiceIPv4CIDR)
+		cluster.KubernetesNetworkConfig = &gfneks.Cluster_KubernetesNetworkConfig{
+			ServiceIpv4Cidr: gfnt.NewString(c.spec.KubernetesNetworkConfig.ServiceIPv4CIDR),
+		}
 	}
+
+	// cluster.KubernetesNetworkConfig = &gfneks.Cluster_KubernetesNetworkConfig{
+	// 	IpFamily: gfnt.NewString(strings.ToLower(string(api.IPV4Family))),
+	// }
+
+	// if c.spec.VPC.IPFamily != nil && *c.spec.VPC.IPFamily == string(api.IPV6Family) {
+	// 	cluster.KubernetesNetworkConfig.IpFamily = gfnt.NewString(strings.ToLower(string(api.IPV6Family)))
+	// }
+
+	// if c.spec.KubernetesNetworkConfig != nil && c.spec.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
+	// 	cluster.KubernetesNetworkConfig.ServiceIpv4Cidr = gfnt.NewString(c.spec.KubernetesNetworkConfig.ServiceIPv4CIDR)
+	// }
 
 	c.newResource("ControlPlane", &cluster)
 
