@@ -4,22 +4,15 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/kris-nova/logger"
-
-	"k8s.io/apimachinery/pkg/types"
-
 	jsonpatch "github.com/evanphx/json-patch/v5"
-
-	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
-
+	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
-
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/pkg/errors"
-
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
+	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 const (
@@ -28,18 +21,18 @@ const (
 	windowsIPAMField = "enable-windows-ipam"
 )
 
-// IPAM enables Windows IPAM
+// IPAM enables Windows IPAM in the VPC CNI ConfigMap.
 type IPAM struct {
 	Clientset kubernetes.Interface
 }
 
-// Enable enables Windows IPAM
+// Enable enables Windows IPAM in the VPC CNI ConfigMap.
 func (w *IPAM) Enable(ctx context.Context) error {
 	configMaps := w.Clientset.CoreV1().ConfigMaps(metav1.NamespaceSystem)
 	vpcCNIConfig, err := configMaps.Get(ctx, vpcCNIName, metav1.GetOptions{})
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
-			return errors.Wrap(err, "error getting resource")
+			return errors.Wrapf(err, "error getting ConfigMap %q", vpcCNIName)
 		}
 		return createConfigMap(ctx, configMaps)
 	}
@@ -56,7 +49,7 @@ func (w *IPAM) Enable(ctx context.Context) error {
 
 	_, err = configMaps.Patch(ctx, vpcCNIName, types.StrategicMergePatchType, patch, metav1.PatchOptions{})
 	if err != nil {
-		return errors.Wrap(err, "failed to patch resource")
+		return errors.Wrapf(err, "failed to patch resource %q", vpcCNIName)
 	}
 	return nil
 }

@@ -1,14 +1,14 @@
 # Windows Worker Nodes
 
 From version 1.14, Amazon EKS supports [Windows Nodes][eks-user-guide] that allow running Windows containers.
-In addition to having Windows nodes, a Linux node in the cluster is required to run CoreDNS, as Microsoft doesn't support host-networking mode yet. Thus, a Windows EKS cluster will be a mixed-mode cluster containing Windows nodes and at least one Linux node.
+In addition to having Windows nodes, a Linux node in the cluster is required to run CoreDNS, as Microsoft doesn't support host-networking mode yet. Thus, a Windows EKS cluster will be a mixture of Windows nodes and at least one Linux node.
 The Linux nodes are critical to the functioning of the cluster, and thus, for a production-grade cluster, it's recommended to have at least two `t2.large` Linux nodes for HA.
 
 !!!note
     You no longer need to install the VPC resource controller on Linux worker nodes to run Windows workloads in EKS clusters.
     You can enable Windows IP address management on the EKS control plane via a ConﬁgMap setting (see https://todo.com for details).
     eksctl will automatically patch the ConfigMap to enable Windows IP address management when a Windows nodegroup is created.
-    For existing clusters, you can enable it manually and run `eksctl utils install-vpc-controllers` with the `--delete` ﬂag
+    For existing clusters, you can enable it manually, and run `eksctl utils install-vpc-controllers` with the `--delete` ﬂag
     to remove the worker node installation of the VPC resource controller.
 
 ## Creating a new Windows cluster
