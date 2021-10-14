@@ -17,6 +17,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
+	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -51,6 +52,11 @@ func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spe
 
 // AddAllResources adds all the information about the nodegroup to the resource set
 func (n *NodeGroupResourceSet) AddAllResources() error {
+
+	if utilsstrings.Value(n.clusterSpec.VPC.IPFamily) == string(api.IPV6Family) {
+		return errors.New("unmanaged nodegroups are not supported with IPv6 clusters")
+	}
+
 	n.rs.template.Description = fmt.Sprintf(
 		"%s (AMI family: %s, SSH access: %v, private networking: %v) %s",
 		nodeGroupTemplateDescription,
