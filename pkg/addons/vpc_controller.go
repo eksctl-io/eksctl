@@ -5,17 +5,21 @@ import (
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 const (
-	vpcControllerNamespace = metav1.NamespaceSystem
+	VPCControllerInfoMessage = "you no longer need to install the VPC resource controller on Linux worker nodes to run " +
+		"Windows workloads in EKS clusters. You can enable Windows IP address management on the EKS control plane via " +
+		"a ConﬁgMap setting (see https://todo.com for details). eksctl will automatically patch the ConfigMap to enable " +
+		"Windows IP address management when a Windows nodegroup is created. For existing clusters, you can enable it manually " +
+		"and run `eksctl utils install-vpc-controllers` with the --delete ﬂag to remove the worker node installation of the VPC resource controller"
 )
 
 // VPCController deletes an existing installation of VPC controller from worker nodes.
 type VPCController struct {
-	RawClient kubernetes.RawClientInterface
+	RawClient *kubernetes.RawClient
+	PlanMode  bool
 }
 
 // Delete deletes the resources for VPC controller.
@@ -41,10 +45,12 @@ func (v *VPCController) deleteResource(o runtime.Object) error {
 	if err != nil {
 		return errors.Wrap(err, "unexpected error creating raw resource")
 	}
-	msg, err := r.DeleteSync()
+	msg, err := r.DeleteSync(v.PlanMode)
 	if err != nil {
 		return errors.Wrapf(err, "error deleting resource %q", r.Info.String())
 	}
-	logger.Info(msg)
+	if msg != "" {
+		logger.Info(msg)
+	}
 	return nil
 }

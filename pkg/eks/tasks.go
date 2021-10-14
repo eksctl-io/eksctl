@@ -66,7 +66,8 @@ func (w *WindowsIPAMTask) Describe() string {
 
 // DeleteVPCControllerTask is a task for deleting VPC controller resources.
 type DeleteVPCControllerTask struct {
-	RawClient kubernetes.RawClientInterface
+	RawClient *kubernetes.RawClient
+	PlanMode  bool
 	Info      string
 }
 
@@ -76,6 +77,7 @@ func (v *DeleteVPCControllerTask) Do(errCh chan error) error {
 
 	vpcController := &addons.VPCController{
 		RawClient: v.RawClient,
+		PlanMode:  v.PlanMode,
 	}
 	return vpcController.Delete()
 }
@@ -193,7 +195,7 @@ func (t *restartDaemonsetTask) Do(errCh chan error) error {
 }
 
 // CreateExtraClusterConfigTasks returns all tasks for updating cluster configuration not depending on the control plane availability
-func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, enableWindowsSupport bool) *tasks.TaskTree {
+func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig) *tasks.TaskTree {
 	newTasks := &tasks.TaskTree{
 		Parallel:  false,
 		IsSubTask: true,
@@ -259,7 +261,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 		newTasks.Append(identityproviders.NewAssociateProvidersTask(*cfg.Metadata, cfg.IdentityProviders, c.Provider.EKS()))
 	}
 
-	if enableWindowsSupport {
+	if cfg.HasWindowsNodeGroup() {
 		newTasks.Append(&WindowsIPAMTask{
 			Info: "enable Windows IP address management",
 			ClientsetFunc: func() (kubernetes.Interface, error) {

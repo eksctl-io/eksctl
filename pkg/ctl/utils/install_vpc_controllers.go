@@ -4,6 +4,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/eksctl/pkg/addons"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 
@@ -16,6 +17,7 @@ func installWindowsVPCController(cmd *cmdutils.Cmd) {
 	cmd.ClusterConfig = cfg
 
 	cmd.SetDescription("install-vpc-controllers", "Install Windows VPC controller to support running Windows workloads", "")
+	cmd.CobraCommand.Deprecated = addons.VPCControllerInfoMessage
 
 	var deleteController bool
 
@@ -38,11 +40,7 @@ func installWindowsVPCController(cmd *cmdutils.Cmd) {
 
 func doInstallWindowsVPCController(cmd *cmdutils.Cmd, deleteController bool) error {
 	if !deleteController {
-		logger.Warning("you no longer need to install the VPC resource controller on Linux worker nodes to run " +
-			"Windows workloads in EKS clusters. You can enable Windows IP address management on the EKS control plane via " +
-			"a ConﬁgMap setting (see https://todo.com for details). eksctl will automatically patch the ConfigMap to enable " +
-			"Windows IP address management when a Windows nodegroup is created. For existing clusters, you can enable it manually " +
-			"and re-run this command with the --delete ﬂag to remove the worker node installation of the VPC resource controller")
+		logger.Warning(addons.VPCControllerInfoMessage)
 		return nil
 	}
 
@@ -61,6 +59,7 @@ func doInstallWindowsVPCController(cmd *cmdutils.Cmd, deleteController bool) err
 	}
 	deleteControllerTask := &eks.DeleteVPCControllerTask{
 		Info:      "delete Windows VPC controller",
+		PlanMode:  cmd.Plan,
 		RawClient: rawClient,
 	}
 
