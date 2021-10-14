@@ -11,7 +11,7 @@ import (
 const (
 	VPCControllerInfoMessage = "you no longer need to install the VPC resource controller on Linux worker nodes to run " +
 		"Windows workloads in EKS clusters. You can enable Windows IP address management on the EKS control plane via " +
-		"a ConﬁgMap setting (see https://todo.com for details). eksctl will automatically patch the ConfigMap to enable " +
+		"a ConﬁgMap setting (see https://<updating> for details). eksctl will automatically patch the ConfigMap to enable " +
 		"Windows IP address management when a Windows nodegroup is created. For existing clusters, you can enable it manually " +
 		"and run `eksctl utils install-vpc-controllers` with the --delete ﬂag to remove the worker node installation of the VPC resource controller"
 )
