@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils"
+	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 
@@ -70,6 +71,10 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 
 	if len(cfg.ManagedNodeGroups) > 0 && !supportsManagedNodes {
 		return errors.New("Managed Nodegroups are not supported for this cluster version. Please update the cluster before adding managed nodegroups")
+	}
+
+	if utilsstrings.Value(cfg.VPC.IPFamily) == string(api.IPV6Family) && len(cfg.NodeGroups) > 0 {
+		return errors.New("unmanaged nodegroups are not supported with IPv6 clusters")
 	}
 
 	if err := eks.ValidateBottlerocketSupport(ctl.ControlPlaneVersion(), cmdutils.ToKubeNodeGroups(cfg)); err != nil {

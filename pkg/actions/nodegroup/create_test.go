@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"strings"
 
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -17,6 +19,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 type ngEntry struct {
@@ -298,6 +301,53 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		expErr: nil,
 	}),
 )
+
+var _ = Describe("create", func() {
+	When("creating an unmanaged nodegroup for an ipv6 cluster", func() {
+		It("returns an error", func() {
+			cfg := newClusterConfig()
+			cfg.Metadata.Version = api.Version1_21
+			cfg.IAM = &api.ClusterIAM{
+				WithOIDC: api.Enabled(),
+			}
+			cfg.Addons = []*api.Addon{
+				{
+					Name: api.VPCCNIAddon,
+				},
+				{
+					Name: api.KubeProxyAddon,
+				},
+				{
+					Name: api.CoreDNSAddon,
+				},
+			}
+			cfg.VPC.IPFamily = utilsstrings.Pointer(string(api.IPV6Family))
+
+			p := mockprovider.NewMockProvider()
+			ctl := &eks.ClusterProvider{
+				Provider: p,
+				Status: &eks.ProviderStatus{
+					ClusterInfo: &eks.ClusterInfo{
+						Cluster: testutils.NewFakeCluster("my-cluster", ""),
+					},
+				},
+			}
+			m := nodegroup.New(cfg, ctl, nil)
+
+			k := &fakes.FakeKubeProvider{}
+			k.SupportsManagedNodesReturns(true, nil)
+			m.MockKubeProvider(k)
+
+			init := &fakes.FakeNodeGroupInitialiser{}
+			m.MockNodeGroupService(init)
+
+			ngFilter := utilFakes.FakeNodegroupFilter{}
+
+			err := m.Create(nodegroup.CreateOpts{}, &ngFilter)
+			Expect(err).To(MatchError(ContainSubstring("unmanaged nodegroups are not supported with IPv6 clusters")))
+		})
+	})
+})
 
 func newClusterConfig() *api.ClusterConfig {
 	return &api.ClusterConfig{
