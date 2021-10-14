@@ -245,7 +245,7 @@ func (c *RawClient) deleteObject(object runtime.RawExtension) error {
 	if err != nil {
 		return err
 	}
-	status, err := resource.DeleteSync(false)
+	status, err := resource.DeleteSync()
 	if err != nil {
 		return err
 	}
@@ -415,16 +415,13 @@ func (r *RawResource) CreatePatchOrReplace() error {
 
 // DeleteSync attempts to delete this Kubernetes resource, or returns doing
 // nothing if it does not exist. It blocks until the resource has been deleted.
-func (r *RawResource) DeleteSync(plan bool) (string, error) {
+func (r *RawResource) DeleteSync() (string, error) {
 	_, exists, err := r.Get()
 	if err != nil {
 		return "", err
 	}
 	if !exists {
 		return "", nil
-	}
-	if plan {
-		return r.LogAction(true, "deleted"), nil
 	}
 	propagationPolicy := metav1.DeletePropagationForeground
 	if _, err := r.Helper.DeleteWithOptions(r.Info.Namespace, r.Info.Name, &metav1.DeleteOptions{

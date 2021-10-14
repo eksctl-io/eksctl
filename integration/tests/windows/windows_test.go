@@ -70,6 +70,7 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 				"--config-file", "-",
 				"--verbose", "4",
 				"--kubeconfig", params.KubeconfigPath,
+				"--install-vpc-controllers",
 			).
 			WithoutArg("--region", params.Region).
 			WithStdin(bytes.NewReader(data))
