@@ -5,16 +5,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/goformation/v4"
-	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
-	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
+	"github.com/weaveworks/goformation/v4"
+	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 func TestManagedPolicyResources(t *testing.T) {
@@ -91,7 +89,7 @@ func TestManagedPolicyResources(t *testing.T) {
 			bootstrapper.UserDataStub = func() (string, error) {
 				return "", nil
 			}
-			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, ng, nil, bootstrapper, false, fakeVPCImporter, true)
+			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, ng, nil, bootstrapper, false, fakeVPCImporter)
 			err := stack.AddAllResources()
 			require.Nil(err)
 
@@ -160,7 +158,7 @@ func TestManagedNodeRole(t *testing.T) {
 			p := mockprovider.NewMockProvider()
 			fakeVPCImporter := new(vpcfakes.FakeImporter)
 			bootstrapper := nodebootstrap.NewManagedBootstrapper(clusterConfig, tt.nodeGroup)
-			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, tt.nodeGroup, nil, bootstrapper, false, fakeVPCImporter, true)
+			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, tt.nodeGroup, nil, bootstrapper, false, fakeVPCImporter)
 			err := stack.AddAllResources()
 			require.NoError(err)
 
@@ -179,20 +177,6 @@ func TestManagedNodeRole(t *testing.T) {
 			require.Equal(tt.expectedNewRole, ok)
 		})
 	}
-}
-
-func TestManagedNodeGroupAddAllResources_WithUnownedIPv6Cluster(t *testing.T) {
-	ng := &api.ManagedNodeGroup{
-		NodeGroupBase: &api.NodeGroupBase{},
-	}
-	p := mockprovider.NewMockProvider()
-	clusterConfig := api.NewClusterConfig()
-	clusterConfig.VPC.IPFamily = utilsstrings.Pointer(string(api.IPV6Family))
-	fakeVPCImporter := new(vpcfakes.FakeImporter)
-	bootstrapper := nodebootstrap.NewManagedBootstrapper(clusterConfig, ng)
-	stack := NewManagedNodeGroup(p.EC2(), clusterConfig, ng, nil, bootstrapper, false, fakeVPCImporter, false)
-	err := stack.AddAllResources()
-	require.EqualError(t, err, "managed nodegroups cannot be created on IPv6 unowned clusters")
 }
 
 func makePartitionedPolicies(policies ...string) []*gfnt.Value {

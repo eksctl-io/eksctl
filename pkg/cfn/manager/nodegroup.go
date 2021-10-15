@@ -15,6 +15,7 @@ import (
 	"github.com/tidwall/gjson"
 
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
+	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -85,10 +86,12 @@ func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api
 	if err != nil {
 		return err
 	}
-	isOwnedCluster := cluster != nil
+	if cluster == nil && utilsstrings.Value(c.spec.VPC.IPFamily) == string(api.IPV6Family) {
+		return errors.New("managed nodegroups cannot be created on IPv6 unowned clusters")
+	}
 	logger.Info("building managed nodegroup stack %q", name)
 	bootstrapper := nodebootstrap.NewManagedBootstrapper(c.spec, ng)
-	stack := builder.NewManagedNodeGroup(c.ec2API, c.spec, ng, builder.NewLaunchTemplateFetcher(c.ec2API), bootstrapper, forceAddCNIPolicy, vpcImporter, isOwnedCluster)
+	stack := builder.NewManagedNodeGroup(c.ec2API, c.spec, ng, builder.NewLaunchTemplateFetcher(c.ec2API), bootstrapper, forceAddCNIPolicy, vpcImporter)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}

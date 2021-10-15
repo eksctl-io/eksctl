@@ -15,7 +15,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/utils"
-	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -28,14 +27,13 @@ type ManagedNodeGroupResourceSet struct {
 	ec2API                ec2iface.EC2API
 	vpcImporter           vpc.Importer
 	bootstrapper          nodebootstrap.Bootstrapper
-	isOwnedCluster        bool
 	*resourceSet
 }
 
 const ManagedNodeGroupResourceName = "ManagedNodeGroup"
 
 // NewManagedNodeGroup creates a new ManagedNodeGroupResourceSet
-func NewManagedNodeGroup(ec2API ec2iface.EC2API, cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher *LaunchTemplateFetcher, bootstrapper nodebootstrap.Bootstrapper, forceAddCNIPolicy bool, vpcImporter vpc.Importer, isOwnedCluster bool) *ManagedNodeGroupResourceSet {
+func NewManagedNodeGroup(ec2API ec2iface.EC2API, cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher *LaunchTemplateFetcher, bootstrapper nodebootstrap.Bootstrapper, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *ManagedNodeGroupResourceSet {
 	return &ManagedNodeGroupResourceSet{
 		clusterConfig:         cluster,
 		forceAddCNIPolicy:     forceAddCNIPolicy,
@@ -45,15 +43,11 @@ func NewManagedNodeGroup(ec2API ec2iface.EC2API, cluster *api.ClusterConfig, nod
 		resourceSet:           newResourceSet(),
 		vpcImporter:           vpcImporter,
 		bootstrapper:          bootstrapper,
-		isOwnedCluster:        isOwnedCluster,
 	}
 }
 
 // AddAllResources adds all required CloudFormation resources
 func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
-	if utilsstrings.Value(m.clusterConfig.VPC.IPFamily) == string(api.IPV6Family) && !m.isOwnedCluster {
-		return errors.New("managed nodegroups cannot be created on IPv6 unowned clusters")
-	}
 	m.resourceSet.template.Description = fmt.Sprintf(
 		"%s (SSH access: %v) %s",
 		"EKS Managed Nodes",

@@ -52,6 +52,7 @@ func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spe
 
 // AddAllResources adds all the information about the nodegroup to the resource set
 func (n *NodeGroupResourceSet) AddAllResources() error {
+
 	if utilsstrings.Value(n.clusterSpec.VPC.IPFamily) == string(api.IPV6Family) {
 		return errors.New("unmanaged nodegroups are not supported with IPv6 clusters")
 	}
