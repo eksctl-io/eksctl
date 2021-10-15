@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 
@@ -88,13 +89,21 @@ func main() {
 	loggerLevel := rootCmd.PersistentFlags().IntP("verbose", "v", 3, "set log level, use 0 to silence, 4 for debugging and 5 for debugging with AWS debug logging")
 	colorValue := rootCmd.PersistentFlags().StringP("color", "C", "true", "toggle colorized logs (valid options: true, false, fabulous)")
 
+	logBuffer := new(bytes.Buffer)
+
 	cobra.OnInitialize(func() {
-		initLogger(*loggerLevel, *colorValue)
+		initLogger(*loggerLevel, *colorValue, logBuffer)
 	})
 
 	rootCmd.SetUsageFunc(flagGrouping.Usage)
 
 	if err := rootCmd.Execute(); err != nil {
+		err = dumpLogsToDisk(logBuffer)
+
+		if err != nil {
+			fmt.Println("Failed to dump logs to disk. Error = " + err.Error())
+		}
+
 		os.Exit(1)
 	}
 }
