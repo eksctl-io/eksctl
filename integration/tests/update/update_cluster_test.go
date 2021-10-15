@@ -6,7 +6,6 @@ package update
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -64,7 +63,7 @@ var _ = Describe("(Integration) Update addons", func() {
 		params.KubeconfigTemp = false
 		if params.KubeconfigPath == "" {
 			wd, _ := os.Getwd()
-			f, _ := ioutil.TempFile(wd, "kubeconfig-")
+			f, _ := os.CreateTemp(wd, "kubeconfig-")
 			params.KubeconfigPath = f.Name()
 			params.KubeconfigTemp = true
 		}

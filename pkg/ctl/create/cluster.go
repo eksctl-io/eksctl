@@ -131,6 +131,9 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	if cfg.Metadata.Version == "" || cfg.Metadata.Version == "auto" {
 		cfg.Metadata.Version = api.DefaultVersion
 	}
+	if cfg.Metadata.Version == "latest" {
+		cfg.Metadata.Version = api.LatestVersion
+	}
 	if cfg.Metadata.Version != api.DefaultVersion {
 		if !api.IsSupportedVersion(cfg.Metadata.Version) {
 			if api.IsDeprecatedVersion(cfg.Metadata.Version) {

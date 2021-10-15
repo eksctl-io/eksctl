@@ -2,7 +2,6 @@
 package repo_test
 
 import (
-	"io/ioutil"
 	"os"
 
 	"github.com/instrumenta/kubeval/kubeval"
@@ -46,7 +45,7 @@ var _ = Describe("Installer", func() {
 		}
 
 		var err error
-		tmpDir, err = ioutil.TempDir(os.TempDir(), "getmanifestsandsecrets")
+		tmpDir, err = os.MkdirTemp(os.TempDir(), "getmanifestsandsecrets")
 		Expect(err).NotTo(HaveOccurred())
 	})
 

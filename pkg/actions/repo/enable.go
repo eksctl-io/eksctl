@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -289,7 +288,7 @@ func writeFluxManifests(baseDir string, manifests map[string][]byte) error {
 	}
 	for fileName, contents := range manifests {
 		fullPath := filepath.Join(baseDir, fileName)
-		if err := ioutil.WriteFile(fullPath, contents, 0600); err != nil {
+		if err := os.WriteFile(fullPath, contents, 0600); err != nil {
 			return errors.Wrapf(err, "failed to write Flux manifest file %s", fullPath)
 		}
 	}

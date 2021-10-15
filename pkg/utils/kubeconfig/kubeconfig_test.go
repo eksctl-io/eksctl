@@ -1,7 +1,6 @@
 package kubeconfig_test
 
 import (
-	"io/ioutil"
 	"os"
 	"path"
 	"sync"
@@ -32,7 +31,7 @@ var _ = Describe("Kubeconfig", func() {
 	var exampleSSHKeyPath = "~/.ssh/id_rsa.pub"
 
 	BeforeEach(func() {
-		configFile, _ = ioutil.TempFile("", "")
+		configFile, _ = os.CreateTemp("", "")
 	})
 
 	AfterEach(func() {
@@ -40,12 +39,12 @@ var _ = Describe("Kubeconfig", func() {
 	})
 
 	var writeConfig = func(filename string) error {
-		minikubeSample, err := ioutil.ReadFile("testdata/minikube_sample.golden")
+		minikubeSample, err := os.ReadFile("testdata/minikube_sample.golden")
 		if err != nil {
 			GinkgoT().Fatalf("failed reading .golden: %s", err)
 		}
 
-		return ioutil.WriteFile(filename, minikubeSample, os.FileMode(0755))
+		return os.WriteFile(filename, minikubeSample, os.FileMode(0755))
 	}
 
 	It("creating new Kubeconfig", func() {
@@ -72,7 +71,7 @@ var _ = Describe("Kubeconfig", func() {
 	})
 
 	It("creating new Kubeconfig in non-existent directory", func() {
-		tempDir, _ := ioutil.TempDir("", "")
+		tempDir, _ := os.MkdirTemp("", "")
 		filename, err := kubeconfig.Write(path.Join(tempDir, "nonexistentdir", "kubeconfig"), testConfig, false)
 		Expect(err).To(BeNil())
 		Expect(filename).ToNot(BeEmpty())
@@ -229,23 +228,23 @@ var _ = Describe("Kubeconfig", func() {
 
 			var err error
 
-			if emptyClusterAsBytes, err = ioutil.ReadFile("testdata/empty_cluster.golden"); err != nil {
+			if emptyClusterAsBytes, err = os.ReadFile("testdata/empty_cluster.golden"); err != nil {
 				GinkgoT().Fatalf("failed reading .golden: %v", err)
 			}
 
-			if oneClusterAsBytes, err = ioutil.ReadFile("testdata/one_cluster.golden"); err != nil {
+			if oneClusterAsBytes, err = os.ReadFile("testdata/one_cluster.golden"); err != nil {
 				GinkgoT().Fatalf("failed reading .golden: %v", err)
 			}
 
-			if twoClustersAsBytes, err = ioutil.ReadFile("testdata/two_clusters.golden"); err != nil {
+			if twoClustersAsBytes, err = os.ReadFile("testdata/two_clusters.golden"); err != nil {
 				GinkgoT().Fatalf("failed reading .golden: %v", err)
 			}
 
-			if oneClusterWithoutContextAsBytes, err = ioutil.ReadFile("testdata/one_cluster_without_context.golden"); err != nil {
+			if oneClusterWithoutContextAsBytes, err = os.ReadFile("testdata/one_cluster_without_context.golden"); err != nil {
 				GinkgoT().Fatalf("failed reading .golden: %v", err)
 			}
 
-			if oneClusterWithStaleContextAsBytes, err = ioutil.ReadFile("testdata/one_cluster_with_stale_context.golden"); err != nil {
+			if oneClusterWithStaleContextAsBytes, err = os.ReadFile("testdata/one_cluster_with_stale_context.golden"); err != nil {
 				GinkgoT().Fatalf("failed reading .golden: %v", err)
 			}
 
@@ -264,7 +263,7 @@ var _ = Describe("Kubeconfig", func() {
 			existingClusterConfig := GetClusterConfig("cluster-one")
 			kubeconfig.MaybeDeleteConfig(existingClusterConfig.Metadata)
 
-			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
+			configFileAsBytes, err := os.ReadFile(configFile.Name())
 			Expect(err).To(BeNil())
 			Expect(configFileAsBytes).To(MatchYAML(emptyClusterAsBytes), "Failed to delete cluster from config")
 		})
@@ -273,7 +272,7 @@ var _ = Describe("Kubeconfig", func() {
 			existingClusterConfig := GetClusterConfig("cluster-one")
 			kubeconfig.MaybeDeleteConfig(existingClusterConfig.Metadata)
 
-			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
+			configFileAsBytes, err := os.ReadFile(configFile.Name())
 			Expect(err).To(BeNil())
 			Expect(configFileAsBytes).To(MatchYAML(oneClusterWithoutContextAsBytes), "Failed to delete cluster from config")
 		})
@@ -285,7 +284,7 @@ var _ = Describe("Kubeconfig", func() {
 			existingClusterConfig := GetClusterConfig("cluster-one")
 			kubeconfig.MaybeDeleteConfig(existingClusterConfig.Metadata)
 
-			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
+			configFileAsBytes, err := os.ReadFile(configFile.Name())
 			Expect(err).To(BeNil())
 			Expect(configFileAsBytes).To(MatchYAML(oneClusterWithoutContextAsBytes), "Updated config")
 
@@ -295,7 +294,7 @@ var _ = Describe("Kubeconfig", func() {
 			existingClusterConfig := GetClusterConfig("cluster-two")
 			kubeconfig.MaybeDeleteConfig(existingClusterConfig.Metadata)
 
-			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
+			configFileAsBytes, err := os.ReadFile(configFile.Name())
 			Expect(err).To(BeNil())
 			Expect(configFileAsBytes).To(MatchYAML(oneClusterAsBytes), "Failed to delete cluster from config")
 		})
@@ -304,7 +303,7 @@ var _ = Describe("Kubeconfig", func() {
 			nonExistentClusterConfig := GetClusterConfig("not-a-cluster")
 			kubeconfig.MaybeDeleteConfig(nonExistentClusterConfig.Metadata)
 
-			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
+			configFileAsBytes, err := os.ReadFile(configFile.Name())
 			Expect(err).To(BeNil())
 			Expect(configFileAsBytes).To(MatchYAML(twoClustersAsBytes), "Should not change")
 		})
@@ -318,7 +317,7 @@ var _ = Describe("Kubeconfig", func() {
 		ChangeKubeconfig()
 
 		var err error
-		tmp, err := ioutil.TempFile("", "")
+		tmp, err := os.CreateTemp("", "")
 		Expect(err).To(BeNil())
 
 		{

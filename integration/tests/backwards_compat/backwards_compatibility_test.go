@@ -6,7 +6,6 @@ package backwards_compat
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"runtime"
@@ -54,7 +53,7 @@ var _ = Describe("(Integration) [Backwards compatibility test]", func() {
 		}
 
 		By("downloading a previous release")
-		eksctlDir, err := ioutil.TempDir(os.TempDir(), "eksctl")
+		eksctlDir, err := os.MkdirTemp(os.TempDir(), "eksctl")
 		Expect(err).ToNot(HaveOccurred())
 
 		defer func() {

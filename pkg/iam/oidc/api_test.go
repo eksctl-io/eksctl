@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 	"os/exec"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -29,7 +29,7 @@ var _ = BeforeSuite(func() {
 	session, err := gexec.Start(exec.Command("make", "-C", "testdata", "all"), GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session, 3).Should(gexec.Exit())
-	rawCert, err := ioutil.ReadFile("testdata/test-server.pem")
+	rawCert, err := os.ReadFile("testdata/test-server.pem")
 	Expect(err).NotTo(HaveOccurred())
 	block, rest := pem.Decode(rawCert)
 	Expect(rest).To(BeEmpty())

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -52,7 +51,7 @@ func (p *Profile) Install(clusterConfig *api.ClusterConfig) error {
 	if err != nil {
 		return err
 	}
-	usersRepoDir, err := ioutil.TempDir("", usersRepoName+"-")
+	usersRepoDir, err := os.MkdirTemp("", usersRepoName+"-")
 	if err != nil {
 		return errors.Wrapf(err, "unable to create temporary directory for %q", usersRepoName)
 	}

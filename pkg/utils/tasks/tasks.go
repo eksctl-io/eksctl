@@ -62,38 +62,73 @@ func (t *TaskTree) Len() int {
 	return len(t.Tasks)
 }
 
-// Describe the set
+// Describe collects all tasks which have been added to the task tree.
+// This is a lazy tree which does not track its nodes in any form. This function
+// is recursively called from the rest of the task Describes and eventually
+// returns a collection of all the tasks' `Info` value.
 func (t *TaskTree) Describe() string {
-	descriptions := []string{}
+	if t.Len() == 0 {
+		return "no tasks"
+	}
+	var descriptions []string
 	for _, task := range t.Tasks {
-		descriptions = append(descriptions, task.Describe())
+		descriptions = append(descriptions, strings.TrimSuffix(task.Describe(), "\n"))
 	}
-	mode := "sequential"
-	if t.Parallel {
-		mode = "parallel"
-	}
-	count := len(descriptions)
-	var msg string
 	noun := "task"
 	if t.IsSubTask {
 		noun = "sub-task"
 	}
-	switch count {
-	case 0:
-		msg = "no tasks"
-	case 1:
-		msg = fmt.Sprintf("1 %s: { %s }", noun, descriptions[0])
+	if len(descriptions) == 1 {
+		msg := fmt.Sprintf("1 %s: { %s }", noun, descriptions[0])
 		if t.IsSubTask {
-			msg = descriptions[0] // simple description for single sub-task
+			msg = descriptions[0]
 		}
-	default:
-		noun += "s"
-		msg = fmt.Sprintf("%d %s %s: { %s }", count, mode, noun, strings.Join(descriptions, ", "))
+		return msg
 	}
+	count := len(descriptions)
+	mode := "sequential"
+	if t.Parallel {
+		mode = "parallel"
+	}
+	noun += "s"
+	head := fmt.Sprintf("\n%d %s %s: { ", count, mode, noun)
+	var tail string
+	if t.IsSubTask {
+		// Only add a linebreak at the end if we have multiple subtasks as well. Otherwise, leave it
+		// as single line.
+		head = fmt.Sprintf("\n%s%d %s %s: { ", strings.Repeat(" ", 4), count, mode, noun)
+		tail = "\n"
+		for _, d := range descriptions {
+			// all tasks are sub-tasks if they are inside a task.
+			// which means we don't have to care about sequential tasks.
+			if strings.Contains(d, "sub-task") {
+				// trim the previous leading tail new line...
+				d = strings.TrimPrefix(d, "\n")
+				split := strings.Split(d, "\n")
+				// indent all lines of the subtask one deepness more
+				var result []string
+				for _, s := range split {
+					result = append(result, strings.Repeat(" ", 4)+s)
+				}
+				// join it back up with line breaks
+				d = strings.Join(result, "\n")
+			} else {
+				d = strings.Repeat(" ", 8) + d
+			}
+			tail += fmt.Sprintf("%s,\n", d)
+		}
+		// closing the final bracket
+		tail += fmt.Sprintf("%s}", strings.Repeat(" ", 4))
+	} else {
+		// if it isn't a subtask, we just add the descriptions as is joined by new line.
+		// this results in line like `1 task: { t1.1 }` which are more readable this way.
+		tail = fmt.Sprintf("%s \n}", strings.Join(descriptions, ", "))
+	}
+	msg := head + tail
 	if t.PlanMode {
-		return "(plan) " + msg
+		msg = "(plan) " + msg
 	}
-	return msg
+	return msg + "\n"
 }
 
 // Do will run through the set in the background, it may return an error immediately,
