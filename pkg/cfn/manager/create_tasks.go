@@ -37,7 +37,7 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 	appendNodeGroupTasksTo := func(taskTree *tasks.TaskTree) {
 		vpcImporter := vpc.NewStackConfigImporter(c.MakeClusterStackName())
 		nodeGroupTasks := c.NewUnmanagedNodeGroupTask(nodeGroups, false, vpcImporter)
-		managedNodeGroupTasks := c.NewManagedNodeGroupTask(managedNodeGroups, false, vpcImporter, true)
+		managedNodeGroupTasks := c.NewManagedNodeGroupTask(managedNodeGroups, false, vpcImporter)
 		if managedNodeGroupTasks.Len() > 0 {
 			nodeGroupTasks.Append(managedNodeGroupTasks.Tasks...)
 		}
@@ -82,7 +82,7 @@ func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup,
 }
 
 // NewManagedNodeGroupTask defines tasks required to create managed nodegroups
-func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer, isOwnedCluster bool) *tasks.TaskTree {
+func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}
 	for _, ng := range nodeGroups {
 		taskTree.Append(&managedNodeGroupTask{
@@ -90,7 +90,6 @@ func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeG
 			nodeGroup:         ng,
 			forceAddCNIPolicy: forceAddCNIPolicy,
 			vpcImporter:       vpcImporter,
-			isOwnedCluster:    isOwnedCluster,
 			info:              fmt.Sprintf("create managed nodegroup %q", ng.Name),
 		})
 	}

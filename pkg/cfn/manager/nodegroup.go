@@ -79,9 +79,13 @@ func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup
 	return c.CreateStack(name, stack, ng.Tags, nil, errs)
 }
 
-func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer, isOwnedCluster bool) error {
+func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
 	name := c.makeNodeGroupStackName(ng.Name)
-
+	cluster, err := c.DescribeClusterStack()
+	if err != nil {
+		return err
+	}
+	isOwnedCluster := cluster != nil
 	logger.Info("building managed nodegroup stack %q", name)
 	bootstrapper := nodebootstrap.NewManagedBootstrapper(c.spec, ng)
 	stack := builder.NewManagedNodeGroup(c.ec2API, c.spec, ng, builder.NewLaunchTemplateFetcher(c.ec2API), bootstrapper, forceAddCNIPolicy, vpcImporter, isOwnedCluster)

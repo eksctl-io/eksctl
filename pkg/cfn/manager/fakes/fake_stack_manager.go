@@ -522,13 +522,12 @@ type FakeStackManager struct {
 	newClusterCompatTaskReturnsOnCall map[int]struct {
 		result1 tasks.Task
 	}
-	NewManagedNodeGroupTaskStub        func([]*v1alpha5.ManagedNodeGroup, bool, vpc.Importer, bool) *tasks.TaskTree
+	NewManagedNodeGroupTaskStub        func([]*v1alpha5.ManagedNodeGroup, bool, vpc.Importer) *tasks.TaskTree
 	newManagedNodeGroupTaskMutex       sync.RWMutex
 	newManagedNodeGroupTaskArgsForCall []struct {
 		arg1 []*v1alpha5.ManagedNodeGroup
 		arg2 bool
 		arg3 vpc.Importer
-		arg4 bool
 	}
 	newManagedNodeGroupTaskReturns struct {
 		result1 *tasks.TaskTree
@@ -3197,7 +3196,7 @@ func (fake *FakeStackManager) NewClusterCompatTaskReturnsOnCall(i int, result1 t
 	}{result1}
 }
 
-func (fake *FakeStackManager) NewManagedNodeGroupTask(arg1 []*v1alpha5.ManagedNodeGroup, arg2 bool, arg3 vpc.Importer, arg4 bool) *tasks.TaskTree {
+func (fake *FakeStackManager) NewManagedNodeGroupTask(arg1 []*v1alpha5.ManagedNodeGroup, arg2 bool, arg3 vpc.Importer) *tasks.TaskTree {
 	var arg1Copy []*v1alpha5.ManagedNodeGroup
 	if arg1 != nil {
 		arg1Copy = make([]*v1alpha5.ManagedNodeGroup, len(arg1))
@@ -3209,14 +3208,13 @@ func (fake *FakeStackManager) NewManagedNodeGroupTask(arg1 []*v1alpha5.ManagedNo
 		arg1 []*v1alpha5.ManagedNodeGroup
 		arg2 bool
 		arg3 vpc.Importer
-		arg4 bool
-	}{arg1Copy, arg2, arg3, arg4})
+	}{arg1Copy, arg2, arg3})
 	stub := fake.NewManagedNodeGroupTaskStub
 	fakeReturns := fake.newManagedNodeGroupTaskReturns
-	fake.recordInvocation("NewManagedNodeGroupTask", []interface{}{arg1Copy, arg2, arg3, arg4})
+	fake.recordInvocation("NewManagedNodeGroupTask", []interface{}{arg1Copy, arg2, arg3})
 	fake.newManagedNodeGroupTaskMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
@@ -3230,17 +3228,17 @@ func (fake *FakeStackManager) NewManagedNodeGroupTaskCallCount() int {
 	return len(fake.newManagedNodeGroupTaskArgsForCall)
 }
 
-func (fake *FakeStackManager) NewManagedNodeGroupTaskCalls(stub func([]*v1alpha5.ManagedNodeGroup, bool, vpc.Importer, bool) *tasks.TaskTree) {
+func (fake *FakeStackManager) NewManagedNodeGroupTaskCalls(stub func([]*v1alpha5.ManagedNodeGroup, bool, vpc.Importer) *tasks.TaskTree) {
 	fake.newManagedNodeGroupTaskMutex.Lock()
 	defer fake.newManagedNodeGroupTaskMutex.Unlock()
 	fake.NewManagedNodeGroupTaskStub = stub
 }
 
-func (fake *FakeStackManager) NewManagedNodeGroupTaskArgsForCall(i int) ([]*v1alpha5.ManagedNodeGroup, bool, vpc.Importer, bool) {
+func (fake *FakeStackManager) NewManagedNodeGroupTaskArgsForCall(i int) ([]*v1alpha5.ManagedNodeGroup, bool, vpc.Importer) {
 	fake.newManagedNodeGroupTaskMutex.RLock()
 	defer fake.newManagedNodeGroupTaskMutex.RUnlock()
 	argsForCall := fake.newManagedNodeGroupTaskArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeStackManager) NewManagedNodeGroupTaskReturns(result1 *tasks.TaskTree) {
