@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -145,14 +146,14 @@ var _ = Describe("(Integration) [EKS IPv6 test]", func() {
 			clientSet, err = ctl.NewStdClientSet(clusterConfig)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			svcName := "IPv6Service"
+			svcName := "ipv6-service"
 			_, err = clientSet.CoreV1().Services("default").Create(context.TODO(), &corev1.Service{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: svcName,
 				},
 				Spec: corev1.ServiceSpec{
 					IPFamilies: []corev1.IPFamily{corev1.IPv6Protocol},
-					Selector:   map[string]string{"app": "IPv6App"},
+					Selector:   map[string]string{"app": "ipv6"},
 					Ports: []corev1.ServicePort{corev1.ServicePort{
 						Protocol: corev1.ProtocolTCP,
 						Port:     80,
@@ -161,10 +162,16 @@ var _ = Describe("(Integration) [EKS IPv6 test]", func() {
 			}, metav1.CreateOptions{})
 			Expect(err).ShouldNot(HaveOccurred())
 
-			svc, err := clientSet.CoreV1().Services("default").Get(context.TODO(), svcName, metav1.GetOptions{})
-			svcIP, err := netaddr.NewIPAddress(svc.Spec.ClusterIP)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(svcIP.Version()).To(Equal(6))
+			Eventually(func() int {
+				svc, err := clientSet.CoreV1().Services("default").Get(context.TODO(), svcName, metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+
+				svcIP, err := netaddr.NewIPAddress(svc.Spec.ClusterIP)
+				if err != nil {
+					return 0
+				}
+				return svcIP.Version()
+			}, 5*time.Second, time.Minute).Should(Equal(6))
 		})
 	})
 })
