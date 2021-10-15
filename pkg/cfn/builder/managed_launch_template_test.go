@@ -13,14 +13,16 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"
 
 	"github.com/stretchr/testify/mock"
+	"github.com/weaveworks/goformation/v4"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
-	"github.com/weaveworks/goformation/v4"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 type mngCase struct {
@@ -58,7 +60,7 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 			return userData, nil
 		}
 
-		stack := NewManagedNodeGroup(provider.MockEC2(), clusterConfig, m.ng, NewLaunchTemplateFetcher(provider.MockEC2()), bootstrapper, false, fakeVPCImporter)
+		stack := NewManagedNodeGroup(provider.MockEC2(), clusterConfig, m.ng, NewLaunchTemplateFetcher(provider.MockEC2()), bootstrapper, false, fakeVPCImporter, true)
 		err := stack.AddAllResources()
 		if m.errMsg != "" {
 			Expect(err).To(HaveOccurred())

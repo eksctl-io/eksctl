@@ -4,13 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/mock"
 
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -21,7 +17,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
-	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 type ngEntry struct {
@@ -303,164 +298,6 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		expErr: nil,
 	}),
 )
-
-var _ = Describe("create", func() {
-	When("creating an unmanaged nodegroup for an ipv6 cluster", func() {
-		It("returns an error", func() {
-			cfg := newClusterConfig()
-			cfg.Metadata.Version = api.Version1_21
-			cfg.IAM = &api.ClusterIAM{
-				WithOIDC: api.Enabled(),
-			}
-			cfg.Addons = []*api.Addon{
-				{
-					Name: api.VPCCNIAddon,
-				},
-				{
-					Name: api.KubeProxyAddon,
-				},
-				{
-					Name: api.CoreDNSAddon,
-				},
-			}
-			cfg.VPC.IPFamily = utilsstrings.Pointer(string(api.IPV6Family))
-
-			p := mockprovider.NewMockProvider()
-			ctl := &eks.ClusterProvider{
-				Provider: p,
-				Status: &eks.ProviderStatus{
-					ClusterInfo: &eks.ClusterInfo{
-						Cluster: testutils.NewFakeCluster("my-cluster", ""),
-					},
-				},
-			}
-			m := nodegroup.New(cfg, ctl, nil)
-
-			k := &fakes.FakeKubeProvider{}
-			k.SupportsManagedNodesReturns(true, nil)
-			m.MockKubeProvider(k)
-
-			init := &fakes.FakeNodeGroupInitialiser{}
-			m.MockNodeGroupService(init)
-
-			ngFilter := utilFakes.FakeNodegroupFilter{}
-
-			err := m.Create(nodegroup.CreateOpts{}, &ngFilter)
-			Expect(err).To(MatchError(ContainSubstring("unmanaged nodegroups are not supported with IPv6 clusters")))
-		})
-	})
-	When("creating a nodegroups for unowned ipv6 cluster", func() {
-		It("returns an error", func() {
-			cfg := newClusterConfig()
-			cfg.Metadata.Version = api.Version1_21
-			cfg.IAM = &api.ClusterIAM{
-				WithOIDC: api.Enabled(),
-			}
-			cfg.Addons = []*api.Addon{
-				{
-					Name: api.VPCCNIAddon,
-				},
-				{
-					Name: api.KubeProxyAddon,
-				},
-				{
-					Name: api.CoreDNSAddon,
-				},
-			}
-			cfg.VPC.IPFamily = utilsstrings.Pointer(string(api.IPV6Family))
-
-			p := mockprovider.NewMockProvider()
-			p.MockEC2().On("DescribeVpcs", &ec2.DescribeVpcsInput{VpcIds: aws.StringSlice([]string{"custom"})}).Return(&ec2.DescribeVpcsOutput{
-				Vpcs: []*ec2.Vpc{
-					{
-						VpcId:     aws.String("custom"),
-						CidrBlock: aws.String("192.168.0.0/16"),
-					},
-				},
-			}, nil)
-			p.MockEC2().On("DescribeSubnets", &ec2.DescribeSubnetsInput{
-				SubnetIds: aws.StringSlice([]string{"sn-private-1", "sn-private-2"}),
-			}).Return(&ec2.DescribeSubnetsOutput{
-				Subnets: []*ec2.Subnet{
-					{
-						SubnetId:         aws.String("sn-private-1"),
-						VpcId:            aws.String("custom"),
-						AvailabilityZone: aws.String("us-east-1b"),
-						CidrBlock:        aws.String("192.168.0.0/24"),
-					},
-					{
-						SubnetId:         aws.String("sn-private-2"),
-						VpcId:            aws.String("custom"),
-						AvailabilityZone: aws.String("us-east-1b"),
-						CidrBlock:        aws.String("192.168.0.1/24"),
-					},
-				},
-			}, nil)
-			// The order is undetermined because the entries are maps and we don't sort the ids.
-			p.MockEC2().On("DescribeSubnets", mock.Anything).Return(&ec2.DescribeSubnetsOutput{
-				Subnets: []*ec2.Subnet{
-					{
-						SubnetId:         aws.String("sn-public-1"),
-						VpcId:            aws.String("custom"),
-						AvailabilityZone: aws.String("us-east-1b"),
-						CidrBlock:        aws.String("192.168.1.0/24"),
-					},
-					{
-						SubnetId:         aws.String("sn-public-2"),
-						VpcId:            aws.String("custom"),
-						AvailabilityZone: aws.String("us-east-1b"),
-						CidrBlock:        aws.String("192.168.2.0/24"),
-					},
-					{
-						SubnetId:         aws.String("sn-public-3"),
-						VpcId:            aws.String("custom"),
-						AvailabilityZone: aws.String("us-east-1b"),
-						CidrBlock:        aws.String("192.168.3.0/24"),
-					},
-					{
-						SubnetId:         aws.String("sn-public-4"),
-						VpcId:            aws.String("custom"),
-						AvailabilityZone: aws.String("us-east-1b"),
-						CidrBlock:        aws.String("192.168.4.0/24"),
-					},
-				},
-			}, nil)
-			ctl := &eks.ClusterProvider{
-				Provider: p,
-				Status: &eks.ProviderStatus{
-					ClusterInfo: &eks.ClusterInfo{
-						Cluster: testutils.NewFakeCluster("my-cluster", ""),
-					},
-				},
-			}
-			cfg.VPC.Subnets = &api.ClusterSubnets{
-				Public: api.AZSubnetMapping{
-					"sn-public-1": api.AZSubnetSpec{ID: "sn-public-1"},
-					"sn-public-2": api.AZSubnetSpec{ID: "sn-public-2"},
-					"sn-public-3": api.AZSubnetSpec{ID: "sn-public-3"},
-					"sn-public-4": api.AZSubnetSpec{ID: "sn-public-4"},
-				},
-			}
-			cfg.VPC.ID = "custom"
-			cfg.VPC.SecurityGroup = "sg"
-			cfg.NodeGroups = nil
-			m := nodegroup.New(cfg, ctl, nil)
-
-			k := &fakes.FakeKubeProvider{}
-			k.LoadClusterIntoSpecFromStackReturns(&manager.StackNotFoundErr{})
-			k.SupportsManagedNodesReturns(true, nil)
-			m.MockKubeProvider(k)
-
-			init := &fakes.FakeNodeGroupInitialiser{}
-			m.MockNodeGroupService(init)
-
-			ngFilter := utilFakes.FakeNodegroupFilter{}
-
-			err := m.Create(nodegroup.CreateOpts{}, &ngFilter)
-			Expect(err).To(MatchError(ContainSubstring("nodegroups cannot be created on IPv6 unowned clusters")))
-		})
-	})
-})
 
 func newClusterConfig() *api.ClusterConfig {
 	return &api.ClusterConfig{

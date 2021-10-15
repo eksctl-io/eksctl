@@ -15,7 +15,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils"
-	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 
@@ -71,15 +70,6 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 
 	if len(cfg.ManagedNodeGroups) > 0 && !supportsManagedNodes {
 		return errors.New("Managed Nodegroups are not supported for this cluster version. Please update the cluster before adding managed nodegroups")
-	}
-
-	if utilsstrings.Value(cfg.VPC.IPFamily) == string(api.IPV6Family) {
-		if len(cfg.NodeGroups) > 0 {
-			return errors.New("unmanaged nodegroups are not supported with IPv6 clusters")
-		}
-		if !isOwnedCluster && len(cfg.ManagedNodeGroups) > 0 {
-			return errors.New("nodegroups cannot be created on IPv6 unowned clusters")
-		}
 	}
 
 	if err := eks.ValidateBottlerocketSupport(ctl.ControlPlaneVersion(), cmdutils.ToKubeNodeGroups(cfg)); err != nil {
@@ -142,7 +132,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 		return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, os.Stdout)
 	}
 
-	if err := m.nodeCreationTasks(options, nodegroupFilter, supportsManagedNodes, isOwnedCluster); err != nil {
+	if err := m.nodeCreationTasks(supportsManagedNodes, isOwnedCluster); err != nil {
 		return err
 	}
 
@@ -157,7 +147,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 	return nil
 }
 
-func (m *Manager) nodeCreationTasks(options CreateOpts, nodegroupFilter filter.NodegroupFilter, supportsManagedNodes, isOwnedCluster bool) error {
+func (m *Manager) nodeCreationTasks(supportsManagedNodes, isOwnedCluster bool) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
 	init := m.init
@@ -193,7 +183,7 @@ func (m *Manager) nodeCreationTasks(options CreateOpts, nodegroupFilter filter.N
 	if nodeGroupTasks.Len() > 0 {
 		allNodeGroupTasks.Append(nodeGroupTasks)
 	}
-	managedTasks := m.stackManager.NewManagedNodeGroupTask(cfg.ManagedNodeGroups, !awsNodeUsesIRSA, vpcImporter)
+	managedTasks := m.stackManager.NewManagedNodeGroupTask(cfg.ManagedNodeGroups, !awsNodeUsesIRSA, vpcImporter, isOwnedCluster)
 	if managedTasks.Len() > 0 {
 		allNodeGroupTasks.Append(managedTasks)
 	}

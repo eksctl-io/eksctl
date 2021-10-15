@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
+
 	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"

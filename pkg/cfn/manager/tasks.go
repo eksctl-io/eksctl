@@ -43,12 +43,13 @@ type managedNodeGroupTask struct {
 	stackCollection   *StackCollection
 	forceAddCNIPolicy bool
 	vpcImporter       vpc.Importer
+	isOwnedCluster    bool
 }
 
 func (t *managedNodeGroupTask) Describe() string { return t.info }
 
 func (t *managedNodeGroupTask) Do(errorCh chan error) error {
-	return t.stackCollection.createManagedNodeGroupTask(errorCh, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
+	return t.stackCollection.createManagedNodeGroupTask(errorCh, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter, t.isOwnedCluster)
 }
 
 type clusterCompatTask struct {
