@@ -3,7 +3,6 @@ package manager_test
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -29,27 +28,14 @@ var _ = Describe("CreateTasks", func() {
 		It("sets AssignIpv6AddressOnCreation to true for all public subnets", func() {
 			modifySubnetAttributeCallCount := 0
 			p := mockprovider.NewMockProvider()
-			mockCall1 := p.MockEC2().On("ModifySubnetAttribute", &ec2.ModifySubnetAttributeInput{
-				AssignIpv6AddressOnCreation: &ec2.AttributeBooleanValue{
-					Value: aws.Bool(true),
-				},
-				SubnetId: aws.String(subnetIDs[0]),
-			}).Return(&ec2.ModifySubnetAttributeOutput{}, nil)
-
-			mockCall1.RunFn = func(_ mock.Arguments) {
+			p.MockEC2().On("ModifySubnetAttribute", mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(1))
+				Expect(args[0]).To(BeAssignableToTypeOf(&ec2.ModifySubnetAttributeInput{}))
+				modifySubnetAttributeInput := args[0].(*ec2.ModifySubnetAttributeInput)
+				Expect(*modifySubnetAttributeInput.AssignIpv6AddressOnCreation.Value).To(BeTrue())
+				Expect(subnetIDs).To(ContainElement(*modifySubnetAttributeInput.SubnetId))
 				modifySubnetAttributeCallCount++
-			}
-
-			mockCall2 := p.MockEC2().On("ModifySubnetAttribute", &ec2.ModifySubnetAttributeInput{
-				AssignIpv6AddressOnCreation: &ec2.AttributeBooleanValue{
-					Value: aws.Bool(true),
-				},
-				SubnetId: aws.String(subnetIDs[1]),
 			}).Return(&ec2.ModifySubnetAttributeOutput{}, nil)
-
-			mockCall2.RunFn = func(_ mock.Arguments) {
-				modifySubnetAttributeCallCount++
-			}
 
 			task := manager.AssignIpv6AddressOnCreationTask{
 				EC2API:        p.EC2(),
@@ -67,11 +53,12 @@ var _ = Describe("CreateTasks", func() {
 		When("the API call errors", func() {
 			It("errors", func() {
 				p := mockprovider.NewMockProvider()
-				p.MockEC2().On("ModifySubnetAttribute", &ec2.ModifySubnetAttributeInput{
-					AssignIpv6AddressOnCreation: &ec2.AttributeBooleanValue{
-						Value: aws.Bool(true),
-					},
-					SubnetId: aws.String(subnetIDs[0]),
+				p.MockEC2().On("ModifySubnetAttribute", mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(1))
+					Expect(args[0]).To(BeAssignableToTypeOf(&ec2.ModifySubnetAttributeInput{}))
+					modifySubnetAttributeInput := args[0].(*ec2.ModifySubnetAttributeInput)
+					Expect(*modifySubnetAttributeInput.AssignIpv6AddressOnCreation.Value).To(BeTrue())
+					Expect(subnetIDs).To(ContainElement(*modifySubnetAttributeInput.SubnetId))
 				}).Return(&ec2.ModifySubnetAttributeOutput{}, fmt.Errorf("foo"))
 
 				task := manager.AssignIpv6AddressOnCreationTask{
