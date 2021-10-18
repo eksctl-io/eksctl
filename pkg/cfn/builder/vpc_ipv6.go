@@ -17,15 +17,7 @@ type IPv6VPCResourceSet struct {
 	rs            *resourceSet
 	clusterConfig *api.ClusterConfig
 	ec2API        ec2iface.EC2API
-
-	// vpcResource *IPv6VPCResource
 }
-
-// // IPv6VPCResource reresents a VPC resource
-// type IPv6VPCResource struct {
-// 	VPC           *gfnt.Value
-// 	SubnetDetails *subnetDetails
-// }
 
 // NewIPv6VPCResourceSet creates and returns a new VPCResourceSet
 func NewIPv6VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec2API ec2iface.EC2API) *IPv6VPCResourceSet {
@@ -33,10 +25,6 @@ func NewIPv6VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec
 		rs:            rs,
 		clusterConfig: clusterConfig,
 		ec2API:        ec2API,
-		// vpcResource: &IPv6VPCResource{
-		// 	VPC:           vpcRef,
-		// 	SubnetDetails: &subnetDetails{},
-		// },
 	}
 }
 
