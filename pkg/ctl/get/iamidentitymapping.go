@@ -79,11 +79,7 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 	if err != nil {
 		return err
 	}
-	identities, err := acm.Identities()
-	if err != nil {
-		return err
-	}
-	accounts, err := acm.GetAccounts()
+	identities, err := acm.GetIdentities()
 	if err != nil {
 		return err
 	}
@@ -116,19 +112,6 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 		return err
 	}
 
-	if len(accounts) > 0 {
-		printer, err = printers.NewPrinter(params.output)
-		if err != nil {
-			return err
-		}
-		if params.output == printers.TableType {
-			addAccountsTableColumns(printer.(*printers.TablePrinter))
-		}
-		if err := printer.PrintObjWithKind("objects", accounts, os.Stdout); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -142,10 +125,7 @@ func addIAMIdentityMappingTableColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("GROUPS", func(r iam.Identity) string {
 		return strings.Join(r.Groups(), ",")
 	})
-}
-
-func addAccountsTableColumns(printer *printers.TablePrinter) {
-	printer.AddColumn("ACCOUNTS", func(account string) string {
-		return account
+	printer.AddColumn("ACCOUNT", func(r iam.Identity) string {
+		return r.Account()
 	})
 }

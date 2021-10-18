@@ -89,7 +89,7 @@ func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, account string, a
 	}
 
 	// Check whether we have more roles that match
-	identities, err := acm.Identities()
+	identities, err := acm.GetIdentities()
 	if err != nil {
 		return err
 	}
