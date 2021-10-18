@@ -26,7 +26,7 @@ type ClusterCloudWatchLogging struct {
 	// Valid entries are `CloudWatchLogging` constants
 	//+optional
 	EnableTypes []string `json:"enableTypes,omitempty"`
-	// LogRetentionInDays sets the number of days to retain the logs for (see [CloudWatch docs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html)) .
+	// LogRetentionInDays sets the number of days to retain the logs for (see [CloudWatch docs](https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html#API_PutRetentionPolicy_RequestSyntax)) .
 	// Valid values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731,
 	// 1827, and 3653.
 	//+optional
