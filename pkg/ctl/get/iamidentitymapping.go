@@ -20,7 +20,9 @@ func getIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	var arn string
+	var (
+		arn string
+	)
 
 	params := &getCmdParams{}
 
@@ -81,6 +83,10 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 	if err != nil {
 		return err
 	}
+	accounts, err := acm.GetAccounts()
+	if err != nil {
+		return err
+	}
 
 	if arn != "" {
 		selectedIdentities := []iam.Identity{}
@@ -106,7 +112,24 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 		addIAMIdentityMappingTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	return printer.PrintObjWithKind("iamidentitymappings", identities, os.Stdout)
+	if err := printer.PrintObjWithKind("iamidentitymappings", identities, os.Stdout); err != nil {
+		return err
+	}
+
+	if len(accounts) > 0 {
+		printer, err = printers.NewPrinter(params.output)
+		if err != nil {
+			return err
+		}
+		if params.output == printers.TableType {
+			addAccountsTableColumns(printer.(*printers.TablePrinter))
+		}
+		if err := printer.PrintObjWithKind("objects", accounts, os.Stdout); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func addIAMIdentityMappingTableColumns(printer *printers.TablePrinter) {
@@ -118,5 +141,11 @@ func addIAMIdentityMappingTableColumns(printer *printers.TablePrinter) {
 	})
 	printer.AddColumn("GROUPS", func(r iam.Identity) string {
 		return strings.Join(r.Groups(), ",")
+	})
+}
+
+func addAccountsTableColumns(printer *printers.TablePrinter) {
+	printer.AddColumn("ACCOUNTS", func(account string) string {
+		return account
 	})
 }

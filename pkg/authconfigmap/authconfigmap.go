@@ -108,20 +108,24 @@ func (a *AuthConfigMap) RemoveAccount(account string) error {
 		return err
 	}
 
-	var newAccounts []string
 	found := false
-	for _, acc := range accounts {
+	for i, acc := range accounts {
 		if acc == account {
 			found = true
-			continue
+			accounts = append(accounts[:i], accounts[i+1:]...)
+			break
 		}
-		newAccounts = append(newAccounts, acc)
 	}
 	if !found {
 		return fmt.Errorf("account %q not found in auth ConfigMap", account)
 	}
 	logger.Info("removing account %q from auth ConfigMap", account)
-	return a.setAccounts(newAccounts)
+	return a.setAccounts(accounts)
+}
+
+// GetAccounts returns all cached accounts.
+func (a *AuthConfigMap) GetAccounts() ([]string, error) {
+	return a.accounts()
 }
 
 func (a *AuthConfigMap) accounts() ([]string, error) {
