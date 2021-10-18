@@ -19,7 +19,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/addons"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-	"github.com/weaveworks/eksctl/pkg/utils"
+	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -272,16 +272,16 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 		IsSubTask: false,
 	}
 	var needsNvidiaButNotNeuron = func(t string) bool {
-		return utils.IsGPUInstanceType(t) && !utils.IsInferentiaInstanceType(t)
+		return instanceutils.IsGPUInstanceType(t) && !instanceutils.IsInferentiaInstanceType(t)
 	}
 	var haveNeuronInstanceType, haveNvidiaInstanceType, efaEnabled bool
 	for _, ng := range cfg.NodeGroups {
-		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceType(ng, utils.IsInferentiaInstanceType)
+		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceType(ng, instanceutils.IsInferentiaInstanceType)
 		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceType(ng, needsNvidiaButNotNeuron)
 		efaEnabled = efaEnabled || api.IsEnabled(ng.EFAEnabled)
 	}
 	for _, ng := range cfg.ManagedNodeGroups {
-		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceTypeManaged(ng, utils.IsInferentiaInstanceType)
+		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceTypeManaged(ng, instanceutils.IsInferentiaInstanceType)
 		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceTypeManaged(ng, needsNvidiaButNotNeuron)
 		efaEnabled = efaEnabled || api.IsEnabled(ng.EFAEnabled)
 	}

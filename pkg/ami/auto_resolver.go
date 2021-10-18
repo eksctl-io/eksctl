@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/utils"
+	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 )
 
 const (
@@ -71,7 +71,7 @@ func (r *AutoResolver) Resolve(region, version, instanceType, imageFamily string
 
 	imageClasses := MakeImageSearchPatterns(version)[imageFamily]
 	namePattern := imageClasses[ImageClassGeneral]
-	if utils.IsGPUInstanceType(instanceType) {
+	if instanceutils.IsGPUInstanceType(instanceType) {
 		var ok bool
 		namePattern, ok = imageClasses[ImageClassGPU]
 		if !ok {
@@ -80,7 +80,7 @@ func (r *AutoResolver) Resolve(region, version, instanceType, imageFamily string
 		}
 	}
 
-	if utils.IsARMInstanceType(instanceType) {
+	if instanceutils.IsARMInstanceType(instanceType) {
 		var ok bool
 		namePattern, ok = imageClasses[ImageClassARM]
 		if !ok {

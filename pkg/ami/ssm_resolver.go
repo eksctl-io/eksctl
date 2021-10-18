@@ -10,8 +10,8 @@ import (
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-
 	"github.com/weaveworks/eksctl/pkg/utils"
+	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 )
 
 // SSMResolver resolves the AMI to the defaults for the region
@@ -86,7 +86,7 @@ func MakeManagedSSMParameterName(version, imageFamily, amiType string) (string, 
 // instanceEC2ArchName returns the name of the architecture as used by EC2
 // resources.
 func instanceEC2ArchName(instanceType string) string {
-	if utils.IsARMInstanceType(instanceType) {
+	if instanceutils.IsARMInstanceType(instanceType) {
 		return "arm64"
 	}
 	return "x86_64"
@@ -94,11 +94,11 @@ func instanceEC2ArchName(instanceType string) string {
 
 func imageType(imageFamily, instanceType string) string {
 	family := utils.ToKebabCase(imageFamily)
-	if utils.IsGPUInstanceType(instanceType) {
+	if instanceutils.IsGPUInstanceType(instanceType) {
 		return family + "-gpu"
 	}
 
-	if utils.IsARMInstanceType(instanceType) {
+	if instanceutils.IsARMInstanceType(instanceType) {
 		return family + "-arm64"
 	}
 	return family

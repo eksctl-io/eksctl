@@ -14,7 +14,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
-	"github.com/weaveworks/eksctl/pkg/utils"
+	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -215,7 +215,7 @@ func mapTaints(taints []api.NodeGroupTaint) ([]*gfneks.Nodegroup_Taints, error) 
 func selectManagedInstanceType(ng *api.ManagedNodeGroup) string {
 	if len(ng.InstanceTypes) > 0 {
 		for _, instanceType := range ng.InstanceTypes {
-			if utils.IsGPUInstanceType(instanceType) {
+			if instanceutils.IsGPUInstanceType(instanceType) {
 				return instanceType
 			}
 		}
@@ -260,10 +260,10 @@ func validateLaunchTemplate(launchTemplateData *ec2.ResponseLaunchTemplateData, 
 }
 
 func getAMIType(instanceType string) string {
-	if utils.IsGPUInstanceType(instanceType) {
+	if instanceutils.IsGPUInstanceType(instanceType) {
 		return eks.AMITypesAl2X8664Gpu
 	}
-	if utils.IsARMInstanceType(instanceType) {
+	if instanceutils.IsARMInstanceType(instanceType) {
 		return eks.AMITypesAl2Arm64
 	}
 	return eks.AMITypesAl2X8664
