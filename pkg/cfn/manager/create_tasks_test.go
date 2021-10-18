@@ -19,13 +19,13 @@ var _ = Describe("CreateTasks", func() {
 		BeforeEach(func() {
 			clusterConfig = api.NewClusterConfig()
 			clusterConfig.VPC.Subnets = &api.ClusterSubnets{}
+		})
+
+		It("sets AssignIpv6AddressOnCreation to true for all public subnets", func() {
 			clusterConfig.VPC.Subnets.Public = map[string]api.AZSubnetSpec{
 				"0": {ID: subnetIDs[0]},
 				"1": {ID: subnetIDs[1]},
 			}
-		})
-
-		It("sets AssignIpv6AddressOnCreation to true for all public subnets", func() {
 			modifySubnetAttributeCallCount := 0
 			p := mockprovider.NewMockProvider()
 			p.MockEC2().On("ModifySubnetAttribute", mock.Anything).Run(func(args mock.Arguments) {
@@ -52,6 +52,9 @@ var _ = Describe("CreateTasks", func() {
 
 		When("the API call errors", func() {
 			It("errors", func() {
+				clusterConfig.VPC.Subnets.Public = map[string]api.AZSubnetSpec{
+					"0": {ID: subnetIDs[0]},
+				}
 				p := mockprovider.NewMockProvider()
 				p.MockEC2().On("ModifySubnetAttribute", mock.Anything).Run(func(args mock.Arguments) {
 					Expect(args).To(HaveLen(1))
