@@ -5,9 +5,12 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
 )
 
@@ -169,6 +172,41 @@ var _ = Describe("StackCollection Tasks", func() {
 }
 `))
 				}
+			})
+		})
+	})
+	Describe("ManagedNodeGroupTask", func() {
+		When("creating managed nodegroups on a ipv6 cluster", func() {
+			var (
+				p            *mockprovider.MockProvider
+				cfg          *api.ClusterConfig
+				stackManager *StackCollection
+			)
+			BeforeEach(func() {
+				p = mockprovider.NewMockProvider()
+				cfg = newClusterConfig("test-ipv6-cluster")
+				cfg.VPC.IPFamily = utilsstrings.Pointer(string(api.IPV6Family))
+				stackManager = NewStackCollection(p, cfg)
+			})
+			It("returns an error", func() {
+				p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(nil)
+				ng := api.NewManagedNodeGroup()
+				fakeVPCImporter := new(vpcfakes.FakeImporter)
+				tasks := stackManager.NewManagedNodeGroupTask([]*api.ManagedNodeGroup{ng}, false, fakeVPCImporter)
+				errs := tasks.DoAllSync()
+				Expect(errs).To(HaveLen(1))
+				Expect(errs[0]).To(MatchError(ContainSubstring("managed nodegroups cannot be created on IPv6 unowned clusters")))
+			})
+			When("finding the stack fails", func() {
+				It("returns the stack error", func() {
+					p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(errors.New("not found"))
+					ng := api.NewManagedNodeGroup()
+					fakeVPCImporter := new(vpcfakes.FakeImporter)
+					tasks := stackManager.NewManagedNodeGroupTask([]*api.ManagedNodeGroup{ng}, false, fakeVPCImporter)
+					errs := tasks.DoAllSync()
+					Expect(errs).To(HaveLen(1))
+					Expect(errs[0]).To(MatchError(ContainSubstring("not found")))
+				})
 			})
 		})
 	})
