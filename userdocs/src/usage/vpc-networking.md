@@ -57,6 +57,7 @@ This is an in config file setting only. When IPv6 is set, the following restrict
 - managed addons are defined as shows above
 - version must be => 1.21
 - unmanaged nodegroups are not yet supported with IPv6 clusters
+- managed nodegroup creation is not supported with un-owned IPv6 clusters
 - `vpc.NAT` and `serviceIPv4CIDR` fields are created by eksctl for ipv6 clusters and thus, are not supported configuration options
 - AutoAllocateIPv6 is not supported together with IPv6
 
