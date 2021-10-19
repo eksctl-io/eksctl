@@ -140,7 +140,7 @@ var _ = Describe("StackCollection Tasks", func() {
 		})
 	})
 	Describe("ManagedNodeGroupTask", func() {
-		Context("ipv6 cluster", func() {
+		When("creating managed nodegroups on a ipv6 cluster", func() {
 			var (
 				p            *mockprovider.MockProvider
 				cfg          *api.ClusterConfig
