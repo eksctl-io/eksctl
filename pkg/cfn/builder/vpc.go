@@ -38,8 +38,10 @@ const (
 	PrivateSubnetsOutputKey = "SubnetsPrivate"
 )
 
+//VPCResourceSet interface for creating cloudformation resource sets for generating VPC resources
 type VPCResourceSet interface {
-	CreateTemplate() (*gfnt.Value, *SubnetDetails, error)
+	//CreateTemplate generates all of the resources & outputs required for the VPC. Returns the
+	CreateTemplate() (vpcID *gfnt.Value, subnetDetails *SubnetDetails, err error)
 }
 
 func formatAZ(az string) string {

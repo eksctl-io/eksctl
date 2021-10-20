@@ -22,13 +22,13 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
+	"github.com/xgfone/netaddr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/xgfone/netaddr"
 )
 
 var params *tests.Params
@@ -61,13 +61,13 @@ var _ = Describe("(Integration) [EKS IPv6 test]", func() {
 			clusterConfig.IAM.WithOIDC = api.Enabled()
 			clusterConfig.Addons = []*api.Addon{
 				{
-					Name: "vpc-cni",
+					Name: api.VPCCNIAddon,
 				},
 				{
-					Name: "kube-proxy",
+					Name: api.KubeProxyAddon,
 				},
 				{
-					Name: "coredns",
+					Name: api.CoreDNSAddon,
 				},
 			}
 
@@ -118,7 +118,7 @@ var _ = Describe("(Integration) [EKS IPv6 test]", func() {
 			Expect(err).NotTo(HaveOccurred(), vpcOutput.GoString())
 			Expect(vpcOutput.Vpcs[0].Ipv6CidrBlockAssociationSet).To(HaveLen(1))
 
-			// TODO: get rid of this once CF bug is fixed
+			// TODO: get rid of this once CF bug is fixed https://github.com/weaveworks/eksctl/issues/4363
 			By("setting AssignIpv6AddressOnCreation to true for each public subnet")
 			var publicSubnets string
 			for _, output := range describeStackOut.Stacks[0].Outputs {
@@ -133,11 +133,10 @@ var _ = Describe("(Integration) [EKS IPv6 test]", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(len(subnetsOutput.Subnets)).To(BeNumerically(">", 0))
 			for _, s := range subnetsOutput.Subnets {
-				Expect(s.AssignIpv6AddressOnCreation).NotTo(BeNil())
 				Expect(*s.AssignIpv6AddressOnCreation).To(BeTrue())
 			}
 
-			By("the k8s cluster's having an IP family of IPv6")
+			By("ensuring the K8s cluster has IPv6 enabled")
 			var clientSet *kubernetes.Clientset
 			ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, clusterConfig)
 			Expect(err).NotTo(HaveOccurred())

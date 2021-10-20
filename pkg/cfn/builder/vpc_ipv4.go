@@ -373,7 +373,6 @@ type clusterSecurityGroup struct {
 	ClusterSharedNode *gfnt.Value
 }
 
-// TODO move this
 func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcID *gfnt.Value) *clusterSecurityGroup {
 	var refControlPlaneSG, refClusterSharedNodeSG *gfnt.Value
 
