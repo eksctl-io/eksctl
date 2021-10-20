@@ -215,15 +215,15 @@ func (a *AuthConfigMap) GetIdentities() ([]iam.Identity, error) {
 		return nil, errors.Wrapf(err, "unmarshalling %q", accountsData)
 	}
 
-	all := make([]iam.Identity, len(users)+len(roles)+len(accounts))
-	for i, r := range roles {
-		all[i] = r
+	var all []iam.Identity
+	for _, r := range roles {
+		all = append(all, r)
 	}
-	for i, u := range users {
-		all[i+len(roles)] = u
+	for _, u := range users {
+		all = append(all, u)
 	}
-	for i, a := range accounts {
-		all[i+len(roles)+len(users)] = iam.AccountIdentity{KubernetesAccount: a}
+	for _, a := range accounts {
+		all = append(all, iam.AccountIdentity{KubernetesAccount: a})
 	}
 	return all, nil
 }
