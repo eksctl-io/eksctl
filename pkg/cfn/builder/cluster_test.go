@@ -100,6 +100,7 @@ var _ = Describe("Cluster Template Builder", func() {
 		Context("when ipFamily is set to IPv6", func() {
 			BeforeEach(func() {
 				cfg.VPC.IPFamily = aws.String(string(api.IPV6Family))
+				cfg.KubernetesNetworkConfig = nil
 			})
 
 			It("should add control plane resources", func() {

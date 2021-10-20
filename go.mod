@@ -364,8 +364,6 @@ require (
 	sigs.k8s.io/yaml v1.2.0
 )
 
-require github.com/xgfone/netaddr v0.5.1
-
 require (
 	cloud.google.com/go/kms v0.1.0 // indirect
 	github.com/DisgoOrg/disgohook v1.4.3 // indirect

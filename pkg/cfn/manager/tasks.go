@@ -146,15 +146,17 @@ func (t *AssignIpv6AddressOnCreationTask) Describe() string {
 
 func (t *AssignIpv6AddressOnCreationTask) Do(errs chan error) error {
 	defer close(errs)
-	for _, subnet := range t.ClusterConfig.VPC.Subnets.Public.WithIDs() {
-		_, err := t.EC2API.ModifySubnetAttribute(&ec2.ModifySubnetAttributeInput{
-			AssignIpv6AddressOnCreation: &ec2.AttributeBooleanValue{
-				Value: aws.Bool(true),
-			},
-			SubnetId: aws.String(subnet),
-		})
-		if err != nil {
-			return fmt.Errorf("failed to update subnet %q: %v", subnet, err)
+	if t.ClusterConfig.VPC.Subnets.Public != nil {
+		for _, subnet := range t.ClusterConfig.VPC.Subnets.Public.WithIDs() {
+			_, err := t.EC2API.ModifySubnetAttribute(&ec2.ModifySubnetAttributeInput{
+				AssignIpv6AddressOnCreation: &ec2.AttributeBooleanValue{
+					Value: aws.Bool(true),
+				},
+				SubnetId: aws.String(subnet),
+			})
+			if err != nil {
+				return fmt.Errorf("failed to update subnet %q: %v", subnet, err)
+			}
 		}
 	}
 	return nil

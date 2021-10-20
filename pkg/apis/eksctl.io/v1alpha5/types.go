@@ -384,6 +384,9 @@ func IsDisabled(v *bool) bool { return v != nil && !*v }
 // IsSetAndNonEmptyString will only return true if s is not nil and not empty
 func IsSetAndNonEmptyString(s *string) bool { return s != nil && *s != "" }
 
+// IsSetAndNonEmptyString will only return true if s is not nil and not empty
+func IsEmpty(s *string) bool { return !IsSetAndNonEmptyString(s) }
+
 // SupportedRegions are the regions where EKS is available
 func SupportedRegions() []string {
 	return []string{

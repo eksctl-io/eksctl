@@ -16,6 +16,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 // ClusterResourceSet stores the resource information of the cluster
@@ -36,9 +37,8 @@ func NewClusterResourceSet(ec2API ec2iface.EC2API, region string, spec *api.Clus
 	}
 	rs := newResourceSet()
 
-	var vpcResourceSet VPCResourceSet
-	vpcResourceSet = NewIPv4VPCResourceSet(rs, spec, ec2API)
-	if spec.VPC.IPFamily != nil && *spec.VPC.IPFamily == string(api.IPV6Family) {
+	var vpcResourceSet VPCResourceSet = NewIPv4VPCResourceSet(rs, spec, ec2API)
+	if utilsstrings.Value(spec.VPC.IPFamily) == string(api.IPV6Family) {
 		vpcResourceSet = NewIPv6VPCResourceSet(rs, spec, ec2API)
 	}
 	return &ClusterResourceSet{
@@ -174,7 +174,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		IpFamily: gfnt.NewString(strings.ToLower(string(api.IPV4Family))),
 	}
 
-	if c.spec.VPC.IPFamily != nil && *c.spec.VPC.IPFamily == string(api.IPV6Family) {
+	if utilsstrings.Value(c.spec.VPC.IPFamily) == string(api.IPV6Family) {
 		cluster.KubernetesNetworkConfig.IpFamily = gfnt.NewString(strings.ToLower(string(api.IPV6Family)))
 	}
 
