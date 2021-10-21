@@ -417,21 +417,23 @@ var _ = Describe("AuthConfigMap{}", func() {
 				Expect(err).NotTo(HaveOccurred())
 				identities, err := acm.GetIdentities()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(identities).To(ContainElement(iam.AccountIdentity{KubernetesAccount: accountA}))
-				Expect(identities).To(ContainElement(iam.UserIdentity{
-					UserARN: userA,
-					KubernetesIdentity: iam.KubernetesIdentity{
-						KubernetesUsername: userAUsername,
-						KubernetesGroups:   userAGroups,
+				Expect(identities).To(ConsistOf(
+					iam.AccountIdentity{KubernetesAccount: accountA},
+					iam.UserIdentity{
+						UserARN: userA,
+						KubernetesIdentity: iam.KubernetesIdentity{
+							KubernetesUsername: userAUsername,
+							KubernetesGroups:   userAGroups,
+						},
 					},
-				}))
-				Expect(identities).To(ContainElement(iam.RoleIdentity{
-					RoleARN: roleA,
-					KubernetesIdentity: iam.KubernetesIdentity{
-						KubernetesUsername: RoleNodeGroupUsername,
-						KubernetesGroups:   RoleNodeGroupGroups,
-					},
-				}))
+					iam.RoleIdentity{
+						RoleARN: roleA,
+						KubernetesIdentity: iam.KubernetesIdentity{
+							KubernetesUsername: RoleNodeGroupUsername,
+							KubernetesGroups:   RoleNodeGroupGroups,
+						},
+					}),
+				)
 			})
 		})
 	})

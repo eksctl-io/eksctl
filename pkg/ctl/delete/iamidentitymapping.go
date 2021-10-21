@@ -41,7 +41,7 @@ func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
-func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, account string, all bool) error {
+func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn, account string, all bool) error {
 	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}

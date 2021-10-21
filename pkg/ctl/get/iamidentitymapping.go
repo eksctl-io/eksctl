@@ -20,9 +20,7 @@ func getIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	var (
-		arn string
-	)
+	var arn string
 
 	params := &getCmdParams{}
 
@@ -108,11 +106,7 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 		addIAMIdentityMappingTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	if err := printer.PrintObjWithKind("iamidentitymappings", identities, os.Stdout); err != nil {
-		return err
-	}
-
-	return nil
+	return printer.PrintObjWithKind("iamidentitymappings", identities, os.Stdout)
 }
 
 func addIAMIdentityMappingTableColumns(printer *printers.TablePrinter) {
