@@ -1,4 +1,10 @@
 ---
+"apiVersion": "v1"
+"kind": "ServiceAccount"
+"metadata":
+  "name": "aws-node"
+  "namespace": "kube-system"
+---
 "apiVersion": "rbac.authorization.k8s.io/v1"
 "kind": "ClusterRoleBinding"
 "metadata":
@@ -28,8 +34,15 @@
 - "apiGroups":
   - ""
   "resources":
-  - "pods"
   - "namespaces"
+  "verbs":
+  - "list"
+  - "watch"
+  - "get"
+- "apiGroups":
+  - ""
+  "resources":
+  - "pods"
   "verbs":
   - "list"
   - "watch"
@@ -159,13 +172,16 @@
           "value": "1"
         - "name": "WARM_PREFIX_TARGET"
           "value": "1"
-        "image": "602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni:v1.9.1"
+        "image": "602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni:v1.9.3"
         "livenessProbe":
           "exec":
             "command":
             - "/app/grpc-health-probe"
             - "-addr=:50051"
+            - "-connect-timeout=2s"
+            - "-rpc-timeout=2s"
           "initialDelaySeconds": 60
+          "timeoutSeconds": 5
         "name": "aws-node"
         "ports":
         - "containerPort": 61678
@@ -175,6 +191,8 @@
             "command":
             - "/app/grpc-health-probe"
             - "-addr=:50051"
+            - "-connect-timeout=2s"
+            - "-rpc-timeout=2s"
           "initialDelaySeconds": 1
         "resources":
           "requests":
@@ -201,7 +219,7 @@
       - "env":
         - "name": "DISABLE_TCP_EARLY_DEMUX"
           "value": "false"
-        "image": "602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni-init:v1.9.1"
+        "image": "602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni-init:v1.9.3"
         "name": "aws-vpc-cni-init"
         "securityContext":
           "privileged": true
@@ -238,10 +256,4 @@
     "rollingUpdate":
       "maxUnavailable": "10%"
     "type": "RollingUpdate"
----
-"apiVersion": "v1"
-"kind": "ServiceAccount"
-"metadata":
-  "name": "aws-node"
-  "namespace": "kube-system"
 ...
