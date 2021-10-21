@@ -19,7 +19,7 @@ import (
 func TestManagedPolicyResources(t *testing.T) {
 	iamRoleTests := []struct {
 		addons                  api.NodeGroupIAMAddonPolicies
-		attachPolicy			api.InlineDocument
+		attachPolicy            api.InlineDocument
 		attachPolicyARNs        []string
 		expectedNewPolicies     []string
 		expectedManagedPolicies []*gfnt.Value
@@ -51,10 +51,10 @@ func TestManagedPolicyResources(t *testing.T) {
 			},
 			expectedNewPolicies:     []string{"PolicyAutoScaling"},
 			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly", "AmazonSSMManagedInstanceCore"),
-			description: "AutoScaler enabled",
+			description:             "AutoScaler enabled",
 		},
 		{
-			attachPolicy:            cft.MakePolicyDocument(cft.MapOfInterfaces{
+			attachPolicy: cft.MakePolicyDocument(cft.MapOfInterfaces{
 				"Effect": "Allow",
 				"Action": []string{
 					"s3:Get*",
@@ -133,6 +133,13 @@ func TestManagedPolicyResources(t *testing.T) {
 				policyNames = append(policyNames, name)
 			}
 			require.ElementsMatch(tt.expectedNewPolicies, policyNames)
+
+			// assert custom inline policy matches
+			if tt.attachPolicy != nil {
+				policy, err := template.GetIAMPolicyWithName("Policy1")
+				require.NoError(err)
+				require.Equal(tt.attachPolicy, policy.PolicyDocument)
+			}
 		})
 	}
 
