@@ -13,6 +13,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
 	. "github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/iam"
 )
@@ -366,6 +367,74 @@ var _ = Describe("AuthConfigMap{}", func() {
 
 			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedRoles))
 			Expect(cm.Data["mapUsers"]).To(MatchYAML(expectedUsers))
+		})
+	})
+	Describe("GetIdentities()", func() {
+
+		var (
+			client     *mockClient
+			existing   *corev1.ConfigMap
+			acm        *AuthConfigMap
+			addAndSave func(account string) *corev1.ConfigMap
+		)
+
+		BeforeEach(func() {
+			existing = &corev1.ConfigMap{
+				ObjectMeta: ObjectMeta(),
+				Data:       map[string]string{},
+			}
+			existing.UID = "123456"
+			client = &mockClient{}
+			acm = New(client, existing)
+			addAndSave = func(account string) *corev1.ConfigMap {
+				client.reset()
+				err := acm.AddAccount(account)
+				Expect(err).NotTo(HaveOccurred())
+
+				err = acm.Save()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(client.created).To(BeNil())
+				Expect(client.updated).NotTo(BeNil())
+
+				return client.updated
+			}
+		})
+
+		It("should list accounts as identities", func() {
+			cm := addAndSave(accountA)
+			Expect(cm.Data["mapAccounts"]).To(MatchYAML(makeExpectedAccounts(accountA)))
+			identities, err := acm.GetIdentities()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(identities).To(ContainElement(iam.AccountIdentity{KubernetesAccount: accountA}))
+		})
+		When("the list of identities can consist of different identities", func() {
+			It("handles all of them well", func() {
+				err := acm.AddAccount(accountA)
+				Expect(err).NotTo(HaveOccurred())
+				err = acm.AddIdentity(mustIdentity(userA, userAUsername, userAGroups))
+				Expect(err).NotTo(HaveOccurred())
+				err = acm.AddIdentity(mustIdentity(roleA, RoleNodeGroupUsername, RoleNodeGroupGroups))
+				Expect(err).NotTo(HaveOccurred())
+				identities, err := acm.GetIdentities()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(identities).To(ConsistOf(
+					iam.AccountIdentity{KubernetesAccount: accountA},
+					iam.UserIdentity{
+						UserARN: userA,
+						KubernetesIdentity: iam.KubernetesIdentity{
+							KubernetesUsername: userAUsername,
+							KubernetesGroups:   userAGroups,
+						},
+					},
+					iam.RoleIdentity{
+						RoleARN: roleA,
+						KubernetesIdentity: iam.KubernetesIdentity{
+							KubernetesUsername: RoleNodeGroupUsername,
+							KubernetesGroups:   RoleNodeGroupGroups,
+						},
+					}),
+				)
+			})
 		})
 	})
 	Describe("RemoveIdentity()", func() {
