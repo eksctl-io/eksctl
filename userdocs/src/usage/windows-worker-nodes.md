@@ -1,10 +1,14 @@
 # Windows Worker Nodes
 
 From version 1.14, Amazon EKS supports [Windows Nodes][eks-user-guide] that allow running Windows containers.
-In addition to having Windows nodes, a Linux node in the cluster is required to run the VPC resource controller and CoreDNS, as Microsoft doesn't support host-networking mode yet. Thus, a Windows EKS cluster will be a mixed-mode cluster containing Windows nodes and at least one Linux node.
+In addition to having Windows nodes, a Linux node in the cluster is required to run CoreDNS, as Microsoft doesn't support host-networking mode yet. Thus, a Windows EKS cluster will be a mixture of Windows nodes and at least one Linux node.
 The Linux nodes are critical to the functioning of the cluster, and thus, for a production-grade cluster, it's recommended to have at least two `t2.large` Linux nodes for HA.
 
-`eksctl` provides a flag to install the VPC resource controller as part of cluster creation, and a command to install it after a cluster has been created.
+!!!note
+    You no longer need to install the VPC resource controller on Linux worker nodes to run Windows workloads in EKS clusters
+    created after October 22, 2021.
+    You can enable Windows IP address management on the EKS control plane via a ConﬁgMap setting (see https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html for details).
+    eksctl will automatically patch the ConfigMap to enable Windows IP address management when a Windows nodegroup is created.
 
 ## Creating a new Windows cluster
 
@@ -26,6 +30,8 @@ nodeGroups:
     amiFamily: WindowsServer2019FullContainer
     minSize: 2
     maxSize: 3
+
+managedNodeGroups:
   - name: linux-ng
     instanceType: t2.large
     minSize: 2
@@ -33,7 +39,7 @@ nodeGroups:
 ```
 
 ```console
-eksctl create cluster -f cluster.yaml --install-vpc-controllers
+eksctl create cluster -f cluster.yaml
 ```
 
 
@@ -42,7 +48,6 @@ To create a new cluster without using a config file, issue the following command
 ```console
 eksctl create cluster --managed=false --name=windows-cluster --node-ami-family=WindowsServer2019CoreContainer
 eksctl create nodegroup --cluster=windows-cluster --node-ami-family=AmazonLinux2 --nodes-min=2 --node-type=t2.large
-eksctl utils install-vpc-controllers --cluster=windows-cluster --approve
 ```
 
 !!!note
@@ -50,11 +55,10 @@ eksctl utils install-vpc-controllers --cluster=windows-cluster --approve
 
 
 ## Adding Windows support to an existing Linux cluster
-To enable running Windows workloads on an existing cluster with Linux nodes (`AmazonLinux2` AMI family), you need to add a Windows node group and install the Windows VPC controller:
+To enable running Windows workloads on an existing cluster with Linux nodes (`AmazonLinux2` AMI family), you need to add a Windows nodegroup.
 
 ```console
 eksctl create nodegroup --managed=false --cluster=existing-cluster --node-ami-family=WindowsServer2019CoreContainer
-eksctl utils install-vpc-controllers --cluster=existing-cluster --approve
 ```
 
 To ensure workloads are scheduled on the right OS, they must have a `nodeSelector` targeting the OS it must run on:
