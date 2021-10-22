@@ -94,7 +94,7 @@ func (p *Params) GenerateCommands() {
 
 	p.EksctlGetCmd = p.EksctlCmd.
 		WithArgs("get").
-		WithTimeout(1 * time.Minute)
+		WithTimeout(2 * time.Minute)
 
 	p.EksctlSetLabelsCmd = p.EksctlCmd.
 		WithArgs("set", "labels").
