@@ -54,6 +54,8 @@ func (b *ManagedBottlerocket) UserData() (string, error) {
 	return base64.StdEncoding.EncodeToString([]byte(userData)), nil
 }
 
+// setDerivedSettings configures settings that are derived from top-level nodegroup config
+// as opposed to settings configured in `bottlerocket.settings`.
 func (b *ManagedBottlerocket) setDerivedSettings() error {
 	kubernetesSettings, err := extractKubernetesSettings(b.ng)
 	if err != nil {
@@ -70,6 +72,8 @@ func (b *ManagedBottlerocket) setDerivedSettings() error {
 	return nil
 }
 
+// validateBottlerocketSettings validates the supplied Kubernetes settings to ensure fields related to bootstrapping
+// and fields available on the ManagedNodeGroup object are not set by the user.
 func validateBottlerocketSettings(kubernetesSettings map[string]interface{}) error {
 	clusterBootstrapKeys := []string{"cluster-certificate", "api-server", "cluster-name", "cluster-dns-ip"}
 	for _, k := range clusterBootstrapKeys {
