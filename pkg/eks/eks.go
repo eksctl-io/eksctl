@@ -179,7 +179,7 @@ func PlatformVersion(platformVersion string) (int, error) {
 	return version, nil
 }
 
-//RefreshClusterStatusIfStale refreshes the cluster status if enough time has passed since the last refresh
+// RefreshClusterStatusIfStale refreshes the cluster status if enough time has passed since the last refresh
 func (c *ClusterProvider) RefreshClusterStatusIfStale(spec *api.ClusterConfig) error {
 	if c.clusterInfoNeedsUpdate() {
 		return c.RefreshClusterStatus(spec)
