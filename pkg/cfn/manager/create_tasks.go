@@ -8,6 +8,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,6 +33,15 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 			supportsManagedNodes: supportsManagedNodes,
 		},
 	)
+
+	if utilsstrings.Value(c.spec.VPC.IPFamily) == string(api.IPV6Family) {
+		taskTree.Append(
+			&AssignIpv6AddressOnCreationTask{
+				ClusterConfig: c.spec,
+				EC2API:        c.ec2API,
+			},
+		)
+	}
 
 	appendNodeGroupTasksTo := func(taskTree *tasks.TaskTree) {
 		vpcImporter := vpc.NewStackConfigImporter(c.MakeClusterStackName())

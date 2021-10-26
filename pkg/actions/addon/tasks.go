@@ -31,6 +31,7 @@ func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvid
 			clusterProvider: clusterProvider,
 			forceAll:        forceAll,
 			timeout:         timeout,
+			wait:            false,
 		},
 	)
 
@@ -42,6 +43,7 @@ func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvid
 			clusterProvider: clusterProvider,
 			forceAll:        forceAll,
 			timeout:         timeout,
+			wait:            len(cfg.NodeGroups) > 0 || len(cfg.ManagedNodeGroups) > 0,
 		},
 	)
 	return preTasks, postTasks
@@ -52,7 +54,7 @@ type createAddonTask struct {
 	cfg             *api.ClusterConfig
 	clusterProvider *eks.ClusterProvider
 	addons          []*api.Addon
-	forceAll        bool
+	forceAll, wait  bool
 	timeout         time.Duration
 }
 
@@ -89,7 +91,7 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 		if t.forceAll {
 			a.Force = true
 		}
-		err := addonManager.Create(a, true)
+		err := addonManager.Create(a, t.wait)
 		if err != nil {
 			go func() {
 				errorCh <- err

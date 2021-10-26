@@ -1669,8 +1669,10 @@ github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 h1:txplJASvd6b
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2/go.mod h1:DGCIhurYgnLz8J9ga1fMV/fbLDyUvTyrWXVWUIyJon4=
 github.com/weaveworks/aws-sdk-go v0.0.0-20211026093156-d6e6822f58db h1:K6lacvb3qzF/bHvx2RsPDw8cYA8VccOecn9e6xDEBY0=
 github.com/weaveworks/aws-sdk-go v0.0.0-20211026093156-d6e6822f58db/go.mod h1:585smgzpB/KqRA+K3y/NL/oYRqQvpNJYvLm+LY1U59Q=
-github.com/weaveworks/goformation/v4 v4.10.2-0.20210609082249-532b27315cf1 h1:yX/flUgj/znRvfhEZ3mC8RdKV+GNwq/9j+FkWN7ve+o=
-github.com/weaveworks/goformation/v4 v4.10.2-0.20210609082249-532b27315cf1/go.mod h1:x92o12+Azh6DQ4yoXT5oEuE7dhQHR5V2vy/fmZ6pO7k=
+github.com/weaveworks/goformation/v4 v4.10.2-0.20211012141859-cd360fb1f843 h1:9v19OzMM+kFcm0r2yZeoMMAvT71H/apnNWeoMKMxUz0=
+github.com/weaveworks/goformation/v4 v4.10.2-0.20211012141859-cd360fb1f843/go.mod h1:x92o12+Azh6DQ4yoXT5oEuE7dhQHR5V2vy/fmZ6pO7k=
+github.com/weaveworks/goformation/v4 v4.10.2-0.20211018090247-36559b6b4f71 h1:r0uEFnXNXamKxelHxLL7quo7R70JznL2WMyENyUHAZw=
+github.com/weaveworks/goformation/v4 v4.10.2-0.20211018090247-36559b6b4f71/go.mod h1:x92o12+Azh6DQ4yoXT5oEuE7dhQHR5V2vy/fmZ6pO7k=
 github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15 h1:i/RhLevywqC6cuUWtGdoaNrsJd+/zWh3PXbkXZIyZsU=
 github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15/go.mod h1:w9Z1vnQmPobkEZ0F3oyiqRYP+62qDqTGnK6t5uhe1kg=
 github.com/weaveworks/mesh v0.0.0-20170419100114-1f158d31de55/go.mod h1:mcON9Ws1aW0crSErpXWp7U1ErCDEKliDX2OhVlbWRKk=
@@ -1695,6 +1697,8 @@ github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415/go.mod h1:
 github.com/xeipuuv/gojsonschema v0.0.0-20180816142147-da425ebb7609/go.mod h1:5yf86TLmAcydyeJq5YvxkGPE2fm/u4myDekKRoLuqhs=
 github.com/xeipuuv/gojsonschema v0.0.0-20181112162635-ac52e6811b56 h1:yhqBHs09SmmUoNOHc9jgK4a60T3XFRtPAkYxVnqgY50=
 github.com/xeipuuv/gojsonschema v0.0.0-20181112162635-ac52e6811b56/go.mod h1:5yf86TLmAcydyeJq5YvxkGPE2fm/u4myDekKRoLuqhs=
+github.com/xgfone/netaddr v0.5.1 h1:87DhCyyR6XUr0p63JHTDT5juGDhH49Ak2ePZNBmSL5I=
+github.com/xgfone/netaddr v0.5.1/go.mod h1:QDEYI/4nQfAtNj7TB4RhYQY1B4U31Edj+SOoDEuIfsQ=
 github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 h1:nIPpBwaJSVYIxUFsDv3M8ofmx9yWTog9BfvIu0q41lo=
 github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8/go.mod h1:HUYIGzjTL3rfEspMxjDjgmT5uz5wzYJKVo23qUhYTos=
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 h1:eY9dn8+vbi4tKz5Qo6v2eYzo7kUS51QINcR5jNpbZS8=

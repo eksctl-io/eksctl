@@ -29,7 +29,7 @@ type vpcResourceSetCase struct {
 
 var _ = Describe("VPC Endpoint Builder", func() {
 
-	DescribeTable("Add resources", func(vc vpcResourceSetCase) {
+	DescribeTable("Adds resources to template", func(vc vpcResourceSetCase) {
 		api.SetClusterConfigDefaults(vc.clusterConfig)
 
 		if len(vc.clusterConfig.AvailabilityZones) == 0 {
@@ -54,8 +54,8 @@ var _ = Describe("VPC Endpoint Builder", func() {
 		}
 
 		rs := newResourceSet()
-		vpcResourceSet := NewVPCResourceSet(rs, vc.clusterConfig, provider.EC2())
-		vpcResource, err := vpcResourceSet.AddResources()
+		vpcResourceSet := NewIPv4VPCResourceSet(rs, vc.clusterConfig, provider.EC2())
+		vpcID, subnetDetails, err := vpcResourceSet.CreateTemplate()
 		if vc.err != "" {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("subnets must be associated with a non-main route table"))
@@ -64,7 +64,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 
 		Expect(err).ToNot(HaveOccurred())
 		if vc.clusterConfig.PrivateCluster.Enabled {
-			vpcEndpointResourceSet := NewVPCEndpointResourceSet(provider.EC2(), provider.Region(), rs, vc.clusterConfig, vpcResource.VPC, vpcResource.SubnetDetails.Private, gfnt.NewString("sg-test"))
+			vpcEndpointResourceSet := NewVPCEndpointResourceSet(provider.EC2(), provider.Region(), rs, vc.clusterConfig, vpcID, subnetDetails.Private, gfnt.NewString("sg-test"))
 			Expect(vpcEndpointResourceSet.AddResources()).To(Succeed())
 			s3Endpoint := rs.template.Resources["VPCEndpointS3"].(*gfnec2.VPCEndpoint)
 			routeIdsSlice, ok := s3Endpoint.RouteTableIds.Raw().(gfnt.Slice)
@@ -77,6 +77,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			return
 		}
 
+		rs.template.Outputs = nil
 		resourceJSON, err := rs.template.JSON()
 		Expect(err).ToNot(HaveOccurred())
 
