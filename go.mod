@@ -41,7 +41,7 @@ require (
 	github.com/ashanbrown/forbidigo v1.2.0 // indirect
 	github.com/ashanbrown/makezero v0.0.0-20210520155254-b6261585ddde // indirect
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.3-0.20210303155736-3e43512d88f8
-	github.com/aws/aws-sdk-go v1.40.38
+	github.com/aws/aws-sdk-go v1.41.10
 	github.com/awslabs/goformation/v4 v4.15.5 // indirect
 	github.com/bazelbuild/bazel-gazelle v0.19.1 // indirect
 	github.com/bazelbuild/buildtools v0.0.0-20190917191645-69366ca98f89 // indirect
@@ -339,7 +339,7 @@ require (
 	gopkg.in/square/go-jose.v2 v2.3.1 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	honnef.co/go/tools v0.2.1 // indirect
 	k8s.io/api v0.21.2
@@ -396,6 +396,8 @@ require (
 )
 
 replace (
+	// TODO: once aws-sdk-go is updated with ipv6 code remove the below line
+	github.com/aws/aws-sdk-go => github.com/weaveworks/aws-sdk-go v0.0.0-20211026093156-d6e6822f58db
 	// Used to pin the k8s library versions regardless of what other dependencies enforce
 	k8s.io/api => k8s.io/api v0.21.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.21.2
