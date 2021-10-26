@@ -9,7 +9,13 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
+
+	// Import go:embed
+	_ "embed"
 )
+
+//go:embed scripts/bootstrap.legacy.ubuntu.sh
+var bootstrapLegacyUbuntuShBytes []byte
 
 const ubuntu2004ResolveConfPath = "/run/systemd/resolve/resolv.conf"
 
@@ -33,7 +39,7 @@ func (b UbuntuBootstrapper) UserData() (string, error) {
 		return "", err
 	}
 
-	scripts := []string{}
+	var scripts []script
 
 	for _, command := range b.ng.PreBootstrapCommands {
 		config.AddShellCommand(command)
@@ -42,7 +48,7 @@ func (b UbuntuBootstrapper) UserData() (string, error) {
 	if b.ng.OverrideBootstrapCommand != nil {
 		config.AddShellCommand(*b.ng.OverrideBootstrapCommand)
 	} else {
-		scripts = append(scripts, "bootstrap.legacy.ubuntu.sh")
+		scripts = append(scripts, script{name: "bootstrap.legacy.ubuntu.sh", contents: string(bootstrapLegacyUbuntuShBytes)})
 	}
 
 	if err = addFilesAndScripts(config, files, scripts); err != nil {
