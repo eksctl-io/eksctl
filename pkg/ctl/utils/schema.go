@@ -18,5 +18,5 @@ func schemaCmd(cmd *cmdutils.Cmd) {
 }
 
 func doSchemaCmd(cmd *cmdutils.Cmd) {
-	fmt.Printf("%s", api.SchemaJson)
+	fmt.Printf("%s", api.SchemaJSON)
 }

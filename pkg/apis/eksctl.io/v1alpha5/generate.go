@@ -7,5 +7,6 @@ import (
 
 //go:generate go run ../../../../cmd/schema assets/schema.json
 
+//SchemaJSON contains the schema
 //go:embed assets/schema.json
-var SchemaJson string
+var SchemaJSON string
