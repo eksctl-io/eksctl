@@ -8,7 +8,6 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/assetutil"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -16,7 +15,19 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	clientappsv1 "k8s.io/client-go/kubernetes/typed/apps/v1"
+
+	// For go:embed
+	_ "embed"
 )
+
+//go:embed assets/efa-device-plugin.yaml
+var efaDevicePluginYaml []byte
+
+//go:embed assets/neuron-device-plugin.yaml
+var neuronDevicePluginYaml []byte
+
+//go:embed assets/nvidia-device-plugin.yaml
+var nvidiaDevicePluginYaml []byte
 
 func useRegionalImage(spec *v1.PodTemplateSpec, region string, account string) error {
 	imageFormat := spec.Spec.Containers[0].Image
@@ -137,7 +148,7 @@ func (n *NeuronDevicePlugin) PlanMode() bool {
 }
 
 func (n *NeuronDevicePlugin) Manifest() []byte {
-	return assetutil.MustLoad(neuronDevicePluginYamlBytes)
+	return neuronDevicePluginYaml
 }
 
 func (n *NeuronDevicePlugin) SetImage(t *v1.PodTemplateSpec) error {
@@ -178,7 +189,7 @@ func (n *NvidiaDevicePlugin) SetImage(t *v1.PodTemplateSpec) error {
 }
 
 func (n *NvidiaDevicePlugin) Manifest() []byte {
-	return assetutil.MustLoad(nvidiaDevicePluginYamlBytes)
+	return nvidiaDevicePluginYaml
 }
 
 // Deploy deploys the Nvidia device plugin to the specified cluster
@@ -202,7 +213,7 @@ func (n *EFADevicePlugin) PlanMode() bool {
 }
 
 func (n *EFADevicePlugin) Manifest() []byte {
-	return assetutil.MustLoad(efaDevicePluginYamlBytes)
+	return efaDevicePluginYaml
 }
 
 func (n *EFADevicePlugin) SetImage(t *v1.PodTemplateSpec) error {

@@ -16,6 +16,9 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/fargate/coredns"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+
+	// For go:embed
+	_ "embed"
 )
 
 const (
@@ -24,6 +27,21 @@ const (
 	// KubeDNS is the name of the kube-dns addon
 	KubeDNS = "kube-dns"
 )
+
+//go:embed assets/coredns-1.17.json
+var coredns1_17Json []byte
+
+//go:embed assets/coredns-1.18.json
+var coredns1_18Json []byte
+
+//go:embed assets/coredns-1.19.json
+var coredns1_19Json []byte
+
+//go:embed assets/coredns-1.20.json
+var coredns1_20Json []byte
+
+//go:embed assets/coredns-1.21.json
+var coredns1_21Json []byte
 
 func IsCoreDNSUpToDate(rawClient kubernetes.RawClientInterface, region, controlPlaneVersion string) (bool, error) {
 	kubeDNSDeployment, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), CoreDNS, metav1.GetOptions{})
@@ -163,11 +181,18 @@ func loadAssetCoreDNS(controlPlaneVersion string) (*metav1.List, error) {
 		return nil, errors.New("CoreDNS is not supported on Kubernetes 1.10")
 	}
 
-	for _, version := range api.SupportedVersions() {
-		if strings.HasPrefix(controlPlaneVersion, version+".") {
-			return LoadAsset(fmt.Sprintf("%s-%s", CoreDNS, version), "json")
-		}
+	switch {
+	case strings.HasPrefix(controlPlaneVersion, api.Version1_17+"."):
+		return newList(coredns1_17Json)
+	case strings.HasPrefix(controlPlaneVersion, api.Version1_18+"."):
+		return newList(coredns1_18Json)
+	case strings.HasPrefix(controlPlaneVersion, api.Version1_19+"."):
+		return newList(coredns1_19Json)
+	case strings.HasPrefix(controlPlaneVersion, api.Version1_20+"."):
+		return newList(coredns1_20Json)
+	case strings.HasPrefix(controlPlaneVersion, api.Version1_21+"."):
+		return newList(coredns1_21Json)
+	default:
+		return nil, errors.New("unsupported Kubernetes version")
 	}
-
-	return nil, errors.New("unsupported Kubernetes version")
 }
