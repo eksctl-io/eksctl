@@ -3,7 +3,6 @@
 "github.com/cloudflare/cfssl v1.6.1"
 "github.com/golangci/golangci-lint v1.42.0"
 "github.com/goreleaser/goreleaser v0.182.1"
-"github.com/kevinburke/go-bindata v3.22.0+incompatible"
 "github.com/onsi/ginkgo v1.16.4"
 "github.com/vektra/mockery v1.1.2"
 "github.com/github-release/github-release v0.10.0"
@@ -15,5 +14,5 @@
 "k8s.io/code-generator v0.21.2"
 "sigs.k8s.io/mdtoc v1.0.1"
 100644 blob a73dcb54fd6215c023ffea7f781e313b41841135	build/docker/Dockerfile
-100644 blob e02e5f2ad4516bd586dd870006e14a8a5a168093	.requirements
+100644 blob 5683496f7ee0443658a663785d87e404096459d6	.requirements
 100755 blob c1129ff1ff85ac2c53f908a577675ea59a9325a7	build/scripts/install-build-deps.sh
