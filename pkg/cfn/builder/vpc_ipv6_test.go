@@ -14,20 +14,17 @@ import (
 
 var _ = Describe("IPv6 VPC builder", func() {
 	var (
-		vpcTemplate *fakes.FakeTemplate
-		vpcRs       *builder.IPv6VPCResourceSet
-		cfg         *api.ClusterConfig
+		cfg *api.ClusterConfig
 	)
 
 	BeforeEach(func() {
 		cfg = api.NewClusterConfig()
 		cfg.VPC.IPFamily = api.IPV6Family
+		cfg.AvailabilityZones = []string{azA, azB}
 	})
 
 	It("creates the ipv6 VPC and its resources", func() {
-		cfg.AvailabilityZones = []string{azA, azB}
-		vpcRs = builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
-
+		vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
 		_, subnetDetails, err := vpcRs.CreateTemplate()
 		Expect(err).NotTo(HaveOccurred())
 
@@ -43,10 +40,8 @@ var _ = Describe("IPv6 VPC builder", func() {
 		Expect(privRef).To(ContainElement(makePrimitive(builder.PrivateSubnetKey + azBFormatted)))
 		Expect(privRef).To(ContainElement(makePrimitive(builder.PrivateSubnetKey + azBFormatted)))
 
-		vpcTemplate = &fakes.FakeTemplate{}
-		templateBody, err := vpcRs.RenderJSON()
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(json.Unmarshal(templateBody, vpcTemplate)).To(Succeed())
+		vpcTemplate, err := renderTemplate(vpcRs)
+		Expect(err).NotTo(HaveOccurred())
 
 		By("creating the VPC resource")
 		Expect(vpcTemplate.Resources).To(HaveKey(builder.VPCResourceKey))
@@ -335,17 +330,14 @@ var _ = Describe("IPv6 VPC builder", func() {
 	})
 
 	Context("when there are 3 AZs", func() {
-		It("scales the CIDR blocks accordingly", func() {
+		BeforeEach(func() {
 			cfg.AvailabilityZones = []string{azA, azB, azC}
-			vpcRs = builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
+		})
 
-			_, _, err := vpcRs.CreateTemplate()
+		It("scales the CIDR blocks accordingly", func() {
+			vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
+			vpcTemplate, err := createAndRenderTemplate(vpcRs)
 			Expect(err).NotTo(HaveOccurred())
-
-			vpcTemplate = &fakes.FakeTemplate{}
-			templateBody, err := vpcRs.RenderJSON()
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(json.Unmarshal(templateBody, vpcTemplate)).To(Succeed())
 
 			assertSubnetSet := func(az, subnetKey string, cidrBlockIndex float64) {
 				Expect(vpcTemplate.Resources).To(HaveKey(subnetKey))
@@ -365,4 +357,44 @@ var _ = Describe("IPv6 VPC builder", func() {
 
 		})
 	})
+
+	When("a user provides a custom ipv6 block", func() {
+		BeforeEach(func() {
+			cfg.VPC.IPv6Cidr = "my-cidr"
+			cfg.VPC.IPv6CidrPool = "my-cidr-pool"
+		})
+
+		It("creates the IPv6CidrBlock resource with the users ipv6 pool", func() {
+			vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
+			vpcTemplate, err := createAndRenderTemplate(vpcRs)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("creating the IPv6 CIDR")
+			Expect(vpcTemplate.Resources).To(HaveKey(builder.IPv6CIDRBlockKey))
+			Expect(vpcTemplate.Resources[builder.IPv6CIDRBlockKey].Type).To(Equal("AWS::EC2::VPCCidrBlock"))
+			Expect(vpcTemplate.Resources[builder.IPv6CIDRBlockKey].Properties).To(Equal(fakes.Properties{
+				Ipv6CidrBlock: "my-cidr",
+				Ipv6Pool:      "my-cidr-pool",
+				VpcID:         map[string]interface{}{"Ref": "VPC"},
+			}))
+		})
+	})
 })
+
+func createAndRenderTemplate(vpcRs *builder.IPv6VPCResourceSet) (*fakes.FakeTemplate, error) {
+	_, _, err := vpcRs.CreateTemplate()
+	if err != nil {
+		return nil, err
+	}
+	return renderTemplate(vpcRs)
+}
+
+func renderTemplate(vpcRs *builder.IPv6VPCResourceSet) (*fakes.FakeTemplate, error) {
+	vpcTemplate := &fakes.FakeTemplate{}
+	templateBody, err := vpcRs.RenderJSON()
+	if err != nil {
+		return nil, err
+	}
+	ExpectWithOffset(1, json.Unmarshal(templateBody, vpcTemplate)).To(Succeed())
+	return vpcTemplate, nil
+}
