@@ -398,3 +398,13 @@ func renderTemplate(vpcRs *builder.IPv6VPCResourceSet) (*fakes.FakeTemplate, err
 	ExpectWithOffset(1, json.Unmarshal(templateBody, vpcTemplate)).To(Succeed())
 	return vpcTemplate, nil
 }
+
+func assertCidrBlockCreatedWithSelect(cidrBlock interface{}, expectedFnCIDR string, cidrBlockIndex float64) {
+	ExpectWithOffset(1, cidrBlock.(map[string]interface{})).To(HaveKey("Fn::Select"))
+	fnSelectValue := cidrBlock.(map[string]interface{})["Fn::Select"].([]interface{})
+	ExpectWithOffset(1, fnSelectValue).To(HaveLen(2))
+	ExpectWithOffset(1, fnSelectValue[0].(float64)).To(Equal(cidrBlockIndex))
+	actualFnCIDR, err := json.Marshal(fnSelectValue[1])
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	ExpectWithOffset(1, actualFnCIDR).To(MatchJSON([]byte(expectedFnCIDR)))
+}

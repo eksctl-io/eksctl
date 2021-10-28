@@ -1,7 +1,6 @@
 package builder_test
 
 import (
-	"encoding/json"
 	"net"
 	"testing"
 
@@ -88,14 +87,4 @@ func isRefTo(obj interface{}, value string) bool {
 	Expect(ok).To(BeTrue())
 	Expect(o).To(HaveKey(gfnt.Ref))
 	return o[gfnt.Ref] == value
-}
-
-func assertCidrBlockCreatedWithSelect(cidrBlock interface{}, expectedFnCIDR string, cidrBlockIndex float64) {
-	ExpectWithOffset(1, cidrBlock.(map[string]interface{})).To(HaveKey("Fn::Select"))
-	fnSelectValue := cidrBlock.(map[string]interface{})["Fn::Select"].([]interface{})
-	ExpectWithOffset(1, fnSelectValue).To(HaveLen(2))
-	ExpectWithOffset(1, fnSelectValue[0].(float64)).To(Equal(cidrBlockIndex))
-	actualFnCIDR, err := json.Marshal(fnSelectValue[1])
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	ExpectWithOffset(1, actualFnCIDR).To(MatchJSON([]byte(expectedFnCIDR)))
 }
