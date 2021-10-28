@@ -37,6 +37,7 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files []configFile, scr
 	for _, file := range files {
 		f := cloudconfig.File{
 			Path: file.dir + file.name,
+			Content: file.contents,
 		}
 
 		f.Content = file.contents
