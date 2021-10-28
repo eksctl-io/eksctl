@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
+	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
@@ -98,6 +99,89 @@ func (c *ClusterResourceSet) AddAllResources() error {
 	)
 
 	return nil
+}
+
+func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcID *gfnt.Value) *clusterSecurityGroup {
+	var refControlPlaneSG, refClusterSharedNodeSG *gfnt.Value
+
+	if c.spec.VPC.SecurityGroup == "" {
+		refControlPlaneSG = c.newResource(cfnControlPlaneSGResource, &gfnec2.SecurityGroup{
+			GroupDescription: gfnt.NewString("Communication between the control plane and worker nodegroups"),
+			VpcId:            vpcID,
+		})
+
+		if len(c.spec.VPC.ExtraCIDRs) > 0 {
+			for i, cidr := range c.spec.VPC.ExtraCIDRs {
+				c.newResource(fmt.Sprintf("IngressControlPlaneExtraCIDR%d", i), &gfnec2.SecurityGroupIngress{
+					GroupId:     refControlPlaneSG,
+					CidrIp:      gfnt.NewString(cidr),
+					Description: gfnt.NewString(fmt.Sprintf("Allow Extra CIDR %d (%s) to communicate to controlplane", i, cidr)),
+					IpProtocol:  gfnt.NewString("tcp"),
+					FromPort:    sgPortHTTPS,
+					ToPort:      sgPortHTTPS,
+				})
+			}
+		}
+	} else {
+		refControlPlaneSG = gfnt.NewString(c.spec.VPC.SecurityGroup)
+	}
+	c.securityGroups = []*gfnt.Value{refControlPlaneSG} // only this one SG is passed to EKS API, nodes are isolated
+
+	if c.spec.VPC.SharedNodeSecurityGroup == "" {
+		refClusterSharedNodeSG = c.newResource(cfnSharedNodeSGResource, &gfnec2.SecurityGroup{
+			GroupDescription: gfnt.NewString("Communication between all nodes in the cluster"),
+			VpcId:            vpcID,
+		})
+		c.newResource("IngressInterNodeGroupSG", &gfnec2.SecurityGroupIngress{
+			GroupId:               refClusterSharedNodeSG,
+			SourceSecurityGroupId: refClusterSharedNodeSG,
+			Description:           gfnt.NewString("Allow nodes to communicate with each other (all ports)"),
+			IpProtocol:            gfnt.NewString("-1"),
+			FromPort:              sgPortZero,
+			ToPort:                sgMaxNodePort,
+		})
+	} else {
+		refClusterSharedNodeSG = gfnt.NewString(c.spec.VPC.SharedNodeSecurityGroup)
+	}
+
+	if c.supportsManagedNodes && api.IsEnabled(c.spec.VPC.ManageSharedNodeSecurityGroupRules) {
+		// To enable communication between both managed and unmanaged nodegroups, this allows ingress traffic from
+		// the default cluster security group ID that EKS creates by default
+		// EKS attaches this to Managed Nodegroups by default, but we need to handle this for unmanaged nodegroups
+		c.newResource(cfnIngressClusterToNodeSGResource, &gfnec2.SecurityGroupIngress{
+			GroupId:               refClusterSharedNodeSG,
+			SourceSecurityGroupId: gfnt.MakeFnGetAttString("ControlPlane", outputs.ClusterDefaultSecurityGroup),
+			Description:           gfnt.NewString("Allow managed and unmanaged nodes to communicate with each other (all ports)"),
+			IpProtocol:            gfnt.NewString("-1"),
+			FromPort:              sgPortZero,
+			ToPort:                sgMaxNodePort,
+		})
+		c.newResource("IngressNodeToDefaultClusterSG", &gfnec2.SecurityGroupIngress{
+			GroupId:               gfnt.MakeFnGetAttString("ControlPlane", outputs.ClusterDefaultSecurityGroup),
+			SourceSecurityGroupId: refClusterSharedNodeSG,
+			Description:           gfnt.NewString("Allow unmanaged nodes to communicate with control plane (all ports)"),
+			IpProtocol:            gfnt.NewString("-1"),
+			FromPort:              sgPortZero,
+			ToPort:                sgMaxNodePort,
+		})
+	}
+
+	if c.spec.VPC == nil {
+		c.spec.VPC = &api.ClusterVPC{}
+	}
+	c.rs.defineOutput(outputs.ClusterSecurityGroup, refControlPlaneSG, true, func(v string) error {
+		c.spec.VPC.SecurityGroup = v
+		return nil
+	})
+	c.rs.defineOutput(outputs.ClusterSharedNodeSecurityGroup, refClusterSharedNodeSG, true, func(v string) error {
+		c.spec.VPC.SharedNodeSecurityGroup = v
+		return nil
+	})
+
+	return &clusterSecurityGroup{
+		ControlPlane:      refControlPlaneSG,
+		ClusterSharedNode: refClusterSharedNodeSG,
+	}
 }
 
 // RenderJSON returns the rendered JSON
