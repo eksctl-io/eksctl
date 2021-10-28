@@ -83,7 +83,7 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) ([]confi
 	files := []configFile{{
 		dir:      kubeletDropInUnitDir,
 		name:     "10-eksctl.al2.conf",
-		contents: string(assets.EksctlAl2Conf),
+		contents: assets.EksctlAl2Conf,
 	}, {
 		dir:      configDir,
 		name:     "metadata.env",
