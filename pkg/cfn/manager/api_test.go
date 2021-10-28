@@ -8,12 +8,53 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
 var _ = Describe("StackCollection", func() {
+	Context("CreateStack", func() {
+		It("succeeds", func() {
+			// Order of execution
+			// 1) CreateStack
+			// 2) DescribeStacksRequest (until UPDATE_COMPLETE)
+
+			stackId := "arn:aws:cloudformation:us-east-1:123456789:stack/eksctl-stack/abc-123"
+			stackName := "eksctl-stack"
+
+			describeInput := &cfn.DescribeStacksInput{StackName: &stackName}
+			describeOutput := &cfn.DescribeStacksOutput{Stacks: []*cfn.Stack{{
+				StackName:   &stackName,
+				StackStatus: aws.String(cfn.StackStatusCreateInProgress),
+			}}}
+			createOutput := &cfn.CreateStackOutput{
+				StackId: &stackId,
+			}
+			describeStacksUpdateCompleteOutput := &cfn.DescribeStacksOutput{
+				Stacks: []*cfn.Stack{
+					{
+						StackName:   &stackName,
+						StackStatus: aws.String(cfn.StackStatusCreateComplete),
+					},
+				},
+			}
+
+			p := mockprovider.NewMockProvider()
+			p.MockCloudFormation().On("CreateStack", mock.Anything).Return(createOutput, nil)
+			p.MockCloudFormation().On("DescribeStacks", describeInput).Return(describeOutput, nil)
+			req := awstesting.NewClient(nil).NewRequest(&request.Operation{Name: "Operation"}, nil, describeStacksUpdateCompleteOutput)
+			p.MockCloudFormation().On("DescribeStacksRequest", mock.Anything).Return(req, describeStacksUpdateCompleteOutput)
+
+			sm := NewStackCollection(p, api.NewClusterConfig())
+			rs := builder.NewFakeResourceSet()
+			tags := map[string]string{}
+			errCh := make(chan error)
+			err := sm.CreateStack(stackName, rs, tags, nil, errCh)
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
+
 	Context("UpdateStack", func() {
 		It("succeeds if no changes required", func() {
 			// Order of AWS SDK invocation
