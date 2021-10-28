@@ -17,7 +17,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
-	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"sigs.k8s.io/aws-iam-authenticator/pkg/token"
 
@@ -72,7 +71,7 @@ func (c *Client) useEmbeddedToken(spec *api.ClusterConfig, stsclient stsiface.ST
 		return errors.Wrap(err, "could not get token generator")
 	}
 
-	tok, err := gen.GetWithSTS(spec.Metadata.Name, stsclient.(*sts.STS))
+	tok, err := gen.GetWithSTS(spec.Metadata.Name, stsclient)
 	if err != nil {
 		return errors.Wrap(err, "could not get token")
 	}
