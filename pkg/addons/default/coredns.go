@@ -2,6 +2,7 @@ package defaultaddons
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"strings"
 
@@ -30,6 +31,7 @@ const (
 
 //go:embed assets/coredns*.json
 var coreDNSDir embed.FS
+
 func IsCoreDNSUpToDate(rawClient kubernetes.RawClientInterface, region, controlPlaneVersion string) (bool, error) {
 	kubeDNSDeployment, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), CoreDNS, metav1.GetOptions{})
 	if err != nil {
@@ -170,7 +172,7 @@ func loadAssetCoreDNS(controlPlaneVersion string) (*metav1.List, error) {
 
 	for _, version := range api.SupportedVersions() {
 		if strings.HasPrefix(controlPlaneVersion, version+".") {
-			manifest, err := coreDNSDir.ReadFile(fmt.Sprintf("%s-%s.json", CoreDNS, version))
+			manifest, err := coreDNSDir.ReadFile(fmt.Sprintf("assets/%s-%s.json", CoreDNS, version))
 			if err != nil {
 				return nil, err
 			}
@@ -178,5 +180,4 @@ func loadAssetCoreDNS(controlPlaneVersion string) (*metav1.List, error) {
 		}
 	}
 	return nil, errors.New("unsupported Kubernetes version")
-	}
 }

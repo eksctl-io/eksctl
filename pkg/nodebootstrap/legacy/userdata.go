@@ -36,7 +36,7 @@ type script struct {
 func addFilesAndScripts(config *cloudconfig.CloudConfig, files []configFile, scripts []script) error {
 	for _, file := range files {
 		f := cloudconfig.File{
-			Path: file.dir + file.name,
+			Path:    file.dir + file.name,
 			Content: file.contents,
 		}
 
