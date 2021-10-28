@@ -3,6 +3,8 @@ package builder
 import (
 	"strings"
 
+	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
+	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
@@ -66,4 +68,29 @@ func getSubnetIPv4CIDRBlock(cidrPartitions int) *gfnt.Value {
 	desiredMask := 19
 	refSubnetSlices := gfnt.MakeFnCIDR(gfnt.MakeFnGetAttString("VPC", "CidrBlock"), gfnt.NewInteger(cidrPartitions), gfnt.NewInteger(32-desiredMask))
 	return refSubnetSlices
+}
+
+func (rs *resourceSet) addEFASecurityGroup(vpcID *gfnt.Value, clusterName, desc string) *gfnt.Value {
+	efaSG := rs.newResource("EFASG", &gfnec2.SecurityGroup{
+		VpcId:            vpcID,
+		GroupDescription: gfnt.NewString("EFA-enabled security group"),
+		Tags: []gfncfn.Tag{{
+			Key:   gfnt.NewString("kubernetes.io/cluster/" + clusterName),
+			Value: gfnt.NewString("owned"),
+		}},
+	})
+	rs.newResource("EFAIngressSelf", &gfnec2.SecurityGroupIngress{
+		GroupId:               efaSG,
+		SourceSecurityGroupId: efaSG,
+		Description:           gfnt.NewString("Allow " + desc + " to communicate to itself (EFA-enabled)"),
+		IpProtocol:            gfnt.NewString("-1"),
+	})
+	rs.newResource("EFAEgressSelf", &gfnec2.SecurityGroupEgress{
+		GroupId:                    efaSG,
+		DestinationSecurityGroupId: efaSG,
+		Description:                gfnt.NewString("Allow " + desc + " to communicate to itself (EFA-enabled)"),
+		IpProtocol:                 gfnt.NewString("-1"),
+	})
+
+	return efaSG
 }
