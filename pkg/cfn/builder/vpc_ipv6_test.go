@@ -254,18 +254,10 @@ var _ = Describe("IPv6 VPC builder", func() {
 			))
 
 			expectedFnIPv4CIDR := `{ "Fn::Cidr": [{ "Fn::GetAtt": ["VPC", "CidrBlock"]}, 6, 13 ]}`
-			Expect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]interface{})["Fn::Select"]).To(HaveLen(2))
-			Expect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]interface{})["Fn::Select"].([]interface{})[0].(float64)).To(Equal(cidrBlockIndex))
-			actualFnCIDR, err := json.Marshal(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]interface{})["Fn::Select"].([]interface{})[1])
-			Expect(err).NotTo(HaveOccurred())
-			Expect(actualFnCIDR).To(MatchJSON([]byte(expectedFnIPv4CIDR)))
+			assertCidrBlockCreatedWithSelect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock, expectedFnIPv4CIDR, cidrBlockIndex)
 
 			expectedFnIPv6CIDR := `{ "Fn::Cidr": [{ "Fn::Select": [ 0, { "Fn::GetAtt": ["VPC", "Ipv6CidrBlocks"] }]}, 6, 64 ]}`
-			Expect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock["Fn::Select"]).To(HaveLen(2))
-			Expect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock["Fn::Select"][0].(float64)).To(Equal(cidrBlockIndex))
-			actualFnIPv6CIDR, err := json.Marshal(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock["Fn::Select"][1])
-			Expect(err).NotTo(HaveOccurred())
-			Expect(actualFnIPv6CIDR).To(MatchJSON([]byte(expectedFnIPv6CIDR)))
+			assertCidrBlockCreatedWithSelect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock, expectedFnIPv6CIDR, cidrBlockIndex)
 		}
 		assertSubnetSet(azA, builder.PublicSubnetKey+azAFormatted, "kubernetes.io/role/elb", float64(0), true)
 		Expect(vpcTemplate.Resources[builder.PublicSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(BeNil())
@@ -358,18 +350,10 @@ var _ = Describe("IPv6 VPC builder", func() {
 			assertSubnetSet := func(az, subnetKey string, cidrBlockIndex float64) {
 				Expect(vpcTemplate.Resources).To(HaveKey(subnetKey))
 				expectedFnIPv4CIDR := `{ "Fn::Cidr": [{ "Fn::GetAtt": ["VPC", "CidrBlock"]}, 8, 13 ]}`
-				Expect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]interface{})["Fn::Select"]).To(HaveLen(2))
-				Expect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]interface{})["Fn::Select"].([]interface{})[0].(float64)).To(Equal(cidrBlockIndex))
-				actualFnCIDR, err := json.Marshal(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]interface{})["Fn::Select"].([]interface{})[1])
-				Expect(err).NotTo(HaveOccurred())
-				Expect(actualFnCIDR).To(MatchJSON([]byte(expectedFnIPv4CIDR)))
+				assertCidrBlockCreatedWithSelect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock, expectedFnIPv4CIDR, cidrBlockIndex)
 
 				expectedFnIPv6CIDR := `{ "Fn::Cidr": [{ "Fn::Select": [ 0, { "Fn::GetAtt": ["VPC", "Ipv6CidrBlocks"] }]}, 8, 64 ]}`
-				Expect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock["Fn::Select"]).To(HaveLen(2))
-				Expect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock["Fn::Select"][0].(float64)).To(Equal(cidrBlockIndex))
-				actualFnIPv6CIDR, err := json.Marshal(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock["Fn::Select"][1])
-				Expect(err).NotTo(HaveOccurred())
-				Expect(actualFnIPv6CIDR).To(MatchJSON([]byte(expectedFnIPv6CIDR)))
+				assertCidrBlockCreatedWithSelect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock, expectedFnIPv6CIDR, cidrBlockIndex)
 			}
 			assertSubnetSet(azA, builder.PublicSubnetKey+azAFormatted, float64(0))
 			assertSubnetSet(azB, builder.PublicSubnetKey+azBFormatted, float64(1))
