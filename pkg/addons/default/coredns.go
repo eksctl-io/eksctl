@@ -28,21 +28,8 @@ const (
 	KubeDNS = "kube-dns"
 )
 
-//go:embed assets/coredns-1.17.json
-var coredns1_17Json []byte
-
-//go:embed assets/coredns-1.18.json
-var coredns1_18Json []byte
-
-//go:embed assets/coredns-1.19.json
-var coredns1_19Json []byte
-
-//go:embed assets/coredns-1.20.json
-var coredns1_20Json []byte
-
-//go:embed assets/coredns-1.21.json
-var coredns1_21Json []byte
-
+//go:embed assets/coredns*.json
+var coreDNSDir embed.FS
 func IsCoreDNSUpToDate(rawClient kubernetes.RawClientInterface, region, controlPlaneVersion string) (bool, error) {
 	kubeDNSDeployment, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), CoreDNS, metav1.GetOptions{})
 	if err != nil {
