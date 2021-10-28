@@ -181,18 +181,15 @@ func loadAssetCoreDNS(controlPlaneVersion string) (*metav1.List, error) {
 		return nil, errors.New("CoreDNS is not supported on Kubernetes 1.10")
 	}
 
-	switch {
-	case strings.HasPrefix(controlPlaneVersion, api.Version1_17+"."):
-		return newList(coredns1_17Json)
-	case strings.HasPrefix(controlPlaneVersion, api.Version1_18+"."):
-		return newList(coredns1_18Json)
-	case strings.HasPrefix(controlPlaneVersion, api.Version1_19+"."):
-		return newList(coredns1_19Json)
-	case strings.HasPrefix(controlPlaneVersion, api.Version1_20+"."):
-		return newList(coredns1_20Json)
-	case strings.HasPrefix(controlPlaneVersion, api.Version1_21+"."):
-		return newList(coredns1_21Json)
-	default:
-		return nil, errors.New("unsupported Kubernetes version")
+	for _, version := range api.SupportedVersions() {
+		if strings.HasPrefix(controlPlaneVersion, version+".") {
+			manifest, err := coreDNSDir.ReadFile(fmt.Sprintf("%s-%s.json", CoreDNS, version))
+			if err != nil {
+				return nil, err
+			}
+			return newList(manifest)
+		}
+	}
+	return nil, errors.New("unsupported Kubernetes version")
 	}
 }
