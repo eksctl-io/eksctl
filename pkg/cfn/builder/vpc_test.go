@@ -29,7 +29,7 @@ var _ = Describe("VPC Template Builder", func() {
 	})
 
 	JustBeforeEach(func() {
-		vpcRs = builder.NewVPCResourceSet(builder.NewRS(), cfg, mockEC2)
+		vpcRs = builder.NewVPCResourceSet(builder.NewFakeResourceSet(), cfg, mockEC2)
 	})
 
 	Describe("AddResources", func() {
