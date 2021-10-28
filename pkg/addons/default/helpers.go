@@ -7,14 +7,10 @@ import (
 )
 
 // LoadAsset return embedded manifest as a runtime.Object
-func LoadAsset(name, ext string) (*metav1.List, error) {
-	data, err := Asset(name + "." + ext)
-	if err != nil {
-		return nil, errors.Wrapf(err, "decoding embedded manifest for %q", name)
-	}
+func newList(data []byte) (*metav1.List, error) {
 	list, err := kubernetes.NewList(data)
 	if err != nil {
-		return nil, errors.Wrapf(err, "loading individual resources from manifest for %q", name)
+		return nil, errors.Wrapf(err, "loading individual resources from manifest")
 	}
 	return list, nil
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap/assets"
 )
 
 const (
@@ -23,7 +24,7 @@ func NewUbuntuBootstrapper(clusterConfig *api.ClusterConfig, np api.NodePool) *U
 }
 
 func (b *Ubuntu) UserData() (string, error) {
-	body, err := linuxConfig(b.clusterConfig, ubuntuBootScript, b.np)
+	body, err := linuxConfig(b.clusterConfig, ubuntuBootScript, assets.BootstrapUbuntuSh, b.np)
 	if err != nil {
 		return "", errors.Wrap(err, "encoding user data")
 	}

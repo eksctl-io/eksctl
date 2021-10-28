@@ -14,6 +14,9 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/addons"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+
+	// For go:embed
+	_ "embed"
 )
 
 const (
@@ -23,6 +26,9 @@ const (
 	awsNodeImageFormatPrefix     = "%s.dkr.ecr.%s.%s/amazon-k8s-cni"
 	awsNodeInitImageFormatPrefix = "%s.dkr.ecr.%s.%s/amazon-k8s-cni-init"
 )
+
+//go:embed assets/aws-node.yaml
+var awsNodeYaml []byte
 
 // DoesAWSNodeSupportMultiArch makes sure awsnode supports ARM nodes
 func DoesAWSNodeSupportMultiArch(rawClient kubernetes.RawClientInterface, region string) (bool, error) {
@@ -76,7 +82,7 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 	}
 
 	// if DaemonSets is present, go through our list of assets
-	list, err := LoadAsset(AWSNode, "yaml")
+	list, err := newList(awsNodeYaml)
 	if err != nil {
 		return false, err
 	}

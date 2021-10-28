@@ -2,6 +2,7 @@ package defaultaddons
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"strings"
 
@@ -16,6 +17,9 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/fargate/coredns"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+
+	// For go:embed
+	_ "embed"
 )
 
 const (
@@ -24,6 +28,9 @@ const (
 	// KubeDNS is the name of the kube-dns addon
 	KubeDNS = "kube-dns"
 )
+
+//go:embed assets/coredns*.json
+var coreDNSDir embed.FS
 
 func IsCoreDNSUpToDate(rawClient kubernetes.RawClientInterface, region, controlPlaneVersion string) (bool, error) {
 	kubeDNSDeployment, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), CoreDNS, metav1.GetOptions{})
@@ -165,9 +172,12 @@ func loadAssetCoreDNS(controlPlaneVersion string) (*metav1.List, error) {
 
 	for _, version := range api.SupportedVersions() {
 		if strings.HasPrefix(controlPlaneVersion, version+".") {
-			return LoadAsset(fmt.Sprintf("%s-%s", CoreDNS, version), "json")
+			manifest, err := coreDNSDir.ReadFile(fmt.Sprintf("assets/%s-%s.json", CoreDNS, version))
+			if err != nil {
+				return nil, err
+			}
+			return newList(manifest)
 		}
 	}
-
 	return nil, errors.New("unsupported Kubernetes version")
 }
