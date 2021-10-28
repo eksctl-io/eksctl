@@ -185,7 +185,7 @@ type (
 		CIDR *ipnet.IPNet `json:"cidr,omitempty"`
 		// Valid variants are `IPFamily` constants
 		// +optional
-		IPFamily *string `json:"ipFamily,omitempty"`
+		IPFamily string `json:"ipFamily,omitempty"`
 	}
 	// ClusterNAT NAT config
 	ClusterNAT struct {
