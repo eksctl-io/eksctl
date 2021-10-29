@@ -77,7 +77,7 @@ func NewManagedBootstrapper(clusterConfig *api.ClusterConfig, ng *api.ManagedNod
 	case api.NodeImageFamilyAmazonLinux2:
 		return NewManagedAL2Bootstrapper(ng)
 	case api.NodeImageFamilyBottlerocket:
-		return NewBottlerocketBootstrapper(clusterConfig, ng)
+		return NewManagedBottlerocketBootstrapper(clusterConfig, ng)
 	case api.NodeImageFamilyUbuntu1804, api.NodeImageFamilyUbuntu2004:
 		return NewUbuntuBootstrapper(clusterConfig, ng)
 	}
