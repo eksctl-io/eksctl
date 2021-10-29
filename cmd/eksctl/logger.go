@@ -84,7 +84,7 @@ func initLogger(level int, colorValue string, logBuffer *bytes.Buffer) {
 	}
 }
 
-func dumpLogsToDisk(logBuffer *bytes.Buffer) error {
+func dumpLogsToDisk(logBuffer *bytes.Buffer, errorString string) error {
 	_, err := os.Stat("logs/")
 
 	if os.IsNotExist(err) {
@@ -103,7 +103,7 @@ func dumpLogsToDisk(logBuffer *bytes.Buffer) error {
 
 	defer logFile.Close()
 
-	_, err = logFile.WriteString(logBuffer.String())
+	_, err = logFile.WriteString("Logs: \n" + logBuffer.String() + "\n\n" + "Error: \n" + errorString + "\n")
 
 	return err
 }
