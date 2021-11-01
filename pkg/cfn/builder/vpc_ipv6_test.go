@@ -3,6 +3,7 @@ package builder_test
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -10,6 +11,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder/fakes"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 )
 
 var _ = Describe("IPv6 VPC builder", func() {
@@ -376,6 +378,39 @@ var _ = Describe("IPv6 VPC builder", func() {
 				Ipv6CidrBlock: "my-cidr",
 				Ipv6Pool:      "my-cidr-pool",
 				VpcID:         map[string]interface{}{"Ref": "VPC"},
+			}))
+		})
+	})
+
+	When("a user provides a custom ipv4 cidr", func() {
+		var customCidr = &ipnet.IPNet{
+			IPNet: net.IPNet{
+				IP:   []byte{192, 168, 1, 1},
+				Mask: []byte{255, 255, 0, 0},
+			},
+		}
+
+		BeforeEach(func() {
+			cfg.VPC.CIDR = customCidr
+		})
+
+		It("creates the VPC resource with the users provided ipv4 cidr", func() {
+			vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
+			vpcTemplate, err := createAndRenderTemplate(vpcRs)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(vpcTemplate.Resources).To(HaveKey(builder.VPCResourceKey))
+			Expect(vpcTemplate.Resources[builder.VPCResourceKey].Type).To(Equal("AWS::EC2::VPC"))
+			Expect(vpcTemplate.Resources[builder.VPCResourceKey].Properties).To(Equal(fakes.Properties{
+				CidrBlock:          customCidr.String(),
+				EnableDNSHostnames: true,
+				EnableDNSSupport:   true,
+				Tags: []fakes.Tag{
+					{
+						Key:   "Name",
+						Value: map[string]interface{}{"Fn::Sub": "${AWS::StackName}/VPC"},
+					},
+				},
 			}))
 		})
 	})
