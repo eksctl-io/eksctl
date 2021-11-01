@@ -34,7 +34,7 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.
 		clientSet:    clientSet,
 		wait:         waiters.Wait,
 		init: &eks.NodeGroupService{
-			Provider: ctl.Provider,
+			Provider: ctl.AWSProvider,
 		},
 		kubeProvider: ctl,
 	}

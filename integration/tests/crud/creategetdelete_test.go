@@ -154,7 +154,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("toggling kubernetes API access", func() {
 			var (
-				clientSet *kubernetes.Clientset
+				clientSet kubernetes.Interface
 			)
 			BeforeEach(func() {
 				cfg := &api.ClusterConfig{

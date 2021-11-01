@@ -11,7 +11,7 @@ import (
 func (m *Manager) Drain(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod time.Duration, disableEviction bool) error {
 	if !plan {
 		for _, n := range nodeGroups {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(m.clientSet, n, m.ctl.Provider.WaitTimeout(), maxGracePeriod, false, disableEviction)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(m.clientSet, n, m.ctl.AWSProvider.WaitTimeout(), maxGracePeriod, false, disableEviction)
 			if err := nodeGroupDrainer.Drain(); err != nil {
 				return err
 			}

@@ -78,6 +78,7 @@ type RawClient struct {
 type RawClientInterface interface {
 	ClientSet() Interface
 	NewRawResource(runtime.Object) (*RawResource, error)
+	ServerVersion() (string, error)
 }
 
 // RawResource holds info about a resource along with a type-specific raw client instance

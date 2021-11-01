@@ -17,7 +17,7 @@ import (
 )
 
 func (m *Manager) Upgrade(options managed.UpgradeOptions, wait bool) error {
-	stackCollection := manager.NewStackCollection(m.ctl.Provider, m.cfg)
+	stackCollection := manager.NewStackCollection(m.ctl.AWSProvider, m.cfg)
 	hasStacks, err := m.hasStacks(options.NodegroupName)
 	if err != nil {
 		return err
@@ -30,7 +30,7 @@ func (m *Manager) Upgrade(options managed.UpgradeOptions, wait bool) error {
 	}
 
 	if hasStacks {
-		managedService := managed.NewService(m.ctl.Provider.EKS(), m.ctl.Provider.SSM(), m.ctl.Provider.EC2(), stackCollection, m.cfg.Metadata.Name)
+		managedService := managed.NewService(m.ctl.AWSProvider.EKS(), m.ctl.AWSProvider.SSM(), m.ctl.AWSProvider.EC2(), stackCollection, m.cfg.Metadata.Name)
 		return managedService.UpgradeNodeGroup(options)
 	}
 
@@ -56,7 +56,7 @@ func (m *Manager) upgrade(options managed.UpgradeOptions) error {
 		Version:       &options.KubernetesVersion,
 	}
 
-	describeNodegroupOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
+	describeNodegroupOutput, err := m.ctl.AWSProvider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
 		ClusterName:   &m.cfg.Metadata.Name,
 		NodegroupName: &options.NodegroupName,
 	})
@@ -92,7 +92,7 @@ func (m *Manager) upgrade(options managed.UpgradeOptions) error {
 		input.Version = aws.String(fmt.Sprintf("%v.%v", version.Major, version.Minor))
 	}
 
-	upgradeResponse, err := m.ctl.Provider.EKS().UpdateNodegroupVersion(input)
+	upgradeResponse, err := m.ctl.AWSProvider.EKS().UpdateNodegroupVersion(input)
 
 	if err != nil {
 		return err
@@ -113,7 +113,7 @@ func (m *Manager) waitForUpgrade(options managed.UpgradeOptions) error {
 			ClusterName:   &m.cfg.Metadata.Name,
 			NodegroupName: &options.NodegroupName,
 		}
-		req, _ := m.ctl.Provider.EKS().DescribeNodegroupRequest(input)
+		req, _ := m.ctl.AWSProvider.EKS().DescribeNodegroupRequest(input)
 		return req
 	}
 
@@ -127,7 +127,7 @@ func (m *Manager) waitForUpgrade(options managed.UpgradeOptions) error {
 		},
 	)
 
-	err := m.wait(options.NodegroupName, msg, acceptors, newRequest, m.ctl.Provider.WaitTimeout(), nil)
+	err := m.wait(options.NodegroupName, msg, acceptors, newRequest, m.ctl.AWSProvider.WaitTimeout(), nil)
 	if err != nil {
 		return err
 	}

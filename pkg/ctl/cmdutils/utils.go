@@ -22,7 +22,7 @@ func KubernetesClientAndConfigFrom(cmd *Cmd) (*kubernetes.Clientset, *rest.Confi
 	if err != nil {
 		return nil, nil, err
 	}
-	k8sConfig := kubernetesClientConfigs.Config
+	k8sConfig := kubernetesClientConfigs.Config()
 	k8sRestConfig, err := clientcmd.NewDefaultClientConfig(*k8sConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "cannot create Kubernetes client configuration")

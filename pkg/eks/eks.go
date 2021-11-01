@@ -40,7 +40,7 @@ func (c *ClusterProvider) DescribeControlPlane(meta *api.ClusterMeta) (*awseks.C
 	input := &awseks.DescribeClusterInput{
 		Name: &meta.Name,
 	}
-	output, err := c.Provider.EKS().DescribeCluster(input)
+	output, err := c.AWSProvider.EKS().DescribeCluster(input)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to describe cluster control plane")
 	}
@@ -276,7 +276,7 @@ func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iam
 		return nil, fmt.Errorf("unknown EKS ARN: %q", spec.Status.ARN)
 	}
 
-	return iamoidc.NewOpenIDConnectManager(c.Provider.IAM(), parsedARN.AccountID,
+	return iamoidc.NewOpenIDConnectManager(c.AWSProvider.IAM(), parsedARN.AccountID,
 		*c.Status.ClusterInfo.Cluster.Identity.Oidc.Issuer, parsedARN.Partition, sharedTags(c.Status.ClusterInfo.Cluster))
 }
 
@@ -314,7 +314,7 @@ func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig, stackManager m
 		return &manager.StackNotFoundErr{ClusterName: spec.Metadata.Name}
 	}
 
-	return vpc.UseFromClusterStack(c.Provider, stack, spec)
+	return vpc.UseFromClusterStack(c.AWSProvider, stack, spec)
 }
 
 // loadClusterKubernetesNetworkConfig gets the network config of an existing
@@ -337,7 +337,7 @@ func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*a
 	if listAllRegions {
 		var clusters []*api.ClusterConfig
 		// reset region and re-create the client, then make a recursive call
-		authorizedRegions, err := c.Provider.EC2().DescribeRegions(&ec2.DescribeRegionsInput{})
+		authorizedRegions, err := c.AWSProvider.EC2().DescribeRegions(&ec2.DescribeRegionsInput{})
 		if err != nil {
 			return nil, err
 		}
@@ -345,8 +345,8 @@ func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*a
 		for _, region := range authorizedRegions.Regions {
 			spec := &api.ProviderConfig{
 				Region:      *region.RegionName,
-				Profile:     c.Provider.Profile(),
-				WaitTimeout: c.Provider.WaitTimeout(),
+				Profile:     c.AWSProvider.Profile(),
+				WaitTimeout: c.AWSProvider.WaitTimeout(),
 			}
 
 			ctl, err := New(spec, nil)
@@ -397,7 +397,7 @@ func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, e
 			allClusters = append(allClusters, &api.ClusterConfig{
 				Metadata: &api.ClusterMeta{
 					Name:   *clusterName,
-					Region: c.Provider.Region(),
+					Region: c.AWSProvider.Region(),
 				},
 				Status: &api.ClusterStatus{
 					EKSCTLCreated: managed,
@@ -421,7 +421,7 @@ func (c *ClusterProvider) GetCluster(clusterName string) (*awseks.Cluster, error
 		Name: &clusterName,
 	}
 
-	output, err := c.Provider.EKS().DescribeCluster(input)
+	output, err := c.AWSProvider.EKS().DescribeCluster(input)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to describe control plane %q", clusterName)
 	}
@@ -450,7 +450,7 @@ func (c *ClusterProvider) getClustersRequest(chunkSize int64, nextToken string) 
 	if nextToken != "" {
 		input = input.SetNextToken(nextToken)
 	}
-	output, err := c.Provider.EKS().ListClusters(input)
+	output, err := c.AWSProvider.EKS().ListClusters(input)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "listing control planes")
 	}
@@ -458,10 +458,10 @@ func (c *ClusterProvider) getClustersRequest(chunkSize int64, nextToken string) 
 }
 
 // WaitForControlPlane waits till the control plane is ready
-func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *kubernetes.Clientset) error {
+func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet kubernetes.Interface) error {
 	successCount := 0
 	operation := func() (bool, error) {
-		_, err := clientSet.ServerVersion()
+		_, err := clientSet.Discovery().ServerVersion()
 		if err == nil {
 			if successCount >= 5 {
 				return true, nil
@@ -480,9 +480,9 @@ func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *
 		},
 	}
 
-	if err := w.WaitWithTimeout(c.Provider.WaitTimeout()); err != nil {
+	if err := w.WaitWithTimeout(c.AWSProvider.WaitTimeout()); err != nil {
 		if err == context.DeadlineExceeded {
-			return errors.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.Provider.WaitTimeout())
+			return errors.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.AWSProvider.WaitTimeout())
 		}
 		return err
 	}

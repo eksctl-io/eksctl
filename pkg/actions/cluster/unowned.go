@@ -145,7 +145,7 @@ func (c *UnownedCluster) deleteFargateRoleIfExists() error {
 }
 
 func (c *UnownedCluster) checkClusterExists(clusterName string) error {
-	_, err := c.ctl.Provider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
+	_, err := c.ctl.AWSProvider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
 		Name: &c.cfg.Metadata.Name,
 	})
 	if err != nil {
@@ -214,7 +214,7 @@ func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clusterOperable bool, clien
 func (c *UnownedCluster) deleteCluster(wait bool) error {
 	clusterName := c.cfg.Metadata.Name
 
-	out, err := c.ctl.Provider.EKS().DeleteCluster(&awseks.DeleteClusterInput{
+	out, err := c.ctl.AWSProvider.EKS().DeleteCluster(&awseks.DeleteClusterInput{
 		Name: &clusterName,
 	})
 
@@ -235,7 +235,7 @@ func (c *UnownedCluster) deleteCluster(wait bool) error {
 		input := &awseks.DescribeClusterInput{
 			Name: &clusterName,
 		}
-		req, _ := c.ctl.Provider.EKS().DescribeClusterRequest(input)
+		req, _ := c.ctl.AWSProvider.EKS().DescribeClusterRequest(input)
 		return req
 	}
 
@@ -243,12 +243,12 @@ func (c *UnownedCluster) deleteCluster(wait bool) error {
 
 	msg := fmt.Sprintf("waiting for cluster %q to be deleted", clusterName)
 
-	return waiters.Wait(clusterName, msg, acceptors, newRequest, c.ctl.Provider.WaitTimeout(), nil)
+	return waiters.Wait(clusterName, msg, acceptors, newRequest, c.ctl.AWSProvider.WaitTimeout(), nil)
 }
 
 func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(waitInterval time.Duration, allStacks []manager.NodeGroupStack) error {
 	clusterName := c.cfg.Metadata.Name
-	eksAPI := c.ctl.Provider.EKS()
+	eksAPI := c.ctl.AWSProvider.EKS()
 
 	// get all managed nodegroups for this cluster
 	nodeGroups, err := eksAPI.ListNodegroups(&awseks.ListNodegroupsInput{
@@ -301,7 +301,7 @@ func isNotFound(err error) bool {
 
 func (c *UnownedCluster) waitForUnownedNgsDeletion(interval time.Duration) *manager.DeleteWaitCondition {
 	condition := func() (bool, error) {
-		nodeGroups, err := c.ctl.Provider.EKS().ListNodegroups(&awseks.ListNodegroupsInput{
+		nodeGroups, err := c.ctl.AWSProvider.EKS().ListNodegroups(&awseks.ListNodegroupsInput{
 			ClusterName: &c.cfg.Metadata.Name,
 		})
 		if err != nil {
@@ -317,7 +317,7 @@ func (c *UnownedCluster) waitForUnownedNgsDeletion(interval time.Duration) *mana
 
 	return &manager.DeleteWaitCondition{
 		Condition: condition,
-		Timeout:   c.ctl.Provider.WaitTimeout(),
+		Timeout:   c.ctl.AWSProvider.WaitTimeout(),
 		Interval:  interval,
 	}
 }

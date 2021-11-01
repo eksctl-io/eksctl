@@ -208,7 +208,7 @@ var _ = Describe("(Integration) Update addons", func() {
 	})
 })
 
-func getRawClient() *kubewrapper.RawClient {
+func getRawClient() kubewrapper.RawClientInterface {
 	cfg := &api.ClusterConfig{
 		Metadata: &api.ClusterMeta{
 			Name:   params.ClusterName,

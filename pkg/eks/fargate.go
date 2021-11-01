@@ -96,7 +96,7 @@ func ScheduleCoreDNSOnFargateIfRelevant(config *api.ClusterConfig, ctl *ClusterP
 				return err
 			}
 			retryPolicy := &retry.TimingOutExponentialBackoff{
-				Timeout:  ctl.Provider.WaitTimeout(),
+				Timeout:  ctl.AWSProvider.WaitTimeout(),
 				TimeUnit: time.Second,
 			}
 			if err := coredns.WaitForScheduleOnFargate(clientSet, retryPolicy); err != nil {

@@ -47,7 +47,7 @@ var _ = Describe("Fargate", func() {
 		clusterName = "my-cluster"
 		cfg.Metadata.Name = clusterName
 
-		fargateManager = fargate.New(cfg, &eks.ClusterProvider{Provider: mockProvider, Status: &eks.ProviderStatus{}}, fakeStackManager)
+		fargateManager = fargate.New(cfg, &eks.ClusterProvider{AWSProvider: mockProvider, Status: &eks.ProviderStatus{}}, fakeStackManager)
 		fakeClientSet = fake.NewSimpleClientset()
 
 		fargateManager.SetNewClientSet(func() (kubernetes.Interface, error) {

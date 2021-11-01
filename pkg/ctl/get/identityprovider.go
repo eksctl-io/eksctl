@@ -65,7 +65,7 @@ func doGetIdentityProvider(cmd *cmdutils.Cmd, params getCmdParams, name string) 
 
 	manager := identityproviders.NewManager(
 		*cfg.Metadata,
-		ctl.Provider.EKS(),
+		ctl.AWSProvider.EKS(),
 	)
 
 	summaries, err := manager.Get(

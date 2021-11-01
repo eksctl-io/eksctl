@@ -70,7 +70,7 @@ func updateAddon(cmd *cmdutils.Cmd, force, wait bool) error {
 
 	stackManager := clusterProvider.NewStackManager(cmd.ClusterConfig)
 
-	output, err := clusterProvider.Provider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
+	output, err := clusterProvider.AWSProvider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
 		Name: &cmd.ClusterConfig.Metadata.Name,
 	})
 
@@ -81,7 +81,7 @@ func updateAddon(cmd *cmdutils.Cmd, force, wait bool) error {
 	logger.Info("Kubernetes version %q in use by cluster %q", *output.Cluster.Version, cmd.ClusterConfig.Metadata.Name)
 	cmd.ClusterConfig.Metadata.Version = *output.Cluster.Version
 
-	addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.Provider.EKS(), stackManager, oidcProviderExists, oidc, nil, cmd.ProviderConfig.WaitTimeout)
+	addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.AWSProvider.EKS(), stackManager, oidcProviderExists, oidc, nil, cmd.ProviderConfig.WaitTimeout)
 
 	if err != nil {
 		return err

@@ -54,7 +54,7 @@ func describeAddonVersions(cmd *cmdutils.Cmd, addonName, k8sVersion, clusterName
 	if k8sVersion != "" {
 		cmd.ClusterConfig.Metadata.Version = k8sVersion
 	} else if clusterName != "" {
-		output, err := clusterProvider.Provider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
+		output, err := clusterProvider.AWSProvider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
 			Name: &clusterName,
 		})
 
@@ -70,7 +70,7 @@ func describeAddonVersions(cmd *cmdutils.Cmd, addonName, k8sVersion, clusterName
 
 	stackManager := clusterProvider.NewStackManager(cmd.ClusterConfig)
 
-	addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.Provider.EKS(), stackManager, *cmd.ClusterConfig.IAM.WithOIDC, nil, nil, cmd.ProviderConfig.WaitTimeout)
+	addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.AWSProvider.EKS(), stackManager, *cmd.ClusterConfig.IAM.WithOIDC, nil, nil, cmd.ProviderConfig.WaitTimeout)
 
 	if err != nil {
 		return err

@@ -39,7 +39,7 @@ var _ = Describe("Get", func() {
 		cfg.Metadata.Name = clusterName
 		p = mockprovider.NewMockProvider()
 		fakeClientSet = fake.NewSimpleClientset()
-		m = nodegroup.New(cfg, &eks.ClusterProvider{Provider: p}, fakeClientSet)
+		m = nodegroup.New(cfg, &eks.ClusterProvider{AWSProvider: p}, fakeClientSet)
 
 		fakeStackManager = new(fakes.FakeStackManager)
 		m.SetStackManager(fakeStackManager)

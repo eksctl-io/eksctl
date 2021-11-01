@@ -166,7 +166,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 	})
 })
 
-func newClientSet(name string) *kubernetes.Clientset {
+func newClientSet(name string) kubernetes.Interface {
 	cfg := &api.ClusterConfig{
 		Metadata: &api.ClusterMeta{
 			Name:   name,

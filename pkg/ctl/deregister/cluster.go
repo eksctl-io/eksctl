@@ -39,7 +39,7 @@ func deregisterCluster(cmd *cmdutils.Cmd, clusterName string) error {
 	}
 
 	c := connector.EKSConnector{
-		Provider: clusterProvider.Provider,
+		Provider: clusterProvider.AWSProvider,
 	}
 
 	if err := c.DeregisterCluster(clusterName); err != nil {

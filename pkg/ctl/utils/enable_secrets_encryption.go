@@ -72,7 +72,7 @@ func doEnableSecretsEncryption(cmd *cmdutils.Cmd, encryptExistingSecrets bool) e
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), ctl.Provider.WaitTimeout())
+	ctx, cancel := context.WithTimeout(context.Background(), ctl.AWSProvider.WaitTimeout())
 	defer cancel()
 
 	if err := ctl.EnableKMSEncryption(ctx, clusterConfig); err != nil {

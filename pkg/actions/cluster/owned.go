@@ -57,7 +57,7 @@ func (c *OwnedCluster) Upgrade(dryRun bool) error {
 		return err
 	}
 
-	nodeGroupService := eks.NodeGroupService{Provider: c.ctl.Provider}
+	nodeGroupService := eks.NodeGroupService{Provider: c.ctl.AWSProvider}
 	if err := nodeGroupService.ValidateExistingNodeGroupsForCompatibility(c.cfg, c.stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
@@ -127,7 +127,7 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force bool) error {
 		}
 
 		go func() {
-			errs <- vpc.CleanupNetworkInterfaces(c.ctl.Provider.EC2(), c.cfg)
+			errs <- vpc.CleanupNetworkInterfaces(c.ctl.AWSProvider.EC2(), c.cfg)
 			close(errs)
 		}()
 		return nil

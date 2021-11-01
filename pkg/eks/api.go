@@ -36,6 +36,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/yaml"
 
@@ -44,7 +45,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	ekscreds "github.com/weaveworks/eksctl/pkg/credentials"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/version"
 )
@@ -52,16 +52,37 @@ import (
 // ClusterProvider stores information about the cluster
 type ClusterProvider struct {
 	// core fields used for config and AWS APIs
-	Provider api.ClusterProvider
+	AWSProvider api.ClusterProvider
+	// provider for k8s clients
+	KubeProvider KubeProvider
 	// informative fields, i.e. used as outputs
 	Status *ProviderStatus
 }
 
-//counterfeiter:generate -o fakes/fake_kube_provider.go . KubeProvider
-// KubeProvider is an interface with helper funcs for k8s and EKS that are part of ClusterProvider
+// KubeProvider is the interface to K8s APIs
 type KubeProvider interface {
+	NewRawClient(spec *api.ClusterConfig) (kubewrapper.RawClientInterface, error)
+	NewClient(spec *api.ClusterConfig) (ClientInterface, error)
+	NewStdClientSet(spec *api.ClusterConfig) (kubernetes.Interface, error)
+}
+
+func (p ClusterProvider) NewRawClient(spec *api.ClusterConfig) (kubewrapper.RawClientInterface, error) {
+	return p.KubeProvider.NewRawClient(spec)
+}
+
+func (p ClusterProvider) NewClient(spec *api.ClusterConfig) (ClientInterface, error) {
+	return p.KubeProvider.NewClient(spec)
+}
+
+func (p ClusterProvider) NewStdClientSet(spec *api.ClusterConfig) (kubernetes.Interface, error) {
+	return p.KubeProvider.NewStdClientSet(spec)
+}
+
+//counterfeiter:generate -o fakes/fake_mock_cluster_provider.go . MockClusterProvider
+// MockClusterProvider is an interface with helper funcs for k8s and EKS that are part of ClusterProvider
+type MockClusterProvider interface {
 	NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error)
-	ServerVersion(rawClient *kubernetes.RawClient) (string, error)
+	ServerVersion(rawClient *kubewrapper.RawClient) (string, error)
 	LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, stackManager manager.StackManager) error
 	SupportsManagedNodes(clusterConfig *api.ClusterConfig) (bool, error)
 	ValidateClusterForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error
@@ -151,12 +172,17 @@ type ProviderStatus struct {
 
 // New creates a new setup of the used AWS APIs
 func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProvider, error) {
-	provider := &ProviderServices{
+	awsProvider := &ProviderServices{
 		spec: spec,
 	}
-	c := &ClusterProvider{
-		Provider: provider,
+	kubeProvider := &AWSKubeProvider{
+		AWSProvider: awsProvider,
 	}
+	c := &ClusterProvider{
+		AWSProvider:  awsProvider,
+		KubeProvider: kubeProvider,
+	}
+	kubeProvider.ClusterProvider = c
 	// Create a new session and save credentials for possible
 	// later re-use if overriding sessions due to custom URL
 	s := c.newSession(spec)
@@ -170,14 +196,14 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 		}
 	}
 
-	provider.session = s
-	provider.asg = autoscaling.New(s)
-	provider.cfn = cloudformation.New(s)
-	provider.eks = awseks.New(s)
-	provider.ec2 = ec2.New(s)
-	provider.elb = elb.New(s)
-	provider.elbv2 = elbv2.New(s)
-	provider.sts = sts.New(s,
+	awsProvider.session = s
+	awsProvider.asg = autoscaling.New(s)
+	awsProvider.cfn = cloudformation.New(s)
+	awsProvider.eks = awseks.New(s)
+	awsProvider.ec2 = ec2.New(s)
+	awsProvider.elb = elb.New(s)
+	awsProvider.elbv2 = elbv2.New(s)
+	awsProvider.sts = sts.New(s,
 		// STS retrier has to be disabled, as it's not very helpful
 		// (see https://github.com/weaveworks/eksctl/issues/705)
 		request.WithRetryer(s.Config.Copy(),
@@ -186,9 +212,9 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 			},
 		),
 	)
-	provider.ssm = ssm.New(s)
-	provider.iam = iam.New(s)
-	provider.cloudtrail = cloudtrail.New(s)
+	awsProvider.ssm = ssm.New(s)
+	awsProvider.iam = iam.New(s)
+	awsProvider.cloudtrail = cloudtrail.New(s)
 
 	c.Status = &ProviderStatus{
 		sessionCreds: s.Config.Credentials,
@@ -197,42 +223,42 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	// override sessions if any custom endpoints specified
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
 		logger.Debug("Setting CloudFormation endpoint to %s", endpoint)
-		provider.cfn = cloudformation.New(s, s.Config.Copy().WithEndpoint(endpoint))
+		awsProvider.cfn = cloudformation.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EKS_ENDPOINT"); ok {
 		logger.Debug("Setting EKS endpoint to %s", endpoint)
-		provider.eks = awseks.New(s, s.Config.Copy().WithEndpoint(endpoint))
+		awsProvider.eks = awseks.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
 		logger.Debug("Setting EC2 endpoint to %s", endpoint)
-		provider.ec2 = ec2.New(s, s.Config.Copy().WithEndpoint(endpoint))
+		awsProvider.ec2 = ec2.New(s, s.Config.Copy().WithEndpoint(endpoint))
 
 	}
 	if endpoint, ok := os.LookupEnv("AWS_ELB_ENDPOINT"); ok {
 		logger.Debug("Setting ELB endpoint to %s", endpoint)
-		provider.elb = elb.New(s, s.Config.Copy().WithEndpoint(endpoint))
+		awsProvider.elb = elb.New(s, s.Config.Copy().WithEndpoint(endpoint))
 
 	}
 	if endpoint, ok := os.LookupEnv("AWS_ELBV2_ENDPOINT"); ok {
 		logger.Debug("Setting ELBV2 endpoint to %s", endpoint)
-		provider.elbv2 = elbv2.New(s, s.Config.Copy().WithEndpoint(endpoint))
+		awsProvider.elbv2 = elbv2.New(s, s.Config.Copy().WithEndpoint(endpoint))
 
 	}
 	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
 		logger.Debug("Setting STS endpoint to %s", endpoint)
-		provider.sts = sts.New(s, s.Config.Copy().WithEndpoint(endpoint))
+		awsProvider.sts = sts.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_IAM_ENDPOINT"); ok {
 		logger.Debug("Setting IAM endpoint to %s", endpoint)
-		provider.iam = iam.New(s, s.Config.Copy().WithEndpoint(endpoint))
+		awsProvider.iam = iam.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDTRAIL_ENDPOINT"); ok {
 		logger.Debug("Setting CloudTrail endpoint to %s", endpoint)
-		provider.cloudtrail = cloudtrail.New(s, s.Config.Copy().WithEndpoint(endpoint))
+		awsProvider.cloudtrail = cloudtrail.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
 
 	if clusterSpec != nil {
-		clusterSpec.Metadata.Region = c.Provider.Region()
+		clusterSpec.Metadata.Region = c.AWSProvider.Region()
 	}
 
 	return c, c.CheckAuth()
@@ -285,7 +311,7 @@ func readConfig(configFile string) ([]byte, error) {
 // IsSupportedRegion check if given region is supported
 func (c *ClusterProvider) IsSupportedRegion() bool {
 	for _, supportedRegion := range api.SupportedRegions() {
-		if c.Provider.Region() == supportedRegion {
+		if c.AWSProvider.Region() == supportedRegion {
 			return true
 		}
 	}
@@ -308,7 +334,7 @@ func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 // CheckAuth checks the AWS authentication
 func (c *ClusterProvider) CheckAuth() error {
 	input := &sts.GetCallerIdentityInput{}
-	output, err := c.Provider.STS().GetCallerIdentity(input)
+	output, err := c.AWSProvider.STS().GetCallerIdentity(input)
 	if err != nil {
 		return errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
 	}
@@ -373,10 +399,10 @@ func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []
 
 	logger.Debug("determining availability zones")
 	var azSelector *az.AvailabilityZoneSelector
-	if c.Provider.Region() == api.RegionUSEast1 {
-		azSelector = az.NewSelectorWithMinRequired(c.Provider.EC2(), c.Provider.Region())
+	if c.AWSProvider.Region() == api.RegionUSEast1 {
+		azSelector = az.NewSelectorWithMinRequired(c.AWSProvider.EC2(), c.AWSProvider.Region())
 	} else {
-		azSelector = az.NewSelectorWithDefaults(c.Provider.EC2(), c.Provider.Region())
+		azSelector = az.NewSelectorWithDefaults(c.AWSProvider.EC2(), c.AWSProvider.Region())
 	}
 
 	zones, err := azSelector.SelectZones()
@@ -396,8 +422,8 @@ func (c *ClusterProvider) newSession(spec *api.ProviderConfig) *session.Session 
 	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
 	config := aws.NewConfig().WithCredentialsChainVerboseErrors(true)
 
-	if c.Provider.Region() != "" {
-		config = config.WithRegion(c.Provider.Region()).WithSTSRegionalEndpoint(endpoints.RegionalSTSEndpoint)
+	if c.AWSProvider.Region() != "" {
+		config = config.WithRegion(c.AWSProvider.Region()).WithSTSRegionalEndpoint(endpoints.RegionalSTSEndpoint)
 	}
 
 	config = request.WithRetryer(config, newLoggingRetryer())
@@ -447,5 +473,5 @@ func (c *ClusterProvider) newSession(spec *api.ProviderConfig) *session.Session 
 
 // NewStackManager returns a new stack manager
 func (c *ClusterProvider) NewStackManager(spec *api.ClusterConfig) manager.StackManager {
-	return manager.NewStackCollection(c.Provider, spec)
+	return manager.NewStackCollection(c.AWSProvider, spec)
 }

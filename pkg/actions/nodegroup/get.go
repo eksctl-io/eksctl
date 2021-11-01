@@ -30,7 +30,7 @@ func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 		}
 	}
 
-	managedNodeGroups, err := m.ctl.Provider.EKS().ListNodegroups(&eks.ListNodegroupsInput{
+	managedNodeGroups, err := m.ctl.AWSProvider.EKS().ListNodegroups(&eks.ListNodegroupsInput{
 		ClusterName: &m.cfg.Metadata.Name,
 	})
 	if err != nil {
@@ -38,7 +38,7 @@ func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 	}
 
 	for _, managedNodeGroup := range managedNodeGroups.Nodegroups {
-		describeOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
+		describeOutput, err := m.ctl.AWSProvider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
 			ClusterName:   &m.cfg.Metadata.Name,
 			NodegroupName: managedNodeGroup,
 		})
@@ -97,7 +97,7 @@ func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
 		return s, nil
 	}
 
-	describeOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
+	describeOutput, err := m.ctl.AWSProvider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
 		ClusterName:   &m.cfg.Metadata.Name,
 		NodegroupName: &name,
 	})
@@ -139,7 +139,7 @@ func (m *Manager) getInstanceTypes(ng *awseks.Nodegroup) string {
 		return "-"
 	}
 
-	resp, err := m.ctl.Provider.EC2().DescribeLaunchTemplateVersions(&ec2.DescribeLaunchTemplateVersionsInput{
+	resp, err := m.ctl.AWSProvider.EC2().DescribeLaunchTemplateVersions(&ec2.DescribeLaunchTemplateVersionsInput{
 		LaunchTemplateId: ng.LaunchTemplate.Id,
 	})
 	if err != nil {

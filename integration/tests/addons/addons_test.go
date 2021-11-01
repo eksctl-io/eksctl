@@ -183,7 +183,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 	})
 })
 
-func getRawClient(clusterName string) *kubewrapper.RawClient {
+func getRawClient(clusterName string) kubewrapper.RawClientInterface {
 	cfg := &api.ClusterConfig{
 		Metadata: &api.ClusterMeta{
 			Name:   clusterName,

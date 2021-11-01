@@ -28,18 +28,63 @@ import (
 
 // Client stores information about the client config
 type Client struct {
-	Config *clientcmdapi.Config
-
+	config *clientcmdapi.Config
 	rawConfig *restclient.Config
 }
 
+// ClientInterface allows client to be mocked in test
+type ClientInterface interface {
+	NewClientSet() (*kubernetes.Clientset, error)
+	Config() *clientcmdapi.Config
+}
+
+// AWSKubeProvider encapsulates kubernetes client building logic
+type AWSKubeProvider struct {
+	AWSProvider     api.ClusterProvider
+	ClusterProvider *ClusterProvider // TODO: resolve circular reference, only required for GetUsername()
+}
+
 // NewClient creates a new client config by embedding the STS token
-func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
-	config := kubeconfig.NewForUser(spec, c.GetUsername())
+func (p *AWSKubeProvider) NewClient(spec *api.ClusterConfig) (ClientInterface, error) {
+	config := kubeconfig.NewForUser(spec, p.ClusterProvider.GetUsername())
 	client := &Client{
-		Config: config,
+		config: config,
 	}
-	return client.new(spec, c.Provider.STS())
+	return client.new(spec, p.AWSProvider.STS())
+}
+
+// NewRawClient creates a new raw REST client in one go with an embedded STS token
+func (p *AWSKubeProvider) NewRawClient(spec *api.ClusterConfig) (kubewrapper.RawClientInterface, error) {
+	client, clientSet, err := p.newClientSetWithEmbeddedToken(spec)
+	if err != nil {
+		return nil, err
+	}
+
+	return kubewrapper.NewRawClient(clientSet, client.rawConfig)
+}
+
+// NewStdClientSet creates a new API client in one go with an embedded STS token, this is most commonly used option
+func (p *AWSKubeProvider) NewStdClientSet(spec *api.ClusterConfig) (kubernetes.Interface, error) {
+	_, clientSet, err := p.newClientSetWithEmbeddedToken(spec)
+	if err != nil {
+		return nil, err
+	}
+
+	return clientSet, nil
+}
+
+func (p *AWSKubeProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig) (*Client, *kubernetes.Clientset, error) {
+	client, err := p.NewClient(spec)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "creating Kubernetes client config with embedded token")
+	}
+
+	clientSet, err := client.NewClientSet()
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "creating Kubernetes client")
+	}
+
+	return client.(*Client), clientSet, nil
 }
 
 // GetUsername extracts the username part from the IAM role ARN
@@ -56,7 +101,7 @@ func (c *Client) new(spec *api.ClusterConfig, stsClient stsiface.STSAPI) (*Clien
 		return nil, err
 	}
 
-	rawConfig, err := clientcmd.NewDefaultClientConfig(*c.Config, &clientcmd.ConfigOverrides{}).ClientConfig()
+	rawConfig, err := clientcmd.NewDefaultClientConfig(*c.config, &clientcmd.ConfigOverrides{}).ClientConfig()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create API client configuration from client config")
 	}
@@ -76,7 +121,7 @@ func (c *Client) useEmbeddedToken(spec *api.ClusterConfig, stsclient stsiface.ST
 		return errors.Wrap(err, "could not get token")
 	}
 
-	c.Config.AuthInfos[c.Config.CurrentContext].Token = tok.Token
+	c.config.AuthInfos[c.config.CurrentContext].Token = tok.Token
 	return nil
 }
 
@@ -89,38 +134,8 @@ func (c *Client) NewClientSet() (*kubernetes.Clientset, error) {
 	return client, nil
 }
 
-// NewStdClientSet creates a new API client in one go with an embedded STS token, this is most commonly used option
-func (c *ClusterProvider) NewStdClientSet(spec *api.ClusterConfig) (*kubernetes.Clientset, error) {
-	_, clientSet, err := c.newClientSetWithEmbeddedToken(spec)
-	if err != nil {
-		return nil, err
-	}
-
-	return clientSet, nil
-}
-
-func (c *ClusterProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig) (*Client, *kubernetes.Clientset, error) {
-	client, err := c.NewClient(spec)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "creating Kubernetes client config with embedded token")
-	}
-
-	clientSet, err := client.NewClientSet()
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "creating Kubernetes client")
-	}
-
-	return client, clientSet, nil
-}
-
-// NewRawClient creates a new raw REST client in one go with an embedded STS token
-func (c *ClusterProvider) NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error) {
-	client, clientSet, err := c.newClientSetWithEmbeddedToken(spec)
-	if err != nil {
-		return nil, err
-	}
-
-	return kubewrapper.NewRawClient(clientSet, client.rawConfig)
+func (c *Client) Config() *clientcmdapi.Config {
+	return c.config
 }
 
 // ServerVersion will use discovery API to fetch version of Kubernetes control plane
@@ -150,7 +165,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNo
 	if minSize == 0 {
 		return nil
 	}
-	timer := time.After(c.Provider.WaitTimeout())
+	timer := time.After(c.AWSProvider.WaitTimeout())
 	timeout := false
 	readyNodes := sets.NewString()
 	watcher, err := clientSet.CoreV1().Nodes().Watch(context.TODO(), ng.ListOptions())
@@ -186,7 +201,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNo
 	}
 	watcher.Stop()
 	if timeout {
-		return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.Provider.WaitTimeout(), minSize, ng.NameString())
+		return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.AWSProvider.WaitTimeout(), minSize, ng.NameString())
 	}
 
 	if _, err = getNodes(clientSet, ng); err != nil {

@@ -79,7 +79,7 @@ func (c *ClusterProvider) UpdateClusterConfigForLogging(cfg *api.ClusterConfig) 
 		},
 	}
 
-	output, err := c.Provider.EKS().UpdateClusterConfig(input)
+	output, err := c.AWSProvider.EKS().UpdateClusterConfig(input)
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (c *ClusterProvider) UpdateClusterConfigForEndpoints(cfg *api.ClusterConfig
 		},
 	}
 
-	output, err := c.Provider.EKS().UpdateClusterConfig(input)
+	output, err := c.AWSProvider.EKS().UpdateClusterConfig(input)
 	if err != nil {
 		return err
 	}
@@ -147,7 +147,7 @@ func (c *ClusterProvider) UpdatePublicAccessCIDRs(clusterConfig *api.ClusterConf
 			PublicAccessCidrs: aws.StringSlice(clusterConfig.VPC.PublicAccessCIDRs),
 		},
 	}
-	output, err := c.Provider.EKS().UpdateClusterConfig(input)
+	output, err := c.AWSProvider.EKS().UpdateClusterConfig(input)
 	if err != nil {
 		return err
 	}
@@ -157,7 +157,7 @@ func (c *ClusterProvider) UpdatePublicAccessCIDRs(clusterConfig *api.ClusterConf
 // EnableKMSEncryption enables KMS encryption for the specified cluster
 func (c *ClusterProvider) EnableKMSEncryption(ctx context.Context, clusterConfig *api.ClusterConfig) error {
 	clusterName := aws.String(clusterConfig.Metadata.Name)
-	clusterOutput, err := c.Provider.EKS().DescribeCluster(&eks.DescribeClusterInput{
+	clusterOutput, err := c.AWSProvider.EKS().DescribeCluster(&eks.DescribeClusterInput{
 		Name: clusterName,
 	})
 	if err != nil {
@@ -173,7 +173,7 @@ func (c *ClusterProvider) EnableKMSEncryption(ctx context.Context, clusterConfig
 		}
 	}
 
-	output, err := c.Provider.EKS().AssociateEncryptionConfigWithContext(ctx, &eks.AssociateEncryptionConfigInput{
+	output, err := c.AWSProvider.EKS().AssociateEncryptionConfigWithContext(ctx, &eks.AssociateEncryptionConfigInput{
 		ClusterName: clusterName,
 		EncryptionConfig: []*eks.EncryptionConfig{
 			{
@@ -191,7 +191,7 @@ func (c *ClusterProvider) EnableKMSEncryption(ctx context.Context, clusterConfig
 
 	logger.Info("initiated KMS encryption, this may take up to 45 minutes to complete")
 
-	err = waitForUpdate(ctx, c.Provider.EKS(), &eks.DescribeUpdateInput{
+	err = waitForUpdate(ctx, c.AWSProvider.EKS(), &eks.DescribeUpdateInput{
 		Name:     clusterName,
 		UpdateId: output.Update.Id,
 	})
@@ -282,7 +282,7 @@ func (c *ClusterProvider) UpdateClusterVersion(cfg *api.ClusterConfig) (*eks.Upd
 		Name:    &cfg.Metadata.Name,
 		Version: &cfg.Metadata.Version,
 	}
-	output, err := c.Provider.EKS().UpdateClusterVersion(input)
+	output, err := c.AWSProvider.EKS().UpdateClusterVersion(input)
 	if err != nil {
 		return nil, err
 	}
@@ -301,7 +301,7 @@ func (c *ClusterProvider) UpdateClusterTags(cfg *api.ClusterConfig) error {
 		ResourceArn: c.Status.ClusterInfo.Cluster.Arn,
 		Tags:        utilsstrings.ToPointersMap(cfg.Metadata.Tags),
 	}
-	_, err := c.Provider.EKS().TagResource(input)
+	_, err := c.AWSProvider.EKS().TagResource(input)
 	if err != nil {
 		return err
 	}
@@ -334,7 +334,7 @@ func (c *ClusterProvider) waitForUpdateToSucceed(clusterName string, update *eks
 			Name:     &clusterName,
 			UpdateId: update.Id,
 		}
-		req, _ := c.Provider.EKS().DescribeUpdateRequest(input)
+		req, _ := c.AWSProvider.EKS().DescribeUpdateRequest(input)
 		return req
 	}
 
@@ -349,11 +349,11 @@ func (c *ClusterProvider) waitForUpdateToSucceed(clusterName string, update *eks
 
 	msg := fmt.Sprintf("waiting for requested %q in cluster %q to succeed", *update.Type, clusterName)
 
-	return waiters.Wait(clusterName, msg, acceptors, newRequest, c.Provider.WaitTimeout(), nil)
+	return waiters.Wait(clusterName, msg, acceptors, newRequest, c.AWSProvider.WaitTimeout(), nil)
 }
 
-func controlPlaneIsVersion(clientSet *kubeclient.Clientset, version string) (bool, error) {
-	serverVersion, err := clientSet.ServerVersion()
+func controlPlaneIsVersion(clientSet kubeclient.Interface, version string) (bool, error) {
+	serverVersion, err := clientSet.Discovery().ServerVersion()
 	if err != nil {
 		return false, err
 	}
@@ -362,7 +362,7 @@ func controlPlaneIsVersion(clientSet *kubeclient.Clientset, version string) (boo
 
 func (c *ClusterProvider) waitForControlPlaneVersion(cfg *api.ClusterConfig) error {
 	retryPolicy := retry.TimingOutExponentialBackoff{
-		Timeout:  c.Provider.WaitTimeout(),
+		Timeout:  c.AWSProvider.WaitTimeout(),
 		TimeUnit: time.Second,
 	}
 

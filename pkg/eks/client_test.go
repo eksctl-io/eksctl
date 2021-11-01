@@ -29,8 +29,8 @@ var _ = Describe("eks auth helpers", func() {
 				p = mockprovider.NewMockProvider()
 
 				ctl = &ClusterProvider{
-					Provider: p,
-					Status:   &ProviderStatus{},
+					AWSProvider: p,
+					Status:      &ProviderStatus{},
 				}
 			})
 
@@ -77,7 +77,7 @@ var _ = Describe("eks auth helpers", func() {
 				}
 
 				testAuthenticatorConfig := func(roleARN string) {
-					k := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), roleARN, ctl.Provider.Profile())
+					k := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), roleARN, ctl.AWSProvider.Profile())
 					ctx := k.CurrentContext
 
 					// test shared expectations
@@ -126,10 +126,11 @@ var _ = Describe("eks auth helpers", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					// test shared expectations
-					assertConfigValid(client.Config)
+					config := client.Config()
+					assertConfigValid(config)
 
 					// test embedded token
-					ctx := client.Config.CurrentContext
+					ctx := config.CurrentContext
 					username := strings.Split(ctx, "@")[0]
 					if roleARN != "" {
 						expectedUsername := strings.Split(roleARN, "/")[1]
@@ -137,8 +138,8 @@ var _ = Describe("eks auth helpers", func() {
 					} else {
 						Expect(username).To(Equal("iam-root-account"))
 					}
-					Expect(client.Config.AuthInfos[ctx].Token).ToNot(BeEmpty())
-					Expect(client.Config.AuthInfos[ctx].Exec).To(BeNil())
+					Expect(config.AuthInfos[ctx].Token).ToNot(BeEmpty())
+					Expect(config.AuthInfos[ctx].Exec).To(BeNil())
 				}
 
 				It("should create config with authenticator", func() {

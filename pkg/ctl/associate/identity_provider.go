@@ -73,7 +73,7 @@ func doAssociateIdentityProvider(cmd *cmdutils.Cmd, timeout time.Duration) error
 
 	manager := identityproviders.NewManager(
 		*cfg.Metadata,
-		ctl.Provider.EKS(),
+		ctl.AWSProvider.EKS(),
 	)
 
 	options := identityproviders.AssociateIdentityProvidersOptions{

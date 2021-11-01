@@ -584,4 +584,4 @@ func (fake *FakeKubeProvider) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ eks.KubeProvider = new(FakeKubeProvider)
+var _ eks.MockClusterProvider = new(FakeKubeProvider)

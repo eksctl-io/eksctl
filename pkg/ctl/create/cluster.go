@@ -175,7 +175,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		cfg.VPC.CIDR = nil
 		// load subnets from local map created from flags, into the config
 		for topology := range params.Subnets {
-			if err := vpc.ImportSubnetsFromIDList(ctl.Provider.EC2(), cfg, topology, *params.Subnets[topology]); err != nil {
+			if err := vpc.ImportSubnetsFromIDList(ctl.AWSProvider.EC2(), cfg, topology, *params.Subnets[topology]); err != nil {
 				return err
 			}
 		}
@@ -198,7 +198,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return err
 	}
 
-	nodeGroupService := eks.NewNodeGroupService(ctl.Provider, selector.New(ctl.Provider.Session()))
+	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, selector.New(ctl.AWSProvider.Session()))
 	nodePools := cmdutils.ToNodePools(cfg)
 	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err
@@ -285,7 +285,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		var kubeconfigContextName string
 
 		if params.WriteKubeconfig {
-			kubectlConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), params.AuthenticatorRoleARN, ctl.Provider.Profile())
+			kubectlConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), params.AuthenticatorRoleARN, ctl.AWSProvider.Profile())
 			kubeconfigContextName = kubectlConfig.CurrentContext
 
 			params.KubeconfigPath, err = kubeconfig.Write(params.KubeconfigPath, *kubectlConfig, params.SetContext)
@@ -438,7 +438,7 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 			return nil
 		}
 
-		if err := kw.UseVPC(ctl.Provider.EC2(), cfg); err != nil {
+		if err := kw.UseVPC(ctl.AWSProvider.EC2(), cfg); err != nil {
 			return err
 		}
 
@@ -464,7 +464,7 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 		return nil
 	}
 
-	if err := vpc.ImportSubnetsFromSpec(ctl.Provider, cfg); err != nil {
+	if err := vpc.ImportSubnetsFromSpec(ctl.AWSProvider, cfg); err != nil {
 		return err
 	}
 

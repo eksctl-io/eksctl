@@ -42,7 +42,7 @@ func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, sta
 		return nil
 	}
 
-	ssh.DeleteKeys(cfg.Metadata.Name, ctl.Provider.EC2())
+	ssh.DeleteKeys(cfg.Metadata.Name, ctl.AWSProvider.EC2())
 
 	kubeconfig.MaybeDeleteConfig(cfg.Metadata)
 
@@ -54,7 +54,7 @@ func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, sta
 		cfg.Metadata.Version = *ctl.Status.ClusterInfo.Cluster.Version
 
 		logger.Info("cleaning up AWS load balancers created by Kubernetes objects of Kind Service or Ingress")
-		if err := elb.Cleanup(ctx, ctl.Provider.EC2(), ctl.Provider.ELB(), ctl.Provider.ELBV2(), clientSet, cfg); err != nil {
+		if err := elb.Cleanup(ctx, ctl.AWSProvider.EC2(), ctl.AWSProvider.ELB(), ctl.AWSProvider.ELBV2(), clientSet, cfg); err != nil {
 			return err
 		}
 	}
@@ -72,7 +72,7 @@ func handleErrors(errs []error, subject string) error {
 func deleteFargateProfiles(clusterMeta *api.ClusterMeta, ctl *eks.ClusterProvider, stackManager manager.StackManager) error {
 	manager := fargate.NewFromProvider(
 		clusterMeta.Name,
-		ctl.Provider,
+		ctl.AWSProvider,
 		stackManager,
 	)
 	profileNames, err := manager.ListProfiles()
@@ -172,7 +172,7 @@ func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackM
 
 	logger.Info("will drain %d unmanaged nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 	nodeGroupManager := nodegroup.New(cfg, ctl, clientSet)
-	if err := nodeGroupManager.Drain(cmdutils.ToKubeNodeGroups(cfg), false, ctl.Provider.WaitTimeout(), false); err != nil {
+	if err := nodeGroupManager.Drain(cmdutils.ToKubeNodeGroups(cfg), false, ctl.AWSProvider.WaitTimeout(), false); err != nil {
 		return err
 	}
 	attemptVpcCniDeletion(cfg.Metadata.Name, ctl, clientSet)
@@ -184,7 +184,7 @@ func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackM
 func attemptVpcCniDeletion(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
 	vpcCNI := "vpc-cni"
 	logger.Debug("deleting EKS addon %q if it exists", vpcCNI)
-	_, err := ctl.Provider.EKS().DeleteAddon(&awseks.DeleteAddonInput{
+	_, err := ctl.AWSProvider.EKS().DeleteAddon(&awseks.DeleteAddonInput{
 		ClusterName: &clusterName,
 		AddonName:   aws.String(vpcCNI),
 	})
