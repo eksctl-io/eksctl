@@ -912,11 +912,6 @@ func (in *Network) DeepCopyInto(out *Network) {
 		in, out := &in.CIDR, &out.CIDR
 		*out = (*in).DeepCopy()
 	}
-	if in.IPFamily != nil {
-		in, out := &in.IPFamily, &out.IPFamily
-		*out = new(string)
-		**out = **in
-	}
 	return
 }
 

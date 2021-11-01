@@ -3,7 +3,6 @@ package builder_test
 import (
 	"encoding/json"
 
-	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo"
@@ -33,7 +32,7 @@ var _ = Describe("Cluster Template Builder", func() {
 		cfg = api.NewClusterConfig()
 		cfg.VPC = vpcConfig()
 		cfg.AvailabilityZones = []string{"us-west-2a", "us-west-2b"}
-		cfg.VPC.IPFamily = aws.String(string(api.IPV4Family))
+		cfg.VPC.IPFamily = api.IPV4Family
 		cfg.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
 			ServiceIPv4CIDR: "131.10.55.70/18",
 		}
@@ -99,7 +98,7 @@ var _ = Describe("Cluster Template Builder", func() {
 
 		Context("when ipFamily is set to IPv6", func() {
 			BeforeEach(func() {
-				cfg.VPC.IPFamily = aws.String(string(api.IPV6Family))
+				cfg.VPC.IPFamily = api.IPV6Family
 				cfg.KubernetesNetworkConfig = nil
 			})
 

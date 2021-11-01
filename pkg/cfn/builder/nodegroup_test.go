@@ -17,7 +17,6 @@ import (
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	"github.com/weaveworks/eksctl/pkg/eks/mocks"
 	bootstrapfakes "github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"
-	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
 )
 
@@ -78,10 +77,10 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 
 		Context("ipv6 cluster", func() {
 			BeforeEach(func() {
-				cfg.VPC.IPFamily = utilsstrings.Pointer(string(api.IPV6Family))
+				cfg.VPC.IPFamily = api.IPV6Family
 			})
 			AfterEach(func() {
-				cfg.VPC.IPFamily = utilsstrings.Pointer(string(api.IPV4Family))
+				cfg.VPC.IPFamily = api.IPV4Family
 			})
 
 			When("an unmanaged nodegroup is created", func() {

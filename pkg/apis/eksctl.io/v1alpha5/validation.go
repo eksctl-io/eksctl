@@ -185,36 +185,34 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		}
 		c.VPC.PublicAccessCIDRs = cidrs
 	}
-	if v := c.VPC.IPFamily; v != nil {
-		if *v != string(IPV4Family) && *v != string(IPV6Family) {
-			return fmt.Errorf("invalid value %s for ipFamily; allowed are %s and %s", *v, IPV4Family, IPV6Family)
+	if c.VPC.IPFamily != IPV4Family && c.VPC.IPFamily != IPV6Family {
+		return fmt.Errorf("invalid value %s for ipFamily; allowed are %s and %s", c.VPC.IPFamily, IPV4Family, IPV6Family)
+	}
+	// This is the new vpc check, I need this check when the user sets it.
+	if c.VPC.IPFamily == IPV6Family {
+		if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
+			return fmt.Errorf("the default core addons must be defined in case of IPv6; missing addon(s): %s", strings.Join(missing, ", "))
 		}
-		// This is the new vpc check, I need this check when the user sets it.
-		if *v == string(IPV6Family) {
-			if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
-				return fmt.Errorf("the default core addons must be defined in case of IPv6; missing addon(s): %s", strings.Join(missing, ", "))
-			}
-			if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
-				return fmt.Errorf("oidc needs to be enabled if IPv6 is set")
-			}
+		if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
+			return fmt.Errorf("oidc needs to be enabled if IPv6 is set")
+		}
 
-			if version, err := utils.CompareVersions(c.Metadata.Version, Version1_21); err != nil {
-				return fmt.Errorf("failed to convert %s cluster version to semver: %w", c.Metadata.Version, err)
-			} else if err == nil && version == -1 {
-				return fmt.Errorf("cluster version must be >= %s", Version1_21)
-			}
+		if version, err := utils.CompareVersions(c.Metadata.Version, Version1_21); err != nil {
+			return fmt.Errorf("failed to convert %s cluster version to semver: %w", c.Metadata.Version, err)
+		} else if err == nil && version == -1 {
+			return fmt.Errorf("cluster version must be >= %s", Version1_21)
+		}
 
-			if c.VPC.NAT != nil {
-				return fmt.Errorf("setting NAT is not supported with IPv6")
-			}
+		if c.VPC.NAT != nil {
+			return fmt.Errorf("setting NAT is not supported with IPv6")
+		}
 
-			if c.KubernetesNetworkConfig != nil && c.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
-				return fmt.Errorf("service ipv4 cidr is not supported with IPv6")
-			}
+		if c.KubernetesNetworkConfig != nil && c.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
+			return fmt.Errorf("service ipv4 cidr is not supported with IPv6")
+		}
 
-			if IsEnabled(c.VPC.AutoAllocateIPv6) {
-				return fmt.Errorf("auto allocate ipv6 is not supported with IPv6")
-			}
+		if IsEnabled(c.VPC.AutoAllocateIPv6) {
+			return fmt.Errorf("auto allocate ipv6 is not supported with IPv6")
 		}
 	}
 

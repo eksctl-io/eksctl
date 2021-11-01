@@ -3,7 +3,6 @@ package manager
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
@@ -11,7 +10,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
-	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
 )
 
@@ -116,7 +114,7 @@ var _ = Describe("StackCollection Tasks", func() {
 
 		When("IPFamily is set to ipv6", func() {
 			BeforeEach(func() {
-				cfg.VPC.IPFamily = aws.String(string(api.IPV6Family))
+				cfg.VPC.IPFamily = api.IPV6Family
 			})
 			It("appends the AssignIpv6AddressOnCreation task to occur after the cluster creation", func() {
 				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"), nil, true)
@@ -134,7 +132,7 @@ var _ = Describe("StackCollection Tasks", func() {
 			BeforeEach(func() {
 				p = mockprovider.NewMockProvider()
 				cfg = newClusterConfig("test-ipv6-cluster")
-				cfg.VPC.IPFamily = utilsstrings.Pointer(string(api.IPV6Family))
+				cfg.VPC.IPFamily = api.IPV6Family
 				stackManager = NewStackCollection(p, cfg)
 			})
 			It("returns an error", func() {
