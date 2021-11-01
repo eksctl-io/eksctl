@@ -546,6 +546,8 @@ var _ = Describe("ClusterConfig validation", func() {
 				It("accepts that setting", func() {
 					cfg.VPC.NAT = nil
 					cfg.VPC.IPFamily = api.IPV6Family
+					cfg.VPC.IPv6Cidr = "foo"
+					cfg.VPC.IPv6CidrPool = "bar"
 					cfg.Addons = append(cfg.Addons,
 						&api.Addon{Name: api.KubeProxyAddon},
 						&api.Addon{Name: api.CoreDNSAddon},
@@ -685,8 +687,8 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 		})
 
-		Context("CIDRs", func() {
-			It("validates cirds", func() {
+		Context("ipv4 CIDRs", func() {
+			It("validates cidrs", func() {
 				cfg.VPC.ExtraCIDRs = []string{"192.168.0.0/24"}
 				cfg.VPC.PublicAccessCIDRs = []string{"3.48.58.68/24"}
 				err = cfg.ValidateVPCConfig()
@@ -704,6 +706,38 @@ var _ = Describe("ClusterConfig validation", func() {
 					cfg.VPC.PublicAccessCIDRs = []string{"48.58.68/24"}
 					err = cfg.ValidateVPCConfig()
 					Expect(err).To(HaveOccurred())
+				})
+			})
+		})
+
+		Context("ipv6 CIDRs", func() {
+			When("IPv6Cidr or IPv6CidrPool is provided and ipv6 is not set", func() {
+				It("returns an error", func() {
+					cfg.VPC.IPFamily = api.IPV4Family
+					cfg.VPC.IPv6Cidr = "foo"
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("Ipv6Cidr and Ipv6CidrPool is only supportd when IPFamily is set to IPv6"))
+
+					cfg.VPC.IPFamily = api.IPV4Family
+					cfg.VPC.IPv6Cidr = ""
+					cfg.VPC.IPv6CidrPool = "bar"
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("Ipv6Cidr and Ipv6CidrPool is only supportd when IPFamily is set to IPv6"))
+				})
+			})
+
+			When("only one of IPv6Cidr or IPv6CidrPool is provided and ipv6 is set", func() {
+				It("returns an error", func() {
+					cfg.VPC.IPFamily = api.IPV6Family
+					cfg.VPC.IPv6Cidr = "foo"
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("Ipv6Cidr and Ipv6CidrPool must both be configured to use custom ipv6 CIDR pool"))
+
+					cfg.VPC.IPFamily = api.IPV6Family
+					cfg.VPC.IPv6Cidr = ""
+					cfg.VPC.IPv6CidrPool = "bar"
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("Ipv6Cidr and Ipv6CidrPool must both be configured to use custom ipv6 CIDR pool"))
 				})
 			})
 		})

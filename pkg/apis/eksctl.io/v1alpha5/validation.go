@@ -164,8 +164,13 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 	if c.VPC.IPFamily != IPV4Family && c.VPC.IPFamily != IPV6Family {
 		return fmt.Errorf("invalid value %s for ipFamily; allowed are %s and %s", c.VPC.IPFamily, IPV4Family, IPV6Family)
 	}
+
 	// This is the new vpc check, I need this check when the user sets it.
 	if c.VPC.IPFamily == IPV6Family {
+		if err := c.ipv6CidrsValid(); err != nil {
+			return err
+		}
+
 		if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
 			return fmt.Errorf("the default core addons must be defined in case of IPv6; missing addon(s): %s", strings.Join(missing, ", "))
 		}
@@ -190,6 +195,10 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		if IsEnabled(c.VPC.AutoAllocateIPv6) {
 			return fmt.Errorf("auto allocate ipv6 is not supported with IPv6")
 		}
+	} else {
+		if c.VPC.IPv6Cidr != "" || c.VPC.IPv6CidrPool != "" {
+			return fmt.Errorf("Ipv6Cidr and Ipv6CidrPool is only supportd when IPFamily is set to IPv6")
+		}
 	}
 
 	// manageSharedNodeSecurityGroupRules cannot be disabled if using eksctl managed security groups
@@ -197,6 +206,22 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		return errors.New("vpc.manageSharedNodeSecurityGroupRules must be enabled when using ekstcl-managed security groups")
 	}
 	return nil
+}
+
+func (c *ClusterConfig) ipv6CidrsValid() error {
+	count := 0
+	if c.VPC.IPv6Cidr != "" {
+		count++
+	}
+
+	if c.VPC.IPv6CidrPool != "" {
+		count++
+	}
+
+	if count == 0 || count == 2 {
+		return nil
+	}
+	return fmt.Errorf("Ipv6Cidr and Ipv6CidrPool must both be configured to use custom ipv6 CIDR pool")
 }
 
 // addonContainsManagedAddons finds managed addons in the config and returns those it couldn't find.
