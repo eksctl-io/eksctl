@@ -269,7 +269,7 @@ func (m *NodeGroupService) ValidateExistingNodeGroupsForCompatibility(cfg *api.C
 
 	numIncompatibleNodeGroups := len(incompatibleNodeGroups)
 	if numIncompatibleNodeGroups == 0 {
-		logger.Info("all nodegroups have up-to-date configuration")
+		logger.Info("all nodegroups have up-to-date cloudformation templates")
 		return nil
 	}
 
