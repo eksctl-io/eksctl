@@ -235,7 +235,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 		clusterSpec.Metadata.Region = c.Provider.Region()
 	}
 
-	return c, c.checkAuth()
+	return c, c.CheckAuth()
 }
 
 // ParseConfig parses data into a ClusterConfig
@@ -305,9 +305,8 @@ func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 	}, nil
 }
 
-// checkAuth checks the AWS authentication
-func (c *ClusterProvider) checkAuth() error {
-
+// CheckAuth checks the AWS authentication
+func (c *ClusterProvider) CheckAuth() error {
 	input := &sts.GetCallerIdentityInput{}
 	output, err := c.Provider.STS().GetCallerIdentity(input)
 	if err != nil {
