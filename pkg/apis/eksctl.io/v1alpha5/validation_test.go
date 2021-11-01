@@ -540,13 +540,12 @@ var _ = Describe("ClusterConfig validation", func() {
 			It("should not error default ipFamily setting", func() {
 				err = cfg.ValidateVPCConfig()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(*cfg.VPC.IPFamily).To(Equal(string(api.IPV4Family)))
+				Expect(cfg.VPC.IPFamily).To(Equal(api.IPV4Family))
 			})
 			When("ipFamily is set to IPv6", func() {
 				It("accepts that setting", func() {
-					ipv6 := string(api.IPV6Family)
 					cfg.VPC.NAT = nil
-					cfg.VPC.IPFamily = &ipv6
+					cfg.VPC.IPFamily = api.IPV6Family
 					cfg.Addons = append(cfg.Addons,
 						&api.Addon{Name: api.KubeProxyAddon},
 						&api.Addon{Name: api.CoreDNSAddon},
@@ -565,8 +564,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 			When("ipFamily is set ot IPv6 but version is not or too low", func() {
 				It("returns an error", func() {
-					ipv6 := string(api.IPV6Family)
-					cfg.VPC.IPFamily = &ipv6
+					cfg.VPC.IPFamily = api.IPV6Family
 					cfg.VPC.NAT = nil
 					cfg.Addons = append(cfg.Addons,
 						&api.Addon{Name: api.KubeProxyAddon},
@@ -586,9 +584,8 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 			When("ipFamily is set ot IPv6 but no managed addons are provided", func() {
 				It("it returns an error including which addons are missing", func() {
-					ipv6 := string(api.IPV6Family)
 					cfg.VPC.NAT = nil
-					cfg.VPC.IPFamily = &ipv6
+					cfg.VPC.IPFamily = api.IPV6Family
 					cfg.IAM = &api.ClusterIAM{
 						WithOIDC: api.Enabled(),
 					}
@@ -599,8 +596,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 			When("iam is not set", func() {
 				It("returns an error", func() {
-					ipv6 := string(api.IPV6Family)
-					cfg.VPC.IPFamily = &ipv6
+					cfg.VPC.IPFamily = api.IPV6Family
 					cfg.Addons = append(cfg.Addons,
 						&api.Addon{Name: api.KubeProxyAddon},
 						&api.Addon{Name: api.CoreDNSAddon},
@@ -612,8 +608,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 			When("iam is set but OIDC is disabled", func() {
 				It("returns an error", func() {
-					ipv6 := string(api.IPV6Family)
-					cfg.VPC.IPFamily = &ipv6
+					cfg.VPC.IPFamily = api.IPV6Family
 					cfg.IAM = &api.ClusterIAM{
 						WithOIDC: api.Disabled(),
 					}
@@ -628,16 +623,14 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 			When("ipFamily isn't IPv4 or IPv6", func() {
 				It("returns an error", func() {
-					invalid := "invalid"
-					cfg.VPC.IPFamily = &invalid
+					cfg.VPC.IPFamily = "invalid"
 					err = cfg.ValidateVPCConfig()
 					Expect(err).To(MatchError(ContainSubstring("invalid value invalid for ipFamily; allowed are IPv4 and IPv6")))
 				})
 			})
 			When("ipFamily is set to IPv6 and vpc.NAT is defined", func() {
 				It("it returns an error", func() {
-					ipv6 := string(api.IPV6Family)
-					cfg.VPC.IPFamily = &ipv6
+					cfg.VPC.IPFamily = api.IPV6Family
 					cfg.Metadata.Version = api.Version1_22
 					cfg.IAM = &api.ClusterIAM{
 						WithOIDC: api.Enabled(),
@@ -654,8 +647,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 			When("ipFamily is set to IPv6 and serviceIPv4CIDR is not empty", func() {
 				It("it returns an error", func() {
-					ipv6 := string(api.IPV6Family)
-					cfg.VPC.IPFamily = &ipv6
+					cfg.VPC.IPFamily = api.IPV6Family
 					cfg.Metadata.Version = api.Version1_22
 					cfg.IAM = &api.ClusterIAM{
 						WithOIDC: api.Enabled(),
@@ -675,8 +667,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 			When("ipFamily is set to IPv6 and AutoAllocateIPv6 is set", func() {
 				It("it returns an error", func() {
-					ipv6 := string(api.IPV6Family)
-					cfg.VPC.IPFamily = &ipv6
+					cfg.VPC.IPFamily = api.IPV6Family
 					cfg.VPC.AutoAllocateIPv6 = api.Enabled()
 					cfg.Metadata.Version = api.Version1_22
 					cfg.IAM = &api.ClusterIAM{

@@ -15,7 +15,6 @@ import (
 	"github.com/tidwall/gjson"
 
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
-	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -86,7 +85,7 @@ func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api
 	if err != nil {
 		return err
 	}
-	if cluster == nil && utilsstrings.Value(c.spec.VPC.IPFamily) == string(api.IPV6Family) {
+	if cluster == nil && c.spec.VPC.IPFamily == api.IPV6Family {
 		return errors.New("managed nodegroups cannot be created on IPv6 unowned clusters")
 	}
 	logger.Info("building managed nodegroup stack %q", name)

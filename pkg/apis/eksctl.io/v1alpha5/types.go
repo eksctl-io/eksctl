@@ -26,7 +26,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 	"github.com/weaveworks/eksctl/pkg/utils/taints"
 )
 
@@ -316,14 +315,12 @@ const (
 	DefaultNodeVolumeGP3IOPS = 3000
 )
 
-type IPFamily string
-
 // Values for `IPFamily`
 const (
 	// IPV4Family defines an IP family of v4 to be used when creating a new VPC.
-	IPV4Family IPFamily = "IPv4"
+	IPV4Family = "IPv4"
 	// IPV6Family defines an IP family of v6 to be used when creating a new VPC.
-	IPV6Family IPFamily = "IPv6"
+	IPV6Family = "IPv6"
 )
 
 // Values for core addons
@@ -751,7 +748,7 @@ func NewClusterVPC() *ClusterVPC {
 	return &ClusterVPC{
 		Network: Network{
 			CIDR:     &cidr,
-			IPFamily: utilsstrings.Pointer(string(DefaultIPFamily)),
+			IPFamily: DefaultIPFamily,
 		},
 		ManageSharedNodeSecurityGroupRules: Enabled(),
 		NAT:                                DefaultClusterNAT(),

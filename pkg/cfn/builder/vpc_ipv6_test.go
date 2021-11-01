@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -22,7 +21,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 
 	BeforeEach(func() {
 		cfg = api.NewClusterConfig()
-		cfg.VPC.IPFamily = aws.String("ipv6")
+		cfg.VPC.IPFamily = api.IPV6Family
 	})
 
 	It("creates the ipv6 VPC and its resources", func() {
