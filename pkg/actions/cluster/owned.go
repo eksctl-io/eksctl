@@ -18,14 +18,16 @@ import (
 type OwnedCluster struct {
 	cfg          *api.ClusterConfig
 	ctl          *eks.ClusterProvider
+	clusterStack *manager.Stack
 	stackManager manager.StackManager
 	newClientSet func() (kubernetes.Interface, error)
 }
 
-func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) *OwnedCluster {
+func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterStack *manager.Stack, stackManager manager.StackManager) *OwnedCluster {
 	return &OwnedCluster{
 		cfg:          cfg,
 		ctl:          ctl,
+		clusterStack: clusterStack,
 		stackManager: stackManager,
 		newClientSet: func() (kubernetes.Interface, error) {
 			return ctl.NewStdClientSet(cfg)
@@ -34,7 +36,7 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackMana
 }
 
 func (c *OwnedCluster) Upgrade(dryRun bool) error {
-	if err := c.ctl.LoadClusterVPC(c.cfg, c.stackManager); err != nil {
+	if err := vpc.UseFromClusterStack(c.ctl.Provider, c.clusterStack, c.cfg); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
 	}
 
