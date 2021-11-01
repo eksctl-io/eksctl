@@ -160,13 +160,10 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 ##@ Code Generation
 
-## Important: pkg/addons/default/generate.go depends on pkg/addons/default/assets/aws-node.yaml If this file is
-## not present, the generation of assets will not fail but will not contain it.
 .PHONY: generate-always
 generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (required for every build)
 	go generate ./pkg/apis/eksctl.io/v1alpha5/generate.go
 	go generate ./pkg/nodebootstrap
-	go generate ./pkg/addons/default/generate.go
 	go generate ./pkg/addons
 	go generate ./pkg/authconfigmap
 	go generate ./pkg/eks
@@ -195,7 +192,6 @@ pkg/addons/default/assets/aws-node.yaml:
 .PHONY: update-aws-node
 update-aws-node: ## Re-download the aws-node manifests from AWS
 	go generate ./pkg/addons/default/aws_node_generate.go
-	go generate ./pkg/addons/default/generate.go
 
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) ## Generate Kubernetes API helpers
