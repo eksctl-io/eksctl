@@ -27,7 +27,7 @@ var _ = Describe("Create", func() {
 		withOIDC               bool
 		oidc                   *iamoidc.OpenIDConnectManager
 		fakeStackManager       *fakes.FakeStackManager
-		mockProvider           *mockprovider.MockProvider
+		mockProvider           *mockprovider.MockAwsProvider
 		createAddonInput       *awseks.CreateAddonInput
 		returnedErr            error
 		createStackReturnValue error
@@ -38,7 +38,7 @@ var _ = Describe("Create", func() {
 		withOIDC = true
 		returnedErr = nil
 		fakeStackManager = new(fakes.FakeStackManager)
-		mockProvider = mockprovider.NewMockProvider()
+		mockProvider = mockprovider.NewMockAwsProvider()
 		createStackReturnValue = nil
 
 		fakeStackManager.CreateStackStub = func(_ string, rs builder.ResourceSet, _ map[string]string, _ map[string]string, errs chan error) error {

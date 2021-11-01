@@ -27,7 +27,7 @@ import (
 var _ = Describe("Update", func() {
 	var (
 		addonManager       *addon.Manager
-		mockProvider       *mockprovider.MockProvider
+		mockProvider       *mockprovider.MockAwsProvider
 		updateAddonInput   *awseks.UpdateAddonInput
 		describeAddonInput *awseks.DescribeAddonInput
 		fakeStackManager   *fakes.FakeStackManager
@@ -35,7 +35,7 @@ var _ = Describe("Update", func() {
 
 	BeforeEach(func() {
 		var err error
-		mockProvider = mockprovider.NewMockProvider()
+		mockProvider = mockprovider.NewMockAwsProvider()
 		fakeStackManager = new(fakes.FakeStackManager)
 
 		fakeStackManager.CreateStackStub = func(_ string, rs builder.ResourceSet, _ map[string]string, _ map[string]string, errs chan error) error {

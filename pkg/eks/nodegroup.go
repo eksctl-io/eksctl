@@ -205,7 +205,7 @@ type KubeNodeGroup interface {
 }
 
 // GetNodeGroupIAM retrieves the IAM configuration of the given nodegroup
-func (c *ClusterProvider) GetNodeGroupIAM(stackManager manager.StackManager, ng *api.NodeGroup) error {
+func (c *ClusterProviderImpl) GetNodeGroupIAM(stackManager manager.StackManager, ng *api.NodeGroup) error {
 	stacks, err := stackManager.DescribeNodeGroupStacks()
 	if err != nil {
 		return err
@@ -245,7 +245,7 @@ func getAWSNodeSAARNAnnotation(clientSet kubernetes.Interface) (string, error) {
 }
 
 // DoesAWSNodeUseIRSA evaluates whether an aws-node uses IRSA
-func (n *NodeGroupService) DoesAWSNodeUseIRSA(provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error) {
+func (n *NodeGroupService) DoesAWSNodeUseIRSA(provider api.AWSProvider, clientSet kubernetes.Interface) (bool, error) {
 	roleArn, err := getAWSNodeSAARNAnnotation(clientSet)
 	if err != nil {
 		return false, errors.Wrap(err, "error retrieving aws-node arn")
@@ -302,10 +302,10 @@ func (t *suspendProcesses) Do() error {
 
 // newSuspendProcesses returns a task that suspends the given processes for this
 // AutoScalingGroup
-func newSuspendProcesses(c *ClusterProvider, spec *api.ClusterConfig, nodegroup *api.NodeGroupBase) tasks.Task {
+func newSuspendProcesses(c *ClusterProviderImpl, spec *api.ClusterConfig, nodegroup *api.NodeGroupBase) tasks.Task {
 	return tasks.SynchronousTask{
 		SynchronousTaskIface: &suspendProcesses{
-			asg:             c.AWSProvider.ASG(),
+			asg:             c.awsProvider.ASG(),
 			stackCollection: c.NewStackManager(spec),
 			nodegroup:       nodegroup,
 		},

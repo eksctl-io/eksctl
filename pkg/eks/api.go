@@ -36,7 +36,6 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/yaml"
 
@@ -45,49 +44,47 @@ import (
 	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	ekscreds "github.com/weaveworks/eksctl/pkg/credentials"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/version"
 )
 
-// ClusterProvider stores information about the cluster
-type ClusterProvider struct {
+// ClusterProviderImpl stores information about the cluster
+type ClusterProviderImpl struct {
 	// core fields used for config and AWS APIs
-	AWSProvider api.ClusterProvider
+	awsProvider api.AWSProvider
 	// provider for k8s clients
-	KubeProvider KubeProvider
+	kubeProvider KubeProvider
 	// informative fields, i.e. used as outputs
-	Status *ProviderStatus
+	status *ProviderStatus
 }
 
 // KubeProvider is the interface to K8s APIs
 type KubeProvider interface {
 	NewRawClient(spec *api.ClusterConfig) (kubewrapper.RawClientInterface, error)
-	NewClient(spec *api.ClusterConfig) (ClientInterface, error)
-	NewStdClientSet(spec *api.ClusterConfig) (kubernetes.Interface, error)
+	NewClient(spec *api.ClusterConfig) (kubewrapper.ClientInterface, error)
+	NewStdClientSet(spec *api.ClusterConfig) (kubewrapper.Interface, error)
 }
 
-func (p ClusterProvider) NewRawClient(spec *api.ClusterConfig) (kubewrapper.RawClientInterface, error) {
-	return p.KubeProvider.NewRawClient(spec)
-}
-
-func (p ClusterProvider) NewClient(spec *api.ClusterConfig) (ClientInterface, error) {
-	return p.KubeProvider.NewClient(spec)
-}
-
-func (p ClusterProvider) NewStdClientSet(spec *api.ClusterConfig) (kubernetes.Interface, error) {
-	return p.KubeProvider.NewStdClientSet(spec)
-}
-
-//counterfeiter:generate -o fakes/fake_mock_cluster_provider.go . MockClusterProvider
-// MockClusterProvider is an interface with helper funcs for k8s and EKS that are part of ClusterProvider
-type MockClusterProvider interface {
-	NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error)
-	ServerVersion(rawClient *kubewrapper.RawClient) (string, error)
+//counterfeiter:generate -o fakes/fake_cluster_provider.go . ClusterProvider
+// ClusterProvider is an interface with helper funcs for k8s and EKS that are part of ClusterProviderImpl
+type ClusterProvider interface {
+	KubeProvider
+	NewStackManager(spec *api.ClusterConfig) manager.StackManager
+	AWSProvider() api.AWSProvider
+	KubeProvider() KubeProvider
+	Status() *ProviderStatus
+	GetUsername() string
+	ControlPlaneVersion() string
+	ClusterTasksForNodeGroups(cfg *api.ClusterConfig, installNeuronDevicePluginParam, installNvidiaDevicePluginParam bool) *tasks.TaskTree
+	ServerVersion(rawClient kubewrapper.RawClientInterface) (string, error)
+	NewOpenIDConnectManager(spec *api.ClusterConfig) (*iamoidc.OpenIDConnectManager, error)
 	LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, stackManager manager.StackManager) error
 	SupportsManagedNodes(clusterConfig *api.ClusterConfig) (bool, error)
 	ValidateClusterForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error
-	UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error
-	WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error
+	UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubewrapper.Interface) error
+	WaitForNodes(clientSet kubewrapper.Interface, ng KubeNodeGroup) error
 }
 
 // ProviderServices stores the used APIs
@@ -171,16 +168,16 @@ type ProviderStatus struct {
 }
 
 // New creates a new setup of the used AWS APIs
-func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProvider, error) {
+func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProviderImpl, error) {
 	awsProvider := &ProviderServices{
 		spec: spec,
 	}
 	kubeProvider := &AWSKubeProvider{
 		AWSProvider: awsProvider,
 	}
-	c := &ClusterProvider{
-		AWSProvider:  awsProvider,
-		KubeProvider: kubeProvider,
+	c := &ClusterProviderImpl{
+		awsProvider:  awsProvider,
+		kubeProvider: kubeProvider,
 	}
 	kubeProvider.ClusterProvider = c
 	// Create a new session and save credentials for possible
@@ -216,7 +213,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	awsProvider.iam = iam.New(s)
 	awsProvider.cloudtrail = cloudtrail.New(s)
 
-	c.Status = &ProviderStatus{
+	c.status = &ProviderStatus{
 		sessionCreds: s.Config.Credentials,
 	}
 
@@ -258,10 +255,42 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	}
 
 	if clusterSpec != nil {
-		clusterSpec.Metadata.Region = c.AWSProvider.Region()
+		clusterSpec.Metadata.Region = c.awsProvider.Region()
 	}
 
 	return c, c.CheckAuth()
+}
+
+func NewWithMocks(awsProvider api.AWSProvider, kubeProvider KubeProvider) *ClusterProviderImpl {
+	return &ClusterProviderImpl{
+		awsProvider:  awsProvider,
+		kubeProvider: kubeProvider,
+		status:       &ProviderStatus{},
+	}
+}
+
+func (c ClusterProviderImpl) AWSProvider() api.AWSProvider {
+	return c.awsProvider
+}
+
+func (c ClusterProviderImpl) KubeProvider() KubeProvider {
+	return c.kubeProvider
+}
+
+func (c ClusterProviderImpl) Status() *ProviderStatus {
+	return c.status
+}
+
+func (c ClusterProviderImpl) NewRawClient(spec *api.ClusterConfig) (kubewrapper.RawClientInterface, error) {
+	return c.kubeProvider.NewRawClient(spec)
+}
+
+func (c ClusterProviderImpl) NewClient(spec *api.ClusterConfig) (kubewrapper.ClientInterface, error) {
+	return c.kubeProvider.NewClient(spec)
+}
+
+func (c ClusterProviderImpl) NewStdClientSet(spec *api.ClusterConfig) (kubewrapper.Interface, error) {
+	return c.kubeProvider.NewStdClientSet(spec)
 }
 
 // ParseConfig parses data into a ClusterConfig
@@ -309,9 +338,9 @@ func readConfig(configFile string) ([]byte, error) {
 }
 
 // IsSupportedRegion check if given region is supported
-func (c *ClusterProvider) IsSupportedRegion() bool {
+func (c *ClusterProviderImpl) IsSupportedRegion() bool {
 	for _, supportedRegion := range api.SupportedRegions() {
-		if c.AWSProvider.Region() == supportedRegion {
+		if c.awsProvider.Region() == supportedRegion {
 			return true
 		}
 	}
@@ -319,8 +348,8 @@ func (c *ClusterProvider) IsSupportedRegion() bool {
 }
 
 // GetCredentialsEnv returns the AWS credentials for env usage
-func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
-	creds, err := c.Status.sessionCreds.Get()
+func (c *ClusterProviderImpl) GetCredentialsEnv() ([]string, error) {
+	creds, err := c.status.sessionCreds.Get()
 	if err != nil {
 		return nil, errors.Wrap(err, "getting effective credentials")
 	}
@@ -332,22 +361,22 @@ func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 }
 
 // CheckAuth checks the AWS authentication
-func (c *ClusterProvider) CheckAuth() error {
+func (c *ClusterProviderImpl) CheckAuth() error {
 	input := &sts.GetCallerIdentityInput{}
-	output, err := c.AWSProvider.STS().GetCallerIdentity(input)
+	output, err := c.awsProvider.STS().GetCallerIdentity(input)
 	if err != nil {
 		return errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
 	}
 	if output == nil || output.Arn == nil {
 		return fmt.Errorf("unexpected response from AWS STS")
 	}
-	c.Status.iamRoleARN = *output.Arn
-	logger.Debug("role ARN for the current session is %q", c.Status.iamRoleARN)
+	c.status.iamRoleARN = *output.Arn
+	logger.Debug("role ARN for the current session is %q", c.status.iamRoleARN)
 	return nil
 }
 
 // ResolveAMI ensures that the node AMI is set and is available
-func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) error {
+func ResolveAMI(provider api.AWSProvider, version string, np api.NodePool) error {
 	var resolver ami.Resolver
 	ng := np.BaseNodeGroup()
 	switch ng.AMI {
@@ -381,7 +410,7 @@ func errTooFewAvailabilityZones(azs []string) error {
 }
 
 // SetAvailabilityZones sets the given (or chooses) the availability zones
-func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []string) error {
+func (c *ClusterProviderImpl) SetAvailabilityZones(spec *api.ClusterConfig, given []string) error {
 	if count := len(given); count != 0 {
 		if count < az.MinRequiredAvailabilityZones {
 			return errTooFewAvailabilityZones(given)
@@ -399,10 +428,10 @@ func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []
 
 	logger.Debug("determining availability zones")
 	var azSelector *az.AvailabilityZoneSelector
-	if c.AWSProvider.Region() == api.RegionUSEast1 {
-		azSelector = az.NewSelectorWithMinRequired(c.AWSProvider.EC2(), c.AWSProvider.Region())
+	if c.awsProvider.Region() == api.RegionUSEast1 {
+		azSelector = az.NewSelectorWithMinRequired(c.awsProvider.EC2(), c.awsProvider.Region())
 	} else {
-		azSelector = az.NewSelectorWithDefaults(c.AWSProvider.EC2(), c.AWSProvider.Region())
+		azSelector = az.NewSelectorWithDefaults(c.awsProvider.EC2(), c.awsProvider.Region())
 	}
 
 	zones, err := azSelector.SelectZones()
@@ -416,14 +445,14 @@ func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []
 	return nil
 }
 
-func (c *ClusterProvider) newSession(spec *api.ProviderConfig) *session.Session {
+func (c *ClusterProviderImpl) newSession(spec *api.ProviderConfig) *session.Session {
 	// we might want to use bits from kops, although right now it seems like too many things we
 	// don't want yet
 	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
 	config := aws.NewConfig().WithCredentialsChainVerboseErrors(true)
 
-	if c.AWSProvider.Region() != "" {
-		config = config.WithRegion(c.AWSProvider.Region()).WithSTSRegionalEndpoint(endpoints.RegionalSTSEndpoint)
+	if c.awsProvider.Region() != "" {
+		config = config.WithRegion(c.awsProvider.Region()).WithSTSRegionalEndpoint(endpoints.RegionalSTSEndpoint)
 	}
 
 	config = request.WithRetryer(config, newLoggingRetryer())
@@ -472,6 +501,6 @@ func (c *ClusterProvider) newSession(spec *api.ProviderConfig) *session.Session 
 }
 
 // NewStackManager returns a new stack manager
-func (c *ClusterProvider) NewStackManager(spec *api.ClusterConfig) manager.StackManager {
-	return manager.NewStackCollection(c.AWSProvider, spec)
+func (c *ClusterProviderImpl) NewStackManager(spec *api.ClusterConfig) manager.StackManager {
+	return manager.NewStackCollection(c.awsProvider, spec)
 }

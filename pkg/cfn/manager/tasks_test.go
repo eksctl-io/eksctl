@@ -23,7 +23,7 @@ func (t *task) Do(chan error) error {
 
 var _ = Describe("StackCollection Tasks", func() {
 	var (
-		p   *mockprovider.MockProvider
+		p   *mockprovider.MockAwsProvider
 		cfg *api.ClusterConfig
 
 		stackManager *StackCollection
@@ -60,7 +60,7 @@ var _ = Describe("StackCollection Tasks", func() {
 
 			BeforeEach(func() {
 
-				p = mockprovider.NewMockProvider()
+				p = mockprovider.NewMockAwsProvider()
 
 				cfg = newClusterConfig("test-cluster")
 

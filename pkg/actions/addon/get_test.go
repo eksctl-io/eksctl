@@ -17,12 +17,12 @@ import (
 var _ = Describe("Get", func() {
 	var (
 		manager            *addon.Manager
-		mockProvider       *mockprovider.MockProvider
+		mockProvider       *mockprovider.MockAwsProvider
 		describeAddonInput *awseks.DescribeAddonInput
 	)
 	BeforeEach(func() {
 		var err error
-		mockProvider = mockprovider.NewMockProvider()
+		mockProvider = mockprovider.NewMockAwsProvider()
 		manager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
 			Version: "1.18",
 			Name:    "my-cluster",

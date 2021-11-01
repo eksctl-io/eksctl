@@ -59,7 +59,7 @@ var _ = Describe("EKS Connector", func() {
 	}
 
 	DescribeTable("Register cluster", func(cc connectorCase) {
-		mockProvider := mockprovider.NewMockProvider()
+		mockProvider := mockprovider.NewMockAwsProvider()
 
 		mockDescribeCluster(mockProvider, cc.cluster.Name)
 		mockProvider.MockEKS().On("RegisterCluster", mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
@@ -154,7 +154,7 @@ var _ = Describe("EKS Connector", func() {
 				ConnectorRoleARN: "arn:aws:iam::1234567890:role/custom-connector-role",
 			}
 
-			mockProvider := mockprovider.NewMockProvider()
+			mockProvider := mockprovider.NewMockAwsProvider()
 
 			mockDescribeCluster(mockProvider, cluster.Name)
 			mockProvider.MockEKS().On("RegisterCluster", mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
@@ -178,7 +178,7 @@ var _ = Describe("EKS Connector", func() {
 				Provider: "gke",
 			}
 
-			mockProvider := mockprovider.NewMockProvider()
+			mockProvider := mockprovider.NewMockAwsProvider()
 
 			mockDescribeCluster(mockProvider, cluster.Name)
 			mockProvider.MockEKS().On("RegisterCluster", mock.MatchedBy(func(input *eks.RegisterClusterInput) bool {
@@ -206,7 +206,7 @@ var _ = Describe("EKS Connector", func() {
 	})
 })
 
-func mockDescribeCluster(mockProvider *mockprovider.MockProvider, clusterName string) {
+func mockDescribeCluster(mockProvider *mockprovider.MockAwsProvider, clusterName string) {
 	mockProvider.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *eks.DescribeClusterInput) bool {
 		return *input.Name == clusterName
 	})).Return(nil, &eks.ResourceNotFoundException{
@@ -218,7 +218,7 @@ func matchesRole(roleName string) bool {
 	return strings.HasPrefix(roleName, "eksctl-")
 }
 
-func mockIAM(mockProvider *mockprovider.MockProvider) {
+func mockIAM(mockProvider *mockprovider.MockAwsProvider) {
 	mockProvider.MockIAM().
 		On("CreateRole", mock.MatchedBy(func(input *iam.CreateRoleInput) bool {
 			return matchesRole(*input.RoleName)

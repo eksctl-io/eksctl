@@ -28,24 +28,18 @@ import (
 
 // Client stores information about the client config
 type Client struct {
-	config *clientcmdapi.Config
+	config    *clientcmdapi.Config
 	rawConfig *restclient.Config
-}
-
-// ClientInterface allows client to be mocked in test
-type ClientInterface interface {
-	NewClientSet() (*kubernetes.Clientset, error)
-	Config() *clientcmdapi.Config
 }
 
 // AWSKubeProvider encapsulates kubernetes client building logic
 type AWSKubeProvider struct {
-	AWSProvider     api.ClusterProvider
-	ClusterProvider *ClusterProvider // TODO: resolve circular reference, only required for GetUsername()
+	AWSProvider     api.AWSProvider
+	ClusterProvider ClusterProvider // TODO: resolve circular reference, only required for GetUsername()
 }
 
 // NewClient creates a new client config by embedding the STS token
-func (p *AWSKubeProvider) NewClient(spec *api.ClusterConfig) (ClientInterface, error) {
+func (p *AWSKubeProvider) NewClient(spec *api.ClusterConfig) (kubewrapper.ClientInterface, error) {
 	config := kubeconfig.NewForUser(spec, p.ClusterProvider.GetUsername())
 	client := &Client{
 		config: config,
@@ -64,7 +58,7 @@ func (p *AWSKubeProvider) NewRawClient(spec *api.ClusterConfig) (kubewrapper.Raw
 }
 
 // NewStdClientSet creates a new API client in one go with an embedded STS token, this is most commonly used option
-func (p *AWSKubeProvider) NewStdClientSet(spec *api.ClusterConfig) (kubernetes.Interface, error) {
+func (p *AWSKubeProvider) NewStdClientSet(spec *api.ClusterConfig) (kubewrapper.Interface, error) {
 	_, clientSet, err := p.newClientSetWithEmbeddedToken(spec)
 	if err != nil {
 		return nil, err
@@ -73,7 +67,7 @@ func (p *AWSKubeProvider) NewStdClientSet(spec *api.ClusterConfig) (kubernetes.I
 	return clientSet, nil
 }
 
-func (p *AWSKubeProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig) (*Client, *kubernetes.Clientset, error) {
+func (p *AWSKubeProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig) (*Client, kubernetes.Interface, error) {
 	client, err := p.NewClient(spec)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "creating Kubernetes client config with embedded token")
@@ -88,8 +82,8 @@ func (p *AWSKubeProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig)
 }
 
 // GetUsername extracts the username part from the IAM role ARN
-func (c *ClusterProvider) GetUsername() string {
-	usernameParts := strings.Split(c.Status.iamRoleARN, "/")
+func (c *ClusterProviderImpl) GetUsername() string {
+	usernameParts := strings.Split(c.status.iamRoleARN, "/")
 	if len(usernameParts) > 1 {
 		return usernameParts[len(usernameParts)-1]
 	}
@@ -126,7 +120,7 @@ func (c *Client) useEmbeddedToken(spec *api.ClusterConfig, stsclient stsiface.ST
 }
 
 // NewClientSet creates a new API client
-func (c *Client) NewClientSet() (*kubernetes.Clientset, error) {
+func (c *Client) NewClientSet() (kubernetes.Interface, error) {
 	client, err := kubernetes.NewForConfig(c.rawConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create API client")
@@ -139,12 +133,12 @@ func (c *Client) Config() *clientcmdapi.Config {
 }
 
 // ServerVersion will use discovery API to fetch version of Kubernetes control plane
-func (c *ClusterProvider) ServerVersion(rawClient *kubewrapper.RawClient) (string, error) {
+func (c *ClusterProviderImpl) ServerVersion(rawClient kubewrapper.RawClientInterface) (string, error) {
 	return rawClient.ServerVersion()
 }
 
 // UpdateAuthConfigMap creates or adds a nodegroup IAM role in the auth ConfigMap for the given nodegroup.
-func (c *ClusterProvider) UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error {
+func (c *ClusterProviderImpl) UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error {
 	for _, ng := range nodeGroups {
 		// authorise nodes to join
 		if err := authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
@@ -160,12 +154,12 @@ func (c *ClusterProvider) UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clien
 }
 
 // WaitForNodes waits till the nodes are ready
-func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error {
+func (c *ClusterProviderImpl) WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error {
 	minSize := ng.Size()
 	if minSize == 0 {
 		return nil
 	}
-	timer := time.After(c.AWSProvider.WaitTimeout())
+	timer := time.After(c.awsProvider.WaitTimeout())
 	timeout := false
 	readyNodes := sets.NewString()
 	watcher, err := clientSet.CoreV1().Nodes().Watch(context.TODO(), ng.ListOptions())
@@ -201,7 +195,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNo
 	}
 	watcher.Stop()
 	if timeout {
-		return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.AWSProvider.WaitTimeout(), minSize, ng.NameString())
+		return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.awsProvider.WaitTimeout(), minSize, ng.NameString())
 	}
 
 	if _, err = getNodes(clientSet, ng); err != nil {

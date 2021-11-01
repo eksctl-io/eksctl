@@ -219,7 +219,7 @@ var _ = Describe("VPC", func() {
 
 	DescribeTable("Use from Cluster",
 		func(clusterCase useFromClusterCase) {
-			p := mockprovider.NewMockProvider()
+			p := mockprovider.NewMockAwsProvider()
 			cluster := newFakeClusterWithEndpoints(true, true, "dummy cluster")
 			mockResultFn := func(_ *eks.DescribeClusterInput) *eks.DescribeClusterOutput {
 				return &eks.DescribeClusterOutput{Cluster: cluster}
@@ -245,7 +245,7 @@ var _ = Describe("VPC", func() {
 
 	DescribeTable("importVPC",
 		func(vpcCase importVPCCase) {
-			p := mockprovider.NewMockProvider()
+			p := mockprovider.NewMockAwsProvider()
 			p.MockEC2()
 
 			mockResultFn := func(_ *ec2.DescribeVpcsInput) *ec2.DescribeVpcsOutput {
@@ -423,7 +423,7 @@ var _ = Describe("VPC", func() {
 
 	DescribeTable("can set cluster endpoint configuration on VPC from running Cluster",
 		func(e endpointAccessCase) {
-			p := mockprovider.NewMockProvider()
+			p := mockprovider.NewMockAwsProvider()
 			p.MockEKS()
 			cluster := newFakeClusterWithEndpoints(e.private, e.public, e.clusterName)
 			mockResultFn := func(_ *eks.DescribeClusterInput) *eks.DescribeClusterOutput {
@@ -634,7 +634,7 @@ var _ = Describe("VPC", func() {
 
 	DescribeTable("Can import all subnets",
 		func(e importAllSubnetsCase) {
-			p := mockprovider.NewMockProvider()
+			p := mockprovider.NewMockAwsProvider()
 
 			p.MockEC2().On("DescribeSubnets",
 				&ec2.DescribeSubnetsInput{Filters: []*ec2.Filter{{

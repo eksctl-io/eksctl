@@ -20,13 +20,13 @@ var _ = Describe("Cluster Template Builder", func() {
 	var (
 		crs                  *builder.ClusterResourceSet
 		cfg                  *api.ClusterConfig
-		provider             *mockprovider.MockProvider
+		provider             *mockprovider.MockAwsProvider
 		supportsManagedNodes bool
 		existingStack        *gjson.Result
 	)
 
 	BeforeEach(func() {
-		provider = mockprovider.NewMockProvider()
+		provider = mockprovider.NewMockAwsProvider()
 		supportsManagedNodes = false
 		existingStack = nil
 		cfg = api.NewClusterConfig()

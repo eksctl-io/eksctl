@@ -20,7 +20,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 		cc *api.ClusterConfig
 		sc *StackCollection
 
-		p *mockprovider.MockProvider
+		p *mockprovider.MockAwsProvider
 	)
 
 	const nodegroupResource = `
@@ -70,7 +70,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 			)
 
 			JustBeforeEach(func() {
-				p = mockprovider.NewMockProvider()
+				p = mockprovider.NewMockAwsProvider()
 
 				cc = newClusterConfig(clusterName)
 

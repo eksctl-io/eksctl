@@ -83,7 +83,7 @@ func TestManagedPolicyResources(t *testing.T) {
 			ng.IAM.WithAddonPolicies = tt.addons
 			ng.IAM.AttachPolicyARNs = prefixPolicies(tt.attachPolicyARNs...)
 
-			p := mockprovider.NewMockProvider()
+			p := mockprovider.NewMockAwsProvider()
 			fakeVPCImporter := new(vpcfakes.FakeImporter)
 			bootstrapper := &fakes.FakeBootstrapper{}
 			bootstrapper.UserDataStub = func() (string, error) {
@@ -155,7 +155,7 @@ func TestManagedNodeRole(t *testing.T) {
 			require := require.New(t)
 			clusterConfig := api.NewClusterConfig()
 			api.SetManagedNodeGroupDefaults(tt.nodeGroup, clusterConfig.Metadata)
-			p := mockprovider.NewMockProvider()
+			p := mockprovider.NewMockAwsProvider()
 			fakeVPCImporter := new(vpcfakes.FakeImporter)
 			bootstrapper := nodebootstrap.NewManagedBootstrapper(clusterConfig, tt.nodeGroup)
 			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, tt.nodeGroup, nil, bootstrapper, false, fakeVPCImporter)

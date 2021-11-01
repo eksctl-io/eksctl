@@ -13,18 +13,18 @@ type ClusterInfo struct {
 	Cluster   *awseks.Cluster
 }
 
-func (c *ClusterProvider) clusterInfoNeedsUpdate() bool {
-	if c.Status.ClusterInfo == nil {
+func (c *ClusterProviderImpl) clusterInfoNeedsUpdate() bool {
+	if c.status.ClusterInfo == nil {
 		return true
 	}
-	if time.Since(c.Status.ClusterInfo.timestamp) > clusterInfoCacheTTL {
+	if time.Since(c.status.ClusterInfo.timestamp) > clusterInfoCacheTTL {
 		return true
 	}
 	return false
 }
 
-func (c *ClusterProvider) setClusterInfo(cluster *awseks.Cluster) {
-	c.Status.ClusterInfo = &ClusterInfo{
+func (c *ClusterProviderImpl) setClusterInfo(cluster *awseks.Cluster) {
+	c.status.ClusterInfo = &ClusterInfo{
 		timestamp: time.Now(),
 		Cluster:   cluster,
 	}

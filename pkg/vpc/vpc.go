@@ -205,7 +205,7 @@ func describeVPC(ec2API ec2iface.EC2API, vpcID string) (*ec2.Vpc, error) {
 // based on stack outputs
 // NOTE: it doesn't expect any fields in spec.VPC to be set, the remote state
 // is treated as the source of truth
-func UseFromClusterStack(provider api.ClusterProvider, stack *cfn.Stack, spec *api.ClusterConfig) error {
+func UseFromClusterStack(provider api.AWSProvider, stack *cfn.Stack, spec *api.ClusterConfig) error {
 	if spec.VPC == nil {
 		spec.VPC = api.NewClusterVPC()
 	}
@@ -377,7 +377,7 @@ func ImportSubnetsFromIDList(ec2API ec2iface.EC2API, spec *api.ClusterConfig, to
 	return importSubnetsFromList(ec2API, spec, topology, subnetIDs, []string{}, []string{})
 }
 
-func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.ClusterProvider) error {
+func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.AWSProvider) error {
 	subnetsToValidate := sets.NewString()
 
 	selectSubnets := func(ng *api.NodeGroupBase) error {
@@ -435,7 +435,7 @@ func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.Cl
 }
 
 // ValidateExistingPublicSubnets makes sure that subnets have the property MapPublicIpOnLaunch enabled
-func ValidateExistingPublicSubnets(provider api.ClusterProvider, vpcID string, subnetIDs []string) error {
+func ValidateExistingPublicSubnets(provider api.AWSProvider, vpcID string, subnetIDs []string) error {
 	if len(subnetIDs) == 0 {
 		return nil
 	}
@@ -475,7 +475,7 @@ func EnsureMapPublicIPOnLaunchEnabled(ec2API ec2iface.EC2API, subnetIDs []string
 // then pass resulting subnets to ImportSubnets
 // NOTE: it does respect all fields set in spec.VPC, and will error if
 // there is a mismatch of local vs remote states
-func ImportSubnetsFromSpec(provider api.ClusterProvider, spec *api.ClusterConfig) error {
+func ImportSubnetsFromSpec(provider api.AWSProvider, spec *api.ClusterConfig) error {
 	if spec.VPC.ID != "" {
 		// ensure VPC gets imported and validated first, if it's already set
 		if err := importVPC(provider.EC2(), spec, spec.VPC.ID); err != nil {
@@ -495,7 +495,7 @@ func ImportSubnetsFromSpec(provider api.ClusterProvider, spec *api.ClusterConfig
 
 //UseEndpointAccessFromCluster retrieves the Cluster's endpoint access configuration via the SDK
 // as the CloudFormation Stack doesn't support that configuration currently
-func UseEndpointAccessFromCluster(provider api.ClusterProvider, spec *api.ClusterConfig) error {
+func UseEndpointAccessFromCluster(provider api.AWSProvider, spec *api.ClusterConfig) error {
 	input := &awseks.DescribeClusterInput{
 		Name: &spec.Metadata.Name,
 	}

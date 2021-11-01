@@ -25,10 +25,10 @@ type FakeNodeGroupInitialiser struct {
 	doAllNodegroupStackTasksReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DoesAWSNodeUseIRSAStub        func(v1alpha5.ClusterProvider, kubernetes.Interface) (bool, error)
+	DoesAWSNodeUseIRSAStub        func(v1alpha5.AWSProvider, kubernetes.Interface) (bool, error)
 	doesAWSNodeUseIRSAMutex       sync.RWMutex
 	doesAWSNodeUseIRSAArgsForCall []struct {
-		arg1 v1alpha5.ClusterProvider
+		arg1 v1alpha5.AWSProvider
 		arg2 kubernetes.Interface
 	}
 	doesAWSNodeUseIRSAReturns struct {
@@ -51,10 +51,10 @@ type FakeNodeGroupInitialiser struct {
 	expandInstanceSelectorOptionsReturnsOnCall map[int]struct {
 		result1 error
 	}
-	NewAWSSelectorSessionStub        func(v1alpha5.ClusterProvider)
+	NewAWSSelectorSessionStub        func(v1alpha5.AWSProvider)
 	newAWSSelectorSessionMutex       sync.RWMutex
 	newAWSSelectorSessionArgsForCall []struct {
-		arg1 v1alpha5.ClusterProvider
+		arg1 v1alpha5.AWSProvider
 	}
 	NormalizeStub        func([]v1alpha5.NodePool, *v1alpha5.ClusterMeta) error
 	normalizeMutex       sync.RWMutex
@@ -80,11 +80,11 @@ type FakeNodeGroupInitialiser struct {
 	validateExistingNodeGroupsForCompatibilityReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ValidateLegacySubnetsForNodeGroupsStub        func(*v1alpha5.ClusterConfig, v1alpha5.ClusterProvider) error
+	ValidateLegacySubnetsForNodeGroupsStub        func(*v1alpha5.ClusterConfig, v1alpha5.AWSProvider) error
 	validateLegacySubnetsForNodeGroupsMutex       sync.RWMutex
 	validateLegacySubnetsForNodeGroupsArgsForCall []struct {
 		arg1 *v1alpha5.ClusterConfig
-		arg2 v1alpha5.ClusterProvider
+		arg2 v1alpha5.AWSProvider
 	}
 	validateLegacySubnetsForNodeGroupsReturns struct {
 		result1 error
@@ -159,11 +159,11 @@ func (fake *FakeNodeGroupInitialiser) DoAllNodegroupStackTasksReturnsOnCall(i in
 	}{result1}
 }
 
-func (fake *FakeNodeGroupInitialiser) DoesAWSNodeUseIRSA(arg1 v1alpha5.ClusterProvider, arg2 kubernetes.Interface) (bool, error) {
+func (fake *FakeNodeGroupInitialiser) DoesAWSNodeUseIRSA(arg1 v1alpha5.AWSProvider, arg2 kubernetes.Interface) (bool, error) {
 	fake.doesAWSNodeUseIRSAMutex.Lock()
 	ret, specificReturn := fake.doesAWSNodeUseIRSAReturnsOnCall[len(fake.doesAWSNodeUseIRSAArgsForCall)]
 	fake.doesAWSNodeUseIRSAArgsForCall = append(fake.doesAWSNodeUseIRSAArgsForCall, struct {
-		arg1 v1alpha5.ClusterProvider
+		arg1 v1alpha5.AWSProvider
 		arg2 kubernetes.Interface
 	}{arg1, arg2})
 	stub := fake.DoesAWSNodeUseIRSAStub
@@ -185,13 +185,13 @@ func (fake *FakeNodeGroupInitialiser) DoesAWSNodeUseIRSACallCount() int {
 	return len(fake.doesAWSNodeUseIRSAArgsForCall)
 }
 
-func (fake *FakeNodeGroupInitialiser) DoesAWSNodeUseIRSACalls(stub func(v1alpha5.ClusterProvider, kubernetes.Interface) (bool, error)) {
+func (fake *FakeNodeGroupInitialiser) DoesAWSNodeUseIRSACalls(stub func(v1alpha5.AWSProvider, kubernetes.Interface) (bool, error)) {
 	fake.doesAWSNodeUseIRSAMutex.Lock()
 	defer fake.doesAWSNodeUseIRSAMutex.Unlock()
 	fake.DoesAWSNodeUseIRSAStub = stub
 }
 
-func (fake *FakeNodeGroupInitialiser) DoesAWSNodeUseIRSAArgsForCall(i int) (v1alpha5.ClusterProvider, kubernetes.Interface) {
+func (fake *FakeNodeGroupInitialiser) DoesAWSNodeUseIRSAArgsForCall(i int) (v1alpha5.AWSProvider, kubernetes.Interface) {
 	fake.doesAWSNodeUseIRSAMutex.RLock()
 	defer fake.doesAWSNodeUseIRSAMutex.RUnlock()
 	argsForCall := fake.doesAWSNodeUseIRSAArgsForCall[i]
@@ -296,10 +296,10 @@ func (fake *FakeNodeGroupInitialiser) ExpandInstanceSelectorOptionsReturnsOnCall
 	}{result1}
 }
 
-func (fake *FakeNodeGroupInitialiser) NewAWSSelectorSession(arg1 v1alpha5.ClusterProvider) {
+func (fake *FakeNodeGroupInitialiser) NewAWSSelectorSession(arg1 v1alpha5.AWSProvider) {
 	fake.newAWSSelectorSessionMutex.Lock()
 	fake.newAWSSelectorSessionArgsForCall = append(fake.newAWSSelectorSessionArgsForCall, struct {
-		arg1 v1alpha5.ClusterProvider
+		arg1 v1alpha5.AWSProvider
 	}{arg1})
 	stub := fake.NewAWSSelectorSessionStub
 	fake.recordInvocation("NewAWSSelectorSession", []interface{}{arg1})
@@ -315,13 +315,13 @@ func (fake *FakeNodeGroupInitialiser) NewAWSSelectorSessionCallCount() int {
 	return len(fake.newAWSSelectorSessionArgsForCall)
 }
 
-func (fake *FakeNodeGroupInitialiser) NewAWSSelectorSessionCalls(stub func(v1alpha5.ClusterProvider)) {
+func (fake *FakeNodeGroupInitialiser) NewAWSSelectorSessionCalls(stub func(v1alpha5.AWSProvider)) {
 	fake.newAWSSelectorSessionMutex.Lock()
 	defer fake.newAWSSelectorSessionMutex.Unlock()
 	fake.NewAWSSelectorSessionStub = stub
 }
 
-func (fake *FakeNodeGroupInitialiser) NewAWSSelectorSessionArgsForCall(i int) v1alpha5.ClusterProvider {
+func (fake *FakeNodeGroupInitialiser) NewAWSSelectorSessionArgsForCall(i int) v1alpha5.AWSProvider {
 	fake.newAWSSelectorSessionMutex.RLock()
 	defer fake.newAWSSelectorSessionMutex.RUnlock()
 	argsForCall := fake.newAWSSelectorSessionArgsForCall[i]
@@ -457,12 +457,12 @@ func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibility
 	}{result1}
 }
 
-func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroups(arg1 *v1alpha5.ClusterConfig, arg2 v1alpha5.ClusterProvider) error {
+func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroups(arg1 *v1alpha5.ClusterConfig, arg2 v1alpha5.AWSProvider) error {
 	fake.validateLegacySubnetsForNodeGroupsMutex.Lock()
 	ret, specificReturn := fake.validateLegacySubnetsForNodeGroupsReturnsOnCall[len(fake.validateLegacySubnetsForNodeGroupsArgsForCall)]
 	fake.validateLegacySubnetsForNodeGroupsArgsForCall = append(fake.validateLegacySubnetsForNodeGroupsArgsForCall, struct {
 		arg1 *v1alpha5.ClusterConfig
-		arg2 v1alpha5.ClusterProvider
+		arg2 v1alpha5.AWSProvider
 	}{arg1, arg2})
 	stub := fake.ValidateLegacySubnetsForNodeGroupsStub
 	fakeReturns := fake.validateLegacySubnetsForNodeGroupsReturns
@@ -483,13 +483,13 @@ func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroupsCallCoun
 	return len(fake.validateLegacySubnetsForNodeGroupsArgsForCall)
 }
 
-func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroupsCalls(stub func(*v1alpha5.ClusterConfig, v1alpha5.ClusterProvider) error) {
+func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroupsCalls(stub func(*v1alpha5.ClusterConfig, v1alpha5.AWSProvider) error) {
 	fake.validateLegacySubnetsForNodeGroupsMutex.Lock()
 	defer fake.validateLegacySubnetsForNodeGroupsMutex.Unlock()
 	fake.ValidateLegacySubnetsForNodeGroupsStub = stub
 }
 
-func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroupsArgsForCall(i int) (*v1alpha5.ClusterConfig, v1alpha5.ClusterProvider) {
+func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroupsArgsForCall(i int) (*v1alpha5.ClusterConfig, v1alpha5.AWSProvider) {
 	fake.validateLegacySubnetsForNodeGroupsMutex.RLock()
 	defer fake.validateLegacySubnetsForNodeGroupsMutex.RUnlock()
 	argsForCall := fake.validateLegacySubnetsForNodeGroupsArgsForCall[i]

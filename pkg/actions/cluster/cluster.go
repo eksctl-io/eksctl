@@ -18,7 +18,7 @@ type Cluster interface {
 	Delete(waitInterval time.Duration, wait, force bool) error
 }
 
-func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
+func New(cfg *api.ClusterConfig, ctl *eks.ClusterProviderImpl) (Cluster, error) {
 	clusterExists := true
 	err := ctl.RefreshClusterStatus(cfg)
 	if err != nil {

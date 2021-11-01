@@ -37,7 +37,6 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 	cfg := m.cfg
 	meta := cfg.Metadata
 	ctl := m.ctl
-	kubeProvider := m.kubeProvider
 
 	if err := checkVersion(ctl, meta); err != nil {
 		return err
@@ -48,11 +47,11 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 	}
 
 	var isOwnedCluster = true
-	if err := kubeProvider.LoadClusterIntoSpecFromStack(cfg, m.stackManager); err != nil {
+	if err := ctl.LoadClusterIntoSpecFromStack(cfg, m.stackManager); err != nil {
 		switch e := err.(type) {
 		case *manager.StackNotFoundErr:
 			logger.Warning("%s, will attempt to create nodegroup(s) on non eksctl-managed cluster", e.Error())
-			if err := loadVPCFromConfig(ctl.AWSProvider, cfg); err != nil {
+			if err := loadVPCFromConfig(ctl.AWSProvider(), cfg); err != nil {
 				return errors.Wrapf(err, "loading VPC spec for cluster %q", meta.Name)
 			}
 
@@ -63,7 +62,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 	}
 
 	// EKS 1.14 clusters created with prior versions of eksctl may not support Managed Nodes
-	supportsManagedNodes, err := kubeProvider.SupportsManagedNodes(cfg)
+	supportsManagedNodes, err := ctl.SupportsManagedNodes(cfg)
 	if err != nil {
 		return err
 	}
@@ -76,7 +75,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 		return err
 	}
 
-	m.init.NewAWSSelectorSession(ctl.AWSProvider)
+	m.init.NewAWSSelectorSession(ctl.AWSProvider())
 	nodePools := cmdutils.ToNodePools(cfg)
 
 	if err := m.init.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
@@ -95,16 +94,16 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 	}
 
 	if isOwnedCluster {
-		if err := kubeProvider.ValidateClusterForCompatibility(cfg, m.stackManager); err != nil {
+		if err := ctl.ValidateClusterForCompatibility(cfg, m.stackManager); err != nil {
 			return errors.Wrap(err, "cluster compatibility check failed")
 		}
 	}
 
-	if err := m.init.ValidateLegacySubnetsForNodeGroups(cfg, ctl.AWSProvider); err != nil {
+	if err := m.init.ValidateLegacySubnetsForNodeGroups(cfg, ctl.AWSProvider()); err != nil {
 		return err
 	}
 
-	if err := nodegroupFilter.SetOnlyLocal(m.ctl.AWSProvider.EKS(), m.stackManager, cfg); err != nil {
+	if err := nodegroupFilter.SetOnlyLocal(m.ctl.AWSProvider().EKS(), m.stackManager, cfg); err != nil {
 		return err
 	}
 
@@ -160,7 +159,7 @@ func (m *Manager) nodeCreationTasks(options CreateOpts, nodegroupFilter filter.N
 		taskTree.Append(m.stackManager.NewClusterCompatTask())
 	}
 
-	awsNodeUsesIRSA, err := init.DoesAWSNodeUseIRSA(m.ctl.AWSProvider, m.clientSet)
+	awsNodeUsesIRSA, err := init.DoesAWSNodeUseIRSA(m.ctl.AWSProvider(), m.clientSet)
 	if err != nil {
 		return errors.Wrap(err, "couldn't check aws-node for annotation")
 	}
@@ -173,7 +172,7 @@ func (m *Manager) nodeCreationTasks(options CreateOpts, nodegroupFilter filter.N
 	if isOwnedCluster {
 		vpcImporter = vpc.NewStackConfigImporter(m.stackManager.MakeClusterStackName())
 	} else {
-		vpcImporter = vpc.NewSpecConfigImporter(*m.ctl.Status.ClusterInfo.Cluster.ResourcesVpcConfig.ClusterSecurityGroupId, cfg.VPC)
+		vpcImporter = vpc.NewSpecConfigImporter(*m.ctl.Status().ClusterInfo.Cluster.ResourcesVpcConfig.ClusterSecurityGroupId, cfg.VPC)
 	}
 
 	allNodeGroupTasks := &tasks.TaskTree{
@@ -212,14 +211,14 @@ func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options 
 	}
 
 	if options.UpdateAuthConfigMap {
-		if err := m.kubeProvider.UpdateAuthConfigMap(m.cfg.NodeGroups, clientSet); err != nil {
+		if err := m.ctl.UpdateAuthConfigMap(m.cfg.NodeGroups, clientSet); err != nil {
 			return err
 		}
 	}
 	logger.Success("created %d nodegroup(s) in cluster %q", len(m.cfg.NodeGroups), m.cfg.Metadata.Name)
 
 	for _, ng := range m.cfg.ManagedNodeGroups {
-		if err := m.kubeProvider.WaitForNodes(clientSet, ng); err != nil {
+		if err := m.ctl.WaitForNodes(clientSet, ng); err != nil {
 			if m.cfg.PrivateCluster.Enabled {
 				logger.Info("error waiting for nodes to join the cluster; this command was likely run from outside the cluster's VPC as the API server is not reachable, nodegroup(s) should still be able to join the cluster, underlying error is: %v", err)
 				break
@@ -233,7 +232,7 @@ func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options 
 	return nil
 }
 
-func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
+func checkVersion(ctl eks.ClusterProvider, meta *api.ClusterMeta) error {
 	switch meta.Version {
 	case "auto":
 		break
@@ -267,19 +266,18 @@ func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
 	return nil
 }
 
-func (m *Manager) checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes.Interface, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
-	kubeProvider := m.kubeProvider
-	rawClient, err := kubeProvider.NewRawClient(cfg)
+func (m *Manager) checkARMSupport(ctl eks.ClusterProvider, clientSet kubernetes.Interface, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
+	rawClient, err := ctl.NewRawClient(cfg)
 	if err != nil {
 		return err
 	}
 
-	kubernetesVersion, err := kubeProvider.ServerVersion(rawClient)
+	kubernetesVersion, err := ctl.ServerVersion(rawClient)
 	if err != nil {
 		return err
 	}
 	if api.ClusterHasInstanceType(cfg, instanceutils.IsARMInstanceType) {
-		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(clientSet, rawClient, kubernetesVersion, ctl.AWSProvider.Region())
+		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(clientSet, rawClient, kubernetesVersion, ctl.AWSProvider().Region())
 		if err != nil {
 			return err
 		}
@@ -293,7 +291,7 @@ func (m *Manager) checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes
 	return nil
 }
 
-func loadVPCFromConfig(provider api.ClusterProvider, cfg *api.ClusterConfig) error {
+func loadVPCFromConfig(provider api.AWSProvider, cfg *api.ClusterConfig) error {
 	if cfg.VPC == nil || cfg.VPC.Subnets == nil || cfg.VPC.SecurityGroup == "" || cfg.VPC.ID == "" {
 		return errors.New("VPC configuration required for creating nodegroups on clusters not owned by eksctl: vpc.subnets, vpc.id, vpc.securityGroup")
 	}

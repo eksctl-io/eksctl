@@ -23,7 +23,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 		Endpoint: "https://test.com",
 	}
 	api.SetManagedNodeGroupDefaults(e.nodeGroup, clusterConfig.Metadata)
-	p := mockprovider.NewMockProvider()
+	p := mockprovider.NewMockAwsProvider()
 	fakeVPCImporter := new(vpcfakes.FakeImporter)
 	bootstrapper := nodebootstrap.NewManagedBootstrapper(clusterConfig, e.nodeGroup)
 	stack := NewManagedNodeGroup(p.EC2(), clusterConfig, e.nodeGroup, nil, bootstrapper, false, fakeVPCImporter)

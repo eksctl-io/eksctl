@@ -496,7 +496,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			Context("toggle CloudWatch logging", func() {
 				var (
 					cfg *api.ClusterConfig
-					ctl *eks.ClusterProvider
+					ctl *eks.ClusterProviderImpl
 				)
 
 				BeforeEach(func() {
@@ -620,7 +620,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			Context("create, update, and delete iamserviceaccounts", func() {
 				var (
 					cfg  *api.ClusterConfig
-					ctl  *eks.ClusterProvider
+					ctl  *eks.ClusterProviderImpl
 					oidc *iamoidc.OpenIDConnectManager
 					err  error
 				)

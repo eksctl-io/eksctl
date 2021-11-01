@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,29 +13,33 @@ import (
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"k8s.io/client-go/kubernetes/fake"
 )
 
 var _ = Describe("Scale", func() {
 	var (
 		clusterName, ngName string
-		p                   *mockprovider.MockProvider
+		awsProvider         *mockprovider.MockAwsProvider
+		kubeProvider        *mockprovider.MockKubeProvider
 		cfg                 *api.ClusterConfig
 		ng                  *api.NodeGroup
 		m                   *nodegroup.Manager
 		fakeStackManager    *fakes.FakeStackManager
+		fakeClientSet       *fake.Clientset
 	)
 	BeforeEach(func() {
 		clusterName = "my-cluster"
 		ngName = "my-ng"
-		p = mockprovider.NewMockProvider()
+		fakeClientSet = fake.NewSimpleClientset()
+		awsProvider = mockprovider.NewMockAwsProvider()
+		kubeProvider = mockprovider.NewMockKubeProvider(fakeClientSet)
+		clusterProvider := eks.NewWithMocks(awsProvider, kubeProvider)
 		cfg = api.NewClusterConfig()
 		cfg.Metadata.Name = clusterName
 
@@ -46,10 +52,10 @@ var _ = Describe("Scale", func() {
 				},
 			},
 		}
-		m = nodegroup.New(cfg, &eks.ClusterProvider{AWSProvider: p}, nil)
+		m = nodegroup.New(cfg, clusterProvider, fakeClientSet)
 		fakeStackManager = new(fakes.FakeStackManager)
 		m.SetStackManager(fakeStackManager)
-		p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(nil, nil)
+		awsProvider.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(nil, nil)
 	})
 
 	Describe("Managed NodeGroup", func() {
@@ -73,7 +79,7 @@ var _ = Describe("Scale", func() {
 		})
 
 		It("scales the nodegroup using the values provided", func() {
-			p.MockEKS().On("UpdateNodegroupConfig", &awseks.UpdateNodegroupConfigInput{
+			awsProvider.MockEKS().On("UpdateNodegroupConfig", &awseks.UpdateNodegroupConfigInput{
 				ScalingConfig: &awseks.NodegroupScalingConfig{
 					MinSize:     aws.Int64(1),
 					DesiredSize: aws.Int64(3),
@@ -82,7 +88,7 @@ var _ = Describe("Scale", func() {
 				NodegroupName: &ngName,
 			}).Return(nil, nil)
 
-			p.MockEKS().On("DescribeNodegroupRequest", &awseks.DescribeNodegroupInput{
+			awsProvider.MockEKS().On("DescribeNodegroupRequest", &awseks.DescribeNodegroupInput{
 				ClusterName:   &clusterName,
 				NodegroupName: &ngName,
 			}).Return(&request.Request{}, nil)
@@ -101,7 +107,7 @@ var _ = Describe("Scale", func() {
 
 		When("update fails", func() {
 			It("returns an error", func() {
-				p.MockEKS().On("UpdateNodegroupConfig", &awseks.UpdateNodegroupConfigInput{
+				awsProvider.MockEKS().On("UpdateNodegroupConfig", &awseks.UpdateNodegroupConfigInput{
 					ScalingConfig: &awseks.NodegroupScalingConfig{
 						MinSize:     aws.Int64(1),
 						DesiredSize: aws.Int64(3),
@@ -143,7 +149,7 @@ var _ = Describe("Scale", func() {
 				}
 				fakeStackManager.DescribeNodeGroupStacksAndResourcesReturns(nodegroups, nil)
 
-				p.MockASG().On("UpdateAutoScalingGroup", &autoscaling.UpdateAutoScalingGroupInput{
+				awsProvider.MockASG().On("UpdateAutoScalingGroup", &autoscaling.UpdateAutoScalingGroupInput{
 					AutoScalingGroupName: aws.String("asg-name"),
 					MinSize:              aws.Int64(1),
 					DesiredCapacity:      aws.Int64(3),

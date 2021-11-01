@@ -21,7 +21,8 @@ import (
 
 var _ = Describe("Fargate", func() {
 	var (
-		mockProvider     *mockprovider.MockProvider
+		mockAwsProvider  *mockprovider.MockAwsProvider
+		mockKubeProvider *mockprovider.MockKubeProvider
 		cfg              *api.ClusterConfig
 		fargateManager   *fargate.Manager
 		fakeStackManager *fakes.FakeStackManager
@@ -30,7 +31,8 @@ var _ = Describe("Fargate", func() {
 	)
 
 	BeforeEach(func() {
-		mockProvider = mockprovider.NewMockProvider()
+		mockAwsProvider = mockprovider.NewMockAwsProvider()
+		mockKubeProvider = &mockprovider.MockKubeProvider{}
 		fakeStackManager = new(fakes.FakeStackManager)
 		cfg = api.NewClusterConfig()
 		cfg.FargateProfiles = []*api.FargateProfile{
@@ -47,14 +49,15 @@ var _ = Describe("Fargate", func() {
 		clusterName = "my-cluster"
 		cfg.Metadata.Name = clusterName
 
-		fargateManager = fargate.New(cfg, &eks.ClusterProvider{AWSProvider: mockProvider, Status: &eks.ProviderStatus{}}, fakeStackManager)
+		clusterProvider := eks.NewWithMocks(mockAwsProvider, mockKubeProvider)
+		fargateManager = fargate.New(cfg, clusterProvider, fakeStackManager)
 		fakeClientSet = fake.NewSimpleClientset()
 
 		fargateManager.SetNewClientSet(func() (kubernetes.Interface, error) {
 			return fakeClientSet, nil
 		})
 
-		mockProvider.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+		mockAwsProvider.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 			Expect(*input.Name).To(Equal(clusterName))
 			return true
 		})).Return(&awseks.DescribeClusterOutput{
@@ -95,7 +98,7 @@ var _ = Describe("Fargate", func() {
 						return nil
 					}
 
-					mockProvider.MockEKS().On("CreateFargateProfile", &awseks.CreateFargateProfileInput{
+					mockAwsProvider.MockEKS().On("CreateFargateProfile", &awseks.CreateFargateProfileInput{
 						PodExecutionRoleArn: aws.String("fargate-role-arn"),
 						ClusterName:         &clusterName,
 						Selectors: []*awseks.FargateProfileSelector{
@@ -106,7 +109,7 @@ var _ = Describe("Fargate", func() {
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(nil, nil)
 
-					mockProvider.MockEKS().On("DescribeFargateProfile", &awseks.DescribeFargateProfileInput{
+					mockAwsProvider.MockEKS().On("DescribeFargateProfile", &awseks.DescribeFargateProfileInput{
 						ClusterName:        &clusterName,
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(&awseks.DescribeFargateProfileOutput{
@@ -154,7 +157,7 @@ var _ = Describe("Fargate", func() {
 						return nil
 					}
 
-					mockProvider.MockEKS().On("CreateFargateProfile", &awseks.CreateFargateProfileInput{
+					mockAwsProvider.MockEKS().On("CreateFargateProfile", &awseks.CreateFargateProfileInput{
 						PodExecutionRoleArn: aws.String("fargate-existing-role-arn"),
 						ClusterName:         &clusterName,
 						Selectors: []*awseks.FargateProfileSelector{
@@ -165,7 +168,7 @@ var _ = Describe("Fargate", func() {
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(nil, nil)
 
-					mockProvider.MockEKS().On("DescribeFargateProfile", &awseks.DescribeFargateProfileInput{
+					mockAwsProvider.MockEKS().On("DescribeFargateProfile", &awseks.DescribeFargateProfileInput{
 						ClusterName:        &clusterName,
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(&awseks.DescribeFargateProfileOutput{
@@ -213,7 +216,7 @@ var _ = Describe("Fargate", func() {
 						return nil
 					}
 
-					mockProvider.MockEKS().On("CreateFargateProfile", &awseks.CreateFargateProfileInput{
+					mockAwsProvider.MockEKS().On("CreateFargateProfile", &awseks.CreateFargateProfileInput{
 						PodExecutionRoleArn: aws.String("fargate-role-arn"),
 						ClusterName:         &clusterName,
 						Selectors: []*awseks.FargateProfileSelector{
@@ -224,7 +227,7 @@ var _ = Describe("Fargate", func() {
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(nil, nil)
 
-					mockProvider.MockEKS().On("DescribeFargateProfile", &awseks.DescribeFargateProfileInput{
+					mockAwsProvider.MockEKS().On("DescribeFargateProfile", &awseks.DescribeFargateProfileInput{
 						ClusterName:        &clusterName,
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(&awseks.DescribeFargateProfileOutput{

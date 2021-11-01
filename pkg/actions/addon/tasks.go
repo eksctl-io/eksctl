@@ -10,7 +10,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvider, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree) {
+func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProviderImpl, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree) {
 	preTasks := &tasks.TaskTree{Parallel: false}
 	postTasks := &tasks.TaskTree{Parallel: false}
 	var preAddons []*api.Addon
@@ -52,7 +52,7 @@ func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvid
 type createAddonTask struct {
 	info            string
 	cfg             *api.ClusterConfig
-	clusterProvider *eks.ClusterProvider
+	clusterProvider *eks.ClusterProviderImpl
 	addons          []*api.Addon
 	forceAll, wait  bool
 	timeout         time.Duration
@@ -82,7 +82,7 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 
 	stackManager := t.clusterProvider.NewStackManager(t.cfg)
 
-	addonManager, err := New(t.cfg, t.clusterProvider.AWSProvider.EKS(), stackManager, oidcProviderExists, oidc, clientSet, t.timeout)
+	addonManager, err := New(t.cfg, t.clusterProvider.AWSProvider().EKS(), stackManager, oidcProviderExists, oidc, clientSet, t.timeout)
 	if err != nil {
 		return err
 	}

@@ -24,7 +24,8 @@ var _ = Describe("Get", func() {
 	var (
 		clusterName, stackName, ngName string
 		t                              time.Time
-		p                              *mockprovider.MockProvider
+		awsProvider                    *mockprovider.MockAwsProvider
+		kubeProvider                   *mockprovider.MockKubeProvider
 		cfg                            *api.ClusterConfig
 		m                              *nodegroup.Manager
 		fakeStackManager               *fakes.FakeStackManager
@@ -37,9 +38,11 @@ var _ = Describe("Get", func() {
 		clusterName = "my-cluster"
 		cfg = api.NewClusterConfig()
 		cfg.Metadata.Name = clusterName
-		p = mockprovider.NewMockProvider()
 		fakeClientSet = fake.NewSimpleClientset()
-		m = nodegroup.New(cfg, &eks.ClusterProvider{AWSProvider: p}, fakeClientSet)
+		awsProvider = mockprovider.NewMockAwsProvider()
+		kubeProvider = mockprovider.NewMockKubeProvider(fakeClientSet)
+		clusterProvider := eks.NewWithMocks(awsProvider, kubeProvider)
+		m = nodegroup.New(cfg, clusterProvider, fakeClientSet)
 
 		fakeStackManager = new(fakes.FakeStackManager)
 		m.SetStackManager(fakeStackManager)
@@ -47,7 +50,7 @@ var _ = Describe("Get", func() {
 
 	Describe("GetAll", func() {
 		BeforeEach(func() {
-			p.MockEKS().On("ListNodegroups", &awseks.ListNodegroupsInput{
+			awsProvider.MockEKS().On("ListNodegroups", &awseks.ListNodegroupsInput{
 				ClusterName: aws.String(clusterName),
 			}).Run(func(args mock.Arguments) {
 				Expect(args).To(HaveLen(1))
@@ -64,7 +67,7 @@ var _ = Describe("Get", func() {
 		Context("when getting managed nodegroups", func() {
 			When("a nodegroup is associated to a CF Stack", func() {
 				BeforeEach(func() {
-					p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+					awsProvider.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
 						ClusterName:   aws.String(clusterName),
 						NodegroupName: aws.String(ngName),
 					}).Run(func(args mock.Arguments) {
@@ -124,7 +127,7 @@ var _ = Describe("Get", func() {
 
 			When("a nodegroup is not associated to a CF Stack", func() {
 				BeforeEach(func() {
-					p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+					awsProvider.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
 						ClusterName:   aws.String(clusterName),
 						NodegroupName: aws.String(ngName),
 					}).Run(func(args mock.Arguments) {
@@ -182,7 +185,7 @@ var _ = Describe("Get", func() {
 
 			When("a nodegroup is associated with a launch template", func() {
 				BeforeEach(func() {
-					p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+					awsProvider.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
 						ClusterName:   aws.String(clusterName),
 						NodegroupName: aws.String(ngName),
 					}).Run(func(args mock.Arguments) {
@@ -220,7 +223,7 @@ var _ = Describe("Get", func() {
 						},
 					}, nil)
 
-					p.MockEC2().On("DescribeLaunchTemplateVersions", &ec2.DescribeLaunchTemplateVersionsInput{
+					awsProvider.MockEC2().On("DescribeLaunchTemplateVersions", &ec2.DescribeLaunchTemplateVersionsInput{
 						LaunchTemplateId: aws.String("4"),
 					}).Return(&ec2.DescribeLaunchTemplateVersionsOutput{LaunchTemplateVersions: []*ec2.LaunchTemplateVersion{
 						{
@@ -257,7 +260,7 @@ var _ = Describe("Get", func() {
 		Context("when getting unmanaged nodegroups", func() {
 			When("the DesiredCapacity is 0", func() {
 				BeforeEach(func() {
-					p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+					awsProvider.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
 						ClusterName:   aws.String(clusterName),
 						NodegroupName: aws.String(ngName),
 					}).Run(func(args mock.Arguments) {

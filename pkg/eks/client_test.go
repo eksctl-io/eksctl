@@ -2,36 +2,37 @@ package eks_test
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/stretchr/testify/mock"
-	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/stretchr/testify/mock"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	. "github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 var _ = Describe("eks auth helpers", func() {
-	var ctl *ClusterProvider
+	var ctl *ClusterProviderImpl
 
 	Describe("construct client configs", func() {
 		Context("with a mock provider", func() {
-			var p *mockprovider.MockProvider
+			var awsProvider *mockprovider.MockAwsProvider
+			var kubeProvider *AWSKubeProvider
 			clusterName := "auth-test-cluster"
 
 			BeforeEach(func() {
-				p = mockprovider.NewMockProvider()
+				awsProvider = mockprovider.NewMockAwsProvider()
+				kubeProvider = &AWSKubeProvider{AWSProvider: awsProvider}
 
-				ctl = &ClusterProvider{
-					AWSProvider: p,
-					Status:      &ProviderStatus{},
-				}
+				ctl = NewWithMocks(awsProvider, kubeProvider)
+				kubeProvider.ClusterProvider = ctl
 			})
 
 			Context("for a cluster", func() {
@@ -50,7 +51,9 @@ var _ = Describe("eks auth helpers", func() {
 					Expect(k).NotTo(BeNil())
 
 					ctx := k.CurrentContext
-					cluster := strings.Split(ctx, "@")[1]
+					s := strings.Split(ctx, "@")
+					Expect(s).To(HaveLen(2))
+					cluster := s[1]
 					Expect(cluster).To(Equal("auth-test-cluster.eu-west-3.eksctl.io"))
 
 					Expect(k.CurrentContext).To(Equal(ctx))
@@ -77,7 +80,7 @@ var _ = Describe("eks auth helpers", func() {
 				}
 
 				testAuthenticatorConfig := func(roleARN string) {
-					k := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), roleARN, ctl.AWSProvider.Profile())
+					k := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), roleARN, ctl.AWSProvider().Profile())
 					ctx := k.CurrentContext
 
 					// test shared expectations
@@ -113,14 +116,14 @@ var _ = Describe("eks auth helpers", func() {
 
 				testClientConfig := func(roleARN string) {
 					if roleARN != "" {
-						p.MockSTS().On("GetCallerIdentity", mock.Anything).Return(&sts.GetCallerIdentityOutput{
+						awsProvider.MockSTS().On("GetCallerIdentity", mock.Anything).Return(&sts.GetCallerIdentityOutput{
 							Arn: aws.String(roleARN),
 						}, nil)
 						Expect(ctl.CheckAuth()).To(Succeed()) // set roleARN
 					}
 
-					req := p.Client.NewRequest(&request.Operation{Name: "GetCallerIdentityRequest"}, nil, nil)
-					p.MockSTS().On("GetCallerIdentityRequest", mock.Anything).Return(req, nil)
+					req := awsProvider.Client.NewRequest(&request.Operation{Name: "GetCallerIdentityRequest"}, nil, nil)
+					awsProvider.MockSTS().On("GetCallerIdentityRequest", mock.Anything).Return(req, nil)
 
 					client, err := ctl.NewClient(cfg)
 					Expect(err).NotTo(HaveOccurred())

@@ -7,7 +7,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
-func PopulateNodegroup(stackManager manager.StackManager, name string, cfg *api.ClusterConfig, ctl api.ClusterProvider) error {
+func PopulateNodegroup(stackManager manager.StackManager, name string, cfg *api.ClusterConfig, ctl api.AWSProvider) error {
 	nodeGroupType, err := stackManager.GetNodeGroupStackType(name)
 	if err != nil {
 		logger.Debug("failed to fetch nodegroup %q stack: %v", name, err)

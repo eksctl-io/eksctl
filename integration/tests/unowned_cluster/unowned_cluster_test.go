@@ -48,7 +48,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		stackName, ng1, mng1, mng2 string
 		version                    = "1.20"
 		upgradeVersion             = "1.21"
-		ctl                        api.ClusterProvider
+		ctl                        api.AWSProvider
 		configFile                 *os.File
 		cfg                        *api.ClusterConfig
 		kmsKeyARN                  *string
@@ -75,7 +75,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		if !params.SkipCreate {
 			clusterProvider, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
 			Expect(err).NotTo(HaveOccurred())
-			ctl = clusterProvider.AWSProvider
+			ctl = clusterProvider.AWSProvider()
 			cfg.VPC = createClusterWithNodeGroup(params.ClusterName, stackName, mng1, version, ctl)
 
 			kmsClient := kms.New(ctl.ConfigProvider())
@@ -409,7 +409,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 	})
 })
 
-func createClusterWithNodeGroup(clusterName, stackName, ng1, version string, ctl api.ClusterProvider) *api.ClusterVPC {
+func createClusterWithNodeGroup(clusterName, stackName, ng1, version string, ctl api.AWSProvider) *api.ClusterVPC {
 	timeoutDuration := time.Minute * 30
 	publicSubnets, privateSubnets, clusterRoleArn, nodeRoleArn, vpcID, securityGroup := createVPCAndRole(stackName, ctl)
 
@@ -482,7 +482,7 @@ func createClusterWithNodeGroup(clusterName, stackName, ng1, version string, ctl
 	return newVPC
 }
 
-func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, []string, string, string, string, string) {
+func createVPCAndRole(stackName string, ctl api.AWSProvider) ([]string, []string, string, string, string, string) {
 	templateBody, err := os.ReadFile("cf-template.yaml")
 	Expect(err).NotTo(HaveOccurred())
 	createStackInput := &cfn.CreateStackInput{
@@ -526,7 +526,7 @@ func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, []st
 	return publicSubnets, privateSubnets, clusterRoleARN, nodeRoleARN, vpcID, securityGroups[0]
 }
 
-func deleteStack(stackName string, ctl api.ClusterProvider) {
+func deleteStack(stackName string, ctl api.AWSProvider) {
 	deleteStackInput := &cfn.DeleteStackInput{
 		StackName: &stackName,
 	}

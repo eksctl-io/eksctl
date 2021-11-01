@@ -76,7 +76,7 @@ func (m *Manager) scaleUnmanagedNodeGroup(ng *api.NodeGroup, stackInfo manager.S
 	if ng.DesiredCapacity != nil {
 		input.DesiredCapacity = aws.Int64(int64(*ng.DesiredCapacity))
 	}
-	out, err := m.ctl.AWSProvider.ASG().UpdateAutoScalingGroup(input)
+	out, err := m.ctl.AWSProvider().ASG().UpdateAutoScalingGroup(input)
 	if err != nil {
 		logger.Debug("ASG update output: %s", out.String())
 		return err
@@ -101,7 +101,7 @@ func (m *Manager) scaleManagedNodeGroup(ng *api.NodeGroup) error {
 		scalingConfig.DesiredSize = aws.Int64(int64(*ng.DesiredCapacity))
 	}
 
-	_, err := m.ctl.AWSProvider.EKS().UpdateNodegroupConfig(&eks.UpdateNodegroupConfigInput{
+	_, err := m.ctl.AWSProvider().EKS().UpdateNodegroupConfig(&eks.UpdateNodegroupConfigInput{
 		ScalingConfig: scalingConfig,
 		ClusterName:   &m.cfg.Metadata.Name,
 		NodegroupName: &ng.Name,
@@ -116,7 +116,7 @@ func (m *Manager) scaleManagedNodeGroup(ng *api.NodeGroup) error {
 			ClusterName:   &m.cfg.Metadata.Name,
 			NodegroupName: &ng.Name,
 		}
-		req, _ := m.ctl.AWSProvider.EKS().DescribeNodegroupRequest(input)
+		req, _ := m.ctl.AWSProvider().EKS().DescribeNodegroupRequest(input)
 		return req
 	}
 
@@ -130,7 +130,7 @@ func (m *Manager) scaleManagedNodeGroup(ng *api.NodeGroup) error {
 		},
 	)
 
-	err = m.wait(ng.Name, msg, acceptors, newRequest, m.ctl.AWSProvider.WaitTimeout(), nil)
+	err = m.wait(ng.Name, msg, acceptors, newRequest, m.ctl.AWSProvider().WaitTimeout(), nil)
 	if err != nil {
 		return err
 	}

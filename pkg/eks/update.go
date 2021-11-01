@@ -28,7 +28,7 @@ type ClusterVPCConfig struct {
 }
 
 // GetCurrentClusterConfigForLogging fetches current cluster logging configuration as two sets - enabled and disabled types
-func (c *ClusterProvider) GetCurrentClusterConfigForLogging(spec *api.ClusterConfig) (sets.String, sets.String, error) {
+func (c *ClusterProviderImpl) GetCurrentClusterConfigForLogging(spec *api.ClusterConfig) (sets.String, sets.String, error) {
 	enabled := sets.NewString()
 	disabled := sets.NewString()
 
@@ -36,7 +36,7 @@ func (c *ClusterProvider) GetCurrentClusterConfigForLogging(spec *api.ClusterCon
 		return nil, nil, errors.Wrap(err, "unable to retrieve current cluster logging configuration")
 	}
 
-	for _, logTypeGroup := range c.Status.ClusterInfo.Cluster.Logging.ClusterLogging {
+	for _, logTypeGroup := range c.status.ClusterInfo.Cluster.Logging.ClusterLogging {
 		for _, logType := range logTypeGroup.Types {
 			if logType == nil {
 				return nil, nil, fmt.Errorf("unexpected response from EKS API - nil string")
@@ -53,7 +53,7 @@ func (c *ClusterProvider) GetCurrentClusterConfigForLogging(spec *api.ClusterCon
 }
 
 // UpdateClusterConfigForLogging calls UpdateClusterConfig to enable logging
-func (c *ClusterProvider) UpdateClusterConfigForLogging(cfg *api.ClusterConfig) error {
+func (c *ClusterProviderImpl) UpdateClusterConfigForLogging(cfg *api.ClusterConfig) error {
 	all := sets.NewString(api.SupportedCloudWatchClusterLogTypes()...)
 
 	enabled := sets.NewString()
@@ -79,7 +79,7 @@ func (c *ClusterProvider) UpdateClusterConfigForLogging(cfg *api.ClusterConfig) 
 		},
 	}
 
-	output, err := c.AWSProvider.EKS().UpdateClusterConfig(input)
+	output, err := c.awsProvider.EKS().UpdateClusterConfig(input)
 	if err != nil {
 		return err
 	}
@@ -104,12 +104,12 @@ func (c *ClusterProvider) UpdateClusterConfigForLogging(cfg *api.ClusterConfig) 
 }
 
 // GetCurrentClusterVPCConfig fetches current cluster endpoint configuration for public and private access types
-func (c *ClusterProvider) GetCurrentClusterVPCConfig(spec *api.ClusterConfig) (*ClusterVPCConfig, error) {
+func (c *ClusterProviderImpl) GetCurrentClusterVPCConfig(spec *api.ClusterConfig) (*ClusterVPCConfig, error) {
 	if ok, err := c.CanOperate(spec); !ok {
 		return nil, errors.Wrap(err, "unable to retrieve current cluster VPC configuration")
 	}
 
-	vpcConfig := c.Status.ClusterInfo.Cluster.ResourcesVpcConfig
+	vpcConfig := c.status.ClusterInfo.Cluster.ResourcesVpcConfig
 
 	return &ClusterVPCConfig{
 		ClusterEndpoints: &api.ClusterEndpoints{
@@ -121,7 +121,7 @@ func (c *ClusterProvider) GetCurrentClusterVPCConfig(spec *api.ClusterConfig) (*
 }
 
 // UpdateClusterConfigForEndpoints calls eks.UpdateClusterConfig and updates access to API endpoints
-func (c *ClusterProvider) UpdateClusterConfigForEndpoints(cfg *api.ClusterConfig) error {
+func (c *ClusterProviderImpl) UpdateClusterConfigForEndpoints(cfg *api.ClusterConfig) error {
 
 	input := &eks.UpdateClusterConfigInput{
 		Name: &cfg.Metadata.Name,
@@ -131,7 +131,7 @@ func (c *ClusterProvider) UpdateClusterConfigForEndpoints(cfg *api.ClusterConfig
 		},
 	}
 
-	output, err := c.AWSProvider.EKS().UpdateClusterConfig(input)
+	output, err := c.awsProvider.EKS().UpdateClusterConfig(input)
 	if err != nil {
 		return err
 	}
@@ -140,14 +140,14 @@ func (c *ClusterProvider) UpdateClusterConfigForEndpoints(cfg *api.ClusterConfig
 }
 
 // UpdatePublicAccessCIDRs calls eks.UpdateClusterConfig and updates the CIDRs for public access
-func (c *ClusterProvider) UpdatePublicAccessCIDRs(clusterConfig *api.ClusterConfig) error {
+func (c *ClusterProviderImpl) UpdatePublicAccessCIDRs(clusterConfig *api.ClusterConfig) error {
 	input := &eks.UpdateClusterConfigInput{
 		Name: &clusterConfig.Metadata.Name,
 		ResourcesVpcConfig: &eks.VpcConfigRequest{
 			PublicAccessCidrs: aws.StringSlice(clusterConfig.VPC.PublicAccessCIDRs),
 		},
 	}
-	output, err := c.AWSProvider.EKS().UpdateClusterConfig(input)
+	output, err := c.awsProvider.EKS().UpdateClusterConfig(input)
 	if err != nil {
 		return err
 	}
@@ -155,9 +155,9 @@ func (c *ClusterProvider) UpdatePublicAccessCIDRs(clusterConfig *api.ClusterConf
 }
 
 // EnableKMSEncryption enables KMS encryption for the specified cluster
-func (c *ClusterProvider) EnableKMSEncryption(ctx context.Context, clusterConfig *api.ClusterConfig) error {
+func (c *ClusterProviderImpl) EnableKMSEncryption(ctx context.Context, clusterConfig *api.ClusterConfig) error {
 	clusterName := aws.String(clusterConfig.Metadata.Name)
-	clusterOutput, err := c.AWSProvider.EKS().DescribeCluster(&eks.DescribeClusterInput{
+	clusterOutput, err := c.awsProvider.EKS().DescribeCluster(&eks.DescribeClusterInput{
 		Name: clusterName,
 	})
 	if err != nil {
@@ -173,7 +173,7 @@ func (c *ClusterProvider) EnableKMSEncryption(ctx context.Context, clusterConfig
 		}
 	}
 
-	output, err := c.AWSProvider.EKS().AssociateEncryptionConfigWithContext(ctx, &eks.AssociateEncryptionConfigInput{
+	output, err := c.awsProvider.EKS().AssociateEncryptionConfigWithContext(ctx, &eks.AssociateEncryptionConfigInput{
 		ClusterName: clusterName,
 		EncryptionConfig: []*eks.EncryptionConfig{
 			{
@@ -191,7 +191,7 @@ func (c *ClusterProvider) EnableKMSEncryption(ctx context.Context, clusterConfig
 
 	logger.Info("initiated KMS encryption, this may take up to 45 minutes to complete")
 
-	err = waitForUpdate(ctx, c.AWSProvider.EKS(), &eks.DescribeUpdateInput{
+	err = waitForUpdate(ctx, c.awsProvider.EKS(), &eks.DescribeUpdateInput{
 		Name:     clusterName,
 		UpdateId: output.Update.Id,
 	})
@@ -277,12 +277,12 @@ func aggregateErrors(errorDetails []*eks.ErrorDetail) string {
 
 // UpdateClusterVersion calls eks.UpdateClusterVersion and updates to cfg.Metadata.Version,
 // it will return update ID along with an error (if it occurs)
-func (c *ClusterProvider) UpdateClusterVersion(cfg *api.ClusterConfig) (*eks.Update, error) {
+func (c *ClusterProviderImpl) UpdateClusterVersion(cfg *api.ClusterConfig) (*eks.Update, error) {
 	input := &eks.UpdateClusterVersionInput{
 		Name:    &cfg.Metadata.Name,
 		Version: &cfg.Metadata.Version,
 	}
-	output, err := c.AWSProvider.EKS().UpdateClusterVersion(input)
+	output, err := c.awsProvider.EKS().UpdateClusterVersion(input)
 	if err != nil {
 		return nil, err
 	}
@@ -290,7 +290,7 @@ func (c *ClusterProvider) UpdateClusterVersion(cfg *api.ClusterConfig) (*eks.Upd
 }
 
 // UpdateClusterTags calls eks.TagResource and tags the cluster
-func (c *ClusterProvider) UpdateClusterTags(cfg *api.ClusterConfig) error {
+func (c *ClusterProviderImpl) UpdateClusterTags(cfg *api.ClusterConfig) error {
 	if len(cfg.Metadata.Tags) == 0 {
 		return nil
 	}
@@ -298,10 +298,10 @@ func (c *ClusterProvider) UpdateClusterTags(cfg *api.ClusterConfig) error {
 		return err
 	}
 	input := &eks.TagResourceInput{
-		ResourceArn: c.Status.ClusterInfo.Cluster.Arn,
+		ResourceArn: c.status.ClusterInfo.Cluster.Arn,
 		Tags:        utilsstrings.ToPointersMap(cfg.Metadata.Tags),
 	}
-	_, err := c.AWSProvider.EKS().TagResource(input)
+	_, err := c.awsProvider.EKS().TagResource(input)
 	if err != nil {
 		return err
 	}
@@ -315,7 +315,7 @@ func (c *ClusterProvider) UpdateClusterTags(cfg *api.ClusterConfig) error {
 
 // UpdateClusterVersionBlocking calls UpdateClusterVersion and blocks until update
 // operation is successful
-func (c *ClusterProvider) UpdateClusterVersionBlocking(cfg *api.ClusterConfig) error {
+func (c *ClusterProviderImpl) UpdateClusterVersionBlocking(cfg *api.ClusterConfig) error {
 	id, err := c.UpdateClusterVersion(cfg)
 	if err != nil {
 		return err
@@ -328,13 +328,13 @@ func (c *ClusterProvider) UpdateClusterVersionBlocking(cfg *api.ClusterConfig) e
 	return c.waitForControlPlaneVersion(cfg)
 }
 
-func (c *ClusterProvider) waitForUpdateToSucceed(clusterName string, update *eks.Update) error {
+func (c *ClusterProviderImpl) waitForUpdateToSucceed(clusterName string, update *eks.Update) error {
 	newRequest := func() *request.Request {
 		input := &eks.DescribeUpdateInput{
 			Name:     &clusterName,
 			UpdateId: update.Id,
 		}
-		req, _ := c.AWSProvider.EKS().DescribeUpdateRequest(input)
+		req, _ := c.awsProvider.EKS().DescribeUpdateRequest(input)
 		return req
 	}
 
@@ -349,7 +349,7 @@ func (c *ClusterProvider) waitForUpdateToSucceed(clusterName string, update *eks
 
 	msg := fmt.Sprintf("waiting for requested %q in cluster %q to succeed", *update.Type, clusterName)
 
-	return waiters.Wait(clusterName, msg, acceptors, newRequest, c.AWSProvider.WaitTimeout(), nil)
+	return waiters.Wait(clusterName, msg, acceptors, newRequest, c.awsProvider.WaitTimeout(), nil)
 }
 
 func controlPlaneIsVersion(clientSet kubeclient.Interface, version string) (bool, error) {
@@ -360,9 +360,9 @@ func controlPlaneIsVersion(clientSet kubeclient.Interface, version string) (bool
 	return fmt.Sprintf("%s.%s", serverVersion.Major, strings.TrimSuffix(serverVersion.Minor, "+")) == version, nil
 }
 
-func (c *ClusterProvider) waitForControlPlaneVersion(cfg *api.ClusterConfig) error {
+func (c *ClusterProviderImpl) waitForControlPlaneVersion(cfg *api.ClusterConfig) error {
 	retryPolicy := retry.TimingOutExponentialBackoff{
-		Timeout:  c.AWSProvider.WaitTimeout(),
+		Timeout:  c.awsProvider.WaitTimeout(),
 		TimeUnit: time.Second,
 	}
 

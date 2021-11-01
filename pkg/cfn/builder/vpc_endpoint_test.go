@@ -23,7 +23,7 @@ import (
 type vpcResourceSetCase struct {
 	clusterConfig  *api.ClusterConfig
 	expectedFile   string
-	createProvider func() api.ClusterProvider
+	createProvider func() api.AWSProvider
 	err            string
 }
 
@@ -46,11 +46,11 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			Expect(vpc.SetSubnets(vc.clusterConfig.VPC, vc.clusterConfig.AvailabilityZones)).To(Succeed())
 		}
 
-		var provider api.ClusterProvider
+		var provider api.AWSProvider
 		if vc.createProvider != nil {
 			provider = vc.createProvider()
 		} else {
-			provider = mockprovider.NewMockProvider()
+			provider = mockprovider.NewMockAwsProvider()
 		}
 
 		rs := newResourceSet()
@@ -98,8 +98,8 @@ var _ = Describe("VPC Endpoint Builder", func() {
 					Enabled: true,
 				},
 			},
-			createProvider: func() api.ClusterProvider {
-				provider := mockprovider.NewMockProvider()
+			createProvider: func() api.AWSProvider {
+				provider := mockprovider.NewMockAwsProvider()
 				mockDescribeVPCEndpoints(provider, false)
 				return provider
 			},
@@ -115,8 +115,8 @@ var _ = Describe("VPC Endpoint Builder", func() {
 					Enabled: true,
 				},
 			},
-			createProvider: func() api.ClusterProvider {
-				provider := mockprovider.NewMockProvider()
+			createProvider: func() api.AWSProvider {
+				provider := mockprovider.NewMockAwsProvider()
 				mockDescribeVPCEndpoints(provider, true)
 				provider.SetRegion("cn-north-1")
 				return provider
@@ -171,8 +171,8 @@ var _ = Describe("VPC Endpoint Builder", func() {
 					Enabled: true,
 				},
 			},
-			createProvider: func() api.ClusterProvider {
-				provider := mockprovider.NewMockProvider()
+			createProvider: func() api.AWSProvider {
+				provider := mockprovider.NewMockAwsProvider()
 				mockDescribeVPCEndpoints(provider, false)
 				mockDescribeRouteTables(provider, []string{"subnet-custom1", "subnet-custom2"})
 				return provider
@@ -203,8 +203,8 @@ var _ = Describe("VPC Endpoint Builder", func() {
 					Enabled: true,
 				},
 			},
-			createProvider: func() api.ClusterProvider {
-				provider := mockprovider.NewMockProvider()
+			createProvider: func() api.AWSProvider {
+				provider := mockprovider.NewMockAwsProvider()
 				mockDescribeVPCEndpoints(provider, false)
 				mockDescribeRouteTablesSame(provider, []string{"subnet-custom1", "subnet-custom2"})
 				return provider
@@ -232,8 +232,8 @@ var _ = Describe("VPC Endpoint Builder", func() {
 					Enabled: true,
 				},
 			},
-			createProvider: func() api.ClusterProvider {
-				provider := mockprovider.NewMockProvider()
+			createProvider: func() api.AWSProvider {
+				provider := mockprovider.NewMockAwsProvider()
 				output := &ec2.DescribeRouteTablesOutput{
 					RouteTables: []*ec2.RouteTable{
 						{
@@ -564,7 +564,7 @@ var serviceDetailsJSONChina = `
 }
 `
 
-func mockDescribeVPCEndpoints(provider *mockprovider.MockProvider, china bool) {
+func mockDescribeVPCEndpoints(provider *mockprovider.MockAwsProvider, china bool) {
 	var detailsJSON = serviceDetailsJSON
 	if china {
 		detailsJSON = serviceDetailsJSONChina
@@ -578,7 +578,7 @@ func mockDescribeVPCEndpoints(provider *mockprovider.MockProvider, china bool) {
 	})).Return(output, nil)
 }
 
-func mockDescribeRouteTables(provider *mockprovider.MockProvider, subnetIDs []string) {
+func mockDescribeRouteTables(provider *mockprovider.MockAwsProvider, subnetIDs []string) {
 	output := &ec2.DescribeRouteTablesOutput{
 		RouteTables: make([]*ec2.RouteTable, len(subnetIDs)),
 	}
@@ -604,7 +604,7 @@ func mockDescribeRouteTables(provider *mockprovider.MockProvider, subnetIDs []st
 	})).Return(output, nil)
 }
 
-func mockDescribeRouteTablesSame(provider *mockprovider.MockProvider, subnetIDs []string) {
+func mockDescribeRouteTablesSame(provider *mockprovider.MockAwsProvider, subnetIDs []string) {
 	output := &ec2.DescribeRouteTablesOutput{
 		RouteTables: make([]*ec2.RouteTable, len(subnetIDs)),
 	}

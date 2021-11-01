@@ -16,7 +16,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 	Describe("When resolving an AMI to use", func() {
 
 		var (
-			p            *mockprovider.MockProvider
+			p            *mockprovider.MockAwsProvider
 			err          error
 			region       string
 			version      string
@@ -42,7 +42,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 				Context("and AL2 ami is available", func() {
 					BeforeEach(func() {
 
-						p = mockprovider.NewMockProvider()
+						p = mockprovider.NewMockAwsProvider()
 						addMockGetParameter(p, "/aws/service/eks/optimized-ami/1.12/amazon-linux-2/recommended/image_id", expectedAmi)
 						resolver := NewSSMResolver(p.MockSSM())
 						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
@@ -64,7 +64,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 				Context("and ami is NOT available", func() {
 					BeforeEach(func() {
 
-						p = mockprovider.NewMockProvider()
+						p = mockprovider.NewMockAwsProvider()
 						addMockFailedGetParameter(p, "/aws/service/eks/optimized-ami/1.12/amazon-linux-2/recommended/image_id")
 
 						resolver := NewSSMResolver(p.MockSSM())
@@ -94,7 +94,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 				Context("and ami is available", func() {
 					BeforeEach(func() {
 
-						p = mockprovider.NewMockProvider()
+						p = mockprovider.NewMockAwsProvider()
 						addMockGetParameter(p, "/aws/service/eks/optimized-ami/1.12/amazon-linux-2-gpu/recommended/image_id", expectedAmi)
 						resolver := NewSSMResolver(p.MockSSM())
 						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
@@ -122,7 +122,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 				Context("and ami is available", func() {
 					BeforeEach(func() {
 						version = "1.14"
-						p = mockprovider.NewMockProvider()
+						p = mockprovider.NewMockAwsProvider()
 					})
 
 					It("should return a valid Full image for 1.14", func() {
@@ -160,7 +160,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 			Context("and Ubuntu family", func() {
 				BeforeEach(func() {
-					p = mockprovider.NewMockProvider()
+					p = mockprovider.NewMockAwsProvider()
 				})
 
 				It("should return an error", func() {
@@ -180,7 +180,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				Context("and ami is available", func() {
 					BeforeEach(func() {
-						p = mockprovider.NewMockProvider()
+						p = mockprovider.NewMockAwsProvider()
 						addMockGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.15/x86_64/latest/image_id", expectedAmi)
 						resolver := NewSSMResolver(p.MockSSM())
 						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
@@ -201,7 +201,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				Context("and ami is NOT available", func() {
 					BeforeEach(func() {
-						p = mockprovider.NewMockProvider()
+						p = mockprovider.NewMockAwsProvider()
 						addMockFailedGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.15/x86_64/latest/image_id")
 
 						resolver := NewSSMResolver(p.MockSSM())
@@ -229,7 +229,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 					Context("and ami is available", func() {
 						BeforeEach(func() {
-							p = mockprovider.NewMockProvider()
+							p = mockprovider.NewMockAwsProvider()
 							addMockGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.15/arm64/latest/image_id", expectedAmi)
 							resolver := NewSSMResolver(p.MockSSM())
 							resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
@@ -250,7 +250,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 					Context("and ami is NOT available", func() {
 						BeforeEach(func() {
-							p = mockprovider.NewMockProvider()
+							p = mockprovider.NewMockAwsProvider()
 							addMockFailedGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.15/arm64/latest/image_id")
 
 							resolver := NewSSMResolver(p.MockSSM())
@@ -278,7 +278,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 	})
 })
 
-func addMockGetParameter(p *mockprovider.MockProvider, name, amiID string) {
+func addMockGetParameter(p *mockprovider.MockAwsProvider, name, amiID string) {
 	p.MockSSM().On("GetParameter",
 		mock.MatchedBy(func(input *ssm.GetParameterInput) bool {
 			return *input.Name == name
@@ -292,7 +292,7 @@ func addMockGetParameter(p *mockprovider.MockProvider, name, amiID string) {
 	}, nil)
 }
 
-func addMockFailedGetParameter(p *mockprovider.MockProvider, name string) {
+func addMockFailedGetParameter(p *mockprovider.MockAwsProvider, name string) {
 	p.MockSSM().On("GetParameter",
 		mock.MatchedBy(func(input *ssm.GetParameterInput) bool {
 			return *input.Name == name

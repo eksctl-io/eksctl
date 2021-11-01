@@ -16,7 +16,7 @@ var _ = Describe("StackCollection Template", func() {
 		cc *api.ClusterConfig
 		sc *StackCollection
 
-		p *mockprovider.MockProvider
+		p *mockprovider.MockAwsProvider
 	)
 
 	testAZs := []string{"us-west-2b", "us-west-2a", "us-west-2c"}
@@ -73,7 +73,7 @@ Outputs:
 		BeforeEach(func() {
 			clusterName = "test-cluster"
 
-			p = mockprovider.NewMockProvider()
+			p = mockprovider.NewMockAwsProvider()
 
 			cc = newClusterConfig(clusterName)
 

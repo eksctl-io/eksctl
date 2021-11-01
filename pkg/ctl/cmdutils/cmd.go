@@ -27,9 +27,9 @@ type Cmd struct {
 }
 
 // NewCtl performs common defaulting and validation and constructs a new
-// instance of eks.ClusterProvider, it may return an error if configuration
+// instance of eks.ClusterProviderImpl, it may return an error if configuration
 // is invalid or region is not supported
-func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
+func (c *Cmd) NewCtl() (*eks.ClusterProviderImpl, error) {
 	api.SetClusterConfigDefaults(c.ClusterConfig)
 
 	if err := api.ValidateClusterConfig(c.ClusterConfig); err != nil {
@@ -72,7 +72,7 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 
 // NewProviderForExistingCluster is a wrapper for NewCtl that also validates that the cluster exists and is not a
 // registered/connected cluster.
-func (c *Cmd) NewProviderForExistingCluster() (*eks.ClusterProvider, error) {
+func (c *Cmd) NewProviderForExistingCluster() (*eks.ClusterProviderImpl, error) {
 	provider, err := c.NewCtl()
 	if err != nil {
 		return nil, err

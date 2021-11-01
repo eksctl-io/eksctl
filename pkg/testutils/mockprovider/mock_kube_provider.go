@@ -2,34 +2,36 @@ package mockprovider
 
 import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
-	"k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 type MockKubeProvider struct {
-	Client *kubernetes.Clientset
+	Client kubewrapper.Interface
+}
+
+func NewMockKubeProvider(client kubewrapper.Interface) *MockKubeProvider {
+	return &MockKubeProvider{Client: client}
 }
 
 func (m MockKubeProvider) NewRawClient(spec *api.ClusterConfig) (kubewrapper.RawClientInterface, error) {
 	return kubewrapper.NewRawClient(m.Client, &restclient.Config{})
 }
 
-func (m MockKubeProvider) NewClient(spec *api.ClusterConfig) (eks.ClientInterface, error) {
+func (m MockKubeProvider) NewClient(spec *api.ClusterConfig) (kubewrapper.ClientInterface, error) {
 	return &MockKubeClient{Client: m.Client}, nil
 }
 
-func (m MockKubeProvider) NewStdClientSet(spec *api.ClusterConfig) (kubernetes.Interface, error) {
+func (m MockKubeProvider) NewStdClientSet(spec *api.ClusterConfig) (kubewrapper.Interface, error) {
 	return m.Client, nil
 }
 
 type MockKubeClient struct {
-	Client *kubernetes.Clientset
+	Client kubewrapper.Interface
 }
 
-func (m MockKubeClient) NewClientSet() (*kubernetes.Clientset, error) {
+func (m MockKubeClient) NewClientSet() (kubewrapper.Interface, error) {
 	return m.Client, nil
 }
 

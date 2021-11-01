@@ -23,14 +23,14 @@ var _ = Describe("Delete", func() {
 		manager          *addon.Manager
 		withOIDC         bool
 		fakeStackManager *fakes.FakeStackManager
-		mockProvider     *mockprovider.MockProvider
+		mockProvider     *mockprovider.MockAwsProvider
 	)
 
 	Describe("Delete", func() {
 		BeforeEach(func() {
 			withOIDC = false
 			fakeStackManager = new(fakes.FakeStackManager)
-			mockProvider = mockprovider.NewMockProvider()
+			mockProvider = mockprovider.NewMockAwsProvider()
 
 			var err error
 			manager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
@@ -181,7 +181,7 @@ var _ = Describe("Delete", func() {
 		BeforeEach(func() {
 			withOIDC = false
 			fakeStackManager = new(fakes.FakeStackManager)
-			mockProvider = mockprovider.NewMockProvider()
+			mockProvider = mockprovider.NewMockAwsProvider()
 
 			var err error
 			manager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{

@@ -36,7 +36,7 @@ func TestEKSAddons(t *testing.T) {
 var _ = Describe("(Integration) [EKS Addons test]", func() {
 
 	Context("Creating a cluster with addons", func() {
-		var rawClient *kubewrapper.RawClient
+		var rawClient kubewrapper.RawClientInterface
 		clusterName := params.NewClusterName("addons")
 
 		BeforeSuite(func() {

@@ -46,8 +46,8 @@ type MockState struct {
 	State *string
 }
 
-// MockProvider stores the mocked APIs
-type MockProvider struct {
+// MockAwsProvider stores the mocked APIs
+type MockAwsProvider struct {
 	Client *MockAWSClient
 
 	region         string
@@ -65,9 +65,9 @@ type MockProvider struct {
 	configProvider *mocks.ConfigProvider
 }
 
-// NewMockProvider returns a new MockProvider
-func NewMockProvider() *MockProvider {
-	return &MockProvider{
+// NewMockAwsProvider returns a new MockAwsProvider
+func NewMockAwsProvider() *MockAwsProvider {
+	return &MockAwsProvider{
 		Client: NewMockAWSClient(),
 
 		asg:            &mocks.AutoScalingAPI{},
@@ -85,76 +85,76 @@ func NewMockProvider() *MockProvider {
 }
 
 // CloudFormation returns a representation of the CloudFormation API
-func (m MockProvider) CloudFormation() cloudformationiface.CloudFormationAPI { return m.cfn }
+func (m MockAwsProvider) CloudFormation() cloudformationiface.CloudFormationAPI { return m.cfn }
 
 // CloudFormationRoleARN returns, if any, a service role used by CloudFormation to call AWS API on your behalf
-func (m MockProvider) CloudFormationRoleARN() string { return m.cfnRoleARN }
+func (m MockAwsProvider) CloudFormationRoleARN() string { return m.cfnRoleARN }
 
 // CloudFormationDisableRollback returns whether stacks should not rollback on failure
-func (m MockProvider) CloudFormationDisableRollback() bool {
+func (m MockAwsProvider) CloudFormationDisableRollback() bool {
 	return false
 }
 
 // MockCloudFormation returns a mocked CloudFormation API
-func (m MockProvider) MockCloudFormation() *mocks.CloudFormationAPI {
+func (m MockAwsProvider) MockCloudFormation() *mocks.CloudFormationAPI {
 	return m.CloudFormation().(*mocks.CloudFormationAPI)
 }
 
 // ASG returns a representation of the ASG API
-func (m MockProvider) ASG() autoscalingiface.AutoScalingAPI { return m.asg }
+func (m MockAwsProvider) ASG() autoscalingiface.AutoScalingAPI { return m.asg }
 
 // MockASG returns a mocked ASG API
-func (m MockProvider) MockASG() *mocks.AutoScalingAPI { return m.ASG().(*mocks.AutoScalingAPI) }
+func (m MockAwsProvider) MockASG() *mocks.AutoScalingAPI { return m.ASG().(*mocks.AutoScalingAPI) }
 
 // EKS returns a representation of the EKS API
-func (m MockProvider) EKS() eksiface.EKSAPI { return m.eks }
+func (m MockAwsProvider) EKS() eksiface.EKSAPI { return m.eks }
 
 // MockEKS returns a mocked EKS API
-func (m MockProvider) MockEKS() *mocks.EKSAPI { return m.EKS().(*mocks.EKSAPI) }
+func (m MockAwsProvider) MockEKS() *mocks.EKSAPI { return m.EKS().(*mocks.EKSAPI) }
 
 // EC2 returns a representation of the EC2 API
-func (m MockProvider) EC2() ec2iface.EC2API { return m.ec2 }
+func (m MockAwsProvider) EC2() ec2iface.EC2API { return m.ec2 }
 
 // ELB returns a representation of the ELB API
-func (m MockProvider) ELB() elbiface.ELBAPI { return m.elb }
+func (m MockAwsProvider) ELB() elbiface.ELBAPI { return m.elb }
 
 // ELBV2 returns a representation of the ELBV2 API
-func (m MockProvider) ELBV2() elbv2iface.ELBV2API { return m.elbv2 }
+func (m MockAwsProvider) ELBV2() elbv2iface.ELBV2API { return m.elbv2 }
 
 // MockEC2 returns a mocked EC2 API
-func (m MockProvider) MockEC2() *mocks.EC2API { return m.EC2().(*mocks.EC2API) }
+func (m MockAwsProvider) MockEC2() *mocks.EC2API { return m.EC2().(*mocks.EC2API) }
 
 // STS returns a representation of the STS API
-func (m MockProvider) STS() stsiface.STSAPI { return m.sts }
+func (m MockAwsProvider) STS() stsiface.STSAPI { return m.sts }
 
 // MockSTS returns a mocked STS API
-func (m MockProvider) MockSTS() *mocks.STSAPI { return m.STS().(*mocks.STSAPI) }
+func (m MockAwsProvider) MockSTS() *mocks.STSAPI { return m.STS().(*mocks.STSAPI) }
 
 // SSM returns a representation of the SSM API
-func (m MockProvider) SSM() ssmiface.SSMAPI { return m.ssm }
+func (m MockAwsProvider) SSM() ssmiface.SSMAPI { return m.ssm }
 
 // MockSSM returns a mocked SSM API
-func (m MockProvider) MockSSM() *mocks.SSMAPI { return m.SSM().(*mocks.SSMAPI) }
+func (m MockAwsProvider) MockSSM() *mocks.SSMAPI { return m.SSM().(*mocks.SSMAPI) }
 
 // IAM returns a representation of the IAM API
-func (m MockProvider) IAM() iamiface.IAMAPI { return m.iam }
+func (m MockAwsProvider) IAM() iamiface.IAMAPI { return m.iam }
 
 // MockIAM returns a mocked IAM API
-func (m MockProvider) MockIAM() *mocks.IAMAPI { return m.IAM().(*mocks.IAMAPI) }
+func (m MockAwsProvider) MockIAM() *mocks.IAMAPI { return m.IAM().(*mocks.IAMAPI) }
 
 // CloudTrail returns a representation of the CloudTrail API
-func (m MockProvider) CloudTrail() cloudtrailiface.CloudTrailAPI { return m.cloudtrail }
+func (m MockAwsProvider) CloudTrail() cloudtrailiface.CloudTrailAPI { return m.cloudtrail }
 
 // MockCloudTrail returns a mocked CloudTrail API
-func (m MockProvider) MockCloudTrail() *mocks.CloudTrailAPI {
+func (m MockAwsProvider) MockCloudTrail() *mocks.CloudTrailAPI {
 	return m.CloudTrail().(*mocks.CloudTrailAPI)
 }
 
 // Profile returns current profile setting
-func (m MockProvider) Profile() string { return ProviderConfig.Profile }
+func (m MockAwsProvider) Profile() string { return ProviderConfig.Profile }
 
 // Region returns current region setting
-func (m MockProvider) Region() string {
+func (m MockAwsProvider) Region() string {
 	if m.region != "" {
 		return m.region
 	}
@@ -162,24 +162,24 @@ func (m MockProvider) Region() string {
 }
 
 // SetRegion can be used to set the region of the provider
-func (m *MockProvider) SetRegion(r string) {
+func (m *MockAwsProvider) SetRegion(r string) {
 	m.region = r
 }
 
 // WaitTimeout returns current timeout setting
-func (m MockProvider) WaitTimeout() time.Duration { return ProviderConfig.WaitTimeout }
+func (m MockAwsProvider) WaitTimeout() time.Duration { return ProviderConfig.WaitTimeout }
 
 // ConfigProvider returns a representation of the ConfigProvider
-func (m MockProvider) ConfigProvider() client.ConfigProvider {
+func (m MockAwsProvider) ConfigProvider() client.ConfigProvider {
 	return m.configProvider
 }
 
 // MockConfigProvider returns a mocked ConfigProvider
-func (m MockProvider) MockConfigProvider() client.ConfigProvider {
+func (m MockAwsProvider) MockConfigProvider() client.ConfigProvider {
 	return m.configProvider
 }
 
-func (m MockProvider) Session() *session.Session {
+func (m MockAwsProvider) Session() *session.Session {
 	panic("not implemented")
 }
 

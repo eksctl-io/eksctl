@@ -13,7 +13,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
-func upgrade(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, dryRun bool) (bool, error) {
+func upgrade(cfg *api.ClusterConfig, ctl *eks.ClusterProviderImpl, dryRun bool) (bool, error) {
 	currentVersion := ctl.ControlPlaneVersion()
 	versionUpdateRequired, err := requiresVersionUpgrade(cfg.Metadata, currentVersion)
 	if err != nil {

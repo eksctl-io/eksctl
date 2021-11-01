@@ -8,13 +8,13 @@ import (
 )
 
 type Manager struct {
-	ctl             *eks.ClusterProvider
+	ctl             *eks.ClusterProviderImpl
 	cfg             *api.ClusterConfig
 	stackManager    manager.StackManager
 	newStdClientSet func() (kubernetes.Interface, error)
 }
 
-func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) *Manager {
+func New(cfg *api.ClusterConfig, ctl *eks.ClusterProviderImpl, stackManager manager.StackManager) *Manager {
 	return &Manager{
 		ctl:             ctl,
 		cfg:             cfg,

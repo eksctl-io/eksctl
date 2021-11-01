@@ -175,7 +175,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		cfg.VPC.CIDR = nil
 		// load subnets from local map created from flags, into the config
 		for topology := range params.Subnets {
-			if err := vpc.ImportSubnetsFromIDList(ctl.AWSProvider.EC2(), cfg, topology, *params.Subnets[topology]); err != nil {
+			if err := vpc.ImportSubnetsFromIDList(ctl.AWSProvider().EC2(), cfg, topology, *params.Subnets[topology]); err != nil {
 				return err
 			}
 		}
@@ -198,7 +198,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return err
 	}
 
-	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, selector.New(ctl.AWSProvider.Session()))
+	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider(), selector.New(ctl.AWSProvider().Session()))
 	nodePools := cmdutils.ToNodePools(cfg)
 	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err
@@ -285,7 +285,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		var kubeconfigContextName string
 
 		if params.WriteKubeconfig {
-			kubectlConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), params.AuthenticatorRoleARN, ctl.AWSProvider.Profile())
+			kubectlConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), params.AuthenticatorRoleARN, ctl.AWSProvider().Profile())
 			kubeconfigContextName = kubectlConfig.CurrentContext
 
 			params.KubeconfigPath, err = kubeconfig.Write(params.KubeconfigPath, *kubectlConfig, params.SetContext)
@@ -353,7 +353,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			if err != nil {
 				return err
 			}
-			k8sConfig := kubernetesClientConfigs.Config
+			k8sConfig := kubernetesClientConfigs.Config()
 			k8sRestConfig, err := clientcmd.NewDefaultClientConfig(*k8sConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
 			if err != nil {
 				return errors.Wrap(err, "cannot create Kubernetes client configuration")
@@ -394,7 +394,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	return nil
 }
 
-func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmdutils.CreateClusterCmdParams, ctl *eks.ClusterProvider) error {
+func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmdutils.CreateClusterCmdParams, ctl *eks.ClusterProviderImpl) error {
 	customNetworkingNotice := "custom VPC/subnets will be used; if resulting cluster doesn't function as expected, make sure to review the configuration of VPC/subnets"
 
 	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets
@@ -438,7 +438,7 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 			return nil
 		}
 
-		if err := kw.UseVPC(ctl.AWSProvider.EC2(), cfg); err != nil {
+		if err := kw.UseVPC(ctl.AWSProvider().EC2(), cfg); err != nil {
 			return err
 		}
 
@@ -464,7 +464,7 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 		return nil
 	}
 
-	if err := vpc.ImportSubnetsFromSpec(ctl.AWSProvider, cfg); err != nil {
+	if err := vpc.ImportSubnetsFromSpec(ctl.AWSProvider(), cfg); err != nil {
 		return err
 	}
 

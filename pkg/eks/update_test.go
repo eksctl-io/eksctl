@@ -3,6 +3,7 @@ package eks_test
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"k8s.io/client-go/kubernetes/fake"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -16,34 +17,36 @@ import (
 )
 
 var _ = Describe("EKS API wrapper", func() {
+	var (
+		ctl         *ClusterProviderImpl
+		cfg         *api.ClusterConfig
+		awsProvider *mockprovider.MockAwsProvider
+	)
+
+	BeforeEach(func() {
+		fakeClientSet := fake.NewSimpleClientset()
+		awsProvider = mockprovider.NewMockAwsProvider()
+		kubeProvider := mockprovider.NewMockKubeProvider(fakeClientSet)
+		ctl = NewWithMocks(awsProvider, kubeProvider)
+		cfg = api.NewClusterConfig()
+	})
+
 	Describe("can update cluster tags", func() {
 		var (
-			ctl *ClusterProvider
-
-			cfg *api.ClusterConfig
-			err error
-
+			err      error
 			sentTags map[string]string
 		)
 		BeforeEach(func() {
-			p := mockprovider.NewMockProvider()
-			ctl = &ClusterProvider{
-				AWSProvider: p,
-				Status:      &ProviderStatus{},
-			}
-
-			cfg = api.NewClusterConfig()
-
 			updateClusterTagsOutput := &awseks.TagResourceOutput{}
 
-			p.MockEKS().On("TagResource", mock.MatchedBy(func(input *awseks.TagResourceInput) bool {
+			awsProvider.MockEKS().On("TagResource", mock.MatchedBy(func(input *awseks.TagResourceInput) bool {
 				Expect(input.Tags).ToNot(BeEmpty())
 
 				sentTags = utilsstrings.ToValuesMap(input.Tags)
 
 				return true
 			})).Return(updateClusterTagsOutput, nil)
-			p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+			awsProvider.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 				return true
 			})).Return(&awseks.DescribeClusterOutput{
 				Cluster: testutils.NewFakeCluster("testcluster", awseks.ClusterStatusActive),
@@ -65,21 +68,15 @@ var _ = Describe("EKS API wrapper", func() {
 	})
 	Describe("can update cluster configuration for logging", func() {
 		var (
-			ctl *ClusterProvider
-
-			cfg *api.ClusterConfig
-			err error
-
+			err                error
 			sentClusterLogging []*awseks.LogSetup
 		)
 
 		BeforeEach(func() {
-			p := mockprovider.NewMockProvider()
-			ctl = &ClusterProvider{
-				AWSProvider: p,
-				Status:      &ProviderStatus{},
-			}
-
+			fakeClientSet := fake.NewSimpleClientset()
+			awsProvider := mockprovider.NewMockAwsProvider()
+			kubeProvider := mockprovider.NewMockKubeProvider(fakeClientSet)
+			ctl = NewWithMocks(awsProvider, kubeProvider)
 			cfg = api.NewClusterConfig()
 
 			updateClusterConfigOutput := &awseks.UpdateClusterConfigOutput{
@@ -106,11 +103,11 @@ var _ = Describe("EKS API wrapper", func() {
 				},
 			}
 
-			p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+			awsProvider.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 				return true
 			})).Return(describeClusterOutput, nil)
 
-			p.MockEKS().On("UpdateClusterConfig", mock.MatchedBy(func(input *awseks.UpdateClusterConfigInput) bool {
+			awsProvider.MockEKS().On("UpdateClusterConfig", mock.MatchedBy(func(input *awseks.UpdateClusterConfigInput) bool {
 				Expect(input.Logging).ToNot(BeNil())
 
 				Expect(input.Logging.ClusterLogging[0].Enabled).ToNot(BeNil())
@@ -134,10 +131,10 @@ var _ = Describe("EKS API wrapper", func() {
 				},
 			}
 
-			p.MockEKS().On("DescribeUpdateRequest", mock.MatchedBy(func(input *awseks.DescribeUpdateInput) bool {
+			awsProvider.MockEKS().On("DescribeUpdateRequest", mock.MatchedBy(func(input *awseks.DescribeUpdateInput) bool {
 				*describeUpdateInput = *input
 				return true
-			})).Return(p.Client.MockRequestForGivenOutput(describeUpdateInput, describeUpdateOutput), describeUpdateOutput)
+			})).Return(awsProvider.Client.MockRequestForGivenOutput(describeUpdateInput, describeUpdateOutput), describeUpdateOutput)
 		})
 
 		It("should get current config", func() {

@@ -583,8 +583,8 @@ func (c ClusterConfig) IsFargateEnabled() bool {
 	return len(c.FargateProfiles) > 0
 }
 
-// ClusterProvider is the interface to AWS APIs
-type ClusterProvider interface {
+// AWSProvider is the interface to AWS APIs
+type AWSProvider interface {
 	CloudFormation() cloudformationiface.CloudFormationAPI
 	CloudFormationRoleARN() string
 	CloudFormationDisableRollback() bool

@@ -78,14 +78,14 @@ var _ = Describe("eksctl API", func() {
 	Context("Dynamic AMI Resolution", func() {
 		var (
 			ng       *api.NodeGroup
-			provider *mockprovider.MockProvider
+			provider *mockprovider.MockAwsProvider
 		)
 
 		BeforeEach(func() {
 			ng = api.NewNodeGroup()
 			ng.AMIFamily = api.DefaultNodeImageFamily
 
-			provider = mockprovider.NewMockProvider()
+			provider = mockprovider.NewMockAwsProvider()
 			mockDescribeImages(provider, "ami-123", func(input *ec2.DescribeImagesInput) bool {
 				return len(input.ImageIds) == 1
 			})
@@ -131,7 +131,7 @@ var _ = Describe("eksctl API", func() {
 
 })
 
-func mockDescribeImages(p *mockprovider.MockProvider, amiID string, matcher func(*ec2.DescribeImagesInput) bool) {
+func mockDescribeImages(p *mockprovider.MockAwsProvider, amiID string, matcher func(*ec2.DescribeImagesInput) bool) {
 	p.MockEC2().On("DescribeImages", mock.MatchedBy(matcher)).
 		Return(&ec2.DescribeImagesOutput{
 			Images: []*ec2.Image{

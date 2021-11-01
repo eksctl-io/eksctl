@@ -129,8 +129,8 @@ func TestUseAMI(t *testing.T) {
 
 }
 
-func mockDescribeImages(blockDeviceMappings []*ec2.BlockDeviceMapping, rootDeviceName string) *mockprovider.MockProvider {
-	mockProvider := mockprovider.NewMockProvider()
+func mockDescribeImages(blockDeviceMappings []*ec2.BlockDeviceMapping, rootDeviceName string) *mockprovider.MockAwsProvider {
+	mockProvider := mockprovider.NewMockAwsProvider()
 
 	mockProvider.MockEC2().On("DescribeImages", mock.MatchedBy(func(input *ec2.DescribeImagesInput) bool {
 		return len(input.ImageIds) == 1 && strings.HasPrefix(*input.ImageIds[0], "ami-")

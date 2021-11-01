@@ -26,7 +26,7 @@ import (
 type mngCase struct {
 	ng                *api.ManagedNodeGroup
 	resourcesFilename string
-	mockFetcherFn     func(*mockprovider.MockProvider)
+	mockFetcherFn     func(*mockprovider.MockAwsProvider)
 
 	hasUserData bool
 	errMsg      string
@@ -39,7 +39,7 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 		api.SetManagedNodeGroupDefaults(m.ng, clusterConfig.Metadata)
 		Expect(api.ValidateManagedNodeGroup(m.ng, 0)).To(Succeed())
 
-		provider := mockprovider.NewMockProvider()
+		provider := mockprovider.NewMockAwsProvider()
 		if m.mockFetcherFn != nil {
 			m.mockFetcherFn(provider)
 		}
@@ -272,8 +272,8 @@ API_SERVER_URL=https://test.com
 	)
 })
 
-func mockLaunchTemplate(matcher func(*ec2.DescribeLaunchTemplateVersionsInput) bool, lt *ec2.ResponseLaunchTemplateData) func(provider *mockprovider.MockProvider) {
-	return func(provider *mockprovider.MockProvider) {
+func mockLaunchTemplate(matcher func(*ec2.DescribeLaunchTemplateVersionsInput) bool, lt *ec2.ResponseLaunchTemplateData) func(provider *mockprovider.MockAwsProvider) {
+	return func(provider *mockprovider.MockAwsProvider) {
 		provider.MockEC2().On("DescribeLaunchTemplateVersions", mock.MatchedBy(matcher)).
 			Return(&ec2.DescribeLaunchTemplateVersionsOutput{
 				LaunchTemplateVersions: []*ec2.LaunchTemplateVersion{

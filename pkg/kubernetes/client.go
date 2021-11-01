@@ -23,6 +23,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 // Interface is an alias to avoid having to import k8s.io/client-go/kubernetes
@@ -67,6 +68,12 @@ func (g *CallbackClientSet) ClientSet() (Interface, error) {
 	return g.Callback()
 }
 
+// ClientInterface defines the high level client used by eks pkg
+type ClientInterface interface {
+	NewClientSet() (Interface, error)
+	Config() *clientcmdapi.Config
+}
+
 // RawClient stores information about the client config
 type RawClient struct {
 	mapper    meta.RESTMapper
@@ -79,6 +86,7 @@ type RawClientInterface interface {
 	ClientSet() Interface
 	NewRawResource(runtime.Object) (*RawResource, error)
 	ServerVersion() (string, error)
+	CreateOrReplace(manifest []byte, plan bool) error
 }
 
 // RawResource holds info about a resource along with a type-specific raw client instance

@@ -17,7 +17,7 @@ var _ = Describe("AZ", func() {
 
 	Describe("When calling SelectZones", func() {
 		var (
-			p   *mockprovider.MockProvider
+			p   *mockprovider.MockAwsProvider
 			err error
 		)
 
@@ -40,7 +40,7 @@ var _ = Describe("AZ", func() {
 					region = "us-west-2"
 
 					zones = usWest2Zones(ec2.AvailabilityZoneStateAvailable)
-					p = mockprovider.NewMockProvider()
+					p = mockprovider.NewMockAwsProvider()
 
 					p.MockEC2().On("DescribeAvailabilityZones",
 						mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
@@ -82,7 +82,7 @@ var _ = Describe("AZ", func() {
 					expectedZoneName = westZone.ZoneName
 					zones = []*ec2.AvailabilityZone{westZone}
 
-					p = mockprovider.NewMockProvider()
+					p = mockprovider.NewMockAwsProvider()
 
 					p.MockEC2().On("DescribeAvailabilityZones",
 						mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
@@ -131,7 +131,7 @@ var _ = Describe("AZ", func() {
 				expectedZoneName = aws.String("us-east-1c")
 
 				zones = usEast1Zones(ec2.AvailabilityZoneStateAvailable)
-				p = mockprovider.NewMockProvider()
+				p = mockprovider.NewMockAwsProvider()
 
 				p.MockEC2().On("DescribeAvailabilityZones",
 					mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
@@ -174,7 +174,7 @@ var _ = Describe("AZ", func() {
 				azSelector    *AvailabilityZoneSelector
 			)
 			BeforeEach(func() {
-				p = mockprovider.NewMockProvider()
+				p = mockprovider.NewMockAwsProvider()
 
 				p.MockEC2().On("DescribeAvailabilityZones",
 					mock.Anything,
@@ -211,7 +211,7 @@ var _ = Describe("AZ", func() {
 			BeforeEach(func() {
 				region = "us-east-1"
 				zones = usEast1Zones(ec2.AvailabilityZoneStateAvailable)
-				p = mockprovider.NewMockProvider()
+				p = mockprovider.NewMockAwsProvider()
 
 				p.MockEC2().On("DescribeAvailabilityZones",
 					mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
@@ -244,10 +244,10 @@ var _ = Describe("AZ", func() {
 
 		Context("with Beijing region that has an unsupported zone", func() {
 			const region = "cn-north-1"
-			var p *mockprovider.MockProvider
+			var p *mockprovider.MockAwsProvider
 
 			BeforeEach(func() {
-				p = mockprovider.NewMockProvider()
+				p = mockprovider.NewMockAwsProvider()
 			})
 
 			It("should avoid unsupported zones", func() {

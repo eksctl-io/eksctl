@@ -89,7 +89,7 @@ func doDisassociateIdentityProvider(cmd *cmdutils.Cmd, cliProvidedIDP cliProvide
 
 	manager := identityproviders.NewManager(
 		*cfg.Metadata,
-		ctl.AWSProvider.EKS(),
+		ctl.AWSProvider().EKS(),
 	)
 
 	options := identityproviders.DisassociateIdentityProvidersOptions{

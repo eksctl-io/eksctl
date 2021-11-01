@@ -89,7 +89,7 @@ func newTag(key, value string) *cloudformation.Tag {
 }
 
 // NewStackCollection creates a stack manager for a single cluster
-func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *StackCollection {
+func NewStackCollection(provider api.AWSProvider, spec *api.ClusterConfig) *StackCollection {
 	tags := []*cloudformation.Tag{
 		newTag(api.ClusterNameTag, spec.Metadata.Name),
 		newTag(api.OldClusterNameTag, spec.Metadata.Name),

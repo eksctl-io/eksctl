@@ -50,13 +50,13 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 
 	Describe("parse OIDC issuer URL and host fingerprint", func() {
 		var (
-			p *mockprovider.MockProvider
+			p *mockprovider.MockAwsProvider
 
 			err error
 		)
 
 		BeforeEach(func() {
-			p = mockprovider.NewMockProvider()
+			p = mockprovider.NewMockAwsProvider()
 		})
 
 		It("should get cluster, cache status and get issuer URL", func() {
@@ -135,7 +135,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 
 	Describe("create/get/delete tests", func() {
 		var (
-			p    *mockprovider.MockProvider
+			p    *mockprovider.MockAwsProvider
 			srv  *testServer
 			oidc *OpenIDConnectManager
 
@@ -145,7 +145,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 		)
 
 		BeforeEach(func() {
-			p = mockprovider.NewMockProvider()
+			p = mockprovider.NewMockAwsProvider()
 
 			if fakeProviderCreated == nil {
 				*fakeProviderCreated = false
@@ -292,12 +292,12 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 
 	Describe("Tags support", func() {
 		var (
-			provider *mockprovider.MockProvider
+			provider *mockprovider.MockAwsProvider
 			srv      *testServer
 		)
 
 		BeforeEach(func() {
-			provider = mockprovider.NewMockProvider()
+			provider = mockprovider.NewMockAwsProvider()
 			var err error
 			srv, err = newServer("localhost:10028")
 			Expect(err).NotTo(HaveOccurred())
@@ -343,12 +343,12 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 
 	Describe("OIDC AWS partition test", func() {
 		var (
-			provider *mockprovider.MockProvider
+			provider *mockprovider.MockAwsProvider
 			srv      *testServer
 		)
 
 		BeforeEach(func() {
-			provider = mockprovider.NewMockProvider()
+			provider = mockprovider.NewMockAwsProvider()
 			var err error
 			srv, err = newServer("localhost:10028")
 			Expect(err).NotTo(HaveOccurred())

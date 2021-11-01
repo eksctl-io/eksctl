@@ -64,8 +64,8 @@ func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
 	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 	logger.Info("setting label(s) on nodegroup %s in cluster %s", options.nodeGroupName, cmd.ClusterConfig.Metadata)
 
-	service := managed.NewService(ctl.AWSProvider.EKS(), ctl.AWSProvider.SSM(), ctl.AWSProvider.EC2(), manager.NewStackCollection(ctl.AWSProvider, cfg), cfg.Metadata.Name)
-	manager := label.New(cfg.Metadata.Name, service, ctl.AWSProvider.EKS())
+	service := managed.NewService(ctl.AWSProvider().EKS(), ctl.AWSProvider().SSM(), ctl.AWSProvider().EC2(), manager.NewStackCollection(ctl.AWSProvider(), cfg), cfg.Metadata.Name)
+	manager := label.New(cfg.Metadata.Name, service, ctl.AWSProvider().EKS())
 	if err := manager.Set(options.nodeGroupName, options.labels); err != nil {
 		return err
 	}

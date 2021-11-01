@@ -38,7 +38,7 @@ var _ = Describe("StackCollection", func() {
 				StackName:    &stackName,
 				StatusReason: aws.String("The submitted information didn't contain changes"),
 			}
-			p := mockprovider.NewMockProvider()
+			p := mockprovider.NewMockAwsProvider()
 			p.MockCloudFormation().On("DescribeStacks", describeInput).Return(describeOutput, nil)
 			p.MockCloudFormation().On("CreateChangeSet", mock.Anything).Return(nil, nil)
 			req := awstesting.NewClient(nil).NewRequest(&request.Operation{Name: "Operation"}, nil, describeChangeSetFailed)
@@ -91,7 +91,7 @@ var _ = Describe("StackCollection", func() {
 			StackName:     &stackName,
 		}
 
-		p := mockprovider.NewMockProvider()
+		p := mockprovider.NewMockAwsProvider()
 		p.MockCloudFormation().On("DescribeStacks", describeInput).Return(describeOutput, nil)
 		p.MockCloudFormation().On("CreateChangeSet", mock.Anything).Return(nil, nil)
 		req := awstesting.NewClient(nil).NewRequest(&request.Operation{Name: "Operation"}, nil, describeChangeSetCreateCompleteOutput)

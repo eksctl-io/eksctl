@@ -16,7 +16,7 @@ var _ = Describe("PopulateNodegroup", func() {
 		ngName           string
 		cfg              *api.ClusterConfig
 		fakeStackManager *fakes.FakeStackManager
-		mockProvider     *mockprovider.MockProvider
+		mockProvider     *mockprovider.MockAwsProvider
 		err              error
 	)
 
@@ -24,7 +24,7 @@ var _ = Describe("PopulateNodegroup", func() {
 		fakeStackManager = new(fakes.FakeStackManager)
 		ngName = "ng"
 		cfg = api.NewClusterConfig()
-		mockProvider = mockprovider.NewMockProvider()
+		mockProvider = mockprovider.NewMockAwsProvider()
 	})
 
 	Context("unmanaged nodegroup", func() {

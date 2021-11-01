@@ -28,7 +28,7 @@ func (m *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.M
 		if hasStacks {
 			nodeGroupsWithStacks = append(nodeGroupsWithStacks, n)
 		} else {
-			tasks.Append(m.stackManager.NewTaskToDeleteUnownedNodeGroup(m.cfg.Metadata.Name, n.Name, m.ctl.AWSProvider.EKS(), nil))
+			tasks.Append(m.stackManager.NewTaskToDeleteUnownedNodeGroup(m.cfg.Metadata.Name, n.Name, m.ctl.AWSProvider().EKS(), nil))
 		}
 	}
 

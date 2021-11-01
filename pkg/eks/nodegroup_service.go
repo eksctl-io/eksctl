@@ -37,21 +37,21 @@ type InstanceSelector interface {
 type NodeGroupInitialiser interface {
 	Normalize(nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error
 	ExpandInstanceSelectorOptions(nodePools []api.NodePool, clusterAZs []string) error
-	NewAWSSelectorSession(provider api.ClusterProvider)
-	ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.ClusterProvider) error
-	DoesAWSNodeUseIRSA(provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error)
+	NewAWSSelectorSession(provider api.AWSProvider)
+	ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.AWSProvider) error
+	DoesAWSNodeUseIRSA(provider api.AWSProvider, clientSet kubernetes.Interface) (bool, error)
 	DoAllNodegroupStackTasks(taskTree *tasks.TaskTree, region, name string) error
 	ValidateExistingNodeGroupsForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error
 }
 
 // A NodeGroupService provides helpers for nodegroup creation
 type NodeGroupService struct {
-	Provider         api.ClusterProvider
+	Provider         api.AWSProvider
 	instanceSelector InstanceSelector
 }
 
 // NewNodeGroupService creates a new NodeGroupService
-func NewNodeGroupService(provider api.ClusterProvider, instanceSelector InstanceSelector) *NodeGroupService {
+func NewNodeGroupService(provider api.AWSProvider, instanceSelector InstanceSelector) *NodeGroupService {
 	return &NodeGroupService{
 		Provider:         provider,
 		instanceSelector: instanceSelector,
@@ -61,7 +61,7 @@ func NewNodeGroupService(provider api.ClusterProvider, instanceSelector Instance
 const defaultCPUArch = "x86_64"
 
 // NewAWSSelectorSession returns a new instance of Selector provided an aws session
-func (m *NodeGroupService) NewAWSSelectorSession(provider api.ClusterProvider) {
+func (m *NodeGroupService) NewAWSSelectorSession(provider api.AWSProvider) {
 	m.instanceSelector = selector.New(provider.Session())
 }
 
@@ -218,7 +218,7 @@ func (m *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 	return instanceTypes, nil
 }
 
-func (m *NodeGroupService) ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.ClusterProvider) error {
+func (m *NodeGroupService) ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.AWSProvider) error {
 	return vpc.ValidateLegacySubnetsForNodeGroups(spec, provider)
 }
 

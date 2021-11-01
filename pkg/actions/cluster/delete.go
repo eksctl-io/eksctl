@@ -28,7 +28,7 @@ import (
 	"github.com/kris-nova/logger"
 )
 
-func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clusterOperable bool, clientSet kubernetes.Interface) error {
+func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProviderImpl, stackManager manager.StackManager, clusterOperable bool, clientSet kubernetes.Interface) error {
 	if clusterOperable {
 		if err := deleteFargateProfiles(cfg.Metadata, ctl, stackManager); err != nil {
 			return err
@@ -42,7 +42,7 @@ func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, sta
 		return nil
 	}
 
-	ssh.DeleteKeys(cfg.Metadata.Name, ctl.AWSProvider.EC2())
+	ssh.DeleteKeys(cfg.Metadata.Name, ctl.AWSProvider().EC2())
 
 	kubeconfig.MaybeDeleteConfig(cfg.Metadata)
 
@@ -51,10 +51,10 @@ func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, sta
 		ctx, cleanup := context.WithTimeout(context.Background(), 10*time.Minute)
 		defer cleanup()
 
-		cfg.Metadata.Version = *ctl.Status.ClusterInfo.Cluster.Version
+		cfg.Metadata.Version = *ctl.Status().ClusterInfo.Cluster.Version
 
 		logger.Info("cleaning up AWS load balancers created by Kubernetes objects of Kind Service or Ingress")
-		if err := elb.Cleanup(ctx, ctl.AWSProvider.EC2(), ctl.AWSProvider.ELB(), ctl.AWSProvider.ELBV2(), clientSet, cfg); err != nil {
+		if err := elb.Cleanup(ctx, ctl.AWSProvider().EC2(), ctl.AWSProvider().ELB(), ctl.AWSProvider().ELBV2(), clientSet, cfg); err != nil {
 			return err
 		}
 	}
@@ -69,10 +69,10 @@ func handleErrors(errs []error, subject string) error {
 	return fmt.Errorf("failed to delete %s", subject)
 }
 
-func deleteFargateProfiles(clusterMeta *api.ClusterMeta, ctl *eks.ClusterProvider, stackManager manager.StackManager) error {
+func deleteFargateProfiles(clusterMeta *api.ClusterMeta, ctl *eks.ClusterProviderImpl, stackManager manager.StackManager) error {
 	manager := fargate.NewFromProvider(
 		clusterMeta.Name,
-		ctl.AWSProvider,
+		ctl.AWSProvider(),
 		stackManager,
 	)
 	profileNames, err := manager.ListProfiles()
@@ -158,7 +158,7 @@ func checkForUndeletedStacks(stackManager manager.StackManager) error {
 	return nil
 }
 
-func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack) error {
+func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProviderImpl, stackManager manager.StackManager, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack) error {
 	if len(allStacks) == 0 {
 		return nil
 	}
@@ -172,7 +172,7 @@ func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackM
 
 	logger.Info("will drain %d unmanaged nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 	nodeGroupManager := nodegroup.New(cfg, ctl, clientSet)
-	if err := nodeGroupManager.Drain(cmdutils.ToKubeNodeGroups(cfg), false, ctl.AWSProvider.WaitTimeout(), false); err != nil {
+	if err := nodeGroupManager.Drain(cmdutils.ToKubeNodeGroups(cfg), false, ctl.AWSProvider().WaitTimeout(), false); err != nil {
 		return err
 	}
 	attemptVpcCniDeletion(cfg.Metadata.Name, ctl, clientSet)
@@ -181,10 +181,10 @@ func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackM
 
 // Attempts to delete the vpc-cni, and fails silently if an error occurs. This is an attempt
 // to prevent a race condition in the vpc-cni #1849
-func attemptVpcCniDeletion(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
+func attemptVpcCniDeletion(clusterName string, ctl *eks.ClusterProviderImpl, clientSet kubernetes.Interface) {
 	vpcCNI := "vpc-cni"
 	logger.Debug("deleting EKS addon %q if it exists", vpcCNI)
-	_, err := ctl.AWSProvider.EKS().DeleteAddon(&awseks.DeleteAddonInput{
+	_, err := ctl.AWSProvider().EKS().DeleteAddon(&awseks.DeleteAddonInput{
 		ClusterName: &clusterName,
 		AddonName:   aws.String(vpcCNI),
 	})

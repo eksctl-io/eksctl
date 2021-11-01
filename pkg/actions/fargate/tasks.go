@@ -11,7 +11,7 @@ import (
 
 type createFargateStackTask struct {
 	cfg          *api.ClusterConfig
-	provider     api.ClusterProvider
+	provider     api.AWSProvider
 	stackManager manager.StackManager
 }
 
@@ -31,7 +31,7 @@ func (t *createFargateStackTask) Do(errs chan error) error {
 
 // ensureFargateRoleStackExists creates fargate IAM resources if they
 func ensureFargateRoleStackExists(
-	cfg *api.ClusterConfig, provider api.ClusterProvider, stackManager manager.StackManager,
+	cfg *api.ClusterConfig, provider api.AWSProvider, stackManager manager.StackManager,
 ) error {
 	if api.IsSetAndNonEmptyString(cfg.IAM.FargatePodExecutionRoleARN) {
 		return nil

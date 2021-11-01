@@ -17,12 +17,12 @@ import (
 
 type OwnedCluster struct {
 	cfg          *api.ClusterConfig
-	ctl          *eks.ClusterProvider
+	ctl          *eks.ClusterProviderImpl
 	stackManager manager.StackManager
 	newClientSet func() (kubernetes.Interface, error)
 }
 
-func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) *OwnedCluster {
+func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProviderImpl, stackManager manager.StackManager) *OwnedCluster {
 	return &OwnedCluster{
 		cfg:          cfg,
 		ctl:          ctl,
@@ -57,7 +57,7 @@ func (c *OwnedCluster) Upgrade(dryRun bool) error {
 		return err
 	}
 
-	nodeGroupService := eks.NodeGroupService{Provider: c.ctl.AWSProvider}
+	nodeGroupService := eks.NodeGroupService{Provider: c.ctl.AWSProvider()}
 	if err := nodeGroupService.ValidateExistingNodeGroupsForCompatibility(c.cfg, c.stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
@@ -127,7 +127,7 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force bool) error {
 		}
 
 		go func() {
-			errs <- vpc.CleanupNetworkInterfaces(c.ctl.AWSProvider.EC2(), c.cfg)
+			errs <- vpc.CleanupNetworkInterfaces(c.ctl.AWSProvider().EC2(), c.cfg)
 			close(errs)
 		}()
 		return nil

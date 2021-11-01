@@ -24,7 +24,7 @@ type FargateClient interface {
 
 type fargateProfilesTask struct {
 	info            string
-	clusterProvider *ClusterProvider
+	clusterProvider *ClusterProviderImpl
 	spec            *api.ClusterConfig
 	manager         FargateClient
 }
@@ -85,7 +85,7 @@ func DoCreateFargateProfiles(config *api.ClusterConfig, fargateClient FargateCli
 	return nil
 }
 
-func ScheduleCoreDNSOnFargateIfRelevant(config *api.ClusterConfig, ctl *ClusterProvider, clientSet kubernetes.Interface) error {
+func ScheduleCoreDNSOnFargateIfRelevant(config *api.ClusterConfig, ctl *ClusterProviderImpl, clientSet kubernetes.Interface) error {
 	if coredns.IsSchedulableOnFargate(config.FargateProfiles) {
 		scheduled, err := coredns.IsScheduledOnFargate(clientSet)
 		if err != nil {
@@ -96,7 +96,7 @@ func ScheduleCoreDNSOnFargateIfRelevant(config *api.ClusterConfig, ctl *ClusterP
 				return err
 			}
 			retryPolicy := &retry.TimingOutExponentialBackoff{
-				Timeout:  ctl.AWSProvider.WaitTimeout(),
+				Timeout:  ctl.awsProvider.WaitTimeout(),
 				TimeUnit: time.Second,
 			}
 			if err := coredns.WaitForScheduleOnFargate(clientSet, retryPolicy); err != nil {

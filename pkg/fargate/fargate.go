@@ -20,7 +20,7 @@ type Client struct {
 	stackManager manager.StackManager
 }
 
-func NewFromProvider(clusterName string, provider api.ClusterProvider, stackManager manager.StackManager) Client {
+func NewFromProvider(clusterName string, provider api.AWSProvider, stackManager manager.StackManager) Client {
 	retry := retry.NewTimingOutExponentialBackoff(provider.WaitTimeout())
 	return NewWithRetryPolicy(clusterName, provider.EKS(), &retry, stackManager)
 }

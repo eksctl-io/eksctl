@@ -44,7 +44,7 @@ func (m *Manager) Create() error {
 	if fargateRoleNeeded {
 		if clusterStack != nil {
 			if !m.fargateRoleExistsOnClusterStack(clusterStack) {
-				err := ensureFargateRoleStackExists(cfg, ctl.AWSProvider, m.stackManager)
+				err := ensureFargateRoleStackExists(cfg, ctl.AWSProvider(), m.stackManager)
 				if err != nil {
 					return errors.Wrap(err, "couldn't ensure fargate role exists")
 				}
@@ -53,7 +53,7 @@ func (m *Manager) Create() error {
 				return errors.Wrap(err, "couldn't load cluster into spec")
 			}
 		} else {
-			if err := ensureFargateRoleStackExists(cfg, ctl.AWSProvider, m.stackManager); err != nil {
+			if err := ensureFargateRoleStackExists(cfg, ctl.AWSProvider(), m.stackManager); err != nil {
 				return errors.Wrap(err, "couldn't ensure unowned cluster is ready for fargate")
 			}
 		}
@@ -66,7 +66,7 @@ func (m *Manager) Create() error {
 		}
 	}
 
-	fargateClient := fargate.NewFromProvider(cfg.Metadata.Name, ctl.AWSProvider, m.stackManager)
+	fargateClient := fargate.NewFromProvider(cfg.Metadata.Name, ctl.AWSProvider(), m.stackManager)
 	if err := eks.DoCreateFargateProfiles(cfg, &fargateClient); err != nil {
 		return errors.Wrap(err, "could not create fargate profiles")
 	}

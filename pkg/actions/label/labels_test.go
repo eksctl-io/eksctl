@@ -17,7 +17,7 @@ import (
 var _ = Describe("Labels", func() {
 	var (
 		fakeManagedService *fakes.FakeService
-		mockProvider       *mockprovider.MockProvider
+		mockProvider       *mockprovider.MockAwsProvider
 		manager            *label.Manager
 
 		clusterName   string
@@ -26,7 +26,7 @@ var _ = Describe("Labels", func() {
 
 	BeforeEach(func() {
 		fakeManagedService = new(fakes.FakeService)
-		mockProvider = mockprovider.NewMockProvider()
+		mockProvider = mockprovider.NewMockAwsProvider()
 		clusterName = "foo"
 		nodegroupName = "bar"
 		manager = label.New(clusterName, fakeManagedService, mockProvider.EKS())

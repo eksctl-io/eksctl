@@ -76,7 +76,7 @@ func doWriteKubeconfigCmd(cmd *cmdutils.Cmd, outputPath, roleARN string, setCont
 		return err
 	}
 
-	kubectlConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), roleARN, ctl.AWSProvider.Profile())
+	kubectlConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), roleARN, ctl.AWSProvider().Profile())
 	filename, err := kubeconfig.Write(outputPath, *kubectlConfig, setContext)
 	if err != nil {
 		return errors.Wrap(err, "writing kubeconfig")

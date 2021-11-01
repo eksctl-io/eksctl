@@ -9,6 +9,8 @@ import (
 
 	. "github.com/onsi/gomega"
 
+	"github.com/blang/semver"
+	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
 	"k8s.io/apimachinery/pkg/api/meta/testrestmapper"
@@ -16,6 +18,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/cli-runtime/pkg/resource"
+	"k8s.io/client-go/discovery"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -299,4 +302,29 @@ func (c *FakeRawClient) ClearUpdated() {
 	for k := range c.Collection.updated {
 		delete(c.Collection.updated, k)
 	}
+}
+
+func (c *FakeRawClient) ServerVersion() (string, error) {
+	return getServerVersion(c.ClientSet().Discovery())
+}
+
+func (c *FakeRawClient) CreateOrReplace(manifest []byte, plan bool) error {
+	panic("not implemented") // TODO
+}
+
+func getServerVersion(discoveryClient discovery.DiscoveryInterface) (string, error) {
+	v, err := discoveryClient.ServerVersion()
+	if err != nil {
+		return "", errors.Wrapf(err, "getting Kubernetes API version")
+	}
+
+	sv, err := semver.ParseTolerant(v.GitVersion)
+	if err != nil {
+		return "", errors.Wrapf(err, "parsing Kubernetes API version")
+	}
+
+	sv.Pre = nil   // clear extra info
+	sv.Build = nil // clear build information
+
+	return sv.String(), nil
 }

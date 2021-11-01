@@ -31,7 +31,7 @@ var _ = Describe("nodegroup filter", func() {
 		var (
 			filter       *NodeGroupFilter
 			cfg          *api.ClusterConfig
-			mockProvider *mockprovider.MockProvider
+			mockProvider *mockprovider.MockAwsProvider
 		)
 
 		BeforeEach(func() {
@@ -41,7 +41,7 @@ var _ = Describe("nodegroup filter", func() {
 
 			filter = NewNodeGroupFilter()
 
-			mockProvider = mockprovider.NewMockProvider()
+			mockProvider = mockprovider.NewMockAwsProvider()
 			mockProvider.MockEKS().On("ListNodegroups", mock.Anything).Return(&eks.ListNodegroupsOutput{Nodegroups: nil}, nil)
 		})
 
