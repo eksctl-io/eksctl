@@ -127,7 +127,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	instanceTypes := m.nodeGroup.InstanceTypeList()
 
 	makeAMIType := func() *gfnt.Value {
-		return gfnt.NewString(getAMIType(selectManagedInstanceType(m.nodeGroup)))
+		return gfnt.NewString(getAMIType(m.nodeGroup, selectManagedInstanceType(m.nodeGroup)))
 	}
 
 	var launchTemplate *gfneks.Nodegroup_LaunchTemplateSpecification
@@ -152,9 +152,10 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 			if launchTemplateData.InstanceType == nil {
 				managedResource.AmiType = makeAMIType()
 			} else {
-				managedResource.AmiType = gfnt.NewString(getAMIType(*launchTemplateData.InstanceType))
+				managedResource.AmiType = gfnt.NewString(getAMIType(m.nodeGroup, *launchTemplateData.InstanceType))
 			}
 		}
+
 		if launchTemplateData.InstanceType == nil {
 			managedResource.InstanceTypes = gfnt.NewStringSlice(instanceTypes...)
 		}
@@ -259,14 +260,36 @@ func validateLaunchTemplate(launchTemplateData *ec2.ResponseLaunchTemplateData, 
 	return nil
 }
 
-func getAMIType(instanceType string) string {
-	if instanceutils.IsGPUInstanceType(instanceType) {
-		return eks.AMITypesAl2X8664Gpu
+func getAMIType(ng *api.ManagedNodeGroup, instanceType string) string {
+	amiTypeMapping := map[string]struct {
+		X86_64 string
+		GPU    string
+		ARM    string
+	}{
+		api.NodeImageFamilyAmazonLinux2: {
+			X86_64: eks.AMITypesAl2X8664,
+			GPU:    eks.AMITypesAl2X8664Gpu,
+			ARM:    eks.AMITypesAl2Arm64,
+		},
+		api.NodeImageFamilyBottlerocket: {
+			X86_64: eks.AMITypesBottlerocketX8664,
+			ARM:    eks.AMITypesBottlerocketArm64,
+		},
 	}
-	if instanceutils.IsARMInstanceType(instanceType) {
-		return eks.AMITypesAl2Arm64
+
+	amiType, ok := amiTypeMapping[ng.AMIFamily]
+	if !ok {
+		return eks.AMITypesCustom
 	}
-	return eks.AMITypesAl2X8664
+
+	switch {
+	case instanceutils.IsGPUInstanceType(instanceType):
+		return amiType.GPU
+	case instanceutils.IsARMInstanceType(instanceType):
+		return amiType.ARM
+	default:
+		return amiType.X86_64
+	}
 }
 
 // RenderJSON implements the ResourceSet interface

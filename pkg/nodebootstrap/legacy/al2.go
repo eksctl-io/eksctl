@@ -7,8 +7,15 @@ import (
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap/assets"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
+
+	//For go:embed
+	_ "embed"
 )
+
+//go:embed scripts/bootstrap.legacy.al2.sh
+var bootstrapLegacyAl2Sh string
 
 type AL2Bootstrapper struct {
 	clusterSpec *api.ClusterConfig
@@ -30,7 +37,7 @@ func (b AL2Bootstrapper) UserData() (string, error) {
 		return "", err
 	}
 
-	var scripts []string
+	var scripts []script
 
 	for _, command := range b.ng.PreBootstrapCommands {
 		config.AddShellCommand(command)
@@ -40,9 +47,9 @@ func (b AL2Bootstrapper) UserData() (string, error) {
 		config.AddShellCommand(*b.ng.OverrideBootstrapCommand)
 	} else {
 		if api.IsEnabled(b.ng.EFAEnabled) {
-			scripts = append(scripts, "efa.al2.sh")
+			scripts = append(scripts, script{name: "efa.al2.sh", contents: assets.EfaAl2Sh})
 		}
-		scripts = append(scripts, "bootstrap.legacy.al2.sh")
+		scripts = append(scripts, script{name: "bootstrap.legacy.al2.sh", contents: bootstrapLegacyAl2Sh})
 	}
 
 	if err = addFilesAndScripts(config, files, scripts); err != nil {
@@ -74,9 +81,9 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) ([]confi
 	}
 
 	files := []configFile{{
-		dir:     kubeletDropInUnitDir,
-		name:    "10-eksctl.al2.conf",
-		isAsset: true,
+		dir:      kubeletDropInUnitDir,
+		name:     "10-eksctl.al2.conf",
+		contents: assets.EksctlAl2Conf,
 	}, {
 		dir:      configDir,
 		name:     "metadata.env",

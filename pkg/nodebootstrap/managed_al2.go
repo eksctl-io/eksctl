@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap/assets"
 )
 
 // ManagedAL2 is a bootstrapper for managed Amazon Linux 2 nodegroups
@@ -52,11 +53,7 @@ func (m *ManagedAL2) UserData() (string, error) {
 	}
 
 	if api.IsEnabled(ng.EFAEnabled) {
-		data, err := getAsset("efa.managed.boothook")
-		if err != nil {
-			return "", err
-		}
-		cloudboot = append(cloudboot, data)
+		cloudboot = append(cloudboot, assets.EfaManagedBoothook)
 	}
 
 	if len(scripts) == 0 && len(cloudboot) == 0 {
