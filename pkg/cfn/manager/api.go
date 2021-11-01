@@ -555,30 +555,35 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 	return stacks, nil
 }
 
-func (c *StackCollection) HasClusterStack() (bool, error) {
+func (c *StackCollection) GetClusterStackIfExists() (*Stack, error) {
 	clusterStackNames, err := c.ListClusterStackNames()
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	return c.HasClusterStackUsingCachedList(clusterStackNames)
+	return c.getClusterStackUsingCachedList(clusterStackNames)
 }
 
 func (c *StackCollection) HasClusterStackUsingCachedList(clusterStackNames []string) (bool, error) {
+	stack, err := c.getClusterStackUsingCachedList(clusterStackNames)
+	return stack != nil, err
+}
+
+func (c *StackCollection) getClusterStackUsingCachedList(clusterStackNames []string) (*Stack, error) {
 	clusterStackName := c.MakeClusterStackName()
 	for _, stack := range clusterStackNames {
 		if stack == clusterStackName {
 			stack, err := c.DescribeStack(&cloudformation.Stack{StackName: &clusterStackName})
 			if err != nil {
-				return false, err
+				return nil, err
 			}
 			for _, tag := range stack.Tags {
 				if matchesClusterName(*tag.Key, *tag.Value, c.spec.Metadata.Name) {
-					return true, nil
+					return stack, nil
 				}
 			}
 		}
 	}
-	return false, nil
+	return nil, nil
 }
 
 // DescribeStackEvents describes the events that have occurred on the stack
