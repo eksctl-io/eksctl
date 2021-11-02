@@ -708,15 +708,10 @@ type FakeStackManager struct {
 	updateNodeGroupStackReturnsOnCall map[int]struct {
 		result1 error
 	}
-	UpdateStackStub        func(string, string, string, manager.TemplateData, map[string]string, bool) error
+	UpdateStackStub        func(manager.UpdateStackOptions) error
 	updateStackMutex       sync.RWMutex
 	updateStackArgsForCall []struct {
-		arg1 string
-		arg2 string
-		arg3 string
-		arg4 manager.TemplateData
-		arg5 map[string]string
-		arg6 bool
+		arg1 manager.UpdateStackOptions
 	}
 	updateStackReturns struct {
 		result1 error
@@ -4112,23 +4107,18 @@ func (fake *FakeStackManager) UpdateNodeGroupStackReturnsOnCall(i int, result1 e
 	}{result1}
 }
 
-func (fake *FakeStackManager) UpdateStack(arg1 string, arg2 string, arg3 string, arg4 manager.TemplateData, arg5 map[string]string, arg6 bool) error {
+func (fake *FakeStackManager) UpdateStack(arg1 manager.UpdateStackOptions) error {
 	fake.updateStackMutex.Lock()
 	ret, specificReturn := fake.updateStackReturnsOnCall[len(fake.updateStackArgsForCall)]
 	fake.updateStackArgsForCall = append(fake.updateStackArgsForCall, struct {
-		arg1 string
-		arg2 string
-		arg3 string
-		arg4 manager.TemplateData
-		arg5 map[string]string
-		arg6 bool
-	}{arg1, arg2, arg3, arg4, arg5, arg6})
+		arg1 manager.UpdateStackOptions
+	}{arg1})
 	stub := fake.UpdateStackStub
 	fakeReturns := fake.updateStackReturns
-	fake.recordInvocation("UpdateStack", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6})
+	fake.recordInvocation("UpdateStack", []interface{}{arg1})
 	fake.updateStackMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4, arg5, arg6)
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
@@ -4142,17 +4132,17 @@ func (fake *FakeStackManager) UpdateStackCallCount() int {
 	return len(fake.updateStackArgsForCall)
 }
 
-func (fake *FakeStackManager) UpdateStackCalls(stub func(string, string, string, manager.TemplateData, map[string]string, bool) error) {
+func (fake *FakeStackManager) UpdateStackCalls(stub func(manager.UpdateStackOptions) error) {
 	fake.updateStackMutex.Lock()
 	defer fake.updateStackMutex.Unlock()
 	fake.UpdateStackStub = stub
 }
 
-func (fake *FakeStackManager) UpdateStackArgsForCall(i int) (string, string, string, manager.TemplateData, map[string]string, bool) {
+func (fake *FakeStackManager) UpdateStackArgsForCall(i int) manager.UpdateStackOptions {
 	fake.updateStackMutex.RLock()
 	defer fake.updateStackMutex.RUnlock()
 	argsForCall := fake.updateStackArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6
+	return argsForCall.arg1
 }
 
 func (fake *FakeStackManager) UpdateStackReturns(result1 error) {
