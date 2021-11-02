@@ -46,7 +46,7 @@ var _ = Describe("StackCollection", func() {
 			p.MockCloudFormation().On("DescribeChangeSet", mock.Anything).Return(describeChangeSetNoChange, nil)
 
 			sm := NewStackCollection(p, api.NewClusterConfig())
-			err := sm.UpdateStack(stackName, changeSetName, "description", TemplateBody(""), nil)
+			err := sm.UpdateStack(stackName, changeSetName, "description", TemplateBody(""), nil, true)
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
@@ -105,7 +105,7 @@ var _ = Describe("StackCollection", func() {
 		spec.Metadata.Name = clusterName
 		spec.Metadata.Tags = map[string]string{"meta": "data"}
 		sm := NewStackCollection(p, spec)
-		err := sm.UpdateStack(stackName, changeSetName, "description", TemplateBody(""), nil)
+		err := sm.UpdateStack(stackName, changeSetName, "description", TemplateBody(""), nil, true)
 		Expect(err).ToNot(HaveOccurred())
 
 		// Second is CreateChangeSet() call which we are interested in

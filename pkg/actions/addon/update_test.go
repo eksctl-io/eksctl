@@ -4,23 +4,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/cloudformation"
-
-	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
-
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
@@ -287,7 +283,7 @@ var _ = Describe("Update", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
-						stackName, changeSetName, description, templateData, _ := fakeStackManager.UpdateStackArgsForCall(0)
+						stackName, changeSetName, description, templateData, _, _ := fakeStackManager.UpdateStackArgsForCall(0)
 						Expect(stackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
 						Expect(changeSetName).To(ContainSubstring("updating-policy"))
 						Expect(description).To(Equal("updating policies"))
@@ -357,7 +353,7 @@ var _ = Describe("Update", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
-						stackName, changeSetName, description, templateData, _ := fakeStackManager.UpdateStackArgsForCall(0)
+						stackName, changeSetName, description, templateData, _, _ := fakeStackManager.UpdateStackArgsForCall(0)
 						Expect(stackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
 						Expect(changeSetName).To(ContainSubstring("updating-policy"))
 						Expect(description).To(Equal("updating policies"))
@@ -428,7 +424,7 @@ var _ = Describe("Update", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
-						stackName, changeSetName, description, templateData, _ := fakeStackManager.UpdateStackArgsForCall(0)
+						stackName, changeSetName, description, templateData, _, _ := fakeStackManager.UpdateStackArgsForCall(0)
 						Expect(stackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
 						Expect(changeSetName).To(ContainSubstring("updating-policy"))
 						Expect(description).To(Equal("updating policies"))

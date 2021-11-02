@@ -4,6 +4,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
@@ -25,10 +26,10 @@ type StackManager interface {
 	DoWaitUntilStackIsCreated(i *Stack) error
 	DoCreateStackRequest(i *Stack, templateData TemplateData, tags, parameters map[string]string, withIAM bool, withNamedIAM bool) error
 	CreateStack(name string, stack builder.ResourceSet, tags, parameters map[string]string, errs chan error) error
-	UpdateStack(stackName, changeSetName, description string, templateData TemplateData, parameters map[string]string) error
+	UpdateStack(stackName, changeSetName, description string, templateData TemplateData, parameters map[string]string, wait bool) error
 	DescribeStack(i *Stack) (*Stack, error)
 	GetManagedNodeGroupTemplate(nodeGroupName string) (string, error)
-	UpdateNodeGroupStack(nodeGroupName, template string) error
+	UpdateNodeGroupStack(nodeGroupName, template string, wait bool) error
 	ListStacksMatching(nameRegex string, statusFilters ...string) ([]*Stack, error)
 	ListClusterStackNames() ([]string, error)
 	ListStacks(statusFilters ...string) ([]*Stack, error)

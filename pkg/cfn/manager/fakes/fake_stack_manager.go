@@ -695,11 +695,12 @@ type FakeStackManager struct {
 	stackStatusIsNotTransitionalReturnsOnCall map[int]struct {
 		result1 bool
 	}
-	UpdateNodeGroupStackStub        func(string, string) error
+	UpdateNodeGroupStackStub        func(string, string, bool) error
 	updateNodeGroupStackMutex       sync.RWMutex
 	updateNodeGroupStackArgsForCall []struct {
 		arg1 string
 		arg2 string
+		arg3 bool
 	}
 	updateNodeGroupStackReturns struct {
 		result1 error
@@ -707,7 +708,7 @@ type FakeStackManager struct {
 	updateNodeGroupStackReturnsOnCall map[int]struct {
 		result1 error
 	}
-	UpdateStackStub        func(string, string, string, manager.TemplateData, map[string]string) error
+	UpdateStackStub        func(string, string, string, manager.TemplateData, map[string]string, bool) error
 	updateStackMutex       sync.RWMutex
 	updateStackArgsForCall []struct {
 		arg1 string
@@ -715,6 +716,7 @@ type FakeStackManager struct {
 		arg3 string
 		arg4 manager.TemplateData
 		arg5 map[string]string
+		arg6 bool
 	}
 	updateStackReturns struct {
 		result1 error
@@ -4047,19 +4049,20 @@ func (fake *FakeStackManager) StackStatusIsNotTransitionalReturnsOnCall(i int, r
 	}{result1}
 }
 
-func (fake *FakeStackManager) UpdateNodeGroupStack(arg1 string, arg2 string) error {
+func (fake *FakeStackManager) UpdateNodeGroupStack(arg1 string, arg2 string, arg3 bool) error {
 	fake.updateNodeGroupStackMutex.Lock()
 	ret, specificReturn := fake.updateNodeGroupStackReturnsOnCall[len(fake.updateNodeGroupStackArgsForCall)]
 	fake.updateNodeGroupStackArgsForCall = append(fake.updateNodeGroupStackArgsForCall, struct {
 		arg1 string
 		arg2 string
-	}{arg1, arg2})
+		arg3 bool
+	}{arg1, arg2, arg3})
 	stub := fake.UpdateNodeGroupStackStub
 	fakeReturns := fake.updateNodeGroupStackReturns
-	fake.recordInvocation("UpdateNodeGroupStack", []interface{}{arg1, arg2})
+	fake.recordInvocation("UpdateNodeGroupStack", []interface{}{arg1, arg2, arg3})
 	fake.updateNodeGroupStackMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
@@ -4073,17 +4076,17 @@ func (fake *FakeStackManager) UpdateNodeGroupStackCallCount() int {
 	return len(fake.updateNodeGroupStackArgsForCall)
 }
 
-func (fake *FakeStackManager) UpdateNodeGroupStackCalls(stub func(string, string) error) {
+func (fake *FakeStackManager) UpdateNodeGroupStackCalls(stub func(string, string, bool) error) {
 	fake.updateNodeGroupStackMutex.Lock()
 	defer fake.updateNodeGroupStackMutex.Unlock()
 	fake.UpdateNodeGroupStackStub = stub
 }
 
-func (fake *FakeStackManager) UpdateNodeGroupStackArgsForCall(i int) (string, string) {
+func (fake *FakeStackManager) UpdateNodeGroupStackArgsForCall(i int) (string, string, bool) {
 	fake.updateNodeGroupStackMutex.RLock()
 	defer fake.updateNodeGroupStackMutex.RUnlock()
 	argsForCall := fake.updateNodeGroupStackArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeStackManager) UpdateNodeGroupStackReturns(result1 error) {
@@ -4109,7 +4112,7 @@ func (fake *FakeStackManager) UpdateNodeGroupStackReturnsOnCall(i int, result1 e
 	}{result1}
 }
 
-func (fake *FakeStackManager) UpdateStack(arg1 string, arg2 string, arg3 string, arg4 manager.TemplateData, arg5 map[string]string) error {
+func (fake *FakeStackManager) UpdateStack(arg1 string, arg2 string, arg3 string, arg4 manager.TemplateData, arg5 map[string]string, arg6 bool) error {
 	fake.updateStackMutex.Lock()
 	ret, specificReturn := fake.updateStackReturnsOnCall[len(fake.updateStackArgsForCall)]
 	fake.updateStackArgsForCall = append(fake.updateStackArgsForCall, struct {
@@ -4118,13 +4121,14 @@ func (fake *FakeStackManager) UpdateStack(arg1 string, arg2 string, arg3 string,
 		arg3 string
 		arg4 manager.TemplateData
 		arg5 map[string]string
-	}{arg1, arg2, arg3, arg4, arg5})
+		arg6 bool
+	}{arg1, arg2, arg3, arg4, arg5, arg6})
 	stub := fake.UpdateStackStub
 	fakeReturns := fake.updateStackReturns
-	fake.recordInvocation("UpdateStack", []interface{}{arg1, arg2, arg3, arg4, arg5})
+	fake.recordInvocation("UpdateStack", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6})
 	fake.updateStackMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4, arg5)
+		return stub(arg1, arg2, arg3, arg4, arg5, arg6)
 	}
 	if specificReturn {
 		return ret.result1
@@ -4138,17 +4142,17 @@ func (fake *FakeStackManager) UpdateStackCallCount() int {
 	return len(fake.updateStackArgsForCall)
 }
 
-func (fake *FakeStackManager) UpdateStackCalls(stub func(string, string, string, manager.TemplateData, map[string]string) error) {
+func (fake *FakeStackManager) UpdateStackCalls(stub func(string, string, string, manager.TemplateData, map[string]string, bool) error) {
 	fake.updateStackMutex.Lock()
 	defer fake.updateStackMutex.Unlock()
 	fake.UpdateStackStub = stub
 }
 
-func (fake *FakeStackManager) UpdateStackArgsForCall(i int) (string, string, string, manager.TemplateData, map[string]string) {
+func (fake *FakeStackManager) UpdateStackArgsForCall(i int) (string, string, string, manager.TemplateData, map[string]string, bool) {
 	fake.updateStackMutex.RLock()
 	defer fake.updateStackMutex.RUnlock()
 	argsForCall := fake.updateStackArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6
 }
 
 func (fake *FakeStackManager) UpdateStackReturns(result1 error) {

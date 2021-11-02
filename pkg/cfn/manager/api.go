@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
+
 	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
@@ -242,7 +243,7 @@ func (c *StackCollection) createStackRequest(stackName string, resourceSet build
 }
 
 // UpdateStack will update a CloudFormation stack by creating and executing a ChangeSet
-func (c *StackCollection) UpdateStack(stackName, changeSetName, description string, templateData TemplateData, parameters map[string]string) error {
+func (c *StackCollection) UpdateStack(stackName, changeSetName, description string, templateData TemplateData, parameters map[string]string, wait bool) error {
 	logger.Info(description)
 	i := &Stack{StackName: &stackName}
 	// Read existing tags
@@ -268,7 +269,10 @@ func (c *StackCollection) UpdateStack(stackName, changeSetName, description stri
 		logger.Warning("error executing Cloudformation changeSet %s in stack %s. Check the Cloudformation console for further details", changeSetName, stackName)
 		return err
 	}
-	return c.doWaitUntilStackIsUpdated(i)
+	if wait {
+		return c.doWaitUntilStackIsUpdated(i)
+	}
+	return nil
 }
 
 // DescribeStack describes a cloudformation stack.
@@ -307,9 +311,9 @@ func (c *StackCollection) GetManagedNodeGroupTemplate(nodeGroupName string) (str
 }
 
 // UpdateNodeGroupStack updates the nodegroup stack with the specified template
-func (c *StackCollection) UpdateNodeGroupStack(nodeGroupName, template string) error {
+func (c *StackCollection) UpdateNodeGroupStack(nodeGroupName, template string, wait bool) error {
 	stackName := c.makeNodeGroupStackName(nodeGroupName)
-	return c.UpdateStack(stackName, c.MakeChangeSetName("update-nodegroup"), "updating nodegroup stack", TemplateBody(template), nil)
+	return c.UpdateStack(stackName, c.MakeChangeSetName("update-nodegroup"), "updating nodegroup stack", TemplateBody(template), nil, wait)
 }
 
 // ListStacksMatching gets all of CloudFormation stacks with names matching nameRegex.

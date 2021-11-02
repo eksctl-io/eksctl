@@ -129,7 +129,7 @@ func (c *StackCollection) EnsureMapPublicIPOnLaunchEnabled() error {
 		}
 	}
 	description := fmt.Sprintf("update public subnets %q with property MapPublicIpOnLaunch enabled", publicSubnetsNames)
-	if err := c.UpdateStack(stackName, c.MakeChangeSetName("update-subnets"), description, TemplateBody(currentTemplate), nil); err != nil {
+	if err := c.UpdateStack(stackName, c.MakeChangeSetName("update-subnets"), description, TemplateBody(currentTemplate), nil, true); err != nil {
 		return errors.Wrap(err, "unable to update subnets")
 	}
 	return nil

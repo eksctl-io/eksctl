@@ -5,10 +5,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
 	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 )
@@ -57,7 +57,7 @@ var _ = Describe("Update", func() {
 			Expect(fakeStackManager.ListStacksMatchingArgsForCall(0)).To(Equal("eksctl-.*-addon-iamserviceaccount"))
 			Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
 			fakeStackManager.UpdateStackArgsForCall(0)
-			stackName, changeSetName, description, templateData, _ := fakeStackManager.UpdateStackArgsForCall(0)
+			stackName, changeSetName, description, templateData, _, _ := fakeStackManager.UpdateStackArgsForCall(0)
 			Expect(stackName).To(Equal("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"))
 			Expect(changeSetName).To(ContainSubstring("updating-policy"))
 			Expect(description).To(Equal("updating policies for IAMServiceAccount default/test-sa"))
