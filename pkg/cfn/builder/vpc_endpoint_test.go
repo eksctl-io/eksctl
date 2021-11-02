@@ -28,7 +28,6 @@ type vpcResourceSetCase struct {
 }
 
 var _ = Describe("VPC Endpoint Builder", func() {
-
 	DescribeTable("Adds resources to template", func(vc vpcResourceSetCase) {
 		api.SetClusterConfigDefaults(vc.clusterConfig)
 
@@ -54,7 +53,10 @@ var _ = Describe("VPC Endpoint Builder", func() {
 		}
 
 		rs := newResourceSet()
-		vpcResourceSet := NewIPv4VPCResourceSet(rs, vc.clusterConfig, provider.EC2())
+		var vpcResourceSet VPCResourceSet = NewIPv4VPCResourceSet(rs, vc.clusterConfig, provider.EC2())
+		if vc.clusterConfig.VPC.ID != "" {
+			vpcResourceSet = NewExistingVPCResourceSet(rs, vc.clusterConfig, provider.EC2())
+		}
 		vpcID, subnetDetails, err := vpcResourceSet.CreateTemplate()
 		if vc.err != "" {
 			Expect(err).To(HaveOccurred())
