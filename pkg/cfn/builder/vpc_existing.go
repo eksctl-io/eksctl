@@ -29,13 +29,13 @@ func NewExistingVPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig
 }
 
 func (v *ExistingVPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, error) {
-	if err := v.importResources(); err != nil {
+	if err := v.importExistingResources(); err != nil {
 		return nil, nil, errors.Wrap(err, "error importing VPC resources")
 	}
 	return v.vpcID, v.subnetDetails, nil
 }
 
-func (v *ExistingVPCResourceSet) importResources() error {
+func (v *ExistingVPCResourceSet) importExistingResources() error {
 	if subnets := v.clusterConfig.VPC.Subnets.Private; subnets != nil {
 		var (
 			subnetRoutes map[string]string
