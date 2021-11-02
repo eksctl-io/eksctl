@@ -221,7 +221,7 @@ func (c *ClusterConfig) ipv6CidrsValid() error {
 	if count == 0 || count == 2 {
 		return nil
 	}
-	return fmt.Errorf("Ipv6Cidr and Ipv6CidrPool must both be configured to use custom ipv6 CIDR pool")
+	return fmt.Errorf("Ipv6Cidr and Ipv6Pool must both be configured to use a custom IPv6 CIDR and address pool")
 }
 
 // addonContainsManagedAddons finds managed addons in the config and returns those it couldn't find.
