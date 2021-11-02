@@ -363,7 +363,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 	When("a user provides a custom ipv6 block", func() {
 		BeforeEach(func() {
 			cfg.VPC.IPv6Cidr = "my-cidr"
-			cfg.VPC.IPv6CidrPool = "my-cidr-pool"
+			cfg.VPC.IPv6Pool = "my-cidr-pool"
 		})
 
 		It("creates the IPv6CidrBlock resource with the users ipv6 pool", func() {

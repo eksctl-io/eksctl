@@ -196,7 +196,7 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 			return fmt.Errorf("auto allocate ipv6 is not supported with IPv6")
 		}
 	} else {
-		if c.VPC.IPv6Cidr != "" || c.VPC.IPv6CidrPool != "" {
+		if c.VPC.IPv6Cidr != "" || c.VPC.IPv6Pool != "" {
 			return fmt.Errorf("Ipv6Cidr and Ipv6CidrPool is only supportd when IPFamily is set to IPv6")
 		}
 	}
@@ -214,7 +214,7 @@ func (c *ClusterConfig) ipv6CidrsValid() error {
 		count++
 	}
 
-	if c.VPC.IPv6CidrPool != "" {
+	if c.VPC.IPv6Pool != "" {
 		count++
 	}
 

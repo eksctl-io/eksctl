@@ -580,7 +580,7 @@
         "ipv6Cidr": {
           "type": "string"
         },
-        "ipv6CidrPool": {
+        "ipv6Pool": {
           "type": "string"
         },
         "manageSharedNodeSecurityGroupRules": {
@@ -621,7 +621,7 @@
         "cidr",
         "ipFamily",
         "ipv6Cidr",
-        "ipv6CidrPool",
+        "ipv6Pool",
         "securityGroup",
         "subnets",
         "extraCIDRs",

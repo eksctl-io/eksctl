@@ -547,7 +547,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					cfg.VPC.NAT = nil
 					cfg.VPC.IPFamily = api.IPV6Family
 					cfg.VPC.IPv6Cidr = "foo"
-					cfg.VPC.IPv6CidrPool = "bar"
+					cfg.VPC.IPv6Pool = "bar"
 					cfg.Addons = append(cfg.Addons,
 						&api.Addon{Name: api.KubeProxyAddon},
 						&api.Addon{Name: api.CoreDNSAddon},
@@ -720,7 +720,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 					cfg.VPC.IPFamily = api.IPV4Family
 					cfg.VPC.IPv6Cidr = ""
-					cfg.VPC.IPv6CidrPool = "bar"
+					cfg.VPC.IPv6Pool = "bar"
 					err = cfg.ValidateVPCConfig()
 					Expect(err).To(MatchError("Ipv6Cidr and Ipv6CidrPool is only supportd when IPFamily is set to IPv6"))
 				})
@@ -735,7 +735,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 					cfg.VPC.IPFamily = api.IPV6Family
 					cfg.VPC.IPv6Cidr = ""
-					cfg.VPC.IPv6CidrPool = "bar"
+					cfg.VPC.IPv6Pool = "bar"
 					err = cfg.ValidateVPCConfig()
 					Expect(err).To(MatchError("Ipv6Cidr and Ipv6CidrPool must both be configured to use custom ipv6 CIDR pool"))
 				})

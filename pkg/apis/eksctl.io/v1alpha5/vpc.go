@@ -189,7 +189,7 @@ type (
 		// +optional
 		IPv6Cidr string `json:"ipv6Cidr,omitempty"`
 		// +optional
-		IPv6CidrPool string `json:"ipv6CidrPool,omitempty"`
+		IPv6Pool string `json:"ipv6Pool,omitempty"`
 	}
 	// ClusterNAT NAT config
 	ClusterNAT struct {
