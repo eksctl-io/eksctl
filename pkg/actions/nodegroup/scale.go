@@ -16,7 +16,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-func (m *Manager) Scale(ng *api.NodeGroup) error {
+func (m *Manager) Scale(ng *api.NodeGroupBase) error {
 	logger.Info("scaling nodegroup %q in cluster %s", ng.Name, m.cfg.Metadata.Name)
 
 	nodegroupStackInfos, err := m.stackManager.DescribeNodeGroupStacksAndResources()
@@ -48,7 +48,7 @@ func (m *Manager) Scale(ng *api.NodeGroup) error {
 	return nil
 }
 
-func (m *Manager) scaleUnmanagedNodeGroup(ng *api.NodeGroup, stackInfo manager.StackInfo) error {
+func (m *Manager) scaleUnmanagedNodeGroup(ng *api.NodeGroupBase, stackInfo manager.StackInfo) error {
 	asgName := ""
 	for _, resource := range stackInfo.Resources {
 		if *resource.LogicalResourceId == "NodeGroup" {
@@ -86,7 +86,7 @@ func (m *Manager) scaleUnmanagedNodeGroup(ng *api.NodeGroup, stackInfo manager.S
 	return nil
 }
 
-func (m *Manager) scaleManagedNodeGroup(ng *api.NodeGroup) error {
+func (m *Manager) scaleManagedNodeGroup(ng *api.NodeGroupBase) error {
 	scalingConfig := &eks.NodegroupScalingConfig{}
 
 	if ng.MaxSize != nil {
