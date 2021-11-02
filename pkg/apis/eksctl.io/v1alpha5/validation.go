@@ -927,7 +927,8 @@ func IsWindowsImage(imageFamily string) bool {
 	switch imageFamily {
 	case NodeImageFamilyWindowsServer2019CoreContainer,
 		NodeImageFamilyWindowsServer2019FullContainer,
-		NodeImageFamilyWindowsServer2004CoreContainer:
+		NodeImageFamilyWindowsServer2004CoreContainer,
+		NodeImageFamilyWindowsServer20H2CoreContainer:
 		return true
 
 	default:
