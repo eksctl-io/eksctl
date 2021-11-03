@@ -23,5 +23,6 @@ import (
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/sts/stsiface --name=STSAPI --output=./
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/iam/iamiface --name=IAMAPI --output=./
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/cloudtrail/cloudtrailiface --name=CloudTrailAPI --output=./
+//go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/cloudwatchlogs/cloudwatchlogsiface --name=CloudWatchLogsAPI --output=./
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/ssm/ssmiface --name=SSMAPI --output=./
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/aws/client --name=ConfigProvider --output=./

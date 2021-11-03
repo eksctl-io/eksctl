@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
+
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
@@ -599,6 +601,7 @@ type ClusterProvider interface {
 	SSM() ssmiface.SSMAPI
 	IAM() iamiface.IAMAPI
 	CloudTrail() cloudtrailiface.CloudTrailAPI
+	CloudWatchLogs() cloudwatchlogsiface.CloudWatchLogsAPI
 	Region() string
 	Profile() string
 	WaitTimeout() time.Duration

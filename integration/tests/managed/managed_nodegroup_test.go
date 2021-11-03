@@ -22,6 +22,7 @@ import (
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"
@@ -100,7 +101,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				"--verbose", "4",
 			).
 			WithoutArg("--region", params.Region).
-			WithStdin(testutils.ClusterConfigReader(clusterConfig))
+			WithStdin(clusterutils.Reader(clusterConfig))
 
 		Expect(cmd).To(RunSuccessfully())
 	},
@@ -217,7 +218,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					"--verbose", "4",
 				).
 				WithoutArg("--region", params.Region).
-				WithStdin(testutils.ClusterConfigReader(clusterConfig))
+				WithStdin(clusterutils.Reader(clusterConfig))
 
 			Expect(cmd).To(RunSuccessfully())
 
@@ -533,7 +534,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 						"--verbose", "4",
 					).
 					WithoutArg("--region", params.Region).
-					WithStdin(testutils.ClusterConfigReader(clusterConfig))
+					WithStdin(clusterutils.Reader(clusterConfig))
 				Expect(cmd).To(RunSuccessfully())
 
 				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
@@ -579,7 +580,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 						"--verbose", "4",
 					).
 					WithoutArg("--region", params.Region).
-					WithStdin(testutils.ClusterConfigReader(clusterConfig))
+					WithStdin(clusterutils.Reader(clusterConfig))
 				Expect(cmd).To(RunSuccessfully())
 
 				clusterProvider, err := eks.New(&api.ProviderConfig{Region: params.Region}, clusterConfig)
@@ -605,7 +606,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 						"--verbose", "4",
 					).
 					WithoutArg("--region", params.Region).
-					WithStdin(testutils.ClusterConfigReader(clusterConfig))
+					WithStdin(clusterutils.Reader(clusterConfig))
 
 				Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 					ContainElement(ContainSubstring("unchanged fields for nodegroup update-config-ng: the following fields remain unchanged; they are not supported by `eksctl update nodegroup`: Spot")),

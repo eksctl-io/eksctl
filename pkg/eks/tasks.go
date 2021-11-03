@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+
 	"github.com/weaveworks/eksctl/pkg/actions/identityproviders"
 	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 
@@ -225,7 +228,27 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 			spec: cfg,
 			call: c.UpdateClusterConfigForLogging,
 		})
+
+		if logRetentionDays := cfg.CloudWatch.ClusterLogging.LogRetentionInDays; logRetentionDays != 0 {
+			newTasks.Append(&clusterConfigTask{
+				info: "update CloudWatch log retention",
+				spec: cfg,
+				call: func(clusterConfig *api.ClusterConfig) error {
+					_, err := c.Provider.CloudWatchLogs().PutRetentionPolicy(&cloudwatchlogs.PutRetentionPolicyInput{
+						// The format for log group name is documented here: https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html
+						LogGroupName:    aws.String(fmt.Sprintf("/aws/eks/%s/cluster", cfg.Metadata.Name)),
+						RetentionInDays: aws.Int64(int64(logRetentionDays)),
+					})
+					if err != nil {
+						return errors.Wrap(err, "error updating log retention settings")
+					}
+					logger.Info("set log retention to %d days for CloudWatch logging", logRetentionDays)
+					return nil
+				},
+			})
+		}
 	}
+
 	c.maybeAppendTasksForEndpointAccessUpdates(cfg, newTasks)
 
 	if len(cfg.VPC.PublicAccessCIDRs) > 0 {
