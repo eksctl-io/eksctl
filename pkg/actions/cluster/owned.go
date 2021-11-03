@@ -17,12 +17,12 @@ import (
 
 type OwnedCluster struct {
 	cfg          *api.ClusterConfig
-	ctl          *eks.ClusterProviderImpl
+	ctl          eks.ClusterProvider
 	stackManager manager.StackManager
 	newClientSet func() (kubernetes.Interface, error)
 }
 
-func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProviderImpl, stackManager manager.StackManager) *OwnedCluster {
+func NewOwnedCluster(cfg *api.ClusterConfig, ctl eks.ClusterProvider, stackManager manager.StackManager) *OwnedCluster {
 	return &OwnedCluster{
 		cfg:          cfg,
 		ctl:          ctl,

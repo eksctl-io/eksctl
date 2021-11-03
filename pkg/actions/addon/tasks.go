@@ -10,7 +10,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProviderImpl, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree) {
+func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider eks.ClusterProvider, forceAll bool, timeout time.Duration) (*tasks.TaskTree, *tasks.TaskTree) {
 	preTasks := &tasks.TaskTree{Parallel: false}
 	postTasks := &tasks.TaskTree{Parallel: false}
 	var preAddons []*api.Addon
@@ -52,7 +52,7 @@ func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvid
 type createAddonTask struct {
 	info            string
 	cfg             *api.ClusterConfig
-	clusterProvider *eks.ClusterProviderImpl
+	clusterProvider eks.ClusterProvider
 	addons          []*api.Addon
 	forceAll, wait  bool
 	timeout         time.Duration

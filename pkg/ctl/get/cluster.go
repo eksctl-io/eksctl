@@ -86,7 +86,7 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 	return getAndPrintCluster(cfg, ctl, params)
 }
 
-func getAndPrinterClusters(ctl *eks.ClusterProviderImpl, params *getCmdParams, listAllRegions bool) error {
+func getAndPrinterClusters(ctl eks.ClusterProvider, params *getCmdParams, listAllRegions bool) error {
 	printer, err := printers.NewPrinter(params.output)
 	if err != nil {
 		return err
@@ -116,7 +116,7 @@ func addGetClustersSummaryTableColumns(printer *printers.TablePrinter) {
 	})
 }
 
-func getAndPrintCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProviderImpl, params *getCmdParams) error {
+func getAndPrintCluster(cfg *api.ClusterConfig, ctl eks.ClusterProvider, params *getCmdParams) error {
 	printer, err := printers.NewPrinter(params.output)
 	if err != nil {
 		return err

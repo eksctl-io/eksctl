@@ -30,12 +30,12 @@ import (
 
 type UnownedCluster struct {
 	cfg          *api.ClusterConfig
-	ctl          *eks.ClusterProviderImpl
+	ctl          eks.ClusterProvider
 	stackManager manager.StackManager
 	newClientSet func() (kubernetes.Interface, error)
 }
 
-func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProviderImpl, stackManager manager.StackManager) *UnownedCluster {
+func NewUnownedCluster(cfg *api.ClusterConfig, ctl eks.ClusterProvider, stackManager manager.StackManager) *UnownedCluster {
 	return &UnownedCluster{
 		cfg:          cfg,
 		ctl:          ctl,

@@ -82,7 +82,7 @@ func (v *VPCControllerTask) Do(errCh chan error) error {
 
 type devicePluginTask struct {
 	kind            string
-	clusterProvider *ClusterProviderImpl
+	clusterProvider ClusterProvider
 	spec            *api.ClusterConfig
 	mkPlugin        addons.MkDevicePlugin
 	logMessage      string
@@ -105,7 +105,7 @@ func (n *devicePluginTask) Do(errCh chan error) error {
 }
 
 func newNvidiaDevicePluginTask(
-	clusterProvider *ClusterProviderImpl,
+	clusterProvider ClusterProvider,
 	spec *api.ClusterConfig,
 ) tasks.Task {
 	t := devicePluginTask{
@@ -121,7 +121,7 @@ func newNvidiaDevicePluginTask(
 }
 
 func newNeuronDevicePluginTask(
-	clusterProvider *ClusterProviderImpl,
+	clusterProvider ClusterProvider,
 	spec *api.ClusterConfig,
 ) tasks.Task {
 	t := devicePluginTask{
@@ -137,7 +137,7 @@ func newNeuronDevicePluginTask(
 }
 
 func newEFADevicePluginTask(
-	clusterProvider *ClusterProviderImpl,
+	clusterProvider ClusterProvider,
 	spec *api.ClusterConfig,
 ) tasks.Task {
 	t := devicePluginTask{
@@ -153,7 +153,7 @@ func newEFADevicePluginTask(
 type restartDaemonsetTask struct {
 	name            string
 	namespace       string
-	clusterProvider *ClusterProviderImpl
+	clusterProvider ClusterProvider
 	spec            *api.ClusterConfig
 }
 
