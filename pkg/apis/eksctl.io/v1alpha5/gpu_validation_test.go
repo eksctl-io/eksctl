@@ -62,6 +62,9 @@ var _ = Describe("GPU instance support", func() {
 			gpuInstanceType: "g4dn.xlarge",
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
 		}),
+		Entry("AMI unset", gpuInstanceEntry{
+			gpuInstanceType: "g4dn.xlarge",
+		}),
 		Entry("Bottlerocket", gpuInstanceEntry{
 			amiFamily:            api.NodeImageFamilyBottlerocket,
 			gpuInstanceType:      "g4dn.xlarge",
