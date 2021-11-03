@@ -13,12 +13,12 @@ import (
 
 var _ = Describe("scale", func() {
 	Describe("nodegroup", func() {
-		DescribeTable("create cluster successfully",
+		DescribeTable("scales  a nodegroup successfully",
 			func(args ...string) {
 				cmd := newMockEmptyCmd(args...)
 				count := 0
 				cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-					scaleNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *v1alpha5.NodeGroup) error {
+					scaleNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *v1alpha5.NodeGroupBase) error {
 						if len(ng.Name) != 0 {
 							Expect(ng.Name).To(Or(Equal("nodeGroup"), Equal("")))
 						} else {

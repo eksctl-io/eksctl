@@ -64,7 +64,9 @@ To ensure workloads are scheduled on the right OS, they must have a `nodeSelecto
   nodeSelector:
     kubernetes.io/os: windows
     kubernetes.io/arch: amd64
+```
 
+```yaml
 # Targeting Linux
   nodeSelector:
     kubernetes.io/os: linux

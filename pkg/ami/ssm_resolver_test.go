@@ -156,6 +156,33 @@ var _ = Describe("AMI Auto Resolution", func() {
 						Expect(err).To(HaveOccurred())
 					})
 				})
+
+				Context("Windows Server 20H2 Core", func() {
+					var p *mockprovider.MockProvider
+
+					BeforeEach(func() {
+						p = mockprovider.NewMockProvider()
+					})
+
+					It("should return a valid AMI", func() {
+						addMockGetParameter(p, "/aws/service/ami-windows-latest/Windows_Server-20H2-English-Core-EKS_Optimized-1.21/image_id", expectedAmi)
+
+						resolver := NewSSMResolver(p.MockSSM())
+						resolvedAmi, err = resolver.Resolve(region, "1.21", instanceType, "WindowsServer20H2CoreContainer")
+
+						Expect(err).NotTo(HaveOccurred())
+						Expect(resolvedAmi).To(BeEquivalentTo(expectedAmi))
+						Expect(p.MockSSM().AssertNumberOfCalls(GinkgoT(), "GetParameter", 1)).To(BeTrue())
+					})
+
+					It("should return an error for EKS versions below 1.21", func() {
+						resolver := NewSSMResolver(p.MockSSM())
+						_, err := resolver.Resolve(region, "1.20", instanceType, "WindowsServer20H2CoreContainer")
+						Expect(err).To(HaveOccurred())
+						Expect(err).To(MatchError(ContainSubstring("Windows Server 20H2 Core requires EKS version 1.21 and above")))
+					})
+				})
+
 			})
 
 			Context("and Ubuntu family", func() {

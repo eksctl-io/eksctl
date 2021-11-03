@@ -52,6 +52,12 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 					AMIFamily: api.NodeImageFamilyWindowsServer2019FullContainer,
 				},
 			},
+			{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:      "windows",
+					AMIFamily: api.NodeImageFamilyWindowsServer20H2CoreContainer,
+				},
+			},
 		}
 		clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
 			{
