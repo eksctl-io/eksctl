@@ -469,9 +469,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		It("should handle known types", func() {
 			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"api"}
-
-			err = api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(api.ValidateClusterConfig(cfg)).To(Succeed())
 		})
 
 		It("should handle unknown types", func() {
@@ -479,6 +477,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			err = api.ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring(`log type "anything" (cloudWatch.clusterLogging.enableTypes[0]) is unknown`)))
 		})
 	})
 
