@@ -2,9 +2,11 @@ package builder_test
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	awsec2 "github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
@@ -15,11 +17,11 @@ import (
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
-var _ = PDescribe("Existing VPC", func() {
+var _ = Describe("Existing VPC", func() {
 	var (
-		vpcRs   *builder.IPv4VPCResourceSet
+		vpcRs   *builder.ExistingVPCResourceSet
 		cfg     *api.ClusterConfig
-		mockEC2 = &mocks.EC2API{}
+		mockEC2 *mocks.EC2API
 	)
 
 	BeforeEach(func() {
@@ -27,10 +29,11 @@ var _ = PDescribe("Existing VPC", func() {
 		cfg.VPC = vpcConfig()
 		cfg.AvailabilityZones = []string{azA, azB}
 		cfg.VPC.ID = "custom-vpc"
+		mockEC2 = &mocks.EC2API{}
 	})
 
 	JustBeforeEach(func() {
-		vpcRs = builder.NewIPv4VPCResourceSet(builder.NewRS(), cfg, mockEC2)
+		vpcRs = builder.NewExistingVPCResourceSet(builder.NewRS(), cfg, mockEC2)
 	})
 
 	Describe("CreateTemplate", func() {
@@ -50,6 +53,7 @@ var _ = PDescribe("Existing VPC", func() {
 		})
 
 		It("uses the existing VPC", func() {
+			Expect(addErr).NotTo(HaveOccurred())
 			By("the correct VPC resource values are loaded into the VPCResource")
 			Expect(vpcID).To(Equal(gfnt.NewString("custom-vpc")))
 
@@ -77,6 +81,80 @@ var _ = PDescribe("Existing VPC", func() {
 				Subnet:           gfnt.NewString(publicSubnet1),
 				AvailabilityZone: azA,
 			}))
+		})
+
+		Context("when ipv6 is true", func() {
+			BeforeEach(func() {
+				cfg.VPC.IPFamily = api.IPV6Family
+			})
+
+			When("and the VPC has ipv6 enabled", func() {
+				BeforeEach(func() {
+					mockEC2.On("DescribeVpcs", &awsec2.DescribeVpcsInput{
+						VpcIds: aws.StringSlice([]string{"custom-vpc"}),
+					}).Return(&awsec2.DescribeVpcsOutput{
+						Vpcs: []*awsec2.Vpc{
+							{
+								VpcId: aws.String("custom-vpc"),
+								Ipv6CidrBlockAssociationSet: []*awsec2.VpcIpv6CidrBlockAssociation{
+									{
+										Ipv6CidrBlock: aws.String("foo"),
+									},
+								},
+							},
+						},
+					}, nil)
+				})
+
+				It("succeeds", func() {
+					Expect(addErr).NotTo(HaveOccurred())
+				})
+			})
+
+			When("and the VPC does not have ipv6 enabled", func() {
+				BeforeEach(func() {
+					mockEC2.On("DescribeVpcs", &awsec2.DescribeVpcsInput{
+						VpcIds: aws.StringSlice([]string{"custom-vpc"}),
+					}).Return(&awsec2.DescribeVpcsOutput{
+						Vpcs: []*awsec2.Vpc{
+							{
+								VpcId: aws.String("custom-vpc"),
+							},
+						},
+					}, nil)
+				})
+
+				It("errors", func() {
+					Expect(addErr).To(MatchError("VPC \"custom-vpc\" does not have any associated IPv6 cidr blocks"))
+				})
+			})
+
+			When("and the VPC does not exist", func() {
+				BeforeEach(func() {
+					mockEC2.On("DescribeVpcs", &awsec2.DescribeVpcsInput{
+						VpcIds: aws.StringSlice([]string{"custom-vpc"}),
+					}).Return(&awsec2.DescribeVpcsOutput{
+						Vpcs: []*awsec2.Vpc{},
+					}, nil)
+				})
+
+				It("errors", func() {
+					Expect(addErr).To(MatchError("VPC \"custom-vpc\" does not exist"))
+				})
+			})
+
+			When("describing the VPC fails", func() {
+				BeforeEach(func() {
+					mockEC2.On("DescribeVpcs", &awsec2.DescribeVpcsInput{
+						VpcIds: aws.StringSlice([]string{"custom-vpc"}),
+					}).Return(nil, fmt.Errorf("foo"))
+				})
+
+				It("errors", func() {
+					Expect(addErr).To(MatchError("failed to describe VPC \"custom-vpc\": foo"))
+				})
+			})
+
 		})
 
 		Context("PrivateCluster is enabled", func() {

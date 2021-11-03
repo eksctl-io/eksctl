@@ -1,8 +1,11 @@
 package builder
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	awsec2 "github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -29,10 +32,31 @@ func NewExistingVPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig
 }
 
 func (v *ExistingVPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, error) {
+	if v.clusterConfig.VPC.IPFamily == api.IPV6Family {
+		if err := v.checkIPv6CidrBlockAssociated(); err != nil {
+			return nil, nil, err
+		}
+	}
 	if err := v.importExistingResources(); err != nil {
 		return nil, nil, errors.Wrap(err, "error importing VPC resources")
 	}
 	return v.vpcID, v.subnetDetails, nil
+}
+
+func (v *ExistingVPCResourceSet) checkIPv6CidrBlockAssociated() error {
+	out, err := v.ec2API.DescribeVpcs(&awsec2.DescribeVpcsInput{
+		VpcIds: aws.StringSlice([]string{v.clusterConfig.VPC.ID}),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to describe VPC %q: %w", v.clusterConfig.VPC.ID, err)
+	}
+	if len(out.Vpcs) == 0 {
+		return fmt.Errorf("VPC %q does not exist", v.clusterConfig.VPC.ID)
+	}
+	if len(out.Vpcs[0].Ipv6CidrBlockAssociationSet) == 0 {
+		return fmt.Errorf("VPC %q does not have any associated IPv6 cidr blocks", v.clusterConfig.VPC.ID)
+	}
+	return nil
 }
 
 func (v *ExistingVPCResourceSet) importExistingResources() error {
@@ -135,4 +159,9 @@ func importRouteTables(ec2API ec2iface.EC2API, subnets map[string]api.AZSubnetSp
 
 func (v *ExistingVPCResourceSet) isFullyPrivate() bool {
 	return v.clusterConfig.PrivateCluster.Enabled
+}
+
+// RenderJSON returns the rendered JSON
+func (v *ExistingVPCResourceSet) RenderJSON() ([]byte, error) {
+	return v.rs.renderJSON()
 }
