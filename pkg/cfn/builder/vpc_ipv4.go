@@ -42,21 +42,10 @@ type SubnetDetails struct {
 
 // NewIPv4VPCResourceSet creates and returns a new VPCResourceSet
 func NewIPv4VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec2API ec2iface.EC2API) *IPv4VPCResourceSet {
-	var vpcRef *gfnt.Value
-	if clusterConfig.VPC.ID == "" {
-		vpcRef = rs.newResource("VPC", &gfnec2.VPC{
-			CidrBlock:          gfnt.NewString(clusterConfig.VPC.CIDR.String()),
-			EnableDnsSupport:   gfnt.True(),
-			EnableDnsHostnames: gfnt.True(),
-		})
-	} else {
-	}
-
 	return &IPv4VPCResourceSet{
 		rs:            rs,
 		clusterConfig: clusterConfig,
 		ec2API:        ec2API,
-		vpcID:         vpcRef,
 		subnetDetails: &SubnetDetails{},
 	}
 }
@@ -73,6 +62,13 @@ func (v *IPv4VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, erro
 // AddResources adds all required resources
 func (v *IPv4VPCResourceSet) addResources() error {
 	vpc := v.clusterConfig.VPC
+
+	v.vpcID = v.rs.newResource("VPC", &gfnec2.VPC{
+		CidrBlock:          gfnt.NewString(vpc.CIDR.String()),
+		EnableDnsSupport:   gfnt.True(),
+		EnableDnsHostnames: gfnt.True(),
+	})
+
 	if api.IsEnabled(vpc.AutoAllocateIPv6) {
 		v.rs.newResource("AutoAllocatedCIDRv6", &gfnec2.VPCCidrBlock{
 			VpcId:                       v.vpcID,
