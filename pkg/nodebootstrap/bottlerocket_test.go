@@ -7,10 +7,10 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	toml "github.com/pelletier/go-toml"
 	"github.com/stretchr/testify/require"
 	"github.com/tj/assert"
 
-	"github.com/pelletier/go-toml"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
@@ -33,8 +33,7 @@ var _ = Describe("Bottlerocket", func() {
 
 		ng = api.NewNodeGroup()
 		ng.AMIFamily = "Bottlerocket"
-		// SetNodeGroupDefaults ensures this is non-nil for Bottlerocket nodegroups
-		ng.Bottlerocket = &api.NodeGroupBottlerocket{}
+		api.SetNodeGroupDefaults(ng, clusterConfig.Metadata)
 	})
 
 	Describe("with no user settings", func() {

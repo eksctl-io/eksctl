@@ -131,6 +131,9 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	if cfg.Metadata.Version == "" || cfg.Metadata.Version == "auto" {
 		cfg.Metadata.Version = api.DefaultVersion
 	}
+	if cfg.Metadata.Version == "latest" {
+		cfg.Metadata.Version = api.LatestVersion
+	}
 	if cfg.Metadata.Version != api.DefaultVersion {
 		if !api.IsSupportedVersion(cfg.Metadata.Version) {
 			if api.IsDeprecatedVersion(cfg.Metadata.Version) {
@@ -252,13 +255,13 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return err
 	}
 
-	var taskTree, preNodegroupAddons, postNodegroupAddons *tasks.TaskTree
-	if supported {
+	var preNodegroupAddons, postNodegroupAddons *tasks.TaskTree
+	if supported && len(cfg.Addons) > 0 {
 		preNodegroupAddons, postNodegroupAddons = addon.CreateAddonTasks(cfg, ctl, true, cmd.ProviderConfig.WaitTimeout)
-		taskTree = stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks, preNodegroupAddons)
-	} else {
-		taskTree = stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks)
+		postClusterCreationTasks.Append(preNodegroupAddons)
 	}
+
+	taskTree := stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks)
 
 	logger.Info(taskTree.Describe())
 	if errs := taskTree.DoAllSync(); len(errs) > 0 {

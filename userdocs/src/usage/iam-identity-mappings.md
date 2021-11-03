@@ -21,12 +21,24 @@ Create an identity mapping:
  eksctl create iamidentitymapping --cluster  my-cluster-1 --arn arn:aws:iam::123456:role/testing --group system:masters --username admin
 ```
 
-Delete a mapping:
+Delete an identity mapping:
 
 ```bash
 eksctl delete iamidentitymapping --cluster  my-cluster-1 --arn arn:aws:iam::123456:role/testing
 ```
 
 !!!note
-    Above command deletes a single mapping FIFO unless `--all` is given in which case it removes all matching. Will warn if
-    more mappings matching this role are found.
+Above command deletes a single mapping FIFO unless `--all` is given in which case it removes all matching. Will warn if
+more mappings matching this role are found.
+
+Create an account mapping:
+
+```bash
+ eksctl create iamidentitymapping --cluster  my-cluster-1 --account user-account
+```
+
+Delete an account mapping:
+
+```bash
+ eksctl delete iamidentitymapping --cluster  my-cluster-1 --account user-account
+```

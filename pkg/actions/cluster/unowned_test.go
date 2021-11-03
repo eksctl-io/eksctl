@@ -58,6 +58,11 @@ var _ = Describe("Delete", func() {
 				Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive),
 			}, nil)
 
+			p.MockEKS().On("DeleteAddon", &awseks.DeleteAddonInput{
+				ClusterName: strings.Pointer(clusterName),
+				AddonName:   strings.Pointer("vpc-cni"),
+			}).Return(&awseks.DeleteAddonOutput{}, nil)
+
 			p.MockEKS().On("ListFargateProfiles", &awseks.ListFargateProfilesInput{
 				ClusterName: strings.Pointer(clusterName),
 			}).Once().Return(&awseks.ListFargateProfilesOutput{FargateProfileNames: aws.StringSlice([]string{"fargate-1"})}, nil)

@@ -2,7 +2,6 @@
 package git_test
 
 import (
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -183,7 +182,7 @@ var _ = Describe("git", func() {
 		})
 
 		It("succeeds when a valid path is provided", func() {
-			privateSSHKey, err := ioutil.TempFile("", "fake_id_rsa")
+			privateSSHKey, err := os.CreateTemp("", "fake_id_rsa")
 			Expect(err).To(Not(HaveOccurred()))
 			defer os.Remove(privateSSHKey.Name()) // clean up
 

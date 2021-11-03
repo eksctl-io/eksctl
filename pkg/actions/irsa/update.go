@@ -2,14 +2,13 @@ package irsa
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
 	"github.com/kris-nova/logger"
 
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
-
-	"strings"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )

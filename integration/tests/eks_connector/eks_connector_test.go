@@ -5,7 +5,6 @@ package eks_connector_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"testing"
@@ -87,7 +86,7 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 
 			rawClient := getRawClient(params.ClusterName, params.Region)
 			for _, f := range resourcePaths {
-				bytes, err := ioutil.ReadFile(f)
+				bytes, err := os.ReadFile(f)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(rawClient.CreateOrReplace(bytes, false)).To(Succeed())
 			}

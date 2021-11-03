@@ -70,7 +70,7 @@ func (m *NodeGroupService) Normalize(nodePools []api.NodePool, clusterMeta *api.
 	for _, np := range nodePools {
 		switch ng := np.(type) {
 		case *api.ManagedNodeGroup:
-			hasNativeAMIFamilySupport := ng.AMIFamily == api.NodeImageFamilyAmazonLinux2
+			hasNativeAMIFamilySupport := ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 || ng.AMIFamily == api.NodeImageFamilyBottlerocket
 			if !hasNativeAMIFamilySupport && !api.IsAMI(ng.AMI) {
 				if err := ResolveAMI(m.Provider, clusterMeta.Version, np); err != nil {
 					return err
@@ -269,7 +269,7 @@ func (m *NodeGroupService) ValidateExistingNodeGroupsForCompatibility(cfg *api.C
 
 	numIncompatibleNodeGroups := len(incompatibleNodeGroups)
 	if numIncompatibleNodeGroups == 0 {
-		logger.Info("all nodegroups have up-to-date configuration")
+		logger.Info("all nodegroups have up-to-date cloudformation templates")
 		return nil
 	}
 

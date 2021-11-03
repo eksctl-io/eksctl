@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -48,7 +47,7 @@ func main() {
 		panic(err)
 	}
 	fmt.Println("Writing docs schema to " + outputFile)
-	if err := ioutil.WriteFile(outputFile, bytes, 0755); err != nil {
+	if err := os.WriteFile(outputFile, bytes, 0755); err != nil {
 		panic(err)
 	}
 }

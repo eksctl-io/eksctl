@@ -2,7 +2,7 @@ package client
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -172,7 +172,7 @@ func findKeyInEc2(name string, ec2API ec2iface.EC2API) (*ec2.KeyPairInfo, error)
 }
 
 func readFileContents(filePath string) ([]byte, error) {
-	fileContents, err := ioutil.ReadFile(filePath)
+	fileContents, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("reading SSH public key file %q", filePath))
 	}

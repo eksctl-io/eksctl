@@ -39,7 +39,7 @@ type StackManager interface {
 	DeleteStackBySpec(s *Stack) (*Stack, error)
 	DeleteStackBySpecSync(s *Stack, errs chan error) error
 	DescribeStacks() ([]*Stack, error)
-	HasClusterStack() (bool, error)
+	GetClusterStackIfExists() (*Stack, error)
 	HasClusterStackUsingCachedList(clusterStackNames []string) (bool, error)
 	DescribeStackEvents(i *Stack) ([]*cloudformation.StackEvent, error)
 	LookupCloudTrailEvents(i *Stack) ([]*cloudtrail.Event, error)

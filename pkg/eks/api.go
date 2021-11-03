@@ -2,7 +2,7 @@ package eks
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"time"
 
@@ -46,7 +46,6 @@ import (
 	ekscreds "github.com/weaveworks/eksctl/pkg/credentials"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
-	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/version"
 )
 
@@ -278,9 +277,9 @@ func LoadConfigFromFile(configFile string) (*api.ClusterConfig, error) {
 
 func readConfig(configFile string) ([]byte, error) {
 	if configFile == "-" {
-		return ioutil.ReadAll(os.Stdin)
+		return io.ReadAll(os.Stdin)
 	}
-	return ioutil.ReadFile(configFile)
+	return os.ReadFile(configFile)
 }
 
 // IsSupportedRegion check if given region is supported
@@ -340,7 +339,7 @@ func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) e
 		return errors.Errorf("invalid AMI value: %q", ng.AMI)
 	}
 
-	instanceType := SelectInstanceType(np)
+	instanceType := api.SelectInstanceType(np)
 	id, err := resolver.Resolve(provider.Region(), version, instanceType, ng.AMIFamily)
 	if err != nil {
 		return errors.Wrap(err, "unable to determine AMI to use")
@@ -350,33 +349,6 @@ func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) e
 	}
 	ng.AMI = id
 	return nil
-}
-
-// SelectInstanceType determines which instanceType is relevant for selecting an AMI
-// If the nodegroup has mixed instances it will prefer a GPU instance type over a general class one
-// This is to make sure that the AMI that is selected later is valid for all the types
-func SelectInstanceType(np api.NodePool) string {
-	var instanceTypes []string
-	switch ng := np.(type) {
-	case *api.NodeGroup:
-		if ng.InstancesDistribution != nil {
-			instanceTypes = ng.InstancesDistribution.InstanceTypes
-		}
-	case *api.ManagedNodeGroup:
-		instanceTypes = ng.InstanceTypes
-	}
-
-	hasMixedInstances := len(instanceTypes) > 0
-	if hasMixedInstances {
-		for _, instanceType := range instanceTypes {
-			if utils.IsGPUInstanceType(instanceType) {
-				return instanceType
-			}
-		}
-		return instanceTypes[0]
-	}
-
-	return np.BaseNodeGroup().InstanceType
 }
 
 func errTooFewAvailabilityZones(azs []string) error {

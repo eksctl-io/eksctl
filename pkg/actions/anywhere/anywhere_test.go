@@ -2,7 +2,7 @@ package anywhere_test
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -53,9 +53,9 @@ var _ = Describe("Anywhere", func() {
 		)
 		BeforeEach(func() {
 			var err error
-			tmpDir, err = ioutil.TempDir("", "anywhere-command")
+			tmpDir, err = os.MkdirTemp("", "anywhere-command")
 			Expect(err).NotTo(HaveOccurred())
-			err = ioutil.WriteFile(filepath.Join(tmpDir, anywhere.BinaryFileName), []byte(`#!/usr/bin/env sh
+			err = os.WriteFile(filepath.Join(tmpDir, anywhere.BinaryFileName), []byte(`#!/usr/bin/env sh
 echo $@
 echo "EKSCTL_VERSION=$EKSCTL_VERSION"
 >&2 echo "stderr outputted"
@@ -91,11 +91,11 @@ exit 0`), 0777)
 			newStderrWriter.Close()
 
 			By("printing the binary stderr to os.Stderr")
-			stderr, _ := ioutil.ReadAll(newStderrReader)
+			stderr, _ := io.ReadAll(newStderrReader)
 			Expect(string(stderr)).To(Equal("stderr outputted\n"))
 
 			By("printing the binary stdout to os.Stdout and passing the args to the binary")
-			stdout, _ := ioutil.ReadAll(newStdoutReader)
+			stdout, _ := io.ReadAll(newStdoutReader)
 			stdoutLines := strings.Split(strings.TrimSuffix(string(stdout), "\n"), "\n")
 			Expect(stdoutLines).To(HaveLen(2))
 			Expect(stdoutLines[0]).To(Equal("--do something"))
@@ -106,7 +106,7 @@ exit 0`), 0777)
 
 		When("the binary exits non-zero", func() {
 			BeforeEach(func() {
-				err := ioutil.WriteFile(filepath.Join(tmpDir, anywhere.BinaryFileName), []byte(`#!/usr/bin/env sh
+				err := os.WriteFile(filepath.Join(tmpDir, anywhere.BinaryFileName), []byte(`#!/usr/bin/env sh
 exit 33`), 0777)
 				Expect(err).NotTo(HaveOccurred())
 			})

@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/kris-nova/logger"
@@ -212,7 +214,8 @@ func PrivateOnly(ces *ClusterEndpoints) bool {
 	return !*ces.PublicAccess && *ces.PrivateAccess
 }
 
-func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
+func validateNodeGroupBase(np NodePool, path string) error {
+	ng := np.BaseNodeGroup()
 	if ng.VolumeSize == nil {
 		errCantSet := func(field string) error {
 			return fmt.Errorf("%s.%s cannot be set without %s.volumeSize", path, field, path)
@@ -277,6 +280,10 @@ func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
 			}
 			logger.Warning("SSM is now enabled by default; `ssh.enableSSM` is deprecated and will be removed in a future release")
 		}
+	}
+
+	if instanceutils.IsGPUInstanceType(SelectInstanceType(np)) && ng.AMIFamily != NodeImageFamilyAmazonLinux2 {
+		return errors.Errorf("GPU instance types are not supported for %s", ng.AMIFamily)
 	}
 
 	return nil
@@ -369,7 +376,7 @@ func validateNodeGroupName(name string) error {
 // ValidateNodeGroup checks compatible fields of a given nodegroup
 func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	path := fmt.Sprintf("nodeGroups[%d]", i)
-	if err := validateNodeGroupBase(ng.NodeGroupBase, path); err != nil {
+	if err := validateNodeGroupBase(ng, path); err != nil {
 		return err
 	}
 
@@ -593,7 +600,7 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 
 	path := fmt.Sprintf("managedNodeGroups[%d]", index)
 
-	if err := validateNodeGroupBase(ng.NodeGroupBase, path); err != nil {
+	if err := validateNodeGroupBase(ng, path); err != nil {
 		return err
 	}
 

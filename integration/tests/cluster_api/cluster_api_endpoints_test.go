@@ -6,7 +6,6 @@ package cluster_api
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -84,7 +83,7 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 			bytes, err := json.Marshal(cfg)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(bytes)).ToNot(BeZero())
-			tmpfile, err := ioutil.TempFile("", "clusterendpointtests")
+			tmpfile, err := os.CreateTemp("", "clusterendpointtests")
 			Expect(err).ToNot(HaveOccurred())
 
 			defer os.Remove(tmpfile.Name())
