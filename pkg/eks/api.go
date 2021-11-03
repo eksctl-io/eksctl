@@ -1,6 +1,7 @@
 package eks
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -36,6 +37,8 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/yaml"
 
@@ -71,20 +74,46 @@ type KubeProvider interface {
 // ClusterProvider is an interface with helper funcs for k8s and EKS that are part of ClusterProviderImpl
 type ClusterProvider interface {
 	KubeProvider
-	NewStackManager(spec *api.ClusterConfig) manager.StackManager
 	AWSProvider() api.AWSProvider
 	KubeProvider() KubeProvider
 	Status() *ProviderStatus
-	GetUsername() string
-	ControlPlaneVersion() string
+	CanDelete(spec *api.ClusterConfig) (bool, error)
+	CanOperate(spec *api.ClusterConfig) (bool, error)
+	CanUpdate(spec *api.ClusterConfig) (bool, error)
+	CheckAuth() error
 	ClusterTasksForNodeGroups(cfg *api.ClusterConfig, installNeuronDevicePluginParam, installNvidiaDevicePluginParam bool) *tasks.TaskTree
-	ServerVersion(rawClient kubewrapper.RawClientInterface) (string, error)
-	NewOpenIDConnectManager(spec *api.ClusterConfig) (*iamoidc.OpenIDConnectManager, error)
+	ControlPlaneVPCInfo() awseks.VpcConfigResponse
+	ControlPlaneVersion() string
+	CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, installVPCController bool) *tasks.TaskTree
+	DescribeControlPlane(meta *api.ClusterMeta) (*awseks.Cluster, error)
+	EnableKMSEncryption(ctx context.Context, clusterConfig *api.ClusterConfig) error
+	GetCluster(clusterName string) (*awseks.Cluster, error)
+	GetCredentialsEnv() ([]string, error)
+	GetCurrentClusterConfigForLogging(spec *api.ClusterConfig) (sets.String, sets.String, error)
+	GetCurrentClusterVPCConfig(spec *api.ClusterConfig) (*ClusterVPCConfig, error)
+	GetNodeGroupIAM(stackManager manager.StackManager, ng *api.NodeGroup) error
+	GetUsername() string
+	IsSupportedRegion() bool
+	ListClusters(chunkSize int, listAllRegions bool) ([]*api.ClusterConfig, error)
 	LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, stackManager manager.StackManager) error
+	LoadClusterVPC(spec *api.ClusterConfig, stackManager manager.StackManager) error
+	NewOpenIDConnectManager(spec *api.ClusterConfig) (*iamoidc.OpenIDConnectManager, error)
+	NewStackManager(spec *api.ClusterConfig) manager.StackManager
+	RefreshClusterStatus(spec *api.ClusterConfig) error
+	ServerVersion(rawClient kubewrapper.RawClientInterface) (string, error)
+	SetAvailabilityZones(spec *api.ClusterConfig, given []string) error
+	SupportsFargate(clusterConfig *api.ClusterConfig) (bool, error)
 	SupportsManagedNodes(clusterConfig *api.ClusterConfig) (bool, error)
+	UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error
+	UpdateClusterConfigForEndpoints(cfg *api.ClusterConfig) error
+	UpdateClusterConfigForLogging(cfg *api.ClusterConfig) error
+	UpdateClusterTags(cfg *api.ClusterConfig) error
+	UpdateClusterVersion(cfg *api.ClusterConfig) (*awseks.Update, error)
+	UpdateClusterVersionBlocking(cfg *api.ClusterConfig) error
+	UpdatePublicAccessCIDRs(clusterConfig *api.ClusterConfig) error
 	ValidateClusterForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error
-	UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubewrapper.Interface) error
-	WaitForNodes(clientSet kubewrapper.Interface, ng KubeNodeGroup) error
+	WaitForControlPlane(meta *api.ClusterMeta, clientSet kubernetes.Interface) error
+	WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error
 }
 
 // ProviderServices stores the used APIs
