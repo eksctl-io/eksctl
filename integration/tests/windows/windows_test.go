@@ -97,8 +97,8 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 			createCluster(withOIDC)
 			runWindowsPod()
 		},
-			Entry("when withOIDC is disabled", false),
-			Entry("when withOIDC is enabled", true),
+			PEntry("when withOIDC is disabled", false),
+			PEntry("when withOIDC is enabled", true),
 		)
 	})
 
