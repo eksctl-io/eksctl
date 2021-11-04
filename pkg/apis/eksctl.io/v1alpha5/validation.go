@@ -161,6 +161,13 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		}
 		c.VPC.PublicAccessCIDRs = cidrs
 	}
+	if len(c.VPC.ExtraIPv6CIDRs) > 0 {
+		cidrs, err := validateCIDRs(c.VPC.ExtraIPv6CIDRs)
+		if err != nil {
+			return err
+		}
+		c.VPC.ExtraIPv6CIDRs = cidrs
+	}
 	if c.VPC.IPFamily != IPV4Family && c.VPC.IPFamily != IPV6Family {
 		return fmt.Errorf("invalid value %s for ipFamily; allowed are %s and %s", c.VPC.IPFamily, IPV4Family, IPV6Family)
 	}

@@ -685,7 +685,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 		})
 
-		Context("CIDRs", func() {
+		Context("extraCIDRs", func() {
 			It("validates cirds", func() {
 				cfg.VPC.ExtraCIDRs = []string{"192.168.0.0/24"}
 				cfg.VPC.PublicAccessCIDRs = []string{"3.48.58.68/24"}
@@ -708,6 +708,21 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 		})
 
+		Context("extraIPv6CIDRs", func() {
+			It("validates cirds", func() {
+				cfg.VPC.ExtraIPv6CIDRs = []string{"2002::1234:abcd:ffff:c0a8:101/64"}
+				err = cfg.ValidateVPCConfig()
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			When("extraCIDRs has an invalid cidr", func() {
+				It("returns an error", func() {
+					cfg.VPC.ExtraIPv6CIDRs = []string{"not-a-cidr"}
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(HaveOccurred())
+				})
+			})
+		})
 	})
 
 	Describe("cpuCredits", func() {
