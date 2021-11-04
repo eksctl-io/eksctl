@@ -6,6 +6,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -82,7 +86,8 @@ type ProviderServices struct {
 	ssm   ssmiface.SSMAPI
 	iam   iamiface.IAMAPI
 
-	cloudtrail cloudtrailiface.CloudTrailAPI
+	cloudtrail     cloudtrailiface.CloudTrailAPI
+	cloudwatchlogs cloudwatchlogsiface.CloudWatchLogsAPI
 
 	session *session.Session
 }
@@ -124,6 +129,11 @@ func (p ProviderServices) IAM() iamiface.IAMAPI { return p.iam }
 
 // CloudTrail returns a representation of the CloudTrail API
 func (p ProviderServices) CloudTrail() cloudtrailiface.CloudTrailAPI { return p.cloudtrail }
+
+// CloudWatch returns a representation of the CloudWatch API.
+func (p ProviderServices) CloudWatchLogs() cloudwatchlogsiface.CloudWatchLogsAPI {
+	return p.cloudwatchlogs
+}
 
 // Region returns provider-level region setting
 func (p ProviderServices) Region() string { return p.spec.Region }
@@ -189,6 +199,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	provider.ssm = ssm.New(s)
 	provider.iam = iam.New(s)
 	provider.cloudtrail = cloudtrail.New(s)
+	provider.cloudwatchlogs = cloudwatchlogs.New(s)
 
 	c.Status = &ProviderStatus{
 		sessionCreds: s.Config.Credentials,
