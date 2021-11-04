@@ -152,7 +152,9 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 
 func validateCloudWatchLogging(clusterConfig *ClusterConfig) error {
 	if !clusterConfig.HasClusterCloudWatchLogging() {
-		if clusterConfig.CloudWatch.ClusterLogging.LogRetentionInDays != 0 {
+		if clusterConfig.CloudWatch != nil &&
+			clusterConfig.CloudWatch.ClusterLogging != nil &&
+			clusterConfig.CloudWatch.ClusterLogging.LogRetentionInDays != 0 {
 			return errors.New("cannot set cloudWatch.clusterLogging.logRetentionInDays without enabling log types")
 		}
 		return nil
