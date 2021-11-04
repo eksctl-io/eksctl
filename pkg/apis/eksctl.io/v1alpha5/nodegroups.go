@@ -1,5 +1,7 @@
 package v1alpha5
 
+import "fmt"
+
 // HasInstanceType returns whether some node in the group fulfils the type check
 func HasInstanceType(nodeGroup *NodeGroup, hasType func(string) bool) bool {
 	if hasType(nodeGroup.InstanceType) {
@@ -44,14 +46,28 @@ func ClusterHasInstanceType(cfg *ClusterConfig, hasType func(string) bool) bool 
 	return false
 }
 
-// HasNodegroup returns true if this clusterConfig contains a managed or un-managed nodegroup with the given name
-func (c *ClusterConfig) FindNodegroup(name string) *NodeGroup {
+// FindNodegroup checks if the clusterConfig contains a nodegroup with the given name
+func (c *ClusterConfig) FindNodegroup(name string) (*NodeGroupBase, error) {
+	var foundNg []*NodeGroupBase
 	for _, ng := range c.NodeGroups {
 		if name == ng.NameString() {
-			return ng
+			foundNg = append(foundNg, ng.NodeGroupBase)
 		}
 	}
-	return nil
+
+	for _, ng := range c.ManagedNodeGroups {
+		if name == ng.NameString() {
+			foundNg = append(foundNg, ng.NodeGroupBase)
+		}
+	}
+
+	if len(foundNg) == 0 {
+		return nil, fmt.Errorf("nodegroup %s not found in config file", name)
+	} else if len(foundNg) > 1 {
+		return nil, fmt.Errorf("found more than 1 nodegroup with name %s", name)
+	}
+
+	return foundNg[0], nil
 }
 
 // GetAllNodeGroupNames collects and returns names for both managed and unmanaged nodegroups

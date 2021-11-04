@@ -469,9 +469,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		It("should handle known types", func() {
 			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"api"}
-
-			err = api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(api.ValidateClusterConfig(cfg)).To(Succeed())
 		})
 
 		It("should handle unknown types", func() {
@@ -479,8 +477,50 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			err = api.ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring(`log type "anything" (cloudWatch.clusterLogging.enableTypes[0]) is unknown`)))
 		})
 	})
+
+	type logRetentionEntry struct {
+		logging *api.ClusterCloudWatchLogging
+
+		expectedErr string
+	}
+
+	DescribeTable("CloudWatch log retention", func(l logRetentionEntry) {
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.CloudWatch.ClusterLogging = l.logging
+		err := api.ValidateClusterConfig(clusterConfig)
+		if l.expectedErr != "" {
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring(l.expectedErr)))
+			return
+		}
+
+		Expect(err).ToNot(HaveOccurred())
+	},
+		Entry("invalid value", logRetentionEntry{
+			logging: &api.ClusterCloudWatchLogging{
+				LogRetentionInDays: 42,
+				EnableTypes:        []string{"api"},
+			},
+			expectedErr: `invalid value 42 for logRetentionInDays; supported values are [1 3 5 7`,
+		}),
+
+		Entry("valid value", logRetentionEntry{
+			logging: &api.ClusterCloudWatchLogging{
+				LogRetentionInDays: 545,
+				EnableTypes:        []string{"api"},
+			},
+		}),
+
+		Entry("log retention without enableTypes", logRetentionEntry{
+			logging: &api.ClusterCloudWatchLogging{
+				LogRetentionInDays: 545,
+			},
+			expectedErr: "cannot set cloudWatch.clusterLogging.logRetentionInDays without enabling log types",
+		}),
+	)
 
 	Describe("cluster endpoint access config", func() {
 		var (
@@ -993,7 +1033,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("fails when the AMIFamily is not supported", func() {
 			ng.AMIFamily = "SomeTrash"
 			err := api.ValidateNodeGroup(0, ng)
-			Expect(err).To(MatchError("AMI Family SomeTrash is not supported - use one of: AmazonLinux2, Ubuntu2004, Ubuntu1804, Bottlerocket, WindowsServer2019CoreContainer, WindowsServer2019FullContainer, WindowsServer2004CoreContainer"))
+			Expect(err).To(MatchError("AMI Family SomeTrash is not supported - use one of: AmazonLinux2, Ubuntu2004, Ubuntu1804, Bottlerocket, WindowsServer2019CoreContainer, WindowsServer2019FullContainer, WindowsServer2004CoreContainer, WindowsServer20H2CoreContainer"))
 		})
 	})
 

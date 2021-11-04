@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
+
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
@@ -43,7 +45,7 @@ const (
 	Version1_21 = "1.21"
 
 	// DefaultVersion (default)
-	DefaultVersion = Version1_20
+	DefaultVersion = Version1_21
 
 	LatestVersion = Version1_21
 )
@@ -183,6 +185,7 @@ const (
 	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
 	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
 	NodeImageFamilyWindowsServer2004CoreContainer = "WindowsServer2004CoreContainer"
+	NodeImageFamilyWindowsServer20H2CoreContainer = "WindowsServer20H2CoreContainer"
 )
 
 // Container runtime values.
@@ -467,6 +470,7 @@ func supportedAMIFamilies() []string {
 		NodeImageFamilyWindowsServer2019CoreContainer,
 		NodeImageFamilyWindowsServer2019FullContainer,
 		NodeImageFamilyWindowsServer2004CoreContainer,
+		NodeImageFamilyWindowsServer20H2CoreContainer,
 	}
 }
 
@@ -597,6 +601,7 @@ type ClusterProvider interface {
 	SSM() ssmiface.SSMAPI
 	IAM() iamiface.IAMAPI
 	CloudTrail() cloudtrailiface.CloudTrailAPI
+	CloudWatchLogs() cloudwatchlogsiface.CloudWatchLogsAPI
 	Region() string
 	Profile() string
 	WaitTimeout() time.Duration

@@ -3,13 +3,13 @@ package addon
 import (
 	"fmt"
 
-	"github.com/google/uuid"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/google/uuid"
 	"github.com/kris-nova/logger"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
 func (a *Manager) Update(addon *api.Addon, wait bool) error {
@@ -101,7 +101,13 @@ func (a *Manager) updateWithNewPolicies(addon *api.Addon) (string, error) {
 		return "", err
 	}
 	var templateBody manager.TemplateBody = createNewTemplate
-	err = a.stackManager.UpdateStack(stackName, fmt.Sprintf("updating-policy-%s", uuid.NewString()), "updating policies", templateBody, nil)
+	err = a.stackManager.UpdateStack(manager.UpdateStackOptions{
+		StackName:     stackName,
+		ChangeSetName: fmt.Sprintf("updating-policy-%s", uuid.NewString()),
+		Description:   "updating policies",
+		TemplateData:  templateBody,
+		Wait:          true,
+	})
 	if err != nil {
 		return "", err
 	}

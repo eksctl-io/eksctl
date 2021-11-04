@@ -43,7 +43,7 @@ var _ = Describe("scale node group config file loader", func() {
 				NameArg:           params.name,
 			}
 
-			ng := api.NewNodeGroup()
+			ng := api.NewNodeGroup().BaseNodeGroup()
 			err := NewScaleNodeGroupLoader(cmd, ng).Load()
 			if params.err != nil {
 				Expect(err).To(HaveOccurred())
@@ -60,7 +60,7 @@ var _ = Describe("scale node group config file loader", func() {
 		}),
 		Entry("no node group matched", scaleNodeGroupCase{
 			name: "123123",
-			err:  fmt.Errorf("node group 123123 not found"),
+			err:  fmt.Errorf("nodegroup 123123 not found in config file"),
 		}),
 		Entry("with no desired capacity", scaleNodeGroupCase{
 			name: "ng-no-desired-capacity",
@@ -101,7 +101,7 @@ var _ = Describe("scale node group config file loader", func() {
 				NameArg:        params.name,
 			}
 
-			ng := api.NewNodeGroup()
+			ng := api.NewNodeGroup().BaseNodeGroup()
 			ng.MinSize = params.minSize
 			ng.MaxSize = params.maxSize
 			ng.DesiredCapacity = params.desiredSize
@@ -166,4 +166,39 @@ var _ = Describe("scale node group config file loader", func() {
 			err:  fmt.Errorf("at least one of minimum, maximum and desired nodes must be set"),
 		}),
 	)
+
+	Describe("for managed nodegroups", func() {
+		Context("when using a config file", func() {
+			It("setting --name finds that individual nodegroup", func() {
+				ngName := "mng-ng"
+				ng := &api.NodeGroupBase{
+					Name: ngName,
+					ScalingConfig: &api.ScalingConfig{
+						DesiredCapacity: aws.Int(2),
+					},
+				}
+
+				config := api.NewClusterConfig()
+				config.Metadata.Name = "test-cluster"
+				config.ManagedNodeGroups = []*api.ManagedNodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name: ngName,
+							ScalingConfig: &api.ScalingConfig{
+								DesiredCapacity: aws.Int(2),
+							},
+						},
+					},
+				}
+				cmd := &Cmd{
+					CobraCommand:   newCmd(),
+					ClusterConfig:  config,
+					ProviderConfig: api.ProviderConfig{},
+				}
+
+				err := NewScaleNodeGroupLoader(cmd, ng).Load()
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+	})
 })

@@ -4,23 +4,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/cloudformation"
-
-	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
-
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
@@ -287,13 +283,14 @@ var _ = Describe("Update", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
-						stackName, changeSetName, description, templateData, _ := fakeStackManager.UpdateStackArgsForCall(0)
-						Expect(stackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
-						Expect(changeSetName).To(ContainSubstring("updating-policy"))
-						Expect(description).To(Equal("updating policies"))
+						options := fakeStackManager.UpdateStackArgsForCall(0)
+						Expect(options.StackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
+						Expect(options.ChangeSetName).To(ContainSubstring("updating-policy"))
+						Expect(options.Description).To(Equal("updating policies"))
+						Expect(options.Wait).To(BeTrue())
 						Expect(err).NotTo(HaveOccurred())
-						Expect(string(templateData.(manager.TemplateBody))).To(ContainSubstring("arn-1"))
-						Expect(string(templateData.(manager.TemplateBody))).To(ContainSubstring(":sub\":\"system:serviceaccount:kube-system:aws-node"))
+						Expect(string(options.TemplateData.(manager.TemplateBody))).To(ContainSubstring("arn-1"))
+						Expect(string(options.TemplateData.(manager.TemplateBody))).To(ContainSubstring(":sub\":\"system:serviceaccount:kube-system:aws-node"))
 
 						Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
 						Expect(*updateAddonInput.AddonName).To(Equal("vpc-cni"))
@@ -357,12 +354,13 @@ var _ = Describe("Update", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
-						stackName, changeSetName, description, templateData, _ := fakeStackManager.UpdateStackArgsForCall(0)
-						Expect(stackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
-						Expect(changeSetName).To(ContainSubstring("updating-policy"))
-						Expect(description).To(Equal("updating policies"))
+						options := fakeStackManager.UpdateStackArgsForCall(0)
+						Expect(options.StackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
+						Expect(options.ChangeSetName).To(ContainSubstring("updating-policy"))
+						Expect(options.Description).To(Equal("updating policies"))
+						Expect(options.Wait).To(BeTrue())
 						Expect(err).NotTo(HaveOccurred())
-						Expect(string(templateData.(manager.TemplateBody))).To(ContainSubstring("policy-bar"))
+						Expect(string(options.TemplateData.(manager.TemplateBody))).To(ContainSubstring("policy-bar"))
 
 						Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
 						Expect(*updateAddonInput.AddonName).To(Equal("vpc-cni"))
@@ -428,12 +426,13 @@ var _ = Describe("Update", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
-						stackName, changeSetName, description, templateData, _ := fakeStackManager.UpdateStackArgsForCall(0)
-						Expect(stackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
-						Expect(changeSetName).To(ContainSubstring("updating-policy"))
-						Expect(description).To(Equal("updating policies"))
+						options := fakeStackManager.UpdateStackArgsForCall(0)
+						Expect(options.StackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
+						Expect(options.ChangeSetName).To(ContainSubstring("updating-policy"))
+						Expect(options.Description).To(Equal("updating policies"))
+						Expect(options.Wait).To(BeTrue())
 						Expect(err).NotTo(HaveOccurred())
-						Expect(string(templateData.(manager.TemplateBody))).To(ContainSubstring("autoscaling:SetDesiredCapacity"))
+						Expect(string(options.TemplateData.(manager.TemplateBody))).To(ContainSubstring("autoscaling:SetDesiredCapacity"))
 
 						Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
 						Expect(*updateAddonInput.AddonName).To(Equal("vpc-cni"))

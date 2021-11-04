@@ -91,7 +91,7 @@ var _ = Describe("Delete", func() {
 				}}},
 			}, nil)
 
-			c := cluster.NewOwnedCluster(cfg, ctl, fakeStackManager)
+			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
 			fakeClientSet = fake.NewSimpleClientset()
 
 			c.SetNewClientSet(func() (kubernetes.Interface, error) {
@@ -135,7 +135,7 @@ var _ = Describe("Delete", func() {
 				}}},
 			}, nil)
 
-			c := cluster.NewOwnedCluster(cfg, ctl, fakeStackManager)
+			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
 
 			err := c.Delete(time.Microsecond, false, false)
 			Expect(err).NotTo(HaveOccurred())

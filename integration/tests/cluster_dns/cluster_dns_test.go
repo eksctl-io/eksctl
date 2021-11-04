@@ -14,6 +14,7 @@ import (
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
 
 	"github.com/weaveworks/eksctl/integration/tests"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 
@@ -64,7 +65,7 @@ var _ = Describe("(Integration) [Cluster DNS test]", func() {
 				"--verbose", "4",
 			).
 				WithoutArg("--region", params.Region).
-				WithStdin(testutils.ClusterConfigReader(clusterConfig))
+				WithStdin(clusterutils.Reader(clusterConfig))
 
 			Expect(cmd).To(RunSuccessfully())
 		})

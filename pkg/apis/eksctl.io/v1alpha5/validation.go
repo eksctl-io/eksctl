@@ -118,18 +118,8 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 	}
 
-	if cfg.HasClusterCloudWatchLogging() {
-		for i, logType := range cfg.CloudWatch.ClusterLogging.EnableTypes {
-			isUnknown := true
-			for _, knownLogType := range SupportedCloudWatchClusterLogTypes() {
-				if logType == knownLogType {
-					isUnknown = false
-				}
-			}
-			if isUnknown {
-				return fmt.Errorf("log type %q (cloudWatch.clusterLogging.enableTypes[%d]) is unknown", logType, i)
-			}
-		}
+	if err := validateCloudWatchLogging(cfg); err != nil {
+		return err
 	}
 
 	if cfg.VPC != nil && len(cfg.VPC.ExtraCIDRs) > 0 {
@@ -155,6 +145,39 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 	// manageSharedNodeSecurityGroupRules cannot be disabled if using eksctl managed security groups
 	if cfg.VPC != nil && cfg.VPC.SharedNodeSecurityGroup == "" && IsDisabled(cfg.VPC.ManageSharedNodeSecurityGroupRules) {
 		return errors.New("vpc.manageSharedNodeSecurityGroupRules must be enabled when using ekstcl-managed security groups")
+	}
+
+	return nil
+}
+
+func validateCloudWatchLogging(clusterConfig *ClusterConfig) error {
+	if !clusterConfig.HasClusterCloudWatchLogging() {
+		if clusterConfig.CloudWatch != nil &&
+			clusterConfig.CloudWatch.ClusterLogging != nil &&
+			clusterConfig.CloudWatch.ClusterLogging.LogRetentionInDays != 0 {
+			return errors.New("cannot set cloudWatch.clusterLogging.logRetentionInDays without enabling log types")
+		}
+		return nil
+	}
+
+	for i, logType := range clusterConfig.CloudWatch.ClusterLogging.EnableTypes {
+		isUnknown := true
+		for _, knownLogType := range SupportedCloudWatchClusterLogTypes() {
+			if logType == knownLogType {
+				isUnknown = false
+			}
+		}
+		if isUnknown {
+			return errors.Errorf("log type %q (cloudWatch.clusterLogging.enableTypes[%d]) is unknown", logType, i)
+		}
+	}
+	if logRetentionDays := clusterConfig.CloudWatch.ClusterLogging.LogRetentionInDays; logRetentionDays != 0 {
+		for _, v := range LogRetentionInDaysValues {
+			if v == logRetentionDays {
+				return nil
+			}
+		}
+		return errors.Errorf("invalid value %d for logRetentionInDays; supported values are %v", logRetentionDays, LogRetentionInDaysValues)
 	}
 
 	return nil
@@ -927,7 +950,8 @@ func IsWindowsImage(imageFamily string) bool {
 	switch imageFamily {
 	case NodeImageFamilyWindowsServer2019CoreContainer,
 		NodeImageFamilyWindowsServer2019FullContainer,
-		NodeImageFamilyWindowsServer2004CoreContainer:
+		NodeImageFamilyWindowsServer2004CoreContainer,
+		NodeImageFamilyWindowsServer20H2CoreContainer:
 		return true
 
 	default:

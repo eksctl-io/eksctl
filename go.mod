@@ -41,7 +41,7 @@ require (
 	github.com/ashanbrown/forbidigo v1.2.0 // indirect
 	github.com/ashanbrown/makezero v0.0.0-20210520155254-b6261585ddde // indirect
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.3-0.20210303155736-3e43512d88f8
-	github.com/aws/aws-sdk-go v1.40.38
+	github.com/aws/aws-sdk-go v1.41.13
 	github.com/awslabs/goformation/v4 v4.15.5 // indirect
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -271,9 +271,9 @@ require (
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/tdakkota/asciicheck v0.0.0-20200416200610-e657995f937b // indirect
 	github.com/tetafro/godot v1.4.8 // indirect
-	github.com/tidwall/gjson v1.8.1
-	github.com/tidwall/match v1.0.3 // indirect
-	github.com/tidwall/pretty v1.1.0 // indirect
+	github.com/tidwall/gjson v1.11.0
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tidwall/sjson v1.1.7
 	github.com/timakin/bodyclose v0.0.0-20200424151742-cb6215831a94 // indirect
 	github.com/tj/assert v0.0.3

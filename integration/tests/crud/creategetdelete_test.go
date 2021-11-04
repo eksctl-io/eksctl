@@ -4,7 +4,6 @@
 package crud
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -29,6 +28,7 @@ import (
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -218,15 +218,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("and create a new nodegroup with taints and maxPods", func() {
 			It("should have taints and maxPods set", func() {
-				data, err := os.ReadFile("testdata/taints-max-pods.yaml")
-				Expect(err).ToNot(HaveOccurred())
-				clusterConfig, err := eks.ParseConfig(data)
-				Expect(err).ToNot(HaveOccurred())
-				clusterConfig.Metadata.Name = params.ClusterName
-				clusterConfig.Metadata.Region = params.Region
-
-				data, err = json.Marshal(clusterConfig)
-				Expect(err).ToNot(HaveOccurred())
 				By("creating a new nodegroup with taints and maxPods set")
 				cmd := params.EksctlCreateCmd.
 					WithArgs(
@@ -235,7 +226,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--verbose", "4",
 					).
 					WithoutArg("--region", params.Region).
-					WithStdin(bytes.NewReader(data))
+					WithStdin(clusterutils.ReaderFromFile(params.ClusterName, params.Region, "testdata/taints-max-pods.yaml"))
 				Expect(cmd).To(RunSuccessfully())
 
 				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
@@ -394,7 +385,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		PContext("and creating a nodegroup with containerd runtime", func() {
+		Context("and creating a nodegroup with containerd runtime", func() {
 			var (
 				nodegroupName string
 			)
@@ -413,6 +404,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 			It("should create the nodegroup without problems", func() {
 				clusterConfig := makeClusterConfig()
+				clusterConfig.Metadata.Name = params.ClusterName
 				clusterConfig.NodeGroups = []*api.NodeGroup{
 					{
 						NodeGroupBase: &api.NodeGroupBase{
@@ -431,7 +423,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--verbose", "4",
 					).
 					WithoutArg("--region", params.Region).
-					WithStdin(testutils.ClusterConfigReader(clusterConfig))
+					WithStdin(clusterutils.Reader(clusterConfig))
 				Expect(cmd).To(RunSuccessfully())
 			})
 		})

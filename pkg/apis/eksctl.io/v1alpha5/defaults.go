@@ -259,12 +259,15 @@ func setBottlerocketNodeGroupDefaults(ng *NodeGroupBase) {
 	if ng.Bottlerocket == nil {
 		ng.Bottlerocket = &NodeGroupBottlerocket{}
 	}
+	if ng.Bottlerocket.Settings == nil {
+		ng.Bottlerocket.Settings = &InlineDocument{}
+	}
 
 	// Use the SSH settings if the user hasn't explicitly configured the Admin
 	// Container. If SSH was enabled, the user will be able to ssh into the
 	// Bottlerocket node via the admin container.
-	if ng.Bottlerocket.EnableAdminContainer == nil && ng.SSH != nil {
-		ng.Bottlerocket.EnableAdminContainer = ng.SSH.Allow
+	if ng.Bottlerocket.EnableAdminContainer == nil && ng.SSH != nil && IsEnabled(ng.SSH.Allow) {
+		ng.Bottlerocket.EnableAdminContainer = Enabled()
 	}
 }
 
