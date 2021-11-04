@@ -54,7 +54,7 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 			},
 			{
 				NodeGroupBase: &api.NodeGroupBase{
-					Name:      "windows",
+					Name:      "windows20h2",
 					AMIFamily: api.NodeImageFamilyWindowsServer20H2CoreContainer,
 				},
 			},
