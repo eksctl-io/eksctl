@@ -720,6 +720,10 @@ var _ = Describe("ClusterConfig validation", func() {
 					cfg.VPC.ExtraIPv6CIDRs = []string{"not-a-cidr"}
 					err = cfg.ValidateVPCConfig()
 					Expect(err).To(HaveOccurred())
+
+					cfg.VPC.ExtraIPv6CIDRs = []string{"2002::1234:abcd:ffff:c0a8:101/644"}
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(HaveOccurred())
 				})
 			})
 		})
