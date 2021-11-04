@@ -4,19 +4,18 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
-
-	"github.com/pkg/errors"
-
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/managed"
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
-func (m *Manager) Upgrade(options managed.UpgradeOptions, wait bool) error {
+func (m *Manager) Upgrade(options managed.UpgradeOptions) error {
 	stackCollection := manager.NewStackCollection(m.ctl.Provider, m.cfg)
 	hasStacks, err := m.hasStacks(options.NodegroupName)
 	if err != nil {
@@ -38,7 +37,7 @@ func (m *Manager) Upgrade(options managed.UpgradeOptions, wait bool) error {
 		return err
 	}
 
-	if wait {
+	if options.Wait {
 		return m.waitForUpgrade(options)
 	}
 

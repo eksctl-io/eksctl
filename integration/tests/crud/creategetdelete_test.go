@@ -385,7 +385,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		PContext("and creating a nodegroup with containerd runtime", func() {
+		Context("and creating a nodegroup with containerd runtime", func() {
 			var (
 				nodegroupName string
 			)
@@ -404,6 +404,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 			It("should create the nodegroup without problems", func() {
 				clusterConfig := makeClusterConfig()
+				clusterConfig.Metadata.Name = params.ClusterName
 				clusterConfig.NodeGroups = []*api.NodeGroup{
 					{
 						NodeGroupBase: &api.NodeGroupBase{
