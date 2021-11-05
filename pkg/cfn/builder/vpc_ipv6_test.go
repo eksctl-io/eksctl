@@ -6,6 +6,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder/fakes"
@@ -446,30 +447,15 @@ var _ = Describe("IPv6 VPC builder", func() {
 
 			By("creating a route to the NAT gateway for each private subnet in the AZs")
 			privateRouteA := builder.PrivateSubnetRouteKey + azAFormatted
-			Expect(vpcTemplate.Resources).To(HaveKey(privateRouteA))
-			Expect(vpcTemplate.Resources[privateRouteA].Type).To(Equal("AWS::EC2::Route"))
-			Expect(vpcTemplate.Resources[privateRouteA].DependsOn).ToNot(ConsistOf(builder.NATGatewayKey, builder.GAKey))
+			Expect(vpcTemplate.Resources).NotTo(HaveKey(privateRouteA))
 
 			privateRouteB := builder.PrivateSubnetRouteKey + azBFormatted
-			Expect(vpcTemplate.Resources).To(HaveKey(privateRouteB))
-			Expect(vpcTemplate.Resources[privateRouteB].Type).To(Equal("AWS::EC2::Route"))
-			Expect(vpcTemplate.Resources[privateRouteB].DependsOn).ToNot(ConsistOf(builder.NATGatewayKey, builder.GAKey))
+			Expect(vpcTemplate.Resources).NotTo(HaveKey(privateRouteB))
 
 			By("creating a ipv6 route to the ingress only internet gateway for each private subnet in the AZs")
 			privateRouteA = builder.PrivateSubnetIpv6RouteKey + azAFormatted
-			Expect(vpcTemplate.Resources).To(HaveKey(privateRouteA))
-			Expect(vpcTemplate.Resources[privateRouteA].Type).To(Equal("AWS::EC2::Route"))
-			Expect(vpcTemplate.Resources[privateRouteA].Properties).To(Equal(fakes.Properties{
-				DestinationIpv6CidrBlock: builder.InternetIPv6CIDR,
-				RouteTableID:             map[string]interface{}{"Ref": privateRouteTableA},
-			}))
-			privateRouteB = builder.PrivateSubnetIpv6RouteKey + azBFormatted
-			Expect(vpcTemplate.Resources).To(HaveKey(privateRouteB))
-			Expect(vpcTemplate.Resources[privateRouteB].Type).To(Equal("AWS::EC2::Route"))
-			Expect(vpcTemplate.Resources[privateRouteB].Properties).To(Equal(fakes.Properties{
-				DestinationIpv6CidrBlock: builder.InternetIPv6CIDR,
-				RouteTableID:             map[string]interface{}{"Ref": privateRouteTableB},
-			}))
+			Expect(vpcTemplate.Resources).NotTo(HaveKey(privateRouteA))
+			Expect(vpcTemplate.Resources).NotTo(HaveKey(privateRouteB))
 
 			By("creating a private subnet for each AZ")
 			assertSubnetSet := func(az, subnetKey, kubernetesTag string, cidrBlockIndex float64, mapPublicIpOnLaunch bool) {
