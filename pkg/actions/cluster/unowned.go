@@ -82,7 +82,11 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force bool) er
 		}
 
 		if err := drainAllNodegroups(c.cfg, c.ctl, c.stackManager, clientSet, allStacks); err != nil {
-			return err
+			if force {
+				logger.Warning("error occurred during nodegroups draining")
+			} else {
+				return err
+			}
 		}
 	}
 

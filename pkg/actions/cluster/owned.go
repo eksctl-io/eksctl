@@ -105,8 +105,13 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force bool) error {
 		if err != nil {
 			return err
 		}
+
 		if err := drainAllNodegroups(c.cfg, c.ctl, c.stackManager, clientSet, allStacks); err != nil {
-			return err
+			if force {
+				logger.Warning("error occurred during nodegroups draining")
+			} else {
+				return err
+			}
 		}
 	}
 
