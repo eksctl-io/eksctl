@@ -57,7 +57,7 @@ func (c *UnownedCluster) Upgrade(dryRun bool) error {
 	return nil
 }
 
-func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force bool) error {
+func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force bool, disableNodegroupEviction bool) error {
 	clusterName := c.cfg.Metadata.Name
 
 	if err := c.checkClusterExists(clusterName); err != nil {

@@ -67,7 +67,7 @@ func (c *OwnedCluster) Upgrade(dryRun bool) error {
 	return nil
 }
 
-func (c *OwnedCluster) Delete(_ time.Duration, wait, force bool) error {
+func (c *OwnedCluster) Delete(_ time.Duration, wait, force bool, disableNodegroupEviction bool) error {
 	var (
 		clientSet kubernetes.Interface
 		oidc      *iamoidc.OpenIDConnectManager
