@@ -15,6 +15,12 @@ import (
 )
 
 func deleteClusterCmd(cmd *cmdutils.Cmd) {
+	deleteClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction bool) error {
+		return doDeleteCluster(cmd, force, disableNodegroupEviction)
+	})
+}
+
+func deleteClusterWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction bool) error) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
@@ -24,8 +30,9 @@ func deleteClusterCmd(cmd *cmdutils.Cmd) {
 	var disableNodegroupEviction bool
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doDeleteCluster(cmd, force, disableNodegroupEviction)
+		return runFunc(cmd, force, disableNodegroupEviction)
 	}
+
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
