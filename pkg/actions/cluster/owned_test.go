@@ -105,7 +105,7 @@ var _ = Describe("Delete", func() {
 				return fakeClientSet, nil
 			})
 
-			err := c.Delete(time.Microsecond, false, false)
+			err := c.Delete(time.Microsecond, false, false, false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
@@ -146,7 +146,7 @@ var _ = Describe("Delete", func() {
 
 			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
 
-			err := c.Delete(time.Microsecond, false, false)
+			err := c.Delete(time.Microsecond, false, false, false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
