@@ -162,6 +162,9 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		c.VPC.PublicAccessCIDRs = cidrs
 	}
 	if len(c.VPC.ExtraIPv6CIDRs) > 0 {
+		if c.VPC.IPFamily != IPV6Family {
+			return fmt.Errorf("cannot specify vpc.extraIPv6CIDRs with an IPv4 cluster")
+		}
 		cidrs, err := validateCIDRs(c.VPC.ExtraIPv6CIDRs)
 		if err != nil {
 			return err

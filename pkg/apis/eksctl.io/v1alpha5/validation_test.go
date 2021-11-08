@@ -710,7 +710,18 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		Context("extraIPv6CIDRs", func() {
 			It("validates cidrs", func() {
+				cfg.VPC.IPFamily = api.IPV6Family
+				cfg.Metadata.Version = api.LatestVersion
+				cfg.Addons = append(cfg.Addons,
+					&api.Addon{Name: api.KubeProxyAddon},
+					&api.Addon{Name: api.CoreDNSAddon},
+					&api.Addon{Name: api.VPCCNIAddon},
+				)
+				cfg.IAM = &api.ClusterIAM{
+					WithOIDC: api.Enabled(),
+				}
 				cfg.VPC.ExtraIPv6CIDRs = []string{"2002::1234:abcd:ffff:c0a8:101/64"}
+				cfg.VPC.NAT = nil
 				err = cfg.ValidateVPCConfig()
 				Expect(err).ToNot(HaveOccurred())
 			})
@@ -718,12 +729,40 @@ var _ = Describe("ClusterConfig validation", func() {
 			When("extraIPv6CIDRs has an invalid cidr", func() {
 				It("returns an error", func() {
 					cfg.VPC.ExtraIPv6CIDRs = []string{"not-a-cidr"}
+					cfg.Metadata.Version = api.LatestVersion
+					cfg.Addons = append(cfg.Addons,
+						&api.Addon{Name: api.KubeProxyAddon},
+						&api.Addon{Name: api.CoreDNSAddon},
+						&api.Addon{Name: api.VPCCNIAddon},
+					)
+					cfg.IAM = &api.ClusterIAM{
+						WithOIDC: api.Enabled(),
+					}
+					cfg.VPC.IPFamily = api.IPV6Family
 					err = cfg.ValidateVPCConfig()
 					Expect(err).To(HaveOccurred())
 
 					cfg.VPC.ExtraIPv6CIDRs = []string{"2002::1234:abcd:ffff:c0a8:101/644"}
 					err = cfg.ValidateVPCConfig()
 					Expect(err).To(HaveOccurred())
+				})
+			})
+
+			When("when ipv4 is configurd", func() {
+				It("returns an error", func() {
+					cfg.VPC.IPFamily = api.IPV4Family
+					cfg.Metadata.Version = api.LatestVersion
+					cfg.Addons = append(cfg.Addons,
+						&api.Addon{Name: api.KubeProxyAddon},
+						&api.Addon{Name: api.CoreDNSAddon},
+						&api.Addon{Name: api.VPCCNIAddon},
+					)
+					cfg.IAM = &api.ClusterIAM{
+						WithOIDC: api.Enabled(),
+					}
+					cfg.VPC.ExtraIPv6CIDRs = []string{"2002::1234:abcd:ffff:c0a8:101/644"}
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("cannot specify vpc.extraIPv6CIDRs with an IPv4 cluster"))
 				})
 			})
 		})
