@@ -686,7 +686,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 
 		Context("extraCIDRs", func() {
-			It("validates cirds", func() {
+			It("validates cidrs", func() {
 				cfg.VPC.ExtraCIDRs = []string{"192.168.0.0/24"}
 				cfg.VPC.PublicAccessCIDRs = []string{"3.48.58.68/24"}
 				err = cfg.ValidateVPCConfig()
