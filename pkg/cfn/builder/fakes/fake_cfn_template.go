@@ -57,7 +57,7 @@ type Properties struct {
 	TargetGroupARNs                   []string
 	DesiredCapacity, MinSize, MaxSize string
 
-	CidrIP, CidrIpv6, IPProtocol string
+	CidrIP, CidrIPv6, IPProtocol string
 	FromPort, ToPort             int
 
 	VpcID, SubnetID                                         interface{}

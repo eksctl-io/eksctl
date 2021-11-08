@@ -121,6 +121,19 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcID *gfnt.Value) *c
 				})
 			}
 		}
+
+		if len(c.spec.VPC.ExtraIPv6CIDRs) > 0 {
+			for i, cidr := range c.spec.VPC.ExtraIPv6CIDRs {
+				c.newResource(fmt.Sprintf("IngressControlPlaneExtraIPv6CIDR%d", i), &gfnec2.SecurityGroupIngress{
+					GroupId:     refControlPlaneSG,
+					CidrIpv6:    gfnt.NewString(cidr),
+					Description: gfnt.NewString(fmt.Sprintf("Allow Extra IPv6 CIDR %d (%s) to communicate to controlplane", i, cidr)),
+					IpProtocol:  gfnt.NewString("tcp"),
+					FromPort:    sgPortHTTPS,
+					ToPort:      sgPortHTTPS,
+				})
+			}
+		}
 	} else {
 		refControlPlaneSG = gfnt.NewString(c.spec.VPC.SecurityGroup)
 	}
