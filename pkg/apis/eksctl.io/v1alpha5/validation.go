@@ -305,7 +305,7 @@ func validateNodeGroupBase(np NodePool, path string) error {
 		}
 	}
 
-	if instanceutils.IsGPUInstanceType(SelectInstanceType(np)) && ng.AMIFamily != NodeImageFamilyAmazonLinux2 {
+	if instanceutils.IsGPUInstanceType(SelectInstanceType(np)) && (ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != "") {
 		return errors.Errorf("GPU instance types are not supported for %s", ng.AMIFamily)
 	}
 
