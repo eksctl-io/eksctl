@@ -715,7 +715,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			When("extraCIDRs has an invalid cidr", func() {
+			When("extraIPv6CIDRs has an invalid cidr", func() {
 				It("returns an error", func() {
 					cfg.VPC.ExtraIPv6CIDRs = []string{"not-a-cidr"}
 					err = cfg.ValidateVPCConfig()
