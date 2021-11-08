@@ -138,6 +138,10 @@ type (
 		// private subnets or any ad-hoc subnets
 		// +optional
 		ExtraCIDRs []string `json:"extraCIDRs,omitempty"`
+		// for additional IPv6 CIDR associations, e.g. a CIDR for
+		// private subnets or any ad-hoc subnets
+		// +optional
+		ExtraIPv6CIDRs []string `json:"extraIPv6CIDRs,omitempty"`
 		// for pre-defined shared node SG
 		SharedNodeSecurityGroup string `json:"sharedNodeSecurityGroup,omitempty"`
 		// Automatically add security group rules to and from the default
