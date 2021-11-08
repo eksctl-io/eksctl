@@ -4,14 +4,13 @@
 package integration_test
 
 import (
-	"encoding/json"
-	"os"
+	"fmt"
 	"testing"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
-	"github.com/weaveworks/eksctl/integration/runner"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	"github.com/weaveworks/eksctl/integration/utilities/git"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"
@@ -58,10 +57,9 @@ var _ = AfterSuite(func() {
 
 var _ = Describe("Enable GitOps", func() {
 	var (
-		branch     string
-		cmd        runner.Cmd
-		configFile *os.File
-		localRepo  string
+		branch        string
+		clusterConfig *api.ClusterConfig
+		localRepo     string
 	)
 
 	BeforeEach(func() {
@@ -69,7 +67,7 @@ var _ = Describe("Enable GitOps", func() {
 			branch = namer.RandomName()
 		}
 
-		cfg := &api.ClusterConfig{
+		clusterConfig = &api.ClusterConfig{
 			TypeMeta: api.ClusterConfigTypeMeta(),
 			Metadata: &api.ClusterMeta{
 				Version: api.DefaultVersion,
@@ -87,25 +85,22 @@ var _ = Describe("Enable GitOps", func() {
 				},
 			},
 		}
-		configData, err := json.Marshal(&cfg)
-		Expect(err).NotTo(HaveOccurred())
-		configFile, err = os.CreateTemp("", "")
-		Expect(err).NotTo(HaveOccurred())
-		Expect(os.WriteFile(configFile.Name(), configData, 0755)).To(Succeed())
 	})
 
 	AfterEach(func() {
-		_ = git.CleanupBranchAndRepo(branch, localRepo)
-		Expect(os.RemoveAll(configFile.Name())).To(Succeed())
+		if err := git.CleanupBranchAndRepo(branch, localRepo); err != nil {
+			fmt.Fprintf(GinkgoWriter, "error cleaning up branch and repo: %v", err)
+		}
 	})
 
 	Context("enable flux", func() {
 		It("should deploy Flux v2 components to the cluster", func() {
 			AssertFluxPodsAbsentInKubernetes(params.KubeconfigPath, "flux-system")
-			cmd = params.EksctlEnableCmd.WithArgs(
+			cmd := params.EksctlEnableCmd.WithArgs(
 				"flux",
-				"--config-file", configFile.Name(),
-			)
+				"--config-file", "-",
+			).WithStdin(clusterutils.Reader(clusterConfig))
+
 			Expect(cmd).To(RunSuccessfully())
 			AssertFlux2PodsPresentInKubernetes(params.KubeconfigPath)
 		})
