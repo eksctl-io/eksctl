@@ -52,7 +52,7 @@ var _ = Describe("scale node group config file loader", func() {
 				if params.minSize != nil {
 					Expect(ng.MinSize).To(Equal(params.minSize))
 				}
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			}
 		},
 		Entry("one node group matched", scaleNodeGroupCase{
@@ -113,7 +113,7 @@ var _ = Describe("scale node group config file loader", func() {
 				if params.minSize != nil {
 					Expect(ng.MinSize).To(Equal(params.minSize))
 				}
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			}
 		},
 		Entry("only specifying min-nodes", scaleNodeGroupCLICase{

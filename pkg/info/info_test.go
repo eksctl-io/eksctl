@@ -14,9 +14,9 @@ var _ = Describe("Info", func() {
 		It("returns the eksctl and kubectl versions, and the host os", func() {
 			result := GetInfo()
 
-			Expect(result.EksctlVersion).ToNot(Equal(""))
-			Expect(result.KubectlVersion).ToNot(Equal(""))
-			Expect(result.OS).ToNot(Equal(""))
+			Expect(result.EksctlVersion).NotTo(Equal(""))
+			Expect(result.KubectlVersion).NotTo(Equal(""))
+			Expect(result.OS).NotTo(Equal(""))
 
 			_, err := semver.NewVersion(strings.TrimSpace(result.EksctlVersion))
 			Expect(err).NotTo(HaveOccurred())
@@ -37,9 +37,9 @@ var _ = Describe("Info", func() {
 			err := json.Unmarshal([]byte(result), &infos)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(infos.EksctlVersion).ToNot(Equal(""))
-			Expect(infos.KubectlVersion).ToNot(Equal(""))
-			Expect(infos.OS).ToNot(Equal(""))
+			Expect(infos.EksctlVersion).NotTo(Equal(""))
+			Expect(infos.KubectlVersion).NotTo(Equal(""))
+			Expect(infos.OS).NotTo(Equal(""))
 		})
 	})
 

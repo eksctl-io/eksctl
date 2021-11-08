@@ -21,22 +21,22 @@ var _ = Describe("generate profile", func() {
 		It("should accept a name argument", func() {
 			cmd := newMockGenerateProfileCmd("profile", "--cluster", "clus-1", "--region", "eu-north-1", "app-dev")
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			cfg := cmd.Cmd.ClusterConfig
 
-			Expect(cfg.Git.BootstrapProfile).ToNot(BeNil())
+			Expect(cfg.Git.BootstrapProfile).NotTo(BeNil())
 			Expect(cfg.Git.BootstrapProfile.Source).To(Equal("app-dev"))
 		})
 
 		It("should accept --profile-source flag", func() {
 			cmd := newMockGenerateProfileCmd("profile", "--cluster", "clus-1", "--region", "eu-north-1", "--profile-source", "app-dev")
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			cfg := cmd.Cmd.ClusterConfig
 
-			Expect(cfg.Git.BootstrapProfile).ToNot(BeNil())
+			Expect(cfg.Git.BootstrapProfile).NotTo(BeNil())
 			Expect(cfg.Git.BootstrapProfile.Source).To(Equal("app-dev"))
 		})
 
@@ -78,14 +78,14 @@ var _ = Describe("generate profile", func() {
 				"--region", "us-west-2",
 			)
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			cfg := cmd.Cmd.ClusterConfig
 			Expect(cfg.Metadata.Name).To(Equal("clus-1"))
 			Expect(cfg.Metadata.Region).To(Equal("us-west-2"))
-			Expect(cfg.Git).ToNot(BeNil())
+			Expect(cfg.Git).NotTo(BeNil())
 
-			Expect(cfg.Git.BootstrapProfile).ToNot(BeNil())
+			Expect(cfg.Git.BootstrapProfile).NotTo(BeNil())
 			Expect(cfg.Git.BootstrapProfile.Source).To(Equal("app-dev"))
 			Expect(cfg.Git.BootstrapProfile.Revision).To(Equal("branch-2"))
 			Expect(cfg.Git.BootstrapProfile.OutputPath).To(Equal("test-output-dir/dir2"))
@@ -99,11 +99,11 @@ var _ = Describe("generate profile", func() {
 				"--region", "us-west-2",
 			)
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			cfg := cmd.Cmd.ClusterConfig
 
-			Expect(cfg.Git.BootstrapProfile).ToNot(BeNil())
+			Expect(cfg.Git.BootstrapProfile).NotTo(BeNil())
 			Expect(cfg.Git.BootstrapProfile.OutputPath).To(Equal("./app-dev"))
 		})
 
@@ -115,11 +115,11 @@ var _ = Describe("generate profile", func() {
 				"--region", "us-west-2",
 			)
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			cfg := cmd.Cmd.ClusterConfig
 
-			Expect(cfg.Git.BootstrapProfile).ToNot(BeNil())
+			Expect(cfg.Git.BootstrapProfile).NotTo(BeNil())
 			Expect(cfg.Git.BootstrapProfile.OutputPath).To(Equal("./eks-quickstart-app-dev"))
 		})
 
@@ -152,7 +152,7 @@ var _ = Describe("generate profile", func() {
 
 				cmd := newMockGenerateProfileCmd("profile", "-f", configFile)
 				_, err := cmd.Execute()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("fails without a cluster name", func() {
@@ -200,11 +200,11 @@ var _ = Describe("generate profile", func() {
 
 				cmd := newMockGenerateProfileCmd("profile", "-f", configFile)
 				_, err := cmd.Execute()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 
 				cfg := cmd.Cmd.ClusterConfig
 
-				Expect(cfg.Git.BootstrapProfile).ToNot(BeNil())
+				Expect(cfg.Git.BootstrapProfile).NotTo(BeNil())
 				Expect(cfg.Git.BootstrapProfile.OutputPath).To(Equal("./app-dev"))
 			})
 
@@ -214,11 +214,11 @@ var _ = Describe("generate profile", func() {
 
 				cmd := newMockGenerateProfileCmd("profile", "-f", configFile)
 				_, err := cmd.Execute()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 
 				cfg := cmd.Cmd.ClusterConfig
 
-				Expect(cfg.Git.BootstrapProfile).ToNot(BeNil())
+				Expect(cfg.Git.BootstrapProfile).NotTo(BeNil())
 				Expect(cfg.Git.BootstrapProfile.OutputPath).To(Equal("./some-repo"))
 			})
 		})

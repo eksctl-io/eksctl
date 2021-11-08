@@ -30,13 +30,13 @@ var _ = Describe("Writing manifests", func() {
 				},
 			}
 			err := connector.WriteResources(fs, manifestList)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			wd, err := os.Getwd()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			files, err := afero.ReadDir(fs, wd)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(files).To(HaveLen(3))
 
 			filenameData := map[string][]byte{}
@@ -50,7 +50,7 @@ var _ = Describe("Writing manifests", func() {
 					Fail(fmt.Sprintf("unexpected filename %q", file.Name()))
 				}
 				file, err := afero.ReadFile(fs, path.Join(wd, file.Name()))
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(file).To(Equal(data))
 			}
 		})

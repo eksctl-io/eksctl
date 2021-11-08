@@ -64,7 +64,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{ng}
 
 			data, err := json.Marshal(clusterConfig)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			cmd := params.EksctlCreateCmd.
 				WithArgs(
@@ -78,7 +78,7 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 
 			rawClient = getRawClient(clusterName)
 			serverVersion, err := rawClient.ServerVersion()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(serverVersion).To(HavePrefix(api.LatestVersion))
 
 		})
@@ -196,6 +196,6 @@ func getRawClient(clusterName string) *kubewrapper.RawClient {
 	err = ctl.RefreshClusterStatus(cfg)
 	Expect(err).ShouldNot(HaveOccurred())
 	rawClient, err := ctl.NewRawClient(cfg)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	return rawClient
 }

@@ -34,7 +34,7 @@ var _ = Describe("ssh public key", func() {
 
 			keyName, err := LoadKeyFromFile("assets/id_rsa_tests1.pub", clusterName, ngName, mockEC2)
 
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(keyName).To(Equal("eksctl-sshtestcluster-nodegroup-ng1-f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"))
 			mockEC2.AssertCalled(GinkgoT(),
 				"ImportKeyPair",
@@ -50,7 +50,7 @@ var _ = Describe("ssh public key", func() {
 
 			keyName, err := LoadKeyFromFile("assets/id_rsa_tests1.pub", clusterName, ngName, mockEC2)
 
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(keyName).To(Equal("eksctl-sshtestcluster-nodegroup-ng1-f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"))
 			mockEC2.AssertNotCalled(GinkgoT(), "ImportKeyPair", mock.Anything)
 		})
@@ -80,7 +80,7 @@ var _ = Describe("ssh public key", func() {
 
 			keyName, err := LoadKeyByContent(&key, clusterName, ngName, mockEC2)
 
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(keyName).To(Equal("eksctl-sshtestcluster-nodegroup-ng1-f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"))
 			mockEC2.AssertCalled(GinkgoT(),
 				"ImportKeyPair",
@@ -96,7 +96,7 @@ var _ = Describe("ssh public key", func() {
 
 			keyName, err := LoadKeyByContent(&key, clusterName, ngName, mockEC2)
 
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(keyName).To(Equal("eksctl-sshtestcluster-nodegroup-ng1-f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"))
 			mockEC2.AssertNotCalled(GinkgoT(), "ImportKeyPair", mock.Anything)
 		})
@@ -150,7 +150,7 @@ var _ = Describe("ssh public key", func() {
 
 			err := CheckKeyExistsInEC2(keyName, mockEC2)
 
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should fail when key does not exist", func() {

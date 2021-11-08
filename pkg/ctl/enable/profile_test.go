@@ -22,22 +22,22 @@ var _ = Describe("enable profile", func() {
 		It("should accept a name argument", func() {
 			cmd := newMockEnableProfileCmd("profile", "--cluster", "clus-1", "--region", "eu-north-1", "--git-url", "git@example.com:repo.git", "--git-email", "user@example.com", "app-dev")
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			cfg := cmd.Cmd.ClusterConfig
 
-			Expect(cfg.Git.BootstrapProfile).ToNot(BeNil())
+			Expect(cfg.Git.BootstrapProfile).NotTo(BeNil())
 			Expect(cfg.Git.BootstrapProfile.Source).To(Equal("app-dev"))
 		})
 
 		It("should accept a --profile-source flag", func() {
 			cmd := newMockEnableProfileCmd("profile", "--cluster", "clus-1", "--region", "eu-north-1", "--git-url", "git@example.com:repo.git", "--git-email", "user@example.com", "--profile-source", "app-dev")
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			cfg := cmd.Cmd.ClusterConfig
 
-			Expect(cfg.Git.BootstrapProfile).ToNot(BeNil())
+			Expect(cfg.Git.BootstrapProfile).NotTo(BeNil())
 			Expect(cfg.Git.BootstrapProfile.Source).To(Equal("app-dev"))
 		})
 
@@ -107,20 +107,20 @@ var _ = Describe("enable profile", func() {
 				"--profile-revision", "branch-2",
 			)
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			cfg := cmd.Cmd.ClusterConfig
 			Expect(cfg.Metadata.Name).To(Equal("clus-1"))
 			Expect(cfg.Metadata.Region).To(Equal("us-west-2"))
-			Expect(cfg.Git).ToNot(BeNil())
-			Expect(cfg.Git.Repo).ToNot(BeNil())
+			Expect(cfg.Git).NotTo(BeNil())
+			Expect(cfg.Git.Repo).NotTo(BeNil())
 			Expect(cfg.Git.Repo.URL).To(Equal("git@example.com:repo.git"))
 			Expect(cfg.Git.Repo.Email).To(Equal("user@example.com"))
 			Expect(cfg.Git.Repo.Branch).To(Equal("master"))
 			Expect(cfg.Git.Repo.User).To(Equal("user1"))
 			Expect(cfg.Git.Repo.PrivateSSHKeyPath).To(Equal("./profile_test.go"))
 
-			Expect(cfg.Git.BootstrapProfile).ToNot(BeNil())
+			Expect(cfg.Git.BootstrapProfile).NotTo(BeNil())
 			Expect(cfg.Git.BootstrapProfile.Source).To(Equal("app-dev"))
 			Expect(cfg.Git.BootstrapProfile.Revision).To(Equal("branch-2"))
 		})
@@ -159,7 +159,7 @@ var _ = Describe("enable profile", func() {
 
 			cmd := newMockEnableProfileCmd("profile", "-f", configFile)
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("loads the correct defaults", func() {
@@ -167,10 +167,10 @@ var _ = Describe("enable profile", func() {
 
 			cmd := newMockEnableProfileCmd("profile", "-f", configFile)
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			gitCfg := cmd.Cmd.ClusterConfig.Git
-			Expect(gitCfg).ToNot(BeNil())
+			Expect(gitCfg).NotTo(BeNil())
 			Expect(gitCfg.Repo.Branch).To(Equal("master"))
 			Expect(gitCfg.Repo.User).To(Equal("Flux"))
 			Expect(gitCfg.Repo.FluxPath).To(Equal("flux/"))
@@ -179,7 +179,7 @@ var _ = Describe("enable profile", func() {
 
 			Expect(gitCfg.Operator.Namespace).To(Equal("flux"))
 			Expect(gitCfg.Operator.Label).To(Equal("flux"))
-			Expect(gitCfg.Operator.WithHelm).ToNot(BeNil())
+			Expect(gitCfg.Operator.WithHelm).NotTo(BeNil())
 			Expect(*gitCfg.Operator.WithHelm).To(BeTrue())
 
 			Expect(gitCfg.BootstrapProfile.Revision).To(Equal(""))

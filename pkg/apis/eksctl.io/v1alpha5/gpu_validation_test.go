@@ -25,7 +25,7 @@ var _ = Describe("GPU instance support", func() {
 			Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("GPU instance types are not supported for %s", e.amiFamily))))
 			return
 		}
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 	}
 
 	DescribeTable("managed nodegroups", func(e gpuInstanceEntry) {
@@ -61,6 +61,9 @@ var _ = Describe("GPU instance support", func() {
 		Entry("AL2", gpuInstanceEntry{
 			gpuInstanceType: "g4dn.xlarge",
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
+		}),
+		Entry("AMI unset", gpuInstanceEntry{
+			gpuInstanceType: "g4dn.xlarge",
 		}),
 		Entry("Bottlerocket", gpuInstanceEntry{
 			amiFamily:            api.NodeImageFamilyBottlerocket,

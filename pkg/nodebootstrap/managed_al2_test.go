@@ -24,9 +24,9 @@ var _ = DescribeTable("Managed AL2", func(e managedEntry) {
 	bootstrapper.UserDataMimeBoundary = "//"
 
 	userData, err := bootstrapper.UserData()
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	decoded, err := base64.StdEncoding.DecodeString(userData)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	actual := strings.ReplaceAll(string(decoded), "\r\n", "\n")
 	Expect(actual).To(Equal(e.expectedUserData))
 },

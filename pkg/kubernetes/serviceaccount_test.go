@@ -34,7 +34,7 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		Expect(sa.Labels).To(BeEmpty())
 
 		js, err := json.Marshal(sa)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		expected := `{
 				"apiVersion": "v1",
@@ -52,19 +52,19 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		sa := metav1.ObjectMeta{Name: "sa-1", Namespace: "ns-1"}
 
 		err = MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		ok, err := CheckNamespaceExists(clientSet, sa.Namespace)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(ok).To(BeTrue())
 
 		ok, err = CheckServiceAccountExists(clientSet, sa)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(ok).To(BeTrue())
 
 		{
 			resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			Expect(resp.Labels).To(BeEmpty())
 			Expect(resp.Annotations).To(BeEmpty())
@@ -78,11 +78,11 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		}
 
 		err = MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		{
 			resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			Expect(resp.Labels).To(HaveKey("foo"))
 			Expect(resp.Annotations).To(HaveKeyWithValue("test", "1"))
@@ -92,11 +92,11 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		sa.Annotations["test"] = "2"
 
 		err = MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		{
 			resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			Expect(resp.Labels).To(HaveKey("foo"))
 			Expect(resp.Annotations).To(HaveKeyWithValue("test", "2"))
@@ -107,26 +107,26 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		sa := metav1.ObjectMeta{Name: "sa-2", Namespace: "ns-2"}
 
 		err = MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		ok, err := CheckServiceAccountExists(clientSet, sa)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(ok).To(BeTrue())
 
 		// should delete it
 		err = MaybeDeleteServiceAccount(clientSet, sa)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		ok, err = CheckServiceAccountExists(clientSet, sa)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(ok).To(BeFalse())
 
 		// shouldn't fail if it doesn't exist
 		err = MaybeDeleteServiceAccount(clientSet, sa)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		ok, err = CheckServiceAccountExists(clientSet, sa)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(ok).To(BeFalse())
 	})
 })

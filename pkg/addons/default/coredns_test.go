@@ -42,7 +42,7 @@ var _ = Describe("default addons - coredns", func() {
 
 		It("updates coredns to the correct version", func() {
 			_, err := da.UpdateCoreDNS(rawClient, region, controlPlaneVersion, false)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			updateReqs := []string{
 				"PUT [/namespaces/kube-system/serviceaccounts/coredns] (coredns)",
@@ -68,7 +68,7 @@ var _ = Describe("default addons - coredns", func() {
 		BeforeEach(func() {
 			createCoreDNSFromTestSample(rawClient, ct, kubernetesVersion)
 			_, err := da.UpdateCoreDNS(rawClient, region, controlPlaneVersion, false)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Context("when CoreDNS is NOT up to date", func() {
@@ -99,9 +99,9 @@ func createCoreDNSFromTestSample(rawClient *testutils.FakeRawClient, ct *testuti
 
 	for _, item := range sampleAddons {
 		rc, err := rawClient.NewRawResource(item)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		_, err = rc.CreateOrReplace(false)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 	}
 
 	createReqs := []string{
@@ -128,8 +128,8 @@ func createCoreDNSFromTestSample(rawClient *testutils.FakeRawClient, ct *testuti
 func coreDNSImage(rawClient *testutils.FakeRawClient) string {
 	coreDNS, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), da.CoreDNS, metav1.GetOptions{})
 
-	Expect(err).ToNot(HaveOccurred())
-	Expect(coreDNS).ToNot(BeNil())
+	Expect(err).NotTo(HaveOccurred())
+	Expect(coreDNS).NotTo(BeNil())
 	Expect(coreDNS.Spec.Template.Spec.Containers).To(HaveLen(1))
 
 	return coreDNS.Spec.Template.Spec.Containers[0].Image

@@ -68,7 +68,7 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 		}
 
 		data, err := json.Marshal(clusterConfig)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		cmd := params.EksctlCreateCmd.
 			WithArgs(
@@ -86,7 +86,7 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 	runWindowsPod := func() {
 		By("scheduling a Windows pod")
 		kubeTest, err := kube.NewTest(params.KubeconfigPath)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		d := kubeTest.CreateDeploymentFromFile("default", "../../data/windows-server-iis.yaml")
 		kubeTest.WaitForDeploymentReady(d, 12*time.Minute)

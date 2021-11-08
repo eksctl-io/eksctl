@@ -50,7 +50,7 @@ var _ = Describe("(Integration) [Instance Selector test]", func() {
 
 		output := session.Buffer().Contents()
 		clusterConfig, err := eks.ParseConfig(output)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(clusterConfig.ManagedNodeGroups).To(HaveLen(1))
 		if assertionFunc != nil {
 			assertionFunc(clusterConfig.ManagedNodeGroups[0].InstanceTypes)
@@ -58,7 +58,7 @@ var _ = Describe("(Integration) [Instance Selector test]", func() {
 	},
 		Entry("non-GPU instances", func(instanceTypes []string) {
 			for _, instanceType := range instanceTypes {
-				Expect(instanceType).ToNot(Satisfy(instanceutils.IsGPUInstanceType))
+				Expect(instanceType).NotTo(Satisfy(instanceutils.IsGPUInstanceType))
 			}
 		}, "--instance-selector-vcpus=8",
 			"--instance-selector-memory=32",
