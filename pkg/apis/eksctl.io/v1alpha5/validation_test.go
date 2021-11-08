@@ -748,7 +748,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				})
 			})
 
-			When("when ipv4 is configurd", func() {
+			When("when ipv4 is configured", func() {
 				It("returns an error", func() {
 					cfg.VPC.IPFamily = api.IPV4Family
 					cfg.Metadata.Version = api.LatestVersion
