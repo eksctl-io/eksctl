@@ -98,12 +98,9 @@ func main() {
 	rootCmd.SetUsageFunc(flagGrouping.Usage)
 
 	if err := rootCmd.Execute(); err != nil {
-		dumpErr := dumpLogsToDisk(logBuffer, err.Error())
-
-		if dumpErr != nil {
-			fmt.Println("Failed to dump logs to disk. Error = " + dumpErr.Error())
+		if dumpErr := dumpLogsToDisk(logBuffer, err.Error()); dumpErr != nil {
+			logger.Debug("Failed to dump logs to disk. Error = " + dumpErr.Error())
 		}
-
 		os.Exit(1)
 	}
 }

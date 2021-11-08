@@ -85,13 +85,11 @@ func initLogger(level int, colorValue string, logBuffer *bytes.Buffer) {
 }
 
 func dumpLogsToDisk(logBuffer *bytes.Buffer, errorString string) error {
-	_, err := os.Stat("logs/")
 
-	if os.IsNotExist(err) {
-		err := os.Mkdir("logs/", 0755)
+	if _, err := os.Stat("logs/"); os.IsNotExist(err) {
 
-		if err != nil {
-			return err
+		if err := os.Mkdir("logs/", 0755); err != nil {
+			return fmt.Errorf(err.Error())
 		}
 	}
 
