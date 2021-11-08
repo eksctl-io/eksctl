@@ -65,10 +65,13 @@ The default value is `IPv4`.
 
 ## Change VPC CIDR
 
-If you need to setup peering with another VPC, or simply need a larger or smaller range of IPs, you can use `--vpc-cidr` flag to
+If you need to setup peering with another VPC, or simply need a larger or smaller range of IPv4 addresses, you can use `--vpc-cidr` flag to
 change it. Please refer to [the AWS docs][vpcsizing] for guides on choosing CIDR blocks which are permitted for use in an AWS VPC.
 
 [vpcsizing]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html#VPC_Sizing
+
+If you are creating an IPv6 cluster you can also bring your own IPv6 pool by configuring `VPC.IPv6Cidr` and `VPC.IPv6Pool`.
+See [AWS docs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html) on how to import your own pool.
 
 ## Use private subnets for initial nodegroup
 

@@ -190,6 +190,10 @@ type (
 		// Valid variants are `IPFamily` constants
 		// +optional
 		IPFamily string `json:"ipFamily,omitempty"`
+		// +optional
+		IPv6Cidr string `json:"ipv6Cidr,omitempty"`
+		// +optional
+		IPv6Pool string `json:"ipv6Pool,omitempty"`
 	}
 	// ClusterNAT NAT config
 	ClusterNAT struct {
