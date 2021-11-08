@@ -731,13 +731,13 @@ var _ = Describe("ClusterConfig validation", func() {
 					cfg.VPC.IPFamily = api.IPV6Family
 					cfg.VPC.IPv6Cidr = "foo"
 					err = cfg.ValidateVPCConfig()
-					Expect(err).To(MatchError("Ipv6Cidr and Ipv6CidrPool must both be configured to use custom ipv6 CIDR pool"))
+					Expect(err).To(MatchError("Ipv6Cidr and Ipv6Pool must both be configured to use a custom IPv6 CIDR and address pool"))
 
 					cfg.VPC.IPFamily = api.IPV6Family
 					cfg.VPC.IPv6Cidr = ""
 					cfg.VPC.IPv6Pool = "bar"
 					err = cfg.ValidateVPCConfig()
-					Expect(err).To(MatchError("Ipv6Cidr and Ipv6CidrPool must both be configured to use custom ipv6 CIDR pool"))
+					Expect(err).To(MatchError("Ipv6Cidr and Ipv6Pool must both be configured to use a custom IPv6 CIDR and address pool"))
 				})
 			})
 		})
