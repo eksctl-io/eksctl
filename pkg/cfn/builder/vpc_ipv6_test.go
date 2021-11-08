@@ -3,6 +3,7 @@ package builder_test
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -10,24 +11,22 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder/fakes"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 )
 
 var _ = Describe("IPv6 VPC builder", func() {
 	var (
-		vpcTemplate *fakes.FakeTemplate
-		vpcRs       *builder.IPv6VPCResourceSet
-		cfg         *api.ClusterConfig
+		cfg *api.ClusterConfig
 	)
 
 	BeforeEach(func() {
 		cfg = api.NewClusterConfig()
 		cfg.VPC.IPFamily = api.IPV6Family
+		cfg.AvailabilityZones = []string{azA, azB}
 	})
 
 	It("creates the ipv6 VPC and its resources", func() {
-		cfg.AvailabilityZones = []string{azA, azB}
-		vpcRs = builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
-
+		vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
 		_, subnetDetails, err := vpcRs.CreateTemplate()
 		Expect(err).NotTo(HaveOccurred())
 
@@ -43,10 +42,8 @@ var _ = Describe("IPv6 VPC builder", func() {
 		Expect(privRef).To(ContainElement(makePrimitive(builder.PrivateSubnetKey + azBFormatted)))
 		Expect(privRef).To(ContainElement(makePrimitive(builder.PrivateSubnetKey + azBFormatted)))
 
-		vpcTemplate = &fakes.FakeTemplate{}
-		templateBody, err := vpcRs.RenderJSON()
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(json.Unmarshal(templateBody, vpcTemplate)).To(Succeed())
+		vpcTemplate, err := renderTemplate(vpcRs)
+		Expect(err).NotTo(HaveOccurred())
 
 		By("creating the VPC resource")
 		Expect(vpcTemplate.Resources).To(HaveKey(builder.VPCResourceKey))
@@ -254,18 +251,10 @@ var _ = Describe("IPv6 VPC builder", func() {
 			))
 
 			expectedFnIPv4CIDR := `{ "Fn::Cidr": [{ "Fn::GetAtt": ["VPC", "CidrBlock"]}, 6, 13 ]}`
-			Expect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]interface{})["Fn::Select"]).To(HaveLen(2))
-			Expect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]interface{})["Fn::Select"].([]interface{})[0].(float64)).To(Equal(cidrBlockIndex))
-			actualFnCIDR, err := json.Marshal(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]interface{})["Fn::Select"].([]interface{})[1])
-			Expect(err).NotTo(HaveOccurred())
-			Expect(actualFnCIDR).To(MatchJSON([]byte(expectedFnIPv4CIDR)))
+			assertCidrBlockCreatedWithSelect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock, expectedFnIPv4CIDR, cidrBlockIndex)
 
 			expectedFnIPv6CIDR := `{ "Fn::Cidr": [{ "Fn::Select": [ 0, { "Fn::GetAtt": ["VPC", "Ipv6CidrBlocks"] }]}, 6, 64 ]}`
-			Expect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock["Fn::Select"]).To(HaveLen(2))
-			Expect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock["Fn::Select"][0].(float64)).To(Equal(cidrBlockIndex))
-			actualFnIPv6CIDR, err := json.Marshal(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock["Fn::Select"][1])
-			Expect(err).NotTo(HaveOccurred())
-			Expect(actualFnIPv6CIDR).To(MatchJSON([]byte(expectedFnIPv6CIDR)))
+			assertCidrBlockCreatedWithSelect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock, expectedFnIPv6CIDR, cidrBlockIndex)
 		}
 		assertSubnetSet(azA, builder.PublicSubnetKey+azAFormatted, "kubernetes.io/role/elb", float64(0), true)
 		Expect(vpcTemplate.Resources[builder.PublicSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(BeNil())
@@ -343,33 +332,22 @@ var _ = Describe("IPv6 VPC builder", func() {
 	})
 
 	Context("when there are 3 AZs", func() {
-		It("scales the CIDR blocks accordingly", func() {
+		BeforeEach(func() {
 			cfg.AvailabilityZones = []string{azA, azB, azC}
-			vpcRs = builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
+		})
 
-			_, _, err := vpcRs.CreateTemplate()
+		It("scales the CIDR blocks accordingly", func() {
+			vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
+			vpcTemplate, err := createAndRenderTemplate(vpcRs)
 			Expect(err).NotTo(HaveOccurred())
-
-			vpcTemplate = &fakes.FakeTemplate{}
-			templateBody, err := vpcRs.RenderJSON()
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(json.Unmarshal(templateBody, vpcTemplate)).To(Succeed())
 
 			assertSubnetSet := func(az, subnetKey string, cidrBlockIndex float64) {
 				Expect(vpcTemplate.Resources).To(HaveKey(subnetKey))
 				expectedFnIPv4CIDR := `{ "Fn::Cidr": [{ "Fn::GetAtt": ["VPC", "CidrBlock"]}, 8, 13 ]}`
-				Expect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]interface{})["Fn::Select"]).To(HaveLen(2))
-				Expect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]interface{})["Fn::Select"].([]interface{})[0].(float64)).To(Equal(cidrBlockIndex))
-				actualFnCIDR, err := json.Marshal(vpcTemplate.Resources[subnetKey].Properties.CidrBlock.(map[string]interface{})["Fn::Select"].([]interface{})[1])
-				Expect(err).NotTo(HaveOccurred())
-				Expect(actualFnCIDR).To(MatchJSON([]byte(expectedFnIPv4CIDR)))
+				assertCidrBlockCreatedWithSelect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock, expectedFnIPv4CIDR, cidrBlockIndex)
 
 				expectedFnIPv6CIDR := `{ "Fn::Cidr": [{ "Fn::Select": [ 0, { "Fn::GetAtt": ["VPC", "Ipv6CidrBlocks"] }]}, 8, 64 ]}`
-				Expect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock["Fn::Select"]).To(HaveLen(2))
-				Expect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock["Fn::Select"][0].(float64)).To(Equal(cidrBlockIndex))
-				actualFnIPv6CIDR, err := json.Marshal(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock["Fn::Select"][1])
-				Expect(err).NotTo(HaveOccurred())
-				Expect(actualFnIPv6CIDR).To(MatchJSON([]byte(expectedFnIPv6CIDR)))
+				assertCidrBlockCreatedWithSelect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock, expectedFnIPv6CIDR, cidrBlockIndex)
 			}
 			assertSubnetSet(azA, builder.PublicSubnetKey+azAFormatted, float64(0))
 			assertSubnetSet(azB, builder.PublicSubnetKey+azBFormatted, float64(1))
@@ -381,4 +359,87 @@ var _ = Describe("IPv6 VPC builder", func() {
 
 		})
 	})
+
+	When("a user provides a custom ipv6 block", func() {
+		BeforeEach(func() {
+			cfg.VPC.IPv6Cidr = "my-cidr"
+			cfg.VPC.IPv6Pool = "my-cidr-pool"
+		})
+
+		It("creates the IPv6CidrBlock resource with the users ipv6 pool", func() {
+			vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
+			vpcTemplate, err := createAndRenderTemplate(vpcRs)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("creating the IPv6 CIDR")
+			Expect(vpcTemplate.Resources).To(HaveKey(builder.IPv6CIDRBlockKey))
+			Expect(vpcTemplate.Resources[builder.IPv6CIDRBlockKey].Type).To(Equal("AWS::EC2::VPCCidrBlock"))
+			Expect(vpcTemplate.Resources[builder.IPv6CIDRBlockKey].Properties).To(Equal(fakes.Properties{
+				Ipv6CidrBlock: "my-cidr",
+				Ipv6Pool:      "my-cidr-pool",
+				VpcID:         map[string]interface{}{"Ref": "VPC"},
+			}))
+		})
+	})
+
+	When("a user provides a custom ipv4 cidr", func() {
+		var customCidr = &ipnet.IPNet{
+			IPNet: net.IPNet{
+				IP:   []byte{192, 168, 1, 1},
+				Mask: []byte{255, 255, 0, 0},
+			},
+		}
+
+		BeforeEach(func() {
+			cfg.VPC.CIDR = customCidr
+		})
+
+		It("creates the VPC resource with the users provided ipv4 cidr", func() {
+			vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
+			vpcTemplate, err := createAndRenderTemplate(vpcRs)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(vpcTemplate.Resources).To(HaveKey(builder.VPCResourceKey))
+			Expect(vpcTemplate.Resources[builder.VPCResourceKey].Type).To(Equal("AWS::EC2::VPC"))
+			Expect(vpcTemplate.Resources[builder.VPCResourceKey].Properties).To(Equal(fakes.Properties{
+				CidrBlock:          customCidr.String(),
+				EnableDNSHostnames: true,
+				EnableDNSSupport:   true,
+				Tags: []fakes.Tag{
+					{
+						Key:   "Name",
+						Value: map[string]interface{}{"Fn::Sub": "${AWS::StackName}/VPC"},
+					},
+				},
+			}))
+		})
+	})
 })
+
+func createAndRenderTemplate(vpcRs *builder.IPv6VPCResourceSet) (*fakes.FakeTemplate, error) {
+	_, _, err := vpcRs.CreateTemplate()
+	if err != nil {
+		return nil, err
+	}
+	return renderTemplate(vpcRs)
+}
+
+func renderTemplate(vpcRs *builder.IPv6VPCResourceSet) (*fakes.FakeTemplate, error) {
+	vpcTemplate := &fakes.FakeTemplate{}
+	templateBody, err := vpcRs.RenderJSON()
+	if err != nil {
+		return nil, err
+	}
+	ExpectWithOffset(1, json.Unmarshal(templateBody, vpcTemplate)).To(Succeed())
+	return vpcTemplate, nil
+}
+
+func assertCidrBlockCreatedWithSelect(cidrBlock interface{}, expectedFnCIDR string, cidrBlockIndex float64) {
+	ExpectWithOffset(1, cidrBlock.(map[string]interface{})).To(HaveKey("Fn::Select"))
+	fnSelectValue := cidrBlock.(map[string]interface{})["Fn::Select"].([]interface{})
+	ExpectWithOffset(1, fnSelectValue).To(HaveLen(2))
+	ExpectWithOffset(1, fnSelectValue[0].(float64)).To(Equal(cidrBlockIndex))
+	actualFnCIDR, err := json.Marshal(fnSelectValue[1])
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	ExpectWithOffset(1, actualFnCIDR).To(MatchJSON([]byte(expectedFnCIDR)))
+}

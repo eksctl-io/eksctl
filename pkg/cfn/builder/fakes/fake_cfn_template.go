@@ -67,7 +67,8 @@ type Properties struct {
 	MapPublicIPOnLaunch                                     bool
 	AssignIpv6AddressOnCreation                             *bool
 
-	Ipv6CidrBlock           map[string][]interface{}
+	Ipv6CidrBlock           interface{}
+	Ipv6Pool                string
 	CidrBlock               interface{}
 	KubernetesNetworkConfig KubernetesNetworkConfig
 

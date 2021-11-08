@@ -584,6 +584,12 @@
             "IPv6"
           ]
         },
+        "ipv6Cidr": {
+          "type": "string"
+        },
+        "ipv6Pool": {
+          "type": "string"
+        },
         "manageSharedNodeSecurityGroupRules": {
           "type": "boolean",
           "description": "Automatically add security group rules to and from the default cluster security group and the shared node security group. This allows unmanaged nodes to communicate with the control plane and managed nodes. This option cannot be disabled when using eksctl created security groups.",
@@ -621,6 +627,8 @@
         "id",
         "cidr",
         "ipFamily",
+        "ipv6Cidr",
+        "ipv6Pool",
         "securityGroup",
         "subnets",
         "extraCIDRs",
