@@ -46,7 +46,13 @@ var _ = Describe("StackCollection", func() {
 			p.MockCloudFormation().On("DescribeChangeSet", mock.Anything).Return(describeChangeSetNoChange, nil)
 
 			sm := NewStackCollection(p, api.NewClusterConfig())
-			err := sm.UpdateStack(stackName, changeSetName, "description", TemplateBody(""), nil)
+			err := sm.UpdateStack(UpdateStackOptions{
+				StackName:     stackName,
+				ChangeSetName: changeSetName,
+				Description:   "description",
+				TemplateData:  TemplateBody(""),
+				Wait:          true,
+			})
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
@@ -105,7 +111,13 @@ var _ = Describe("StackCollection", func() {
 		spec.Metadata.Name = clusterName
 		spec.Metadata.Tags = map[string]string{"meta": "data"}
 		sm := NewStackCollection(p, spec)
-		err := sm.UpdateStack(stackName, changeSetName, "description", TemplateBody(""), nil)
+		err := sm.UpdateStack(UpdateStackOptions{
+			StackName:     stackName,
+			ChangeSetName: changeSetName,
+			Description:   "description",
+			TemplateData:  TemplateBody(""),
+			Wait:          true,
+		})
 		Expect(err).ToNot(HaveOccurred())
 
 		// Second is CreateChangeSet() call which we are interested in
@@ -117,5 +129,65 @@ var _ = Describe("StackCollection", func() {
 		Expect(createChangeSetInput.Tags).To(ContainElement(&cfn.Tag{Key: aws.String(api.ClusterNameTag), Value: &clusterName}))
 		// Metadata tag
 		Expect(createChangeSetInput.Tags).To(ContainElement(&cfn.Tag{Key: aws.String("meta"), Value: aws.String("data")}))
+	})
+	When("wait is set to false", func() {
+		It("will skip the last wait sequence", func() {
+			clusterName := "cluster"
+			stackName := "eksctl-stack"
+			changeSetName := "eksctl-changeset"
+			describeInput := &cfn.DescribeStacksInput{StackName: &stackName}
+			existingTag := &cfn.Tag{
+				Key:   aws.String("existing"),
+				Value: aws.String("tag"),
+			}
+			describeOutput := &cfn.DescribeStacksOutput{Stacks: []*cfn.Stack{{
+				StackName:   &stackName,
+				StackStatus: aws.String(cfn.StackStatusCreateComplete),
+				Tags:        []*cfn.Tag{existingTag},
+			}}}
+			describeChangeSetCreateCompleteOutput := &cfn.DescribeChangeSetOutput{
+				StackName:     &stackName,
+				ChangeSetName: &changeSetName,
+				Status:        aws.String(cfn.ChangeSetStatusCreateComplete),
+			}
+			executeChangeSetInput := &cfn.ExecuteChangeSetInput{
+				ChangeSetName: &changeSetName,
+				StackName:     &stackName,
+			}
+
+			p := mockprovider.NewMockProvider()
+			p.MockCloudFormation().On("DescribeStacks", describeInput).Return(describeOutput, nil)
+			p.MockCloudFormation().On("CreateChangeSet", mock.Anything).Return(nil, nil)
+			req := awstesting.NewClient(nil).NewRequest(&request.Operation{Name: "Operation"}, nil, describeChangeSetCreateCompleteOutput)
+			p.MockCloudFormation().On("DescribeChangeSetRequest", mock.Anything).Return(req, describeChangeSetCreateCompleteOutput)
+			p.MockCloudFormation().On("DescribeChangeSet", mock.Anything).Return(describeChangeSetCreateCompleteOutput, nil)
+			p.MockCloudFormation().On("ExecuteChangeSet", executeChangeSetInput).Return(nil, nil)
+			// For the future, this is the call we do not expect to happen, and this is the difference compared to the
+			// above test case.
+			// p.MockCloudFormation().On("DescribeStacksRequest", mock.Anything).Return(req, describeStacksUpdateCompleteOutput)
+
+			spec := api.NewClusterConfig()
+			spec.Metadata.Name = clusterName
+			spec.Metadata.Tags = map[string]string{"meta": "data"}
+			sm := NewStackCollection(p, spec)
+			err := sm.UpdateStack(UpdateStackOptions{
+				StackName:     stackName,
+				ChangeSetName: changeSetName,
+				Description:   "description",
+				TemplateData:  TemplateBody(""),
+				Wait:          false,
+			})
+			Expect(err).ToNot(HaveOccurred())
+
+			// Second is CreateChangeSet() call which we are interested in
+			args := p.MockCloudFormation().Calls[1].Arguments.Get(0)
+			createChangeSetInput := args.(*cfn.CreateChangeSetInput)
+			// Existing tag
+			Expect(createChangeSetInput.Tags).To(ContainElement(existingTag))
+			// Auto-populated tag
+			Expect(createChangeSetInput.Tags).To(ContainElement(&cfn.Tag{Key: aws.String(api.ClusterNameTag), Value: &clusterName}))
+			// Metadata tag
+			Expect(createChangeSetInput.Tags).To(ContainElement(&cfn.Tag{Key: aws.String("meta"), Value: aws.String("data")}))
+		})
 	})
 })

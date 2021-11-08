@@ -19,17 +19,19 @@ import (
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
-	"github.com/weaveworks/eksctl/pkg/version"
 	"github.com/weaveworks/goformation/v4/cloudformation"
+
+	"github.com/weaveworks/eksctl/pkg/version"
+
+	"github.com/weaveworks/goformation/v4"
+	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
+	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/goformation/v4"
-	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
-	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 // A Service provides methods for managing managed nodegroups
@@ -60,6 +62,8 @@ type UpgradeOptions struct {
 	ForceUpgrade bool
 	// ReleaseVersion AMI version of the EKS optimized AMI to use
 	ReleaseVersion string
+	// Wait for the upgrade to finish
+	Wait bool
 }
 
 // TODO use goformation types
@@ -135,7 +139,7 @@ func (m *Service) UpdateLabels(nodeGroupName string, labelsToAdd map[string]stri
 		return err
 	}
 
-	return m.stackCollection.UpdateNodeGroupStack(nodeGroupName, template)
+	return m.stackCollection.UpdateNodeGroupStack(nodeGroupName, template, true)
 }
 
 // GetLabels fetches the labels for a nodegroup
@@ -185,12 +189,12 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 		return errors.New("unexpected error: failed to find nodegroup resource in nodegroup stack")
 	}
 
-	updateStack := func(stack *cloudformation.Template) error {
+	updateStack := func(stack *cloudformation.Template, wait bool) error {
 		bytes, err := stack.JSON()
 		if err != nil {
 			return err
 		}
-		if err := m.stackCollection.UpdateNodeGroupStack(options.NodegroupName, string(bytes)); err != nil {
+		if err := m.stackCollection.UpdateNodeGroupStack(options.NodegroupName, string(bytes), true); err != nil {
 			return errors.Wrap(err, "error updating nodegroup stack")
 		}
 		return nil
@@ -202,7 +206,8 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 	}
 	if requiresUpdate {
 		logger.Info("updating nodegroup stack to a newer format before upgrading nodegroup version")
-		if err := updateStack(stack); err != nil {
+		// always wait for the main stack update
+		if err := updateStack(stack, true); err != nil {
 			return err
 		}
 	}
@@ -268,7 +273,7 @@ func (m *Service) UpgradeNodeGroup(options UpgradeOptions) error {
 	ngResource.ForceUpdateEnabled = gfnt.NewBoolean(options.ForceUpgrade)
 
 	logger.Info("upgrading nodegroup version")
-	if err := updateStack(stack); err != nil {
+	if err := updateStack(stack, options.Wait); err != nil {
 		return err
 	}
 	logger.Info("nodegroup successfully upgraded")

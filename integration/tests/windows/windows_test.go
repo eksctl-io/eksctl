@@ -54,7 +54,7 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 			},
 			{
 				NodeGroupBase: &api.NodeGroupBase{
-					Name:      "windows",
+					Name:      "windows20h2",
 					AMIFamily: api.NodeImageFamilyWindowsServer20H2CoreContainer,
 				},
 			},
@@ -97,8 +97,8 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 			createCluster(withOIDC)
 			runWindowsPod()
 		},
-			Entry("when withOIDC is disabled", false),
-			Entry("when withOIDC is enabled", true),
+			PEntry("when withOIDC is disabled", false),
+			PEntry("when withOIDC is enabled", true),
 		)
 	})
 
