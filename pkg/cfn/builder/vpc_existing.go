@@ -91,8 +91,7 @@ func (v *ExistingVPCResourceSet) importExistingResources() error {
 }
 
 func makeSubnetResources(subnets map[string]api.AZSubnetSpec, subnetRoutes map[string]string) ([]SubnetResource, error) {
-	subnetResources := make([]SubnetResource, len(subnets))
-	i := 0
+	var subnetResources []SubnetResource
 	for _, network := range subnets {
 		az := network.AZ
 		sr := SubnetResource{
@@ -108,8 +107,7 @@ func makeSubnetResources(subnets map[string]api.AZSubnetSpec, subnetRoutes map[s
 			}
 			sr.RouteTable = gfnt.NewString(rt)
 		}
-		subnetResources[i] = sr
-		i++
+		subnetResources = append(subnetResources, sr)
 	}
 	return subnetResources, nil
 }
