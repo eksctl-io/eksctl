@@ -74,7 +74,7 @@ var _ = Describe("Kubeconfig", func() {
 		tempDir, _ := os.MkdirTemp("", "")
 		filename, err := kubeconfig.Write(path.Join(tempDir, "nonexistentdir", "kubeconfig"), testConfig, false)
 		Expect(err).To(BeNil())
-		Expect(filename).ToNot(BeEmpty())
+		Expect(filename).NotTo(BeEmpty())
 	})
 
 	It("sets new Kubeconfig context", func() {

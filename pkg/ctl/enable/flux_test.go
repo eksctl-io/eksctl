@@ -79,10 +79,10 @@ var _ = Describe("enable flux", func() {
 		})
 
 		It("succeeds with the basic configuration", func() {
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			fluxCfg := cmd.Cmd.ClusterConfig.GitOps.Flux
-			Expect(fluxCfg).ToNot(BeNil())
+			Expect(fluxCfg).NotTo(BeNil())
 			Expect(fluxCfg.GitProvider).To(Equal("github"))
 		})
 

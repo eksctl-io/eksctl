@@ -83,7 +83,7 @@ var _ = Describe("EKS Connector", func() {
 		}
 
 		manifestTemplate, err := cc.getManifestTemplate()
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		c := connector.EKSConnector{
 			Provider:         mockProvider,
@@ -97,11 +97,11 @@ var _ = Describe("EKS Connector", func() {
 			return
 		}
 
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		assertManifestEquals := func(m connector.ManifestFile, expectedFile string) {
 			expected, err := os.ReadFile(path.Join("testdata", expectedFile))
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(m.Data).To(Equal(expected), m.Filename)
 		}
 

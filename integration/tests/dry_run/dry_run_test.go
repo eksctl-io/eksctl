@@ -150,9 +150,9 @@ vpc:
 var _ = Describe("(Integration) [Dry-Run test]", func() {
 	parseOutput := func(output []byte) (*api.ClusterConfig, *api.ClusterConfig) {
 		actual, err := eks.ParseConfig(output)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		defaultConfig, err := eks.ParseConfig([]byte(fmt.Sprintf(defaultClusterConfig, params.ClusterName)))
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		return actual, defaultConfig
 	}
 
@@ -206,7 +206,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			c.ManagedNodeGroups = nil
 			c.NodeGroups = nil
 			cidr, err := ipnet.ParseCIDR("192.168.0.0/24")
-			ExpectWithOffset(1, err).ToNot(HaveOccurred(), "unexpected error parsing CIDR")
+			ExpectWithOffset(1, err).NotTo(HaveOccurred(), "unexpected error parsing CIDR")
 			c.VPC.CIDR = cidr
 			c.VPC.NAT.Gateway = aws.String("HighlyAvailable")
 			c.IAM.WithOIDC = aws.Bool(true)
@@ -220,7 +220,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 
 		// TODO consider using a custom matcher
 		session := cmd.Run()
-		Expect(session.ExitCode()).ToNot(Equal(0))
+		Expect(session.ExitCode()).NotTo(Equal(0))
 		output := string(session.Err.Contents())
 		Expect(output).To(ContainSubstring(fmt.Sprintf("cannot use %s with --dry-run", strings.Split(flag, "=")[0])))
 
@@ -258,7 +258,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 	}, Entry("instance selector options with unmanaged nodegroup", func(actual, expected *api.ClusterConfig) {
 		// This does not do an exact match because instance types matching the instance selector criteria may
 		// change over time as EC2 adds more instance types
-		Expect(actual.NodeGroups[0].InstancesDistribution.InstanceTypes).ToNot(BeEmpty())
+		Expect(actual.NodeGroups[0].InstancesDistribution.InstanceTypes).NotTo(BeEmpty())
 		actual.NodeGroups[0].InstancesDistribution.InstanceTypes = nil
 
 		expected.ManagedNodeGroups = nil
@@ -275,7 +275,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 	}, "--managed=false", "--instance-selector-vcpus=2", "--instance-selector-memory=4"),
 
 		Entry("instance selector options with managed nodegroup", func(actual, expected *api.ClusterConfig) {
-			Expect(actual.ManagedNodeGroups[0].InstanceTypes).ToNot(BeEmpty())
+			Expect(actual.ManagedNodeGroups[0].InstanceTypes).NotTo(BeEmpty())
 			actual.ManagedNodeGroups[0].InstanceTypes = nil
 
 			expected.NodeGroups = nil
@@ -355,7 +355,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 
 				ng := c.ManagedNodeGroups[0]
 				actualNG := actual.ManagedNodeGroups[0]
-				Expect(actualNG.InstanceTypes).ToNot(BeEmpty())
+				Expect(actualNG.InstanceTypes).NotTo(BeEmpty())
 				actualNG.InstanceTypes = nil
 				ng.InstanceType = ""
 				ng.InstanceSelector = &api.InstanceSelector{

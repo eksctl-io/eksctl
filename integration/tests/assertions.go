@@ -30,6 +30,6 @@ func ListNodes(clientset kubernetes.Interface, nodeGroupName string) *corev1.Nod
 	nodeList, err := clientset.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{
 		LabelSelector: fmt.Sprintf("%s=%s", api.NodeGroupNameLabel, nodeGroupName),
 	})
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	return nodeList
 }

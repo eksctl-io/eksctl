@@ -143,7 +143,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 
 			if m.expectedErr != "" {
 				session := cmd.Run()
-				Expect(session.ExitCode()).ToNot(Equal(0))
+				Expect(session.ExitCode()).NotTo(Equal(0))
 				output := session.Err.Contents()
 				Expect(string(output)).To(ContainSubstring(m.expectedErr))
 				return
@@ -199,7 +199,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 		BeforeEach(func() {
 			var err error
 			kubeTest, err = kube.NewTest(params.KubeconfigPath)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		AfterEach(func() {
@@ -225,7 +225,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			nodeList := kubeTest.ListNodes(metav1.ListOptions{
 				LabelSelector: fmt.Sprintf("%s=%s", "eks.amazonaws.com/nodegroup", ng.Name),
 			})
-			Expect(nodeList.Items).ToNot(BeEmpty())
+			Expect(nodeList.Items).NotTo(BeEmpty())
 			for _, node := range nodeList.Items {
 				Expect(node.Status.NodeInfo.OSImage).To(ContainSubstring("Bottlerocket"))
 			}
@@ -477,13 +477,13 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				}
 				By(fmt.Sprintf("checking that control plane is updated to %v", nextVersion))
 				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 
 				clientset, err := kubernetes.NewForConfig(config)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Eventually(func() string {
 					serverVersion, err := clientset.ServerVersion()
-					Expect(err).ToNot(HaveOccurred())
+					Expect(err).NotTo(HaveOccurred())
 					return fmt.Sprintf("%s.%s", serverVersion.Major, strings.TrimSuffix(serverVersion.Minor, "+"))
 				}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal(nextVersion))
 
@@ -538,9 +538,9 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				Expect(cmd).To(RunSuccessfully())
 
 				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				clientset, err := kubernetes.NewForConfig(config)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 
 				mapTaints := func(taints []api.NodeGroupTaint) []corev1.Taint {
 					var ret []corev1.Taint

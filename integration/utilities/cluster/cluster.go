@@ -14,19 +14,19 @@ import (
 
 func Reader(clusterConfig *v1alpha5.ClusterConfig) io.Reader {
 	data, err := json.Marshal(clusterConfig)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	return bytes.NewReader(data)
 }
 
 func ReaderFromFile(clusterName, region, filename string) io.Reader {
 	data, err := os.ReadFile(filename)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	clusterConfig, err := eks.ParseConfig(data)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	clusterConfig.Metadata.Name = clusterName
 	clusterConfig.Metadata.Region = region
 
 	data, err = json.Marshal(clusterConfig)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	return bytes.NewReader(data)
 }

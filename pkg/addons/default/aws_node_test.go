@@ -29,15 +29,15 @@ var _ = Describe("default addons - aws-node", func() {
 
 			for _, item := range sampleAddons {
 				rc, err := rawClient.NewRawResource(item)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				_, err = rc.CreateOrReplace(false)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			}
 
 			ct = rawClient.Collection
 
 			Expect(ct.Updated()).To(BeEmpty())
-			Expect(ct.Created()).ToNot(BeEmpty())
+			Expect(ct.Created()).NotTo(BeEmpty())
 			Expect(ct.CreatedItems()).To(HaveLen(10))
 		}
 		It("reports that 1.15 sample needs an update", func() {
@@ -45,7 +45,7 @@ var _ = Describe("default addons - aws-node", func() {
 			rawClient.AssumeObjectsMissing = false
 
 			needsUpdate, err := DoesAWSNodeSupportMultiArch(rawClient, "eu-west-1")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeFalse())
 		})
 		It("reports that sample with 1.6.3-eksbuild.1 doesn't need an update", func() {
@@ -53,7 +53,7 @@ var _ = Describe("default addons - aws-node", func() {
 			rawClient.AssumeObjectsMissing = false
 
 			needsUpdate, err := DoesAWSNodeSupportMultiArch(rawClient, "eu-west-1")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeTrue())
 		})
 		It("reports that sample with 1.7.6 doesn't need an update", func() {
@@ -61,7 +61,7 @@ var _ = Describe("default addons - aws-node", func() {
 			rawClient.AssumeObjectsMissing = false
 
 			needsUpdate, err := DoesAWSNodeSupportMultiArch(rawClient, "eu-west-1")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeTrue())
 		})
 	})
@@ -81,15 +81,15 @@ var _ = Describe("default addons - aws-node", func() {
 
 			for _, item := range sampleAddons {
 				rc, err := rawClient.NewRawResource(item)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				_, err = rc.CreateOrReplace(false)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			}
 
 			ct = rawClient.Collection
 
 			Expect(ct.Updated()).To(BeEmpty())
-			Expect(ct.Created()).ToNot(BeEmpty())
+			Expect(ct.Created()).NotTo(BeEmpty())
 			Expect(ct.CreatedItems()).To(HaveLen(10))
 		})
 
@@ -97,7 +97,7 @@ var _ = Describe("default addons - aws-node", func() {
 			rawClient.ClientSetUseUpdatedObjects = false // must be set for initial verification, and for subsequent UpdateAWSNode
 
 			awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
 				Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/amazon-k8s-cni:v1.5.7"),
@@ -109,11 +109,11 @@ var _ = Describe("default addons - aws-node", func() {
 			rawClient.AssumeObjectsMissing = false
 
 			preUpdateAwsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			_, err = UpdateAWSNode(rawClient, "eu-west-1", false)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(rawClient.Collection.UpdatedItems()).To(HaveLen(3))
-			Expect(rawClient.Collection.UpdatedItems()).ToNot(ContainElement(PointTo(MatchFields(IgnoreMissing|IgnoreExtras, Fields{
+			Expect(rawClient.Collection.UpdatedItems()).NotTo(ContainElement(PointTo(MatchFields(IgnoreMissing|IgnoreExtras, Fields{
 				"TypeMeta": MatchFields(IgnoreMissing|IgnoreExtras, Fields{"Kind": Equal("ServiceAccount")}),
 			}))))
 			Expect(rawClient.Collection.CreatedItems()).To(HaveLen(10))
@@ -121,9 +121,9 @@ var _ = Describe("default addons - aws-node", func() {
 			rawClient.ClientSetUseUpdatedObjects = true // for verification of updated objects
 
 			awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
-			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).ToNot(
+			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).NotTo(
 				Equal(preUpdateAwsNode.Spec.Template.Spec.Containers[0].Image),
 			)
 			Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
@@ -137,16 +137,16 @@ var _ = Describe("default addons - aws-node", func() {
 			rawClient.ClientSetUseUpdatedObjects = false // must be set for subsequent UpdateAWSNode
 
 			preUpdateAwsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			_, err = UpdateAWSNode(rawClient, "us-east-1", false)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			rawClient.ClientSetUseUpdatedObjects = true // for verification of updated objects
 
 			awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
-			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).ToNot(
+			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).NotTo(
 				Equal(preUpdateAwsNode.Spec.Template.Spec.Containers[0].Image),
 			)
 			Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
@@ -159,16 +159,16 @@ var _ = Describe("default addons - aws-node", func() {
 			rawClient.ClientSetUseUpdatedObjects = false // must be set for subsequent UpdateAWSNode
 
 			preUpdateAwsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			_, err = UpdateAWSNode(rawClient, "cn-northwest-1", false)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			rawClient.ClientSetUseUpdatedObjects = true // for verification of updated objects
 
 			awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
-			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).ToNot(
+			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).NotTo(
 				Equal(preUpdateAwsNode.Spec.Template.Spec.Containers[0].Image),
 			)
 			Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
@@ -180,7 +180,7 @@ var _ = Describe("default addons - aws-node", func() {
 		It("detects matching image version when determining plan", func() {
 			// updating from latest to latest needs no updating
 			needsUpdate, err := UpdateAWSNode(rawClient, "eu-west-2", true)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeFalse())
 		})
 	})

@@ -33,7 +33,7 @@ var _ = Describe("AMI Release Version", func() {
 			Expect(err.Error()).To(ContainSubstring(vc.errMsg))
 			return
 		}
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(cmp).To(Equal(vc.cmp))
 	},
 		Entry("Equal", versionCase{

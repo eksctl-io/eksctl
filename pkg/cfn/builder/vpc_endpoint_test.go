@@ -62,7 +62,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			return
 		}
 
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		if vc.clusterConfig.PrivateCluster.Enabled {
 			vpcEndpointResourceSet := NewVPCEndpointResourceSet(provider.EC2(), provider.Region(), rs, vc.clusterConfig, vpcResource.VPC, vpcResource.SubnetDetails.Private, gfnt.NewString("sg-test"))
 			Expect(vpcEndpointResourceSet.AddResources()).To(Succeed())
@@ -78,10 +78,10 @@ var _ = Describe("VPC Endpoint Builder", func() {
 		}
 
 		resourceJSON, err := rs.template.JSON()
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		expectedJSON, err := os.ReadFile("testdata/" + vc.expectedFile)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(resourceJSON).To(MatchJSON(expectedJSON))
 	},
 		Entry("Standard cluster", vpcResourceSetCase{

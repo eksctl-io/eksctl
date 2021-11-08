@@ -709,7 +709,7 @@ var _ = Describe("VPC", func() {
 			if e.error != nil {
 				Expect(err).To(MatchError(e.error.Error()))
 			} else {
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(*e.cfg.VPC.Subnets).To(Equal(e.expected))
 			}
 		},
@@ -923,7 +923,7 @@ var _ = Describe("VPC", func() {
 	DescribeTable("select subnets",
 		func(e selectSubnetsCase) {
 			ids, err := SelectNodeGroupSubnets(e.nodegroupAZs, e.nodegroupSubnets, e.subnets, nil, "")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(ids).To(ConsistOf(e.expectIDs))
 		},
 		Entry("one subnet", selectSubnetsCase{
@@ -999,7 +999,7 @@ var _ = Describe("VPC", func() {
 					},
 				}, nil)
 				ids, err := SelectNodeGroupSubnets([]string{az}, []string{subnetID}, api.AZSubnetMappingFromMap(azMap), mockEC2, vpcID)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(ids).To(ConsistOf("id-1", "id-2", subnetID))
 			})
 		})

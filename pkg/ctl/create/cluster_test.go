@@ -39,7 +39,7 @@ var _ = Describe("create cluster", func() {
 					})
 				})
 				_, err := cmd.execute()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(count).To(Equal(1))
 			},
 			Entry("without cluster name", ""),

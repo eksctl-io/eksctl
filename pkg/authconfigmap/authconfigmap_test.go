@@ -97,7 +97,7 @@ func makeExpectedAccounts(accounts ...string) string {
 
 func mustIdentity(arn string, username string, groups []string) iam.Identity {
 	id, err := iam.NewIdentity(arn, username, groups)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	return id
 }
 
@@ -404,7 +404,7 @@ var _ = Describe("AuthConfigMap{}", func() {
 			cm := addAndSave(accountA)
 			Expect(cm.Data["mapAccounts"]).To(MatchYAML(makeExpectedAccounts(accountA)))
 			identities, err := acm.GetIdentities()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(identities).To(ContainElement(iam.AccountIdentity{KubernetesAccount: accountA}))
 		})
 		When("the list of identities can consist of different identities", func() {
@@ -416,7 +416,7 @@ var _ = Describe("AuthConfigMap{}", func() {
 				err = acm.AddIdentity(mustIdentity(roleA, RoleNodeGroupUsername, RoleNodeGroupGroups))
 				Expect(err).NotTo(HaveOccurred())
 				identities, err := acm.GetIdentities()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(identities).To(ConsistOf(
 					iam.AccountIdentity{KubernetesAccount: accountA},
 					iam.UserIdentity{

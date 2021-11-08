@@ -47,7 +47,7 @@ var _ = Describe("filecache", func() {
 		)
 		BeforeEach(func() {
 			tmp, err = os.MkdirTemp("", "filecache")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			_ = os.Setenv(EksctlCacheFilenameEnvName, filepath.Join(tmp, "credentials.yaml"))
 		})
 		AfterEach(func() {
@@ -67,15 +67,15 @@ var _ = Describe("filecache", func() {
 			fakeClock := &fakes.FakeClock{}
 			fakeClock.NowReturns(time.Date(1981, 1, 1, 1, 1, 1, 1, time.UTC))
 			p, err := NewFileCacheProvider("profile", c, fakeClock)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			value, err := p.Retrieve()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(value.AccessKeyID).To(Equal("id"))
 			Expect(value.SecretAccessKey).To(Equal("secret"))
 			Expect(value.SessionToken).To(Equal("token"))
 			Expect(p.IsExpired()).NotTo(BeTrue())
 			content, err := os.ReadFile(filepath.Join(tmp, "credentials.yaml"))
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(string(content)).To(Equal(`profiles:
   profile:
     credential:
@@ -101,7 +101,7 @@ var _ = Describe("filecache", func() {
 				fakeClock := &fakes.FakeClock{}
 				fakeClock.NowReturns(time.Date(9999, 1, 1, 1, 1, 1, 1, time.UTC))
 				p, err := NewFileCacheProvider("profile", c, fakeClock)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(p.IsExpired()).To(BeTrue())
 			})
 		})
@@ -117,13 +117,13 @@ var _ = Describe("filecache", func() {
     expiration: 0001-01-01T00:00:00Z
 `)
 				err := os.WriteFile(filepath.Join(tmp, "credentials.yaml"), content, 0700)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				c := credentials.NewCredentials(&stubProviderExpirer{})
 				fakeClock := &fakes.FakeClock{}
 				p, err := NewFileCacheProvider("profile", c, fakeClock)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				creds, err := p.Retrieve()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(creds.AccessKeyID).To(Equal("storedID"))
 				Expect(creds.SecretAccessKey).To(Equal("storedSecret"))
 				Expect(creds.SessionToken).To(Equal("storedToken"))
@@ -141,9 +141,9 @@ var _ = Describe("filecache", func() {
 				fakeClock := &fakes.FakeClock{}
 				fakeClock.NowReturns(time.Date(9999, 1, 1, 1, 1, 1, 1, time.UTC))
 				p, err := NewFileCacheProvider("profile", credentials.NewStaticCredentials("id", "secret", "token"), fakeClock)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				_, err = p.Retrieve()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				_, err = os.Stat(filepath.Join(tmp, "credentials.yaml"))
 				Expect(os.IsNotExist(err)).To(BeTrue())
 			})
@@ -153,7 +153,7 @@ var _ = Describe("filecache", func() {
 			It("will refuse to use that file", func() {
 				content := []byte(`test:`)
 				err := os.WriteFile(filepath.Join(tmp, "credentials.yaml"), content, 0777)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				c := credentials.NewCredentials(&stubProviderExpirer{})
 				fakeClock := &fakes.FakeClock{}
 				_, err = NewFileCacheProvider("profile", c, fakeClock)
@@ -164,7 +164,7 @@ var _ = Describe("filecache", func() {
 			It("will return an appropriate error", func() {
 				content := []byte(`not valid yaml`)
 				err := os.WriteFile(filepath.Join(tmp, "credentials.yaml"), content, 0600)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				c := credentials.NewCredentials(&stubProviderExpirer{})
 				fakeClock := &fakes.FakeClock{}
 				_, err = NewFileCacheProvider("profile", c, fakeClock)

@@ -56,15 +56,15 @@ var _ = Describe("Create", func() {
 
 		for _, item := range sampleAddons {
 			rc, err := rawClient.NewRawResource(item)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			_, err = rc.CreateOrReplace(false)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		}
 
 		ct := rawClient.Collection
 
 		Expect(ct.Updated()).To(BeEmpty())
-		Expect(ct.Created()).ToNot(BeEmpty())
+		Expect(ct.Created()).NotTo(BeEmpty())
 		Expect(ct.CreatedItems()).To(HaveLen(10))
 	})
 
@@ -72,7 +72,7 @@ var _ = Describe("Create", func() {
 		var err error
 
 		oidc, err = iamoidc.NewOpenIDConnectManager(nil, "456123987123", "https://oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E", "aws", nil)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		oidc.ProviderARN = "arn:aws:iam::456123987123:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E"
 
 		mockProvider.MockEKS().On("CreateAddon", mock.Anything).Run(func(args mock.Arguments) {
