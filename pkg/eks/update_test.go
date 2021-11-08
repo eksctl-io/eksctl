@@ -37,7 +37,7 @@ var _ = Describe("EKS API wrapper", func() {
 			updateClusterTagsOutput := &awseks.TagResourceOutput{}
 
 			p.MockEKS().On("TagResource", mock.MatchedBy(func(input *awseks.TagResourceInput) bool {
-				Expect(input.Tags).ToNot(BeEmpty())
+				Expect(input.Tags).NotTo(BeEmpty())
 
 				sentTags = utilsstrings.ToValuesMap(input.Tags)
 
@@ -111,10 +111,10 @@ var _ = Describe("EKS API wrapper", func() {
 			})).Return(describeClusterOutput, nil)
 
 			p.MockEKS().On("UpdateClusterConfig", mock.MatchedBy(func(input *awseks.UpdateClusterConfigInput) bool {
-				Expect(input.Logging).ToNot(BeNil())
+				Expect(input.Logging).NotTo(BeNil())
 
-				Expect(input.Logging.ClusterLogging[0].Enabled).ToNot(BeNil())
-				Expect(input.Logging.ClusterLogging[1].Enabled).ToNot(BeNil())
+				Expect(input.Logging.ClusterLogging[0].Enabled).NotTo(BeNil())
+				Expect(input.Logging.ClusterLogging[1].Enabled).NotTo(BeNil())
 
 				Expect(*input.Logging.ClusterLogging[0].Enabled).To(BeTrue())
 				Expect(*input.Logging.ClusterLogging[1].Enabled).To(BeFalse())
@@ -162,7 +162,7 @@ var _ = Describe("EKS API wrapper", func() {
 
 			Expect(sentClusterLogging[0].Types).To(BeEmpty())
 
-			Expect(sentClusterLogging[1].Types).ToNot(BeEmpty())
+			Expect(sentClusterLogging[1].Types).NotTo(BeEmpty())
 			Expect(sentClusterLogging[1].Types).To(Equal(aws.StringSlice(api.SupportedCloudWatchClusterLogTypes())))
 		})
 
@@ -178,7 +178,7 @@ var _ = Describe("EKS API wrapper", func() {
 			err = ctl.UpdateClusterConfigForLogging(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(sentClusterLogging[0].Types).ToNot(BeEmpty())
+			Expect(sentClusterLogging[0].Types).NotTo(BeEmpty())
 			Expect(sentClusterLogging[0].Types).To(Equal(aws.StringSlice(cfg.CloudWatch.ClusterLogging.EnableTypes)))
 
 			Expect(sentClusterLogging[1].Types).To(BeEmpty())
@@ -196,10 +196,10 @@ var _ = Describe("EKS API wrapper", func() {
 			err = ctl.UpdateClusterConfigForLogging(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(sentClusterLogging[0].Types).ToNot(BeEmpty())
+			Expect(sentClusterLogging[0].Types).NotTo(BeEmpty())
 			Expect(sentClusterLogging[0].Types).To(Equal(aws.StringSlice(cfg.CloudWatch.ClusterLogging.EnableTypes)))
 
-			Expect(sentClusterLogging[1].Types).ToNot(BeEmpty())
+			Expect(sentClusterLogging[1].Types).NotTo(BeEmpty())
 			Expect(sentClusterLogging[1].Types).To(Equal(aws.StringSlice([]string{"api", "audit", "scheduler"})))
 		})
 	})

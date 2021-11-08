@@ -25,7 +25,7 @@ var _ = Describe("GPU instance support", func() {
 			Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("GPU instance types are not supported for %s", e.amiFamily))))
 			return
 		}
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 	}
 
 	DescribeTable("managed nodegroups", func(e gpuInstanceEntry) {

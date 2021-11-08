@@ -37,7 +37,7 @@ var _ = Describe("Windows", func() {
 
 		bootstrapper := nodebootstrap.NewWindowsBootstrapper(clusterConfig, ng)
 		userData, err := bootstrapper.UserData()
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		Expect(decodeData(userData)).To(Equal(strings.TrimSpace(e.expectedUserData)))
 	},
@@ -138,10 +138,10 @@ start /wait msiexec.exe /qb /i "amazon-cloudwatch-agent.msi"
 
 func decodeData(userdata string) string {
 	decodedBytes, err := base64.StdEncoding.DecodeString(userdata)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 
 	decodedString := string(decodedBytes)
-	Expect(decodedString).ToNot(Equal(""))
+	Expect(decodedString).NotTo(Equal(""))
 
 	return decodedString
 }

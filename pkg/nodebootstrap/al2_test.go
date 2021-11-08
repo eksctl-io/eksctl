@@ -46,7 +46,7 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 			for _, f := range cloudCfg.WriteFiles {
 				paths = append(paths, f.Path)
 			}
-			Expect(paths).ToNot(ContainElement("/var/lib/cloud/scripts/eksctl/install-ssm.al2.sh"))
+			Expect(paths).NotTo(ContainElement("/var/lib/cloud/scripts/eksctl/install-ssm.al2.sh"))
 		})
 	})
 
@@ -82,7 +82,7 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 		be.ng.AMIFamily = "AmazonLinux2"
 		bootstrapper := newBootstrapper(be.clusterConfig, be.ng)
 		userData, err := bootstrapper.UserData()
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		cloudCfg := decode(userData)
 		file := cloudCfg.WriteFiles[1]
 		Expect(file.Path).To(Equal("/etc/eksctl/kubelet.env"))

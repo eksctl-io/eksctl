@@ -53,7 +53,7 @@ var _ = Describe("StackCollection", func() {
 				TemplateData:  TemplateBody(""),
 				Wait:          true,
 			})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 
@@ -118,7 +118,7 @@ var _ = Describe("StackCollection", func() {
 			TemplateData:  TemplateBody(""),
 			Wait:          true,
 		})
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		// Second is CreateChangeSet() call which we are interested in
 		args := p.MockCloudFormation().Calls[1].Arguments.Get(0)
@@ -177,7 +177,7 @@ var _ = Describe("StackCollection", func() {
 				TemplateData:  TemplateBody(""),
 				Wait:          false,
 			})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			// Second is CreateChangeSet() call which we are interested in
 			args := p.MockCloudFormation().Calls[1].Arguments.Get(0)

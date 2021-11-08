@@ -81,7 +81,7 @@ func vpcConfig() *api.ClusterVPC {
 }
 
 func isRefTo(obj interface{}, value string) bool {
-	Expect(obj).ToNot(BeEmpty())
+	Expect(obj).NotTo(BeEmpty())
 	o, ok := obj.(map[string]interface{})
 	Expect(ok).To(BeTrue())
 	Expect(o).To(HaveKey(gfnt.Ref))

@@ -29,10 +29,10 @@ func LoadSamples(manifest string) []runtime.Object {
 	)
 
 	samplesData, err := os.ReadFile(manifest)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	samplesList, err := kubernetes.NewList(samplesData)
-	Expect(err).ToNot(HaveOccurred())
-	Expect(samplesList).ToNot(BeNil())
+	Expect(err).NotTo(HaveOccurred())
+	Expect(samplesList).NotTo(BeNil())
 
 	for _, item := range samplesList.Items {
 		kind := item.Object.GetObjectKind().GroupVersionKind().Kind

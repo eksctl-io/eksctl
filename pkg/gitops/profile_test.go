@@ -74,23 +74,23 @@ var _ = Describe("gitops profile", func() {
 				Revision:   "master",
 				OutputPath: outputDir})
 
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			template1, err := io.ReadFile(filepath.Join(outputDir, "a/good-template1.yaml"))
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(template1).To(MatchYAML([]byte("cluster: test-cluster")))
 
 			template2, err := io.ReadFile(filepath.Join(outputDir, "a/b/good-template2.yaml"))
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(template2).To(MatchYAML([]byte("name: test-cluster")))
 		})
 
 		It("can load files and ignore .git/ files", func() {
 			err := profile.ignoreFiles(testDir)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			files, err := profile.loadFiles(testDir)
 
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(files).To(HaveLen(4))
 			Expect(files).To(ConsistOf(
 				fileprocessor.File{
@@ -150,7 +150,7 @@ metadata:
 
 				files, err := profile.processFiles(inputFiles, "dir0")
 
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(files).To(HaveLen(4))
 				Expect(files).To(ConsistOf(
 					fileprocessor.File{

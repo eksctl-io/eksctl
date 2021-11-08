@@ -277,7 +277,7 @@ var _ = Describe("AZ", func() {
 
 				azSelector := NewSelectorWithDefaults(p.EC2(), region)
 				selectedZones, err := azSelector.SelectZones()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeAvailabilityZones", 1)).To(BeTrue())
 				Expect(selectedZones).To(ConsistOf("cn-north-1a", "cn-north-1b", "cn-north-1e"))
 			})

@@ -85,13 +85,13 @@ var _ = Describe("enable repo", func() {
 				"--additional-helm-operator-args", "--log-format=json,--workers=4",
 			)
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			cfg := cmd.Cmd.ClusterConfig
 			Expect(cfg.Metadata.Name).To(Equal("clus-1"))
 			Expect(cfg.Metadata.Region).To(Equal("us-west-2"))
-			Expect(cfg.Git).ToNot(BeNil())
-			Expect(cfg.Git.Repo).ToNot(BeNil())
+			Expect(cfg.Git).NotTo(BeNil())
+			Expect(cfg.Git.Repo).NotTo(BeNil())
 			Expect(cfg.Git.Repo.URL).To(Equal("git@example.com:repo.git"))
 			Expect(cfg.Git.Repo.Email).To(Equal("user@example.com"))
 			Expect(cfg.Git.Repo.Branch).To(Equal("master"))
@@ -100,7 +100,7 @@ var _ = Describe("enable repo", func() {
 			Expect(cfg.Git.Repo.Paths).To(ConsistOf("base", "flux", "upgrades"))
 			Expect(cfg.Git.Repo.FluxPath).To(Equal("flux-dir/"))
 
-			Expect(cfg.Git.Operator).ToNot(BeNil())
+			Expect(cfg.Git.Operator).NotTo(BeNil())
 			Expect(cfg.Git.Operator.Label).To(Equal("flux2"))
 			Expect(cfg.Git.Operator.Namespace).To(Equal("gitops"))
 			Expect(*cfg.Git.Operator.WithHelm).To(BeTrue())
@@ -118,18 +118,18 @@ var _ = Describe("enable repo", func() {
 				"--git-email", "user@example.com",
 			)
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			cfg := cmd.Cmd.ClusterConfig
-			Expect(cfg.Git).ToNot(BeNil())
-			Expect(cfg.Git.Repo).ToNot(BeNil())
+			Expect(cfg.Git).NotTo(BeNil())
+			Expect(cfg.Git.Repo).NotTo(BeNil())
 			Expect(cfg.Git.Repo.Branch).To(Equal("master"))
 			Expect(cfg.Git.Repo.User).To(Equal("Flux"))
 			Expect(cfg.Git.Repo.PrivateSSHKeyPath).To(Equal(""))
 			Expect(cfg.Git.Repo.Paths).To(BeEmpty())
 			Expect(cfg.Git.Repo.FluxPath).To(Equal("flux/"))
 
-			Expect(cfg.Git.Operator).ToNot(BeNil())
+			Expect(cfg.Git.Operator).NotTo(BeNil())
 			Expect(cfg.Git.Operator.Label).To(Equal("flux"))
 			Expect(cfg.Git.Operator.Namespace).To(Equal("flux"))
 			Expect(*cfg.Git.Operator.WithHelm).To(BeTrue())
@@ -173,7 +173,7 @@ var _ = Describe("enable repo", func() {
 
 			cmd := newMockEnableRepoCmd("repo", "-f", configFile)
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("fails without a cluster name", func() {
@@ -241,10 +241,10 @@ var _ = Describe("enable repo", func() {
 
 			cmd := newMockEnableRepoCmd("repo", "-f", configFile)
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			gitCfg := cmd.Cmd.ClusterConfig.Git
-			Expect(gitCfg).ToNot(BeNil())
+			Expect(gitCfg).NotTo(BeNil())
 			Expect(gitCfg.Repo.Branch).To(Equal("master"))
 			Expect(gitCfg.Repo.User).To(Equal("Flux"))
 			Expect(gitCfg.Repo.FluxPath).To(Equal("flux/"))
@@ -253,7 +253,7 @@ var _ = Describe("enable repo", func() {
 
 			Expect(gitCfg.Operator.Namespace).To(Equal("flux"))
 			Expect(gitCfg.Operator.Label).To(Equal("flux"))
-			Expect(gitCfg.Operator.WithHelm).ToNot(BeNil())
+			Expect(gitCfg.Operator.WithHelm).NotTo(BeNil())
 			Expect(*gitCfg.Operator.WithHelm).To(BeTrue())
 			Expect(gitCfg.Operator.ReadOnly).To(BeFalse())
 			Expect(*gitCfg.Operator.CommitOperatorManifests).To(BeTrue())

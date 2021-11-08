@@ -81,7 +81,7 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 			cmd := params.EksctlDeleteClusterCmd.WithArgs(
 				"--name", params.ClusterName,
 			)
-			Expect(cmd).ToNot(RunSuccessfully())
+			Expect(cmd).NotTo(RunSuccessfully())
 		})
 	})
 })

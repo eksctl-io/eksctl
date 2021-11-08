@@ -51,7 +51,7 @@ var _ = Describe("nodegroup filter", func() {
 			cfg.NodeGroups = append(cfg.NodeGroups, nonExistentNg)
 
 			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng1?")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			Expect(filter.Match("test-ng3x")).To(BeFalse())
 			Expect(filter.Match("test-ng3b")).To(BeFalse())
@@ -80,7 +80,7 @@ var _ = Describe("nodegroup filter", func() {
 				"non-existing-in-cfg-2",
 			)
 			err := filter.SetOnlyRemote(mockProvider.EKS(), mockLister, cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			included, excluded := filter.matchAll(filter.collectNames(cfg.NodeGroups))
 			Expect(included).To(HaveLen(2))
@@ -98,7 +98,7 @@ var _ = Describe("nodegroup filter", func() {
 
 		It("should match only local nodegroups", func() {
 			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng1?")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			mockLister := newMockStackLister(
 				"test-ng1a",
@@ -106,7 +106,7 @@ var _ = Describe("nodegroup filter", func() {
 				"test-ng3a",
 			)
 			err = filter.SetOnlyLocal(mockProvider.EKS(), mockLister, cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			included, excluded := filter.matchAll(filter.collectNames(cfg.NodeGroups))
 			Expect(included).To(HaveLen(1))
@@ -117,7 +117,7 @@ var _ = Describe("nodegroup filter", func() {
 
 		It("should match only local nodegroups with exclude and include rules", func() {
 			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng?a", "test-ng?b")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			mockLister := newMockStackLister(
 				"test-ng2a",
@@ -125,10 +125,10 @@ var _ = Describe("nodegroup filter", func() {
 				"test-ng2b",
 			)
 			err = filter.SetOnlyLocal(mockProvider.EKS(), mockLister, cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			err = filter.AppendExcludeGlobs("test-ng1a", "test-ng2?")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			included, excluded := filter.matchAll(filter.collectNames(cfg.NodeGroups))
 			Expect(included).To(HaveLen(2))
@@ -152,17 +152,17 @@ var _ = Describe("nodegroup filter", func() {
 			err := filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				api.SetNodeGroupDefaults(nodeGroup, cfg.Metadata)
 				err := api.ValidateNodeGroup(i, nodeGroup)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				return nil
 			})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			err = filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
 				names = append(names, nodeGroup.Name)
 				return nil
 			})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(names).To(Equal([]string{"test-ng1a", "test-ng2a", "test-ng3a", "test-ng1b", "test-ng2b", "test-ng3b"}))
 
 			w := &bytes.Buffer{}
@@ -183,17 +183,17 @@ var _ = Describe("nodegroup filter", func() {
 			err := filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				api.SetNodeGroupDefaults(nodeGroup, cfg.Metadata)
 				err := api.ValidateNodeGroup(i, nodeGroup)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				return nil
 			})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			callback := false
 			err = filter.ForEach(cfg.NodeGroups, func(_ int, _ *api.NodeGroup) error {
 				callback = true
 				return nil
 			})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(callback).To(BeFalse())
 		})
 
@@ -209,7 +209,7 @@ var _ = Describe("nodegroup filter", func() {
 				names = append(names, nodeGroup.Name)
 				return nil
 			})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(names).To(Equal([]string{"test-ng1a", "test-ng2a", "test-ng3a"}))
 
 			names = []string{}
@@ -222,7 +222,7 @@ var _ = Describe("nodegroup filter", func() {
 				names = append(names, nodeGroup.Name)
 				return nil
 			})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(names).To(Equal([]string{"ng-x0", "ng-x1", "ng-x2"}))
 		})
 
@@ -239,7 +239,7 @@ var _ = Describe("nodegroup filter", func() {
 				names = append(names, nodeGroup.Name)
 				return nil
 			})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(names).To(Equal([]string{"test-ng1a", "test-ng2a", "test-ng3a", "test-ng1b", "test-ng2b", "test-ng3b"}))
 
 			names = []string{}
@@ -249,13 +249,13 @@ var _ = Describe("nodegroup filter", func() {
 			Expect(err.Error()).To(Equal(`no nodegroups match include glob filter specification: "t?xyz?,ab*z123?"`))
 
 			err = filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng1?", "te*-ng3?")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			err = filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
 				names = append(names, nodeGroup.Name)
 				return nil
 			})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(names).To(Equal([]string{"test-ng1a", "test-ng3a", "test-ng1b", "test-ng3b"}))
 		})
 	})
