@@ -65,7 +65,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 		})
 
 		It("should add partition mappings", func() {
-			Expect(ngTemplate.Mappings["ServicePrincipalPartitionMap"]).ToNot(BeNil())
+			Expect(ngTemplate.Mappings["ServicePrincipalPartitionMap"]).NotTo(BeNil())
 		})
 
 		It("should add outputs", func() {
@@ -211,7 +211,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			It("creates a new role", func() {
 				Expect(ngTemplate.Resources).To(HaveKey("NodeInstanceRole"))
 				Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.Path).To(Equal("/"))
-				Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.AssumeRolePolicyDocument).ToNot(BeNil())
+				Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.AssumeRolePolicyDocument).NotTo(BeNil())
 			})
 
 			It("sets the correct outputs", func() {
@@ -295,7 +295,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 
 					It("does not add the AmazonEKS_CNI_Policy", func() {
 						Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).To(HaveLen(3))
-						Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).ToNot(ContainElement(makePolicyARNRef("AmazonEKS_CNI_Policy")))
+						Expect(ngTemplate.Resources["NodeInstanceRole"].Properties.ManagedPolicyArns).NotTo(ContainElement(makePolicyARNRef("AmazonEKS_CNI_Policy")))
 					})
 				})
 			})
@@ -482,7 +482,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			})
 
 			It("no sg resources are added", func() {
-				Expect(ngTemplate.Resources).ToNot(HaveKey("SG"))
+				Expect(ngTemplate.Resources).NotTo(HaveKey("SG"))
 			})
 		})
 

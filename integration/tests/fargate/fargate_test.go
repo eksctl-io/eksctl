@@ -64,7 +64,7 @@ var _ = Describe("(Integration) Fargate", func() {
 
 		var err error
 		ft.kubeTest, err = kube.NewTest(params.KubeconfigPath)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 	}
 
 	testDefaultFargateProfile := func(clusterName string, kubeTest *harness.Test) {

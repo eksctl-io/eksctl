@@ -63,10 +63,6 @@ var _ = Describe("Fargate", func() {
 	})
 
 	Context("owned cluster", func() {
-		BeforeEach(func() {
-			fakeStackManager.HasClusterStackReturns(true, nil)
-		})
-
 		When("creating a farage role without specifying a role", func() {
 			When("the fargate role doesn't exist", func() {
 				BeforeEach(func() {

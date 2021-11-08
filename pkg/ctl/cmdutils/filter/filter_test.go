@@ -43,7 +43,7 @@ var _ = Describe("filter", func() {
 		It("should match include filter", func() {
 			filter.AppendIncludeNames("banana")
 			err := filter.doAppendIncludeGlobs(allItems, "fruits", "*apple", "*berry")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			Expect(filter.Match("a1")).To(BeFalse())
 			Expect(filter.Match("a2")).To(BeFalse())
@@ -65,7 +65,7 @@ var _ = Describe("filter", func() {
 		It("should match exclude filter with names and globs", func() {
 			filter.AppendExcludeNames("banana")
 			err := filter.AppendExcludeGlobs("*apple", "*berry")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			Expect(filter.Match("a1")).To(BeTrue())
 			Expect(filter.Match("a2")).To(BeTrue())
@@ -87,10 +87,10 @@ var _ = Describe("filter", func() {
 		It("should include an item when it exists as an inclusion name overwrite", func() {
 			filter.AppendIncludeNames("raspberry")
 			err := filter.doAppendIncludeGlobs(allItems, "fruit", "a?", "b?")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			err = filter.AppendExcludeGlobs("*apple", "*berry")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			included, excluded := filter.doMatchAll(allItems)
 			Expect(included).To(HaveLen(5))
@@ -101,7 +101,7 @@ var _ = Describe("filter", func() {
 
 		It("should not include an item when it exists as an exclusion name overwrite", func() {
 			err := filter.doAppendIncludeGlobs(allItems, "fruit", "a?", "b?")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			filter.AppendExcludeNames("a2")
 
@@ -115,11 +115,11 @@ var _ = Describe("filter", func() {
 		It("when a name is in both inclusion and exclusion overwrites the exclusion takes precedence", func() {
 			filter.AppendIncludeNames("raspberry")
 			err := filter.doAppendIncludeGlobs(allItems, "fruit", "a?", "b?")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			filter.AppendExcludeNames("raspberry")
 			err = filter.AppendExcludeGlobs("*apple", "*berry")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			included, excluded := filter.doMatchAll(allItems)
 			Expect(included).To(HaveLen(4))
@@ -130,10 +130,10 @@ var _ = Describe("filter", func() {
 
 		It("when an item matches inclusion and exclusion globs exclusion takes precedence", func() {
 			err := filter.doAppendIncludeGlobs(allItems, "fruit", "*berry", "*apple")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			err = filter.AppendExcludeGlobs("?aspberry", "a?")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			included, excluded := filter.doMatchAll(allItems)
 			Expect(included).To(HaveLen(3))

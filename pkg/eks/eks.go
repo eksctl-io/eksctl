@@ -81,7 +81,7 @@ func (c *ClusterProvider) RefreshClusterStatus(spec *api.ClusterConfig) error {
 // SupportsManagedNodes reports whether an existing cluster supports Managed Nodes
 // The minimum required control plane version and platform version are 1.14 and eks.3 respectively
 func (c *ClusterProvider) SupportsManagedNodes(clusterConfig *api.ClusterConfig) (bool, error) {
-	if err := c.maybeRefreshClusterStatus(clusterConfig); err != nil {
+	if err := c.RefreshClusterStatusIfStale(clusterConfig); err != nil {
 		return false, err
 	}
 
@@ -126,7 +126,7 @@ func ClusterSupportsManagedNodes(cluster *awseks.Cluster) (bool, error) {
 
 // SupportsFargate reports whether an existing cluster supports Fargate.
 func (c *ClusterProvider) SupportsFargate(clusterConfig *api.ClusterConfig) (bool, error) {
-	if err := c.maybeRefreshClusterStatus(clusterConfig); err != nil {
+	if err := c.RefreshClusterStatusIfStale(clusterConfig); err != nil {
 		return false, err
 	}
 	return ClusterSupportsFargate(c.Status.ClusterInfo.Cluster)
@@ -179,7 +179,8 @@ func PlatformVersion(platformVersion string) (int, error) {
 	return version, nil
 }
 
-func (c *ClusterProvider) maybeRefreshClusterStatus(spec *api.ClusterConfig) error {
+// RefreshClusterStatusIfStale refreshes the cluster status if enough time has passed since the last refresh
+func (c *ClusterProvider) RefreshClusterStatusIfStale(spec *api.ClusterConfig) error {
 	if c.clusterInfoNeedsUpdate() {
 		return c.RefreshClusterStatus(spec)
 	}
@@ -188,7 +189,7 @@ func (c *ClusterProvider) maybeRefreshClusterStatus(spec *api.ClusterConfig) err
 
 // CanDelete return true when a cluster can be deleted, otherwise it returns false along with an error explaining the reason
 func (c *ClusterProvider) CanDelete(spec *api.ClusterConfig) (bool, error) {
-	err := c.maybeRefreshClusterStatus(spec)
+	err := c.RefreshClusterStatusIfStale(spec)
 	if err != nil {
 		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); ok &&
 			awsError.Code() == awseks.ErrCodeResourceNotFoundException {
@@ -202,7 +203,7 @@ func (c *ClusterProvider) CanDelete(spec *api.ClusterConfig) (bool, error) {
 
 // CanOperate returns true when a cluster can be operated, otherwise it returns false along with an error explaining the reason
 func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
-	err := c.maybeRefreshClusterStatus(spec)
+	err := c.RefreshClusterStatusIfStale(spec)
 	if err != nil {
 		return false, errors.Wrapf(err, "unable to fetch cluster status to determine operability")
 	}
@@ -217,7 +218,7 @@ func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
 
 // CanUpdate return true when a cluster or add-ons can be updated, otherwise it returns false along with an error explaining the reason
 func (c *ClusterProvider) CanUpdate(spec *api.ClusterConfig) (bool, error) {
-	err := c.maybeRefreshClusterStatus(spec)
+	err := c.RefreshClusterStatusIfStale(spec)
 	if err != nil {
 		return false, errors.Wrapf(err, "fetching cluster status to determine update status")
 	}

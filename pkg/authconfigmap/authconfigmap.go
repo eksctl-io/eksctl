@@ -108,20 +108,19 @@ func (a *AuthConfigMap) RemoveAccount(account string) error {
 		return err
 	}
 
-	var newAccounts []string
 	found := false
-	for _, acc := range accounts {
+	for i, acc := range accounts {
 		if acc == account {
 			found = true
-			continue
+			accounts = append(accounts[:i], accounts[i+1:]...)
+			break
 		}
-		newAccounts = append(newAccounts, acc)
 	}
 	if !found {
 		return fmt.Errorf("account %q not found in auth ConfigMap", account)
 	}
 	logger.Info("removing account %q from auth ConfigMap", account)
-	return a.setAccounts(newAccounts)
+	return a.setAccounts(accounts)
 }
 
 func (a *AuthConfigMap) accounts() ([]string, error) {
@@ -150,7 +149,7 @@ func (a *AuthConfigMap) AddIdentity(identity iam.Identity) error {
 
 // AddIdentityIfNotPresent adds the specified identity if the predicate exists(identity) returns false for all entries
 func (a *AuthConfigMap) AddIdentityIfNotPresent(identity iam.Identity, exists func(iam.Identity) bool) error {
-	identities, err := a.Identities()
+	identities, err := a.GetIdentities()
 	if err != nil {
 		return err
 	}
@@ -175,7 +174,7 @@ func (a *AuthConfigMap) AddIdentityIfNotPresent(identity iam.Identity, exists fu
 // If `all` is true it will remove all of them and not return an
 // error if it cannot be found.
 func (a *AuthConfigMap) RemoveIdentity(arnToDelete string, all bool) error {
-	identities, err := a.Identities()
+	identities, err := a.GetIdentities()
 	if err != nil {
 		return err
 	}
@@ -199,8 +198,8 @@ func (a *AuthConfigMap) RemoveIdentity(arnToDelete string, all bool) error {
 	return a.setIdentities(newidentities)
 }
 
-// Identities returns a list of iam users and roles that are currently in the (cached) configmap.
-func (a *AuthConfigMap) Identities() ([]iam.Identity, error) {
+// GetIdentities returns a list of iam users and roles that are currently in the (cached) configmap.
+func (a *AuthConfigMap) GetIdentities() ([]iam.Identity, error) {
 	var roles []iam.RoleIdentity
 	if err := yaml.Unmarshal([]byte(a.cm.Data[rolesData]), &roles); err != nil {
 		return nil, errors.Wrapf(err, "unmarshalling %q", rolesData)
@@ -211,12 +210,20 @@ func (a *AuthConfigMap) Identities() ([]iam.Identity, error) {
 		return nil, errors.Wrapf(err, "unmarshalling %q", usersData)
 	}
 
-	all := make([]iam.Identity, len(users)+len(roles))
-	for i, r := range roles {
-		all[i] = r
+	var accounts []string
+	if err := yaml.Unmarshal([]byte(a.cm.Data[accountsData]), &accounts); err != nil {
+		return nil, errors.Wrapf(err, "unmarshalling %q", accountsData)
 	}
-	for i, u := range users {
-		all[i+len(roles)] = u
+
+	var all []iam.Identity
+	for _, r := range roles {
+		all = append(all, r)
+	}
+	for _, u := range users {
+		all = append(all, u)
+	}
+	for _, a := range accounts {
+		all = append(all, iam.AccountIdentity{KubernetesAccount: a})
 	}
 	return all, nil
 }
@@ -230,6 +237,9 @@ func (a *AuthConfigMap) setIdentities(identities []iam.Identity) error {
 			roles = append(roles, identity)
 		case iam.ResourceTypeUser:
 			users = append(users, identity)
+		case iam.ResourceTypeAccount:
+			// skip, this is handled separately by AddAccount
+			continue
 		default:
 			return errors.Errorf("cannot determine if %q refers to a user or role during setIdentities preprocessing", identity.ARN())
 		}

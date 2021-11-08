@@ -167,8 +167,8 @@ var _ = Describe("Cluster Template Builder", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlaneSecurityGroup"))
 			Expect(clusterTemplate.Resources).To(HaveKey("ClusterSharedNodeSecurityGroup"))
 			Expect(clusterTemplate.Resources).To(HaveKey("IngressInterNodeGroupSG"))
-			Expect(clusterTemplate.Resources).ToNot(HaveKey("IngressDefaultClusterToNodeSG"))
-			Expect(clusterTemplate.Resources).ToNot(HaveKey("IngressNodeToDefaultClusterSG"))
+			Expect(clusterTemplate.Resources).NotTo(HaveKey("IngressDefaultClusterToNodeSG"))
+			Expect(clusterTemplate.Resources).NotTo(HaveKey("IngressNodeToDefaultClusterSG"))
 			Expect(clusterTemplate.Resources).To(HaveKey("ClusterSharedNodeSecurityGroup"))
 		})
 
@@ -253,11 +253,11 @@ var _ = Describe("Cluster Template Builder", func() {
 			})
 
 			It("should not add various shared security group resources", func() {
-				Expect(clusterTemplate.Resources).ToNot(HaveKey("ClusterSharedNodeSecurityGroup"))
-				Expect(clusterTemplate.Resources).ToNot(HaveKey("IngressInterNodeGroupSG"))
-				Expect(clusterTemplate.Resources).ToNot(HaveKey("IngressDefaultClusterToNodeSG"))
-				Expect(clusterTemplate.Resources).ToNot(HaveKey("IngressNodeToDefaultClusterSG"))
-				Expect(clusterTemplate.Resources).ToNot(HaveKey("ClusterSharedNodeSecurityGroup"))
+				Expect(clusterTemplate.Resources).NotTo(HaveKey("ClusterSharedNodeSecurityGroup"))
+				Expect(clusterTemplate.Resources).NotTo(HaveKey("IngressInterNodeGroupSG"))
+				Expect(clusterTemplate.Resources).NotTo(HaveKey("IngressDefaultClusterToNodeSG"))
+				Expect(clusterTemplate.Resources).NotTo(HaveKey("IngressNodeToDefaultClusterSG"))
+				Expect(clusterTemplate.Resources).NotTo(HaveKey("ClusterSharedNodeSecurityGroup"))
 			})
 		})
 
@@ -267,7 +267,7 @@ var _ = Describe("Cluster Template Builder", func() {
 			})
 
 			It("should not add the ControlPlaneSecurityGroup resources", func() {
-				Expect(clusterTemplate.Resources).ToNot(HaveKey("ControlPlaneSecurityGroup"))
+				Expect(clusterTemplate.Resources).NotTo(HaveKey("ControlPlaneSecurityGroup"))
 				Expect(clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig.SecurityGroupIds).To(ContainElement("foo"))
 			})
 		})
@@ -300,9 +300,9 @@ var _ = Describe("Cluster Template Builder", func() {
 			})
 
 			It("should not add other iam resources", func() {
-				Expect(clusterTemplate.Resources).ToNot(HaveKey("ServiceRole"))
-				Expect(clusterTemplate.Resources).ToNot(HaveKey("PolicyELBPermissions"))
-				Expect(clusterTemplate.Resources).ToNot(HaveKey("PolicyCloudWatchMetrics"))
+				Expect(clusterTemplate.Resources).NotTo(HaveKey("ServiceRole"))
+				Expect(clusterTemplate.Resources).NotTo(HaveKey("PolicyELBPermissions"))
+				Expect(clusterTemplate.Resources).NotTo(HaveKey("PolicyCloudWatchMetrics"))
 			})
 		})
 
@@ -358,7 +358,7 @@ var _ = Describe("Cluster Template Builder", func() {
 		})
 
 		It("should add partition mappings", func() {
-			Expect(clusterTemplate.Mappings["ServicePrincipalPartitionMap"]).ToNot(BeNil())
+			Expect(clusterTemplate.Mappings["ServicePrincipalPartitionMap"]).NotTo(BeNil())
 		})
 
 		Context("when private networking is set", func() {
@@ -382,13 +382,13 @@ var _ = Describe("Cluster Template Builder", func() {
 			})
 
 			It("no nat resources are set", func() {
-				Expect(clusterTemplate.Resources).ToNot(HaveKey("NATIP"))
-				Expect(clusterTemplate.Resources).ToNot(HaveKey("NATGateway"))
+				Expect(clusterTemplate.Resources).NotTo(HaveKey("NATIP"))
+				Expect(clusterTemplate.Resources).NotTo(HaveKey("NATGateway"))
 			})
 
 			It("does not set public networking", func() {
-				Expect(clusterTemplate.Resources).ToNot(HaveKey("PublicSubnetRoute"))
-				Expect(clusterTemplate.Resources).ToNot(HaveKey("PublicSubnetRoute"))
+				Expect(clusterTemplate.Resources).NotTo(HaveKey("PublicSubnetRoute"))
+				Expect(clusterTemplate.Resources).NotTo(HaveKey("PublicSubnetRoute"))
 				Expect(clusterTemplate.Resources).To(HaveKey(ContainSubstring("PrivateRouteTable")))
 			})
 		})

@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+
 	"github.com/weaveworks/eksctl/pkg/actions/identityproviders"
 	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 
@@ -19,7 +22,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/addons"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-	"github.com/weaveworks/eksctl/pkg/utils"
+	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -225,7 +228,27 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 			spec: cfg,
 			call: c.UpdateClusterConfigForLogging,
 		})
+
+		if logRetentionDays := cfg.CloudWatch.ClusterLogging.LogRetentionInDays; logRetentionDays != 0 {
+			newTasks.Append(&clusterConfigTask{
+				info: "update CloudWatch log retention",
+				spec: cfg,
+				call: func(clusterConfig *api.ClusterConfig) error {
+					_, err := c.Provider.CloudWatchLogs().PutRetentionPolicy(&cloudwatchlogs.PutRetentionPolicyInput{
+						// The format for log group name is documented here: https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html
+						LogGroupName:    aws.String(fmt.Sprintf("/aws/eks/%s/cluster", cfg.Metadata.Name)),
+						RetentionInDays: aws.Int64(int64(logRetentionDays)),
+					})
+					if err != nil {
+						return errors.Wrap(err, "error updating log retention settings")
+					}
+					logger.Info("set log retention to %d days for CloudWatch logging", logRetentionDays)
+					return nil
+				},
+			})
+		}
 	}
+
 	c.maybeAppendTasksForEndpointAccessUpdates(cfg, newTasks)
 
 	if len(cfg.VPC.PublicAccessCIDRs) > 0 {
@@ -272,16 +295,16 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 		IsSubTask: false,
 	}
 	var needsNvidiaButNotNeuron = func(t string) bool {
-		return utils.IsGPUInstanceType(t) && !utils.IsInferentiaInstanceType(t)
+		return instanceutils.IsGPUInstanceType(t) && !instanceutils.IsInferentiaInstanceType(t)
 	}
 	var haveNeuronInstanceType, haveNvidiaInstanceType, efaEnabled bool
 	for _, ng := range cfg.NodeGroups {
-		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceType(ng, utils.IsInferentiaInstanceType)
+		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceType(ng, instanceutils.IsInferentiaInstanceType)
 		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceType(ng, needsNvidiaButNotNeuron)
 		efaEnabled = efaEnabled || api.IsEnabled(ng.EFAEnabled)
 	}
 	for _, ng := range cfg.ManagedNodeGroups {
-		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceTypeManaged(ng, utils.IsInferentiaInstanceType)
+		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceTypeManaged(ng, instanceutils.IsInferentiaInstanceType)
 		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceTypeManaged(ng, needsNvidiaButNotNeuron)
 		efaEnabled = efaEnabled || api.IsEnabled(ng.EFAEnabled)
 	}

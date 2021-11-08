@@ -26,7 +26,7 @@ spec:
             - -alsologtostderr
             - -v=4
             - 2>&1
-          image: '%s.dkr.ecr.%s.%s/eks/vpc-admission-webhook:v0.2.6'
+          image: '%s.dkr.ecr.%s.%s/eks/vpc-admission-webhook:v0.2.7'
           imagePullPolicy: Always
           volumeMounts:
             - name: webhook-certs

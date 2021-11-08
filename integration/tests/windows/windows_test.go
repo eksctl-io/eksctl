@@ -52,6 +52,12 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 					AMIFamily: api.NodeImageFamilyWindowsServer2019FullContainer,
 				},
 			},
+			{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:      "windows20h2",
+					AMIFamily: api.NodeImageFamilyWindowsServer20H2CoreContainer,
+				},
+			},
 		}
 		clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
 			{
@@ -62,7 +68,7 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 		}
 
 		data, err := json.Marshal(clusterConfig)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		cmd := params.EksctlCreateCmd.
 			WithArgs(
@@ -80,7 +86,7 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 	runWindowsPod := func() {
 		By("scheduling a Windows pod")
 		kubeTest, err := kube.NewTest(params.KubeconfigPath)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		d := kubeTest.CreateDeploymentFromFile("default", "../../data/windows-server-iis.yaml")
 		kubeTest.WaitForDeploymentReady(d, 12*time.Minute)
@@ -91,8 +97,8 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 			createCluster(withOIDC)
 			runWindowsPod()
 		},
-			Entry("when withOIDC is disabled", false),
-			Entry("when withOIDC is enabled", true),
+			PEntry("when withOIDC is disabled", false),
+			PEntry("when withOIDC is enabled", true),
 		)
 	})
 

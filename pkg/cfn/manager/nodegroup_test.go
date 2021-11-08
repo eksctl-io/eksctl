@@ -162,7 +162,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				})
 
 				It("should not error", func() {
-					Expect(err).ToNot(HaveOccurred())
+					Expect(err).NotTo(HaveOccurred())
 				})
 
 				It("should not have called AWS CloudFormation GetTemplate", func() {
@@ -226,7 +226,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 			if expectedType == "" {
 				Expect(err).To(HaveOccurred())
 			} else {
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(ngType).To(Equal(expectedType))
 			}
 		},
@@ -272,7 +272,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 			if expectedType == "" {
 				Expect(err).To(HaveOccurred())
 			} else {
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(ngType).To(Equal(expectedType))
 			}
 		},

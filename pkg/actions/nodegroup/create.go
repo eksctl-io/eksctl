@@ -14,7 +14,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
-	"github.com/weaveworks/eksctl/pkg/utils"
+	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 
@@ -278,7 +278,7 @@ func (m *Manager) checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes
 	if err != nil {
 		return err
 	}
-	if api.ClusterHasInstanceType(cfg, utils.IsARMInstanceType) {
+	if api.ClusterHasInstanceType(cfg, instanceutils.IsARMInstanceType) {
 		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(clientSet, rawClient, kubernetesVersion, ctl.Provider.Region())
 		if err != nil {
 			return err

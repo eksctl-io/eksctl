@@ -21,7 +21,28 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	// For go:embed
+	_ "embed"
 )
+
+//go:embed assets/vpc-admission-webhook-config.yaml
+var vpcAdmissionWebhookConfigYaml []byte
+
+//go:embed assets/vpc-admission-webhook-csr.yaml
+var vpcAdmissionWebhookCsrYaml []byte
+
+//go:embed assets/vpc-admission-webhook-dep.yaml
+var vpcAdmissionWebhookDepYaml []byte
+
+//go:embed assets/vpc-admission-webhook.yaml
+var vpcAdmissionWebhookYaml []byte
+
+//go:embed assets/vpc-resource-controller-dep.yaml
+var vpcResourceControllerDepYaml []byte
+
+//go:embed assets/vpc-resource-controller.yaml
+var vpcResourceControllerYaml []byte
 
 const (
 	vpcControllerNamespace = metav1.NamespaceSystem
@@ -112,7 +133,7 @@ func (v *VPCController) generateCert() error {
 		return errors.Wrap(err, "generating CSR")
 	}
 
-	manifest := assetutil.MustLoad(vpcAdmissionWebhookCsrYamlBytes)
+	manifest := vpcAdmissionWebhookCsrYaml
 	rawExtension, err := kubernetes.NewRawExtension(manifest)
 	if err != nil {
 		return err
@@ -258,22 +279,22 @@ func (v *VPCController) deployVPCResourceController() error {
 			return err
 		}
 	}
-	if err := v.applyResources(assetutil.MustLoad(vpcResourceControllerYamlBytes)); err != nil {
+	if err := v.applyResources(vpcResourceControllerYaml); err != nil {
 		return err
 	}
 
-	return v.applyDeployment(assetutil.MustLoad(vpcResourceControllerDepYamlBytes))
+	return v.applyDeployment(vpcResourceControllerDepYaml)
 }
 
 func (v *VPCController) deployVPCWebhook() error {
-	if err := v.applyResources(assetutil.MustLoad(vpcAdmissionWebhookYamlBytes)); err != nil {
+	if err := v.applyResources(vpcAdmissionWebhookYaml); err != nil {
 		return err
 	}
-	if err := v.applyDeployment(assetutil.MustLoad(vpcAdmissionWebhookDepYamlBytes)); err != nil {
+	if err := v.applyDeployment(vpcAdmissionWebhookDepYaml); err != nil {
 		return err
 	}
 
-	manifest := assetutil.MustLoad(vpcAdmissionWebhookConfigYamlBytes)
+	manifest := vpcAdmissionWebhookConfigYaml
 	rawExtension, err := kubernetes.NewRawExtension(manifest)
 	if err != nil {
 		return err

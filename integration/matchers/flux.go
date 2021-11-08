@@ -5,7 +5,6 @@ package matchers
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -61,7 +60,7 @@ func assertDoesNotContainFluxDir(dir string) {
 }
 
 func dirExists(dir string) (bool, error) {
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		return false, err
 	}
@@ -80,7 +79,7 @@ func assertContainsFluxManifests(dir string) {
 	// API server. Hence, for now, we simply ensure that all files & objects
 	// are present, and that the main fields of these objects match expected
 	// values.
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	Expect(err).ShouldNot(HaveOccurred())
 	for _, f := range files {
 		if f.IsDir() {
@@ -115,7 +114,7 @@ func assertContainsFluxManifests(dir string) {
 }
 
 func assertValidFluxAccountManifest(fileName string) {
-	bytes, err := ioutil.ReadFile(fileName)
+	bytes, err := os.ReadFile(fileName)
 	Expect(err).ShouldNot(HaveOccurred())
 	list, err := kubernetes.NewRawExtensions(bytes)
 	Expect(err).ShouldNot(HaveOccurred())
@@ -148,7 +147,7 @@ func assertValidFluxAccountManifest(fileName string) {
 }
 
 func assertValidFluxDeploymentManifest(fileName string) {
-	bytes, err := ioutil.ReadFile(fileName)
+	bytes, err := os.ReadFile(fileName)
 	Expect(err).ShouldNot(HaveOccurred())
 	list, err := kubernetes.NewRawExtensions(bytes)
 	Expect(err).ShouldNot(HaveOccurred())
@@ -175,7 +174,7 @@ func assertValidFluxDeploymentManifest(fileName string) {
 }
 
 func assertValidFluxSecretManifest(fileName string) {
-	bytes, err := ioutil.ReadFile(fileName)
+	bytes, err := os.ReadFile(fileName)
 	Expect(err).ShouldNot(HaveOccurred())
 	list, err := kubernetes.NewRawExtensions(bytes)
 	Expect(err).ShouldNot(HaveOccurred())
@@ -196,7 +195,7 @@ func assertValidFluxSecretManifest(fileName string) {
 }
 
 func assertValidFluxMemcacheDeploymentManifest(fileName string) {
-	bytes, err := ioutil.ReadFile(fileName)
+	bytes, err := os.ReadFile(fileName)
 	Expect(err).ShouldNot(HaveOccurred())
 	list, err := kubernetes.NewRawExtensions(bytes)
 	Expect(err).ShouldNot(HaveOccurred())
@@ -224,7 +223,7 @@ func assertValidFluxMemcacheDeploymentManifest(fileName string) {
 }
 
 func assertValidFluxMemcacheServiceManifest(fileName string) {
-	bytes, err := ioutil.ReadFile(fileName)
+	bytes, err := os.ReadFile(fileName)
 	Expect(err).ShouldNot(HaveOccurred())
 	list, err := kubernetes.NewRawExtensions(bytes)
 	Expect(err).ShouldNot(HaveOccurred())
@@ -250,7 +249,7 @@ func assertValidFluxMemcacheServiceManifest(fileName string) {
 }
 
 func assertValidFluxNamespaceManifest(fileName string) {
-	bytes, err := ioutil.ReadFile(fileName)
+	bytes, err := os.ReadFile(fileName)
 	Expect(err).ShouldNot(HaveOccurred())
 	list, err := kubernetes.NewRawExtensions(bytes)
 	Expect(err).ShouldNot(HaveOccurred())
@@ -269,7 +268,7 @@ func assertValidFluxNamespaceManifest(fileName string) {
 }
 
 func assertValidFluxHelmOperatorAccount(fileName string) {
-	bytes, err := ioutil.ReadFile(fileName)
+	bytes, err := os.ReadFile(fileName)
 	Expect(err).ShouldNot(HaveOccurred())
 	list, err := kubernetes.NewRawExtensions(bytes)
 	Expect(err).ShouldNot(HaveOccurred())
@@ -302,7 +301,7 @@ func assertValidFluxHelmOperatorAccount(fileName string) {
 }
 
 func assertValidFluxHelmReleaseCRD(fileName string) {
-	bytes, err := ioutil.ReadFile(fileName)
+	bytes, err := os.ReadFile(fileName)
 	Expect(err).ShouldNot(HaveOccurred())
 	list, err := kubernetes.NewRawExtensions(bytes)
 	Expect(err).ShouldNot(HaveOccurred())
@@ -323,7 +322,7 @@ func assertValidFluxHelmReleaseCRD(fileName string) {
 }
 
 func assertValidHelmOperatorDeployment(fileName string) {
-	bytes, err := ioutil.ReadFile(fileName)
+	bytes, err := os.ReadFile(fileName)
 	Expect(err).ShouldNot(HaveOccurred())
 	list, err := kubernetes.NewRawExtensions(bytes)
 	Expect(err).ShouldNot(HaveOccurred())

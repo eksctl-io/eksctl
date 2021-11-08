@@ -22,9 +22,11 @@ import (
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"
+	"github.com/weaveworks/eksctl/pkg/utils/names"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -99,7 +101,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				"--verbose", "4",
 			).
 			WithoutArg("--region", params.Region).
-			WithStdin(testutils.ClusterConfigReader(clusterConfig))
+			WithStdin(clusterutils.Reader(clusterConfig))
 
 		Expect(cmd).To(RunSuccessfully())
 	},
@@ -141,7 +143,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 
 			if m.expectedErr != "" {
 				session := cmd.Run()
-				Expect(session.ExitCode()).ToNot(Equal(0))
+				Expect(session.ExitCode()).NotTo(Equal(0))
 				output := session.Err.Contents()
 				Expect(string(output)).To(ContainSubstring(m.expectedErr))
 				return
@@ -191,25 +193,24 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 		}),
 	)
 
-	Context("Bottlerocket nodegroups", func() {
-		It("should work as a node AMI family", func() {
+	Describe("Bottlerocket nodegroup", func() {
+		var kubeTest *harness.Test
+
+		BeforeEach(func() {
+			var err error
+			kubeTest, err = kube.NewTest(params.KubeconfigPath)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		AfterEach(func() {
+			kubeTest.Close()
+		})
+
+		assertCreateBottlerocket := func(ng *api.ManagedNodeGroup) *corev1.NodeList {
 			clusterConfig := makeClusterConfig()
-			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
-				{
-					NodeGroupBase: &api.NodeGroupBase{
-						Name:       "bottlerocket",
-						VolumeSize: aws.Int(35),
-						AMIFamily:  "Bottlerocket",
-					},
-					Taints: []api.NodeGroupTaint{
-						{
-							Key:    "key1",
-							Value:  "value1",
-							Effect: "PreferNoSchedule",
-						},
-					},
-				},
-			}
+			ng.Name = names.ForNodeGroup("", "")
+
+			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{ng}
 			cmd := params.EksctlCreateCmd.
 				WithArgs(
 					"nodegroup",
@@ -217,9 +218,78 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					"--verbose", "4",
 				).
 				WithoutArg("--region", params.Region).
-				WithStdin(testutils.ClusterConfigReader(clusterConfig))
+				WithStdin(clusterutils.Reader(clusterConfig))
 
 			Expect(cmd).To(RunSuccessfully())
+
+			nodeList := kubeTest.ListNodes(metav1.ListOptions{
+				LabelSelector: fmt.Sprintf("%s=%s", "eks.amazonaws.com/nodegroup", ng.Name),
+			})
+			Expect(nodeList.Items).NotTo(BeEmpty())
+			for _, node := range nodeList.Items {
+				Expect(node.Status.NodeInfo.OSImage).To(ContainSubstring("Bottlerocket"))
+			}
+			return nodeList
+		}
+
+		It("should create a standard nodegroup", func() {
+			ng := &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					VolumeSize: aws.Int(35),
+					AMIFamily:  "Bottlerocket",
+					Labels: map[string]string{
+						"ami-family": "bottlerocket",
+					},
+					Bottlerocket: &api.NodeGroupBottlerocket{
+						EnableAdminContainer: api.Enabled(),
+					},
+					ScalingConfig: &api.ScalingConfig{
+						DesiredCapacity: aws.Int(1),
+					},
+				},
+				Taints: []api.NodeGroupTaint{
+					{
+						Key:    "key1",
+						Value:  "value1",
+						Effect: "PreferNoSchedule",
+					},
+				},
+			}
+
+			assertCreateBottlerocket(ng)
+		})
+
+		It("should create a nodegroup with custom Bottlerocket settings", func() {
+			ng := &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					VolumeSize: aws.Int(20),
+					AMIFamily:  "Bottlerocket",
+					Labels: map[string]string{
+						"ami-family": "bottlerocket",
+					},
+					Bottlerocket: &api.NodeGroupBottlerocket{
+						EnableAdminContainer: api.Enabled(),
+						Settings: &api.InlineDocument{
+							"motd": "Bottlerocket is the future",
+							"network": map[string]string{
+								"hostname": "custom-bottlerocket-host",
+							},
+						},
+					},
+				},
+				Taints: []api.NodeGroupTaint{
+					{
+						Key:    "key1",
+						Value:  "value1",
+						Effect: "PreferNoSchedule",
+					},
+				},
+			}
+
+			nodeList := assertCreateBottlerocket(ng)
+			for _, node := range nodeList.Items {
+				Expect(node.Labels["kubernetes.io/hostname"]).To(Equal("custom-bottlerocket-host"))
+			}
 		})
 	})
 
@@ -407,13 +477,13 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				}
 				By(fmt.Sprintf("checking that control plane is updated to %v", nextVersion))
 				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 
 				clientset, err := kubernetes.NewForConfig(config)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Eventually(func() string {
 					serverVersion, err := clientset.ServerVersion()
-					Expect(err).ToNot(HaveOccurred())
+					Expect(err).NotTo(HaveOccurred())
 					return fmt.Sprintf("%s.%s", serverVersion.Major, strings.TrimSuffix(serverVersion.Minor, "+"))
 				}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal(nextVersion))
 
@@ -464,13 +534,13 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 						"--verbose", "4",
 					).
 					WithoutArg("--region", params.Region).
-					WithStdin(testutils.ClusterConfigReader(clusterConfig))
+					WithStdin(clusterutils.Reader(clusterConfig))
 				Expect(cmd).To(RunSuccessfully())
 
 				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				clientset, err := kubernetes.NewForConfig(config)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 
 				mapTaints := func(taints []api.NodeGroupTaint) []corev1.Taint {
 					var ret []corev1.Taint
@@ -510,7 +580,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 						"--verbose", "4",
 					).
 					WithoutArg("--region", params.Region).
-					WithStdin(testutils.ClusterConfigReader(clusterConfig))
+					WithStdin(clusterutils.Reader(clusterConfig))
 				Expect(cmd).To(RunSuccessfully())
 
 				clusterProvider, err := eks.New(&api.ProviderConfig{Region: params.Region}, clusterConfig)
@@ -536,7 +606,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 						"--verbose", "4",
 					).
 					WithoutArg("--region", params.Region).
-					WithStdin(testutils.ClusterConfigReader(clusterConfig))
+					WithStdin(clusterutils.Reader(clusterConfig))
 
 				Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 					ContainElement(ContainSubstring("unchanged fields for nodegroup update-config-ng: the following fields remain unchanged; they are not supported by `eksctl update nodegroup`: Spot")),

@@ -16,15 +16,7 @@ generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deep
 generated_code_aws_sdk_mocks := $(wildcard pkg/eks/mocks/*API.go)
 
 conditionally_generated_files := \
-  userdocs/src/usage/schema.json \
   $(generated_code_deep_copy_helper) $(generated_code_aws_sdk_mocks)
-
-all_generated_files := \
-  pkg/nodebootstrap/bindata/assets.go \
-  pkg/addons/default/assets.go \
-  pkg/addons/assets.go \
-  pkg/apis/eksctl.io/v1alpha5 \
-  $(conditionally_generated_files)
 
 .DEFAULT_GOAL := help
 
@@ -168,17 +160,10 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 ##@ Code Generation
 
-## Important: pkg/addons/default/generate.go depends on pkg/addons/default/assets/aws-node.yaml If this file is
-## not present, the generation of assets will not fail but will not contain it.
 .PHONY: generate-always
 generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (required for every build)
-	@# go-bindata targets must run every time, as dependencies are too complex to declare in make:
-	@# - deleting an asset is breaks the dependencies
-	@# - different version of go-bindata generate different code
-	@go-bindata -v
 	go generate ./pkg/apis/eksctl.io/v1alpha5/generate.go
 	go generate ./pkg/nodebootstrap
-	go generate ./pkg/addons/default/generate.go
 	go generate ./pkg/addons
 	go generate ./pkg/authconfigmap
 	go generate ./pkg/eks
@@ -193,7 +178,7 @@ generate-all: generate-always $(conditionally_generated_files) ## Re-generate al
 
 .PHONY: check-all-generated-files-up-to-date
 check-all-generated-files-up-to-date: generate-all ## Run the generate all command and verify there is no new diff
-	git diff --quiet -- $(all_generated_files) || (git --no-pager diff $(all_generated_files); echo "HINT: to fix this, run 'git commit $(all_generated_files) --message \"Update generated files\"'"; exit 1)
+	git diff --quiet -- $(conditionally_generated_files) || (git --no-pager diff $(conditionally_generated_files); echo "HINT: to fix this, run 'git commit $(conditionally_generated_files) --message \"Update generated files\"'"; exit 1)
 
 ### Update maxpods.go from AWS
 .PHONY: update-maxpods
@@ -207,7 +192,6 @@ pkg/addons/default/assets/aws-node.yaml:
 .PHONY: update-aws-node
 update-aws-node: ## Re-download the aws-node manifests from AWS
 	go generate ./pkg/addons/default/aws_node_generate.go
-	go generate ./pkg/addons/default/generate.go
 
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) ## Generate Kubernetes API helpers

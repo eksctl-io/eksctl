@@ -4,11 +4,9 @@
 package crud
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -30,6 +28,7 @@ import (
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -77,7 +76,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		params.KubeconfigTemp = false
 		if params.KubeconfigPath == "" {
 			wd, _ := os.Getwd()
-			f, _ := ioutil.TempFile(wd, "kubeconfig-")
+			f, _ := os.CreateTemp(wd, "kubeconfig-")
 			params.KubeconfigPath = f.Name()
 			params.KubeconfigTemp = true
 		}
@@ -219,15 +218,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("and create a new nodegroup with taints and maxPods", func() {
 			It("should have taints and maxPods set", func() {
-				data, err := os.ReadFile("testdata/taints-max-pods.yaml")
-				Expect(err).ToNot(HaveOccurred())
-				clusterConfig, err := eks.ParseConfig(data)
-				Expect(err).ToNot(HaveOccurred())
-				clusterConfig.Metadata.Name = params.ClusterName
-				clusterConfig.Metadata.Region = params.Region
-
-				data, err = json.Marshal(clusterConfig)
-				Expect(err).ToNot(HaveOccurred())
 				By("creating a new nodegroup with taints and maxPods set")
 				cmd := params.EksctlCreateCmd.
 					WithArgs(
@@ -236,13 +226,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--verbose", "4",
 					).
 					WithoutArg("--region", params.Region).
-					WithStdin(bytes.NewReader(data))
+					WithStdin(clusterutils.ReaderFromFile(params.ClusterName, params.Region, "testdata/taints-max-pods.yaml"))
 				Expect(cmd).To(RunSuccessfully())
 
 				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				clientset, err := kubernetes.NewForConfig(config)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 
 				By("asserting that both formats for taints are supported")
 				var (
@@ -414,6 +404,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 			It("should create the nodegroup without problems", func() {
 				clusterConfig := makeClusterConfig()
+				clusterConfig.Metadata.Name = params.ClusterName
 				clusterConfig.NodeGroups = []*api.NodeGroup{
 					{
 						NodeGroupBase: &api.NodeGroupBase{
@@ -432,7 +423,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--verbose", "4",
 					).
 					WithoutArg("--region", params.Region).
-					WithStdin(testutils.ClusterConfigReader(clusterConfig))
+					WithStdin(clusterutils.Reader(clusterConfig))
 				Expect(cmd).To(RunSuccessfully())
 			})
 		})
@@ -759,8 +750,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 					stackNamePrefix := fmt.Sprintf("eksctl-%s-addon-iamserviceaccount-", params.ClusterName)
 
-					Expect(awsSession).ToNot(HaveExistingStack(stackNamePrefix + "default-s3-read-only"))
-					Expect(awsSession).ToNot(HaveExistingStack(stackNamePrefix + "app1-app-cache-access"))
+					Expect(awsSession).NotTo(HaveExistingStack(stackNamePrefix + "default-s3-read-only"))
+					Expect(awsSession).NotTo(HaveExistingStack(stackNamePrefix + "app1-app-cache-access"))
 				})
 			})
 
@@ -887,10 +878,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 						Expect(so.SubjectFromWebIdentityToken).To(Equal("system:serviceaccount:" + test.Namespace + ":s3-reader"))
 
-						Expect(so.Credentials.SecretAccessKey).ToNot(BeEmpty())
-						Expect(so.Credentials.SessionToken).ToNot(BeEmpty())
-						Expect(so.Credentials.Expiration).ToNot(BeEmpty())
-						Expect(so.Credentials.AccessKeyID).ToNot(BeEmpty())
+						Expect(so.Credentials.SecretAccessKey).NotTo(BeEmpty())
+						Expect(so.Credentials.SessionToken).NotTo(BeEmpty())
+						Expect(so.Credentials.Expiration).NotTo(BeEmpty())
+						Expect(so.Credentials.AccessKeyID).NotTo(BeEmpty())
 					}
 
 					deleteCmd := params.EksctlDeleteCmd.WithArgs(
@@ -960,7 +951,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--arn", "arn:aws:iam::123456:role/idontexist",
 						"-o", "yaml",
 					)
-					Expect(cmd).ToNot(RunSuccessfully())
+					Expect(cmd).NotTo(RunSuccessfully())
 				})
 				It("fails getting unknown user mapping", func() {
 					cmd := params.EksctlGetCmd.WithArgs(
@@ -969,7 +960,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--arn", "arn:aws:iam::123456:user/bob",
 						"-o", "yaml",
 					)
-					Expect(cmd).ToNot(RunSuccessfully())
+					Expect(cmd).NotTo(RunSuccessfully())
 				})
 				It("creates role mapping", func() {
 					create := params.EksctlCreateCmd.WithArgs(
@@ -1086,7 +1077,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--cluster", params.ClusterName,
 						"--arn", "arn:aws:iam::123456:role/idontexist",
 					)
-					Expect(deleteCmd).ToNot(RunSuccessfully())
+					Expect(deleteCmd).NotTo(RunSuccessfully())
 				})
 				It("deletes duplicate role mappings with --all", func() {
 					deleteCmd := params.EksctlDeleteCmd.WithArgs(
@@ -1103,7 +1094,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--arn", role1.ARN(),
 						"-o", "yaml",
 					)
-					Expect(getCmd).ToNot(RunSuccessfully())
+					Expect(getCmd).NotTo(RunSuccessfully())
 				})
 				It("deletes duplicate user mappings with --all", func() {
 					deleteCmd := params.EksctlDeleteCmd.WithArgs(
@@ -1120,7 +1111,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--arn", user0.ARN(),
 						"-o", "yaml",
 					)
-					Expect(getCmd).ToNot(RunSuccessfully())
+					Expect(getCmd).NotTo(RunSuccessfully())
 				})
 			})
 

@@ -240,10 +240,10 @@ var _ = Describe("VPC Template Builder", func() {
 			})
 
 			It("adds HA nat gateway resources to the resource set", func() {
-				Expect(vpcTemplate.Resources).ToNot(HaveKey("NATIP"))
-				Expect(vpcTemplate.Resources).ToNot(HaveKey("NATGateway"))
-				Expect(vpcTemplate.Resources).ToNot(HaveKey("NATPrivateSubnetRouteUSWEST2A"))
-				Expect(vpcTemplate.Resources).ToNot(HaveKey("NATPrivateSubnetRouteUSWEST2B"))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey("NATIP"))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey("NATGateway"))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey("NATPrivateSubnetRouteUSWEST2A"))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey("NATPrivateSubnetRouteUSWEST2B"))
 
 				Expect(vpcTemplate.Resources).To(HaveKey(privRouteTableA))
 				Expect(vpcTemplate.Resources[privRouteTableA].Properties.VpcID).To(Equal(makeRef(vpcResourceKey)))
@@ -421,12 +421,12 @@ var _ = Describe("VPC Template Builder", func() {
 			})
 
 			It("disables the nat", func() {
-				Expect(vpcTemplate.Resources).ToNot(HaveKey("NATIP"))
-				Expect(vpcTemplate.Resources).ToNot(HaveKey("NATGateway"))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey("NATIP"))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey("NATGateway"))
 			})
 
 			It("does not add an internet gateway", func() {
-				Expect(vpcTemplate.Resources).ToNot(HaveKey(igwKey))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey(igwKey))
 			})
 
 			It("does not set public subnet resources", func() {

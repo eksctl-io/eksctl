@@ -3,7 +3,7 @@ package builder
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"sort"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -62,7 +62,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			return
 		}
 
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		if vc.clusterConfig.PrivateCluster.Enabled {
 			vpcEndpointResourceSet := NewVPCEndpointResourceSet(provider.EC2(), provider.Region(), rs, vc.clusterConfig, vpcID, subnetDetails.Private, gfnt.NewString("sg-test"))
 			Expect(vpcEndpointResourceSet.AddResources()).To(Succeed())
@@ -79,10 +79,10 @@ var _ = Describe("VPC Endpoint Builder", func() {
 
 		rs.template.Outputs = nil
 		resourceJSON, err := rs.template.JSON()
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
-		expectedJSON, err := ioutil.ReadFile("testdata/" + vc.expectedFile)
-		Expect(err).ToNot(HaveOccurred())
+		expectedJSON, err := os.ReadFile("testdata/" + vc.expectedFile)
+		Expect(err).NotTo(HaveOccurred())
 		Expect(resourceJSON).To(MatchJSON(expectedJSON))
 	},
 		Entry("Standard cluster", vpcResourceSetCase{

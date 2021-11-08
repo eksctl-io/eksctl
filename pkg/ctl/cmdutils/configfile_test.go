@@ -35,7 +35,7 @@ var _ = Describe("cmdutils configfile", func() {
 				}
 
 				err := NewMetadataLoader(cmd).Load()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(cfg.Metadata.Name).To(Equal("foo-1"))
 			}
 
@@ -96,7 +96,7 @@ var _ = Describe("cmdutils configfile", func() {
 					l.flagsIncompatibleWithConfigFile.Delete("name")
 
 					err := l.Load()
-					Expect(err).ToNot(HaveOccurred())
+					Expect(err).NotTo(HaveOccurred())
 				})
 			})
 			When("given as positional argument", func() {
@@ -113,7 +113,7 @@ var _ = Describe("cmdutils configfile", func() {
 					l.flagsIncompatibleWithConfigFile.Delete("name")
 
 					err := l.Load()
-					Expect(err).ToNot(HaveOccurred())
+					Expect(err).NotTo(HaveOccurred())
 				})
 			})
 		})
@@ -144,9 +144,9 @@ var _ = Describe("cmdutils configfile", func() {
 
 		It("load all of example file", func() {
 			examples, err := filepath.Glob(examplesDir + "*.yaml")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
-			Expect(examples).ToNot(BeEmpty())
+			Expect(examples).NotTo(BeEmpty())
 			for _, example := range examples {
 				cmd := &Cmd{
 					CobraCommand:      newCmd(),
@@ -159,6 +159,7 @@ var _ = Describe("cmdutils configfile", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				cfg := cmd.ClusterConfig
+				Expect(err).ToNot(HaveOccurred())
 				Expect(cfg.Metadata.Name).ToNot(BeEmpty())
 				Expect(cfg.Metadata.Region).ToNot(BeEmpty())
 				Expect(cfg.Metadata.Region).To(Equal(cmd.ProviderConfig.Region))

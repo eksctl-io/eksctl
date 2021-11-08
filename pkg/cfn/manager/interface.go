@@ -4,6 +4,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
@@ -11,6 +12,16 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
+
+// UpdateStackOptions contains options for updating a stack.
+type UpdateStackOptions struct {
+	StackName     string
+	ChangeSetName string
+	Description   string
+	TemplateData  TemplateData
+	Parameters    map[string]string
+	Wait          bool
+}
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_stack_manager.go . StackManager
@@ -25,10 +36,10 @@ type StackManager interface {
 	DoWaitUntilStackIsCreated(i *Stack) error
 	DoCreateStackRequest(i *Stack, templateData TemplateData, tags, parameters map[string]string, withIAM bool, withNamedIAM bool) error
 	CreateStack(name string, stack builder.ResourceSet, tags, parameters map[string]string, errs chan error) error
-	UpdateStack(stackName, changeSetName, description string, templateData TemplateData, parameters map[string]string) error
+	UpdateStack(options UpdateStackOptions) error
 	DescribeStack(i *Stack) (*Stack, error)
 	GetManagedNodeGroupTemplate(nodeGroupName string) (string, error)
-	UpdateNodeGroupStack(nodeGroupName, template string) error
+	UpdateNodeGroupStack(nodeGroupName, template string, wait bool) error
 	ListStacksMatching(nameRegex string, statusFilters ...string) ([]*Stack, error)
 	ListClusterStackNames() ([]string, error)
 	ListStacks(statusFilters ...string) ([]*Stack, error)
@@ -39,7 +50,7 @@ type StackManager interface {
 	DeleteStackBySpec(s *Stack) (*Stack, error)
 	DeleteStackBySpecSync(s *Stack, errs chan error) error
 	DescribeStacks() ([]*Stack, error)
-	HasClusterStack() (bool, error)
+	GetClusterStackIfExists() (*Stack, error)
 	HasClusterStackUsingCachedList(clusterStackNames []string) (bool, error)
 	DescribeStackEvents(i *Stack) ([]*cloudformation.StackEvent, error)
 	LookupCloudTrailEvents(i *Stack) ([]*cloudtrail.Event, error)
