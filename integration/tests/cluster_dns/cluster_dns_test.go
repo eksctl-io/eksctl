@@ -72,11 +72,11 @@ var _ = Describe("(Integration) [Cluster DNS test]", func() {
 
 		It("cluster DNS should work", func() {
 			test, err := kube.NewTest(params.KubeconfigPath)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			d := test.CreateDaemonSetFromFile(test.Namespace, "../../data/test-dns.yaml")
 			test.WaitForDaemonSetReady(d, 2*time.Minute)
 			ds, err := test.GetDaemonSet(test.Namespace, d.Name)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
 		})
 

@@ -59,7 +59,7 @@ var _ = Describe("(Integration) [CloudWatch Logging test]", func() {
 			logGroups, err := cloudWatchLogs.DescribeLogGroups(&cloudwatchlogs.DescribeLogGroupsInput{
 				LogGroupNamePrefix: aws.String(fmt.Sprintf("/aws/eks/%s/cluster", params.ClusterName)),
 			})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(logGroups.LogGroups).To(HaveLen(1))
 			Expect(*logGroups.LogGroups[0].RetentionInDays).To(Equal(int64(545)))
 		})

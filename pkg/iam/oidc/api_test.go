@@ -107,7 +107,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			Expect(srv.close()).To(Succeed())
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(oidc.issuerCAThumbprint).ToNot(BeEmpty())
+			Expect(oidc.issuerCAThumbprint).NotTo(BeEmpty())
 			Expect(oidc.issuerCAThumbprint).To(Equal(thumbprint))
 		})
 
@@ -128,7 +128,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			Expect(srv.close()).To(Succeed())
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(oidc.issuerCAThumbprint).ToNot(BeEmpty())
+			Expect(oidc.issuerCAThumbprint).NotTo(BeEmpty())
 			Expect(oidc.issuerCAThumbprint).To(Equal(thumbprint))
 		})
 	})
@@ -231,7 +231,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			Expect(exists).To(BeTrue())
 
 			document := oidc.MakeAssumeRolePolicyDocumentWithServiceAccountConditions("test-ns1", "test-sa1")
-			Expect(document).ToNot(BeEmpty())
+			Expect(document).NotTo(BeEmpty())
 
 			expected := `{
 				"Version": "2012-10-17",
@@ -263,7 +263,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			Expect(exists).To(BeTrue())
 
 			document := oidc.MakeAssumeRolePolicyDocument()
-			Expect(document).ToNot(BeEmpty())
+			Expect(document).NotTo(BeEmpty())
 
 			expected := `{
 				"Version": "2012-10-17",
@@ -315,7 +315,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 				"cluster":  "oidc",
 				"resource": "oidc-provider",
 			})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			oidc.insecureSkipVerify = true
 
 			var tagsInput []*awsiam.Tag
@@ -374,7 +374,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 
 			oidc, err := NewOpenIDConnectManager(provider.IAM(), "12345", "https://localhost:10028/", partition, nil)
 			oidc.insecureSkipVerify = true
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(oidc.CreateProvider()).To(Succeed())
 
 			document := oidc.MakeAssumeRolePolicyDocumentWithServiceAccountConditions("test-ns", "test-sa")
@@ -398,7 +398,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			}`, fmt.Sprintf("arn:%s:iam::12345:oidc-provider/localhost/", partition), expectedAudience)
 
 			actual, err := json.Marshal(document)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(actual).To(MatchJSON(expected))
 		},
 			Entry("Default AWS partition", "aws", "sts.amazonaws.com"),

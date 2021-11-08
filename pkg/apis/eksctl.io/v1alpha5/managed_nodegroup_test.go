@@ -17,7 +17,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 		SetManagedNodeGroupDefaults(n.ng, &ClusterMeta{Name: "managed-cluster"})
 		err := ValidateManagedNodeGroup(n.ng, 0)
 		if n.errMsg == "" {
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			return
 		}
 		Expect(err).To(HaveOccurred())
@@ -189,7 +189,7 @@ var _ = Describe("Managed Nodegroup Validation", func() {
 		SetManagedNodeGroupDefaults(mng, &ClusterMeta{Name: "managed-cluster"})
 		err := ValidateManagedNodeGroup(mng, 0)
 		if e.valid {
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		} else {
 			Expect(err).To(HaveOccurred())
 		}

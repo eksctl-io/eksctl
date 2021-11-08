@@ -167,7 +167,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
 
-			Expect(testNodeGroup.Bottlerocket).ToNot(BeNil())
+			Expect(testNodeGroup.Bottlerocket).NotTo(BeNil())
 			Expect(testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeNil())
 		})
 	})

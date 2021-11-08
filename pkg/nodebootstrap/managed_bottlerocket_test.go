@@ -44,9 +44,9 @@ var _ = Describe("Managed Bottlerocket", func() {
 			return
 		}
 
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		actual, err := base64.StdEncoding.DecodeString(userData)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(string(actual)).To(Equal(e.expectedUserData))
 	},
 		Entry("no settings", bottlerocketEntry{

@@ -30,10 +30,10 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 
 	Expect(stack.AddAllResources()).To(Succeed())
 	bytes, err := stack.RenderJSON()
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 
 	template, err := goformation.ParseJSON(bytes)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	ngResource, ok := template.Resources["ManagedNodeGroup"]
 	Expect(ok).To(BeTrue())
 	ng, ok := ngResource.(*gfneks.Nodegroup)

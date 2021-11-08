@@ -52,12 +52,12 @@ var _ = Describe("git", func() {
 
 			// The directory was created
 			_, err = os.Stat(tempCloneDir)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			// It can delete it
 			err = gitClient.DeleteLocalRepo()
 
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			_, err = os.Stat(tempCloneDir)
 			Expect(err).To(HaveOccurred())
 			Expect(os.IsNotExist(err)).To(BeTrue())
@@ -114,19 +114,19 @@ var _ = Describe("git", func() {
 	Describe("RepoName", func() {
 		It("can parse the repository name from a URL", func() {
 			name, err := git.RepoName("git@github.com:weaveworks/eksctl.git")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(name).To(Equal("eksctl"))
 
 			name, err = git.RepoName("git@github.com:weaveworks/sock-shop.git")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(name).To(Equal("sock-shop"))
 
 			name, err = git.RepoName("https://example.com/department1/team1/some-repo-name.git")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(name).To(Equal("some-repo-name"))
 
 			name, err = git.RepoName("https://github.com/department1/team2/another-repo-name")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(name).To(Equal("another-repo-name"))
 		})
 	})

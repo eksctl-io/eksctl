@@ -22,7 +22,7 @@ var _ = Describe("template builder for IAM", func() {
 
 		BeforeEach(func() {
 			oidc, err = iamoidc.NewOpenIDConnectManager(nil, "456123987123", "https://oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E", "aws", nil)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			oidc.ProviderARN = "arn:aws:iam::456123987123:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E"
 
@@ -101,7 +101,7 @@ var _ = Describe("template builder for IAM", func() {
 			Expect(t).To(HaveResource("Role1", "AWS::IAM::Role"))
 			Expect(t).To(HaveResource("Policy1", "AWS::IAM::Policy"))
 
-			Expect(t).ToNot(HaveResourceWithProperties("Role1", "ManagedPolicyArns"))
+			Expect(t).NotTo(HaveResourceWithProperties("Role1", "ManagedPolicyArns"))
 
 			Expect(t).To(HaveResourceWithPropertyValue("Role1", "AssumeRolePolicyDocument", expectedServiceAccountAssumeRolePolicyDocument))
 			Expect(t).To(HaveResourceWithPropertyValue("Policy1", "PolicyName", `{ "Fn::Sub": "${AWS::StackName}-Policy1" }`))
@@ -326,7 +326,7 @@ var _ = Describe("template builder for IAM", func() {
 
 		BeforeEach(func() {
 			oidc, err = iamoidc.NewOpenIDConnectManager(nil, "456123987123", "https://oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E", "aws", nil)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			oidc.ProviderARN = "arn:aws:iam::456123987123:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E"
 
@@ -395,7 +395,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			Expect(t).To(HaveResource("Policy1", "AWS::IAM::Policy"))
 
-			Expect(t).ToNot(HaveResourceWithProperties("Role1", "ManagedPolicyArns"))
+			Expect(t).NotTo(HaveResourceWithProperties("Role1", "ManagedPolicyArns"))
 
 			Expect(t).To(HaveResourceWithPropertyValue("Role1", "AssumeRolePolicyDocument", expectedAssumeRolePolicyDocument))
 			Expect(t).To(HaveResourceWithPropertyValue("Policy1", "PolicyName", `{ "Fn::Sub": "${AWS::StackName}-Policy1" }`))
@@ -422,7 +422,7 @@ func appendServiceAccountToClusterConfig(cfg *api.ClusterConfig, serviceAccount 
 
 	api.SetClusterConfigDefaults(cfg)
 	err := api.ValidateClusterConfig(cfg)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 }
 
 const expectedServiceAccountAssumeRolePolicyDocument = `{

@@ -19,8 +19,8 @@ var _ = Describe("Kubernetes client toolkit", func() {
 				Expect(err).To(Not(HaveOccurred()))
 
 				list, err := NewList(jb)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(list).ToNot(BeNil())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(list).NotTo(BeNil())
 				Expect(list.Items).To(HaveLen(6))
 			})
 		})
@@ -31,8 +31,8 @@ var _ = Describe("Kubernetes client toolkit", func() {
 				Expect(err).To(Not(HaveOccurred()))
 
 				list, err := NewList(jb)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(list).ToNot(BeNil())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(list).NotTo(BeNil())
 				Expect(list.Items).To(HaveLen(0))
 			})
 		})
@@ -43,8 +43,8 @@ var _ = Describe("Kubernetes client toolkit", func() {
 				Expect(err).To(Not(HaveOccurred()))
 
 				list, err := NewList(yb)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(list).ToNot(BeNil())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(list).NotTo(BeNil())
 				Expect(list.Items).To(HaveLen(0))
 			})
 		})
@@ -56,8 +56,8 @@ var _ = Describe("Kubernetes client toolkit", func() {
 				Expect(err).To(Not(HaveOccurred()))
 
 				list, err := NewList(yb)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(list).ToNot(BeNil())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(list).NotTo(BeNil())
 				Expect(list.Items).To(HaveLen(0))
 			})
 		})
@@ -68,8 +68,8 @@ var _ = Describe("Kubernetes client toolkit", func() {
 				Expect(err).To(Not(HaveOccurred()))
 
 				list, err := NewList(yb)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(list).ToNot(BeNil())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(list).NotTo(BeNil())
 				Expect(list.Items).To(HaveLen(4))
 			})
 		})
@@ -77,10 +77,10 @@ var _ = Describe("Kubernetes client toolkit", func() {
 		Context("can handle comment nodes", func() {
 			It("should be able to parse lists with comment nodes", func() {
 				bytes, err := os.ReadFile("testdata/list-with-comment-nodes.yaml")
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				list, err := NewList(bytes)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(list).ToNot(BeNil())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(list).NotTo(BeNil())
 				Expect(list.Items).To(HaveLen(4))
 			})
 		})

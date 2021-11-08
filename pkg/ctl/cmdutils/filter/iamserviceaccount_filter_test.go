@@ -48,7 +48,7 @@ var _ = Describe("iamserviceaccount filter", func() {
 				"kube-system/aws-node",
 			)
 			err := filter.SetDeleteFilter(mockLister, true, cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			included, excluded := filter.MatchAll(cfg.IAM.ServiceAccounts)
 			Expect(included).To(HaveLen(2))
@@ -76,7 +76,7 @@ var _ = Describe("iamserviceaccount filter", func() {
 				"sa/only-remote-2",
 			)
 			err := filter.SetExcludeExistingFilter(mockLister, clientSet, cfg.IAM.ServiceAccounts, true)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			included, excluded := filter.MatchAll(cfg.IAM.ServiceAccounts)
 			Expect(included).To(HaveLen(3))
@@ -110,12 +110,12 @@ var _ = Describe("iamserviceaccount filter", func() {
 			sa2 := metav1.ObjectMeta{Name: "role-only", Namespace: "sa"}
 
 			err := kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa1)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			err = kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa2)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			err = filter.SetExcludeExistingFilter(mockLister, clientSet, cfg.IAM.ServiceAccounts, false)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			included, excluded := filter.MatchAll(cfg.IAM.ServiceAccounts)
 			Expect(included).To(HaveLen(3))

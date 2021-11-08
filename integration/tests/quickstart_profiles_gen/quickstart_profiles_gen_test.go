@@ -58,7 +58,7 @@ var _ = Describe("(Integration) generate profile", func() {
 			}
 
 			contents, err := fs.ReadFile(filepath.Join(params.TestDirectory, "workloads/namespace.yaml"))
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(string(contents)).To(MatchYAML(fmt.Sprintf(
 				`---
 apiVersion: v1
@@ -70,7 +70,7 @@ metadata:
 `, params.ClusterName, params.Region, params.ClusterName)))
 
 			contents, err = fs.ReadFile(filepath.Join(params.TestDirectory, "workloads/services/service.yaml"))
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(string(contents)).To(MatchYAML(fmt.Sprintf(
 				`---
 apiVersion: v1
@@ -87,7 +87,7 @@ spec:
 `, params.ClusterName)))
 
 			contents, err = fs.ReadFile(filepath.Join(params.TestDirectory, "metadata.yaml"))
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(string(contents)).To(MatchYAML(
 				`---
 somekey:

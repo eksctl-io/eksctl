@@ -239,10 +239,10 @@ var _ = Describe("VPC Template Builder", func() {
 			})
 
 			It("adds HA nat gateway resources to the resource set", func() {
-				Expect(vpcTemplate.Resources).ToNot(HaveKey("NATIP"))
-				Expect(vpcTemplate.Resources).ToNot(HaveKey("NATGateway"))
-				Expect(vpcTemplate.Resources).ToNot(HaveKey("NATPrivateSubnetRouteUSWEST2A"))
-				Expect(vpcTemplate.Resources).ToNot(HaveKey("NATPrivateSubnetRouteUSWEST2B"))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey("NATIP"))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey("NATGateway"))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey("NATPrivateSubnetRouteUSWEST2A"))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey("NATPrivateSubnetRouteUSWEST2B"))
 
 				Expect(vpcTemplate.Resources).To(HaveKey(privRouteTableA))
 				Expect(vpcTemplate.Resources[privRouteTableA].Properties.VpcID).To(Equal(makeRef(vpcResourceKey)))
@@ -420,22 +420,22 @@ var _ = Describe("VPC Template Builder", func() {
 			})
 
 			It("disables the nat", func() {
-				Expect(vpcTemplate.Resources).ToNot(HaveKey("NATIP"))
-				Expect(vpcTemplate.Resources).ToNot(HaveKey("NATGateway"))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey("NATIP"))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey("NATGateway"))
 			})
 
 			It("does not add an internet gateway", func() {
-				Expect(vpcTemplate.Resources).ToNot(HaveKey(igwKey))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey(igwKey))
 			})
 
 			It("does not set public subnet resources", func() {
 				Expect(result.SubnetDetails.Public).To(HaveLen(0))
-				Expect(vpcTemplate.Resources).ToNot(HaveKey(pubSubnetRoute))
-				Expect(vpcTemplate.Resources).ToNot(HaveKey(pubSubnetRoute))
-				Expect(vpcTemplate.Resources).ToNot(HaveKey(publicSubnetRef1))
-				Expect(vpcTemplate.Resources).ToNot(HaveKey(publicSubnetRef1))
-				Expect(vpcTemplate.Resources).ToNot(HaveKey(rtaPublicA))
-				Expect(vpcTemplate.Resources).ToNot(HaveKey(rtaPublicB))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey(pubSubnetRoute))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey(pubSubnetRoute))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey(publicSubnetRef1))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey(publicSubnetRef1))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey(rtaPublicA))
+				Expect(vpcTemplate.Resources).NotTo(HaveKey(rtaPublicB))
 
 				Expect(result.SubnetDetails.Private).To(HaveLen(2))
 				Expect(vpcTemplate.Resources).To(HaveKey(privRouteTableA))
