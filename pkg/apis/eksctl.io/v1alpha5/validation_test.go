@@ -709,7 +709,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 
 		Context("extraIPv6CIDRs", func() {
-			It("validates cirds", func() {
+			It("validates cidrs", func() {
 				cfg.VPC.ExtraIPv6CIDRs = []string{"2002::1234:abcd:ffff:c0a8:101/64"}
 				err = cfg.ValidateVPCConfig()
 				Expect(err).ToNot(HaveOccurred())
