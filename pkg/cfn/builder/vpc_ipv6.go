@@ -4,12 +4,13 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
-	"github.com/weaveworks/eksctl/pkg/vpc"
 	"github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 // A IPv6VPCResourceSet builds the resources required for the specified VPC
@@ -35,17 +36,54 @@ func (v *IPv6VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, erro
 		EnableDnsSupport:   gfnt.True(),
 		EnableDnsHostnames: gfnt.True(),
 	})
+	v.rs.defineOutput(outputs.ClusterVPC, vpcResourceRef, true, func(val string) error {
+		v.clusterConfig.VPC.ID = val
+		return nil
+	})
 
 	v.addIpv6CidrBlock()
+
+	addSubnetOutput := func(subnetRefs []*gfnt.Value, topology api.SubnetTopology, outputName string) {
+		v.rs.defineJoinedOutput(outputName, subnetRefs, true, func(value string) error {
+			return vpc.ImportSubnetsFromIDList(v.ec2API, v.clusterConfig, topology, strings.Split(value, ","))
+		})
+	}
+
+	var privateSubnets []SubnetResource
+	cidrPartitions := (len(v.clusterConfig.AvailabilityZones) * 2) + 2
+	for i, az := range v.clusterConfig.AvailabilityZones {
+		azFormatted := formatAZ(az)
+		rtRef := v.rs.newResource(PrivateRouteTableKey+azFormatted, &gfnec2.RouteTable{
+			VpcId: gfnt.MakeRef(VPCResourceKey),
+		})
+
+		subnet := v.createSubnet(az, azFormatted, i+len(v.clusterConfig.AvailabilityZones), cidrPartitions, true)
+		privateSubnetResourceRefs = append(privateSubnetResourceRefs, subnet)
+		privateSubnets = append(privateSubnets, SubnetResource{
+			Subnet:           subnet,
+			AvailabilityZone: az,
+			RouteTable:       rtRef,
+		})
+
+		v.rs.newResource(PrivateRouteTableAssociation+azFormatted, &gfnec2.SubnetRouteTableAssociation{
+			RouteTableId: rtRef,
+			SubnetId:     subnet,
+		})
+	}
+	addSubnetOutput(privateSubnetResourceRefs, api.SubnetTopologyPrivate, outputs.ClusterSubnetsPrivate)
+
+	if v.isFullyPrivate() {
+		return vpcResourceRef, &SubnetDetails{
+			Private: privateSubnets,
+		}, nil
+	}
+
+	// add the rest of the public resources.
 	refIGW := v.rs.newResource(IGWKey, &gfnec2.InternetGateway{})
 
 	v.rs.newResource(GAKey, &gfnec2.VPCGatewayAttachment{
 		InternetGatewayId: gfnt.MakeRef(IGWKey),
 		VpcId:             gfnt.MakeRef(VPCResourceKey),
-	})
-
-	v.rs.newResource(EgressOnlyInternetGatewayKey, &gfnec2.EgressOnlyInternetGateway{
-		VpcId: gfnt.MakeRef(VPCResourceKey),
 	})
 
 	firstPublicSubnet := PublicSubnetKey + formatAZ(v.clusterConfig.AvailabilityZones[0])
@@ -81,12 +119,20 @@ func (v *IPv6VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, erro
 		GatewayId:                  refIGW,
 		RouteTableId:               gfnt.MakeRef(PubRouteTableKey),
 	})
-
-	cidrPartitions := (len(v.clusterConfig.AvailabilityZones) * 2) + 2
+	v.rs.newResource(EgressOnlyInternetGatewayKey, &gfnec2.EgressOnlyInternetGateway{
+		VpcId: gfnt.MakeRef(VPCResourceKey),
+	})
+	var publicSubnets []SubnetResource
 	for i, az := range v.clusterConfig.AvailabilityZones {
 		azFormatted := formatAZ(az)
-		v.rs.newResource(PrivateRouteTableKey+azFormatted, &gfnec2.RouteTable{
-			VpcId: gfnt.MakeRef(VPCResourceKey),
+
+		subnet := v.createSubnet(az, azFormatted, i, cidrPartitions, false)
+		publicSubnets = append(publicSubnets, SubnetResource{Subnet: subnet, AvailabilityZone: az})
+		publicSubnetResourceRefs = append(publicSubnetResourceRefs, subnet)
+
+		v.rs.newResource(PubRouteTableAssociation+azFormatted, &gfnec2.SubnetRouteTableAssociation{
+			RouteTableId: gfnt.MakeRef(PubRouteTableKey),
+			SubnetId:     gfnt.MakeRef(PublicSubnetKey + azFormatted),
 		})
 
 		v.rs.newResource(PrivateSubnetIpv6RouteKey+azFormatted, &gfnec2.Route{
@@ -101,42 +147,9 @@ func (v *IPv6VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, erro
 			NatGatewayId:               gfnt.MakeRef(NATGatewayKey),
 			RouteTableId:               gfnt.MakeRef(PrivateRouteTableKey + azFormatted),
 		})
-
-		publicSubnetResourceRefs = append(publicSubnetResourceRefs, v.createSubnet(az, azFormatted, i, cidrPartitions, false))
-		privateSubnetResourceRefs = append(privateSubnetResourceRefs, v.createSubnet(az, azFormatted, i+len(v.clusterConfig.AvailabilityZones), cidrPartitions, true))
-
-		v.rs.newResource(PubRouteTableAssociation+azFormatted, &gfnec2.SubnetRouteTableAssociation{
-			RouteTableId: gfnt.MakeRef(PubRouteTableKey),
-			SubnetId:     gfnt.MakeRef(PublicSubnetKey + azFormatted),
-		})
-
-		v.rs.newResource(PrivateRouteTableAssociation+azFormatted, &gfnec2.SubnetRouteTableAssociation{
-			RouteTableId: gfnt.MakeRef(PrivateRouteTableKey + azFormatted),
-			SubnetId:     gfnt.MakeRef(PrivateSubnetKey + azFormatted),
-		})
 	}
-
-	v.rs.defineOutput(outputs.ClusterVPC, vpcResourceRef, true, func(val string) error {
-		v.clusterConfig.VPC.ID = val
-		return nil
-	})
-
-	addSubnetOutput := func(subnetRefs []*gfnt.Value, topology api.SubnetTopology, outputName string) {
-		v.rs.defineJoinedOutput(outputName, subnetRefs, true, func(value string) error {
-			return vpc.ImportSubnetsFromIDList(v.ec2API, v.clusterConfig, topology, strings.Split(value, ","))
-		})
-	}
-
 	addSubnetOutput(publicSubnetResourceRefs, api.SubnetTopologyPublic, outputs.ClusterSubnetsPublic)
-	addSubnetOutput(privateSubnetResourceRefs, api.SubnetTopologyPrivate, outputs.ClusterSubnetsPrivate)
 
-	var publicSubnets, privateSubnets []SubnetResource
-	for _, s := range publicSubnetResourceRefs {
-		publicSubnets = append(publicSubnets, SubnetResource{Subnet: s})
-	}
-	for _, s := range privateSubnetResourceRefs {
-		privateSubnets = append(privateSubnets, SubnetResource{Subnet: s})
-	}
 	return vpcResourceRef, &SubnetDetails{
 		Private: privateSubnets,
 		Public:  publicSubnets,
@@ -162,6 +175,10 @@ func (v *IPv6VPCResourceSet) addIpv6CidrBlock() {
 
 func (v *IPv6VPCResourceSet) RenderJSON() ([]byte, error) {
 	return v.rs.renderJSON()
+}
+
+func (v *IPv6VPCResourceSet) isFullyPrivate() bool {
+	return v.clusterConfig.PrivateCluster.Enabled
 }
 
 func (v *IPv6VPCResourceSet) createSubnet(az, azFormatted string, i, cidrPartitions int, private bool) *gfnt.Value {

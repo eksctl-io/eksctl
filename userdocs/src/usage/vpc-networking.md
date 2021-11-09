@@ -63,6 +63,8 @@ This is an in config file setting only. When IPv6 is set, the following restrict
 
 The default value is `IPv4`.
 
+Private networking can be done with IPv6 IP family as well. Please follow the instruction outlined under [EKS Private Cluster](/usage/eks-private-cluster).
+
 ## Change VPC CIDR
 
 If you need to setup peering with another VPC, or simply need a larger or smaller range of IPv4 addresses, you can use `--vpc-cidr` flag to
