@@ -41,10 +41,8 @@ func (v *IPv6VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, erro
 		return nil
 	})
 
-	v.rs.newResource(IPv6CIDRBlockKey, &gfnec2.VPCCidrBlock{
-		AmazonProvidedIpv6CidrBlock: gfnt.True(),
-		VpcId:                       gfnt.MakeRef(VPCResourceKey),
-	})
+	v.addIpv6CidrBlock()
+
 	addSubnetOutput := func(subnetRefs []*gfnt.Value, topology api.SubnetTopology, outputName string) {
 		v.rs.defineJoinedOutput(outputName, subnetRefs, true, func(value string) error {
 			return vpc.ImportSubnetsFromIDList(v.ec2API, v.clusterConfig, topology, strings.Split(value, ","))
@@ -81,8 +79,6 @@ func (v *IPv6VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, erro
 	}
 
 	// add the rest of the public resources.
-	v.addIpv6CidrBlock()
-
 	refIGW := v.rs.newResource(IGWKey, &gfnec2.InternetGateway{})
 
 	v.rs.newResource(GAKey, &gfnec2.VPCGatewayAttachment{
