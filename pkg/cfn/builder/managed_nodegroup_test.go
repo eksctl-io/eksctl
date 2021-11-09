@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -138,7 +139,13 @@ func TestManagedPolicyResources(t *testing.T) {
 			if tt.attachPolicy != nil {
 				policy, err := template.GetIAMPolicyWithName("Policy1")
 				require.NoError(err)
-				require.Equal(tt.attachPolicy, policy.PolicyDocument)
+
+				// convert to json for comparison since interfaces are not identical
+				expectedPolicy, err := json.Marshal(tt.attachPolicy)
+				require.NoError(err)
+				actualPolicy, err := json.Marshal(policy.PolicyDocument)
+				require.NoError(err)
+				require.Equal(string(expectedPolicy), string(actualPolicy))
 			}
 		})
 	}
