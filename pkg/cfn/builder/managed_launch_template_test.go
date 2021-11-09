@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+
 	. "github.com/benjamintf1/unmarshalledmatchers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
@@ -268,6 +269,17 @@ API_SERVER_URL=https://test.com
 				UserData: aws.String("bootstrap.sh"),
 			}),
 			resourcesFilename: "lt_instance_types.json",
+		}),
+
+		Entry("Bottlerocket AMI Family with defaults", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "bottlerocket",
+					AMIFamily:    api.NodeImageFamilyBottlerocket,
+					InstanceType: "m5.xlarge",
+				},
+			},
+			resourcesFilename: "bottlerocket.json",
 		}),
 
 		Entry("Bottlerocket with volumeSize set", &mngCase{
