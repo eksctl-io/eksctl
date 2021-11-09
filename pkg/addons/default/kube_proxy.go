@@ -18,7 +18,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/weaveworks/eksctl/pkg/utils"
-	"k8s.io/client-go/kubernetes"
 )
 
 const (
@@ -28,8 +27,8 @@ const (
 	ArchLabel     = "kubernetes.io/arch"
 )
 
-func IsKubeProxyUpToDate(clientSet kubernetes.Interface, controlPlaneVersion string) (bool, error) {
-	d, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), KubeProxy, metav1.GetOptions{})
+func IsKubeProxyUpToDate(input AddonInput) (bool, error) {
+	d, err := input.RawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), KubeProxy, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", KubeProxy)
@@ -41,7 +40,7 @@ func IsKubeProxyUpToDate(clientSet kubernetes.Interface, controlPlaneVersion str
 		return false, fmt.Errorf("%s has %d containers, expected at least 1", KubeProxy, numContainers)
 	}
 
-	desiredTag, err := kubeProxyImageTag(controlPlaneVersion)
+	desiredTag, err := kubeProxyImageTag(input.ControlPlaneVersion)
 	if err != nil {
 		return false, err
 	}
@@ -53,11 +52,11 @@ func IsKubeProxyUpToDate(clientSet kubernetes.Interface, controlPlaneVersion str
 	return desiredTag == imageTag, nil
 }
 
-// UpdateKubeProxy updates image tag for kube-system:daemonset/kube-proxy based to match controlPlaneVersion
-func UpdateKubeProxy(clientSet kubernetes.Interface, controlPlaneVersion string, plan bool) (bool, error) {
+// UpdateKubeProxy updates image tag for kube-system:daemonset/kube-proxy based to match ControlPlaneVersion
+func UpdateKubeProxy(input AddonInput, plan bool) (bool, error) {
 	printer := printers.NewJSONPrinter()
 
-	d, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), KubeProxy, metav1.GetOptions{})
+	d, err := input.RawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), KubeProxy, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", KubeProxy)
@@ -67,7 +66,7 @@ func UpdateKubeProxy(clientSet kubernetes.Interface, controlPlaneVersion string,
 	}
 
 	archLabel := ArchLabel
-	isMinVersion, err := utils.IsMinVersion(api.Version1_18, controlPlaneVersion)
+	isMinVersion, err := utils.IsMinVersion(api.Version1_18, input.ControlPlaneVersion)
 	if err != nil {
 		return false, err
 	}
@@ -95,7 +94,7 @@ func UpdateKubeProxy(clientSet kubernetes.Interface, controlPlaneVersion string,
 		return false, fmt.Errorf("unexpected image format %q for %q", *image, KubeProxy)
 	}
 
-	desiredTag, err := kubeProxyImageTag(controlPlaneVersion)
+	desiredTag, err := kubeProxyImageTag(input.ControlPlaneVersion)
 	if err != nil {
 		return false, err
 	}
@@ -122,7 +121,7 @@ func UpdateKubeProxy(clientSet kubernetes.Interface, controlPlaneVersion string,
 		addArm64NodeSelector(d, archLabel)
 	}
 
-	if _, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Update(context.TODO(), d, metav1.UpdateOptions{}); err != nil {
+	if _, err := input.RawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Update(context.TODO(), d, metav1.UpdateOptions{}); err != nil {
 		return false, err
 	}
 

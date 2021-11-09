@@ -13,7 +13,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/weaveworks/eksctl/pkg/addons"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
 	// For go:embed
 	_ "embed"
@@ -31,8 +30,8 @@ const (
 var awsNodeYaml []byte
 
 // DoesAWSNodeSupportMultiArch makes sure awsnode supports ARM nodes
-func DoesAWSNodeSupportMultiArch(rawClient kubernetes.RawClientInterface, region string) (bool, error) {
-	clusterDaemonSet, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
+func DoesAWSNodeSupportMultiArch(input AddonInput) (bool, error) {
+	clusterDaemonSet, err := input.RawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", AWSNode)
@@ -71,8 +70,8 @@ func DoesAWSNodeSupportMultiArch(rawClient kubernetes.RawClientInterface, region
 
 // UpdateAWSNode will update the `aws-node` add-on and returns true
 // if an update is available.
-func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan bool) (bool, error) {
-	clusterDaemonSet, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
+func UpdateAWSNode(input AddonInput, plan bool) (bool, error) {
+	clusterDaemonSet, err := input.RawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", AWSNode)
@@ -89,7 +88,7 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 
 	tagMismatch := true
 	for _, rawObj := range list.Items {
-		resource, err := rawClient.NewRawResource(rawObj.Object)
+		resource, err := input.RawClient.NewRawResource(rawObj.Object)
 		if err != nil {
 			return false, err
 		}
@@ -108,7 +107,7 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 
 			container.Image = awsNodeImageFormatPrefix + ":" + imageParts[1]
 			initContainer.Image = awsNodeInitImageFormatPrefix + ":" + imageParts[1]
-			if err := addons.UseRegionalImage(&daemonSet.Spec.Template, region); err != nil {
+			if err := addons.UseRegionalImage(&daemonSet.Spec.Template, input.Region); err != nil {
 				return false, err
 			}
 

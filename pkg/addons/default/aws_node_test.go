@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
 
-	. "github.com/weaveworks/eksctl/pkg/addons/default"
+	da "github.com/weaveworks/eksctl/pkg/addons/default"
 
 	"github.com/weaveworks/eksctl/pkg/testutils"
 
@@ -15,15 +15,23 @@ import (
 )
 
 var _ = Describe("default addons - aws-node", func() {
+	var (
+		input     da.AddonInput
+		rawClient *testutils.FakeRawClient
+		ct        *testutils.CollectionTracker
+	)
+
+	BeforeEach(func() {
+		rawClient = testutils.NewFakeRawClient()
+		input = da.AddonInput{
+			RawClient:           rawClient,
+			ControlPlaneVersion: "1.16.0",
+			Region:              "eu-west-1",
+		}
+	})
 	Describe("properly checks for multi-architecture support", func() {
-		var (
-			rawClient *testutils.FakeRawClient
-			ct        *testutils.CollectionTracker
-		)
 		loadSample := func(f string) {
 			sampleAddons := testutils.LoadSamples(f)
-
-			rawClient = testutils.NewFakeRawClient()
 
 			rawClient.AssumeObjectsMissing = true
 
@@ -42,9 +50,10 @@ var _ = Describe("default addons - aws-node", func() {
 		}
 		It("reports that 1.15 sample needs an update", func() {
 			loadSample("testdata/sample-1.15.json")
+			input.ControlPlaneVersion = "1.15.0"
 			rawClient.AssumeObjectsMissing = false
 
-			needsUpdate, err := DoesAWSNodeSupportMultiArch(rawClient, "eu-west-1")
+			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(input)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeFalse())
 		})
@@ -52,7 +61,7 @@ var _ = Describe("default addons - aws-node", func() {
 			loadSample("testdata/sample-1.16-eksbuild.1.json")
 			rawClient.AssumeObjectsMissing = false
 
-			needsUpdate, err := DoesAWSNodeSupportMultiArch(rawClient, "eu-west-1")
+			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(input)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeTrue())
 		})
@@ -60,22 +69,15 @@ var _ = Describe("default addons - aws-node", func() {
 			loadSample("testdata/sample-1.16-v1.7.json")
 			rawClient.AssumeObjectsMissing = false
 
-			needsUpdate, err := DoesAWSNodeSupportMultiArch(rawClient, "eu-west-1")
+			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(input)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeTrue())
 		})
 	})
 
 	Describe("can update aws-node add-on to multi-architecture images", func() {
-		var (
-			rawClient *testutils.FakeRawClient
-			ct        *testutils.CollectionTracker
-		)
-
-		It("can load sample for 1.15 and create objects that don't exist", func() {
+		BeforeEach(func() {
 			sampleAddons := testutils.LoadSamples("testdata/sample-1.15.json")
-
-			rawClient = testutils.NewFakeRawClient()
 
 			rawClient.AssumeObjectsMissing = true
 
@@ -93,95 +95,87 @@ var _ = Describe("default addons - aws-node", func() {
 			Expect(ct.CreatedItems()).To(HaveLen(10))
 		})
 
-		It("has newly created objects", func() {
-			rawClient.ClientSetUseUpdatedObjects = false // must be set for initial verification, and for subsequent UpdateAWSNode
+		It("can update the aws-node successfully", func() {
+			By("updating the 1.15 sample to latest multi-architecture image", func() {
+				rawClient.AssumeObjectsMissing = false
 
-			awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
-			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
-				Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/amazon-k8s-cni:v1.5.7"),
-			)
+				preUpdateAwsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				_, err = da.UpdateAWSNode(input, false)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(rawClient.Collection.UpdatedItems()).To(HaveLen(3))
+				Expect(rawClient.Collection.UpdatedItems()).NotTo(ContainElement(PointTo(MatchFields(IgnoreMissing|IgnoreExtras, Fields{
+					"TypeMeta": MatchFields(IgnoreMissing|IgnoreExtras, Fields{"Kind": Equal("ServiceAccount")}),
+				}))))
+				Expect(rawClient.Collection.CreatedItems()).To(HaveLen(10))
 
-		})
+				rawClient.ClientSetUseUpdatedObjects = true // for verification of updated objects
 
-		It("can update 1.15 sample to latest multi-architecture image", func() {
-			rawClient.AssumeObjectsMissing = false
+				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
+				Expect(awsNode.Spec.Template.Spec.Containers[0].Image).NotTo(
+					Equal(preUpdateAwsNode.Spec.Template.Spec.Containers[0].Image),
+				)
+				Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
+				Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
+					HavePrefix("602401143452.dkr.ecr.eu-west-1.amazonaws.com/amazon-k8s-cni-init"),
+				)
+				rawClient.ClearUpdated()
+			})
 
-			preUpdateAwsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
-			Expect(err).NotTo(HaveOccurred())
-			_, err = UpdateAWSNode(rawClient, "eu-west-1", false)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(rawClient.Collection.UpdatedItems()).To(HaveLen(3))
-			Expect(rawClient.Collection.UpdatedItems()).NotTo(ContainElement(PointTo(MatchFields(IgnoreMissing|IgnoreExtras, Fields{
-				"TypeMeta": MatchFields(IgnoreMissing|IgnoreExtras, Fields{"Kind": Equal("ServiceAccount")}),
-			}))))
-			Expect(rawClient.Collection.CreatedItems()).To(HaveLen(10))
+			By("updating the 1.15 sample for different region to multi-architecture image", func() {
+				input.Region = "us-east-1"
+				rawClient.ClientSetUseUpdatedObjects = false // must be set for subsequent UpdateAWSNode
 
-			rawClient.ClientSetUseUpdatedObjects = true // for verification of updated objects
+				preUpdateAwsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				_, err = da.UpdateAWSNode(input, false)
+				Expect(err).NotTo(HaveOccurred())
 
-			awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
-			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).NotTo(
-				Equal(preUpdateAwsNode.Spec.Template.Spec.Containers[0].Image),
-			)
-			Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
-			Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
-				HavePrefix("602401143452.dkr.ecr.eu-west-1.amazonaws.com/amazon-k8s-cni-init"),
-			)
-			rawClient.ClearUpdated()
-		})
+				rawClient.ClientSetUseUpdatedObjects = true // for verification of updated objects
 
-		It("can update 1.15 sample for different region to multi-architecture image", func() {
-			rawClient.ClientSetUseUpdatedObjects = false // must be set for subsequent UpdateAWSNode
+				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
+				Expect(awsNode.Spec.Template.Spec.Containers[0].Image).NotTo(
+					Equal(preUpdateAwsNode.Spec.Template.Spec.Containers[0].Image),
+				)
+				Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
+				Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
+					HavePrefix("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni-init"),
+				)
+			})
 
-			preUpdateAwsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
-			Expect(err).NotTo(HaveOccurred())
-			_, err = UpdateAWSNode(rawClient, "us-east-1", false)
-			Expect(err).NotTo(HaveOccurred())
+			By("updating the 1.15 sample for china region to multi-architecture image", func() {
+				input.Region = "cn-northwest-1"
+				rawClient.ClientSetUseUpdatedObjects = false // must be set for subsequent UpdateAWSNode
 
-			rawClient.ClientSetUseUpdatedObjects = true // for verification of updated objects
+				preUpdateAwsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				_, err = da.UpdateAWSNode(input, false)
+				Expect(err).NotTo(HaveOccurred())
 
-			awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
-			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).NotTo(
-				Equal(preUpdateAwsNode.Spec.Template.Spec.Containers[0].Image),
-			)
-			Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
-			Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
-				HavePrefix("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni-init"),
-			)
-		})
+				rawClient.ClientSetUseUpdatedObjects = true // for verification of updated objects
 
-		It("can update 1.15 sample for china region to multi-architecture image", func() {
-			rawClient.ClientSetUseUpdatedObjects = false // must be set for subsequent UpdateAWSNode
+				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
+				Expect(awsNode.Spec.Template.Spec.Containers[0].Image).NotTo(
+					Equal(preUpdateAwsNode.Spec.Template.Spec.Containers[0].Image),
+				)
+				Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
+				Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
+					HavePrefix("961992271922.dkr.ecr.cn-northwest-1.amazonaws.com.cn/amazon-k8s-cni-init"),
+				)
+			})
 
-			preUpdateAwsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
-			Expect(err).NotTo(HaveOccurred())
-			_, err = UpdateAWSNode(rawClient, "cn-northwest-1", false)
-			Expect(err).NotTo(HaveOccurred())
-
-			rawClient.ClientSetUseUpdatedObjects = true // for verification of updated objects
-
-			awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
-			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).NotTo(
-				Equal(preUpdateAwsNode.Spec.Template.Spec.Containers[0].Image),
-			)
-			Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
-			Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
-				HavePrefix("961992271922.dkr.ecr.cn-northwest-1.amazonaws.com.cn/amazon-k8s-cni-init"),
-			)
-		})
-
-		It("detects matching image version when determining plan", func() {
-			// updating from latest to latest needs no updating
-			needsUpdate, err := UpdateAWSNode(rawClient, "eu-west-2", true)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(needsUpdate).To(BeFalse())
+			By("detecting matching image version when determining plan", func() {
+				// updating from latest to latest needs no updating
+				needsUpdate, err := da.UpdateAWSNode(input, true)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(needsUpdate).To(BeFalse())
+			})
 		})
 	})
 })

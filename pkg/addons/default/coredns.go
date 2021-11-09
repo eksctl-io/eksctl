@@ -16,7 +16,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/fargate/coredns"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
 	// For go:embed
 	_ "embed"
@@ -32,8 +31,8 @@ const (
 //go:embed assets/coredns*.json
 var coreDNSDir embed.FS
 
-func IsCoreDNSUpToDate(rawClient kubernetes.RawClientInterface, region, controlPlaneVersion string) (bool, error) {
-	kubeDNSDeployment, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), CoreDNS, metav1.GetOptions{})
+func IsCoreDNSUpToDate(input AddonInput) (bool, error) {
+	kubeDNSDeployment, err := input.RawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), CoreDNS, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", CoreDNS)
@@ -43,13 +42,13 @@ func IsCoreDNSUpToDate(rawClient kubernetes.RawClientInterface, region, controlP
 	}
 
 	// if Deployment is present, go through our list of assets
-	list, err := loadAssetCoreDNS(controlPlaneVersion)
+	list, err := loadAssetCoreDNS(input.ControlPlaneVersion)
 	if err != nil {
 		return false, err
 	}
 
 	for _, rawObj := range list.Items {
-		resource, err := rawClient.NewRawResource(rawObj.Object)
+		resource, err := input.RawClient.NewRawResource(rawObj.Object)
 		if err != nil {
 			return false, err
 		}
@@ -63,7 +62,7 @@ func IsCoreDNSUpToDate(rawClient kubernetes.RawClientInterface, region, controlP
 		if !ok {
 			return false, fmt.Errorf("expected type %T; got %T", &appsv1.Deployment{}, resource.Info.Object)
 		}
-		if err := addons.UseRegionalImage(&deployment.Spec.Template, region); err != nil {
+		if err := addons.UseRegionalImage(&deployment.Spec.Template, input.Region); err != nil {
 			return false, err
 		}
 		if computeType, ok := kubeDNSDeployment.Spec.Template.Annotations[coredns.ComputeTypeAnnotationKey]; ok {
@@ -83,8 +82,8 @@ func IsCoreDNSUpToDate(rawClient kubernetes.RawClientInterface, region, controlP
 
 // UpdateCoreDNS will update the `coredns` add-on and returns true
 // if an update is available
-func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlaneVersion string, plan bool) (bool, error) {
-	kubeDNSSevice, err := rawClient.ClientSet().CoreV1().Services(metav1.NamespaceSystem).Get(context.TODO(), KubeDNS, metav1.GetOptions{})
+func UpdateCoreDNS(input AddonInput, plan bool) (bool, error) {
+	kubeDNSSevice, err := input.RawClient.ClientSet().CoreV1().Services(metav1.NamespaceSystem).Get(context.TODO(), KubeDNS, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q service was not found", KubeDNS)
@@ -93,7 +92,7 @@ func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlane
 		return false, errors.Wrapf(err, "getting %q service", KubeDNS)
 	}
 
-	kubeDNSDeployment, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), CoreDNS, metav1.GetOptions{})
+	kubeDNSDeployment, err := input.RawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), CoreDNS, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", CoreDNS)
@@ -103,14 +102,14 @@ func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlane
 	}
 
 	// if Deployment is present, go through our list of assets
-	list, err := loadAssetCoreDNS(controlPlaneVersion)
+	list, err := loadAssetCoreDNS(input.ControlPlaneVersion)
 	if err != nil {
 		return false, err
 	}
 
 	tagMismatch := true
 	for _, rawObj := range list.Items {
-		resource, err := rawClient.NewRawResource(rawObj.Object)
+		resource, err := input.RawClient.NewRawResource(rawObj.Object)
 		if err != nil {
 			return false, err
 		}
@@ -124,7 +123,7 @@ func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlane
 				return false, fmt.Errorf("expected type %T; got %T", &appsv1.Deployment{}, resource.Info.Object)
 			}
 			template := &deployment.Spec.Template
-			if err := addons.UseRegionalImage(template, region); err != nil {
+			if err := addons.UseRegionalImage(template, input.Region); err != nil {
 				return false, err
 			}
 			if computeType, ok := kubeDNSDeployment.Spec.Template.Annotations[coredns.ComputeTypeAnnotationKey]; ok {

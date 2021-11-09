@@ -59,7 +59,11 @@ func doUpdateKubeProxy(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	updateRequired, err := defaultaddons.UpdateKubeProxy(rawClient.ClientSet(), kubernetesVersion, cmd.Plan)
+	updateRequired, err := defaultaddons.UpdateKubeProxy(defaultaddons.AddonInput{
+		RawClient:           rawClient,
+		ControlPlaneVersion: kubernetesVersion,
+		Region:              meta.Region,
+	}, cmd.Plan)
 	if err != nil {
 		return err
 	}

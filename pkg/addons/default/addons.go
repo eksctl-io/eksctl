@@ -1,11 +1,24 @@
 package defaultaddons
 
 import (
+	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
-func DoAddonsSupportMultiArch(clientSet kubernetes.Interface, rawClient kubernetes.RawClientInterface, controlPlaneVersion string, region string) (bool, error) {
-	kubeProxyUpToDate, err := IsKubeProxyUpToDate(clientSet, controlPlaneVersion)
+type AddonInput struct {
+	RawClient           kubernetes.RawClientInterface
+	EKSAPI              eksiface.EKSAPI
+	ControlPlaneVersion string
+	Region              string
+}
+
+func DoAddonsSupportMultiArch(rawClient kubernetes.RawClientInterface, controlPlaneVersion string, region string) (bool, error) {
+	input := AddonInput{
+		RawClient:           rawClient,
+		ControlPlaneVersion: controlPlaneVersion,
+		Region:              region,
+	}
+	kubeProxyUpToDate, err := IsKubeProxyUpToDate(input)
 	if err != nil {
 		return true, err
 	}
@@ -13,7 +26,7 @@ func DoAddonsSupportMultiArch(clientSet kubernetes.Interface, rawClient kubernet
 		return false, nil
 	}
 
-	awsNodeUpToDate, err := DoesAWSNodeSupportMultiArch(rawClient, region)
+	awsNodeUpToDate, err := DoesAWSNodeSupportMultiArch(input)
 	if err != nil {
 		return true, err
 	}
@@ -21,7 +34,7 @@ func DoAddonsSupportMultiArch(clientSet kubernetes.Interface, rawClient kubernet
 		return false, nil
 	}
 
-	coreDNSUpToDate, err := IsCoreDNSUpToDate(rawClient, region, controlPlaneVersion)
+	coreDNSUpToDate, err := IsCoreDNSUpToDate(input)
 	if err != nil {
 		return true, err
 	}
