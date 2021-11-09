@@ -66,8 +66,7 @@ func NewIPv4VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec
 }
 
 func (v *IPv4VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, error) {
-	err := v.addResources()
-	if err != nil {
+	if err := v.addResources(); err != nil {
 		return nil, nil, err
 	}
 	v.addOutputs()

@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/tidwall/gjson"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder/fakes"
@@ -400,6 +401,44 @@ var _ = Describe("Cluster Template Builder", func() {
 				})
 				It("will skip creating all of the endpoints", func() {
 					Expect(clusterTemplate.Resources).NotTo(HaveKey(ContainSubstring("VPCEndpoint")))
+				})
+			})
+
+			When("ipv6 cluster is enabled", func() {
+				BeforeEach(func() {
+					cfg.VPC.Network.IPFamily = api.IPV6Family
+				})
+				It("should only add private IPv6 vpc resources", func() {
+					Expect(clusterTemplate.Resources).To(HaveKey(builder.VPCResourceKey))
+					Expect(clusterTemplate.Resources).To(HaveKey(builder.IPv6CIDRBlockKey))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.IGWKey))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.GAKey))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.EgressOnlyInternetGatewayKey))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.NATGatewayKey))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.ElasticIPKey))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.PubRouteTableKey))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.PubSubRouteKey))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.PubSubIPv6RouteKey))
+					privateRouteTableA := builder.PrivateRouteTableKey + azAFormatted
+					Expect(clusterTemplate.Resources).To(HaveKey(privateRouteTableA))
+					privateRouteTableB := builder.PrivateRouteTableKey + azBFormatted
+					Expect(clusterTemplate.Resources).To(HaveKey(privateRouteTableB))
+					privateRouteA := builder.PrivateSubnetRouteKey + azAFormatted
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(privateRouteA))
+					privateRouteB := builder.PrivateSubnetRouteKey + azBFormatted
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(privateRouteB))
+					privateRouteA = builder.PrivateSubnetIpv6RouteKey + azAFormatted
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(privateRouteA))
+					privateRouteB = builder.PrivateSubnetIpv6RouteKey + azBFormatted
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(privateRouteB))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.PublicSubnetKey + azAFormatted))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.PublicSubnetKey + azBFormatted))
+					Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateSubnetKey + azAFormatted))
+					Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateSubnetKey + azBFormatted))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.PubRouteTableAssociation + azAFormatted))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.PubRouteTableAssociation + azBFormatted))
+					Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateRouteTableAssociation + azAFormatted))
+					Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateRouteTableAssociation + azBFormatted))
 				})
 			})
 		})
