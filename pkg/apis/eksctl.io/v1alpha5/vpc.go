@@ -138,6 +138,10 @@ type (
 		// private subnets or any ad-hoc subnets
 		// +optional
 		ExtraCIDRs []string `json:"extraCIDRs,omitempty"`
+		// for additional IPv6 CIDR associations, e.g. a CIDR for
+		// private subnets or any ad-hoc subnets
+		// +optional
+		ExtraIPv6CIDRs []string `json:"extraIPv6CIDRs,omitempty"`
 		// for pre-defined shared node SG
 		SharedNodeSecurityGroup string `json:"sharedNodeSecurityGroup,omitempty"`
 		// Automatically add security group rules to and from the default
@@ -186,6 +190,10 @@ type (
 		// Valid variants are `IPFamily` constants
 		// +optional
 		IPFamily string `json:"ipFamily,omitempty"`
+		// +optional
+		IPv6Cidr string `json:"ipv6Cidr,omitempty"`
+		// +optional
+		IPv6Pool string `json:"ipv6Pool,omitempty"`
 	}
 	// ClusterNAT NAT config
 	ClusterNAT struct {

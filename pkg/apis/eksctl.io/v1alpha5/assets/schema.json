@@ -565,6 +565,14 @@
           "description": "for additional CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets",
           "x-intellij-html-description": "for additional CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets"
         },
+        "extraIPv6CIDRs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "for additional IPv6 CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets",
+          "x-intellij-html-description": "for additional IPv6 CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets"
+        },
         "id": {
           "type": "string"
         },
@@ -576,6 +584,12 @@
             "IPv4",
             "IPv6"
           ]
+        },
+        "ipv6Cidr": {
+          "type": "string"
+        },
+        "ipv6Pool": {
+          "type": "string"
         },
         "manageSharedNodeSecurityGroupRules": {
           "type": "boolean",
@@ -614,9 +628,12 @@
         "id",
         "cidr",
         "ipFamily",
+        "ipv6Cidr",
+        "ipv6Pool",
         "securityGroup",
         "subnets",
         "extraCIDRs",
+        "extraIPv6CIDRs",
         "sharedNodeSecurityGroup",
         "manageSharedNodeSecurityGroupRules",
         "autoAllocateIPv6",

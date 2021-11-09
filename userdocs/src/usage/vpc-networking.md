@@ -63,12 +63,17 @@ This is an in config file setting only. When IPv6 is set, the following restrict
 
 The default value is `IPv4`.
 
+Private networking can be done with IPv6 IP family as well. Please follow the instruction outlined under [EKS Private Cluster](/usage/eks-private-cluster).
+
 ## Change VPC CIDR
 
-If you need to setup peering with another VPC, or simply need a larger or smaller range of IPs, you can use `--vpc-cidr` flag to
+If you need to setup peering with another VPC, or simply need a larger or smaller range of IPv4 addresses, you can use `--vpc-cidr` flag to
 change it. Please refer to [the AWS docs][vpcsizing] for guides on choosing CIDR blocks which are permitted for use in an AWS VPC.
 
 [vpcsizing]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html#VPC_Sizing
+
+If you are creating an IPv6 cluster you can also bring your own IPv6 pool by configuring `VPC.IPv6Cidr` and `VPC.IPv6Pool`.
+See [AWS docs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html) on how to import your own pool.
 
 ## Use private subnets for initial nodegroup
 
@@ -456,7 +461,8 @@ There are some additional caveats when configuring Kubernetes API endpoint acces
    resources.  See:
    [EKS user guide](https://docs.aws.amazon.com/en_pv/eks/latest/userguide/cluster-endpoint#private-access)
    A user can elect to supply vpc.extraCIDRs which will append additional CIDR ranges to the ControlPlaneSecurityGroup,
-   allowing subnets outside the VPC to reach the kubernetes API endpoint.
+   allowing subnets outside the VPC to reach the kubernetes API endpoint. Similarly you can provide `vpc.extraIPv6CIDRs`
+   to append IPv6 CIDR ranges as well.
 
 The following is an example of how one could configure the Kubernetes API endpoint access using the `utils` sub-command:
 

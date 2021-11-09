@@ -385,33 +385,10 @@ var _ = Describe("VPC Template Builder", func() {
 			It("adds the correct subnet resources to the resource set", func() {
 				Expect(vpcTemplate.Resources).To(HaveKey("PublicUSWEST2ACIDRv6"))
 				Expect(vpcTemplate.Resources["PublicUSWEST2ACIDRv6"].Properties.SubnetID).To(Equal(makeRef(publicSubnetRef1)))
-				Expect(vpcTemplate.Resources["PublicUSWEST2ACIDRv6"].Properties.Ipv6CidrBlock["Fn::Select"]).To(HaveLen(2))
-				Expect(vpcTemplate.Resources["PublicUSWEST2ACIDRv6"].Properties.Ipv6CidrBlock["Fn::Select"][0].(float64)).To(BeNumerically("~", 0, 8))
-				actualFnCIDR, err := json.Marshal(vpcTemplate.Resources["PublicUSWEST2ACIDRv6"].Properties.Ipv6CidrBlock["Fn::Select"][1])
-				Expect(err).NotTo(HaveOccurred())
-				Expect(actualFnCIDR).To(MatchJSON([]byte(expectedFnCIDR)))
-
-				Expect(vpcTemplate.Resources).To(HaveKey("PublicUSWEST2BCIDRv6"))
-				Expect(vpcTemplate.Resources["PublicUSWEST2BCIDRv6"].Properties.SubnetID).To(Equal(makeRef(publicSubnetRef2)))
-				Expect(vpcTemplate.Resources["PublicUSWEST2BCIDRv6"].Properties.Ipv6CidrBlock["Fn::Select"]).To(HaveLen(2))
-				Expect(vpcTemplate.Resources["PublicUSWEST2BCIDRv6"].Properties.Ipv6CidrBlock["Fn::Select"][0].(float64)).To(BeNumerically("~", 0, 8))
-				actualFnCIDR, err = json.Marshal(vpcTemplate.Resources["PublicUSWEST2BCIDRv6"].Properties.Ipv6CidrBlock["Fn::Select"][1])
-				Expect(err).NotTo(HaveOccurred())
-				Expect(actualFnCIDR).To(MatchJSON([]byte(expectedFnCIDR)))
-
-				Expect(vpcTemplate.Resources["PrivateUSWEST2ACIDRv6"].Properties.SubnetID).To(Equal(makeRef(privateSubnetRef1)))
-				Expect(vpcTemplate.Resources["PrivateUSWEST2ACIDRv6"].Properties.Ipv6CidrBlock["Fn::Select"]).To(HaveLen(2))
-				Expect(vpcTemplate.Resources["PrivateUSWEST2ACIDRv6"].Properties.Ipv6CidrBlock["Fn::Select"][0].(float64)).To(BeNumerically("~", 0, 8))
-				actualFnCIDR, err = json.Marshal(vpcTemplate.Resources["PrivateUSWEST2ACIDRv6"].Properties.Ipv6CidrBlock["Fn::Select"][1])
-				Expect(err).NotTo(HaveOccurred())
-				Expect(actualFnCIDR).To(MatchJSON([]byte(expectedFnCIDR)))
-
-				Expect(vpcTemplate.Resources["PrivateUSWEST2BCIDRv6"].Properties.SubnetID).To(Equal(makeRef(privateSubnetRef2)))
-				Expect(vpcTemplate.Resources["PrivateUSWEST2BCIDRv6"].Properties.Ipv6CidrBlock["Fn::Select"]).To(HaveLen(2))
-				Expect(vpcTemplate.Resources["PrivateUSWEST2BCIDRv6"].Properties.Ipv6CidrBlock["Fn::Select"][0].(float64)).To(BeNumerically("~", 0, 8))
-				actualFnCIDR, err = json.Marshal(vpcTemplate.Resources["PrivateUSWEST2BCIDRv6"].Properties.Ipv6CidrBlock["Fn::Select"][1])
-				Expect(err).NotTo(HaveOccurred())
-				Expect(actualFnCIDR).To(MatchJSON([]byte(expectedFnCIDR)))
+				assertIpv6CidrBlockCreatedWithSelect(vpcTemplate.Resources["PublicUSWEST2BCIDRv6"].Properties.Ipv6CidrBlock, expectedFnCIDR)
+				assertIpv6CidrBlockCreatedWithSelect(vpcTemplate.Resources["PublicUSWEST2ACIDRv6"].Properties.Ipv6CidrBlock, expectedFnCIDR)
+				assertIpv6CidrBlockCreatedWithSelect(vpcTemplate.Resources["PrivateUSWEST2BCIDRv6"].Properties.Ipv6CidrBlock, expectedFnCIDR)
+				assertIpv6CidrBlockCreatedWithSelect(vpcTemplate.Resources["PrivateUSWEST2ACIDRv6"].Properties.Ipv6CidrBlock, expectedFnCIDR)
 			})
 		})
 
@@ -556,4 +533,14 @@ func makeRTOutput(subnetIds []string, main bool) *ec2.DescribeRouteTablesOutput 
 			}},
 		}},
 	}
+}
+
+func assertIpv6CidrBlockCreatedWithSelect(cidrBlock interface{}, expectedFnCIDR string) {
+	ExpectWithOffset(1, cidrBlock.(map[string]interface{})).To(HaveKey("Fn::Select"))
+	fnSelectValue := cidrBlock.(map[string]interface{})["Fn::Select"].([]interface{})
+	ExpectWithOffset(1, fnSelectValue).To(HaveLen(2))
+	ExpectWithOffset(1, fnSelectValue[0].(float64)).To(BeNumerically("~", 0, 8))
+	actualFnCIDR, err := json.Marshal(fnSelectValue[1])
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	ExpectWithOffset(1, actualFnCIDR).To(MatchJSON([]byte(expectedFnCIDR)))
 }

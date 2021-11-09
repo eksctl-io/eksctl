@@ -56,7 +56,7 @@ type Properties struct {
 	TargetGroupARNs                   []string
 	DesiredCapacity, MinSize, MaxSize string
 
-	CidrIP, CidrIpv6, IPProtocol string
+	CidrIP, CidrIPv6, IPProtocol string
 	FromPort, ToPort             int
 
 	VpcID, SubnetID                                         interface{}
@@ -66,7 +66,8 @@ type Properties struct {
 	MapPublicIPOnLaunch                                     bool
 	AssignIpv6AddressOnCreation                             *bool
 
-	Ipv6CidrBlock           map[string][]interface{}
+	Ipv6CidrBlock           interface{}
+	Ipv6Pool                string
 	CidrBlock               interface{}
 	KubernetesNetworkConfig KubernetesNetworkConfig
 

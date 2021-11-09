@@ -81,6 +81,8 @@ func (v *IPv6VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, erro
 	}
 
 	// add the rest of the public resources.
+	v.addIpv6CidrBlock()
+
 	refIGW := v.rs.newResource(IGWKey, &gfnec2.InternetGateway{})
 
 	v.rs.newResource(GAKey, &gfnec2.VPCGatewayAttachment{
@@ -156,6 +158,23 @@ func (v *IPv6VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, erro
 		Private: privateSubnets,
 		Public:  publicSubnets,
 	}, nil
+}
+
+func (v *IPv6VPCResourceSet) addIpv6CidrBlock() {
+	if v.clusterConfig.VPC.IPv6Cidr != "" {
+		v.rs.newResource(IPv6CIDRBlockKey, &gfnec2.VPCCidrBlock{
+			AmazonProvidedIpv6CidrBlock: gfnt.False(),
+			Ipv6CidrBlock:               v.clusterConfig.VPC.IPv6Cidr,
+			Ipv6Pool:                    v.clusterConfig.VPC.IPv6Pool,
+			VpcId:                       gfnt.MakeRef(VPCResourceKey),
+		})
+		return
+	}
+
+	v.rs.newResource(IPv6CIDRBlockKey, &gfnec2.VPCCidrBlock{
+		AmazonProvidedIpv6CidrBlock: gfnt.True(),
+		VpcId:                       gfnt.MakeRef(VPCResourceKey),
+	})
 }
 
 func (v *IPv6VPCResourceSet) RenderJSON() ([]byte, error) {
