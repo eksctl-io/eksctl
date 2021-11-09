@@ -269,6 +269,18 @@ API_SERVER_URL=https://test.com
 			}),
 			resourcesFilename: "lt_instance_types.json",
 		}),
+
+		Entry("Bottlerocket with volumeSize set", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "bottlerocket-volume",
+					AMIFamily:    api.NodeImageFamilyBottlerocket,
+					InstanceType: "m5.xlarge",
+					VolumeSize:   aws.Int(142),
+				},
+			},
+			resourcesFilename: "bottlerocket_volume.json",
+		}),
 	)
 })
 

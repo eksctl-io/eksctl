@@ -994,13 +994,14 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				Context("ng.AdditionalEncryptedVolume is set", func() {
 					BeforeEach(func() {
 						ng.AdditionalEncryptedVolume = "/foo/bar"
+						ng.VolumeEncrypted = aws.Bool(true)
 					})
 
 					It("the volume is added to the launch template block device mappings", func() {
 						Expect(ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.BlockDeviceMappings).To(HaveLen(2))
 						mapping := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.BlockDeviceMappings[1]
 						Expect(mapping.DeviceName).To(Equal("/foo/bar"))
-						Expect(mapping.Ebs["Encrypted"]).To(Equal(false))
+						Expect(mapping.Ebs["Encrypted"]).To(Equal(true))
 					})
 				})
 			})
