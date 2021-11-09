@@ -132,7 +132,7 @@ require (
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/go-github/v32 v32.1.0 // indirect
 	github.com/google/go-github/v35 v35.3.0 // indirect
-	github.com/google/go-querystring v1.0.0 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/rpmpack v0.0.0-20210410105602-e20c988a6f5a // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
@@ -144,7 +144,7 @@ require (
 	github.com/gordonklaus/ineffassign v0.0.0-20210225214923-2e10b2664254 // indirect
 	github.com/goreleaser/chglog v0.1.2 // indirect
 	github.com/goreleaser/fileglob v1.2.0 // indirect
-	github.com/goreleaser/goreleaser v0.182.1
+	github.com/goreleaser/goreleaser v0.184.0
 	github.com/goreleaser/nfpm/v2 v2.6.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/gostaticanalysis/analysisutil v0.4.1 // indirect
@@ -368,6 +368,7 @@ require (
 	github.com/DisgoOrg/disgohook v1.4.3 // indirect
 	github.com/DisgoOrg/log v1.1.0 // indirect
 	github.com/DisgoOrg/restclient v1.2.7 // indirect
+	github.com/alecthomas/jsonschema v0.0.0-20211022214203-8b29eab41725 // indirect
 	github.com/atc0005/go-teams-notify/v2 v2.6.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.9.0 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.7.0 // indirect
@@ -389,6 +390,8 @@ require (
 	github.com/fullstorydev/grpcurl v1.8.1 // indirect
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible // indirect
 	github.com/golang-jwt/jwt/v4 v4.0.0 // indirect
+	github.com/google/go-github/v39 v39.2.0 // indirect
+	github.com/iancoleman/orderedmap v0.0.0-20190318233801-ac98e3ecb4b0 // indirect
 	github.com/jhump/protoreflect v1.8.2 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/slack-go/slack v0.9.4 // indirect
