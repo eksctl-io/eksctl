@@ -32,8 +32,20 @@ func NewExistingVPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig
 }
 
 func (v *ExistingVPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, error) {
+	out, err := v.ec2API.DescribeVpcs(&awsec2.DescribeVpcsInput{
+		VpcIds: aws.StringSlice([]string{v.clusterConfig.VPC.ID}),
+	})
+
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to describe VPC %q: %w", v.clusterConfig.VPC.ID, err)
+	}
+
+	if len(out.Vpcs) == 0 {
+		return nil, nil, fmt.Errorf("VPC %q does not exist", v.clusterConfig.VPC.ID)
+	}
+
 	if v.clusterConfig.VPC.IPFamily == api.IPV6Family {
-		if err := v.checkIPv6CidrBlockAssociated(); err != nil {
+		if err := v.checkIPv6CidrBlockAssociated(out); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -43,17 +55,8 @@ func (v *ExistingVPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, 
 	return v.vpcID, v.subnetDetails, nil
 }
 
-func (v *ExistingVPCResourceSet) checkIPv6CidrBlockAssociated() error {
-	out, err := v.ec2API.DescribeVpcs(&awsec2.DescribeVpcsInput{
-		VpcIds: aws.StringSlice([]string{v.clusterConfig.VPC.ID}),
-	})
-	if err != nil {
-		return fmt.Errorf("failed to describe VPC %q: %w", v.clusterConfig.VPC.ID, err)
-	}
-	if len(out.Vpcs) == 0 {
-		return fmt.Errorf("VPC %q does not exist", v.clusterConfig.VPC.ID)
-	}
-	if len(out.Vpcs[0].Ipv6CidrBlockAssociationSet) == 0 {
+func (v *ExistingVPCResourceSet) checkIPv6CidrBlockAssociated(describeVPCOutput *awsec2.DescribeVpcsOutput) error {
+	if len(describeVPCOutput.Vpcs[0].Ipv6CidrBlockAssociationSet) == 0 {
 		return fmt.Errorf("VPC %q does not have any associated IPv6 cidr blocks", v.clusterConfig.VPC.ID)
 	}
 	return nil
