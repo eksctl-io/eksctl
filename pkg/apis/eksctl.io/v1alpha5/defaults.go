@@ -15,6 +15,13 @@ const (
 	IAMPolicyAmazonEKSCNIPolicy = "AmazonEKS_CNI_Policy"
 )
 
+const (
+	// Data volume, used by kubelet
+	bottlerocketDataDisk = "/dev/xvdb"
+	// OS volume
+	bottlerocketOSDisk = "/dev/xvda"
+)
+
 var (
 	AWSNodeMeta = ClusterIAMMeta{
 		Name:      "aws-node",
@@ -188,6 +195,10 @@ func setVolumeDefaults(ng *NodeGroupBase, template *LaunchTemplate) {
 	}
 	if *ng.VolumeType == NodeVolumeTypeIO1 && ng.VolumeIOPS == nil {
 		ng.VolumeIOPS = aws.Int(DefaultNodeVolumeIO1IOPS)
+	}
+	if ng.AMIFamily == NodeImageFamilyBottlerocket && !IsSetAndNonEmptyString(ng.VolumeName) {
+		ng.AdditionalEncryptedVolume = bottlerocketOSDisk
+		ng.VolumeName = aws.String(bottlerocketDataDisk)
 	}
 }
 
