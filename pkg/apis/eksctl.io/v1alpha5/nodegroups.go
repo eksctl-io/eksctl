@@ -94,3 +94,13 @@ func (c *ClusterConfig) AllNodeGroups() []*NodeGroupBase {
 	}
 	return baseNodeGroups
 }
+
+// HasWindowsNodeGroup returns true if an unmanaged Windows nodegroup exists.
+func (c *ClusterConfig) HasWindowsNodeGroup() bool {
+	for _, ng := range c.NodeGroups {
+		if IsWindowsImage(ng.AMIFamily) {
+			return true
+		}
+	}
+	return false
+}
