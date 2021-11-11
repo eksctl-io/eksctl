@@ -45,7 +45,15 @@ func IsKubeProxyUpToDate(input AddonInput) (bool, error) {
 		return false, fmt.Errorf("%s has %d containers, expected at least 1", KubeProxy, numContainers)
 	}
 
-	desiredTag := generateImageVersionFromClusterVersion(input.ControlPlaneVersion)
+	greaterThanOrEqualTo1_18, err := utils.IsMinVersion(api.Version1_18, input.ControlPlaneVersion)
+	if err != nil {
+		return false, err
+	}
+
+	desiredTag, err := getLatestKubeProxyImage(input, greaterThanOrEqualTo1_18)
+	if err != nil {
+		return false, err
+	}
 	image := d.Spec.Template.Spec.Containers[0].Image
 	imageTag, err := addons.ImageTag(image)
 	if err != nil {
@@ -176,7 +184,7 @@ func getLatestKubeProxyImage(input AddonInput, greaterThanOrEqualTo1_18 bool) (s
 	// Sometimes the EKS API is ahead, sometimes behind. Pick whichever is latest
 	eksVersionIsGreaterThanDefaultVersion, err := versionGreaterThan(latestEKSReportedVersion, defaultClusterVersion)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	if eksVersionIsGreaterThanDefaultVersion {

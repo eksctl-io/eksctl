@@ -17,14 +17,81 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var _ = Describe("default addons - kube-proxy", func() {
-	Context("UpdateKubeProxyImageTag", func() {
-		var (
-			clientSet    kubernetes.Interface
-			input        da.AddonInput
-			mockProvider *mockprovider.MockProvider
-		)
+var _ = Describe("KubeProxy", func() {
+	var (
+		clientSet    kubernetes.Interface
+		input        da.AddonInput
+		mockProvider *mockprovider.MockProvider
+	)
 
+	Context("IsKubeProxyUpToDate", func() {
+		BeforeEach(func() {
+			mockProvider = mockprovider.NewMockProvider()
+			input = da.AddonInput{
+				Region:              "eu-west-1",
+				EKSAPI:              mockProvider.EKS(),
+				ControlPlaneVersion: "1.15.11",
+			}
+		})
+		When("its not up-to-date", func() {
+			BeforeEach(func() {
+				rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.16-eksbuild.1.json")
+				input.RawClient = rawClient
+				clientSet = rawClient.ClientSet()
+
+			})
+
+			It("returns false", func() {
+				needsUpdating, err := da.IsKubeProxyUpToDate(input)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(needsUpdating).To(BeFalse())
+			})
+		})
+
+		When("when its up-to-date", func() {
+			BeforeEach(func() {
+				//1.15.11 image tag
+				rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.15-eksbuild.1.json")
+				input.RawClient = rawClient
+				clientSet = rawClient.ClientSet()
+			})
+
+			It("returns true", func() {
+				needsUpdating, err := da.IsKubeProxyUpToDate(input)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(needsUpdating).To(BeTrue())
+			})
+		})
+
+		When("it doesn't exist", func() {
+			BeforeEach(func() {
+				rawClient := testutils.NewFakeRawClient()
+				input.RawClient = rawClient
+				clientSet = rawClient.ClientSet()
+			})
+
+			// if it doesn't exist it doesn't need updating, so its up to date ¯\_(ツ)_/¯ according to #2667
+			It("returns true", func() {
+				needsUpdating, err := da.IsKubeProxyUpToDate(input)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(needsUpdating).To(BeTrue())
+			})
+		})
+
+		When("it has an existing invalid image tag", func() {
+			BeforeEach(func() {
+				rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.15-invalid-image.json")
+				input.RawClient = rawClient
+				clientSet = rawClient.ClientSet()
+			})
+			It("errors", func() {
+				_, err := da.IsKubeProxyUpToDate(input)
+				Expect(err).To(HaveOccurred())
+			})
+		})
+	})
+
+	Context("UpdateKubeProxyImageTag", func() {
 		When("the cluster version is older than 1.18", func() {
 			BeforeEach(func() {
 				rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.15.json")
