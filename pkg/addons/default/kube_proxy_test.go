@@ -92,45 +92,35 @@ var _ = Describe("KubeProxy", func() {
 	})
 
 	Context("UpdateKubeProxyImageTag", func() {
-		When("the cluster version is older than 1.18", func() {
-			BeforeEach(func() {
-				rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.15.json")
-				clientSet = rawClient.ClientSet()
-				mockProvider = mockprovider.NewMockProvider()
-				input = da.AddonInput{
-					RawClient:           rawClient,
-					ControlPlaneVersion: "1.16.0",
-					Region:              "eu-west-1",
-					EKSAPI:              mockProvider.EKS(),
-				}
-			})
+		BeforeEach(func() {
+			rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.15.json")
+			clientSet = rawClient.ClientSet()
+			mockProvider = mockprovider.NewMockProvider()
+			input = da.AddonInput{
+				RawClient:           rawClient,
+				ControlPlaneVersion: "1.16.0",
+				Region:              "eu-west-1",
+				EKSAPI:              mockProvider.EKS(),
+			}
+		})
 
-			It("can update to multi-architecture image based on control plane version", func() {
-				_, err := da.UpdateKubeProxy(input, false)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(kubeProxyImage(clientSet)).To(Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.16.0-eksbuild.1"))
-				Expect(kubeProxyNodeSelectorValues(clientSet)).To(ConsistOf("amd64", "arm64"))
-			})
+		It("can update to multi-architecture image based on control plane version", func() {
+			_, err := da.UpdateKubeProxy(input, false)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(kubeProxyImage(clientSet)).To(Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.16.0-eksbuild.1"))
+			Expect(kubeProxyNodeSelectorValues(clientSet)).To(ConsistOf("amd64", "arm64"))
+		})
 
-			It("can dry-run update based on control plane version", func() {
-				input.ControlPlaneVersion = "1.16.1"
-				_, err := da.UpdateKubeProxy(input, true)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(kubeProxyImage(clientSet)).To(Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.15.11"))
-			})
+		It("can dry-run update based on control plane version", func() {
+			input.ControlPlaneVersion = "1.16.1"
+			_, err := da.UpdateKubeProxy(input, true)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(kubeProxyImage(clientSet)).To(Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.15.11"))
 		})
 
 		When("the cluster version is 1.18 or newer", func() {
 			BeforeEach(func() {
-				rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-1.15.json")
-				clientSet = rawClient.ClientSet()
-				mockProvider = mockprovider.NewMockProvider()
-				input = da.AddonInput{
-					RawClient:           rawClient,
-					ControlPlaneVersion: "1.18.1",
-					Region:              "eu-west-1",
-					EKSAPI:              mockProvider.EKS(),
-				}
+				input.ControlPlaneVersion = "1.18.1"
 			})
 
 			When("the version reported by EKS API is more up-to-date than the default cluster version", func() {

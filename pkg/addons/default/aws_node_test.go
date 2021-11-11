@@ -5,16 +5,16 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/onsi/gomega/gstruct"
 
 	da "github.com/weaveworks/eksctl/pkg/addons/default"
 
 	"github.com/weaveworks/eksctl/pkg/testutils"
 
+	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var _ = Describe("default addons - aws-node", func() {
+var _ = Describe("AWS Node", func() {
 	var (
 		input     da.AddonInput
 		rawClient *testutils.FakeRawClient
@@ -29,7 +29,8 @@ var _ = Describe("default addons - aws-node", func() {
 			Region:              "eu-west-1",
 		}
 	})
-	Describe("properly checks for multi-architecture support", func() {
+
+	Describe("DoesAWSNodeSupportMultiArch", func() {
 		loadSample := func(f string) {
 			sampleAddons := testutils.LoadSamples(f)
 
@@ -48,6 +49,7 @@ var _ = Describe("default addons - aws-node", func() {
 			Expect(ct.Created()).NotTo(BeEmpty())
 			Expect(ct.CreatedItems()).To(HaveLen(10))
 		}
+
 		It("reports that 1.15 sample needs an update", func() {
 			loadSample("testdata/sample-1.15.json")
 			input.ControlPlaneVersion = "1.15.0"
@@ -57,6 +59,7 @@ var _ = Describe("default addons - aws-node", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeFalse())
 		})
+
 		It("reports that sample with 1.6.3-eksbuild.1 doesn't need an update", func() {
 			loadSample("testdata/sample-1.16-eksbuild.1.json")
 			rawClient.AssumeObjectsMissing = false
@@ -65,6 +68,7 @@ var _ = Describe("default addons - aws-node", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeTrue())
 		})
+
 		It("reports that sample with 1.7.6 doesn't need an update", func() {
 			loadSample("testdata/sample-1.16-v1.7.json")
 			rawClient.AssumeObjectsMissing = false
@@ -75,7 +79,8 @@ var _ = Describe("default addons - aws-node", func() {
 		})
 	})
 
-	Describe("can update aws-node add-on to multi-architecture images", func() {
+	Describe("UpdateAWSNode", func() {
+		var preUpdateAwsNode *v1.DaemonSet
 		BeforeEach(func() {
 			sampleAddons := testutils.LoadSamples("testdata/sample-1.15.json")
 
@@ -93,47 +98,18 @@ var _ = Describe("default addons - aws-node", func() {
 			Expect(ct.Updated()).To(BeEmpty())
 			Expect(ct.Created()).NotTo(BeEmpty())
 			Expect(ct.CreatedItems()).To(HaveLen(10))
+
+			var err error
+			preUpdateAwsNode, err = rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
 		})
 
-		It("can update the aws-node successfully", func() {
-			By("updating the 1.15 sample to latest multi-architecture image", func() {
-				rawClient.AssumeObjectsMissing = false
-
-				preUpdateAwsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
-				Expect(err).NotTo(HaveOccurred())
-				_, err = da.UpdateAWSNode(input, false)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(rawClient.Collection.UpdatedItems()).To(HaveLen(3))
-				Expect(rawClient.Collection.UpdatedItems()).NotTo(ContainElement(PointTo(MatchFields(IgnoreMissing|IgnoreExtras, Fields{
-					"TypeMeta": MatchFields(IgnoreMissing|IgnoreExtras, Fields{"Kind": Equal("ServiceAccount")}),
-				}))))
-				Expect(rawClient.Collection.CreatedItems()).To(HaveLen(10))
-
-				rawClient.ClientSetUseUpdatedObjects = true // for verification of updated objects
-
-				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
-				Expect(err).NotTo(HaveOccurred())
-				Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
-				Expect(awsNode.Spec.Template.Spec.Containers[0].Image).NotTo(
-					Equal(preUpdateAwsNode.Spec.Template.Spec.Containers[0].Image),
-				)
-				Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
-				Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
-					HavePrefix("602401143452.dkr.ecr.eu-west-1.amazonaws.com/amazon-k8s-cni-init"),
-				)
-				rawClient.ClearUpdated()
-			})
-
-			By("updating the 1.15 sample for different region to multi-architecture image", func() {
+		When("it is out of date", func() {
+			It("updates", func() {
 				input.Region = "us-east-1"
-				rawClient.ClientSetUseUpdatedObjects = false // must be set for subsequent UpdateAWSNode
 
-				preUpdateAwsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+				_, err := da.UpdateAWSNode(input, false)
 				Expect(err).NotTo(HaveOccurred())
-				_, err = da.UpdateAWSNode(input, false)
-				Expect(err).NotTo(HaveOccurred())
-
-				rawClient.ClientSetUseUpdatedObjects = true // for verification of updated objects
 
 				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
@@ -143,20 +119,17 @@ var _ = Describe("default addons - aws-node", func() {
 				)
 				Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
 				Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
-					HavePrefix("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni-init"),
+					Equal("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni-init:v1.9.3"),
 				)
 			})
+		})
 
-			By("updating the 1.15 sample for china region to multi-architecture image", func() {
+		When("using a chinese region", func() {
+			It("updates it and uses the amazonaws.com.cn address", func() {
 				input.Region = "cn-northwest-1"
-				rawClient.ClientSetUseUpdatedObjects = false // must be set for subsequent UpdateAWSNode
 
-				preUpdateAwsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+				_, err := da.UpdateAWSNode(input, false)
 				Expect(err).NotTo(HaveOccurred())
-				_, err = da.UpdateAWSNode(input, false)
-				Expect(err).NotTo(HaveOccurred())
-
-				rawClient.ClientSetUseUpdatedObjects = true // for verification of updated objects
 
 				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
@@ -166,15 +139,56 @@ var _ = Describe("default addons - aws-node", func() {
 				)
 				Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
 				Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
-					HavePrefix("961992271922.dkr.ecr.cn-northwest-1.amazonaws.com.cn/amazon-k8s-cni-init"),
+					Equal("961992271922.dkr.ecr.cn-northwest-1.amazonaws.com.cn/amazon-k8s-cni-init:v1.9.3"),
 				)
 			})
+		})
 
-			By("detecting matching image version when determining plan", func() {
-				// updating from latest to latest needs no updating
-				needsUpdate, err := da.UpdateAWSNode(input, true)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(needsUpdate).To(BeFalse())
+		When("dry run is true", func() {
+			When("it needs an update", func() {
+				It("returns true", func() {
+					needsUpdate, err := da.UpdateAWSNode(input, true)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(needsUpdate).To(BeTrue())
+
+					awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+					Expect(err).NotTo(HaveOccurred())
+					//should be unchanged
+					Expect(awsNode.Spec).To(Equal(preUpdateAwsNode.Spec))
+				})
+			})
+
+			When("it doesn't need an update", func() {
+				BeforeEach(func() {
+					rawClient = testutils.NewFakeRawClient()
+					input.RawClient = rawClient
+					sampleAddons := testutils.LoadSamples("assets/aws-node.yaml")
+
+					rawClient.AssumeObjectsMissing = true
+
+					for _, item := range sampleAddons {
+						rc, err := rawClient.NewRawResource(item)
+						Expect(err).NotTo(HaveOccurred())
+						_, err = rc.CreateOrReplace(false)
+						Expect(err).NotTo(HaveOccurred())
+					}
+
+					var err error
+					preUpdateAwsNode, err = rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				It("returns false", func() {
+					// updating from latest to latest needs no updating
+					needsUpdate, err := da.UpdateAWSNode(input, true)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(needsUpdate).To(BeFalse())
+
+					awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+					Expect(err).NotTo(HaveOccurred())
+					//should be unchanged
+					Expect(awsNode.Spec).To(Equal(preUpdateAwsNode.Spec))
+				})
 			})
 		})
 	})

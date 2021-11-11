@@ -12,6 +12,10 @@ type AddonInput struct {
 	Region              string
 }
 
+// DoAddonsSupportMultiArch checks if the coredns/kubeproxy/awsnode support multi arch nodegroups
+// We know that AWS node requires 1.6.3+ to work, so we check for that
+// Kubeproxy/coredns we don't know what version adds support, so we just ensure its up-to-date before proceeding.
+// TODO: we should know what versions of kubeproxy/coredns added support, rather than always erroring if they are out of date
 func DoAddonsSupportMultiArch(eksAPI eksiface.EKSAPI, rawClient kubernetes.RawClientInterface, controlPlaneVersion string, region string) (bool, error) {
 	input := AddonInput{
 		RawClient:           rawClient,
