@@ -63,6 +63,7 @@ func doUpdateKubeProxy(cmd *cmdutils.Cmd) error {
 		RawClient:           rawClient,
 		ControlPlaneVersion: kubernetesVersion,
 		Region:              meta.Region,
+		EKSAPI:              ctl.Provider.EKS(),
 	}, cmd.Plan)
 	if err != nil {
 		return err

@@ -12,11 +12,12 @@ type AddonInput struct {
 	Region              string
 }
 
-func DoAddonsSupportMultiArch(rawClient kubernetes.RawClientInterface, controlPlaneVersion string, region string) (bool, error) {
+func DoAddonsSupportMultiArch(eksAPI eksiface.EKSAPI, rawClient kubernetes.RawClientInterface, controlPlaneVersion string, region string) (bool, error) {
 	input := AddonInput{
 		RawClient:           rawClient,
 		ControlPlaneVersion: controlPlaneVersion,
 		Region:              region,
+		EKSAPI:              eksAPI,
 	}
 	kubeProxyUpToDate, err := IsKubeProxyUpToDate(input)
 	if err != nil {
