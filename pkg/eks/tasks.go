@@ -9,17 +9,18 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 
 	"github.com/weaveworks/eksctl/pkg/actions/identityproviders"
-	"github.com/weaveworks/eksctl/pkg/actions/irsa"
+	"github.com/weaveworks/eksctl/pkg/windows"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 	"github.com/weaveworks/eksctl/pkg/addons"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
@@ -41,6 +42,31 @@ func (t *clusterConfigTask) Do(errs chan error) error {
 	err := t.call(t.spec)
 	close(errs)
 	return err
+}
+
+// WindowsIPAMTask is a task for enabling Windows IPAM.
+type WindowsIPAMTask struct {
+	Info          string
+	ClientsetFunc func() (kubernetes.Interface, error)
+}
+
+// Do implements Task.
+func (w *WindowsIPAMTask) Do(errCh chan error) error {
+	defer close(errCh)
+
+	clientset, err := w.ClientsetFunc()
+	if err != nil {
+		return err
+	}
+	windowsIPAM := windows.IPAM{
+		Clientset: clientset,
+	}
+	return windowsIPAM.Enable(context.TODO())
+}
+
+// Describe implements Task.
+func (w *WindowsIPAMTask) Describe() string {
+	return w.Info
 }
 
 // VPCControllerTask represents a task to install the VPC controller
@@ -191,7 +217,7 @@ func (t *restartDaemonsetTask) Do(errCh chan error) error {
 }
 
 // CreateExtraClusterConfigTasks returns all tasks for updating cluster configuration not depending on the control plane availability
-func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, installVPCController bool) *tasks.TaskTree {
+func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig) *tasks.TaskTree {
 	newTasks := &tasks.TaskTree{
 		Parallel:  false,
 		IsSubTask: true,
@@ -277,11 +303,12 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 		newTasks.Append(identityproviders.NewAssociateProvidersTask(*cfg.Metadata, cfg.IdentityProviders, c.Provider.EKS()))
 	}
 
-	if installVPCController {
-		newTasks.Append(&VPCControllerTask{
-			Info:            "install Windows VPC controller",
-			ClusterConfig:   cfg,
-			ClusterProvider: c,
+	if cfg.HasWindowsNodeGroup() {
+		newTasks.Append(&WindowsIPAMTask{
+			Info: "enable Windows IP address management",
+			ClientsetFunc: func() (kubernetes.Interface, error) {
+				return c.NewStdClientSet(cfg)
+			},
 		})
 	}
 

@@ -105,7 +105,7 @@ var _ = Describe("AWS Node", func() {
 		})
 
 		When("it is out of date", func() {
-			It("updates", func() {
+			It("updates it", func() {
 				input.Region = "us-east-1"
 
 				_, err := da.UpdateAWSNode(input, false)
@@ -114,8 +114,8 @@ var _ = Describe("AWS Node", func() {
 				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
-				Expect(awsNode.Spec.Template.Spec.Containers[0].Image).NotTo(
-					Equal(preUpdateAwsNode.Spec.Template.Spec.Containers[0].Image),
+				Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
+					Equal("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni:v1.9.3"),
 				)
 				Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
 				Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
@@ -134,8 +134,8 @@ var _ = Describe("AWS Node", func() {
 				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
-				Expect(awsNode.Spec.Template.Spec.Containers[0].Image).NotTo(
-					Equal(preUpdateAwsNode.Spec.Template.Spec.Containers[0].Image),
+				Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
+					Equal("961992271922.dkr.ecr.cn-northwest-1.amazonaws.com.cn/amazon-k8s-cni:v1.9.3"),
 				)
 				Expect(awsNode.Spec.Template.Spec.InitContainers).To(HaveLen(1))
 				Expect(awsNode.Spec.Template.Spec.InitContainers[0].Image).To(
@@ -179,7 +179,6 @@ var _ = Describe("AWS Node", func() {
 				})
 
 				It("returns false", func() {
-					// updating from latest to latest needs no updating
 					needsUpdate, err := da.UpdateAWSNode(input, true)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(needsUpdate).To(BeFalse())
