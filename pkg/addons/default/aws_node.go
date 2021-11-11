@@ -27,7 +27,7 @@ const (
 )
 
 //go:embed assets/aws-node.yaml
-var awsNodeYaml []byte
+var latestAWSNodeYaml []byte
 
 // DoesAWSNodeSupportMultiArch makes sure awsnode supports ARM nodes
 func DoesAWSNodeSupportMultiArch(input AddonInput) (bool, error) {
@@ -80,18 +80,18 @@ func UpdateAWSNode(input AddonInput, plan bool) (bool, error) {
 		return false, errors.Wrapf(err, "getting %q", AWSNode)
 	}
 
-	// if DaemonSets is present, go through our list of assets
-	list, err := newList(awsNodeYaml)
+	resourceList, err := newList(latestAWSNodeYaml)
 	if err != nil {
 		return false, err
 	}
 
 	tagMismatch := true
-	for _, rawObj := range list.Items {
+	for _, rawObj := range resourceList.Items {
 		resource, err := input.RawClient.NewRawResource(rawObj.Object)
 		if err != nil {
 			return false, err
 		}
+
 		switch resource.GVK.Kind {
 		case "DaemonSet":
 			daemonSet, ok := resource.Info.Object.(*appsv1.DaemonSet)
