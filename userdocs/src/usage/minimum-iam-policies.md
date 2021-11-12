@@ -99,7 +99,14 @@ EksAllAccess
              ],
              "Resource": "*",
              "Effect": "Allow"
-        }
+        },
+        {
+             "Action": [
+               "logs:PutRetentionPolicy"
+             ],
+             "Resource": "*",
+             "Effect": "Allow"
+        }        
     ]
 }
 ```
