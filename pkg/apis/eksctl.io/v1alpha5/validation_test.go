@@ -563,6 +563,65 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	Describe("ValidatePrivateCluster", func() {
+		var (
+			cfg *api.ClusterConfig
+			vpc *api.ClusterVPC
+		)
+
+		BeforeEach(func() {
+			cfg = api.NewClusterConfig()
+			vpc = api.NewClusterVPC()
+			cfg.VPC = vpc
+			cfg.PrivateCluster = &api.PrivateCluster{
+				Enabled: true,
+			}
+		})
+		When("private cluster is enabled", func() {
+			It("validates the config", func() {
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+		When("vpc is provided but no private subnets", func() {
+			It("fails the validation", func() {
+				cfg.VPC.Subnets = &api.ClusterSubnets{}
+				cfg.VPC.ID = "id"
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).To(MatchError(ContainSubstring("vpc.subnets.private must be specified in a fully-private cluster when a pre-existing VPC is supplied")))
+			})
+		})
+		When("additional endpoints are defined with skip endpoints", func() {
+			It("fails the validation", func() {
+				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
+				cfg.PrivateCluster.SkipEndpointCreation = true
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).To(MatchError(ContainSubstring("additionalEndpoints cannot be defined together with skipEndpointCreation set to true")))
+			})
+		})
+		When("additional endpoints are defined", func() {
+			It("validates the endpoint configuration", func() {
+				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+		When("additional endpoints are defined incorrectly", func() {
+			It("fails the endpoint validation", func() {
+				cfg.PrivateCluster.AdditionalEndpointServices = []string{"unknown"}
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).To(MatchError(ContainSubstring("invalid value in privateCluster.additionalEndpointServices")))
+			})
+		})
+		When("private cluster is enabled with skip endpoints", func() {
+			It("does not fail the validation", func() {
+				cfg.PrivateCluster.SkipEndpointCreation = true
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+	})
+
 	Describe("cpuCredits", func() {
 		var ng *api.NodeGroup
 		BeforeEach(func() {
