@@ -103,6 +103,66 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		}
 	})
 
+	It("can update in different variations", func() {
+		sa := metav1.ObjectMeta{
+			Name:      "sa-1",
+			Namespace: "ns-1",
+			Annotations: map[string]string{
+				"foo": "bar",
+			},
+			Labels: map[string]string{
+				"label": "value",
+			},
+		}
+
+		err = MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa)
+		Expect(err).NotTo(HaveOccurred())
+
+		ok, err := CheckNamespaceExists(clientSet, sa.Namespace)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(ok).To(BeTrue())
+
+		ok, err = CheckServiceAccountExists(clientSet, sa)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(ok).To(BeTrue())
+
+		By("changing an existing value and not touching labels")
+		sa.Annotations["foo"] = "new"
+		err = MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa)
+		Expect(err).NotTo(HaveOccurred())
+
+		resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(resp.Labels).To(HaveKeyWithValue("label", "value"))
+		Expect(resp.Annotations).To(HaveKeyWithValue("foo", "new"))
+
+		By("adding a new value and not touching labels")
+		sa.Annotations["new"] = "value"
+		err = MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa)
+		Expect(err).NotTo(HaveOccurred())
+
+		resp, err = clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(resp.Labels).To(HaveKeyWithValue("label", "value"))
+		Expect(resp.Annotations).To(HaveKeyWithValue("foo", "new"))
+		Expect(resp.Annotations).To(HaveKeyWithValue("new", "value"))
+
+		By("updating the labels value")
+		sa.Labels["new"] = "value"
+		err = MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa)
+		Expect(err).NotTo(HaveOccurred())
+
+		resp, err = clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(resp.Labels).To(HaveKeyWithValue("label", "value"))
+		Expect(resp.Labels).To(HaveKeyWithValue("new", "value"))
+		Expect(resp.Annotations).To(HaveKeyWithValue("foo", "new"))
+		Expect(resp.Annotations).To(HaveKeyWithValue("new", "value"))
+	})
+
 	It("can delete existsing service account, and doesn't fail if it doesn't exist", func() {
 		sa := metav1.ObjectMeta{Name: "sa-2", Namespace: "ns-2"}
 

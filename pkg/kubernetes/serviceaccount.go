@@ -70,7 +70,7 @@ func MaybeCreateServiceAccountOrUpdateMetadata(clientSet Interface, meta metav1.
 	mergeMetadata := func(src, dst map[string]string) {
 		for key, value := range src {
 			currentValue, ok := dst[key]
-			updateRequired = !ok || ok && currentValue != value
+			updateRequired = updateRequired || !ok || (ok && currentValue != value)
 			dst[key] = value
 		}
 	}
