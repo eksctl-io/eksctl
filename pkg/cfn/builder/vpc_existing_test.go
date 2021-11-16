@@ -76,14 +76,17 @@ var _ = Describe("Existing VPC", func() {
 
 			By("the private subnet resource values are loaded into the VPCResource")
 			Expect(subnetDetails.Private).To(HaveLen(2))
-			Expect(subnetDetails.Private).To(ContainElement(builder.SubnetResource{
-				Subnet:           gfnt.NewString(privateSubnet2),
-				AvailabilityZone: azB,
-			}))
-			Expect(subnetDetails.Private).To(ContainElement(builder.SubnetResource{
-				Subnet:           gfnt.NewString(privateSubnet1),
-				AvailabilityZone: azA,
-			}))
+			Expect(subnetDetails.Private).To(ContainElements(
+				builder.SubnetResource{
+					Subnet:           gfnt.NewString(privateSubnet2),
+					AvailabilityZone: azB,
+				},
+				builder.SubnetResource{
+					Subnet:           gfnt.NewString(privateSubnet1),
+					AvailabilityZone: azA,
+				}),
+			)		
+
 
 			By("the public subnet resource values are loaded into the VPCResource")
 			Expect(subnetDetails.Public).To(HaveLen(2))
