@@ -72,7 +72,7 @@ var _ = Describe("Existing VPC", func() {
 			Expect(vpcID).To(Equal(gfnt.NewString("custom-vpc")))
 
 			By("no resources are added to the set")
-			Expect(vpcTemplate.Resources).To(HaveLen(0))
+			Expect(vpcTemplate.Resources).To(BeEmpty())
 
 			By("the private subnet resource values are loaded into the VPCResource")
 			Expect(subnetDetails.Private).To(HaveLen(2))
