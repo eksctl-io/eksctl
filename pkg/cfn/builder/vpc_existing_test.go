@@ -85,8 +85,7 @@ var _ = Describe("Existing VPC", func() {
 					Subnet:           gfnt.NewString(privateSubnet1),
 					AvailabilityZone: azA,
 				}),
-			)		
-
+			)
 
 			By("the public subnet resource values are loaded into the VPCResource")
 			Expect(subnetDetails.Public).To(HaveLen(2))
@@ -99,7 +98,7 @@ var _ = Describe("Existing VPC", func() {
 					Subnet:           gfnt.NewString(publicSubnet1),
 					AvailabilityZone: azA,
 				}),
-			)			
+			)
 		})
 
 		When("and the VPC does not exist", func() {
@@ -151,7 +150,7 @@ var _ = Describe("Existing VPC", func() {
 				})
 
 				It("errors", func() {
-					Expect(addErr).To(MatchError("VPC \"custom-vpc\" does not have any associated IPv6 cidr blocks"))
+					Expect(addErr).To(MatchError("VPC \"custom-vpc\" does not have any associated IPv6 CIDR blocks"))
 				})
 			})
 		})

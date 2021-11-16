@@ -57,7 +57,7 @@ func (v *ExistingVPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, 
 
 func (v *ExistingVPCResourceSet) checkIPv6CidrBlockAssociated(describeVPCOutput *awsec2.DescribeVpcsOutput) error {
 	if len(describeVPCOutput.Vpcs[0].Ipv6CidrBlockAssociationSet) == 0 {
-		return fmt.Errorf("VPC %q does not have any associated IPv6 cidr blocks", v.clusterConfig.VPC.ID)
+		return fmt.Errorf("VPC %q does not have any associated IPv6 CIDR blocks", v.clusterConfig.VPC.ID)
 	}
 	return nil
 }
