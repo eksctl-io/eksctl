@@ -741,7 +741,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				})
 			})
 
-			When("its set alongside VPC.ID", func() {
+			When("it's set alongside VPC.ID", func() {
 				It("returns an error", func() {
 					cfg.VPC.IPFamily = api.IPV6Family
 					cfg.VPC.IPv6Cidr = "foo"
