@@ -90,14 +90,16 @@ var _ = Describe("Existing VPC", func() {
 
 			By("the public subnet resource values are loaded into the VPCResource")
 			Expect(subnetDetails.Public).To(HaveLen(2))
-			Expect(subnetDetails.Public).To(ContainElement(builder.SubnetResource{
-				Subnet:           gfnt.NewString(publicSubnet2),
-				AvailabilityZone: azB,
-			}))
-			Expect(subnetDetails.Public).To(ContainElement(builder.SubnetResource{
-				Subnet:           gfnt.NewString(publicSubnet1),
-				AvailabilityZone: azA,
-			}))
+			Expect(subnetDetails.Public).To(ContainElements(
+				builder.SubnetResource{
+					Subnet:           gfnt.NewString(publicSubnet2),
+					AvailabilityZone: azB,
+				},
+				builder.SubnetResource{
+					Subnet:           gfnt.NewString(publicSubnet1),
+					AvailabilityZone: azA,
+				}),
+			)			
 		})
 
 		When("and the VPC does not exist", func() {
