@@ -50,6 +50,7 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 	}
 	cfg := cmd.ClusterConfig
 
+	// TODO: move this into a loader when --config-file gets added to this command
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
 	}
