@@ -203,19 +203,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		Context("and scale the initial nodegroup", func() {
-			It("should not return an error", func() {
-				cmd := params.EksctlScaleNodeGroupCmd.WithArgs(
-					"--cluster", params.ClusterName,
-					"--nodes-min", "3",
-					"--nodes", "4",
-					"--nodes-max", "5",
-					"--name", initNG,
-				)
-				Expect(cmd).To(RunSuccessfully())
-			})
-		})
-
 		Context("and create a new nodegroup with taints and maxPods", func() {
 			It("should have taints and maxPods set", func() {
 				By("creating a new nodegroup with taints and maxPods set")
@@ -425,6 +412,50 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					WithoutArg("--region", params.Region).
 					WithStdin(clusterutils.Reader(clusterConfig))
 				Expect(cmd).To(RunSuccessfully())
+			})
+		})
+
+		When("scaling nodegroup(s)", func() {
+			It("should scale a single nodegroup", func() {
+				By("passing the name of the nodegroup as a flag")
+				cmd := params.EksctlScaleNodeGroupCmd.WithArgs(
+					"--cluster", params.ClusterName,
+					"--nodes-min", "3",
+					"--nodes", "4",
+					"--nodes-max", "5",
+					"--name", initNG,
+				)
+				Expect(cmd).To(RunSuccessfully())
+			})
+
+			It("should scale all nodegroups", func() {
+				By("scaling all nodegroups in the config file o the desired capacity, max size, and min size")
+				cmd := params.EksctlScaleNodeGroupCmd.WithArgs(
+					"--config-file", "-",
+				).
+					WithoutArg("--region", params.Region).
+					WithStdin(clusterutils.ReaderFromFile(params.ClusterName, params.Region, "testdata/scale-nodegroups.yaml"))
+				Expect(cmd).To(RunSuccessfully())
+
+				getMngNgCmd := params.EksctlGetCmd.WithArgs(
+					"nodegroup",
+					"--cluster", params.ClusterName,
+					"--name", initNG,
+					"-o", "yaml",
+				)
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MaxSize: 5")))
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MinSize: 5")))
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("DesiredCapacity: 5")))
+
+				getUnmNgCmd := params.EksctlGetCmd.WithArgs(
+					"nodegroup",
+					"--cluster", params.ClusterName,
+					"--name", "n1",
+					"-o", "yaml",
+				)
+				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MaxSize: 5")))
+				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MinSize: 5")))
+				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("DesiredCapacity: 5")))
 			})
 		})
 
