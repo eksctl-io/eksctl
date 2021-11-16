@@ -60,7 +60,7 @@ $ eksctl create cluster -f instance-selector-cluster.yaml
 
 The following instance selector CLI options are supported by `eksctl create cluster` and `eksctl create nodegroup`:
 
-`--instance-selector-vcpus`, `--instance-selector-memory`, `--instance-selector-gpus` and `instance-selector-cpu-architecture`
+`--instance-selector-vcpus`, `--instance-selector-memory`, `--instance-selector-gpus`,`--instance-selector-cpu-architecture`, `--instance-selector-allow` and `--instance-selector-deny`
 
 An example file can be found [here](https://github.com/weaveworks/eksctl/blob/main/examples/28-instance-selector.yaml).
 

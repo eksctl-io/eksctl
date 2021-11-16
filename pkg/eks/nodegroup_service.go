@@ -3,6 +3,7 @@ package eks
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/bytequantity"
@@ -59,6 +60,8 @@ func NewNodeGroupService(provider api.ClusterProvider, instanceSelector Instance
 }
 
 const defaultCPUArch = "x86_64"
+const defaultAllow = ".+"
+const defaultDeny = "^$"
 
 // NewAWSSelectorSession returns a new instance of Selector provided an aws session
 func (m *NodeGroupService) NewAWSSelectorSession(provider api.ClusterProvider) {
@@ -206,6 +209,26 @@ func (m *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 		cpuArch = defaultCPUArch
 	}
 	filters.CPUArchitecture = aws.String(cpuArch)
+
+	deny := ins.DenyRegex
+	if deny == "" {
+		deny = defaultDeny
+	}
+	denyRegexp, err := regexp.Compile(deny)
+	if err != nil {
+		return nil, errors.Wrap(err, "error building regex for instance selector criteria deny list")
+	}
+	filters.DenyList = denyRegexp
+
+	allow := ins.AllowRegex
+	if allow == "" {
+		allow = defaultAllow
+	}
+	allowRegexp, err := regexp.Compile(allow)
+	if err != nil {
+		return nil, errors.Wrap(err, "error building regex for instance selector criteria allow list")
+	}
+	filters.AllowList = allowRegexp
 
 	instanceTypes, err := m.instanceSelector.Filter(filters)
 	if err != nil {

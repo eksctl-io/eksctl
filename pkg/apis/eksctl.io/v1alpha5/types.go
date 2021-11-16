@@ -1604,6 +1604,10 @@ type InstanceSelector struct {
 	// `"amd64"`
 	// `"arm64"`
 	CPUArchitecture string `json:"cpuArchitecture,omitempty"`
+	// Allow is a regex that matching instances must meet to be selected
+	AllowRegex string `json:"allow,omitempty"`
+	// Deny is a regex that prevents matching instances from being selected
+	DenyRegex string `json:"deny,omitempty"`
 }
 
 // IsZero returns true if all fields hold a zero value

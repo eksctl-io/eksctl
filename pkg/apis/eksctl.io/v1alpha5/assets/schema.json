@@ -816,6 +816,11 @@
     },
     "InstanceSelector": {
       "properties": {
+        "allow": {
+          "type": "string",
+          "description": "Allow is a regex that matching instances must meet to be selected",
+          "x-intellij-html-description": "Allow is a regex that matching instances must meet to be selected"
+        },
         "cpuArchitecture": {
           "type": "string",
           "description": "CPU Architecture of the EC2 instance type. Valid variants are: `\"x86_64\"` `\"amd64\"` `\"arm64\"`",
@@ -825,6 +830,11 @@
             "amd64",
             "arm64"
           ]
+        },
+        "deny": {
+          "type": "string",
+          "description": "Deny is a regex that prevents matching instances from being selected",
+          "x-intellij-html-description": "Deny is a regex that prevents matching instances from being selected"
         },
         "gpus": {
           "type": "integer",
@@ -846,7 +856,9 @@
         "vCPUs",
         "memory",
         "gpus",
-        "cpuArchitecture"
+        "cpuArchitecture",
+        "allow",
+        "deny"
       ],
       "additionalProperties": false,
       "description": "holds EC2 instance selector options",
