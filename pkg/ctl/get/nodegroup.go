@@ -38,12 +38,16 @@ func getNodeGroupCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
 func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) error {
+	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
+		return err
+	}
 	cfg := cmd.ClusterConfig
 
 	// TODO: move this into a loader when --config-file gets added to this command
