@@ -279,7 +279,7 @@ func (m *Manager) checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes
 		return err
 	}
 	if api.ClusterHasInstanceType(cfg, instanceutils.IsARMInstanceType) {
-		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(clientSet, rawClient, kubernetesVersion, ctl.Provider.Region())
+		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(ctl.Provider.EKS(), rawClient, kubernetesVersion, ctl.Provider.Region())
 		if err != nil {
 			return err
 		}

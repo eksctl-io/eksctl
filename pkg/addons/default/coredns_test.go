@@ -16,6 +16,7 @@ var _ = Describe("default addons - coredns", func() {
 	var (
 		rawClient           *testutils.FakeRawClient
 		ct                  *testutils.CollectionTracker
+		input               da.AddonInput
 		region              string
 		controlPlaneVersion string
 		kubernetesVersion   string
@@ -28,6 +29,12 @@ var _ = Describe("default addons - coredns", func() {
 		region = "eu-west-2"
 		controlPlaneVersion = "1.17.x"
 		kubernetesVersion = "1.16"
+
+		input = da.AddonInput{
+			RawClient:           rawClient,
+			ControlPlaneVersion: controlPlaneVersion,
+			Region:              region,
+		}
 	})
 
 	Context("UpdateCoreDNS", func() {
@@ -41,7 +48,7 @@ var _ = Describe("default addons - coredns", func() {
 		})
 
 		It("updates coredns to the correct version", func() {
-			_, err := da.UpdateCoreDNS(rawClient, region, controlPlaneVersion, false)
+			_, err := da.UpdateCoreDNS(input, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			updateReqs := []string{
@@ -67,17 +74,17 @@ var _ = Describe("default addons - coredns", func() {
 	Context("IsCoreDNSUpToDate", func() {
 		BeforeEach(func() {
 			createCoreDNSFromTestSample(rawClient, ct, kubernetesVersion)
-			_, err := da.UpdateCoreDNS(rawClient, region, controlPlaneVersion, false)
+			_, err := da.UpdateCoreDNS(input, false)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Context("when CoreDNS is NOT up to date", func() {
 			BeforeEach(func() {
-				controlPlaneVersion = "1.18.x"
+				input.ControlPlaneVersion = "1.18.x"
 			})
 
 			It("reports 'false'", func() {
-				isUpToDate, err := da.IsCoreDNSUpToDate(rawClient, region, controlPlaneVersion)
+				isUpToDate, err := da.IsCoreDNSUpToDate(input)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(isUpToDate).To(Equal(false))
 			})
@@ -85,7 +92,7 @@ var _ = Describe("default addons - coredns", func() {
 
 		Context("when CoreDNS is up to date", func() {
 			It("reports 'true'", func() {
-				isUpToDate, err := da.IsCoreDNSUpToDate(rawClient, region, controlPlaneVersion)
+				isUpToDate, err := da.IsCoreDNSUpToDate(input)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(isUpToDate).To(Equal(true))
 			})
