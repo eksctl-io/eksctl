@@ -13,6 +13,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder/fakes"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/eks/mocks"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
@@ -99,6 +100,49 @@ var _ = Describe("Existing VPC", func() {
 					AvailabilityZone: azA,
 				}),
 			)
+
+			By("outputting the VPC on the stack")
+			Expect(vpcTemplate.Outputs).To(HaveKey(builder.VPCResourceKey))
+			Expect(vpcTemplate.Outputs.(map[string]interface{})[builder.VPCResourceKey].(map[string]interface{})["Value"]).To(Equal("custom-vpc"))
+			Expect(vpcTemplate.Outputs.(map[string]interface{})[builder.VPCResourceKey].(map[string]interface{})["Export"]).To(Equal(map[string]interface{}{
+				"Name": map[string]interface{}{
+					"Fn::Sub": fmt.Sprintf("${AWS::StackName}::%s", builder.VPCResourceKey),
+				},
+			}))
+
+			By("outputting the public subnets on the stack")
+			Expect(vpcTemplate.Outputs).To(HaveKey(outputs.ClusterSubnetsPublic))
+			Expect(vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPublic].(map[string]interface{})["Value"]).To(Equal(map[string]interface{}{
+				"Fn::Join": []interface{}{
+					",",
+					[]interface{}{
+						publicSubnet2,
+						publicSubnet1,
+					},
+				},
+			}))
+			Expect(vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPublic].(map[string]interface{})["Export"]).To(Equal(map[string]interface{}{
+				"Name": map[string]interface{}{
+					"Fn::Sub": fmt.Sprintf("${AWS::StackName}::%s", outputs.ClusterSubnetsPublic),
+				},
+			}))
+
+			By("outputting the private subnets on the stack")
+			Expect(vpcTemplate.Outputs).To(HaveKey(outputs.ClusterSubnetsPrivate))
+			Expect(vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPrivate].(map[string]interface{})["Value"]).To(Equal(map[string]interface{}{
+				"Fn::Join": []interface{}{
+					",",
+					[]interface{}{
+						privateSubnet2,
+						privateSubnet1,
+					},
+				},
+			}))
+			Expect(vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPrivate].(map[string]interface{})["Export"]).To(Equal(map[string]interface{}{
+				"Name": map[string]interface{}{
+					"Fn::Sub": fmt.Sprintf("${AWS::StackName}::%s", outputs.ClusterSubnetsPrivate),
+				},
+			}))
 		})
 
 		When("and the VPC does not exist", func() {
