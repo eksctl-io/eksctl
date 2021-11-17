@@ -59,7 +59,12 @@ func doUpdateCoreDNS(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	updateRequired, err := defaultaddons.UpdateCoreDNS(rawClient, meta.Region, kubernetesVersion, cmd.Plan)
+	updateRequired, err := defaultaddons.UpdateCoreDNS(defaultaddons.AddonInput{
+		RawClient:           rawClient,
+		ControlPlaneVersion: kubernetesVersion,
+		Region:              meta.Region,
+	}, cmd.Plan)
+
 	if err != nil {
 		return err
 	}

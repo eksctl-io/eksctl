@@ -17,7 +17,7 @@ var _ = Describe("get", func() {
 		It("--name and --config-file together", func() {
 			f, err := os.CreateTemp("", "configfile")
 			Expect(err).NotTo(HaveOccurred())
-			_, err = f.WriteString(configFile)
+			_, err = f.WriteString(getClusterConfigFile)
 			Expect(err).NotTo(HaveOccurred())
 			cmd := newMockCmd("cluster", "--name", "dummy", "--config-file", f.Name())
 			_, err = cmd.execute()
@@ -26,7 +26,7 @@ var _ = Describe("get", func() {
 	})
 })
 
-var configFile = `apiVersion: eksctl.io/v1alpha5
+var getClusterConfigFile = `apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 metadata:
   name: test-nodegroup-cluster-config
