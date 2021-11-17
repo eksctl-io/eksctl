@@ -103,10 +103,13 @@ var _ = Describe("(Integration) [using existing VPC]", func() {
 				Name: mng1,
 			}},
 		}
-		// write config file so that the nodegroup creates have access to the vpc spec
+
+		By("writing the config file")
 		configData, err := json.Marshal(&cfg)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(ioutil.WriteFile(configFile.Name(), configData, 0755)).To(Succeed())
+
+		By("creating the nodegroups")
 		cmd := params.EksctlCreateCmd.
 			WithArgs(
 				"nodegroup",
@@ -115,7 +118,7 @@ var _ = Describe("(Integration) [using existing VPC]", func() {
 			).WithoutArg("--region", params.Region)
 		Expect(cmd).To(RunSuccessfully())
 
-		//GetCluster shows us what subnets/vpc the EKS cluster was created with
+		By("checking the cluster is created with the corret VPC/subnets")
 		cmd = params.EksctlGetCmd.WithArgs("cluster", "--name", params.ClusterName, "-o", "yaml")
 		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 			ContainElement(ContainSubstring(cfg.VPC.ID)),
@@ -130,8 +133,9 @@ var _ = Describe("(Integration) [using existing VPC]", func() {
 })
 
 func createVPC(stackName string, ctl api.ClusterProvider) *api.ClusterVPC {
-	publicSubnets, privateSubnets, vpcID, securityGroup := createStackAndGetOutputs(stackName, ctl)
+	publicSubnets, privateSubnets, vpcID, securityGroup := createVPCStackAndGetOutputs(stackName, ctl)
 
+	By("creating the cluster config from the existing VPC")
 	newVPC := api.NewClusterVPC()
 	newVPC.ID = vpcID
 	newVPC.SecurityGroup = securityGroup
@@ -163,12 +167,13 @@ func createVPC(stackName string, ctl api.ClusterProvider) *api.ClusterVPC {
 	return newVPC
 }
 
-func createStackAndGetOutputs(stackName string, ctl api.ClusterProvider) ([]string, []string, string, string) {
+func createVPCStackAndGetOutputs(stackName string, ctl api.ClusterProvider) ([]string, []string, string, string) {
 	templateBody, err := ioutil.ReadFile("cf-template.yaml")
 	Expect(err).NotTo(HaveOccurred())
 	createStackInput := &cfn.CreateStackInput{
 		StackName: &stackName,
 	}
+	By("creating the stack")
 	createStackInput.SetTemplateBody(string(templateBody))
 	createStackInput.SetCapabilities(aws.StringSlice([]string{cfn.CapabilityCapabilityIam}))
 	createStackInput.SetCapabilities(aws.StringSlice([]string{cfn.CapabilityCapabilityNamedIam}))
@@ -185,6 +190,7 @@ func createStackAndGetOutputs(stackName string, ctl api.ClusterProvider) ([]stri
 		return *describeStackOut.Stacks[0].StackStatus
 	}, time.Minute*10, time.Second*15).Should(Equal(cfn.StackStatusCreateComplete))
 
+	By("fetching the outputs of the stack")
 	var vpcID string
 	var publicSubnets, privateSubnets, securityGroups []string
 	for _, output := range describeStackOut.Stacks[0].Outputs {
