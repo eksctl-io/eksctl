@@ -70,7 +70,15 @@ func (a *Manager) Create(addon *api.Addon, wait bool) error {
 			createAddonInput.ServiceAccountRoleArn = &outputRole
 		} else if a.hasRecommendedPolicies(addon) {
 			logger.Info("creating role using recommended policies")
-			a.setRecommendedPolicies(addon)
+			attachPolicyARNs, wellKnownPolicies := a.getRecommendedPolicies(addon)
+
+			if attachPolicyARNs != nil {
+				addon.AttachPolicyARNs = attachPolicyARNs
+			}
+			if wellKnownPolicies != nil {
+				addon.WellKnownPolicies = *wellKnownPolicies
+			}
+
 			outputRole, err := a.createRole(addon, namespace, serviceAccount)
 			if err != nil {
 				return err
@@ -175,21 +183,21 @@ func (a *Manager) patchAWSNodeDaemonSet() error {
 }
 
 func (a *Manager) hasRecommendedPolicies(addon *api.Addon) bool {
-	updatedAddon := addon.DeepCopy()
-	a.setRecommendedPolicies(updatedAddon)
-	return hasPoliciesSet(updatedAddon)
+	attachPolicyARNs, wellKnownPolicies := a.getRecommendedPolicies(addon)
+	return attachPolicyARNs != nil || wellKnownPolicies != nil
 }
 
-func (a *Manager) setRecommendedPolicies(addon *api.Addon) {
+func (a *Manager) getRecommendedPolicies(addon *api.Addon) ([]string, *api.WellKnownPolicies) {
 	// API isn't case sensitive
 	switch addon.CanonicalName() {
 	case vpcCNIName:
-		addon.AttachPolicyARNs = []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}
+		return []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}, nil
 	case ebsCSIDriverName:
-		addon.WellKnownPolicies = api.WellKnownPolicies{
+		return nil, &api.WellKnownPolicies{
 			EBSCSIController: true,
 		}
 	}
+	return nil, nil
 }
 
 func (a *Manager) getKnownServiceAccountLocation(addon *api.Addon) (string, string) {
