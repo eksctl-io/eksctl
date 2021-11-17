@@ -18,7 +18,6 @@ var _ = Describe("AWS Node", func() {
 	var (
 		input     da.AddonInput
 		rawClient *testutils.FakeRawClient
-		ct        *testutils.CollectionTracker
 	)
 
 	BeforeEach(func() {
@@ -31,27 +30,8 @@ var _ = Describe("AWS Node", func() {
 	})
 
 	Describe("DoesAWSNodeSupportMultiArch", func() {
-		loadSample := func(f string) {
-			sampleAddons := testutils.LoadSamples(f)
-
-			rawClient.AssumeObjectsMissing = true
-
-			for _, item := range sampleAddons {
-				rc, err := rawClient.NewRawResource(item)
-				Expect(err).NotTo(HaveOccurred())
-				_, err = rc.CreateOrReplace(false)
-				Expect(err).NotTo(HaveOccurred())
-			}
-
-			ct = rawClient.Collection
-
-			Expect(ct.Updated()).To(BeEmpty())
-			Expect(ct.Created()).NotTo(BeEmpty())
-			Expect(ct.CreatedItems()).To(HaveLen(10))
-		}
-
 		It("reports that 1.15 sample needs an update", func() {
-			loadSample("testdata/sample-1.15.json")
+			loadSamples(rawClient, "testdata/sample-1.15.json")
 			input.ControlPlaneVersion = "1.15.0"
 			rawClient.AssumeObjectsMissing = false
 
@@ -61,7 +41,7 @@ var _ = Describe("AWS Node", func() {
 		})
 
 		It("reports that sample with 1.6.3-eksbuild.1 doesn't need an update", func() {
-			loadSample("testdata/sample-1.16-eksbuild.1.json")
+			loadSamples(rawClient, "testdata/sample-1.16-eksbuild.1.json")
 			rawClient.AssumeObjectsMissing = false
 
 			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(input)
@@ -70,7 +50,7 @@ var _ = Describe("AWS Node", func() {
 		})
 
 		It("reports that sample with 1.7.6 doesn't need an update", func() {
-			loadSample("testdata/sample-1.16-v1.7.json")
+			loadSamples(rawClient, "testdata/sample-1.16-v1.7.json")
 			rawClient.AssumeObjectsMissing = false
 
 			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(input)
@@ -82,22 +62,7 @@ var _ = Describe("AWS Node", func() {
 	Describe("UpdateAWSNode", func() {
 		var preUpdateAwsNode *v1.DaemonSet
 		BeforeEach(func() {
-			sampleAddons := testutils.LoadSamples("testdata/sample-1.15.json")
-
-			rawClient.AssumeObjectsMissing = true
-
-			for _, item := range sampleAddons {
-				rc, err := rawClient.NewRawResource(item)
-				Expect(err).NotTo(HaveOccurred())
-				_, err = rc.CreateOrReplace(false)
-				Expect(err).NotTo(HaveOccurred())
-			}
-
-			ct = rawClient.Collection
-
-			Expect(ct.Updated()).To(BeEmpty())
-			Expect(ct.Created()).NotTo(BeEmpty())
-			Expect(ct.CreatedItems()).To(HaveLen(10))
+			loadSamples(rawClient, "testdata/sample-1.15.json")
 
 			var err error
 			preUpdateAwsNode, err = rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
@@ -162,16 +127,7 @@ var _ = Describe("AWS Node", func() {
 				BeforeEach(func() {
 					rawClient = testutils.NewFakeRawClient()
 					input.RawClient = rawClient
-					sampleAddons := testutils.LoadSamples("assets/aws-node.yaml")
-
-					rawClient.AssumeObjectsMissing = true
-
-					for _, item := range sampleAddons {
-						rc, err := rawClient.NewRawResource(item)
-						Expect(err).NotTo(HaveOccurred())
-						_, err = rc.CreateOrReplace(false)
-						Expect(err).NotTo(HaveOccurred())
-					}
+					loadSamples(rawClient, "assets/aws-node.yaml")
 
 					var err error
 					preUpdateAwsNode, err = rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
@@ -192,3 +148,15 @@ var _ = Describe("AWS Node", func() {
 		})
 	})
 })
+
+func loadSamples(rawClient *testutils.FakeRawClient, samplesPath string) {
+	sampleAddons := testutils.LoadSamples(samplesPath)
+	rawClient.AssumeObjectsMissing = true
+
+	for _, item := range sampleAddons {
+		rc, err := rawClient.NewRawResource(item)
+		Expect(err).NotTo(HaveOccurred())
+		_, err = rc.CreateOrReplace(false)
+		Expect(err).NotTo(HaveOccurred())
+	}
+}
