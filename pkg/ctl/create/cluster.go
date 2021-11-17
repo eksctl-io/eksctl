@@ -32,6 +32,14 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
+const (
+	vpcControllerInfoMessage = "you no longer need to install the VPC resource controller on Linux worker nodes to run " +
+		"Windows workloads in EKS clusters created after Oct 22, 2021. You can enable Windows IP address management on the EKS control plane via " +
+		"a ConﬁgMap setting (see https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html for details). eksctl will automatically patch the ConfigMap to enable " +
+		"Windows IP address management when a Windows nodegroup is created. For existing clusters, you can enable it manually " +
+		"and run `eksctl utils install-vpc-controllers` with the --delete ﬂag to remove the worker node installation of the VPC resource controller"
+)
+
 func createClusterCmd(cmd *cmdutils.Cmd) {
 	createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams) error {
 		return doCreateCluster(cmd, ngFilter, params)
@@ -71,6 +79,8 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 		fs.BoolVarP(&params.InstallWindowsVPCController, "install-vpc-controllers", "", false, "Install VPC controller that's required for Windows workloads")
 		fs.BoolVarP(&params.Fargate, "fargate", "", false, "Create a Fargate profile scheduling pods in the default and kube-system namespaces onto Fargate")
 		fs.BoolVarP(&params.DryRun, "dry-run", "", false, "Dry-run mode that skips cluster creation and outputs a ClusterConfig")
+
+		_ = fs.MarkDeprecated("install-vpc-controllers", vpcControllerInfoMessage)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
@@ -190,6 +200,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		if !eks.SupportsWindowsWorkloads(kubeNodeGroups) {
 			return errors.New("running Windows workloads requires having both Windows and Linux (AmazonLinux2) node groups")
 		}
+		logger.Warning(vpcControllerInfoMessage)
 	} else {
 		eks.LogWindowsCompatibility(kubeNodeGroups, cfg.Metadata)
 	}
@@ -248,7 +259,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	if err != nil {
 		return err
 	}
-	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(cfg, params.InstallWindowsVPCController)
+	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(cfg)
 
 	supported, err := utils.IsMinVersion(api.Version1_18, cfg.Metadata.Version)
 	if err != nil {

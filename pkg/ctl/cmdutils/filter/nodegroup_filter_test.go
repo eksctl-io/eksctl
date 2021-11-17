@@ -357,7 +357,8 @@ const expected = `
 		  "clusterLogging": {}
 		},
 		"privateCluster": {
-			"enabled": false
+			"enabled": false,
+			"skipEndpointCreation": false
 		},
 		"nodeGroups": [
 		  {
