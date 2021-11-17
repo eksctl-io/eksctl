@@ -1947,10 +1947,17 @@
           "description": "enables creation of a fully-private cluster",
           "x-intellij-html-description": "enables creation of a fully-private cluster",
           "default": "false"
+        },
+        "skipEndpointCreation": {
+          "type": "boolean",
+          "description": "skips the creation process for endpoints completely. This is only used in case of an already provided VPC and if the user decided to set it to true.",
+          "x-intellij-html-description": "skips the creation process for endpoints completely. This is only used in case of an already provided VPC and if the user decided to set it to true.",
+          "default": "false"
         }
       },
       "preferredOrder": [
         "enabled",
+        "skipEndpointCreation",
         "additionalEndpointServices"
       ],
       "additionalProperties": false,

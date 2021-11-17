@@ -1578,6 +1578,10 @@ type PrivateCluster struct {
 	// Enabled enables creation of a fully-private cluster
 	Enabled bool `json:"enabled"`
 
+	// SkipEndpointCreation skips the creation process for endpoints completely. This is only used in case of an already
+	// provided VPC and if the user decided to set it to true.
+	SkipEndpointCreation bool `json:"skipEndpointCreation"`
+
 	// AdditionalEndpointServices specifies additional endpoint services that
 	// must be enabled for private access.
 	// Valid entries are `AdditionalEndpointServices` constants

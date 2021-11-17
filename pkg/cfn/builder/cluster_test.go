@@ -310,6 +310,17 @@ var _ = Describe("Cluster Template Builder", func() {
 				Expect(clusterTemplate.Resources).NotTo(HaveKey("PublicSubnetRoute"))
 				Expect(clusterTemplate.Resources).To(HaveKey(ContainSubstring("PrivateRouteTable")))
 			})
+			When("skip endpoint creation is set", func() {
+				BeforeEach(func() {
+					cfg.PrivateCluster = &api.PrivateCluster{
+						Enabled:              true,
+						SkipEndpointCreation: true,
+					}
+				})
+				It("will skip creating all of the endpoints", func() {
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(ContainSubstring("VPCEndpoint")))
+				})
+			})
 		})
 
 		Context("when adding vpc endpoint resources fails", func() {

@@ -42,10 +42,10 @@ var _ = DescribeTable("Windows IPAM", func(e ipamEntry) {
 	}
 	ctx := context.Background()
 	err := ipam.Enable(ctx)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 
 	cm, err := clientset.CoreV1().ConfigMaps("kube-system").Get(ctx, "amazon-vpc-cni", metav1.GetOptions{})
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	Expect(cm.Data).To(Equal(e.expectedConfigMapData))
 
 },
