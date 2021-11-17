@@ -82,7 +82,13 @@ var _ = Describe("(Integration) [using existing VPC]", func() {
 	})
 
 	AfterSuite(func() {
-		// deleteStack(stackName, ctl)
+		cmd := params.EksctlDeleteClusterCmd.
+			WithArgs(
+				"--config-file", configFile.Name(),
+				"--wait",
+			).WithoutArg("--region", params.Region)
+		Expect(cmd).To(RunSuccessfully())
+		deleteStack(stackName, ctl)
 		Expect(os.RemoveAll(configFile.Name())).To(Succeed())
 	})
 
