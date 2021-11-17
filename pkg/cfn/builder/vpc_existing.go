@@ -2,6 +2,7 @@ package builder
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -9,6 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
@@ -52,7 +55,39 @@ func (v *ExistingVPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, 
 	if err := v.importExistingResources(); err != nil {
 		return nil, nil, errors.Wrap(err, "error importing VPC resources")
 	}
+
+	v.addOutputs()
 	return v.vpcID, v.subnetDetails, nil
+}
+
+// addOutputs adds VPC resource outputs
+func (v *ExistingVPCResourceSet) addOutputs() {
+	v.rs.defineOutput(outputs.ClusterVPC, v.vpcID, true, func(val string) error {
+		v.clusterConfig.VPC.ID = val
+		return nil
+	})
+
+	if v.clusterConfig.VPC.NAT != nil {
+		v.rs.defineOutputWithoutCollector(outputs.ClusterFeatureNATMode, v.clusterConfig.VPC.NAT.Gateway, false)
+	}
+
+	addSubnetOutput := func(subnetRefs []*gfnt.Value, topology api.SubnetTopology, outputName string) {
+		v.rs.defineJoinedOutput(outputName, subnetRefs, true, func(value string) error {
+			return vpc.ImportSubnetsFromIDList(v.ec2API, v.clusterConfig, topology, strings.Split(value, ","))
+		})
+	}
+
+	if subnetAZs := v.subnetDetails.PrivateSubnetRefs(); len(subnetAZs) > 0 {
+		addSubnetOutput(subnetAZs, api.SubnetTopologyPrivate, outputs.ClusterSubnetsPrivate)
+	}
+
+	if subnetAZs := v.subnetDetails.PublicSubnetRefs(); len(subnetAZs) > 0 {
+		addSubnetOutput(subnetAZs, api.SubnetTopologyPublic, outputs.ClusterSubnetsPublic)
+	}
+
+	if v.isFullyPrivate() {
+		v.rs.defineOutputWithoutCollector(outputs.ClusterFullyPrivate, true, true)
+	}
 }
 
 func (v *ExistingVPCResourceSet) checkIPv6CidrBlockAssociated(describeVPCOutput *awsec2.DescribeVpcsOutput) error {
