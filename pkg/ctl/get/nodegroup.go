@@ -45,28 +45,10 @@ func getNodeGroupCmd(cmd *cmdutils.Cmd) {
 }
 
 func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) error {
-	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
+	if err := cmdutils.NewGetNodegroupLoader(cmd, ng).Load(); err != nil {
 		return err
 	}
 	cfg := cmd.ClusterConfig
-
-	// TODO: move this into a loader when --config-file gets added to this command
-	if cfg.Metadata.Name == "" {
-		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
-	}
-
-	if ng.Name != "" && cmd.NameArg != "" {
-		return cmdutils.ErrFlagAndArg("--name", ng.Name, cmd.NameArg)
-	}
-
-	if cmd.NameArg != "" {
-		ng.Name = cmd.NameArg
-	}
-
-	// prevent creation of invalid config object with unnamed nodegroup
-	if ng.Name != "" {
-		cfg.NodeGroups = append(cfg.NodeGroups, ng)
-	}
 
 	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {

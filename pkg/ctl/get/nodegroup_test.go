@@ -15,14 +15,8 @@ var _ = Describe("get", func() {
 			Expect(err).To(MatchError(ContainSubstring("Error: --cluster must be set")))
 		})
 
-		It("setting --name and argument at the same time", func() {
-			cmd := newMockCmd("nodegroup", "ng", "--name", "ng")
-			_, err := cmd.execute()
-			Expect(err).To(MatchError(ContainSubstring("Error: --name=ng and argument ng cannot be used at the same time")))
-		})
-
 		It("setting --cluster and argument at the same time", func() {
-			cmd := newMockCmd("nodegroup", "ng", "--cluster", "name")
+			cmd := newMockCmd("nodegroup", "ng", "--cluster", "name", "--name", "ng")
 			_, err := cmd.execute()
 			Expect(err).To(MatchError(ContainSubstring("Error: --cluster=name and argument ng cannot be used at the same time")))
 		})
