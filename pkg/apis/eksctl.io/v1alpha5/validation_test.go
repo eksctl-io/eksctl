@@ -542,6 +542,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(cfg.VPC.IPFamily).To(Equal(api.IPV4Family))
 			})
+
 			When("ipFamily is set to IPv6", func() {
 				It("accepts that setting", func() {
 					cfg.VPC.NAT = nil
@@ -564,6 +565,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					Expect(err).ToNot(HaveOccurred())
 				})
 			})
+
 			When("ipFamily is set ot IPv6 but version is not or too low", func() {
 				It("returns an error", func() {
 					cfg.VPC.IPFamily = api.IPV6Family
@@ -584,6 +586,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					Expect(err).To(MatchError(ContainSubstring("cluster version must be >= 1.21")))
 				})
 			})
+
 			When("ipFamily is set ot IPv6 but no managed addons are provided", func() {
 				It("it returns an error including which addons are missing", func() {
 					cfg.VPC.NAT = nil
@@ -596,6 +599,100 @@ var _ = Describe("ClusterConfig validation", func() {
 					Expect(err).To(MatchError(ContainSubstring("the default core addons must be defined in case of IPv6; missing addon(s): vpc-cni, coredns")))
 				})
 			})
+
+			When("the vpc-cni version is configured", func() {
+				When("the version of the vpc-cni is too low", func() {
+					It("returns an error", func() {
+						cfg.Metadata.Version = api.Version1_22
+						cfg.VPC.IPFamily = api.IPV6Family
+						cfg.IAM = &api.ClusterIAM{
+							WithOIDC: api.Enabled(),
+						}
+						cfg.Addons = append(cfg.Addons,
+							&api.Addon{Name: api.KubeProxyAddon},
+							&api.Addon{Name: api.CoreDNSAddon},
+							&api.Addon{Name: api.VPCCNIAddon, Version: "1.9.0"},
+						)
+						cfg.VPC.NAT = nil
+						err = cfg.ValidateVPCConfig()
+						Expect(err).To(MatchError(ContainSubstring("vpc-cni version must be at least version 1.10.0 for IPv6")))
+					})
+				})
+
+				When("the version of the vpc-cni is supported", func() {
+					It("does not error", func() {
+						cfg.Metadata.Version = api.Version1_22
+						cfg.VPC.IPFamily = api.IPV6Family
+						cfg.IAM = &api.ClusterIAM{
+							WithOIDC: api.Enabled(),
+						}
+						cfg.Addons = append(cfg.Addons,
+							&api.Addon{Name: api.KubeProxyAddon},
+							&api.Addon{Name: api.CoreDNSAddon},
+							&api.Addon{Name: api.VPCCNIAddon, Version: "1.10"},
+						)
+						cfg.VPC.NAT = nil
+						err = cfg.ValidateVPCConfig()
+						Expect(err).NotTo(HaveOccurred())
+					})
+				})
+
+				When("the version of the vpc-cni is not configured", func() {
+					It("does not error", func() {
+						cfg.Metadata.Version = api.Version1_22
+						cfg.VPC.IPFamily = api.IPV6Family
+						cfg.IAM = &api.ClusterIAM{
+							WithOIDC: api.Enabled(),
+						}
+						cfg.Addons = append(cfg.Addons,
+							&api.Addon{Name: api.KubeProxyAddon},
+							&api.Addon{Name: api.CoreDNSAddon},
+							&api.Addon{Name: api.VPCCNIAddon},
+						)
+						cfg.VPC.NAT = nil
+						err = cfg.ValidateVPCConfig()
+						Expect(err).NotTo(HaveOccurred())
+						Expect(cfg.Addons[2].Version).To(Equal("1.10.0"))
+					})
+				})
+
+				When("the version of the vpc-cni is latest", func() {
+					It("does not error", func() {
+						cfg.Metadata.Version = api.Version1_22
+						cfg.VPC.IPFamily = api.IPV6Family
+						cfg.IAM = &api.ClusterIAM{
+							WithOIDC: api.Enabled(),
+						}
+						cfg.Addons = append(cfg.Addons,
+							&api.Addon{Name: api.KubeProxyAddon},
+							&api.Addon{Name: api.CoreDNSAddon},
+							&api.Addon{Name: api.VPCCNIAddon, Version: "latest"},
+						)
+						cfg.VPC.NAT = nil
+						err = cfg.ValidateVPCConfig()
+						Expect(err).NotTo(HaveOccurred())
+					})
+				})
+
+				When("the version of the vpc-cni is invalid", func() {
+					It("it returns an error", func() {
+						cfg.Metadata.Version = api.Version1_22
+						cfg.VPC.IPFamily = api.IPV6Family
+						cfg.IAM = &api.ClusterIAM{
+							WithOIDC: api.Enabled(),
+						}
+						cfg.Addons = append(cfg.Addons,
+							&api.Addon{Name: api.KubeProxyAddon},
+							&api.Addon{Name: api.CoreDNSAddon},
+							&api.Addon{Name: api.VPCCNIAddon, Version: "1.invalid!semver"},
+						)
+						cfg.VPC.NAT = nil
+						err = cfg.ValidateVPCConfig()
+						Expect(err).To(MatchError(ContainSubstring("failed to parse version")))
+					})
+				})
+			})
+
 			When("iam is not set", func() {
 				It("returns an error", func() {
 					cfg.VPC.IPFamily = api.IPV6Family
@@ -608,6 +705,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					Expect(err).To(MatchError(ContainSubstring("oidc needs to be enabled if IPv6 is set")))
 				})
 			})
+
 			When("iam is set but OIDC is disabled", func() {
 				It("returns an error", func() {
 					cfg.VPC.IPFamily = api.IPV6Family
@@ -623,6 +721,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					Expect(err).To(MatchError(ContainSubstring("oidc needs to be enabled if IPv6 is set")))
 				})
 			})
+
 			When("ipFamily isn't IPv4 or IPv6", func() {
 				It("returns an error", func() {
 					cfg.VPC.IPFamily = "invalid"
@@ -630,6 +729,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					Expect(err).To(MatchError(ContainSubstring("invalid value invalid for ipFamily; allowed are IPv4 and IPv6")))
 				})
 			})
+
 			When("ipFamily is set to IPv6 and vpc.NAT is defined", func() {
 				It("it returns an error", func() {
 					cfg.VPC.IPFamily = api.IPV6Family
@@ -647,6 +747,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					Expect(err).To(MatchError(ContainSubstring("setting NAT is not supported with IPv6")))
 				})
 			})
+
 			When("ipFamily is set to IPv6 and serviceIPv4CIDR is not empty", func() {
 				It("it returns an error", func() {
 					cfg.VPC.IPFamily = api.IPV6Family
@@ -667,6 +768,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					Expect(err).To(MatchError(ContainSubstring("service ipv4 cidr is not supported with IPv6")))
 				})
 			})
+
 			When("ipFamily is set to IPv6 and AutoAllocateIPv6 is set", func() {
 				It("it returns an error", func() {
 					cfg.VPC.IPFamily = api.IPV6Family
@@ -694,6 +796,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				err = cfg.ValidateVPCConfig()
 				Expect(err).ToNot(HaveOccurred())
 			})
+
 			When("extraCIDRs has an invalid cidr", func() {
 				It("returns an error", func() {
 					cfg.VPC.ExtraCIDRs = []string{"not-a-cidr"}
@@ -701,6 +804,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					Expect(err).To(HaveOccurred())
 				})
 			})
+
 			When("public access cidrs has an invalid cidr", func() {
 				It("returns an error", func() {
 					cfg.VPC.PublicAccessCIDRs = []string{"48.58.68/24"}
