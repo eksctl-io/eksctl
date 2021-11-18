@@ -216,7 +216,7 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		}
 
 		if unsupportedVersion {
-			return fmt.Errorf("vpc-cni version must be at least version 1.10.0 for IPv6")
+			return fmt.Errorf("vpc-cni version must be at least version %s for IPv6", minimumVPCCNIVersionForIPv6)
 		}
 
 		if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
