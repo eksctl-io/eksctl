@@ -147,7 +147,6 @@ func (l *commonClusterConfigLoader) Load() error {
 	}
 	l.ProviderConfig.Region = meta.Region
 
-	api.SetDefaultGitSettings(l.ClusterConfig)
 	return l.validateWithConfigFile()
 }
 
@@ -261,10 +260,6 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			return errors.New("vpc.subnets and availabilityZones cannot be set at the same time")
 		}
 
-		if clusterConfig.GitOps != nil && clusterConfig.Git != nil {
-			return errors.New("git cannot be configured alongside gitops")
-		}
-
 		if clusterConfig.GitOps != nil {
 			fluxCfg := clusterConfig.GitOps.Flux
 
@@ -274,24 +269,6 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				}
 				if len(fluxCfg.Flags) == 0 {
 					return ErrMustBeSet("gitops.flux.flags")
-				}
-			}
-		}
-
-		if clusterConfig.Git != nil {
-			repo := clusterConfig.Git.Repo
-			if repo != nil {
-				if repo.URL == "" {
-					return ErrMustBeSet("git.repo.url")
-				}
-
-				if repo.Email == "" {
-					return ErrMustBeSet("git.repo.email")
-				}
-
-				profile := clusterConfig.Git.BootstrapProfile
-				if profile != nil && profile.Source == "" {
-					return ErrMustBeSet("git.bootstrapProfile.source")
 				}
 			}
 		}

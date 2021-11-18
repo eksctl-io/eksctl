@@ -11,9 +11,5 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	verbCmd := cmdutils.NewVerbCmd("enable", "Enable features in a cluster", "")
 
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, enableFlux2)
-	// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
-	cmdutils.AddResourceCmd(flagGrouping, verbCmd, enableProfile)
-	cmdutils.AddResourceCmd(flagGrouping, verbCmd, enableRepo)
-
 	return verbCmd
 }

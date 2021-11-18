@@ -66,6 +66,4 @@ GitOps will change to keep up with current standards.
 The first stage of this is implementing support for [Flux v2](https://fluxcd.io/).
 This support already exists in an experimental form in `eksctl` (`eksctl enable flux`)
 and work there will carry on throughout the year.
-The next stage is to deprecate support for Flux v1, and expand the capacity of
-quickstart profiles. More information can be found [here](https://github.com/weaveworks/eksctl/issues/2963).
 
