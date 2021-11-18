@@ -6,13 +6,13 @@ metadata:
   name: <generated>
 
 nodeGroups:
-  - name: n1
+  - name: unm-1
     desiredCapacity: 5
     maxSize: 5
     minSize: 5
 
 managedNodeGroups:
-  - name: ng-0
+  - name: mng-1
     desiredCapacity: 5
     maxSize: 5
     minSize: 5
