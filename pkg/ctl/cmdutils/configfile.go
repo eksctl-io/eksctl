@@ -836,10 +836,6 @@ func NewGetNodegroupLoader(cmd *Cmd, ng *api.NodeGroup) ClusterConfigLoader {
 	l.validateWithoutConfigFile = func() error {
 		meta := cmd.ClusterConfig.Metadata
 
-		if meta.Name != "" && cmd.NameArg != "" {
-			return ErrClusterFlagAndArg(cmd, meta.Name, cmd.NameArg)
-		}
-
 		if meta.Name == "" {
 			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
