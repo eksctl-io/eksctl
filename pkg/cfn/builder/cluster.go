@@ -38,7 +38,9 @@ func NewClusterResourceSet(ec2API ec2iface.EC2API, region string, spec *api.Clus
 	rs := newResourceSet()
 
 	var vpcResourceSet VPCResourceSet = NewIPv4VPCResourceSet(rs, spec, ec2API)
-	if spec.VPC.IPFamily == api.IPV6Family {
+	if spec.VPC.ID != "" {
+		vpcResourceSet = NewExistingVPCResourceSet(rs, spec, ec2API)
+	} else if spec.VPC.IPFamily == api.IPV6Family {
 		vpcResourceSet = NewIPv6VPCResourceSet(rs, spec, ec2API)
 	}
 	return &ClusterResourceSet{

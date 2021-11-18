@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	awsec2 "github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -28,7 +29,6 @@ type vpcResourceSetCase struct {
 }
 
 var _ = Describe("VPC Endpoint Builder", func() {
-
 	DescribeTable("Adds resources to template", func(vc vpcResourceSetCase) {
 		api.SetClusterConfigDefaults(vc.clusterConfig)
 
@@ -54,7 +54,10 @@ var _ = Describe("VPC Endpoint Builder", func() {
 		}
 
 		rs := newResourceSet()
-		vpcResourceSet := NewIPv4VPCResourceSet(rs, vc.clusterConfig, provider.EC2())
+		var vpcResourceSet VPCResourceSet = NewIPv4VPCResourceSet(rs, vc.clusterConfig, provider.EC2())
+		if vc.clusterConfig.VPC.ID != "" {
+			vpcResourceSet = NewExistingVPCResourceSet(rs, vc.clusterConfig, provider.EC2())
+		}
 		vpcID, subnetDetails, err := vpcResourceSet.CreateTemplate()
 		if vc.err != "" {
 			Expect(err).To(HaveOccurred())
@@ -147,6 +150,11 @@ var _ = Describe("VPC Endpoint Builder", func() {
 				},
 				AvailabilityZones: []string{"us-west-2a", "us-west-2b"},
 			},
+			createProvider: func() api.ClusterProvider {
+				provider := mockprovider.NewMockProvider()
+				mockDescribeVPC(provider)
+				return provider
+			},
 		}),
 		Entry("Private cluster with a user-supplied VPC", vpcResourceSetCase{
 			clusterConfig: &api.ClusterConfig{
@@ -174,6 +182,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			},
 			createProvider: func() api.ClusterProvider {
 				provider := mockprovider.NewMockProvider()
+				mockDescribeVPC(provider)
 				mockDescribeVPCEndpoints(provider, false)
 				mockDescribeRouteTables(provider, []string{"subnet-custom1", "subnet-custom2"})
 				return provider
@@ -206,6 +215,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			},
 			createProvider: func() api.ClusterProvider {
 				provider := mockprovider.NewMockProvider()
+				mockDescribeVPC(provider)
 				mockDescribeVPCEndpoints(provider, false)
 				mockDescribeRouteTablesSame(provider, []string{"subnet-custom1", "subnet-custom2"})
 				return provider
@@ -235,6 +245,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			},
 			createProvider: func() api.ClusterProvider {
 				provider := mockprovider.NewMockProvider()
+				mockDescribeVPC(provider)
 				output := &ec2.DescribeRouteTablesOutput{
 					RouteTables: []*ec2.RouteTable{
 						{
@@ -565,6 +576,23 @@ var serviceDetailsJSONChina = `
 }
 `
 
+func mockDescribeVPC(provider *mockprovider.MockProvider) {
+	provider.MockEC2().On("DescribeVpcs", &awsec2.DescribeVpcsInput{
+		VpcIds: aws.StringSlice([]string{"vpc-custom"}),
+	}).Return(&awsec2.DescribeVpcsOutput{
+		Vpcs: []*awsec2.Vpc{
+			{
+				VpcId: aws.String("vpc-custom"),
+				Ipv6CidrBlockAssociationSet: []*awsec2.VpcIpv6CidrBlockAssociation{
+					{
+						Ipv6CidrBlock: aws.String("foo"),
+					},
+				},
+			},
+		},
+	}, nil)
+}
+
 func mockDescribeVPCEndpoints(provider *mockprovider.MockProvider, china bool) {
 	var detailsJSON = serviceDetailsJSON
 	if china {
@@ -577,6 +605,7 @@ func mockDescribeVPCEndpoints(provider *mockprovider.MockProvider, china bool) {
 	provider.MockEC2().On("DescribeVpcEndpointServices", mock.MatchedBy(func(e *ec2.DescribeVpcEndpointServicesInput) bool {
 		return len(e.ServiceNames) == 5
 	})).Return(output, nil)
+
 }
 
 func mockDescribeRouteTables(provider *mockprovider.MockProvider, subnetIDs []string) {

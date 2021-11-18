@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/pkg/errors"
 	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -45,22 +42,10 @@ type SubnetDetails struct {
 
 // NewIPv4VPCResourceSet creates and returns a new VPCResourceSet
 func NewIPv4VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec2API ec2iface.EC2API) *IPv4VPCResourceSet {
-	var vpcRef *gfnt.Value
-	if clusterConfig.VPC.ID == "" {
-		vpcRef = rs.newResource("VPC", &gfnec2.VPC{
-			CidrBlock:          gfnt.NewString(clusterConfig.VPC.CIDR.String()),
-			EnableDnsSupport:   gfnt.True(),
-			EnableDnsHostnames: gfnt.True(),
-		})
-	} else {
-		vpcRef = gfnt.NewString(clusterConfig.VPC.ID)
-	}
-
 	return &IPv4VPCResourceSet{
 		rs:            rs,
 		clusterConfig: clusterConfig,
 		ec2API:        ec2API,
-		vpcID:         vpcRef,
 		subnetDetails: &SubnetDetails{},
 	}
 }
@@ -76,12 +61,12 @@ func (v *IPv4VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, erro
 // AddResources adds all required resources
 func (v *IPv4VPCResourceSet) addResources() error {
 	vpc := v.clusterConfig.VPC
-	if vpc.ID != "" { // custom VPC has been set
-		if err := v.importResources(); err != nil {
-			return errors.Wrap(err, "error importing VPC resources")
-		}
-		return nil
-	}
+
+	v.vpcID = v.rs.newResource("VPC", &gfnec2.VPC{
+		CidrBlock:          gfnt.NewString(vpc.CIDR.String()),
+		EnableDnsSupport:   gfnt.True(),
+		EnableDnsHostnames: gfnt.True(),
+	})
 
 	if api.IsEnabled(vpc.AutoAllocateIPv6) {
 		v.rs.newResource("AutoAllocatedCIDRv6", &gfnec2.VPCCidrBlock{
@@ -169,6 +154,10 @@ func (v *IPv4VPCResourceSet) addOutputs() {
 	}
 }
 
+func (v *IPv4VPCResourceSet) isFullyPrivate() bool {
+	return v.clusterConfig.PrivateCluster.Enabled
+}
+
 // RenderJSON returns the rendered JSON
 func (v *IPv4VPCResourceSet) RenderJSON() ([]byte, error) {
 	return v.rs.renderJSON()
@@ -250,108 +239,6 @@ func (v *IPv4VPCResourceSet) addNATGateways() error {
 		return fmt.Errorf("%s is not a valid NAT gateway mode", *v.clusterConfig.VPC.NAT.Gateway)
 	}
 	return nil
-}
-
-func (v *IPv4VPCResourceSet) importResources() error {
-	if subnets := v.clusterConfig.VPC.Subnets.Private; subnets != nil {
-		var (
-			subnetRoutes map[string]string
-			err          error
-		)
-		if v.isFullyPrivate() {
-			subnetRoutes, err = importRouteTables(v.ec2API, v.clusterConfig.VPC.Subnets.Private)
-			if err != nil {
-				return err
-			}
-		}
-
-		subnetResources, err := makeSubnetResources(subnets, subnetRoutes)
-		if err != nil {
-			return err
-		}
-		v.subnetDetails.Private = subnetResources
-	}
-
-	if subnets := v.clusterConfig.VPC.Subnets.Public; subnets != nil {
-		subnetResources, err := makeSubnetResources(subnets, nil)
-		if err != nil {
-			return err
-		}
-		v.subnetDetails.Public = subnetResources
-	}
-
-	return nil
-}
-
-func makeSubnetResources(subnets map[string]api.AZSubnetSpec, subnetRoutes map[string]string) ([]SubnetResource, error) {
-	subnetResources := make([]SubnetResource, len(subnets))
-	i := 0
-	for _, network := range subnets {
-		az := network.AZ
-		sr := SubnetResource{
-			AvailabilityZone: az,
-			Subnet:           gfnt.NewString(network.ID),
-		}
-
-		if subnetRoutes != nil {
-			rt, ok := subnetRoutes[network.ID]
-			if !ok {
-				return nil, errors.Errorf("failed to find an explicit route table associated with subnet %q; "+
-					"eksctl does not modify the main route table if a subnet is not associated with an explicit route table", network.ID)
-			}
-			sr.RouteTable = gfnt.NewString(rt)
-		}
-		subnetResources[i] = sr
-		i++
-	}
-	return subnetResources, nil
-}
-
-func importRouteTables(ec2API ec2iface.EC2API, subnets map[string]api.AZSubnetSpec) (map[string]string, error) {
-	var subnetIDs []string
-	for _, subnet := range subnets {
-		subnetIDs = append(subnetIDs, subnet.ID)
-	}
-
-	var routeTables []*ec2.RouteTable
-	var nextToken *string
-
-	for {
-		output, err := ec2API.DescribeRouteTables(&ec2.DescribeRouteTablesInput{
-			Filters: []*ec2.Filter{
-				{
-					Name:   aws.String("association.subnet-id"),
-					Values: aws.StringSlice(subnetIDs),
-				},
-			},
-			NextToken: nextToken,
-		})
-
-		if err != nil {
-			return nil, errors.Wrap(err, "error describing route tables")
-		}
-
-		routeTables = append(routeTables, output.RouteTables...)
-
-		if nextToken = output.NextToken; nextToken == nil {
-			break
-		}
-	}
-
-	subnetRoutes := make(map[string]string)
-	for _, rt := range routeTables {
-		for _, rta := range rt.Associations {
-			if rta.Main != nil && *rta.Main {
-				return nil, errors.New("subnets must be associated with a non-main route table; eksctl does not modify the main route table")
-			}
-			subnetRoutes[*rta.SubnetId] = *rt.RouteTableId
-		}
-	}
-	return subnetRoutes, nil
-}
-
-func (v *IPv4VPCResourceSet) isFullyPrivate() bool {
-	return v.clusterConfig.PrivateCluster.Enabled
 }
 
 var (
