@@ -11,6 +11,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -208,6 +209,16 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
 			return fmt.Errorf("the default core addons must be defined in case of IPv6; missing addon(s): %s", strings.Join(missing, ", "))
 		}
+
+		unsupportedVersion, err := c.unsupportedVPCCNIAddonVersion()
+		if err != nil {
+			return err
+		}
+
+		if unsupportedVersion {
+			return fmt.Errorf("vpc-cni version must be at least version 1.10.0 for IPv6")
+		}
+
 		if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
 			return fmt.Errorf("oidc needs to be enabled if IPv6 is set")
 		}
@@ -242,6 +253,39 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		return errors.New("vpc.manageSharedNodeSecurityGroupRules must be enabled when using ekstcl-managed security groups")
 	}
 	return nil
+}
+
+func (c *ClusterConfig) unsupportedVPCCNIAddonVersion() (bool, error) {
+	for _, addon := range c.Addons {
+		if addon.Name == VPCCNIAddon {
+			if addon.Version == "latest" || addon.Version == "" {
+				return false, nil
+			}
+
+			return versionLessThan(addon.Version, minimumVPCCNIVersionForIPv6)
+		}
+	}
+	return false, nil
+}
+
+func versionLessThan(v1, v2 string) (bool, error) {
+	v1Version, err := parseVersion(v1)
+	if err != nil {
+		return false, err
+	}
+	v2Version, err := parseVersion(v2)
+	if err != nil {
+		return false, err
+	}
+	return v1Version.LessThan(v2Version), nil
+}
+
+func parseVersion(v string) (*version.Version, error) {
+	version, err := version.NewVersion(v)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse version %q: %w", v, err)
+	}
+	return version, nil
 }
 
 func (c *ClusterConfig) ipv6CidrsValid() error {

@@ -329,9 +329,10 @@ const (
 
 // Values for core addons
 const (
-	VPCCNIAddon    = "vpc-cni"
-	KubeProxyAddon = "kube-proxy"
-	CoreDNSAddon   = "coredns"
+	VPCCNIAddon                 = "vpc-cni"
+	KubeProxyAddon              = "kube-proxy"
+	CoreDNSAddon                = "coredns"
+	minimumVPCCNIVersionForIPv6 = "1.10.0"
 )
 
 var (
