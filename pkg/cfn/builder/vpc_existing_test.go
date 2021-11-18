@@ -112,15 +112,17 @@ var _ = Describe("Existing VPC", func() {
 
 			By("outputting the public subnets on the stack")
 			Expect(vpcTemplate.Outputs).To(HaveKey(outputs.ClusterSubnetsPublic))
-			Expect(vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPublic].(map[string]interface{})["Value"]).To(Equal(map[string]interface{}{
-				"Fn::Join": []interface{}{
-					",",
-					[]interface{}{
-						publicSubnet2,
-						publicSubnet1,
-					},
-				},
-			}))
+			// 	"Fn::Join": []interface{}{
+			// 		",",
+			// 		[]interface{}{
+			//      //this list order isn't guaranteed
+			// 			publicSubnet2,
+			// 			publicSubnet1,
+			// 		},
+			// 	},
+			publicSubnets := vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPublic].(map[string]interface{})["Value"].(map[string]interface{})["Fn::Join"]
+			Expect(publicSubnets.([]interface{})[0]).To(Equal(","))
+			Expect(publicSubnets.([]interface{})[1]).To(ConsistOf(publicSubnet1, publicSubnet2))
 			Expect(vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPublic].(map[string]interface{})["Export"]).To(Equal(map[string]interface{}{
 				"Name": map[string]interface{}{
 					"Fn::Sub": fmt.Sprintf("${AWS::StackName}::%s", outputs.ClusterSubnetsPublic),
@@ -129,15 +131,17 @@ var _ = Describe("Existing VPC", func() {
 
 			By("outputting the private subnets on the stack")
 			Expect(vpcTemplate.Outputs).To(HaveKey(outputs.ClusterSubnetsPrivate))
-			Expect(vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPrivate].(map[string]interface{})["Value"]).To(Equal(map[string]interface{}{
-				"Fn::Join": []interface{}{
-					",",
-					[]interface{}{
-						privateSubnet2,
-						privateSubnet1,
-					},
-				},
-			}))
+			// "Fn::Join": []interface{}{
+			// 	",",
+			// 	[]interface{}{
+			//      //this list order isn't guaranteed
+			// 		privateSubnet2,
+			// 		privateSubnet1,
+			// 	},
+			// },
+			privateSubnets := vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPrivate].(map[string]interface{})["Value"].(map[string]interface{})["Fn::Join"]
+			Expect(privateSubnets.([]interface{})[0]).To(Equal(","))
+			Expect(privateSubnets.([]interface{})[1]).To(ConsistOf(privateSubnet1, privateSubnet2))
 			Expect(vpcTemplate.Outputs.(map[string]interface{})[outputs.ClusterSubnetsPrivate].(map[string]interface{})["Export"]).To(Equal(map[string]interface{}{
 				"Name": map[string]interface{}{
 					"Fn::Sub": fmt.Sprintf("${AWS::StackName}::%s", outputs.ClusterSubnetsPrivate),
