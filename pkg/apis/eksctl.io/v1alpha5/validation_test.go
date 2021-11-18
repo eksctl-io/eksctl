@@ -762,6 +762,25 @@ var _ = Describe("ClusterConfig validation", func() {
 					})
 				})
 
+				When("the version of the vpc-cni is not configured", func() {
+					It("does not error", func() {
+						cfg.Metadata.Version = api.Version1_22
+						cfg.VPC.IPFamily = api.IPV6Family
+						cfg.IAM = &api.ClusterIAM{
+							WithOIDC: api.Enabled(),
+						}
+						cfg.Addons = append(cfg.Addons,
+							&api.Addon{Name: api.KubeProxyAddon},
+							&api.Addon{Name: api.CoreDNSAddon},
+							&api.Addon{Name: api.VPCCNIAddon},
+						)
+						cfg.VPC.NAT = nil
+						err = cfg.ValidateVPCConfig()
+						Expect(err).NotTo(HaveOccurred())
+						Expect(cfg.Addons[2].Version).To(Equal("1.10.0"))
+					})
+				})
+
 				When("the version of the vpc-cni is latest", func() {
 					It("does not error", func() {
 						cfg.Metadata.Version = api.Version1_22

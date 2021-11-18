@@ -258,7 +258,11 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 func (c *ClusterConfig) unsupportedVPCCNIAddonVersion() (bool, error) {
 	for _, addon := range c.Addons {
 		if addon.Name == VPCCNIAddon {
-			if addon.Version == "latest" || addon.Version == "" {
+			if addon.Version == "" {
+				addon.Version = minimumVPCCNIVersionForIPv6
+				return false, nil
+			}
+			if addon.Version == "latest" {
 				return false, nil
 			}
 
