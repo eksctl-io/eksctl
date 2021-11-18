@@ -245,7 +245,14 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 }
 
 func (c *ClusterConfig) ipv6CidrsValid() error {
-	if (c.VPC.IPv6Cidr == "" && c.VPC.IPv6Pool == "") || (c.VPC.IPv6Cidr != "" && c.VPC.IPv6Pool != "") {
+	if c.VPC.IPv6Cidr == "" && c.VPC.IPv6Pool == "" {
+		return nil
+	}
+
+	if c.VPC.IPv6Cidr != "" && c.VPC.IPv6Pool != "" {
+		if c.VPC.ID != "" {
+			return fmt.Errorf("cannot provide VPC.IPv6Cidr when using a pre-existing VPC.ID")
+		}
 		return nil
 	}
 	return fmt.Errorf("Ipv6Cidr and Ipv6Pool must both be configured to use a custom IPv6 CIDR and address pool")

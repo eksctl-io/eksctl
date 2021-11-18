@@ -502,6 +502,7 @@ var _ = Describe("Cluster Template Builder", func() {
 	Describe("RenderJSON", func() {
 		It("returns the template rendered as JSON", func() {
 			// the work actually gets done on the internal resource set
+			Expect(crs.AddAllResources()).To(Succeed())
 			result, err := crs.RenderJSON()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result).To(ContainSubstring(vpcResourceKey))
@@ -511,6 +512,7 @@ var _ = Describe("Cluster Template Builder", func() {
 	Describe("Template", func() {
 		It("returns the template from the inner resource set", func() {
 			// the work actually gets done on the internal resource set
+			Expect(crs.AddAllResources()).To(Succeed())
 			clusterTemplate := crs.Template()
 			Expect(clusterTemplate.Resources).To(HaveKey(vpcResourceKey))
 		})

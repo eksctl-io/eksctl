@@ -865,6 +865,17 @@ var _ = Describe("ClusterConfig validation", func() {
 					Expect(err).To(MatchError("Ipv6Cidr and Ipv6Pool must both be configured to use a custom IPv6 CIDR and address pool"))
 				})
 			})
+
+			When("it's set alongside VPC.ID", func() {
+				It("returns an error", func() {
+					cfg.VPC.IPFamily = api.IPV6Family
+					cfg.VPC.IPv6Cidr = "foo"
+					cfg.VPC.IPv6Pool = "bar"
+					cfg.VPC.ID = "123"
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("cannot provide VPC.IPv6Cidr when using a pre-existing VPC.ID"))
+				})
+			})
 		})
 
 		Context("extraIPv6CIDRs", func() {
