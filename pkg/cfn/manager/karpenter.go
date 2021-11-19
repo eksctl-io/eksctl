@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -9,6 +10,8 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/karpenter"
+	"github.com/weaveworks/eksctl/pkg/karpenter/providers/helm"
 )
 
 // KarpenterStack represents the Karpenter stack.
@@ -33,7 +36,28 @@ func (c *StackCollection) createKarpenterTask(errs chan error) error {
 	tags := map[string]string{
 		api.KarpenterNameTag: name,
 	}
-	return c.CreateStack(name, stack, tags, nil, errs)
+	if err := c.CreateStack(name, stack, tags, nil, errs); err != nil {
+		return err
+	}
+	// Have to create these here, since the Helm Installer returns an error and I
+	// don't want to change StackCollection's New*. But this will make
+	// testing this function rather difficult.
+	helmInstaller, err := helm.NewInstaller(helm.Options{
+		Namespace: karpenter.KarpenterNamespace,
+	})
+	if err != nil {
+		return err
+	}
+	karpenterInstaller := karpenter.NewKarpenterInstaller(karpenter.Options{
+		HelmInstaller:         helmInstaller,
+		Namespace:             karpenter.KarpenterNamespace,
+		ClusterName:           c.spec.Metadata.Name,
+		AddDefaultProvisioner: false, // make this configurable
+		CreateServiceAccount:  true,  // make this configurable
+		ClusterEndpoint:       c.spec.Status.Endpoint,
+		Version:               c.spec.Karpenter.Version,
+	})
+	return karpenterInstaller.InstallKarpenter(context.Background())
 }
 
 // DescribeKarpenterStacks calls DescribeStacks and filters out karpenter resources

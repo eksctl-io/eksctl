@@ -37,6 +37,16 @@ func (t *nodeGroupTask) Do(errs chan error) error {
 	return t.stackCollection.createNodeGroupTask(errs, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
 }
 
+type karpenterTask struct {
+	info            string
+	stackCollection *StackCollection
+}
+
+func (t *karpenterTask) Describe() string { return t.info }
+func (t *karpenterTask) Do(errs chan error) error {
+	return t.stackCollection.createKarpenterTask(errs)
+}
+
 type managedNodeGroupTask struct {
 	info              string
 	nodeGroup         *api.ManagedNodeGroup

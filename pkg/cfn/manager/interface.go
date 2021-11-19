@@ -77,6 +77,7 @@ type StackManager interface {
 	NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) (*tasks.TaskTree, error)
 	NewTasksToDeleteIAMServiceAccounts(serviceAccounts []string, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*tasks.TaskTree, error)
 	NewTaskToDeleteAddonIAM(wait bool) (*tasks.TaskTree, error)
+	NewTasksToInstallKarpenter() *tasks.TaskTree
 	FixClusterCompatibility() error
 	DescribeIAMServiceAccountStacks() ([]*Stack, error)
 	ListIAMServiceAccountStacks() ([]string, error)

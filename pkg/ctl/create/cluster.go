@@ -355,6 +355,23 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 				return fmt.Errorf("failed to create addons")
 			}
 		}
+		// After we have the cluster config and all the nodes are done, we install Karpenter if necessary.
+		if cfg.Karpenter != nil {
+			karpenterTaskTree := stackManager.NewTasksToInstallKarpenter()
+			logger.Info(karpenterTaskTree.Describe())
+			if errs := karpenterTaskTree.DoAllSync(); len(errs) > 0 {
+				logger.Warning("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
+				logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", meta.Region, meta.Name)
+				for _, err := range errs {
+					ufe := &api.UnsupportedFeatureError{}
+					if errors.As(err, &ufe) {
+						logger.Critical(ufe.Message)
+					}
+					logger.Critical("%s\n", err.Error())
+				}
+				return fmt.Errorf("failed to install Karpenter %q", meta.Name)
+			}
+		}
 
 		// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 		if cfg.HasGitopsRepoConfigured() {

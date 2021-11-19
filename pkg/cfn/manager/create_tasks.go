@@ -80,6 +80,16 @@ func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup,
 	return taskTree
 }
 
+// NewKarpenterTask defines tasks required to create Karpenter
+func (c *StackCollection) NewTasksToInstallKarpenter() *tasks.TaskTree {
+	taskTree := &tasks.TaskTree{Parallel: true}
+	taskTree.Append(&karpenterTask{
+		info:            fmt.Sprintf("create karpenter for stack %q", c.spec.Metadata.Name),
+		stackCollection: c,
+	})
+	return taskTree
+}
+
 // NewManagedNodeGroupTask defines tasks required to create managed nodegroups
 func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}

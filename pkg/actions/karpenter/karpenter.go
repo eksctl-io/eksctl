@@ -21,13 +21,13 @@ type Manager struct {
 	clientSet          kubernetes.Interface
 	wait               WaitFunc
 	kubeProvider       eks.KubeProvider
-	karpenterInstaller karpenter.KarpenterInstaller
+	karpenterInstaller karpenter.Manager
 }
 
 type WaitFunc func(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error
 
 // New creates a new manager.
-func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, karpenter karpenter.KarpenterInstaller) *Manager {
+func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, karpenter karpenter.Manager) *Manager {
 	return &Manager{
 		stackManager:       ctl.NewStackManager(cfg),
 		ctl:                ctl,
@@ -39,15 +39,15 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.
 	}
 }
 
-func (m *Manager) hasStacks(name string) (bool, error) {
-	stacks, err := m.stackManager.ListKarpenterStacks()
-	if err != nil {
-		return false, err
-	}
-	for _, stack := range stacks {
-		if stack.KarpenterName == name {
-			return true, nil
-		}
-	}
-	return false, nil
-}
+// func (m *Manager) hasStacks(name string) (bool, error) {
+// 	stacks, err := m.stackManager.ListKarpenterStacks()
+// 	if err != nil {
+// 		return false, err
+// 	}
+// 	for _, stack := range stacks {
+// 		if stack.KarpenterName == name {
+// 			return true, nil
+// 		}
+// 	}
+// 	return false, nil
+// }
