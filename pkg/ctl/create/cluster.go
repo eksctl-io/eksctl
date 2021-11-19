@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+
 	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/utils"
 
@@ -375,6 +376,8 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			}
 			return nil
 		}
+
+		// Initiate Karpenter Cloudformation Stack here
 
 		env, err := ctl.GetCredentialsEnv()
 		if err != nil {

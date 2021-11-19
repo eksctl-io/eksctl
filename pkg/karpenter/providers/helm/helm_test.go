@@ -2,8 +2,10 @@ package helm
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -11,9 +13,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/otiai10/copy"
+	"helm.sh/helm/v3/pkg/action"
+	"helm.sh/helm/v3/pkg/chartutil"
 	"helm.sh/helm/v3/pkg/cli"
 	"helm.sh/helm/v3/pkg/getter"
+	kubefake "helm.sh/helm/v3/pkg/kube/fake"
 	"helm.sh/helm/v3/pkg/repo"
+	"helm.sh/helm/v3/pkg/storage"
+	"helm.sh/helm/v3/pkg/storage/driver"
 
 	"github.com/weaveworks/eksctl/pkg/karpenter/providers/fakes"
 )
@@ -124,14 +131,12 @@ var _ = Describe("HelmInstaller", func() {
 		var (
 			fakeGetter *fakes.FakeGetter
 			getters    getter.Providers
-			//fakeRestClientGetter     *fakes.FakeRESTClientGetter
-			tmp string
-			err error
+			tmp        string
+			err        error
 		)
 		BeforeEach(func() {
 			tmp, err = os.MkdirTemp("", "helm-testing")
 			Expect(err).NotTo(HaveOccurred())
-			//fakeRestClientGetter = &fakes.FakeRESTClientGetter{}
 			fakeGetter = &fakes.FakeGetter{}
 			provider := getter.Provider{
 				Schemes: []string{"http", "https"},
@@ -140,21 +145,22 @@ var _ = Describe("HelmInstaller", func() {
 				},
 			}
 			getters = append(getters, provider)
-
-			// write out repo config
-			Expect(os.WriteFile(filepath.Join(tmp, "repositories.yaml"), []byte(expectedRepositoryYaml), 0644)).To(Succeed())
-			Expect(copy.Copy(filepath.Join("testdata", "karpenter-0.4.3.tgz"), filepath.Join(tmp, "karpenter-0.4.3.tgz"))).To(Succeed())
-			Expect(copy.Copy(filepath.Join("testdata", "karpenter-index.yaml"), filepath.Join(tmp, "karpenter-index.yaml"))).To(Succeed())
 		})
 		AfterEach(func() {
 			_ = os.RemoveAll(tmp)
 		})
 		It("can install a test chart", func() {
-			content, err := os.ReadFile(filepath.Join("testdata", "karpenter-0.4.3.tgz"))
-			Expect(err).NotTo(HaveOccurred())
-			buffer := &bytes.Buffer{}
-			buffer.Write(content)
-			fakeGetter.GetReturns(buffer, nil)
+			// write out repo config
+			Expect(os.WriteFile(filepath.Join(tmp, "repositories.yaml"), []byte(expectedRepositoryYaml), 0644)).To(Succeed())
+			Expect(copy.Copy(filepath.Join("testdata", "karpenter-0.4.3.tgz"), filepath.Join(tmp, "karpenter-0.4.3.tgz"))).To(Succeed())
+			Expect(copy.Copy(filepath.Join("testdata", "karpenter-index.yaml"), filepath.Join(tmp, "karpenter-index.yaml"))).To(Succeed())
+			store := storage.Init(driver.NewMemory())
+			actionConfig := &action.Configuration{
+				Releases:     store,
+				KubeClient:   &kubefake.PrintingKubeClient{Out: ioutil.Discard},
+				Capabilities: chartutil.DefaultCapabilities,
+				Log:          func(format string, v ...interface{}) {},
+			}
 			installer := Installer{
 				Getters: getters,
 				Settings: &cli.EnvSettings{
@@ -162,14 +168,72 @@ var _ = Describe("HelmInstaller", func() {
 					RepositoryConfig: filepath.Join(tmp, "repositories.yaml"),
 					Debug:            true,
 				},
+				ActionConfig: actionConfig,
 			}
-			err = installer.InstallChart("karpenter", "karpenter/karpenter", "karpenter", "0.4.3", map[string]interface{}{
+			err = installer.InstallChart(context.Background(), "karpenter", "karpenter/karpenter", "karpenter", "0.4.3", map[string]interface{}{
 				"controller.clusterName":     "test-security-groups-labels",
 				"controller.clusterEndpoint": "https://E2AB8AEA541E5A354CBBFACE368C534D.sk1.us-west-2.eks.amazonaws.com",
 				"serviceAccount.create":      false,
 				"defaultProvisioner.create":  false,
 			})
 			Expect(err).NotTo(HaveOccurred())
+		})
+		When("locate chart is unable to find the requested chart", func() {
+			It("returns an error", func() {
+				store := storage.Init(driver.NewMemory())
+				actionConfig := &action.Configuration{
+					Releases:     store,
+					KubeClient:   &kubefake.PrintingKubeClient{Out: ioutil.Discard},
+					Capabilities: chartutil.DefaultCapabilities,
+					Log:          func(format string, v ...interface{}) {},
+				}
+				installer := Installer{
+					Getters: getters,
+					Settings: &cli.EnvSettings{
+						RepositoryCache:  tmp,
+						RepositoryConfig: filepath.Join(tmp, "repositories.yaml"),
+						Debug:            true,
+					},
+					ActionConfig: actionConfig,
+				}
+				err = installer.InstallChart(context.Background(), "karpenter", "karpenter/karpenter", "karpenter", "0.4.3", map[string]interface{}{
+					"controller.clusterName":     "test-security-groups-labels",
+					"controller.clusterEndpoint": "https://E2AB8AEA541E5A354CBBFACE368C534D.sk1.us-west-2.eks.amazonaws.com",
+					"serviceAccount.create":      false,
+					"defaultProvisioner.create":  false,
+				})
+				Expect(err).To(MatchError(ContainSubstring("repo karpenter not found")))
+			})
+		})
+		When("the version is unknown", func() {
+			It("returns an error", func() {
+				Expect(os.WriteFile(filepath.Join(tmp, "repositories.yaml"), []byte(expectedRepositoryYaml), 0644)).To(Succeed())
+				Expect(copy.Copy(filepath.Join("testdata", "karpenter-0.4.3.tgz"), filepath.Join(tmp, "karpenter-0.4.3.tgz"))).To(Succeed())
+				Expect(copy.Copy(filepath.Join("testdata", "karpenter-index.yaml"), filepath.Join(tmp, "karpenter-index.yaml"))).To(Succeed())
+				store := storage.Init(driver.NewMemory())
+				actionConfig := &action.Configuration{
+					Releases:     store,
+					KubeClient:   &kubefake.PrintingKubeClient{Out: ioutil.Discard},
+					Capabilities: chartutil.DefaultCapabilities,
+					Log:          func(format string, v ...interface{}) {},
+				}
+				installer := Installer{
+					Getters: getters,
+					Settings: &cli.EnvSettings{
+						RepositoryCache:  tmp,
+						RepositoryConfig: filepath.Join(tmp, "repositories.yaml"),
+						Debug:            true,
+					},
+					ActionConfig: actionConfig,
+				}
+				err = installer.InstallChart(context.Background(), "karpenter", "karpenter/karpenter", "karpenter", "0.1.0", map[string]interface{}{
+					"controller.clusterName":     "test-security-groups-labels",
+					"controller.clusterEndpoint": "https://E2AB8AEA541E5A354CBBFACE368C534D.sk1.us-west-2.eks.amazonaws.com",
+					"serviceAccount.create":      false,
+					"defaultProvisioner.create":  false,
+				})
+				Expect(err).To(MatchError(ContainSubstring("failed to locate chart: chart \"karpenter\" matching 0.1.0 not found in karpenter index. (try 'helm repo update'): no chart version found for karpenter-0.1.0")))
+			})
 		})
 	})
 })

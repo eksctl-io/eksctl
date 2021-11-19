@@ -19,19 +19,30 @@ import (
 	"github.com/weaveworks/eksctl/pkg/karpenter/providers"
 )
 
+// Options defines options for the Helm Installer.
+type Options struct {
+	Namespace string
+}
+
 // Installer implement the HelmInstaller interface.
 type Installer struct {
-	Settings *cli.EnvSettings
-	Getters  getter.Providers
+	Settings     *cli.EnvSettings
+	Getters      getter.Providers
+	ActionConfig *action.Configuration
 }
 
 // NewInstaller creates a new Helm backed Installer for repo resources.
-func NewInstaller() *Installer {
+func NewInstaller(opts Options) (*Installer, error) {
 	settings := cli.New()
-	return &Installer{
-		Settings: settings,
-		Getters:  getter.All(settings),
+	actionConfig := new(action.Configuration)
+	if err := actionConfig.Init(settings.RESTClientGetter(), opts.Namespace, os.Getenv("HELM_DRIVER"), logger.Debug); err != nil {
+		return nil, fmt.Errorf("failed to initialize action config: %w", err)
 	}
+	return &Installer{
+		Settings:     settings,
+		Getters:      getter.All(settings),
+		ActionConfig: actionConfig,
+	}, nil
 }
 
 var _ providers.HelmInstaller = &Installer{}
@@ -71,12 +82,8 @@ func (i *Installer) AddRepo(repoURL string, release string) error {
 
 // InstallChart takes a repo's name and a chart name and installs it. If namespace is not empty
 // it will install into that namespace and create the namespace. Version is required.
-func (i *Installer) InstallChart(releaseName string, chartName string, namespace string, version string, values map[string]interface{}) error {
-	actionConfig := new(action.Configuration)
-	if err := actionConfig.Init(i.Settings.RESTClientGetter(), namespace, os.Getenv("HELM_DRIVER"), logger.Debug); err != nil {
-		return fmt.Errorf("failed to initialize action config: %w", err)
-	}
-	client := action.NewInstall(actionConfig)
+func (i *Installer) InstallChart(ctx context.Context, releaseName string, chartName string, namespace string, version string, values map[string]interface{}) error {
+	client := action.NewInstall(i.ActionConfig)
 	client.Wait = true
 	client.Namespace = namespace
 	client.ReleaseName = releaseName
@@ -89,13 +96,13 @@ func (i *Installer) InstallChart(releaseName string, chartName string, namespace
 		return fmt.Errorf("failed to locate chart: %w", err)
 	}
 
-	// Check chart dependencies to make sure all are present in /charts
+	// possibly deal with chart dependencies, but for now, maybe we don't care.
 	ch, err := loader.Load(chartPath)
 	if err != nil {
 		return fmt.Errorf("failed to load chart: %w", err)
 	}
 
-	release, err := client.RunWithContext(context.Background(), ch, values)
+	release, err := client.RunWithContext(ctx, ch, values)
 	if err != nil {
 		return fmt.Errorf("failed to install chart: %w", err)
 	}

@@ -240,6 +240,9 @@ const (
 	// NodeGroupNameLabel defines the label of the nodegroup name
 	NodeGroupNameLabel = "alpha.eksctl.io/nodegroup-name"
 
+	// KarpenterNameTag defines the tag of the karpenter stack name
+	KarpenterNameTag = "alpha.eksctl.io/karpenter-name"
+
 	EKSNodeGroupNameLabel = "eks.amazonaws.com/nodegroup"
 
 	// SpotAllocationStrategyLowestPrice defines the ASG spot allocation strategy of lowest-price
@@ -683,6 +686,14 @@ type ClusterConfig struct {
 	// future gitops plans, replacing the Git configuration above
 	// +optional
 	GitOps *GitOps `json:"gitops,omitempty"`
+
+	// Karpenter specific configuration options.
+	Karpenter *Karpenter `json:"karpenter,omitempty"`
+}
+
+// Karpenter provides configuration opti
+type Karpenter struct {
+	Version string `json:"version"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
