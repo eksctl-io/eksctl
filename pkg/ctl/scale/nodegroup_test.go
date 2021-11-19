@@ -12,7 +12,7 @@ import (
 )
 
 var _ = Describe("scale", func() {
-	Describe("nodegroup", func() {
+	Describe("scale nodegroup", func() {
 		DescribeTable("scales  a nodegroup successfully",
 			func(args ...string) {
 				cmd := newMockEmptyCmd(args...)

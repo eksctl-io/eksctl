@@ -226,7 +226,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 				By("asserting that both formats for taints are supported")
 				var (
-					nodeListN1 = tests.ListNodes(clientset)
+					nodeListN1 = tests.ListNodes(clientset, unmNG1)
 					nodeListN2 = tests.ListNodes(clientset, unmNG2)
 				)
 

@@ -65,12 +65,15 @@ func NewScaleAllNodeGroupLoader(cmd *Cmd) ClusterConfigLoader {
 	)
 
 	l.validateWithConfigFile = func() error {
+		if len(l.ClusterConfig.AllNodeGroups()) == 0 {
+			return fmt.Errorf("no nodegroups found in config file")
+		}
 		l.Plan = false
 		return nil
 	}
 
 	l.validateWithoutConfigFile = func() error {
-		return fmt.Errorf("a config file is required when scaling multiple nodegroups")
+		return fmt.Errorf("a config file is required when --name is not set or when scaling multiple nodegroups")
 	}
 
 	return l
