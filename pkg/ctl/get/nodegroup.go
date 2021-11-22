@@ -38,31 +38,17 @@ func getNodeGroupCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
 func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) error {
+	if err := cmdutils.NewGetNodegroupLoader(cmd, ng).Load(); err != nil {
+		return err
+	}
 	cfg := cmd.ClusterConfig
-
-	// TODO: move this into a loader when --config-file gets added to this command
-	if cfg.Metadata.Name == "" {
-		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
-	}
-
-	if ng.Name != "" && cmd.NameArg != "" {
-		return cmdutils.ErrFlagAndArg("--name", ng.Name, cmd.NameArg)
-	}
-
-	if cmd.NameArg != "" {
-		ng.Name = cmd.NameArg
-	}
-
-	// prevent creation of invalid config object with unnamed nodegroup
-	if ng.Name != "" {
-		cfg.NodeGroups = append(cfg.NodeGroups, ng)
-	}
 
 	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {

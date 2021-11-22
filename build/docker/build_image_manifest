@@ -2,7 +2,7 @@
 "github.com/cloudflare/cfssl v1.6.1"
 "github.com/cloudflare/cfssl v1.6.1"
 "github.com/golangci/golangci-lint v1.42.0"
-"github.com/goreleaser/goreleaser v0.184.0"
+"github.com/goreleaser/goreleaser v1.0.0"
 "github.com/onsi/ginkgo v1.16.4"
 "github.com/vektra/mockery v1.1.2"
 "github.com/github-release/github-release v0.10.0"
