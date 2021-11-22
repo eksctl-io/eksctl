@@ -693,7 +693,9 @@ type ClusterConfig struct {
 
 // Karpenter provides configuration opti
 type Karpenter struct {
-	Version string `json:"version"`
+	Version               string `json:"version"`
+	AddDefaultProvisioner *bool  `json:"addDefaultProvisioner"`
+	CreateServiceAccount  *bool  `json:"createServiceAccount"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

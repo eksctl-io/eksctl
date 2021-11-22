@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	// default namespace for Karpenter
-	KarpenterNamespace = "karpenter"
+	// DefaultKarpenterNamespace default namespace for Karpenter
+	DefaultKarpenterNamespace = "karpenter"
 
 	karpenterHelmRepo         = "https://charts.karpenter.sh"
 	karpenterHelmChartName    = "karpenter/karpenter"
@@ -54,7 +54,7 @@ func NewKarpenterInstaller(opts Options) *Installer {
 func (k *Installer) InstallKarpenter(ctx context.Context) error {
 	logger.Info("adding Karpenter to cluster %s with cluster endpoint", k.ClusterName, k.ClusterEndpoint)
 	if err := k.HelmInstaller.AddRepo(karpenterHelmRepo, karpenterReleaseName); err != nil {
-		return fmt.Errorf("failed to karpenter repo: %w", err)
+		return fmt.Errorf("failed to add Karpenter repository: %w", err)
 	}
 	values := map[string]interface{}{
 		createServiceAccount:      k.CreateServiceAccount,
@@ -62,8 +62,8 @@ func (k *Installer) InstallKarpenter(ctx context.Context) error {
 		controllerClusterEndpoint: k.ClusterEndpoint,
 		addDefaultProvisioner:     k.AddDefaultProvisioner,
 	}
-	if err := k.HelmInstaller.InstallChart(ctx, karpenterReleaseName, karpenterHelmChartName, KarpenterNamespace, k.Version, values); err != nil {
-		return fmt.Errorf("failed to install karpenter chart: %w", err)
+	if err := k.HelmInstaller.InstallChart(ctx, karpenterReleaseName, karpenterHelmChartName, DefaultKarpenterNamespace, k.Version, values); err != nil {
+		return fmt.Errorf("failed to install Karpenter chart: %w", err)
 	}
 	return nil
 }

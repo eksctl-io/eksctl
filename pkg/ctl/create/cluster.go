@@ -360,8 +360,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			karpenterTaskTree := stackManager.NewTasksToInstallKarpenter()
 			logger.Info(karpenterTaskTree.Describe())
 			if errs := karpenterTaskTree.DoAllSync(); len(errs) > 0 {
-				logger.Warning("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
-				logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", meta.Region, meta.Name)
+				logger.Warning("%d error(s) occurred while installing Karpenter, you may wish to check your Cluster for further information", len(errs))
 				for _, err := range errs {
 					ufe := &api.UnsupportedFeatureError{}
 					if errors.As(err, &ufe) {
@@ -369,7 +368,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 					}
 					logger.Critical("%s\n", err.Error())
 				}
-				return fmt.Errorf("failed to install Karpenter %q", meta.Name)
+				return fmt.Errorf("failed to install Karpenter on cluster %q", meta.Name)
 			}
 		}
 

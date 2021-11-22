@@ -16,7 +16,6 @@ type KarpenterResourceSet struct {
 	rs          *resourceSet
 	clusterSpec *api.ClusterConfig
 	iamAPI      iamiface.IAMAPI
-	// instanceProfileARN *gfnt.Value
 }
 
 // NewKarpenterResourceSet returns a resource set for a Karpenter embedded in a cluster config

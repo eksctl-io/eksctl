@@ -860,12 +860,20 @@
     },
     "Karpenter": {
       "properties": {
+        "addDefaultProvisioner": {
+          "type": "boolean"
+        },
+        "createServiceAccount": {
+          "type": "boolean"
+        },
         "version": {
           "type": "string"
         }
       },
       "preferredOrder": [
-        "version"
+        "version",
+        "addDefaultProvisioner",
+        "createServiceAccount"
       ],
       "additionalProperties": false,
       "description": "provides configuration opti",

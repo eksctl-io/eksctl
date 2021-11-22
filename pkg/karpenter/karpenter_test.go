@@ -45,7 +45,7 @@ var _ = Describe("InstallKarpenter", func() {
 
 			It("errors", func() {
 				Expect(installerUnderTest.InstallKarpenter(context.Background())).
-					To(MatchError(ContainSubstring("failed to karpenter repo: nope")))
+					To(MatchError(ContainSubstring("failed to add Karpenter repository: nope")))
 			})
 		})
 		When("install chart fails", func() {
@@ -57,7 +57,7 @@ var _ = Describe("InstallKarpenter", func() {
 
 			It("errors", func() {
 				Expect(installerUnderTest.InstallKarpenter(context.Background())).
-					To(MatchError(ContainSubstring("failed to install karpenter chart: nope")))
+					To(MatchError(ContainSubstring("failed to install Karpenter chart: nope")))
 			})
 		})
 	})

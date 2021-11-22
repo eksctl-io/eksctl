@@ -42,17 +42,17 @@ func (c *StackCollection) createKarpenterTask(errs chan error) error {
 	// don't want to change StackCollection's New*. But this will make
 	// testing this function rather difficult.
 	helmInstaller, err := helm.NewInstaller(helm.Options{
-		Namespace: karpenter.KarpenterNamespace,
+		Namespace: karpenter.DefaultKarpenterNamespace,
 	})
 	if err != nil {
 		return err
 	}
 	karpenterInstaller := karpenter.NewKarpenterInstaller(karpenter.Options{
 		HelmInstaller:         helmInstaller,
-		Namespace:             karpenter.KarpenterNamespace,
+		Namespace:             karpenter.DefaultKarpenterNamespace,
 		ClusterName:           c.spec.Metadata.Name,
-		AddDefaultProvisioner: false, // make this configurable
-		CreateServiceAccount:  true,  // make this configurable
+		AddDefaultProvisioner: api.IsEnabled(c.spec.Karpenter.AddDefaultProvisioner),
+		CreateServiceAccount:  api.IsEnabled(c.spec.Karpenter.CreateServiceAccount),
 		ClusterEndpoint:       c.spec.Status.Endpoint,
 		Version:               c.spec.Karpenter.Version,
 	})
@@ -61,10 +61,7 @@ func (c *StackCollection) createKarpenterTask(errs chan error) error {
 
 // GetKarpenterName will return karpenter name based on tags
 func (*StackCollection) GetKarpenterName(s *Stack) string {
-	if tagName := GetKarpenterTagName(s.Tags); tagName != "" {
-		return tagName
-	}
-	return ""
+	return GetKarpenterTagName(s.Tags)
 }
 
 // GetKarpenterTagName returns the Karpenter name of a stack based on its tags.

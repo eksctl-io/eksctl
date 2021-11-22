@@ -23,5 +23,5 @@ type HelmInstaller interface {
 	AddRepo(repoURL string, release string) error
 	// InstallChart takes a releaseName's name and a chart name and installs it. If namespace is not empty
 	// it will install into that namespace and create the namespace. Version is required.
-	InstallChart(ctx context.Context, releaseName string, chartName string, namespace string, version string, values map[string]interface{}) error
+	InstallChart(ctx context.Context, releaseName, chartName, namespace, version string, values map[string]interface{}) error
 }

@@ -48,7 +48,7 @@ func NewInstaller(opts Options) (*Installer, error) {
 var _ providers.HelmInstaller = &Installer{}
 
 // AddRepo adds a repository to helm repositories.
-func (i *Installer) AddRepo(repoURL string, release string) error {
+func (i *Installer) AddRepo(repoURL, release string) error {
 	if err := os.MkdirAll(filepath.Dir(i.Settings.RegistryConfig), os.ModePerm); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("failed to make cache folder: %w", err)
 	}
@@ -59,7 +59,7 @@ func (i *Installer) AddRepo(repoURL string, release string) error {
 
 	var f repo.File
 	if err := yaml.Unmarshal(b, &f); err != nil {
-		return fmt.Errorf("failed to marshall repo file: %w", err)
+		return fmt.Errorf("failed to marshal repo file: %w", err)
 	}
 
 	c := repo.Entry{
@@ -82,7 +82,7 @@ func (i *Installer) AddRepo(repoURL string, release string) error {
 
 // InstallChart takes a repo's name and a chart name and installs it. If namespace is not empty
 // it will install into that namespace and create the namespace. Version is required.
-func (i *Installer) InstallChart(ctx context.Context, releaseName string, chartName string, namespace string, version string, values map[string]interface{}) error {
+func (i *Installer) InstallChart(ctx context.Context, releaseName, chartName, namespace, version string, values map[string]interface{}) error {
 	client := action.NewInstall(i.ActionConfig)
 	client.Wait = true
 	client.Namespace = namespace
