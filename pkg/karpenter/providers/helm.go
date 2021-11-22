@@ -21,11 +21,7 @@ type Getter interface {
 type HelmInstaller interface {
 	// AddRepo adds a repository to helm repositories.
 	AddRepo(repoURL string, release string) error
-	// RemoveRepo removes a repository from the list of repositories.
-	RemoveRepo(repoName string) error
 	// InstallChart takes a releaseName's name and a chart name and installs it. If namespace is not empty
 	// it will install into that namespace and create the namespace. Version is required.
 	InstallChart(ctx context.Context, releaseName string, chartName string, namespace string, version string, values map[string]interface{}) error
-	// UninstallChart removes an installed chart from the cluster.
-	UninstallChart(chart string) error
 }

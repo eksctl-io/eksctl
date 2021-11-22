@@ -27,12 +27,10 @@ type UpdateStackOptions struct {
 //counterfeiter:generate -o fakes/fake_stack_manager.go . StackManager
 type StackManager interface {
 	ListNodeGroupStacks() ([]NodeGroupStack, error)
-	ListKarpenterStacks() ([]KarpenterStack, error)
 	DescribeNodeGroupStacksAndResources() (map[string]StackInfo, error)
 	GetUnmanagedNodeGroupSummaries(name string) ([]*NodeGroupSummary, error)
 	DescribeNodeGroupStack(nodeGroupName string) (*Stack, error)
 	DescribeNodeGroupStacks() ([]*Stack, error)
-	DescribeKarpenterStacks() ([]*Stack, error)
 	GetNodeGroupStackType(name string) (v1alpha5.NodeGroupType, error)
 	GetNodeGroupName(s *Stack) string
 	DoWaitUntilStackIsCreated(i *Stack) error

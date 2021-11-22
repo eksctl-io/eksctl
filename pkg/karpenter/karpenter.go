@@ -33,13 +33,12 @@ type Options struct {
 	Version               string
 }
 
-// Manager defines a manager for Karpenter.
-type Manager interface {
+// Handler defines a handler for Karpenter.
+type Handler interface {
 	InstallKarpenter(ctx context.Context) error
-	UninstallKarpenter(ctx context.Context) error
 }
 
-// Installer implements the Karpenter orchestrator using a HelmInstaller.
+// Installer implements the Karpenter handler.
 type Installer struct {
 	Options
 }
@@ -54,7 +53,6 @@ func NewKarpenterInstaller(opts Options) *Installer {
 // InstallKarpenter adds Karpenter to a configured cluster in a separate CloudFormation stack.
 func (k *Installer) InstallKarpenter(ctx context.Context) error {
 	logger.Info("adding Karpenter to cluster %s with cluster endpoint", k.ClusterName, k.ClusterEndpoint)
-	// The stack creation is handled by the Manager... Not here... We just install Karpenter here.
 	if err := k.HelmInstaller.AddRepo(karpenterHelmRepo, karpenterReleaseName); err != nil {
 		return fmt.Errorf("failed to karpenter repo: %w", err)
 	}
@@ -67,10 +65,5 @@ func (k *Installer) InstallKarpenter(ctx context.Context) error {
 	if err := k.HelmInstaller.InstallChart(ctx, karpenterReleaseName, karpenterHelmChartName, KarpenterNamespace, k.Version, values); err != nil {
 		return fmt.Errorf("failed to install karpenter chart: %w", err)
 	}
-	return nil
-}
-
-// UninstallKarpenter removes Karpenter from the target cluster.
-func (k *Installer) UninstallKarpenter(ctx context.Context) error {
 	return nil
 }

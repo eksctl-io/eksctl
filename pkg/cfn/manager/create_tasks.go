@@ -5,12 +5,13 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -80,7 +81,7 @@ func (c *StackCollection) NewUnmanagedNodeGroupTask(nodeGroups []*api.NodeGroup,
 	return taskTree
 }
 
-// NewKarpenterTask defines tasks required to create Karpenter
+// NewTasksToInstallKarpenter defines tasks required to create Karpenter
 func (c *StackCollection) NewTasksToInstallKarpenter() *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}
 	taskTree.Append(&karpenterTask{

@@ -109,23 +109,3 @@ func (i *Installer) InstallChart(ctx context.Context, releaseName string, chartN
 	logger.Debug("successfully installed helm chart: ", release.Name)
 	return nil
 }
-
-func (i *Installer) UninstallChart(chart string) error {
-	panic("implement me")
-}
-
-// RemoveRepo do we even need this?
-func (i *Installer) RemoveRepo(repoName string) error {
-	r, err := repo.LoadFile(i.Settings.RepositoryConfig)
-	if os.IsNotExist(err) || len(r.Repositories) == 0 {
-		return fmt.Errorf("no repositories configured")
-	}
-	if !r.Remove(repoName) {
-		return fmt.Errorf("repo %s not found", repoName)
-	}
-	if err := r.WriteFile(i.Settings.RepositoryConfig, 0644); err != nil {
-		return fmt.Errorf("failed to write out the repository config file: %w", err)
-	}
-	// TODO: should remove the cache
-	return nil
-}

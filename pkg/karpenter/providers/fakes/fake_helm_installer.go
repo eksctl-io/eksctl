@@ -37,28 +37,6 @@ type FakeHelmInstaller struct {
 	installChartReturnsOnCall map[int]struct {
 		result1 error
 	}
-	RemoveRepoStub        func(string) error
-	removeRepoMutex       sync.RWMutex
-	removeRepoArgsForCall []struct {
-		arg1 string
-	}
-	removeRepoReturns struct {
-		result1 error
-	}
-	removeRepoReturnsOnCall map[int]struct {
-		result1 error
-	}
-	UninstallChartStub        func(string) error
-	uninstallChartMutex       sync.RWMutex
-	uninstallChartArgsForCall []struct {
-		arg1 string
-	}
-	uninstallChartReturns struct {
-		result1 error
-	}
-	uninstallChartReturnsOnCall map[int]struct {
-		result1 error
-	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -191,128 +169,6 @@ func (fake *FakeHelmInstaller) InstallChartReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeHelmInstaller) RemoveRepo(arg1 string) error {
-	fake.removeRepoMutex.Lock()
-	ret, specificReturn := fake.removeRepoReturnsOnCall[len(fake.removeRepoArgsForCall)]
-	fake.removeRepoArgsForCall = append(fake.removeRepoArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.RemoveRepoStub
-	fakeReturns := fake.removeRepoReturns
-	fake.recordInvocation("RemoveRepo", []interface{}{arg1})
-	fake.removeRepoMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeHelmInstaller) RemoveRepoCallCount() int {
-	fake.removeRepoMutex.RLock()
-	defer fake.removeRepoMutex.RUnlock()
-	return len(fake.removeRepoArgsForCall)
-}
-
-func (fake *FakeHelmInstaller) RemoveRepoCalls(stub func(string) error) {
-	fake.removeRepoMutex.Lock()
-	defer fake.removeRepoMutex.Unlock()
-	fake.RemoveRepoStub = stub
-}
-
-func (fake *FakeHelmInstaller) RemoveRepoArgsForCall(i int) string {
-	fake.removeRepoMutex.RLock()
-	defer fake.removeRepoMutex.RUnlock()
-	argsForCall := fake.removeRepoArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeHelmInstaller) RemoveRepoReturns(result1 error) {
-	fake.removeRepoMutex.Lock()
-	defer fake.removeRepoMutex.Unlock()
-	fake.RemoveRepoStub = nil
-	fake.removeRepoReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeHelmInstaller) RemoveRepoReturnsOnCall(i int, result1 error) {
-	fake.removeRepoMutex.Lock()
-	defer fake.removeRepoMutex.Unlock()
-	fake.RemoveRepoStub = nil
-	if fake.removeRepoReturnsOnCall == nil {
-		fake.removeRepoReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.removeRepoReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeHelmInstaller) UninstallChart(arg1 string) error {
-	fake.uninstallChartMutex.Lock()
-	ret, specificReturn := fake.uninstallChartReturnsOnCall[len(fake.uninstallChartArgsForCall)]
-	fake.uninstallChartArgsForCall = append(fake.uninstallChartArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.UninstallChartStub
-	fakeReturns := fake.uninstallChartReturns
-	fake.recordInvocation("UninstallChart", []interface{}{arg1})
-	fake.uninstallChartMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeHelmInstaller) UninstallChartCallCount() int {
-	fake.uninstallChartMutex.RLock()
-	defer fake.uninstallChartMutex.RUnlock()
-	return len(fake.uninstallChartArgsForCall)
-}
-
-func (fake *FakeHelmInstaller) UninstallChartCalls(stub func(string) error) {
-	fake.uninstallChartMutex.Lock()
-	defer fake.uninstallChartMutex.Unlock()
-	fake.UninstallChartStub = stub
-}
-
-func (fake *FakeHelmInstaller) UninstallChartArgsForCall(i int) string {
-	fake.uninstallChartMutex.RLock()
-	defer fake.uninstallChartMutex.RUnlock()
-	argsForCall := fake.uninstallChartArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeHelmInstaller) UninstallChartReturns(result1 error) {
-	fake.uninstallChartMutex.Lock()
-	defer fake.uninstallChartMutex.Unlock()
-	fake.UninstallChartStub = nil
-	fake.uninstallChartReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeHelmInstaller) UninstallChartReturnsOnCall(i int, result1 error) {
-	fake.uninstallChartMutex.Lock()
-	defer fake.uninstallChartMutex.Unlock()
-	fake.UninstallChartStub = nil
-	if fake.uninstallChartReturnsOnCall == nil {
-		fake.uninstallChartReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.uninstallChartReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeHelmInstaller) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -320,10 +176,6 @@ func (fake *FakeHelmInstaller) Invocations() map[string][][]interface{} {
 	defer fake.addRepoMutex.RUnlock()
 	fake.installChartMutex.RLock()
 	defer fake.installChartMutex.RUnlock()
-	fake.removeRepoMutex.RLock()
-	defer fake.removeRepoMutex.RUnlock()
-	fake.uninstallChartMutex.RLock()
-	defer fake.uninstallChartMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

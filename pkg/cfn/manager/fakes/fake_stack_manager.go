@@ -131,18 +131,6 @@ type FakeStackManager struct {
 		result1 []*cloudformation.Stack
 		result2 error
 	}
-	DescribeKarpenterStacksStub        func() ([]*cloudformation.Stack, error)
-	describeKarpenterStacksMutex       sync.RWMutex
-	describeKarpenterStacksArgsForCall []struct {
-	}
-	describeKarpenterStacksReturns struct {
-		result1 []*cloudformation.Stack
-		result2 error
-	}
-	describeKarpenterStacksReturnsOnCall map[int]struct {
-		result1 []*cloudformation.Stack
-		result2 error
-	}
 	DescribeNodeGroupStackStub        func(string) (*cloudformation.Stack, error)
 	describeNodeGroupStackMutex       sync.RWMutex
 	describeNodeGroupStackArgsForCall []struct {
@@ -449,18 +437,6 @@ type FakeStackManager struct {
 	}
 	listIAMServiceAccountStacksReturnsOnCall map[int]struct {
 		result1 []string
-		result2 error
-	}
-	ListKarpenterStacksStub        func() ([]manager.KarpenterStack, error)
-	listKarpenterStacksMutex       sync.RWMutex
-	listKarpenterStacksArgsForCall []struct {
-	}
-	listKarpenterStacksReturns struct {
-		result1 []manager.KarpenterStack
-		result2 error
-	}
-	listKarpenterStacksReturnsOnCall map[int]struct {
-		result1 []manager.KarpenterStack
 		result2 error
 	}
 	ListNodeGroupStacksStub        func() ([]manager.NodeGroupStack, error)
@@ -1301,62 +1277,6 @@ func (fake *FakeStackManager) DescribeIAMServiceAccountStacksReturnsOnCall(i int
 		})
 	}
 	fake.describeIAMServiceAccountStacksReturnsOnCall[i] = struct {
-		result1 []*cloudformation.Stack
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeStackManager) DescribeKarpenterStacks() ([]*cloudformation.Stack, error) {
-	fake.describeKarpenterStacksMutex.Lock()
-	ret, specificReturn := fake.describeKarpenterStacksReturnsOnCall[len(fake.describeKarpenterStacksArgsForCall)]
-	fake.describeKarpenterStacksArgsForCall = append(fake.describeKarpenterStacksArgsForCall, struct {
-	}{})
-	stub := fake.DescribeKarpenterStacksStub
-	fakeReturns := fake.describeKarpenterStacksReturns
-	fake.recordInvocation("DescribeKarpenterStacks", []interface{}{})
-	fake.describeKarpenterStacksMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeStackManager) DescribeKarpenterStacksCallCount() int {
-	fake.describeKarpenterStacksMutex.RLock()
-	defer fake.describeKarpenterStacksMutex.RUnlock()
-	return len(fake.describeKarpenterStacksArgsForCall)
-}
-
-func (fake *FakeStackManager) DescribeKarpenterStacksCalls(stub func() ([]*cloudformation.Stack, error)) {
-	fake.describeKarpenterStacksMutex.Lock()
-	defer fake.describeKarpenterStacksMutex.Unlock()
-	fake.DescribeKarpenterStacksStub = stub
-}
-
-func (fake *FakeStackManager) DescribeKarpenterStacksReturns(result1 []*cloudformation.Stack, result2 error) {
-	fake.describeKarpenterStacksMutex.Lock()
-	defer fake.describeKarpenterStacksMutex.Unlock()
-	fake.DescribeKarpenterStacksStub = nil
-	fake.describeKarpenterStacksReturns = struct {
-		result1 []*cloudformation.Stack
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeStackManager) DescribeKarpenterStacksReturnsOnCall(i int, result1 []*cloudformation.Stack, result2 error) {
-	fake.describeKarpenterStacksMutex.Lock()
-	defer fake.describeKarpenterStacksMutex.Unlock()
-	fake.DescribeKarpenterStacksStub = nil
-	if fake.describeKarpenterStacksReturnsOnCall == nil {
-		fake.describeKarpenterStacksReturnsOnCall = make(map[int]struct {
-			result1 []*cloudformation.Stack
-			result2 error
-		})
-	}
-	fake.describeKarpenterStacksReturnsOnCall[i] = struct {
 		result1 []*cloudformation.Stack
 		result2 error
 	}{result1, result2}
@@ -2867,62 +2787,6 @@ func (fake *FakeStackManager) ListIAMServiceAccountStacksReturnsOnCall(i int, re
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) ListKarpenterStacks() ([]manager.KarpenterStack, error) {
-	fake.listKarpenterStacksMutex.Lock()
-	ret, specificReturn := fake.listKarpenterStacksReturnsOnCall[len(fake.listKarpenterStacksArgsForCall)]
-	fake.listKarpenterStacksArgsForCall = append(fake.listKarpenterStacksArgsForCall, struct {
-	}{})
-	stub := fake.ListKarpenterStacksStub
-	fakeReturns := fake.listKarpenterStacksReturns
-	fake.recordInvocation("ListKarpenterStacks", []interface{}{})
-	fake.listKarpenterStacksMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeStackManager) ListKarpenterStacksCallCount() int {
-	fake.listKarpenterStacksMutex.RLock()
-	defer fake.listKarpenterStacksMutex.RUnlock()
-	return len(fake.listKarpenterStacksArgsForCall)
-}
-
-func (fake *FakeStackManager) ListKarpenterStacksCalls(stub func() ([]manager.KarpenterStack, error)) {
-	fake.listKarpenterStacksMutex.Lock()
-	defer fake.listKarpenterStacksMutex.Unlock()
-	fake.ListKarpenterStacksStub = stub
-}
-
-func (fake *FakeStackManager) ListKarpenterStacksReturns(result1 []manager.KarpenterStack, result2 error) {
-	fake.listKarpenterStacksMutex.Lock()
-	defer fake.listKarpenterStacksMutex.Unlock()
-	fake.ListKarpenterStacksStub = nil
-	fake.listKarpenterStacksReturns = struct {
-		result1 []manager.KarpenterStack
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeStackManager) ListKarpenterStacksReturnsOnCall(i int, result1 []manager.KarpenterStack, result2 error) {
-	fake.listKarpenterStacksMutex.Lock()
-	defer fake.listKarpenterStacksMutex.Unlock()
-	fake.ListKarpenterStacksStub = nil
-	if fake.listKarpenterStacksReturnsOnCall == nil {
-		fake.listKarpenterStacksReturnsOnCall = make(map[int]struct {
-			result1 []manager.KarpenterStack
-			result2 error
-		})
-	}
-	fake.listKarpenterStacksReturnsOnCall[i] = struct {
-		result1 []manager.KarpenterStack
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeStackManager) ListNodeGroupStacks() ([]manager.NodeGroupStack, error) {
 	fake.listNodeGroupStacksMutex.Lock()
 	ret, specificReturn := fake.listNodeGroupStacksReturnsOnCall[len(fake.listNodeGroupStacksArgsForCall)]
@@ -4388,8 +4252,6 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.describeClusterStackMutex.RUnlock()
 	fake.describeIAMServiceAccountStacksMutex.RLock()
 	defer fake.describeIAMServiceAccountStacksMutex.RUnlock()
-	fake.describeKarpenterStacksMutex.RLock()
-	defer fake.describeKarpenterStacksMutex.RUnlock()
 	fake.describeNodeGroupStackMutex.RLock()
 	defer fake.describeNodeGroupStackMutex.RUnlock()
 	fake.describeNodeGroupStacksMutex.RLock()
@@ -4440,8 +4302,6 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.listClusterStackNamesMutex.RUnlock()
 	fake.listIAMServiceAccountStacksMutex.RLock()
 	defer fake.listIAMServiceAccountStacksMutex.RUnlock()
-	fake.listKarpenterStacksMutex.RLock()
-	defer fake.listKarpenterStacksMutex.RUnlock()
 	fake.listNodeGroupStacksMutex.RLock()
 	defer fake.listNodeGroupStacksMutex.RUnlock()
 	fake.listStacksMutex.RLock()

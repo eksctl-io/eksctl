@@ -11,18 +11,17 @@ import (
 )
 
 var _ = Describe("InstallKarpenter", func() {
+
 	Context("Install", func() {
+
 		var (
-			fakeHelmInstaller *fakes.FakeHelmInstaller
+			fakeHelmInstaller  *fakes.FakeHelmInstaller
+			installerUnderTest *Installer
 		)
+
 		BeforeEach(func() {
 			fakeHelmInstaller = &fakes.FakeHelmInstaller{}
-		})
-		AfterEach(func() {})
-		It("installs karpenter into an existing cluster", func() {
-			fakeHelmInstaller.AddRepoReturns(nil)
-			fakeHelmInstaller.InstallChartReturns(nil)
-			ki := &Installer{
+			installerUnderTest = &Installer{
 				Options: Options{
 					HelmInstaller:         fakeHelmInstaller,
 					Namespace:             "karpenter",
@@ -33,44 +32,32 @@ var _ = Describe("InstallKarpenter", func() {
 					Version:               "0.4.3",
 				},
 			}
-			err := ki.InstallKarpenter(context.Background())
-			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("installs karpenter into an existing cluster", func() {
+			Expect(installerUnderTest.InstallKarpenter(context.Background())).To(Succeed())
 		})
 		When("add repo fails", func() {
-			It("returns an error", func() {
+
+			BeforeEach(func() {
 				fakeHelmInstaller.AddRepoReturns(errors.New("nope"))
-				ki := &Installer{
-					Options: Options{
-						HelmInstaller:         fakeHelmInstaller,
-						Namespace:             "karpenter",
-						ClusterName:           "test-cluster",
-						AddDefaultProvisioner: true,
-						CreateServiceAccount:  true,
-						ClusterEndpoint:       "https://endpoint.com",
-						Version:               "0.4.3",
-					},
-				}
-				err := ki.InstallKarpenter(context.Background())
-				Expect(err).To(MatchError(ContainSubstring("failed to karpenter repo: nope")))
+			})
+
+			It("errors", func() {
+				Expect(installerUnderTest.InstallKarpenter(context.Background())).
+					To(MatchError(ContainSubstring("failed to karpenter repo: nope")))
 			})
 		})
 		When("install chart fails", func() {
-			It("returns an error", func() {
+
+			BeforeEach(func() {
 				fakeHelmInstaller.AddRepoReturns(nil)
 				fakeHelmInstaller.InstallChartReturns(errors.New("nope"))
-				ki := &Installer{
-					Options: Options{
-						HelmInstaller:         fakeHelmInstaller,
-						Namespace:             "karpenter",
-						ClusterName:           "test-cluster",
-						AddDefaultProvisioner: true,
-						CreateServiceAccount:  true,
-						ClusterEndpoint:       "https://endpoint.com",
-						Version:               "0.4.3",
-					},
-				}
-				err := ki.InstallKarpenter(context.Background())
-				Expect(err).To(MatchError(ContainSubstring("failed to install karpenter chart: nope")))
+			})
+
+			It("errors", func() {
+				Expect(installerUnderTest.InstallKarpenter(context.Background())).
+					To(MatchError(ContainSubstring("failed to install karpenter chart: nope")))
 			})
 		})
 	})
