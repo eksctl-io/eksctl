@@ -10,7 +10,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/karpenter/providers/fakes"
 )
 
-var _ = Describe("InstallKarpenter", func() {
+var _ = Describe("Install", func() {
 
 	Context("Install", func() {
 
@@ -35,7 +35,7 @@ var _ = Describe("InstallKarpenter", func() {
 		})
 
 		It("installs karpenter into an existing cluster", func() {
-			Expect(installerUnderTest.InstallKarpenter(context.Background())).To(Succeed())
+			Expect(installerUnderTest.Install(context.Background())).To(Succeed())
 		})
 		When("add repo fails", func() {
 
@@ -44,7 +44,7 @@ var _ = Describe("InstallKarpenter", func() {
 			})
 
 			It("errors", func() {
-				Expect(installerUnderTest.InstallKarpenter(context.Background())).
+				Expect(installerUnderTest.Install(context.Background())).
 					To(MatchError(ContainSubstring("failed to add Karpenter repository: nope")))
 			})
 		})
@@ -56,7 +56,7 @@ var _ = Describe("InstallKarpenter", func() {
 			})
 
 			It("errors", func() {
-				Expect(installerUnderTest.InstallKarpenter(context.Background())).
+				Expect(installerUnderTest.Install(context.Background())).
 					To(MatchError(ContainSubstring("failed to install Karpenter chart: nope")))
 			})
 		})

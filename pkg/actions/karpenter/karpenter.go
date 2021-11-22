@@ -21,13 +21,13 @@ type Installer struct {
 	clientSet          kubernetes.Interface
 	wait               WaitFunc
 	kubeProvider       eks.KubeProvider
-	karpenterInstaller karpenter.Handler
+	karpenterInstaller karpenter.InstallKarpenter
 }
 
 type WaitFunc func(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error
 
 // NewInstaller creates a new Karpenter installer.
-func NewInstaller(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, karpenter karpenter.Handler) *Installer {
+func NewInstaller(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, karpenter karpenter.InstallKarpenter) *Installer {
 	return &Installer{
 		stackManager:       ctl.NewStackManager(cfg),
 		ctl:                ctl,
@@ -39,7 +39,7 @@ func NewInstaller(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet ku
 	}
 }
 
-// func (m *Handler) hasStacks(name string) (bool, error) {
+// func (m *Install) hasStacks(name string) (bool, error) {
 // 	stacks, err := m.stackManager.ListKarpenterStacks()
 // 	if err != nil {
 // 		return false, err

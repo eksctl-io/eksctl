@@ -33,12 +33,12 @@ type Options struct {
 	Version               string
 }
 
-// Handler defines a handler for Karpenter.
-type Handler interface {
-	InstallKarpenter(ctx context.Context) error
+// InstallKarpenter defines a functionality to install Karpenter.
+type InstallKarpenter interface {
+	Install(ctx context.Context) error
 }
 
-// Installer implements the Karpenter handler.
+// Installer implements the Karpenter installer functionality.
 type Installer struct {
 	Options
 }
@@ -50,8 +50,8 @@ func NewKarpenterInstaller(opts Options) *Installer {
 	}
 }
 
-// InstallKarpenter adds Karpenter to a configured cluster in a separate CloudFormation stack.
-func (k *Installer) InstallKarpenter(ctx context.Context) error {
+// Install adds Karpenter to a configured cluster in a separate CloudFormation stack.
+func (k *Installer) Install(ctx context.Context) error {
 	logger.Info("adding Karpenter to cluster %s with cluster endpoint", k.ClusterName, k.ClusterEndpoint)
 	if err := k.HelmInstaller.AddRepo(karpenterHelmRepo, karpenterReleaseName); err != nil {
 		return fmt.Errorf("failed to add Karpenter repository: %w", err)

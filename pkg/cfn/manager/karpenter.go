@@ -56,7 +56,7 @@ func (c *StackCollection) createKarpenterTask(errs chan error) error {
 		ClusterEndpoint:       c.spec.Status.Endpoint,
 		Version:               c.spec.Karpenter.Version,
 	})
-	return karpenterInstaller.InstallKarpenter(context.Background())
+	return karpenterInstaller.Install(context.Background())
 }
 
 // GetKarpenterName will return karpenter name based on tags
