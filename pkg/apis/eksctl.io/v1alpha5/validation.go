@@ -601,6 +601,9 @@ func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) erro
 		if iam.InstanceRoleName != "" {
 			return fmtFieldConflictErr("instanceRoleName")
 		}
+		if iam.AttachPolicy != nil {
+			return fmtFieldConflictErr("attachPolicy")
+		}
 		if len(iam.AttachPolicyARNs) != 0 {
 			return fmtFieldConflictErr("attachPolicyARNs")
 		}
