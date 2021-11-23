@@ -688,14 +688,21 @@ type ClusterConfig struct {
 	GitOps *GitOps `json:"gitops,omitempty"`
 
 	// Karpenter specific configuration options.
+	// +optional
 	Karpenter *Karpenter `json:"karpenter,omitempty"`
 }
 
 // Karpenter provides configuration opti
 type Karpenter struct {
-	Version               string `json:"version"`
-	AddDefaultProvisioner *bool  `json:"addDefaultProvisioner"`
-	CreateServiceAccount  *bool  `json:"createServiceAccount"`
+	// Version defines the Karpenter version to install
+	// +required
+	Version string `json:"version"`
+	// AddDefaultProvisioner defines if the default provisioner for Karpenter should be installed or not.
+	// +optional
+	AddDefaultProvisioner *bool `json:"addDefaultProvisioner,omitempty"`
+	// CreateServiceAccount create a service account or not.
+	// +optional
+	CreateServiceAccount *bool `json:"createServiceAccount,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

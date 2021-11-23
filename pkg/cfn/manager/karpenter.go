@@ -28,7 +28,7 @@ func (c *StackCollection) createKarpenterTask(errs chan error) error {
 	name := c.makeKarpenterStackName()
 
 	logger.Info("building nodegroup stack %q", name)
-	stack := builder.NewKarpenterResourceSet(c.iamAPI, c.spec)
+	stack := builder.NewKarpenterResourceSet(c.spec)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func (c *StackCollection) createKarpenterTask(errs chan error) error {
 	if err := c.CreateStack(name, stack, tags, nil, errs); err != nil {
 		return err
 	}
-	// Have to create these here, since the Helm Installer returns an error and I
+	// Have to create these here, since the Helm Installer returns an error, and I
 	// don't want to change StackCollection's New*. But this will make
 	// testing this function rather difficult.
 	helmInstaller, err := helm.NewInstaller(helm.Options{
@@ -67,8 +67,7 @@ func (*StackCollection) GetKarpenterName(s *Stack) string {
 // GetKarpenterTagName returns the Karpenter name of a stack based on its tags.
 func GetKarpenterTagName(tags []*cfn.Tag) string {
 	for _, tag := range tags {
-		switch *tag.Key {
-		case api.KarpenterNameTag:
+		if *tag.Key == api.KarpenterNameTag {
 			return *tag.Value
 		}
 	}

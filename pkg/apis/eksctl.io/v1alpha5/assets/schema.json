@@ -859,15 +859,24 @@
       "x-intellij-html-description": "holds EC2 instance selector options"
     },
     "Karpenter": {
+      "required": [
+        "version"
+      ],
       "properties": {
         "addDefaultProvisioner": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "defines if the default provisioner for Karpenter should be installed or not.",
+          "x-intellij-html-description": "defines if the default provisioner for Karpenter should be installed or not."
         },
         "createServiceAccount": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "create a service account or not.",
+          "x-intellij-html-description": "create a service account or not."
         },
         "version": {
-          "type": "string"
+          "type": "string",
+          "description": "defines the Karpenter version to install",
+          "x-intellij-html-description": "defines the Karpenter version to install"
         }
       },
       "preferredOrder": [
