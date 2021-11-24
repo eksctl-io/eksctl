@@ -7,8 +7,15 @@ import (
 	"strings"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+	"github.com/aws/aws-sdk-go/aws/arn"
+	kubeclient "k8s.io/client-go/kubernetes"
 
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/iam"
+	"github.com/weaveworks/eksctl/pkg/karpenter"
 	"github.com/weaveworks/eksctl/pkg/kops"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
@@ -356,20 +363,8 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			}
 		}
 		// After we have the cluster config and all the nodes are done, we install Karpenter if necessary.
-		if cfg.Karpenter != nil {
-			karpenterTaskTree := stackManager.NewTasksToInstallKarpenter()
-			logger.Info(karpenterTaskTree.Describe())
-			if errs := karpenterTaskTree.DoAllSync(); len(errs) > 0 {
-				logger.Warning("%d error(s) occurred while installing Karpenter, you may wish to check your Cluster for further information", len(errs))
-				for _, err := range errs {
-					ufe := &api.UnsupportedFeatureError{}
-					if errors.As(err, &ufe) {
-						logger.Critical(ufe.Message)
-					}
-					logger.Critical("%s\n", err.Error())
-				}
-				return fmt.Errorf("failed to install Karpenter on cluster %q", meta.Name)
-			}
+		if err := installKarpenter(ctl, cfg, stackManager, meta, clientSet); err != nil {
+			return err
 		}
 
 		// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
@@ -419,6 +414,81 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// installKarpenter prepares the environment for Karpenter, by creating the following resources:
+// - iam roles
+// - service account
+// - identity mapping
+// then proceeds with installing Karpenter using Helm.
+func installKarpenter(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, stackManager manager.StackManager, meta *api.ClusterMeta, clientSet *kubeclient.Clientset) error {
+	if cfg.Karpenter == nil {
+		return nil
+	}
+	clientSetGetter := &kubernetes.CallbackClientSet{
+		Callback: func() (kubernetes.Interface, error) {
+			return ctl.NewStdClientSet(cfg)
+		},
+	}
+
+	// create the needed service account before Karpenter, otherwise, Karpenter will fail to be created.
+	parsedARN, err := arn.Parse(cfg.Status.ARN)
+	if err != nil {
+		return fmt.Errorf("unexpected invalid ARN: %q, %w", cfg.Status.ARN, err)
+	}
+	roleArn := fmt.Sprintf("arn:aws:iam::%s:policy/%s-%s", parsedARN.AccountID, builder.KarpenterManagedPolicy, cfg.Metadata.Name)
+	karpenterServiceAccountTaskTree := stackManager.NewTasksToCreateIAMServiceAccounts([]*api.ClusterIAMServiceAccount{
+		{
+			ClusterIAMMeta: api.ClusterIAMMeta{
+				Name:      karpenter.DefaultKarpenterServiceAccountName,
+				Namespace: karpenter.DefaultKarpenterNamespace,
+			},
+			AttachRoleARN: roleArn,
+		},
+	}, nil, clientSetGetter)
+	logger.Info(karpenterServiceAccountTaskTree.Describe())
+	if errs := karpenterServiceAccountTaskTree.DoAllSync(); len(errs) > 0 {
+		logger.Warning("%d error(s) occurred while creating service account for Karpenter, you may wish to check your Cluster for further information", len(errs))
+		for _, err := range errs {
+			ufe := &api.UnsupportedFeatureError{}
+			if errors.As(err, &ufe) {
+				logger.Critical(ufe.Message)
+			}
+			logger.Critical("%s\n", err.Error())
+		}
+		return fmt.Errorf("failed to create Karpenter service account %q", meta.Name)
+	}
+
+	// create identity mapping for EC2 nodes to be able to join the cluster.
+	acm, err := authconfigmap.NewFromClientSet(clientSet)
+	if err != nil {
+		return fmt.Errorf("failed to create client for auth config: %w", err)
+	}
+	identityArn := fmt.Sprintf("arn:aws:iam::%s:role/%s-%s", parsedARN.AccountID, builder.KarpenterNodeRoleName, cfg.Metadata.Name)
+	id, err := iam.NewIdentity(identityArn, authconfigmap.RoleNodeGroupUsername, authconfigmap.RoleNodeGroupGroups)
+	if err != nil {
+		return fmt.Errorf("failed to create new identity: %w", err)
+	}
+	if err := acm.AddIdentity(id); err != nil {
+		return fmt.Errorf("failed to add new identity: %w", err)
+	}
+
+	// install karpenter onto the cluster.
+	karpenterTaskTree := stackManager.NewTasksToInstallKarpenter()
+	logger.Info(karpenterTaskTree.Describe())
+	if errs := karpenterTaskTree.DoAllSync(); len(errs) > 0 {
+		logger.Warning("%d error(s) occurred while installing Karpenter, you may wish to check your Cluster for further information", len(errs))
+		for _, err := range errs {
+			ufe := &api.UnsupportedFeatureError{}
+			if errors.As(err, &ufe) {
+				logger.Critical(ufe.Message)
+			}
+			logger.Critical("%s\n", err.Error())
+		}
+		return fmt.Errorf("failed to install Karpenter on cluster %q", meta.Name)
 	}
 
 	return nil

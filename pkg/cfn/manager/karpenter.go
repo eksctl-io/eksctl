@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -13,10 +15,9 @@ import (
 	"github.com/weaveworks/eksctl/pkg/karpenter/providers/helm"
 )
 
-// KarpenterStack represents the Karpenter stack.
-type KarpenterStack struct {
-	KarpenterName string
-}
+const (
+	kubernetesTagFormat = "kubernetes.io/cluster/%s"
+)
 
 // makeNodeGroupStackName generates the name of the Karpenter stack identified by its name, isolated by the cluster this StackCollection operates on
 func (c *StackCollection) makeKarpenterStackName() string {
@@ -38,9 +39,11 @@ func (c *StackCollection) createKarpenterTask(errs chan error) error {
 	if err := c.CreateStack(name, stack, tags, nil, errs); err != nil {
 		return err
 	}
-	// Have to create these here, since the Helm Installer returns an error, and I
-	// don't want to change StackCollection's New*. But this will make
-	// testing this function rather difficult.
+
+	if err := c.maybeUpdateSubnetTags(); err != nil {
+		return err
+	}
+
 	helmInstaller, err := helm.NewInstaller(helm.Options{
 		Namespace: karpenter.DefaultKarpenterNamespace,
 	})
@@ -59,13 +62,63 @@ func (c *StackCollection) createKarpenterTask(errs chan error) error {
 	return karpenterInstaller.Install(context.Background())
 }
 
-// GetKarpenterName will return karpenter name based on tags
-func (*StackCollection) GetKarpenterName(s *Stack) string {
-	return GetKarpenterTagName(s.Tags)
+// maybeUpdateSubnetTags will check if the kubernetes.io/cluster tag is present on the subnets.
+// if not, it will create them.
+func (c *StackCollection) maybeUpdateSubnetTags() error {
+	var ids []string
+	for _, subnet := range c.spec.VPC.Subnets.Private {
+		ids = append(ids, subnet.ID)
+	}
+	for _, subnet := range c.spec.VPC.Subnets.Public {
+		ids = append(ids, subnet.ID)
+	}
+	input := &ec2.DescribeSubnetsInput{
+		SubnetIds: aws.StringSlice(ids),
+	}
+	output, err := c.ec2API.DescribeSubnets(input)
+	if err != nil {
+		return fmt.Errorf("failed to describe subnets: %w", err)
+	}
+
+	clusterTag := fmt.Sprintf(kubernetesTagFormat, c.spec.Metadata.Name)
+
+	var updateSubnets []string
+	for _, subnet := range output.Subnets {
+		hasTag := false
+		for _, tag := range subnet.Tags {
+			if aws.StringValue(tag.Key) == clusterTag {
+				hasTag = true
+				break
+			}
+		}
+		if !hasTag {
+			updateSubnets = append(updateSubnets, *subnet.SubnetId)
+		}
+	}
+
+	if len(updateSubnets) > 0 {
+		if _, err := c.ec2API.CreateTags(&ec2.CreateTagsInput{
+			Resources: aws.StringSlice(ids),
+			Tags: []*ec2.Tag{
+				{
+					Key:   aws.String(clusterTag),
+					Value: aws.String(""),
+				},
+			},
+		}); err != nil {
+			return fmt.Errorf("failed to add tags for subnets: %w", err)
+		}
+	}
+	return nil
 }
 
-// GetKarpenterTagName returns the Karpenter name of a stack based on its tags.
-func GetKarpenterTagName(tags []*cfn.Tag) string {
+// GetKarpenterName will return karpenter name based on tags
+func (*StackCollection) GetKarpenterName(s *Stack) string {
+	return getKarpenterTagName(s.Tags)
+}
+
+// getKarpenterTagName returns the Karpenter name of a stack based on its tags.
+func getKarpenterTagName(tags []*cfn.Tag) string {
 	for _, tag := range tags {
 		if *tag.Key == api.KarpenterNameTag {
 			return *tag.Value

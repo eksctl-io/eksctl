@@ -12,14 +12,18 @@ import (
 const (
 	// DefaultKarpenterNamespace default namespace for Karpenter
 	DefaultKarpenterNamespace = "karpenter"
+	// DefaultKarpenterServiceAccountName is the name of the service account which is needed for Karpenter
+	DefaultKarpenterServiceAccountName = "karpenter"
 
-	karpenterHelmRepo         = "https://charts.karpenter.sh"
-	karpenterHelmChartName    = "karpenter/karpenter"
-	karpenterReleaseName      = "karpenter"
-	controllerClusterName     = "controller.clusterName"
-	controllerClusterEndpoint = "controller.clusterEndpoint"
-	createServiceAccount      = "serviceAccount.create"
-	addDefaultProvisioner     = "defaultProvisioner.create"
+	karpenterHelmRepo      = "https://charts.karpenter.sh"
+	karpenterHelmChartName = "karpenter/karpenter"
+	karpenterReleaseName   = "karpenter"
+	controller             = "controller"
+	clusterName            = "clusterName"
+	clusterEndpoint        = "clusterEndpoint"
+	serviceAccount         = "serviceAccount"
+	defaultProvisioner     = "defaultProvisioner"
+	create                 = "create"
 )
 
 // Options contains values which Karpenter uses to configure the installation.
@@ -52,16 +56,24 @@ func NewKarpenterInstaller(opts Options) *Installer {
 
 // Install adds Karpenter to a configured cluster in a separate CloudFormation stack.
 func (k *Installer) Install(ctx context.Context) error {
-	logger.Info("adding Karpenter to cluster %s with cluster endpoint", k.ClusterName, k.ClusterEndpoint)
+	logger.Info("adding Karpenter to cluster %s with cluster", k.ClusterName)
+	logger.Debug("cluster endpoint used by Karpenter: %s", k.ClusterEndpoint)
 	if err := k.HelmInstaller.AddRepo(karpenterHelmRepo, karpenterReleaseName); err != nil {
 		return fmt.Errorf("failed to add Karpenter repository: %w", err)
 	}
 	values := map[string]interface{}{
-		createServiceAccount:      k.CreateServiceAccount,
-		controllerClusterName:     k.ClusterName,
-		controllerClusterEndpoint: k.ClusterEndpoint,
-		addDefaultProvisioner:     k.AddDefaultProvisioner,
+		controller: map[string]interface{}{
+			clusterName:     k.ClusterName,
+			clusterEndpoint: k.ClusterEndpoint,
+		},
+		serviceAccount: map[string]interface{}{
+			create: k.CreateServiceAccount,
+		},
+		defaultProvisioner: map[string]interface{}{
+			create: k.AddDefaultProvisioner,
+		},
 	}
+	logger.Debug("the following values will be applied to the install: %+v", values)
 	if err := k.HelmInstaller.InstallChart(ctx, karpenterReleaseName, karpenterHelmChartName, DefaultKarpenterNamespace, k.Version, values); err != nil {
 		return fmt.Errorf("failed to install Karpenter chart: %w", err)
 	}

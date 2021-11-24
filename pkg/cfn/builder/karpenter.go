@@ -14,9 +14,13 @@ import (
 )
 
 const (
-	karpenterNodeRoleName        = "KarpenterNodeRole"
-	karpenterNodeInstanceProfile = "KarpenterNodeInstanceProfile"
-	karpenterManagedPolicy       = "KarpenterControllerPolicy"
+	// KarpenterNodeRoleName is the name of the role for nodes.
+	KarpenterNodeRoleName = "KarpenterNodeRole"
+	// KarpenterManagedPolicy managed policy name.
+	KarpenterManagedPolicy = "KarpenterControllerPolicy"
+
+	// karpenterNodeInstanceProfile is the name of node instance profile.
+	karpenterNodeInstanceProfile = "karpenterNodeInstanceProfile"
 )
 
 const (
@@ -53,7 +57,7 @@ func NewKarpenterResourceSet(spec *api.ClusterConfig) *KarpenterResourceSet {
 	}
 }
 
-// AddAllResources adds all the information about the nodegroup to the resource set
+// AddAllResources adds all the information about Karpenter to the resource set
 func (k *KarpenterResourceSet) AddAllResources() error {
 	k.rs.template.Description = fmt.Sprintf("Karpenter Stack %s", templateDescriptionSuffix)
 	return k.addResourcesForKarpenter()
@@ -80,22 +84,23 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 		iamPolicyAmazonEC2ContainerRegistryReadOnly,
 		iamPolicyAmazonSSMManagedInstanceCore,
 	)
-	rolePolicyDocument := cft.MapOfInterfaces{
-		"Effect": "Allow",
-		"Action": []string{"sts:AssumeRole"},
-		"Principal": map[string]interface{}{
-			"Service": []string{"ec2.amazonaws.com"}, // TODO replace this with the service map thing.
-		},
-	}
-	roleName := gfnt.MakeFnSubString(fmt.Sprintf("%s-${%s}", karpenterNodeRoleName, gfnt.StackName))
+	//rolePolicyDocument := cft.MapOfInterfaces{
+	//	"Effect": "Allow",
+	//	"Action": []string{"sts:AssumeRole"},
+	//	"Principal": map[string]interface{}{
+	//		"Service": []string{"ec2.amazonaws.com"}, // TODO replace this with the service map thing.
+	//	},
+	//}
+	roleName := gfnt.MakeFnSubString(fmt.Sprintf("%s-${%s}", KarpenterNodeRoleName, gfnt.StackName))
+	ec2, _ := gfnt.NewValueFromPrimitive("ec2.amazonaws.com")
 	role := gfniam.Role{
 		RoleName:                 roleName,
 		Path:                     gfnt.NewString("/"),
-		AssumeRolePolicyDocument: rolePolicyDocument,
+		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(ec2),
 		ManagedPolicyArns:        gfnt.NewSlice(makePolicyARNs(managedPolicyNames.List()...)...),
 	}
 
-	roleRef := k.newResource(karpenterNodeRoleName, &role)
+	roleRef := k.newResource(KarpenterNodeRoleName, &role)
 
 	instanceProfileName := gfnt.MakeFnSubString(fmt.Sprintf("%s-${%s}", karpenterNodeInstanceProfile, gfnt.StackName))
 	instanceProfile := gfniam.InstanceProfile{
@@ -105,7 +110,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 	}
 	k.newResource(karpenterNodeInstanceProfile, &instanceProfile)
 
-	managedPolicyName := gfnt.MakeFnSubString(fmt.Sprintf("%s-${%s}", karpenterManagedPolicy, gfnt.StackName))
+	managedPolicyName := gfnt.MakeFnSubString(fmt.Sprintf("%s-${%s}", KarpenterManagedPolicy, gfnt.StackName))
 	statements := cft.MapOfInterfaces{
 		"Effect":   effectAllow,
 		"Resource": resourceAll,
@@ -130,7 +135,8 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 		ManagedPolicyName: managedPolicyName,
 		PolicyDocument:    cft.MakePolicyDocument(statements),
 	}
-	k.newResource(karpenterManagedPolicy, &managedPolicy)
+	k.newResource(KarpenterManagedPolicy, &managedPolicy)
+	// update subnets if necessary
 	return nil
 }
 

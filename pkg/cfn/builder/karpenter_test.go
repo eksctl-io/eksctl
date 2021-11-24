@@ -70,11 +70,11 @@ var expectedTemplate = `{
         }
       }
     },
-    "KarpenterNodeInstanceProfile": {
+    "karpenterNodeInstanceProfile": {
       "Type": "AWS::IAM::InstanceProfile",
       "Properties": {
         "InstanceProfileName": {
-          "Fn::Sub": "KarpenterNodeInstanceProfile-${AWS::StackName}"
+          "Fn::Sub": "karpenterNodeInstanceProfile-${AWS::StackName}"
         },
         "Path": "/",
         "Roles": [
