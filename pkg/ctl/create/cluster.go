@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+
 	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/utils"
 
@@ -354,6 +355,22 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 				return fmt.Errorf("failed to create addons")
 			}
 		}
+		// After we have the cluster config and all the nodes are done, we install Karpenter if necessary.
+		if cfg.Karpenter != nil {
+			karpenterTaskTree := stackManager.NewTasksToInstallKarpenter()
+			logger.Info(karpenterTaskTree.Describe())
+			if errs := karpenterTaskTree.DoAllSync(); len(errs) > 0 {
+				logger.Warning("%d error(s) occurred while installing Karpenter, you may wish to check your Cluster for further information", len(errs))
+				for _, err := range errs {
+					ufe := &api.UnsupportedFeatureError{}
+					if errors.As(err, &ufe) {
+						logger.Critical(ufe.Message)
+					}
+					logger.Critical("%s\n", err.Error())
+				}
+				return fmt.Errorf("failed to install Karpenter on cluster %q", meta.Name)
+			}
+		}
 
 		// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
 		if cfg.HasGitopsRepoConfigured() {
@@ -375,6 +392,8 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			}
 			return nil
 		}
+
+		// Initiate Karpenter Cloudformation Stack here
 
 		env, err := ctl.GetCredentialsEnv()
 		if err != nil {
