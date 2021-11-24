@@ -883,6 +883,13 @@ func NewGetLabelsLoader(cmd *Cmd, ngName string) ClusterConfigLoader {
 	return l
 }
 
+// NewGetClusterLoader will load config or use flags for 'eksctl get cluster(s)'
+func NewGetClusterLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	return l
+}
+
 // validateSupportedConfigFields parses a config file's fields, evaluates if non-empty fields are supported,
 // and returns an error if a field is not supported.
 func validateSupportedConfigFields(obj interface{}, supportedFields []string, unsupportedFields []string) ([]string, error) {

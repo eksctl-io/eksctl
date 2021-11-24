@@ -1,11 +1,13 @@
 package builder
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -18,7 +20,9 @@ import (
 func TestManagedPolicyResources(t *testing.T) {
 	iamRoleTests := []struct {
 		addons                  api.NodeGroupIAMAddonPolicies
+		attachPolicy            api.InlineDocument
 		attachPolicyARNs        []string
+		expectedNewPolicies     []string
 		expectedManagedPolicies []*gfnt.Value
 		description             string
 	}{
@@ -43,15 +47,35 @@ func TestManagedPolicyResources(t *testing.T) {
 			description: "CloudWatch enabled",
 		},
 		{
+			addons: api.NodeGroupIAMAddonPolicies{
+				AutoScaler: api.Enabled(),
+			},
+			expectedNewPolicies:     []string{"PolicyAutoScaling"},
+			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly", "AmazonSSMManagedInstanceCore"),
+			description:             "AutoScaler enabled",
+		},
+		{
+			attachPolicy: cft.MakePolicyDocument(cft.MapOfInterfaces{
+				"Effect": "Allow",
+				"Action": []string{
+					"s3:Get*",
+				},
+				"Resource": "*",
+			}),
+			expectedNewPolicies:     []string{"Policy1"},
+			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly", "AmazonSSMManagedInstanceCore"),
+			description:             "Custom inline policies",
+		},
+		{
 			attachPolicyARNs:        []string{"AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy"},
 			expectedManagedPolicies: subs(prefixPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy")),
-			description:             "Custom policies",
+			description:             "Custom managed policies",
 		},
 		// should not attach any additional policies
 		{
 			attachPolicyARNs:        []string{"CloudWatchAgentServerPolicy"},
 			expectedManagedPolicies: subs(prefixPolicies("CloudWatchAgentServerPolicy")),
-			description:             "Custom policies",
+			description:             "Custom managed policies",
 		},
 		// no duplicate values
 		{
@@ -81,6 +105,7 @@ func TestManagedPolicyResources(t *testing.T) {
 			ng := api.NewManagedNodeGroup()
 			api.SetManagedNodeGroupDefaults(ng, clusterConfig.Metadata)
 			ng.IAM.WithAddonPolicies = tt.addons
+			ng.IAM.AttachPolicy = tt.attachPolicy
 			ng.IAM.AttachPolicyARNs = prefixPolicies(tt.attachPolicyARNs...)
 
 			p := mockprovider.NewMockProvider()
@@ -99,11 +124,29 @@ func TestManagedPolicyResources(t *testing.T) {
 			template, err := goformation.ParseJSON(bytes)
 			require.NoError(err)
 
-			role, ok := template.GetAllIAMRoleResources()["NodeInstanceRole"]
-			require.True(ok)
+			role, err := template.GetIAMRoleWithName(cfnIAMInstanceRoleName)
+			require.NoError(err)
 
 			require.ElementsMatch(tt.expectedManagedPolicies, role.ManagedPolicyArns.Raw().(gfnt.Slice))
 
+			policyNames := make([]string, 0)
+			for name := range template.GetAllIAMPolicyResources() {
+				policyNames = append(policyNames, name)
+			}
+			require.ElementsMatch(tt.expectedNewPolicies, policyNames)
+
+			// assert custom inline policy matches
+			if tt.attachPolicy != nil {
+				policy, err := template.GetIAMPolicyWithName("Policy1")
+				require.NoError(err)
+
+				// convert to json for comparison since interfaces are not identical
+				expectedPolicy, err := json.Marshal(tt.attachPolicy)
+				require.NoError(err)
+				actualPolicy, err := json.Marshal(policy.PolicyDocument)
+				require.NoError(err)
+				require.Equal(string(expectedPolicy), string(actualPolicy))
+			}
 		})
 	}
 
@@ -167,7 +210,7 @@ func TestManagedNodeRole(t *testing.T) {
 
 			template, err := goformation.ParseJSON(bytes)
 			require.NoError(err)
-			ngResource, ok := template.Resources["ManagedNodeGroup"]
+			ngResource, ok := template.Resources[ManagedNodeGroupResourceName]
 			require.True(ok)
 			ng, ok := ngResource.(*gfneks.Nodegroup)
 			require.True(ok)

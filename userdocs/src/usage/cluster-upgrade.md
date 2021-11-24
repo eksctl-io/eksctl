@@ -37,7 +37,7 @@ This command will not apply any changes right away, you will need to re-run it w
 The target version for the cluster upgrade can be specified both with the CLI flag:
 
 ```
-eksctl upgrade cluster --name<clusterName> --version=1.16
+eksctl upgrade cluster --name=<clusterName> --version=1.16
 ```
 
 or with the config file
