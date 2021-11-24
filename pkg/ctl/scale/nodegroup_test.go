@@ -12,7 +12,7 @@ import (
 )
 
 var _ = Describe("scale", func() {
-	Describe("nodegroup", func() {
+	Describe("scale nodegroup", func() {
 		DescribeTable("scales  a nodegroup successfully",
 			func(args ...string) {
 				cmd := newMockEmptyCmd(args...)
@@ -49,7 +49,6 @@ var _ = Describe("scale", func() {
 			func(c invalidParamsCase) {
 				cmd := newDefaultCmd(c.args...)
 				_, err := cmd.execute()
-				fmt.Println(err)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(c.error.Error()))
 			},
@@ -81,10 +80,6 @@ var _ = Describe("scale", func() {
 			Entry("desired node fewer than min nodes", invalidParamsCase{
 				args:  []string{"nodegroup", "ng", "--cluster", "dummy", "--nodes", "2", "--nodes-min", "3"},
 				error: fmt.Errorf("Error: minimum number of nodes must be fewer than or equal to number of nodes"),
-			}),
-			Entry("with config file and no name flags", invalidParamsCase{
-				args:  []string{"nodegroup", "-f", "../cmdutils/test_data/scale-ng-test.yaml"},
-				error: fmt.Errorf("Error: --name must be set"),
 			}),
 			Entry("with config file and nodes flags", invalidParamsCase{
 				args:  []string{"nodegroup", "-f", "../cmdutils/test_data/scale-ng-test.yaml", "--nodes", "2"},

@@ -1,11 +1,10 @@
 package scale
 
 import (
-	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
@@ -57,10 +56,39 @@ func scaleNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 }
 
 func doScaleNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroupBase) error {
+	if ng.Name == "" && cmd.NameArg == "" {
+		if err := cmdutils.NewScaleAllNodeGroupLoader(cmd).Load(); err != nil {
+			return err
+		}
+		if err := scaleAllNodegroups(cmd); err != nil {
+			return err
+		}
+		return nil
+	}
+
 	if err := cmdutils.NewScaleNodeGroupLoader(cmd, ng).Load(); err != nil {
 		return err
 	}
+	if err := scaleNodegroup(cmd, ng); err != nil {
+		return err
+	}
+	return nil
+}
 
+func scaleAllNodegroups(cmd *cmdutils.Cmd) error {
+	allNg := cmd.ClusterConfig.AllNodeGroups()
+	for _, ng := range allNg {
+		if err := cmdutils.ValidateNumberOfNodes(ng); err != nil {
+			return err
+		}
+		if err := scaleNodegroup(cmd, ng); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func scaleNodegroup(cmd *cmdutils.Cmd, ng *api.NodeGroupBase) error {
 	cfg := cmd.ClusterConfig
 	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {

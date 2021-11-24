@@ -59,8 +59,11 @@ func TestCRUD(t *testing.T) {
 var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 	const (
-		initNG = "ng-0"
-		testNG = "ng-1"
+		mngNG1 = "mng-1"
+		mngNG2 = "mng-2"
+
+		unmNG1 = "unm-1"
+		unmNG2 = "unm-2"
 	)
 
 	commonTimeout := 10 * time.Minute
@@ -104,8 +107,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			"--verbose", "4",
 			"--name", params.ClusterName,
 			"--tags", "alpha.eksctl.io/description=eksctl integration test",
-			"--nodegroup-name", initNG,
-			"--node-labels", "ng-name="+initNG,
+			"--nodegroup-name", mngNG1,
+			"--node-labels", "ng-name="+mngNG1,
 			"--nodes", "1",
 			"--version", params.Version,
 			"--kubeconfig", params.KubeconfigPath,
@@ -130,7 +133,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, awseks.ClusterStatusActive, params.Version))
 
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initNG)))
+			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, mngNG1)))
 		})
 
 		It("should have created a valid kubectl config file", func() {
@@ -203,19 +206,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		Context("and scale the initial nodegroup", func() {
-			It("should not return an error", func() {
-				cmd := params.EksctlScaleNodeGroupCmd.WithArgs(
-					"--cluster", params.ClusterName,
-					"--nodes-min", "3",
-					"--nodes", "4",
-					"--nodes-max", "5",
-					"--name", initNG,
-				)
-				Expect(cmd).To(RunSuccessfully())
-			})
-		})
-
 		Context("and create a new nodegroup with taints and maxPods", func() {
 			It("should have taints and maxPods set", func() {
 				By("creating a new nodegroup with taints and maxPods set")
@@ -236,8 +226,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 				By("asserting that both formats for taints are supported")
 				var (
-					nodeListN1 = tests.ListNodes(clientset, "n1")
-					nodeListN2 = tests.ListNodes(clientset, "n2")
+					nodeListN1 = tests.ListNodes(clientset, unmNG1)
+					nodeListN2 = tests.ListNodes(clientset, unmNG2)
 				)
 
 				tests.AssertNodeTaints(nodeListN1, []corev1.Taint{
@@ -428,6 +418,60 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
+		When("scaling nodegroup(s)", func() {
+			It("should scale a single nodegroup", func() {
+				By("passing the name of the nodegroup as a flag")
+				cmd := params.EksctlScaleNodeGroupCmd.WithArgs(
+					"--cluster", params.ClusterName,
+					"--nodes-min", "4",
+					"--nodes", "4",
+					"--nodes-max", "4",
+					"--name", mngNG1,
+				)
+				Expect(cmd).To(RunSuccessfully())
+
+				getMngNgCmd := params.EksctlGetCmd.WithArgs(
+					"nodegroup",
+					"--cluster", params.ClusterName,
+					"--name", mngNG1,
+					"-o", "yaml",
+				)
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MaxSize: 4")))
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MinSize: 4")))
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("DesiredCapacity: 4")))
+			})
+
+			It("should scale all nodegroups", func() {
+				By("scaling all nodegroups in the config file to the desired capacity, max size, and min size")
+				cmd := params.EksctlScaleNodeGroupCmd.WithArgs(
+					"--config-file", "-",
+				).
+					WithoutArg("--region", params.Region).
+					WithStdin(clusterutils.ReaderFromFile(params.ClusterName, params.Region, "testdata/scale-nodegroups.yaml"))
+				Expect(cmd).To(RunSuccessfully())
+
+				getMngNgCmd := params.EksctlGetCmd.WithArgs(
+					"nodegroup",
+					"--cluster", params.ClusterName,
+					"--name", mngNG1,
+					"-o", "yaml",
+				)
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MaxSize: 5")))
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MinSize: 5")))
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("DesiredCapacity: 5")))
+
+				getUnmNgCmd := params.EksctlGetCmd.WithArgs(
+					"nodegroup",
+					"--cluster", params.ClusterName,
+					"--name", unmNG1,
+					"-o", "yaml",
+				)
+				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MaxSize: 5")))
+				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MinSize: 5")))
+				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("DesiredCapacity: 5")))
+			})
+		})
+
 		Context("and add a second (GPU) nodegroup", func() {
 			It("should not return an error", func() {
 				cmd := params.EksctlCreateCmd.WithArgs(
@@ -438,7 +482,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--node-type", "p2.xlarge",
 					"--node-private-networking",
 					"--node-zones", "us-west-2b,us-west-2c",
-					testNG,
+					mngNG2,
 				)
 				Expect(cmd).To(RunSuccessfully())
 			})
@@ -448,12 +492,12 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"nodegroup",
 					"-o", "json",
 					"--cluster", params.ClusterName,
-					initNG,
+					mngNG1,
 				)
 				Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
 					HaveLen(1),
-					ContainElement(initNG),
-					Not(ContainElement(testNG)),
+					ContainElement(mngNG1),
+					Not(ContainElement(mngNG2)),
 				)))
 				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(params.Version)))
 
@@ -461,12 +505,12 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"nodegroup",
 					"-o", "json",
 					"--cluster", params.ClusterName,
-					testNG,
+					mngNG2,
 				)
 				Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
 					HaveLen(1),
-					ContainElement(testNG),
-					Not(ContainElement(initNG)),
+					ContainElement(mngNG2),
+					Not(ContainElement(mngNG1)),
 				)))
 				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(params.Version)))
 
@@ -477,10 +521,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				)
 				Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
 					HaveLen(4),
-					ContainElement(initNG),
-					ContainElement(testNG),
-					ContainElement("n1"),
-					ContainElement("n2"),
+					ContainElement(mngNG1),
+					ContainElement(mngNG2),
+					ContainElement(unmNG1),
+					ContainElement(unmNG2),
 				)))
 				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(params.Version)))
 			})
@@ -1121,7 +1165,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"nodegroup",
 						"--verbose", "4",
 						"--cluster", params.ClusterName,
-						testNG,
+						mngNG2,
 					)
 					Expect(cmd).To(RunSuccessfully())
 				})
@@ -1135,7 +1179,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--nodes-min", "1",
 					"--nodes", "1",
 					"--nodes-max", "1",
-					"--name", initNG,
+					"--name", mngNG1,
 				)
 				Expect(cmd).To(RunSuccessfully())
 			})
@@ -1145,7 +1189,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			It("should not return an error", func() {
 				cmd := params.EksctlDrainNodeGroupCmd.WithArgs(
 					"--cluster", params.ClusterName,
-					"--name", initNG,
+					"--name", mngNG1,
 				)
 				Expect(cmd).To(RunSuccessfully())
 			})

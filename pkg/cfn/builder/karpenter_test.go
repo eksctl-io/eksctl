@@ -70,11 +70,11 @@ var expectedTemplate = `{
         }
       }
     },
-    "karpenterNodeInstanceProfile": {
+    "KarpenterNodeInstanceProfile": {
       "Type": "AWS::IAM::InstanceProfile",
       "Properties": {
         "InstanceProfileName": {
-          "Fn::Sub": "karpenterNodeInstanceProfile-${AWS::StackName}"
+          "Fn::Sub": "KarpenterNodeInstanceProfile-${AWS::StackName}"
         },
         "Path": "/",
         "Roles": [
@@ -88,15 +88,20 @@ var expectedTemplate = `{
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
-          "Action": [
-            "sts:AssumeRole"
+          "Statement": [
+            {
+              "Action": [
+                "sts:AssumeRole"
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "ec2.amazonaws.com"
+                ]
+              }
+            }
           ],
-          "Effect": "Allow",
-          "Principal": {
-            "Service": [
-              "ec2.amazonaws.com"
-            ]
-          }
+          "Version": "2012-10-17"
         },
         "ManagedPolicyArns": [
           {

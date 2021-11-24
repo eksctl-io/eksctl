@@ -20,7 +20,7 @@ const (
 	KarpenterManagedPolicy = "KarpenterControllerPolicy"
 
 	// karpenterNodeInstanceProfile is the name of node instance profile.
-	karpenterNodeInstanceProfile = "karpenterNodeInstanceProfile"
+	karpenterNodeInstanceProfile = "KarpenterNodeInstanceProfile"
 )
 
 const (
@@ -136,7 +136,6 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 		PolicyDocument:    cft.MakePolicyDocument(statements),
 	}
 	k.newResource(KarpenterManagedPolicy, &managedPolicy)
-	// update subnets if necessary
 	return nil
 }
 
@@ -149,7 +148,6 @@ func (k *KarpenterResourceSet) WithIAM() bool {
 
 // WithNamedIAM implements the ResourceSet interface
 func (k *KarpenterResourceSet) WithNamedIAM() bool {
-	//return k.nodeGroup.IAM.InstanceRoleName != ""
 	return true
 }
 
