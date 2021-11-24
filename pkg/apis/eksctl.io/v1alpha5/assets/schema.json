@@ -487,11 +487,10 @@
         },
         "version": {
           "type": "string",
-          "description": "Valid variants are: `\"1.17\"`, `\"1.18\"`, `\"1.19\"`, `\"1.20\"`, `\"1.21\"` (default).",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;1.17&quot;</code>, <code>&quot;1.18&quot;</code>, <code>&quot;1.19&quot;</code>, <code>&quot;1.20&quot;</code>, <code>&quot;1.21&quot;</code> (default).",
+          "description": "Valid variants are: `\"1.18\"`, `\"1.19\"`, `\"1.20\"`, `\"1.21\"` (default).",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;1.18&quot;</code>, <code>&quot;1.19&quot;</code>, <code>&quot;1.20&quot;</code>, <code>&quot;1.21&quot;</code> (default).",
           "default": "1.21",
           "enum": [
-            "1.17",
             "1.18",
             "1.19",
             "1.20",
