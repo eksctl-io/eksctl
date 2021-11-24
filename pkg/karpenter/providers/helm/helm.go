@@ -35,7 +35,7 @@ type Installer struct {
 func NewInstaller(opts Options) (*Installer, error) {
 	settings := cli.New()
 	actionConfig := new(action.Configuration)
-	if err := actionConfig.Init(settings.RESTClientGetter(), opts.Namespace, os.Getenv("HELM_DRIVER"), logger.Debug); err != nil {
+	if err := actionConfig.Init(settings.RESTClientGetter(), opts.Namespace, "", logger.Debug); err != nil {
 		return nil, fmt.Errorf("failed to initialize action config: %w", err)
 	}
 	return &Installer{

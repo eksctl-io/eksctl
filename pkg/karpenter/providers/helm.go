@@ -7,10 +7,10 @@ import (
 	"helm.sh/helm/v3/pkg/getter"
 )
 
-// Getter is an interface to support GET to the specified URL.
+// URLGetter is an interface to support GET to the specified URL.
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
-//counterfeiter:generate -o fakes/fake_helm_getter.go . Getter
-type Getter interface {
+//counterfeiter:generate -o fakes/fake_helm_getter.go . URLGetter
+type URLGetter interface {
 	// Get file content by url string
 	Get(url string, options ...getter.Option) (*bytes.Buffer, error)
 }

@@ -9,7 +9,7 @@ import (
 	"helm.sh/helm/v3/pkg/getter"
 )
 
-type FakeGetter struct {
+type FakeURLGetter struct {
 	GetStub        func(string, ...getter.Option) (*bytes.Buffer, error)
 	getMutex       sync.RWMutex
 	getArgsForCall []struct {
@@ -28,7 +28,7 @@ type FakeGetter struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeGetter) Get(arg1 string, arg2 ...getter.Option) (*bytes.Buffer, error) {
+func (fake *FakeURLGetter) Get(arg1 string, arg2 ...getter.Option) (*bytes.Buffer, error) {
 	fake.getMutex.Lock()
 	ret, specificReturn := fake.getReturnsOnCall[len(fake.getArgsForCall)]
 	fake.getArgsForCall = append(fake.getArgsForCall, struct {
@@ -48,26 +48,26 @@ func (fake *FakeGetter) Get(arg1 string, arg2 ...getter.Option) (*bytes.Buffer, 
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeGetter) GetCallCount() int {
+func (fake *FakeURLGetter) GetCallCount() int {
 	fake.getMutex.RLock()
 	defer fake.getMutex.RUnlock()
 	return len(fake.getArgsForCall)
 }
 
-func (fake *FakeGetter) GetCalls(stub func(string, ...getter.Option) (*bytes.Buffer, error)) {
+func (fake *FakeURLGetter) GetCalls(stub func(string, ...getter.Option) (*bytes.Buffer, error)) {
 	fake.getMutex.Lock()
 	defer fake.getMutex.Unlock()
 	fake.GetStub = stub
 }
 
-func (fake *FakeGetter) GetArgsForCall(i int) (string, []getter.Option) {
+func (fake *FakeURLGetter) GetArgsForCall(i int) (string, []getter.Option) {
 	fake.getMutex.RLock()
 	defer fake.getMutex.RUnlock()
 	argsForCall := fake.getArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeGetter) GetReturns(result1 *bytes.Buffer, result2 error) {
+func (fake *FakeURLGetter) GetReturns(result1 *bytes.Buffer, result2 error) {
 	fake.getMutex.Lock()
 	defer fake.getMutex.Unlock()
 	fake.GetStub = nil
@@ -77,7 +77,7 @@ func (fake *FakeGetter) GetReturns(result1 *bytes.Buffer, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeGetter) GetReturnsOnCall(i int, result1 *bytes.Buffer, result2 error) {
+func (fake *FakeURLGetter) GetReturnsOnCall(i int, result1 *bytes.Buffer, result2 error) {
 	fake.getMutex.Lock()
 	defer fake.getMutex.Unlock()
 	fake.GetStub = nil
@@ -93,7 +93,7 @@ func (fake *FakeGetter) GetReturnsOnCall(i int, result1 *bytes.Buffer, result2 e
 	}{result1, result2}
 }
 
-func (fake *FakeGetter) Invocations() map[string][][]interface{} {
+func (fake *FakeURLGetter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.getMutex.RLock()
@@ -105,7 +105,7 @@ func (fake *FakeGetter) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeGetter) recordInvocation(key string, args []interface{}) {
+func (fake *FakeURLGetter) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -117,4 +117,4 @@ func (fake *FakeGetter) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ providers.Getter = new(FakeGetter)
+var _ providers.URLGetter = new(FakeURLGetter)

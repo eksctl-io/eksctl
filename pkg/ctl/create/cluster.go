@@ -8,31 +8,29 @@ import (
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 	"github.com/aws/aws-sdk-go/aws/arn"
-	kubeclient "k8s.io/client-go/kubernetes"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/iam"
-	"github.com/weaveworks/eksctl/pkg/karpenter"
-	"github.com/weaveworks/eksctl/pkg/kops"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
-	"github.com/weaveworks/eksctl/pkg/utils"
-
-	"github.com/weaveworks/eksctl/pkg/actions/addon"
-
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 
+	"github.com/weaveworks/eksctl/pkg/actions/addon"
+	karpenteractions "github.com/weaveworks/eksctl/pkg/actions/karpenter"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/gitops"
+	"github.com/weaveworks/eksctl/pkg/iam"
+	"github.com/weaveworks/eksctl/pkg/karpenter"
+	"github.com/weaveworks/eksctl/pkg/kops"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
+	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
@@ -477,18 +475,12 @@ func installKarpenter(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, stackMan
 	}
 
 	// install karpenter onto the cluster.
-	karpenterTaskTree := stackManager.NewTasksToInstallKarpenter()
-	logger.Info(karpenterTaskTree.Describe())
-	if errs := karpenterTaskTree.DoAllSync(); len(errs) > 0 {
-		logger.Warning("%d error(s) occurred while installing Karpenter, you may wish to check your Cluster for further information", len(errs))
-		for _, err := range errs {
-			ufe := &api.UnsupportedFeatureError{}
-			if errors.As(err, &ufe) {
-				logger.Critical(ufe.Message)
-			}
-			logger.Critical("%s\n", err.Error())
-		}
-		return fmt.Errorf("failed to install Karpenter on cluster %q", meta.Name)
+	installer, err := karpenteractions.NewInstaller(cfg, ctl, stackManager)
+	if err != nil {
+		return fmt.Errorf("failed to create installer: %w", err)
+	}
+	if err := installer.Create(); err != nil {
+		return fmt.Errorf("failed to install Karpenter: %w", err)
 	}
 
 	return nil

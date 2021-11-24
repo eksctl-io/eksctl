@@ -650,16 +650,6 @@ type FakeStackManager struct {
 		result1 *tasks.TaskTree
 		result2 error
 	}
-	NewTasksToInstallKarpenterStub        func() *tasks.TaskTree
-	newTasksToInstallKarpenterMutex       sync.RWMutex
-	newTasksToInstallKarpenterArgsForCall []struct {
-	}
-	newTasksToInstallKarpenterReturns struct {
-		result1 *tasks.TaskTree
-	}
-	newTasksToInstallKarpenterReturnsOnCall map[int]struct {
-		result1 *tasks.TaskTree
-	}
 	NewUnmanagedNodeGroupTaskStub        func([]*v1alpha5.NodeGroup, bool, vpc.Importer) *tasks.TaskTree
 	newUnmanagedNodeGroupTaskMutex       sync.RWMutex
 	newUnmanagedNodeGroupTaskArgsForCall []struct {
@@ -3811,59 +3801,6 @@ func (fake *FakeStackManager) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) NewTasksToInstallKarpenter() *tasks.TaskTree {
-	fake.newTasksToInstallKarpenterMutex.Lock()
-	ret, specificReturn := fake.newTasksToInstallKarpenterReturnsOnCall[len(fake.newTasksToInstallKarpenterArgsForCall)]
-	fake.newTasksToInstallKarpenterArgsForCall = append(fake.newTasksToInstallKarpenterArgsForCall, struct {
-	}{})
-	stub := fake.NewTasksToInstallKarpenterStub
-	fakeReturns := fake.newTasksToInstallKarpenterReturns
-	fake.recordInvocation("NewTasksToInstallKarpenter", []interface{}{})
-	fake.newTasksToInstallKarpenterMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeStackManager) NewTasksToInstallKarpenterCallCount() int {
-	fake.newTasksToInstallKarpenterMutex.RLock()
-	defer fake.newTasksToInstallKarpenterMutex.RUnlock()
-	return len(fake.newTasksToInstallKarpenterArgsForCall)
-}
-
-func (fake *FakeStackManager) NewTasksToInstallKarpenterCalls(stub func() *tasks.TaskTree) {
-	fake.newTasksToInstallKarpenterMutex.Lock()
-	defer fake.newTasksToInstallKarpenterMutex.Unlock()
-	fake.NewTasksToInstallKarpenterStub = stub
-}
-
-func (fake *FakeStackManager) NewTasksToInstallKarpenterReturns(result1 *tasks.TaskTree) {
-	fake.newTasksToInstallKarpenterMutex.Lock()
-	defer fake.newTasksToInstallKarpenterMutex.Unlock()
-	fake.NewTasksToInstallKarpenterStub = nil
-	fake.newTasksToInstallKarpenterReturns = struct {
-		result1 *tasks.TaskTree
-	}{result1}
-}
-
-func (fake *FakeStackManager) NewTasksToInstallKarpenterReturnsOnCall(i int, result1 *tasks.TaskTree) {
-	fake.newTasksToInstallKarpenterMutex.Lock()
-	defer fake.newTasksToInstallKarpenterMutex.Unlock()
-	fake.NewTasksToInstallKarpenterStub = nil
-	if fake.newTasksToInstallKarpenterReturnsOnCall == nil {
-		fake.newTasksToInstallKarpenterReturnsOnCall = make(map[int]struct {
-			result1 *tasks.TaskTree
-		})
-	}
-	fake.newTasksToInstallKarpenterReturnsOnCall[i] = struct {
-		result1 *tasks.TaskTree
-	}{result1}
-}
-
 func (fake *FakeStackManager) NewUnmanagedNodeGroupTask(arg1 []*v1alpha5.NodeGroup, arg2 bool, arg3 vpc.Importer) *tasks.TaskTree {
 	var arg1Copy []*v1alpha5.NodeGroup
 	if arg1 != nil {
@@ -4334,8 +4271,6 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.newTasksToDeleteNodeGroupsMutex.RUnlock()
 	fake.newTasksToDeleteOIDCProviderWithIAMServiceAccountsMutex.RLock()
 	defer fake.newTasksToDeleteOIDCProviderWithIAMServiceAccountsMutex.RUnlock()
-	fake.newTasksToInstallKarpenterMutex.RLock()
-	defer fake.newTasksToInstallKarpenterMutex.RUnlock()
 	fake.newUnmanagedNodeGroupTaskMutex.RLock()
 	defer fake.newUnmanagedNodeGroupTaskMutex.RUnlock()
 	fake.refreshFargatePodExecutionRoleARNMutex.RLock()

@@ -30,7 +30,7 @@ var _ = Describe("HelmInstaller", func() {
 	Context("AddRepo", func() {
 
 		var (
-			fakeGetter         *fakes.FakeGetter
+			fakeURLGetter      *fakes.FakeURLGetter
 			getters            getter.Providers
 			tmp                string
 			err                error
@@ -40,11 +40,11 @@ var _ = Describe("HelmInstaller", func() {
 		BeforeEach(func() {
 			tmp, err = os.MkdirTemp("", "helm-testing")
 			Expect(err).NotTo(HaveOccurred())
-			fakeGetter = &fakes.FakeGetter{}
+			fakeURLGetter = &fakes.FakeURLGetter{}
 			provider := getter.Provider{
 				Schemes: []string{"http", "https"},
 				New: func(options ...getter.Option) (getter.Getter, error) {
-					return fakeGetter, nil
+					return fakeURLGetter, nil
 				},
 			}
 			getters = append(getters, provider)
@@ -65,7 +65,7 @@ var _ = Describe("HelmInstaller", func() {
 		It("successfully creates the repo metadata on the configured temp location", func() {
 			buffer, err := dummyIndexFile()
 			Expect(err).NotTo(HaveOccurred())
-			fakeGetter.GetReturns(buffer, nil)
+			fakeURLGetter.GetReturns(buffer, nil)
 			Expect(installerUnderTest.AddRepo("https://charts.karpenter.sh", "karpenter")).To(Succeed())
 			content, err := os.ReadFile(filepath.Join(tmp, "repositories.yaml"))
 			Expect(err).NotTo(HaveOccurred())
@@ -73,7 +73,7 @@ var _ = Describe("HelmInstaller", func() {
 		})
 		When("the getter fails to retrieve the index file", func() {
 			It("errors", func() {
-				fakeGetter.GetReturns(nil, errors.New("nope"))
+				fakeURLGetter.GetReturns(nil, errors.New("nope"))
 				Expect(installerUnderTest.AddRepo("https://charts.karpenter.sh", "karpenter")).
 					To(MatchError(ContainSubstring("failed to download index file: nope")))
 			})
@@ -81,7 +81,7 @@ var _ = Describe("HelmInstaller", func() {
 		When("the getter returns an invalid JSON", func() {
 			It("errors", func() {
 				buffer := bytes.NewBuffer([]byte("invalid"))
-				fakeGetter.GetReturns(buffer, nil)
+				fakeURLGetter.GetReturns(buffer, nil)
 				Expect(installerUnderTest.AddRepo("https://charts.karpenter.sh", "karpenter")).
 					To(MatchError(ContainSubstring("failed to download index file: error unmarshaling JSON")))
 			})
@@ -111,7 +111,7 @@ var _ = Describe("HelmInstaller", func() {
 	Context("InstallChart", func() {
 
 		var (
-			fakeGetter         *fakes.FakeGetter
+			fakeGetter         *fakes.FakeURLGetter
 			getters            getter.Providers
 			tmp                string
 			err                error
@@ -123,7 +123,7 @@ var _ = Describe("HelmInstaller", func() {
 		BeforeEach(func() {
 			tmp, err = os.MkdirTemp("", "helm-testing")
 			Expect(err).NotTo(HaveOccurred())
-			fakeGetter = &fakes.FakeGetter{}
+			fakeGetter = &fakes.FakeURLGetter{}
 			provider := getter.Provider{
 				Schemes: []string{"http", "https"},
 				New: func(options ...getter.Option) (getter.Getter, error) {
