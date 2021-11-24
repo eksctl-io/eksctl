@@ -38,16 +38,3 @@ func NewInstaller(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet ku
 		karpenterInstaller: karpenter,
 	}
 }
-
-// func (m *Install) hasStacks(name string) (bool, error) {
-// 	stacks, err := m.stackManager.ListKarpenterStacks()
-// 	if err != nil {
-// 		return false, err
-// 	}
-// 	for _, stack := range stacks {
-// 		if stack.KarpenterName == name {
-// 			return true, nil
-// 		}
-// 	}
-// 	return false, nil
-// }
