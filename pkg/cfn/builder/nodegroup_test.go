@@ -14,6 +14,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder/fakes"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	"github.com/weaveworks/eksctl/pkg/eks/mocks"
 	bootstrapfakes "github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
@@ -225,6 +226,28 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			})
 
 			// TODO move into IAM tests?
+			Context("attach policy is set", func() {
+				PolicyDocument := cft.MakePolicyDocument(cft.MapOfInterfaces{
+					"Effect": "Allow",
+					"Action": []string{
+						"s3:Get*",
+					},
+					"Resource": "*",
+				})
+
+				BeforeEach(func() {
+					ng.IAM.AttachPolicy = PolicyDocument
+				})
+
+				It("adds a custom policy to the role", func() {
+					Expect(ngTemplate.Resources).To(HaveKey("Policy1"))
+					Expect(ngTemplate.Resources["Policy1"].Properties.PolicyDocument.Statement).To(HaveLen(1))
+					Expect(ngTemplate.Resources["Policy1"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{"s3:Get*"}))
+					Expect(ngTemplate.Resources["Policy1"].Properties.Roles).To(HaveLen(1))
+					Expect(isRefTo(ngTemplate.Resources["Policy1"].Properties.Roles[0], "NodeInstanceRole")).To(BeTrue())
+				})
+			})
+
 			Context("attach policy arns are set", func() {
 				BeforeEach(func() {
 					ng.IAM.AttachPolicyARNs = []string{"arn:aws:iam::1234567890:role/foo"}

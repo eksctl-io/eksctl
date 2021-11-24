@@ -49,6 +49,14 @@ func (c *resourceSet) attachAllowPolicy(name string, refRole *gfnt.Value, statem
 	})
 }
 
+func (c *resourceSet) attachAllowPolicyDocument(name string, refRole *gfnt.Value, document api.InlineDocument) {
+	c.newResource(name, &gfniam.Policy{
+		PolicyName:     makeName(name),
+		Roles:          gfnt.NewSlice(refRole),
+		PolicyDocument: document,
+	})
+}
+
 // WithIAM states, if IAM roles will be created or not
 func (c *ClusterResourceSet) WithIAM() bool {
 	return c.rs.withIAM

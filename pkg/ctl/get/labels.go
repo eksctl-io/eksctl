@@ -34,6 +34,7 @@ func getLabelsCmd(cmd *cmdutils.Cmd) {
 
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
@@ -41,17 +42,10 @@ func getLabelsCmd(cmd *cmdutils.Cmd) {
 }
 
 func getLabels(cmd *cmdutils.Cmd, nodeGroupName string) error {
+	if err := cmdutils.NewGetLabelsLoader(cmd, nodeGroupName).Load(); err != nil {
+		return err
+	}
 	cfg := cmd.ClusterConfig
-	if cfg.Metadata.Name == "" {
-		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
-	}
-	if nodeGroupName == "" {
-		return cmdutils.ErrMustBeSet("--nodegroup")
-	}
-
-	if cmd.NameArg != "" {
-		return cmdutils.ErrUnsupportedNameArg()
-	}
 
 	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {

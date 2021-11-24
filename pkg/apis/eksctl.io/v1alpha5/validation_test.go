@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
@@ -228,6 +229,15 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng0 := cfg.NewNodeGroup()
 			ng0.Name = "ng0"
 
+			ng0.IAM.AttachPolicy = cft.MakePolicyDocument(
+				cft.MapOfInterfaces{
+					"Effect": "Allow",
+					"Action": []string{
+						"s3:Get*",
+					},
+					"Resource": "*",
+				},
+			)
 			ng0.IAM.AttachPolicyARNs = []string{
 				"arn:aws:iam::aws:policy/Foo",
 				"arn:aws:iam::aws:policy/Bar",
@@ -306,6 +316,23 @@ var _ = Describe("ClusterConfig validation", func() {
 			err = api.ValidateNodeGroup(1, ng1)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceRoleARN and nodeGroups[1].iam.instanceRoleName cannot be set at the same time"))
+		})
+
+		It("should not allow setting instanceRoleARN and attachPolicy", func() {
+			ng1.IAM.InstanceRoleARN = "r1"
+			ng1.IAM.AttachPolicy = cft.MakePolicyDocument(
+				cft.MapOfInterfaces{
+					"Effect": "Allow",
+					"Action": []string{
+						"s3:Get*",
+					},
+					"Resource": "*",
+				},
+			)
+
+			err = api.ValidateNodeGroup(1, ng1)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceRoleARN and nodeGroups[1].iam.attachPolicy cannot be set at the same time"))
 		})
 
 		It("should not allow setting instanceRoleARN and attachPolicyARNs", func() {
