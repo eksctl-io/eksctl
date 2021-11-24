@@ -40,12 +40,16 @@ func getClusterCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
 func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) error {
+	if err := cmdutils.NewGetClusterLoader(cmd).Load(); err != nil {
+		return err
+	}
 	cfg := cmd.ClusterConfig
 	regionGiven := cfg.Metadata.Region != "" // eks.New resets this field, so we need to check if it was set in the first place
 
