@@ -240,6 +240,9 @@ const (
 	// NodeGroupNameLabel defines the label of the nodegroup name
 	NodeGroupNameLabel = "alpha.eksctl.io/nodegroup-name"
 
+	// KarpenterNameTag defines the tag of the karpenter stack name
+	KarpenterNameTag = "alpha.eksctl.io/karpenter-name"
+
 	EKSNodeGroupNameLabel = "eks.amazonaws.com/nodegroup"
 
 	// SpotAllocationStrategyLowestPrice defines the ASG spot allocation strategy of lowest-price
