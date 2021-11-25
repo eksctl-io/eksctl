@@ -84,19 +84,12 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 		iamPolicyAmazonEC2ContainerRegistryReadOnly,
 		iamPolicyAmazonSSMManagedInstanceCore,
 	)
-	//rolePolicyDocument := cft.MapOfInterfaces{
-	//	"Effect": "Allow",
-	//	"Action": []string{"sts:AssumeRole"},
-	//	"Principal": map[string]interface{}{
-	//		"Service": []string{"ec2.amazonaws.com"}, // TODO replace this with the service map thing.
-	//	},
-	//}
+	k.Template().Mappings[servicePrincipalPartitionMapName] = servicePrincipalPartitionMappings
 	roleName := gfnt.MakeFnSubString(fmt.Sprintf("%s-${%s}", KarpenterNodeRoleName, gfnt.StackName))
-	ec2, _ := gfnt.NewValueFromPrimitive("ec2.amazonaws.com")
 	role := gfniam.Role{
 		RoleName:                 roleName,
 		Path:                     gfnt.NewString("/"),
-		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(ec2),
+		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(MakeServiceRef("EC2")),
 		ManagedPolicyArns:        gfnt.NewSlice(makePolicyARNs(managedPolicyNames.List()...)...),
 	}
 

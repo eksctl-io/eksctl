@@ -418,7 +418,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 }
 
 // installKarpenter prepares the environment for Karpenter, by creating the following resources:
-// - iam roles
+// - iam roles and profiles
 // - service account
 // - identity mapping
 // then proceeds with installing Karpenter using Helm.

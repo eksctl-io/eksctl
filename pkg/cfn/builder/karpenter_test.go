@@ -1,6 +1,8 @@
 package builder_test
 
 import (
+	"fmt"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -27,6 +29,7 @@ var _ = Describe("karpenter stack", func() {
 			krs := builder.NewKarpenterResourceSet(cfg)
 			Expect(krs.AddAllResources()).To(Succeed())
 			result, err := krs.RenderJSON()
+			fmt.Println(string(result))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(result)).To(Equal(expectedTemplate))
 		})
@@ -36,6 +39,25 @@ var _ = Describe("karpenter stack", func() {
 var expectedTemplate = `{
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "Karpenter Stack [created and managed by eksctl]",
+  "Mappings": {
+    "ServicePrincipalPartitionMap": {
+      "aws": {
+        "EC2": "ec2.amazonaws.com",
+        "EKS": "eks.amazonaws.com",
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
+      },
+      "aws-cn": {
+        "EC2": "ec2.amazonaws.com.cn",
+        "EKS": "eks.amazonaws.com",
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
+      },
+      "aws-us-gov": {
+        "EC2": "ec2.amazonaws.com",
+        "EKS": "eks.amazonaws.com",
+        "EKSFargatePods": "eks-fargate-pods.amazonaws.com"
+      }
+    }
+  },
   "Resources": {
     "KarpenterControllerPolicy": {
       "Type": "AWS::IAM::ManagedPolicy",
@@ -96,7 +118,15 @@ var expectedTemplate = `{
               "Effect": "Allow",
               "Principal": {
                 "Service": [
-                  "ec2.amazonaws.com"
+                  {
+                    "Fn::FindInMap": [
+                      "ServicePrincipalPartitionMap",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      "EC2"
+                    ]
+                  }
                 ]
               }
             }

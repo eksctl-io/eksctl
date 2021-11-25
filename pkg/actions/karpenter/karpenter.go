@@ -4,27 +4,25 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kris-nova/logger"
-
-	"github.com/weaveworks/eksctl/pkg/karpenter"
-	"github.com/weaveworks/eksctl/pkg/karpenter/providers/helm"
-	"github.com/weaveworks/eksctl/pkg/utils/tasks"
-	"github.com/weaveworks/eksctl/pkg/utils/waiters"
-
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/karpenter"
+	"github.com/weaveworks/eksctl/pkg/karpenter/providers/helm"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
+	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
 // Installer contains all necessary dependencies for the Karpenter Install tasks and others.
 type Installer struct {
-	stackManager       manager.StackManager
-	ctl                *eks.ClusterProvider
-	cfg                *api.ClusterConfig
-	wait               WaitFunc
-	karpenterInstaller karpenter.InstallKarpenter
+	StackManager       manager.StackManager
+	CTL                *eks.ClusterProvider
+	Config             *api.ClusterConfig
+	Wait               WaitFunc
+	KarpenterInstaller karpenter.InstallKarpenter
 }
 
 type WaitFunc func(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error
@@ -47,11 +45,11 @@ func NewInstaller(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager
 		Version:               cfg.Karpenter.Version,
 	})
 	return &Installer{
-		stackManager:       stackManager,
-		ctl:                ctl,
-		cfg:                cfg,
-		wait:               waiters.Wait,
-		karpenterInstaller: karpenterInstaller,
+		StackManager:       stackManager,
+		CTL:                ctl,
+		Config:             cfg,
+		Wait:               waiters.Wait,
+		KarpenterInstaller: karpenterInstaller,
 	}, nil
 }
 

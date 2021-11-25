@@ -3,6 +3,7 @@ package karpenter
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -60,7 +61,7 @@ func (k *karpenterTask) createKarpenterTask(errs chan error) error {
 		api.KarpenterNameTag: name,
 	}
 	if err := k.stackManager.CreateStack(name, stack, tags, nil, errs); err != nil {
-		return err
+		return fmt.Errorf("failed to create stack: %w", err)
 	}
 
 	if err := k.maybeUpdateSubnetTags(); err != nil {
@@ -84,6 +85,7 @@ func (k *karpenterTask) maybeUpdateSubnetTags() error {
 	for _, subnet := range k.cfg.VPC.Subnets.Public {
 		ids = append(ids, subnet.ID)
 	}
+	sort.Strings(ids)
 	input := &ec2.DescribeSubnetsInput{
 		SubnetIds: aws.StringSlice(ids),
 	}
@@ -110,7 +112,7 @@ func (k *karpenterTask) maybeUpdateSubnetTags() error {
 
 	if len(updateSubnets) > 0 {
 		if _, err := k.ec2API.CreateTags(&ec2.CreateTagsInput{
-			Resources: aws.StringSlice(ids),
+			Resources: aws.StringSlice(updateSubnets),
 			Tags: []*ec2.Tag{
 				{
 					Key:   aws.String(clusterTag),

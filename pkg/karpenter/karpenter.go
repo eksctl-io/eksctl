@@ -38,6 +38,8 @@ type Options struct {
 }
 
 // InstallKarpenter defines a functionality to install Karpenter.
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_karpenter_installer.go . InstallKarpenter
 type InstallKarpenter interface {
 	Install(ctx context.Context) error
 }
