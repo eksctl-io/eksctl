@@ -27,8 +27,8 @@ var _ = Describe("default addons - coredns", func() {
 		rawClient.UseUnionTracker = true
 		ct = rawClient.Collection
 		region = "eu-west-2"
-		controlPlaneVersion = "1.17.x"
-		kubernetesVersion = "1.16"
+		controlPlaneVersion = "1.18.x"
+		kubernetesVersion = "1.17"
 
 		input = da.AddonInput{
 			RawClient:           rawClient,
@@ -44,7 +44,7 @@ var _ = Describe("default addons - coredns", func() {
 
 		BeforeEach(func() {
 			createCoreDNSFromTestSample(rawClient, ct, kubernetesVersion)
-			expectedImageTag = "v1.6.6-eksbuild.1"
+			expectedImageTag = "v1.7.0-eksbuild.1"
 		})
 
 		It("updates coredns to the correct version", func() {
@@ -80,7 +80,7 @@ var _ = Describe("default addons - coredns", func() {
 
 		Context("when CoreDNS is NOT up to date", func() {
 			BeforeEach(func() {
-				input.ControlPlaneVersion = "1.18.x"
+				input.ControlPlaneVersion = "1.19.x"
 			})
 
 			It("reports 'false'", func() {
