@@ -106,6 +106,6 @@ func (i *Installer) InstallChart(ctx context.Context, releaseName, chartName, na
 	if err != nil {
 		return fmt.Errorf("failed to install chart: %w", err)
 	}
-	logger.Debug("successfully installed helm chart: ", release.Name)
+	logger.Debug("successfully installed helm chart: %s", release.Name)
 	return nil
 }

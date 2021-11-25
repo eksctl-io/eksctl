@@ -26,15 +26,18 @@ const (
 	create                 = "create"
 )
 
+const (
+	addDefaultProvisionerDefaultValue = false
+)
+
 // Options contains values which Karpenter uses to configure the installation.
 type Options struct {
-	HelmInstaller         providers.HelmInstaller
-	Namespace             string
-	ClusterName           string
-	AddDefaultProvisioner bool
-	CreateServiceAccount  bool
-	ClusterEndpoint       string
-	Version               string
+	HelmInstaller        providers.HelmInstaller
+	Namespace            string
+	ClusterName          string
+	CreateServiceAccount bool
+	ClusterEndpoint      string
+	Version              string
 }
 
 // InstallKarpenter defines a functionality to install Karpenter.
@@ -72,7 +75,7 @@ func (k *Installer) Install(ctx context.Context) error {
 			create: k.CreateServiceAccount,
 		},
 		defaultProvisioner: map[string]interface{}{
-			create: k.AddDefaultProvisioner,
+			create: addDefaultProvisionerDefaultValue,
 		},
 	}
 	logger.Debug("the following values will be applied to the install: %+v", values)

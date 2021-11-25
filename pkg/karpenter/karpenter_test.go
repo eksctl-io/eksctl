@@ -23,13 +23,12 @@ var _ = Describe("Install", func() {
 			fakeHelmInstaller = &fakes.FakeHelmInstaller{}
 			installerUnderTest = &Installer{
 				Options: Options{
-					HelmInstaller:         fakeHelmInstaller,
-					Namespace:             "karpenter",
-					ClusterName:           "test-cluster",
-					AddDefaultProvisioner: true,
-					CreateServiceAccount:  true,
-					ClusterEndpoint:       "https://endpoint.com",
-					Version:               "0.4.3",
+					HelmInstaller:        fakeHelmInstaller,
+					Namespace:            "karpenter",
+					ClusterName:          "test-cluster",
+					CreateServiceAccount: true,
+					ClusterEndpoint:      "https://endpoint.com",
+					Version:              "0.4.3",
 				},
 			}
 		})

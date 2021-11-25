@@ -18,9 +18,8 @@ var _ = Describe("karpenter stack", func() {
 	BeforeEach(func() {
 		cfg = api.NewClusterConfig()
 		cfg.Karpenter = &api.Karpenter{
-			Version:               "0.4.3",
-			AddDefaultProvisioner: api.Disabled(),
-			CreateServiceAccount:  api.Disabled(),
+			Version:              "0.4.3",
+			CreateServiceAccount: api.Disabled(),
 		}
 	})
 

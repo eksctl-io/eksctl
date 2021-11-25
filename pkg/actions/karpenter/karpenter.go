@@ -36,13 +36,12 @@ func NewInstaller(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager
 		return nil, err
 	}
 	karpenterInstaller := karpenter.NewKarpenterInstaller(karpenter.Options{
-		HelmInstaller:         helmInstaller,
-		Namespace:             karpenter.DefaultKarpenterNamespace,
-		ClusterName:           cfg.Metadata.Name,
-		AddDefaultProvisioner: api.IsEnabled(cfg.Karpenter.AddDefaultProvisioner),
-		CreateServiceAccount:  api.IsEnabled(cfg.Karpenter.CreateServiceAccount),
-		ClusterEndpoint:       cfg.Status.Endpoint,
-		Version:               cfg.Karpenter.Version,
+		HelmInstaller:        helmInstaller,
+		Namespace:            karpenter.DefaultKarpenterNamespace,
+		ClusterName:          cfg.Metadata.Name,
+		CreateServiceAccount: api.IsEnabled(cfg.Karpenter.CreateServiceAccount),
+		ClusterEndpoint:      cfg.Status.Endpoint,
+		Version:              cfg.Karpenter.Version,
 	})
 	return &Installer{
 		StackManager:       stackManager,

@@ -863,11 +863,6 @@
         "version"
       ],
       "properties": {
-        "addDefaultProvisioner": {
-          "type": "boolean",
-          "description": "defines if the default provisioner for Karpenter should be installed or not.",
-          "x-intellij-html-description": "defines if the default provisioner for Karpenter should be installed or not."
-        },
         "createServiceAccount": {
           "type": "boolean",
           "description": "create a service account or not.",
@@ -881,7 +876,6 @@
       },
       "preferredOrder": [
         "version",
-        "addDefaultProvisioner",
         "createServiceAccount"
       ],
       "additionalProperties": false,

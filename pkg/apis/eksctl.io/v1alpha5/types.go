@@ -697,9 +697,6 @@ type Karpenter struct {
 	// Version defines the Karpenter version to install
 	// +required
 	Version string `json:"version"`
-	// AddDefaultProvisioner defines if the default provisioner for Karpenter should be installed or not.
-	// +optional
-	AddDefaultProvisioner *bool `json:"addDefaultProvisioner,omitempty"`
 	// CreateServiceAccount create a service account or not.
 	// +optional
 	CreateServiceAccount *bool `json:"createServiceAccount,omitempty"`
