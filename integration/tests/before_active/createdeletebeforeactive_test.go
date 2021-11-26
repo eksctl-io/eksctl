@@ -1,20 +1,21 @@
 //go:build integration
 // +build integration
 
+//revive:disable Not changing package name
 package before_active
 
 import (
 	"fmt"
 	"testing"
 
+	awseks "github.com/aws/aws-sdk-go/service/eks"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 var params *tests.Params

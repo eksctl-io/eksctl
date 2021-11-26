@@ -60,19 +60,13 @@ func doScaleNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroupBase) error {
 		if err := cmdutils.NewScaleAllNodeGroupLoader(cmd).Load(); err != nil {
 			return err
 		}
-		if err := scaleAllNodegroups(cmd); err != nil {
-			return err
-		}
-		return nil
+		return scaleAllNodegroups(cmd)
 	}
 
 	if err := cmdutils.NewScaleNodeGroupLoader(cmd, ng).Load(); err != nil {
 		return err
 	}
-	if err := scaleNodegroup(cmd, ng); err != nil {
-		return err
-	}
-	return nil
+	return scaleNodegroup(cmd, ng)
 }
 
 func scaleAllNodegroups(cmd *cmdutils.Cmd) error {

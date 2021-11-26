@@ -77,9 +77,30 @@ linters-settings:
     #  2. you use go >= 1.10
     #  3. you do repeated runs (false for CI) or cache $GOPATH/pkg or `go env GOCACHE` dir in CI.
     use-installed-packages: false
-  golint:
-    # minimal confidence for issues, default is 0.8
-    min-confidence: 0.8
+  revive:
+    confidence: 0.8
+    severity: warning
+    errorCode: 0
+    warningCode: 0
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: exported
+      - name: if-return
+      - name: increment-decrement
+      - name: var-naming
+      - name: var-declaration
+      - name: package-comments
+      - name: range
+      - name: receiver-naming
+      - name: time-naming
+      - name: unexported-return
+      - name: indent-error-flow
+      - name: errorf
   gofmt:
     # simplify code: gofmt with `-s` option, true by default
     simplify: false
@@ -157,7 +178,7 @@ linters:
     - errcheck
     - gofmt
     - goimports
-    - golint
+    - revive
     - gosimple
     - govet
     - ineffassign

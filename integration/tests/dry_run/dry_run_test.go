@@ -1,6 +1,7 @@
 //go:build integration
 // +build integration
 
+//revive:disable Not changing package name
 package dry_run
 
 import (
@@ -10,18 +11,17 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
-	. "github.com/weaveworks/eksctl/integration/runner"
 
+	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
-
-	. "github.com/onsi/ginkgo"
 )
 
 var params *tests.Params
