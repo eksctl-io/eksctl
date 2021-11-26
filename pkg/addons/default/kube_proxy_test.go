@@ -5,16 +5,15 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
+	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	awseks "github.com/aws/aws-sdk-go/service/eks"
 	da "github.com/weaveworks/eksctl/pkg/addons/default"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("KubeProxy", func() {
@@ -116,6 +115,24 @@ var _ = Describe("KubeProxy", func() {
 			_, err := da.UpdateKubeProxy(input, true)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(kubeProxyImage(clientSet)).To(Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.15.11"))
+		})
+
+		When("nodeaffinity is not set on kube-proxy", func() {
+			BeforeEach(func() {
+				rawClient := testutils.NewFakeRawClientWithSamples("testdata/sample-old-kube-proxy-amd.json")
+				clientSet = rawClient.ClientSet()
+				mockProvider = mockprovider.NewMockProvider()
+				input = da.AddonInput{
+					RawClient:           rawClient,
+					ControlPlaneVersion: "1.16.0",
+					Region:              "eu-west-1",
+					EKSAPI:              mockProvider.EKS(),
+				}
+			})
+			It("errors", func() {
+				_, err := da.UpdateKubeProxy(input, false)
+				Expect(err).To(MatchError(ContainSubstring("NodeAffinity not configured on kube-proxy. Either manually update the proxy deployment, or switch to Managed Addons")))
+			})
 		})
 
 		When("the cluster version is 1.18 or newer", func() {
