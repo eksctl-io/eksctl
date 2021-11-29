@@ -4,12 +4,12 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/eksctl/pkg/actions/label"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/managed"
 
+	"github.com/weaveworks/eksctl/pkg/actions/label"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/managed"
 )
 
 type labelOptions struct {
@@ -37,6 +37,7 @@ func setLabelsCmd(cmd *cmdutils.Cmd) {
 
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
@@ -44,18 +45,10 @@ func setLabelsCmd(cmd *cmdutils.Cmd) {
 }
 
 func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
+	if err := cmdutils.NewSetLabelLoader(cmd, options.nodeGroupName).Load(); err != nil {
+		return err
+	}
 	cfg := cmd.ClusterConfig
-	if cfg.Metadata.Name == "" {
-		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
-	}
-	if options.nodeGroupName == "" {
-		return cmdutils.ErrMustBeSet("--nodegroup")
-	}
-
-	if cmd.NameArg != "" {
-		return cmdutils.ErrUnsupportedNameArg()
-	}
-
 	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err

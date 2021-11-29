@@ -367,6 +367,22 @@ var _ = Describe("cmdutils configfile", func() {
 			})
 		})
 	})
+
+	Describe("SetLabelLoader", func() {
+		It("should set VPC.NAT.Gateway with the correct value", func() {
+			cmd := &Cmd{
+				CobraCommand:      newCmd(),
+				ClusterConfigFile: filepath.Join("test_data", "cluster-with-labels.yaml"),
+				ClusterConfig:     api.NewClusterConfig(),
+				ProviderConfig:    api.ProviderConfig{},
+			}
+
+			Expect(NewSetLabelLoader(cmd, "ng-1").Load()).To(Succeed())
+			cfg := cmd.ClusterConfig
+			Expect(cfg.Metadata.Name).To(Equal("test-labels-1"))
+			//Expect(cfg.NodeGroups[0].Name).To(Equal("ng-1"))
+		})
+	})
 })
 
 func assertValidClusterEndpoint(endpoints *api.ClusterEndpoints, privateAccess, publicAccess bool) {

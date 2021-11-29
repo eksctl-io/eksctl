@@ -890,6 +890,29 @@ func NewGetClusterLoader(cmd *Cmd) ClusterConfigLoader {
 	return l
 }
 
+// NewSetLabelLoader will load config or use flags for 'eksctl set labels'
+func NewSetLabelLoader(cmd *Cmd, nodeGroupName string) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+	l.validateWithoutConfigFile = func() error {
+		meta := cmd.ClusterConfig.Metadata
+
+		if meta.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+
+		if nodeGroupName == "" {
+			return ErrMustBeSet("--nodegroup")
+		}
+
+		if cmd.NameArg != "" {
+			return ErrUnsupportedNameArg()
+		}
+
+		return nil
+	}
+	return l
+}
+
 // validateSupportedConfigFields parses a config file's fields, evaluates if non-empty fields are supported,
 // and returns an error if a field is not supported.
 func validateSupportedConfigFields(obj interface{}, supportedFields []string, unsupportedFields []string) ([]string, error) {
