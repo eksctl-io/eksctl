@@ -13,3 +13,8 @@ managedNodeGroups:
     desiredCapacity: 1
     labels:
       key: value
+  - name: ng-2
+    instanceType: m5.large
+    desiredCapacity: 1
+    labels:
+      key2: value2

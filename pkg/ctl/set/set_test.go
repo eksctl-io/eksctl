@@ -27,7 +27,7 @@ var _ = Describe("set", func() {
 			cmd := newMockCmd("labels")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Error: required flag(s) \"labels\" not set"))
+			Expect(err.Error()).To(ContainSubstring("Error: --labels must be set"))
 		})
 
 		It("fails when cluster flag not set", func() {

@@ -33,7 +33,6 @@ func setLabelsCmd(cmd *cmdutils.Cmd) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
 		fs.StringVarP(&options.nodeGroupName, "nodegroup", "n", "", "Nodegroup name")
 		cmdutils.AddStringToStringVarPFlag(fs, &options.labels, "labels", "l", nil, "Labels")
-		_ = cobra.MarkFlagRequired(fs, "labels")
 
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
@@ -41,11 +40,12 @@ func setLabelsCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
-
 }
 
 func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
-	if err := cmdutils.NewSetLabelLoader(cmd, options.nodeGroupName).Load(); err != nil {
+	// if nodeGroupName is defined, the loader will filter managed nodegroups
+	// for that nodegroup only.
+	if err := cmdutils.NewSetLabelLoader(cmd, options.nodeGroupName, options.labels).Load(); err != nil {
 		return err
 	}
 	cfg := cmd.ClusterConfig
@@ -55,12 +55,39 @@ func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
 	}
 
 	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
-	logger.Info("setting label(s) on nodegroup %s in cluster %s", options.nodeGroupName, cmd.ClusterConfig.Metadata)
-
 	service := managed.NewService(ctl.Provider.EKS(), ctl.Provider.SSM(), ctl.Provider.EC2(), manager.NewStackCollection(ctl.Provider, cfg), cfg.Metadata.Name)
+
+	if options.nodeGroupName == "" && cmd.ClusterConfigFile != "" {
+		logger.Info("setting label(s) on %d nodegroup(s) in cluster %s", len(cfg.ManagedNodeGroups), cmd.ClusterConfig.Metadata)
+	} else if options.nodeGroupName != "" {
+		logger.Info("setting label(s) on nodegroup %s in cluster %s", options.nodeGroupName, cmd.ClusterConfig.Metadata)
+	}
+
 	manager := label.New(cfg.Metadata.Name, service, ctl.Provider.EKS())
-	if err := manager.Set(options.nodeGroupName, options.labels); err != nil {
-		return err
+	// when there is no config file provided
+	if cmd.ClusterConfigFile == "" {
+		cfg.ManagedNodeGroups = append(cfg.ManagedNodeGroups, &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:   options.nodeGroupName,
+				Labels: options.labels,
+			},
+		})
+	}
+	for _, mng := range cfg.ManagedNodeGroups {
+		existingLabels, err := service.GetLabels(mng.Name)
+		if err != nil {
+			return err
+		}
+		for k := range existingLabels {
+			delete(mng.Labels, k)
+		}
+		if len(mng.Labels) == 0 {
+			logger.Info("no new labels to add for nodegroup %s", mng.Name)
+			continue
+		}
+		if err := manager.Set(mng.Name, mng.Labels); err != nil {
+			return err
+		}
 	}
 
 	logger.Info("done")
