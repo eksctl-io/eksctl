@@ -1,6 +1,7 @@
 //go:build integration
 // +build integration
 
+//revive:disable
 package identity_provider
 
 import (
@@ -21,10 +22,12 @@ import (
 
 	"github.com/pkg/errors"
 
-	v1 "k8s.io/api/core/v1"
+	// Register the OIDC provider
+	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
+
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
@@ -88,7 +91,19 @@ var _ = Describe("(Integration) [Identity Provider]", func() {
 
 	It("should associate, get and disassociate identity provider", func() {
 		By("associating a new identity provider")
-		cmd := associateOIDCProviderCMD(oidcConfig, params.ClusterName, params.Region)
+		identityProviderClusterConfig := makeIdentityProviderClusterConfig(oidcConfig, params.ClusterName, params.Region)
+
+		cmd := params.EksctlCmd.WithArgs(
+			"associate",
+			"identityprovider",
+			"--config-file", "-",
+			"--verbose", "4",
+			"--wait",
+		).
+			WithStdin(strings.NewReader(identityProviderClusterConfig)).
+			WithoutArg("--region", params.Region).
+			WithTimeout(35 * time.Minute)
+
 		Expect(cmd).To(RunSuccessfully())
 
 		By("getting the identity provider")
@@ -115,16 +130,16 @@ var _ = Describe("(Integration) [Identity Provider]", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("reading Kubernetes resources")
-		list, err := clientset.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+		list, err := clientset.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(list.Items).To(HaveLen(1))
 
-		secrets, err := clientset.CoreV1().Secrets(metav1.NamespaceAll).List(context.Background(), metav1.ListOptions{})
+		secrets, err := clientset.CoreV1().Secrets(metav1.NamespaceAll).List(context.TODO(), metav1.ListOptions{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(secrets.Items).NotTo(BeEmpty())
 
 		By("ensuring the client does not have write access")
-		_, err = clientset.CoreV1().ConfigMaps(metav1.NamespaceDefault).Create(context.Background(), &v1.ConfigMap{
+		_, err = clientset.CoreV1().ConfigMaps(metav1.NamespaceDefault).Create(context.TODO(), &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "testdata",
 			},
@@ -140,10 +155,13 @@ var _ = Describe("(Integration) [Identity Provider]", func() {
 			WithArgs(
 				"disassociate",
 				"identityprovider",
-				"--cluster", params.ClusterName,
+				"--config-file", "-",
 				"--wait",
 			).
+			WithStdin(strings.NewReader(identityProviderClusterConfig)).
+			WithoutArg("--region", params.Region).
 			WithTimeout(30 * time.Minute)
+
 		Expect(cmd).To(RunSuccessfully())
 
 	})
@@ -341,8 +359,8 @@ func setupCognitoProvider(clusterName, region string) (*OIDCConfig, error) {
 
 }
 
-func associateOIDCProviderCMD(o *OIDCConfig, clusterName, region string) Cmd {
-	clusterConfig := fmt.Sprintf(`apiVersion: eksctl.io/v1alpha5
+func makeIdentityProviderClusterConfig(o *OIDCConfig, clusterName, region string) string {
+	return fmt.Sprintf(`apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
@@ -358,15 +376,4 @@ identityProviders:
     groupsPrefix: "gid:"
     type: oidc
 `, clusterName, region, o.idpIssuerURL, o.clientID)
-
-	return params.EksctlCmd.WithArgs(
-		"associate",
-		"identityprovider",
-		"--config-file", "-",
-		"--verbose", "4",
-		"--wait",
-	).
-		WithStdin(strings.NewReader(clusterConfig)).
-		WithoutArg("--region", region).
-		WithTimeout(35 * time.Minute)
 }
