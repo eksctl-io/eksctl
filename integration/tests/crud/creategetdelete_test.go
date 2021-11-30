@@ -164,7 +164,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				Expect(session.ExitCode()).To(BeZero())
 				var stacks []*cloudformation.Stack
 				Expect(yaml.Unmarshal(session.Out.Contents(), &stacks)).To(Succeed())
-				Expect(len(stacks) == 2).To(BeTrue())
+				Expect(stacks).To(HaveLen(2))
 				nodegroupStack := stacks[0]
 				clusterStack := stacks[1]
 				Expect(aws.StringValue(clusterStack.StackName)).To(ContainSubstring(params.ClusterName))
