@@ -1,8 +1,6 @@
 package builder_test
 
 import (
-	"fmt"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -28,7 +26,6 @@ var _ = Describe("karpenter stack", func() {
 			krs := builder.NewKarpenterResourceSet(cfg)
 			Expect(krs.AddAllResources()).To(Succeed())
 			result, err := krs.RenderJSON()
-			fmt.Println(string(result))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(result)).To(Equal(expectedTemplate))
 		})

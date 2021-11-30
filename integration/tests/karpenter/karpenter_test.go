@@ -7,11 +7,14 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
+	"github.com/weaveworks/eksctl/integration/utilities/kube"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/karpenter"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
@@ -36,6 +39,7 @@ var _ = Describe("(Integration) Karpenter", func() {
 	)
 
 	BeforeEach(func() {
+		// the randomly generated name we get usually makes one of the resources have a longer than 64 characters name
 		clusterName = fmt.Sprintf("it-karpenter-%d", time.Now().Unix())
 	})
 
@@ -57,8 +61,24 @@ var _ = Describe("(Integration) Karpenter", func() {
 				).
 				WithoutArg("--region", params.Region).
 				WithStdin(clusterutils.ReaderFromFile(clusterName, params.Region, "testdata/cluster-config.yaml"))
-
 			Expect(cmd).To(RunSuccessfully())
+			cmd = params.EksctlUtilsCmd.WithArgs(
+				"write-kubeconfig",
+				"--verbose", "4",
+				"--cluster", clusterName,
+				"--kubeconfig", params.KubeconfigPath,
+			)
+			Expect(cmd).To(RunSuccessfully())
+			kubeTest, err := kube.NewTest(params.KubeconfigPath)
+			Expect(err).NotTo(HaveOccurred())
+			// Check webhook pod
+			Expect(kubeTest.WaitForPodsReady(karpenter.DefaultNamespace, metav1.ListOptions{
+				LabelSelector: "karpenter=webhook",
+			}, 1, 10*time.Minute)).To(Succeed())
+			// Check controller pod
+			Expect(kubeTest.WaitForPodsReady(karpenter.DefaultNamespace, metav1.ListOptions{
+				LabelSelector: "karpenter=controller",
+			}, 1, 10*time.Minute)).To(Succeed())
 		})
 	})
 })

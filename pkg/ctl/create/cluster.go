@@ -441,8 +441,8 @@ func installKarpenter(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, stackMan
 	karpenterServiceAccountTaskTree := stackManager.NewTasksToCreateIAMServiceAccounts([]*api.ClusterIAMServiceAccount{
 		{
 			ClusterIAMMeta: api.ClusterIAMMeta{
-				Name:      karpenter.DefaultKarpenterServiceAccountName,
-				Namespace: karpenter.DefaultKarpenterNamespace,
+				Name:      karpenter.DefaultServiceAccountName,
+				Namespace: karpenter.DefaultNamespace,
 			},
 			AttachRoleARN: roleArn,
 		},

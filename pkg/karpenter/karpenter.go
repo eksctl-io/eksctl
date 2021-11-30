@@ -10,20 +10,20 @@ import (
 )
 
 const (
-	// DefaultKarpenterNamespace default namespace for Karpenter
-	DefaultKarpenterNamespace = "karpenter"
-	// DefaultKarpenterServiceAccountName is the name of the service account which is needed for Karpenter
-	DefaultKarpenterServiceAccountName = "karpenter"
+	// DefaultNamespace default namespace for Karpenter
+	DefaultNamespace = "karpenter"
+	// DefaultServiceAccountName is the name of the service account which is needed for Karpenter
+	DefaultServiceAccountName = "karpenter"
 
-	karpenterHelmRepo      = "https://charts.karpenter.sh"
-	karpenterHelmChartName = "karpenter/karpenter"
-	karpenterReleaseName   = "karpenter"
-	controller             = "controller"
-	clusterName            = "clusterName"
-	clusterEndpoint        = "clusterEndpoint"
-	serviceAccount         = "serviceAccount"
-	defaultProvisioner     = "defaultProvisioner"
-	create                 = "create"
+	clusterEndpoint    = "clusterEndpoint"
+	clusterName        = "clusterName"
+	controller         = "controller"
+	create             = "create"
+	defaultProvisioner = "defaultProvisioner"
+	helmChartName      = "karpenter/karpenter"
+	helmRepo           = "https://charts.karpenter.sh"
+	releaseName        = "karpenter"
+	serviceAccount     = "serviceAccount"
 )
 
 const (
@@ -61,9 +61,9 @@ func NewKarpenterInstaller(opts Options) *Installer {
 
 // Install adds Karpenter to a configured cluster in a separate CloudFormation stack.
 func (k *Installer) Install(ctx context.Context) error {
-	logger.Info("adding Karpenter to cluster %s with cluster", k.ClusterName)
+	logger.Info("adding Karpenter to cluster %s", k.ClusterName)
 	logger.Debug("cluster endpoint used by Karpenter: %s", k.ClusterEndpoint)
-	if err := k.HelmInstaller.AddRepo(karpenterHelmRepo, karpenterReleaseName); err != nil {
+	if err := k.HelmInstaller.AddRepo(helmRepo, releaseName); err != nil {
 		return fmt.Errorf("failed to add Karpenter repository: %w", err)
 	}
 	values := map[string]interface{}{
@@ -79,7 +79,7 @@ func (k *Installer) Install(ctx context.Context) error {
 		},
 	}
 	logger.Debug("the following values will be applied to the install: %+v", values)
-	if err := k.HelmInstaller.InstallChart(ctx, karpenterReleaseName, karpenterHelmChartName, DefaultKarpenterNamespace, k.Version, values); err != nil {
+	if err := k.HelmInstaller.InstallChart(ctx, releaseName, helmChartName, DefaultNamespace, k.Version, values); err != nil {
 		return fmt.Errorf("failed to install Karpenter chart: %w", err)
 	}
 	return nil

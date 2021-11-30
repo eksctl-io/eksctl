@@ -30,14 +30,14 @@ type WaitFunc func(name, msg string, acceptors []request.WaiterAcceptor, newRequ
 // NewInstaller creates a new Karpenter installer.
 func NewInstaller(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) (*Installer, error) {
 	helmInstaller, err := helm.NewInstaller(helm.Options{
-		Namespace: karpenter.DefaultKarpenterNamespace,
+		Namespace: karpenter.DefaultNamespace,
 	})
 	if err != nil {
 		return nil, err
 	}
 	karpenterInstaller := karpenter.NewKarpenterInstaller(karpenter.Options{
 		HelmInstaller:        helmInstaller,
-		Namespace:            karpenter.DefaultKarpenterNamespace,
+		Namespace:            karpenter.DefaultNamespace,
 		ClusterName:          cfg.Metadata.Name,
 		CreateServiceAccount: api.IsEnabled(cfg.Karpenter.CreateServiceAccount),
 		ClusterEndpoint:      cfg.Status.Endpoint,
