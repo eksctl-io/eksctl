@@ -132,10 +132,7 @@ func (git *Client) isRemoteBranch(branch string) bool {
 // Add performs can perform a `git add` operation on the given file paths
 func (git Client) Add(files ...string) error {
 	args := append([]string{"add", "--"}, files...)
-	if err := git.runGitCmd(args...); err != nil {
-		return err
-	}
-	return nil
+	return git.runGitCmd(args...)
 }
 
 // Commit makes a commit if there are staged changes
@@ -174,10 +171,7 @@ func (git Client) Commit(message, user, email string) error {
 		"-m", message,
 		fmt.Sprintf("--author=%s <%s>", user, email),
 	}
-	if err := git.runGitCmd(args...); err != nil {
-		return err
-	}
-	return nil
+	return git.runGitCmd(args...)
 }
 
 // Push pushes the changes to the origin remote

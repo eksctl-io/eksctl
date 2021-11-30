@@ -39,7 +39,7 @@ func buildNetworkInterfaces(
 			return errors.Wrapf(err, "couldn't retrieve instance type description for %v", instanceTypes)
 		}
 
-		var numEFAs float64 = math.MaxFloat64
+		var numEFAs = math.MaxFloat64
 		for _, it := range info.InstanceTypes {
 			networkInfo := it.NetworkInfo
 			numEFAs = math.Min(float64(aws.Int64Value(networkInfo.MaximumNetworkCards)), numEFAs)
