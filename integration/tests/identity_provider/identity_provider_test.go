@@ -1,0 +1,349 @@
+//go:build integration
+// +build integration
+
+package identity_provider
+
+import (
+	"context"
+	"encoding/base64"
+	"fmt"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
+	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
+	"github.com/pkg/errors"
+
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+
+	"github.com/sethvargo/go-password/password"
+
+	. "github.com/weaveworks/eksctl/integration/matchers"
+	. "github.com/weaveworks/eksctl/integration/runner"
+
+	"github.com/weaveworks/eksctl/integration/tests"
+	"github.com/weaveworks/eksctl/integration/utilities/kube"
+	"github.com/weaveworks/eksctl/pkg/testutils"
+)
+
+const (
+	oidcGroupName = "oidc-reader"
+)
+
+var (
+	params                  *tests.Params
+	oidcConfig              *OIDCConfig
+	cleanupCognitoResources func() error
+)
+
+type OIDCConfig struct {
+	clientID     string
+	idToken      string
+	refreshToken string
+	idpIssuerURL string
+}
+
+func init() {
+	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
+	testing.Init()
+	params = tests.NewParams("identity-provider")
+}
+
+func TestIdentityProvider(t *testing.T) {
+	testutils.RegisterAndRun(t)
+}
+
+var _ = BeforeSuite(func() {
+	if !params.SkipCreate {
+		cmd := params.EksctlCreateCmd.WithArgs(
+			"cluster",
+			"--verbose", "4",
+			"--name", params.ClusterName,
+			"--kubeconfig", params.KubeconfigPath,
+			"--nodes", "1",
+		)
+		Expect(cmd).To(RunSuccessfully())
+	}
+
+	var err error
+	fmt.Fprintf(GinkgoWriter, "creating Cognito OIDC provider\n")
+	oidcConfig, err = setupCognitoProvider(params.ClusterName, params.Region)
+	Expect(err).NotTo(HaveOccurred())
+	fmt.Fprintf(GinkgoWriter, "created Cognito provider; client ID: %s\n", oidcConfig.clientID)
+})
+
+var _ = Describe("(Integration) [Identity Provider]", func() {
+
+	It("should associate, get and disassociate identity provider", func() {
+		By("associating a new identity provider")
+		cmd := associateOIDCProviderCMD(oidcConfig, params.ClusterName, params.Region)
+		Expect(cmd).To(RunSuccessfully())
+
+		By("creating RBAC resources")
+		test, err := kube.NewTest(params.KubeconfigPath)
+		Expect(err).NotTo(HaveOccurred())
+		defer test.Close()
+
+		test.CreateClusterRoleFromFile("testdata/cluster-role.yaml")
+		test.CreateClusterRoleBindingFromFile("testdata/cluster-role-binding.yaml")
+
+		By("creating an OIDC Clientset")
+		clientset, err := createOIDCClientset(eks.New(NewSession(params.Region)), oidcConfig, params.ClusterName)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("reading Kubernetes resources")
+		list, err := clientset.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(list.Items).To(HaveLen(1))
+
+		secrets, err := clientset.CoreV1().Secrets(metav1.NamespaceAll).List(context.Background(), metav1.ListOptions{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(secrets.Items).NotTo(BeEmpty())
+
+		By("ensuring the client does not have write access")
+		_, err = clientset.CoreV1().ConfigMaps(metav1.NamespaceDefault).Create(context.Background(), &v1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "testdata",
+			},
+			Data: map[string]string{
+				"key": "value",
+			},
+		}, metav1.CreateOptions{})
+
+		Expect(err).To(HaveOccurred())
+	})
+
+})
+
+var _ = AfterSuite(func() {
+	if !params.SkipCreate && !params.SkipDelete {
+		params.DeleteClusters()
+	}
+	if cleanupCognitoResources != nil {
+		Expect(cleanupCognitoResources()).To(Succeed())
+	}
+})
+
+func createOIDCClientset(eksAPI eksiface.EKSAPI, o *OIDCConfig, clusterName string) (kubernetes.Interface, error) {
+	contextName := fmt.Sprintf("%s@%s", "test", clusterName)
+
+	cluster, err := eksAPI.DescribeCluster(&eks.DescribeClusterInput{
+		Name: aws.String(clusterName),
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "describing cluster")
+	}
+
+	certData, err := base64.StdEncoding.DecodeString(*cluster.Cluster.CertificateAuthority.Data)
+	if err != nil {
+		return nil, errors.Wrap(err, "unexpected error decoding certificate authority data")
+	}
+
+	config := clientcmdapi.Config{
+		Clusters: map[string]*clientcmdapi.Cluster{
+			clusterName: {
+				Server:                   *cluster.Cluster.Endpoint,
+				CertificateAuthorityData: certData,
+			},
+		},
+		Contexts: map[string]*clientcmdapi.Context{
+			contextName: {
+				Cluster:  clusterName,
+				AuthInfo: contextName,
+			},
+		},
+		AuthInfos: map[string]*clientcmdapi.AuthInfo{
+			contextName: {
+				AuthProvider: &clientcmdapi.AuthProviderConfig{
+					Name: "oidc",
+					Config: map[string]string{
+						"client-id":      o.clientID,
+						"id-token":       o.idToken,
+						"refresh-token":  o.refreshToken,
+						"idp-issuer-url": o.idpIssuerURL,
+					},
+				},
+			},
+		},
+		CurrentContext: contextName,
+	}
+
+	clientConfig, err := clientcmd.NewDefaultClientConfig(config, &clientcmd.ConfigOverrides{}).ClientConfig()
+	if err != nil {
+		return nil, errors.Wrap(err, "creating default client config")
+	}
+
+	return kubernetes.NewForConfig(clientConfig)
+}
+
+func setupCognitoProvider(clusterName, region string) (*OIDCConfig, error) {
+	c := cognitoidentityprovider.New(NewSession(region))
+
+	pool, err := c.CreateUserPool(&cognitoidentityprovider.CreateUserPoolInput{
+		Policies: &cognitoidentityprovider.UserPoolPolicyType{
+			PasswordPolicy: &cognitoidentityprovider.PasswordPolicyType{
+				MinimumLength:    aws.Int64(10),
+				RequireLowercase: aws.Bool(false),
+				RequireNumbers:   aws.Bool(true),
+				RequireSymbols:   aws.Bool(true),
+				RequireUppercase: aws.Bool(false),
+			},
+		},
+		PoolName:           aws.String(clusterName),
+		UsernameAttributes: aws.StringSlice([]string{"email"}),
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "creating user pool")
+	}
+
+	cleanupCognitoResources = func() error {
+		_, err := c.DeleteUserPool(&cognitoidentityprovider.DeleteUserPoolInput{
+			UserPoolId: pool.UserPool.Id,
+		})
+		return err
+	}
+
+	client, err := c.CreateUserPoolClient(&cognitoidentityprovider.CreateUserPoolClientInput{
+		ClientName: aws.String("eks-client"),
+		ExplicitAuthFlows: aws.StringSlice([]string{
+			cognitoidentityprovider.ExplicitAuthFlowsTypeAllowAdminUserPasswordAuth,
+			cognitoidentityprovider.ExplicitAuthFlowsTypeAllowUserPasswordAuth,
+			cognitoidentityprovider.ExplicitAuthFlowsTypeAllowRefreshTokenAuth,
+		}),
+		AllowedOAuthFlows: aws.StringSlice([]string{
+			cognitoidentityprovider.OAuthFlowTypeImplicit,
+		}),
+		AllowedOAuthScopes: aws.StringSlice([]string{
+			"profile",
+			"phone",
+			"email",
+			"openid",
+			"aws.cognito.signin.user.admin",
+		}),
+		UserPoolId:                 pool.UserPool.Id,
+		GenerateSecret:             aws.Bool(false),
+		SupportedIdentityProviders: aws.StringSlice([]string{"COGNITO"}),
+		// TODO this is likely not required, check if this can be removed.
+		CallbackURLs: aws.StringSlice([]string{"https://example.com"}),
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "creating user pool client")
+	}
+
+	var (
+		userPoolID     = pool.UserPool.Id
+		clientUsername = aws.String(fmt.Sprintf("%s@weave.works", clusterName))
+	)
+
+	_, err = c.AdminCreateUser(&cognitoidentityprovider.AdminCreateUserInput{
+		UserPoolId: userPoolID,
+		Username:   clientUsername,
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "creating user")
+	}
+
+	pass, err := password.Generate(10, 2, 3, false, false)
+	if err != nil {
+		return nil, errors.Wrap(err, "generating password")
+	}
+
+	_, err = c.AdminSetUserPassword(&cognitoidentityprovider.AdminSetUserPasswordInput{
+		UserPoolId: userPoolID,
+		Username:   clientUsername,
+		Password:   aws.String(pass),
+		Permanent:  aws.Bool(true),
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "setting user password")
+	}
+
+	groupName := aws.String(oidcGroupName)
+
+	_, err = c.CreateGroup(&cognitoidentityprovider.CreateGroupInput{
+		UserPoolId: userPoolID,
+		GroupName:  groupName,
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "creating group")
+	}
+
+	_, err = c.AdminAddUserToGroup(&cognitoidentityprovider.AdminAddUserToGroupInput{
+		GroupName:  groupName,
+		UserPoolId: userPoolID,
+		Username:   clientUsername,
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "adding user to group")
+	}
+
+	auth, err := c.AdminInitiateAuth(&cognitoidentityprovider.AdminInitiateAuthInput{
+		AuthFlow: aws.String(cognitoidentityprovider.AuthFlowTypeAdminUserPasswordAuth),
+		AuthParameters: map[string]*string{
+			"USERNAME": clientUsername,
+			"PASSWORD": aws.String(pass),
+		},
+		ClientId:   client.UserPoolClient.ClientId,
+		UserPoolId: userPoolID,
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "initiating auth")
+	}
+
+	return &OIDCConfig{
+		clientID:     *client.UserPoolClient.ClientId,
+		idToken:      *auth.AuthenticationResult.IdToken,
+		refreshToken: *auth.AuthenticationResult.RefreshToken,
+		idpIssuerURL: fmt.Sprintf("https://cognito-idp.%s.amazonaws.com/%s", region, *userPoolID),
+	}, nil
+
+}
+
+func associateOIDCProviderCMD(o *OIDCConfig, clusterName, region string) Cmd {
+	clusterConfig := fmt.Sprintf(`apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: %s
+  region: %s
+
+identityProviders:
+  - name: cognito
+    issuerURL: %s
+    clientID: %s
+    usernameClaim: email
+    groupsClaim: "cognito:groups"
+    groupsPrefix: "gid:"
+    type: oidc
+`, clusterName, region, o.idpIssuerURL, o.clientID)
+
+	return params.EksctlCmd.WithArgs(
+		"associate",
+		"identityprovider",
+		"--config-file", "-",
+		"--verbose", "4",
+		"--wait",
+	).
+		WithStdin(strings.NewReader(clusterConfig)).
+		WithoutArg("--region", region).
+		WithTimeout(35 * time.Minute)
+}
