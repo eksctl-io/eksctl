@@ -44,10 +44,7 @@ func (t *TablePrinter) PrintObjWithKind(kind string, obj interface{}, writer io.
 		if _, err := w.WriteString(fmt.Sprintf("No %s found\n", strings.ToLower(kind))); err != nil {
 			return err
 		}
-		if err := w.Flush(); err != nil {
-			return err
-		}
-		return nil
+		return w.Flush()
 	}
 
 	return t.table.Render(obj, writer, t.columnames...)

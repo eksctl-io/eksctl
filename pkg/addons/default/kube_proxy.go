@@ -6,22 +6,19 @@ import (
 	"sort"
 	"strings"
 
-	v1 "k8s.io/api/apps/v1"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-
-	"github.com/hashicorp/go-version"
-	"github.com/weaveworks/eksctl/pkg/addons"
-	"github.com/weaveworks/eksctl/pkg/printers"
-
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	v1 "k8s.io/api/apps/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/weaveworks/eksctl/pkg/addons"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
@@ -127,7 +124,9 @@ func UpdateKubeProxy(input AddonInput, plan bool) (bool, error) {
 	}
 
 	if !hasArm64NodeSelector {
-		addArm64NodeSelector(d, archLabel)
+		if err := addArm64NodeSelector(d, archLabel); err != nil {
+			return false, err
+		}
 	}
 
 	if _, err := input.RawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Update(context.TODO(), d, metav1.UpdateOptions{}); err != nil {
@@ -157,16 +156,20 @@ func daemeonSetHasArm64NodeSelector(daemonSet *v1.DaemonSet, archLabel string) b
 	return false
 }
 
-func addArm64NodeSelector(daemonSet *v1.DaemonSet, archLabel string) {
-	for nodeSelectorTermsIndex, nodeSelectorTerms := range daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.
-		RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms {
-		for nodeSelectorIndex, nodeSelector := range nodeSelectorTerms.MatchExpressions {
-			if nodeSelector.Key == archLabel {
-				daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.
-					NodeSelectorTerms[nodeSelectorTermsIndex].MatchExpressions[nodeSelectorIndex].Values = append(nodeSelector.Values, "arm64")
+func addArm64NodeSelector(daemonSet *v1.DaemonSet, archLabel string) error {
+	if daemonSet.Spec.Template.Spec.Affinity != nil && daemonSet.Spec.Template.Spec.Affinity.NodeAffinity != nil {
+		for nodeSelectorTermsIndex, nodeSelectorTerms := range daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.
+			RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms {
+			for nodeSelectorIndex, nodeSelector := range nodeSelectorTerms.MatchExpressions {
+				if nodeSelector.Key == archLabel {
+					daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.
+						NodeSelectorTerms[nodeSelectorTermsIndex].MatchExpressions[nodeSelectorIndex].Values = append(nodeSelector.Values, "arm64")
+				}
 			}
 		}
+		return nil
 	}
+	return fmt.Errorf("NodeAffinity not configured on kube-proxy. Either manually update the proxy deployment, or switch to Managed Addons")
 }
 
 func getLatestKubeProxyImage(input AddonInput, greaterThanOrEqualTo1_18 bool) (string, error) {

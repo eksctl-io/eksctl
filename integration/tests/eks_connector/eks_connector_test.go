@@ -1,6 +1,7 @@
 //go:build integration
 // +build integration
 
+//revive:disable Not changing package name
 package eks_connector_test
 
 import (
@@ -14,6 +15,7 @@ import (
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"

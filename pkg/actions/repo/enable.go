@@ -17,14 +17,15 @@ import (
 	portforward "github.com/justinbarrick/go-k8s-portforward"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/git"
-	"github.com/weaveworks/eksctl/pkg/gitops/deploykey"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/git"
+	"github.com/weaveworks/eksctl/pkg/gitops/deploykey"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
 const (
@@ -215,10 +216,7 @@ func (fi *Installer) addFilesToRepo() error {
 	}
 
 	// git push
-	if err := fi.GitClient.Push(); err != nil {
-		return err
-	}
-	return nil
+	return fi.GitClient.Push()
 }
 
 func (fi *Installer) createFluxNamespaceIfMissing(manifestsMap map[string][]byte) error {

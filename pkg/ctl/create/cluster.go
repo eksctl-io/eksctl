@@ -7,24 +7,22 @@ import (
 	"strings"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
-	"github.com/weaveworks/eksctl/pkg/kops"
-	"github.com/weaveworks/eksctl/pkg/utils"
-
-	"github.com/weaveworks/eksctl/pkg/actions/addon"
-
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"k8s.io/client-go/tools/clientcmd"
 
+	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/gitops"
+	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/printers"
+	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
@@ -398,11 +396,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 
 	logger.Success("%s is ready", meta.LogString())
 
-	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
-		return err
-	}
-
-	return nil
+	return printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg)
 }
 
 func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmdutils.CreateClusterCmdParams, ctl *eks.ClusterProvider) error {
@@ -421,10 +415,8 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 		if params.DryRun {
 			return nil
 		}
-		if err := vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones); err != nil {
-			return err
-		}
-		return nil
+
+		return vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones)
 	}
 
 	if params.KopsClusterNameForVPC != "" {
