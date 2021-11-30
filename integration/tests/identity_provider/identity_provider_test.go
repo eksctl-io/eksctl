@@ -134,6 +134,18 @@ var _ = Describe("(Integration) [Identity Provider]", func() {
 		}, metav1.CreateOptions{})
 
 		Expect(err).To(HaveOccurred())
+
+		By("disassociating the identity provider")
+		cmd = params.EksctlCmd.
+			WithArgs(
+				"disassociate",
+				"identityprovider",
+				"--cluster", params.ClusterName,
+				"--wait",
+			).
+			WithTimeout(30 * time.Minute)
+		Expect(cmd).To(RunSuccessfully())
+
 	})
 
 })
