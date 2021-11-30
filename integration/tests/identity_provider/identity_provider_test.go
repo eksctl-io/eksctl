@@ -91,6 +91,17 @@ var _ = Describe("(Integration) [Identity Provider]", func() {
 		cmd := associateOIDCProviderCMD(oidcConfig, params.ClusterName, params.Region)
 		Expect(cmd).To(RunSuccessfully())
 
+		By("getting the identity provider")
+		cmd = params.EksctlGetCmd.
+			WithArgs(
+				"identityprovider",
+				"--cluster", params.ClusterName,
+				"-o", "yaml",
+			)
+		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+			ContainElement(ContainSubstring(fmt.Sprintf("ClientID: %s", oidcConfig.clientID)))),
+		)
+
 		By("creating RBAC resources")
 		test, err := kube.NewTest(params.KubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
