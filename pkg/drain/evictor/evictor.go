@@ -46,6 +46,8 @@ type Evictor struct {
 
 	maxGracePeriodSeconds int
 
+	NodeDrainWaitPeriod int
+
 	ignoreAllDaemonSets bool
 	ignoreDaemonSets    []metav1.ObjectMeta
 	deleteLocalData     bool
@@ -55,7 +57,7 @@ type Evictor struct {
 	UseEvictions          bool
 }
 
-func New(clientSet kubernetes.Interface, maxGracePeriod time.Duration, ignoreDaemonSets []metav1.ObjectMeta, disableEviction bool) *Evictor {
+func New(clientSet kubernetes.Interface, maxGracePeriod time.Duration, nodeDrainWaitPeriod time.Duration, ignoreDaemonSets []metav1.ObjectMeta, disableEviction bool) *Evictor {
 	return &Evictor{
 		client: clientSet,
 		// TODO: force, DeleteLocalData & IgnoreAllDaemonSets shouldn't
@@ -67,6 +69,7 @@ func New(clientSet kubernetes.Interface, maxGracePeriod time.Duration, ignoreDae
 		deleteLocalData:       true,
 		ignoreAllDaemonSets:   true,
 		maxGracePeriodSeconds: int(maxGracePeriod.Seconds()),
+		NodeDrainWaitPeriod:   int(nodeDrainWaitPeriod.Seconds()),
 		ignoreDaemonSets:      ignoreDaemonSets,
 		disableEviction:       disableEviction,
 	}

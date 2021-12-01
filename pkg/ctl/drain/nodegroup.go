@@ -27,6 +27,7 @@ func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 
 	var undo, onlyMissing bool
 	var maxGracePeriod time.Duration
+	var nodeDrainWaitPeriod time.Duration
 	var disableEviction bool
 
 	cmd.SetDescription("nodegroup", "Cordon and drain a nodegroup", "", "ng")
@@ -50,12 +51,14 @@ func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 		defaultDisableEviction := false
 		fs.BoolVar(&disableEviction, "disable-eviction", defaultDisableEviction, "Force drain to use delete, even if eviction is supported. This will bypass checking PodDisruptionBudgets, use with caution.")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		defaultNodeDrainWaitPeriod, _ := time.ParseDuration("5m")
+		fs.DurationVar(&nodeDrainWaitPeriod, "node-drain-wait-period", defaultNodeDrainWaitPeriod, "Amount of time to wait between draining nodes in a nodegroup")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
 }
 
-func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod time.Duration, disableEviction bool) error {
+func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod time.Duration, nodeDrainWaitPeriod time.Duration, disableEviction bool) error {
 	ngFilter := filter.NewNodeGroupFilter()
 
 	if err := cmdutils.NewDeleteNodeGroupLoader(cmd, ng, ngFilter).Load(); err != nil {
@@ -118,5 +121,5 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 	}
 	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 
-	return nodegroup.New(cfg, ctl, clientSet).Drain(allNodeGroups, cmd.Plan, maxGracePeriod, disableEviction)
+	return nodegroup.New(cfg, ctl, clientSet).Drain(allNodeGroups, cmd.Plan, maxGracePeriod, nodeDrainWaitPeriod, disableEviction)
 }

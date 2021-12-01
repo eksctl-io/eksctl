@@ -41,7 +41,7 @@ type NodeGroupDrainer struct {
 	undo        bool
 }
 
-func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout time.Duration, maxGracePeriod time.Duration, undo bool, disableEviction bool) NodeGroupDrainer {
+func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout time.Duration, maxGracePeriod time.Duration, nodeDrainWaitPeriod time.Duration, undo bool, disableEviction bool) NodeGroupDrainer {
 	ignoreDaemonSets := []metav1.ObjectMeta{
 		{
 			Namespace: "kube-system",
@@ -69,7 +69,7 @@ func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, w
 	}
 
 	return NodeGroupDrainer{
-		evictor:     evictor.New(clientSet, maxGracePeriod, ignoreDaemonSets, disableEviction),
+		evictor:     evictor.New(clientSet, maxGracePeriod, nodeDrainWaitPeriod, ignoreDaemonSets, disableEviction),
 		clientSet:   clientSet,
 		ng:          ng,
 		waitTimeout: waitTimeout,
@@ -143,6 +143,8 @@ func (n *NodeGroupDrainer) Drain() error {
 				if pending == 0 {
 					drainedNodes.Insert(node)
 				}
+				logger.Debug("Waiting for %d seconds before draining next node", n.evictor.NodeDrainWaitPeriod)
+				time.Sleep(n.evictor.NodeDrainWaitPeriod)
 			}
 		}
 	}
