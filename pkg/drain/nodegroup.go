@@ -34,11 +34,12 @@ type Evictor interface {
 }
 
 type NodeGroupDrainer struct {
-	clientSet   kubernetes.Interface
-	evictor     Evictor
-	ng          eks.KubeNodeGroup
-	waitTimeout time.Duration
-	undo        bool
+	clientSet           kubernetes.Interface
+	evictor             Evictor
+	ng                  eks.KubeNodeGroup
+	waitTimeout         time.Duration
+	NodeDrainWaitPeriod time.Duration
+	undo                bool
 }
 
 func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout time.Duration, maxGracePeriod time.Duration, nodeDrainWaitPeriod time.Duration, undo bool, disableEviction bool) NodeGroupDrainer {
@@ -69,11 +70,12 @@ func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, w
 	}
 
 	return NodeGroupDrainer{
-		evictor:     evictor.New(clientSet, maxGracePeriod, nodeDrainWaitPeriod, ignoreDaemonSets, disableEviction),
-		clientSet:   clientSet,
-		ng:          ng,
-		waitTimeout: waitTimeout,
-		undo:        undo,
+		evictor:             evictor.New(clientSet, maxGracePeriod, ignoreDaemonSets, disableEviction),
+		clientSet:           clientSet,
+		ng:                  ng,
+		waitTimeout:         waitTimeout,
+		NodeDrainWaitPeriod: nodeDrainWaitPeriod,
+		undo:                undo,
 	}
 }
 
@@ -143,8 +145,8 @@ func (n *NodeGroupDrainer) Drain() error {
 				if pending == 0 {
 					drainedNodes.Insert(node)
 				}
-				logger.Debug("Waiting for %d seconds before draining next node", n.evictor.NodeDrainWaitPeriod)
-				time.Sleep(n.evictor.NodeDrainWaitPeriod)
+				logger.Debug("Waiting for %d seconds before draining next node", n.NodeDrainWaitPeriod)
+				time.Sleep(n.NodeDrainWaitPeriod)
 			}
 		}
 	}

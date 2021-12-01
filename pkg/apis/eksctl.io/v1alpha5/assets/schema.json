@@ -56,8 +56,8 @@
         },
         "permissionsBoundary": {
           "type": "string",
-          "description": "ARN of the permissions boundary to associate",
-          "x-intellij-html-description": "ARN of the permissions boundary to associate"
+          "description": "ARN of the permissions' boundary to associate",
+          "x-intellij-html-description": "ARN of the permissions' boundary to associate"
         },
         "serviceAccountRoleARN": {
           "type": "string"

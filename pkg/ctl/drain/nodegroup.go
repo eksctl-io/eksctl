@@ -15,12 +15,12 @@ import (
 )
 
 func drainNodeGroupCmd(cmd *cmdutils.Cmd) {
-	drainNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod time.Duration, disableEviction bool) error {
-		return doDrainNodeGroup(cmd, ng, undo, onlyMissing, maxGracePeriod, disableEviction)
+	drainNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod time.Duration, nodeDrainWaitPeriod time.Duration, disableEviction bool) error {
+		return doDrainNodeGroup(cmd, ng, undo, onlyMissing, maxGracePeriod, nodeDrainWaitPeriod, disableEviction)
 	})
 }
 
-func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod time.Duration, disableEviction bool) error) {
+func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod time.Duration, nodeDrainWaitPeriod time.Duration, disableEviction bool) error) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
@@ -34,7 +34,7 @@ func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return runFunc(cmd, ng, undo, onlyMissing, maxGracePeriod, disableEviction)
+		return runFunc(cmd, ng, undo, onlyMissing, maxGracePeriod, nodeDrainWaitPeriod, disableEviction)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -51,7 +51,7 @@ func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 		defaultDisableEviction := false
 		fs.BoolVar(&disableEviction, "disable-eviction", defaultDisableEviction, "Force drain to use delete, even if eviction is supported. This will bypass checking PodDisruptionBudgets, use with caution.")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
-		defaultNodeDrainWaitPeriod, _ := time.ParseDuration("5m")
+		defaultNodeDrainWaitPeriod, _ := time.ParseDuration("0m")
 		fs.DurationVar(&nodeDrainWaitPeriod, "node-drain-wait-period", defaultNodeDrainWaitPeriod, "Amount of time to wait between draining nodes in a nodegroup")
 	})
 
