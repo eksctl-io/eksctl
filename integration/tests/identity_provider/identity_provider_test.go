@@ -102,7 +102,7 @@ var _ = Describe("(Integration) [Identity Provider]", func() {
 		).
 			WithStdin(strings.NewReader(identityProviderClusterConfig)).
 			WithoutArg("--region", params.Region).
-			WithTimeout(35 * time.Minute)
+			WithTimeout(40 * time.Minute)
 
 		Expect(cmd).To(RunSuccessfully())
 
@@ -160,7 +160,7 @@ var _ = Describe("(Integration) [Identity Provider]", func() {
 			).
 			WithStdin(strings.NewReader(identityProviderClusterConfig)).
 			WithoutArg("--region", params.Region).
-			WithTimeout(30 * time.Minute)
+			WithTimeout(45 * time.Minute)
 
 		Expect(cmd).To(RunSuccessfully())
 
