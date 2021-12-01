@@ -21,6 +21,6 @@ The nodegroup by default allows inbound traffic from the control plane security 
 
 If the default functionality doesn't suit you, the following sections explain how to customize VPC configuration further:
 
-- [VPC Configuration](../vpc-vpc-configuration)
+- [VPC Configuration](../vpc-configuration)
 - [Subnet Settings](../vpc-subnet-settings)
 - [Cluster Access](../vpc-cluster-access)

@@ -9,8 +9,7 @@ change it. Please refer to [the AWS docs][vpcsizing] for guides on choosing CIDR
 
 ## Use an existing VPC: shared with kops
 
-You can use the VPC of an existing Kubernetes cluster managed by [kops](https://github.com/kubernetes/kops). This feature is provided to facilitate migration and/or
-cluster peering.
+You can use the VPC of an existing Kubernetes cluster managed by [kops](https://github.com/kubernetes/kops). This feature is provided to facilitate migration and/or cluster peering.
 
 If you have previously created a cluster with kops, e.g. using commands similar to this:
 

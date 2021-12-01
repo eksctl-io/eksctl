@@ -18,17 +18,17 @@ vpc:
 
 There are some additional caveats when configuring Kubernetes API endpoint access:
 
-1. EKS doesn't allow one to create or update a cluster without at least one of private or public access being
+1. EKS doesn't allow one to create or update a cluster without at least one private or public access being
    enabled.
-1. EKS does allow creating a configuration which allows only private access to be enabled, but eksctl doesn't
+1. EKS does allow creating a configuration that allows only private access to be enabled, but eksctl doesn't
    support it during cluster creation as it prevents eksctl from being able to join the worker nodes to the cluster.
 1. Updating a cluster to have private only Kubernetes API endpoint access means that Kubernetes commands, by default,
    (e.g. `kubectl`) as well as `eksctl delete cluster`, `eksctl utils write-kubeconfig`, and possibly the command
    `eksctl utils update-kube-proxy` must be run within the cluster VPC.  This requires some changes to various AWS
    resources.  See:
    [EKS user guide](https://docs.aws.amazon.com/en_pv/eks/latest/userguide/cluster-endpoint#private-access)
-   A user can elect to supply vpc.extraCIDRs which will append additional CIDR ranges to the ControlPlaneSecurityGroup,
-   allowing subnets outside the VPC to reach the kubernetes API endpoint.
+   A user can provide `vpc.extraCIDRs` which will append additional CIDR ranges to the ControlPlaneSecurityGroup,
+   allowing subnets outside the VPC to reach the Kubernetes API endpoint.
 
 The following is an example of how one could configure the Kubernetes API endpoint access using the `utils` sub-command:
 
@@ -42,7 +42,7 @@ To update the setting using a `ClusterConfig` file, use:
 eksctl utils update-cluster-endpoints -f config.yaml --approve
 ```
 
-Note that if you don't pass a flag in it will keep the current value. Once you are satisfied with the proposed changes,
+Note that if you don't pass a flag, it will keep the current value. Once you are satisfied with the proposed changes,
 add the `approve` flag to make the change to the running cluster.
 
 ## Restricting Access to the EKS Kubernetes Public API endpoint
