@@ -134,7 +134,7 @@ func (n *NodeGroupDrainer) Drain() error {
 			logger.Debug("already drained: %v", drainedNodes.List())
 			logger.Debug("will drain: %v", newPendingNodes.List())
 
-			for _, node := range newPendingNodes.List() {
+			for i, node := range newPendingNodes.List() {
 				pending, err := n.evictPods(node)
 				if err != nil {
 					logger.Warning("pod eviction error (%q) on node %s", err, node)
@@ -145,8 +145,12 @@ func (n *NodeGroupDrainer) Drain() error {
 				if pending == 0 {
 					drainedNodes.Insert(node)
 				}
-				logger.Debug("Waiting for %d seconds before draining next node", n.NodeDrainWaitPeriod)
-				time.Sleep(n.NodeDrainWaitPeriod)
+
+				//only wait if we're not on the last node of this interation
+				if i < newPendingNodes.Len()-1 {
+					logger.Debug("Waiting for %.0f seconds before draining next node", n.NodeDrainWaitPeriod.Seconds())
+					time.Sleep(n.NodeDrainWaitPeriod)
+				}
 			}
 		}
 	}
