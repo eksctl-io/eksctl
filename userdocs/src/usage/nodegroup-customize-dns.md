@@ -3,7 +3,7 @@
 There are two ways of overwriting the DNS server IP address used for all the internal and external DNS lookups. This
 is the equivalent of the `--cluster-dns` flag for the `kubelet`.
 
-The first, is through the `clusterDNS` field. [Config files](../schema) accept a `string` field called
+The first, is through the `clusterDNS` field. [Config files](../schema) accepts a `string` field called
 `clusterDNS` with the IP address of the DNS server to use.
 This will be passed to the `kubelet` that in turn will pass it to the pods through the `/etc/resolv.conf` file.
 
