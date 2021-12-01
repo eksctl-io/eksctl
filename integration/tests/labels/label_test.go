@@ -34,72 +34,73 @@ func TestLabels(t *testing.T) {
 }
 
 var _ = Describe("Labels", func() {
-	var (
-		clusterName string
-		mng1        string
-	)
+	Context("can manage labels for owned clusters", func() {
+		var (
+			clusterName string
+			mng1        string
+		)
+		BeforeSuite(func() {
+			clusterName = params.NewClusterName("")
+			cmd := params.EksctlCreateCmd.
+				WithArgs(
+					"cluster",
+					"--config-file=-",
+					"--verbose=4",
+				).
+				WithoutArg("--region", params.Region).
+				WithStdin(clusterutils.ReaderFromFile(clusterName, params.Region, "testdata/managed-nodegroup-with-labels.yaml"))
+			Expect(cmd).To(RunSuccessfully())
+			// corresponds to the label name in the cluster config file
+			mng1 = "mng-1"
+		})
 
-	BeforeSuite(func() {
-		clusterName = params.NewClusterName("")
-		cmd := params.EksctlCreateCmd.
-			WithArgs(
-				"cluster",
-				"--config-file=-",
-				"--verbose=4",
-			).
-			WithoutArg("--region", params.Region).
-			WithStdin(clusterutils.ReaderFromFile(clusterName, params.Region, "testdata/managed-nodegroup-with-labels.yaml"))
-		Expect(cmd).To(RunSuccessfully())
-		// corresponds to the label name in the cluster config file
-		mng1 = "mng-1"
-	})
+		AfterSuite(func() {
+			params.DeleteClusters()
+		})
 
-	AfterSuite(func() {
-		params.DeleteClusters()
-	})
+		It("supports labels", func() {
+			By("getting existing labels")
+			cmd := params.EksctlGetCmd.
+				WithArgs(
+					"labels",
+					"--cluster", params.ClusterName,
+					"--nodegroup", mng1,
+					"--verbose", "2",
+				)
+			// It sometimes takes forever for the above set to take effect
+			Eventually(func() *gbytes.Buffer { return cmd.Run().Out }, time.Minute*4).Should(gbytes.Say("preset=value"))
 
-	It("supports labels", func() {
-		By("getting existing labels")
-		cmd := params.EksctlGetCmd.
-			WithArgs(
-				"labels",
-				"--cluster", params.ClusterName,
-				"--nodegroup", mng1,
-				"--verbose", "2",
-			)
-		// It sometimes takes forever for the above set to take effect
-		Eventually(func() *gbytes.Buffer { return cmd.Run().Out }, time.Minute*4).Should(gbytes.Say("preset=value"))
+			By("setting labels on a managed nodegroup")
+			cmd = params.EksctlSetLabelsCmd.
+				WithArgs(
+					"--cluster", params.ClusterName,
+					"--nodegroup", mng1,
+					"--labels", "fantastic=zombieman",
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfully())
 
-		By("setting labels on a managed nodegroup")
-		cmd = params.EksctlSetLabelsCmd.
-			WithArgs(
-				"--cluster", params.ClusterName,
-				"--nodegroup", mng1,
-				"--labels", "fantastic=zombieman",
-				"--verbose", "2",
-			)
-		Expect(cmd).To(RunSuccessfully())
+			By("getting the newly set labels for a managed nodegroup")
+			cmd = params.EksctlGetCmd.
+				WithArgs(
+					"labels",
+					"--cluster", params.ClusterName,
+					"--nodegroup", mng1,
+					"--verbose", "2",
+				)
+			// It sometimes takes forever for the above set to take effect
+			Eventually(func() *gbytes.Buffer { return cmd.Run().Out }, time.Minute*4).Should(gbytes.Say("fantastic=zombieman"))
 
-		By("getting the newly set labels for a managed nodegroup")
-		cmd = params.EksctlGetCmd.
-			WithArgs(
-				"labels",
-				"--cluster", params.ClusterName,
-				"--nodegroup", mng1,
-				"--verbose", "2",
-			)
-		// It sometimes takes forever for the above set to take effect
-		Eventually(func() *gbytes.Buffer { return cmd.Run().Out }, time.Minute*4).Should(gbytes.Say("fantastic=zombieman"))
-
-		By("unsetting labels on a managed nodegroup")
-		cmd = params.EksctlUnsetLabelsCmd.
-			WithArgs(
-				"--cluster", params.ClusterName,
-				"--nodegroup", mng1,
-				"--labels", "fantastic",
-				"--verbose", "2",
-			)
-		Expect(cmd).To(RunSuccessfully())
+			By("unsetting labels on a managed nodegroup")
+			cmd = params.EksctlUnsetLabelsCmd.
+				WithArgs(
+					"--cluster", params.ClusterName,
+					"--nodegroup", mng1,
+					"--labels", "fantastic",
+					"--verbose", "2",
+				)
+			Expect(cmd).To(RunSuccessfully())
+		})
 	})
 
 })

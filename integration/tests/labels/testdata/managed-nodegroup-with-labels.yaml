@@ -8,7 +8,7 @@ metadata:
 managedNodeGroups:
   - name: mng-1
     desiredCapacity: 1
-    maxSize: 1
-    minSize: 2
+    maxSize: 2
+    minSize: 1
     labels:
       preset: value
