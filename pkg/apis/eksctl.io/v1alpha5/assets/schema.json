@@ -176,15 +176,10 @@
           },
           "type": "array"
         },
-        "git": {
-          "$ref": "#/definitions/Git",
-          "description": "FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963 Git exposes configuration for Flux v1 and an earlier iteration of gitops",
-          "x-intellij-html-description": "FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963 Git exposes configuration for Flux v1 and an earlier iteration of gitops"
-        },
         "gitops": {
           "$ref": "#/definitions/GitOps",
-          "description": "exposes configuration for Flux v2 and will continue to be used in future gitops plans, replacing the Git configuration above",
-          "x-intellij-html-description": "exposes configuration for Flux v2 and will continue to be used in future gitops plans, replacing the Git configuration above"
+          "description": "future gitops plans, replacing the Git configuration above",
+          "x-intellij-html-description": "future gitops plans, replacing the Git configuration above"
         },
         "iam": {
           "$ref": "#/definitions/ClusterIAM"
@@ -251,7 +246,6 @@
         "availabilityZones",
         "cloudWatch",
         "secretsEncryption",
-        "git",
         "gitops"
       ],
       "additionalProperties": false,
@@ -738,33 +732,6 @@
       "description": "a map of string for passing arbitrary flags to Flux bootstrap",
       "x-intellij-html-description": "a map of string for passing arbitrary flags to Flux bootstrap",
       "default": "{}"
-    },
-    "Git": {
-      "properties": {
-        "bootstrapProfile": {
-          "$ref": "#/definitions/Profile",
-          "description": "holds options to install a BootstrapProfile on the cluster. DEPRECATED.",
-          "x-intellij-html-description": "holds options to install a BootstrapProfile on the cluster. DEPRECATED."
-        },
-        "operator": {
-          "$ref": "#/definitions/Operator",
-          "description": "holds options to configure the Helm Operator in conjunction with a Flux v1 installation. DEPRECATED.",
-          "x-intellij-html-description": "holds options to configure the Helm Operator in conjunction with a Flux v1 installation. DEPRECATED."
-        },
-        "repo": {
-          "$ref": "#/definitions/Repo",
-          "description": "holds options to enable Flux v1 on your cluster. DEPRECATED.",
-          "x-intellij-html-description": "holds options to enable Flux v1 on your cluster. DEPRECATED."
-        }
-      },
-      "preferredOrder": [
-        "repo",
-        "operator",
-        "bootstrapProfile"
-      ],
-      "additionalProperties": false,
-      "description": "groups all configuration options related to enabling GitOps on a cluster and linking it to a Git repository. [Gitops Guide](/gitops-quickstart/)",
-      "x-intellij-html-description": "groups all configuration options related to enabling GitOps on a cluster and linking it to a Git repository. <a href=\"/gitops-quickstart/\">Gitops Guide</a>"
     },
     "GitOps": {
       "properties": {
@@ -1863,64 +1830,6 @@
       "description": "holds the spec of an OIDC provider to use for EKS authzn",
       "x-intellij-html-description": "holds the spec of an OIDC provider to use for EKS authzn"
     },
-    "Operator": {
-      "properties": {
-        "additionalFluxArgs": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "description": "Additional command line arguments for the Flux daemon DEPRECATED",
-          "x-intellij-html-description": "Additional command line arguments for the Flux daemon DEPRECATED"
-        },
-        "additionalHelmOperatorArgs": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "description": "Additional command line arguments for the Helm Operator DEPRECATED",
-          "x-intellij-html-description": "Additional command line arguments for the Helm Operator DEPRECATED"
-        },
-        "commitOperatorManifests": {
-          "type": "boolean",
-          "description": "Commit and push Flux manifests to the Git Repo on install DEPRECATED",
-          "x-intellij-html-description": "Commit and push Flux manifests to the Git Repo on install DEPRECATED"
-        },
-        "label": {
-          "type": "string",
-          "description": "Git label to keep track of Flux's sync progress; this is equivalent to overriding --git-sync-tag and --git-notes-ref in Flux DEPRECATED",
-          "x-intellij-html-description": "Git label to keep track of Flux's sync progress; this is equivalent to overriding --git-sync-tag and --git-notes-ref in Flux DEPRECATED"
-        },
-        "namespace": {
-          "type": "string",
-          "description": "Cluster namespace where to install Flux and the Helm Operator e.g. flux DEPRECATED",
-          "x-intellij-html-description": "Cluster namespace where to install Flux and the Helm Operator e.g. flux DEPRECATED"
-        },
-        "readOnly": {
-          "type": "boolean",
-          "description": "Instruct Flux to read-only mode and create the deploy key as read-only DEPRECATED",
-          "x-intellij-html-description": "Instruct Flux to read-only mode and create the deploy key as read-only DEPRECATED",
-          "default": "false"
-        },
-        "withHelm": {
-          "type": "boolean",
-          "description": "Install the Helm Operator DEPRECATED",
-          "x-intellij-html-description": "Install the Helm Operator DEPRECATED"
-        }
-      },
-      "preferredOrder": [
-        "commitOperatorManifests",
-        "label",
-        "namespace",
-        "withHelm",
-        "readOnly",
-        "additionalFluxArgs",
-        "additionalHelmOperatorArgs"
-      ],
-      "additionalProperties": false,
-      "description": "groups all configuration options related to the operator used to keep the cluster and the Git repository in sync.",
-      "x-intellij-html-description": "groups all configuration options related to the operator used to keep the cluster and the Git repository in sync."
-    },
     "Placement": {
       "properties": {
         "groupName": {
@@ -1970,94 +1879,6 @@
       "additionalProperties": false,
       "description": "defines the configuration for a fully-private cluster",
       "x-intellij-html-description": "defines the configuration for a fully-private cluster"
-    },
-    "Profile": {
-      "properties": {
-        "outputPath": {
-          "type": "string",
-          "description": "Output directory for the processed profile templates (generate profile command)",
-          "x-intellij-html-description": "Output directory for the processed profile templates (generate profile command)",
-          "default": "./<quickstart-repo-name>"
-        },
-        "revision": {
-          "type": "string",
-          "description": "of the Quick Start profile. Can be a branch, tag or commit hash DEPRECATED.",
-          "x-intellij-html-description": "of the Quick Start profile. Can be a branch, tag or commit hash DEPRECATED."
-        },
-        "source": {
-          "type": "string",
-          "description": "Name or URL of the Quick Start profile",
-          "x-intellij-html-description": "Name or URL of the Quick Start profile",
-          "examples": [
-            "app-dev"
-          ]
-        }
-      },
-      "preferredOrder": [
-        "source",
-        "revision",
-        "outputPath"
-      ],
-      "additionalProperties": false,
-      "description": "groups all details on a quickstart profile to enable on the cluster and add to the Git repository.",
-      "x-intellij-html-description": "groups all details on a quickstart profile to enable on the cluster and add to the Git repository."
-    },
-    "Repo": {
-      "properties": {
-        "branch": {
-          "type": "string",
-          "description": "The git branch under which cluster configuration files will be committed & pushed, e.g. master DEPRECATED",
-          "x-intellij-html-description": "The git branch under which cluster configuration files will be committed &amp; pushed, e.g. master DEPRECATED"
-        },
-        "email": {
-          "type": "string",
-          "description": "Git email which will be used to commit changes DEPRECATED",
-          "x-intellij-html-description": "Git email which will be used to commit changes DEPRECATED"
-        },
-        "fluxPath": {
-          "type": "string",
-          "description": "The directory under which Flux configuration files will be written, e.g. flux/ DEPRECATED",
-          "x-intellij-html-description": "The directory under which Flux configuration files will be written, e.g. flux/ DEPRECATED"
-        },
-        "paths": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "description": "Relative paths within the Git repository which the GitOps operator will monitor to find Kubernetes manifests to apply, e.g. [\"kube-system\", \"base\"] DEPRECATED",
-          "x-intellij-html-description": "Relative paths within the Git repository which the GitOps operator will monitor to find Kubernetes manifests to apply, e.g. [&quot;kube-system&quot;, &quot;base&quot;] DEPRECATED"
-        },
-        "privateSSHKeyPath": {
-          "type": "string",
-          "description": "Path to the private SSH key to use to authenticate DEPRECATED",
-          "x-intellij-html-description": "Path to the private SSH key to use to authenticate DEPRECATED"
-        },
-        "url": {
-          "type": "string",
-          "description": "The Git SSH URL to the repository which will contain the cluster configuration",
-          "x-intellij-html-description": "The Git SSH URL to the repository which will contain the cluster configuration",
-          "examples": [
-            "git@github.com:org/repo"
-          ]
-        },
-        "user": {
-          "type": "string",
-          "description": "Git user which will be used to commit changes DEPRECATED",
-          "x-intellij-html-description": "Git user which will be used to commit changes DEPRECATED"
-        }
-      },
-      "preferredOrder": [
-        "url",
-        "branch",
-        "paths",
-        "fluxPath",
-        "user",
-        "email",
-        "privateSSHKeyPath"
-      ],
-      "additionalProperties": false,
-      "description": "groups all configuration options related to a Git repository used for GitOps.",
-      "x-intellij-html-description": "groups all configuration options related to a Git repository used for GitOps."
     },
     "SecretsEncryption": {
       "required": [

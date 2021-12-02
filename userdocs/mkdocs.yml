@@ -42,7 +42,6 @@ nav:
             - usage/windows-worker-nodes.md
         - GitOps:
             - usage/gitops-v2.md
-            - usage/gitops-v1.md
         - Security:
             - usage/security.md
             - usage/kms-encryption.md

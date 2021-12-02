@@ -675,12 +675,6 @@ type ClusterConfig struct {
 
 	Status *ClusterStatus `json:"-"`
 
-	// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
-	// Git exposes configuration for Flux v1 and an earlier iteration of gitops
-	// +optional
-	Git *Git `json:"git,omitempty"`
-
-	// GitOps exposes configuration for Flux v2 and will continue to be used in
 	// future gitops plans, replacing the Git configuration above
 	// +optional
 	GitOps *GitOps `json:"gitops,omitempty"`
@@ -940,34 +934,6 @@ type GitOps struct {
 	Flux *Flux `json:"flux,omitempty"`
 }
 
-// Git groups all configuration options related to enabling GitOps on a
-// cluster and linking it to a Git repository.
-// [Gitops Guide](/gitops-quickstart/)
-type Git struct {
-	// Repo holds options to enable Flux v1 on your cluster. DEPRECATED.
-	Repo *Repo `json:"repo,omitempty"`
-
-	// Operator holds options to configure the Helm Operator in conjunction with
-	// a Flux v1 installation. DEPRECATED.
-	// +optional
-	Operator Operator `json:"operator,omitempty"`
-
-	// BootstrapProfile holds options to install a BootstrapProfile on the cluster.
-	// DEPRECATED.
-	// +optional
-	BootstrapProfile *Profile `json:"bootstrapProfile,omitempty"` // one or many profiles to enable on this cluster once it is created
-}
-
-// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
-// NewGit returns a new empty Git configuration
-func NewGit() *Git {
-	return &Git{
-		Repo:             &Repo{},
-		Operator:         Operator{},
-		BootstrapProfile: &Profile{},
-	}
-}
-
 // Flux groups all configuration options related to a Git repository used for
 // GitOps Toolkit (Flux v2).
 type Flux struct {
@@ -982,116 +948,8 @@ type Flux struct {
 // FluxFlags is a map of string for passing arbitrary flags to Flux bootstrap
 type FluxFlags map[string]string
 
-// Repo groups all configuration options related to a Git repository used for
-// GitOps.
-type Repo struct {
-	// The Git SSH URL to the repository which will contain the cluster configuration
-	// For example: `git@github.com:org/repo`
-	// DEPRECATED
-	URL string `json:"url,omitempty"`
-
-	// The git branch under which cluster configuration files will be committed & pushed, e.g. master
-	// DEPRECATED
-	// +optional
-	Branch string `json:"branch,omitempty"`
-
-	// Relative paths within the Git repository which the GitOps operator will monitor to find Kubernetes manifests to apply, e.g. ["kube-system", "base"]
-	// DEPRECATED
-	//+optional
-	Paths []string `json:"paths,omitempty"`
-
-	// The directory under which Flux configuration files will be written, e.g. flux/
-	// DEPRECATED
-	// +optional
-	FluxPath string `json:"fluxPath,omitempty"`
-
-	// Git user which will be used to commit changes
-	// DEPRECATED
-	// +optional
-	User string `json:"user,omitempty"`
-
-	// Git email which will be used to commit changes
-	// DEPRECATED
-	Email string `json:"email,omitempty"`
-
-	// Path to the private SSH key to use to authenticate
-	// DEPRECATED
-	// +optional
-	PrivateSSHKeyPath string `json:"privateSSHKeyPath,omitempty"`
-}
-
 // Operator groups all configuration options related to the operator used to
 // keep the cluster and the Git repository in sync.
-type Operator struct {
-
-	// Commit and push Flux manifests to the Git Repo on install
-	// DEPRECATED
-	// +optional
-	CommitOperatorManifests *bool `json:"commitOperatorManifests,omitempty"`
-
-	// Git label to keep track of Flux's sync progress; this is equivalent to overriding --git-sync-tag and --git-notes-ref in Flux
-	// DEPRECATED
-	// +optional
-	Label string `json:"label,omitempty"`
-
-	// Cluster namespace where to install Flux and the Helm Operator e.g. flux
-	// DEPRECATED
-	// +optional
-	Namespace string `json:"namespace,omitempty"`
-
-	// Install the Helm Operator
-	// DEPRECATED
-	// +optional
-	WithHelm *bool `json:"withHelm,omitempty"`
-
-	// Instruct Flux to read-only mode and create the deploy key as read-only
-	// DEPRECATED
-	// +optional
-	ReadOnly bool `json:"readOnly,omitempty"`
-
-	// Additional command line arguments for the Flux daemon
-	// DEPRECATED
-	// +optional
-	AdditionalFluxArgs []string `json:"additionalFluxArgs,omitempty"`
-
-	// Additional command line arguments for the Helm Operator
-	// DEPRECATED
-	// +optional
-	AdditionalHelmOperatorArgs []string `json:"additionalHelmOperatorArgs,omitempty"`
-}
-
-// Profile groups all details on a quickstart profile to enable on the cluster
-// and add to the Git repository.
-type Profile struct {
-	// Name or URL of the Quick Start profile
-	// For example: `app-dev`
-	// DEPRECATED.
-	Source string `json:"source,omitempty"`
-
-	// Revision of the Quick Start profile. Can be a branch, tag or commit hash
-	// DEPRECATED.
-	// +optional
-	Revision string `json:"revision,omitempty"`
-
-	// Output directory for the processed profile templates (generate profile command)
-	// Defaults to `./<quickstart-repo-name>`
-	// DEPRECATED.
-	// +optional
-	OutputPath string `json:"outputPath,omitempty"`
-}
-
-// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
-// HasBootstrapProfile returns true if there is a profile with a source specified
-func (c *ClusterConfig) HasBootstrapProfile() bool {
-	return c.Git != nil && c.Git.BootstrapProfile != nil && c.Git.BootstrapProfile.Source != ""
-}
-
-// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
-// HasGitopsRepoConfigured returns true if git.repo and git.repo.url are not nil
-func (c *ClusterConfig) HasGitopsRepoConfigured() bool {
-	return c.Git != nil && c.Git.Repo != nil && c.Git.Repo.URL != ""
-}
-
 // HasGitOpsFluxConfigured returns true if gitops.flux configuration is not nil
 func (c *ClusterConfig) HasGitOpsFluxConfigured() bool {
 	return c.GitOps != nil && c.GitOps.Flux != nil
