@@ -867,6 +867,57 @@ func NewGetClusterLoader(cmd *Cmd) ClusterConfigLoader {
 	return l
 }
 
+// NewSetLabelLoader will load config or use flags for 'eksctl set labels'
+func NewSetLabelLoader(cmd *Cmd, nodeGroupName string, labels map[string]string) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+	l.validateWithoutConfigFile = func() error {
+		if len(labels) == 0 {
+			return ErrMustBeSet("--labels")
+		}
+		meta := cmd.ClusterConfig.Metadata
+
+		if meta.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+
+		if nodeGroupName == "" {
+			return ErrMustBeSet("--nodegroup")
+		}
+
+		if cmd.NameArg != "" {
+			return ErrUnsupportedNameArg()
+		}
+
+		return nil
+	}
+	// we use the config file to update the labels, thus providing is invalid
+	l.flagsIncompatibleWithConfigFile.Insert("labels")
+	l.validateWithConfigFile = func() error {
+		meta := cmd.ClusterConfig.Metadata
+
+		if meta.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+
+		// if nodegroup is not empty, load only the nodegroup which has been added
+		if nodeGroupName != "" {
+			var ng *api.ManagedNodeGroup
+			for _, mng := range cmd.ClusterConfig.ManagedNodeGroups {
+				if mng.Name == nodeGroupName {
+					ng = mng
+					break
+				}
+			}
+			if ng == nil {
+				return fmt.Errorf("nodegroup with name %s not found in the config file", nodeGroupName)
+			}
+			cmd.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{ng}
+		}
+		return nil
+	}
+	return l
+}
+
 // validateSupportedConfigFields parses a config file's fields, evaluates if non-empty fields are supported,
 // and returns an error if a field is not supported.
 func validateSupportedConfigFields(obj interface{}, supportedFields []string, unsupportedFields []string) ([]string, error) {
