@@ -52,7 +52,7 @@ var _ = Describe("Labels", func() {
 	})
 
 	AfterSuite(func() {
-		Expect(params.EksctlDeleteClusterCmd)
+		params.DeleteClusters()
 	})
 
 	It("supports labels", func() {
