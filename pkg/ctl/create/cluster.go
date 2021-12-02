@@ -391,11 +391,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 
 	logger.Success("%s is ready", meta.LogString())
 
-	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
-		return err
-	}
-
-	return nil
+	return printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg)
 }
 
 func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmdutils.CreateClusterCmdParams, ctl *eks.ClusterProvider) error {
@@ -414,10 +410,8 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 		if params.DryRun {
 			return nil
 		}
-		if err := vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones); err != nil {
-			return err
-		}
-		return nil
+
+		return vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones)
 	}
 
 	if params.KopsClusterNameForVPC != "" {

@@ -1,6 +1,7 @@
 //go:build integration
 // +build integration
 
+//revive:disable Not changing package name
 package backwards_compat
 
 import (

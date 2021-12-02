@@ -6,17 +6,14 @@ import (
 	"net"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-
-	"github.com/pkg/errors"
-	"k8s.io/apimachinery/pkg/util/sets"
-
-	"github.com/kris-nova/logger"
-
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -443,10 +440,7 @@ func ValidateExistingPublicSubnets(provider api.ClusterProvider, vpcID string, s
 	if err != nil {
 		return err
 	}
-	if err := validatePublicSubnet(subnets); err != nil {
-		return err
-	}
-	return nil
+	return validatePublicSubnet(subnets)
 }
 
 // EnsureMapPublicIPOnLaunchEnabled will enable MapPublicIpOnLaunch in EC2 for all given subnet IDs

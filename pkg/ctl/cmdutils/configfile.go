@@ -806,6 +806,67 @@ func NewUpdateNodegroupLoader(cmd *Cmd) ClusterConfigLoader {
 	return l
 }
 
+// NewGetNodegroupLoader loads config file and validates command for `eksctl get nodegroup`.
+func NewGetNodegroupLoader(cmd *Cmd, ng *api.NodeGroup) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithoutConfigFile = func() error {
+		meta := cmd.ClusterConfig.Metadata
+
+		if meta.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+
+		if ng.Name != "" && cmd.NameArg != "" {
+			return ErrFlagAndArg("--name", ng.Name, cmd.NameArg)
+		}
+
+		if cmd.NameArg != "" {
+			ng.Name = cmd.NameArg
+		}
+
+		// prevent creation of invalid config object with unnamed nodegroup
+		if ng.Name != "" {
+			cmd.ClusterConfig.NodeGroups = append(cmd.ClusterConfig.NodeGroups, ng)
+		}
+
+		return nil
+	}
+
+	return l
+}
+
+// NewGetLabelsLoader loads config file and validates command for `eksctl get labels`.
+func NewGetLabelsLoader(cmd *Cmd, ngName string) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+	l.validateWithoutConfigFile = func() error {
+		meta := cmd.ClusterConfig.Metadata
+
+		if meta.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+
+		if ngName == "" {
+			return ErrMustBeSet("--nodegroup")
+		}
+
+		if cmd.NameArg != "" {
+			return ErrUnsupportedNameArg()
+		}
+
+		return nil
+	}
+
+	return l
+}
+
+// NewGetClusterLoader will load config or use flags for 'eksctl get cluster(s)'
+func NewGetClusterLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	return l
+}
+
 // validateSupportedConfigFields parses a config file's fields, evaluates if non-empty fields are supported,
 // and returns an error if a field is not supported.
 func validateSupportedConfigFields(obj interface{}, supportedFields []string, unsupportedFields []string) ([]string, error) {

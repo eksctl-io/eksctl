@@ -1,6 +1,7 @@
 //go:build integration
 // +build integration
 
+//revive:disable Not changing package name
 package cloudwatch_logging
 
 import (
@@ -15,6 +16,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/testutils"
 
 	. "github.com/weaveworks/eksctl/integration/runner"

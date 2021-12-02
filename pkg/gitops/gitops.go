@@ -27,9 +27,5 @@ func Setup(kubeconfigPath string, k8sRestConfig *rest.Config, k8sClientSet kubec
 		return errors.Wrapf(err, "could not initialise Flux installer")
 	}
 
-	if err := installer.Run(); err != nil {
-		return err
-	}
-
-	return nil
+	return installer.Run()
 }
