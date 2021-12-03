@@ -13,7 +13,7 @@ import (
 	lol "github.com/kris-nova/lolgopher"
 )
 
-func initLogger(level int, colorValue string, logBuffer *bytes.Buffer) {
+func initLogger(level int, colorValue string, logBuffer *bytes.Buffer, dumpLogsValue bool) {
 	logger.Layout = "2006-01-02 15:04:05"
 
 	var bitwiseLevel int
@@ -33,13 +33,25 @@ func initLogger(level int, colorValue string, logBuffer *bytes.Buffer) {
 	}
 	logger.BitwiseLevel = bitwiseLevel
 
-	switch colorValue {
-	case "fabulous":
-		logger.Writer = io.MultiWriter(lol.NewLolWriter(), logBuffer)
-	case "true":
-		logger.Writer = io.MultiWriter(color.Output, logBuffer)
-	default:
-		logger.Writer = io.MultiWriter(os.Stdout, logBuffer)
+	if dumpLogsValue {
+		switch colorValue {
+		case "fabulous":
+			logger.Writer = io.MultiWriter(lol.NewLolWriter(), logBuffer)
+		case "true":
+			logger.Writer = io.MultiWriter(color.Output, logBuffer)
+		default:
+			logger.Writer = io.MultiWriter(os.Stdout, logBuffer)
+		}
+
+	} else {
+		switch colorValue {
+		case "fabulous":
+			logger.Writer = lol.NewLolWriter()
+		case "true":
+			logger.Writer = color.Output
+		default:
+			logger.Writer = os.Stdout
+		}
 	}
 
 	logger.Line = func(prefix, format string, a ...interface{}) string {

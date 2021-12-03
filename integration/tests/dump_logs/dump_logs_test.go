@@ -37,6 +37,7 @@ var _ = Describe("(Integration) Dump logs on failure", func() {
 
 	cmd := params.EksctlGetCmd.WithArgs(
 		"cluster",
+		"-d",
 		"--name",
 		"definitely_not_a_cluster",
 	)
@@ -56,5 +57,22 @@ var _ = Describe("(Integration) Dump logs on failure", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(len(d)).To(Equal(1))
 		os.RemoveAll("logs/")
+	})
+
+	// Re-run the command without the -d opt-in flag
+	cmd = params.EksctlGetCmd.WithArgs(
+		"cluster",
+		"--name",
+		"definitely_not_a_cluster",
+	)
+
+	session = cmd.Run()
+
+	It("exits with exit code 1", func() {
+		Expect(session.ExitCode()).To(Equal(1))
+	})
+
+	It("logs are not dumped", func() {
+		Expect("logs/").ShouldNot(BeADirectory())
 	})
 })
