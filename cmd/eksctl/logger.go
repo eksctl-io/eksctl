@@ -93,7 +93,8 @@ func dumpLogsToDisk(logBuffer *bytes.Buffer, errorString string) error {
 		}
 	}
 
-	logFile, err := os.Create(fmt.Sprintf("logs/eksctl-failure-%s.logs", time.Now().Local().Format("02 Jan 06 15:04:05 MST")))
+	todaysFileName := fmt.Sprintf("logs/eksctl-failure-%s.logs", time.Now().Local().Format("02-Jan-06"))
+	logFile, err := os.OpenFile(todaysFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	if err != nil {
 		return err
@@ -101,7 +102,10 @@ func dumpLogsToDisk(logBuffer *bytes.Buffer, errorString string) error {
 
 	defer logFile.Close()
 
-	_, err = logFile.WriteString("Logs: \n" + logBuffer.String() + "\n\n" + "Error: \n" + errorString + "\n")
+	timeString := time.Now().Local().Format("2006-01-02 15:04:05")
+	logString := fmt.Sprintf("Logs [%s]:\n%s \n\nError [%s]: \n%s \n---\n", timeString, logBuffer.String(), timeString, errorString)
+
+	_, err = logFile.WriteString(logString)
 
 	return err
 }
