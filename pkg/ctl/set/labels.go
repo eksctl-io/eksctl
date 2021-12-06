@@ -66,13 +66,13 @@ func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
 	manager := label.New(cfg.Metadata.Name, service, ctl.Provider.EKS())
 	// when there is no config file provided
 	if cmd.ClusterConfigFile == "" {
-		cfg.ManagedNodeGroups = append(cfg.ManagedNodeGroups, &api.ManagedNodeGroup{
-			NodeGroupBase: &api.NodeGroupBase{
-				Name:   options.nodeGroupName,
-				Labels: options.labels,
-			},
-		})
+		if err := manager.Set(options.nodeGroupName, options.labels); err != nil {
+			return err
+		}
+		logger.Info("done")
+		return nil
 	}
+	// when there is a config file, we call GetLabels first.
 	for _, mng := range cfg.ManagedNodeGroups {
 		existingLabels, err := service.GetLabels(mng.Name)
 		if err != nil {
