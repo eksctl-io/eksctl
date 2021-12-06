@@ -240,8 +240,11 @@ const (
 	// NodeGroupNameLabel defines the label of the nodegroup name
 	NodeGroupNameLabel = "alpha.eksctl.io/nodegroup-name"
 
-	// KarpenterNameTag defines the tag of the karpenter stack name
+	// KarpenterNameTag defines the tag of the Karpenter stack name
 	KarpenterNameTag = "alpha.eksctl.io/karpenter-name"
+
+	// KarpenterVersionTag defines the tag for Karpenter's version
+	KarpenterVersionTag = "alpha.eksctl.io/karpenter-version"
 
 	EKSNodeGroupNameLabel = "eks.amazonaws.com/nodegroup"
 

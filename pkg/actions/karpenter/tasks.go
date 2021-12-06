@@ -27,7 +27,7 @@ type karpenterTask struct {
 	stackManager       manager.StackManager
 	cfg                *api.ClusterConfig
 	ec2API             ec2iface.EC2API
-	karpenterInstaller karpenter.InstallKarpenter
+	karpenterInstaller karpenter.ChartInstaller
 }
 
 func (k *karpenterTask) Describe() string { return k.info }
@@ -36,7 +36,7 @@ func (k *karpenterTask) Do(errs chan error) error {
 }
 
 // NewTasksToInstallKarpenter defines tasks required to create Karpenter
-func NewTasksToInstallKarpenter(cfg *api.ClusterConfig, stackManager manager.StackManager, ec2API ec2iface.EC2API, karpenterInstaller karpenter.InstallKarpenter) *tasks.TaskTree {
+func NewTasksToInstallKarpenter(cfg *api.ClusterConfig, stackManager manager.StackManager, ec2API ec2iface.EC2API, karpenterInstaller karpenter.ChartInstaller) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}
 	taskTree.Append(&karpenterTask{
 		info:               fmt.Sprintf("create karpenter for stack %q", cfg.Metadata.Name),
@@ -58,13 +58,14 @@ func (k *karpenterTask) createKarpenterTask(errs chan error) error {
 		return err
 	}
 	tags := map[string]string{
-		api.KarpenterNameTag: name,
+		api.KarpenterNameTag:    name,
+		api.KarpenterVersionTag: k.cfg.Karpenter.Version,
 	}
 	if err := k.stackManager.CreateStack(name, stack, tags, nil, errs); err != nil {
 		return fmt.Errorf("failed to create stack: %w", err)
 	}
 
-	if err := k.maybeUpdateSubnetTags(); err != nil {
+	if err := k.ensureSubnetsHaveTags(); err != nil {
 		return err
 	}
 	return k.karpenterInstaller.Install(context.Background())
@@ -75,9 +76,9 @@ func (k *karpenterTask) makeKarpenterStackName() string {
 	return fmt.Sprintf("eksctl-%s-karpenter", k.cfg.Metadata.Name)
 }
 
-// maybeUpdateSubnetTags will check if the kubernetes.io/cluster tag is present on the subnets.
+// ensureSubnetsHaveTags will check if the kubernetes.io/cluster tag is present on the subnets.
 // if not, it will create them.
-func (k *karpenterTask) maybeUpdateSubnetTags() error {
+func (k *karpenterTask) ensureSubnetsHaveTags() error {
 	var ids []string
 	for _, subnet := range k.cfg.VPC.Subnets.Private {
 		ids = append(ids, subnet.ID)
@@ -111,7 +112,7 @@ func (k *karpenterTask) maybeUpdateSubnetTags() error {
 	}
 
 	if len(updateSubnets) > 0 {
-		if _, err := k.ec2API.CreateTags(&ec2.CreateTagsInput{
+		creatTagsInput := &ec2.CreateTagsInput{
 			Resources: aws.StringSlice(updateSubnets),
 			Tags: []*ec2.Tag{
 				{
@@ -119,7 +120,8 @@ func (k *karpenterTask) maybeUpdateSubnetTags() error {
 					Value: aws.String(""),
 				},
 			},
-		}); err != nil {
+		}
+		if _, err := k.ec2API.CreateTags(creatTagsInput); err != nil {
 			return fmt.Errorf("failed to add tags for subnets: %w", err)
 		}
 	}

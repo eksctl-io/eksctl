@@ -6,12 +6,14 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/kris-nova/logger"
+	kubeclient "k8s.io/client-go/kubernetes"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/karpenter"
 	"github.com/weaveworks/eksctl/pkg/karpenter/providers/helm"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
@@ -22,13 +24,14 @@ type Installer struct {
 	CTL                *eks.ClusterProvider
 	Config             *api.ClusterConfig
 	Wait               WaitFunc
-	KarpenterInstaller karpenter.InstallKarpenter
+	KarpenterInstaller karpenter.ChartInstaller
+	ClientSet          kubernetes.Interface
 }
 
 type WaitFunc func(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error
 
 // NewInstaller creates a new Karpenter installer.
-func NewInstaller(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) (*Installer, error) {
+func NewInstaller(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubeclient.Interface) (*Installer, error) {
 	helmInstaller, err := helm.NewInstaller(helm.Options{
 		Namespace: karpenter.DefaultNamespace,
 	})
@@ -49,6 +52,7 @@ func NewInstaller(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager
 		Config:             cfg,
 		Wait:               waiters.Wait,
 		KarpenterInstaller: karpenterInstaller,
+		ClientSet:          clientSet,
 	}, nil
 }
 

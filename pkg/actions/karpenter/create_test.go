@@ -7,10 +7,14 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/fake"
+	core "k8s.io/client-go/testing"
 
 	karpenteractions "github.com/weaveworks/eksctl/pkg/actions/karpenter"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -22,7 +26,18 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
+
+type fakeTask struct {
+	err error
+}
+
+func (f *fakeTask) Do(errs chan error) error {
+	close(errs)
+	return f.err
+}
+func (f *fakeTask) Describe() string { return "I'm a fake task" }
 
 var _ = Describe("Create", func() {
 	Context("Create Karpenter Installation", func() {
@@ -32,7 +47,8 @@ var _ = Describe("Create", func() {
 			cfg                    *api.ClusterConfig
 			fakeStackManager       *managerfakes.FakeStackManager
 			ctl                    *eks.ClusterProvider
-			fakeKarpenterInstaller *karpenterfakes.FakeInstallKarpenter
+			fakeKarpenterInstaller *karpenterfakes.FakeChartInstaller
+			fakeClientSet          *fake.Clientset
 		)
 
 		BeforeEach(func() {
@@ -42,13 +58,19 @@ var _ = Describe("Create", func() {
 			cfg.Metadata.Name = clusterName
 			cfg.VPC = vpcConfig()
 			cfg.AvailabilityZones = []string{"us-west-2a", "us-west-2b"}
+			cfg.Status = &api.ClusterStatus{
+				ARN: "arn:aws:iam::123456789012:user/test",
+			}
+			cfg.Karpenter = &api.Karpenter{
+				Version: "0.4.3",
+			}
 			fakeStackManager = &fakes.FakeStackManager{}
-			fakeKarpenterInstaller = &karpenterfakes.FakeInstallKarpenter{}
+			fakeKarpenterInstaller = &karpenterfakes.FakeChartInstaller{}
 			ctl = &eks.ClusterProvider{
 				Provider: p,
 				Status: &eks.ProviderStatus{
 					ClusterInfo: &eks.ClusterInfo{
-						Cluster: testutils.NewFakeCluster(clusterName, ""),
+						Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive),
 					},
 				},
 			}
@@ -105,6 +127,7 @@ var _ = Describe("Create", func() {
 					},
 				},
 			}).Return(&ec2.CreateTagsOutput{}, nil)
+			fakeClientSet = fake.NewSimpleClientset()
 		})
 		It("can install Karpenter on an existing cluster", func() {
 			fakeKarpenterInstaller.InstallReturns(nil)
@@ -113,6 +136,7 @@ var _ = Describe("Create", func() {
 				CTL:                ctl,
 				Config:             cfg,
 				KarpenterInstaller: fakeKarpenterInstaller,
+				ClientSet:          fakeClientSet,
 			}
 			Expect(install.Create()).To(Succeed())
 			Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))
@@ -141,6 +165,7 @@ var _ = Describe("Create", func() {
 					CTL:                ctl,
 					Config:             cfg,
 					KarpenterInstaller: fakeKarpenterInstaller,
+					ClientSet:          fakeClientSet,
 				}
 				err := install.Create()
 				Expect(err).To(MatchError(ContainSubstring("failed to install Karpenter on cluster")))
@@ -179,6 +204,7 @@ var _ = Describe("Create", func() {
 					CTL:                ctl,
 					Config:             cfg,
 					KarpenterInstaller: fakeKarpenterInstaller,
+					ClientSet:          fakeClientSet,
 				}
 				err := install.Create()
 				Expect(err).To(MatchError(ContainSubstring("failed to install Karpenter on cluster")))
@@ -193,6 +219,7 @@ var _ = Describe("Create", func() {
 					CTL:                ctl,
 					Config:             cfg,
 					KarpenterInstaller: fakeKarpenterInstaller,
+					ClientSet:          fakeClientSet,
 				}
 				err := install.Create()
 				Expect(err).To(MatchError(ContainSubstring("failed to install Karpenter on cluster")))
@@ -218,10 +245,67 @@ var _ = Describe("Create", func() {
 					CTL:                ctl,
 					Config:             cfg,
 					KarpenterInstaller: fakeKarpenterInstaller,
+					ClientSet:          fakeClientSet,
 				}
 				err := install.Create()
 				Expect(err).To(MatchError(ContainSubstring("failed to install Karpenter on cluster")))
 				Expect(output.String()).To(ContainSubstring("failed to create stack: nope"))
+			})
+		})
+		When("arn is invalid in the status", func() {
+			BeforeEach(func() {
+				cfg.Status.ARN = ""
+			})
+			It("errors", func() {
+				install := &karpenteractions.Installer{
+					StackManager:       fakeStackManager,
+					CTL:                ctl,
+					Config:             cfg,
+					KarpenterInstaller: fakeKarpenterInstaller,
+					ClientSet:          fakeClientSet,
+				}
+				err := install.Create()
+				Expect(err).To(MatchError(ContainSubstring("unexpected or invalid ARN")))
+			})
+		})
+		When("create service account fails", func() {
+			BeforeEach(func() {
+				ft := &fakeTask{
+					err: errors.New("nope"),
+				}
+				fakeStackManager.NewTasksToCreateIAMServiceAccountsReturns(&tasks.TaskTree{
+					Tasks: []tasks.Task{ft},
+				})
+			})
+			It("errors", func() {
+				install := &karpenteractions.Installer{
+					StackManager:       fakeStackManager,
+					CTL:                ctl,
+					Config:             cfg,
+					KarpenterInstaller: fakeKarpenterInstaller,
+					ClientSet:          fakeClientSet,
+				}
+				err := install.Create()
+				Expect(err).To(MatchError(ContainSubstring("failed to create service account: failed to install Karpenter on cluster")))
+			})
+		})
+		When("fails to fetch the identity mapping config map", func() {
+			BeforeEach(func() {
+				fakeClientSet = fake.NewSimpleClientset()
+				fakeClientSet.PrependReactor("get", "configmaps", func(action core.Action) (bool, runtime.Object, error) {
+					return true, nil, errors.New("nope")
+				})
+			})
+			It("errors", func() {
+				install := &karpenteractions.Installer{
+					StackManager:       fakeStackManager,
+					CTL:                ctl,
+					Config:             cfg,
+					KarpenterInstaller: fakeKarpenterInstaller,
+					ClientSet:          fakeClientSet,
+				}
+				err := install.Create()
+				Expect(err).To(MatchError(ContainSubstring("failed to create client for auth config: getting auth ConfigMap: nope")))
 			})
 		})
 	})

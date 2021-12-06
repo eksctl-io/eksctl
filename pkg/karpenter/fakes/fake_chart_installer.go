@@ -8,7 +8,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/karpenter"
 )
 
-type FakeInstallKarpenter struct {
+type FakeChartInstaller struct {
 	InstallStub        func(context.Context) error
 	installMutex       sync.RWMutex
 	installArgsForCall []struct {
@@ -24,7 +24,7 @@ type FakeInstallKarpenter struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeInstallKarpenter) Install(arg1 context.Context) error {
+func (fake *FakeChartInstaller) Install(arg1 context.Context) error {
 	fake.installMutex.Lock()
 	ret, specificReturn := fake.installReturnsOnCall[len(fake.installArgsForCall)]
 	fake.installArgsForCall = append(fake.installArgsForCall, struct {
@@ -43,26 +43,26 @@ func (fake *FakeInstallKarpenter) Install(arg1 context.Context) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeInstallKarpenter) InstallCallCount() int {
+func (fake *FakeChartInstaller) InstallCallCount() int {
 	fake.installMutex.RLock()
 	defer fake.installMutex.RUnlock()
 	return len(fake.installArgsForCall)
 }
 
-func (fake *FakeInstallKarpenter) InstallCalls(stub func(context.Context) error) {
+func (fake *FakeChartInstaller) InstallCalls(stub func(context.Context) error) {
 	fake.installMutex.Lock()
 	defer fake.installMutex.Unlock()
 	fake.InstallStub = stub
 }
 
-func (fake *FakeInstallKarpenter) InstallArgsForCall(i int) context.Context {
+func (fake *FakeChartInstaller) InstallArgsForCall(i int) context.Context {
 	fake.installMutex.RLock()
 	defer fake.installMutex.RUnlock()
 	argsForCall := fake.installArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeInstallKarpenter) InstallReturns(result1 error) {
+func (fake *FakeChartInstaller) InstallReturns(result1 error) {
 	fake.installMutex.Lock()
 	defer fake.installMutex.Unlock()
 	fake.InstallStub = nil
@@ -71,7 +71,7 @@ func (fake *FakeInstallKarpenter) InstallReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeInstallKarpenter) InstallReturnsOnCall(i int, result1 error) {
+func (fake *FakeChartInstaller) InstallReturnsOnCall(i int, result1 error) {
 	fake.installMutex.Lock()
 	defer fake.installMutex.Unlock()
 	fake.InstallStub = nil
@@ -85,7 +85,7 @@ func (fake *FakeInstallKarpenter) InstallReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeInstallKarpenter) Invocations() map[string][][]interface{} {
+func (fake *FakeChartInstaller) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.installMutex.RLock()
@@ -97,7 +97,7 @@ func (fake *FakeInstallKarpenter) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeInstallKarpenter) recordInvocation(key string, args []interface{}) {
+func (fake *FakeChartInstaller) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -109,4 +109,4 @@ func (fake *FakeInstallKarpenter) recordInvocation(key string, args []interface{
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ karpenter.InstallKarpenter = new(FakeInstallKarpenter)
+var _ karpenter.ChartInstaller = new(FakeChartInstaller)

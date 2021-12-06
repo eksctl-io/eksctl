@@ -40,10 +40,10 @@ type Options struct {
 	Version              string
 }
 
-// InstallKarpenter defines a functionality to install Karpenter.
+// ChartInstaller defines a functionality to install Karpenter.
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
-//counterfeiter:generate -o fakes/fake_karpenter_installer.go . InstallKarpenter
-type InstallKarpenter interface {
+//counterfeiter:generate -o fakes/fake_chart_installer.go . ChartInstaller
+type ChartInstaller interface {
 	Install(ctx context.Context) error
 }
 

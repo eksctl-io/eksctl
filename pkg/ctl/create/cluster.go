@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
-	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -19,16 +18,12 @@ import (
 	karpenteractions "github.com/weaveworks/eksctl/pkg/actions/karpenter"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/gitops"
-	"github.com/weaveworks/eksctl/pkg/iam"
-	"github.com/weaveworks/eksctl/pkg/karpenter"
 	"github.com/weaveworks/eksctl/pkg/kops"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -361,7 +356,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			}
 		}
 		// After we have the cluster config and all the nodes are done, we install Karpenter if necessary.
-		if err := installKarpenter(ctl, cfg, stackManager, meta, clientSet); err != nil {
+		if err := installKarpenter(ctl, cfg, stackManager, clientSet); err != nil {
 			return err
 		}
 
@@ -422,60 +417,12 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 // - service account
 // - identity mapping
 // then proceeds with installing Karpenter using Helm.
-func installKarpenter(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, stackManager manager.StackManager, meta *api.ClusterMeta, clientSet *kubeclient.Clientset) error {
+func installKarpenter(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, stackManager manager.StackManager, clientSet *kubeclient.Clientset) error {
 	if cfg.Karpenter == nil {
 		return nil
 	}
-	clientSetGetter := &kubernetes.CallbackClientSet{
-		Callback: func() (kubernetes.Interface, error) {
-			return ctl.NewStdClientSet(cfg)
-		},
-	}
-
-	// create the needed service account before Karpenter, otherwise, Karpenter will fail to be created.
-	parsedARN, err := arn.Parse(cfg.Status.ARN)
-	if err != nil {
-		return fmt.Errorf("unexpected invalid ARN: %q, %w", cfg.Status.ARN, err)
-	}
-	roleArn := fmt.Sprintf("arn:aws:iam::%s:policy/%s-%s", parsedARN.AccountID, builder.KarpenterManagedPolicy, cfg.Metadata.Name)
-	karpenterServiceAccountTaskTree := stackManager.NewTasksToCreateIAMServiceAccounts([]*api.ClusterIAMServiceAccount{
-		{
-			ClusterIAMMeta: api.ClusterIAMMeta{
-				Name:      karpenter.DefaultServiceAccountName,
-				Namespace: karpenter.DefaultNamespace,
-			},
-			AttachRoleARN: roleArn,
-		},
-	}, nil, clientSetGetter)
-	logger.Info(karpenterServiceAccountTaskTree.Describe())
-	if errs := karpenterServiceAccountTaskTree.DoAllSync(); len(errs) > 0 {
-		logger.Warning("%d error(s) occurred while creating service account for Karpenter, you may wish to check your Cluster for further information", len(errs))
-		for _, err := range errs {
-			ufe := &api.UnsupportedFeatureError{}
-			if errors.As(err, &ufe) {
-				logger.Critical(ufe.Message)
-			}
-			logger.Critical("%s\n", err.Error())
-		}
-		return fmt.Errorf("failed to create Karpenter service account %q", meta.Name)
-	}
-
-	// create identity mapping for EC2 nodes to be able to join the cluster.
-	acm, err := authconfigmap.NewFromClientSet(clientSet)
-	if err != nil {
-		return fmt.Errorf("failed to create client for auth config: %w", err)
-	}
-	identityArn := fmt.Sprintf("arn:aws:iam::%s:role/%s-%s", parsedARN.AccountID, builder.KarpenterNodeRoleName, cfg.Metadata.Name)
-	id, err := iam.NewIdentity(identityArn, authconfigmap.RoleNodeGroupUsername, authconfigmap.RoleNodeGroupGroups)
-	if err != nil {
-		return fmt.Errorf("failed to create new identity: %w", err)
-	}
-	if err := acm.AddIdentity(id); err != nil {
-		return fmt.Errorf("failed to add new identity: %w", err)
-	}
-
 	// install karpenter onto the cluster.
-	installer, err := karpenteractions.NewInstaller(cfg, ctl, stackManager)
+	installer, err := karpenteractions.NewInstaller(cfg, ctl, stackManager, clientSet)
 	if err != nil {
 		return fmt.Errorf("failed to create installer: %w", err)
 	}
