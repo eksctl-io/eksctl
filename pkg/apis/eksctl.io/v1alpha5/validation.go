@@ -327,13 +327,16 @@ func (c *ClusterConfig) ValidatePrivateCluster() error {
 		if c.VPC != nil && c.VPC.ID != "" && len(c.VPC.Subnets.Private) == 0 {
 			return errors.New("vpc.subnets.private must be specified in a fully-private cluster when a pre-existing VPC is supplied")
 		}
-		if additionalEndpoints := c.PrivateCluster.AdditionalEndpointServices; len(additionalEndpoints) > 0 && c.PrivateCluster.SkipEndpointCreation {
-			return fmt.Errorf("additionalEndpoints cannot be defined together with skipEndpointCreation set to true")
-		} else if len(additionalEndpoints) > 0 {
+
+		if additionalEndpoints := c.PrivateCluster.AdditionalEndpointServices; len(additionalEndpoints) > 0 {
+			if c.PrivateCluster.SkipEndpointCreation {
+				return errors.New("privateCluster.additionalEndpointServices cannot be set when privateCluster.skipEndpointCreation is true")
+			}
 			if err := ValidateAdditionalEndpointServices(additionalEndpoints); err != nil {
 				return errors.Wrap(err, "invalid value in privateCluster.additionalEndpointServices")
 			}
 		}
+
 		if c.VPC != nil && c.VPC.ClusterEndpoints == nil {
 			c.VPC.ClusterEndpoints = &ClusterEndpoints{}
 		}

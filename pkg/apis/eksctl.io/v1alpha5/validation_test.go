@@ -623,7 +623,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
 				cfg.PrivateCluster.SkipEndpointCreation = true
 				err := cfg.ValidatePrivateCluster()
-				Expect(err).To(MatchError(ContainSubstring("additionalEndpoints cannot be defined together with skipEndpointCreation set to true")))
+				Expect(err).To(MatchError(ContainSubstring("privateCluster.additionalEndpointServices cannot be set when privateCluster.skipEndpointCreation is true")))
 			})
 		})
 		When("additional endpoints are defined", func() {
@@ -1071,7 +1071,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
 				cfg.PrivateCluster.SkipEndpointCreation = true
 				err := cfg.ValidatePrivateCluster()
-				Expect(err).To(MatchError(ContainSubstring("additionalEndpoints cannot be defined together with skipEndpointCreation set to true")))
+				Expect(err).To(MatchError(ContainSubstring("privateCluster.additionalEndpointServices cannot be set when privateCluster.skipEndpointCreation is true")))
 			})
 		})
 		When("additional endpoints are defined", func() {
