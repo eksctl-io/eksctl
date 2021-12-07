@@ -25,6 +25,9 @@ func NewServiceAccount(meta metav1.ObjectMeta) *corev1.ServiceAccount {
 // returns boolean or an error
 func CheckServiceAccountExists(clientSet Interface, meta metav1.ObjectMeta) (bool, error) {
 	name := meta.Namespace + "/" + meta.Name
+	if meta.Name == "default" {
+		return true, nil
+	}
 	_, err := clientSet.CoreV1().ServiceAccounts(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
 	if err == nil {
 		return true, nil
