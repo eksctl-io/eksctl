@@ -160,8 +160,8 @@ func (v *IPv6VPCResourceSet) addIpv6CidrBlock() {
 	if v.clusterConfig.VPC.IPv6Cidr != "" {
 		v.rs.newResource(IPv6CIDRBlockKey, &gfnec2.VPCCidrBlock{
 			AmazonProvidedIpv6CidrBlock: gfnt.False(),
-			Ipv6CidrBlock:               v.clusterConfig.VPC.IPv6Cidr,
-			Ipv6Pool:                    v.clusterConfig.VPC.IPv6Pool,
+			Ipv6CidrBlock:               gfnt.NewString(v.clusterConfig.VPC.IPv6Cidr),
+			Ipv6Pool:                    gfnt.NewString(v.clusterConfig.VPC.IPv6Pool),
 			VpcId:                       gfnt.MakeRef(VPCResourceKey),
 		})
 		return
