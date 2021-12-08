@@ -9,7 +9,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/gitops"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/vpc"
@@ -155,5 +154,5 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force bool) error {
 
 	logger.Success("all cluster resources were deleted")
 
-	return gitops.DeleteKey(c.cfg)
+	return nil
 }
