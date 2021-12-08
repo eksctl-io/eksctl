@@ -454,6 +454,96 @@ var _ = Describe("Cluster Template Builder", func() {
 			})
 		})
 
+		Context("when default config is used", func() {
+			It("should not enable non-default features", func() {
+				cluster := clusterTemplate.Resources["ControlPlane"].Properties
+				By("ensuring logging is not enabled")
+				Expect(cluster.Logging.ClusterLogging.EnabledTypes).To(BeEmpty())
+
+				vpcResources := cluster.ResourcesVpcConfig
+				By("ensuring public access is enabled but private access is not")
+				Expect(vpcResources.EndpointPublicAccess).To(BeTrue())
+				Expect(vpcResources.EndpointPrivateAccess).To(BeFalse())
+
+				By("ensuring publicAccessCIDRs is not enabled")
+				Expect(vpcResources.PublicAccessCidrs).To(BeEmpty())
+			})
+		})
+
+		Context("clusterEndpoints.privateAccess is enabled", func() {
+			BeforeEach(func() {
+				cfg.VPC.ClusterEndpoints.PrivateAccess = api.Enabled()
+				cfg.VPC.ClusterEndpoints.PublicAccess = api.Disabled()
+			})
+			It("should enable privateAccess in the stack", func() {
+				vpcResources := clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig
+				Expect(vpcResources.EndpointPrivateAccess).To(BeTrue())
+				Expect(vpcResources.EndpointPublicAccess).To(BeFalse())
+			})
+		})
+
+		Context("vpc.publicAccessCIDRs is set", func() {
+			BeforeEach(func() {
+				cfg.VPC.PublicAccessCIDRs = []string{"17.0.0.0/8", "73.0.0.0/8"}
+			})
+			It("should set the supplied CIDRs in the stack", func() {
+				vpcResources := clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig
+				Expect(vpcResources.PublicAccessCidrs).To(Equal([]string{"17.0.0.0/8", "73.0.0.0/8"}))
+			})
+		})
+
+		Context("cluster tags are set", func() {
+			BeforeEach(func() {
+				cfg.Metadata.Tags = map[string]string{
+					"type": "production",
+					"key":  "value",
+				}
+			})
+			It("should set tags in the stack", func() {
+				Expect(clusterTemplate.Resources["ControlPlane"].Properties.Tags).To(ConsistOf([]fakes.Tag{
+					{
+						Key:   "type",
+						Value: "production",
+					},
+					{
+						Key:   "key",
+						Value: "value",
+					},
+					{
+						Key: "Name",
+						Value: map[string]interface{}{
+							"Fn::Sub": "${AWS::StackName}/ControlPlane",
+						},
+					},
+				}))
+			})
+		})
+
+		Context("cluster logging is enabled", func() {
+			BeforeEach(func() {
+				cfg.CloudWatch.ClusterLogging = &api.ClusterCloudWatchLogging{
+					EnableTypes: []string{"api", "audit", "scheduler", "controllerManager"},
+				}
+			})
+
+			It("should have logging enabled in the stack", func() {
+				Expect(clusterTemplate.Resources["ControlPlane"].Properties.Logging.ClusterLogging.EnabledTypes).To(Equal([]fakes.ClusterLoggingType{
+					{
+						Type: "api",
+					},
+					{
+						Type: "audit",
+					},
+					{
+						Type: "scheduler",
+					},
+					{
+						Type: "controllerManager",
+					},
+				}))
+			})
+		})
+
 		Context("when adding vpc endpoint resources fails", func() {
 			BeforeEach(func() {
 				cfg.PrivateCluster = &api.PrivateCluster{Enabled: true}

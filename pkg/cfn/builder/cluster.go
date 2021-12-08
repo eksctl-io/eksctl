@@ -242,10 +242,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		EndpointPublicAccess:  gfnt.NewBoolean(*c.spec.VPC.ClusterEndpoints.PublicAccess),
 		EndpointPrivateAccess: gfnt.NewBoolean(*c.spec.VPC.ClusterEndpoints.PrivateAccess),
 		SecurityGroupIds:      gfnt.NewSlice(c.securityGroups...),
-	}
-
-	if cidrs := c.spec.VPC.PublicAccessCIDRs; len(cidrs) > 0 {
-		clusterVPC.PublicAccessCidrs = gfnt.NewStringSlice(cidrs...)
+		PublicAccessCidrs:     gfnt.NewStringSlice(c.spec.VPC.PublicAccessCIDRs...),
 	}
 
 	clusterVPC.SubnetIds = gfnt.NewSlice(append(subnetDetails.PublicSubnetRefs(), subnetDetails.PrivateSubnetRefs()...)...)
