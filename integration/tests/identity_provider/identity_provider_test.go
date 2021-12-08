@@ -14,13 +14,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
+	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider/cognitoidentityprovideriface"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"github.com/pkg/errors"
 
 	// Register the OIDC provider
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
@@ -184,12 +183,12 @@ func createOIDCClientset(eksAPI eksiface.EKSAPI, o *OIDCConfig, clusterName stri
 		Name: aws.String(clusterName),
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "describing cluster")
+		return nil, fmt.Errorf("describing cluster: %w", err)
 	}
 
 	certData, err := base64.StdEncoding.DecodeString(*cluster.Cluster.CertificateAuthority.Data)
 	if err != nil {
-		return nil, errors.Wrap(err, "unexpected error decoding certificate authority data")
+		return nil, fmt.Errorf("unexpected error decoding certificate authority data: %w", err)
 	}
 
 	config := clientcmdapi.Config{
@@ -223,15 +222,58 @@ func createOIDCClientset(eksAPI eksiface.EKSAPI, o *OIDCConfig, clusterName stri
 
 	clientConfig, err := clientcmd.NewDefaultClientConfig(config, &clientcmd.ConfigOverrides{}).ClientConfig()
 	if err != nil {
-		return nil, errors.Wrap(err, "creating default client config")
+		return nil, fmt.Errorf("creating default client config: %w", err)
 	}
 
 	return kubernetes.NewForConfig(clientConfig)
 }
 
+type userPoolClient struct {
+	userPoolID *string
+	clientID   *string
+}
+
 func setupCognitoProvider(clusterName, region string) (*OIDCConfig, error) {
 	c := cognitoidentityprovider.New(NewSession(region))
 
+	userPoolClient, err := createCognitoUserPoolClient(c, clusterName)
+	if err != nil {
+		return nil, err
+	}
+
+	userPass, err := password.Generate(10, 2, 3, false, false)
+	if err != nil {
+		return nil, fmt.Errorf("generating password: %w", err)
+	}
+
+	clientUsername := aws.String(fmt.Sprintf("%s@weave.works", clusterName))
+	if err := createCognitoUserGroup(c, userPoolClient.userPoolID, clientUsername, userPass); err != nil {
+		return nil, err
+	}
+
+	auth, err := c.AdminInitiateAuth(&cognitoidentityprovider.AdminInitiateAuthInput{
+		AuthFlow: aws.String(cognitoidentityprovider.AuthFlowTypeAdminUserPasswordAuth),
+		AuthParameters: map[string]*string{
+			"USERNAME": clientUsername,
+			"PASSWORD": aws.String(userPass),
+		},
+		ClientId:   userPoolClient.clientID,
+		UserPoolId: userPoolClient.userPoolID,
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("initiating auth: %w", err)
+	}
+
+	return &OIDCConfig{
+		clientID:     *userPoolClient.clientID,
+		idToken:      *auth.AuthenticationResult.IdToken,
+		refreshToken: *auth.AuthenticationResult.RefreshToken,
+		idpIssuerURL: fmt.Sprintf("https://cognito-idp.%s.amazonaws.com/%s", region, *userPoolClient.userPoolID),
+	}, nil
+}
+
+func createCognitoUserPoolClient(c cognitoidentityprovideriface.CognitoIdentityProviderAPI, clusterName string) (*userPoolClient, error) {
 	pool, err := c.CreateUserPool(&cognitoidentityprovider.CreateUserPoolInput{
 		Policies: &cognitoidentityprovider.UserPoolPolicyType{
 			PasswordPolicy: &cognitoidentityprovider.PasswordPolicyType{
@@ -247,7 +289,7 @@ func setupCognitoProvider(clusterName, region string) (*OIDCConfig, error) {
 	})
 
 	if err != nil {
-		return nil, errors.Wrap(err, "creating user pool")
+		return nil, fmt.Errorf("creating user pool: %w", err)
 	}
 
 	cleanupCognitoResources = func() error {
@@ -282,37 +324,33 @@ func setupCognitoProvider(clusterName, region string) (*OIDCConfig, error) {
 	})
 
 	if err != nil {
-		return nil, errors.Wrap(err, "creating user pool client")
+		return nil, fmt.Errorf("creating user pool client: %w", err)
 	}
+	return &userPoolClient{
+		userPoolID: pool.UserPool.Id,
+		clientID:   client.UserPoolClient.ClientId,
+	}, nil
+}
 
-	var (
-		userPoolID     = pool.UserPool.Id
-		clientUsername = aws.String(fmt.Sprintf("%s@weave.works", clusterName))
-	)
-
-	_, err = c.AdminCreateUser(&cognitoidentityprovider.AdminCreateUserInput{
+func createCognitoUserGroup(c cognitoidentityprovideriface.CognitoIdentityProviderAPI, userPoolID, clientUsername *string, userPass string) error {
+	_, err := c.AdminCreateUser(&cognitoidentityprovider.AdminCreateUserInput{
 		UserPoolId: userPoolID,
 		Username:   clientUsername,
 	})
 
 	if err != nil {
-		return nil, errors.Wrap(err, "creating user")
-	}
-
-	pass, err := password.Generate(10, 2, 3, false, false)
-	if err != nil {
-		return nil, errors.Wrap(err, "generating password")
+		return fmt.Errorf("creating user: %w", err)
 	}
 
 	_, err = c.AdminSetUserPassword(&cognitoidentityprovider.AdminSetUserPasswordInput{
 		UserPoolId: userPoolID,
 		Username:   clientUsername,
-		Password:   aws.String(pass),
+		Password:   aws.String(userPass),
 		Permanent:  aws.Bool(true),
 	})
 
 	if err != nil {
-		return nil, errors.Wrap(err, "setting user password")
+		return fmt.Errorf("setting user password: %w", err)
 	}
 
 	groupName := aws.String(oidcGroupName)
@@ -323,7 +361,7 @@ func setupCognitoProvider(clusterName, region string) (*OIDCConfig, error) {
 	})
 
 	if err != nil {
-		return nil, errors.Wrap(err, "creating group")
+		return fmt.Errorf("creating group: %w", err)
 	}
 
 	_, err = c.AdminAddUserToGroup(&cognitoidentityprovider.AdminAddUserToGroupInput{
@@ -333,30 +371,9 @@ func setupCognitoProvider(clusterName, region string) (*OIDCConfig, error) {
 	})
 
 	if err != nil {
-		return nil, errors.Wrap(err, "adding user to group")
+		return fmt.Errorf("adding user to group: %w", err)
 	}
-
-	auth, err := c.AdminInitiateAuth(&cognitoidentityprovider.AdminInitiateAuthInput{
-		AuthFlow: aws.String(cognitoidentityprovider.AuthFlowTypeAdminUserPasswordAuth),
-		AuthParameters: map[string]*string{
-			"USERNAME": clientUsername,
-			"PASSWORD": aws.String(pass),
-		},
-		ClientId:   client.UserPoolClient.ClientId,
-		UserPoolId: userPoolID,
-	})
-
-	if err != nil {
-		return nil, errors.Wrap(err, "initiating auth")
-	}
-
-	return &OIDCConfig{
-		clientID:     *client.UserPoolClient.ClientId,
-		idToken:      *auth.AuthenticationResult.IdToken,
-		refreshToken: *auth.AuthenticationResult.RefreshToken,
-		idpIssuerURL: fmt.Sprintf("https://cognito-idp.%s.amazonaws.com/%s", region, *userPoolID),
-	}, nil
-
+	return nil
 }
 
 func makeIdentityProviderClusterConfig(o *OIDCConfig, clusterName, region string) string {
