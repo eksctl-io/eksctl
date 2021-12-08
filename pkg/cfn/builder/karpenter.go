@@ -4,30 +4,60 @@ import (
 	"fmt"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
+	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
+)
+
+const (
+	// KarpenterNodeRoleName is the name of the role for nodes.
+	KarpenterNodeRoleName = "KarpenterNodeRole"
+	// KarpenterManagedPolicy managed policy name.
+	KarpenterManagedPolicy = "KarpenterControllerPolicy"
+
+	// karpenterNodeInstanceProfile is the name of node instance profile.
+	karpenterNodeInstanceProfile = "KarpenterNodeInstanceProfile"
+)
+
+const (
+	// actions
+	// EC2
+	ec2CreateFleet                   = "ec2:CreateFleet"
+	ec2CreateLaunchTemplate          = "ec2:CreateLaunchTemplate"
+	ec2CreateTags                    = "ec2:CreateTags"
+	ec2DescribeAvailabilityZones     = "ec2:DescribeAvailabilityZones"
+	ec2DescribeInstanceTypeOfferings = "ec2:DescribeInstanceTypeOfferings"
+	ec2DescribeInstanceTypes         = "ec2:DescribeInstanceTypes"
+	ec2DescribeInstances             = "ec2:DescribeInstances"
+	ec2DescribeLaunchTemplates       = "ec2:DescribeLaunchTemplates"
+	ec2DescribeSecurityGroups        = "ec2:DescribeSecurityGroups"
+	ec2DescribeSubnets               = "ec2:DescribeSubnets"
+	ec2RunInstances                  = "ec2:RunInstances"
+	ec2TerminateInstances            = "ec2:TerminateInstances"
+	// IAM
+	iamPassRole     = "iam:PassRole"
+	ssmGetParameter = "ssm:GetParameter"
 )
 
 // KarpenterResourceSet stores the resource information of the Karpenter stack
 type KarpenterResourceSet struct {
 	rs          *resourceSet
 	clusterSpec *api.ClusterConfig
-	iamAPI      iamiface.IAMAPI
 }
 
 // NewKarpenterResourceSet returns a resource set for a Karpenter embedded in a cluster config
-func NewKarpenterResourceSet(iamAPI iamiface.IAMAPI, spec *api.ClusterConfig) *KarpenterResourceSet {
+func NewKarpenterResourceSet(spec *api.ClusterConfig) *KarpenterResourceSet {
 	return &KarpenterResourceSet{
 		rs:          newResourceSet(),
 		clusterSpec: spec,
-		iamAPI:      iamAPI,
 	}
 }
 
-// AddAllResources adds all the information about the nodegroup to the resource set
+// AddAllResources adds all the information about Karpenter to the resource set
 func (k *KarpenterResourceSet) AddAllResources() error {
 	k.rs.template.Description = fmt.Sprintf("Karpenter Stack %s", templateDescriptionSuffix)
 	return k.addResourcesForKarpenter()
@@ -48,13 +78,58 @@ func (k *KarpenterResourceSet) newResource(name string, resource gfn.Resource) *
 }
 
 func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
-	cfr := karpenterResource(k.clusterSpec)
-	k.newResource("Karpenter", cfr)
-	return nil
-}
+	managedPolicyNames := sets.NewString()
+	managedPolicyNames.Insert(iamPolicyAmazonEKSWorkerNodePolicy,
+		iamPolicyAmazonEKSCNIPolicy,
+		iamPolicyAmazonEC2ContainerRegistryReadOnly,
+		iamPolicyAmazonSSMManagedInstanceCore,
+	)
+	k.Template().Mappings[servicePrincipalPartitionMapName] = servicePrincipalPartitionMappings
+	roleName := gfnt.MakeFnSubString(fmt.Sprintf("%s-${%s}", KarpenterNodeRoleName, gfnt.StackName))
+	role := gfniam.Role{
+		RoleName:                 roleName,
+		Path:                     gfnt.NewString("/"),
+		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(MakeServiceRef("EC2")),
+		ManagedPolicyArns:        gfnt.NewSlice(makePolicyARNs(managedPolicyNames.List()...)...),
+	}
 
-func karpenterResource(cfg *api.ClusterConfig) *awsCloudFormationResource {
-	return &awsCloudFormationResource{}
+	roleRef := k.newResource(KarpenterNodeRoleName, &role)
+
+	instanceProfileName := gfnt.MakeFnSubString(fmt.Sprintf("%s-${%s}", karpenterNodeInstanceProfile, gfnt.StackName))
+	instanceProfile := gfniam.InstanceProfile{
+		InstanceProfileName: instanceProfileName,
+		Path:                gfnt.NewString("/"),
+		Roles:               gfnt.NewSlice(roleRef),
+	}
+	k.newResource(karpenterNodeInstanceProfile, &instanceProfile)
+
+	managedPolicyName := gfnt.MakeFnSubString(fmt.Sprintf("%s-${%s}", KarpenterManagedPolicy, gfnt.StackName))
+	statements := cft.MapOfInterfaces{
+		"Effect":   effectAllow,
+		"Resource": resourceAll,
+		"Action": []string{
+			ec2CreateFleet,
+			ec2CreateLaunchTemplate,
+			ec2CreateTags,
+			ec2DescribeAvailabilityZones,
+			ec2DescribeInstanceTypeOfferings,
+			ec2DescribeInstanceTypes,
+			ec2DescribeInstances,
+			ec2DescribeLaunchTemplates,
+			ec2DescribeSecurityGroups,
+			ec2DescribeSubnets,
+			ec2RunInstances,
+			ec2TerminateInstances,
+			iamPassRole,
+			ssmGetParameter,
+		},
+	}
+	managedPolicy := gfniam.ManagedPolicy{
+		ManagedPolicyName: managedPolicyName,
+		PolicyDocument:    cft.MakePolicyDocument(statements),
+	}
+	k.newResource(KarpenterManagedPolicy, &managedPolicy)
+	return nil
 }
 
 // WithIAM implements the ResourceSet interface
@@ -66,8 +141,7 @@ func (k *KarpenterResourceSet) WithIAM() bool {
 
 // WithNamedIAM implements the ResourceSet interface
 func (k *KarpenterResourceSet) WithNamedIAM() bool {
-	//return k.nodeGroup.IAM.InstanceRoleName != ""
-	return false
+	return true
 }
 
 // GetAllOutputs collects all outputs of the nodegroup

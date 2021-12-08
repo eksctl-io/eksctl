@@ -10,31 +10,40 @@ import (
 )
 
 const (
-	// DefaultKarpenterNamespace default namespace for Karpenter
-	DefaultKarpenterNamespace = "karpenter"
+	// DefaultNamespace default namespace for Karpenter
+	DefaultNamespace = "karpenter"
+	// DefaultServiceAccountName is the name of the service account which is needed for Karpenter
+	DefaultServiceAccountName = "karpenter"
 
-	karpenterHelmRepo         = "https://charts.karpenter.sh"
-	karpenterHelmChartName    = "karpenter/karpenter"
-	karpenterReleaseName      = "karpenter"
-	controllerClusterName     = "controller.clusterName"
-	controllerClusterEndpoint = "controller.clusterEndpoint"
-	createServiceAccount      = "serviceAccount.create"
-	addDefaultProvisioner     = "defaultProvisioner.create"
+	clusterEndpoint    = "clusterEndpoint"
+	clusterName        = "clusterName"
+	controller         = "controller"
+	create             = "create"
+	defaultProvisioner = "defaultProvisioner"
+	helmChartName      = "karpenter/karpenter"
+	helmRepo           = "https://charts.karpenter.sh"
+	releaseName        = "karpenter"
+	serviceAccount     = "serviceAccount"
+)
+
+const (
+	addDefaultProvisionerDefaultValue = false
 )
 
 // Options contains values which Karpenter uses to configure the installation.
 type Options struct {
-	HelmInstaller         providers.HelmInstaller
-	Namespace             string
-	ClusterName           string
-	AddDefaultProvisioner bool
-	CreateServiceAccount  bool
-	ClusterEndpoint       string
-	Version               string
+	HelmInstaller        providers.HelmInstaller
+	Namespace            string
+	ClusterName          string
+	CreateServiceAccount bool
+	ClusterEndpoint      string
+	Version              string
 }
 
-// InstallKarpenter defines a functionality to install Karpenter.
-type InstallKarpenter interface {
+// ChartInstaller defines a functionality to install Karpenter.
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_chart_installer.go . ChartInstaller
+type ChartInstaller interface {
 	Install(ctx context.Context) error
 }
 
@@ -52,17 +61,25 @@ func NewKarpenterInstaller(opts Options) *Installer {
 
 // Install adds Karpenter to a configured cluster in a separate CloudFormation stack.
 func (k *Installer) Install(ctx context.Context) error {
-	logger.Info("adding Karpenter to cluster %s with cluster endpoint", k.ClusterName, k.ClusterEndpoint)
-	if err := k.HelmInstaller.AddRepo(karpenterHelmRepo, karpenterReleaseName); err != nil {
+	logger.Info("adding Karpenter to cluster %s", k.ClusterName)
+	logger.Debug("cluster endpoint used by Karpenter: %s", k.ClusterEndpoint)
+	if err := k.HelmInstaller.AddRepo(helmRepo, releaseName); err != nil {
 		return fmt.Errorf("failed to add Karpenter repository: %w", err)
 	}
 	values := map[string]interface{}{
-		createServiceAccount:      k.CreateServiceAccount,
-		controllerClusterName:     k.ClusterName,
-		controllerClusterEndpoint: k.ClusterEndpoint,
-		addDefaultProvisioner:     k.AddDefaultProvisioner,
+		controller: map[string]interface{}{
+			clusterName:     k.ClusterName,
+			clusterEndpoint: k.ClusterEndpoint,
+		},
+		serviceAccount: map[string]interface{}{
+			create: k.CreateServiceAccount,
+		},
+		defaultProvisioner: map[string]interface{}{
+			create: addDefaultProvisionerDefaultValue,
+		},
 	}
-	if err := k.HelmInstaller.InstallChart(ctx, karpenterReleaseName, karpenterHelmChartName, DefaultKarpenterNamespace, k.Version, values); err != nil {
+	logger.Debug("the following values will be applied to the install: %+v", values)
+	if err := k.HelmInstaller.InstallChart(ctx, releaseName, helmChartName, DefaultNamespace, k.Version, values); err != nil {
 		return fmt.Errorf("failed to install Karpenter chart: %w", err)
 	}
 	return nil

@@ -251,7 +251,6 @@
         "availabilityZones",
         "cloudWatch",
         "secretsEncryption",
-        "git",
         "gitops",
         "karpenter"
       ],
@@ -826,20 +825,23 @@
       "x-intellij-html-description": "holds EC2 instance selector options"
     },
     "Karpenter": {
+      "required": [
+        "version"
+      ],
       "properties": {
-        "addDefaultProvisioner": {
-          "type": "boolean"
-        },
         "createServiceAccount": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "create a service account or not.",
+          "x-intellij-html-description": "create a service account or not."
         },
         "version": {
-          "type": "string"
+          "type": "string",
+          "description": "defines the Karpenter version to install",
+          "x-intellij-html-description": "defines the Karpenter version to install"
         }
       },
       "preferredOrder": [
         "version",
-        "addDefaultProvisioner",
         "createServiceAccount"
       ],
       "additionalProperties": false,

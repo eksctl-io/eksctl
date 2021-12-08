@@ -59,6 +59,7 @@ nav:
         - usage/dry-run.md
         - usage/schema.md
         - usage/eksctl-anywhere.md
+        - usage/eksctl-karpenter.md
         - usage/troubleshooting.md
         - FAQ: usage/faq.md
     - Examples: "https://github.com/weaveworks/eksctl/tree/main/examples"

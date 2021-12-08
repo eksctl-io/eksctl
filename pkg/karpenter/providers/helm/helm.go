@@ -35,7 +35,7 @@ type Installer struct {
 func NewInstaller(opts Options) (*Installer, error) {
 	settings := cli.New()
 	actionConfig := new(action.Configuration)
-	if err := actionConfig.Init(settings.RESTClientGetter(), opts.Namespace, os.Getenv("HELM_DRIVER"), logger.Debug); err != nil {
+	if err := actionConfig.Init(settings.RESTClientGetter(), opts.Namespace, "", logger.Debug); err != nil {
 		return nil, fmt.Errorf("failed to initialize action config: %w", err)
 	}
 	return &Installer{
@@ -106,6 +106,6 @@ func (i *Installer) InstallChart(ctx context.Context, releaseName, chartName, na
 	if err != nil {
 		return fmt.Errorf("failed to install chart: %w", err)
 	}
-	logger.Debug("successfully installed helm chart: ", release.Name)
+	logger.Debug("successfully installed helm chart: %s", release.Name)
 	return nil
 }
