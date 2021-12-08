@@ -276,7 +276,7 @@ require (
 	github.com/uudashr/gocognit v1.0.5 // indirect
 	github.com/vektra/mockery v1.1.2
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
-	github.com/weaveworks/goformation/v4 v4.10.2-0.20211207112218-8bde16a86f4c
+	github.com/weaveworks/goformation/v4 v4.10.2-0.20211208101807-d5ec5126726c
 	github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15
 	github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca
 	github.com/xanzy/go-gitlab v0.50.3 // indirect
