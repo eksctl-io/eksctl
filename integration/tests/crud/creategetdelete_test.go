@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/utils/file"
 	corev1 "k8s.io/api/core/v1"
 
 	"k8s.io/client-go/kubernetes"
@@ -25,6 +25,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/yaml"
+
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -35,9 +39,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/iam"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/tools/clientcmd"
-	"sigs.k8s.io/yaml"
+	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
 
 var params *tests.Params
@@ -152,6 +154,23 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			It("should return the previously created cluster", func() {
 				cmd := params.EksctlGetCmd.WithArgs("clusters", "--all-regions")
 				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(params.ClusterName)))
+			})
+		})
+
+		Context("and describe the stack for the cluster", func() {
+			It("should describe the cluster's stack", func() {
+				cmd := params.EksctlUtilsCmd.WithArgs("describe-stacks", "--cluster", params.ClusterName, "-o", "yaml")
+				session := cmd.Run()
+				Expect(session.ExitCode()).To(BeZero())
+				var stacks []*cloudformation.Stack
+				Expect(yaml.Unmarshal(session.Out.Contents(), &stacks)).To(Succeed())
+				Expect(stacks).To(HaveLen(2))
+				nodegroupStack := stacks[0]
+				clusterStack := stacks[1]
+				Expect(aws.StringValue(clusterStack.StackName)).To(ContainSubstring(params.ClusterName))
+				Expect(aws.StringValue(nodegroupStack.StackName)).To(ContainSubstring(params.ClusterName))
+				Expect(aws.StringValue(clusterStack.Description)).To(Equal("EKS cluster (dedicated VPC: true, dedicated IAM: true) [created and managed by eksctl]"))
+				Expect(aws.StringValue(nodegroupStack.Description)).To(Equal("EKS Managed Nodes (SSH access: false) [created by eksctl]"))
 			})
 		})
 

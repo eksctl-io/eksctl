@@ -262,17 +262,17 @@ func validateLaunchTemplate(launchTemplateData *ec2.ResponseLaunchTemplateData, 
 
 func getAMIType(ng *api.ManagedNodeGroup, instanceType string) string {
 	amiTypeMapping := map[string]struct {
-		X86_64 string
+		X86x64 string
 		GPU    string
 		ARM    string
 	}{
 		api.NodeImageFamilyAmazonLinux2: {
-			X86_64: eks.AMITypesAl2X8664,
+			X86x64: eks.AMITypesAl2X8664,
 			GPU:    eks.AMITypesAl2X8664Gpu,
 			ARM:    eks.AMITypesAl2Arm64,
 		},
 		api.NodeImageFamilyBottlerocket: {
-			X86_64: eks.AMITypesBottlerocketX8664,
+			X86x64: eks.AMITypesBottlerocketX8664,
 			ARM:    eks.AMITypesBottlerocketArm64,
 		},
 	}
@@ -288,7 +288,7 @@ func getAMIType(ng *api.ManagedNodeGroup, instanceType string) string {
 	case instanceutils.IsARMInstanceType(instanceType):
 		return amiType.ARM
 	default:
-		return amiType.X86_64
+		return amiType.X86x64
 	}
 }
 

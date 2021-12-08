@@ -7,25 +7,23 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
-	"github.com/weaveworks/eksctl/pkg/version"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
-
 	"github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
-
+	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/utils"
+	"github.com/weaveworks/eksctl/pkg/version"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -299,10 +297,7 @@ func (c *ClusterProvider) LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, 
 	if err := c.RefreshClusterStatus(spec); err != nil {
 		return err
 	}
-	if err := c.loadClusterKubernetesNetworkConfig(spec); err != nil {
-		return err
-	}
-	return nil
+	return c.loadClusterKubernetesNetworkConfig(spec)
 }
 
 // LoadClusterVPC loads the VPC configuration
