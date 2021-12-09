@@ -21,7 +21,7 @@ type FakeHelmInstaller struct {
 	addRepoReturnsOnCall map[int]struct {
 		result1 error
 	}
-	InstallChartStub        func(context.Context, string, string, string, string, map[string]interface{}) error
+	InstallChartStub        func(context.Context, string, string, string, string, bool, map[string]interface{}) error
 	installChartMutex       sync.RWMutex
 	installChartArgsForCall []struct {
 		arg1 context.Context
@@ -29,7 +29,8 @@ type FakeHelmInstaller struct {
 		arg3 string
 		arg4 string
 		arg5 string
-		arg6 map[string]interface{}
+		arg6 bool
+		arg7 map[string]interface{}
 	}
 	installChartReturns struct {
 		result1 error
@@ -103,7 +104,7 @@ func (fake *FakeHelmInstaller) AddRepoReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeHelmInstaller) InstallChart(arg1 context.Context, arg2 string, arg3 string, arg4 string, arg5 string, arg6 map[string]interface{}) error {
+func (fake *FakeHelmInstaller) InstallChart(arg1 context.Context, arg2 string, arg3 string, arg4 string, arg5 string, arg6 bool, arg7 map[string]interface{}) error {
 	fake.installChartMutex.Lock()
 	ret, specificReturn := fake.installChartReturnsOnCall[len(fake.installChartArgsForCall)]
 	fake.installChartArgsForCall = append(fake.installChartArgsForCall, struct {
@@ -112,14 +113,15 @@ func (fake *FakeHelmInstaller) InstallChart(arg1 context.Context, arg2 string, a
 		arg3 string
 		arg4 string
 		arg5 string
-		arg6 map[string]interface{}
-	}{arg1, arg2, arg3, arg4, arg5, arg6})
+		arg6 bool
+		arg7 map[string]interface{}
+	}{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
 	stub := fake.InstallChartStub
 	fakeReturns := fake.installChartReturns
-	fake.recordInvocation("InstallChart", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6})
+	fake.recordInvocation("InstallChart", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
 	fake.installChartMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4, arg5, arg6)
+		return stub(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 	}
 	if specificReturn {
 		return ret.result1
@@ -133,17 +135,17 @@ func (fake *FakeHelmInstaller) InstallChartCallCount() int {
 	return len(fake.installChartArgsForCall)
 }
 
-func (fake *FakeHelmInstaller) InstallChartCalls(stub func(context.Context, string, string, string, string, map[string]interface{}) error) {
+func (fake *FakeHelmInstaller) InstallChartCalls(stub func(context.Context, string, string, string, string, bool, map[string]interface{}) error) {
 	fake.installChartMutex.Lock()
 	defer fake.installChartMutex.Unlock()
 	fake.InstallChartStub = stub
 }
 
-func (fake *FakeHelmInstaller) InstallChartArgsForCall(i int) (context.Context, string, string, string, string, map[string]interface{}) {
+func (fake *FakeHelmInstaller) InstallChartArgsForCall(i int) (context.Context, string, string, string, string, bool, map[string]interface{}) {
 	fake.installChartMutex.RLock()
 	defer fake.installChartMutex.RUnlock()
 	argsForCall := fake.installChartArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7
 }
 
 func (fake *FakeHelmInstaller) InstallChartReturns(result1 error) {

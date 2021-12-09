@@ -164,11 +164,27 @@ var _ = Describe("HelmInstaller", func() {
 			Expect(os.WriteFile(filepath.Join(tmp, "repositories.yaml"), []byte(expectedRepositoryYaml), 0644)).To(Succeed())
 			Expect(copy.Copy(filepath.Join("testdata", "karpenter-0.4.3.tgz"), filepath.Join(tmp, "karpenter-0.4.3.tgz"))).To(Succeed())
 			Expect(copy.Copy(filepath.Join("testdata", "karpenter-index.yaml"), filepath.Join(tmp, "karpenter-index.yaml"))).To(Succeed())
-			Expect(installerUnderTest.InstallChart(context.Background(), "karpenter", "karpenter/karpenter", "karpenter", "0.4.3", values)).To(Succeed())
+			Expect(installerUnderTest.InstallChart(
+				context.Background(),
+				"karpenter",
+				"karpenter/karpenter",
+				"karpenter",
+				"0.4.3",
+				true,
+				values,
+			)).To(Succeed())
 		})
 		When("locate chart is unable to find the requested chart", func() {
 			It("errors", func() {
-				Expect(installerUnderTest.InstallChart(context.Background(), "karpenter", "karpenter/karpenter", "karpenter", "0.4.3", values)).To(MatchError(ContainSubstring("repo karpenter not found")))
+				Expect(installerUnderTest.InstallChart(
+					context.Background(),
+					"karpenter",
+					"karpenter/karpenter",
+					"karpenter",
+					"0.4.3",
+					true,
+					values,
+				)).To(MatchError(ContainSubstring("repo karpenter not found")))
 			})
 		})
 		When("the version is unknown", func() {
@@ -176,13 +192,29 @@ var _ = Describe("HelmInstaller", func() {
 				Expect(os.WriteFile(filepath.Join(tmp, "repositories.yaml"), []byte(expectedRepositoryYaml), 0644)).To(Succeed())
 				Expect(copy.Copy(filepath.Join("testdata", "karpenter-0.4.3.tgz"), filepath.Join(tmp, "karpenter-0.4.3.tgz"))).To(Succeed())
 				Expect(copy.Copy(filepath.Join("testdata", "karpenter-index.yaml"), filepath.Join(tmp, "karpenter-index.yaml"))).To(Succeed())
-				Expect(installerUnderTest.InstallChart(context.Background(), "karpenter", "karpenter/karpenter", "karpenter", "0.1.0", values)).To(MatchError(ContainSubstring("failed to locate chart: chart \"karpenter\" matching 0.1.0 not found in karpenter index. (try 'helm repo update'): no chart version found for karpenter-0.1.0")))
+				Expect(installerUnderTest.InstallChart(
+					context.Background(),
+					"karpenter",
+					"karpenter/karpenter",
+					"karpenter",
+					"0.1.0",
+					true,
+					values,
+				)).To(MatchError(ContainSubstring("failed to locate chart: chart \"karpenter\" matching 0.1.0 not found in karpenter index. (try 'helm repo update'): no chart version found for karpenter-0.1.0")))
 			})
 		})
 		When("repository is invalid", func() {
 			It("errors", func() {
 				Expect(os.WriteFile(filepath.Join(tmp, "repositories.yaml"), []byte("invalid\n"), 0644)).To(Succeed())
-				Expect(installerUnderTest.InstallChart(context.Background(), "karpenter", "karpenter/karpenter", "karpenter", "0.1.0", values)).To(MatchError(ContainSubstring("error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go value of type repo.File")))
+				Expect(installerUnderTest.InstallChart(
+					context.Background(),
+					"karpenter",
+					"karpenter/karpenter",
+					"karpenter",
+					"0.1.0",
+					true,
+					values,
+				)).To(MatchError(ContainSubstring("error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go value of type repo.File")))
 			})
 		})
 		When("kube client fails to reach the cluster", func() {
@@ -196,7 +228,15 @@ var _ = Describe("HelmInstaller", func() {
 				}
 				actionConfig.KubeClient = fakeKube
 				installerUnderTest.ActionConfig = actionConfig
-				Expect(installerUnderTest.InstallChart(context.Background(), "karpenter", "karpenter/karpenter", "karpenter", "0.4.3", values)).To(MatchError(ContainSubstring("failed to install chart: failed to install CRD crds/karpenter.sh_provisioners.yaml: nope")))
+				Expect(installerUnderTest.InstallChart(
+					context.Background(),
+					"karpenter",
+					"karpenter/karpenter",
+					"karpenter",
+					"0.4.3",
+					true,
+					values,
+				)).To(MatchError(ContainSubstring("failed to install chart: failed to install CRD crds/karpenter.sh_provisioners.yaml: nope")))
 			})
 		})
 	})

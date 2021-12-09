@@ -45,6 +45,7 @@ func NewInstaller(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager
 		CreateServiceAccount: api.IsEnabled(cfg.Karpenter.CreateServiceAccount),
 		ClusterEndpoint:      cfg.Status.Endpoint,
 		Version:              cfg.Karpenter.Version,
+		CreateNamespace:      len(cfg.FargateProfiles) == 0,
 	})
 	return &Installer{
 		StackManager:       stackManager,
