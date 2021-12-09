@@ -119,6 +119,7 @@ func (v *IPv6VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, erro
 		GatewayId:                  refIGW,
 		RouteTableId:               gfnt.MakeRef(PubRouteTableKey),
 	})
+
 	v.rs.newResource(EgressOnlyInternetGatewayKey, &gfnec2.EgressOnlyInternetGateway{
 		VpcId: gfnt.MakeRef(VPCResourceKey),
 	})
@@ -133,6 +134,13 @@ func (v *IPv6VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, erro
 		v.rs.newResource(PubRouteTableAssociation+azFormatted, &gfnec2.SubnetRouteTableAssociation{
 			RouteTableId: gfnt.MakeRef(PubRouteTableKey),
 			SubnetId:     gfnt.MakeRef(PublicSubnetKey + azFormatted),
+		})
+
+		v.rs.newResource(PrivateSubnetDNS64Ipv6RouteKey+azFormatted, &gfnec2.Route{
+			AWSCloudFormationDependsOn: []string{NATGatewayKey, GAKey},
+			DestinationIpv6CidrBlock:   gfnt.NewString(DNS64IPv6CIDR),
+			NatGatewayId:               gfnt.MakeRef(NATGatewayKey),
+			RouteTableId:               gfnt.MakeRef(PrivateRouteTableKey + azFormatted),
 		})
 
 		v.rs.newResource(PrivateSubnetIpv6RouteKey+azFormatted, &gfnec2.Route{

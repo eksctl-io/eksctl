@@ -135,21 +135,31 @@ func (t *kubernetesTask) Do(errs chan error) error {
 	return err
 }
 
-type AssignIpv6AddressOnCreationTask struct {
+type UpdateSubnetsForIPv6Task struct {
 	EC2API        ec2iface.EC2API
 	ClusterConfig *api.ClusterConfig
 }
 
-func (t *AssignIpv6AddressOnCreationTask) Describe() string {
-	return "set AssignIpv6AddressOnCreation to true for public subnets"
+func (t *UpdateSubnetsForIPv6Task) Describe() string {
+	return "set AssignIpv6AddressOnCreation and EnableDns64 to true for public subnets"
 }
 
-func (t *AssignIpv6AddressOnCreationTask) Do(errs chan error) error {
+func (t *UpdateSubnetsForIPv6Task) Do(errs chan error) error {
 	defer close(errs)
 	if t.ClusterConfig.VPC.Subnets.Public != nil {
 		for _, subnet := range t.ClusterConfig.VPC.Subnets.Public.WithIDs() {
 			_, err := t.EC2API.ModifySubnetAttribute(&ec2.ModifySubnetAttributeInput{
 				AssignIpv6AddressOnCreation: &ec2.AttributeBooleanValue{
+					Value: aws.Bool(true),
+				},
+				SubnetId: aws.String(subnet),
+			})
+			if err != nil {
+				return fmt.Errorf("failed to update subnet %q: %v", subnet, err)
+			}
+
+			_, err = t.EC2API.ModifySubnetAttribute(&ec2.ModifySubnetAttributeInput{
+				EnableDns64: &ec2.AttributeBooleanValue{
 					Value: aws.Bool(true),
 				},
 				SubnetId: aws.String(subnet),
