@@ -6,25 +6,25 @@ called `aws-auth`. `eksctl` provides commands to read and edit this config map.
 Get all identity mappings:
 
 ```bash
-eksctl get iamidentitymapping --cluster my-cluster-1
+eksctl get iamidentitymapping --cluster <clusterName> --region=<region>
 ```
 
 Get all identity mappings matching an arn:
 
 ```bash
-eksctl get iamidentitymapping --cluster my-cluster-1 --arn arn:aws:iam::123456:role/testing-role
+eksctl get iamidentitymapping --cluster <clusterName> --region=<region> --arn arn:aws:iam::123456:role/testing-role
 ```
 
 Create an identity mapping:
 
 ```bash
- eksctl create iamidentitymapping --cluster  my-cluster-1 --arn arn:aws:iam::123456:role/testing --group system:masters --username admin
+ eksctl create iamidentitymapping --cluster  <clusterName> --region=<region> --arn arn:aws:iam::123456:role/testing --group system:masters --username admin
 ```
 
 Delete an identity mapping:
 
 ```bash
-eksctl delete iamidentitymapping --cluster  my-cluster-1 --arn arn:aws:iam::123456:role/testing
+eksctl delete iamidentitymapping --cluster  <clusterName> --region=<region> --arn arn:aws:iam::123456:role/testing
 ```
 
 !!!note
@@ -34,11 +34,11 @@ more mappings matching this role are found.
 Create an account mapping:
 
 ```bash
- eksctl create iamidentitymapping --cluster  my-cluster-1 --account user-account
+ eksctl create iamidentitymapping --cluster  <clusterName> --region=<region> --account user-account
 ```
 
 Delete an account mapping:
 
 ```bash
- eksctl delete iamidentitymapping --cluster  my-cluster-1 --account user-account
+ eksctl delete iamidentitymapping --cluster  <clusterName> --region=<region> --account user-account
 ```
