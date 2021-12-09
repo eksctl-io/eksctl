@@ -308,6 +308,24 @@ var _ = Describe("Create", func() {
 				Expect(err).To(MatchError(ContainSubstring("failed to create client for auth config: getting auth ConfigMap: nope")))
 			})
 		})
+		When("createServiceAccount is enabled", func() {
+			BeforeEach(func() {
+				cfg.Karpenter.CreateServiceAccount = api.Enabled()
+			})
+			It("eksctl should not create a service account", func() {
+				fakeKarpenterInstaller.InstallReturns(nil)
+				install := &karpenteractions.Installer{
+					StackManager:       fakeStackManager,
+					CTL:                ctl,
+					Config:             cfg,
+					KarpenterInstaller: fakeKarpenterInstaller,
+					ClientSet:          fakeClientSet,
+				}
+				Expect(install.Create()).To(Succeed())
+				Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))
+				Expect(fakeStackManager.NewTasksToCreateIAMServiceAccountsCallCount()).To(BeZero())
+			})
+		})
 	})
 })
 

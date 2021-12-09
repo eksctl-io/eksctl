@@ -27,18 +27,21 @@ func (i *Installer) Create() error {
 			return i.ClientSet, nil
 		},
 	}
-	karpenterServiceAccountTaskTree := i.StackManager.NewTasksToCreateIAMServiceAccounts([]*api.ClusterIAMServiceAccount{
-		{
-			ClusterIAMMeta: api.ClusterIAMMeta{
-				Name:      karpenter.DefaultServiceAccountName,
-				Namespace: karpenter.DefaultNamespace,
+	i.Config.SetDefaultKarpenterCreateServiceAccount()
+	if api.IsDisabled(i.Config.Karpenter.CreateServiceAccount) {
+		karpenterServiceAccountTaskTree := i.StackManager.NewTasksToCreateIAMServiceAccounts([]*api.ClusterIAMServiceAccount{
+			{
+				ClusterIAMMeta: api.ClusterIAMMeta{
+					Name:      karpenter.DefaultServiceAccountName,
+					Namespace: karpenter.DefaultNamespace,
+				},
+				AttachRoleARN: roleArn,
 			},
-			AttachRoleARN: roleArn,
-		},
-	}, nil, clientSetGetter)
-	logger.Info(karpenterServiceAccountTaskTree.Describe())
-	if err := doTasks(karpenterServiceAccountTaskTree); err != nil {
-		return fmt.Errorf("failed to create service account: %w", err)
+		}, nil, clientSetGetter)
+		logger.Info(karpenterServiceAccountTaskTree.Describe())
+		if err := doTasks(karpenterServiceAccountTaskTree); err != nil {
+			return fmt.Errorf("failed to create service account: %w", err)
+		}
 	}
 	// create identity mapping for EC2 nodes to be able to join the cluster.
 	acm, err := authconfigmap.NewFromClientSet(i.ClientSet)
