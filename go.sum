@@ -1920,8 +1920,8 @@ github.com/vmihailenco/tagparser v0.1.1/go.mod h1:OeAg3pn3UbLjkWt+rN9oFYB6u/cQgq
 github.com/vmware/govmomi v0.20.3/go.mod h1:URlwyTFZX72RmxtxuaFL2Uj3fD1JTvZdx59bHWk6aFU=
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 h1:txplJASvd6b/hrE0s/Ixfpp2cuwH9IO9oZBAN9iYa4A=
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2/go.mod h1:DGCIhurYgnLz8J9ga1fMV/fbLDyUvTyrWXVWUIyJon4=
-github.com/weaveworks/aws-sdk-go v0.0.0-20211026093156-d6e6822f58db h1:K6lacvb3qzF/bHvx2RsPDw8cYA8VccOecn9e6xDEBY0=
-github.com/weaveworks/aws-sdk-go v0.0.0-20211026093156-d6e6822f58db/go.mod h1:585smgzpB/KqRA+K3y/NL/oYRqQvpNJYvLm+LY1U59Q=
+github.com/weaveworks/aws-sdk-go v0.0.0-20211208164730-c076f913e1de h1:+Dm6iiLsL3qbM4ab19K77653PwU4CcLuWud+gqYk4QQ=
+github.com/weaveworks/aws-sdk-go v0.0.0-20211208164730-c076f913e1de/go.mod h1:585smgzpB/KqRA+K3y/NL/oYRqQvpNJYvLm+LY1U59Q=
 github.com/weaveworks/goformation/v4 v4.10.2-0.20211207112218-8bde16a86f4c h1:73KpSffTZKAwH2SQnJMe/76oZ2tX5MEPMj/lcEYUi88=
 github.com/weaveworks/goformation/v4 v4.10.2-0.20211207112218-8bde16a86f4c/go.mod h1:x92o12+Azh6DQ4yoXT5oEuE7dhQHR5V2vy/fmZ6pO7k=
 github.com/weaveworks/launcher v0.0.2-0.20200715141516-1ca323f1de15 h1:i/RhLevywqC6cuUWtGdoaNrsJd+/zWh3PXbkXZIyZsU=

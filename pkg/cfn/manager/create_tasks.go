@@ -35,7 +35,7 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 
 	if c.spec.VPC.IPFamily == api.IPV6Family {
 		taskTree.Append(
-			&AssignIpv6AddressOnCreationTask{
+			&UpdateSubnetsForIPv6Task{
 				ClusterConfig: c.spec,
 				EC2API:        c.ec2API,
 			},
