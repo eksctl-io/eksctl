@@ -1158,6 +1158,29 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	Describe("Karpenter", func() {
+		It("returns an error when version is missing", func() {
+			cfg := api.NewClusterConfig()
+			cfg.Karpenter = &api.Karpenter{}
+			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("version field is required if installing Karpenter is enabled")))
+		})
+		It("returns an error when fargate is set with karpenter but OIDC is not", func() {
+			cfg := api.NewClusterConfig()
+			cfg.Karpenter = &api.Karpenter{
+				Version: "0.5.1",
+			}
+			profile := &api.FargateProfile{
+				Selectors: []api.FargateProfileSelector{
+					{Namespace: "default"},
+				},
+			}
+			cfg.FargateProfiles = []*api.FargateProfile{
+				profile,
+			}
+			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate karpenter config: OIDC must be set with Karpenter and Fargate Profiles")))
+		})
+	})
+
 	type labelsTaintsEntry struct {
 		labels map[string]string
 		taints []api.NodeGroupTaint
