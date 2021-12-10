@@ -118,6 +118,7 @@ var _ = Describe("HelmInstaller", func() {
 			installerUnderTest *Installer
 			values             map[string]interface{}
 			actionConfig       *action.Configuration
+			fakeKubeClient     *fakes.PrintingKubeClient
 		)
 
 		BeforeEach(func() {
@@ -132,9 +133,10 @@ var _ = Describe("HelmInstaller", func() {
 			}
 			getters = append(getters, provider)
 			store := storage.Init(driver.NewMemory())
+			fakeKubeClient = &fakes.PrintingKubeClient{Out: ioutil.Discard}
 			actionConfig = &action.Configuration{
 				Releases:     store,
-				KubeClient:   &kubefake.PrintingKubeClient{Out: ioutil.Discard},
+				KubeClient:   fakeKubeClient,
 				Capabilities: chartutil.DefaultCapabilities,
 				Log:          func(format string, v ...interface{}) {},
 			}
@@ -173,6 +175,30 @@ var _ = Describe("HelmInstaller", func() {
 				true,
 				values,
 			)).To(Succeed())
+			Expect(fakeKubeClient.BuildCall).To(Equal(3))
+			Expect(fakeKubeClient.CreateCall).To(Equal(2))
+		})
+		When("creating a namespace is disabled", func() {
+			It("will not call build and create for that resource", func() {
+				// write out repo config
+				Expect(os.WriteFile(filepath.Join(tmp, "repositories.yaml"), []byte(expectedRepositoryYaml), 0644)).To(Succeed())
+				Expect(copy.Copy(filepath.Join("testdata", "karpenter-0.4.3.tgz"), filepath.Join(tmp, "karpenter-0.4.3.tgz"))).To(Succeed())
+				Expect(copy.Copy(filepath.Join("testdata", "karpenter-index.yaml"), filepath.Join(tmp, "karpenter-index.yaml"))).To(Succeed())
+				Expect(installerUnderTest.InstallChart(
+					context.Background(),
+					"karpenter",
+					"karpenter/karpenter",
+					"karpenter",
+					"0.4.3",
+					false,
+					values,
+				)).To(Succeed())
+				// Verifying the call number is easier than trying to mock RestClient calls through the fake kube client.
+				// And the Printer does not work, because the Builder returns an empty list that the Creator gleefully
+				// accepts and does nothing.
+				Expect(fakeKubeClient.BuildCall).To(Equal(2))
+				Expect(fakeKubeClient.CreateCall).To(Equal(1))
+			})
 		})
 		When("locate chart is unable to find the requested chart", func() {
 			It("errors", func() {

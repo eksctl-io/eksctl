@@ -59,5 +59,46 @@ var _ = Describe("Install", func() {
 					To(MatchError(ContainSubstring("failed to install Karpenter chart: nope")))
 			})
 		})
+
+		When("creating a namespace is disabled", func() {
+			BeforeEach(func() {
+				installerUnderTest = &Installer{
+					Options: Options{
+						HelmInstaller:        fakeHelmInstaller,
+						Namespace:            "karpenter",
+						ClusterName:          "test-cluster",
+						CreateServiceAccount: true,
+						ClusterEndpoint:      "https://endpoint.com",
+						Version:              "0.4.3",
+						CreateNamespace:      false,
+					},
+				}
+			})
+			It("will not create a namespace", func() {
+				Expect(installerUnderTest.Install(context.Background())).To(Succeed())
+				_, _, _, _, _, createNamespace, _ := fakeHelmInstaller.InstallChartArgsForCall(0)
+				Expect(createNamespace).To(BeFalse())
+			})
+		})
+		When("creating a namespace is enabled", func() {
+			BeforeEach(func() {
+				installerUnderTest = &Installer{
+					Options: Options{
+						HelmInstaller:        fakeHelmInstaller,
+						Namespace:            "karpenter",
+						ClusterName:          "test-cluster",
+						CreateServiceAccount: true,
+						ClusterEndpoint:      "https://endpoint.com",
+						Version:              "0.4.3",
+						CreateNamespace:      true,
+					},
+				}
+			})
+			It("will not create a namespace", func() {
+				Expect(installerUnderTest.Install(context.Background())).To(Succeed())
+				_, _, _, _, _, createNamespace, _ := fakeHelmInstaller.InstallChartArgsForCall(0)
+				Expect(createNamespace).To(BeTrue())
+			})
+		})
 	})
 })
