@@ -69,13 +69,16 @@ var _ = Describe("(Integration) [EKS IPv6 test]", func() {
 			clusterConfig.IAM.WithOIDC = api.Enabled()
 			clusterConfig.Addons = []*api.Addon{
 				{
-					Name: api.VPCCNIAddon,
+					Name:    api.VPCCNIAddon,
+					Version: "latest",
 				},
 				{
-					Name: api.KubeProxyAddon,
+					Name:    api.KubeProxyAddon,
+					Version: "latest",
 				},
 				{
-					Name: api.CoreDNSAddon,
+					Name:    api.CoreDNSAddon,
+					Version: "latest",
 				},
 			}
 			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
