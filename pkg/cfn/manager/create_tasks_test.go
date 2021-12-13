@@ -70,7 +70,7 @@ var _ = Describe("CreateTasks", func() {
 				}
 				errorCh := make(chan error)
 				err := task.Do(errorCh)
-				Expect(err).To(MatchError("failed to update subnet \"123\": foo"))
+				Expect(err).To(MatchError("failed to update public subnet \"123\": foo"))
 
 				By("closing the error channel")
 				Eventually(errorCh).Should(BeClosed())
