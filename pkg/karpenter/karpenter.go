@@ -6,6 +6,7 @@ import (
 
 	"github.com/kris-nova/logger"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/karpenter/providers"
 )
 
@@ -32,13 +33,9 @@ const (
 
 // Options contains values which Karpenter uses to configure the installation.
 type Options struct {
-	HelmInstaller        providers.HelmInstaller
-	Namespace            string
-	ClusterName          string
-	CreateServiceAccount bool
-	ClusterEndpoint      string
-	Version              string
-	CreateNamespace      bool
+	HelmInstaller providers.HelmInstaller
+	Namespace     string
+	ClusterConfig *api.ClusterConfig
 }
 
 // ChartInstaller defines a functionality to install Karpenter.
@@ -62,18 +59,18 @@ func NewKarpenterInstaller(opts Options) *Installer {
 
 // Install adds Karpenter to a configured cluster in a separate CloudFormation stack.
 func (k *Installer) Install(ctx context.Context) error {
-	logger.Info("adding Karpenter to cluster %s", k.ClusterName)
-	logger.Debug("cluster endpoint used by Karpenter: %s", k.ClusterEndpoint)
+	logger.Info("adding Karpenter to cluster %s", k.ClusterConfig.Metadata.Name)
+	logger.Debug("cluster endpoint used by Karpenter: %s", k.ClusterConfig.Status.Endpoint)
 	if err := k.HelmInstaller.AddRepo(helmRepo, releaseName); err != nil {
 		return fmt.Errorf("failed to add Karpenter repository: %w", err)
 	}
 	values := map[string]interface{}{
 		controller: map[string]interface{}{
-			clusterName:     k.ClusterName,
-			clusterEndpoint: k.ClusterEndpoint,
+			clusterName:     k.ClusterConfig.Metadata.Name,
+			clusterEndpoint: k.ClusterConfig.Status.Endpoint,
 		},
 		serviceAccount: map[string]interface{}{
-			create: k.CreateServiceAccount,
+			create: api.IsEnabled(k.ClusterConfig.Karpenter.CreateServiceAccount),
 		},
 		defaultProvisioner: map[string]interface{}{
 			create: addDefaultProvisionerDefaultValue,
@@ -82,11 +79,11 @@ func (k *Installer) Install(ctx context.Context) error {
 	logger.Debug("the following values will be applied to the install: %+v", values)
 	if err := k.HelmInstaller.InstallChart(ctx, providers.InstallChartOpts{
 		ChartName:       helmChartName,
-		CreateNamespace: k.CreateNamespace,
+		CreateNamespace: len(k.ClusterConfig.FargateProfiles) == 0,
 		Namespace:       DefaultNamespace,
 		ReleaseName:     releaseName,
 		Values:          values,
-		Version:         k.Version,
+		Version:         k.ClusterConfig.Karpenter.Version,
 	}); err != nil {
 		return fmt.Errorf("failed to install Karpenter chart: %w", err)
 	}

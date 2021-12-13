@@ -1177,7 +1177,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg.FargateProfiles = []*api.FargateProfile{
 				profile,
 			}
-			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate karpenter config: OIDC must be set with Karpenter and Fargate Profiles")))
+			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate karpenter config: iam.withOIDC must be enabled with Karpenter and Fargate profiles")))
 		})
 		It("returns no error when karpenter is defined without fargate and no oidc", func() {
 			cfg := api.NewClusterConfig()

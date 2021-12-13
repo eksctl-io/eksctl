@@ -151,10 +151,7 @@ var _ = Describe("HelmInstaller", func() {
 				ActionConfig: actionConfig,
 			}
 			values = map[string]interface{}{
-				"controller.clusterName":     "test-security-groups-labels",
-				"controller.clusterEndpoint": "https://E2AB8AEA541E5A354CBBFACE368C534D.sk1.us-west-2.eks.amazonaws.com",
-				"serviceAccount.create":      false,
-				"defaultProvisioner.create":  false,
+				"some": "value",
 			}
 		})
 
