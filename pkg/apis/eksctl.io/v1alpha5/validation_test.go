@@ -1179,6 +1179,15 @@ var _ = Describe("ClusterConfig validation", func() {
 			}
 			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate karpenter config: OIDC must be set with Karpenter and Fargate Profiles")))
 		})
+		It("returns no error when karpenter is defined without fargate and no oidc", func() {
+			cfg := api.NewClusterConfig()
+			cfg.Karpenter = &api.Karpenter{
+				Version: "0.5.1",
+			}
+			cfg.IAM = &api.ClusterIAM{WithOIDC: api.Disabled()}
+			Expect(api.ValidateClusterConfig(cfg)).To(Succeed())
+		})
+
 	})
 
 	type labelsTaintsEntry struct {
