@@ -416,7 +416,7 @@ require (
 replace (
 	// TODO: once aws-sdk-go is updated with ipv6 code remove the below line
 	github.com/aws/aws-sdk-go => github.com/weaveworks/aws-sdk-go v0.0.0-20211208164730-c076f913e1de
-	// Used to pin the k8s library versions regardless of what other dependencies enforc
+	// Used to pin the k8s library versions regardless of what other dependencies enforce
 	k8s.io/api => k8s.io/api v0.21.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.21.2
 	k8s.io/apimachinery => k8s.io/apimachinery v0.21.2

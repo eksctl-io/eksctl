@@ -136,9 +136,9 @@ func (v *IPv6VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, erro
 			SubnetId:     gfnt.MakeRef(PublicSubnetKey + azFormatted),
 		})
 
-		v.rs.newResource(PrivateSubnetDNS64Ipv6RouteKey+azFormatted, &gfnec2.Route{
+		v.rs.newResource(PrivateSubnetDNS64RouteKey+azFormatted, &gfnec2.Route{
 			AWSCloudFormationDependsOn: []string{NATGatewayKey, GAKey},
-			DestinationIpv6CidrBlock:   gfnt.NewString(DNS64IPv6CIDR),
+			DestinationIpv6CidrBlock:   gfnt.NewString(DNS64Prefix),
 			NatGatewayId:               gfnt.MakeRef(NATGatewayKey),
 			RouteTableId:               gfnt.MakeRef(PrivateRouteTableKey + azFormatted),
 		})
