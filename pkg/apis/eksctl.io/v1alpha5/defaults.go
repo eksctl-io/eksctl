@@ -58,6 +58,10 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 	if cfg.VPC != nil && cfg.VPC.ManageSharedNodeSecurityGroupRules == nil {
 		cfg.VPC.ManageSharedNodeSecurityGroupRules = Enabled()
 	}
+
+	if cfg.Karpenter != nil && cfg.Karpenter.CreateServiceAccount == nil {
+		cfg.Karpenter.CreateServiceAccount = Disabled()
+	}
 }
 
 // IAMServiceAccountsWithImplicitServiceAccounts adds implicitly created
@@ -323,13 +327,5 @@ func (c *ClusterConfig) SetDefaultFargateProfile() {
 				{Namespace: "kube-system"},
 			},
 		},
-	}
-}
-
-// SetDefaultKarpenterCreateServiceAccount disables the create service account option for Karpenter if it's not
-// defined in the configuration file explicitly.
-func (c *ClusterConfig) SetDefaultKarpenterCreateServiceAccount() {
-	if c.Karpenter.CreateServiceAccount == nil {
-		c.Karpenter.CreateServiceAccount = Disabled()
 	}
 }
