@@ -272,7 +272,9 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				}
 			}
 		}
-
+		if clusterConfig.Karpenter != nil {
+			clusterConfig.SetDefaultKarpenterCreateServiceAccount()
+		}
 		return validateDryRun()
 	}
 

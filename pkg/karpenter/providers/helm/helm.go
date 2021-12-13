@@ -82,21 +82,16 @@ func (i *Installer) AddRepo(repoURL, release string) error {
 
 // InstallChart takes a repo's name and a chart name and installs it. If namespace is not empty
 // it will install into that namespace and create the namespace. Version is required.
-func (i *Installer) InstallChart(
-	ctx context.Context,
-	releaseName, chartName, namespace, version string,
-	createNamespace bool,
-	values map[string]interface{},
-) error {
+func (i *Installer) InstallChart(ctx context.Context, opts providers.InstallChartOpts) error {
 	client := action.NewInstall(i.ActionConfig)
 	client.Wait = true
-	client.Namespace = namespace
-	client.ReleaseName = releaseName
-	client.Version = version
-	client.CreateNamespace = createNamespace
+	client.Namespace = opts.Namespace
+	client.ReleaseName = opts.ReleaseName
+	client.Version = opts.Version
+	client.CreateNamespace = opts.CreateNamespace
 	client.Timeout = 30 * time.Second
 
-	chartPath, err := client.ChartPathOptions.LocateChart(chartName, i.Settings)
+	chartPath, err := client.ChartPathOptions.LocateChart(opts.ChartName, i.Settings)
 	if err != nil {
 		return fmt.Errorf("failed to locate chart: %w", err)
 	}
@@ -107,7 +102,7 @@ func (i *Installer) InstallChart(
 		return fmt.Errorf("failed to load chart: %w", err)
 	}
 
-	release, err := client.RunWithContext(ctx, ch, values)
+	release, err := client.RunWithContext(ctx, ch, opts.Values)
 	if err != nil {
 		return fmt.Errorf("failed to install chart: %w", err)
 	}

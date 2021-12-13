@@ -76,8 +76,8 @@ var _ = Describe("Install", func() {
 			})
 			It("will not create a namespace", func() {
 				Expect(installerUnderTest.Install(context.Background())).To(Succeed())
-				_, _, _, _, _, createNamespace, _ := fakeHelmInstaller.InstallChartArgsForCall(0)
-				Expect(createNamespace).To(BeFalse())
+				_, opts := fakeHelmInstaller.InstallChartArgsForCall(0)
+				Expect(opts.CreateNamespace).To(BeFalse())
 			})
 		})
 		When("creating a namespace is enabled", func() {
@@ -96,8 +96,8 @@ var _ = Describe("Install", func() {
 			})
 			It("will not create a namespace", func() {
 				Expect(installerUnderTest.Install(context.Background())).To(Succeed())
-				_, _, _, _, _, createNamespace, _ := fakeHelmInstaller.InstallChartArgsForCall(0)
-				Expect(createNamespace).To(BeTrue())
+				_, opts := fakeHelmInstaller.InstallChartArgsForCall(0)
+				Expect(opts.CreateNamespace).To(BeTrue())
 			})
 		})
 	})

@@ -22,6 +22,7 @@ import (
 	"helm.sh/helm/v3/pkg/storage"
 	"helm.sh/helm/v3/pkg/storage/driver"
 
+	"github.com/weaveworks/eksctl/pkg/karpenter/providers"
 	"github.com/weaveworks/eksctl/pkg/karpenter/providers/fakes"
 )
 
@@ -74,22 +75,22 @@ var _ = Describe("HelmInstaller", func() {
 		When("the getter fails to retrieve the index file", func() {
 			It("errors", func() {
 				fakeURLGetter.GetReturns(nil, errors.New("nope"))
-				Expect(installerUnderTest.AddRepo("https://charts.karpenter.sh", "karpenter")).
-					To(MatchError(ContainSubstring("failed to download index file: nope")))
+				err := installerUnderTest.AddRepo("https://charts.karpenter.sh", "karpenter")
+				Expect(err).To(MatchError(ContainSubstring("failed to download index file: nope")))
 			})
 		})
 		When("the getter returns an invalid JSON", func() {
 			It("errors", func() {
 				buffer := bytes.NewBuffer([]byte("invalid"))
 				fakeURLGetter.GetReturns(buffer, nil)
-				Expect(installerUnderTest.AddRepo("https://charts.karpenter.sh", "karpenter")).
-					To(MatchError(ContainSubstring("failed to download index file: error unmarshaling JSON")))
+				err := installerUnderTest.AddRepo("https://charts.karpenter.sh", "karpenter")
+				Expect(err).To(MatchError(ContainSubstring("failed to download index file: error unmarshaling JSON")))
 			})
 		})
 		When("the repository url is invalid", func() {
 			It("errors", func() {
-				Expect(installerUnderTest.AddRepo("%^&", "karpenter")).
-					To(MatchError(ContainSubstring("invalid chart URL format: %^&")))
+				err := installerUnderTest.AddRepo("%^&", "karpenter")
+				Expect(err).To(MatchError(ContainSubstring("invalid chart URL format: %^&")))
 			})
 		})
 		When("there is no provider for the given scheme", func() {
@@ -102,8 +103,8 @@ var _ = Describe("HelmInstaller", func() {
 						RepositoryCache:  tmp,
 					},
 				}
-				Expect(installer.AddRepo("https://charts.karpenter.sh", "karpenter")).
-					To(MatchError(ContainSubstring("failed to create new chart repository: could not find protocol handler for: ")))
+				err := installer.AddRepo("https://charts.karpenter.sh", "karpenter")
+				Expect(err).To(MatchError(ContainSubstring("failed to create new chart repository: could not find protocol handler for: ")))
 			})
 		})
 	})
@@ -166,15 +167,14 @@ var _ = Describe("HelmInstaller", func() {
 			Expect(os.WriteFile(filepath.Join(tmp, "repositories.yaml"), []byte(expectedRepositoryYaml), 0644)).To(Succeed())
 			Expect(copy.Copy(filepath.Join("testdata", "karpenter-0.4.3.tgz"), filepath.Join(tmp, "karpenter-0.4.3.tgz"))).To(Succeed())
 			Expect(copy.Copy(filepath.Join("testdata", "karpenter-index.yaml"), filepath.Join(tmp, "karpenter-index.yaml"))).To(Succeed())
-			Expect(installerUnderTest.InstallChart(
-				context.Background(),
-				"karpenter",
-				"karpenter/karpenter",
-				"karpenter",
-				"0.4.3",
-				true,
-				values,
-			)).To(Succeed())
+			Expect(installerUnderTest.InstallChart(context.Background(), providers.InstallChartOpts{
+				ChartName:       "karpenter/karpenter",
+				CreateNamespace: true,
+				Namespace:       "karpenter",
+				ReleaseName:     "karpenter",
+				Values:          values,
+				Version:         "0.4.3",
+			})).To(Succeed())
 			Expect(fakeKubeClient.BuildCall).To(Equal(3))
 			Expect(fakeKubeClient.CreateCall).To(Equal(2))
 		})
@@ -184,15 +184,14 @@ var _ = Describe("HelmInstaller", func() {
 				Expect(os.WriteFile(filepath.Join(tmp, "repositories.yaml"), []byte(expectedRepositoryYaml), 0644)).To(Succeed())
 				Expect(copy.Copy(filepath.Join("testdata", "karpenter-0.4.3.tgz"), filepath.Join(tmp, "karpenter-0.4.3.tgz"))).To(Succeed())
 				Expect(copy.Copy(filepath.Join("testdata", "karpenter-index.yaml"), filepath.Join(tmp, "karpenter-index.yaml"))).To(Succeed())
-				Expect(installerUnderTest.InstallChart(
-					context.Background(),
-					"karpenter",
-					"karpenter/karpenter",
-					"karpenter",
-					"0.4.3",
-					false,
-					values,
-				)).To(Succeed())
+				Expect(installerUnderTest.InstallChart(context.Background(), providers.InstallChartOpts{
+					ChartName:       "karpenter/karpenter",
+					CreateNamespace: false,
+					Namespace:       "karpenter",
+					ReleaseName:     "karpenter",
+					Values:          values,
+					Version:         "0.4.3",
+				})).To(Succeed())
 				// Verifying the call number is easier than trying to mock RestClient calls through the fake kube client.
 				// And the Printer does not work, because the Builder returns an empty list that the Creator gleefully
 				// accepts and does nothing.
@@ -202,15 +201,15 @@ var _ = Describe("HelmInstaller", func() {
 		})
 		When("locate chart is unable to find the requested chart", func() {
 			It("errors", func() {
-				Expect(installerUnderTest.InstallChart(
-					context.Background(),
-					"karpenter",
-					"karpenter/karpenter",
-					"karpenter",
-					"0.4.3",
-					true,
-					values,
-				)).To(MatchError(ContainSubstring("repo karpenter not found")))
+				err := installerUnderTest.InstallChart(context.Background(), providers.InstallChartOpts{
+					ChartName:       "karpenter/karpenter",
+					CreateNamespace: true,
+					Namespace:       "karpenter",
+					ReleaseName:     "karpenter",
+					Values:          values,
+					Version:         "0.4.3",
+				})
+				Expect(err).To(MatchError(ContainSubstring("repo karpenter not found")))
 			})
 		})
 		When("the version is unknown", func() {
@@ -218,29 +217,29 @@ var _ = Describe("HelmInstaller", func() {
 				Expect(os.WriteFile(filepath.Join(tmp, "repositories.yaml"), []byte(expectedRepositoryYaml), 0644)).To(Succeed())
 				Expect(copy.Copy(filepath.Join("testdata", "karpenter-0.4.3.tgz"), filepath.Join(tmp, "karpenter-0.4.3.tgz"))).To(Succeed())
 				Expect(copy.Copy(filepath.Join("testdata", "karpenter-index.yaml"), filepath.Join(tmp, "karpenter-index.yaml"))).To(Succeed())
-				Expect(installerUnderTest.InstallChart(
-					context.Background(),
-					"karpenter",
-					"karpenter/karpenter",
-					"karpenter",
-					"0.1.0",
-					true,
-					values,
-				)).To(MatchError(ContainSubstring("failed to locate chart: chart \"karpenter\" matching 0.1.0 not found in karpenter index. (try 'helm repo update'): no chart version found for karpenter-0.1.0")))
+				err := installerUnderTest.InstallChart(context.Background(), providers.InstallChartOpts{
+					ChartName:       "karpenter/karpenter",
+					CreateNamespace: true,
+					Namespace:       "karpenter",
+					ReleaseName:     "karpenter",
+					Values:          values,
+					Version:         "0.1.0",
+				})
+				Expect(err).To(MatchError(ContainSubstring("failed to locate chart: chart \"karpenter\" matching 0.1.0 not found in karpenter index. (try 'helm repo update'): no chart version found for karpenter-0.1.0")))
 			})
 		})
 		When("repository is invalid", func() {
 			It("errors", func() {
 				Expect(os.WriteFile(filepath.Join(tmp, "repositories.yaml"), []byte("invalid\n"), 0644)).To(Succeed())
-				Expect(installerUnderTest.InstallChart(
-					context.Background(),
-					"karpenter",
-					"karpenter/karpenter",
-					"karpenter",
-					"0.1.0",
-					true,
-					values,
-				)).To(MatchError(ContainSubstring("error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go value of type repo.File")))
+				err := installerUnderTest.InstallChart(context.Background(), providers.InstallChartOpts{
+					ChartName:       "karpenter/karpenter",
+					CreateNamespace: true,
+					Namespace:       "karpenter",
+					ReleaseName:     "karpenter",
+					Values:          values,
+					Version:         "0.1.0",
+				})
+				Expect(err).To(MatchError(ContainSubstring("error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go value of type repo.File")))
 			})
 		})
 		When("kube client fails to reach the cluster", func() {
@@ -254,15 +253,15 @@ var _ = Describe("HelmInstaller", func() {
 				}
 				actionConfig.KubeClient = fakeKube
 				installerUnderTest.ActionConfig = actionConfig
-				Expect(installerUnderTest.InstallChart(
-					context.Background(),
-					"karpenter",
-					"karpenter/karpenter",
-					"karpenter",
-					"0.4.3",
-					true,
-					values,
-				)).To(MatchError(ContainSubstring("failed to install chart: failed to install CRD crds/karpenter.sh_provisioners.yaml: nope")))
+				err := installerUnderTest.InstallChart(context.Background(), providers.InstallChartOpts{
+					ChartName:       "karpenter/karpenter",
+					CreateNamespace: true,
+					Namespace:       "karpenter",
+					ReleaseName:     "karpenter",
+					Values:          values,
+					Version:         "0.4.3",
+				})
+				Expect(err).To(MatchError(ContainSubstring("failed to install chart: failed to install CRD crds/karpenter.sh_provisioners.yaml: nope")))
 			})
 		})
 	})

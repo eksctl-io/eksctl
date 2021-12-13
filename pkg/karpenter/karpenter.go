@@ -80,7 +80,14 @@ func (k *Installer) Install(ctx context.Context) error {
 		},
 	}
 	logger.Debug("the following values will be applied to the install: %+v", values)
-	if err := k.HelmInstaller.InstallChart(ctx, releaseName, helmChartName, DefaultNamespace, k.Version, k.CreateNamespace, values); err != nil {
+	if err := k.HelmInstaller.InstallChart(ctx, providers.InstallChartOpts{
+		ChartName:       helmChartName,
+		CreateNamespace: k.CreateNamespace,
+		Namespace:       DefaultNamespace,
+		ReleaseName:     releaseName,
+		Values:          values,
+		Version:         k.Version,
+	}); err != nil {
 		return fmt.Errorf("failed to install Karpenter chart: %w", err)
 	}
 	return nil

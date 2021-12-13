@@ -27,7 +27,6 @@ func (i *Installer) Create() error {
 			return i.ClientSet, nil
 		},
 	}
-	i.Config.SetDefaultKarpenterCreateServiceAccount()
 	if api.IsDisabled(i.Config.Karpenter.CreateServiceAccount) {
 		karpenterServiceAccountTaskTree := i.StackManager.NewTasksToCreateIAMServiceAccounts([]*api.ClusterIAMServiceAccount{
 			{

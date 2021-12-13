@@ -270,6 +270,7 @@ var _ = Describe("Create", func() {
 		})
 		When("create service account fails", func() {
 			BeforeEach(func() {
+				cfg.Karpenter.CreateServiceAccount = api.Disabled()
 				ft := &fakeTask{
 					err: errors.New("nope"),
 				}

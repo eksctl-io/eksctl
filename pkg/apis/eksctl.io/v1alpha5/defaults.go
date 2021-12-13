@@ -329,7 +329,7 @@ func (c *ClusterConfig) SetDefaultFargateProfile() {
 // SetDefaultKarpenterCreateServiceAccount disables the create service account option for Karpenter if it's not
 // defined in the configuration file explicitly.
 func (c *ClusterConfig) SetDefaultKarpenterCreateServiceAccount() {
-	if c.Karpenter != nil && c.Karpenter.CreateServiceAccount == nil {
+	if c.Karpenter.CreateServiceAccount == nil {
 		c.Karpenter.CreateServiceAccount = Disabled()
 	}
 }
