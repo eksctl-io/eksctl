@@ -48,6 +48,31 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		Expect(js).To(MatchJSON([]byte(expected)))
 	})
 
+	It("can create a serviceaccount object even if the serviceaccount name is \"default\"", func() {
+		sa := NewServiceAccount(metav1.ObjectMeta{Name: "default", Namespace: "ns-1"})
+
+		Expect(sa.APIVersion).To(Equal("v1"))
+		Expect(sa.Kind).To(Equal("ServiceAccount"))
+		Expect(sa.Name).To(Equal("default"))
+		Expect(sa.Namespace).To(Equal("ns-1"))
+
+		Expect(sa.Labels).To(BeEmpty())
+
+		js, err := json.Marshal(sa)
+		Expect(err).NotTo(HaveOccurred())
+
+		expected := `{
+				"apiVersion": "v1",
+				"kind": "ServiceAccount",
+				"metadata": {
+					"creationTimestamp": null,
+					"name": "default",
+					"namespace": "ns-1"
+				}
+			}`
+		Expect(js).To(MatchJSON([]byte(expected)))
+	})
+
 	It("can create serviceaccount using fake client, and update it in incremental manner with overrides", func() {
 		sa := metav1.ObjectMeta{Name: "sa-1", Namespace: "ns-1"}
 
