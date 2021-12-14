@@ -40,7 +40,7 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 				"apiVersion": "v1",
 				"kind": "ServiceAccount",
 				"metadata": {
-		  			"creationTimestamp": null,
+					"creationTimestamp": null,
 					"name": "sa-1",
 					"namespace": "ns-1"
 				}
