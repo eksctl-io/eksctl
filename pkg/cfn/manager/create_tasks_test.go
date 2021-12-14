@@ -37,7 +37,7 @@ var _ = Describe("CreateTasks", func() {
 				modifySubnetAttributeCallCount++
 			}).Return(&ec2.ModifySubnetAttributeOutput{}, nil)
 
-			task := manager.AssignIpv6AddressOnCreationTask{
+			task := manager.UpdateSubnetsForIPv6Task{
 				EC2API:        p.EC2(),
 				ClusterConfig: clusterConfig,
 			}
@@ -64,13 +64,13 @@ var _ = Describe("CreateTasks", func() {
 					Expect(subnetIDs).To(ContainElement(*modifySubnetAttributeInput.SubnetId))
 				}).Return(&ec2.ModifySubnetAttributeOutput{}, fmt.Errorf("foo"))
 
-				task := manager.AssignIpv6AddressOnCreationTask{
+				task := manager.UpdateSubnetsForIPv6Task{
 					EC2API:        p.EC2(),
 					ClusterConfig: clusterConfig,
 				}
 				errorCh := make(chan error)
 				err := task.Do(errorCh)
-				Expect(err).To(MatchError("failed to update subnet \"123\": foo"))
+				Expect(err).To(MatchError("failed to update public subnet \"123\": foo"))
 
 				By("closing the error channel")
 				Eventually(errorCh).Should(BeClosed())
