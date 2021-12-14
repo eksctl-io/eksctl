@@ -27,20 +27,35 @@ func (i *Installer) Create() error {
 			return i.ClientSet, nil
 		},
 	}
+	var (
+		iamServiceAccount *api.ClusterIAMServiceAccount
+		roleARN           string
+	)
 	if api.IsDisabled(i.Config.Karpenter.CreateServiceAccount) {
-		karpenterServiceAccountTaskTree := i.StackManager.NewTasksToCreateIAMServiceAccounts([]*api.ClusterIAMServiceAccount{
-			{
-				ClusterIAMMeta: api.ClusterIAMMeta{
-					Name:      karpenter.DefaultServiceAccountName,
-					Namespace: karpenter.DefaultNamespace,
-				},
-				AttachRoleARN: roleArn,
+		iamServiceAccount = &api.ClusterIAMServiceAccount{
+			ClusterIAMMeta: api.ClusterIAMMeta{
+				Name:      karpenter.DefaultServiceAccountName,
+				Namespace: karpenter.DefaultNamespace,
 			},
-		}, nil, clientSetGetter)
-		logger.Info(karpenterServiceAccountTaskTree.Describe())
-		if err := doTasks(karpenterServiceAccountTaskTree); err != nil {
-			return fmt.Errorf("failed to create service account: %w", err)
+			AttachRoleARN: roleArn,
 		}
+	} else {
+		// Create the service account role only.
+		roleName := fmt.Sprintf("eksctl-%s-iamservice-role", i.Config.Metadata.Name)
+		roleARN = fmt.Sprintf("arn:aws:iam:%s:role/%s", parsedARN.AccountID, roleName)
+		iamServiceAccount = &api.ClusterIAMServiceAccount{
+			ClusterIAMMeta: api.ClusterIAMMeta{
+				Name:      karpenter.DefaultServiceAccountName,
+				Namespace: karpenter.DefaultNamespace,
+			},
+			RoleOnly: api.Enabled(),
+			RoleName: roleName,
+		}
+	}
+	karpenterServiceAccountTaskTree := i.StackManager.NewTasksToCreateIAMServiceAccounts([]*api.ClusterIAMServiceAccount{iamServiceAccount}, i.OIDC, clientSetGetter)
+	logger.Info(karpenterServiceAccountTaskTree.Describe())
+	if err := doTasks(karpenterServiceAccountTaskTree); err != nil {
+		return fmt.Errorf("failed to create/attach service account: %w", err)
 	}
 	// create identity mapping for EC2 nodes to be able to join the cluster.
 	acm, err := authconfigmap.NewFromClientSet(i.ClientSet)
@@ -55,6 +70,6 @@ func (i *Installer) Create() error {
 	if err := acm.AddIdentity(id); err != nil {
 		return fmt.Errorf("failed to add new identity: %w", err)
 	}
-	taskTree := NewTasksToInstallKarpenter(i.Config, i.StackManager, i.CTL.Provider.EC2(), i.KarpenterInstaller)
+	taskTree := NewTasksToInstallKarpenter(i.Config, i.StackManager, i.CTL.Provider.EC2(), i.KarpenterInstaller, roleARN)
 	return doTasks(taskTree)
 }

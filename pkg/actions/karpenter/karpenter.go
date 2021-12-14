@@ -11,6 +11,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/karpenter"
 	"github.com/weaveworks/eksctl/pkg/karpenter/providers/helm"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -26,6 +27,7 @@ type Installer struct {
 	Wait               WaitFunc
 	KarpenterInstaller karpenter.ChartInstaller
 	ClientSet          kubernetes.Interface
+	OIDC               *iamoidc.OpenIDConnectManager
 }
 
 type WaitFunc func(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error
@@ -43,6 +45,20 @@ func NewInstaller(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager
 		Namespace:     karpenter.DefaultNamespace,
 		ClusterConfig: cfg,
 	})
+	oidc, err := ctl.NewOpenIDConnectManager(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	oidcProviderExists, err := oidc.CheckProviderExists()
+	if err != nil {
+		return nil, err
+	}
+
+	if !oidcProviderExists {
+		logger.Warning("no IAM OIDC provider associated with cluster, try 'eksctl utils associate-iam-oidc-provider --region=%s --cluster=%s'", cfg.Metadata.Region, cfg.Metadata.Name)
+	}
+
 	return &Installer{
 		StackManager:       stackManager,
 		CTL:                ctl,
@@ -50,6 +66,7 @@ func NewInstaller(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager
 		Wait:               waiters.Wait,
 		KarpenterInstaller: karpenterInstaller,
 		ClientSet:          clientSet,
+		OIDC:               oidc,
 	}, nil
 }
 

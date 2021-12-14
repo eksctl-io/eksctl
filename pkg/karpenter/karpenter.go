@@ -16,19 +16,15 @@ const (
 	// DefaultServiceAccountName is the name of the service account which is needed for Karpenter
 	DefaultServiceAccountName = "karpenter"
 
-	clusterEndpoint    = "clusterEndpoint"
-	clusterName        = "clusterName"
-	controller         = "controller"
-	create             = "create"
-	defaultProvisioner = "defaultProvisioner"
-	helmChartName      = "karpenter/karpenter"
-	helmRepo           = "https://charts.karpenter.sh"
-	releaseName        = "karpenter"
-	serviceAccount     = "serviceAccount"
-)
-
-const (
-	addDefaultProvisionerDefaultValue = false
+	clusterEndpoint          = "clusterEndpoint"
+	clusterName              = "clusterName"
+	controller               = "controller"
+	create                   = "create"
+	helmChartName            = "karpenter/karpenter"
+	helmRepo                 = "https://charts.karpenter.sh"
+	releaseName              = "karpenter"
+	serviceAccount           = "serviceAccount"
+	serviceAccountAnnotation = "annotations"
 )
 
 // Options contains values which Karpenter uses to configure the installation.
@@ -42,7 +38,7 @@ type Options struct {
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_chart_installer.go . ChartInstaller
 type ChartInstaller interface {
-	Install(ctx context.Context) error
+	Install(ctx context.Context, serviceAccountRoleARN string) error
 }
 
 // Installer implements the Karpenter installer functionality.
@@ -58,23 +54,26 @@ func NewKarpenterInstaller(opts Options) *Installer {
 }
 
 // Install adds Karpenter to a configured cluster in a separate CloudFormation stack.
-func (k *Installer) Install(ctx context.Context) error {
+func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string) error {
 	logger.Info("adding Karpenter to cluster %s", k.ClusterConfig.Metadata.Name)
 	logger.Debug("cluster endpoint used by Karpenter: %s", k.ClusterConfig.Status.Endpoint)
 	if err := k.HelmInstaller.AddRepo(helmRepo, releaseName); err != nil {
 		return fmt.Errorf("failed to add Karpenter repository: %w", err)
+	}
+	serviceAccountMap := map[string]interface{}{
+		create: api.IsEnabled(k.ClusterConfig.Karpenter.CreateServiceAccount),
+	}
+	if serviceAccountRoleARN != "" {
+		serviceAccountMap[serviceAccountAnnotation] = map[string]interface{}{
+			api.AnnotationEKSRoleARN: serviceAccountRoleARN,
+		}
 	}
 	values := map[string]interface{}{
 		controller: map[string]interface{}{
 			clusterName:     k.ClusterConfig.Metadata.Name,
 			clusterEndpoint: k.ClusterConfig.Status.Endpoint,
 		},
-		serviceAccount: map[string]interface{}{
-			create: api.IsEnabled(k.ClusterConfig.Karpenter.CreateServiceAccount),
-		},
-		defaultProvisioner: map[string]interface{}{
-			create: addDefaultProvisionerDefaultValue,
-		},
+		serviceAccount: serviceAccountMap,
 	}
 	logger.Debug("the following values will be applied to the install: %+v", values)
 	if err := k.HelmInstaller.InstallChart(ctx, providers.InstallChartOpts{

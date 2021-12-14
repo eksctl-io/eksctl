@@ -161,8 +161,8 @@ func validateKarpenterConfig(cfg *ClusterConfig) error {
 	if cfg.Karpenter.Version == "" {
 		return errors.New("version field is required if installing Karpenter is enabled")
 	}
-	if len(cfg.FargateProfiles) > 0 && IsDisabled(cfg.IAM.WithOIDC) {
-		return errors.New("iam.withOIDC must be enabled with Karpenter and Fargate profiles")
+	if IsDisabled(cfg.IAM.WithOIDC) {
+		return errors.New("iam.withOIDC must be enabled with Karpenter")
 	}
 	return nil
 }

@@ -23,11 +23,12 @@ const (
 )
 
 type karpenterTask struct {
-	info               string
-	stackManager       manager.StackManager
-	cfg                *api.ClusterConfig
-	ec2API             ec2iface.EC2API
-	karpenterInstaller karpenter.ChartInstaller
+	info                  string
+	stackManager          manager.StackManager
+	cfg                   *api.ClusterConfig
+	ec2API                ec2iface.EC2API
+	karpenterInstaller    karpenter.ChartInstaller
+	serviceAccountRoleARN string
 }
 
 func (k *karpenterTask) Describe() string { return k.info }
@@ -36,14 +37,15 @@ func (k *karpenterTask) Do(errs chan error) error {
 }
 
 // NewTasksToInstallKarpenter defines tasks required to create Karpenter
-func NewTasksToInstallKarpenter(cfg *api.ClusterConfig, stackManager manager.StackManager, ec2API ec2iface.EC2API, karpenterInstaller karpenter.ChartInstaller) *tasks.TaskTree {
+func NewTasksToInstallKarpenter(cfg *api.ClusterConfig, stackManager manager.StackManager, ec2API ec2iface.EC2API, karpenterInstaller karpenter.ChartInstaller, serviceAccountRoleARN string) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}
 	taskTree.Append(&karpenterTask{
-		info:               fmt.Sprintf("create karpenter for stack %q", cfg.Metadata.Name),
-		stackManager:       stackManager,
-		cfg:                cfg,
-		ec2API:             ec2API,
-		karpenterInstaller: karpenterInstaller,
+		info:                  fmt.Sprintf("create karpenter for stack %q", cfg.Metadata.Name),
+		stackManager:          stackManager,
+		cfg:                   cfg,
+		ec2API:                ec2API,
+		karpenterInstaller:    karpenterInstaller,
+		serviceAccountRoleARN: serviceAccountRoleARN,
 	})
 	return taskTree
 }
@@ -68,7 +70,7 @@ func (k *karpenterTask) createKarpenterTask(errs chan error) error {
 	if err := k.ensureSubnetsHaveTags(); err != nil {
 		return err
 	}
-	return k.karpenterInstaller.Install(context.Background())
+	return k.karpenterInstaller.Install(context.Background(), k.serviceAccountRoleARN)
 }
 
 // makeNodeGroupStackName generates the name of the Karpenter stack identified by its name, isolated by the cluster this StackCollection operates on

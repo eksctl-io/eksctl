@@ -9,10 +9,11 @@ import (
 )
 
 type FakeChartInstaller struct {
-	InstallStub        func(context.Context) error
+	InstallStub        func(context.Context, string) error
 	installMutex       sync.RWMutex
 	installArgsForCall []struct {
 		arg1 context.Context
+		arg2 string
 	}
 	installReturns struct {
 		result1 error
@@ -24,18 +25,19 @@ type FakeChartInstaller struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeChartInstaller) Install(arg1 context.Context) error {
+func (fake *FakeChartInstaller) Install(arg1 context.Context, arg2 string) error {
 	fake.installMutex.Lock()
 	ret, specificReturn := fake.installReturnsOnCall[len(fake.installArgsForCall)]
 	fake.installArgsForCall = append(fake.installArgsForCall, struct {
 		arg1 context.Context
-	}{arg1})
+		arg2 string
+	}{arg1, arg2})
 	stub := fake.InstallStub
 	fakeReturns := fake.installReturns
-	fake.recordInvocation("Install", []interface{}{arg1})
+	fake.recordInvocation("Install", []interface{}{arg1, arg2})
 	fake.installMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
@@ -49,17 +51,17 @@ func (fake *FakeChartInstaller) InstallCallCount() int {
 	return len(fake.installArgsForCall)
 }
 
-func (fake *FakeChartInstaller) InstallCalls(stub func(context.Context) error) {
+func (fake *FakeChartInstaller) InstallCalls(stub func(context.Context, string) error) {
 	fake.installMutex.Lock()
 	defer fake.installMutex.Unlock()
 	fake.InstallStub = stub
 }
 
-func (fake *FakeChartInstaller) InstallArgsForCall(i int) context.Context {
+func (fake *FakeChartInstaller) InstallArgsForCall(i int) (context.Context, string) {
 	fake.installMutex.RLock()
 	defer fake.installMutex.RUnlock()
 	argsForCall := fake.installArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeChartInstaller) InstallReturns(result1 error) {
