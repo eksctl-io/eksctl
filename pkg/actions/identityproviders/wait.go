@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
+
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
@@ -38,8 +39,5 @@ func (m *Manager) waitForUpdate(
 		clusterName,
 	)
 
-	if err := waiters.Wait(clusterName, msg, acceptors, newRequest, timeout, nil); err != nil {
-		return err
-	}
-	return nil
+	return waiters.Wait(clusterName, msg, acceptors, newRequest, timeout, nil)
 }

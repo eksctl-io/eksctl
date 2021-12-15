@@ -367,6 +367,63 @@ var _ = Describe("cmdutils configfile", func() {
 			})
 		})
 	})
+
+	Describe("SetLabelLoader", func() {
+		It("should load the right data", func() {
+			cmd := &Cmd{
+				CobraCommand:      newCmd(),
+				ClusterConfigFile: filepath.Join("test_data", "cluster-with-labels.yaml"),
+				ClusterConfig:     api.NewClusterConfig(),
+				ProviderConfig:    api.ProviderConfig{},
+			}
+
+			Expect(NewSetLabelLoader(cmd, "ng-1", nil).Load()).To(Succeed())
+			cfg := cmd.ClusterConfig
+			Expect(cfg.Metadata.Name).To(Equal("test-labels-1"))
+			Expect(cfg.ManagedNodeGroups[0].Name).To(Equal("ng-1"))
+		})
+		When("no config file is provided and no labels", func() {
+			It("errors", func() {
+				cmd := &Cmd{
+					CobraCommand:   newCmd(),
+					ClusterConfig:  api.NewClusterConfig(),
+					ProviderConfig: api.ProviderConfig{},
+				}
+
+				err := NewSetLabelLoader(cmd, "", nil).Load()
+				Expect(err).To(MatchError(ContainSubstring("--labels must be set")))
+			})
+		})
+		When("config file with no nodegroup name is provided", func() {
+			It("should load all nodegroups", func() {
+				cmd := &Cmd{
+					CobraCommand:      newCmd(),
+					ClusterConfigFile: filepath.Join("test_data", "cluster-with-labels.yaml"),
+					ClusterConfig:     api.NewClusterConfig(),
+					ProviderConfig:    api.ProviderConfig{},
+				}
+
+				Expect(NewSetLabelLoader(cmd, "", nil).Load()).To(Succeed())
+				cfg := cmd.ClusterConfig
+				Expect(cfg.Metadata.Name).To(Equal("test-labels-1"))
+				Expect(cfg.ManagedNodeGroups[0].Name).To(Equal("ng-1"))
+				Expect(cfg.ManagedNodeGroups[1].Name).To(Equal("ng-2"))
+			})
+		})
+		When("config file with missing nodegroup name is provided", func() {
+			It("errors", func() {
+				cmd := &Cmd{
+					CobraCommand:      newCmd(),
+					ClusterConfigFile: filepath.Join("test_data", "cluster-with-labels.yaml"),
+					ClusterConfig:     api.NewClusterConfig(),
+					ProviderConfig:    api.ProviderConfig{},
+				}
+
+				err := NewSetLabelLoader(cmd, "invalid", nil).Load()
+				Expect(err).To(MatchError(ContainSubstring("nodegroup with name invalid not found in the config file")))
+			})
+		})
+	})
 })
 
 func assertValidClusterEndpoint(endpoints *api.ClusterEndpoints, privateAccess, publicAccess bool) {

@@ -1,6 +1,7 @@
 //go:build integration
 // +build integration
 
+//revive:disable Not changing package name
 package unowned_clusters
 
 import (
@@ -11,23 +12,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/weaveworks/eksctl/pkg/eks"
-
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-
 	"github.com/aws/aws-sdk-go/aws"
-
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-
+	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/weaveworks/eksctl/integration/runner"
-	"github.com/weaveworks/eksctl/integration/tests"
-	"github.com/weaveworks/eksctl/pkg/testutils"
-
+	"github.com/aws/aws-sdk-go/service/kms"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+
+	. "github.com/weaveworks/eksctl/integration/runner"
+	"github.com/weaveworks/eksctl/integration/tests"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
 var params *tests.Params

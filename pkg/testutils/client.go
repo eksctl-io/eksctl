@@ -266,6 +266,7 @@ func NewFakeRawResource(item runtime.Object, missing, unionised bool, ct *Collec
 
 type FakeRawClient struct {
 	Collection                 *CollectionTracker
+	ExistingClientSet          kubernetes.Interface
 	AssumeObjectsMissing       bool
 	ClientSetUseUpdatedObjects bool
 	UseUnionTracker            bool
@@ -277,7 +278,17 @@ func NewFakeRawClient() *FakeRawClient {
 	}
 }
 
+func NewFakeRawClientWithSamples(sample string) *FakeRawClient {
+	clientSet, _ := NewFakeClientSetWithSamples(sample)
+	return &FakeRawClient{
+		ExistingClientSet: clientSet,
+	}
+}
+
 func (c *FakeRawClient) ClientSet() kubeclient.Interface {
+	if c.ExistingClientSet != nil {
+		return c.ExistingClientSet
+	}
 	if c.UseUnionTracker {
 		// TODO: try to use clientSet.Fake.Actions, clientSet.Fake.PrependReactor
 		// or any of the other hooks to connect this clientset instance with

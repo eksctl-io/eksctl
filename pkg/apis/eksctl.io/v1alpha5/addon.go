@@ -19,7 +19,7 @@ type Addon struct {
 	// AttachPolicy holds a policy document to attach
 	// +optional
 	AttachPolicy InlineDocument `json:"attachPolicy,omitempty"`
-	// ARN of the permissions boundary to associate
+	// ARN of the permissions' boundary to associate
 	// +optional
 	PermissionsBoundary string `json:"permissionsBoundary,omitempty"`
 	// WellKnownPolicies for attaching common IAM policies
@@ -41,11 +41,7 @@ func (a Addon) Validate() error {
 		return fmt.Errorf("name required")
 	}
 
-	if err := a.checkOnlyOnePolicyProviderIsSet(); err != nil {
-		return err
-	}
-
-	return nil
+	return a.checkOnlyOnePolicyProviderIsSet()
 }
 
 func (a Addon) checkOnlyOnePolicyProviderIsSet() error {

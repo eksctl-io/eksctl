@@ -16,21 +16,15 @@ var _ = Describe("get", func() {
 		})
 
 		It("setting --name and argument at the same time", func() {
-			cmd := newMockCmd("nodegroup", "ng", "--name", "ng")
+			cmd := newMockCmd("nodegroup", "ng", "--cluster", "dummy", "--name", "ng")
 			_, err := cmd.execute()
 			Expect(err).To(MatchError(ContainSubstring("Error: --name=ng and argument ng cannot be used at the same time")))
-		})
-
-		It("setting --cluster and argument at the same time", func() {
-			cmd := newMockCmd("nodegroup", "ng", "--cluster", "name")
-			_, err := cmd.execute()
-			Expect(err).To(MatchError(ContainSubstring("Error: --cluster=name and argument ng cannot be used at the same time")))
 		})
 
 		It("setting --name and --config-file at the same time", func() {
 			f, err := os.CreateTemp("", "configfile")
 			Expect(err).NotTo(HaveOccurred())
-			_, err = f.WriteString(configFile)
+			_, err = f.WriteString(nodegroupConfigFile)
 			Expect(err).NotTo(HaveOccurred())
 			cmd := newMockCmd("nodegroup", "--name", "name", "--config-file", f.Name())
 			_, err = cmd.execute()
@@ -40,7 +34,7 @@ var _ = Describe("get", func() {
 		It("setting --cluster and --config-file at the same time", func() {
 			f, err := os.CreateTemp("", "configfile")
 			Expect(err).NotTo(HaveOccurred())
-			_, err = f.WriteString(configFile)
+			_, err = f.WriteString(nodegroupConfigFile)
 			Expect(err).NotTo(HaveOccurred())
 			cmd := newMockCmd("nodegroup", "--cluster", "name", "--config-file", f.Name())
 			_, err = cmd.execute()
@@ -55,7 +49,7 @@ var _ = Describe("get", func() {
 	})
 })
 
-var configFile = `apiVersion: eksctl.io/v1alpha5
+var nodegroupConfigFile = `apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:

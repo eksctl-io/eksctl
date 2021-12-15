@@ -8,7 +8,7 @@ func init() {
 	// we must patch the manifest until we can use fake
 	// clientset that supports CRDs
 
-	awsNode := string(awsNodeYaml)
+	awsNode := string(latestAWSNodeYaml)
 
 	awsNodeParts := strings.Split(awsNode, "---\n")
 	nonCRDs := []string{}
@@ -21,5 +21,5 @@ func init() {
 
 	awsNode = strings.Join(nonCRDs, "---\n")
 
-	awsNodeYaml = []byte(awsNode)
+	latestAWSNodeYaml = []byte(awsNode)
 }

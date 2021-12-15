@@ -11,19 +11,18 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
+	"github.com/weaveworks/eksctl/pkg/actions/flux"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"k8s.io/client-go/tools/clientcmd"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
@@ -355,24 +354,18 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			}
 		}
 
-		// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
-		if cfg.HasGitopsRepoConfigured() {
-			logger.Warning("git.X configuration is marked for deprecation: Please see https://github.com/weaveworks/eksctl/issues/2963")
-		}
-		if cfg.HasGitopsRepoConfigured() || cfg.HasGitOpsFluxConfigured() {
-			kubernetesClientConfigs, err := ctl.NewClient(cfg)
+		if cfg.HasGitOpsFluxConfigured() {
+			installer, err := flux.New(clientSet, cfg.GitOps)
+			logger.Info("gitops configuration detected, setting installer to Flux v2")
 			if err != nil {
+				return errors.Wrapf(err, "could not initialise Flux installer")
+			}
+
+			if err := installer.Run(); err != nil {
 				return err
 			}
-			k8sConfig := kubernetesClientConfigs.Config
-			k8sRestConfig, err := clientcmd.NewDefaultClientConfig(*k8sConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
-			if err != nil {
-				return errors.Wrap(err, "cannot create Kubernetes client configuration")
-			}
-			err = gitops.Setup(params.KubeconfigPath, k8sRestConfig, clientSet, cfg, gitops.DefaultPodReadyTimeout)
-			if err != nil {
-				return err
-			}
+
+			//TODO why was it returning early before? I want to remove this line :thinking:
 			return nil
 		}
 
@@ -398,11 +391,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 
 	logger.Success("%s is ready", meta.LogString())
 
-	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
-		return err
-	}
-
-	return nil
+	return printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg)
 }
 
 func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmdutils.CreateClusterCmdParams, ctl *eks.ClusterProvider) error {
@@ -421,10 +410,8 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 		if params.DryRun {
 			return nil
 		}
-		if err := vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones); err != nil {
-			return err
-		}
-		return nil
+
+		return vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones)
 	}
 
 	if params.KopsClusterNameForVPC != "" {

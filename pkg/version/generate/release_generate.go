@@ -104,8 +104,5 @@ func writeVersionToFile(version, preReleaseID, fileName string) error {
 	f.Comment("buildDate is the time of the build with format yyyy-mm-ddThh:mm:ssZ. It will be set by the linker.")
 	f.Var().Id("buildDate").Op("=").Lit("")
 
-	if err := f.Save(fileName); err != nil {
-		return err
-	}
-	return nil
+	return f.Save(fileName)
 }

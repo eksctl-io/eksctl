@@ -57,15 +57,11 @@ and our [proposal contributing guide](https://github.com/weaveworks/eksctl/blob/
 ### Flux v2 integration (GitOps Toolkit)
 
 In 2019 `eksctl` gave users a way to easily create a Gitops-ready ([Flux v1](https://docs.fluxcd.io/en/1.21.1/))
-cluster and to declare a set of pre-installed applications ([Quickstart profiles](/usage/gitops-v1/#installing-a-quickstart-profile-in-your-cluster))
-which can be managed via a git repo.
+cluster and to declare a set of pre-installed applications Quickstart profiles which can be managed via a git repo.
 
 Since then, the practice of GitOps has matured, therefore `eksctl`'s support of
-GitOps will change to keep up with current standards.
+GitOps has changed to keep up with current standards. From version 0.76.0 Flux v1 support was removed after an 11
+month deprecation period. In its place support for [Flux v2](https://fluxcd.io/) can be used via
+`eksctl enable flux`
 
-The first stage of this is implementing support for [Flux v2](https://fluxcd.io/).
-This support already exists in an experimental form in `eksctl` (`eksctl enable flux`)
-and work there will carry on throughout the year.
-The next stage is to deprecate support for Flux v1, and expand the capacity of
-quickstart profiles. More information can be found [here](https://github.com/weaveworks/eksctl/issues/2963).
 

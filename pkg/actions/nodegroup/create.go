@@ -189,11 +189,7 @@ func (m *Manager) nodeCreationTasks(options CreateOpts, nodegroupFilter filter.N
 	}
 
 	taskTree.Append(allNodeGroupTasks)
-	if err := m.init.DoAllNodegroupStackTasks(taskTree, meta.Region, meta.Name); err != nil {
-		return err
-	}
-
-	return nil
+	return m.init.DoAllNodegroupStackTasks(taskTree, meta.Region, meta.Name)
 }
 
 func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options CreateOpts) error {
@@ -279,7 +275,7 @@ func (m *Manager) checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes
 		return err
 	}
 	if api.ClusterHasInstanceType(cfg, instanceutils.IsARMInstanceType) {
-		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(clientSet, rawClient, kubernetesVersion, ctl.Provider.Region())
+		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(ctl.Provider.EKS(), rawClient, kubernetesVersion, ctl.Provider.Region())
 		if err != nil {
 			return err
 		}
@@ -307,9 +303,5 @@ func loadVPCFromConfig(provider api.ClusterProvider, cfg *api.ClusterConfig) err
 		return err
 	}
 
-	if err := cfg.CanUseForPrivateNodeGroups(); err != nil {
-		return err
-	}
-
-	return nil
+	return cfg.CanUseForPrivateNodeGroups()
 }
