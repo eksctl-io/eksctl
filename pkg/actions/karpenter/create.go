@@ -42,14 +42,15 @@ func (i *Installer) Create() error {
 	} else {
 		// Create the service account role only.
 		roleName := fmt.Sprintf("eksctl-%s-iamservice-role", i.Config.Metadata.Name)
-		roleARN = fmt.Sprintf("arn:aws:iam:%s:role/%s", parsedARN.AccountID, roleName)
+		roleARN = fmt.Sprintf("arn:aws:iam::%s:role/%s", parsedARN.AccountID, roleName)
 		iamServiceAccount = &api.ClusterIAMServiceAccount{
 			ClusterIAMMeta: api.ClusterIAMMeta{
 				Name:      karpenter.DefaultServiceAccountName,
 				Namespace: karpenter.DefaultNamespace,
 			},
-			RoleOnly: api.Enabled(),
-			RoleName: roleName,
+			RoleOnly:     api.Enabled(),
+			RoleName:     roleName,
+			AttachPolicy: makePolicyDocument(),
 		}
 	}
 	karpenterServiceAccountTaskTree := i.StackManager.NewTasksToCreateIAMServiceAccounts([]*api.ClusterIAMServiceAccount{iamServiceAccount}, i.OIDC, clientSetGetter)
@@ -72,4 +73,32 @@ func (i *Installer) Create() error {
 	}
 	taskTree := NewTasksToInstallKarpenter(i.Config, i.StackManager, i.CTL.Provider.EC2(), i.KarpenterInstaller, roleARN)
 	return doTasks(taskTree)
+}
+
+func makePolicyDocument() map[string]interface{} {
+	return map[string]interface{}{
+		"Version": "2012-10-17",
+		"Statement": []map[string]interface{}{
+			{
+				"Effect": "Allow",
+				"Action": []string{
+					"ec2:AssignPrivateIpAddresses",
+					"ec2:CreateFleet",
+					"ec2:RunInstances",
+					"ec2:CreateTags",
+					"iam:PassRole",
+					"ec2:TerminateInstances",
+					"ec2:DescribeLaunchTemplates",
+					"ec2:DescribeInstances",
+					"ec2:DescribeSecurityGroups",
+					"ec2:DescribeSubnets",
+					"ec2:DescribeInstanceTypes",
+					"ec2:DescribeInstanceTypeOfferings",
+					"ec2:DescribeAvailabilityZones",
+					"ssm:GetParameter",
+				},
+				"Resource": "*",
+			},
+		},
+	}
 }
