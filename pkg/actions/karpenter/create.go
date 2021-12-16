@@ -1,6 +1,7 @@
 package karpenter
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -26,29 +27,35 @@ func (i *Installer) Create() error {
 			return i.ClientSet, nil
 		},
 	}
+	// Create IAM roles
+	taskTree := newTasksToInstallKarpenterIAMRoles(i.Config, i.StackManager, i.CTL.Provider.EC2())
+	if err := doTasks(taskTree); err != nil {
+		return err
+	}
+
+	// Set up service account
 	var roleARN string
+	policyArn := fmt.Sprintf("arn:aws:iam::%s:policy/%s-%s", parsedARN.AccountID, builder.KarpenterManagedPolicy, i.Config.Metadata.Name)
 	iamServiceAccount := &api.ClusterIAMServiceAccount{
 		ClusterIAMMeta: api.ClusterIAMMeta{
 			Name:      karpenter.DefaultServiceAccountName,
 			Namespace: karpenter.DefaultNamespace,
 		},
+		AttachPolicyARNs: []string{policyArn},
 	}
-	if api.IsDisabled(i.Config.Karpenter.CreateServiceAccount) {
-		policyArn := fmt.Sprintf("arn:aws:iam::%s:policy/%s-%s", parsedARN.AccountID, builder.KarpenterManagedPolicy, i.Config.Metadata.Name)
-		iamServiceAccount.AttachPolicyARNs = []string{policyArn}
-	} else {
+	if api.IsEnabled(i.Config.Karpenter.CreateServiceAccount) {
 		// Create the service account role only.
 		roleName := fmt.Sprintf("eksctl-%s-iamservice-role", i.Config.Metadata.Name)
 		roleARN = fmt.Sprintf("arn:aws:iam::%s:role/%s", parsedARN.AccountID, roleName)
 		iamServiceAccount.RoleOnly = api.Enabled()
 		iamServiceAccount.RoleName = roleName
-		iamServiceAccount.AttachPolicy = makePolicyDocument()
 	}
 	karpenterServiceAccountTaskTree := i.StackManager.NewTasksToCreateIAMServiceAccounts([]*api.ClusterIAMServiceAccount{iamServiceAccount}, i.OIDC, clientSetGetter)
 	logger.Info(karpenterServiceAccountTaskTree.Describe())
 	if err := doTasks(karpenterServiceAccountTaskTree); err != nil {
 		return fmt.Errorf("failed to create/attach service account: %w", err)
 	}
+
 	// create identity mapping for EC2 nodes to be able to join the cluster.
 	acm, err := authconfigmap.NewFromClientSet(i.ClientSet)
 	if err != nil {
@@ -62,38 +69,7 @@ func (i *Installer) Create() error {
 	if err := acm.AddIdentity(id); err != nil {
 		return fmt.Errorf("failed to add new identity: %w", err)
 	}
-	taskTree := NewTasksToInstallKarpenter(i.Config, i.StackManager, i.CTL.Provider.EC2(), i.KarpenterInstaller, roleARN)
-	return doTasks(taskTree)
-}
 
-// makePolicyDocument is used in case we don't attach an ARN to the iam service role.
-// The arn that would have been attached (KarpenterControllerPolicy) contains these permissions.
-// To keep this updated, check required permissions under https://karpenter.sh/docs/getting-started/cloudformation.yaml
-// Alternatively, parse out the permissions from that CF template.
-func makePolicyDocument() map[string]interface{} {
-	return map[string]interface{}{
-		"Version": "2012-10-17",
-		"Statement": []map[string]interface{}{
-			{
-				"Effect": "Allow",
-				"Action": []string{
-					"ec2:CreateLaunchTemplate",
-					"ec2:CreateFleet",
-					"ec2:RunInstances",
-					"ec2:CreateTags",
-					"iam:PassRole",
-					"ec2:TerminateInstances",
-					"ec2:DescribeLaunchTemplates",
-					"ec2:DescribeInstances",
-					"ec2:DescribeSecurityGroups",
-					"ec2:DescribeSubnets",
-					"ec2:DescribeInstanceTypes",
-					"ec2:DescribeInstanceTypeOfferings",
-					"ec2:DescribeAvailabilityZones",
-					"ssm:GetParameter",
-				},
-				"Resource": "*",
-			},
-		},
-	}
+	// Install Karpenter
+	return i.KarpenterInstaller.Install(context.Background(), roleARN)
 }

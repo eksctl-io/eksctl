@@ -1,7 +1,6 @@
 package karpenter
 
 import (
-	"context"
 	"fmt"
 	"sort"
 
@@ -14,7 +13,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/karpenter"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
@@ -22,36 +20,32 @@ const (
 	kubernetesTagFormat = "kubernetes.io/cluster/%s"
 )
 
-type karpenterTask struct {
-	info                  string
-	stackManager          manager.StackManager
-	cfg                   *api.ClusterConfig
-	ec2API                ec2iface.EC2API
-	karpenterInstaller    karpenter.ChartInstaller
-	serviceAccountRoleARN string
+type karpenterIAMRolesTask struct {
+	info         string
+	stackManager manager.StackManager
+	cfg          *api.ClusterConfig
+	ec2API       ec2iface.EC2API
 }
 
-func (k *karpenterTask) Describe() string { return k.info }
-func (k *karpenterTask) Do(errs chan error) error {
-	return k.createKarpenterTask(errs)
+func (k *karpenterIAMRolesTask) Describe() string { return k.info }
+func (k *karpenterIAMRolesTask) Do(errs chan error) error {
+	return k.createKarpenterIAMRolesTask(errs)
 }
 
-// NewTasksToInstallKarpenter defines tasks required to create Karpenter
-func NewTasksToInstallKarpenter(cfg *api.ClusterConfig, stackManager manager.StackManager, ec2API ec2iface.EC2API, karpenterInstaller karpenter.ChartInstaller, serviceAccountRoleARN string) *tasks.TaskTree {
+// newTasksToInstallKarpenterIAMRoles defines tasks required to create Karpenter IAM roles.
+func newTasksToInstallKarpenterIAMRoles(cfg *api.ClusterConfig, stackManager manager.StackManager, ec2API ec2iface.EC2API) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}
-	taskTree.Append(&karpenterTask{
-		info:                  fmt.Sprintf("create karpenter for stack %q", cfg.Metadata.Name),
-		stackManager:          stackManager,
-		cfg:                   cfg,
-		ec2API:                ec2API,
-		karpenterInstaller:    karpenterInstaller,
-		serviceAccountRoleARN: serviceAccountRoleARN,
+	taskTree.Append(&karpenterIAMRolesTask{
+		info:         fmt.Sprintf("create karpenter for stack %q", cfg.Metadata.Name),
+		stackManager: stackManager,
+		cfg:          cfg,
+		ec2API:       ec2API,
 	})
 	return taskTree
 }
 
-// createKarpenterTask creates Karpenter
-func (k *karpenterTask) createKarpenterTask(errs chan error) error {
+// createKarpenterIAMRolesTask creates Karpenter IAM Roles.
+func (k *karpenterIAMRolesTask) createKarpenterIAMRolesTask(errs chan error) error {
 	name := k.makeKarpenterStackName()
 
 	logger.Info("building nodegroup stack %q", name)
@@ -67,20 +61,17 @@ func (k *karpenterTask) createKarpenterTask(errs chan error) error {
 		return fmt.Errorf("failed to create stack: %w", err)
 	}
 
-	if err := k.ensureSubnetsHaveTags(); err != nil {
-		return err
-	}
-	return k.karpenterInstaller.Install(context.Background(), k.serviceAccountRoleARN)
+	return k.ensureSubnetsHaveTags()
 }
 
 // makeNodeGroupStackName generates the name of the Karpenter stack identified by its name, isolated by the cluster this StackCollection operates on
-func (k *karpenterTask) makeKarpenterStackName() string {
+func (k *karpenterIAMRolesTask) makeKarpenterStackName() string {
 	return fmt.Sprintf("eksctl-%s-karpenter", k.cfg.Metadata.Name)
 }
 
 // ensureSubnetsHaveTags will check if the kubernetes.io/cluster tag is present on the subnets.
 // if not, it will create them.
-func (k *karpenterTask) ensureSubnetsHaveTags() error {
+func (k *karpenterIAMRolesTask) ensureSubnetsHaveTags() error {
 	var ids []string
 	for _, subnet := range k.cfg.VPC.Subnets.Private {
 		ids = append(ids, subnet.ID)
@@ -131,7 +122,7 @@ func (k *karpenterTask) ensureSubnetsHaveTags() error {
 }
 
 // GetKarpenterName will return karpenter name based on tags
-func (k *karpenterTask) GetKarpenterName(s *manager.Stack) string {
+func (k *karpenterIAMRolesTask) GetKarpenterName(s *manager.Stack) string {
 	return getKarpenterTagName(s.Tags)
 }
 

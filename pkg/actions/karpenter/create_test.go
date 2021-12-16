@@ -223,7 +223,7 @@ var _ = Describe("Create", func() {
 					ClientSet:          fakeClientSet,
 				}
 				err := install.Create()
-				Expect(err).To(MatchError(ContainSubstring("failed to install Karpenter on cluster")))
+				Expect(err).To(MatchError(ContainSubstring("nope")))
 			})
 		})
 		When("CreateStack fails", func() {

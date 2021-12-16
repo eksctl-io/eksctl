@@ -85,7 +85,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 		iamPolicyAmazonSSMManagedInstanceCore,
 	)
 	k.Template().Mappings[servicePrincipalPartitionMapName] = servicePrincipalPartitionMappings
-	roleName := gfnt.MakeFnSubString(fmt.Sprintf("%s-${%s}", KarpenterNodeRoleName, gfnt.StackName))
+	roleName := gfnt.MakeFnSubString(fmt.Sprintf("%s-%s", KarpenterNodeRoleName, k.clusterSpec.Metadata.Name))
 	role := gfniam.Role{
 		RoleName:                 roleName,
 		Path:                     gfnt.NewString("/"),
@@ -95,7 +95,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 
 	roleRef := k.newResource(KarpenterNodeRoleName, &role)
 
-	instanceProfileName := gfnt.MakeFnSubString(fmt.Sprintf("%s-${%s}", karpenterNodeInstanceProfile, gfnt.StackName))
+	instanceProfileName := gfnt.MakeFnSubString(fmt.Sprintf("%s-%s", karpenterNodeInstanceProfile, k.clusterSpec.Metadata.Name))
 	instanceProfile := gfniam.InstanceProfile{
 		InstanceProfileName: instanceProfileName,
 		Path:                gfnt.NewString("/"),
@@ -103,7 +103,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 	}
 	k.newResource(karpenterNodeInstanceProfile, &instanceProfile)
 
-	managedPolicyName := gfnt.MakeFnSubString(fmt.Sprintf("%s-${%s}", KarpenterManagedPolicy, gfnt.StackName))
+	managedPolicyName := gfnt.MakeFnSubString(fmt.Sprintf("%s-%s", KarpenterManagedPolicy, k.clusterSpec.Metadata.Name))
 	statements := cft.MapOfInterfaces{
 		"Effect":   effectAllow,
 		"Resource": resourceAll,

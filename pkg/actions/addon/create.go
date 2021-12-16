@@ -15,9 +15,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
 
+	"k8s.io/apimachinery/pkg/types"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
