@@ -111,6 +111,7 @@ var _ = Describe("Install", func() {
 				Expect(opts.CreateNamespace).To(BeFalse())
 			})
 		})
+
 		When("there are no fargate profiles configured for the cluster", func() {
 			BeforeEach(func() {
 				installerUnderTest = &Installer{
@@ -127,6 +128,7 @@ var _ = Describe("Install", func() {
 				Expect(opts.CreateNamespace).To(BeTrue())
 			})
 		})
+
 		When("service account is defined", func() {
 			It("add role to the values for the helm chart", func() {
 				Expect(installerUnderTest.Install(context.Background(), "role/account")).To(Succeed())

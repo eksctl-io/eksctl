@@ -3,6 +3,7 @@ package karpenter_test
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"net"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -287,7 +288,7 @@ var _ = Describe("Create", func() {
 					ClientSet:          fakeClientSet,
 				}
 				err := install.Create()
-				Expect(err).To(MatchError(ContainSubstring("failed to create service account: failed to install Karpenter on cluster")))
+				Expect(err).To(MatchError(ContainSubstring("failed to create/attach service account: failed to install Karpenter on cluster")))
 			})
 		})
 		When("fails to fetch the identity mapping config map", func() {
@@ -313,7 +314,7 @@ var _ = Describe("Create", func() {
 			BeforeEach(func() {
 				cfg.Karpenter.CreateServiceAccount = api.Enabled()
 			})
-			It("eksctl should not create a service account", func() {
+			It("eksctl should only create the role with a specific policy", func() {
 				fakeKarpenterInstaller.InstallReturns(nil)
 				install := &karpenteractions.Installer{
 					StackManager:       fakeStackManager,
@@ -324,7 +325,31 @@ var _ = Describe("Create", func() {
 				}
 				Expect(install.Create()).To(Succeed())
 				Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))
-				Expect(fakeStackManager.NewTasksToCreateIAMServiceAccountsCallCount()).To(BeZero())
+				accounts, _, _ := fakeStackManager.NewTasksToCreateIAMServiceAccountsArgsForCall(0)
+				Expect(accounts).NotTo(BeEmpty())
+				Expect(api.IsEnabled(accounts[0].RoleOnly)).To(BeTrue())
+			})
+		})
+		When("createServiceAccount is disabled", func() {
+			BeforeEach(func() {
+				cfg.Karpenter.CreateServiceAccount = api.Disabled()
+			})
+			It("eksctl should create the service account", func() {
+				fakeKarpenterInstaller.InstallReturns(nil)
+				install := &karpenteractions.Installer{
+					StackManager:       fakeStackManager,
+					CTL:                ctl,
+					Config:             cfg,
+					KarpenterInstaller: fakeKarpenterInstaller,
+					ClientSet:          fakeClientSet,
+				}
+				Expect(install.Create()).To(Succeed())
+				Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))
+				accounts, _, _ := fakeStackManager.NewTasksToCreateIAMServiceAccountsArgsForCall(0)
+				Expect(accounts).NotTo(BeEmpty())
+				Expect(accounts[0].RoleOnly).To(BeNil())
+				roleArn := fmt.Sprintf("arn:aws:iam::123456789012:policy/%s-%s", builder.KarpenterManagedPolicy, cfg.Metadata.Name)
+				Expect(accounts[0].AttachRoleARN).To(Equal(roleArn))
 			})
 		})
 	})
