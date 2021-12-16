@@ -34,7 +34,8 @@ func (i *Installer) Create() error {
 		},
 	}
 	if api.IsDisabled(i.Config.Karpenter.CreateServiceAccount) {
-		iamServiceAccount.AttachRoleARN = fmt.Sprintf("arn:aws:iam::%s:policy/%s-%s", parsedARN.AccountID, builder.KarpenterManagedPolicy, i.Config.Metadata.Name)
+		policyArn := fmt.Sprintf("arn:aws:iam::%s:policy/%s-%s", parsedARN.AccountID, builder.KarpenterManagedPolicy, i.Config.Metadata.Name)
+		iamServiceAccount.AttachPolicyARNs = []string{policyArn}
 	} else {
 		// Create the service account role only.
 		roleName := fmt.Sprintf("eksctl-%s-iamservice-role", i.Config.Metadata.Name)
