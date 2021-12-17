@@ -248,6 +248,7 @@ require (
 	github.com/sanposhiho/wastedassign/v2 v2.0.6 // indirect
 	github.com/securego/gosec/v2 v2.8.1 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
+	github.com/sethvargo/go-password v0.2.0
 	github.com/shazow/go-diff v0.0.0-20160112020656-b6b7b6733b8c // indirect
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749 // indirect
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd // indirect

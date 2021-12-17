@@ -392,28 +392,56 @@ var _ = Describe("Create", func() {
 				}
 
 			})
-			It("creates a role with the recommended policies and attaches it to the addon", func() {
-				err := manager.Create(&api.Addon{
-					Name:    "vpc-cni",
-					Version: "v1.0.0-eksbuild.1",
-				}, false)
-				Expect(err).NotTo(HaveOccurred())
 
-				Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
-				name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
-				Expect(name).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
-				Expect(resourceSet).NotTo(BeNil())
-				Expect(tags).To(Equal(map[string]string{
-					api.AddonNameTag: "vpc-cni",
-				}))
-				output, err := resourceSet.RenderJSON()
-				Expect(err).NotTo(HaveOccurred())
-				Expect(string(output)).To(ContainSubstring("arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"))
-				Expect(string(output)).To(ContainSubstring(":sub\":\"system:serviceaccount:kube-system:aws-node"))
-				Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
-				Expect(*createAddonInput.AddonName).To(Equal("vpc-cni"))
-				Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
-				Expect(*createAddonInput.ServiceAccountRoleArn).To(Equal("role-arn"))
+			When("its the vpc-cni addon", func() {
+				It("creates a role with the recommended policies and attaches it to the addon", func() {
+					err := manager.Create(&api.Addon{
+						Name:    "vpc-cni",
+						Version: "v1.0.0-eksbuild.1",
+					}, false)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
+					name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
+					Expect(name).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
+					Expect(resourceSet).NotTo(BeNil())
+					Expect(tags).To(Equal(map[string]string{
+						api.AddonNameTag: "vpc-cni",
+					}))
+					output, err := resourceSet.RenderJSON()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(output)).To(ContainSubstring("arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"))
+					Expect(string(output)).To(ContainSubstring(":sub\":\"system:serviceaccount:kube-system:aws-node"))
+					Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
+					Expect(*createAddonInput.AddonName).To(Equal("vpc-cni"))
+					Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
+					Expect(*createAddonInput.ServiceAccountRoleArn).To(Equal("role-arn"))
+				})
+			})
+
+			When("its the aws-ebs-csi-driver addon", func() {
+				It("creates a role with the recommended policies and attaches it to the addon", func() {
+					err := manager.Create(&api.Addon{
+						Name:    "aws-ebs-csi-driver",
+						Version: "v1.0.0-eksbuild.1",
+					}, false)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
+					name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
+					Expect(name).To(Equal("eksctl-my-cluster-addon-aws-ebs-csi-driver"))
+					Expect(resourceSet).NotTo(BeNil())
+					Expect(tags).To(Equal(map[string]string{
+						api.AddonNameTag: "aws-ebs-csi-driver",
+					}))
+					output, err := resourceSet.RenderJSON()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(output)).To(ContainSubstring("PolicyEBSCSIController"))
+					Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
+					Expect(*createAddonInput.AddonName).To(Equal("aws-ebs-csi-driver"))
+					Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
+					Expect(*createAddonInput.ServiceAccountRoleArn).To(Equal("role-arn"))
+				})
 			})
 		})
 	})
