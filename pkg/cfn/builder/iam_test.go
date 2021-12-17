@@ -293,8 +293,8 @@ var _ = Describe("template builder for IAM", func() {
                 "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
 		      }
             ]`))
-
 			Expect(t).To(HaveOutputWithValue("Role1", `{ "Fn::GetAtt": "Role1.Arn" }`))
+			Expect(t).To(HaveResourceWithPropertyValue("PolicyEBSCSIController", "PolicyDocument", expectedEbsPolicyDocument))
 		})
 
 		It("can parse an iamserviceaccount addon template", func() {
@@ -464,4 +464,158 @@ const expectedAssumeRolePolicyDocument = `{
 	  }
 	],
 	"Version": "2012-10-17"
+}`
+
+const expectedEbsPolicyDocument = `{
+  "Statement": [
+	{
+	  "Action": [
+		"ec2:CreateSnapshot",
+		"ec2:AttachVolume",
+		"ec2:DetachVolume",
+		"ec2:ModifyVolume",
+		"ec2:DescribeAvailabilityZones",
+		"ec2:DescribeInstances",
+		"ec2:DescribeSnapshots",
+		"ec2:DescribeTags",
+		"ec2:DescribeVolumes",
+		"ec2:DescribeVolumesModifications"
+	  ],
+	  "Effect": "Allow",
+	  "Resource": "*"
+	},
+	{
+	  "Action": [
+		"ec2:CreateTags"
+	  ],
+	  "Condition": {
+		"StringEquals": {
+		  "ec2:CreateAction": [
+			"CreateVolume",
+			"CreateSnapshot"
+		  ]
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": [
+		{
+		  "Fn::Sub": "arn:${AWS::Partition}:ec2:*:*:volume/*"
+		},
+		{
+		  "Fn::Sub": "arn:${AWS::Partition}:ec2:*:*:snapshot/*"
+		}
+	  ]
+	},
+	{
+	  "Action": [
+		"ec2:DeleteTags"
+	  ],
+	  "Effect": "Allow",
+	  "Resource": [
+		{
+		  "Fn::Sub": "arn:${AWS::Partition}:ec2:*:*:volume/*"
+		},
+		{
+		  "Fn::Sub": "arn:${AWS::Partition}:ec2:*:*:snapshot/*"
+		}
+	  ]
+	},
+	{
+	  "Action": [
+		"ec2:CreateVolume"
+	  ],
+	  "Condition": {
+		"StringLike": {
+		  "aws:RequestTag/ebs.csi.aws.com/cluster": "true"
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": "*"
+	},
+	{
+	  "Action": [
+		"ec2:CreateVolume"
+	  ],
+	  "Condition": {
+		"StringLike": {
+		  "aws:RequestTag/CSIVolumeName": "*"
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": "*"
+	},
+	{
+	  "Action": [
+		"ec2:CreateVolume"
+	  ],
+	  "Condition": {
+		"StringLike": {
+		  "aws:RequestTag/kubernetes.io/cluster/*": "owned"
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": "*"
+	},
+	{
+	  "Action": [
+		"ec2:DeleteVolume"
+	  ],
+	  "Condition": {
+		"StringLike": {
+		  "ec2:ResourceTag/ebs.csi.aws.com/cluster": "true"
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": "*"
+	},
+	{
+	  "Action": [
+		"ec2:DeleteVolume"
+	  ],
+	  "Condition": {
+		"StringLike": {
+		  "ec2:ResourceTag/CSIVolumeName": "*"
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": "*"
+	},
+	{
+	  "Action": [
+		"ec2:DeleteVolume"
+	  ],
+	  "Condition": {
+		"StringLike": {
+		  "ec2:ResourceTag/kubernetes.io/cluster/*": "owned"
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": "*"
+	},
+	{
+	  "Action": [
+		"ec2:DeleteSnapshot"
+	  ],
+	  "Condition": {
+		"StringLike": {
+		  "ec2:ResourceTag/CSIVolumeSnapshotName": "*"
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": "*"
+	},
+	{
+	  "Action": [
+		"ec2:DeleteSnapshot"
+	  ],
+	  "Condition": {
+		"StringLike": {
+		  "ec2:ResourceTag/ebs.csi.aws.com/cluster": "true"
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": "*"
+	}
+  ],
+  "Version": "2012-10-17"
 }`
