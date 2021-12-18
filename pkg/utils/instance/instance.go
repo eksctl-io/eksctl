@@ -23,6 +23,7 @@ func IsGPUInstanceType(instanceType string) bool {
 		strings.HasPrefix(instanceType, "p4") ||
 		strings.HasPrefix(instanceType, "g3") ||
 		strings.HasPrefix(instanceType, "g4") ||
+		strings.HasPrefix(instanceType, "g5") ||
 		strings.HasPrefix(instanceType, "inf1")
 }
 
