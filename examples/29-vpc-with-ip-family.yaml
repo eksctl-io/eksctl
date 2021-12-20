@@ -23,4 +23,5 @@ addons:
 iam:
   withOIDC: true
 
-managedNodeGroups: []
+managedNodeGroups:
+  - name: mng-1
