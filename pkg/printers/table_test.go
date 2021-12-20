@@ -3,7 +3,7 @@ package printers_test
 import (
 	"bufio"
 	"bytes"
-	"io/ioutil"
+	"os"
 	"time"
 
 	. "github.com/weaveworks/eksctl/pkg/printers"
@@ -97,7 +97,7 @@ var _ = Describe("Table Printer", func() {
 			})
 
 			It("the output should equal the golden file tabletest_emptyslicegolden", func() {
-				g, err := ioutil.ReadFile("testdata/tabletest_emptyslice.golden")
+				g, err := os.ReadFile("testdata/tabletest_emptyslice.golden")
 				if err != nil {
 					GinkgoT().Fatalf("failed reading .golden: %s", err)
 				}
@@ -142,7 +142,7 @@ var _ = Describe("Table Printer", func() {
 			})
 
 			It("the output should equal the golden file tabletest_single.golden", func() {
-				g, err := ioutil.ReadFile("testdata/tabletest_single.golden")
+				g, err := os.ReadFile("testdata/tabletest_single.golden")
 				if err != nil {
 					GinkgoT().Fatalf("failed reading .golden: %s", err)
 				}
@@ -199,7 +199,7 @@ var _ = Describe("Table Printer", func() {
 			})
 
 			It("the output should equal the golden file tabletest_2clusters.golden", func() {
-				g, err := ioutil.ReadFile("testdata/tabletest_2clusters.golden")
+				g, err := os.ReadFile("testdata/tabletest_2clusters.golden")
 				if err != nil {
 					GinkgoT().Fatalf("failed reading .golden: %s", err)
 				}

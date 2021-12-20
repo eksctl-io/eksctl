@@ -24,6 +24,6 @@ func decode(userData string) *cloudconfig.CloudConfig {
 
 func newBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) nodebootstrap.Bootstrapper {
 	bootstrapper, err := nodebootstrap.NewBootstrapper(clusterConfig, ng)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	return bootstrapper
 }

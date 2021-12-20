@@ -23,6 +23,7 @@ import (
 const (
 	kubeSystemNamespace = "kube-system"
 	vpcCNIName          = "vpc-cni"
+	ebsCSIDriverName    = "aws-ebs-csi-driver"
 )
 
 func (a *Manager) Create(addon *api.Addon, wait bool) error {
@@ -68,14 +69,18 @@ func (a *Manager) Create(addon *api.Addon, wait bool) error {
 			}
 			createAddonInput.ServiceAccountRoleArn = &outputRole
 		} else {
-			policyDocument, policyARNs := a.getRecommendedPolicies(addon)
-			if len(policyARNs) != 0 || policyDocument != nil {
+			policyDocument, policyARNs, wellKnownPolicies := a.getRecommendedPolicies(addon)
+			if len(policyARNs) != 0 || policyDocument != nil || wellKnownPolicies != nil {
 				logger.Info("creating role using recommended policies")
 				addon.AttachPolicyARNs = policyARNs
 				addon.AttachPolicy = policyDocument
 				resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicy, a.oidcManager)
 				if len(policyARNs) != 0 {
 					resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicyARNs, a.oidcManager)
+				}
+				if wellKnownPolicies != nil {
+					addon.WellKnownPolicies = *wellKnownPolicies
+					resourceSet = builder.NewIAMRoleResourceSetWithWellKnownPolicies(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.WellKnownPolicies, a.oidcManager)
 				}
 				if err := resourceSet.AddAllResources(); err != nil {
 					return err
@@ -91,8 +96,8 @@ func (a *Manager) Create(addon *api.Addon, wait bool) error {
 		}
 	} else {
 		//if any sort of policy is set or could be set, log a warning
-		policyDocument, policyARNs := a.getRecommendedPolicies(addon)
-		if addon.ServiceAccountRoleARN != "" || hasPoliciesSet(addon) || len(policyARNs) != 0 || policyDocument != nil {
+		policyDocument, policyARNs, wellKnownPolicies := a.getRecommendedPolicies(addon)
+		if addon.ServiceAccountRoleARN != "" || hasPoliciesSet(addon) || len(policyARNs) != 0 || policyDocument != nil || wellKnownPolicies != nil {
 			logger.Warning("OIDC is disabled but policies are required/specified for this addon. Users are responsible for attaching the policies to all nodegroup roles")
 		}
 	}
@@ -184,17 +189,22 @@ func (a *Manager) patchAWSNodeDaemonSet() error {
 
 	return nil
 }
-func (a *Manager) getRecommendedPolicies(addon *api.Addon) (api.InlineDocument, []string) {
+func (a *Manager) getRecommendedPolicies(addon *api.Addon) (api.InlineDocument, []string, *api.WellKnownPolicies) {
 	// API isn't case sensitive
 	switch addon.CanonicalName() {
 	case vpcCNIName:
 		if a.clusterConfig.VPC != nil && a.clusterConfig.VPC.IPFamily == api.IPV6Family {
-			return makeIPv6VPCCNIPolicyDocument(), nil
+			return makeIPv6VPCCNIPolicyDocument(), nil, nil
 		}
-		return nil, []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}
+		return nil, []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}, nil
+	case ebsCSIDriverName:
+		return nil, nil, &api.WellKnownPolicies{
+			EBSCSIController: true,
+		}
 	default:
-		return nil, nil
+		return nil, nil, nil
 	}
+	return nil, nil, nil
 }
 
 func (a *Manager) getKnownServiceAccountLocation(addon *api.Addon) (string, string) {

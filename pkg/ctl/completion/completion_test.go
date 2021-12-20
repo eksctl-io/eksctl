@@ -14,14 +14,14 @@ var _ = Describe("completion", func() {
 	It("with bash", func() {
 		cmd := newMockCmd("bash")
 		out, err := cmd.execute()
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(out).To(ContainSubstring("bash completion for eksctl"))
 	})
 
 	It("with zsh", func() {
 		cmd := newMockCmd("zsh")
 		out, err := cmd.execute()
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(out).To(ContainSubstring("#compdef _eksctl eksctl"))
 	})
 

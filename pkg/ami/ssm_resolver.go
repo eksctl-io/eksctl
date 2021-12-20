@@ -3,6 +3,8 @@ package ami
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/ssm"
@@ -10,8 +12,8 @@ import (
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-
 	"github.com/weaveworks/eksctl/pkg/utils"
+	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 )
 
 // SSMResolver resolves the AMI to the defaults for the region
@@ -65,6 +67,16 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2019-English-Full-EKS_Optimized-%s/%s", version, fieldName), nil
 	case api.NodeImageFamilyWindowsServer2004CoreContainer:
 		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2004-English-Core-EKS_Optimized-%s/%s", version, fieldName), nil
+	case api.NodeImageFamilyWindowsServer20H2CoreContainer:
+		const minVersion = api.Version1_21
+		supportsWindows20H2, err := utils.IsMinVersion(minVersion, version)
+		if err != nil {
+			return "", err
+		}
+		if !supportsWindows20H2 {
+			return "", errors.Errorf("Windows Server 20H2 Core requires EKS version %s and above", minVersion)
+		}
+		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-20H2-English-Core-EKS_Optimized-%s/%s", version, fieldName), nil
 	case api.NodeImageFamilyBottlerocket:
 		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/%s/latest/%s", version, instanceEC2ArchName(instanceType), fieldName), nil
 	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
@@ -86,7 +98,7 @@ func MakeManagedSSMParameterName(version, imageFamily, amiType string) (string, 
 // instanceEC2ArchName returns the name of the architecture as used by EC2
 // resources.
 func instanceEC2ArchName(instanceType string) string {
-	if utils.IsARMInstanceType(instanceType) {
+	if instanceutils.IsARMInstanceType(instanceType) {
 		return "arm64"
 	}
 	return "x86_64"
@@ -94,11 +106,11 @@ func instanceEC2ArchName(instanceType string) string {
 
 func imageType(imageFamily, instanceType string) string {
 	family := utils.ToKebabCase(imageFamily)
-	if utils.IsGPUInstanceType(instanceType) {
+	if instanceutils.IsGPUInstanceType(instanceType) {
 		return family + "-gpu"
 	}
 
-	if utils.IsARMInstanceType(instanceType) {
+	if instanceutils.IsARMInstanceType(instanceType) {
 		return family + "-arm64"
 	}
 	return family

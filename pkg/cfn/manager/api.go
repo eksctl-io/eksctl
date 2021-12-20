@@ -6,25 +6,22 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
-	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
-	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
-
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
+	"github.com/aws/aws-sdk-go/service/cloudtrail"
+	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-
-	"github.com/weaveworks/eksctl/pkg/version"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
+	"github.com/weaveworks/eksctl/pkg/version"
 )
 
 const (
@@ -242,33 +239,36 @@ func (c *StackCollection) createStackRequest(stackName string, resourceSet build
 }
 
 // UpdateStack will update a CloudFormation stack by creating and executing a ChangeSet
-func (c *StackCollection) UpdateStack(stackName, changeSetName, description string, templateData TemplateData, parameters map[string]string) error {
-	logger.Info(description)
-	i := &Stack{StackName: &stackName}
+func (c *StackCollection) UpdateStack(options UpdateStackOptions) error {
+	logger.Info(options.Description)
+	i := &Stack{StackName: &options.StackName}
 	// Read existing tags
 	s, err := c.DescribeStack(i)
 	if err != nil {
 		return err
 	}
-	if err := c.doCreateChangeSetRequest(stackName, changeSetName, description, templateData, parameters, s.Capabilities, s.Tags); err != nil {
+	if err := c.doCreateChangeSetRequest(options.StackName, options.ChangeSetName, options.Description, options.TemplateData, options.Parameters, s.Capabilities, s.Tags); err != nil {
 		return err
 	}
-	if err := c.doWaitUntilChangeSetIsCreated(i, changeSetName); err != nil {
+	if err := c.doWaitUntilChangeSetIsCreated(i, options.ChangeSetName); err != nil {
 		if _, ok := err.(*noChangeError); ok {
 			return nil
 		}
 		return err
 	}
-	changeSet, err := c.DescribeStackChangeSet(i, changeSetName)
+	changeSet, err := c.DescribeStackChangeSet(i, options.ChangeSetName)
 	if err != nil {
 		return err
 	}
 	logger.Debug("changes = %#v", changeSet.Changes)
-	if err := c.doExecuteChangeSet(stackName, changeSetName); err != nil {
-		logger.Warning("error executing Cloudformation changeSet %s in stack %s. Check the Cloudformation console for further details", changeSetName, stackName)
+	if err := c.doExecuteChangeSet(options.StackName, options.ChangeSetName); err != nil {
+		logger.Warning("error executing Cloudformation changeSet %s in stack %s. Check the Cloudformation console for further details", options.ChangeSetName, options.StackName)
 		return err
 	}
-	return c.doWaitUntilStackIsUpdated(i)
+	if options.Wait {
+		return c.doWaitUntilStackIsUpdated(i)
+	}
+	return nil
 }
 
 // DescribeStack describes a cloudformation stack.
@@ -307,9 +307,15 @@ func (c *StackCollection) GetManagedNodeGroupTemplate(nodeGroupName string) (str
 }
 
 // UpdateNodeGroupStack updates the nodegroup stack with the specified template
-func (c *StackCollection) UpdateNodeGroupStack(nodeGroupName, template string) error {
+func (c *StackCollection) UpdateNodeGroupStack(nodeGroupName, template string, wait bool) error {
 	stackName := c.makeNodeGroupStackName(nodeGroupName)
-	return c.UpdateStack(stackName, c.MakeChangeSetName("update-nodegroup"), "updating nodegroup stack", TemplateBody(template), nil)
+	return c.UpdateStack(UpdateStackOptions{
+		StackName:     stackName,
+		ChangeSetName: c.MakeChangeSetName("update-nodegroup"),
+		Description:   "updating nodegroup stack",
+		TemplateData:  TemplateBody(template),
+		Wait:          wait,
+	})
 }
 
 // ListStacksMatching gets all of CloudFormation stacks with names matching nameRegex.
@@ -555,30 +561,35 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 	return stacks, nil
 }
 
-func (c *StackCollection) HasClusterStack() (bool, error) {
+func (c *StackCollection) GetClusterStackIfExists() (*Stack, error) {
 	clusterStackNames, err := c.ListClusterStackNames()
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	return c.HasClusterStackUsingCachedList(clusterStackNames)
+	return c.getClusterStackUsingCachedList(clusterStackNames)
 }
 
 func (c *StackCollection) HasClusterStackUsingCachedList(clusterStackNames []string) (bool, error) {
+	stack, err := c.getClusterStackUsingCachedList(clusterStackNames)
+	return stack != nil, err
+}
+
+func (c *StackCollection) getClusterStackUsingCachedList(clusterStackNames []string) (*Stack, error) {
 	clusterStackName := c.MakeClusterStackName()
 	for _, stack := range clusterStackNames {
 		if stack == clusterStackName {
 			stack, err := c.DescribeStack(&cloudformation.Stack{StackName: &clusterStackName})
 			if err != nil {
-				return false, err
+				return nil, err
 			}
 			for _, tag := range stack.Tags {
 				if matchesClusterName(*tag.Key, *tag.Value, c.spec.Metadata.Name) {
-					return true, nil
+					return stack, nil
 				}
 			}
 		}
 	}
-	return false, nil
+	return nil, nil
 }
 
 // DescribeStackEvents describes the events that have occurred on the stack

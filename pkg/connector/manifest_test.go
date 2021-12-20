@@ -10,10 +10,10 @@ var _ = Describe("Manifest template", func() {
 	Context("GetManifestTemplate", func() {
 		It("should fetch the template", func() {
 			template, err := connector.GetManifestTemplate()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			assertManifestFile := func(m connector.ManifestFile, expectedFilename string) {
-				Expect(m.Data).ToNot(BeEmpty())
+				Expect(m.Data).NotTo(BeEmpty())
 				Expect(m.Filename).To(Equal(expectedFilename))
 			}
 			assertManifestFile(template.Connector, "eks-connector.yaml")

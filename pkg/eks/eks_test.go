@@ -332,8 +332,8 @@ var _ = Describe("EKS API wrapper", func() {
 			p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(nil)
 
 			clusters, err := c.ListClusters(chunkSize, false)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(clusters).ToNot(BeNil())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(clusters).NotTo(BeNil())
 			Expect(len(clusters)).To(Equal(0))
 		})
 	})
@@ -628,7 +628,7 @@ var _ = Describe("EKS API wrapper", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(k.errSubstr))
 		} else {
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		}
 	},
 		Entry("Invalid ARN", kmsSupportCase{

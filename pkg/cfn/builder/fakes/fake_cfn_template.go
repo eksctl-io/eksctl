@@ -35,6 +35,7 @@ type Properties struct {
 	AssumeRolePolicyDocument interface{}
 
 	PolicyDocument struct {
+		Version   string
 		Statement []struct {
 			Action    []string
 			Effect    string

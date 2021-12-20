@@ -43,7 +43,7 @@ func makeBlockDeviceMappings(ng *api.NodeGroupBase) []gfnec2.LaunchTemplate_Bloc
 
 	mappings := []gfnec2.LaunchTemplate_BlockDeviceMapping{mapping}
 
-	if ng.AdditionalEncryptedVolume != "" {
+	if api.IsEnabled(ng.VolumeEncrypted) && ng.AdditionalEncryptedVolume != "" {
 		mappings = append(mappings, gfnec2.LaunchTemplate_BlockDeviceMapping{
 			DeviceName: gfnt.NewString(ng.AdditionalEncryptedVolume),
 			Ebs: &gfnec2.LaunchTemplate_Ebs{

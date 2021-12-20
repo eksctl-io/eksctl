@@ -1,11 +1,11 @@
 //go:build integration
 // +build integration
 
+//revive:disable Not changing package name
 package eks_connector_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"testing"
@@ -15,6 +15,7 @@ import (
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -60,7 +61,7 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 				)
 
 			wd, err := os.Getwd()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 				ContainElement(ContainSubstring(fmt.Sprintf("registered cluster %q successfully", connectedClusterName))),
@@ -87,8 +88,8 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 
 			rawClient := getRawClient(params.ClusterName, params.Region)
 			for _, f := range resourcePaths {
-				bytes, err := ioutil.ReadFile(f)
-				Expect(err).ToNot(HaveOccurred())
+				bytes, err := os.ReadFile(f)
+				Expect(err).NotTo(HaveOccurred())
 				Expect(rawClient.CreateOrReplace(bytes, false)).To(Succeed())
 			}
 
@@ -99,7 +100,7 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 					Region: params.Region,
 				},
 			})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			By("ensuring the registered cluster is active and visible")
 			describeClusterInput := &awseks.DescribeClusterInput{
@@ -107,7 +108,7 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 			}
 			Eventually(func() string {
 				connectedCluster, err := provider.Provider.EKS().DescribeCluster(describeClusterInput)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				return *connectedCluster.Cluster.Status
 			}, "5m", "8s").Should(Equal("ACTIVE"))
 
@@ -122,7 +123,7 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 				)
 
 			session := cmd.Run()
-			Expect(session.ExitCode()).ToNot(Equal(0))
+			Expect(session.ExitCode()).NotTo(Equal(0))
 			output := string(session.Err.Contents())
 			Expect(output).To(ContainSubstring(fmt.Sprintf("cannot perform this operation on a non-EKS cluster; please follow the documentation for "+
 				"cluster %s's Kubernetes provider", connectedClusterName)))
@@ -177,6 +178,6 @@ func getRawClient(clusterName, region string) *kubewrapper.RawClient {
 	err = ctl.RefreshClusterStatus(cfg)
 	Expect(err).ShouldNot(HaveOccurred())
 	rawClient, err := ctl.NewRawClient(cfg)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	return rawClient
 }

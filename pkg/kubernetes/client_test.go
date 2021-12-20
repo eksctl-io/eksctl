@@ -23,20 +23,20 @@ var _ = Describe("Kubernetes client wrappers", func() {
 				rc, track := testutils.NewFakeRawResource(item, false, false, ct)
 
 				exists, err := rc.Exists()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(exists).To(BeTrue()) // The Kubernetes resource already exists.
 
 				_, err = rc.CreateOrReplace(false)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(track).ToNot(BeNil())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(track).NotTo(BeNil())
 				Expect(track.Methods()).To(Equal([]string{"GET", "GET", "GET", "PUT"}))
 
 				exists, err = rc.Exists()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(exists).To(BeTrue()) // The Kubernetes resource still exists.
 			}
 
-			Expect(ct.Updated()).ToNot(BeEmpty())
+			Expect(ct.Updated()).NotTo(BeEmpty())
 			Expect(ct.UpdatedItems()).To(HaveLen(10))
 			Expect(ct.Created()).To(BeEmpty())
 			Expect(ct.CreatedItems()).To(BeEmpty())
@@ -50,20 +50,20 @@ var _ = Describe("Kubernetes client wrappers", func() {
 				rc, track := testutils.NewFakeRawResource(item, false, false, ct)
 
 				exists, err := rc.Exists()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(exists).To(BeTrue()) // The Kubernetes resource already exists.
 
 				_, err = rc.CreateOrReplace(false)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(track).ToNot(BeNil())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(track).NotTo(BeNil())
 				Expect(track.Methods()).To(Equal([]string{"GET", "GET", "GET", "PUT"}))
 
 				exists, err = rc.Exists()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(exists).To(BeTrue()) // The Kubernetes resource still exists.
 			}
 
-			Expect(ct.Updated()).ToNot(BeEmpty())
+			Expect(ct.Updated()).NotTo(BeEmpty())
 			Expect(ct.UpdatedItems()).To(HaveLen(10))
 			Expect(ct.Created()).To(BeEmpty())
 			Expect(ct.CreatedItems()).To(BeEmpty())
@@ -77,20 +77,20 @@ var _ = Describe("Kubernetes client wrappers", func() {
 				rc, track := testutils.NewFakeRawResource(item, true, false, ct)
 
 				exists, err := rc.Exists()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(exists).To(BeFalse()) // The Kubernetes resource has not been created yet.
 
 				_, err = rc.CreateOrReplace(false)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(track).ToNot(BeNil())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(track).NotTo(BeNil())
 				Expect(track.Methods()).To(Equal([]string{"GET", "GET", "POST"}))
 
 				exists, err = rc.Exists()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(exists).To(BeTrue()) // The Kubernetes resource has not been created yet.
 			}
 
-			Expect(ct.Created()).ToNot(BeEmpty())
+			Expect(ct.Created()).NotTo(BeEmpty())
 			Expect(ct.CreatedItems()).To(HaveLen(10))
 			Expect(ct.Updated()).To(BeEmpty())
 			Expect(ct.UpdatedItems()).To(BeEmpty())
@@ -104,20 +104,20 @@ var _ = Describe("Kubernetes client wrappers", func() {
 				rc, track := testutils.NewFakeRawResource(item, false, false, ct)
 
 				exists, err := rc.Exists()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(exists).To(BeTrue()) // The Kubernetes resource already exists.
 
 				_, err = rc.CreateOrReplace(false)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(track).ToNot(BeNil())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(track).NotTo(BeNil())
 				Expect(track.Methods()).To(Equal([]string{"GET", "GET", "GET", "PUT"}))
 
 				exists, err = rc.Exists()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(exists).To(BeTrue()) // The Kubernetes resource still exists.
 			}
 
-			Expect(ct.Updated()).ToNot(BeEmpty())
+			Expect(ct.Updated()).NotTo(BeEmpty())
 			Expect(ct.UpdatedItems()).To(HaveLen(10))
 			Expect(ct.Created()).To(BeEmpty())
 			Expect(ct.CreatedItems()).To(BeEmpty())
@@ -132,24 +132,24 @@ var _ = Describe("Kubernetes client wrappers", func() {
 
 			for _, item := range sampleAddons {
 				rc, err := rawClient.NewRawResource(item)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				_, err = rc.CreateOrReplace(false)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			}
 
 			ct := rawClient.Collection
 
-			Expect(ct.Created()).ToNot(BeEmpty())
+			Expect(ct.Created()).NotTo(BeEmpty())
 			Expect(ct.CreatedItems()).To(HaveLen(10))
 			Expect(ct.Updated()).To(BeEmpty())
 			Expect(ct.UpdatedItems()).To(BeEmpty())
 
 			dsl, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).List(context.TODO(), metav1.ListOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(dsl.Items).To(HaveLen(2))
 
 			awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "aws-node", metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
 				Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/amazon-k8s-cni:v1.5.7"),
@@ -191,27 +191,27 @@ var _ = Describe("Kubernetes client wrappers", func() {
 
 			for _, item := range []runtime.Object{saTest1, saTest2a, saTest2b} {
 				rc, err := rawClient.NewRawResource(item)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				_, err = rc.CreateOrReplace(false)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			}
 
-			Expect(ct.Created()).ToNot(BeEmpty())
+			Expect(ct.Created()).NotTo(BeEmpty())
 			Expect(ct.CreatedItems()).To(HaveLen(10 + 2))
-			Expect(ct.UpdatedItems()).ToNot(BeEmpty())
+			Expect(ct.UpdatedItems()).NotTo(BeEmpty())
 			Expect(ct.UpdatedItems()).To(HaveLen(1))
 
 			_, err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get(context.TODO(), "test1", metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			_, err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get(context.TODO(), "test2", metav1.GetOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			_, err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Create(context.TODO(), saTest1, metav1.CreateOptions{})
 			Expect(err).To(HaveOccurred())
 
 			err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Delete(context.TODO(), "test1", metav1.DeleteOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			// saving a clientset instance results in objects being trackable,
 			// but only as far as the clientset instance is concerned
@@ -219,15 +219,15 @@ var _ = Describe("Kubernetes client wrappers", func() {
 			// this limitation
 			c := rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault)
 			err = c.Delete(context.TODO(), "test1", metav1.DeleteOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			err = c.Delete(context.TODO(), "test1", metav1.DeleteOptions{})
 			Expect(err).To(HaveOccurred())
 
 			// however deletions of raw resources are trackable
 			rc, err := rawClient.NewRawResource(saTest1)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			_, err = rc.Helper.Delete(rc.Info.Namespace, rc.Info.Name)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			_, err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get(context.TODO(), "test1", metav1.GetOptions{})
 			Expect(err).To(HaveOccurred())
 		})
@@ -240,17 +240,17 @@ var _ = Describe("Kubernetes client wrappers", func() {
 				rc, track := testutils.NewFakeRawResource(item, false, false, ct)
 
 				exists, err := rc.Exists()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(exists).To(BeTrue()) // The Kubernetes resource already exists.
 
 				status, err := rc.DeleteSync()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(status).To(Equal(fmt.Sprintf("deleted %q", rc)))
-				Expect(track).ToNot(BeNil())
+				Expect(track).NotTo(BeNil())
 				Expect(track.Methods()).To(Equal([]string{"GET", "GET", "DELETE", "GET"}))
 
 				exists, err = rc.Exists()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(exists).To(BeFalse()) // The Kubernetes resource no longer exists.
 			}
 
@@ -258,7 +258,7 @@ var _ = Describe("Kubernetes client wrappers", func() {
 			Expect(ct.CreatedItems()).To(BeEmpty())
 			Expect(ct.Updated()).To(BeEmpty())
 			Expect(ct.UpdatedItems()).To(BeEmpty())
-			Expect(ct.Deleted()).ToNot(BeEmpty())
+			Expect(ct.Deleted()).NotTo(BeEmpty())
 			Expect(ct.DeletedItems()).To(HaveLen(10))
 		})
 	})

@@ -7,10 +7,10 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	toml "github.com/pelletier/go-toml"
 	"github.com/stretchr/testify/require"
 	"github.com/tj/assert"
 
-	"github.com/pelletier/go-toml"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
@@ -33,33 +33,32 @@ var _ = Describe("Bottlerocket", func() {
 
 		ng = api.NewNodeGroup()
 		ng.AMIFamily = "Bottlerocket"
-		// SetNodeGroupDefaults ensures this is non-nil for Bottlerocket nodegroups
-		ng.Bottlerocket = &api.NodeGroupBottlerocket{}
+		api.SetNodeGroupDefaults(ng, clusterConfig.Metadata)
 	})
 
 	Describe("with no user settings", func() {
 		It("produces standard TOML userdata", func() {
 			bootstrapper := newBootstrapper(clusterConfig, ng)
 			userdata, err := bootstrapper.UserData()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(userdata).ToNot(Equal(""))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(userdata).NotTo(Equal(""))
 
 			settings, parseErr := userdataTOML(userdata)
-			Expect(parseErr).ToNot(HaveOccurred())
+			Expect(parseErr).NotTo(HaveOccurred())
 			Expect(settings.Has("settings.kubernetes.cluster-name")).To(BeTrue())
 		})
 
 		It("leaves settings.host-containers.admin.enabled commented", func() {
 			bootstrapper := newBootstrapper(clusterConfig, ng)
 			userdata, err := bootstrapper.UserData()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(userdata).ToNot(Equal(""))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(userdata).NotTo(Equal(""))
 
 			settings, parseErr := userdataTOML(userdata)
-			Expect(parseErr).ToNot(HaveOccurred())
+			Expect(parseErr).NotTo(HaveOccurred())
 			Expect(settings.Has("settings.host-containers.admin.enabled")).To(BeFalse())
 			tomlStr, err := settings.ToTomlString()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			// Generated TOML should contain a section (with the enabled
 			// key=value) for the unset, commented out setting.
 			Expect(tomlStr).To(ContainSubstring("[settings.host-containers.admin]"))
@@ -84,11 +83,11 @@ var _ = Describe("Bottlerocket", func() {
 
 			bootstrapper := newBootstrapper(clusterConfig, ng)
 			userdata, err := bootstrapper.UserData()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(userdata).ToNot(Equal(""))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(userdata).NotTo(Equal(""))
 
 			tree, parseErr := userdataTOML(userdata)
-			Expect(parseErr).ToNot(HaveOccurred())
+			Expect(parseErr).NotTo(HaveOccurred())
 			// Verify the keys made it to where they were
 			// supposed to and that nothing happened to
 			// make them appear as dotted/split key names.
@@ -110,11 +109,11 @@ var _ = Describe("Bottlerocket", func() {
 			It("sets it on the userdata", func() {
 				bootstrapper := newBootstrapper(clusterConfig, ng)
 				userdata, err := bootstrapper.UserData()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(userdata).ToNot(Equal(""))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(userdata).NotTo(Equal(""))
 
 				settings, parseErr := userdataTOML(userdata)
-				Expect(parseErr).ToNot(HaveOccurred())
+				Expect(parseErr).NotTo(HaveOccurred())
 				Expect(settings.Has("settings.host-containers.example.enabled")).To(BeTrue())
 			})
 		})
@@ -127,11 +126,11 @@ var _ = Describe("Bottlerocket", func() {
 			It("enables admin container on the userdata", func() {
 				bootstrapper := newBootstrapper(clusterConfig, ng)
 				userdata, err := bootstrapper.UserData()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(userdata).ToNot(Equal(""))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(userdata).NotTo(Equal(""))
 
 				settings, parseErr := userdataTOML(userdata)
-				Expect(parseErr).ToNot(HaveOccurred())
+				Expect(parseErr).NotTo(HaveOccurred())
 				Expect(settings.Has("settings.host-containers.admin.enabled")).To(BeTrue())
 				val, ok := settings.Get("settings.host-containers.admin.enabled").(bool)
 				Expect(ok).To(BeTrue())
@@ -145,11 +144,11 @@ var _ = Describe("Bottlerocket", func() {
 				providedSettings["host-containers"].(map[string]interface{})["admin"] = map[string]string{"enabled": "user-val"}
 				bootstrapper := newBootstrapper(clusterConfig, ng)
 				userdata, err := bootstrapper.UserData()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(userdata).ToNot(Equal(""))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(userdata).NotTo(Equal(""))
 
 				settings, parseErr := userdataTOML(userdata)
-				Expect(parseErr).ToNot(HaveOccurred())
+				Expect(parseErr).NotTo(HaveOccurred())
 				// Check that the value specified in config is
 				// set, not the higher level toggle.
 				Expect(settings.Has("settings.host-containers.admin.enabled")).To(BeTrue())
@@ -176,11 +175,11 @@ var _ = Describe("Bottlerocket", func() {
 			It("adds the labels to the userdata", func() {
 				bootstrapper := newBootstrapper(clusterConfig, ng)
 				userdata, err := bootstrapper.UserData()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(userdata).ToNot(Equal(""))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(userdata).NotTo(Equal(""))
 
 				tree, parseErr := userdataTOML(userdata)
-				Expect(parseErr).ToNot(HaveOccurred())
+				Expect(parseErr).NotTo(HaveOccurred())
 
 				Expect(tree.HasPath(append(labelsPath, "foo"))).To(BeTrue())
 				Expect(tree.GetPath(append(labelsPath, "foo"))).To(Equal("bar"))
@@ -201,11 +200,11 @@ var _ = Describe("Bottlerocket", func() {
 			It("adds the taints to the userdata", func() {
 				bootstrapper := newBootstrapper(clusterConfig, ng)
 				userdata, err := bootstrapper.UserData()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(userdata).ToNot(Equal(""))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(userdata).NotTo(Equal(""))
 
 				tree, parseErr := userdataTOML(userdata)
-				Expect(parseErr).ToNot(HaveOccurred())
+				Expect(parseErr).NotTo(HaveOccurred())
 
 				Expect(tree.HasPath(append(taintsPath, "foo"))).To(BeTrue())
 				Expect(tree.GetPath(append(taintsPath, "foo"))).To(Equal("bar:NoExecute"))
@@ -218,11 +217,11 @@ var _ = Describe("Bottlerocket", func() {
 
 				bootstrapper := newBootstrapper(clusterConfig, ng)
 				userdata, err := bootstrapper.UserData()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(userdata).ToNot(Equal(""))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(userdata).NotTo(Equal(""))
 
 				tree, parseErr := userdataTOML(userdata)
-				Expect(parseErr).ToNot(HaveOccurred())
+				Expect(parseErr).NotTo(HaveOccurred())
 
 				Expect(tree.HasPath(clusterDNSIPPath)).To(BeTrue())
 				Expect(tree.GetPath(clusterDNSIPPath)).To(Equal(ng.ClusterDNS))
@@ -235,11 +234,11 @@ var _ = Describe("Bottlerocket", func() {
 
 				bootstrapper := newBootstrapper(clusterConfig, ng)
 				userdata, err := bootstrapper.UserData()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(userdata).ToNot(Equal(""))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(userdata).NotTo(Equal(""))
 
 				tree, parseErr := userdataTOML(userdata)
-				Expect(parseErr).ToNot(HaveOccurred())
+				Expect(parseErr).NotTo(HaveOccurred())
 
 				Expect(tree.HasPath(maxPodsPath)).To(BeTrue())
 				Expect(tree.GetPath(maxPodsPath)).To(Equal(int64(ng.MaxPodsPerNode)))
@@ -248,11 +247,11 @@ var _ = Describe("Bottlerocket", func() {
 			It("does not add MaxPodsPerNode when not set", func() {
 				bootstrapper := newBootstrapper(clusterConfig, ng)
 				userdata, err := bootstrapper.UserData()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(userdata).ToNot(Equal(""))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(userdata).NotTo(Equal(""))
 
 				tree, parseErr := userdataTOML(userdata)
-				Expect(parseErr).ToNot(HaveOccurred())
+				Expect(parseErr).NotTo(HaveOccurred())
 
 				Expect(tree.HasPath(maxPodsPath)).To(BeFalse())
 			})

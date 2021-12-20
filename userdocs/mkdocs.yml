@@ -29,6 +29,7 @@ nav:
             - usage/managing-nodegroups.md
             - usage/nodegroup-upgrade.md
             - usage/nodegroup-with-custom-subnet.md
+            - usage/nodegroup-customize-dns.md
             - usage/eks-managed-nodes.md
             - usage/launch-template-support.md
             - usage/instance-selector.md
@@ -41,12 +42,14 @@ nav:
             - usage/windows-worker-nodes.md
         - GitOps:
             - usage/gitops-v2.md
-            - usage/gitops-v1.md
         - Security:
             - usage/security.md
             - usage/kms-encryption.md
         - Networking:
             - usage/vpc-networking.md
+            - usage/vpc-configuration.md
+            - usage/vpc-subnet-settings.md
+            - usage/vpc-cluster-access.md
         - IAM:
             - usage/minimum-iam-policies.md
             - usage/iam-permissions-boundary.md

@@ -1,12 +1,12 @@
 package enable
 
 import (
-	"io/ioutil"
 	"os"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/actions/flux"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -58,7 +58,7 @@ func flux2Install(cmd *cmdutils.Cmd) error {
 			return err
 		}
 
-		kubeCfgPath, err := ioutil.TempFile("", cmd.ClusterConfig.Metadata.Name)
+		kubeCfgPath, err := os.CreateTemp("", cmd.ClusterConfig.Metadata.Name)
 		if err != nil {
 			return err
 		}
@@ -85,11 +85,7 @@ func flux2Install(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	if err := installer.Run(); err != nil {
-		return err
-	}
-
-	return nil
+	return installer.Run()
 }
 
 func kubeconfAndContextNotSet(flags map[string]string) bool {

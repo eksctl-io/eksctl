@@ -125,7 +125,7 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 		}
 
 		// Check whether role already exists.
-		identities, err := acm.Identities()
+		identities, err := acm.GetIdentities()
 		if err != nil {
 			return err
 		}

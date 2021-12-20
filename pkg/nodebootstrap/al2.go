@@ -4,6 +4,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap/assets"
 )
 
 const (
@@ -23,13 +24,13 @@ func NewAL2Bootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) *Am
 }
 
 func (b *AmazonLinux2) UserData() (string, error) {
-	var scripts []string
+	var scripts []script
 
 	if api.IsEnabled(b.ng.EFAEnabled) {
-		scripts = append(scripts, "efa.al2.sh")
+		scripts = append(scripts, script{name: "efa.al2.sh", contents: assets.EfaAl2Sh})
 	}
 
-	body, err := linuxConfig(b.clusterConfig, al2BootScript, b.ng, scripts...)
+	body, err := linuxConfig(b.clusterConfig, al2BootScript, assets.BootstrapAl2Sh, b.ng, scripts...)
 	if err != nil {
 		return "", errors.Wrap(err, "encoding user data")
 	}

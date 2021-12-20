@@ -392,6 +392,7 @@ var _ = Describe("Cluster Template Builder", func() {
 				Expect(clusterTemplate.Resources).NotTo(HaveKey("PublicSubnetRoute"))
 				Expect(clusterTemplate.Resources).To(HaveKey(ContainSubstring("PrivateRouteTable")))
 			})
+
 			When("ipv6 cluster is enabled", func() {
 				BeforeEach(func() {
 					cfg.VPC.Network.IPFamily = api.IPV6Family
@@ -427,6 +428,18 @@ var _ = Describe("Cluster Template Builder", func() {
 					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.PubRouteTableAssociation + azBFormatted))
 					Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateRouteTableAssociation + azAFormatted))
 					Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateRouteTableAssociation + azBFormatted))
+				})
+			})
+
+			When("skip endpoint creation is set", func() {
+				BeforeEach(func() {
+					cfg.PrivateCluster = &api.PrivateCluster{
+						Enabled:              true,
+						SkipEndpointCreation: true,
+					}
+				})
+				It("will skip creating all of the endpoints", func() {
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(ContainSubstring("VPCEndpoint")))
 				})
 			})
 		})

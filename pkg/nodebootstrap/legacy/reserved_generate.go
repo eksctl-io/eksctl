@@ -1,3 +1,4 @@
+//go:build ignore
 //+build ignore
 
 // Fetches AWS instance type data such as memory, cpus, and
