@@ -1,0 +1,20 @@
+# A simple example of ClusterConfig object with labels:
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: test-labels-1
+  region: us-west-2
+
+managedNodeGroups:
+  - name: ng-1
+    instanceType: m5.large
+    desiredCapacity: 1
+    labels:
+      key: value
+  - name: ng-2
+    instanceType: m5.large
+    desiredCapacity: 1
+    labels:
+      key2: value2

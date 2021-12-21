@@ -1,7 +1,7 @@
 package connector_test
 
 import (
-	"io/ioutil"
+	"os"
 	"path"
 	"strings"
 	"time"
@@ -27,7 +27,7 @@ type connectorCase struct {
 
 var _ = Describe("EKS Connector", func() {
 	readManifest := func(filename string) (connector.ManifestFile, error) {
-		data, err := ioutil.ReadFile(path.Join("testdata", filename))
+		data, err := os.ReadFile(path.Join("testdata", filename))
 		if err != nil {
 			return connector.ManifestFile{}, nil
 		}
@@ -83,7 +83,7 @@ var _ = Describe("EKS Connector", func() {
 		}
 
 		manifestTemplate, err := cc.getManifestTemplate()
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		c := connector.EKSConnector{
 			Provider:         mockProvider,
@@ -97,11 +97,11 @@ var _ = Describe("EKS Connector", func() {
 			return
 		}
 
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		assertManifestEquals := func(m connector.ManifestFile, expectedFile string) {
-			expected, err := ioutil.ReadFile(path.Join("testdata", expectedFile))
-			Expect(err).ToNot(HaveOccurred())
+			expected, err := os.ReadFile(path.Join("testdata", expectedFile))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(m.Data).To(Equal(expected), m.Filename)
 		}
 

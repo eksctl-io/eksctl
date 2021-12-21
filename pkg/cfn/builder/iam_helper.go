@@ -15,6 +15,7 @@ import (
 
 type cfnTemplate interface {
 	attachAllowPolicy(name string, refRole *gfnt.Value, statements []cft.MapOfInterfaces)
+	attachAllowPolicyDocument(name string, refRole *gfnt.Value, document api.InlineDocument)
 	newResource(name string, resource gfn.Resource) *gfnt.Value
 }
 
@@ -96,6 +97,10 @@ func createRole(cfnTemplate cfnTemplate, clusterIAMConfig *api.ClusterIAM, iamCo
 	}
 
 	refIR := cfnTemplate.newResource(cfnIAMInstanceRoleName, &role)
+
+	if iamConfig.AttachPolicy != nil {
+		cfnTemplate.attachAllowPolicyDocument("Policy1", refIR, iamConfig.AttachPolicy)
+	}
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.AutoScaler) {
 		cfnTemplate.attachAllowPolicy("PolicyAutoScaling", refIR, autoScalerStatements())

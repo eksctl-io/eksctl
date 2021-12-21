@@ -35,7 +35,7 @@ var _ = Describe("cmdutils configfile", func() {
 				}
 
 				err := NewMetadataLoader(cmd).Load()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(cfg.Metadata.Name).To(Equal("foo-1"))
 			}
 
@@ -96,7 +96,7 @@ var _ = Describe("cmdutils configfile", func() {
 					l.flagsIncompatibleWithConfigFile.Delete("name")
 
 					err := l.Load()
-					Expect(err).ToNot(HaveOccurred())
+					Expect(err).NotTo(HaveOccurred())
 				})
 			})
 			When("given as positional argument", func() {
@@ -113,7 +113,7 @@ var _ = Describe("cmdutils configfile", func() {
 					l.flagsIncompatibleWithConfigFile.Delete("name")
 
 					err := l.Load()
-					Expect(err).ToNot(HaveOccurred())
+					Expect(err).NotTo(HaveOccurred())
 				})
 			})
 		})
@@ -144,9 +144,9 @@ var _ = Describe("cmdutils configfile", func() {
 
 		It("load all of example file", func() {
 			examples, err := filepath.Glob(examplesDir + "*.yaml")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
-			Expect(examples).ToNot(BeEmpty())
+			Expect(examples).NotTo(BeEmpty())
 			for _, example := range examples {
 				cmd := &Cmd{
 					CobraCommand:      newCmd(),
@@ -156,11 +156,11 @@ var _ = Describe("cmdutils configfile", func() {
 				}
 
 				err := NewMetadataLoader(cmd).Load()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 
 				cfg := cmd.ClusterConfig
-				Expect(cfg.Metadata.Name).ToNot(BeEmpty())
-				Expect(cfg.Metadata.Region).ToNot(BeEmpty())
+				Expect(cfg.Metadata.Name).NotTo(BeEmpty())
+				Expect(cfg.Metadata.Region).NotTo(BeEmpty())
 				Expect(cfg.Metadata.Region).To(Equal(cmd.ProviderConfig.Region))
 			}
 		})
@@ -380,6 +380,63 @@ var _ = Describe("cmdutils configfile", func() {
 
 			It("when VPC is imported and private endpoint is enabled", func() {
 				testClusterEndpointAccessDefaults("test_data/cluster-with-vpc-private-access.yaml", true, true)
+			})
+		})
+	})
+
+	Describe("SetLabelLoader", func() {
+		It("should load the right data", func() {
+			cmd := &Cmd{
+				CobraCommand:      newCmd(),
+				ClusterConfigFile: filepath.Join("test_data", "cluster-with-labels.yaml"),
+				ClusterConfig:     api.NewClusterConfig(),
+				ProviderConfig:    api.ProviderConfig{},
+			}
+
+			Expect(NewSetLabelLoader(cmd, "ng-1", nil).Load()).To(Succeed())
+			cfg := cmd.ClusterConfig
+			Expect(cfg.Metadata.Name).To(Equal("test-labels-1"))
+			Expect(cfg.ManagedNodeGroups[0].Name).To(Equal("ng-1"))
+		})
+		When("no config file is provided and no labels", func() {
+			It("errors", func() {
+				cmd := &Cmd{
+					CobraCommand:   newCmd(),
+					ClusterConfig:  api.NewClusterConfig(),
+					ProviderConfig: api.ProviderConfig{},
+				}
+
+				err := NewSetLabelLoader(cmd, "", nil).Load()
+				Expect(err).To(MatchError(ContainSubstring("--labels must be set")))
+			})
+		})
+		When("config file with no nodegroup name is provided", func() {
+			It("should load all nodegroups", func() {
+				cmd := &Cmd{
+					CobraCommand:      newCmd(),
+					ClusterConfigFile: filepath.Join("test_data", "cluster-with-labels.yaml"),
+					ClusterConfig:     api.NewClusterConfig(),
+					ProviderConfig:    api.ProviderConfig{},
+				}
+
+				Expect(NewSetLabelLoader(cmd, "", nil).Load()).To(Succeed())
+				cfg := cmd.ClusterConfig
+				Expect(cfg.Metadata.Name).To(Equal("test-labels-1"))
+				Expect(cfg.ManagedNodeGroups[0].Name).To(Equal("ng-1"))
+				Expect(cfg.ManagedNodeGroups[1].Name).To(Equal("ng-2"))
+			})
+		})
+		When("config file with missing nodegroup name is provided", func() {
+			It("errors", func() {
+				cmd := &Cmd{
+					CobraCommand:      newCmd(),
+					ClusterConfigFile: filepath.Join("test_data", "cluster-with-labels.yaml"),
+					ClusterConfig:     api.NewClusterConfig(),
+					ProviderConfig:    api.ProviderConfig{},
+				}
+
+				err := NewSetLabelLoader(cmd, "invalid", nil).Load()
+				Expect(err).To(MatchError(ContainSubstring("nodegroup with name invalid not found in the config file")))
 			})
 		})
 	})

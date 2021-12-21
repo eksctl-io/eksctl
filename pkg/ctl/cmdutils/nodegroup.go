@@ -3,6 +3,7 @@ package cmdutils
 import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
@@ -21,11 +22,8 @@ func PopulateNodegroup(stackManager manager.StackManager, name string, cfg *api.
 		}
 		nodeGroupType = api.NodeGroupTypeUnowned
 	}
-	if err = PopulateNodegroupFromStack(nodeGroupType, name, cfg); err != nil {
-		return err
-	}
 
-	return nil
+	return PopulateNodegroupFromStack(nodeGroupType, name, cfg)
 }
 
 // PopulateNodegroupFromStack populates the nodegroup field of an api.ClusterConfig by type from its CF stack.

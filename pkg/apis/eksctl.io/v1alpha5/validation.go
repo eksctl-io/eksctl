@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/hashicorp/go-version"
@@ -118,18 +120,8 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 	}
 
-	if cfg.HasClusterCloudWatchLogging() {
-		for i, logType := range cfg.CloudWatch.ClusterLogging.EnableTypes {
-			isUnknown := true
-			for _, knownLogType := range SupportedCloudWatchClusterLogTypes() {
-				if logType == knownLogType {
-					isUnknown = false
-				}
-			}
-			if isUnknown {
-				return fmt.Errorf("log type %q (cloudWatch.clusterLogging.enableTypes[%d]) is unknown", logType, i)
-			}
-		}
+	if err := validateCloudWatchLogging(cfg); err != nil {
+		return err
 	}
 
 	if err := cfg.ValidateVPCConfig(); err != nil {
@@ -300,6 +292,39 @@ func (c *ClusterConfig) addonContainsManagedAddons(addons []string) []string {
 	return missing
 }
 
+func validateCloudWatchLogging(clusterConfig *ClusterConfig) error {
+	if !clusterConfig.HasClusterCloudWatchLogging() {
+		if clusterConfig.CloudWatch != nil &&
+			clusterConfig.CloudWatch.ClusterLogging != nil &&
+			clusterConfig.CloudWatch.ClusterLogging.LogRetentionInDays != 0 {
+			return errors.New("cannot set cloudWatch.clusterLogging.logRetentionInDays without enabling log types")
+		}
+		return nil
+	}
+
+	for i, logType := range clusterConfig.CloudWatch.ClusterLogging.EnableTypes {
+		isUnknown := true
+		for _, knownLogType := range SupportedCloudWatchClusterLogTypes() {
+			if logType == knownLogType {
+				isUnknown = false
+			}
+		}
+		if isUnknown {
+			return errors.Errorf("log type %q (cloudWatch.clusterLogging.enableTypes[%d]) is unknown", logType, i)
+		}
+	}
+	if logRetentionDays := clusterConfig.CloudWatch.ClusterLogging.LogRetentionInDays; logRetentionDays != 0 {
+		for _, v := range LogRetentionInDaysValues {
+			if v == logRetentionDays {
+				return nil
+			}
+		}
+		return errors.Errorf("invalid value %d for logRetentionInDays; supported values are %v", logRetentionDays, LogRetentionInDaysValues)
+	}
+
+	return nil
+}
+
 // ValidateClusterEndpointConfig checks the endpoint configuration for potential issues
 func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
 	if !c.HasClusterEndpointAccess() {
@@ -318,7 +343,9 @@ func (c *ClusterConfig) ValidatePrivateCluster() error {
 		if c.VPC != nil && c.VPC.ID != "" && len(c.VPC.Subnets.Private) == 0 {
 			return errors.New("vpc.subnets.private must be specified in a fully-private cluster when a pre-existing VPC is supplied")
 		}
-		if additionalEndpoints := c.PrivateCluster.AdditionalEndpointServices; len(additionalEndpoints) > 0 {
+		if additionalEndpoints := c.PrivateCluster.AdditionalEndpointServices; len(additionalEndpoints) > 0 && c.PrivateCluster.SkipEndpointCreation {
+			return fmt.Errorf("additionalEndpoints cannot be defined together with skipEndpointCreation set to true")
+		} else if len(additionalEndpoints) > 0 {
 			if err := ValidateAdditionalEndpointServices(additionalEndpoints); err != nil {
 				return errors.Wrap(err, "invalid value in privateCluster.additionalEndpointServices")
 			}
@@ -354,7 +381,8 @@ func PrivateOnly(ces *ClusterEndpoints) bool {
 	return !*ces.PublicAccess && *ces.PrivateAccess
 }
 
-func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
+func validateNodeGroupBase(np NodePool, path string) error {
+	ng := np.BaseNodeGroup()
 	if ng.VolumeSize == nil {
 		errCantSet := func(field string) error {
 			return fmt.Errorf("%s.%s cannot be set without %s.volumeSize", path, field, path)
@@ -419,6 +447,10 @@ func validateNodeGroupBase(ng *NodeGroupBase, path string) error {
 			}
 			logger.Warning("SSM is now enabled by default; `ssh.enableSSM` is deprecated and will be removed in a future release")
 		}
+	}
+
+	if instanceutils.IsGPUInstanceType(SelectInstanceType(np)) && (ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != "") {
+		return errors.Errorf("GPU instance types are not supported for %s", ng.AMIFamily)
 	}
 
 	return nil
@@ -511,7 +543,7 @@ func validateNodeGroupName(name string) error {
 // ValidateNodeGroup checks compatible fields of a given nodegroup
 func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	path := fmt.Sprintf("nodeGroups[%d]", i)
-	if err := validateNodeGroupBase(ng.NodeGroupBase, path); err != nil {
+	if err := validateNodeGroupBase(ng, path); err != nil {
 		return err
 	}
 
@@ -711,6 +743,9 @@ func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) erro
 		if iam.InstanceRoleName != "" {
 			return fmtFieldConflictErr("instanceRoleName")
 		}
+		if iam.AttachPolicy != nil {
+			return fmtFieldConflictErr("attachPolicy")
+		}
 		if len(iam.AttachPolicyARNs) != 0 {
 			return fmtFieldConflictErr("attachPolicyARNs")
 		}
@@ -735,7 +770,7 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 
 	path := fmt.Sprintf("managedNodeGroups[%d]", index)
 
-	if err := validateNodeGroupBase(ng.NodeGroupBase, path); err != nil {
+	if err := validateNodeGroupBase(ng, path); err != nil {
 		return err
 	}
 
@@ -1062,7 +1097,8 @@ func IsWindowsImage(imageFamily string) bool {
 	switch imageFamily {
 	case NodeImageFamilyWindowsServer2019CoreContainer,
 		NodeImageFamilyWindowsServer2019FullContainer,
-		NodeImageFamilyWindowsServer2004CoreContainer:
+		NodeImageFamilyWindowsServer2004CoreContainer,
+		NodeImageFamilyWindowsServer20H2CoreContainer:
 		return true
 
 	default:

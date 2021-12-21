@@ -76,13 +76,13 @@ var _ = Describe("command runner", func() {
 			NewCmd("true"),
 			NewCmd("false"),
 		}
-		Expect(willFail).ToNot(RunSuccessfully())
+		Expect(willFail).NotTo(RunSuccessfully())
 	})
 
 	It("can start a command and interrupt it", func() {
 		session := NewCmd("sleep").WithArgs("20").Start()
-		Expect(session.Command.Process).ToNot(BeNil())
+		Expect(session.Command.Process).NotTo(BeNil())
 		session.Interrupt().Wait()
-		Expect(session.ExitCode()).ToNot(BeZero())
+		Expect(session.ExitCode()).NotTo(BeZero())
 	})
 })

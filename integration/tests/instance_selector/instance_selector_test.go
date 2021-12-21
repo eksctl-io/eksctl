@@ -1,6 +1,7 @@
 //go:build integration
 // +build integration
 
+//revive:disable Not changing package name
 package instance_selector
 
 import (
@@ -9,12 +10,12 @@ import (
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/utils"
 
 	"github.com/weaveworks/eksctl/integration/tests"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
+	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 
 	. "github.com/onsi/ginkgo"
 )
@@ -50,7 +51,7 @@ var _ = Describe("(Integration) [Instance Selector test]", func() {
 
 		output := session.Buffer().Contents()
 		clusterConfig, err := eks.ParseConfig(output)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(clusterConfig.ManagedNodeGroups).To(HaveLen(1))
 		if assertionFunc != nil {
 			assertionFunc(clusterConfig.ManagedNodeGroups[0].InstanceTypes)
@@ -58,7 +59,7 @@ var _ = Describe("(Integration) [Instance Selector test]", func() {
 	},
 		Entry("non-GPU instances", func(instanceTypes []string) {
 			for _, instanceType := range instanceTypes {
-				Expect(instanceType).ToNot(Satisfy(utils.IsGPUInstanceType))
+				Expect(instanceType).NotTo(Satisfy(instanceutils.IsGPUInstanceType))
 			}
 		}, "--instance-selector-vcpus=8",
 			"--instance-selector-memory=32",

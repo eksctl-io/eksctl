@@ -47,7 +47,7 @@ var _ = Describe("Instance Selector", func() {
 			Expect(*instanceSelectorFake.FilterArgsForCall(i).AvailabilityZones).To(Equal(isc.expectedAZs))
 		}
 
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		for _, np := range isc.nodeGroups {
 			switch ng := np.(type) {
 			case *api.NodeGroup:

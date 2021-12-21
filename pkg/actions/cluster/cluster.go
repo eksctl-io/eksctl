@@ -20,7 +20,7 @@ type Cluster interface {
 
 func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
 	clusterExists := true
-	err := ctl.RefreshClusterStatus(cfg)
+	err := ctl.RefreshClusterStatusIfStale(cfg)
 	if err != nil {
 		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); ok &&
 			awsError.Code() == awseks.ErrCodeResourceNotFoundException {
@@ -31,14 +31,14 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
-	hasClusterStack, err := stackManager.HasClusterStack()
+	clusterStack, err := stackManager.GetClusterStackIfExists()
 	if err != nil {
 		return nil, err
 	}
 
-	if hasClusterStack {
+	if clusterStack != nil {
 		logger.Debug("cluster %q was created by eksctl", cfg.Metadata.Name)
-		return NewOwnedCluster(cfg, ctl, stackManager), nil
+		return NewOwnedCluster(cfg, ctl, clusterStack, stackManager), nil
 	}
 
 	if !clusterExists {

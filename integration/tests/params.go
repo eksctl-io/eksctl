@@ -94,19 +94,23 @@ func (p *Params) GenerateCommands() {
 
 	p.EksctlGetCmd = p.EksctlCmd.
 		WithArgs("get").
-		WithTimeout(1 * time.Minute)
+		WithTimeout(2 * time.Minute)
 
 	p.EksctlSetLabelsCmd = p.EksctlCmd.
 		WithArgs("set", "labels").
-		WithTimeout(1 * time.Minute)
+		// increased timeout reason: set label updates the cloudformation stack to propagate labels
+		// down to the nodes. That can take a while...
+		WithTimeout(10 * time.Minute)
 
 	p.EksctlUnsetLabelsCmd = p.EksctlCmd.
 		WithArgs("unset", "labels").
-		WithTimeout(1 * time.Minute)
+		// increased timeout reason: unset label updates the cloudformation stack to propagate labels
+		// down to the nodes. That can take a while...
+		WithTimeout(10 * time.Minute)
 
 	p.EksctlDeleteCmd = p.EksctlCmd.
 		WithArgs("delete").
-		WithTimeout(15 * time.Minute)
+		WithTimeout(30 * time.Minute)
 
 	p.EksctlDeleteClusterCmd = p.EksctlDeleteCmd.
 		WithArgs("cluster", "--verbose", "4").

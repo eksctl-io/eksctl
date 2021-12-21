@@ -192,7 +192,13 @@ func (c *StackCollection) AppendNewClusterStackResource(plan, supportsManagedNod
 		logger.Info("(plan) %s", describeUpdate)
 		return true, nil
 	}
-	return true, c.UpdateStack(name, c.MakeChangeSetName("update-cluster"), describeUpdate, TemplateBody(currentTemplate), nil)
+	return true, c.UpdateStack(UpdateStackOptions{
+		StackName:     name,
+		ChangeSetName: c.MakeChangeSetName("update-cluster"),
+		Description:   describeUpdate,
+		TemplateData:  TemplateBody(currentTemplate),
+		Wait:          true,
+	})
 }
 
 func (c *StackCollection) importServiceRoleARN(resources gjson.Result) error {

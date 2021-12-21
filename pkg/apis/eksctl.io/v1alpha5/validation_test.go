@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
@@ -29,11 +30,11 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		It("should handle unique nodegroups", func() {
 			err = api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			for i, ng := range cfg.NodeGroups {
 				err = api.ValidateNodeGroup(i, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			}
 		})
 
@@ -71,7 +72,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		It("should reject invalid nodegroup names", func() {
 			err = api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			for i, ng := range cfg.NodeGroups {
 				err = api.ValidateNodeGroup(i, ng)
@@ -87,7 +88,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng0.Name = "node-group"
 			ng0.ContainerRuntime = aws.String("invalid")
 			err := api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			err = api.ValidateNodeGroup(0, ng0)
 			Expect(err).To(HaveOccurred())
 		})
@@ -98,7 +99,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeContainerD)
 			ng0.AMIFamily = api.NodeImageFamilyBottlerocket
 			err := api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			err = api.ValidateNodeGroup(0, ng0)
 			Expect(err).To(HaveOccurred())
 		})
@@ -228,6 +229,15 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng0 := cfg.NewNodeGroup()
 			ng0.Name = "ng0"
 
+			ng0.IAM.AttachPolicy = cft.MakePolicyDocument(
+				cft.MapOfInterfaces{
+					"Effect": "Allow",
+					"Action": []string{
+						"s3:Get*",
+					},
+					"Resource": "*",
+				},
+			)
 			ng0.IAM.AttachPolicyARNs = []string{
 				"arn:aws:iam::aws:policy/Foo",
 				"arn:aws:iam::aws:policy/Bar",
@@ -242,11 +252,11 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		JustBeforeEach(func() {
 			err = api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			for i, ng := range cfg.NodeGroups {
 				err = api.ValidateNodeGroup(i, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			}
 		})
 
@@ -254,14 +264,14 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng1.IAM.InstanceProfileARN = "p1"
 
 			err = api.ValidateNodeGroup(1, ng1)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should allow setting only instanceRoleARN", func() {
 			ng1.IAM.InstanceRoleARN = "r1"
 
 			err = api.ValidateNodeGroup(1, ng1)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should allow setting instanceProfileARN and instanceRoleARN", func() {
@@ -269,7 +279,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng1.IAM.InstanceRoleARN = "r1"
 
 			err = api.ValidateNodeGroup(1, ng1)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should not allow setting instanceProfileARN and instanceRoleName", func() {
@@ -306,6 +316,23 @@ var _ = Describe("ClusterConfig validation", func() {
 			err = api.ValidateNodeGroup(1, ng1)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceRoleARN and nodeGroups[1].iam.instanceRoleName cannot be set at the same time"))
+		})
+
+		It("should not allow setting instanceRoleARN and attachPolicy", func() {
+			ng1.IAM.InstanceRoleARN = "r1"
+			ng1.IAM.AttachPolicy = cft.MakePolicyDocument(
+				cft.MapOfInterfaces{
+					"Effect": "Allow",
+					"Action": []string{
+						"s3:Get*",
+					},
+					"Resource": "*",
+				},
+			)
+
+			err = api.ValidateNodeGroup(1, ng1)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceRoleARN and nodeGroups[1].iam.attachPolicy cannot be set at the same time"))
 		})
 
 		It("should not allow setting instanceRoleARN and attachPolicyARNs", func() {
@@ -346,21 +373,21 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg.IAM.WithOIDC = nil
 
 			err = api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should pass when iam.withOIDC is disabled", func() {
 			cfg.IAM.WithOIDC = api.Disabled()
 
 			err = api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should pass when iam.withOIDC is enabled", func() {
 			cfg.IAM.WithOIDC = api.Enabled()
 
 			err = api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should fail when iam.withOIDC is disabled and some iam.serviceAccounts are given", func() {
@@ -469,9 +496,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		It("should handle known types", func() {
 			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"api"}
-
-			err = api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(api.ValidateClusterConfig(cfg)).To(Succeed())
 		})
 
 		It("should handle unknown types", func() {
@@ -479,8 +504,50 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			err = api.ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring(`log type "anything" (cloudWatch.clusterLogging.enableTypes[0]) is unknown`)))
 		})
 	})
+
+	type logRetentionEntry struct {
+		logging *api.ClusterCloudWatchLogging
+
+		expectedErr string
+	}
+
+	DescribeTable("CloudWatch log retention", func(l logRetentionEntry) {
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.CloudWatch.ClusterLogging = l.logging
+		err := api.ValidateClusterConfig(clusterConfig)
+		if l.expectedErr != "" {
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring(l.expectedErr)))
+			return
+		}
+
+		Expect(err).NotTo(HaveOccurred())
+	},
+		Entry("invalid value", logRetentionEntry{
+			logging: &api.ClusterCloudWatchLogging{
+				LogRetentionInDays: 42,
+				EnableTypes:        []string{"api"},
+			},
+			expectedErr: `invalid value 42 for logRetentionInDays; supported values are [1 3 5 7`,
+		}),
+
+		Entry("valid value", logRetentionEntry{
+			logging: &api.ClusterCloudWatchLogging{
+				LogRetentionInDays: 545,
+				EnableTypes:        []string{"api"},
+			},
+		}),
+
+		Entry("log retention without enableTypes", logRetentionEntry{
+			logging: &api.ClusterCloudWatchLogging{
+				LogRetentionInDays: 545,
+			},
+			expectedErr: "cannot set cloudWatch.clusterLogging.logRetentionInDays without enabling log types",
+		}),
+	)
 
 	Describe("cluster endpoint access config", func() {
 		var (
@@ -499,21 +566,21 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg.VPC.ClusterEndpoints =
 				&api.ClusterEndpoints{PrivateAccess: api.Enabled(), PublicAccess: api.Enabled()}
 			err = cfg.ValidateClusterEndpointConfig()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should not error on private=false, public=true", func() {
 			cfg.VPC.ClusterEndpoints =
 				&api.ClusterEndpoints{PrivateAccess: api.Disabled(), PublicAccess: api.Enabled()}
 			err = cfg.ValidateClusterEndpointConfig()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should not error on private=true, public=false", func() {
 			cfg.VPC.ClusterEndpoints =
 				&api.ClusterEndpoints{PrivateAccess: api.Enabled(), PublicAccess: api.Disabled()}
 			err = cfg.ValidateClusterEndpointConfig()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should error on private=false, public=false", func() {
@@ -917,6 +984,66 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	Describe("ValidatePrivateCluster", func() {
+		var (
+			cfg *api.ClusterConfig
+			vpc *api.ClusterVPC
+		)
+
+		BeforeEach(func() {
+			cfg = api.NewClusterConfig()
+			vpc = api.NewClusterVPC()
+			cfg.VPC = vpc
+			cfg.PrivateCluster = &api.PrivateCluster{
+				Enabled: true,
+			}
+		})
+
+		When("private cluster is enabled", func() {
+			It("validates the config", func() {
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+		When("vpc is provided but no private subnets", func() {
+			It("fails the validation", func() {
+				cfg.VPC.Subnets = &api.ClusterSubnets{}
+				cfg.VPC.ID = "id"
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).To(MatchError(ContainSubstring("vpc.subnets.private must be specified in a fully-private cluster when a pre-existing VPC is supplied")))
+			})
+		})
+		When("additional endpoints are defined with skip endpoints", func() {
+			It("fails the validation", func() {
+				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
+				cfg.PrivateCluster.SkipEndpointCreation = true
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).To(MatchError(ContainSubstring("additionalEndpoints cannot be defined together with skipEndpointCreation set to true")))
+			})
+		})
+		When("additional endpoints are defined", func() {
+			It("validates the endpoint configuration", func() {
+				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+		When("additional endpoints are defined incorrectly", func() {
+			It("fails the endpoint validation", func() {
+				cfg.PrivateCluster.AdditionalEndpointServices = []string{"unknown"}
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).To(MatchError(ContainSubstring("invalid value in privateCluster.additionalEndpointServices")))
+			})
+		})
+		When("private cluster is enabled with skip endpoints", func() {
+			It("does not fail the validation", func() {
+				cfg.PrivateCluster.SkipEndpointCreation = true
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+	})
+
 	Describe("cpuCredits", func() {
 		var ng *api.NodeGroup
 		BeforeEach(func() {
@@ -933,12 +1060,12 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("works independent of instanceType", func() {
 			Context("unset", func() {
 				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 			Context("set", func() {
 				ng.InstanceType = "mixed"
 				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 
@@ -1020,7 +1147,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			It("It doesn't panic when instance distribution is not enabled", func() {
 				ng.InstancesDistribution = nil
 				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("It doesn't fail when instance distribution is enabled and instanceType is \"mixed\"", func() {
@@ -1028,7 +1155,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				ng.InstancesDistribution.InstanceTypes = []string{"t3.medium"}
 
 				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("It fails when instance distribution is enabled and instanceType set", func() {
@@ -1105,7 +1232,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				ng.InstancesDistribution.SpotInstancePools = newInt(2)
 
 				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 	})
@@ -1146,7 +1273,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					},
 				}
 				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 	})
@@ -1191,7 +1318,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				ng.VolumeEncrypted = &enabled
 				ng.VolumeKmsKeyID = &kmsKeyID
 				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 		})
@@ -1261,7 +1388,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					},
 				}
 				err := profile.Validate()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("passes when a name and multiple selectors with a namespace is defined", func() {
@@ -1277,7 +1404,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					},
 				}
 				err := profile.Validate()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 	})
@@ -1360,7 +1487,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(k.errSubstr))
 		} else {
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		}
 	},
 		Entry("Nil secretsEncryption", kmsFieldCase{
@@ -1387,7 +1514,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("fails when the AMIFamily is not supported", func() {
 			ng.AMIFamily = "SomeTrash"
 			err := api.ValidateNodeGroup(0, ng)
-			Expect(err).To(MatchError("AMI Family SomeTrash is not supported - use one of: AmazonLinux2, Ubuntu2004, Ubuntu1804, Bottlerocket, WindowsServer2019CoreContainer, WindowsServer2019FullContainer, WindowsServer2004CoreContainer"))
+			Expect(err).To(MatchError("AMI Family SomeTrash is not supported - use one of: AmazonLinux2, Ubuntu2004, Ubuntu1804, Bottlerocket, WindowsServer2019CoreContainer, WindowsServer2019FullContainer, WindowsServer2004CoreContainer, WindowsServer20H2CoreContainer"))
 		})
 	})
 
@@ -1438,7 +1565,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		ng.Taints = e.taints
 		err := api.ValidateNodeGroup(0, ng)
 		if e.valid {
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		} else {
 			Expect(err).To(HaveOccurred())
 		}
