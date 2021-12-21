@@ -137,6 +137,7 @@ managedNodeGroups:
 privateCluster:
   enabled: false
 vpc:
+  ipFamily: IPv4
   autoAllocateIPv6: false
   cidr: 192.168.0.0/16
   clusterEndpoints:
