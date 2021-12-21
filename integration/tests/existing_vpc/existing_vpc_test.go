@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package unowned_clusters
+package unowned
 
 import (
 	"encoding/json"

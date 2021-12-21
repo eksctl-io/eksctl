@@ -189,6 +189,7 @@ func (a *Manager) patchAWSNodeDaemonSet() error {
 
 	return nil
 }
+
 func (a *Manager) getRecommendedPolicies(addon *api.Addon) (api.InlineDocument, []string, *api.WellKnownPolicies) {
 	// API isn't case sensitive
 	switch addon.CanonicalName() {

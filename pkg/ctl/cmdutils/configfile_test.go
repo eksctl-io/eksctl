@@ -156,7 +156,7 @@ var _ = Describe("cmdutils configfile", func() {
 				}
 
 				err := NewMetadataLoader(cmd).Load()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 
 				cfg := cmd.ClusterConfig
 				Expect(err).NotTo(HaveOccurred())

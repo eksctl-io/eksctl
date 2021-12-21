@@ -28,7 +28,8 @@ There are some additional caveats when configuring Kubernetes API endpoint acces
    resources.  See:
    [EKS user guide](https://docs.aws.amazon.com/en_pv/eks/latest/userguide/cluster-endpoint#private-access)
    A user can provide `vpc.extraCIDRs` which will append additional CIDR ranges to the ControlPlaneSecurityGroup,
-   allowing subnets outside the VPC to reach the Kubernetes API endpoint.
+   allowing subnets outside the VPC to reach the kubernetes API endpoint. Similarly you can provide `vpc.extraIPv6CIDRs`
+   to append IPv6 CIDR ranges as well.
 
 The following is an example of how one could configure the Kubernetes API endpoint access using the `utils` sub-command:
 

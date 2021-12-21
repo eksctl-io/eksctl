@@ -395,7 +395,7 @@ var _ = Describe("Create", func() {
 
 			})
 
-			When("its the vpc-cni addon", func() {
+			When("it's the vpc-cni addon", func() {
 				Context("ipv4", func() {
 					It("creates a role with the recommended policies and attaches it to the addon", func() {
 						err := manager.Create(&api.Addon{
@@ -434,7 +434,6 @@ var _ = Describe("Create", func() {
 							Version: "v1.0.0-eksbuild.1",
 						}, false)
 						Expect(err).NotTo(HaveOccurred())
-
 						Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
 						name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
 						Expect(name).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
@@ -453,7 +452,7 @@ var _ = Describe("Create", func() {
 				})
 			})
 
-			When("its the aws-ebs-csi-driver addon", func() {
+			When("it's the aws-ebs-csi-driver addon", func() {
 				It("creates a role with the recommended policies and attaches it to the addon", func() {
 					err := manager.Create(&api.Addon{
 						Name:    "aws-ebs-csi-driver",
