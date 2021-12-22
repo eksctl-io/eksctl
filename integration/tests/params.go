@@ -110,7 +110,7 @@ func (p *Params) GenerateCommands() {
 
 	p.EksctlDeleteCmd = p.EksctlCmd.
 		WithArgs("delete").
-		WithTimeout(15 * time.Minute)
+		WithTimeout(30 * time.Minute)
 
 	p.EksctlDeleteClusterCmd = p.EksctlDeleteCmd.
 		WithArgs("cluster", "--verbose", "4").
