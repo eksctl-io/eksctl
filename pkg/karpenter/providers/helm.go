@@ -15,6 +15,16 @@ type URLGetter interface {
 	Get(url string, options ...getter.Option) (*bytes.Buffer, error)
 }
 
+// InstallChartOpts defines parameters for InstallChart.
+type InstallChartOpts struct {
+	ChartName       string
+	CreateNamespace bool
+	Namespace       string
+	ReleaseName     string
+	Values          map[string]interface{}
+	Version         string
+}
+
 // HelmInstaller deals with setting up Helm related resources.
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_helm_installer.go . HelmInstaller
@@ -23,5 +33,5 @@ type HelmInstaller interface {
 	AddRepo(repoURL string, release string) error
 	// InstallChart takes a releaseName's name and a chart name and installs it. If namespace is not empty
 	// it will install into that namespace and create the namespace. Version is required.
-	InstallChart(ctx context.Context, releaseName, chartName, namespace, version string, values map[string]interface{}) error
+	InstallChart(ctx context.Context, opts InstallChartOpts) error
 }

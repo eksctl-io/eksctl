@@ -15,6 +15,9 @@ var _ = Describe("karpenter stack", func() {
 
 	BeforeEach(func() {
 		cfg = api.NewClusterConfig()
+		cfg.Metadata = &api.ClusterMeta{
+			Name: "test-karpenter",
+		}
 		cfg.Karpenter = &api.Karpenter{
 			Version:              "0.4.3",
 			CreateServiceAccount: api.Disabled(),
@@ -59,7 +62,7 @@ var expectedTemplate = `{
       "Type": "AWS::IAM::ManagedPolicy",
       "Properties": {
         "ManagedPolicyName": {
-          "Fn::Sub": "KarpenterControllerPolicy-${AWS::StackName}"
+          "Fn::Sub": "KarpenterControllerPolicy-test-karpenter"
         },
         "PolicyDocument": {
           "Statement": [
@@ -92,7 +95,7 @@ var expectedTemplate = `{
       "Type": "AWS::IAM::InstanceProfile",
       "Properties": {
         "InstanceProfileName": {
-          "Fn::Sub": "KarpenterNodeInstanceProfile-${AWS::StackName}"
+          "Fn::Sub": "KarpenterNodeInstanceProfile-test-karpenter"
         },
         "Path": "/",
         "Roles": [
@@ -145,7 +148,7 @@ var expectedTemplate = `{
         ],
         "Path": "/",
         "RoleName": {
-          "Fn::Sub": "KarpenterNodeRole-${AWS::StackName}"
+          "Fn::Sub": "KarpenterNodeRole-test-karpenter"
         },
         "Tags": [
           {

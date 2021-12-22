@@ -410,9 +410,6 @@ func installKarpenter(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, stackMan
 	if cfg.Karpenter == nil {
 		return nil
 	}
-	if cfg.Karpenter.Version == "" {
-		return errors.New("version field is required if installing Karpenter is enabled")
-	}
 	// install karpenter onto the cluster.
 	installer, err := karpenteractions.NewInstaller(cfg, ctl, stackManager, clientSet)
 	if err != nil {

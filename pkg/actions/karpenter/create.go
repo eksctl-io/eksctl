@@ -1,6 +1,7 @@
 package karpenter
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -21,25 +22,40 @@ func (i *Installer) Create() error {
 	if err != nil {
 		return fmt.Errorf("unexpected or invalid ARN: %q, %w", i.Config.Status.ARN, err)
 	}
-	roleArn := fmt.Sprintf("arn:aws:iam::%s:policy/%s-%s", parsedARN.AccountID, builder.KarpenterManagedPolicy, i.Config.Metadata.Name)
 	clientSetGetter := &kubernetes.CallbackClientSet{
 		Callback: func() (kubernetes.Interface, error) {
 			return i.ClientSet, nil
 		},
 	}
-	karpenterServiceAccountTaskTree := i.StackManager.NewTasksToCreateIAMServiceAccounts([]*api.ClusterIAMServiceAccount{
-		{
-			ClusterIAMMeta: api.ClusterIAMMeta{
-				Name:      karpenter.DefaultServiceAccountName,
-				Namespace: karpenter.DefaultNamespace,
-			},
-			AttachRoleARN: roleArn,
+	// Create IAM roles
+	taskTree := newTasksToInstallKarpenterIAMRoles(i.Config, i.StackManager, i.CTL.Provider.EC2())
+	if err := doTasks(taskTree); err != nil {
+		return err
+	}
+
+	// Set up service account
+	var roleARN string
+	policyArn := fmt.Sprintf("arn:aws:iam::%s:policy/%s-%s", parsedARN.AccountID, builder.KarpenterManagedPolicy, i.Config.Metadata.Name)
+	iamServiceAccount := &api.ClusterIAMServiceAccount{
+		ClusterIAMMeta: api.ClusterIAMMeta{
+			Name:      karpenter.DefaultServiceAccountName,
+			Namespace: karpenter.DefaultNamespace,
 		},
-	}, nil, clientSetGetter)
+		AttachPolicyARNs: []string{policyArn},
+	}
+	if api.IsEnabled(i.Config.Karpenter.CreateServiceAccount) {
+		// Create the service account role only.
+		roleName := fmt.Sprintf("eksctl-%s-iamservice-role", i.Config.Metadata.Name)
+		roleARN = fmt.Sprintf("arn:aws:iam::%s:role/%s", parsedARN.AccountID, roleName)
+		iamServiceAccount.RoleOnly = api.Enabled()
+		iamServiceAccount.RoleName = roleName
+	}
+	karpenterServiceAccountTaskTree := i.StackManager.NewTasksToCreateIAMServiceAccounts([]*api.ClusterIAMServiceAccount{iamServiceAccount}, i.OIDC, clientSetGetter)
 	logger.Info(karpenterServiceAccountTaskTree.Describe())
 	if err := doTasks(karpenterServiceAccountTaskTree); err != nil {
-		return fmt.Errorf("failed to create service account: %w", err)
+		return fmt.Errorf("failed to create/attach service account: %w", err)
 	}
+
 	// create identity mapping for EC2 nodes to be able to join the cluster.
 	acm, err := authconfigmap.NewFromClientSet(i.ClientSet)
 	if err != nil {
@@ -53,6 +69,7 @@ func (i *Installer) Create() error {
 	if err := acm.AddIdentity(id); err != nil {
 		return fmt.Errorf("failed to add new identity: %w", err)
 	}
-	taskTree := NewTasksToInstallKarpenter(i.Config, i.StackManager, i.CTL.Provider.EC2(), i.KarpenterInstaller)
-	return doTasks(taskTree)
+
+	// Install Karpenter
+	return i.KarpenterInstaller.Install(context.Background(), roleARN)
 }
