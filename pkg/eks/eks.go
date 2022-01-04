@@ -329,7 +329,7 @@ func (c *ClusterProvider) loadClusterKubernetesNetworkConfig(spec *api.ClusterCo
 }
 
 // ListClusters returns a list of the EKS cluster in your account
-func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*api.ClusterConfig, error) {
+func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool, newProviderForConfig func(*api.ProviderConfig, *api.ClusterConfig) (*ClusterProvider, error)) ([]*api.ClusterConfig, error) {
 	if !listAllRegions {
 		return c.listClusters(int64(chunkSize))
 	}
@@ -349,13 +349,12 @@ func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*a
 			continue
 		}
 		// Reset region and recreate the client.
-		spec := &api.ProviderConfig{
+		ctl, err := newProviderForConfig(&api.ProviderConfig{
 			Region:      region,
 			Profile:     c.Provider.Profile(),
 			WaitTimeout: c.Provider.WaitTimeout(),
-		}
+		}, nil)
 
-		ctl, err := New(spec, nil)
 		if err != nil {
 			logger.Critical("error creating provider in %q region: %v", region, err)
 			continue

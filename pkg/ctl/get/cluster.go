@@ -15,6 +15,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
@@ -100,7 +101,7 @@ func getAndPrinterClusters(ctl *eks.ClusterProvider, params *getCmdParams, listA
 		addGetClustersSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	clusters, err := ctl.ListClusters(params.chunkSize, listAllRegions)
+	clusters, err := ctl.ListClusters(params.chunkSize, listAllRegions, eks.New)
 	if err != nil {
 		return err
 	}
