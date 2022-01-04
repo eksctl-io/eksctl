@@ -35,5 +35,5 @@ karpenter:
   createServiceAccount: true # default is false  
 ```
 
-Once Karpenter is successfully installed, add a [Provisioner](https://karpenter.sh/docs/provisioner-crd/) so Karpenter
+Once Karpenter is successfully installed, add a [Provisioner](https://karpenter.sh/docs/provisioner/) so Karpenter
 can start adding the right nodes to the cluster.
