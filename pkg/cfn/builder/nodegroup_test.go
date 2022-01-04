@@ -77,10 +77,10 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 
 		Context("ipv6 cluster", func() {
 			BeforeEach(func() {
-				cfg.VPC.IPFamily = api.IPV6Family
+				cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
 			})
 			AfterEach(func() {
-				cfg.VPC.IPFamily = api.IPV4Family
+				cfg.KubernetesNetworkConfig.IPFamily = api.IPV4Family
 			})
 
 			When("an unmanaged nodegroup is created", func() {

@@ -16,7 +16,7 @@ metadata:
   region: us-west-2
   version: "1.21"
 
-vpc:
+kubernetesNetworkConfig:
   ipFamily: IPv6 # or IPv4
 
 addons:
