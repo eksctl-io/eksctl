@@ -33,9 +33,9 @@ var _ = Describe("Cluster Template Builder", func() {
 		cfg = api.NewClusterConfig()
 		cfg.VPC = vpcConfig()
 		cfg.AvailabilityZones = []string{"us-west-2a", "us-west-2b"}
-		cfg.VPC.IPFamily = api.IPV4Family
 		cfg.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
 			ServiceIPv4CIDR: "131.10.55.70/18",
+			IPFamily:        api.IPV4Family,
 		}
 	})
 
@@ -99,8 +99,7 @@ var _ = Describe("Cluster Template Builder", func() {
 
 		Context("when ipFamily is set to IPv6", func() {
 			BeforeEach(func() {
-				cfg.VPC.IPFamily = api.IPV6Family
-				cfg.KubernetesNetworkConfig = nil
+				cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
 			})
 
 			It("should add control plane resources", func() {
@@ -406,7 +405,7 @@ var _ = Describe("Cluster Template Builder", func() {
 
 			When("ipv6 cluster is enabled", func() {
 				BeforeEach(func() {
-					cfg.VPC.Network.IPFamily = api.IPV6Family
+					cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
 				})
 				It("should only add private IPv6 vpc resources", func() {
 					Expect(clusterTemplate.Resources).To(HaveKey(builder.VPCResourceKey))

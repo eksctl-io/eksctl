@@ -40,7 +40,7 @@ func NewClusterResourceSet(ec2API ec2iface.EC2API, region string, spec *api.Clus
 	var vpcResourceSet VPCResourceSet = NewIPv4VPCResourceSet(rs, spec, ec2API)
 	if spec.VPC.ID != "" {
 		vpcResourceSet = NewExistingVPCResourceSet(rs, spec, ec2API)
-	} else if spec.VPC.IPFamily == api.IPV6Family {
+	} else if spec.KubernetesNetworkConfig != nil && spec.KubernetesNetworkConfig.IPFamily == api.IPV6Family {
 		vpcResourceSet = NewIPv6VPCResourceSet(rs, spec, ec2API)
 	}
 	return &ClusterResourceSet{
@@ -272,7 +272,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 		IpFamily: gfnt.NewString(strings.ToLower(string(api.IPV4Family))),
 	}
 
-	if c.spec.VPC.IPFamily == api.IPV6Family {
+	if c.spec.KubernetesNetworkConfig != nil && c.spec.KubernetesNetworkConfig.IPFamily == api.IPV6Family {
 		cluster.KubernetesNetworkConfig.IpFamily = gfnt.NewString(strings.ToLower(string(api.IPV6Family)))
 	}
 

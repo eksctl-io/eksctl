@@ -341,11 +341,13 @@ const expected = `
 		  "region": "eu-central-1",
 		  "version": "1.21"
 		},
+		"kubernetesNetworkConfig": {
+        	"ipFamily": "IPv4"
+        },
 		"iam": {
 		  "withOIDC": false
 		},
 		"vpc": {
-			"ipFamily": "IPv4",
 			"cidr": "192.168.0.0/16",
 			"manageSharedNodeSecurityGroupRules": true,
 			"autoAllocateIPv6": false,

@@ -321,9 +321,9 @@ const (
 
 // Values for `IPFamily`
 const (
-	// IPV4Family defines an IP family of v4 to be used when creating a new VPC.
+	// IPV4Family defines an IP family of v4 to be used when creating a new VPC and cluster.
 	IPV4Family = "IPv4"
-	// IPV6Family defines an IP family of v6 to be used when creating a new VPC.
+	// IPV6Family defines an IP family of v6 to be used when creating a new VPC and cluster.
 	IPV6Family = "IPv6"
 )
 
@@ -336,7 +336,7 @@ const (
 )
 
 var (
-	// DefaultIPFamily defines the default IP family to use when creating a new VPC.
+	// DefaultIPFamily defines the default IP family to use when creating a new VPC and cluster.
 	DefaultIPFamily = IPV4Family
 )
 
@@ -564,6 +564,9 @@ type ClusterMeta struct {
 
 // KubernetesNetworkConfig contains cluster networking options
 type KubernetesNetworkConfig struct {
+	// Valid variants are `IPFamily` constants
+	// +optional
+	IPFamily string `json:"ipFamily,omitempty"`
 	// ServiceIPv4CIDR is the CIDR range from where `ClusterIP`s are assigned
 	ServiceIPv4CIDR string `json:"serviceIPv4CIDR,omitempty"`
 }
@@ -732,6 +735,9 @@ func NewClusterConfig() *ClusterConfig {
 			Version: DefaultVersion,
 		},
 		IAM: NewClusterIAM(),
+		KubernetesNetworkConfig: &KubernetesNetworkConfig{
+			IPFamily: DefaultIPFamily,
+		},
 		VPC: NewClusterVPC(),
 		CloudWatch: &ClusterCloudWatch{
 			ClusterLogging: &ClusterCloudWatchLogging{},
@@ -748,8 +754,7 @@ func NewClusterVPC() *ClusterVPC {
 
 	return &ClusterVPC{
 		Network: Network{
-			CIDR:     &cidr,
-			IPFamily: DefaultIPFamily,
+			CIDR: &cidr,
 		},
 		ManageSharedNodeSecurityGroupRules: Enabled(),
 		NAT:                                DefaultClusterNAT(),

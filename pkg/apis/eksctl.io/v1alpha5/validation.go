@@ -187,7 +187,7 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		c.VPC.PublicAccessCIDRs = cidrs
 	}
 	if len(c.VPC.ExtraIPv6CIDRs) > 0 {
-		if c.VPC.IPFamily != IPV6Family {
+		if c.KubernetesNetworkConfig.IPFamily != IPV6Family {
 			return fmt.Errorf("cannot specify vpc.extraIPv6CIDRs with an IPv4 cluster")
 		}
 		cidrs, err := validateCIDRs(c.VPC.ExtraIPv6CIDRs)
@@ -196,55 +196,22 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		}
 		c.VPC.ExtraIPv6CIDRs = cidrs
 	}
-	if c.VPC.IPFamily != IPV4Family && c.VPC.IPFamily != IPV6Family {
-		return fmt.Errorf("invalid value %s for ipFamily; allowed are %s and %s", c.VPC.IPFamily, IPV4Family, IPV6Family)
+
+	if c.VPC.IPv6Cidr != "" || c.VPC.IPv6Pool != "" {
+		if c.KubernetesNetworkConfig.IPFamily != IPV6Family {
+			return fmt.Errorf("Ipv6Cidr and Ipv6CidrPool are only supported when IPFamily is set to IPv6")
+		}
 	}
 
-	// This is the new vpc check, I need this check when the user sets it.
-	if c.VPC.IPFamily == IPV6Family {
-		if err := c.ipv6CidrsValid(); err != nil {
-			return err
-		}
-
-		if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
-			return fmt.Errorf("the default core addons must be defined in case of IPv6; missing addon(s): %s", strings.Join(missing, ", "))
-		}
-
-		unsupportedVersion, err := c.unsupportedVPCCNIAddonVersion()
-		if err != nil {
-			return err
-		}
-
-		if unsupportedVersion {
-			return fmt.Errorf("vpc-cni version must be at least version %s for IPv6", minimumVPCCNIVersionForIPv6)
-		}
-
-		if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
-			return fmt.Errorf("oidc needs to be enabled if IPv6 is set")
-		}
-
-		if version, err := utils.CompareVersions(c.Metadata.Version, Version1_21); err != nil {
-			return fmt.Errorf("failed to convert %s cluster version to semver: %w", c.Metadata.Version, err)
-		} else if err == nil && version == -1 {
-			return fmt.Errorf("cluster version must be >= %s", Version1_21)
-		}
-
-		if c.VPC.NAT != nil {
-			return fmt.Errorf("setting NAT is not supported with IPv6")
-		}
-
-		if c.KubernetesNetworkConfig != nil && c.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
-			return fmt.Errorf("service ipv4 cidr is not supported with IPv6")
-		}
-
+	if c.KubernetesNetworkConfig.IPFamily == IPV6Family {
 		if IsEnabled(c.VPC.AutoAllocateIPv6) {
 			return fmt.Errorf("auto allocate ipv6 is not supported with IPv6")
 		}
-	}
-
-	if c.VPC.IPFamily == IPV4Family {
-		if c.VPC.IPv6Cidr != "" || c.VPC.IPv6Pool != "" {
-			return fmt.Errorf("Ipv6Cidr and Ipv6CidrPool is only supportd when IPFamily is set to IPv6")
+		if err := c.ipv6CidrsValid(); err != nil {
+			return err
+		}
+		if c.VPC.NAT != nil {
+			return fmt.Errorf("setting NAT is not supported with IPv6")
 		}
 	}
 
@@ -392,12 +359,46 @@ func (c *ClusterConfig) ValidatePrivateCluster() error {
 	return nil
 }
 
-// validateKubernetesNetworkConfig validates the network config
+// validateKubernetesNetworkConfig validates the k8s network config
 func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 	if c.KubernetesNetworkConfig != nil {
-		serviceIP := c.KubernetesNetworkConfig.ServiceIPv4CIDR
-		if _, _, err := net.ParseCIDR(serviceIP); serviceIP != "" && err != nil {
-			return errors.Wrap(err, "invalid IPv4 CIDR for kubernetesNetworkConfig.serviceIPv4CIDR")
+		if c.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
+			if c.KubernetesNetworkConfig.IPFamily == IPV6Family {
+				return fmt.Errorf("service ipv4 cidr is not supported with IPv6")
+			}
+			serviceIP := c.KubernetesNetworkConfig.ServiceIPv4CIDR
+			if _, _, err := net.ParseCIDR(serviceIP); serviceIP != "" && err != nil {
+				return errors.Wrap(err, "invalid IPv4 CIDR for kubernetesNetworkConfig.serviceIPv4CIDR")
+			}
+		}
+
+		if c.KubernetesNetworkConfig.IPFamily != IPV4Family && c.KubernetesNetworkConfig.IPFamily != IPV6Family {
+			return fmt.Errorf("invalid value %s for ipFamily; allowed are %s and %s", c.KubernetesNetworkConfig.IPFamily, IPV4Family, IPV6Family)
+		}
+
+		if c.KubernetesNetworkConfig.IPFamily == IPV6Family {
+			if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
+				return fmt.Errorf("the default core addons must be defined in case of IPv6; missing addon(s): %s", strings.Join(missing, ", "))
+			}
+
+			unsupportedVersion, err := c.unsupportedVPCCNIAddonVersion()
+			if err != nil {
+				return err
+			}
+
+			if unsupportedVersion {
+				return fmt.Errorf("vpc-cni version must be at least version %s for IPv6", minimumVPCCNIVersionForIPv6)
+			}
+
+			if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
+				return fmt.Errorf("oidc needs to be enabled if IPv6 is set")
+			}
+
+			if version, err := utils.CompareVersions(c.Metadata.Version, Version1_21); err != nil {
+				return fmt.Errorf("failed to convert %s cluster version to semver: %w", c.Metadata.Version, err)
+			} else if err == nil && version == -1 {
+				return fmt.Errorf("cluster version must be >= %s", Version1_21)
+			}
 		}
 	}
 	return nil

@@ -575,15 +575,6 @@
         "id": {
           "type": "string"
         },
-        "ipFamily": {
-          "type": "string",
-          "description": "Valid variants are: `\"IPv4\"` defines an IP family of v4 to be used when creating a new VPC., `\"IPv6\"` defines an IP family of v6 to be used when creating a new VPC..",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;IPv4&quot;</code> defines an IP family of v4 to be used when creating a new VPC., <code>&quot;IPv6&quot;</code> defines an IP family of v6 to be used when creating a new VPC..",
-          "enum": [
-            "IPv4",
-            "IPv6"
-          ]
-        },
         "ipv6Cidr": {
           "type": "string"
         },
@@ -626,7 +617,6 @@
       "preferredOrder": [
         "id",
         "cidr",
-        "ipFamily",
         "ipv6Cidr",
         "ipv6Pool",
         "securityGroup",
@@ -847,6 +837,15 @@
     },
     "KubernetesNetworkConfig": {
       "properties": {
+        "ipFamily": {
+          "type": "string",
+          "description": "Valid variants are: `\"IPv4\"` defines an IP family of v4 to be used when creating a new VPC and cluster., `\"IPv6\"` defines an IP family of v6 to be used when creating a new VPC and cluster..",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;IPv4&quot;</code> defines an IP family of v4 to be used when creating a new VPC and cluster., <code>&quot;IPv6&quot;</code> defines an IP family of v6 to be used when creating a new VPC and cluster..",
+          "enum": [
+            "IPv4",
+            "IPv6"
+          ]
+        },
         "serviceIPv4CIDR": {
           "type": "string",
           "description": "CIDR range from where `ClusterIP`s are assigned",
@@ -854,6 +853,7 @@
         }
       },
       "preferredOrder": [
+        "ipFamily",
         "serviceIPv4CIDR"
       ],
       "additionalProperties": false,

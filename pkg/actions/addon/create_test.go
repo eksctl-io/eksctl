@@ -425,7 +425,9 @@ var _ = Describe("Create", func() {
 				Context("ipv6", func() {
 					BeforeEach(func() {
 						clusterConfig.VPC = api.NewClusterVPC()
-						clusterConfig.VPC.IPFamily = api.IPV6Family
+						clusterConfig.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
+							IPFamily: api.IPV6Family,
+						}
 					})
 
 					It("creates a role with the recommended policies and attaches it to the addon", func() {
