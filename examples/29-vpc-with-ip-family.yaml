@@ -1,5 +1,4 @@
-# An example of ClusterConfig object with custom VPC ipFamily
-# set to ipv6; also without any nodegroups:
+# An example of ClusterConfig object with ipFamily set to ipv6:
 ---
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
@@ -9,7 +8,7 @@ metadata:
   region: us-west-2
   version: "1.21"
 
-vpc:
+kubernetesNetworkConfig:
   ipFamily: IPv6
 
 addons:

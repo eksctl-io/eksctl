@@ -33,7 +33,7 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 		},
 	)
 
-	if c.spec.VPC.IPFamily == api.IPV6Family {
+	if c.spec.KubernetesNetworkConfig.IPFamily == api.IPV6Family {
 		taskTree.Append(
 			&UpdateSubnetsForIPv6Task{
 				ClusterConfig: c.spec,

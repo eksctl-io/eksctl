@@ -177,7 +177,7 @@ var _ = Describe("Existing VPC", func() {
 
 		Context("when ipv6 is true", func() {
 			BeforeEach(func() {
-				cfg.VPC.IPFamily = api.IPV6Family
+				cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
 			})
 
 			It("succeeds", func() {

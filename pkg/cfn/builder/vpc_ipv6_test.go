@@ -22,7 +22,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 
 	BeforeEach(func() {
 		cfg = api.NewClusterConfig()
-		cfg.VPC.IPFamily = api.IPV6Family
+		cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
 		cfg.AvailabilityZones = []string{azA, azB}
 	})
 
