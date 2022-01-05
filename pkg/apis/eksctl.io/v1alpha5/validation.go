@@ -188,7 +188,7 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		c.VPC.PublicAccessCIDRs = cidrs
 	}
 	if len(c.VPC.ExtraIPv6CIDRs) > 0 {
-		if c.KubernetesNetworkConfig.IPFamily != IPV6Family {
+		if c.KubernetesNetworkConfig == nil || c.KubernetesNetworkConfig.IPFamily != IPV6Family {
 			return fmt.Errorf("cannot specify vpc.extraIPv6CIDRs with an IPv4 cluster")
 		}
 		cidrs, err := validateCIDRs(c.VPC.ExtraIPv6CIDRs)
@@ -199,12 +199,12 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 	}
 
 	if c.VPC.IPv6Cidr != "" || c.VPC.IPv6Pool != "" {
-		if c.KubernetesNetworkConfig.IPFamily != IPV6Family {
+		if c.KubernetesNetworkConfig == nil || c.KubernetesNetworkConfig.IPFamily != IPV6Family {
 			return fmt.Errorf("Ipv6Cidr and Ipv6CidrPool are only supported when IPFamily is set to IPv6")
 		}
 	}
 
-	if c.KubernetesNetworkConfig.IPFamily == IPV6Family {
+	if c.KubernetesNetworkConfig != nil && c.KubernetesNetworkConfig.IPFamily == IPV6Family {
 		if IsEnabled(c.VPC.AutoAllocateIPv6) {
 			return fmt.Errorf("auto allocate ipv6 is not supported with IPv6")
 		}
