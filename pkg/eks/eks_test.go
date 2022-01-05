@@ -218,7 +218,7 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				JustBeforeEach(func() {
-					clusters, err = c.ListClusters(chunkSize, listAllRegions)
+					clusters, err = c.ListClusters(chunkSize, listAllRegions, nil)
 				})
 
 				It("should not error", func() {
@@ -277,7 +277,7 @@ var _ = Describe("EKS API wrapper", func() {
 			})
 
 			JustBeforeEach(func() {
-				clusters, err = c.ListClusters(chunkSize, listAllRegions)
+				clusters, err = c.ListClusters(chunkSize, listAllRegions, nil)
 			})
 
 			It("should not error", func() {
@@ -289,7 +289,7 @@ var _ = Describe("EKS API wrapper", func() {
 			})
 		})
 
-		Context("`listAllRegions` is true", func() {
+		Context("listAllRegions is true", func() {
 			BeforeEach(func() {
 				chunkSize = 100
 				listAllRegions = true
@@ -298,11 +298,61 @@ var _ = Describe("EKS API wrapper", func() {
 			})
 
 			JustBeforeEach(func() {
-				clusters, err = c.ListClusters(chunkSize, listAllRegions)
+				clusters, err = c.ListClusters(chunkSize, listAllRegions, func(_ *api.ProviderConfig, _ *api.ClusterConfig) (*ClusterProvider, error) {
+					return &ClusterProvider{
+						Provider: p,
+					}, nil
+				})
 			})
 
 			It("should have called AWS EC2 service once", func() {
 				p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeRegions", 1)
+			})
+		})
+
+		Context("listAllRegions is true and account has access to unsupported EKS regions", func() {
+			expectedRegions := map[string]struct{}{}
+
+			BeforeEach(func() {
+				listAllRegions = true
+				unsupportedRegion := "ap-southeast-3"
+
+				var regionsOutput []*ec2.Region
+				for _, r := range api.SupportedRegions() {
+					if r == unsupportedRegion {
+						Fail(fmt.Sprintf("Region %s is now supported", unsupportedRegion))
+					}
+					expectedRegions[r] = struct{}{}
+					regionsOutput = append(regionsOutput, &ec2.Region{
+						RegionName: aws.String(r),
+					})
+				}
+
+				regionsOutput = append(regionsOutput, &ec2.Region{
+					RegionName: aws.String(unsupportedRegion),
+				})
+
+				p.MockEC2().On("DescribeRegions", mock.Anything).Return(&ec2.DescribeRegionsOutput{
+					Regions: regionsOutput,
+				}, nil)
+
+				p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(nil)
+				p.MockEKS().On("ListClusters", mock.Anything).Return(&awseks.ListClustersOutput{}, nil)
+			})
+
+			It("should list clusters", func() {
+				clusters, err = c.ListClusters(chunkSize, listAllRegions, func(pc *api.ProviderConfig, _ *api.ClusterConfig) (*ClusterProvider, error) {
+					if _, ok := expectedRegions[pc.Region]; !ok {
+						return nil, fmt.Errorf("unsupported region: %s", pc.Region)
+					}
+					return &ClusterProvider{
+						Provider: p,
+					}, nil
+				})
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(clusters).To(BeEmpty())
+				p.MockEKS().AssertNumberOfCalls(GinkgoT(), "ListClusters", len(api.SupportedRegions()))
 			})
 		})
 	})
@@ -331,7 +381,7 @@ var _ = Describe("EKS API wrapper", func() {
 
 			p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(nil)
 
-			clusters, err := c.ListClusters(chunkSize, false)
+			clusters, err := c.ListClusters(chunkSize, false, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(clusters).NotTo(BeNil())
 			Expect(len(clusters)).To(Equal(0))
