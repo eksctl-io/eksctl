@@ -159,6 +159,7 @@ var _ = Describe("cmdutils configfile", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				cfg := cmd.ClusterConfig
+				Expect(err).NotTo(HaveOccurred())
 				Expect(cfg.Metadata.Name).NotTo(BeEmpty())
 				Expect(cfg.Metadata.Region).NotTo(BeEmpty())
 				Expect(cfg.Metadata.Region).To(Equal(cmd.ProviderConfig.Region))
