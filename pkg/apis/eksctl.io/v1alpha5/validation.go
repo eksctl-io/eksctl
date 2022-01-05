@@ -44,7 +44,7 @@ var (
 		"features of eksctl. This will require running subsequent eksctl (and Kubernetes) " +
 		"commands/API calls from within the VPC.  Running these in the VPC requires making " +
 		"updates to some AWS resources.  See: " +
-		"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html#private-access " +
+		"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html " +
 		"for more details")
 )
 
@@ -164,6 +164,7 @@ func validateCloudWatchLogging(clusterConfig *ClusterConfig) error {
 		}
 		return errors.Errorf("invalid value %d for logRetentionInDays; supported values are %v", logRetentionDays, LogRetentionInDaysValues)
 	}
+
 	return nil
 }
 
@@ -289,39 +290,6 @@ func (c *ClusterConfig) addonContainsManagedAddons(addons []string) []string {
 		}
 	}
 	return missing
-}
-
-func validateCloudWatchLogging(clusterConfig *ClusterConfig) error {
-	if !clusterConfig.HasClusterCloudWatchLogging() {
-		if clusterConfig.CloudWatch != nil &&
-			clusterConfig.CloudWatch.ClusterLogging != nil &&
-			clusterConfig.CloudWatch.ClusterLogging.LogRetentionInDays != 0 {
-			return errors.New("cannot set cloudWatch.clusterLogging.logRetentionInDays without enabling log types")
-		}
-		return nil
-	}
-
-	for i, logType := range clusterConfig.CloudWatch.ClusterLogging.EnableTypes {
-		isUnknown := true
-		for _, knownLogType := range SupportedCloudWatchClusterLogTypes() {
-			if logType == knownLogType {
-				isUnknown = false
-			}
-		}
-		if isUnknown {
-			return errors.Errorf("log type %q (cloudWatch.clusterLogging.enableTypes[%d]) is unknown", logType, i)
-		}
-	}
-	if logRetentionDays := clusterConfig.CloudWatch.ClusterLogging.LogRetentionInDays; logRetentionDays != 0 {
-		for _, v := range LogRetentionInDaysValues {
-			if v == logRetentionDays {
-				return nil
-			}
-		}
-		return errors.Errorf("invalid value %d for logRetentionInDays; supported values are %v", logRetentionDays, LogRetentionInDaysValues)
-	}
-
-	return nil
 }
 
 // ValidateClusterEndpointConfig checks the endpoint configuration for potential issues

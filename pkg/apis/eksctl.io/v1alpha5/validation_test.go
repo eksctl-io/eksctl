@@ -1045,7 +1045,6 @@ var _ = Describe("ClusterConfig validation", func() {
 				Enabled: true,
 			}
 		})
-
 		When("private cluster is enabled", func() {
 			It("validates the config", func() {
 				err := cfg.ValidatePrivateCluster()
