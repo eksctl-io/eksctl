@@ -2,7 +2,7 @@
 // +build integration
 
 //revive:disable Not changing package name
-package unowned
+package unowned_clusters
 
 import (
 	"encoding/json"
