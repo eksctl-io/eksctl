@@ -44,7 +44,7 @@ var (
 		"features of eksctl. This will require running subsequent eksctl (and Kubernetes) " +
 		"commands/API calls from within the VPC.  Running these in the VPC requires making " +
 		"updates to some AWS resources.  See: " +
-		"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html#private-access " +
+		"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html " +
 		"for more details")
 )
 
