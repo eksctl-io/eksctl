@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+
 	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/utils"
 
@@ -195,6 +197,16 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	if err := eks.ValidateFeatureCompatibility(cfg, kubeNodeGroups); err != nil {
 		return err
 	}
+
+	// Check if flux binary exists early in the process, so it doesn't fail at the end when the cluster
+	// has already been created with a missing flux binary error which should have been caught earlier.
+	// Note: we aren't running PreFlight here, we just check for the binary.
+	if cfg.HasGitOpsFluxConfigured() {
+		if _, err := exec.LookPath("flux"); err != nil {
+			return fmt.Errorf("flux binary is required when gitops configuration is set: %w", err)
+		}
+	}
+
 	if params.InstallWindowsVPCController {
 		if !eks.SupportsWindowsWorkloads(kubeNodeGroups) {
 			return errors.New("running Windows workloads requires having both Windows and Linux (AmazonLinux2) node groups")
