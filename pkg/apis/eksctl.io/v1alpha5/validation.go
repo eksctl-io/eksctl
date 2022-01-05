@@ -167,7 +167,7 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 
 	if c.VPC.IPv6Cidr != "" || c.VPC.IPv6Pool != "" {
 		if c.KubernetesNetworkConfig.IPFamily != IPV6Family {
-			return fmt.Errorf("Ipv6Cidr and Ipv6CidrPool is only supportd when IPFamily is set to IPv6")
+			return fmt.Errorf("Ipv6Cidr and Ipv6CidrPool are only supported when IPFamily is set to IPv6")
 		}
 	}
 

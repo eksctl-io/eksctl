@@ -876,13 +876,13 @@ var _ = Describe("ClusterConfig validation", func() {
 					cfg.KubernetesNetworkConfig.IPFamily = api.IPV4Family
 					cfg.VPC.IPv6Cidr = "foo"
 					err = cfg.ValidateVPCConfig()
-					Expect(err).To(MatchError("Ipv6Cidr and Ipv6CidrPool is only supportd when IPFamily is set to IPv6"))
+					Expect(err).To(MatchError("Ipv6Cidr and Ipv6CidrPool are only supported when IPFamily is set to IPv6"))
 
 					cfg.KubernetesNetworkConfig.IPFamily = api.IPV4Family
 					cfg.VPC.IPv6Cidr = ""
 					cfg.VPC.IPv6Pool = "bar"
 					err = cfg.ValidateVPCConfig()
-					Expect(err).To(MatchError("Ipv6Cidr and Ipv6CidrPool is only supportd when IPFamily is set to IPv6"))
+					Expect(err).To(MatchError("Ipv6Cidr and Ipv6CidrPool are only supported when IPFamily is set to IPv6"))
 				})
 			})
 
