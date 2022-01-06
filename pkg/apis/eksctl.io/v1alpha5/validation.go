@@ -340,13 +340,15 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 			}
 		}
 
-		if c.KubernetesNetworkConfig.IPFamily != IPV4Family && c.KubernetesNetworkConfig.IPFamily != IPV6Family {
-			return fmt.Errorf("invalid value %s for ipFamily; allowed are %s and %s", c.KubernetesNetworkConfig.IPFamily, IPV4Family, IPV6Family)
-		}
+		switch c.KubernetesNetworkConfig.IPFamily {
+		case IPV4Family, "":
 
-		if c.KubernetesNetworkConfig.IPFamily == IPV6Family {
+		default:
+			return fmt.Errorf("invalid value %q for ipFamily; allowed are %s and %s", c.KubernetesNetworkConfig.IPFamily, IPV4Family, IPV6Family)
+
+		case IPV6Family:
 			if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
-				return fmt.Errorf("the default core addons must be defined in case of IPv6; missing addon(s): %s", strings.Join(missing, ", "))
+				return fmt.Errorf("the default core addons must be defined for IPv6; missing addon(s): %s", strings.Join(missing, ", "))
 			}
 
 			unsupportedVersion, err := c.unsupportedVPCCNIAddonVersion()
