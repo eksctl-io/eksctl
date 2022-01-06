@@ -7,6 +7,14 @@ func Pointer(s string) *string {
 	return &s
 }
 
+// Value returns the value of a pointer, empty string if it's nil.
+func Value(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
 // HasPrefix tests whether the string s begins with prefix.
 func HasPrefix(s, prefix string) bool {
 	return strings.HasPrefix(s, prefix)

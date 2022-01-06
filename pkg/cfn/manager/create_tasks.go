@@ -33,6 +33,15 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 		},
 	)
 
+	if c.spec.KubernetesNetworkConfig != nil && c.spec.KubernetesNetworkConfig.IPFamily == api.IPV6Family {
+		taskTree.Append(
+			&UpdateSubnetsForIPv6Task{
+				ClusterConfig: c.spec,
+				EC2API:        c.ec2API,
+			},
+		)
+	}
+
 	appendNodeGroupTasksTo := func(taskTree *tasks.TaskTree) {
 		vpcImporter := vpc.NewStackConfigImporter(c.MakeClusterStackName())
 		nodeGroupTasks := c.NewUnmanagedNodeGroupTask(nodeGroups, false, vpcImporter)

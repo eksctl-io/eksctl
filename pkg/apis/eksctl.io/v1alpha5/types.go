@@ -319,6 +319,27 @@ const (
 	DefaultNodeVolumeGP3IOPS = 3000
 )
 
+// Values for `IPFamily`
+const (
+	// IPV4Family defines an IP family of v4 to be used when creating a new VPC and cluster.
+	IPV4Family = "IPv4"
+	// IPV6Family defines an IP family of v6 to be used when creating a new VPC and cluster.
+	IPV6Family = "IPv6"
+)
+
+// Values for core addons
+const (
+	VPCCNIAddon                 = "vpc-cni"
+	KubeProxyAddon              = "kube-proxy"
+	CoreDNSAddon                = "coredns"
+	minimumVPCCNIVersionForIPv6 = "1.10.0"
+)
+
+var (
+	// DefaultIPFamily defines the default IP family to use when creating a new VPC and cluster.
+	DefaultIPFamily = IPV4Family
+)
+
 var (
 	// DefaultWaitTimeout defines the default wait timeout
 	DefaultWaitTimeout = 25 * time.Minute
@@ -360,6 +381,9 @@ func IsDisabled(v *bool) bool { return v != nil && !*v }
 
 // IsSetAndNonEmptyString will only return true if s is not nil and not empty
 func IsSetAndNonEmptyString(s *string) bool { return s != nil && *s != "" }
+
+// IsSetAndNonEmptyString will only return true if s is not nil and not empty
+func IsEmpty(s *string) bool { return !IsSetAndNonEmptyString(s) }
 
 // SupportedRegions are the regions where EKS is available
 func SupportedRegions() []string {
@@ -540,6 +564,9 @@ type ClusterMeta struct {
 
 // KubernetesNetworkConfig contains cluster networking options
 type KubernetesNetworkConfig struct {
+	// Valid variants are `IPFamily` constants
+	// +optional
+	IPFamily string `json:"ipFamily,omitempty"`
 	// ServiceIPv4CIDR is the CIDR range from where `ClusterIP`s are assigned
 	ServiceIPv4CIDR string `json:"serviceIPv4CIDR,omitempty"`
 }
@@ -708,6 +735,9 @@ func NewClusterConfig() *ClusterConfig {
 			Version: DefaultVersion,
 		},
 		IAM: NewClusterIAM(),
+		KubernetesNetworkConfig: &KubernetesNetworkConfig{
+			IPFamily: DefaultIPFamily,
+		},
 		VPC: NewClusterVPC(),
 		CloudWatch: &ClusterCloudWatch{
 			ClusterLogging: &ClusterCloudWatchLogging{},

@@ -594,6 +594,11 @@ func (in *ClusterVPC) DeepCopyInto(out *ClusterVPC) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.ExtraIPv6CIDRs != nil {
+		in, out := &in.ExtraIPv6CIDRs, &out.ExtraIPv6CIDRs
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.ManageSharedNodeSecurityGroupRules != nil {
 		in, out := &in.ManageSharedNodeSecurityGroupRules, &out.ManageSharedNodeSecurityGroupRules
 		*out = new(bool)
