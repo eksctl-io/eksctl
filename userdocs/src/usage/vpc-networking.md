@@ -24,3 +24,4 @@ If the default functionality doesn't suit you, the following sections explain ho
 - [VPC Configuration](../vpc-configuration)
 - [Subnet Settings](../vpc-subnet-settings)
 - [Cluster Access](../vpc-cluster-access)
+- [IP Family](../vpc-ip-family)

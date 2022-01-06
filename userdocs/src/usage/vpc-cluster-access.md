@@ -26,9 +26,10 @@ There are some additional caveats when configuring Kubernetes API endpoint acces
    (e.g. `kubectl`) as well as `eksctl delete cluster`, `eksctl utils write-kubeconfig`, and possibly the command
    `eksctl utils update-kube-proxy` must be run within the cluster VPC.  This requires some changes to various AWS
    resources.  See:
-   [EKS user guide](https://docs.aws.amazon.com/en_pv/eks/latest/userguide/cluster-endpoint#private-access)
+   [EKS user guide](https://docs.aws.amazon.com/en_pv/eks/latest/userguide/cluster-endpoint)
    A user can provide `vpc.extraCIDRs` which will append additional CIDR ranges to the ControlPlaneSecurityGroup,
-   allowing subnets outside the VPC to reach the Kubernetes API endpoint.
+   allowing subnets outside the VPC to reach the kubernetes API endpoint. Similarly you can provide `vpc.extraIPv6CIDRs`
+   to append IPv6 CIDR ranges as well.
 
 The following is an example of how one could configure the Kubernetes API endpoint access using the `utils` sub-command:
 

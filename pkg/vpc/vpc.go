@@ -366,7 +366,7 @@ func importSubnetsForTopology(ec2API ec2iface.EC2API, spec *api.ClusterConfig, t
 	return ImportSubnets(ec2API, spec, topology, subnets)
 }
 
-// ImportSubnetsFromIDList will update spec with subnets _only specified by ID_
+// ImportSubnetsFromIDList will update cluster config with subnets _only specified by ID_
 // then pass resulting subnets to ImportSubnets
 // NOTE: it does respect all fields set in spec.VPC, and will error if
 // there is a mismatch of local vs remote states
