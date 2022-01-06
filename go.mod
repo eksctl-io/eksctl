@@ -41,7 +41,7 @@ require (
 	github.com/ashanbrown/forbidigo v1.2.0 // indirect
 	github.com/ashanbrown/makezero v0.0.0-20210520155254-b6261585ddde // indirect
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.3-0.20210303155736-3e43512d88f8
-	github.com/aws/aws-sdk-go v1.41.13
+	github.com/aws/aws-sdk-go v1.42.28
 	github.com/awslabs/goformation/v4 v4.15.5 // indirect
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -294,7 +294,7 @@ require (
 	gocloud.dev v0.24.0 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	golang.org/x/mod v0.5.0 // indirect
-	golang.org/x/net v0.0.0-20211007125505-59d4e928ea9d // indirect
+	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f // indirect
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20211007075335-d3039528d8ac // indirect
@@ -399,8 +399,6 @@ require (
 )
 
 replace (
-	// TODO: once aws-sdk-go is updated with ipv6 code remove the below line
-	github.com/aws/aws-sdk-go => github.com/weaveworks/aws-sdk-go v0.0.0-20211208164730-c076f913e1de
 	// Used to pin the k8s library versions regardless of what other dependencies enforce
 	k8s.io/api => k8s.io/api v0.21.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.21.2

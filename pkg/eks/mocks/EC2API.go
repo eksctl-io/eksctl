@@ -38609,6 +38609,84 @@ func (_m *EC2API) ModifyVpcEndpointServiceConfigurationWithContext(_a0 context.C
 	return r0, r1
 }
 
+// ModifyVpcEndpointServicePayerResponsibility provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyVpcEndpointServicePayerResponsibility(_a0 *ec2.ModifyVpcEndpointServicePayerResponsibilityInput) (*ec2.ModifyVpcEndpointServicePayerResponsibilityOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ModifyVpcEndpointServicePayerResponsibilityOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyVpcEndpointServicePayerResponsibilityInput) *ec2.ModifyVpcEndpointServicePayerResponsibilityOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyVpcEndpointServicePayerResponsibilityOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyVpcEndpointServicePayerResponsibilityInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyVpcEndpointServicePayerResponsibilityRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyVpcEndpointServicePayerResponsibilityRequest(_a0 *ec2.ModifyVpcEndpointServicePayerResponsibilityInput) (*request.Request, *ec2.ModifyVpcEndpointServicePayerResponsibilityOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyVpcEndpointServicePayerResponsibilityInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ModifyVpcEndpointServicePayerResponsibilityOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyVpcEndpointServicePayerResponsibilityInput) *ec2.ModifyVpcEndpointServicePayerResponsibilityOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ModifyVpcEndpointServicePayerResponsibilityOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ModifyVpcEndpointServicePayerResponsibilityWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ModifyVpcEndpointServicePayerResponsibilityWithContext(_a0 context.Context, _a1 *ec2.ModifyVpcEndpointServicePayerResponsibilityInput, _a2 ...request.Option) (*ec2.ModifyVpcEndpointServicePayerResponsibilityOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ModifyVpcEndpointServicePayerResponsibilityOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyVpcEndpointServicePayerResponsibilityInput, ...request.Option) *ec2.ModifyVpcEndpointServicePayerResponsibilityOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyVpcEndpointServicePayerResponsibilityOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyVpcEndpointServicePayerResponsibilityInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ModifyVpcEndpointServicePermissions provides a mock function with given fields: _a0
 func (_m *EC2API) ModifyVpcEndpointServicePermissions(_a0 *ec2.ModifyVpcEndpointServicePermissionsInput) (*ec2.ModifyVpcEndpointServicePermissionsOutput, error) {
 	ret := _m.Called(_a0)
@@ -44651,6 +44729,41 @@ func (_m *EC2API) WaitUntilInstanceTerminatedWithContext(_a0 context.Context, _a
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstancesInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilInternetGatewayExists provides a mock function with given fields: _a0
+func (_m *EC2API) WaitUntilInternetGatewayExists(_a0 *ec2.DescribeInternetGatewaysInput) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeInternetGatewaysInput) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilInternetGatewayExistsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) WaitUntilInternetGatewayExistsWithContext(_a0 context.Context, _a1 *ec2.DescribeInternetGatewaysInput, _a2 ...request.WaiterOption) error {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInternetGatewaysInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
