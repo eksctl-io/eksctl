@@ -354,6 +354,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				c.PrivateCluster = nil
 				c.NodeGroups = nil
 				c.AvailabilityZones = nil
+				c.KubernetesNetworkConfig = nil
 
 				ng := c.ManagedNodeGroups[0]
 				actualNG := actual.ManagedNodeGroups[0]
