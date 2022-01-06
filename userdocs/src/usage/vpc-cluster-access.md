@@ -68,6 +68,12 @@ To update the restrictions using a `ClusterConfig` file, set the new CIDRs in `v
 eksctl utils set-public-access-cidrs -f config.yaml
 ```
 
+!!!warning
+    If setting `publicAccessCIDRs` and creating node-groups either `privateAccess` should be set to `true` or
+    the nodes' IPs should be added to the `publicAccessCIDRs` list. Otherwise creation will fail with
+    `context deadline exceeded` due to the nodes being unable to access the public endpoint and hence failing
+    to join the cluster.
+
 !!!note
     This feature only applies to the public endpoint. The
     [API server endpoint access configuration options](https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html)
