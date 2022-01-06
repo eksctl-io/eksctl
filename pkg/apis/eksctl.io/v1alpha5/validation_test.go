@@ -672,7 +672,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				It("returns an error", func() {
 					cfg.KubernetesNetworkConfig.IPFamily = "invalid"
 					err = api.ValidateClusterConfig(cfg)
-					Expect(err).To(MatchError(ContainSubstring("invalid value invalid for ipFamily; allowed are IPv4 and IPv6")))
+					Expect(err).To(MatchError(ContainSubstring(`invalid value "invalid" for ipFamily; allowed are IPv4 and IPv6`)))
 				})
 			})
 
@@ -736,7 +736,7 @@ var _ = Describe("ClusterConfig validation", func() {
 						}
 						cfg.Addons = append(cfg.Addons, &api.Addon{Name: api.KubeProxyAddon})
 						err = api.ValidateClusterConfig(cfg)
-						Expect(err).To(MatchError(ContainSubstring("the default core addons must be defined in case of IPv6; missing addon(s): vpc-cni, coredns")))
+						Expect(err).To(MatchError(ContainSubstring("the default core addons must be defined for IPv6; missing addon(s): vpc-cni, coredns")))
 					})
 				})
 
