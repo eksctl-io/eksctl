@@ -676,6 +676,13 @@ var _ = Describe("ClusterConfig validation", func() {
 				})
 			})
 
+			When("ipFamily is empty", func() {
+				It("treats it as IPv4 and does not return an error", func() {
+					cfg.KubernetesNetworkConfig.IPFamily = ""
+					Expect(api.ValidateClusterConfig(cfg)).To(Succeed())
+				})
+			})
+
 			When("ipFamily is set to IPv6", func() {
 				JustBeforeEach(func() {
 					cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
