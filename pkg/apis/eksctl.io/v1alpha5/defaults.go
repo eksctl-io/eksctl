@@ -58,6 +58,10 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 	if cfg.VPC != nil && cfg.VPC.ManageSharedNodeSecurityGroupRules == nil {
 		cfg.VPC.ManageSharedNodeSecurityGroupRules = Enabled()
 	}
+
+	if cfg.Karpenter != nil && cfg.Karpenter.CreateServiceAccount == nil {
+		cfg.Karpenter.CreateServiceAccount = Disabled()
+	}
 }
 
 // IAMServiceAccountsWithImplicitServiceAccounts adds implicitly created

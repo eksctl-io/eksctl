@@ -190,6 +190,11 @@
           },
           "type": "array"
         },
+        "karpenter": {
+          "$ref": "#/definitions/Karpenter",
+          "description": "specific configuration options.",
+          "x-intellij-html-description": "specific configuration options."
+        },
         "kind": {
           "type": "string",
           "enum": [
@@ -246,7 +251,8 @@
         "availabilityZones",
         "cloudWatch",
         "secretsEncryption",
-        "gitops"
+        "gitops",
+        "karpenter"
       ],
       "additionalProperties": false,
       "description": "a simple config, to be replaced with Cluster API",
@@ -834,6 +840,30 @@
       "additionalProperties": false,
       "description": "holds EC2 instance selector options",
       "x-intellij-html-description": "holds EC2 instance selector options"
+    },
+    "Karpenter": {
+      "required": [
+        "version"
+      ],
+      "properties": {
+        "createServiceAccount": {
+          "type": "boolean",
+          "description": "create a service account or not.",
+          "x-intellij-html-description": "create a service account or not."
+        },
+        "version": {
+          "type": "string",
+          "description": "defines the Karpenter version to install",
+          "x-intellij-html-description": "defines the Karpenter version to install"
+        }
+      },
+      "preferredOrder": [
+        "version",
+        "createServiceAccount"
+      ],
+      "additionalProperties": false,
+      "description": "provides configuration opti",
+      "x-intellij-html-description": "provides configuration opti"
     },
     "KubernetesNetworkConfig": {
       "properties": {

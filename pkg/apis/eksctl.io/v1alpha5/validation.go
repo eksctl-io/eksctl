@@ -132,6 +132,23 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return errors.New("field secretsEncryption.keyARN is required for enabling secrets encryption")
 	}
 
+	if err := validateKarpenterConfig(cfg); err != nil {
+		return fmt.Errorf("failed to validate karpenter config: %w", err)
+	}
+
+	return nil
+}
+
+func validateKarpenterConfig(cfg *ClusterConfig) error {
+	if cfg.Karpenter == nil {
+		return nil
+	}
+	if cfg.Karpenter.Version == "" {
+		return errors.New("version field is required if installing Karpenter is enabled")
+	}
+	if IsDisabled(cfg.IAM.WithOIDC) {
+		return errors.New("iam.withOIDC must be enabled with Karpenter")
+	}
 	return nil
 }
 

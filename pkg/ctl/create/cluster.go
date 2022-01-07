@@ -8,24 +8,24 @@ import (
 	"strings"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
-
-	"github.com/weaveworks/eksctl/pkg/kops"
-	"github.com/weaveworks/eksctl/pkg/utils"
-
-	"github.com/weaveworks/eksctl/pkg/actions/addon"
-	"github.com/weaveworks/eksctl/pkg/actions/flux"
-
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	kubeclient "k8s.io/client-go/kubernetes"
 
+	"github.com/weaveworks/eksctl/pkg/actions/addon"
+	"github.com/weaveworks/eksctl/pkg/actions/flux"
+	karpenteractions "github.com/weaveworks/eksctl/pkg/actions/karpenter"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/printers"
+	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
@@ -365,6 +365,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 				return fmt.Errorf("failed to create addons")
 			}
 		}
+		// After we have the cluster config and all the nodes are done, we install Karpenter if necessary.
+		if err := installKarpenter(ctl, cfg, stackManager, clientSet); err != nil {
+			return err
+		}
 
 		if cfg.HasGitOpsFluxConfigured() {
 			installer, err := flux.New(clientSet, cfg.GitOps)
@@ -404,6 +408,26 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	logger.Success("%s is ready", meta.LogString())
 
 	return printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg)
+}
+
+// installKarpenter prepares the environment for Karpenter, by creating the following resources:
+// - iam roles and profiles
+// - service account
+// - identity mapping
+// then proceeds with installing Karpenter using Helm.
+func installKarpenter(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, stackManager manager.StackManager, clientSet *kubeclient.Clientset) error {
+	if cfg.Karpenter == nil {
+		return nil
+	}
+	installer, err := karpenteractions.NewInstaller(cfg, ctl, stackManager, clientSet)
+	if err != nil {
+		return fmt.Errorf("failed to create installer: %w", err)
+	}
+	if err := installer.Create(); err != nil {
+		return fmt.Errorf("failed to install Karpenter: %w", err)
+	}
+
+	return nil
 }
 
 func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmdutils.CreateClusterCmdParams, ctl *eks.ClusterProvider) error {

@@ -548,7 +548,7 @@ changes into more than one PR.
 ### Commit message formatting
 
 _For more on how to write great commit messages, and why you should, check out
-[this excellent blog post](https://chris.beams.io/posts/git-commit/)._
+[this excellent blog post](https://cbea.ms/git-commit/)._
 
 We follow a rough convention for commit messages that is designed to answer two
 questions: what changed and why.
