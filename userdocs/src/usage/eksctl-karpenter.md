@@ -1,4 +1,4 @@
-# `eksctl` With Karpenter
+# Karpenter Support
 
 `eksctl` provides adding [Karpenter](https://karpenter.sh/) to a newly created cluster. It will create all the necessary
 prerequisites outlined in Karpenter's [Getting Started](https://karpenter.sh/docs/getting-started/) section including installing
