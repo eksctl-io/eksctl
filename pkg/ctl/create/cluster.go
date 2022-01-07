@@ -385,8 +385,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			return nil
 		}
 
-		// Initiate Karpenter Cloudformation Stack here
-
 		env, err := ctl.GetCredentialsEnv()
 		if err != nil {
 			return err
@@ -421,7 +419,6 @@ func installKarpenter(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, stackMan
 	if cfg.Karpenter == nil {
 		return nil
 	}
-	// install karpenter onto the cluster.
 	installer, err := karpenteractions.NewInstaller(cfg, ctl, stackManager, clientSet)
 	if err != nil {
 		return fmt.Errorf("failed to create installer: %w", err)
