@@ -7,6 +7,9 @@ metadata:
 karpenter:
   version: '0.4.3'
 
+iam:
+  withOIDC: true
+
 managedNodeGroups:
   - name: managed-ng-1
     minSize: 1
