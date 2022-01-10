@@ -327,13 +327,16 @@ func (c *ClusterConfig) ValidatePrivateCluster() error {
 		if c.VPC != nil && c.VPC.ID != "" && len(c.VPC.Subnets.Private) == 0 {
 			return errors.New("vpc.subnets.private must be specified in a fully-private cluster when a pre-existing VPC is supplied")
 		}
-		if additionalEndpoints := c.PrivateCluster.AdditionalEndpointServices; len(additionalEndpoints) > 0 && c.PrivateCluster.SkipEndpointCreation {
-			return fmt.Errorf("additionalEndpoints cannot be defined together with skipEndpointCreation set to true")
-		} else if len(additionalEndpoints) > 0 {
+
+		if additionalEndpoints := c.PrivateCluster.AdditionalEndpointServices; len(additionalEndpoints) > 0 {
+			if c.PrivateCluster.SkipEndpointCreation {
+				return errors.New("privateCluster.additionalEndpointServices cannot be set when privateCluster.skipEndpointCreation is true")
+			}
 			if err := ValidateAdditionalEndpointServices(additionalEndpoints); err != nil {
 				return errors.Wrap(err, "invalid value in privateCluster.additionalEndpointServices")
 			}
 		}
+
 		if c.VPC != nil && c.VPC.ClusterEndpoints == nil {
 			c.VPC.ClusterEndpoints = &ClusterEndpoints{}
 		}
@@ -346,48 +349,50 @@ func (c *ClusterConfig) ValidatePrivateCluster() error {
 
 // validateKubernetesNetworkConfig validates the k8s network config
 func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
-	if c.KubernetesNetworkConfig != nil {
-		if c.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
-			if c.KubernetesNetworkConfig.IPFamily == IPV6Family {
-				return fmt.Errorf("service ipv4 cidr is not supported with IPv6")
-			}
-			serviceIP := c.KubernetesNetworkConfig.ServiceIPv4CIDR
-			if _, _, err := net.ParseCIDR(serviceIP); serviceIP != "" && err != nil {
-				return errors.Wrap(err, "invalid IPv4 CIDR for kubernetesNetworkConfig.serviceIPv4CIDR")
-			}
+	if c.KubernetesNetworkConfig == nil {
+		return nil
+	}
+	if c.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
+		if c.KubernetesNetworkConfig.IPFamily == IPV6Family {
+			return fmt.Errorf("service ipv4 cidr is not supported with IPv6")
 		}
-
-		switch c.KubernetesNetworkConfig.IPFamily {
-		case IPV4Family, "":
-
-		default:
-			return fmt.Errorf("invalid value %q for ipFamily; allowed are %s and %s", c.KubernetesNetworkConfig.IPFamily, IPV4Family, IPV6Family)
-
-		case IPV6Family:
-			if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
-				return fmt.Errorf("the default core addons must be defined for IPv6; missing addon(s): %s", strings.Join(missing, ", "))
-			}
-
-			unsupportedVersion, err := c.unsupportedVPCCNIAddonVersion()
-			if err != nil {
-				return err
-			}
-
-			if unsupportedVersion {
-				return fmt.Errorf("vpc-cni version must be at least version %s for IPv6", minimumVPCCNIVersionForIPv6)
-			}
-
-			if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
-				return fmt.Errorf("oidc needs to be enabled if IPv6 is set")
-			}
-
-			if version, err := utils.CompareVersions(c.Metadata.Version, Version1_21); err != nil {
-				return fmt.Errorf("failed to convert %s cluster version to semver: %w", c.Metadata.Version, err)
-			} else if err == nil && version == -1 {
-				return fmt.Errorf("cluster version must be >= %s", Version1_21)
-			}
+		serviceIP := c.KubernetesNetworkConfig.ServiceIPv4CIDR
+		if _, _, err := net.ParseCIDR(serviceIP); serviceIP != "" && err != nil {
+			return errors.Wrap(err, "invalid IPv4 CIDR for kubernetesNetworkConfig.serviceIPv4CIDR")
 		}
 	}
+
+	switch c.KubernetesNetworkConfig.IPFamily {
+	case IPV4Family, "":
+
+	default:
+		return fmt.Errorf("invalid value %q for ipFamily; allowed are %s and %s", c.KubernetesNetworkConfig.IPFamily, IPV4Family, IPV6Family)
+
+	case IPV6Family:
+		if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
+			return fmt.Errorf("the default core addons must be defined for IPv6; missing addon(s): %s", strings.Join(missing, ", "))
+		}
+
+		unsupportedVersion, err := c.unsupportedVPCCNIAddonVersion()
+		if err != nil {
+			return err
+		}
+
+		if unsupportedVersion {
+			return fmt.Errorf("%s version must be at least version %s for IPv6", VPCCNIAddon, minimumVPCCNIVersionForIPv6)
+		}
+
+		if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
+			return fmt.Errorf("oidc needs to be enabled if IPv6 is set")
+		}
+
+		if version, err := utils.CompareVersions(c.Metadata.Version, Version1_21); err != nil {
+			return fmt.Errorf("failed to convert %s cluster version to semver: %w", c.Metadata.Version, err)
+		} else if err == nil && version == -1 {
+			return fmt.Errorf("cluster version must be >= %s", Version1_21)
+		}
+	}
+
 	return nil
 }
 

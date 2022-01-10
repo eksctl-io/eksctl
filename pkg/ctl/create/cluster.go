@@ -270,6 +270,8 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	if err != nil {
 		return err
 	}
+
+	eks.LogEnabledFeatures(cfg)
 	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(cfg)
 
 	supported, err := utils.IsMinVersion(api.Version1_18, cfg.Metadata.Version)

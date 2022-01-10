@@ -183,8 +183,8 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	return nil
 }
 
-func mapTaints(taints []api.NodeGroupTaint) ([]*gfneks.Nodegroup_Taints, error) {
-	var ret []*gfneks.Nodegroup_Taints
+func mapTaints(taints []api.NodeGroupTaint) ([]gfneks.Nodegroup_Taint, error) {
+	var ret []gfneks.Nodegroup_Taint
 
 	mapEffect := func(effect corev1.TaintEffect) string {
 		switch effect {
@@ -204,7 +204,7 @@ func mapTaints(taints []api.NodeGroupTaint) ([]*gfneks.Nodegroup_Taints, error) 
 		if effect == "" {
 			return nil, errors.Errorf("unexpected taint effect: %v", t.Effect)
 		}
-		ret = append(ret, &gfneks.Nodegroup_Taints{
+		ret = append(ret, gfneks.Nodegroup_Taint{
 			Key:    gfnt.NewString(t.Key),
 			Value:  gfnt.NewString(t.Value),
 			Effect: gfnt.NewString(effect),
