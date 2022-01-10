@@ -34,6 +34,7 @@ func writeKubeconfigCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
@@ -44,6 +45,10 @@ func writeKubeconfigCmd(cmd *cmdutils.Cmd) {
 }
 
 func doWriteKubeconfigCmd(cmd *cmdutils.Cmd, outputPath, roleARN string, setContext, autoPath bool) error {
+	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
+		return err
+	}
+
 	cfg := cmd.ClusterConfig
 
 	// TODO: move this into a loader when --config-file gets added to this command
