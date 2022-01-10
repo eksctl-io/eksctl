@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
+	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -238,7 +239,10 @@ func (c *ClusterResourceSet) newResource(name string, resource gfn.Resource) *gf
 
 func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDetails) {
 	clusterVPC := &gfneks.Cluster_ResourcesVpcConfig{
-		SecurityGroupIds: gfnt.NewSlice(c.securityGroups...),
+		EndpointPublicAccess:  gfnt.NewBoolean(*c.spec.VPC.ClusterEndpoints.PublicAccess),
+		EndpointPrivateAccess: gfnt.NewBoolean(*c.spec.VPC.ClusterEndpoints.PrivateAccess),
+		SecurityGroupIds:      gfnt.NewSlice(c.securityGroups...),
+		PublicAccessCidrs:     gfnt.NewStringSlice(c.spec.VPC.PublicAccessCIDRs...),
 	}
 
 	clusterVPC.SubnetIds = gfnt.NewSlice(append(subnetDetails.PublicSubnetRefs(), subnetDetails.PrivateSubnetRefs()...)...)
@@ -261,24 +265,28 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 	}
 
 	cluster := gfneks.Cluster{
-		Name:               gfnt.NewString(c.spec.Metadata.Name),
-		RoleArn:            serviceRoleARN,
-		Version:            gfnt.NewString(c.spec.Metadata.Version),
-		ResourcesVpcConfig: clusterVPC,
 		EncryptionConfig:   encryptionConfigs,
+		Logging:            makeClusterLogging(c.spec),
+		Name:               gfnt.NewString(c.spec.Metadata.Name),
+		ResourcesVpcConfig: clusterVPC,
+		RoleArn:            serviceRoleARN,
+		Tags:               makeCFNTags(c.spec),
+		Version:            gfnt.NewString(c.spec.Metadata.Version),
 	}
 
-	cluster.KubernetesNetworkConfig = &gfneks.Cluster_KubernetesNetworkConfig{
-		IpFamily: gfnt.NewString(strings.ToLower(string(api.IPV4Family))),
-	}
+	kubernetesNetworkConfig := &gfneks.Cluster_KubernetesNetworkConfig{}
+	if knc := c.spec.KubernetesNetworkConfig; knc != nil {
+		if knc.ServiceIPv4CIDR != "" {
+			kubernetesNetworkConfig.ServiceIpv4Cidr = gfnt.NewString(knc.ServiceIPv4CIDR)
+		}
 
-	if c.spec.KubernetesNetworkConfig != nil && c.spec.KubernetesNetworkConfig.IPFamily == api.IPV6Family {
-		cluster.KubernetesNetworkConfig.IpFamily = gfnt.NewString(strings.ToLower(string(api.IPV6Family)))
+		ipFamily := knc.IPFamily
+		if ipFamily == "" {
+			ipFamily = api.IPV4Family
+		}
+		kubernetesNetworkConfig.IpFamily = gfnt.NewString(strings.ToLower(ipFamily))
 	}
-
-	if c.spec.KubernetesNetworkConfig != nil && c.spec.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
-		cluster.KubernetesNetworkConfig.ServiceIpv4Cidr = gfnt.NewString(c.spec.KubernetesNetworkConfig.ServiceIPv4CIDR)
-	}
+	cluster.KubernetesNetworkConfig = kubernetesNetworkConfig
 
 	c.newResource("ControlPlane", &cluster)
 
@@ -313,6 +321,17 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 				return nil
 			})
 	}
+}
+
+func makeCFNTags(clusterConfig *api.ClusterConfig) []gfncfn.Tag {
+	var tags []gfncfn.Tag
+	for k, v := range clusterConfig.Metadata.Tags {
+		tags = append(tags, gfncfn.Tag{
+			Key:   gfnt.NewString(k),
+			Value: gfnt.NewString(v),
+		})
+	}
+	return tags
 }
 
 func (c *ClusterResourceSet) addResourcesForFargate() {
