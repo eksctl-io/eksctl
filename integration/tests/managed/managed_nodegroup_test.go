@@ -120,7 +120,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			},
 		}),
 
-		PEntry("Ubuntu", &api.ManagedNodeGroup{
+		Entry("Ubuntu", &api.ManagedNodeGroup{
 			NodeGroupBase: &api.NodeGroupBase{
 				Name:       "ubuntu",
 				VolumeSize: aws.Int(25),
