@@ -403,18 +403,6 @@ To run a specific suite:
 ginkgo -tags integration -v --progress integration/tests/<suite name>/... -- -test.v -ginkgo.v
 ```
 
-To run the integration tests in a docker container:
-
-```bash
-make integration-test-container SSH_KEY_PATH=<path to gitops repo key> \
-  AWS_SESSION_TOKEN=<token> \
-  AWS_ACCESS_KEY_ID=<access key id> \
-  AWS_SECRET_ACCESS_KEY=<secret access key>
-```
-
-> NOTE: Killing the container tests will need more than CTRL+c.
-> `docker ps | awk '/make/ {print $1}' | xargs docker kill` in another window should do it
-
 ### Writing your solution
 
 Once you have your environment set up and have completed a clean run of the unit
