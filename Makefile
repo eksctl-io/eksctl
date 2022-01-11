@@ -116,28 +116,6 @@ build-integration-test: $(all_generated_code) ## Ensure integration tests compil
 integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup)
 	JUNIT_REPORT_DIR=$(git_toplevel)/test-results ./eksctl-integration-test $(INTEGRATION_TEST_ARGS)
 
-# NOTE: when running this, ensure all env vars listed below are exported in your local env
-# SSH_KEY_PATH should be set to wherever you have locally put the eksctl-bot rsa key
-.PHONY: integration-test-container
-integration-test-container: ## Run integration tests in a local container
-	sudo cp -f ${SSH_KEY_PATH} $(HOME)/project/.ssh/gitops_id_rsa
-	sudo chmod 0600 $(HOME)/project/.ssh/gitops_id_rsa
-	docker run \
-	  --env=JUNIT_REPORT_DIR=/src/test-results \
-	  --env=GOPRIVATE \
-	  --env=AWS_SESSION_TOKEN \
-	  --env=AWS_ACCESS_KEY_ID \
-	  --env=AWS_SECRET_ACCESS_KEY \
-	  --env=GITHUB_TOKEN \
-	  --env=SSH_KEY_PATH=/root/.ssh/gitops_id_rsa \
-	  --env=TEST_V=1 \
-	  --volume=$(shell pwd):/src \
-	  --volume=$(HOME)/.cache/go-build/:/root/.cache/go-build \
-	  --volume=$(HOME)/go/pkg/mod/:/go/pkg/mod \
-	  --volume=$(HOME)/project/.ssh:/root/.ssh \
-	  weaveworks/eksctl-build:$(shell cat build/docker/image_tag) \
-	  $(MAKE) integration-test
-
 TEST_CLUSTER ?= integration-test-dev
 .PHONY: integration-test-dev
 integration-test-dev: build-integration-test ## Run the integration tests without cluster teardown. For use when developing integration tests.
