@@ -4,7 +4,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
@@ -61,15 +60,6 @@ type createAddonTask struct {
 func (t *createAddonTask) Describe() string { return t.info }
 
 func (t *createAddonTask) Do(errorCh chan error) error {
-	clientSet, err := t.clusterProvider.NewStdClientSet(t.cfg)
-	if err != nil {
-		return err
-	}
-
-	if err := t.clusterProvider.WaitForControlPlane(t.cfg.Metadata, clientSet); err != nil {
-		return errors.Wrap(err, "failed to wait for control plane")
-	}
-
 	oidc, err := t.clusterProvider.NewOpenIDConnectManager(t.cfg)
 	if err != nil {
 		return err
@@ -82,6 +72,10 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 
 	stackManager := t.clusterProvider.NewStackManager(t.cfg)
 
+	clientSet, err := t.clusterProvider.NewStdClientSet(t.cfg)
+	if err != nil {
+		return err
+	}
 	addonManager, err := New(t.cfg, t.clusterProvider.Provider.EKS(), stackManager, oidcProviderExists, oidc, clientSet, t.timeout)
 	if err != nil {
 		return err

@@ -36,17 +36,14 @@ func (fpt *fargateProfilesTask) Do(errCh chan error) error {
 	if err := DoCreateFargateProfiles(fpt.spec, fpt.manager); err != nil {
 		return err
 	}
-	// Make sure control plane is reachable
+
+	// Add delay after cluster creation to handle a race condition
+	time.Sleep(30 * time.Second)
+
 	clientSet, err := fpt.clusterProvider.NewStdClientSet(fpt.spec)
 	if err != nil {
 		return errors.Wrap(err, "failed to get ClientSet")
 	}
-	if err := fpt.clusterProvider.WaitForControlPlane(fpt.spec.Metadata, clientSet); err != nil {
-		return errors.Wrap(err, "failed to wait for control plane")
-	}
-	// Add delay after cluster creation to handle a race condition
-	time.Sleep(30 * time.Second)
-
 	if err := ScheduleCoreDNSOnFargateIfRelevant(fpt.spec, fpt.clusterProvider, clientSet); err != nil {
 		return errors.Wrap(err, "failed to schedule core-dns on fargate")
 	}
