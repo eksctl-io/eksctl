@@ -35,7 +35,7 @@ func (i *Installer) Create() error {
 
 	// Set up service account
 	var roleARN string
-	policyArn := fmt.Sprintf("arn:aws:iam::%s:policy/%s-%s", parsedARN.AccountID, builder.KarpenterManagedPolicy, i.Config.Metadata.Name)
+	policyArn := fmt.Sprintf("arn:aws:iam::%s:policy/eksctl-%s-%s", parsedARN.AccountID, builder.KarpenterManagedPolicy, i.Config.Metadata.Name)
 	iamServiceAccount := &api.ClusterIAMServiceAccount{
 		ClusterIAMMeta: api.ClusterIAMMeta{
 			Name:      karpenter.DefaultServiceAccountName,
@@ -61,7 +61,7 @@ func (i *Installer) Create() error {
 	if err != nil {
 		return fmt.Errorf("failed to create client for auth config: %w", err)
 	}
-	identityArn := fmt.Sprintf("arn:aws:iam::%s:role/%s-%s", parsedARN.AccountID, builder.KarpenterNodeRoleName, i.Config.Metadata.Name)
+	identityArn := fmt.Sprintf("arn:aws:iam::%s:role/eksctl-%s-%s", parsedARN.AccountID, builder.KarpenterNodeRoleName, i.Config.Metadata.Name)
 	id, err := iam.NewIdentity(identityArn, authconfigmap.RoleNodeGroupUsername, authconfigmap.RoleNodeGroupGroups)
 	if err != nil {
 		return fmt.Errorf("failed to create new identity: %w", err)

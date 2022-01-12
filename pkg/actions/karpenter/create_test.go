@@ -348,7 +348,7 @@ var _ = Describe("Create", func() {
 				accounts, _, _ := fakeStackManager.NewTasksToCreateIAMServiceAccountsArgsForCall(0)
 				Expect(accounts).NotTo(BeEmpty())
 				Expect(accounts[0].RoleOnly).To(BeNil())
-				policyARN := fmt.Sprintf("arn:aws:iam::123456789012:policy/%s-%s", builder.KarpenterManagedPolicy, cfg.Metadata.Name)
+				policyARN := fmt.Sprintf("arn:aws:iam::123456789012:policy/eksctl-%s-%s", builder.KarpenterManagedPolicy, cfg.Metadata.Name)
 				Expect(accounts[0].AttachPolicyARNs).To(ConsistOf(policyARN))
 			})
 		})
