@@ -140,11 +140,13 @@ IamLimitedAccess
                 "iam:DeleteOpenIDConnectProvider",
                 "iam:TagOpenIDConnectProvider",                
                 "iam:ListAttachedRolePolicies",
-                "iam:TagRole"
+                "iam:TagRole",
+                "iam:GetPolicy"
             ],
             "Resource": [
                 "arn:aws:iam::<account_id>:instance-profile/eksctl-*",
                 "arn:aws:iam::<account_id>:role/eksctl-*",
+                "arn:aws:iam::<account_id>:policy/eksctl-*",
                 "arn:aws:iam::<account_id>:oidc-provider/*",
                 "arn:aws:iam::<account_id>:role/aws-service-role/eks-nodegroup.amazonaws.com/AWSServiceRoleForAmazonEKSNodegroup",
                 "arn:aws:iam::<account_id>:role/eksctl-managed-*"
