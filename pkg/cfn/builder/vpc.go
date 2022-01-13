@@ -22,7 +22,6 @@ const (
 	IPv6CIDRBlockKey = "IPv6CidrBlock"
 	InternetCIDR     = "0.0.0.0/0"
 	InternetIPv6CIDR = "::/0"
-	DNS64Prefix      = "64:ff9b::/96"
 
 	// Routing
 	PubRouteTableKey             = "PublicRouteTable"
@@ -33,7 +32,6 @@ const (
 	PubSubIPv6RouteKey           = "PublicSubnetIPv6DefaultRoute"
 	PrivateSubnetRouteKey        = "PrivateSubnetDefaultRoute"
 	PrivateSubnetIpv6RouteKey    = "PrivateSubnetDefaultIpv6Route"
-	PrivateSubnetDNS64RouteKey   = "PrivateSubnetDefaultDNS64Route"
 
 	// Subnets
 	PublicSubnetKey         = "PublicSubnet"
