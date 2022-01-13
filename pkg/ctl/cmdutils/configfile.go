@@ -232,7 +232,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 
 	l.validateWithConfigFile = func() error {
 		clusterConfig := l.ClusterConfig
-		if clusterConfig.KubernetesNetworkConfig != nil && clusterConfig.KubernetesNetworkConfig.IPFamily == api.IPV6Family {
+		if clusterConfig.KubernetesNetworkConfig != nil && clusterConfig.KubernetesNetworkConfig.IPv6Enabled() {
 			clusterConfig.VPC = &api.ClusterVPC{}
 		} else {
 			if clusterConfig.VPC == nil {

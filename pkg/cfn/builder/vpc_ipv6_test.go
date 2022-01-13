@@ -231,26 +231,6 @@ var _ = Describe("IPv6 VPC builder", func() {
 			RouteTableID:                map[string]interface{}{"Ref": privateRouteTableB},
 		}))
 
-		privateDNSRouteA := builder.PrivateSubnetDNS64RouteKey + azAFormatted
-		Expect(vpcTemplate.Resources).To(HaveKey(privateDNSRouteA))
-		Expect(vpcTemplate.Resources[privateDNSRouteA].DependsOn).To(ConsistOf(builder.NATGatewayKey, builder.GAKey))
-		Expect(vpcTemplate.Resources[privateDNSRouteA].Type).To(Equal("AWS::EC2::Route"))
-		Expect(vpcTemplate.Resources[privateDNSRouteA].Properties).To(Equal(fakes.Properties{
-			DestinationIpv6CidrBlock: builder.DNS64Prefix,
-			NatGatewayID:             map[string]interface{}{"Ref": builder.NATGatewayKey},
-			RouteTableID:             map[string]interface{}{"Ref": privateRouteTableA},
-		}))
-
-		privateDNSRouteB := builder.PrivateSubnetDNS64RouteKey + azBFormatted
-		Expect(vpcTemplate.Resources).To(HaveKey(privateDNSRouteB))
-		Expect(vpcTemplate.Resources[privateDNSRouteB].DependsOn).To(ConsistOf(builder.NATGatewayKey, builder.GAKey))
-		Expect(vpcTemplate.Resources[privateDNSRouteB].Type).To(Equal("AWS::EC2::Route"))
-		Expect(vpcTemplate.Resources[privateDNSRouteB].Properties).To(Equal(fakes.Properties{
-			DestinationIpv6CidrBlock: builder.DNS64Prefix,
-			NatGatewayID:             map[string]interface{}{"Ref": builder.NATGatewayKey},
-			RouteTableID:             map[string]interface{}{"Ref": privateRouteTableB},
-		}))
-
 		By("creating a public and private subnet for each AZ")
 		assertSubnetSet := func(az, subnetKey, kubernetesTag string, cidrBlockIndex float64, mapPublicIpOnLaunch bool) {
 			Expect(vpcTemplate.Resources).To(HaveKey(subnetKey))
