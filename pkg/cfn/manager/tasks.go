@@ -135,16 +135,16 @@ func (t *kubernetesTask) Do(errs chan error) error {
 	return err
 }
 
-type UpdateSubnetsForIPv6Task struct {
+type AssignIpv6AddressOnCreationTask struct {
 	EC2API        ec2iface.EC2API
 	ClusterConfig *api.ClusterConfig
 }
 
-func (t *UpdateSubnetsForIPv6Task) Describe() string {
-	return "set AssignIpv6AddressOnCreation to true for public subnets and EnableDns64 to true for private subnets"
+func (t *AssignIpv6AddressOnCreationTask) Describe() string {
+	return "set AssignIpv6AddressOnCreation to true for public subnets"
 }
 
-func (t *UpdateSubnetsForIPv6Task) Do(errs chan error) error {
+func (t *AssignIpv6AddressOnCreationTask) Do(errs chan error) error {
 	defer close(errs)
 	if t.ClusterConfig.VPC.Subnets.Public != nil {
 		for _, subnet := range t.ClusterConfig.VPC.Subnets.Public.WithIDs() {
@@ -156,20 +156,6 @@ func (t *UpdateSubnetsForIPv6Task) Do(errs chan error) error {
 			})
 			if err != nil {
 				return fmt.Errorf("failed to update public subnet %q: %v", subnet, err)
-			}
-		}
-	}
-
-	if t.ClusterConfig.VPC.Subnets.Private != nil {
-		for _, subnet := range t.ClusterConfig.VPC.Subnets.Private.WithIDs() {
-			_, err := t.EC2API.ModifySubnetAttribute(&ec2.ModifySubnetAttributeInput{
-				EnableDns64: &ec2.AttributeBooleanValue{
-					Value: aws.Bool(true),
-				},
-				SubnetId: aws.String(subnet),
-			})
-			if err != nil {
-				return fmt.Errorf("failed to update private subnet %q: %v", subnet, err)
 			}
 		}
 	}
