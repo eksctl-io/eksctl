@@ -37,7 +37,7 @@ var _ = Describe("CreateTasks", func() {
 				modifySubnetAttributeCallCount++
 			}).Return(&ec2.ModifySubnetAttributeOutput{}, nil)
 
-			task := manager.UpdateSubnetsForIPv6Task{
+			task := manager.AssignIpv6AddressOnCreationTask{
 				EC2API:        p.EC2(),
 				ClusterConfig: clusterConfig,
 			}
@@ -64,7 +64,7 @@ var _ = Describe("CreateTasks", func() {
 					Expect(subnetIDs).To(ContainElement(*modifySubnetAttributeInput.SubnetId))
 				}).Return(&ec2.ModifySubnetAttributeOutput{}, fmt.Errorf("foo"))
 
-				task := manager.UpdateSubnetsForIPv6Task{
+				task := manager.AssignIpv6AddressOnCreationTask{
 					EC2API:        p.EC2(),
 					ClusterConfig: clusterConfig,
 				}

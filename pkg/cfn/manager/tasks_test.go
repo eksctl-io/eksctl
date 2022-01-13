@@ -155,7 +155,7 @@ var _ = Describe("StackCollection Tasks", func() {
 			It("appends the AssignIpv6AddressOnCreation task to occur after the cluster creation", func() {
 				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"), nil, true)
 				Expect(tasks.Describe()).To(Equal(`
-3 sequential tasks: { create cluster control plane "test-cluster", set AssignIpv6AddressOnCreation to true for public subnets and EnableDns64 to true for private subnets, 
+3 sequential tasks: { create cluster control plane "test-cluster", set AssignIpv6AddressOnCreation to true for public subnets, 
     2 parallel sub-tasks: { 
         create nodegroup "bar",
         create nodegroup "foo",
