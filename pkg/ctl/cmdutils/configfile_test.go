@@ -156,6 +156,7 @@ var _ = Describe("cmdutils configfile", func() {
 				}
 
 				err := NewMetadataLoader(cmd).Load()
+				Expect(err).NotTo(HaveOccurred())
 
 				cfg := cmd.ClusterConfig
 				Expect(err).NotTo(HaveOccurred())
@@ -198,6 +199,22 @@ var _ = Describe("cmdutils configfile", func() {
 				Expect(cfg.VPC.NAT.Gateway).To(Not(BeNil()))
 				Expect(*cfg.VPC.NAT.Gateway).To(Equal(natTest.expectedGateway))
 			}
+		})
+
+		When("using ipv6", func() {
+			It("should default VPC.NAT to nil", func() {
+				cmd := &Cmd{
+					CobraCommand:      newCmd(),
+					ClusterConfigFile: filepath.Join(examplesDir, "30-vpc-with-ip-family.yaml"),
+					ClusterConfig:     api.NewClusterConfig(),
+					ProviderConfig:    api.ProviderConfig{},
+				}
+				params := &CreateClusterCmdParams{WithoutNodeGroup: true, CreateManagedNGOptions: CreateManagedNGOptions{
+					Managed: false,
+				}}
+				Expect(NewCreateClusterLoader(cmd, filter.NewNodeGroupFilter(), nil, params).Load()).To(Succeed())
+				Expect(cmd.ClusterConfig.VPC.NAT).To(BeNil())
+			})
 		})
 
 		It("loader should handle named and unnamed nodegroups without config file", func() {
@@ -364,6 +381,63 @@ var _ = Describe("cmdutils configfile", func() {
 
 			It("when VPC is imported and private endpoint is enabled", func() {
 				testClusterEndpointAccessDefaults("test_data/cluster-with-vpc-private-access.yaml", true, true)
+			})
+		})
+	})
+
+	Describe("SetLabelLoader", func() {
+		It("should load the right data", func() {
+			cmd := &Cmd{
+				CobraCommand:      newCmd(),
+				ClusterConfigFile: filepath.Join("test_data", "cluster-with-labels.yaml"),
+				ClusterConfig:     api.NewClusterConfig(),
+				ProviderConfig:    api.ProviderConfig{},
+			}
+
+			Expect(NewSetLabelLoader(cmd, "ng-1", nil).Load()).To(Succeed())
+			cfg := cmd.ClusterConfig
+			Expect(cfg.Metadata.Name).To(Equal("test-labels-1"))
+			Expect(cfg.ManagedNodeGroups[0].Name).To(Equal("ng-1"))
+		})
+		When("no config file is provided and no labels", func() {
+			It("errors", func() {
+				cmd := &Cmd{
+					CobraCommand:   newCmd(),
+					ClusterConfig:  api.NewClusterConfig(),
+					ProviderConfig: api.ProviderConfig{},
+				}
+
+				err := NewSetLabelLoader(cmd, "", nil).Load()
+				Expect(err).To(MatchError(ContainSubstring("--labels must be set")))
+			})
+		})
+		When("config file with no nodegroup name is provided", func() {
+			It("should load all nodegroups", func() {
+				cmd := &Cmd{
+					CobraCommand:      newCmd(),
+					ClusterConfigFile: filepath.Join("test_data", "cluster-with-labels.yaml"),
+					ClusterConfig:     api.NewClusterConfig(),
+					ProviderConfig:    api.ProviderConfig{},
+				}
+
+				Expect(NewSetLabelLoader(cmd, "", nil).Load()).To(Succeed())
+				cfg := cmd.ClusterConfig
+				Expect(cfg.Metadata.Name).To(Equal("test-labels-1"))
+				Expect(cfg.ManagedNodeGroups[0].Name).To(Equal("ng-1"))
+				Expect(cfg.ManagedNodeGroups[1].Name).To(Equal("ng-2"))
+			})
+		})
+		When("config file with missing nodegroup name is provided", func() {
+			It("errors", func() {
+				cmd := &Cmd{
+					CobraCommand:      newCmd(),
+					ClusterConfigFile: filepath.Join("test_data", "cluster-with-labels.yaml"),
+					ClusterConfig:     api.NewClusterConfig(),
+					ProviderConfig:    api.ProviderConfig{},
+				}
+
+				err := NewSetLabelLoader(cmd, "invalid", nil).Load()
+				Expect(err).To(MatchError(ContainSubstring("nodegroup with name invalid not found in the config file")))
 			})
 		})
 	})

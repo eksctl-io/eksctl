@@ -329,39 +329,46 @@ func (c *ClusterProvider) loadClusterKubernetesNetworkConfig(spec *api.ClusterCo
 }
 
 // ListClusters returns a list of the EKS cluster in your account
-func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*api.ClusterConfig, error) {
-	if listAllRegions {
-		var clusters []*api.ClusterConfig
-		// reset region and re-create the client, then make a recursive call
-		authorizedRegions, err := c.Provider.EC2().DescribeRegions(&ec2.DescribeRegionsInput{})
-		if err != nil {
-			return nil, err
-		}
-
-		for _, region := range authorizedRegions.Regions {
-			spec := &api.ProviderConfig{
-				Region:      *region.RegionName,
-				Profile:     c.Provider.Profile(),
-				WaitTimeout: c.Provider.WaitTimeout(),
-			}
-
-			ctl, err := New(spec, nil)
-			if err != nil {
-				logger.Critical("error creating provider in %q region: %s", region, err.Error())
-				continue
-			}
-
-			newClusters, err := ctl.listClusters(int64(chunkSize))
-			if err != nil {
-				logger.Critical("error listing clusters in %q region: %s", region, err.Error())
-			}
-
-			clusters = append(clusters, newClusters...)
-		}
-		return clusters, nil
+func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool, newProviderForConfig func(*api.ProviderConfig, *api.ClusterConfig) (*ClusterProvider, error)) ([]*api.ClusterConfig, error) {
+	if !listAllRegions {
+		return c.listClusters(int64(chunkSize))
 	}
 
-	return c.listClusters(int64(chunkSize))
+	var clusters []*api.ClusterConfig
+	authorizedRegionsList, err := c.Provider.EC2().DescribeRegions(&ec2.DescribeRegionsInput{})
+	if err != nil {
+		return nil, err
+	}
+	authorizedRegions := map[string]struct{}{}
+	for _, r := range authorizedRegionsList.Regions {
+		authorizedRegions[*r.RegionName] = struct{}{}
+	}
+
+	for _, region := range api.SupportedRegions() {
+		if _, authorized := authorizedRegions[region]; !authorized {
+			continue
+		}
+		// Reset region and recreate the client.
+		ctl, err := newProviderForConfig(&api.ProviderConfig{
+			Region:      region,
+			Profile:     c.Provider.Profile(),
+			WaitTimeout: c.Provider.WaitTimeout(),
+		}, nil)
+
+		if err != nil {
+			logger.Critical("error creating provider in %q region: %v", region, err)
+			continue
+		}
+
+		newClusters, err := ctl.listClusters(int64(chunkSize))
+		if err != nil {
+			logger.Critical("error listing clusters in %q region: %v", region, err)
+			continue
+		}
+
+		clusters = append(clusters, newClusters...)
+	}
+	return clusters, nil
 }
 
 func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, error) {

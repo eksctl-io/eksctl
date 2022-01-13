@@ -139,8 +139,10 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from auth ConfigMap in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 		if !cmd.Plan {
 			for _, ng := range cfg.NodeGroups {
-				if err := authconfigmap.RemoveNodeGroup(clientSet, ng); err != nil {
-					logger.Warning(err.Error())
+				if ng.IAM != nil && ng.IAM.InstanceRoleARN != "" {
+					if err := authconfigmap.RemoveNodeGroup(clientSet, ng); err != nil {
+						logger.Warning(err.Error())
+					}
 				}
 			}
 		}

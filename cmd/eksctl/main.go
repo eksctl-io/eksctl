@@ -18,7 +18,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/disassociate"
 	"github.com/weaveworks/eksctl/pkg/ctl/drain"
 	"github.com/weaveworks/eksctl/pkg/ctl/enable"
-	"github.com/weaveworks/eksctl/pkg/ctl/generate"
 	"github.com/weaveworks/eksctl/pkg/ctl/get"
 	"github.com/weaveworks/eksctl/pkg/ctl/scale"
 	"github.com/weaveworks/eksctl/pkg/ctl/set"
@@ -40,7 +39,6 @@ func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
 	rootCmd.AddCommand(unset.Command(flagGrouping))
 	rootCmd.AddCommand(scale.Command(flagGrouping))
 	rootCmd.AddCommand(drain.Command(flagGrouping))
-	rootCmd.AddCommand(generate.Command(flagGrouping))
 	rootCmd.AddCommand(enable.Command(flagGrouping))
 	rootCmd.AddCommand(register.Command(flagGrouping))
 	rootCmd.AddCommand(deregister.Command(flagGrouping))

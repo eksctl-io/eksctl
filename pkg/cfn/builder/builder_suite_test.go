@@ -17,16 +17,17 @@ func TestCfnBuilder(t *testing.T) {
 }
 
 var (
-	azA, azB                             = "us-west-2a", "us-west-2b"
-	privateSubnet1, privateSubnet2       = "subnet-0ade11bad78dced9f", "subnet-0f98135715dfcf55a"
-	publicSubnet1, publicSubnet2         = "subnet-0ade11bad78dced9e", "subnet-0f98135715dfcf55f"
-	privateSubnetRef1, privateSubnetRef2 = "SubnetPrivateUSWEST2A", "SubnetPrivateUSWEST2B"
-	publicSubnetRef1, publicSubnetRef2   = "SubnetPublicUSWEST2A", "SubnetPublicUSWEST2B"
-	vpcResourceKey, igwKey, gaKey        = "VPC", "InternetGateway", "VPCGatewayAttachment"
-	pubRouteTable, pubSubnetRoute        = "PublicRouteTable", "PublicSubnetRoute"
-	privRouteTableA, privRouteTableB     = "PrivateRouteTableUSWEST2A", "PrivateRouteTableUSWEST2B"
-	rtaPublicA, rtaPublicB               = "RouteTableAssociationPublicUSWEST2A", "RouteTableAssociationPublicUSWEST2B"
-	rtaPrivateA, rtaPrivateB             = "RouteTableAssociationPrivateUSWEST2A", "RouteTableAssociationPrivateUSWEST2B"
+	azA, azB, azC                            = "us-west-2a", "us-west-2b", "us-west-2c"
+	azAFormatted, azBFormatted, azCFormatted = "USWEST2A", "USWEST2B", "USWEST2C"
+	privateSubnet1, privateSubnet2           = "subnet-0ade11bad78dced9f", "subnet-0f98135715dfcf55a"
+	publicSubnet1, publicSubnet2             = "subnet-0ade11bad78dced9e", "subnet-0f98135715dfcf55f"
+	privateSubnetRef1, privateSubnetRef2     = "SubnetPrivateUSWEST2A", "SubnetPrivateUSWEST2B"
+	publicSubnetRef1, publicSubnetRef2       = "SubnetPublicUSWEST2A", "SubnetPublicUSWEST2B"
+	vpcResourceKey, igwKey, gaKey            = "VPC", "InternetGateway", "VPCGatewayAttachment"
+	pubRouteTable, pubSubnetRoute            = "PublicRouteTable", "PublicSubnetRoute"
+	privRouteTableA, privRouteTableB         = "PrivateRouteTableUSWEST2A", "PrivateRouteTableUSWEST2B"
+	rtaPublicA, rtaPublicB                   = "RouteTableAssociationPublicUSWEST2A", "RouteTableAssociationPublicUSWEST2B"
+	rtaPrivateA, rtaPrivateB                 = "RouteTableAssociationPrivateUSWEST2A", "RouteTableAssociationPrivateUSWEST2B"
 )
 
 func vpcConfig() *api.ClusterVPC {
@@ -35,6 +36,7 @@ func vpcConfig() *api.ClusterVPC {
 		NAT: &api.ClusterNAT{
 			Gateway: &disable,
 		},
+		ClusterEndpoints: api.ClusterEndpointAccessDefaults(),
 		Subnets: &api.ClusterSubnets{
 			Public: api.AZSubnetMappingFromMap(map[string]api.AZSubnetSpec{
 				azB: {

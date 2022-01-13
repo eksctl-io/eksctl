@@ -32,8 +32,7 @@ var params *tests.Params
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
-	// "unowned_clusters" lead to names longer than allowed for CF stacks
-	params = tests.NewParams("uc")
+	params = tests.NewParams("unowned")
 }
 
 func TestE2E(t *testing.T) {

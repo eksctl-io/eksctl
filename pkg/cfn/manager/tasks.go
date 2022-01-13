@@ -6,6 +6,9 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -130,4 +133,45 @@ func (t *kubernetesTask) Do(errs chan error) error {
 	err = t.call(clientSet, t.objectMeta)
 	close(errs)
 	return err
+}
+
+type UpdateSubnetsForIPv6Task struct {
+	EC2API        ec2iface.EC2API
+	ClusterConfig *api.ClusterConfig
+}
+
+func (t *UpdateSubnetsForIPv6Task) Describe() string {
+	return "set AssignIpv6AddressOnCreation to true for public subnets and EnableDns64 to true for private subnets"
+}
+
+func (t *UpdateSubnetsForIPv6Task) Do(errs chan error) error {
+	defer close(errs)
+	if t.ClusterConfig.VPC.Subnets.Public != nil {
+		for _, subnet := range t.ClusterConfig.VPC.Subnets.Public.WithIDs() {
+			_, err := t.EC2API.ModifySubnetAttribute(&ec2.ModifySubnetAttributeInput{
+				AssignIpv6AddressOnCreation: &ec2.AttributeBooleanValue{
+					Value: aws.Bool(true),
+				},
+				SubnetId: aws.String(subnet),
+			})
+			if err != nil {
+				return fmt.Errorf("failed to update public subnet %q: %v", subnet, err)
+			}
+		}
+	}
+
+	if t.ClusterConfig.VPC.Subnets.Private != nil {
+		for _, subnet := range t.ClusterConfig.VPC.Subnets.Private.WithIDs() {
+			_, err := t.EC2API.ModifySubnetAttribute(&ec2.ModifySubnetAttributeInput{
+				EnableDns64: &ec2.AttributeBooleanValue{
+					Value: aws.Bool(true),
+				},
+				SubnetId: aws.String(subnet),
+			})
+			if err != nil {
+				return fmt.Errorf("failed to update private subnet %q: %v", subnet, err)
+			}
+		}
+	}
+	return nil
 }

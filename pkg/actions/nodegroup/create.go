@@ -132,7 +132,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 		return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, os.Stdout)
 	}
 
-	if err := m.nodeCreationTasks(options, nodegroupFilter, supportsManagedNodes, isOwnedCluster); err != nil {
+	if err := m.nodeCreationTasks(supportsManagedNodes, isOwnedCluster); err != nil {
 		return err
 	}
 
@@ -147,7 +147,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 	return nil
 }
 
-func (m *Manager) nodeCreationTasks(options CreateOpts, nodegroupFilter filter.NodegroupFilter, supportsManagedNodes, isOwnedCluster bool) error {
+func (m *Manager) nodeCreationTasks(supportsManagedNodes, isOwnedCluster bool) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
 	init := m.init

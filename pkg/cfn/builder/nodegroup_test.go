@@ -75,6 +75,21 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			Expect(ngTemplate.Outputs).To(HaveKey(outputs.NodeGroupFeatureLocalSecurityGroup))
 		})
 
+		Context("ipv6 cluster", func() {
+			BeforeEach(func() {
+				cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
+			})
+			AfterEach(func() {
+				cfg.KubernetesNetworkConfig.IPFamily = api.IPV4Family
+			})
+
+			When("an unmanaged nodegroup is created", func() {
+				It("returns an error", func() {
+					Expect(addErr).To(MatchError(ContainSubstring("unmanaged nodegroups are not supported with IPv6 clusters")))
+				})
+			})
+		})
+
 		Context("if ng.MinSize is nil", func() {
 			BeforeEach(func() {
 				ng.MinSize = nil

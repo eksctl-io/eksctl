@@ -7,6 +7,9 @@ change it. Please refer to [the AWS docs][vpcsizing] for guides on choosing CIDR
 
 [vpcsizing]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html#VPC_Sizing
 
+If you are creating an IPv6 cluster you can also bring your own IPv6 pool by configuring `VPC.IPv6Cidr` and `VPC.IPv6Pool`.
+See [AWS docs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html) on how to import your own pool.
+
 ## Use an existing VPC: shared with kops
 
 You can use the VPC of an existing Kubernetes cluster managed by [kops](https://github.com/kubernetes/kops). This feature is provided to facilitate migration and/or cluster peering.
