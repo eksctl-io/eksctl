@@ -577,6 +577,10 @@ type KubernetesNetworkConfig struct {
 	ServiceIPv4CIDR string `json:"serviceIPv4CIDR,omitempty"`
 }
 
+func (k *KubernetesNetworkConfig) IPv6Enabled() bool {
+	return strings.EqualFold(k.IPFamily, IPV6Family)
+}
+
 type EKSCTLCreated string
 
 // ClusterStatus holds read-only attributes of a cluster
