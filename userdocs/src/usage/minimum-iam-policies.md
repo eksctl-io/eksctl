@@ -138,11 +138,12 @@ IamLimitedAccess
                 "iam:GetOpenIDConnectProvider",
                 "iam:CreateOpenIDConnectProvider",
                 "iam:DeleteOpenIDConnectProvider",
-                "iam:TagOpenIDConnectProvider",                
+                "iam:TagOpenIDConnectProvider",
                 "iam:ListAttachedRolePolicies",
                 "iam:TagRole",
                 "iam:GetPolicy",
-                "iam:CreatePolicy"
+                "iam:CreatePolicy",
+                "iam:DeletePolicy"
             ],
             "Resource": [
                 "arn:aws:iam::<account_id>:instance-profile/eksctl-*",
