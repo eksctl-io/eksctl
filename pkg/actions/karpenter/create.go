@@ -69,6 +69,9 @@ func (i *Installer) Create() error {
 	if err := acm.AddIdentity(id); err != nil {
 		return fmt.Errorf("failed to add new identity: %w", err)
 	}
+	if err := acm.Save(); err != nil {
+		return fmt.Errorf("failed to save the identity config: %w", err)
+	}
 
 	// Install Karpenter
 	return i.KarpenterInstaller.Install(context.Background(), roleARN)
