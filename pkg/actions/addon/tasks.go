@@ -42,7 +42,7 @@ func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvid
 			clusterProvider: clusterProvider,
 			forceAll:        forceAll,
 			timeout:         timeout,
-			wait:            len(cfg.NodeGroups) > 0 || len(cfg.ManagedNodeGroups) > 0,
+			wait:            cfg.HasNodes(),
 		},
 	)
 	return preTasks, postTasks

@@ -625,6 +625,21 @@ func (c ClusterConfig) IsFargateEnabled() bool {
 	return len(c.FargateProfiles) > 0
 }
 
+func (c ClusterConfig) HasNodes() bool {
+	for _, m := range c.ManagedNodeGroups {
+		if m.GetDesiredCapacity() > 0 {
+			return true
+		}
+	}
+
+	for _, n := range c.NodeGroups {
+		if n.GetDesiredCapacity() > 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // ClusterProvider is the interface to AWS APIs
 type ClusterProvider interface {
 	CloudFormation() cloudformationiface.CloudFormationAPI
@@ -978,6 +993,13 @@ func (n *NodeGroup) NGTaints() []NodeGroupTaint {
 // BaseNodeGroup implements NodePool
 func (n *NodeGroup) BaseNodeGroup() *NodeGroupBase {
 	return n.NodeGroupBase
+}
+
+func (n *NodeGroup) GetDesiredCapacity() int {
+	if n.NodeGroupBase != nil {
+		return n.NodeGroupBase.GetDesiredCapacity()
+	}
+	return 0
 }
 
 // GitOps groups all configuration options related to enabling GitOps Toolkit on a
@@ -1394,6 +1416,20 @@ type ManagedNodeGroup struct {
 	// Internal fields
 
 	Unowned bool `json:"-"`
+}
+
+func (n *NodeGroupBase) GetDesiredCapacity() int {
+	if n.ScalingConfig != nil && n.ScalingConfig.DesiredCapacity != nil {
+		return *n.ScalingConfig.DesiredCapacity
+	}
+	return 0
+}
+
+func (m *ManagedNodeGroup) GetDesiredCapacity() int {
+	if m.NodeGroupBase != nil {
+		return m.NodeGroupBase.GetDesiredCapacity()
+	}
+	return 0
 }
 
 func (m *ManagedNodeGroup) InstanceTypeList() []string {
