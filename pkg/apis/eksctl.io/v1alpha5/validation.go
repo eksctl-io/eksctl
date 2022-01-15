@@ -205,7 +205,7 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		c.VPC.PublicAccessCIDRs = cidrs
 	}
 	if len(c.VPC.ExtraIPv6CIDRs) > 0 {
-		if c.KubernetesNetworkConfig == nil || c.KubernetesNetworkConfig.IPFamily != IPV6Family {
+		if c.KubernetesNetworkConfig == nil || !c.KubernetesNetworkConfig.IPv6Enabled() {
 			return fmt.Errorf("cannot specify vpc.extraIPv6CIDRs with an IPv4 cluster")
 		}
 		cidrs, err := validateCIDRs(c.VPC.ExtraIPv6CIDRs)
@@ -216,12 +216,12 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 	}
 
 	if c.VPC.IPv6Cidr != "" || c.VPC.IPv6Pool != "" {
-		if c.KubernetesNetworkConfig == nil || c.KubernetesNetworkConfig.IPFamily != IPV6Family {
+		if c.KubernetesNetworkConfig == nil || !c.KubernetesNetworkConfig.IPv6Enabled() {
 			return fmt.Errorf("Ipv6Cidr and Ipv6CidrPool are only supported when IPFamily is set to IPv6")
 		}
 	}
 
-	if c.KubernetesNetworkConfig != nil && c.KubernetesNetworkConfig.IPFamily == IPV6Family {
+	if c.KubernetesNetworkConfig != nil && c.KubernetesNetworkConfig.IPv6Enabled() {
 		if IsEnabled(c.VPC.AutoAllocateIPv6) {
 			return fmt.Errorf("auto allocate ipv6 is not supported with IPv6")
 		}
@@ -353,7 +353,7 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 		return nil
 	}
 	if c.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
-		if c.KubernetesNetworkConfig.IPFamily == IPV6Family {
+		if c.KubernetesNetworkConfig.IPv6Enabled() {
 			return fmt.Errorf("service ipv4 cidr is not supported with IPv6")
 		}
 		serviceIP := c.KubernetesNetworkConfig.ServiceIPv4CIDR
@@ -362,13 +362,9 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 		}
 	}
 
-	switch c.KubernetesNetworkConfig.IPFamily {
-	case IPV4Family, "":
-
-	default:
-		return fmt.Errorf("invalid value %q for ipFamily; allowed are %s and %s", c.KubernetesNetworkConfig.IPFamily, IPV4Family, IPV6Family)
-
-	case IPV6Family:
+	switch strings.ToLower(c.KubernetesNetworkConfig.IPFamily) {
+	case strings.ToLower(IPV4Family), "":
+	case strings.ToLower(IPV6Family):
 		if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
 			return fmt.Errorf("the default core addons must be defined for IPv6; missing addon(s): %s", strings.Join(missing, ", "))
 		}
@@ -391,6 +387,8 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 		} else if err == nil && version == -1 {
 			return fmt.Errorf("cluster version must be >= %s", Version1_21)
 		}
+	default:
+		return fmt.Errorf("invalid value %q for ipFamily; allowed are %s and %s", c.KubernetesNetworkConfig.IPFamily, IPV4Family, IPV6Family)
 	}
 
 	return nil

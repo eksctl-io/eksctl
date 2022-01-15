@@ -195,7 +195,7 @@ func (a *Manager) getRecommendedPolicies(addon *api.Addon) (api.InlineDocument, 
 	// API isn't case sensitive
 	switch addon.CanonicalName() {
 	case vpcCNIName:
-		if a.clusterConfig.KubernetesNetworkConfig != nil && a.clusterConfig.KubernetesNetworkConfig.IPFamily == api.IPV6Family {
+		if a.clusterConfig.KubernetesNetworkConfig != nil && a.clusterConfig.KubernetesNetworkConfig.IPv6Enabled() {
 			return makeIPv6VPCCNIPolicyDocument(), nil, nil
 		}
 		return nil, []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}, nil

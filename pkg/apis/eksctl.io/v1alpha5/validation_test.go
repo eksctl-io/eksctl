@@ -708,6 +708,29 @@ var _ = Describe("ClusterConfig validation", func() {
 					Expect(err).ToNot(HaveOccurred())
 				})
 
+				When("the casing of ipv6 isn't standard", func() {
+					It("accepts that setting", func() {
+						cfg.KubernetesNetworkConfig.IPFamily = "iPv6"
+						cfg.VPC.NAT = nil
+						cfg.VPC.IPv6Cidr = "foo"
+						cfg.VPC.IPv6Pool = "bar"
+						cfg.Addons = append(cfg.Addons,
+							&api.Addon{Name: api.KubeProxyAddon},
+							&api.Addon{Name: api.CoreDNSAddon},
+							&api.Addon{Name: api.VPCCNIAddon},
+						)
+						cfg.IAM = &api.ClusterIAM{
+							WithOIDC: api.Enabled(),
+						}
+						cfg.Metadata.Version = api.Version1_21
+						err = cfg.ValidateVPCConfig()
+						Expect(err).ToNot(HaveOccurred())
+						cfg.Metadata.Version = "1.31"
+						err = cfg.ValidateVPCConfig()
+						Expect(err).ToNot(HaveOccurred())
+					})
+				})
+
 				When("ipFamily is set to IPv6 but version is not or too low", func() {
 					It("returns an error", func() {
 						cfg.VPC.NAT = nil

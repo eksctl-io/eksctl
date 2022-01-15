@@ -13,6 +13,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 	core "k8s.io/client-go/testing"
@@ -308,6 +310,56 @@ var _ = Describe("Create", func() {
 				}
 				err := install.Create()
 				Expect(err).To(MatchError(ContainSubstring("failed to create client for auth config: getting auth ConfigMap: nope")))
+			})
+		})
+		When("creating the iam mapping configmap fails", func() {
+			BeforeEach(func() {
+				fakeClientSet = fake.NewSimpleClientset()
+				fakeClientSet.PrependReactor("create", "configmaps", func(action core.Action) (bool, runtime.Object, error) {
+					return true, nil, errors.New("nope")
+				})
+			})
+			It("errors", func() {
+				install := &karpenteractions.Installer{
+					StackManager:       fakeStackManager,
+					CTL:                ctl,
+					Config:             cfg,
+					KarpenterInstaller: fakeKarpenterInstaller,
+					ClientSet:          fakeClientSet,
+				}
+				err := install.Create()
+				Expect(err).To(MatchError(ContainSubstring("failed to save the identity config: nope")))
+			})
+		})
+		When("updating the iam mapping configmap fails", func() {
+			BeforeEach(func() {
+				fakeClientSet = fake.NewSimpleClientset()
+				fakeClientSet.PrependReactor("update", "configmaps", func(action core.Action) (bool, runtime.Object, error) {
+					return true, nil, errors.New("nope")
+				})
+				fakeClientSet.PrependReactor("get", "configmaps", func(action core.Action) (bool, runtime.Object, error) {
+					return true, &corev1.ConfigMap{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "aws-auth",
+							Namespace: "kube-system",
+							UID:       "uid",
+						},
+						Data: map[string]string{
+							"something": "there",
+						},
+					}, nil
+				})
+			})
+			It("errors", func() {
+				install := &karpenteractions.Installer{
+					StackManager:       fakeStackManager,
+					CTL:                ctl,
+					Config:             cfg,
+					KarpenterInstaller: fakeKarpenterInstaller,
+					ClientSet:          fakeClientSet,
+				}
+				err := install.Create()
+				Expect(err).To(MatchError(ContainSubstring("failed to save the identity config: nope")))
 			})
 		})
 		When("createServiceAccount is enabled", func() {
