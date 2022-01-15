@@ -1,0 +1,14 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+# name is generated
+metadata:
+  name: <generated>
+
+managedNodeGroups:
+  - name: mng-1
+    desiredCapacity: 1
+    maxSize: 2
+    minSize: 1
+    labels:
+      preset: value

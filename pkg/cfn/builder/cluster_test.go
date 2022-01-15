@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/tidwall/gjson"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder/fakes"
@@ -32,6 +33,10 @@ var _ = Describe("Cluster Template Builder", func() {
 		cfg = api.NewClusterConfig()
 		cfg.VPC = vpcConfig()
 		cfg.AvailabilityZones = []string{"us-west-2a", "us-west-2b"}
+		cfg.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
+			ServiceIPv4CIDR: "131.10.55.70/18",
+			IPFamily:        api.IPV4Family,
+		}
 	})
 
 	JustBeforeEach(func() {
@@ -60,6 +65,18 @@ var _ = Describe("Cluster Template Builder", func() {
 			Expect(clusterTemplate.Description).To(Equal("EKS cluster (dedicated VPC: true, dedicated IAM: true) [created and managed by eksctl]"))
 		})
 
+		It("should add control plane resources", func() {
+			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlane"))
+			Expect(clusterTemplate.Resources["ControlPlane"].Properties.Name).To(Equal(cfg.Metadata.Name))
+			Expect(clusterTemplate.Resources["ControlPlane"].Properties.Version).To(Equal(cfg.Metadata.Version))
+			Expect(clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig.SecurityGroupIds[0]).To(ContainElement("ControlPlaneSecurityGroup"))
+			Expect(clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig.SubnetIds).To(HaveLen(4))
+			Expect(clusterTemplate.Resources["ControlPlane"].Properties.RoleArn).To(ContainElement([]interface{}{"ServiceRole", "Arn"}))
+			Expect(clusterTemplate.Resources["ControlPlane"].Properties.EncryptionConfig).To(BeNil())
+			Expect(clusterTemplate.Resources["ControlPlane"].Properties.KubernetesNetworkConfig.ServiceIPv4CIDR).To(Equal("131.10.55.70/18"))
+			Expect(clusterTemplate.Resources["ControlPlane"].Properties.KubernetesNetworkConfig.IPFamily).To(Equal("ipv4"))
+		})
+
 		It("should add vpc resources", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey(vpcResourceKey))
 			Expect(clusterTemplate.Resources).To(HaveKey(igwKey))
@@ -78,6 +95,49 @@ var _ = Describe("Cluster Template Builder", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey(rtaPrivateB))
 			Expect(clusterTemplate.Resources).To(HaveKey(privateSubnetRef1))
 			Expect(clusterTemplate.Resources).To(HaveKey(privateSubnetRef1))
+		})
+
+		Context("when ipFamily is set to IPv6", func() {
+			BeforeEach(func() {
+				cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
+			})
+
+			It("should add control plane resources", func() {
+				Expect(clusterTemplate.Resources["ControlPlane"].Properties.KubernetesNetworkConfig.IPFamily).To(Equal("ipv6"))
+			})
+
+			It("should add IPv6 vpc resources", func() {
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.VPCResourceKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.IPv6CIDRBlockKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.IGWKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.GAKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.EgressOnlyInternetGatewayKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.NATGatewayKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.ElasticIPKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PubRouteTableKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PubSubRouteKey))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PubSubIPv6RouteKey))
+				privateRouteTableA := builder.PrivateRouteTableKey + azAFormatted
+				Expect(clusterTemplate.Resources).To(HaveKey(privateRouteTableA))
+				privateRouteTableB := builder.PrivateRouteTableKey + azBFormatted
+				Expect(clusterTemplate.Resources).To(HaveKey(privateRouteTableB))
+				privateRouteA := builder.PrivateSubnetRouteKey + azAFormatted
+				Expect(clusterTemplate.Resources).To(HaveKey(privateRouteA))
+				privateRouteB := builder.PrivateSubnetRouteKey + azBFormatted
+				Expect(clusterTemplate.Resources).To(HaveKey(privateRouteB))
+				privateRouteA = builder.PrivateSubnetIpv6RouteKey + azAFormatted
+				Expect(clusterTemplate.Resources).To(HaveKey(privateRouteA))
+				privateRouteB = builder.PrivateSubnetIpv6RouteKey + azBFormatted
+				Expect(clusterTemplate.Resources).To(HaveKey(privateRouteB))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PublicSubnetKey + azAFormatted))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PublicSubnetKey + azBFormatted))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateSubnetKey + azAFormatted))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateSubnetKey + azBFormatted))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PubRouteTableAssociation + azAFormatted))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PubRouteTableAssociation + azBFormatted))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateRouteTableAssociation + azAFormatted))
+				Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateRouteTableAssociation + azBFormatted))
+			})
 		})
 
 		Context("when AutoAllocateIPv6 is enabled", func() {
@@ -112,34 +172,65 @@ var _ = Describe("Cluster Template Builder", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ClusterSharedNodeSecurityGroup"))
 		})
 
-		Context("when 1 extraCIDR is defined", func() {
+		Context("when extraCIDRs are defined", func() {
 			BeforeEach(func() {
-				oneExtraCIDR := []string{"192.168.0.0/24"}
-				cfg.VPC.ExtraCIDRs = oneExtraCIDR
+				cfg.VPC.ExtraCIDRs = []string{"192.168.0.0/24", "192.168.1.0/24"}
 			})
 
-			It("should add 1 extra control plane ingress rule", func() {
+			It("should add extra control plane ingress rules", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey("IngressControlPlaneExtraCIDR0"))
-				Expect(clusterTemplate.Resources["IngressControlPlaneExtraCIDR0"].Properties.CidrIP).To(Equal("192.168.0.0/24"))
-				Expect(clusterTemplate.Resources["IngressControlPlaneExtraCIDR0"].Properties.IPProtocol).To(Equal("tcp"))
-				Expect(clusterTemplate.Resources["IngressControlPlaneExtraCIDR0"].Properties.FromPort).To(Equal(443))
-				Expect(clusterTemplate.Resources["IngressControlPlaneExtraCIDR0"].Properties.ToPort).To(Equal(443))
+
+				Expect(clusterTemplate.Resources["IngressControlPlaneExtraCIDR0"].Properties).To(Equal(fakes.Properties{
+					CidrIP:     "192.168.0.0/24",
+					IPProtocol: "tcp",
+					FromPort:   443,
+					ToPort:     443,
+					GroupID: map[string]interface{}{
+						"Ref": "ControlPlaneSecurityGroup"},
+					Description: "Allow Extra CIDR 0 (192.168.0.0/24) to communicate to controlplane",
+				}))
+
+				Expect(clusterTemplate.Resources).To(HaveKey("IngressControlPlaneExtraCIDR1"))
+				Expect(clusterTemplate.Resources["IngressControlPlaneExtraCIDR1"].Properties).To(Equal(fakes.Properties{
+					CidrIP:     "192.168.1.0/24",
+					IPProtocol: "tcp",
+					FromPort:   443,
+					ToPort:     443,
+					GroupID: map[string]interface{}{
+						"Ref": "ControlPlaneSecurityGroup"},
+					Description: "Allow Extra CIDR 1 (192.168.1.0/24) to communicate to controlplane",
+				}))
 			})
 		})
 
-		Context("when 3 extraCIDRs are defined", func() {
+		Context("when extraIPv6CIDR is defined", func() {
 			BeforeEach(func() {
-				threeExtraCIDRs := []string{"192.168.0.0/24", "192.168.1.0/24", "192.168.2.0/24"}
-				cfg.VPC.ExtraCIDRs = threeExtraCIDRs
+				cfg.VPC.ExtraIPv6CIDRs = []string{"2002::1234:abcd:ffff:c0a8:101/64", "2003::1234:abcd:ffff:c0a8:101/64"}
 			})
 
-			It("should add 3 extra control plane ingress rules", func() {
-				Expect(clusterTemplate.Resources).To(HaveKey("IngressControlPlaneExtraCIDR0"))
-				Expect(clusterTemplate.Resources["IngressControlPlaneExtraCIDR0"].Properties.CidrIP).To(Equal("192.168.0.0/24"))
-				Expect(clusterTemplate.Resources).To(HaveKey("IngressControlPlaneExtraCIDR1"))
-				Expect(clusterTemplate.Resources["IngressControlPlaneExtraCIDR1"].Properties.CidrIP).To(Equal("192.168.1.0/24"))
-				Expect(clusterTemplate.Resources).To(HaveKey("IngressControlPlaneExtraCIDR2"))
-				Expect(clusterTemplate.Resources["IngressControlPlaneExtraCIDR2"].Properties.CidrIP).To(Equal("192.168.2.0/24"))
+			It("should add extra control plane ingress rules", func() {
+				Expect(clusterTemplate.Resources).To(HaveKey("IngressControlPlaneExtraIPv6CIDR0"))
+
+				Expect(clusterTemplate.Resources["IngressControlPlaneExtraIPv6CIDR0"].Properties).To(Equal(fakes.Properties{
+					CidrIPv6:   "2002::1234:abcd:ffff:c0a8:101/64",
+					IPProtocol: "tcp",
+					FromPort:   443,
+					ToPort:     443,
+					GroupID: map[string]interface{}{
+						"Ref": "ControlPlaneSecurityGroup"},
+					Description: "Allow Extra IPv6 CIDR 0 (2002::1234:abcd:ffff:c0a8:101/64) to communicate to controlplane",
+				}))
+
+				Expect(clusterTemplate.Resources).To(HaveKey("IngressControlPlaneExtraIPv6CIDR1"))
+				Expect(clusterTemplate.Resources["IngressControlPlaneExtraIPv6CIDR1"].Properties).To(Equal(fakes.Properties{
+					CidrIPv6:   "2003::1234:abcd:ffff:c0a8:101/64",
+					IPProtocol: "tcp",
+					FromPort:   443,
+					ToPort:     443,
+					GroupID: map[string]interface{}{
+						"Ref": "ControlPlaneSecurityGroup"},
+					Description: "Allow Extra IPv6 CIDR 1 (2003::1234:abcd:ffff:c0a8:101/64) to communicate to controlplane",
+				}))
 			})
 		})
 
@@ -238,16 +329,6 @@ var _ = Describe("Cluster Template Builder", func() {
 			})
 		})
 
-		It("should add control plane resources", func() {
-			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlane"))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.Name).To(Equal(cfg.Metadata.Name))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.Version).To(Equal(cfg.Metadata.Version))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig.SecurityGroupIds[0]).To(ContainElement("ControlPlaneSecurityGroup"))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig.SubnetIds).To(HaveLen(4))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.RoleArn).To(ContainElement([]interface{}{"ServiceRole", "Arn"}))
-			Expect(clusterTemplate.Resources["ControlPlane"].Properties.EncryptionConfig).To(BeNil())
-		})
-
 		When("SecretsEncryption is configured", func() {
 			BeforeEach(func() {
 				cfg.SecretsEncryption = &api.SecretsEncryption{
@@ -321,6 +402,146 @@ var _ = Describe("Cluster Template Builder", func() {
 					Expect(clusterTemplate.Resources).NotTo(HaveKey(ContainSubstring("VPCEndpoint")))
 				})
 			})
+
+			When("ipv6 cluster is enabled", func() {
+				BeforeEach(func() {
+					cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
+				})
+				It("should only add private IPv6 vpc resources", func() {
+					Expect(clusterTemplate.Resources).To(HaveKey(builder.VPCResourceKey))
+					Expect(clusterTemplate.Resources).To(HaveKey(builder.IPv6CIDRBlockKey))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.IGWKey))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.GAKey))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.EgressOnlyInternetGatewayKey))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.NATGatewayKey))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.ElasticIPKey))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.PubRouteTableKey))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.PubSubRouteKey))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.PubSubIPv6RouteKey))
+					privateRouteTableA := builder.PrivateRouteTableKey + azAFormatted
+					Expect(clusterTemplate.Resources).To(HaveKey(privateRouteTableA))
+					privateRouteTableB := builder.PrivateRouteTableKey + azBFormatted
+					Expect(clusterTemplate.Resources).To(HaveKey(privateRouteTableB))
+					privateRouteA := builder.PrivateSubnetRouteKey + azAFormatted
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(privateRouteA))
+					privateRouteB := builder.PrivateSubnetRouteKey + azBFormatted
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(privateRouteB))
+					privateRouteA = builder.PrivateSubnetIpv6RouteKey + azAFormatted
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(privateRouteA))
+					privateRouteB = builder.PrivateSubnetIpv6RouteKey + azBFormatted
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(privateRouteB))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.PublicSubnetKey + azAFormatted))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.PublicSubnetKey + azBFormatted))
+					Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateSubnetKey + azAFormatted))
+					Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateSubnetKey + azBFormatted))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.PubRouteTableAssociation + azAFormatted))
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(builder.PubRouteTableAssociation + azBFormatted))
+					Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateRouteTableAssociation + azAFormatted))
+					Expect(clusterTemplate.Resources).To(HaveKey(builder.PrivateRouteTableAssociation + azBFormatted))
+				})
+			})
+
+			When("skip endpoint creation is set", func() {
+				BeforeEach(func() {
+					cfg.PrivateCluster = &api.PrivateCluster{
+						Enabled:              true,
+						SkipEndpointCreation: true,
+					}
+				})
+				It("will skip creating all of the endpoints", func() {
+					Expect(clusterTemplate.Resources).NotTo(HaveKey(ContainSubstring("VPCEndpoint")))
+				})
+			})
+		})
+
+		Context("when default config is used", func() {
+			It("should not enable non-default features", func() {
+				cluster := clusterTemplate.Resources["ControlPlane"].Properties
+				By("ensuring logging is not enabled")
+				Expect(cluster.Logging.ClusterLogging.EnabledTypes).To(BeEmpty())
+
+				vpcResources := cluster.ResourcesVpcConfig
+				By("ensuring public access is enabled but private access is not")
+				Expect(vpcResources.EndpointPublicAccess).To(BeTrue())
+				Expect(vpcResources.EndpointPrivateAccess).To(BeFalse())
+
+				By("ensuring publicAccessCIDRs is not enabled")
+				Expect(vpcResources.PublicAccessCidrs).To(BeEmpty())
+			})
+		})
+
+		Context("clusterEndpoints.privateAccess is enabled", func() {
+			BeforeEach(func() {
+				cfg.VPC.ClusterEndpoints.PrivateAccess = api.Enabled()
+				cfg.VPC.ClusterEndpoints.PublicAccess = api.Disabled()
+			})
+			It("should enable privateAccess in the stack", func() {
+				vpcResources := clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig
+				Expect(vpcResources.EndpointPrivateAccess).To(BeTrue())
+				Expect(vpcResources.EndpointPublicAccess).To(BeFalse())
+			})
+		})
+
+		Context("vpc.publicAccessCIDRs is set", func() {
+			BeforeEach(func() {
+				cfg.VPC.PublicAccessCIDRs = []string{"17.0.0.0/8", "73.0.0.0/8"}
+			})
+			It("should set the supplied CIDRs in the stack", func() {
+				vpcResources := clusterTemplate.Resources["ControlPlane"].Properties.ResourcesVpcConfig
+				Expect(vpcResources.PublicAccessCidrs).To(Equal([]string{"17.0.0.0/8", "73.0.0.0/8"}))
+			})
+		})
+
+		Context("cluster tags are set", func() {
+			BeforeEach(func() {
+				cfg.Metadata.Tags = map[string]string{
+					"type": "production",
+					"key":  "value",
+				}
+			})
+			It("should set tags in the stack", func() {
+				Expect(clusterTemplate.Resources["ControlPlane"].Properties.Tags).To(ConsistOf([]fakes.Tag{
+					{
+						Key:   "type",
+						Value: "production",
+					},
+					{
+						Key:   "key",
+						Value: "value",
+					},
+					{
+						Key: "Name",
+						Value: map[string]interface{}{
+							"Fn::Sub": "${AWS::StackName}/ControlPlane",
+						},
+					},
+				}))
+			})
+		})
+
+		Context("cluster logging is enabled", func() {
+			BeforeEach(func() {
+				cfg.CloudWatch.ClusterLogging = &api.ClusterCloudWatchLogging{
+					EnableTypes: []string{"api", "audit", "scheduler", "controllerManager"},
+				}
+			})
+
+			It("should have logging enabled in the stack", func() {
+				Expect(clusterTemplate.Resources["ControlPlane"].Properties.Logging.ClusterLogging.EnabledTypes).To(Equal([]fakes.ClusterLoggingType{
+					{
+						Type: "api",
+					},
+					{
+						Type: "audit",
+					},
+					{
+						Type: "scheduler",
+					},
+					{
+						Type: "controllerManager",
+					},
+				}))
+			})
 		})
 
 		Context("when adding vpc endpoint resources fails", func() {
@@ -382,6 +603,7 @@ var _ = Describe("Cluster Template Builder", func() {
 	Describe("RenderJSON", func() {
 		It("returns the template rendered as JSON", func() {
 			// the work actually gets done on the internal resource set
+			Expect(crs.AddAllResources()).To(Succeed())
 			result, err := crs.RenderJSON()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result).To(ContainSubstring(vpcResourceKey))
@@ -391,6 +613,7 @@ var _ = Describe("Cluster Template Builder", func() {
 	Describe("Template", func() {
 		It("returns the template from the inner resource set", func() {
 			// the work actually gets done on the internal resource set
+			Expect(crs.AddAllResources()).To(Succeed())
 			clusterTemplate := crs.Template()
 			Expect(clusterTemplate.Resources).To(HaveKey(vpcResourceKey))
 		})

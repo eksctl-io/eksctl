@@ -12,7 +12,7 @@ If you have a simple cluster with just an initial nodegroup (i.e. created with
 Get the name of old nodegroup:
 
 ```
-eksctl get nodegroups --cluster=<clusterName>
+eksctl get nodegroups --cluster=<clusterName> --region=<region>
 ```
 
 !!!note
@@ -21,13 +21,13 @@ eksctl get nodegroups --cluster=<clusterName>
 Create new nodegroup:
 
 ```
-eksctl create nodegroup --cluster=<clusterName> --managed=false
+eksctl create nodegroup --cluster=<clusterName> --region=<region> --managed=false
 ```
 
 Delete old nodegroup:
 
 ```
-eksctl delete nodegroup --cluster=<clusterName> --name=<oldNodeGroupName>
+eksctl delete nodegroup --cluster=<clusterName> --region=<region> --name=<oldNodeGroupName>
 ```
 
 !!!note
@@ -47,13 +47,13 @@ In general terms, you are looking to:
 To create a new nodegroup:
 
 ```
-eksctl create nodegroup --cluster=<clusterName> --name=<newNodeGroupName> --managed=false
+eksctl create nodegroup --cluster=<clusterName> --region=<region> --name=<newNodeGroupName> --managed=false
 ```
 
 To delete old nodegroup:
 
 ```
-eksctl delete nodegroup --cluster=<clusterName> --name=<oldNodeGroupName>
+eksctl delete nodegroup --cluster=<clusterName> --region=<region> --name=<oldNodeGroupName>
 ```
 
 ## Updating multiple nodegroups with config file

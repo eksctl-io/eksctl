@@ -147,7 +147,6 @@ func (l *commonClusterConfigLoader) Load() error {
 	}
 	l.ProviderConfig.Region = meta.Region
 
-	api.SetDefaultGitSettings(l.ClusterConfig)
 	return l.validateWithConfigFile()
 }
 
@@ -233,15 +232,19 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 
 	l.validateWithConfigFile = func() error {
 		clusterConfig := l.ClusterConfig
-		if clusterConfig.VPC == nil {
-			clusterConfig.VPC = api.NewClusterVPC()
+		if clusterConfig.KubernetesNetworkConfig != nil && clusterConfig.KubernetesNetworkConfig.IPFamily == api.IPV6Family {
+			clusterConfig.VPC = &api.ClusterVPC{}
+		} else {
+			if clusterConfig.VPC == nil {
+				clusterConfig.VPC = api.NewClusterVPC()
+			}
+
+			if clusterConfig.VPC.NAT == nil {
+				clusterConfig.VPC.NAT = api.DefaultClusterNAT()
+			}
 		}
 
-		if clusterConfig.VPC.NAT == nil {
-			clusterConfig.VPC.NAT = api.DefaultClusterNAT()
-		}
-
-		if !api.IsSetAndNonEmptyString(clusterConfig.VPC.NAT.Gateway) {
+		if clusterConfig.VPC.NAT != nil && api.IsEmpty(clusterConfig.VPC.NAT.Gateway) {
 			*clusterConfig.VPC.NAT.Gateway = api.ClusterSingleNAT
 		}
 
@@ -261,10 +264,6 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			return errors.New("vpc.subnets and availabilityZones cannot be set at the same time")
 		}
 
-		if clusterConfig.GitOps != nil && clusterConfig.Git != nil {
-			return errors.New("git cannot be configured alongside gitops")
-		}
-
 		if clusterConfig.GitOps != nil {
 			fluxCfg := clusterConfig.GitOps.Flux
 
@@ -274,24 +273,6 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				}
 				if len(fluxCfg.Flags) == 0 {
 					return ErrMustBeSet("gitops.flux.flags")
-				}
-			}
-		}
-
-		if clusterConfig.Git != nil {
-			repo := clusterConfig.Git.Repo
-			if repo != nil {
-				if repo.URL == "" {
-					return ErrMustBeSet("git.repo.url")
-				}
-
-				if repo.Email == "" {
-					return ErrMustBeSet("git.repo.email")
-				}
-
-				profile := clusterConfig.Git.BootstrapProfile
-				if profile != nil && profile.Source == "" {
-					return ErrMustBeSet("git.bootstrapProfile.source")
 				}
 			}
 		}
@@ -887,6 +868,57 @@ func NewGetLabelsLoader(cmd *Cmd, ngName string) ClusterConfigLoader {
 func NewGetClusterLoader(cmd *Cmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
+	return l
+}
+
+// NewSetLabelLoader will load config or use flags for 'eksctl set labels'
+func NewSetLabelLoader(cmd *Cmd, nodeGroupName string, labels map[string]string) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+	l.validateWithoutConfigFile = func() error {
+		if len(labels) == 0 {
+			return ErrMustBeSet("--labels")
+		}
+		meta := cmd.ClusterConfig.Metadata
+
+		if meta.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+
+		if nodeGroupName == "" {
+			return ErrMustBeSet("--nodegroup")
+		}
+
+		if cmd.NameArg != "" {
+			return ErrUnsupportedNameArg()
+		}
+
+		return nil
+	}
+	// we use the config file to update the labels, thus providing is invalid
+	l.flagsIncompatibleWithConfigFile.Insert("labels")
+	l.validateWithConfigFile = func() error {
+		meta := cmd.ClusterConfig.Metadata
+
+		if meta.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+
+		// if nodegroup is not empty, load only the nodegroup which has been added
+		if nodeGroupName != "" {
+			var ng *api.ManagedNodeGroup
+			for _, mng := range cmd.ClusterConfig.ManagedNodeGroups {
+				if mng.Name == nodeGroupName {
+					ng = mng
+					break
+				}
+			}
+			if ng == nil {
+				return fmt.Errorf("nodegroup with name %s not found in the config file", nodeGroupName)
+			}
+			cmd.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{ng}
+		}
+		return nil
+	}
 	return l
 }
 

@@ -159,7 +159,7 @@ func (t *TaskTree) Do(allErrs chan error) error {
 	return nil
 }
 
-// DoAllSync will run through the set in the foregounds and return all the errors
+// DoAllSync will run through the set in the foregrounds and return all the errors
 // in a slice
 func (t *TaskTree) DoAllSync() []error {
 	if t.Len() == 0 || t.PlanMode {

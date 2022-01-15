@@ -145,15 +145,5 @@ var _ = Describe("enable flux", func() {
 				Expect(err).To(MatchError("gitops.flux.flags must be set"))
 			})
 		})
-
-		When("deprecated git configuration is provided", func() {
-			BeforeEach(func() {
-				cfg.Git = &api.Git{Repo: &api.Repo{}}
-			})
-
-			It("fails", func() {
-				Expect(err).To(MatchError("config cannot be provided for git.repo, git.bootstrapProfile or git.operator alongside gitops.*"))
-			})
-		})
 	})
 })
