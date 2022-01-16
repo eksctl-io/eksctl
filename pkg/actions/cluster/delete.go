@@ -29,6 +29,8 @@ import (
 	"github.com/kris-nova/logger"
 )
 
+type NodeGroupDrainer func(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, undo, disableEviction bool) error
+
 func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clusterOperable bool, clientSet kubernetes.Interface) error {
 	if clusterOperable {
 		if err := deleteFargateProfiles(cfg.Metadata, ctl, stackManager); err != nil {
@@ -159,7 +161,7 @@ func checkForUndeletedStacks(stackManager manager.StackManager) error {
 	return nil
 }
 
-func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack, disableEviction *bool) error {
+func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack, disableEviction *bool, nodeGroupDrainer NodeGroupDrainer) error {
 	if len(allStacks) == 0 {
 		return nil
 	}
@@ -172,8 +174,12 @@ func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, client
 	}
 
 	logger.Info("will drain %d unmanaged nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
-	nodeGroupManager := nodegroup.New(cfg, ctl, clientSet)
-	if err := nodeGroupManager.Drain(cmdutils.ToKubeNodeGroups(cfg), false, ctl.Provider.WaitTimeout(), 0, false, *disableEviction); err != nil {
+
+	if nodeGroupDrainer == nil {
+		nodeGroupDrainer = nodegroup.New(cfg, ctl, clientSet).Drain
+	}
+
+	if err := nodeGroupDrainer(cmdutils.ToKubeNodeGroups(cfg), false, ctl.Provider.WaitTimeout(), 0, false, *disableEviction); err != nil {
 		return err
 	}
 	attemptVpcCniDeletion(cfg.Metadata.Name, ctl, clientSet)
