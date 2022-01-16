@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"fmt"
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -29,10 +30,11 @@ import (
 )
 
 type UnownedCluster struct {
-	cfg          *api.ClusterConfig
-	ctl          *eks.ClusterProvider
-	stackManager manager.StackManager
-	newClientSet func() (kubernetes.Interface, error)
+	cfg                 *api.ClusterConfig
+	ctl                 *eks.ClusterProvider
+	stackManager        manager.StackManager
+	newClientSet        func() (kubernetes.Interface, error)
+	newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) *nodegroup.Manager
 }
 
 func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) *UnownedCluster {
@@ -42,6 +44,9 @@ func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackMa
 		stackManager: stackManager,
 		newClientSet: func() (kubernetes.Interface, error) {
 			return ctl.NewStdClientSet(cfg)
+		},
+		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) *nodegroup.Manager {
+			return nodegroup.New(cfg, ctl, clientSet)
 		},
 	}
 }
@@ -81,7 +86,8 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force bool, di
 			return err
 		}
 
-		if err := drainAllNodegroups(c.cfg, c.ctl, clientSet, allStacks, &disableNodegroupEviction, nil); err != nil {
+		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
+		if err := drainAllNodegroups(c.cfg, c.ctl, clientSet, allStacks, &disableNodegroupEviction, nodeGroupManager); err != nil {
 			if force {
 				logger.Warning("error occurred during nodegroups draining")
 			} else {

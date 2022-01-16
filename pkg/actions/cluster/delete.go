@@ -161,7 +161,7 @@ func checkForUndeletedStacks(stackManager manager.StackManager) error {
 	return nil
 }
 
-func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack, disableEviction *bool, nodeGroupDrainer NodeGroupDrainer) error {
+func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack, disableEviction *bool, nodeGroupManager *nodegroup.Manager) error {
 	if len(allStacks) == 0 {
 		return nil
 	}

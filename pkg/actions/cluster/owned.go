@@ -5,6 +5,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -15,11 +16,12 @@ import (
 )
 
 type OwnedCluster struct {
-	cfg          *api.ClusterConfig
-	ctl          *eks.ClusterProvider
-	clusterStack *manager.Stack
-	stackManager manager.StackManager
-	newClientSet func() (kubernetes.Interface, error)
+	cfg                 *api.ClusterConfig
+	ctl                 *eks.ClusterProvider
+	clusterStack        *manager.Stack
+	stackManager        manager.StackManager
+	newClientSet        func() (kubernetes.Interface, error)
+	newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) *nodegroup.Manager
 }
 
 func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterStack *manager.Stack, stackManager manager.StackManager) *OwnedCluster {
@@ -30,6 +32,9 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterSt
 		stackManager: stackManager,
 		newClientSet: func() (kubernetes.Interface, error) {
 			return ctl.NewStdClientSet(cfg)
+		},
+		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) *nodegroup.Manager {
+			return nodegroup.New(cfg, ctl, clientSet)
 		},
 	}
 }
@@ -106,7 +111,8 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force bool, disableNodegrou
 			return err
 		}
 
-		if err := drainAllNodegroups(c.cfg, c.ctl, clientSet, allStacks, &disableNodegroupEviction, nil); err != nil {
+		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
+		if err := drainAllNodegroups(c.cfg, c.ctl, clientSet, allStacks, &disableNodegroupEviction, nodeGroupManager); err != nil {
 			if force {
 				logger.Warning("error occurred during nodegroups draining")
 			} else {
