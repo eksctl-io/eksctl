@@ -16,6 +16,9 @@ metadata:
   region: us-west-2
   version: '1.20'
 
+iam:
+  withOIDC: true # required
+
 karpenter:
   version: '0.4.3'
 
@@ -34,6 +37,8 @@ karpenter:
   version: '0.4.3'
   createServiceAccount: true # default is false  
 ```
+
+OIDC must be defined in order to install Karpenter.
 
 Once Karpenter is successfully installed, add a [Provisioner](https://karpenter.sh/docs/provisioner/) so Karpenter
 can start adding the right nodes to the cluster.
