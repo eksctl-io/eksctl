@@ -30,6 +30,7 @@ import (
 )
 
 type NodeGroupDrainer func(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, undo, disableEviction bool) error
+type VpcCniDeleter func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface)
 
 func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clusterOperable bool, clientSet kubernetes.Interface) error {
 	if clusterOperable {
@@ -161,7 +162,7 @@ func checkForUndeletedStacks(stackManager manager.StackManager) error {
 	return nil
 }
 
-func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack, disableEviction *bool, nodeGroupManager *nodegroup.Manager) error {
+func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack, disableEviction *bool, nodeGroupManager *nodegroup.Manager, vpcCniDeleter VpcCniDeleter) error {
 	if len(allStacks) == 0 {
 		return nil
 	}
@@ -182,7 +183,7 @@ func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, client
 	if err := nodeGroupDrainer(cmdutils.ToKubeNodeGroups(cfg), false, ctl.Provider.WaitTimeout(), 0, false, *disableEviction); err != nil {
 		return err
 	}
-	attemptVpcCniDeletion(cfg.Metadata.Name, ctl, clientSet)
+	vpcCniDeleter(cfg.Metadata.Name, ctl, clientSet)
 	return nil
 }
 
