@@ -18,7 +18,3 @@ func (c *OwnedCluster) SetNewClientSet(newClientSet func() (kubernetes.Interface
 func (c *UnownedCluster) SetNewNodeGroupManager(newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) *nodegroup.Manager) {
 	c.newNodeGroupManager = newNodeGroupManager
 }
-
-func (c *OwnedCluster) SetNewNodeGroupManager(newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) *nodegroup.Manager) {
-	c.newNodeGroupManager = newNodeGroupManager
-}
