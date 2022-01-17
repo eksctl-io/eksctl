@@ -216,7 +216,7 @@ require (
 	github.com/nishanths/predeclared v0.2.1 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
-	github.com/onsi/ginkgo v1.16.4
+	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.16.0
 	github.com/pelletier/go-toml v1.9.4
 	github.com/phayes/checkstyle v0.0.0-20170904204023-bfd46e6a821d // indirect
