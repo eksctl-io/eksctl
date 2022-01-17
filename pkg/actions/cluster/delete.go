@@ -11,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/pkg/errors"
 
-	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/fargate"
@@ -162,7 +161,7 @@ func checkForUndeletedStacks(stackManager manager.StackManager) error {
 	return nil
 }
 
-func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack, disableEviction *bool, nodeGroupManager *nodegroup.Manager, vpcCniDeleter VpcCniDeleter) error {
+func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack, disableEviction *bool, nodeGroupDrainer NodeGroupDrainer, vpcCniDeleter VpcCniDeleter) error {
 	if len(allStacks) == 0 {
 		return nil
 	}
@@ -183,6 +182,7 @@ func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, client
 	if err := nodeGroupDrainer(cmdutils.ToKubeNodeGroups(cfg), false, ctl.Provider.WaitTimeout(), 0, false, *disableEviction); err != nil {
 		return err
 	}
+
 	vpcCniDeleter(cfg.Metadata.Name, ctl, clientSet)
 	return nil
 }
