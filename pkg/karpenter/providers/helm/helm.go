@@ -89,7 +89,7 @@ func (i *Installer) InstallChart(ctx context.Context, opts providers.InstallChar
 	client.ReleaseName = opts.ReleaseName
 	client.Version = opts.Version
 	client.CreateNamespace = opts.CreateNamespace
-	client.Timeout = 30 * time.Second
+	client.Timeout = 10 * time.Minute
 
 	chartPath, err := client.ChartPathOptions.LocateChart(opts.ChartName, i.Settings)
 	if err != nil {

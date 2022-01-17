@@ -6,6 +6,9 @@ metadata:
   region: us-west-2
   version: '1.20'
 
+iam:
+  withOIDC: true
+
 karpenter:
   version: '0.4.3'
   createServiceAccount: true # default is false
