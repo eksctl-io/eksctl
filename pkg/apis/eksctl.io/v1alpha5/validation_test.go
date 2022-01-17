@@ -623,7 +623,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
 				cfg.PrivateCluster.SkipEndpointCreation = true
 				err := cfg.ValidatePrivateCluster()
-				Expect(err).To(MatchError(ContainSubstring("additionalEndpoints cannot be defined together with skipEndpointCreation set to true")))
+				Expect(err).To(MatchError(ContainSubstring("privateCluster.additionalEndpointServices cannot be set when privateCluster.skipEndpointCreation is true")))
 			})
 		})
 		When("additional endpoints are defined", func() {
@@ -672,7 +672,14 @@ var _ = Describe("ClusterConfig validation", func() {
 				It("returns an error", func() {
 					cfg.KubernetesNetworkConfig.IPFamily = "invalid"
 					err = api.ValidateClusterConfig(cfg)
-					Expect(err).To(MatchError(ContainSubstring("invalid value invalid for ipFamily; allowed are IPv4 and IPv6")))
+					Expect(err).To(MatchError(ContainSubstring(`invalid value "invalid" for ipFamily; allowed are IPv4 and IPv6`)))
+				})
+			})
+
+			When("ipFamily is empty", func() {
+				It("treats it as IPv4 and does not return an error", func() {
+					cfg.KubernetesNetworkConfig.IPFamily = ""
+					Expect(api.ValidateClusterConfig(cfg)).To(Succeed())
 				})
 			})
 
@@ -699,6 +706,29 @@ var _ = Describe("ClusterConfig validation", func() {
 					cfg.Metadata.Version = "1.31"
 					err = cfg.ValidateVPCConfig()
 					Expect(err).ToNot(HaveOccurred())
+				})
+
+				When("the casing of ipv6 isn't standard", func() {
+					It("accepts that setting", func() {
+						cfg.KubernetesNetworkConfig.IPFamily = "iPv6"
+						cfg.VPC.NAT = nil
+						cfg.VPC.IPv6Cidr = "foo"
+						cfg.VPC.IPv6Pool = "bar"
+						cfg.Addons = append(cfg.Addons,
+							&api.Addon{Name: api.KubeProxyAddon},
+							&api.Addon{Name: api.CoreDNSAddon},
+							&api.Addon{Name: api.VPCCNIAddon},
+						)
+						cfg.IAM = &api.ClusterIAM{
+							WithOIDC: api.Enabled(),
+						}
+						cfg.Metadata.Version = api.Version1_21
+						err = cfg.ValidateVPCConfig()
+						Expect(err).ToNot(HaveOccurred())
+						cfg.Metadata.Version = "1.31"
+						err = cfg.ValidateVPCConfig()
+						Expect(err).ToNot(HaveOccurred())
+					})
 				})
 
 				When("ipFamily is set to IPv6 but version is not or too low", func() {
@@ -729,7 +759,7 @@ var _ = Describe("ClusterConfig validation", func() {
 						}
 						cfg.Addons = append(cfg.Addons, &api.Addon{Name: api.KubeProxyAddon})
 						err = api.ValidateClusterConfig(cfg)
-						Expect(err).To(MatchError(ContainSubstring("the default core addons must be defined in case of IPv6; missing addon(s): vpc-cni, coredns")))
+						Expect(err).To(MatchError(ContainSubstring("the default core addons must be defined for IPv6; missing addon(s): vpc-cni, coredns")))
 					})
 				})
 
@@ -1064,7 +1094,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
 				cfg.PrivateCluster.SkipEndpointCreation = true
 				err := cfg.ValidatePrivateCluster()
-				Expect(err).To(MatchError(ContainSubstring("additionalEndpoints cannot be defined together with skipEndpointCreation set to true")))
+				Expect(err).To(MatchError(ContainSubstring("privateCluster.additionalEndpointServices cannot be set when privateCluster.skipEndpointCreation is true")))
 			})
 		})
 		When("additional endpoints are defined", func() {
@@ -1596,6 +1626,21 @@ var _ = Describe("ClusterConfig validation", func() {
 				ng.AMIFamily = api.NodeImageFamilyWindowsServer2019CoreContainer
 				Expect(api.ValidateNodeGroup(i, ng)).To(Succeed())
 			}
+		})
+	})
+
+	Describe("Karpenter", func() {
+		It("returns an error when version is missing", func() {
+			cfg := api.NewClusterConfig()
+			cfg.Karpenter = &api.Karpenter{}
+			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("version field is required if installing Karpenter is enabled")))
+		})
+		It("returns an error when OIDC is not set", func() {
+			cfg := api.NewClusterConfig()
+			cfg.Karpenter = &api.Karpenter{
+				Version: "0.5.1",
+			}
+			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate karpenter config: iam.withOIDC must be enabled with Karpenter")))
 		})
 	})
 

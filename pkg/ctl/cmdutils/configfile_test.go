@@ -205,7 +205,7 @@ var _ = Describe("cmdutils configfile", func() {
 			It("should default VPC.NAT to nil", func() {
 				cmd := &Cmd{
 					CobraCommand:      newCmd(),
-					ClusterConfigFile: filepath.Join(examplesDir, "29-vpc-with-ip-family.yaml"),
+					ClusterConfigFile: filepath.Join(examplesDir, "30-vpc-with-ip-family.yaml"),
 					ClusterConfig:     api.NewClusterConfig(),
 					ProviderConfig:    api.ProviderConfig{},
 				}

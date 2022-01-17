@@ -54,6 +54,7 @@ func describeStacksCmd(cmd *cmdutils.Cmd) {
 		fs.BoolVar(&events, "events", false, "include stack events")
 		fs.BoolVar(&trail, "trail", false, "lookup CloudTrail events for the cluster")
 		fs.StringVarP(&output, "output", "o", "", "specifies the output formats (valid option: json and yaml)")
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
@@ -61,6 +62,10 @@ func describeStacksCmd(cmd *cmdutils.Cmd) {
 }
 
 func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool, printer printers.OutputPrinter) error {
+	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
+		return err
+	}
+
 	cfg := cmd.ClusterConfig
 
 	ctl, err := cmd.NewProviderForExistingCluster()

@@ -241,6 +241,12 @@ const (
 	// NodeGroupNameLabel defines the label of the nodegroup name
 	NodeGroupNameLabel = "alpha.eksctl.io/nodegroup-name"
 
+	// KarpenterNameTag defines the tag of the Karpenter stack name
+	KarpenterNameTag = "alpha.eksctl.io/karpenter-name"
+
+	// KarpenterVersionTag defines the tag for Karpenter's version
+	KarpenterVersionTag = "alpha.eksctl.io/karpenter-version"
+
 	EKSNodeGroupNameLabel = "eks.amazonaws.com/nodegroup"
 
 	// SpotAllocationStrategyLowestPrice defines the ASG spot allocation strategy of lowest-price
@@ -571,6 +577,10 @@ type KubernetesNetworkConfig struct {
 	ServiceIPv4CIDR string `json:"serviceIPv4CIDR,omitempty"`
 }
 
+func (k *KubernetesNetworkConfig) IPv6Enabled() bool {
+	return strings.EqualFold(k.IPFamily, IPV6Family)
+}
+
 type EKSCTLCreated string
 
 // ClusterStatus holds read-only attributes of a cluster
@@ -613,6 +623,21 @@ func (c ClusterConfig) LogString() string {
 // or false otherwise.
 func (c ClusterConfig) IsFargateEnabled() bool {
 	return len(c.FargateProfiles) > 0
+}
+
+func (c ClusterConfig) HasNodes() bool {
+	for _, m := range c.ManagedNodeGroups {
+		if m.GetDesiredCapacity() > 0 {
+			return true
+		}
+	}
+
+	for _, n := range c.NodeGroups {
+		if n.GetDesiredCapacity() > 0 {
+			return true
+		}
+	}
+	return false
 }
 
 // ClusterProvider is the interface to AWS APIs
@@ -705,6 +730,20 @@ type ClusterConfig struct {
 	// future gitops plans, replacing the Git configuration above
 	// +optional
 	GitOps *GitOps `json:"gitops,omitempty"`
+
+	// Karpenter specific configuration options.
+	// +optional
+	Karpenter *Karpenter `json:"karpenter,omitempty"`
+}
+
+// Karpenter provides configuration opti
+type Karpenter struct {
+	// Version defines the Karpenter version to install
+	// +required
+	Version string `json:"version"`
+	// CreateServiceAccount create a service account or not.
+	// +optional
+	CreateServiceAccount *bool `json:"createServiceAccount,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -954,6 +993,13 @@ func (n *NodeGroup) NGTaints() []NodeGroupTaint {
 // BaseNodeGroup implements NodePool
 func (n *NodeGroup) BaseNodeGroup() *NodeGroupBase {
 	return n.NodeGroupBase
+}
+
+func (n *NodeGroup) GetDesiredCapacity() int {
+	if n.NodeGroupBase != nil {
+		return n.NodeGroupBase.GetDesiredCapacity()
+	}
+	return 0
 }
 
 // GitOps groups all configuration options related to enabling GitOps Toolkit on a
@@ -1370,6 +1416,20 @@ type ManagedNodeGroup struct {
 	// Internal fields
 
 	Unowned bool `json:"-"`
+}
+
+func (n *NodeGroupBase) GetDesiredCapacity() int {
+	if n.ScalingConfig != nil && n.ScalingConfig.DesiredCapacity != nil {
+		return *n.ScalingConfig.DesiredCapacity
+	}
+	return 0
+}
+
+func (m *ManagedNodeGroup) GetDesiredCapacity() int {
+	if m.NodeGroupBase != nil {
+		return m.NodeGroupBase.GetDesiredCapacity()
+	}
+	return 0
 }
 
 func (m *ManagedNodeGroup) InstanceTypeList() []string {

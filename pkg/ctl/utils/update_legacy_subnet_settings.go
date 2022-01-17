@@ -26,12 +26,17 @@ func updateLegacySubnetSettings(cmd *cmdutils.Cmd) {
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
 func doUpdateLegacySubnetSettings(cmd *cmdutils.Cmd) error {
+	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
+		return err
+	}
+
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
