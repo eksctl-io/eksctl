@@ -146,7 +146,7 @@ func (n *NodeGroupDrainer) Drain() error {
 					drainedNodes.Insert(node)
 				}
 
-				//only wait if we're not on the last node of this interation
+				// only wait if we're not on the last node of this iteration
 				if i < newPendingNodes.Len()-1 {
 					logger.Debug("Waiting for %.0f seconds before draining next node", n.NodeDrainWaitPeriod.Seconds())
 					time.Sleep(n.NodeDrainWaitPeriod)
