@@ -102,7 +102,12 @@ func describeKarpenterResources(names []string) {
 		cmd := exec.Command("kubectl", "describe", "replicaset", "name", "-n", karpenter.DefaultNamespace)
 		output, err := cmd.Output()
 		Expect(err).NotTo(HaveOccurred())
-		fmt.Fprintf(GinkgoWriter, "describe %s", name)
+		fmt.Fprintf(GinkgoWriter, "describe replicaset %s", name)
+		fmt.Fprint(GinkgoWriter, string(output))
+		cmd = exec.Command("kubectl", "describe", "deployment", "name", "-n", karpenter.DefaultNamespace)
+		output, err = cmd.Output()
+		Expect(err).NotTo(HaveOccurred())
+		fmt.Fprintf(GinkgoWriter, "describe deployment %s", name)
 		fmt.Fprint(GinkgoWriter, string(output))
 	}
 }
