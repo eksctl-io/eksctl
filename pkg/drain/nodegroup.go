@@ -74,7 +74,7 @@ func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, w
 		clientSet:           clientSet,
 		ng:                  ng,
 		waitTimeout:         waitTimeout,
-		NodeDrainWaitPeriod: nodeDrainWaitPeriod,
+		nodeDrainWaitPeriod: nodeDrainWaitPeriod,
 		undo:                undo,
 	}
 }
