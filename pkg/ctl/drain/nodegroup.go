@@ -15,7 +15,7 @@ import (
 )
 
 func drainNodeGroupCmd(cmd *cmdutils.Cmd) {
-	drainNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod time.Duration, nodeDrainWaitPeriod time.Duration, disableEviction bool) error {
+	drainNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, disableEviction bool) error {
 		return doDrainNodeGroup(cmd, ng, undo, onlyMissing, maxGracePeriod, nodeDrainWaitPeriod, disableEviction)
 	})
 }
