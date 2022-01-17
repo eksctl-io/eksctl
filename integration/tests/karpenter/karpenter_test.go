@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"testing"
 	"time"
 
@@ -66,14 +67,22 @@ var _ = Describe("(Integration) Karpenter", func() {
 				).
 				WithoutArg("--region", params.Region).
 				WithStdin(clusterutils.ReaderFromFile(clusterName, params.Region, "testdata/cluster-config.yaml"))
-			Expect(cmd).To(RunSuccessfully())
+			// For dumping information, we need the kubeconfig. We just log the error here to
+			// know that it failed for debugging then carry on.
+			session := cmd.Run()
+			if session.ExitCode() != 0 {
+				fmt.Fprintf(GinkgoWriter, "cluster create command failed:")
+				fmt.Fprint(GinkgoWriter, string(session.Out.Contents()))
+				fmt.Fprint(GinkgoWriter, string(session.Err.Contents()))
+			}
 			cmd = params.EksctlUtilsCmd.WithArgs(
 				"write-kubeconfig",
 				"--verbose", "4",
 				"--cluster", clusterName,
 				"--kubeconfig", params.KubeconfigPath,
 			)
-			session := cmd.Run()
+			Expect(cmd).To(RunSuccessfully())
+
 			if session.ExitCode() != 0 {
 				dumpEventsAndLogsForDeployment("karpenter=webhook")
 				dumpEventsAndLogsForDeployment("karpenter=controller")
@@ -102,7 +111,8 @@ func dumpEventsAndLogsForDeployment(selector string) {
 	// describe deployment events
 	events := clientset.EventsV1().Events(karpenter.DefaultNamespace)
 	wes, err := events.List(context.Background(), metav1.ListOptions{
-		FieldSelector: fmt.Sprintf("spec.selector=%s", selector),
+		// = must be escaped
+		FieldSelector: fmt.Sprintf("spec.selector=%s", strings.ReplaceAll(selector, "=", "\\=")),
 	})
 	Expect(err).NotTo(HaveOccurred())
 	// dump all events
