@@ -8,7 +8,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/drain"
 )
 
-func (m *Manager) Drain(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod time.Duration, nodeDrainWaitPeriod time.Duration, disableEviction bool) error {
+func (m *Manager) Drain(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, disableEviction bool) error {
 	if !plan {
 		for _, n := range nodeGroups {
 			nodeGroupDrainer := drain.NewNodeGroupDrainer(m.clientSet, n, m.ctl.Provider.WaitTimeout(), maxGracePeriod, nodeDrainWaitPeriod, false, disableEviction)
