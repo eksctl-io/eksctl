@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"strings"
 	"testing"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 	eventsv1 "k8s.io/api/events/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 
@@ -84,8 +84,8 @@ var _ = Describe("(Integration) Karpenter", func() {
 			Expect(cmd).To(RunSuccessfully())
 
 			if session.ExitCode() != 0 {
-				dumpEventsAndLogsForDeployment("karpenter=webhook")
-				dumpEventsAndLogsForDeployment("karpenter=controller")
+				dumpEventsAndLogsForDeployment("karpenter-webhook", "karpenter=webhook")
+				dumpEventsAndLogsForDeployment("karpenter-controller", "karpenter=controller")
 			}
 
 			kubeTest, err := kube.NewTest(params.KubeconfigPath)
@@ -103,7 +103,7 @@ var _ = Describe("(Integration) Karpenter", func() {
 })
 
 // not using kubeTest since kubeTest fatals on error, and we don't want that.
-func dumpEventsAndLogsForDeployment(selector string) {
+func dumpEventsAndLogsForDeployment(name, selector string) {
 	config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
 	Expect(err).NotTo(HaveOccurred())
 	clientset, err := kubernetes.NewForConfig(config)
@@ -111,8 +111,7 @@ func dumpEventsAndLogsForDeployment(selector string) {
 	// describe deployment events
 	events := clientset.EventsV1().Events(karpenter.DefaultNamespace)
 	wes, err := events.List(context.Background(), metav1.ListOptions{
-		// = must be escaped
-		FieldSelector: fmt.Sprintf("spec.selector=%s", strings.ReplaceAll(selector, "=", "\\=")),
+		FieldSelector: fields.OneTermEqualSelector("metadata.name", name).String(),
 	})
 	Expect(err).NotTo(HaveOccurred())
 	// dump all events
