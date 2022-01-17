@@ -55,9 +55,59 @@ var _ = Describe("Delete", func() {
 			}
 
 			err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, &disableEviction, nodeGroupDrainer, vpcCniDeleter)
-			Expect(err).To(BeNil())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(nodeGroupDrainerCalled).To(Equal(1))
 			Expect(vpcCniDeleterCalled).To(Equal(1))
+		})
+
+		It("drain the node groups with disabling the eviction", func() {
+			c := NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
+			c.SetNewClientSet(func() (kubernetes.Interface, error) {
+				return fakeClientSet, nil
+			})
+
+			nodeGroupStacks := []manager.NodeGroupStack{{NodeGroupName: "ng-1"}}
+			disableEviction := true
+
+			nodeGroupDrainerCalled := 0
+			nodeGroupDrainer := func(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod time.Duration, disableEviction bool) error {
+				nodeGroupDrainerCalled++
+				return nil
+			}
+			vpcCniDeleterCalled := 0
+			vpcCniDeleter := func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
+				vpcCniDeleterCalled++
+			}
+
+			err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, &disableEviction, nodeGroupDrainer, vpcCniDeleter)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(nodeGroupDrainerCalled).To(Equal(1))
+			Expect(vpcCniDeleterCalled).To(Equal(1))
+		})
+
+		It("does nothing when there are no node group stacks", func() {
+			c := NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
+			c.SetNewClientSet(func() (kubernetes.Interface, error) {
+				return fakeClientSet, nil
+			})
+
+			nodeGroupStacks := []manager.NodeGroupStack{}
+			disableEviction := false
+
+			nodeGroupDrainerCalled := 0
+			nodeGroupDrainer := func(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod time.Duration, disableEviction bool) error {
+				nodeGroupDrainerCalled++
+				return nil
+			}
+			vpcCniDeleterCalled := 0
+			vpcCniDeleter := func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
+				vpcCniDeleterCalled++
+			}
+
+			err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, &disableEviction, nodeGroupDrainer, vpcCniDeleter)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(nodeGroupDrainerCalled).To(Equal(0))
+			Expect(vpcCniDeleterCalled).To(Equal(0))
 		})
 	})
 })
