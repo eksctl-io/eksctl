@@ -38,7 +38,7 @@ type NodeGroupDrainer struct {
 	evictor             Evictor
 	ng                  eks.KubeNodeGroup
 	waitTimeout         time.Duration
-	NodeDrainWaitPeriod time.Duration
+	nodeDrainWaitPeriod time.Duration
 	undo                bool
 }
 
