@@ -19,7 +19,7 @@ type drainerMock struct {
 }
 
 func (drainer *drainerMock) Drain(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, undo, disableEviction bool) error {
-	args := drainer.Called(nodeGroups, plan, maxGracePeriod, disableEviction)
+	args := drainer.Called(nodeGroups, plan, maxGracePeriod, nodeDrainWaitPeriod, undo, disableEviction)
 	return args.Error(0)
 }
 
