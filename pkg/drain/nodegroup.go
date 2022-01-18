@@ -34,14 +34,15 @@ type Evictor interface {
 }
 
 type NodeGroupDrainer struct {
-	clientSet   kubernetes.Interface
-	evictor     Evictor
-	ng          eks.KubeNodeGroup
-	waitTimeout time.Duration
-	undo        bool
+	clientSet           kubernetes.Interface
+	evictor             Evictor
+	ng                  eks.KubeNodeGroup
+	waitTimeout         time.Duration
+	nodeDrainWaitPeriod time.Duration
+	undo                bool
 }
 
-func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout time.Duration, maxGracePeriod time.Duration, undo bool, disableEviction bool) NodeGroupDrainer {
+func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout, maxGracePeriod, nodeDrainWaitPeriod time.Duration, undo, disableEviction bool) NodeGroupDrainer {
 	ignoreDaemonSets := []metav1.ObjectMeta{
 		{
 			Namespace: "kube-system",
@@ -69,11 +70,12 @@ func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, w
 	}
 
 	return NodeGroupDrainer{
-		evictor:     evictor.New(clientSet, maxGracePeriod, ignoreDaemonSets, disableEviction),
-		clientSet:   clientSet,
-		ng:          ng,
-		waitTimeout: waitTimeout,
-		undo:        undo,
+		evictor:             evictor.New(clientSet, maxGracePeriod, ignoreDaemonSets, disableEviction),
+		clientSet:           clientSet,
+		ng:                  ng,
+		waitTimeout:         waitTimeout,
+		nodeDrainWaitPeriod: nodeDrainWaitPeriod,
+		undo:                undo,
 	}
 }
 
@@ -132,7 +134,7 @@ func (n *NodeGroupDrainer) Drain() error {
 			logger.Debug("already drained: %v", drainedNodes.List())
 			logger.Debug("will drain: %v", newPendingNodes.List())
 
-			for _, node := range newPendingNodes.List() {
+			for i, node := range newPendingNodes.List() {
 				pending, err := n.evictPods(node)
 				if err != nil {
 					logger.Warning("pod eviction error (%q) on node %s", err, node)
@@ -142,6 +144,12 @@ func (n *NodeGroupDrainer) Drain() error {
 				logger.Debug("%d pods to be evicted from %s", pending, node)
 				if pending == 0 {
 					drainedNodes.Insert(node)
+				}
+
+				// only wait if we're not on the last node of this iteration
+				if n.nodeDrainWaitPeriod > 0 && i < newPendingNodes.Len()-1 {
+					logger.Debug("waiting for %.0f seconds before draining next node", n.nodeDrainWaitPeriod.Seconds())
+					time.Sleep(n.nodeDrainWaitPeriod)
 				}
 			}
 		}
