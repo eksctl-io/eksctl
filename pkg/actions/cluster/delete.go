@@ -172,7 +172,7 @@ func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackM
 
 	logger.Info("will drain %d unmanaged nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 	nodeGroupManager := nodegroup.New(cfg, ctl, clientSet)
-	if err := nodeGroupManager.Drain(cmdutils.ToKubeNodeGroups(cfg), false, ctl.Provider.WaitTimeout(), false); err != nil {
+	if err := nodeGroupManager.Drain(cmdutils.ToKubeNodeGroups(cfg), false, ctl.Provider.WaitTimeout(), false, false); err != nil {
 		return err
 	}
 	attemptVpcCniDeletion(cfg.Metadata.Name, ctl, clientSet)
