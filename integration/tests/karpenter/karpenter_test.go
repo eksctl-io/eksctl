@@ -1,18 +1,14 @@
 package karpenter
 
 import (
-	"context"
 	"fmt"
-	"io"
+	"os/exec"
 	"testing"
 	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	eventsv1 "k8s.io/api/events/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -83,7 +79,7 @@ var _ = Describe("(Integration) Karpenter", func() {
 			Expect(cmd).To(RunSuccessfully())
 
 			if session.ExitCode() != 0 {
-				dumpEventsAndLogs([]string{"karpenter=webhook", "karpenter=controller"})
+				describeKarpenterResources([]string{"karpenter-webhook", "karpenter-controller"})
 			}
 
 			kubeTest, err := kube.NewTest(params.KubeconfigPath)
@@ -101,47 +97,17 @@ var _ = Describe("(Integration) Karpenter", func() {
 })
 
 // not using kubeTest since kubeTest fatals on error, and we don't want that.
-func dumpEventsAndLogs(selectors []string) {
-	config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
-	Expect(err).NotTo(HaveOccurred())
-	clientset, err := kubernetes.NewForConfig(config)
-	Expect(err).NotTo(HaveOccurred())
-	// list all events in the Karpenter namespace
-	events := clientset.EventsV1().Events(karpenter.DefaultNamespace)
-	wes, err := events.List(context.Background(), metav1.ListOptions{})
-	Expect(err).NotTo(HaveOccurred())
-	var webhookEvents []eventsv1.Event
-	webhookEvents = append(webhookEvents, wes.Items...)
-	for wes.Continue != "" {
-		wes, err = events.List(context.Background(), metav1.ListOptions{
-			Continue: wes.Continue,
-		})
+func describeKarpenterResources(names []string) {
+	for _, name := range names {
+		cmd := exec.Command("kubectl", "describe", "replicaset", name, "-n", karpenter.DefaultNamespace)
+		output, err := cmd.Output()
 		Expect(err).NotTo(HaveOccurred())
-		webhookEvents = append(webhookEvents, wes.Items...)
-	}
-	fmt.Fprintf(GinkgoWriter, "all events:\n")
-	for _, event := range webhookEvents {
-		fmt.Fprintf(GinkgoWriter, "name: %s, message: %s\n", event.Name, event.Note)
-	}
-
-	for _, selector := range selectors {
-		pods := clientset.CoreV1().Pods(karpenter.DefaultNamespace)
-		ps, err := pods.List(context.Background(), metav1.ListOptions{
-			LabelSelector: selector,
-		})
+		fmt.Fprintf(GinkgoWriter, "describe replicaset %s", name)
+		fmt.Fprint(GinkgoWriter, string(output))
+		cmd = exec.Command("kubectl", "describe", "deployment", name, "-n", karpenter.DefaultNamespace)
+		output, err = cmd.Output()
 		Expect(err).NotTo(HaveOccurred())
-		for _, pod := range ps.Items {
-			containerName := pod.Spec.Containers[0].Name
-			logs, err := clientset.CoreV1().RESTClient().Get().
-				Resource("pods").
-				Namespace(pod.Namespace).
-				Name(pod.Name).SubResource("log").
-				Param("container", containerName).
-				Stream(context.TODO())
-			Expect(err).NotTo(HaveOccurred())
-			content, err := io.ReadAll(logs)
-			Expect(err).NotTo(HaveOccurred())
-			fmt.Fprintf(GinkgoWriter, "container logs for container %s for pod %s: %s\n", containerName, pod.Name, string(content))
-		}
+		fmt.Fprintf(GinkgoWriter, "describe deployment %s", name)
+		fmt.Fprint(GinkgoWriter, string(output))
 	}
 }
