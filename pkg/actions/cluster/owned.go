@@ -21,7 +21,7 @@ type OwnedCluster struct {
 	clusterStack        *manager.Stack
 	stackManager        manager.StackManager
 	newClientSet        func() (kubernetes.Interface, error)
-	newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) *nodegroup.Manager
+	newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer
 }
 
 func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterStack *manager.Stack, stackManager manager.StackManager) *OwnedCluster {
@@ -33,7 +33,7 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterSt
 		newClientSet: func() (kubernetes.Interface, error) {
 			return ctl.NewStdClientSet(cfg)
 		},
-		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) *nodegroup.Manager {
+		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer {
 			return nodegroup.New(cfg, ctl, clientSet)
 		},
 	}
@@ -112,7 +112,7 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force bool, disableNodegrou
 		}
 
 		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
-		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, &disableNodegroupEviction, nodeGroupManager.Drain, attemptVpcCniDeletion); err != nil {
+		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, &disableNodegroupEviction, nodeGroupManager, attemptVpcCniDeletion); err != nil {
 			if force {
 				logger.Warning("error occurred during nodegroups draining")
 			} else {

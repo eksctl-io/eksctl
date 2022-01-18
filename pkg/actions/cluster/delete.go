@@ -28,7 +28,9 @@ import (
 	"github.com/kris-nova/logger"
 )
 
-type NodeGroupDrainer func(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, undo, disableEviction bool) error
+type NodeGroupDrainer interface {
+	Drain(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, undo, disableEviction bool) error
+}
 type VpcCniDeleter func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface)
 
 func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clusterOperable bool, clientSet kubernetes.Interface) error {
@@ -175,11 +177,7 @@ func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, client
 
 	logger.Info("will drain %d unmanaged nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 
-	if nodeGroupDrainer == nil {
-		nodeGroupDrainer = nodegroup.New(cfg, ctl, clientSet).Drain
-	}
-
-	if err := nodeGroupDrainer(cmdutils.ToKubeNodeGroups(cfg), false, ctl.Provider.WaitTimeout(), 0, false, *disableEviction); err != nil {
+	if err := nodeGroupDrainer.Drain(cmdutils.ToKubeNodeGroups(cfg), false, ctl.Provider.WaitTimeout(), 0, false, *disableEviction); err != nil {
 		return err
 	}
 
