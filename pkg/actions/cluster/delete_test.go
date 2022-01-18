@@ -18,7 +18,7 @@ type drainerMock struct {
 	mock.Mock
 }
 
-func (drainer *drainerMock) Drain(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod time.Duration, disableEviction bool) error {
+func (drainer *drainerMock) Drain(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, undo, disableEviction bool) error {
 	args := drainer.Called(nodeGroups, plan, maxGracePeriod, disableEviction)
 	return args.Error(0)
 }
@@ -54,7 +54,7 @@ var _ = Describe("Delete", func() {
 			disableEviction := false
 
 			mockedDrainer := &drainerMock{}
-			mockedDrainer.On("Drain", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+			mockedDrainer.On("Drain", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			vpcCniDeleterCalled := 0
 			vpcCniDeleter := func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
 				vpcCniDeleterCalled++
@@ -76,7 +76,7 @@ var _ = Describe("Delete", func() {
 			disableEviction := true
 
 			mockedDrainer := &drainerMock{}
-			mockedDrainer.On("Drain", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+			mockedDrainer.On("Drain", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			vpcCniDeleterCalled := 0
 			vpcCniDeleter := func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
 				vpcCniDeleterCalled++
@@ -98,7 +98,7 @@ var _ = Describe("Delete", func() {
 			disableEviction := false
 
 			mockedDrainer := &drainerMock{}
-			mockedDrainer.On("Drain", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+			mockedDrainer.On("Drain", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			vpcCniDeleterCalled := 0
 			vpcCniDeleter := func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
 				vpcCniDeleterCalled++

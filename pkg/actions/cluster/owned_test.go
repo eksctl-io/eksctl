@@ -34,7 +34,7 @@ type drainerMockOwned struct {
 	mock.Mock
 }
 
-func (drainer *drainerMockOwned) Drain(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod time.Duration, disableEviction bool) error {
+func (drainer *drainerMockOwned) Drain(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, undo, disableEviction bool) error {
 	args := drainer.Called(nodeGroups, plan, maxGracePeriod, disableEviction)
 	return args.Error(0)
 }
@@ -169,7 +169,7 @@ var _ = Describe("Delete", func() {
 			})
 
 			mockedDrainer := &drainerMockOwned{}
-			mockedDrainer.On("Drain", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("Mocked error"))
+			mockedDrainer.On("Drain", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("Mocked error"))
 			c.SetNewNodeGroupManager(func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
 				return mockedDrainer
 			})
@@ -226,7 +226,7 @@ var _ = Describe("Delete", func() {
 			})
 
 			mockedDrainer := &drainerMockOwned{}
-			mockedDrainer.On("Drain", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("Mocked error"))
+			mockedDrainer.On("Drain", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("Mocked error"))
 			c.SetNewNodeGroupManager(func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
 				return mockedDrainer
 			})
