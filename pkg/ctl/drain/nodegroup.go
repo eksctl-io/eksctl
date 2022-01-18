@@ -120,5 +120,5 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 	}
 	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 
-	return nodegroup.New(cfg, ctl, clientSet).Drain(allNodeGroups, cmd.Plan, maxGracePeriod, nodeDrainWaitPeriod, disableEviction)
+	return nodegroup.New(cfg, ctl, clientSet).Drain(allNodeGroups, cmd.Plan, maxGracePeriod, nodeDrainWaitPeriod, undo, disableEviction)
 }
