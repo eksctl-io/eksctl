@@ -9,18 +9,20 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 type Manager struct {
-	stackManager manager.StackManager
-	ctl          *eks.ClusterProvider
-	cfg          *api.ClusterConfig
-	clientSet    kubernetes.Interface
-	wait         WaitFunc
-	init         eks.NodeGroupInitialiser
-	kubeProvider eks.KubeProvider
+	stackManager          manager.StackManager
+	ctl                   *eks.ClusterProvider
+	cfg                   *api.ClusterConfig
+	clientSet             kubernetes.Interface
+	wait                  WaitFunc
+	init                  eks.NodeGroupInitialiser
+	kubeProvider          eks.KubeProvider
+	launchTemplateFetcher *builder.LaunchTemplateFetcher
 }
 
 type WaitFunc func(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error
@@ -36,7 +38,8 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.
 		init: &eks.NodeGroupService{
 			Provider: ctl.Provider,
 		},
-		kubeProvider: ctl,
+		kubeProvider:          ctl,
+		launchTemplateFetcher: builder.NewLaunchTemplateFetcher(ctl.Provider.EC2()),
 	}
 }
 
