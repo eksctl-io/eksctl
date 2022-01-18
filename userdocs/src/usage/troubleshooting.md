@@ -46,4 +46,18 @@ vpc:
 ```
 
 ## Deletion issues
+
 If your delete does not work, or you forget to add `--wait` on the delete, you may need to go to use amazon's other tools to delete the cloudformation stacks. This can be accomplished via the gui or with the aws cli.
+
+## kubectl logs and kubectl run fails with Authorization Error
+
+If, when running `kubectl logs` and `kubectl run` fails with an error like:
+```
+Error attaching, falling back to logs: unable to upgrade connection: Authorization error (user=kube-apiserver-kubelet-client, verb=create, resource=nodes, subresource=proxy)
+```
+or
+```
+Error from server (InternalError): Internal error occurred: Authorization error (user=kube-apiserver-kubelet-client, verb=get, resource=nodes, subresource=proxy)
+```
+
+and your nodes are deployed in a private subnet you may need to set [enableDnsHostnames](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#vpc-dns-support). More details can be found in [this issue](https://github.com/weaveworks/eksctl/issues/4645).
