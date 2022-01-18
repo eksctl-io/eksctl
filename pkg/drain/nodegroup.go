@@ -149,7 +149,7 @@ func (n *NodeGroupDrainer) Drain() error {
 				// only wait if we're not on the last node of this iteration
 				if n.nodeDrainWaitPeriod > 0 && i < newPendingNodes.Len()-1 {
 					logger.Debug("waiting for %.0f seconds before draining next node", n.nodeDrainWaitPeriod.Seconds())
-					time.Sleep(n.NodeDrainWaitPeriod)
+					time.Sleep(n.nodeDrainWaitPeriod)
 				}
 			}
 		}
