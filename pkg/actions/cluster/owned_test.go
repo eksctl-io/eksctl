@@ -1,6 +1,8 @@
 package cluster_test
 
 import (
+	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -27,6 +29,15 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
+
+type drainerMockOwned struct {
+	mock.Mock
+}
+
+func (drainer *drainerMockOwned) Drain(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod time.Duration, disableEviction bool) error {
+	args := drainer.Called(nodeGroups, plan, maxGracePeriod, disableEviction)
+	return args.Error(0)
+}
 
 var _ = Describe("Delete", func() {
 	var (
@@ -113,6 +124,120 @@ var _ = Describe("Delete", func() {
 			Expect(ranDeleteClusterTasks).To(BeTrue())
 			Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
 			Expect(fakeStackManager.DeleteStackBySpecArgsForCall(0)).To(Equal(karpenterStack))
+		})
+
+		It("ignoring nodes draining error when force flag used", func() {
+			//mocks are in order of being called
+			p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+				Expect(*input.Name).To(Equal(clusterName))
+				return true
+			})).Return(&awseks.DescribeClusterOutput{
+				Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive),
+			}, nil)
+
+			p.MockEKS().On("ListFargateProfiles", &awseks.ListFargateProfilesInput{
+				ClusterName: strings.Pointer(clusterName),
+			}).Once().Return(&awseks.ListFargateProfilesOutput{FargateProfileNames: aws.StringSlice([]string{})}, nil)
+
+			p.MockEKS().On("DeleteFargateProfile", &awseks.DeleteFargateProfileInput{
+				ClusterName:        aws.String(clusterName),
+				FargateProfileName: aws.String("fargate-1"),
+			}).Once().Return(&awseks.DeleteFargateProfileOutput{}, nil)
+
+			p.MockEKS().On("ListFargateProfiles", &awseks.ListFargateProfilesInput{
+				ClusterName: strings.Pointer(clusterName),
+			}).Once().Return(&awseks.ListFargateProfilesOutput{}, nil)
+
+			fakeStackManager.DeleteTasksForDeprecatedStacksReturns(&tasks.TaskTree{
+				Tasks: []tasks.Task{},
+			}, nil)
+			fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: "ng-1"}}, nil)
+
+			p.MockEC2().On("DescribeKeyPairs", mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
+
+			p.MockEC2().On("DescribeSecurityGroupsWithContext", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
+
+			fakeStackManager.NewTasksToDeleteClusterWithNodeGroupsReturns(&tasks.TaskTree{
+				Tasks: []tasks.Task{},
+			}, nil)
+
+			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
+			fakeClientSet = fake.NewSimpleClientset()
+
+			c.SetNewClientSet(func() (kubernetes.Interface, error) {
+				return fakeClientSet, nil
+			})
+
+			mockedDrainer := &drainerMockOwned{}
+			mockedDrainer.On("Drain", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("Mocked error"))
+			c.SetNewNodeGroupManager(func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
+				return mockedDrainer
+			})
+
+			err := c.Delete(time.Microsecond, false, true, false)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
+			Expect(ranDeleteDeprecatedTasks).To(BeFalse())
+			Expect(fakeStackManager.NewTasksToDeleteClusterWithNodeGroupsCallCount()).To(Equal(1))
+			Expect(ranDeleteClusterTasks).To(BeFalse())
+			mockedDrainer.AssertNumberOfCalls(GinkgoT(), "Drain", 1)
+		})
+
+		It("nodes draining error thrown when force flag not used", func() {
+			//mocks are in order of being called
+			p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+				Expect(*input.Name).To(Equal(clusterName))
+				return true
+			})).Return(&awseks.DescribeClusterOutput{
+				Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive),
+			}, nil)
+
+			p.MockEKS().On("ListFargateProfiles", &awseks.ListFargateProfilesInput{
+				ClusterName: strings.Pointer(clusterName),
+			}).Once().Return(&awseks.ListFargateProfilesOutput{FargateProfileNames: aws.StringSlice([]string{})}, nil)
+
+			p.MockEKS().On("DeleteFargateProfile", &awseks.DeleteFargateProfileInput{
+				ClusterName:        aws.String(clusterName),
+				FargateProfileName: aws.String("fargate-1"),
+			}).Once().Return(&awseks.DeleteFargateProfileOutput{}, nil)
+
+			p.MockEKS().On("ListFargateProfiles", &awseks.ListFargateProfilesInput{
+				ClusterName: strings.Pointer(clusterName),
+			}).Once().Return(&awseks.ListFargateProfilesOutput{}, nil)
+
+			fakeStackManager.DeleteTasksForDeprecatedStacksReturns(&tasks.TaskTree{
+				Tasks: []tasks.Task{},
+			}, nil)
+			fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: "ng-1"}}, nil)
+
+			p.MockEC2().On("DescribeKeyPairs", mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
+
+			p.MockEC2().On("DescribeSecurityGroupsWithContext", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
+
+			fakeStackManager.NewTasksToDeleteClusterWithNodeGroupsReturns(&tasks.TaskTree{
+				Tasks: []tasks.Task{},
+			}, nil)
+
+			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
+			fakeClientSet = fake.NewSimpleClientset()
+
+			c.SetNewClientSet(func() (kubernetes.Interface, error) {
+				return fakeClientSet, nil
+			})
+
+			mockedDrainer := &drainerMockOwned{}
+			mockedDrainer.On("Drain", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("Mocked error"))
+			c.SetNewNodeGroupManager(func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
+				return mockedDrainer
+			})
+
+			err := c.Delete(time.Microsecond, false, false, false)
+			Expect(err).To(HaveOccurred())
+			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(0))
+			Expect(ranDeleteDeprecatedTasks).To(BeFalse())
+			Expect(fakeStackManager.NewTasksToDeleteClusterWithNodeGroupsCallCount()).To(Equal(0))
+			Expect(ranDeleteClusterTasks).To(BeFalse())
+			mockedDrainer.AssertNumberOfCalls(GinkgoT(), "Drain", 1)
 		})
 	})
 
