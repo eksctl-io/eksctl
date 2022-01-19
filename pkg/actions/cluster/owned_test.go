@@ -1,6 +1,7 @@
 package cluster_test
 
 import (
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"time"
 
 	"github.com/pkg/errors"
@@ -152,6 +153,7 @@ var _ = Describe("Delete", func() {
 			fakeStackManager.DeleteTasksForDeprecatedStacksReturns(&tasks.TaskTree{
 				Tasks: []tasks.Task{},
 			}, nil)
+
 			fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: "ng-1"}}, nil)
 
 			p.MockEC2().On("DescribeKeyPairs", mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
@@ -169,8 +171,14 @@ var _ = Describe("Delete", func() {
 				return fakeClientSet, nil
 			})
 
+			kubeNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
+			var nodeDrainWaitPeriod time.Duration = 0
+			plan := false
+			undo := false
+			disableEviction := false
+
 			mockedDrainer := &drainerMockOwned{}
-			mockedDrainer.On("Drain", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("Mocked error"))
+			mockedDrainer.On("Drain", kubeNodeGroups, plan, ctl.Provider.WaitTimeout(), nodeDrainWaitPeriod, undo, disableEviction).Return(errors.New("Mocked error"))
 			c.SetNewNodeGroupManager(func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
 				return mockedDrainer
 			})
@@ -226,8 +234,14 @@ var _ = Describe("Delete", func() {
 				return fakeClientSet, nil
 			})
 
+			kubeNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
+			var nodeDrainWaitPeriod time.Duration = 0
+			plan := false
+			undo := false
+			disableEviction := false
+
 			mockedDrainer := &drainerMockOwned{}
-			mockedDrainer.On("Drain", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("Mocked error"))
+			mockedDrainer.On("Drain", kubeNodeGroups, plan, ctl.Provider.WaitTimeout(), nodeDrainWaitPeriod, undo, disableEviction).Return(errors.New("Mocked error"))
 			c.SetNewNodeGroupManager(func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
 				return mockedDrainer
 			})

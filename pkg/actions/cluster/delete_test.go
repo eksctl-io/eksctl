@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -52,10 +53,14 @@ var _ = Describe("Delete", func() {
 			})
 
 			nodeGroupStacks := []manager.NodeGroupStack{{NodeGroupName: "ng-1"}}
+			kubeNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
+			var nodeDrainWaitPeriod time.Duration = 0
+			plan := false
+			undo := false
 			disableEviction := false
 
 			mockedDrainer := &drainerMock{}
-			mockedDrainer.On("Drain", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+			mockedDrainer.On("Drain", kubeNodeGroups, plan, ctl.Provider.WaitTimeout(), nodeDrainWaitPeriod, undo, disableEviction).Return(nil)
 			vpcCniDeleterCalled := 0
 			vpcCniDeleter := func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
 				vpcCniDeleterCalled++
@@ -74,10 +79,14 @@ var _ = Describe("Delete", func() {
 			})
 
 			nodeGroupStacks := []manager.NodeGroupStack{{NodeGroupName: "ng-1"}}
+			kubeNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
+			var nodeDrainWaitPeriod time.Duration = 0
+			plan := false
+			undo := false
 			disableEviction := true
 
 			mockedDrainer := &drainerMock{}
-			mockedDrainer.On("Drain", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+			mockedDrainer.On("Drain", kubeNodeGroups, plan, ctl.Provider.WaitTimeout(), nodeDrainWaitPeriod, undo, disableEviction).Return(nil)
 			vpcCniDeleterCalled := 0
 			vpcCniDeleter := func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
 				vpcCniDeleterCalled++
@@ -96,10 +105,14 @@ var _ = Describe("Delete", func() {
 			})
 
 			nodeGroupStacks := []manager.NodeGroupStack{}
+			kubeNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
+			var nodeDrainWaitPeriod time.Duration = 0
+			plan := false
+			undo := false
 			disableEviction := false
 
 			mockedDrainer := &drainerMock{}
-			mockedDrainer.On("Drain", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+			mockedDrainer.On("Drain", kubeNodeGroups, plan, ctl.Provider.WaitTimeout(), nodeDrainWaitPeriod, undo, disableEviction).Return(nil)
 			vpcCniDeleterCalled := 0
 			vpcCniDeleter := func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
 				vpcCniDeleterCalled++
