@@ -27,7 +27,7 @@ var _ = Describe("delete cluster", func() {
 				})
 			})
 			_, err := cmd.execute()
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(count).To(Equal(1))
 		},
 		Entry("with only valid cluster name", false, false, "cluster", "--name", clusterName),
