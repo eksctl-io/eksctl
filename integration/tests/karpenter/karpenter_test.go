@@ -44,14 +44,6 @@ var _ = Describe("(Integration) Karpenter", func() {
 		clusterName = fmt.Sprintf("it-karpenter-%d", time.Now().Unix())
 	})
 
-	AfterEach(func() {
-		cmd := params.EksctlDeleteCmd.WithArgs(
-			"cluster", clusterName,
-			"--verbose", "4",
-		)
-		Expect(cmd).To(RunSuccessfully())
-	})
-
 	Context("Creating a cluster with Karpenter", func() {
 		It("should support karpenter", func() {
 			cmd := params.EksctlCreateCmd.
@@ -99,12 +91,12 @@ var _ = Describe("(Integration) Karpenter", func() {
 // not using kubeTest since kubeTest fatals on error, and we don't want that.
 func describeKarpenterResources(names []string) {
 	for _, name := range names {
-		cmd := exec.Command("kubectl", "describe", "replicaset", name, "-n", karpenter.DefaultNamespace)
+		cmd := exec.Command("kubectl", "--kubeconfig", params.KubeconfigPath, "describe", "replicaset", name, "-n", karpenter.DefaultNamespace)
 		output, err := cmd.Output()
 		Expect(err).NotTo(HaveOccurred())
 		fmt.Fprintf(GinkgoWriter, "describe replicaset %s", name)
 		fmt.Fprint(GinkgoWriter, string(output))
-		cmd = exec.Command("kubectl", "describe", "deployment", name, "-n", karpenter.DefaultNamespace)
+		cmd = exec.Command("kubectl", "--kubeconfig", params.KubeconfigPath, "describe", "deployment", name, "-n", karpenter.DefaultNamespace)
 		output, err = cmd.Output()
 		Expect(err).NotTo(HaveOccurred())
 		fmt.Fprintf(GinkgoWriter, "describe deployment %s", name)
