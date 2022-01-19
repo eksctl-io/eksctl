@@ -26,7 +26,7 @@ func (drainer *drainerMock) Drain(nodeGroups []eks.KubeNodeGroup, plan bool, max
 	return args.Error(0)
 }
 
-var _ = Describe("Delete", func() {
+var _ = Describe("DrainAllNodeGroups", func() {
 	var (
 		clusterName      string
 		p                *mockprovider.MockProvider
