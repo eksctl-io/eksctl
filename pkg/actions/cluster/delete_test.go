@@ -61,7 +61,7 @@ var _ = Describe("Delete", func() {
 				vpcCniDeleterCalled++
 			}
 
-			err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, &disableEviction, mockedDrainer, vpcCniDeleter)
+			err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, disableEviction, mockedDrainer, vpcCniDeleter)
 			Expect(err).NotTo(HaveOccurred())
 			mockedDrainer.AssertNumberOfCalls(GinkgoT(), "Drain", 1)
 			Expect(vpcCniDeleterCalled).To(Equal(1))
@@ -83,7 +83,7 @@ var _ = Describe("Delete", func() {
 				vpcCniDeleterCalled++
 			}
 
-			err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, &disableEviction, mockedDrainer, vpcCniDeleter)
+			err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, disableEviction, mockedDrainer, vpcCniDeleter)
 			Expect(err).NotTo(HaveOccurred())
 			mockedDrainer.AssertNumberOfCalls(GinkgoT(), "Drain", 1)
 			Expect(vpcCniDeleterCalled).To(Equal(1))
@@ -105,7 +105,7 @@ var _ = Describe("Delete", func() {
 				vpcCniDeleterCalled++
 			}
 
-			err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, &disableEviction, mockedDrainer, vpcCniDeleter)
+			err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, disableEviction, mockedDrainer, vpcCniDeleter)
 			Expect(err).NotTo(HaveOccurred())
 			mockedDrainer.AssertNotCalled(GinkgoT(), "Drain")
 			Expect(vpcCniDeleterCalled).To(Equal(0))
