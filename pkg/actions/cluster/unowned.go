@@ -2,9 +2,9 @@ package cluster
 
 import (
 	"fmt"
-	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"

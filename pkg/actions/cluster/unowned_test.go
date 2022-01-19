@@ -1,8 +1,9 @@
 package cluster_test
 
 import (
-	"github.com/pkg/errors"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"

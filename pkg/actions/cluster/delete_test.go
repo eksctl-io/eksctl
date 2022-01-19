@@ -1,6 +1,8 @@
 package cluster
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
@@ -11,7 +13,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	"k8s.io/client-go/kubernetes/fake"
-	"time"
 )
 
 type drainerMock struct {
