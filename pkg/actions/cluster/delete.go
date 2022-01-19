@@ -31,7 +31,7 @@ import (
 type NodeGroupDrainer interface {
 	Drain(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, undo, disableEviction bool) error
 }
-type VpcCniDeleter func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface)
+type vpcCniDeleter func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface)
 
 func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clusterOperable bool, clientSet kubernetes.Interface) error {
 	if clusterOperable {
@@ -163,7 +163,7 @@ func checkForUndeletedStacks(stackManager manager.StackManager) error {
 	return nil
 }
 
-func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack, disableEviction bool, nodeGroupDrainer NodeGroupDrainer, vpcCniDeleter VpcCniDeleter) error {
+func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack, disableEviction bool, nodeGroupDrainer NodeGroupDrainer, vpcCniDeleter vpcCniDeleter) error {
 	if len(allStacks) == 0 {
 		return nil
 	}
