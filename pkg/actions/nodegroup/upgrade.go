@@ -2,6 +2,8 @@ package nodegroup
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -185,6 +187,7 @@ func (m *Manager) upgradeUsingStack(options UpgradeOptions, nodegroup *eks.Nodeg
 		if err != nil {
 			return err
 		}
+
 		if err := m.stackManager.UpdateNodeGroupStack(options.NodegroupName, string(bytes), true); err != nil {
 			return errors.Wrap(err, "error updating nodegroup stack")
 		}
@@ -198,6 +201,14 @@ func (m *Manager) upgradeUsingStack(options UpgradeOptions, nodegroup *eks.Nodeg
 	if requiresUpdate {
 		logger.Info("updating nodegroup stack to a newer format before upgrading nodegroup version")
 		// always wait for the main stack update
+		if err := updateStack(stack, true); err != nil {
+			return err
+		}
+	}
+
+	if ngResource.ForceUpdateEnabled == nil || strings.ToLower(ngResource.ForceUpdateEnabled.String()) != strconv.FormatBool(options.ForceUpgrade) {
+		ngResource.ForceUpdateEnabled = gfnt.NewBoolean(options.ForceUpgrade)
+		logger.Info("setting ForceUpdateEnabled value to %t", options.ForceUpgrade)
 		if err := updateStack(stack, true); err != nil {
 			return err
 		}
@@ -236,25 +247,18 @@ func (m *Manager) upgradeUsingStack(options UpgradeOptions, nodegroup *eks.Nodeg
 			}
 			kubernetesVersion = fmt.Sprintf("%v.%v", version.Major, version.Minor)
 		}
+
 		latestReleaseVersion, err := m.getLatestReleaseVersion(kubernetesVersion, nodegroup)
 		if err != nil {
 			return err
 		}
-		latest, err := ParseReleaseVersion(latestReleaseVersion)
-		if err != nil {
-			return err
-		}
-		current, err := ParseReleaseVersion(*nodegroup.ReleaseVersion)
-		if err != nil {
-			return err
-		}
 
-		if latest.LTE(current) && options.LaunchTemplateVersion == "" {
-			logger.Info("nodegroup %q is already up-to-date", *nodegroup.NodegroupName)
-			return nil
-		}
-		if latest.GTE(current) {
-			ngResource.ReleaseVersion = gfnt.NewString(latestReleaseVersion)
+		if latestReleaseVersion != "" {
+			if err := m.updateReleaseVersion(latestReleaseVersion, options.LaunchTemplateVersion, nodegroup, ngResource); err != nil {
+				return err
+			}
+		} else {
+			ngResource.Version = gfnt.NewString(kubernetesVersion)
 		}
 	}
 	if options.LaunchTemplateVersion != "" {
@@ -268,6 +272,26 @@ func (m *Manager) upgradeUsingStack(options UpgradeOptions, nodegroup *eks.Nodeg
 		return err
 	}
 	logger.Info("nodegroup successfully upgraded")
+	return nil
+}
+
+func (m *Manager) updateReleaseVersion(latestReleaseVersion, launchTemplateVersion string, nodegroup *eks.Nodegroup, ngResource *gfneks.Nodegroup) error {
+	latest, err := ParseReleaseVersion(latestReleaseVersion)
+	if err != nil {
+		return err
+	}
+	current, err := ParseReleaseVersion(*nodegroup.ReleaseVersion)
+	if err != nil {
+		return err
+	}
+
+	if latest.LTE(current) && launchTemplateVersion == "" {
+		logger.Info("nodegroup %q is already up-to-date", *nodegroup.NodegroupName)
+		return nil
+	}
+	if latest.GTE(current) {
+		ngResource.ReleaseVersion = gfnt.NewString(latestReleaseVersion)
+	}
 	return nil
 }
 
@@ -293,9 +317,13 @@ func (m *Manager) requiresStackUpdate(nodeGroupName string) (bool, error) {
 }
 
 func (m *Manager) getLatestReleaseVersion(kubernetesVersion string, nodeGroup *eks.Nodegroup) (string, error) {
-	ssmParameterName, err := ami.MakeManagedSSMParameterName(kubernetesVersion, api.NodeImageFamilyAmazonLinux2, *nodeGroup.AmiType)
+	ssmParameterName, err := ami.MakeManagedSSMParameterName(kubernetesVersion, *nodeGroup.AmiType)
 	if err != nil {
 		return "", err
+	}
+
+	if ssmParameterName == "" {
+		return "", nil
 	}
 
 	ssmOutput, err := m.ctl.Provider.SSM().GetParameter(&ssm.GetParameterInput{
