@@ -262,6 +262,7 @@ func autoScalerStatements() []cft.MapOfInterfaces {
 				"autoscaling:DescribeTags",
 				"autoscaling:SetDesiredCapacity",
 				"autoscaling:TerminateInstanceInAutoScalingGroup",
+				"ec2:DescribeInstanceTypes",
 				"ec2:DescribeLaunchTemplateVersions",
 			},
 		},
