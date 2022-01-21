@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package dump_logs
+package dumplogs
 
 import (
 	"os"
