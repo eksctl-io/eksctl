@@ -11,11 +11,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	corev1 "k8s.io/api/core/v1"
 
+	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/taints"
 
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -42,7 +44,7 @@ var (
 		"features of eksctl. This will require running subsequent eksctl (and Kubernetes) " +
 		"commands/API calls from within the VPC.  Running these in the VPC requires making " +
 		"updates to some AWS resources.  See: " +
-		"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html#private-access " +
+		"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html " +
 		"for more details")
 )
 
@@ -122,31 +124,31 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return err
 	}
 
-	if cfg.VPC != nil && len(cfg.VPC.ExtraCIDRs) > 0 {
-		cidrs, err := validateCIDRs(cfg.VPC.ExtraCIDRs)
-		if err != nil {
-			return err
-		}
-		cfg.VPC.ExtraCIDRs = cidrs
-	}
-
-	if cfg.VPC != nil && len(cfg.VPC.PublicAccessCIDRs) > 0 {
-		cidrs, err := validateCIDRs(cfg.VPC.PublicAccessCIDRs)
-		if err != nil {
-			return err
-		}
-		cfg.VPC.PublicAccessCIDRs = cidrs
+	if err := cfg.ValidateVPCConfig(); err != nil {
+		return err
 	}
 
 	if cfg.SecretsEncryption != nil && cfg.SecretsEncryption.KeyARN == "" {
 		return errors.New("field secretsEncryption.keyARN is required for enabling secrets encryption")
 	}
 
-	// manageSharedNodeSecurityGroupRules cannot be disabled if using eksctl managed security groups
-	if cfg.VPC != nil && cfg.VPC.SharedNodeSecurityGroup == "" && IsDisabled(cfg.VPC.ManageSharedNodeSecurityGroupRules) {
-		return errors.New("vpc.manageSharedNodeSecurityGroupRules must be enabled when using ekstcl-managed security groups")
+	if err := validateKarpenterConfig(cfg); err != nil {
+		return fmt.Errorf("failed to validate karpenter config: %w", err)
 	}
 
+	return nil
+}
+
+func validateKarpenterConfig(cfg *ClusterConfig) error {
+	if cfg.Karpenter == nil {
+		return nil
+	}
+	if cfg.Karpenter.Version == "" {
+		return errors.New("version field is required if installing Karpenter is enabled")
+	}
+	if IsDisabled(cfg.IAM.WithOIDC) {
+		return errors.New("iam.withOIDC must be enabled with Karpenter")
+	}
 	return nil
 }
 
@@ -183,6 +185,130 @@ func validateCloudWatchLogging(clusterConfig *ClusterConfig) error {
 	return nil
 }
 
+// ValidateVPCConfig validates the vpc setting if it is defined.
+func (c *ClusterConfig) ValidateVPCConfig() error {
+	if c.VPC == nil {
+		return nil
+	}
+	if len(c.VPC.ExtraCIDRs) > 0 {
+		cidrs, err := validateCIDRs(c.VPC.ExtraCIDRs)
+		if err != nil {
+			return err
+		}
+		c.VPC.ExtraCIDRs = cidrs
+	}
+	if len(c.VPC.PublicAccessCIDRs) > 0 {
+		cidrs, err := validateCIDRs(c.VPC.PublicAccessCIDRs)
+		if err != nil {
+			return err
+		}
+		c.VPC.PublicAccessCIDRs = cidrs
+	}
+	if len(c.VPC.ExtraIPv6CIDRs) > 0 {
+		if c.KubernetesNetworkConfig == nil || !c.KubernetesNetworkConfig.IPv6Enabled() {
+			return fmt.Errorf("cannot specify vpc.extraIPv6CIDRs with an IPv4 cluster")
+		}
+		cidrs, err := validateCIDRs(c.VPC.ExtraIPv6CIDRs)
+		if err != nil {
+			return err
+		}
+		c.VPC.ExtraIPv6CIDRs = cidrs
+	}
+
+	if c.VPC.IPv6Cidr != "" || c.VPC.IPv6Pool != "" {
+		if c.KubernetesNetworkConfig == nil || !c.KubernetesNetworkConfig.IPv6Enabled() {
+			return fmt.Errorf("Ipv6Cidr and Ipv6CidrPool are only supported when IPFamily is set to IPv6")
+		}
+	}
+
+	if c.KubernetesNetworkConfig != nil && c.KubernetesNetworkConfig.IPv6Enabled() {
+		if IsEnabled(c.VPC.AutoAllocateIPv6) {
+			return fmt.Errorf("auto allocate ipv6 is not supported with IPv6")
+		}
+		if err := c.ipv6CidrsValid(); err != nil {
+			return err
+		}
+		if c.VPC.NAT != nil {
+			return fmt.Errorf("setting NAT is not supported with IPv6")
+		}
+	}
+
+	// manageSharedNodeSecurityGroupRules cannot be disabled if using eksctl managed security groups
+	if c.VPC.SharedNodeSecurityGroup == "" && IsDisabled(c.VPC.ManageSharedNodeSecurityGroupRules) {
+		return errors.New("vpc.manageSharedNodeSecurityGroupRules must be enabled when using ekstcl-managed security groups")
+	}
+	return nil
+}
+
+func (c *ClusterConfig) unsupportedVPCCNIAddonVersion() (bool, error) {
+	for _, addon := range c.Addons {
+		if addon.Name == VPCCNIAddon {
+			if addon.Version == "" {
+				addon.Version = minimumVPCCNIVersionForIPv6
+				return false, nil
+			}
+			if addon.Version == "latest" {
+				return false, nil
+			}
+
+			return versionLessThan(addon.Version, minimumVPCCNIVersionForIPv6)
+		}
+	}
+	return false, nil
+}
+
+func versionLessThan(v1, v2 string) (bool, error) {
+	v1Version, err := parseVersion(v1)
+	if err != nil {
+		return false, err
+	}
+	v2Version, err := parseVersion(v2)
+	if err != nil {
+		return false, err
+	}
+	return v1Version.LessThan(v2Version), nil
+}
+
+func parseVersion(v string) (*version.Version, error) {
+	version, err := version.NewVersion(v)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse version %q: %w", v, err)
+	}
+	return version, nil
+}
+
+func (c *ClusterConfig) ipv6CidrsValid() error {
+	if c.VPC.IPv6Cidr == "" && c.VPC.IPv6Pool == "" {
+		return nil
+	}
+
+	if c.VPC.IPv6Cidr != "" && c.VPC.IPv6Pool != "" {
+		if c.VPC.ID != "" {
+			return fmt.Errorf("cannot provide VPC.IPv6Cidr when using a pre-existing VPC.ID")
+		}
+		return nil
+	}
+	return fmt.Errorf("Ipv6Cidr and Ipv6Pool must both be configured to use a custom IPv6 CIDR and address pool")
+}
+
+// addonContainsManagedAddons finds managed addons in the config and returns those it couldn't find.
+func (c *ClusterConfig) addonContainsManagedAddons(addons []string) []string {
+	var missing []string
+	for _, a := range addons {
+		found := false
+		for _, add := range c.Addons {
+			if strings.ToLower(add.Name) == a {
+				found = true
+				break
+			}
+		}
+		if !found {
+			missing = append(missing, a)
+		}
+	}
+	return missing
+}
+
 // ValidateClusterEndpointConfig checks the endpoint configuration for potential issues
 func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
 	if !c.HasClusterEndpointAccess() {
@@ -201,13 +327,16 @@ func (c *ClusterConfig) ValidatePrivateCluster() error {
 		if c.VPC != nil && c.VPC.ID != "" && len(c.VPC.Subnets.Private) == 0 {
 			return errors.New("vpc.subnets.private must be specified in a fully-private cluster when a pre-existing VPC is supplied")
 		}
-		if additionalEndpoints := c.PrivateCluster.AdditionalEndpointServices; len(additionalEndpoints) > 0 && c.PrivateCluster.SkipEndpointCreation {
-			return fmt.Errorf("additionalEndpoints cannot be defined together with skipEndpointCreation set to true")
-		} else if len(additionalEndpoints) > 0 {
+
+		if additionalEndpoints := c.PrivateCluster.AdditionalEndpointServices; len(additionalEndpoints) > 0 {
+			if c.PrivateCluster.SkipEndpointCreation {
+				return errors.New("privateCluster.additionalEndpointServices cannot be set when privateCluster.skipEndpointCreation is true")
+			}
 			if err := ValidateAdditionalEndpointServices(additionalEndpoints); err != nil {
 				return errors.Wrap(err, "invalid value in privateCluster.additionalEndpointServices")
 			}
 		}
+
 		if c.VPC != nil && c.VPC.ClusterEndpoints == nil {
 			c.VPC.ClusterEndpoints = &ClusterEndpoints{}
 		}
@@ -218,14 +347,50 @@ func (c *ClusterConfig) ValidatePrivateCluster() error {
 	return nil
 }
 
-// validateKubernetesNetworkConfig validates the network config
+// validateKubernetesNetworkConfig validates the k8s network config
 func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
-	if c.KubernetesNetworkConfig != nil {
+	if c.KubernetesNetworkConfig == nil {
+		return nil
+	}
+	if c.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
+		if c.KubernetesNetworkConfig.IPv6Enabled() {
+			return fmt.Errorf("service ipv4 cidr is not supported with IPv6")
+		}
 		serviceIP := c.KubernetesNetworkConfig.ServiceIPv4CIDR
 		if _, _, err := net.ParseCIDR(serviceIP); serviceIP != "" && err != nil {
 			return errors.Wrap(err, "invalid IPv4 CIDR for kubernetesNetworkConfig.serviceIPv4CIDR")
 		}
 	}
+
+	switch strings.ToLower(c.KubernetesNetworkConfig.IPFamily) {
+	case strings.ToLower(IPV4Family), "":
+	case strings.ToLower(IPV6Family):
+		if missing := c.addonContainsManagedAddons([]string{VPCCNIAddon, CoreDNSAddon, KubeProxyAddon}); len(missing) != 0 {
+			return fmt.Errorf("the default core addons must be defined for IPv6; missing addon(s): %s", strings.Join(missing, ", "))
+		}
+
+		unsupportedVersion, err := c.unsupportedVPCCNIAddonVersion()
+		if err != nil {
+			return err
+		}
+
+		if unsupportedVersion {
+			return fmt.Errorf("%s version must be at least version %s for IPv6", VPCCNIAddon, minimumVPCCNIVersionForIPv6)
+		}
+
+		if c.IAM == nil || c.IAM != nil && IsDisabled(c.IAM.WithOIDC) {
+			return fmt.Errorf("oidc needs to be enabled if IPv6 is set")
+		}
+
+		if version, err := utils.CompareVersions(c.Metadata.Version, Version1_21); err != nil {
+			return fmt.Errorf("failed to convert %s cluster version to semver: %w", c.Metadata.Version, err)
+		} else if err == nil && version == -1 {
+			return fmt.Errorf("cluster version must be >= %s", Version1_21)
+		}
+	default:
+		return fmt.Errorf("invalid value %q for ipFamily; allowed are %s and %s", c.KubernetesNetworkConfig.IPFamily, IPV4Family, IPV6Family)
+	}
+
 	return nil
 }
 

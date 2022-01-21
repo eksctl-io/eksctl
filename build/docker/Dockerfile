@@ -41,11 +41,6 @@ ENV GITHUB_CLI_VERSION 1.14.0
 RUN curl --silent --location "https://github.com/cli/cli/releases/download/v${GITHUB_CLI_VERSION}/gh_${GITHUB_CLI_VERSION}_linux_amd64.tar.gz" \
     | tar xvz -C /out/usr/local/bin --strip-components=2 gh_${GITHUB_CLI_VERSION}_linux_amd64/bin/gh && gh --version
 
-# Flux release very regularly so we always get and test against the latest
-RUN curl -sL https://api.github.com/repos/fluxcd/flux2/releases/latest 2>/dev/null | \
-    jq -r '.assets[] | select(.browser_download_url | contains("linux_amd64")) | .browser_download_url' | \
-    xargs curl -sL | tar xvz -C /out/usr/local/bin && flux --version
-
 # Remaining dependencies are controlled by go.mod
 WORKDIR /src
 ENV CGO_ENABLED=0 GOPROXY=https://proxy.golang.org,direct

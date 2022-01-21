@@ -341,6 +341,9 @@ const expected = `
 		  "region": "eu-central-1",
 		  "version": "1.21"
 		},
+		"kubernetesNetworkConfig": {
+        	"ipFamily": "IPv4"
+        },
 		"iam": {
 		  "withOIDC": false
 		},

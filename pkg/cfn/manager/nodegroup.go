@@ -13,6 +13,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
+
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -80,7 +81,13 @@ func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup
 
 func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
 	name := c.makeNodeGroupStackName(ng.Name)
-
+	cluster, err := c.DescribeClusterStack()
+	if err != nil {
+		return err
+	}
+	if cluster == nil && c.spec.KubernetesNetworkConfig != nil && c.spec.KubernetesNetworkConfig.IPv6Enabled() {
+		return errors.New("managed nodegroups cannot be created on IPv6 unowned clusters")
+	}
 	logger.Info("building managed nodegroup stack %q", name)
 	bootstrapper := nodebootstrap.NewManagedBootstrapper(c.spec, ng)
 	stack := builder.NewManagedNodeGroup(c.ec2API, c.spec, ng, builder.NewLaunchTemplateFetcher(c.ec2API), bootstrapper, forceAddCNIPolicy, vpcImporter)

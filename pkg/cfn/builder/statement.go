@@ -1,8 +1,9 @@
 package builder
 
 import (
-	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+
+	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 )
 
 const (
@@ -261,6 +262,7 @@ func autoScalerStatements() []cft.MapOfInterfaces {
 				"autoscaling:DescribeTags",
 				"autoscaling:SetDesiredCapacity",
 				"autoscaling:TerminateInstanceInAutoScalingGroup",
+				"ec2:DescribeInstanceTypes",
 				"ec2:DescribeLaunchTemplateVersions",
 			},
 		},
@@ -319,9 +321,9 @@ func ebsStatements() []cft.MapOfInterfaces {
 			"Action": []string{
 				"ec2:CreateTags",
 			},
-			"Resource": []string{
-				"arn:aws:ec2:*:*:volume/*",
-				"arn:aws:ec2:*:*:snapshot/*",
+			"Resource": []*gfnt.Value{
+				addARNPartitionPrefix("ec2:*:*:volume/*"),
+				addARNPartitionPrefix("ec2:*:*:snapshot/*"),
 			},
 			"Condition": cft.MapOfInterfaces{
 				"StringEquals": cft.MapOfInterfaces{
@@ -337,9 +339,9 @@ func ebsStatements() []cft.MapOfInterfaces {
 			"Action": []string{
 				"ec2:DeleteTags",
 			},
-			"Resource": []string{
-				"arn:aws:ec2:*:*:volume/*",
-				"arn:aws:ec2:*:*:snapshot/*",
+			"Resource": []*gfnt.Value{
+				addARNPartitionPrefix("ec2:*:*:volume/*"),
+				addARNPartitionPrefix("ec2:*:*:snapshot/*"),
 			},
 		},
 		{

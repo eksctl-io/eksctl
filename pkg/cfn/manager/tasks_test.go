@@ -5,6 +5,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -56,65 +58,40 @@ var _ = Describe("StackCollection Tasks", func() {
 	}
 
 	Describe("TaskTree", func() {
-		Context("With real tasks", func() {
+		BeforeEach(func() {
+			p = mockprovider.NewMockProvider()
+			cfg = newClusterConfig("test-cluster")
+			stackManager = NewStackCollection(p, cfg)
+		})
 
-			BeforeEach(func() {
+		It("should have nice description", func() {
+			fakeVPCImporter := new(vpcfakes.FakeImporter)
+			// TODO use DescribeTable
 
-				p = mockprovider.NewMockProvider()
-
-				cfg = newClusterConfig("test-cluster")
-
-				stackManager = NewStackCollection(p, cfg)
-			})
-
-			It("should have nice description", func() {
-				makeNodeGroups := func(names ...string) []*api.NodeGroup {
-					var nodeGroups []*api.NodeGroup
-					for _, name := range names {
-						ng := api.NewNodeGroup()
-						ng.Name = name
-						nodeGroups = append(nodeGroups, ng)
-					}
-					return nodeGroups
-				}
-
-				makeManagedNodeGroups := func(names ...string) []*api.ManagedNodeGroup {
-					var managedNodeGroups []*api.ManagedNodeGroup
-					for _, name := range names {
-						ng := api.NewManagedNodeGroup()
-						ng.Name = name
-						managedNodeGroups = append(managedNodeGroups, ng)
-					}
-					return managedNodeGroups
-				}
-
-				fakeVPCImporter := new(vpcfakes.FakeImporter)
-				// TODO use DescribeTable
-
-				// The supportsManagedNodes argument has no effect on the Describe call, so the values are alternated
-				// in these tests
-				{
-					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("bar", "foo"), false, fakeVPCImporter)
-					Expect(tasks.Describe()).To(Equal(`
+			// The supportsManagedNodes argument has no effect on the Describe call, so the values are alternated
+			// in these tests
+			{
+				tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("bar", "foo"), false, fakeVPCImporter)
+				Expect(tasks.Describe()).To(Equal(`
 2 parallel tasks: { create nodegroup "bar", create nodegroup "foo" 
 }
 `))
-				}
-				{
-					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("bar"), false, fakeVPCImporter)
-					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "bar" }`))
-				}
-				{
-					tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("foo"), false, fakeVPCImporter)
-					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "foo" }`))
-				}
-				{
-					tasks := stackManager.NewUnmanagedNodeGroupTask(nil, false, fakeVPCImporter)
-					Expect(tasks.Describe()).To(Equal(`no tasks`))
-				}
-				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"), nil, true)
-					Expect(tasks.Describe()).To(Equal(`
+			}
+			{
+				tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("bar"), false, fakeVPCImporter)
+				Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "bar" }`))
+			}
+			{
+				tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("foo"), false, fakeVPCImporter)
+				Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "foo" }`))
+			}
+			{
+				tasks := stackManager.NewUnmanagedNodeGroupTask(nil, false, fakeVPCImporter)
+				Expect(tasks.Describe()).To(Equal(`no tasks`))
+			}
+			{
+				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"), nil, true)
+				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
     2 parallel sub-tasks: { 
         create nodegroup "bar",
@@ -122,21 +99,21 @@ var _ = Describe("StackCollection Tasks", func() {
     } 
 }
 `))
-				}
-				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar"), nil, false)
-					Expect(tasks.Describe()).To(Equal(`
+			}
+			{
+				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar"), nil, false)
+				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", create nodegroup "bar" 
 }
 `))
-				}
-				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(nil, nil, true)
-					Expect(tasks.Describe()).To(Equal(`1 task: { create cluster control plane "test-cluster" }`))
-				}
-				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"), makeManagedNodeGroups("m1", "m2"), false)
-					Expect(tasks.Describe()).To(Equal(`
+			}
+			{
+				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(nil, nil, true)
+				Expect(tasks.Describe()).To(Equal(`1 task: { create cluster control plane "test-cluster" }`))
+			}
+			{
+				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"), makeManagedNodeGroups("m1", "m2"), false)
+				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
     4 parallel sub-tasks: { 
         create nodegroup "bar",
@@ -146,10 +123,10 @@ var _ = Describe("StackCollection Tasks", func() {
     } 
 }
 `))
-				}
-				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("foo"), makeManagedNodeGroups("m1"), true)
-					Expect(tasks.Describe()).To(Equal(`
+			}
+			{
+				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("foo"), makeManagedNodeGroups("m1"), true)
+				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
     2 parallel sub-tasks: { 
         create nodegroup "foo",
@@ -157,10 +134,10 @@ var _ = Describe("StackCollection Tasks", func() {
     } 
 }
 `))
-				}
-				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar"), nil, false, &task{id: 1})
-					Expect(tasks.Describe()).To(Equal(`
+			}
+			{
+				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar"), nil, false, &task{id: 1})
+				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
     2 sequential sub-tasks: { 
         task 1,
@@ -168,8 +145,80 @@ var _ = Describe("StackCollection Tasks", func() {
     } 
 }
 `))
-				}
+			}
+		})
+
+		When("IPFamily is set to ipv6", func() {
+			BeforeEach(func() {
+				cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
+			})
+			It("appends the AssignIpv6AddressOnCreation task to occur after the cluster creation", func() {
+				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"), nil, true)
+				Expect(tasks.Describe()).To(Equal(`
+3 sequential tasks: { create cluster control plane "test-cluster", set AssignIpv6AddressOnCreation to true for public subnets, 
+    2 parallel sub-tasks: { 
+        create nodegroup "bar",
+        create nodegroup "foo",
+    } 
+}
+`))
+			})
+		})
+	})
+
+	Describe("ManagedNodeGroupTask", func() {
+		When("creating managed nodegroups on a ipv6 cluster", func() {
+			var (
+				p            *mockprovider.MockProvider
+				cfg          *api.ClusterConfig
+				stackManager *StackCollection
+			)
+			BeforeEach(func() {
+				p = mockprovider.NewMockProvider()
+				cfg = newClusterConfig("test-ipv6-cluster")
+				cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
+				stackManager = NewStackCollection(p, cfg)
+			})
+			It("returns an error", func() {
+				p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(nil)
+				ng := api.NewManagedNodeGroup()
+				fakeVPCImporter := new(vpcfakes.FakeImporter)
+				tasks := stackManager.NewManagedNodeGroupTask([]*api.ManagedNodeGroup{ng}, false, fakeVPCImporter)
+				errs := tasks.DoAllSync()
+				Expect(errs).To(HaveLen(1))
+				Expect(errs[0]).To(MatchError(ContainSubstring("managed nodegroups cannot be created on IPv6 unowned clusters")))
+			})
+			When("finding the stack fails", func() {
+				It("returns the stack error", func() {
+					p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(errors.New("not found"))
+					ng := api.NewManagedNodeGroup()
+					fakeVPCImporter := new(vpcfakes.FakeImporter)
+					tasks := stackManager.NewManagedNodeGroupTask([]*api.ManagedNodeGroup{ng}, false, fakeVPCImporter)
+					errs := tasks.DoAllSync()
+					Expect(errs).To(HaveLen(1))
+					Expect(errs[0]).To(MatchError(ContainSubstring("not found")))
+				})
 			})
 		})
 	})
 })
+
+func makeNodeGroups(names ...string) []*api.NodeGroup {
+	var nodeGroups []*api.NodeGroup
+	for _, name := range names {
+		ng := api.NewNodeGroup()
+		ng.Name = name
+		nodeGroups = append(nodeGroups, ng)
+	}
+	return nodeGroups
+}
+
+func makeManagedNodeGroups(names ...string) []*api.ManagedNodeGroup {
+	var managedNodeGroups []*api.ManagedNodeGroup
+	for _, name := range names {
+		ng := api.NewManagedNodeGroup()
+		ng.Name = name
+		managedNodeGroups = append(managedNodeGroups, ng)
+	}
+	return managedNodeGroups
+}

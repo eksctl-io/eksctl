@@ -1,9 +1,10 @@
-package managed
+package nodegroup_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 )
 
 var _ = Describe("AMI Release Version", func() {
@@ -15,11 +16,11 @@ var _ = Describe("AMI Release Version", func() {
 	}
 
 	compare := func(a, b string) (int, error) {
-		v1, err := parseReleaseVersion(a)
+		v1, err := nodegroup.ParseReleaseVersion(a)
 		if err != nil {
 			return 0, err
 		}
-		v2, err := parseReleaseVersion(b)
+		v2, err := nodegroup.ParseReleaseVersion(b)
 		if err != nil {
 			return 0, err
 		}

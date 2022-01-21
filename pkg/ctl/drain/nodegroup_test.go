@@ -24,7 +24,7 @@ var _ = Describe("drain node group", func() {
 			cmd := newMockEmptyCmd(args...)
 			count := 0
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				drainNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *v1alpha5.NodeGroup, undo, onlyMissing bool, maxGracePeriod time.Duration, disableEviction bool) error {
+				drainNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *v1alpha5.NodeGroup, undo, onlyMissing bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, disableEviction bool) error {
 					Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
 					Expect(ng.Name).To(Equal("ng"))
 					count++

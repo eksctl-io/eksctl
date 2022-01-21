@@ -56,6 +56,8 @@ kind: ClusterConfig
 metadata:
   name: %[1]s
   region: us-west-2
+kubernetesNetworkConfig:
+  ipFamily: IPv4
 nodeGroups:
 - amiFamily: AmazonLinux2
   containerRuntime: dockerd
@@ -352,6 +354,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				c.PrivateCluster = nil
 				c.NodeGroups = nil
 				c.AvailabilityZones = nil
+				c.KubernetesNetworkConfig = nil
 
 				ng := c.ManagedNodeGroups[0]
 				actualNG := actual.ManagedNodeGroups[0]

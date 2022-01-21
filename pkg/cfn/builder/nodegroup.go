@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/pkg/errors"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
+	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
@@ -51,6 +52,11 @@ func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spe
 
 // AddAllResources adds all the information about the nodegroup to the resource set
 func (n *NodeGroupResourceSet) AddAllResources() error {
+
+	if n.clusterSpec.KubernetesNetworkConfig != nil && n.clusterSpec.KubernetesNetworkConfig.IPv6Enabled() {
+		return errors.New("unmanaged nodegroups are not supported with IPv6 clusters")
+	}
+
 	n.rs.template.Description = fmt.Sprintf(
 		"%s (AMI family: %s, SSH access: %v, private networking: %v) %s",
 		nodeGroupTemplateDescription,
@@ -109,6 +115,87 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 	n.addResourcesForSecurityGroups()
 
 	return n.addResourcesForNodeGroup()
+}
+
+func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
+	for _, id := range n.spec.SecurityGroups.AttachIDs {
+		n.securityGroups = append(n.securityGroups, gfnt.NewString(id))
+	}
+
+	if api.IsEnabled(n.spec.SecurityGroups.WithShared) {
+		n.securityGroups = append(n.securityGroups, n.vpcImporter.SharedNodeSecurityGroup())
+	}
+
+	if api.IsDisabled(n.spec.SecurityGroups.WithLocal) {
+		return
+	}
+
+	desc := "worker nodes in group " + n.spec.Name
+	vpcID := n.vpcImporter.VPC()
+	refControlPlaneSG := n.vpcImporter.ControlPlaneSecurityGroup()
+
+	refNodeGroupLocalSG := n.newResource("SG", &gfnec2.SecurityGroup{
+		VpcId:            vpcID,
+		GroupDescription: gfnt.NewString("Communication between the control plane and " + desc),
+		Tags: []gfncfn.Tag{{
+			Key:   gfnt.NewString("kubernetes.io/cluster/" + n.clusterSpec.Metadata.Name),
+			Value: gfnt.NewString("owned"),
+		}},
+		SecurityGroupIngress: makeNodeIngressRules(n.spec.NodeGroupBase, refControlPlaneSG, n.clusterSpec.VPC.CIDR.String(), desc),
+	})
+
+	n.securityGroups = append(n.securityGroups, refNodeGroupLocalSG)
+
+	if api.IsEnabled(n.spec.EFAEnabled) {
+		efaSG := n.rs.addEFASecurityGroup(vpcID, n.clusterSpec.Metadata.Name, desc)
+		n.securityGroups = append(n.securityGroups, efaSG)
+	}
+
+	n.newResource("EgressInterCluster", &gfnec2.SecurityGroupEgress{
+		GroupId:                    refControlPlaneSG,
+		DestinationSecurityGroupId: refNodeGroupLocalSG,
+		Description:                gfnt.NewString("Allow control plane to communicate with " + desc + " (kubelet and workload TCP ports)"),
+		IpProtocol:                 sgProtoTCP,
+		FromPort:                   sgMinNodePort,
+		ToPort:                     sgMaxNodePort,
+	})
+	n.newResource("EgressInterClusterAPI", &gfnec2.SecurityGroupEgress{
+		GroupId:                    refControlPlaneSG,
+		DestinationSecurityGroupId: refNodeGroupLocalSG,
+		Description:                gfnt.NewString("Allow control plane to communicate with " + desc + " (workloads using HTTPS port, commonly used with extension API servers)"),
+		IpProtocol:                 sgProtoTCP,
+		FromPort:                   sgPortHTTPS,
+		ToPort:                     sgPortHTTPS,
+	})
+	n.newResource("IngressInterClusterCP", &gfnec2.SecurityGroupIngress{
+		GroupId:               refControlPlaneSG,
+		SourceSecurityGroupId: refNodeGroupLocalSG,
+		Description:           gfnt.NewString("Allow control plane to receive API requests from " + desc),
+		IpProtocol:            sgProtoTCP,
+		FromPort:              sgPortHTTPS,
+		ToPort:                sgPortHTTPS,
+	})
+}
+
+func makeNodeIngressRules(ng *api.NodeGroupBase, controlPlaneSG *gfnt.Value, vpcCIDR, description string) []gfnec2.SecurityGroup_Ingress {
+	ingressRules := []gfnec2.SecurityGroup_Ingress{
+		{
+			SourceSecurityGroupId: controlPlaneSG,
+			Description:           gfnt.NewString(fmt.Sprintf("[IngressInterCluster] Allow %s to communicate with control plane (kubelet and workload TCP ports)", description)),
+			IpProtocol:            sgProtoTCP,
+			FromPort:              sgMinNodePort,
+			ToPort:                sgMaxNodePort,
+		},
+		{
+			SourceSecurityGroupId: controlPlaneSG,
+			Description:           gfnt.NewString(fmt.Sprintf("[IngressInterClusterAPI] Allow %s to communicate with control plane (workloads using HTTPS port, commonly used with extension API servers)", description)),
+			IpProtocol:            sgProtoTCP,
+			FromPort:              sgPortHTTPS,
+			ToPort:                sgPortHTTPS,
+		},
+	}
+
+	return append(ingressRules, makeSSHIngressRules(ng, vpcCIDR, description)...)
 }
 
 // RenderJSON returns the rendered JSON

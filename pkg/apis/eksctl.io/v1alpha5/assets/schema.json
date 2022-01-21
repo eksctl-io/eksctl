@@ -190,6 +190,11 @@
           },
           "type": "array"
         },
+        "karpenter": {
+          "$ref": "#/definitions/Karpenter",
+          "description": "specific configuration options.",
+          "x-intellij-html-description": "specific configuration options."
+        },
         "kind": {
           "type": "string",
           "enum": [
@@ -246,7 +251,8 @@
         "availabilityZones",
         "cloudWatch",
         "secretsEncryption",
-        "gitops"
+        "gitops",
+        "karpenter"
       ],
       "additionalProperties": false,
       "description": "a simple config, to be replaced with Cluster API",
@@ -564,7 +570,21 @@
           "description": "for additional CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets",
           "x-intellij-html-description": "for additional CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets"
         },
+        "extraIPv6CIDRs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "for additional IPv6 CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets",
+          "x-intellij-html-description": "for additional IPv6 CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets"
+        },
         "id": {
+          "type": "string"
+        },
+        "ipv6Cidr": {
+          "type": "string"
+        },
+        "ipv6Pool": {
           "type": "string"
         },
         "manageSharedNodeSecurityGroupRules": {
@@ -603,9 +623,12 @@
       "preferredOrder": [
         "id",
         "cidr",
+        "ipv6Cidr",
+        "ipv6Pool",
         "securityGroup",
         "subnets",
         "extraCIDRs",
+        "extraIPv6CIDRs",
         "sharedNodeSecurityGroup",
         "manageSharedNodeSecurityGroupRules",
         "autoAllocateIPv6",
@@ -818,8 +841,41 @@
       "description": "holds EC2 instance selector options",
       "x-intellij-html-description": "holds EC2 instance selector options"
     },
+    "Karpenter": {
+      "required": [
+        "version"
+      ],
+      "properties": {
+        "createServiceAccount": {
+          "type": "boolean",
+          "description": "create a service account or not.",
+          "x-intellij-html-description": "create a service account or not."
+        },
+        "version": {
+          "type": "string",
+          "description": "defines the Karpenter version to install",
+          "x-intellij-html-description": "defines the Karpenter version to install"
+        }
+      },
+      "preferredOrder": [
+        "version",
+        "createServiceAccount"
+      ],
+      "additionalProperties": false,
+      "description": "provides configuration opti",
+      "x-intellij-html-description": "provides configuration opti"
+    },
     "KubernetesNetworkConfig": {
       "properties": {
+        "ipFamily": {
+          "type": "string",
+          "description": "Valid variants are: `\"IPv4\"` defines an IP family of v4 to be used when creating a new VPC and cluster., `\"IPv6\"` defines an IP family of v6 to be used when creating a new VPC and cluster..",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;IPv4&quot;</code> defines an IP family of v4 to be used when creating a new VPC and cluster., <code>&quot;IPv6&quot;</code> defines an IP family of v6 to be used when creating a new VPC and cluster..",
+          "enum": [
+            "IPv4",
+            "IPv6"
+          ]
+        },
         "serviceIPv4CIDR": {
           "type": "string",
           "description": "CIDR range from where `ClusterIP`s are assigned",
@@ -827,6 +883,7 @@
         }
       },
       "preferredOrder": [
+        "ipFamily",
         "serviceIPv4CIDR"
       ],
       "additionalProperties": false,

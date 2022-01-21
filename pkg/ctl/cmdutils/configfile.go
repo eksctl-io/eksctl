@@ -232,15 +232,19 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 
 	l.validateWithConfigFile = func() error {
 		clusterConfig := l.ClusterConfig
-		if clusterConfig.VPC == nil {
-			clusterConfig.VPC = api.NewClusterVPC()
+		if clusterConfig.KubernetesNetworkConfig != nil && clusterConfig.KubernetesNetworkConfig.IPv6Enabled() {
+			clusterConfig.VPC = &api.ClusterVPC{}
+		} else {
+			if clusterConfig.VPC == nil {
+				clusterConfig.VPC = api.NewClusterVPC()
+			}
+
+			if clusterConfig.VPC.NAT == nil {
+				clusterConfig.VPC.NAT = api.DefaultClusterNAT()
+			}
 		}
 
-		if clusterConfig.VPC.NAT == nil {
-			clusterConfig.VPC.NAT = api.DefaultClusterNAT()
-		}
-
-		if !api.IsSetAndNonEmptyString(clusterConfig.VPC.NAT.Gateway) {
+		if clusterConfig.VPC.NAT != nil && api.IsEmpty(clusterConfig.VPC.NAT.Gateway) {
 			*clusterConfig.VPC.NAT.Gateway = api.ClusterSingleNAT
 		}
 

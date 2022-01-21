@@ -241,6 +241,12 @@ const (
 	// NodeGroupNameLabel defines the label of the nodegroup name
 	NodeGroupNameLabel = "alpha.eksctl.io/nodegroup-name"
 
+	// KarpenterNameTag defines the tag of the Karpenter stack name
+	KarpenterNameTag = "alpha.eksctl.io/karpenter-name"
+
+	// KarpenterVersionTag defines the tag for Karpenter's version
+	KarpenterVersionTag = "alpha.eksctl.io/karpenter-version"
+
 	EKSNodeGroupNameLabel = "eks.amazonaws.com/nodegroup"
 
 	// SpotAllocationStrategyLowestPrice defines the ASG spot allocation strategy of lowest-price
@@ -319,6 +325,27 @@ const (
 	DefaultNodeVolumeGP3IOPS = 3000
 )
 
+// Values for `IPFamily`
+const (
+	// IPV4Family defines an IP family of v4 to be used when creating a new VPC and cluster.
+	IPV4Family = "IPv4"
+	// IPV6Family defines an IP family of v6 to be used when creating a new VPC and cluster.
+	IPV6Family = "IPv6"
+)
+
+// Values for core addons
+const (
+	VPCCNIAddon                 = "vpc-cni"
+	KubeProxyAddon              = "kube-proxy"
+	CoreDNSAddon                = "coredns"
+	minimumVPCCNIVersionForIPv6 = "1.10.0"
+)
+
+var (
+	// DefaultIPFamily defines the default IP family to use when creating a new VPC and cluster.
+	DefaultIPFamily = IPV4Family
+)
+
 var (
 	// DefaultWaitTimeout defines the default wait timeout
 	DefaultWaitTimeout = 25 * time.Minute
@@ -360,6 +387,9 @@ func IsDisabled(v *bool) bool { return v != nil && !*v }
 
 // IsSetAndNonEmptyString will only return true if s is not nil and not empty
 func IsSetAndNonEmptyString(s *string) bool { return s != nil && *s != "" }
+
+// IsSetAndNonEmptyString will only return true if s is not nil and not empty
+func IsEmpty(s *string) bool { return !IsSetAndNonEmptyString(s) }
 
 // SupportedRegions are the regions where EKS is available
 func SupportedRegions() []string {
@@ -540,8 +570,15 @@ type ClusterMeta struct {
 
 // KubernetesNetworkConfig contains cluster networking options
 type KubernetesNetworkConfig struct {
+	// Valid variants are `IPFamily` constants
+	// +optional
+	IPFamily string `json:"ipFamily,omitempty"`
 	// ServiceIPv4CIDR is the CIDR range from where `ClusterIP`s are assigned
 	ServiceIPv4CIDR string `json:"serviceIPv4CIDR,omitempty"`
+}
+
+func (k *KubernetesNetworkConfig) IPv6Enabled() bool {
+	return strings.EqualFold(k.IPFamily, IPV6Family)
 }
 
 type EKSCTLCreated string
@@ -586,6 +623,21 @@ func (c ClusterConfig) LogString() string {
 // or false otherwise.
 func (c ClusterConfig) IsFargateEnabled() bool {
 	return len(c.FargateProfiles) > 0
+}
+
+func (c ClusterConfig) HasNodes() bool {
+	for _, m := range c.ManagedNodeGroups {
+		if m.GetDesiredCapacity() > 0 {
+			return true
+		}
+	}
+
+	for _, n := range c.NodeGroups {
+		if n.GetDesiredCapacity() > 0 {
+			return true
+		}
+	}
+	return false
 }
 
 // ClusterProvider is the interface to AWS APIs
@@ -678,6 +730,20 @@ type ClusterConfig struct {
 	// future gitops plans, replacing the Git configuration above
 	// +optional
 	GitOps *GitOps `json:"gitops,omitempty"`
+
+	// Karpenter specific configuration options.
+	// +optional
+	Karpenter *Karpenter `json:"karpenter,omitempty"`
+}
+
+// Karpenter provides configuration opti
+type Karpenter struct {
+	// Version defines the Karpenter version to install
+	// +required
+	Version string `json:"version"`
+	// CreateServiceAccount create a service account or not.
+	// +optional
+	CreateServiceAccount *bool `json:"createServiceAccount,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -708,6 +774,9 @@ func NewClusterConfig() *ClusterConfig {
 			Version: DefaultVersion,
 		},
 		IAM: NewClusterIAM(),
+		KubernetesNetworkConfig: &KubernetesNetworkConfig{
+			IPFamily: DefaultIPFamily,
+		},
 		VPC: NewClusterVPC(),
 		CloudWatch: &ClusterCloudWatch{
 			ClusterLogging: &ClusterCloudWatchLogging{},
@@ -924,6 +993,13 @@ func (n *NodeGroup) NGTaints() []NodeGroupTaint {
 // BaseNodeGroup implements NodePool
 func (n *NodeGroup) BaseNodeGroup() *NodeGroupBase {
 	return n.NodeGroupBase
+}
+
+func (n *NodeGroup) GetDesiredCapacity() int {
+	if n.NodeGroupBase != nil {
+		return n.NodeGroupBase.GetDesiredCapacity()
+	}
+	return 0
 }
 
 // GitOps groups all configuration options related to enabling GitOps Toolkit on a
@@ -1340,6 +1416,20 @@ type ManagedNodeGroup struct {
 	// Internal fields
 
 	Unowned bool `json:"-"`
+}
+
+func (n *NodeGroupBase) GetDesiredCapacity() int {
+	if n.ScalingConfig != nil && n.ScalingConfig.DesiredCapacity != nil {
+		return *n.ScalingConfig.DesiredCapacity
+	}
+	return 0
+}
+
+func (m *ManagedNodeGroup) GetDesiredCapacity() int {
+	if m.NodeGroupBase != nil {
+		return m.NodeGroupBase.GetDesiredCapacity()
+	}
+	return 0
 }
 
 func (m *ManagedNodeGroup) InstanceTypeList() []string {

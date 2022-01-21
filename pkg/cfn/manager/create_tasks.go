@@ -5,12 +5,13 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -32,6 +33,15 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 			supportsManagedNodes: supportsManagedNodes,
 		},
 	)
+
+	if c.spec.KubernetesNetworkConfig != nil && c.spec.KubernetesNetworkConfig.IPv6Enabled() {
+		taskTree.Append(
+			&AssignIpv6AddressOnCreationTask{
+				ClusterConfig: c.spec,
+				EC2API:        c.ec2API,
+			},
+		)
+	}
 
 	appendNodeGroupTasksTo := func(taskTree *tasks.TaskTree) {
 		vpcImporter := vpc.NewStackConfigImporter(c.MakeClusterStackName())
