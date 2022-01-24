@@ -244,14 +244,15 @@ var _ = Describe("Delete", func() {
 				undo := false
 				disableEviction := false
 
+				errorMessage := "Mocked error"
 				mockedDrainer := &drainerMockOwned{}
-				mockedDrainer.On("Drain", kubeNodeGroups, plan, ctl.Provider.WaitTimeout(), nodeDrainWaitPeriod, undo, disableEviction).Return(errors.New("Mocked error"))
+				mockedDrainer.On("Drain", kubeNodeGroups, plan, ctl.Provider.WaitTimeout(), nodeDrainWaitPeriod, undo, disableEviction).Return(errors.New(errorMessage))
 				c.SetNewNodeGroupManager(func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
 					return mockedDrainer
 				})
 
 				err := c.Delete(time.Microsecond, false, false, false)
-				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError(errorMessage))
 				Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(0))
 				Expect(ranDeleteDeprecatedTasks).To(BeFalse())
 				Expect(fakeStackManager.NewTasksToDeleteClusterWithNodeGroupsCallCount()).To(Equal(0))
