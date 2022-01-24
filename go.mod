@@ -474,3 +474,6 @@ replace (
 	k8s.io/metrics => k8s.io/metrics v0.21.2
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.21.2
 )
+
+// TODO: Remove this after upstream is fixed.
+replace github.com/aws/amazon-ec2-instance-selector/v2 => github.com/cPu1/amazon-ec2-instance-selector/v2 v2.0.4-0.20220124124610-917b378f4e86
