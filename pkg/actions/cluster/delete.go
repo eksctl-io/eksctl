@@ -3,6 +3,7 @@ package cluster
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	"strings"
 	"time"
 
@@ -29,7 +30,7 @@ import (
 )
 
 type NodeGroupDrainer interface {
-	Drain(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, undo, disableEviction bool) error
+	Drain(input *nodegroup.NodeGroupDrainInput) error
 }
 type vpcCniDeleter func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface)
 
@@ -177,7 +178,12 @@ func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, client
 
 	logger.Info("will drain %d unmanaged nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 
-	if err := nodeGroupDrainer.Drain(cmdutils.ToKubeNodeGroups(cfg), false, ctl.Provider.WaitTimeout(), 0, false, disableEviction); err != nil {
+	drainInput := &nodegroup.NodeGroupDrainInput{
+		NodeGroups:      cmdutils.ToKubeNodeGroups(cfg),
+		MaxGracePeriod:  ctl.Provider.WaitTimeout(),
+		DisableEviction: disableEviction,
+	}
+	if err := nodeGroupDrainer.Drain(drainInput); err != nil {
 		return err
 	}
 
