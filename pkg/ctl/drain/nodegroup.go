@@ -120,7 +120,7 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 	}
 	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 
-	drainInput := &nodegroup.NodeGroupDrainInput{
+	drainInput := &nodegroup.DrainInput{
 		NodeGroups:          allNodeGroups,
 		Plan:                cmd.Plan,
 		MaxGracePeriod:      maxGracePeriod,

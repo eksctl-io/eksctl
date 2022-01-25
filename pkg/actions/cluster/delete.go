@@ -3,7 +3,6 @@ package cluster
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	"strings"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -30,7 +30,7 @@ import (
 )
 
 type NodeGroupDrainer interface {
-	Drain(input *nodegroup.NodeGroupDrainInput) error
+	Drain(input *nodegroup.DrainInput) error
 }
 type vpcCniDeleter func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface)
 
@@ -178,7 +178,7 @@ func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, client
 
 	logger.Info("will drain %d unmanaged nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 
-	drainInput := &nodegroup.NodeGroupDrainInput{
+	drainInput := &nodegroup.DrainInput{
 		NodeGroups:      cmdutils.ToKubeNodeGroups(cfg),
 		MaxGracePeriod:  ctl.Provider.WaitTimeout(),
 		DisableEviction: disableEviction,

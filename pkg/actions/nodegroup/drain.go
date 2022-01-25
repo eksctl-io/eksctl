@@ -8,7 +8,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/drain"
 )
 
-type NodeGroupDrainInput struct {
+type DrainInput struct {
 	NodeGroups          []eks.KubeNodeGroup
 	Plan                bool
 	MaxGracePeriod      time.Duration
@@ -17,7 +17,7 @@ type NodeGroupDrainInput struct {
 	DisableEviction     bool
 }
 
-func (m *Manager) Drain(input *NodeGroupDrainInput) error {
+func (m *Manager) Drain(input *DrainInput) error {
 	if !input.Plan {
 		for _, n := range input.NodeGroups {
 			nodeGroupDrainer := drain.NewNodeGroupDrainer(m.clientSet, n, m.ctl.Provider.WaitTimeout(), input.MaxGracePeriod, input.NodeDrainWaitPeriod, input.Undo, input.DisableEviction)

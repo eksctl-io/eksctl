@@ -122,7 +122,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	if deleteNodeGroupDrain {
 		cmdutils.LogIntendedAction(cmd.Plan, "drain %d nodegroup(s) in cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
-		drainInput := &nodegroup.NodeGroupDrainInput{
+		drainInput := &nodegroup.DrainInput{
 			NodeGroups:      allNodeGroups,
 			Plan:            cmd.Plan,
 			MaxGracePeriod:  maxGracePeriod,
