@@ -6,6 +6,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
+var (
+	DrainAllNodeGroups = drainAllNodeGroups
+)
+
 func (c *UnownedCluster) SetNewClientSet(newClientSet func() (kubernetes.Interface, error)) {
 	c.newClientSet = newClientSet
 }

@@ -1,4 +1,4 @@
-package cluster
+package cluster_test
 
 import (
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+	"github.com/weaveworks/eksctl/pkg/actions/cluster"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
@@ -48,7 +49,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 	Context("draining node groups", func() {
 		When("disable eviction flag is set to false", func() {
 			It("drain the node groups", func() {
-				c := NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
+				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
 					return fakeClientSet, nil
 				})
@@ -66,7 +67,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 					vpcCniDeleterCalled++
 				}
 
-				err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, false, mockedDrainer, vpcCniDeleter)
+				err := cluster.DrainAllNodeGroups(cfg, ctl, fakeClientSet, nodeGroupStacks, false, mockedDrainer, vpcCniDeleter)
 				Expect(err).NotTo(HaveOccurred())
 				mockedDrainer.AssertNumberOfCalls(GinkgoT(), "Drain", 1)
 				Expect(vpcCniDeleterCalled).To(Equal(1))
@@ -75,7 +76,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 
 		When("disable eviction flag is set to true", func() {
 			It("drain the node groups", func() {
-				c := NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
+				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
 					return fakeClientSet, nil
 				})
@@ -94,7 +95,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 					vpcCniDeleterCalled++
 				}
 
-				err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, true, mockedDrainer, vpcCniDeleter)
+				err := cluster.DrainAllNodeGroups(cfg, ctl, fakeClientSet, nodeGroupStacks, true, mockedDrainer, vpcCniDeleter)
 				Expect(err).NotTo(HaveOccurred())
 				mockedDrainer.AssertNumberOfCalls(GinkgoT(), "Drain", 1)
 				Expect(vpcCniDeleterCalled).To(Equal(1))
@@ -103,12 +104,12 @@ var _ = Describe("DrainAllNodeGroups", func() {
 
 		When("no node group stacks exist", func() {
 			It("does no draining at all", func() {
-				c := NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
+				c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
 					return fakeClientSet, nil
 				})
 
-				nodeGroupStacks := []manager.NodeGroupStack{}
+				var nodeGroupStacks []manager.NodeGroupStack
 				mockedDrainInput := &nodegroup.DrainInput{
 					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
 					MaxGracePeriod: ctl.Provider.WaitTimeout(),
@@ -121,7 +122,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 					vpcCniDeleterCalled++
 				}
 
-				err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, false, mockedDrainer, vpcCniDeleter)
+				err := cluster.DrainAllNodeGroups(cfg, ctl, fakeClientSet, nodeGroupStacks, false, mockedDrainer, vpcCniDeleter)
 				Expect(err).NotTo(HaveOccurred())
 				mockedDrainer.AssertNotCalled(GinkgoT(), "Drain")
 				Expect(vpcCniDeleterCalled).To(Equal(0))
