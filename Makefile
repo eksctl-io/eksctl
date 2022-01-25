@@ -81,7 +81,7 @@ endif
 
 .PHONY: lint
 lint: ## Run linter over the codebase
-	golangci-lint run
+	golangci-lint run --timeout=30m
 	@for config_file in $(shell ls .goreleaser*); do goreleaser check -f $${config_file} || exit 1; done
 
 .PHONY: test
