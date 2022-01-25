@@ -7,7 +7,7 @@ go 1.17
 
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
-	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.3-0.20210303155736-3e43512d88f8
+	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.4-0.20220124212200-2aee60ac608e
 	github.com/aws/aws-sdk-go v1.42.39
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/blang/semver v3.5.1+incompatible
@@ -474,6 +474,3 @@ replace (
 	k8s.io/metrics => k8s.io/metrics v0.21.2
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.21.2
 )
-
-// TODO: Remove this after upstream is fixed.
-replace github.com/aws/amazon-ec2-instance-selector/v2 => github.com/cPu1/amazon-ec2-instance-selector/v2 v2.0.4-0.20220124124610-917b378f4e86
