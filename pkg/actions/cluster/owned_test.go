@@ -3,6 +3,7 @@ package cluster_test
 import (
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 
 	"github.com/pkg/errors"
@@ -37,8 +38,8 @@ type drainerMockOwned struct {
 	mock.Mock
 }
 
-func (drainer *drainerMockOwned) Drain(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, undo, disableEviction bool) error {
-	args := drainer.Called(nodeGroups, plan, maxGracePeriod, nodeDrainWaitPeriod, undo, disableEviction)
+func (drainer *drainerMockOwned) Drain(input *nodegroup.DrainInput) error {
+	args := drainer.Called(input)
 	return args.Error(0)
 }
 
@@ -173,14 +174,13 @@ var _ = Describe("Delete", func() {
 					return fakeClientSet, nil
 				})
 
-				kubeNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
-				var nodeDrainWaitPeriod time.Duration = 0
-				plan := false
-				undo := false
-				disableEviction := false
+				mockedDrainInput := &nodegroup.DrainInput{
+					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
+					MaxGracePeriod: ctl.Provider.WaitTimeout(),
+				}
 
 				mockedDrainer := &drainerMockOwned{}
-				mockedDrainer.On("Drain", kubeNodeGroups, plan, ctl.Provider.WaitTimeout(), nodeDrainWaitPeriod, undo, disableEviction).Return(errors.New("Mocked error"))
+				mockedDrainer.On("Drain", mockedDrainInput).Return(errors.New("Mocked error"))
 				c.SetNewNodeGroupManager(func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
 					return mockedDrainer
 				})
@@ -238,15 +238,14 @@ var _ = Describe("Delete", func() {
 					return fakeClientSet, nil
 				})
 
-				kubeNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
-				var nodeDrainWaitPeriod time.Duration = 0
-				plan := false
-				undo := false
-				disableEviction := false
+				mockedDrainInput := &nodegroup.DrainInput{
+					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
+					MaxGracePeriod: ctl.Provider.WaitTimeout(),
+				}
 
 				errorMessage := "Mocked error"
 				mockedDrainer := &drainerMockOwned{}
-				mockedDrainer.On("Drain", kubeNodeGroups, plan, ctl.Provider.WaitTimeout(), nodeDrainWaitPeriod, undo, disableEviction).Return(errors.New(errorMessage))
+				mockedDrainer.On("Drain", mockedDrainInput).Return(errors.New(errorMessage))
 				c.SetNewNodeGroupManager(func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) cluster.NodeGroupDrainer {
 					return mockedDrainer
 				})

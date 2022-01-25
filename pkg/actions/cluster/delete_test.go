@@ -1,8 +1,7 @@
 package cluster
 
 import (
-	"time"
-
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 
 	. "github.com/onsi/ginkgo"
@@ -21,8 +20,8 @@ type drainerMock struct {
 	mock.Mock
 }
 
-func (drainer *drainerMock) Drain(nodeGroups []eks.KubeNodeGroup, plan bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, undo, disableEviction bool) error {
-	args := drainer.Called(nodeGroups, plan, maxGracePeriod, nodeDrainWaitPeriod, undo, disableEviction)
+func (drainer *drainerMock) Drain(input *nodegroup.DrainInput) error {
+	args := drainer.Called(input)
 	return args.Error(0)
 }
 
@@ -55,20 +54,19 @@ var _ = Describe("DrainAllNodeGroups", func() {
 				})
 
 				nodeGroupStacks := []manager.NodeGroupStack{{NodeGroupName: "ng-1"}}
-				kubeNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
-				var nodeDrainWaitPeriod time.Duration = 0
-				plan := false
-				undo := false
-				disableEviction := false
+				mockedDrainInput := &nodegroup.DrainInput{
+					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
+					MaxGracePeriod: ctl.Provider.WaitTimeout(),
+				}
 
 				mockedDrainer := &drainerMock{}
-				mockedDrainer.On("Drain", kubeNodeGroups, plan, ctl.Provider.WaitTimeout(), nodeDrainWaitPeriod, undo, disableEviction).Return(nil)
+				mockedDrainer.On("Drain", mockedDrainInput).Return(nil)
 				vpcCniDeleterCalled := 0
 				vpcCniDeleter := func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
 					vpcCniDeleterCalled++
 				}
 
-				err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, disableEviction, mockedDrainer, vpcCniDeleter)
+				err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, false, mockedDrainer, vpcCniDeleter)
 				Expect(err).NotTo(HaveOccurred())
 				mockedDrainer.AssertNumberOfCalls(GinkgoT(), "Drain", 1)
 				Expect(vpcCniDeleterCalled).To(Equal(1))
@@ -83,20 +81,20 @@ var _ = Describe("DrainAllNodeGroups", func() {
 				})
 
 				nodeGroupStacks := []manager.NodeGroupStack{{NodeGroupName: "ng-1"}}
-				kubeNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
-				var nodeDrainWaitPeriod time.Duration = 0
-				plan := false
-				undo := false
-				disableEviction := true
+				mockedDrainInput := &nodegroup.DrainInput{
+					NodeGroups:      cmdutils.ToKubeNodeGroups(cfg),
+					MaxGracePeriod:  ctl.Provider.WaitTimeout(),
+					DisableEviction: true,
+				}
 
 				mockedDrainer := &drainerMock{}
-				mockedDrainer.On("Drain", kubeNodeGroups, plan, ctl.Provider.WaitTimeout(), nodeDrainWaitPeriod, undo, disableEviction).Return(nil)
+				mockedDrainer.On("Drain", mockedDrainInput).Return(nil)
 				vpcCniDeleterCalled := 0
 				vpcCniDeleter := func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
 					vpcCniDeleterCalled++
 				}
 
-				err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, disableEviction, mockedDrainer, vpcCniDeleter)
+				err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, true, mockedDrainer, vpcCniDeleter)
 				Expect(err).NotTo(HaveOccurred())
 				mockedDrainer.AssertNumberOfCalls(GinkgoT(), "Drain", 1)
 				Expect(vpcCniDeleterCalled).To(Equal(1))
@@ -111,20 +109,19 @@ var _ = Describe("DrainAllNodeGroups", func() {
 				})
 
 				nodeGroupStacks := []manager.NodeGroupStack{}
-				kubeNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
-				var nodeDrainWaitPeriod time.Duration = 0
-				plan := false
-				undo := false
-				disableEviction := false
+				mockedDrainInput := &nodegroup.DrainInput{
+					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
+					MaxGracePeriod: ctl.Provider.WaitTimeout(),
+				}
 
 				mockedDrainer := &drainerMock{}
-				mockedDrainer.On("Drain", kubeNodeGroups, plan, ctl.Provider.WaitTimeout(), nodeDrainWaitPeriod, undo, disableEviction).Return(nil)
+				mockedDrainer.On("Drain", mockedDrainInput).Return(nil)
 				vpcCniDeleterCalled := 0
 				vpcCniDeleter := func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
 					vpcCniDeleterCalled++
 				}
 
-				err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, disableEviction, mockedDrainer, vpcCniDeleter)
+				err := drainAllNodeGroups(c.cfg, c.ctl, fakeClientSet, nodeGroupStacks, false, mockedDrainer, vpcCniDeleter)
 				Expect(err).NotTo(HaveOccurred())
 				mockedDrainer.AssertNotCalled(GinkgoT(), "Drain")
 				Expect(vpcCniDeleterCalled).To(Equal(0))
