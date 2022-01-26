@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
@@ -36,6 +37,14 @@ func TestKarpenter(t *testing.T) {
 }
 
 var _ = Describe("(Integration) Karpenter", func() {
+	AfterEach(func() {
+		cmd := params.EksctlDeleteCmd.WithArgs(
+			"cluster", params.ClusterName,
+			"--verbose", "4",
+		)
+		Expect(cmd).To(RunSuccessfully())
+	})
+
 	Context("Creating a cluster with Karpenter", func() {
 		It("should support karpenter", func() {
 			cmd := params.EksctlCreateCmd.
