@@ -50,6 +50,7 @@ nav:
             - usage/vpc-configuration.md
             - usage/vpc-subnet-settings.md
             - usage/vpc-cluster-access.md
+            - usage/vpc-ip-family.md
         - IAM:
             - usage/minimum-iam-policies.md
             - usage/iam-permissions-boundary.md
