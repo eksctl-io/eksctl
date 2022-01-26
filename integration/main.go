@@ -97,7 +97,7 @@ func listModules() []string {
 	}
 	var moduleDirs []string
 	for _, f := range files {
-		if f.IsDir() {
+		if f.IsDir() && strings.Contains(f.Name(), "karp") {
 			moduleDirs = append(moduleDirs, path.Join(testsDir, f.Name()))
 		}
 	}
