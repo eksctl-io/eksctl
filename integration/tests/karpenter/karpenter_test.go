@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package karpenter
 
 import (
@@ -10,7 +13,6 @@ import (
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
@@ -26,7 +28,7 @@ func init() {
 	if err := api.Register(); err != nil {
 		panic(fmt.Errorf("unexpected error registering API scheme: %w", err))
 	}
-	params = tests.NewParams("")
+	params = tests.NewParams("karp")
 }
 
 func TestKarpenter(t *testing.T) {
@@ -34,16 +36,6 @@ func TestKarpenter(t *testing.T) {
 }
 
 var _ = Describe("(Integration) Karpenter", func() {
-
-	var (
-		clusterName string
-	)
-
-	BeforeEach(func() {
-		// the randomly generated name we get usually makes one of the resources have a longer than 64 characters name
-		clusterName = fmt.Sprintf("it-karpenter-%d", time.Now().Unix())
-	})
-
 	Context("Creating a cluster with Karpenter", func() {
 		It("should support karpenter", func() {
 			cmd := params.EksctlCreateCmd.
@@ -51,9 +43,10 @@ var _ = Describe("(Integration) Karpenter", func() {
 					"cluster",
 					"--config-file=-",
 					"--verbose=4",
+					"--kubeconfig", params.KubeconfigPath,
 				).
 				WithoutArg("--region", params.Region).
-				WithStdin(clusterutils.ReaderFromFile(clusterName, params.Region, "testdata/cluster-config.yaml"))
+				WithStdin(clusterutils.ReaderFromFile(params.ClusterName, params.Region, "testdata/cluster-config.yaml"))
 			// For dumping information, we need the kubeconfig. We just log the error here to
 			// know that it failed for debugging then carry on.
 			session := cmd.Run()
@@ -62,14 +55,6 @@ var _ = Describe("(Integration) Karpenter", func() {
 				fmt.Fprint(GinkgoWriter, string(session.Out.Contents()))
 				fmt.Fprint(GinkgoWriter, string(session.Err.Contents()))
 			}
-			cmd = params.EksctlUtilsCmd.WithArgs(
-				"write-kubeconfig",
-				"--verbose", "4",
-				"--cluster", clusterName,
-				"--kubeconfig", params.KubeconfigPath,
-			)
-			Expect(cmd).To(RunSuccessfully())
-
 			if session.ExitCode() != 0 {
 				describeKarpenterResources([]string{"karpenter-webhook", "karpenter-controller"})
 			}
