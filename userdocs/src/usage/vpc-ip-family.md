@@ -1,3 +1,5 @@
+# IPv6 Support
+
 ## Define IP Family
 
 When `eksctl` creates a vpc, you can define the IP version that will be used. The following options are available to be configured:
