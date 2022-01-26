@@ -414,7 +414,7 @@ func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.Cl
 		}
 	}
 
-	if err := ValidateExistingPublicSubnets(provider, spec.VPC.ID, subnetsToValidate.List()); err != nil {
+	if err := ValidateExistingPublicSubnets(provider, spec, subnetsToValidate.List()); err != nil {
 		// If the cluster endpoint is reachable from the VPC nodes might still be able to join
 		if spec.HasPrivateEndpointAccess() {
 			logger.Warning("public subnets for one or more nodegroups have %q disabled. This means that nodes won't "+
@@ -432,15 +432,15 @@ func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.Cl
 }
 
 // ValidateExistingPublicSubnets makes sure that subnets have the property MapPublicIpOnLaunch enabled
-func ValidateExistingPublicSubnets(provider api.ClusterProvider, vpcID string, subnetIDs []string) error {
+func ValidateExistingPublicSubnets(provider api.ClusterProvider, cfg *api.ClusterConfig, subnetIDs []string) error {
 	if len(subnetIDs) == 0 {
 		return nil
 	}
-	subnets, err := describeSubnets(provider.EC2(), vpcID, subnetIDs, []string{}, []string{})
+	subnets, err := describeSubnets(provider.EC2(), cfg.VPC.ID, subnetIDs, []string{}, []string{})
 	if err != nil {
 		return err
 	}
-	return validatePublicSubnet(subnets)
+	return validatePublicSubnet(cfg, subnets)
 }
 
 // EnsureMapPublicIPOnLaunchEnabled will enable MapPublicIpOnLaunch in EC2 for all given subnet IDs
@@ -524,11 +524,23 @@ func cleanupSubnets(spec *api.ClusterConfig) {
 	cleanup(&spec.VPC.Subnets.Public)
 }
 
-func validatePublicSubnet(subnets []*ec2.Subnet) error {
-	legacySubnets := make([]string, 0)
+func validatePublicSubnet(cfg *api.ClusterConfig, subnets []*ec2.Subnet) error {
+	var legacySubnets []string
 	for _, sn := range subnets {
 		if sn.MapPublicIpOnLaunch == nil || !*sn.MapPublicIpOnLaunch {
 			legacySubnets = append(legacySubnets, *sn.SubnetId)
+		}
+
+		found := false
+		for _, f := range cfg.VPC.Subnets.Public.WithIDs() {
+			if f == *sn.SubnetId {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return fmt.Errorf("subnet %q not found in the list of public subnets or is not a public subnet", *sn.SubnetId)
 		}
 	}
 	if len(legacySubnets) > 0 {
