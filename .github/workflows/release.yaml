@@ -27,3 +27,7 @@ jobs:
           token: "${{ secrets.WEAVEWORKSBOT_TOKEN }}"
       - name: Open PRs to release branch and default branch
         run: make prepare-release
+      - name: Publish docs to Netlify
+        run: make publish-docs
+        env:
+          NETLIFY_BUILD_HOOK_URL: ${{ secrets.NETLIFY_BUILD_HOOK_URL }}
