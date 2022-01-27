@@ -424,9 +424,7 @@ func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.Cl
 		}
 
 		logger.Critical(err.Error())
-		return errors.Errorf("subnets for one or more new nodegroups don't meet requirements. "+
-			"To fix this, please run `eksctl utils update-legacy-subnet-settings --cluster %s`",
-			spec.Metadata.Name)
+		return fmt.Errorf("subnets for one or more new nodegroups don't meet requirements: %w", err)
 	}
 	return nil
 }
@@ -525,27 +523,27 @@ func cleanupSubnets(spec *api.ClusterConfig) {
 }
 
 func validatePublicSubnet(cfg *api.ClusterConfig, subnets []*ec2.Subnet) error {
+	containsSubnet := func(id string) bool {
+		for _, f := range cfg.VPC.Subnets.Public.WithIDs() {
+			if f == id {
+				return true
+			}
+		}
+		return false
+	}
 	var legacySubnets []string
 	for _, sn := range subnets {
 		if sn.MapPublicIpOnLaunch == nil || !*sn.MapPublicIpOnLaunch {
 			legacySubnets = append(legacySubnets, *sn.SubnetId)
 		}
-
-		found := false
-		for _, f := range cfg.VPC.Subnets.Public.WithIDs() {
-			if f == *sn.SubnetId {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			return fmt.Errorf("subnet %q not found in the list of public subnets or is not a public subnet", *sn.SubnetId)
+		if !containsSubnet(*sn.SubnetId) {
+			return fmt.Errorf("subnet %q does not exist or is not a public subnet", *sn.SubnetId)
 		}
 	}
 	if len(legacySubnets) > 0 {
 		return fmt.Errorf("found mis-configured subnets %q. Expected public subnets with property "+
-			"\"MapPublicIpOnLaunch\" enabled. Without it new nodes won't get an IP assigned", legacySubnets)
+			"\"MapPublicIpOnLaunch\" enabled. Without it new nodes won't get an IP assigned. "+
+			"To fix this, please run `eksctl utils update-legacy-subnet-settings --cluster %s`", legacySubnets, cfg.Metadata.Name)
 	}
 
 	return nil
