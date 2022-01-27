@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/pkg/errors"
 )
@@ -46,6 +47,26 @@ func FromIdentityProvider(idp IdentityProviderInterface) IdentityProvider {
 	return IdentityProvider{
 		type_: string(idp.Type()),
 		Inner: idp,
+	}
+}
+
+func (ip *IdentityProvider) MarshalJSON() ([]byte, error) {
+	switch ip.Inner.Type() {
+	case OIDCIdentityProviderType:
+		oidc, ok := ip.Inner.(*OIDCIdentityProvider)
+		if !ok {
+			return nil, fmt.Errorf("failed to cast oidc of type %s into OIDCIdentityProvider", OIDCIdentityProviderType)
+		}
+		return json.Marshal(struct {
+			*OIDCIdentityProvider
+			Type string `json:"type"`
+		}{
+			Type:                 string(OIDCIdentityProviderType),
+			OIDCIdentityProvider: oidc,
+		})
+
+	default:
+		return nil, errors.New("couldn't marshal to IdentityProvider, invalid type")
 	}
 }
 
