@@ -86,7 +86,7 @@ func (i *Installer) AddRepo(repoURL, release string) error {
 // it will install into that namespace and create the namespace. Version is required.
 func (i *Installer) InstallChart(ctx context.Context, opts providers.InstallChartOpts) error {
 	client := action.NewInstall(i.ActionConfig)
-	client.Wait = false
+	client.Wait = true
 	client.Namespace = opts.Namespace
 	client.ReleaseName = opts.ReleaseName
 	client.Version = opts.Version
