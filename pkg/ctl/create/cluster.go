@@ -12,7 +12,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"k8s.io/apimachinery/pkg/runtime"
 	kubeclient "k8s.io/client-go/kubernetes"
+	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	"github.com/weaveworks/eksctl/pkg/actions/flux"
@@ -24,6 +26,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kops"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -367,16 +370,13 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 				return fmt.Errorf("failed to create addons")
 			}
 		}
-		kubectlConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), params.AuthenticatorRoleARN, ctl.Provider.Profile())
-		_, err = kubeconfig.Write("/tmp/kube-config", *kubectlConfig, true)
+		config := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), params.AuthenticatorRoleARN, ctl.Provider.Profile())
+		kubeConfigBytes, err := runtime.Encode(clientcmdlatest.Codec, config)
 		if err != nil {
-			return errors.Wrap(err, "writing kubeconfig")
+			return errors.Wrap(err, "generating kubeconfig")
 		}
-
-		defer os.RemoveAll("/tmp/kube-config")
-
 		// After we have the cluster config and all the nodes are done, we install Karpenter if necessary.
-		if err := installKarpenter(ctl, cfg, stackManager, clientSet, "/tmp/kube-config"); err != nil {
+		if err := installKarpenter(ctl, cfg, stackManager, clientSet, kubernetes.NewRESTClientGetter("karpenter", string(kubeConfigBytes))); err != nil {
 			return err
 		}
 
@@ -425,12 +425,12 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 // - service account
 // - identity mapping
 // then proceeds with installing Karpenter using Helm.
-func installKarpenter(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, stackManager manager.StackManager, clientSet *kubeclient.Clientset, kubeConfig string) error {
+func installKarpenter(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, stackManager manager.StackManager, clientSet *kubeclient.Clientset, restClientGetter *kubernetes.SimpleRESTClientGetter) error {
 	if cfg.Karpenter == nil {
 		return nil
 	}
 
-	installer, err := karpenteractions.NewInstaller(cfg, ctl, stackManager, clientSet, kubeConfig)
+	installer, err := karpenteractions.NewInstaller(cfg, ctl, stackManager, clientSet, restClientGetter)
 	if err != nil {
 		return fmt.Errorf("failed to create installer: %w", err)
 	}
