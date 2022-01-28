@@ -60,6 +60,7 @@ type StackManager interface {
 	RefreshFargatePodExecutionRoleARN() error
 	AppendNewClusterStackResource(plan, supportsManagedNodes bool) (bool, error)
 	GetFargateStack() (*Stack, error)
+	GetKarpenterStack() (*Stack, error)
 	GetStackTemplate(stackName string) (string, error)
 	MakeClusterStackName() string
 	NewTasksToCreateClusterWithNodeGroups(nodeGroups []*v1alpha5.NodeGroup,

@@ -339,6 +339,18 @@ type FakeStackManager struct {
 		result1 []*v1alpha5.ClusterIAMServiceAccount
 		result2 error
 	}
+	GetKarpenterStackStub        func() (*cloudformation.Stack, error)
+	getKarpenterStackMutex       sync.RWMutex
+	getKarpenterStackArgsForCall []struct {
+	}
+	getKarpenterStackReturns struct {
+		result1 *cloudformation.Stack
+		result2 error
+	}
+	getKarpenterStackReturnsOnCall map[int]struct {
+		result1 *cloudformation.Stack
+		result2 error
+	}
 	GetManagedNodeGroupTemplateStub        func(string) (string, error)
 	getManagedNodeGroupTemplateMutex       sync.RWMutex
 	getManagedNodeGroupTemplateArgsForCall []struct {
@@ -2275,6 +2287,62 @@ func (fake *FakeStackManager) GetIAMServiceAccountsReturnsOnCall(i int, result1 
 	}
 	fake.getIAMServiceAccountsReturnsOnCall[i] = struct {
 		result1 []*v1alpha5.ClusterIAMServiceAccount
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) GetKarpenterStack() (*cloudformation.Stack, error) {
+	fake.getKarpenterStackMutex.Lock()
+	ret, specificReturn := fake.getKarpenterStackReturnsOnCall[len(fake.getKarpenterStackArgsForCall)]
+	fake.getKarpenterStackArgsForCall = append(fake.getKarpenterStackArgsForCall, struct {
+	}{})
+	stub := fake.GetKarpenterStackStub
+	fakeReturns := fake.getKarpenterStackReturns
+	fake.recordInvocation("GetKarpenterStack", []interface{}{})
+	fake.getKarpenterStackMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStackManager) GetKarpenterStackCallCount() int {
+	fake.getKarpenterStackMutex.RLock()
+	defer fake.getKarpenterStackMutex.RUnlock()
+	return len(fake.getKarpenterStackArgsForCall)
+}
+
+func (fake *FakeStackManager) GetKarpenterStackCalls(stub func() (*cloudformation.Stack, error)) {
+	fake.getKarpenterStackMutex.Lock()
+	defer fake.getKarpenterStackMutex.Unlock()
+	fake.GetKarpenterStackStub = stub
+}
+
+func (fake *FakeStackManager) GetKarpenterStackReturns(result1 *cloudformation.Stack, result2 error) {
+	fake.getKarpenterStackMutex.Lock()
+	defer fake.getKarpenterStackMutex.Unlock()
+	fake.GetKarpenterStackStub = nil
+	fake.getKarpenterStackReturns = struct {
+		result1 *cloudformation.Stack
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStackManager) GetKarpenterStackReturnsOnCall(i int, result1 *cloudformation.Stack, result2 error) {
+	fake.getKarpenterStackMutex.Lock()
+	defer fake.getKarpenterStackMutex.Unlock()
+	fake.GetKarpenterStackStub = nil
+	if fake.getKarpenterStackReturnsOnCall == nil {
+		fake.getKarpenterStackReturnsOnCall = make(map[int]struct {
+			result1 *cloudformation.Stack
+			result2 error
+		})
+	}
+	fake.getKarpenterStackReturnsOnCall[i] = struct {
+		result1 *cloudformation.Stack
 		result2 error
 	}{result1, result2}
 }
@@ -4223,6 +4291,8 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.getIAMAddonsStacksMutex.RUnlock()
 	fake.getIAMServiceAccountsMutex.RLock()
 	defer fake.getIAMServiceAccountsMutex.RUnlock()
+	fake.getKarpenterStackMutex.RLock()
+	defer fake.getKarpenterStackMutex.RUnlock()
 	fake.getManagedNodeGroupTemplateMutex.RLock()
 	defer fake.getManagedNodeGroupTemplateMutex.RUnlock()
 	fake.getNodeGroupNameMutex.RLock()
