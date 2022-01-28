@@ -35,7 +35,7 @@ func TestKarpenter(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-var _ = PDescribe("(Integration) Karpenter", func() {
+var _ = Describe("(Integration) Karpenter", func() {
 	AfterEach(func() {
 		cmd := params.EksctlDeleteCmd.WithArgs(
 			"cluster", params.ClusterName,
