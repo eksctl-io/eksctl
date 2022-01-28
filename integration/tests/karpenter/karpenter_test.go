@@ -5,7 +5,6 @@ package karpenter
 
 import (
 	"fmt"
-	"os/exec"
 	"testing"
 	"time"
 
@@ -56,17 +55,7 @@ var _ = Describe("(Integration) Karpenter", func() {
 				).
 				WithoutArg("--region", params.Region).
 				WithStdin(clusterutils.ReaderFromFile(params.ClusterName, params.Region, "testdata/cluster-config.yaml"))
-			// For dumping information, we need the kubeconfig. We just log the error here to
-			// know that it failed for debugging then carry on.
-			session := cmd.Run()
-			if session.ExitCode() != 0 {
-				fmt.Fprintf(GinkgoWriter, "cluster create command failed:")
-				fmt.Fprint(GinkgoWriter, string(session.Out.Contents()))
-				fmt.Fprint(GinkgoWriter, string(session.Err.Contents()))
-			}
-			if session.ExitCode() != 0 {
-				describeKarpenterResources([]string{"karpenter-webhook", "karpenter-controller"})
-			}
+			Expect(cmd).To(RunSuccessfully())
 
 			kubeTest, err := kube.NewTest(params.KubeconfigPath)
 			Expect(err).NotTo(HaveOccurred())
@@ -81,19 +70,3 @@ var _ = Describe("(Integration) Karpenter", func() {
 		})
 	})
 })
-
-// not using kubeTest since kubeTest fatals on error, and we don't want that.
-func describeKarpenterResources(names []string) {
-	for _, name := range names {
-		cmd := exec.Command("kubectl", "--kubeconfig", params.KubeconfigPath, "describe", "replicaset", name, "-n", karpenter.DefaultNamespace)
-		output, err := cmd.Output()
-		Expect(err).NotTo(HaveOccurred())
-		fmt.Fprintf(GinkgoWriter, "describe replicaset %s", name)
-		fmt.Fprint(GinkgoWriter, string(output))
-		cmd = exec.Command("kubectl", "--kubeconfig", params.KubeconfigPath, "describe", "deployment", name, "-n", karpenter.DefaultNamespace)
-		output, err = cmd.Output()
-		Expect(err).NotTo(HaveOccurred())
-		fmt.Fprintf(GinkgoWriter, "describe deployment %s", name)
-		fmt.Fprint(GinkgoWriter, string(output))
-	}
-}

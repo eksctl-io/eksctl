@@ -33,9 +33,10 @@ type Installer struct {
 type WaitFunc func(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error
 
 // NewInstaller creates a new Karpenter installer.
-func NewInstaller(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubeclient.Interface) (*Installer, error) {
+func NewInstaller(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubeclient.Interface, restClientGetter *kubernetes.SimpleRESTClientGetter) (*Installer, error) {
 	helmInstaller, err := helm.NewInstaller(helm.Options{
-		Namespace: karpenter.DefaultNamespace,
+		Namespace:        karpenter.DefaultNamespace,
+		RESTClientGetter: restClientGetter,
 	})
 	if err != nil {
 		return nil, err
