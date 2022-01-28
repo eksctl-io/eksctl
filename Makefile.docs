@@ -15,3 +15,7 @@ serve-pages: ## Serve the site locally
 .PHONY: build-pages
 build-pages: userdocs/src/usage/schema.json ## Generate the site
 	cd userdocs/ && mkdocs build
+
+.PHONY: publish-docs
+publish-docs:
+	build/scripts/publish-docs.sh
