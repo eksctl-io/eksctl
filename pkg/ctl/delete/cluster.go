@@ -73,14 +73,9 @@ func doDeleteCluster(cmd *cmdutils.Cmd, force bool) error {
 		return err
 	}
 
-	// Ignore error here if cluster doesn't exist. We still would like to clean up the stack and other
-	// existing resources which were created even if the cluster failed.
 	cluster, err := cluster.New(cfg, ctl)
 	if err != nil {
-		if !force {
-			return err
-		}
-		logger.Warning("failed to initialise cluster, force = true, ignoring")
+		return err
 	}
 
 	return cluster.Delete(time.Second*20, cmd.Wait, force)
