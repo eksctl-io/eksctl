@@ -10,8 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/pkg/errors"
-
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
+
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/fargate"
@@ -28,6 +28,11 @@ import (
 
 	"github.com/kris-nova/logger"
 )
+
+type NodeGroupDrainer interface {
+	Drain(input *nodegroup.DrainInput) error
+}
+type vpcCniDeleter func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface)
 
 func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clusterOperable bool, clientSet kubernetes.Interface) error {
 	if clusterOperable {
@@ -159,7 +164,7 @@ func checkForUndeletedStacks(stackManager manager.StackManager) error {
 	return nil
 }
 
-func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack) error {
+func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack, disableEviction bool, nodeGroupDrainer NodeGroupDrainer, vpcCniDeleter vpcCniDeleter) error {
 	if len(allStacks) == 0 {
 		return nil
 	}
@@ -172,11 +177,17 @@ func drainAllNodegroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackM
 	}
 
 	logger.Info("will drain %d unmanaged nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
-	nodeGroupManager := nodegroup.New(cfg, ctl, clientSet)
-	if err := nodeGroupManager.Drain(cmdutils.ToKubeNodeGroups(cfg), false, ctl.Provider.WaitTimeout(), 0, false, false); err != nil {
+
+	drainInput := &nodegroup.DrainInput{
+		NodeGroups:      cmdutils.ToKubeNodeGroups(cfg),
+		MaxGracePeriod:  ctl.Provider.WaitTimeout(),
+		DisableEviction: disableEviction,
+	}
+	if err := nodeGroupDrainer.Drain(drainInput); err != nil {
 		return err
 	}
-	attemptVpcCniDeletion(cfg.Metadata.Name, ctl, clientSet)
+
+	vpcCniDeleter(cfg.Metadata.Name, ctl, clientSet)
 	return nil
 }
 
