@@ -424,7 +424,7 @@ var _ = Describe("Create", func() {
 
 				Context("ipv6", func() {
 					BeforeEach(func() {
-						clusterConfig.VPC = api.NewClusterVPC()
+						clusterConfig.VPC = api.NewClusterVPC(false)
 						clusterConfig.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
 							IPFamily: api.IPV6Family,
 						}

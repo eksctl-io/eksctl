@@ -85,7 +85,7 @@ func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api
 	if err != nil {
 		return err
 	}
-	if cluster == nil && c.spec.KubernetesNetworkConfig != nil && c.spec.KubernetesNetworkConfig.IPv6Enabled() {
+	if cluster == nil && c.spec.IPv6Enabled() {
 		return errors.New("managed nodegroups cannot be created on IPv6 unowned clusters")
 	}
 	logger.Info("building managed nodegroup stack %q", name)

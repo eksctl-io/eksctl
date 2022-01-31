@@ -97,7 +97,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 				Metadata: &api.ClusterMeta{
 					Region: "us-west-2",
 				},
-				VPC: api.NewClusterVPC(),
+				VPC: api.NewClusterVPC(false),
 				PrivateCluster: &api.PrivateCluster{
 					Enabled: true,
 				},
@@ -114,7 +114,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 				Metadata: &api.ClusterMeta{
 					Region: "cn-north-1",
 				},
-				VPC: api.NewClusterVPC(),
+				VPC: api.NewClusterVPC(false),
 				PrivateCluster: &api.PrivateCluster{
 					Enabled: true,
 				},
