@@ -1110,7 +1110,7 @@ var _ = Describe("VPC", func() {
 			})
 			It("errors", func() {
 				err := ValidateExistingPublicSubnets(provider, spec, []string{subnetIDPrivate})
-				Expect(err).To(MatchError(ContainSubstring("subnet \"id-private\" does not exist or is not a public subnet")))
+				Expect(err).To(MatchError(ContainSubstring("subnet \"id-private\" could not be found in CF template or is not a public subnet")))
 			})
 		})
 	})
