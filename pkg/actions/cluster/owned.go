@@ -148,11 +148,30 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force bool) error {
 		return handleErrors(errs, "cluster with nodegroup(s)")
 	}
 
+	if err := c.deleteKarpenterStackIfExists(); err != nil {
+		return err
+	}
+
 	if err := checkForUndeletedStacks(c.stackManager); err != nil {
 		return err
 	}
 
 	logger.Success("all cluster resources were deleted")
+
+	return nil
+}
+
+func (c *OwnedCluster) deleteKarpenterStackIfExists() error {
+	stack, err := c.stackManager.GetKarpenterStack()
+	if err != nil {
+		return err
+	}
+
+	if stack != nil {
+		logger.Info("deleting karpenter stack")
+		_, err = c.stackManager.DeleteStackBySpec(stack)
+		return err
+	}
 
 	return nil
 }
