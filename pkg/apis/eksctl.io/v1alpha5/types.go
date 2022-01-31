@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
+
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
@@ -22,29 +24,28 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/utils/taints"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	"github.com/weaveworks/eksctl/pkg/utils/taints"
 )
 
 // Values for `KubernetesVersion`
 // All valid values should go in this block
 const (
-	Version1_16 = "1.16"
-
-	Version1_17 = "1.17"
-
 	Version1_18 = "1.18"
 
 	Version1_19 = "1.19"
 
 	Version1_20 = "1.20"
 
-	// DefaultVersion (default)
-	DefaultVersion = Version1_20
+	Version1_21 = "1.21"
 
-	LatestVersion = Version1_20
+	// DefaultVersion (default)
+	DefaultVersion = Version1_21
+
+	LatestVersion = Version1_21
 )
 
 // No longer supported versions
@@ -60,18 +61,23 @@ const (
 
 	// Version1_13 represents Kubernetes version 1.13.x
 	Version1_13 = "1.13"
-
 	// Version1_14 represents Kubernetes version 1.14.x
 	Version1_14 = "1.14"
 
 	// Version1_15 represents Kubernetes version 1.15.x
 	Version1_15 = "1.15"
+
+	// Version1_16 represents Kubernetes version 1.16.x
+	Version1_16 = "1.16"
+
+	// Version1_17 represents Kubernetes version 1.17.x
+	Version1_17 = "1.17"
 )
 
 // Not yet supported versions
 const (
-	// Version1_21 represents Kubernetes version 1.21.x
-	Version1_21 = "1.21"
+	// Version1_22 represents Kubernetes version 1.22.x
+	Version1_22 = "1.22"
 )
 
 const (
@@ -180,6 +186,13 @@ const (
 	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
 	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
 	NodeImageFamilyWindowsServer2004CoreContainer = "WindowsServer2004CoreContainer"
+	NodeImageFamilyWindowsServer20H2CoreContainer = "WindowsServer20H2CoreContainer"
+)
+
+// Container runtime values.
+const (
+	ContainerRuntimeContainerD = "containerd"
+	ContainerRuntimeDockerD    = "dockerd"
 )
 
 const (
@@ -227,6 +240,12 @@ const (
 
 	// NodeGroupNameLabel defines the label of the nodegroup name
 	NodeGroupNameLabel = "alpha.eksctl.io/nodegroup-name"
+
+	// KarpenterNameTag defines the tag of the Karpenter stack name
+	KarpenterNameTag = "alpha.eksctl.io/karpenter-name"
+
+	// KarpenterVersionTag defines the tag for Karpenter's version
+	KarpenterVersionTag = "alpha.eksctl.io/karpenter-version"
 
 	EKSNodeGroupNameLabel = "eks.amazonaws.com/nodegroup"
 
@@ -306,6 +325,27 @@ const (
 	DefaultNodeVolumeGP3IOPS = 3000
 )
 
+// Values for `IPFamily`
+const (
+	// IPV4Family defines an IP family of v4 to be used when creating a new VPC and cluster.
+	IPV4Family = "IPv4"
+	// IPV6Family defines an IP family of v6 to be used when creating a new VPC and cluster.
+	IPV6Family = "IPv6"
+)
+
+// Values for core addons
+const (
+	VPCCNIAddon                 = "vpc-cni"
+	KubeProxyAddon              = "kube-proxy"
+	CoreDNSAddon                = "coredns"
+	minimumVPCCNIVersionForIPv6 = "1.10.0"
+)
+
+var (
+	// DefaultIPFamily defines the default IP family to use when creating a new VPC and cluster.
+	DefaultIPFamily = IPV4Family
+)
+
 var (
 	// DefaultWaitTimeout defines the default wait timeout
 	DefaultWaitTimeout = 25 * time.Minute
@@ -318,6 +358,11 @@ var (
 
 	// DefaultNodeVolumeSize defines the default root volume size
 	DefaultNodeVolumeSize = 80
+)
+
+var (
+	// DefaultContainerRuntime defines the default container runtime.
+	DefaultContainerRuntime = ContainerRuntimeDockerD
 )
 
 // Enabled return pointer to true value
@@ -342,6 +387,9 @@ func IsDisabled(v *bool) bool { return v != nil && !*v }
 
 // IsSetAndNonEmptyString will only return true if s is not nil and not empty
 func IsSetAndNonEmptyString(s *string) bool { return s != nil && *s != "" }
+
+// IsSetAndNonEmptyString will only return true if s is not nil and not empty
+func IsEmpty(s *string) bool { return !IsSetAndNonEmptyString(s) }
 
 // SupportedRegions are the regions where EKS is available
 func SupportedRegions() []string {
@@ -397,6 +445,8 @@ func DeprecatedVersions() []string {
 		Version1_13,
 		Version1_14,
 		Version1_15,
+		Version1_16,
+		Version1_17,
 	}
 }
 
@@ -413,11 +463,10 @@ func IsDeprecatedVersion(version string) bool {
 // SupportedVersions are the versions of Kubernetes that EKS supports
 func SupportedVersions() []string {
 	return []string{
-		Version1_16,
-		Version1_17,
 		Version1_18,
 		Version1_19,
 		Version1_20,
+		Version1_21,
 	}
 }
 
@@ -452,6 +501,7 @@ func supportedAMIFamilies() []string {
 		NodeImageFamilyWindowsServer2019CoreContainer,
 		NodeImageFamilyWindowsServer2019FullContainer,
 		NodeImageFamilyWindowsServer2004CoreContainer,
+		NodeImageFamilyWindowsServer20H2CoreContainer,
 	}
 }
 
@@ -520,8 +570,15 @@ type ClusterMeta struct {
 
 // KubernetesNetworkConfig contains cluster networking options
 type KubernetesNetworkConfig struct {
+	// Valid variants are `IPFamily` constants
+	// +optional
+	IPFamily string `json:"ipFamily,omitempty"`
 	// ServiceIPv4CIDR is the CIDR range from where `ClusterIP`s are assigned
 	ServiceIPv4CIDR string `json:"serviceIPv4CIDR,omitempty"`
+}
+
+func (k *KubernetesNetworkConfig) IPv6Enabled() bool {
+	return strings.EqualFold(k.IPFamily, IPV6Family)
 }
 
 type EKSCTLCreated string
@@ -568,6 +625,21 @@ func (c ClusterConfig) IsFargateEnabled() bool {
 	return len(c.FargateProfiles) > 0
 }
 
+func (c ClusterConfig) HasNodes() bool {
+	for _, m := range c.ManagedNodeGroups {
+		if m.GetDesiredCapacity() > 0 {
+			return true
+		}
+	}
+
+	for _, n := range c.NodeGroups {
+		if n.GetDesiredCapacity() > 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // ClusterProvider is the interface to AWS APIs
 type ClusterProvider interface {
 	CloudFormation() cloudformationiface.CloudFormationAPI
@@ -582,6 +654,7 @@ type ClusterProvider interface {
 	SSM() ssmiface.SSMAPI
 	IAM() iamiface.IAMAPI
 	CloudTrail() cloudtrailiface.CloudTrailAPI
+	CloudWatchLogs() cloudwatchlogsiface.CloudWatchLogsAPI
 	Region() string
 	Profile() string
 	WaitTimeout() time.Duration
@@ -654,15 +727,23 @@ type ClusterConfig struct {
 
 	Status *ClusterStatus `json:"-"`
 
-	// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
-	// Git exposes configuration for Flux v1 and an earlier iteration of gitops
-	// +optional
-	Git *Git `json:"git,omitempty"`
-
-	// GitOps exposes configuration for Flux v2 and will continue to be used in
 	// future gitops plans, replacing the Git configuration above
 	// +optional
 	GitOps *GitOps `json:"gitops,omitempty"`
+
+	// Karpenter specific configuration options.
+	// +optional
+	Karpenter *Karpenter `json:"karpenter,omitempty"`
+}
+
+// Karpenter provides configuration opti
+type Karpenter struct {
+	// Version defines the Karpenter version to install
+	// +required
+	Version string `json:"version"`
+	// CreateServiceAccount create a service account or not.
+	// +optional
+	CreateServiceAccount *bool `json:"createServiceAccount,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -693,7 +774,10 @@ func NewClusterConfig() *ClusterConfig {
 			Version: DefaultVersion,
 		},
 		IAM: NewClusterIAM(),
-		VPC: NewClusterVPC(),
+		KubernetesNetworkConfig: &KubernetesNetworkConfig{
+			IPFamily: DefaultIPFamily,
+		},
+		VPC: NewClusterVPC(false),
 		CloudWatch: &ClusterCloudWatch{
 			ClusterLogging: &ClusterCloudWatchLogging{},
 		},
@@ -704,15 +788,20 @@ func NewClusterConfig() *ClusterConfig {
 }
 
 // NewClusterVPC creates new VPC config for a cluster
-func NewClusterVPC() *ClusterVPC {
+func NewClusterVPC(ipv6Enabled bool) *ClusterVPC {
 	cidr := DefaultCIDR()
+
+	var nat *ClusterNAT
+	if !ipv6Enabled {
+		nat = DefaultClusterNAT()
+	}
 
 	return &ClusterVPC{
 		Network: Network{
 			CIDR: &cidr,
 		},
 		ManageSharedNodeSecurityGroupRules: Enabled(),
-		NAT:                                DefaultClusterNAT(),
+		NAT:                                nat,
 		AutoAllocateIPv6:                   Disabled(),
 		ClusterEndpoints:                   &ClusterEndpoints{},
 	}
@@ -733,6 +822,10 @@ func (c *ClusterConfig) AppendAvailabilityZone(newAZ string) {
 		}
 	}
 	c.AvailabilityZones = append(c.AvailabilityZones, newAZ)
+}
+
+func (c *ClusterConfig) IPv6Enabled() bool {
+	return c.KubernetesNetworkConfig != nil && c.KubernetesNetworkConfig.IPv6Enabled()
 }
 
 // SetClusterStatus populates ClusterStatus using *eks.Cluster.
@@ -807,7 +900,6 @@ func NewManagedNodeGroup() *ManagedNodeGroup {
 			SSH: &NodeGroupSSH{
 				Allow:         Disabled(),
 				PublicKeyName: &publicKey,
-				EnableSSM:     Disabled(),
 			},
 			IAM: &NodeGroupIAM{
 				WithAddonPolicies: NodeGroupIAMAddonPolicies{
@@ -881,6 +973,18 @@ type NodeGroup struct {
 	// [Customize `kubelet` config](/usage/customizing-the-kubelet/)
 	// +optional
 	KubeletExtraConfig *InlineDocument `json:"kubeletExtraConfig,omitempty"`
+
+	// ContainerRuntime defines the runtime (CRI) to use for containers on the node
+	// +optional
+	ContainerRuntime *string `json:"containerRuntime,omitempty"`
+}
+
+// GetContainerRuntime returns the container runtime.
+func (n *NodeGroup) GetContainerRuntime() string {
+	if n.ContainerRuntime != nil {
+		return *n.ContainerRuntime
+	}
+	return ""
 }
 
 func (n *NodeGroup) InstanceTypeList() []string {
@@ -900,38 +1004,19 @@ func (n *NodeGroup) BaseNodeGroup() *NodeGroupBase {
 	return n.NodeGroupBase
 }
 
+func (n *NodeGroup) GetDesiredCapacity() int {
+	if n.NodeGroupBase != nil {
+		return n.NodeGroupBase.GetDesiredCapacity()
+	}
+	return 0
+}
+
 // GitOps groups all configuration options related to enabling GitOps Toolkit on a
 // cluster and linking it to a Git repository.
 // Note: this will replace the older Git types
 type GitOps struct {
-	// [Enable Flux](/usage/gitops/#experimental-installing-gitops-toolkit-flux-v2)
+	// Flux holds options to enable Flux v2 on your cluster
 	Flux *Flux `json:"flux,omitempty"`
-}
-
-// Git groups all configuration options related to enabling GitOps on a
-// cluster and linking it to a Git repository.
-// [Gitops Guide](/gitops-quickstart/)
-type Git struct {
-	// [Enable Repo](/usage/gitops/#installing-flux-v1)
-	Repo *Repo `json:"repo,omitempty"`
-
-	// [Enable Repo](/usage/gitops/#installing-flux-v1)
-	// +optional
-	Operator Operator `json:"operator,omitempty"`
-
-	// [Installing a Quickstart profile](/usage/gitops/#installing-a-quickstart-profile-in-your-cluster)
-	// +optional
-	BootstrapProfile *Profile `json:"bootstrapProfile,omitempty"` // one or many profiles to enable on this cluster once it is created
-}
-
-// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
-// NewGit returns a new empty Git configuration
-func NewGit() *Git {
-	return &Git{
-		Repo:             &Repo{},
-		Operator:         Operator{},
-		BootstrapProfile: &Profile{},
-	}
 }
 
 // Flux groups all configuration options related to a Git repository used for
@@ -948,100 +1033,8 @@ type Flux struct {
 // FluxFlags is a map of string for passing arbitrary flags to Flux bootstrap
 type FluxFlags map[string]string
 
-// Repo groups all configuration options related to a Git repository used for
-// GitOps.
-type Repo struct {
-	// The Git SSH URL to the repository which will contain the cluster configuration
-	// For example: `git@github.com:org/repo`
-	URL string `json:"url,omitempty"`
-
-	// The git branch under which cluster configuration files will be committed & pushed, e.g. master
-	// +optional
-	Branch string `json:"branch,omitempty"`
-
-	// Relative paths within the Git repository which the GitOps operator will monitor to find Kubernetes manifests to apply, e.g. ["kube-system", "base"]
-	//+optional
-	Paths []string `json:"paths,omitempty"`
-
-	// The directory under which Flux configuration files will be written, e.g. flux/
-	// +optional
-	FluxPath string `json:"fluxPath,omitempty"`
-
-	// Git user which will be used to commit changes
-	// +optional
-	User string `json:"user,omitempty"`
-
-	// Git email which will be used to commit changes
-	Email string `json:"email,omitempty"`
-
-	// Path to the private SSH key to use to authenticate
-	// +optional
-	PrivateSSHKeyPath string `json:"privateSSHKeyPath,omitempty"`
-}
-
 // Operator groups all configuration options related to the operator used to
 // keep the cluster and the Git repository in sync.
-type Operator struct {
-
-	// Commit and push Flux manifests to the Git Repo on install
-	// +optional
-	CommitOperatorManifests *bool `json:"commitOperatorManifests,omitempty"`
-
-	// Git label to keep track of Flux's sync progress; this is equivalent to overriding --git-sync-tag and --git-notes-ref in Flux
-	// +optional
-	Label string `json:"label,omitempty"`
-
-	// Cluster namespace where to install Flux and the Helm Operator e.g. flux
-	// +optional
-	Namespace string `json:"namespace,omitempty"`
-
-	// Install the Helm Operator
-	// +optional
-	WithHelm *bool `json:"withHelm,omitempty"`
-
-	// Instruct Flux to read-only mode and create the deploy key as read-only
-	// +optional
-	ReadOnly bool `json:"readOnly,omitempty"`
-
-	// Additional command line arguments for the Flux daemon
-	// +optional
-	AdditionalFluxArgs []string `json:"additionalFluxArgs,omitempty"`
-
-	// Additional command line arguments for the Helm Operator
-	// +optional
-	AdditionalHelmOperatorArgs []string `json:"additionalHelmOperatorArgs,omitempty"`
-}
-
-// Profile groups all details on a quickstart profile to enable on the cluster
-// and add to the Git repository.
-type Profile struct {
-
-	// Name or URL of the Quick Start profile
-	// For example: `app-dev`
-	Source string `json:"source,omitempty"`
-
-	// Revision of the Quick Start profile. Can be a branch, tag or commit hash
-	// +optional
-	Revision string `json:"revision,omitempty"`
-
-	// Output directory for the processed profile templates (generate profile command)
-	// Defaults to `./<quickstart-repo-name>`
-	// +optional
-	OutputPath string `json:"outputPath,omitempty"`
-}
-
-// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
-// HasBootstrapProfile returns true if there is a profile with a source specified
-func (c *ClusterConfig) HasBootstrapProfile() bool {
-	return c.Git != nil && c.Git.BootstrapProfile != nil && c.Git.BootstrapProfile.Source != ""
-}
-
-// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
-// HasGitopsRepoConfigured returns true if git.repo and git.repo.url are not nil
-func (c *ClusterConfig) HasGitopsRepoConfigured() bool {
-	return c.Git != nil && c.Git.Repo != nil && c.Git.Repo.URL != ""
-}
-
 // HasGitOpsFluxConfigured returns true if gitops.flux configuration is not nil
 func (c *ClusterConfig) HasGitOpsFluxConfigured() bool {
 	return c.GitOps != nil && c.GitOps.Flux != nil
@@ -1067,6 +1060,10 @@ type (
 	}
 	// NodeGroupIAM holds all IAM attributes of a NodeGroup
 	NodeGroupIAM struct {
+		// AttachPolicy holds a policy document to attach
+		// +optional
+		AttachPolicy InlineDocument `json:"attachPolicy,omitempty"`
+		// list of ARNs of the IAM policies to attach
 		// +optional
 		AttachPolicyARNs []string `json:"attachPolicyARNs,omitempty"`
 		// +optional
@@ -1346,6 +1343,10 @@ type NodeGroupBase struct {
 	// This is a hack, will be removed shortly. When this is true for Ubuntu and
 	// AL2 images a legacy bootstrapper will be used.
 	CustomAMI bool `json:"-"`
+
+	// Enable EC2 detailed monitoring
+	// +optional
+	EnableDetailedMonitoring *bool `json:"enableDetailedMonitoring,omitempty"`
 }
 
 // Placement specifies placement group information
@@ -1424,6 +1425,20 @@ type ManagedNodeGroup struct {
 	// Internal fields
 
 	Unowned bool `json:"-"`
+}
+
+func (n *NodeGroupBase) GetDesiredCapacity() int {
+	if n.ScalingConfig != nil && n.ScalingConfig.DesiredCapacity != nil {
+		return *n.ScalingConfig.DesiredCapacity
+	}
+	return 0
+}
+
+func (m *ManagedNodeGroup) GetDesiredCapacity() int {
+	if m.NodeGroupBase != nil {
+		return m.NodeGroupBase.GetDesiredCapacity()
+	}
+	return 0
 }
 
 func (m *ManagedNodeGroup) InstanceTypeList() []string {
@@ -1525,6 +1540,10 @@ type PrivateCluster struct {
 	// Enabled enables creation of a fully-private cluster
 	Enabled bool `json:"enabled"`
 
+	// SkipEndpointCreation skips the creation process for endpoints completely. This is only used in case of an already
+	// provided VPC and if the user decided to set it to true.
+	SkipEndpointCreation bool `json:"skipEndpointCreation"`
+
 	// AdditionalEndpointServices specifies additional endpoint services that
 	// must be enabled for private access.
 	// Valid entries are `AdditionalEndpointServices` constants
@@ -1538,8 +1557,9 @@ type InstanceSelector struct {
 	// Memory specifies the memory
 	// The unit defaults to GiB
 	Memory string `json:"memory,omitempty"`
-	// GPUs specifies the number of GPUs
-	GPUs int `json:"gpus,omitempty"`
+	// GPUs specifies the number of GPUs.
+	// It can be set to 0 to select non-GPU instance types.
+	GPUs *int `json:"gpus,omitempty"`
 	// CPU Architecture of the EC2 instance type.
 	// Valid variants are:
 	// `"x86_64"`

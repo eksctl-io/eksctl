@@ -144,6 +144,20 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(*testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeTrue())
 		})
 
+		It("leaves EnableAdminContainer unset if SSH is disabled", func() {
+			testNodeGroup := NodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					AMIFamily: NodeImageFamilyBottlerocket,
+					SSH: &NodeGroupSSH{
+						Allow: Disabled(),
+					},
+				},
+			}
+
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+			Expect(testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeNil())
+		})
+
 		It("has default NodeGroup configuration", func() {
 			testNodeGroup := NodeGroup{
 				NodeGroupBase: &NodeGroupBase{
@@ -153,8 +167,8 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
 
-			Expect(testNodeGroup.Bottlerocket).ToNot(BeNil())
-			Expect(*testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeFalse())
+			Expect(testNodeGroup.Bottlerocket).NotTo(BeNil())
+			Expect(testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeNil())
 		})
 	})
 
@@ -168,6 +182,16 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		})
 
+	})
+
+	Context("Container Runtime settings", func() {
+		It("defaults to dockerd as a container runtime", func() {
+			testNodeGroup := NodeGroup{
+				NodeGroupBase: &NodeGroupBase{},
+			}
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+			Expect(*testNodeGroup.ContainerRuntime).To(Equal(DefaultContainerRuntime))
+		})
 	})
 
 	Describe("Cluster Managed Shared Node Security Group settings", func() {

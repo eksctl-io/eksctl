@@ -47,7 +47,7 @@ var _ = Describe("Instance Selector", func() {
 			Expect(*instanceSelectorFake.FilterArgsForCall(i).AvailabilityZones).To(Equal(isc.expectedAZs))
 		}
 
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		for _, np := range isc.nodeGroups {
 			switch ng := np.(type) {
 			case *api.NodeGroup:
@@ -123,6 +123,22 @@ var _ = Describe("Instance Selector", func() {
 			},
 			createFakeInstanceSelector: makeInstanceSelector(),
 			expectedErr:                "instance selector criteria matched no instances",
+		}),
+
+		Entry("too many matching instances", instanceSelectorCase{
+			nodeGroups: []api.NodePool{
+				&api.NodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{},
+				},
+				&api.ManagedNodeGroup{
+					NodeGroupBase: &api.NodeGroupBase{},
+				},
+			},
+			instanceSelectorValue: &api.InstanceSelector{
+				CPUArchitecture: "arm64",
+			},
+			createFakeInstanceSelector: makeInstanceSelector(tooManyTypes()...),
+			expectedErr:                "instance selector filters resulted in 41 instance types, which is greater than the maximum of 40, please set more selector options",
 		}),
 
 		Entry("nodeGroup with instancesDistribution set", instanceSelectorCase{
@@ -201,3 +217,11 @@ var _ = Describe("Instance Selector", func() {
 		}),
 	)
 })
+
+func tooManyTypes() []string {
+	instances := make([]string, 41)
+	for i := range instances {
+		instances[i] = "c3.large"
+	}
+	return instances
+}

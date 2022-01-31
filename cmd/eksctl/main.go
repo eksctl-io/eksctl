@@ -6,7 +6,10 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/eksctl/pkg/ctl/deregister"
+	"github.com/weaveworks/eksctl/pkg/ctl/register"
 
+	"github.com/weaveworks/eksctl/pkg/actions/anywhere"
 	"github.com/weaveworks/eksctl/pkg/ctl/associate"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/completion"
@@ -15,7 +18,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/disassociate"
 	"github.com/weaveworks/eksctl/pkg/ctl/drain"
 	"github.com/weaveworks/eksctl/pkg/ctl/enable"
-	"github.com/weaveworks/eksctl/pkg/ctl/generate"
 	"github.com/weaveworks/eksctl/pkg/ctl/get"
 	"github.com/weaveworks/eksctl/pkg/ctl/scale"
 	"github.com/weaveworks/eksctl/pkg/ctl/set"
@@ -37,10 +39,13 @@ func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
 	rootCmd.AddCommand(unset.Command(flagGrouping))
 	rootCmd.AddCommand(scale.Command(flagGrouping))
 	rootCmd.AddCommand(drain.Command(flagGrouping))
-	rootCmd.AddCommand(generate.Command(flagGrouping))
 	rootCmd.AddCommand(enable.Command(flagGrouping))
+	rootCmd.AddCommand(register.Command(flagGrouping))
+	rootCmd.AddCommand(deregister.Command(flagGrouping))
 	rootCmd.AddCommand(utils.Command(flagGrouping))
 	rootCmd.AddCommand(completion.Command(rootCmd))
+	//Ensures "eksctl --help" presents eksctl anywhere as a command, but adds no subcommands since we invoke the binary.
+	rootCmd.AddCommand(cmdutils.NewVerbCmd("anywhere", "EKS anywhere", ""))
 
 	cmdutils.AddResourceCmd(flagGrouping, rootCmd, infoCmd)
 	cmdutils.AddResourceCmd(flagGrouping, rootCmd, versionCmd)
@@ -56,6 +61,21 @@ func main() {
 			}
 		},
 		SilenceUsage: true,
+	}
+
+	isAnywhereCommand, err := anywhere.IsAnywhereCommand(os.Args[1:])
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	if isAnywhereCommand {
+		exitCode, err := anywhere.RunAnywhereCommand(os.Args[1:])
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+		os.Exit(exitCode)
 	}
 
 	flagGrouping := cmdutils.NewGrouping()

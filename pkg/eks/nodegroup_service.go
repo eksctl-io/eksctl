@@ -2,7 +2,6 @@ package eks
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 	"strings"
 
@@ -20,6 +19,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
+// MaxInstanceTypes is the maximum number of instance types you can specify in
+// a CloudFormation template
+const maxInstanceTypes = 40
+
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 //counterfeiter:generate -o fakes/fake_instance_selector.go . InstanceSelector
@@ -34,7 +37,7 @@ type InstanceSelector interface {
 type NodeGroupInitialiser interface {
 	Normalize(nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error
 	ExpandInstanceSelectorOptions(nodePools []api.NodePool, clusterAZs []string) error
-	NewAWSSelectorSession(provider api.ClusterProvider) *selector.Selector
+	NewAWSSelectorSession(provider api.ClusterProvider)
 	ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.ClusterProvider) error
 	DoesAWSNodeUseIRSA(provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error)
 	DoAllNodegroupStackTasks(taskTree *tasks.TaskTree, region, name string) error
@@ -58,17 +61,16 @@ func NewNodeGroupService(provider api.ClusterProvider, instanceSelector Instance
 const defaultCPUArch = "x86_64"
 
 // NewAWSSelectorSession returns a new instance of Selector provided an aws session
-func (m *NodeGroupService) NewAWSSelectorSession(provider api.ClusterProvider) *selector.Selector {
-	return selector.New(provider.Session())
+func (m *NodeGroupService) NewAWSSelectorSession(provider api.ClusterProvider) {
+	m.instanceSelector = selector.New(provider.Session())
 }
 
 // Normalize normalizes nodegroups
 func (m *NodeGroupService) Normalize(nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error {
-	_, enableSSM := os.LookupEnv("_____INTERNAL_NODEGROUP_ENABLE_SSM")
 	for _, np := range nodePools {
 		switch ng := np.(type) {
 		case *api.ManagedNodeGroup:
-			hasNativeAMIFamilySupport := ng.AMIFamily == api.NodeImageFamilyAmazonLinux2
+			hasNativeAMIFamilySupport := ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 || ng.AMIFamily == api.NodeImageFamilyBottlerocket
 			if !hasNativeAMIFamilySupport && !api.IsAMI(ng.AMI) {
 				if err := ResolveAMI(m.Provider, clusterMeta.Version, np); err != nil {
 					return err
@@ -109,9 +111,6 @@ func (m *NodeGroupService) Normalize(nodePools []api.NodePool, clusterMeta *api.
 		if publicKeyName != "" {
 			ng.SSH.PublicKeyName = &publicKeyName
 		}
-		if enableSSM {
-			ng.SSH.EnableSSM = api.Enabled()
-		}
 	}
 	return nil
 }
@@ -139,6 +138,10 @@ func (m *NodeGroupService) ExpandInstanceSelectorOptions(nodePools []api.NodePoo
 		instanceTypes, err := m.expandInstanceSelector(baseNG.InstanceSelector, azs)
 		if err != nil {
 			return errors.Wrapf(err, "error expanding instance selector options for nodegroup %q", baseNG.Name)
+		}
+
+		if len(instanceTypes) > maxInstanceTypes {
+			return errors.Errorf("instance selector filters resulted in %d instance types, which is greater than the maximum of %d, please set more selector options", len(instanceTypes), maxInstanceTypes)
 		}
 
 		switch ng := np.(type) {
@@ -195,8 +198,8 @@ func (m *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 			UpperBound: memory,
 		}
 	}
-	if ins.GPUs != 0 {
-		filters.GpusRange = makeRange(ins.GPUs)
+	if ins.GPUs != nil {
+		filters.GpusRange = makeRange(*ins.GPUs)
 	}
 	cpuArch := ins.CPUArchitecture
 	if cpuArch == "" {
@@ -266,7 +269,7 @@ func (m *NodeGroupService) ValidateExistingNodeGroupsForCompatibility(cfg *api.C
 
 	numIncompatibleNodeGroups := len(incompatibleNodeGroups)
 	if numIncompatibleNodeGroups == 0 {
-		logger.Info("all nodegroups have up-to-date configuration")
+		logger.Info("all nodegroups have up-to-date cloudformation templates")
 		return nil
 	}
 

@@ -60,6 +60,21 @@ privateCluster:
 
 The endpoints supported in `additionalEndpointServices` are `autoscaling`, `cloudformation` and `logs`.
 
+### Skipping endpoint creations
+
+If a VPC has already been created with the necessary AWS endpoints set up and linked to the subnets described in the EKS documentation,
+`eksctl` can skip creating them by providing the option `skipEndpointCreation` like this:
+
+```yaml
+privateCluster:
+  enabled: true
+  skipEndpointCreation: true
+```
+
+_Note_: this setting cannot be used together with `additionalEndpointServices`. It will skip all endpoint creation. Also, this setting is
+only recommended if the endpoint <-> subnet topology is correctly set up. I.e.: subnet ids are correct, `vpce` routing is set up with prefix addresses,
+all the necessary EKS endpoints are created and linked to the provided VPC. `eksctl` will not alter any of these resources.
+
 ## Nodegroups
 Only private nodegroups (both managed and self-managed) are supported in a fully-private cluster because the cluster's VPC is created without
 any public subnets. The `privateNetworking` field (`nodeGroup[*].privateNetworking` and `managedNodeGroup[*].privateNetworking`) must be

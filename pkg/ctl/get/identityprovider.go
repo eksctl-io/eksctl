@@ -47,7 +47,7 @@ func doGetIdentityProvider(cmd *cmdutils.Cmd, params getCmdParams, name string) 
 
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
@@ -84,11 +84,7 @@ func doGetIdentityProvider(cmd *cmdutils.Cmd, params getCmdParams, name string) 
 		addIdentityProviderTableColumns(printer.(*printers.TablePrinter), len(summaries))
 	}
 
-	if err := printer.PrintObjWithKind("identity provider summary", summaries, os.Stdout); err != nil {
-		return err
-	}
-
-	return nil
+	return printer.PrintObjWithKind("identity provider summary", summaries, os.Stdout)
 }
 
 func addIdentityProviderTableColumns(printer *printers.TablePrinter, num int) {

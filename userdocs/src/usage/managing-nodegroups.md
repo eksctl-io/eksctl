@@ -7,9 +7,11 @@ To create an additional nodegroup, use:
 ```
 eksctl create nodegroup --cluster=<clusterName> [--name=<nodegroupName>]
 ```
-
+ 
 !!!note
-    By default, new nodegroups inherit the version from the control plane (`--version=auto`), but you can specify a different
+    `--version` flag is not supported for managed nodegroups. It always inherits the version from control plane.
+
+    By default, new unmanaged nodegroups inherit the version from the control plane (`--version=auto`), but you can specify a different
     version e.g. `--version=1.10`, you can also use `--version=latest` to force use of whichever is the latest version.
 
 Additionally, you can use the same config file used for `eksctl create cluster`:
@@ -38,7 +40,7 @@ both groups will be excluded)
 ### Creating a nodegroup from a config file
 
 Nodegroups can also be created through a cluster definition or config file. Given the following example config file
-and an existing cluster called ``dev-cluster:
+and an existing cluster called `dev-cluster`:
 
 ```yaml
 apiVersion: eksctl.io/v1alpha5
@@ -132,7 +134,7 @@ By design, nodegroups are immutable. This means that if you need to change somet
 AMI or the instance type of a nodegroup, you would need to create a new nodegroup with the desired changes, move the
 load and delete the old one. Check [Deleting and draining](#deleting-and-draining).
 
-### Scaling
+### Scaling a single nodegroup
 
 A nodegroup can be scaled by using the `eksctl scale nodegroup` command:
 
@@ -145,6 +147,8 @@ For example, to scale nodegroup `ng-a345f4e1` in `cluster-1` to 5 nodes, run:
 ```
 eksctl scale nodegroup --cluster=cluster-1 --nodes=5 ng-a345f4e1
 ```
+
+A nodegroup can also be scaled by using a config file passed to `--config-file` and specifying the name of the nodegroup that should be scaled with `--name`. Eksctl will search the config file and discover that nodegroup as well as its scaling configuration values.
 
 If the desired number of nodes is `NOT` within the range of current minimum and current maximum nodes, one specific error will be shown.
 Kindly note that these values can also be passed with flags `--nodes-min` and `--nodes-max` respectively.
@@ -159,6 +163,12 @@ You can also enable SSH, ASG access and other features for a nodegroup, e.g.:
 ```
 eksctl create nodegroup --cluster=cluster-1 --node-labels="autoscaling=enabled,purpose=ci-worker" --asg-access --full-ecr-access --ssh-access
 ```
+
+### Scaling multiple nodegroups
+
+Eksctl can discover and scale all the nodegroups found in a config file that is passed with `--config-file`. 
+
+The same validations apply to each nodegroup as when scaling a single nodegroup e.g. the desired number of nodes must be within the range of the current minimum and current maximum number of nodes.
 
 ### Update labels
 
@@ -256,3 +266,4 @@ eksctl delete nodegroup --config-file=dev-cluster.yaml --include=ng-2-builders -
 ```
 
 In this case, we also need to supply the `--approve` command to actually delete the nodegroup.
+

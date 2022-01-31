@@ -22,30 +22,30 @@ var _ = Describe("upgrade cluster", func() {
 		It("should accept a name argument", func() {
 			cmd := newMockUpgradeClusterCmd("cluster", "clus-1")
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 		It("should accept a --name flag", func() {
 			cmd := newMockUpgradeClusterCmd("cluster", "--name", "clus-1")
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should accept the --region flag", func() {
 			cmd := newMockUpgradeClusterCmd("cluster", "--name", "clus-1", "--region", "eu-north-1")
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should accept the --version flag", func() {
 			cmd := newMockUpgradeClusterCmd("cluster", "--name", "clus-1", "--region", "eu-north-1", "--version", "1.16")
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("accepts --approve flag", func() {
 			cmd := newMockUpgradeClusterCmd("cluster", "--name", "clus-1", "--approve")
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("loads all flags correctly", func() {
@@ -56,7 +56,7 @@ var _ = Describe("upgrade cluster", func() {
 				"--approve",
 			)
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			cfg := cmd.Cmd.ClusterConfig
 			Expect(cfg.Metadata.Name).To(Equal("clus-1"))
@@ -99,14 +99,14 @@ var _ = Describe("upgrade cluster", func() {
 
 			cmd := newMockUpgradeClusterCmd("cluster", "-f", configFile)
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("accepts --approve flag with the config file", func() {
 			configFile = ctltest.CreateConfigFile(cfg)
 			cmd := newMockUpgradeClusterCmd("cluster", "--config-file", configFile, "--approve")
 			_, err := cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("fails without a cluster name", func() {

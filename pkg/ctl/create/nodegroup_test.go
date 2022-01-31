@@ -53,6 +53,7 @@ var _ = Describe("create nodegroup", func() {
 			Entry("with full-ecr-access flag", "--full-ecr-access", "true"),
 			Entry("with appmesh-access flag", "--appmesh-access", "true"),
 			Entry("with alb-ingress-access flag", "--alb-ingress-access", "true"),
+			Entry("with subnet-ids flag", "--subnet-ids", "id1,id2,id3"),
 		)
 
 		DescribeTable("invalid flags or arguments",
@@ -86,6 +87,10 @@ var _ = Describe("create nodegroup", func() {
 			Entry("with nodegroup name as flag with invalid characters", invalidParamsCase{
 				args:  []string{"--cluster", "clusterName", "--name", "eksctl-ng_k8s_nodegroup1"},
 				error: "validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
+			}),
+			Entry("with enableSsm disabled", invalidParamsCase{
+				args:  []string{"--cluster=test", "--enable-ssm=false"},
+				error: "SSM agent is now built into EKS AMIs and cannot be disabled",
 			}),
 		)
 	})
@@ -132,6 +137,7 @@ var _ = Describe("create nodegroup", func() {
 			Entry("with alb-ingress-access flag", "--alb-ingress-access", "true"),
 			Entry("with Ubuntu AMI", "--node-ami-family", "Ubuntu2004"),
 			Entry("with Bottlerocket AMI", "--node-ami-family", "Bottlerocket"),
+			Entry("with subnet-ids flag", "--subnet-ids", "id1,id2,id3"),
 		)
 
 		const unsupportedWindowsError = "Windows is not supported for managed nodegroups; eksctl now creates " +
@@ -156,6 +162,10 @@ var _ = Describe("create nodegroup", func() {
 			Entry("with nodegroup name as flag with invalid characters", invalidParamsCase{
 				args:  []string{"--name", "eksctl-ng_k8s_nodegroup1"},
 				error: "validation for eksctl-ng_k8s_nodegroup1 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
+			}),
+			Entry("with version flag", invalidParamsCase{
+				args:  []string{"--version", "1.18"},
+				error: "--version is only valid with unmanaged nodegroups",
 			}),
 			Entry("with unsupported AMI", invalidParamsCase{
 				args:  []string{"cluster", "--node-ami-family", "WindowsServer2019FullContainer"},

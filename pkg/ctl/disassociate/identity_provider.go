@@ -74,7 +74,7 @@ func doDisassociateIdentityProvider(cmd *cmdutils.Cmd, cliProvidedIDP cliProvide
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}

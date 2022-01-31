@@ -3,10 +3,10 @@ package nodebootstrap_test
 import (
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
@@ -36,13 +36,17 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 			bootstrapper = newBootstrapper(clusterConfig, ng)
 		})
 
-		It("adds the ssm install script to the userdata", func() {
+		It("does not add the SSM install script to the userdata", func() {
 			userData, err := bootstrapper.UserData()
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/var/lib/cloud/scripts/eksctl/install-ssm.al2.sh"))
-			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0755"))
+
+			var paths []string
+			for _, f := range cloudCfg.WriteFiles {
+				paths = append(paths, f.Path)
+			}
+			Expect(paths).NotTo(ContainElement("/var/lib/cloud/scripts/eksctl/install-ssm.al2.sh"))
 		})
 	})
 
@@ -78,7 +82,7 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 		be.ng.AMIFamily = "AmazonLinux2"
 		bootstrapper := newBootstrapper(be.clusterConfig, be.ng)
 		userData, err := bootstrapper.UserData()
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		cloudCfg := decode(userData)
 		file := cloudCfg.WriteFiles[1]
 		Expect(file.Path).To(Equal("/etc/eksctl/kubelet.env"))
@@ -93,7 +97,8 @@ var _ = Describe("AmazonLinux2 User Data", func() {
 API_SERVER_URL=
 B64_CLUSTER_CA=
 NODE_LABELS=
-NODE_TAINTS=`,
+NODE_TAINTS=
+CONTAINER_RUNTIME=`,
 		}),
 		Entry("maxPods set", bootScriptEntry{
 			ng: &api.NodeGroup{
@@ -107,7 +112,8 @@ API_SERVER_URL=
 B64_CLUSTER_CA=
 NODE_LABELS=
 NODE_TAINTS=
-MAX_PODS=123`,
+MAX_PODS=123
+CONTAINER_RUNTIME=`,
 		}),
 		Entry("labels and taints set", bootScriptEntry{
 			ng: &api.NodeGroup{
@@ -129,7 +135,22 @@ MAX_PODS=123`,
 API_SERVER_URL=
 B64_CLUSTER_CA=
 NODE_LABELS=role=worker
-NODE_TAINTS=key1=value1:NoSchedule`,
+NODE_TAINTS=key1=value1:NoSchedule
+CONTAINER_RUNTIME=`,
+		}),
+		Entry("container runtime set", bootScriptEntry{
+			ng: &api.NodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					SSH: &api.NodeGroupSSH{},
+				},
+				ContainerRuntime: aws.String(api.ContainerRuntimeContainerD),
+			},
+			expectedUserData: `CLUSTER_NAME=userdata-test
+API_SERVER_URL=
+B64_CLUSTER_CA=
+NODE_LABELS=
+NODE_TAINTS=
+CONTAINER_RUNTIME=containerd`,
 		}),
 
 		Entry("non-default ServiceIPv4CIDR", bootScriptEntry{
@@ -149,7 +170,8 @@ API_SERVER_URL=
 B64_CLUSTER_CA=
 NODE_LABELS=
 NODE_TAINTS=
-CLUSTER_DNS=172.16.0.10`,
+CLUSTER_DNS=172.16.0.10
+CONTAINER_RUNTIME=`,
 		}),
 	)
 
@@ -174,7 +196,8 @@ CLUSTER_DNS=172.16.0.10`,
 API_SERVER_URL=
 B64_CLUSTER_CA=
 NODE_LABELS=
-NODE_TAINTS=`, "\n")))
+NODE_TAINTS=
+CONTAINER_RUNTIME=`, "\n")))
 			Expect(cloudCfg.WriteFiles[1].Permissions).To(Equal("0644"))
 		})
 

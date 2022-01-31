@@ -70,6 +70,20 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 	return ctl, nil
 }
 
+// NewProviderForExistingCluster is a wrapper for NewCtl that also validates that the cluster exists and is not a
+// registered/connected cluster.
+func (c *Cmd) NewProviderForExistingCluster() (*eks.ClusterProvider, error) {
+	provider, err := c.NewCtl()
+	if err != nil {
+		return nil, err
+	}
+	if err := provider.RefreshClusterStatus(c.ClusterConfig); err != nil {
+		return nil, err
+	}
+
+	return provider, nil
+}
+
 // AddResourceCmd create a registers a new command under the given verb command
 func AddResourceCmd(flagGrouping *FlagGrouping, parentVerbCmd *cobra.Command, newCmd func(*Cmd)) {
 	c := &Cmd{

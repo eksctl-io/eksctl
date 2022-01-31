@@ -3,6 +3,9 @@ package authconfigmap
 import (
 	"fmt"
 
+	// go go:embed to work
+	_ "embed"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/assetutil"
@@ -12,7 +15,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-//go:generate ${GOBIN}/go-bindata -pkg ${GOPACKAGE} -prefix assets -nometadata -o assets.go assets
+//go:embed assets/emr-containers-rbac.yaml
+var emrContainersRbacYamlBytes []byte
 
 type ServiceName string
 
@@ -51,7 +55,7 @@ func NewServiceAccess(rawClient *kubernetes.RawClient, acm *AuthConfigMap, accou
 }
 
 // Grant grants access to the specified service
-func (s *ServiceAccess) Grant(serviceName, namespace string) error {
+func (s *ServiceAccess) Grant(serviceName, namespace string, partition string) error {
 	resources, serviceDetails, err := lookupService(serviceName)
 	if err != nil {
 		return err
@@ -75,7 +79,7 @@ func (s *ServiceAccess) Grant(serviceName, namespace string) error {
 	}
 
 	role := &iam.RoleIdentity{
-		RoleARN: fmt.Sprintf("arn:aws:iam::%s:role/%s", s.accountID, serviceDetails.IAMRoleName),
+		RoleARN: fmt.Sprintf("arn:%s:iam::%s:role/%s", partition, s.accountID, serviceDetails.IAMRoleName),
 		KubernetesIdentity: iam.KubernetesIdentity{
 			KubernetesUsername: string(serviceDetails.User),
 		},
@@ -126,7 +130,7 @@ func lookupService(serviceName string) (resources []byte, sd serviceDetails, err
 
 	switch ServiceName(serviceName) {
 	case emrContainers:
-		return assetutil.MustLoad(emrContainersRbacYamlBytes), emrContainersService, nil
+		return emrContainersRbacYamlBytes, emrContainersService, nil
 	default:
 		return nil, sd, errors.Errorf("invalid service name %q", serviceName)
 	}

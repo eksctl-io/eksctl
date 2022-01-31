@@ -10,6 +10,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -91,7 +92,13 @@ var _ = Describe("Delete", func() {
 				}}},
 			}, nil)
 
-			c := cluster.NewOwnedCluster(cfg, ctl, fakeStackManager)
+			karpenterStack := &manager.Stack{
+				StackName: aws.String("karpenter"),
+			}
+
+			fakeStackManager.GetKarpenterStackReturns(karpenterStack, nil)
+
+			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
 			fakeClientSet = fake.NewSimpleClientset()
 
 			c.SetNewClientSet(func() (kubernetes.Interface, error) {
@@ -104,6 +111,8 @@ var _ = Describe("Delete", func() {
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
 			Expect(fakeStackManager.NewTasksToDeleteClusterWithNodeGroupsCallCount()).To(Equal(1))
 			Expect(ranDeleteClusterTasks).To(BeTrue())
+			Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
+			Expect(fakeStackManager.DeleteStackBySpecArgsForCall(0)).To(Equal(karpenterStack))
 		})
 	})
 
@@ -135,7 +144,7 @@ var _ = Describe("Delete", func() {
 				}}},
 			}, nil)
 
-			c := cluster.NewOwnedCluster(cfg, ctl, fakeStackManager)
+			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
 
 			err := c.Delete(time.Microsecond, false, false)
 			Expect(err).NotTo(HaveOccurred())

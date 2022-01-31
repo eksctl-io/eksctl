@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/utils"
+	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 )
 
 const (
@@ -26,7 +26,8 @@ func MakeImageSearchPatterns(version string) map[string]map[int]string {
 			ImageClassARM:     fmt.Sprintf("amazon-eks-arm64-node-%s-*", version),
 		},
 		api.NodeImageFamilyUbuntu2004: {
-			ImageClassGeneral: fmt.Sprintf("ubuntu-eks/k8s_%s/images/*20.04*", version),
+			ImageClassGeneral: fmt.Sprintf("ubuntu-eks/k8s_%s/images/*20.04-amd64*", version),
+			ImageClassARM:     fmt.Sprintf("ubuntu-eks/k8s_%s/images/*20.04-arm64*", version),
 		},
 		api.NodeImageFamilyUbuntu1804: {
 			ImageClassGeneral: fmt.Sprintf("ubuntu-eks/k8s_%s/images/*18.04*", version),
@@ -39,6 +40,9 @@ func MakeImageSearchPatterns(version string) map[string]map[int]string {
 		},
 		api.NodeImageFamilyWindowsServer2004CoreContainer: {
 			ImageClassGeneral: fmt.Sprintf("Windows_Server-2004-English-Core-EKS_Optimized-%v-*", version),
+		},
+		api.NodeImageFamilyWindowsServer20H2CoreContainer: {
+			ImageClassGeneral: fmt.Sprintf("Windows_Server-20H2-English-Core-EKS_Optimized-%v-*", version),
 		},
 	}
 }
@@ -71,7 +75,7 @@ func (r *AutoResolver) Resolve(region, version, instanceType, imageFamily string
 
 	imageClasses := MakeImageSearchPatterns(version)[imageFamily]
 	namePattern := imageClasses[ImageClassGeneral]
-	if utils.IsGPUInstanceType(instanceType) {
+	if instanceutils.IsGPUInstanceType(instanceType) {
 		var ok bool
 		namePattern, ok = imageClasses[ImageClassGPU]
 		if !ok {
@@ -80,7 +84,7 @@ func (r *AutoResolver) Resolve(region, version, instanceType, imageFamily string
 		}
 	}
 
-	if utils.IsARMInstanceType(instanceType) {
+	if instanceutils.IsARMInstanceType(instanceType) {
 		var ok bool
 		namePattern, ok = imageClasses[ImageClassARM]
 		if !ok {

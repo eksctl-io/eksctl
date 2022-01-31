@@ -17,11 +17,12 @@ func TestUseAMI(t *testing.T) {
 	amiTests := []struct {
 		blockDeviceMappings []*ec2.BlockDeviceMapping
 		rootDeviceName      string
-		description         string
-		volumeName          string
 		amiFamily           string
+		volumeName          string
+		description         string
 
-		encrypted bool
+		expectedVolumeName string
+		expectedEncrypted  bool
 	}{
 		{
 			description:    "Root device mapping not at index 0 (Windows AMIs in some regions)",
@@ -43,8 +44,8 @@ func TestUseAMI(t *testing.T) {
 				},
 			},
 
-			encrypted:  true,
-			volumeName: "/dev/sda1",
+			expectedEncrypted:  true,
+			expectedVolumeName: "/dev/sda1",
 		},
 		{
 			description:    "Only one device mapping (AL2 AMIs)",
@@ -58,8 +59,8 @@ func TestUseAMI(t *testing.T) {
 				},
 			},
 
-			encrypted:  true,
-			volumeName: "/dev/sda1",
+			expectedEncrypted:  true,
+			expectedVolumeName: "/dev/sda1",
 		},
 		{
 			description:    "Different root device name",
@@ -81,13 +82,14 @@ func TestUseAMI(t *testing.T) {
 				},
 			},
 
-			encrypted:  false,
-			volumeName: "/dev/xvda",
+			expectedEncrypted:  false,
+			expectedVolumeName: "/dev/xvda",
 		},
 		{
-			description:    "uses /dev/xvdb disk for bottlerocket images",
+			description:    "volumeName for Bottlerocket is not modified",
 			rootDeviceName: "/dev/xvda",
 			amiFamily:      api.NodeImageFamilyBottlerocket,
+			volumeName:     "/dev/xvdb",
 			blockDeviceMappings: []*ec2.BlockDeviceMapping{
 				{
 					DeviceName: aws.String("/dev/xvda"),
@@ -97,8 +99,8 @@ func TestUseAMI(t *testing.T) {
 				},
 			},
 
-			encrypted:  false,
-			volumeName: "/dev/xvdb",
+			expectedEncrypted:  false,
+			expectedVolumeName: "/dev/xvdb",
 		},
 	}
 
@@ -111,18 +113,22 @@ func TestUseAMI(t *testing.T) {
 					AMIFamily: tt.amiFamily,
 				},
 			}
+			if tt.volumeName != "" {
+				ng.VolumeName = aws.String(tt.volumeName)
+			}
+
 			err := ami.Use(mockProvider.MockEC2(), ng.NodeGroupBase)
 
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
 
-			if *ng.VolumeEncrypted != tt.encrypted {
-				t.Errorf("expected VolumeEncrypted to be %v", tt.encrypted)
+			if *ng.VolumeEncrypted != tt.expectedEncrypted {
+				t.Errorf("expected VolumeEncrypted to be %v", tt.expectedEncrypted)
 			}
 
-			if *ng.VolumeName != tt.volumeName {
-				t.Errorf("expected VolumeName to be %v", tt.volumeName)
+			if *ng.VolumeName != tt.expectedVolumeName {
+				t.Errorf("expected VolumeName to be %v", tt.expectedVolumeName)
 			}
 		})
 	}

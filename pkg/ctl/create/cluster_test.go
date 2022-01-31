@@ -1,10 +1,10 @@
 package create
 
 import (
-	. "github.com/onsi/ginkgo/extensions/table"
-
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 )
@@ -39,7 +39,7 @@ var _ = Describe("create cluster", func() {
 					})
 				})
 				_, err := cmd.execute()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(count).To(Equal(1))
 			},
 			Entry("without cluster name", ""),
@@ -187,6 +187,10 @@ var _ = Describe("create cluster", func() {
 			Entry("with cluster name argument with invalid characters that are rejected by cloudformation", invalidParamsCase{
 				args:  []string{"--name", "eksctl-testing-k_8_cluster01"},
 				error: "validation for eksctl-testing-k_8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
+			}),
+			Entry("with enableSsm disabled", invalidParamsCase{
+				args:  []string{"--name=test", "--enable-ssm=false"},
+				error: "SSM agent is now built into EKS AMIs and cannot be disabled",
 			}),
 		)
 	})

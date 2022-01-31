@@ -16,7 +16,7 @@ var _ = Describe("Instance Selector Validation", func() {
 		SetNodeGroupDefaults(n.ng, &ClusterMeta{Name: "cluster"})
 		err := ValidateNodeGroup(0, n.ng)
 		if n.errMsg == "" {
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			return
 		}
 		Expect(err).To(HaveOccurred())

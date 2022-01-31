@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package update
@@ -5,12 +6,12 @@ package update
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -23,7 +24,6 @@ import (
 	"github.com/weaveworks/eksctl/integration/tests"
 	"github.com/weaveworks/eksctl/pkg/addons"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
@@ -63,7 +63,7 @@ var _ = Describe("(Integration) Update addons", func() {
 		params.KubeconfigTemp = false
 		if params.KubeconfigPath == "" {
 			wd, _ := os.Getwd()
-			f, _ := ioutil.TempFile(wd, "kubeconfig-")
+			f, _ := os.CreateTemp(wd, "kubeconfig-")
 			params.KubeconfigPath = f.Name()
 			params.KubeconfigTemp = true
 		}
@@ -140,14 +140,14 @@ var _ = Describe("(Integration) Update addons", func() {
 
 			By(fmt.Sprintf("checking that control plane is updated to %v", nextEKSVersion))
 			config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			clientSet, err := kubernetes.NewForConfig(config)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(func() string {
 				serverVersion, err := clientSet.ServerVersion()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				return fmt.Sprintf("%s.%s", serverVersion.Major, strings.TrimSuffix(serverVersion.Minor, "+"))
 			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal(nextEKSVersion))
 		})
@@ -163,23 +163,23 @@ var _ = Describe("(Integration) Update addons", func() {
 
 			rawClient := getRawClient()
 			kubernetesVersion, err := rawClient.ServerVersion()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Eventually(func() string {
 				daemonSet, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "kube-proxy", metav1.GetOptions{})
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				kubeProxyVersion, err := addons.ImageTag(daemonSet.Spec.Template.Spec.Containers[0].Image)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				return kubeProxyVersion
-			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(Equal(fmt.Sprintf("v%s-eksbuild.1", kubernetesVersion)))
+			}, k8sUpdatePollTimeout, k8sUpdatePollInterval).Should(ContainSubstring(fmt.Sprintf("v%s-eksbuild.", kubernetesVersion)))
 		})
 
 		It("should upgrade aws-node", func() {
 			rawClient := getRawClient()
 			getAWSNodeVersion := func() string {
 				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "aws-node", metav1.GetOptions{})
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				imageTag, err := addons.ImageTag(awsNode.Spec.Template.Spec.Containers[0].Image)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				return imageTag
 			}
 			preUpdateAWSNodeVersion := getAWSNodeVersion()
@@ -221,6 +221,6 @@ func getRawClient() *kubewrapper.RawClient {
 	err = ctl.RefreshClusterStatus(cfg)
 	Expect(err).ShouldNot(HaveOccurred())
 	rawClient, err := ctl.NewRawClient(cfg)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	return rawClient
 }

@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package tests
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	. "github.com/onsi/ginkgo"
+
 	"github.com/weaveworks/eksctl/integration/runner"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
@@ -47,6 +49,10 @@ type Params struct {
 	EksctlScaleNodeGroupCmd  runner.Cmd
 	EksctlUtilsCmd           runner.Cmd
 	EksctlEnableCmd          runner.Cmd
+	EksctlAnywhereCmd        runner.Cmd
+	EksctlHelpCmd            runner.Cmd
+	EksctlRegisterCmd        runner.Cmd
+	EksctlDeregisterCmd      runner.Cmd
 	// Keep track of created clusters, for post-tests clean-up.
 	clustersToDelete []string
 }
@@ -70,6 +76,10 @@ func (p *Params) GenerateCommands() {
 		WithArgs("--region", p.Region).
 		WithTimeout(30 * time.Minute)
 
+	p.EksctlHelpCmd = runner.NewCmd(p.EksctlPath).
+		WithArgs("--help").
+		WithTimeout(30 * time.Minute)
+
 	p.EksctlCreateCmd = p.EksctlCmd.
 		WithArgs("create").
 		WithTimeout(90 * time.Minute)
@@ -84,19 +94,23 @@ func (p *Params) GenerateCommands() {
 
 	p.EksctlGetCmd = p.EksctlCmd.
 		WithArgs("get").
-		WithTimeout(1 * time.Minute)
+		WithTimeout(2 * time.Minute)
 
 	p.EksctlSetLabelsCmd = p.EksctlCmd.
 		WithArgs("set", "labels").
-		WithTimeout(1 * time.Minute)
+		// increased timeout reason: set label updates the cloudformation stack to propagate labels
+		// down to the nodes. That can take a while...
+		WithTimeout(10 * time.Minute)
 
 	p.EksctlUnsetLabelsCmd = p.EksctlCmd.
 		WithArgs("unset", "labels").
-		WithTimeout(1 * time.Minute)
+		// increased timeout reason: unset label updates the cloudformation stack to propagate labels
+		// down to the nodes. That can take a while...
+		WithTimeout(10 * time.Minute)
 
 	p.EksctlDeleteCmd = p.EksctlCmd.
 		WithArgs("delete").
-		WithTimeout(15 * time.Minute)
+		WithTimeout(30 * time.Minute)
 
 	p.EksctlDeleteClusterCmd = p.EksctlDeleteCmd.
 		WithArgs("cluster", "--verbose", "4").
@@ -118,10 +132,21 @@ func (p *Params) GenerateCommands() {
 		WithArgs("enable").
 		WithTimeout(10 * time.Minute)
 
+	p.EksctlRegisterCmd = runner.NewCmd(p.EksctlPath).
+		WithArgs("register").
+		WithTimeout(2 * time.Minute)
+
+	p.EksctlDeregisterCmd = runner.NewCmd(p.EksctlPath).
+		WithArgs("deregister").
+		WithTimeout(1 * time.Minute)
+
 	p.EksctlCreateNodegroupCmd = runner.NewCmd(p.EksctlPath).
 		WithArgs("create", "nodegroup").
 		WithTimeout(40 * time.Minute)
 
+	p.EksctlAnywhereCmd = runner.NewCmd(p.EksctlPath).
+		WithArgs("anywhere").
+		WithTimeout(1 * time.Minute)
 }
 
 // NewClusterName generates a new cluster name using the provided prefix, and

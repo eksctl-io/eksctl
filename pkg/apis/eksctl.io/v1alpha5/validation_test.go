@@ -7,7 +7,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
@@ -28,11 +30,11 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		It("should handle unique nodegroups", func() {
 			err = api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			for i, ng := range cfg.NodeGroups {
 				err = api.ValidateNodeGroup(i, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			}
 		})
 
@@ -70,12 +72,36 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		It("should reject invalid nodegroup names", func() {
 			err = api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			for i, ng := range cfg.NodeGroups {
 				err = api.ValidateNodeGroup(i, ng)
 				Expect(err).To(HaveOccurred())
 			}
+		})
+	})
+
+	Describe("nodeGroups[*].containerRuntime validation", func() {
+		It("should reject invalid container runtime", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.ContainerRuntime = aws.String("invalid")
+			err := api.ValidateClusterConfig(cfg)
+			Expect(err).NotTo(HaveOccurred())
+			err = api.ValidateNodeGroup(0, ng0)
+			Expect(err).To(HaveOccurred())
+		})
+		It("containerd is only allowed for AL2", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeContainerD)
+			ng0.AMIFamily = api.NodeImageFamilyBottlerocket
+			err := api.ValidateClusterConfig(cfg)
+			Expect(err).NotTo(HaveOccurred())
+			err = api.ValidateNodeGroup(0, ng0)
+			Expect(err).To(HaveOccurred())
 		})
 	})
 
@@ -203,6 +229,15 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng0 := cfg.NewNodeGroup()
 			ng0.Name = "ng0"
 
+			ng0.IAM.AttachPolicy = cft.MakePolicyDocument(
+				cft.MapOfInterfaces{
+					"Effect": "Allow",
+					"Action": []string{
+						"s3:Get*",
+					},
+					"Resource": "*",
+				},
+			)
 			ng0.IAM.AttachPolicyARNs = []string{
 				"arn:aws:iam::aws:policy/Foo",
 				"arn:aws:iam::aws:policy/Bar",
@@ -217,11 +252,11 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		JustBeforeEach(func() {
 			err = api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			for i, ng := range cfg.NodeGroups {
 				err = api.ValidateNodeGroup(i, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			}
 		})
 
@@ -229,14 +264,14 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng1.IAM.InstanceProfileARN = "p1"
 
 			err = api.ValidateNodeGroup(1, ng1)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should allow setting only instanceRoleARN", func() {
 			ng1.IAM.InstanceRoleARN = "r1"
 
 			err = api.ValidateNodeGroup(1, ng1)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should allow setting instanceProfileARN and instanceRoleARN", func() {
@@ -244,7 +279,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng1.IAM.InstanceRoleARN = "r1"
 
 			err = api.ValidateNodeGroup(1, ng1)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should not allow setting instanceProfileARN and instanceRoleName", func() {
@@ -281,6 +316,23 @@ var _ = Describe("ClusterConfig validation", func() {
 			err = api.ValidateNodeGroup(1, ng1)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceRoleARN and nodeGroups[1].iam.instanceRoleName cannot be set at the same time"))
+		})
+
+		It("should not allow setting instanceRoleARN and attachPolicy", func() {
+			ng1.IAM.InstanceRoleARN = "r1"
+			ng1.IAM.AttachPolicy = cft.MakePolicyDocument(
+				cft.MapOfInterfaces{
+					"Effect": "Allow",
+					"Action": []string{
+						"s3:Get*",
+					},
+					"Resource": "*",
+				},
+			)
+
+			err = api.ValidateNodeGroup(1, ng1)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceRoleARN and nodeGroups[1].iam.attachPolicy cannot be set at the same time"))
 		})
 
 		It("should not allow setting instanceRoleARN and attachPolicyARNs", func() {
@@ -321,21 +373,21 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg.IAM.WithOIDC = nil
 
 			err = api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should pass when iam.withOIDC is disabled", func() {
 			cfg.IAM.WithOIDC = api.Disabled()
 
 			err = api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should pass when iam.withOIDC is enabled", func() {
 			cfg.IAM.WithOIDC = api.Enabled()
 
 			err = api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should fail when iam.withOIDC is disabled and some iam.serviceAccounts are given", func() {
@@ -444,9 +496,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		It("should handle known types", func() {
 			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"api"}
-
-			err = api.ValidateClusterConfig(cfg)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(api.ValidateClusterConfig(cfg)).To(Succeed())
 		})
 
 		It("should handle unknown types", func() {
@@ -454,8 +504,50 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			err = api.ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring(`log type "anything" (cloudWatch.clusterLogging.enableTypes[0]) is unknown`)))
 		})
 	})
+
+	type logRetentionEntry struct {
+		logging *api.ClusterCloudWatchLogging
+
+		expectedErr string
+	}
+
+	DescribeTable("CloudWatch log retention", func(l logRetentionEntry) {
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.CloudWatch.ClusterLogging = l.logging
+		err := api.ValidateClusterConfig(clusterConfig)
+		if l.expectedErr != "" {
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring(l.expectedErr)))
+			return
+		}
+
+		Expect(err).NotTo(HaveOccurred())
+	},
+		Entry("invalid value", logRetentionEntry{
+			logging: &api.ClusterCloudWatchLogging{
+				LogRetentionInDays: 42,
+				EnableTypes:        []string{"api"},
+			},
+			expectedErr: `invalid value 42 for logRetentionInDays; supported values are [1 3 5 7`,
+		}),
+
+		Entry("valid value", logRetentionEntry{
+			logging: &api.ClusterCloudWatchLogging{
+				LogRetentionInDays: 545,
+				EnableTypes:        []string{"api"},
+			},
+		}),
+
+		Entry("log retention without enableTypes", logRetentionEntry{
+			logging: &api.ClusterCloudWatchLogging{
+				LogRetentionInDays: 545,
+			},
+			expectedErr: "cannot set cloudWatch.clusterLogging.logRetentionInDays without enabling log types",
+		}),
+	)
 
 	Describe("cluster endpoint access config", func() {
 		var (
@@ -466,7 +558,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		BeforeEach(func() {
 			cfg = api.NewClusterConfig()
-			vpc = api.NewClusterVPC()
+			vpc = api.NewClusterVPC(false)
 			cfg.VPC = vpc
 		})
 
@@ -474,27 +566,557 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg.VPC.ClusterEndpoints =
 				&api.ClusterEndpoints{PrivateAccess: api.Enabled(), PublicAccess: api.Enabled()}
 			err = cfg.ValidateClusterEndpointConfig()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should not error on private=false, public=true", func() {
 			cfg.VPC.ClusterEndpoints =
 				&api.ClusterEndpoints{PrivateAccess: api.Disabled(), PublicAccess: api.Enabled()}
 			err = cfg.ValidateClusterEndpointConfig()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should not error on private=true, public=false", func() {
 			cfg.VPC.ClusterEndpoints =
 				&api.ClusterEndpoints{PrivateAccess: api.Enabled(), PublicAccess: api.Disabled()}
 			err = cfg.ValidateClusterEndpointConfig()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should error on private=false, public=false", func() {
 			cfg.VPC.ClusterEndpoints = &api.ClusterEndpoints{PrivateAccess: api.Disabled(), PublicAccess: api.Disabled()}
 			err = cfg.ValidateClusterEndpointConfig()
 			Expect(err).To(BeIdenticalTo(api.ErrClusterEndpointNoAccess))
+		})
+	})
+
+	Describe("ValidatePrivateCluster", func() {
+		var (
+			cfg *api.ClusterConfig
+			vpc *api.ClusterVPC
+		)
+
+		BeforeEach(func() {
+			cfg = api.NewClusterConfig()
+			vpc = api.NewClusterVPC(false)
+			cfg.VPC = vpc
+			cfg.PrivateCluster = &api.PrivateCluster{
+				Enabled: true,
+			}
+		})
+		When("private cluster is enabled", func() {
+			It("validates the config", func() {
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+		When("vpc is provided but no private subnets", func() {
+			It("fails the validation", func() {
+				cfg.VPC.Subnets = &api.ClusterSubnets{}
+				cfg.VPC.ID = "id"
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).To(MatchError(ContainSubstring("vpc.subnets.private must be specified in a fully-private cluster when a pre-existing VPC is supplied")))
+			})
+		})
+		When("additional endpoints are defined with skip endpoints", func() {
+			It("fails the validation", func() {
+				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
+				cfg.PrivateCluster.SkipEndpointCreation = true
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).To(MatchError(ContainSubstring("privateCluster.additionalEndpointServices cannot be set when privateCluster.skipEndpointCreation is true")))
+			})
+		})
+		When("additional endpoints are defined", func() {
+			It("validates the endpoint configuration", func() {
+				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+		When("additional endpoints are defined incorrectly", func() {
+			It("fails the endpoint validation", func() {
+				cfg.PrivateCluster.AdditionalEndpointServices = []string{"unknown"}
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).To(MatchError(ContainSubstring("invalid value in privateCluster.additionalEndpointServices")))
+			})
+		})
+		When("private cluster is enabled with skip endpoints", func() {
+			It("does not fail the validation", func() {
+				cfg.PrivateCluster.SkipEndpointCreation = true
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+	})
+	Describe("network config", func() {
+		var (
+			cfg *api.ClusterConfig
+			vpc *api.ClusterVPC
+			err error
+		)
+
+		BeforeEach(func() {
+			cfg = api.NewClusterConfig()
+			vpc = api.NewClusterVPC(false)
+			cfg.VPC = vpc
+		})
+
+		Context("ipFamily", func() {
+			It("should not error default ipFamily setting", func() {
+				err = api.ValidateClusterConfig(cfg)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(cfg.KubernetesNetworkConfig.IPFamily).To(Equal(api.IPV4Family))
+			})
+
+			When("ipFamily isn't IPv4 or IPv6", func() {
+				It("returns an error", func() {
+					cfg.KubernetesNetworkConfig.IPFamily = "invalid"
+					err = api.ValidateClusterConfig(cfg)
+					Expect(err).To(MatchError(ContainSubstring(`invalid value "invalid" for ipFamily; allowed are IPv4 and IPv6`)))
+				})
+			})
+
+			When("ipFamily is empty", func() {
+				It("treats it as IPv4 and does not return an error", func() {
+					cfg.KubernetesNetworkConfig.IPFamily = ""
+					Expect(api.ValidateClusterConfig(cfg)).To(Succeed())
+				})
+			})
+
+			When("ipFamily is set to IPv6", func() {
+				JustBeforeEach(func() {
+					cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
+				})
+
+				It("accepts that setting", func() {
+					cfg.VPC.NAT = nil
+					cfg.VPC.IPv6Cidr = "foo"
+					cfg.VPC.IPv6Pool = "bar"
+					cfg.Addons = append(cfg.Addons,
+						&api.Addon{Name: api.KubeProxyAddon},
+						&api.Addon{Name: api.CoreDNSAddon},
+						&api.Addon{Name: api.VPCCNIAddon},
+					)
+					cfg.IAM = &api.ClusterIAM{
+						WithOIDC: api.Enabled(),
+					}
+					cfg.Metadata.Version = api.Version1_21
+					err = cfg.ValidateVPCConfig()
+					Expect(err).ToNot(HaveOccurred())
+					cfg.Metadata.Version = "1.31"
+					err = cfg.ValidateVPCConfig()
+					Expect(err).ToNot(HaveOccurred())
+				})
+
+				When("the casing of ipv6 isn't standard", func() {
+					It("accepts that setting", func() {
+						cfg.KubernetesNetworkConfig.IPFamily = "iPv6"
+						cfg.VPC.NAT = nil
+						cfg.VPC.IPv6Cidr = "foo"
+						cfg.VPC.IPv6Pool = "bar"
+						cfg.Addons = append(cfg.Addons,
+							&api.Addon{Name: api.KubeProxyAddon},
+							&api.Addon{Name: api.CoreDNSAddon},
+							&api.Addon{Name: api.VPCCNIAddon},
+						)
+						cfg.IAM = &api.ClusterIAM{
+							WithOIDC: api.Enabled(),
+						}
+						cfg.Metadata.Version = api.Version1_21
+						err = cfg.ValidateVPCConfig()
+						Expect(err).ToNot(HaveOccurred())
+						cfg.Metadata.Version = "1.31"
+						err = cfg.ValidateVPCConfig()
+						Expect(err).ToNot(HaveOccurred())
+					})
+				})
+
+				When("ipFamily is set to IPv6 but version is not or too low", func() {
+					It("returns an error", func() {
+						cfg.VPC.NAT = nil
+						cfg.Addons = append(cfg.Addons,
+							&api.Addon{Name: api.KubeProxyAddon},
+							&api.Addon{Name: api.CoreDNSAddon},
+							&api.Addon{Name: api.VPCCNIAddon},
+						)
+						cfg.IAM = &api.ClusterIAM{
+							WithOIDC: api.Enabled(),
+						}
+						cfg.Metadata.Version = ""
+						err = api.ValidateClusterConfig(cfg)
+						Expect(err).To(MatchError(ContainSubstring("failed to convert  cluster version to semver: unable to parse first version")))
+						cfg.Metadata.Version = api.Version1_12
+						err = api.ValidateClusterConfig(cfg)
+						Expect(err).To(MatchError(ContainSubstring("cluster version must be >= 1.21")))
+					})
+				})
+
+				When("ipFamily is set to IPv6 but no managed addons are provided", func() {
+					It("it returns an error including which addons are missing", func() {
+						cfg.VPC.NAT = nil
+						cfg.IAM = &api.ClusterIAM{
+							WithOIDC: api.Enabled(),
+						}
+						cfg.Addons = append(cfg.Addons, &api.Addon{Name: api.KubeProxyAddon})
+						err = api.ValidateClusterConfig(cfg)
+						Expect(err).To(MatchError(ContainSubstring("the default core addons must be defined for IPv6; missing addon(s): vpc-cni, coredns")))
+					})
+				})
+
+				When("the vpc-cni version is configured", func() {
+					When("the version of the vpc-cni is too low", func() {
+						It("returns an error", func() {
+							cfg.Metadata.Version = api.Version1_22
+							cfg.IAM = &api.ClusterIAM{
+								WithOIDC: api.Enabled(),
+							}
+							cfg.Addons = append(cfg.Addons,
+								&api.Addon{Name: api.KubeProxyAddon},
+								&api.Addon{Name: api.CoreDNSAddon},
+								&api.Addon{Name: api.VPCCNIAddon, Version: "1.9.0"},
+							)
+							cfg.VPC.NAT = nil
+							err = api.ValidateClusterConfig(cfg)
+							Expect(err).To(MatchError(ContainSubstring("vpc-cni version must be at least version 1.10.0 for IPv6")))
+						})
+					})
+
+					When("the version of the vpc-cni is supported", func() {
+						It("does not error", func() {
+							cfg.Metadata.Version = api.Version1_22
+							cfg.IAM = &api.ClusterIAM{
+								WithOIDC: api.Enabled(),
+							}
+							cfg.Addons = append(cfg.Addons,
+								&api.Addon{Name: api.KubeProxyAddon},
+								&api.Addon{Name: api.CoreDNSAddon},
+								&api.Addon{Name: api.VPCCNIAddon, Version: "1.10"},
+							)
+							cfg.VPC.NAT = nil
+							err = cfg.ValidateVPCConfig()
+							Expect(err).NotTo(HaveOccurred())
+						})
+					})
+
+					When("the version of the vpc-cni is not configured", func() {
+						It("does not error", func() {
+							cfg.Metadata.Version = api.Version1_22
+							cfg.IAM = &api.ClusterIAM{
+								WithOIDC: api.Enabled(),
+							}
+							cfg.Addons = append(cfg.Addons,
+								&api.Addon{Name: api.KubeProxyAddon},
+								&api.Addon{Name: api.CoreDNSAddon},
+								&api.Addon{Name: api.VPCCNIAddon},
+							)
+							cfg.VPC.NAT = nil
+							err = api.ValidateClusterConfig(cfg)
+							Expect(err).NotTo(HaveOccurred())
+							Expect(cfg.Addons[2].Version).To(Equal("1.10.0"))
+						})
+					})
+
+					When("the version of the vpc-cni is latest", func() {
+						It("does not error", func() {
+							cfg.Metadata.Version = api.Version1_22
+							cfg.IAM = &api.ClusterIAM{
+								WithOIDC: api.Enabled(),
+							}
+							cfg.Addons = append(cfg.Addons,
+								&api.Addon{Name: api.KubeProxyAddon},
+								&api.Addon{Name: api.CoreDNSAddon},
+								&api.Addon{Name: api.VPCCNIAddon, Version: "latest"},
+							)
+							cfg.VPC.NAT = nil
+							err = cfg.ValidateVPCConfig()
+							Expect(err).NotTo(HaveOccurred())
+						})
+					})
+
+					When("the version of the vpc-cni is invalid", func() {
+						It("it returns an error", func() {
+							cfg.Metadata.Version = api.Version1_22
+							cfg.IAM = &api.ClusterIAM{
+								WithOIDC: api.Enabled(),
+							}
+							cfg.Addons = append(cfg.Addons,
+								&api.Addon{Name: api.KubeProxyAddon},
+								&api.Addon{Name: api.CoreDNSAddon},
+								&api.Addon{Name: api.VPCCNIAddon, Version: "1.invalid!semver"},
+							)
+							cfg.VPC.NAT = nil
+							err = api.ValidateClusterConfig(cfg)
+							Expect(err).To(MatchError(ContainSubstring("failed to parse version")))
+						})
+					})
+				})
+
+				When("iam is not set", func() {
+					It("returns an error", func() {
+						cfg.Addons = append(cfg.Addons,
+							&api.Addon{Name: api.KubeProxyAddon},
+							&api.Addon{Name: api.CoreDNSAddon},
+							&api.Addon{Name: api.VPCCNIAddon},
+						)
+						err = api.ValidateClusterConfig(cfg)
+						Expect(err).To(MatchError(ContainSubstring("oidc needs to be enabled if IPv6 is set")))
+					})
+				})
+
+				When("iam is set but OIDC is disabled", func() {
+					It("returns an error", func() {
+						cfg.IAM = &api.ClusterIAM{
+							WithOIDC: api.Disabled(),
+						}
+						cfg.Addons = append(cfg.Addons,
+							&api.Addon{Name: api.KubeProxyAddon},
+							&api.Addon{Name: api.CoreDNSAddon},
+							&api.Addon{Name: api.VPCCNIAddon},
+						)
+						err = api.ValidateClusterConfig(cfg)
+						Expect(err).To(MatchError(ContainSubstring("oidc needs to be enabled if IPv6 is set")))
+					})
+				})
+
+				When("ipFamily is set to IPv6 and vpc.NAT is defined", func() {
+					It("it returns an error", func() {
+						cfg.Metadata.Version = api.Version1_22
+						cfg.IAM = &api.ClusterIAM{
+							WithOIDC: api.Enabled(),
+						}
+						cfg.Addons = append(cfg.Addons,
+							&api.Addon{Name: api.KubeProxyAddon},
+							&api.Addon{Name: api.CoreDNSAddon},
+							&api.Addon{Name: api.VPCCNIAddon},
+						)
+						cfg.VPC.NAT = &api.ClusterNAT{}
+						err = cfg.ValidateVPCConfig()
+						Expect(err).To(MatchError(ContainSubstring("setting NAT is not supported with IPv6")))
+					})
+				})
+
+				When("ipFamily is set to IPv6 and serviceIPv4CIDR is not empty", func() {
+					It("it returns an error", func() {
+						cfg.Metadata.Version = api.Version1_22
+						cfg.IAM = &api.ClusterIAM{
+							WithOIDC: api.Enabled(),
+						}
+						cfg.Addons = append(cfg.Addons,
+							&api.Addon{Name: api.KubeProxyAddon},
+							&api.Addon{Name: api.CoreDNSAddon},
+							&api.Addon{Name: api.VPCCNIAddon},
+						)
+						cfg.KubernetesNetworkConfig.ServiceIPv4CIDR = "192.168.0.0/24"
+						cfg.VPC.NAT = nil
+						err = api.ValidateClusterConfig(cfg)
+						Expect(err).To(MatchError(ContainSubstring("service ipv4 cidr is not supported with IPv6")))
+					})
+				})
+
+				When("ipFamily is set to IPv6 and AutoAllocateIPv6 is set", func() {
+					It("it returns an error", func() {
+						cfg.VPC.AutoAllocateIPv6 = api.Enabled()
+						cfg.Metadata.Version = api.Version1_22
+						cfg.IAM = &api.ClusterIAM{
+							WithOIDC: api.Enabled(),
+						}
+						cfg.Addons = append(cfg.Addons,
+							&api.Addon{Name: api.KubeProxyAddon},
+							&api.Addon{Name: api.CoreDNSAddon},
+							&api.Addon{Name: api.VPCCNIAddon},
+						)
+						cfg.VPC.NAT = nil
+						err = cfg.ValidateVPCConfig()
+						Expect(err).To(MatchError(ContainSubstring("auto allocate ipv6 is not supported with IPv6")))
+					})
+				})
+			})
+		})
+
+		Context("extraCIDRs", func() {
+			It("validates cidrs", func() {
+				cfg.VPC.ExtraCIDRs = []string{"192.168.0.0/24"}
+				cfg.VPC.PublicAccessCIDRs = []string{"3.48.58.68/24"}
+				err = cfg.ValidateVPCConfig()
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			When("extraCIDRs has an invalid cidr", func() {
+				It("returns an error", func() {
+					cfg.VPC.ExtraCIDRs = []string{"not-a-cidr"}
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(HaveOccurred())
+				})
+			})
+
+			When("public access cidrs has an invalid cidr", func() {
+				It("returns an error", func() {
+					cfg.VPC.PublicAccessCIDRs = []string{"48.58.68/24"}
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(HaveOccurred())
+				})
+			})
+		})
+
+		Context("ipv6 CIDRs", func() {
+			When("IPv6Cidr or IPv6CidrPool is provided and ipv6 is not set", func() {
+				It("returns an error", func() {
+					cfg.KubernetesNetworkConfig.IPFamily = api.IPV4Family
+					cfg.VPC.IPv6Cidr = "foo"
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("Ipv6Cidr and Ipv6CidrPool are only supported when IPFamily is set to IPv6"))
+
+					cfg.KubernetesNetworkConfig.IPFamily = api.IPV4Family
+					cfg.VPC.IPv6Cidr = ""
+					cfg.VPC.IPv6Pool = "bar"
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("Ipv6Cidr and Ipv6CidrPool are only supported when IPFamily is set to IPv6"))
+				})
+			})
+
+			When("only one of IPv6Cidr or IPv6CidrPool is provided and ipv6 is set", func() {
+				It("returns an error", func() {
+					cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
+					cfg.VPC.IPv6Cidr = "foo"
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("Ipv6Cidr and Ipv6Pool must both be configured to use a custom IPv6 CIDR and address pool"))
+
+					cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
+					cfg.VPC.IPv6Cidr = ""
+					cfg.VPC.IPv6Pool = "bar"
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("Ipv6Cidr and Ipv6Pool must both be configured to use a custom IPv6 CIDR and address pool"))
+				})
+			})
+
+			When("it's set alongside VPC.ID", func() {
+				It("returns an error", func() {
+					cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
+					cfg.VPC.IPv6Cidr = "foo"
+					cfg.VPC.IPv6Pool = "bar"
+					cfg.VPC.ID = "123"
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("cannot provide VPC.IPv6Cidr when using a pre-existing VPC.ID"))
+				})
+			})
+		})
+
+		Context("extraIPv6CIDRs", func() {
+			It("validates cidrs", func() {
+				cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
+				cfg.Metadata.Version = api.LatestVersion
+				cfg.Addons = append(cfg.Addons,
+					&api.Addon{Name: api.KubeProxyAddon},
+					&api.Addon{Name: api.CoreDNSAddon},
+					&api.Addon{Name: api.VPCCNIAddon},
+				)
+				cfg.IAM = &api.ClusterIAM{
+					WithOIDC: api.Enabled(),
+				}
+				cfg.VPC.ExtraIPv6CIDRs = []string{"2002::1234:abcd:ffff:c0a8:101/64"}
+				cfg.VPC.NAT = nil
+				err = cfg.ValidateVPCConfig()
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			When("extraIPv6CIDRs has an invalid cidr", func() {
+				It("returns an error", func() {
+					cfg.VPC.ExtraIPv6CIDRs = []string{"not-a-cidr"}
+					cfg.Metadata.Version = api.LatestVersion
+					cfg.Addons = append(cfg.Addons,
+						&api.Addon{Name: api.KubeProxyAddon},
+						&api.Addon{Name: api.CoreDNSAddon},
+						&api.Addon{Name: api.VPCCNIAddon},
+					)
+					cfg.IAM = &api.ClusterIAM{
+						WithOIDC: api.Enabled(),
+					}
+					cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(HaveOccurred())
+
+					cfg.VPC.ExtraIPv6CIDRs = []string{"2002::1234:abcd:ffff:c0a8:101/644"}
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(HaveOccurred())
+				})
+			})
+
+			When("when ipv4 is configured", func() {
+				It("returns an error", func() {
+					cfg.KubernetesNetworkConfig.IPFamily = api.IPV4Family
+					cfg.Metadata.Version = api.LatestVersion
+					cfg.Addons = append(cfg.Addons,
+						&api.Addon{Name: api.KubeProxyAddon},
+						&api.Addon{Name: api.CoreDNSAddon},
+						&api.Addon{Name: api.VPCCNIAddon},
+					)
+					cfg.IAM = &api.ClusterIAM{
+						WithOIDC: api.Enabled(),
+					}
+					cfg.VPC.ExtraIPv6CIDRs = []string{"2002::1234:abcd:ffff:c0a8:101/644"}
+					err = cfg.ValidateVPCConfig()
+					Expect(err).To(MatchError("cannot specify vpc.extraIPv6CIDRs with an IPv4 cluster"))
+				})
+			})
+		})
+	})
+
+	Describe("ValidatePrivateCluster", func() {
+		var (
+			cfg *api.ClusterConfig
+			vpc *api.ClusterVPC
+		)
+
+		BeforeEach(func() {
+			cfg = api.NewClusterConfig()
+			vpc = api.NewClusterVPC(false)
+			cfg.VPC = vpc
+			cfg.PrivateCluster = &api.PrivateCluster{
+				Enabled: true,
+			}
+		})
+		When("private cluster is enabled", func() {
+			It("validates the config", func() {
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+		When("vpc is provided but no private subnets", func() {
+			It("fails the validation", func() {
+				cfg.VPC.Subnets = &api.ClusterSubnets{}
+				cfg.VPC.ID = "id"
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).To(MatchError(ContainSubstring("vpc.subnets.private must be specified in a fully-private cluster when a pre-existing VPC is supplied")))
+			})
+		})
+		When("additional endpoints are defined with skip endpoints", func() {
+			It("fails the validation", func() {
+				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
+				cfg.PrivateCluster.SkipEndpointCreation = true
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).To(MatchError(ContainSubstring("privateCluster.additionalEndpointServices cannot be set when privateCluster.skipEndpointCreation is true")))
+			})
+		})
+		When("additional endpoints are defined", func() {
+			It("validates the endpoint configuration", func() {
+				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+		When("additional endpoints are defined incorrectly", func() {
+			It("fails the endpoint validation", func() {
+				cfg.PrivateCluster.AdditionalEndpointServices = []string{"unknown"}
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).To(MatchError(ContainSubstring("invalid value in privateCluster.additionalEndpointServices")))
+			})
+		})
+		When("private cluster is enabled with skip endpoints", func() {
+			It("does not fail the validation", func() {
+				cfg.PrivateCluster.SkipEndpointCreation = true
+				err := cfg.ValidatePrivateCluster()
+				Expect(err).NotTo(HaveOccurred())
+			})
 		})
 	})
 
@@ -514,12 +1136,12 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("works independent of instanceType", func() {
 			Context("unset", func() {
 				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 			Context("set", func() {
 				ng.InstanceType = "mixed"
 				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 
@@ -601,7 +1223,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			It("It doesn't panic when instance distribution is not enabled", func() {
 				ng.InstancesDistribution = nil
 				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("It doesn't fail when instance distribution is enabled and instanceType is \"mixed\"", func() {
@@ -609,7 +1231,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				ng.InstancesDistribution.InstanceTypes = []string{"t3.medium"}
 
 				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("It fails when instance distribution is enabled and instanceType set", func() {
@@ -686,7 +1308,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				ng.InstancesDistribution.SpotInstancePools = newInt(2)
 
 				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 	})
@@ -727,7 +1349,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					},
 				}
 				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 	})
@@ -772,7 +1394,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				ng.VolumeEncrypted = &enabled
 				ng.VolumeKmsKeyID = &kmsKeyID
 				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 		})
@@ -842,7 +1464,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					},
 				}
 				err := profile.Validate()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("passes when a name and multiple selectors with a namespace is defined", func() {
@@ -858,7 +1480,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					},
 				}
 				err := profile.Validate()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 	})
@@ -941,7 +1563,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(k.errSubstr))
 		} else {
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		}
 	},
 		Entry("Nil secretsEncryption", kmsFieldCase{
@@ -968,7 +1590,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("fails when the AMIFamily is not supported", func() {
 			ng.AMIFamily = "SomeTrash"
 			err := api.ValidateNodeGroup(0, ng)
-			Expect(err).To(MatchError("AMI Family SomeTrash is not supported - use one of: AmazonLinux2, Ubuntu2004, Ubuntu1804, Bottlerocket, WindowsServer2019CoreContainer, WindowsServer2019FullContainer, WindowsServer2004CoreContainer"))
+			Expect(err).To(MatchError("AMI Family SomeTrash is not supported - use one of: AmazonLinux2, Ubuntu2004, Ubuntu1804, Bottlerocket, WindowsServer2019CoreContainer, WindowsServer2019FullContainer, WindowsServer2004CoreContainer, WindowsServer20H2CoreContainer"))
 		})
 	})
 
@@ -1007,6 +1629,21 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	Describe("Karpenter", func() {
+		It("returns an error when version is missing", func() {
+			cfg := api.NewClusterConfig()
+			cfg.Karpenter = &api.Karpenter{}
+			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("version field is required if installing Karpenter is enabled")))
+		})
+		It("returns an error when OIDC is not set", func() {
+			cfg := api.NewClusterConfig()
+			cfg.Karpenter = &api.Karpenter{
+				Version: "0.5.1",
+			}
+			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate karpenter config: iam.withOIDC must be enabled with Karpenter")))
+		})
+	})
+
 	type labelsTaintsEntry struct {
 		labels map[string]string
 		taints []api.NodeGroupTaint
@@ -1019,7 +1656,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		ng.Taints = e.taints
 		err := api.ValidateNodeGroup(0, ng)
 		if e.valid {
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		} else {
 			Expect(err).To(HaveOccurred())
 		}

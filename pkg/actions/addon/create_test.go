@@ -32,9 +32,14 @@ var _ = Describe("Create", func() {
 		returnedErr            error
 		createStackReturnValue error
 		rawClient              *testutils.FakeRawClient
+		clusterConfig          *api.ClusterConfig
 	)
 
 	BeforeEach(func() {
+		clusterConfig = &api.ClusterConfig{Metadata: &api.ClusterMeta{
+			Version: "1.18",
+			Name:    "my-cluster",
+		}}
 		withOIDC = true
 		returnedErr = nil
 		fakeStackManager = new(fakes.FakeStackManager)
@@ -56,15 +61,15 @@ var _ = Describe("Create", func() {
 
 		for _, item := range sampleAddons {
 			rc, err := rawClient.NewRawResource(item)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			_, err = rc.CreateOrReplace(false)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		}
 
 		ct := rawClient.Collection
 
 		Expect(ct.Updated()).To(BeEmpty())
-		Expect(ct.Created()).ToNot(BeEmpty())
+		Expect(ct.Created()).NotTo(BeEmpty())
 		Expect(ct.CreatedItems()).To(HaveLen(10))
 	})
 
@@ -72,7 +77,7 @@ var _ = Describe("Create", func() {
 		var err error
 
 		oidc, err = iamoidc.NewOpenIDConnectManager(nil, "456123987123", "https://oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E", "aws", nil)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		oidc.ProviderARN = "arn:aws:iam::456123987123:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E"
 
 		mockProvider.MockEKS().On("CreateAddon", mock.Anything).Run(func(args mock.Arguments) {
@@ -81,10 +86,7 @@ var _ = Describe("Create", func() {
 			createAddonInput = args[0].(*awseks.CreateAddonInput)
 		}).Return(nil, returnedErr)
 
-		manager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
-			Version: "1.18",
-			Name:    "my-cluster",
-		}}, mockProvider.EKS(), fakeStackManager, withOIDC, oidc, rawClient.ClientSet(), 5*time.Minute)
+		manager, err = addon.New(clusterConfig, mockProvider.EKS(), fakeStackManager, withOIDC, oidc, rawClient.ClientSet(), 5*time.Minute)
 		Expect(err).NotTo(HaveOccurred())
 		manager.SetTimeout(time.Second)
 
@@ -392,28 +394,89 @@ var _ = Describe("Create", func() {
 				}
 
 			})
-			It("creates a role with the recommended policies and attaches it to the addon", func() {
-				err := manager.Create(&api.Addon{
-					Name:    "vpc-cni",
-					Version: "v1.0.0-eksbuild.1",
-				}, false)
-				Expect(err).NotTo(HaveOccurred())
 
-				Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
-				name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
-				Expect(name).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
-				Expect(resourceSet).NotTo(BeNil())
-				Expect(tags).To(Equal(map[string]string{
-					api.AddonNameTag: "vpc-cni",
-				}))
-				output, err := resourceSet.RenderJSON()
-				Expect(err).NotTo(HaveOccurred())
-				Expect(string(output)).To(ContainSubstring("arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"))
-				Expect(string(output)).To(ContainSubstring(":sub\":\"system:serviceaccount:kube-system:aws-node"))
-				Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
-				Expect(*createAddonInput.AddonName).To(Equal("vpc-cni"))
-				Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
-				Expect(*createAddonInput.ServiceAccountRoleArn).To(Equal("role-arn"))
+			When("it's the vpc-cni addon", func() {
+				Context("ipv4", func() {
+					It("creates a role with the recommended policies and attaches it to the addon", func() {
+						err := manager.Create(&api.Addon{
+							Name:    "vpc-cni",
+							Version: "v1.0.0-eksbuild.1",
+						}, false)
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
+						name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
+						Expect(name).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
+						Expect(resourceSet).NotTo(BeNil())
+						Expect(tags).To(Equal(map[string]string{
+							api.AddonNameTag: "vpc-cni",
+						}))
+						output, err := resourceSet.RenderJSON()
+						Expect(err).NotTo(HaveOccurred())
+						Expect(string(output)).To(ContainSubstring("arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"))
+						Expect(string(output)).To(ContainSubstring(":sub\":\"system:serviceaccount:kube-system:aws-node"))
+						Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
+						Expect(*createAddonInput.AddonName).To(Equal("vpc-cni"))
+						Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
+						Expect(*createAddonInput.ServiceAccountRoleArn).To(Equal("role-arn"))
+					})
+				})
+
+				Context("ipv6", func() {
+					BeforeEach(func() {
+						clusterConfig.VPC = api.NewClusterVPC(false)
+						clusterConfig.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
+							IPFamily: api.IPV6Family,
+						}
+					})
+
+					It("creates a role with the recommended policies and attaches it to the addon", func() {
+						err := manager.Create(&api.Addon{
+							Name:    "vpc-cni",
+							Version: "v1.0.0-eksbuild.1",
+						}, false)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
+						name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
+						Expect(name).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
+						Expect(resourceSet).NotTo(BeNil())
+						Expect(tags).To(Equal(map[string]string{
+							api.AddonNameTag: "vpc-cni",
+						}))
+						output, err := resourceSet.RenderJSON()
+						Expect(err).NotTo(HaveOccurred())
+						Expect(string(output)).To(ContainSubstring("AssignIpv6Addresses"))
+						Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
+						Expect(*createAddonInput.AddonName).To(Equal("vpc-cni"))
+						Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
+						Expect(*createAddonInput.ServiceAccountRoleArn).To(Equal("role-arn"))
+					})
+				})
+			})
+
+			When("it's the aws-ebs-csi-driver addon", func() {
+				It("creates a role with the recommended policies and attaches it to the addon", func() {
+					err := manager.Create(&api.Addon{
+						Name:    "aws-ebs-csi-driver",
+						Version: "v1.0.0-eksbuild.1",
+					}, false)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
+					name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
+					Expect(name).To(Equal("eksctl-my-cluster-addon-aws-ebs-csi-driver"))
+					Expect(resourceSet).NotTo(BeNil())
+					Expect(tags).To(Equal(map[string]string{
+						api.AddonNameTag: "aws-ebs-csi-driver",
+					}))
+					output, err := resourceSet.RenderJSON()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(output)).To(ContainSubstring("PolicyEBSCSIController"))
+					Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
+					Expect(*createAddonInput.AddonName).To(Equal("aws-ebs-csi-driver"))
+					Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
+					Expect(*createAddonInput.ServiceAccountRoleArn).To(Equal("role-arn"))
+				})
 			})
 		})
 	})
@@ -437,6 +500,30 @@ var _ = Describe("Create", func() {
 			output, err := resourceSet.RenderJSON()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(output)).To(ContainSubstring("arn-1"))
+		})
+	})
+
+	When("wellKnownPolicies is configured", func() {
+		It("uses wellKnownPolicies to create a role to attach to the addon", func() {
+			err := manager.Create(&api.Addon{
+				Name:    "my-addon",
+				Version: "v1.0.0-eksbuild.1",
+				WellKnownPolicies: api.WellKnownPolicies{
+					AutoScaler: true,
+				},
+			}, false)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
+			name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
+			Expect(name).To(Equal("eksctl-my-cluster-addon-my-addon"))
+			Expect(resourceSet).NotTo(BeNil())
+			Expect(tags).To(Equal(map[string]string{
+				api.AddonNameTag: "my-addon",
+			}))
+			output, err := resourceSet.RenderJSON()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(string(output)).To(ContainSubstring("autoscaling:SetDesiredCapacity"))
 		})
 	})
 

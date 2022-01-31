@@ -16,15 +16,7 @@ generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deep
 generated_code_aws_sdk_mocks := $(wildcard pkg/eks/mocks/*API.go)
 
 conditionally_generated_files := \
-  userdocs/src/usage/schema.json \
   $(generated_code_deep_copy_helper) $(generated_code_aws_sdk_mocks)
-
-all_generated_files := \
-  pkg/nodebootstrap/bindata/assets.go \
-  pkg/addons/default/assets.go \
-  pkg/addons/assets.go \
-  pkg/apis/eksctl.io/v1alpha5 \
-  $(conditionally_generated_files)
 
 .DEFAULT_GOAL := help
 
@@ -89,7 +81,7 @@ endif
 
 .PHONY: lint
 lint: ## Run linter over the codebase
-	golangci-lint run
+	golangci-lint run --timeout=30m
 	@for config_file in $(shell ls .goreleaser*); do goreleaser check -f $${config_file} || exit 1; done
 
 .PHONY: test
@@ -124,28 +116,6 @@ build-integration-test: $(all_generated_code) ## Ensure integration tests compil
 integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup)
 	JUNIT_REPORT_DIR=$(git_toplevel)/test-results ./eksctl-integration-test $(INTEGRATION_TEST_ARGS)
 
-# NOTE: when running this, ensure all env vars listed below are exported in your local env
-# SSH_KEY_PATH should be set to wherever you have locally put the eksctl-bot rsa key
-.PHONY: integration-test-container
-integration-test-container: ## Run integration tests in a local container
-	sudo cp -f ${SSH_KEY_PATH} $(HOME)/project/.ssh/gitops_id_rsa
-	sudo chmod 0600 $(HOME)/project/.ssh/gitops_id_rsa
-	docker run \
-	  --env=JUNIT_REPORT_DIR=/src/test-results \
-	  --env=GOPRIVATE \
-	  --env=AWS_SESSION_TOKEN \
-	  --env=AWS_ACCESS_KEY_ID \
-	  --env=AWS_SECRET_ACCESS_KEY \
-	  --env=GITHUB_TOKEN \
-	  --env=SSH_KEY_PATH=/root/.ssh/gitops_id_rsa \
-	  --env=TEST_V=1 \
-	  --volume=$(shell pwd):/src \
-	  --volume=$(HOME)/.cache/go-build/:/root/.cache/go-build \
-	  --volume=$(HOME)/go/pkg/mod/:/go/pkg/mod \
-	  --volume=$(HOME)/project/.ssh:/root/.ssh \
-	  weaveworks/eksctl-build:$(shell cat build/docker/image_tag) \
-	  $(MAKE) integration-test
-
 TEST_CLUSTER ?= integration-test-dev
 .PHONY: integration-test-dev
 integration-test-dev: build-integration-test ## Run the integration tests without cluster teardown. For use when developing integration tests.
@@ -168,17 +138,10 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 ##@ Code Generation
 
-## Important: pkg/addons/default/generate.go depends on pkg/addons/default/assets/aws-node.yaml If this file is
-## not present, the generation of assets will not fail but will not contain it.
 .PHONY: generate-always
 generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (required for every build)
-	@# go-bindata targets must run every time, as dependencies are too complex to declare in make:
-	@# - deleting an asset is breaks the dependencies
-	@# - different version of go-bindata generate different code
-	@go-bindata -v
 	go generate ./pkg/apis/eksctl.io/v1alpha5/generate.go
 	go generate ./pkg/nodebootstrap
-	go generate ./pkg/addons/default/generate.go
 	go generate ./pkg/addons
 	go generate ./pkg/authconfigmap
 	go generate ./pkg/eks
@@ -193,7 +156,7 @@ generate-all: generate-always $(conditionally_generated_files) ## Re-generate al
 
 .PHONY: check-all-generated-files-up-to-date
 check-all-generated-files-up-to-date: generate-all ## Run the generate all command and verify there is no new diff
-	git diff --quiet -- $(all_generated_files) || (git --no-pager diff $(all_generated_files); echo "HINT: to fix this, run 'git commit $(all_generated_files) --message \"Update generated files\"'"; exit 1)
+	git diff --quiet -- $(conditionally_generated_files) || (git --no-pager diff $(conditionally_generated_files); echo "HINT: to fix this, run 'git commit $(conditionally_generated_files) --message \"Update generated files\"'"; exit 1)
 
 ### Update maxpods.go from AWS
 .PHONY: update-maxpods
@@ -207,7 +170,6 @@ pkg/addons/default/assets/aws-node.yaml:
 .PHONY: update-aws-node
 update-aws-node: ## Re-download the aws-node manifests from AWS
 	go generate ./pkg/addons/default/aws_node_generate.go
-	go generate ./pkg/addons/default/generate.go
 
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) ## Generate Kubernetes API helpers

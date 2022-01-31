@@ -6,12 +6,12 @@ metadata:
   name: <generated>
 
 nodeGroups:
-- name: n1
+- name: unm-1
   taints:
     key1: val1:NoSchedule
     key2: :NoExecute
   maxPodsPerNode: 123
-- name: n2
+- name: unm-2
   volumeSize: 35
   taints:
   - key: key1

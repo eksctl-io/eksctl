@@ -15,6 +15,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
@@ -40,12 +41,16 @@ func getClusterCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
 func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) error {
+	if err := cmdutils.NewGetClusterLoader(cmd).Load(); err != nil {
+		return err
+	}
 	cfg := cmd.ClusterConfig
 	regionGiven := cfg.Metadata.Region != "" // eks.New resets this field, so we need to check if it was set in the first place
 
@@ -96,7 +101,7 @@ func getAndPrinterClusters(ctl *eks.ClusterProvider, params *getCmdParams, listA
 		addGetClustersSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	clusters, err := ctl.ListClusters(params.chunkSize, listAllRegions)
+	clusters, err := ctl.ListClusters(params.chunkSize, listAllRegions, eks.New)
 	if err != nil {
 		return err
 	}
@@ -137,21 +142,39 @@ func getAndPrintCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, params
 
 func addGetClusterSummaryTableColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("NAME", func(c *awseks.Cluster) string {
+		if c.Name == nil {
+			return "-"
+		}
 		return *c.Name
 	})
 	printer.AddColumn("VERSION", func(c *awseks.Cluster) string {
+		if c.Version == nil {
+			return "-"
+		}
 		return *c.Version
 	})
 	printer.AddColumn("STATUS", func(c *awseks.Cluster) string {
+		if c.Status == nil {
+			return "-"
+		}
 		return *c.Status
 	})
 	printer.AddColumn("CREATED", func(c *awseks.Cluster) string {
+		if c.CreatedAt == nil {
+			return "-"
+		}
 		return c.CreatedAt.Format(time.RFC3339)
 	})
 	printer.AddColumn("VPC", func(c *awseks.Cluster) string {
+		if c.ResourcesVpcConfig == nil {
+			return "-"
+		}
 		return *c.ResourcesVpcConfig.VpcId
 	})
 	printer.AddColumn("SUBNETS", func(c *awseks.Cluster) string {
+		if c.ResourcesVpcConfig == nil || c.ResourcesVpcConfig.SubnetIds == nil {
+			return "-"
+		}
 		subnets := sets.NewString()
 		for _, subnetid := range c.ResourcesVpcConfig.SubnetIds {
 			if api.IsSetAndNonEmptyString(subnetid) {
@@ -161,6 +184,9 @@ func addGetClusterSummaryTableColumns(printer *printers.TablePrinter) {
 		return strings.Join(subnets.List(), ",")
 	})
 	printer.AddColumn("SECURITYGROUPS", func(c *awseks.Cluster) string {
+		if c.ResourcesVpcConfig == nil || c.ResourcesVpcConfig.SecurityGroupIds == nil {
+			return "-"
+		}
 		groups := sets.NewString()
 		for _, sg := range c.ResourcesVpcConfig.SecurityGroupIds {
 			if api.IsSetAndNonEmptyString(sg) {
@@ -168,5 +194,12 @@ func addGetClusterSummaryTableColumns(printer *printers.TablePrinter) {
 			}
 		}
 		return strings.Join(groups.List(), ",")
+	})
+
+	printer.AddColumn("PROVIDER", func(c *awseks.Cluster) string {
+		if c.ConnectorConfig != nil {
+			return *c.ConnectorConfig.Provider
+		}
+		return "EKS"
 	})
 }

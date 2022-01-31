@@ -39,7 +39,7 @@ func doUpdateAWSNode(cmd *cmdutils.Cmd) error {
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,10 @@ func doUpdateAWSNode(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	updateRequired, err := defaultaddons.UpdateAWSNode(rawClient, meta.Region, cmd.Plan)
+	updateRequired, err := defaultaddons.UpdateAWSNode(defaultaddons.AddonInput{
+		RawClient: rawClient,
+		Region:    meta.Region,
+	}, cmd.Plan)
 	if err != nil {
 		return err
 	}

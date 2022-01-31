@@ -74,6 +74,9 @@
                 },
                 {
                     "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEKS_CNI_Policy"
+                },
+                {
+                    "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
                 }
             ],
             "Path": "/",

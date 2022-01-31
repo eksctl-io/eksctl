@@ -6,17 +6,14 @@ import (
 	"net"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-
-	"github.com/pkg/errors"
-	"k8s.io/apimachinery/pkg/util/sets"
-
-	"github.com/kris-nova/logger"
-
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -207,7 +204,7 @@ func describeVPC(ec2API ec2iface.EC2API, vpcID string) (*ec2.Vpc, error) {
 // is treated as the source of truth
 func UseFromClusterStack(provider api.ClusterProvider, stack *cfn.Stack, spec *api.ClusterConfig) error {
 	if spec.VPC == nil {
-		spec.VPC = api.NewClusterVPC()
+		spec.VPC = api.NewClusterVPC(spec.IPv6Enabled())
 	}
 	// this call is authoritative, and we can safely override the
 	// CIDR, as it can only be set to anything due to defaulting
@@ -369,7 +366,7 @@ func importSubnetsForTopology(ec2API ec2iface.EC2API, spec *api.ClusterConfig, t
 	return ImportSubnets(ec2API, spec, topology, subnets)
 }
 
-// ImportSubnetsFromIDList will update spec with subnets _only specified by ID_
+// ImportSubnetsFromIDList will update cluster config with subnets _only specified by ID_
 // then pass resulting subnets to ImportSubnets
 // NOTE: it does respect all fields set in spec.VPC, and will error if
 // there is a mismatch of local vs remote states
@@ -383,7 +380,7 @@ func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.Cl
 	selectSubnets := func(ng *api.NodeGroupBase) error {
 		if len(ng.AvailabilityZones) > 0 || len(ng.Subnets) > 0 {
 			// Check only the public subnets that this ng has
-			subnetIDs, err := SelectNodeGroupSubnets(ng.AvailabilityZones, ng.Subnets, spec.VPC.Subnets.Public)
+			subnetIDs, err := SelectNodeGroupSubnets(ng.AvailabilityZones, ng.Subnets, spec.VPC.Subnets.Public, provider.EC2(), spec.VPC.ID)
 			if err != nil {
 				return errors.Wrap(err, "couldn't find public subnets")
 			}
@@ -417,7 +414,7 @@ func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.Cl
 		}
 	}
 
-	if err := ValidateExistingPublicSubnets(provider, spec.VPC.ID, subnetsToValidate.List()); err != nil {
+	if err := ValidateExistingPublicSubnets(provider, spec, subnetsToValidate.List()); err != nil {
 		// If the cluster endpoint is reachable from the VPC nodes might still be able to join
 		if spec.HasPrivateEndpointAccess() {
 			logger.Warning("public subnets for one or more nodegroups have %q disabled. This means that nodes won't "+
@@ -427,26 +424,21 @@ func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.Cl
 		}
 
 		logger.Critical(err.Error())
-		return errors.Errorf("subnets for one or more new nodegroups don't meet requirements. "+
-			"To fix this, please run `eksctl utils update-legacy-subnet-settings --cluster %s`",
-			spec.Metadata.Name)
+		return fmt.Errorf("subnets for one or more new nodegroups don't meet requirements: %w", err)
 	}
 	return nil
 }
 
 // ValidateExistingPublicSubnets makes sure that subnets have the property MapPublicIpOnLaunch enabled
-func ValidateExistingPublicSubnets(provider api.ClusterProvider, vpcID string, subnetIDs []string) error {
+func ValidateExistingPublicSubnets(provider api.ClusterProvider, cfg *api.ClusterConfig, subnetIDs []string) error {
 	if len(subnetIDs) == 0 {
 		return nil
 	}
-	subnets, err := describeSubnets(provider.EC2(), vpcID, subnetIDs, []string{}, []string{})
+	subnets, err := describeSubnets(provider.EC2(), cfg.VPC.ID, subnetIDs, []string{}, []string{})
 	if err != nil {
 		return err
 	}
-	if err := validatePublicSubnet(subnets); err != nil {
-		return err
-	}
-	return nil
+	return validatePublicSubnet(cfg, subnets)
 }
 
 // EnsureMapPublicIPOnLaunchEnabled will enable MapPublicIpOnLaunch in EC2 for all given subnet IDs
@@ -530,22 +522,49 @@ func cleanupSubnets(spec *api.ClusterConfig) {
 	cleanup(&spec.VPC.Subnets.Public)
 }
 
-func validatePublicSubnet(subnets []*ec2.Subnet) error {
-	legacySubnets := make([]string, 0)
+func validatePublicSubnet(cfg *api.ClusterConfig, subnets []*ec2.Subnet) error {
+	containsSubnet := func(id string) bool {
+		for _, f := range cfg.VPC.Subnets.Public.WithIDs() {
+			if f == id {
+				return true
+			}
+		}
+		return false
+	}
+	var legacySubnets []string
 	for _, sn := range subnets {
 		if sn.MapPublicIpOnLaunch == nil || !*sn.MapPublicIpOnLaunch {
 			legacySubnets = append(legacySubnets, *sn.SubnetId)
 		}
+		if !containsSubnet(*sn.SubnetId) {
+			return fmt.Errorf("subnet %q could not be found in CF template or is not a public subnet", *sn.SubnetId)
+		}
 	}
 	if len(legacySubnets) > 0 {
 		return fmt.Errorf("found mis-configured subnets %q. Expected public subnets with property "+
-			"\"MapPublicIpOnLaunch\" enabled. Without it new nodes won't get an IP assigned", legacySubnets)
+			"\"MapPublicIpOnLaunch\" enabled. Without it new nodes won't get an IP assigned. "+
+			"To fix this, please run `eksctl utils update-legacy-subnet-settings --cluster %s`", legacySubnets, cfg.Metadata.Name)
 	}
 
 	return nil
 }
 
-func SelectNodeGroupSubnets(nodegroupAZs, nodegroupSubnets []string, subnets api.AZSubnetMapping) ([]string, error) {
+// getSubnetByID returns a subnet based on an ID.
+func getSubnetByID(id string, ec2API ec2iface.EC2API) (*ec2.Subnet, error) {
+	input := &ec2.DescribeSubnetsInput{
+		SubnetIds: aws.StringSlice([]string{id}),
+	}
+	output, err := ec2API.DescribeSubnets(input)
+	if err != nil {
+		return nil, err
+	}
+	if len(output.Subnets) != 1 {
+		return nil, fmt.Errorf("subnet with id %q not found", id)
+	}
+	return output.Subnets[0], nil
+}
+
+func SelectNodeGroupSubnets(nodegroupAZs, nodegroupSubnets []string, subnets api.AZSubnetMapping, ec2API ec2iface.EC2API, vpcID string) ([]string, error) {
 	// We have validated that either azs are provided or subnets are provided
 	numNodeGroupsAZs := len(nodegroupAZs)
 	numNodeGroupsSubnets := len(nodegroupSubnets)
@@ -586,7 +605,14 @@ func SelectNodeGroupSubnets(nodegroupAZs, nodegroupSubnets []string, subnets api
 			subnetID = subnet.ID
 		}
 		if subnetID == "" {
-			return nil, fmt.Errorf("mapping doesn't have subnet with name or id %s: %s", subnetName, makeErrorDesc())
+			subnet, err := getSubnetByID(subnetName, ec2API)
+			if err != nil {
+				return nil, err
+			}
+			if subnet.VpcId != nil && *subnet.VpcId != vpcID {
+				return nil, fmt.Errorf("subnet with id %q is not in the attached vpc with id %q", *subnet.SubnetId, vpcID)
+			}
+			subnetID = *subnet.SubnetId
 		}
 		subnetIDs = append(subnetIDs, subnetID)
 	}

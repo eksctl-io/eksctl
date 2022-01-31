@@ -35,29 +35,29 @@ var _ = Describe("upgrade cluster", func() {
 
 		Entry("upgrades by default when the version is not specified", upgradeCase{
 			givenVersion:           "",
-			eksVersion:             "1.16",
-			expectedUpgradeVersion: "1.17",
+			eksVersion:             "1.17",
+			expectedUpgradeVersion: "1.18",
 			expectedUpgrade:        true,
 		}),
 
 		Entry("upgrades by default when the version is auto", upgradeCase{
 			givenVersion:           "auto",
-			eksVersion:             "1.16",
-			expectedUpgradeVersion: "1.17",
+			eksVersion:             "1.17",
+			expectedUpgradeVersion: "1.18",
 			expectedUpgrade:        true,
 		}),
 
 		Entry("does not upgrade or fail when the cluster is already in the last version", upgradeCase{
 			givenVersion:           "",
-			eksVersion:             "1.20",
-			expectedUpgradeVersion: "1.20",
+			eksVersion:             api.LatestVersion,
+			expectedUpgradeVersion: api.LatestVersion,
 			expectedUpgrade:        false,
 		}),
 
 		Entry("upgrades to the next version when specified", upgradeCase{
-			givenVersion:           "1.16",
-			eksVersion:             "1.15",
-			expectedUpgradeVersion: "1.16",
+			givenVersion:           "1.18",
+			eksVersion:             "1.17",
+			expectedUpgradeVersion: "1.18",
 			expectedUpgrade:        true,
 		}),
 
@@ -69,8 +69,8 @@ var _ = Describe("upgrade cluster", func() {
 		}),
 
 		Entry("fails when the upgrade jumps more than one kubernetes version", upgradeCase{
-			givenVersion:      "1.16",
-			eksVersion:        "1.14",
+			givenVersion:      "1.18",
+			eksVersion:        "1.16",
 			expectedErrorText: "upgrading more than one version at a time is not supported",
 		}),
 
@@ -87,9 +87,9 @@ var _ = Describe("upgrade cluster", func() {
 		}),
 
 		Entry("fails when the version is still not supported", upgradeCase{
-			givenVersion:      "1.21",
-			eksVersion:        "1.20",
-			expectedErrorText: "control plane version \"1.21\" is not known to this version of eksctl",
+			givenVersion:      "1.22",
+			eksVersion:        api.LatestVersion,
+			expectedErrorText: "control plane version \"1.22\" is not known to this version of eksctl",
 		}),
 	)
 })

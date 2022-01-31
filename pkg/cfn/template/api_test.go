@@ -34,7 +34,7 @@ var _ = Describe("CloudFormation template", func() {
 		}
 
 		jsRoleRef, err := roleRef.MarshalJSON()
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(jsRoleRef).To(MatchJSON(`{"Ref": "aRole"}`))
 
 		policyRef := t.NewResource("aPolicy", &IAMPolicy{
@@ -43,11 +43,11 @@ var _ = Describe("CloudFormation template", func() {
 		})
 
 		jsPolicyRef, err := policyRef.MarshalJSON()
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(jsPolicyRef).To(MatchJSON(`{"Ref": "aPolicy"}`))
 
 		js, err := t.RenderJSON()
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(js).To(MatchJSON([]byte(templateExample1)))
 	})
 
@@ -65,24 +65,24 @@ var _ = Describe("CloudFormation template", func() {
 
 		Expect(t).To(HaveResourceWithPropertyValue("aRole", "RoleName", `"foo"`))
 
-		Expect(t).ToNot(HaveResourceWithPropertyValue("aRole", "RoleName", `"bar"`))
-		Expect(t).ToNot(HaveResource("aRole", "AWS::Foo::Bar"))
-		Expect(t).ToNot(HaveResource("foo", "*"))
+		Expect(t).NotTo(HaveResourceWithPropertyValue("aRole", "RoleName", `"bar"`))
+		Expect(t).NotTo(HaveResource("aRole", "AWS::Foo::Bar"))
+		Expect(t).NotTo(HaveResource("foo", "*"))
 
 		Expect(t).To(HaveOutputs("aRole"))
-		Expect(t).ToNot(HaveOutputs("foo", "bar"))
+		Expect(t).NotTo(HaveOutputs("foo", "bar"))
 
 		Expect(t).To(HaveOutputWithValue("aRole", `{ "Fn::GetAtt": "aRole.Arn" }`))
 		Expect(t).To(HaveOutputExportedAs("aRole", `{ "Fn::Sub": "${AWS::StackName}::aRole" }`))
 
-		Expect(t).ToNot(HaveOutputExportedAs("aRole", `{}`))
-		Expect(t).ToNot(HaveOutputExportedAs("aRole", `{ "Fn::GetAtt": "aRole.Arn" }`))
-		Expect(t).ToNot(HaveOutputExportedAs("foo", `{ "Fn::Sub": "${AWS::StackName}::aRole" }`))
+		Expect(t).NotTo(HaveOutputExportedAs("aRole", `{}`))
+		Expect(t).NotTo(HaveOutputExportedAs("aRole", `{ "Fn::GetAtt": "aRole.Arn" }`))
+		Expect(t).NotTo(HaveOutputExportedAs("foo", `{ "Fn::Sub": "${AWS::StackName}::aRole" }`))
 	})
 
 	It("can load multiple real templates", func() {
 		examples, err := filepath.Glob("testdata/*.json")
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		for _, example := range examples {
 			Expect(NewTemplate()).To(LoadFileWithoutErrors(example))
 		}

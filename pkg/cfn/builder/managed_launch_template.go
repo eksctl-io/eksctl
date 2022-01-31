@@ -80,6 +80,12 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 		}
 	}
 
+	if mng.EnableDetailedMonitoring != nil {
+		launchTemplateData.Monitoring = &gfnec2.LaunchTemplate_Monitoring{
+			Enabled: gfnt.NewBoolean(*mng.EnableDetailedMonitoring),
+		}
+	}
+
 	launchTemplateData.BlockDeviceMappings = makeBlockDeviceMappings(mng.NodeGroupBase)
 
 	return launchTemplateData, nil

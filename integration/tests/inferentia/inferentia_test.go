@@ -1,10 +1,10 @@
+//go:build integration
 // +build integration
 
 package inferentia
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -51,7 +51,7 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 		params.KubeconfigTemp = false
 		if params.KubeconfigPath == "" {
 			wd, _ := os.Getwd()
-			f, _ := ioutil.TempFile(wd, "kubeconfig-")
+			f, _ := os.CreateTemp(wd, "kubeconfig-")
 			params.KubeconfigPath = f.Name()
 			params.KubeconfigTemp = true
 		}

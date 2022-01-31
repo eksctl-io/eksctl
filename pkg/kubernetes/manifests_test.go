@@ -1,7 +1,7 @@
 package kubernetes_test
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -15,36 +15,36 @@ var _ = Describe("Kubernetes client toolkit", func() {
 
 		Context("can load and flatten deeply nested lists", func() {
 			It("loads all items into flattened list without errors", func() {
-				jb, err := ioutil.ReadFile("testdata/misc-sample-nested-list-1.json")
+				jb, err := os.ReadFile("testdata/misc-sample-nested-list-1.json")
 				Expect(err).To(Not(HaveOccurred()))
 
 				list, err := NewList(jb)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(list).ToNot(BeNil())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(list).NotTo(BeNil())
 				Expect(list.Items).To(HaveLen(6))
 			})
 		})
 
 		Context("can load and flatten deeply nested lists", func() {
 			It("flatten all items into an empty list without errors", func() {
-				jb, err := ioutil.ReadFile("testdata/misc-sample-empty-list-1.json")
+				jb, err := os.ReadFile("testdata/misc-sample-empty-list-1.json")
 				Expect(err).To(Not(HaveOccurred()))
 
 				list, err := NewList(jb)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(list).ToNot(BeNil())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(list).NotTo(BeNil())
 				Expect(list.Items).To(HaveLen(0))
 			})
 		})
 
 		Context("can combine empty nested lists from a multidoc", func() {
 			It("can load without errors", func() {
-				yb, err := ioutil.ReadFile("testdata/misc-sample-multidoc-empty-lists-1.yaml")
+				yb, err := os.ReadFile("testdata/misc-sample-multidoc-empty-lists-1.yaml")
 				Expect(err).To(Not(HaveOccurred()))
 
 				list, err := NewList(yb)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(list).ToNot(BeNil())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(list).NotTo(BeNil())
 				Expect(list.Items).To(HaveLen(0))
 			})
 		})
@@ -52,24 +52,35 @@ var _ = Describe("Kubernetes client toolkit", func() {
 		Context("can combine two empty lists from a multidoc", func() {
 
 			It("can load without errors", func() {
-				yb, err := ioutil.ReadFile("testdata/misc-sample-multidoc-empty-lists-2.yaml")
+				yb, err := os.ReadFile("testdata/misc-sample-multidoc-empty-lists-2.yaml")
 				Expect(err).To(Not(HaveOccurred()))
 
 				list, err := NewList(yb)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(list).ToNot(BeNil())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(list).NotTo(BeNil())
 				Expect(list.Items).To(HaveLen(0))
 			})
 		})
 
 		Context("can combine empty and non-empty lists from a multidoc", func() {
 			It("can load without errors", func() {
-				yb, err := ioutil.ReadFile("testdata/misc-sample-multidoc-nested-lists-1.yaml")
+				yb, err := os.ReadFile("testdata/misc-sample-multidoc-nested-lists-1.yaml")
 				Expect(err).To(Not(HaveOccurred()))
 
 				list, err := NewList(yb)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(list).ToNot(BeNil())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(list).NotTo(BeNil())
+				Expect(list.Items).To(HaveLen(4))
+			})
+		})
+
+		Context("can handle comment nodes", func() {
+			It("should be able to parse lists with comment nodes", func() {
+				bytes, err := os.ReadFile("testdata/list-with-comment-nodes.yaml")
+				Expect(err).NotTo(HaveOccurred())
+				list, err := NewList(bytes)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(list).NotTo(BeNil())
 				Expect(list.Items).To(HaveLen(4))
 			})
 		})

@@ -1,15 +1,14 @@
+//go:build ignore
 //+build ignore
 
 package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"net/http"
 	"strconv"
 	"strings"
-
-	"net/http"
 
 	. "github.com/dave/jennifer/jen"
 )
@@ -30,7 +29,7 @@ func generateMap() map[string]int {
 		log.Fatal(err.Error())
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

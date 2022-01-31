@@ -33,7 +33,7 @@ var _ = Describe("Kubernetes namespace object helpers", func() {
 		Expect(ns.Labels).To(BeEmpty())
 
 		js, err := json.Marshal(ns)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		expected := `{
 				"apiVersion": "v1",
@@ -54,7 +54,7 @@ var _ = Describe("Kubernetes namespace object helpers", func() {
 
 		err = yaml.Unmarshal(ys, ns)
 
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		Expect(ns.APIVersion).To(Equal("v1"))
 		Expect(ns.Kind).To(Equal("Namespace"))
@@ -65,10 +65,10 @@ var _ = Describe("Kubernetes namespace object helpers", func() {
 
 	It("can create namespace using fake client and check confirm that it exists", func() {
 		err = MaybeCreateNamespace(clientSet, "ns-1")
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		ok, err := CheckNamespaceExists(clientSet, "ns-1")
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		Expect(ok).To(BeTrue())
 	})
 })

@@ -2,8 +2,8 @@ package ctltest
 
 import (
 	"bytes"
-	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
@@ -51,7 +51,7 @@ func CreateConfigFile(cfg *api.ClusterConfig) string {
 	if err != nil {
 		log.Fatalf("unable to marshal object: %s", err.Error())
 	}
-	file, err := ioutil.TempFile("", "enable-test-config-file")
+	file, err := os.CreateTemp("", "enable-test-config-file")
 	if err != nil {
 		log.Fatalf("unable to create temp config file: %s", err.Error())
 	}

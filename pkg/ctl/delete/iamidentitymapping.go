@@ -1,6 +1,8 @@
 package delete
 
 import (
+	"fmt"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -15,14 +17,15 @@ func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmd.ClusterConfig = cfg
 
 	var (
-		arn string
-		all bool
+		arn     string
+		all     bool
+		account string
 	)
 
 	cmd.SetDescription("iamidentitymapping", "Delete a IAM identity mapping", "")
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
-		return doDeleteIAMIdentityMapping(cmd, arn, all)
+		return doDeleteIAMIdentityMapping(cmd, arn, account, all)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -32,26 +35,27 @@ func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		fs.StringVar(&account, "account", "", "Account ID to delete")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, false)
 }
 
-func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, all bool) error {
+func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn, account string, all bool) error {
 	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
 
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
 	cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
 
-	if arn == "" {
-		return cmdutils.ErrMustBeSet("--arn")
+	if arn == "" && account == "" || arn != "" && account != "" {
+		return fmt.Errorf("either --arn or --account must be set")
 	}
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
@@ -69,15 +73,23 @@ func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, all bool) error {
 		return err
 	}
 
-	if err := acm.RemoveIdentity(arn, all); err != nil {
-		return err
+	switch {
+	case account != "":
+		if err := acm.RemoveAccount(account); err != nil {
+			return err
+		}
+	case arn != "":
+		if err := acm.RemoveIdentity(arn, all); err != nil {
+			return err
+		}
 	}
+
 	if err := acm.Save(); err != nil {
 		return err
 	}
 
 	// Check whether we have more roles that match
-	identities, err := acm.Identities()
+	identities, err := acm.GetIdentities()
 	if err != nil {
 		return err
 	}

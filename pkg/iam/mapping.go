@@ -5,6 +5,11 @@ import (
 	"fmt"
 )
 
+const (
+	// ResourceTypeAccount is the resource type of Accounts
+	ResourceTypeAccount = "account"
+)
+
 var (
 	// ErrNeitherUserNorRole is the error returned when an identity is missing both UserARN
 	// and RoleARN.
@@ -21,6 +26,7 @@ type Identity interface {
 	Type() string
 	Username() string
 	Groups() []string
+	Account() string
 }
 
 // KubernetesIdentity represents a kubernetes identity to be used in iam mappings
@@ -39,6 +45,27 @@ type UserIdentity struct {
 type RoleIdentity struct {
 	RoleARN string `json:"rolearn,omitempty"`
 	KubernetesIdentity
+}
+
+// AccountIdentity represents a mapping from an IAM role to a kubernetes identity
+type AccountIdentity struct {
+	KubernetesAccount string `json:"account,omitempty"`
+	KubernetesIdentity
+}
+
+// ARN returns the ARN of the iam mapping
+func (a AccountIdentity) ARN() string {
+	return ""
+}
+
+// Account returns the Account of the iam mapping
+func (a AccountIdentity) Account() string {
+	return a.KubernetesAccount
+}
+
+// Type returns the resource type of the iam mapping
+func (a AccountIdentity) Type() string {
+	return ResourceTypeAccount
 }
 
 // Username returns the Kubernetes username
@@ -61,9 +88,19 @@ func (u UserIdentity) Type() string {
 	return ResourceTypeUser
 }
 
+// Account returns the Account of the iam mapping
+func (u UserIdentity) Account() string {
+	return ""
+}
+
 // ARN returns the ARN of the iam mapping
 func (r RoleIdentity) ARN() string {
 	return r.RoleARN
+}
+
+// Account returns the Account of the iam mapping
+func (r RoleIdentity) Account() string {
+	return ""
 }
 
 // Type returns the resource type of the iam mapping

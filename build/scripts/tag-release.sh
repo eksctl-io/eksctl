@@ -28,9 +28,6 @@ commit "${m}" "${release_notes_file}"
 
 tag_version_and_latest "${m}" "${release_version}"
 
-# Update the site by putting everything from the release into the docs branch
-git push --force origin "${release_branch}":docs
-
 make_pr "${release_branch}"
 
 # Make PR to update default branch if necessary

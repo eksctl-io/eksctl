@@ -9,7 +9,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/gitops"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/vpc"
@@ -18,14 +17,16 @@ import (
 type OwnedCluster struct {
 	cfg          *api.ClusterConfig
 	ctl          *eks.ClusterProvider
+	clusterStack *manager.Stack
 	stackManager manager.StackManager
 	newClientSet func() (kubernetes.Interface, error)
 }
 
-func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) *OwnedCluster {
+func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterStack *manager.Stack, stackManager manager.StackManager) *OwnedCluster {
 	return &OwnedCluster{
 		cfg:          cfg,
 		ctl:          ctl,
+		clusterStack: clusterStack,
 		stackManager: stackManager,
 		newClientSet: func() (kubernetes.Interface, error) {
 			return ctl.NewStdClientSet(cfg)
@@ -34,7 +35,7 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackMana
 }
 
 func (c *OwnedCluster) Upgrade(dryRun bool) error {
-	if err := c.ctl.LoadClusterVPC(c.cfg, c.stackManager); err != nil {
+	if err := vpc.UseFromClusterStack(c.ctl.Provider, c.clusterStack, c.cfg); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
 	}
 
@@ -100,6 +101,13 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force bool) error {
 			}
 			oidcSupported = false
 		}
+		allStacks, err := c.stackManager.ListNodeGroupStacks()
+		if err != nil {
+			return err
+		}
+		if err := drainAllNodegroups(c.cfg, c.ctl, c.stackManager, clientSet, allStacks); err != nil {
+			return err
+		}
 	}
 
 	if err := deleteSharedResources(c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {
@@ -140,11 +148,30 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force bool) error {
 		return handleErrors(errs, "cluster with nodegroup(s)")
 	}
 
+	if err := c.deleteKarpenterStackIfExists(); err != nil {
+		return err
+	}
+
 	if err := checkForUndeletedStacks(c.stackManager); err != nil {
 		return err
 	}
 
 	logger.Success("all cluster resources were deleted")
 
-	return gitops.DeleteKey(c.cfg)
+	return nil
+}
+
+func (c *OwnedCluster) deleteKarpenterStackIfExists() error {
+	stack, err := c.stackManager.GetKarpenterStack()
+	if err != nil {
+		return err
+	}
+
+	if stack != nil {
+		logger.Info("deleting karpenter stack")
+		_, err = c.stackManager.DeleteStackBySpec(stack)
+		return err
+	}
+
+	return nil
 }

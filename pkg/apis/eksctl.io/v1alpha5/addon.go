@@ -19,9 +19,11 @@ type Addon struct {
 	// AttachPolicy holds a policy document to attach
 	// +optional
 	AttachPolicy InlineDocument `json:"attachPolicy,omitempty"`
-	// ARN of the permissions boundary to associate
+	// ARN of the permissions' boundary to associate
 	// +optional
 	PermissionsBoundary string `json:"permissionsBoundary,omitempty"`
+	// WellKnownPolicies for attaching common IAM policies
+	WellKnownPolicies WellKnownPolicies `json:"wellKnownPolicies,omitempty"`
 	// The metadata to apply to the cluster to assist with categorization and organization.
 	// Each tag consists of a key and an optional value, both of which you define.
 	// +optional
@@ -39,11 +41,7 @@ func (a Addon) Validate() error {
 		return fmt.Errorf("name required")
 	}
 
-	if err := a.checkOnlyOnePolicyProviderIsSet(); err != nil {
-		return err
-	}
-
-	return nil
+	return a.checkOnlyOnePolicyProviderIsSet()
 }
 
 func (a Addon) checkOnlyOnePolicyProviderIsSet() error {
@@ -60,8 +58,12 @@ func (a Addon) checkOnlyOnePolicyProviderIsSet() error {
 		setPolicyProviders++
 	}
 
+	if a.WellKnownPolicies.HasPolicy() {
+		setPolicyProviders++
+	}
+
 	if setPolicyProviders > 1 {
-		return fmt.Errorf("at most one of serviceAccountRoleARN, attachPolicyARNs and attachPolicy can be specified")
+		return fmt.Errorf("at most one of wellKnownPolicies, serviceAccountRoleARN, attachPolicyARNs and attachPolicy can be specified")
 	}
 	return nil
 }

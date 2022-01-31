@@ -21,19 +21,19 @@ var _ = Describe("eksctl API", func() {
 
 		BeforeEach(func() {
 			err := api.Register()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should load a valid YAML config without error", func() {
 			cfg, err := LoadConfigFromFile("../../examples/01-simple-cluster.yaml")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.Metadata.Name).To(Equal("cluster-1"))
 			Expect(cfg.NodeGroups).To(HaveLen(1))
 		})
 
 		It("should load a valid JSON config without error", func() {
 			cfg, err := LoadConfigFromFile("testdata/example.json")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.Metadata.Name).To(Equal("cluster-1"))
 			Expect(cfg.NodeGroups).To(HaveLen(1))
 		})
@@ -94,7 +94,7 @@ var _ = Describe("eksctl API", func() {
 
 		testEnsureAMI := func(matcher gomegatypes.GomegaMatcher) {
 			err := ResolveAMI(provider, "1.14", ng)
-			ExpectWithOffset(1, err).ToNot(HaveOccurred())
+			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 			ExpectWithOffset(1, ng.AMI).To(matcher)
 		}
 

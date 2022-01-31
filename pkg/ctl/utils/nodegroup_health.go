@@ -39,7 +39,7 @@ func nodeGroupHealthCmd(cmd *cmdutils.Cmd) {
 func getNodeGroupHealth(cmd *cmdutils.Cmd, nodeGroupName string) error {
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}

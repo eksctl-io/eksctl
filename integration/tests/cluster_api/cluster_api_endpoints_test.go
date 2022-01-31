@@ -1,11 +1,12 @@
+//go:build integration
 // +build integration
 
+//revive:disable Not changing package name
 package cluster_api
 
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -81,17 +82,17 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 
 			// create and populate config file from clusterconfig
 			bytes, err := json.Marshal(cfg)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(len(bytes)).ToNot(BeZero())
-			tmpfile, err := ioutil.TempFile("", "clusterendpointtests")
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(len(bytes)).NotTo(BeZero())
+			tmpfile, err := os.CreateTemp("", "clusterendpointtests")
+			Expect(err).NotTo(HaveOccurred())
 
 			defer os.Remove(tmpfile.Name())
 
 			_, err = tmpfile.Write(bytes)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			err = tmpfile.Close()
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			// create cluster with config file
 			if e.Type == createCluster {

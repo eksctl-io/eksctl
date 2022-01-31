@@ -22,7 +22,7 @@ var _ = Describe("template builder for IAM", func() {
 
 		BeforeEach(func() {
 			oidc, err = iamoidc.NewOpenIDConnectManager(nil, "456123987123", "https://oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E", "aws", nil)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			oidc.ProviderARN = "arn:aws:iam::456123987123:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E"
 
@@ -101,7 +101,7 @@ var _ = Describe("template builder for IAM", func() {
 			Expect(t).To(HaveResource("Role1", "AWS::IAM::Role"))
 			Expect(t).To(HaveResource("Policy1", "AWS::IAM::Policy"))
 
-			Expect(t).ToNot(HaveResourceWithProperties("Role1", "ManagedPolicyArns"))
+			Expect(t).NotTo(HaveResourceWithProperties("Role1", "ManagedPolicyArns"))
 
 			Expect(t).To(HaveResourceWithPropertyValue("Role1", "AssumeRolePolicyDocument", expectedServiceAccountAssumeRolePolicyDocument))
 			Expect(t).To(HaveResourceWithPropertyValue("Policy1", "PolicyName", `{ "Fn::Sub": "${AWS::StackName}-Policy1" }`))
@@ -293,8 +293,8 @@ var _ = Describe("template builder for IAM", func() {
                 "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
 		      }
             ]`))
-
 			Expect(t).To(HaveOutputWithValue("Role1", `{ "Fn::GetAtt": "Role1.Arn" }`))
+			Expect(t).To(HaveResourceWithPropertyValue("PolicyEBSCSIController", "PolicyDocument", expectedEbsPolicyDocument))
 		})
 
 		It("can parse an iamserviceaccount addon template", func() {
@@ -326,7 +326,7 @@ var _ = Describe("template builder for IAM", func() {
 
 		BeforeEach(func() {
 			oidc, err = iamoidc.NewOpenIDConnectManager(nil, "456123987123", "https://oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E", "aws", nil)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			oidc.ProviderARN = "arn:aws:iam::456123987123:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E"
 
@@ -395,7 +395,7 @@ var _ = Describe("template builder for IAM", func() {
 
 			Expect(t).To(HaveResource("Policy1", "AWS::IAM::Policy"))
 
-			Expect(t).ToNot(HaveResourceWithProperties("Role1", "ManagedPolicyArns"))
+			Expect(t).NotTo(HaveResourceWithProperties("Role1", "ManagedPolicyArns"))
 
 			Expect(t).To(HaveResourceWithPropertyValue("Role1", "AssumeRolePolicyDocument", expectedAssumeRolePolicyDocument))
 			Expect(t).To(HaveResourceWithPropertyValue("Policy1", "PolicyName", `{ "Fn::Sub": "${AWS::StackName}-Policy1" }`))
@@ -422,7 +422,7 @@ func appendServiceAccountToClusterConfig(cfg *api.ClusterConfig, serviceAccount 
 
 	api.SetClusterConfigDefaults(cfg)
 	err := api.ValidateClusterConfig(cfg)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 }
 
 const expectedServiceAccountAssumeRolePolicyDocument = `{
@@ -464,4 +464,158 @@ const expectedAssumeRolePolicyDocument = `{
 	  }
 	],
 	"Version": "2012-10-17"
+}`
+
+const expectedEbsPolicyDocument = `{
+  "Statement": [
+	{
+	  "Action": [
+		"ec2:CreateSnapshot",
+		"ec2:AttachVolume",
+		"ec2:DetachVolume",
+		"ec2:ModifyVolume",
+		"ec2:DescribeAvailabilityZones",
+		"ec2:DescribeInstances",
+		"ec2:DescribeSnapshots",
+		"ec2:DescribeTags",
+		"ec2:DescribeVolumes",
+		"ec2:DescribeVolumesModifications"
+	  ],
+	  "Effect": "Allow",
+	  "Resource": "*"
+	},
+	{
+	  "Action": [
+		"ec2:CreateTags"
+	  ],
+	  "Condition": {
+		"StringEquals": {
+		  "ec2:CreateAction": [
+			"CreateVolume",
+			"CreateSnapshot"
+		  ]
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": [
+		{
+		  "Fn::Sub": "arn:${AWS::Partition}:ec2:*:*:volume/*"
+		},
+		{
+		  "Fn::Sub": "arn:${AWS::Partition}:ec2:*:*:snapshot/*"
+		}
+	  ]
+	},
+	{
+	  "Action": [
+		"ec2:DeleteTags"
+	  ],
+	  "Effect": "Allow",
+	  "Resource": [
+		{
+		  "Fn::Sub": "arn:${AWS::Partition}:ec2:*:*:volume/*"
+		},
+		{
+		  "Fn::Sub": "arn:${AWS::Partition}:ec2:*:*:snapshot/*"
+		}
+	  ]
+	},
+	{
+	  "Action": [
+		"ec2:CreateVolume"
+	  ],
+	  "Condition": {
+		"StringLike": {
+		  "aws:RequestTag/ebs.csi.aws.com/cluster": "true"
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": "*"
+	},
+	{
+	  "Action": [
+		"ec2:CreateVolume"
+	  ],
+	  "Condition": {
+		"StringLike": {
+		  "aws:RequestTag/CSIVolumeName": "*"
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": "*"
+	},
+	{
+	  "Action": [
+		"ec2:CreateVolume"
+	  ],
+	  "Condition": {
+		"StringLike": {
+		  "aws:RequestTag/kubernetes.io/cluster/*": "owned"
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": "*"
+	},
+	{
+	  "Action": [
+		"ec2:DeleteVolume"
+	  ],
+	  "Condition": {
+		"StringLike": {
+		  "ec2:ResourceTag/ebs.csi.aws.com/cluster": "true"
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": "*"
+	},
+	{
+	  "Action": [
+		"ec2:DeleteVolume"
+	  ],
+	  "Condition": {
+		"StringLike": {
+		  "ec2:ResourceTag/CSIVolumeName": "*"
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": "*"
+	},
+	{
+	  "Action": [
+		"ec2:DeleteVolume"
+	  ],
+	  "Condition": {
+		"StringLike": {
+		  "ec2:ResourceTag/kubernetes.io/cluster/*": "owned"
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": "*"
+	},
+	{
+	  "Action": [
+		"ec2:DeleteSnapshot"
+	  ],
+	  "Condition": {
+		"StringLike": {
+		  "ec2:ResourceTag/CSIVolumeSnapshotName": "*"
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": "*"
+	},
+	{
+	  "Action": [
+		"ec2:DeleteSnapshot"
+	  ],
+	  "Condition": {
+		"StringLike": {
+		  "ec2:ResourceTag/ebs.csi.aws.com/cluster": "true"
+		}
+	  },
+	  "Effect": "Allow",
+	  "Resource": "*"
+	}
+  ],
+  "Version": "2012-10-17"
 }`

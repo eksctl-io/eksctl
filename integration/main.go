@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package main
@@ -7,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -91,7 +91,7 @@ func listModules() []string {
 		return moduleDirs
 	}
 
-	files, err := ioutil.ReadDir(testsDir)
+	files, err := os.ReadDir(testsDir)
 	if err != nil {
 		log.Fatalf("failed to gather test suites: %v", err)
 	}

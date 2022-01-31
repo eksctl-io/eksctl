@@ -42,7 +42,7 @@ func updateNodegroup(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}

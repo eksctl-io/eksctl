@@ -10,6 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/onsi/gomega/types"
+
+	"github.com/weaveworks/eksctl/pkg/eks/mocks"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 
@@ -164,7 +166,7 @@ var _ = Describe("VPC", func() {
 			}
 		},
 		Entry("VPC with valid details", setSubnetsCase{
-			vpc: api.NewClusterVPC(),
+			vpc: api.NewClusterVPC(false),
 		}),
 		Entry("VPC with nil CIDR", setSubnetsCase{
 			vpc: &api.ClusterVPC{
@@ -200,17 +202,17 @@ var _ = Describe("VPC", func() {
 			error: fmt.Errorf("Unexpected IP address type: <nil>"),
 		}),
 		Entry("VPC with valid number of subnets", setSubnetsCase{
-			vpc:               api.NewClusterVPC(),
+			vpc:               api.NewClusterVPC(false),
 			availabilityZones: []string{"1", "2", "3", "4", "5", "6", "7", "8"},
 			error:             nil,
 		}),
 		Entry("VPC with invalid number of subnets", setSubnetsCase{
-			vpc:               api.NewClusterVPC(),
+			vpc:               api.NewClusterVPC(false),
 			availabilityZones: []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"}, // more AZ than required
 			error:             fmt.Errorf("cannot create more than 16 subnets, 18 requested"),
 		}),
 		Entry("VPC with multiple AZs", setSubnetsCase{
-			vpc:               api.NewClusterVPC(),
+			vpc:               api.NewClusterVPC(false),
 			availabilityZones: []string{"1", "2", "3"},
 		}),
 	)
@@ -707,7 +709,7 @@ var _ = Describe("VPC", func() {
 			if e.error != nil {
 				Expect(err).To(MatchError(e.error.Error()))
 			} else {
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(*e.cfg.VPC.Subnets).To(Equal(e.expected))
 			}
 		},
@@ -920,8 +922,8 @@ var _ = Describe("VPC", func() {
 
 	DescribeTable("select subnets",
 		func(e selectSubnetsCase) {
-			ids, err := SelectNodeGroupSubnets(e.nodegroupAZs, e.nodegroupSubnets, e.subnets)
-			Expect(err).ToNot(HaveOccurred())
+			ids, err := SelectNodeGroupSubnets(e.nodegroupAZs, e.nodegroupSubnets, e.subnets, nil, "")
+			Expect(err).NotTo(HaveOccurred())
 			Expect(ids).To(ConsistOf(e.expectIDs))
 		},
 		Entry("one subnet", selectSubnetsCase{
@@ -959,4 +961,157 @@ var _ = Describe("VPC", func() {
 			expectIDs: []string{"id-1", "id-2"},
 		}),
 	)
+
+	Context("the user provides an optional subnet id", func() {
+		var (
+			subnetID string
+			mockEC2  *mocks.EC2API
+			vpcID    string
+			az       string
+			azMap    map[string]api.AZSubnetSpec
+		)
+		BeforeEach(func() {
+			subnetID = "user-defined-id"
+			vpcID = "vpc-id"
+			mockEC2 = &mocks.EC2API{}
+			az = "us-east-1a"
+			azMap = map[string]api.AZSubnetSpec{
+				"a": {
+					ID: "id-1",
+					AZ: az,
+				},
+				"b": {
+					ID: "id-2",
+					AZ: az,
+				},
+			}
+		})
+		When("the provided subnet exists", func() {
+			It("gets information about the subnet and returns it if it exists", func() {
+				mockEC2.On("DescribeSubnets", &ec2.DescribeSubnetsInput{
+					SubnetIds: aws.StringSlice([]string{subnetID}),
+				}).Return(&ec2.DescribeSubnetsOutput{
+					Subnets: []*ec2.Subnet{
+						{
+							SubnetId: &subnetID,
+							VpcId:    &vpcID,
+						},
+					},
+				}, nil)
+				ids, err := SelectNodeGroupSubnets([]string{az}, []string{subnetID}, api.AZSubnetMappingFromMap(azMap), mockEC2, vpcID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(ids).To(ConsistOf("id-1", "id-2", subnetID))
+			})
+		})
+
+		When("the provided subnet doesn't exist", func() {
+			It("returns a proper error", func() {
+				mockEC2.On("DescribeSubnets", &ec2.DescribeSubnetsInput{
+					SubnetIds: aws.StringSlice([]string{subnetID}),
+				}).Return(nil, errors.New("nope"))
+				_, err := SelectNodeGroupSubnets([]string{az}, []string{subnetID}, api.AZSubnetMappingFromMap(azMap), mockEC2, vpcID)
+				Expect(err).To(MatchError(ContainSubstring("nope")))
+			})
+		})
+
+		When("the provided subnet is not part of the cluster's VPC", func() {
+			It("returns a proper error", func() {
+				mockEC2.On("DescribeSubnets", &ec2.DescribeSubnetsInput{
+					SubnetIds: aws.StringSlice([]string{subnetID}),
+				}).Return(&ec2.DescribeSubnetsOutput{
+					Subnets: []*ec2.Subnet{
+						{
+							SubnetId: &subnetID,
+							VpcId:    aws.String("different-vpc-id"),
+						},
+					},
+				}, nil)
+				_, err := SelectNodeGroupSubnets([]string{az}, []string{subnetID}, api.AZSubnetMappingFromMap(azMap), mockEC2, vpcID)
+				Expect(err).To(MatchError(ContainSubstring("subnet with id \"user-defined-id\" is not in the attached vpc with id \"vpc-id\"")))
+			})
+		})
+	})
+
+	Context("ValidateExistingPublicSubnets", func() {
+		var (
+			subnetIDPublic  string
+			subnetIDPrivate string
+			provider        *mockprovider.MockProvider
+			vpcID           string
+			spec            *api.ClusterConfig
+		)
+		BeforeEach(func() {
+			subnetIDPublic = "id-public"
+			subnetIDPrivate = "id-private"
+			vpcID = "vpc-id"
+			provider = mockprovider.NewMockProvider()
+			spec = api.NewClusterConfig()
+			spec.VPC.Subnets = &api.ClusterSubnets{
+				Private: api.AZSubnetMapping{
+					"a": api.AZSubnetSpec{
+						ID: subnetIDPrivate,
+					},
+				},
+				Public: api.AZSubnetMapping{
+					"a": api.AZSubnetSpec{
+						ID: subnetIDPublic,
+					},
+				},
+			}
+		})
+		When("validation is called with correct values", func() {
+			BeforeEach(func() {
+				provider.MockEC2().On("DescribeSubnets", &ec2.DescribeSubnetsInput{
+					SubnetIds: aws.StringSlice([]string{subnetIDPublic}),
+				}).Return(&ec2.DescribeSubnetsOutput{
+					Subnets: []*ec2.Subnet{
+						{
+							SubnetId:            &subnetIDPublic,
+							VpcId:               &vpcID,
+							MapPublicIpOnLaunch: api.Enabled(),
+						},
+					},
+				}, nil)
+			})
+			It("returns no errors", func() {
+				Expect(ValidateExistingPublicSubnets(provider, spec, []string{subnetIDPublic})).To(Succeed())
+			})
+		})
+		When("validation is called with MapPublicIpOnLaunch disabled for a public subnet", func() {
+			BeforeEach(func() {
+				provider.MockEC2().On("DescribeSubnets", &ec2.DescribeSubnetsInput{
+					SubnetIds: aws.StringSlice([]string{subnetIDPublic}),
+				}).Return(&ec2.DescribeSubnetsOutput{
+					Subnets: []*ec2.Subnet{
+						{
+							SubnetId: &subnetIDPublic,
+							VpcId:    &vpcID,
+						},
+					},
+				}, nil)
+			})
+			It("errors", func() {
+				err := ValidateExistingPublicSubnets(provider, spec, []string{subnetIDPublic})
+				Expect(err).To(MatchError(ContainSubstring("\"MapPublicIpOnLaunch\" enabled. Without it new nodes won't get an IP assigned.")))
+			})
+		})
+		When("validation is called with a private subnet for a public subnet", func() {
+			BeforeEach(func() {
+				provider.MockEC2().On("DescribeSubnets", &ec2.DescribeSubnetsInput{
+					SubnetIds: aws.StringSlice([]string{subnetIDPrivate}),
+				}).Return(&ec2.DescribeSubnetsOutput{
+					Subnets: []*ec2.Subnet{
+						{
+							SubnetId: &subnetIDPrivate,
+							VpcId:    &vpcID,
+						},
+					},
+				}, nil)
+			})
+			It("errors", func() {
+				err := ValidateExistingPublicSubnets(provider, spec, []string{subnetIDPrivate})
+				Expect(err).To(MatchError(ContainSubstring("subnet \"id-private\" could not be found in CF template or is not a public subnet")))
+			})
+		})
+	})
 })

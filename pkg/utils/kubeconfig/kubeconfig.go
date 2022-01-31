@@ -3,11 +3,10 @@ package kubeconfig
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
-
-	"os/exec"
 
 	"github.com/gofrs/flock"
 	"github.com/kris-nova/logger"

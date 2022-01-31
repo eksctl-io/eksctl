@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"path"
 
 	"github.com/kris-nova/logger"
@@ -136,12 +135,12 @@ func DecodeCloudConfig(s string) (*CloudConfig, error) {
 		return nil, err
 	}
 
-	gr, err := gzip.NewReader(ioutil.NopCloser(bytes.NewBuffer(data)))
+	gr, err := gzip.NewReader(io.NopCloser(bytes.NewBuffer(data)))
 	if err != nil {
 		return nil, err
 	}
 	defer safeClose(gr)
-	data, err = ioutil.ReadAll(gr)
+	data, err = io.ReadAll(gr)
 	if err != nil {
 		return nil, err
 	}

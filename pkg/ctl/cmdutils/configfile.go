@@ -147,7 +147,6 @@ func (l *commonClusterConfigLoader) Load() error {
 	}
 	l.ProviderConfig.Region = meta.Region
 
-	api.SetDefaultGitSettings(l.ClusterConfig)
 	return l.validateWithConfigFile()
 }
 
@@ -233,15 +232,17 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 
 	l.validateWithConfigFile = func() error {
 		clusterConfig := l.ClusterConfig
+		ipv6Enabled := clusterConfig.IPv6Enabled()
+
 		if clusterConfig.VPC == nil {
-			clusterConfig.VPC = api.NewClusterVPC()
+			clusterConfig.VPC = api.NewClusterVPC(ipv6Enabled)
 		}
 
-		if clusterConfig.VPC.NAT == nil {
+		if clusterConfig.VPC.NAT == nil && !ipv6Enabled {
 			clusterConfig.VPC.NAT = api.DefaultClusterNAT()
 		}
 
-		if !api.IsSetAndNonEmptyString(clusterConfig.VPC.NAT.Gateway) {
+		if clusterConfig.VPC.NAT != nil && api.IsEmpty(clusterConfig.VPC.NAT.Gateway) {
 			*clusterConfig.VPC.NAT.Gateway = api.ClusterSingleNAT
 		}
 
@@ -261,10 +262,6 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 			return errors.New("vpc.subnets and availabilityZones cannot be set at the same time")
 		}
 
-		if clusterConfig.GitOps != nil && clusterConfig.Git != nil {
-			return errors.New("git cannot be configured alongside gitops")
-		}
-
 		if clusterConfig.GitOps != nil {
 			fluxCfg := clusterConfig.GitOps.Flux
 
@@ -274,24 +271,6 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				}
 				if len(fluxCfg.Flags) == 0 {
 					return ErrMustBeSet("gitops.flux.flags")
-				}
-			}
-		}
-
-		if clusterConfig.Git != nil {
-			repo := clusterConfig.Git.Repo
-			if repo != nil {
-				if repo.URL == "" {
-					return ErrMustBeSet("git.repo.url")
-				}
-
-				if repo.Email == "" {
-					return ErrMustBeSet("git.repo.email")
-				}
-
-				profile := clusterConfig.Git.BootstrapProfile
-				if profile != nil && profile.Source == "" {
-					return ErrMustBeSet("git.bootstrapProfile.source")
 				}
 			}
 		}
@@ -330,8 +309,11 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 
 		if params.Fargate {
 			l.ClusterConfig.SetDefaultFargateProfile()
-			// A Fargate-only cluster should NOT have any un-managed node group:
-			l.ClusterConfig.NodeGroups = []*api.NodeGroup{}
+			// A Fargate-only cluster should have no nodegroups if the `managed` flag wasn't explicitly provided.
+			if !l.CobraCommand.Flag("managed").Changed {
+				l.ClusterConfig.ManagedNodeGroups = nil
+				l.ClusterConfig.NodeGroups = nil
+			}
 		}
 
 		for _, ng := range l.ClusterConfig.NodeGroups {
@@ -347,6 +329,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				return err
 			}
 			ng.Name = names.ForNodeGroup(ng.Name, "")
+			normalizeBaseNodeGroup(ng, l.CobraCommand)
 		}
 
 		return validateDryRun()
@@ -394,6 +377,9 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 		if err := validateManagedNGFlags(l.CobraCommand, mngOptions.Managed); err != nil {
 			return err
 		}
+		if err := validateUnmanagedNGFlags(l.CobraCommand, mngOptions.Managed); err != nil {
+			return err
+		}
 		if mngOptions.Managed {
 			l.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{makeManagedNodegroup(ng, mngOptions)}
 		} else {
@@ -411,6 +397,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 					return ErrFlagAndArg("--name", ng.Name, l.NameArg)
 				}
 				ng.Name = ngName
+				normalizeBaseNodeGroup(ng, l.CobraCommand)
 			}
 		} else {
 			for _, ng := range l.ClusterConfig.NodeGroups {
@@ -465,6 +452,18 @@ func validateManagedNGFlags(cmd *cobra.Command, managed bool) error {
 	return nil
 }
 
+func validateUnmanagedNGFlags(cmd *cobra.Command, managed bool) error {
+	if !managed {
+		return nil
+	}
+
+	flagsValidOnlyWithUnmanagedNG := []string{"version"}
+	if flagName, found := findChangedFlag(cmd, flagsValidOnlyWithUnmanagedNG); found {
+		return fmt.Errorf("--%s is only valid with unmanaged nodegroups", flagName)
+	}
+	return nil
+}
+
 func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
 	if flag := l.CobraCommand.Flag("ssh-public-key"); flag != nil && flag.Changed {
 		if *ng.SSH.PublicKeyPath == "" {
@@ -481,7 +480,19 @@ func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
 		return fmt.Errorf("%s volume type is not supported via flag --node-volume-type, please use a config file", api.NodeVolumeTypeIO1)
 	}
 
+	normalizeBaseNodeGroup(ng, l.CobraCommand)
 	return nil
+}
+
+func normalizeBaseNodeGroup(np api.NodePool, cmd *cobra.Command) {
+	ng := np.BaseNodeGroup()
+	flags := cmd.Flags()
+	if !flags.Changed("instance-selector-gpus") {
+		ng.InstanceSelector.GPUs = nil
+	}
+	if !flags.Changed("enable-ssm") {
+		ng.SSH.EnableSSM = nil
+	}
 }
 
 // NewDeleteNodeGroupLoader will load config or use flags for 'eksctl delete nodegroup'
@@ -566,7 +577,7 @@ func NewUtilsEnableEndpointAccessLoader(cmd *Cmd, privateAccess, publicAccess bo
 	}
 	l.validateWithConfigFile = func() error {
 		if l.ClusterConfig.VPC == nil {
-			l.ClusterConfig.VPC = api.NewClusterVPC()
+			l.ClusterConfig.VPC = api.NewClusterVPC(false)
 		}
 		api.SetClusterEndpointAccessDefaults(l.ClusterConfig.VPC)
 		return nil
@@ -791,6 +802,118 @@ func NewUpdateNodegroupLoader(cmd *Cmd) ClusterConfigLoader {
 	l.validateWithoutConfigFile = func() error {
 		if cmd.ClusterConfigFile == "" {
 			return ErrMustBeSet("--config-file")
+		}
+		return nil
+	}
+	return l
+}
+
+// NewGetNodegroupLoader loads config file and validates command for `eksctl get nodegroup`.
+func NewGetNodegroupLoader(cmd *Cmd, ng *api.NodeGroup) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithoutConfigFile = func() error {
+		meta := cmd.ClusterConfig.Metadata
+
+		if meta.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+
+		if ng.Name != "" && cmd.NameArg != "" {
+			return ErrFlagAndArg("--name", ng.Name, cmd.NameArg)
+		}
+
+		if cmd.NameArg != "" {
+			ng.Name = cmd.NameArg
+		}
+
+		// prevent creation of invalid config object with unnamed nodegroup
+		if ng.Name != "" {
+			cmd.ClusterConfig.NodeGroups = append(cmd.ClusterConfig.NodeGroups, ng)
+		}
+
+		return nil
+	}
+
+	return l
+}
+
+// NewGetLabelsLoader loads config file and validates command for `eksctl get labels`.
+func NewGetLabelsLoader(cmd *Cmd, ngName string) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+	l.validateWithoutConfigFile = func() error {
+		meta := cmd.ClusterConfig.Metadata
+
+		if meta.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+
+		if ngName == "" {
+			return ErrMustBeSet("--nodegroup")
+		}
+
+		if cmd.NameArg != "" {
+			return ErrUnsupportedNameArg()
+		}
+
+		return nil
+	}
+
+	return l
+}
+
+// NewGetClusterLoader will load config or use flags for 'eksctl get cluster(s)'
+func NewGetClusterLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	return l
+}
+
+// NewSetLabelLoader will load config or use flags for 'eksctl set labels'
+func NewSetLabelLoader(cmd *Cmd, nodeGroupName string, labels map[string]string) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+	l.validateWithoutConfigFile = func() error {
+		if len(labels) == 0 {
+			return ErrMustBeSet("--labels")
+		}
+		meta := cmd.ClusterConfig.Metadata
+
+		if meta.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+
+		if nodeGroupName == "" {
+			return ErrMustBeSet("--nodegroup")
+		}
+
+		if cmd.NameArg != "" {
+			return ErrUnsupportedNameArg()
+		}
+
+		return nil
+	}
+	// we use the config file to update the labels, thus providing is invalid
+	l.flagsIncompatibleWithConfigFile.Insert("labels")
+	l.validateWithConfigFile = func() error {
+		meta := cmd.ClusterConfig.Metadata
+
+		if meta.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+
+		// if nodegroup is not empty, load only the nodegroup which has been added
+		if nodeGroupName != "" {
+			var ng *api.ManagedNodeGroup
+			for _, mng := range cmd.ClusterConfig.ManagedNodeGroups {
+				if mng.Name == nodeGroupName {
+					ng = mng
+					break
+				}
+			}
+			if ng == nil {
+				return fmt.Errorf("nodegroup with name %s not found in the config file", nodeGroupName)
+			}
+			cmd.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{ng}
 		}
 		return nil
 	}

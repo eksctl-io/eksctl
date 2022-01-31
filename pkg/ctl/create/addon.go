@@ -47,7 +47,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 			return err
 		}
 
-		clusterProvider, err := cmd.NewCtl()
+		clusterProvider, err := cmd.NewProviderForExistingCluster()
 		if err != nil {
 			return err
 		}

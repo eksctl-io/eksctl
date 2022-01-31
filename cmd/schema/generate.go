@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io"
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	schemapkg "github.com/weaveworks/eksctl/pkg/schema"
-	"github.com/weaveworks/eksctl/pkg/schema/definition"
+	"github.com/weaveworks/schemer/definition"
+	schemapkg "github.com/weaveworks/schemer/schema"
 )
 
 func main() {
@@ -47,8 +46,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	err = ioutil.WriteFile(outputFile, bytes, 0755)
-	if err != nil {
+	fmt.Println("Writing docs schema to " + outputFile)
+	if err := os.WriteFile(outputFile, bytes, 0755); err != nil {
 		panic(err)
 	}
 }

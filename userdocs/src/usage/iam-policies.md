@@ -59,6 +59,21 @@ nodeGroups:
       instanceRoleARN: "arn:aws:iam::123:role/eksctl-test-cluster-a-3-nodegroup-NodeInstanceRole-DNGMQTQHQHBJ"
 ```
 
+## Attaching inline policies
+
+```yaml
+nodeGroups:
+  - name: my-special-nodegroup
+    iam:
+      attachPolicy:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Action:
+          - 's3:GetObject'
+          Resource: 'arn:aws:s3:::example-bucket/*'
+```
+
 ## Attaching policies by ARN
 
 ```yaml

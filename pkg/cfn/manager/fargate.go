@@ -6,10 +6,6 @@ import (
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 )
 
-func isFargateStack(s *Stack) bool {
-	return strings.HasSuffix(*s.StackName, "-fargate")
-}
-
 // GetFargateStack returns the stack holding the fargate IAM
 // resources, if any
 func (c *StackCollection) GetFargateStack() (*Stack, error) {
@@ -28,4 +24,8 @@ func (c *StackCollection) GetFargateStack() (*Stack, error) {
 	}
 
 	return nil, nil
+}
+
+func isFargateStack(s *Stack) bool {
+	return strings.HasSuffix(*s.StackName, "-fargate")
 }

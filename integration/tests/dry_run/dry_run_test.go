@@ -1,5 +1,7 @@
+//go:build integration
 // +build integration
 
+//revive:disable Not changing package name
 package dry_run
 
 import (
@@ -9,18 +11,17 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
-	. "github.com/weaveworks/eksctl/integration/runner"
 
+	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
-
-	. "github.com/onsi/ginkgo"
 )
 
 var params *tests.Params
@@ -39,7 +40,7 @@ func TestDryRun(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-const eksVersion = "1.20"
+const eksVersion = api.LatestVersion
 
 const defaultClusterConfig = `
 apiVersion: eksctl.io/v1alpha5
@@ -55,8 +56,11 @@ kind: ClusterConfig
 metadata:
   name: %[1]s
   region: us-west-2
+kubernetesNetworkConfig:
+  ipFamily: IPv4
 nodeGroups:
 - amiFamily: AmazonLinux2
+  containerRuntime: dockerd
   disableIMDSv1: false
   disablePodIMDS: false
   instanceSelector: {}
@@ -85,7 +89,6 @@ nodeGroups:
     withShared: true
   ssh:
     allow: false
-    enableSsm: false
   volumeIOPS: 3000
   volumeSize: 80
   volumeThroughput: 125
@@ -124,7 +127,6 @@ managedNodeGroups:
     withShared: null
   ssh:
     allow: false
-    enableSsm: false
     publicKeyPath: ""
   tags:
     alpha.eksctl.io/nodegroup-name: ng-default
@@ -150,19 +152,19 @@ vpc:
 var _ = Describe("(Integration) [Dry-Run test]", func() {
 	parseOutput := func(output []byte) (*api.ClusterConfig, *api.ClusterConfig) {
 		actual, err := eks.ParseConfig(output)
-		Expect(err).ToNot(HaveOccurred())
-		expected, err := eks.ParseConfig([]byte(fmt.Sprintf(defaultClusterConfig, params.ClusterName)))
-		Expect(err).ToNot(HaveOccurred())
-		return actual, expected
+		Expect(err).NotTo(HaveOccurred())
+		defaultConfig, err := eks.ParseConfig([]byte(fmt.Sprintf(defaultClusterConfig, params.ClusterName)))
+		Expect(err).NotTo(HaveOccurred())
+		return actual, defaultConfig
 	}
 
-	assertDryRun := func(output []byte, setValues func(*api.ClusterConfig)) {
+	assertDryRun := func(output []byte, updateConfig func(defaultConfig, actual *api.ClusterConfig)) {
 		actual, expected := parseOutput(output)
-		setValues(expected)
+		updateConfig(expected, actual)
 		Expect(actual).To(Equal(expected))
 	}
 
-	DescribeTable("`create cluster` with --dry-run", func(setValues func(*api.ClusterConfig), createArgs ...string) {
+	DescribeTable("`create cluster` with --dry-run", func(updateDefaultConfig func(*api.ClusterConfig), createArgs ...string) {
 		cmd := params.EksctlCreateCmd.
 			WithArgs(
 				"cluster",
@@ -178,9 +180,9 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 		Expect(session.ExitCode()).To(Equal(0))
 
 		output := session.Buffer().Contents()
-		assertDryRun(output, func(clusterConfig *api.ClusterConfig) {
-			clusterConfig.Metadata.Version = eksVersion
-			setValues(clusterConfig)
+		assertDryRun(output, func(c, _ *api.ClusterConfig) {
+			c.Metadata.Version = eksVersion
+			updateDefaultConfig(c)
 		})
 	},
 		Entry("default values", func(c *api.ClusterConfig) {
@@ -206,7 +208,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			c.ManagedNodeGroups = nil
 			c.NodeGroups = nil
 			cidr, err := ipnet.ParseCIDR("192.168.0.0/24")
-			ExpectWithOffset(1, err).ToNot(HaveOccurred(), "unexpected error parsing CIDR")
+			ExpectWithOffset(1, err).NotTo(HaveOccurred(), "unexpected error parsing CIDR")
 			c.VPC.CIDR = cidr
 			c.VPC.NAT.Gateway = aws.String("HighlyAvailable")
 			c.IAM.WithOIDC = aws.Bool(true)
@@ -220,7 +222,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 
 		// TODO consider using a custom matcher
 		session := cmd.Run()
-		Expect(session.ExitCode()).ToNot(Equal(0))
+		Expect(session.ExitCode()).NotTo(Equal(0))
 		output := string(session.Err.Contents())
 		Expect(output).To(ContainSubstring(fmt.Sprintf("cannot use %s with --dry-run", strings.Split(flag, "=")[0])))
 
@@ -258,7 +260,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 	}, Entry("instance selector options with unmanaged nodegroup", func(actual, expected *api.ClusterConfig) {
 		// This does not do an exact match because instance types matching the instance selector criteria may
 		// change over time as EC2 adds more instance types
-		Expect(actual.NodeGroups[0].InstancesDistribution.InstanceTypes).ToNot(BeEmpty())
+		Expect(actual.NodeGroups[0].InstancesDistribution.InstanceTypes).NotTo(BeEmpty())
 		actual.NodeGroups[0].InstancesDistribution.InstanceTypes = nil
 
 		expected.ManagedNodeGroups = nil
@@ -275,7 +277,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 	}, "--managed=false", "--instance-selector-vcpus=2", "--instance-selector-memory=4"),
 
 		Entry("instance selector options with managed nodegroup", func(actual, expected *api.ClusterConfig) {
-			Expect(actual.ManagedNodeGroups[0].InstanceTypes).ToNot(BeEmpty())
+			Expect(actual.ManagedNodeGroups[0].InstanceTypes).NotTo(BeEmpty())
 			actual.ManagedNodeGroups[0].InstanceTypes = nil
 
 			expected.NodeGroups = nil
@@ -308,7 +310,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			session := cmd.Run()
 			Expect(session.ExitCode()).To(Equal(0))
 			output := session.Buffer().Contents()
-			assertDryRun(output, func(c *api.ClusterConfig) {
+			assertDryRun(output, func(c, _ *api.ClusterConfig) {
 				c.Metadata.Name = params.ClusterName
 				c.Metadata.Version = eksVersion
 				c.NodeGroups = nil
@@ -334,6 +336,8 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 					"--name=private-ng",
 					"--node-private-networking",
 					"--node-volume-size=82",
+					"--instance-selector-vcpus=2",
+					"--instance-selector-memory=4",
 					"--dry-run",
 				).
 				WithoutArg("--region", params.Region)
@@ -341,7 +345,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 			session = cmd.Run()
 			Expect(session.ExitCode()).To(Equal(0))
 			output = session.Buffer().Contents()
-			assertDryRun(output, func(c *api.ClusterConfig) {
+			assertDryRun(output, func(c, actual *api.ClusterConfig) {
 				c.Metadata.Name = params.ClusterName
 				c.Metadata.Version = eksVersion
 				c.VPC = nil
@@ -350,8 +354,17 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				c.PrivateCluster = nil
 				c.NodeGroups = nil
 				c.AvailabilityZones = nil
+				c.KubernetesNetworkConfig = nil
 
 				ng := c.ManagedNodeGroups[0]
+				actualNG := actual.ManagedNodeGroups[0]
+				Expect(actualNG.InstanceTypes).NotTo(BeEmpty())
+				actualNG.InstanceTypes = nil
+				ng.InstanceType = ""
+				ng.InstanceSelector = &api.InstanceSelector{
+					VCPUs:  2,
+					Memory: "4",
+				}
 				ng.Name = "private-ng"
 				ng.PrivateNetworking = true
 				ng.VolumeSize = aws.Int(82)
@@ -363,6 +376,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				setNodeNameKey(ng.Tags)
 			})
 
+			By("creating a new nodegroup from the output of dry-run")
 			cmd = params.EksctlCreateCmd.
 				WithArgs(
 					"nodegroup",
@@ -372,9 +386,7 @@ var _ = Describe("(Integration) [Dry-Run test]", func() {
 				WithStdin(bytes.NewReader(output))
 			Expect(cmd).To(RunSuccessfully())
 		})
-
 	})
-
 })
 
 var _ = AfterSuite(func() {

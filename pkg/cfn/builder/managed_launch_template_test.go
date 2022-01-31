@@ -4,11 +4,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+
 	. "github.com/benjamintf1/unmarshalledmatchers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
@@ -66,19 +67,19 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 			return
 		}
 
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		bytes, err := stack.RenderJSON()
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		template, err := goformation.ParseJSON(bytes)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(template).ToNot(BeNil())
+		Expect(err).NotTo(HaveOccurred())
+		Expect(template).NotTo(BeNil())
 
 		actual, err := json.Marshal(template.Resources)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
-		expected, err := ioutil.ReadFile(path.Join("testdata", "launch_template", m.resourcesFilename))
-		Expect(err).ToNot(HaveOccurred())
+		expected, err := os.ReadFile(path.Join("testdata", "launch_template", m.resourcesFilename))
+		Expect(err).NotTo(HaveOccurred())
 		Expect(actual).To(MatchOrderedJSON(expected, WithUnorderedListKeys("Tags")))
 
 	},
@@ -159,7 +160,6 @@ API_SERVER_URL=https://test.com
 					SSH: &api.NodeGroupSSH{
 						Allow:         api.Enabled(),
 						PublicKeyName: aws.String("test-keypair"),
-						EnableSSM:     api.Enabled(),
 					},
 				},
 			},
@@ -175,7 +175,6 @@ API_SERVER_URL=https://test.com
 					SSH: &api.NodeGroupSSH{
 						Allow:         api.Disabled(),
 						PublicKeyName: aws.String("test-keypair"),
-						EnableSSM:     api.Enabled(),
 					},
 				},
 			},
@@ -270,6 +269,29 @@ API_SERVER_URL=https://test.com
 				UserData: aws.String("bootstrap.sh"),
 			}),
 			resourcesFilename: "lt_instance_types.json",
+		}),
+
+		Entry("Bottlerocket AMI Family with defaults", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "bottlerocket",
+					AMIFamily:    api.NodeImageFamilyBottlerocket,
+					InstanceType: "m5.xlarge",
+				},
+			},
+			resourcesFilename: "bottlerocket.json",
+		}),
+
+		Entry("Bottlerocket with volumeSize set", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name:         "bottlerocket-volume",
+					AMIFamily:    api.NodeImageFamilyBottlerocket,
+					InstanceType: "m5.xlarge",
+					VolumeSize:   aws.Int(142),
+				},
+			},
+			resourcesFilename: "bottlerocket_volume.json",
 		}),
 	)
 })

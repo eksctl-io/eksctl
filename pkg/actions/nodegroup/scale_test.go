@@ -26,7 +26,7 @@ var _ = Describe("Scale", func() {
 		clusterName, ngName string
 		p                   *mockprovider.MockProvider
 		cfg                 *api.ClusterConfig
-		ng                  *api.NodeGroup
+		ng                  *api.NodeGroupBase
 		m                   *nodegroup.Manager
 		fakeStackManager    *fakes.FakeStackManager
 	)
@@ -37,13 +37,11 @@ var _ = Describe("Scale", func() {
 		cfg = api.NewClusterConfig()
 		cfg.Metadata.Name = clusterName
 
-		ng = &api.NodeGroup{
-			NodeGroupBase: &api.NodeGroupBase{
-				Name: ngName,
-				ScalingConfig: &api.ScalingConfig{
-					MinSize:         aws.Int(1),
-					DesiredCapacity: aws.Int(3),
-				},
+		ng = &api.NodeGroupBase{
+			Name: ngName,
+			ScalingConfig: &api.ScalingConfig{
+				MinSize:         aws.Int(1),
+				DesiredCapacity: aws.Int(3),
 			},
 		}
 		m = nodegroup.New(cfg, &eks.ClusterProvider{Provider: p}, nil)

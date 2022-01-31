@@ -39,7 +39,7 @@ func doUpdateKubeProxy(cmd *cmdutils.Cmd) error {
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,12 @@ func doUpdateKubeProxy(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	updateRequired, err := defaultaddons.UpdateKubeProxy(rawClient.ClientSet(), kubernetesVersion, cmd.Plan)
+	updateRequired, err := defaultaddons.UpdateKubeProxy(defaultaddons.AddonInput{
+		RawClient:           rawClient,
+		ControlPlaneVersion: kubernetesVersion,
+		Region:              meta.Region,
+		EKSAPI:              ctl.Provider.EKS(),
+	}, cmd.Plan)
 	if err != nil {
 		return err
 	}

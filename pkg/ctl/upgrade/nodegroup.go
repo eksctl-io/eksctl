@@ -3,12 +3,10 @@ package upgrade
 import (
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/eksctl/pkg/managed"
 
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
@@ -21,7 +19,7 @@ func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("nodegroup", "Upgrade nodegroup", "")
 
-	var options managed.UpgradeOptions
+	var options nodegroup.UpgradeOptions
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
 		return upgradeNodeGroup(cmd, options)
@@ -33,15 +31,12 @@ func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 		fs.StringVar(&options.KubernetesVersion, "kubernetes-version", "", "Kubernetes version")
 		fs.BoolVar(&options.ForceUpgrade, "force-upgrade", false, "Force the update if the existing node group's pods are unable to be drained due to a pod disruption budget issue")
 		fs.StringVar(&options.ReleaseVersion, "release-version", "", "AMI version of the EKS optimized AMI to use")
+		fs.BoolVar(&options.Wait, "wait", true, "nodegroup upgrade to complete")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddClusterFlag(fs, cmd.ClusterConfig.Metadata)
-
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
-		cmd.Wait = true
-		cmdutils.AddWaitFlag(fs, &cmd.Wait, "nodegroup upgrade to complete")
-
 		// found with experimentation
 		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, upgradeNodegroupTimeout)
 	})
@@ -50,7 +45,7 @@ func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 }
 
-func upgradeNodeGroup(cmd *cmdutils.Cmd, options managed.UpgradeOptions) error {
+func upgradeNodeGroup(cmd *cmdutils.Cmd, options nodegroup.UpgradeOptions) error {
 	cfg := cmd.ClusterConfig
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
@@ -68,7 +63,7 @@ func upgradeNodeGroup(cmd *cmdutils.Cmd, options managed.UpgradeOptions) error {
 		return cmdutils.ErrMustBeSet("name")
 	}
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
@@ -82,6 +77,5 @@ func upgradeNodeGroup(cmd *cmdutils.Cmd, options managed.UpgradeOptions) error {
 		return err
 	}
 
-	return nodegroup.New(cfg, ctl, clientSet).Upgrade(options, cmd.Wait)
-
+	return nodegroup.New(cfg, ctl, clientSet).Upgrade(options)
 }

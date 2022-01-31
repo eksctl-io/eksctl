@@ -48,7 +48,7 @@ func getAddonCmd(cmd *cmdutils.Cmd) {
 
 func getAddon(cmd *cmdutils.Cmd, params *getCmdParams) error {
 
-	clusterProvider, err := cmd.NewCtl()
+	clusterProvider, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}

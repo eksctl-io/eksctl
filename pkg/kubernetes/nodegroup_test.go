@@ -41,7 +41,7 @@ var _ = Describe("NodeGroup", func() {
 				return
 			}
 
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(version).To(Equal(t.expectedVersion))
 		},
 

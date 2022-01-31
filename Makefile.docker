@@ -23,14 +23,19 @@ docker_build := time docker build
 # but right now 'docker build' doesn't allow us to export build cache images, so we cannot use it yet
 # docker_build := env DOCKER_BUILDKIT=1 $(docker_build)
 
+sedi := -i
+ifeq ($(shell uname), Darwin)
+sedi = -i ''
+endif
+
 ##@ Docker
 
 .PHONY: update-build-image-tag
 update-build-image-tag: ## Update the build image tag as referenced across the repo
 	build-image-manifest.sh > $(image_manifest_file)
 	git hash-object $(image_manifest_file) > $(build_image_tag_file)
-	sed -i -e "1s|\(BUILD_IMAGE=\).*|\1/$(build_image):$$(cat $(build_image_tag_file))|" Dockerfile
-	find .github/workflows -type f | xargs sed -i -e "s|\($(build_image):\).*|\1$$(cat $(build_image_tag_file))|"
+	sed $(sedi) -e "1s|\(BUILD_IMAGE=\).*|\1/$(build_image):$$(cat $(build_image_tag_file))|" Dockerfile
+	find .github/workflows -type f | xargs sed $(sedi) -e "s|\($(build_image):\).*|\1$$(cat $(build_image_tag_file))|"
 
 .PHONY: check-build-image-manifest-up-to-date
 check-build-image-manifest-up-to-date: update-build-image-tag ## Update build image manifest and commits the changes

@@ -24,9 +24,9 @@ var _ = DescribeTable("Managed AL2", func(e managedEntry) {
 	bootstrapper.UserDataMimeBoundary = "//"
 
 	userData, err := bootstrapper.UserData()
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	decoded, err := base64.StdEncoding.DecodeString(userData)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	actual := strings.ReplaceAll(string(decoded), "\r\n", "\n")
 	Expect(actual).To(Equal(e.expectedUserData))
 },
@@ -42,25 +42,7 @@ var _ = DescribeTable("Managed AL2", func(e managedEntry) {
 			},
 		},
 
-		expectedUserData: `MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary=//
-
---//
-Content-Type: text/x-shellscript
-Content-Type: charset="us-ascii"
-
-#!/bin/bash
-
-set -o errexit
-set -o pipefail
-set -o nounset
-
-yum install -y amazon-ssm-agent
-systemctl enable amazon-ssm-agent
-systemctl start amazon-ssm-agent
-
---//--
-`,
+		expectedUserData: "",
 	}),
 
 	Entry("Custom AMI with bootstrap script", managedEntry{
@@ -69,6 +51,10 @@ systemctl start amazon-ssm-agent
 				Name:         "custom-ami",
 				InstanceType: "m5.xlarge",
 				AMI:          "ami-custom",
+				PreBootstrapCommands: []string{
+					"date",
+					"echo hello",
+				},
 				OverrideBootstrapCommand: aws.String(`#!/bin/bash
 set -ex
 B64_CLUSTER_CA=dGVzdAo=
@@ -78,11 +64,30 @@ API_SERVER_URL=https://test.com
 			},
 		},
 
-		expectedUserData: `#!/bin/bash
+		expectedUserData: `MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary=//
+
+--//
+Content-Type: text/x-shellscript
+Content-Type: charset="us-ascii"
+
+date
+--//
+Content-Type: text/x-shellscript
+Content-Type: charset="us-ascii"
+
+echo hello
+--//
+Content-Type: text/x-shellscript
+Content-Type: charset="us-ascii"
+
+#!/bin/bash
 set -ex
 B64_CLUSTER_CA=dGVzdAo=
 API_SERVER_URL=https://test.com
 /etc/eks/bootstrap.sh launch-template --b64-cluster-ca $B64_CLUSTER_CA --apiserver-endpoint $API_SERVER_URL
+
+--//--
 `,
 	}),
 
@@ -128,20 +133,6 @@ cloud-init-per once efa_info /opt/amazon/efa/bin/fi_info -p efa
 		},
 		expectedUserData: `MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary=//
-
---//
-Content-Type: text/x-shellscript
-Content-Type: charset="us-ascii"
-
-#!/bin/bash
-
-set -o errexit
-set -o pipefail
-set -o nounset
-
-yum install -y amazon-ssm-agent
-systemctl enable amazon-ssm-agent
-systemctl start amazon-ssm-agent
 
 --//
 Content-Type: text/cloud-boothook

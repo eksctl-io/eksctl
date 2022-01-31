@@ -50,7 +50,7 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 	if err != nil {
 		return err
 	}
-	identities, err := acm.Identities()
+	identities, err := acm.GetIdentities()
 	if err != nil {
 		return err
 	}
@@ -118,5 +118,8 @@ func addIAMIdentityMappingTableColumns(printer *printers.TablePrinter) {
 	})
 	printer.AddColumn("GROUPS", func(r iam.Identity) string {
 		return strings.Join(r.Groups(), ",")
+	})
+	printer.AddColumn("ACCOUNT", func(r iam.Identity) string {
+		return r.Account()
 	})
 }

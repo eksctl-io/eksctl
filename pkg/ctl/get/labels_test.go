@@ -1,6 +1,8 @@
 package get
 
 import (
+	"os"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -34,5 +36,24 @@ var _ = Describe("get", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Error: name argument is not supported"))
 		})
+
+		It("setting --cluster and --config-file at the same time", func() {
+			f, err := os.CreateTemp("", "configfile")
+			Expect(err).NotTo(HaveOccurred())
+			_, err = f.WriteString(labelsGetConfigFile)
+			Expect(err).NotTo(HaveOccurred())
+			cmd := newMockCmd("labels", "--cluster", "name", "--nodegroup", "name", "--config-file", f.Name())
+			_, err = cmd.execute()
+			Expect(err).To(MatchError(ContainSubstring("Error: cannot use --cluster when --config-file/-f is set")))
+		})
 	})
 })
+
+var labelsGetConfigFile = `apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: test-nodegroup-cluster-config
+  region: us-west-2
+  version: '1.20'
+`

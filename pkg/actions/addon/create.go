@@ -15,14 +15,16 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
 
+	"k8s.io/apimachinery/pkg/types"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
 	kubeSystemNamespace = "kube-system"
 	vpcCNIName          = "vpc-cni"
+	ebsCSIDriverName    = "aws-ebs-csi-driver"
 )
 
 func (a *Manager) Create(addon *api.Addon, wait bool) error {
@@ -61,40 +63,42 @@ func (a *Manager) Create(addon *api.Addon, wait bool) error {
 		if addon.ServiceAccountRoleARN != "" {
 			logger.Info("using provided ServiceAccountRoleARN %q", addon.ServiceAccountRoleARN)
 			createAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
-		} else if addon.AttachPolicyARNs != nil && len(addon.AttachPolicyARNs) != 0 {
-			logger.Info("creating role using provided policies ARNs")
-			role, err := a.createRoleUsingAttachPolicyARNs(addon, namespace, serviceAccount)
+		} else if hasPoliciesSet(addon) {
+			outputRole, err := a.createRole(addon, namespace, serviceAccount)
 			if err != nil {
 				return err
 			}
-			createAddonInput.ServiceAccountRoleArn = &role
-		} else if addon.AttachPolicy != nil {
-			logger.Info("creating role using provided policies")
-			role, err := a.createRoleUsingAttachPolicy(addon, namespace, serviceAccount)
-			if err != nil {
-				return err
-			}
-			createAddonInput.ServiceAccountRoleArn = &role
+			createAddonInput.ServiceAccountRoleArn = &outputRole
 		} else {
-			policies := a.getRecommendedPolicies(addon)
-			if len(policies) != 0 {
+			policyDocument, policyARNs, wellKnownPolicies := a.getRecommendedPolicies(addon)
+			if len(policyARNs) != 0 || policyDocument != nil || wellKnownPolicies != nil {
 				logger.Info("creating role using recommended policies")
-				addon.AttachPolicyARNs = policies
-				role, err := a.createRoleUsingAttachPolicyARNs(addon, namespace, serviceAccount)
+				addon.AttachPolicyARNs = policyARNs
+				addon.AttachPolicy = policyDocument
+				resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicy, a.oidcManager)
+				if len(policyARNs) != 0 {
+					resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicyARNs, a.oidcManager)
+				}
+				if wellKnownPolicies != nil {
+					addon.WellKnownPolicies = *wellKnownPolicies
+					resourceSet = builder.NewIAMRoleResourceSetWithWellKnownPolicies(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.WellKnownPolicies, a.oidcManager)
+				}
+				if err := resourceSet.AddAllResources(); err != nil {
+					return err
+				}
+				err := a.createStack(resourceSet, addon)
 				if err != nil {
 					return err
 				}
-				createAddonInput.ServiceAccountRoleArn = &role
+				createAddonInput.ServiceAccountRoleArn = &resourceSet.OutputRole
 			} else {
 				logger.Info("no recommended policies found, proceeding without any IAM")
 			}
 		}
 	} else {
 		//if any sort of policy is set or could be set, log a warning
-		if addon.ServiceAccountRoleARN != "" ||
-			(addon.AttachPolicyARNs != nil && len(addon.AttachPolicyARNs) != 0) ||
-			addon.AttachPolicy != nil ||
-			len(a.getRecommendedPolicies(addon)) != 0 {
+		policyDocument, policyARNs, wellKnownPolicies := a.getRecommendedPolicies(addon)
+		if addon.ServiceAccountRoleARN != "" || hasPoliciesSet(addon) || len(policyARNs) != 0 || policyDocument != nil || wellKnownPolicies != nil {
 			logger.Warning("OIDC is disabled but policies are required/specified for this addon. Users are responsible for attaching the policies to all nodegroup roles")
 		}
 	}
@@ -186,13 +190,21 @@ func (a *Manager) patchAWSNodeDaemonSet() error {
 
 	return nil
 }
-func (a *Manager) getRecommendedPolicies(addon *api.Addon) []string {
+
+func (a *Manager) getRecommendedPolicies(addon *api.Addon) (api.InlineDocument, []string, *api.WellKnownPolicies) {
 	// API isn't case sensitive
 	switch addon.CanonicalName() {
 	case vpcCNIName:
-		return []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}
+		if a.clusterConfig.IPv6Enabled() {
+			return makeIPv6VPCCNIPolicyDocument(), nil, nil
+		}
+		return nil, []string{fmt.Sprintf("arn:%s:iam::aws:policy/%s", api.Partition(a.clusterConfig.Metadata.Region), api.IAMPolicyAmazonEKSCNIPolicy)}, nil
+	case ebsCSIDriverName:
+		return nil, nil, &api.WellKnownPolicies{
+			EBSCSIController: true,
+		}
 	default:
-		return []string{}
+		return nil, nil, nil
 	}
 }
 
@@ -207,9 +219,13 @@ func (a *Manager) getKnownServiceAccountLocation(addon *api.Addon) (string, stri
 	}
 }
 
-func (a *Manager) createRoleUsingAttachPolicyARNs(addon *api.Addon, namespace, serviceAccount string) (string, error) {
-	resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicyARNs, a.oidcManager)
-	err := resourceSet.AddAllResources()
+func hasPoliciesSet(addon *api.Addon) bool {
+	return len(addon.AttachPolicyARNs) != 0 || addon.WellKnownPolicies.HasPolicy() || addon.AttachPolicy != nil
+}
+
+func (a *Manager) createRole(addon *api.Addon, namespace, serviceAccount string) (string, error) {
+	resourceSet, err := a.createRoleResourceSet(addon, namespace, serviceAccount)
+
 	if err != nil {
 		return "", err
 	}
@@ -221,18 +237,19 @@ func (a *Manager) createRoleUsingAttachPolicyARNs(addon *api.Addon, namespace, s
 	return resourceSet.OutputRole, nil
 }
 
-func (a *Manager) createRoleUsingAttachPolicy(addon *api.Addon, namespace, serviceAccount string) (string, error) {
-	resourceSet := builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicy, a.oidcManager)
-	err := resourceSet.AddAllResources()
-	if err != nil {
-		return "", err
+func (a *Manager) createRoleResourceSet(addon *api.Addon, namespace, serviceAccount string) (*builder.IAMRoleResourceSet, error) {
+	var resourceSet *builder.IAMRoleResourceSet
+	if len(addon.AttachPolicyARNs) != 0 {
+		logger.Info("creating role using provided policies ARNs")
+		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicyARNs(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicyARNs, a.oidcManager)
+	} else if addon.WellKnownPolicies.HasPolicy() {
+		logger.Info("creating role using provided well known policies")
+		resourceSet = builder.NewIAMRoleResourceSetWithWellKnownPolicies(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.WellKnownPolicies, a.oidcManager)
+	} else {
+		logger.Info("creating role using provided policies")
+		resourceSet = builder.NewIAMRoleResourceSetWithAttachPolicy(addon.Name, namespace, serviceAccount, addon.PermissionsBoundary, addon.AttachPolicy, a.oidcManager)
 	}
-
-	err = a.createStack(resourceSet, addon)
-	if err != nil {
-		return "", err
-	}
-	return resourceSet.OutputRole, nil
+	return resourceSet, resourceSet.AddAllResources()
 }
 
 func (a *Manager) createStack(resourceSet builder.ResourceSet, addon *api.Addon) error {
@@ -248,4 +265,30 @@ func (a *Manager) createStack(resourceSet builder.ResourceSet, addon *api.Addon)
 	}
 
 	return <-errChan
+}
+
+func makeIPv6VPCCNIPolicyDocument() map[string]interface{} {
+	return map[string]interface{}{
+		"Version": "2012-10-17",
+		"Statement": []map[string]interface{}{
+			{
+				"Effect": "Allow",
+				"Action": []string{
+					"ec2:AssignIpv6Addresses",
+					"ec2:DescribeInstances",
+					"ec2:DescribeTags",
+					"ec2:DescribeNetworkInterfaces",
+					"ec2:DescribeInstanceTypes",
+				},
+				"Resource": "*",
+			},
+			{
+				"Effect": "Allow",
+				"Action": []string{
+					"ec2:CreateTags",
+				},
+				"Resource": "arn:aws:ec2:*:*:network-interface/*",
+			},
+		},
+	}
 }

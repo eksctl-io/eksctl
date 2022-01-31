@@ -5,25 +5,23 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap/assets"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/utils"
+
+	kubeletapi "k8s.io/kubelet/config/v1beta1"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
-	"github.com/weaveworks/eksctl/pkg/nodebootstrap/bindata"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/legacy"
-	kubeletapi "k8s.io/kubelet/config/v1beta1"
 )
 
-//go:generate ${GOBIN}/go-bindata -pkg bindata -prefix assets -nometadata -o bindata/assets.go bindata/assets
-
 const (
-	dataDir               = "bindata/assets"
 	configDir             = "/etc/eksctl/"
 	envFile               = "kubelet.env"
 	extraKubeConfFile     = "kubelet-extra.json"
@@ -48,7 +46,7 @@ func NewBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) (Boots
 		ng.ClusterDNS = clusterDNS
 	}
 	if api.IsWindowsImage(ng.AMIFamily) {
-		return NewWindowsBootstrapper(clusterConfig.Metadata.Name, ng), nil
+		return NewWindowsBootstrapper(clusterConfig, ng), nil
 	}
 	switch ng.AMIFamily {
 	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
@@ -79,7 +77,7 @@ func NewManagedBootstrapper(clusterConfig *api.ClusterConfig, ng *api.ManagedNod
 	case api.NodeImageFamilyAmazonLinux2:
 		return NewManagedAL2Bootstrapper(ng)
 	case api.NodeImageFamilyBottlerocket:
-		return NewBottlerocketBootstrapper(clusterConfig, ng)
+		return NewManagedBottlerocketBootstrapper(clusterConfig, ng)
 	case api.NodeImageFamilyUbuntu1804, api.NodeImageFamilyUbuntu2004:
 		return NewUbuntuBootstrapper(clusterConfig, ng)
 	}
@@ -102,7 +100,7 @@ func GetClusterDNS(clusterConfig *api.ClusterConfig) (string, error) {
 	return ip.String(), nil
 }
 
-func linuxConfig(clusterConfig *api.ClusterConfig, bootScript string, np api.NodePool, scripts ...string) (string, error) {
+func linuxConfig(clusterConfig *api.ClusterConfig, bootScriptName, bootScriptContent string, np api.NodePool, scripts ...script) (string, error) {
 	config := cloudconfig.New()
 	ng := np.BaseNodeGroup()
 
@@ -112,13 +110,13 @@ func linuxConfig(clusterConfig *api.ClusterConfig, bootScript string, np api.Nod
 
 	var files []cloudconfig.File
 	if len(scripts) == 0 {
-		scripts = []string{}
+		scripts = []script{}
 	}
 
 	if ng.OverrideBootstrapCommand != nil {
 		config.AddShellCommand(*ng.OverrideBootstrapCommand)
 	} else {
-		scripts = append(scripts, commonLinuxBootScript, bootScript)
+		scripts = append(scripts, script{name: commonLinuxBootScript, contents: assets.BootstrapHelperSh}, script{name: bootScriptName, contents: bootScriptContent})
 		var kubeletExtraConf *api.InlineDocument
 		if unmanaged, ok := np.(*api.NodeGroup); ok {
 			kubeletExtraConf = unmanaged.KubeletExtraConfig
@@ -182,6 +180,10 @@ func makeBootstrapEnv(clusterConfig *api.ClusterConfig, np api.NodePool) cloudco
 		variables["CLUSTER_DNS"] = unmanaged.ClusterDNS
 	}
 
+	if unmanaged, ok := np.(*api.NodeGroup); ok && ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 {
+		variables["CONTAINER_RUNTIME"] = unmanaged.GetContainerRuntime()
+	}
+
 	return cloudconfig.File{
 		Path:    configDir + envFile,
 		Content: makeKeyValues(variables, "\n"),
@@ -201,27 +203,19 @@ func formatLabels(labels map[string]string) string {
 	return makeKeyValues(labels, ",")
 }
 
-func addFilesAndScripts(config *cloudconfig.CloudConfig, files []cloudconfig.File, scripts []string) error {
+type script struct {
+	name     string
+	contents string
+}
+
+func addFilesAndScripts(config *cloudconfig.CloudConfig, files []cloudconfig.File, scripts []script) error {
 	for _, file := range files {
 		config.AddFile(file)
 	}
 
-	for _, scriptName := range scripts {
-		data, err := getAsset(scriptName)
-		if err != nil {
-			return err
-		}
-		config.RunScript(scriptName, data)
+	for _, s := range scripts {
+		config.RunScript(s.name, s.contents)
 	}
 
 	return nil
-}
-
-func getAsset(name string) (string, error) {
-	data, err := bindata.Asset(filepath.Join(dataDir, name))
-	if err != nil {
-		return "", errors.Wrapf(err, "decoding embedded file %q", name)
-	}
-
-	return string(data), nil
 }

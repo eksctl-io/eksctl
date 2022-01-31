@@ -56,8 +56,8 @@
         },
         "permissionsBoundary": {
           "type": "string",
-          "description": "ARN of the permissions boundary to associate",
-          "x-intellij-html-description": "ARN of the permissions boundary to associate"
+          "description": "ARN of the permissions' boundary to associate",
+          "x-intellij-html-description": "ARN of the permissions' boundary to associate"
         },
         "serviceAccountRoleARN": {
           "type": "string"
@@ -73,6 +73,11 @@
         },
         "version": {
           "type": "string"
+        },
+        "wellKnownPolicies": {
+          "$ref": "#/definitions/WellKnownPolicies",
+          "description": "for attaching common IAM policies",
+          "x-intellij-html-description": "for attaching common IAM policies"
         }
       },
       "preferredOrder": [
@@ -82,6 +87,7 @@
         "attachPolicyARNs",
         "attachPolicy",
         "permissionsBoundary",
+        "wellKnownPolicies",
         "tags"
       ],
       "additionalProperties": false,
@@ -119,10 +125,16 @@
           "type": "array",
           "description": "Types of logging to enable (see [CloudWatch docs](/usage/cloudwatch-cluster-logging/#clusterconfig-examples)). Valid entries are: `\"api\"`, `\"audit\"`, `\"authenticator\"`, `\"controllerManager\"`, `\"scheduler\"`, `\"all\"`, `\"*\"`.",
           "x-intellij-html-description": "Types of logging to enable (see <a href=\"/usage/cloudwatch-cluster-logging/#clusterconfig-examples\">CloudWatch docs</a>). Valid entries are: <code>&quot;api&quot;</code>, <code>&quot;audit&quot;</code>, <code>&quot;authenticator&quot;</code>, <code>&quot;controllerManager&quot;</code>, <code>&quot;scheduler&quot;</code>, <code>&quot;all&quot;</code>, <code>&quot;*&quot;</code>."
+        },
+        "logRetentionInDays": {
+          "type": "integer",
+          "description": "sets the number of days to retain the logs for (see [CloudWatch docs](https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html#API_PutRetentionPolicy_RequestSyntax)) . Valid values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, and 3653.",
+          "x-intellij-html-description": "sets the number of days to retain the logs for (see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html#API_PutRetentionPolicy_RequestSyntax\">CloudWatch docs</a>) . Valid values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, and 3653."
         }
       },
       "preferredOrder": [
-        "enableTypes"
+        "enableTypes",
+        "logRetentionInDays"
       ],
       "additionalProperties": false,
       "description": "container config parameters related to cluster logging",
@@ -164,15 +176,10 @@
           },
           "type": "array"
         },
-        "git": {
-          "$ref": "#/definitions/Git",
-          "description": "FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963 Git exposes configuration for Flux v1 and an earlier iteration of gitops",
-          "x-intellij-html-description": "FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963 Git exposes configuration for Flux v1 and an earlier iteration of gitops"
-        },
         "gitops": {
           "$ref": "#/definitions/GitOps",
-          "description": "exposes configuration for Flux v2 and will continue to be used in future gitops plans, replacing the Git configuration above",
-          "x-intellij-html-description": "exposes configuration for Flux v2 and will continue to be used in future gitops plans, replacing the Git configuration above"
+          "description": "future gitops plans, replacing the Git configuration above",
+          "x-intellij-html-description": "future gitops plans, replacing the Git configuration above"
         },
         "iam": {
           "$ref": "#/definitions/ClusterIAM"
@@ -182,6 +189,11 @@
             "$ref": "#/definitions/IdentityProvider"
           },
           "type": "array"
+        },
+        "karpenter": {
+          "$ref": "#/definitions/Karpenter",
+          "description": "specific configuration options.",
+          "x-intellij-html-description": "specific configuration options."
         },
         "kind": {
           "type": "string",
@@ -239,8 +251,8 @@
         "availabilityZones",
         "cloudWatch",
         "secretsEncryption",
-        "git",
-        "gitops"
+        "gitops",
+        "karpenter"
       ],
       "additionalProperties": false,
       "description": "a simple config, to be replaced with Cluster API",
@@ -475,15 +487,14 @@
         },
         "version": {
           "type": "string",
-          "description": "Valid variants are: `\"1.16\"`, `\"1.17\"`, `\"1.18\"`, `\"1.19\"`, `\"1.20\"` (default).",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;1.16&quot;</code>, <code>&quot;1.17&quot;</code>, <code>&quot;1.18&quot;</code>, <code>&quot;1.19&quot;</code>, <code>&quot;1.20&quot;</code> (default).",
-          "default": "1.20",
+          "description": "Valid variants are: `\"1.18\"`, `\"1.19\"`, `\"1.20\"`, `\"1.21\"` (default).",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;1.18&quot;</code>, <code>&quot;1.19&quot;</code>, <code>&quot;1.20&quot;</code>, <code>&quot;1.21&quot;</code> (default).",
+          "default": "1.21",
           "enum": [
-            "1.16",
-            "1.17",
             "1.18",
             "1.19",
-            "1.20"
+            "1.20",
+            "1.21"
           ]
         }
       },
@@ -559,7 +570,21 @@
           "description": "for additional CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets",
           "x-intellij-html-description": "for additional CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets"
         },
+        "extraIPv6CIDRs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "for additional IPv6 CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets",
+          "x-intellij-html-description": "for additional IPv6 CIDR associations, e.g. a CIDR for private subnets or any ad-hoc subnets"
+        },
         "id": {
+          "type": "string"
+        },
+        "ipv6Cidr": {
+          "type": "string"
+        },
+        "ipv6Pool": {
           "type": "string"
         },
         "manageSharedNodeSecurityGroupRules": {
@@ -598,9 +623,12 @@
       "preferredOrder": [
         "id",
         "cidr",
+        "ipv6Cidr",
+        "ipv6Pool",
         "securityGroup",
         "subnets",
         "extraCIDRs",
+        "extraIPv6CIDRs",
         "sharedNodeSecurityGroup",
         "manageSharedNodeSecurityGroupRules",
         "autoAllocateIPv6",
@@ -728,39 +756,12 @@
       "x-intellij-html-description": "a map of string for passing arbitrary flags to Flux bootstrap",
       "default": "{}"
     },
-    "Git": {
-      "properties": {
-        "bootstrapProfile": {
-          "$ref": "#/definitions/Profile",
-          "description": "[Installing a Quickstart profile](/usage/gitops/#installing-a-quickstart-profile-in-your-cluster)",
-          "x-intellij-html-description": "<a href=\"/usage/gitops/#installing-a-quickstart-profile-in-your-cluster\">Installing a Quickstart profile</a>"
-        },
-        "operator": {
-          "$ref": "#/definitions/Operator",
-          "description": "[Enable Repo](/usage/gitops/#installing-flux-v1)",
-          "x-intellij-html-description": "<a href=\"/usage/gitops/#installing-flux-v1\">Enable Repo</a>"
-        },
-        "repo": {
-          "$ref": "#/definitions/Repo",
-          "description": "[Enable Repo](/usage/gitops/#installing-flux-v1)",
-          "x-intellij-html-description": "<a href=\"/usage/gitops/#installing-flux-v1\">Enable Repo</a>"
-        }
-      },
-      "preferredOrder": [
-        "repo",
-        "operator",
-        "bootstrapProfile"
-      ],
-      "additionalProperties": false,
-      "description": "groups all configuration options related to enabling GitOps on a cluster and linking it to a Git repository. [Gitops Guide](/gitops-quickstart/)",
-      "x-intellij-html-description": "groups all configuration options related to enabling GitOps on a cluster and linking it to a Git repository. <a href=\"/gitops-quickstart/\">Gitops Guide</a>"
-    },
     "GitOps": {
       "properties": {
         "flux": {
           "$ref": "#/definitions/Flux",
-          "description": "[Enable Flux](/usage/gitops/#experimental-installing-gitops-toolkit-flux-v2)",
-          "x-intellij-html-description": "<a href=\"/usage/gitops/#experimental-installing-gitops-toolkit-flux-v2\">Enable Flux</a>"
+          "description": "holds options to enable Flux v2 on your cluster",
+          "x-intellij-html-description": "holds options to enable Flux v2 on your cluster"
         }
       },
       "preferredOrder": [
@@ -816,8 +817,8 @@
         },
         "gpus": {
           "type": "integer",
-          "description": "specifies the number of GPUs",
-          "x-intellij-html-description": "specifies the number of GPUs"
+          "description": "specifies the number of GPUs. It can be set to 0 to select non-GPU instance types.",
+          "x-intellij-html-description": "specifies the number of GPUs. It can be set to 0 to select non-GPU instance types."
         },
         "memory": {
           "type": "string",
@@ -840,8 +841,41 @@
       "description": "holds EC2 instance selector options",
       "x-intellij-html-description": "holds EC2 instance selector options"
     },
+    "Karpenter": {
+      "required": [
+        "version"
+      ],
+      "properties": {
+        "createServiceAccount": {
+          "type": "boolean",
+          "description": "create a service account or not.",
+          "x-intellij-html-description": "create a service account or not."
+        },
+        "version": {
+          "type": "string",
+          "description": "defines the Karpenter version to install",
+          "x-intellij-html-description": "defines the Karpenter version to install"
+        }
+      },
+      "preferredOrder": [
+        "version",
+        "createServiceAccount"
+      ],
+      "additionalProperties": false,
+      "description": "provides configuration opti",
+      "x-intellij-html-description": "provides configuration opti"
+    },
     "KubernetesNetworkConfig": {
       "properties": {
+        "ipFamily": {
+          "type": "string",
+          "description": "Valid variants are: `\"IPv4\"` defines an IP family of v4 to be used when creating a new VPC and cluster., `\"IPv6\"` defines an IP family of v6 to be used when creating a new VPC and cluster..",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;IPv4&quot;</code> defines an IP family of v4 to be used when creating a new VPC and cluster., <code>&quot;IPv6&quot;</code> defines an IP family of v6 to be used when creating a new VPC and cluster..",
+          "enum": [
+            "IPv4",
+            "IPv6"
+          ]
+        },
         "serviceIPv4CIDR": {
           "type": "string",
           "description": "CIDR range from where `ClusterIP`s are assigned",
@@ -849,6 +883,7 @@
         }
       },
       "preferredOrder": [
+        "ipFamily",
         "serviceIPv4CIDR"
       ],
       "additionalProperties": false,
@@ -889,8 +924,8 @@
         },
         "amiFamily": {
           "type": "string",
-          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2004CoreContainer\"`.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2004CoreContainer&quot;</code>.",
+          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2004CoreContainer\"`, `\"WindowsServer20H2CoreContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2004CoreContainer&quot;</code>, <code>&quot;WindowsServer20H2CoreContainer&quot;</code>.",
           "default": "AmazonLinux2",
           "enum": [
             "AmazonLinux2",
@@ -899,7 +934,8 @@
             "Bottlerocket",
             "WindowsServer2019CoreContainer",
             "WindowsServer2019FullContainer",
-            "WindowsServer2004CoreContainer"
+            "WindowsServer2004CoreContainer",
+            "WindowsServer20H2CoreContainer"
           ]
         },
         "asgSuspendProcesses": {
@@ -947,6 +983,11 @@
           "type": "boolean",
           "description": "creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
           "x-intellij-html-description": "creates the maximum allowed number of EFA-enabled network cards on nodes in this group."
+        },
+        "enableDetailedMonitoring": {
+          "type": "boolean",
+          "description": "Enable EC2 detailed monitoring",
+          "x-intellij-html-description": "Enable EC2 detailed monitoring"
         },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
@@ -1141,6 +1182,7 @@
         "efaEnabled",
         "instanceSelector",
         "bottlerocket",
+        "enableDetailedMonitoring",
         "instanceTypes",
         "spot",
         "taints",
@@ -1187,8 +1229,8 @@
         },
         "amiFamily": {
           "type": "string",
-          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2004CoreContainer\"`.",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2004CoreContainer&quot;</code>.",
+          "description": "Valid variants are: `\"AmazonLinux2\"` (default), `\"Ubuntu2004\"`, `\"Ubuntu1804\"`, `\"Bottlerocket\"`, `\"WindowsServer2019CoreContainer\"`, `\"WindowsServer2019FullContainer\"`, `\"WindowsServer2004CoreContainer\"`, `\"WindowsServer20H2CoreContainer\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;AmazonLinux2&quot;</code> (default), <code>&quot;Ubuntu2004&quot;</code>, <code>&quot;Ubuntu1804&quot;</code>, <code>&quot;Bottlerocket&quot;</code>, <code>&quot;WindowsServer2019CoreContainer&quot;</code>, <code>&quot;WindowsServer2019FullContainer&quot;</code>, <code>&quot;WindowsServer2004CoreContainer&quot;</code>, <code>&quot;WindowsServer20H2CoreContainer&quot;</code>.",
           "default": "AmazonLinux2",
           "enum": [
             "AmazonLinux2",
@@ -1197,7 +1239,8 @@
             "Bottlerocket",
             "WindowsServer2019CoreContainer",
             "WindowsServer2019FullContainer",
-            "WindowsServer2004CoreContainer"
+            "WindowsServer2004CoreContainer",
+            "WindowsServer20H2CoreContainer"
           ]
         },
         "asgMetricsCollection": {
@@ -1240,6 +1283,11 @@
           "description": "[Custom address](/usage/vpc-networking/#custom-cluster-dns-address) used for DNS lookups",
           "x-intellij-html-description": "<a href=\"/usage/vpc-networking/#custom-cluster-dns-address\">Custom address</a> used for DNS lookups"
         },
+        "containerRuntime": {
+          "type": "string",
+          "description": "defines the runtime (CRI) to use for containers on the node",
+          "x-intellij-html-description": "defines the runtime (CRI) to use for containers on the node"
+        },
         "cpuCredits": {
           "type": "string",
           "description": "configures [T3 Unlimited](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html), valid only for T-type instances",
@@ -1269,6 +1317,11 @@
           "type": "boolean",
           "description": "creates the maximum allowed number of EFA-enabled network cards on nodes in this group.",
           "x-intellij-html-description": "creates the maximum allowed number of EFA-enabled network cards on nodes in this group."
+        },
+        "enableDetailedMonitoring": {
+          "type": "boolean",
+          "description": "Enable EC2 detailed monitoring",
+          "x-intellij-html-description": "Enable EC2 detailed monitoring"
         },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
@@ -1452,6 +1505,7 @@
         "efaEnabled",
         "instanceSelector",
         "bottlerocket",
+        "enableDetailedMonitoring",
         "instancesDistribution",
         "asgMetricsCollection",
         "cpuCredits",
@@ -1460,7 +1514,8 @@
         "taints",
         "updateConfig",
         "clusterDNS",
-        "kubeletExtraConfig"
+        "kubeletExtraConfig",
+        "containerRuntime"
       ],
       "additionalProperties": false,
       "description": "holds configuration attributes that are specific to a nodegroup",
@@ -1487,11 +1542,18 @@
     },
     "NodeGroupIAM": {
       "properties": {
+        "attachPolicy": {
+          "$ref": "#/definitions/InlineDocument",
+          "description": "holds a policy document to attach",
+          "x-intellij-html-description": "holds a policy document to attach"
+        },
         "attachPolicyARNs": {
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "description": "list of ARNs of the IAM policies to attach",
+          "x-intellij-html-description": "list of ARNs of the IAM policies to attach"
         },
         "instanceProfileARN": {
           "type": "string"
@@ -1510,6 +1572,7 @@
         }
       },
       "preferredOrder": [
+        "attachPolicy",
         "attachPolicyARNs",
         "instanceProfileARN",
         "instanceRoleARN",
@@ -1824,64 +1887,6 @@
       "description": "holds the spec of an OIDC provider to use for EKS authzn",
       "x-intellij-html-description": "holds the spec of an OIDC provider to use for EKS authzn"
     },
-    "Operator": {
-      "properties": {
-        "additionalFluxArgs": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "description": "Additional command line arguments for the Flux daemon",
-          "x-intellij-html-description": "Additional command line arguments for the Flux daemon"
-        },
-        "additionalHelmOperatorArgs": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "description": "Additional command line arguments for the Helm Operator",
-          "x-intellij-html-description": "Additional command line arguments for the Helm Operator"
-        },
-        "commitOperatorManifests": {
-          "type": "boolean",
-          "description": "Commit and push Flux manifests to the Git Repo on install",
-          "x-intellij-html-description": "Commit and push Flux manifests to the Git Repo on install"
-        },
-        "label": {
-          "type": "string",
-          "description": "Git label to keep track of Flux's sync progress; this is equivalent to overriding --git-sync-tag and --git-notes-ref in Flux",
-          "x-intellij-html-description": "Git label to keep track of Flux's sync progress; this is equivalent to overriding --git-sync-tag and --git-notes-ref in Flux"
-        },
-        "namespace": {
-          "type": "string",
-          "description": "Cluster namespace where to install Flux and the Helm Operator e.g. flux",
-          "x-intellij-html-description": "Cluster namespace where to install Flux and the Helm Operator e.g. flux"
-        },
-        "readOnly": {
-          "type": "boolean",
-          "description": "Instruct Flux to read-only mode and create the deploy key as read-only",
-          "x-intellij-html-description": "Instruct Flux to read-only mode and create the deploy key as read-only",
-          "default": "false"
-        },
-        "withHelm": {
-          "type": "boolean",
-          "description": "Install the Helm Operator",
-          "x-intellij-html-description": "Install the Helm Operator"
-        }
-      },
-      "preferredOrder": [
-        "commitOperatorManifests",
-        "label",
-        "namespace",
-        "withHelm",
-        "readOnly",
-        "additionalFluxArgs",
-        "additionalHelmOperatorArgs"
-      ],
-      "additionalProperties": false,
-      "description": "groups all configuration options related to the operator used to keep the cluster and the Git repository in sync.",
-      "x-intellij-html-description": "groups all configuration options related to the operator used to keep the cluster and the Git repository in sync."
-    },
     "Placement": {
       "properties": {
         "groupName": {
@@ -1915,103 +1920,22 @@
           "description": "enables creation of a fully-private cluster",
           "x-intellij-html-description": "enables creation of a fully-private cluster",
           "default": "false"
+        },
+        "skipEndpointCreation": {
+          "type": "boolean",
+          "description": "skips the creation process for endpoints completely. This is only used in case of an already provided VPC and if the user decided to set it to true.",
+          "x-intellij-html-description": "skips the creation process for endpoints completely. This is only used in case of an already provided VPC and if the user decided to set it to true.",
+          "default": "false"
         }
       },
       "preferredOrder": [
         "enabled",
+        "skipEndpointCreation",
         "additionalEndpointServices"
       ],
       "additionalProperties": false,
       "description": "defines the configuration for a fully-private cluster",
       "x-intellij-html-description": "defines the configuration for a fully-private cluster"
-    },
-    "Profile": {
-      "properties": {
-        "outputPath": {
-          "type": "string",
-          "description": "Output directory for the processed profile templates (generate profile command)",
-          "x-intellij-html-description": "Output directory for the processed profile templates (generate profile command)",
-          "default": "./<quickstart-repo-name>"
-        },
-        "revision": {
-          "type": "string",
-          "description": "of the Quick Start profile. Can be a branch, tag or commit hash",
-          "x-intellij-html-description": "of the Quick Start profile. Can be a branch, tag or commit hash"
-        },
-        "source": {
-          "type": "string",
-          "description": "Name or URL of the Quick Start profile",
-          "x-intellij-html-description": "Name or URL of the Quick Start profile",
-          "examples": [
-            "app-dev"
-          ]
-        }
-      },
-      "preferredOrder": [
-        "source",
-        "revision",
-        "outputPath"
-      ],
-      "additionalProperties": false,
-      "description": "groups all details on a quickstart profile to enable on the cluster and add to the Git repository.",
-      "x-intellij-html-description": "groups all details on a quickstart profile to enable on the cluster and add to the Git repository."
-    },
-    "Repo": {
-      "properties": {
-        "branch": {
-          "type": "string",
-          "description": "The git branch under which cluster configuration files will be committed & pushed, e.g. master",
-          "x-intellij-html-description": "The git branch under which cluster configuration files will be committed &amp; pushed, e.g. master"
-        },
-        "email": {
-          "type": "string",
-          "description": "Git email which will be used to commit changes",
-          "x-intellij-html-description": "Git email which will be used to commit changes"
-        },
-        "fluxPath": {
-          "type": "string",
-          "description": "The directory under which Flux configuration files will be written, e.g. flux/",
-          "x-intellij-html-description": "The directory under which Flux configuration files will be written, e.g. flux/"
-        },
-        "paths": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "description": "Relative paths within the Git repository which the GitOps operator will monitor to find Kubernetes manifests to apply, e.g. [\"kube-system\", \"base\"]",
-          "x-intellij-html-description": "Relative paths within the Git repository which the GitOps operator will monitor to find Kubernetes manifests to apply, e.g. [&quot;kube-system&quot;, &quot;base&quot;]"
-        },
-        "privateSSHKeyPath": {
-          "type": "string",
-          "description": "Path to the private SSH key to use to authenticate",
-          "x-intellij-html-description": "Path to the private SSH key to use to authenticate"
-        },
-        "url": {
-          "type": "string",
-          "description": "The Git SSH URL to the repository which will contain the cluster configuration",
-          "x-intellij-html-description": "The Git SSH URL to the repository which will contain the cluster configuration",
-          "examples": [
-            "git@github.com:org/repo"
-          ]
-        },
-        "user": {
-          "type": "string",
-          "description": "Git user which will be used to commit changes",
-          "x-intellij-html-description": "Git user which will be used to commit changes"
-        }
-      },
-      "preferredOrder": [
-        "url",
-        "branch",
-        "paths",
-        "fluxPath",
-        "user",
-        "email",
-        "privateSSHKeyPath"
-      ],
-      "additionalProperties": false,
-      "description": "groups all configuration options related to a Git repository used for GitOps.",
-      "x-intellij-html-description": "groups all configuration options related to a Git repository used for GitOps."
     },
     "SecretsEncryption": {
       "required": [

@@ -7,7 +7,7 @@ import (
 )
 
 // NewScaleNodeGroupLoader will load config or use flags for 'eksctl scale nodegroup'
-func NewScaleNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup) ClusterConfigLoader {
+func NewScaleNodeGroupLoader(cmd *Cmd, ng *api.NodeGroupBase) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
@@ -22,12 +22,12 @@ func NewScaleNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup) ClusterConfigLoader {
 			return err
 		}
 
-		loadedNG := l.ClusterConfig.FindNodegroup(ng.Name)
-		if loadedNG == nil {
-			return fmt.Errorf("node group %s not found", ng.Name)
+		loadedNG, err := l.ClusterConfig.FindNodegroup(ng.Name)
+		if err != nil {
+			return err
 		}
 
-		if err := validateNumberOfNodes(loadedNG); err != nil {
+		if err := ValidateNumberOfNodes(loadedNG); err != nil {
 			return err
 		}
 		*ng = *loadedNG
@@ -54,7 +54,32 @@ func NewScaleNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup) ClusterConfigLoader {
 	return l
 }
 
-func validateNameArgument(cmd *Cmd, ng *api.NodeGroup) error {
+// NewScaleAllNodeGroupLoader will load config or use flags for 'eksctl scale nodegroup'
+func NewScaleAllNodeGroupLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.flagsIncompatibleWithConfigFile.Insert(
+		"nodes",
+		"nodes-min",
+		"nodes-max",
+	)
+
+	l.validateWithConfigFile = func() error {
+		if len(l.ClusterConfig.AllNodeGroups()) == 0 {
+			return fmt.Errorf("no nodegroups found in config file")
+		}
+		l.Plan = false
+		return nil
+	}
+
+	l.validateWithoutConfigFile = func() error {
+		return fmt.Errorf("a config file is required when --name is not set or when scaling multiple nodegroups")
+	}
+
+	return l
+}
+
+func validateNameArgument(cmd *Cmd, ng *api.NodeGroupBase) error {
 	if ng.Name != "" && cmd.NameArg != "" {
 		return ErrFlagAndArg("--name", ng.Name, cmd.NameArg)
 	}
@@ -63,14 +88,11 @@ func validateNameArgument(cmd *Cmd, ng *api.NodeGroup) error {
 		ng.Name = cmd.NameArg
 	}
 
-	if ng.Name == "" {
-		return ErrMustBeSet("--name")
-	}
-
 	return nil
 }
 
-func validateNumberOfNodes(ng *api.NodeGroup) error {
+// ValidateNumberOfNodes validates the scaling config of a nodegroup.
+func ValidateNumberOfNodes(ng *api.NodeGroupBase) error {
 	if ng.ScalingConfig == nil {
 		ng.ScalingConfig = &api.ScalingConfig{}
 	}
@@ -103,7 +125,7 @@ func validateNumberOfNodes(ng *api.NodeGroup) error {
 }
 
 //only 1 of desired/min/max has to be set on the cli
-func validateNumberOfNodesCLI(ng *api.NodeGroup) error {
+func validateNumberOfNodesCLI(ng *api.NodeGroupBase) error {
 	if ng.ScalingConfig == nil {
 		ng.ScalingConfig = &api.ScalingConfig{}
 	}

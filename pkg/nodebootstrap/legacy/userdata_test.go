@@ -21,7 +21,7 @@ var _ = Describe("User data", func() {
 				parts := strings.Split(line, " ")
 				Expect(parts[0]).To(MatchRegexp(`[a-zA-Z][a-zA-Z0-9]*\.[a-zA-Z0-9]+`))
 				_, err := strconv.Atoi(parts[1])
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			}
 		})
 	})
@@ -40,33 +40,33 @@ var _ = Describe("User data", func() {
 
 		It("the kubelet is serialized with the correct format", func() {
 			data, err := makeKubeletConfigYAML(clusterConfig, ng)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			kubelet := &kubeletapi.KubeletConfiguration{}
 
 			errUnmarshal := yaml.UnmarshalStrict(data, kubelet)
-			Expect(errUnmarshal).ToNot(HaveOccurred())
+			Expect(errUnmarshal).NotTo(HaveOccurred())
 		})
 
 		It("does not contain default kube reservations for unknown instances", func() {
 			ng.InstanceType = "dne.small"
 			data, err := makeKubeletConfigYAML(clusterConfig, ng)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			kubelet := kubeletapi.KubeletConfiguration{}
 			err = yaml.UnmarshalStrict(data, &kubelet)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(kubelet.KubeReserved).To(BeNil())
 		})
 
 		It("contains default kube reservations", func() {
 			ng.InstanceType = "i3.metal"
 			data, err := makeKubeletConfigYAML(clusterConfig, ng)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			kubelet := kubeletapi.KubeletConfiguration{}
 			err = yaml.UnmarshalStrict(data, &kubelet)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(kubelet.KubeReserved).To(Equal(map[string]string{
 				"ephemeral-storage": "1Gi",
 				"cpu":               "250m",
@@ -85,11 +85,11 @@ var _ = Describe("User data", func() {
 			Expect(instanceTypeExists(ng.InstancesDistribution.InstanceTypes[1])).To(Equal(true))
 			Expect(instanceTypeExists(ng.InstancesDistribution.InstanceTypes[2])).To(Equal(true))
 			data, err := makeKubeletConfigYAML(clusterConfig, ng)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			kubelet := kubeletapi.KubeletConfiguration{}
 			err = yaml.UnmarshalStrict(data, &kubelet)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(kubelet.KubeReserved).To(Equal(map[string]string{
 				"ephemeral-storage": "1Gi",
 				"cpu":               "80m",
@@ -108,11 +108,11 @@ var _ = Describe("User data", func() {
 			Expect(instanceTypeExists(ng.InstancesDistribution.InstanceTypes[1])).To(Equal(false))
 			Expect(instanceTypeExists(ng.InstancesDistribution.InstanceTypes[2])).To(Equal(false))
 			data, err := makeKubeletConfigYAML(clusterConfig, ng)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			kubelet := kubeletapi.KubeletConfiguration{}
 			err = yaml.UnmarshalStrict(data, &kubelet)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(kubelet.KubeReserved).To(Equal(map[string]string{
 				"ephemeral-storage": "1Gi",
 				"cpu":               "80m",
@@ -133,14 +133,14 @@ var _ = Describe("User data", func() {
 				},
 			}
 			data, err := makeKubeletConfigYAML(clusterConfig, ng)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			kubelet := &kubeletapi.KubeletConfiguration{}
 
 			errUnmarshal := yaml.UnmarshalStrict(data, kubelet)
-			Expect(errUnmarshal).ToNot(HaveOccurred())
+			Expect(errUnmarshal).NotTo(HaveOccurred())
 
-			Expect(kubelet.KubeReserved).ToNot(BeNil())
+			Expect(kubelet.KubeReserved).NotTo(BeNil())
 			Expect(kubelet.KubeReserved["cpu"]).To(Equal("300m"))
 			Expect(kubelet.KubeReserved["memory"]).To(Equal("300Mi"))
 			Expect(kubelet.KubeReserved["ephemeral-storage"]).To(Equal("1Gi"))
@@ -171,14 +171,14 @@ var _ = Describe("User data", func() {
 			Expect(instanceTypeExists(ng.InstancesDistribution.InstanceTypes[1])).To(Equal(true))
 			Expect(instanceTypeExists(ng.InstancesDistribution.InstanceTypes[2])).To(Equal(true))
 			data, err := makeKubeletConfigYAML(clusterConfig, ng)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			kubelet := &kubeletapi.KubeletConfiguration{}
 
 			errUnmarshal := yaml.UnmarshalStrict(data, kubelet)
-			Expect(errUnmarshal).ToNot(HaveOccurred())
+			Expect(errUnmarshal).NotTo(HaveOccurred())
 
-			Expect(kubelet.KubeReserved).ToNot(BeNil())
+			Expect(kubelet.KubeReserved).NotTo(BeNil())
 			Expect(kubelet.KubeReserved["cpu"]).To(Equal("300m"))
 			Expect(kubelet.KubeReserved["memory"]).To(Equal("300Mi"))
 			Expect(kubelet.KubeReserved["ephemeral-storage"]).To(Equal("1Gi"))

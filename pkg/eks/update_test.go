@@ -12,57 +12,9 @@ import (
 	. "github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
-	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 var _ = Describe("EKS API wrapper", func() {
-	Describe("can update cluster tags", func() {
-		var (
-			ctl *ClusterProvider
-
-			cfg *api.ClusterConfig
-			err error
-
-			sentTags map[string]string
-		)
-		BeforeEach(func() {
-			p := mockprovider.NewMockProvider()
-			ctl = &ClusterProvider{
-				Provider: p,
-				Status:   &ProviderStatus{},
-			}
-
-			cfg = api.NewClusterConfig()
-
-			updateClusterTagsOutput := &awseks.TagResourceOutput{}
-
-			p.MockEKS().On("TagResource", mock.MatchedBy(func(input *awseks.TagResourceInput) bool {
-				Expect(input.Tags).ToNot(BeEmpty())
-
-				sentTags = utilsstrings.ToValuesMap(input.Tags)
-
-				return true
-			})).Return(updateClusterTagsOutput, nil)
-			p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
-				return true
-			})).Return(&awseks.DescribeClusterOutput{
-				Cluster: testutils.NewFakeCluster("testcluster", awseks.ClusterStatusActive),
-			}, nil)
-		})
-		It("shouldn't call the API when there are no tags", func() {
-			err = ctl.UpdateClusterTags(cfg)
-			Expect(sentTags).To(BeNil())
-			Expect(err).NotTo(HaveOccurred())
-		})
-		It("should call the API with a non-empty tags map", func() {
-			cfg.Metadata.Tags = map[string]string{
-				"env": "prod",
-			}
-			err = ctl.UpdateClusterTags(cfg)
-			Expect(sentTags).To(BeEquivalentTo(cfg.Metadata.Tags))
-			Expect(err).NotTo(HaveOccurred())
-		})
-	})
 	Describe("can update cluster configuration for logging", func() {
 		var (
 			ctl *ClusterProvider
@@ -111,10 +63,10 @@ var _ = Describe("EKS API wrapper", func() {
 			})).Return(describeClusterOutput, nil)
 
 			p.MockEKS().On("UpdateClusterConfig", mock.MatchedBy(func(input *awseks.UpdateClusterConfigInput) bool {
-				Expect(input.Logging).ToNot(BeNil())
+				Expect(input.Logging).NotTo(BeNil())
 
-				Expect(input.Logging.ClusterLogging[0].Enabled).ToNot(BeNil())
-				Expect(input.Logging.ClusterLogging[1].Enabled).ToNot(BeNil())
+				Expect(input.Logging.ClusterLogging[0].Enabled).NotTo(BeNil())
+				Expect(input.Logging.ClusterLogging[1].Enabled).NotTo(BeNil())
 
 				Expect(*input.Logging.ClusterLogging[0].Enabled).To(BeTrue())
 				Expect(*input.Logging.ClusterLogging[1].Enabled).To(BeFalse())
@@ -162,7 +114,7 @@ var _ = Describe("EKS API wrapper", func() {
 
 			Expect(sentClusterLogging[0].Types).To(BeEmpty())
 
-			Expect(sentClusterLogging[1].Types).ToNot(BeEmpty())
+			Expect(sentClusterLogging[1].Types).NotTo(BeEmpty())
 			Expect(sentClusterLogging[1].Types).To(Equal(aws.StringSlice(api.SupportedCloudWatchClusterLogTypes())))
 		})
 
@@ -178,7 +130,7 @@ var _ = Describe("EKS API wrapper", func() {
 			err = ctl.UpdateClusterConfigForLogging(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(sentClusterLogging[0].Types).ToNot(BeEmpty())
+			Expect(sentClusterLogging[0].Types).NotTo(BeEmpty())
 			Expect(sentClusterLogging[0].Types).To(Equal(aws.StringSlice(cfg.CloudWatch.ClusterLogging.EnableTypes)))
 
 			Expect(sentClusterLogging[1].Types).To(BeEmpty())
@@ -196,10 +148,10 @@ var _ = Describe("EKS API wrapper", func() {
 			err = ctl.UpdateClusterConfigForLogging(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(sentClusterLogging[0].Types).ToNot(BeEmpty())
+			Expect(sentClusterLogging[0].Types).NotTo(BeEmpty())
 			Expect(sentClusterLogging[0].Types).To(Equal(aws.StringSlice(cfg.CloudWatch.ClusterLogging.EnableTypes)))
 
-			Expect(sentClusterLogging[1].Types).ToNot(BeEmpty())
+			Expect(sentClusterLogging[1].Types).NotTo(BeEmpty())
 			Expect(sentClusterLogging[1].Types).To(Equal(aws.StringSlice([]string{"api", "audit", "scheduler"})))
 		})
 	})

@@ -1,41 +1,45 @@
+//go:build integration
 // +build integration
 
 package crud
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/utils/file"
 	corev1 "k8s.io/api/core/v1"
 
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/aws/aws-sdk-go/aws"
+	awsec2 "github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	harness "github.com/dlespiau/kube-test-harness"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/yaml"
+
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/iam"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/tools/clientcmd"
-	"sigs.k8s.io/yaml"
+	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
 
 var params *tests.Params
@@ -57,17 +61,27 @@ func TestCRUD(t *testing.T) {
 var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 	const (
-		initNG = "ng-0"
-		testNG = "ng-1"
+		mngNG1 = "mng-1"
+		mngNG2 = "mng-2"
+
+		unmNG1 = "unm-1"
+		unmNG2 = "unm-2"
 	)
 
 	commonTimeout := 10 * time.Minute
+	makeClusterConfig := func() *api.ClusterConfig {
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.Metadata.Name = params.ClusterName
+		clusterConfig.Metadata.Region = params.Region
+		clusterConfig.Metadata.Version = params.Version
+		return clusterConfig
+	}
 
 	BeforeSuite(func() {
 		params.KubeconfigTemp = false
 		if params.KubeconfigPath == "" {
 			wd, _ := os.Getwd()
-			f, _ := ioutil.TempFile(wd, "kubeconfig-")
+			f, _ := os.CreateTemp(wd, "kubeconfig-")
 			params.KubeconfigPath = f.Name()
 			params.KubeconfigTemp = true
 		}
@@ -95,11 +109,12 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			"--verbose", "4",
 			"--name", params.ClusterName,
 			"--tags", "alpha.eksctl.io/description=eksctl integration test",
-			"--nodegroup-name", initNG,
-			"--node-labels", "ng-name="+initNG,
+			"--nodegroup-name", mngNG1,
+			"--node-labels", "ng-name="+mngNG1,
 			"--nodes", "1",
 			"--version", params.Version,
 			"--kubeconfig", params.KubeconfigPath,
+			"--zones", "us-west-2b,us-west-2c",
 		)
 		Expect(cmd).To(RunSuccessfully())
 	})
@@ -120,7 +135,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, awseks.ClusterStatusActive, params.Version))
 
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initNG)))
+			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, mngNG1)))
 		})
 
 		It("should have created a valid kubectl config file", func() {
@@ -139,6 +154,23 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			It("should return the previously created cluster", func() {
 				cmd := params.EksctlGetCmd.WithArgs("clusters", "--all-regions")
 				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(params.ClusterName)))
+			})
+		})
+
+		Context("and describe the stack for the cluster", func() {
+			It("should describe the cluster's stack", func() {
+				cmd := params.EksctlUtilsCmd.WithArgs("describe-stacks", "--cluster", params.ClusterName, "-o", "yaml")
+				session := cmd.Run()
+				Expect(session.ExitCode()).To(BeZero())
+				var stacks []*cloudformation.Stack
+				Expect(yaml.Unmarshal(session.Out.Contents(), &stacks)).To(Succeed())
+				Expect(stacks).To(HaveLen(2))
+				nodegroupStack := stacks[0]
+				clusterStack := stacks[1]
+				Expect(aws.StringValue(clusterStack.StackName)).To(ContainSubstring(params.ClusterName))
+				Expect(aws.StringValue(nodegroupStack.StackName)).To(ContainSubstring(params.ClusterName))
+				Expect(aws.StringValue(clusterStack.Description)).To(Equal("EKS cluster (dedicated VPC: true, dedicated IAM: true) [created and managed by eksctl]"))
+				Expect(aws.StringValue(nodegroupStack.Description)).To(Equal("EKS Managed Nodes (SSH access: false) [created by eksctl]"))
 			})
 		})
 
@@ -193,30 +225,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		Context("and scale the initial nodegroup", func() {
-			It("should not return an error", func() {
-				cmd := params.EksctlScaleNodeGroupCmd.WithArgs(
-					"--cluster", params.ClusterName,
-					"--nodes-min", "3",
-					"--nodes", "4",
-					"--nodes-max", "5",
-					"--name", initNG,
-				)
-				Expect(cmd).To(RunSuccessfully())
-			})
-		})
-
 		Context("and create a new nodegroup with taints and maxPods", func() {
 			It("should have taints and maxPods set", func() {
-				data, err := os.ReadFile("testdata/taints-max-pods.yaml")
-				Expect(err).ToNot(HaveOccurred())
-				clusterConfig, err := eks.ParseConfig(data)
-				Expect(err).ToNot(HaveOccurred())
-				clusterConfig.Metadata.Name = params.ClusterName
-				clusterConfig.Metadata.Region = params.Region
-
-				data, err = json.Marshal(clusterConfig)
-				Expect(err).ToNot(HaveOccurred())
 				By("creating a new nodegroup with taints and maxPods set")
 				cmd := params.EksctlCreateCmd.
 					WithArgs(
@@ -225,18 +235,18 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--verbose", "4",
 					).
 					WithoutArg("--region", params.Region).
-					WithStdin(bytes.NewReader(data))
+					WithStdin(clusterutils.ReaderFromFile(params.ClusterName, params.Region, "testdata/taints-max-pods.yaml"))
 				Expect(cmd).To(RunSuccessfully())
 
 				config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				clientset, err := kubernetes.NewForConfig(config)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 
 				By("asserting that both formats for taints are supported")
 				var (
-					nodeListN1 = tests.ListNodes(clientset, "n1")
-					nodeListN2 = tests.ListNodes(clientset, "n2")
+					nodeListN1 = tests.ListNodes(clientset, unmNG1)
+					nodeListN2 = tests.ListNodes(clientset, unmNG2)
 				)
 
 				tests.AssertNodeTaints(nodeListN1, []corev1.Taint{
@@ -273,6 +283,214 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
+		Context("can add a nodegroup into a new subnet", func() {
+			var (
+				subnet        *awsec2.Subnet
+				nodegroupName string
+			)
+			BeforeEach(func() {
+				nodegroupName = "test-extra-nodegroup"
+			})
+			AfterEach(func() {
+				cmd := params.EksctlDeleteCmd.WithArgs(
+					"nodegroup",
+					"--verbose", "4",
+					"--cluster", params.ClusterName,
+					"--wait",
+					nodegroupName,
+				)
+				Expect(cmd).To(RunSuccessfully())
+				awsSession := NewSession(params.Region)
+				ec2 := awsec2.New(awsSession)
+				output, err := ec2.DeleteSubnet(&awsec2.DeleteSubnetInput{
+					SubnetId: subnet.SubnetId,
+				})
+				Expect(err).NotTo(HaveOccurred(), output.GoString())
+
+			})
+			It("creates a new nodegroup", func() {
+				cfg := &api.ClusterConfig{
+					Metadata: &api.ClusterMeta{
+						Name:   params.ClusterName,
+						Region: params.Region,
+					},
+				}
+				ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+				Expect(err).NotTo(HaveOccurred())
+				cl, err := ctl.GetCluster(params.ClusterName)
+				Expect(err).NotTo(HaveOccurred())
+				awsSession := NewSession(params.Region)
+				ec2 := awsec2.New(awsSession)
+				existingSubnets, err := ec2.DescribeSubnets(&awsec2.DescribeSubnetsInput{
+					SubnetIds: cl.ResourcesVpcConfig.SubnetIds,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(len(existingSubnets.Subnets) > 0).To(BeTrue())
+				s := existingSubnets.Subnets[0]
+
+				cidr := *s.CidrBlock
+				var (
+					i1, i2, i3, i4, ic int
+				)
+				fmt.Sscanf(cidr, "%d.%d.%d.%d/%d", &i1, &i2, &i3, &i4, &ic)
+				cidr = fmt.Sprintf("%d.%d.%s.%d/%d", i1, i2, "255", i4, ic)
+
+				var tags []*awsec2.Tag
+
+				// filter aws: tags
+				for _, t := range s.Tags {
+					if !strings.HasPrefix(*t.Key, "aws:") {
+						tags = append(tags, t)
+					}
+				}
+				output, err := ec2.CreateSubnet(&awsec2.CreateSubnetInput{
+					AvailabilityZone: aws.String("us-west-2a"),
+					CidrBlock:        aws.String(cidr),
+					TagSpecifications: []*awsec2.TagSpecification{
+						{
+							ResourceType: aws.String(awsec2.ResourceTypeSubnet),
+							Tags:         tags,
+						},
+					},
+					VpcId: s.VpcId,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				moutput, err := ec2.ModifySubnetAttribute(&awsec2.ModifySubnetAttributeInput{
+					MapPublicIpOnLaunch: &awsec2.AttributeBooleanValue{
+						Value: aws.Bool(true),
+					},
+					SubnetId: output.Subnet.SubnetId,
+				})
+				Expect(err).NotTo(HaveOccurred(), moutput.GoString())
+				subnet = output.Subnet
+
+				routeTables, err := ec2.DescribeRouteTables(&awsec2.DescribeRouteTablesInput{
+					Filters: []*awsec2.Filter{
+						{
+							Name:   aws.String("association.subnet-id"),
+							Values: aws.StringSlice([]string{*s.SubnetId}),
+						},
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(len(routeTables.RouteTables) > 0).To(BeTrue(), fmt.Sprintf("route table ended up being empty: %+v", routeTables))
+				routput, err := ec2.AssociateRouteTable(&awsec2.AssociateRouteTableInput{
+					RouteTableId: routeTables.RouteTables[0].RouteTableId,
+					SubnetId:     subnet.SubnetId,
+				})
+				Expect(err).NotTo(HaveOccurred(), routput)
+
+				// create a new subnet in that given vpc and zone.
+				cmd := params.EksctlCreateCmd.WithArgs(
+					"nodegroup",
+					"--timeout=45m",
+					"--cluster", params.ClusterName,
+					"--nodes", "1",
+					"--node-type", "p2.xlarge",
+					"--subnet-ids", *subnet.SubnetId,
+					nodegroupName,
+				)
+				Expect(cmd).To(RunSuccessfully())
+			})
+		})
+
+		Context("and creating a nodegroup with containerd runtime", func() {
+			var (
+				nodegroupName string
+			)
+			BeforeEach(func() {
+				nodegroupName = "test-containerd"
+			})
+			AfterEach(func() {
+				cmd := params.EksctlDeleteCmd.WithArgs(
+					"nodegroup",
+					"--verbose", "4",
+					"--cluster", params.ClusterName,
+					"--wait",
+					nodegroupName,
+				)
+				Expect(cmd).To(RunSuccessfully())
+			})
+			It("should create the nodegroup without problems", func() {
+				clusterConfig := makeClusterConfig()
+				clusterConfig.Metadata.Name = params.ClusterName
+				clusterConfig.NodeGroups = []*api.NodeGroup{
+					{
+						NodeGroupBase: &api.NodeGroupBase{
+							Name:         "test-containerd",
+							AMIFamily:    api.NodeImageFamilyAmazonLinux2,
+							InstanceType: "p2.xlarge",
+						},
+						ContainerRuntime: aws.String(api.ContainerRuntimeContainerD),
+					},
+				}
+
+				cmd := params.EksctlCreateCmd.
+					WithArgs(
+						"nodegroup",
+						"--config-file", "-",
+						"--verbose", "4",
+					).
+					WithoutArg("--region", params.Region).
+					WithStdin(clusterutils.Reader(clusterConfig))
+				Expect(cmd).To(RunSuccessfully())
+			})
+		})
+
+		When("scaling nodegroup(s)", func() {
+			It("should scale a single nodegroup", func() {
+				By("passing the name of the nodegroup as a flag")
+				cmd := params.EksctlScaleNodeGroupCmd.WithArgs(
+					"--cluster", params.ClusterName,
+					"--nodes-min", "4",
+					"--nodes", "4",
+					"--nodes-max", "4",
+					"--name", mngNG1,
+				)
+				Expect(cmd).To(RunSuccessfully())
+
+				getMngNgCmd := params.EksctlGetCmd.WithArgs(
+					"nodegroup",
+					"--cluster", params.ClusterName,
+					"--name", mngNG1,
+					"-o", "yaml",
+				)
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MaxSize: 4")))
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MinSize: 4")))
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("DesiredCapacity: 4")))
+			})
+
+			It("should scale all nodegroups", func() {
+				By("scaling all nodegroups in the config file to the desired capacity, max size, and min size")
+				cmd := params.EksctlScaleNodeGroupCmd.WithArgs(
+					"--config-file", "-",
+				).
+					WithoutArg("--region", params.Region).
+					WithStdin(clusterutils.ReaderFromFile(params.ClusterName, params.Region, "testdata/scale-nodegroups.yaml"))
+				Expect(cmd).To(RunSuccessfully())
+
+				getMngNgCmd := params.EksctlGetCmd.WithArgs(
+					"nodegroup",
+					"--cluster", params.ClusterName,
+					"--name", mngNG1,
+					"-o", "yaml",
+				)
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MaxSize: 5")))
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MinSize: 5")))
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("DesiredCapacity: 5")))
+
+				getUnmNgCmd := params.EksctlGetCmd.WithArgs(
+					"nodegroup",
+					"--cluster", params.ClusterName,
+					"--name", unmNG1,
+					"-o", "yaml",
+				)
+				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MaxSize: 5")))
+				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MinSize: 5")))
+				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("DesiredCapacity: 5")))
+			})
+		})
+
 		Context("and add a second (GPU) nodegroup", func() {
 			It("should not return an error", func() {
 				cmd := params.EksctlCreateCmd.WithArgs(
@@ -282,7 +500,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--nodes", "1",
 					"--node-type", "p2.xlarge",
 					"--node-private-networking",
-					testNG,
+					"--node-zones", "us-west-2b,us-west-2c",
+					mngNG2,
 				)
 				Expect(cmd).To(RunSuccessfully())
 			})
@@ -292,12 +511,12 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"nodegroup",
 					"-o", "json",
 					"--cluster", params.ClusterName,
-					initNG,
+					mngNG1,
 				)
 				Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
 					HaveLen(1),
-					ContainElement(initNG),
-					Not(ContainElement(testNG)),
+					ContainElement(mngNG1),
+					Not(ContainElement(mngNG2)),
 				)))
 				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(params.Version)))
 
@@ -305,12 +524,12 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"nodegroup",
 					"-o", "json",
 					"--cluster", params.ClusterName,
-					testNG,
+					mngNG2,
 				)
 				Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
 					HaveLen(1),
-					ContainElement(testNG),
-					Not(ContainElement(initNG)),
+					ContainElement(mngNG2),
+					Not(ContainElement(mngNG1)),
 				)))
 				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(params.Version)))
 
@@ -321,10 +540,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				)
 				Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
 					HaveLen(4),
-					ContainElement(initNG),
-					ContainElement(testNG),
-					ContainElement("n1"),
-					ContainElement("n2"),
+					ContainElement(mngNG1),
+					ContainElement(mngNG2),
+					ContainElement(unmNG1),
+					ContainElement(unmNG2),
 				)))
 				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(params.Version)))
 			})
@@ -594,8 +813,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 					stackNamePrefix := fmt.Sprintf("eksctl-%s-addon-iamserviceaccount-", params.ClusterName)
 
-					Expect(awsSession).ToNot(HaveExistingStack(stackNamePrefix + "default-s3-read-only"))
-					Expect(awsSession).ToNot(HaveExistingStack(stackNamePrefix + "app1-app-cache-access"))
+					Expect(awsSession).NotTo(HaveExistingStack(stackNamePrefix + "default-s3-read-only"))
+					Expect(awsSession).NotTo(HaveExistingStack(stackNamePrefix + "app1-app-cache-access"))
 				})
 			})
 
@@ -722,10 +941,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 						Expect(so.SubjectFromWebIdentityToken).To(Equal("system:serviceaccount:" + test.Namespace + ":s3-reader"))
 
-						Expect(so.Credentials.SecretAccessKey).ToNot(BeEmpty())
-						Expect(so.Credentials.SessionToken).ToNot(BeEmpty())
-						Expect(so.Credentials.Expiration).ToNot(BeEmpty())
-						Expect(so.Credentials.AccessKeyID).ToNot(BeEmpty())
+						Expect(so.Credentials.SecretAccessKey).NotTo(BeEmpty())
+						Expect(so.Credentials.SessionToken).NotTo(BeEmpty())
+						Expect(so.Credentials.Expiration).NotTo(BeEmpty())
+						Expect(so.Credentials.AccessKeyID).NotTo(BeEmpty())
 					}
 
 					deleteCmd := params.EksctlDeleteCmd.WithArgs(
@@ -795,7 +1014,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--arn", "arn:aws:iam::123456:role/idontexist",
 						"-o", "yaml",
 					)
-					Expect(cmd).ToNot(RunSuccessfully())
+					Expect(cmd).NotTo(RunSuccessfully())
 				})
 				It("fails getting unknown user mapping", func() {
 					cmd := params.EksctlGetCmd.WithArgs(
@@ -804,7 +1023,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--arn", "arn:aws:iam::123456:user/bob",
 						"-o", "yaml",
 					)
-					Expect(cmd).ToNot(RunSuccessfully())
+					Expect(cmd).NotTo(RunSuccessfully())
 				})
 				It("creates role mapping", func() {
 					create := params.EksctlCreateCmd.WithArgs(
@@ -921,7 +1140,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--cluster", params.ClusterName,
 						"--arn", "arn:aws:iam::123456:role/idontexist",
 					)
-					Expect(deleteCmd).ToNot(RunSuccessfully())
+					Expect(deleteCmd).NotTo(RunSuccessfully())
 				})
 				It("deletes duplicate role mappings with --all", func() {
 					deleteCmd := params.EksctlDeleteCmd.WithArgs(
@@ -938,7 +1157,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--arn", role1.ARN(),
 						"-o", "yaml",
 					)
-					Expect(getCmd).ToNot(RunSuccessfully())
+					Expect(getCmd).NotTo(RunSuccessfully())
 				})
 				It("deletes duplicate user mappings with --all", func() {
 					deleteCmd := params.EksctlDeleteCmd.WithArgs(
@@ -955,7 +1174,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--arn", user0.ARN(),
 						"-o", "yaml",
 					)
-					Expect(getCmd).ToNot(RunSuccessfully())
+					Expect(getCmd).NotTo(RunSuccessfully())
 				})
 			})
 
@@ -965,7 +1184,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"nodegroup",
 						"--verbose", "4",
 						"--cluster", params.ClusterName,
-						testNG,
+						mngNG2,
 					)
 					Expect(cmd).To(RunSuccessfully())
 				})
@@ -979,7 +1198,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--nodes-min", "1",
 					"--nodes", "1",
 					"--nodes-max", "1",
-					"--name", initNG,
+					"--name", mngNG1,
 				)
 				Expect(cmd).To(RunSuccessfully())
 			})
@@ -989,7 +1208,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			It("should not return an error", func() {
 				cmd := params.EksctlDrainNodeGroupCmd.WithArgs(
 					"--cluster", params.ClusterName,
-					"--name", initNG,
+					"--name", mngNG1,
 				)
 				Expect(cmd).To(RunSuccessfully())
 			})

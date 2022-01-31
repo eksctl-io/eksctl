@@ -9,33 +9,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// IsARMInstanceType returns true if the instance type is ARM architecture
-func IsARMInstanceType(instanceType string) bool {
-	return strings.HasPrefix(instanceType, "a1") ||
-		strings.HasPrefix(instanceType, "t4g") ||
-		strings.HasPrefix(instanceType, "m6g") ||
-		strings.HasPrefix(instanceType, "m6gd") ||
-		strings.HasPrefix(instanceType, "c6g") ||
-		strings.HasPrefix(instanceType, "c6gd") ||
-		strings.HasPrefix(instanceType, "r6g") ||
-		strings.HasPrefix(instanceType, "r6gd")
-}
-
-// IsGPUInstanceType returns true if the instance type is GPU optimised
-func IsGPUInstanceType(instanceType string) bool {
-	return strings.HasPrefix(instanceType, "p2") ||
-		strings.HasPrefix(instanceType, "p3") ||
-		strings.HasPrefix(instanceType, "p4") ||
-		strings.HasPrefix(instanceType, "g3") ||
-		strings.HasPrefix(instanceType, "g4") ||
-		strings.HasPrefix(instanceType, "inf1")
-}
-
-// IsInferentiaInstanceType returns true if the instance type requires AWS Neuron
-func IsInferentiaInstanceType(instanceType string) bool {
-	return strings.HasPrefix(instanceType, "inf1")
-}
-
 var matchFirstCap = regexp.MustCompile("([0-9]+|[A-Z])")
 
 // ToKebabCase turns a CamelCase string into a kebab-case string
@@ -62,7 +35,7 @@ func IsMinVersion(minimumVersion, version string) (bool, error) {
 // CompareVersions compares two version strings with the usual conventions:
 // returns 0 if a == b
 // returns 1 if a > b
-// returns -1 if b < a
+// returns -1 if a < b
 func CompareVersions(a, b string) (int, error) {
 	aVersion, err := semver.ParseTolerant(a)
 	if err != nil {

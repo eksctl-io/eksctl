@@ -49,6 +49,14 @@ func (c *resourceSet) attachAllowPolicy(name string, refRole *gfnt.Value, statem
 	})
 }
 
+func (c *resourceSet) attachAllowPolicyDocument(name string, refRole *gfnt.Value, document api.InlineDocument) {
+	c.newResource(name, &gfniam.Policy{
+		PolicyName:     makeName(name),
+		Roles:          gfnt.NewSlice(refRole),
+		PolicyDocument: document,
+	})
+}
+
 // WithIAM states, if IAM roles will be created or not
 func (c *ClusterResourceSet) WithIAM() bool {
 	return c.rs.withIAM
@@ -157,8 +165,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() error {
 		n.rs.withNamedIAM = true
 	}
 
-	enableSSM := n.spec.SSH != nil && api.IsEnabled(n.spec.SSH.EnableSSM)
-	if err := createRole(n.rs, n.clusterSpec.IAM, n.spec.IAM, false, enableSSM, n.forceAddCNIPolicy); err != nil {
+	if err := createRole(n.rs, n.clusterSpec.IAM, n.spec.IAM, false, n.forceAddCNIPolicy); err != nil {
 		return err
 	}
 
@@ -223,17 +230,21 @@ type IAMRoleResourceSet struct {
 
 // NewIAMRoleResourceSetWithAttachPolicyARNs builds IAM Role stack from the give spec
 func NewIAMRoleResourceSetWithAttachPolicyARNs(name, namespace, serviceAccount, permissionsBoundary string, attachPolicyARNs []string, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
-	return newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary, nil, attachPolicyARNs, oidc)
-
+	return newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary, nil, attachPolicyARNs, api.WellKnownPolicies{}, oidc)
 }
 
 // NewIAMRoleResourceSetWithAttachPolicy builds IAM Role stack from the give spec
 func NewIAMRoleResourceSetWithAttachPolicy(name, namespace, serviceAccount, permissionsBoundary string, attachPolicy api.InlineDocument, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
-	return newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary, attachPolicy, nil, oidc)
+	return newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary, attachPolicy, nil, api.WellKnownPolicies{}, oidc)
+}
+
+// NewIAMRoleResourceSetWithAttachPolicyARNs builds IAM Role stack from the give spec
+func NewIAMRoleResourceSetWithWellKnownPolicies(name, namespace, serviceAccount, permissionsBoundary string, wellKnownPolicies api.WellKnownPolicies, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
+	return newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary, nil, nil, wellKnownPolicies, oidc)
 }
 
 // NewIAMRoleResourceSetForServiceAccount builds IAM Role stack from the give spec
-func newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary string, attachPolicy api.InlineDocument, attachPolicyARNs []string, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
+func newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary string, attachPolicy api.InlineDocument, attachPolicyARNs []string, wellKnownPolicies api.WellKnownPolicies, oidc *iamoidc.OpenIDConnectManager) *IAMRoleResourceSet {
 	rs := &IAMRoleResourceSet{
 		template:            cft.NewTemplate(),
 		attachPolicyARNs:    attachPolicyARNs,
@@ -247,6 +258,7 @@ func newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary 
 			name,
 			templateDescriptionSuffix,
 		),
+		wellKnownPolicies: wellKnownPolicies,
 	}
 
 	rs.roleNameCollector = func(v string) error {

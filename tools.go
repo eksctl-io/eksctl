@@ -1,4 +1,4 @@
-// +build tools
+//go:build tools
 
 package eksctl
 
@@ -9,7 +9,6 @@ import (
 	_ "github.com/github-release/github-release"
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/goreleaser/goreleaser"
-	_ "github.com/kevinburke/go-bindata/go-bindata"
 	_ "github.com/maxbrunsfeld/counterfeiter/v6"
 	_ "github.com/vektra/mockery/cmd/mockery"
 	_ "golang.org/x/tools/cmd/stringer"

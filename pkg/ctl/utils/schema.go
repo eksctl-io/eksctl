@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/spf13/cobra"
 
@@ -19,9 +18,5 @@ func schemaCmd(cmd *cmdutils.Cmd) {
 }
 
 func doSchemaCmd(cmd *cmdutils.Cmd) {
-	schema, err := api.Asset("schema.json")
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	fmt.Printf("%s", schema)
+	fmt.Printf("%s", api.SchemaJSON)
 }

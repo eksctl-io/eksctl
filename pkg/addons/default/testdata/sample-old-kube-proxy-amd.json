@@ -1,0 +1,141 @@
+{
+  "apiVersion": "v1",
+  "items": [
+    {
+      "apiVersion": "apps/v1",
+      "kind": "DaemonSet",
+      "metadata": {
+        "annotations": {
+          "deprecated.daemonset.template.generation": "10",
+          "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"extensions/v1beta1\",\"kind\":\"DaemonSet\",\"metadata\":{\"annotations\":{},\"labels\":{\"eks.amazonaws.com/component\":\"kube-proxy\",\"k8s-app\":\"kube-proxy\"},\"name\":\"kube-proxy\",\"namespace\":\"kube-system\"},\"spec\":{\"selector\":{\"matchLabels\":{\"k8s-app\":\"kube-proxy\"}},\"template\":{\"metadata\":{\"annotations\":{\"scheduler.alpha.kubernetes.io/critical-pod\":\"\"},\"labels\":{\"k8s-app\":\"kube-proxy\"}},\"spec\":{\"containers\":[{\"command\":[\"/bin/sh\",\"-c\",\"kube-proxy --resource-container=\\\"\\\" --oom-score-adj=-998 --master=https://59eba41dbb3e69921e4d0af76b2814ee.yl4.us-east-1.eks.amazonaws.com --kubeconfig=/var/lib/kube-proxy/kubeconfig --proxy-mode=iptables --v=2 1\\u003e\\u003e/var/log/kube-proxy.log 2\\u003e\\u00261\"],\"image\":\"602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/kube-proxy:v1.10.3\",\"name\":\"kube-proxy\",\"resources\":{\"requests\":{\"cpu\":\"100m\"}},\"securityContext\":{\"privileged\":true},\"volumeMounts\":[{\"mountPath\":\"/var/log\",\"name\":\"varlog\",\"readOnly\":false},{\"mountPath\":\"/run/xtables.lock\",\"name\":\"xtables-lock\",\"readOnly\":false},{\"mountPath\":\"/var/lib/kube-proxy/\",\"name\":\"kubeconfig\"}]}],\"hostNetwork\":true,\"serviceAccountName\":\"kube-proxy\",\"tolerations\":[{\"effect\":\"NoExecute\",\"operator\":\"Exists\"},{\"effect\":\"NoSchedule\",\"operator\":\"Exists\"}],\"volumes\":[{\"hostPath\":{\"path\":\"/var/log\"},\"name\":\"varlog\"},{\"hostPath\":{\"path\":\"/run/xtables.lock\",\"type\":\"FileOrCreate\"},\"name\":\"xtables-lock\"},{\"configMap\":{\"name\":\"kube-proxy\"},\"name\":\"kubeconfig\"}]}},\"updateStrategy\":{\"rollingUpdate\":{\"maxUnavailable\":\"10%\"},\"type\":\"RollingUpdate\"}}}\n"
+        },
+        "creationTimestamp": "2018-08-29T12:55:10Z",
+        "generation": 10,
+        "labels": {
+          "eks.amazonaws.com/component": "kube-proxy",
+          "k8s-app": "kube-proxy"
+        },
+        "name": "kube-proxy",
+        "namespace": "kube-system",
+        "resourceVersion": "196859403",
+        "selfLink": "/apis/apps/v1/namespaces/kube-system/daemonsets/kube-proxy",
+        "uid": "c339a828-ab8a-11e8-a044-12c352781cb6"
+      },
+      "spec": {
+        "revisionHistoryLimit": 10,
+        "selector": {
+          "matchLabels": {
+            "k8s-app": "kube-proxy"
+          }
+        },
+        "template": {
+          "metadata": {
+            "annotations": {
+              "scheduler.alpha.kubernetes.io/critical-pod": ""
+            },
+            "creationTimestamp": null,
+            "labels": {
+              "k8s-app": "kube-proxy"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "kube-proxy --resource-container=\"\" --oom-score-adj=-998 --master=https://59eba41dbb3e69921e4d0af76b2814ee.yl4.us-east-1.eks.amazonaws.com --kubeconfig=/var/lib/kube-proxy/kubeconfig --proxy-mode=iptables --v=2 1>>/var/log/kube-proxy.log 2>&1"
+                ],
+                "image": "602401143452.dkr.ecr.us-west-2.amazonaws.com/eks/kube-proxy:v1.15.11",
+                "imagePullPolicy": "IfNotPresent",
+                "name": "kube-proxy",
+                "resources": {
+                  "requests": {
+                    "cpu": "100m"
+                  }
+                },
+                "securityContext": {
+                  "privileged": true,
+                  "procMount": "Default"
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                  {
+                    "mountPath": "/var/log",
+                    "name": "varlog"
+                  },
+                  {
+                    "mountPath": "/run/xtables.lock",
+                    "name": "xtables-lock"
+                  },
+                  {
+                    "mountPath": "/var/lib/kube-proxy/",
+                    "name": "kubeconfig"
+                  }
+                ]
+              }
+            ],
+            "dnsPolicy": "ClusterFirst",
+            "hostNetwork": true,
+            "restartPolicy": "Always",
+            "schedulerName": "default-scheduler",
+            "securityContext": {},
+            "serviceAccount": "kube-proxy",
+            "serviceAccountName": "kube-proxy",
+            "terminationGracePeriodSeconds": 30,
+            "tolerations": [
+              {
+                "effect": "NoExecute",
+                "operator": "Exists"
+              },
+              {
+                "effect": "NoSchedule",
+                "operator": "Exists"
+              }
+            ],
+            "volumes": [
+              {
+                "hostPath": {
+                  "path": "/var/log",
+                  "type": ""
+                },
+                "name": "varlog"
+              },
+              {
+                "hostPath": {
+                  "path": "/run/xtables.lock",
+                  "type": "FileOrCreate"
+                },
+                "name": "xtables-lock"
+              },
+              {
+                "configMap": {
+                  "defaultMode": 420,
+                  "name": "kube-proxy"
+                },
+                "name": "kubeconfig"
+              }
+            ]
+          }
+        },
+        "updateStrategy": {
+          "rollingUpdate": {
+            "maxUnavailable": "10%"
+          },
+          "type": "RollingUpdate"
+        }
+      },
+      "status": {
+        "currentNumberScheduled": 3,
+        "desiredNumberScheduled": 3,
+        "numberAvailable": 3,
+        "numberMisscheduled": 0,
+        "numberReady": 3,
+        "observedGeneration": 10,
+        "updatedNumberScheduled": 3
+      }
+    }
+  ],
+  "kind": "List"
+}

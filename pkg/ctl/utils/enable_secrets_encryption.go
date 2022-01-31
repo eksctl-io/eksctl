@@ -54,7 +54,7 @@ func enableSecretsEncryptionCmd(cmd *cmdutils.Cmd) {
 func doEnableSecretsEncryption(cmd *cmdutils.Cmd, encryptExistingSecrets bool) error {
 	clusterConfig := cmd.ClusterConfig
 
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}

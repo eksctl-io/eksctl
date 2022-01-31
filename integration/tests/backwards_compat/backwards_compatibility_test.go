@@ -1,11 +1,12 @@
+//go:build integration
 // +build integration
 
+//revive:disable Not changing package name
 package backwards_compat
 
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"runtime"
@@ -53,11 +54,11 @@ var _ = Describe("(Integration) [Backwards compatibility test]", func() {
 		}
 
 		By("downloading a previous release")
-		eksctlDir, err := ioutil.TempDir(os.TempDir(), "eksctl")
-		Expect(err).ToNot(HaveOccurred())
+		eksctlDir, err := os.MkdirTemp(os.TempDir(), "eksctl")
+		Expect(err).NotTo(HaveOccurred())
 
 		defer func() {
-			Expect(os.RemoveAll(eksctlDir)).ToNot(HaveOccurred())
+			Expect(os.RemoveAll(eksctlDir)).NotTo(HaveOccurred())
 		}()
 
 		downloadRelease(eksctlDir)
@@ -65,7 +66,7 @@ var _ = Describe("(Integration) [Backwards compatibility test]", func() {
 		eksctlPath := path.Join(eksctlDir, "eksctl")
 
 		version, err := getVersion(eksctlPath)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		By(fmt.Sprintf("creating a cluster with release %q", version))
 		cmd := runner.NewCmd(eksctlPath).

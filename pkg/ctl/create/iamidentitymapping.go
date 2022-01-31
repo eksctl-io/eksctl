@@ -65,15 +65,15 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewCtl()
+	if cfg.Metadata.Name == "" {
+		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
+	}
+
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
 	cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
-
-	if cfg.Metadata.Name == "" {
-		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
-	}
 
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
@@ -112,7 +112,7 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 			return errors.Wrap(err, "error parsing cluster ARN")
 		}
 		sa := authconfigmap.NewServiceAccess(rawClient, acm, parsedARN.AccountID)
-		return sa.Grant(options.ServiceName, options.Namespace)
+		return sa.Grant(options.ServiceName, options.Namespace, api.Partition(cmd.ProviderConfig.Region))
 	}
 
 	if options.Account == "" {
@@ -125,7 +125,7 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 		}
 
 		// Check whether role already exists.
-		identities, err := acm.Identities()
+		identities, err := acm.GetIdentities()
 		if err != nil {
 			return err
 		}

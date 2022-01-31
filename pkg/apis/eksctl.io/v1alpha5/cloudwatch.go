@@ -17,6 +17,8 @@ const (
 	wildcardLogging          = "*"
 )
 
+var LogRetentionInDaysValues = []int{1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653}
+
 // ClusterCloudWatchLogging container config parameters related to cluster logging
 type ClusterCloudWatchLogging struct {
 
@@ -24,9 +26,14 @@ type ClusterCloudWatchLogging struct {
 	// Valid entries are `CloudWatchLogging` constants
 	//+optional
 	EnableTypes []string `json:"enableTypes,omitempty"`
+	// LogRetentionInDays sets the number of days to retain the logs for (see [CloudWatch docs](https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html#API_PutRetentionPolicy_RequestSyntax)) .
+	// Valid values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731,
+	// 1827, and 3653.
+	//+optional
+	LogRetentionInDays int `json:"logRetentionInDays,omitempty"`
 }
 
-// SupportedCloudWatchClusterLogTypes retuls all supported logging facilities
+// SupportedCloudWatchClusterLogTypes returns all supported logging facilities
 func SupportedCloudWatchClusterLogTypes() []string {
 	return []string{apiLogging, auditLogging, authenticatorLogging, controllerManagerLogging, schedulerLogging}
 }

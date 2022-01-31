@@ -35,21 +35,26 @@ func NewRawExtensions(manifest []byte) ([]runtime.RawExtension, error) {
 	return objects, nil
 }
 
-// NewList decoded data into a list of Kubernetes resources
+// NewList decodes data into a list of Kubernetes resources, ignoring any whitespace and comment nodes
 func NewList(data []byte) (*metav1.List, error) {
-	list := metav1.List{}
+	var list metav1.List
 	decoder := yaml.NewYAMLOrJSONDecoder(bytes.NewBuffer(data), 4096)
 
 	for {
-		obj := new(runtime.RawExtension)
-		err := decoder.Decode(obj)
-		if err != nil {
+		var r runtime.RawExtension
+		if err := decoder.Decode(&r); err != nil {
 			if err == io.EOF {
 				return &list, nil
 			}
 			return nil, err
 		}
-		if err := AppendFlattened(&list, *obj); err != nil {
+
+		r.Raw = bytes.TrimSpace(r.Raw)
+		if len(r.Raw) == 0 || bytes.Equal(r.Raw, []byte("null")) {
+			continue
+		}
+
+		if err := AppendFlattened(&list, r); err != nil {
 			return nil, err
 		}
 	}

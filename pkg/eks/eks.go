@@ -7,25 +7,23 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
-	"github.com/weaveworks/eksctl/pkg/version"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
-
 	"github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
-
+	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/utils"
+	"github.com/weaveworks/eksctl/pkg/version"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -59,6 +57,11 @@ func (c *ClusterProvider) RefreshClusterStatus(spec *api.ClusterConfig) error {
 	}
 	logger.Debug("cluster = %#v", cluster)
 
+	if isNonEKSCluster(cluster) {
+		return errors.Errorf("cannot perform this operation on a non-EKS cluster; please follow the documentation for "+
+			"cluster %s's Kubernetes provider", spec.Metadata.Name)
+	}
+
 	if spec.Status == nil {
 		spec.Status = &api.ClusterStatus{}
 	}
@@ -76,11 +79,16 @@ func (c *ClusterProvider) RefreshClusterStatus(spec *api.ClusterConfig) error {
 // SupportsManagedNodes reports whether an existing cluster supports Managed Nodes
 // The minimum required control plane version and platform version are 1.14 and eks.3 respectively
 func (c *ClusterProvider) SupportsManagedNodes(clusterConfig *api.ClusterConfig) (bool, error) {
-	if err := c.maybeRefreshClusterStatus(clusterConfig); err != nil {
+	if err := c.RefreshClusterStatusIfStale(clusterConfig); err != nil {
 		return false, err
 	}
 
 	return ClusterSupportsManagedNodes(c.Status.ClusterInfo.Cluster)
+}
+
+// isNonEKSCluster returns true if the cluster is external
+func isNonEKSCluster(cluster *awseks.Cluster) bool {
+	return cluster.ConnectorConfig != nil
 }
 
 // ClusterSupportsManagedNodes reports whether the EKS cluster supports managed nodes
@@ -116,7 +124,7 @@ func ClusterSupportsManagedNodes(cluster *awseks.Cluster) (bool, error) {
 
 // SupportsFargate reports whether an existing cluster supports Fargate.
 func (c *ClusterProvider) SupportsFargate(clusterConfig *api.ClusterConfig) (bool, error) {
-	if err := c.maybeRefreshClusterStatus(clusterConfig); err != nil {
+	if err := c.RefreshClusterStatusIfStale(clusterConfig); err != nil {
 		return false, err
 	}
 	return ClusterSupportsFargate(c.Status.ClusterInfo.Cluster)
@@ -169,7 +177,8 @@ func PlatformVersion(platformVersion string) (int, error) {
 	return version, nil
 }
 
-func (c *ClusterProvider) maybeRefreshClusterStatus(spec *api.ClusterConfig) error {
+// RefreshClusterStatusIfStale refreshes the cluster status if enough time has passed since the last refresh
+func (c *ClusterProvider) RefreshClusterStatusIfStale(spec *api.ClusterConfig) error {
 	if c.clusterInfoNeedsUpdate() {
 		return c.RefreshClusterStatus(spec)
 	}
@@ -178,7 +187,7 @@ func (c *ClusterProvider) maybeRefreshClusterStatus(spec *api.ClusterConfig) err
 
 // CanDelete return true when a cluster can be deleted, otherwise it returns false along with an error explaining the reason
 func (c *ClusterProvider) CanDelete(spec *api.ClusterConfig) (bool, error) {
-	err := c.maybeRefreshClusterStatus(spec)
+	err := c.RefreshClusterStatusIfStale(spec)
 	if err != nil {
 		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); ok &&
 			awsError.Code() == awseks.ErrCodeResourceNotFoundException {
@@ -192,7 +201,7 @@ func (c *ClusterProvider) CanDelete(spec *api.ClusterConfig) (bool, error) {
 
 // CanOperate returns true when a cluster can be operated, otherwise it returns false along with an error explaining the reason
 func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
-	err := c.maybeRefreshClusterStatus(spec)
+	err := c.RefreshClusterStatusIfStale(spec)
 	if err != nil {
 		return false, errors.Wrapf(err, "unable to fetch cluster status to determine operability")
 	}
@@ -207,7 +216,7 @@ func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
 
 // CanUpdate return true when a cluster or add-ons can be updated, otherwise it returns false along with an error explaining the reason
 func (c *ClusterProvider) CanUpdate(spec *api.ClusterConfig) (bool, error) {
-	err := c.maybeRefreshClusterStatus(spec)
+	err := c.RefreshClusterStatusIfStale(spec)
 	if err != nil {
 		return false, errors.Wrapf(err, "fetching cluster status to determine update status")
 	}
@@ -288,10 +297,7 @@ func (c *ClusterProvider) LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, 
 	if err := c.RefreshClusterStatus(spec); err != nil {
 		return err
 	}
-	if err := c.loadClusterKubernetesNetworkConfig(spec); err != nil {
-		return err
-	}
-	return nil
+	return c.loadClusterKubernetesNetworkConfig(spec)
 }
 
 // LoadClusterVPC loads the VPC configuration
@@ -323,39 +329,46 @@ func (c *ClusterProvider) loadClusterKubernetesNetworkConfig(spec *api.ClusterCo
 }
 
 // ListClusters returns a list of the EKS cluster in your account
-func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool) ([]*api.ClusterConfig, error) {
-	if listAllRegions {
-		var clusters []*api.ClusterConfig
-		// reset region and re-create the client, then make a recursive call
-		authorizedRegions, err := c.Provider.EC2().DescribeRegions(&ec2.DescribeRegionsInput{})
-		if err != nil {
-			return nil, err
-		}
-
-		for _, region := range authorizedRegions.Regions {
-			spec := &api.ProviderConfig{
-				Region:      *region.RegionName,
-				Profile:     c.Provider.Profile(),
-				WaitTimeout: c.Provider.WaitTimeout(),
-			}
-
-			ctl, err := New(spec, nil)
-			if err != nil {
-				logger.Critical("error creating provider in %q region: %s", region, err.Error())
-				continue
-			}
-
-			newClusters, err := ctl.listClusters(int64(chunkSize))
-			if err != nil {
-				logger.Critical("error listing clusters in %q region: %s", region, err.Error())
-			}
-
-			clusters = append(clusters, newClusters...)
-		}
-		return clusters, nil
+func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool, newProviderForConfig func(*api.ProviderConfig, *api.ClusterConfig) (*ClusterProvider, error)) ([]*api.ClusterConfig, error) {
+	if !listAllRegions {
+		return c.listClusters(int64(chunkSize))
 	}
 
-	return c.listClusters(int64(chunkSize))
+	var clusters []*api.ClusterConfig
+	authorizedRegionsList, err := c.Provider.EC2().DescribeRegions(&ec2.DescribeRegionsInput{})
+	if err != nil {
+		return nil, err
+	}
+	authorizedRegions := map[string]struct{}{}
+	for _, r := range authorizedRegionsList.Regions {
+		authorizedRegions[*r.RegionName] = struct{}{}
+	}
+
+	for _, region := range api.SupportedRegions() {
+		if _, authorized := authorizedRegions[region]; !authorized {
+			continue
+		}
+		// Reset region and recreate the client.
+		ctl, err := newProviderForConfig(&api.ProviderConfig{
+			Region:      region,
+			Profile:     c.Provider.Profile(),
+			WaitTimeout: c.Provider.WaitTimeout(),
+		}, nil)
+
+		if err != nil {
+			logger.Critical("error creating provider in %q region: %v", region, err)
+			continue
+		}
+
+		newClusters, err := ctl.listClusters(int64(chunkSize))
+		if err != nil {
+			logger.Critical("error listing clusters in %q region: %v", region, err)
+			continue
+		}
+
+		clusters = append(clusters, newClusters...)
+	}
+	return clusters, nil
 }
 
 func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, error) {
@@ -433,7 +446,10 @@ func (c *ClusterProvider) GetCluster(clusterName string) (*awseks.Cluster, error
 }
 
 func (c *ClusterProvider) getClustersRequest(chunkSize int64, nextToken string) ([]*string, *string, error) {
-	input := &awseks.ListClustersInput{MaxResults: &chunkSize}
+	input := &awseks.ListClustersInput{
+		MaxResults: &chunkSize,
+		Include:    aws.StringSlice([]string{"all"}),
+	}
 	if nextToken != "" {
 		input = input.SetNextToken(nextToken)
 	}

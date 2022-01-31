@@ -21,7 +21,7 @@ var _ = DescribeTable("Cluster DNS", func(c clusterDNSEntry) {
 		Expect(err).To(MatchError(ContainSubstring(c.expectedErr)))
 		return
 	}
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	Expect(clusterDNS).To(Equal(c.expectedClusterDNS))
 
 },

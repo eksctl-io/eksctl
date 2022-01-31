@@ -2,7 +2,6 @@ package legacy
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -14,12 +13,11 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
-	"github.com/weaveworks/eksctl/pkg/nodebootstrap/bindata"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap/assets"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 const (
-	dataDir              = "bindata/assets"
 	configDir            = "/etc/eksctl/"
 	kubeletDropInUnitDir = "/etc/systemd/system/kubelet.service.d/"
 )
@@ -28,42 +26,27 @@ type configFile struct {
 	dir      string
 	name     string
 	contents string
-	isAsset  bool
 }
 
-func getAsset(name string) (string, error) {
-	data, err := bindata.Asset(filepath.Join(dataDir, name))
-	if err != nil {
-		return "", errors.Wrapf(err, "decoding embedded file %q", name)
-	}
-	return string(data), nil
+type script struct {
+	name     string
+	contents string
 }
 
-func addFilesAndScripts(config *cloudconfig.CloudConfig, files []configFile, scripts []string) error {
+func addFilesAndScripts(config *cloudconfig.CloudConfig, files []configFile, scripts []script) error {
 	for _, file := range files {
 		f := cloudconfig.File{
-			Path: file.dir + file.name,
+			Path:    file.dir + file.name,
+			Content: file.contents,
 		}
 
-		if file.isAsset {
-			data, err := getAsset(file.name)
-			if err != nil {
-				return err
-			}
-			f.Content = data
-		} else {
-			f.Content = file.contents
-		}
+		f.Content = file.contents
 
 		config.AddFile(f)
 	}
 
-	for _, scriptName := range scripts {
-		data, err := getAsset(scriptName)
-		if err != nil {
-			return err
-		}
-		config.RunScript(scriptName, data)
+	for _, s := range scripts {
+		config.RunScript(s.name, s.contents)
 	}
 	return nil
 }
@@ -90,11 +73,7 @@ func getKubeReserved(info InstanceTypeInfo) api.InlineDocument {
 }
 
 func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, error) {
-	data, err := bindata.Asset(filepath.Join(dataDir, "kubelet.yaml"))
-	if err != nil {
-		return nil, err
-	}
-
+	data := []byte(assets.KubeletYaml)
 	// use a map here, as using struct will require us to add defaulting etc,
 	// and we only need to add a few top-level fields
 	obj := api.InlineDocument{}
@@ -145,7 +124,7 @@ func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, 
 		}
 	}
 
-	data, err = yaml.Marshal(obj)
+	data, err := yaml.Marshal(obj)
 	if err != nil {
 		return nil, err
 	}

@@ -4,32 +4,44 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
-	"github.com/weaveworks/eksctl/pkg/kops"
-	"github.com/weaveworks/eksctl/pkg/utils"
-
-	"github.com/weaveworks/eksctl/pkg/actions/addon"
-
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/apimachinery/pkg/runtime"
+	kubeclient "k8s.io/client-go/kubernetes"
+	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 
+	"github.com/weaveworks/eksctl/pkg/actions/addon"
+	"github.com/weaveworks/eksctl/pkg/actions/flux"
+	karpenteractions "github.com/weaveworks/eksctl/pkg/actions/karpenter"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/gitops"
+	"github.com/weaveworks/eksctl/pkg/kops"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
+	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
+)
+
+const (
+	vpcControllerInfoMessage = "you no longer need to install the VPC resource controller on Linux worker nodes to run " +
+		"Windows workloads in EKS clusters created after Oct 22, 2021. You can enable Windows IP address management on the EKS control plane via " +
+		"a ConﬁgMap setting (see https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html for details). eksctl will automatically patch the ConfigMap to enable " +
+		"Windows IP address management when a Windows nodegroup is created. For existing clusters, you can enable it manually " +
+		"and run `eksctl utils install-vpc-controllers` with the --delete ﬂag to remove the worker node installation of the VPC resource controller"
 )
 
 func createClusterCmd(cmd *cmdutils.Cmd) {
@@ -71,6 +83,8 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 		fs.BoolVarP(&params.InstallWindowsVPCController, "install-vpc-controllers", "", false, "Install VPC controller that's required for Windows workloads")
 		fs.BoolVarP(&params.Fargate, "fargate", "", false, "Create a Fargate profile scheduling pods in the default and kube-system namespaces onto Fargate")
 		fs.BoolVarP(&params.DryRun, "dry-run", "", false, "Dry-run mode that skips cluster creation and outputs a ClusterConfig")
+
+		_ = fs.MarkDeprecated("install-vpc-controllers", vpcControllerInfoMessage)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
@@ -131,6 +145,9 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	if cfg.Metadata.Version == "" || cfg.Metadata.Version == "auto" {
 		cfg.Metadata.Version = api.DefaultVersion
 	}
+	if cfg.Metadata.Version == "latest" {
+		cfg.Metadata.Version = api.LatestVersion
+	}
 	if cfg.Metadata.Version != api.DefaultVersion {
 		if !api.IsSupportedVersion(cfg.Metadata.Version) {
 			if api.IsDeprecatedVersion(cfg.Metadata.Version) {
@@ -183,10 +200,21 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	if err := eks.ValidateFeatureCompatibility(cfg, kubeNodeGroups); err != nil {
 		return err
 	}
+
+	// Check if flux binary exists early in the process, so it doesn't fail at the end when the cluster
+	// has already been created with a missing flux binary error which should have been caught earlier.
+	// Note: we aren't running PreFlight here, we just check for the binary.
+	if cfg.HasGitOpsFluxConfigured() {
+		if _, err := exec.LookPath("flux"); err != nil {
+			return fmt.Errorf("flux binary is required when gitops configuration is set: %w", err)
+		}
+	}
+
 	if params.InstallWindowsVPCController {
 		if !eks.SupportsWindowsWorkloads(kubeNodeGroups) {
 			return errors.New("running Windows workloads requires having both Windows and Linux (AmazonLinux2) node groups")
 		}
+		logger.Warning(vpcControllerInfoMessage)
 	} else {
 		eks.LogWindowsCompatibility(kubeNodeGroups, cfg.Metadata)
 	}
@@ -245,20 +273,22 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	if err != nil {
 		return err
 	}
-	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(cfg, params.InstallWindowsVPCController)
+
+	eks.LogEnabledFeatures(cfg)
+	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(cfg)
 
 	supported, err := utils.IsMinVersion(api.Version1_18, cfg.Metadata.Version)
 	if err != nil {
 		return err
 	}
 
-	var taskTree, preNodegroupAddons, postNodegroupAddons *tasks.TaskTree
-	if supported {
+	var preNodegroupAddons, postNodegroupAddons *tasks.TaskTree
+	if supported && len(cfg.Addons) > 0 {
 		preNodegroupAddons, postNodegroupAddons = addon.CreateAddonTasks(cfg, ctl, true, cmd.ProviderConfig.WaitTimeout)
-		taskTree = stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks, preNodegroupAddons)
-	} else {
-		taskTree = stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks)
+		postClusterCreationTasks.Append(preNodegroupAddons)
 	}
+
+	taskTree := stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks)
 
 	logger.Info(taskTree.Describe())
 	if errs := taskTree.DoAllSync(); len(errs) > 0 {
@@ -340,25 +370,28 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 				return fmt.Errorf("failed to create addons")
 			}
 		}
-
-		// FLUX V1 DEPRECATION NOTICE. https://github.com/weaveworks/eksctl/issues/2963
-		if cfg.HasGitopsRepoConfigured() {
-			logger.Warning("git.X configuration is marked for deprecation: Please see https://github.com/weaveworks/eksctl/issues/2963")
+		config := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), params.AuthenticatorRoleARN, ctl.Provider.Profile())
+		kubeConfigBytes, err := runtime.Encode(clientcmdlatest.Codec, config)
+		if err != nil {
+			return errors.Wrap(err, "generating kubeconfig")
 		}
-		if cfg.HasGitopsRepoConfigured() || cfg.HasGitOpsFluxConfigured() {
-			kubernetesClientConfigs, err := ctl.NewClient(cfg)
+		// After we have the cluster config and all the nodes are done, we install Karpenter if necessary.
+		if err := installKarpenter(ctl, cfg, stackManager, clientSet, kubernetes.NewRESTClientGetter("karpenter", string(kubeConfigBytes))); err != nil {
+			return err
+		}
+
+		if cfg.HasGitOpsFluxConfigured() {
+			installer, err := flux.New(clientSet, cfg.GitOps)
+			logger.Info("gitops configuration detected, setting installer to Flux v2")
 			if err != nil {
+				return errors.Wrapf(err, "could not initialise Flux installer")
+			}
+
+			if err := installer.Run(); err != nil {
 				return err
 			}
-			k8sConfig := kubernetesClientConfigs.Config
-			k8sRestConfig, err := clientcmd.NewDefaultClientConfig(*k8sConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
-			if err != nil {
-				return errors.Wrap(err, "cannot create Kubernetes client configuration")
-			}
-			err = gitops.Setup(params.KubeconfigPath, k8sRestConfig, clientSet, cfg, gitops.DefaultPodReadyTimeout)
-			if err != nil {
-				return err
-			}
+
+			//TODO why was it returning early before? I want to remove this line :thinking:
 			return nil
 		}
 
@@ -384,8 +417,25 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 
 	logger.Success("%s is ready", meta.LogString())
 
-	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
-		return err
+	return printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg)
+}
+
+// installKarpenter prepares the environment for Karpenter, by creating the following resources:
+// - iam roles and profiles
+// - service account
+// - identity mapping
+// then proceeds with installing Karpenter using Helm.
+func installKarpenter(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, stackManager manager.StackManager, clientSet *kubeclient.Clientset, restClientGetter *kubernetes.SimpleRESTClientGetter) error {
+	if cfg.Karpenter == nil {
+		return nil
+	}
+
+	installer, err := karpenteractions.NewInstaller(cfg, ctl, stackManager, clientSet, restClientGetter)
+	if err != nil {
+		return fmt.Errorf("failed to create installer: %w", err)
+	}
+	if err := installer.Create(); err != nil {
+		return fmt.Errorf("failed to install Karpenter: %w", err)
 	}
 
 	return nil
@@ -407,10 +457,8 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 		if params.DryRun {
 			return nil
 		}
-		if err := vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones); err != nil {
-			return err
-		}
-		return nil
+
+		return vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones)
 	}
 
 	if params.KopsClusterNameForVPC != "" {

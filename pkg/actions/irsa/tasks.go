@@ -4,12 +4,11 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
@@ -59,5 +58,11 @@ func (t *updateIAMServiceAccountTask) Do(errorCh chan error) error {
 	}()
 
 	desc := fmt.Sprintf("updating policies for IAMServiceAccount %s/%s", t.sa.Namespace, t.sa.Name)
-	return t.stackManager.UpdateStack(stackName, fmt.Sprintf("updating-policy-%s", uuid.NewString()), desc, t.templateData, nil)
+	return t.stackManager.UpdateStack(manager.UpdateStackOptions{
+		StackName:     stackName,
+		ChangeSetName: fmt.Sprintf("updating-policy-%s", uuid.NewString()),
+		Description:   desc,
+		TemplateData:  t.templateData,
+		Wait:          true,
+	})
 }

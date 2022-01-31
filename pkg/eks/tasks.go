@@ -3,23 +3,29 @@ package eks
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+
 	"github.com/weaveworks/eksctl/pkg/actions/identityproviders"
-	"github.com/weaveworks/eksctl/pkg/actions/irsa"
+	"github.com/weaveworks/eksctl/pkg/windows"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/sets"
 
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 	"github.com/weaveworks/eksctl/pkg/addons"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-	"github.com/weaveworks/eksctl/pkg/utils"
+	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -38,6 +44,31 @@ func (t *clusterConfigTask) Do(errs chan error) error {
 	err := t.call(t.spec)
 	close(errs)
 	return err
+}
+
+// WindowsIPAMTask is a task for enabling Windows IPAM.
+type WindowsIPAMTask struct {
+	Info          string
+	ClientsetFunc func() (kubernetes.Interface, error)
+}
+
+// Do implements Task.
+func (w *WindowsIPAMTask) Do(errCh chan error) error {
+	defer close(errCh)
+
+	clientset, err := w.ClientsetFunc()
+	if err != nil {
+		return err
+	}
+	windowsIPAM := windows.IPAM{
+		Clientset: clientset,
+	}
+	return windowsIPAM.Enable(context.TODO())
+}
+
+// Describe implements Task.
+func (w *WindowsIPAMTask) Describe() string {
+	return w.Info
 }
 
 // VPCControllerTask represents a task to install the VPC controller
@@ -188,7 +219,7 @@ func (t *restartDaemonsetTask) Do(errCh chan error) error {
 }
 
 // CreateExtraClusterConfigTasks returns all tasks for updating cluster configuration not depending on the control plane availability
-func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, installVPCController bool) *tasks.TaskTree {
+func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig) *tasks.TaskTree {
 	newTasks := &tasks.TaskTree{
 		Parallel:  false,
 		IsSubTask: true,
@@ -208,32 +239,25 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 		},
 	})
 
-	if len(cfg.Metadata.Tags) > 0 {
-		newTasks.Append(&clusterConfigTask{
-			info: "tag cluster",
-			spec: cfg,
-			call: c.UpdateClusterTags,
-		})
-	}
-	if !cfg.HasClusterCloudWatchLogging() {
-		logger.Info("CloudWatch logging will not be enabled for cluster %q in %q", cfg.Metadata.Name, cfg.Metadata.Region)
-		logger.Info("you can enable it with 'eksctl utils update-cluster-logging --enable-types={SPECIFY-YOUR-LOG-TYPES-HERE (e.g. all)} --region=%s --cluster=%s'", cfg.Metadata.Region, cfg.Metadata.Name)
-
-	} else {
-		newTasks.Append(&clusterConfigTask{
-			info: "update CloudWatch logging configuration",
-			spec: cfg,
-			call: c.UpdateClusterConfigForLogging,
-		})
-	}
-	c.maybeAppendTasksForEndpointAccessUpdates(cfg, newTasks)
-
-	if len(cfg.VPC.PublicAccessCIDRs) > 0 {
-		newTasks.Append(&clusterConfigTask{
-			info: "update public access CIDRs",
-			spec: cfg,
-			call: c.UpdatePublicAccessCIDRs,
-		})
+	if cfg.HasClusterCloudWatchLogging() {
+		if logRetentionDays := cfg.CloudWatch.ClusterLogging.LogRetentionInDays; logRetentionDays != 0 {
+			newTasks.Append(&clusterConfigTask{
+				info: "update CloudWatch log retention",
+				spec: cfg,
+				call: func(clusterConfig *api.ClusterConfig) error {
+					_, err := c.Provider.CloudWatchLogs().PutRetentionPolicy(&cloudwatchlogs.PutRetentionPolicyInput{
+						// The format for log group name is documented here: https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html
+						LogGroupName:    aws.String(fmt.Sprintf("/aws/eks/%s/cluster", cfg.Metadata.Name)),
+						RetentionInDays: aws.Int64(int64(logRetentionDays)),
+					})
+					if err != nil {
+						return errors.Wrap(err, "error updating log retention settings")
+					}
+					logger.Info("set log retention to %d days for CloudWatch logging", logRetentionDays)
+					return nil
+				},
+			})
+		}
 	}
 
 	if cfg.IsFargateEnabled() {
@@ -254,15 +278,54 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 		newTasks.Append(identityproviders.NewAssociateProvidersTask(*cfg.Metadata, cfg.IdentityProviders, c.Provider.EKS()))
 	}
 
-	if installVPCController {
-		newTasks.Append(&VPCControllerTask{
-			Info:            "install Windows VPC controller",
-			ClusterConfig:   cfg,
-			ClusterProvider: c,
+	if cfg.HasWindowsNodeGroup() {
+		newTasks.Append(&WindowsIPAMTask{
+			Info: "enable Windows IP address management",
+			ClientsetFunc: func() (kubernetes.Interface, error) {
+				return c.NewStdClientSet(cfg)
+			},
 		})
 	}
 
 	return newTasks
+}
+
+// LogEnabledFeatures logs enabled features
+func LogEnabledFeatures(clusterConfig *api.ClusterConfig) {
+	if clusterConfig.HasClusterEndpointAccess() && api.EndpointsEqual(*clusterConfig.VPC.ClusterEndpoints, *api.ClusterEndpointAccessDefaults()) {
+		logger.Info(clusterConfig.DefaultEndpointsMsg())
+	} else {
+		logger.Info(clusterConfig.CustomEndpointsMsg())
+	}
+
+	if !clusterConfig.HasClusterCloudWatchLogging() {
+		logger.Info("CloudWatch logging will not be enabled for cluster %q in %q", clusterConfig.Metadata.Name, clusterConfig.Metadata.Region)
+		logger.Info("you can enable it with 'eksctl utils update-cluster-logging --enable-types={SPECIFY-YOUR-LOG-TYPES-HERE (e.g. all)} --region=%s --cluster=%s'", clusterConfig.Metadata.Region, clusterConfig.Metadata.Name)
+		return
+	}
+
+	all := sets.NewString(api.SupportedCloudWatchClusterLogTypes()...)
+
+	enabled := sets.NewString()
+	if clusterConfig.HasClusterCloudWatchLogging() {
+		enabled.Insert(clusterConfig.CloudWatch.ClusterLogging.EnableTypes...)
+	}
+
+	disabled := all.Difference(enabled)
+
+	describeEnabledTypes := "no types enabled"
+	if enabled.Len() > 0 {
+		describeEnabledTypes = fmt.Sprintf("enabled types: %s", strings.Join(enabled.List(), ", "))
+	}
+
+	describeDisabledTypes := "no types disabled"
+	if disabled.Len() > 0 {
+		describeDisabledTypes = fmt.Sprintf("disabled types: %s", strings.Join(disabled.List(), ", "))
+	}
+
+	logger.Info("configuring CloudWatch logging for cluster %q in %q (%s & %s)",
+		clusterConfig.Metadata.Name, clusterConfig.Metadata.Region, describeEnabledTypes, describeDisabledTypes,
+	)
 }
 
 // ClusterTasksForNodeGroups returns all tasks dependent on node groups
@@ -272,16 +335,16 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 		IsSubTask: false,
 	}
 	var needsNvidiaButNotNeuron = func(t string) bool {
-		return utils.IsGPUInstanceType(t) && !utils.IsInferentiaInstanceType(t)
+		return instanceutils.IsGPUInstanceType(t) && !instanceutils.IsInferentiaInstanceType(t)
 	}
 	var haveNeuronInstanceType, haveNvidiaInstanceType, efaEnabled bool
 	for _, ng := range cfg.NodeGroups {
-		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceType(ng, utils.IsInferentiaInstanceType)
+		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceType(ng, instanceutils.IsInferentiaInstanceType)
 		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceType(ng, needsNvidiaButNotNeuron)
 		efaEnabled = efaEnabled || api.IsEnabled(ng.EFAEnabled)
 	}
 	for _, ng := range cfg.ManagedNodeGroups {
-		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceTypeManaged(ng, utils.IsInferentiaInstanceType)
+		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceTypeManaged(ng, instanceutils.IsInferentiaInstanceType)
 		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceTypeManaged(ng, needsNvidiaButNotNeuron)
 		efaEnabled = efaEnabled || api.IsEnabled(ng.EFAEnabled)
 	}
@@ -341,14 +404,6 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 				return err
 			}
 			*oidcPlaceholder = *oidc
-			// Make sure control plane is reachable
-			clientSet, err := c.NewStdClientSet(cfg)
-			if err != nil {
-				return errors.Wrap(err, "failed to get ClientSet")
-			}
-			if err := c.WaitForControlPlane(cfg.Metadata, clientSet); err != nil {
-				return errors.Wrap(err, "failed to wait for control plane")
-			}
 			return nil
 		},
 	})
@@ -375,24 +430,4 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 		clusterProvider: c,
 		spec:            cfg,
 	})
-}
-
-func (c *ClusterProvider) maybeAppendTasksForEndpointAccessUpdates(cfg *api.ClusterConfig, tasks *tasks.TaskTree) {
-	// if a cluster config doesn't have the default api endpoint access, append a new task
-	// so that we update the cluster with the new access configuration.  This is a
-	// non-CloudFormation context, so we create a task to send it through the EKS API.
-	// A caveat is that sending the default endpoint parameters for a cluster as an update will
-	// return an error from the EKS API, so we must check for this before sending the request.
-	if cfg.HasClusterEndpointAccess() && api.EndpointsEqual(*cfg.VPC.ClusterEndpoints, *api.ClusterEndpointAccessDefaults()) {
-		// No tasks to append here as there's no updates to make.
-		logger.Info(cfg.DefaultEndpointsMsg())
-	} else {
-		logger.Info(cfg.CustomEndpointsMsg())
-
-		tasks.Append(&clusterConfigTask{
-			info: "update cluster VPC endpoint access configuration",
-			spec: cfg,
-			call: c.UpdateClusterConfigForEndpoints,
-		})
-	}
 }

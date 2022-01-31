@@ -3,8 +3,9 @@ package testutils
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
 
 	. "github.com/onsi/gomega"
 
@@ -27,11 +28,11 @@ func LoadSamples(manifest string) []runtime.Object {
 		samples []runtime.Object
 	)
 
-	samplesData, err := ioutil.ReadFile(manifest)
-	Expect(err).ToNot(HaveOccurred())
+	samplesData, err := os.ReadFile(manifest)
+	Expect(err).NotTo(HaveOccurred())
 	samplesList, err := kubernetes.NewList(samplesData)
-	Expect(err).ToNot(HaveOccurred())
-	Expect(samplesList).ToNot(BeNil())
+	Expect(err).NotTo(HaveOccurred())
+	Expect(samplesList).NotTo(BeNil())
 
 	for _, item := range samplesList.Items {
 		kind := item.Object.GetObjectKind().GroupVersionKind().Kind
@@ -207,7 +208,7 @@ func NewFakeRawResource(item runtime.Object, missing, unionised bool, ct *Collec
 		collection: ct,
 	}
 
-	emptyBody := ioutil.NopCloser(bytes.NewReader([]byte{}))
+	emptyBody := io.NopCloser(bytes.NewReader([]byte{}))
 	notFound := http.Response{StatusCode: http.StatusNotFound, Body: emptyBody}
 	conflict := http.Response{StatusCode: http.StatusConflict, Body: emptyBody}
 
@@ -218,7 +219,7 @@ func NewFakeRawResource(item runtime.Object, missing, unionised bool, ct *Collec
 	asResult := func(req *http.Request) (*http.Response, error) {
 		data, err := runtime.Encode(unstructured.UnstructuredJSONScheme, item)
 		Expect(err).To(Not(HaveOccurred()))
-		res := &http.Response{StatusCode: http.StatusOK, Body: ioutil.NopCloser(bytes.NewReader(data))}
+		res := &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(bytes.NewReader(data))}
 		return res, nil
 	}
 
@@ -265,6 +266,7 @@ func NewFakeRawResource(item runtime.Object, missing, unionised bool, ct *Collec
 
 type FakeRawClient struct {
 	Collection                 *CollectionTracker
+	ExistingClientSet          kubernetes.Interface
 	AssumeObjectsMissing       bool
 	ClientSetUseUpdatedObjects bool
 	UseUnionTracker            bool
@@ -276,7 +278,17 @@ func NewFakeRawClient() *FakeRawClient {
 	}
 }
 
+func NewFakeRawClientWithSamples(sample string) *FakeRawClient {
+	clientSet, _ := NewFakeClientSetWithSamples(sample)
+	return &FakeRawClient{
+		ExistingClientSet: clientSet,
+	}
+}
+
 func (c *FakeRawClient) ClientSet() kubeclient.Interface {
+	if c.ExistingClientSet != nil {
+		return c.ExistingClientSet
+	}
 	if c.UseUnionTracker {
 		// TODO: try to use clientSet.Fake.Actions, clientSet.Fake.PrependReactor
 		// or any of the other hooks to connect this clientset instance with

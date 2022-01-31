@@ -23,7 +23,7 @@ var _ = Describe("Addon", func() {
 					ServiceAccountRoleARN: "foo",
 					AttachPolicyARNs:      []string{"arn"},
 				}.Validate()
-				Expect(err).To(MatchError("at most one of serviceAccountRoleARN, attachPolicyARNs and attachPolicy can be specified"))
+				Expect(err).To(MatchError("at most one of wellKnownPolicies, serviceAccountRoleARN, attachPolicyARNs and attachPolicy can be specified"))
 
 				err = v1alpha5.Addon{
 					Name:    "name",
@@ -33,7 +33,7 @@ var _ = Describe("Addon", func() {
 					},
 					AttachPolicyARNs: []string{"arn"},
 				}.Validate()
-				Expect(err).To(MatchError("at most one of serviceAccountRoleARN, attachPolicyARNs and attachPolicy can be specified"))
+				Expect(err).To(MatchError("at most one of wellKnownPolicies, serviceAccountRoleARN, attachPolicyARNs and attachPolicy can be specified"))
 
 				err = v1alpha5.Addon{
 					Name:                  "name",
@@ -43,7 +43,19 @@ var _ = Describe("Addon", func() {
 						"foo": "bar",
 					},
 				}.Validate()
-				Expect(err).To(MatchError("at most one of serviceAccountRoleARN, attachPolicyARNs and attachPolicy can be specified"))
+				Expect(err).To(MatchError("at most one of wellKnownPolicies, serviceAccountRoleARN, attachPolicyARNs and attachPolicy can be specified"))
+
+				err = v1alpha5.Addon{
+					Name:    "name",
+					Version: "version",
+					WellKnownPolicies: v1alpha5.WellKnownPolicies{
+						AutoScaler: true,
+					},
+					AttachPolicy: map[string]interface{}{
+						"foo": "bar",
+					},
+				}.Validate()
+				Expect(err).To(MatchError("at most one of wellKnownPolicies, serviceAccountRoleARN, attachPolicyARNs and attachPolicy can be specified"))
 			})
 		})
 	})

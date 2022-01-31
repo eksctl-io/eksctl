@@ -101,6 +101,7 @@ func (g *FlagGrouping) Usage(cmd *cobra.Command) error {
 	}
 
 	usage = append(usage, fmt.Sprintf("\nUse '%s [command] --help' for more information about a command.\n", cmd.CommandPath()))
+	usage = append(usage, "\nFor detailed docs go to https://eksctl.io/\n")
 
 	cmd.Println(strings.Join(usage, "\n"))
 

@@ -14,7 +14,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
-	"github.com/weaveworks/eksctl/pkg/utils"
+	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 
@@ -32,6 +32,7 @@ type CreateOpts struct {
 	ConfigFileProvided        bool
 }
 
+// Create creates a new nodegroup with the given options.
 func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFilter) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
@@ -131,7 +132,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 		return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, os.Stdout)
 	}
 
-	if err := m.nodeCreationTasks(options, nodegroupFilter, supportsManagedNodes, isOwnedCluster); err != nil {
+	if err := m.nodeCreationTasks(supportsManagedNodes, isOwnedCluster); err != nil {
 		return err
 	}
 
@@ -146,7 +147,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 	return nil
 }
 
-func (m *Manager) nodeCreationTasks(options CreateOpts, nodegroupFilter filter.NodegroupFilter, supportsManagedNodes, isOwnedCluster bool) error {
+func (m *Manager) nodeCreationTasks(supportsManagedNodes, isOwnedCluster bool) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
 	init := m.init
@@ -188,11 +189,7 @@ func (m *Manager) nodeCreationTasks(options CreateOpts, nodegroupFilter filter.N
 	}
 
 	taskTree.Append(allNodeGroupTasks)
-	if err := m.init.DoAllNodegroupStackTasks(taskTree, meta.Region, meta.Name); err != nil {
-		return err
-	}
-
-	return nil
+	return m.init.DoAllNodegroupStackTasks(taskTree, meta.Region, meta.Name)
 }
 
 func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options CreateOpts) error {
@@ -277,8 +274,8 @@ func (m *Manager) checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes
 	if err != nil {
 		return err
 	}
-	if api.ClusterHasInstanceType(cfg, utils.IsARMInstanceType) {
-		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(clientSet, rawClient, kubernetesVersion, ctl.Provider.Region())
+	if api.ClusterHasInstanceType(cfg, instanceutils.IsARMInstanceType) {
+		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(ctl.Provider.EKS(), rawClient, kubernetesVersion, ctl.Provider.Region())
 		if err != nil {
 			return err
 		}
@@ -293,7 +290,7 @@ func (m *Manager) checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes
 }
 
 func loadVPCFromConfig(provider api.ClusterProvider, cfg *api.ClusterConfig) error {
-	if cfg.VPC.Subnets == nil || cfg.VPC.SecurityGroup == "" || cfg.VPC.ID == "" {
+	if cfg.VPC == nil || cfg.VPC.Subnets == nil || cfg.VPC.SecurityGroup == "" || cfg.VPC.ID == "" {
 		return errors.New("VPC configuration required for creating nodegroups on clusters not owned by eksctl: vpc.subnets, vpc.id, vpc.securityGroup")
 	}
 
@@ -306,9 +303,5 @@ func loadVPCFromConfig(provider api.ClusterProvider, cfg *api.ClusterConfig) err
 		return err
 	}
 
-	if err := cfg.CanUseForPrivateNodeGroups(); err != nil {
-		return err
-	}
-
-	return nil
+	return cfg.CanUseForPrivateNodeGroups()
 }

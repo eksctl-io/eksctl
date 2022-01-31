@@ -1,24 +1,23 @@
 package scale
 
 import (
-	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
 func scaleNodeGroupCmd(cmd *cmdutils.Cmd) {
-	scaleNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup) error {
+	scaleNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroupBase) error {
 		return doScaleNodeGroup(cmd, ng)
 	})
 }
 
-func scaleNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup) error) {
+func scaleNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroupBase) error) {
 	cfg := api.NewClusterConfig()
-	ng := cfg.NewNodeGroup()
+	ng := cfg.NewNodeGroup().BaseNodeGroup()
 	cmd.ClusterConfig = cfg
 
 	cmd.SetDescription("nodegroup", "Scale a nodegroup", "", "ng")
@@ -56,13 +55,36 @@ func scaleNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
 }
 
-func doScaleNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup) error {
+func doScaleNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroupBase) error {
+	if ng.Name == "" && cmd.NameArg == "" {
+		if err := cmdutils.NewScaleAllNodeGroupLoader(cmd).Load(); err != nil {
+			return err
+		}
+		return scaleAllNodegroups(cmd)
+	}
+
 	if err := cmdutils.NewScaleNodeGroupLoader(cmd, ng).Load(); err != nil {
 		return err
 	}
+	return scaleNodegroup(cmd, ng)
+}
 
+func scaleAllNodegroups(cmd *cmdutils.Cmd) error {
+	allNg := cmd.ClusterConfig.AllNodeGroups()
+	for _, ng := range allNg {
+		if err := cmdutils.ValidateNumberOfNodes(ng); err != nil {
+			return err
+		}
+		if err := scaleNodegroup(cmd, ng); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func scaleNodegroup(cmd *cmdutils.Cmd, ng *api.NodeGroupBase) error {
 	cfg := cmd.ClusterConfig
-	ctl, err := cmd.NewCtl()
+	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}

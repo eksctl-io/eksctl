@@ -4,7 +4,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
@@ -31,6 +30,7 @@ func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvid
 			clusterProvider: clusterProvider,
 			forceAll:        forceAll,
 			timeout:         timeout,
+			wait:            false,
 		},
 	)
 
@@ -42,6 +42,7 @@ func CreateAddonTasks(cfg *api.ClusterConfig, clusterProvider *eks.ClusterProvid
 			clusterProvider: clusterProvider,
 			forceAll:        forceAll,
 			timeout:         timeout,
+			wait:            cfg.HasNodes(),
 		},
 	)
 	return preTasks, postTasks
@@ -52,22 +53,13 @@ type createAddonTask struct {
 	cfg             *api.ClusterConfig
 	clusterProvider *eks.ClusterProvider
 	addons          []*api.Addon
-	forceAll        bool
+	forceAll, wait  bool
 	timeout         time.Duration
 }
 
 func (t *createAddonTask) Describe() string { return t.info }
 
 func (t *createAddonTask) Do(errorCh chan error) error {
-	clientSet, err := t.clusterProvider.NewStdClientSet(t.cfg)
-	if err != nil {
-		return err
-	}
-
-	if err := t.clusterProvider.WaitForControlPlane(t.cfg.Metadata, clientSet); err != nil {
-		return errors.Wrap(err, "failed to wait for control plane")
-	}
-
 	oidc, err := t.clusterProvider.NewOpenIDConnectManager(t.cfg)
 	if err != nil {
 		return err
@@ -80,6 +72,10 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 
 	stackManager := t.clusterProvider.NewStackManager(t.cfg)
 
+	clientSet, err := t.clusterProvider.NewStdClientSet(t.cfg)
+	if err != nil {
+		return err
+	}
 	addonManager, err := New(t.cfg, t.clusterProvider.Provider.EKS(), stackManager, oidcProviderExists, oidc, clientSet, t.timeout)
 	if err != nil {
 		return err
@@ -89,7 +85,7 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 		if t.forceAll {
 			a.Force = true
 		}
-		err := addonManager.Create(a, true)
+		err := addonManager.Create(a, t.wait)
 		if err != nil {
 			go func() {
 				errorCh <- err

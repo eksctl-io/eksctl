@@ -79,10 +79,10 @@ var _ = Describe("enable flux", func() {
 		})
 
 		It("succeeds with the basic configuration", func() {
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 
 			fluxCfg := cmd.Cmd.ClusterConfig.GitOps.Flux
-			Expect(fluxCfg).ToNot(BeNil())
+			Expect(fluxCfg).NotTo(BeNil())
 			Expect(fluxCfg.GitProvider).To(Equal("github"))
 		})
 
@@ -106,13 +106,23 @@ var _ = Describe("enable flux", func() {
 			})
 		})
 
+		When("gitops is not provided", func() {
+			BeforeEach(func() {
+				cfg.GitOps = nil
+			})
+
+			It("fails", func() {
+				Expect(err).To(MatchError("gitops.flux must be set"))
+			})
+		})
+
 		When("gitops.flux is not provided", func() {
 			BeforeEach(func() {
 				cfg.GitOps.Flux = nil
 			})
 
 			It("fails", func() {
-				Expect(err).To(MatchError("no configuration found for enable flux"))
+				Expect(err).To(MatchError("gitops.flux must be set"))
 			})
 		})
 
@@ -133,16 +143,6 @@ var _ = Describe("enable flux", func() {
 
 			It("fails", func() {
 				Expect(err).To(MatchError("gitops.flux.flags must be set"))
-			})
-		})
-
-		When("deprecated git configuration is provided", func() {
-			BeforeEach(func() {
-				cfg.Git = &api.Git{Repo: &api.Repo{}}
-			})
-
-			It("fails", func() {
-				Expect(err).To(MatchError("config cannot be provided for git.repo, git.bootstrapProfile or git.operator alongside gitops.*"))
 			})
 		})
 	})

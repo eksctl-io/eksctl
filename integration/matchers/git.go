@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package matchers
@@ -27,6 +28,6 @@ func AssertQuickStartComponentsPresentInGit(branch string) {
 		allFiles = append(allFiles, path)
 		return nil
 	})
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	fmt.Fprintf(ginkgo.GinkgoWriter, "\n all files:\n%v", allFiles)
 }

@@ -1,5 +1,7 @@
+//go:build integration
 // +build integration
 
+//revive:disable Not changing package name
 package cluster_dns
 
 import (
@@ -9,10 +11,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	. "github.com/onsi/gomega"
+
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
 
 	"github.com/weaveworks/eksctl/integration/tests"
+	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 
@@ -63,18 +67,18 @@ var _ = Describe("(Integration) [Cluster DNS test]", func() {
 				"--verbose", "4",
 			).
 				WithoutArg("--region", params.Region).
-				WithStdin(testutils.ClusterConfigReader(clusterConfig))
+				WithStdin(clusterutils.Reader(clusterConfig))
 
 			Expect(cmd).To(RunSuccessfully())
 		})
 
 		It("cluster DNS should work", func() {
 			test, err := kube.NewTest(params.KubeconfigPath)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			d := test.CreateDaemonSetFromFile(test.Namespace, "../../data/test-dns.yaml")
 			test.WaitForDaemonSetReady(d, 2*time.Minute)
 			ds, err := test.GetDaemonSet(test.Namespace, d.Name)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
 		})
 

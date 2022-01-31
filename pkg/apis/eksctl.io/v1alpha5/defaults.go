@@ -7,11 +7,17 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/weaveworks/eksctl/pkg/git"
 )
 
 const (
 	IAMPolicyAmazonEKSCNIPolicy = "AmazonEKS_CNI_Policy"
+)
+
+const (
+	// Data volume, used by kubelet
+	bottlerocketDataDisk = "/dev/xvdb"
+	// OS volume
+	bottlerocketOSDisk = "/dev/xvda"
 )
 
 var (
@@ -51,6 +57,10 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 
 	if cfg.VPC != nil && cfg.VPC.ManageSharedNodeSecurityGroupRules == nil {
 		cfg.VPC.ManageSharedNodeSecurityGroupRules = Enabled()
+	}
+
+	if cfg.Karpenter != nil && cfg.Karpenter.CreateServiceAccount == nil {
+		cfg.Karpenter.CreateServiceAccount = Disabled()
 	}
 }
 
@@ -108,6 +118,8 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 	if ng.SecurityGroups.WithShared == nil {
 		ng.SecurityGroups.WithShared = Enabled()
 	}
+
+	setContainerRuntimeDefault(ng)
 }
 
 // SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
@@ -186,6 +198,16 @@ func setVolumeDefaults(ng *NodeGroupBase, template *LaunchTemplate) {
 	if *ng.VolumeType == NodeVolumeTypeIO1 && ng.VolumeIOPS == nil {
 		ng.VolumeIOPS = aws.Int(DefaultNodeVolumeIO1IOPS)
 	}
+	if ng.AMIFamily == NodeImageFamilyBottlerocket && !IsSetAndNonEmptyString(ng.VolumeName) {
+		ng.AdditionalEncryptedVolume = bottlerocketOSDisk
+		ng.VolumeName = aws.String(bottlerocketDataDisk)
+	}
+}
+
+func setContainerRuntimeDefault(ng *NodeGroup) {
+	if ng.ContainerRuntime == nil {
+		ng.ContainerRuntime = &DefaultContainerRuntime
+	}
 }
 
 func setIAMDefaults(iamConfig *NodeGroupIAM) {
@@ -250,12 +272,15 @@ func setBottlerocketNodeGroupDefaults(ng *NodeGroupBase) {
 	if ng.Bottlerocket == nil {
 		ng.Bottlerocket = &NodeGroupBottlerocket{}
 	}
+	if ng.Bottlerocket.Settings == nil {
+		ng.Bottlerocket.Settings = &InlineDocument{}
+	}
 
 	// Use the SSH settings if the user hasn't explicitly configured the Admin
 	// Container. If SSH was enabled, the user will be able to ssh into the
 	// Bottlerocket node via the admin container.
-	if ng.Bottlerocket.EnableAdminContainer == nil && ng.SSH != nil {
-		ng.Bottlerocket.EnableAdminContainer = ng.SSH.Allow
+	if ng.Bottlerocket.EnableAdminContainer == nil && ng.SSH != nil && IsEnabled(ng.SSH.Allow) {
+		ng.Bottlerocket.EnableAdminContainer = Enabled()
 	}
 }
 
@@ -302,50 +327,5 @@ func (c *ClusterConfig) SetDefaultFargateProfile() {
 				{Namespace: "kube-system"},
 			},
 		},
-	}
-}
-
-// SetDefaultGitSettings sets the default values for the gitops repo and operator settings
-func SetDefaultGitSettings(c *ClusterConfig) {
-	if c.Git == nil {
-		return
-	}
-
-	if c.Git.Operator.CommitOperatorManifests == nil {
-		c.Git.Operator.CommitOperatorManifests = Enabled()
-	}
-
-	if c.Git.Operator.Label == "" {
-		c.Git.Operator.Label = "flux"
-	}
-	if c.Git.Operator.Namespace == "" {
-		c.Git.Operator.Namespace = "flux"
-	}
-	if c.Git.Operator.WithHelm == nil {
-		c.Git.Operator.WithHelm = Enabled()
-	}
-
-	if c.Git.Repo != nil {
-		repo := c.Git.Repo
-		if repo.FluxPath == "" {
-			repo.FluxPath = "flux/"
-		}
-		if repo.Branch == "" {
-			repo.Branch = "master"
-		}
-		if repo.User == "" {
-			repo.User = "Flux"
-		}
-	}
-
-	if c.Git.BootstrapProfile != nil {
-		profile := c.Git.BootstrapProfile
-		if profile.Source != "" && profile.OutputPath == "" {
-			repoName, err := git.RepoName(profile.Source)
-			if err != nil {
-				profile.OutputPath = "./"
-			}
-			profile.OutputPath = "./" + repoName
-		}
 	}
 }

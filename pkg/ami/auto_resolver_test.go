@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	. "github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
@@ -77,7 +76,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 					BeforeEach(func() {
 						imageState = "available"
 
-						_, p = createProviders()
+						p = mockprovider.NewMockProvider()
 						addMockDescribeImages(p, "amazon-eks-node-1.15-v*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", api.NodeImageFamilyAmazonLinux2)
 						resolver := NewAutoResolver(p.MockEC2())
 						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
@@ -101,7 +100,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						imageState = "available"
 						imageFamily = "Ubuntu1804"
 
-						_, p = createProviders()
+						p = mockprovider.NewMockProvider()
 						addMockDescribeImages(p, "ubuntu-eks/k8s_1.15/images/*18.04*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", api.NodeImageFamilyUbuntu1804)
 
 						resolver := NewAutoResolver(p.MockEC2())
@@ -125,7 +124,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 					BeforeEach(func() {
 						imageState = "pending"
 
-						_, p = createProviders()
+						p = mockprovider.NewMockProvider()
 						addMockDescribeImagesMultiple(p, "amazon-eks-node-1.15-v*", []returnAmi{})
 
 						resolver := NewAutoResolver(p.MockEC2())
@@ -150,7 +149,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						imageState = "available"
 						expectedAmi = "ami-5678"
 
-						_, p = createProviders()
+						p = mockprovider.NewMockProvider()
 						images := []returnAmi{
 							{
 								createdDate: "2018-08-20T23:25:53.000Z",
@@ -193,7 +192,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 					BeforeEach(func() {
 						imageState = "available"
 
-						_, p = createProviders()
+						p = mockprovider.NewMockProvider()
 						addMockDescribeImages(p, "amazon-eks-gpu-node-1.15-*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", api.NodeImageFamilyAmazonLinux2)
 						resolver := NewAutoResolver(p.MockEC2())
 						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
@@ -215,16 +214,6 @@ var _ = Describe("AMI Auto Resolution", func() {
 		})
 	})
 })
-
-func createProviders() (*eks.ClusterProvider, *mockprovider.MockProvider) {
-	p := mockprovider.NewMockProvider()
-
-	c := &eks.ClusterProvider{
-		Provider: p,
-	}
-
-	return c, p
-}
 
 func addMockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern string, amiID string, amiState string, createdDate string, instanceFamily string) {
 	p.MockEC2().On("DescribeImages",

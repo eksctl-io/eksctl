@@ -16,6 +16,7 @@ nav:
         - Clusters:
             - usage/creating-and-managing-clusters.md
             - usage/unowned-clusters.md
+            - usage/eks-connector.md
             - usage/customizing-the-kubelet.md
             - usage/cloudwatch-cluster-logging.md
             - usage/eks-private-cluster.md
@@ -27,6 +28,8 @@ nav:
         - Nodegroups:
             - usage/managing-nodegroups.md
             - usage/nodegroup-upgrade.md
+            - usage/nodegroup-with-custom-subnet.md
+            - usage/nodegroup-customize-dns.md
             - usage/eks-managed-nodes.md
             - usage/launch-template-support.md
             - usage/instance-selector.md
@@ -35,15 +38,19 @@ nav:
             - usage/arm-support.md
             - usage/autoscaling.md
             - usage/custom-ami-support.md
+            - usage/container-runtime.md
             - usage/windows-worker-nodes.md
         - GitOps:
             - usage/gitops-v2.md
-            - usage/gitops-v1.md
         - Security:
             - usage/security.md
             - usage/kms-encryption.md
         - Networking:
             - usage/vpc-networking.md
+            - usage/vpc-configuration.md
+            - usage/vpc-subnet-settings.md
+            - usage/vpc-cluster-access.md
+            - usage/vpc-ip-family.md
         - IAM:
             - usage/minimum-iam-policies.md
             - usage/iam-permissions-boundary.md
@@ -52,6 +59,8 @@ nav:
             - usage/iamserviceaccounts.md
         - usage/dry-run.md
         - usage/schema.md
+        - usage/eksctl-anywhere.md
+        - usage/eksctl-karpenter.md
         - usage/troubleshooting.md
         - FAQ: usage/faq.md
     - Examples: "https://github.com/weaveworks/eksctl/tree/main/examples"
