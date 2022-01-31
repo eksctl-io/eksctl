@@ -6,9 +6,9 @@ import (
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 )
 
-// GetFargateStack returns the stack holding the fargate IAM
-// resources, if any
-func (c *StackCollection) GetFargateStack() (*Stack, error) {
+// GetKarpenterStack returns the stack holding the karpenter IAM
+// resources
+func (c *StackCollection) GetKarpenterStack() (*Stack, error) {
 	stacks, err := c.DescribeStacks()
 	if err != nil {
 		return nil, err
@@ -18,7 +18,7 @@ func (c *StackCollection) GetFargateStack() (*Stack, error) {
 		if *s.StackStatus == cfn.StackStatusDeleteComplete {
 			continue
 		}
-		if isFargateStack(s) {
+		if isKarpenterStack(s) {
 			return s, nil
 		}
 	}
@@ -26,6 +26,6 @@ func (c *StackCollection) GetFargateStack() (*Stack, error) {
 	return nil, nil
 }
 
-func isFargateStack(s *Stack) bool {
-	return strings.HasSuffix(*s.StackName, "-fargate")
+func isKarpenterStack(s *Stack) bool {
+	return strings.HasSuffix(*s.StackName, "-karpenter")
 }
