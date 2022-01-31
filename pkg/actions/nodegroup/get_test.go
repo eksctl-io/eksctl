@@ -358,7 +358,7 @@ var _ = Describe("Get", func() {
 				}, nil)
 			})
 
-			It("returns the AMI ID instead of the release version", func() {
+			It("returns the AMI ID instead of `CUSTOM`", func() {
 				summaries, err := m.GetAll()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(summaries).To(HaveLen(1))
