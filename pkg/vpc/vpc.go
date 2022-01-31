@@ -537,7 +537,7 @@ func validatePublicSubnet(cfg *api.ClusterConfig, subnets []*ec2.Subnet) error {
 			legacySubnets = append(legacySubnets, *sn.SubnetId)
 		}
 		if !containsSubnet(*sn.SubnetId) {
-			return fmt.Errorf("subnet %q does not exist or is not a public subnet", *sn.SubnetId)
+			return fmt.Errorf("subnet %q could not be found in CF template or is not a public subnet", *sn.SubnetId)
 		}
 	}
 	if len(legacySubnets) > 0 {
