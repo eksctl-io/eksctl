@@ -414,7 +414,7 @@ func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.Cl
 		}
 	}
 
-	if err := ValidateExistingPublicSubnets(provider, spec, subnetsToValidate.List()); err != nil {
+	if err := ValidateExistingPublicSubnets(provider, spec.VPC.ID, subnetsToValidate.List()); err != nil {
 		// If the cluster endpoint is reachable from the VPC nodes might still be able to join
 		if spec.HasPrivateEndpointAccess() {
 			logger.Warning("public subnets for one or more nodegroups have %q disabled. This means that nodes won't "+
@@ -424,21 +424,23 @@ func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.Cl
 		}
 
 		logger.Critical(err.Error())
-		return fmt.Errorf("subnets for one or more new nodegroups don't meet requirements: %w", err)
+		return errors.Errorf("subnets for one or more new nodegroups don't meet requirements. "+
+			"To fix this, please run `eksctl utils update-legacy-subnet-settings --cluster %s`",
+			spec.Metadata.Name)
 	}
 	return nil
 }
 
 // ValidateExistingPublicSubnets makes sure that subnets have the property MapPublicIpOnLaunch enabled
-func ValidateExistingPublicSubnets(provider api.ClusterProvider, cfg *api.ClusterConfig, subnetIDs []string) error {
+func ValidateExistingPublicSubnets(provider api.ClusterProvider, vpcID string, subnetIDs []string) error {
 	if len(subnetIDs) == 0 {
 		return nil
 	}
-	subnets, err := describeSubnets(provider.EC2(), cfg.VPC.ID, subnetIDs, []string{}, []string{})
+	subnets, err := describeSubnets(provider.EC2(), vpcID, subnetIDs, []string{}, []string{})
 	if err != nil {
 		return err
 	}
-	return validatePublicSubnet(cfg, subnets)
+	return validatePublicSubnet(subnets)
 }
 
 // EnsureMapPublicIPOnLaunchEnabled will enable MapPublicIpOnLaunch in EC2 for all given subnet IDs
@@ -522,28 +524,16 @@ func cleanupSubnets(spec *api.ClusterConfig) {
 	cleanup(&spec.VPC.Subnets.Public)
 }
 
-func validatePublicSubnet(cfg *api.ClusterConfig, subnets []*ec2.Subnet) error {
-	containsSubnet := func(id string) bool {
-		for _, f := range cfg.VPC.Subnets.Public.WithIDs() {
-			if f == id {
-				return true
-			}
-		}
-		return false
-	}
-	var legacySubnets []string
+func validatePublicSubnet(subnets []*ec2.Subnet) error {
+	legacySubnets := make([]string, 0)
 	for _, sn := range subnets {
 		if sn.MapPublicIpOnLaunch == nil || !*sn.MapPublicIpOnLaunch {
 			legacySubnets = append(legacySubnets, *sn.SubnetId)
 		}
-		if !containsSubnet(*sn.SubnetId) {
-			return fmt.Errorf("subnet %q could not be found in CF template or is not a public subnet", *sn.SubnetId)
-		}
 	}
 	if len(legacySubnets) > 0 {
 		return fmt.Errorf("found mis-configured subnets %q. Expected public subnets with property "+
-			"\"MapPublicIpOnLaunch\" enabled. Without it new nodes won't get an IP assigned. "+
-			"To fix this, please run `eksctl utils update-legacy-subnet-settings --cluster %s`", legacySubnets, cfg.Metadata.Name)
+			"\"MapPublicIpOnLaunch\" enabled. Without it new nodes won't get an IP assigned", legacySubnets)
 	}
 
 	return nil
