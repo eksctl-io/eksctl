@@ -46,7 +46,7 @@ func TestIPv6(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-var _ = Describe("(Integration) [EKS IPv6 test]", func() {
+var _ = PDescribe("(Integration) [EKS IPv6 test]", func() {
 	var (
 		clusterConfig *api.ClusterConfig
 	)
