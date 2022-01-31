@@ -41,7 +41,7 @@ func NewClusterResourceSet(ec2API ec2iface.EC2API, region string, spec *api.Clus
 	var vpcResourceSet VPCResourceSet = NewIPv4VPCResourceSet(rs, spec, ec2API)
 	if spec.VPC.ID != "" {
 		vpcResourceSet = NewExistingVPCResourceSet(rs, spec, ec2API)
-	} else if spec.KubernetesNetworkConfig != nil && spec.KubernetesNetworkConfig.IPv6Enabled() {
+	} else if spec.IPv6Enabled() {
 		vpcResourceSet = NewIPv6VPCResourceSet(rs, spec, ec2API)
 	}
 	return &ClusterResourceSet{

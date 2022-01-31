@@ -777,7 +777,7 @@ func NewClusterConfig() *ClusterConfig {
 		KubernetesNetworkConfig: &KubernetesNetworkConfig{
 			IPFamily: DefaultIPFamily,
 		},
-		VPC: NewClusterVPC(),
+		VPC: NewClusterVPC(false),
 		CloudWatch: &ClusterCloudWatch{
 			ClusterLogging: &ClusterCloudWatchLogging{},
 		},
@@ -788,15 +788,20 @@ func NewClusterConfig() *ClusterConfig {
 }
 
 // NewClusterVPC creates new VPC config for a cluster
-func NewClusterVPC() *ClusterVPC {
+func NewClusterVPC(ipv6Enabled bool) *ClusterVPC {
 	cidr := DefaultCIDR()
+
+	var nat *ClusterNAT
+	if !ipv6Enabled {
+		nat = DefaultClusterNAT()
+	}
 
 	return &ClusterVPC{
 		Network: Network{
 			CIDR: &cidr,
 		},
 		ManageSharedNodeSecurityGroupRules: Enabled(),
-		NAT:                                DefaultClusterNAT(),
+		NAT:                                nat,
 		AutoAllocateIPv6:                   Disabled(),
 		ClusterEndpoints:                   &ClusterEndpoints{},
 	}
@@ -817,6 +822,10 @@ func (c *ClusterConfig) AppendAvailabilityZone(newAZ string) {
 		}
 	}
 	c.AvailabilityZones = append(c.AvailabilityZones, newAZ)
+}
+
+func (c *ClusterConfig) IPv6Enabled() bool {
+	return c.KubernetesNetworkConfig != nil && c.KubernetesNetworkConfig.IPv6Enabled()
 }
 
 // SetClusterStatus populates ClusterStatus using *eks.Cluster.

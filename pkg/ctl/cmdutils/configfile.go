@@ -232,16 +232,14 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 
 	l.validateWithConfigFile = func() error {
 		clusterConfig := l.ClusterConfig
-		if clusterConfig.KubernetesNetworkConfig != nil && clusterConfig.KubernetesNetworkConfig.IPv6Enabled() {
-			clusterConfig.VPC = &api.ClusterVPC{}
-		} else {
-			if clusterConfig.VPC == nil {
-				clusterConfig.VPC = api.NewClusterVPC()
-			}
+		ipv6Enabled := clusterConfig.IPv6Enabled()
 
-			if clusterConfig.VPC.NAT == nil {
-				clusterConfig.VPC.NAT = api.DefaultClusterNAT()
-			}
+		if clusterConfig.VPC == nil {
+			clusterConfig.VPC = api.NewClusterVPC(ipv6Enabled)
+		}
+
+		if clusterConfig.VPC.NAT == nil && !ipv6Enabled {
+			clusterConfig.VPC.NAT = api.DefaultClusterNAT()
 		}
 
 		if clusterConfig.VPC.NAT != nil && api.IsEmpty(clusterConfig.VPC.NAT.Gateway) {
@@ -579,7 +577,7 @@ func NewUtilsEnableEndpointAccessLoader(cmd *Cmd, privateAccess, publicAccess bo
 	}
 	l.validateWithConfigFile = func() error {
 		if l.ClusterConfig.VPC == nil {
-			l.ClusterConfig.VPC = api.NewClusterVPC()
+			l.ClusterConfig.VPC = api.NewClusterVPC(false)
 		}
 		api.SetClusterEndpointAccessDefaults(l.ClusterConfig.VPC)
 		return nil

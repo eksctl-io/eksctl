@@ -10,7 +10,7 @@ iam:
   withOIDC: true
 
 karpenter:
-  version: '0.4.3'
+  version: '0.5.6'
   createServiceAccount: true # default is false
 
 managedNodeGroups:

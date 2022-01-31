@@ -52,7 +52,16 @@ func doDeleteCluster(cmd *cmdutils.Cmd, force bool) error {
 
 	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
-		return err
+		if !force {
+			return err
+		}
+		// initialise the controller without refreshing the cluster status.
+		// This can happen if the initial cluster stack failed to create the cluster,
+		// but we still want to remove other created resources and the cluster stack.
+		logger.Warning("failed to create provider for cluster; force = true skipping: %v", err)
+		if ctl, err = cmd.NewCtl(); err != nil {
+			return err
+		}
 	}
 	cmdutils.LogRegionAndVersionInfo(meta)
 

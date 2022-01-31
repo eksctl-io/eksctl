@@ -129,6 +129,7 @@ func loadBalancerControllerStatements() []cft.MapOfInterfaces {
 				"ec2:DescribeInstances",
 				"ec2:DescribeNetworkInterfaces",
 				"ec2:DescribeTags",
+				"ec2:DescribeVpcPeeringConnections",
 				"elasticloadbalancing:DescribeLoadBalancers",
 				"elasticloadbalancing:DescribeLoadBalancerAttributes",
 				"elasticloadbalancing:DescribeListeners",

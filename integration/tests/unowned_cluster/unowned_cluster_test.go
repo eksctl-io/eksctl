@@ -426,7 +426,7 @@ func createClusterWithNodeGroup(clusterName, stackName, ng1, version string, ctl
 		return *out.Cluster.Status
 	}, timeoutDuration, time.Second*30).Should(Equal("ACTIVE"))
 
-	newVPC := api.NewClusterVPC()
+	newVPC := api.NewClusterVPC(false)
 	newVPC.ID = vpcID
 	newVPC.SecurityGroup = securityGroup
 	newVPC.Subnets = &api.ClusterSubnets{
