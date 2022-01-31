@@ -87,12 +87,16 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 }
 
 // MakeManagedSSMParameterName creates an SSM parameter name for a managed nodegroup
-func MakeManagedSSMParameterName(version, imageFamily, amiType string) (string, error) {
-	imageType := utils.ToKebabCase(imageFamily)
-	if amiType == eks.AMITypesAl2X8664Gpu {
-		imageType += "-gpu"
+func MakeManagedSSMParameterName(version, amiType string) (string, error) {
+	switch amiType {
+	case eks.AMITypesAl2X8664:
+		imageType := utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2)
+		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/release_version", version, imageType), nil
+	case eks.AMITypesAl2X8664Gpu:
+		imageType := utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2) + "-gpu"
+		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/release_version", version, imageType), nil
 	}
-	return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/%s", version, imageType, "release_version"), nil
+	return "", nil
 }
 
 // instanceEC2ArchName returns the name of the architecture as used by EC2

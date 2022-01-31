@@ -166,7 +166,7 @@ var _ = Describe("VPC", func() {
 			}
 		},
 		Entry("VPC with valid details", setSubnetsCase{
-			vpc: api.NewClusterVPC(),
+			vpc: api.NewClusterVPC(false),
 		}),
 		Entry("VPC with nil CIDR", setSubnetsCase{
 			vpc: &api.ClusterVPC{
@@ -202,17 +202,17 @@ var _ = Describe("VPC", func() {
 			error: fmt.Errorf("Unexpected IP address type: <nil>"),
 		}),
 		Entry("VPC with valid number of subnets", setSubnetsCase{
-			vpc:               api.NewClusterVPC(),
+			vpc:               api.NewClusterVPC(false),
 			availabilityZones: []string{"1", "2", "3", "4", "5", "6", "7", "8"},
 			error:             nil,
 		}),
 		Entry("VPC with invalid number of subnets", setSubnetsCase{
-			vpc:               api.NewClusterVPC(),
+			vpc:               api.NewClusterVPC(false),
 			availabilityZones: []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"}, // more AZ than required
 			error:             fmt.Errorf("cannot create more than 16 subnets, 18 requested"),
 		}),
 		Entry("VPC with multiple AZs", setSubnetsCase{
-			vpc:               api.NewClusterVPC(),
+			vpc:               api.NewClusterVPC(false),
 			availabilityZones: []string{"1", "2", "3"},
 		}),
 	)
@@ -1028,6 +1028,89 @@ var _ = Describe("VPC", func() {
 				}, nil)
 				_, err := SelectNodeGroupSubnets([]string{az}, []string{subnetID}, api.AZSubnetMappingFromMap(azMap), mockEC2, vpcID)
 				Expect(err).To(MatchError(ContainSubstring("subnet with id \"user-defined-id\" is not in the attached vpc with id \"vpc-id\"")))
+			})
+		})
+	})
+
+	Context("ValidateExistingPublicSubnets", func() {
+		var (
+			subnetIDPublic  string
+			subnetIDPrivate string
+			provider        *mockprovider.MockProvider
+			vpcID           string
+			spec            *api.ClusterConfig
+		)
+		BeforeEach(func() {
+			subnetIDPublic = "id-public"
+			subnetIDPrivate = "id-private"
+			vpcID = "vpc-id"
+			provider = mockprovider.NewMockProvider()
+			spec = api.NewClusterConfig()
+			spec.VPC.Subnets = &api.ClusterSubnets{
+				Private: api.AZSubnetMapping{
+					"a": api.AZSubnetSpec{
+						ID: subnetIDPrivate,
+					},
+				},
+				Public: api.AZSubnetMapping{
+					"a": api.AZSubnetSpec{
+						ID: subnetIDPublic,
+					},
+				},
+			}
+		})
+		When("validation is called with correct values", func() {
+			BeforeEach(func() {
+				provider.MockEC2().On("DescribeSubnets", &ec2.DescribeSubnetsInput{
+					SubnetIds: aws.StringSlice([]string{subnetIDPublic}),
+				}).Return(&ec2.DescribeSubnetsOutput{
+					Subnets: []*ec2.Subnet{
+						{
+							SubnetId:            &subnetIDPublic,
+							VpcId:               &vpcID,
+							MapPublicIpOnLaunch: api.Enabled(),
+						},
+					},
+				}, nil)
+			})
+			It("returns no errors", func() {
+				Expect(ValidateExistingPublicSubnets(provider, spec, []string{subnetIDPublic})).To(Succeed())
+			})
+		})
+		When("validation is called with MapPublicIpOnLaunch disabled for a public subnet", func() {
+			BeforeEach(func() {
+				provider.MockEC2().On("DescribeSubnets", &ec2.DescribeSubnetsInput{
+					SubnetIds: aws.StringSlice([]string{subnetIDPublic}),
+				}).Return(&ec2.DescribeSubnetsOutput{
+					Subnets: []*ec2.Subnet{
+						{
+							SubnetId: &subnetIDPublic,
+							VpcId:    &vpcID,
+						},
+					},
+				}, nil)
+			})
+			It("errors", func() {
+				err := ValidateExistingPublicSubnets(provider, spec, []string{subnetIDPublic})
+				Expect(err).To(MatchError(ContainSubstring("\"MapPublicIpOnLaunch\" enabled. Without it new nodes won't get an IP assigned.")))
+			})
+		})
+		When("validation is called with a private subnet for a public subnet", func() {
+			BeforeEach(func() {
+				provider.MockEC2().On("DescribeSubnets", &ec2.DescribeSubnetsInput{
+					SubnetIds: aws.StringSlice([]string{subnetIDPrivate}),
+				}).Return(&ec2.DescribeSubnetsOutput{
+					Subnets: []*ec2.Subnet{
+						{
+							SubnetId: &subnetIDPrivate,
+							VpcId:    &vpcID,
+						},
+					},
+				}, nil)
+			})
+			It("errors", func() {
+				err := ValidateExistingPublicSubnets(provider, spec, []string{subnetIDPrivate})
+				Expect(err).To(MatchError(ContainSubstring("subnet \"id-private\" could not be found in CF template or is not a public subnet")))
 			})
 		})
 	})

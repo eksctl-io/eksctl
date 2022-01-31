@@ -311,7 +311,7 @@ func newClusterConfig() *api.ClusterConfig {
 			CertificateAuthorityData: []byte("dGVzdAo="),
 		},
 		IAM: api.NewClusterIAM(),
-		VPC: api.NewClusterVPC(),
+		VPC: api.NewClusterVPC(false),
 		CloudWatch: &api.ClusterCloudWatch{
 			ClusterLogging: &api.ClusterCloudWatchLogging{},
 		},

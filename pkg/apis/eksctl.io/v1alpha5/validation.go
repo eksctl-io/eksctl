@@ -205,7 +205,7 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		c.VPC.PublicAccessCIDRs = cidrs
 	}
 	if len(c.VPC.ExtraIPv6CIDRs) > 0 {
-		if c.KubernetesNetworkConfig == nil || !c.KubernetesNetworkConfig.IPv6Enabled() {
+		if !c.IPv6Enabled() {
 			return fmt.Errorf("cannot specify vpc.extraIPv6CIDRs with an IPv4 cluster")
 		}
 		cidrs, err := validateCIDRs(c.VPC.ExtraIPv6CIDRs)
@@ -215,13 +215,11 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		c.VPC.ExtraIPv6CIDRs = cidrs
 	}
 
-	if c.VPC.IPv6Cidr != "" || c.VPC.IPv6Pool != "" {
-		if c.KubernetesNetworkConfig == nil || !c.KubernetesNetworkConfig.IPv6Enabled() {
-			return fmt.Errorf("Ipv6Cidr and Ipv6CidrPool are only supported when IPFamily is set to IPv6")
-		}
+	if (c.VPC.IPv6Cidr != "" || c.VPC.IPv6Pool != "") && !c.IPv6Enabled() {
+		return fmt.Errorf("Ipv6Cidr and Ipv6CidrPool are only supported when IPFamily is set to IPv6")
 	}
 
-	if c.KubernetesNetworkConfig != nil && c.KubernetesNetworkConfig.IPv6Enabled() {
+	if c.IPv6Enabled() {
 		if IsEnabled(c.VPC.AutoAllocateIPv6) {
 			return fmt.Errorf("auto allocate ipv6 is not supported with IPv6")
 		}
@@ -353,7 +351,7 @@ func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
 		return nil
 	}
 	if c.KubernetesNetworkConfig.ServiceIPv4CIDR != "" {
-		if c.KubernetesNetworkConfig.IPv6Enabled() {
+		if c.IPv6Enabled() {
 			return fmt.Errorf("service ipv4 cidr is not supported with IPv6")
 		}
 		serviceIP := c.KubernetesNetworkConfig.ServiceIPv4CIDR
