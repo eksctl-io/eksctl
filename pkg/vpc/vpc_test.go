@@ -166,7 +166,7 @@ var _ = Describe("VPC", func() {
 			}
 		},
 		Entry("VPC with valid details", setSubnetsCase{
-			vpc: api.NewClusterVPC(),
+			vpc: api.NewClusterVPC(false),
 		}),
 		Entry("VPC with nil CIDR", setSubnetsCase{
 			vpc: &api.ClusterVPC{
@@ -202,17 +202,17 @@ var _ = Describe("VPC", func() {
 			error: fmt.Errorf("Unexpected IP address type: <nil>"),
 		}),
 		Entry("VPC with valid number of subnets", setSubnetsCase{
-			vpc:               api.NewClusterVPC(),
+			vpc:               api.NewClusterVPC(false),
 			availabilityZones: []string{"1", "2", "3", "4", "5", "6", "7", "8"},
 			error:             nil,
 		}),
 		Entry("VPC with invalid number of subnets", setSubnetsCase{
-			vpc:               api.NewClusterVPC(),
+			vpc:               api.NewClusterVPC(false),
 			availabilityZones: []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"}, // more AZ than required
 			error:             fmt.Errorf("cannot create more than 16 subnets, 18 requested"),
 		}),
 		Entry("VPC with multiple AZs", setSubnetsCase{
-			vpc:               api.NewClusterVPC(),
+			vpc:               api.NewClusterVPC(false),
 			availabilityZones: []string{"1", "2", "3"},
 		}),
 	)
