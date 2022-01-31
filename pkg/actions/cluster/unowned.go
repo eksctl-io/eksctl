@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -29,10 +30,11 @@ import (
 )
 
 type UnownedCluster struct {
-	cfg          *api.ClusterConfig
-	ctl          *eks.ClusterProvider
-	stackManager manager.StackManager
-	newClientSet func() (kubernetes.Interface, error)
+	cfg                 *api.ClusterConfig
+	ctl                 *eks.ClusterProvider
+	stackManager        manager.StackManager
+	newClientSet        func() (kubernetes.Interface, error)
+	newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer
 }
 
 func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) *UnownedCluster {
@@ -42,6 +44,9 @@ func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackMa
 		stackManager: stackManager,
 		newClientSet: func() (kubernetes.Interface, error) {
 			return ctl.NewStdClientSet(cfg)
+		},
+		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer {
+			return nodegroup.New(cfg, ctl, clientSet)
 		},
 	}
 }
@@ -57,7 +62,7 @@ func (c *UnownedCluster) Upgrade(dryRun bool) error {
 	return nil
 }
 
-func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force bool) error {
+func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force, disableNodegroupEviction bool) error {
 	clusterName := c.cfg.Metadata.Name
 
 	if err := c.checkClusterExists(clusterName); err != nil {
@@ -81,8 +86,13 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force bool) er
 			return err
 		}
 
-		if err := drainAllNodegroups(c.cfg, c.ctl, c.stackManager, clientSet, allStacks); err != nil {
-			return err
+		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
+		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, nodeGroupManager, attemptVpcCniDeletion); err != nil {
+			if !force {
+				return err
+			}
+
+			logger.Warning("an error occurred during nodegroups draining, force=true so proceeding with deletion: %q", err.Error())
 		}
 	}
 

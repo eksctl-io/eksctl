@@ -11,6 +11,7 @@ import (
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 )
@@ -106,10 +107,10 @@ func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
 		return nil, err
 	}
 
-	var asg string
+	var asgs []string
 	if describeOutput.Nodegroup.Resources != nil {
-		for _, v := range describeOutput.Nodegroup.Resources.AutoScalingGroups {
-			asg = aws.StringValue(v.Name)
+		for _, asg := range describeOutput.Nodegroup.Resources.AutoScalingGroups {
+			asgs = append(asgs, aws.StringValue(asg.Name))
 		}
 	}
 
@@ -124,7 +125,7 @@ func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
 		ImageID:              *describeOutput.Nodegroup.AmiType,
 		CreationTime:         describeOutput.Nodegroup.CreatedAt,
 		NodeInstanceRoleARN:  *describeOutput.Nodegroup.NodeRole,
-		AutoScalingGroupName: asg,
+		AutoScalingGroupName: strings.Join(asgs, ","),
 		Version:              getOptionalValue(describeOutput.Nodegroup.Version),
 	}, nil
 }

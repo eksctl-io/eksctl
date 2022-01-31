@@ -5,6 +5,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -15,11 +16,12 @@ import (
 )
 
 type OwnedCluster struct {
-	cfg          *api.ClusterConfig
-	ctl          *eks.ClusterProvider
-	clusterStack *manager.Stack
-	stackManager manager.StackManager
-	newClientSet func() (kubernetes.Interface, error)
+	cfg                 *api.ClusterConfig
+	ctl                 *eks.ClusterProvider
+	clusterStack        *manager.Stack
+	stackManager        manager.StackManager
+	newClientSet        func() (kubernetes.Interface, error)
+	newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer
 }
 
 func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterStack *manager.Stack, stackManager manager.StackManager) *OwnedCluster {
@@ -30,6 +32,9 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterSt
 		stackManager: stackManager,
 		newClientSet: func() (kubernetes.Interface, error) {
 			return ctl.NewStdClientSet(cfg)
+		},
+		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer {
+			return nodegroup.New(cfg, ctl, clientSet)
 		},
 	}
 }
@@ -67,7 +72,7 @@ func (c *OwnedCluster) Upgrade(dryRun bool) error {
 	return nil
 }
 
-func (c *OwnedCluster) Delete(_ time.Duration, wait, force bool) error {
+func (c *OwnedCluster) Delete(_ time.Duration, wait, force, disableNodegroupEviction bool) error {
 	var (
 		clientSet kubernetes.Interface
 		oidc      *iamoidc.OpenIDConnectManager
@@ -105,8 +110,14 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force bool) error {
 		if err != nil {
 			return err
 		}
-		if err := drainAllNodegroups(c.cfg, c.ctl, c.stackManager, clientSet, allStacks); err != nil {
-			return err
+
+		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
+		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, nodeGroupManager, attemptVpcCniDeletion); err != nil {
+			if !force {
+				return err
+			}
+
+			logger.Warning("an error occurred during nodegroups draining, force=true so proceeding with deletion: %q", err.Error())
 		}
 	}
 
