@@ -11,13 +11,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+	"k8s.io/client-go/kubernetes/fake"
+
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
-	"k8s.io/client-go/kubernetes/fake"
 )
 
 var _ = Describe("Get", func() {
@@ -177,6 +178,64 @@ var _ = Describe("Get", func() {
 					Expect(ngSummary[0].NodeInstanceRoleARN).To(Equal("node-role"))
 					Expect(ngSummary[0].AutoScalingGroupName).To(Equal("asg-name"))
 					Expect(ngSummary[0].Version).To(Equal("1.18"))
+				})
+			})
+
+			When("a nodegroup has multiple ASGs", func() {
+				BeforeEach(func() {
+					p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+						ClusterName:   aws.String(clusterName),
+						NodegroupName: aws.String(ngName),
+					}).Run(func(args mock.Arguments) {
+						Expect(args).To(HaveLen(1))
+						Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeNodegroupInput{
+							ClusterName:   aws.String(clusterName),
+							NodegroupName: aws.String(ngName),
+						}))
+					}).Return(&awseks.DescribeNodegroupOutput{
+						Nodegroup: &awseks.Nodegroup{
+							NodegroupName: aws.String(ngName),
+							ClusterName:   aws.String(clusterName),
+							Status:        aws.String("my-status"),
+							ScalingConfig: &awseks.NodegroupScalingConfig{
+								DesiredSize: aws.Int64(2),
+								MaxSize:     aws.Int64(4),
+								MinSize:     aws.Int64(0),
+							},
+							InstanceTypes: aws.StringSlice([]string{"m5.xlarge"}),
+							AmiType:       aws.String("ami-type"),
+							CreatedAt:     &t,
+							NodeRole:      aws.String("node-role"),
+							Resources: &awseks.NodegroupResources{
+								AutoScalingGroups: []*awseks.AutoScalingGroup{
+									{
+										Name: aws.String("asg-1"),
+									},
+									{
+										Name: aws.String("asg-2"),
+									},
+								},
+							},
+							Version: aws.String("1.18"),
+						},
+					}, nil)
+				})
+
+				It("returns all ASG names in the summary", func() {
+					summary, err := m.Get(ngName)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(summary.AutoScalingGroupName).To(Equal("asg-1,asg-2"))
+					Expect(summary.Name).To(Equal(ngName))
+					Expect(summary.Cluster).To(Equal(clusterName))
+					Expect(summary.Status).To(Equal("my-status"))
+					Expect(summary.MaxSize).To(Equal(4))
+					Expect(summary.MinSize).To(Equal(0))
+					Expect(summary.DesiredCapacity).To(Equal(2))
+					Expect(summary.InstanceType).To(Equal("m5.xlarge"))
+					Expect(summary.ImageID).To(Equal("ami-type"))
+					Expect(summary.CreationTime).To(Equal(&t))
+					Expect(summary.NodeInstanceRoleARN).To(Equal("node-role"))
+					Expect(summary.Version).To(Equal("1.18"))
 				})
 			})
 
