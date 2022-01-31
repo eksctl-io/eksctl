@@ -215,6 +215,22 @@ var _ = Describe("cmdutils configfile", func() {
 				Expect(NewCreateClusterLoader(cmd, filter.NewNodeGroupFilter(), nil, params).Load()).To(Succeed())
 				Expect(cmd.ClusterConfig.VPC.NAT).To(BeNil())
 			})
+
+			When("using pre-existing VPC", func() {
+				It("should default VPC.NAT to nil", func() {
+					cmd := &Cmd{
+						CobraCommand:      newCmd(),
+						ClusterConfigFile: filepath.Join("test_data", "ipv6-existing-vpc.yaml"),
+						ClusterConfig:     api.NewClusterConfig(),
+						ProviderConfig:    api.ProviderConfig{},
+					}
+					params := &CreateClusterCmdParams{WithoutNodeGroup: true, CreateManagedNGOptions: CreateManagedNGOptions{
+						Managed: false,
+					}}
+					Expect(NewCreateClusterLoader(cmd, filter.NewNodeGroupFilter(), nil, params).Load()).To(Succeed())
+					Expect(cmd.ClusterConfig.VPC.NAT).To(BeNil())
+				})
+			})
 		})
 
 		It("loader should handle named and unnamed nodegroups without config file", func() {

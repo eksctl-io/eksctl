@@ -34,7 +34,7 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 		},
 	)
 
-	if c.spec.KubernetesNetworkConfig != nil && c.spec.KubernetesNetworkConfig.IPv6Enabled() {
+	if c.spec.IPv6Enabled() {
 		taskTree.Append(
 			&AssignIpv6AddressOnCreationTask{
 				ClusterConfig: c.spec,

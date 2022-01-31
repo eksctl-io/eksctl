@@ -43,6 +43,7 @@ var _ = Describe("Upgrade", func() {
 			NodegroupName:     ngName,
 			KubernetesVersion: "1.21",
 			Wait:              false,
+			ForceUpgrade:      false,
 		}
 	})
 
@@ -93,7 +94,7 @@ var _ = Describe("Upgrade", func() {
 						NodegroupName: aws.String(ngName),
 						ClusterName:   aws.String(clusterName),
 						Status:        aws.String("my-status"),
-						AmiType:       aws.String("ami-type"),
+						AmiType:       aws.String("AL2_x86_64"),
 						Version:       aws.String("1.20"),
 						LaunchTemplate: &awseks.LaunchTemplateSpecification{
 							Name: aws.String("lt"),
@@ -121,55 +122,181 @@ var _ = Describe("Upgrade", func() {
 	})
 
 	When("the nodegroup does have a stack", func() {
-		When("it uses amazonlinux2", func() {
-			BeforeEach(func() {
-				fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: ngName}}, nil)
+		When("ForceUpdateEnabled isn't set", func() {
+			When("it uses amazonlinux2", func() {
+				BeforeEach(func() {
+					fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: ngName}}, nil)
 
-				fakeStackManager.GetManagedNodeGroupTemplateReturns(al2Template, nil)
+					fakeStackManager.GetManagedNodeGroupTemplateReturns(al2WithoutForceTemplate, nil)
 
-				fakeStackManager.DescribeNodeGroupStackReturns(&manager.Stack{
-					Tags: []*cloudformation.Tag{
-						{
-							Key:   aws.String(api.EksctlVersionTag),
-							Value: aws.String(version.GetVersion()),
+					fakeStackManager.DescribeNodeGroupStackReturns(&manager.Stack{
+						Tags: []*cloudformation.Tag{
+							{
+								Key:   aws.String(api.EksctlVersionTag),
+								Value: aws.String(version.GetVersion()),
+							},
 						},
-					},
-				}, nil)
+					}, nil)
 
-				fakeStackManager.UpdateNodeGroupStackReturns(nil)
+					fakeStackManager.UpdateNodeGroupStackReturns(nil)
 
-				p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
-					ClusterName:   aws.String(clusterName),
-					NodegroupName: aws.String(ngName),
-				}).Return(&awseks.DescribeNodegroupOutput{
-					Nodegroup: &awseks.Nodegroup{
-						NodegroupName:  aws.String(ngName),
-						ClusterName:    aws.String(clusterName),
-						Status:         aws.String("my-status"),
-						AmiType:        aws.String("ami-type"),
-						Version:        aws.String("1.20"),
-						ReleaseVersion: aws.String("1.20-20201212"),
-					},
-				}, nil)
+					p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+						ClusterName:   aws.String(clusterName),
+						NodegroupName: aws.String(ngName),
+					}).Return(&awseks.DescribeNodegroupOutput{
+						Nodegroup: &awseks.Nodegroup{
+							NodegroupName:  aws.String(ngName),
+							ClusterName:    aws.String(clusterName),
+							Status:         aws.String("my-status"),
+							AmiType:        aws.String("AL2_x86_64"),
+							Version:        aws.String("1.20"),
+							ReleaseVersion: aws.String("1.20-20201212"),
+						},
+					}, nil)
 
-				p.MockSSM().On("GetParameter", &ssm.GetParameterInput{
-					Name: aws.String("/aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/release_version"),
-				}).Return(&ssm.GetParameterOutput{
-					Parameter: &ssm.Parameter{
-						Value: aws.String("1.21-20201212"),
-					},
-				}, nil)
+					p.MockSSM().On("GetParameter", &ssm.GetParameterInput{
+						Name: aws.String("/aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/release_version"),
+					}).Return(&ssm.GetParameterOutput{
+						Parameter: &ssm.Parameter{
+							Value: aws.String("1.21-20201212"),
+						},
+					}, nil)
+				})
+
+				It("upgrades the nodegroup with the latest al2 release_version by updating the stack", func() {
+					Expect(m.Upgrade(options)).To(Succeed())
+					Expect(fakeStackManager.GetManagedNodeGroupTemplateCallCount()).To(Equal(1))
+					Expect(fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0)).To(Equal(ngName))
+					Expect(fakeStackManager.UpdateNodeGroupStackCallCount()).To(Equal(2))
+					By("upgrading the ForceUpdateEnabled setting first")
+					ng, template, wait := fakeStackManager.UpdateNodeGroupStackArgsForCall(0)
+					Expect(ng).To(Equal(ngName))
+					Expect(template).To(Equal(al2ForceFalseTemplate))
+					Expect(wait).To(BeTrue())
+
+					By("upgrading the ReleaseVersion setting next")
+					ng, template, wait = fakeStackManager.UpdateNodeGroupStackArgsForCall(1)
+					Expect(ng).To(Equal(ngName))
+					Expect(template).To(Equal(al2FullyUpdatedTemplate))
+					Expect(wait).To(BeTrue())
+				})
 			})
+		})
 
-			It("upgrades the nodegroup with the latest al2 release_version by updating the stack", func() {
-				Expect(m.Upgrade(options)).To(Succeed())
-				Expect(fakeStackManager.GetManagedNodeGroupTemplateCallCount()).To(Equal(1))
-				Expect(fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0)).To(Equal(ngName))
-				Expect(fakeStackManager.UpdateNodeGroupStackCallCount()).To(Equal(1))
-				ng, template, wait := fakeStackManager.UpdateNodeGroupStackArgsForCall(0)
-				Expect(ng).To(Equal(ngName))
-				Expect(template).To(Equal(al2UpdatedTemplate))
-				Expect(wait).To(BeTrue())
+		When("it already has ForceUpdateEnabled set to false", func() {
+			When("it uses amazonlinux2 GPU nodes", func() {
+				BeforeEach(func() {
+					fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: ngName}}, nil)
+
+					fakeStackManager.GetManagedNodeGroupTemplateReturns(al2ForceFalseTemplate, nil)
+
+					fakeStackManager.DescribeNodeGroupStackReturns(&manager.Stack{
+						Tags: []*cloudformation.Tag{
+							{
+								Key:   aws.String(api.EksctlVersionTag),
+								Value: aws.String(version.GetVersion()),
+							},
+						},
+					}, nil)
+
+					fakeStackManager.UpdateNodeGroupStackReturns(nil)
+
+					p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+						ClusterName:   aws.String(clusterName),
+						NodegroupName: aws.String(ngName),
+					}).Return(&awseks.DescribeNodegroupOutput{
+						Nodegroup: &awseks.Nodegroup{
+							NodegroupName:  aws.String(ngName),
+							ClusterName:    aws.String(clusterName),
+							Status:         aws.String("my-status"),
+							AmiType:        aws.String("AL2_x86_64_GPU"),
+							Version:        aws.String("1.20"),
+							ReleaseVersion: aws.String("1.20-20201212"),
+						},
+					}, nil)
+
+					p.MockSSM().On("GetParameter", &ssm.GetParameterInput{
+						Name: aws.String("/aws/service/eks/optimized-ami/1.21/amazon-linux-2-gpu/recommended/release_version"),
+					}).Return(&ssm.GetParameterOutput{
+						Parameter: &ssm.Parameter{
+							Value: aws.String("1.21-20201212"),
+						},
+					}, nil)
+				})
+
+				It("upgrades the nodegroup with the latest al2 release_version by updating the stack", func() {
+					Expect(m.Upgrade(options)).To(Succeed())
+					Expect(fakeStackManager.GetManagedNodeGroupTemplateCallCount()).To(Equal(1))
+					Expect(fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0)).To(Equal(ngName))
+					Expect(fakeStackManager.UpdateNodeGroupStackCallCount()).To(Equal(1))
+					By("upgrading the ReleaseVersion and not updating the ForceUpdateEnabled setting")
+					ng, template, wait := fakeStackManager.UpdateNodeGroupStackArgsForCall(0)
+					Expect(ng).To(Equal(ngName))
+					Expect(template).To(Equal(al2FullyUpdatedTemplate))
+					Expect(wait).To(BeTrue())
+				})
+			})
+		})
+
+		When("ForceUpdateEnabled is set to true but the desired value is false", func() {
+			When("it uses bottlerocket", func() {
+				BeforeEach(func() {
+					fakeStackManager.ListNodeGroupStacksReturns([]manager.NodeGroupStack{{NodeGroupName: ngName}}, nil)
+
+					fakeStackManager.GetManagedNodeGroupTemplateReturns(brForceTrueTemplate, nil)
+
+					fakeStackManager.DescribeNodeGroupStackReturns(&manager.Stack{
+						Tags: []*cloudformation.Tag{
+							{
+								Key:   aws.String(api.EksctlVersionTag),
+								Value: aws.String(version.GetVersion()),
+							},
+						},
+					}, nil)
+
+					fakeStackManager.UpdateNodeGroupStackReturns(nil)
+
+					p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+						ClusterName:   aws.String(clusterName),
+						NodegroupName: aws.String(ngName),
+					}).Return(&awseks.DescribeNodegroupOutput{
+						Nodegroup: &awseks.Nodegroup{
+							NodegroupName:  aws.String(ngName),
+							ClusterName:    aws.String(clusterName),
+							Status:         aws.String("my-status"),
+							AmiType:        aws.String("BOTTLEROCKET_x86_64"),
+							Version:        aws.String("1.20"),
+							ReleaseVersion: aws.String("1.20-20201212"),
+						},
+					}, nil)
+
+					p.MockSSM().On("GetParameter", &ssm.GetParameterInput{
+						Name: aws.String("/aws/service/bottlerocket/aws-k8s-1.21/x86_64/latest/image_version"),
+					}).Return(&ssm.GetParameterOutput{
+						Parameter: &ssm.Parameter{
+							Value: aws.String("1.5.2-1602f3a8"),
+						},
+					}, nil)
+				})
+
+				It("upgrades the nodegroup updating the stack with the kubernetes version", func() {
+					Expect(m.Upgrade(options)).To(Succeed())
+					Expect(fakeStackManager.GetManagedNodeGroupTemplateCallCount()).To(Equal(1))
+					Expect(fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0)).To(Equal(ngName))
+
+					By("upgrading the ForceUpdateEnabled setting first")
+					Expect(fakeStackManager.UpdateNodeGroupStackCallCount()).To(Equal(2))
+					ng, template, wait := fakeStackManager.UpdateNodeGroupStackArgsForCall(0)
+					Expect(ng).To(Equal(ngName))
+					Expect(template).To(Equal(brForceFalseTemplate))
+					Expect(wait).To(BeTrue())
+
+					By("upgrading the Version next")
+					ng, template, wait = fakeStackManager.UpdateNodeGroupStackArgsForCall(1)
+					Expect(ng).To(Equal(ngName))
+					Expect(template).To(Equal(brFulllyUpdatedTemplate))
+					Expect(wait).To(BeTrue())
+				})
 			})
 		})
 	})
