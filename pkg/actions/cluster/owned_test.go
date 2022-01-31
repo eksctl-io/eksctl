@@ -7,7 +7,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
