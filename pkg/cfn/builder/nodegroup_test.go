@@ -1042,6 +1042,27 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 						Expect(mapping.Ebs["Encrypted"]).To(Equal(true))
 					})
 				})
+
+				Context("ng.AdditionalVolumes is set", func() {
+					BeforeEach(func() {
+						ng.AdditionalVolumes = []api.VolumeMapping{
+							{
+								VolumeSize:      aws.Int(20),
+								VolumeType:      aws.String(api.NodeVolumeTypeGP3),
+								VolumeName:      aws.String("/foo/bar-add-1"),
+								VolumeEncrypted: aws.Bool(true),
+							},
+						}
+					})
+					It("adds the additional volumes to the template", func() {
+						Expect(ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.BlockDeviceMappings).To(HaveLen(2))
+						mapping := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.BlockDeviceMappings[1]
+						Expect(mapping.DeviceName).To(Equal("/foo/bar-add-1"))
+						Expect(mapping.Ebs["Encrypted"]).To(Equal(true))
+						Expect(mapping.Ebs["VolumeSize"]).To(Equal(float64(20)))
+						Expect(mapping.Ebs["VolumeType"]).To(Equal(api.NodeVolumeTypeGP3))
+					})
+				})
 			})
 
 			Context("ng.SecurityGroups.AttachIDs are set", func() {
