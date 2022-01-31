@@ -558,7 +558,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		BeforeEach(func() {
 			cfg = api.NewClusterConfig()
-			vpc = api.NewClusterVPC()
+			vpc = api.NewClusterVPC(false)
 			cfg.VPC = vpc
 		})
 
@@ -598,7 +598,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		BeforeEach(func() {
 			cfg = api.NewClusterConfig()
-			vpc = api.NewClusterVPC()
+			vpc = api.NewClusterVPC(false)
 			cfg.VPC = vpc
 			cfg.PrivateCluster = &api.PrivateCluster{
 				Enabled: true,
@@ -657,7 +657,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		BeforeEach(func() {
 			cfg = api.NewClusterConfig()
-			vpc = api.NewClusterVPC()
+			vpc = api.NewClusterVPC(false)
 			cfg.VPC = vpc
 		})
 
@@ -1069,7 +1069,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		BeforeEach(func() {
 			cfg = api.NewClusterConfig()
-			vpc = api.NewClusterVPC()
+			vpc = api.NewClusterVPC(false)
 			cfg.VPC = vpc
 			cfg.PrivateCluster = &api.PrivateCluster{
 				Enabled: true,

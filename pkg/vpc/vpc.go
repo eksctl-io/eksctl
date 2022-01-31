@@ -204,7 +204,7 @@ func describeVPC(ec2API ec2iface.EC2API, vpcID string) (*ec2.Vpc, error) {
 // is treated as the source of truth
 func UseFromClusterStack(provider api.ClusterProvider, stack *cfn.Stack, spec *api.ClusterConfig) error {
 	if spec.VPC == nil {
-		spec.VPC = api.NewClusterVPC()
+		spec.VPC = api.NewClusterVPC(spec.IPv6Enabled())
 	}
 	// this call is authoritative, and we can safely override the
 	// CIDR, as it can only be set to anything due to defaulting

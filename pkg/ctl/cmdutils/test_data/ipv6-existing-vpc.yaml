@@ -1,0 +1,46 @@
+
+# An example of ClusterConfig object with ipFamily set to ipv6:
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: jk-existing
+  region: us-west-2
+  version: "1.21"
+
+kubernetesNetworkConfig:
+  ipFamily: IPv6
+
+vpc:
+  id: "vpc-0d70a7bed59d1b2d3"
+  subnets:
+    private:
+      us-west-2a:
+        id: "subnet-014dc115320e2cb5f"
+      us-west-2c:
+        id: "subnet-0259a0c1b9bd654bb"
+      us-west-2d:
+        id: "subnet-03653214715a2862d"
+    public:
+      us-west-2a:
+        id: "subnet-0139b0fc19faf2378"
+      us-west-2c:
+        id: "subnet-0240d4c868e380d75"
+      us-west-2d:
+        id: "subnet-0357526fc3b3ff69c"
+
+
+addons:
+  - name: vpc-cni
+    version: latest
+  - name: coredns
+    version: latest
+  - name: kube-proxy
+    version: latest
+
+iam:
+  withOIDC: true
+
+managedNodeGroups:
+  - name: mng-1

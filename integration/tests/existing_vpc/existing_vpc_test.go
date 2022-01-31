@@ -136,7 +136,7 @@ func createVPC(stackName string, ctl api.ClusterProvider) *api.ClusterVPC {
 	publicSubnets, privateSubnets, vpcID, securityGroup := createVPCStackAndGetOutputs(stackName, ctl)
 
 	By("creating the cluster config from the existing VPC")
-	newVPC := api.NewClusterVPC()
+	newVPC := api.NewClusterVPC(false)
 	newVPC.ID = vpcID
 	newVPC.SecurityGroup = securityGroup
 	newVPC.Subnets = &api.ClusterSubnets{

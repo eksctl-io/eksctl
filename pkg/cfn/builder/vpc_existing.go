@@ -47,7 +47,7 @@ func (v *ExistingVPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, 
 		return nil, nil, fmt.Errorf("VPC %q does not exist", v.clusterConfig.VPC.ID)
 	}
 
-	if v.clusterConfig.KubernetesNetworkConfig != nil && v.clusterConfig.KubernetesNetworkConfig.IPv6Enabled() {
+	if v.clusterConfig.IPv6Enabled() {
 		if err := v.checkIPv6CidrBlockAssociated(out); err != nil {
 			return nil, nil, err
 		}
