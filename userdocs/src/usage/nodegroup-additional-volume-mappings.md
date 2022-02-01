@@ -3,7 +3,7 @@
 As an additional configuration option, when dealing with volume mappings, it's possible to configure extra mappings
 when the nodegroup is created.
 
-To do this, set the following field:
+To do this, set the field `additionalVolumes` as follows:
 
 ```yaml
 apiVersion: eksctl.io/v1alpha5
