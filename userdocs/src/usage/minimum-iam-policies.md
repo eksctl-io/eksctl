@@ -143,7 +143,8 @@ IamLimitedAccess
                 "iam:TagRole",
                 "iam:GetPolicy",
                 "iam:CreatePolicy",
-                "iam:DeletePolicy"
+                "iam:DeletePolicy",
+                "iam:ListPolicyVersions"
             ],
             "Resource": [
                 "arn:aws:iam::<account_id>:instance-profile/eksctl-*",
