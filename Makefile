@@ -120,13 +120,8 @@ integration-test-focus: build
 	echo "ran with args: ${TEST_SUITE_DIRS}"
 	./eksctl get clusters
 
-integration-count:
-	tree integration/tests/ | grep _test.go | wc -l
-
 integration-dirs:
-	@ ls -A1d integration/tests/*/ | cut -b 19- | rev | cut -c 2- | rev > integration/dirs.json
-	@ truncate -s -1 integration/dirs.json
-	@ cat integration/dirs.json | jq -R -s -c 'split("\n")'
+	@ find integration/tests/ -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | head -c -1 | jq -R -s -c 'split("\n")'
 
 
 TEST_CLUSTER ?= integration-test-dev
