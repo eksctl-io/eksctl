@@ -116,6 +116,10 @@ build-integration-test: $(all_generated_code) ## Ensure integration tests compil
 integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup)
 	JUNIT_REPORT_DIR=$(git_toplevel)/test-results ./eksctl-integration-test $(INTEGRATION_TEST_ARGS)
 
+integration-test-focus:
+	echo "ran with args: ${TEST_SUITE_DIRS}"
+
+
 TEST_CLUSTER ?= integration-test-dev
 .PHONY: integration-test-dev
 integration-test-dev: build-integration-test ## Run the integration tests without cluster teardown. For use when developing integration tests.
