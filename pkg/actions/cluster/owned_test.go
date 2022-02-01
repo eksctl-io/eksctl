@@ -125,8 +125,8 @@ var _ = Describe("Delete", func() {
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
 			Expect(fakeStackManager.NewTasksToDeleteClusterWithNodeGroupsCallCount()).To(Equal(1))
 			Expect(ranDeleteClusterTasks).To(BeTrue())
-			Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
-			Expect(fakeStackManager.DeleteStackBySpecArgsForCall(0)).To(Equal(karpenterStack))
+			Expect(fakeStackManager.DeleteStackByNameSyncCallCount()).To(Equal(1))
+			Expect(fakeStackManager.DeleteStackByNameSyncArgsForCall(0)).To(Equal("karpenter"))
 		})
 
 		When("force flag is set to true", func() {
