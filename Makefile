@@ -119,6 +119,13 @@ integration-test: build build-integration-test ## Run the integration tests (wit
 integration-test-focus:
 	echo "ran with args: ${TEST_SUITE_DIRS}"
 
+integration-count:
+	tree integration/tests/ | grep _test.go | wc -l
+
+integration-dirs:
+	@ ls -A1d integration/tests/*/ | cut -b 19- | rev | cut -c 3- | rev > integration/dirs.json
+	@ cat integration/dirs.json | jq -R -s -c 'split("\n")'
+
 
 TEST_CLUSTER ?= integration-test-dev
 .PHONY: integration-test-dev
