@@ -180,8 +180,7 @@ func (c *OwnedCluster) deleteKarpenterStackIfExists() error {
 
 	if stack != nil {
 		logger.Info("deleting karpenter stack")
-		_, err = c.stackManager.DeleteStackBySpec(stack)
-		return err
+		return c.stackManager.DeleteStackByNameSync(*stack.StackName)
 	}
 
 	return nil
