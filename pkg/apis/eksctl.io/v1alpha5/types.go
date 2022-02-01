@@ -1237,6 +1237,8 @@ type VolumeMapping struct {
 	VolumeIOPS *int `json:"volumeIOPS,omitempty"`
 	// +optional
 	VolumeThroughput *int `json:"volumeThroughput,omitempty"`
+	// +optional
+	SnapshotID *string `json:"snapshotID,omitempty"`
 }
 
 // NodeGroupBase represents the base nodegroup config for self-managed and managed nodegroups

@@ -20,7 +20,8 @@
               "Iops": 3000,
               "Throughput": 125,
               "VolumeSize": 20,
-              "VolumeType": "gp3"
+              "VolumeType": "gp3",
+              "SnapshotId": "snapshot-id"
             }
           }
         ],

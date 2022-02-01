@@ -1973,6 +1973,9 @@
     },
     "VolumeMapping": {
       "properties": {
+        "snapshotID": {
+          "type": "string"
+        },
         "volumeEncrypted": {
           "type": "boolean"
         },
@@ -2015,7 +2018,8 @@
         "volumeEncrypted",
         "volumeKmsKeyID",
         "volumeIOPS",
-        "volumeThroughput"
+        "volumeThroughput",
+        "snapshotID"
       ],
       "additionalProperties": false,
       "description": "Additional Volume Configurations",

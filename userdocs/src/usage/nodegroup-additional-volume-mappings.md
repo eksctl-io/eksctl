@@ -30,4 +30,5 @@ managedNodeGroups:
       - volumeName: '/tmp/mount-2'  # required
         volumeSize: 80
         volumeType: 'gp2'
+        snapshotID: 'snapshot-id'
 ```

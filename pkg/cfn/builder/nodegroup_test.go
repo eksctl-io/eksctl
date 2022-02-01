@@ -1051,6 +1051,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 								VolumeType:      aws.String(api.NodeVolumeTypeGP3),
 								VolumeName:      aws.String("/foo/bar-add-1"),
 								VolumeEncrypted: aws.Bool(true),
+								SnapshotID:      aws.String("snapshot-id"),
 							},
 						}
 					})
@@ -1061,6 +1062,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 						Expect(mapping.Ebs["Encrypted"]).To(Equal(true))
 						Expect(mapping.Ebs["VolumeSize"]).To(Equal(float64(20)))
 						Expect(mapping.Ebs["VolumeType"]).To(Equal(api.NodeVolumeTypeGP3))
+						Expect(mapping.Ebs["SnapshotId"]).To(Equal("snapshot-id"))
 					})
 					When("VolumeSize is empty", func() {
 						BeforeEach(func() {

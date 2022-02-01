@@ -55,24 +55,25 @@ func makeBlockDeviceMappings(ng *api.NodeGroupBase) []gfnec2.LaunchTemplate_Bloc
 }
 
 func makeBlockDeviceMapping(vm *api.VolumeMapping) *gfnec2.LaunchTemplate_BlockDeviceMapping {
-	volumeSize := vm.VolumeSize
-	if volumeSize == nil || *volumeSize == 0 {
+	if vm.VolumeSize == nil || *vm.VolumeSize == 0 {
 		return nil
 	}
 
-	if vm.VolumeName == nil || *vm.VolumeName == "" {
+	if !api.IsSetAndNonEmptyString(vm.VolumeName) {
 		return nil
 	}
 
 	mapping := gfnec2.LaunchTemplate_BlockDeviceMapping{
 		Ebs: &gfnec2.LaunchTemplate_Ebs{
-			VolumeSize: gfnt.NewInteger(*volumeSize),
+			VolumeSize: gfnt.NewInteger(*vm.VolumeSize),
 			VolumeType: gfnt.NewString(*vm.VolumeType),
 		},
 	}
+
 	if vm.VolumeEncrypted != nil {
 		mapping.Ebs.Encrypted = gfnt.NewBoolean(*vm.VolumeEncrypted)
 	}
+
 	if api.IsSetAndNonEmptyString(vm.VolumeKmsKeyID) {
 		mapping.Ebs.KmsKeyId = gfnt.NewString(*vm.VolumeKmsKeyID)
 	}
@@ -84,6 +85,11 @@ func makeBlockDeviceMapping(vm *api.VolumeMapping) *gfnec2.LaunchTemplate_BlockD
 	if *vm.VolumeType == api.NodeVolumeTypeGP3 && vm.VolumeThroughput != nil {
 		mapping.Ebs.Throughput = gfnt.NewInteger(*vm.VolumeThroughput)
 	}
+
+	if api.IsSetAndNonEmptyString(vm.SnapshotID) {
+		mapping.Ebs.SnapshotId = gfnt.NewString(*vm.SnapshotID)
+	}
+
 	mapping.DeviceName = gfnt.NewString(*vm.VolumeName)
 
 	return &mapping

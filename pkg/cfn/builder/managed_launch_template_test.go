@@ -140,6 +140,7 @@ API_SERVER_URL=https://test.com
 							VolumeType:      aws.String(api.NodeVolumeTypeGP3),
 							VolumeName:      aws.String("/foo/bar-add-1"),
 							VolumeEncrypted: aws.Bool(true),
+							SnapshotID:      aws.String("snapshot-id"),
 						},
 					},
 				},
