@@ -116,14 +116,16 @@ build-integration-test: $(all_generated_code) ## Ensure integration tests compil
 integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup)
 	JUNIT_REPORT_DIR=$(git_toplevel)/test-results ./eksctl-integration-test $(INTEGRATION_TEST_ARGS)
 
-integration-test-focus:
+integration-test-focus: build
 	echo "ran with args: ${TEST_SUITE_DIRS}"
+	./eksctl get clusters
 
 integration-count:
 	tree integration/tests/ | grep _test.go | wc -l
 
 integration-dirs:
-	@ ls -A1d integration/tests/*/ | cut -b 19- | rev | cut -c 3- | rev > integration/dirs.json
+	@ ls -A1d integration/tests/*/ | cut -b 19- | rev | cut -c 2- | rev > integration/dirs.json
+	@ truncate -s -1 integration/dirs.json
 	@ cat integration/dirs.json | jq -R -s -c 'split("\n")'
 
 
