@@ -147,6 +147,22 @@ API_SERVER_URL=https://test.com
 			resourcesFilename: "launch_template_additional_volumes.json",
 		}),
 
+		Entry("Launch Template with volumes missing volume size", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: "extra-volumes",
+					AdditionalVolumes: []api.VolumeMapping{
+						{
+							VolumeType:      aws.String(api.NodeVolumeTypeGP3),
+							VolumeName:      aws.String("/foo/bar-add-1"),
+							VolumeEncrypted: aws.Bool(true),
+						},
+					},
+				},
+			},
+			resourcesFilename: "launch_template_additional_volumes_missing_size.json",
+		}),
+
 		Entry("Launch Template with custom AMI", &mngCase{
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{

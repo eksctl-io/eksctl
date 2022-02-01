@@ -20,14 +20,14 @@ managedNodeGroups:
     desiredCapacity: 10
     volumeSize: 80
     additionalVolumes:
-      - volumeSize: 80
+      - volumeSize: 80 # required
         volumeName: '/tmp/mount-1'
         volumeType: 'gp3'
         volumeEncrypted: true
         volumeKmsKeyID: 'id'
         volumeIOPS: 3000
         volumeThroughput: 125
-      - volumeSize: 80
+      - volumeSize: 80 # required
         volumeName: '/tmp/mount-2'
         volumeType: 'gp2'
 ```

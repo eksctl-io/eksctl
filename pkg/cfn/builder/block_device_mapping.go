@@ -26,7 +26,9 @@ func makeBlockDeviceMappings(ng *api.NodeGroupBase) []gfnec2.LaunchTemplate_Bloc
 	}
 
 	for _, volume := range ng.AdditionalVolumes {
-		mappings = append(mappings, *makeBlockDeviceMapping(volume))
+		if dm := makeBlockDeviceMapping(volume); dm != nil {
+			mappings = append(mappings, *dm)
+		}
 	}
 
 	if api.IsEnabled(ng.VolumeEncrypted) && ng.AdditionalEncryptedVolume != "" {
