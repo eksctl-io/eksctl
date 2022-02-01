@@ -17,6 +17,8 @@
             "DeviceName": "/foo/bar-add-1",
             "Ebs": {
               "Encrypted": true,
+              "Iops": 3000,
+              "Throughput": 125,
               "VolumeSize": 20,
               "VolumeType": "gp3"
             }

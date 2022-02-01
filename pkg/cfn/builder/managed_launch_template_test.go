@@ -134,7 +134,7 @@ API_SERVER_URL=https://test.com
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
 					Name: "extra-volumes",
-					AdditionalVolumes: []api.VolumeMapping{
+					AdditionalVolumes: []*api.VolumeMapping{
 						{
 							VolumeSize:      aws.Int(20),
 							VolumeType:      aws.String(api.NodeVolumeTypeGP3),
@@ -151,7 +151,7 @@ API_SERVER_URL=https://test.com
 			ng: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
 					Name: "extra-volumes",
-					AdditionalVolumes: []api.VolumeMapping{
+					AdditionalVolumes: []*api.VolumeMapping{
 						{
 							VolumeType:      aws.String(api.NodeVolumeTypeGP3),
 							VolumeName:      aws.String("/foo/bar-add-1"),

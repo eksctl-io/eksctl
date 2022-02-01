@@ -12,6 +12,16 @@
               "VolumeSize": 80,
               "VolumeType": "gp3"
             }
+          },
+          {
+            "DeviceName": "/foo/bar-add-1",
+            "Ebs": {
+              "Encrypted": true,
+              "Iops": 3000,
+              "Throughput": 125,
+              "VolumeSize": 80,
+              "VolumeType": "gp3"
+            }
           }
         ],
         "MetadataOptions": {

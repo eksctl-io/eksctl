@@ -1322,7 +1322,7 @@ type NodeGroupBase struct {
 
 	// Additional Volume Configurations
 	// +optional
-	AdditionalVolumes []VolumeMapping `json:"additionalVolumes,omitempty"`
+	AdditionalVolumes []*VolumeMapping `json:"additionalVolumes,omitempty"`
 
 	// PreBootstrapCommands are executed before bootstrapping instances to the
 	// cluster

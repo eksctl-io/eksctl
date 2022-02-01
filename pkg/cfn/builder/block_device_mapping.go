@@ -10,11 +10,21 @@ import (
 const rootDevice = "/dev/xvda"
 
 func makeBlockDeviceMappings(ng *api.NodeGroupBase) []gfnec2.LaunchTemplate_BlockDeviceMapping {
-	var mappings []gfnec2.LaunchTemplate_BlockDeviceMapping
-	mapping := makeBlockDeviceMapping(api.VolumeMapping{
+	var (
+		mappings       []gfnec2.LaunchTemplate_BlockDeviceMapping
+		baseVolumeName string
+	)
+
+	if ng.VolumeName != nil {
+		baseVolumeName = *ng.VolumeName
+	} else {
+		baseVolumeName = rootDevice
+	}
+
+	mapping := makeBlockDeviceMapping(&api.VolumeMapping{
 		VolumeSize:       ng.VolumeSize,
 		VolumeType:       ng.VolumeType,
-		VolumeName:       ng.VolumeName,
+		VolumeName:       &baseVolumeName,
 		VolumeEncrypted:  ng.VolumeEncrypted,
 		VolumeKmsKeyID:   ng.VolumeKmsKeyID,
 		VolumeIOPS:       ng.VolumeIOPS,
@@ -44,9 +54,13 @@ func makeBlockDeviceMappings(ng *api.NodeGroupBase) []gfnec2.LaunchTemplate_Bloc
 	return mappings
 }
 
-func makeBlockDeviceMapping(vm api.VolumeMapping) *gfnec2.LaunchTemplate_BlockDeviceMapping {
+func makeBlockDeviceMapping(vm *api.VolumeMapping) *gfnec2.LaunchTemplate_BlockDeviceMapping {
 	volumeSize := vm.VolumeSize
 	if volumeSize == nil || *volumeSize == 0 {
+		return nil
+	}
+
+	if vm.VolumeName == nil || *vm.VolumeName == "" {
 		return nil
 	}
 
@@ -70,12 +84,7 @@ func makeBlockDeviceMapping(vm api.VolumeMapping) *gfnec2.LaunchTemplate_BlockDe
 	if *vm.VolumeType == api.NodeVolumeTypeGP3 && vm.VolumeThroughput != nil {
 		mapping.Ebs.Throughput = gfnt.NewInteger(*vm.VolumeThroughput)
 	}
-
-	if vm.VolumeName != nil {
-		mapping.DeviceName = gfnt.NewString(*vm.VolumeName)
-	} else {
-		mapping.DeviceName = gfnt.NewString(rootDevice)
-	}
+	mapping.DeviceName = gfnt.NewString(*vm.VolumeName)
 
 	return &mapping
 }

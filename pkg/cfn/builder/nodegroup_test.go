@@ -1045,7 +1045,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 
 				Context("ng.AdditionalVolumes is set", func() {
 					BeforeEach(func() {
-						ng.AdditionalVolumes = []api.VolumeMapping{
+						ng.AdditionalVolumes = []*api.VolumeMapping{
 							{
 								VolumeSize:      aws.Int(20),
 								VolumeType:      aws.String(api.NodeVolumeTypeGP3),
@@ -1064,7 +1064,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 					})
 					When("VolumeSize is empty", func() {
 						BeforeEach(func() {
-							ng.AdditionalVolumes = []api.VolumeMapping{
+							ng.AdditionalVolumes = []*api.VolumeMapping{
 								{
 									VolumeType:      aws.String(api.NodeVolumeTypeGP3),
 									VolumeName:      aws.String("/foo/bar-add-1"),

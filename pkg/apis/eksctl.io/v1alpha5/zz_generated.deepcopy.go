@@ -1117,9 +1117,9 @@ func (in *NodeGroupBase) DeepCopyInto(out *NodeGroupBase) {
 	}
 	if in.AdditionalVolumes != nil {
 		in, out := &in.AdditionalVolumes, &out.AdditionalVolumes
-		*out = make([]VolumeMapping, len(*in))
+		*out = make([]*VolumeMapping, len(*in))
 		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
+			(*in)[i].DeepCopyInto((*out)[i])
 		}
 	}
 	if in.PreBootstrapCommands != nil {
