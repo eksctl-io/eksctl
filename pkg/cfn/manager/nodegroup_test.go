@@ -189,7 +189,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 					Expect(err).NotTo(HaveOccurred())
 				})
 
-				It("should not have called AWS CloudFormation GetTemplate", func() {
+				It("should have called AWS CloudFormation GetTemplate", func() {
 					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "GetTemplate", 1)).To(BeTrue())
 				})
 
