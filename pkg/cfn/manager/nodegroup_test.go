@@ -2,6 +2,7 @@ package manager
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
@@ -106,9 +107,10 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				})).Return(&cfn.DescribeStacksOutput{
 					Stacks: []*cfn.Stack{
 						{
-							StackName:   aws.String("eksctl-test-cluster-nodegroup-12345"),
-							StackId:     aws.String("eksctl-test-cluster-nodegroup-12345-id"),
-							StackStatus: aws.String("CREATE_COMPLETE"),
+							StackName:    aws.String("eksctl-test-cluster-nodegroup-12345"),
+							StackId:      aws.String("eksctl-test-cluster-nodegroup-12345-id"),
+							StackStatus:  aws.String("CREATE_COMPLETE"),
+							CreationTime: aws.Time(time.Now()),
 							Tags: []*cfn.Tag{
 								{
 									Key:   aws.String(api.NodeGroupNameTag),
