@@ -105,21 +105,26 @@ var _ = Describe("Get", func() {
 						StackName: aws.String(stackName),
 					}, nil)
 
-					ngSummary, err := m.GetAll()
+					summaries, err := m.GetAll()
 					Expect(err).NotTo(HaveOccurred())
-					Expect(ngSummary[0].StackName).To(Equal(stackName))
-					Expect(ngSummary[0].Name).To(Equal(ngName))
-					Expect(ngSummary[0].Cluster).To(Equal(clusterName))
-					Expect(ngSummary[0].Status).To(Equal("my-status"))
-					Expect(ngSummary[0].MaxSize).To(Equal(4))
-					Expect(ngSummary[0].MinSize).To(Equal(0))
-					Expect(ngSummary[0].DesiredCapacity).To(Equal(2))
-					Expect(ngSummary[0].InstanceType).To(Equal("-"))
-					Expect(ngSummary[0].ImageID).To(Equal("ami-type"))
-					Expect(ngSummary[0].CreationTime).To(Equal(&t))
-					Expect(ngSummary[0].NodeInstanceRoleARN).To(Equal("node-role"))
-					Expect(ngSummary[0].AutoScalingGroupName).To(Equal("asg-name"))
-					Expect(ngSummary[0].Version).To(Equal("1.18"))
+					Expect(summaries).To(HaveLen(1))
+
+					ngSummary := *summaries[0]
+					Expect(ngSummary).To(Equal(manager.NodeGroupSummary{
+						StackName:            "",
+						Cluster:              clusterName,
+						Name:                 ngName,
+						Status:               "my-status",
+						MaxSize:              4,
+						MinSize:              0,
+						DesiredCapacity:      2,
+						InstanceType:         "-",
+						ImageID:              "ami-type",
+						CreationTime:         t,
+						NodeInstanceRoleARN:  "node-role",
+						AutoScalingGroupName: "asg-name",
+						Version:              "1.18",
+					}))
 				})
 			})
 
@@ -163,21 +168,26 @@ var _ = Describe("Get", func() {
 				It("returns a summary of the node group without a StackName", func() {
 					fakeStackManager.DescribeNodeGroupStackReturns(nil, fmt.Errorf("error describing cloudformation stack"))
 
-					ngSummary, err := m.GetAll()
+					summaries, err := m.GetAll()
 					Expect(err).NotTo(HaveOccurred())
-					Expect(ngSummary[0].StackName).To(Equal(""))
-					Expect(ngSummary[0].Name).To(Equal(ngName))
-					Expect(ngSummary[0].Cluster).To(Equal(clusterName))
-					Expect(ngSummary[0].Status).To(Equal("my-status"))
-					Expect(ngSummary[0].MaxSize).To(Equal(4))
-					Expect(ngSummary[0].MinSize).To(Equal(0))
-					Expect(ngSummary[0].DesiredCapacity).To(Equal(2))
-					Expect(ngSummary[0].InstanceType).To(Equal("-"))
-					Expect(ngSummary[0].ImageID).To(Equal("ami-type"))
-					Expect(ngSummary[0].CreationTime).To(Equal(&t))
-					Expect(ngSummary[0].NodeInstanceRoleARN).To(Equal("node-role"))
-					Expect(ngSummary[0].AutoScalingGroupName).To(Equal("asg-name"))
-					Expect(ngSummary[0].Version).To(Equal("1.18"))
+					Expect(summaries).To(HaveLen(1))
+
+					ngSummary := *summaries[0]
+					Expect(ngSummary).To(Equal(manager.NodeGroupSummary{
+						StackName:            "",
+						Cluster:              clusterName,
+						Name:                 ngName,
+						Status:               "my-status",
+						MaxSize:              4,
+						MinSize:              0,
+						DesiredCapacity:      2,
+						InstanceType:         "-",
+						ImageID:              "ami-type",
+						CreationTime:         t,
+						NodeInstanceRoleARN:  "node-role",
+						AutoScalingGroupName: "asg-name",
+						Version:              "1.18",
+					}))
 				})
 			})
 
@@ -224,18 +234,22 @@ var _ = Describe("Get", func() {
 				It("returns all ASG names in the summary", func() {
 					summary, err := m.Get(ngName)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(summary.AutoScalingGroupName).To(Equal("asg-1,asg-2"))
-					Expect(summary.Name).To(Equal(ngName))
-					Expect(summary.Cluster).To(Equal(clusterName))
-					Expect(summary.Status).To(Equal("my-status"))
-					Expect(summary.MaxSize).To(Equal(4))
-					Expect(summary.MinSize).To(Equal(0))
-					Expect(summary.DesiredCapacity).To(Equal(2))
-					Expect(summary.InstanceType).To(Equal("m5.xlarge"))
-					Expect(summary.ImageID).To(Equal("ami-type"))
-					Expect(summary.CreationTime).To(Equal(&t))
-					Expect(summary.NodeInstanceRoleARN).To(Equal("node-role"))
-					Expect(summary.Version).To(Equal("1.18"))
+
+					Expect(*summary).To(Equal(manager.NodeGroupSummary{
+						StackName:            "",
+						Cluster:              clusterName,
+						Name:                 ngName,
+						Status:               "my-status",
+						MaxSize:              4,
+						MinSize:              0,
+						DesiredCapacity:      2,
+						InstanceType:         "m5.xlarge",
+						ImageID:              "ami-type",
+						CreationTime:         t,
+						NodeInstanceRoleARN:  "node-role",
+						AutoScalingGroupName: "asg-1,asg-2",
+						Version:              "1.18",
+					}))
 				})
 			})
 
@@ -294,22 +308,96 @@ var _ = Describe("Get", func() {
 				It("returns a summary of the node group with the instance type from the launch template", func() {
 					fakeStackManager.DescribeNodeGroupStackReturns(nil, fmt.Errorf("error describing cloudformation stack"))
 
-					ngSummary, err := m.GetAll()
+					summaries, err := m.GetAll()
 					Expect(err).NotTo(HaveOccurred())
-					Expect(ngSummary[0].StackName).To(Equal(""))
-					Expect(ngSummary[0].Name).To(Equal(ngName))
-					Expect(ngSummary[0].Cluster).To(Equal(clusterName))
-					Expect(ngSummary[0].Status).To(Equal("my-status"))
-					Expect(ngSummary[0].MaxSize).To(Equal(4))
-					Expect(ngSummary[0].MinSize).To(Equal(0))
-					Expect(ngSummary[0].DesiredCapacity).To(Equal(2))
-					Expect(ngSummary[0].InstanceType).To(Equal("big"))
-					Expect(ngSummary[0].ImageID).To(Equal("ami-type"))
-					Expect(ngSummary[0].CreationTime).To(Equal(&t))
-					Expect(ngSummary[0].NodeInstanceRoleARN).To(Equal("node-role"))
-					Expect(ngSummary[0].AutoScalingGroupName).To(Equal("asg-name"))
-					Expect(ngSummary[0].Version).To(Equal("1.18"))
+					Expect(summaries).To(HaveLen(1))
+
+					ngSummary := *summaries[0]
+					Expect(ngSummary).To(Equal(manager.NodeGroupSummary{
+						StackName:            "",
+						Cluster:              clusterName,
+						Name:                 ngName,
+						Status:               "my-status",
+						MaxSize:              4,
+						MinSize:              0,
+						DesiredCapacity:      2,
+						InstanceType:         "big",
+						ImageID:              "ami-type",
+						CreationTime:         t,
+						NodeInstanceRoleARN:  "node-role",
+						AutoScalingGroupName: "asg-name",
+						Version:              "1.18",
+					}))
 				})
+			})
+		})
+
+		When("a nodegroup has a custom AMI", func() {
+			BeforeEach(func() {
+				p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+					ClusterName:   aws.String(clusterName),
+					NodegroupName: aws.String(ngName),
+				}).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(1))
+					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeNodegroupInput{
+						ClusterName:   aws.String(clusterName),
+						NodegroupName: aws.String(ngName),
+					}))
+				}).Return(&awseks.DescribeNodegroupOutput{
+					Nodegroup: &awseks.Nodegroup{
+						NodegroupName: aws.String(ngName),
+						ClusterName:   aws.String(clusterName),
+						Status:        aws.String("my-status"),
+						ScalingConfig: &awseks.NodegroupScalingConfig{
+							DesiredSize: aws.Int64(2),
+							MaxSize:     aws.Int64(4),
+							MinSize:     aws.Int64(0),
+						},
+						InstanceTypes:  aws.StringSlice([]string{"m5.xlarge"}),
+						AmiType:        aws.String("CUSTOM"),
+						CreatedAt:      &t,
+						NodeRole:       aws.String("node-role"),
+						ReleaseVersion: aws.String("ami-custom"),
+						Resources: &awseks.NodegroupResources{
+							AutoScalingGroups: []*awseks.AutoScalingGroup{
+								{
+									Name: aws.String("asg-1"),
+								},
+								{
+									Name: aws.String("asg-2"),
+								},
+							},
+						},
+						Version: aws.String("1.18"),
+					},
+				}, nil)
+
+				fakeStackManager.DescribeNodeGroupStackReturns(&cloudformation.Stack{
+					StackName: aws.String(stackName),
+				}, nil)
+			})
+
+			It("returns the AMI ID instead of `CUSTOM`", func() {
+				summaries, err := m.GetAll()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(summaries).To(HaveLen(1))
+
+				ngSummary := *summaries[0]
+				Expect(ngSummary).To(Equal(manager.NodeGroupSummary{
+					StackName:            "",
+					Cluster:              clusterName,
+					Name:                 ngName,
+					Status:               "my-status",
+					MaxSize:              4,
+					MinSize:              0,
+					DesiredCapacity:      2,
+					InstanceType:         "m5.xlarge",
+					ImageID:              "ami-custom",
+					CreationTime:         t,
+					NodeInstanceRoleARN:  "node-role",
+					AutoScalingGroupName: "asg-1,asg-2",
+					Version:              "1.18",
+				}))
 			})
 		})
 
@@ -359,12 +447,23 @@ var _ = Describe("Get", func() {
 					fakeStackManager.GetUnmanagedNodeGroupSummariesReturns([]*manager.NodeGroupSummary{
 						{
 							DesiredCapacity: 0,
+							Cluster:         clusterName,
+							Name:            ngName,
 						},
 					}, nil)
 
-					ngSummary, err := m.GetAll()
+					summaries, err := m.GetAll()
 					Expect(err).NotTo(HaveOccurred())
-					Expect(ngSummary[0].Version).To(Equal(""))
+					Expect(summaries).To(HaveLen(2))
+
+					unmanagedSummary := *summaries[0]
+					Expect(unmanagedSummary).To(Equal(manager.NodeGroupSummary{
+						StackName:       "",
+						Cluster:         clusterName,
+						Name:            ngName,
+						DesiredCapacity: 0,
+						Version:         "",
+					}))
 				})
 			})
 		})
