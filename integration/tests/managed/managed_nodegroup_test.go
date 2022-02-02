@@ -157,7 +157,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 	)
 
 	Context("cluster with 1 al2 managed nodegroup", func() {
-		FIt("supports adding bottlerocket and ubuntu nodegroups with additional volumes", func() {
+		It("supports adding bottlerocket and ubuntu nodegroups with additional volumes", func() {
 			clusterConfig := makeClusterConfig()
 			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
 				{
