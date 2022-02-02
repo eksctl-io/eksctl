@@ -1078,6 +1078,20 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 							Expect(ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.BlockDeviceMappings).To(HaveLen(1))
 						})
 					})
+					When("VolumeName is empty", func() {
+						BeforeEach(func() {
+							ng.AdditionalVolumes = []*api.VolumeMapping{
+								{
+									VolumeSize:      aws.Int(20),
+									VolumeType:      aws.String(api.NodeVolumeTypeGP3),
+									VolumeEncrypted: aws.Bool(true),
+								},
+							}
+						})
+						It("does not add the new volume", func() {
+							Expect(ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.BlockDeviceMappings).To(HaveLen(1))
+						})
+					})
 				})
 			})
 

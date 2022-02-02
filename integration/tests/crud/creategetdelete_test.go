@@ -420,6 +420,11 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 							Name:         "test-containerd",
 							AMIFamily:    api.NodeImageFamilyAmazonLinux2,
 							InstanceType: "p2.xlarge",
+							AdditionalVolumes: []*api.VolumeMapping{
+								{
+									VolumeName: aws.String("/dev/sdb"),
+								},
+							},
 						},
 						ContainerRuntime: aws.String(api.ContainerRuntimeContainerD),
 					},
