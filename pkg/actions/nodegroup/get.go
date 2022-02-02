@@ -32,50 +32,25 @@ func (m *Manager) GetAll() ([]*manager.NodeGroupSummary, error) {
 	}
 
 	managedNodeGroups, err := m.ctl.Provider.EKS().ListNodegroups(&eks.ListNodegroupsInput{
-		ClusterName: &m.cfg.Metadata.Name,
+		ClusterName: aws.String(m.cfg.Metadata.Name),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	for _, managedNodeGroup := range managedNodeGroups.Nodegroups {
-		describeOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
-			ClusterName:   &m.cfg.Metadata.Name,
-			NodegroupName: managedNodeGroup,
-		})
-		if err != nil {
-			return nil, err
-		}
-
+	for _, ngName := range managedNodeGroups.Nodegroups {
 		var stack *cloudformation.Stack
-		stack, err = m.stackManager.DescribeNodeGroupStack(*managedNodeGroup)
+		stack, err = m.stackManager.DescribeNodeGroupStack(*ngName)
 		if err != nil {
 			stack = &cloudformation.Stack{}
 		}
 
-		asgs := []string{}
-
-		if describeOutput.Nodegroup.Resources != nil {
-			for _, v := range describeOutput.Nodegroup.Resources.AutoScalingGroups {
-				asgs = append(asgs, aws.StringValue(v.Name))
-			}
+		summary, err := m.makeManagedNGSummary(*ngName)
+		if err != nil {
+			return nil, err
 		}
-
-		summaries = append(summaries, &manager.NodeGroupSummary{
-			StackName:            aws.StringValue(stack.StackName),
-			Name:                 *describeOutput.Nodegroup.NodegroupName,
-			Cluster:              *describeOutput.Nodegroup.ClusterName,
-			Status:               *describeOutput.Nodegroup.Status,
-			MaxSize:              int(*describeOutput.Nodegroup.ScalingConfig.MaxSize),
-			MinSize:              int(*describeOutput.Nodegroup.ScalingConfig.MinSize),
-			DesiredCapacity:      int(*describeOutput.Nodegroup.ScalingConfig.DesiredSize),
-			InstanceType:         m.getInstanceTypes(describeOutput.Nodegroup),
-			ImageID:              *describeOutput.Nodegroup.AmiType,
-			CreationTime:         describeOutput.Nodegroup.CreatedAt,
-			NodeInstanceRoleARN:  *describeOutput.Nodegroup.NodeRole,
-			AutoScalingGroupName: strings.Join(asgs, ","),
-			Version:              getOptionalValue(describeOutput.Nodegroup.Version),
-		})
+		summary.StackName = aws.StringValue(stack.StackName)
+		summaries = append(summaries, summary)
 	}
 
 	return summaries, nil
@@ -98,35 +73,49 @@ func (m *Manager) Get(name string) (*manager.NodeGroupSummary, error) {
 		return s, nil
 	}
 
+	return m.makeManagedNGSummary(name)
+}
+
+func (m *Manager) makeManagedNGSummary(nodeGroupName string) (*manager.NodeGroupSummary, error) {
 	describeOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
-		ClusterName:   &m.cfg.Metadata.Name,
-		NodegroupName: &name,
+		ClusterName:   aws.String(m.cfg.Metadata.Name),
+		NodegroupName: aws.String(nodeGroupName),
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
+	ng := describeOutput.Nodegroup
+
 	var asgs []string
-	if describeOutput.Nodegroup.Resources != nil {
-		for _, asg := range describeOutput.Nodegroup.Resources.AutoScalingGroups {
+	if ng.Resources != nil {
+		for _, asg := range ng.Resources.AutoScalingGroups {
 			asgs = append(asgs, aws.StringValue(asg.Name))
 		}
 	}
 
+	var imageID string
+	if *ng.AmiType == awseks.AMITypesCustom {
+		// ReleaseVersion contains the AMI ID for custom AMIs.
+		imageID = *ng.ReleaseVersion
+	} else {
+		imageID = *ng.AmiType
+	}
+
 	return &manager.NodeGroupSummary{
-		Name:                 *describeOutput.Nodegroup.NodegroupName,
-		Cluster:              *describeOutput.Nodegroup.ClusterName,
-		Status:               *describeOutput.Nodegroup.Status,
-		MaxSize:              int(*describeOutput.Nodegroup.ScalingConfig.MaxSize),
-		MinSize:              int(*describeOutput.Nodegroup.ScalingConfig.MinSize),
-		DesiredCapacity:      int(*describeOutput.Nodegroup.ScalingConfig.DesiredSize),
-		InstanceType:         m.getInstanceTypes(describeOutput.Nodegroup),
-		ImageID:              *describeOutput.Nodegroup.AmiType,
-		CreationTime:         describeOutput.Nodegroup.CreatedAt,
-		NodeInstanceRoleARN:  *describeOutput.Nodegroup.NodeRole,
+		Name:                 *ng.NodegroupName,
+		Cluster:              *ng.ClusterName,
+		Status:               *ng.Status,
+		MaxSize:              int(*ng.ScalingConfig.MaxSize),
+		MinSize:              int(*ng.ScalingConfig.MinSize),
+		DesiredCapacity:      int(*ng.ScalingConfig.DesiredSize),
+		InstanceType:         m.getInstanceTypes(ng),
+		ImageID:              imageID,
+		CreationTime:         *ng.CreatedAt,
+		NodeInstanceRoleARN:  *ng.NodeRole,
 		AutoScalingGroupName: strings.Join(asgs, ","),
-		Version:              getOptionalValue(describeOutput.Nodegroup.Version),
+		Version:              getOptionalValue(ng.Version),
 	}, nil
 }
 
