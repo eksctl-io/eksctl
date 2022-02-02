@@ -4,12 +4,14 @@
 package managed
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	awsec2 "github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	harness "github.com/dlespiau/kube-test-harness"
 	. "github.com/onsi/ginkgo"
@@ -207,6 +209,43 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				WithStdin(clusterutils.Reader(clusterConfig))
 
 			Expect(cmd).To(RunSuccessfully())
+
+			config, err := clientcmd.BuildConfigFromFlags("", params.KubeconfigPath)
+			Expect(err).NotTo(HaveOccurred())
+			clientSet, err := kubernetes.NewForConfig(config)
+			Expect(err).NotTo(HaveOccurred())
+			nodes, err := clientSet.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			var instanceIDs []string
+			for _, node := range nodes.Items {
+				// we only care about bottlerocket
+				if node.Labels[api.NodeGroupNameLabel] != bottlerocketNodegroup {
+					continue
+				}
+				// aws:///us-west-2c/i-00bb587a7011eb63c
+				split := strings.Split(node.Spec.ProviderID, "/")
+				id := split[len(split)-1]
+				Expect(strings.HasPrefix(id, "i")).To(
+					BeTrue(),
+					fmt.Sprintf("provider ID %q should have instance ID format aws:///us-west-2c/i-00bb587a7011eb63c", node.Spec.ProviderID),
+				)
+				instanceIDs = append(instanceIDs, id)
+			}
+			awsSession := NewSession(params.Region)
+			ec2 := awsec2.New(awsSession)
+			instances, err := ec2.DescribeInstances(&awsec2.DescribeInstancesInput{
+				InstanceIds: aws.StringSlice(instanceIDs),
+			})
+			Expect(err).NotTo(HaveOccurred())
+			for _, res := range instances.Reservations {
+				var deviceNames []string
+				for _, instance := range res.Instances {
+					for _, mapping := range instance.BlockDeviceMappings {
+						deviceNames = append(deviceNames, *mapping.DeviceName)
+					}
+					Expect(deviceNames).To(ContainElement("/dev/sdb"))
+				}
+			}
 
 			By("correctly configuring the bottlerocket nodegroup")
 			kubeTest, err := kube.NewTest(params.KubeconfigPath)
