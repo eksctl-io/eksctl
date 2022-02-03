@@ -764,7 +764,7 @@ func validateNodeGroupIAMWithAddonPolicies(
 func validateDeprecatedIAMFields(iam *NodeGroupIAM) error {
 	if IsEnabled(iam.WithAddonPolicies.DeprecatedALBIngress) {
 		if IsEnabled(iam.WithAddonPolicies.AWSLoadBalancerController) {
-			return fmt.Errorf(`"awsLoadBalancerController" and "albIngress" cannot both be configured,` +
+			return fmt.Errorf(`"awsLoadBalancerController" and "albIngress" cannot both be configured, ` +
 				`please use "awsLoadBalancerController" as "albIngress" is deprecated`)
 		}
 		logger.Warning("nodegroup.iam.WithAddonPolicies.albIngress field is deprecated, please us awsLoadBalancerController instead")
