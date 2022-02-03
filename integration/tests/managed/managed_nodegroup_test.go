@@ -157,10 +157,10 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 	)
 
 	Context("cluster with 1 al2 managed nodegroup", func() {
-		It("supports adding bottlerocket and ubuntu nodegroups", func() {
+		It("supports adding bottlerocket and ubuntu nodegroups with additional volumes", func() {
 			clusterConfig := makeClusterConfig()
 			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
-				&api.ManagedNodeGroup{
+				{
 					NodeGroupBase: &api.NodeGroupBase{
 						Name:       bottlerocketNodegroup,
 						VolumeSize: aws.Int(35),
@@ -174,6 +174,11 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 								},
 							},
 						},
+						AdditionalVolumes: []*api.VolumeMapping{
+							{
+								VolumeName: aws.String("/dev/sdb"),
+							},
+						},
 					},
 					Taints: []api.NodeGroupTaint{
 						{
@@ -183,7 +188,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 						},
 					},
 				},
-				&api.ManagedNodeGroup{
+				{
 					NodeGroupBase: &api.NodeGroupBase{
 						Name:       ubuntuNodegroup,
 						VolumeSize: aws.Int(25),
@@ -202,6 +207,8 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				WithStdin(clusterutils.Reader(clusterConfig))
 
 			Expect(cmd).To(RunSuccessfully())
+
+			tests.AssertNodeVolumes(params.KubeconfigPath, params.Region, bottlerocketNodegroup, "/dev/sdb")
 
 			By("correctly configuring the bottlerocket nodegroup")
 			kubeTest, err := kube.NewTest(params.KubeconfigPath)
