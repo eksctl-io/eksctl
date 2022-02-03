@@ -40,24 +40,22 @@ func ListNodes(clientset kubernetes.Interface, nodeGroupName string) *corev1.Nod
 	return nodeList
 }
 
-func AssertNodeVolumes(kubeConfig string, region string, nodeGroupName string, volumeName string) {
+func AssertNodeVolumes(kubeConfig, region, nodeGroupName, volumeName string) {
 	config, err := clientcmd.BuildConfigFromFlags("", kubeConfig)
 	Expect(err).NotTo(HaveOccurred())
 	clientSet, err := kubernetes.NewForConfig(config)
 	Expect(err).NotTo(HaveOccurred())
-	nodes, err := clientSet.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+	nodes, err := clientSet.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("%s=%s", api.NodeGroupNameLabel, nodeGroupName),
+	})
 	Expect(err).NotTo(HaveOccurred())
 	var instanceIDs []string
 	for _, node := range nodes.Items {
-		// only test instances in this nodegroup, any other should be ignored.
-		if node.Labels[api.NodeGroupNameLabel] != nodeGroupName {
-			continue
-		}
 		// aws:///us-west-2c/i-00bb587a7011eb63c
 		split := strings.Split(node.Spec.ProviderID, "/")
 		id := split[len(split)-1]
-		Expect(strings.HasPrefix(id, "i")).To(
-			BeTrue(),
+		Expect(id).To(
+			HavePrefix("i"),
 			fmt.Sprintf("provider ID %q should have instance ID format aws:///us-west-2c/i-00bb587a7011eb63c", node.Spec.ProviderID),
 		)
 		instanceIDs = append(instanceIDs, id)
