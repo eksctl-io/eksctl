@@ -10,6 +10,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
@@ -36,7 +37,7 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 
 		var roleName string
 		for _, o := range stack.Outputs {
-			if aws.StringValue(o.OutputKey) != "Role1" {
+			if aws.StringValue(o.OutputKey) != outputs.IAMServiceAccountRoleName {
 				continue
 			}
 			roleArn, err := arn.Parse(aws.StringValue(o.OutputValue))

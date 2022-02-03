@@ -10,6 +10,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 )
 
@@ -50,7 +51,7 @@ var _ = Describe("Update", func() {
 					StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
 					Outputs: []*cloudformation.Output{
 						{
-							OutputKey:   aws.String("Role1"),
+							OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
 							OutputValue: aws.String("arn:aws:iam::123456789111:role/test-role"),
 						},
 					},
@@ -82,7 +83,7 @@ var _ = Describe("Update", func() {
 						StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
 						Outputs: []*cloudformation.Output{
 							{
-								OutputKey:   aws.String("Role1"),
+								OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
 								OutputValue: aws.String("arn:aws:iam::123456789111:role/test-role"),
 							},
 						},
@@ -105,7 +106,7 @@ var _ = Describe("Update", func() {
 						StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
 						Outputs: []*cloudformation.Output{
 							{
-								OutputKey:   aws.String("Role1"),
+								OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
 								OutputValue: aws.String("arn:aws:iam::123456789111:role/test-role"),
 							},
 						},
@@ -123,7 +124,7 @@ var _ = Describe("Update", func() {
 						StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
 						Outputs: []*cloudformation.Output{
 							{
-								OutputKey:   aws.String("Role1"),
+								OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
 								OutputValue: aws.String("invalid-arn"),
 							},
 						},
@@ -141,7 +142,7 @@ var _ = Describe("Update", func() {
 						StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
 						Outputs: []*cloudformation.Output{
 							{
-								OutputKey:   aws.String("Role1"),
+								OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
 								OutputValue: aws.String("arn:aws:iam::123456789111:asdf"),
 							},
 						},
