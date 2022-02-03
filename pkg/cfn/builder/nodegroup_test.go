@@ -484,6 +484,19 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				})
 			})
 
+			Context("ng.WithAddonPolicies.DeprecatedALBIngress is set", func() {
+				BeforeEach(func() {
+					ng.IAM.WithAddonPolicies.DeprecatedALBIngress = aws.Bool(true)
+				})
+
+				It("adds PolicyAWSLoadBalancerController to the role", func() {
+					Expect(ngTemplate.Resources).To(HaveKey("PolicyAWSLoadBalancerController"))
+
+					Expect(ngTemplate.Resources["PolicyAWSLoadBalancerController"].Properties.Roles).To(HaveLen(1))
+					Expect(isRefTo(ngTemplate.Resources["PolicyAWSLoadBalancerController"].Properties.Roles[0], "NodeInstanceRole")).To(BeTrue())
+				})
+			})
+
 			Context("ng.WithAddonPolicies.XRay is set", func() {
 				BeforeEach(func() {
 					ng.IAM.WithAddonPolicies.XRay = aws.Bool(true)
