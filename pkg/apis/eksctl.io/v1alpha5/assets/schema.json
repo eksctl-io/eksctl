@@ -917,6 +917,14 @@
         "name"
       ],
       "properties": {
+        "additionalVolumes": {
+          "items": {
+            "$ref": "#/definitions/VolumeMapping"
+          },
+          "type": "array",
+          "description": "Additional Volume Configurations",
+          "x-intellij-html-description": "Additional Volume Configurations"
+        },
         "ami": {
           "type": "string",
           "description": "Specify [custom AMIs](/usage/custom-ami-support/), `auto-ssm`, `auto`, or `static`",
@@ -1174,6 +1182,7 @@
         "volumeKmsKeyID",
         "volumeIOPS",
         "volumeThroughput",
+        "additionalVolumes",
         "preBootstrapCommands",
         "overrideBootstrapCommand",
         "disableIMDSv1",
@@ -1222,6 +1231,14 @@
         "name"
       ],
       "properties": {
+        "additionalVolumes": {
+          "items": {
+            "$ref": "#/definitions/VolumeMapping"
+          },
+          "type": "array",
+          "description": "Additional Volume Configurations",
+          "x-intellij-html-description": "Additional Volume Configurations"
+        },
         "ami": {
           "type": "string",
           "description": "Specify [custom AMIs](/usage/custom-ami-support/), `auto-ssm`, `auto`, or `static`",
@@ -1497,6 +1514,7 @@
         "volumeKmsKeyID",
         "volumeIOPS",
         "volumeThroughput",
+        "additionalVolumes",
         "preBootstrapCommands",
         "overrideBootstrapCommand",
         "disableIMDSv1",
@@ -1952,6 +1970,60 @@
       "additionalProperties": false,
       "description": "defines the configuration for KMS encryption provider",
       "x-intellij-html-description": "defines the configuration for KMS encryption provider"
+    },
+    "VolumeMapping": {
+      "properties": {
+        "snapshotID": {
+          "type": "string"
+        },
+        "volumeEncrypted": {
+          "type": "boolean"
+        },
+        "volumeIOPS": {
+          "type": "integer"
+        },
+        "volumeKmsKeyID": {
+          "type": "string"
+        },
+        "volumeName": {
+          "type": "string"
+        },
+        "volumeSize": {
+          "type": "integer",
+          "description": "gigabytes",
+          "x-intellij-html-description": "gigabytes",
+          "default": 80
+        },
+        "volumeThroughput": {
+          "type": "integer"
+        },
+        "volumeType": {
+          "type": "string",
+          "description": "Valid variants are: `\"gp2\"` is General Purpose SSD, `\"gp3\"` is General Purpose SSD which can be optimised for high throughput (default), `\"io1\"` is Provisioned IOPS SSD, `\"sc1\"` is Cold HDD, `\"st1\"` is Throughput Optimized HDD.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;gp2&quot;</code> is General Purpose SSD, <code>&quot;gp3&quot;</code> is General Purpose SSD which can be optimised for high throughput (default), <code>&quot;io1&quot;</code> is Provisioned IOPS SSD, <code>&quot;sc1&quot;</code> is Cold HDD, <code>&quot;st1&quot;</code> is Throughput Optimized HDD.",
+          "default": "gp3",
+          "enum": [
+            "gp2",
+            "gp3",
+            "io1",
+            "sc1",
+            "st1"
+          ]
+        }
+      },
+      "preferredOrder": [
+        "volumeSize",
+        "volumeType",
+        "volumeName",
+        "volumeEncrypted",
+        "volumeKmsKeyID",
+        "volumeIOPS",
+        "volumeThroughput",
+        "snapshotID"
+      ],
+      "additionalProperties": false,
+      "description": "Additional Volume Configurations",
+      "x-intellij-html-description": "Additional Volume Configurations"
     },
     "WellKnownPolicies": {
       "properties": {

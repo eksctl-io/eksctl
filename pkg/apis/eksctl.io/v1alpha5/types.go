@@ -1218,6 +1218,29 @@ type NodePool interface {
 	NGTaints() []NodeGroupTaint
 }
 
+// VolumeMapping Additional Volume Configurations
+type VolumeMapping struct {
+	// +optional
+	// VolumeSize gigabytes
+	// Defaults to `80`
+	VolumeSize *int `json:"volumeSize,omitempty"`
+	// Valid variants are `VolumeType` constants
+	// +optional
+	VolumeType *string `json:"volumeType,omitempty"`
+	// +optional
+	VolumeName *string `json:"volumeName,omitempty"`
+	// +optional
+	VolumeEncrypted *bool `json:"volumeEncrypted,omitempty"`
+	// +optional
+	VolumeKmsKeyID *string `json:"volumeKmsKeyID,omitempty"`
+	// +optional
+	VolumeIOPS *int `json:"volumeIOPS,omitempty"`
+	// +optional
+	VolumeThroughput *int `json:"volumeThroughput,omitempty"`
+	// +optional
+	SnapshotID *string `json:"snapshotID,omitempty"`
+}
+
 // NodeGroupBase represents the base nodegroup config for self-managed and managed nodegroups
 type NodeGroupBase struct {
 	// +required
@@ -1298,6 +1321,10 @@ type NodeGroupBase struct {
 	VolumeIOPS *int `json:"volumeIOPS,omitempty"`
 	// +optional
 	VolumeThroughput *int `json:"volumeThroughput,omitempty"`
+
+	// Additional Volume Configurations
+	// +optional
+	AdditionalVolumes []*VolumeMapping `json:"additionalVolumes,omitempty"`
 
 	// PreBootstrapCommands are executed before bootstrapping instances to the
 	// cluster

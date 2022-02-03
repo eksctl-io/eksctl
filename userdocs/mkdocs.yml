@@ -40,6 +40,7 @@ nav:
             - usage/custom-ami-support.md
             - usage/container-runtime.md
             - usage/windows-worker-nodes.md
+            - usage/nodegroup-additional-volume-mappings.md
         - GitOps:
             - usage/gitops-v2.md
         - Security:
