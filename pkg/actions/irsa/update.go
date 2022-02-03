@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/kris-nova/logger"
 
-	"github.com/weaveworks/eksctl/pkg/utils/tasks"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
 func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMServiceAccount, plan bool) error {
@@ -27,12 +27,36 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 	for _, iamServiceAccount := range iamServiceAccounts {
 		stackName := makeIAMServiceAccountStackName(a.clusterName, iamServiceAccount.Namespace, iamServiceAccount.Name)
 
-		if _, ok := existingIAMStacksMap[stackName]; !ok {
+		stack, ok := existingIAMStacksMap[stackName]
+		if !ok {
 			logger.Info("cannot update IAMServiceAccount %s/%s as it does not exist", iamServiceAccount.Namespace, iamServiceAccount.Name)
 			nonExistingSAs = append(nonExistingSAs, fmt.Sprintf("%s/%s", iamServiceAccount.Namespace, iamServiceAccount.Name))
 			continue
 		}
 
+		var roleName string
+		for _, o := range stack.Outputs {
+			if aws.StringValue(o.OutputKey) != "Role1" {
+				continue
+			}
+			roleArn, err := arn.Parse(aws.StringValue(o.OutputValue))
+			if err != nil {
+				return fmt.Errorf("failed to parse role arn %q: %w", aws.StringValue(o.OutputValue), err)
+			}
+			start := strings.IndexRune(roleArn.Resource, '/')
+			if start == -1 {
+				return fmt.Errorf("failed to parse resource: %s", roleArn.Resource)
+			}
+			roleName = roleArn.Resource[start+1:]
+			logger.Info("found role name %q for service account role", roleName)
+			break
+		}
+
+		if roleName == "" {
+			return fmt.Errorf("failed to find role name for Role1 for service account: %s", iamServiceAccount.Name)
+		}
+
+		iamServiceAccount.RoleName = roleName
 		taskTree, err := NewUpdateIAMServiceAccountTask(a.clusterName, iamServiceAccount, a.stackManager, a.oidcManager)
 		if err != nil {
 			return err
@@ -49,10 +73,10 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 
 }
 
-func listToSet(stacks []*manager.Stack) map[string]struct{} {
-	stacksMap := make(map[string]struct{})
+func listToSet(stacks []*manager.Stack) map[string]*manager.Stack {
+	stacksMap := make(map[string]*manager.Stack)
 	for _, stack := range stacks {
-		stacksMap[*stack.StackName] = struct{}{}
+		stacksMap[*stack.StackName] = stack
 	}
 	return stacksMap
 }
