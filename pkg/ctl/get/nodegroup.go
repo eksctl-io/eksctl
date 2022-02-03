@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/kris-nova/logger"
+
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 
 	"github.com/pkg/errors"
@@ -136,5 +137,8 @@ func addSummaryTableColumns(printer *printers.TablePrinter) {
 	})
 	printer.AddColumn("ASG NAME", func(s *manager.NodeGroupSummary) string {
 		return s.AutoScalingGroupName
+	})
+	printer.AddColumn("TYPE", func(s *manager.NodeGroupSummary) api.NodeGroupType {
+		return s.NodeGroupType
 	})
 }

@@ -53,21 +53,20 @@ var _ = Describe("StackCollection NodeGroup", func() {
 		return cfg
 	}
 
-	newNodeGroup := func(cfg *api.ClusterConfig) *api.NodeGroup {
+	newNodeGroup := func(cfg *api.ClusterConfig) {
 		ng := cfg.NewNodeGroup()
 		ng.InstanceType = "t2.medium"
 		ng.AMIFamily = "AmazonLinux2"
 		ng.Name = "12345"
-
-		return ng
 	}
 
 	Describe("GetUnmanagedNodeGroupSummaries", func() {
 		Context("With a cluster name", func() {
 			var (
-				clusterName string
-				err         error
-				out         []*NodeGroupSummary
+				clusterName  string
+				err          error
+				out          []*NodeGroupSummary
+				creationTime = time.Now()
 			)
 
 			JustBeforeEach(func() {
@@ -110,11 +109,15 @@ var _ = Describe("StackCollection NodeGroup", func() {
 							StackName:    aws.String("eksctl-test-cluster-nodegroup-12345"),
 							StackId:      aws.String("eksctl-test-cluster-nodegroup-12345-id"),
 							StackStatus:  aws.String("CREATE_COMPLETE"),
-							CreationTime: aws.Time(time.Now()),
+							CreationTime: aws.Time(creationTime),
 							Tags: []*cfn.Tag{
 								{
 									Key:   aws.String(api.NodeGroupNameTag),
 									Value: aws.String("12345"),
+								},
+								{
+									Key:   aws.String(api.ClusterNameTag),
+									Value: aws.String(clusterName),
 								},
 							},
 							Outputs: []*cfn.Output{
@@ -199,11 +202,23 @@ var _ = Describe("StackCollection NodeGroup", func() {
 
 				It("the output should equal the expectation", func() {
 					Expect(out).To(HaveLen(1))
-					Expect(out[0].StackName).To(Equal("eksctl-test-cluster-nodegroup-12345"))
-					Expect(out[0].NodeInstanceRoleARN).To(Equal("arn:aws:iam::1111:role/eks-nodes-base-role"))
-					Expect(out[0].DesiredCapacity).To(Equal(7))
-					Expect(out[0].MinSize).To(Equal(1))
-					Expect(out[0].MaxSize).To(Equal(10))
+					summary := *out[0]
+					Expect(summary).To(Equal(NodeGroupSummary{
+						StackName:            "eksctl-test-cluster-nodegroup-12345",
+						Cluster:              clusterName,
+						Name:                 "12345",
+						Status:               "CREATE_COMPLETE",
+						MaxSize:              10,
+						MinSize:              1,
+						DesiredCapacity:      7,
+						InstanceType:         "",
+						ImageID:              "",
+						CreationTime:         creationTime,
+						NodeInstanceRoleARN:  "arn:aws:iam::1111:role/eks-nodes-base-role",
+						AutoScalingGroupName: "eksctl-test-cluster-nodegroup-12345-NodeGroup-1N68LL8H1EH27",
+						Version:              "",
+						NodeGroupType:        "unmanaged",
+					}))
 				})
 			})
 		})
@@ -247,7 +262,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				},
 				api.NodeGroupTypeUnmanaged),
 
-			Entry("finds the type of an legacy un-managed nodegroup",
+			Entry("finds the type of a legacy un-managed nodegroup",
 				map[string]string{
 					api.OldNodeGroupNameTag: "ng-1",
 					api.NodeGroupTypeTag:    "unmanaged",
