@@ -5,13 +5,19 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/kris-nova/logger"
+	"github.com/tidwall/gjson"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
+)
+
+const (
+	resourcesPath  = "Resources"
+	propertiesPath = "Properties"
+	roleNamePath   = "RoleName"
 )
 
 func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMServiceAccount, plan bool) error {
@@ -35,12 +41,15 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 			continue
 		}
 
-		roleName, err := getRoleNameFromStack(stack)
+		roleName, err := a.getRoleNameFromStackTemplate(stack)
 		if err != nil {
 			return err
 		}
+		if roleName != "" {
+			logger.Info("found set role name during creation %s for account %s", roleName, iamServiceAccount.Name)
+			iamServiceAccount.RoleName = roleName
+		}
 
-		iamServiceAccount.RoleName = roleName
 		taskTree, err := NewUpdateIAMServiceAccountTask(a.clusterName, iamServiceAccount, a.stackManager, a.oidcManager)
 		if err != nil {
 			return err
@@ -57,28 +66,18 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 
 }
 
-func getRoleNameFromStack(stack *manager.Stack) (string, error) {
-	var roleName string
-	for _, o := range stack.Outputs {
-		if aws.StringValue(o.OutputKey) != outputs.IAMServiceAccountRoleName {
-			continue
-		}
-		roleArn, err := arn.Parse(aws.StringValue(o.OutputValue))
-		if err != nil {
-			return "", fmt.Errorf("failed to parse role arn %q: %w", aws.StringValue(o.OutputValue), err)
-		}
-		start := strings.IndexRune(roleArn.Resource, '/')
-		if start == -1 {
-			return "", fmt.Errorf("failed to parse resource: %s", roleArn.Resource)
-		}
-		roleName = roleArn.Resource[start+1:]
-		logger.Info("found role name %q for service account role", roleName)
-		break
+// getRoleNameFromStackTemplate returns the role if the initial stack's template contained it.
+// That means it was defined upon creation, and we need to re-use that same name.
+func (a *Manager) getRoleNameFromStackTemplate(stack *manager.Stack) (string, error) {
+	template, err := a.stackManager.GetStackTemplate(aws.StringValue(stack.StackName))
+	if err != nil {
+		return "", fmt.Errorf("failed to get stack template: %w", err)
 	}
-	if roleName == "" {
-		return "", fmt.Errorf("failed to find role name service account")
+	resources := gjson.Get(template, resourcesPath)
+	if !resources.Get(outputs.IAMServiceAccountRoleName).Exists() {
+		return "", nil
 	}
-	return roleName, nil
+	return resources.Get(outputs.IAMServiceAccountRoleName).Get(propertiesPath).Get(roleNamePath).String(), nil
 }
 
 func listToSet(stacks []*manager.Stack) map[string]*manager.Stack {
