@@ -104,19 +104,24 @@ var _ = Describe("Update", func() {
 				fakeStackManager.ListStacksMatchingReturns([]*cloudformation.Stack{
 					{
 						StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
-						Outputs: []*cloudformation.Output{
-							{
-								OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
-								OutputValue: aws.String("arn:aws:iam::123456789111:role/test-role"),
-							},
-						},
 					},
 				}, nil)
 
 				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, false)
-				Expect(err).NotTo(HaveOccurred())
+				Expect(err).To(MatchError(ContainSubstring("failed to find role name for Role1 for service account: test-sa")))
 			})
 		})
+
+		When("the service account doesn't exist", func() {
+			It("errors", func() {
+				fakeStackManager.ListStacksMatchingReturns([]*cloudformation.Stack{}, nil)
+
+				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, false)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fakeStackManager.UpdateStackCallCount()).To(BeZero())
+			})
+		})
+
 		When("the role arn has an invalid format", func() {
 			It("errors", func() {
 				fakeStackManager.ListStacksMatchingReturns([]*cloudformation.Stack{
