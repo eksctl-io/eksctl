@@ -10,6 +10,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 )
 
@@ -29,6 +30,7 @@ var _ = Describe("Update", func() {
 					Name:      "test-sa",
 					Namespace: "default",
 				},
+				RoleName:         "test-role",
 				AttachPolicyARNs: []string{"arn-123"},
 			},
 		}
@@ -47,6 +49,12 @@ var _ = Describe("Update", func() {
 			fakeStackManager.ListStacksMatchingReturns([]*cloudformation.Stack{
 				{
 					StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
+					Outputs: []*cloudformation.Output{
+						{
+							OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
+							OutputValue: aws.String("arn:aws:iam::123456789111:role/test-role"),
+						},
+					},
 				},
 			}, nil)
 
@@ -65,6 +73,7 @@ var _ = Describe("Update", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(options.TemplateData.(manager.TemplateBody))).To(ContainSubstring("arn-123"))
 			Expect(string(options.TemplateData.(manager.TemplateBody))).To(ContainSubstring(":sub\":\"system:serviceaccount:default:test-sa"))
+			Expect(string(options.TemplateData.(manager.TemplateBody))).To(ContainSubstring("\"RoleName\":\"test-role\""))
 		})
 
 		When("in plan mode", func() {
@@ -72,6 +81,12 @@ var _ = Describe("Update", func() {
 				fakeStackManager.ListStacksMatchingReturns([]*cloudformation.Stack{
 					{
 						StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
+						Outputs: []*cloudformation.Output{
+							{
+								OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
+								OutputValue: aws.String("arn:aws:iam::123456789111:role/test-role"),
+							},
+						},
 					},
 				}, nil)
 
@@ -81,6 +96,67 @@ var _ = Describe("Update", func() {
 				Expect(fakeStackManager.ListStacksMatchingCallCount()).To(Equal(1))
 				Expect(fakeStackManager.ListStacksMatchingArgsForCall(0)).To(Equal("eksctl-.*-addon-iamserviceaccount"))
 				Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(0))
+			})
+		})
+
+		When("the role does not exist for a service account", func() {
+			It("errors", func() {
+				fakeStackManager.ListStacksMatchingReturns([]*cloudformation.Stack{
+					{
+						StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
+					},
+				}, nil)
+
+				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, false)
+				Expect(err).To(MatchError(ContainSubstring("failed to find role name service account")))
+			})
+		})
+
+		When("the service account doesn't exist", func() {
+			It("errors", func() {
+				fakeStackManager.ListStacksMatchingReturns([]*cloudformation.Stack{}, nil)
+
+				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, false)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fakeStackManager.UpdateStackCallCount()).To(BeZero())
+			})
+		})
+
+		When("the role arn has an invalid format", func() {
+			It("errors", func() {
+				fakeStackManager.ListStacksMatchingReturns([]*cloudformation.Stack{
+					{
+						StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
+						Outputs: []*cloudformation.Output{
+							{
+								OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
+								OutputValue: aws.String("invalid-arn"),
+							},
+						},
+					},
+				}, nil)
+
+				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, false)
+				Expect(err).To(MatchError(ContainSubstring("failed to parse role arn \"invalid-arn\"")))
+			})
+		})
+
+		When("the role is missing from the arn", func() {
+			It("errors", func() {
+				fakeStackManager.ListStacksMatchingReturns([]*cloudformation.Stack{
+					{
+						StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
+						Outputs: []*cloudformation.Output{
+							{
+								OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
+								OutputValue: aws.String("arn:aws:iam::123456789111:asdf"),
+							},
+						},
+					},
+				}, nil)
+
+				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, false)
+				Expect(err).To(MatchError(ContainSubstring("failed to parse resource: asdf")))
 			})
 		})
 	})
