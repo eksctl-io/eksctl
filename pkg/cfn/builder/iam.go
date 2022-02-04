@@ -273,7 +273,7 @@ func newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary 
 func (*IAMRoleResourceSet) WithIAM() bool { return true }
 
 // WithNamedIAM returns false
-func (rs *IAMRoleResourceSet) WithNamedIAM() bool { return rs.roleName != "" }
+func (rs *IAMRoleResourceSet) WithNamedIAM() bool { return true }
 
 // AddAllResources adds all resources for the stack
 func (rs *IAMRoleResourceSet) AddAllResources() error {
