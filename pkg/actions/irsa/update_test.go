@@ -108,7 +108,7 @@ var _ = Describe("Update", func() {
 				}, nil)
 
 				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, false)
-				Expect(err).To(MatchError(ContainSubstring("failed to find role name for Role1 for service account: test-sa")))
+				Expect(err).To(MatchError(ContainSubstring("failed to find role name service account")))
 			})
 		})
 
@@ -140,6 +140,7 @@ var _ = Describe("Update", func() {
 				Expect(err).To(MatchError(ContainSubstring("failed to parse role arn \"invalid-arn\"")))
 			})
 		})
+
 		When("the role is missing from the arn", func() {
 			It("errors", func() {
 				fakeStackManager.ListStacksMatchingReturns([]*cloudformation.Stack{

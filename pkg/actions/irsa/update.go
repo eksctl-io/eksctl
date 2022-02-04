@@ -35,26 +35,9 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 			continue
 		}
 
-		var roleName string
-		for _, o := range stack.Outputs {
-			if aws.StringValue(o.OutputKey) != outputs.IAMServiceAccountRoleName {
-				continue
-			}
-			roleArn, err := arn.Parse(aws.StringValue(o.OutputValue))
-			if err != nil {
-				return fmt.Errorf("failed to parse role arn %q: %w", aws.StringValue(o.OutputValue), err)
-			}
-			start := strings.IndexRune(roleArn.Resource, '/')
-			if start == -1 {
-				return fmt.Errorf("failed to parse resource: %s", roleArn.Resource)
-			}
-			roleName = roleArn.Resource[start+1:]
-			logger.Info("found role name %q for service account role", roleName)
-			break
-		}
-
-		if roleName == "" {
-			return fmt.Errorf("failed to find role name for Role1 for service account: %s", iamServiceAccount.Name)
+		roleName, err := getRoleNameFromStack(stack)
+		if err != nil {
+			return err
 		}
 
 		iamServiceAccount.RoleName = roleName
@@ -72,6 +55,30 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 	defer logPlanModeWarning(plan && len(iamServiceAccounts) > 0)
 	return doTasks(updateTasks)
 
+}
+
+func getRoleNameFromStack(stack *manager.Stack) (string, error) {
+	var roleName string
+	for _, o := range stack.Outputs {
+		if aws.StringValue(o.OutputKey) != outputs.IAMServiceAccountRoleName {
+			continue
+		}
+		roleArn, err := arn.Parse(aws.StringValue(o.OutputValue))
+		if err != nil {
+			return "", fmt.Errorf("failed to parse role arn %q: %w", aws.StringValue(o.OutputValue), err)
+		}
+		start := strings.IndexRune(roleArn.Resource, '/')
+		if start == -1 {
+			return "", fmt.Errorf("failed to parse resource: %s", roleArn.Resource)
+		}
+		roleName = roleArn.Resource[start+1:]
+		logger.Info("found role name %q for service account role", roleName)
+		break
+	}
+	if roleName == "" {
+		return "", fmt.Errorf("failed to find role name service account")
+	}
+	return roleName, nil
 }
 
 func listToSet(stacks []*manager.Stack) map[string]*manager.Stack {

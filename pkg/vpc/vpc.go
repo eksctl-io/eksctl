@@ -532,7 +532,7 @@ func validatePublicSubnet(subnets []*ec2.Subnet) error {
 		}
 	}
 	if len(legacySubnets) > 0 {
-		return fmt.Errorf("found mis-configured subnets %q. Expected public subnets with property "+
+		return fmt.Errorf("found mis-configured or non-public subnets %q. Expected public subnets with property "+
 			"\"MapPublicIpOnLaunch\" enabled. Without it new nodes won't get an IP assigned", legacySubnets)
 	}
 
