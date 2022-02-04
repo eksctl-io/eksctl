@@ -6,7 +6,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 
@@ -57,14 +56,14 @@ var _ = Describe("template builder for IAM", func() {
 			Expect(t.Resources).To(HaveLen(1))
 			Expect(t.Outputs).To(HaveLen(1))
 
-			Expect(t).To(HaveResource(outputs.IAMServiceAccountRoleName, "AWS::IAM::Role"))
+			Expect(t).To(HaveResource("Role1", "AWS::IAM::Role"))
 
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "AssumeRolePolicyDocument", expectedServiceAccountAssumeRolePolicyDocument))
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "ManagedPolicyArns", `[
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "AssumeRolePolicyDocument", expectedServiceAccountAssumeRolePolicyDocument))
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "ManagedPolicyArns", `[
 			"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
 		]`))
 
-			Expect(t).To(HaveOutputWithValue(outputs.IAMServiceAccountRoleName, `{ "Fn::GetAtt": "Role1.Arn" }`))
+			Expect(t).To(HaveOutputWithValue("Role1", `{ "Fn::GetAtt": "Role1.Arn" }`))
 		})
 
 		It("can construct an iamserviceaccount addon template with one inline policy", func() {
@@ -99,12 +98,12 @@ var _ = Describe("template builder for IAM", func() {
 			Expect(t.Resources).To(HaveLen(2))
 			Expect(t.Outputs).To(HaveLen(1))
 
-			Expect(t).To(HaveResource(outputs.IAMServiceAccountRoleName, "AWS::IAM::Role"))
+			Expect(t).To(HaveResource("Role1", "AWS::IAM::Role"))
 			Expect(t).To(HaveResource("Policy1", "AWS::IAM::Policy"))
 
-			Expect(t).NotTo(HaveResourceWithProperties(outputs.IAMServiceAccountRoleName, "ManagedPolicyArns"))
+			Expect(t).NotTo(HaveResourceWithProperties("Role1", "ManagedPolicyArns"))
 
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "AssumeRolePolicyDocument", expectedServiceAccountAssumeRolePolicyDocument))
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "AssumeRolePolicyDocument", expectedServiceAccountAssumeRolePolicyDocument))
 			Expect(t).To(HaveResourceWithPropertyValue("Policy1", "PolicyName", `{ "Fn::Sub": "${AWS::StackName}-Policy1" }`))
 			Expect(t).To(HaveResourceWithPropertyValue("Policy1", "PolicyDocument", `{
             "Version": "2012-10-17",
@@ -119,7 +118,7 @@ var _ = Describe("template builder for IAM", func() {
             ]
         }`))
 
-			Expect(t).To(HaveOutputWithValue(outputs.IAMServiceAccountRoleName, `{ "Fn::GetAtt": "Role1.Arn" }`))
+			Expect(t).To(HaveOutputWithValue("Role1", `{ "Fn::GetAtt": "Role1.Arn" }`))
 		})
 
 		It("can construct an iamserviceaccount addon template with a custom role name", func() {
@@ -150,8 +149,8 @@ var _ = Describe("template builder for IAM", func() {
 			Expect(t).To(LoadBytesWithoutErrors(templateBody))
 
 			Expect(rs.WithNamedIAM()).To(Equal(true))
-			Expect(t).To(HaveResource(outputs.IAMServiceAccountRoleName, "AWS::IAM::Role"))
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "RoleName", `"custom-role-name"`))
+			Expect(t).To(HaveResource("Role1", "AWS::IAM::Role"))
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "RoleName", `"custom-role-name"`))
 		})
 
 		It("can constuct an iamserviceaccount addon template with two managed policies and one inline policy", func() {
@@ -191,15 +190,15 @@ var _ = Describe("template builder for IAM", func() {
 			Expect(t.Resources).To(HaveLen(2))
 			Expect(t.Outputs).To(HaveLen(1))
 
-			Expect(t).To(HaveResource(outputs.IAMServiceAccountRoleName, "AWS::IAM::Role"))
+			Expect(t).To(HaveResource("Role1", "AWS::IAM::Role"))
 			Expect(t).To(HaveResource("Policy1", "AWS::IAM::Policy"))
 
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "ManagedPolicyArns", `[
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "ManagedPolicyArns", `[
 			"arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess",
 			"arn:aws:iam::aws:policy/AmazonElastiCacheFullAccess"
 		]`))
 
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "AssumeRolePolicyDocument", expectedServiceAccountAssumeRolePolicyDocument))
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "AssumeRolePolicyDocument", expectedServiceAccountAssumeRolePolicyDocument))
 			Expect(t).To(HaveResourceWithPropertyValue("Policy1", "PolicyName", `{ "Fn::Sub": "${AWS::StackName}-Policy1" }`))
 			Expect(t).To(HaveResourceWithPropertyValue("Policy1", "PolicyDocument", `{
             "Version": "2012-10-17",
@@ -214,7 +213,7 @@ var _ = Describe("template builder for IAM", func() {
             ]
         }`))
 
-			Expect(t).To(HaveOutputWithValue(outputs.IAMServiceAccountRoleName, `{ "Fn::GetAtt": "Role1.Arn" }`))
+			Expect(t).To(HaveOutputWithValue("Role1", `{ "Fn::GetAtt": "Role1.Arn" }`))
 		})
 
 		It("can construct an iamserviceaccount addon template with one managed policy and a permissions boundary", func() {
@@ -243,15 +242,15 @@ var _ = Describe("template builder for IAM", func() {
 			Expect(t.Resources).To(HaveLen(1))
 			Expect(t.Outputs).To(HaveLen(1))
 
-			Expect(t).To(HaveResource(outputs.IAMServiceAccountRoleName, "AWS::IAM::Role"))
+			Expect(t).To(HaveResource("Role1", "AWS::IAM::Role"))
 
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "AssumeRolePolicyDocument", expectedServiceAccountAssumeRolePolicyDocument))
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "ManagedPolicyArns", `[
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "AssumeRolePolicyDocument", expectedServiceAccountAssumeRolePolicyDocument))
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "ManagedPolicyArns", `[
 			"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
 		]`))
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "PermissionsBoundary", `"arn:aws:iam::aws:policy/policy/boundary"`))
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "PermissionsBoundary", `"arn:aws:iam::aws:policy/policy/boundary"`))
 
-			Expect(t).To(HaveOutputWithValue(outputs.IAMServiceAccountRoleName, `{ "Fn::GetAtt": "Role1.Arn" }`))
+			Expect(t).To(HaveOutputWithValue("Role1", `{ "Fn::GetAtt": "Role1.Arn" }`))
 		})
 
 		It("can construct an iamserviceaccount addon template with all the wellKnownPolicies", func() {
@@ -286,15 +285,15 @@ var _ = Describe("template builder for IAM", func() {
 			Expect(t.Resources).To(HaveLen(10))
 			Expect(t.Outputs).To(HaveLen(1))
 
-			Expect(t).To(HaveResource(outputs.IAMServiceAccountRoleName, "AWS::IAM::Role"))
+			Expect(t).To(HaveResource("Role1", "AWS::IAM::Role"))
 
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "AssumeRolePolicyDocument", expectedServiceAccountAssumeRolePolicyDocument))
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "ManagedPolicyArns", `[
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "AssumeRolePolicyDocument", expectedServiceAccountAssumeRolePolicyDocument))
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "ManagedPolicyArns", `[
               {
                 "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
 		      }
             ]`))
-			Expect(t).To(HaveOutputWithValue(outputs.IAMServiceAccountRoleName, `{ "Fn::GetAtt": "Role1.Arn" }`))
+			Expect(t).To(HaveOutputWithValue("Role1", `{ "Fn::GetAtt": "Role1.Arn" }`))
 			Expect(t).To(HaveResourceWithPropertyValue("PolicyEBSCSIController", "PolicyDocument", expectedEbsPolicyDocument))
 		})
 
@@ -308,13 +307,13 @@ var _ = Describe("template builder for IAM", func() {
 			Expect(t.Resources).To(HaveLen(1))
 			Expect(t.Outputs).To(HaveLen(1))
 
-			Expect(t).To(HaveResource(outputs.IAMServiceAccountRoleName, "AWS::IAM::Role"))
+			Expect(t).To(HaveResource("Role1", "AWS::IAM::Role"))
 
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "ManagedPolicyArns", `[ "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess" ]`))
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "ManagedPolicyArns", `[ "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess" ]`))
 
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "AssumeRolePolicyDocument", expectedServiceAccountAssumeRolePolicyDocument))
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "AssumeRolePolicyDocument", expectedServiceAccountAssumeRolePolicyDocument))
 
-			Expect(t).To(HaveOutputWithValue(outputs.IAMServiceAccountRoleName, `{ "Fn::GetAtt": "Role1.Arn" }`))
+			Expect(t).To(HaveOutputWithValue("Role1", `{ "Fn::GetAtt": "Role1.Arn" }`))
 		})
 	})
 
@@ -354,15 +353,15 @@ var _ = Describe("template builder for IAM", func() {
 			Expect(t.Resources).To(HaveLen(1))
 			Expect(t.Outputs).To(HaveLen(1))
 
-			Expect(t).To(HaveResource(outputs.IAMServiceAccountRoleName, "AWS::IAM::Role"))
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "PermissionsBoundary", `"boundary-arn"`))
+			Expect(t).To(HaveResource("Role1", "AWS::IAM::Role"))
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "PermissionsBoundary", `"boundary-arn"`))
 
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "AssumeRolePolicyDocument", expectedAssumeRolePolicyDocument))
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "ManagedPolicyArns", `[
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "AssumeRolePolicyDocument", expectedAssumeRolePolicyDocument))
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "ManagedPolicyArns", `[
 			"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
 		]`))
 
-			Expect(t).To(HaveOutputWithValue(outputs.IAMServiceAccountRoleName, `{ "Fn::GetAtt": "Role1.Arn" }`))
+			Expect(t).To(HaveOutputWithValue("Role1", `{ "Fn::GetAtt": "Role1.Arn" }`))
 		})
 
 		It("can construct an iamrole template with attachPolicy", func() {
@@ -391,14 +390,14 @@ var _ = Describe("template builder for IAM", func() {
 			Expect(t.Resources).To(HaveLen(2))
 			Expect(t.Outputs).To(HaveLen(1))
 
-			Expect(t).To(HaveResource(outputs.IAMServiceAccountRoleName, "AWS::IAM::Role"))
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "PermissionsBoundary", `"boundary-arn"`))
+			Expect(t).To(HaveResource("Role1", "AWS::IAM::Role"))
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "PermissionsBoundary", `"boundary-arn"`))
 
 			Expect(t).To(HaveResource("Policy1", "AWS::IAM::Policy"))
 
-			Expect(t).NotTo(HaveResourceWithProperties(outputs.IAMServiceAccountRoleName, "ManagedPolicyArns"))
+			Expect(t).NotTo(HaveResourceWithProperties("Role1", "ManagedPolicyArns"))
 
-			Expect(t).To(HaveResourceWithPropertyValue(outputs.IAMServiceAccountRoleName, "AssumeRolePolicyDocument", expectedAssumeRolePolicyDocument))
+			Expect(t).To(HaveResourceWithPropertyValue("Role1", "AssumeRolePolicyDocument", expectedAssumeRolePolicyDocument))
 			Expect(t).To(HaveResourceWithPropertyValue("Policy1", "PolicyName", `{ "Fn::Sub": "${AWS::StackName}-Policy1" }`))
 			Expect(t).To(HaveResourceWithPropertyValue("Policy1", "PolicyDocument", `{
 		   "Version": "2012-10-17",
@@ -413,7 +412,7 @@ var _ = Describe("template builder for IAM", func() {
 		   ]
 		}`))
 
-			Expect(t).To(HaveOutputWithValue(outputs.IAMServiceAccountRoleName, `{ "Fn::GetAtt": "Role1.Arn" }`))
+			Expect(t).To(HaveOutputWithValue("Role1", `{ "Fn::GetAtt": "Role1.Arn" }`))
 		})
 	})
 })

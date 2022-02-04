@@ -44,9 +44,6 @@ const (
 
 	// outputs from Fargate stack:
 	FargatePodExecutionRoleARN = "FargatePodExecutionRoleARN"
-
-	// IAMServiceAccountRoleName is the name of iamserviceaccount role resource and output.
-	IAMServiceAccountRoleName = "Role1"
 )
 
 type (
