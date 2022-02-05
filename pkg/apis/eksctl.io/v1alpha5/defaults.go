@@ -59,8 +59,14 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 		cfg.VPC.ManageSharedNodeSecurityGroupRules = Enabled()
 	}
 
-	if cfg.Karpenter != nil && cfg.Karpenter.CreateServiceAccount == nil {
-		cfg.Karpenter.CreateServiceAccount = Disabled()
+	if cfg.Karpenter != nil {
+		if cfg.Karpenter.CreateServiceAccount == nil {
+			cfg.Karpenter.CreateServiceAccount = Disabled()
+		}
+
+		if cfg.Karpenter.DefaultInstanceProfile == nil {
+			cfg.Karpenter.DefaultInstanceProfile = Disabled()
+		}
 	}
 }
 

@@ -851,6 +851,11 @@
           "description": "create a service account or not.",
           "x-intellij-html-description": "create a service account or not."
         },
+        "defaultInstanceProfile": {
+          "type": "boolean",
+          "description": "set the default IAM instance profile or not.",
+          "x-intellij-html-description": "set the default IAM instance profile or not."
+        },
         "version": {
           "type": "string",
           "description": "defines the Karpenter version to install",
@@ -859,7 +864,8 @@
       },
       "preferredOrder": [
         "version",
-        "createServiceAccount"
+        "createServiceAccount",
+        "defaultInstanceProfile"
       ],
       "additionalProperties": false,
       "description": "provides configuration opti",
