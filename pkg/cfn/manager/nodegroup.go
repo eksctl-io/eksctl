@@ -42,6 +42,7 @@ type NodeGroupSummary struct {
 	NodeInstanceRoleARN  string
 	AutoScalingGroupName string
 	Version              string
+	NodeGroupType        api.NodeGroupType `json:"Type"`
 }
 
 // NodeGroupStack represents a nodegroup and its type
@@ -207,6 +208,7 @@ func (c *StackCollection) GetUnmanagedNodeGroupSummaries(name string) ([]*NodeGr
 		if err != nil {
 			return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
 		}
+		summary.NodeGroupType = api.NodeGroupTypeUnmanaged
 
 		asgName, err := c.getUnmanagedNodeGroupAutoScalingGroupName(s)
 		if err != nil {
