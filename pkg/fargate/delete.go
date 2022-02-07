@@ -44,7 +44,7 @@ func (c *Client) DeleteProfile(name string, waitForDeletion bool) error {
 			logger.Info("no fargate stack to delete")
 		} else {
 			logger.Info("deleting unused fargate role")
-			_, err = c.stackManager.DeleteStackByName(*stack.StackName)
+			_, err = c.stackManager.DeleteStackBySpec(stack)
 			return err
 		}
 	}

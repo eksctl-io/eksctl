@@ -3,12 +3,11 @@ package addons
 import (
 	"fmt"
 
-	"github.com/weaveworks/eksctl/pkg/actions/irsa"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-
 	"github.com/pkg/errors"
+
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 )
 
@@ -45,7 +44,7 @@ func (h *irsaHelper) IsSupported() (bool, error) {
 	return exists, nil
 }
 
-// Create creates IRSA for the specified IAM service accounts
+// CreateOrUpdate creates IRSA for the specified IAM service accounts or updates it
 func (h *irsaHelper) CreateOrUpdate(sa *api.ClusterIAMServiceAccount) error {
 	serviceAccounts := []*api.ClusterIAMServiceAccount{sa}
 	stacks, err := h.stackManager.ListStacksMatching(makeIAMServiceAccountStackName(h.clusterName, sa.Namespace, sa.Name))
