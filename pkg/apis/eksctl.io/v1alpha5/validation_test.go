@@ -274,6 +274,14 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
+		It("should not allow setting AWSLoadBalancerController and albIngress", func() {
+			ng1.IAM.WithAddonPolicies.AWSLoadBalancerController = aws.Bool(true)
+			ng1.IAM.WithAddonPolicies.DeprecatedALBIngress = aws.Bool(true)
+
+			err = api.ValidateNodeGroup(1, ng1)
+			Expect(err).To(MatchError(`"awsLoadBalancerController" and "albIngress" cannot both be configured, please use "awsLoadBalancerController" as "albIngress" is deprecated`))
+		})
+
 		It("should allow setting instanceProfileARN and instanceRoleARN", func() {
 			ng1.IAM.InstanceProfileARN = "p1"
 			ng1.IAM.InstanceRoleARN = "r1"

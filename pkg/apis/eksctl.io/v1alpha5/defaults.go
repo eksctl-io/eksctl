@@ -250,6 +250,9 @@ func setIAMDefaults(iamConfig *NodeGroupIAM) {
 	if iamConfig.WithAddonPolicies.AWSLoadBalancerController == nil {
 		iamConfig.WithAddonPolicies.AWSLoadBalancerController = Disabled()
 	}
+	if iamConfig.WithAddonPolicies.DeprecatedALBIngress == nil {
+		iamConfig.WithAddonPolicies.DeprecatedALBIngress = Disabled()
+	}
 	if iamConfig.WithAddonPolicies.XRay == nil {
 		iamConfig.WithAddonPolicies.XRay = Disabled()
 	}
