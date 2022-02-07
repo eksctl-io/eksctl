@@ -864,6 +864,7 @@ func NewNodeGroup() *NodeGroup {
 					FSX:                       Disabled(),
 					EFS:                       Disabled(),
 					AWSLoadBalancerController: Disabled(),
+					DeprecatedALBIngress:      Disabled(),
 					XRay:                      Disabled(),
 					CloudWatch:                Disabled(),
 				},
@@ -913,6 +914,7 @@ func NewManagedNodeGroup() *ManagedNodeGroup {
 					FSX:                       Disabled(),
 					EFS:                       Disabled(),
 					AWSLoadBalancerController: Disabled(),
+					DeprecatedALBIngress:      Disabled(),
 					XRay:                      Disabled(),
 					CloudWatch:                Disabled(),
 				},
@@ -1107,7 +1109,9 @@ type (
 		// +optional
 		EFS *bool `json:"efs"`
 		// +optional
-		AWSLoadBalancerController *bool `json:"albIngress"`
+		AWSLoadBalancerController *bool `json:"awsLoadBalancerController"`
+		// +optional
+		DeprecatedALBIngress *bool `json:"albIngress"`
 		// +optional
 		XRay *bool `json:"xRay"`
 		// +optional

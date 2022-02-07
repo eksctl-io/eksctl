@@ -587,6 +587,9 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 
 			}
 		}
+		if err := validateDeprecatedIAMFields(ng.IAM); err != nil {
+			return err
+		}
 	}
 
 	if err := validateTaints(ng.Taints); err != nil {
@@ -744,6 +747,9 @@ func validateNodeGroupIAMWithAddonPolicies(
 		return fmtFieldConflictErr(prefix + "efs")
 	}
 	if IsEnabled(policies.AWSLoadBalancerController) {
+		return fmtFieldConflictErr(prefix + "awsLoadBalancerController")
+	}
+	if IsEnabled(policies.DeprecatedALBIngress) {
 		return fmtFieldConflictErr(prefix + "albIngress")
 	}
 	if IsEnabled(policies.XRay) {
@@ -752,6 +758,18 @@ func validateNodeGroupIAMWithAddonPolicies(
 	if IsEnabled(policies.CloudWatch) {
 		return fmtFieldConflictErr(prefix + "cloudWatch")
 	}
+	return nil
+}
+
+func validateDeprecatedIAMFields(iam *NodeGroupIAM) error {
+	if IsEnabled(iam.WithAddonPolicies.DeprecatedALBIngress) {
+		if IsEnabled(iam.WithAddonPolicies.AWSLoadBalancerController) {
+			return fmt.Errorf(`"awsLoadBalancerController" and "albIngress" cannot both be configured, ` +
+				`please use "awsLoadBalancerController" as "albIngress" is deprecated`)
+		}
+		logger.Warning("nodegroup.iam.withAddonPolicies.albIngress field is deprecated, please use awsLoadBalancerController instead")
+	}
+
 	return nil
 }
 
