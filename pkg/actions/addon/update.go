@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/eks"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/google/uuid"
 	"github.com/kris-nova/logger"
 
@@ -91,8 +90,8 @@ func (a *Manager) updateWithNewPolicies(addon *api.Addon) (string, error) {
 	stack, err := a.stackManager.DescribeStack(&manager.Stack{StackName: aws.String(stackName)})
 	if err != nil {
 		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); !ok || ok &&
-			awsError.Code() != awseks.ErrCodeResourceNotFoundException {
-			return "", err
+			awsError.Code() != "ValidationError" {
+			return "", fmt.Errorf("failed to get stack: %w", err)
 		}
 	}
 

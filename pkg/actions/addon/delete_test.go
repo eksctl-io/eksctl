@@ -118,7 +118,7 @@ var _ = Describe("Delete", func() {
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, nil)
 
-				fakeStackManager.DescribeStackReturns(nil, errors.Wrap(awserr.New(awseks.ErrCodeResourceNotFoundException, "test-err", nil), "nope"))
+				fakeStackManager.DescribeStackReturns(nil, errors.Wrap(awserr.New("ValidationError", "test-err", nil), "nope"))
 
 				err := manager.Delete(&api.Addon{
 					Name: "my-addon",
@@ -157,7 +157,7 @@ var _ = Describe("Delete", func() {
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, awserr.New(awseks.ErrCodeResourceNotFoundException, "", nil))
 
-				fakeStackManager.DescribeStackReturns(nil, errors.Wrap(awserr.New(awseks.ErrCodeResourceNotFoundException, "test-err", nil), "nope"))
+				fakeStackManager.DescribeStackReturns(nil, errors.Wrap(awserr.New("ValidationError", "test-err", nil), "nope"))
 				err := manager.Delete(&api.Addon{
 					Name: "my-addon",
 				})

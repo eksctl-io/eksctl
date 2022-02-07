@@ -6,11 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-
-	"github.com/kris-nova/logger"
-
 	"github.com/aws/aws-sdk-go/service/eks"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -57,7 +54,7 @@ func (a *Manager) Delete(addon *api.Addon) error {
 	stack, err := a.stackManager.DescribeStack(&manager.Stack{StackName: aws.String(a.makeAddonName(addon.Name))})
 	if err != nil {
 		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); !ok || ok &&
-			awsError.Code() != awseks.ErrCodeResourceNotFoundException {
+			awsError.Code() != "ValidationError" {
 			return fmt.Errorf("failed to get stack: %w", err)
 		}
 	}
