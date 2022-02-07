@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kris-nova/logger"
+
 	"github.com/weaveworks/eksctl/pkg/iam"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -302,18 +303,18 @@ func (rs *IAMRoleResourceSet) AddAllResources() error {
 		role.ManagedPolicyArns = append(role.ManagedPolicyArns, makePolicyARN(p.name))
 	}
 
-	roleRef := rs.template.NewResource("Role1", role)
+	roleRef := rs.template.NewResource(outputs.IAMServiceAccountRoleName, role)
 
 	for _, p := range customPolicies {
 		doc := cft.MakePolicyDocument(p.Statements...)
 		rs.template.AttachPolicy(p.Name, roleRef, doc)
 	}
 
-	rs.template.Outputs["Role1"] = cft.Output{
+	rs.template.Outputs[outputs.IAMServiceAccountRoleName] = cft.Output{
 		Value: cft.MakeFnGetAttString("Role1.Arn"),
 	}
 	rs.outputs = outputs.NewCollectorSet(map[string]outputs.Collector{
-		"Role1": rs.roleNameCollector,
+		outputs.IAMServiceAccountRoleName: rs.roleNameCollector,
 	})
 
 	if len(rs.attachPolicy) != 0 {

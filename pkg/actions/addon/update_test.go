@@ -16,6 +16,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
@@ -268,7 +269,7 @@ var _ = Describe("Update", func() {
 								Outputs: []*cloudformation.Output{
 									{
 										OutputValue: aws.String("new-service-account-role-arn"),
-										OutputKey:   aws.String("Role1"),
+										OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
 									},
 								},
 							},
@@ -337,7 +338,7 @@ var _ = Describe("Update", func() {
 								Outputs: []*cloudformation.Output{
 									{
 										OutputValue: aws.String("new-service-account-role-arn"),
-										OutputKey:   aws.String("Role1"),
+										OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
 									},
 								},
 							},
@@ -409,7 +410,7 @@ var _ = Describe("Update", func() {
 								Outputs: []*cloudformation.Output{
 									{
 										OutputValue: aws.String("new-service-account-role-arn"),
-										OutputKey:   aws.String("Role1"),
+										OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
 									},
 								},
 							},
