@@ -462,9 +462,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--name", mngNG1,
 					"-o", "yaml",
 				)
-				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MaxSize: 4")))
-				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MinSize: 4")))
-				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("DesiredCapacity: 4")))
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputStringLines(
+					ContainElement(ContainSubstring("Type: managed")),
+					ContainElement(ContainSubstring("MaxSize: 4")),
+					ContainElement(ContainSubstring("MinSize: 4")),
+					ContainElement(ContainSubstring("DesiredCapacity: 4")),
+				),
+				)
 			})
 
 			It("should scale all nodegroups", func() {
@@ -482,9 +486,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--name", mngNG1,
 					"-o", "yaml",
 				)
-				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MaxSize: 5")))
-				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MinSize: 5")))
-				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("DesiredCapacity: 5")))
+
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputStringLines(
+					ContainElement(ContainSubstring("MaxSize: 5"))),
+					ContainElement(ContainSubstring("MinSize: 5")),
+					ContainElement(ContainSubstring("DesiredCapacity: 5")),
+					ContainElement(ContainSubstring("Type: managed")),
+				)
 
 				getUnmNgCmd := params.EksctlGetCmd.WithArgs(
 					"nodegroup",
@@ -492,9 +500,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--name", unmNG1,
 					"-o", "yaml",
 				)
-				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MaxSize: 5")))
-				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MinSize: 5")))
-				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("DesiredCapacity: 5")))
+
+				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputStringLines(
+					ContainElement(ContainSubstring("MaxSize: 5"))),
+					ContainElement(ContainSubstring("MinSize: 5")),
+					ContainElement(ContainSubstring("DesiredCapacity: 5")),
+					ContainElement(ContainSubstring("Type: unmanaged")),
+				)
 			})
 		})
 

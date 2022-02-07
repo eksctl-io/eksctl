@@ -42,7 +42,7 @@ type NodeGroupSummary struct {
 	NodeInstanceRoleARN  string
 	AutoScalingGroupName string
 	Version              string
-	NodeGroupType        api.NodeGroupType
+	NodeGroupType        api.NodeGroupType `json:"Type"`
 }
 
 // NodeGroupStack represents a nodegroup and its type
