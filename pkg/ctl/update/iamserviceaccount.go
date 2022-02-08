@@ -100,5 +100,10 @@ func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	return irsa.New(cfg.Metadata.Name, stackManager, oidc, clientSet).UpdateIAMServiceAccounts(cfg.IAM.ServiceAccounts, cmd.Plan)
+	existingIAMStacks, err := stackManager.ListStacksMatching("eksctl-.*-addon-iamserviceaccount")
+	if err != nil {
+		return err
+	}
+
+	return irsa.New(cfg.Metadata.Name, stackManager, oidc, clientSet).UpdateIAMServiceAccounts(cfg.IAM.ServiceAccounts, existingIAMStacks, cmd.Plan)
 }
