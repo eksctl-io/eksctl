@@ -20,14 +20,9 @@ const (
 	roleNamePath   = "RoleName"
 )
 
-func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMServiceAccount, plan bool) error {
+func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMServiceAccount, existingIAMStacks []*manager.Stack, plan bool) error {
 	var nonExistingSAs []string
 	updateTasks := &tasks.TaskTree{Parallel: true}
-
-	existingIAMStacks, err := a.stackManager.ListStacksMatching("eksctl-.*-addon-iamserviceaccount")
-	if err != nil {
-		return err
-	}
 
 	existingIAMStacksMap := listToSet(existingIAMStacks)
 

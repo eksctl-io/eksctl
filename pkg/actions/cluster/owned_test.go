@@ -3,34 +3,27 @@ package cluster_test
 import (
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-
-	"github.com/pkg/errors"
-
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
-	"k8s.io/client-go/kubernetes/fake"
-
-	"github.com/weaveworks/eksctl/pkg/utils/strings"
-
-	"github.com/weaveworks/eksctl/pkg/utils/tasks"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
-	"github.com/stretchr/testify/mock"
-	"github.com/weaveworks/eksctl/pkg/actions/cluster"
-	"github.com/weaveworks/eksctl/pkg/testutils"
-
 	. "github.com/onsi/gomega"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/mock"
+	"k8s.io/client-go/kubernetes/fake"
 
+	"github.com/weaveworks/eksctl/pkg/actions/cluster"
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"github.com/weaveworks/eksctl/pkg/utils/strings"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
 type drainerMockOwned struct {
@@ -125,8 +118,8 @@ var _ = Describe("Delete", func() {
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
 			Expect(fakeStackManager.NewTasksToDeleteClusterWithNodeGroupsCallCount()).To(Equal(1))
 			Expect(ranDeleteClusterTasks).To(BeTrue())
-			Expect(fakeStackManager.DeleteStackByNameSyncCallCount()).To(Equal(1))
-			Expect(fakeStackManager.DeleteStackByNameSyncArgsForCall(0)).To(Equal("karpenter"))
+			Expect(fakeStackManager.DeleteStackSyncCallCount()).To(Equal(1))
+			Expect(*fakeStackManager.DeleteStackSyncArgsForCall(0).StackName).To(Equal("karpenter"))
 		})
 
 		When("force flag is set to true", func() {

@@ -46,17 +46,14 @@ var _ = Describe("Update", func() {
 
 	When("the IAMServiceAccount exists", func() {
 		It("updates the role", func() {
-			fakeStackManager.ListStacksMatchingReturns([]*cloudformation.Stack{
+			stacks := []*cloudformation.Stack{
 				{
 					StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
 				},
-			}, nil)
-
-			err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, false)
+			}
+			err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, stacks, false)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStackManager.ListStacksMatchingCallCount()).To(Equal(1))
-			Expect(fakeStackManager.ListStacksMatchingArgsForCall(0)).To(Equal("eksctl-.*-addon-iamserviceaccount"))
 			Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
 			fakeStackManager.UpdateStackArgsForCall(0)
 			options := fakeStackManager.UpdateStackArgsForCall(0)
@@ -71,26 +68,21 @@ var _ = Describe("Update", func() {
 
 		When("in plan mode", func() {
 			It("does not trigger an update", func() {
-				fakeStackManager.ListStacksMatchingReturns([]*cloudformation.Stack{
+				stacks := []*cloudformation.Stack{
 					{
 						StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
 					},
-				}, nil)
-
-				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, true)
+				}
+				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, stacks, true)
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(fakeStackManager.ListStacksMatchingCallCount()).To(Equal(1))
-				Expect(fakeStackManager.ListStacksMatchingArgsForCall(0)).To(Equal("eksctl-.*-addon-iamserviceaccount"))
 				Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(0))
 			})
 		})
 
 		When("the service account doesn't exist", func() {
 			It("errors", func() {
-				fakeStackManager.ListStacksMatchingReturns([]*cloudformation.Stack{}, nil)
-
-				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, false)
+				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, []*cloudformation.Stack{}, false)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeStackManager.UpdateStackCallCount()).To(BeZero())
 			})
@@ -98,18 +90,16 @@ var _ = Describe("Update", func() {
 
 		When("a custom role name was used during creation", func() {
 			It("uses that role name", func() {
-				fakeStackManager.ListStacksMatchingReturns([]*cloudformation.Stack{
+				stacks := []*cloudformation.Stack{
 					{
 						StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
 					},
-				}, nil)
+				}
 				fakeStackManager.GetStackTemplateReturns(stackTemplateWithRoles, nil)
 
-				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, false)
+				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, stacks, false)
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(fakeStackManager.ListStacksMatchingCallCount()).To(Equal(1))
-				Expect(fakeStackManager.ListStacksMatchingArgsForCall(0)).To(Equal("eksctl-.*-addon-iamserviceaccount"))
 				Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
 				fakeStackManager.UpdateStackArgsForCall(0)
 				options := fakeStackManager.UpdateStackArgsForCall(0)
@@ -125,14 +115,14 @@ var _ = Describe("Update", func() {
 		})
 		When("GetStackTemplate errors", func() {
 			It("errors", func() {
-				fakeStackManager.ListStacksMatchingReturns([]*cloudformation.Stack{
+				stacks := []*cloudformation.Stack{
 					{
 						StackName: aws.String("eksctl-my-cluster-addon-iamserviceaccount-default-test-sa"),
 					},
-				}, nil)
+				}
 				fakeStackManager.GetStackTemplateReturns("", errors.New("nope"))
 
-				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, false)
+				err := irsaManager.UpdateIAMServiceAccounts(serviceAccount, stacks, false)
 				Expect(err).To(MatchError(ContainSubstring("failed to get stack template: nope")))
 			})
 		})
