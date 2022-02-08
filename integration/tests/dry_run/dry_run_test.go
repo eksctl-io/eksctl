@@ -106,6 +106,7 @@ managedNodeGroups:
       appMesh: false
       appMeshPreview: false
       autoScaler: false
+      awsLoadBalancerController: false
       certManager: false
       cloudWatch: false
       ebs: false
