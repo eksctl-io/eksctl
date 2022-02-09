@@ -28,7 +28,7 @@ var _ = Describe("Install", func() {
 			cfg.Karpenter = &api.Karpenter{
 				Version:                "0.4.3",
 				CreateServiceAccount:   api.Disabled(),
-				DefaultInstanceProfile: api.Disabled(),
+				DefaultInstanceProfile: "",
 			}
 			cfg.Status = &api.ClusterStatus{
 				Endpoint: "https://endpoint.com",
@@ -55,7 +55,7 @@ var _ = Describe("Install", func() {
 					create: api.IsEnabled(cfg.Karpenter.CreateServiceAccount),
 				},
 				aws: map[string]interface{}{
-					defaultInstanceProfile: "",
+					defaultInstanceProfile: "role/profile",
 				},
 			}
 			Expect(args).To(Equal(providers.InstallChartOpts{
@@ -147,29 +147,6 @@ var _ = Describe("Install", func() {
 						serviceAccountAnnotation: map[string]interface{}{
 							api.AnnotationEKSRoleARN: "role/account",
 						},
-					},
-					aws: map[string]interface{}{
-						defaultInstanceProfile: "",
-					},
-				}
-				Expect(opts.Values).To(Equal(values))
-			})
-		})
-
-		When("default instance profile is enabled", func() {
-			BeforeEach(func() {
-				cfg.Karpenter.DefaultInstanceProfile = api.Enabled()
-			})
-			It("add default instance profile to the values for the helm chart", func() {
-				Expect(installerUnderTest.Install(context.Background(), "", "role/profile")).To(Succeed())
-				_, opts := fakeHelmInstaller.InstallChartArgsForCall(0)
-				values := map[string]interface{}{
-					controller: map[string]interface{}{
-						clusterName:     cfg.Metadata.Name,
-						clusterEndpoint: cfg.Status.Endpoint,
-					},
-					serviceAccount: map[string]interface{}{
-						create: api.IsEnabled(cfg.Karpenter.CreateServiceAccount),
 					},
 					aws: map[string]interface{}{
 						defaultInstanceProfile: "role/profile",

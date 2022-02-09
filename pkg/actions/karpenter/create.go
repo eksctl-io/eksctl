@@ -73,8 +73,11 @@ func (i *Installer) Create() error {
 		return fmt.Errorf("failed to save the identity config: %w", err)
 	}
 
-	instanceProfileArn := fmt.Sprintf("arn:aws:iam::%s:instance-profile/eksctl-%s-%s", parsedARN.AccountID, builder.KarpenterNodeInstanceProfile, i.Config.Metadata.Name)
+	instanceProfileName := fmt.Sprintf("eksctl-%s-%s", builder.KarpenterNodeInstanceProfile, i.Config.Metadata.Name)
+	if i.Config.Karpenter.DefaultInstanceProfile != "" {
+		instanceProfileName = i.Config.Karpenter.DefaultInstanceProfile
+	}
 
 	// Install Karpenter
-	return i.KarpenterInstaller.Install(context.Background(), roleARN, instanceProfileArn)
+	return i.KarpenterInstaller.Install(context.Background(), roleARN, instanceProfileName)
 }

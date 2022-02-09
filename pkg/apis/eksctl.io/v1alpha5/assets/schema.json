@@ -852,9 +852,9 @@
           "x-intellij-html-description": "create a service account or not."
         },
         "defaultInstanceProfile": {
-          "type": "boolean",
-          "description": "set the default IAM instance profile or not.",
-          "x-intellij-html-description": "set the default IAM instance profile or not."
+          "type": "string",
+          "description": "override the default IAM instance profile",
+          "x-intellij-html-description": "override the default IAM instance profile"
         },
         "version": {
           "type": "string",

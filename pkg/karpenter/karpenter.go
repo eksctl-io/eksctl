@@ -56,7 +56,7 @@ func NewKarpenterInstaller(opts Options) *Installer {
 }
 
 // Install adds Karpenter to a configured cluster in a separate CloudFormation stack.
-func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, instanceProfileARN string) error {
+func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, instanceProfileName string) error {
 	logger.Info("adding Karpenter to cluster %s", k.ClusterConfig.Metadata.Name)
 	logger.Debug("cluster endpoint used by Karpenter: %s", k.ClusterConfig.Status.Endpoint)
 	if err := k.HelmInstaller.AddRepo(helmRepo, releaseName); err != nil {
@@ -70,17 +70,13 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 			api.AnnotationEKSRoleARN: serviceAccountRoleARN,
 		}
 	}
-	defaultInstanceProfileValue := ""
-	if *k.ClusterConfig.Karpenter.DefaultInstanceProfile {
-		defaultInstanceProfileValue = instanceProfileARN
-	}
 	values := map[string]interface{}{
 		controller: map[string]interface{}{
 			clusterName:     k.ClusterConfig.Metadata.Name,
 			clusterEndpoint: k.ClusterConfig.Status.Endpoint,
 		},
 		aws: map[string]interface{}{
-			defaultInstanceProfile: defaultInstanceProfileValue,
+			defaultInstanceProfile: instanceProfileName,
 		},
 		serviceAccount: serviceAccountMap,
 	}

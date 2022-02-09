@@ -63,10 +63,6 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 		if cfg.Karpenter.CreateServiceAccount == nil {
 			cfg.Karpenter.CreateServiceAccount = Disabled()
 		}
-
-		if cfg.Karpenter.DefaultInstanceProfile == nil {
-			cfg.Karpenter.DefaultInstanceProfile = Disabled()
-		}
 	}
 }
 
