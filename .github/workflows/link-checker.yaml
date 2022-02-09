@@ -34,6 +34,6 @@ jobs:
         uses: lycheeverse/lychee-action@768a13171aff975543be1d2f2dd740bc3dcd113c #v1.2.1
         with:
           fail: true
-          args: --exclude-all-private --exclude-file '.github/workflows/exclude-file.txt'
+          args: --exclude-all-private --exclude-file .github/workflows/exclude-file.txt --verbose --no-progress './**/*.md' './**/*.html'
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
