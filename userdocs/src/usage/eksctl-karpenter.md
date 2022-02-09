@@ -36,7 +36,7 @@ to be set:
 karpenter:
   version: '0.6.0'
   createServiceAccount: true # default is false
-  defaultInstanceProfile: true # default is false, requires Karpenter >= v0.5.6
+  defaultInstanceProfile: 'KarpenterNodeInstanceProfile' # default is to use the IAM instance profile created by eksctl
 ```
 
 OIDC must be defined in order to install Karpenter.

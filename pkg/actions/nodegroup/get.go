@@ -4,6 +4,8 @@ import (
 	"strconv"
 	"strings"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -116,6 +118,7 @@ func (m *Manager) makeManagedNGSummary(nodeGroupName string) (*manager.NodeGroup
 		NodeInstanceRoleARN:  *ng.NodeRole,
 		AutoScalingGroupName: strings.Join(asgs, ","),
 		Version:              getOptionalValue(ng.Version),
+		NodeGroupType:        api.NodeGroupTypeManaged,
 	}, nil
 }
 

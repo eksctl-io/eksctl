@@ -4,33 +4,45 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/kris-nova/logger"
-
-	"github.com/weaveworks/eksctl/pkg/utils/tasks"
+	"github.com/tidwall/gjson"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
-func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMServiceAccount, plan bool) error {
+const (
+	resourcesPath  = "Resources"
+	propertiesPath = "Properties"
+	roleNamePath   = "RoleName"
+)
+
+func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMServiceAccount, existingIAMStacks []*manager.Stack, plan bool) error {
 	var nonExistingSAs []string
 	updateTasks := &tasks.TaskTree{Parallel: true}
-
-	existingIAMStacks, err := a.stackManager.ListStacksMatching("eksctl-.*-addon-iamserviceaccount")
-	if err != nil {
-		return err
-	}
 
 	existingIAMStacksMap := listToSet(existingIAMStacks)
 
 	for _, iamServiceAccount := range iamServiceAccounts {
 		stackName := makeIAMServiceAccountStackName(a.clusterName, iamServiceAccount.Namespace, iamServiceAccount.Name)
 
-		if _, ok := existingIAMStacksMap[stackName]; !ok {
+		stack, ok := existingIAMStacksMap[stackName]
+		if !ok {
 			logger.Info("cannot update IAMServiceAccount %s/%s as it does not exist", iamServiceAccount.Namespace, iamServiceAccount.Name)
 			nonExistingSAs = append(nonExistingSAs, fmt.Sprintf("%s/%s", iamServiceAccount.Namespace, iamServiceAccount.Name))
 			continue
+		}
+
+		roleName, err := a.getRoleNameFromStackTemplate(stack)
+		if err != nil {
+			return err
+		}
+		if roleName != "" {
+			logger.Info("found set role name during creation %s for account %s", roleName, iamServiceAccount.Name)
+			iamServiceAccount.RoleName = roleName
 		}
 
 		taskTree, err := NewUpdateIAMServiceAccountTask(a.clusterName, iamServiceAccount, a.stackManager, a.oidcManager)
@@ -49,10 +61,24 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 
 }
 
-func listToSet(stacks []*manager.Stack) map[string]struct{} {
-	stacksMap := make(map[string]struct{})
+// getRoleNameFromStackTemplate returns the role if the initial stack's template contained it.
+// That means it was defined upon creation, and we need to re-use that same name.
+func (a *Manager) getRoleNameFromStackTemplate(stack *manager.Stack) (string, error) {
+	template, err := a.stackManager.GetStackTemplate(aws.StringValue(stack.StackName))
+	if err != nil {
+		return "", fmt.Errorf("failed to get stack template: %w", err)
+	}
+	resources := gjson.Get(template, resourcesPath)
+	if !resources.Get(outputs.IAMServiceAccountRoleName).Exists() {
+		return "", nil
+	}
+	return resources.Get(outputs.IAMServiceAccountRoleName).Get(propertiesPath).Get(roleNamePath).String(), nil
+}
+
+func listToSet(stacks []*manager.Stack) map[string]*manager.Stack {
+	stacksMap := make(map[string]*manager.Stack)
 	for _, stack := range stacks {
-		stacksMap[*stack.StackName] = struct{}{}
+		stacksMap[*stack.StackName] = stack
 	}
 	return stacksMap
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -116,7 +117,7 @@ func deleteFargateProfiles(clusterMeta *api.ClusterMeta, ctl *eks.ClusterProvide
 	}
 
 	if stack != nil {
-		_, err := stackManager.DeleteStackByName(*stack.StackName)
+		_, err := stackManager.DeleteStackBySpec(stack)
 		if err != nil {
 			return err
 		}

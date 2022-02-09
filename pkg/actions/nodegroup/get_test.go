@@ -124,6 +124,7 @@ var _ = Describe("Get", func() {
 						NodeInstanceRoleARN:  "node-role",
 						AutoScalingGroupName: "asg-name",
 						Version:              "1.18",
+						NodeGroupType:        api.NodeGroupTypeManaged,
 					}))
 				})
 			})
@@ -187,6 +188,7 @@ var _ = Describe("Get", func() {
 						NodeInstanceRoleARN:  "node-role",
 						AutoScalingGroupName: "asg-name",
 						Version:              "1.18",
+						NodeGroupType:        api.NodeGroupTypeManaged,
 					}))
 				})
 			})
@@ -249,6 +251,7 @@ var _ = Describe("Get", func() {
 						NodeInstanceRoleARN:  "node-role",
 						AutoScalingGroupName: "asg-1,asg-2",
 						Version:              "1.18",
+						NodeGroupType:        api.NodeGroupTypeManaged,
 					}))
 				})
 			})
@@ -327,6 +330,7 @@ var _ = Describe("Get", func() {
 						NodeInstanceRoleARN:  "node-role",
 						AutoScalingGroupName: "asg-name",
 						Version:              "1.18",
+						NodeGroupType:        api.NodeGroupTypeManaged,
 					}))
 				})
 			})
@@ -397,6 +401,7 @@ var _ = Describe("Get", func() {
 					NodeInstanceRoleARN:  "node-role",
 					AutoScalingGroupName: "asg-1,asg-2",
 					Version:              "1.18",
+					NodeGroupType:        api.NodeGroupTypeManaged,
 				}))
 			})
 		})
@@ -449,6 +454,7 @@ var _ = Describe("Get", func() {
 							DesiredCapacity: 0,
 							Cluster:         clusterName,
 							Name:            ngName,
+							NodeGroupType:   api.NodeGroupTypeUnmanaged,
 						},
 					}, nil)
 
@@ -463,6 +469,7 @@ var _ = Describe("Get", func() {
 						Name:            ngName,
 						DesiredCapacity: 0,
 						Version:         "",
+						NodeGroupType:   api.NodeGroupTypeUnmanaged,
 					}))
 				})
 			})
