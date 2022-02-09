@@ -5,16 +5,12 @@ on:
     paths:
       - 'userdocs/**'
       - '**.md'
-      - '.github/workflows/markdown-link-check-config.json'
-      - '.github/workflows/check-links.yaml'
   push:
     branches:
       - main
     paths:
       - 'userdocs/**'
       - '**.md'
-      - '.github/workflows/markdown-link-check-config.json'
-      - '.github/workflows/check-links.yaml'
 
 jobs:
   link-checker:
@@ -38,5 +34,6 @@ jobs:
         uses: lycheeverse/lychee-action@768a13171aff975543be1d2f2dd740bc3dcd113c #v1.2.1
         with:
           fail: true
+          exclude-file: '.github/workflows/exclude-file.txt'
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
