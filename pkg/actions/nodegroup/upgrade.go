@@ -14,6 +14,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/weaveworks/goformation/v4"
 	"github.com/weaveworks/goformation/v4/cloudformation"
+	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
+	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -22,9 +25,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/managed"
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 	"github.com/weaveworks/eksctl/pkg/version"
-	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
-	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 // UpgradeOptions contains options to configure nodegroup upgrades
@@ -45,7 +45,11 @@ type UpgradeOptions struct {
 }
 
 func (m *Manager) Upgrade(options UpgradeOptions) error {
-	hasStacks, err := m.hasStacks(options.NodegroupName)
+	stacks, err := m.stackManager.ListNodeGroupStacks()
+	if err != nil {
+		return err
+	}
+	hasStacks, err := m.hasStacks(stacks, options.NodegroupName)
 	if err != nil {
 		return err
 	}
