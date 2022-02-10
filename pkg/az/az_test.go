@@ -193,6 +193,39 @@ var _ = Describe("AZ", func() {
 			Expect(zones).To(ConsistOf("zone1", "zone2"))
 		})
 	})
+
+	When("using us-east-1", func() {
+		BeforeEach(func() {
+			region = "us-east-1"
+
+			p.MockEC2().On("DescribeAvailabilityZones", &ec2.DescribeAvailabilityZonesInput{
+				Filters: []*ec2.Filter{
+					{
+						Name:   aws.String("region-name"),
+						Values: []*string{aws.String(region)},
+					},
+					{
+						Name:   aws.String("state"),
+						Values: []*string{aws.String(ec2.AvailabilityZoneStateAvailable)},
+					},
+				},
+			}).Return(&ec2.DescribeAvailabilityZonesOutput{
+				AvailabilityZones: []*ec2.AvailabilityZone{
+					createAvailabilityZone(region, ec2.AvailabilityZoneStateAvailable, "zone1"),
+					createAvailabilityZone(region, ec2.AvailabilityZoneStateAvailable, "zone2"),
+					createAvailabilityZone(region, ec2.AvailabilityZoneStateAvailable, "zone3"),
+					createAvailabilityZone(region, ec2.AvailabilityZoneStateAvailable, "zone4"),
+				},
+			}, nil)
+		})
+
+		It("should only use 2 AZs, rather than the default 3", func() {
+			zones, err := az.GetAvailabilityZones(p.MockEC2(), region)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(zones).To(HaveLen(2))
+			Expect(zonesAreUnique(zones)).To(BeTrue())
+		})
+	})
 })
 
 func zonesAreUnique(zones []string) bool {

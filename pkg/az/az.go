@@ -30,16 +30,21 @@ func GetAvailabilityZones(ec2API ec2iface.EC2API, region string) ([]string, erro
 		return zones, nil
 	}
 
-	return randomSelectionOfZones(zones), nil
+	return randomSelectionOfZones(region, zones), nil
 }
 
-func randomSelectionOfZones(availableZones []string) []string {
-	zones := []string{}
-	for len(zones) < api.RecommendedAvailabilityZones {
+func randomSelectionOfZones(region string, availableZones []string) []string {
+	var zones []string
+	desiredNumberOfAZs := api.RecommendedAvailabilityZones
+	if region == api.RegionUSEast1 {
+		desiredNumberOfAZs = api.MinRequiredAvailabilityZones
+	}
+
+	for len(zones) < desiredNumberOfAZs {
 		rand := rand.New(rand.NewSource(time.Now().UnixNano()))
 		for _, rn := range rand.Perm(len(availableZones)) {
 			zones = append(zones, availableZones[rn])
-			if len(zones) == api.RecommendedAvailabilityZones {
+			if len(zones) == desiredNumberOfAZs {
 				break
 			}
 		}
