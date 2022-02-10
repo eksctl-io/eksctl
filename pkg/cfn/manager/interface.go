@@ -15,6 +15,7 @@ import (
 
 // UpdateStackOptions contains options for updating a stack.
 type UpdateStackOptions struct {
+	Stack         *Stack
 	StackName     string
 	ChangeSetName string
 	Description   string
@@ -45,10 +46,9 @@ type StackManager interface {
 	ListStacks(statusFilters ...string) ([]*Stack, error)
 	StackStatusIsNotTransitional(s *Stack) bool
 	StackStatusIsNotReady(s *Stack) bool
-	DeleteStackByName(name string) (*Stack, error)
-	DeleteStackByNameSync(name string) error
 	DeleteStackBySpec(s *Stack) (*Stack, error)
 	DeleteStackBySpecSync(s *Stack, errs chan error) error
+	DeleteStackSync(s *Stack) error
 	DescribeStacks() ([]*Stack, error)
 	GetClusterStackIfExists() (*Stack, error)
 	HasClusterStackUsingCachedList(clusterStackNames []string) (bool, error)

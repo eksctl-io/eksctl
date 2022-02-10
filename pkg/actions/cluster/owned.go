@@ -5,6 +5,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -180,7 +181,7 @@ func (c *OwnedCluster) deleteKarpenterStackIfExists() error {
 
 	if stack != nil {
 		logger.Info("deleting karpenter stack")
-		return c.stackManager.DeleteStackByNameSync(*stack.StackName)
+		return c.stackManager.DeleteStackSync(stack)
 	}
 
 	return nil
