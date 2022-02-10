@@ -363,13 +363,13 @@ func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) e
 }
 
 func errTooFewAvailabilityZones(azs []string) error {
-	return fmt.Errorf("only %d zones specified %v, %d are required (can be non-unique)", len(azs), azs, az.MinRequiredAvailabilityZones)
+	return fmt.Errorf("only %d zones specified %v, %d are required (can be non-unique)", len(azs), azs, api.MinRequiredAvailabilityZones)
 }
 
 // SetAvailabilityZones sets the given (or chooses) the availability zones
 func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []string) error {
 	if count := len(given); count != 0 {
-		if count < az.MinRequiredAvailabilityZones {
+		if count < api.MinRequiredAvailabilityZones {
 			return errTooFewAvailabilityZones(given)
 		}
 		spec.AvailabilityZones = given
@@ -377,21 +377,15 @@ func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []
 	}
 
 	if count := len(spec.AvailabilityZones); count != 0 {
-		if count < az.MinRequiredAvailabilityZones {
+		if count < api.MinRequiredAvailabilityZones {
 			return errTooFewAvailabilityZones(spec.AvailabilityZones)
 		}
 		return nil
 	}
 
 	logger.Debug("determining availability zones")
-	var azSelector *az.AvailabilityZoneSelector
-	if c.Provider.Region() == api.RegionUSEast1 {
-		azSelector = az.NewSelectorWithMinRequired(c.Provider.EC2(), c.Provider.Region())
-	} else {
-		azSelector = az.NewSelectorWithDefaults(c.Provider.EC2(), c.Provider.Region())
-	}
 
-	zones, err := azSelector.SelectZones()
+	zones, err := az.GetAvailabilityZones(c.Provider.EC2(), c.Provider.Region())
 	if err != nil {
 		return errors.Wrap(err, "getting availability zones")
 	}
