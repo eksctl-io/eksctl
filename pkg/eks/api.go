@@ -384,7 +384,6 @@ func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []
 	}
 
 	logger.Debug("determining availability zones")
-
 	zones, err := az.GetAvailabilityZones(c.Provider.EC2(), c.Provider.Region())
 	if err != nil {
 		return errors.Wrap(err, "getting availability zones")
