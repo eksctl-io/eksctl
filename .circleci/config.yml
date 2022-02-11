@@ -99,36 +99,6 @@ commands:
           only_for_branches: << parameters.only_for_branches >>
 
 jobs:
-  test-and-build:
-    machine:
-      image: ubuntu-2004:202104-01
-    environment:
-      GOPRIVATE: github.com/weaveworks/aws-sdk-go-private
-    steps:
-      - checkout
-      - add_ssh_keys:
-          fingerprints:
-            - "81:df:39:29:89:d6:34:ed:2e:4e:70:71:f1:f3:f6:0c"
-      - prepare-ssh-keys
-      - restore-cache
-      - docker-pull-build-image
-      - run: mkdir test-results
-      - docker-run:
-          cmd: go mod download
-      - docker-run:
-          cmd: make circleci-test build
-      - docker-run:
-          cmd: make -f Makefile.docker check-build-image-manifest-up-to-date
-      - run: mkdir bin; mv eksctl "bin/eksctl-$(./eksctl version)"
-      - save-cache
-      - store_test_results:
-          path: ./test-results
-      - store_artifacts:
-          path: ./test-results
-      - store_artifacts:
-          path: ./bin
-      - notify-slack:
-          only_for_branches: main
   build-all-distros:
     machine:
       image: ubuntu-2004:202104-01
@@ -153,60 +123,6 @@ jobs:
           path: dist/
       - notify-slack:
           only_for_branches: main
-  release-candidate:
-    machine:
-      image: ubuntu-2004:202104-01
-    steps:
-      - checkout
-      - restore-cache
-      - docker-pull-build-image
-      - docker-run:
-          cmd: go mod download
-      - docker-run:
-          cmd: ./build/scripts/do-release-candidate.sh
-          timeout: 21m
-          options: >-
-            --env=GITHUB_TOKEN
-            --env=CIRCLE_TAG
-            --env=CIRCLE_PROJECT_USERNAME
-            --env=CIRCLE_PROJECT_REPONAME
-            --env=DOCKER_HUB_PASSWORD
-            --volume=/var/run/docker.sock:/var/run/docker.sock
-      - store_artifacts:
-          path: dist/
-      - notify-slack:
-          channel: aws-dev
-          fail_only: false
-          only_for_branches: ""
-          failure_message: ':red_circle: `eksctl` $CIRCLE_TAG release failed!'
-          success_message: ':tada: `eksctl` $CIRCLE_TAG released!'
-  release:
-    machine:
-      image: ubuntu-2004:202104-01
-    steps:
-      - checkout
-      - restore-cache
-      - docker-pull-build-image
-      - docker-run:
-          cmd: go mod download
-      - docker-run:
-          cmd: ./build/scripts/do-release.sh
-          timeout: 21m
-          options: >-
-            --env=GITHUB_TOKEN
-            --env=CIRCLE_TAG
-            --env=CIRCLE_PROJECT_USERNAME
-            --env=CIRCLE_PROJECT_REPONAME
-            --env=DOCKER_HUB_PASSWORD
-            --volume=/var/run/docker.sock:/var/run/docker.sock
-      - store_artifacts:
-          path: dist/
-      - notify-slack:
-          channel: aws-dev
-          fail_only: false
-          only_for_branches: ""
-          failure_message: ':red_circle: `eksctl` $CIRCLE_TAG release failed!'
-          success_message: ':tada: `eksctl` $CIRCLE_TAG released!'
 
 workflows:
   version: 2
@@ -217,28 +133,7 @@ workflows:
 #          filters:
 #            tags:
 #              ignore: /.*/
-  release:
-    jobs:
-      - test-and-build:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              ignore: /^latest_release$/
-      - release-candidate:
-          requires: [test-and-build]
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+/
-      - release:
-          requires: [test-and-build]
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^[0-9]+\.[0-9]+\.[0-9]+/
+
   nightly-build:
     triggers:
       - schedule:

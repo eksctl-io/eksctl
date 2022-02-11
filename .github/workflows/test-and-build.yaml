@@ -2,6 +2,7 @@ name: test-and-build
 
 on:
   pull_request: {}
+  workflow_call: {}
 
 jobs:
   unit-test:
