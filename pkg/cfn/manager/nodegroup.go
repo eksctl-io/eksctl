@@ -322,10 +322,19 @@ func (c *StackCollection) DescribeNodeGroupStack(nodeGroupName string) (*Stack, 
 }
 
 // GetNodeGroupStackType returns the nodegroup stack type
-func (c *StackCollection) GetNodeGroupStackType(name string) (api.NodeGroupType, error) {
-	stack, err := c.DescribeNodeGroupStack(name)
-	if err != nil {
-		return "", err
+func (c *StackCollection) GetNodeGroupStackType(options GetNodegroupOption) (api.NodeGroupType, error) {
+	var (
+		err   error
+		stack *Stack
+	)
+	if options.Stack != nil && options.Stack.Stack != nil {
+		stack = options.Stack.Stack
+	}
+	if stack == nil {
+		stack, err = c.DescribeNodeGroupStack(options.NodeGroupName)
+		if err != nil {
+			return "", err
+		}
 	}
 	return GetNodeGroupType(stack.Tags)
 }

@@ -42,6 +42,8 @@ type UpgradeOptions struct {
 	ReleaseVersion string
 	// Wait for the upgrade to finish
 	Wait bool
+	// Stack to upgrade
+	Stack *manager.NodeGroupStack
 }
 
 func (m *Manager) Upgrade(options UpgradeOptions) error {
@@ -49,10 +51,7 @@ func (m *Manager) Upgrade(options UpgradeOptions) error {
 	if err != nil {
 		return err
 	}
-	hasStacks, err := m.hasStacks(stacks, options.NodegroupName)
-	if err != nil {
-		return err
-	}
+	hasStack := m.hasStacks(stacks, options.NodegroupName)
 
 	if options.KubernetesVersion != "" {
 		if _, err := semver.ParseTolerant(options.KubernetesVersion); err != nil {
@@ -72,7 +71,8 @@ func (m *Manager) Upgrade(options UpgradeOptions) error {
 		return err
 	}
 
-	if hasStacks {
+	if hasStack != nil {
+		options.Stack = hasStack
 		return m.upgradeUsingStack(options, nodegroupOutput.Nodegroup)
 	}
 
@@ -170,7 +170,10 @@ func (m *Manager) upgradeUsingStack(options UpgradeOptions, nodegroup *eks.Nodeg
 		return errors.New("only one of kubernetes-version or release-version can be specified")
 	}
 
-	template, err := m.stackManager.GetManagedNodeGroupTemplate(options.NodegroupName)
+	template, err := m.stackManager.GetManagedNodeGroupTemplate(manager.GetNodegroupOption{
+		Stack:         options.Stack,
+		NodeGroupName: options.NodegroupName,
+	})
 	if err != nil {
 		return errors.Wrap(err, "error fetching nodegroup template")
 	}

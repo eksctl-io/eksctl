@@ -42,11 +42,11 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.
 	}
 }
 
-func (m *Manager) hasStacks(stacks []manager.NodeGroupStack, name string) (bool, error) {
+func (m *Manager) hasStacks(stacks []manager.NodeGroupStack, name string) *manager.NodeGroupStack {
 	for _, stack := range stacks {
 		if stack.NodeGroupName == name {
-			return true, nil
+			return &stack
 		}
 	}
-	return false, nil
+	return nil
 }
