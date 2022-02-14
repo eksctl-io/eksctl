@@ -4,29 +4,21 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-
 	"github.com/aws/aws-sdk-go/aws/awserr"
-
 	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/weaveworks/eksctl/pkg/utils/tasks"
-
+	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
-	"github.com/weaveworks/eksctl/pkg/utils/waiters"
-
-	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-
-	"github.com/kris-nova/logger"
-
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
+	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
 type UnownedCluster struct {
@@ -274,7 +266,7 @@ func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(waitInterval time.Du
 	}
 
 	// we kill every nodegroup with a stack the standard way. wait is always true
-	tasks, err := c.stackManager.NewTasksToDeleteNodeGroups(func(_ string) bool { return true }, true, nil)
+	tasks, err := c.stackManager.NewTasksToDeleteNodeGroups(allStacks, func(_ string) bool { return true }, true, nil)
 	if err != nil {
 		return err
 	}

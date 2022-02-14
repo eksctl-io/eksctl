@@ -298,17 +298,17 @@ func (c *StackCollection) DescribeStack(i *Stack) (*Stack, error) {
 }
 
 // GetManagedNodeGroupTemplate returns the template for a ManagedNodeGroup resource
-func (c *StackCollection) GetManagedNodeGroupTemplate(nodeGroupName string) (string, error) {
-	nodeGroupType, err := c.GetNodeGroupStackType(nodeGroupName)
+func (c *StackCollection) GetManagedNodeGroupTemplate(options GetNodegroupOption) (string, error) {
+	nodeGroupType, err := c.GetNodeGroupStackType(options)
 	if err != nil {
 		return "", err
 	}
 
 	if nodeGroupType != api.NodeGroupTypeManaged {
-		return "", fmt.Errorf("%q is not a managed nodegroup", nodeGroupName)
+		return "", fmt.Errorf("%q is not a managed nodegroup", options.NodeGroupName)
 	}
 
-	stackName := c.makeNodeGroupStackName(nodeGroupName)
+	stackName := c.makeNodeGroupStackName(options.NodeGroupName)
 	templateBody, err := c.GetStackTemplate(stackName)
 	if err != nil {
 		return "", err

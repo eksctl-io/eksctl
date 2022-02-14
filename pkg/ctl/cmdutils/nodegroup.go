@@ -9,7 +9,9 @@ import (
 )
 
 func PopulateNodegroup(stackManager manager.StackManager, name string, cfg *api.ClusterConfig, ctl api.ClusterProvider) error {
-	nodeGroupType, err := stackManager.GetNodeGroupStackType(name)
+	nodeGroupType, err := stackManager.GetNodeGroupStackType(manager.GetNodegroupOption{
+		NodeGroupName: name,
+	})
 	if err != nil {
 		logger.Debug("failed to fetch nodegroup %q stack: %v", name, err)
 		_, err := ctl.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{

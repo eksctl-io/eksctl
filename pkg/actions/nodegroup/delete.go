@@ -18,14 +18,13 @@ func (m *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.M
 	}
 
 	tasks := &tasks.TaskTree{Parallel: true}
+	stacks, err := m.stackManager.ListNodeGroupStacks()
+	if err != nil {
+		return err
+	}
 
 	for _, n := range managedNodeGroups {
-		hasStacks, err := m.hasStacks(n.Name)
-		if err != nil {
-			return err
-		}
-
-		if hasStacks {
+		if m.hasStacks(stacks, n.Name) != nil {
 			nodeGroupsWithStacks = append(nodeGroupsWithStacks, n)
 		} else {
 			tasks.Append(m.stackManager.NewTaskToDeleteUnownedNodeGroup(m.cfg.Metadata.Name, n.Name, m.ctl.Provider.EKS(), nil))
@@ -41,7 +40,7 @@ func (m *Manager) Delete(nodeGroups []*api.NodeGroup, managedNodeGroups []*api.M
 		return false
 	}
 
-	deleteTasks, err := m.stackManager.NewTasksToDeleteNodeGroups(shouldDelete, wait, nil)
+	deleteTasks, err := m.stackManager.NewTasksToDeleteNodeGroups(stacks, shouldDelete, wait, nil)
 	if err != nil {
 		return err
 	}

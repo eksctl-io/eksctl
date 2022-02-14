@@ -3,8 +3,6 @@ package nodegroup
 import (
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/utils/waiters"
-
 	"github.com/aws/aws-sdk-go/aws/request"
 	"k8s.io/client-go/kubernetes"
 
@@ -12,6 +10,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
 type Manager struct {
@@ -43,15 +42,11 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.
 	}
 }
 
-func (m *Manager) hasStacks(name string) (bool, error) {
-	stacks, err := m.stackManager.ListNodeGroupStacks()
-	if err != nil {
-		return false, err
-	}
+func (m *Manager) hasStacks(stacks []manager.NodeGroupStack, name string) *manager.NodeGroupStack {
 	for _, stack := range stacks {
 		if stack.NodeGroupName == name {
-			return true, nil
+			return &stack
 		}
 	}
-	return false, nil
+	return nil
 }

@@ -3,14 +3,11 @@ package managed
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
-
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
@@ -84,7 +81,9 @@ func (m *Service) GetHealth(nodeGroupName string) ([]HealthIssue, error) {
 
 // UpdateLabels adds or removes labels for a nodegroup
 func (m *Service) UpdateLabels(nodeGroupName string, labelsToAdd map[string]string, labelsToRemove []string) error {
-	template, err := m.stackCollection.GetManagedNodeGroupTemplate(nodeGroupName)
+	template, err := m.stackCollection.GetManagedNodeGroupTemplate(manager.GetNodegroupOption{
+		NodeGroupName: nodeGroupName,
+	})
 	if err != nil {
 		return err
 	}
@@ -112,7 +111,9 @@ func (m *Service) UpdateLabels(nodeGroupName string, labelsToAdd map[string]stri
 
 // GetLabels fetches the labels for a nodegroup
 func (m *Service) GetLabels(nodeGroupName string) (map[string]string, error) {
-	template, err := m.stackCollection.GetManagedNodeGroupTemplate(nodeGroupName)
+	template, err := m.stackCollection.GetManagedNodeGroupTemplate(manager.GetNodegroupOption{
+		NodeGroupName: nodeGroupName,
+	})
 	if err != nil {
 		return nil, err
 	}

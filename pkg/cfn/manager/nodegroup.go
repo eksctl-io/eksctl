@@ -14,11 +14,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 
-	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/version"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
@@ -49,6 +48,7 @@ type NodeGroupSummary struct {
 type NodeGroupStack struct {
 	NodeGroupName string
 	Type          api.NodeGroupType
+	Stack         *Stack
 }
 
 // makeNodeGroupStackName generates the name of the nodegroup stack identified by its name, isolated by the cluster this StackCollection operates on
@@ -142,6 +142,7 @@ func (c *StackCollection) ListNodeGroupStacks() ([]NodeGroupStack, error) {
 		nodeGroupStacks = append(nodeGroupStacks, NodeGroupStack{
 			NodeGroupName: c.GetNodeGroupName(stack),
 			Type:          nodeGroupType,
+			Stack:         stack,
 		})
 	}
 	return nodeGroupStacks, nil
@@ -321,10 +322,19 @@ func (c *StackCollection) DescribeNodeGroupStack(nodeGroupName string) (*Stack, 
 }
 
 // GetNodeGroupStackType returns the nodegroup stack type
-func (c *StackCollection) GetNodeGroupStackType(name string) (api.NodeGroupType, error) {
-	stack, err := c.DescribeNodeGroupStack(name)
-	if err != nil {
-		return "", err
+func (c *StackCollection) GetNodeGroupStackType(options GetNodegroupOption) (api.NodeGroupType, error) {
+	var (
+		err   error
+		stack *Stack
+	)
+	if options.Stack != nil && options.Stack.Stack != nil {
+		stack = options.Stack.Stack
+	}
+	if stack == nil {
+		stack, err = c.DescribeNodeGroupStack(options.NodeGroupName)
+		if err != nil {
+			return "", err
+		}
 	}
 	return GetNodeGroupType(stack.Tags)
 }
