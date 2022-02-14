@@ -1374,8 +1374,8 @@
         },
         "maxInstanceLifetime": {
           "type": "integer",
-          "description": "defines the maximum amount of time in seconds an instance stays alive. To clear a previously set value, this must be set to 0 explicitly.",
-          "x-intellij-html-description": "defines the maximum amount of time in seconds an instance stays alive. To clear a previously set value, this must be set to 0 explicitly."
+          "description": "defines the maximum amount of time in seconds an instance stays alive.",
+          "x-intellij-html-description": "defines the maximum amount of time in seconds an instance stays alive."
         },
         "maxPodsPerNode": {
           "type": "integer"

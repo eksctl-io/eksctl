@@ -981,7 +981,6 @@ type NodeGroup struct {
 	ContainerRuntime *string `json:"containerRuntime,omitempty"`
 
 	// MaxInstanceLifetime defines the maximum amount of time in seconds an instance stays alive.
-	// To clear a previously set value, this must be set to 0 explicitly.
 	// +optional
 	MaxInstanceLifetime *int `json:"maxInstanceLifetime,omitempty"`
 }

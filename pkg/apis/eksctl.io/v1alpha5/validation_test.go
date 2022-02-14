@@ -116,16 +116,6 @@ var _ = Describe("ClusterConfig validation", func() {
 			err = api.ValidateNodeGroup(0, ng0)
 			Expect(err).To(MatchError(ContainSubstring("maximum instance lifetime must have a minimum value of 86,400 seconds (one day), but was: 5")))
 		})
-		It("should accept 0 as a value as that clears previous settings", func() {
-			cfg := api.NewClusterConfig()
-			ng0 := cfg.NewNodeGroup()
-			ng0.Name = "node-group"
-			ng0.MaxInstanceLifetime = aws.Int(0)
-			err := api.ValidateClusterConfig(cfg)
-			Expect(err).NotTo(HaveOccurred())
-			err = api.ValidateNodeGroup(0, ng0)
-			Expect(err).NotTo(HaveOccurred())
-		})
 		It("setting it if greater than or equal to one day", func() {
 			cfg := api.NewClusterConfig()
 			ng0 := cfg.NewNodeGroup()

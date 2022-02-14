@@ -665,7 +665,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	}
 
 	if ng.MaxInstanceLifetime != nil {
-		if *ng.MaxInstanceLifetime < OneDay && *ng.MaxInstanceLifetime > 0 {
+		if *ng.MaxInstanceLifetime < OneDay {
 			return fmt.Errorf("maximum instance lifetime must have a minimum value of 86,400 seconds (one day), but was: %d", *ng.MaxInstanceLifetime)
 		}
 	}
