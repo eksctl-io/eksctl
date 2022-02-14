@@ -2,7 +2,7 @@ name: publish-release-candidate
 on:
   push:
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+-rc.[0-9]/'
+      - '[0-9]+.[0-9]+.[0-9]+-rc.[0-9]'
 
 jobs:
   test-and-build:
