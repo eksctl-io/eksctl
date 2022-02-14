@@ -21,6 +21,9 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
+// MaximumTagNumber for ASGs as described here https://docs.aws.amazon.com/autoscaling/ec2/userguide/autoscaling-tagging.html
+const MaximumTagNumber = 50
+
 // NodeGroupResourceSet stores the resource information of the nodegroup
 type NodeGroupResourceSet struct {
 	rs                 *resourceSet
@@ -262,10 +265,52 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		)
 	}
 
+	// not using aws.IntValue because it's not a required field
+	// and aws.IntValue would result in 0 if it's nil.
+	if n.spec.DesiredCapacity != nil && *n.spec.DesiredCapacity == 0 {
+		clusterTags, err := generateClusterAutoscalerTags(n.spec)
+		if err != nil {
+			return err
+		}
+		tags = append(tags, clusterTags...)
+	}
+
 	asg := nodeGroupResource(launchTemplateName, vpcZoneIdentifier, tags, n.spec)
 	n.newResource("NodeGroup", asg)
 
 	return nil
+}
+
+func generateClusterAutoscalerTags(spec *api.NodeGroup) ([]map[string]interface{}, error) {
+	result := make([]map[string]interface{}, 0)
+	duplicates := make(map[string]string)
+
+	// labels
+	for k, v := range spec.Labels {
+		duplicates[k] = v
+		result = append(result, map[string]interface{}{
+			"Key":               "k8s.io/cluster-autoscaler/node-template/label/" + k,
+			"Value":             v,
+			"PropagateAtLaunch": "true",
+		})
+	}
+
+	// taints
+	for _, taint := range spec.Taints {
+		if _, ok := duplicates[taint.Key]; ok {
+			return nil, fmt.Errorf("duplicate key found for taints and labels with taint key=value: %s=%s, and label: %s=%s", taint.Key, taint.Value, taint.Key, duplicates[taint.Key])
+		}
+		duplicates[taint.Key] = taint.Value
+		result = append(result, map[string]interface{}{
+			"Key":               "k8s.io/cluster-autoscaler/node-template/taints/" + taint.Key,
+			"Value":             taint.Value,
+			"PropagateAtLaunch": "true",
+		})
+	}
+	if len(result) > MaximumTagNumber {
+		return nil, fmt.Errorf("number of tags is exceeding the configured amount %d, was: %d", MaximumTagNumber, len(result))
+	}
+	return result, nil
 }
 
 // generateNodeName formulates the name based on the configuration in input
