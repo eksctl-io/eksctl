@@ -23,7 +23,11 @@ func (c *StackCollection) MakeChangeSetName(action string) string {
 }
 
 func (c *StackCollection) MakeClusterStackName() string {
-	return "eksctl-" + c.spec.Metadata.Name + "-cluster"
+	return c.MakeClusterStackNameFromName(c.spec.Metadata.Name)
+}
+
+func (c *StackCollection) MakeClusterStackNameFromName(name string) string {
+	return "eksctl-" + name + "-cluster"
 }
 
 // createClusterTask creates the cluster

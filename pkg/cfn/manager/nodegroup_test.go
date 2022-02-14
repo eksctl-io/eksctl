@@ -19,7 +19,7 @@ import (
 var _ = Describe("StackCollection NodeGroup", func() {
 	var (
 		cc *api.ClusterConfig
-		sc *StackCollection
+		sc StackManager
 
 		p *mockprovider.MockProvider
 	)

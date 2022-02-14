@@ -85,7 +85,7 @@ func newTag(key, value string) *cloudformation.Tag {
 }
 
 // NewStackCollection creates a stack manager for a single cluster
-func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *StackCollection {
+func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) StackManager {
 	tags := []*cloudformation.Tag{
 		newTag(api.ClusterNameTag, spec.Metadata.Name),
 		newTag(api.OldClusterNameTag, spec.Metadata.Name),
@@ -554,16 +554,20 @@ func (c *StackCollection) GetClusterStackIfExists() (*Stack, error) {
 	if err != nil {
 		return nil, err
 	}
-	return c.getClusterStackUsingCachedList(clusterStackNames)
+	return c.getClusterStackUsingCachedList(clusterStackNames, "")
 }
 
-func (c *StackCollection) HasClusterStackUsingCachedList(clusterStackNames []string) (bool, error) {
-	stack, err := c.getClusterStackUsingCachedList(clusterStackNames)
+func (c *StackCollection) HasClusterStackUsingCachedList(clusterStackNames []string, clusterName string) (bool, error) {
+	stack, err := c.getClusterStackUsingCachedList(clusterStackNames, clusterName)
 	return stack != nil, err
 }
 
-func (c *StackCollection) getClusterStackUsingCachedList(clusterStackNames []string) (*Stack, error) {
+func (c *StackCollection) getClusterStackUsingCachedList(clusterStackNames []string, clusterName string) (*Stack, error) {
 	clusterStackName := c.MakeClusterStackName()
+	if clusterName != "" {
+		clusterStackName = c.MakeClusterStackNameFromName(clusterName)
+	}
+
 	for _, stack := range clusterStackNames {
 		if stack == clusterStackName {
 			stack, err := c.DescribeStack(&cloudformation.Stack{StackName: &clusterStackName})
