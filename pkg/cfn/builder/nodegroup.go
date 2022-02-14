@@ -282,6 +282,9 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 }
 
 func generateClusterAutoscalerTags(spec *api.NodeGroup) ([]map[string]interface{}, error) {
+	if api.IsEnabled(spec.DisableASGTagPropagation) {
+		return nil, nil
+	}
 	result := make([]map[string]interface{}, 0)
 	duplicates := make(map[string]string)
 

@@ -979,6 +979,10 @@ type NodeGroup struct {
 	// ContainerRuntime defines the runtime (CRI) to use for containers on the node
 	// +optional
 	ContainerRuntime *string `json:"containerRuntime,omitempty"`
+
+	// DisableASGTagPropagation disable the tag propagation in case desired capacity is 0.
+	// +optional
+	DisableASGTagPropagation *bool `json:"disableASGTagPropagation,omitempty"`
 }
 
 // GetContainerRuntime returns the container runtime.

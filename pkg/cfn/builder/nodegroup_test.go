@@ -838,6 +838,35 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 							PropagateAtLaunch: "true",
 						}))
 					})
+					When("disable asg tag propagation is enabled", func() {
+						BeforeEach(func() {
+							ng.DisableASGTagPropagation = api.Enabled()
+							ng.DesiredCapacity = aws.Int(0)
+							ng.Labels = map[string]string{
+								"test": "label",
+							}
+							ng.Taints = []api.NodeGroupTaint{
+								{
+									Key:   "taint-key",
+									Value: "taint-value",
+								},
+							}
+						})
+
+						It("skips adding tags", func() {
+							tags := ngTemplate.Resources["NodeGroup"].Properties.Tags
+							Expect(tags).NotTo(ContainElements(fakes.Tag{
+								Key:               "k8s.io/cluster-autoscaler/node-template/label/test",
+								Value:             "label",
+								PropagateAtLaunch: "true",
+							}, fakes.Tag{
+								Key:               "k8s.io/cluster-autoscaler/node-template/taints/taint-key",
+								Value:             "taint-value",
+								PropagateAtLaunch: "true",
+							}))
+						})
+
+					})
 					When("there are duplicates between taints and labels", func() {
 						BeforeEach(func() {
 							ng.DesiredCapacity = aws.Int(0)
