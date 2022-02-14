@@ -44,7 +44,6 @@ type Stack = cloudformation.Stack
 type StackInfo struct {
 	Stack     *Stack
 	Resources []*cloudformation.StackResource
-	Template  *string
 }
 
 // TemplateData is a union (sum type) to describe template data.

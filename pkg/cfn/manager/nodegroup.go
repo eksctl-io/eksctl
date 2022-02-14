@@ -162,17 +162,12 @@ func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]Stac
 		input := &cfn.DescribeStackResourcesInput{
 			StackName: s.StackName,
 		}
-		template, err := c.GetStackTemplate(*s.StackName)
-		if err != nil {
-			return nil, errors.Wrapf(err, "getting template for %q stack", *s.StackName)
-		}
 		resources, err := c.cloudformationAPI.DescribeStackResources(input)
 		if err != nil {
 			return nil, errors.Wrapf(err, "getting all resources for %q stack", *s.StackName)
 		}
 		allResources[c.GetNodeGroupName(s)] = StackInfo{
 			Resources: resources.StackResources,
-			Template:  &template,
 			Stack:     s,
 		}
 	}
