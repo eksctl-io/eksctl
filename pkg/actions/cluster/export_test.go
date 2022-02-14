@@ -25,3 +25,11 @@ func (c *UnownedCluster) SetNewNodeGroupManager(newNodeGroupManager func(cfg *ap
 func (c *OwnedCluster) SetNewNodeGroupManager(newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer) {
 	c.newNodeGroupManager = newNodeGroupManager
 }
+
+func SetProviderConstructor(f ProviderConstructor) {
+	newClusterProvider = f
+}
+
+func SetStackManagerConstructor(f StackManagerConstructor) {
+	newStackCollection = f
+}

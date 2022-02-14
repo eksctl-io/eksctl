@@ -9,7 +9,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -25,12 +24,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/version"
 	"github.com/weaveworks/eksctl/pkg/vpc"
-)
-
-const (
-	eksctlCreatedTrue    api.EKSCTLCreated = "True"
-	eksctlCreatedFalse   api.EKSCTLCreated = "False"
-	eksctlCreatedUnknown api.EKSCTLCreated = "Unknown"
 )
 
 // DescribeControlPlane describes the cluster control plane
@@ -328,96 +321,6 @@ func (c *ClusterProvider) loadClusterKubernetesNetworkConfig(spec *api.ClusterCo
 	return nil
 }
 
-// ListClusters returns a list of the EKS cluster in your account
-func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool, newProviderForConfig func(*api.ProviderConfig, *api.ClusterConfig) (*ClusterProvider, error)) ([]*api.ClusterConfig, error) {
-	if !listAllRegions {
-		return c.listClusters(int64(chunkSize))
-	}
-
-	var clusters []*api.ClusterConfig
-	authorizedRegionsList, err := c.Provider.EC2().DescribeRegions(&ec2.DescribeRegionsInput{})
-	if err != nil {
-		return nil, err
-	}
-	authorizedRegions := map[string]struct{}{}
-	for _, r := range authorizedRegionsList.Regions {
-		authorizedRegions[*r.RegionName] = struct{}{}
-	}
-
-	for _, region := range api.SupportedRegions() {
-		if _, authorized := authorizedRegions[region]; !authorized {
-			continue
-		}
-		// Reset region and recreate the client.
-		ctl, err := newProviderForConfig(&api.ProviderConfig{
-			Region:      region,
-			Profile:     c.Provider.Profile(),
-			WaitTimeout: c.Provider.WaitTimeout(),
-		}, nil)
-
-		if err != nil {
-			logger.Critical("error creating provider in %q region: %v", region, err)
-			continue
-		}
-
-		newClusters, err := ctl.listClusters(int64(chunkSize))
-		if err != nil {
-			logger.Critical("error listing clusters in %q region: %v", region, err)
-			continue
-		}
-
-		clusters = append(clusters, newClusters...)
-	}
-	return clusters, nil
-}
-
-func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, error) {
-	allClusters := []*api.ClusterConfig{}
-
-	spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: ""}}
-	allStacks, err := c.NewStackManager(spec).ListClusterStackNames()
-	if err != nil {
-		return nil, err
-	}
-
-	token := ""
-	for {
-		clusters, nextToken, err := c.getClustersRequest(chunkSize, token)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, clusterName := range clusters {
-			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: *clusterName}}
-			hasClusterStack, err := c.NewStackManager(spec).HasClusterStackUsingCachedList(allStacks)
-			managed := eksctlCreatedFalse
-			if err != nil {
-				managed = eksctlCreatedUnknown
-				logger.Warning("error fetching stacks for cluster %s: %v", clusterName, err)
-			} else if hasClusterStack {
-				managed = eksctlCreatedTrue
-			}
-			allClusters = append(allClusters, &api.ClusterConfig{
-				Metadata: &api.ClusterMeta{
-					Name:   *clusterName,
-					Region: c.Provider.Region(),
-				},
-				Status: &api.ClusterStatus{
-					EKSCTLCreated: managed,
-				},
-			})
-		}
-
-		if api.IsSetAndNonEmptyString(nextToken) {
-			token = *nextToken
-		} else {
-			break
-		}
-	}
-
-	return allClusters, nil
-}
-
 // GetCluster display details of an EKS cluster in your account
 func (c *ClusterProvider) GetCluster(clusterName string) (*awseks.Cluster, error) {
 	input := &awseks.DescribeClusterInput{
@@ -443,21 +346,6 @@ func (c *ClusterProvider) GetCluster(clusterName string) (*awseks.Cluster, error
 		}
 	}
 	return output.Cluster, nil
-}
-
-func (c *ClusterProvider) getClustersRequest(chunkSize int64, nextToken string) ([]*string, *string, error) {
-	input := &awseks.ListClustersInput{
-		MaxResults: &chunkSize,
-		Include:    aws.StringSlice([]string{"all"}),
-	}
-	if nextToken != "" {
-		input = input.SetNextToken(nextToken)
-	}
-	output, err := c.Provider.EKS().ListClusters(input)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "listing control planes")
-	}
-	return output.Clusters, output.NextToken, nil
 }
 
 // WaitForControlPlane waits till the control plane is ready
