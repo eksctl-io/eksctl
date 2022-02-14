@@ -208,8 +208,12 @@ type (
 const (
 	// MinRequiredSubnets is the minimum required number of subnets
 	MinRequiredSubnets = 2
+	// MinRequiredAvailabilityZones defines the minimum number of required availability zones
+	MinRequiredAvailabilityZones = MinRequiredSubnets
 	// RecommendedSubnets is the recommended number of subnets
 	RecommendedSubnets = 3
+	// recommendedAvailabilityZones defines the default number of required availability zones
+	RecommendedAvailabilityZones = RecommendedSubnets
 	// SubnetTopologyPrivate represents privately-routed subnets
 	SubnetTopologyPrivate SubnetTopology = "Private"
 	// SubnetTopologyPublic represents publicly-routed subnets
