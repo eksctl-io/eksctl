@@ -9,6 +9,7 @@ import (
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"k8s.io/apimachinery/pkg/util/sets"
 
+	"github.com/weaveworks/eksctl/pkg/actions/cluster"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/printers"
 
@@ -101,7 +102,7 @@ func getAndPrinterClusters(ctl *eks.ClusterProvider, params *getCmdParams, listA
 		addGetClustersSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	clusters, err := ctl.ListClusters(params.chunkSize, listAllRegions, eks.New)
+	clusters, err := cluster.GetClusters(ctl.Provider, listAllRegions, params.chunkSize)
 	if err != nil {
 		return err
 	}
@@ -110,14 +111,14 @@ func getAndPrinterClusters(ctl *eks.ClusterProvider, params *getCmdParams, listA
 }
 
 func addGetClustersSummaryTableColumns(printer *printers.TablePrinter) {
-	printer.AddColumn("NAME", func(c *api.ClusterConfig) string {
-		return c.Metadata.Name
+	printer.AddColumn("NAME", func(c cluster.Description) string {
+		return c.Name
 	})
-	printer.AddColumn("REGION", func(c *api.ClusterConfig) string {
-		return c.Metadata.Region
+	printer.AddColumn("REGION", func(c cluster.Description) string {
+		return c.Region
 	})
-	printer.AddColumn("EKSCTL CREATED", func(c *api.ClusterConfig) api.EKSCTLCreated {
-		return c.Status.EKSCTLCreated
+	printer.AddColumn("EKSCTL CREATED", func(c cluster.Description) api.EKSCTLCreated {
+		return c.Owned
 	})
 }
 

@@ -14,7 +14,7 @@ import (
 var _ = Describe("StackCollection Template", func() {
 	var (
 		cc *api.ClusterConfig
-		sc *StackCollection
+		sc StackManager
 
 		p *mockprovider.MockProvider
 	)
