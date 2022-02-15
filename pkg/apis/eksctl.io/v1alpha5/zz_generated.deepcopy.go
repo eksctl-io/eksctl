@@ -824,6 +824,11 @@ func (in *Karpenter) DeepCopyInto(out *Karpenter) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.DefaultInstanceProfile != nil {
+		in, out := &in.DefaultInstanceProfile, &out.DefaultInstanceProfile
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 
