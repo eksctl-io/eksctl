@@ -406,7 +406,7 @@ var _ = Describe("Create", func() {
 		})
 		When("defaultInstanceProfile is not set", func() {
 			BeforeEach(func() {
-				cfg.Karpenter.DefaultInstanceProfile = ""
+				cfg.Karpenter.DefaultInstanceProfile = nil
 			})
 			It("eksctl should use the configured instance profile", func() {
 				fakeKarpenterInstaller.InstallReturns(nil)
@@ -426,7 +426,7 @@ var _ = Describe("Create", func() {
 		})
 		When("defaultInstanceProfile is set", func() {
 			BeforeEach(func() {
-				cfg.Karpenter.DefaultInstanceProfile = "profile"
+				cfg.Karpenter.DefaultInstanceProfile = aws.String("profile")
 			})
 			It("eksctl should use the configured instance profile", func() {
 				fakeKarpenterInstaller.InstallReturns(nil)

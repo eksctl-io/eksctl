@@ -40,7 +40,7 @@ type Options struct {
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_chart_installer.go . ChartInstaller
 type ChartInstaller interface {
-	Install(ctx context.Context, serviceAccountRoleARN string, instanceProfileARN string) error
+	Install(ctx context.Context, serviceAccountRoleARN string, instanceProfileName string) error
 }
 
 // Installer implements the Karpenter installer functionality.

@@ -28,7 +28,7 @@ var _ = Describe("Install", func() {
 			cfg.Karpenter = &api.Karpenter{
 				Version:                "0.4.3",
 				CreateServiceAccount:   api.Disabled(),
-				DefaultInstanceProfile: "",
+				DefaultInstanceProfile: nil,
 			}
 			cfg.Status = &api.ClusterStatus{
 				Endpoint: "https://endpoint.com",

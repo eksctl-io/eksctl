@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/kris-nova/logger"
 
+	"github.com/aws/aws-sdk-go/aws"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -74,8 +75,8 @@ func (i *Installer) Create() error {
 	}
 
 	instanceProfileName := fmt.Sprintf("eksctl-%s-%s", builder.KarpenterNodeInstanceProfile, i.Config.Metadata.Name)
-	if i.Config.Karpenter.DefaultInstanceProfile != "" {
-		instanceProfileName = i.Config.Karpenter.DefaultInstanceProfile
+	if i.Config.Karpenter.DefaultInstanceProfile != nil {
+		instanceProfileName = aws.StringValue(i.Config.Karpenter.DefaultInstanceProfile)
 	}
 
 	// Install Karpenter

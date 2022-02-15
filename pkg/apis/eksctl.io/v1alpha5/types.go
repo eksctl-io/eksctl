@@ -746,7 +746,7 @@ type Karpenter struct {
 	CreateServiceAccount *bool `json:"createServiceAccount,omitempty"`
 	// DefaultInstanceProfile override the default IAM instance profile
 	// +optional
-	DefaultInstanceProfile string `json:"defaultInstanceProfile,omitempty"`
+	DefaultInstanceProfile *string `json:"defaultInstanceProfile,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
