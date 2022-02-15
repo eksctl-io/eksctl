@@ -67,7 +67,6 @@ func doEnableLogging(cmd *cmdutils.Cmd, logTypesToEnable []string, logTypesToDis
 	if err != nil {
 		return err
 	}
-	cmdutils.LogRegionAndVersionInfo(meta)
 
 	currentlyEnabled, _, err := ctl.GetCurrentClusterConfigForLogging(cfg)
 	if err != nil {

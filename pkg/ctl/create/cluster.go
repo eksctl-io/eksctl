@@ -127,11 +127,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 
 	printer := printers.NewJSONPrinter()
 
-	ctl, err := cmd.NewCtl()
-	if err != nil {
-		return err
-	}
-
 	if params.DryRun {
 		originalWriter := logger.Writer
 		logger.Writer = io.Discard
@@ -140,7 +135,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		}()
 	}
 
-	cmdutils.LogRegionAndVersionInfo(meta)
+	ctl, err := cmd.NewCtl()
+	if err != nil {
+		return err
+	}
 
 	if cfg.Metadata.Version == "" || cfg.Metadata.Version == "auto" {
 		cfg.Metadata.Version = api.DefaultVersion

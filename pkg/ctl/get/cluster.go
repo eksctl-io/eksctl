@@ -55,6 +55,11 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 	cfg := cmd.ClusterConfig
 	regionGiven := cfg.Metadata.Region != "" // eks.New resets this field, so we need to check if it was set in the first place
 
+	cmdutils.Silent = true
+	if params.output == printers.TableType && !listAllRegions {
+		cmdutils.Silent = false
+	}
+
 	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
@@ -74,10 +79,6 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 
 	if cfg.Metadata.Name != "" && listAllRegions {
 		return fmt.Errorf("--all-regions is for listing all clusters, it must be used without cluster name flag/argument")
-	}
-
-	if params.output == printers.TableType && !listAllRegions {
-		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 	}
 
 	if params.output != printers.TableType {

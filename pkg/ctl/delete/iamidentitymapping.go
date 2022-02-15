@@ -52,7 +52,6 @@ func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn, account string, all bool
 	if err != nil {
 		return err
 	}
-	cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
 
 	if arn == "" && account == "" || arn != "" && account != "" {
 		return fmt.Errorf("either --arn or --account must be set")

@@ -59,16 +59,14 @@ func configureGetFargateProfileCmd(cmd *cmdutils.Cmd) *options {
 }
 
 func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
+	if options.output != printers.TableType {
+		//log warnings and errors to stderr
+		logger.Writer = os.Stderr
+	}
+
 	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
-	}
-
-	if options.output == printers.TableType {
-		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
-	} else {
-		//log warnings and errors to stderr
-		logger.Writer = os.Stderr
 	}
 
 	supportsFargate, err := ctl.SupportsFargate(cmd.ClusterConfig)

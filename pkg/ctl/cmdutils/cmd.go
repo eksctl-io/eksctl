@@ -8,6 +8,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
+var Silent = false
+
 // Cmd holds attributes that are common between commands;
 // not all commands use each attribute, but they can if needed
 type Cmd struct {
@@ -61,6 +63,10 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 	ctl, err := eks.New(&c.ProviderConfig, c.ClusterConfig)
 	if err != nil {
 		return nil, err
+	}
+
+	if !Silent {
+		logRegionAndVersionInfo(c.ClusterConfig.Metadata)
 	}
 
 	if !ctl.IsSupportedRegion() {
