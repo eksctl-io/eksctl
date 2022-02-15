@@ -55,9 +55,8 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 	cfg := cmd.ClusterConfig
 	regionGiven := cfg.Metadata.Region != "" // eks.New resets this field, so we need to check if it was set in the first place
 
-	cmdutils.Silent = true
-	if params.output == printers.TableType && !listAllRegions {
-		cmdutils.Silent = false
+	if params.output != printers.TableType {
+		logger.Writer = os.Stderr
 	}
 
 	ctl, err := cmd.NewCtl()

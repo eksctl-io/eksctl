@@ -67,7 +67,7 @@ func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool, printer pri
 	}
 
 	if printer != nil {
-		cmdutils.Silent = true
+		logger.Writer = os.Stderr
 	}
 
 	ctl, err := cmd.NewProviderForExistingCluster()
