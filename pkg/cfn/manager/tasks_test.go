@@ -28,7 +28,7 @@ var _ = Describe("StackCollection Tasks", func() {
 		p   *mockprovider.MockProvider
 		cfg *api.ClusterConfig
 
-		stackManager *StackCollection
+		stackManager StackManager
 	)
 
 	testAZs := []string{"us-west-2b", "us-west-2a", "us-west-2c"}
@@ -171,7 +171,7 @@ var _ = Describe("StackCollection Tasks", func() {
 			var (
 				p            *mockprovider.MockProvider
 				cfg          *api.ClusterConfig
-				stackManager *StackCollection
+				stackManager StackManager
 			)
 			BeforeEach(func() {
 				p = mockprovider.NewMockProvider()

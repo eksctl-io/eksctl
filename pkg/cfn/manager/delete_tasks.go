@@ -8,11 +8,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
-
 	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
@@ -22,10 +22,10 @@ import (
 func deleteAll(_ string) bool { return true }
 
 // NewTasksToDeleteClusterWithNodeGroups defines tasks required to delete the given cluster along with all of its resources
-func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvider bool, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error) {
+func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(clusterStack *Stack, nodeGroupStacks []NodeGroupStack, deleteOIDCProvider bool, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error) {
 	taskTree := &tasks.TaskTree{Parallel: false}
 
-	nodeGroupTasks, err := c.NewTasksToDeleteNodeGroups(deleteAll, true, cleanup)
+	nodeGroupTasks, err := c.NewTasksToDeleteNodeGroups(nodeGroupStacks, deleteAll, true, cleanup)
 
 	if err != nil {
 		return nil, err
@@ -57,10 +57,6 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvid
 		taskTree.Append(deleteAddonIAMtasks)
 	}
 
-	clusterStack, err := c.DescribeClusterStack()
-	if err != nil {
-		return nil, err
-	}
 	if clusterStack == nil {
 		return nil, &StackNotFoundErr{ClusterName: c.spec.Metadata.Name}
 	}
@@ -84,38 +80,32 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvid
 }
 
 // NewTasksToDeleteNodeGroups defines tasks required to delete all of the nodegroups
-func (c *StackCollection) NewTasksToDeleteNodeGroups(shouldDelete func(string) bool, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error) {
-	nodeGroupStacks, err := c.DescribeNodeGroupStacks()
-	if err != nil {
-		return nil, err
-	}
-
+func (c *StackCollection) NewTasksToDeleteNodeGroups(nodeGroupStacks []NodeGroupStack, shouldDelete func(string) bool, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error) {
 	taskTree := &tasks.TaskTree{Parallel: true}
 
 	for _, s := range nodeGroupStacks {
-		name := c.GetNodeGroupName(s)
 
-		if !shouldDelete(name) {
+		if !shouldDelete(s.NodeGroupName) {
 			continue
 		}
 
-		if *s.StackStatus == cloudformation.StackStatusDeleteFailed && cleanup != nil {
+		if *s.Stack.StackStatus == cloudformation.StackStatusDeleteFailed && cleanup != nil {
 			taskTree.Append(&tasks.TaskWithNameParam{
-				Info: fmt.Sprintf("cleanup for nodegroup %q", name),
+				Info: fmt.Sprintf("cleanup for nodegroup %q", s.NodeGroupName),
 				Call: cleanup,
 			})
 		}
-		info := fmt.Sprintf("delete nodegroup %q", name)
+		info := fmt.Sprintf("delete nodegroup %q", s.NodeGroupName)
 		if wait {
 			taskTree.Append(&taskWithStackSpec{
 				info:  info,
-				stack: s,
+				stack: s.Stack,
 				call:  c.DeleteStackBySpecSync,
 			})
 		} else {
 			taskTree.Append(&asyncTaskWithStackSpec{
 				info:  info,
-				stack: s,
+				stack: s.Stack,
 				call:  c.DeleteStackBySpec,
 			})
 		}

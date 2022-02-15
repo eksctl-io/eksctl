@@ -44,7 +44,6 @@ type Stack = cloudformation.Stack
 type StackInfo struct {
 	Stack     *Stack
 	Resources []*cloudformation.StackResource
-	Template  *string
 }
 
 // TemplateData is a union (sum type) to describe template data.
@@ -86,7 +85,7 @@ func newTag(key, value string) *cloudformation.Tag {
 }
 
 // NewStackCollection creates a stack manager for a single cluster
-func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *StackCollection {
+func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) StackManager {
 	tags := []*cloudformation.Tag{
 		newTag(api.ClusterNameTag, spec.Metadata.Name),
 		newTag(api.OldClusterNameTag, spec.Metadata.Name),
@@ -298,17 +297,17 @@ func (c *StackCollection) DescribeStack(i *Stack) (*Stack, error) {
 }
 
 // GetManagedNodeGroupTemplate returns the template for a ManagedNodeGroup resource
-func (c *StackCollection) GetManagedNodeGroupTemplate(nodeGroupName string) (string, error) {
-	nodeGroupType, err := c.GetNodeGroupStackType(nodeGroupName)
+func (c *StackCollection) GetManagedNodeGroupTemplate(options GetNodegroupOption) (string, error) {
+	nodeGroupType, err := c.GetNodeGroupStackType(options)
 	if err != nil {
 		return "", err
 	}
 
 	if nodeGroupType != api.NodeGroupTypeManaged {
-		return "", fmt.Errorf("%q is not a managed nodegroup", nodeGroupName)
+		return "", fmt.Errorf("%q is not a managed nodegroup", options.NodeGroupName)
 	}
 
-	stackName := c.makeNodeGroupStackName(nodeGroupName)
+	stackName := c.makeNodeGroupStackName(options.NodeGroupName)
 	templateBody, err := c.GetStackTemplate(stackName)
 	if err != nil {
 		return "", err
@@ -555,16 +554,20 @@ func (c *StackCollection) GetClusterStackIfExists() (*Stack, error) {
 	if err != nil {
 		return nil, err
 	}
-	return c.getClusterStackUsingCachedList(clusterStackNames)
+	return c.getClusterStackUsingCachedList(clusterStackNames, "")
 }
 
-func (c *StackCollection) HasClusterStackUsingCachedList(clusterStackNames []string) (bool, error) {
-	stack, err := c.getClusterStackUsingCachedList(clusterStackNames)
+func (c *StackCollection) HasClusterStackUsingCachedList(clusterStackNames []string, clusterName string) (bool, error) {
+	stack, err := c.getClusterStackUsingCachedList(clusterStackNames, clusterName)
 	return stack != nil, err
 }
 
-func (c *StackCollection) getClusterStackUsingCachedList(clusterStackNames []string) (*Stack, error) {
+func (c *StackCollection) getClusterStackUsingCachedList(clusterStackNames []string, clusterName string) (*Stack, error) {
 	clusterStackName := c.MakeClusterStackName()
+	if clusterName != "" {
+		clusterStackName = c.MakeClusterStackNameFromName(clusterName)
+	}
+
 	for _, stack := range clusterStackNames {
 		if stack == clusterStackName {
 			stack, err := c.DescribeStack(&cloudformation.Stack{StackName: &clusterStackName})
