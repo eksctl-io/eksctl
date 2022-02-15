@@ -9,6 +9,7 @@ import (
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
@@ -20,8 +21,7 @@ type Cluster interface {
 
 func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
 	clusterExists := true
-	err := ctl.RefreshClusterStatusIfStale(cfg)
-	if err != nil {
+	if err := ctl.RefreshClusterStatusIfStale(cfg); err != nil {
 		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); ok &&
 			awsError.Code() == awseks.ErrCodeResourceNotFoundException {
 			clusterExists = false

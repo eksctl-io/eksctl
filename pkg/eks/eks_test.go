@@ -2,7 +2,6 @@ package eks_test
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
@@ -214,39 +213,6 @@ var _ = Describe("EKS API wrapper", func() {
 
 			_, err := ctl.NewOpenIDConnectManager(cfg)
 			Expect(err).NotTo(HaveOccurred())
-		})
-	})
-
-	Describe("CanDelete", func() {
-		cfg := api.NewClusterConfig()
-		It("not yet created clusters are deletable", func() {
-			p = mockprovider.NewMockProvider()
-
-			c = &ClusterProvider{
-				Provider: p,
-				Status:   &ProviderStatus{},
-			}
-
-			p.MockEKS().On("DescribeCluster", mock.Anything).
-				Return(nil, awserr.New(awseks.ErrCodeResourceNotFoundException, "", nil))
-
-			canDelete, err := c.CanDelete(cfg)
-			Expect(canDelete).To(BeTrue())
-			Expect(err).NotTo(HaveOccurred())
-		})
-		It("forwards API errors", func() {
-			p = mockprovider.NewMockProvider()
-
-			c = &ClusterProvider{
-				Provider: p,
-				Status:   &ProviderStatus{},
-			}
-
-			p.MockEKS().On("DescribeCluster", mock.Anything).
-				Return(nil, awserr.New(awseks.ErrCodeBadRequestException, "", nil))
-
-			_, err := c.CanDelete(cfg)
-			Expect(err).To(HaveOccurred())
 		})
 	})
 

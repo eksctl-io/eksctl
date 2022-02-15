@@ -156,7 +156,7 @@ var _ = Describe("Delete", func() {
 			Expect(unownedDeleteCallCount).To(Equal(1))
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
-			Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(2))
+			Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
 			Expect(*fakeStackManager.DeleteStackBySpecArgsForCall(0).StackName).To(Equal("fargate-role"))
 		})
 
@@ -225,6 +225,14 @@ var _ = Describe("Delete", func() {
 				p.MockEKS().On("DeleteNodegroup", nil).Return(&awseks.DeleteNodegroupOutput{}, nil)
 
 				p.MockEKS().On("DeleteCluster", mock.Anything).Return(&awseks.DeleteClusterOutput{}, nil)
+				ctl.Status = &eks.ProviderStatus{
+					ClusterInfo: &eks.ClusterInfo{
+						Cluster: &awseks.Cluster{
+							Status:  aws.String(awseks.ClusterStatusActive),
+							Version: aws.String("1.21"),
+						},
+					},
+				}
 				c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager)
 				fakeClientSet := fake.NewSimpleClientset()
 
@@ -325,7 +333,14 @@ var _ = Describe("Delete", func() {
 				c.SetNewClientSet(func() (kubernetes.Interface, error) {
 					return fakeClientSet, nil
 				})
-
+				ctl.Status = &eks.ProviderStatus{
+					ClusterInfo: &eks.ClusterInfo{
+						Cluster: &awseks.Cluster{
+							Status:  aws.String(awseks.ClusterStatusActive),
+							Version: aws.String("1.21"),
+						},
+					},
+				}
 				mockedDrainInput := &nodegroup.DrainInput{
 					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
 					MaxGracePeriod: ctl.Provider.WaitTimeout(),
