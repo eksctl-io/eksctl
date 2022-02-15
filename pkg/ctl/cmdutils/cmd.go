@@ -10,7 +10,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
-var once = &sync.Once{}
+var once sync.Once
 
 // Cmd holds attributes that are common between commands;
 // not all commands use each attribute, but they can if needed
