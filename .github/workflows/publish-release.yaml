@@ -13,3 +13,5 @@ jobs:
     needs: [test-and-build]
     with:
       isReleaseCandidate: false
+    secrets:
+      githubToken: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
