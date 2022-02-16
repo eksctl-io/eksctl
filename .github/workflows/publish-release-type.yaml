@@ -28,9 +28,13 @@ jobs:
           make install-build-deps
       - name: Publish release
         if: ${{ !inputs.isReleaseCandidate }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
         run: |
           ./build/scripts/do-release.sh
       - name: Publish release candidate
         if: ${{ inputs.isReleaseCandidate }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
         run: |
           ./build/scripts/do-release-candidate.sh
