@@ -56,6 +56,7 @@ type Properties struct {
 	MetricsCollection                 []map[string]interface{}
 	TargetGroupARNs                   []string
 	DesiredCapacity, MinSize, MaxSize string
+	MaxInstanceLifetime               int
 
 	CidrIP, CidrIPv6, IPProtocol string
 	FromPort, ToPort             int

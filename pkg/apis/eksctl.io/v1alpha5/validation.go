@@ -32,6 +32,7 @@ const (
 	MaxIO1Iops    = 64000
 	MinGP3Iops    = DefaultNodeVolumeGP3IOPS
 	MaxGP3Iops    = 16000
+	OneDay        = 86400
 )
 
 var (
@@ -660,6 +661,12 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 		if *ng.ContainerRuntime != ContainerRuntimeDockerD && *ng.ContainerRuntime != ContainerRuntimeContainerD {
 			return fmt.Errorf("only %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD)
+		}
+	}
+
+	if ng.MaxInstanceLifetime != nil {
+		if *ng.MaxInstanceLifetime < OneDay {
+			return fmt.Errorf("maximum instance lifetime must have a minimum value of 86,400 seconds (one day), but was: %d", *ng.MaxInstanceLifetime)
 		}
 	}
 
