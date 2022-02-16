@@ -72,7 +72,6 @@ func doDeleteCluster(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction boo
 			return err
 		}
 	}
-	cmdutils.LogRegionAndVersionInfo(meta)
 
 	logger.Info("deleting EKS cluster %q", meta.Name)
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {

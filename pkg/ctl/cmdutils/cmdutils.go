@@ -75,7 +75,7 @@ func LogPlanModeWarning(plan bool) {
 }
 
 // LogRegionAndVersionInfo will log the selected region and build version
-func LogRegionAndVersionInfo(meta *api.ClusterMeta) {
+func logRegionAndVersionInfo(meta *api.ClusterMeta) {
 	if meta != nil {
 		logger.Info("eksctl version %s", version.GetVersion())
 		logger.Info("using region %s", meta.Region)
@@ -157,7 +157,7 @@ func ClusterNameFlag(cmd *Cmd) string {
 
 // AddRegionFlag adds common --region flag
 func AddRegionFlag(fs *pflag.FlagSet, p *api.ProviderConfig) {
-	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
+	fs.StringVarP(&p.Region, "region", "r", "", "AWS region. Defaults to the value set in your AWS config (~/.aws/config)")
 }
 
 // AddVersionFlag adds common --version flag
