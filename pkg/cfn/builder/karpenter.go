@@ -3,6 +3,7 @@ package builder
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
@@ -95,6 +96,9 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 	roleRef := k.newResource(KarpenterNodeRoleName, &role)
 
 	instanceProfileName := gfnt.MakeFnSubString(fmt.Sprintf("eksctl-%s-%s", KarpenterNodeInstanceProfile, k.clusterSpec.Metadata.Name))
+	if k.clusterSpec.Karpenter.DefaultInstanceProfile != nil {
+		instanceProfileName = gfnt.NewString(aws.StringValue(k.clusterSpec.Karpenter.DefaultInstanceProfile))
+	}
 	instanceProfile := gfniam.InstanceProfile{
 		InstanceProfileName: instanceProfileName,
 		Path:                gfnt.NewString("/"),
