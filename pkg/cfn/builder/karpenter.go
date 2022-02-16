@@ -97,7 +97,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 
 	instanceProfileName := gfnt.MakeFnSubString(fmt.Sprintf("eksctl-%s-%s", KarpenterNodeInstanceProfile, k.clusterSpec.Metadata.Name))
 	if k.clusterSpec.Karpenter.DefaultInstanceProfile != nil {
-		instanceProfileName = gfnt.NewString(aws.StringValue(k.clusterSpec.Karpenter.DefaultInstanceProfile))
+		instanceProfileName = gfnt.MakeFnSubString(aws.StringValue(k.clusterSpec.Karpenter.DefaultInstanceProfile))
 	}
 	instanceProfile := gfniam.InstanceProfile{
 		InstanceProfileName: instanceProfileName,
