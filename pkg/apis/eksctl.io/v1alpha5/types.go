@@ -936,7 +936,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 }
 
 // NodeGroup holds configuration attributes that are
-// specific to a nodegroup
+// specific to an unmanaged nodegroup
 type NodeGroup struct {
 	*NodeGroupBase
 
@@ -983,6 +983,10 @@ type NodeGroup struct {
 	// DisableASGTagPropagation disable the tag propagation in case desired capacity is 0.
 	// +optional
 	DisableASGTagPropagation *bool `json:"disableASGTagPropagation,omitempty"`
+
+	// MaxInstanceLifetime defines the maximum amount of time in seconds an instance stays alive.
+	// +optional
+	MaxInstanceLifetime *int `json:"maxInstanceLifetime,omitempty"`
 }
 
 // GetContainerRuntime returns the container runtime.

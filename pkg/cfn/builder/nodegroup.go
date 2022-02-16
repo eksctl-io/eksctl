@@ -477,6 +477,10 @@ func nodeGroupResource(launchTemplateName *gfnt.Value, vpcZoneIdentifier interfa
 		}
 	}
 
+	if ng.MaxInstanceLifetime != nil {
+		ngProps["MaxInstanceLifetime"] = *ng.MaxInstanceLifetime
+	}
+
 	rollingUpdate := map[string]interface{}{}
 	if len(ng.ASGSuspendProcesses) > 0 {
 		rollingUpdate["SuspendProcesses"] = ng.ASGSuspendProcesses
