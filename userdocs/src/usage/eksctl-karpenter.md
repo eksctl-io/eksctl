@@ -15,12 +15,14 @@ metadata:
   name: cluster-with-karpenter
   region: us-west-2
   version: '1.20'
+  tags:
+    karpenter.sh/discovery: cluster-with-karpenter
 
 iam:
   withOIDC: true # required
 
 karpenter:
-  version: '0.6.0'
+  version: '0.6.3'
 
 managedNodeGroups:
   - name: managed-ng-1
@@ -34,7 +36,7 @@ to be set:
 
 ```yaml
 karpenter:
-  version: '0.6.0'
+  version: '0.6.3'
   createServiceAccount: true # default is false
   defaultInstanceProfile: 'KarpenterNodeInstanceProfile' # default is to use the IAM instance profile created by eksctl
 ```

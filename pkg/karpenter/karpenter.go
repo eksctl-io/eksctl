@@ -19,7 +19,6 @@ const (
 	aws                      = "aws"
 	clusterEndpoint          = "clusterEndpoint"
 	clusterName              = "clusterName"
-	controller               = "controller"
 	create                   = "create"
 	defaultInstanceProfile   = "defaultInstanceProfile"
 	helmChartName            = "karpenter/karpenter"
@@ -71,10 +70,8 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 		}
 	}
 	values := map[string]interface{}{
-		controller: map[string]interface{}{
-			clusterName:     k.ClusterConfig.Metadata.Name,
-			clusterEndpoint: k.ClusterConfig.Status.Endpoint,
-		},
+		clusterName:     k.ClusterConfig.Metadata.Name,
+		clusterEndpoint: k.ClusterConfig.Status.Endpoint,
 		aws: map[string]interface{}{
 			defaultInstanceProfile: instanceProfileName,
 		},
