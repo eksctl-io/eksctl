@@ -91,48 +91,6 @@ var _ = Describe("Install", func() {
 			})
 		})
 
-		When("the cluster configuration has fargate configured", func() {
-			BeforeEach(func() {
-				profile := &api.FargateProfile{
-					Selectors: []api.FargateProfileSelector{
-						{Namespace: "default"},
-					},
-				}
-				cfg.FargateProfiles = []*api.FargateProfile{
-					profile,
-				}
-				installerUnderTest = &Installer{
-					Options: Options{
-						HelmInstaller: fakeHelmInstaller,
-						Namespace:     "karpenter",
-						ClusterConfig: cfg,
-					},
-				}
-			})
-			It("will not tell helm to create a namespace", func() {
-				Expect(installerUnderTest.Install(context.Background(), "", "role/profile")).To(Succeed())
-				_, opts := fakeHelmInstaller.InstallChartArgsForCall(0)
-				Expect(opts.CreateNamespace).To(BeFalse())
-			})
-		})
-
-		When("there are no fargate profiles configured for the cluster", func() {
-			BeforeEach(func() {
-				installerUnderTest = &Installer{
-					Options: Options{
-						HelmInstaller: fakeHelmInstaller,
-						Namespace:     "karpenter",
-						ClusterConfig: cfg,
-					},
-				}
-			})
-			It("will tell helm to create the namespace", func() {
-				Expect(installerUnderTest.Install(context.Background(), "", "role/profile")).To(Succeed())
-				_, opts := fakeHelmInstaller.InstallChartArgsForCall(0)
-				Expect(opts.CreateNamespace).To(BeTrue())
-			})
-		})
-
 		When("service account is defined", func() {
 			It("add role to the values for the helm chart", func() {
 				Expect(installerUnderTest.Install(context.Background(), "role/account", "role/profile")).To(Succeed())

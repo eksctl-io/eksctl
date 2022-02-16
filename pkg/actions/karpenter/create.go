@@ -8,6 +8,7 @@ import (
 	"github.com/kris-nova/logger"
 
 	"github.com/aws/aws-sdk-go/aws"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -28,8 +29,13 @@ func (i *Installer) Create() error {
 			return i.ClientSet, nil
 		},
 	}
+	instanceProfileName := fmt.Sprintf("eksctl-%s-%s", builder.KarpenterNodeInstanceProfile, i.Config.Metadata.Name)
+	if i.Config.Karpenter.DefaultInstanceProfile != nil {
+		instanceProfileName = aws.StringValue(i.Config.Karpenter.DefaultInstanceProfile)
+	}
+
 	// Create IAM roles
-	taskTree := newTasksToInstallKarpenterIAMRoles(i.Config, i.StackManager, i.CTL.Provider.EC2())
+	taskTree := newTasksToInstallKarpenterIAMRoles(i.Config, i.StackManager, i.CTL.Provider.EC2(), instanceProfileName)
 	if err := doTasks(taskTree); err != nil {
 		return err
 	}
@@ -72,11 +78,6 @@ func (i *Installer) Create() error {
 	}
 	if err := acm.Save(); err != nil {
 		return fmt.Errorf("failed to save the identity config: %w", err)
-	}
-
-	instanceProfileName := fmt.Sprintf("eksctl-%s-%s", builder.KarpenterNodeInstanceProfile, i.Config.Metadata.Name)
-	if i.Config.Karpenter.DefaultInstanceProfile != nil {
-		instanceProfileName = aws.StringValue(i.Config.Karpenter.DefaultInstanceProfile)
 	}
 
 	// Install Karpenter

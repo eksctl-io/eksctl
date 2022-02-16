@@ -3,7 +3,6 @@ package builder_test
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -29,18 +28,15 @@ var _ = Describe("karpenter stack", func() {
 
 	Context("AddAllResources", func() {
 		It("generates the correct CloudFormation template", func() {
-			krs := builder.NewKarpenterResourceSet(cfg)
+			krs := builder.NewKarpenterResourceSet(cfg, "eksctl-KarpenterNodeInstanceProfile-test-karpenter")
 			Expect(krs.AddAllResources()).To(Succeed())
 			result, err := krs.RenderJSON()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(result)).To(Equal(fmt.Sprintf(expectedTemplate, "eksctl-KarpenterNodeInstanceProfile-test-karpenter")))
 		})
 		When("defaultInstanceProfile is set", func() {
-			BeforeEach(func() {
-				cfg.Karpenter.DefaultInstanceProfile = aws.String("KarpenterNodeInstanceProfile-custom")
-			})
 			It("generates the correct custom CloudFormation template", func() {
-				krs := builder.NewKarpenterResourceSet(cfg)
+				krs := builder.NewKarpenterResourceSet(cfg, "KarpenterNodeInstanceProfile-custom")
 				Expect(krs.AddAllResources()).To(Succeed())
 				result, err := krs.RenderJSON()
 				Expect(err).NotTo(HaveOccurred())

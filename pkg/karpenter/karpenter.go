@@ -84,7 +84,7 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 	logger.Debug("the following values will be applied to the install: %+v", values)
 	if err := k.HelmInstaller.InstallChart(ctx, providers.InstallChartOpts{
 		ChartName:       helmChartName,
-		CreateNamespace: len(k.ClusterConfig.FargateProfiles) == 0,
+		CreateNamespace: true,
 		Namespace:       DefaultNamespace,
 		ReleaseName:     releaseName,
 		Values:          values,

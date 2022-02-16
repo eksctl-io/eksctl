@@ -21,10 +21,11 @@ const (
 )
 
 type karpenterIAMRolesTask struct {
-	info         string
-	stackManager manager.StackManager
-	cfg          *api.ClusterConfig
-	ec2API       ec2iface.EC2API
+	info                string
+	stackManager        manager.StackManager
+	cfg                 *api.ClusterConfig
+	ec2API              ec2iface.EC2API
+	instanceProfileName string
 }
 
 func (k *karpenterIAMRolesTask) Describe() string { return k.info }
@@ -33,13 +34,14 @@ func (k *karpenterIAMRolesTask) Do(errs chan error) error {
 }
 
 // newTasksToInstallKarpenterIAMRoles defines tasks required to create Karpenter IAM roles.
-func newTasksToInstallKarpenterIAMRoles(cfg *api.ClusterConfig, stackManager manager.StackManager, ec2API ec2iface.EC2API) *tasks.TaskTree {
+func newTasksToInstallKarpenterIAMRoles(cfg *api.ClusterConfig, stackManager manager.StackManager, ec2API ec2iface.EC2API, instanceProfileName string) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}
 	taskTree.Append(&karpenterIAMRolesTask{
-		info:         fmt.Sprintf("create karpenter for stack %q", cfg.Metadata.Name),
-		stackManager: stackManager,
-		cfg:          cfg,
-		ec2API:       ec2API,
+		info:                fmt.Sprintf("create karpenter for stack %q", cfg.Metadata.Name),
+		stackManager:        stackManager,
+		cfg:                 cfg,
+		ec2API:              ec2API,
+		instanceProfileName: instanceProfileName,
 	})
 	return taskTree
 }
@@ -49,7 +51,7 @@ func (k *karpenterIAMRolesTask) createKarpenterIAMRolesTask(errs chan error) err
 	name := k.makeKarpenterStackName()
 
 	logger.Info("building nodegroup stack %q", name)
-	stack := builder.NewKarpenterResourceSet(k.cfg)
+	stack := builder.NewKarpenterResourceSet(k.cfg, k.instanceProfileName)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}

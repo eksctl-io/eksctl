@@ -43,3 +43,26 @@ OIDC must be defined in order to install Karpenter.
 
 Once Karpenter is successfully installed, add a [Provisioner](https://karpenter.sh/docs/provisioner/) so Karpenter
 can start adding the right nodes to the cluster.
+
+The provisioner's `instanceProfile` section must match the created NodeInstaneProfile role's name. For example:
+
+```yaml
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: default
+spec:
+  requirements:
+    - key: karpenter.sh/capacity-type
+      operator: In
+      values: ["on-demand"]
+  limits:
+    resources:
+      cpu: 1000
+  provider:
+    instanceProfile: eksctl-KarpenterNodeInstanceProfile-cluster-with-karpenter
+  ttlSecondsAfterEmpty: 30
+```
+
+Note that unless `defaultInstanceProfile` is defined the name used for instanceProfile is
+`eksctl-KarpenterNodeInstanceProfile-<cluster-name>`.
