@@ -73,7 +73,6 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 	if err != nil {
 		return err
 	}
-	cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
 
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
