@@ -54,7 +54,6 @@ func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
 		return err
 	}
 
-	cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
 	service := managed.NewService(ctl.Provider.EKS(), ctl.Provider.SSM(), ctl.Provider.EC2(), manager.NewStackCollection(ctl.Provider, cfg), cfg.Metadata.Name)
 
 	if options.nodeGroupName == "" && cmd.ClusterConfigFile != "" {

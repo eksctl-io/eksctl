@@ -75,7 +75,6 @@ func doWriteKubeconfigCmd(cmd *cmdutils.Cmd, outputPath, roleARN string, setCont
 	if err != nil {
 		return err
 	}
-	cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
 
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
