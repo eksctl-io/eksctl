@@ -66,16 +66,16 @@ func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool, printer pri
 		return err
 	}
 
-	cfg := cmd.ClusterConfig
+	if printer != nil {
+		logger.Writer = os.Stderr
+	}
 
 	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
-	if printer == nil {
-		cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
-	}
 
+	cfg := cmd.ClusterConfig
 	if cfg.Metadata.Name != "" && cmd.NameArg != "" {
 		return cmdutils.ErrFlagAndArg(cmdutils.ClusterNameFlag(cmd), cfg.Metadata.Name, cmd.NameArg)
 	}

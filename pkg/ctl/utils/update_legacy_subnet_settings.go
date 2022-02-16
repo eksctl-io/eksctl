@@ -44,7 +44,6 @@ func doUpdateLegacySubnetSettings(cmd *cmdutils.Cmd) error {
 	if err != nil {
 		return err
 	}
-	cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
 
 	if meta.Name != "" && cmd.NameArg != "" {
 		return cmdutils.ErrFlagAndArg(cmdutils.ClusterNameFlag(cmd), meta.Name, cmd.NameArg)

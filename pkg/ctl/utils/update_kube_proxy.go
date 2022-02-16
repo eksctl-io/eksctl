@@ -43,7 +43,6 @@ func doUpdateKubeProxy(cmd *cmdutils.Cmd) error {
 	if err != nil {
 		return err
 	}
-	cmdutils.LogRegionAndVersionInfo(meta)
 
 	if ok, err := ctl.CanUpdate(cfg); !ok {
 		return err

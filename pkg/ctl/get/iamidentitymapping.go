@@ -50,16 +50,13 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 
 	cfg := cmd.ClusterConfig
 
+	if params.output != printers.TableType {
+		logger.Writer = os.Stderr
+	}
+
 	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
-	}
-
-	if params.output == printers.TableType {
-		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
-	} else {
-		//log warnings and errors to stderr
-		logger.Writer = os.Stderr
 	}
 
 	if cfg.Metadata.Name == "" {
