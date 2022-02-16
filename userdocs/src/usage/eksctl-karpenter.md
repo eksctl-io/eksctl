@@ -20,7 +20,7 @@ iam:
   withOIDC: true # required
 
 karpenter:
-  version: '0.4.3'
+  version: '0.6.0'
 
 managedNodeGroups:
   - name: managed-ng-1
@@ -34,8 +34,9 @@ to be set:
 
 ```yaml
 karpenter:
-  version: '0.4.3'
-  createServiceAccount: true # default is false  
+  version: '0.6.0'
+  createServiceAccount: true # default is false
+  defaultInstanceProfile: 'KarpenterNodeInstanceProfile' # default is to use the IAM instance profile created by eksctl
 ```
 
 OIDC must be defined in order to install Karpenter.

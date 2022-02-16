@@ -404,6 +404,45 @@ var _ = Describe("Create", func() {
 				Expect(accounts[0].AttachPolicyARNs).To(ConsistOf(policyARN))
 			})
 		})
+		When("defaultInstanceProfile is not set", func() {
+			BeforeEach(func() {
+				cfg.Karpenter.DefaultInstanceProfile = nil
+			})
+			It("eksctl should use the configured instance profile", func() {
+				fakeKarpenterInstaller.InstallReturns(nil)
+				install := &karpenteractions.Installer{
+					StackManager:       fakeStackManager,
+					CTL:                ctl,
+					Config:             cfg,
+					KarpenterInstaller: fakeKarpenterInstaller,
+					ClientSet:          fakeClientSet,
+				}
+				Expect(install.Create()).To(Succeed())
+				Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))
+				_, _, instanceProfile := fakeKarpenterInstaller.InstallArgsForCall(0)
+				instanceProfileName := fmt.Sprintf("eksctl-%s-%s", builder.KarpenterNodeInstanceProfile, cfg.Metadata.Name)
+				Expect(instanceProfile).To(Equal(instanceProfileName))
+			})
+		})
+		When("defaultInstanceProfile is set", func() {
+			BeforeEach(func() {
+				cfg.Karpenter.DefaultInstanceProfile = aws.String("profile")
+			})
+			It("eksctl should use the configured instance profile", func() {
+				fakeKarpenterInstaller.InstallReturns(nil)
+				install := &karpenteractions.Installer{
+					StackManager:       fakeStackManager,
+					CTL:                ctl,
+					Config:             cfg,
+					KarpenterInstaller: fakeKarpenterInstaller,
+					ClientSet:          fakeClientSet,
+				}
+				Expect(install.Create()).To(Succeed())
+				Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))
+				_, _, instanceProfile := fakeKarpenterInstaller.InstallArgsForCall(0)
+				Expect(instanceProfile).To(Equal("profile"))
+			})
+		})
 	})
 })
 
