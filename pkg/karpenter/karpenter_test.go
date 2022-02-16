@@ -47,10 +47,8 @@ var _ = Describe("Install", func() {
 			Expect(installerUnderTest.Install(context.Background(), "", "role/profile")).To(Succeed())
 			_, args := fakeHelmInstaller.InstallChartArgsForCall(0)
 			values := map[string]interface{}{
-				controller: map[string]interface{}{
-					clusterName:     cfg.Metadata.Name,
-					clusterEndpoint: cfg.Status.Endpoint,
-				},
+				clusterName:     cfg.Metadata.Name,
+				clusterEndpoint: cfg.Status.Endpoint,
 				serviceAccount: map[string]interface{}{
 					create: api.IsEnabled(cfg.Karpenter.CreateServiceAccount),
 				},
@@ -96,10 +94,8 @@ var _ = Describe("Install", func() {
 				Expect(installerUnderTest.Install(context.Background(), "role/account", "role/profile")).To(Succeed())
 				_, opts := fakeHelmInstaller.InstallChartArgsForCall(0)
 				values := map[string]interface{}{
-					controller: map[string]interface{}{
-						clusterName:     cfg.Metadata.Name,
-						clusterEndpoint: cfg.Status.Endpoint,
-					},
+					clusterName:     cfg.Metadata.Name,
+					clusterEndpoint: cfg.Status.Endpoint,
 					serviceAccount: map[string]interface{}{
 						create: api.IsEnabled(cfg.Karpenter.CreateServiceAccount),
 						serviceAccountAnnotation: map[string]interface{}{
