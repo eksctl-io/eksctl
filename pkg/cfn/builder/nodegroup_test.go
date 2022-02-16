@@ -122,6 +122,16 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			})
 		})
 
+		Context("if ng.MaxInstanceLifetime is set", func() {
+			BeforeEach(func() {
+				ng.MaxInstanceLifetime = aws.Int(api.OneDay)
+			})
+
+			It("sets the desired value", func() {
+				Expect(ngTemplate.Resources["NodeGroup"].Properties.MaxInstanceLifetime).To(Equal(api.OneDay))
+			})
+		})
+
 		Context("if ng.MaxSize is nil", func() {
 			BeforeEach(func() {
 				ng.MaxSize = nil

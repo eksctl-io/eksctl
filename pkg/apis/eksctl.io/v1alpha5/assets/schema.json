@@ -1372,6 +1372,11 @@
           "type": "object",
           "default": "{}"
         },
+        "maxInstanceLifetime": {
+          "type": "integer",
+          "description": "defines the maximum amount of time in seconds an instance stays alive.",
+          "x-intellij-html-description": "defines the maximum amount of time in seconds an instance stays alive."
+        },
         "maxPodsPerNode": {
           "type": "integer"
         },
@@ -1533,11 +1538,12 @@
         "updateConfig",
         "clusterDNS",
         "kubeletExtraConfig",
-        "containerRuntime"
+        "containerRuntime",
+        "maxInstanceLifetime"
       ],
       "additionalProperties": false,
-      "description": "holds configuration attributes that are specific to a nodegroup",
-      "x-intellij-html-description": "holds configuration attributes that are specific to a nodegroup"
+      "description": "holds configuration attributes that are specific to an unmanaged nodegroup",
+      "x-intellij-html-description": "holds configuration attributes that are specific to an unmanaged nodegroup"
     },
     "NodeGroupBottlerocket": {
       "properties": {
