@@ -274,6 +274,9 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		}
 		tags = append(tags, clusterTags...)
 	}
+	if len(tags) > MaximumTagNumber {
+		return fmt.Errorf("number of tags is exceeding the configured amount %d, was: %d", MaximumTagNumber, len(tags))
+	}
 
 	asg := nodeGroupResource(launchTemplateName, vpcZoneIdentifier, tags, n.spec)
 	n.newResource("NodeGroup", asg)
@@ -309,9 +312,6 @@ func generateClusterAutoscalerTags(spec *api.NodeGroup) ([]map[string]interface{
 			"Value":             taint.Value,
 			"PropagateAtLaunch": "true",
 		})
-	}
-	if len(result) > MaximumTagNumber {
-		return nil, fmt.Errorf("number of tags is exceeding the configured amount %d, was: %d", MaximumTagNumber, len(result))
 	}
 	return result, nil
 }

@@ -44,9 +44,10 @@ nodeGroups:
       k8s.io/cluster-autoscaler/node-template/taint/feaster: "true:NoSchedule"
 ```
 
-This is done by `eksctl` automatically if `desiredCapacity` is set to `0`, there is no need to specify these by hand.
-However, if the number of tags added like this exceeds the current ASG tag limit ( 50 at the time of this writing ) or, 
-this feature is not desired, there is a setting to disable it. Set `disableASGTagPropagation` to `true` like this:
+For unmanaged noderoups, this is done by `eksctl` automatically if `desiredCapacity` is set to `0`, there is no need to
+specify these by hand. This feature is not supported for managed nodegroups. However, if the number of tags added like 
+this exceeds the current ASG tag limit ( 50 at the time of this writing ) or, this feature is not desired, there is a
+setting to disable it. Set `disableASGTagPropagation` to `true` like this:
 
 ```yaml
 nodeGroups:

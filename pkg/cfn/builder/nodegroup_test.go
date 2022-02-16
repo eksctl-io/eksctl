@@ -904,7 +904,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 							}
 						})
 						It("errors", func() {
-							Expect(addErr).To(MatchError(ContainSubstring(fmt.Sprintf("number of tags is exceeding the configured amount %d, was: %d", builder.MaximumTagNumber, builder.MaximumTagNumber+1))))
+							Expect(addErr).To(MatchError(ContainSubstring(fmt.Sprintf("number of tags is exceeding the configured amount %d, was: %d", builder.MaximumTagNumber, builder.MaximumTagNumber+3))))
 						})
 					})
 				})
