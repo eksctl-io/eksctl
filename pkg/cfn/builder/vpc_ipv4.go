@@ -68,13 +68,6 @@ func (v *IPv4VPCResourceSet) addResources() error {
 		EnableDnsHostnames: gfnt.True(),
 	})
 
-	if api.IsEnabled(vpc.AutoAllocateIPv6) {
-		v.rs.newResource("AutoAllocatedCIDRv6", &gfnec2.VPCCidrBlock{
-			VpcId:                       v.vpcID,
-			AmazonProvidedIpv6CidrBlock: gfnt.True(),
-		})
-	}
-
 	if v.isFullyPrivate() {
 		v.noNAT()
 		v.subnetDetails.Private = v.addSubnets(nil, api.SubnetTopologyPrivate, vpc.Subnets.Private)
@@ -83,13 +76,27 @@ func (v *IPv4VPCResourceSet) addResources() error {
 
 	refIG := v.rs.newResource("InternetGateway", &gfnec2.InternetGateway{})
 	vpcGA := "VPCGatewayAttachment"
+	refPublicRT := v.rs.newResource("PublicRouteTable", &gfnec2.RouteTable{
+		VpcId: v.vpcID,
+	})
+
+	if api.IsEnabled(vpc.AutoAllocateIPv6) {
+		v.rs.newResource("AutoAllocatedCIDRv6", &gfnec2.VPCCidrBlock{
+			VpcId:                       v.vpcID,
+			AmazonProvidedIpv6CidrBlock: gfnt.True(),
+		})
+
+		v.rs.newResource(PubSubIPv6RouteKey, &gfnec2.Route{
+			RouteTableId:               refPublicRT,
+			DestinationIpv6CidrBlock:   gfnt.NewString(InternetIPv6CIDR),
+			GatewayId:                  refIG,
+			AWSCloudFormationDependsOn: []string{vpcGA},
+		})
+	}
+
 	v.rs.newResource(vpcGA, &gfnec2.VPCGatewayAttachment{
 		InternetGatewayId: refIG,
 		VpcId:             v.vpcID,
-	})
-
-	refPublicRT := v.rs.newResource("PublicRouteTable", &gfnec2.RouteTable{
-		VpcId: v.vpcID,
 	})
 
 	v.rs.newResource("PublicSubnetRoute", &gfnec2.Route{

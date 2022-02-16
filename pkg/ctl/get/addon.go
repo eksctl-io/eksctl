@@ -47,17 +47,14 @@ func getAddonCmd(cmd *cmdutils.Cmd) {
 }
 
 func getAddon(cmd *cmdutils.Cmd, params *getCmdParams) error {
+	if params.output != printers.TableType {
+		//log warnings and errors to stdout
+		logger.Writer = os.Stderr
+	}
 
 	clusterProvider, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
-	}
-
-	if params.output == printers.TableType {
-		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
-	} else {
-		//log warnings and errors to stdout
-		logger.Writer = os.Stderr
 	}
 
 	stackManager := clusterProvider.NewStackManager(cmd.ClusterConfig)

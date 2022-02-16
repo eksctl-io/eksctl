@@ -70,7 +70,6 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 	if err != nil {
 		return err
 	}
-	cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
 
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err

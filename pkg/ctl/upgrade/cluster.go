@@ -58,15 +58,12 @@ func upgradeClusterWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 // DoUpgradeCluster made public so that it can be shared with update/cluster.go until this is deprecated
 // TODO Once `eksctl update cluster` is officially deprecated this can be made package private again
 func DoUpgradeCluster(cmd *cmdutils.Cmd) error {
-	cfg := cmd.ClusterConfig
-	meta := cmd.ClusterConfig.Metadata
-
 	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
-	cmdutils.LogRegionAndVersionInfo(meta)
 
+	cfg := cmd.ClusterConfig
 	if ok, err := ctl.CanUpdate(cfg); !ok {
 		return err
 	}

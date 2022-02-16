@@ -69,7 +69,6 @@ func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 	if err != nil {
 		return err
 	}
-	cmdutils.LogRegionAndVersionInfo(meta)
 
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err

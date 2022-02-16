@@ -60,20 +60,16 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, options IAMServiceAccountOptions)
 		return err
 	}
 
-	cfg := cmd.ClusterConfig
+	if options.output != printers.TableType {
+		logger.Writer = os.Stderr
+	}
 
 	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
 
-	if options.output == printers.TableType {
-		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
-	} else {
-		//log warnings and errors to stderr
-		logger.Writer = os.Stderr
-	}
-
+	cfg := cmd.ClusterConfig
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
 	}

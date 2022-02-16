@@ -286,6 +286,16 @@ var _ = Describe("VPC Template Builder", func() {
 				assertIpv6CidrBlockCreatedWithSelect(vpcTemplate.Resources["PrivateUSWEST2BCIDRv6"].Properties.Ipv6CidrBlock, expectedFnCIDR)
 				assertIpv6CidrBlockCreatedWithSelect(vpcTemplate.Resources["PrivateUSWEST2ACIDRv6"].Properties.Ipv6CidrBlock, expectedFnCIDR)
 			})
+
+			It("adds the ipv6 route table entry", func() {
+				Expect(vpcTemplate.Resources).To(HaveKey(pubRouteTable))
+				Expect(vpcTemplate.Resources[pubRouteTable].Properties.VpcID).To(Equal(makeRef(vpcResourceKey)))
+
+				Expect(vpcTemplate.Resources).To(HaveKey(builder.PubSubIPv6RouteKey))
+				Expect(vpcTemplate.Resources[builder.PubSubIPv6RouteKey].Properties.RouteTableID).To(Equal(makeRef(pubRouteTable)))
+				Expect(vpcTemplate.Resources[builder.PubSubIPv6RouteKey].Properties.DestinationIpv6CidrBlock).To(Equal(builder.InternetIPv6CIDR))
+				Expect(vpcTemplate.Resources[builder.PubSubIPv6RouteKey].Properties.GatewayID).To(Equal(makeRef(igwKey)))
+			})
 		})
 
 		Context("when the vpc is fully private", func() {
