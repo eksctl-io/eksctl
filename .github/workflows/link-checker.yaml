@@ -35,5 +35,3 @@ jobs:
         with:
           fail: true
           args: --exclude-all-private --exclude-file .github/workflows/exclude-file.txt --verbose --no-progress './**/*.md' './**/*.html'
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

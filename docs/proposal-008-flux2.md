@@ -101,7 +101,7 @@ The unofficial motivations of this proposal are:
 ### Linked Docs
 
 [Original PR](https://github.com/weaveworks/eksctl/pull/3066).
-[Current eksctl docs](https://eksctl.io/usage/gitops-v2/#installing-flux-v2-gitops-toolkit).
+[Current eksctl docs](https://eksctl.io/usage/gitops-v2/#experimental-installing-flux-v2-gitops-toolkit).
 [Current Flux api object in eksctl](https://github.com/weaveworks/eksctl/blob/ab702daa671a87dc926b70348481ce336638f064/pkg/apis/eksctl.io/v1alpha5/types.go#L901-L937).
 [Expansion issue](https://github.com/weaveworks/eksctl/issues/3238).
 
@@ -208,7 +208,7 @@ not possible then we would have to change `flags` to be a `[]string`.
 Update: a PR has been opened to do this: [fluxcd/flux2#1390](https://github.com/fluxcd/flux2/pull/1390).
 
 Even if we were able to change that flag in Flux cli, we would have to hope that they didn't
-use `StringArrayVar` for bootstrap flags again (at least for a year, see future work [below](future-work)).
+use `StringArrayVar` for bootstrap flags again (at least for a year, see future work [below](#future-work)).
 
 See more on alternatives [below](#alternatives).
 

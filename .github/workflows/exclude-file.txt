@@ -8,3 +8,4 @@ eksctl-handbook
 github.com
 weave.works
 config.site_url
+eks.amazonaws.com
