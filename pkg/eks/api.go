@@ -130,7 +130,7 @@ func (p ProviderServices) IAM() iamiface.IAMAPI { return p.iam }
 // CloudTrail returns a representation of the CloudTrail API
 func (p ProviderServices) CloudTrail() cloudtrailiface.CloudTrailAPI { return p.cloudtrail }
 
-// CloudWatch returns a representation of the CloudWatch API.
+// CloudWatchLogs returns a representation of the CloudWatchLogs API.
 func (p ProviderServices) CloudWatchLogs() cloudwatchlogsiface.CloudWatchLogsAPI {
 	return p.cloudwatchlogs
 }
@@ -150,6 +150,11 @@ func (p ProviderServices) ConfigProvider() client.ConfigProvider {
 
 func (p ProviderServices) Session() *session.Session {
 	return p.session
+}
+
+// ClusterInfo provides information about the cluster.
+type ClusterInfo struct {
+	Cluster *awseks.Cluster
 }
 
 // ProviderStatus stores information about the used IAM role and the resulting session

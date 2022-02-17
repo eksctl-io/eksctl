@@ -7,6 +7,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/fake"
+
 	"github.com/weaveworks/eksctl/pkg/actions/fargate"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -15,8 +18,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/fake"
 )
 
 var _ = Describe("Fargate", func() {
@@ -46,8 +47,15 @@ var _ = Describe("Fargate", func() {
 
 		clusterName = "my-cluster"
 		cfg.Metadata.Name = clusterName
-
-		fargateManager = fargate.New(cfg, &eks.ClusterProvider{Provider: mockProvider, Status: &eks.ProviderStatus{}}, fakeStackManager)
+		ctl := &eks.ClusterProvider{Provider: mockProvider, Status: &eks.ProviderStatus{
+			ClusterInfo: &eks.ClusterInfo{
+				Cluster: &awseks.Cluster{
+					Status:  aws.String(awseks.ClusterStatusActive),
+					Version: aws.String("1.21"),
+				},
+			},
+		}}
+		fargateManager = fargate.New(cfg, ctl, fakeStackManager)
 		fakeClientSet = fake.NewSimpleClientset()
 
 		fargateManager.SetNewClientSet(func() (kubernetes.Interface, error) {

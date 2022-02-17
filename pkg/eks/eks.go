@@ -14,8 +14,6 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
@@ -59,7 +57,9 @@ func (c *ClusterProvider) RefreshClusterStatus(spec *api.ClusterConfig) error {
 		spec.Status = &api.ClusterStatus{}
 	}
 
-	c.setClusterInfo(cluster)
+	c.Status.ClusterInfo = &ClusterInfo{
+		Cluster: cluster,
+	}
 
 	switch *cluster.Status {
 	case awseks.ClusterStatusCreating, awseks.ClusterStatusDeleting, awseks.ClusterStatusFailed:
@@ -172,30 +172,30 @@ func PlatformVersion(platformVersion string) (int, error) {
 
 // RefreshClusterStatusIfStale refreshes the cluster status if enough time has passed since the last refresh
 func (c *ClusterProvider) RefreshClusterStatusIfStale(spec *api.ClusterConfig) error {
-	if c.clusterInfoNeedsUpdate() {
+	if c.Status.ClusterInfo == nil {
 		return c.RefreshClusterStatus(spec)
 	}
 	return nil
 }
 
-// CanDelete return true when a cluster can be deleted, otherwise it returns false along with an error explaining the reason
-func (c *ClusterProvider) CanDelete(spec *api.ClusterConfig) (bool, error) {
-	err := c.RefreshClusterStatusIfStale(spec)
-	if err != nil {
-		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); ok &&
-			awsError.Code() == awseks.ErrCodeResourceNotFoundException {
-			return true, nil
-		}
-		return false, errors.Wrapf(err, "fetching cluster status to determine if it can be deleted")
-	}
-	// it must be possible to delete cluster in any state
-	return true, nil
-}
-
 // CanOperate returns true when a cluster can be operated, otherwise it returns false along with an error explaining the reason
 func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
-	err := c.RefreshClusterStatusIfStale(spec)
-	if err != nil {
+	// if the check before calling this failed, it won't have a clusterInfo meaning,
+	// we either ignored this error during delete, or the Refresh failed anyway. In both cases the cluster is NOT operable.
+	if c.Status.ClusterInfo == nil {
+		return false, fmt.Errorf("cluster info not available")
+	}
+	switch status := *c.Status.ClusterInfo.Cluster.Status; status {
+	case awseks.ClusterStatusCreating, awseks.ClusterStatusDeleting, awseks.ClusterStatusFailed:
+		return false, fmt.Errorf("cannot perform Kubernetes API operations on cluster %q in %q region due to status %q", spec.Metadata.Name, spec.Metadata.Region, status)
+	default:
+		return true, nil
+	}
+}
+
+// CanOperateWithRefresh returns true when a cluster can be operated, otherwise it returns false along with an error explaining the reason
+func (c *ClusterProvider) CanOperateWithRefresh(spec *api.ClusterConfig) (bool, error) {
+	if err := c.RefreshClusterStatusIfStale(spec); err != nil {
 		return false, errors.Wrapf(err, "unable to fetch cluster status to determine operability")
 	}
 
@@ -209,11 +209,9 @@ func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
 
 // CanUpdate return true when a cluster or add-ons can be updated, otherwise it returns false along with an error explaining the reason
 func (c *ClusterProvider) CanUpdate(spec *api.ClusterConfig) (bool, error) {
-	err := c.RefreshClusterStatusIfStale(spec)
-	if err != nil {
-		return false, errors.Wrapf(err, "fetching cluster status to determine update status")
+	if c.Status.ClusterInfo == nil {
+		return false, nil
 	}
-
 	switch status := *c.Status.ClusterInfo.Cluster.Status; status {
 	case awseks.ClusterStatusActive:
 		// only active cluster can be upgraded
@@ -250,7 +248,7 @@ func (u *UnsupportedOIDCError) Error() string {
 
 // NewOpenIDConnectManager returns OpenIDConnectManager
 func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iamoidc.OpenIDConnectManager, error) {
-	if _, err := c.CanOperate(spec); err != nil {
+	if _, err := c.CanOperateWithRefresh(spec); err != nil {
 		return nil, err
 	}
 

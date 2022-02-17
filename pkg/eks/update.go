@@ -31,7 +31,7 @@ func (c *ClusterProvider) GetCurrentClusterConfigForLogging(spec *api.ClusterCon
 	enabled := sets.NewString()
 	disabled := sets.NewString()
 
-	if ok, err := c.CanOperate(spec); !ok {
+	if ok, err := c.CanOperateWithRefresh(spec); !ok {
 		return nil, nil, errors.Wrap(err, "unable to retrieve current cluster logging configuration")
 	}
 
@@ -104,7 +104,7 @@ func (c *ClusterProvider) UpdateClusterConfigForLogging(cfg *api.ClusterConfig) 
 
 // GetCurrentClusterVPCConfig fetches current cluster endpoint configuration for public and private access types
 func (c *ClusterProvider) GetCurrentClusterVPCConfig(spec *api.ClusterConfig) (*ClusterVPCConfig, error) {
-	if ok, err := c.CanOperate(spec); !ok {
+	if ok, err := c.CanOperateWithRefresh(spec); !ok {
 		return nil, errors.Wrap(err, "unable to retrieve current cluster VPC configuration")
 	}
 
