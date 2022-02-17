@@ -11,3 +11,4 @@ config.site_url
 eks.amazonaws.com
 raw.githubusercontent.com
 creating-and-managing-clusters
+schema.js
