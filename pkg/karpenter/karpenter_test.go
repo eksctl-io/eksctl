@@ -26,8 +26,9 @@ var _ = Describe("Install", func() {
 			cfg = api.NewClusterConfig()
 			cfg.Metadata.Name = "test-cluster"
 			cfg.Karpenter = &api.Karpenter{
-				Version:              "0.4.3",
-				CreateServiceAccount: api.Disabled(),
+				Version:                "0.4.3",
+				CreateServiceAccount:   api.Disabled(),
+				DefaultInstanceProfile: nil,
 			}
 			cfg.Status = &api.ClusterStatus{
 				Endpoint: "https://endpoint.com",
@@ -43,7 +44,7 @@ var _ = Describe("Install", func() {
 		})
 
 		It("installs karpenter into an existing cluster", func() {
-			Expect(installerUnderTest.Install(context.Background(), "")).To(Succeed())
+			Expect(installerUnderTest.Install(context.Background(), "", "role/profile")).To(Succeed())
 			_, args := fakeHelmInstaller.InstallChartArgsForCall(0)
 			values := map[string]interface{}{
 				controller: map[string]interface{}{
@@ -52,6 +53,9 @@ var _ = Describe("Install", func() {
 				},
 				serviceAccount: map[string]interface{}{
 					create: api.IsEnabled(cfg.Karpenter.CreateServiceAccount),
+				},
+				aws: map[string]interface{}{
+					defaultInstanceProfile: "role/profile",
 				},
 			}
 			Expect(args).To(Equal(providers.InstallChartOpts{
@@ -70,7 +74,7 @@ var _ = Describe("Install", func() {
 			})
 
 			It("errors", func() {
-				Expect(installerUnderTest.Install(context.Background(), "")).
+				Expect(installerUnderTest.Install(context.Background(), "", "role/profile")).
 					To(MatchError(ContainSubstring("failed to add Karpenter repository: nope")))
 			})
 		})
@@ -82,7 +86,7 @@ var _ = Describe("Install", func() {
 			})
 
 			It("errors", func() {
-				Expect(installerUnderTest.Install(context.Background(), "")).
+				Expect(installerUnderTest.Install(context.Background(), "", "role/profile")).
 					To(MatchError(ContainSubstring("failed to install Karpenter chart: nope")))
 			})
 		})
@@ -106,7 +110,7 @@ var _ = Describe("Install", func() {
 				}
 			})
 			It("will not tell helm to create a namespace", func() {
-				Expect(installerUnderTest.Install(context.Background(), "")).To(Succeed())
+				Expect(installerUnderTest.Install(context.Background(), "", "role/profile")).To(Succeed())
 				_, opts := fakeHelmInstaller.InstallChartArgsForCall(0)
 				Expect(opts.CreateNamespace).To(BeFalse())
 			})
@@ -123,7 +127,7 @@ var _ = Describe("Install", func() {
 				}
 			})
 			It("will tell helm to create the namespace", func() {
-				Expect(installerUnderTest.Install(context.Background(), "")).To(Succeed())
+				Expect(installerUnderTest.Install(context.Background(), "", "role/profile")).To(Succeed())
 				_, opts := fakeHelmInstaller.InstallChartArgsForCall(0)
 				Expect(opts.CreateNamespace).To(BeTrue())
 			})
@@ -131,7 +135,7 @@ var _ = Describe("Install", func() {
 
 		When("service account is defined", func() {
 			It("add role to the values for the helm chart", func() {
-				Expect(installerUnderTest.Install(context.Background(), "role/account")).To(Succeed())
+				Expect(installerUnderTest.Install(context.Background(), "role/account", "role/profile")).To(Succeed())
 				_, opts := fakeHelmInstaller.InstallChartArgsForCall(0)
 				values := map[string]interface{}{
 					controller: map[string]interface{}{
@@ -143,6 +147,9 @@ var _ = Describe("Install", func() {
 						serviceAccountAnnotation: map[string]interface{}{
 							api.AnnotationEKSRoleARN: "role/account",
 						},
+					},
+					aws: map[string]interface{}{
+						defaultInstanceProfile: "role/profile",
 					},
 				}
 				Expect(opts.Values).To(Equal(values))
