@@ -488,8 +488,14 @@ func validateNodeGroupBase(np NodePool, path string) error {
 		}
 	}
 
-	if instanceutils.IsGPUInstanceType(SelectInstanceType(np)) && (ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != "") {
-		return errors.Errorf("GPU instance types are not supported for %s", ng.AMIFamily)
+	// Only AmazonLinux2 and Bottlerocket support NVIDIA GPUs
+	if instanceutils.IsNvidiaInstanceType(SelectInstanceType(np)) && (ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != NodeImageFamilyBottlerocket && ng.AMIFamily != "") {
+		return errors.Errorf("NVIDIA GPU instance types are not supported for %s", ng.AMIFamily)
+	}
+
+	// Bottlerocket doesn't support Inferentia hosts
+	if instanceutils.IsInferentiaInstanceType(SelectInstanceType(np)) && ng.AMIFamily == NodeImageFamilyBottlerocket {
+		return errors.Errorf("Inferentia instance types are not supported for %s", ng.AMIFamily)
 	}
 
 	return nil

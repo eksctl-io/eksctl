@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 )
 
 var _ = Describe("GPU instance support", func() {
@@ -22,7 +23,11 @@ var _ = Describe("GPU instance support", func() {
 	assertValidationError := func(e gpuInstanceEntry, err error) {
 		if e.expectUnsupportedErr {
 			Expect(err).To(HaveOccurred())
-			Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("GPU instance types are not supported for %s", e.amiFamily))))
+			if instanceutils.IsNvidiaInstanceType(e.gpuInstanceType) {
+				Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("GPU instance types are not supported for %s", e.amiFamily))))
+			} else {
+				Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("Inferentia instance types are not supported for %s", e.amiFamily))))
+			}
 			return
 		}
 		Expect(err).NotTo(HaveOccurred())
@@ -44,13 +49,17 @@ var _ = Describe("GPU instance support", func() {
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
 		}),
 		Entry("Bottlerocket", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyBottlerocket,
-			gpuInstanceType:      "g4dn.xlarge",
-			expectUnsupportedErr: true,
+			amiFamily:       api.NodeImageFamilyBottlerocket,
+			gpuInstanceType: "g4dn.xlarge",
 		}),
 		Entry("Ubuntu2004", gpuInstanceEntry{
 			amiFamily:            api.NodeImageFamilyUbuntu2004,
 			gpuInstanceType:      "g4dn.xlarge",
+			expectUnsupportedErr: true,
+		}),
+		Entry("Bottlerocket", gpuInstanceEntry{
+			amiFamily:            api.NodeImageFamilyBottlerocket,
+			gpuInstanceType:      "inf1.xlarge",
 			expectUnsupportedErr: true,
 		}),
 	)
@@ -70,12 +79,20 @@ var _ = Describe("GPU instance support", func() {
 			gpuInstanceType: "g5.12xlarge",
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
 		}),
+		Entry("AL2", gpuInstanceEntry{
+			gpuInstanceType: "inf1.xlarge",
+			amiFamily:       api.NodeImageFamilyAmazonLinux2,
+		}),
 		Entry("AMI unset", gpuInstanceEntry{
 			gpuInstanceType: "g4dn.xlarge",
 		}),
 		Entry("Bottlerocket", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyBottlerocket,
+			gpuInstanceType: "g4dn.xlarge",
+		}),
+		Entry("Bottlerocket", gpuInstanceEntry{
 			amiFamily:            api.NodeImageFamilyBottlerocket,
-			gpuInstanceType:      "g4dn.xlarge",
+			gpuInstanceType:      "inf1.xlarge",
 			expectUnsupportedErr: true,
 		}),
 		Entry("Ubuntu2004", gpuInstanceEntry{

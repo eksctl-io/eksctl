@@ -60,7 +60,7 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 
 	switch imageFamily {
 	case api.NodeImageFamilyAmazonLinux2:
-		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/%s", version, imageType(imageFamily, instanceType), fieldName), nil
+		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/%s", version, imageType(imageFamily, instanceType, version), fieldName), nil
 	case api.NodeImageFamilyWindowsServer2019CoreContainer:
 		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2019-English-Core-EKS_Optimized-%s/%s", version, fieldName), nil
 	case api.NodeImageFamilyWindowsServer2019FullContainer:
@@ -78,7 +78,7 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 		}
 		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-20H2-English-Core-EKS_Optimized-%s/%s", version, fieldName), nil
 	case api.NodeImageFamilyBottlerocket:
-		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/%s/latest/%s", version, instanceEC2ArchName(instanceType), fieldName), nil
+		return fmt.Sprintf("/aws/service/bottlerocket/aws-k8s-%s/%s/latest/%s", imageType(imageFamily, instanceType, version), instanceEC2ArchName(instanceType), fieldName), nil
 	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
 		return "", &UnsupportedQueryError{msg: fmt.Sprintf("SSM Parameter lookups for %s AMIs is not supported yet", imageFamily)}
 	default:
@@ -108,14 +108,21 @@ func instanceEC2ArchName(instanceType string) string {
 	return "x86_64"
 }
 
-func imageType(imageFamily, instanceType string) string {
+func imageType(imageFamily, instanceType, version string) string {
 	family := utils.ToKebabCase(imageFamily)
-	if instanceutils.IsGPUInstanceType(instanceType) {
-		return family + "-gpu"
+	switch imageFamily {
+	case api.NodeImageFamilyBottlerocket:
+		if instanceutils.IsNvidiaInstanceType(instanceType) {
+			return fmt.Sprintf("%s-%s", version, "nvidia")
+		}
+		return version
+	default:
+		if instanceutils.IsGPUInstanceType(instanceType) {
+			return family + "-gpu"
+		}
+		if instanceutils.IsARMInstanceType(instanceType) {
+			return family + "-arm64"
+		}
+		return family
 	}
-
-	if instanceutils.IsARMInstanceType(instanceType) {
-		return family + "-arm64"
-	}
-	return family
 }
