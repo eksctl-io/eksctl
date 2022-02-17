@@ -9,11 +9,12 @@ import (
 )
 
 type FakeChartInstaller struct {
-	InstallStub        func(context.Context, string) error
+	InstallStub        func(context.Context, string, string) error
 	installMutex       sync.RWMutex
 	installArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
+		arg3 string
 	}
 	installReturns struct {
 		result1 error
@@ -25,19 +26,20 @@ type FakeChartInstaller struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeChartInstaller) Install(arg1 context.Context, arg2 string) error {
+func (fake *FakeChartInstaller) Install(arg1 context.Context, arg2 string, arg3 string) error {
 	fake.installMutex.Lock()
 	ret, specificReturn := fake.installReturnsOnCall[len(fake.installArgsForCall)]
 	fake.installArgsForCall = append(fake.installArgsForCall, struct {
 		arg1 context.Context
 		arg2 string
-	}{arg1, arg2})
+		arg3 string
+	}{arg1, arg2, arg3})
 	stub := fake.InstallStub
 	fakeReturns := fake.installReturns
-	fake.recordInvocation("Install", []interface{}{arg1, arg2})
+	fake.recordInvocation("Install", []interface{}{arg1, arg2, arg3})
 	fake.installMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
@@ -51,17 +53,17 @@ func (fake *FakeChartInstaller) InstallCallCount() int {
 	return len(fake.installArgsForCall)
 }
 
-func (fake *FakeChartInstaller) InstallCalls(stub func(context.Context, string) error) {
+func (fake *FakeChartInstaller) InstallCalls(stub func(context.Context, string, string) error) {
 	fake.installMutex.Lock()
 	defer fake.installMutex.Unlock()
 	fake.InstallStub = stub
 }
 
-func (fake *FakeChartInstaller) InstallArgsForCall(i int) (context.Context, string) {
+func (fake *FakeChartInstaller) InstallArgsForCall(i int) (context.Context, string, string) {
 	fake.installMutex.RLock()
 	defer fake.installMutex.RUnlock()
 	argsForCall := fake.installArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeChartInstaller) InstallReturns(result1 error) {
