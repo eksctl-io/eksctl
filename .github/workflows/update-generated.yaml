@@ -70,7 +70,9 @@ jobs:
           path: |
             ~/.cache/go-build/
             ~/go/pkg/mod/
-          key: ${{ hashFiles('go.sum') }}
+          key: go-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            - go-
       - name: Update aws-node
         run: make update-aws-node
       - name: Commit changes
