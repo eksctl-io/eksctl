@@ -35,6 +35,7 @@ const (
 	ec2DescribeLaunchTemplates       = "ec2:DescribeLaunchTemplates"
 	ec2DescribeSecurityGroups        = "ec2:DescribeSecurityGroups"
 	ec2DescribeSubnets               = "ec2:DescribeSubnets"
+	ec2DeleteLaunchTemplate          = "ec2:DeleteLaunchTemplate"
 	ec2RunInstances                  = "ec2:RunInstances"
 	ec2TerminateInstances            = "ec2:TerminateInstances"
 	// IAM
@@ -118,6 +119,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 			ec2DescribeLaunchTemplates,
 			ec2DescribeSecurityGroups,
 			ec2DescribeSubnets,
+			ec2DeleteLaunchTemplate,
 			ec2RunInstances,
 			ec2TerminateInstances,
 			iamPassRole,

@@ -89,6 +89,7 @@ var expectedTemplate = `{
                 "ec2:DescribeLaunchTemplates",
                 "ec2:DescribeSecurityGroups",
                 "ec2:DescribeSubnets",
+                "ec2:DeleteLaunchTemplate",
                 "ec2:RunInstances",
                 "ec2:TerminateInstances",
                 "iam:PassRole",
