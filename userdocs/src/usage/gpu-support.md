@@ -24,3 +24,6 @@ eksctl create cluster --node-type=p2.xlarge --install-nvidia-plugin=false
 
 kubectl create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/<VERSION>/nvidia-device-plugin.yml
 ```
+
+The installation of the [NVIDIA Kubernetes device plugin](https://github.com/NVIDIA/k8s-device-plugin) will be skipped if the cluster only includes Bottlerocket nodegroups, since Bottlerocket already handles the execution of the device plugin.
+If you use different AMI families in your cluster's configurations, you may need to use taints and tolerations to keep the device plugin from running on Bottlerocket nodes.
