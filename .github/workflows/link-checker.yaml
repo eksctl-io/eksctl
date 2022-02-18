@@ -5,31 +5,15 @@ on:
     paths:
       - 'userdocs/**'
       - '**.md'
-      - '.github/workflows/markdown-link-check-config.json'
-      - '.github/workflows/check-links.yaml'
   push:
     branches:
       - main
     paths:
       - 'userdocs/**'
       - '**.md'
-      - '.github/workflows/markdown-link-check-config.json'
-      - '.github/workflows/check-links.yaml'
 
 jobs:
-  markdown-link-checker:
-    name: Check markdown links
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      # Using markdown-link-check to check markdown docs
-      - uses: gaurav-nelson/github-action-markdown-link-check@v1
-        with:
-          use-verbose-mode: 'yes'
-          config-file: '.github/workflows/markdown-link-check-config.json'
-          max-depth: 1
-
-  site-link-checker:
+  link-checker:
     name: Check site links
     runs-on: ubuntu-latest
     strategy:
@@ -45,11 +29,9 @@ jobs:
         run: make install-site-deps
       - name: Build docs for link check
         run: make build-pages
-        # Using link-checker action to check generated HTML site
-      - name: Link Checker (generated site)
-        id: lc
-        uses: peter-evans/link-checker@v1
+        # Using link-checker action to check links in Markdown, HTML files
+      - name: Link Checker
+        uses: lycheeverse/lychee-action@768a13171aff975543be1d2f2dd740bc3dcd113c #v1.2.1
         with:
-          args: -d userdocs/site -r userdocs/site -x https://twitter.com|https://www.weave.works
-      - name: Fail if there were link errors
-        run: exit ${{ steps.lc.outputs.exit_code }}
+          fail: true
+          args: --exclude-all-private --exclude-file .github/workflows/exclude-file.txt --verbose --no-progress './**/*.md' './**/*.html'

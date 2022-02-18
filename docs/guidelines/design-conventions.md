@@ -43,6 +43,6 @@ General conventions followed when developing in eksctl:
   - eksctl does not use arguments except when used for the name of the resource (e.g.: `eksctl create nodegroup ng-1`). This is what we call `nameArg` in the code. The reason for this is that users get very easily confused when arguments are used and what their meaning is, and relative position with respect to flags. The name of the resource will also have the option to pass it as part of the flag called `--name` (e.g.: `eksctl create nodegroup --name ng-1`).
   - when the main resource is not the cluster, the cluster will be set in the `--cluster` flag (e.g.: `eksctl create nodegroup --cluster clus1 ng-1`)
   - for boolean flags, use `*bool` so that eksctl can know if a flag was explicitly enabled or disabled by the user
-  - add unit tests for the flags and config file parsing. These are tedious to manual test. See [profile_test.go](pkg/ctl/enable/profile_test.go) as an example
+  - add unit tests for the flags and config file parsing. These are tedious to manual test.
   - keep the number of CLI flags small. Not all options should have flags, but rather have a way to use them through the config file. In general, basic use cases can be covered by flags but more advanced options should only live in the config file.
   
