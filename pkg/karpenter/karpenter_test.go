@@ -54,6 +54,7 @@ var _ = Describe("Install", func() {
 					serviceAccountAnnotation: map[string]interface{}{
 						api.AnnotationEKSRoleARN: "role-arn",
 					},
+					serviceAccountName: DefaultServiceAccountName,
 				},
 				aws: map[string]interface{}{
 					defaultInstanceProfile: "role/profile",
@@ -104,6 +105,7 @@ var _ = Describe("Install", func() {
 						serviceAccountAnnotation: map[string]interface{}{
 							api.AnnotationEKSRoleARN: "role/account",
 						},
+						serviceAccountName: DefaultServiceAccountName,
 					},
 					aws: map[string]interface{}{
 						defaultInstanceProfile: "role/profile",

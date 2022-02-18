@@ -26,6 +26,7 @@ const (
 	releaseName              = "karpenter"
 	serviceAccount           = "serviceAccount"
 	serviceAccountAnnotation = "annotations"
+	serviceAccountName       = "name"
 )
 
 // Options contains values which Karpenter uses to configure the installation.
@@ -66,6 +67,7 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 		serviceAccountAnnotation: map[string]interface{}{
 			api.AnnotationEKSRoleARN: serviceAccountRoleARN,
 		},
+		serviceAccountName: DefaultServiceAccountName,
 	}
 	values := map[string]interface{}{
 		clusterName:     k.ClusterConfig.Metadata.Name,
