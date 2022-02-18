@@ -3,12 +3,10 @@ package karpenter
 import (
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -19,7 +17,6 @@ import (
 
 const (
 	kubernetesTagFormat = "kubernetes.io/cluster/%s"
-	karpenterTagFormat  = "karpenter.sh/discovery"
 )
 
 type karpenterIAMRolesTask struct {
@@ -65,11 +62,7 @@ func (k *karpenterIAMRolesTask) createKarpenterIAMRolesTask(errs chan error) err
 		return fmt.Errorf("failed to create stack: %w", err)
 	}
 
-	if err := k.ensureSubnetsHaveTags(); err != nil {
-		return fmt.Errorf("failed to ensure tags on subnets")
-	}
-
-	return k.ensureSecurityGroupKarpenterTag()
+	return k.ensureSubnetsHaveTags()
 }
 
 // makeNodeGroupStackName generates the name of the Karpenter stack identified by its name, isolated by the cluster this StackCollection operates on
@@ -77,8 +70,7 @@ func (k *karpenterIAMRolesTask) makeKarpenterStackName() string {
 	return fmt.Sprintf("eksctl-%s-karpenter", k.cfg.Metadata.Name)
 }
 
-// ensureSubnetsHaveTags will check if the kubernetes.io/cluster tag is present on the subnets.
-// if not, it will create them.
+// ensureSubnetsHaveTags sets of overwrites kubernetes.io/cluster/<name> tags on subnets with the current value.
 func (k *karpenterIAMRolesTask) ensureSubnetsHaveTags() error {
 	var ids []string
 	for _, subnet := range k.cfg.VPC.Subnets.Private {
@@ -88,80 +80,18 @@ func (k *karpenterIAMRolesTask) ensureSubnetsHaveTags() error {
 		ids = append(ids, subnet.ID)
 	}
 	sort.Strings(ids)
-	input := &ec2.DescribeSubnetsInput{
-		SubnetIds: aws.StringSlice(ids),
-	}
-	output, err := k.provider.EC2().DescribeSubnets(input)
-	if err != nil {
-		return fmt.Errorf("failed to describe subnets: %w", err)
-	}
-
 	clusterTag := fmt.Sprintf(kubernetesTagFormat, k.cfg.Metadata.Name)
-
-	var updateSubnets []string
-	for _, subnet := range output.Subnets {
-		hasTag := false
-		for _, tag := range subnet.Tags {
-			if aws.StringValue(tag.Key) == clusterTag {
-				hasTag = true
-				break
-			}
-		}
-		if !hasTag {
-			updateSubnets = append(updateSubnets, *subnet.SubnetId)
-		}
-	}
-
-	if len(updateSubnets) > 0 {
-		creatTagsInput := &ec2.CreateTagsInput{
-			Resources: aws.StringSlice(updateSubnets),
-			Tags: []*ec2.Tag{
-				{
-					Key:   aws.String(clusterTag),
-					Value: aws.String(""),
-				},
-				{
-					Key:   aws.String(karpenterTagFormat),
-					Value: aws.String(k.cfg.Metadata.Name),
-				},
-			},
-		}
-		if _, err := k.provider.EC2().CreateTags(creatTagsInput); err != nil {
-			return fmt.Errorf("failed to add tags for subnets: %w", err)
-		}
-	}
-	return nil
-}
-
-// ensureSecurityGroupKarpenterTag tags all security groups with karpenter.sh/discovery tag.
-func (k *karpenterIAMRolesTask) ensureSecurityGroupKarpenterTag() error {
-	// Tag the cluster's security group.
-	input := &awseks.DescribeClusterInput{
-		Name: &k.cfg.Metadata.Name,
-	}
-	output, err := k.provider.EKS().DescribeCluster(input)
-	if err != nil {
-		return fmt.Errorf("failed to get cluster: %w", err)
-	}
-	var ids []string
-	for _, id := range output.Cluster.ResourcesVpcConfig.SecurityGroupIds {
-		ids = append(ids, aws.StringValue(id))
-	}
-	ids = append(ids, aws.StringValue(output.Cluster.ResourcesVpcConfig.ClusterSecurityGroupId))
-
-	logger.Info("Attaching tag to the following SGs %q", strings.Join(ids, ", "))
-
 	creatTagsInput := &ec2.CreateTagsInput{
 		Resources: aws.StringSlice(ids),
 		Tags: []*ec2.Tag{
 			{
-				Key:   aws.String(karpenterTagFormat),
-				Value: aws.String(k.cfg.Metadata.Name),
+				Key:   aws.String(clusterTag),
+				Value: aws.String(""),
 			},
 		},
 	}
 	if _, err := k.provider.EC2().CreateTags(creatTagsInput); err != nil {
-		return fmt.Errorf("failed to add tags for security groups: %w", err)
+		return fmt.Errorf("failed to add tags for subnets: %w", err)
 	}
 	return nil
 }

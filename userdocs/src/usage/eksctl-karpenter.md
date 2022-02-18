@@ -61,6 +61,7 @@ spec:
     resources:
       cpu: 1000
   provider:
+    instanceProfile: eksctl-KarpenterNodeInstanceProfile-${CLUSTER_NAME}
     subnetSelector:
       karpenter.sh/discovery: ${CLUSTER_NAME}
     securityGroupSelector:
