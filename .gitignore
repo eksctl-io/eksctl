@@ -43,3 +43,6 @@ dist/
 
 # IDEA directory
 .idea/
+
+# Debug logs
+logs/*
