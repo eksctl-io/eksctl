@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"os"
 	"strings"
 	"time"
 
@@ -10,7 +13,7 @@ import (
 	lol "github.com/kris-nova/lolgopher"
 )
 
-func initLogger(level int, colorValue string) {
+func initLogger(level int, colorValue string, logBuffer *bytes.Buffer, dumpLogsValue bool) {
 	logger.Layout = "2006-01-02 15:04:05"
 
 	var bitwiseLevel int
@@ -30,11 +33,25 @@ func initLogger(level int, colorValue string) {
 	}
 	logger.BitwiseLevel = bitwiseLevel
 
-	switch colorValue {
-	case "fabulous":
-		logger.Writer = lol.NewLolWriter()
-	case "true":
-		logger.Writer = color.Output
+	if dumpLogsValue {
+		switch colorValue {
+		case "fabulous":
+			logger.Writer = io.MultiWriter(lol.NewLolWriter(), logBuffer)
+		case "true":
+			logger.Writer = io.MultiWriter(color.Output, logBuffer)
+		default:
+			logger.Writer = io.MultiWriter(os.Stdout, logBuffer)
+		}
+
+	} else {
+		switch colorValue {
+		case "fabulous":
+			logger.Writer = lol.NewLolWriter()
+		case "true":
+			logger.Writer = color.Output
+		default:
+			logger.Writer = os.Stdout
+		}
 	}
 
 	logger.Line = func(prefix, format string, a ...interface{}) string {
@@ -77,4 +94,30 @@ func initLogger(level int, colorValue string) {
 
 		return out
 	}
+}
+
+func dumpLogsToDisk(logBuffer *bytes.Buffer, errorString string) error {
+
+	if _, err := os.Stat("logs/"); os.IsNotExist(err) {
+
+		if err := os.Mkdir("logs/", 0755); err != nil {
+			return fmt.Errorf(err.Error())
+		}
+	}
+
+	todaysFileName := fmt.Sprintf("logs/eksctl-failure-%s.logs", time.Now().Local().Format("02-Jan-06"))
+	logFile, err := os.OpenFile(todaysFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+	if err != nil {
+		return err
+	}
+
+	defer logFile.Close()
+
+	timeString := time.Now().Local().Format("2006-01-02 15:04:05")
+	logString := fmt.Sprintf("Logs [%s]:\n%s \n\nError [%s]: \n%s \n---\n", timeString, logBuffer.String(), timeString, errorString)
+
+	_, err = logFile.WriteString(logString)
+
+	return err
 }
