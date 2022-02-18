@@ -903,8 +903,16 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 								ng.Labels[fmt.Sprintf("%d", i)] = "test"
 							}
 						})
+						// +2 because of Name and kubernetes.io/cluster/
 						It("errors", func() {
-							Expect(addErr).To(MatchError(ContainSubstring(fmt.Sprintf("number of tags is exceeding the configured amount %d, was: %d", builder.MaximumTagNumber, builder.MaximumTagNumber+3))))
+							Expect(addErr).To(
+								MatchError(
+									ContainSubstring(
+										fmt.Sprintf("number of tags is exceeding the configured amount %d, was: %d. "+
+											"Due to desiredCapacity==0 we added an extra %d number of tags to ensure the nodegroup is scaled correctly",
+											builder.MaximumTagNumber,
+											builder.MaximumTagNumber+3,
+											builder.MaximumTagNumber+1))))
 						})
 					})
 				})

@@ -273,9 +273,9 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 			return err
 		}
 		tags = append(tags, clusterTags...)
-	}
-	if len(tags) > MaximumTagNumber {
-		return fmt.Errorf("number of tags is exceeding the configured amount %d, was: %d", MaximumTagNumber, len(tags))
+		if len(tags) > MaximumTagNumber {
+			return fmt.Errorf("number of tags is exceeding the configured amount %d, was: %d. Due to desiredCapacity==0 we added an extra %d number of tags to ensure the nodegroup is scaled correctly", MaximumTagNumber, len(tags), len(clusterTags))
+		}
 	}
 
 	asg := nodeGroupResource(launchTemplateName, vpcZoneIdentifier, tags, n.spec)
