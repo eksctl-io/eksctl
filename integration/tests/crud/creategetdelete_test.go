@@ -420,6 +420,11 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 							Name:         "test-containerd",
 							AMIFamily:    api.NodeImageFamilyAmazonLinux2,
 							InstanceType: "p2.xlarge",
+							AdditionalVolumes: []*api.VolumeMapping{
+								{
+									VolumeName: aws.String("/dev/sdb"),
+								},
+							},
 						},
 						ContainerRuntime: aws.String(api.ContainerRuntimeContainerD),
 					},
@@ -430,10 +435,12 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"nodegroup",
 						"--config-file", "-",
 						"--verbose", "4",
+						"--timeout", "50m",
 					).
 					WithoutArg("--region", params.Region).
 					WithStdin(clusterutils.Reader(clusterConfig))
 				Expect(cmd).To(RunSuccessfully())
+				tests.AssertNodeVolumes(params.KubeconfigPath, params.Region, "test-containerd", "/dev/sdb")
 			})
 		})
 
@@ -455,9 +462,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--name", mngNG1,
 					"-o", "yaml",
 				)
-				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MaxSize: 4")))
-				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MinSize: 4")))
-				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("DesiredCapacity: 4")))
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputStringLines(
+					ContainElement(ContainSubstring("Type: managed")),
+					ContainElement(ContainSubstring("MaxSize: 4")),
+					ContainElement(ContainSubstring("MinSize: 4")),
+					ContainElement(ContainSubstring("DesiredCapacity: 4")),
+				),
+				)
 			})
 
 			It("should scale all nodegroups", func() {
@@ -475,9 +486,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--name", mngNG1,
 					"-o", "yaml",
 				)
-				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MaxSize: 5")))
-				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MinSize: 5")))
-				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("DesiredCapacity: 5")))
+
+				Expect(getMngNgCmd).To(RunSuccessfullyWithOutputStringLines(
+					ContainElement(ContainSubstring("MaxSize: 5"))),
+					ContainElement(ContainSubstring("MinSize: 5")),
+					ContainElement(ContainSubstring("DesiredCapacity: 5")),
+					ContainElement(ContainSubstring("Type: managed")),
+				)
 
 				getUnmNgCmd := params.EksctlGetCmd.WithArgs(
 					"nodegroup",
@@ -485,9 +500,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--name", unmNG1,
 					"-o", "yaml",
 				)
-				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MaxSize: 5")))
-				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("MinSize: 5")))
-				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputString(ContainSubstring("DesiredCapacity: 5")))
+
+				Expect(getUnmNgCmd).To(RunSuccessfullyWithOutputStringLines(
+					ContainElement(ContainSubstring("MaxSize: 5"))),
+					ContainElement(ContainSubstring("MinSize: 5")),
+					ContainElement(ContainSubstring("DesiredCapacity: 5")),
+					ContainElement(ContainSubstring("Type: unmanaged")),
+				)
 			})
 		})
 
@@ -498,7 +517,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--timeout=45m",
 					"--cluster", params.ClusterName,
 					"--nodes", "1",
-					"--node-type", "p2.xlarge",
+					"--instance-types", "p2.xlarge,p3.2xlarge,p3.8xlarge,g3s.xlarge,g4ad.xlarge,g4ad.2xlarge",
 					"--node-private-networking",
 					"--node-zones", "us-west-2b,us-west-2c",
 					mngNG2,

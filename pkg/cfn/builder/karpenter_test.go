@@ -1,6 +1,9 @@
 package builder_test
 
 import (
+	"fmt"
+
+	"github.com/aws/aws-sdk-go/aws"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -30,7 +33,19 @@ var _ = Describe("karpenter stack", func() {
 			Expect(krs.AddAllResources()).To(Succeed())
 			result, err := krs.RenderJSON()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(string(result)).To(Equal(expectedTemplate))
+			Expect(string(result)).To(Equal(fmt.Sprintf(expectedTemplate, "eksctl-KarpenterNodeInstanceProfile-test-karpenter")))
+		})
+		When("defaultInstanceProfile is set", func() {
+			BeforeEach(func() {
+				cfg.Karpenter.DefaultInstanceProfile = aws.String("KarpenterNodeInstanceProfile-custom")
+			})
+			It("generates the correct custom CloudFormation template", func() {
+				krs := builder.NewKarpenterResourceSet(cfg)
+				Expect(krs.AddAllResources()).To(Succeed())
+				result, err := krs.RenderJSON()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(result)).To(Equal(fmt.Sprintf(expectedTemplate, "KarpenterNodeInstanceProfile-custom")))
+			})
 		})
 	})
 })
@@ -95,7 +110,7 @@ var expectedTemplate = `{
       "Type": "AWS::IAM::InstanceProfile",
       "Properties": {
         "InstanceProfileName": {
-          "Fn::Sub": "eksctl-KarpenterNodeInstanceProfile-test-karpenter"
+          "Fn::Sub": "%s"
         },
         "Path": "/",
         "Roles": [

@@ -130,7 +130,7 @@ func (p ProviderServices) IAM() iamiface.IAMAPI { return p.iam }
 // CloudTrail returns a representation of the CloudTrail API
 func (p ProviderServices) CloudTrail() cloudtrailiface.CloudTrailAPI { return p.cloudtrail }
 
-// CloudWatch returns a representation of the CloudWatch API.
+// CloudWatchLogs returns a representation of the CloudWatchLogs API.
 func (p ProviderServices) CloudWatchLogs() cloudwatchlogsiface.CloudWatchLogsAPI {
 	return p.cloudwatchlogs
 }
@@ -150,6 +150,11 @@ func (p ProviderServices) ConfigProvider() client.ConfigProvider {
 
 func (p ProviderServices) Session() *session.Session {
 	return p.session
+}
+
+// ClusterInfo provides information about the cluster.
+type ClusterInfo struct {
+	Cluster *awseks.Cluster
 }
 
 // ProviderStatus stores information about the used IAM role and the resulting session
@@ -363,13 +368,13 @@ func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) e
 }
 
 func errTooFewAvailabilityZones(azs []string) error {
-	return fmt.Errorf("only %d zones specified %v, %d are required (can be non-unique)", len(azs), azs, az.MinRequiredAvailabilityZones)
+	return fmt.Errorf("only %d zones specified %v, %d are required (can be non-unique)", len(azs), azs, api.MinRequiredAvailabilityZones)
 }
 
 // SetAvailabilityZones sets the given (or chooses) the availability zones
 func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []string) error {
 	if count := len(given); count != 0 {
-		if count < az.MinRequiredAvailabilityZones {
+		if count < api.MinRequiredAvailabilityZones {
 			return errTooFewAvailabilityZones(given)
 		}
 		spec.AvailabilityZones = given
@@ -377,21 +382,14 @@ func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []
 	}
 
 	if count := len(spec.AvailabilityZones); count != 0 {
-		if count < az.MinRequiredAvailabilityZones {
+		if count < api.MinRequiredAvailabilityZones {
 			return errTooFewAvailabilityZones(spec.AvailabilityZones)
 		}
 		return nil
 	}
 
 	logger.Debug("determining availability zones")
-	var azSelector *az.AvailabilityZoneSelector
-	if c.Provider.Region() == api.RegionUSEast1 {
-		azSelector = az.NewSelectorWithMinRequired(c.Provider.EC2(), c.Provider.Region())
-	} else {
-		azSelector = az.NewSelectorWithDefaults(c.Provider.EC2(), c.Provider.Region())
-	}
-
-	zones, err := azSelector.SelectZones()
+	zones, err := az.GetAvailabilityZones(c.Provider.EC2(), c.Provider.Region())
 	if err != nil {
 		return errors.Wrap(err, "getting availability zones")
 	}

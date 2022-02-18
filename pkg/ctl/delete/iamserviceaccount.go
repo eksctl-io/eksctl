@@ -66,7 +66,6 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 	}
 
 	cfg := cmd.ClusterConfig
-	meta := cmd.ClusterConfig.Metadata
 
 	printer := printers.NewJSONPrinter()
 
@@ -74,7 +73,6 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 	if err != nil {
 		return err
 	}
-	cmdutils.LogRegionAndVersionInfo(meta)
 
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err

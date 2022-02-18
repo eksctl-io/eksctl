@@ -1,0 +1,16 @@
+name: Publish docs
+
+on:
+  release:
+    types:
+      - published
+jobs:
+  publish-docs:
+    name: Publish docs to Netlify
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Netlify deployment
+        run: make publish-docs
+        env:
+          NETLIFY_BUILD_HOOK_URL: ${{ secrets.NETLIFY_BUILD_HOOK_URL }}

@@ -105,6 +105,31 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	Describe("nodeGroups[*].maxInstanceLifetime validation", func() {
+		It("should reject if value is below a day", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.MaxInstanceLifetime = aws.Int(5)
+			err := api.ValidateClusterConfig(cfg)
+			Expect(err).NotTo(HaveOccurred())
+			err = api.ValidateNodeGroup(0, ng0)
+			Expect(err).To(MatchError(ContainSubstring("maximum instance lifetime must have a minimum value of 86,400 seconds (one day), but was: 5")))
+		})
+		It("setting it if greater than or equal to one day", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.MaxInstanceLifetime = aws.Int(api.OneDay)
+			err := api.ValidateClusterConfig(cfg)
+			Expect(err).NotTo(HaveOccurred())
+			err = api.ValidateNodeGroup(0, ng0)
+			Expect(err).NotTo(HaveOccurred())
+			ng0.MaxInstanceLifetime = aws.Int(api.OneDay + 1000)
+			Expect(err).NotTo(HaveOccurred())
+		})
+	})
+
 	Describe("nodeGroups[*].volumeX", func() {
 		var (
 			cfg *api.ClusterConfig
@@ -272,6 +297,14 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			err = api.ValidateNodeGroup(1, ng1)
 			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should not allow setting AWSLoadBalancerController and albIngress", func() {
+			ng1.IAM.WithAddonPolicies.AWSLoadBalancerController = aws.Bool(true)
+			ng1.IAM.WithAddonPolicies.DeprecatedALBIngress = aws.Bool(true)
+
+			err = api.ValidateNodeGroup(1, ng1)
+			Expect(err).To(MatchError(`"awsLoadBalancerController" and "albIngress" cannot both be configured, please use "awsLoadBalancerController" as "albIngress" is deprecated`))
 		})
 
 		It("should allow setting instanceProfileARN and instanceRoleARN", func() {

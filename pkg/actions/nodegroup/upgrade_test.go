@@ -7,6 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssm"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"k8s.io/client-go/kubernetes/fake"
+
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -14,7 +16,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	"github.com/weaveworks/eksctl/pkg/version"
-	"k8s.io/client-go/kubernetes/fake"
 )
 
 var _ = Describe("Upgrade", func() {
@@ -166,7 +167,7 @@ var _ = Describe("Upgrade", func() {
 				It("upgrades the nodegroup with the latest al2 release_version by updating the stack", func() {
 					Expect(m.Upgrade(options)).To(Succeed())
 					Expect(fakeStackManager.GetManagedNodeGroupTemplateCallCount()).To(Equal(1))
-					Expect(fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0)).To(Equal(ngName))
+					Expect(fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0).NodeGroupName).To(Equal(ngName))
 					Expect(fakeStackManager.UpdateNodeGroupStackCallCount()).To(Equal(2))
 					By("upgrading the ForceUpdateEnabled setting first")
 					ng, template, wait := fakeStackManager.UpdateNodeGroupStackArgsForCall(0)
@@ -227,7 +228,7 @@ var _ = Describe("Upgrade", func() {
 				It("upgrades the nodegroup with the latest al2 release_version by updating the stack", func() {
 					Expect(m.Upgrade(options)).To(Succeed())
 					Expect(fakeStackManager.GetManagedNodeGroupTemplateCallCount()).To(Equal(1))
-					Expect(fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0)).To(Equal(ngName))
+					Expect(fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0).NodeGroupName).To(Equal(ngName))
 					Expect(fakeStackManager.UpdateNodeGroupStackCallCount()).To(Equal(1))
 					By("upgrading the ReleaseVersion and not updating the ForceUpdateEnabled setting")
 					ng, template, wait := fakeStackManager.UpdateNodeGroupStackArgsForCall(0)
@@ -282,7 +283,7 @@ var _ = Describe("Upgrade", func() {
 				It("upgrades the nodegroup updating the stack with the kubernetes version", func() {
 					Expect(m.Upgrade(options)).To(Succeed())
 					Expect(fakeStackManager.GetManagedNodeGroupTemplateCallCount()).To(Equal(1))
-					Expect(fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0)).To(Equal(ngName))
+					Expect(fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0).NodeGroupName).To(Equal(ngName))
 
 					By("upgrading the ForceUpdateEnabled setting first")
 					Expect(fakeStackManager.UpdateNodeGroupStackCallCount()).To(Equal(2))

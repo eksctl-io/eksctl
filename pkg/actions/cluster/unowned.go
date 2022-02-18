@@ -4,35 +4,29 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-
 	"github.com/aws/aws-sdk-go/aws/awserr"
-
 	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/weaveworks/eksctl/pkg/utils/tasks"
-
+	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
-	"github.com/weaveworks/eksctl/pkg/utils/waiters"
-
-	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-
-	"github.com/kris-nova/logger"
-
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/utils/tasks"
+	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
 type UnownedCluster struct {
-	cfg          *api.ClusterConfig
-	ctl          *eks.ClusterProvider
-	stackManager manager.StackManager
-	newClientSet func() (kubernetes.Interface, error)
+	cfg                 *api.ClusterConfig
+	ctl                 *eks.ClusterProvider
+	stackManager        manager.StackManager
+	newClientSet        func() (kubernetes.Interface, error)
+	newNodeGroupManager func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer
 }
 
 func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager) *UnownedCluster {
@@ -42,6 +36,9 @@ func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackMa
 		stackManager: stackManager,
 		newClientSet: func() (kubernetes.Interface, error) {
 			return ctl.NewStdClientSet(cfg)
+		},
+		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer {
+			return nodegroup.New(cfg, ctl, clientSet)
 		},
 	}
 }
@@ -57,7 +54,7 @@ func (c *UnownedCluster) Upgrade(dryRun bool) error {
 	return nil
 }
 
-func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force bool) error {
+func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force, disableNodegroupEviction bool) error {
 	clusterName := c.cfg.Metadata.Name
 
 	if err := c.checkClusterExists(clusterName); err != nil {
@@ -81,8 +78,13 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force bool) er
 			return err
 		}
 
-		if err := drainAllNodegroups(c.cfg, c.ctl, c.stackManager, clientSet, allStacks); err != nil {
-			return err
+		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
+		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, nodeGroupManager, attemptVpcCniDeletion); err != nil {
+			if !force {
+				return err
+			}
+
+			logger.Warning("an error occurred during nodegroups draining, force=true so proceeding with deletion: %q", err.Error())
 		}
 	}
 
@@ -264,7 +266,7 @@ func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(waitInterval time.Du
 	}
 
 	// we kill every nodegroup with a stack the standard way. wait is always true
-	tasks, err := c.stackManager.NewTasksToDeleteNodeGroups(func(_ string) bool { return true }, true, nil)
+	tasks, err := c.stackManager.NewTasksToDeleteNodeGroups(allStacks, func(_ string) bool { return true }, true, nil)
 	if err != nil {
 		return err
 	}

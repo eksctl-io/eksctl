@@ -70,7 +70,6 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 	if err != nil {
 		return err
 	}
-	cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
 
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
@@ -120,5 +119,13 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 	}
 	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 
-	return nodegroup.New(cfg, ctl, clientSet).Drain(allNodeGroups, cmd.Plan, maxGracePeriod, nodeDrainWaitPeriod, undo, disableEviction)
+	drainInput := &nodegroup.DrainInput{
+		NodeGroups:          allNodeGroups,
+		Plan:                cmd.Plan,
+		MaxGracePeriod:      maxGracePeriod,
+		NodeDrainWaitPeriod: nodeDrainWaitPeriod,
+		Undo:                undo,
+		DisableEviction:     disableEviction,
+	}
+	return nodegroup.New(cfg, ctl, clientSet).Drain(drainInput)
 }

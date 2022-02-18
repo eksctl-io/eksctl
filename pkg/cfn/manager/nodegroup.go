@@ -14,11 +14,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 
-	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/version"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
@@ -38,16 +37,18 @@ type NodeGroupSummary struct {
 	DesiredCapacity      int
 	InstanceType         string
 	ImageID              string
-	CreationTime         *time.Time
+	CreationTime         time.Time
 	NodeInstanceRoleARN  string
 	AutoScalingGroupName string
 	Version              string
+	NodeGroupType        api.NodeGroupType `json:"Type"`
 }
 
 // NodeGroupStack represents a nodegroup and its type
 type NodeGroupStack struct {
 	NodeGroupName string
 	Type          api.NodeGroupType
+	Stack         *Stack
 }
 
 // makeNodeGroupStackName generates the name of the nodegroup stack identified by its name, isolated by the cluster this StackCollection operates on
@@ -141,6 +142,7 @@ func (c *StackCollection) ListNodeGroupStacks() ([]NodeGroupStack, error) {
 		nodeGroupStacks = append(nodeGroupStacks, NodeGroupStack{
 			NodeGroupName: c.GetNodeGroupName(stack),
 			Type:          nodeGroupType,
+			Stack:         stack,
 		})
 	}
 	return nodeGroupStacks, nil
@@ -160,17 +162,12 @@ func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]Stac
 		input := &cfn.DescribeStackResourcesInput{
 			StackName: s.StackName,
 		}
-		template, err := c.GetStackTemplate(*s.StackName)
-		if err != nil {
-			return nil, errors.Wrapf(err, "getting template for %q stack", *s.StackName)
-		}
 		resources, err := c.cloudformationAPI.DescribeStackResources(input)
 		if err != nil {
 			return nil, errors.Wrapf(err, "getting all resources for %q stack", *s.StackName)
 		}
 		allResources[c.GetNodeGroupName(s)] = StackInfo{
 			Resources: resources.StackResources,
-			Template:  &template,
 			Stack:     s,
 		}
 	}
@@ -193,36 +190,39 @@ func (c *StackCollection) GetUnmanagedNodeGroupSummaries(name string) ([]*NodeGr
 			return nil, err
 		}
 
-		if nodeGroupType == api.NodeGroupTypeUnmanaged {
-			ngPaths, err := getNodeGroupPaths(s.Tags)
-			if err != nil {
-				return nil, err
-			}
+		if nodeGroupType != api.NodeGroupTypeUnmanaged {
+			continue
+		}
 
-			summary, err := c.mapStackToNodeGroupSummary(s, ngPaths)
+		ngPaths, err := getNodeGroupPaths(s.Tags)
+		if err != nil {
+			return nil, err
+		}
 
-			if err != nil {
-				return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
-			}
+		summary, err := c.mapStackToNodeGroupSummary(s, ngPaths)
 
-			asgName, err := c.getUnmanagedNodeGroupAutoScalingGroupName(s)
-			if err != nil {
-				return nil, errors.Wrap(err, "getting autoscalinggroupname")
-			}
+		if err != nil {
+			return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
+		}
+		summary.NodeGroupType = api.NodeGroupTypeUnmanaged
 
-			summary.AutoScalingGroupName = asgName
+		asgName, err := c.getUnmanagedNodeGroupAutoScalingGroupName(s)
+		if err != nil {
+			return nil, errors.Wrap(err, "getting autoscalinggroupname")
+		}
 
-			scalingGroup, err := c.GetAutoScalingGroupDesiredCapacity(asgName)
-			if err != nil {
-				return nil, errors.Wrap(err, "getting autoscalinggroup desired capacity")
-			}
-			summary.DesiredCapacity = int(*scalingGroup.DesiredCapacity)
-			summary.MinSize = int(*scalingGroup.MinSize)
-			summary.MaxSize = int(*scalingGroup.MaxSize)
+		summary.AutoScalingGroupName = asgName
 
-			if name == "" || summary.Name == name {
-				summaries = append(summaries, summary)
-			}
+		scalingGroup, err := c.GetAutoScalingGroupDesiredCapacity(asgName)
+		if err != nil {
+			return nil, errors.Wrap(err, "getting autoscalinggroup desired capacity")
+		}
+		summary.DesiredCapacity = int(*scalingGroup.DesiredCapacity)
+		summary.MinSize = int(*scalingGroup.MinSize)
+		summary.MaxSize = int(*scalingGroup.MaxSize)
+
+		if name == "" || summary.Name == name {
+			summaries = append(summaries, summary)
 		}
 	}
 
@@ -255,7 +255,7 @@ func (c *StackCollection) GetAutoScalingGroupName(s *Stack) (string, error) {
 	}
 }
 
-// GetNodeGroupAutoScalingGroupName return the unmanaged nodegroup's AutoScalingGroupName
+// GetNodeGroupAutoScalingGroupName returns the unmanaged nodegroup's AutoScalingGroupName
 func (c *StackCollection) getUnmanagedNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
 	input := &cfn.DescribeStackResourceInput{
 		StackName:         s.StackName,
@@ -269,7 +269,7 @@ func (c *StackCollection) getUnmanagedNodeGroupAutoScalingGroupName(s *Stack) (s
 	return *res.StackResourceDetail.PhysicalResourceId, nil
 }
 
-// GetManagedNodeGroupAutoScalingGroupName returns the managed nodegroup's AutoScalingGroupName
+// GetManagedNodeGroupAutoScalingGroupName returns the managed nodegroup's AutoScalingGroup names
 func (c *StackCollection) getManagedNodeGroupAutoScalingGroupName(s *Stack) (string, error) {
 	input := &eks.DescribeNodegroupInput{
 		ClusterName:   aws.String(getClusterNameTag(s)),
@@ -282,7 +282,7 @@ func (c *StackCollection) getManagedNodeGroupAutoScalingGroupName(s *Stack) (str
 		return "", nil
 	}
 
-	asgs := []string{}
+	var asgs []string
 
 	if res.Nodegroup.Resources != nil {
 		for _, v := range res.Nodegroup.Resources.AutoScalingGroups {
@@ -317,10 +317,19 @@ func (c *StackCollection) DescribeNodeGroupStack(nodeGroupName string) (*Stack, 
 }
 
 // GetNodeGroupStackType returns the nodegroup stack type
-func (c *StackCollection) GetNodeGroupStackType(name string) (api.NodeGroupType, error) {
-	stack, err := c.DescribeNodeGroupStack(name)
-	if err != nil {
-		return "", err
+func (c *StackCollection) GetNodeGroupStackType(options GetNodegroupOption) (api.NodeGroupType, error) {
+	var (
+		err   error
+		stack *Stack
+	)
+	if options.Stack != nil && options.Stack.Stack != nil {
+		stack = options.Stack.Stack
+	}
+	if stack == nil {
+		stack, err = c.DescribeNodeGroupStack(options.NodeGroupName)
+		if err != nil {
+			return "", err
+		}
 	}
 	return GetNodeGroupType(stack.Tags)
 }
@@ -423,7 +432,7 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, ngPaths *node
 		DesiredCapacity: int(gjson.Get(template, ngPaths.DesiredCapacity).Int()),
 		InstanceType:    gjson.Get(template, ngPaths.InstanceType).String(),
 		ImageID:         gjson.Get(template, imageIDPath).String(),
-		CreationTime:    stack.CreationTime,
+		CreationTime:    *stack.CreationTime,
 	}
 
 	nodeGroupType, err := GetNodeGroupType(stack.Tags)

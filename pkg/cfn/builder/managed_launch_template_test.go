@@ -9,19 +9,18 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-
 	. "github.com/benjamintf1/unmarshalledmatchers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"
-
 	"github.com/stretchr/testify/mock"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
-	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
 	"github.com/weaveworks/goformation/v4"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap/fakes"
+	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
 )
 
 type mngCase struct {
@@ -129,6 +128,40 @@ API_SERVER_URL=https://test.com
 			}),
 
 			resourcesFilename: "launch_template.json",
+		}),
+
+		Entry("Launch Template With Additional Volumes", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: "extra-volumes",
+					AdditionalVolumes: []*api.VolumeMapping{
+						{
+							VolumeSize:      aws.Int(20),
+							VolumeType:      aws.String(api.NodeVolumeTypeGP3),
+							VolumeName:      aws.String("/foo/bar-add-1"),
+							VolumeEncrypted: aws.Bool(true),
+							SnapshotID:      aws.String("snapshot-id"),
+						},
+					},
+				},
+			},
+			resourcesFilename: "launch_template_additional_volumes.json",
+		}),
+
+		Entry("Launch Template with volumes missing volume size", &mngCase{
+			ng: &api.ManagedNodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Name: "extra-volumes",
+					AdditionalVolumes: []*api.VolumeMapping{
+						{
+							VolumeType:      aws.String(api.NodeVolumeTypeGP3),
+							VolumeName:      aws.String("/foo/bar-add-1"),
+							VolumeEncrypted: aws.Bool(true),
+						},
+					},
+				},
+			},
+			resourcesFilename: "launch_template_additional_volumes_missing_size.json",
 		}),
 
 		Entry("Launch Template with custom AMI", &mngCase{

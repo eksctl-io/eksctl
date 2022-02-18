@@ -392,6 +392,7 @@ const expected = `
 			    "withAddonPolicies": {
 				  "imageBuilder": false,
 				  "autoScaler": false,
+				  "awsLoadBalancerController": false,
 				  "externalDNS": false,
 				  "certManager": false,
 				  "appMesh": false,
@@ -436,6 +437,7 @@ const expected = `
 			    "withAddonPolicies": {
 				  "imageBuilder": false,
 				  "autoScaler": false,
+				  "awsLoadBalancerController": false,
 				  "externalDNS": false,
 				  "certManager": false,
 				  "appMesh": false,
@@ -480,6 +482,7 @@ const expected = `
 				"withAddonPolicies": {
 				  "imageBuilder": false,
 				  "autoScaler": false,
+				  "awsLoadBalancerController": false,
 				  "externalDNS": false,
 				  "certManager": false,
 				  "appMesh": false,
@@ -525,6 +528,7 @@ const expected = `
 			    "withAddonPolicies": {
 			  	  "imageBuilder": false,
 			  	  "autoScaler": false,
+				    "awsLoadBalancerController": false,
 			  	  "externalDNS": false,
 			  	  "certManager": false,
 			  	  "appMesh": false,
@@ -572,6 +576,7 @@ const expected = `
 			    "withAddonPolicies": {
 			  	  "imageBuilder": false,
 			  	  "autoScaler": false,
+				    "awsLoadBalancerController": false,
 			  	  "externalDNS": false,
 			  	  "certManager": false,
 			  	  "appMesh": false,
@@ -620,6 +625,7 @@ const expected = `
 			    "withAddonPolicies": {
 			  	  "imageBuilder": false,
 			  	  "autoScaler": false,
+				  "awsLoadBalancerController": false,
 			  	  "externalDNS": false,
 			  	  "certManager": false,
 			  	  "appMesh": false,

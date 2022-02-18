@@ -44,7 +44,6 @@ type Stack = cloudformation.Stack
 type StackInfo struct {
 	Stack     *Stack
 	Resources []*cloudformation.StackResource
-	Template  *string
 }
 
 // TemplateData is a union (sum type) to describe template data.
@@ -86,7 +85,7 @@ func newTag(key, value string) *cloudformation.Tag {
 }
 
 // NewStackCollection creates a stack manager for a single cluster
-func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *StackCollection {
+func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) StackManager {
 	tags := []*cloudformation.Tag{
 		newTag(api.ClusterNameTag, spec.Metadata.Name),
 		newTag(api.OldClusterNameTag, spec.Metadata.Name),
@@ -241,22 +240,33 @@ func (c *StackCollection) createStackRequest(stackName string, resourceSet build
 // UpdateStack will update a CloudFormation stack by creating and executing a ChangeSet
 func (c *StackCollection) UpdateStack(options UpdateStackOptions) error {
 	logger.Info(options.Description)
-	i := &Stack{StackName: &options.StackName}
-	// Read existing tags
-	s, err := c.DescribeStack(i)
-	if err != nil {
+	if options.Stack == nil {
+		i := &Stack{StackName: &options.StackName}
+		// Read existing tags
+		s, err := c.DescribeStack(i)
+		if err != nil {
+			return err
+		}
+		options.Stack = s
+	}
+	if err := c.doCreateChangeSetRequest(
+		options.StackName,
+		options.ChangeSetName,
+		options.Description,
+		options.TemplateData,
+		options.Parameters,
+		options.Stack.Capabilities,
+		options.Stack.Tags,
+	); err != nil {
 		return err
 	}
-	if err := c.doCreateChangeSetRequest(options.StackName, options.ChangeSetName, options.Description, options.TemplateData, options.Parameters, s.Capabilities, s.Tags); err != nil {
-		return err
-	}
-	if err := c.doWaitUntilChangeSetIsCreated(i, options.ChangeSetName); err != nil {
+	if err := c.doWaitUntilChangeSetIsCreated(options.Stack, options.ChangeSetName); err != nil {
 		if _, ok := err.(*noChangeError); ok {
 			return nil
 		}
 		return err
 	}
-	changeSet, err := c.DescribeStackChangeSet(i, options.ChangeSetName)
+	changeSet, err := c.DescribeStackChangeSet(options.Stack, options.ChangeSetName)
 	if err != nil {
 		return err
 	}
@@ -266,7 +276,7 @@ func (c *StackCollection) UpdateStack(options UpdateStackOptions) error {
 		return err
 	}
 	if options.Wait {
-		return c.doWaitUntilStackIsUpdated(i)
+		return c.doWaitUntilStackIsUpdated(options.Stack)
 	}
 	return nil
 }
@@ -287,17 +297,17 @@ func (c *StackCollection) DescribeStack(i *Stack) (*Stack, error) {
 }
 
 // GetManagedNodeGroupTemplate returns the template for a ManagedNodeGroup resource
-func (c *StackCollection) GetManagedNodeGroupTemplate(nodeGroupName string) (string, error) {
-	nodeGroupType, err := c.GetNodeGroupStackType(nodeGroupName)
+func (c *StackCollection) GetManagedNodeGroupTemplate(options GetNodegroupOption) (string, error) {
+	nodeGroupType, err := c.GetNodeGroupStackType(options)
 	if err != nil {
 		return "", err
 	}
 
 	if nodeGroupType != api.NodeGroupTypeManaged {
-		return "", fmt.Errorf("%q is not a managed nodegroup", nodeGroupName)
+		return "", fmt.Errorf("%q is not a managed nodegroup", options.NodeGroupName)
 	}
 
-	stackName := c.makeNodeGroupStackName(nodeGroupName)
+	stackName := c.makeNodeGroupStackName(options.NodeGroupName)
 	templateBody, err := c.GetStackTemplate(stackName)
 	if err != nil {
 		return "", err
@@ -358,7 +368,7 @@ func (c *StackCollection) ListStacksMatching(nameRegex string, statusFilters ...
 	return stacks, nil
 }
 
-// ListStackNamesMatching gets all stack names matching regex
+// ListClusterStackNames gets all stack names matching regex
 func (c *StackCollection) ListClusterStackNames() ([]string, error) {
 	stacks := []string{}
 	re, err := regexp.Compile(clusterStackRegex)
@@ -460,39 +470,6 @@ func defaultStackStatusFilter() []*string {
 	return aws.StringSlice(allNonDeletedStackStatuses())
 }
 
-// DeleteStackByName sends a request to delete the stack
-func (c *StackCollection) DeleteStackByName(name string) (*Stack, error) {
-	s, err := c.DescribeStack(&Stack{StackName: &name})
-	if err != nil {
-		err = errors.Wrapf(err, "not able to get stack %q for deletion", name)
-		stacks, newErr := c.ListStacksMatching(fmt.Sprintf("^%s$", name), cloudformation.StackStatusDeleteComplete)
-		if newErr != nil {
-			logger.Critical("not able double-check if stack was already deleted: %s", newErr.Error())
-		}
-		if count := len(stacks); count > 0 {
-			logger.Debug("%d deleted stacks found {%v}", count, stacks)
-			logger.Info("stack %q was already deleted", name)
-			return nil, nil
-		}
-		return nil, err
-	}
-	return c.DeleteStackBySpec(s)
-}
-
-// DeleteStackByNameSync sends a request to delete the stack, and waits until status is DELETE_COMPLETE;
-// any errors will be written to errs channel, assume completion when nil is written, do not expect
-// more then one error value on the channel, it's closed immediately after it is written to
-func (c *StackCollection) DeleteStackByNameSync(name string) error {
-	stack, err := c.DeleteStackByName(name)
-	if err != nil {
-		return err
-	}
-
-	logger.Info("waiting for stack %q to get deleted", *stack.StackName)
-
-	return c.doWaitUntilStackIsDeleted(stack)
-}
-
 // DeleteStackBySpec sends a request to delete the stack
 func (c *StackCollection) DeleteStackBySpec(s *Stack) (*Stack, error) {
 	for _, tag := range s.Tags {
@@ -545,6 +522,17 @@ func (c *StackCollection) DeleteStackBySpecSync(s *Stack, errs chan error) error
 	return nil
 }
 
+// DeleteStackSync sends a request to delete the stack, and waits until status is DELETE_COMPLETE;
+func (c *StackCollection) DeleteStackSync(s *Stack) error {
+	i, err := c.DeleteStackBySpec(s)
+	if err != nil {
+		return err
+	}
+
+	logger.Info("waiting for stack %q to get deleted", *i.StackName)
+	return c.doWaitUntilStackIsDeleted(s)
+}
+
 func fmtStacksRegexForCluster(name string) string {
 	return fmt.Sprintf(ourStackRegexFmt, name)
 }
@@ -566,16 +554,20 @@ func (c *StackCollection) GetClusterStackIfExists() (*Stack, error) {
 	if err != nil {
 		return nil, err
 	}
-	return c.getClusterStackUsingCachedList(clusterStackNames)
+	return c.getClusterStackUsingCachedList(clusterStackNames, "")
 }
 
-func (c *StackCollection) HasClusterStackUsingCachedList(clusterStackNames []string) (bool, error) {
-	stack, err := c.getClusterStackUsingCachedList(clusterStackNames)
+func (c *StackCollection) HasClusterStackUsingCachedList(clusterStackNames []string, clusterName string) (bool, error) {
+	stack, err := c.getClusterStackUsingCachedList(clusterStackNames, clusterName)
 	return stack != nil, err
 }
 
-func (c *StackCollection) getClusterStackUsingCachedList(clusterStackNames []string) (*Stack, error) {
+func (c *StackCollection) getClusterStackUsingCachedList(clusterStackNames []string, clusterName string) (*Stack, error) {
 	clusterStackName := c.MakeClusterStackName()
+	if clusterName != "" {
+		clusterStackName = c.MakeClusterStackNameFromName(clusterName)
+	}
+
 	for _, stack := range clusterStackNames {
 		if stack == clusterStackName {
 			stack, err := c.DescribeStack(&cloudformation.Stack{StackName: &clusterStackName})

@@ -16,6 +16,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
@@ -262,14 +263,12 @@ var _ = Describe("Update", func() {
 			When("attachPolicyARNs is configured", func() {
 				When("its an update to an existing cloudformation", func() {
 					It("updates the stack", func() {
-						fakeStackManager.ListStacksMatchingReturns([]*manager.Stack{
-							{
-								StackName: aws.String("eksctl-my-cluster-addon-my-addon"),
-								Outputs: []*cloudformation.Output{
-									{
-										OutputValue: aws.String("new-service-account-role-arn"),
-										OutputKey:   aws.String("Role1"),
-									},
+						fakeStackManager.DescribeStackReturns(&manager.Stack{
+							StackName: aws.String("eksctl-my-cluster-addon-vpc-cni"),
+							Outputs: []*cloudformation.Output{
+								{
+									OutputValue: aws.String("new-service-account-role-arn"),
+									OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
 								},
 							},
 						}, nil)
@@ -284,7 +283,7 @@ var _ = Describe("Update", func() {
 
 						Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
 						options := fakeStackManager.UpdateStackArgsForCall(0)
-						Expect(options.StackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
+						Expect(*options.Stack.StackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
 						Expect(options.ChangeSetName).To(ContainSubstring("updating-policy"))
 						Expect(options.Description).To(Equal("updating policies"))
 						Expect(options.Wait).To(BeTrue())
@@ -331,14 +330,12 @@ var _ = Describe("Update", func() {
 			When("attachPolicy is configured", func() {
 				When("its an update to an existing cloudformation", func() {
 					It("updates the stack", func() {
-						fakeStackManager.ListStacksMatchingReturns([]*manager.Stack{
-							{
-								StackName: aws.String("eksctl-my-cluster-addon-my-addon"),
-								Outputs: []*cloudformation.Output{
-									{
-										OutputValue: aws.String("new-service-account-role-arn"),
-										OutputKey:   aws.String("Role1"),
-									},
+						fakeStackManager.DescribeStackReturns(&manager.Stack{
+							StackName: aws.String("eksctl-my-cluster-addon-vpc-cni"),
+							Outputs: []*cloudformation.Output{
+								{
+									OutputValue: aws.String("new-service-account-role-arn"),
+									OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
 								},
 							},
 						}, nil)
@@ -355,7 +352,7 @@ var _ = Describe("Update", func() {
 
 						Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
 						options := fakeStackManager.UpdateStackArgsForCall(0)
-						Expect(options.StackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
+						Expect(*options.Stack.StackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
 						Expect(options.ChangeSetName).To(ContainSubstring("updating-policy"))
 						Expect(options.Description).To(Equal("updating policies"))
 						Expect(options.Wait).To(BeTrue())
@@ -403,14 +400,12 @@ var _ = Describe("Update", func() {
 			When("wellKnownPolicies are configured", func() {
 				When("its an update to an existing cloudformation", func() {
 					It("updates the stack", func() {
-						fakeStackManager.ListStacksMatchingReturns([]*manager.Stack{
-							{
-								StackName: aws.String("eksctl-my-cluster-addon-my-addon"),
-								Outputs: []*cloudformation.Output{
-									{
-										OutputValue: aws.String("new-service-account-role-arn"),
-										OutputKey:   aws.String("Role1"),
-									},
+						fakeStackManager.DescribeStackReturns(&manager.Stack{
+							StackName: aws.String("eksctl-my-cluster-addon-vpc-cni"),
+							Outputs: []*cloudformation.Output{
+								{
+									OutputValue: aws.String("new-service-account-role-arn"),
+									OutputKey:   aws.String(outputs.IAMServiceAccountRoleName),
 								},
 							},
 						}, nil)
@@ -427,7 +422,7 @@ var _ = Describe("Update", func() {
 
 						Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
 						options := fakeStackManager.UpdateStackArgsForCall(0)
-						Expect(options.StackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
+						Expect(*options.Stack.StackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
 						Expect(options.ChangeSetName).To(ContainSubstring("updating-policy"))
 						Expect(options.Description).To(Equal("updating policies"))
 						Expect(options.Wait).To(BeTrue())

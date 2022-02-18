@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/kris-nova/logger"
+
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 
 	"github.com/pkg/errors"
@@ -48,20 +49,18 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 	if err := cmdutils.NewGetNodegroupLoader(cmd, ng).Load(); err != nil {
 		return err
 	}
-	cfg := cmd.ClusterConfig
+
+	if params.output != printers.TableType {
+		//log warnings and errors to stderr
+		logger.Writer = os.Stderr
+	}
 
 	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
 
-	if params.output == printers.TableType {
-		cmdutils.LogRegionAndVersionInfo(cmd.ClusterConfig.Metadata)
-	} else {
-		//log warnings and errors to stderr
-		logger.Writer = os.Stderr
-	}
-
+	cfg := cmd.ClusterConfig
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
 	}
@@ -136,5 +135,8 @@ func addSummaryTableColumns(printer *printers.TablePrinter) {
 	})
 	printer.AddColumn("ASG NAME", func(s *manager.NodeGroupSummary) string {
 		return s.AutoScalingGroupName
+	})
+	printer.AddColumn("TYPE", func(s *manager.NodeGroupSummary) api.NodeGroupType {
+		return s.NodeGroupType
 	})
 }

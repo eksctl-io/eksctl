@@ -97,7 +97,7 @@ func (c *StackCollection) GetIAMServiceAccounts() ([]*api.ClusterIAMServiceAccou
 		// otherwise we could extend this with tedious calls to each of the API,
 		// but it's not very feasible and it's best ot create a general solution
 		outputCollectors := outputs.NewCollectorSet(map[string]outputs.Collector{
-			"Role1": func(v string) error {
+			outputs.IAMServiceAccountRoleName: func(v string) error {
 				serviceAccount.Status.RoleARN = &v
 				return nil
 			},

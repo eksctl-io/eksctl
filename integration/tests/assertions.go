@@ -3,12 +3,18 @@ package tests
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
+	awsec2 "github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/gomega"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
+
+	"github.com/weaveworks/eksctl/integration/matchers"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 func AssertNodeTaints(nodeList *corev1.NodeList, expectedTaints []corev1.Taint) {
@@ -32,4 +38,41 @@ func ListNodes(clientset kubernetes.Interface, nodeGroupName string) *corev1.Nod
 	})
 	Expect(err).NotTo(HaveOccurred())
 	return nodeList
+}
+
+func AssertNodeVolumes(kubeConfig, region, nodeGroupName, volumeName string) {
+	config, err := clientcmd.BuildConfigFromFlags("", kubeConfig)
+	Expect(err).NotTo(HaveOccurred())
+	clientSet, err := kubernetes.NewForConfig(config)
+	Expect(err).NotTo(HaveOccurred())
+	nodes, err := clientSet.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("%s=%s", api.NodeGroupNameLabel, nodeGroupName),
+	})
+	Expect(err).NotTo(HaveOccurred())
+	var instanceIDs []string
+	for _, node := range nodes.Items {
+		// aws:///us-west-2c/i-00bb587a7011eb63c
+		split := strings.Split(node.Spec.ProviderID, "/")
+		id := split[len(split)-1]
+		Expect(id).To(
+			HavePrefix("i"),
+			fmt.Sprintf("provider ID %q should have instance ID format aws:///us-west-2c/i-00bb587a7011eb63c", node.Spec.ProviderID),
+		)
+		instanceIDs = append(instanceIDs, id)
+	}
+	awsSession := matchers.NewSession(region)
+	ec2 := awsec2.New(awsSession)
+	instances, err := ec2.DescribeInstances(&awsec2.DescribeInstancesInput{
+		InstanceIds: aws.StringSlice(instanceIDs),
+	})
+	Expect(err).NotTo(HaveOccurred())
+	for _, res := range instances.Reservations {
+		var deviceNames []string
+		for _, instance := range res.Instances {
+			for _, mapping := range instance.BlockDeviceMappings {
+				deviceNames = append(deviceNames, *mapping.DeviceName)
+			}
+			Expect(deviceNames).To(ContainElement(volumeName))
+		}
+	}
 }

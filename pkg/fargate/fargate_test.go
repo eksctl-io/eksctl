@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
@@ -156,8 +157,8 @@ var _ = Describe("fargate", func() {
 				err := client.DeleteProfile(profileName, waitForDeletion)
 				Expect(err).To(Not(HaveOccurred()))
 				Expect(fakeStackManager.GetFargateStackCallCount()).To(Equal(1))
-				Expect(fakeStackManager.DeleteStackByNameCallCount()).To(Equal(1))
-				Expect(fakeStackManager.DeleteStackByNameArgsForCall(0)).To(Equal("my-fargate-profile"))
+				Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
+				Expect(*fakeStackManager.DeleteStackBySpecArgsForCall(0).StackName).To(Equal("my-fargate-profile"))
 			})
 
 			It("fails by wrapping the root error with some additional context for clarity", func() {

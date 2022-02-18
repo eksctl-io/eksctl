@@ -1,6 +1,7 @@
 package v1alpha5
 
 import (
+	"github.com/aws/aws-sdk-go/aws"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -125,6 +126,45 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			Expect(*testNodeGroup.SSH.Allow).To(BeFalse())
 			Expect(*testNodeGroup.SSH.PublicKeyPath).To(BeIdenticalTo(testKeyPath))
+		})
+	})
+
+	Context("volume settings", func() {
+		It("sets up defaults for the main volume", func() {
+			testNodeGroup := NodeGroup{
+				NodeGroupBase: &NodeGroupBase{},
+			}
+
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+			Expect(*testNodeGroup.VolumeType).To(Equal(DefaultNodeVolumeType))
+			Expect(*testNodeGroup.VolumeSize).To(Equal(DefaultNodeVolumeSize))
+		})
+		It("sets up defaults for any additional volume", func() {
+			testNodeGroup := NodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					AdditionalVolumes: []*VolumeMapping{
+						{
+							VolumeName: aws.String("test"),
+						},
+					},
+				},
+			}
+
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+			Expect(*testNodeGroup.AdditionalVolumes[0].VolumeType).To(Equal(DefaultNodeVolumeType))
+			Expect(*testNodeGroup.AdditionalVolumes[0].VolumeSize).To(Equal(DefaultNodeVolumeSize))
+		})
+		It("sets up defaults for gp3", func() {
+			testNodeGroup := NodeGroup{
+				NodeGroupBase: &NodeGroupBase{
+					VolumeType: aws.String(NodeVolumeTypeGP3),
+				},
+			}
+
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+			Expect(*testNodeGroup.VolumeType).To(Equal(NodeVolumeTypeGP3))
+			Expect(*testNodeGroup.VolumeIOPS).To(Equal(DefaultNodeVolumeGP3IOPS))
+			Expect(*testNodeGroup.VolumeThroughput).To(Equal(DefaultNodeVolumeThroughput))
 		})
 	})
 

@@ -9,13 +9,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
-
-	"github.com/aws/aws-sdk-go/aws/awserr"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -25,12 +22,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/version"
 	"github.com/weaveworks/eksctl/pkg/vpc"
-)
-
-const (
-	eksctlCreatedTrue    api.EKSCTLCreated = "True"
-	eksctlCreatedFalse   api.EKSCTLCreated = "False"
-	eksctlCreatedUnknown api.EKSCTLCreated = "Unknown"
 )
 
 // DescribeControlPlane describes the cluster control plane
@@ -66,7 +57,9 @@ func (c *ClusterProvider) RefreshClusterStatus(spec *api.ClusterConfig) error {
 		spec.Status = &api.ClusterStatus{}
 	}
 
-	c.setClusterInfo(cluster)
+	c.Status.ClusterInfo = &ClusterInfo{
+		Cluster: cluster,
+	}
 
 	switch *cluster.Status {
 	case awseks.ClusterStatusCreating, awseks.ClusterStatusDeleting, awseks.ClusterStatusFailed:
@@ -179,30 +172,30 @@ func PlatformVersion(platformVersion string) (int, error) {
 
 // RefreshClusterStatusIfStale refreshes the cluster status if enough time has passed since the last refresh
 func (c *ClusterProvider) RefreshClusterStatusIfStale(spec *api.ClusterConfig) error {
-	if c.clusterInfoNeedsUpdate() {
+	if c.Status.ClusterInfo == nil {
 		return c.RefreshClusterStatus(spec)
 	}
 	return nil
 }
 
-// CanDelete return true when a cluster can be deleted, otherwise it returns false along with an error explaining the reason
-func (c *ClusterProvider) CanDelete(spec *api.ClusterConfig) (bool, error) {
-	err := c.RefreshClusterStatusIfStale(spec)
-	if err != nil {
-		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); ok &&
-			awsError.Code() == awseks.ErrCodeResourceNotFoundException {
-			return true, nil
-		}
-		return false, errors.Wrapf(err, "fetching cluster status to determine if it can be deleted")
-	}
-	// it must be possible to delete cluster in any state
-	return true, nil
-}
-
 // CanOperate returns true when a cluster can be operated, otherwise it returns false along with an error explaining the reason
 func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
-	err := c.RefreshClusterStatusIfStale(spec)
-	if err != nil {
+	// if the check before calling this failed, it won't have a clusterInfo meaning,
+	// we either ignored this error during delete, or the Refresh failed anyway. In both cases the cluster is NOT operable.
+	if c.Status.ClusterInfo == nil {
+		return false, fmt.Errorf("cluster info not available")
+	}
+	switch status := *c.Status.ClusterInfo.Cluster.Status; status {
+	case awseks.ClusterStatusCreating, awseks.ClusterStatusDeleting, awseks.ClusterStatusFailed:
+		return false, fmt.Errorf("cannot perform Kubernetes API operations on cluster %q in %q region due to status %q", spec.Metadata.Name, spec.Metadata.Region, status)
+	default:
+		return true, nil
+	}
+}
+
+// CanOperateWithRefresh returns true when a cluster can be operated, otherwise it returns false along with an error explaining the reason
+func (c *ClusterProvider) CanOperateWithRefresh(spec *api.ClusterConfig) (bool, error) {
+	if err := c.RefreshClusterStatusIfStale(spec); err != nil {
 		return false, errors.Wrapf(err, "unable to fetch cluster status to determine operability")
 	}
 
@@ -216,11 +209,9 @@ func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
 
 // CanUpdate return true when a cluster or add-ons can be updated, otherwise it returns false along with an error explaining the reason
 func (c *ClusterProvider) CanUpdate(spec *api.ClusterConfig) (bool, error) {
-	err := c.RefreshClusterStatusIfStale(spec)
-	if err != nil {
-		return false, errors.Wrapf(err, "fetching cluster status to determine update status")
+	if c.Status.ClusterInfo == nil {
+		return false, nil
 	}
-
 	switch status := *c.Status.ClusterInfo.Cluster.Status; status {
 	case awseks.ClusterStatusActive:
 		// only active cluster can be upgraded
@@ -257,7 +248,7 @@ func (u *UnsupportedOIDCError) Error() string {
 
 // NewOpenIDConnectManager returns OpenIDConnectManager
 func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iamoidc.OpenIDConnectManager, error) {
-	if _, err := c.CanOperate(spec); err != nil {
+	if _, err := c.CanOperateWithRefresh(spec); err != nil {
 		return nil, err
 	}
 
@@ -328,96 +319,6 @@ func (c *ClusterProvider) loadClusterKubernetesNetworkConfig(spec *api.ClusterCo
 	return nil
 }
 
-// ListClusters returns a list of the EKS cluster in your account
-func (c *ClusterProvider) ListClusters(chunkSize int, listAllRegions bool, newProviderForConfig func(*api.ProviderConfig, *api.ClusterConfig) (*ClusterProvider, error)) ([]*api.ClusterConfig, error) {
-	if !listAllRegions {
-		return c.listClusters(int64(chunkSize))
-	}
-
-	var clusters []*api.ClusterConfig
-	authorizedRegionsList, err := c.Provider.EC2().DescribeRegions(&ec2.DescribeRegionsInput{})
-	if err != nil {
-		return nil, err
-	}
-	authorizedRegions := map[string]struct{}{}
-	for _, r := range authorizedRegionsList.Regions {
-		authorizedRegions[*r.RegionName] = struct{}{}
-	}
-
-	for _, region := range api.SupportedRegions() {
-		if _, authorized := authorizedRegions[region]; !authorized {
-			continue
-		}
-		// Reset region and recreate the client.
-		ctl, err := newProviderForConfig(&api.ProviderConfig{
-			Region:      region,
-			Profile:     c.Provider.Profile(),
-			WaitTimeout: c.Provider.WaitTimeout(),
-		}, nil)
-
-		if err != nil {
-			logger.Critical("error creating provider in %q region: %v", region, err)
-			continue
-		}
-
-		newClusters, err := ctl.listClusters(int64(chunkSize))
-		if err != nil {
-			logger.Critical("error listing clusters in %q region: %v", region, err)
-			continue
-		}
-
-		clusters = append(clusters, newClusters...)
-	}
-	return clusters, nil
-}
-
-func (c *ClusterProvider) listClusters(chunkSize int64) ([]*api.ClusterConfig, error) {
-	allClusters := []*api.ClusterConfig{}
-
-	spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: ""}}
-	allStacks, err := c.NewStackManager(spec).ListClusterStackNames()
-	if err != nil {
-		return nil, err
-	}
-
-	token := ""
-	for {
-		clusters, nextToken, err := c.getClustersRequest(chunkSize, token)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, clusterName := range clusters {
-			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: *clusterName}}
-			hasClusterStack, err := c.NewStackManager(spec).HasClusterStackUsingCachedList(allStacks)
-			managed := eksctlCreatedFalse
-			if err != nil {
-				managed = eksctlCreatedUnknown
-				logger.Warning("error fetching stacks for cluster %s: %v", clusterName, err)
-			} else if hasClusterStack {
-				managed = eksctlCreatedTrue
-			}
-			allClusters = append(allClusters, &api.ClusterConfig{
-				Metadata: &api.ClusterMeta{
-					Name:   *clusterName,
-					Region: c.Provider.Region(),
-				},
-				Status: &api.ClusterStatus{
-					EKSCTLCreated: managed,
-				},
-			})
-		}
-
-		if api.IsSetAndNonEmptyString(nextToken) {
-			token = *nextToken
-		} else {
-			break
-		}
-	}
-
-	return allClusters, nil
-}
-
 // GetCluster display details of an EKS cluster in your account
 func (c *ClusterProvider) GetCluster(clusterName string) (*awseks.Cluster, error) {
 	input := &awseks.DescribeClusterInput{
@@ -443,21 +344,6 @@ func (c *ClusterProvider) GetCluster(clusterName string) (*awseks.Cluster, error
 		}
 	}
 	return output.Cluster, nil
-}
-
-func (c *ClusterProvider) getClustersRequest(chunkSize int64, nextToken string) ([]*string, *string, error) {
-	input := &awseks.ListClustersInput{
-		MaxResults: &chunkSize,
-		Include:    aws.StringSlice([]string{"all"}),
-	}
-	if nextToken != "" {
-		input = input.SetNextToken(nextToken)
-	}
-	output, err := c.Provider.EKS().ListClusters(input)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "listing control planes")
-	}
-	return output.Clusters, output.NextToken, nil
 }
 
 // WaitForControlPlane waits till the control plane is ready

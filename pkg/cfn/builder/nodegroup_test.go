@@ -122,6 +122,16 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			})
 		})
 
+		Context("if ng.MaxInstanceLifetime is set", func() {
+			BeforeEach(func() {
+				ng.MaxInstanceLifetime = aws.Int(api.OneDay)
+			})
+
+			It("sets the desired value", func() {
+				Expect(ngTemplate.Resources["NodeGroup"].Properties.MaxInstanceLifetime).To(Equal(api.OneDay))
+			})
+		})
+
 		Context("if ng.MaxSize is nil", func() {
 			BeforeEach(func() {
 				ng.MaxSize = nil
@@ -474,6 +484,19 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 			Context("ng.WithAddonPolicies.AWSLoadBalancerController is set", func() {
 				BeforeEach(func() {
 					ng.IAM.WithAddonPolicies.AWSLoadBalancerController = aws.Bool(true)
+				})
+
+				It("adds PolicyAWSLoadBalancerController to the role", func() {
+					Expect(ngTemplate.Resources).To(HaveKey("PolicyAWSLoadBalancerController"))
+
+					Expect(ngTemplate.Resources["PolicyAWSLoadBalancerController"].Properties.Roles).To(HaveLen(1))
+					Expect(isRefTo(ngTemplate.Resources["PolicyAWSLoadBalancerController"].Properties.Roles[0], "NodeInstanceRole")).To(BeTrue())
+				})
+			})
+
+			Context("ng.WithAddonPolicies.DeprecatedALBIngress is set", func() {
+				BeforeEach(func() {
+					ng.IAM.WithAddonPolicies.DeprecatedALBIngress = aws.Bool(true)
 				})
 
 				It("adds PolicyAWSLoadBalancerController to the role", func() {
@@ -1040,6 +1063,57 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 						mapping := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.BlockDeviceMappings[1]
 						Expect(mapping.DeviceName).To(Equal("/foo/bar"))
 						Expect(mapping.Ebs["Encrypted"]).To(Equal(true))
+					})
+				})
+
+				Context("ng.AdditionalVolumes is set", func() {
+					BeforeEach(func() {
+						ng.AdditionalVolumes = []*api.VolumeMapping{
+							{
+								VolumeSize:      aws.Int(20),
+								VolumeType:      aws.String(api.NodeVolumeTypeGP3),
+								VolumeName:      aws.String("/foo/bar-add-1"),
+								VolumeEncrypted: aws.Bool(true),
+								SnapshotID:      aws.String("snapshot-id"),
+							},
+						}
+					})
+					It("adds the additional volumes to the template", func() {
+						Expect(ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.BlockDeviceMappings).To(HaveLen(2))
+						mapping := ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.BlockDeviceMappings[1]
+						Expect(mapping.DeviceName).To(Equal("/foo/bar-add-1"))
+						Expect(mapping.Ebs["Encrypted"]).To(Equal(true))
+						Expect(mapping.Ebs["VolumeSize"]).To(Equal(float64(20)))
+						Expect(mapping.Ebs["VolumeType"]).To(Equal(api.NodeVolumeTypeGP3))
+						Expect(mapping.Ebs["SnapshotId"]).To(Equal("snapshot-id"))
+					})
+					When("VolumeSize is empty", func() {
+						BeforeEach(func() {
+							ng.AdditionalVolumes = []*api.VolumeMapping{
+								{
+									VolumeType:      aws.String(api.NodeVolumeTypeGP3),
+									VolumeName:      aws.String("/foo/bar-add-1"),
+									VolumeEncrypted: aws.Bool(true),
+								},
+							}
+						})
+						It("does not add the new volume", func() {
+							Expect(ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.BlockDeviceMappings).To(HaveLen(1))
+						})
+					})
+					When("VolumeName is empty", func() {
+						BeforeEach(func() {
+							ng.AdditionalVolumes = []*api.VolumeMapping{
+								{
+									VolumeSize:      aws.Int(20),
+									VolumeType:      aws.String(api.NodeVolumeTypeGP3),
+									VolumeEncrypted: aws.Bool(true),
+								},
+							}
+						})
+						It("does not add the new volume", func() {
+							Expect(ngTemplate.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData.BlockDeviceMappings).To(HaveLen(1))
+						})
 					})
 				})
 			})

@@ -3,12 +3,12 @@ package addons
 import (
 	"fmt"
 
-	"github.com/weaveworks/eksctl/pkg/actions/irsa"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/pkg/errors"
+
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 )
 
@@ -45,17 +45,21 @@ func (h *irsaHelper) IsSupported() (bool, error) {
 	return exists, nil
 }
 
-// Create creates IRSA for the specified IAM service accounts
+// CreateOrUpdate creates IRSA for the specified IAM service accounts or updates it
 func (h *irsaHelper) CreateOrUpdate(sa *api.ClusterIAMServiceAccount) error {
 	serviceAccounts := []*api.ClusterIAMServiceAccount{sa}
-	stacks, err := h.stackManager.ListStacksMatching(makeIAMServiceAccountStackName(h.clusterName, sa.Namespace, sa.Name))
+	name := makeIAMServiceAccountStackName(h.clusterName, sa.Namespace, sa.Name)
+	stack, err := h.stackManager.DescribeStack(&manager.Stack{StackName: &name})
 	if err != nil {
-		return errors.Wrapf(err, "error checking if iamserviceaccount %s/%s exists", sa.Namespace, sa.Name)
+		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); !ok || ok &&
+			awsError.Code() != "ValidationError" {
+			return errors.Wrapf(err, "error checking if iamserviceaccount %s/%s exists", sa.Namespace, sa.Name)
+		}
 	}
-	if len(stacks) == 0 {
+	if stack == nil {
 		err = h.irsaManager.CreateIAMServiceAccount(serviceAccounts, false)
 	} else {
-		err = h.irsaManager.UpdateIAMServiceAccounts(serviceAccounts, false)
+		err = h.irsaManager.UpdateIAMServiceAccounts(serviceAccounts, []*manager.Stack{stack}, false)
 	}
 	return err
 }

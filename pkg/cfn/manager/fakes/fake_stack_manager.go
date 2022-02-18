@@ -46,30 +46,6 @@ type FakeStackManager struct {
 	createStackReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DeleteStackByNameStub        func(string) (*cloudformation.Stack, error)
-	deleteStackByNameMutex       sync.RWMutex
-	deleteStackByNameArgsForCall []struct {
-		arg1 string
-	}
-	deleteStackByNameReturns struct {
-		result1 *cloudformation.Stack
-		result2 error
-	}
-	deleteStackByNameReturnsOnCall map[int]struct {
-		result1 *cloudformation.Stack
-		result2 error
-	}
-	DeleteStackByNameSyncStub        func(string) error
-	deleteStackByNameSyncMutex       sync.RWMutex
-	deleteStackByNameSyncArgsForCall []struct {
-		arg1 string
-	}
-	deleteStackByNameSyncReturns struct {
-		result1 error
-	}
-	deleteStackByNameSyncReturnsOnCall map[int]struct {
-		result1 error
-	}
 	DeleteStackBySpecStub        func(*cloudformation.Stack) (*cloudformation.Stack, error)
 	deleteStackBySpecMutex       sync.RWMutex
 	deleteStackBySpecArgsForCall []struct {
@@ -93,6 +69,17 @@ type FakeStackManager struct {
 		result1 error
 	}
 	deleteStackBySpecSyncReturnsOnCall map[int]struct {
+		result1 error
+	}
+	DeleteStackSyncStub        func(*cloudformation.Stack) error
+	deleteStackSyncMutex       sync.RWMutex
+	deleteStackSyncArgsForCall []struct {
+		arg1 *cloudformation.Stack
+	}
+	deleteStackSyncReturns struct {
+		result1 error
+	}
+	deleteStackSyncReturnsOnCall map[int]struct {
 		result1 error
 	}
 	DeleteTasksForDeprecatedStacksStub        func() (*tasks.TaskTree, error)
@@ -351,10 +338,10 @@ type FakeStackManager struct {
 		result1 *cloudformation.Stack
 		result2 error
 	}
-	GetManagedNodeGroupTemplateStub        func(string) (string, error)
+	GetManagedNodeGroupTemplateStub        func(manager.GetNodegroupOption) (string, error)
 	getManagedNodeGroupTemplateMutex       sync.RWMutex
 	getManagedNodeGroupTemplateArgsForCall []struct {
-		arg1 string
+		arg1 manager.GetNodegroupOption
 	}
 	getManagedNodeGroupTemplateReturns struct {
 		result1 string
@@ -375,10 +362,10 @@ type FakeStackManager struct {
 	getNodeGroupNameReturnsOnCall map[int]struct {
 		result1 string
 	}
-	GetNodeGroupStackTypeStub        func(string) (v1alpha5.NodeGroupType, error)
+	GetNodeGroupStackTypeStub        func(manager.GetNodegroupOption) (v1alpha5.NodeGroupType, error)
 	getNodeGroupStackTypeMutex       sync.RWMutex
 	getNodeGroupStackTypeArgsForCall []struct {
-		arg1 string
+		arg1 manager.GetNodegroupOption
 	}
 	getNodeGroupStackTypeReturns struct {
 		result1 v1alpha5.NodeGroupType
@@ -414,10 +401,11 @@ type FakeStackManager struct {
 		result1 []*manager.NodeGroupSummary
 		result2 error
 	}
-	HasClusterStackUsingCachedListStub        func([]string) (bool, error)
+	HasClusterStackUsingCachedListStub        func([]string, string) (bool, error)
 	hasClusterStackUsingCachedListMutex       sync.RWMutex
 	hasClusterStackUsingCachedListArgsForCall []struct {
 		arg1 []string
+		arg2 string
 	}
 	hasClusterStackUsingCachedListReturns struct {
 		result1 bool
@@ -601,14 +589,16 @@ type FakeStackManager struct {
 	newTasksToCreateIAMServiceAccountsReturnsOnCall map[int]struct {
 		result1 *tasks.TaskTree
 	}
-	NewTasksToDeleteClusterWithNodeGroupsStub        func(bool, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter, bool, func(chan error, string) error) (*tasks.TaskTree, error)
+	NewTasksToDeleteClusterWithNodeGroupsStub        func(*cloudformation.Stack, []manager.NodeGroupStack, bool, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter, bool, func(chan error, string) error) (*tasks.TaskTree, error)
 	newTasksToDeleteClusterWithNodeGroupsMutex       sync.RWMutex
 	newTasksToDeleteClusterWithNodeGroupsArgsForCall []struct {
-		arg1 bool
-		arg2 *iamoidc.OpenIDConnectManager
-		arg3 kubernetes.ClientSetGetter
-		arg4 bool
-		arg5 func(chan error, string) error
+		arg1 *cloudformation.Stack
+		arg2 []manager.NodeGroupStack
+		arg3 bool
+		arg4 *iamoidc.OpenIDConnectManager
+		arg5 kubernetes.ClientSetGetter
+		arg6 bool
+		arg7 func(chan error, string) error
 	}
 	newTasksToDeleteClusterWithNodeGroupsReturns struct {
 		result1 *tasks.TaskTree
@@ -633,12 +623,13 @@ type FakeStackManager struct {
 		result1 *tasks.TaskTree
 		result2 error
 	}
-	NewTasksToDeleteNodeGroupsStub        func(func(_ string) bool, bool, func(chan error, string) error) (*tasks.TaskTree, error)
+	NewTasksToDeleteNodeGroupsStub        func([]manager.NodeGroupStack, func(_ string) bool, bool, func(chan error, string) error) (*tasks.TaskTree, error)
 	newTasksToDeleteNodeGroupsMutex       sync.RWMutex
 	newTasksToDeleteNodeGroupsArgsForCall []struct {
-		arg1 func(_ string) bool
-		arg2 bool
-		arg3 func(chan error, string) error
+		arg1 []manager.NodeGroupStack
+		arg2 func(_ string) bool
+		arg3 bool
+		arg4 func(chan error, string) error
 	}
 	newTasksToDeleteNodeGroupsReturns struct {
 		result1 *tasks.TaskTree
@@ -865,131 +856,6 @@ func (fake *FakeStackManager) CreateStackReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStackManager) DeleteStackByName(arg1 string) (*cloudformation.Stack, error) {
-	fake.deleteStackByNameMutex.Lock()
-	ret, specificReturn := fake.deleteStackByNameReturnsOnCall[len(fake.deleteStackByNameArgsForCall)]
-	fake.deleteStackByNameArgsForCall = append(fake.deleteStackByNameArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.DeleteStackByNameStub
-	fakeReturns := fake.deleteStackByNameReturns
-	fake.recordInvocation("DeleteStackByName", []interface{}{arg1})
-	fake.deleteStackByNameMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeStackManager) DeleteStackByNameCallCount() int {
-	fake.deleteStackByNameMutex.RLock()
-	defer fake.deleteStackByNameMutex.RUnlock()
-	return len(fake.deleteStackByNameArgsForCall)
-}
-
-func (fake *FakeStackManager) DeleteStackByNameCalls(stub func(string) (*cloudformation.Stack, error)) {
-	fake.deleteStackByNameMutex.Lock()
-	defer fake.deleteStackByNameMutex.Unlock()
-	fake.DeleteStackByNameStub = stub
-}
-
-func (fake *FakeStackManager) DeleteStackByNameArgsForCall(i int) string {
-	fake.deleteStackByNameMutex.RLock()
-	defer fake.deleteStackByNameMutex.RUnlock()
-	argsForCall := fake.deleteStackByNameArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeStackManager) DeleteStackByNameReturns(result1 *cloudformation.Stack, result2 error) {
-	fake.deleteStackByNameMutex.Lock()
-	defer fake.deleteStackByNameMutex.Unlock()
-	fake.DeleteStackByNameStub = nil
-	fake.deleteStackByNameReturns = struct {
-		result1 *cloudformation.Stack
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeStackManager) DeleteStackByNameReturnsOnCall(i int, result1 *cloudformation.Stack, result2 error) {
-	fake.deleteStackByNameMutex.Lock()
-	defer fake.deleteStackByNameMutex.Unlock()
-	fake.DeleteStackByNameStub = nil
-	if fake.deleteStackByNameReturnsOnCall == nil {
-		fake.deleteStackByNameReturnsOnCall = make(map[int]struct {
-			result1 *cloudformation.Stack
-			result2 error
-		})
-	}
-	fake.deleteStackByNameReturnsOnCall[i] = struct {
-		result1 *cloudformation.Stack
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeStackManager) DeleteStackByNameSync(arg1 string) error {
-	fake.deleteStackByNameSyncMutex.Lock()
-	ret, specificReturn := fake.deleteStackByNameSyncReturnsOnCall[len(fake.deleteStackByNameSyncArgsForCall)]
-	fake.deleteStackByNameSyncArgsForCall = append(fake.deleteStackByNameSyncArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.DeleteStackByNameSyncStub
-	fakeReturns := fake.deleteStackByNameSyncReturns
-	fake.recordInvocation("DeleteStackByNameSync", []interface{}{arg1})
-	fake.deleteStackByNameSyncMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeStackManager) DeleteStackByNameSyncCallCount() int {
-	fake.deleteStackByNameSyncMutex.RLock()
-	defer fake.deleteStackByNameSyncMutex.RUnlock()
-	return len(fake.deleteStackByNameSyncArgsForCall)
-}
-
-func (fake *FakeStackManager) DeleteStackByNameSyncCalls(stub func(string) error) {
-	fake.deleteStackByNameSyncMutex.Lock()
-	defer fake.deleteStackByNameSyncMutex.Unlock()
-	fake.DeleteStackByNameSyncStub = stub
-}
-
-func (fake *FakeStackManager) DeleteStackByNameSyncArgsForCall(i int) string {
-	fake.deleteStackByNameSyncMutex.RLock()
-	defer fake.deleteStackByNameSyncMutex.RUnlock()
-	argsForCall := fake.deleteStackByNameSyncArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeStackManager) DeleteStackByNameSyncReturns(result1 error) {
-	fake.deleteStackByNameSyncMutex.Lock()
-	defer fake.deleteStackByNameSyncMutex.Unlock()
-	fake.DeleteStackByNameSyncStub = nil
-	fake.deleteStackByNameSyncReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeStackManager) DeleteStackByNameSyncReturnsOnCall(i int, result1 error) {
-	fake.deleteStackByNameSyncMutex.Lock()
-	defer fake.deleteStackByNameSyncMutex.Unlock()
-	fake.DeleteStackByNameSyncStub = nil
-	if fake.deleteStackByNameSyncReturnsOnCall == nil {
-		fake.deleteStackByNameSyncReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.deleteStackByNameSyncReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeStackManager) DeleteStackBySpec(arg1 *cloudformation.Stack) (*cloudformation.Stack, error) {
 	fake.deleteStackBySpecMutex.Lock()
 	ret, specificReturn := fake.deleteStackBySpecReturnsOnCall[len(fake.deleteStackBySpecArgsForCall)]
@@ -1112,6 +978,67 @@ func (fake *FakeStackManager) DeleteStackBySpecSyncReturnsOnCall(i int, result1 
 		})
 	}
 	fake.deleteStackBySpecSyncReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeStackManager) DeleteStackSync(arg1 *cloudformation.Stack) error {
+	fake.deleteStackSyncMutex.Lock()
+	ret, specificReturn := fake.deleteStackSyncReturnsOnCall[len(fake.deleteStackSyncArgsForCall)]
+	fake.deleteStackSyncArgsForCall = append(fake.deleteStackSyncArgsForCall, struct {
+		arg1 *cloudformation.Stack
+	}{arg1})
+	stub := fake.DeleteStackSyncStub
+	fakeReturns := fake.deleteStackSyncReturns
+	fake.recordInvocation("DeleteStackSync", []interface{}{arg1})
+	fake.deleteStackSyncMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeStackManager) DeleteStackSyncCallCount() int {
+	fake.deleteStackSyncMutex.RLock()
+	defer fake.deleteStackSyncMutex.RUnlock()
+	return len(fake.deleteStackSyncArgsForCall)
+}
+
+func (fake *FakeStackManager) DeleteStackSyncCalls(stub func(*cloudformation.Stack) error) {
+	fake.deleteStackSyncMutex.Lock()
+	defer fake.deleteStackSyncMutex.Unlock()
+	fake.DeleteStackSyncStub = stub
+}
+
+func (fake *FakeStackManager) DeleteStackSyncArgsForCall(i int) *cloudformation.Stack {
+	fake.deleteStackSyncMutex.RLock()
+	defer fake.deleteStackSyncMutex.RUnlock()
+	argsForCall := fake.deleteStackSyncArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeStackManager) DeleteStackSyncReturns(result1 error) {
+	fake.deleteStackSyncMutex.Lock()
+	defer fake.deleteStackSyncMutex.Unlock()
+	fake.DeleteStackSyncStub = nil
+	fake.deleteStackSyncReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeStackManager) DeleteStackSyncReturnsOnCall(i int, result1 error) {
+	fake.deleteStackSyncMutex.Lock()
+	defer fake.deleteStackSyncMutex.Unlock()
+	fake.DeleteStackSyncStub = nil
+	if fake.deleteStackSyncReturnsOnCall == nil {
+		fake.deleteStackSyncReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.deleteStackSyncReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -2347,11 +2274,11 @@ func (fake *FakeStackManager) GetKarpenterStackReturnsOnCall(i int, result1 *clo
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetManagedNodeGroupTemplate(arg1 string) (string, error) {
+func (fake *FakeStackManager) GetManagedNodeGroupTemplate(arg1 manager.GetNodegroupOption) (string, error) {
 	fake.getManagedNodeGroupTemplateMutex.Lock()
 	ret, specificReturn := fake.getManagedNodeGroupTemplateReturnsOnCall[len(fake.getManagedNodeGroupTemplateArgsForCall)]
 	fake.getManagedNodeGroupTemplateArgsForCall = append(fake.getManagedNodeGroupTemplateArgsForCall, struct {
-		arg1 string
+		arg1 manager.GetNodegroupOption
 	}{arg1})
 	stub := fake.GetManagedNodeGroupTemplateStub
 	fakeReturns := fake.getManagedNodeGroupTemplateReturns
@@ -2372,13 +2299,13 @@ func (fake *FakeStackManager) GetManagedNodeGroupTemplateCallCount() int {
 	return len(fake.getManagedNodeGroupTemplateArgsForCall)
 }
 
-func (fake *FakeStackManager) GetManagedNodeGroupTemplateCalls(stub func(string) (string, error)) {
+func (fake *FakeStackManager) GetManagedNodeGroupTemplateCalls(stub func(manager.GetNodegroupOption) (string, error)) {
 	fake.getManagedNodeGroupTemplateMutex.Lock()
 	defer fake.getManagedNodeGroupTemplateMutex.Unlock()
 	fake.GetManagedNodeGroupTemplateStub = stub
 }
 
-func (fake *FakeStackManager) GetManagedNodeGroupTemplateArgsForCall(i int) string {
+func (fake *FakeStackManager) GetManagedNodeGroupTemplateArgsForCall(i int) manager.GetNodegroupOption {
 	fake.getManagedNodeGroupTemplateMutex.RLock()
 	defer fake.getManagedNodeGroupTemplateMutex.RUnlock()
 	argsForCall := fake.getManagedNodeGroupTemplateArgsForCall[i]
@@ -2472,11 +2399,11 @@ func (fake *FakeStackManager) GetNodeGroupNameReturnsOnCall(i int, result1 strin
 	}{result1}
 }
 
-func (fake *FakeStackManager) GetNodeGroupStackType(arg1 string) (v1alpha5.NodeGroupType, error) {
+func (fake *FakeStackManager) GetNodeGroupStackType(arg1 manager.GetNodegroupOption) (v1alpha5.NodeGroupType, error) {
 	fake.getNodeGroupStackTypeMutex.Lock()
 	ret, specificReturn := fake.getNodeGroupStackTypeReturnsOnCall[len(fake.getNodeGroupStackTypeArgsForCall)]
 	fake.getNodeGroupStackTypeArgsForCall = append(fake.getNodeGroupStackTypeArgsForCall, struct {
-		arg1 string
+		arg1 manager.GetNodegroupOption
 	}{arg1})
 	stub := fake.GetNodeGroupStackTypeStub
 	fakeReturns := fake.getNodeGroupStackTypeReturns
@@ -2497,13 +2424,13 @@ func (fake *FakeStackManager) GetNodeGroupStackTypeCallCount() int {
 	return len(fake.getNodeGroupStackTypeArgsForCall)
 }
 
-func (fake *FakeStackManager) GetNodeGroupStackTypeCalls(stub func(string) (v1alpha5.NodeGroupType, error)) {
+func (fake *FakeStackManager) GetNodeGroupStackTypeCalls(stub func(manager.GetNodegroupOption) (v1alpha5.NodeGroupType, error)) {
 	fake.getNodeGroupStackTypeMutex.Lock()
 	defer fake.getNodeGroupStackTypeMutex.Unlock()
 	fake.GetNodeGroupStackTypeStub = stub
 }
 
-func (fake *FakeStackManager) GetNodeGroupStackTypeArgsForCall(i int) string {
+func (fake *FakeStackManager) GetNodeGroupStackTypeArgsForCall(i int) manager.GetNodegroupOption {
 	fake.getNodeGroupStackTypeMutex.RLock()
 	defer fake.getNodeGroupStackTypeMutex.RUnlock()
 	argsForCall := fake.getNodeGroupStackTypeArgsForCall[i]
@@ -2664,7 +2591,7 @@ func (fake *FakeStackManager) GetUnmanagedNodeGroupSummariesReturnsOnCall(i int,
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) HasClusterStackUsingCachedList(arg1 []string) (bool, error) {
+func (fake *FakeStackManager) HasClusterStackUsingCachedList(arg1 []string, arg2 string) (bool, error) {
 	var arg1Copy []string
 	if arg1 != nil {
 		arg1Copy = make([]string, len(arg1))
@@ -2674,13 +2601,14 @@ func (fake *FakeStackManager) HasClusterStackUsingCachedList(arg1 []string) (boo
 	ret, specificReturn := fake.hasClusterStackUsingCachedListReturnsOnCall[len(fake.hasClusterStackUsingCachedListArgsForCall)]
 	fake.hasClusterStackUsingCachedListArgsForCall = append(fake.hasClusterStackUsingCachedListArgsForCall, struct {
 		arg1 []string
-	}{arg1Copy})
+		arg2 string
+	}{arg1Copy, arg2})
 	stub := fake.HasClusterStackUsingCachedListStub
 	fakeReturns := fake.hasClusterStackUsingCachedListReturns
-	fake.recordInvocation("HasClusterStackUsingCachedList", []interface{}{arg1Copy})
+	fake.recordInvocation("HasClusterStackUsingCachedList", []interface{}{arg1Copy, arg2})
 	fake.hasClusterStackUsingCachedListMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -2694,17 +2622,17 @@ func (fake *FakeStackManager) HasClusterStackUsingCachedListCallCount() int {
 	return len(fake.hasClusterStackUsingCachedListArgsForCall)
 }
 
-func (fake *FakeStackManager) HasClusterStackUsingCachedListCalls(stub func([]string) (bool, error)) {
+func (fake *FakeStackManager) HasClusterStackUsingCachedListCalls(stub func([]string, string) (bool, error)) {
 	fake.hasClusterStackUsingCachedListMutex.Lock()
 	defer fake.hasClusterStackUsingCachedListMutex.Unlock()
 	fake.HasClusterStackUsingCachedListStub = stub
 }
 
-func (fake *FakeStackManager) HasClusterStackUsingCachedListArgsForCall(i int) []string {
+func (fake *FakeStackManager) HasClusterStackUsingCachedListArgsForCall(i int) ([]string, string) {
 	fake.hasClusterStackUsingCachedListMutex.RLock()
 	defer fake.hasClusterStackUsingCachedListMutex.RUnlock()
 	argsForCall := fake.hasClusterStackUsingCachedListArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeStackManager) HasClusterStackUsingCachedListReturns(result1 bool, result2 error) {
@@ -3599,22 +3527,29 @@ func (fake *FakeStackManager) NewTasksToCreateIAMServiceAccountsReturnsOnCall(i 
 	}{result1}
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroups(arg1 bool, arg2 *iamoidc.OpenIDConnectManager, arg3 kubernetes.ClientSetGetter, arg4 bool, arg5 func(chan error, string) error) (*tasks.TaskTree, error) {
+func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroups(arg1 *cloudformation.Stack, arg2 []manager.NodeGroupStack, arg3 bool, arg4 *iamoidc.OpenIDConnectManager, arg5 kubernetes.ClientSetGetter, arg6 bool, arg7 func(chan error, string) error) (*tasks.TaskTree, error) {
+	var arg2Copy []manager.NodeGroupStack
+	if arg2 != nil {
+		arg2Copy = make([]manager.NodeGroupStack, len(arg2))
+		copy(arg2Copy, arg2)
+	}
 	fake.newTasksToDeleteClusterWithNodeGroupsMutex.Lock()
 	ret, specificReturn := fake.newTasksToDeleteClusterWithNodeGroupsReturnsOnCall[len(fake.newTasksToDeleteClusterWithNodeGroupsArgsForCall)]
 	fake.newTasksToDeleteClusterWithNodeGroupsArgsForCall = append(fake.newTasksToDeleteClusterWithNodeGroupsArgsForCall, struct {
-		arg1 bool
-		arg2 *iamoidc.OpenIDConnectManager
-		arg3 kubernetes.ClientSetGetter
-		arg4 bool
-		arg5 func(chan error, string) error
-	}{arg1, arg2, arg3, arg4, arg5})
+		arg1 *cloudformation.Stack
+		arg2 []manager.NodeGroupStack
+		arg3 bool
+		arg4 *iamoidc.OpenIDConnectManager
+		arg5 kubernetes.ClientSetGetter
+		arg6 bool
+		arg7 func(chan error, string) error
+	}{arg1, arg2Copy, arg3, arg4, arg5, arg6, arg7})
 	stub := fake.NewTasksToDeleteClusterWithNodeGroupsStub
 	fakeReturns := fake.newTasksToDeleteClusterWithNodeGroupsReturns
-	fake.recordInvocation("NewTasksToDeleteClusterWithNodeGroups", []interface{}{arg1, arg2, arg3, arg4, arg5})
+	fake.recordInvocation("NewTasksToDeleteClusterWithNodeGroups", []interface{}{arg1, arg2Copy, arg3, arg4, arg5, arg6, arg7})
 	fake.newTasksToDeleteClusterWithNodeGroupsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4, arg5)
+		return stub(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -3628,17 +3563,17 @@ func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsCallCount() i
 	return len(fake.newTasksToDeleteClusterWithNodeGroupsArgsForCall)
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsCalls(stub func(bool, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter, bool, func(chan error, string) error) (*tasks.TaskTree, error)) {
+func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsCalls(stub func(*cloudformation.Stack, []manager.NodeGroupStack, bool, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter, bool, func(chan error, string) error) (*tasks.TaskTree, error)) {
 	fake.newTasksToDeleteClusterWithNodeGroupsMutex.Lock()
 	defer fake.newTasksToDeleteClusterWithNodeGroupsMutex.Unlock()
 	fake.NewTasksToDeleteClusterWithNodeGroupsStub = stub
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsArgsForCall(i int) (bool, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter, bool, func(chan error, string) error) {
+func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsArgsForCall(i int) (*cloudformation.Stack, []manager.NodeGroupStack, bool, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter, bool, func(chan error, string) error) {
 	fake.newTasksToDeleteClusterWithNodeGroupsMutex.RLock()
 	defer fake.newTasksToDeleteClusterWithNodeGroupsMutex.RUnlock()
 	argsForCall := fake.newTasksToDeleteClusterWithNodeGroupsArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7
 }
 
 func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsReturns(result1 *tasks.TaskTree, result2 error) {
@@ -3738,20 +3673,26 @@ func (fake *FakeStackManager) NewTasksToDeleteIAMServiceAccountsReturnsOnCall(i 
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteNodeGroups(arg1 func(_ string) bool, arg2 bool, arg3 func(chan error, string) error) (*tasks.TaskTree, error) {
+func (fake *FakeStackManager) NewTasksToDeleteNodeGroups(arg1 []manager.NodeGroupStack, arg2 func(_ string) bool, arg3 bool, arg4 func(chan error, string) error) (*tasks.TaskTree, error) {
+	var arg1Copy []manager.NodeGroupStack
+	if arg1 != nil {
+		arg1Copy = make([]manager.NodeGroupStack, len(arg1))
+		copy(arg1Copy, arg1)
+	}
 	fake.newTasksToDeleteNodeGroupsMutex.Lock()
 	ret, specificReturn := fake.newTasksToDeleteNodeGroupsReturnsOnCall[len(fake.newTasksToDeleteNodeGroupsArgsForCall)]
 	fake.newTasksToDeleteNodeGroupsArgsForCall = append(fake.newTasksToDeleteNodeGroupsArgsForCall, struct {
-		arg1 func(_ string) bool
-		arg2 bool
-		arg3 func(chan error, string) error
-	}{arg1, arg2, arg3})
+		arg1 []manager.NodeGroupStack
+		arg2 func(_ string) bool
+		arg3 bool
+		arg4 func(chan error, string) error
+	}{arg1Copy, arg2, arg3, arg4})
 	stub := fake.NewTasksToDeleteNodeGroupsStub
 	fakeReturns := fake.newTasksToDeleteNodeGroupsReturns
-	fake.recordInvocation("NewTasksToDeleteNodeGroups", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("NewTasksToDeleteNodeGroups", []interface{}{arg1Copy, arg2, arg3, arg4})
 	fake.newTasksToDeleteNodeGroupsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -3765,17 +3706,17 @@ func (fake *FakeStackManager) NewTasksToDeleteNodeGroupsCallCount() int {
 	return len(fake.newTasksToDeleteNodeGroupsArgsForCall)
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteNodeGroupsCalls(stub func(func(_ string) bool, bool, func(chan error, string) error) (*tasks.TaskTree, error)) {
+func (fake *FakeStackManager) NewTasksToDeleteNodeGroupsCalls(stub func([]manager.NodeGroupStack, func(_ string) bool, bool, func(chan error, string) error) (*tasks.TaskTree, error)) {
 	fake.newTasksToDeleteNodeGroupsMutex.Lock()
 	defer fake.newTasksToDeleteNodeGroupsMutex.Unlock()
 	fake.NewTasksToDeleteNodeGroupsStub = stub
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteNodeGroupsArgsForCall(i int) (func(_ string) bool, bool, func(chan error, string) error) {
+func (fake *FakeStackManager) NewTasksToDeleteNodeGroupsArgsForCall(i int) ([]manager.NodeGroupStack, func(_ string) bool, bool, func(chan error, string) error) {
 	fake.newTasksToDeleteNodeGroupsMutex.RLock()
 	defer fake.newTasksToDeleteNodeGroupsMutex.RUnlock()
 	argsForCall := fake.newTasksToDeleteNodeGroupsArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
 func (fake *FakeStackManager) NewTasksToDeleteNodeGroupsReturns(result1 *tasks.TaskTree, result2 error) {
@@ -4243,14 +4184,12 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.appendNewClusterStackResourceMutex.RUnlock()
 	fake.createStackMutex.RLock()
 	defer fake.createStackMutex.RUnlock()
-	fake.deleteStackByNameMutex.RLock()
-	defer fake.deleteStackByNameMutex.RUnlock()
-	fake.deleteStackByNameSyncMutex.RLock()
-	defer fake.deleteStackByNameSyncMutex.RUnlock()
 	fake.deleteStackBySpecMutex.RLock()
 	defer fake.deleteStackBySpecMutex.RUnlock()
 	fake.deleteStackBySpecSyncMutex.RLock()
 	defer fake.deleteStackBySpecSyncMutex.RUnlock()
+	fake.deleteStackSyncMutex.RLock()
+	defer fake.deleteStackSyncMutex.RUnlock()
 	fake.deleteTasksForDeprecatedStacksMutex.RLock()
 	defer fake.deleteTasksForDeprecatedStacksMutex.RUnlock()
 	fake.describeClusterStackMutex.RLock()

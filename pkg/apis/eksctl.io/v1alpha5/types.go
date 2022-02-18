@@ -744,6 +744,9 @@ type Karpenter struct {
 	// CreateServiceAccount create a service account or not.
 	// +optional
 	CreateServiceAccount *bool `json:"createServiceAccount,omitempty"`
+	// DefaultInstanceProfile override the default IAM instance profile
+	// +optional
+	DefaultInstanceProfile *string `json:"defaultInstanceProfile,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -864,6 +867,7 @@ func NewNodeGroup() *NodeGroup {
 					FSX:                       Disabled(),
 					EFS:                       Disabled(),
 					AWSLoadBalancerController: Disabled(),
+					DeprecatedALBIngress:      Disabled(),
 					XRay:                      Disabled(),
 					CloudWatch:                Disabled(),
 				},
@@ -913,6 +917,7 @@ func NewManagedNodeGroup() *ManagedNodeGroup {
 					FSX:                       Disabled(),
 					EFS:                       Disabled(),
 					AWSLoadBalancerController: Disabled(),
+					DeprecatedALBIngress:      Disabled(),
 					XRay:                      Disabled(),
 					CloudWatch:                Disabled(),
 				},
@@ -934,7 +939,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 }
 
 // NodeGroup holds configuration attributes that are
-// specific to a nodegroup
+// specific to an unmanaged nodegroup
 type NodeGroup struct {
 	*NodeGroupBase
 
@@ -977,6 +982,10 @@ type NodeGroup struct {
 	// ContainerRuntime defines the runtime (CRI) to use for containers on the node
 	// +optional
 	ContainerRuntime *string `json:"containerRuntime,omitempty"`
+
+	// MaxInstanceLifetime defines the maximum amount of time in seconds an instance stays alive.
+	// +optional
+	MaxInstanceLifetime *int `json:"maxInstanceLifetime,omitempty"`
 }
 
 // GetContainerRuntime returns the container runtime.
@@ -1107,7 +1116,9 @@ type (
 		// +optional
 		EFS *bool `json:"efs"`
 		// +optional
-		AWSLoadBalancerController *bool `json:"albIngress"`
+		AWSLoadBalancerController *bool `json:"awsLoadBalancerController"`
+		// +optional
+		DeprecatedALBIngress *bool `json:"albIngress"`
 		// +optional
 		XRay *bool `json:"xRay"`
 		// +optional
@@ -1218,6 +1229,29 @@ type NodePool interface {
 	NGTaints() []NodeGroupTaint
 }
 
+// VolumeMapping Additional Volume Configurations
+type VolumeMapping struct {
+	// +optional
+	// VolumeSize gigabytes
+	// Defaults to `80`
+	VolumeSize *int `json:"volumeSize,omitempty"`
+	// Valid variants are `VolumeType` constants
+	// +optional
+	VolumeType *string `json:"volumeType,omitempty"`
+	// +optional
+	VolumeName *string `json:"volumeName,omitempty"`
+	// +optional
+	VolumeEncrypted *bool `json:"volumeEncrypted,omitempty"`
+	// +optional
+	VolumeKmsKeyID *string `json:"volumeKmsKeyID,omitempty"`
+	// +optional
+	VolumeIOPS *int `json:"volumeIOPS,omitempty"`
+	// +optional
+	VolumeThroughput *int `json:"volumeThroughput,omitempty"`
+	// +optional
+	SnapshotID *string `json:"snapshotID,omitempty"`
+}
+
 // NodeGroupBase represents the base nodegroup config for self-managed and managed nodegroups
 type NodeGroupBase struct {
 	// +required
@@ -1298,6 +1332,10 @@ type NodeGroupBase struct {
 	VolumeIOPS *int `json:"volumeIOPS,omitempty"`
 	// +optional
 	VolumeThroughput *int `json:"volumeThroughput,omitempty"`
+
+	// Additional Volume Configurations
+	// +optional
+	AdditionalVolumes []*VolumeMapping `json:"additionalVolumes,omitempty"`
 
 	// PreBootstrapCommands are executed before bootstrapping instances to the
 	// cluster

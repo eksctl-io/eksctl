@@ -58,14 +58,11 @@ func doAssociateIdentityProvider(cmd *cmdutils.Cmd, timeout time.Duration) error
 	}
 
 	cfg := cmd.ClusterConfig
-	meta := cmd.ClusterConfig.Metadata
 
 	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		return err
 	}
-
-	cmdutils.LogRegionAndVersionInfo(meta)
 
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err

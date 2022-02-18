@@ -32,6 +32,7 @@ const (
 	MaxIO1Iops    = 64000
 	MinGP3Iops    = DefaultNodeVolumeGP3IOPS
 	MaxGP3Iops    = 16000
+	OneDay        = 86400
 )
 
 var (
@@ -587,6 +588,9 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 
 			}
 		}
+		if err := validateDeprecatedIAMFields(ng.IAM); err != nil {
+			return err
+		}
 	}
 
 	if err := validateTaints(ng.Taints); err != nil {
@@ -657,6 +661,12 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 		if *ng.ContainerRuntime != ContainerRuntimeDockerD && *ng.ContainerRuntime != ContainerRuntimeContainerD {
 			return fmt.Errorf("only %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD)
+		}
+	}
+
+	if ng.MaxInstanceLifetime != nil {
+		if *ng.MaxInstanceLifetime < OneDay {
+			return fmt.Errorf("maximum instance lifetime must have a minimum value of 86,400 seconds (one day), but was: %d", *ng.MaxInstanceLifetime)
 		}
 	}
 
@@ -744,6 +754,9 @@ func validateNodeGroupIAMWithAddonPolicies(
 		return fmtFieldConflictErr(prefix + "efs")
 	}
 	if IsEnabled(policies.AWSLoadBalancerController) {
+		return fmtFieldConflictErr(prefix + "awsLoadBalancerController")
+	}
+	if IsEnabled(policies.DeprecatedALBIngress) {
 		return fmtFieldConflictErr(prefix + "albIngress")
 	}
 	if IsEnabled(policies.XRay) {
@@ -752,6 +765,18 @@ func validateNodeGroupIAMWithAddonPolicies(
 	if IsEnabled(policies.CloudWatch) {
 		return fmtFieldConflictErr(prefix + "cloudWatch")
 	}
+	return nil
+}
+
+func validateDeprecatedIAMFields(iam *NodeGroupIAM) error {
+	if IsEnabled(iam.WithAddonPolicies.DeprecatedALBIngress) {
+		if IsEnabled(iam.WithAddonPolicies.AWSLoadBalancerController) {
+			return fmt.Errorf(`"awsLoadBalancerController" and "albIngress" cannot both be configured, ` +
+				`please use "awsLoadBalancerController" as "albIngress" is deprecated`)
+		}
+		logger.Warning("nodegroup.iam.withAddonPolicies.albIngress field is deprecated, please use awsLoadBalancerController instead")
+	}
+
 	return nil
 }
 

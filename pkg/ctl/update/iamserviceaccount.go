@@ -3,12 +3,11 @@ package update
 import (
 	"errors"
 
-	"github.com/weaveworks/eksctl/pkg/actions/irsa"
-
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/weaveworks/eksctl/pkg/actions/irsa"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
@@ -70,7 +69,6 @@ func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 	if err != nil {
 		return err
 	}
-	cmdutils.LogRegionAndVersionInfo(meta)
 
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
@@ -101,5 +99,10 @@ func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	return irsa.New(cfg.Metadata.Name, stackManager, oidc, clientSet).UpdateIAMServiceAccounts(cfg.IAM.ServiceAccounts, cmd.Plan)
+	existingIAMStacks, err := stackManager.ListStacksMatching("eksctl-.*-addon-iamserviceaccount")
+	if err != nil {
+		return err
+	}
+
+	return irsa.New(cfg.Metadata.Name, stackManager, oidc, clientSet).UpdateIAMServiceAccounts(cfg.IAM.ServiceAccounts, existingIAMStacks, cmd.Plan)
 }
