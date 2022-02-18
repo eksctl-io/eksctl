@@ -44,13 +44,16 @@ var _ = Describe("Install", func() {
 		})
 
 		It("installs karpenter into an existing cluster", func() {
-			Expect(installerUnderTest.Install(context.Background(), "", "role/profile")).To(Succeed())
+			Expect(installerUnderTest.Install(context.Background(), "role-arn", "role/profile")).To(Succeed())
 			_, args := fakeHelmInstaller.InstallChartArgsForCall(0)
 			values := map[string]interface{}{
 				clusterName:     cfg.Metadata.Name,
 				clusterEndpoint: cfg.Status.Endpoint,
 				serviceAccount: map[string]interface{}{
 					create: api.IsEnabled(cfg.Karpenter.CreateServiceAccount),
+					serviceAccountAnnotation: map[string]interface{}{
+						api.AnnotationEKSRoleARN: "role-arn",
+					},
 				},
 				aws: map[string]interface{}{
 					defaultInstanceProfile: "role/profile",

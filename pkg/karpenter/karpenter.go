@@ -62,8 +62,10 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 		return fmt.Errorf("failed to add Karpenter repository: %w", err)
 	}
 	serviceAccountMap := map[string]interface{}{
-		create:                   api.IsEnabled(k.ClusterConfig.Karpenter.CreateServiceAccount),
-		api.AnnotationEKSRoleARN: serviceAccountRoleARN,
+		create: api.IsEnabled(k.ClusterConfig.Karpenter.CreateServiceAccount),
+		serviceAccountAnnotation: map[string]interface{}{
+			api.AnnotationEKSRoleARN: serviceAccountRoleARN,
+		},
 	}
 	values := map[string]interface{}{
 		clusterName:     k.ClusterConfig.Metadata.Name,
