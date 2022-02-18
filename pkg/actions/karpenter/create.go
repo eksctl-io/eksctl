@@ -35,13 +35,16 @@ func (i *Installer) Create() error {
 	}
 
 	// Create IAM roles
-	taskTree := newTasksToInstallKarpenterIAMRoles(i.Config, i.StackManager, i.CTL.Provider.EC2(), instanceProfileName)
+	taskTree := newTasksToInstallKarpenterIAMRoles(i.Config, i.StackManager, i.CTL.Provider, instanceProfileName)
 	if err := doTasks(taskTree); err != nil {
 		return err
 	}
 
 	// Set up service account
-	var roleARN string
+	// Because we prefix with eksctl and to avoid having to get the name again,
+	// we always pass in the name and overwrite with the service account label.
+	roleName := fmt.Sprintf("eksctl-%s-iamservice-role", i.Config.Metadata.Name)
+	roleARN := fmt.Sprintf("arn:aws:iam::%s:role/%s", parsedARN.AccountID, roleName)
 	policyArn := fmt.Sprintf("arn:aws:iam::%s:policy/eksctl-%s-%s", parsedARN.AccountID, builder.KarpenterManagedPolicy, i.Config.Metadata.Name)
 	iamServiceAccount := &api.ClusterIAMServiceAccount{
 		ClusterIAMMeta: api.ClusterIAMMeta{
@@ -49,13 +52,11 @@ func (i *Installer) Create() error {
 			Namespace: karpenter.DefaultNamespace,
 		},
 		AttachPolicyARNs: []string{policyArn},
+		RoleName:         roleName,
 	}
 	if api.IsEnabled(i.Config.Karpenter.CreateServiceAccount) {
 		// Create the service account role only.
-		roleName := fmt.Sprintf("eksctl-%s-iamservice-role", i.Config.Metadata.Name)
-		roleARN = fmt.Sprintf("arn:aws:iam::%s:role/%s", parsedARN.AccountID, roleName)
 		iamServiceAccount.RoleOnly = api.Enabled()
-		iamServiceAccount.RoleName = roleName
 	}
 	karpenterServiceAccountTaskTree := i.StackManager.NewTasksToCreateIAMServiceAccounts([]*api.ClusterIAMServiceAccount{iamServiceAccount}, i.OIDC, clientSetGetter)
 	logger.Info(karpenterServiceAccountTaskTree.Describe())

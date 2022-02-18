@@ -87,7 +87,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 		iamPolicyAmazonSSMManagedInstanceCore,
 	)
 	k.Template().Mappings[servicePrincipalPartitionMapName] = servicePrincipalPartitionMappings
-	roleName := gfnt.MakeFnSubString(fmt.Sprintf("eksctl-%s-%s", KarpenterNodeRoleName, k.clusterSpec.Metadata.Name))
+	roleName := gfnt.NewString(fmt.Sprintf("eksctl-%s-%s", KarpenterNodeRoleName, k.clusterSpec.Metadata.Name))
 	role := gfniam.Role{
 		RoleName:                 roleName,
 		Path:                     gfnt.NewString("/"),
@@ -98,13 +98,13 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 	roleRef := k.newResource(KarpenterNodeRoleName, &role)
 
 	instanceProfile := gfniam.InstanceProfile{
-		InstanceProfileName: gfnt.MakeFnSubString(k.instanceProfileName),
+		InstanceProfileName: gfnt.NewString(k.instanceProfileName),
 		Path:                gfnt.NewString("/"),
 		Roles:               gfnt.NewSlice(roleRef),
 	}
 	k.newResource(KarpenterNodeInstanceProfile, &instanceProfile)
 
-	managedPolicyName := gfnt.MakeFnSubString(fmt.Sprintf("eksctl-%s-%s", KarpenterManagedPolicy, k.clusterSpec.Metadata.Name))
+	managedPolicyName := gfnt.NewString(fmt.Sprintf("eksctl-%s-%s", KarpenterManagedPolicy, k.clusterSpec.Metadata.Name))
 	statements := cft.MapOfInterfaces{
 		"Effect":   effectAllow,
 		"Resource": resourceAll,

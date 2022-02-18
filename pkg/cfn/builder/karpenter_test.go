@@ -72,9 +72,7 @@ var expectedTemplate = `{
     "KarpenterControllerPolicy": {
       "Type": "AWS::IAM::ManagedPolicy",
       "Properties": {
-        "ManagedPolicyName": {
-          "Fn::Sub": "eksctl-KarpenterControllerPolicy-test-karpenter"
-        },
+        "ManagedPolicyName": "eksctl-KarpenterControllerPolicy-test-karpenter",
         "PolicyDocument": {
           "Statement": [
             {
@@ -106,9 +104,7 @@ var expectedTemplate = `{
     "KarpenterNodeInstanceProfile": {
       "Type": "AWS::IAM::InstanceProfile",
       "Properties": {
-        "InstanceProfileName": {
-          "Fn::Sub": "%s"
-        },
+        "InstanceProfileName": "%s",
         "Path": "/",
         "Roles": [
           {
@@ -159,9 +155,7 @@ var expectedTemplate = `{
           }
         ],
         "Path": "/",
-        "RoleName": {
-          "Fn::Sub": "eksctl-KarpenterNodeRole-test-karpenter"
-        },
+        "RoleName": "eksctl-KarpenterNodeRole-test-karpenter",
         "Tags": [
           {
             "Key": "Name",
