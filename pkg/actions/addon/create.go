@@ -6,16 +6,15 @@ import (
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
-	"github.com/aws/aws-sdk-go/aws"
-
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/kris-nova/logger"
 
-	"k8s.io/apimachinery/pkg/types"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -44,7 +43,7 @@ func (a *Manager) Create(addon *api.Addon, wait bool) error {
 	}
 
 	if addon.Force {
-		createAddonInput.ResolveConflicts = aws.String("overwrite")
+		createAddonInput.ResolveConflicts = ekstypes.ResolveConflicts("overwrite")
 		logger.Debug("setting resolve conflicts to overwrite")
 	} else {
 		addonName := strings.ToLower(addon.Name)
@@ -57,7 +56,7 @@ func (a *Manager) Create(addon *api.Addon, wait bool) error {
 	namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
 
 	if len(addon.Tags) > 0 {
-		createAddonInput.Tags = aws.StringMap(addon.Tags)
+		createAddonInput.Tags = addon.Tags
 	}
 	if a.withOIDC {
 		if addon.ServiceAccountRoleARN != "" {
@@ -117,13 +116,13 @@ func (a *Manager) Create(addon *api.Addon, wait bool) error {
 	}
 
 	logger.Info("creating addon")
-	output, err := a.eksAPI.CreateAddon(createAddonInput)
+	output, err := a.eksAPIv2.CreateAddon(context.TODO(), createAddonInput)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create addon %q", addon.Name)
 	}
 
 	if output != nil {
-		logger.Debug("EKS Create Addon output: %s", output.String())
+		logger.Debug("EKS Create Addon output: %v", output.Addon)
 	}
 
 	if wait {

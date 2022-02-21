@@ -7,12 +7,14 @@ import (
 	"strings"
 	"time"
 
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
+	"github.com/weaveworks/eksctl/pkg/aws"
 	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	kubeclient "k8s.io/client-go/kubernetes"
 
@@ -28,11 +30,28 @@ import (
 type Manager struct {
 	clusterConfig *api.ClusterConfig
 	eksAPI        eksiface.EKSAPI
+	eksAPIv2      aws.EKS
 	withOIDC      bool
 	oidcManager   *iamoidc.OpenIDConnectManager
 	stackManager  manager.StackManager
 	clientSet     kubeclient.Interface
 	timeout       time.Duration
+}
+
+func NewV2(clusterConfig *api.ClusterConfig, eksAPI aws.EKS, stackManager manager.StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface, timeout time.Duration) (*Manager, error) {
+	if err := supportedVersion(clusterConfig.Metadata.Version); err != nil {
+		return nil, err
+	}
+
+	return &Manager{
+		clusterConfig: clusterConfig,
+		eksAPIv2:      eksAPI,
+		withOIDC:      withOIDC,
+		oidcManager:   oidcManager,
+		stackManager:  stackManager,
+		clientSet:     clientSet,
+		timeout:       timeout,
+	}, nil
 }
 
 func New(clusterConfig *api.ClusterConfig, eksAPI eksiface.EKSAPI, stackManager manager.StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface, timeout time.Duration) (*Manager, error) {
@@ -55,14 +74,14 @@ func (a *Manager) waitForAddonToBeActive(addon *api.Addon) error {
 	var out *awseks.DescribeAddonOutput
 	operation := func() (bool, error) {
 		var err error
-		out, err = a.eksAPI.DescribeAddon(&awseks.DescribeAddonInput{
+		out, err = a.eksAPIv2.DescribeAddon(context.TODO(), &awseks.DescribeAddonInput{
 			ClusterName: &a.clusterConfig.Metadata.Name,
 			AddonName:   &addon.Name,
 		})
 		if err != nil {
 			return false, err
 		}
-		if *out.Addon.Status == awseks.AddonStatusActive {
+		if string(out.Addon.Status) == string(types.AddonStatusActive) {
 			return true, nil
 		}
 		return false, nil
@@ -78,7 +97,7 @@ func (a *Manager) waitForAddonToBeActive(addon *api.Addon) error {
 	err := w.WaitWithTimeout(a.timeout)
 	if err != nil {
 		if err == context.DeadlineExceeded {
-			return errors.Errorf("timed out waiting for addon %q to become active, status: %q", addon.Name, *out.Addon.Status)
+			return errors.Errorf("timed out waiting for addon %q to become active, status: %q", addon.Name, string(out.Addon.Status))
 		}
 		return err
 	}

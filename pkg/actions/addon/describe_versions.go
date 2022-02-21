@@ -1,12 +1,13 @@
 package addon
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 )
 
 func (a *Manager) DescribeVersions(addon *api.Addon) (string, error) {
@@ -16,7 +17,7 @@ func (a *Manager) DescribeVersions(addon *api.Addon) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return versions.String(), nil
+	return fmt.Sprintf("%v", versions.Addons), nil
 }
 
 func (a *Manager) DescribeAllVersions() (string, error) {
@@ -25,7 +26,7 @@ func (a *Manager) DescribeAllVersions() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return versions.String(), nil
+	return fmt.Sprintf("%v", versions.Addons), nil
 }
 
 func (a *Manager) describeVersions(addon *api.Addon) (*eks.DescribeAddonVersionsOutput, error) {
@@ -37,7 +38,7 @@ func (a *Manager) describeVersions(addon *api.Addon) (*eks.DescribeAddonVersions
 		input.AddonName = &addon.Name
 	}
 
-	output, err := a.eksAPI.DescribeAddonVersions(input)
+	output, err := a.eksAPIv2.DescribeAddonVersions(context.TODO(), input)
 	if err != nil {
 		return nil, fmt.Errorf("failed to describe addon versions: %v", err)
 	}

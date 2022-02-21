@@ -1,11 +1,16 @@
 package create
 
 import (
+	"context"
 	"fmt"
+	"log"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
+	"github.com/weaveworks/eksctl/pkg/aws"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -84,7 +89,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 			return err
 		}
 
-		addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.Provider.EKS(), stackManager, oidcProviderExists, oidc, clientSet, cmd.ProviderConfig.WaitTimeout)
+		addonManager, err := addon.NewV2(cmd.ClusterConfig, newV2EKS(cmd.ClusterConfig.Metadata.Region), stackManager, oidcProviderExists, oidc, clientSet, cmd.ProviderConfig.WaitTimeout)
 		if err != nil {
 			return err
 		}
@@ -101,4 +106,13 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 
 		return nil
 	}
+}
+
+func newV2EKS(region string) aws.EKS {
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
+	if err != nil {
+		log.Fatalf("unable to load SDK config, %v", err)
+	}
+
+	return eks.NewFromConfig(cfg)
 }
