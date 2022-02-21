@@ -125,6 +125,10 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return err
 	}
 
+	if err := validateAvailabilityZones(cfg.AvailabilityZones); err != nil {
+		return err
+	}
+
 	if err := cfg.ValidateVPCConfig(); err != nil {
 		return err
 	}
@@ -236,6 +240,7 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 	if c.VPC.SharedNodeSecurityGroup == "" && IsDisabled(c.VPC.ManageSharedNodeSecurityGroupRules) {
 		return errors.New("vpc.manageSharedNodeSecurityGroupRules must be enabled when using ekstcl-managed security groups")
 	}
+
 	return nil
 }
 
@@ -1256,4 +1261,20 @@ func checkBottlerocketSettings(doc *InlineDocument, path string) error {
 	}
 
 	return nil
+}
+
+func validateAvailabilityZones(azList []string) error {
+	count := len(azList)
+	switch {
+	case count == 0:
+		return nil
+	case count < MinRequiredAvailabilityZones:
+		return ErrTooFewAvailabilityZones(azList)
+	default:
+		return nil
+	}
+}
+
+func ErrTooFewAvailabilityZones(azs []string) error {
+	return fmt.Errorf("only %d zone(s) specified %v, %d are required (can be non-unique)", len(azs), azs, MinRequiredAvailabilityZones)
 }

@@ -1780,6 +1780,22 @@ var _ = Describe("ClusterConfig validation", func() {
 			},
 		}),
 	)
+
+	Describe("Availability Zones", func() {
+		When("the config file does not specify any AZ", func() {
+			It("skips validation", func() {
+				Expect(api.ValidateClusterConfig(api.NewClusterConfig())).NotTo(HaveOccurred())
+			})
+		})
+
+		When("the config file contains too few availability zones", func() {
+			It("returns an error", func() {
+				cfg := api.NewClusterConfig()
+				cfg.AvailabilityZones = append(cfg.AvailabilityZones, "az-1")
+				Expect(api.ValidateClusterConfig(cfg)).To(MatchError("only 1 zone(s) specified [az-1], 2 are required (can be non-unique)"))
+			})
+		})
+	})
 })
 
 func newInt(value int) *int {

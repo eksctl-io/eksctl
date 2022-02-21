@@ -367,24 +367,13 @@ func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) e
 	return nil
 }
 
-func errTooFewAvailabilityZones(azs []string) error {
-	return fmt.Errorf("only %d zones specified %v, %d are required (can be non-unique)", len(azs), azs, api.MinRequiredAvailabilityZones)
-}
-
 // SetAvailabilityZones sets the given (or chooses) the availability zones
 func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []string) error {
 	if count := len(given); count != 0 {
 		if count < api.MinRequiredAvailabilityZones {
-			return errTooFewAvailabilityZones(given)
+			return api.ErrTooFewAvailabilityZones(given)
 		}
 		spec.AvailabilityZones = given
-		return nil
-	}
-
-	if count := len(spec.AvailabilityZones); count != 0 {
-		if count < api.MinRequiredAvailabilityZones {
-			return errTooFewAvailabilityZones(spec.AvailabilityZones)
-		}
 		return nil
 	}
 
