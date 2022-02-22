@@ -582,44 +582,60 @@ var _ = Describe("ClusterConfig validation", func() {
 		}),
 	)
 
-	Describe("cluster endpoint access config", func() {
-		var (
-			cfg *api.ClusterConfig
-			vpc *api.ClusterVPC
-			err error
-		)
+	Describe("Cluster Endpoint access", func() {
+		var cfg *api.ClusterConfig
 
 		BeforeEach(func() {
 			cfg = api.NewClusterConfig()
-			vpc = api.NewClusterVPC(false)
-			cfg.VPC = vpc
 		})
 
-		It("should not error on private=true, public=true", func() {
-			cfg.VPC.ClusterEndpoints =
-				&api.ClusterEndpoints{PrivateAccess: api.Enabled(), PublicAccess: api.Enabled()}
-			err = cfg.ValidateClusterEndpointConfig()
-			Expect(err).NotTo(HaveOccurred())
+		When("VPC is not set", func() {
+			It("should have cluster endpoint access", func() {
+				err := api.ValidateClusterConfig(cfg)
+				Expect(err).NotTo(HaveOccurred())
+			})
 		})
 
-		It("should not error on private=false, public=true", func() {
-			cfg.VPC.ClusterEndpoints =
-				&api.ClusterEndpoints{PrivateAccess: api.Disabled(), PublicAccess: api.Enabled()}
-			err = cfg.ValidateClusterEndpointConfig()
-			Expect(err).NotTo(HaveOccurred())
-		})
+		When("VPC is set", func() {
+			BeforeEach(func() {
+				cfg.VPC = &api.ClusterVPC{}
+			})
 
-		It("should not error on private=true, public=false", func() {
-			cfg.VPC.ClusterEndpoints =
-				&api.ClusterEndpoints{PrivateAccess: api.Enabled(), PublicAccess: api.Disabled()}
-			err = cfg.ValidateClusterEndpointConfig()
-			Expect(err).NotTo(HaveOccurred())
-		})
+			When("no cluster endpoint config is set", func() {
+				It("should not error", func() {
+					err := api.ValidateClusterConfig(cfg)
+					Expect(err).NotTo(HaveOccurred())
+				})
+			})
 
-		It("should error on private=false, public=false", func() {
-			cfg.VPC.ClusterEndpoints = &api.ClusterEndpoints{PrivateAccess: api.Disabled(), PublicAccess: api.Disabled()}
-			err = cfg.ValidateClusterEndpointConfig()
-			Expect(err).To(BeIdenticalTo(api.ErrClusterEndpointNoAccess))
+			When("cluster endpoint config exists", func() {
+				It("should not error on private=true, public=true", func() {
+					cfg.VPC.ClusterEndpoints =
+						&api.ClusterEndpoints{PrivateAccess: api.Enabled(), PublicAccess: api.Enabled()}
+					err := api.ValidateClusterConfig(cfg)
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				It("should not error on private=false, public=true", func() {
+					cfg.VPC.ClusterEndpoints =
+						&api.ClusterEndpoints{PrivateAccess: api.Disabled(), PublicAccess: api.Enabled()}
+					err := api.ValidateClusterConfig(cfg)
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				It("should not error on private=true, public=false", func() {
+					cfg.VPC.ClusterEndpoints =
+						&api.ClusterEndpoints{PrivateAccess: api.Enabled(), PublicAccess: api.Disabled()}
+					err := api.ValidateClusterConfig(cfg)
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				It("should error on private=false, public=false", func() {
+					cfg.VPC.ClusterEndpoints = &api.ClusterEndpoints{PrivateAccess: api.Disabled(), PublicAccess: api.Disabled()}
+					err := api.ValidateClusterConfig(cfg)
+					Expect(err).To(MatchError(api.ErrClusterEndpointNoAccess))
+				})
+			})
 		})
 	})
 
@@ -639,7 +655,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 		When("private cluster is enabled", func() {
 			It("validates the config", func() {
-				err := cfg.ValidatePrivateCluster()
+				err := api.ValidateClusterConfig(cfg)
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
@@ -647,7 +663,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			It("fails the validation", func() {
 				cfg.VPC.Subnets = &api.ClusterSubnets{}
 				cfg.VPC.ID = "id"
-				err := cfg.ValidatePrivateCluster()
+				err := api.ValidateClusterConfig(cfg)
 				Expect(err).To(MatchError(ContainSubstring("vpc.subnets.private must be specified in a fully-private cluster when a pre-existing VPC is supplied")))
 			})
 		})
@@ -655,28 +671,28 @@ var _ = Describe("ClusterConfig validation", func() {
 			It("fails the validation", func() {
 				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
 				cfg.PrivateCluster.SkipEndpointCreation = true
-				err := cfg.ValidatePrivateCluster()
+				err := api.ValidateClusterConfig(cfg)
 				Expect(err).To(MatchError(ContainSubstring("privateCluster.additionalEndpointServices cannot be set when privateCluster.skipEndpointCreation is true")))
 			})
 		})
 		When("additional endpoints are defined", func() {
 			It("validates the endpoint configuration", func() {
 				cfg.PrivateCluster.AdditionalEndpointServices = []string{api.EndpointServiceCloudFormation}
-				err := cfg.ValidatePrivateCluster()
+				err := api.ValidateClusterConfig(cfg)
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 		When("additional endpoints are defined incorrectly", func() {
 			It("fails the endpoint validation", func() {
 				cfg.PrivateCluster.AdditionalEndpointServices = []string{"unknown"}
-				err := cfg.ValidatePrivateCluster()
+				err := api.ValidateClusterConfig(cfg)
 				Expect(err).To(MatchError(ContainSubstring("invalid value in privateCluster.additionalEndpointServices")))
 			})
 		})
 		When("private cluster is enabled with skip endpoints", func() {
 			It("does not fail the validation", func() {
 				cfg.PrivateCluster.SkipEndpointCreation = true
-				err := cfg.ValidatePrivateCluster()
+				err := api.ValidateClusterConfig(cfg)
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
