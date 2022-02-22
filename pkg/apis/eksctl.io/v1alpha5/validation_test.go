@@ -1627,7 +1627,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			mng := api.NewManagedNodeGroup()
 			mng.AMIFamily = "bOTTLEROCKEt"
-			Expect(api.ValidateManagedNodeGroup(mng, 0)).To(Succeed())
+			Expect(api.ValidateManagedNodeGroup(0, mng)).To(Succeed())
 			Expect(mng.AMIFamily).To(Equal("Bottlerocket"))
 		})
 

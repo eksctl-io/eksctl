@@ -808,7 +808,7 @@ func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) erro
 }
 
 // ValidateManagedNodeGroup validates a ManagedNodeGroup and sets some defaults
-func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
+func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 	normalizeAMIFamily(ng.BaseNodeGroup())
 	switch ng.AMIFamily {
 	case NodeImageFamilyAmazonLinux2, NodeImageFamilyBottlerocket, NodeImageFamilyUbuntu1804, NodeImageFamilyUbuntu2004:

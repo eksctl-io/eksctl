@@ -57,7 +57,7 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 
 	for i, ng := range c.ClusterConfig.ManagedNodeGroups {
 		api.SetManagedNodeGroupDefaults(ng, c.ClusterConfig.Metadata)
-		if err := api.ValidateManagedNodeGroup(ng, i); err != nil {
+		if err := api.ValidateManagedNodeGroup(i, ng); err != nil {
 			return nil, err
 		}
 	}
