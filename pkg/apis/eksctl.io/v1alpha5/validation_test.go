@@ -1620,6 +1620,17 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
+		It("mutates the AMIFamily to the correct value when the capitalisation is incorrect", func() {
+			ng.AMIFamily = "aMAZONlINUx2"
+			Expect(api.ValidateNodeGroup(0, ng)).To(Succeed())
+			Expect(ng.AMIFamily).To(Equal("AmazonLinux2"))
+
+			mng := api.NewManagedNodeGroup()
+			mng.AMIFamily = "bOTTLEROCKEt"
+			Expect(api.ValidateManagedNodeGroup(0, mng)).To(Succeed())
+			Expect(mng.AMIFamily).To(Equal("Bottlerocket"))
+		})
+
 		It("fails when the AMIFamily is not supported", func() {
 			ng.AMIFamily = "SomeTrash"
 			err := api.ValidateNodeGroup(0, ng)
