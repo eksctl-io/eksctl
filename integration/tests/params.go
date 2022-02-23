@@ -251,6 +251,10 @@ func (p *Params) attemptSettingUserID() {
 		return
 	}
 
+	if out.UserId == nil {
+		fmt.Fprintf(GinkgoWriter, msg, fmt.Errorf("UserId value not set in AWS response"))
+	}
+
 	//example value: ABCD1234:my-name@email-provider
 	parts := strings.Split(*out.UserId, ":")
 	if len(parts) == 2 {
