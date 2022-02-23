@@ -141,6 +141,10 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return fmt.Errorf("failed to validate karpenter config: %w", err)
 	}
 
+	if err := ValidateSecretsEncryption(cfg); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -1289,4 +1293,15 @@ func validateAvailabilityZones(azList []string) error {
 
 func ErrTooFewAvailabilityZones(azs []string) error {
 	return fmt.Errorf("only %d zone(s) specified %v, %d are required (can be non-unique)", len(azs), azs, MinRequiredAvailabilityZones)
+}
+
+func ValidateSecretsEncryption(clusterConfig *ClusterConfig) error {
+	if clusterConfig.SecretsEncryption == nil {
+		return nil
+	}
+
+	if _, err := arn.Parse(clusterConfig.SecretsEncryption.KeyARN); err != nil {
+		return errors.Wrapf(err, "invalid ARN in secretsEncryption.keyARN: %q", clusterConfig.SecretsEncryption.KeyARN)
+	}
+	return nil
 }

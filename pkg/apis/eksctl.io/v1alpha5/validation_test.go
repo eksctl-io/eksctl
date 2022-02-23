@@ -1812,6 +1812,36 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 		})
 	})
+
+	Describe("Validate SecretsEncryption", func() {
+		var cfg *api.ClusterConfig
+
+		BeforeEach(func() {
+			cfg = api.NewClusterConfig()
+		})
+
+		When("a SecretsEncryption is set", func() {
+			When("the key is valid", func() {
+				It("does not return an error", func() {
+					cfg.SecretsEncryption = &api.SecretsEncryption{
+						KeyARN: "arn:aws:kms:us-west-2:000000000000:key/12345-12345",
+					}
+					err := api.ValidateClusterConfig(cfg)
+					Expect(err).NotTo(HaveOccurred())
+				})
+			})
+
+			When("the key is invalid", func() {
+				It("returns an error", func() {
+					cfg.SecretsEncryption = &api.SecretsEncryption{
+						KeyARN: "invalid:arn",
+					}
+					err := api.ValidateClusterConfig(cfg)
+					Expect(err).To(MatchError(ContainSubstring("invalid ARN")))
+				})
+			})
+		})
+	})
 })
 
 func newInt(value int) *int {
