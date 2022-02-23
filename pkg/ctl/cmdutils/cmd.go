@@ -96,8 +96,10 @@ func (c *Cmd) NewProviderForExistingCluster() (*eks.ClusterProvider, error) {
 // AddResourceCmd create a registers a new command under the given verb command
 func AddResourceCmd(flagGrouping *FlagGrouping, parentVerbCmd *cobra.Command, newCmd func(*Cmd)) {
 	c := &Cmd{
-		CobraCommand:   &cobra.Command{},
-		ProviderConfig: api.ProviderConfig{},
+		CobraCommand: &cobra.Command{},
+		ProviderConfig: api.ProviderConfig{
+			WaitTimeout: api.DefaultWaitTimeout,
+		},
 
 		Plan:     true,  // always on by default
 		Wait:     false, // varies in some commands
