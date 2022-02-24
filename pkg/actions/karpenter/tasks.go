@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -23,8 +24,8 @@ type karpenterIAMRolesTask struct {
 	info                string
 	stackManager        manager.StackManager
 	cfg                 *api.ClusterConfig
+	ec2API              ec2iface.EC2API
 	instanceProfileName string
-	provider            api.ClusterProvider
 }
 
 func (k *karpenterIAMRolesTask) Describe() string { return k.info }
@@ -33,13 +34,13 @@ func (k *karpenterIAMRolesTask) Do(errs chan error) error {
 }
 
 // newTasksToInstallKarpenterIAMRoles defines tasks required to create Karpenter IAM roles.
-func newTasksToInstallKarpenterIAMRoles(cfg *api.ClusterConfig, stackManager manager.StackManager, provider api.ClusterProvider, instanceProfileName string) *tasks.TaskTree {
+func newTasksToInstallKarpenterIAMRoles(cfg *api.ClusterConfig, stackManager manager.StackManager, ec2API ec2iface.EC2API, instanceProfileName string) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}
 	taskTree.Append(&karpenterIAMRolesTask{
 		info:                fmt.Sprintf("create karpenter for stack %q", cfg.Metadata.Name),
 		stackManager:        stackManager,
 		cfg:                 cfg,
-		provider:            provider,
+		ec2API:              ec2API,
 		instanceProfileName: instanceProfileName,
 	})
 	return taskTree
@@ -90,7 +91,7 @@ func (k *karpenterIAMRolesTask) ensureSubnetsHaveTags() error {
 			},
 		},
 	}
-	if _, err := k.provider.EC2().CreateTags(creatTagsInput); err != nil {
+	if _, err := k.ec2API.CreateTags(creatTagsInput); err != nil {
 		return fmt.Errorf("failed to add tags for subnets: %w", err)
 	}
 	return nil
