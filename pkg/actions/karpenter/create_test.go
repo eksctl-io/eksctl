@@ -83,43 +83,11 @@ var _ = Describe("Create", func() {
 				}()
 				return nil
 			}
-			p.MockEC2().On("DescribeSubnets", &ec2.DescribeSubnetsInput{
-				SubnetIds: aws.StringSlice([]string{
-					privateSubnet1,
-					privateSubnet2,
-					publicSubnet1,
-					publicSubnet2,
-				}),
-			}).Return(&ec2.DescribeSubnetsOutput{
-				Subnets: []*ec2.Subnet{
-					{
-						SubnetId: aws.String(privateSubnet1),
-						VpcId:    aws.String(cfg.VPC.ID),
-					},
-					{
-						SubnetId: aws.String(privateSubnet2),
-						VpcId:    aws.String(cfg.VPC.ID),
-						Tags: []*ec2.Tag{
-							{
-								Key:   aws.String("kubernetes.io/cluster/" + clusterName),
-								Value: aws.String("shared"),
-							},
-						},
-					},
-					{
-						SubnetId: aws.String(publicSubnet1),
-						VpcId:    aws.String(cfg.VPC.ID),
-					},
-					{
-						SubnetId: aws.String(publicSubnet2),
-						VpcId:    aws.String(cfg.VPC.ID),
-					},
-				},
-			}, nil)
 
 			p.MockEC2().On("CreateTags", &ec2.CreateTagsInput{
 				Resources: []*string{
 					&privateSubnet1,
+					&privateSubnet2,
 					&publicSubnet1,
 					&publicSubnet2,
 				},
@@ -144,51 +112,12 @@ var _ = Describe("Create", func() {
 			Expect(install.Create()).To(Succeed())
 			Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))
 		})
-		When("DescribeSubnets fails", func() {
-			var (
-				output *bytes.Buffer
-			)
-			BeforeEach(func() {
-				p = mockprovider.NewMockProvider()
-				p.MockEC2().On("DescribeSubnets", mock.Anything).Return(nil, errors.New("nope"))
-				ctl = &eks.ClusterProvider{
-					Provider: p,
-					Status: &eks.ProviderStatus{
-						ClusterInfo: &eks.ClusterInfo{
-							Cluster: testutils.NewFakeCluster(clusterName, ""),
-						},
-					},
-				}
-				output = &bytes.Buffer{}
-				logger.Writer = output
-			})
-			It("errors", func() {
-				install := &karpenteractions.Installer{
-					StackManager:       fakeStackManager,
-					CTL:                ctl,
-					Config:             cfg,
-					KarpenterInstaller: fakeKarpenterInstaller,
-					ClientSet:          fakeClientSet,
-				}
-				err := install.Create()
-				Expect(err).To(MatchError(ContainSubstring("failed to install Karpenter on cluster")))
-				Expect(output.String()).To(ContainSubstring("failed to describe subnets: nope"))
-			})
-		})
 		When("CreateTags fails", func() {
 			var (
 				output *bytes.Buffer
 			)
 			BeforeEach(func() {
 				p = mockprovider.NewMockProvider()
-				p.MockEC2().On("DescribeSubnets", mock.Anything).Return(&ec2.DescribeSubnetsOutput{
-					Subnets: []*ec2.Subnet{
-						{
-							SubnetId: aws.String(privateSubnet1),
-							VpcId:    aws.String(cfg.VPC.ID),
-						},
-					},
-				}, nil)
 				p.MockEC2().On("CreateTags", mock.Anything).Return(nil, errors.New("nope"))
 				ctl = &eks.ClusterProvider{
 					Provider: p,
