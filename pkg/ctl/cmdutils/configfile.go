@@ -254,8 +254,8 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 
 		api.SetClusterEndpointAccessDefaults(clusterConfig.VPC)
 
-		if !clusterConfig.HasClusterEndpointAccess() {
-			return api.ErrClusterEndpointNoAccess
+		if err := clusterConfig.ValidateClusterEndpointConfig(); err != nil {
+			return err
 		}
 
 		if clusterConfig.HasAnySubnets() && len(clusterConfig.AvailabilityZones) != 0 {

@@ -22,7 +22,7 @@ const (
 // NewTasksToCreateClusterWithNodeGroups defines all tasks required to create a cluster along
 // with some nodegroups; see CreateAllNodeGroups for how onlyNodeGroupSubset works
 func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*api.NodeGroup,
-	managedNodeGroups []*api.ManagedNodeGroup, supportsManagedNodes bool, postClusterCreationTasks ...tasks.Task) *tasks.TaskTree {
+	managedNodeGroups []*api.ManagedNodeGroup, postClusterCreationTasks ...tasks.Task) *tasks.TaskTree {
 
 	taskTree := tasks.TaskTree{Parallel: false}
 
@@ -30,7 +30,7 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 		&createClusterTask{
 			info:                 fmt.Sprintf("create cluster control plane %q", c.spec.Metadata.Name),
 			stackCollection:      c,
-			supportsManagedNodes: supportsManagedNodes,
+			supportsManagedNodes: true,
 		},
 	)
 
