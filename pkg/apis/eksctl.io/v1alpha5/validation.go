@@ -133,16 +133,12 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return err
 	}
 
-	if cfg.SecretsEncryption != nil && cfg.SecretsEncryption.KeyARN == "" {
-		return errors.New("field secretsEncryption.keyARN is required for enabling secrets encryption")
+	if err := ValidateSecretsEncryption(cfg); err != nil {
+		return err
 	}
 
 	if err := validateKarpenterConfig(cfg); err != nil {
 		return fmt.Errorf("failed to validate karpenter config: %w", err)
-	}
-
-	if err := ValidateSecretsEncryption(cfg); err != nil {
-		return err
 	}
 
 	return nil
@@ -1298,6 +1294,10 @@ func ErrTooFewAvailabilityZones(azs []string) error {
 func ValidateSecretsEncryption(clusterConfig *ClusterConfig) error {
 	if clusterConfig.SecretsEncryption == nil {
 		return nil
+	}
+
+	if clusterConfig.SecretsEncryption.KeyARN == "" {
+		return errors.New("field secretsEncryption.keyARN is required for enabling secrets encryption")
 	}
 
 	if _, err := arn.Parse(clusterConfig.SecretsEncryption.KeyARN); err != nil {

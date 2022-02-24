@@ -1820,7 +1820,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg = api.NewClusterConfig()
 		})
 
-		When("a SecretsEncryption is set", func() {
+		When("a key ARN is set", func() {
 			When("the key is valid", func() {
 				It("does not return an error", func() {
 					cfg.SecretsEncryption = &api.SecretsEncryption{
@@ -1839,6 +1839,14 @@ var _ = Describe("ClusterConfig validation", func() {
 					err := api.ValidateClusterConfig(cfg)
 					Expect(err).To(MatchError(ContainSubstring("invalid ARN")))
 				})
+			})
+		})
+
+		When("a key ARN is not set", func() {
+			It("returns an error", func() {
+				cfg.SecretsEncryption = &api.SecretsEncryption{}
+				err := api.ValidateClusterConfig(cfg)
+				Expect(err).To(MatchError(ContainSubstring("field secretsEncryption.keyARN is required for enabling secrets encryption")))
 			})
 		})
 	})
