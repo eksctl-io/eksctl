@@ -57,7 +57,7 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 
 	for i, ng := range c.ClusterConfig.ManagedNodeGroups {
 		api.SetManagedNodeGroupDefaults(ng, c.ClusterConfig.Metadata)
-		if err := api.ValidateManagedNodeGroup(ng, i); err != nil {
+		if err := api.ValidateManagedNodeGroup(i, ng); err != nil {
 			return nil, err
 		}
 	}
@@ -96,8 +96,10 @@ func (c *Cmd) NewProviderForExistingCluster() (*eks.ClusterProvider, error) {
 // AddResourceCmd create a registers a new command under the given verb command
 func AddResourceCmd(flagGrouping *FlagGrouping, parentVerbCmd *cobra.Command, newCmd func(*Cmd)) {
 	c := &Cmd{
-		CobraCommand:   &cobra.Command{},
-		ProviderConfig: api.ProviderConfig{},
+		CobraCommand: &cobra.Command{},
+		ProviderConfig: api.ProviderConfig{
+			WaitTimeout: api.DefaultWaitTimeout,
+		},
 
 		Plan:     true,  // always on by default
 		Wait:     false, // varies in some commands

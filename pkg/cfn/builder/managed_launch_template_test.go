@@ -37,7 +37,7 @@ var _ = Describe("ManagedNodeGroup builder", func() {
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = "lt"
 		api.SetManagedNodeGroupDefaults(m.ng, clusterConfig.Metadata)
-		Expect(api.ValidateManagedNodeGroup(m.ng, 0)).To(Succeed())
+		Expect(api.ValidateManagedNodeGroup(0, m.ng)).To(Succeed())
 
 		provider := mockprovider.NewMockProvider()
 		if m.mockFetcherFn != nil {
