@@ -3,6 +3,7 @@ package builder_test
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -819,6 +820,101 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 
 				It("sets DesiredCapacity on the resource", func() {
 					Expect(ngTemplate.Resources["NodeGroup"].Properties.DesiredCapacity).To(Equal("5"))
+				})
+
+				When("ng.DesiredCapacity == 0 and labels and taints are set", func() {
+					BeforeEach(func() {
+						ng.DesiredCapacity = aws.Int(0)
+						ng.Labels = map[string]string{
+							"test": "label",
+						}
+						ng.Taints = []api.NodeGroupTaint{
+							{
+								Key:   "taint-key",
+								Value: "taint-value",
+							},
+						}
+					})
+
+					It("propagates the labels and taints to the ASG tags", func() {
+						tags := ngTemplate.Resources["NodeGroup"].Properties.Tags
+						Expect(tags).To(ContainElements(fakes.Tag{
+							Key:               "k8s.io/cluster-autoscaler/node-template/label/test",
+							Value:             "label",
+							PropagateAtLaunch: "true",
+						}, fakes.Tag{
+							Key:               "k8s.io/cluster-autoscaler/node-template/taints/taint-key",
+							Value:             "taint-value",
+							PropagateAtLaunch: "true",
+						}))
+					})
+					When("disable asg tag propagation is enabled", func() {
+						BeforeEach(func() {
+							ng.DisableASGTagPropagation = api.Enabled()
+							ng.DesiredCapacity = aws.Int(0)
+							ng.Labels = map[string]string{
+								"test": "label",
+							}
+							ng.Taints = []api.NodeGroupTaint{
+								{
+									Key:   "taint-key",
+									Value: "taint-value",
+								},
+							}
+						})
+
+						It("skips adding tags", func() {
+							tags := ngTemplate.Resources["NodeGroup"].Properties.Tags
+							Expect(tags).NotTo(ContainElements(fakes.Tag{
+								Key:               "k8s.io/cluster-autoscaler/node-template/label/test",
+								Value:             "label",
+								PropagateAtLaunch: "true",
+							}, fakes.Tag{
+								Key:               "k8s.io/cluster-autoscaler/node-template/taints/taint-key",
+								Value:             "taint-value",
+								PropagateAtLaunch: "true",
+							}))
+						})
+
+					})
+					When("there are duplicates between taints and labels", func() {
+						BeforeEach(func() {
+							ng.DesiredCapacity = aws.Int(0)
+							ng.Labels = map[string]string{
+								"test": "label",
+							}
+							ng.Taints = []api.NodeGroupTaint{
+								{
+									Key:   "test",
+									Value: "taint-value",
+								},
+							}
+						})
+						It("errors", func() {
+							Expect(addErr).To(MatchError(ContainSubstring("duplicate key found for taints and labels with taint key=value: test=taint-value, and label: test=label")))
+						})
+					})
+					When("there are more tags than the maximum number of tags", func() {
+						BeforeEach(func() {
+							ng.DesiredCapacity = aws.Int(0)
+							ng.Labels = map[string]string{}
+							ng.Taints = []api.NodeGroupTaint{}
+							for i := 0; i < builder.MaximumTagNumber+1; i++ {
+								ng.Labels[fmt.Sprintf("%d", i)] = "test"
+							}
+						})
+						// +2 because of Name and kubernetes.io/cluster/
+						It("errors", func() {
+							Expect(addErr).To(
+								MatchError(
+									ContainSubstring(
+										fmt.Sprintf("number of tags is exceeding the configured amount %d, was: %d. "+
+											"Due to desiredCapacity==0 we added an extra %d number of tags to ensure the nodegroup is scaled correctly",
+											builder.MaximumTagNumber,
+											builder.MaximumTagNumber+3,
+											builder.MaximumTagNumber+1))))
+						})
+					})
 				})
 			})
 

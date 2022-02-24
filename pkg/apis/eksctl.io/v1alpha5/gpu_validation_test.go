@@ -33,7 +33,7 @@ var _ = Describe("GPU instance support", func() {
 		mng.InstanceType = e.gpuInstanceType
 		mng.AMIFamily = e.amiFamily
 		mng.InstanceSelector = &api.InstanceSelector{}
-		assertValidationError(e, api.ValidateManagedNodeGroup(mng, 0))
+		assertValidationError(e, api.ValidateManagedNodeGroup(0, mng))
 	},
 		Entry("AL2", gpuInstanceEntry{
 			gpuInstanceType: "asdf",

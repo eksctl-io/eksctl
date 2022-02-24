@@ -1015,6 +1015,11 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.DisableASGTagPropagation != nil {
+		in, out := &in.DisableASGTagPropagation, &out.DisableASGTagPropagation
+		*out = new(bool)
+		**out = **in
+	}
 	if in.MaxInstanceLifetime != nil {
 		in, out := &in.MaxInstanceLifetime, &out.MaxInstanceLifetime
 		*out = new(int)
