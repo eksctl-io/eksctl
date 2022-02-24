@@ -155,6 +155,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		}
 	}
 
+	if err := validateZonesAndNodeZones(cmd, params); err != nil {
+		return err
+	}
+
 	if err := cfg.ValidatePrivateCluster(); err != nil {
 		return err
 	}
@@ -413,6 +417,21 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	return printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg)
 }
 
+func validateZonesAndNodeZones(cmd *cmdutils.Cmd, params *cmdutils.CreateClusterCmdParams) error {
+	if nodeZones := cmd.CobraCommand.Flag("node-zones"); nodeZones != nil && nodeZones.Changed {
+		if len(params.AvailabilityZones) == 0 {
+			return errors.New("zones must be defined if node-zones is provided and must be a superset of node-zones")
+		}
+		zones := strings.Split(nodeZones.Value.String(), ",")
+		for _, zone := range zones {
+			if !contains(params.AvailabilityZones, zone) {
+				return fmt.Errorf("node-zones %q must be a subset of zones %q", zones, params.AvailabilityZones)
+			}
+		}
+	}
+	return nil
+}
+
 // installKarpenter prepares the environment for Karpenter, by creating the following resources:
 // - iam roles and profiles
 // - service account
@@ -518,4 +537,13 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 
 func checkSubnetsGivenAsFlags(params *cmdutils.CreateClusterCmdParams) bool {
 	return len(*params.Subnets[api.SubnetTopologyPrivate])+len(*params.Subnets[api.SubnetTopologyPublic]) != 0
+}
+
+func contains(arr []string, v string) bool {
+	for _, elem := range arr {
+		if v == elem {
+			return true
+		}
+	}
+	return false
 }
