@@ -4,8 +4,9 @@ on:
     - cron: '0 9 * * *'
 
 jobs:
-  nightly:
+  build-all-distros:
     name: build all distros
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
