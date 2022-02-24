@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
+	"golang.org/x/crypto/ssh"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -32,13 +33,11 @@ func LoadKeyFromFile(filePath, clusterName, ngName string, ec2API ec2iface.EC2AP
 	}
 
 	key := string(fileContent)
-
-	fingerprint, err := pki.ComputeAWSKeyFingerprint(key)
-	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("computing fingerprint for key %q", filePath))
-	}
+	fingerprint, err := fingerprint(filePath, fileContent)
 	keyName := getKeyName(clusterName, ngName, fingerprint)
-
+	if err != nil {
+		return "", err
+	}
 	logger.Info("using SSH public key %q as %q ", expandedPath, keyName)
 
 	// Import SSH key in EC2
@@ -46,6 +45,24 @@ func LoadKeyFromFile(filePath, clusterName, ngName string, ec2API ec2iface.EC2AP
 		return "", err
 	}
 	return keyName, nil
+}
+
+func fingerprint(filePath string, key []byte) (string, error) {
+	pk, _, _, _, err := ssh.ParseAuthorizedKey(key)
+	if err != nil {
+		return "", fmt.Errorf("parsing key %q: %w", filePath, err)
+	}
+
+	if strings.Contains(pk.Type(), "ed25519") {
+		return strings.TrimPrefix(ssh.FingerprintSHA256(pk), "SHA256:"), nil
+	}
+
+	fingerprint, err := pki.ComputeAWSKeyFingerprint(string(key))
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("computing fingerprint for key %q", filePath))
+	}
+
+	return fingerprint, nil
 }
 
 // LoadKeyByContent loads and imports an SSH public key into EC2 if it doesn't exist
