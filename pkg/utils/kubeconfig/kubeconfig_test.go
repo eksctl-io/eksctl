@@ -1,17 +1,19 @@
 package kubeconfig_test
 
 import (
+	"errors"
 	"os"
 	"path"
 	"sync"
 
-	eksctlapi "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/tools/clientcmd/api"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/tools/clientcmd/api"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+
+	eksctlapi "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 var _ = Describe("Kubeconfig", func() {
@@ -352,5 +354,49 @@ var _ = Describe("Kubeconfig", func() {
 
 		wg.Wait()
 
+	})
+	Context("AppendAuthenticator", func() {
+		var (
+			config      *clientcmdapi.Config
+			clusterMeta *eksctlapi.ClusterMeta
+		)
+		BeforeEach(func() {
+			config = &clientcmdapi.Config{
+				AuthInfos:      map[string]*clientcmdapi.AuthInfo{},
+				CurrentContext: "test",
+			}
+			clusterMeta = &eksctlapi.ClusterMeta{
+				Region: "us-west-2",
+				Name:   "name",
+			}
+		})
+		It("writes the right api version if aws-iam-authenticator version is below 0.5.3", func() {
+			kubeconfig.CheckAuthenticatorVersion = func() (string, error) {
+				return "0.5.1", nil
+			}
+			kubeconfig.AppendAuthenticator(config, clusterMeta, kubeconfig.AWSIAMAuthenticator, "", "")
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
+		})
+		It("writes the right api version if aws-iam-authenticator version is above 0.5.3", func() {
+			kubeconfig.CheckAuthenticatorVersion = func() (string, error) {
+				return "0.5.5", nil
+			}
+			kubeconfig.AppendAuthenticator(config, clusterMeta, kubeconfig.AWSIAMAuthenticator, "", "")
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1beta1"))
+		})
+		It("writes the right api version if aws-iam-authenticator version equals 0.5.3", func() {
+			kubeconfig.CheckAuthenticatorVersion = func() (string, error) {
+				return "0.5.3", nil
+			}
+			kubeconfig.AppendAuthenticator(config, clusterMeta, kubeconfig.AWSIAMAuthenticator, "", "")
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1beta1"))
+		})
+		It("defaults to alpha1 if we fail to detect aws-iam-authenticator version", func() {
+			kubeconfig.CheckAuthenticatorVersion = func() (string, error) {
+				return "", errors.New("nope")
+			}
+			kubeconfig.AppendAuthenticator(config, clusterMeta, kubeconfig.AWSIAMAuthenticator, "", "")
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
+		})
 	})
 })
