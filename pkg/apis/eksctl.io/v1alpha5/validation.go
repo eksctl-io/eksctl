@@ -125,12 +125,16 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return err
 	}
 
+	if err := validateAvailabilityZones(cfg.AvailabilityZones); err != nil {
+		return err
+	}
+
 	if err := cfg.ValidateVPCConfig(); err != nil {
 		return err
 	}
 
-	if cfg.SecretsEncryption != nil && cfg.SecretsEncryption.KeyARN == "" {
-		return errors.New("field secretsEncryption.keyARN is required for enabling secrets encryption")
+	if err := ValidateSecretsEncryption(cfg); err != nil {
+		return err
 	}
 
 	if err := validateKarpenterConfig(cfg); err != nil {
@@ -191,6 +195,15 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 	if c.VPC == nil {
 		return nil
 	}
+
+	if err := c.ValidatePrivateCluster(); err != nil {
+		return err
+	}
+
+	if err := c.ValidateClusterEndpointConfig(); err != nil {
+		return err
+	}
+
 	if len(c.VPC.ExtraCIDRs) > 0 {
 		cidrs, err := validateCIDRs(c.VPC.ExtraCIDRs)
 		if err != nil {
@@ -236,6 +249,7 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 	if c.VPC.SharedNodeSecurityGroup == "" && IsDisabled(c.VPC.ManageSharedNodeSecurityGroupRules) {
 		return errors.New("vpc.manageSharedNodeSecurityGroupRules must be enabled when using ekstcl-managed security groups")
 	}
+
 	return nil
 }
 
@@ -310,12 +324,15 @@ func (c *ClusterConfig) addonContainsManagedAddons(addons []string) []string {
 
 // ValidateClusterEndpointConfig checks the endpoint configuration for potential issues
 func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
-	if !c.HasClusterEndpointAccess() {
-		return ErrClusterEndpointNoAccess
-	}
-	endpts := c.VPC.ClusterEndpoints
-	if noAccess(endpts) {
-		return ErrClusterEndpointNoAccess
+	if c.VPC.ClusterEndpoints != nil {
+		if !c.HasClusterEndpointAccess() {
+			return ErrClusterEndpointNoAccess
+		}
+		endpts := c.VPC.ClusterEndpoints
+
+		if noAccess(endpts) {
+			return ErrClusterEndpointNoAccess
+		}
 	}
 	return nil
 }
@@ -1255,5 +1272,36 @@ func checkBottlerocketSettings(doc *InlineDocument, path string) error {
 		}
 	}
 
+	return nil
+}
+
+func validateAvailabilityZones(azList []string) error {
+	count := len(azList)
+	switch {
+	case count == 0:
+		return nil
+	case count < MinRequiredAvailabilityZones:
+		return ErrTooFewAvailabilityZones(azList)
+	default:
+		return nil
+	}
+}
+
+func ErrTooFewAvailabilityZones(azs []string) error {
+	return fmt.Errorf("only %d zone(s) specified %v, %d are required (can be non-unique)", len(azs), azs, MinRequiredAvailabilityZones)
+}
+
+func ValidateSecretsEncryption(clusterConfig *ClusterConfig) error {
+	if clusterConfig.SecretsEncryption == nil {
+		return nil
+	}
+
+	if clusterConfig.SecretsEncryption.KeyARN == "" {
+		return errors.New("field secretsEncryption.keyARN is required for enabling secrets encryption")
+	}
+
+	if _, err := arn.Parse(clusterConfig.SecretsEncryption.KeyARN); err != nil {
+		return errors.Wrapf(err, "invalid ARN in secretsEncryption.keyARN: %q", clusterConfig.SecretsEncryption.KeyARN)
+	}
 	return nil
 }
