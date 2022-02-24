@@ -44,15 +44,17 @@ var _ = Describe("Install", func() {
 		})
 
 		It("installs karpenter into an existing cluster", func() {
-			Expect(installerUnderTest.Install(context.Background(), "", "role/profile")).To(Succeed())
+			Expect(installerUnderTest.Install(context.Background(), "role-arn", "role/profile")).To(Succeed())
 			_, args := fakeHelmInstaller.InstallChartArgsForCall(0)
 			values := map[string]interface{}{
-				controller: map[string]interface{}{
-					clusterName:     cfg.Metadata.Name,
-					clusterEndpoint: cfg.Status.Endpoint,
-				},
+				clusterName:     cfg.Metadata.Name,
+				clusterEndpoint: cfg.Status.Endpoint,
 				serviceAccount: map[string]interface{}{
 					create: api.IsEnabled(cfg.Karpenter.CreateServiceAccount),
+					serviceAccountAnnotation: map[string]interface{}{
+						api.AnnotationEKSRoleARN: "role-arn",
+					},
+					serviceAccountName: DefaultServiceAccountName,
 				},
 				aws: map[string]interface{}{
 					defaultInstanceProfile: "role/profile",
@@ -91,62 +93,19 @@ var _ = Describe("Install", func() {
 			})
 		})
 
-		When("the cluster configuration has fargate configured", func() {
-			BeforeEach(func() {
-				profile := &api.FargateProfile{
-					Selectors: []api.FargateProfileSelector{
-						{Namespace: "default"},
-					},
-				}
-				cfg.FargateProfiles = []*api.FargateProfile{
-					profile,
-				}
-				installerUnderTest = &Installer{
-					Options: Options{
-						HelmInstaller: fakeHelmInstaller,
-						Namespace:     "karpenter",
-						ClusterConfig: cfg,
-					},
-				}
-			})
-			It("will not tell helm to create a namespace", func() {
-				Expect(installerUnderTest.Install(context.Background(), "", "role/profile")).To(Succeed())
-				_, opts := fakeHelmInstaller.InstallChartArgsForCall(0)
-				Expect(opts.CreateNamespace).To(BeFalse())
-			})
-		})
-
-		When("there are no fargate profiles configured for the cluster", func() {
-			BeforeEach(func() {
-				installerUnderTest = &Installer{
-					Options: Options{
-						HelmInstaller: fakeHelmInstaller,
-						Namespace:     "karpenter",
-						ClusterConfig: cfg,
-					},
-				}
-			})
-			It("will tell helm to create the namespace", func() {
-				Expect(installerUnderTest.Install(context.Background(), "", "role/profile")).To(Succeed())
-				_, opts := fakeHelmInstaller.InstallChartArgsForCall(0)
-				Expect(opts.CreateNamespace).To(BeTrue())
-			})
-		})
-
 		When("service account is defined", func() {
 			It("add role to the values for the helm chart", func() {
 				Expect(installerUnderTest.Install(context.Background(), "role/account", "role/profile")).To(Succeed())
 				_, opts := fakeHelmInstaller.InstallChartArgsForCall(0)
 				values := map[string]interface{}{
-					controller: map[string]interface{}{
-						clusterName:     cfg.Metadata.Name,
-						clusterEndpoint: cfg.Status.Endpoint,
-					},
+					clusterName:     cfg.Metadata.Name,
+					clusterEndpoint: cfg.Status.Endpoint,
 					serviceAccount: map[string]interface{}{
 						create: api.IsEnabled(cfg.Karpenter.CreateServiceAccount),
 						serviceAccountAnnotation: map[string]interface{}{
 							api.AnnotationEKSRoleARN: "role/account",
 						},
+						serviceAccountName: DefaultServiceAccountName,
 					},
 					aws: map[string]interface{}{
 						defaultInstanceProfile: "role/profile",

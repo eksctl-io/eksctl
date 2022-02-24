@@ -3,7 +3,6 @@ package builder
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
@@ -36,6 +35,7 @@ const (
 	ec2DescribeLaunchTemplates       = "ec2:DescribeLaunchTemplates"
 	ec2DescribeSecurityGroups        = "ec2:DescribeSecurityGroups"
 	ec2DescribeSubnets               = "ec2:DescribeSubnets"
+	ec2DeleteLaunchTemplate          = "ec2:DeleteLaunchTemplate"
 	ec2RunInstances                  = "ec2:RunInstances"
 	ec2TerminateInstances            = "ec2:TerminateInstances"
 	// IAM
@@ -45,15 +45,17 @@ const (
 
 // KarpenterResourceSet stores the resource information of the Karpenter stack
 type KarpenterResourceSet struct {
-	rs          *resourceSet
-	clusterSpec *api.ClusterConfig
+	rs                  *resourceSet
+	clusterSpec         *api.ClusterConfig
+	instanceProfileName string
 }
 
 // NewKarpenterResourceSet returns a resource set for a Karpenter embedded in a cluster config
-func NewKarpenterResourceSet(spec *api.ClusterConfig) *KarpenterResourceSet {
+func NewKarpenterResourceSet(spec *api.ClusterConfig, instanceProfileName string) *KarpenterResourceSet {
 	return &KarpenterResourceSet{
-		rs:          newResourceSet(),
-		clusterSpec: spec,
+		rs:                  newResourceSet(),
+		clusterSpec:         spec,
+		instanceProfileName: instanceProfileName,
 	}
 }
 
@@ -85,7 +87,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 		iamPolicyAmazonSSMManagedInstanceCore,
 	)
 	k.Template().Mappings[servicePrincipalPartitionMapName] = servicePrincipalPartitionMappings
-	roleName := gfnt.MakeFnSubString(fmt.Sprintf("eksctl-%s-%s", KarpenterNodeRoleName, k.clusterSpec.Metadata.Name))
+	roleName := gfnt.NewString(fmt.Sprintf("eksctl-%s-%s", KarpenterNodeRoleName, k.clusterSpec.Metadata.Name))
 	role := gfniam.Role{
 		RoleName:                 roleName,
 		Path:                     gfnt.NewString("/"),
@@ -95,18 +97,14 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 
 	roleRef := k.newResource(KarpenterNodeRoleName, &role)
 
-	instanceProfileName := gfnt.MakeFnSubString(fmt.Sprintf("eksctl-%s-%s", KarpenterNodeInstanceProfile, k.clusterSpec.Metadata.Name))
-	if k.clusterSpec.Karpenter.DefaultInstanceProfile != nil {
-		instanceProfileName = gfnt.MakeFnSubString(aws.StringValue(k.clusterSpec.Karpenter.DefaultInstanceProfile))
-	}
 	instanceProfile := gfniam.InstanceProfile{
-		InstanceProfileName: instanceProfileName,
+		InstanceProfileName: gfnt.NewString(k.instanceProfileName),
 		Path:                gfnt.NewString("/"),
 		Roles:               gfnt.NewSlice(roleRef),
 	}
 	k.newResource(KarpenterNodeInstanceProfile, &instanceProfile)
 
-	managedPolicyName := gfnt.MakeFnSubString(fmt.Sprintf("eksctl-%s-%s", KarpenterManagedPolicy, k.clusterSpec.Metadata.Name))
+	managedPolicyName := gfnt.NewString(fmt.Sprintf("eksctl-%s-%s", KarpenterManagedPolicy, k.clusterSpec.Metadata.Name))
 	statements := cft.MapOfInterfaces{
 		"Effect":   effectAllow,
 		"Resource": resourceAll,
@@ -121,6 +119,7 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 			ec2DescribeLaunchTemplates,
 			ec2DescribeSecurityGroups,
 			ec2DescribeSubnets,
+			ec2DeleteLaunchTemplate,
 			ec2RunInstances,
 			ec2TerminateInstances,
 			iamPassRole,
