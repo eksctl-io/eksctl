@@ -227,7 +227,7 @@ func NewParams(clusterNamePrefix string) *Params {
 	return &params
 }
 
-// attemptSettingUserID will attempt to fetch the first 2 characters of the userID running the
+// attemptSettingUserID will attempt to fetch the first 4 characters of the userID running the
 // integration tests to be used as a prefix for cluster names. It fails silently if an error occurs
 func (p *Params) attemptSettingUserID() {
 	clusterProvider, err := eks.New(&api.ProviderConfig{Region: p.Region}, &api.ClusterConfig{
