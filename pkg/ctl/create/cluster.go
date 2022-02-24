@@ -195,10 +195,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
 	kubeNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 
-	if err := eks.ValidateFeatureCompatibility(cfg, kubeNodeGroups); err != nil {
-		return err
-	}
-
 	// Check if flux binary exists early in the process, so it doesn't fail at the end when the cluster
 	// has already been created with a missing flux binary error which should have been caught earlier.
 	// Note: we aren't running PreFlight here, we just check for the binary.
@@ -267,10 +263,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	}
 
 	logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
-	supportsManagedNodes, err := eks.VersionSupportsManagedNodes(cfg.Metadata.Version)
-	if err != nil {
-		return err
-	}
 
 	eks.LogEnabledFeatures(cfg)
 	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(cfg)
@@ -286,7 +278,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		postClusterCreationTasks.Append(preNodegroupAddons)
 	}
 
-	taskTree := stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks)
+	taskTree := stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, postClusterCreationTasks)
 
 	logger.Info(taskTree.Describe())
 	if errs := taskTree.DoAllSync(); len(errs) > 0 {
