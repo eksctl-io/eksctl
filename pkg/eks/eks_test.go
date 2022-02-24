@@ -217,8 +217,7 @@ var _ = Describe("EKS API wrapper", func() {
 	})
 
 	type managedNodesSupportCase struct {
-		platformVersion   string
-		kubernetesVersion string
+		platformVersion string
 
 		expectError bool
 		supports    bool
