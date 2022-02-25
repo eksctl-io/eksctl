@@ -3,7 +3,6 @@ package builder_test
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -29,18 +28,15 @@ var _ = Describe("karpenter stack", func() {
 
 	Context("AddAllResources", func() {
 		It("generates the correct CloudFormation template", func() {
-			krs := builder.NewKarpenterResourceSet(cfg)
+			krs := builder.NewKarpenterResourceSet(cfg, "eksctl-KarpenterNodeInstanceProfile-test-karpenter")
 			Expect(krs.AddAllResources()).To(Succeed())
 			result, err := krs.RenderJSON()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(result)).To(Equal(fmt.Sprintf(expectedTemplate, "eksctl-KarpenterNodeInstanceProfile-test-karpenter")))
 		})
 		When("defaultInstanceProfile is set", func() {
-			BeforeEach(func() {
-				cfg.Karpenter.DefaultInstanceProfile = aws.String("KarpenterNodeInstanceProfile-custom")
-			})
 			It("generates the correct custom CloudFormation template", func() {
-				krs := builder.NewKarpenterResourceSet(cfg)
+				krs := builder.NewKarpenterResourceSet(cfg, "KarpenterNodeInstanceProfile-custom")
 				Expect(krs.AddAllResources()).To(Succeed())
 				result, err := krs.RenderJSON()
 				Expect(err).NotTo(HaveOccurred())
@@ -76,9 +72,7 @@ var expectedTemplate = `{
     "KarpenterControllerPolicy": {
       "Type": "AWS::IAM::ManagedPolicy",
       "Properties": {
-        "ManagedPolicyName": {
-          "Fn::Sub": "eksctl-KarpenterControllerPolicy-test-karpenter"
-        },
+        "ManagedPolicyName": "eksctl-KarpenterControllerPolicy-test-karpenter",
         "PolicyDocument": {
           "Statement": [
             {
@@ -93,6 +87,7 @@ var expectedTemplate = `{
                 "ec2:DescribeLaunchTemplates",
                 "ec2:DescribeSecurityGroups",
                 "ec2:DescribeSubnets",
+                "ec2:DeleteLaunchTemplate",
                 "ec2:RunInstances",
                 "ec2:TerminateInstances",
                 "iam:PassRole",
@@ -109,9 +104,7 @@ var expectedTemplate = `{
     "KarpenterNodeInstanceProfile": {
       "Type": "AWS::IAM::InstanceProfile",
       "Properties": {
-        "InstanceProfileName": {
-          "Fn::Sub": "%s"
-        },
+        "InstanceProfileName": "%s",
         "Path": "/",
         "Roles": [
           {
@@ -162,9 +155,7 @@ var expectedTemplate = `{
           }
         ],
         "Path": "/",
-        "RoleName": {
-          "Fn::Sub": "eksctl-KarpenterNodeRole-test-karpenter"
-        },
+        "RoleName": "eksctl-KarpenterNodeRole-test-karpenter",
         "Tags": [
           {
             "Key": "Name",

@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	awsiam "github.com/aws/aws-sdk-go/service/iam"
@@ -16,7 +15,6 @@ import (
 	addons "github.com/weaveworks/eksctl/pkg/addons/default"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/iam"
-	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -52,106 +50,6 @@ func getNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) (int, error) {
 		logger.Info("node %q is %s", node.ObjectMeta.Name, ready)
 	}
 	return counter, nil
-}
-
-// ValidateFeatureCompatibility validates whether the cluster version supports the features specified in the
-// ClusterConfig. Support for Managed Nodegroups or Windows requires the EKS cluster version to be 1.14 and above.
-// Bottlerocket nodegroups are only supported on EKS version 1.15 and above
-// If the version requirement isn't met, an error is returned
-func ValidateFeatureCompatibility(clusterConfig *api.ClusterConfig, kubeNodeGroups []KubeNodeGroup) error {
-	if err := ValidateKMSSupport(clusterConfig, clusterConfig.Metadata.Version); err != nil {
-		return err
-	}
-	if err := ValidateManagedNodesSupport(clusterConfig); err != nil {
-		return err
-	}
-	if err := ValidateBottlerocketSupport(clusterConfig.Metadata.Version, kubeNodeGroups); err != nil {
-		return err
-	}
-
-	return ValidateWindowsCompatibility(kubeNodeGroups, clusterConfig.Metadata.Version)
-}
-
-// ValidateBottlerocketSupport validates support for Bottlerocket nodegroups
-func ValidateBottlerocketSupport(controlPlaneVersion string, kubeNodeGroups []KubeNodeGroup) error {
-	const minSupportedVersion = api.Version1_15
-
-	supportsBottlerocket, err := utils.IsMinVersion(minSupportedVersion, controlPlaneVersion)
-	if err != nil {
-		return err
-	}
-	if supportsBottlerocket {
-		return nil
-	}
-
-	for _, ng := range kubeNodeGroups {
-		if ng.GetAMIFamily() == api.NodeImageFamilyBottlerocket {
-			return errors.Errorf("Bottlerocket is only supported on EKS version %s and above", minSupportedVersion)
-		}
-	}
-	return nil
-}
-
-// ValidateManagedNodesSupport validates support for Managed Nodegroups
-func ValidateManagedNodesSupport(clusterConfig *api.ClusterConfig) error {
-	if len(clusterConfig.ManagedNodeGroups) > 0 {
-		minRequiredVersion := api.Version1_14
-		supportsManagedNodes, err := VersionSupportsManagedNodes(clusterConfig.Metadata.Version)
-		if err != nil {
-			return err
-		}
-		if !supportsManagedNodes {
-			return fmt.Errorf("Managed Nodegroups are only supported on EKS version %s and above", minRequiredVersion)
-		}
-	}
-	return nil
-}
-
-// VersionSupportsManagedNodes reports whether the control plane version can support Managed Nodes
-func VersionSupportsManagedNodes(controlPlaneVersion string) (bool, error) {
-	minRequiredVersion := api.Version1_14
-	supportsManagedNodes, err := utils.IsMinVersion(minRequiredVersion, controlPlaneVersion)
-	if err != nil {
-		return false, err
-	}
-	return supportsManagedNodes, nil
-}
-
-// ValidateWindowsCompatibility validates Windows compatibility
-func ValidateWindowsCompatibility(kubeNodeGroups []KubeNodeGroup, controlPlaneVersion string) error {
-	if !hasWindowsNode(kubeNodeGroups) {
-		return nil
-	}
-
-	supportsWindows, err := utils.IsMinVersion(api.Version1_14, controlPlaneVersion)
-	if err != nil {
-		return err
-	}
-	if !supportsWindows {
-		return errors.New("Windows nodes are only supported on Kubernetes 1.14 and above")
-	}
-	return nil
-}
-
-// ValidateKMSSupport validates support for KMS encryption
-func ValidateKMSSupport(clusterConfig *api.ClusterConfig, eksVersion string) error {
-	if clusterConfig.SecretsEncryption == nil {
-		return nil
-	}
-
-	const minReqVersion = api.Version1_13
-	supportsKMS, err := utils.IsMinVersion(minReqVersion, eksVersion)
-	if err != nil {
-		return errors.Wrap(err, "error validating KMS support")
-	}
-	if !supportsKMS {
-		return fmt.Errorf("secrets encryption with KMS is only supported for EKS version %s and above", minReqVersion)
-	}
-
-	if _, err := arn.Parse(clusterConfig.SecretsEncryption.KeyARN); err != nil {
-		return errors.Wrapf(err, "invalid ARN in secretsEncryption.keyARN: %q", clusterConfig.SecretsEncryption.KeyARN)
-	}
-	return nil
 }
 
 // SupportsWindowsWorkloads reports whether nodeGroups can support running Windows workloads

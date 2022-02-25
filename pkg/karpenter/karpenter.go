@@ -19,7 +19,6 @@ const (
 	aws                      = "aws"
 	clusterEndpoint          = "clusterEndpoint"
 	clusterName              = "clusterName"
-	controller               = "controller"
 	create                   = "create"
 	defaultInstanceProfile   = "defaultInstanceProfile"
 	helmChartName            = "karpenter/karpenter"
@@ -27,6 +26,7 @@ const (
 	releaseName              = "karpenter"
 	serviceAccount           = "serviceAccount"
 	serviceAccountAnnotation = "annotations"
+	serviceAccountName       = "name"
 )
 
 // Options contains values which Karpenter uses to configure the installation.
@@ -64,17 +64,14 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 	}
 	serviceAccountMap := map[string]interface{}{
 		create: api.IsEnabled(k.ClusterConfig.Karpenter.CreateServiceAccount),
-	}
-	if serviceAccountRoleARN != "" {
-		serviceAccountMap[serviceAccountAnnotation] = map[string]interface{}{
+		serviceAccountAnnotation: map[string]interface{}{
 			api.AnnotationEKSRoleARN: serviceAccountRoleARN,
-		}
+		},
+		serviceAccountName: DefaultServiceAccountName,
 	}
 	values := map[string]interface{}{
-		controller: map[string]interface{}{
-			clusterName:     k.ClusterConfig.Metadata.Name,
-			clusterEndpoint: k.ClusterConfig.Status.Endpoint,
-		},
+		clusterName:     k.ClusterConfig.Metadata.Name,
+		clusterEndpoint: k.ClusterConfig.Status.Endpoint,
 		aws: map[string]interface{}{
 			defaultInstanceProfile: instanceProfileName,
 		},
@@ -84,7 +81,7 @@ func (k *Installer) Install(ctx context.Context, serviceAccountRoleARN string, i
 	logger.Debug("the following values will be applied to the install: %+v", values)
 	if err := k.HelmInstaller.InstallChart(ctx, providers.InstallChartOpts{
 		ChartName:       helmChartName,
-		CreateNamespace: len(k.ClusterConfig.FargateProfiles) == 0,
+		CreateNamespace: true,
 		Namespace:       DefaultNamespace,
 		ReleaseName:     releaseName,
 		Values:          values,

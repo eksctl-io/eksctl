@@ -217,8 +217,7 @@ var _ = Describe("EKS API wrapper", func() {
 	})
 
 	type managedNodesSupportCase struct {
-		platformVersion   string
-		kubernetesVersion string
+		platformVersion string
 
 		expectError bool
 		supports    bool
@@ -230,7 +229,6 @@ var _ = Describe("EKS API wrapper", func() {
 			platform = aws.String(m.platformVersion)
 		}
 		cluster := &awseks.Cluster{
-			Version:         aws.String(m.kubernetesVersion),
 			PlatformVersion: platform,
 		}
 
@@ -240,68 +238,15 @@ var _ = Describe("EKS API wrapper", func() {
 		}
 		Expect(supportsManagedNodes).To(Equal(m.supports))
 	},
-		Entry("with minimum required versions", &managedNodesSupportCase{
-			platformVersion:   "eks.3",
-			kubernetesVersion: "1.14",
-			expectError:       false,
-			supports:          true,
-		}),
-		Entry("with newer version", &managedNodesSupportCase{
-			platformVersion:   "eks.6",
-			kubernetesVersion: "1.14",
-			expectError:       false,
-			supports:          true,
-		}),
 		Entry("with unsupported platform version", &managedNodesSupportCase{
-			platformVersion:   "eks.2",
-			kubernetesVersion: "1.14",
-			expectError:       false,
-			supports:          false,
-		}),
-		Entry("with unsupported Kubernetes version", &managedNodesSupportCase{
-			platformVersion:   "eks.3",
-			kubernetesVersion: "1.13",
-			expectError:       false,
-			supports:          false,
-		}),
-		Entry("with unsupported Kubernetes version", &managedNodesSupportCase{
-			platformVersion:   "eks.6",
-			kubernetesVersion: "1.13",
-			expectError:       false,
-			supports:          false,
+			platformVersion: "eks.2",
+			expectError:     false,
+			supports:        false,
 		}),
 		Entry("with invalid platform version", &managedNodesSupportCase{
-			platformVersion:   "eks.invalid",
-			kubernetesVersion: "1.14",
-			expectError:       true,
-			supports:          false,
-		}),
-		Entry("with invalid platform version", &managedNodesSupportCase{
-			platformVersion:   " eks.3",
-			kubernetesVersion: "1.14",
-			expectError:       true,
-			supports:          false,
-		}),
-		Entry("with invalid Kubernetes version", &managedNodesSupportCase{
-			platformVersion:   "eks.5",
-			kubernetesVersion: "1.",
-			expectError:       true,
-			supports:          false,
-		}),
-		Entry("with non-existent platform version", &managedNodesSupportCase{
-			kubernetesVersion: "1.",
-			expectError:       false,
-			supports:          false,
-		}),
-		Entry("with 1.15", &managedNodesSupportCase{
-			kubernetesVersion: "1.15",
-			expectError:       false,
-			supports:          true,
-		}),
-		Entry("with 1.16", &managedNodesSupportCase{
-			kubernetesVersion: "1.16",
-			expectError:       false,
-			supports:          true,
+			platformVersion: " eks.3",
+			expectError:     true,
+			supports:        false,
 		}),
 	)
 
@@ -403,49 +348,6 @@ var _ = Describe("EKS API wrapper", func() {
 		}),
 		Entry("eks.invalid should raise an error", &platformVersionCase{
 			platformVersion: "eks.invalid", expectedVersion: -1, expectError: true,
-		}),
-	)
-
-	type kmsSupportCase struct {
-		key               string
-		errSubstr         string
-		kubernetesVersion string
-	}
-
-	DescribeTable("KMS validation", func(k kmsSupportCase) {
-		clusterConfig := api.NewClusterConfig()
-		clusterConfig.Metadata.Version = k.kubernetesVersion
-
-		clusterConfig.SecretsEncryption = &api.SecretsEncryption{
-			KeyARN: k.key,
-		}
-		err := ValidateFeatureCompatibility(clusterConfig, nil)
-		if k.errSubstr != "" {
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(k.errSubstr))
-		} else {
-			Expect(err).NotTo(HaveOccurred())
-		}
-	},
-		Entry("Invalid ARN", kmsSupportCase{
-			key:               "invalid:arn",
-			errSubstr:         "invalid ARN",
-			kubernetesVersion: "1.14",
-		}),
-		Entry("Valid ARN", kmsSupportCase{
-			key:               "arn:aws:kms:us-west-2:000000000000:key/12345-12345",
-			errSubstr:         "",
-			kubernetesVersion: "1.14",
-		}),
-		Entry("Supports K8s 1.13", kmsSupportCase{
-			key:               "arn:aws:kms:us-west-2:000000000000:key/12345-12345",
-			errSubstr:         "",
-			kubernetesVersion: "1.13",
-		}),
-		Entry("Unsupported K8s version", kmsSupportCase{
-			key:               "arn:aws:kms:us-west-2:000000000000:key/12345-12345",
-			errSubstr:         "KMS is only supported for EKS version 1.13 and above",
-			kubernetesVersion: "1.12",
 		}),
 	)
 })

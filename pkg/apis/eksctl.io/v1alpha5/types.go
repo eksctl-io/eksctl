@@ -806,7 +806,6 @@ func NewClusterVPC(ipv6Enabled bool) *ClusterVPC {
 		ManageSharedNodeSecurityGroupRules: Enabled(),
 		NAT:                                nat,
 		AutoAllocateIPv6:                   Disabled(),
-		ClusterEndpoints:                   &ClusterEndpoints{},
 	}
 }
 

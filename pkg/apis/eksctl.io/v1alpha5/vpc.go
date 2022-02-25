@@ -6,6 +6,7 @@ import (
 	"net"
 	"reflect"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
@@ -406,10 +407,8 @@ func EndpointsEqual(a, b ClusterEndpoints) bool {
 //HasClusterEndpointAccess determines if endpoint access was configured in config file or not
 func (c *ClusterConfig) HasClusterEndpointAccess() bool {
 	if c.VPC != nil && c.VPC.ClusterEndpoints != nil {
-		pubAccess := c.VPC.ClusterEndpoints.PublicAccess
-		privAccess := c.VPC.ClusterEndpoints.PrivateAccess
-		hasPublicAccess := pubAccess != nil && *pubAccess
-		hasPrivateAccess := privAccess != nil && *privAccess
+		hasPublicAccess := aws.BoolValue(c.VPC.ClusterEndpoints.PublicAccess)
+		hasPrivateAccess := aws.BoolValue(c.VPC.ClusterEndpoints.PrivateAccess)
 		return hasPublicAccess || hasPrivateAccess
 	}
 	return true
