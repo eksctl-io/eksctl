@@ -54,7 +54,7 @@ func fingerprint(filePath string, key []byte) (string, error) {
 		return "", fmt.Errorf("parsing key %q: %w", filePath, err)
 	}
 
-	if strings.Contains(pk.Type(), "ed25519") {
+	if pk.Type() == "ssh-ed25519" {
 		return strings.TrimPrefix(ssh.FingerprintSHA256(pk), "SHA256:"), nil
 	}
 
