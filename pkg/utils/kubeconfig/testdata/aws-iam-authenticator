@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+if [[ "${1}" == "fail" ]]; then
+  exit 1
+fi
+echo "$@"
