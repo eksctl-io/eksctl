@@ -36,8 +36,9 @@ const (
 	betaAPIVersion  = "client.authentication.k8s.io/v1beta1"
 )
 
-// CheckAuthenticatorVersion contains the function which is responsible to detect aws-iam-authenticator version.
-var CheckAuthenticatorVersion = getAWSIAMAuthenticatorVersion
+type ExecCommandFunc func(name string, arg ...string) *exec.Cmd
+
+var execCommand = exec.Command
 
 // DefaultPath defines the default path
 func DefaultPath() string {
@@ -213,7 +214,7 @@ type AWSAuthenticatorVersionFormat struct {
 }
 
 func authenticatorIsAboveVersion(version string) (bool, error) {
-	authenticatorVersion, err := CheckAuthenticatorVersion()
+	authenticatorVersion, err := getAWSIAMAuthenticatorVersion()
 	if err != nil {
 		return false, fmt.Errorf("failed to retrieve authenticator version: %w", err)
 	}
@@ -225,7 +226,7 @@ func authenticatorIsAboveVersion(version string) (bool, error) {
 }
 
 func getAWSIAMAuthenticatorVersion() (string, error) {
-	cmd := exec.Command(AWSIAMAuthenticator, "version")
+	cmd := execCommand(AWSIAMAuthenticator, "version")
 	output, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("failed to run aws-iam-authenticator version command: %w", err)
