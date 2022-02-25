@@ -108,7 +108,6 @@ func (a *Manager) updateWithNewPolicies(addon *api.Addon) (string, error) {
 	var templateBody manager.TemplateBody = createNewTemplate
 	err = a.stackManager.UpdateStack(manager.UpdateStackOptions{
 		Stack:         stack,
-		StackName:     *stack.StackName,
 		ChangeSetName: fmt.Sprintf("updating-policy-%s", uuid.NewString()),
 		Description:   "updating policies",
 		TemplateData:  templateBody,
