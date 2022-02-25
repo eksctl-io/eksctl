@@ -32,12 +32,13 @@ func LoadKeyFromFile(filePath, clusterName, ngName string, ec2API ec2iface.EC2AP
 		return "", errors.Wrap(err, fmt.Sprintf("reading SSH public key file %q", filePath))
 	}
 
-	key := string(fileContent)
 	fingerprint, err := fingerprint(filePath, fileContent)
-	keyName := getKeyName(clusterName, ngName, fingerprint)
 	if err != nil {
 		return "", err
 	}
+
+	key := string(fileContent)
+	keyName := getKeyName(clusterName, ngName, fingerprint)
 	logger.Info("using SSH public key %q as %q ", expandedPath, keyName)
 
 	// Import SSH key in EC2
