@@ -14,12 +14,15 @@ import (
 
 var _ = Describe("ssh public key", func() {
 	var (
-		clusterName = "sshtestcluster"
-		ngName      = "ng1"
-		key         = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDcSoNjWaJaw+MYBz43lgm12ZGdP+zRs9o0sXAGbiQua6e3JSkAiH4p9YZHmWxCTjckbiEdXN5qcs5OC5KUxYBvnEgor7jEydcKe1ZJXqsm/8CrtnJMTNcO9QVFnXfjvpkNjgNYj+8w9PcFRr0JDgDhRb52JvPWoqywv/Om9s1hpUov0gxDIl6CLLHSk0lmXZEhtVMMJmo0Tu/NlHqdky2DxFgHyNjBcMNpiBd8bs3dA5xf36dY+qgcXBV23i1SCgbqn9xcw1Q0IrHuQ4/QB+PJ5haxUx0bnOTahxSZ+tlEz9EiLwlM8VtKo3ND/giBvGaXuIK2iGDL0kSCRjueM5/3 user@example\n"
-		keyName     = "eksctl-sshtestcluster-nodegroup-ng1-f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"
-		fingerprint = "f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"
-		mockEC2     *mocks.EC2API
+		clusterName        = "sshtestcluster"
+		ngName             = "ng1"
+		rsaKey             = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDcSoNjWaJaw+MYBz43lgm12ZGdP+zRs9o0sXAGbiQua6e3JSkAiH4p9YZHmWxCTjckbiEdXN5qcs5OC5KUxYBvnEgor7jEydcKe1ZJXqsm/8CrtnJMTNcO9QVFnXfjvpkNjgNYj+8w9PcFRr0JDgDhRb52JvPWoqywv/Om9s1hpUov0gxDIl6CLLHSk0lmXZEhtVMMJmo0Tu/NlHqdky2DxFgHyNjBcMNpiBd8bs3dA5xf36dY+qgcXBV23i1SCgbqn9xcw1Q0IrHuQ4/QB+PJ5haxUx0bnOTahxSZ+tlEz9EiLwlM8VtKo3ND/giBvGaXuIK2iGDL0kSCRjueM5/3 user@example\n"
+		ed25519Key         = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBoB6Gtu8zPAPO1yF4OwysWUD8ZSEQYzMpOT0YvF9qJV user@example\n"
+		keyName            = "eksctl-sshtestcluster-nodegroup-ng1-f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"
+		ed25519KeyName     = "eksctl-sshtestcluster-nodegroup-ng1-HvE7+gmH78VS53+iPuRDh/gKjVo26OzYU/qOnJWAgyk"
+		rsaFingerprint     = "f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"
+		ed25519Fingerprint = "HvE7+gmH78VS53+iPuRDh/gKjVo26OzYU/qOnJWAgyk"
+		mockEC2            *mocks.EC2API
 	)
 
 	BeforeEach(func() {
@@ -30,7 +33,7 @@ var _ = Describe("ssh public key", func() {
 
 		It("should import the key", func() {
 			mockDescribeKeyPairs(mockEC2, make(map[string]string))
-			mockImportKeyPair(mockEC2, keyName, fingerprint, key)
+			mockImportKeyPair(mockEC2, keyName, rsaFingerprint, rsaKey)
 
 			keyName, err := LoadKeyFromFile("assets/id_rsa_tests1.pub", clusterName, ngName, mockEC2)
 
@@ -40,12 +43,12 @@ var _ = Describe("ssh public key", func() {
 				"ImportKeyPair",
 				&ec2.ImportKeyPairInput{
 					KeyName:           &keyName,
-					PublicKeyMaterial: []byte(key),
+					PublicKeyMaterial: []byte(rsaKey),
 				})
 		})
 
 		It("should not import key that already exists in EC2", func() {
-			mockDescribeKeyPairs(mockEC2, map[string]string{keyName: fingerprint})
+			mockDescribeKeyPairs(mockEC2, map[string]string{keyName: rsaFingerprint})
 			mockImportKeyPairError(mockEC2, errors.New("the key shouldn't be imported in this test"))
 
 			keyName, err := LoadKeyFromFile("assets/id_rsa_tests1.pub", clusterName, ngName, mockEC2)
@@ -71,14 +74,39 @@ var _ = Describe("ssh public key", func() {
 
 			Expect(err).To(HaveOccurred())
 		})
+
+		When("they key is of type ed25519", func() {
+			It("loads the key", func() {
+				mockDescribeKeyPairs(mockEC2, make(map[string]string))
+				mockImportKeyPair(mockEC2, ed25519KeyName, ed25519Fingerprint, ed25519Key)
+
+				keyName, err := LoadKeyFromFile("assets/id_ed25519_tests1.pub", clusterName, ngName, mockEC2)
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(keyName).To(Equal("eksctl-sshtestcluster-nodegroup-ng1-HvE7+gmH78VS53+iPuRDh/gKjVo26OzYU/qOnJWAgyk"))
+				mockEC2.AssertCalled(GinkgoT(),
+					"ImportKeyPair",
+					&ec2.ImportKeyPairInput{
+						KeyName:           &keyName,
+						PublicKeyMaterial: []byte(ed25519Key),
+					})
+			})
+		})
+
+		When("they key is invalid", func() {
+			It("errors", func() {
+				_, err := LoadKeyFromFile("assets/invalid.pub", clusterName, ngName, mockEC2)
+				Expect(err).To(MatchError(ContainSubstring("parsing key \"assets/invalid.pub\"")))
+			})
+		})
 	})
 
 	Describe("loading by the key content", func() {
 		It("should import it", func() {
 			mockDescribeKeyPairs(mockEC2, make(map[string]string))
-			mockImportKeyPair(mockEC2, keyName, fingerprint, key)
+			mockImportKeyPair(mockEC2, keyName, rsaFingerprint, rsaKey)
 
-			keyName, err := LoadKeyByContent(&key, clusterName, ngName, mockEC2)
+			keyName, err := LoadKeyByContent(&rsaKey, clusterName, ngName, mockEC2)
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(keyName).To(Equal("eksctl-sshtestcluster-nodegroup-ng1-f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"))
@@ -86,15 +114,15 @@ var _ = Describe("ssh public key", func() {
 				"ImportKeyPair",
 				&ec2.ImportKeyPairInput{
 					KeyName:           &keyName,
-					PublicKeyMaterial: []byte(key),
+					PublicKeyMaterial: []byte(rsaKey),
 				})
 		})
 
 		It("should not import key that already exists in EC2", func() {
-			mockDescribeKeyPairs(mockEC2, map[string]string{keyName: fingerprint})
+			mockDescribeKeyPairs(mockEC2, map[string]string{keyName: rsaFingerprint})
 			mockImportKeyPairError(mockEC2, errors.New("the key shouldn't be imported in this test"))
 
-			keyName, err := LoadKeyByContent(&key, clusterName, ngName, mockEC2)
+			keyName, err := LoadKeyByContent(&rsaKey, clusterName, ngName, mockEC2)
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(keyName).To(Equal("eksctl-sshtestcluster-nodegroup-ng1-f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"))
@@ -106,7 +134,7 @@ var _ = Describe("ssh public key", func() {
 			mockDescribeKeyPairs(mockEC2, map[string]string{keyName: differentFingerprint})
 			mockImportKeyPairError(mockEC2, errors.New("the key shouldn't be imported in this test"))
 
-			_, err := LoadKeyByContent(&key, clusterName, ngName, mockEC2)
+			_, err := LoadKeyByContent(&rsaKey, clusterName, ngName, mockEC2)
 
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("but fingerprints don't match"))
@@ -146,7 +174,7 @@ var _ = Describe("ssh public key", func() {
 
 	Describe("checking in EC2", func() {
 		It("should not fail when key exits", func() {
-			mockDescribeKeyPairs(mockEC2, map[string]string{keyName: fingerprint})
+			mockDescribeKeyPairs(mockEC2, map[string]string{keyName: rsaFingerprint})
 
 			err := CheckKeyExistsInEC2(keyName, mockEC2)
 
