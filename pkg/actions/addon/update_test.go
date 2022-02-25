@@ -283,6 +283,7 @@ var _ = Describe("Update", func() {
 
 						Expect(fakeStackManager.UpdateStackCallCount()).To(Equal(1))
 						options := fakeStackManager.UpdateStackArgsForCall(0)
+						Expect(options.StackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
 						Expect(*options.Stack.StackName).To(Equal("eksctl-my-cluster-addon-vpc-cni"))
 						Expect(options.ChangeSetName).To(ContainSubstring("updating-policy"))
 						Expect(options.Description).To(Equal("updating policies"))
