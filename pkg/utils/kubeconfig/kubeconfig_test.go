@@ -2,16 +2,19 @@ package kubeconfig_test
 
 import (
 	"os"
+	"os/exec"
 	"path"
+	"path/filepath"
 	"sync"
-
-	eksctlapi "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/tools/clientcmd/api"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/tools/clientcmd/api"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+
+	eksctlapi "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 var _ = Describe("Kubeconfig", func() {
@@ -352,5 +355,63 @@ var _ = Describe("Kubeconfig", func() {
 
 		wg.Wait()
 
+	})
+	Context("AppendAuthenticator", func() {
+		var (
+			config      *clientcmdapi.Config
+			clusterMeta *eksctlapi.ClusterMeta
+		)
+		BeforeEach(func() {
+			config = &clientcmdapi.Config{
+				AuthInfos:      map[string]*clientcmdapi.AuthInfo{},
+				CurrentContext: "test",
+			}
+			clusterMeta = &eksctlapi.ClusterMeta{
+				Region: "us-west-2",
+				Name:   "name",
+			}
+		})
+		It("writes the right api version if aws-iam-authenticator version is below 0.5.3", func() {
+			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
+				return exec.Command(filepath.Join("testdata", "aws-iam-authenticator"), `{"Version":"0.5.1","Commit":"85e50980d9d916ae95882176c18f14ae145f916f"}`)
+			})
+			kubeconfig.AppendAuthenticator(config, clusterMeta, kubeconfig.AWSIAMAuthenticator, "", "")
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
+		})
+		It("writes the right api version if aws-iam-authenticator version is above 0.5.3", func() {
+			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
+				return exec.Command(filepath.Join("testdata", "aws-iam-authenticator"), `{"Version":"0.5.5","Commit":"85e50980d9d916ae95882176c18f14ae145f916f"}`)
+			})
+			kubeconfig.AppendAuthenticator(config, clusterMeta, kubeconfig.AWSIAMAuthenticator, "", "")
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1beta1"))
+		})
+		It("writes the right api version if aws-iam-authenticator version equals 0.5.3", func() {
+			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
+				return exec.Command(filepath.Join("testdata", "aws-iam-authenticator"), `{"Version":"0.5.3","Commit":"85e50980d9d916ae95882176c18f14ae145f916f"}`)
+			})
+			kubeconfig.AppendAuthenticator(config, clusterMeta, kubeconfig.AWSIAMAuthenticator, "", "")
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1beta1"))
+		})
+		It("defaults to alpha1 if we fail to detect aws-iam-authenticator version", func() {
+			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
+				return exec.Command(filepath.Join("testdata", "aws-iam-authenticator"), "fail")
+			})
+			kubeconfig.AppendAuthenticator(config, clusterMeta, kubeconfig.AWSIAMAuthenticator, "", "")
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
+		})
+		It("defaults to alpha1 if we fail to parse the output", func() {
+			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
+				return exec.Command(filepath.Join("testdata", "aws-iam-authenticator"), "not-json-output")
+			})
+			kubeconfig.AppendAuthenticator(config, clusterMeta, kubeconfig.AWSIAMAuthenticator, "", "")
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
+		})
+		It("defaults to alpha1 if we can't parse the version because it's a dev version", func() {
+			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
+				return exec.Command(filepath.Join("testdata", "aws-iam-authenticator"), `{"Version":"git-85e50980","Commit":"85e50980d9d916ae95882176c18f14ae145f916f"}`)
+			})
+			kubeconfig.AppendAuthenticator(config, clusterMeta, kubeconfig.AWSIAMAuthenticator, "", "")
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
+		})
 	})
 })
