@@ -482,7 +482,7 @@ git push <remote-name> <feature-name>
 
 If your PR is still a work in progress, please open a [Draft PR](https://github.blog/2019-02-14-introducing-draft-pull-requests/).
 
-Our CircleCI integration will run the automated tests and give you feedback in the review section. We will review your
+Our GitHub Actions integration will run the automated tests and give you feedback in the review section. We will review your
 changes and give you feedback as soon as possible. We also encourage people to post
 links to their PRs in slack to get more eyes on the work.
 
