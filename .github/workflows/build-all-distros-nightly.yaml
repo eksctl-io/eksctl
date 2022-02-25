@@ -27,9 +27,9 @@ jobs:
       - name: Setup deps
         run: |
           make install-build-deps
+      - name: build image
+        run: |
+          EKSCTL_IMAGE_VERSION=${GITHUB_REF#refs/*/} make -f Makefile.docker eksctl-image
       - name: build all
         run: |
           make build-all
-      - name: build image
-        run: |
-          make -f Makefile.docker eksctl-image
