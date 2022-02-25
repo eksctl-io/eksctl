@@ -360,14 +360,17 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 				return fmt.Errorf("failed to create addons")
 			}
 		}
-		config := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), params.AuthenticatorRoleARN, ctl.Provider.Profile())
-		kubeConfigBytes, err := runtime.Encode(clientcmdlatest.Codec, config)
-		if err != nil {
-			return errors.Wrap(err, "generating kubeconfig")
-		}
+
 		// After we have the cluster config and all the nodes are done, we install Karpenter if necessary.
-		if err := installKarpenter(ctl, cfg, stackManager, clientSet, kubernetes.NewRESTClientGetter("karpenter", string(kubeConfigBytes))); err != nil {
-			return err
+		if cfg.Karpenter != nil {
+			config := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), params.AuthenticatorRoleARN, ctl.Provider.Profile())
+			kubeConfigBytes, err := runtime.Encode(clientcmdlatest.Codec, config)
+			if err != nil {
+				return errors.Wrap(err, "generating kubeconfig")
+			}
+			if err := installKarpenter(ctl, cfg, stackManager, clientSet, kubernetes.NewRESTClientGetter("karpenter", string(kubeConfigBytes))); err != nil {
+				return err
+			}
 		}
 
 		if cfg.HasGitOpsFluxConfigured() {
@@ -416,10 +419,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 // - identity mapping
 // then proceeds with installing Karpenter using Helm.
 func installKarpenter(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, stackManager manager.StackManager, clientSet *kubeclient.Clientset, restClientGetter *kubernetes.SimpleRESTClientGetter) error {
-	if cfg.Karpenter == nil {
-		return nil
-	}
-
 	installer, err := karpenteractions.NewInstaller(cfg, ctl, stackManager, clientSet, restClientGetter)
 	if err != nil {
 		return fmt.Errorf("failed to create installer: %w", err)

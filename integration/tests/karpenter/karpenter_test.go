@@ -61,11 +61,7 @@ var _ = Describe("(Integration) Karpenter", func() {
 			Expect(err).NotTo(HaveOccurred())
 			// Check webhook pod
 			Expect(kubeTest.WaitForPodsReady(karpenter.DefaultNamespace, metav1.ListOptions{
-				LabelSelector: "karpenter=webhook",
-			}, 1, 10*time.Minute)).To(Succeed())
-			// Check controller pod
-			Expect(kubeTest.WaitForPodsReady(karpenter.DefaultNamespace, metav1.ListOptions{
-				LabelSelector: "karpenter=controller",
+				LabelSelector: "app.kubernetes.io/instance=karpenter",
 			}, 1, 10*time.Minute)).To(Succeed())
 		})
 	})

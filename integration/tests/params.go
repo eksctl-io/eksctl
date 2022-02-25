@@ -261,7 +261,7 @@ func (p *Params) attemptSettingUserID() {
 	if len(parts) == 2 {
 		parts = strings.Split(parts[1], "@")
 		if len(parts) == 2 {
-			p.userID = parts[0][:4]
+			p.userID = parts[0][:2]
 			return
 		}
 	}
