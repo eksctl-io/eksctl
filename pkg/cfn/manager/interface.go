@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
@@ -29,6 +30,8 @@ type GetNodegroupOption struct {
 	Stack         *NodeGroupStack
 	NodeGroupName string
 }
+
+var _ StackManager = &StackCollection{}
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_stack_manager.go . StackManager
@@ -63,7 +66,8 @@ type StackManager interface {
 	GetNodeGroupName(s *Stack) string
 	GetNodeGroupStackType(options GetNodegroupOption) (v1alpha5.NodeGroupType, error)
 	GetStackTemplate(stackName string) (string, error)
-	GetUnmanagedNodeGroupSummaries(name string) ([]*NodeGroupSummary, error)
+	GetAutoScalingGroupDesiredCapacity(name string) (autoscaling.Group, error)
+	GetUnmanagedNodeGroupAutoScalingGroupName(s *Stack) (string, error)
 	HasClusterStackUsingCachedList(clusterStackNames []string, clusterName string) (bool, error)
 	ListClusterStackNames() ([]string, error)
 	ListIAMServiceAccountStacks() ([]string, error)

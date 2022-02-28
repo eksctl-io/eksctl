@@ -1,10 +1,12 @@
 package nodegroup_test
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -15,10 +17,11 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("Get", func() {
@@ -35,6 +38,7 @@ var _ = Describe("Get", func() {
 	BeforeEach(func() {
 		t = time.Now()
 		ngName = "my-nodegroup"
+		stackName = "stack-name"
 		clusterName = "my-cluster"
 		cfg = api.NewClusterConfig()
 		cfg.Metadata.Name = clusterName
@@ -110,8 +114,8 @@ var _ = Describe("Get", func() {
 					Expect(summaries).To(HaveLen(1))
 
 					ngSummary := *summaries[0]
-					Expect(ngSummary).To(Equal(manager.NodeGroupSummary{
-						StackName:            "",
+					Expect(ngSummary).To(Equal(nodegroup.Summary{
+						StackName:            stackName,
 						Cluster:              clusterName,
 						Name:                 ngName,
 						Status:               "my-status",
@@ -174,7 +178,7 @@ var _ = Describe("Get", func() {
 					Expect(summaries).To(HaveLen(1))
 
 					ngSummary := *summaries[0]
-					Expect(ngSummary).To(Equal(manager.NodeGroupSummary{
+					Expect(ngSummary).To(Equal(nodegroup.Summary{
 						StackName:            "",
 						Cluster:              clusterName,
 						Name:                 ngName,
@@ -237,7 +241,7 @@ var _ = Describe("Get", func() {
 					summary, err := m.Get(ngName)
 					Expect(err).NotTo(HaveOccurred())
 
-					Expect(*summary).To(Equal(manager.NodeGroupSummary{
+					Expect(*summary).To(Equal(nodegroup.Summary{
 						StackName:            "",
 						Cluster:              clusterName,
 						Name:                 ngName,
@@ -316,7 +320,7 @@ var _ = Describe("Get", func() {
 					Expect(summaries).To(HaveLen(1))
 
 					ngSummary := *summaries[0]
-					Expect(ngSummary).To(Equal(manager.NodeGroupSummary{
+					Expect(ngSummary).To(Equal(nodegroup.Summary{
 						StackName:            "",
 						Cluster:              clusterName,
 						Name:                 ngName,
@@ -387,8 +391,8 @@ var _ = Describe("Get", func() {
 				Expect(summaries).To(HaveLen(1))
 
 				ngSummary := *summaries[0]
-				Expect(ngSummary).To(Equal(manager.NodeGroupSummary{
-					StackName:            "",
+				Expect(ngSummary).To(Equal(nodegroup.Summary{
+					StackName:            stackName,
 					Cluster:              clusterName,
 					Name:                 ngName,
 					Status:               "my-status",
@@ -407,71 +411,144 @@ var _ = Describe("Get", func() {
 		})
 
 		Context("when getting unmanaged nodegroups", func() {
-			When("the DesiredCapacity is 0", func() {
-				BeforeEach(func() {
-					p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+			var (
+				creationTime           = time.Now()
+				unmanagedStackName     = "unmanaged-stack"
+				unmanagedNodegroupName = "unmanaged-ng"
+				unmanagedTemplate      = `
+{
+  "Resources": {
+    "NodeGroup": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "DesiredCapacity": "3",
+        "MaxSize": "6",
+        "MinSize": "1"
+      }
+    }
+  }
+}
+
+`
+			)
+
+			BeforeEach(func() {
+				//unmanaged nodegroup
+				fakeStackManager.DescribeNodeGroupStacksReturns([]*cloudformation.Stack{
+					{
+						StackName: aws.String(unmanagedStackName),
+						Tags: []*cloudformation.Tag{
+							{
+								Key:   aws.String(api.NodeGroupNameTag),
+								Value: aws.String(unmanagedNodegroupName),
+							},
+							{
+								Key:   aws.String(api.ClusterNameTag),
+								Value: aws.String(clusterName),
+							},
+						},
+						StackStatus:  aws.String("CREATE_COMPLETE"),
+						CreationTime: aws.Time(creationTime),
+					},
+				}, nil)
+				fakeStackManager.GetStackTemplateReturns(unmanagedTemplate, nil)
+				fakeStackManager.GetUnmanagedNodeGroupAutoScalingGroupNameReturns("asg", nil)
+				fakeStackManager.GetAutoScalingGroupDesiredCapacityReturns(autoscaling.Group{
+					DesiredCapacity: aws.Int64(50),
+					MinSize:         aws.Int64(1),
+					MaxSize:         aws.Int64(100),
+				}, nil)
+
+				_, _ = fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &corev1.Node{
+					ObjectMeta: metav1.ObjectMeta{
+						Labels: map[string]string{
+							"alpha.eksctl.io/nodegroup-name": unmanagedNodegroupName,
+						},
+					},
+					Status: corev1.NodeStatus{
+						NodeInfo: corev1.NodeSystemInfo{
+							KubeletVersion: "1.21.1",
+						},
+					},
+				}, metav1.CreateOptions{})
+				fakeStackManager.GetNodeGroupNameReturns(unmanagedNodegroupName)
+
+				//managed nodegroup
+				p.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+					ClusterName:   aws.String(clusterName),
+					NodegroupName: aws.String(ngName),
+				}).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(1))
+					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeNodegroupInput{
 						ClusterName:   aws.String(clusterName),
 						NodegroupName: aws.String(ngName),
-					}).Run(func(args mock.Arguments) {
-						Expect(args).To(HaveLen(1))
-						Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeNodegroupInput{
-							ClusterName:   aws.String(clusterName),
-							NodegroupName: aws.String(ngName),
-						}))
-					}).Return(&awseks.DescribeNodegroupOutput{
-						Nodegroup: &awseks.Nodegroup{
-							NodegroupName: aws.String(ngName),
-							ClusterName:   aws.String(clusterName),
-							Status:        aws.String("my-status"),
-							ScalingConfig: &awseks.NodegroupScalingConfig{
-								DesiredSize: aws.Int64(2),
-								MaxSize:     aws.Int64(4),
-								MinSize:     aws.Int64(0),
-							},
-							InstanceTypes: []*string{},
-							AmiType:       aws.String("ami-type"),
-							CreatedAt:     &t,
-							NodeRole:      aws.String("node-role"),
-							Resources: &awseks.NodegroupResources{
-								AutoScalingGroups: []*awseks.AutoScalingGroup{
-									{
-										Name: aws.String("asg-name"),
-									},
+					}))
+				}).Return(&awseks.DescribeNodegroupOutput{
+					Nodegroup: &awseks.Nodegroup{
+						NodegroupName: aws.String(ngName),
+						ClusterName:   aws.String(clusterName),
+						Status:        aws.String("my-status"),
+						ScalingConfig: &awseks.NodegroupScalingConfig{
+							DesiredSize: aws.Int64(2),
+							MaxSize:     aws.Int64(4),
+							MinSize:     aws.Int64(0),
+						},
+						InstanceTypes: []*string{},
+						AmiType:       aws.String("ami-type"),
+						CreatedAt:     &t,
+						NodeRole:      aws.String("node-role"),
+						Resources: &awseks.NodegroupResources{
+							AutoScalingGroups: []*awseks.AutoScalingGroup{
+								{
+									Name: aws.String("asg-name"),
 								},
 							},
-							Version: aws.String("1.18"),
 						},
-					}, nil)
+						Version: aws.String("1.18"),
+					},
+				}, nil)
 
-					fakeStackManager.DescribeNodeGroupStackReturns(&cloudformation.Stack{
-						StackName: aws.String(stackName),
-					}, nil)
-				})
+				fakeStackManager.DescribeNodeGroupStackReturns(&cloudformation.Stack{
+					StackName: aws.String(stackName),
+				}, nil)
+			})
 
-				It("does not return the k8s version of the nodes", func() {
-					fakeStackManager.GetUnmanagedNodeGroupSummariesReturns([]*manager.NodeGroupSummary{
-						{
-							DesiredCapacity: 0,
-							Cluster:         clusterName,
-							Name:            ngName,
-							NodeGroupType:   api.NodeGroupTypeUnmanaged,
-						},
-					}, nil)
+			It("returns the nodegroups with the kubernetes version", func() {
+				summaries, err := m.GetAll()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(summaries).To(HaveLen(2))
 
-					summaries, err := m.GetAll()
-					Expect(err).NotTo(HaveOccurred())
-					Expect(summaries).To(HaveLen(2))
+				unmanagedSummary := *summaries[0]
+				Expect(unmanagedSummary).To(Equal(nodegroup.Summary{
+					StackName:            unmanagedStackName,
+					Cluster:              clusterName,
+					Name:                 unmanagedNodegroupName,
+					Status:               "CREATE_COMPLETE",
+					AutoScalingGroupName: "asg",
+					MaxSize:              100,
+					DesiredCapacity:      50,
+					MinSize:              1,
+					Version:              "1.21.1",
+					CreationTime:         creationTime,
+					NodeGroupType:        api.NodeGroupTypeUnmanaged,
+				}))
 
-					unmanagedSummary := *summaries[0]
-					Expect(unmanagedSummary).To(Equal(manager.NodeGroupSummary{
-						StackName:       "",
-						Cluster:         clusterName,
-						Name:            ngName,
-						DesiredCapacity: 0,
-						Version:         "",
-						NodeGroupType:   api.NodeGroupTypeUnmanaged,
-					}))
-				})
+				Expect(*summaries[1]).To(Equal(nodegroup.Summary{
+					StackName:            stackName,
+					Cluster:              clusterName,
+					Name:                 ngName,
+					Status:               "my-status",
+					MaxSize:              4,
+					MinSize:              0,
+					DesiredCapacity:      2,
+					InstanceType:         "-",
+					ImageID:              "ami-type",
+					CreationTime:         t,
+					NodeInstanceRoleARN:  "node-role",
+					AutoScalingGroupName: "asg-name",
+					Version:              "1.18",
+					NodeGroupType:        api.NodeGroupTypeManaged,
+				}))
 			})
 		})
 	})
