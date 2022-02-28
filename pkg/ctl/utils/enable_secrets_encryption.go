@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
@@ -67,7 +66,7 @@ func doEnableSecretsEncryption(cmd *cmdutils.Cmd, encryptExistingSecrets bool) e
 		return err
 	}
 
-	if err := eks.ValidateKMSSupport(clusterConfig, ctl.ControlPlaneVersion()); err != nil {
+	if err := api.ValidateSecretsEncryption(clusterConfig); err != nil {
 		return err
 	}
 

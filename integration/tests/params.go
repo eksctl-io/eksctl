@@ -8,12 +8,15 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/sts"
 	. "github.com/onsi/ginkgo"
 
 	"github.com/weaveworks/eksctl/integration/runner"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 )
 
@@ -23,6 +26,7 @@ const (
 
 // Params groups all test parameters.
 type Params struct {
+	userID     string
 	EksctlPath string
 	Region     string
 	Version    string
@@ -158,6 +162,9 @@ func (p *Params) NewClusterName(prefix string) string {
 
 func (p *Params) formatClusterName(prefix string, name string) string {
 	clusterName := fmt.Sprintf("it-%s-%s", prefix, name)
+	if p.userID != "" {
+		clusterName = p.userID + "-" + clusterName
+	}
 	p.addToDeleteList(clusterName)
 	return clusterName
 }
@@ -203,6 +210,8 @@ func NewParams(clusterNamePrefix string) *Params {
 
 	// go1.13+ testing flags regression fix: https://github.com/golang/go/issues/31859
 	flag.Parse()
+
+	params.attemptSettingUserID()
 	if params.ClusterName == "" {
 		params.ClusterName = params.NewClusterName(clusterNamePrefix)
 	} else {
@@ -216,4 +225,45 @@ func NewParams(clusterNamePrefix string) *Params {
 	}
 	params.GenerateCommands()
 	return &params
+}
+
+// attemptSettingUserID will attempt to fetch the first 4 characters of the userID running the
+// integration tests to be used as a prefix for cluster names. It fails silently if an error occurs
+func (p *Params) attemptSettingUserID() {
+	clusterProvider, err := eks.New(&api.ProviderConfig{Region: p.Region}, &api.ClusterConfig{
+		TypeMeta: api.ClusterConfigTypeMeta(),
+		Metadata: &api.ClusterMeta{
+			Version: p.Version,
+			Name:    p.ClusterName,
+			Region:  p.Region,
+		},
+	})
+
+	msg := "Warning: failed to get UserID, proceeding without configuring cluster name prefix. Error: %w"
+	if err != nil {
+		fmt.Fprintf(GinkgoWriter, msg, err)
+		return
+	}
+
+	out, err := clusterProvider.Provider.STS().GetCallerIdentity(&sts.GetCallerIdentityInput{})
+	if err != nil {
+		fmt.Fprintf(GinkgoWriter, msg, err)
+		return
+	}
+
+	if out.UserId == nil {
+		fmt.Fprintf(GinkgoWriter, msg, fmt.Errorf("UserId value not set in AWS response"))
+		return
+	}
+
+	//example value: ABCD1234:my-name@email-provider
+	parts := strings.Split(*out.UserId, ":")
+	if len(parts) == 2 {
+		parts = strings.Split(parts[1], "@")
+		if len(parts) == 2 {
+			p.userID = parts[0][:2]
+			return
+		}
+	}
+	fmt.Fprintf(GinkgoWriter, msg, fmt.Errorf("failed to split UserID %q into parts", *out.UserId))
 }

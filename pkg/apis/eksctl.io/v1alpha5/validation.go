@@ -125,12 +125,16 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return err
 	}
 
+	if err := validateAvailabilityZones(cfg.AvailabilityZones); err != nil {
+		return err
+	}
+
 	if err := cfg.ValidateVPCConfig(); err != nil {
 		return err
 	}
 
-	if cfg.SecretsEncryption != nil && cfg.SecretsEncryption.KeyARN == "" {
-		return errors.New("field secretsEncryption.keyARN is required for enabling secrets encryption")
+	if err := ValidateSecretsEncryption(cfg); err != nil {
+		return err
 	}
 
 	if err := validateKarpenterConfig(cfg); err != nil {
@@ -191,6 +195,15 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 	if c.VPC == nil {
 		return nil
 	}
+
+	if err := c.ValidatePrivateCluster(); err != nil {
+		return err
+	}
+
+	if err := c.ValidateClusterEndpointConfig(); err != nil {
+		return err
+	}
+
 	if len(c.VPC.ExtraCIDRs) > 0 {
 		cidrs, err := validateCIDRs(c.VPC.ExtraCIDRs)
 		if err != nil {
@@ -236,6 +249,7 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 	if c.VPC.SharedNodeSecurityGroup == "" && IsDisabled(c.VPC.ManageSharedNodeSecurityGroupRules) {
 		return errors.New("vpc.manageSharedNodeSecurityGroupRules must be enabled when using ekstcl-managed security groups")
 	}
+
 	return nil
 }
 
@@ -310,12 +324,15 @@ func (c *ClusterConfig) addonContainsManagedAddons(addons []string) []string {
 
 // ValidateClusterEndpointConfig checks the endpoint configuration for potential issues
 func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
-	if !c.HasClusterEndpointAccess() {
-		return ErrClusterEndpointNoAccess
-	}
-	endpts := c.VPC.ClusterEndpoints
-	if noAccess(endpts) {
-		return ErrClusterEndpointNoAccess
+	if c.VPC.ClusterEndpoints != nil {
+		if !c.HasClusterEndpointAccess() {
+			return ErrClusterEndpointNoAccess
+		}
+		endpts := c.VPC.ClusterEndpoints
+
+		if noAccess(endpts) {
+			return ErrClusterEndpointNoAccess
+		}
 	}
 	return nil
 }
@@ -471,8 +488,14 @@ func validateNodeGroupBase(np NodePool, path string) error {
 		}
 	}
 
-	if instanceutils.IsGPUInstanceType(SelectInstanceType(np)) && (ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != "") {
-		return errors.Errorf("GPU instance types are not supported for %s", ng.AMIFamily)
+	// Only AmazonLinux2 and Bottlerocket support NVIDIA GPUs
+	if instanceutils.IsNvidiaInstanceType(SelectInstanceType(np)) && (ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != NodeImageFamilyBottlerocket && ng.AMIFamily != "") {
+		return errors.Errorf("NVIDIA GPU instance types are not supported for %s", ng.AMIFamily)
+	}
+
+	// Bottlerocket doesn't support Inferentia hosts
+	if instanceutils.IsInferentiaInstanceType(SelectInstanceType(np)) && ng.AMIFamily == NodeImageFamilyBottlerocket {
+		return errors.Errorf("Inferentia instance types are not supported for %s", ng.AMIFamily)
 	}
 
 	return nil
@@ -564,6 +587,7 @@ func validateNodeGroupName(name string) error {
 
 // ValidateNodeGroup checks compatible fields of a given nodegroup
 func ValidateNodeGroup(i int, ng *NodeGroup) error {
+	normalizeAMIFamily(ng.BaseNodeGroup())
 	path := fmt.Sprintf("nodeGroups[%d]", i)
 	if err := validateNodeGroupBase(ng, path); err != nil {
 		return err
@@ -620,9 +644,11 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 				field: field,
 			}
 		}
+
 		if ng.KubeletExtraConfig != nil {
 			return fieldNotSupported("kubeletExtraConfig")
 		}
+
 		if ng.AMIFamily == NodeImageFamilyBottlerocket && ng.PreBootstrapCommands != nil {
 			return fieldNotSupported("preBootstrapCommands")
 
@@ -630,7 +656,6 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		if ng.OverrideBootstrapCommand != nil {
 			return fieldNotSupported("overrideBootstrapCommand")
 		}
-
 	} else if err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig); err != nil {
 		return err
 	}
@@ -806,10 +831,10 @@ func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) erro
 }
 
 // ValidateManagedNodeGroup validates a ManagedNodeGroup and sets some defaults
-func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
+func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
+	normalizeAMIFamily(ng.BaseNodeGroup())
 	switch ng.AMIFamily {
 	case NodeImageFamilyAmazonLinux2, NodeImageFamilyBottlerocket, NodeImageFamilyUbuntu1804, NodeImageFamilyUbuntu2004:
-
 	default:
 		return errors.Errorf("%q is not supported for managed nodegroups", ng.AMIFamily)
 	}
@@ -966,6 +991,15 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 	}
 
 	return nil
+}
+
+func normalizeAMIFamily(ng *NodeGroupBase) {
+	for _, family := range supportedAMIFamilies() {
+		if strings.EqualFold(ng.AMIFamily, family) {
+			ng.AMIFamily = family
+			return
+		}
+	}
 }
 
 func validateInstancesDistribution(ng *NodeGroup) error {
@@ -1244,5 +1278,36 @@ func checkBottlerocketSettings(doc *InlineDocument, path string) error {
 		}
 	}
 
+	return nil
+}
+
+func validateAvailabilityZones(azList []string) error {
+	count := len(azList)
+	switch {
+	case count == 0:
+		return nil
+	case count < MinRequiredAvailabilityZones:
+		return ErrTooFewAvailabilityZones(azList)
+	default:
+		return nil
+	}
+}
+
+func ErrTooFewAvailabilityZones(azs []string) error {
+	return fmt.Errorf("only %d zone(s) specified %v, %d are required (can be non-unique)", len(azs), azs, MinRequiredAvailabilityZones)
+}
+
+func ValidateSecretsEncryption(clusterConfig *ClusterConfig) error {
+	if clusterConfig.SecretsEncryption == nil {
+		return nil
+	}
+
+	if clusterConfig.SecretsEncryption.KeyARN == "" {
+		return errors.New("field secretsEncryption.keyARN is required for enabling secrets encryption")
+	}
+
+	if _, err := arn.Parse(clusterConfig.SecretsEncryption.KeyARN); err != nil {
+		return errors.Wrapf(err, "invalid ARN in secretsEncryption.keyARN: %q", clusterConfig.SecretsEncryption.KeyARN)
+	}
 	return nil
 }

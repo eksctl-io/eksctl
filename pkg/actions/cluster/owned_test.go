@@ -124,6 +124,14 @@ var _ = Describe("Delete", func() {
 
 		When("force flag is set to true", func() {
 			It("ignoring nodes draining error", func() {
+				ctl.Status = &eks.ProviderStatus{
+					ClusterInfo: &eks.ClusterInfo{
+						Cluster: &awseks.Cluster{
+							Status:  aws.String(awseks.ClusterStatusActive),
+							Version: aws.String("1.21"),
+						},
+					},
+				}
 				//mocks are in order of being called
 				p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 					Expect(*input.Name).To(Equal(clusterName))
@@ -234,7 +242,14 @@ var _ = Describe("Delete", func() {
 					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
 					MaxGracePeriod: ctl.Provider.WaitTimeout(),
 				}
-
+				ctl.Status = &eks.ProviderStatus{
+					ClusterInfo: &eks.ClusterInfo{
+						Cluster: &awseks.Cluster{
+							Status:  aws.String(awseks.ClusterStatusActive),
+							Version: aws.String("1.21"),
+						},
+					},
+				}
 				errorMessage := "Mocked error"
 				mockedDrainer := &drainerMockOwned{}
 				mockedDrainer.On("Drain", mockedDrainInput).Return(errors.New(errorMessage))

@@ -1319,6 +1319,11 @@
         "desiredCapacity": {
           "type": "integer"
         },
+        "disableASGTagPropagation": {
+          "type": "boolean",
+          "description": "disable the tag propagation in case desired capacity is 0.",
+          "x-intellij-html-description": "disable the tag propagation in case desired capacity is 0."
+        },
         "disableIMDSv1": {
           "type": "boolean",
           "description": "requires requests to the metadata service to use IMDSv2 tokens",
@@ -1545,6 +1550,7 @@
         "clusterDNS",
         "kubeletExtraConfig",
         "containerRuntime",
+        "disableASGTagPropagation",
         "maxInstanceLifetime"
       ],
       "additionalProperties": false,

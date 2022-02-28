@@ -56,9 +56,7 @@ func doDeleteCluster(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction boo
 
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
-
 	printer := printers.NewJSONPrinter()
-
 	ctl, err := cmd.NewProviderForExistingCluster()
 	if err != nil {
 		if !force {
@@ -75,10 +73,6 @@ func doDeleteCluster(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction boo
 
 	logger.Info("deleting EKS cluster %q", meta.Name)
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
-		return err
-	}
-
-	if ok, err := ctl.CanDelete(cfg); !ok {
 		return err
 	}
 

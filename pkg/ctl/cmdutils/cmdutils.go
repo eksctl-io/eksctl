@@ -107,13 +107,8 @@ func GetNameArg(args []string) string {
 // AddCommonFlagsForAWS adds common flags for api.ProviderConfig
 func AddCommonFlagsForAWS(group *NamedFlagSetGroup, p *api.ProviderConfig, addCfnOptions bool) {
 	group.InFlagSet("AWS client", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&p.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
+		fs.StringVarP(&p.Profile, "profile", "p", os.Getenv("AWS_PROFILE"), "AWS credentials profile to use (defaults to value of the AWS_PROFILE environment variable)")
 
-		fs.DurationVar(&p.WaitTimeout, "aws-api-timeout", api.DefaultWaitTimeout, "")
-		// TODO deprecate in 0.2.0
-		if err := fs.MarkHidden("aws-api-timeout"); err != nil {
-			logger.Debug("ignoring error %q", err.Error())
-		}
 		if addCfnOptions {
 			fs.StringVar(&p.CloudFormationRoleARN, "cfn-role-arn", "", "IAM role used by CloudFormation to call AWS API on your behalf")
 			fs.BoolVar(&p.CloudFormationDisableRollback, "cfn-disable-rollback", false, "for debugging: If a stack fails, do not roll it back. Be careful, this may lead to unintentional resource consumption!")

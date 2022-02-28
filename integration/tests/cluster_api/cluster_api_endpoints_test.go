@@ -46,6 +46,7 @@ const (
 )
 
 func setEndpointConfig(cfg *api.ClusterConfig, privateAccess, publicAccess bool) {
+	cfg.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
 	cfg.VPC.ClusterEndpoints.PrivateAccess = &privateAccess
 	cfg.VPC.ClusterEndpoints.PublicAccess = &publicAccess
 }

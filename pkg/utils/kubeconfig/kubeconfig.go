@@ -1,6 +1,7 @@
 package kubeconfig
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,10 +12,12 @@ import (
 	"github.com/gofrs/flock"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/utils/file"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/utils"
+	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
 
 const (
@@ -26,7 +29,16 @@ const (
 	AWSEKSAuthenticator = "aws"
 	// Shadowing the default kubeconfig path environment variable
 	RecommendedConfigPathEnvVar = clientcmd.RecommendedConfigPathEnvVar
+	// AWSIAMAuthenticatorMinimumBetaVersion this is the minimum version at which aws-iam-authenticator uses v1beta1 as APIVersion
+	AWSIAMAuthenticatorMinimumBetaVersion = "0.5.3"
+
+	alphaAPIVersion = "client.authentication.k8s.io/v1alpha1"
+	betaAPIVersion  = "client.authentication.k8s.io/v1beta1"
 )
+
+type ExecCommandFunc func(name string, arg ...string) *exec.Cmd
+
+var execCommand = exec.Command
 
 // DefaultPath defines the default path
 func DefaultPath() string {
@@ -134,7 +146,7 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 	)
 
 	execConfig := &clientcmdapi.ExecConfig{
-		APIVersion: "client.authentication.k8s.io/v1alpha1",
+		APIVersion: alphaAPIVersion,
 		Command:    authenticatorCMD,
 		Env: []clientcmdapi.ExecEnvVar{
 			{
@@ -146,7 +158,22 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 	}
 
 	switch authenticatorCMD {
-	case AWSIAMAuthenticator, HeptioAuthenticatorAWS:
+	case AWSIAMAuthenticator:
+		// if version is above or equal to v0.5.3 we change the APIVersion to v1beta1.
+		if authenticatorIsBetaVersion, err := authenticatorIsAboveVersion(AWSIAMAuthenticatorMinimumBetaVersion); err != nil {
+			logger.Warning("failed to determine authenticator version, leaving API version as default v1alpha1: %v", err)
+		} else if authenticatorIsBetaVersion {
+			execConfig.APIVersion = betaAPIVersion
+		}
+		args = []string{"token", "-i", clusterMeta.Name}
+		roleARNFlag = "-r"
+		if clusterMeta.Region != "" {
+			execConfig.Env = append(execConfig.Env, clientcmdapi.ExecEnvVar{
+				Name:  "AWS_DEFAULT_REGION",
+				Value: clusterMeta.Region,
+			})
+		}
+	case HeptioAuthenticatorAWS:
 		args = []string{"token", "-i", clusterMeta.Name}
 		roleARNFlag = "-r"
 		if clusterMeta.Region != "" {
@@ -178,6 +205,37 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 	config.AuthInfos[config.CurrentContext] = &clientcmdapi.AuthInfo{
 		Exec: execConfig,
 	}
+}
+
+// AWSAuthenticatorVersionFormat is the format in which aws-iam-authenticator displays version information:
+// {"Version":"0.5.5","Commit":"85e50980d9d916ae95882176c18f14ae145f916f"}
+type AWSAuthenticatorVersionFormat struct {
+	Version string `json:"Version"`
+}
+
+func authenticatorIsAboveVersion(version string) (bool, error) {
+	authenticatorVersion, err := getAWSIAMAuthenticatorVersion()
+	if err != nil {
+		return false, fmt.Errorf("failed to retrieve authenticator version: %w", err)
+	}
+	compareVersions, err := utils.CompareVersions(authenticatorVersion, version)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse versions: %w", err)
+	}
+	return compareVersions >= 0, nil
+}
+
+func getAWSIAMAuthenticatorVersion() (string, error) {
+	cmd := execCommand(AWSIAMAuthenticator, "version")
+	output, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("failed to run aws-iam-authenticator version command: %w", err)
+	}
+	var parsedVersion AWSAuthenticatorVersionFormat
+	if err := json.Unmarshal(output, &parsedVersion); err != nil {
+		return "", fmt.Errorf("failed to parse version information: %w", err)
+	}
+	return parsedVersion.Version, nil
 }
 
 func lockFileName(filePath string) string {

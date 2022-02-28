@@ -334,21 +334,26 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 		Parallel:  true,
 		IsSubTask: false,
 	}
-	var needsNvidiaButNotNeuron = func(t string) bool {
-		return instanceutils.IsGPUInstanceType(t) && !instanceutils.IsInferentiaInstanceType(t)
-	}
-	var haveNeuronInstanceType, haveNvidiaInstanceType, efaEnabled bool
+	var clusterRequiresNeuronDevicePlugin, clusterRequiresNvidiaDevicePlugin, efaEnabled bool
 	for _, ng := range cfg.NodeGroups {
-		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceType(ng, instanceutils.IsInferentiaInstanceType)
-		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceType(ng, needsNvidiaButNotNeuron)
+		clusterRequiresNeuronDevicePlugin = clusterRequiresNeuronDevicePlugin ||
+			api.HasInstanceType(ng, instanceutils.IsInferentiaInstanceType)
+		// Only AL2 requires the NVIDIA device plugin
+		clusterRequiresNvidiaDevicePlugin = clusterRequiresNvidiaDevicePlugin ||
+			(api.HasInstanceType(ng, instanceutils.IsNvidiaInstanceType) &&
+				ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2)
 		efaEnabled = efaEnabled || api.IsEnabled(ng.EFAEnabled)
 	}
 	for _, ng := range cfg.ManagedNodeGroups {
-		haveNeuronInstanceType = haveNeuronInstanceType || api.HasInstanceTypeManaged(ng, instanceutils.IsInferentiaInstanceType)
-		haveNvidiaInstanceType = haveNvidiaInstanceType || api.HasInstanceTypeManaged(ng, needsNvidiaButNotNeuron)
+		clusterRequiresNeuronDevicePlugin = clusterRequiresNeuronDevicePlugin ||
+			api.HasInstanceTypeManaged(ng, instanceutils.IsInferentiaInstanceType)
+		// Only AL2 requires the NVIDIA device plugin
+		clusterRequiresNvidiaDevicePlugin = clusterRequiresNvidiaDevicePlugin ||
+			(api.HasInstanceTypeManaged(ng, instanceutils.IsNvidiaInstanceType) &&
+				ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2)
 		efaEnabled = efaEnabled || api.IsEnabled(ng.EFAEnabled)
 	}
-	if haveNeuronInstanceType {
+	if clusterRequiresNeuronDevicePlugin {
 		if installNeuronDevicePluginParam {
 			tasks.Append(newNeuronDevicePluginTask(c, cfg))
 		} else {
@@ -356,7 +361,7 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 			logger.Info("\t see the following page for instructions: https://awsdocs-neuron.readthedocs-hosted.com/en/latest/neuron-deploy/tutorials/tutorial-k8s.html#tutorial-k8s-env-setup-for-neuron")
 		}
 	}
-	if haveNvidiaInstanceType {
+	if clusterRequiresNvidiaDevicePlugin {
 		if installNvidiaDevicePluginParam {
 			tasks.Append(newNvidiaDevicePluginTask(c, cfg))
 		} else {

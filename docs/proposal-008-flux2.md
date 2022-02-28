@@ -208,7 +208,7 @@ not possible then we would have to change `flags` to be a `[]string`.
 Update: a PR has been opened to do this: [fluxcd/flux2#1390](https://github.com/fluxcd/flux2/pull/1390).
 
 Even if we were able to change that flag in Flux cli, we would have to hope that they didn't
-use `StringArrayVar` for bootstrap flags again (at least for a year, see future work [below](future-work)).
+use `StringArrayVar` for bootstrap flags again (at least for a year, see future work [below](#future-work)).
 
 See more on alternatives [below](#alternatives).
 

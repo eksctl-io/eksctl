@@ -254,8 +254,8 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 
 		api.SetClusterEndpointAccessDefaults(clusterConfig.VPC)
 
-		if !clusterConfig.HasClusterEndpointAccess() {
-			return api.ErrClusterEndpointNoAccess
+		if err := clusterConfig.ValidateClusterEndpointConfig(); err != nil {
+			return err
 		}
 
 		if clusterConfig.HasAnySubnets() && len(clusterConfig.AvailabilityZones) != 0 {
@@ -561,6 +561,9 @@ func NewUtilsEnableEndpointAccessLoader(cmd *Cmd, privateAccess, publicAccess bo
 			return err
 		}
 
+		if cmd.ClusterConfig.VPC.ClusterEndpoints == nil {
+			cmd.ClusterConfig.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
+		}
 		if flag := l.CobraCommand.Flag("private-access"); flag != nil && flag.Changed {
 			cmd.ClusterConfig.VPC.ClusterEndpoints.PrivateAccess = &privateAccess
 		} else {

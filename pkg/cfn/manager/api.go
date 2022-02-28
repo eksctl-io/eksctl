@@ -250,7 +250,7 @@ func (c *StackCollection) UpdateStack(options UpdateStackOptions) error {
 		options.Stack = s
 	}
 	if err := c.doCreateChangeSetRequest(
-		options.StackName,
+		*options.Stack.StackName,
 		options.ChangeSetName,
 		options.Description,
 		options.TemplateData,

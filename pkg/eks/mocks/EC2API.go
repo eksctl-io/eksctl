@@ -35207,6 +35207,119 @@ func (_m *EC2API) ImportVolumeWithContext(_a0 context.Context, _a1 *ec2.ImportVo
 	return r0, r1
 }
 
+// ListImagesInRecycleBin provides a mock function with given fields: _a0
+func (_m *EC2API) ListImagesInRecycleBin(_a0 *ec2.ListImagesInRecycleBinInput) (*ec2.ListImagesInRecycleBinOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ListImagesInRecycleBinOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ListImagesInRecycleBinInput) *ec2.ListImagesInRecycleBinOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ListImagesInRecycleBinOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ListImagesInRecycleBinInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListImagesInRecycleBinPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) ListImagesInRecycleBinPages(_a0 *ec2.ListImagesInRecycleBinInput, _a1 func(*ec2.ListImagesInRecycleBinOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.ListImagesInRecycleBinInput, func(*ec2.ListImagesInRecycleBinOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListImagesInRecycleBinPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) ListImagesInRecycleBinPagesWithContext(_a0 context.Context, _a1 *ec2.ListImagesInRecycleBinInput, _a2 func(*ec2.ListImagesInRecycleBinOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ListImagesInRecycleBinInput, func(*ec2.ListImagesInRecycleBinOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListImagesInRecycleBinRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ListImagesInRecycleBinRequest(_a0 *ec2.ListImagesInRecycleBinInput) (*request.Request, *ec2.ListImagesInRecycleBinOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ListImagesInRecycleBinInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ListImagesInRecycleBinOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ListImagesInRecycleBinInput) *ec2.ListImagesInRecycleBinOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ListImagesInRecycleBinOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListImagesInRecycleBinWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ListImagesInRecycleBinWithContext(_a0 context.Context, _a1 *ec2.ListImagesInRecycleBinInput, _a2 ...request.Option) (*ec2.ListImagesInRecycleBinOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ListImagesInRecycleBinOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ListImagesInRecycleBinInput, ...request.Option) *ec2.ListImagesInRecycleBinOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ListImagesInRecycleBinOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ListImagesInRecycleBinInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListSnapshotsInRecycleBin provides a mock function with given fields: _a0
 func (_m *EC2API) ListSnapshotsInRecycleBin(_a0 *ec2.ListSnapshotsInRecycleBinInput) (*ec2.ListSnapshotsInRecycleBinOutput, error) {
 	ret := _m.Called(_a0)
@@ -42566,6 +42679,84 @@ func (_m *EC2API) RestoreAddressToClassicWithContext(_a0 context.Context, _a1 *e
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RestoreAddressToClassicInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RestoreImageFromRecycleBin provides a mock function with given fields: _a0
+func (_m *EC2API) RestoreImageFromRecycleBin(_a0 *ec2.RestoreImageFromRecycleBinInput) (*ec2.RestoreImageFromRecycleBinOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.RestoreImageFromRecycleBinOutput
+	if rf, ok := ret.Get(0).(func(*ec2.RestoreImageFromRecycleBinInput) *ec2.RestoreImageFromRecycleBinOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.RestoreImageFromRecycleBinOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.RestoreImageFromRecycleBinInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RestoreImageFromRecycleBinRequest provides a mock function with given fields: _a0
+func (_m *EC2API) RestoreImageFromRecycleBinRequest(_a0 *ec2.RestoreImageFromRecycleBinInput) (*request.Request, *ec2.RestoreImageFromRecycleBinOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.RestoreImageFromRecycleBinInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.RestoreImageFromRecycleBinOutput
+	if rf, ok := ret.Get(1).(func(*ec2.RestoreImageFromRecycleBinInput) *ec2.RestoreImageFromRecycleBinOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.RestoreImageFromRecycleBinOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// RestoreImageFromRecycleBinWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) RestoreImageFromRecycleBinWithContext(_a0 context.Context, _a1 *ec2.RestoreImageFromRecycleBinInput, _a2 ...request.Option) (*ec2.RestoreImageFromRecycleBinOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.RestoreImageFromRecycleBinOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.RestoreImageFromRecycleBinInput, ...request.Option) *ec2.RestoreImageFromRecycleBinOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.RestoreImageFromRecycleBinOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RestoreImageFromRecycleBinInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
