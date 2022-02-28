@@ -4,7 +4,7 @@ name: Tag release
 # for the version eksctl reports at that commit
 
 on:
-  pull_request: 
+  pull_request:
     types: [closed]
   push:
     branches:
@@ -31,7 +31,9 @@ jobs:
           path: |
             ~/.cache/go-build/
             ~/go/pkg/mod/
-          key: ${{ hashFiles('go.sum') }}
+          key: go-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            - go-
       - name: Tag from version
         run: |
           version=$(go run pkg/version/generate/release_generate.go full-version)
