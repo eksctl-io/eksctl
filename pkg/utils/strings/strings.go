@@ -95,3 +95,13 @@ func ToValuesArray(in []*string) []string {
 	}
 	return out
 }
+
+// Contains returns true if the value is contained in the string list.
+func Contains(list []string, value string) bool {
+	for _, v := range list {
+		if v == value {
+			return true
+		}
+	}
+	return false
+}

@@ -32,6 +32,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
+	utilstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
@@ -424,7 +425,7 @@ func validateZonesAndNodeZones(cmd *cmdutils.Cmd, params *cmdutils.CreateCluster
 		}
 		zones := strings.Split(nodeZones.Value.String(), ",")
 		for _, zone := range zones {
-			if !contains(params.AvailabilityZones, zone) {
+			if !utilstrings.Contains(params.AvailabilityZones, zone) {
 				return fmt.Errorf("node-zones %q must be a subset of zones %q", zones, params.AvailabilityZones)
 			}
 		}
@@ -537,13 +538,4 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 
 func checkSubnetsGivenAsFlags(params *cmdutils.CreateClusterCmdParams) bool {
 	return len(*params.Subnets[api.SubnetTopologyPrivate])+len(*params.Subnets[api.SubnetTopologyPublic]) != 0
-}
-
-func contains(arr []string, v string) bool {
-	for _, elem := range arr {
-		if v == elem {
-			return true
-		}
-	}
-	return false
 }
