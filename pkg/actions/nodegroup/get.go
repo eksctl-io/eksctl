@@ -47,20 +47,34 @@ type Summary struct {
 }
 
 func (m *Manager) GetAll() ([]*Summary, error) {
-	summaries, err := m.GetUnmanagedNodeGroupSummaries("")
+	unmanagedSummaries, err := m.getUnmanagedSummaries()
+	if err != nil {
+		return nil, err
+	}
+
+	managedSummaries, err := m.getManagedSummaries()
+	if err != nil {
+		return nil, err
+	}
+
+	return append(unmanagedSummaries, managedSummaries...), nil
+}
+
+func (m *Manager) Get(name string) (*Summary, error) {
+	summary, err := m.getUnmanagedSummary(name)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stack summaries")
 	}
 
-	for _, summary := range summaries {
-		if summary.DesiredCapacity > 0 {
-			summary.Version, err = kubewrapper.GetNodegroupKubernetesVersion(m.clientSet.CoreV1().Nodes(), summary.Name)
-			if err != nil {
-				return nil, errors.Wrap(err, "getting nodegroup's kubernetes version")
-			}
-		}
+	if summary != nil {
+		return summary, nil
 	}
 
+	return m.getManagedSummary(name)
+}
+
+func (m *Manager) getManagedSummaries() ([]*Summary, error) {
+	var summaries []*Summary
 	managedNodeGroups, err := m.ctl.Provider.EKS().ListNodegroups(&eks.ListNodegroupsInput{
 		ClusterName: aws.String(m.cfg.Metadata.Name),
 	})
@@ -75,7 +89,7 @@ func (m *Manager) GetAll() ([]*Summary, error) {
 			stack = &cloudformation.Stack{}
 		}
 
-		summary, err := m.makeManagedNGSummary(*ngName)
+		summary, err := m.getManagedSummary(*ngName)
 		if err != nil {
 			return nil, err
 		}
@@ -86,27 +100,7 @@ func (m *Manager) GetAll() ([]*Summary, error) {
 	return summaries, nil
 }
 
-func (m *Manager) Get(name string) (*Summary, error) {
-	summaries, err := m.GetUnmanagedNodeGroupSummaries(name)
-	if err != nil {
-		return nil, errors.Wrap(err, "getting nodegroup stack summaries")
-	}
-
-	if len(summaries) > 0 {
-		s := summaries[0]
-		if s.DesiredCapacity > 0 {
-			s.Version, err = kubewrapper.GetNodegroupKubernetesVersion(m.clientSet.CoreV1().Nodes(), s.Name)
-			if err != nil {
-				return nil, errors.Wrap(err, "getting nodegroup's kubernetes version")
-			}
-		}
-		return s, nil
-	}
-
-	return m.makeManagedNGSummary(name)
-}
-
-func (m *Manager) GetUnmanagedNodeGroupSummaries(name string) ([]*Summary, error) {
+func (m *Manager) getUnmanagedSummaries() ([]*Summary, error) {
 	stacks, err := m.stackManager.DescribeNodeGroupStacks()
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stacks")
@@ -115,48 +109,72 @@ func (m *Manager) GetUnmanagedNodeGroupSummaries(name string) ([]*Summary, error
 	// Create an empty array here so that an object is returned rather than null
 	summaries := []*Summary{}
 	for _, s := range stacks {
-		nodeGroupType, err := manager.GetNodeGroupType(s.Tags)
+		summary, err := m.stackToSummary(s)
 		if err != nil {
 			return nil, err
 		}
-
-		if nodeGroupType != api.NodeGroupTypeUnmanaged {
-			continue
-		}
-
-		ngPaths, err := getNodeGroupPaths(s.Tags)
-		if err != nil {
-			return nil, err
-		}
-
-		summary, err := m.mapStackToNodeGroupSummary(s, ngPaths)
-
-		if err != nil {
-			return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
-		}
-		summary.NodeGroupType = api.NodeGroupTypeUnmanaged
-
-		asgName, err := m.stackManager.GetUnmanagedNodeGroupAutoScalingGroupName(s)
-		if err != nil {
-			return nil, errors.Wrap(err, "getting autoscalinggroupname")
-		}
-
-		summary.AutoScalingGroupName = asgName
-
-		scalingGroup, err := m.stackManager.GetAutoScalingGroupDesiredCapacity(asgName)
-		if err != nil {
-			return nil, errors.Wrap(err, "getting autoscalinggroup desired capacity")
-		}
-		summary.DesiredCapacity = int(*scalingGroup.DesiredCapacity)
-		summary.MinSize = int(*scalingGroup.MinSize)
-		summary.MaxSize = int(*scalingGroup.MaxSize)
-
-		if name == "" || summary.Name == name {
+		if summary != nil {
 			summaries = append(summaries, summary)
 		}
 	}
 
 	return summaries, nil
+}
+
+func (m *Manager) getUnmanagedSummary(name string) (*Summary, error) {
+	stack, err := m.stackManager.DescribeNodeGroupStack(name)
+	if err != nil {
+		return nil, err
+	}
+
+	return m.stackToSummary(stack)
+}
+
+func (m *Manager) stackToSummary(s *manager.Stack) (*Summary, error) {
+	nodeGroupType, err := manager.GetNodeGroupType(s.Tags)
+	if err != nil {
+		return nil, err
+	}
+
+	if nodeGroupType != api.NodeGroupTypeUnmanaged {
+		return nil, nil
+	}
+
+	ngPaths, err := getNodeGroupPaths(s.Tags)
+	if err != nil {
+		return nil, err
+	}
+
+	summary, err := m.mapStackToNodeGroupSummary(s, ngPaths)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
+	}
+	summary.NodeGroupType = api.NodeGroupTypeUnmanaged
+
+	asgName, err := m.stackManager.GetUnmanagedNodeGroupAutoScalingGroupName(s)
+	if err != nil {
+		return nil, errors.Wrap(err, "getting autoscalinggroupname")
+	}
+
+	summary.AutoScalingGroupName = asgName
+
+	scalingGroup, err := m.stackManager.GetAutoScalingGroupDesiredCapacity(asgName)
+	if err != nil {
+		return nil, errors.Wrap(err, "getting autoscalinggroup desired capacity")
+	}
+	summary.DesiredCapacity = int(*scalingGroup.DesiredCapacity)
+	summary.MinSize = int(*scalingGroup.MinSize)
+	summary.MaxSize = int(*scalingGroup.MaxSize)
+
+	if summary.DesiredCapacity > 0 {
+		summary.Version, err = kubewrapper.GetNodegroupKubernetesVersion(m.clientSet.CoreV1().Nodes(), summary.Name)
+		if err != nil {
+			return nil, errors.Wrap(err, "getting nodegroup's kubernetes version")
+		}
+	}
+
+	return summary, nil
 }
 
 func getNodeGroupPaths(tags []*cfn.Tag) (*nodeGroupPaths, error) {
@@ -258,7 +276,7 @@ func getClusterNameTag(s *manager.Stack) string {
 	return ""
 }
 
-func (m *Manager) makeManagedNGSummary(nodeGroupName string) (*Summary, error) {
+func (m *Manager) getManagedSummary(nodeGroupName string) (*Summary, error) {
 	describeOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
 		ClusterName:   aws.String(m.cfg.Metadata.Name),
 		NodegroupName: aws.String(nodeGroupName),
