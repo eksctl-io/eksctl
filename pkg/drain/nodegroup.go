@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"golang.org/x/sync/semaphore"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/weaveworks/eksctl/pkg/drain/evictor"
@@ -40,9 +41,10 @@ type NodeGroupDrainer struct {
 	waitTimeout         time.Duration
 	nodeDrainWaitPeriod time.Duration
 	undo                bool
+	parallel            int
 }
 
-func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout, maxGracePeriod, nodeDrainWaitPeriod time.Duration, undo, disableEviction bool) NodeGroupDrainer {
+func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout, maxGracePeriod, nodeDrainWaitPeriod time.Duration, undo, disableEviction bool, parallel int) NodeGroupDrainer {
 	ignoreDaemonSets := []metav1.ObjectMeta{
 		{
 			Namespace: "kube-system",
@@ -76,6 +78,7 @@ func NewNodeGroupDrainer(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, w
 		waitTimeout:         waitTimeout,
 		nodeDrainWaitPeriod: nodeDrainWaitPeriod,
 		undo:                undo,
+		parallel:            parallel,
 	}
 }
 
@@ -102,14 +105,24 @@ func (n *NodeGroupDrainer) Drain() error {
 	}
 
 	drainedNodes := sets.NewString()
+	ctx, cancel := context.WithTimeout(context.TODO(), n.waitTimeout)
+	defer cancel()
+
+	parallelLimit := int64(n.parallel)
+	sem := semaphore.NewWeighted(parallelLimit)
+	logger.Info("starting parallel draining, max in-flight of %d", parallelLimit)
 	// loop until all nodes are drained to handle accidental scale-up
 	// or any other changes in the ASG
-	timer := time.NewTimer(n.waitTimeout)
-	defer timer.Stop()
+	waitForAllRoutinesToFinish := func() {
+		if err := sem.Acquire(context.TODO(), parallelLimit); err != nil {
+			logger.Critical("failed to claim sem: %w", err)
+		}
+	}
 
 	for {
 		select {
-		case <-timer.C:
+		case <-ctx.Done():
+			waitForAllRoutinesToFinish()
 			return fmt.Errorf("timed out (after %s) waiting for nodegroup %q to be drained", n.waitTimeout, n.ng.NameString())
 		default:
 			nodes, err := n.clientSet.CoreV1().Nodes().List(context.TODO(), listOptions)
@@ -127,30 +140,40 @@ func (n *NodeGroupDrainer) Drain() error {
 			}
 
 			if newPendingNodes.Len() == 0 {
+				waitForAllRoutinesToFinish()
 				logger.Success("drained all nodes: %v", drainedNodes.List())
 				return nil // no new nodes were seen
 			}
 
 			logger.Debug("already drained: %v", drainedNodes.List())
 			logger.Debug("will drain: %v", newPendingNodes.List())
-
 			for i, node := range newPendingNodes.List() {
-				pending, err := n.evictPods(node)
-				if err != nil {
-					logger.Warning("pod eviction error (%q) on node %s", err, node)
-					time.Sleep(retryDelay)
-					continue
+				i := i
+				node := node
+				if err := sem.Acquire(ctx, 1); err != nil {
+					logger.Critical("failed to claim sem: %w", err)
 				}
-				logger.Debug("%d pods to be evicted from %s", pending, node)
-				if pending == 0 {
-					drainedNodes.Insert(node)
-				}
+				go func() {
+					defer sem.Release(1)
+					logger.Debug("starting drain of node %s", node)
+					pending, err := n.evictPods(node)
+					if err != nil {
+						logger.Warning("pod eviction error (%q) on node %s", err, node)
+						time.Sleep(retryDelay)
+						return
+					}
 
-				// only wait if we're not on the last node of this iteration
-				if n.nodeDrainWaitPeriod > 0 && i < newPendingNodes.Len()-1 {
-					logger.Debug("waiting for %.0f seconds before draining next node", n.nodeDrainWaitPeriod.Seconds())
-					time.Sleep(n.nodeDrainWaitPeriod)
-				}
+					logger.Debug("%d pods to be evicted from %s", pending, node)
+					if pending == 0 {
+						drainedNodes.Insert(node)
+					}
+
+					// only wait if we're not on the last node of this iteration
+					if n.nodeDrainWaitPeriod > 0 && i < newPendingNodes.Len()-1 {
+						logger.Debug("waiting for %.0f seconds before draining next node", n.nodeDrainWaitPeriod.Seconds())
+						time.Sleep(n.nodeDrainWaitPeriod)
+					}
+				}()
 			}
 		}
 	}
