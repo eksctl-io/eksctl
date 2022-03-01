@@ -489,7 +489,8 @@ func validateNodeGroupBase(np NodePool, path string) error {
 	}
 
 	// Only AmazonLinux2 and Bottlerocket support NVIDIA GPUs
-	if instanceutils.IsNvidiaInstanceType(SelectInstanceType(np)) && (ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != NodeImageFamilyBottlerocket && ng.AMIFamily != "") {
+	if instanceutils.IsNvidiaInstanceType(SelectInstanceType(np)) &&
+		(ng.AMIFamily != NodeImageFamilyAmazonLinux2 && ng.AMIFamily != NodeImageFamilyBottlerocket && ng.AMIFamily != "") {
 		return errors.Errorf("NVIDIA GPU instance types are not supported for %s", ng.AMIFamily)
 	}
 
@@ -843,6 +844,11 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 
 	if err := validateNodeGroupBase(ng, path); err != nil {
 		return err
+	}
+
+	if instanceutils.IsNvidiaInstanceType(SelectInstanceType(ng)) && ng.AMIFamily == NodeImageFamilyBottlerocket {
+		logger.Info("Bottlerocket GPU support is for unmanaged nodegroups only. If you're using CLI flags pass --managed=false")
+		return errors.Errorf("NVIDIA GPU instance types are not supported for managed nodegroups with AMIFamily %s", ng.AMIFamily)
 	}
 
 	if ng.IAM != nil {
