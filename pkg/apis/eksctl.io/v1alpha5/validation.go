@@ -847,7 +847,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 	}
 
 	if instanceutils.IsNvidiaInstanceType(SelectInstanceType(ng)) && ng.AMIFamily == NodeImageFamilyBottlerocket {
-		logger.Info("Bottlerocket GPU support is for unmanaged nodegroups only. If your using cli flags pass --managed=false")
+		logger.Info("Bottlerocket GPU support is for unmanaged nodegroups only. If you're using CLI flags pass --managed=false")
 		return errors.Errorf("NVIDIA GPU instance types are not supported for managed nodegroups with AMIFamily %s", ng.AMIFamily)
 	}
 
