@@ -203,6 +203,9 @@ func (n *NodeGroupDrainer) evictPods(node string) (int, error) {
 	if len(errs) > 0 {
 		return 0, fmt.Errorf("errs: %v", errs) // TODO: improve formatting
 	}
+	if list == nil {
+		return 0, nil
+	}
 	if w := list.Warnings(); w != "" {
 		logger.Warning(w)
 	}
