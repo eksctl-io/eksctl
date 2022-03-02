@@ -195,7 +195,7 @@ var _ = Describe("cmdutils configfile", func() {
 				params := &CreateClusterCmdParams{WithoutNodeGroup: true, CreateManagedNGOptions: CreateManagedNGOptions{
 					Managed: false,
 				}}
-				Expect(NewCreateClusterLoader(cmd, filter.NewNodeGroupFilter(), nil, params).Load()).To(Succeed())
+				Expect(NewCreateClusterLoader(cmd, filter.NewNodeGroupFilter(), api.NewNodeGroup(), params).Load()).To(Succeed())
 				cfg := cmd.ClusterConfig
 				Expect(cfg.VPC.NAT.Gateway).To(Not(BeNil()))
 				Expect(*cfg.VPC.NAT.Gateway).To(Equal(natTest.expectedGateway))
@@ -418,7 +418,7 @@ var _ = Describe("cmdutils configfile", func() {
 						Managed: loaderTest.managed,
 					},
 				}
-				Expect(NewCreateClusterLoader(cmd, ngFilter, nil, params).Load()).To(Succeed())
+				Expect(NewCreateClusterLoader(cmd, ngFilter, api.NewNodeGroup(), params).Load()).To(Succeed())
 
 				Expect(ngFilter.GetExcludeAll()).To(Equal(loaderTest.withoutNodeGroup))
 
@@ -450,7 +450,7 @@ var _ = Describe("cmdutils configfile", func() {
 					},
 				}
 
-				Expect(NewCreateClusterLoader(cmd, filter.NewNodeGroupFilter(), nil, params).Load()).To(Succeed())
+				Expect(NewCreateClusterLoader(cmd, filter.NewNodeGroupFilter(), api.NewNodeGroup(), params).Load()).To(Succeed())
 				cfg := cmd.ClusterConfig
 				assertValidClusterEndpoint(cfg.VPC.ClusterEndpoints, expectedPrivAccess, expectedPubAccess)
 			}

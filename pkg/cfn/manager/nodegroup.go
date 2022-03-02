@@ -39,22 +39,33 @@ func (c *StackCollection) makeNodeGroupStackName(name string) string {
 func (c *StackCollection) createNodeGroupTask(ctx context.Context, errs chan error, ng *api.NodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
 	name := c.makeNodeGroupStackName(ng.Name)
 
-	logger.Info("building nodegroup stack %q", name)
-	bootstrapper, err := nodebootstrap.NewBootstrapper(c.spec, ng)
-	if err != nil {
-		return errors.Wrap(err, "error creating bootstrapper")
-	}
-	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, c.spec, ng, bootstrapper, forceAddCNIPolicy, vpcImporter)
-	if err := stack.AddAllResources(ctx); err != nil {
-		return err
-	}
-
 	if ng.Tags == nil {
 		ng.Tags = make(map[string]string)
 	}
 	ng.Tags[api.NodeGroupNameTag] = ng.Name
 	ng.Tags[api.OldNodeGroupNameTag] = ng.Name
 	ng.Tags[api.NodeGroupTypeTag] = string(api.NodeGroupTypeUnmanaged)
+
+	// Spot Ocean.
+	{
+		if ng.SpotOcean != nil {
+			if ng.Name == api.SpotOceanClusterNodeGroupName {
+				ng.Tags[api.SpotOceanResourceTypeTag] = string(api.SpotOceanResourceTypeCluster)
+			} else {
+				ng.Tags[api.SpotOceanResourceTypeTag] = string(api.SpotOceanResourceTypeVirtualNodeGroup)
+			}
+		}
+	}
+
+	logger.Info("building nodegroup stack %q", name)
+	bootstrapper, err := nodebootstrap.NewBootstrapper(c.spec, ng)
+	if err != nil {
+		return errors.Wrap(err, "error creating bootstrapper")
+	}
+	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, c.spec, ng, bootstrapper, c.sharedTags, forceAddCNIPolicy, vpcImporter)
+	if err := stack.AddAllResources(ctx); err != nil {
+		return err
+	}
 
 	return c.CreateStack(ctx, name, stack, ng.Tags, nil, errs)
 }

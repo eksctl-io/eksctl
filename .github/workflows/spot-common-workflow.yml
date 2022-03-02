@@ -1,0 +1,11 @@
+
+name: Common Spot Verification Workflow
+
+on:
+  pull_request:
+    branches: [feat-spot-ocean]
+
+jobs:
+  call-verification-workflow:
+    uses: spotinst/devops-scripts/.github/workflows/common-verification-workflow.yml@master
+    secrets: inherit

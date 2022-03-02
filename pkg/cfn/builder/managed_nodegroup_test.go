@@ -179,7 +179,7 @@ func TestManagedNodeRole(t *testing.T) {
 			nodeGroup: &api.ManagedNodeGroup{
 				NodeGroupBase: &api.NodeGroupBase{
 					IAM: &api.NodeGroupIAM{
-						InstanceRoleARN: "arn::DUMMY::DUMMYROLE",
+		 				InstanceRoleARN: "arn::DUMMY::DUMMYROLE",
 					},
 				},
 			},
