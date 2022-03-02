@@ -25,6 +25,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/elb"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/spot"
 	ssh "github.com/weaveworks/eksctl/pkg/ssh/client"
 	"github.com/weaveworks/eksctl/pkg/utils/apierrors"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -65,6 +66,22 @@ func deleteSharedResources(ctx context.Context, cfg *api.ClusterConfig, ctl *eks
 			return err
 		}
 	}
+
+	// Spot Ocean.
+	{
+		// List all nodegroup stacks.
+		stacks, err := stackManager.ListNodeGroupStacks(ctx)
+		if err != nil {
+			return err
+		}
+
+		// Execute pre-delete actions.
+		if err := spot.RunPreDelete(ctx, ctl.AWSProvider, cfg, cfg.NodeGroups,
+			stacks, spot.NewAlwaysFilter(), false, 0, false); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

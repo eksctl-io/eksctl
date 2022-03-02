@@ -17,15 +17,16 @@ import (
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
+	"github.com/weaveworks/eksctl/pkg/spot"
 )
 
 func deleteNodeGroupCmd(cmd *cmdutils.Cmd) {
-	deleteNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod, podEvictionWaitPeriod time.Duration, disableEviction bool, parallel int) error {
-		return doDeleteNodeGroup(cmd, ng, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, maxGracePeriod, podEvictionWaitPeriod, disableEviction, parallel)
+	deleteNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod, podEvictionWaitPeriod time.Duration, disableEviction bool, parallel int, spotRoll bool, spotRollBatchSize int) error {
+		return doDeleteNodeGroup(cmd, ng, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, maxGracePeriod, podEvictionWaitPeriod, disableEviction, parallel, spotRoll, spotRollBatchSize)
 	})
 }
 
-func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod, podEvictionWaitPeriod time.Duration, disableEviction bool, parallel int) error) {
+func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod, podEvictionWaitPeriod time.Duration, disableEviction bool, parallel int, spotRoll bool, spotRollBatchSize int) error) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
@@ -38,13 +39,15 @@ func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cm
 		podEvictionWaitPeriod time.Duration
 		disableEviction       bool
 		parallel              int
+		spotRoll              bool
+		spotRollBatchSize     int
 	)
 
 	cmd.SetDescription("nodegroup", "Delete a nodegroup", "", "ng")
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return runFunc(cmd, ng, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, maxGracePeriod, podEvictionWaitPeriod, disableEviction, parallel)
+		return runFunc(cmd, ng, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, maxGracePeriod, podEvictionWaitPeriod, disableEviction, parallel, spotRoll, spotRollBatchSize)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -71,9 +74,13 @@ func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cm
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
+
+	cmd.FlagSetGroup.InFlagSet("Spot Ocean", func(fs *pflag.FlagSet) {
+		cmdutils.AddSpotOceanDeleteNodeGroupFlags(fs, &spotRoll, &spotRollBatchSize)
+	})
 }
 
-func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod time.Duration, podEvictionWaitPeriod time.Duration, disableEviction bool, parallel int) error {
+func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod time.Duration, podEvictionWaitPeriod time.Duration, disableEviction bool, parallel int, spotRoll bool, spotRollBatchSize int) error {
 	ngFilter := filter.NewNodeGroupFilter()
 
 	if err := cmdutils.NewDeleteAndDrainNodeGroupLoader(cmd, ng, ngFilter).Load(); err != nil {
@@ -114,6 +121,49 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		}
 	}
 
+	// Spot Ocean.
+	{
+		// List all nodegroup stacks.
+		stacks, err := stackManager.ListNodeGroupStacks(ctx)
+		if err != nil {
+			return err
+		}
+
+		// Filter nodegroups.
+		nodeGroups := ngFilter.FilterMatching(cfg.NodeGroups)
+		nodeGroupsIncludedFilter := spot.NewContainsFilter(nodeGroups)
+
+		// Execute pre-delete actions.
+		if err := spot.RunPreDelete(ctx, ctl.AWSProvider, cfg, nodeGroups, stacks,
+			nodeGroupsIncludedFilter, spotRoll, spotRollBatchSize, cmd.Plan); err != nil {
+			return err
+		}
+
+		// Recreate the API client to regenerate the embedded STS token.
+		if spotRoll {
+			// By default, pre-signed STS URLs are valid for 15 minutes after
+			// timestamp in x-amz-date header, which means the actual token
+			// expiration is 14 minutes (aws-iam-authenticator sets the token
+			// expiration to 1 minute before the pre-signed URL expires for
+			// some cushion).  We have to regenerate the token here since
+			// rolling one or more nodegroups may take longer to complete.
+			clientSet, err = ctl.NewStdClientSet(cfg)
+			if err != nil {
+				return err
+			}
+		}
+
+		// Explicitly include Ocean nodegroup.
+		if cmd.ClusterConfigFile == "" {
+			for _, ng := range cfg.NodeGroups {
+				if ng.Name == api.SpotOceanClusterNodeGroupName {
+					ngFilter.AppendIncludeNames(api.SpotOceanClusterNodeGroupName)
+					break
+				}
+			}
+		}
+	}
+
 	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
 
 	logFiltered()
@@ -135,7 +185,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		return err
 	}
 	nodeGroupManager := nodegroup.New(cfg, ctl, clientSet, instanceSelector)
-	if deleteNodeGroupDrain {
+	if deleteNodeGroupDrain && !spotRoll {
 		cmdutils.LogIntendedAction(cmd.Plan, "drain %d nodegroup(s) in cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
 		drainInput := &nodegroup.DrainInput{

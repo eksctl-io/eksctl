@@ -144,6 +144,10 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 
 	cmdutils.AddCommonFlagsForAWS(cmd, &cmd.ProviderConfig, true)
 
+	cmd.FlagSetGroup.InFlagSet("Spot Ocean", func(fs *pflag.FlagSet) {
+		cmdutils.AddSpotOceanCreateNodeGroupFlags(fs, &params.SpotOcean)
+	})
+
 	cmd.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForKubeconfig(fs, &params.KubeconfigPath, &params.AuthenticatorRoleARN, &params.SetContext, &params.AutoKubeconfigPath, exampleClusterName)
 		fs.BoolVar(&params.WriteKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
@@ -349,7 +353,32 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		postClusterCreationTasks.Append(preNodegroupAddons)
 	}
 
-	taskTree := stackManager.NewTasksToCreateClusterWithNodeGroups(ctx, cfg.NodeGroups, cfg.ManagedNodeGroups, postClusterCreationTasks)
+	taskTree, err := stackManager.NewTasksToCreateClusterWithNodeGroups(ctx, cfg.NodeGroups, cfg.ManagedNodeGroups, postClusterCreationTasks)
+
+	if err != nil {
+		return fmt.Errorf("ocean: failed to create cluster nodegroup: %v", err)
+	}
+
+	// Spot Ocean.
+	{
+		for _, ng := range cfg.NodeGroups {
+			if ng.Name != api.SpotOceanClusterNodeGroupName {
+				continue
+			}
+
+			logger.Debug("ocean: normalizing cluster nodegroup")
+
+			instanceSelector, err := selector.New(ctx, ctl.AWSProvider.AWSConfig())
+			if err != nil {
+				return fmt.Errorf("ocean: failed to create instance selector: %v", err)
+			}
+
+			svc := eks.NewNodeGroupService(ctl.AWSProvider, instanceSelector, nil)
+			if err := svc.Normalize(ctx, []api.NodePool{ng}, cfg); err != nil {
+				return fmt.Errorf("ocean: failed to normalize cluster nodegroup: %v", err)
+			}
+		}
+	}
 
 	logger.Info(taskTree.Describe())
 	if errs := taskTree.DoAllSync(); len(errs) > 0 {
@@ -409,14 +438,21 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			ngCtx, cancel := context.WithTimeout(ctx, cmd.ProviderConfig.WaitTimeout)
 			defer cancel()
 			for _, ng := range cfg.NodeGroups {
+				// skip ocean cluster
+				if ng.SpotOcean != nil && ng.Name == api.SpotOceanClusterNodeGroupName {
+					continue
+				}
+
 				// authorise nodes to join
-				if err := authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
+				if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
 					return err
 				}
 
 				// wait for nodes to join
-				if err := eks.WaitForNodes(ngCtx, clientSet, ng); err != nil {
-					return err
+				if ng.SpotOcean == nil {
+					if err = eks.WaitForNodes(ngCtx, clientSet, ng); err != nil {
+						return err
+					}
 				}
 			}
 

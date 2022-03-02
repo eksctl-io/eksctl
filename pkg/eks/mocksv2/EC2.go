@@ -674,6 +674,36 @@ func (_m *EC2) AssociateTransitGatewayMulticastDomain(ctx context.Context, param
 	return r0, r1
 }
 
+// AssociateTransitGatewayPolicyTable provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) AssociateTransitGatewayPolicyTable(ctx context.Context, params *ec2.AssociateTransitGatewayPolicyTableInput, optFns ...func(*ec2.Options)) (*ec2.AssociateTransitGatewayPolicyTableOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.AssociateTransitGatewayPolicyTableOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AssociateTransitGatewayPolicyTableInput, ...func(*ec2.Options)) *ec2.AssociateTransitGatewayPolicyTableOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AssociateTransitGatewayPolicyTableOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AssociateTransitGatewayPolicyTableInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AssociateTransitGatewayRouteTable provides a mock function with given fields: ctx, params, optFns
 func (_m *EC2) AssociateTransitGatewayRouteTable(ctx context.Context, params *ec2.AssociateTransitGatewayRouteTableInput, optFns ...func(*ec2.Options)) (*ec2.AssociateTransitGatewayRouteTableOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3134,6 +3164,36 @@ func (_m *EC2) CreateTransitGatewayPeeringAttachment(ctx context.Context, params
 	return r0, r1
 }
 
+// CreateTransitGatewayPolicyTable provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) CreateTransitGatewayPolicyTable(ctx context.Context, params *ec2.CreateTransitGatewayPolicyTableInput, optFns ...func(*ec2.Options)) (*ec2.CreateTransitGatewayPolicyTableOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.CreateTransitGatewayPolicyTableOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateTransitGatewayPolicyTableInput, ...func(*ec2.Options)) *ec2.CreateTransitGatewayPolicyTableOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayPolicyTableOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateTransitGatewayPolicyTableInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateTransitGatewayPrefixListReference provides a mock function with given fields: ctx, params, optFns
 func (_m *EC2) CreateTransitGatewayPrefixListReference(ctx context.Context, params *ec2.CreateTransitGatewayPrefixListReferenceInput, optFns ...func(*ec2.Options)) (*ec2.CreateTransitGatewayPrefixListReferenceOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -3216,6 +3276,36 @@ func (_m *EC2) CreateTransitGatewayRouteTable(ctx context.Context, params *ec2.C
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateTransitGatewayRouteTableInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayRouteTableAnnouncement provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) CreateTransitGatewayRouteTableAnnouncement(ctx context.Context, params *ec2.CreateTransitGatewayRouteTableAnnouncementInput, optFns ...func(*ec2.Options)) (*ec2.CreateTransitGatewayRouteTableAnnouncementOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.CreateTransitGatewayRouteTableAnnouncementOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateTransitGatewayRouteTableAnnouncementInput, ...func(*ec2.Options)) *ec2.CreateTransitGatewayRouteTableAnnouncementOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayRouteTableAnnouncementOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateTransitGatewayRouteTableAnnouncementInput, ...func(*ec2.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -4994,6 +5084,36 @@ func (_m *EC2) DeleteTransitGatewayPeeringAttachment(ctx context.Context, params
 	return r0, r1
 }
 
+// DeleteTransitGatewayPolicyTable provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DeleteTransitGatewayPolicyTable(ctx context.Context, params *ec2.DeleteTransitGatewayPolicyTableInput, optFns ...func(*ec2.Options)) (*ec2.DeleteTransitGatewayPolicyTableOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DeleteTransitGatewayPolicyTableOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteTransitGatewayPolicyTableInput, ...func(*ec2.Options)) *ec2.DeleteTransitGatewayPolicyTableOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayPolicyTableOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteTransitGatewayPolicyTableInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeleteTransitGatewayPrefixListReference provides a mock function with given fields: ctx, params, optFns
 func (_m *EC2) DeleteTransitGatewayPrefixListReference(ctx context.Context, params *ec2.DeleteTransitGatewayPrefixListReferenceInput, optFns ...func(*ec2.Options)) (*ec2.DeleteTransitGatewayPrefixListReferenceOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -5076,6 +5196,36 @@ func (_m *EC2) DeleteTransitGatewayRouteTable(ctx context.Context, params *ec2.D
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteTransitGatewayRouteTableInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayRouteTableAnnouncement provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DeleteTransitGatewayRouteTableAnnouncement(ctx context.Context, params *ec2.DeleteTransitGatewayRouteTableAnnouncementInput, optFns ...func(*ec2.Options)) (*ec2.DeleteTransitGatewayRouteTableAnnouncementOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DeleteTransitGatewayRouteTableAnnouncementOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteTransitGatewayRouteTableAnnouncementInput, ...func(*ec2.Options)) *ec2.DeleteTransitGatewayRouteTableAnnouncementOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayRouteTableAnnouncementOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteTransitGatewayRouteTableAnnouncementInput, ...func(*ec2.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)
@@ -8954,6 +9104,66 @@ func (_m *EC2) DescribeTransitGatewayPeeringAttachments(ctx context.Context, par
 	return r0, r1
 }
 
+// DescribeTransitGatewayPolicyTables provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DescribeTransitGatewayPolicyTables(ctx context.Context, params *ec2.DescribeTransitGatewayPolicyTablesInput, optFns ...func(*ec2.Options)) (*ec2.DescribeTransitGatewayPolicyTablesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeTransitGatewayPolicyTablesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeTransitGatewayPolicyTablesInput, ...func(*ec2.Options)) *ec2.DescribeTransitGatewayPolicyTablesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTransitGatewayPolicyTablesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeTransitGatewayPolicyTablesInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayRouteTableAnnouncements provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DescribeTransitGatewayRouteTableAnnouncements(ctx context.Context, params *ec2.DescribeTransitGatewayRouteTableAnnouncementsInput, optFns ...func(*ec2.Options)) (*ec2.DescribeTransitGatewayRouteTableAnnouncementsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeTransitGatewayRouteTableAnnouncementsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeTransitGatewayRouteTableAnnouncementsInput, ...func(*ec2.Options)) *ec2.DescribeTransitGatewayRouteTableAnnouncementsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTransitGatewayRouteTableAnnouncementsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeTransitGatewayRouteTableAnnouncementsInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DescribeTransitGatewayRouteTables provides a mock function with given fields: ctx, params, optFns
 func (_m *EC2) DescribeTransitGatewayRouteTables(ctx context.Context, params *ec2.DescribeTransitGatewayRouteTablesInput, optFns ...func(*ec2.Options)) (*ec2.DescribeTransitGatewayRouteTablesOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -10274,6 +10484,36 @@ func (_m *EC2) DisassociateTransitGatewayMulticastDomain(ctx context.Context, pa
 	return r0, r1
 }
 
+// DisassociateTransitGatewayPolicyTable provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) DisassociateTransitGatewayPolicyTable(ctx context.Context, params *ec2.DisassociateTransitGatewayPolicyTableInput, optFns ...func(*ec2.Options)) (*ec2.DisassociateTransitGatewayPolicyTableOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DisassociateTransitGatewayPolicyTableOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisassociateTransitGatewayPolicyTableInput, ...func(*ec2.Options)) *ec2.DisassociateTransitGatewayPolicyTableOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisassociateTransitGatewayPolicyTableOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisassociateTransitGatewayPolicyTableInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DisassociateTransitGatewayRouteTable provides a mock function with given fields: ctx, params, optFns
 func (_m *EC2) DisassociateTransitGatewayRouteTable(ctx context.Context, params *ec2.DisassociateTransitGatewayRouteTableInput, optFns ...func(*ec2.Options)) (*ec2.DisassociateTransitGatewayRouteTableOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -11204,6 +11444,36 @@ func (_m *EC2) GetInstanceTypesFromInstanceRequirements(ctx context.Context, par
 	return r0, r1
 }
 
+// GetInstanceUefiData provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) GetInstanceUefiData(ctx context.Context, params *ec2.GetInstanceUefiDataInput, optFns ...func(*ec2.Options)) (*ec2.GetInstanceUefiDataOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.GetInstanceUefiDataOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetInstanceUefiDataInput, ...func(*ec2.Options)) *ec2.GetInstanceUefiDataOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetInstanceUefiDataOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetInstanceUefiDataInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetIpamAddressHistory provides a mock function with given fields: ctx, params, optFns
 func (_m *EC2) GetIpamAddressHistory(ctx context.Context, params *ec2.GetIpamAddressHistoryInput, optFns ...func(*ec2.Options)) (*ec2.GetIpamAddressHistoryOutput, error) {
 	_va := make([]interface{}, len(optFns))
@@ -11676,6 +11946,66 @@ func (_m *EC2) GetTransitGatewayMulticastDomainAssociations(ctx context.Context,
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetTransitGatewayMulticastDomainAssociationsInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTransitGatewayPolicyTableAssociations provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) GetTransitGatewayPolicyTableAssociations(ctx context.Context, params *ec2.GetTransitGatewayPolicyTableAssociationsInput, optFns ...func(*ec2.Options)) (*ec2.GetTransitGatewayPolicyTableAssociationsOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.GetTransitGatewayPolicyTableAssociationsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetTransitGatewayPolicyTableAssociationsInput, ...func(*ec2.Options)) *ec2.GetTransitGatewayPolicyTableAssociationsOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetTransitGatewayPolicyTableAssociationsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetTransitGatewayPolicyTableAssociationsInput, ...func(*ec2.Options)) error); ok {
+		r1 = rf(ctx, params, optFns...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTransitGatewayPolicyTableEntries provides a mock function with given fields: ctx, params, optFns
+func (_m *EC2) GetTransitGatewayPolicyTableEntries(ctx context.Context, params *ec2.GetTransitGatewayPolicyTableEntriesInput, optFns ...func(*ec2.Options)) (*ec2.GetTransitGatewayPolicyTableEntriesOutput, error) {
+	_va := make([]interface{}, len(optFns))
+	for _i := range optFns {
+		_va[_i] = optFns[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, params)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.GetTransitGatewayPolicyTableEntriesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetTransitGatewayPolicyTableEntriesInput, ...func(*ec2.Options)) *ec2.GetTransitGatewayPolicyTableEntriesOutput); ok {
+		r0 = rf(ctx, params, optFns...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetTransitGatewayPolicyTableEntriesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetTransitGatewayPolicyTableEntriesInput, ...func(*ec2.Options)) error); ok {
 		r1 = rf(ctx, params, optFns...)
 	} else {
 		r1 = ret.Error(1)

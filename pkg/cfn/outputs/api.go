@@ -50,6 +50,10 @@ const (
 
 	// IAMServiceAccountRoleName is the name of iamserviceaccount role resource and output.
 	IAMServiceAccountRoleName = "Role1"
+
+	// outputs from Spot Ocean
+	NodeGroupSpotOceanClusterID    = "SpotOceanClusterId"
+	NodeGroupSpotOceanLaunchSpecID = "SpotOceanLaunchSpecId"
 )
 
 type (
