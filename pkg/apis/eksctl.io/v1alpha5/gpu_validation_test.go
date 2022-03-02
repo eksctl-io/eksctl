@@ -16,6 +16,7 @@ var _ = Describe("GPU instance support", func() {
 	type gpuInstanceEntry struct {
 		gpuInstanceType string
 		amiFamily       string
+		customErr       string
 
 		expectUnsupportedErr bool
 	}
@@ -23,7 +24,9 @@ var _ = Describe("GPU instance support", func() {
 	assertValidationError := func(e gpuInstanceEntry, err error) {
 		if e.expectUnsupportedErr {
 			Expect(err).To(HaveOccurred())
-			if instanceutils.IsNvidiaInstanceType(e.gpuInstanceType) {
+			if e.customErr != "" {
+				Expect(err).To(MatchError(e.customErr))
+			} else if instanceutils.IsNvidiaInstanceType(e.gpuInstanceType) {
 				Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("GPU instance types are not supported for %s", e.amiFamily))))
 			} else {
 				Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("Inferentia instance types are not supported for %s", e.amiFamily))))
@@ -49,8 +52,10 @@ var _ = Describe("GPU instance support", func() {
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
 		}),
 		Entry("Bottlerocket", gpuInstanceEntry{
-			amiFamily:       api.NodeImageFamilyBottlerocket,
-			gpuInstanceType: "g4dn.xlarge",
+			amiFamily:            api.NodeImageFamilyBottlerocket,
+			gpuInstanceType:      "g4dn.xlarge",
+			expectUnsupportedErr: true,
+			customErr:            fmt.Sprintf("NVIDIA GPU instance types are not supported for managed nodegroups with AMIFamily %s", api.NodeImageFamilyBottlerocket),
 		}),
 		Entry("Ubuntu2004", gpuInstanceEntry{
 			amiFamily:            api.NodeImageFamilyUbuntu2004,
