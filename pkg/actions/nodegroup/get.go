@@ -107,7 +107,7 @@ func (m *Manager) getUnmanagedSummaries() ([]*Summary, error) {
 	}
 
 	// Create an empty array here so that an object is returned rather than null
-	summaries := []*Summary{}
+	summaries := make([]*Summary, 0)
 	for _, s := range stacks {
 		summary, err := m.stackToSummary(s)
 		if err != nil {
