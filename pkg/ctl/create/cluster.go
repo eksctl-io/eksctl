@@ -32,7 +32,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
-	utilstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
@@ -154,10 +153,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			}
 			return fmt.Errorf("invalid version, supported values: %s", strings.Join(api.SupportedVersions(), ", "))
 		}
-	}
-
-	if err := validateZonesAndNodeZones(cmd, params); err != nil {
-		return err
 	}
 
 	if err := cfg.ValidatePrivateCluster(); err != nil {
@@ -416,21 +411,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	logger.Success("%s is ready", meta.LogString())
 
 	return printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg)
-}
-
-func validateZonesAndNodeZones(cmd *cmdutils.Cmd, params *cmdutils.CreateClusterCmdParams) error {
-	if nodeZones := cmd.CobraCommand.Flag("node-zones"); nodeZones != nil && nodeZones.Changed {
-		if len(params.AvailabilityZones) == 0 {
-			return errors.New("zones must be defined if node-zones is provided and must be a superset of node-zones")
-		}
-		zones := strings.Split(nodeZones.Value.String(), ",")
-		for _, zone := range zones {
-			if !utilstrings.Contains(params.AvailabilityZones, zone) {
-				return fmt.Errorf("node-zones %q must be a subset of zones %q", zones, params.AvailabilityZones)
-			}
-		}
-	}
-	return nil
 }
 
 // installKarpenter prepares the environment for Karpenter, by creating the following resources:

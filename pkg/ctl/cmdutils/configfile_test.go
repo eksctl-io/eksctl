@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
@@ -199,6 +200,66 @@ var _ = Describe("cmdutils configfile", func() {
 				Expect(cfg.VPC.NAT.Gateway).To(Not(BeNil()))
 				Expect(*cfg.VPC.NAT.Gateway).To(Equal(natTest.expectedGateway))
 			}
+		})
+
+		When("using zones and node-zones together", func() {
+			var (
+				flagSet *pflag.FlagSet
+				testCmd *cobra.Command
+			)
+			BeforeEach(func() {
+				flagSet = pflag.NewFlagSet("test", pflag.ContinueOnError)
+				flagSet.StringSlice("zones", []string{}, "Zones")
+				flagSet.StringSlice("node-zones", []string{}, "Node zones")
+				testCmd = newCmd()
+				testCmd.Flags().AddFlagSet(flagSet)
+			})
+			When("node-zones is a subset of zones", func() {
+				It("does not error", func() {
+					Expect(testCmd.ParseFlags([]string{"--zones", "zone1,zone2", "--node-zones", "zone1"})).To(Succeed())
+					cmd := &Cmd{
+						CobraCommand:   testCmd,
+						ClusterConfig:  api.NewClusterConfig(),
+						ProviderConfig: api.ProviderConfig{},
+					}
+					params := &CreateClusterCmdParams{WithoutNodeGroup: true, CreateManagedNGOptions: CreateManagedNGOptions{
+						Managed: false,
+					}}
+					Expect(NewCreateClusterLoader(cmd, filter.NewNodeGroupFilter(), nil, params).Load()).To(Succeed())
+				})
+			})
+			When("node-zones is not a subset of zones", func() {
+				It("errors", func() {
+					Expect(testCmd.ParseFlags([]string{"--zones", "zone1,zone2", "--node-zones", "zone3"})).To(Succeed())
+					cmd := &Cmd{
+						CobraCommand:   testCmd,
+						ClusterConfig:  api.NewClusterConfig(),
+						ProviderConfig: api.ProviderConfig{},
+					}
+
+					params := &CreateClusterCmdParams{WithoutNodeGroup: true, CreateManagedNGOptions: CreateManagedNGOptions{
+						Managed: false,
+					}}
+					err := NewCreateClusterLoader(cmd, filter.NewNodeGroupFilter(), nil, params).Load()
+					Expect(err).To(MatchError(ContainSubstring("node-zones [zone3] must be a subset of zones [zone1 zone2]; \"zone3\" was not found in zones")))
+				})
+			})
+			When("node-zones is defined but zones isn't", func() {
+				It("errors", func() {
+					Expect(testCmd.ParseFlags([]string{"--node-zones", "zone3"})).To(Succeed())
+					cmd := &Cmd{
+						CobraCommand:   testCmd,
+						ClusterConfig:  api.NewClusterConfig(),
+						ProviderConfig: api.ProviderConfig{},
+					}
+
+					params := &CreateClusterCmdParams{WithoutNodeGroup: true, CreateManagedNGOptions: CreateManagedNGOptions{
+						Managed: false,
+					}}
+					err := NewCreateClusterLoader(cmd, filter.NewNodeGroupFilter(), nil, params).Load()
+					Expect(err).To(MatchError(ContainSubstring("zones must be defined if node-zones is provided and must be a superset of node-zones")))
+				})
+			})
 		})
 
 		When("using ipv6", func() {

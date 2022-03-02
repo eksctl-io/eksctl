@@ -74,7 +74,7 @@ var _ = Describe("create cluster", func() {
 			Entry("with node-private-networking flag", "--node-private-networking", "true"),
 			Entry("with node-security-groups flag", "--node-security-groups", "sg-123"),
 			Entry("with node-labels flag", "--node-labels", "partition=backend,nodeclass=hugememory"),
-			Entry("with node-zones flag", "--node-zones", "zone1,zone2,zone3"),
+			Entry("with node-zones flag", "--node-zones", "zone1,zone2,zone3", "--zones", "zone1,zone2,zone3,zone4"),
 			// commons node group IAM flags
 			Entry("with asg-access flag", "--asg-access", "true"),
 			Entry("with external-dns-access flag", "--external-dns-access", "true"),
@@ -156,7 +156,7 @@ var _ = Describe("create cluster", func() {
 			Entry("with node-ami-family flag", "--node-ami-family", "AmazonLinux2"),
 			Entry("with node-private-networking flag", "--node-private-networking", "true"),
 			Entry("with node-labels flag", "--node-labels", "partition=backend,nodeclass=hugememory"),
-			Entry("with node-zones flag", "--node-zones", "zone1,zone2,zone3"),
+			Entry("with node-zones flag", "--node-zones", "zone1,zone2,zone3", "--zones", "zone1,zone2,zone3,zone4"),
 			Entry("with asg-access flag", "--asg-access", "true"),
 			Entry("with external-dns-access flag", "--external-dns-access", "true"),
 			Entry("with full-ecr-access flag", "--full-ecr-access", "true"),
@@ -191,6 +191,10 @@ var _ = Describe("create cluster", func() {
 			Entry("with enableSsm disabled", invalidParamsCase{
 				args:  []string{"--name=test", "--enable-ssm=false"},
 				error: "SSM agent is now built into EKS AMIs and cannot be disabled",
+			}),
+			Entry("with node zones without zones", invalidParamsCase{
+				args:  []string{"--zones=zone1,zone2", "--node-zones=zone3"},
+				error: "validation for --zones and --node-zones failed: node-zones [zone3] must be a subset of zones [zone1 zone2]; \"zone3\" was not found in zones",
 			}),
 		)
 	})
