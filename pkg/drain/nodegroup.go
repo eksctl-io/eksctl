@@ -114,16 +114,11 @@ func (n *NodeGroupDrainer) Drain() error {
 	logger.Info("starting parallel draining, max in-flight of %d", parallelLimit)
 	// loop until all nodes are drained to handle accidental scale-up
 	// or any other changes in the ASG
-	waitForAllRoutinesToFinish := func() {
-		if err := sem.Acquire(context.TODO(), parallelLimit); err != nil {
-			logger.Critical("failed to claim sem: %w", err)
-		}
-	}
-
 	for {
 		select {
 		case <-ctx.Done():
-			waitForAllRoutinesToFinish()
+			//need to use a different context
+			waitForAllRoutinesToFinish(context.TODO(), sem, parallelLimit)
 			return fmt.Errorf("timed out (after %s) waiting for nodegroup %q to be drained", n.waitTimeout, n.ng.NameString())
 		default:
 			nodes, err := n.clientSet.CoreV1().Nodes().List(context.TODO(), listOptions)
@@ -141,7 +136,7 @@ func (n *NodeGroupDrainer) Drain() error {
 			}
 
 			if newPendingNodes.Len() == 0 {
-				waitForAllRoutinesToFinish()
+				waitForAllRoutinesToFinish(ctx, sem, parallelLimit)
 				logger.Success("drained all nodes: %v", mapToList(drainedNodes.Items()))
 				return nil // no new nodes were seen
 			}
@@ -180,6 +175,12 @@ func (n *NodeGroupDrainer) Drain() error {
 				}()
 			}
 		}
+	}
+}
+
+func waitForAllRoutinesToFinish(ctx context.Context, sem *semaphore.Weighted, size int64) {
+	if err := sem.Acquire(ctx, size); err != nil {
+		logger.Critical("failed to claim sem: %w", err)
 	}
 }
 
