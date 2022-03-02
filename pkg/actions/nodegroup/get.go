@@ -16,7 +16,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -63,7 +62,7 @@ func (m *Manager) GetAll() ([]*Summary, error) {
 func (m *Manager) Get(name string) (*Summary, error) {
 	summary, err := m.getUnmanagedSummary(name)
 	if err != nil {
-		return nil, errors.Wrap(err, "getting nodegroup stack summaries")
+		return nil, fmt.Errorf("getting nodegroup stack summaries: %w", err)
 	}
 
 	if summary != nil {
@@ -103,7 +102,7 @@ func (m *Manager) getManagedSummaries() ([]*Summary, error) {
 func (m *Manager) getUnmanagedSummaries() ([]*Summary, error) {
 	stacks, err := m.stackManager.DescribeNodeGroupStacks()
 	if err != nil {
-		return nil, errors.Wrap(err, "getting nodegroup stacks")
+		return nil, fmt.Errorf("getting nodegroup stacks: %w", err)
 	}
 
 	// Create an empty array here so that an object is returned rather than null
@@ -148,20 +147,20 @@ func (m *Manager) stackToSummary(s *manager.Stack) (*Summary, error) {
 	summary, err := m.mapStackToNodeGroupSummary(s, ngPaths)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
+		return nil, fmt.Errorf("mapping stack to nodegroup summary: %w", err)
 	}
 	summary.NodeGroupType = api.NodeGroupTypeUnmanaged
 
 	asgName, err := m.stackManager.GetUnmanagedNodeGroupAutoScalingGroupName(s)
 	if err != nil {
-		return nil, errors.Wrap(err, "getting autoscalinggroupname")
+		return nil, fmt.Errorf("getting autoscalinggroupname: %w", err)
 	}
 
 	summary.AutoScalingGroupName = asgName
 
 	scalingGroup, err := m.stackManager.GetAutoScalingGroupDesiredCapacity(asgName)
 	if err != nil {
-		return nil, errors.Wrap(err, "getting autoscalinggroup desired capacity")
+		return nil, fmt.Errorf("getting autoscalinggroup desired capacity: %w", err)
 	}
 	summary.DesiredCapacity = int(*scalingGroup.DesiredCapacity)
 	summary.MinSize = int(*scalingGroup.MinSize)
@@ -170,7 +169,7 @@ func (m *Manager) stackToSummary(s *manager.Stack) (*Summary, error) {
 	if summary.DesiredCapacity > 0 {
 		summary.Version, err = kubewrapper.GetNodegroupKubernetesVersion(m.clientSet.CoreV1().Nodes(), summary.Name)
 		if err != nil {
-			return nil, errors.Wrap(err, "getting nodegroup's kubernetes version")
+			return nil, fmt.Errorf("getting nodegroup's kubernetes version: %w", err)
 		}
 	}
 
@@ -226,7 +225,7 @@ type nodeGroupPaths struct {
 func (m *Manager) mapStackToNodeGroupSummary(stack *manager.Stack, ngPaths *nodeGroupPaths) (*Summary, error) {
 	template, err := m.stackManager.GetStackTemplate(*stack.StackName)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error getting CloudFormation template for stack %s", *stack.StackName)
+		return nil, fmt.Errorf("error getting CloudFormation template for stack %s: %w", *stack.StackName, err)
 	}
 
 	summary := &Summary{
@@ -258,7 +257,7 @@ func (m *Manager) mapStackToNodeGroupSummary(stack *manager.Stack, ngPaths *node
 		}
 		collectorSet := outputs.NewCollectorSet(collectors)
 		if err := collectorSet.MustCollect(*stack); err != nil {
-			logger.Warning(errors.Wrapf(err, "error collecting Cloudformation outputs for stack %s", *stack.StackName).Error())
+			logger.Warning(fmt.Errorf("error collecting Cloudformation outputs for stack %s: %w", *stack.StackName, err).Error())
 		}
 	}
 
