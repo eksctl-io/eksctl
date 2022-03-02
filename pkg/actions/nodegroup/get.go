@@ -135,6 +135,10 @@ func (m *Manager) unmanagedStackToSummary(s *manager.Stack) (*Summary, error) {
 		return nil, err
 	}
 
+	if nodeGroupType != api.NodeGroupTypeUnmanaged {
+		return nil, nil
+	}
+
 	ngPaths, err := getNodeGroupPaths(s.Tags)
 	if err != nil {
 		return nil, err
