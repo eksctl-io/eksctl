@@ -3,7 +3,6 @@ package drain
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"golang.org/x/sync/semaphore"
@@ -17,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/eks"
 
+	cmap "github.com/orcaman/concurrent-map"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 )
@@ -105,13 +105,12 @@ func (n *NodeGroupDrainer) Drain() error {
 		return nil // no need to kill any pods
 	}
 
-	drainedNodes := sets.NewString()
+	drainedNodes := cmap.New()
 	ctx, cancel := context.WithTimeout(context.TODO(), n.waitTimeout)
 	defer cancel()
 
 	parallelLimit := int64(n.parallel)
 	sem := semaphore.NewWeighted(parallelLimit)
-	m := sync.Mutex{}
 	logger.Info("starting parallel draining, max in-flight of %d", parallelLimit)
 	// loop until all nodes are drained to handle accidental scale-up
 	// or any other changes in the ASG
@@ -136,20 +135,18 @@ func (n *NodeGroupDrainer) Drain() error {
 			newPendingNodes := sets.NewString()
 
 			for _, node := range nodes.Items {
-				m.Lock()
 				if !drainedNodes.Has(node.Name) {
 					newPendingNodes.Insert(node.Name)
 				}
-				m.Unlock()
 			}
 
 			if newPendingNodes.Len() == 0 {
 				waitForAllRoutinesToFinish()
-				logger.Success("drained all nodes: %v", drainedNodes.List())
+				logger.Success("drained all nodes: %v", mapToList(drainedNodes.Items()))
 				return nil // no new nodes were seen
 			}
 
-			logger.Debug("already drained: %v", drainedNodes.List())
+			logger.Debug("already drained: %v", mapToList(drainedNodes.Items()))
 			logger.Debug("will drain: %v", newPendingNodes.List())
 			for i, node := range newPendingNodes.List() {
 				// scoped values for concurrency
@@ -172,9 +169,7 @@ func (n *NodeGroupDrainer) Drain() error {
 
 					logger.Debug("%d pods to be evicted from %s", pending, node)
 					if pending == 0 {
-						m.Lock()
-						drainedNodes.Insert(node)
-						m.Unlock()
+						drainedNodes.Set(node, nil)
 					}
 
 					// only wait if we're not on the last node of this iteration
@@ -186,6 +181,15 @@ func (n *NodeGroupDrainer) Drain() error {
 			}
 		}
 	}
+}
+
+func mapToList(m map[string]interface{}) []string {
+	list := []string{}
+	for key := range m {
+		list = append(list, key)
+	}
+
+	return list
 }
 
 func (n *NodeGroupDrainer) toggleCordon(cordon bool, nodes *corev1.NodeList) {

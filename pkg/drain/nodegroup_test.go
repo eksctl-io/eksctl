@@ -79,7 +79,7 @@ var _ = Describe("Drain", func() {
 			err := nodeGroupDrainer.Drain()
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(Equal(3))
+			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(BeNumerically(">=", 2))
 			Expect(fakeEvictor.EvictOrDeletePodCallCount()).To(Equal(1))
 			Expect(fakeEvictor.EvictOrDeletePodArgsForCall(0)).To(Equal(pod))
 
@@ -181,7 +181,7 @@ var _ = Describe("Drain", func() {
 			err := nodeGroupDrainer.Drain()
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(Equal(2))
+			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(BeNumerically(">=", 2))
 			Expect(fakeEvictor.EvictOrDeletePodCallCount()).To(Equal(1))
 			Expect(fakeEvictor.EvictOrDeletePodArgsForCall(0)).To(Equal(pod))
 
