@@ -55,6 +55,7 @@ type StackManager interface {
 	DoWaitUntilStackIsCreated(i *Stack) error
 	EnsureMapPublicIPOnLaunchEnabled() error
 	FixClusterCompatibility() error
+	GetAutoScalingGroupDesiredCapacity(name string) (autoscaling.Group, error)
 	GetAutoScalingGroupName(s *Stack) (string, error)
 	GetClusterStackIfExists() (*Stack, error)
 	GetFargateStack() (*Stack, error)
@@ -66,7 +67,6 @@ type StackManager interface {
 	GetNodeGroupName(s *Stack) string
 	GetNodeGroupStackType(options GetNodegroupOption) (v1alpha5.NodeGroupType, error)
 	GetStackTemplate(stackName string) (string, error)
-	GetAutoScalingGroupDesiredCapacity(name string) (autoscaling.Group, error)
 	GetUnmanagedNodeGroupAutoScalingGroupName(s *Stack) (string, error)
 	HasClusterStackUsingCachedList(clusterStackNames []string, clusterName string) (bool, error)
 	ListClusterStackNames() ([]string, error)

@@ -108,7 +108,7 @@ func (m *Manager) getUnmanagedSummaries() ([]*Summary, error) {
 	// Create an empty array here so that an object is returned rather than null
 	summaries := make([]*Summary, 0)
 	for _, s := range stacks {
-		summary, err := m.stackToSummary(s)
+		summary, err := m.unmanagedStackToSummary(s)
 		if err != nil {
 			return nil, err
 		}
@@ -126,17 +126,13 @@ func (m *Manager) getUnmanagedSummary(name string) (*Summary, error) {
 		return nil, err
 	}
 
-	return m.stackToSummary(stack)
+	return m.unmanagedStackToSummary(stack)
 }
 
-func (m *Manager) stackToSummary(s *manager.Stack) (*Summary, error) {
+func (m *Manager) unmanagedStackToSummary(s *manager.Stack) (*Summary, error) {
 	nodeGroupType, err := manager.GetNodeGroupType(s.Tags)
 	if err != nil {
 		return nil, err
-	}
-
-	if nodeGroupType != api.NodeGroupTypeUnmanaged {
-		return nil, nil
 	}
 
 	ngPaths, err := getNodeGroupPaths(s.Tags)
