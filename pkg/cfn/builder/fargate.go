@@ -87,7 +87,7 @@ func addResourcesForFargate(rs *resourceSet, cfg *api.ClusterConfig) error {
 	}
 
 	rs.newResource(fargateRoleName, role)
-	rs.defineOutputFromAtt(outputs.FargatePodExecutionRoleARN, fargateRoleName, "Arn", true, func(v string) error {
+	rs.defineOutputFromAtt(outputs.FargatePodExecutionRoleARN, fargateRoleName, "ARN", true, func(v string) error {
 		cfg.IAM.FargatePodExecutionRoleARN = &v
 		return nil
 	})

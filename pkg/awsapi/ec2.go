@@ -76,7 +76,9 @@ type EC2 interface {
 	AllocateHosts(ctx context.Context, params *AllocateHostsInput, optFns ...func(*Options)) (*AllocateHostsOutput, error)
 	// Allocate a CIDR from an IPAM pool. In IPAM, an allocation is a CIDR assignment
 	// from an IPAM pool to another resource or IPAM pool. For more information, see
-	// Allocate CIDRs in the Amazon VPC IPAM User Guide.
+	// Allocate CIDRs
+	// (https://docs.aws.amazon.com/vpc/latest/ipam/allocate-cidrs-ipam.html) in the
+	// Amazon VPC IPAM User Guide.
 	AllocateIpamPoolCidr(ctx context.Context, params *AllocateIpamPoolCidrInput, optFns ...func(*Options)) (*AllocateIpamPoolCidrOutput, error)
 	// Applies a security group to the association between the target network and the
 	// Client VPN endpoint. This action replaces the existing security groups with the
@@ -214,6 +216,9 @@ type EC2 interface {
 	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeTransitGatewayAttachments.html)
 	// to see the state of the attachment.
 	AssociateTransitGatewayMulticastDomain(ctx context.Context, params *AssociateTransitGatewayMulticastDomainInput, optFns ...func(*Options)) (*AssociateTransitGatewayMulticastDomainOutput, error)
+	// Associates the specified transit gateway attachment with a transit gateway
+	// policy table.
+	AssociateTransitGatewayPolicyTable(ctx context.Context, params *AssociateTransitGatewayPolicyTableInput, optFns ...func(*Options)) (*AssociateTransitGatewayPolicyTableOutput, error)
 	// Associates the specified attachment with the specified transit gateway route
 	// table. You can associate only one route table with an attachment.
 	AssociateTransitGatewayRouteTable(ctx context.Context, params *AssociateTransitGatewayRouteTableInput, optFns ...func(*Options)) (*AssociateTransitGatewayRouteTableOutput, error)
@@ -472,35 +477,20 @@ type EC2 interface {
 	// route in the route table specifies the path for traﬃc to speciﬁc resources or
 	// networks.
 	CreateClientVpnRoute(ctx context.Context, params *CreateClientVpnRouteInput, optFns ...func(*Options)) (*CreateClientVpnRouteOutput, error)
-	// Provides information to Amazon Web Services about your VPN customer gateway
-	// device. The customer gateway is the appliance at your end of the VPN connection.
-	// (The device on the Amazon Web Services side of the VPN connection is the virtual
-	// private gateway.) You must provide the internet-routable IP address of the
-	// customer gateway's external interface. The IP address must be static and can be
-	// behind a device performing network address translation (NAT). For devices that
-	// use Border Gateway Protocol (BGP), you can also provide the device's BGP
-	// Autonomous System Number (ASN). You can use an existing ASN assigned to your
-	// network. If you don't have an ASN already, you can use a private ASN (in the
-	// 64512 - 65534 range). Amazon EC2 supports all 4-byte ASN numbers in the range of
-	// 1 - 2147483647, with the exception of the following:
-	//
-	// * 7224 - reserved in the
-	// us-east-1 Region
-	//
-	// * 9059 - reserved in the eu-west-1 Region
-	//
-	// * 17943 - reserved
-	// in the ap-southeast-1 Region
-	//
-	// * 10124 - reserved in the ap-northeast-1
-	// Region
-	//
-	// For more information, see Amazon Web Services Site-to-Site VPN
-	// (https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html) in the Amazon Web
-	// Services Site-to-Site VPN User Guide. To create more than one customer gateway
-	// with the same VPN type, IP address, and BGP ASN, specify a unique device name
-	// for each customer gateway. Identical requests return information about the
-	// existing customer gateway and do not create new customer gateways.
+	// Provides information to Amazon Web Services about your customer gateway device.
+	// The customer gateway device is the appliance at your end of the VPN connection.
+	// You must provide the IP address of the customer gateway device’s external
+	// interface. The IP address must be static and can be behind a device performing
+	// network address translation (NAT). For devices that use Border Gateway Protocol
+	// (BGP), you can also provide the device's BGP Autonomous System Number (ASN). You
+	// can use an existing ASN assigned to your network. If you don't have an ASN
+	// already, you can use a private ASN. For more information, see Customer gateway
+	// options for your Site-to-Site VPN connection
+	// (https://docs.aws.amazon.com/vpn/latest/s2svpn/cgw-options.html) in the Amazon
+	// Web Services Site-to-Site VPN User Guide. To create more than one customer
+	// gateway with the same VPN type, IP address, and BGP ASN, specify a unique device
+	// name for each customer gateway. An identical request returns information about
+	// the existing customer gateway; it doesn't create a new customer gateway.
 	CreateCustomerGateway(ctx context.Context, params *CreateCustomerGatewayInput, optFns ...func(*Options)) (*CreateCustomerGatewayOutput, error)
 	// Creates a default subnet with a size /20 IPv4 CIDR block in the specified
 	// Availability Zone in your default VPC. You can have only one default subnet per
@@ -600,17 +590,19 @@ type EC2 interface {
 	// Development Kit (https://github.com/aws/aws-fpga/).
 	CreateFpgaImage(ctx context.Context, params *CreateFpgaImageInput, optFns ...func(*Options)) (*CreateFpgaImageOutput, error)
 	// Creates an Amazon EBS-backed AMI from an Amazon EBS-backed instance that is
-	// either running or stopped. By default, Amazon EC2 shuts down and reboots the
-	// instance before creating the AMI to ensure that everything on the instance is
-	// stopped and in a consistent state during the creation process. If you're
-	// confident that your instance is in a consistent state appropriate for AMI
-	// creation, use the NoReboot parameter to prevent Amazon EC2 from shutting down
-	// and rebooting the instance. If you customized your instance with instance store
-	// volumes or Amazon EBS volumes in addition to the root device volume, the new AMI
-	// contains block device mapping information for those volumes. When you launch an
-	// instance from this new AMI, the instance automatically launches with those
-	// additional volumes. For more information, see Creating Amazon EBS-Backed Linux
-	// AMIs
+	// either running or stopped. By default, when Amazon EC2 creates the new AMI, it
+	// reboots the instance so that it can take snapshots of the attached volumes while
+	// data is at rest, in order to ensure a consistent state. You can set the NoReboot
+	// parameter to true in the API request, or use the --no-reboot option in the CLI
+	// to prevent Amazon EC2 from shutting down and rebooting the instance. If you
+	// choose to bypass the shutdown and reboot process by setting the NoReboot
+	// parameter to true in the API request, or by using the --no-reboot option in the
+	// CLI, we can't guarantee the file system integrity of the created image. If you
+	// customized your instance with instance store volumes or Amazon EBS volumes in
+	// addition to the root device volume, the new AMI contains block device mapping
+	// information for those volumes. When you launch an instance from this new AMI,
+	// the instance automatically launches with those additional volumes. For more
+	// information, see Creating Amazon EBS-Backed Linux AMIs
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html)
 	// in the Amazon Elastic Compute Cloud User Guide.
 	CreateImage(ctx context.Context, params *CreateImageInput, optFns ...func(*Options)) (*CreateImageOutput, error)
@@ -647,53 +639,68 @@ type EC2 interface {
 	// information about your VPC and internet gateway, see the Amazon Virtual Private
 	// Cloud User Guide (https://docs.aws.amazon.com/vpc/latest/userguide/).
 	CreateInternetGateway(ctx context.Context, params *CreateInternetGatewayInput, optFns ...func(*Options)) (*CreateInternetGatewayOutput, error)
-	// Create an IPAM. Amazon VCP IP Address Manager (IPAM) is a VPC feature that you
+	// Create an IPAM. Amazon VPC IP Address Manager (IPAM) is a VPC feature that you
 	// can use to automate your IP address management workflows including assigning,
 	// tracking, troubleshooting, and auditing IP addresses across Amazon Web Services
 	// Regions and accounts throughout your Amazon Web Services Organization. For more
-	// information, see Create an IPAM in the Amazon VPC IPAM User Guide.
+	// information, see Create an IPAM
+	// (https://docs.aws.amazon.com/vpc/latest/ipam/create-ipam.html) in the Amazon VPC
+	// IPAM User Guide.
 	CreateIpam(ctx context.Context, params *CreateIpamInput, optFns ...func(*Options)) (*CreateIpamOutput, error)
 	// Create an IP address pool for Amazon VPC IP Address Manager (IPAM). In IPAM, a
 	// pool is a collection of contiguous IP addresses CIDRs. Pools enable you to
 	// organize your IP addresses according to your routing and security needs. For
 	// example, if you have separate routing and security needs for development and
 	// production applications, you can create a pool for each. For more information,
-	// see Create a top-level pool in the Amazon VPC IPAM User Guide.
+	// see Create a top-level pool
+	// (https://docs.aws.amazon.com/vpc/latest/ipam/create-top-ipam.html) in the Amazon
+	// VPC IPAM User Guide.
 	CreateIpamPool(ctx context.Context, params *CreateIpamPoolInput, optFns ...func(*Options)) (*CreateIpamPoolOutput, error)
 	// Create an IPAM scope. In IPAM, a scope is the highest-level container within
 	// IPAM. An IPAM contains two default scopes. Each scope represents the IP space
 	// for a single network. The private scope is intended for all private IP address
 	// space. The public scope is intended for all public IP address space. Scopes
 	// enable you to reuse IP addresses across multiple unconnected networks without
-	// causing IP address overlap or conflict. For more information, see Add a scope in
-	// the Amazon VPC IPAM User Guide.
+	// causing IP address overlap or conflict. For more information, see Add a scope
+	// (https://docs.aws.amazon.com/vpc/latest/ipam/add-scope-ipam.html) in the Amazon
+	// VPC IPAM User Guide.
 	CreateIpamScope(ctx context.Context, params *CreateIpamScopeInput, optFns ...func(*Options)) (*CreateIpamScopeOutput, error)
-	// Creates an ED25519 or 2048-bit RSA key pair with the specified name. Amazon EC2
-	// stores the public key and displays the private key for you to save to a file.
-	// The private key is returned as an unencrypted PEM encoded PKCS#1 private key. If
-	// a key with the specified name already exists, Amazon EC2 returns an error. The
-	// key pair returned to you is available only in the Amazon Web Services Region in
-	// which you create it. If you prefer, you can create your own key pair using a
-	// third-party tool and upload it to any Region using ImportKeyPair. You can have
-	// up to 5,000 key pairs per Amazon Web Services Region. For more information, see
-	// Amazon EC2 key pairs
+	// Creates an ED25519 or 2048-bit RSA key pair with the specified name and in the
+	// specified PEM or PPK format. Amazon EC2 stores the public key and displays the
+	// private key for you to save to a file. The private key is returned as an
+	// unencrypted PEM encoded PKCS#1 private key or an unencrypted PPK formatted
+	// private key for use with PuTTY. If a key with the specified name already exists,
+	// Amazon EC2 returns an error. The key pair returned to you is available only in
+	// the Amazon Web Services Region in which you create it. If you prefer, you can
+	// create your own key pair using a third-party tool and upload it to any Region
+	// using ImportKeyPair. You can have up to 5,000 key pairs per Amazon Web Services
+	// Region. For more information, see Amazon EC2 key pairs
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) in the
 	// Amazon Elastic Compute Cloud User Guide.
 	CreateKeyPair(ctx context.Context, params *CreateKeyPairInput, optFns ...func(*Options)) (*CreateKeyPairOutput, error)
 	// Creates a launch template. A launch template contains the parameters to launch
 	// an instance. When you launch an instance using RunInstances, you can specify a
 	// launch template instead of providing the launch parameters in the request. For
-	// more information, see Launching an instance from a launch template
+	// more information, see Launch an instance from a launch template
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html)
+	// in the Amazon Elastic Compute Cloud User Guide. If you want to clone an existing
+	// launch template as the basis for creating a new launch template, you can use the
+	// Amazon EC2 console. The API, SDKs, and CLI do not support cloning a template.
+	// For more information, see Create a launch template from an existing launch
+	// template
+	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html#create-launch-template-from-existing-launch-template)
 	// in the Amazon Elastic Compute Cloud User Guide.
 	CreateLaunchTemplate(ctx context.Context, params *CreateLaunchTemplateInput, optFns ...func(*Options)) (*CreateLaunchTemplateOutput, error)
-	// Creates a new version for a launch template. You can specify an existing version
+	// Creates a new version of a launch template. You can specify an existing version
 	// of launch template from which to base the new version. Launch template versions
 	// are numbered in the order in which they are created. You cannot specify, change,
-	// or replace the numbering of launch template versions. For more information, see
-	// Managing launch template versions
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html#manage-launch-template-versions)in
-	// the Amazon Elastic Compute Cloud User Guide.
+	// or replace the numbering of launch template versions. Launch templates are
+	// immutable; after you create a launch template, you can't modify it. Instead, you
+	// can create a new version of the launch template that includes any changes you
+	// require. For more information, see Modify a launch template (manage launch
+	// template versions)
+	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html#manage-launch-template-versions)
+	// in the Amazon Elastic Compute Cloud User Guide.
 	CreateLaunchTemplateVersion(ctx context.Context, params *CreateLaunchTemplateVersionInput, optFns ...func(*Options)) (*CreateLaunchTemplateVersionOutput, error)
 	// Creates a static route for the specified local gateway route table.
 	CreateLocalGatewayRoute(ctx context.Context, params *CreateLocalGatewayRouteInput, optFns ...func(*Options)) (*CreateLocalGatewayRouteOutput, error)
@@ -813,12 +820,11 @@ type EC2 interface {
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-store-restore.html) in
 	// the Amazon Elastic Compute Cloud User Guide.
 	CreateRestoreImageTask(ctx context.Context, params *CreateRestoreImageTaskInput, optFns ...func(*Options)) (*CreateRestoreImageTaskOutput, error)
-	// Creates a route in a route table within a VPC. You must specify one of the
-	// following targets: internet gateway or virtual private gateway, NAT instance,
-	// NAT gateway, VPC peering connection, network interface, egress-only internet
-	// gateway, or transit gateway. When determining how to route traffic, we use the
-	// route with the most specific match. For example, traffic is destined for the
-	// IPv4 address 192.0.2.3, and the route table includes the following two IPv4
+	// Creates a route in a route table within a VPC. You must specify either a
+	// destination CIDR block or a prefix list ID. You must also specify exactly one of
+	// the resources from the parameter list. When determining how to route traffic, we
+	// use the route with the most specific match. For example, traffic is destined for
+	// the IPv4 address 192.0.2.3, and the route table includes the following two IPv4
 	// routes:
 	//
 	// * 192.0.2.0/24 (goes to some target A)
@@ -943,11 +949,11 @@ type EC2 interface {
 	// or resources. When you specify an existing tag key, the value is overwritten
 	// with the new value. Each resource can have a maximum of 50 tags. Each tag
 	// consists of a key and optional value. Tag keys must be unique per resource. For
-	// more information about tags, see Tagging Your Resources
+	// more information about tags, see Tag your Amazon EC2 resources
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html) in the
 	// Amazon Elastic Compute Cloud User Guide. For more information about creating IAM
 	// policies that control users' access to resources based on tags, see Supported
-	// Resource-Level Permissions for Amazon EC2 API Actions
+	// resource-level permissions for Amazon EC2 API actions
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-supported-iam-actions-resources.html)
 	// in the Amazon Elastic Compute Cloud User Guide.
 	CreateTags(ctx context.Context, params *CreateTagsInput, optFns ...func(*Options)) (*CreateTagsOutput, error)
@@ -978,8 +984,9 @@ type EC2 interface {
 	// destination for mirrored traffic. The Traffic Mirror source and the Traffic
 	// Mirror target (monitoring appliances) can be in the same VPC, or in different
 	// VPCs connected via VPC peering or a transit gateway. A Traffic Mirror target can
-	// be a network interface, or a Network Load Balancer. To use the target in a
-	// Traffic Mirror session, use CreateTrafficMirrorSession
+	// be a network interface, a Network Load Balancer, or a Gateway Load Balancer
+	// endpoint. To use the target in a Traffic Mirror session, use
+	// CreateTrafficMirrorSession
 	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateTrafficMirrorSession.htm).
 	CreateTrafficMirrorTarget(ctx context.Context, params *CreateTrafficMirrorTargetInput, optFns ...func(*Options)) (*CreateTrafficMirrorTargetOutput, error)
 	// Creates a transit gateway. You can use a transit gateway to interconnect your
@@ -1019,12 +1026,13 @@ type EC2 interface {
 	// to see the state of transit gateway.
 	CreateTransitGatewayMulticastDomain(ctx context.Context, params *CreateTransitGatewayMulticastDomainInput, optFns ...func(*Options)) (*CreateTransitGatewayMulticastDomainOutput, error)
 	// Requests a transit gateway peering attachment between the specified transit
-	// gateway (requester) and a peer transit gateway (accepter). The transit gateways
-	// must be in different Regions. The peer transit gateway can be in your account or
-	// a different Amazon Web Services account. After you create the peering
-	// attachment, the owner of the accepter transit gateway must accept the attachment
-	// request.
+	// gateway (requester) and a peer transit gateway (accepter). The peer transit
+	// gateway can be in your account or a different Amazon Web Services account. After
+	// you create the peering attachment, the owner of the accepter transit gateway
+	// must accept the attachment request.
 	CreateTransitGatewayPeeringAttachment(ctx context.Context, params *CreateTransitGatewayPeeringAttachmentInput, optFns ...func(*Options)) (*CreateTransitGatewayPeeringAttachmentOutput, error)
+	// Creates a transit gateway policy table.
+	CreateTransitGatewayPolicyTable(ctx context.Context, params *CreateTransitGatewayPolicyTableInput, optFns ...func(*Options)) (*CreateTransitGatewayPolicyTableOutput, error)
 	// Creates a reference (route) to a prefix list in a specified transit gateway
 	// route table.
 	CreateTransitGatewayPrefixListReference(ctx context.Context, params *CreateTransitGatewayPrefixListReferenceInput, optFns ...func(*Options)) (*CreateTransitGatewayPrefixListReferenceOutput, error)
@@ -1032,6 +1040,8 @@ type EC2 interface {
 	CreateTransitGatewayRoute(ctx context.Context, params *CreateTransitGatewayRouteInput, optFns ...func(*Options)) (*CreateTransitGatewayRouteOutput, error)
 	// Creates a route table for the specified transit gateway.
 	CreateTransitGatewayRouteTable(ctx context.Context, params *CreateTransitGatewayRouteTableInput, optFns ...func(*Options)) (*CreateTransitGatewayRouteTableOutput, error)
+	// Advertises a new transit gateway route table.
+	CreateTransitGatewayRouteTableAnnouncement(ctx context.Context, params *CreateTransitGatewayRouteTableAnnouncementInput, optFns ...func(*Options)) (*CreateTransitGatewayRouteTableAnnouncementOutput, error)
 	// Attaches the specified VPC to the specified transit gateway. If you attach a VPC
 	// with a CIDR range that overlaps the CIDR range of a VPC that is already
 	// attached, the new VPC CIDR range is not propagated to the default propagation
@@ -1077,20 +1087,9 @@ type EC2 interface {
 	// Creates a VPC endpoint for a specified service. An endpoint enables you to
 	// create a private connection between your VPC and the service. The service may be
 	// provided by Amazon Web Services, an Amazon Web Services Marketplace Partner, or
-	// another Amazon Web Services account. For more information, see VPC Endpoints
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html) in the
-	// Amazon Virtual Private Cloud User Guide. A gateway endpoint serves as a target
-	// for a route in your route table for traffic destined for the Amazon Web Service.
-	// You can specify an endpoint policy to attach to the endpoint, which will control
-	// access to the service from your VPC. You can also specify the VPC route tables
-	// that use the endpoint. An interface endpoint is a network interface in your
-	// subnet that serves as an endpoint for communicating with the specified service.
-	// You can specify the subnets in which to create an endpoint, and the security
-	// groups to associate with the endpoint network interface. A GatewayLoadBalancer
-	// endpoint is a network interface in your subnet that serves an endpoint for
-	// communicating with a Gateway Load Balancer that you've configured as a VPC
-	// endpoint service. Use DescribeVpcEndpointServices to get a list of supported
-	// services.
+	// another Amazon Web Services account. For more information, see the Amazon Web
+	// Services PrivateLink Guide
+	// (https://docs.aws.amazon.com/vpc/latest/privatelink/).
 	CreateVpcEndpoint(ctx context.Context, params *CreateVpcEndpointInput, optFns ...func(*Options)) (*CreateVpcEndpointOutput, error)
 	// Creates a connection notification for a specified VPC endpoint or VPC endpoint
 	// service. A connection notification notifies you of specific endpoint events. You
@@ -1099,28 +1098,23 @@ type EC2 interface {
 	// the Amazon Simple Notification Service Developer Guide. You can create a
 	// connection notification for interface endpoints only.
 	CreateVpcEndpointConnectionNotification(ctx context.Context, params *CreateVpcEndpointConnectionNotificationInput, optFns ...func(*Options)) (*CreateVpcEndpointConnectionNotificationOutput, error)
-	// Creates a VPC endpoint service configuration to which service consumers (Amazon
-	// Web Services accounts, IAM users, and IAM roles) can connect. To create an
-	// endpoint service configuration, you must first create one of the following for
-	// your service:
+	// Creates a VPC endpoint service to which service consumers (Amazon Web Services
+	// accounts, IAM users, and IAM roles) can connect. Before you create an endpoint
+	// service, you must create one of the following for your service:
 	//
-	// * A Network Load Balancer
-	// (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/introduction.html).
-	// Service consumers connect to your service using an interface endpoint.
+	// * A Network
+	// Load Balancer
+	// (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/). Service
+	// consumers connect to your service using an interface endpoint.
 	//
-	// * A
-	// Gateway Load Balancer
-	// (https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/introduction.html).
+	// * A Gateway Load
+	// Balancer (https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/).
 	// Service consumers connect to your service using a Gateway Load Balancer
 	// endpoint.
 	//
-	// For more information, see VPC Endpoint Services
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-service.html) in the
-	// Amazon Virtual Private Cloud User Guide. If you set the private DNS name, you
-	// must prove that you own the private DNS domain name. For more information, see
-	// VPC Endpoint Service Private DNS Name Verification
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-services-dns-validation.html)
-	// in the Amazon Virtual Private Cloud User Guide.
+	// If you set the private DNS name, you must prove that you own the
+	// private DNS domain name. For more information, see the Amazon Web Services
+	// PrivateLink Guide (https://docs.aws.amazon.com/vpc/latest/privatelink/).
 	CreateVpcEndpointServiceConfiguration(ctx context.Context, params *CreateVpcEndpointServiceConfigurationInput, optFns ...func(*Options)) (*CreateVpcEndpointServiceConfigurationOutput, error)
 	// Requests a VPC peering connection between two VPCs: a requester VPC that you own
 	// and an accepter VPC with which to create the connection. The accepter VPC can
@@ -1221,13 +1215,9 @@ type EC2 interface {
 	// from the VPC before you can delete it.
 	DeleteInternetGateway(ctx context.Context, params *DeleteInternetGatewayInput, optFns ...func(*Options)) (*DeleteInternetGatewayOutput, error)
 	// Delete an IPAM. Deleting an IPAM removes all monitored data associated with the
-	// IPAM including the historical data for CIDRs. You cannot delete an IPAM if there
-	// are CIDRs provisioned to pools or if there are allocations in the pools within
-	// the IPAM. To deprovision pool CIDRs, see DeprovisionIpamPoolCidr
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeprovisionIpamPoolCidr.html).
-	// To release allocations, see ReleaseIpamPoolAllocation
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ReleaseIpamPoolAllocation.html).
-	// For more information, see Delete an IPAM in the Amazon VPC IPAM User Guide.
+	// IPAM including the historical data for CIDRs. For more information, see Delete
+	// an IPAM (https://docs.aws.amazon.com/vpc/latest/ipam/delete-ipam.html) in the
+	// Amazon VPC IPAM User Guide.
 	DeleteIpam(ctx context.Context, params *DeleteIpamInput, optFns ...func(*Options)) (*DeleteIpamOutput, error)
 	// Delete an IPAM pool. You cannot delete an IPAM pool if there are allocations in
 	// it or CIDRs provisioned to it. To release allocations, see
@@ -1235,10 +1225,14 @@ type EC2 interface {
 	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ReleaseIpamPoolAllocation.html).
 	// To deprovision pool CIDRs, see DeprovisionIpamPoolCidr
 	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeprovisionIpamPoolCidr.html).
-	// For more information, see Delete a pool in the Amazon VPC IPAM User Guide.
+	// For more information, see Delete a pool
+	// (https://docs.aws.amazon.com/vpc/latest/ipam/delete-pool-ipam.html) in the
+	// Amazon VPC IPAM User Guide.
 	DeleteIpamPool(ctx context.Context, params *DeleteIpamPoolInput, optFns ...func(*Options)) (*DeleteIpamPoolOutput, error)
 	// Delete the scope for an IPAM. You cannot delete the default scopes. For more
-	// information, see Delete a scope in the Amazon VPC IPAM User Guide.
+	// information, see Delete a scope
+	// (https://docs.aws.amazon.com/vpc/latest/ipam/delete-scope-ipam.html) in the
+	// Amazon VPC IPAM User Guide.
 	DeleteIpamScope(ctx context.Context, params *DeleteIpamScopeInput, optFns ...func(*Options)) (*DeleteIpamScopeOutput, error)
 	// Deletes the specified key pair, by removing the public key from Amazon EC2.
 	DeleteKeyPair(ctx context.Context, params *DeleteKeyPairInput, optFns ...func(*Options)) (*DeleteKeyPairOutput, error)
@@ -1327,8 +1321,8 @@ type EC2 interface {
 	// Deletes a subnet CIDR reservation.
 	DeleteSubnetCidrReservation(ctx context.Context, params *DeleteSubnetCidrReservationInput, optFns ...func(*Options)) (*DeleteSubnetCidrReservationOutput, error)
 	// Deletes the specified set of tags from the specified set of resources. To list
-	// the current tags, use DescribeTags. For more information about tags, see Tagging
-	// Your Resources
+	// the current tags, use DescribeTags. For more information about tags, see Tag
+	// your Amazon EC2 resources
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html) in the
 	// Amazon Elastic Compute Cloud User Guide.
 	DeleteTags(ctx context.Context, params *DeleteTagsInput, optFns ...func(*Options)) (*DeleteTagsOutput, error)
@@ -1353,6 +1347,8 @@ type EC2 interface {
 	DeleteTransitGatewayMulticastDomain(ctx context.Context, params *DeleteTransitGatewayMulticastDomainInput, optFns ...func(*Options)) (*DeleteTransitGatewayMulticastDomainOutput, error)
 	// Deletes a transit gateway peering attachment.
 	DeleteTransitGatewayPeeringAttachment(ctx context.Context, params *DeleteTransitGatewayPeeringAttachmentInput, optFns ...func(*Options)) (*DeleteTransitGatewayPeeringAttachmentOutput, error)
+	// Deletes the specified transit gateway policy table.
+	DeleteTransitGatewayPolicyTable(ctx context.Context, params *DeleteTransitGatewayPolicyTableInput, optFns ...func(*Options)) (*DeleteTransitGatewayPolicyTableOutput, error)
 	// Deletes a reference (route) to a prefix list in a specified transit gateway
 	// route table.
 	DeleteTransitGatewayPrefixListReference(ctx context.Context, params *DeleteTransitGatewayPrefixListReferenceInput, optFns ...func(*Options)) (*DeleteTransitGatewayPrefixListReferenceOutput, error)
@@ -1361,6 +1357,8 @@ type EC2 interface {
 	// Deletes the specified transit gateway route table. You must disassociate the
 	// route table from any transit gateway route tables before you can delete it.
 	DeleteTransitGatewayRouteTable(ctx context.Context, params *DeleteTransitGatewayRouteTableInput, optFns ...func(*Options)) (*DeleteTransitGatewayRouteTableOutput, error)
+	// Advertises to the transit gateway that a transit gateway route table is deleted.
+	DeleteTransitGatewayRouteTableAnnouncement(ctx context.Context, params *DeleteTransitGatewayRouteTableAnnouncementInput, optFns ...func(*Options)) (*DeleteTransitGatewayRouteTableAnnouncementOutput, error)
 	// Deletes the specified VPC attachment.
 	DeleteTransitGatewayVpcAttachment(ctx context.Context, params *DeleteTransitGatewayVpcAttachmentInput, optFns ...func(*Options)) (*DeleteTransitGatewayVpcAttachmentOutput, error)
 	// Deletes the specified EBS volume. The volume must be in the available state (not
@@ -1442,8 +1440,9 @@ type EC2 interface {
 	DeprovisionByoipCidr(ctx context.Context, params *DeprovisionByoipCidrInput, optFns ...func(*Options)) (*DeprovisionByoipCidrOutput, error)
 	// Deprovision a CIDR provisioned from an IPAM pool. If you deprovision a CIDR from
 	// a pool that has a source pool, the CIDR is recycled back into the source pool.
-	// For more information, see Deprovision pool CIDRs in the Amazon VPC IPAM User
-	// Guide.
+	// For more information, see Deprovision pool CIDRs
+	// (https://docs.aws.amazon.com/vpc/latest/ipam/depro-pool-cidr-ipam.html) in the
+	// Amazon VPC IPAM User Guide.
 	DeprovisionIpamPoolCidr(ctx context.Context, params *DeprovisionIpamPoolCidrInput, optFns ...func(*Options)) (*DeprovisionIpamPoolCidrOutput, error)
 	// Deprovision a CIDR from a public IPv4 pool.
 	DeprovisionPublicIpv4PoolCidr(ctx context.Context, params *DeprovisionPublicIpv4PoolCidrInput, optFns ...func(*Options)) (*DeprovisionPublicIpv4PoolCidrOutput, error)
@@ -1790,7 +1789,8 @@ type EC2 interface {
 	// Get information about your IPAM scopes.
 	DescribeIpamScopes(ctx context.Context, params *DescribeIpamScopesInput, optFns ...func(*Options)) (*DescribeIpamScopesOutput, error)
 	// Get information about your IPAM pools. For more information, see What is IPAM?
-	// in the Amazon VPC IPAM User Guide.
+	// (https://docs.aws.amazon.com/vpc/latest/ipam/what-is-it-ipam.html) in the Amazon
+	// VPC IPAM User Guide.
 	DescribeIpams(ctx context.Context, params *DescribeIpamsInput, optFns ...func(*Options)) (*DescribeIpamsOutput, error)
 	// Describes your IPv6 address pools.
 	DescribeIpv6Pools(ctx context.Context, params *DescribeIpv6PoolsInput, optFns ...func(*Options)) (*DescribeIpv6PoolsOutput, error)
@@ -2081,7 +2081,7 @@ type EC2 interface {
 	// the Amazon Virtual Private Cloud User Guide.
 	DescribeSubnets(ctx context.Context, params *DescribeSubnetsInput, optFns ...func(*Options)) (*DescribeSubnetsOutput, error)
 	// Describes the specified tags for your EC2 resources. For more information about
-	// tags, see Tagging Your Resources
+	// tags, see Tag your Amazon EC2 resources
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html) in the
 	// Amazon Elastic Compute Cloud User Guide.
 	DescribeTags(ctx context.Context, params *DescribeTagsInput, optFns ...func(*Options)) (*DescribeTagsOutput, error)
@@ -2104,6 +2104,10 @@ type EC2 interface {
 	DescribeTransitGatewayMulticastDomains(ctx context.Context, params *DescribeTransitGatewayMulticastDomainsInput, optFns ...func(*Options)) (*DescribeTransitGatewayMulticastDomainsOutput, error)
 	// Describes your transit gateway peering attachments.
 	DescribeTransitGatewayPeeringAttachments(ctx context.Context, params *DescribeTransitGatewayPeeringAttachmentsInput, optFns ...func(*Options)) (*DescribeTransitGatewayPeeringAttachmentsOutput, error)
+	// Describes one or more transit gateway route policy tables.
+	DescribeTransitGatewayPolicyTables(ctx context.Context, params *DescribeTransitGatewayPolicyTablesInput, optFns ...func(*Options)) (*DescribeTransitGatewayPolicyTablesOutput, error)
+	// Describes one or more transit gateway route table advertisements.
+	DescribeTransitGatewayRouteTableAnnouncements(ctx context.Context, params *DescribeTransitGatewayRouteTableAnnouncementsInput, optFns ...func(*Options)) (*DescribeTransitGatewayRouteTableAnnouncementsOutput, error)
 	// Describes one or more transit gateway route tables. By default, all transit
 	// gateway route tables are described. Alternatively, you can filter the results.
 	DescribeTransitGatewayRouteTables(ctx context.Context, params *DescribeTransitGatewayRouteTablesInput, optFns ...func(*Options)) (*DescribeTransitGatewayRouteTablesOutput, error)
@@ -2277,7 +2281,9 @@ type EC2 interface {
 	// Amazon Elastic Compute Cloud User Guide.
 	DisableImageDeprecation(ctx context.Context, params *DisableImageDeprecationInput, optFns ...func(*Options)) (*DisableImageDeprecationOutput, error)
 	// Disable the IPAM account. For more information, see Enable integration with
-	// Organizations in the Amazon VPC IPAM User Guide.
+	// Organizations
+	// (https://docs.aws.amazon.com/vpc/latest/ipam/enable-integ-ipam.html) in the
+	// Amazon VPC IPAM User Guide.
 	DisableIpamOrganizationAdminAccount(ctx context.Context, params *DisableIpamOrganizationAdminAccountInput, optFns ...func(*Options)) (*DisableIpamOrganizationAdminAccountOutput, error)
 	// Disables access to the EC2 serial console of all instances for your account. By
 	// default, access to the EC2 serial console is disabled for your account. For more
@@ -2350,6 +2356,8 @@ type EC2 interface {
 	DisassociateSubnetCidrBlock(ctx context.Context, params *DisassociateSubnetCidrBlockInput, optFns ...func(*Options)) (*DisassociateSubnetCidrBlockOutput, error)
 	// Disassociates the specified subnets from the transit gateway multicast domain.
 	DisassociateTransitGatewayMulticastDomain(ctx context.Context, params *DisassociateTransitGatewayMulticastDomainInput, optFns ...func(*Options)) (*DisassociateTransitGatewayMulticastDomainOutput, error)
+	// Removes the association between an an attachment and a policy table.
+	DisassociateTransitGatewayPolicyTable(ctx context.Context, params *DisassociateTransitGatewayPolicyTableInput, optFns ...func(*Options)) (*DisassociateTransitGatewayPolicyTableOutput, error)
 	// Disassociates a resource attachment from a transit gateway route table.
 	DisassociateTransitGatewayRouteTable(ctx context.Context, params *DisassociateTransitGatewayRouteTableInput, optFns ...func(*Options)) (*DisassociateTransitGatewayRouteTableOutput, error)
 	// This API action is currently in limited preview only. If you are interested in
@@ -2400,8 +2408,9 @@ type EC2 interface {
 	EnableImageDeprecation(ctx context.Context, params *EnableImageDeprecationInput, optFns ...func(*Options)) (*EnableImageDeprecationOutput, error)
 	// Enable an Organizations member account as the IPAM admin account. You cannot
 	// select the Organizations management account as the IPAM admin account. For more
-	// information, see Enable integration with Organizations in the Amazon VPC IPAM
-	// User Guide.
+	// information, see Enable integration with Organizations
+	// (https://docs.aws.amazon.com/vpc/latest/ipam/enable-integ-ipam.html) in the
+	// Amazon VPC IPAM User Guide.
 	EnableIpamOrganizationAdminAccount(ctx context.Context, params *EnableIpamOrganizationAdminAccountInput, optFns ...func(*Options)) (*EnableIpamOrganizationAdminAccountOutput, error)
 	// Enables access to the EC2 serial console of all instances for your account. By
 	// default, access to the EC2 serial console is disabled for your account. For more
@@ -2552,9 +2561,23 @@ type EC2 interface {
 	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/create-asg-instance-type-requirements.html)
 	// in the Amazon EC2 Auto Scaling User Guide.
 	GetInstanceTypesFromInstanceRequirements(ctx context.Context, params *GetInstanceTypesFromInstanceRequirementsInput, optFns ...func(*Options)) (*GetInstanceTypesFromInstanceRequirementsOutput, error)
+	// A binary representation of the UEFI variable store. Only non-volatile variables
+	// are stored. This is a base64 encoded and zlib compressed binary value that must
+	// be properly encoded. When you use register-image
+	// (https://docs.aws.amazon.com/cli/latest/reference/ec2/register-image.html) to
+	// create an AMI, you can create an exact copy of your variable store by passing
+	// the UEFI data in the UefiData parameter. You can modify the UEFI data by using
+	// the python-uefivars tool (https://github.com/awslabs/python-uefivars) on GitHub.
+	// You can use the tool to convert the UEFI data into a human-readable format
+	// (JSON), which you can inspect and modify, and then convert back into the binary
+	// format to use with register-image. For more information, see UEFI Secure Boot
+	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/uefi-secure-boot.html) in
+	// the Amazon EC2 User Guide.
+	GetInstanceUefiData(ctx context.Context, params *GetInstanceUefiDataInput, optFns ...func(*Options)) (*GetInstanceUefiDataOutput, error)
 	// Retrieve historical information about a CIDR within an IPAM scope. For more
-	// information, see View the history of IP addresses in the Amazon VPC IPAM User
-	// Guide.
+	// information, see View the history of IP addresses
+	// (https://docs.aws.amazon.com/vpc/latest/ipam/view-history-cidr-ipam.html) in the
+	// Amazon VPC IPAM User Guide.
 	GetIpamAddressHistory(ctx context.Context, params *GetIpamAddressHistoryInput, optFns ...func(*Options)) (*GetIpamAddressHistoryOutput, error)
 	// Get a list of all the CIDR allocations in an IPAM pool.
 	GetIpamPoolAllocations(ctx context.Context, params *GetIpamPoolAllocationsInput, optFns ...func(*Options)) (*GetIpamPoolAllocationsOutput, error)
@@ -2624,6 +2647,10 @@ type EC2 interface {
 	// Gets information about the associations for the transit gateway multicast
 	// domain.
 	GetTransitGatewayMulticastDomainAssociations(ctx context.Context, params *GetTransitGatewayMulticastDomainAssociationsInput, optFns ...func(*Options)) (*GetTransitGatewayMulticastDomainAssociationsOutput, error)
+	// Gets a list of the transit gateway policy table associations.
+	GetTransitGatewayPolicyTableAssociations(ctx context.Context, params *GetTransitGatewayPolicyTableAssociationsInput, optFns ...func(*Options)) (*GetTransitGatewayPolicyTableAssociationsOutput, error)
+	// Returns a list of transit gateway policy table entries.
+	GetTransitGatewayPolicyTableEntries(ctx context.Context, params *GetTransitGatewayPolicyTableEntriesInput, optFns ...func(*Options)) (*GetTransitGatewayPolicyTableEntriesOutput, error)
 	// Gets information about the prefix list references in a specified transit gateway
 	// route table.
 	GetTransitGatewayPrefixListReferences(ctx context.Context, params *GetTransitGatewayPrefixListReferencesInput, optFns ...func(*Options)) (*GetTransitGatewayPrefixListReferencesOutput, error)
@@ -2912,14 +2939,18 @@ type EC2 interface {
 	// Modify the configurations of an IPAM.
 	ModifyIpam(ctx context.Context, params *ModifyIpamInput, optFns ...func(*Options)) (*ModifyIpamOutput, error)
 	// Modify the configurations of an IPAM pool. For more information, see Modify a
-	// pool in the Amazon VPC IPAM User Guide.
+	// pool (https://docs.aws.amazon.com/vpc/latest/ipam/mod-pool-ipam.html) in the
+	// Amazon VPC IPAM User Guide.
 	ModifyIpamPool(ctx context.Context, params *ModifyIpamPoolInput, optFns ...func(*Options)) (*ModifyIpamPoolOutput, error)
 	// Modify a resource CIDR. You can use this action to transfer resource CIDRs
 	// between scopes and ignore resource CIDRs that you do not want to manage. If set
 	// to false, the resource will not be tracked for overlap, it cannot be
 	// auto-imported into a pool, and it will be removed from any pool it has an
-	// allocation in. For more information, see Move resource CIDRs between scopes and
-	// Change the monitoring state of resource CIDRs in the Amazon VPC IPAM User Guide.
+	// allocation in. For more information, see Move resource CIDRs between scopes
+	// (https://docs.aws.amazon.com/vpc/latest/ipam/move-resource-ipam.html) and Change
+	// the monitoring state of resource CIDRs
+	// (https://docs.aws.amazon.com/vpc/latest/ipam/change-monitoring-state-ipam.html)
+	// in the Amazon VPC IPAM User Guide.
 	ModifyIpamResourceCidr(ctx context.Context, params *ModifyIpamResourceCidrInput, optFns ...func(*Options)) (*ModifyIpamResourceCidrOutput, error)
 	// Modify an IPAM scope.
 	ModifyIpamScope(ctx context.Context, params *ModifyIpamScopeInput, optFns ...func(*Options)) (*ModifyIpamScopeOutput, error)
@@ -3056,10 +3087,10 @@ type EC2 interface {
 	// using either method, see Monitor the progress of volume modifications
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-volume-modifications.html).
 	// With previous-generation instance types, resizing an EBS volume might require
-	// detaching and reattaching the volume or stopping and restarting the instance. If
-	// you reach the maximum volume modification rate per volume limit, you must wait
-	// at least six hours before applying further modifications to the affected EBS
-	// volume.
+	// detaching and reattaching the volume or stopping and restarting the instance.
+	// After modifying a volume, you must wait at least six hours and ensure that the
+	// volume is in the in-use or available state before you can modify the same
+	// volume. This is sometimes referred to as a cooldown period.
 	ModifyVolume(ctx context.Context, params *ModifyVolumeInput, optFns ...func(*Options)) (*ModifyVolumeOutput, error)
 	// Modifies a volume attribute. By default, all I/O operations for the volume are
 	// suspended when the data on the volume is determined to be potentially
@@ -3073,9 +3104,8 @@ type EC2 interface {
 	ModifyVpcAttribute(ctx context.Context, params *ModifyVpcAttributeInput, optFns ...func(*Options)) (*ModifyVpcAttributeOutput, error)
 	// Modifies attributes of a specified VPC endpoint. The attributes that you can
 	// modify depend on the type of VPC endpoint (interface, gateway, or Gateway Load
-	// Balancer). For more information, see VPC Endpoints
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html) in the
-	// Amazon Virtual Private Cloud User Guide.
+	// Balancer). For more information, see the Amazon Web Services PrivateLink Guide
+	// (https://docs.aws.amazon.com/vpc/latest/privatelink/).
 	ModifyVpcEndpoint(ctx context.Context, params *ModifyVpcEndpointInput, optFns ...func(*Options)) (*ModifyVpcEndpointOutput, error)
 	// Modifies a connection notification for VPC endpoint or VPC endpoint service. You
 	// can change the SNS topic for the notification, or the events for which to be
@@ -3086,20 +3116,15 @@ type EC2 interface {
 	// and you can specify whether acceptance is required for requests to connect to
 	// your endpoint service through an interface VPC endpoint. If you set or modify
 	// the private DNS name, you must prove that you own the private DNS domain name.
-	// For more information, see VPC Endpoint Service Private DNS Name Verification
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-services-dns-validation.html)
-	// in the Amazon Virtual Private Cloud User Guide.
 	ModifyVpcEndpointServiceConfiguration(ctx context.Context, params *ModifyVpcEndpointServiceConfigurationInput, optFns ...func(*Options)) (*ModifyVpcEndpointServiceConfigurationOutput, error)
 	// Modifies the payer responsibility for your VPC endpoint service.
 	ModifyVpcEndpointServicePayerResponsibility(ctx context.Context, params *ModifyVpcEndpointServicePayerResponsibilityInput, optFns ...func(*Options)) (*ModifyVpcEndpointServicePayerResponsibilityOutput, error)
-	// Modifies the permissions for your VPC endpoint service
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-service.html). You
-	// can add or remove permissions for service consumers (IAM users, IAM roles, and
-	// Amazon Web Services accounts) to connect to your endpoint service. If you grant
-	// permissions to all principals, the service is public. Any users who know the
-	// name of a public service can send a request to attach an endpoint. If the
-	// service does not require manual approval, attachments are automatically
-	// approved.
+	// Modifies the permissions for your VPC endpoint service. You can add or remove
+	// permissions for service consumers (IAM users, IAM roles, and Amazon Web Services
+	// accounts) to connect to your endpoint service. If you grant permissions to all
+	// principals, the service is public. Any users who know the name of a public
+	// service can send a request to attach an endpoint. If the service does not
+	// require manual approval, attachments are automatically approved.
 	ModifyVpcEndpointServicePermissions(ctx context.Context, params *ModifyVpcEndpointServicePermissionsInput, optFns ...func(*Options)) (*ModifyVpcEndpointServicePermissionsOutput, error)
 	// Modifies the VPC peering connection options on one side of a VPC peering
 	// connection. You can do the following:
@@ -3209,7 +3234,8 @@ type EC2 interface {
 	// IPv4 BYOIP CIDR with Amazon Web Services, you can move the CIDR to IPAM from a
 	// public IPv4 pool. You cannot move an IPv6 CIDR to IPAM. If you are bringing a
 	// new IP address to Amazon Web Services for the first time, complete the steps in
-	// Tutorial: BYOIP address CIDRs to IPAM.
+	// Tutorial: BYOIP address CIDRs to IPAM
+	// (https://docs.aws.amazon.com/vpc/latest/ipam/tutorials-byoip-ipam.html).
 	MoveByoipCidrToIpam(ctx context.Context, params *MoveByoipCidrToIpamInput, optFns ...func(*Options)) (*MoveByoipCidrToIpamOutput, error)
 	// Provisions an IPv4 or IPv6 address range for use with your Amazon Web Services
 	// resources through bring your own IP addresses (BYOIP) and creates a
@@ -3230,11 +3256,13 @@ type EC2 interface {
 	ProvisionByoipCidr(ctx context.Context, params *ProvisionByoipCidrInput, optFns ...func(*Options)) (*ProvisionByoipCidrOutput, error)
 	// Provision a CIDR to an IPAM pool. You can use this action to provision new CIDRs
 	// to a top-level pool or to transfer a CIDR from a top-level pool to a pool within
-	// it. For more information, see Provision CIDRs to pools in the Amazon VPC IPAM
-	// User Guide.
+	// it. For more information, see Provision CIDRs to pools
+	// (https://docs.aws.amazon.com/vpc/latest/ipam/prov-cidr-ipam.html) in the Amazon
+	// VPC IPAM User Guide.
 	ProvisionIpamPoolCidr(ctx context.Context, params *ProvisionIpamPoolCidrInput, optFns ...func(*Options)) (*ProvisionIpamPoolCidrOutput, error)
 	// Provision a CIDR to a public IPv4 pool. For more information about IPAM, see
-	// What is IPAM? in the Amazon VPC IPAM User Guide.
+	// What is IPAM? (https://docs.aws.amazon.com/vpc/latest/ipam/what-is-it-ipam.html)
+	// in the Amazon VPC IPAM User Guide.
 	ProvisionPublicIpv4PoolCidr(ctx context.Context, params *ProvisionPublicIpv4PoolCidrInput, optFns ...func(*Options)) (*ProvisionPublicIpv4PoolCidrOutput, error)
 	// Purchase a reservation with configurations that match those of your Dedicated
 	// Host. You must have active Dedicated Hosts in your account before you purchase a
@@ -3277,16 +3305,18 @@ type EC2 interface {
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami.html) in
 	// the Amazon Elastic Compute Cloud User Guide. For Amazon EBS-backed instances,
 	// CreateImage creates and registers the AMI in a single request, so you don't have
-	// to register the AMI yourself. If needed, you can deregister an AMI at any time.
-	// Any modifications you make to an AMI backed by an instance store volume
-	// invalidates its registration. If you make changes to an image, deregister the
-	// previous image and register the new image. Register a snapshot of a root device
-	// volume You can use RegisterImage to create an Amazon EBS-backed Linux AMI from a
-	// snapshot of a root device volume. You specify the snapshot using a block device
-	// mapping. You can't set the encryption state of the volume using the block device
-	// mapping. If the snapshot is encrypted, or encryption by default is enabled, the
-	// root volume of an instance launched from the AMI is encrypted. For more
-	// information, see Create a Linux AMI from a snapshot
+	// to register the AMI yourself. We recommend that you always use CreateImage
+	// unless you have a specific reason to use RegisterImage. If needed, you can
+	// deregister an AMI at any time. Any modifications you make to an AMI backed by an
+	// instance store volume invalidates its registration. If you make changes to an
+	// image, deregister the previous image and register the new image. Register a
+	// snapshot of a root device volume You can use RegisterImage to create an Amazon
+	// EBS-backed Linux AMI from a snapshot of a root device volume. You specify the
+	// snapshot using a block device mapping. You can't set the encryption state of the
+	// volume using the block device mapping. If the snapshot is encrypted, or
+	// encryption by default is enabled, the root volume of an instance launched from
+	// the AMI is encrypted. For more information, see Create a Linux AMI from a
+	// snapshot
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html#creating-launching-ami-from-snapshot)
 	// and Use encryption with Amazon EBS-backed AMIs
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIEncryption.html) in the
@@ -3372,6 +3402,9 @@ type EC2 interface {
 	// an AuthFailure error if the address is already allocated to another Amazon Web
 	// Services account. [EC2-VPC] After you release an Elastic IP address for use in a
 	// VPC, you might be able to recover it. For more information, see AllocateAddress.
+	// For more information, see Elastic IP Addresses
+	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html)
+	// in the Amazon Elastic Compute Cloud User Guide.
 	ReleaseAddress(ctx context.Context, params *ReleaseAddressInput, optFns ...func(*Options)) (*ReleaseAddressOutput, error)
 	// When you no longer want to use an On-Demand Dedicated Host it can be released.
 	// On-Demand billing is stopped and the host goes into released state. The host ID
@@ -3388,8 +3421,9 @@ type EC2 interface {
 	// deleting the resource, set its monitored state to false using
 	// ModifyIpamResourceCidr
 	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyIpamResourceCidr.html).
-	// For more information, see Release an allocation in the Amazon VPC IPAM User
-	// Guide.
+	// For more information, see Release an allocation
+	// (https://docs.aws.amazon.com/vpc/latest/ipam/release-pool-alloc-ipam.html) in
+	// the Amazon VPC IPAM User Guide.
 	ReleaseIpamPoolAllocation(ctx context.Context, params *ReleaseIpamPoolAllocationInput, optFns ...func(*Options)) (*ReleaseIpamPoolAllocationOutput, error)
 	// Replaces an IAM instance profile for the specified running instance. You can use
 	// this action to change the IAM instance profile that's associated with an
@@ -3406,10 +3440,10 @@ type EC2 interface {
 	// ACLs (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_ACLs.html) in the
 	// Amazon Virtual Private Cloud User Guide.
 	ReplaceNetworkAclEntry(ctx context.Context, params *ReplaceNetworkAclEntryInput, optFns ...func(*Options)) (*ReplaceNetworkAclEntryOutput, error)
-	// Replaces an existing route within a route table in a VPC. You must provide only
-	// one of the following: internet gateway, virtual private gateway, NAT instance,
-	// NAT gateway, VPC peering connection, network interface, egress-only internet
-	// gateway, or transit gateway. For more information, see Route tables
+	// Replaces an existing route within a route table in a VPC. You must specify
+	// either a destination CIDR block or a prefix list ID. You must also specify
+	// exactly one of the resources from the parameter list, or reset the local route
+	// to its default target. For more information, see Route tables
 	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html) in the
 	// Amazon Virtual Private Cloud User Guide.
 	ReplaceRoute(ctx context.Context, params *ReplaceRouteInput, optFns ...func(*Options)) (*ReplaceRouteOutput, error)
@@ -3448,12 +3482,22 @@ type EC2 interface {
 	// spot-fleet-request and instance resource types are supported. For more
 	// information, see Spot Fleet requests
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-requests.html)
+	// in the Amazon EC2 User Guide for Linux Instances. We strongly discourage using
+	// the RequestSpotFleet API because it is a legacy API with no planned investment.
+	// For options for requesting Spot Instances, see Which is the best Spot request
+	// method to use?
+	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-best-practices.html#which-spot-request-method-to-use)
 	// in the Amazon EC2 User Guide for Linux Instances.
 	RequestSpotFleet(ctx context.Context, params *RequestSpotFleetInput, optFns ...func(*Options)) (*RequestSpotFleetOutput, error)
 	// Creates a Spot Instance request. For more information, see Spot Instance
 	// requests
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-requests.html) in the
-	// Amazon EC2 User Guide for Linux Instances.
+	// Amazon EC2 User Guide for Linux Instances. We strongly discourage using the
+	// RequestSpotInstances API because it is a legacy API with no planned investment.
+	// For options for requesting Spot Instances, see Which is the best Spot request
+	// method to use?
+	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-best-practices.html#which-spot-request-method-to-use)
+	// in the Amazon EC2 User Guide for Linux Instances.
 	RequestSpotInstances(ctx context.Context, params *RequestSpotInstancesInput, optFns ...func(*Options)) (*RequestSpotInstancesOutput, error)
 	// Resets the attribute of the specified IP address. For requirements, see Using
 	// reverse DNS for email applications
@@ -3667,13 +3711,13 @@ type EC2 interface {
 	// private DNS name domain for the endpoint service. The service provider must
 	// successfully perform the verification before the consumer can use the name to
 	// access the service. Before the service provider runs this command, they must add
-	// a record to the DNS server. For more information, see Adding a TXT Record to
-	// Your Domain's DNS Server
-	// (https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-services-dns-validation.html#add-dns-txt-record)
-	// in the Amazon VPC User Guide.
+	// a record to the DNS server.
 	StartVpcEndpointServicePrivateDnsVerification(ctx context.Context, params *StartVpcEndpointServicePrivateDnsVerificationInput, optFns ...func(*Options)) (*StartVpcEndpointServicePrivateDnsVerificationOutput, error)
-	// Stops an Amazon EBS-backed instance. You can use the Stop action to hibernate an
-	// instance if the instance is enabled for hibernation
+	// Stops an Amazon EBS-backed instance. For more information, see Stop and start
+	// your instance
+	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Stop_Start.html) in the
+	// Amazon EC2 User Guide. You can use the Stop action to hibernate an instance if
+	// the instance is enabled for hibernation
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html#enabling-hibernation)
 	// and it meets the hibernation prerequisites
 	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Hibernate.html#hibernating-prerequisites).

@@ -166,7 +166,7 @@ func TestManagedNodeRole(t *testing.T) {
 				NodeGroupBase: &api.NodeGroupBase{},
 			},
 			expectedNewRole:     true,
-			expectedNodeRoleARN: gfnt.MakeFnGetAtt(cfnIAMInstanceRoleName, gfnt.NewString("Arn")), // creating new role
+			expectedNodeRoleARN: gfnt.MakeFnGetAtt(cfnIAMInstanceRoleName, gfnt.NewString("ARN")), // creating new role
 		},
 		{
 			description: "InstanceRoleARN is provided",

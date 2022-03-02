@@ -1,0 +1,90 @@
+# An example of ClusterConfig object with Spot Ocean nodegroups.
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-22
+  region: us-west-2
+
+spotOcean:
+  strategy:
+    utilizeReservedInstances: true
+    fallbackToOnDemand: true
+
+  scheduling:
+    shutdownHours:
+      isEnabled: true
+      timeWindows:
+      - Mon:22:00-Tue:06:00
+      - Tue:22:00-Wed:06:00
+      - Wed:22:00-Thu:06:00
+      - Thu:22:00-Fri:06:00
+      - Fri:22:00-Mon:06:00
+
+  autoScaler:
+    enabled: true
+    cooldown: 300
+    autoConfig: false
+    headrooms:
+      cpuPerUnit: 2
+      gpuPerUnit: 0
+      memoryPerUnit: 64
+      numOfUnits: 1
+
+  compute:
+    instanceTypes:
+      whitelist:
+      - t3a.large
+      - t3a.xlarge
+      - t3a.2xlarge
+      - m5a.large
+      - m5a.xlarge
+      - m5a.2xlarge
+      - m5a.4xlarge
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+
+nodeGroups:
+- name: ocean-ng1
+  spotOcean: {}
+
+- name: ocean-ng2
+  spotOcean:
+    strategy:
+      spotPercentage: 100
+
+    compute:
+      instanceTypes:
+      - t3a.large
+      - t3a.xlarge
+      - t3a.2xlarge
+
+    autoScaler:
+      headrooms:
+      - cpuPerUnit: 2
+        gpuPerUnit: 0
+        memoryPerUnit: 32
+        numOfUnits: 1
+
+- name: ocean-ng3
+  spotOcean:
+    strategy:
+      spotPercentage: 70
+
+    compute:
+      instanceTypes:
+      - m5a.large
+      - m5a.xlarge
+      - m5a.2xlarge
+      - m5a.4xlarge
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+
+    autoScaler:
+      resourceLimits:
+        maxInstanceCount: 10

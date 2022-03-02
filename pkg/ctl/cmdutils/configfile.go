@@ -17,6 +17,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/spot"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 	utilstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 )
@@ -46,7 +47,7 @@ var (
 		"region",
 		"version",
 		"cluster",
-		"namepace",
+		"namespace",
 	}
 	defaultFlagsIncompatibleWithoutConfigFile = []string{
 		"only",
@@ -89,6 +90,9 @@ var (
 		"full-ecr-access",
 		"instance-name",
 		"instance-prefix",
+
+		// Spot Ocean.
+		"spot-ocean",
 	}
 )
 
@@ -519,6 +523,15 @@ func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
 		return fmt.Errorf("%s volume type is not supported via flag --node-volume-type, please use a config file", api.NodeVolumeTypeIO1)
 	}
 
+	// Spot Ocean.
+	{
+		if flag := l.CobraCommand.Flag("spot-ocean"); flag != nil && flag.Changed {
+			if ng.SpotOcean == nil {
+				ng.SpotOcean = spot.NewOceanVirtualNodeGroup().SpotOcean
+			}
+		}
+	}
+
 	normalizeBaseNodeGroup(ng, l.CobraCommand)
 	return nil
 }
@@ -688,7 +701,63 @@ func parseList(arg string) ([]string, error) {
 	return csvReader.Read()
 }
 
-// NewCreateIAMServiceAccountLoader will load config or use flags for 'eksctl create iamserviceaccount'
+// NewUtilsSpotOceanUpdateCredentials will load config or use flags for
+// 'eksctl utils update-spot-ocean-credentials'.
+func NewUtilsSpotOceanUpdateCredentials(cmd *Cmd, ng *api.NodeGroup,
+	ngFilter *filter.NodeGroupFilter) ClusterConfigLoader {
+
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithConfigFile = func() error {
+		return ngFilter.AppendGlobs(l.Include, l.Exclude,
+			l.ClusterConfig.GetAllNodeGroupNames())
+	}
+
+	l.flagsIncompatibleWithoutConfigFile.Insert(
+		"approve",
+	)
+
+	l.validateWithoutConfigFile = func() error {
+		if l.ClusterConfig.Metadata.Name == "" {
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+		if ng.Name != "" && l.NameArg != "" {
+			return ErrFlagAndArg("--name", ng.Name, l.NameArg)
+		}
+		if l.NameArg != "" {
+			ng.Name = l.NameArg
+		}
+		if ng.Name == "" {
+			return ErrMustBeSet("--name")
+		}
+
+		ngFilter.AppendIncludeNames(ng.Name)
+		l.Plan = false
+
+		return nil
+	}
+
+	return l
+}
+
+// NewUtilsSpotOceanUpdateCluster will load config or use flags for
+// 'eksctl utils update-spot-ocean-cluster'.
+func NewUtilsSpotOceanUpdateCluster(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.flagsIncompatibleWithoutConfigFile.Insert(
+		"approve",
+	)
+
+	l.validateWithoutConfigFile = func() error {
+		return fmt.Errorf("cannot update cluster unless a config file " +
+			"is specified via --config-file/-f")
+	}
+
+	return l
+}
+
+// NewCreateIAMServiceAccountLoader will laod config or use flags for 'eksctl create iamserviceaccount'
 func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *filter.IAMServiceAccountFilter) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
