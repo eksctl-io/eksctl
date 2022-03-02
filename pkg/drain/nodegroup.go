@@ -144,15 +144,11 @@ func (n *NodeGroupDrainer) Drain() error {
 			logger.Debug("already drained: %v", mapToList(drainedNodes.Items()))
 			logger.Debug("will drain: %v", newPendingNodes.List())
 			for i, node := range newPendingNodes.List() {
-				// scoped values for concurrency
-				i := i
-				node := node
-
 				if err := sem.Acquire(ctx, 1); err != nil {
 					logger.Critical("failed to claim sem: %w", err)
 				}
 
-				go func() {
+				go func(i int, node string) {
 					defer sem.Release(1)
 					logger.Debug("starting drain of node %s", node)
 					pending, err := n.evictPods(node)
@@ -167,12 +163,11 @@ func (n *NodeGroupDrainer) Drain() error {
 						drainedNodes.Set(node, nil)
 					}
 
-					// only wait if we're not on the last node of this iteration
-					if n.nodeDrainWaitPeriod > 0 && i < newPendingNodes.Len()-1 {
+					if n.nodeDrainWaitPeriod > 0 {
 						logger.Debug("waiting for %.0f seconds before draining next node", n.nodeDrainWaitPeriod.Seconds())
 						time.Sleep(n.nodeDrainWaitPeriod)
 					}
-				}()
+				}(i, node)
 			}
 		}
 	}

@@ -57,7 +57,7 @@ func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cm
 		fs.DurationVar(&maxGracePeriod, "max-grace-period", defaultMaxGracePeriod, "Maximum pods termination grace period")
 		defaultDisableEviction := false
 		fs.BoolVar(&disableEviction, "disable-eviction", defaultDisableEviction, "Force drain to use delete, even if eviction is supported. This will bypass checking PodDisruptionBudgets, use with caution.")
-		fs.IntVar(&parallel, "parallel", 5, "Number of nodes to drain in parallel. Max 25")
+		fs.IntVar(&parallel, "parallel", 1, "Number of nodes to drain in parallel. Max 25")
 
 		cmd.Wait = false
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "deletion of all resources")

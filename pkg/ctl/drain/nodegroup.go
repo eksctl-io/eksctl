@@ -56,7 +56,7 @@ func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 		fs.BoolVar(&disableEviction, "disable-eviction", defaultDisableEviction, "Force drain to use delete, even if eviction is supported. This will bypass checking PodDisruptionBudgets, use with caution.")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 		fs.DurationVar(&nodeDrainWaitPeriod, "node-drain-wait-period", 0, "Amount of time to wait between draining nodes in a nodegroup")
-		fs.IntVar(&parallel, "parallel", 5, "Number of nodes to drain in parallel. Max 25")
+		fs.IntVar(&parallel, "parallel", 1, "Number of nodes to drain in parallel. Max 25")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
