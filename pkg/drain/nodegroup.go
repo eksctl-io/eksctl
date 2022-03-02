@@ -3,6 +3,7 @@ package drain
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"golang.org/x/sync/semaphore"
@@ -110,6 +111,7 @@ func (n *NodeGroupDrainer) Drain() error {
 
 	parallelLimit := int64(n.parallel)
 	sem := semaphore.NewWeighted(parallelLimit)
+	m := sync.Mutex{}
 	logger.Info("starting parallel draining, max in-flight of %d", parallelLimit)
 	// loop until all nodes are drained to handle accidental scale-up
 	// or any other changes in the ASG
@@ -134,9 +136,11 @@ func (n *NodeGroupDrainer) Drain() error {
 			newPendingNodes := sets.NewString()
 
 			for _, node := range nodes.Items {
+				m.Lock()
 				if !drainedNodes.Has(node.Name) {
 					newPendingNodes.Insert(node.Name)
 				}
+				m.Unlock()
 			}
 
 			if newPendingNodes.Len() == 0 {
@@ -148,11 +152,14 @@ func (n *NodeGroupDrainer) Drain() error {
 			logger.Debug("already drained: %v", drainedNodes.List())
 			logger.Debug("will drain: %v", newPendingNodes.List())
 			for i, node := range newPendingNodes.List() {
+				// scoped values for concurrency
 				i := i
 				node := node
+
 				if err := sem.Acquire(ctx, 1); err != nil {
 					logger.Critical("failed to claim sem: %w", err)
 				}
+
 				go func() {
 					defer sem.Release(1)
 					logger.Debug("starting drain of node %s", node)
@@ -165,7 +172,9 @@ func (n *NodeGroupDrainer) Drain() error {
 
 					logger.Debug("%d pods to be evicted from %s", pending, node)
 					if pending == 0 {
+						m.Lock()
 						drainedNodes.Insert(node)
+						m.Unlock()
 					}
 
 					// only wait if we're not on the last node of this iteration
