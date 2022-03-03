@@ -16,4 +16,4 @@ if [ ! -f "${RELEASE_NOTES_FILE}" ]; then
 fi
 
 cat ./.goreleaser.yml ./.goreleaser.brew.yml > .goreleaser.brew.combined.yml
-goreleaser release --rm-dist --timeout 60m --skip-validate --config=./.goreleaser.brew.combined.yml --release-notes="${RELEASE_NOTES_FILE}"
+GORELEASER_CURRENT_TAG=v${tag} goreleaser release --rm-dist --timeout 60m --skip-validate --config=./.goreleaser.brew.combined.yml --release-notes="${RELEASE_NOTES_FILE}"
