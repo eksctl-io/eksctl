@@ -148,39 +148,6 @@ var _ = Describe("(Integration) Fargate", func() {
 			deleteCluster(ft.clusterName)
 		})
 	})
-
-	Context("Creating a cluster with --fargate and --managed", func() {
-		ft := &fargateTest{}
-
-		BeforeEach(func() {
-			setup(ft, "--fargate", "--managed")
-		})
-
-		It("should support Fargate", func() {
-			testDefaultFargateProfile(ft.clusterName, ft.kubeTest)
-			testCreateFargateProfile(ft.clusterName, ft.kubeTest)
-		})
-
-		AfterEach(func() {
-			deleteCluster(ft.clusterName)
-		})
-	})
-
-	Context("Creating a cluster without --fargate", func() {
-		ft := &fargateTest{}
-
-		BeforeEach(func() {
-			setup(ft)
-		})
-
-		It("should allow creation of new Fargate profiles", func() {
-			testCreateFargateProfile(ft.clusterName, ft.kubeTest)
-		})
-
-		AfterEach(func() {
-			deleteCluster(ft.clusterName)
-		})
-	})
 })
 
 var _ = AfterSuite(func() {
