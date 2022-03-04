@@ -55,6 +55,48 @@ var _ = Describe("StackCollection", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})
+		It("can update when only the stack is provided", func() {
+			// Order of AWS SDK invocation
+			// 1) DescribeStacks
+			// 2) CreateChangeSet
+			// 3) DescribeChangeSetRequest (FAILED to abort early)
+			// 4) DescribeChangeSet (StatusReason contains "The submitted information didn't contain changes" to exit with noChangeError)
+
+			stackName := "eksctl-stack"
+			changeSetName := "eksctl-changeset"
+			describeInput := &cfn.DescribeStacksInput{StackName: &stackName}
+			describeOutput := &cfn.DescribeStacksOutput{Stacks: []*cfn.Stack{{
+				StackName:   &stackName,
+				StackStatus: aws.String(cfn.StackStatusCreateComplete),
+			}}}
+			describeChangeSetFailed := &cfn.DescribeChangeSetOutput{
+				StackName:     &stackName,
+				ChangeSetName: &changeSetName,
+				Status:        aws.String(cfn.ChangeSetStatusFailed),
+			}
+			describeChangeSetNoChange := &cfn.DescribeChangeSetOutput{
+				StackName:    &stackName,
+				StatusReason: aws.String("The submitted information didn't contain changes"),
+			}
+			p := mockprovider.NewMockProvider()
+			p.MockCloudFormation().On("DescribeStacks", describeInput).Return(describeOutput, nil)
+			p.MockCloudFormation().On("CreateChangeSet", mock.Anything).Return(nil, nil)
+			req := awstesting.NewClient(nil).NewRequest(&request.Operation{Name: "Operation"}, nil, describeChangeSetFailed)
+			p.MockCloudFormation().On("DescribeChangeSetRequest", mock.Anything).Return(req, describeChangeSetFailed)
+			p.MockCloudFormation().On("DescribeChangeSet", mock.Anything).Return(describeChangeSetNoChange, nil)
+
+			sm := NewStackCollection(p, api.NewClusterConfig())
+			err := sm.UpdateStack(UpdateStackOptions{
+				Stack: &Stack{
+					StackName: &stackName,
+				},
+				ChangeSetName: changeSetName,
+				Description:   "description",
+				TemplateData:  TemplateBody(""),
+				Wait:          true,
+			})
+			Expect(err).NotTo(HaveOccurred())
+		})
 	})
 
 	It("updates tags (existing + metadata + auto)", func() {
