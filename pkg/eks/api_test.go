@@ -179,7 +179,7 @@ var _ = Describe("Setting Availability Zones", func() {
 		When("the given params contain too few AZs", func() {
 			It("returns an error", func() {
 				err := eks.SetAvailabilityZones(cfg, []string{"us-east-2a"}, provider.EC2(), "")
-				Expect(err).To(MatchError(ContainSubstring("only 1 zone(s) specified [us-east-2a], 2 are required (can be non-unique)")))
+				Expect(err).To(MatchError("only 1 zone(s) specified [us-east-2a], 2 are required (can be non-unique)"))
 			})
 		})
 	})
@@ -197,7 +197,7 @@ var _ = Describe("Setting Availability Zones", func() {
 			It("returns an error", func() {
 				cfg.AvailabilityZones = []string{"us-east-2a"}
 				err := eks.SetAvailabilityZones(cfg, []string{}, provider.EC2(), "")
-				Expect(err).To(MatchError(ContainSubstring("only 1 zone(s) specified [us-east-2a], 2 are required (can be non-unique)")))
+				Expect(err).To(MatchError("only 1 zone(s) specified [us-east-2a], 2 are required (can be non-unique)"))
 			})
 		})
 	})
@@ -216,7 +216,7 @@ var _ = Describe("Setting Availability Zones", func() {
 					}},
 				}).Return(&ec2.DescribeAvailabilityZonesOutput{}, fmt.Errorf("err"))
 				err := eks.SetAvailabilityZones(cfg, []string{}, provider.EC2(), region)
-				Expect(err).To(MatchError(ContainSubstring("getting availability zones")))
+				Expect(err).To(MatchError("getting availability zones: error getting availability zones for region us-east-2: err"))
 			})
 		})
 
