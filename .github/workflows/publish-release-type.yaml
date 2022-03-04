@@ -23,7 +23,7 @@ jobs:
             ~/go/pkg/mod/
           key: go-${{ hashFiles('go.sum') }}
           restore-keys: |
-            - go-
+            go-
       - name: Setup Go
         uses: actions/setup-go@v2
         with:

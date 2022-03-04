@@ -16,4 +16,4 @@ jobs:
             ~/go/pkg/mod/
           key: go-${{ hashFiles('go.sum') }}
           restore-keys: |
-            - go-
+            go-
