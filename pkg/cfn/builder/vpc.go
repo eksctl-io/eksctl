@@ -79,7 +79,7 @@ func getSubnetIPv4CIDRBlock(cidrPartitions int, cidr *ipnet.IPNet) *gfnt.Value {
 		numberOfIPsPerSubnet := remainingIPs / float64(cidrPartitions)
 		desiredMask = int(math.Floor(math.Log2(numberOfIPsPerSubnet)))
 	}
-	refSubnetSlices := gfnt.MakeFnCIDR(gfnt.MakeFnGetAttString("VPC", "CidrBlock"), gfnt.NewInteger(cidrPartitions), gfnt.NewInteger(32-desiredMask))
+	refSubnetSlices := gfnt.MakeFnCIDR(gfnt.MakeFnGetAttString("VPC", "CidrBlock"), gfnt.NewInteger(cidrPartitions), gfnt.NewInteger(desiredMask))
 	return refSubnetSlices
 }
 
