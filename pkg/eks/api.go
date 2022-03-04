@@ -368,7 +368,7 @@ func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) e
 }
 
 // SetAvailabilityZones sets the given (or chooses) the availability zones
-func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []string) error {
+func SetAvailabilityZones(spec *api.ClusterConfig, given []string, ec2 ec2iface.EC2API, region string) error {
 	if count := len(given); count != 0 {
 		if count < api.MinRequiredAvailabilityZones {
 			return api.ErrTooFewAvailabilityZones(given)
@@ -377,8 +377,15 @@ func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []
 		return nil
 	}
 
+	if count := len(spec.AvailabilityZones); count != 0 {
+		if count < api.MinRequiredAvailabilityZones {
+			return api.ErrTooFewAvailabilityZones(spec.AvailabilityZones)
+		}
+		return nil
+	}
+
 	logger.Debug("determining availability zones")
-	zones, err := az.GetAvailabilityZones(c.Provider.EC2(), c.Provider.Region())
+	zones, err := az.GetAvailabilityZones(ec2, region)
 	if err != nil {
 		return errors.Wrap(err, "getting availability zones")
 	}
