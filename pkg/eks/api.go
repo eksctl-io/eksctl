@@ -377,6 +377,13 @@ func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []
 		return nil
 	}
 
+	if count := len(spec.AvailabilityZones); count != 0 {
+		if count < api.MinRequiredAvailabilityZones {
+			return api.ErrTooFewAvailabilityZones(spec.AvailabilityZones)
+		}
+		return nil
+	}
+
 	logger.Debug("determining availability zones")
 	zones, err := az.GetAvailabilityZones(c.Provider.EC2(), c.Provider.Region())
 	if err != nil {
