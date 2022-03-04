@@ -435,7 +435,7 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 
 	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets
 	if !subnetsGiven && params.KopsClusterNameForVPC == "" {
-		if err := ctl.SetAvailabilityZones(cfg, params.AvailabilityZones); err != nil {
+		if err := eks.SetAvailabilityZones(cfg, params.AvailabilityZones, ctl.Provider.EC2(), ctl.Provider.Region()); err != nil {
 			return err
 		}
 
