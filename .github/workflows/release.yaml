@@ -22,7 +22,7 @@ jobs:
             ~/go/pkg/mod/
           key: go-${{ hashFiles('go.sum') }}
           restore-keys: |
-            - go-
+            go-
       - name: Setup identity as weaveworksbot
         uses: ./.github/actions/setup-identity
         with:
