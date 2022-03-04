@@ -251,6 +251,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 				},
 			))
 
+			// TODO: Fix this and add a test where cidr block for the VPC is defined.
 			expectedFnIPv4CIDR := `{ "Fn::Cidr": [{ "Fn::GetAtt": ["VPC", "CidrBlock"]}, 6, 13 ]}`
 			assertCidrBlockCreatedWithSelect(vpcTemplate.Resources[subnetKey].Properties.CidrBlock, expectedFnIPv4CIDR, cidrBlockIndex)
 

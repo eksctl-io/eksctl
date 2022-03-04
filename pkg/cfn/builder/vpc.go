@@ -1,11 +1,14 @@
 package builder
 
 import (
+	"math"
 	"strings"
 
 	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+
+	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 )
 
 const (
@@ -63,9 +66,19 @@ func getSubnetIPv6CIDRBlock(cidrPartitions int) *gfnt.Value {
 	return refSubnetSlices
 }
 
-func getSubnetIPv4CIDRBlock(cidrPartitions int) *gfnt.Value {
-	//TODO: should we be doing /19? Should we adjust for the partition size?
+func getSubnetIPv4CIDRBlock(cidrPartitions int, cidr *ipnet.IPNet) *gfnt.Value {
 	desiredMask := 19
+	// We only calculate it if a custom cidr range was given
+	// otherwise the hardcoded one is fine for now. Don't take my word on that.
+	if cidr != nil {
+		// To calculate the desiredMask -> ip -> 192.168.0.0/20 cidrPartition -> 6
+		// 32-20 -> 12 -> 2^12 -> 4096 -> 4096/cidrPartitions -> ~682 -> log2(682) -> ~9.2 -> 9 (we always floor) -> 32 - 9 -> 23!
+		ones, _ := cidr.Mask.Size()
+		remainingCIDRBit := 32 - ones
+		remainingIPs := math.Pow(2, float64(remainingCIDRBit))
+		numberOfIPsPerSubnet := remainingIPs / float64(cidrPartitions)
+		desiredMask = int(math.Floor(math.Log2(numberOfIPsPerSubnet)))
+	}
 	refSubnetSlices := gfnt.MakeFnCIDR(gfnt.MakeFnGetAttString("VPC", "CidrBlock"), gfnt.NewInteger(cidrPartitions), gfnt.NewInteger(32-desiredMask))
 	return refSubnetSlices
 }
