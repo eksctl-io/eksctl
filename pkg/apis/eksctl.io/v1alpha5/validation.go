@@ -157,8 +157,7 @@ func validateKarpenterConfig(cfg *ClusterConfig) error {
 		return fmt.Errorf("failed to parse karpenter version %q: %w", cfg.Karpenter.Version, err)
 	}
 
-	minor := v.Segments()[1]
-	if minor > supportedKarpenterVersionMinor {
+	if minor := v.Segments()[1]; minor > supportedKarpenterVersionMinor {
 		return fmt.Errorf("failed to validate karpenter config: maximum supported version is %s", supportedKarpenterVersion)
 	}
 
