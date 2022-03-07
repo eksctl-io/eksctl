@@ -248,6 +248,8 @@ func (c *StackCollection) UpdateStack(options UpdateStackOptions) error {
 			return err
 		}
 		options.Stack = s
+	} else {
+		options.StackName = *options.Stack.StackName
 	}
 	if err := c.doCreateChangeSetRequest(
 		options.StackName,

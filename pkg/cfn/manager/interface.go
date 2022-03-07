@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
@@ -30,6 +31,8 @@ type GetNodegroupOption struct {
 	NodeGroupName string
 }
 
+var _ StackManager = &StackCollection{}
+
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_stack_manager.go . StackManager
 type StackManager interface {
@@ -52,6 +55,7 @@ type StackManager interface {
 	DoWaitUntilStackIsCreated(i *Stack) error
 	EnsureMapPublicIPOnLaunchEnabled() error
 	FixClusterCompatibility() error
+	GetAutoScalingGroupDesiredCapacity(name string) (autoscaling.Group, error)
 	GetAutoScalingGroupName(s *Stack) (string, error)
 	GetClusterStackIfExists() (*Stack, error)
 	GetFargateStack() (*Stack, error)
@@ -63,7 +67,7 @@ type StackManager interface {
 	GetNodeGroupName(s *Stack) string
 	GetNodeGroupStackType(options GetNodegroupOption) (v1alpha5.NodeGroupType, error)
 	GetStackTemplate(stackName string) (string, error)
-	GetUnmanagedNodeGroupSummaries(name string) ([]*NodeGroupSummary, error)
+	GetUnmanagedNodeGroupAutoScalingGroupName(s *Stack) (string, error)
 	HasClusterStackUsingCachedList(clusterStackNames []string, clusterName string) (bool, error)
 	ListClusterStackNames() ([]string, error)
 	ListIAMServiceAccountStacks() ([]string, error)
@@ -77,7 +81,7 @@ type StackManager interface {
 	NewManagedNodeGroupTask(nodeGroups []*v1alpha5.ManagedNodeGroup, forceAddCNIPolicy bool, importer vpc.Importer) *tasks.TaskTree
 	NewTaskToDeleteAddonIAM(wait bool) (*tasks.TaskTree, error)
 	NewTaskToDeleteUnownedNodeGroup(clusterName, nodegroup string, eksAPI eksiface.EKSAPI, waitCondition *DeleteWaitCondition) tasks.Task
-	NewTasksToCreateClusterWithNodeGroups(nodeGroups []*v1alpha5.NodeGroup, managedNodeGroups []*v1alpha5.ManagedNodeGroup, supportsManagedNodes bool, postClusterCreationTasks ...tasks.Task) *tasks.TaskTree
+	NewTasksToCreateClusterWithNodeGroups(nodeGroups []*v1alpha5.NodeGroup, managedNodeGroups []*v1alpha5.ManagedNodeGroup, postClusterCreationTasks ...tasks.Task) *tasks.TaskTree
 	NewTasksToCreateIAMServiceAccounts(serviceAccounts []*v1alpha5.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) *tasks.TaskTree
 	NewTasksToDeleteClusterWithNodeGroups(stack *Stack, stacks []NodeGroupStack, deleteOIDCProvider bool, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error)
 	NewTasksToDeleteIAMServiceAccounts(serviceAccounts []string, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*tasks.TaskTree, error)

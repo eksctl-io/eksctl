@@ -1,6 +1,8 @@
 package eks_test
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ssm"
@@ -8,6 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	gomegatypes "github.com/onsi/gomega/types"
 	"github.com/stretchr/testify/mock"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -153,3 +156,97 @@ func mockDescribeImages(p *mockprovider.MockProvider, amiID string, matcher func
 			},
 		}, nil)
 }
+
+var _ = Describe("Setting Availability Zones", func() {
+	var (
+		provider *mockprovider.MockProvider
+		cfg      *api.ClusterConfig
+	)
+
+	BeforeEach(func() {
+		cfg = api.NewClusterConfig()
+		provider = mockprovider.NewMockProvider()
+	})
+
+	When("the AZs were set as CLI params", func() {
+		When("the given params contain enough AZs", func() {
+			It("sets them as the AZs to be used", func() {
+				err := eks.SetAvailabilityZones(cfg, []string{"us-east-2a", "us-east-2b"}, provider.EC2(), "")
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+
+		When("the given params contain too few AZs", func() {
+			It("returns an error", func() {
+				err := eks.SetAvailabilityZones(cfg, []string{"us-east-2a"}, provider.EC2(), "")
+				Expect(err).To(MatchError("only 1 zone(s) specified [us-east-2a], 2 are required (can be non-unique)"))
+			})
+		})
+	})
+
+	When("the AZs were set in the config file", func() {
+		When("the config file contains enough AZs", func() {
+			It("sets them as the AZs to be used", func() {
+				cfg.AvailabilityZones = []string{"us-east-2a", "us-east-2b"}
+				err := eks.SetAvailabilityZones(cfg, []string{}, provider.EC2(), "")
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+
+		When("the config file contains too few AZs", func() {
+			It("returns an error", func() {
+				cfg.AvailabilityZones = []string{"us-east-2a"}
+				err := eks.SetAvailabilityZones(cfg, []string{}, provider.EC2(), "")
+				Expect(err).To(MatchError("only 1 zone(s) specified [us-east-2a], 2 are required (can be non-unique)"))
+			})
+		})
+	})
+
+	When("no AZs were set", func() {
+		When("the call to fetch AZs fails", func() {
+			It("returns an error", func() {
+				region := "us-east-2"
+				provider.MockEC2().On("DescribeAvailabilityZones", &ec2.DescribeAvailabilityZonesInput{
+					Filters: []*ec2.Filter{{
+						Name:   aws.String("region-name"),
+						Values: []*string{aws.String(region)},
+					}, {
+						Name:   aws.String("state"),
+						Values: []*string{aws.String(ec2.AvailabilityZoneStateAvailable)},
+					}},
+				}).Return(&ec2.DescribeAvailabilityZonesOutput{}, fmt.Errorf("err"))
+				err := eks.SetAvailabilityZones(cfg, []string{}, provider.EC2(), region)
+				Expect(err).To(MatchError("getting availability zones: error getting availability zones for region us-east-2: err"))
+			})
+		})
+
+		When("the call to fetch AZs succeeds", func() {
+			It("sets random AZs", func() {
+				region := "us-east-2"
+				provider.MockEC2().On("DescribeAvailabilityZones", &ec2.DescribeAvailabilityZonesInput{
+					Filters: []*ec2.Filter{{
+						Name:   aws.String("region-name"),
+						Values: []*string{aws.String(region)},
+					}, {
+						Name:   aws.String("state"),
+						Values: []*string{aws.String(ec2.AvailabilityZoneStateAvailable)},
+					}},
+				}).Return(&ec2.DescribeAvailabilityZonesOutput{
+					AvailabilityZones: []*ec2.AvailabilityZone{
+						{
+							GroupName: aws.String("name"),
+							ZoneName:  aws.String(region),
+							ZoneId:    aws.String("id"),
+						},
+						{
+							GroupName: aws.String("name"),
+							ZoneName:  aws.String(region),
+							ZoneId:    aws.String("id"),
+						}},
+				}, nil)
+				err := eks.SetAvailabilityZones(cfg, []string{}, provider.EC2(), region)
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+	})
+})

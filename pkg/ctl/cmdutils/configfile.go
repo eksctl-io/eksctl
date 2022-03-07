@@ -17,6 +17,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
+	utilstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 // AddConfigFileFlag adds common --config-file flag
@@ -254,8 +255,8 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 
 		api.SetClusterEndpointAccessDefaults(clusterConfig.VPC)
 
-		if !clusterConfig.HasClusterEndpointAccess() {
-			return api.ErrClusterEndpointNoAccess
+		if err := clusterConfig.ValidateClusterEndpointConfig(); err != nil {
+			return err
 		}
 
 		if clusterConfig.HasAnySubnets() && len(clusterConfig.AvailabilityZones) != 0 {
@@ -289,6 +290,10 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 
 		if l.ClusterConfig.Status != nil {
 			return fmt.Errorf("status fields are read-only")
+		}
+
+		if err := validateZonesAndNodeZones(l.CobraCommand); err != nil {
+			return fmt.Errorf("validation for --zones and --node-zones failed: %w", err)
 		}
 
 		if err := validateManagedNGFlags(l.CobraCommand, params.Managed); err != nil {
@@ -336,6 +341,23 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 	}
 
 	return l
+}
+
+func validateZonesAndNodeZones(cmd *cobra.Command) error {
+	if nodeZonesFlag := cmd.Flag("node-zones"); nodeZonesFlag != nil && nodeZonesFlag.Changed {
+		zonesFlag := cmd.Flag("zones")
+		if zonesFlag == nil || !zonesFlag.Changed {
+			return errors.New("zones must be defined if node-zones is provided and must be a superset of node-zones")
+		}
+		nodeZones := strings.Split(strings.Trim(nodeZonesFlag.Value.String(), "[]"), ",")
+		zones := strings.Split(strings.Trim(zonesFlag.Value.String(), "[]"), ",")
+		for _, zone := range nodeZones {
+			if !utilstrings.Contains(zones, zone) {
+				return fmt.Errorf("node-zones %s must be a subset of zones %s; %q was not found in zones", nodeZones, zones, zone)
+			}
+		}
+	}
+	return nil
 }
 
 func validateDryRunOptions(cmd *cobra.Command, incompatibleFlags []string) error {
@@ -561,6 +583,9 @@ func NewUtilsEnableEndpointAccessLoader(cmd *Cmd, privateAccess, publicAccess bo
 			return err
 		}
 
+		if cmd.ClusterConfig.VPC.ClusterEndpoints == nil {
+			cmd.ClusterConfig.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
+		}
 		if flag := l.CobraCommand.Flag("private-access"); flag != nil && flag.Changed {
 			cmd.ClusterConfig.VPC.ClusterEndpoints.PrivateAccess = &privateAccess
 		} else {

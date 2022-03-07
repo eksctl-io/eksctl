@@ -1,4 +1,4 @@
-package kubeconfig
+package kubeconfig_test
 
 import (
 	"testing"

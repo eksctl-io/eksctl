@@ -34,3 +34,17 @@ nodeGroups:
     It is not possible to provide both a role ARN and a permissions boundary!
 
 [permissions-boundary]: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html
+
+## Setting the VPC CNI Permission Boundary
+Please note that when you create a cluster with OIDC enabled eksctl will automatically create an `iamserviceaccount` for the VPC-CNI for [security reasons](security.md). If
+you would like to add a permission boundary to it then you must specify the `iamserviceaccount` in your config file manually:
+```yaml
+iam:
+  serviceAccounts:
+    - metadata:
+        name: aws-node
+        namespace: kube-system
+      attachPolicyARNs:
+      - "arn:aws:iam::<arn>:policy/AmazonEKS_CNI_Policy"
+      permissionsBoundary: "arn:aws:iam::11111:policy/entity/boundary"
+```
