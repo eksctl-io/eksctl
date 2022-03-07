@@ -14,7 +14,6 @@ import (
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
@@ -70,7 +69,7 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		return err
 	}
 
-	var summaries []*manager.NodeGroupSummary
+	var summaries []*nodegroup.Summary
 	if ng.Name == "" {
 		summaries, err = nodegroup.New(cfg, ctl, clientSet).GetAll()
 		if err != nil {
@@ -106,37 +105,37 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 }
 
 func addSummaryTableColumns(printer *printers.TablePrinter) {
-	printer.AddColumn("CLUSTER", func(s *manager.NodeGroupSummary) string {
+	printer.AddColumn("CLUSTER", func(s *nodegroup.Summary) string {
 		return s.Cluster
 	})
-	printer.AddColumn("NODEGROUP", func(s *manager.NodeGroupSummary) string {
+	printer.AddColumn("NODEGROUP", func(s *nodegroup.Summary) string {
 		return s.Name
 	})
-	printer.AddColumn("STATUS", func(s *manager.NodeGroupSummary) string {
+	printer.AddColumn("STATUS", func(s *nodegroup.Summary) string {
 		return s.Status
 	})
-	printer.AddColumn("CREATED", func(s *manager.NodeGroupSummary) string {
+	printer.AddColumn("CREATED", func(s *nodegroup.Summary) string {
 		return s.CreationTime.Format(time.RFC3339)
 	})
-	printer.AddColumn("MIN SIZE", func(s *manager.NodeGroupSummary) string {
+	printer.AddColumn("MIN SIZE", func(s *nodegroup.Summary) string {
 		return strconv.Itoa(s.MinSize)
 	})
-	printer.AddColumn("MAX SIZE", func(s *manager.NodeGroupSummary) string {
+	printer.AddColumn("MAX SIZE", func(s *nodegroup.Summary) string {
 		return strconv.Itoa(s.MaxSize)
 	})
-	printer.AddColumn("DESIRED CAPACITY", func(s *manager.NodeGroupSummary) string {
+	printer.AddColumn("DESIRED CAPACITY", func(s *nodegroup.Summary) string {
 		return strconv.Itoa(s.DesiredCapacity)
 	})
-	printer.AddColumn("INSTANCE TYPE", func(s *manager.NodeGroupSummary) string {
+	printer.AddColumn("INSTANCE TYPE", func(s *nodegroup.Summary) string {
 		return s.InstanceType
 	})
-	printer.AddColumn("IMAGE ID", func(s *manager.NodeGroupSummary) string {
+	printer.AddColumn("IMAGE ID", func(s *nodegroup.Summary) string {
 		return s.ImageID
 	})
-	printer.AddColumn("ASG NAME", func(s *manager.NodeGroupSummary) string {
+	printer.AddColumn("ASG NAME", func(s *nodegroup.Summary) string {
 		return s.AutoScalingGroupName
 	})
-	printer.AddColumn("TYPE", func(s *manager.NodeGroupSummary) api.NodeGroupType {
+	printer.AddColumn("TYPE", func(s *nodegroup.Summary) api.NodeGroupType {
 		return s.NodeGroupType
 	})
 }
