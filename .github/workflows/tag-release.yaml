@@ -33,7 +33,7 @@ jobs:
             ~/go/pkg/mod/
           key: go-${{ hashFiles('go.sum') }}
           restore-keys: |
-            - go-
+            go-
       - name: Tag from version
         run: |
           version=$(go run pkg/version/generate/release_generate.go full-version)

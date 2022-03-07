@@ -5,13 +5,14 @@ if [ -z "${GITHUB_REF_NAME}" ] || [ "${GITHUB_REF_TYPE}" != "tag" ] ; then
   exit 1
 fi
 
-RELEASE_NOTES_FILE="docs/release_notes/${GITHUB_REF_NAME/-rc.*}.md"
+tag="${GITHUB_REF_NAME}"
+RELEASE_NOTES_FILE="docs/release_notes/${tag/-rc.*}.md"
 
 if [ ! -f "${RELEASE_NOTES_FILE}" ]; then
     echo "Release notes file ${RELEASE_NOTES_FILE} does not exist. Exiting..."
     exit 1
 fi
 
-export RELEASE_DESCRIPTION="${GITHUB_REF_NAME}"
+export RELEASE_DESCRIPTION="${tag}"
 
-goreleaser release --rm-dist --timeout 60m --skip-validate --config=./.goreleaser.yml --release-notes="${RELEASE_NOTES_FILE}"
+GORELEASER_CURRENT_TAG=v${tag} goreleaser release --rm-dist --timeout 60m --skip-validate --config=./.goreleaser.yml --release-notes="${RELEASE_NOTES_FILE}"

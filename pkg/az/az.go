@@ -8,7 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 var zoneIDsToAvoid = map[string][]string{
@@ -79,19 +81,10 @@ func filterZones(region string, zones []*ec2.AvailabilityZone) []string {
 	var filteredZones []string
 	azsToAvoid := zoneIDsToAvoid[region]
 	for _, z := range zones {
-		if !contains(azsToAvoid, *z.ZoneId) {
+		if !strings.Contains(azsToAvoid, *z.ZoneId) {
 			filteredZones = append(filteredZones, *z.ZoneName)
 		}
 	}
 
 	return filteredZones
-}
-
-func contains(list []string, value string) bool {
-	for _, l := range list {
-		if l == value {
-			return true
-		}
-	}
-	return false
 }
