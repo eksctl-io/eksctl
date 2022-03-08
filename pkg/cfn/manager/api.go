@@ -295,6 +295,9 @@ func (c *StackCollection) DescribeStack(i *Stack) (*Stack, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "describing CloudFormation stack %q", *i.StackName)
 	}
+	if len(resp.Stacks) == 0 {
+		return nil, fmt.Errorf("no CloudFormation stack found for %s", *i.StackName)
+	}
 	return resp.Stacks[0], nil
 }
 

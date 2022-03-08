@@ -8,6 +8,7 @@ import (
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
 	"github.com/weaveworks/eksctl/pkg/actions/cluster"
 	"github.com/weaveworks/eksctl/pkg/actions/cluster/fakes"
 	mgrfakes "github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
@@ -49,9 +50,9 @@ var _ = Describe("Get", func() {
 				}, nil)
 
 				stackManager.ListClusterStackNamesReturns(nil, nil)
-				stackManager.HasClusterStackUsingCachedListReturnsOnCall(0, true, nil)
-				stackManager.HasClusterStackUsingCachedListReturnsOnCall(1, false, nil)
-				stackManager.HasClusterStackUsingCachedListReturnsOnCall(2, false, fmt.Errorf("foo"))
+				stackManager.HasClusterStackFromListReturnsOnCall(0, true, nil)
+				stackManager.HasClusterStackFromListReturnsOnCall(1, false, nil)
+				stackManager.HasClusterStackFromListReturnsOnCall(2, false, fmt.Errorf("foo"))
 			})
 			It("returns the clusters in that region", func() {
 				clusters, err := cluster.GetClusters(intialProvider, false, 100)
@@ -79,12 +80,12 @@ var _ = Describe("Get", func() {
 				Expect(provider).To(Equal(intialProvider))
 				Expect(awsProvider.CallCount()).To(Equal(0))
 
-				Expect(stackManager.HasClusterStackUsingCachedListCallCount()).To(Equal(3))
-				_, clusterName := stackManager.HasClusterStackUsingCachedListArgsForCall(0)
+				Expect(stackManager.HasClusterStackFromListCallCount()).To(Equal(3))
+				_, clusterName := stackManager.HasClusterStackFromListArgsForCall(0)
 				Expect(clusterName).To(Equal("cluster1"))
-				_, clusterName = stackManager.HasClusterStackUsingCachedListArgsForCall(1)
+				_, clusterName = stackManager.HasClusterStackFromListArgsForCall(1)
 				Expect(clusterName).To(Equal("cluster2"))
-				_, clusterName = stackManager.HasClusterStackUsingCachedListArgsForCall(2)
+				_, clusterName = stackManager.HasClusterStackFromListArgsForCall(2)
 				Expect(clusterName).To(Equal("cluster3"))
 			})
 		})
@@ -165,9 +166,9 @@ var _ = Describe("Get", func() {
 				}, nil)
 
 				stackManagerRegion1.ListClusterStackNamesReturns(nil, nil)
-				stackManagerRegion1.HasClusterStackUsingCachedListReturnsOnCall(0, true, nil)
+				stackManagerRegion1.HasClusterStackFromListReturnsOnCall(0, true, nil)
 				stackManagerRegion2.ListClusterStackNamesReturns(nil, nil)
-				stackManagerRegion2.HasClusterStackUsingCachedListReturnsOnCall(0, false, nil)
+				stackManagerRegion2.HasClusterStackFromListReturnsOnCall(0, false, nil)
 			})
 
 			It("returns the clusters across all authorised regions", func() {
@@ -198,12 +199,12 @@ var _ = Describe("Get", func() {
 				cfg, _ = awsProvider.ArgsForCall(1)
 				Expect(cfg.Region).To(Equal("us-west-2"))
 
-				Expect(stackManagerRegion1.HasClusterStackUsingCachedListCallCount()).To(Equal(1))
-				_, clusterName := stackManagerRegion1.HasClusterStackUsingCachedListArgsForCall(0)
+				Expect(stackManagerRegion1.HasClusterStackFromListCallCount()).To(Equal(1))
+				_, clusterName := stackManagerRegion1.HasClusterStackFromListArgsForCall(0)
 				Expect(clusterName).To(Equal("cluster1"))
 
-				Expect(stackManagerRegion2.HasClusterStackUsingCachedListCallCount()).To(Equal(1))
-				_, clusterName = stackManagerRegion2.HasClusterStackUsingCachedListArgsForCall(0)
+				Expect(stackManagerRegion2.HasClusterStackFromListCallCount()).To(Equal(1))
+				_, clusterName = stackManagerRegion2.HasClusterStackFromListArgsForCall(0)
 				Expect(clusterName).To(Equal("cluster2"))
 			})
 		})
@@ -242,7 +243,7 @@ var _ = Describe("Get", func() {
 				}, nil)
 
 				stackManagerRegion1.ListClusterStackNamesReturns(nil, nil)
-				stackManagerRegion1.HasClusterStackUsingCachedListReturnsOnCall(0, true, nil)
+				stackManagerRegion1.HasClusterStackFromListReturnsOnCall(0, true, nil)
 			})
 
 			It("returns the clusters in the regions it was successful in", func() {
@@ -266,8 +267,8 @@ var _ = Describe("Get", func() {
 				cfg, _ = awsProvider.ArgsForCall(1)
 				Expect(cfg.Region).To(Equal("us-west-2"))
 
-				Expect(stackManagerRegion1.HasClusterStackUsingCachedListCallCount()).To(Equal(1))
-				_, clusterName := stackManagerRegion1.HasClusterStackUsingCachedListArgsForCall(0)
+				Expect(stackManagerRegion1.HasClusterStackFromListCallCount()).To(Equal(1))
+				_, clusterName := stackManagerRegion1.HasClusterStackFromListArgsForCall(0)
 				Expect(clusterName).To(Equal("cluster1"))
 			})
 		})
