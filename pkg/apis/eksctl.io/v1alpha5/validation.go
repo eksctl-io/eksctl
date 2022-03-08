@@ -151,6 +151,16 @@ func validateKarpenterConfig(cfg *ClusterConfig) error {
 	if cfg.Karpenter.Version == "" {
 		return errors.New("version field is required if installing Karpenter is enabled")
 	}
+
+	v, err := version.NewVersion(cfg.Karpenter.Version)
+	if err != nil {
+		return fmt.Errorf("failed to parse karpenter version %q: %w", cfg.Karpenter.Version, err)
+	}
+
+	if minor := v.Segments()[1]; minor > supportedKarpenterVersionMinor {
+		return fmt.Errorf("failed to validate karpenter config: maximum supported version is %s", supportedKarpenterVersion)
+	}
+
 	if IsDisabled(cfg.IAM.WithOIDC) {
 		return errors.New("iam.withOIDC must be enabled with Karpenter")
 	}

@@ -3,8 +3,7 @@ package matchers
 import (
 	"github.com/onsi/gomega/types"
 	"github.com/pkg/errors"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 
 	"encoding/json"
 )
@@ -28,9 +27,9 @@ func (matcher *jsonNodeGroupMatcher) Match(actual interface{}) (success bool, er
 	if !ok {
 		return false, errors.Wrapf(err, "BeNodeGroupsWithNamesWhich matcher expects a string")
 	}
-	ngSummaries := []manager.NodeGroupSummary{}
+	ngSummaries := []nodegroup.Summary{}
 	if err := json.Unmarshal([]byte(rawJSON), &ngSummaries); err != nil {
-		return false, errors.Wrapf(err, "BeNodeGroupsWithNamesWhich matcher expects a NodeGroupSummary JSON array")
+		return false, errors.Wrapf(err, "BeNodeGroupsWithNamesWhich matcher expects a Summary JSON array")
 	}
 	ngNames := extractNames(ngSummaries)
 	for _, m := range matcher.matchers {
@@ -43,7 +42,7 @@ func (matcher *jsonNodeGroupMatcher) Match(actual interface{}) (success bool, er
 	return true, nil
 }
 
-func extractNames(ngSummaries []manager.NodeGroupSummary) []string {
+func extractNames(ngSummaries []nodegroup.Summary) []string {
 	ngNames := make([]string, len(ngSummaries))
 	for i, ngSummary := range ngSummaries {
 		ngNames[i] = ngSummary.Name
