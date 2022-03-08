@@ -99,7 +99,7 @@ func listClusters(provider api.ClusterProvider, chunkSize int64) ([]Description,
 		}
 
 		for _, clusterName := range clusters {
-			hasClusterStack, err := stackManager.HasClusterStackUsingCachedList(allStacks, *clusterName)
+			hasClusterStack, err := stackManager.HasClusterStackFromList(allStacks, *clusterName)
 			managed := eksctlCreatedFalse
 			if err != nil {
 				managed = eksctlCreatedUnknown

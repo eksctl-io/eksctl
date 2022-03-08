@@ -555,15 +555,15 @@ func (c *StackCollection) GetClusterStackIfExists() (*Stack, error) {
 	if err != nil {
 		return nil, err
 	}
-	return c.getClusterStackUsingCachedList(clusterStackNames, "")
+	return c.getClusterStackFromList(clusterStackNames, "")
 }
 
-func (c *StackCollection) HasClusterStackUsingCachedList(clusterStackNames []string, clusterName string) (bool, error) {
-	stack, err := c.getClusterStackUsingCachedList(clusterStackNames, clusterName)
+func (c *StackCollection) HasClusterStackFromList(clusterStackNames []string, clusterName string) (bool, error) {
+	stack, err := c.getClusterStackFromList(clusterStackNames, clusterName)
 	return stack != nil, err
 }
 
-func (c *StackCollection) getClusterStackUsingCachedList(clusterStackNames []string, clusterName string) (*Stack, error) {
+func (c *StackCollection) getClusterStackFromList(clusterStackNames []string, clusterName string) (*Stack, error) {
 	clusterStackName := c.MakeClusterStackName()
 	if clusterName != "" {
 		clusterStackName = c.MakeClusterStackNameFromName(clusterName)
