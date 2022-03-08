@@ -341,6 +341,12 @@ const (
 	minimumVPCCNIVersionForIPv6 = "1.10.0"
 )
 
+// supported version of Karpenter
+const (
+	supportedKarpenterVersion      = "0.6"
+	supportedKarpenterVersionMinor = 6
+)
+
 var (
 	// DefaultIPFamily defines the default IP family to use when creating a new VPC and cluster.
 	DefaultIPFamily = IPV4Family

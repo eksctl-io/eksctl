@@ -1690,17 +1690,36 @@ var _ = Describe("ClusterConfig validation", func() {
 	})
 
 	Describe("Karpenter", func() {
+		It("returns an error when OIDC is not set", func() {
+			cfg := api.NewClusterConfig()
+			cfg.Karpenter = &api.Karpenter{
+				Version: "0.6.1",
+			}
+			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate karpenter config: iam.withOIDC must be enabled with Karpenter")))
+		})
+
 		It("returns an error when version is missing", func() {
 			cfg := api.NewClusterConfig()
 			cfg.Karpenter = &api.Karpenter{}
 			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("version field is required if installing Karpenter is enabled")))
 		})
-		It("returns an error when OIDC is not set", func() {
+
+		It("returns an error when version is missing", func() {
 			cfg := api.NewClusterConfig()
+			cfg.IAM.WithOIDC = aws.Bool(true)
 			cfg.Karpenter = &api.Karpenter{
-				Version: "0.5.1",
+				Version: "isitmeeeyourlookingfoorrrr",
 			}
-			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate karpenter config: iam.withOIDC must be enabled with Karpenter")))
+			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to parse karpenter version")))
+		})
+
+		It("returns an error when the version is not supported", func() {
+			cfg := api.NewClusterConfig()
+			cfg.IAM.WithOIDC = aws.Bool(true)
+			cfg.Karpenter = &api.Karpenter{
+				Version: "0.7.0",
+			}
+			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate karpenter config: maximum supported version is 0.6")))
 		})
 	})
 
