@@ -45,7 +45,7 @@ func (j *JSONPrinter) PrintObj(obj interface{}, writer io.Writer) error {
 	return nil
 }
 
-// PrintObjWithKind will print the passed object formatted as YAML to
+// PrintObjWithKind will print the passed object formatted as JSON to
 // the supplied writer. This printer ignores kind argument.
 func (j *JSONPrinter) PrintObjWithKind(kind string, obj interface{}, writer io.Writer) error {
 	return j.PrintObj(obj, writer)
