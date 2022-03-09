@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Create a bug report to help us improve eksctl
-title: ''
+title: '[Bug] '
 labels: kind/bug
 assignees: ''
 
@@ -24,13 +24,13 @@ For more information on how to open a bug report in eksctl, please refer to our 
 https://github.com/weaveworks/eksctl/blob/main/CONTRIBUTING.md#opening-issues
 -->
 
-**What were you trying to accomplish?**
+### What were you trying to accomplish?
 <!-- Information about the command you ran and what you expected to happen. -->
 
-**What happened?**
+### What happened?
 <!-- A description of actual behavior (with error messages). -->
 
-**How to reproduce it?**
+### How to reproduce it?
 <!--
 Include ALL the steps to reproduce the bug.
 
