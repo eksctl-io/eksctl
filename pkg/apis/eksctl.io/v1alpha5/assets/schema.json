@@ -300,7 +300,7 @@
           },
           "type": "array",
           "description": "service accounts to create in the cluster. See [IAM Service Accounts](/usage/iamserviceaccounts/#usage-with-config-files)",
-          "x-intellij-html-description": "service accounts to create in the cluster. See <a href=\"/iamserviceaccounts/#usage-with-config-files\">IAM Service Accounts</a>"
+          "x-intellij-html-description": "service accounts to create in the cluster. See <a href=\"/usage/iamserviceaccounts/#usage-with-config-files\">IAM Service Accounts</a>"
         },
         "serviceRoleARN": {
           "type": "string"
