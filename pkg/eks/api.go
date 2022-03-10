@@ -90,6 +90,8 @@ type ProviderServices struct {
 	cloudwatchlogs cloudwatchlogsiface.CloudWatchLogsAPI
 
 	session *session.Session
+
+	*ServicesV2
 }
 
 // CloudFormation returns a representation of the CloudFormation API
@@ -205,6 +207,14 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	provider.iam = iam.New(s)
 	provider.cloudtrail = cloudtrail.New(s)
 	provider.cloudwatchlogs = cloudwatchlogs.New(s)
+
+	cfg, err := newV2Config(spec, c.Provider.Region())
+	if err != nil {
+		return nil, err
+	}
+	provider.ServicesV2 = &ServicesV2{
+		config: cfg,
+	}
 
 	c.Status = &ProviderStatus{
 		sessionCreds: s.Config.Credentials,
