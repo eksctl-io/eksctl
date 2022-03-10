@@ -41,6 +41,8 @@ const (
 	PrivateSubnetKey        = "PrivateSubnet"
 	PublicSubnetsOutputKey  = "SubnetsPublic"
 	PrivateSubnetsOutputKey = "SubnetsPrivate"
+
+	defaultDesiredMaskSize = 13
 )
 
 //VPCResourceSet interface for creating cloudformation resource sets for generating VPC resources
@@ -67,22 +69,26 @@ func getSubnetIPv6CIDRBlock(cidrPartitions int) *gfnt.Value {
 }
 
 func getSubnetIPv4CIDRBlock(cidrPartitions int, cidr *ipnet.IPNet) *gfnt.Value {
-	desiredMask := 13
-	// We only calculate it if a custom cidr range was given
-	// otherwise the hardcoded one is fine for now. Don't take my word on that.
-	if cidr != nil {
-		// To calculate the desiredMask -> ip -> 192.168.0.0/20 cidrPartition -> 6
-		// 32-20 -> 12 -> 2^12 -> 4096 -> 4096/cidrPartitions -> ~682 -> log2(682) -> ~9.2 -> 9 (we always floor)!
-		// This should result in subnets with bit size of 23! Because 32 - 9 -> 23! This is, however, calculated by
-		// the cloudformation CIDR function. We just need to pass in 9.
-		ones, _ := cidr.Mask.Size()
-		remainingCIDRBit := 32 - ones
-		remainingIPs := math.Pow(2, float64(remainingCIDRBit))
-		numberOfIPsPerSubnet := remainingIPs / float64(cidrPartitions)
-		desiredMask = int(math.Floor(math.Log2(numberOfIPsPerSubnet)))
-	}
+	desiredMask := calculateDesiredMask(cidrPartitions, cidr)
 	refSubnetSlices := gfnt.MakeFnCIDR(gfnt.MakeFnGetAttString("VPC", "CidrBlock"), gfnt.NewInteger(cidrPartitions), gfnt.NewInteger(desiredMask))
 	return refSubnetSlices
+}
+
+// To calculate the desiredMask -> ip -> 192.168.0.0/20 cidrPartition -> 6
+// 32-20 -> 12 -> 2^12 -> 4096 -> 4096/cidrPartitions -> ~682 -> log2(682) -> ~9.2 -> 9 (we always floor)!
+// This should result in subnets with bit size of 23! Because 32 - 9 -> 23! This is, however, calculated by
+// the cloudformation CIDR function. We just need to pass in 9.
+func calculateDesiredMask(cidrPartitions int, cidr *ipnet.IPNet) int {
+	// We only calculate it if a custom cidr range was given
+	// otherwise the hardcoded one is fine for now. Don't take my word on that.
+	if cidr == nil {
+		return defaultDesiredMaskSize
+	}
+	ones, _ := cidr.Mask.Size()
+	remainingCIDRBit := 32 - ones
+	remainingIPs := math.Pow(2, float64(remainingCIDRBit))
+	numberOfIPsPerSubnet := remainingIPs / float64(cidrPartitions)
+	return int(math.Floor(math.Log2(numberOfIPsPerSubnet)))
 }
 
 func (rs *resourceSet) addEFASecurityGroup(vpcID *gfnt.Value, clusterName, desc string) *gfnt.Value {
