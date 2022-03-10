@@ -1,6 +1,7 @@
 package eks
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -9,6 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
+
+	stsv2 "github.com/aws/aws-sdk-go-v2/service/sts"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
@@ -333,9 +336,7 @@ func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 
 // checkAuth checks the AWS authentication
 func (c *ClusterProvider) checkAuth() error {
-
-	input := &sts.GetCallerIdentityInput{}
-	output, err := c.Provider.STS().GetCallerIdentity(input)
+	output, err := c.Provider.ServicesV2().STS().GetCallerIdentity(context.TODO(), &stsv2.GetCallerIdentityInput{})
 	if err != nil {
 		return errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
 	}

@@ -40,6 +40,7 @@ func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
 	client := &Client{
 		Config: config,
 	}
+	// TODO: Eliminating usage of aws/aws-sdk-go (v1) STS is blocked on sigs.k8s.io/aws-iam-authenticator/pkg/token (https://github.com/weaveworks/eksctl/issues/4993)
 	return client.new(spec, c.Provider.STS())
 }
 
