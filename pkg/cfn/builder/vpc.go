@@ -42,7 +42,9 @@ const (
 	PublicSubnetsOutputKey  = "SubnetsPublic"
 	PrivateSubnetsOutputKey = "SubnetsPrivate"
 
-	defaultDesiredMaskSize = 13
+	defaultPrefix          = 19
+	defaultSubnetMask      = 32
+	defaultDesiredMaskSize = defaultSubnetMask - defaultPrefix
 )
 
 //VPCResourceSet interface for creating cloudformation resource sets for generating VPC resources
@@ -84,8 +86,8 @@ func calculateDesiredMask(cidrPartitions int, cidr *ipnet.IPNet) int {
 	if cidr == nil {
 		return defaultDesiredMaskSize
 	}
-	ones, _ := cidr.Mask.Size()
-	remainingCIDRBit := 32 - ones
+	prefixSize, _ := cidr.Mask.Size()
+	remainingCIDRBit := defaultSubnetMask - prefixSize
 	remainingIPs := math.Pow(2, float64(remainingCIDRBit))
 	numberOfIPsPerSubnet := remainingIPs / float64(cidrPartitions)
 	return int(math.Floor(math.Log2(numberOfIPsPerSubnet)))
