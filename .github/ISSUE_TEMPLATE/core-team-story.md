@@ -23,9 +23,13 @@ As a User I want ....
 -->
 
 ### Acceptance Criteria
-[] fizz
-[] buzz
-[] fizzbuzz
+<!--
+Acceptance Criteria for the user story
+Eg., 
+Given ...
+When ...
+Then ...
+-->
 
 ### Techinical Notes
 <!--
