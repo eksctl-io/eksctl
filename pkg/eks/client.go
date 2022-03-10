@@ -40,6 +40,7 @@ func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
 	client := &Client{
 		Config: config,
 	}
+	// TODO: usage of STS v2 is blocked on sigs.k8s.io/aws-iam-authenticator/pkg/token
 	return client.new(spec, c.Provider.STS())
 }
 

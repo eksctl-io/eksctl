@@ -6,14 +6,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/sts"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/aws/aws-sdk-go/service/sts"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/weaveworks/eksctl/pkg/connector"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
@@ -74,7 +76,7 @@ var _ = Describe("EKS Connector", func() {
 			},
 		}, nil)
 
-		mockProvider.MockSTS().On("GetCallerIdentity", mock.Anything).Return(&sts.GetCallerIdentityOutput{
+		mockProvider.MockSTSV2().On("GetCallerIdentity", mock.Anything, mock.Anything).Return(&sts.GetCallerIdentityOutput{
 			Arn: aws.String("arn:aws:iam::12356:user/eksctl"),
 		}, nil)
 

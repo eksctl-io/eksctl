@@ -2,9 +2,14 @@ package connector
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"strings"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/service/sts"
+
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 
 	"github.com/aws/aws-sdk-go/aws"
 	awsarn "github.com/aws/aws-sdk-go/aws/arn"
@@ -13,14 +18,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"github.com/cenk/backoff"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"sigs.k8s.io/aws-iam-authenticator/pkg/arn"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
-	"sigs.k8s.io/aws-iam-authenticator/pkg/arn"
 )
 
 const (
@@ -40,7 +44,7 @@ type EKSConnector struct {
 
 type provider interface {
 	EKS() eksiface.EKSAPI
-	STS() stsiface.STSAPI
+	STSV2() awsapi.STS
 	IAM() iamiface.IAMAPI
 	Region() string
 }
@@ -98,7 +102,7 @@ func (c *EKSConnector) RegisterCluster(cluster ExternalCluster) (*ManifestList, 
 }
 
 func (c *EKSConnector) createManifests(cluster *eks.Cluster) (*ManifestList, error) {
-	stsOutput, err := c.Provider.STS().GetCallerIdentity(&sts.GetCallerIdentityInput{})
+	stsOutput, err := c.Provider.STSV2().GetCallerIdentity(context.TODO(), &sts.GetCallerIdentityInput{})
 	if err != nil {
 		return nil, err
 	}
