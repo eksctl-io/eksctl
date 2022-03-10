@@ -415,17 +415,17 @@ type FakeStackManager struct {
 		result1 string
 		result2 error
 	}
-	HasClusterStackUsingCachedListStub        func([]string, string) (bool, error)
-	hasClusterStackUsingCachedListMutex       sync.RWMutex
-	hasClusterStackUsingCachedListArgsForCall []struct {
+	HasClusterStackFromListStub        func([]string, string) (bool, error)
+	hasClusterStackFromListMutex       sync.RWMutex
+	hasClusterStackFromListArgsForCall []struct {
 		arg1 []string
 		arg2 string
 	}
-	hasClusterStackUsingCachedListReturns struct {
+	hasClusterStackFromListReturns struct {
 		result1 bool
 		result2 error
 	}
-	hasClusterStackUsingCachedListReturnsOnCall map[int]struct {
+	hasClusterStackFromListReturnsOnCall map[int]struct {
 		result1 bool
 		result2 error
 	}
@@ -2668,22 +2668,22 @@ func (fake *FakeStackManager) GetUnmanagedNodeGroupAutoScalingGroupNameReturnsOn
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) HasClusterStackUsingCachedList(arg1 []string, arg2 string) (bool, error) {
+func (fake *FakeStackManager) HasClusterStackFromList(arg1 []string, arg2 string) (bool, error) {
 	var arg1Copy []string
 	if arg1 != nil {
 		arg1Copy = make([]string, len(arg1))
 		copy(arg1Copy, arg1)
 	}
-	fake.hasClusterStackUsingCachedListMutex.Lock()
-	ret, specificReturn := fake.hasClusterStackUsingCachedListReturnsOnCall[len(fake.hasClusterStackUsingCachedListArgsForCall)]
-	fake.hasClusterStackUsingCachedListArgsForCall = append(fake.hasClusterStackUsingCachedListArgsForCall, struct {
+	fake.hasClusterStackFromListMutex.Lock()
+	ret, specificReturn := fake.hasClusterStackFromListReturnsOnCall[len(fake.hasClusterStackFromListArgsForCall)]
+	fake.hasClusterStackFromListArgsForCall = append(fake.hasClusterStackFromListArgsForCall, struct {
 		arg1 []string
 		arg2 string
 	}{arg1Copy, arg2})
-	stub := fake.HasClusterStackUsingCachedListStub
-	fakeReturns := fake.hasClusterStackUsingCachedListReturns
-	fake.recordInvocation("HasClusterStackUsingCachedList", []interface{}{arg1Copy, arg2})
-	fake.hasClusterStackUsingCachedListMutex.Unlock()
+	stub := fake.HasClusterStackFromListStub
+	fakeReturns := fake.hasClusterStackFromListReturns
+	fake.recordInvocation("HasClusterStackFromList", []interface{}{arg1Copy, arg2})
+	fake.hasClusterStackFromListMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2)
 	}
@@ -2693,46 +2693,46 @@ func (fake *FakeStackManager) HasClusterStackUsingCachedList(arg1 []string, arg2
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeStackManager) HasClusterStackUsingCachedListCallCount() int {
-	fake.hasClusterStackUsingCachedListMutex.RLock()
-	defer fake.hasClusterStackUsingCachedListMutex.RUnlock()
-	return len(fake.hasClusterStackUsingCachedListArgsForCall)
+func (fake *FakeStackManager) HasClusterStackFromListCallCount() int {
+	fake.hasClusterStackFromListMutex.RLock()
+	defer fake.hasClusterStackFromListMutex.RUnlock()
+	return len(fake.hasClusterStackFromListArgsForCall)
 }
 
-func (fake *FakeStackManager) HasClusterStackUsingCachedListCalls(stub func([]string, string) (bool, error)) {
-	fake.hasClusterStackUsingCachedListMutex.Lock()
-	defer fake.hasClusterStackUsingCachedListMutex.Unlock()
-	fake.HasClusterStackUsingCachedListStub = stub
+func (fake *FakeStackManager) HasClusterStackFromListCalls(stub func([]string, string) (bool, error)) {
+	fake.hasClusterStackFromListMutex.Lock()
+	defer fake.hasClusterStackFromListMutex.Unlock()
+	fake.HasClusterStackFromListStub = stub
 }
 
-func (fake *FakeStackManager) HasClusterStackUsingCachedListArgsForCall(i int) ([]string, string) {
-	fake.hasClusterStackUsingCachedListMutex.RLock()
-	defer fake.hasClusterStackUsingCachedListMutex.RUnlock()
-	argsForCall := fake.hasClusterStackUsingCachedListArgsForCall[i]
+func (fake *FakeStackManager) HasClusterStackFromListArgsForCall(i int) ([]string, string) {
+	fake.hasClusterStackFromListMutex.RLock()
+	defer fake.hasClusterStackFromListMutex.RUnlock()
+	argsForCall := fake.hasClusterStackFromListArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeStackManager) HasClusterStackUsingCachedListReturns(result1 bool, result2 error) {
-	fake.hasClusterStackUsingCachedListMutex.Lock()
-	defer fake.hasClusterStackUsingCachedListMutex.Unlock()
-	fake.HasClusterStackUsingCachedListStub = nil
-	fake.hasClusterStackUsingCachedListReturns = struct {
+func (fake *FakeStackManager) HasClusterStackFromListReturns(result1 bool, result2 error) {
+	fake.hasClusterStackFromListMutex.Lock()
+	defer fake.hasClusterStackFromListMutex.Unlock()
+	fake.HasClusterStackFromListStub = nil
+	fake.hasClusterStackFromListReturns = struct {
 		result1 bool
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) HasClusterStackUsingCachedListReturnsOnCall(i int, result1 bool, result2 error) {
-	fake.hasClusterStackUsingCachedListMutex.Lock()
-	defer fake.hasClusterStackUsingCachedListMutex.Unlock()
-	fake.HasClusterStackUsingCachedListStub = nil
-	if fake.hasClusterStackUsingCachedListReturnsOnCall == nil {
-		fake.hasClusterStackUsingCachedListReturnsOnCall = make(map[int]struct {
+func (fake *FakeStackManager) HasClusterStackFromListReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.hasClusterStackFromListMutex.Lock()
+	defer fake.hasClusterStackFromListMutex.Unlock()
+	fake.HasClusterStackFromListStub = nil
+	if fake.hasClusterStackFromListReturnsOnCall == nil {
+		fake.hasClusterStackFromListReturnsOnCall = make(map[int]struct {
 			result1 bool
 			result2 error
 		})
 	}
-	fake.hasClusterStackUsingCachedListReturnsOnCall[i] = struct {
+	fake.hasClusterStackFromListReturnsOnCall[i] = struct {
 		result1 bool
 		result2 error
 	}{result1, result2}
@@ -4320,8 +4320,8 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.getStackTemplateMutex.RUnlock()
 	fake.getUnmanagedNodeGroupAutoScalingGroupNameMutex.RLock()
 	defer fake.getUnmanagedNodeGroupAutoScalingGroupNameMutex.RUnlock()
-	fake.hasClusterStackUsingCachedListMutex.RLock()
-	defer fake.hasClusterStackUsingCachedListMutex.RUnlock()
+	fake.hasClusterStackFromListMutex.RLock()
+	defer fake.hasClusterStackFromListMutex.RUnlock()
 	fake.listClusterStackNamesMutex.RLock()
 	defer fake.listClusterStackNamesMutex.RUnlock()
 	fake.listIAMServiceAccountStacksMutex.RLock()

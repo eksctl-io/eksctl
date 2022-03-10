@@ -295,6 +295,9 @@ func (c *StackCollection) DescribeStack(i *Stack) (*Stack, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "describing CloudFormation stack %q", *i.StackName)
 	}
+	if len(resp.Stacks) == 0 {
+		return nil, fmt.Errorf("no CloudFormation stack found for %s", *i.StackName)
+	}
 	return resp.Stacks[0], nil
 }
 
@@ -474,36 +477,35 @@ func defaultStackStatusFilter() []*string {
 
 // DeleteStackBySpec sends a request to delete the stack
 func (c *StackCollection) DeleteStackBySpec(s *Stack) (*Stack, error) {
-	for _, tag := range s.Tags {
-		if matchesClusterName(*tag.Key, *tag.Value, c.spec.Metadata.Name) {
-			input := &cloudformation.DeleteStackInput{
-				StackName: s.StackId,
-			}
-
-			if cfnRole := c.roleARN; cfnRole != "" {
-				input = input.SetRoleARN(cfnRole)
-			}
-
-			if _, err := c.cloudformationAPI.DeleteStack(input); err != nil {
-				return nil, errors.Wrapf(err, "not able to delete stack %q", *s.StackName)
-			}
-			logger.Info("will delete stack %q", *s.StackName)
-			return s, nil
-		}
+	if !matchesCluster(c.spec.Metadata.Name, s.Tags) {
+		return nil, fmt.Errorf("cannot delete stack %q as it doesn't bear our %q, %q tags", *s.StackName,
+			fmt.Sprintf("%s:%s", api.OldClusterNameTag, c.spec.Metadata.Name),
+			fmt.Sprintf("%s:%s", api.ClusterNameTag, c.spec.Metadata.Name))
 	}
 
-	return nil, fmt.Errorf("cannot delete stack %q as it doesn't bear our %q, %q tags", *s.StackName,
-		fmt.Sprintf("%s:%s", api.OldClusterNameTag, c.spec.Metadata.Name),
-		fmt.Sprintf("%s:%s", api.ClusterNameTag, c.spec.Metadata.Name))
+	input := &cloudformation.DeleteStackInput{
+		StackName: s.StackId,
+	}
+
+	if cfnRole := c.roleARN; cfnRole != "" {
+		input = input.SetRoleARN(cfnRole)
+	}
+
+	if _, err := c.cloudformationAPI.DeleteStack(input); err != nil {
+		return nil, errors.Wrapf(err, "not able to delete stack %q", *s.StackName)
+	}
+	logger.Info("will delete stack %q", *s.StackName)
+	return s, nil
 }
 
-func matchesClusterName(key, value, name string) bool {
-	if key == api.ClusterNameTag && value == name {
-		return true
-	}
-
-	if key == api.OldClusterNameTag && value == name {
-		return true
+func matchesCluster(clusterName string, tags []*cloudformation.Tag) bool {
+	for _, tag := range tags {
+		switch *tag.Key {
+		case api.ClusterNameTag, api.OldClusterNameTag:
+			if *tag.Value == clusterName {
+				return true
+			}
+		}
 	}
 	return false
 }
@@ -556,15 +558,15 @@ func (c *StackCollection) GetClusterStackIfExists() (*Stack, error) {
 	if err != nil {
 		return nil, err
 	}
-	return c.getClusterStackUsingCachedList(clusterStackNames, "")
+	return c.getClusterStackFromList(clusterStackNames, "")
 }
 
-func (c *StackCollection) HasClusterStackUsingCachedList(clusterStackNames []string, clusterName string) (bool, error) {
-	stack, err := c.getClusterStackUsingCachedList(clusterStackNames, clusterName)
+func (c *StackCollection) HasClusterStackFromList(clusterStackNames []string, clusterName string) (bool, error) {
+	stack, err := c.getClusterStackFromList(clusterStackNames, clusterName)
 	return stack != nil, err
 }
 
-func (c *StackCollection) getClusterStackUsingCachedList(clusterStackNames []string, clusterName string) (*Stack, error) {
+func (c *StackCollection) getClusterStackFromList(clusterStackNames []string, clusterName string) (*Stack, error) {
 	clusterStackName := c.MakeClusterStackName()
 	if clusterName != "" {
 		clusterStackName = c.MakeClusterStackNameFromName(clusterName)
@@ -576,10 +578,9 @@ func (c *StackCollection) getClusterStackUsingCachedList(clusterStackNames []str
 			if err != nil {
 				return nil, err
 			}
-			for _, tag := range stack.Tags {
-				if matchesClusterName(*tag.Key, *tag.Value, c.spec.Metadata.Name) {
-					return stack, nil
-				}
+			if matchesCluster(clusterName, stack.Tags) {
+				return stack, nil
+
 			}
 		}
 	}
