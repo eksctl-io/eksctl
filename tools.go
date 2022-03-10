@@ -10,6 +10,7 @@ import (
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/goreleaser/goreleaser"
 	_ "github.com/maxbrunsfeld/counterfeiter/v6"
+	_ "github.com/vburenin/ifacemaker"
 	_ "github.com/vektra/mockery/cmd/mockery"
 	_ "golang.org/x/tools/cmd/stringer"
 	_ "k8s.io/code-generator/cmd/client-gen"
