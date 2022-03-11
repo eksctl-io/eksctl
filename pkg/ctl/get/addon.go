@@ -92,11 +92,6 @@ func getAddon(cmd *cmdutils.Cmd, params *getCmdParams) error {
 
 	if len(summaries) == 0 {
 		logger.Info("no addons found")
-		if params.output == "json" || params.output == "yaml" {
-			summaries = make([]addon.Summary, 0)
-		} else {
-			return nil
-		}
 	} else {
 		logger.Info("to see issues for an addon run `eksctl get addon --name <addon-name> --cluster <cluster-name>`")
 	}

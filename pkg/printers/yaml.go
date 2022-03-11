@@ -3,6 +3,7 @@ package printers
 import (
 	"bytes"
 	"io"
+	"reflect"
 	"strings"
 
 	"github.com/kris-nova/logger"
@@ -26,6 +27,14 @@ func NewYAMLPrinter() OutputPrinter {
 // PrintObj will print the passed object formatted as YAML to
 // the supplied writer.
 func (y *YAMLPrinter) PrintObj(obj interface{}, writer io.Writer) error {
+	switch reflect.TypeOf(obj).Kind() {
+	case reflect.Array, reflect.Slice:
+		objVal := reflect.ValueOf(obj)
+		if objVal.Len() == 0 {
+			obj = make([]string, 0)
+		}
+	}
+
 	if obj, ok := obj.(runtime.Object); ok {
 		if err := y.runtimePrinter.PrintObj(obj, writer); err == nil {
 			// if an error occurred, we may still be able to serialise using yaml package directly

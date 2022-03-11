@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"reflect"
 	"strings"
 
 	"github.com/kris-nova/logger"
@@ -27,6 +28,14 @@ func NewJSONPrinter() OutputPrinter {
 // PrintObj will print the passed object formatted as JSON to
 // the supplied writer.
 func (j *JSONPrinter) PrintObj(obj interface{}, writer io.Writer) error {
+	switch reflect.TypeOf(obj).Kind() {
+	case reflect.Array, reflect.Slice:
+		objVal := reflect.ValueOf(obj)
+		if objVal.Len() == 0 {
+			obj = make([]string, 0)
+		}
+	}
+
 	if obj, ok := obj.(runtime.Object); ok {
 		if err := j.runtimePrinter.PrintObj(obj, writer); err == nil {
 			// if an error occurred, we may still be able to serialise using json package directly
@@ -45,7 +54,7 @@ func (j *JSONPrinter) PrintObj(obj interface{}, writer io.Writer) error {
 	return nil
 }
 
-// PrintObjWithKind will print the passed object formatted as JSON to
+// PrintObjWithKind will print the passed object formatted as YAML to
 // the supplied writer. This printer ignores kind argument.
 func (j *JSONPrinter) PrintObjWithKind(kind string, obj interface{}, writer io.Writer) error {
 	return j.PrintObj(obj, writer)
