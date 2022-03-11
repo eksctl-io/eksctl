@@ -558,7 +558,7 @@ func (c *StackCollection) GetClusterStackIfExists() (*Stack, error) {
 	if err != nil {
 		return nil, err
 	}
-	return c.getClusterStackFromList(clusterStackNames, "")
+	return c.getClusterStackFromList(clusterStackNames, c.spec.Metadata.Name)
 }
 
 func (c *StackCollection) HasClusterStackFromList(clusterStackNames []string, clusterName string) (bool, error) {
