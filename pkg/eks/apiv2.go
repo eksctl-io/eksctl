@@ -14,8 +14,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
-	"github.com/weaveworks/eksctl/pkg/awsapi"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	middlewarev2 "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -35,14 +33,19 @@ func newV2Config(pc *api.ProviderConfig, region string) (aws.Config, error) {
 	if region != "" {
 		options = append(options, config.WithRegion(region))
 	}
-	if logger.Level >= api.AWSDebugLevel {
-		options = append(options, config.WithClientLogMode(aws.LogRequestWithBody|aws.LogRetries|aws.LogRequestEventMessage|aws.LogResponseWithBody))
-		// TODO configure logger
-	}
+	clientLogMode := aws.LogRetries
 
-	// TODO logging retryer
+	if logger.Level >= api.AWSDebugLevel {
+		clientLogMode = clientLogMode | aws.LogRequestWithBody | aws.LogRequestEventMessage | aws.LogResponseWithBody
+	}
+	options = append(options, config.WithClientLogMode(clientLogMode))
+
+	// TODO configure file-based credentials cache
 	return config.LoadDefaultConfig(context.TODO(), append(options,
 		config.WithSharedConfigProfile(pc.Profile),
+		config.WithRetryer(func() aws.Retryer {
+			return NewRetryerV2()
+		}),
 		config.WithAssumeRoleCredentialOptions(func(o *stscreds.AssumeRoleOptions) {
 			o.TokenProvider = stscreds.StdinTokenProvider
 			o.Duration = 30 * time.Minute
@@ -84,13 +87,4 @@ func newEndpointResolver() aws.EndpointResolverWithOptionsFunc {
 		}
 		return aws.Endpoint{}, &aws.EndpointNotFoundError{}
 	}
-}
-
-// ServicesV2 implements api.ServicesV2
-type ServicesV2 struct {
-	config aws.Config
-}
-
-func (s *ServicesV2) STSV2() awsapi.STS {
-	return sts.NewFromConfig(s.config)
 }

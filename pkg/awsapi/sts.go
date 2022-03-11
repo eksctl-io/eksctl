@@ -7,7 +7,7 @@ import (
 	. "github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
-// STS provides an interface to the AWS STS service
+// STS provides an interface to the AWS STS service.
 type STS interface {
 	// Returns a set of temporary security credentials that you can use to access
 	// Amazon Web Services resources that you might not normally have access to. These
