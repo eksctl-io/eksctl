@@ -328,12 +328,14 @@ var _ = Describe("StackCollection", func() {
 			cfg = api.NewClusterConfig()
 			cfg.Metadata.Name = "confirm-this"
 		})
+
 		It("can retrieve stacks", func() {
 			sm := NewStackCollection(p, cfg)
 			stack, err := sm.GetClusterStackIfExists()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(stack).NotTo(BeNil())
 		})
+
 		When("the config stack doesn't match", func() {
 			It("returns no stack", func() {
 				cfg.Metadata.Name = "not-this"
