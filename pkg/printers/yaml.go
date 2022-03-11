@@ -27,11 +27,15 @@ func NewYAMLPrinter() OutputPrinter {
 // PrintObj will print the passed object formatted as YAML to
 // the supplied writer.
 func (y *YAMLPrinter) PrintObj(obj interface{}, writer io.Writer) error {
+	objVal := reflect.ValueOf(obj)
 	switch reflect.TypeOf(obj).Kind() {
 	case reflect.Array, reflect.Slice:
-		objVal := reflect.ValueOf(obj)
 		if objVal.Len() == 0 {
 			obj = make([]string, 0)
+		}
+	case reflect.Map:
+		if objVal.Len() == 0 {
+			obj = make(map[string]int)
 		}
 	}
 
