@@ -40,6 +40,10 @@ func newV2Config(pc *api.ProviderConfig, region string) (aws.Config, error) {
 	}
 	options = append(options, config.WithClientLogMode(clientLogMode))
 
+	if endpointResolver := makeEndpointResolverFunc(); endpointResolver != nil {
+		options = append(options, config.WithEndpointResolverWithOptions(endpointResolver))
+	}
+
 	// TODO configure file-based credentials cache
 	return config.LoadDefaultConfig(context.TODO(), append(options,
 		config.WithSharedConfigProfile(pc.Profile),
@@ -53,11 +57,10 @@ func newV2Config(pc *api.ProviderConfig, region string) (aws.Config, error) {
 		config.WithAPIOptions([]func(stack *middleware.Stack) error{
 			middlewarev2.AddUserAgentKeyValue("eksctl", version.String()),
 		}),
-		config.WithEndpointResolverWithOptions(newEndpointResolver()),
 	)...)
 }
 
-func newEndpointResolver() aws.EndpointResolverWithOptionsFunc {
+func makeEndpointResolverFunc() aws.EndpointResolverWithOptionsFunc {
 	serviceIDEnvMap := map[string]string{
 		cloudformation.ServiceID:         "AWS_CLOUDFORMATION_ENDPOINT",
 		eks.ServiceID:                    "AWS_EKS_ENDPOINT",
@@ -69,10 +72,17 @@ func newEndpointResolver() aws.EndpointResolverWithOptionsFunc {
 		cloudtrail.ServiceID:             "AWS_CLOUDTRAIL_ENDPOINT",
 	}
 
+	hasCustomEndpoint := false
 	for service, envName := range serviceIDEnvMap {
 		if endpoint, ok := os.LookupEnv(envName); ok {
-			logger.Debug("Setting %s endpoint to %s", service, endpoint)
+			logger.Debug(
+				"Setting %s endpoint to %s", service, endpoint)
+			hasCustomEndpoint = true
 		}
+	}
+
+	if !hasCustomEndpoint {
+		return nil
 	}
 
 	return func(service, region string, options ...interface{}) (aws.Endpoint, error) {
