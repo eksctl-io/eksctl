@@ -336,7 +336,7 @@ func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 
 // checkAuth checks the AWS authentication
 func (c *ClusterProvider) checkAuth() error {
-	output, err := c.Provider.ServicesV2().STS().GetCallerIdentity(context.TODO(), &stsv2.GetCallerIdentityInput{})
+	output, err := c.Provider.STSV2().GetCallerIdentity(context.TODO(), &stsv2.GetCallerIdentityInput{})
 	if err != nil {
 		return errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
 	}

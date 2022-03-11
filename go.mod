@@ -1,7 +1,6 @@
 // Make sure to run the following commands after changes to this file are made:
 // `make generate-all && make lint && make check-all-generated-files-up-to-date`
 // you may also need to run `make push-build-image` depending on what has changed
-
 module github.com/weaveworks/eksctl
 
 go 1.18
@@ -9,7 +8,7 @@ go 1.18
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.4-0.20220124212200-2aee60ac608e
-	github.com/aws/aws-sdk-go v1.43.21
+	github.com/aws/aws-sdk-go v1.43.17
 	github.com/aws/aws-sdk-go-v2 v1.15.0
 	github.com/aws/aws-sdk-go-v2/config v1.14.0
 	github.com/aws/aws-sdk-go-v2/credentials v1.9.0
@@ -27,6 +26,7 @@ require (
 	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/cenk/backoff v2.2.1+incompatible
 	github.com/cloudflare/cfssl v1.6.1
+	github.com/dave/dst v0.26.2
 	github.com/dave/jennifer v1.5.0
 	github.com/dlespiau/kube-test-harness v0.0.0-20200915102055-a03579200ae8
 	github.com/evanphx/json-patch/v5 v5.6.0
@@ -36,17 +36,16 @@ require (
 	github.com/gofrs/flock v0.8.1
 	github.com/golangci/golangci-lint v1.44.2
 	github.com/google/uuid v1.3.0
-	github.com/goreleaser/goreleaser v1.7.0
+	github.com/goreleaser/goreleaser v1.6.1
 	github.com/hashicorp/go-version v1.4.0
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kris-nova/logger v0.2.1
 	github.com/kris-nova/lolgopher v0.0.0-20210112022122-73f0047e8b65
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.18.1
-	github.com/orcaman/concurrent-map v1.0.0
 	github.com/otiai10/copy v1.7.0
 	github.com/pelletier/go-toml v1.9.4
 	github.com/pkg/errors v0.9.1
@@ -54,7 +53,7 @@ require (
 	github.com/spf13/afero v1.8.2
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.14.0
 	github.com/tidwall/sjson v1.2.4
 	github.com/tj/assert v0.0.3
@@ -65,8 +64,7 @@ require (
 	github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca
 	github.com/xgfone/netaddr v0.5.1
 	golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/tools v0.1.10
+	golang.org/x/tools v0.1.9
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.8.1
@@ -240,7 +238,7 @@ require (
 	github.com/google/go-github/v43 v43.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/rpmpack v0.0.0-20220314092521-38642b5e571e // indirect
+	github.com/google/rpmpack v0.0.0-20211125064518-d0ed9b1b61b9 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/wire v0.5.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.1.1 // indirect
@@ -249,7 +247,7 @@ require (
 	github.com/gordonklaus/ineffassign v0.0.0-20210914165742-4cc7213b9bc8 // indirect
 	github.com/goreleaser/chglog v0.1.2 // indirect
 	github.com/goreleaser/fileglob v1.3.0 // indirect
-	github.com/goreleaser/nfpm/v2 v2.15.0 // indirect
+	github.com/goreleaser/nfpm/v2 v2.14.0 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/gostaticanalysis/analysisutil v0.7.1 // indirect
@@ -405,7 +403,7 @@ require (
 	github.com/urfave/cli v1.22.5 // indirect
 	github.com/uudashr/gocognit v1.0.5 // indirect
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
-	github.com/xanzy/go-gitlab v0.59.0 // indirect
+	github.com/xanzy/go-gitlab v0.56.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
@@ -432,10 +430,11 @@ require (
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.19.0 // indirect
 	gocloud.dev v0.24.0 // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
-	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
+	golang.org/x/mod v0.5.1 // indirect
+	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
-	golang.org/x/sys v0.0.0-20220315194320-039c03cc5b86 // indirect
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
+	golang.org/x/sys v0.0.0-20220204135822-1c1b9b1eba6a // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
