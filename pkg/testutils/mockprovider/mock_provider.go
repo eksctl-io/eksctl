@@ -3,6 +3,8 @@ package mockprovider
 import (
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
@@ -35,6 +37,8 @@ var ProviderConfig = &api.ProviderConfig{
 	WaitTimeout: 1200000000000,
 }
 
+var _ api.ClusterProvider = &MockProvider{}
+
 type MockAWSClient struct {
 	*client.Client
 }
@@ -65,6 +69,8 @@ type MockProvider struct {
 	cloudtrail     *mocks.CloudTrailAPI
 	cloudwatchlogs *mocks.CloudWatchLogsAPI
 	configProvider *mocks.ConfigProvider
+
+	*MockServicesV2
 }
 
 // NewMockProvider returns a new MockProvider
@@ -84,6 +90,11 @@ func NewMockProvider() *MockProvider {
 		cloudtrail:     &mocks.CloudTrailAPI{},
 		cloudwatchlogs: &mocks.CloudWatchLogsAPI{},
 		configProvider: &mocks.ConfigProvider{},
+
+		MockServicesV2: &MockServicesV2{
+			sts:            &mocksv2.STS{},
+			cloudformation: &mocksv2.CloudFormation{},
+		},
 	}
 }
 
