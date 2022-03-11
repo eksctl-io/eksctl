@@ -292,4 +292,56 @@ var _ = Describe("StackCollection", func() {
 			}),
 		)
 	})
+
+	Context("GetClusterStackIfExists", func() {
+		var (
+			cfg *api.ClusterConfig
+			p   *mockprovider.MockProvider
+		)
+		BeforeEach(func() {
+			stackName := "confirm-this"
+			stackNameWithEksctl := "eksctl-confirm-this-cluster"
+			describeInput := &cfn.DescribeStacksInput{StackName: &stackNameWithEksctl}
+			describeOutput := &cfn.DescribeStacksOutput{Stacks: []*cfn.Stack{{
+				StackName:   &stackName,
+				StackStatus: aws.String(cfn.StackStatusCreateComplete),
+				Tags: []*cfn.Tag{
+					{
+						Key:   aws.String(api.ClusterNameTag),
+						Value: &stackName,
+					},
+				},
+			}}}
+			p = mockprovider.NewMockProvider()
+			p.MockCloudFormation().On("DescribeStacks", describeInput).Return(describeOutput, nil)
+			p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.AnythingOfType("func(*cloudformation.ListStacksOutput, bool) bool")).Run(func(args mock.Arguments) {
+				fn := args.Get(1) // the passed in function
+				fn.(func(p *cfn.ListStacksOutput, _ bool) bool)(&cfn.ListStacksOutput{
+					StackSummaries: []*cfn.StackSummary{
+						{
+							StackName: &stackNameWithEksctl,
+						},
+					},
+				}, true)
+			}).Return(nil)
+
+			cfg = api.NewClusterConfig()
+			cfg.Metadata.Name = "confirm-this"
+		})
+		It("can retrieve stacks", func() {
+			sm := NewStackCollection(p, cfg)
+			stack, err := sm.GetClusterStackIfExists()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(stack).NotTo(BeNil())
+		})
+		When("the config stack doesn't match", func() {
+			It("returns no stack", func() {
+				cfg.Metadata.Name = "not-this"
+				sm := NewStackCollection(p, cfg)
+				stack, err := sm.GetClusterStackIfExists()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(stack).To(BeNil())
+			})
+		})
+	})
 })
