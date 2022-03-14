@@ -375,7 +375,7 @@ func (c *StackCollection) ListStacksMatching(nameRegex string, statusFilters ...
 
 // ListClusterStackNames gets all stack names matching regex
 func (c *StackCollection) ListClusterStackNames() ([]string, error) {
-	stacks := []string{}
+	var stacks []string
 	re, err := regexp.Compile(clusterStackRegex)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot list stacks")
@@ -558,7 +558,7 @@ func (c *StackCollection) GetClusterStackIfExists() (*Stack, error) {
 	if err != nil {
 		return nil, err
 	}
-	return c.getClusterStackFromList(clusterStackNames, "")
+	return c.getClusterStackFromList(clusterStackNames, c.spec.Metadata.Name)
 }
 
 func (c *StackCollection) HasClusterStackFromList(clusterStackNames []string, clusterName string) (bool, error) {
