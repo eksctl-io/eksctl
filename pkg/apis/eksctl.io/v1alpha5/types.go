@@ -14,7 +14,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
@@ -653,7 +652,7 @@ type ClusterProvider interface {
 	CloudFormation() cloudformationiface.CloudFormationAPI
 	CloudFormationRoleARN() string
 	CloudFormationDisableRollback() bool
-	ASG() autoscalingiface.AutoScalingAPI
+	ASG() awsapi.ASG
 	EKS() eksiface.EKSAPI
 	EC2() ec2iface.EC2API
 	ELB() elbiface.ELBAPI

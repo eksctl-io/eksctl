@@ -2,9 +2,10 @@
 package fakes
 
 import (
+	"context"
 	"sync"
 
-	"github.com/aws/aws-sdk-go/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
@@ -255,17 +256,18 @@ type FakeStackManager struct {
 	fixClusterCompatibilityReturnsOnCall map[int]struct {
 		result1 error
 	}
-	GetAutoScalingGroupDesiredCapacityStub        func(string) (autoscaling.Group, error)
+	GetAutoScalingGroupDesiredCapacityStub        func(context.Context, string) (types.AutoScalingGroup, error)
 	getAutoScalingGroupDesiredCapacityMutex       sync.RWMutex
 	getAutoScalingGroupDesiredCapacityArgsForCall []struct {
-		arg1 string
+		arg1 context.Context
+		arg2 string
 	}
 	getAutoScalingGroupDesiredCapacityReturns struct {
-		result1 autoscaling.Group
+		result1 types.AutoScalingGroup
 		result2 error
 	}
 	getAutoScalingGroupDesiredCapacityReturnsOnCall map[int]struct {
-		result1 autoscaling.Group
+		result1 types.AutoScalingGroup
 		result2 error
 	}
 	GetAutoScalingGroupNameStub        func(*cloudformation.Stack) (string, error)
@@ -1882,18 +1884,19 @@ func (fake *FakeStackManager) FixClusterCompatibilityReturnsOnCall(i int, result
 	}{result1}
 }
 
-func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacity(arg1 string) (autoscaling.Group, error) {
+func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacity(arg1 context.Context, arg2 string) (types.AutoScalingGroup, error) {
 	fake.getAutoScalingGroupDesiredCapacityMutex.Lock()
 	ret, specificReturn := fake.getAutoScalingGroupDesiredCapacityReturnsOnCall[len(fake.getAutoScalingGroupDesiredCapacityArgsForCall)]
 	fake.getAutoScalingGroupDesiredCapacityArgsForCall = append(fake.getAutoScalingGroupDesiredCapacityArgsForCall, struct {
-		arg1 string
-	}{arg1})
+		arg1 context.Context
+		arg2 string
+	}{arg1, arg2})
 	stub := fake.GetAutoScalingGroupDesiredCapacityStub
 	fakeReturns := fake.getAutoScalingGroupDesiredCapacityReturns
-	fake.recordInvocation("GetAutoScalingGroupDesiredCapacity", []interface{}{arg1})
+	fake.recordInvocation("GetAutoScalingGroupDesiredCapacity", []interface{}{arg1, arg2})
 	fake.getAutoScalingGroupDesiredCapacityMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -1907,41 +1910,41 @@ func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityCallCount() int 
 	return len(fake.getAutoScalingGroupDesiredCapacityArgsForCall)
 }
 
-func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityCalls(stub func(string) (autoscaling.Group, error)) {
+func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityCalls(stub func(context.Context, string) (types.AutoScalingGroup, error)) {
 	fake.getAutoScalingGroupDesiredCapacityMutex.Lock()
 	defer fake.getAutoScalingGroupDesiredCapacityMutex.Unlock()
 	fake.GetAutoScalingGroupDesiredCapacityStub = stub
 }
 
-func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityArgsForCall(i int) string {
+func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityArgsForCall(i int) (context.Context, string) {
 	fake.getAutoScalingGroupDesiredCapacityMutex.RLock()
 	defer fake.getAutoScalingGroupDesiredCapacityMutex.RUnlock()
 	argsForCall := fake.getAutoScalingGroupDesiredCapacityArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityReturns(result1 autoscaling.Group, result2 error) {
+func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityReturns(result1 types.AutoScalingGroup, result2 error) {
 	fake.getAutoScalingGroupDesiredCapacityMutex.Lock()
 	defer fake.getAutoScalingGroupDesiredCapacityMutex.Unlock()
 	fake.GetAutoScalingGroupDesiredCapacityStub = nil
 	fake.getAutoScalingGroupDesiredCapacityReturns = struct {
-		result1 autoscaling.Group
+		result1 types.AutoScalingGroup
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityReturnsOnCall(i int, result1 autoscaling.Group, result2 error) {
+func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityReturnsOnCall(i int, result1 types.AutoScalingGroup, result2 error) {
 	fake.getAutoScalingGroupDesiredCapacityMutex.Lock()
 	defer fake.getAutoScalingGroupDesiredCapacityMutex.Unlock()
 	fake.GetAutoScalingGroupDesiredCapacityStub = nil
 	if fake.getAutoScalingGroupDesiredCapacityReturnsOnCall == nil {
 		fake.getAutoScalingGroupDesiredCapacityReturnsOnCall = make(map[int]struct {
-			result1 autoscaling.Group
+			result1 types.AutoScalingGroup
 			result2 error
 		})
 	}
 	fake.getAutoScalingGroupDesiredCapacityReturnsOnCall[i] = struct {
-		result1 autoscaling.Group
+		result1 types.AutoScalingGroup
 		result2 error
 	}{result1, result2}
 }

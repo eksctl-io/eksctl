@@ -1,7 +1,9 @@
 package manager
 
 import (
-	"github.com/aws/aws-sdk-go/service/autoscaling"
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
@@ -55,7 +57,7 @@ type StackManager interface {
 	DoWaitUntilStackIsCreated(i *Stack) error
 	EnsureMapPublicIPOnLaunchEnabled() error
 	FixClusterCompatibility() error
-	GetAutoScalingGroupDesiredCapacity(name string) (autoscaling.Group, error)
+	GetAutoScalingGroupDesiredCapacity(ctx context.Context, name string) (types.AutoScalingGroup, error)
 	GetAutoScalingGroupName(s *Stack) (string, error)
 	GetClusterStackIfExists() (*Stack, error)
 	GetFargateStack() (*Stack, error)

@@ -4,12 +4,10 @@ import (
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/awsapi"
-
 	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
@@ -59,7 +57,7 @@ type MockProvider struct {
 
 	region         string
 	cfnRoleARN     string
-	asg            *mocks.AutoScalingAPI
+	asg            *mocksv2.ASG
 	cfn            *mocks.CloudFormationAPI
 	eks            *mocks.EKSAPI
 	ec2            *mocks.EC2API
@@ -81,7 +79,7 @@ func NewMockProvider() *MockProvider {
 	return &MockProvider{
 		Client: NewMockAWSClient(),
 
-		asg:            &mocks.AutoScalingAPI{},
+		asg:            &mocksv2.ASG{},
 		cfn:            &mocks.CloudFormationAPI{},
 		eks:            &mocks.EKSAPI{},
 		ec2:            &mocks.EC2API{},
@@ -136,10 +134,10 @@ func (m MockProvider) MockCloudFormation() *mocks.CloudFormationAPI {
 }
 
 // ASG returns a representation of the ASG API
-func (m MockProvider) ASG() autoscalingiface.AutoScalingAPI { return m.asg }
+func (m MockProvider) ASG() awsapi.ASG { return m.asg }
 
 // MockASG returns a mocked ASG API
-func (m MockProvider) MockASG() *mocks.AutoScalingAPI { return m.ASG().(*mocks.AutoScalingAPI) }
+func (m MockProvider) MockASG() *mocksv2.ASG { return m.ASG().(*mocksv2.ASG) }
 
 // EKS returns a representation of the EKS API
 func (m MockProvider) EKS() eksiface.EKSAPI { return m.eks }

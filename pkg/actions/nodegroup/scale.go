@@ -1,10 +1,11 @@
 package nodegroup
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
@@ -16,7 +17,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-func (m *Manager) Scale(ng *api.NodeGroupBase) error {
+func (m *Manager) Scale(ctx context.Context, ng *api.NodeGroupBase) error {
 	logger.Info("scaling nodegroup %q in cluster %s", ng.Name, m.cfg.Metadata.Name)
 
 	nodegroupStackInfos, err := m.stackManager.DescribeNodeGroupStacksAndResources()
@@ -36,7 +37,7 @@ func (m *Manager) Scale(ng *api.NodeGroupBase) error {
 	}
 
 	if isUnmanagedNodegroup {
-		err = m.scaleUnmanagedNodeGroup(ng, stackInfo)
+		err = m.scaleUnmanagedNodeGroup(ctx, ng, stackInfo)
 	} else {
 		err = m.scaleManagedNodeGroup(ng)
 	}
@@ -48,7 +49,7 @@ func (m *Manager) Scale(ng *api.NodeGroupBase) error {
 	return nil
 }
 
-func (m *Manager) scaleUnmanagedNodeGroup(ng *api.NodeGroupBase, stackInfo manager.StackInfo) error {
+func (m *Manager) scaleUnmanagedNodeGroup(ctx context.Context, ng *api.NodeGroupBase, stackInfo manager.StackInfo) error {
 	asgName := ""
 	for _, resource := range stackInfo.Resources {
 		if *resource.LogicalResourceId == "NodeGroup" {
@@ -66,19 +67,19 @@ func (m *Manager) scaleUnmanagedNodeGroup(ng *api.NodeGroupBase, stackInfo manag
 	}
 
 	if ng.MaxSize != nil {
-		input.MaxSize = aws.Int64(int64(*ng.MaxSize))
+		input.MaxSize = aws.Int32(int32(*ng.MaxSize))
 	}
 
 	if ng.MinSize != nil {
-		input.MinSize = aws.Int64(int64(*ng.MinSize))
+		input.MinSize = aws.Int32(int32(*ng.MinSize))
 	}
 
 	if ng.DesiredCapacity != nil {
-		input.DesiredCapacity = aws.Int64(int64(*ng.DesiredCapacity))
+		input.DesiredCapacity = aws.Int32(int32(*ng.DesiredCapacity))
 	}
-	out, err := m.ctl.Provider.ASG().UpdateAutoScalingGroup(input)
+
+	_, err := m.ctl.Provider.ASG().UpdateAutoScalingGroup(ctx, input)
 	if err != nil {
-		logger.Debug("ASG update output: %s", out.String())
 		return err
 	}
 	logger.Info("nodegroup successfully scaled")

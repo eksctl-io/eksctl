@@ -16,6 +16,7 @@ import (
 
 	stsv2 "github.com/aws/aws-sdk-go-v2/service/sts"
 
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -23,8 +24,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
@@ -51,6 +50,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	ekscreds "github.com/weaveworks/eksctl/pkg/credentials"
@@ -83,7 +83,7 @@ type KubeProvider interface {
 type ProviderServices struct {
 	spec  *api.ProviderConfig
 	cfn   cloudformationiface.CloudFormationAPI
-	asg   autoscalingiface.AutoScalingAPI
+	asg   awsapi.ASG
 	eks   eksiface.EKSAPI
 	ec2   ec2iface.EC2API
 	elb   elbiface.ELBAPI
@@ -112,7 +112,7 @@ func (p ProviderServices) CloudFormationDisableRollback() bool {
 }
 
 // ASG returns a representation of the AutoScaling API
-func (p ProviderServices) ASG() autoscalingiface.AutoScalingAPI { return p.asg }
+func (p ProviderServices) ASG() awsapi.ASG { return p.asg }
 
 // EKS returns a representation of the EKS API
 func (p ProviderServices) EKS() eksiface.EKSAPI { return p.eks }
@@ -207,7 +207,6 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	}
 
 	provider.session = s
-	provider.asg = autoscaling.New(s)
 	provider.cfn = cloudformation.New(s)
 	provider.eks = awseks.New(s)
 	provider.ec2 = ec2.New(s)
@@ -238,6 +237,8 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	c.Status = &ProviderStatus{
 		sessionCreds: s.Config.Credentials,
 	}
+
+	provider.asg = autoscaling.NewFromConfig(cfg)
 
 	// override sessions if any custom endpoints specified
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
