@@ -7,9 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 
 	stsv2 "github.com/aws/aws-sdk-go-v2/service/sts"
 
@@ -90,7 +88,7 @@ type ProviderServices struct {
 	iam   iamiface.IAMAPI
 
 	cloudtrail     cloudtrailiface.CloudTrailAPI
-	cloudwatchlogs cloudwatchlogsiface.CloudWatchLogsAPI
+	cloudwatchlogs awsapi.CloudWatchLogs
 
 	session *session.Session
 
@@ -136,7 +134,7 @@ func (p ProviderServices) IAM() iamiface.IAMAPI { return p.iam }
 func (p ProviderServices) CloudTrail() cloudtrailiface.CloudTrailAPI { return p.cloudtrail }
 
 // CloudWatchLogs returns a representation of the CloudWatchLogs API.
-func (p ProviderServices) CloudWatchLogs() cloudwatchlogsiface.CloudWatchLogsAPI {
+func (p ProviderServices) CloudWatchLogs() awsapi.CloudWatchLogs {
 	return p.cloudwatchlogs
 }
 
@@ -208,7 +206,6 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	provider.ssm = ssm.New(s)
 	provider.iam = iam.New(s)
 	provider.cloudtrail = cloudtrail.New(s)
-	provider.cloudwatchlogs = cloudwatchlogs.New(s)
 
 	cfg, err := newV2Config(spec, c.Provider.Region())
 	if err != nil {
@@ -223,6 +220,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	}
 
 	provider.asg = autoscaling.NewFromConfig(cfg)
+	provider.cloudwatchlogs = cloudwatchlogs.NewFromConfig(cfg)
 
 	// override sessions if any custom endpoints specified
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
