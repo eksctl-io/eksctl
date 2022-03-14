@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/elb/elbiface"
@@ -67,7 +66,7 @@ type MockProvider struct {
 	ssm            *mocks.SSMAPI
 	iam            *mocks.IAMAPI
 	cloudtrail     *mocks.CloudTrailAPI
-	cloudwatchlogs *mocks.CloudWatchLogsAPI
+	cloudwatchlogs *mocksv2.CloudWatchLogs
 	configProvider *mocks.ConfigProvider
 
 	stsV2            *mocksv2.STS
@@ -89,7 +88,7 @@ func NewMockProvider() *MockProvider {
 		ssm:            &mocks.SSMAPI{},
 		iam:            &mocks.IAMAPI{},
 		cloudtrail:     &mocks.CloudTrailAPI{},
-		cloudwatchlogs: &mocks.CloudWatchLogsAPI{},
+		cloudwatchlogs: &mocksv2.CloudWatchLogs{},
 		configProvider: &mocks.ConfigProvider{},
 
 		stsV2:            &mocksv2.STS{},
@@ -184,11 +183,11 @@ func (m MockProvider) MockCloudTrail() *mocks.CloudTrailAPI {
 }
 
 // CloudWatchLogs returns a representation of the CloudWatchLogs API
-func (m MockProvider) CloudWatchLogs() cloudwatchlogsiface.CloudWatchLogsAPI { return m.cloudwatchlogs }
+func (m MockProvider) CloudWatchLogs() awsapi.CloudWatchLogs { return m.cloudwatchlogs }
 
 // MockCloudWatchLogs returns a mocked CloudWatchLogs API
-func (m MockProvider) MockCloudWatchLogs() *mocks.CloudWatchLogsAPI {
-	return m.CloudWatchLogs().(*mocks.CloudWatchLogsAPI)
+func (m MockProvider) MockCloudWatchLogs() *mocksv2.CloudWatchLogs {
+	return m.CloudWatchLogs().(*mocksv2.CloudWatchLogs)
 }
 
 // Profile returns current profile setting

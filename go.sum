@@ -413,6 +413,8 @@ github.com/aws/aws-sdk-go-v2/service/cloudformation v1.20.0 h1:3FtUNwTg7GSvSwuZz
 github.com/aws/aws-sdk-go-v2/service/cloudformation v1.20.0/go.mod h1:ap2TY1qPxT8TlKoBgG+FYAr/JYJrYuDMmTyZfajTsX8=
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.15.0 h1:7QMrfLype45CuidKUJPQO0McOkbfYB5wdxs+xkibSu0=
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.15.0/go.mod h1:ZYjWLgmawBacUvUAgy5KnGdQQQLNuB4nIcz1QREm91w=
+github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.1 h1:HPXBoSBZ/AkcbghlrbfpllzeXfrtS/j3f0mDmbPMEdU=
+github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.1/go.mod h1:tHNjgOBStmkKimX5aJtMIT7PL+Nf7/y0R+CGqbJx864=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.31.0 h1:8Q6WYZvgBylP7kh7S5gQvGKpsjphcZPEuytwl/JxxoA=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.31.0/go.mod h1:Z8942YP2VgLQpgPCx06iXCrOt7mxxCe0dESCm9FFhgs=
 github.com/aws/aws-sdk-go-v2/service/eks v1.20.1 h1:SWLduLmXMokjRsUl3z0NZbO/WwKW6H4bovORZeN2ko8=
