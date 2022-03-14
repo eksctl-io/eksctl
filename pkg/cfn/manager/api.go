@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
@@ -19,6 +18,7 @@ import (
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	"github.com/weaveworks/eksctl/pkg/version"
@@ -71,7 +71,7 @@ type StackCollection struct {
 	eksAPI            eksiface.EKSAPI
 	iamAPI            iamiface.IAMAPI
 	cloudTrailAPI     cloudtrailiface.CloudTrailAPI
-	asgAPI            autoscalingiface.AutoScalingAPI
+	asgAPI            awsapi.ASG
 	spec              *api.ClusterConfig
 	disableRollback   bool
 	roleARN           string
