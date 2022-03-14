@@ -68,7 +68,7 @@ type StackManager interface {
 	GetNodeGroupStackType(options GetNodegroupOption) (v1alpha5.NodeGroupType, error)
 	GetStackTemplate(stackName string) (string, error)
 	GetUnmanagedNodeGroupAutoScalingGroupName(s *Stack) (string, error)
-	HasClusterStackUsingCachedList(clusterStackNames []string, clusterName string) (bool, error)
+	HasClusterStackFromList(clusterStackNames []string, clusterName string) (bool, error)
 	ListClusterStackNames() ([]string, error)
 	ListIAMServiceAccountStacks() ([]string, error)
 	ListNodeGroupStacks() ([]NodeGroupStack, error)

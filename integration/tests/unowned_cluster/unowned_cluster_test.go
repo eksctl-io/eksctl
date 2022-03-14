@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/weaveworks/eksctl/integration/matchers"
+
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -112,9 +114,11 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"clusters",
 				"--verbose", "2",
 			)
-		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-			ContainElement(ContainSubstring(params.ClusterName)),
-		))
+		AssertContainsCluster(cmd, GetClusterOutput{
+			ClusterName:   params.ClusterName,
+			Region:        params.Region,
+			EksctlCreated: "False",
+		})
 
 		By("getting nodegroups")
 		cmd = params.EksctlGetCmd.
