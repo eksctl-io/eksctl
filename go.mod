@@ -53,12 +53,12 @@ require (
 	golang.org/x/tools v0.1.9
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
 	gopkg.in/yaml.v2 v2.4.0
-	helm.sh/helm/v3 v3.8.0
-	k8s.io/api v0.23.1
-	k8s.io/apiextensions-apiserver v0.23.1
-	k8s.io/apimachinery v0.23.1
-	k8s.io/cli-runtime v0.23.1
-	k8s.io/client-go v0.23.1
+	helm.sh/helm/v3 v3.8.1
+	k8s.io/api v0.23.4
+	k8s.io/apiextensions-apiserver v0.23.4
+	k8s.io/apimachinery v0.23.4
+	k8s.io/cli-runtime v0.23.4
+	k8s.io/client-go v0.23.4
 	k8s.io/cloud-provider v0.21.2
 	k8s.io/code-generator v0.22.1
 	k8s.io/kops v1.21.2
@@ -445,13 +445,13 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	honnef.co/go/tools v0.2.2 // indirect
-	k8s.io/apiserver v0.23.1 // indirect
+	k8s.io/apiserver v0.23.4 // indirect
 	k8s.io/component-base v0.22.1 // indirect
 	k8s.io/csi-translation-lib v0.21.2 // indirect
 	k8s.io/gengo v0.0.0-20210203185629-de9496dff47b // indirect
 	k8s.io/klog/v2 v2.30.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20210305001622-591a79e4bda7 // indirect
-	k8s.io/kubectl v0.23.1 // indirect
+	k8s.io/kubectl v0.23.4 // indirect
 	k8s.io/sample-controller v0.22.1 // indirect
 	k8s.io/utils v0.0.0-20210305010621-2afb4311ab10 // indirect
 	mvdan.cc/gofumpt v0.2.1 // indirect
