@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -295,12 +296,13 @@ var _ = Describe("StackCollection", func() {
 
 	Context("GetClusterStackIfExists", func() {
 		var (
-			cfg *api.ClusterConfig
-			p   *mockprovider.MockProvider
+			cfg                 *api.ClusterConfig
+			p                   *mockprovider.MockProvider
+			stackNameWithEksctl string
 		)
 		BeforeEach(func() {
 			stackName := "confirm-this"
-			stackNameWithEksctl := "eksctl-confirm-this-cluster"
+			stackNameWithEksctl = "eksctl-" + stackName + "-cluster"
 			describeInput := &cfn.DescribeStacksInput{StackName: &stackNameWithEksctl}
 			describeOutput := &cfn.DescribeStacksOutput{Stacks: []*cfn.Stack{{
 				StackName:   &stackName,
@@ -314,6 +316,12 @@ var _ = Describe("StackCollection", func() {
 			}}}
 			p = mockprovider.NewMockProvider()
 			p.MockCloudFormation().On("DescribeStacks", describeInput).Return(describeOutput, nil)
+
+			cfg = api.NewClusterConfig()
+			cfg.Metadata.Name = stackName
+		})
+
+		It("can retrieve stacks", func() {
 			p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.AnythingOfType("func(*cloudformation.ListStacksOutput, bool) bool")).Run(func(args mock.Arguments) {
 				fn := args.Get(1) // the passed in function
 				fn.(func(p *cfn.ListStacksOutput, _ bool) bool)(&cfn.ListStacksOutput{
@@ -324,12 +332,6 @@ var _ = Describe("StackCollection", func() {
 					},
 				}, true)
 			}).Return(nil)
-
-			cfg = api.NewClusterConfig()
-			cfg.Metadata.Name = "confirm-this"
-		})
-
-		It("can retrieve stacks", func() {
 			sm := NewStackCollection(p, cfg)
 			stack, err := sm.GetClusterStackIfExists()
 			Expect(err).NotTo(HaveOccurred())
@@ -338,11 +340,30 @@ var _ = Describe("StackCollection", func() {
 
 		When("the config stack doesn't match", func() {
 			It("returns no stack", func() {
+				p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.AnythingOfType("func(*cloudformation.ListStacksOutput, bool) bool")).Run(func(args mock.Arguments) {
+					fn := args.Get(1) // the passed in function
+					fn.(func(p *cfn.ListStacksOutput, _ bool) bool)(&cfn.ListStacksOutput{
+						StackSummaries: []*cfn.StackSummary{
+							{
+								StackName: &stackNameWithEksctl,
+							},
+						},
+					}, true)
+				}).Return(nil)
 				cfg.Metadata.Name = "not-this"
 				sm := NewStackCollection(p, cfg)
 				stack, err := sm.GetClusterStackIfExists()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(stack).To(BeNil())
+			})
+		})
+
+		When("ListStacksPages errors", func() {
+			It("errors", func() {
+				p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.AnythingOfType("func(*cloudformation.ListStacksOutput, bool) bool")).Return(errors.New("nope"))
+				sm := NewStackCollection(p, cfg)
+				_, err := sm.GetClusterStackIfExists()
+				Expect(err).To(MatchError(ContainSubstring("nope")))
 			})
 		})
 	})
