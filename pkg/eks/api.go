@@ -17,6 +17,7 @@ import (
 	stsv2 "github.com/aws/aws-sdk-go-v2/service/sts"
 
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -26,8 +27,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
-	"github.com/aws/aws-sdk-go/service/cloudtrail"
-	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -92,7 +91,7 @@ type ProviderServices struct {
 	ssm   ssmiface.SSMAPI
 	iam   iamiface.IAMAPI
 
-	cloudtrail     cloudtrailiface.CloudTrailAPI
+	cloudtrail     awsapi.CloudTrail
 	cloudwatchlogs awsapi.CloudWatchLogs
 
 	session *session.Session
@@ -136,7 +135,7 @@ func (p ProviderServices) SSM() ssmiface.SSMAPI { return p.ssm }
 func (p ProviderServices) IAM() iamiface.IAMAPI { return p.iam }
 
 // CloudTrail returns a representation of the CloudTrail API
-func (p ProviderServices) CloudTrail() cloudtrailiface.CloudTrailAPI { return p.cloudtrail }
+func (p ProviderServices) CloudTrail() awsapi.CloudTrail { return p.cloudtrail }
 
 // CloudWatchLogs returns a representation of the CloudWatchLogs API.
 func (p ProviderServices) CloudWatchLogs() awsapi.CloudWatchLogs {
@@ -223,7 +222,6 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	)
 	provider.ssm = ssm.New(s)
 	provider.iam = iam.New(s)
-	provider.cloudtrail = cloudtrail.New(s)
 
 	cfg, err := newV2Config(spec, c.Provider.Region(), credentialsCacheFilePath)
 	if err != nil {
@@ -239,6 +237,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 
 	provider.asg = autoscaling.NewFromConfig(cfg)
 	provider.cloudwatchlogs = cloudwatchlogs.NewFromConfig(cfg)
+	provider.cloudtrail = cloudtrail.NewFromConfig(cfg)
 
 	// override sessions if any custom endpoints specified
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
@@ -274,7 +273,9 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	}
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDTRAIL_ENDPOINT"); ok {
 		logger.Debug("Setting CloudTrail endpoint to %s", endpoint)
-		provider.cloudtrail = cloudtrail.New(s, s.Config.Copy().WithEndpoint(endpoint))
+		provider.cloudtrail = cloudtrail.NewFromConfig(cfg, func(o *cloudtrail.Options) {
+			o.EndpointResolver = cloudtrail.EndpointResolverFromURL(endpoint)
+		})
 	}
 
 	if clusterSpec != nil {

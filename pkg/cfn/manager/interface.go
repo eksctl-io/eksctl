@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
+	cttypes "github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -76,7 +76,7 @@ type StackManager interface {
 	ListNodeGroupStacks() ([]NodeGroupStack, error)
 	ListStacks(statusFilters ...string) ([]*Stack, error)
 	ListStacksMatching(nameRegex string, statusFilters ...string) ([]*Stack, error)
-	LookupCloudTrailEvents(i *Stack) ([]*cloudtrail.Event, error)
+	LookupCloudTrailEvents(ctx context.Context, i *Stack) ([]cttypes.Event, error)
 	MakeChangeSetName(action string) string
 	MakeClusterStackName() string
 	NewClusterCompatTask() tasks.Task

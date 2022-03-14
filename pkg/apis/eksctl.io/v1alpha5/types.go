@@ -13,7 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
-	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
@@ -658,7 +657,7 @@ type ClusterProvider interface {
 	STS() stsiface.STSAPI
 	SSM() ssmiface.SSMAPI
 	IAM() iamiface.IAMAPI
-	CloudTrail() cloudtrailiface.CloudTrailAPI
+	CloudTrail() awsapi.CloudTrail
 	CloudWatchLogs() awsapi.CloudWatchLogs
 	Region() string
 	Profile() string
