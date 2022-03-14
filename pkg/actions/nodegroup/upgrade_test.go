@@ -1,12 +1,14 @@
 package nodegroup_test
 
 import (
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/ssm"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/mock"
 	"k8s.io/client-go/kubernetes/fake"
 
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
@@ -155,10 +157,10 @@ var _ = Describe("Upgrade", func() {
 						},
 					}, nil)
 
-					p.MockSSM().On("GetParameter", &ssm.GetParameterInput{
+					p.MockSSM().On("GetParameter", mock.Anything, &ssm.GetParameterInput{
 						Name: aws.String("/aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/release_version"),
 					}).Return(&ssm.GetParameterOutput{
-						Parameter: &ssm.Parameter{
+						Parameter: &ssmtypes.Parameter{
 							Value: aws.String("1.21-20201212"),
 						},
 					}, nil)
@@ -216,10 +218,10 @@ var _ = Describe("Upgrade", func() {
 						},
 					}, nil)
 
-					p.MockSSM().On("GetParameter", &ssm.GetParameterInput{
+					p.MockSSM().On("GetParameter", mock.Anything, &ssm.GetParameterInput{
 						Name: aws.String("/aws/service/eks/optimized-ami/1.21/amazon-linux-2-gpu/recommended/release_version"),
 					}).Return(&ssm.GetParameterOutput{
-						Parameter: &ssm.Parameter{
+						Parameter: &ssmtypes.Parameter{
 							Value: aws.String("1.21-20201212"),
 						},
 					}, nil)
@@ -271,10 +273,10 @@ var _ = Describe("Upgrade", func() {
 						},
 					}, nil)
 
-					p.MockSSM().On("GetParameter", &ssm.GetParameterInput{
+					p.MockSSM().On("GetParameter", mock.Anything, &ssm.GetParameterInput{
 						Name: aws.String("/aws/service/bottlerocket/aws-k8s-1.21/x86_64/latest/image_version"),
 					}).Return(&ssm.GetParameterOutput{
-						Parameter: &ssm.Parameter{
+						Parameter: &ssmtypes.Parameter{
 							Value: aws.String("1.5.2-1602f3a8"),
 						},
 					}, nil)

@@ -1,14 +1,16 @@
 package nodegroup
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -333,7 +335,7 @@ func (m *Manager) getLatestReleaseVersion(kubernetesVersion string, nodeGroup *e
 		return "", nil
 	}
 
-	ssmOutput, err := m.ctl.Provider.SSM().GetParameter(&ssm.GetParameterInput{
+	ssmOutput, err := m.ctl.Provider.SSM().GetParameter(context.TODO(), &ssm.GetParameterInput{
 		Name: &ssmParameterName,
 	})
 	if err != nil {

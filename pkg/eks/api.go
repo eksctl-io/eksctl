@@ -36,8 +36,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"github.com/kris-nova/logger"
@@ -86,7 +84,6 @@ type ProviderServices struct {
 	elb   elbiface.ELBAPI
 	elbv2 elbv2iface.ELBV2API
 	sts   stsiface.STSAPI
-	ssm   ssmiface.SSMAPI
 	iam   iamiface.IAMAPI
 
 	cloudtrail     cloudtrailiface.CloudTrailAPI
@@ -125,9 +122,6 @@ func (p ProviderServices) ELBV2() elbv2iface.ELBV2API { return p.elbv2 }
 
 // STS returns a representation of the STS API
 func (p ProviderServices) STS() stsiface.STSAPI { return p.sts }
-
-// SSM returns a representation of the STS API
-func (p ProviderServices) SSM() ssmiface.SSMAPI { return p.ssm }
 
 // IAM returns a representation of the IAM API
 func (p ProviderServices) IAM() iamiface.IAMAPI { return p.iam }
@@ -206,7 +200,6 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 			},
 		),
 	)
-	provider.ssm = ssm.New(s)
 	provider.iam = iam.New(s)
 	provider.cloudtrail = cloudtrail.New(s)
 	provider.cloudwatchlogs = cloudwatchlogs.New(s)

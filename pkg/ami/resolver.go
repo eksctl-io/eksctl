@@ -2,7 +2,9 @@ package ami
 
 import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
+
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
 	"github.com/kris-nova/logger"
 )
 
@@ -52,7 +54,7 @@ func NewAutoResolver(api ec2iface.EC2API) Resolver {
 }
 
 // NewSSMResolver creates a new AutoResolver.
-func NewSSMResolver(api ssmiface.SSMAPI) Resolver {
+func NewSSMResolver(api awsapi.SSM) Resolver {
 	return &SSMResolver{ssmAPI: api}
 }
 

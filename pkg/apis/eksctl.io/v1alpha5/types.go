@@ -23,7 +23,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/elb/elbiface"
 	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -659,7 +658,7 @@ type ClusterProvider interface {
 	ELB() elbiface.ELBAPI
 	ELBV2() elbv2iface.ELBV2API
 	STS() stsiface.STSAPI
-	SSM() ssmiface.SSMAPI
+	SSM() awsapi.SSM
 	IAM() iamiface.IAMAPI
 	CloudTrail() cloudtrailiface.CloudTrailAPI
 	CloudWatchLogs() cloudwatchlogsiface.CloudWatchLogsAPI

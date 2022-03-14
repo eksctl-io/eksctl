@@ -4,17 +4,18 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 )
 
-// ServicesV2 implements api.ServicesV2
+// ServicesV2 implements api.ServicesV2.
 type ServicesV2 struct {
 	config aws.Config
 }
 
-// STSV2 implements the AWS STS service
+// STSV2 implements the AWS STS service.
 func (s *ServicesV2) STSV2() awsapi.STS {
 	return sts.NewFromConfig(s.config, func(o *sts.Options) {
 		// Disable retryer for STS
@@ -23,7 +24,7 @@ func (s *ServicesV2) STSV2() awsapi.STS {
 	})
 }
 
-// CloudFormationV2 implements the AWS CloudFormation service
+// CloudFormationV2 implements the AWS CloudFormation service.
 func (s *ServicesV2) CloudFormationV2() awsapi.CloudFormation {
 	return cloudformation.NewFromConfig(s.config, func(o *cloudformation.Options) {
 		// Use adaptive mode for retrying CloudFormation requests to mimic
@@ -36,4 +37,9 @@ func (s *ServicesV2) CloudFormationV2() awsapi.CloudFormation {
 			}
 		})
 	})
+}
+
+// SSM implements the AWS SSM service.
+func (s *ServicesV2) SSM() awsapi.SSM {
+	return ssm.NewFromConfig(s.config)
 }

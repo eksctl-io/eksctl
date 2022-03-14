@@ -1,8 +1,9 @@
 package ami_test
 
 import (
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ssm"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
@@ -61,7 +62,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 					})
 				})
 
-				Context("and ami is NOT available", func() {
+				Context("and ami is not available", func() {
 					BeforeEach(func() {
 
 						p = mockprovider.NewMockProvider()
@@ -354,21 +355,21 @@ var _ = Describe("AMI Auto Resolution", func() {
 })
 
 func addMockGetParameter(p *mockprovider.MockProvider, name, amiID string) {
-	p.MockSSM().On("GetParameter",
+	p.MockSSM().On("GetParameter", mock.Anything,
 		mock.MatchedBy(func(input *ssm.GetParameterInput) bool {
 			return *input.Name == name
 		}),
 	).Return(&ssm.GetParameterOutput{
-		Parameter: &ssm.Parameter{
+		Parameter: &ssmtypes.Parameter{
 			Name:  aws.String(name),
-			Type:  aws.String("String"),
+			Type:  ssmtypes.ParameterTypeString,
 			Value: aws.String(amiID),
 		},
 	}, nil)
 }
 
 func addMockFailedGetParameter(p *mockprovider.MockProvider, name string) {
-	p.MockSSM().On("GetParameter",
+	p.MockSSM().On("GetParameter", mock.Anything,
 		mock.MatchedBy(func(input *ssm.GetParameterInput) bool {
 			return *input.Name == name
 		}),
