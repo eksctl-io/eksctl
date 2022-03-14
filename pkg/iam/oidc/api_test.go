@@ -10,9 +10,10 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
+
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	awsiam "github.com/aws/aws-sdk-go/service/iam"
 	"github.com/stretchr/testify/mock"
 
 	. "github.com/onsi/ginkgo"
@@ -151,29 +152,31 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 				*fakeProviderCreated = false
 			}
 
-			nonExistentProviderErr := awserr.New(awsiam.ErrCodeNoSuchEntityException, "provider is not there", fmt.Errorf("test"))
+			nonExistentProviderErr := &iamtypes.NoSuchEntityException{
+				Message: aws.String("provider is not here"),
+			}
 
-			fakeProviderGetOutput := &awsiam.GetOpenIDConnectProviderOutput{
+			fakeProviderGetOutput := &iam.GetOpenIDConnectProviderOutput{
 				Url: aws.String("https://localhost:10028/"),
 			}
 
-			fakeProviderCreateOutput := &awsiam.CreateOpenIDConnectProviderOutput{
+			fakeProviderCreateOutput := &iam.CreateOpenIDConnectProviderOutput{
 				OpenIDConnectProviderArn: aws.String(fakeProviderARN),
 			}
 
-			p.MockIAM().On("GetOpenIDConnectProvider", mock.MatchedBy(func(input *awsiam.GetOpenIDConnectProviderInput) bool {
+			p.MockIAM().On("GetOpenIDConnectProvider", mock.Anything, mock.MatchedBy(func(input *iam.GetOpenIDConnectProviderInput) bool {
 				return *input.OpenIDConnectProviderArn == exampleIssuer
 			})).Return(nil, nonExistentProviderErr)
 
-			p.MockIAM().On("GetOpenIDConnectProvider", mock.MatchedBy(func(input *awsiam.GetOpenIDConnectProviderInput) bool {
+			p.MockIAM().On("GetOpenIDConnectProvider", mock.Anything, mock.MatchedBy(func(input *iam.GetOpenIDConnectProviderInput) bool {
 				return *input.OpenIDConnectProviderArn == fakeProviderARN && !*fakeProviderCreated
 			})).Return(nil, nonExistentProviderErr)
 
-			p.MockIAM().On("GetOpenIDConnectProvider", mock.MatchedBy(func(input *awsiam.GetOpenIDConnectProviderInput) bool {
+			p.MockIAM().On("GetOpenIDConnectProvider", mock.Anything, mock.MatchedBy(func(input *iam.GetOpenIDConnectProviderInput) bool {
 				return *input.OpenIDConnectProviderArn == fakeProviderARN && *fakeProviderCreated
 			})).Return(fakeProviderGetOutput, nil)
 
-			p.MockIAM().On("CreateOpenIDConnectProvider", mock.MatchedBy(func(input *awsiam.CreateOpenIDConnectProviderInput) bool {
+			p.MockIAM().On("CreateOpenIDConnectProvider", mock.Anything, mock.MatchedBy(func(input *iam.CreateOpenIDConnectProviderInput) bool {
 				if *input.Url == *fakeProviderGetOutput.Url {
 					*fakeProviderCreated = true
 					return true
@@ -181,7 +184,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 				return false
 			})).Return(fakeProviderCreateOutput, nil)
 
-			p.MockIAM().On("DeleteOpenIDConnectProvider", mock.MatchedBy(func(input *awsiam.DeleteOpenIDConnectProviderInput) bool {
+			p.MockIAM().On("DeleteOpenIDConnectProvider", mock.Anything, mock.MatchedBy(func(input *iam.DeleteOpenIDConnectProviderInput) bool {
 				if *input.OpenIDConnectProviderArn == fakeProviderARN {
 					*fakeProviderCreated = false
 					return true
@@ -318,16 +321,16 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			Expect(err).NotTo(HaveOccurred())
 			oidc.insecureSkipVerify = true
 
-			var tagsInput []*awsiam.Tag
-			provider.MockIAM().On("CreateOpenIDConnectProvider", mock.MatchedBy(func(input *awsiam.CreateOpenIDConnectProviderInput) bool {
+			var tagsInput []iamtypes.Tag
+			provider.MockIAM().On("CreateOpenIDConnectProvider", mock.Anything, mock.MatchedBy(func(input *iam.CreateOpenIDConnectProviderInput) bool {
 				tagsInput = input.Tags
 				return true
-			})).Return(&awsiam.CreateOpenIDConnectProviderOutput{
+			})).Return(&iam.CreateOpenIDConnectProviderOutput{
 				OpenIDConnectProviderArn: aws.String(fakeProviderARN),
 			}, nil)
 
 			Expect(oidc.CreateProvider()).To(Succeed())
-			Expect(tagsInput).To(ConsistOf([]*awsiam.Tag{
+			Expect(tagsInput).To(ConsistOf([]iamtypes.Tag{
 				{
 					Key:   aws.String("cluster"),
 					Value: aws.String("oidc"),
@@ -362,13 +365,13 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 		})
 
 		DescribeTable("AssumeRolePolicyDocument should have correct AWS partition and STS domain", func(partition, expectedAudience string) {
-			provider.MockIAM().On("CreateOpenIDConnectProvider", mock.MatchedBy(func(input *awsiam.CreateOpenIDConnectProviderInput) bool {
+			provider.MockIAM().On("CreateOpenIDConnectProvider", mock.Anything, mock.MatchedBy(func(input *iam.CreateOpenIDConnectProviderInput) bool {
 				if len(input.ClientIDList) != 1 {
 					return false
 				}
-				clientID := *input.ClientIDList[0]
+				clientID := input.ClientIDList[0]
 				return clientID == defaultAudience
-			})).Return(&awsiam.CreateOpenIDConnectProviderOutput{
+			})).Return(&iam.CreateOpenIDConnectProviderOutput{
 				OpenIDConnectProviderArn: aws.String(fmt.Sprintf("arn:%s:iam::12345:oidc-provider/localhost/", partition)),
 			}, nil)
 

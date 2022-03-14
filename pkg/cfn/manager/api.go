@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
@@ -14,7 +16,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -69,7 +70,7 @@ type StackCollection struct {
 	cloudformationAPI cloudformationiface.CloudFormationAPI
 	ec2API            ec2iface.EC2API
 	eksAPI            eksiface.EKSAPI
-	iamAPI            iamiface.IAMAPI
+	iamAPI            awsapi.IAM
 	cloudTrailAPI     cloudtrailiface.CloudTrailAPI
 	asgAPI            autoscalingiface.AutoScalingAPI
 	spec              *api.ClusterConfig

@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -16,8 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
+
 	"github.com/cenk/backoff"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -45,7 +46,7 @@ type EKSConnector struct {
 type provider interface {
 	EKS() eksiface.EKSAPI
 	STSV2() awsapi.STS
-	IAM() iamiface.IAMAPI
+	IAM() awsapi.IAM
 	Region() string
 }
 
@@ -241,18 +242,18 @@ func (c *EKSConnector) DeregisterCluster(clusterName string) error {
 func (c *EKSConnector) deleteRole(roleName string) error {
 	logger.Info("deleting IAM role %q", roleName)
 
-	if _, err := c.Provider.IAM().DeleteRolePolicy(&iam.DeleteRolePolicyInput{
+	if _, err := c.Provider.IAM().DeleteRolePolicy(context.TODO(), &iam.DeleteRolePolicyInput{
 		PolicyName: aws.String(connectorPolicyName),
 		RoleName:   aws.String(roleName),
 	}); err != nil {
-		awsErr, ok := err.(awserr.Error)
-		if ok && awsErr.Code() == iam.ErrCodeNoSuchEntityException {
+		var notFoundErr *iamtypes.NoSuchEntityException
+		if errors.As(err, &notFoundErr) {
 			return errors.Errorf("could not find policy %q on IAM role", connectorPolicyName)
 		}
 		return err
 	}
 
-	if _, err := c.Provider.IAM().DeleteRole(&iam.DeleteRoleInput{
+	if _, err := c.Provider.IAM().DeleteRole(context.TODO(), &iam.DeleteRoleInput{
 		RoleName: aws.String(roleName),
 	}); err != nil {
 		return errors.Wrap(err, "error deleting IAM role")
@@ -285,7 +286,7 @@ func roleNameFromARN(roleARN string) (string, error) {
 }
 
 func (c *EKSConnector) ownsIAMRole(clusterName, roleName string) (bool, error) {
-	roleOutput, err := c.Provider.IAM().GetRole(&iam.GetRoleInput{
+	roleOutput, err := c.Provider.IAM().GetRole(context.TODO(), &iam.GetRoleInput{
 		RoleName: aws.String(roleName),
 	})
 	if err != nil {
@@ -304,7 +305,7 @@ func (c *EKSConnector) createConnectorRole(cluster ExternalCluster) (string, err
 	roleName := makeRoleName()
 	logger.Info("creating IAM role %q", *roleName)
 
-	output, err := c.Provider.IAM().CreateRole(&iam.CreateRoleInput{
+	output, err := c.Provider.IAM().CreateRole(context.TODO(), &iam.CreateRoleInput{
 		RoleName: roleName,
 		AssumeRolePolicyDocument: aws.String(`{
   "Version": "2012-10-17",
@@ -321,7 +322,7 @@ func (c *EKSConnector) createConnectorRole(cluster ExternalCluster) (string, err
     }
   ]
 }`),
-		Tags: []*iam.Tag{
+		Tags: []iamtypes.Tag{
 			{
 				Key:   aws.String(api.ClusterNameTag),
 				Value: aws.String(cluster.Name),
@@ -332,13 +333,15 @@ func (c *EKSConnector) createConnectorRole(cluster ExternalCluster) (string, err
 		return "", errors.Wrap(err, "error creating IAM role")
 	}
 
-	if err := c.Provider.IAM().WaitUntilRoleExists(&iam.GetRoleInput{
+	waiter := iam.NewRoleExistsWaiter(c.Provider.IAM())
+	maxWaitDuration := 5 * time.Minute
+	if err := waiter.Wait(context.TODO(), &iam.GetRoleInput{
 		RoleName: roleName,
-	}); err != nil {
-		return "", err
+	}, maxWaitDuration); err != nil {
+
 	}
 
-	_, err = c.Provider.IAM().PutRolePolicy(&iam.PutRolePolicyInput{
+	_, err = c.Provider.IAM().PutRolePolicy(context.TODO(), &iam.PutRolePolicyInput{
 		RoleName:   roleName,
 		PolicyName: aws.String(connectorPolicyName),
 		PolicyDocument: aws.String(`{

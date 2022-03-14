@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"strings"
 
+	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
-	awsiam "github.com/aws/aws-sdk-go/service/iam"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -155,10 +156,10 @@ func (n *NodeGroupService) DoesAWSNodeUseIRSA(provider api.ClusterProvider, clie
 	if len(arnParts) <= 1 {
 		return false, errors.Errorf("invalid ARN %s", roleArn)
 	}
-	input := awsiam.ListAttachedRolePoliciesInput{
+	input := &awsiam.ListAttachedRolePoliciesInput{
 		RoleName: aws.String(arnParts[len(arnParts)-1]),
 	}
-	policies, err := provider.IAM().ListAttachedRolePolicies(&input)
+	policies, err := provider.IAM().ListAttachedRolePolicies(context.TODO(), input)
 	if err != nil {
 		return false, errors.Wrap(err, "error listing attached policies")
 	}

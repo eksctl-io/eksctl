@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
@@ -34,8 +36,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/elb/elbiface"
 	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
-	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"github.com/kris-nova/logger"
@@ -84,7 +84,7 @@ type ProviderServices struct {
 	elb   elbiface.ELBAPI
 	elbv2 elbv2iface.ELBV2API
 	sts   stsiface.STSAPI
-	iam   iamiface.IAMAPI
+	iam   awsapi.IAM
 
 	cloudtrail     cloudtrailiface.CloudTrailAPI
 	cloudwatchlogs cloudwatchlogsiface.CloudWatchLogsAPI
@@ -124,7 +124,7 @@ func (p ProviderServices) ELBV2() elbv2iface.ELBV2API { return p.elbv2 }
 func (p ProviderServices) STS() stsiface.STSAPI { return p.sts }
 
 // IAM returns a representation of the IAM API
-func (p ProviderServices) IAM() iamiface.IAMAPI { return p.iam }
+func (p ProviderServices) IAM() awsapi.IAM { return p.iam }
 
 // CloudTrail returns a representation of the CloudTrail API
 func (p ProviderServices) CloudTrail() cloudtrailiface.CloudTrailAPI { return p.cloudtrail }
@@ -200,7 +200,6 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 			},
 		),
 	)
-	provider.iam = iam.New(s)
 	provider.cloudtrail = cloudtrail.New(s)
 	provider.cloudwatchlogs = cloudwatchlogs.New(s)
 
@@ -243,10 +242,6 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
 		logger.Debug("Setting STS endpoint to %s", endpoint)
 		provider.sts = sts.New(s, s.Config.Copy().WithEndpoint(endpoint))
-	}
-	if endpoint, ok := os.LookupEnv("AWS_IAM_ENDPOINT"); ok {
-		logger.Debug("Setting IAM endpoint to %s", endpoint)
-		provider.iam = iam.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDTRAIL_ENDPOINT"); ok {
 		logger.Debug("Setting CloudTrail endpoint to %s", endpoint)

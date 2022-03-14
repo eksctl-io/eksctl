@@ -8,7 +8,6 @@ import (
 	_ "github.com/aws/aws-sdk-go/service/eks/eksiface"
 	_ "github.com/aws/aws-sdk-go/service/elb/elbiface"
 	_ "github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
-	_ "github.com/aws/aws-sdk-go/service/iam/iamiface"
 	_ "github.com/aws/aws-sdk-go/service/sts/stsiface"
 	_ "github.com/vektra/mockery"
 )
@@ -21,7 +20,6 @@ import (
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/elb/elbiface --name=ELBAPI --output=./
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/elbv2/elbv2iface --name=ELBV2API --output=./
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/sts/stsiface --name=STSAPI --output=./
-//go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/iam/iamiface --name=IAMAPI --output=./
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/cloudtrail/cloudtrailiface --name=CloudTrailAPI --output=./
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/cloudwatchlogs/cloudwatchlogsiface --name=CloudWatchLogsAPI --output=./
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/aws/client --name=ConfigProvider --output=./

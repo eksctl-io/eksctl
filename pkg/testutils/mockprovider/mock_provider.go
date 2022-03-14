@@ -17,7 +17,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/elb/elbiface"
 	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 
 	//"github.com/aws/aws-sdk-go/aws/awserr"
@@ -66,13 +65,13 @@ type MockProvider struct {
 	elbv2          *mocks.ELBV2API
 	sts            *mocks.STSAPI
 	ssm            *mocksv2.SSM
-	iam            *mocks.IAMAPI
 	cloudtrail     *mocks.CloudTrailAPI
 	cloudwatchlogs *mocks.CloudWatchLogsAPI
 	configProvider *mocks.ConfigProvider
 
 	stsV2            *mocksv2.STS
 	cloudformationV2 *mocksv2.CloudFormation
+	iam              *mocksv2.IAM
 }
 
 // NewMockProvider returns a new MockProvider
@@ -88,13 +87,13 @@ func NewMockProvider() *MockProvider {
 		elbv2:          &mocks.ELBV2API{},
 		sts:            &mocks.STSAPI{},
 		ssm:            &mocksv2.SSM{},
-		iam:            &mocks.IAMAPI{},
 		cloudtrail:     &mocks.CloudTrailAPI{},
 		cloudwatchlogs: &mocks.CloudWatchLogsAPI{},
 		configProvider: &mocks.ConfigProvider{},
 
 		stsV2:            &mocksv2.STS{},
 		cloudformationV2: &mocksv2.CloudFormation{},
+		iam:              &mocksv2.IAM{},
 	}
 }
 
@@ -171,10 +170,10 @@ func (m MockProvider) SSM() awsapi.SSM { return m.ssm }
 func (m MockProvider) MockSSM() *mocksv2.SSM { return m.ssm }
 
 // IAM returns a representation of the IAM API
-func (m MockProvider) IAM() iamiface.IAMAPI { return m.iam }
+func (m MockProvider) IAM() awsapi.IAM { return m.iam }
 
 // MockIAM returns a mocked IAM API
-func (m MockProvider) MockIAM() *mocks.IAMAPI { return m.IAM().(*mocks.IAMAPI) }
+func (m MockProvider) MockIAM() *mocksv2.IAM { return m.iam }
 
 // CloudTrail returns a representation of the CloudTrail API
 func (m MockProvider) CloudTrail() cloudtrailiface.CloudTrailAPI { return m.cloudtrail }
