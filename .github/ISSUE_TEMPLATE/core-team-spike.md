@@ -1,5 +1,5 @@
 ---
-name: Spike [Core team only - DONOT USE FOR COMMUNITY ISSUES]
+name: Spike [Core team only - DO NOT USE FOR COMMUNITY ISSUES]
 about: Create a Spike issue for eksctl Core Team
 title: '[Spike] '
 labels: kind/spike

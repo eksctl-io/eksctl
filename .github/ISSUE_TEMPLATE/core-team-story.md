@@ -1,5 +1,5 @@
 ---
-name: Story [Core team only - DONOT USE FOR COMMUNITY ISSUES]
+name: Story [Core team only - DO NOT USE FOR COMMUNITY ISSUES]
 about: Create a User Story issue for eksctl Core Team
 title: '[Story] '
 labels: kind/story
@@ -31,7 +31,7 @@ When ...
 Then ...
 -->
 
-### Techinical Notes
+### Technical Notes
 <!--
 Section containing notes for developers
 May include links to code or sample code that needs to be added/modified
