@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
@@ -19,7 +18,6 @@ import (
 // A Service provides methods for managing managed nodegroups
 type Service struct {
 	eksAPI                eksiface.EKSAPI
-	ssmAPI                ssmiface.SSMAPI
 	launchTemplateFetcher *builder.LaunchTemplateFetcher
 	clusterName           string
 	stackCollection       manager.StackManager
@@ -36,11 +34,10 @@ const (
 	labelsPath = "Resources.ManagedNodeGroup.Properties.Labels"
 )
 
-func NewService(eksAPI eksiface.EKSAPI, ssmAPI ssmiface.SSMAPI, ec2API ec2iface.EC2API,
+func NewService(eksAPI eksiface.EKSAPI, ec2API ec2iface.EC2API,
 	stackCollection manager.StackManager, clusterName string) *Service {
 	return &Service{
 		eksAPI:                eksAPI,
-		ssmAPI:                ssmAPI,
 		stackCollection:       stackCollection,
 		launchTemplateFetcher: builder.NewLaunchTemplateFetcher(ec2API),
 		clusterName:           clusterName,
