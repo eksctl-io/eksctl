@@ -133,6 +133,11 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 		for _, identity := range identities {
 			arn := identity.ARN()
 
+			if iam.CompareIdentity(id, identity) {
+				logger.Warning("found existing mapping that matches the one being created, quitting.")
+				return nil
+			}
+
 			if createdArn == arn {
 				logger.Warning("found existing mappings with same arn %q (which will be shadowed by your new mapping)", createdArn)
 				break
