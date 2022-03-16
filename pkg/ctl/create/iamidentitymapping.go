@@ -1,6 +1,8 @@
 package create
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/kris-nova/logger"
 	"github.com/lithammer/dedent"
@@ -20,6 +22,7 @@ type iamIdentityMappingOptions struct {
 	Account     string
 	ServiceName string
 	Namespace   string
+	NoShadow    bool
 }
 
 func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
@@ -48,6 +51,7 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 		fs.StringSliceVar(&options.Groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
 		fs.StringVar(&options.ServiceName, "service-name", "", "Service name; valid value: emr-containers")
 		fs.StringVar(&options.Namespace, "namespace", "", "Namespace in which to create RBAC resources (only valid with --service-name)")
+		fs.BoolVar(&options.NoShadow, "no-shadow", false, "Turn off shadowing of iam identity mappings mappings")
 		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &options.ARN, "create")
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
@@ -136,6 +140,10 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 			if iam.CompareIdentity(id, identity) {
 				logger.Warning("found existing mapping that matches the one being created, quitting.")
 				return nil
+			}
+
+			if createdArn == arn && options.NoShadow {
+				return fmt.Errorf("found existing mapping with the same arn %q and shadowing is disabled", createdArn)
 			}
 
 			if createdArn == arn {
