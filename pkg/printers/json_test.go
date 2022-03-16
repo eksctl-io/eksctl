@@ -134,5 +134,33 @@ var _ = Describe("JSON Printer", func() {
 				Expect(actualBytes.Bytes()).Should(MatchJSON(g))
 			})
 		})
+
+		Context("given an empty cluster list and calling PrintObjWithKind", func() {
+			var (
+				clusters    []*awseks.Cluster
+				err         error
+				actualBytes bytes.Buffer
+			)
+
+			JustBeforeEach(func() {
+				w := bufio.NewWriter(&actualBytes)
+				err = printer.PrintObjWithKind("clusters", clusters, w)
+				w.Flush()
+			})
+
+			AfterEach(func() {
+				actualBytes.Reset()
+			})
+
+			It("should not error", func() {
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("the output should be an empty array", func() {
+				g := "[]"
+
+				Expect(actualBytes.Bytes()).Should(MatchJSON(g))
+			})
+		})
 	})
 })

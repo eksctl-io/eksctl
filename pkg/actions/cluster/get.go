@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -98,7 +99,7 @@ func listClusters(provider api.ClusterProvider, chunkSize int64) ([]Description,
 		}
 
 		for _, clusterName := range clusters {
-			hasClusterStack, err := stackManager.HasClusterStackUsingCachedList(allStacks, *clusterName)
+			hasClusterStack, err := stackManager.HasClusterStackFromList(allStacks, *clusterName)
 			managed := eksctlCreatedFalse
 			if err != nil {
 				managed = eksctlCreatedUnknown

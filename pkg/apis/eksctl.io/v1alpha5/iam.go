@@ -36,7 +36,7 @@ type ClusterIAM struct {
 	WithOIDC *bool `json:"withOIDC,omitempty"`
 
 	// service accounts to create in the cluster.
-	// See [IAM Service Accounts](/iamserviceaccounts/#usage-with-config-files)
+	// See [IAM Service Accounts](/usage/iamserviceaccounts/#usage-with-config-files)
 	// +optional
 	ServiceAccounts []*ClusterIAMServiceAccount `json:"serviceAccounts,omitempty"`
 

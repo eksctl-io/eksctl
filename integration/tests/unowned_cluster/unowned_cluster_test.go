@@ -12,10 +12,11 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/weaveworks/eksctl/integration/matchers"
+
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/kms"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -47,7 +48,6 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		ctl                        api.ClusterProvider
 		configFile                 *os.File
 		cfg                        *api.ClusterConfig
-		kmsKeyARN                  *string
 	)
 
 	BeforeSuite(func() {
@@ -67,32 +67,17 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		var err error
 		configFile, err = os.CreateTemp("", "")
 		Expect(err).NotTo(HaveOccurred())
-
 		if !params.SkipCreate {
 			clusterProvider, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
 			Expect(err).NotTo(HaveOccurred())
 			ctl = clusterProvider.Provider
 			cfg.VPC = createClusterWithNodeGroup(params.ClusterName, stackName, mng1, version, ctl)
-
-			kmsClient := kms.New(ctl.ConfigProvider())
-			output, err := kmsClient.CreateKey(&kms.CreateKeyInput{
-				Description: aws.String(fmt.Sprintf("Key to test KMS encryption on EKS cluster %s", params.ClusterName)),
-			})
-			Expect(err).NotTo(HaveOccurred())
-			kmsKeyARN = output.KeyMetadata.Arn
 		}
 	})
 
 	AfterSuite(func() {
 		if !params.SkipCreate && !params.SkipDelete {
 			deleteStack(stackName, ctl)
-
-			kmsClient := kms.New(ctl.ConfigProvider())
-			_, err := kmsClient.ScheduleKeyDeletion(&kms.ScheduleKeyDeletionInput{
-				KeyId:               kmsKeyARN,
-				PendingWindowInDays: aws.Int64(7),
-			})
-			Expect(err).NotTo(HaveOccurred())
 		}
 		Expect(os.RemoveAll(configFile.Name())).To(Succeed())
 
@@ -104,19 +89,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				Name: ng1,
 			}},
 		}
-		// write config file so that the nodegroup creates have access to the vpc spec
-		configData, err := json.Marshal(&cfg)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(os.WriteFile(configFile.Name(), configData, 0755)).To(Succeed())
-		cmd := params.EksctlCreateNodegroupCmd.
-			WithArgs(
-				"--config-file", configFile.Name(),
-				"--verbose", "2",
-			)
-		Expect(cmd).To(RunSuccessfully())
-	})
 
-	It("supports creating managed nodegroups", func() {
 		cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{{
 			NodeGroupBase: &api.NodeGroupBase{
 				Name: mng2,
@@ -141,9 +114,11 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"clusters",
 				"--verbose", "2",
 			)
-		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-			ContainElement(ContainSubstring(params.ClusterName)),
-		))
+		AssertContainsCluster(cmd, GetClusterOutput{
+			ClusterName:   params.ClusterName,
+			Region:        params.Region,
+			EksctlCreated: "False",
+		})
 
 		By("getting nodegroups")
 		cmd = params.EksctlGetCmd.
@@ -344,6 +319,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			WithArgs(
 				"--cluster", params.ClusterName,
 				"--name", mng1,
+				"--parallel", "2",
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfully())
@@ -358,35 +334,6 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfully())
-	})
-
-	It("supports enabling KMS encryption", func() {
-		if params.SkipCreate {
-			Skip("not enabling KMS encryption because params.SkipCreate is true")
-		}
-		enableEncryptionCMD := func() Cmd {
-			return params.EksctlUtilsCmd.
-				WithTimeout(2*time.Hour).
-				WithArgs(
-					"enable-secrets-encryption",
-					"--cluster", params.ClusterName,
-					"--key-arn", *kmsKeyARN,
-				)
-		}
-
-		By(fmt.Sprintf("enabling KMS encryption on the cluster using key %q", *kmsKeyARN))
-		cmd := enableEncryptionCMD()
-		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-			ContainElement(ContainSubstring("initiated KMS encryption")),
-			ContainElement(ContainSubstring("KMS encryption applied to all Secret resources")),
-		))
-
-		By("ensuring `enable-secrets-encryption` works when KMS encryption is already enabled on the cluster")
-		cmd = enableEncryptionCMD()
-		Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-			ContainElement(ContainSubstring("KMS encryption is already enabled on the cluster")),
-			ContainElement(ContainSubstring("KMS encryption applied to all Secret resources")),
-		))
 	})
 
 	It("supports deleting clusters", func() {

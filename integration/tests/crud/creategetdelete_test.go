@@ -153,7 +153,11 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		Context("and listing clusters", func() {
 			It("should return the previously created cluster", func() {
 				cmd := params.EksctlGetCmd.WithArgs("clusters", "--all-regions")
-				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(params.ClusterName)))
+				AssertContainsCluster(cmd, GetClusterOutput{
+					ClusterName:   params.ClusterName,
+					Region:        params.Region,
+					EksctlCreated: "True",
+				})
 			})
 		})
 
