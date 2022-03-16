@@ -1,7 +1,7 @@
 ---
 name: Request for help
 about: Do you need help with eksctl?
-title: ''
+title: '[Help] '
 labels: kind/help
 assignees: ''
 
@@ -17,7 +17,7 @@ For more information on how to request help on eksctl, please refer to our commu
 https://github.com/weaveworks/eksctl/blob/main/CONTRIBUTING.md#opening-issues
 -->
 
-**What help do you need?**
+### What help do you need?
 <!--
 Explain what you are trying to accomplish, what you have tried, and the behaviour you are seeing.
 

@@ -18,7 +18,7 @@ func GetNodegroupKubernetesVersion(nodes v1.NodeInterface, ngName string) (strin
 	if err != nil {
 		return "", errors.Wrap(err, "failed to list nodes")
 	} else if len(n.Items) == 0 {
-		return "", errors.Wrap(errors.New("no nodes were found"), "failed to list nodes")
+		return "", nil
 	}
 
 	v := n.Items[0].Status.NodeInfo.KubeletVersion
