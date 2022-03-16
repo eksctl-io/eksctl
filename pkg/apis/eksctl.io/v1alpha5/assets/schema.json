@@ -1319,11 +1319,6 @@
         "desiredCapacity": {
           "type": "integer"
         },
-        "disableASGTagPropagation": {
-          "type": "boolean",
-          "description": "disable the tag propagation in case desired capacity is 0.",
-          "x-intellij-html-description": "disable the tag propagation in case desired capacity is 0."
-        },
         "disableIMDSv1": {
           "type": "boolean",
           "description": "requires requests to the metadata service to use IMDSv2 tokens",
@@ -1423,6 +1418,11 @@
           "description": "Enable [private networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup) for nodegroup",
           "x-intellij-html-description": "Enable <a href=\"/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup\">private networking</a> for nodegroup",
           "default": "false"
+        },
+        "propagateASGTags": {
+          "type": "boolean",
+          "description": "Propagate all taints and labels to the ASG automatically.",
+          "x-intellij-html-description": "Propagate all taints and labels to the ASG automatically."
         },
         "securityGroups": {
           "$ref": "#/definitions/NodeGroupSGs"
@@ -1550,7 +1550,7 @@
         "clusterDNS",
         "kubeletExtraConfig",
         "containerRuntime",
-        "disableASGTagPropagation",
+        "propagateASGTags",
         "maxInstanceLifetime"
       ],
       "additionalProperties": false,

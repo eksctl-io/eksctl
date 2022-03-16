@@ -813,18 +813,10 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 				})
 			})
 
-			Context("ng.DesiredCapacity is set", func() {
-				BeforeEach(func() {
-					ng.DesiredCapacity = aws.Int(5)
-				})
-
-				It("sets DesiredCapacity on the resource", func() {
-					Expect(ngTemplate.Resources["NodeGroup"].Properties.DesiredCapacity).To(Equal("5"))
-				})
-
-				When("ng.DesiredCapacity == 0 and labels and taints are set", func() {
+			Context("ng.PropagateASGTags", func() {
+				When("PropagateASGTags is enabled and there are labels and taints", func() {
 					BeforeEach(func() {
-						ng.DesiredCapacity = aws.Int(0)
+						ng.PropagateASGTags = api.Enabled()
 						ng.Labels = map[string]string{
 							"test": "label",
 						}
@@ -848,9 +840,9 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 							PropagateAtLaunch: "true",
 						}))
 					})
-					When("disable asg tag propagation is enabled", func() {
+					When("PropagateASGTags is disabled", func() {
 						BeforeEach(func() {
-							ng.DisableASGTagPropagation = api.Enabled()
+							ng.PropagateASGTags = api.Disabled()
 							ng.DesiredCapacity = aws.Int(0)
 							ng.Labels = map[string]string{
 								"test": "label",
@@ -879,7 +871,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 					})
 					When("there are duplicates between taints and labels", func() {
 						BeforeEach(func() {
-							ng.DesiredCapacity = aws.Int(0)
+							ng.PropagateASGTags = api.Enabled()
 							ng.Labels = map[string]string{
 								"test": "label",
 							}
@@ -896,7 +888,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 					})
 					When("there are more tags than the maximum number of tags", func() {
 						BeforeEach(func() {
-							ng.DesiredCapacity = aws.Int(0)
+							ng.PropagateASGTags = api.Enabled()
 							ng.Labels = map[string]string{}
 							ng.Taints = []api.NodeGroupTaint{}
 							for i := 0; i < builder.MaximumTagNumber+1; i++ {
