@@ -29,6 +29,33 @@ type Identity interface {
 	Account() string
 }
 
+// CompareIdentity takes 2 Identity values and checks to see if they are identitcal
+func CompareIdentity(a, b Identity) bool {
+	sameAccount := (a.ARN() == b.ARN() &&
+		a.Type() == b.Type() &&
+		a.Username() == b.Username() &&
+		a.Account() == b.Account())
+
+	if !sameAccount {
+		return false
+	}
+
+	aGroups := a.Groups()
+	bGroups := b.Groups()
+	if len(aGroups) != len(bGroups) {
+		return false
+	}
+
+	for i := range aGroups {
+		if aGroups[i] != bGroups[i] {
+			return false
+		}
+	}
+
+	return true
+
+}
+
 // KubernetesIdentity represents a kubernetes identity to be used in iam mappings
 type KubernetesIdentity struct {
 	KubernetesUsername string   `json:"username,omitempty"`
