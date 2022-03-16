@@ -3,7 +3,7 @@
 // you may also need to run `make push-build-image` depending on what has changed
 module github.com/weaveworks/eksctl
 
-go 1.17
+go 1.18
 
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
