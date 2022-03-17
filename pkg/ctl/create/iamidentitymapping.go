@@ -16,13 +16,13 @@ import (
 )
 
 type iamIdentityMappingOptions struct {
-	ARN         string
-	Username    string
-	Groups      []string
-	Account     string
-	ServiceName string
-	Namespace   string
-	NoShadow    bool
+	ARN             string
+	Username        string
+	Groups          []string
+	Account         string
+	ServiceName     string
+	Namespace       string
+	NoDuplicateArns bool
 }
 
 func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
@@ -51,7 +51,7 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 		fs.StringSliceVar(&options.Groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
 		fs.StringVar(&options.ServiceName, "service-name", "", "Service name; valid value: emr-containers")
 		fs.StringVar(&options.Namespace, "namespace", "", "Namespace in which to create RBAC resources (only valid with --service-name)")
-		fs.BoolVar(&options.NoShadow, "no-shadow", false, "Turn off shadowing of iam identity mappings mappings")
+		fs.BoolVar(&options.NoDuplicateArns, "no-duplicate-arns", false, "Throw error when an aws_auth record already exists with the given arn.")
 		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &options.ARN, "create")
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
@@ -142,7 +142,7 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 				return nil
 			}
 
-			if createdArn == arn && options.NoShadow {
+			if createdArn == arn && options.NoDuplicateArns {
 				return fmt.Errorf("found existing mapping with the same arn %q and shadowing is disabled", createdArn)
 			}
 
