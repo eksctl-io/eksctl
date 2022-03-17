@@ -41,7 +41,7 @@ var _ = BeforeSuite(func() {
 var _ = Describe("FileCacheV2", func() {
 
 	type fileCacheEntry struct {
-		createProvider func() aws.CredentialsProvider
+		createProvider func() provider
 		setupCache     func(afero.Fs) error
 
 		expectedRetrieveErr      string
@@ -96,7 +96,7 @@ var _ = Describe("FileCacheV2", func() {
 		Expect(string(data)).To(Equal(e.expectedCacheData))
 	},
 		Entry("credentials that can expire are cached", fileCacheEntry{
-			createProvider: func() aws.CredentialsProvider {
+			createProvider: func() provider {
 				p := &fakes.FakeProvider{}
 				p.RetrieveReturns(aws.Credentials{
 					AccessKeyID:     "k123",
@@ -144,7 +144,7 @@ var _ = Describe("FileCacheV2", func() {
 				return afero.WriteFile(fs, cacheFilePath, data, 0700)
 			},
 
-			createProvider: func() aws.CredentialsProvider {
+			createProvider: func() provider {
 				p := &fakes.FakeProvider{}
 				p.RetrieveReturns(aws.Credentials{}, errors.New("unexpected call to Retrieve"))
 				return p
@@ -185,7 +185,7 @@ var _ = Describe("FileCacheV2", func() {
 				return afero.WriteFile(fs, cacheFilePath, data, 0700)
 			},
 
-			createProvider: func() aws.CredentialsProvider {
+			createProvider: func() provider {
 				p := &fakes.FakeProvider{}
 				p.RetrieveReturns(aws.Credentials{
 					AccessKeyID:     "a567",
@@ -233,7 +233,7 @@ var _ = Describe("FileCacheV2", func() {
 				return afero.WriteFile(fs, cacheFilePath, data, 0700)
 			},
 
-			createProvider: func() aws.CredentialsProvider {
+			createProvider: func() provider {
 				p := &fakes.FakeProvider{}
 				p.RetrieveReturns(aws.Credentials{
 					AccessKeyID:     "a999",
@@ -256,14 +256,14 @@ var _ = Describe("FileCacheV2", func() {
 		}),
 
 		Entry("propagate error from provider", fileCacheEntry{
-			createProvider: func() aws.CredentialsProvider {
+			createProvider: func() provider {
 				return aws.AnonymousCredentials{}
 			},
 			expectedRetrieveErr: "not a valid credential provider",
 		}),
 
 		Entry("credentials that do not expire are not cached", fileCacheEntry{
-			createProvider: func() aws.CredentialsProvider {
+			createProvider: func() provider {
 				f := &fakes.FakeProvider{}
 				f.RetrieveReturns(aws.Credentials{
 					AccessKeyID:     "a123",
