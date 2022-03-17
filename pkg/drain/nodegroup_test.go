@@ -73,13 +73,13 @@ var _ = Describe("Drain", func() {
 		})
 
 		It("does not error", func() {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second*10, time.Second, false, false, 1)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second*10, time.Second, false, false)
 			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
 			err := nodeGroupDrainer.Drain()
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(BeNumerically(">=", 2))
+			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(Equal(2))
 			Expect(fakeEvictor.EvictOrDeletePodCallCount()).To(Equal(1))
 			Expect(fakeEvictor.EvictOrDeletePodArgsForCall(0)).To(Equal(pod))
 
@@ -117,7 +117,7 @@ var _ = Describe("Drain", func() {
 		})
 
 		It("times out and errors", func() {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*2, time.Second*0, time.Second, false, false, 1)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*2, time.Second*0, time.Second, false, false)
 			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
 			err := nodeGroupDrainer.Drain()
@@ -131,7 +131,7 @@ var _ = Describe("Drain", func() {
 		})
 
 		It("errors", func() {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second, time.Second, time.Second, false, false, 1)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second, time.Second, time.Second, false, false)
 			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
 			err := nodeGroupDrainer.Drain()
@@ -175,13 +175,13 @@ var _ = Describe("Drain", func() {
 		})
 
 		It("does not error", func() {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, time.Second, false, true, 1)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, time.Second, false, true)
 			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
 			err := nodeGroupDrainer.Drain()
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(BeNumerically(">=", 2))
+			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(Equal(2))
 			Expect(fakeEvictor.EvictOrDeletePodCallCount()).To(Equal(1))
 			Expect(fakeEvictor.EvictOrDeletePodArgsForCall(0)).To(Equal(pod))
 
@@ -205,7 +205,7 @@ var _ = Describe("Drain", func() {
 		})
 
 		It("uncordons all the nodes", func() {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, time.Second, true, false, 1)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, time.Second, true, false)
 			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
 			err := nodeGroupDrainer.Drain()
