@@ -145,7 +145,7 @@ func (n *NodeGroupDrainer) Drain() error {
 			logger.Debug("will drain: %v", newPendingNodes.List())
 			for i, node := range newPendingNodes.List() {
 				if err := sem.Acquire(ctx, 1); err != nil {
-					logger.Critical("failed to claim sem: %w", err)
+					logger.Critical("failed to acquire semaphore: %w", err)
 				}
 
 				go func(i int, node string) {
