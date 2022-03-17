@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -82,12 +83,6 @@ func (m *NodeGroupService) Normalize(nodePools []api.NodePool, clusterMeta *api.
 				if err := ResolveAMI(m.Provider, clusterMeta.Version, ng); err != nil {
 					return err
 				}
-			} else {
-				// TODO remove
-				// This is a temporary hack to go down a legacy bootstrap codepath for Ubuntu
-				// and AL2 images
-				logger.Warning("Custom AMI detected for nodegroup %s. Please refer to https://github.com/weaveworks/eksctl/issues/3563 for upcoming breaking changes", ng.Name)
-				ng.CustomAMI = true
 			}
 		}
 

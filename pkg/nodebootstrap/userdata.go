@@ -104,19 +104,20 @@ func linuxConfig(clusterConfig *api.ClusterConfig, bootScriptName, bootScriptCon
 	if ng.OverrideBootstrapCommand != nil {
 		config.AddShellCommand(*ng.OverrideBootstrapCommand)
 	} else {
-		scripts = append(scripts, script{name: commonLinuxBootScript, contents: assets.BootstrapHelperSh}, script{name: bootScriptName, contents: bootScriptContent})
-		var kubeletExtraConf *api.InlineDocument
-		if unmanaged, ok := np.(*api.NodeGroup); ok {
-			kubeletExtraConf = unmanaged.KubeletExtraConfig
-		}
-		kubeletConf, err := makeKubeletExtraConf(kubeletExtraConf)
-		if err != nil {
-			return "", err
-		}
-		files = append(files, kubeletConf)
-		envFile := makeBootstrapEnv(clusterConfig, np)
-		files = append(files, envFile)
+		scripts = append(scripts, script{name: bootScriptName, contents: bootScriptContent})
 	}
+	scripts = append(scripts, script{name: commonLinuxBootScript, contents: assets.BootstrapHelperSh})
+	var kubeletExtraConf *api.InlineDocument
+	if unmanaged, ok := np.(*api.NodeGroup); ok {
+		kubeletExtraConf = unmanaged.KubeletExtraConfig
+	}
+	kubeletConf, err := makeKubeletExtraConf(kubeletExtraConf)
+	if err != nil {
+		return "", err
+	}
+	files = append(files, kubeletConf)
+	envFile := makeBootstrapEnv(clusterConfig, np)
+	files = append(files, envFile)
 
 	if err := addFilesAndScripts(config, files, scripts); err != nil {
 		return "", err
