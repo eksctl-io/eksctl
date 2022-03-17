@@ -5,21 +5,19 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/nodebootstrap/utils"
 	"k8s.io/client-go/tools/clientcmd"
 	kubeletapi "k8s.io/kubelet/config/v1beta1"
-
 	"sigs.k8s.io/yaml"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/assets"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 const (
-	configDir            = "/etc/eksctl/"
-	kubeletDropInUnitDir = "/etc/systemd/system/kubelet.service.d/"
+	configDir = "/etc/eksctl/"
 )
 
 type configFile struct {
