@@ -24,7 +24,7 @@ var _ = Describe("drain node group", func() {
 			cmd := newMockEmptyCmd(args...)
 			count := 0
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				drainNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *v1alpha5.NodeGroup, undo, onlyMissing bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, disableEviction bool, parallel int) error {
+				drainNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *v1alpha5.NodeGroup, undo, onlyMissing bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, disableEviction bool) error {
 					Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
 					Expect(ng.Name).To(Equal("ng"))
 					count++
@@ -53,14 +53,6 @@ var _ = Describe("drain node group", func() {
 		Entry("setting --name and argument at the same time", invalidParamsCase{
 			args:  []string{"nodegroup", "ng", "--cluster", "dummy", "--name", "ng"},
 			error: fmt.Errorf("Error: --name=ng and argument ng cannot be used at the same time"),
-		}),
-		Entry("setting --parallel below 1", invalidParamsCase{
-			args:  []string{"nodegroup", "--cluster", "dummy", "--name", "ng", "--parallel", "-1"},
-			error: fmt.Errorf("Error: --parallel value must be of range 1-25"),
-		}),
-		Entry("setting --parallel above 25", invalidParamsCase{
-			args:  []string{"nodegroup", "--cluster", "dummy", "--name", "ng", "--parallel", "26"},
-			error: fmt.Errorf("Error: --parallel value must be of range 1-25"),
 		}),
 	)
 })

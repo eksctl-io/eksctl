@@ -15,13 +15,12 @@ type DrainInput struct {
 	NodeDrainWaitPeriod time.Duration
 	Undo                bool
 	DisableEviction     bool
-	Parallel            int
 }
 
 func (m *Manager) Drain(input *DrainInput) error {
 	if !input.Plan {
 		for _, n := range input.NodeGroups {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(m.clientSet, n, m.ctl.Provider.WaitTimeout(), input.MaxGracePeriod, input.NodeDrainWaitPeriod, input.Undo, input.DisableEviction, input.Parallel)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(m.clientSet, n, m.ctl.Provider.WaitTimeout(), input.MaxGracePeriod, input.NodeDrainWaitPeriod, input.Undo, input.DisableEviction)
 			if err := nodeGroupDrainer.Drain(); err != nil {
 				return err
 			}
