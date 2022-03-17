@@ -15,6 +15,14 @@ var _ = Describe("iam", func() {
 
 			Expect(CompareIdentity(a, b)).To(BeTrue())
 		})
+		It("determines that Identity values with same groups in different order are the same", func() {
+			a, err := NewIdentity("arn:aws:iam::123456:role/testing", "user", []string{"system:bootstrap", "system:masters"})
+			Expect(err).NotTo(HaveOccurred())
+			b, err := NewIdentity("arn:aws:iam::123456:role/testing", "user", []string{"system:masters", "system:bootstrap"})
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(CompareIdentity(a, b)).To(BeTrue())
+		})
 		It("determines that Identity values with different Arn not the same", func() {
 			roleA := "arn:aws:iam::123456:role/testing-a"
 			roleB := "arn:aws:iam::123456:role/testing-b"

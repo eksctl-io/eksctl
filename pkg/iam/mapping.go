@@ -3,6 +3,7 @@ package iam
 import (
 	"errors"
 	"fmt"
+	"sort"
 )
 
 const (
@@ -46,6 +47,8 @@ func CompareIdentity(a, b Identity) bool {
 		return false
 	}
 
+	sort.Strings(aGroups)
+	sort.Strings(bGroups)
 	for i := range aGroups {
 		if aGroups[i] != bGroups[i] {
 			return false
