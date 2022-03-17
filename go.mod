@@ -19,7 +19,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.0
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.0
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.0
-	github.com/aws/aws-sdk-go-v2/service/sts v1.15.0
+	github.com/aws/aws-sdk-go-v2/service/sts v1.16.0
 	github.com/aws/smithy-go v1.11.1
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/blang/semver v3.5.1+incompatible

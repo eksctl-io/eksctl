@@ -7,6 +7,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/gofrs/flock"
+	"github.com/spf13/afero"
+
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
@@ -181,9 +184,11 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	// later re-use if overriding sessions due to custom URL
 	s := c.newSession(spec)
 
-	cache := os.Getenv(ekscreds.EksctlGlobalEnableCachingEnvName)
-	if s.Config != nil && cache != "" {
-		if cachedProvider, err := ekscreds.NewFileCacheProvider(spec.Profile, s.Config.Credentials, &ekscreds.RealClock{}); err == nil {
+	cacheCredentials := os.Getenv(ekscreds.EksctlGlobalEnableCachingEnvName) != ""
+	if s.Config != nil && cacheCredentials {
+		if cachedProvider, err := ekscreds.NewFileCacheProvider(spec.Profile, s.Config.Credentials, &ekscreds.RealClock{}, afero.NewOsFs(), func(path string) ekscreds.Flock {
+			return flock.New(path)
+		}); err == nil {
 			s.Config.Credentials = credentials.NewCredentials(&cachedProvider)
 		} else {
 			logger.Warning("Failed to use cached provider: ", err)
@@ -211,7 +216,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	provider.cloudtrail = cloudtrail.New(s)
 	provider.cloudwatchlogs = cloudwatchlogs.New(s)
 
-	cfg, err := newV2Config(spec, c.Provider.Region())
+	cfg, err := newV2Config(spec, c.Provider.Region(), cacheCredentials)
 	if err != nil {
 		return nil, err
 	}

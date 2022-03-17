@@ -2,8 +2,14 @@ package eks
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
+
+	"github.com/gofrs/flock"
+	"github.com/spf13/afero"
+
+	"github.com/weaveworks/eksctl/pkg/credentials"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
@@ -26,7 +32,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/version"
 )
 
-func newV2Config(pc *api.ProviderConfig, region string) (aws.Config, error) {
+func newV2Config(pc *api.ProviderConfig, region string, cacheCredentials bool) (aws.Config, error) {
 	var options []func(options *config.LoadOptions) error
 
 	// TODO default region
@@ -44,8 +50,7 @@ func newV2Config(pc *api.ProviderConfig, region string) (aws.Config, error) {
 		options = append(options, config.WithEndpointResolverWithOptions(endpointResolver))
 	}
 
-	// TODO configure file-based credentials cache
-	return config.LoadDefaultConfig(context.TODO(), append(options,
+	cfg, err := config.LoadDefaultConfig(context.TODO(), append(options,
 		config.WithSharedConfigProfile(pc.Profile),
 		config.WithRetryer(func() aws.Retryer {
 			return NewRetryerV2()
@@ -58,6 +63,21 @@ func newV2Config(pc *api.ProviderConfig, region string) (aws.Config, error) {
 			middlewarev2.AddUserAgentKeyValue("eksctl", version.String()),
 		}),
 	)...)
+
+	if err != nil {
+		return cfg, err
+	}
+	if cacheCredentials {
+		// TODO: extract the underlying CredentialsProvider from cfg.Credentials and use it.
+		fileCache, err := credentials.NewFileCacheV2(cfg.Credentials, pc.Profile, afero.NewOsFs(), func(path string) credentials.Flock {
+			return flock.New(path)
+		}, &credentials.RealClock{})
+		if err != nil {
+			return cfg, fmt.Errorf("error creating credentials cache: %w", err)
+		}
+		cfg.Credentials = aws.NewCredentialsCache(fileCache)
+	}
+	return cfg, nil
 }
 
 func makeEndpointResolverFunc() aws.EndpointResolverWithOptionsFunc {
