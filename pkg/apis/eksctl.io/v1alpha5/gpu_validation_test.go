@@ -51,18 +51,22 @@ var _ = Describe("GPU instance support", func() {
 			gpuInstanceType: "g5.12xlarge",
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
 		}),
-		Entry("Bottlerocket", gpuInstanceEntry{
-			amiFamily:            api.NodeImageFamilyBottlerocket,
-			gpuInstanceType:      "g4dn.xlarge",
+		Entry("AL2 ARM", gpuInstanceEntry{
+			gpuInstanceType:      "g5g.xlarge",
+			amiFamily:            api.NodeImageFamilyAmazonLinux2,
 			expectUnsupportedErr: true,
-			customErr:            fmt.Sprintf("NVIDIA GPU instance types are not supported for managed nodegroups with AMIFamily %s", api.NodeImageFamilyBottlerocket),
+			customErr:            "ARM GPU instance types are not supported for managed nodegroups with AMIFamily AmazonLinux2",
+		}),
+		Entry("Bottlerocket nvidia", gpuInstanceEntry{
+			amiFamily:       api.NodeImageFamilyBottlerocket,
+			gpuInstanceType: "g4dn.xlarge",
 		}),
 		Entry("Ubuntu2004", gpuInstanceEntry{
 			amiFamily:            api.NodeImageFamilyUbuntu2004,
 			gpuInstanceType:      "g4dn.xlarge",
 			expectUnsupportedErr: true,
 		}),
-		Entry("Bottlerocket", gpuInstanceEntry{
+		Entry("Bottlerocket inferentia", gpuInstanceEntry{
 			amiFamily:            api.NodeImageFamilyBottlerocket,
 			gpuInstanceType:      "inf1.xlarge",
 			expectUnsupportedErr: true,
@@ -86,6 +90,10 @@ var _ = Describe("GPU instance support", func() {
 		}),
 		Entry("AL2", gpuInstanceEntry{
 			gpuInstanceType: "inf1.xlarge",
+			amiFamily:       api.NodeImageFamilyAmazonLinux2,
+		}),
+		Entry("AL2 ARM", gpuInstanceEntry{
+			gpuInstanceType: "g5g.xlarge",
 			amiFamily:       api.NodeImageFamilyAmazonLinux2,
 		}),
 		Entry("AMI unset", gpuInstanceEntry{

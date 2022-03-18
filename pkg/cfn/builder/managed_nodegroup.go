@@ -262,18 +262,27 @@ func validateLaunchTemplate(launchTemplateData *ec2.ResponseLaunchTemplateData, 
 
 func getAMIType(ng *api.ManagedNodeGroup, instanceType string) string {
 	amiTypeMapping := map[string]struct {
-		X86x64 string
-		GPU    string
-		ARM    string
+		X86x64    string
+		X86x64GPU string
+		ARM       string
+		ARMGPU    string
 	}{
 		api.NodeImageFamilyAmazonLinux2: {
-			X86x64: eks.AMITypesAl2X8664,
-			GPU:    eks.AMITypesAl2X8664Gpu,
-			ARM:    eks.AMITypesAl2Arm64,
+			X86x64:    eks.AMITypesAl2X8664,
+			X86x64GPU: eks.AMITypesAl2X8664Gpu,
+			ARM:       eks.AMITypesAl2Arm64,
+			//This ARM GPU AL2 doesn't exist (yet). We error in validation when a ARM GPU instance is provided for AL2
+			// ARMGPU: "AL2_ARM_64_GPU",
 		},
 		api.NodeImageFamilyBottlerocket: {
 			X86x64: eks.AMITypesBottlerocketX8664,
-			ARM:    eks.AMITypesBottlerocketArm64,
+			//TODO: switch to referncing value from aws-sdk-go when published
+			// This AMIType doesn't support inferentia, we validate further up that only Nvidia bottlerocket types make it this far
+			X86x64GPU: "BOTTLEROCKET_x86_64_NVIDIA",
+			ARM:       eks.AMITypesBottlerocketArm64,
+			//TODO: switch to referncing value from aws-sdk-go when published
+			// This AMIType doesn't support inferentia, we validate further up that only Nvidia bottlerocket types make it this far
+			ARMGPU: "BOTTLEROCKET_ARM_64_NVIDIA",
 		},
 	}
 
@@ -283,8 +292,11 @@ func getAMIType(ng *api.ManagedNodeGroup, instanceType string) string {
 	}
 
 	switch {
+
+	case instanceutils.IsGPUInstanceType(instanceType) && instanceutils.IsARMInstanceType(instanceType):
+		return amiType.ARMGPU
 	case instanceutils.IsGPUInstanceType(instanceType):
-		return amiType.GPU
+		return amiType.X86x64GPU
 	case instanceutils.IsARMInstanceType(instanceType):
 		return amiType.ARM
 	default:

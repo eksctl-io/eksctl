@@ -100,6 +100,40 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 		expectedAMIType: "AL2_ARM_64",
 	}),
 
+	//Doesn't exist yet :(
+	// Entry("AL2 ARM GPU instance type", amiTypeEntry{
+	// 	nodeGroup: &api.ManagedNodeGroup{
+	// 		NodeGroupBase: &api.NodeGroupBase{
+	// 			Name:         "test",
+	// 			AMIFamily:    api.NodeImageFamilyAmazonLinux2,
+	// 			InstanceType: "g5g.xlarge",
+	// 		},
+	// 	},
+	// 	expectedAMIType: "AL2_ARM_64_GPU",
+	// }),
+
+	Entry("Bottlerocket ARM GPU instance type", amiTypeEntry{
+		nodeGroup: &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:         "test",
+				AMIFamily:    api.NodeImageFamilyBottlerocket,
+				InstanceType: "g5g.xlarge",
+			},
+		},
+		expectedAMIType: "BOTTLEROCKET_ARM_64_NVIDIA",
+	}),
+
+	Entry("Bottlerocket x86 Nvidia GPU instance type", amiTypeEntry{
+		nodeGroup: &api.ManagedNodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{
+				Name:         "test",
+				AMIFamily:    api.NodeImageFamilyBottlerocket,
+				InstanceType: "p2.xlarge",
+			},
+		},
+		expectedAMIType: "BOTTLEROCKET_x86_64_NVIDIA",
+	}),
+
 	Entry("Bottlerocket AMI type", amiTypeEntry{
 		nodeGroup: &api.ManagedNodeGroup{
 			NodeGroupBase: &api.NodeGroupBase{
