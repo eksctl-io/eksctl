@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 
 	"github.com/kris-nova/logger"
@@ -518,8 +517,8 @@ func normalizeBaseNodeGroup(np api.NodePool, cmd *cobra.Command) {
 	}
 }
 
-// NewDeleteAndDrainNodeGroupLoader will load config or use flags for 'eksctl delete nodegroup'
-func NewDeleteAndDrainNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.NodeGroupFilter) ClusterConfigLoader {
+// NewDeleteNodeGroupLoader will load config or use flags for 'eksctl delete nodegroup'
+func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.NodeGroupFilter) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.validateWithConfigFile = func() error {
@@ -545,12 +544,6 @@ func NewDeleteAndDrainNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *fil
 
 		if ng.Name == "" {
 			return ErrMustBeSet("--name")
-		}
-
-		if flag := l.CobraCommand.Flag("parallel"); flag != nil && flag.Changed {
-			if val, _ := strconv.Atoi(flag.Value.String()); val > 25 || val < 1 {
-				return fmt.Errorf("--parallel value must be of range 1-25")
-			}
 		}
 
 		ngFilter.AppendIncludeNames(ng.Name)
