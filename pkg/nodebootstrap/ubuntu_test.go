@@ -57,16 +57,16 @@ NODE_TAINTS=`, "\n")))
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.helper.sh"))
-			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0755"))
+			Expect(cloudCfg.WriteFiles[3].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.helper.sh"))
+			Expect(cloudCfg.WriteFiles[3].Permissions).To(Equal("0755"))
 		})
 
 		It("adds the ubuntu boot script to the userdata", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.WriteFiles[3].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.ubuntu.sh"))
-			Expect(cloudCfg.WriteFiles[3].Permissions).To(Equal("0755"))
+			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.ubuntu.sh"))
+			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0755"))
 		})
 	})
 
@@ -192,8 +192,8 @@ NODE_TAINTS=`, "\n")))
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.Commands).To(HaveLen(1))
-			Expect(cloudCfg.WriteFiles).To(HaveLen(0))
+			Expect(cloudCfg.Commands).To(HaveLen(2))
+			Expect(cloudCfg.WriteFiles).To(HaveLen(3))
 		})
 	})
 })
