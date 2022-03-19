@@ -78,7 +78,7 @@ func (f *IAMServiceAccountFilter) SetExcludeExistingFilter(stackManager serviceA
 }
 
 // SetDeleteFilter uses stackManager to list existing iamserviceaccount stacks and configures
-// the filter to either explictily exluce or include iamserviceaccounts that are missing from given serviceAccounts
+// the filter to either explicitly exclude or include iamserviceaccounts that are missing from given serviceAccounts
 func (f *IAMServiceAccountFilter) SetDeleteFilter(lister serviceAccountLister, includeOnlyMissing bool, cfg *api.ClusterConfig) error {
 	existing, err := lister.ListIAMServiceAccountStacks()
 	if err != nil {
