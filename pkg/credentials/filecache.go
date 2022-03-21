@@ -70,7 +70,7 @@ type FileCacheProvider struct {
 	cachedCredential cachedCredential         // the cached credential, if it exists
 	profile          string
 	clock            Clock
-	cacheFilename    string
+	cacheFilePath    string
 
 	fs       afero.Fs
 	newFlock FlockFunc
@@ -97,42 +97,35 @@ func (c *cacheFile) Get(key string) cachedCredential {
 	return credential
 }
 
-func initializeCache(fs afero.Fs) (string, error) {
-	filename, err := cacheFilename()
-	if err != nil {
-		return "", fmt.Errorf("failed to get cache file: %w", err)
+func initializeCache(fs afero.Fs, cacheFilePath string) error {
+	if err := fs.MkdirAll(filepath.Dir(cacheFilePath), 0700); err != nil {
+		return fmt.Errorf("failed to create folder: %w", err)
 	}
-	if err := fs.MkdirAll(filepath.Dir(filename), 0700); err != nil {
-		return "", fmt.Errorf("failed to create folder: %w", err)
-	}
-	info, err := fs.Stat(filename)
+	info, err := fs.Stat(cacheFilePath)
 	if os.IsNotExist(err) {
-		logger.Warning("cache file %s does not exist.\n", filename)
-		return filename, nil
+		logger.Warning("cache file %s does not exist.\n", cacheFilePath)
+		return nil
 	}
 
 	if info.Mode()&0077 != 0 {
 		// cache file has secret credentials and should only be accessible to the user, refuse to use it.
-		return "", fmt.Errorf("cache file %s is not private", filename)
+		return fmt.Errorf("cache file %s is not private", cacheFilePath)
 	}
 
-	if _, err := parseCacheFile(fs, filename); err != nil {
-		return "", err
-	}
-	return filename, nil
+	_, err = parseCacheFile(fs, cacheFilePath)
+	return err
 }
 
 // NewFileCacheProvider creates a new filesystem based AWS credential cache. The cache uses Expiry provided by the
 // AWS Go SDK for providers. It wraps the configured credential provider into a file based cache provider. If the provider
 // does not support caching ( I.e.: it doesn't implement IsExpired ) then this file based caching system is ignored
 // and the default credential provider is used. Caches are per profile.
-func NewFileCacheProvider(profile string, creds *credentials.Credentials, clock Clock, fs afero.Fs, newFlock FlockFunc) (FileCacheProvider, error) {
+func NewFileCacheProvider(profile string, creds *credentials.Credentials, clock Clock, fs afero.Fs, newFlock FlockFunc, cacheFilePath string) (FileCacheProvider, error) {
 	if creds == nil {
 		return FileCacheProvider{}, errors.New("no underlying Credentials object provided")
 	}
 
-	cacheFilename, err := initializeCache(fs)
-	if err != nil {
+	if err := initializeCache(fs, cacheFilePath); err != nil {
 		return FileCacheProvider{}, fmt.Errorf("error initializing credentials cache: %w", err)
 	}
 
@@ -140,7 +133,7 @@ func NewFileCacheProvider(profile string, creds *credentials.Credentials, clock 
 		profile:       profile,
 		credentials:   creds,
 		clock:         clock,
-		cacheFilename: cacheFilename,
+		cacheFilePath: cacheFilePath,
 		fs:            fs,
 		newFlock:      newFlock,
 	}, nil
@@ -203,7 +196,7 @@ func writeCache(fs afero.Fs, filename string, newFlock FlockFunc, cache cacheFil
 // with an expiration time.
 func (f *FileCacheProvider) Retrieve() (credentials.Value, error) {
 	f.once.Do(func() {
-		cacheFile, err := readCacheFile(f.fs, f.cacheFilename, f.newFlock)
+		cacheFile, err := readCacheFile(f.fs, f.cacheFilePath, f.newFlock)
 		if err != nil {
 			logger.Warning("error reading cache file: %v", err)
 			return
@@ -234,10 +227,10 @@ func (f *FileCacheProvider) Retrieve() (credentials.Value, error) {
 	}
 	// overwrite whatever was there before. we don't care about multiple creds for various clusters.
 	// if user switches to another role and another profile they have to re-authenticate.
-	cache, _ := readCacheFile(f.fs, f.cacheFilename, f.newFlock)
+	cache, _ := readCacheFile(f.fs, f.cacheFilePath, f.newFlock)
 	cache.Put(f.profile, f.cachedCredential)
-	if err := writeCache(f.fs, f.cacheFilename, f.newFlock, cache); err != nil {
-		logger.Warning("Unable to update credential cache %s: %v\n", f.cacheFilename, err)
+	if err := writeCache(f.fs, f.cacheFilePath, f.newFlock, cache); err != nil {
+		logger.Warning("Unable to update credential cache %s: %v\n", f.cacheFilePath, err)
 		return credential, err
 	}
 	logger.Info("Updated cached credential\n")
@@ -269,7 +262,8 @@ func parseCacheFile(fs afero.Fs, filename string) (cacheFile, error) {
 	return cache, nil
 }
 
-func cacheFilename() (string, error) {
+// GetCacheFilePath gets the filename to use for caching credentials.
+func GetCacheFilePath() (string, error) {
 	if filename := os.Getenv(EksctlCacheFilenameEnvName); filename != "" {
 		return filename, nil
 	}

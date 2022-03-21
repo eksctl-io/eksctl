@@ -20,7 +20,7 @@ import (
 type FileCacheV2 struct {
 	provider      aws.CredentialsProvider
 	profileName   string
-	cacheFilename string
+	cacheFilePath string
 	fs            afero.Fs
 	newFlock      FlockFunc
 	clock         Clock
@@ -30,15 +30,14 @@ type FileCacheV2 struct {
 }
 
 // NewFileCacheV2 initializes the cache and returns a *FileCacheV2.
-func NewFileCacheV2(provider aws.CredentialsProvider, profileName string, fs afero.Fs, newFlock FlockFunc, clock Clock) (*FileCacheV2, error) {
-	cacheFilename, err := initializeCache(fs)
-	if err != nil {
+func NewFileCacheV2(provider aws.CredentialsProvider, profileName string, fs afero.Fs, newFlock FlockFunc, clock Clock, cacheFilePath string) (*FileCacheV2, error) {
+	if err := initializeCache(fs, cacheFilePath); err != nil {
 		return nil, fmt.Errorf("error initializing credentials cache: %w", err)
 	}
 	return &FileCacheV2{
 		provider:      provider,
 		profileName:   profileName,
-		cacheFilename: cacheFilename,
+		cacheFilePath: cacheFilePath,
 		fs:            fs,
 		newFlock:      newFlock,
 		clock:         clock,
@@ -62,7 +61,7 @@ func (f *FileCacheV2) Retrieve(ctx context.Context) (aws.Credentials, error) {
 	defer f.mu.Unlock()
 
 	if f.creds == nil {
-		cacheFile, err := readCacheFile(f.fs, f.cacheFilename, f.newFlock)
+		cacheFile, err := readCacheFile(f.fs, f.cacheFilePath, f.newFlock)
 		if err != nil {
 			logger.Warning("error reading credentials cache: %v", err)
 		} else {
@@ -87,7 +86,7 @@ func (f *FileCacheV2) Retrieve(ctx context.Context) (aws.Credentials, error) {
 		return creds, nil
 	}
 
-	cache, err := readCacheFile(f.fs, f.cacheFilename, f.newFlock)
+	cache, err := readCacheFile(f.fs, f.cacheFilePath, f.newFlock)
 	if err != nil {
 		logger.Warning("error reading cache file: %v", err)
 		return creds, nil
@@ -102,7 +101,7 @@ func (f *FileCacheV2) Retrieve(ctx context.Context) (aws.Credentials, error) {
 		Expiration: creds.Expires,
 	})
 
-	if err := writeCache(f.fs, f.cacheFilename, f.newFlock, cache); err != nil {
+	if err := writeCache(f.fs, f.cacheFilePath, f.newFlock, cache); err != nil {
 		logger.Warning("failed to update credentials cache: %v", err)
 	}
 

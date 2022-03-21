@@ -32,7 +32,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/version"
 )
 
-func newV2Config(pc *api.ProviderConfig, region string, cacheCredentials bool) (aws.Config, error) {
+func newV2Config(pc *api.ProviderConfig, region string, credentialsCacheFilePath string) (aws.Config, error) {
 	var options []func(options *config.LoadOptions) error
 
 	// TODO default region
@@ -67,11 +67,11 @@ func newV2Config(pc *api.ProviderConfig, region string, cacheCredentials bool) (
 	if err != nil {
 		return cfg, err
 	}
-	if cacheCredentials {
+	if credentialsCacheFilePath != "" {
 		// TODO: extract the underlying CredentialsProvider from cfg.Credentials and use it.
 		fileCache, err := credentials.NewFileCacheV2(cfg.Credentials, pc.Profile, afero.NewOsFs(), func(path string) credentials.Flock {
 			return flock.New(path)
-		}, &credentials.RealClock{})
+		}, &credentials.RealClock{}, credentialsCacheFilePath)
 		if err != nil {
 			return cfg, fmt.Errorf("error creating credentials cache: %w", err)
 		}

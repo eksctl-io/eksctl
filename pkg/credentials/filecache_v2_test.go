@@ -72,7 +72,7 @@ var _ = Describe("FileCacheV2", func() {
 		c := &fakes.FakeClock{}
 		c.NowReturns(time.Date(42, 1, 1, 0, 0, 0, 0, time.UTC))
 
-		f, err := credentials.NewFileCacheV2(e.createProvider(), "test", fs, makeFlock, c)
+		f, err := credentials.NewFileCacheV2(e.createProvider(), "test", fs, makeFlock, c, cacheFilePath)
 		if e.expectedErr != "" {
 			Expect(err).To(MatchError(ContainSubstring(e.expectedErr)))
 			return

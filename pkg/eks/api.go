@@ -185,10 +185,21 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	s := c.newSession(spec)
 
 	cacheCredentials := os.Getenv(ekscreds.EksctlGlobalEnableCachingEnvName) != ""
-	if s.Config != nil && cacheCredentials {
+	var (
+		credentialsCacheFilePath string
+		err                      error
+	)
+	if cacheCredentials {
+		if s.Config == nil {
+			return nil, errors.New("expected Session.Config to be non-nil")
+		}
+		credentialsCacheFilePath, err = ekscreds.GetCacheFilePath()
+		if err != nil {
+			return nil, fmt.Errorf("error getting cache file path: %w", err)
+		}
 		if cachedProvider, err := ekscreds.NewFileCacheProvider(spec.Profile, s.Config.Credentials, &ekscreds.RealClock{}, afero.NewOsFs(), func(path string) ekscreds.Flock {
 			return flock.New(path)
-		}); err == nil {
+		}, credentialsCacheFilePath); err == nil {
 			s.Config.Credentials = credentials.NewCredentials(&cachedProvider)
 		} else {
 			logger.Warning("Failed to use cached provider: ", err)
@@ -216,7 +227,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	provider.cloudtrail = cloudtrail.New(s)
 	provider.cloudwatchlogs = cloudwatchlogs.New(s)
 
-	cfg, err := newV2Config(spec, c.Provider.Region(), cacheCredentials)
+	cfg, err := newV2Config(spec, c.Provider.Region(), credentialsCacheFilePath)
 	if err != nil {
 		return nil, err
 	}
