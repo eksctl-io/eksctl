@@ -16,7 +16,7 @@ import (
 
 type Cluster interface {
 	Upgrade(dryRun bool) error
-	Delete(waitInterval time.Duration, wait, force, disableNodegroupEviction bool) error
+	Delete(waitInterval time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error
 }
 
 func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {

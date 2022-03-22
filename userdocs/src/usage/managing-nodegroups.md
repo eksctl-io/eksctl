@@ -247,6 +247,8 @@ To ignore eviction rules such as PodDisruptionBudget settings, run:
 eksctl drain nodegroup --cluster=<clusterName> --name=<nodegroupName> --disable-eviction
 ```
 
+To speed up the drain process you can specify `--parallel <value>` for the number of nodes to drain in parallel.
+
 ### Nodegroup selection in config files
 
 To perform a create or delete operation on only a subset of the nodegroups specified in a config file, there are two

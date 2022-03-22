@@ -54,7 +54,7 @@ func (c *UnownedCluster) Upgrade(dryRun bool) error {
 	return nil
 }
 
-func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force, disableNodegroupEviction bool) error {
+func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error {
 	clusterName := c.cfg.Metadata.Name
 
 	if err := c.checkClusterExists(clusterName); err != nil {
@@ -79,7 +79,7 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force, disable
 		}
 
 		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
-		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, nodeGroupManager, attemptVpcCniDeletion); err != nil {
+		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, attemptVpcCniDeletion); err != nil {
 			if !force {
 				return err
 			}
