@@ -15,6 +15,9 @@ indent_style = space
 [*.go]
 indent_style = tab
 
+[*_test.go]
+trim_trailing_whitespace = false
+
 [{*.html, *.css, *.scss}]
 indent_size = 2
 
