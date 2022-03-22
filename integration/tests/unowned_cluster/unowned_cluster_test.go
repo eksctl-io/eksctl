@@ -319,6 +319,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			WithArgs(
 				"--cluster", params.ClusterName,
 				"--name", mng1,
+				"--parallel", "2",
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfully())

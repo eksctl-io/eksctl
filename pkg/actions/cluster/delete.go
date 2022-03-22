@@ -165,7 +165,8 @@ func checkForUndeletedStacks(stackManager manager.StackManager) error {
 	return nil
 }
 
-func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack, disableEviction bool, nodeGroupDrainer NodeGroupDrainer, vpcCniDeleter vpcCniDeleter) error {
+func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack,
+	disableEviction bool, parallel int, nodeGroupDrainer NodeGroupDrainer, vpcCniDeleter vpcCniDeleter) error {
 	if len(allStacks) == 0 {
 		return nil
 	}
@@ -183,6 +184,7 @@ func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, client
 		NodeGroups:      cmdutils.ToKubeNodeGroups(cfg),
 		MaxGracePeriod:  ctl.Provider.WaitTimeout(),
 		DisableEviction: disableEviction,
+		Parallel:        parallel,
 	}
 	if err := nodeGroupDrainer.Drain(drainInput); err != nil {
 		return err
