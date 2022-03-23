@@ -33,3 +33,12 @@ jobs:
       - name: build all
         run: |
           make build-all
+      - name: slack on failure
+        if: failure()
+        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
+        with:
+          slack_token: ${{ secrets.WEAVEWORKS_SLACK_EKSCTLBOT_TOKEN }}
+          message: ":ahhhhhhhhh: build-all-distros has failed"
+          channel: team-pitch-black
+          color: red
+          verbose: true
