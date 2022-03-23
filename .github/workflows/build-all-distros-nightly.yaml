@@ -33,15 +33,6 @@ jobs:
       - name: build all
         run: |
           make build-all
-      - name: slack on success
-        if: success()
-        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
-        with:
-          slack_token: ${{ secrets.WEAVEWORKS_SLACK_EKSCTLBOT_TOKEN }}
-          message: ":cool-doge: build-all-distros successful :greentick: "
-          channel: team-pitch-black
-          color: green
-          verbose: false
       - name: slack on failure
         if: failure()
         uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
