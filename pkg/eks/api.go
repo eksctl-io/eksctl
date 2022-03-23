@@ -1,14 +1,20 @@
 package eks
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"time"
 
+	"github.com/gofrs/flock"
+	"github.com/spf13/afero"
+
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
+
+	stsv2 "github.com/aws/aws-sdk-go-v2/service/sts"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
@@ -90,6 +96,8 @@ type ProviderServices struct {
 	cloudwatchlogs cloudwatchlogsiface.CloudWatchLogsAPI
 
 	session *session.Session
+
+	*ServicesV2
 }
 
 // CloudFormation returns a representation of the CloudFormation API
@@ -176,9 +184,22 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	// later re-use if overriding sessions due to custom URL
 	s := c.newSession(spec)
 
-	cache := os.Getenv(ekscreds.EksctlGlobalEnableCachingEnvName)
-	if s.Config != nil && cache != "" {
-		if cachedProvider, err := ekscreds.NewFileCacheProvider(spec.Profile, s.Config.Credentials, &ekscreds.RealClock{}); err == nil {
+	cacheCredentials := os.Getenv(ekscreds.EksctlGlobalEnableCachingEnvName) != ""
+	var (
+		credentialsCacheFilePath string
+		err                      error
+	)
+	if cacheCredentials {
+		if s.Config == nil {
+			return nil, errors.New("expected Session.Config to be non-nil")
+		}
+		credentialsCacheFilePath, err = ekscreds.GetCacheFilePath()
+		if err != nil {
+			return nil, fmt.Errorf("error getting cache file path: %w", err)
+		}
+		if cachedProvider, err := ekscreds.NewFileCacheProvider(spec.Profile, s.Config.Credentials, &ekscreds.RealClock{}, afero.NewOsFs(), func(path string) ekscreds.Flock {
+			return flock.New(path)
+		}, credentialsCacheFilePath); err == nil {
 			s.Config.Credentials = credentials.NewCredentials(&cachedProvider)
 		} else {
 			logger.Warning("Failed to use cached provider: ", err)
@@ -205,6 +226,14 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	provider.iam = iam.New(s)
 	provider.cloudtrail = cloudtrail.New(s)
 	provider.cloudwatchlogs = cloudwatchlogs.New(s)
+
+	cfg, err := newV2Config(spec, c.Provider.Region(), credentialsCacheFilePath)
+	if err != nil {
+		return nil, err
+	}
+	provider.ServicesV2 = &ServicesV2{
+		config: cfg,
+	}
 
 	c.Status = &ProviderStatus{
 		sessionCreds: s.Config.Credentials,
@@ -323,9 +352,7 @@ func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 
 // checkAuth checks the AWS authentication
 func (c *ClusterProvider) checkAuth() error {
-
-	input := &sts.GetCallerIdentityInput{}
-	output, err := c.Provider.STS().GetCallerIdentity(input)
+	output, err := c.Provider.STSV2().GetCallerIdentity(context.TODO(), &stsv2.GetCallerIdentityInput{})
 	if err != nil {
 		return errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
 	}

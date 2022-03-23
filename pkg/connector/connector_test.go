@@ -1,19 +1,22 @@
 package connector_test
 
 import (
+	"context"
 	"os"
 	"path"
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/sts"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/aws/aws-sdk-go/service/sts"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/weaveworks/eksctl/pkg/connector"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
@@ -74,7 +77,7 @@ var _ = Describe("EKS Connector", func() {
 			},
 		}, nil)
 
-		mockProvider.MockSTS().On("GetCallerIdentity", mock.Anything).Return(&sts.GetCallerIdentityOutput{
+		mockProvider.MockSTSV2().On("GetCallerIdentity", mock.Anything, mock.Anything).Return(&sts.GetCallerIdentityOutput{
 			Arn: aws.String("arn:aws:iam::12356:user/eksctl"),
 		}, nil)
 
@@ -90,7 +93,7 @@ var _ = Describe("EKS Connector", func() {
 			ManifestTemplate: manifestTemplate,
 		}
 
-		resourceList, err := c.RegisterCluster(cc.cluster)
+		resourceList, err := c.RegisterCluster(context.TODO(), cc.cluster)
 		if cc.expectedErr != "" {
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring(cc.expectedErr)))
@@ -167,7 +170,7 @@ var _ = Describe("EKS Connector", func() {
 			c := &connector.EKSConnector{
 				Provider: mockProvider,
 			}
-			_, err := c.RegisterCluster(cluster)
+			_, err := c.RegisterCluster(context.TODO(), cluster)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring("SLR for EKS Connector does not exist; please run `aws iam create-service-linked-role --aws-service-name eks-connector.amazonaws.com` first")))
 		})
@@ -200,7 +203,7 @@ var _ = Describe("EKS Connector", func() {
 			c := &connector.EKSConnector{
 				Provider: mockProvider,
 			}
-			_, err := c.RegisterCluster(cluster)
+			_, err := c.RegisterCluster(context.TODO(), cluster)
 			Expect(err).To(HaveOccurred())
 		})
 	})
