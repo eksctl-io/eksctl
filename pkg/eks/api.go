@@ -10,8 +10,6 @@ import (
 	"github.com/gofrs/flock"
 	"github.com/spf13/afero"
 
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 
 	stsv2 "github.com/aws/aws-sdk-go-v2/service/sts"
