@@ -108,6 +108,8 @@ func (c *StackCollection) troubleshootStackFailureCause(i *Stack, desiredStatus 
 				logger.Critical(msg)
 			case cfn.ResourceStatusDeleteInProgress:
 				logger.Warning(msg)
+			case cfn.ResourceStatusRollbackInProgress:
+				logger.Warning(msg)
 			default:
 				logger.Debug(msg) // only output this when verbose logging is enabled
 			}
