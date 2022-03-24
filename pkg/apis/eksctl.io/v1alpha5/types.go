@@ -21,7 +21,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -655,7 +654,7 @@ type ClusterProvider interface {
 	EKS() eksiface.EKSAPI
 	EC2() ec2iface.EC2API
 	STS() stsiface.STSAPI
-	SSM() ssmiface.SSMAPI
+	SSM() awsapi.SSM
 	IAM() iamiface.IAMAPI
 	CloudTrail() cloudtrailiface.CloudTrailAPI
 	CloudWatchLogs() cloudwatchlogsiface.CloudWatchLogsAPI

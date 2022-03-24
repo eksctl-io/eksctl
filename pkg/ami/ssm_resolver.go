@@ -1,14 +1,16 @@
 package ami
 
 import (
+	"context"
 	"fmt"
+
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 
 	"github.com/pkg/errors"
 
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -19,7 +21,7 @@ import (
 // SSMResolver resolves the AMI to the defaults for the region
 // by querying AWS SSM get parameter API
 type SSMResolver struct {
-	ssmAPI ssmiface.SSMAPI
+	ssmAPI awsapi.SSM
 }
 
 // Resolve will return an AMI to use based on the default AMI for
@@ -31,10 +33,10 @@ func (r *SSMResolver) Resolve(region, version, instanceType, imageFamily string)
 	if err != nil {
 		return "", err
 	}
-	input := ssm.GetParameterInput{
+
+	output, err := r.ssmAPI.GetParameter(context.TODO(), &ssm.GetParameterInput{
 		Name: aws.String(parameterName),
-	}
-	output, err := r.ssmAPI.GetParameter(&input)
+	})
 	if err != nil {
 		return "", fmt.Errorf("error getting AMI from SSM Parameter Store: %w. please verify that AMI Family is supported", err)
 	}

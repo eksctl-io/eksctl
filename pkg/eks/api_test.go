@@ -3,13 +3,15 @@ package eks_test
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ssm"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	gomegatypes "github.com/onsi/gomega/types"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 
@@ -102,10 +104,10 @@ var _ = Describe("eksctl API", func() {
 		}
 
 		It("should resolve AMI using SSM Parameter Store by default", func() {
-			provider.MockSSM().On("GetParameter", &ssm.GetParameterInput{
+			provider.MockSSM().On("GetParameter", mock.Anything, &ssm.GetParameterInput{
 				Name: aws.String("/aws/service/eks/optimized-ami/1.14/amazon-linux-2/recommended/image_id"),
 			}).Return(&ssm.GetParameterOutput{
-				Parameter: &ssm.Parameter{
+				Parameter: &ssmtypes.Parameter{
 					Value: aws.String("ami-ssm"),
 				},
 			}, nil)
