@@ -976,6 +976,12 @@
         "desiredCapacity": {
           "type": "integer"
         },
+        "disableASGTagPropagation": {
+          "type": "boolean",
+          "description": "disables the tag propagation to ASG.",
+          "x-intellij-html-description": "disables the tag propagation to ASG.",
+          "default": false
+        },
         "disableIMDSv1": {
           "type": "boolean",
           "description": "requires requests to the metadata service to use IMDSv2 tokens",
@@ -1191,6 +1197,7 @@
         "additionalVolumes",
         "preBootstrapCommands",
         "overrideBootstrapCommand",
+        "disableASGTagPropagation",
         "disableIMDSv1",
         "disablePodIMDS",
         "placement",
@@ -1321,8 +1328,9 @@
         },
         "disableASGTagPropagation": {
           "type": "boolean",
-          "description": "disable the tag propagation in case desired capacity is 0.",
-          "x-intellij-html-description": "disable the tag propagation in case desired capacity is 0."
+          "description": "disables the tag propagation to ASG in case desired capacity is 0.",
+          "x-intellij-html-description": "disables the tag propagation to ASG in case desired capacity is 0.",
+          "default": false
         },
         "disableIMDSv1": {
           "type": "boolean",
@@ -1538,6 +1546,7 @@
         "additionalVolumes",
         "preBootstrapCommands",
         "overrideBootstrapCommand",
+        "disableASGTagPropagation",
         "disableIMDSv1",
         "disablePodIMDS",
         "placement",
@@ -1556,7 +1565,6 @@
         "kubeletExtraConfig",
         "containerRuntime",
         "propagateASGTags",
-        "disableASGTagPropagation",
         "maxInstanceLifetime"
       ],
       "additionalProperties": false,

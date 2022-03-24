@@ -78,6 +78,49 @@ func (c *StackCollection) createManagedNodeGroupTask(ctx context.Context, errorC
 	return c.CreateStack(ctx, name, stack, ng.Tags, nil, errorCh)
 }
 
+func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(errorCh chan error, ng *api.ManagedNodeGroup) error {
+	if ng.DisableASGTagPropagation != nil && *ng.DisableASGTagPropagation {
+		return nil
+	}
+
+	// describe node group to retrieve ASG names
+	input := &eks.DescribeNodegroupInput{
+		ClusterName:   aws.String(c.spec.Metadata.Name),
+		NodegroupName: aws.String(ng.Name),
+	}
+	res, err := c.eksAPI.DescribeNodegroup(input)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't get managed nodegroup details for nodegroup %q", ng.Name)
+	}
+
+	// set the managed nodegroup tags to all the ASGs found
+	if res.Nodegroup.Resources != nil {
+		// build the input tags for all ASGs attached to the managed nodegroup
+		asgTags := []*autoscaling.Tag{}
+
+		for _, asg := range res.Nodegroup.Resources.AutoScalingGroups {
+			for ngTagKey, ngTagValue := range ng.Tags {
+				asgTag := &autoscaling.Tag{
+					ResourceId:        aws.String(*asg.Name),
+					ResourceType:      aws.String("auto-scaling-group"),
+					Key:               aws.String(ngTagKey),
+					Value:             aws.String(ngTagValue),
+					PropagateAtLaunch: aws.Bool(false),
+				}
+				asgTags = append(asgTags, asgTag)
+			}
+		}
+
+		input := &autoscaling.CreateOrUpdateTagsInput{Tags: asgTags}
+		if _, err := c.asgAPI.CreateOrUpdateTags(input); err != nil {
+			return errors.Wrapf(err, "creating or updating asg tags for managed nodegroup %q", ng.Name)
+		}
+	}
+
+	go func() { errorCh <- nil }()
+	return nil
+}
+
 // DescribeNodeGroupStacks calls DescribeStacks and filters out nodegroups
 func (c *StackCollection) DescribeNodeGroupStacks(ctx context.Context) ([]*Stack, error) {
 	stacks, err := c.DescribeStacks(ctx)

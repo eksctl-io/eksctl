@@ -1001,10 +1001,6 @@ type NodeGroup struct {
 	// +optional
 	PropagateASGTags *bool `json:"propagateASGTags,omitempty"`
 
-	// DisableASGTagPropagation disable the tag propagation in case desired capacity is 0.
-	// +optional
-	DisableASGTagPropagation *bool `json:"disableASGTagPropagation,omitempty"`
-
 	// MaxInstanceLifetime defines the maximum amount of time in seconds an instance stays alive.
 	// +optional
 	MaxInstanceLifetime *int `json:"maxInstanceLifetime,omitempty"`
@@ -1367,6 +1363,11 @@ type NodeGroupBase struct {
 	// Override `eksctl`'s bootstrapping script
 	// +optional
 	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
+
+	// DisableASGTagPropagation disables the tag propagation to ASG in case desired capacity is 0.
+	// Defaults to `false`
+	// +optional
+	DisableASGTagPropagation *bool `json:"disableASGTagPropagation,omitempty"`
 
 	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
 	// Defaults to `false`

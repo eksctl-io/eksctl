@@ -61,6 +61,18 @@ func (t *managedNodeGroupTask) Do(errorCh chan error) error {
 	return t.stackCollection.createManagedNodeGroupTask(t.ctx, errorCh, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
 }
 
+type managedNodeGroupTagsToASGPropagationTask struct {
+	info            string
+	nodeGroup       *api.ManagedNodeGroup
+	stackCollection *StackCollection
+}
+
+func (t *managedNodeGroupTagsToASGPropagationTask) Describe() string { return t.info }
+
+func (t *managedNodeGroupTagsToASGPropagationTask) Do(errorCh chan error) error {
+	return t.stackCollection.propagateManagedNodeGroupTagsToASGTask(errorCh, t.nodeGroup)
+}
+
 type clusterCompatTask struct {
 	info            string
 	stackCollection *StackCollection
