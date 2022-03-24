@@ -1,6 +1,7 @@
 package nodegroup
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -33,7 +34,7 @@ type CreateOpts struct {
 }
 
 // Create creates a new nodegroup with the given options.
-func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFilter) error {
+func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilter filter.NodegroupFilter) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
 	ctl := m.ctl
@@ -48,7 +49,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 	}
 
 	var isOwnedCluster = true
-	if err := kubeProvider.LoadClusterIntoSpecFromStack(cfg, m.stackManager); err != nil {
+	if err := kubeProvider.LoadClusterIntoSpecFromStack(ctx, cfg, m.stackManager); err != nil {
 		switch e := err.(type) {
 		case *manager.StackNotFoundErr:
 			logger.Warning("%s, will attempt to create nodegroup(s) on non eksctl-managed cluster", e.Error())
@@ -91,7 +92,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 	}
 
 	if isOwnedCluster {
-		if err := kubeProvider.ValidateClusterForCompatibility(cfg, m.stackManager); err != nil {
+		if err := kubeProvider.ValidateClusterForCompatibility(ctx, cfg, m.stackManager); err != nil {
 			return errors.Wrap(err, "cluster compatibility check failed")
 		}
 	}
@@ -100,7 +101,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 		return err
 	}
 
-	if err := nodegroupFilter.SetOnlyLocal(m.ctl.Provider.EKS(), m.stackManager, cfg); err != nil {
+	if err := nodegroupFilter.SetOnlyLocal(ctx, m.ctl.Provider.EKS(), m.stackManager, cfg); err != nil {
 		return err
 	}
 
@@ -136,7 +137,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 		return err
 	}
 
-	if err := m.init.ValidateExistingNodeGroupsForCompatibility(cfg, m.stackManager); err != nil {
+	if err := m.init.ValidateExistingNodeGroupsForCompatibility(ctx, cfg, m.stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 

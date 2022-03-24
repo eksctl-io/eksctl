@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,7 +25,7 @@ type createClusterTask struct {
 func (t *createClusterTask) Describe() string { return t.info }
 
 func (t *createClusterTask) Do(errorCh chan error) error {
-	return t.stackCollection.createClusterTask(errorCh, t.supportsManagedNodes)
+	return t.stackCollection.createClusterTask(context.TODO(), errorCh, t.supportsManagedNodes)
 }
 
 type nodeGroupTask struct {
@@ -37,7 +38,7 @@ type nodeGroupTask struct {
 
 func (t *nodeGroupTask) Describe() string { return t.info }
 func (t *nodeGroupTask) Do(errs chan error) error {
-	return t.stackCollection.createNodeGroupTask(errs, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
+	return t.stackCollection.createNodeGroupTask(context.TODO(), errs, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
 }
 
 type managedNodeGroupTask struct {
@@ -51,7 +52,7 @@ type managedNodeGroupTask struct {
 func (t *managedNodeGroupTask) Describe() string { return t.info }
 
 func (t *managedNodeGroupTask) Do(errorCh chan error) error {
-	return t.stackCollection.createManagedNodeGroupTask(errorCh, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
+	return t.stackCollection.createManagedNodeGroupTask(context.TODO(), errorCh, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
 }
 
 type clusterCompatTask struct {
@@ -63,7 +64,7 @@ func (t *clusterCompatTask) Describe() string { return t.info }
 
 func (t *clusterCompatTask) Do(errorCh chan error) error {
 	defer close(errorCh)
-	return t.stackCollection.FixClusterCompatibility()
+	return t.stackCollection.FixClusterCompatibility(context.TODO())
 }
 
 type taskWithClusterIAMServiceAccountSpec struct {
@@ -75,29 +76,29 @@ type taskWithClusterIAMServiceAccountSpec struct {
 
 func (t *taskWithClusterIAMServiceAccountSpec) Describe() string { return t.info }
 func (t *taskWithClusterIAMServiceAccountSpec) Do(errs chan error) error {
-	return t.stackCollection.createIAMServiceAccountTask(errs, t.serviceAccount, t.oidc)
+	return t.stackCollection.createIAMServiceAccountTask(context.TODO(), errs, t.serviceAccount, t.oidc)
 }
 
 type taskWithStackSpec struct {
 	info  string
 	stack *Stack
-	call  func(*Stack, chan error) error
+	call  func(context.Context, *Stack, chan error) error
 }
 
 func (t *taskWithStackSpec) Describe() string { return t.info }
 func (t *taskWithStackSpec) Do(errs chan error) error {
-	return t.call(t.stack, errs)
+	return t.call(context.TODO(), t.stack, errs)
 }
 
 type asyncTaskWithStackSpec struct {
 	info  string
 	stack *Stack
-	call  func(*Stack) (*Stack, error)
+	call  func(context.Context, *Stack) (*Stack, error)
 }
 
 func (t *asyncTaskWithStackSpec) Describe() string { return t.info + " [async]" }
 func (t *asyncTaskWithStackSpec) Do(errs chan error) error {
-	_, err := t.call(t.stack)
+	_, err := t.call(context.TODO(), t.stack)
 	close(errs)
 	return err
 }

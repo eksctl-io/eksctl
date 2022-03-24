@@ -1,6 +1,7 @@
 package addons
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -15,7 +16,7 @@ import (
 // IRSAHelper provides methods for enabling IRSA
 type IRSAHelper interface {
 	IsSupported() (bool, error)
-	CreateOrUpdate(serviceAccounts *api.ClusterIAMServiceAccount) error
+	CreateOrUpdate(ctx context.Context, serviceAccounts *api.ClusterIAMServiceAccount) error
 }
 
 // irsaHelper applies the annotations required for a ServiceAccount to work with IRSA
@@ -46,10 +47,10 @@ func (h *irsaHelper) IsSupported() (bool, error) {
 }
 
 // CreateOrUpdate creates IRSA for the specified IAM service accounts or updates it
-func (h *irsaHelper) CreateOrUpdate(sa *api.ClusterIAMServiceAccount) error {
+func (h *irsaHelper) CreateOrUpdate(ctx context.Context, sa *api.ClusterIAMServiceAccount) error {
 	serviceAccounts := []*api.ClusterIAMServiceAccount{sa}
 	name := makeIAMServiceAccountStackName(h.clusterName, sa.Namespace, sa.Name)
-	stack, err := h.stackManager.DescribeStack(&manager.Stack{StackName: &name})
+	stack, err := h.stackManager.DescribeStack(ctx, &manager.Stack{StackName: &name})
 	if err != nil {
 		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); !ok || ok &&
 			awsError.Code() != "ValidationError" {
@@ -59,7 +60,7 @@ func (h *irsaHelper) CreateOrUpdate(sa *api.ClusterIAMServiceAccount) error {
 	if stack == nil {
 		err = h.irsaManager.CreateIAMServiceAccount(serviceAccounts, false)
 	} else {
-		err = h.irsaManager.UpdateIAMServiceAccounts(serviceAccounts, []*manager.Stack{stack}, false)
+		err = h.irsaManager.UpdateIAMServiceAccounts(ctx, serviceAccounts, []*manager.Stack{stack}, false)
 	}
 	return err
 }

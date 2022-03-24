@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/pkg/errors"
@@ -362,7 +362,7 @@ func AssignSubnets(spec *api.NodeGroupBase, vpcImporter vpc.Importer, clusterSpe
 }
 
 // GetAllOutputs collects all outputs of the nodegroup
-func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
+func (n *NodeGroupResourceSet) GetAllOutputs(stack types.Stack) error {
 	return n.rs.GetAllOutputs(stack)
 }
 

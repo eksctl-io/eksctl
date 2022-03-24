@@ -1,6 +1,8 @@
 package label
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 )
@@ -11,13 +13,13 @@ type Summary struct {
 	Labels    map[string]string
 }
 
-func (m *Manager) Get(nodeGroupName string) ([]Summary, error) {
+func (m *Manager) Get(ctx context.Context, nodeGroupName string) ([]Summary, error) {
 	var (
 		labels map[string]string
 		err    error
 	)
 
-	labels, err = m.service.GetLabels(nodeGroupName)
+	labels, err = m.service.GetLabels(ctx, nodeGroupName)
 	if err != nil {
 		switch {
 		case isValidationError(err):

@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -102,7 +103,7 @@ func getAndPrinterClusters(ctl *eks.ClusterProvider, params *getCmdParams, listA
 		addGetClustersSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	clusters, err := cluster.GetClusters(ctl.Provider, listAllRegions, params.chunkSize)
+	clusters, err := cluster.GetClusters(context.TODO(), ctl.Provider, listAllRegions, params.chunkSize)
 	if err != nil {
 		return err
 	}
@@ -132,7 +133,7 @@ func getAndPrintCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, params
 		addGetClusterSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	cluster, err := ctl.GetCluster(cfg.Metadata.Name)
+	cluster, err := ctl.GetCluster(context.TODO(), cfg.Metadata.Name)
 
 	if err != nil {
 		return err

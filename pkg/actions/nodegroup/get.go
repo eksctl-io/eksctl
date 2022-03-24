@@ -1,17 +1,17 @@
 package nodegroup
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/tidwall/gjson"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -45,13 +45,13 @@ type Summary struct {
 	NodeGroupType        api.NodeGroupType `json:"Type"`
 }
 
-func (m *Manager) GetAll() ([]*Summary, error) {
-	unmanagedSummaries, err := m.getUnmanagedSummaries()
+func (m *Manager) GetAll(ctx context.Context) ([]*Summary, error) {
+	unmanagedSummaries, err := m.getUnmanagedSummaries(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	managedSummaries, err := m.getManagedSummaries()
+	managedSummaries, err := m.getManagedSummaries(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -59,8 +59,8 @@ func (m *Manager) GetAll() ([]*Summary, error) {
 	return append(unmanagedSummaries, managedSummaries...), nil
 }
 
-func (m *Manager) Get(name string) (*Summary, error) {
-	summary, err := m.getUnmanagedSummary(name)
+func (m *Manager) Get(ctx context.Context, name string) (*Summary, error) {
+	summary, err := m.getUnmanagedSummary(ctx, name)
 	if err != nil {
 		return nil, fmt.Errorf("getting nodegroup stack summaries: %w", err)
 	}
@@ -72,7 +72,7 @@ func (m *Manager) Get(name string) (*Summary, error) {
 	return m.getManagedSummary(name)
 }
 
-func (m *Manager) getManagedSummaries() ([]*Summary, error) {
+func (m *Manager) getManagedSummaries(ctx context.Context) ([]*Summary, error) {
 	var summaries []*Summary
 	managedNodeGroups, err := m.ctl.Provider.EKS().ListNodegroups(&eks.ListNodegroupsInput{
 		ClusterName: aws.String(m.cfg.Metadata.Name),
@@ -82,10 +82,10 @@ func (m *Manager) getManagedSummaries() ([]*Summary, error) {
 	}
 
 	for _, ngName := range managedNodeGroups.Nodegroups {
-		var stack *cloudformation.Stack
-		stack, err = m.stackManager.DescribeNodeGroupStack(*ngName)
+		var stack *types.Stack
+		stack, err = m.stackManager.DescribeNodeGroupStack(ctx, *ngName)
 		if err != nil {
-			stack = &cloudformation.Stack{}
+			stack = &types.Stack{}
 		}
 
 		summary, err := m.getManagedSummary(*ngName)
@@ -99,8 +99,8 @@ func (m *Manager) getManagedSummaries() ([]*Summary, error) {
 	return summaries, nil
 }
 
-func (m *Manager) getUnmanagedSummaries() ([]*Summary, error) {
-	stacks, err := m.stackManager.DescribeNodeGroupStacks()
+func (m *Manager) getUnmanagedSummaries(ctx context.Context) ([]*Summary, error) {
+	stacks, err := m.stackManager.DescribeNodeGroupStacks(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting nodegroup stacks: %w", err)
 	}
@@ -108,7 +108,7 @@ func (m *Manager) getUnmanagedSummaries() ([]*Summary, error) {
 	// Create an empty array here so that an object is returned rather than null
 	summaries := make([]*Summary, 0)
 	for _, s := range stacks {
-		summary, err := m.unmanagedStackToSummary(s)
+		summary, err := m.unmanagedStackToSummary(ctx, s)
 		if err != nil {
 			return nil, err
 		}
@@ -120,16 +120,16 @@ func (m *Manager) getUnmanagedSummaries() ([]*Summary, error) {
 	return summaries, nil
 }
 
-func (m *Manager) getUnmanagedSummary(name string) (*Summary, error) {
-	stack, err := m.stackManager.DescribeNodeGroupStack(name)
+func (m *Manager) getUnmanagedSummary(ctx context.Context, name string) (*Summary, error) {
+	stack, err := m.stackManager.DescribeNodeGroupStack(ctx, name)
 	if err != nil {
 		return nil, err
 	}
 
-	return m.unmanagedStackToSummary(stack)
+	return m.unmanagedStackToSummary(ctx, stack)
 }
 
-func (m *Manager) unmanagedStackToSummary(s *manager.Stack) (*Summary, error) {
+func (m *Manager) unmanagedStackToSummary(ctx context.Context, s *manager.Stack) (*Summary, error) {
 	nodeGroupType, err := manager.GetNodeGroupType(s.Tags)
 	if err != nil {
 		return nil, err
@@ -144,21 +144,21 @@ func (m *Manager) unmanagedStackToSummary(s *manager.Stack) (*Summary, error) {
 		return nil, err
 	}
 
-	summary, err := m.mapStackToNodeGroupSummary(s, ngPaths)
+	summary, err := m.mapStackToNodeGroupSummary(ctx, s, ngPaths)
 
 	if err != nil {
 		return nil, fmt.Errorf("mapping stack to nodegroup summary: %w", err)
 	}
 	summary.NodeGroupType = api.NodeGroupTypeUnmanaged
 
-	asgName, err := m.stackManager.GetUnmanagedNodeGroupAutoScalingGroupName(s)
+	asgName, err := m.stackManager.GetUnmanagedNodeGroupAutoScalingGroupName(ctx, s)
 	if err != nil {
 		return nil, fmt.Errorf("getting autoscalinggroupname: %w", err)
 	}
 
 	summary.AutoScalingGroupName = asgName
 
-	scalingGroup, err := m.stackManager.GetAutoScalingGroupDesiredCapacity(asgName)
+	scalingGroup, err := m.stackManager.GetAutoScalingGroupDesiredCapacity(ctx, asgName)
 	if err != nil {
 		return nil, fmt.Errorf("getting autoscalinggroup desired capacity: %w", err)
 	}
@@ -176,7 +176,7 @@ func (m *Manager) unmanagedStackToSummary(s *manager.Stack) (*Summary, error) {
 	return summary, nil
 }
 
-func getNodeGroupPaths(tags []*cfn.Tag) (*nodeGroupPaths, error) {
+func getNodeGroupPaths(tags []types.Tag) (*nodeGroupPaths, error) {
 	nodeGroupType, err := manager.GetNodeGroupType(tags)
 	if err != nil {
 		return nil, err
@@ -222,8 +222,8 @@ type nodeGroupPaths struct {
 	MaxSize         string
 }
 
-func (m *Manager) mapStackToNodeGroupSummary(stack *manager.Stack, ngPaths *nodeGroupPaths) (*Summary, error) {
-	template, err := m.stackManager.GetStackTemplate(*stack.StackName)
+func (m *Manager) mapStackToNodeGroupSummary(ctx context.Context, stack *manager.Stack, ngPaths *nodeGroupPaths) (*Summary, error) {
+	template, err := m.stackManager.GetStackTemplate(ctx, *stack.StackName)
 	if err != nil {
 		return nil, fmt.Errorf("error getting CloudFormation template for stack %s: %w", *stack.StackName, err)
 	}
@@ -232,7 +232,7 @@ func (m *Manager) mapStackToNodeGroupSummary(stack *manager.Stack, ngPaths *node
 		StackName:       *stack.StackName,
 		Cluster:         getClusterNameTag(stack),
 		Name:            m.stackManager.GetNodeGroupName(stack),
-		Status:          *stack.StackStatus,
+		Status:          string(stack.StackStatus),
 		MaxSize:         int(gjson.Get(template, ngPaths.MaxSize).Int()),
 		MinSize:         int(gjson.Get(template, ngPaths.MinSize).Int()),
 		DesiredCapacity: int(gjson.Get(template, ngPaths.DesiredCapacity).Int()),

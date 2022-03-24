@@ -1,6 +1,8 @@
 package cmdutils
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
 
@@ -8,8 +10,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
-func PopulateNodegroup(stackManager manager.StackManager, name string, cfg *api.ClusterConfig, ctl api.ClusterProvider) error {
-	nodeGroupType, err := stackManager.GetNodeGroupStackType(manager.GetNodegroupOption{
+func PopulateNodegroup(ctx context.Context, stackManager manager.StackManager, name string, cfg *api.ClusterConfig, ctl api.ClusterProvider) error {
+	nodeGroupType, err := stackManager.GetNodeGroupStackType(ctx, manager.GetNodegroupOption{
 		NodeGroupName: name,
 	})
 	if err != nil {

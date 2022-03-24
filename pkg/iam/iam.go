@@ -7,7 +7,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	awsiam "github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 
@@ -45,7 +45,7 @@ func ImportInstanceRoleFromProfileARN(iamAPI iamiface.IAMAPI, ng *api.NodeGroup,
 
 // UseFromNodeGroup retrieves the IAM configuration from an existing nodegroup
 // based on stack outputs
-func UseFromNodeGroup(stack *cfn.Stack, ng *api.NodeGroup) error {
+func UseFromNodeGroup(stack *types.Stack, ng *api.NodeGroup) error {
 	if ng.IAM == nil {
 		ng.IAM = &api.NodeGroupIAM{}
 	}

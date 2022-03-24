@@ -1,6 +1,7 @@
 package cluster_test
 
 import (
+	"context"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -112,14 +113,15 @@ var _ = Describe("Delete", func() {
 				return fakeClientSet, nil
 			})
 
-			err := c.Delete(time.Microsecond, false, false, false, 1)
+			err := c.Delete(context.TODO(), time.Microsecond, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
 			Expect(fakeStackManager.NewTasksToDeleteClusterWithNodeGroupsCallCount()).To(Equal(1))
 			Expect(ranDeleteClusterTasks).To(BeTrue())
 			Expect(fakeStackManager.DeleteStackSyncCallCount()).To(Equal(1))
-			Expect(*fakeStackManager.DeleteStackSyncArgsForCall(0).StackName).To(Equal("karpenter"))
+			_, stack := fakeStackManager.DeleteStackSyncArgsForCall(0)
+			Expect(*stack.StackName).To(Equal("karpenter"))
 		})
 
 		When("force flag is set to true", func() {
@@ -186,7 +188,7 @@ var _ = Describe("Delete", func() {
 					return mockedDrainer
 				})
 
-				err := c.Delete(time.Microsecond, false, true, false, 1)
+				err := c.Delete(context.TODO(), time.Microsecond, false, true, false, 1)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 				Expect(ranDeleteDeprecatedTasks).To(BeFalse())
@@ -259,7 +261,7 @@ var _ = Describe("Delete", func() {
 					return mockedDrainer
 				})
 
-				err := c.Delete(time.Microsecond, false, false, false, 1)
+				err := c.Delete(context.TODO(), time.Microsecond, false, false, false, 1)
 				Expect(err).To(MatchError(errorMessage))
 				Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(0))
 				Expect(ranDeleteDeprecatedTasks).To(BeFalse())
@@ -300,7 +302,7 @@ var _ = Describe("Delete", func() {
 
 			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
 
-			err := c.Delete(time.Microsecond, false, false, false, 1)
+			err := c.Delete(context.TODO(), time.Microsecond, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())

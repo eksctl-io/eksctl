@@ -1,6 +1,7 @@
 package delete
 
 import (
+	"context"
 	"fmt"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -73,5 +74,5 @@ func deleteAddon(cmd *cmdutils.Cmd, preserve bool) error {
 		return addonManager.DeleteWithPreserve(cmd.ClusterConfig.Addons[0])
 	}
 
-	return addonManager.Delete(cmd.ClusterConfig.Addons[0])
+	return addonManager.Delete(context.TODO(), cmd.ClusterConfig.Addons[0])
 }

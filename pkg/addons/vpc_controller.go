@@ -73,7 +73,7 @@ type VPCController struct {
 }
 
 // Deploy deploys VPC controller to the specified cluster
-func (v *VPCController) Deploy() (err error) {
+func (v *VPCController) Deploy(ctx context.Context) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if ae, ok := r.(*assetutil.Error); ok {
@@ -84,7 +84,7 @@ func (v *VPCController) Deploy() (err error) {
 		}
 	}()
 
-	if err := v.deployVPCResourceController(); err != nil {
+	if err := v.deployVPCResourceController(ctx); err != nil {
 		return err
 	}
 
@@ -252,7 +252,7 @@ func makePolicyDocument() map[string]interface{} {
 	}
 }
 
-func (v *VPCController) deployVPCResourceController() error {
+func (v *VPCController) deployVPCResourceController(ctx context.Context) error {
 	irsaEnabled, err := v.irsa.IsSupported()
 	if err != nil {
 		return err
@@ -265,7 +265,7 @@ func (v *VPCController) deployVPCResourceController() error {
 			},
 			AttachPolicy: makePolicyDocument(),
 		}
-		if err := v.irsa.CreateOrUpdate(sa); err != nil {
+		if err := v.irsa.CreateOrUpdate(ctx, sa); err != nil {
 			return errors.Wrap(err, "error enabling IRSA")
 		}
 	} else {

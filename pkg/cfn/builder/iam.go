@@ -3,11 +3,11 @@ package builder
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
 
 	"github.com/weaveworks/eksctl/pkg/iam"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
@@ -330,6 +330,6 @@ func (rs *IAMRoleResourceSet) RenderJSON() ([]byte, error) {
 }
 
 // GetAllOutputs will get all outputs from iamserviceaccount stack
-func (rs *IAMRoleResourceSet) GetAllOutputs(stack cfn.Stack) error {
+func (rs *IAMRoleResourceSet) GetAllOutputs(stack types.Stack) error {
 	return rs.outputs.MustCollect(stack)
 }

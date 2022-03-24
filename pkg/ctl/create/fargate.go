@@ -1,6 +1,8 @@
 package create
 
 import (
+	"context"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -38,7 +40,7 @@ func doCreateFargateProfile(cmd *cmdutils.Cmd) error {
 	}
 
 	manager := actionsfargate.New(cmd.ClusterConfig, ctl, ctl.NewStackManager(cmd.ClusterConfig))
-	return manager.Create()
+	return manager.Create(context.TODO())
 }
 
 func configureCreateFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.CreateOptions {

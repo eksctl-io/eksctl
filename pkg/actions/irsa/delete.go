@@ -1,14 +1,15 @@
 package irsa
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
-func (m *Manager) Delete(serviceAccounts []string, plan, wait bool) error {
-	taskTree, err := m.stackManager.NewTasksToDeleteIAMServiceAccounts(serviceAccounts, kubernetes.NewCachedClientSet(m.clientSet), wait)
+func (m *Manager) Delete(ctx context.Context, serviceAccounts []string, plan, wait bool) error {
+	taskTree, err := m.stackManager.NewTasksToDeleteIAMServiceAccounts(ctx, serviceAccounts, kubernetes.NewCachedClientSet(m.clientSet), wait)
 	if err != nil {
 		return err
 	}

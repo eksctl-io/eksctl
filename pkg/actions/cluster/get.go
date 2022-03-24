@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -37,9 +38,9 @@ var (
 	newStackCollection StackManagerConstructor = manager.NewStackCollection
 )
 
-func GetClusters(provider api.ClusterProvider, listAllRegions bool, chunkSize int) ([]Description, error) {
+func GetClusters(ctx context.Context, provider api.ClusterProvider, listAllRegions bool, chunkSize int) ([]Description, error) {
 	if !listAllRegions {
-		return listClusters(provider, int64(chunkSize))
+		return listClusters(ctx, provider, int64(chunkSize))
 	}
 
 	var clusters []Description
@@ -69,7 +70,7 @@ func GetClusters(provider api.ClusterProvider, listAllRegions bool, chunkSize in
 			continue
 		}
 
-		newClusters, err := listClusters(ctl.Provider, int64(chunkSize))
+		newClusters, err := listClusters(ctx, ctl.Provider, int64(chunkSize))
 		if err != nil {
 			logger.Critical("error listing clusters in %q region: %v", region, err)
 			continue
@@ -81,12 +82,12 @@ func GetClusters(provider api.ClusterProvider, listAllRegions bool, chunkSize in
 	return clusters, nil
 }
 
-func listClusters(provider api.ClusterProvider, chunkSize int64) ([]Description, error) {
+func listClusters(ctx context.Context, provider api.ClusterProvider, chunkSize int64) ([]Description, error) {
 	var allClusters []Description
 
 	spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: ""}}
 	stackManager := newStackCollection(provider, spec)
-	allStacks, err := stackManager.ListClusterStackNames()
+	allStacks, err := stackManager.ListClusterStackNames(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list cluster stacks in region %q: %w", provider.Region(), err)
 	}
@@ -99,7 +100,7 @@ func listClusters(provider api.ClusterProvider, chunkSize int64) ([]Description,
 		}
 
 		for _, clusterName := range clusters {
-			hasClusterStack, err := stackManager.HasClusterStackFromList(allStacks, *clusterName)
+			hasClusterStack, err := stackManager.HasClusterStackFromList(ctx, allStacks, *clusterName)
 			managed := eksctlCreatedFalse
 			if err != nil {
 				managed = eksctlCreatedUnknown

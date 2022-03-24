@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
-	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
@@ -60,7 +59,6 @@ type MockProvider struct {
 	region         string
 	cfnRoleARN     string
 	asg            *mocks.AutoScalingAPI
-	cfn            *mocks.CloudFormationAPI
 	eks            *mocks.EKSAPI
 	ec2            *mocks.EC2API
 	elb            *mocks.ELBAPI
@@ -72,8 +70,8 @@ type MockProvider struct {
 	cloudwatchlogs *mocks.CloudWatchLogsAPI
 	configProvider *mocks.ConfigProvider
 
-	stsV2            *mocksv2.STS
-	cloudformationV2 *mocksv2.CloudFormation
+	stsV2 *mocksv2.STS
+	cfn   *mocksv2.CloudFormation
 }
 
 // NewMockProvider returns a new MockProvider
@@ -82,7 +80,6 @@ func NewMockProvider() *MockProvider {
 		Client: NewMockAWSClient(),
 
 		asg:            &mocks.AutoScalingAPI{},
-		cfn:            &mocks.CloudFormationAPI{},
 		eks:            &mocks.EKSAPI{},
 		ec2:            &mocks.EC2API{},
 		elb:            &mocks.ELBAPI{},
@@ -94,8 +91,8 @@ func NewMockProvider() *MockProvider {
 		cloudwatchlogs: &mocks.CloudWatchLogsAPI{},
 		configProvider: &mocks.ConfigProvider{},
 
-		stsV2:            &mocksv2.STS{},
-		cloudformationV2: &mocksv2.CloudFormation{},
+		stsV2: &mocksv2.STS{},
+		cfn:   &mocksv2.CloudFormation{},
 	}
 }
 
@@ -110,17 +107,16 @@ func (m MockProvider) MockSTSV2() *mocksv2.STS {
 }
 
 // CloudFormationV2 returns a representation of the CloudFormation v2 API
-func (m MockProvider) CloudFormationV2() awsapi.CloudFormation {
-	return m.cloudformationV2
+func (m MockProvider) CloudFormation() awsapi.CloudFormation {
+	return m.cfn
 }
 
 // MockCloudFormationV2 returns a mocked CloudFormation v2 API
-func (m MockProvider) MockCloudFormationV2() *mocksv2.CloudFormation {
-	return m.cloudformationV2
+func (m MockProvider) MockCloudFormation() *mocksv2.CloudFormation {
+	return m.cfn
 }
 
 // CloudFormation returns a representation of the CloudFormation API
-func (m MockProvider) CloudFormation() cloudformationiface.CloudFormationAPI { return m.cfn }
 
 // CloudFormationRoleARN returns, if any, a service role used by CloudFormation to call AWS API on your behalf
 func (m MockProvider) CloudFormationRoleARN() string { return m.cfnRoleARN }
@@ -128,11 +124,6 @@ func (m MockProvider) CloudFormationRoleARN() string { return m.cfnRoleARN }
 // CloudFormationDisableRollback returns whether stacks should not rollback on failure
 func (m MockProvider) CloudFormationDisableRollback() bool {
 	return false
-}
-
-// MockCloudFormation returns a mocked CloudFormation API
-func (m MockProvider) MockCloudFormation() *mocks.CloudFormationAPI {
-	return m.CloudFormation().(*mocks.CloudFormationAPI)
 }
 
 // ASG returns a representation of the ASG API

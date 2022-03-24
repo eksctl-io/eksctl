@@ -1,6 +1,7 @@
 package eks
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/kris-nova/logger"
@@ -13,8 +14,8 @@ import (
 
 // ValidateClusterForCompatibility looks at the cluster stack and check if it's
 // compatible with current nodegroup configuration, if it find issues it returns an error
-func (c *ClusterProvider) ValidateClusterForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error {
-	cluster, err := stackManager.DescribeClusterStack()
+func (c *ClusterProvider) ValidateClusterForCompatibility(ctx context.Context, cfg *api.ClusterConfig, stackManager manager.StackManager) error {
+	cluster, err := stackManager.DescribeClusterStack(ctx)
 	if err != nil {
 		return errors.Wrap(err, "getting cluster stacks")
 	}

@@ -1,6 +1,7 @@
 package update
 
 import (
+	"context"
 	"fmt"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -91,7 +92,7 @@ func updateAddon(cmd *cmdutils.Cmd, force, wait bool) error {
 		if force { //force is specified at cmdline level
 			a.Force = true
 		}
-		err := addonManager.Update(a, wait)
+		err := addonManager.Update(context.TODO(), a, wait)
 		if err != nil {
 			return err
 		}

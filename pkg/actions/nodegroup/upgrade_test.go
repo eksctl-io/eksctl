@@ -1,8 +1,10 @@
 package nodegroup_test
 
 import (
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	. "github.com/onsi/ginkgo"
@@ -81,7 +83,7 @@ var _ = Describe("Upgrade", func() {
 
 			It("upgrades the nodegroup version and lt by calling the API", func() {
 				options.LaunchTemplateVersion = "v2"
-				Expect(m.Upgrade(options)).To(Succeed())
+				Expect(m.Upgrade(context.TODO(), options)).To(Succeed())
 			})
 		})
 
@@ -117,7 +119,7 @@ var _ = Describe("Upgrade", func() {
 
 			It("upgrades the nodegroup version and lt by calling the API", func() {
 				options.LaunchTemplateVersion = "v2"
-				Expect(m.Upgrade(options)).To(Succeed())
+				Expect(m.Upgrade(context.TODO(), options)).To(Succeed())
 			})
 		})
 	})
@@ -131,7 +133,7 @@ var _ = Describe("Upgrade", func() {
 					fakeStackManager.GetManagedNodeGroupTemplateReturns(al2WithoutForceTemplate, nil)
 
 					fakeStackManager.DescribeNodeGroupStackReturns(&manager.Stack{
-						Tags: []*cloudformation.Tag{
+						Tags: []types.Tag{
 							{
 								Key:   aws.String(api.EksctlVersionTag),
 								Value: aws.String(version.GetVersion()),
@@ -165,18 +167,19 @@ var _ = Describe("Upgrade", func() {
 				})
 
 				It("upgrades the nodegroup with the latest al2 release_version by updating the stack", func() {
-					Expect(m.Upgrade(options)).To(Succeed())
+					Expect(m.Upgrade(context.TODO(), options)).To(Succeed())
 					Expect(fakeStackManager.GetManagedNodeGroupTemplateCallCount()).To(Equal(1))
-					Expect(fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0).NodeGroupName).To(Equal(ngName))
+					_, n := fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0)
+					Expect(n.NodeGroupName).To(Equal(ngName))
 					Expect(fakeStackManager.UpdateNodeGroupStackCallCount()).To(Equal(2))
 					By("upgrading the ForceUpdateEnabled setting first")
-					ng, template, wait := fakeStackManager.UpdateNodeGroupStackArgsForCall(0)
+					_, ng, template, wait := fakeStackManager.UpdateNodeGroupStackArgsForCall(0)
 					Expect(ng).To(Equal(ngName))
 					Expect(template).To(Equal(al2ForceFalseTemplate))
 					Expect(wait).To(BeTrue())
 
 					By("upgrading the ReleaseVersion setting next")
-					ng, template, wait = fakeStackManager.UpdateNodeGroupStackArgsForCall(1)
+					_, ng, template, wait = fakeStackManager.UpdateNodeGroupStackArgsForCall(1)
 					Expect(ng).To(Equal(ngName))
 					Expect(template).To(Equal(al2FullyUpdatedTemplate))
 					Expect(wait).To(BeTrue())
@@ -192,7 +195,7 @@ var _ = Describe("Upgrade", func() {
 					fakeStackManager.GetManagedNodeGroupTemplateReturns(al2ForceFalseTemplate, nil)
 
 					fakeStackManager.DescribeNodeGroupStackReturns(&manager.Stack{
-						Tags: []*cloudformation.Tag{
+						Tags: []types.Tag{
 							{
 								Key:   aws.String(api.EksctlVersionTag),
 								Value: aws.String(version.GetVersion()),
@@ -226,12 +229,13 @@ var _ = Describe("Upgrade", func() {
 				})
 
 				It("upgrades the nodegroup with the latest al2 release_version by updating the stack", func() {
-					Expect(m.Upgrade(options)).To(Succeed())
+					Expect(m.Upgrade(context.TODO(), options)).To(Succeed())
 					Expect(fakeStackManager.GetManagedNodeGroupTemplateCallCount()).To(Equal(1))
-					Expect(fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0).NodeGroupName).To(Equal(ngName))
+					_, n := fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0)
+					Expect(n.NodeGroupName).To(Equal(ngName))
 					Expect(fakeStackManager.UpdateNodeGroupStackCallCount()).To(Equal(1))
 					By("upgrading the ReleaseVersion and not updating the ForceUpdateEnabled setting")
-					ng, template, wait := fakeStackManager.UpdateNodeGroupStackArgsForCall(0)
+					_, ng, template, wait := fakeStackManager.UpdateNodeGroupStackArgsForCall(0)
 					Expect(ng).To(Equal(ngName))
 					Expect(template).To(Equal(al2FullyUpdatedTemplate))
 					Expect(wait).To(BeTrue())
@@ -247,7 +251,7 @@ var _ = Describe("Upgrade", func() {
 					fakeStackManager.GetManagedNodeGroupTemplateReturns(brForceTrueTemplate, nil)
 
 					fakeStackManager.DescribeNodeGroupStackReturns(&manager.Stack{
-						Tags: []*cloudformation.Tag{
+						Tags: []types.Tag{
 							{
 								Key:   aws.String(api.EksctlVersionTag),
 								Value: aws.String(version.GetVersion()),
@@ -281,19 +285,20 @@ var _ = Describe("Upgrade", func() {
 				})
 
 				It("upgrades the nodegroup updating the stack with the kubernetes version", func() {
-					Expect(m.Upgrade(options)).To(Succeed())
+					Expect(m.Upgrade(context.TODO(), options)).To(Succeed())
 					Expect(fakeStackManager.GetManagedNodeGroupTemplateCallCount()).To(Equal(1))
-					Expect(fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0).NodeGroupName).To(Equal(ngName))
+					_, n := fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0)
+					Expect(n.NodeGroupName).To(Equal(ngName))
 
 					By("upgrading the ForceUpdateEnabled setting first")
 					Expect(fakeStackManager.UpdateNodeGroupStackCallCount()).To(Equal(2))
-					ng, template, wait := fakeStackManager.UpdateNodeGroupStackArgsForCall(0)
+					_, ng, template, wait := fakeStackManager.UpdateNodeGroupStackArgsForCall(0)
 					Expect(ng).To(Equal(ngName))
 					Expect(template).To(Equal(brForceFalseTemplate))
 					Expect(wait).To(BeTrue())
 
 					By("upgrading the Version next")
-					ng, template, wait = fakeStackManager.UpdateNodeGroupStackArgsForCall(1)
+					_, ng, template, wait = fakeStackManager.UpdateNodeGroupStackArgsForCall(1)
 					Expect(ng).To(Equal(ngName))
 					Expect(template).To(Equal(brFulllyUpdatedTemplate))
 					Expect(wait).To(BeTrue())

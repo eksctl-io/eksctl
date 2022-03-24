@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net"
 
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/aws"
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/onsi/gomega/types"
@@ -51,7 +51,7 @@ func describeImportVPCCase(desc string) func(importVPCCase) string {
 
 type useFromClusterCase struct {
 	cfg          *api.ClusterConfig
-	stack        *cfn.Stack
+	stack        *cfntypes.Stack
 	errorMatcher types.GomegaMatcher
 }
 
@@ -238,7 +238,7 @@ var _ = Describe("VPC", func() {
 		},
 		Entry("No output", useFromClusterCase{
 			cfg:          api.NewClusterConfig(),
-			stack:        &cfn.Stack{},
+			stack:        &cfntypes.Stack{},
 			errorMatcher: MatchRegexp(`no output "(?:VPC|SecurityGroup)"`),
 		}),
 	)

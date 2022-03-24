@@ -1,6 +1,7 @@
 package eks
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
@@ -41,7 +42,7 @@ type NodeGroupInitialiser interface {
 	ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.ClusterProvider) error
 	DoesAWSNodeUseIRSA(provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error)
 	DoAllNodegroupStackTasks(taskTree *tasks.TaskTree, region, name string) error
-	ValidateExistingNodeGroupsForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error
+	ValidateExistingNodeGroupsForCompatibility(ctx context.Context, cfg *api.ClusterConfig, stackManager manager.StackManager) error
 }
 
 // A NodeGroupService provides helpers for nodegroup creation
@@ -241,8 +242,8 @@ func (m *NodeGroupService) DoAllNodegroupStackTasks(taskTree *tasks.TaskTree, re
 
 // ValidateExistingNodeGroupsForCompatibility looks at each of the existing nodegroups and
 // validates configuration, if it find issues it logs messages
-func (m *NodeGroupService) ValidateExistingNodeGroupsForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error {
-	infoByNodeGroup, err := stackManager.DescribeNodeGroupStacksAndResources()
+func (m *NodeGroupService) ValidateExistingNodeGroupsForCompatibility(ctx context.Context, cfg *api.ClusterConfig, stackManager manager.StackManager) error {
+	infoByNodeGroup, err := stackManager.DescribeNodeGroupStacksAndResources(ctx)
 	if err != nil {
 		return errors.Wrap(err, "getting resources for all nodegroup stacks")
 	}

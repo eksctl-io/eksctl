@@ -1,6 +1,7 @@
 package create
 
 import (
+	"context"
 	"errors"
 
 	"github.com/weaveworks/eksctl/pkg/actions/irsa"
@@ -107,7 +108,7 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 	}
 	stackManager := ctl.NewStackManager(cfg)
 
-	if err := saFilter.SetExcludeExistingFilter(stackManager, clientSet, cfg.IAM.ServiceAccounts, overrideExistingServiceAccounts); err != nil {
+	if err := saFilter.SetExcludeExistingFilter(context.TODO(), stackManager, clientSet, cfg.IAM.ServiceAccounts, overrideExistingServiceAccounts); err != nil {
 		return err
 	}
 

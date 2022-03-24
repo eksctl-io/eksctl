@@ -3,6 +3,7 @@ package manager
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
@@ -180,7 +181,7 @@ var _ = Describe("StackCollection Tasks", func() {
 				stackManager = NewStackCollection(p, cfg)
 			})
 			It("returns an error", func() {
-				p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(nil)
+				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cloudformation.ListStacksOutput{}, nil)
 				ng := api.NewManagedNodeGroup()
 				fakeVPCImporter := new(vpcfakes.FakeImporter)
 				tasks := stackManager.NewManagedNodeGroupTask([]*api.ManagedNodeGroup{ng}, false, fakeVPCImporter)
@@ -190,7 +191,7 @@ var _ = Describe("StackCollection Tasks", func() {
 			})
 			When("finding the stack fails", func() {
 				It("returns the stack error", func() {
-					p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(errors.New("not found"))
+					p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(nil, errors.New("not found"))
 					ng := api.NewManagedNodeGroup()
 					fakeVPCImporter := new(vpcfakes.FakeImporter)
 					tasks := stackManager.NewManagedNodeGroupTask([]*api.ManagedNodeGroup{ng}, false, fakeVPCImporter)

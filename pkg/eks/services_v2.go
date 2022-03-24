@@ -38,7 +38,7 @@ func (s *ServicesV2) STSV2() awsapi.STS {
 }
 
 // CloudFormationV2 implements the AWS CloudFormation service.
-func (s *ServicesV2) CloudFormationV2() awsapi.CloudFormation {
+func (s *ServicesV2) CloudFormation() awsapi.CloudFormation {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.cloudformation == nil {

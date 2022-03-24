@@ -105,7 +105,7 @@ func (v *VPCControllerTask) Do(errCh chan error) error {
 
 	// TODO PlanMode doesn't work as intended
 	vpcController := addons.NewVPCController(rawClient, irsa, v.ClusterConfig.Status, v.ClusterProvider.Provider.Region(), v.PlanMode)
-	if err := vpcController.Deploy(); err != nil {
+	if err := vpcController.Deploy(context.TODO()); err != nil {
 		return errors.Wrap(err, "error installing VPC controller")
 	}
 	return nil

@@ -1,6 +1,7 @@
 package nodegroup
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -16,10 +17,10 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-func (m *Manager) Scale(ng *api.NodeGroupBase) error {
+func (m *Manager) Scale(ctx context.Context, ng *api.NodeGroupBase) error {
 	logger.Info("scaling nodegroup %q in cluster %s", ng.Name, m.cfg.Metadata.Name)
 
-	nodegroupStackInfos, err := m.stackManager.DescribeNodeGroupStacksAndResources()
+	nodegroupStackInfos, err := m.stackManager.DescribeNodeGroupStacksAndResources(ctx)
 	if err != nil {
 		return err
 	}

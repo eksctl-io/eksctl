@@ -1,8 +1,8 @@
 package manager
 
 import (
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/aws"
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -12,10 +12,10 @@ import (
 
 var _ = Describe("StackCollection NodeGroup", func() {
 	Describe("GetNodeGroupType", func() {
-		createTags := func(tags map[string]string) []*cfn.Tag {
-			cfnTags := make([]*cfn.Tag, 0)
+		createTags := func(tags map[string]string) []types.Tag {
+			cfnTags := make([]types.Tag, 0)
 			for k, v := range tags {
-				cfnTags = append(cfnTags, &cfn.Tag{
+				cfnTags = append(cfnTags, types.Tag{
 					Key:   aws.String(k),
 					Value: aws.String(v),
 				})

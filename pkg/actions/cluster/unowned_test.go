@@ -1,10 +1,12 @@
 package cluster_test
 
 import (
+	"context"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
@@ -84,19 +86,19 @@ var _ = Describe("Delete", func() {
 			}).Once().Return(&awseks.ListFargateProfilesOutput{}, nil)
 
 			fargateStackName := aws.String("eksctl-my-cluster-fargate")
-			p.MockCloudFormation().On("DescribeStacks", &cloudformation.DescribeStacksInput{
+			p.MockCloudFormation().On("DescribeStacks", mock.Anything, &cloudformation.DescribeStacksInput{
 				StackName: fargateStackName,
 			}).Return(&cloudformation.DescribeStacksOutput{
-				Stacks: []*cloudformation.Stack{
+				Stacks: []types.Stack{
 					{
 						StackName: fargateStackName,
-						Tags: []*cloudformation.Tag{
+						Tags: []types.Tag{
 							{
 								Key:   aws.String("alpha.eksctl.io/cluster-name"),
 								Value: aws.String(clusterName),
 							},
 						},
-						StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+						StackStatus: types.StackStatusCreateComplete,
 					},
 				},
 			}, nil)
@@ -114,7 +116,7 @@ var _ = Describe("Delete", func() {
 
 			p.MockEC2().On("DescribeSecurityGroupsWithContext", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
 
-			fakeStackManager.GetFargateStackReturns(&cloudformation.Stack{StackName: aws.String("fargate-role")}, nil)
+			fakeStackManager.GetFargateStackReturns(&types.Stack{StackName: aws.String("fargate-role")}, nil)
 			fakeStackManager.DeleteStackBySpecReturns(nil, nil)
 
 			p.MockEKS().On("ListNodegroups", mock.Anything).Return(&awseks.ListNodegroupsOutput{
@@ -150,14 +152,15 @@ var _ = Describe("Delete", func() {
 				return fakeClientSet, nil
 			})
 
-			err := c.Delete(time.Microsecond, false, false, false, 1)
+			err := c.Delete(context.TODO(), time.Microsecond, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deleteCallCount).To(Equal(1))
 			Expect(unownedDeleteCallCount).To(Equal(1))
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
 			Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
-			Expect(*fakeStackManager.DeleteStackBySpecArgsForCall(0).StackName).To(Equal("fargate-role"))
+			_, stack := fakeStackManager.DeleteStackBySpecArgsForCall(0)
+			Expect(*stack.StackName).To(Equal("fargate-role"))
 		})
 
 		When("force flag is set to true", func() {
@@ -252,7 +255,7 @@ var _ = Describe("Delete", func() {
 					return mockedDrainer
 				})
 
-				err := c.Delete(time.Microsecond, false, true, false, 1)
+				err := c.Delete(context.TODO(), time.Microsecond, false, true, false, 1)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(deleteCallCount).To(Equal(0))
 				Expect(unownedDeleteCallCount).To(Equal(0))
@@ -355,7 +358,7 @@ var _ = Describe("Delete", func() {
 					return mockedDrainer
 				})
 
-				err := c.Delete(time.Microsecond, false, false, false, 1)
+				err := c.Delete(context.TODO(), time.Microsecond, false, false, false, 1)
 				Expect(err).To(MatchError(errorMessage))
 				Expect(deleteCallCount).To(Equal(0))
 				Expect(unownedDeleteCallCount).To(Equal(0))
@@ -419,7 +422,7 @@ var _ = Describe("Delete", func() {
 			p.MockEKS().On("DeleteCluster", mock.Anything).Return(&awseks.DeleteClusterOutput{}, nil)
 
 			c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager)
-			err := c.Delete(time.Microsecond, false, false, false, 1)
+			err := c.Delete(context.TODO(), time.Microsecond, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(deleteCallCount).To(Equal(1))

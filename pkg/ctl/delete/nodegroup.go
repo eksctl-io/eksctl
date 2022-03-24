@@ -1,6 +1,7 @@
 package delete
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -91,17 +92,18 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
+	ctx := context.TODO()
 
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d nodegroups defined in the given config (%q) against remote state", len(cfg.NodeGroups), cmd.ClusterConfigFile)
 		if onlyMissing {
-			err = ngFilter.SetOnlyRemote(ctl.Provider.EKS(), stackManager, cfg)
+			err = ngFilter.SetOnlyRemote(ctx, ctl.Provider.EKS(), stackManager, cfg)
 			if err != nil {
 				return err
 			}
 		}
 	} else {
-		err := cmdutils.PopulateNodegroup(stackManager, ng.Name, cfg, ctl.Provider)
+		err := cmdutils.PopulateNodegroup(ctx, stackManager, ng.Name, cfg, ctl.Provider)
 		if err != nil {
 			return err
 		}
@@ -114,7 +116,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	if updateAuthConfigMap {
 		for _, ng := range cfg.NodeGroups {
 			if ng.IAM == nil || ng.IAM.InstanceRoleARN == "" {
-				if err := ctl.GetNodeGroupIAM(stackManager, ng); err != nil {
+				if err := ctl.GetNodeGroupIAM(ctx, stackManager, ng); err != nil {
 					err := fmt.Sprintf("error getting instance role ARN for nodegroup %q: %v", ng.Name, err)
 					logger.Warning("continuing with deletion, error occurred: %s", err)
 				}
@@ -143,7 +145,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 	cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
-	err = nodeGroupManager.Delete(cfg.NodeGroups, cfg.ManagedNodeGroups, cmd.Wait, cmd.Plan)
+	err = nodeGroupManager.Delete(context.TODO(), cfg.NodeGroups, cfg.ManagedNodeGroups, cmd.Wait, cmd.Plan)
 	if err != nil {
 		return err
 	}

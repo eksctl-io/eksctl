@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
@@ -210,7 +210,7 @@ func (c *ClusterResourceSet) Template() gfn.Template {
 }
 
 // GetAllOutputs collects all outputs of the cluster
-func (c *ClusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
+func (c *ClusterResourceSet) GetAllOutputs(stack types.Stack) error {
 	return c.rs.GetAllOutputs(stack)
 }
 

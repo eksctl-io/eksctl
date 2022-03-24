@@ -1,6 +1,7 @@
 package delete
 
 import (
+	"context"
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/actions/cluster"
@@ -80,10 +81,11 @@ func doDeleteCluster(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction boo
 		return err
 	}
 
-	cluster, err := cluster.New(cfg, ctl)
+	ctx := context.TODO()
+	cluster, err := cluster.New(ctx, cfg, ctl)
 	if err != nil {
 		return err
 	}
 
-	return cluster.Delete(time.Second*20, cmd.Wait, force, disableNodegroupEviction, parallel)
+	return cluster.Delete(ctx, time.Second*20, cmd.Wait, force, disableNodegroupEviction, parallel)
 }

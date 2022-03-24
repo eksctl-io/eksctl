@@ -1,11 +1,12 @@
 package karpenter
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/aws"
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/kris-nova/logger"
@@ -59,7 +60,7 @@ func (k *karpenterIAMRolesTask) createKarpenterIAMRolesTask(errs chan error) err
 		api.KarpenterNameTag:    name,
 		api.KarpenterVersionTag: k.cfg.Karpenter.Version,
 	}
-	if err := k.stackManager.CreateStack(name, stack, tags, nil, errs); err != nil {
+	if err := k.stackManager.CreateStack(context.TODO(), name, stack, tags, nil, errs); err != nil {
 		return fmt.Errorf("failed to create stack: %w", err)
 	}
 
@@ -103,7 +104,7 @@ func (k *karpenterIAMRolesTask) GetKarpenterName(s *manager.Stack) string {
 }
 
 // getKarpenterTagName returns the Karpenter name of a stack based on its tags.
-func getKarpenterTagName(tags []*cfn.Tag) string {
+func getKarpenterTagName(tags []cfntypes.Tag) string {
 	for _, tag := range tags {
 		if *tag.Key == api.KarpenterNameTag {
 			return *tag.Value

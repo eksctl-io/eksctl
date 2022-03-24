@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
@@ -35,7 +35,7 @@ type ResourceSet interface {
 	WithIAM() bool
 	WithNamedIAM() bool
 	RenderJSON() ([]byte, error)
-	GetAllOutputs(cfn.Stack) error
+	GetAllOutputs(types.Stack) error
 }
 
 type resourceSet struct {

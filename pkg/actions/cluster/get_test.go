@@ -1,6 +1,7 @@
 package cluster_test
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -55,7 +56,7 @@ var _ = Describe("Get", func() {
 				stackManager.HasClusterStackFromListReturnsOnCall(2, false, fmt.Errorf("foo"))
 			})
 			It("returns the clusters in that region", func() {
-				clusters, err := cluster.GetClusters(intialProvider, false, 100)
+				clusters, err := cluster.GetClusters(context.TODO(), intialProvider, false, 100)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clusters).To(ConsistOf(
 					cluster.Description{
@@ -81,11 +82,11 @@ var _ = Describe("Get", func() {
 				Expect(awsProvider.CallCount()).To(Equal(0))
 
 				Expect(stackManager.HasClusterStackFromListCallCount()).To(Equal(3))
-				_, clusterName := stackManager.HasClusterStackFromListArgsForCall(0)
+				_, _, clusterName := stackManager.HasClusterStackFromListArgsForCall(0)
 				Expect(clusterName).To(Equal("cluster1"))
-				_, clusterName = stackManager.HasClusterStackFromListArgsForCall(1)
+				_, _, clusterName = stackManager.HasClusterStackFromListArgsForCall(1)
 				Expect(clusterName).To(Equal("cluster2"))
-				_, clusterName = stackManager.HasClusterStackFromListArgsForCall(2)
+				_, _, clusterName = stackManager.HasClusterStackFromListArgsForCall(2)
 				Expect(clusterName).To(Equal("cluster3"))
 			})
 		})
@@ -96,7 +97,7 @@ var _ = Describe("Get", func() {
 			})
 
 			It("errors", func() {
-				_, err := cluster.GetClusters(intialProvider, false, 100)
+				_, err := cluster.GetClusters(context.TODO(), intialProvider, false, 100)
 				Expect(err).To(MatchError(`failed to list cluster stacks in region "us-west-2": foo`))
 			})
 		})
@@ -110,7 +111,7 @@ var _ = Describe("Get", func() {
 			})
 
 			It("errors", func() {
-				_, err := cluster.GetClusters(intialProvider, false, 100)
+				_, err := cluster.GetClusters(context.TODO(), intialProvider, false, 100)
 				Expect(err).To(MatchError(`failed to list clusters in region "us-west-2": foo`))
 			})
 		})
@@ -172,7 +173,7 @@ var _ = Describe("Get", func() {
 			})
 
 			It("returns the clusters across all authorised regions", func() {
-				clusters, err := cluster.GetClusters(intialProvider, true, 100)
+				clusters, err := cluster.GetClusters(context.TODO(), intialProvider, true, 100)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clusters).To(ConsistOf(
 					cluster.Description{
@@ -200,11 +201,11 @@ var _ = Describe("Get", func() {
 				Expect(cfg.Region).To(Equal("us-west-2"))
 
 				Expect(stackManagerRegion1.HasClusterStackFromListCallCount()).To(Equal(1))
-				_, clusterName := stackManagerRegion1.HasClusterStackFromListArgsForCall(0)
+				_, _, clusterName := stackManagerRegion1.HasClusterStackFromListArgsForCall(0)
 				Expect(clusterName).To(Equal("cluster1"))
 
 				Expect(stackManagerRegion2.HasClusterStackFromListCallCount()).To(Equal(1))
-				_, clusterName = stackManagerRegion2.HasClusterStackFromListArgsForCall(0)
+				_, _, clusterName = stackManagerRegion2.HasClusterStackFromListArgsForCall(0)
 				Expect(clusterName).To(Equal("cluster2"))
 			})
 		})
@@ -215,7 +216,7 @@ var _ = Describe("Get", func() {
 			})
 
 			It("errors", func() {
-				_, err := cluster.GetClusters(intialProvider, true, 100)
+				_, err := cluster.GetClusters(context.TODO(), intialProvider, true, 100)
 				Expect(err).To(MatchError(`failed to describe regions: foo`))
 			})
 		})
@@ -247,7 +248,7 @@ var _ = Describe("Get", func() {
 			})
 
 			It("returns the clusters in the regions it was successful in", func() {
-				clusters, err := cluster.GetClusters(intialProvider, true, 100)
+				clusters, err := cluster.GetClusters(context.TODO(), intialProvider, true, 100)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clusters).To(ConsistOf(
 					cluster.Description{
@@ -268,7 +269,7 @@ var _ = Describe("Get", func() {
 				Expect(cfg.Region).To(Equal("us-west-2"))
 
 				Expect(stackManagerRegion1.HasClusterStackFromListCallCount()).To(Equal(1))
-				_, clusterName := stackManagerRegion1.HasClusterStackFromListArgsForCall(0)
+				_, _, clusterName := stackManagerRegion1.HasClusterStackFromListArgsForCall(0)
 				Expect(clusterName).To(Equal("cluster1"))
 			})
 		})

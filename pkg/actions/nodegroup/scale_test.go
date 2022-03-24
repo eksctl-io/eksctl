@@ -1,15 +1,16 @@
 package nodegroup_test
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/stretchr/testify/mock"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -55,7 +56,7 @@ var _ = Describe("Scale", func() {
 			nodegroups := make(map[string]manager.StackInfo)
 			nodegroups["my-ng"] = manager.StackInfo{
 				Stack: &manager.Stack{
-					Tags: []*cloudformation.Tag{
+					Tags: []types.Tag{
 						{
 							Key:   aws.String(api.NodeGroupNameTag),
 							Value: aws.String("my-ng"),
@@ -91,7 +92,7 @@ var _ = Describe("Scale", func() {
 				return nil
 			})
 
-			err := m.Scale(ng)
+			err := m.Scale(context.TODO(), ng)
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(waitCallCount).To(Equal(1))
@@ -108,7 +109,7 @@ var _ = Describe("Scale", func() {
 					NodegroupName: &ngName,
 				}).Return(nil, fmt.Errorf("foo"))
 
-				err := m.Scale(ng)
+				err := m.Scale(context.TODO(), ng)
 
 				Expect(err).To(MatchError(fmt.Sprintf("failed to scale nodegroup for cluster %q, error: foo", clusterName)))
 			})
@@ -121,7 +122,7 @@ var _ = Describe("Scale", func() {
 				nodegroups := make(map[string]manager.StackInfo)
 				nodegroups["my-ng"] = manager.StackInfo{
 					Stack: &manager.Stack{
-						Tags: []*cloudformation.Tag{
+						Tags: []types.Tag{
 							{
 								Key:   aws.String(api.NodeGroupNameTag),
 								Value: aws.String("my-ng"),
@@ -132,7 +133,7 @@ var _ = Describe("Scale", func() {
 							},
 						},
 					},
-					Resources: []*cloudformation.StackResource{
+					Resources: []types.StackResource{
 						{
 							PhysicalResourceId: aws.String("asg-name"),
 							LogicalResourceId:  aws.String("NodeGroup"),
@@ -150,7 +151,7 @@ var _ = Describe("Scale", func() {
 			})
 
 			It("scales the nodegroup", func() {
-				err := m.Scale(ng)
+				err := m.Scale(context.TODO(), ng)
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
@@ -160,7 +161,7 @@ var _ = Describe("Scale", func() {
 				nodegroups := make(map[string]manager.StackInfo)
 				nodegroups["my-ng"] = manager.StackInfo{
 					Stack: &manager.Stack{
-						Tags: []*cloudformation.Tag{
+						Tags: []types.Tag{
 							{
 								Key:   aws.String(api.NodeGroupNameTag),
 								Value: aws.String("my-ng"),
@@ -171,14 +172,14 @@ var _ = Describe("Scale", func() {
 							},
 						},
 					},
-					Resources: []*cloudformation.StackResource{},
+					Resources: []types.StackResource{},
 				}
 				fakeStackManager.DescribeNodeGroupStacksAndResourcesReturns(nodegroups, nil)
 
 			})
 
 			It("returns an error", func() {
-				err := m.Scale(ng)
+				err := m.Scale(context.TODO(), ng)
 				Expect(err).To(MatchError(ContainSubstring("failed to find NodeGroup auto scaling group")))
 			})
 		})

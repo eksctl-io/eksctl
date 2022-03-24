@@ -1,12 +1,14 @@
 package label
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 )
 
-func (m *Manager) Set(nodeGroupName string, labels map[string]string) error {
-	err := m.service.UpdateLabels(nodeGroupName, labels, nil)
+func (m *Manager) Set(ctx context.Context, nodeGroupName string, labels map[string]string) error {
+	err := m.service.UpdateLabels(ctx, nodeGroupName, labels, nil)
 	if err != nil && isValidationError(err) {
 		return m.setLabelsOnUnownedNodeGroup(nodeGroupName, labels)
 	}

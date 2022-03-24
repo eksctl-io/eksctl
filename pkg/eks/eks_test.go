@@ -1,8 +1,11 @@
 package eks_test
 
 import (
+	"context"
+
+	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/aws"
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
 
@@ -53,7 +56,7 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				JustBeforeEach(func() {
-					cluster, err = c.GetCluster(clusterName)
+					cluster, err = c.GetCluster(context.TODO(), clusterName)
 				})
 
 				It("should not error", func() {
@@ -68,8 +71,8 @@ var _ = Describe("EKS API wrapper", func() {
 					p.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)
 				})
 
-				It("should not call AWS CFN ListStacksPages", func() {
-					p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 0)
+				It("should not call AWS CFN ListStacks", func() {
+					p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacks", 0)
 				})
 			})
 
@@ -97,19 +100,19 @@ var _ = Describe("EKS API wrapper", func() {
 
 					logger.Level = 4
 
-					p.MockCloudFormation().On("ListStacksPages", mock.MatchedBy(func(input *cfn.ListStacksInput) bool {
+					p.MockCloudFormation().On("ListStacks", mock.Anything, mock.MatchedBy(func(input *cfn.ListStacksInput) bool {
 						matches := 0
 						for i := range input.StackStatusFilter {
-							if *input.StackStatusFilter[i] == expectedStatusFilter[i] {
+							if input.StackStatusFilter[i] == types.StackStatus(expectedStatusFilter[i]) {
 								matches++
 							}
 						}
 						return matches == len(expectedStatusFilter)
-					}), mock.Anything).Return(nil)
+					})).Return(&cfn.ListStacksOutput{}, nil)
 				})
 
 				JustBeforeEach(func() {
-					cluster, err = c.GetCluster(clusterName)
+					cluster, err = c.GetCluster(context.TODO(), clusterName)
 				})
 
 				It("should not error", func() {
@@ -124,8 +127,8 @@ var _ = Describe("EKS API wrapper", func() {
 					p.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)
 				})
 
-				It("should have called AWS CFN ListStacksPages", func() {
-					p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 1)
+				It("should have called AWS CFN ListStacks", func() {
+					p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacks", 1)
 				})
 			})
 		})
@@ -149,7 +152,7 @@ var _ = Describe("EKS API wrapper", func() {
 			})
 
 			JustBeforeEach(func() {
-				cluster, err = c.GetCluster(clusterName)
+				cluster, err = c.GetCluster(context.TODO(), clusterName)
 			})
 
 			It("should not error", func() {
@@ -160,8 +163,8 @@ var _ = Describe("EKS API wrapper", func() {
 				p.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)
 			})
 
-			It("should not call AWS CFN ListStacksPages", func() {
-				p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 0)
+			It("should not call AWS CFN ListStacks", func() {
+				p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacks", 0)
 			})
 		})
 

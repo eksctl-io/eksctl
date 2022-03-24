@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -15,11 +16,11 @@ import (
 )
 
 type Cluster interface {
-	Upgrade(dryRun bool) error
-	Delete(waitInterval time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error
+	Upgrade(ctx context.Context, dryRun bool) error
+	Delete(ctx context.Context, waitInterval time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error
 }
 
-func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
+func New(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
 	clusterExists := true
 	if err := ctl.RefreshClusterStatusIfStale(cfg); err != nil {
 		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); ok &&
@@ -31,7 +32,7 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
-	clusterStack, err := stackManager.GetClusterStackIfExists()
+	clusterStack, err := stackManager.GetClusterStackIfExists(ctx)
 	if err != nil {
 		return nil, err
 	}

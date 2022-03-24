@@ -264,8 +264,8 @@ func sharedTags(cluster *awseks.Cluster) map[string]string {
 // LoadClusterIntoSpecFromStack uses stack information to load the cluster
 // configuration into the spec
 // At the moment VPC and KubernetesNetworkConfig are respected
-func (c *ClusterProvider) LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, stackManager manager.StackManager) error {
-	if err := c.LoadClusterVPC(spec, stackManager); err != nil {
+func (c *ClusterProvider) LoadClusterIntoSpecFromStack(ctx context.Context, spec *api.ClusterConfig, stackManager manager.StackManager) error {
+	if err := c.LoadClusterVPC(ctx, spec, stackManager); err != nil {
 		return err
 	}
 	if err := c.RefreshClusterStatus(spec); err != nil {
@@ -275,8 +275,8 @@ func (c *ClusterProvider) LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, 
 }
 
 // LoadClusterVPC loads the VPC configuration
-func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig, stackManager manager.StackManager) error {
-	stack, err := stackManager.DescribeClusterStack()
+func (c *ClusterProvider) LoadClusterVPC(ctx context.Context, spec *api.ClusterConfig, stackManager manager.StackManager) error {
+	stack, err := stackManager.DescribeClusterStack(ctx)
 	if err != nil {
 		return err
 	}
@@ -303,7 +303,7 @@ func (c *ClusterProvider) loadClusterKubernetesNetworkConfig(spec *api.ClusterCo
 }
 
 // GetCluster display details of an EKS cluster in your account
-func (c *ClusterProvider) GetCluster(clusterName string) (*awseks.Cluster, error) {
+func (c *ClusterProvider) GetCluster(ctx context.Context, clusterName string) (*awseks.Cluster, error) {
 	input := &awseks.DescribeClusterInput{
 		Name: &clusterName,
 	}
@@ -317,7 +317,7 @@ func (c *ClusterProvider) GetCluster(clusterName string) (*awseks.Cluster, error
 	if *output.Cluster.Status == awseks.ClusterStatusActive {
 		if logger.Level >= 4 {
 			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: clusterName}}
-			stacks, err := c.NewStackManager(spec).ListStacks()
+			stacks, err := c.NewStackManager(spec).ListStacks(ctx)
 			if err != nil {
 				return nil, errors.Wrapf(err, "listing CloudFormation stack for %q", clusterName)
 			}

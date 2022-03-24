@@ -1,12 +1,13 @@
 package addon_test
 
 import (
+	"context"
 	"fmt"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -46,15 +47,16 @@ var _ = Describe("Delete", func() {
 				ClusterName: aws.String("my-cluster"),
 			}).Return(&awseks.DeleteAddonOutput{}, nil)
 
-			fakeStackManager.DescribeStackReturns(&cloudformation.Stack{StackName: aws.String("eksctl-my-cluster-addon-my-addon")}, nil)
+			fakeStackManager.DescribeStackReturns(&types.Stack{StackName: aws.String("eksctl-my-cluster-addon-my-addon")}, nil)
 
-			err := manager.Delete(&api.Addon{
+			err := manager.Delete(context.TODO(), &api.Addon{
 				Name: "my-addon",
 			})
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
-			Expect(*fakeStackManager.DeleteStackBySpecArgsForCall(0).StackName).To(Equal("eksctl-my-cluster-addon-my-addon"))
+			_, stack := fakeStackManager.DeleteStackBySpecArgsForCall(0)
+			Expect(*stack.StackName).To(Equal("eksctl-my-cluster-addon-my-addon"))
 		})
 
 		When("delete addon fails", func() {
@@ -64,7 +66,7 @@ var _ = Describe("Delete", func() {
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, fmt.Errorf("foo"))
 
-				err := manager.Delete(&api.Addon{
+				err := manager.Delete(context.TODO(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -81,7 +83,7 @@ var _ = Describe("Delete", func() {
 
 				fakeStackManager.DescribeStackReturns(nil, fmt.Errorf("foo"))
 
-				err := manager.Delete(&api.Addon{
+				err := manager.Delete(context.TODO(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -97,17 +99,18 @@ var _ = Describe("Delete", func() {
 				}).Return(&awseks.DeleteAddonOutput{}, nil)
 
 				fakeStackManager.DeleteStackBySpecReturns(nil, fmt.Errorf("foo"))
-				fakeStackManager.DescribeStackReturns(&cloudformation.Stack{
+				fakeStackManager.DescribeStackReturns(&types.Stack{
 					StackName: aws.String("eksctl-my-cluster-addon-my-addon"),
 				}, nil)
 
-				err := manager.Delete(&api.Addon{
+				err := manager.Delete(context.TODO(), &api.Addon{
 					Name: "my-addon",
 				})
 
 				Expect(err).To(MatchError(`failed to delete cloudformation stack "eksctl-my-cluster-addon-my-addon": foo`))
 				Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
-				Expect(*fakeStackManager.DeleteStackBySpecArgsForCall(0).StackName).To(Equal("eksctl-my-cluster-addon-my-addon"))
+				_, stack := fakeStackManager.DeleteStackBySpecArgsForCall(0)
+				Expect(*stack.StackName).To(Equal("eksctl-my-cluster-addon-my-addon"))
 			})
 		})
 
@@ -120,7 +123,7 @@ var _ = Describe("Delete", func() {
 
 				fakeStackManager.DescribeStackReturns(nil, errors.Wrap(awserr.New("ValidationError", "test-err", nil), "nope"))
 
-				err := manager.Delete(&api.Addon{
+				err := manager.Delete(context.TODO(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -137,16 +140,17 @@ var _ = Describe("Delete", func() {
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, awserr.New(awseks.ErrCodeResourceNotFoundException, "", nil))
 
-				fakeStackManager.DescribeStackReturns(&cloudformation.Stack{StackName: aws.String("eksctl-my-cluster-addon-my-addon")}, nil)
+				fakeStackManager.DescribeStackReturns(&types.Stack{StackName: aws.String("eksctl-my-cluster-addon-my-addon")}, nil)
 
-				err := manager.Delete(&api.Addon{
+				err := manager.Delete(context.TODO(), &api.Addon{
 					Name: "my-addon",
 				})
 
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
-				Expect(*fakeStackManager.DeleteStackBySpecArgsForCall(0).StackName).To(Equal("eksctl-my-cluster-addon-my-addon"))
+				_, stack := fakeStackManager.DeleteStackBySpecArgsForCall(0)
+				Expect(*stack.StackName).To(Equal("eksctl-my-cluster-addon-my-addon"))
 			})
 		})
 
@@ -158,7 +162,7 @@ var _ = Describe("Delete", func() {
 				}).Return(&awseks.DeleteAddonOutput{}, awserr.New(awseks.ErrCodeResourceNotFoundException, "", nil))
 
 				fakeStackManager.DescribeStackReturns(nil, errors.Wrap(awserr.New("ValidationError", "test-err", nil), "nope"))
-				err := manager.Delete(&api.Addon{
+				err := manager.Delete(context.TODO(), &api.Addon{
 					Name: "my-addon",
 				})
 
