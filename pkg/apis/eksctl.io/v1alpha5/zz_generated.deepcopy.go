@@ -1015,6 +1015,7 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		*out = new(string)
 		**out = **in
 	}
+<<<<<<< HEAD
 	if in.PropagateASGTags != nil {
 		in, out := &in.PropagateASGTags, &out.PropagateASGTags
 		*out = new(bool)
@@ -1025,6 +1026,8 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		*out = new(bool)
 		**out = **in
 	}
+=======
+>>>>>>> a155a0d8 (Update generated files)
 	if in.MaxInstanceLifetime != nil {
 		in, out := &in.MaxInstanceLifetime, &out.MaxInstanceLifetime
 		*out = new(int)
@@ -1154,6 +1157,11 @@ func (in *NodeGroupBase) DeepCopyInto(out *NodeGroupBase) {
 	if in.OverrideBootstrapCommand != nil {
 		in, out := &in.OverrideBootstrapCommand, &out.OverrideBootstrapCommand
 		*out = new(string)
+		**out = **in
+	}
+	if in.DisableASGTagPropagation != nil {
+		in, out := &in.DisableASGTagPropagation, &out.DisableASGTagPropagation
+		*out = new(bool)
 		**out = **in
 	}
 	if in.DisableIMDSv1 != nil {

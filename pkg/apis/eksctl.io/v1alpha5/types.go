@@ -997,10 +997,6 @@ type NodeGroup struct {
 	// +optional
 	ContainerRuntime *string `json:"containerRuntime,omitempty"`
 
-	// Propagate all taints and labels to the ASG automatically.
-	// +optional
-	PropagateASGTags *bool `json:"propagateASGTags,omitempty"`
-
 	// MaxInstanceLifetime defines the maximum amount of time in seconds an instance stays alive.
 	// +optional
 	MaxInstanceLifetime *int `json:"maxInstanceLifetime,omitempty"`
@@ -1364,10 +1360,9 @@ type NodeGroupBase struct {
 	// +optional
 	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
 
-	// DisableASGTagPropagation disables the tag propagation to ASG in case desired capacity is 0.
-	// Defaults to `false`
+	// Propagate all taints and labels to the ASG automatically.
 	// +optional
-	DisableASGTagPropagation *bool `json:"disableASGTagPropagation,omitempty"`
+	PropagateASGTags *bool `json:"propagateASGTags,omitempty"`
 
 	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
 	// Defaults to `false`
