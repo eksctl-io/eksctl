@@ -141,7 +141,9 @@ generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (requi
 	go generate ./pkg/nodebootstrap
 	go generate ./pkg/addons
 	go generate ./pkg/authconfigmap
+	go generate ./pkg/awsapi/...
 	go generate ./pkg/eks
+	go generate ./pkg/eks/mocksv2
 	go generate ./pkg/drain
 	go generate ./pkg/actions/...
 	go generate ./pkg/executor
@@ -172,7 +174,7 @@ deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(ge
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) ## Generate Kubernetes API helpers
 	build/scripts/update-codegen.sh
 
-$(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go) ## Generate aws sdk mocks
+$(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go) ## Generate AWS SDK mocks
 	AWS_SDK_GO_DIR=$(AWS_SDK_GO_DIR) go generate ./pkg/eks/mocks
 
 .PHONY: generate-kube-reserved

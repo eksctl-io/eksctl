@@ -4,6 +4,7 @@
 package tests
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -11,7 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
+
 	. "github.com/onsi/ginkgo"
 
 	"github.com/weaveworks/eksctl/integration/runner"
@@ -245,7 +247,7 @@ func (p *Params) attemptSettingUserID() {
 		return
 	}
 
-	out, err := clusterProvider.Provider.STS().GetCallerIdentity(&sts.GetCallerIdentityInput{})
+	out, err := clusterProvider.Provider.STSV2().GetCallerIdentity(context.TODO(), &sts.GetCallerIdentityInput{})
 	if err != nil {
 		fmt.Fprintf(GinkgoWriter, msg, err)
 		return
