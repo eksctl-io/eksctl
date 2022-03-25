@@ -5,7 +5,7 @@ package version
 // Version is the version number in semver format X.Y.Z
 var Version = "0.89.0"
 
-// PreReleaseID can be empty for releases, "rc.X" for release candidates and "dev" for snapshots
+// PreReleaseID can be empty for releases, "rc.X" for release candidates and "dev" for snapshots.
 var PreReleaseID = ""
 
 // gitCommit is the short commit hash. It will be set by the linker.
