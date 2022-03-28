@@ -1424,6 +1424,11 @@
           "x-intellij-html-description": "Enable <a href=\"/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup\">private networking</a> for nodegroup",
           "default": "false"
         },
+        "propagateASGTags": {
+          "type": "boolean",
+          "description": "Propagate all taints and labels to the ASG automatically.",
+          "x-intellij-html-description": "Propagate all taints and labels to the ASG automatically."
+        },
         "securityGroups": {
           "$ref": "#/definitions/NodeGroupSGs"
         },
@@ -1550,6 +1555,7 @@
         "clusterDNS",
         "kubeletExtraConfig",
         "containerRuntime",
+        "propagateASGTags",
         "disableASGTagPropagation",
         "maxInstanceLifetime"
       ],
