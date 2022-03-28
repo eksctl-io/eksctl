@@ -2,9 +2,14 @@ package connector
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"strings"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/service/sts"
+
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 
 	"github.com/aws/aws-sdk-go/aws"
 	awsarn "github.com/aws/aws-sdk-go/aws/arn"
@@ -13,14 +18,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"github.com/cenk/backoff"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"sigs.k8s.io/aws-iam-authenticator/pkg/arn"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
-	"sigs.k8s.io/aws-iam-authenticator/pkg/arn"
 )
 
 const (
@@ -40,7 +44,7 @@ type EKSConnector struct {
 
 type provider interface {
 	EKS() eksiface.EKSAPI
-	STS() stsiface.STSAPI
+	STSV2() awsapi.STS
 	IAM() iamiface.IAMAPI
 	Region() string
 }
@@ -57,7 +61,7 @@ var ValidProviders = eks.ConnectorConfigProvider_Values
 
 // RegisterCluster registers the specified external cluster with EKS and returns a list of Kubernetes resources
 // for EKS Connector.
-func (c *EKSConnector) RegisterCluster(cluster ExternalCluster) (*ManifestList, error) {
+func (c *EKSConnector) RegisterCluster(ctx context.Context, cluster ExternalCluster) (*ManifestList, error) {
 	cluster.Provider = strings.ToUpper(cluster.Provider)
 	if err := validateProvider(cluster.Provider); err != nil {
 		return nil, err
@@ -94,11 +98,11 @@ func (c *EKSConnector) RegisterCluster(cluster ExternalCluster) (*ManifestList, 
 		}
 		return nil, errors.Wrap(err, "error calling RegisterCluster")
 	}
-	return c.createManifests(registerOutput.Cluster)
+	return c.createManifests(ctx, registerOutput.Cluster)
 }
 
-func (c *EKSConnector) createManifests(cluster *eks.Cluster) (*ManifestList, error) {
-	stsOutput, err := c.Provider.STS().GetCallerIdentity(&sts.GetCallerIdentityInput{})
+func (c *EKSConnector) createManifests(ctx context.Context, cluster *eks.Cluster) (*ManifestList, error) {
+	stsOutput, err := c.Provider.STSV2().GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
 		return nil, err
 	}

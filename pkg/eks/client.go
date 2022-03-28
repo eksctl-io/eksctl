@@ -40,6 +40,7 @@ func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
 	client := &Client{
 		Config: config,
 	}
+	// TODO: Eliminating usage of aws/aws-sdk-go (v1) STS is blocked on sigs.k8s.io/aws-iam-authenticator/pkg/token (https://github.com/weaveworks/eksctl/issues/4993)
 	return client.new(spec, c.Provider.STS())
 }
 
@@ -61,7 +62,10 @@ func (c *Client) new(spec *api.ClusterConfig, stsClient stsiface.STSAPI) (*Clien
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create API client configuration from client config")
 	}
+
 	c.rawConfig = rawConfig
+	c.rawConfig.QPS = float32(25)
+	c.rawConfig.Burst = int(c.rawConfig.QPS) * 2
 
 	return c, nil
 }
