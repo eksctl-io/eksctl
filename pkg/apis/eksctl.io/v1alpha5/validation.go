@@ -112,6 +112,9 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		if err := validateNg(ng.NodeGroupBase, path); err != nil {
 			return err
 		}
+		if ng.DisableASGTagPropagation != nil {
+			logger.Warning("field DisableASGTagPropagation for nodegroup has been deprecated and has no effect. Please use PropagateASGTags instead for nodegroup %s!", ng.Name)
+		}
 	}
 
 	for i, ng := range cfg.ManagedNodeGroups {

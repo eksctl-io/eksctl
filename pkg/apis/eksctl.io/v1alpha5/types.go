@@ -992,6 +992,10 @@ type NodeGroup struct {
 	// +optional
 	ContainerRuntime *string `json:"containerRuntime,omitempty"`
 
+	// Propagate all taints and labels to the ASG automatically.
+	// +optional
+	PropagateASGTags *bool `json:"propagateASGTags,omitempty"`
+
 	// DisableASGTagPropagation disable the tag propagation in case desired capacity is 0.
 	// +optional
 	DisableASGTagPropagation *bool `json:"disableASGTagPropagation,omitempty"`
