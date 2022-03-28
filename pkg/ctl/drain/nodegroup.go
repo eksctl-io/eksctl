@@ -15,26 +15,30 @@ import (
 )
 
 func drainNodeGroupCmd(cmd *cmdutils.Cmd) {
-	drainNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, disableEviction bool) error {
-		return doDrainNodeGroup(cmd, ng, undo, onlyMissing, maxGracePeriod, nodeDrainWaitPeriod, disableEviction)
+	drainNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, disableEviction bool, parallel int) error {
+		return doDrainNodeGroup(cmd, ng, undo, onlyMissing, maxGracePeriod, nodeDrainWaitPeriod, disableEviction, parallel)
 	})
 }
 
-func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, disableEviction bool) error) {
+func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, disableEviction bool, parallel int) error) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
-	var undo, onlyMissing bool
-	var maxGracePeriod time.Duration
-	var nodeDrainWaitPeriod time.Duration
-	var disableEviction bool
+	var (
+		undo                bool
+		onlyMissing         bool
+		disableEviction     bool
+		parallel            int
+		maxGracePeriod      time.Duration
+		nodeDrainWaitPeriod time.Duration
+	)
 
 	cmd.SetDescription("nodegroup", "Cordon and drain a nodegroup", "", "ng")
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return runFunc(cmd, ng, undo, onlyMissing, maxGracePeriod, nodeDrainWaitPeriod, disableEviction)
+		return runFunc(cmd, ng, undo, onlyMissing, maxGracePeriod, nodeDrainWaitPeriod, disableEviction, parallel)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -52,15 +56,16 @@ func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 		fs.BoolVar(&disableEviction, "disable-eviction", defaultDisableEviction, "Force drain to use delete, even if eviction is supported. This will bypass checking PodDisruptionBudgets, use with caution.")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 		fs.DurationVar(&nodeDrainWaitPeriod, "node-drain-wait-period", 0, "Amount of time to wait between draining nodes in a nodegroup")
+		fs.IntVar(&parallel, "parallel", 1, "Number of nodes to drain in parallel. Max 25")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
 }
 
-func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, disableEviction bool) error {
+func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool, maxGracePeriod, nodeDrainWaitPeriod time.Duration, disableEviction bool, parallel int) error {
 	ngFilter := filter.NewNodeGroupFilter()
 
-	if err := cmdutils.NewDeleteNodeGroupLoader(cmd, ng, ngFilter).Load(); err != nil {
+	if err := cmdutils.NewDeleteAndDrainNodeGroupLoader(cmd, ng, ngFilter).Load(); err != nil {
 		return err
 	}
 
@@ -126,6 +131,7 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 		NodeDrainWaitPeriod: nodeDrainWaitPeriod,
 		Undo:                undo,
 		DisableEviction:     disableEviction,
+		Parallel:            parallel,
 	}
 	return nodegroup.New(cfg, ctl, clientSet).Drain(drainInput)
 }

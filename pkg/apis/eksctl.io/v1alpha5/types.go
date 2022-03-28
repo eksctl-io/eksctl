@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
 
 	"github.com/aws/aws-sdk-go/aws/client"
@@ -666,6 +668,8 @@ type ClusterProvider interface {
 	WaitTimeout() time.Duration
 	ConfigProvider() client.ConfigProvider
 	Session() *session.Session
+
+	STSV2() awsapi.STS
 }
 
 // ProviderConfig holds global parameters for all interactions with AWS APIs

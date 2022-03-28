@@ -112,7 +112,7 @@ var _ = Describe("Delete", func() {
 				return fakeClientSet, nil
 			})
 
-			err := c.Delete(time.Microsecond, false, false, false)
+			err := c.Delete(time.Microsecond, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
@@ -177,6 +177,7 @@ var _ = Describe("Delete", func() {
 				mockedDrainInput := &nodegroup.DrainInput{
 					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
 					MaxGracePeriod: ctl.Provider.WaitTimeout(),
+					Parallel:       1,
 				}
 
 				mockedDrainer := &drainerMockOwned{}
@@ -185,7 +186,7 @@ var _ = Describe("Delete", func() {
 					return mockedDrainer
 				})
 
-				err := c.Delete(time.Microsecond, false, true, false)
+				err := c.Delete(time.Microsecond, false, true, false, 1)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 				Expect(ranDeleteDeprecatedTasks).To(BeFalse())
@@ -241,6 +242,7 @@ var _ = Describe("Delete", func() {
 				mockedDrainInput := &nodegroup.DrainInput{
 					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
 					MaxGracePeriod: ctl.Provider.WaitTimeout(),
+					Parallel:       1,
 				}
 				ctl.Status = &eks.ProviderStatus{
 					ClusterInfo: &eks.ClusterInfo{
@@ -257,7 +259,7 @@ var _ = Describe("Delete", func() {
 					return mockedDrainer
 				})
 
-				err := c.Delete(time.Microsecond, false, false, false)
+				err := c.Delete(time.Microsecond, false, false, false, 1)
 				Expect(err).To(MatchError(errorMessage))
 				Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(0))
 				Expect(ranDeleteDeprecatedTasks).To(BeFalse())
@@ -298,7 +300,7 @@ var _ = Describe("Delete", func() {
 
 			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
 
-			err := c.Delete(time.Microsecond, false, false, false)
+			err := c.Delete(time.Microsecond, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
