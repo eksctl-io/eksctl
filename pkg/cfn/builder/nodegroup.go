@@ -265,9 +265,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		)
 	}
 
-	// not using aws.IntValue because it's not a required field
-	// and aws.IntValue would result in 0 if it's nil.
-	if n.spec.DesiredCapacity != nil && *n.spec.DesiredCapacity == 0 {
+	if api.IsEnabled(n.spec.PropagateASGTags) {
 		clusterTags, err := generateClusterAutoscalerTags(n.spec)
 		if err != nil {
 			return err
@@ -285,9 +283,6 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 }
 
 func generateClusterAutoscalerTags(spec *api.NodeGroup) ([]map[string]interface{}, error) {
-	if api.IsEnabled(spec.DisableASGTagPropagation) {
-		return nil, nil
-	}
 	result := make([]map[string]interface{}, 0)
 	duplicates := make(map[string]string)
 
