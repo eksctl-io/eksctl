@@ -1,10 +1,12 @@
 package eks_test
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo"
@@ -98,7 +100,7 @@ var _ = Describe("eksctl API", func() {
 		})
 
 		testEnsureAMI := func(matcher gomegatypes.GomegaMatcher) {
-			err := ResolveAMI(provider, "1.14", ng)
+			err := ResolveAMI(context.Background(), provider, "1.14", ng)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 			ExpectWithOffset(1, ng.AMI).To(matcher)
 		}
@@ -137,7 +139,7 @@ var _ = Describe("eksctl API", func() {
 })
 
 func mockDescribeImages(p *mockprovider.MockProvider, amiID string, matcher func(*ec2.DescribeImagesInput) bool) {
-	p.MockEC2().On("DescribeImages", mock.MatchedBy(matcher)).
+	p.MockEC2().On("DescribeImagesWithContext", mock.Anything, mock.MatchedBy(matcher)).
 		Return(&ec2.DescribeImagesOutput{
 			Images: []*ec2.Image{
 				{

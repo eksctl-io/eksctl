@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/weaveworks/eksctl/pkg/awsapi"
-
 	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -14,6 +12,7 @@ import (
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 )
@@ -26,7 +25,7 @@ type SSMResolver struct {
 
 // Resolve will return an AMI to use based on the default AMI for
 // each region
-func (r *SSMResolver) Resolve(region, version, instanceType, imageFamily string) (string, error) {
+func (r *SSMResolver) Resolve(ctx context.Context, region, version, instanceType, imageFamily string) (string, error) {
 	logger.Debug("resolving AMI using SSM Parameter resolver for region %s, instanceType %s and imageFamily %s", region, instanceType, imageFamily)
 
 	parameterName, err := MakeSSMParameterName(version, instanceType, imageFamily)
@@ -34,7 +33,7 @@ func (r *SSMResolver) Resolve(region, version, instanceType, imageFamily string)
 		return "", err
 	}
 
-	output, err := r.ssmAPI.GetParameter(context.TODO(), &ssm.GetParameterInput{
+	output, err := r.ssmAPI.GetParameter(ctx, &ssm.GetParameterInput{
 		Name: aws.String(parameterName),
 	})
 	if err != nil {

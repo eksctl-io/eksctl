@@ -2,6 +2,7 @@
 package fakes
 
 import (
+	"context"
 	"sync"
 
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -56,11 +57,12 @@ type FakeNodeGroupInitialiser struct {
 	newAWSSelectorSessionArgsForCall []struct {
 		arg1 v1alpha5.ClusterProvider
 	}
-	NormalizeStub        func([]v1alpha5.NodePool, *v1alpha5.ClusterMeta) error
+	NormalizeStub        func(context.Context, []v1alpha5.NodePool, *v1alpha5.ClusterMeta) error
 	normalizeMutex       sync.RWMutex
 	normalizeArgsForCall []struct {
-		arg1 []v1alpha5.NodePool
-		arg2 *v1alpha5.ClusterMeta
+		arg1 context.Context
+		arg2 []v1alpha5.NodePool
+		arg3 *v1alpha5.ClusterMeta
 	}
 	normalizeReturns struct {
 		result1 error
@@ -328,24 +330,25 @@ func (fake *FakeNodeGroupInitialiser) NewAWSSelectorSessionArgsForCall(i int) v1
 	return argsForCall.arg1
 }
 
-func (fake *FakeNodeGroupInitialiser) Normalize(arg1 []v1alpha5.NodePool, arg2 *v1alpha5.ClusterMeta) error {
-	var arg1Copy []v1alpha5.NodePool
-	if arg1 != nil {
-		arg1Copy = make([]v1alpha5.NodePool, len(arg1))
-		copy(arg1Copy, arg1)
+func (fake *FakeNodeGroupInitialiser) Normalize(arg1 context.Context, arg2 []v1alpha5.NodePool, arg3 *v1alpha5.ClusterMeta) error {
+	var arg2Copy []v1alpha5.NodePool
+	if arg2 != nil {
+		arg2Copy = make([]v1alpha5.NodePool, len(arg2))
+		copy(arg2Copy, arg2)
 	}
 	fake.normalizeMutex.Lock()
 	ret, specificReturn := fake.normalizeReturnsOnCall[len(fake.normalizeArgsForCall)]
 	fake.normalizeArgsForCall = append(fake.normalizeArgsForCall, struct {
-		arg1 []v1alpha5.NodePool
-		arg2 *v1alpha5.ClusterMeta
-	}{arg1Copy, arg2})
+		arg1 context.Context
+		arg2 []v1alpha5.NodePool
+		arg3 *v1alpha5.ClusterMeta
+	}{arg1, arg2Copy, arg3})
 	stub := fake.NormalizeStub
 	fakeReturns := fake.normalizeReturns
-	fake.recordInvocation("Normalize", []interface{}{arg1Copy, arg2})
+	fake.recordInvocation("Normalize", []interface{}{arg1, arg2Copy, arg3})
 	fake.normalizeMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
@@ -359,17 +362,17 @@ func (fake *FakeNodeGroupInitialiser) NormalizeCallCount() int {
 	return len(fake.normalizeArgsForCall)
 }
 
-func (fake *FakeNodeGroupInitialiser) NormalizeCalls(stub func([]v1alpha5.NodePool, *v1alpha5.ClusterMeta) error) {
+func (fake *FakeNodeGroupInitialiser) NormalizeCalls(stub func(context.Context, []v1alpha5.NodePool, *v1alpha5.ClusterMeta) error) {
 	fake.normalizeMutex.Lock()
 	defer fake.normalizeMutex.Unlock()
 	fake.NormalizeStub = stub
 }
 
-func (fake *FakeNodeGroupInitialiser) NormalizeArgsForCall(i int) ([]v1alpha5.NodePool, *v1alpha5.ClusterMeta) {
+func (fake *FakeNodeGroupInitialiser) NormalizeArgsForCall(i int) (context.Context, []v1alpha5.NodePool, *v1alpha5.ClusterMeta) {
 	fake.normalizeMutex.RLock()
 	defer fake.normalizeMutex.RUnlock()
 	argsForCall := fake.normalizeArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeNodeGroupInitialiser) NormalizeReturns(result1 error) {

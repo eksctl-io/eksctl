@@ -1,8 +1,11 @@
 package ami_test
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
+
 	"github.com/aws/aws-sdk-go/aws"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -46,7 +49,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						p = mockprovider.NewMockProvider()
 						addMockGetParameter(p, "/aws/service/eks/optimized-ami/1.12/amazon-linux-2/recommended/image_id", expectedAmi)
 						resolver := NewSSMResolver(p.MockSSM())
-						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 					})
 
 					It("should not error", func() {
@@ -69,7 +72,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						addMockFailedGetParameter(p, "/aws/service/eks/optimized-ami/1.12/amazon-linux-2/recommended/image_id")
 
 						resolver := NewSSMResolver(p.MockSSM())
-						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 					})
 
 					It("should return an error", func() {
@@ -98,7 +101,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						p = mockprovider.NewMockProvider()
 						addMockGetParameter(p, "/aws/service/eks/optimized-ami/1.12/amazon-linux-2-gpu/recommended/image_id", expectedAmi)
 						resolver := NewSSMResolver(p.MockSSM())
-						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 					})
 
 					It("should not error", func() {
@@ -131,7 +134,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						addMockGetParameter(p, "/aws/service/ami-windows-latest/Windows_Server-2019-English-Full-EKS_Optimized-1.14/image_id", expectedAmi)
 
 						resolver := NewSSMResolver(p.MockSSM())
-						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 
 						Expect(err).NotTo(HaveOccurred())
 						Expect(resolvedAmi).To(BeEquivalentTo(expectedAmi))
@@ -143,7 +146,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						addMockGetParameter(p, "/aws/service/ami-windows-latest/Windows_Server-2019-English-Core-EKS_Optimized-1.15/image_id", expectedAmi)
 
 						resolver := NewSSMResolver(p.MockSSM())
-						resolvedAmi, err = resolver.Resolve(region, "1.15", instanceType, imageFamily)
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, "1.15", instanceType, imageFamily)
 
 						Expect(err).NotTo(HaveOccurred())
 						Expect(resolvedAmi).To(BeEquivalentTo(expectedAmi))
@@ -152,7 +155,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 					It("should return an error for versions below 1.14", func() {
 						resolver := NewSSMResolver(p.MockSSM())
-						resolvedAmi, err = resolver.Resolve(region, "1.13", instanceType, imageFamily)
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, "1.13", instanceType, imageFamily)
 
 						Expect(err).To(HaveOccurred())
 					})
@@ -169,7 +172,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						addMockGetParameter(p, "/aws/service/ami-windows-latest/Windows_Server-20H2-English-Core-EKS_Optimized-1.21/image_id", expectedAmi)
 
 						resolver := NewSSMResolver(p.MockSSM())
-						resolvedAmi, err = resolver.Resolve(region, "1.21", instanceType, "WindowsServer20H2CoreContainer")
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, "1.21", instanceType, "WindowsServer20H2CoreContainer")
 
 						Expect(err).NotTo(HaveOccurred())
 						Expect(resolvedAmi).To(BeEquivalentTo(expectedAmi))
@@ -178,7 +181,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 					It("should return an error for EKS versions below 1.21", func() {
 						resolver := NewSSMResolver(p.MockSSM())
-						_, err := resolver.Resolve(region, "1.20", instanceType, "WindowsServer20H2CoreContainer")
+						_, err := resolver.Resolve(context.Background(), region, "1.20", instanceType, "WindowsServer20H2CoreContainer")
 						Expect(err).To(HaveOccurred())
 						Expect(err).To(MatchError(ContainSubstring("Windows Server 20H2 Core requires EKS version 1.21 and above")))
 					})
@@ -193,7 +196,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				It("should return an error", func() {
 					resolver := NewSSMResolver(p.MockSSM())
-					resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+					resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 
 					Expect(err).To(HaveOccurred())
 				})
@@ -211,7 +214,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						p = mockprovider.NewMockProvider()
 						addMockGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.15/x86_64/latest/image_id", expectedAmi)
 						resolver := NewSSMResolver(p.MockSSM())
-						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 					})
 
 					It("should not error", func() {
@@ -233,7 +236,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						addMockFailedGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.15/x86_64/latest/image_id")
 
 						resolver := NewSSMResolver(p.MockSSM())
-						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+						resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 					})
 
 					It("should return an error", func() {
@@ -260,7 +263,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 							p = mockprovider.NewMockProvider()
 							addMockGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.15/arm64/latest/image_id", expectedAmi)
 							resolver := NewSSMResolver(p.MockSSM())
-							resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+							resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 						})
 
 						It("should not error", func() {
@@ -282,7 +285,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 							addMockFailedGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.15/arm64/latest/image_id")
 
 							resolver := NewSSMResolver(p.MockSSM())
-							resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+							resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 						})
 
 						It("should return an error", func() {
@@ -312,7 +315,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 							p = mockprovider.NewMockProvider()
 							addMockGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.21-nvidia/x86_64/latest/image_id", expectedAmi)
 							resolver := NewSSMResolver(p.MockSSM())
-							resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+							resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 						})
 
 						It("does not return an error", func() {
@@ -332,7 +335,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 							addMockFailedGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.21-nvidia/x86_64/latest/image_id")
 
 							resolver := NewSSMResolver(p.MockSSM())
-							resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+							resolvedAmi, err = resolver.Resolve(context.Background(), region, version, instanceType, imageFamily)
 						})
 
 						It("errors", func() {

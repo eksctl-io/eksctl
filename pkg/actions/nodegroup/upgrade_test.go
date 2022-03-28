@@ -1,8 +1,11 @@
 package nodegroup_test
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -83,7 +86,7 @@ var _ = Describe("Upgrade", func() {
 
 			It("upgrades the nodegroup version and lt by calling the API", func() {
 				options.LaunchTemplateVersion = "v2"
-				Expect(m.Upgrade(options)).To(Succeed())
+				Expect(m.Upgrade(context.Background(), options)).To(Succeed())
 			})
 		})
 
@@ -119,7 +122,7 @@ var _ = Describe("Upgrade", func() {
 
 			It("upgrades the nodegroup version and lt by calling the API", func() {
 				options.LaunchTemplateVersion = "v2"
-				Expect(m.Upgrade(options)).To(Succeed())
+				Expect(m.Upgrade(context.Background(), options)).To(Succeed())
 			})
 		})
 	})
@@ -167,7 +170,7 @@ var _ = Describe("Upgrade", func() {
 				})
 
 				It("upgrades the nodegroup with the latest al2 release_version by updating the stack", func() {
-					Expect(m.Upgrade(options)).To(Succeed())
+					Expect(m.Upgrade(context.Background(), options)).To(Succeed())
 					Expect(fakeStackManager.GetManagedNodeGroupTemplateCallCount()).To(Equal(1))
 					Expect(fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0).NodeGroupName).To(Equal(ngName))
 					Expect(fakeStackManager.UpdateNodeGroupStackCallCount()).To(Equal(2))
@@ -228,7 +231,7 @@ var _ = Describe("Upgrade", func() {
 				})
 
 				It("upgrades the nodegroup with the latest al2 release_version by updating the stack", func() {
-					Expect(m.Upgrade(options)).To(Succeed())
+					Expect(m.Upgrade(context.Background(), options)).To(Succeed())
 					Expect(fakeStackManager.GetManagedNodeGroupTemplateCallCount()).To(Equal(1))
 					Expect(fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0).NodeGroupName).To(Equal(ngName))
 					Expect(fakeStackManager.UpdateNodeGroupStackCallCount()).To(Equal(1))
@@ -283,7 +286,7 @@ var _ = Describe("Upgrade", func() {
 				})
 
 				It("upgrades the nodegroup updating the stack with the kubernetes version", func() {
-					Expect(m.Upgrade(options)).To(Succeed())
+					Expect(m.Upgrade(context.Background(), options)).To(Succeed())
 					Expect(fakeStackManager.GetManagedNodeGroupTemplateCallCount()).To(Equal(1))
 					Expect(fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0).NodeGroupName).To(Equal(ngName))
 

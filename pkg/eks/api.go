@@ -335,7 +335,7 @@ func (c *ClusterProvider) checkAuth() error {
 }
 
 // ResolveAMI ensures that the node AMI is set and is available
-func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) error {
+func ResolveAMI(ctx context.Context, provider api.ClusterProvider, version string, np api.NodePool) error {
 	var resolver ami.Resolver
 	ng := np.BaseNodeGroup()
 	switch ng.AMI {
@@ -353,7 +353,7 @@ func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) e
 	}
 
 	instanceType := api.SelectInstanceType(np)
-	id, err := resolver.Resolve(provider.Region(), version, instanceType, ng.AMIFamily)
+	id, err := resolver.Resolve(ctx, provider.Region(), version, instanceType, ng.AMIFamily)
 	if err != nil {
 		return errors.Wrap(err, "unable to determine AMI to use")
 	}
