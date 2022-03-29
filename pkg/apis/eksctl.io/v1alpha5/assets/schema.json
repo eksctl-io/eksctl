@@ -1114,8 +1114,8 @@
             "type": "string"
           },
           "type": "object",
-          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
-          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
           "default": "{}"
         },
         "taints": {
@@ -1458,8 +1458,8 @@
             "type": "string"
           },
           "type": "object",
-          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
-          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
           "default": "{}"
         },
         "taints": {
