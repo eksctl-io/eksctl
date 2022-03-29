@@ -1,6 +1,7 @@
 package delete
 
 import (
+	"context"
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/actions/cluster"
@@ -85,5 +86,7 @@ func doDeleteCluster(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction boo
 		return err
 	}
 
-	return cluster.Delete(time.Second*20, cmd.Wait, force, disableNodegroupEviction, parallel)
+	// ProviderConfig.WaitTimeout is not respected by cluster.Delete, which means the operation will never time out.
+	// When this is fixed, a deadline-based Context can be used here.
+	return cluster.Delete(context.TODO(), time.Second*20, cmd.Wait, force, disableNodegroupEviction, parallel)
 }

@@ -6,7 +6,6 @@ import (
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/pkg/errors"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
@@ -16,6 +15,7 @@ import (
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/vpc"
@@ -31,7 +31,7 @@ type NodeGroupResourceSet struct {
 	spec               *api.NodeGroup
 	forceAddCNIPolicy  bool
 	ec2API             ec2iface.EC2API
-	iamAPI             iamiface.IAMAPI
+	iamAPI             awsapi.IAM
 	instanceProfileARN *gfnt.Value
 	securityGroups     []*gfnt.Value
 	vpc                *gfnt.Value
@@ -40,7 +40,7 @@ type NodeGroupResourceSet struct {
 }
 
 // NewNodeGroupResourceSet returns a resource set for a nodegroup embedded in a cluster config
-func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, ng *api.NodeGroup, bootstrapper nodebootstrap.Bootstrapper, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *NodeGroupResourceSet {
+func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI awsapi.IAM, spec *api.ClusterConfig, ng *api.NodeGroup, bootstrapper nodebootstrap.Bootstrapper, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
 		rs:                newResourceSet(),
 		forceAddCNIPolicy: forceAddCNIPolicy,

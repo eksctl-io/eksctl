@@ -13,7 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -69,15 +68,16 @@ type StackCollection struct {
 	cloudformationAPI cloudformationiface.CloudFormationAPI
 	ec2API            ec2iface.EC2API
 	eksAPI            eksiface.EKSAPI
-	iamAPI            iamiface.IAMAPI
+	iamAPI            awsapi.IAM
 	cloudTrailAPI     awsapi.CloudTrail
 	asgAPI            awsapi.ASG
-	spec              *api.ClusterConfig
-	disableRollback   bool
-	roleARN           string
-	region            string
-	waitTimeout       time.Duration
-	sharedTags        []*cloudformation.Tag
+
+	spec            *api.ClusterConfig
+	disableRollback bool
+	roleARN         string
+	region          string
+	waitTimeout     time.Duration
+	sharedTags      []*cloudformation.Tag
 }
 
 func newTag(key, value string) *cloudformation.Tag {

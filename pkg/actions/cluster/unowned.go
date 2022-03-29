@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -54,7 +55,7 @@ func (c *UnownedCluster) Upgrade(dryRun bool) error {
 	return nil
 }
 
-func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error {
+func (c *UnownedCluster) Delete(ctx context.Context, waitInterval time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error {
 	clusterName := c.cfg.Metadata.Name
 
 	if err := c.checkClusterExists(clusterName); err != nil {
@@ -108,7 +109,7 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force, disable
 		return err
 	}
 
-	if err := c.deleteIAMAndOIDC(wait, clusterOperable, clientSet); err != nil {
+	if err := c.deleteIAMAndOIDC(ctx, wait, clusterOperable, clientSet); err != nil {
 		if err != nil {
 			if force {
 				logger.Warning("error occurred during deletion: %v", err)
@@ -159,7 +160,7 @@ func (c *UnownedCluster) checkClusterExists(clusterName string) error {
 	return nil
 }
 
-func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clusterOperable bool, clientSet kubernetes.Interface) error {
+func (c *UnownedCluster) deleteIAMAndOIDC(ctx context.Context, wait bool, clusterOperable bool, clientSet kubernetes.Interface) error {
 	var oidc *iamoidc.OpenIDConnectManager
 	oidcSupported := true
 
@@ -178,7 +179,7 @@ func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clusterOperable bool, clien
 
 	if clusterOperable && oidcSupported {
 		clientSetGetter := kubernetes.NewCachedClientSet(clientSet)
-		serviceAccountAndOIDCTasks, err := c.stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc, clientSetGetter)
+		serviceAccountAndOIDCTasks, err := c.stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(ctx, oidc, clientSetGetter)
 		if err != nil {
 			return err
 		}

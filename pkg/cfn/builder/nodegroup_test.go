@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo"
@@ -30,7 +32,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 		fakeVPCImporter   *vpcfakes.FakeImporter
 		fakeBootstrapper  *bootstrapfakes.FakeBootstrapper
 		mockEC2           = &mocks.EC2API{}
-		mockIAM           = &mocks.IAMAPI{}
+		mockIAM           = &mocksv2.IAM{}
 	)
 
 	BeforeEach(func() {

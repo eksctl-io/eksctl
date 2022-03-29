@@ -1,6 +1,7 @@
 package update
 
 import (
+	"context"
 	"errors"
 
 	"github.com/kris-nova/logger"
@@ -84,7 +85,7 @@ func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	providerExists, err := oidc.CheckProviderExists()
+	providerExists, err := oidc.CheckProviderExists(context.TODO())
 	if err != nil {
 		return err
 	}

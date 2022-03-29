@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"context"
 	"time"
 
 	"github.com/kris-nova/logger"
@@ -64,7 +65,7 @@ func (c *OwnedCluster) Upgrade(dryRun bool) error {
 	return nil
 }
 
-func (c *OwnedCluster) Delete(_ time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error {
+func (c *OwnedCluster) Delete(ctx context.Context, _ time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error {
 	var (
 		clientSet kubernetes.Interface
 		oidc      *iamoidc.OpenIDConnectManager
@@ -126,7 +127,7 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force, disableNodegroupEvic
 	}
 
 	deleteOIDCProvider := clusterOperable && oidcSupported
-	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(c.clusterStack, allStacks, deleteOIDCProvider, oidc, kubernetes.NewCachedClientSet(clientSet), wait, func(errs chan error, _ string) error {
+	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(ctx, c.clusterStack, allStacks, deleteOIDCProvider, oidc, kubernetes.NewCachedClientSet(clientSet), wait, func(errs chan error, _ string) error {
 		logger.Info("trying to cleanup dangling network interfaces")
 		if err := c.ctl.LoadClusterVPC(c.cfg, c.stackManager); err != nil {
 			return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)

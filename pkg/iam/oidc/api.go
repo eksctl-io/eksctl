@@ -1,16 +1,19 @@
 package iamoidc
 
 import (
+	"context"
 	"crypto/sha1"
 	"crypto/tls"
 	"fmt"
 	"net/http"
 	"net/url"
 
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
+
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	awsiam "github.com/aws/aws-sdk-go/service/iam"
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/pkg/errors"
 
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
@@ -31,12 +34,12 @@ type OpenIDConnectManager struct {
 
 	ProviderARN string
 
-	iam iamiface.IAMAPI
+	iam awsapi.IAM
 }
 
 // NewOpenIDConnectManager constructs a new IAM OIDC manager instance.
 // It returns an error if the issuer URL is invalid
-func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer, partition string, tags map[string]string) (*OpenIDConnectManager, error) {
+func NewOpenIDConnectManager(iamapi awsapi.IAM, accountID, issuer, partition string, tags map[string]string) (*OpenIDConnectManager, error) {
 	issuerURL, err := url.Parse(issuer)
 	if err != nil {
 		return nil, errors.Wrapf(err, "parsing OIDC issuer URL")
@@ -63,16 +66,16 @@ func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer, partitio
 
 // CheckProviderExists will return true when the provider exists, it may return errors
 // if it was unable to call IAM API
-func (m *OpenIDConnectManager) CheckProviderExists() (bool, error) {
-	input := &awsiam.GetOpenIDConnectProviderInput{
+func (m *OpenIDConnectManager) CheckProviderExists(ctx context.Context) (bool, error) {
+	input := &iam.GetOpenIDConnectProviderInput{
 		OpenIDConnectProviderArn: aws.String(
 			fmt.Sprintf("arn:%s:iam::%s:oidc-provider/%s", m.partition, m.accountID, m.hostnameAndPath()),
 		),
 	}
-	_, err := m.iam.GetOpenIDConnectProvider(input)
+	_, err := m.iam.GetOpenIDConnectProvider(ctx, input)
 	if err != nil {
-		awsError := err.(awserr.Error)
-		if awsError.Code() == awsiam.ErrCodeNoSuchEntityException {
+		var oe *iamtypes.NoSuchEntityException
+		if errors.As(err, &oe) {
 			return false, nil
 		}
 		return false, err
@@ -83,27 +86,27 @@ func (m *OpenIDConnectManager) CheckProviderExists() (bool, error) {
 
 // CreateProvider will retrieve CA root certificate and compute its thumbprint for the
 // by connecting to it and create the provider using IAM API
-func (m *OpenIDConnectManager) CreateProvider() error {
+func (m *OpenIDConnectManager) CreateProvider(ctx context.Context) error {
 	if err := m.getIssuerCAThumbprint(); err != nil {
 		return err
 	}
 
-	var tags []*awsiam.Tag
+	var tags []iamtypes.Tag
 	for k, v := range m.tags {
-		tags = append(tags, &awsiam.Tag{
+		tags = append(tags, iamtypes.Tag{
 			Key:   aws.String(k),
 			Value: aws.String(v),
 		})
 	}
 
-	input := &awsiam.CreateOpenIDConnectProviderInput{
-		ClientIDList:   aws.StringSlice([]string{m.audience}),
-		ThumbprintList: []*string{&m.issuerCAThumbprint},
+	input := &iam.CreateOpenIDConnectProviderInput{
+		ClientIDList:   []string{m.audience},
+		ThumbprintList: []string{m.issuerCAThumbprint},
 		// It has no name or tags, it's keyed to the URL
 		Url:  aws.String(m.issuerURL.String()),
 		Tags: tags,
 	}
-	output, err := m.iam.CreateOpenIDConnectProvider(input)
+	output, err := m.iam.CreateOpenIDConnectProvider(ctx, input)
 	if err != nil {
 		return errors.Wrap(err, "creating OIDC provider")
 	}
@@ -113,16 +116,16 @@ func (m *OpenIDConnectManager) CreateProvider() error {
 
 // DeleteProvider will delete the provider using IAM API, it may return an error
 // the API call fails
-func (m *OpenIDConnectManager) DeleteProvider() error {
+func (m *OpenIDConnectManager) DeleteProvider(ctx context.Context) error {
 	// TODO: the ARN is deterministic, but we need to consider tracking
 	// it somehow; it's possible to get a dangling resource if cluster
 	// deletion was done by a version of eksctl that is not OIDC-aware,
 	// as we don't use CloudFormation;
 	// finding dangling resource will require looking at all clusters...
-	input := &awsiam.DeleteOpenIDConnectProviderInput{
+	input := &iam.DeleteOpenIDConnectProviderInput{
 		OpenIDConnectProviderArn: &m.ProviderARN,
 	}
-	if _, err := m.iam.DeleteOpenIDConnectProvider(input); err != nil {
+	if _, err := m.iam.DeleteOpenIDConnectProvider(ctx, input); err != nil {
 		return errors.Wrap(err, "deleting OIDC provider")
 	}
 	return nil

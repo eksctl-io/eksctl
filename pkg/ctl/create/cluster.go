@@ -227,7 +227,8 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return cmdutils.PrintDryRunConfig(cfg, os.Stdout)
 	}
 
-	if err := nodeGroupService.Normalize(context.TODO(), nodePools, cfg.Metadata); err != nil {
+	ctx := context.TODO()
+	if err := nodeGroupService.Normalize(ctx, nodePools, cfg.Metadata); err != nil {
 		return err
 	}
 
@@ -265,11 +266,11 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
 
 	eks.LogEnabledFeatures(cfg)
-	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(context.Background(), cfg)
+	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(ctx, cfg)
 
 	var preNodegroupAddons, postNodegroupAddons *tasks.TaskTree
 	if len(cfg.Addons) > 0 {
-		preNodegroupAddons, postNodegroupAddons = addon.CreateAddonTasks(cfg, ctl, true, cmd.ProviderConfig.WaitTimeout)
+		preNodegroupAddons, postNodegroupAddons = addon.CreateAddonTasks(ctx, cfg, ctl, true, cmd.ProviderConfig.WaitTimeout)
 		postClusterCreationTasks.Append(preNodegroupAddons)
 	}
 
@@ -363,7 +364,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			if err != nil {
 				return errors.Wrap(err, "generating kubeconfig")
 			}
-			if err := installKarpenter(ctl, cfg, stackManager, clientSet, kubernetes.NewRESTClientGetter("karpenter", string(kubeConfigBytes))); err != nil {
+			if err := installKarpenter(ctx, ctl, cfg, stackManager, clientSet, kubernetes.NewRESTClientGetter("karpenter", string(kubeConfigBytes))); err != nil {
 				return err
 			}
 		}
@@ -413,8 +414,8 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 // - service account
 // - identity mapping
 // then proceeds with installing Karpenter using Helm.
-func installKarpenter(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, stackManager manager.StackManager, clientSet *kubeclient.Clientset, restClientGetter *kubernetes.SimpleRESTClientGetter) error {
-	installer, err := karpenteractions.NewInstaller(cfg, ctl, stackManager, clientSet, restClientGetter)
+func installKarpenter(ctx context.Context, ctl *eks.ClusterProvider, cfg *api.ClusterConfig, stackManager manager.StackManager, clientSet *kubeclient.Clientset, restClientGetter *kubernetes.SimpleRESTClientGetter) error {
+	installer, err := karpenteractions.NewInstaller(ctx, cfg, ctl, stackManager, clientSet, restClientGetter)
 	if err != nil {
 		return fmt.Errorf("failed to create installer: %w", err)
 	}

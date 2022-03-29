@@ -604,16 +604,17 @@ type FakeStackManager struct {
 	newTasksToCreateIAMServiceAccountsReturnsOnCall map[int]struct {
 		result1 *tasks.TaskTree
 	}
-	NewTasksToDeleteClusterWithNodeGroupsStub        func(*cloudformation.Stack, []manager.NodeGroupStack, bool, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter, bool, func(chan error, string) error) (*tasks.TaskTree, error)
+	NewTasksToDeleteClusterWithNodeGroupsStub        func(context.Context, *cloudformation.Stack, []manager.NodeGroupStack, bool, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter, bool, func(chan error, string) error) (*tasks.TaskTree, error)
 	newTasksToDeleteClusterWithNodeGroupsMutex       sync.RWMutex
 	newTasksToDeleteClusterWithNodeGroupsArgsForCall []struct {
-		arg1 *cloudformation.Stack
-		arg2 []manager.NodeGroupStack
-		arg3 bool
-		arg4 *iamoidc.OpenIDConnectManager
-		arg5 kubernetes.ClientSetGetter
-		arg6 bool
-		arg7 func(chan error, string) error
+		arg1 context.Context
+		arg2 *cloudformation.Stack
+		arg3 []manager.NodeGroupStack
+		arg4 bool
+		arg5 *iamoidc.OpenIDConnectManager
+		arg6 kubernetes.ClientSetGetter
+		arg7 bool
+		arg8 func(chan error, string) error
 	}
 	newTasksToDeleteClusterWithNodeGroupsReturns struct {
 		result1 *tasks.TaskTree
@@ -654,11 +655,12 @@ type FakeStackManager struct {
 		result1 *tasks.TaskTree
 		result2 error
 	}
-	NewTasksToDeleteOIDCProviderWithIAMServiceAccountsStub        func(*iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter) (*tasks.TaskTree, error)
+	NewTasksToDeleteOIDCProviderWithIAMServiceAccountsStub        func(context.Context, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter) (*tasks.TaskTree, error)
 	newTasksToDeleteOIDCProviderWithIAMServiceAccountsMutex       sync.RWMutex
 	newTasksToDeleteOIDCProviderWithIAMServiceAccountsArgsForCall []struct {
-		arg1 *iamoidc.OpenIDConnectManager
-		arg2 kubernetes.ClientSetGetter
+		arg1 context.Context
+		arg2 *iamoidc.OpenIDConnectManager
+		arg3 kubernetes.ClientSetGetter
 	}
 	newTasksToDeleteOIDCProviderWithIAMServiceAccountsReturns struct {
 		result1 *tasks.TaskTree
@@ -3606,29 +3608,30 @@ func (fake *FakeStackManager) NewTasksToCreateIAMServiceAccountsReturnsOnCall(i 
 	}{result1}
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroups(arg1 *cloudformation.Stack, arg2 []manager.NodeGroupStack, arg3 bool, arg4 *iamoidc.OpenIDConnectManager, arg5 kubernetes.ClientSetGetter, arg6 bool, arg7 func(chan error, string) error) (*tasks.TaskTree, error) {
-	var arg2Copy []manager.NodeGroupStack
-	if arg2 != nil {
-		arg2Copy = make([]manager.NodeGroupStack, len(arg2))
-		copy(arg2Copy, arg2)
+func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroups(arg1 context.Context, arg2 *cloudformation.Stack, arg3 []manager.NodeGroupStack, arg4 bool, arg5 *iamoidc.OpenIDConnectManager, arg6 kubernetes.ClientSetGetter, arg7 bool, arg8 func(chan error, string) error) (*tasks.TaskTree, error) {
+	var arg3Copy []manager.NodeGroupStack
+	if arg3 != nil {
+		arg3Copy = make([]manager.NodeGroupStack, len(arg3))
+		copy(arg3Copy, arg3)
 	}
 	fake.newTasksToDeleteClusterWithNodeGroupsMutex.Lock()
 	ret, specificReturn := fake.newTasksToDeleteClusterWithNodeGroupsReturnsOnCall[len(fake.newTasksToDeleteClusterWithNodeGroupsArgsForCall)]
 	fake.newTasksToDeleteClusterWithNodeGroupsArgsForCall = append(fake.newTasksToDeleteClusterWithNodeGroupsArgsForCall, struct {
-		arg1 *cloudformation.Stack
-		arg2 []manager.NodeGroupStack
-		arg3 bool
-		arg4 *iamoidc.OpenIDConnectManager
-		arg5 kubernetes.ClientSetGetter
-		arg6 bool
-		arg7 func(chan error, string) error
-	}{arg1, arg2Copy, arg3, arg4, arg5, arg6, arg7})
+		arg1 context.Context
+		arg2 *cloudformation.Stack
+		arg3 []manager.NodeGroupStack
+		arg4 bool
+		arg5 *iamoidc.OpenIDConnectManager
+		arg6 kubernetes.ClientSetGetter
+		arg7 bool
+		arg8 func(chan error, string) error
+	}{arg1, arg2, arg3Copy, arg4, arg5, arg6, arg7, arg8})
 	stub := fake.NewTasksToDeleteClusterWithNodeGroupsStub
 	fakeReturns := fake.newTasksToDeleteClusterWithNodeGroupsReturns
-	fake.recordInvocation("NewTasksToDeleteClusterWithNodeGroups", []interface{}{arg1, arg2Copy, arg3, arg4, arg5, arg6, arg7})
+	fake.recordInvocation("NewTasksToDeleteClusterWithNodeGroups", []interface{}{arg1, arg2, arg3Copy, arg4, arg5, arg6, arg7, arg8})
 	fake.newTasksToDeleteClusterWithNodeGroupsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+		return stub(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -3642,17 +3645,17 @@ func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsCallCount() i
 	return len(fake.newTasksToDeleteClusterWithNodeGroupsArgsForCall)
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsCalls(stub func(*cloudformation.Stack, []manager.NodeGroupStack, bool, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter, bool, func(chan error, string) error) (*tasks.TaskTree, error)) {
+func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsCalls(stub func(context.Context, *cloudformation.Stack, []manager.NodeGroupStack, bool, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter, bool, func(chan error, string) error) (*tasks.TaskTree, error)) {
 	fake.newTasksToDeleteClusterWithNodeGroupsMutex.Lock()
 	defer fake.newTasksToDeleteClusterWithNodeGroupsMutex.Unlock()
 	fake.NewTasksToDeleteClusterWithNodeGroupsStub = stub
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsArgsForCall(i int) (*cloudformation.Stack, []manager.NodeGroupStack, bool, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter, bool, func(chan error, string) error) {
+func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsArgsForCall(i int) (context.Context, *cloudformation.Stack, []manager.NodeGroupStack, bool, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter, bool, func(chan error, string) error) {
 	fake.newTasksToDeleteClusterWithNodeGroupsMutex.RLock()
 	defer fake.newTasksToDeleteClusterWithNodeGroupsMutex.RUnlock()
 	argsForCall := fake.newTasksToDeleteClusterWithNodeGroupsArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7, argsForCall.arg8
 }
 
 func (fake *FakeStackManager) NewTasksToDeleteClusterWithNodeGroupsReturns(result1 *tasks.TaskTree, result2 error) {
@@ -3824,19 +3827,20 @@ func (fake *FakeStackManager) NewTasksToDeleteNodeGroupsReturnsOnCall(i int, res
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(arg1 *iamoidc.OpenIDConnectManager, arg2 kubernetes.ClientSetGetter) (*tasks.TaskTree, error) {
+func (fake *FakeStackManager) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(arg1 context.Context, arg2 *iamoidc.OpenIDConnectManager, arg3 kubernetes.ClientSetGetter) (*tasks.TaskTree, error) {
 	fake.newTasksToDeleteOIDCProviderWithIAMServiceAccountsMutex.Lock()
 	ret, specificReturn := fake.newTasksToDeleteOIDCProviderWithIAMServiceAccountsReturnsOnCall[len(fake.newTasksToDeleteOIDCProviderWithIAMServiceAccountsArgsForCall)]
 	fake.newTasksToDeleteOIDCProviderWithIAMServiceAccountsArgsForCall = append(fake.newTasksToDeleteOIDCProviderWithIAMServiceAccountsArgsForCall, struct {
-		arg1 *iamoidc.OpenIDConnectManager
-		arg2 kubernetes.ClientSetGetter
-	}{arg1, arg2})
+		arg1 context.Context
+		arg2 *iamoidc.OpenIDConnectManager
+		arg3 kubernetes.ClientSetGetter
+	}{arg1, arg2, arg3})
 	stub := fake.NewTasksToDeleteOIDCProviderWithIAMServiceAccountsStub
 	fakeReturns := fake.newTasksToDeleteOIDCProviderWithIAMServiceAccountsReturns
-	fake.recordInvocation("NewTasksToDeleteOIDCProviderWithIAMServiceAccounts", []interface{}{arg1, arg2})
+	fake.recordInvocation("NewTasksToDeleteOIDCProviderWithIAMServiceAccounts", []interface{}{arg1, arg2, arg3})
 	fake.newTasksToDeleteOIDCProviderWithIAMServiceAccountsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -3850,17 +3854,17 @@ func (fake *FakeStackManager) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts
 	return len(fake.newTasksToDeleteOIDCProviderWithIAMServiceAccountsArgsForCall)
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteOIDCProviderWithIAMServiceAccountsCalls(stub func(*iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter) (*tasks.TaskTree, error)) {
+func (fake *FakeStackManager) NewTasksToDeleteOIDCProviderWithIAMServiceAccountsCalls(stub func(context.Context, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter) (*tasks.TaskTree, error)) {
 	fake.newTasksToDeleteOIDCProviderWithIAMServiceAccountsMutex.Lock()
 	defer fake.newTasksToDeleteOIDCProviderWithIAMServiceAccountsMutex.Unlock()
 	fake.NewTasksToDeleteOIDCProviderWithIAMServiceAccountsStub = stub
 }
 
-func (fake *FakeStackManager) NewTasksToDeleteOIDCProviderWithIAMServiceAccountsArgsForCall(i int) (*iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter) {
+func (fake *FakeStackManager) NewTasksToDeleteOIDCProviderWithIAMServiceAccountsArgsForCall(i int) (context.Context, *iamoidc.OpenIDConnectManager, kubernetes.ClientSetGetter) {
 	fake.newTasksToDeleteOIDCProviderWithIAMServiceAccountsMutex.RLock()
 	defer fake.newTasksToDeleteOIDCProviderWithIAMServiceAccountsMutex.RUnlock()
 	argsForCall := fake.newTasksToDeleteOIDCProviderWithIAMServiceAccountsArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeStackManager) NewTasksToDeleteOIDCProviderWithIAMServiceAccountsReturns(result1 *tasks.TaskTree, result2 error) {

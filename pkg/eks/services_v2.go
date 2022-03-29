@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
@@ -29,6 +30,7 @@ type ServicesV2 struct {
 	elasticloadbalancing   *elasticloadbalancing.Client
 	elasticloadbalancingV2 *elasticloadbalancingv2.Client
 	ssm                    *ssm.Client
+	iam                    *iam.Client
 }
 
 // STS implements the AWS STS service.
@@ -109,4 +111,14 @@ func (s *ServicesV2) SSM() awsapi.SSM {
 		s.ssm = ssm.NewFromConfig(s.config)
 	}
 	return s.ssm
+}
+
+// IAM implements the AWS IAM service.
+func (s *ServicesV2) IAM() awsapi.IAM {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.iam == nil {
+		s.iam = iam.NewFromConfig(s.config)
+	}
+	return s.iam
 }

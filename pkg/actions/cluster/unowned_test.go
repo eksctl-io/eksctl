@@ -1,6 +1,7 @@
 package cluster_test
 
 import (
+	"context"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -150,7 +151,7 @@ var _ = Describe("Delete", func() {
 				return fakeClientSet, nil
 			})
 
-			err := c.Delete(time.Microsecond, false, false, false, 1)
+			err := c.Delete(context.Background(), time.Microsecond, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deleteCallCount).To(Equal(1))
 			Expect(unownedDeleteCallCount).To(Equal(1))
@@ -252,7 +253,7 @@ var _ = Describe("Delete", func() {
 					return mockedDrainer
 				})
 
-				err := c.Delete(time.Microsecond, false, true, false, 1)
+				err := c.Delete(context.Background(), time.Microsecond, false, true, false, 1)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(deleteCallCount).To(Equal(0))
 				Expect(unownedDeleteCallCount).To(Equal(0))
@@ -355,7 +356,7 @@ var _ = Describe("Delete", func() {
 					return mockedDrainer
 				})
 
-				err := c.Delete(time.Microsecond, false, false, false, 1)
+				err := c.Delete(context.Background(), time.Microsecond, false, false, false, 1)
 				Expect(err).To(MatchError(errorMessage))
 				Expect(deleteCallCount).To(Equal(0))
 				Expect(unownedDeleteCallCount).To(Equal(0))
@@ -419,7 +420,7 @@ var _ = Describe("Delete", func() {
 			p.MockEKS().On("DeleteCluster", mock.Anything).Return(&awseks.DeleteClusterOutput{}, nil)
 
 			c := cluster.NewUnownedCluster(cfg, ctl, fakeStackManager)
-			err := c.Delete(time.Microsecond, false, false, false, 1)
+			err := c.Delete(context.Background(), time.Microsecond, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(deleteCallCount).To(Equal(1))
