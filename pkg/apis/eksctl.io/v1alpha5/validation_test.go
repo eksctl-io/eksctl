@@ -111,7 +111,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng0 := cfg.NewNodeGroup()
 			ng0.Name = "node-group"
 			ng0.AMI = "ami-1234"
-			Expect(api.ValidateNodeGroup(0, ng0)).To(HaveOccurred())
+			Expect(api.ValidateNodeGroup(0, ng0)).To(MatchError(ContainSubstring("overrideBootstrapCommand is required when using a custom AMI ")))
 		})
 		It("should accept ami with a overrideBootstrapCommand set", func() {
 			cfg := api.NewClusterConfig()

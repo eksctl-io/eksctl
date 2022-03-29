@@ -10,7 +10,7 @@ sourced, will provide a couple of helpful environment properties and settings. T
 The following environment properties will be at your disposal:
 
 ```bash
-PI_SERVER_URL="${API_SERVER_URL}"
+API_SERVER_URL="${API_SERVER_URL}"
 B64_CLUSTER_CA="${B64_CLUSTER_CA}"
 INSTANCE_ID="$(get_metadata instance-id)"
 INSTANCE_LIFECYCLE="$(get_metadata instance-life-cycle)"

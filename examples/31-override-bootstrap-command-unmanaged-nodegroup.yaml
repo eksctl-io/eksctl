@@ -12,12 +12,6 @@ nodeGroups:
     maxSize: 2
     ami: ami-12345
     desiredCapacity: 1
-    iam:
-      attachPolicyARNs:
-        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
-        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
-        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
     overrideBootstrapCommand: |
       #!/bin/bash
       source /var/lib/cloud/scripts/eksctl/bootstrap.helper.sh
