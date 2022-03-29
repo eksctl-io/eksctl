@@ -17,7 +17,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
-	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/smithy-go/middleware"
 	"github.com/gofrs/flock"
 	"github.com/kris-nova/logger"
@@ -83,7 +82,6 @@ func makeEndpointResolverFunc() aws.EndpointResolverWithOptionsFunc {
 		ec2.ServiceID:                    "AWS_EC2_ENDPOINT",
 		elasticloadbalancing.ServiceID:   "AWS_ELB_ENDPOINT",
 		elasticloadbalancingv2.ServiceID: "AWS_ELBV2_ENDPOINT",
-		sts.ServiceID:                    "AWS_STS_ENDPOINT",
 		iam.ServiceID:                    "AWS_IAM_ENDPOINT",
 		cloudtrail.ServiceID:             "AWS_CLOUDTRAIL_ENDPOINT",
 	}

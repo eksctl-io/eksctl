@@ -7,15 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/gofrs/flock"
-	"github.com/spf13/afero"
-
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
-
 	stsv2 "github.com/aws/aws-sdk-go-v2/service/sts"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -29,6 +21,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -41,8 +35,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
+	"github.com/gofrs/flock"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/spf13/afero"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/yaml"

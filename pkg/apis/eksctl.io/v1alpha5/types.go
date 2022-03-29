@@ -2,12 +2,14 @@ package v1alpha5
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
+	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	stsv2 "github.com/aws/aws-sdk-go-v2/service/sts"
 
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -670,7 +672,13 @@ type ClusterProvider interface {
 	Session() *session.Session
 
 	STSV2() awsapi.STS
-	STSV2PresignedClient() *stsv2.PresignClient
+	STSV2Presign() STSPresign
+}
+
+// STSPresign defines the method to pre-sign GetCallerIdentity requests to add a proper header required by EKS for
+// authentication from the outside.
+type STSPresign interface {
+	PresignGetCallerIdentity(ctx context.Context, params *stsv2.GetCallerIdentityInput, optFns ...func(*stsv2.PresignOptions)) (*v4.PresignedHTTPRequest, error)
 }
 
 // ProviderConfig holds global parameters for all interactions with AWS APIs

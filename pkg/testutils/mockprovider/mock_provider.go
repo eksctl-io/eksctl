@@ -98,7 +98,7 @@ func (m MockProvider) STSV2() awsapi.STS {
 	return m.stsV2
 }
 
-func (m MockProvider) STSV2PresignedClient() *sts.PresignClient {
+func (m MockProvider) STSV2Presign() api.STSPresign {
 	return m.stsPresignClient
 }
 

@@ -45,7 +45,7 @@ type EKSConnector struct {
 type provider interface {
 	EKS() eksiface.EKSAPI
 	STSV2() awsapi.STS
-	STSV2PresignedClient() *sts.PresignClient
+	STSV2Presign() api.STSPresign
 	IAM() iamiface.IAMAPI
 	Region() string
 }
