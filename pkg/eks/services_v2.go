@@ -37,6 +37,12 @@ func (s *ServicesV2) STSV2() awsapi.STS {
 	return s.sts
 }
 
+func (s *ServicesV2) STSV2PresignedClient() *sts.PresignClient {
+	// set up sts client.
+	s.STSV2()
+	return sts.NewPresignClient(s.sts)
+}
+
 // CloudFormationV2 implements the AWS CloudFormation service.
 func (s *ServicesV2) CloudFormationV2() awsapi.CloudFormation {
 	s.mu.Lock()

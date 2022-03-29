@@ -41,8 +41,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -88,7 +86,6 @@ type ProviderServices struct {
 	ec2   ec2iface.EC2API
 	elb   elbiface.ELBAPI
 	elbv2 elbv2iface.ELBV2API
-	sts   stsiface.STSAPI
 	ssm   ssmiface.SSMAPI
 	iam   iamiface.IAMAPI
 
@@ -125,9 +122,6 @@ func (p ProviderServices) ELB() elbiface.ELBAPI { return p.elb }
 
 // ELBV2 returns a representation of the ELBV2 API
 func (p ProviderServices) ELBV2() elbv2iface.ELBV2API { return p.elbv2 }
-
-// STS returns a representation of the STS API
-func (p ProviderServices) STS() stsiface.STSAPI { return p.sts }
 
 // SSM returns a representation of the STS API
 func (p ProviderServices) SSM() ssmiface.SSMAPI { return p.ssm }
@@ -213,15 +207,6 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	provider.ec2 = ec2.New(s)
 	provider.elb = elb.New(s)
 	provider.elbv2 = elbv2.New(s)
-	provider.sts = sts.New(s,
-		// STS retrier has to be disabled, as it's not very helpful
-		// (see https://github.com/weaveworks/eksctl/issues/705)
-		request.WithRetryer(s.Config.Copy(),
-			&client.DefaultRetryer{
-				NumMaxRetries: 1,
-			},
-		),
-	)
 	provider.ssm = ssm.New(s)
 	provider.iam = iam.New(s)
 	provider.cloudtrail = cloudtrail.New(s)
@@ -262,10 +247,6 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 		logger.Debug("Setting ELBV2 endpoint to %s", endpoint)
 		provider.elbv2 = elbv2.New(s, s.Config.Copy().WithEndpoint(endpoint))
 
-	}
-	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
-		logger.Debug("Setting STS endpoint to %s", endpoint)
-		provider.sts = sts.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_IAM_ENDPOINT"); ok {
 		logger.Debug("Setting IAM endpoint to %s", endpoint)

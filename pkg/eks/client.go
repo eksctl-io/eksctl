@@ -2,13 +2,16 @@ package eks
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/smithy-go/middleware"
+	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/watch"
@@ -16,10 +19,6 @@ import (
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/aws/aws-sdk-go/service/sts/stsiface"
-	"sigs.k8s.io/aws-iam-authenticator/pkg/token"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
@@ -41,7 +40,7 @@ func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
 		Config: config,
 	}
 	// TODO: Eliminating usage of aws/aws-sdk-go (v1) STS is blocked on sigs.k8s.io/aws-iam-authenticator/pkg/token (https://github.com/weaveworks/eksctl/issues/4993)
-	return client.new(spec, c.Provider.STS())
+	return client.new(spec, c.Provider.STSV2PresignedClient())
 }
 
 // GetUsername extracts the username part from the IAM role ARN
@@ -53,7 +52,7 @@ func (c *ClusterProvider) GetUsername() string {
 	return "iam-root-account"
 }
 
-func (c *Client) new(spec *api.ClusterConfig, stsClient stsiface.STSAPI) (*Client, error) {
+func (c *Client) new(spec *api.ClusterConfig, stsClient *sts.PresignClient) (*Client, error) {
 	if err := c.useEmbeddedToken(spec, stsClient); err != nil {
 		return nil, err
 	}
@@ -70,19 +69,55 @@ func (c *Client) new(spec *api.ClusterConfig, stsClient stsiface.STSAPI) (*Clien
 	return c, nil
 }
 
-func (c *Client) useEmbeddedToken(spec *api.ClusterConfig, stsclient stsiface.STSAPI) error {
-	gen, err := token.NewGenerator(true, false)
-	if err != nil {
-		return errors.Wrap(err, "could not get token generator")
-	}
+func (c *Client) useEmbeddedToken(spec *api.ClusterConfig, stsclient *sts.PresignClient) error {
+	gen := generator{}
 
-	tok, err := gen.GetWithSTS(spec.Metadata.Name, stsclient.(*sts.STS))
+	tok, err := gen.GetWithSTS(context.TODO(), spec.Metadata.Name, stsclient)
 	if err != nil {
 		return errors.Wrap(err, "could not get token")
 	}
 
 	c.Config.AuthInfos[c.Config.CurrentContext].Token = tok.Token
 	return nil
+}
+
+type generator struct{}
+
+// Token is generated and used by Kubernetes client-go to authenticate with a Kubernetes cluster.
+type Token struct {
+	Token      string
+	Expiration time.Time
+}
+
+const (
+	clusterIDHeader        = "x-k8s-aws-id"
+	presignedURLExpiration = 15 * time.Minute
+	v1Prefix               = "k8s-aws-v1."
+)
+
+// GetWithSTS returns a token valid for clusterID using the given STS client.
+func (g generator) GetWithSTS(ctx context.Context, clusterID string, presigner *sts.PresignClient) (Token, error) {
+	// generate an sts:GetCallerIdentity request and add our custom cluster ID header
+	presignedURLRequest, err := presigner.PresignGetCallerIdentity(ctx, &sts.GetCallerIdentityInput{}, func(presignOptions *sts.PresignOptions) {
+		presignOptions.ClientOptions = append(presignOptions.ClientOptions, func(stsOptions *sts.Options) {
+			// Add clusterId Header
+			stsOptions.APIOptions = append(stsOptions.APIOptions, smithyhttp.SetHeaderValue(clusterIDHeader, clusterID))
+			// Add back useless X-Amz-Expires query param
+			stsOptions.APIOptions = append(stsOptions.APIOptions, smithyhttp.SetHeaderValue("X-Amz-Expires", "60"))
+			// Remove not previously whitelisted X-Amz-User-Agent
+			stsOptions.APIOptions = append(stsOptions.APIOptions, func(stack *middleware.Stack) error {
+				_, err := stack.Build.Remove("UserAgent")
+				return err
+			})
+		})
+	})
+	if err != nil {
+		return Token{}, err
+	}
+
+	// Set token expiration to 1 minute before the presigned URL expires for some cushion
+	tokenExpiration := time.Now().Local().Add(presignedURLExpiration - 1*time.Minute)
+	return Token{v1Prefix + base64.RawURLEncoding.EncodeToString([]byte(presignedURLRequest.URL)), tokenExpiration}, nil
 }
 
 // NewClientSet creates a new API client

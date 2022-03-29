@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	stsv2 "github.com/aws/aws-sdk-go-v2/service/sts"
+
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
@@ -24,7 +26,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
-	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -658,7 +659,6 @@ type ClusterProvider interface {
 	EC2() ec2iface.EC2API
 	ELB() elbiface.ELBAPI
 	ELBV2() elbv2iface.ELBV2API
-	STS() stsiface.STSAPI
 	SSM() ssmiface.SSMAPI
 	IAM() iamiface.IAMAPI
 	CloudTrail() cloudtrailiface.CloudTrailAPI
@@ -670,6 +670,7 @@ type ClusterProvider interface {
 	Session() *session.Session
 
 	STSV2() awsapi.STS
+	STSV2PresignedClient() *stsv2.PresignClient
 }
 
 // ProviderConfig holds global parameters for all interactions with AWS APIs

@@ -3,12 +3,12 @@ package mockprovider
 import (
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/awsapi"
-
-	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
-
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/client"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/awstesting"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
@@ -19,17 +19,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
-	"github.com/aws/aws-sdk-go/service/sts/stsiface"
-
-	//"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/client"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/awstesting"
-
-	//"github.com/aws/aws-sdk-go/awstesting/unit"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/eks/mocks"
+	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
 )
 
 // ProviderConfig holds current global config
@@ -65,7 +59,6 @@ type MockProvider struct {
 	ec2            *mocks.EC2API
 	elb            *mocks.ELBAPI
 	elbv2          *mocks.ELBV2API
-	sts            *mocks.STSAPI
 	ssm            *mocks.SSMAPI
 	iam            *mocks.IAMAPI
 	cloudtrail     *mocks.CloudTrailAPI
@@ -73,6 +66,7 @@ type MockProvider struct {
 	configProvider *mocks.ConfigProvider
 
 	stsV2            *mocksv2.STS
+	stsPresignClient *sts.PresignClient
 	cloudformationV2 *mocksv2.CloudFormation
 }
 
@@ -87,7 +81,6 @@ func NewMockProvider() *MockProvider {
 		ec2:            &mocks.EC2API{},
 		elb:            &mocks.ELBAPI{},
 		elbv2:          &mocks.ELBV2API{},
-		sts:            &mocks.STSAPI{},
 		ssm:            &mocks.SSMAPI{},
 		iam:            &mocks.IAMAPI{},
 		cloudtrail:     &mocks.CloudTrailAPI{},
@@ -95,6 +88,7 @@ func NewMockProvider() *MockProvider {
 		configProvider: &mocks.ConfigProvider{},
 
 		stsV2:            &mocksv2.STS{},
+		stsPresignClient: &sts.PresignClient{},
 		cloudformationV2: &mocksv2.CloudFormation{},
 	}
 }
@@ -102,6 +96,10 @@ func NewMockProvider() *MockProvider {
 // STSV2 returns a representation of the STS v2 API
 func (m MockProvider) STSV2() awsapi.STS {
 	return m.stsV2
+}
+
+func (m MockProvider) STSV2PresignedClient() *sts.PresignClient {
+	return m.stsPresignClient
 }
 
 // MockSTSV2 returns a mocked STS v2 API
@@ -158,12 +156,6 @@ func (m MockProvider) ELBV2() elbv2iface.ELBV2API { return m.elbv2 }
 
 // MockEC2 returns a mocked EC2 API
 func (m MockProvider) MockEC2() *mocks.EC2API { return m.EC2().(*mocks.EC2API) }
-
-// STS returns a representation of the STS API
-func (m MockProvider) STS() stsiface.STSAPI { return m.sts }
-
-// MockSTS returns a mocked STS API
-func (m MockProvider) MockSTS() *mocks.STSAPI { return m.STS().(*mocks.STSAPI) }
 
 // SSM returns a representation of the SSM API
 func (m MockProvider) SSM() ssmiface.SSMAPI { return m.ssm }
