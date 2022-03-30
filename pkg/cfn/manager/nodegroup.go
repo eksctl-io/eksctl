@@ -79,10 +79,6 @@ func (c *StackCollection) createManagedNodeGroupTask(ctx context.Context, errorC
 }
 
 func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(errorCh chan error, ng *api.ManagedNodeGroup) error {
-	if ng.DisableASGTagPropagation != nil && *ng.DisableASGTagPropagation {
-		return nil
-	}
-
 	// describe node group to retrieve ASG names
 	input := &eks.DescribeNodegroupInput{
 		ClusterName:   aws.String(c.spec.Metadata.Name),

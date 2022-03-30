@@ -997,6 +997,11 @@ type NodeGroup struct {
 	// +optional
 	ContainerRuntime *string `json:"containerRuntime,omitempty"`
 
+	// DisableASGTagPropagation disables the tag propagation to ASG in case desired capacity is 0.
+	// Defaults to `false`
+	// +optional
+	DisableASGTagPropagation *bool `json:"disableASGTagPropagation,omitempty"`
+
 	// MaxInstanceLifetime defines the maximum amount of time in seconds an instance stays alive.
 	// +optional
 	MaxInstanceLifetime *int `json:"maxInstanceLifetime,omitempty"`

@@ -106,14 +106,13 @@ func (c *StackCollection) NewManagedNodeGroupTask(ctx context.Context, nodeGroup
 			info:              fmt.Sprintf("create managed nodegroup %q", ng.Name),
 			ctx:               ctx,
 		})
-		if ng.DisableASGTagPropagation != nil && *ng.DisableASGTagPropagation {
-			continue
+		if api.IsEnabled(ng.PropagateASGTags) {
+			taskTree.Append(&managedNodeGroupTagsToASGPropagationTask{
+				stackCollection: c,
+				nodeGroup:       ng,
+				info:            fmt.Sprintf("propagate tags to ASG for managed nodegroup %q", ng.Name),
+			})
 		}
-		taskTree.Append(&managedNodeGroupTagsToASGPropagationTask{
-			stackCollection: c,
-			nodeGroup:       ng,
-			info:            fmt.Sprintf("propagate tags to ASG for managed nodegroup %q", ng.Name),
-		})
 	}
 	return taskTree
 }
