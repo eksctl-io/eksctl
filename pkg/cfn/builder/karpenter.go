@@ -95,6 +95,10 @@ func (k *KarpenterResourceSet) addResourcesForKarpenter() error {
 		ManagedPolicyArns:        gfnt.NewSlice(makePolicyARNs(managedPolicyNames.List()...)...),
 	}
 
+	if api.IsSetAndNonEmptyString(k.clusterSpec.IAM.ServiceRolePermissionsBoundary) {
+		role.PermissionsBoundary = gfnt.NewString(*k.clusterSpec.IAM.ServiceRolePermissionsBoundary)
+	}
+
 	roleRef := k.newResource(KarpenterNodeRoleName, &role)
 
 	instanceProfile := gfniam.InstanceProfile{
