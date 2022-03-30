@@ -52,17 +52,7 @@ const (
 func (g Generator) GetWithSTS(ctx context.Context, clusterID string) (Token, error) {
 	// generate a sts:GetCallerIdentity request and add our custom cluster ID header
 	presignedURLRequest, err := g.client.PresignGetCallerIdentity(ctx, &sts.GetCallerIdentityInput{}, func(presignOptions *sts.PresignOptions) {
-		presignOptions.ClientOptions = append(presignOptions.ClientOptions, func(stsOptions *sts.Options) {
-			// Add clusterId Header
-			stsOptions.APIOptions = append(stsOptions.APIOptions, smithyhttp.SetHeaderValue(clusterIDHeader, clusterID))
-			// Add X-Amz-Expires query param
-			stsOptions.APIOptions = append(stsOptions.APIOptions, smithyhttp.SetHeaderValue("X-Amz-Expires", "60"))
-			// Remove not previously whitelisted X-Amz-User-Agent
-			stsOptions.APIOptions = append(stsOptions.APIOptions, func(stack *middleware.Stack) error {
-				_, err := stack.Build.Remove("UserAgent")
-				return err
-			})
-		})
+		presignOptions.ClientOptions = append(presignOptions.ClientOptions, g.appendPresignHeaderValuesFunc(clusterID))
 	})
 	if err != nil {
 		return Token{}, fmt.Errorf("failed to presign caller identity: %w", err)
@@ -72,4 +62,18 @@ func (g Generator) GetWithSTS(ctx context.Context, clusterID string) (Token, err
 	tokenExpiration := g.clock.Now().Local().Add(presignedURLExpiration - 1*time.Minute)
 	// Add the token with k8s-aws-v1. prefix.
 	return Token{v1Prefix + base64.RawURLEncoding.EncodeToString([]byte(presignedURLRequest.URL)), tokenExpiration}, nil
+}
+
+func (g Generator) appendPresignHeaderValuesFunc(clusterID string) func(stsOptions *sts.Options) {
+	return func(stsOptions *sts.Options) {
+		// Add clusterId Header
+		stsOptions.APIOptions = append(stsOptions.APIOptions, smithyhttp.SetHeaderValue(clusterIDHeader, clusterID))
+		// Add X-Amz-Expires query param
+		stsOptions.APIOptions = append(stsOptions.APIOptions, smithyhttp.SetHeaderValue("X-Amz-Expires", "60"))
+		// Remove not previously whitelisted X-Amz-User-Agent
+		stsOptions.APIOptions = append(stsOptions.APIOptions, func(stack *middleware.Stack) error {
+			_, err := stack.Build.Remove("UserAgent")
+			return err
+		})
+	}
 }
