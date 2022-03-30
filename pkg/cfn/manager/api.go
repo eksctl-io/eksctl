@@ -163,7 +163,7 @@ func (c *StackCollection) DoCreateStackRequest(i *Stack, templateData TemplateDa
 // any errors will be written to errs channel, when nil is written,
 // assume completion, do not expect more then one error value on the
 // channel, it's closed immediately after it is written to
-func (c *StackCollection) CreateStack(stackName string, resourceSet builder.ResourceSet, tags, parameters map[string]string, errs chan error) error {
+func (c *StackCollection) CreateStack(stackName string, resourceSet builder.ResourceSetReader, tags, parameters map[string]string, errs chan error) error {
 	stack, err := c.createStackRequest(stackName, resourceSet, tags, parameters)
 	if err != nil {
 		return err
@@ -222,7 +222,7 @@ func (c *StackCollection) createClusterStack(stackName string, resourceSet build
 	return nil
 }
 
-func (c *StackCollection) createStackRequest(stackName string, resourceSet builder.ResourceSet, tags, parameters map[string]string) (*Stack, error) {
+func (c *StackCollection) createStackRequest(stackName string, resourceSet builder.ResourceSetReader, tags, parameters map[string]string) (*Stack, error) {
 	stack := &Stack{StackName: &stackName}
 	templateBody, err := resourceSet.RenderJSON()
 	if err != nil {

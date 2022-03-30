@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/kris-nova/logger"
@@ -119,7 +120,7 @@ func (n *NodeGroupResourceSet) WithNamedIAM() bool {
 	return n.rs.withNamedIAM
 }
 
-func (n *NodeGroupResourceSet) addResourcesForIAM() error {
+func (n *NodeGroupResourceSet) addResourcesForIAM(ctx context.Context) error {
 	if n.spec.IAM.InstanceProfileARN != "" {
 		n.rs.withIAM = false
 		n.rs.withNamedIAM = false
@@ -134,7 +135,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() error {
 		}
 		// if instance role is not given, export profile and use the getter to call importer function
 		n.rs.defineOutput(outputs.NodeGroupInstanceProfileARN, n.spec.IAM.InstanceProfileARN, true, func(v string) error {
-			return iam.ImportInstanceRoleFromProfileARN(n.iamAPI, n.spec, v)
+			return iam.ImportInstanceRoleFromProfileARN(ctx, n.iamAPI, n.spec, v)
 		})
 
 		return nil

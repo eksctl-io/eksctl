@@ -1,6 +1,7 @@
 package builder_test
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -53,7 +54,7 @@ var _ = Describe("Unmanaged NodeGroup Template Builder", func() {
 		)
 
 		JustBeforeEach(func() {
-			addErr = ngrs.AddAllResources()
+			addErr = ngrs.AddAllResources(context.Background())
 			ngTemplate = &fakes.FakeTemplate{}
 			templateBody, err := ngrs.RenderJSON()
 			Expect(err).ShouldNot(HaveOccurred())

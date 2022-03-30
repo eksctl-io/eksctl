@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -54,7 +55,7 @@ func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI awsapi.IAM, spec *ap
 }
 
 // AddAllResources adds all the information about the nodegroup to the resource set
-func (n *NodeGroupResourceSet) AddAllResources() error {
+func (n *NodeGroupResourceSet) AddAllResources(ctx context.Context) error {
 
 	if n.clusterSpec.IPv6Enabled() {
 		return errors.New("unmanaged nodegroups are not supported with IPv6 clusters")
@@ -112,7 +113,7 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		return fmt.Errorf("--nodes-min value (%d) cannot be greater than --nodes-max value (%d)", *n.spec.MinSize, *n.spec.MaxSize)
 	}
 
-	if err := n.addResourcesForIAM(); err != nil {
+	if err := n.addResourcesForIAM(ctx); err != nil {
 		return err
 	}
 	n.addResourcesForSecurityGroups()

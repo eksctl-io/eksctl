@@ -151,7 +151,7 @@ func (c *StackCollection) DoWaitUntilStackIsCreated(i *Stack) error {
 	)
 }
 
-func (c *StackCollection) waitUntilStackIsCreated(i *Stack, stack builder.ResourceSet, errs chan error) {
+func (c *StackCollection) waitUntilStackIsCreated(i *Stack, stack builder.ResourceSetReader, errs chan error) {
 	defer close(errs)
 
 	if err := c.DoWaitUntilStackIsCreated(i); err != nil {

@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,6 +31,7 @@ func (t *createClusterTask) Do(errorCh chan error) error {
 
 type nodeGroupTask struct {
 	info              string
+	ctx               context.Context
 	nodeGroup         *api.NodeGroup
 	forceAddCNIPolicy bool
 	vpcImporter       vpc.Importer
@@ -38,7 +40,7 @@ type nodeGroupTask struct {
 
 func (t *nodeGroupTask) Describe() string { return t.info }
 func (t *nodeGroupTask) Do(errs chan error) error {
-	return t.stackCollection.createNodeGroupTask(errs, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
+	return t.stackCollection.createNodeGroupTask(t.ctx, errs, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
 }
 
 type managedNodeGroupTask struct {

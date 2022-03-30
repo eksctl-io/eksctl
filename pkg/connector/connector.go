@@ -335,7 +335,7 @@ func (c *EKSConnector) createConnectorRole(ctx context.Context, cluster External
 
 	waiter := iam.NewRoleExistsWaiter(c.Provider.IAM())
 	const maxWaitDuration = 5 * time.Minute
-	if err := waiter.Wait(context.TODO(), &iam.GetRoleInput{
+	if err := waiter.Wait(ctx, &iam.GetRoleInput{
 		RoleName: roleName,
 	}, maxWaitDuration); err != nil {
 		return "", err
