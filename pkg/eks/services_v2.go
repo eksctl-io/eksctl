@@ -40,7 +40,7 @@ func (s *ServicesV2) STSV2() awsapi.STS {
 }
 
 // STSV2Presign provides a signed STS client for calls to Kubernetes.
-func (s *ServicesV2) STSV2Presign() v1alpha5.STSPresign {
+func (s *ServicesV2) STSV2Presign() v1alpha5.STSPresigner {
 	// set up sts client.
 	s.mu.Lock()
 	defer s.mu.Unlock()

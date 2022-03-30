@@ -672,12 +672,14 @@ type ClusterProvider interface {
 	Session() *session.Session
 
 	STSV2() awsapi.STS
-	STSV2Presign() STSPresign
+	STSV2Presign() STSPresigner
 }
 
-// STSPresign defines the method to pre-sign GetCallerIdentity requests to add a proper header required by EKS for
+// STSPresigner defines the method to pre-sign GetCallerIdentity requests to add a proper header required by EKS for
 // authentication from the outside.
-type STSPresign interface {
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_sts_presigner.go . STSPresigner
+type STSPresigner interface {
 	PresignGetCallerIdentity(ctx context.Context, params *stsv2.GetCallerIdentityInput, optFns ...func(*stsv2.PresignOptions)) (*v4.PresignedHTTPRequest, error)
 }
 

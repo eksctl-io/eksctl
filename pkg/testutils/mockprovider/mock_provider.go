@@ -3,7 +3,6 @@ package mockprovider
 import (
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -21,6 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5/fakes"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/eks/mocks"
 	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
@@ -66,7 +66,7 @@ type MockProvider struct {
 	configProvider *mocks.ConfigProvider
 
 	stsV2            *mocksv2.STS
-	stsPresignClient *sts.PresignClient
+	stsPresigner     api.STSPresigner
 	cloudformationV2 *mocksv2.CloudFormation
 }
 
@@ -88,7 +88,7 @@ func NewMockProvider() *MockProvider {
 		configProvider: &mocks.ConfigProvider{},
 
 		stsV2:            &mocksv2.STS{},
-		stsPresignClient: &sts.PresignClient{},
+		stsPresigner:     &fakes.FakeSTSPresigner{},
 		cloudformationV2: &mocksv2.CloudFormation{},
 	}
 }
@@ -98,13 +98,13 @@ func (m MockProvider) STSV2() awsapi.STS {
 	return m.stsV2
 }
 
-func (m MockProvider) STSV2Presign() api.STSPresign {
-	return m.stsPresignClient
+func (m MockProvider) STSV2Presign() api.STSPresigner {
+	return m.stsPresigner
 }
 
 // MockSTSV2 returns a mocked STS v2 API
-func (m MockProvider) MockSTSV2() *mocksv2.STS {
-	return m.stsV2
+func (m MockProvider) MockSTSV2() *fakes.FakeSTSPresigner {
+	return m.stsPresigner.(*fakes.FakeSTSPresigner)
 }
 
 // CloudFormationV2 returns a representation of the CloudFormation v2 API

@@ -2,14 +2,10 @@ package eks
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"github.com/aws/smithy-go/middleware"
-	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -22,6 +18,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
+	"github.com/weaveworks/eksctl/pkg/credentials"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
@@ -31,15 +28,18 @@ type Client struct {
 	Config *clientcmdapi.Config
 
 	rawConfig *restclient.Config
+	generator TokenGenerator
 }
 
 // NewClient creates a new client config by embedding the STS token
 func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
 	config := kubeconfig.NewForUser(spec, c.GetUsername())
+	generator := NewGenerator(c.Provider.STSV2Presign(), &credentials.RealClock{})
 	client := &Client{
-		Config: config,
+		Config:    config,
+		generator: generator,
 	}
-	return client.new(spec, c.Provider.STSV2Presign())
+	return client.new(spec)
 }
 
 // GetUsername extracts the username part from the IAM role ARN
@@ -51,8 +51,8 @@ func (c *ClusterProvider) GetUsername() string {
 	return "iam-root-account"
 }
 
-func (c *Client) new(spec *api.ClusterConfig, presignClient api.STSPresign) (*Client, error) {
-	if err := c.useEmbeddedToken(spec, presignClient); err != nil {
+func (c *Client) new(spec *api.ClusterConfig) (*Client, error) {
+	if err := c.useEmbeddedToken(spec); err != nil {
 		return nil, err
 	}
 
@@ -68,60 +68,14 @@ func (c *Client) new(spec *api.ClusterConfig, presignClient api.STSPresign) (*Cl
 	return c, nil
 }
 
-func (c *Client) useEmbeddedToken(spec *api.ClusterConfig, presignClient api.STSPresign) error {
-	gen := generator{}
-
-	tok, err := gen.GetWithSTS(context.TODO(), spec.Metadata.Name, presignClient.(*sts.PresignClient))
+func (c *Client) useEmbeddedToken(spec *api.ClusterConfig) error {
+	tok, err := c.generator.GetWithSTS(context.TODO(), spec.Metadata.Name)
 	if err != nil {
 		return errors.Wrap(err, "could not get token")
 	}
 
 	c.Config.AuthInfos[c.Config.CurrentContext].Token = tok.Token
 	return nil
-}
-
-type generator struct{}
-
-// Token is generated and used by Kubernetes client-go to authenticate with a Kubernetes cluster.
-type Token struct {
-	Token      string
-	Expiration time.Time
-}
-
-const (
-	clusterIDHeader        = "x-k8s-aws-id"
-	presignedURLExpiration = 15 * time.Minute
-	v1Prefix               = "k8s-aws-v1."
-)
-
-// GetWithSTS returns a token valid for clusterID using the given STS client.
-// This implementation follows the steps outlined here:
-// https://github.com/kubernetes-sigs/aws-iam-authenticator#api-authorization-from-outside-a-cluster
-// We either add this implementation or have to maintain two versions of STS since aws-iam-authenticator is
-// not switching over to aws-go-sdk-v2.
-func (g generator) GetWithSTS(ctx context.Context, clusterID string, presigner *sts.PresignClient) (Token, error) {
-	// generate an sts:GetCallerIdentity request and add our custom cluster ID header
-	presignedURLRequest, err := presigner.PresignGetCallerIdentity(ctx, &sts.GetCallerIdentityInput{}, func(presignOptions *sts.PresignOptions) {
-		presignOptions.ClientOptions = append(presignOptions.ClientOptions, func(stsOptions *sts.Options) {
-			// Add clusterId Header
-			stsOptions.APIOptions = append(stsOptions.APIOptions, smithyhttp.SetHeaderValue(clusterIDHeader, clusterID))
-			// Add X-Amz-Expires query param
-			stsOptions.APIOptions = append(stsOptions.APIOptions, smithyhttp.SetHeaderValue("X-Amz-Expires", "60"))
-			// Remove not previously whitelisted X-Amz-User-Agent
-			stsOptions.APIOptions = append(stsOptions.APIOptions, func(stack *middleware.Stack) error {
-				_, err := stack.Build.Remove("UserAgent")
-				return err
-			})
-		})
-	})
-	if err != nil {
-		return Token{}, err
-	}
-
-	// Set token expiration to 1 minute before the presigned URL expires for some cushion
-	tokenExpiration := time.Now().Local().Add(presignedURLExpiration - 1*time.Minute)
-	// Add the token with k8s-aws-v1. prefix.
-	return Token{v1Prefix + base64.RawURLEncoding.EncodeToString([]byte(presignedURLRequest.URL)), tokenExpiration}, nil
 }
 
 // NewClientSet creates a new API client
