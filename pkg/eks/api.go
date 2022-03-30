@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	aws2 "github.com/aws/aws-sdk-go-v2/aws"
 	stsv2 "github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
@@ -214,22 +213,13 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 		return nil, err
 	}
 
+	provider.ServicesV2 = &ServicesV2{
+		config: cfg,
+	}
+
 	c.Status = &ProviderStatus{
 		sessionCreds: s.Config.Credentials,
 	}
-
-	// Handle potential custom Endpoint configurations.
-	// endpoint mapping follows: ServiceID => URL.
-	endpointMapping := make(map[string]string)
-	customResolver := aws2.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws2.Endpoint, error) {
-		if url, ok := endpointMapping[service]; ok {
-			return aws2.Endpoint{URL: url}, nil
-		}
-		// returning EndpointNotFoundError will allow the service to fallback to its default resolution
-		return aws2.Endpoint{}, &aws2.EndpointNotFoundError{}
-	})
-	v2Config := cfg.Copy()
-	v2Config.EndpointResolverWithOptions = customResolver
 
 	// override sessions if any custom endpoints specified
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
@@ -252,10 +242,6 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 		logger.Debug("Setting ELBV2 endpoint to %s", endpoint)
 		provider.elbv2 = elbv2.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
-	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
-		logger.Debug("Setting STS endpoint to %s", endpoint)
-		endpointMapping[stsv2.ServiceID] = endpoint
-	}
 	if endpoint, ok := os.LookupEnv("AWS_IAM_ENDPOINT"); ok {
 		logger.Debug("Setting IAM endpoint to %s", endpoint)
 		provider.iam = iam.New(s, s.Config.Copy().WithEndpoint(endpoint))
@@ -263,10 +249,6 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDTRAIL_ENDPOINT"); ok {
 		logger.Debug("Setting CloudTrail endpoint to %s", endpoint)
 		provider.cloudtrail = cloudtrail.New(s, s.Config.Copy().WithEndpoint(endpoint))
-	}
-
-	provider.ServicesV2 = &ServicesV2{
-		config: v2Config,
 	}
 
 	if clusterSpec != nil {
