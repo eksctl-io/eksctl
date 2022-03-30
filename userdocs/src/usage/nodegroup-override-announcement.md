@@ -4,35 +4,26 @@ This change was announced in the issue [Breaking: overrideBootstrapCommand soon.
 Now, it has come to pass in [this](https://github.com/weaveworks/eksctl/pull/4968) PR. Please read the attached issue carefully about 
 why we decided to move away from supporting custom AMIs without bootstrap scripts or with partial bootstrap scripts.
 
-We still provide a helper! Migrating hopefully is not that painful. `eksctl` still provides a helper script, which when
-sourced, will provide a couple of helpful environment properties and settings. This script is located [here](https://github.com/weaveworks/eksctl/blob/70a289d62e3c82e6177930cf2469c2572c82e104/pkg/nodebootstrap/assets/scripts/bootstrap.helper.sh).
+We still provide a helper! Migrating hopefully is not that painful. `eksctl` still provides a script, which when sourced, 
+will export a couple of helpful environment properties and settings. This script is located [here](https://github.com/weaveworks/eksctl/blob/70a289d62e3c82e6177930cf2469c2572c82e104/pkg/nodebootstrap/assets/scripts/bootstrap.helper.sh).
 
 The following environment properties will be at your disposal:
 
 ```bash
-API_SERVER_URL="${API_SERVER_URL}"
-B64_CLUSTER_CA="${B64_CLUSTER_CA}"
-INSTANCE_ID="$(get_metadata instance-id)"
-INSTANCE_LIFECYCLE="$(get_metadata instance-life-cycle)"
-CLUSTER_DNS="${CLUSTER_DNS:-}"
-NODE_TAINTS="${NODE_TAINTS:-}"
-MAX_PODS="${MAX_PODS:-}"
-NODE_LABELS="${NODE_LABELS},node-lifecycle=${INSTANCE_LIFECYCLE},alpha.eksctl.io/instance-id=${INSTANCE_ID}"
-
-KUBELET_ARGS=("--node-labels=${NODE_LABELS}")
-[[ -n "${NODE_TAINTS}" ]] && KUBELET_ARGS+=("--register-with-taints=${NODE_TAINTS}")
-# --max-pods as a CLI argument is deprecated, this is a workaround until we deprecate support for maxPodsPerNode
-[[ -n "${MAX_PODS}" ]] && KUBELET_ARGS+=("--max-pods=${MAX_PODS}")
-KUBELET_EXTRA_ARGS="${KUBELET_ARGS[@]}"
-
-CLUSTER_NAME="${CLUSTER_NAME}"
-KUBELET_CONFIG='/etc/kubernetes/kubelet/kubelet-config.json'
-KUBELET_EXTRA_CONFIG='/etc/eksctl/kubelet-extra.json'
-TMP_KUBE_CONF='/tmp/kubelet-conf.json'
-CONTAINER_RUNTIME="${CONTAINER_RUNTIME:-dockerd}" # default for al2 just in case, not used in ubuntu
+API_SERVER_URL
+B64_CLUSTER_CA
+INSTANCE_ID
+INSTANCE_LIFECYCLE
+CLUSTER_DNS
+NODE_TAINTS
+MAX_PODS
+NODE_LABELS
+CLUSTER_NAME
+CONTAINER_RUNTIME # default is docker
+KUBELET_EXTRA_ARGS # for details, look at the script
 ```
 
-The minimum that needs to be used when overriding so eksctl doesn't fail is labels! `eksctl` relies on a specific set of
+The minimum that needs to be used when overriding so `eksctl` doesn't fail, is labels! `eksctl` relies on a specific set of
 labels to be on the node, so it can find them. When defining the override, please provide this **bare minimum** override
 command:
 
@@ -42,6 +33,7 @@ command:
 
       source /var/lib/cloud/scripts/eksctl/bootstrap.helper.sh
 
+      # Note "--node-labels=${NODE_LABELS}" needs the above helper sourced to work, otherwise will have to be defined manually.
       /etc/eks/bootstrap.sh test-override-11 --container-runtime containerd --kubelet-extra-args "--node-labels=${NODE_LABELS}"
 ```
 
