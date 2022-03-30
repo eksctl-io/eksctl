@@ -25,10 +25,10 @@ import (
 
 // Client stores information about the client config
 type Client struct {
-	Config *clientcmdapi.Config
+	Config    *clientcmdapi.Config
+	Generator TokenGenerator
 
 	rawConfig *restclient.Config
-	generator TokenGenerator
 }
 
 // NewClient creates a new client config by embedding the STS token
@@ -37,7 +37,7 @@ func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
 	generator := NewGenerator(c.Provider.STSV2Presign(), &credentials.RealClock{})
 	client := &Client{
 		Config:    config,
-		generator: generator,
+		Generator: generator,
 	}
 	return client.new(spec)
 }
@@ -69,7 +69,7 @@ func (c *Client) new(spec *api.ClusterConfig) (*Client, error) {
 }
 
 func (c *Client) useEmbeddedToken(spec *api.ClusterConfig) error {
-	tok, err := c.generator.GetWithSTS(context.TODO(), spec.Metadata.Name)
+	tok, err := c.Generator.GetWithSTS(context.TODO(), spec.Metadata.Name)
 	if err != nil {
 		return errors.Wrap(err, "could not get token")
 	}

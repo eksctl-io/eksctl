@@ -103,7 +103,12 @@ func (m MockProvider) STSV2Presign() api.STSPresigner {
 }
 
 // MockSTSV2 returns a mocked STS v2 API
-func (m MockProvider) MockSTSV2() *fakes.FakeSTSPresigner {
+func (m MockProvider) MockSTSV2() *mocksv2.STS {
+	return m.stsV2
+}
+
+// MockSTSV2Presign returns a mocked STS v2 API
+func (m MockProvider) MockSTSV2Presign() *fakes.FakeSTSPresigner {
 	return m.stsPresigner.(*fakes.FakeSTSPresigner)
 }
 
