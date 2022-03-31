@@ -1,13 +1,16 @@
 package ami_test
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -117,7 +120,7 @@ func TestUseAMI(t *testing.T) {
 				ng.VolumeName = aws.String(tt.volumeName)
 			}
 
-			err := ami.Use(mockProvider.MockEC2(), ng.NodeGroupBase)
+			err := ami.Use(context.Background(), mockProvider.MockEC2(), ng.NodeGroupBase)
 
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
@@ -138,9 +141,9 @@ func TestUseAMI(t *testing.T) {
 func mockDescribeImages(blockDeviceMappings []*ec2.BlockDeviceMapping, rootDeviceName string) *mockprovider.MockProvider {
 	mockProvider := mockprovider.NewMockProvider()
 
-	mockProvider.MockEC2().On("DescribeImages", mock.MatchedBy(func(input *ec2.DescribeImagesInput) bool {
+	mockProvider.MockEC2().On("DescribeImagesWithContext", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeImagesInput) bool {
 		return len(input.ImageIds) == 1 && strings.HasPrefix(*input.ImageIds[0], "ami-")
-	})).Return(func(input *ec2.DescribeImagesInput) *ec2.DescribeImagesOutput {
+	})).Return(func(_ context.Context, input *ec2.DescribeImagesInput, _ ...request.Option) *ec2.DescribeImagesOutput {
 		return &ec2.DescribeImagesOutput{
 			Images: []*ec2.Image{
 				{
@@ -151,7 +154,7 @@ func mockDescribeImages(blockDeviceMappings []*ec2.BlockDeviceMapping, rootDevic
 				},
 			},
 		}
-	}, func(*ec2.DescribeImagesInput) error {
+	}, func(_ context.Context, _ *ec2.DescribeImagesInput, _ ...request.Option) error {
 		return nil
 	})
 
