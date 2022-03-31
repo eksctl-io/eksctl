@@ -9,18 +9,18 @@ require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.4-0.20220124212200-2aee60ac608e
 	github.com/aws/aws-sdk-go v1.43.17
-	github.com/aws/aws-sdk-go-v2 v1.15.0
+	github.com/aws/aws-sdk-go-v2 v1.16.1
 	github.com/aws/aws-sdk-go-v2/config v1.14.0
 	github.com/aws/aws-sdk-go-v2/credentials v1.9.0
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.20.0
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.20.2
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.15.0
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.31.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.20.1
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.0
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.0
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.2
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.2
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.0
-	github.com/aws/aws-sdk-go-v2/service/sts v1.16.0
-	github.com/aws/smithy-go v1.11.1
+	github.com/aws/aws-sdk-go-v2/service/sts v1.16.2
+	github.com/aws/smithy-go v1.11.2
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
@@ -133,10 +133,10 @@ require (
 	github.com/ashanbrown/makezero v1.1.0 // indirect
 	github.com/atc0005/go-teams-notify/v2 v2.6.1 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.11.0 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.6 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.0 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.8 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.2 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.6 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/kms v1.11.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.10.0 // indirect
 	github.com/awslabs/goformation/v4 v4.15.5 // indirect
