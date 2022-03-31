@@ -27,14 +27,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/aws/aws-sdk-go/service/elb"
-	"github.com/aws/aws-sdk-go/service/elb/elbiface"
-	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/gofrs/flock"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -75,15 +69,12 @@ type KubeProvider interface {
 
 // ProviderServices stores the used APIs
 type ProviderServices struct {
-	spec  *api.ProviderConfig
-	cfn   cloudformationiface.CloudFormationAPI
-	asg   autoscalingiface.AutoScalingAPI
-	eks   eksiface.EKSAPI
-	ec2   ec2iface.EC2API
-	elb   elbiface.ELBAPI
-	elbv2 elbv2iface.ELBV2API
-	ssm   ssmiface.SSMAPI
-	iam   iamiface.IAMAPI
+	spec *api.ProviderConfig
+	cfn  cloudformationiface.CloudFormationAPI
+	asg  autoscalingiface.AutoScalingAPI
+	eks  eksiface.EKSAPI
+	ec2  ec2iface.EC2API
+	iam  iamiface.IAMAPI
 
 	cloudtrail     cloudtrailiface.CloudTrailAPI
 	cloudwatchlogs cloudwatchlogsiface.CloudWatchLogsAPI
@@ -112,15 +103,6 @@ func (p ProviderServices) EKS() eksiface.EKSAPI { return p.eks }
 
 // EC2 returns a representation of the EC2 API
 func (p ProviderServices) EC2() ec2iface.EC2API { return p.ec2 }
-
-// ELB returns a representation of the ELB API
-func (p ProviderServices) ELB() elbiface.ELBAPI { return p.elb }
-
-// ELBV2 returns a representation of the ELBV2 API
-func (p ProviderServices) ELBV2() elbv2iface.ELBV2API { return p.elbv2 }
-
-// SSM returns a representation of the STS API
-func (p ProviderServices) SSM() ssmiface.SSMAPI { return p.ssm }
 
 // IAM returns a representation of the IAM API
 func (p ProviderServices) IAM() iamiface.IAMAPI { return p.iam }
@@ -201,9 +183,6 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	provider.cfn = cloudformation.New(s)
 	provider.eks = awseks.New(s)
 	provider.ec2 = ec2.New(s)
-	provider.elb = elb.New(s)
-	provider.elbv2 = elbv2.New(s)
-	provider.ssm = ssm.New(s)
 	provider.iam = iam.New(s)
 	provider.cloudtrail = cloudtrail.New(s)
 	provider.cloudwatchlogs = cloudwatchlogs.New(s)
@@ -233,14 +212,6 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
 		logger.Debug("Setting EC2 endpoint to %s", endpoint)
 		provider.ec2 = ec2.New(s, s.Config.Copy().WithEndpoint(endpoint))
-	}
-	if endpoint, ok := os.LookupEnv("AWS_ELB_ENDPOINT"); ok {
-		logger.Debug("Setting ELB endpoint to %s", endpoint)
-		provider.elb = elb.New(s, s.Config.Copy().WithEndpoint(endpoint))
-	}
-	if endpoint, ok := os.LookupEnv("AWS_ELBV2_ENDPOINT"); ok {
-		logger.Debug("Setting ELBV2 endpoint to %s", endpoint)
-		provider.elbv2 = elbv2.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_IAM_ENDPOINT"); ok {
 		logger.Debug("Setting IAM endpoint to %s", endpoint)
@@ -340,7 +311,7 @@ func (c *ClusterProvider) checkAuth() error {
 }
 
 // ResolveAMI ensures that the node AMI is set and is available
-func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) error {
+func ResolveAMI(ctx context.Context, provider api.ClusterProvider, version string, np api.NodePool) error {
 	var resolver ami.Resolver
 	ng := np.BaseNodeGroup()
 	switch ng.AMI {
@@ -358,7 +329,7 @@ func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) e
 	}
 
 	instanceType := api.SelectInstanceType(np)
-	id, err := resolver.Resolve(provider.Region(), version, instanceType, ng.AMIFamily)
+	id, err := resolver.Resolve(ctx, provider.Region(), version, instanceType, ng.AMIFamily)
 	if err != nil {
 		return errors.Wrap(err, "unable to determine AMI to use")
 	}

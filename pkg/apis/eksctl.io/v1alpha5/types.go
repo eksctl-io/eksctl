@@ -11,28 +11,22 @@ import (
 
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	stsv2 "github.com/aws/aws-sdk-go-v2/service/sts"
-
-	"github.com/weaveworks/eksctl/pkg/awsapi"
-
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
-
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/aws/aws-sdk-go/service/elb/elbiface"
-	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/utils/taints"
 )
 
@@ -659,9 +653,7 @@ type ClusterProvider interface {
 	ASG() autoscalingiface.AutoScalingAPI
 	EKS() eksiface.EKSAPI
 	EC2() ec2iface.EC2API
-	ELB() elbiface.ELBAPI
-	ELBV2() elbv2iface.ELBV2API
-	SSM() ssmiface.SSMAPI
+	SSM() awsapi.SSM
 	IAM() iamiface.IAMAPI
 	CloudTrail() cloudtrailiface.CloudTrailAPI
 	CloudWatchLogs() cloudwatchlogsiface.CloudWatchLogsAPI
@@ -671,6 +663,8 @@ type ClusterProvider interface {
 	ConfigProvider() client.ConfigProvider
 	Session() *session.Session
 
+	ELB() awsapi.ELB
+	ELBV2() awsapi.ELBV2
 	STSV2() awsapi.STS
 	STSV2Presign() STSPresigner
 }
@@ -1404,11 +1398,6 @@ type NodeGroupBase struct {
 	// Bottlerocket specifies settings for Bottlerocket nodes
 	// +optional
 	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
-
-	// TODO remove this
-	// This is a hack, will be removed shortly. When this is true for Ubuntu and
-	// AL2 images a legacy bootstrapper will be used.
-	CustomAMI bool `json:"-"`
 
 	// Enable EC2 detailed monitoring
 	// +optional
