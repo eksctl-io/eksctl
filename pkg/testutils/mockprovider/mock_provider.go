@@ -14,10 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/aws/aws-sdk-go/service/elb/elbiface"
-	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 
 	//"github.com/aws/aws-sdk-go/aws/awserr"
@@ -61,17 +58,18 @@ type MockProvider struct {
 	asg            *mocks.AutoScalingAPI
 	eks            *mocks.EKSAPI
 	ec2            *mocks.EC2API
-	elb            *mocks.ELBAPI
-	elbv2          *mocks.ELBV2API
 	sts            *mocks.STSAPI
-	ssm            *mocks.SSMAPI
+	ssm            *mocksv2.SSM
 	iam            *mocks.IAMAPI
 	cloudtrail     *mocks.CloudTrailAPI
 	cloudwatchlogs *mocks.CloudWatchLogsAPI
 	configProvider *mocks.ConfigProvider
 
-	stsV2 *mocksv2.STS
-	cfn   *mocksv2.CloudFormation
+	cfn              *mocksv2.CloudFormation
+	stsV2            *mocksv2.STS
+	cloudformationV2 *mocksv2.CloudFormation
+	elb              *mocksv2.ELB
+	elbV2            *mocksv2.ELBV2
 }
 
 // NewMockProvider returns a new MockProvider
@@ -82,17 +80,18 @@ func NewMockProvider() *MockProvider {
 		asg:            &mocks.AutoScalingAPI{},
 		eks:            &mocks.EKSAPI{},
 		ec2:            &mocks.EC2API{},
-		elb:            &mocks.ELBAPI{},
-		elbv2:          &mocks.ELBV2API{},
 		sts:            &mocks.STSAPI{},
-		ssm:            &mocks.SSMAPI{},
+		ssm:            &mocksv2.SSM{},
 		iam:            &mocks.IAMAPI{},
 		cloudtrail:     &mocks.CloudTrailAPI{},
 		cloudwatchlogs: &mocks.CloudWatchLogsAPI{},
 		configProvider: &mocks.ConfigProvider{},
 
-		stsV2: &mocksv2.STS{},
-		cfn:   &mocksv2.CloudFormation{},
+		stsV2:            &mocksv2.STS{},
+		cfn:              &mocksv2.CloudFormation{},
+		cloudformationV2: &mocksv2.CloudFormation{},
+		elb:              &mocksv2.ELB{},
+		elbV2:            &mocksv2.ELBV2{},
 	}
 }
 
@@ -114,6 +113,22 @@ func (m MockProvider) CloudFormation() awsapi.CloudFormation {
 // MockCloudFormationV2 returns a mocked CloudFormation v2 API
 func (m MockProvider) MockCloudFormation() *mocksv2.CloudFormation {
 	return m.cfn
+}
+
+func (m *MockProvider) ELB() awsapi.ELB {
+	return m.elb
+}
+
+func (m *MockProvider) MockELB() *mocksv2.ELB {
+	return m.elb
+}
+
+func (m *MockProvider) ELBV2() awsapi.ELBV2 {
+	return m.elbV2
+}
+
+func (m *MockProvider) MockELBV2() *mocksv2.ELBV2 {
+	return m.elbV2
 }
 
 // CloudFormation returns a representation of the CloudFormation API
@@ -141,12 +156,6 @@ func (m MockProvider) MockEKS() *mocks.EKSAPI { return m.EKS().(*mocks.EKSAPI) }
 // EC2 returns a representation of the EC2 API
 func (m MockProvider) EC2() ec2iface.EC2API { return m.ec2 }
 
-// ELB returns a representation of the ELB API
-func (m MockProvider) ELB() elbiface.ELBAPI { return m.elb }
-
-// ELBV2 returns a representation of the ELBV2 API
-func (m MockProvider) ELBV2() elbv2iface.ELBV2API { return m.elbv2 }
-
 // MockEC2 returns a mocked EC2 API
 func (m MockProvider) MockEC2() *mocks.EC2API { return m.EC2().(*mocks.EC2API) }
 
@@ -157,10 +166,10 @@ func (m MockProvider) STS() stsiface.STSAPI { return m.sts }
 func (m MockProvider) MockSTS() *mocks.STSAPI { return m.STS().(*mocks.STSAPI) }
 
 // SSM returns a representation of the SSM API
-func (m MockProvider) SSM() ssmiface.SSMAPI { return m.ssm }
+func (m MockProvider) SSM() awsapi.SSM { return m.ssm }
 
 // MockSSM returns a mocked SSM API
-func (m MockProvider) MockSSM() *mocks.SSMAPI { return m.SSM().(*mocks.SSMAPI) }
+func (m MockProvider) MockSSM() *mocksv2.SSM { return m.ssm }
 
 // IAM returns a representation of the IAM API
 func (m MockProvider) IAM() iamiface.IAMAPI { return m.iam }

@@ -81,7 +81,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 	}
 
 	if !options.DryRun {
-		if err := m.init.Normalize(nodePools, cfg.Metadata); err != nil {
+		if err := m.init.Normalize(ctx, nodePools, cfg.Metadata); err != nil {
 			return err
 		}
 	}

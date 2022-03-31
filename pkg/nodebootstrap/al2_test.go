@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
@@ -205,16 +206,16 @@ CONTAINER_RUNTIME=`, "\n")))
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.helper.sh"))
-			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0755"))
+			Expect(cloudCfg.WriteFiles[3].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.helper.sh"))
+			Expect(cloudCfg.WriteFiles[3].Permissions).To(Equal("0755"))
 		})
 
 		It("adds the al2 boot script to the userdata", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.WriteFiles[3].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.al2.sh"))
-			Expect(cloudCfg.WriteFiles[3].Permissions).To(Equal("0755"))
+			Expect(cloudCfg.WriteFiles[2].Path).To(Equal("/var/lib/cloud/scripts/eksctl/bootstrap.al2.sh"))
+			Expect(cloudCfg.WriteFiles[2].Permissions).To(Equal("0755"))
 		})
 	})
 
@@ -332,8 +333,8 @@ CONTAINER_RUNTIME=`, "\n")))
 			Expect(err).NotTo(HaveOccurred())
 
 			cloudCfg := decode(userData)
-			Expect(cloudCfg.Commands).To(HaveLen(1))
-			Expect(cloudCfg.WriteFiles).To(HaveLen(0))
+			Expect(cloudCfg.Commands).To(HaveLen(2))
+			Expect(cloudCfg.WriteFiles).To(HaveLen(3))
 		})
 	})
 })

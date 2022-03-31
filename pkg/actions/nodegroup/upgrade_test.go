@@ -4,11 +4,14 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
+
 	"github.com/aws/aws-sdk-go/aws"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/ssm"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/mock"
 	"k8s.io/client-go/kubernetes/fake"
 
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
@@ -83,7 +86,7 @@ var _ = Describe("Upgrade", func() {
 
 			It("upgrades the nodegroup version and lt by calling the API", func() {
 				options.LaunchTemplateVersion = "v2"
-				Expect(m.Upgrade(context.TODO(), options)).To(Succeed())
+				Expect(m.Upgrade(context.Background(), options)).To(Succeed())
 			})
 		})
 
@@ -119,7 +122,7 @@ var _ = Describe("Upgrade", func() {
 
 			It("upgrades the nodegroup version and lt by calling the API", func() {
 				options.LaunchTemplateVersion = "v2"
-				Expect(m.Upgrade(context.TODO(), options)).To(Succeed())
+				Expect(m.Upgrade(context.Background(), options)).To(Succeed())
 			})
 		})
 	})
@@ -157,17 +160,17 @@ var _ = Describe("Upgrade", func() {
 						},
 					}, nil)
 
-					p.MockSSM().On("GetParameter", &ssm.GetParameterInput{
+					p.MockSSM().On("GetParameter", mock.Anything, &ssm.GetParameterInput{
 						Name: aws.String("/aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/release_version"),
 					}).Return(&ssm.GetParameterOutput{
-						Parameter: &ssm.Parameter{
+						Parameter: &ssmtypes.Parameter{
 							Value: aws.String("1.21-20201212"),
 						},
 					}, nil)
 				})
 
 				It("upgrades the nodegroup with the latest al2 release_version by updating the stack", func() {
-					Expect(m.Upgrade(context.TODO(), options)).To(Succeed())
+					Expect(m.Upgrade(context.Background(), options)).To(Succeed())
 					Expect(fakeStackManager.GetManagedNodeGroupTemplateCallCount()).To(Equal(1))
 					_, n := fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0)
 					Expect(n.NodeGroupName).To(Equal(ngName))
@@ -219,17 +222,17 @@ var _ = Describe("Upgrade", func() {
 						},
 					}, nil)
 
-					p.MockSSM().On("GetParameter", &ssm.GetParameterInput{
+					p.MockSSM().On("GetParameter", mock.Anything, &ssm.GetParameterInput{
 						Name: aws.String("/aws/service/eks/optimized-ami/1.21/amazon-linux-2-gpu/recommended/release_version"),
 					}).Return(&ssm.GetParameterOutput{
-						Parameter: &ssm.Parameter{
+						Parameter: &ssmtypes.Parameter{
 							Value: aws.String("1.21-20201212"),
 						},
 					}, nil)
 				})
 
 				It("upgrades the nodegroup with the latest al2 release_version by updating the stack", func() {
-					Expect(m.Upgrade(context.TODO(), options)).To(Succeed())
+					Expect(m.Upgrade(context.Background(), options)).To(Succeed())
 					Expect(fakeStackManager.GetManagedNodeGroupTemplateCallCount()).To(Equal(1))
 					_, n := fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0)
 					Expect(n.NodeGroupName).To(Equal(ngName))
@@ -275,17 +278,17 @@ var _ = Describe("Upgrade", func() {
 						},
 					}, nil)
 
-					p.MockSSM().On("GetParameter", &ssm.GetParameterInput{
+					p.MockSSM().On("GetParameter", mock.Anything, &ssm.GetParameterInput{
 						Name: aws.String("/aws/service/bottlerocket/aws-k8s-1.21/x86_64/latest/image_version"),
 					}).Return(&ssm.GetParameterOutput{
-						Parameter: &ssm.Parameter{
+						Parameter: &ssmtypes.Parameter{
 							Value: aws.String("1.5.2-1602f3a8"),
 						},
 					}, nil)
 				})
 
 				It("upgrades the nodegroup updating the stack with the kubernetes version", func() {
-					Expect(m.Upgrade(context.TODO(), options)).To(Succeed())
+					Expect(m.Upgrade(context.Background(), options)).To(Succeed())
 					Expect(fakeStackManager.GetManagedNodeGroupTemplateCallCount()).To(Equal(1))
 					_, n := fakeStackManager.GetManagedNodeGroupTemplateArgsForCall(0)
 					Expect(n.NodeGroupName).To(Equal(ngName))

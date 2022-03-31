@@ -6,10 +6,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -256,7 +257,7 @@ func (m *Manager) upgradeUsingStack(ctx context.Context, options UpgradeOptions,
 			kubernetesVersion = fmt.Sprintf("%v.%v", version.Major, version.Minor)
 		}
 
-		latestReleaseVersion, err := m.getLatestReleaseVersion(kubernetesVersion, nodegroup)
+		latestReleaseVersion, err := m.getLatestReleaseVersion(ctx, kubernetesVersion, nodegroup)
 		if err != nil {
 			return err
 		}
@@ -324,7 +325,7 @@ func (m *Manager) requiresStackUpdate(ctx context.Context, nodeGroupName string)
 	return !ver.EQ(curVer), nil
 }
 
-func (m *Manager) getLatestReleaseVersion(kubernetesVersion string, nodeGroup *eks.Nodegroup) (string, error) {
+func (m *Manager) getLatestReleaseVersion(ctx context.Context, kubernetesVersion string, nodeGroup *eks.Nodegroup) (string, error) {
 	ssmParameterName, err := ami.MakeManagedSSMParameterName(kubernetesVersion, *nodeGroup.AmiType)
 	if err != nil {
 		return "", err
@@ -334,7 +335,7 @@ func (m *Manager) getLatestReleaseVersion(kubernetesVersion string, nodeGroup *e
 		return "", nil
 	}
 
-	ssmOutput, err := m.ctl.Provider.SSM().GetParameter(&ssm.GetParameterInput{
+	ssmOutput, err := m.ctl.Provider.SSM().GetParameter(ctx, &ssm.GetParameterInput{
 		Name: &ssmParameterName,
 	})
 	if err != nil {

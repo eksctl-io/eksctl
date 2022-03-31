@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/assets"
@@ -18,7 +17,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
-	"github.com/weaveworks/eksctl/pkg/nodebootstrap/legacy"
 )
 
 const (
@@ -50,20 +48,10 @@ func NewBootstrapper(clusterConfig *api.ClusterConfig, ng *api.NodeGroup) (Boots
 	}
 	switch ng.AMIFamily {
 	case api.NodeImageFamilyUbuntu2004, api.NodeImageFamilyUbuntu1804:
-		// TODO remove
-		if ng.CustomAMI {
-			logger.Warning("Custom AMI detected for nodegroup %s, using legacy nodebootstrap mechanism. Please refer to https://github.com/weaveworks/eksctl/issues/3563 for upcoming breaking changes", ng.Name)
-			return legacy.NewUbuntuBootstrapper(clusterConfig, ng), nil
-		}
 		return NewUbuntuBootstrapper(clusterConfig, ng), nil
 	case api.NodeImageFamilyBottlerocket:
 		return NewBottlerocketBootstrapper(clusterConfig, ng), nil
 	case api.NodeImageFamilyAmazonLinux2:
-		// TODO remove
-		if ng.CustomAMI {
-			logger.Warning("Custom AMI detected for nodegroup %s, using legacy nodebootstrap mechanism. Please refer to https://github.com/weaveworks/eksctl/issues/3563 for upcoming breaking changes", ng.Name)
-			return legacy.NewAL2Bootstrapper(clusterConfig, ng), nil
-		}
 		return NewAL2Bootstrapper(clusterConfig, ng), nil
 	default:
 		return nil, errors.Errorf("unrecognized AMI family %q for creating bootstrapper", ng.AMIFamily)
@@ -116,19 +104,20 @@ func linuxConfig(clusterConfig *api.ClusterConfig, bootScriptName, bootScriptCon
 	if ng.OverrideBootstrapCommand != nil {
 		config.AddShellCommand(*ng.OverrideBootstrapCommand)
 	} else {
-		scripts = append(scripts, script{name: commonLinuxBootScript, contents: assets.BootstrapHelperSh}, script{name: bootScriptName, contents: bootScriptContent})
-		var kubeletExtraConf *api.InlineDocument
-		if unmanaged, ok := np.(*api.NodeGroup); ok {
-			kubeletExtraConf = unmanaged.KubeletExtraConfig
-		}
-		kubeletConf, err := makeKubeletExtraConf(kubeletExtraConf)
-		if err != nil {
-			return "", err
-		}
-		files = append(files, kubeletConf)
-		envFile := makeBootstrapEnv(clusterConfig, np)
-		files = append(files, envFile)
+		scripts = append(scripts, script{name: bootScriptName, contents: bootScriptContent})
 	}
+	scripts = append(scripts, script{name: commonLinuxBootScript, contents: assets.BootstrapHelperSh})
+	var kubeletExtraConf *api.InlineDocument
+	if unmanaged, ok := np.(*api.NodeGroup); ok {
+		kubeletExtraConf = unmanaged.KubeletExtraConfig
+	}
+	kubeletConf, err := makeKubeletExtraConf(kubeletExtraConf)
+	if err != nil {
+		return "", err
+	}
+	files = append(files, kubeletConf)
+	envFile := makeBootstrapEnv(clusterConfig, np)
+	files = append(files, envFile)
 
 	if err := addFilesAndScripts(config, files, scripts); err != nil {
 		return "", err
