@@ -20,8 +20,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/aws/aws-sdk-go/service/elb/elbiface"
-	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
@@ -656,8 +654,6 @@ type ClusterProvider interface {
 	ASG() autoscalingiface.AutoScalingAPI
 	EKS() eksiface.EKSAPI
 	EC2() ec2iface.EC2API
-	ELB() elbiface.ELBAPI
-	ELBV2() elbv2iface.ELBV2API
 	STS() stsiface.STSAPI
 	SSM() ssmiface.SSMAPI
 	IAM() iamiface.IAMAPI
@@ -670,6 +666,8 @@ type ClusterProvider interface {
 	Session() *session.Session
 
 	STSV2() awsapi.STS
+	ELB() awsapi.ELB
+	ELBV2() awsapi.ELBV2
 }
 
 // ProviderConfig holds global parameters for all interactions with AWS APIs
