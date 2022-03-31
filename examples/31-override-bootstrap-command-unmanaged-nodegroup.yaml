@@ -1,0 +1,18 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: override-unmanaged-nodegroup-bootstrap
+  region: us-west-2
+  version: '1.21'
+
+nodeGroups:
+  - name: ng-1
+    minSize: 1
+    maxSize: 2
+    ami: ami-12345
+    desiredCapacity: 1
+    overrideBootstrapCommand: |
+      #!/bin/bash
+      source /var/lib/cloud/scripts/eksctl/bootstrap.helper.sh
+      /etc/eks/bootstrap.sh override-unmanaged-nodegroup-bootstrap --container-runtime containerd --kubelet-extra-args "--node-labels=${NODE_LABELS}"
