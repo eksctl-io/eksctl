@@ -76,7 +76,7 @@ func (s *ServicesV2) ELB() awsapi.ELB {
 // ELBV2 implements the ELBV2 service.
 func (s *ServicesV2) ELBV2() awsapi.ELBV2 {
 	s.mu.Lock()
-	defer s.mu.Lock()
+	defer s.mu.Unlock()
 	if s.elasticloadbalancingV2 == nil {
 		s.elasticloadbalancingV2 = elasticloadbalancingv2.NewFromConfig(s.config)
 	}
