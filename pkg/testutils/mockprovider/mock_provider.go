@@ -15,8 +15,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/aws/aws-sdk-go/service/elb/elbiface"
-	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
@@ -63,8 +61,6 @@ type MockProvider struct {
 	cfn            *mocks.CloudFormationAPI
 	eks            *mocks.EKSAPI
 	ec2            *mocks.EC2API
-	elb            *mocks.ELBAPI
-	elbv2          *mocks.ELBV2API
 	sts            *mocks.STSAPI
 	ssm            *mocks.SSMAPI
 	iam            *mocks.IAMAPI
@@ -74,6 +70,8 @@ type MockProvider struct {
 
 	stsV2            *mocksv2.STS
 	cloudformationV2 *mocksv2.CloudFormation
+	elb              *mocksv2.ELB
+	elbV2            *mocksv2.ELBV2
 }
 
 // NewMockProvider returns a new MockProvider
@@ -85,8 +83,6 @@ func NewMockProvider() *MockProvider {
 		cfn:            &mocks.CloudFormationAPI{},
 		eks:            &mocks.EKSAPI{},
 		ec2:            &mocks.EC2API{},
-		elb:            &mocks.ELBAPI{},
-		elbv2:          &mocks.ELBV2API{},
 		sts:            &mocks.STSAPI{},
 		ssm:            &mocks.SSMAPI{},
 		iam:            &mocks.IAMAPI{},
@@ -96,6 +92,8 @@ func NewMockProvider() *MockProvider {
 
 		stsV2:            &mocksv2.STS{},
 		cloudformationV2: &mocksv2.CloudFormation{},
+		elb:              &mocksv2.ELB{},
+		elbV2:            &mocksv2.ELBV2{},
 	}
 }
 
@@ -117,6 +115,22 @@ func (m MockProvider) CloudFormationV2() awsapi.CloudFormation {
 // MockCloudFormationV2 returns a mocked CloudFormation v2 API
 func (m MockProvider) MockCloudFormationV2() *mocksv2.CloudFormation {
 	return m.cloudformationV2
+}
+
+func (m *MockProvider) ELB() awsapi.ELB {
+	return m.elb
+}
+
+func (m *MockProvider) MockELB() *mocksv2.ELB {
+	return m.elb
+}
+
+func (m *MockProvider) ELBV2() awsapi.ELBV2 {
+	return m.elbV2
+}
+
+func (m *MockProvider) MockELBV2() *mocksv2.ELBV2 {
+	return m.elbV2
 }
 
 // CloudFormation returns a representation of the CloudFormation API
@@ -149,12 +163,6 @@ func (m MockProvider) MockEKS() *mocks.EKSAPI { return m.EKS().(*mocks.EKSAPI) }
 
 // EC2 returns a representation of the EC2 API
 func (m MockProvider) EC2() ec2iface.EC2API { return m.ec2 }
-
-// ELB returns a representation of the ELB API
-func (m MockProvider) ELB() elbiface.ELBAPI { return m.elb }
-
-// ELBV2 returns a representation of the ELBV2 API
-func (m MockProvider) ELBV2() elbv2iface.ELBV2API { return m.elbv2 }
 
 // MockEC2 returns a mocked EC2 API
 func (m MockProvider) MockEC2() *mocks.EC2API { return m.EC2().(*mocks.EC2API) }
