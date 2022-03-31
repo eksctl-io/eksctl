@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -70,10 +69,5 @@ func (g Generator) appendPresignHeaderValuesFunc(clusterID string) func(stsOptio
 		stsOptions.APIOptions = append(stsOptions.APIOptions, smithyhttp.SetHeaderValue(clusterIDHeader, clusterID))
 		// Add X-Amz-Expires query param
 		stsOptions.APIOptions = append(stsOptions.APIOptions, smithyhttp.SetHeaderValue("X-Amz-Expires", "60"))
-		// Remove not previously whitelisted X-Amz-User-Agent
-		stsOptions.APIOptions = append(stsOptions.APIOptions, func(stack *middleware.Stack) error {
-			_, err := stack.Build.Remove("UserAgent")
-			return err
-		})
 	}
 }
