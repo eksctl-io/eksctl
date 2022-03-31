@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/smithy-go"
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -54,8 +56,8 @@ func (a *Manager) Delete(ctx context.Context, addon *api.Addon) error {
 
 	stack, err := a.stackManager.DescribeStack(ctx, &manager.Stack{StackName: aws.String(a.makeAddonName(addon.Name))})
 	if err != nil {
-		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); !ok || ok &&
-			awsError.Code() != "ValidationError" {
+		awsError, ok := errors.Unwrap(errors.Unwrap(err)).(*smithy.OperationError)
+		if !ok || (ok && !strings.Contains(awsError.Error(), "ValidationError")) {
 			return fmt.Errorf("failed to get stack: %w", err)
 		}
 	}

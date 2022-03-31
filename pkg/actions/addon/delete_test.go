@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/smithy-go"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
@@ -121,7 +122,9 @@ var _ = Describe("Delete", func() {
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, nil)
 
-				fakeStackManager.DescribeStackReturns(nil, errors.Wrap(awserr.New("ValidationError", "test-err", nil), "nope"))
+				fakeStackManager.DescribeStackReturns(nil, errors.Wrap(&smithy.OperationError{
+					Err: fmt.Errorf("ValidationError"),
+				}, "nope"))
 
 				err := manager.Delete(context.TODO(), &api.Addon{
 					Name: "my-addon",
@@ -161,7 +164,9 @@ var _ = Describe("Delete", func() {
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, awserr.New(awseks.ErrCodeResourceNotFoundException, "", nil))
 
-				fakeStackManager.DescribeStackReturns(nil, errors.Wrap(awserr.New("ValidationError", "test-err", nil), "nope"))
+				fakeStackManager.DescribeStackReturns(nil, errors.Wrap(&smithy.OperationError{
+					Err: fmt.Errorf("ValidationError"),
+				}, "nope"))
 				err := manager.Delete(context.TODO(), &api.Addon{
 					Name: "my-addon",
 				})
