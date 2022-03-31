@@ -262,7 +262,7 @@ func (c *StackCollection) UpdateStack(ctx context.Context, options UpdateStackOp
 	); err != nil {
 		return err
 	}
-	if err := c.doWaitUntilChangeSetIsCreated(options.Stack, options.ChangeSetName); err != nil {
+	if err := c.doWaitUntilChangeSetIsCreated(ctx, options.Stack, options.ChangeSetName); err != nil {
 		if _, ok := err.(*noChangeError); ok {
 			return nil
 		}
@@ -278,7 +278,7 @@ func (c *StackCollection) UpdateStack(ctx context.Context, options UpdateStackOp
 		return err
 	}
 	if options.Wait {
-		return c.doWaitUntilStackIsUpdated(options.Stack)
+		return c.doWaitUntilStackIsUpdated(ctx, options.Stack)
 	}
 	return nil
 }
@@ -517,7 +517,7 @@ func (c *StackCollection) DeleteStackBySpecSync(ctx context.Context, s *Stack, e
 
 	logger.Info("waiting for stack %q to get deleted", *i.StackName)
 
-	go c.waitUntilStackIsDeleted(i, errs)
+	go c.waitUntilStackIsDeleted(ctx, i, errs)
 
 	return nil
 }
@@ -530,7 +530,7 @@ func (c *StackCollection) DeleteStackSync(ctx context.Context, s *Stack) error {
 	}
 
 	logger.Info("waiting for stack %q to get deleted", *i.StackName)
-	return c.doWaitUntilStackIsDeleted(s)
+	return c.doWaitUntilStackIsDeleted(ctx, s)
 }
 
 func fmtStacksRegexForCluster(name string) string {

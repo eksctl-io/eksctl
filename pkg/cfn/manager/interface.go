@@ -54,7 +54,7 @@ type StackManager interface {
 	DescribeStackEvents(ctx context.Context, i *Stack) ([]types.StackEvent, error)
 	DescribeStacks(ctx context.Context) ([]*Stack, error)
 	DoCreateStackRequest(ctx context.Context, i *Stack, templateData TemplateData, tags, parameters map[string]string, withIAM bool, withNamedIAM bool) error
-	DoWaitUntilStackIsCreated(i *Stack) error
+	DoWaitUntilStackIsCreated(ctx context.Context, i *Stack) error
 	EnsureMapPublicIPOnLaunchEnabled(ctx context.Context) error
 	FixClusterCompatibility(ctx context.Context) error
 	GetAutoScalingGroupDesiredCapacity(ctx context.Context, name string) (autoscaling.Group, error)

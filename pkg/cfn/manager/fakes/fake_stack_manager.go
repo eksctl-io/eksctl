@@ -242,10 +242,11 @@ type FakeStackManager struct {
 	doCreateStackRequestReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DoWaitUntilStackIsCreatedStub        func(*types.Stack) error
+	DoWaitUntilStackIsCreatedStub        func(context.Context, *types.Stack) error
 	doWaitUntilStackIsCreatedMutex       sync.RWMutex
 	doWaitUntilStackIsCreatedArgsForCall []struct {
-		arg1 *types.Stack
+		arg1 context.Context
+		arg2 *types.Stack
 	}
 	doWaitUntilStackIsCreatedReturns struct {
 		result1 error
@@ -1818,18 +1819,19 @@ func (fake *FakeStackManager) DoCreateStackRequestReturnsOnCall(i int, result1 e
 	}{result1}
 }
 
-func (fake *FakeStackManager) DoWaitUntilStackIsCreated(arg1 *types.Stack) error {
+func (fake *FakeStackManager) DoWaitUntilStackIsCreated(arg1 context.Context, arg2 *types.Stack) error {
 	fake.doWaitUntilStackIsCreatedMutex.Lock()
 	ret, specificReturn := fake.doWaitUntilStackIsCreatedReturnsOnCall[len(fake.doWaitUntilStackIsCreatedArgsForCall)]
 	fake.doWaitUntilStackIsCreatedArgsForCall = append(fake.doWaitUntilStackIsCreatedArgsForCall, struct {
-		arg1 *types.Stack
-	}{arg1})
+		arg1 context.Context
+		arg2 *types.Stack
+	}{arg1, arg2})
 	stub := fake.DoWaitUntilStackIsCreatedStub
 	fakeReturns := fake.doWaitUntilStackIsCreatedReturns
-	fake.recordInvocation("DoWaitUntilStackIsCreated", []interface{}{arg1})
+	fake.recordInvocation("DoWaitUntilStackIsCreated", []interface{}{arg1, arg2})
 	fake.doWaitUntilStackIsCreatedMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
@@ -1843,17 +1845,17 @@ func (fake *FakeStackManager) DoWaitUntilStackIsCreatedCallCount() int {
 	return len(fake.doWaitUntilStackIsCreatedArgsForCall)
 }
 
-func (fake *FakeStackManager) DoWaitUntilStackIsCreatedCalls(stub func(*types.Stack) error) {
+func (fake *FakeStackManager) DoWaitUntilStackIsCreatedCalls(stub func(context.Context, *types.Stack) error) {
 	fake.doWaitUntilStackIsCreatedMutex.Lock()
 	defer fake.doWaitUntilStackIsCreatedMutex.Unlock()
 	fake.DoWaitUntilStackIsCreatedStub = stub
 }
 
-func (fake *FakeStackManager) DoWaitUntilStackIsCreatedArgsForCall(i int) *types.Stack {
+func (fake *FakeStackManager) DoWaitUntilStackIsCreatedArgsForCall(i int) (context.Context, *types.Stack) {
 	fake.doWaitUntilStackIsCreatedMutex.RLock()
 	defer fake.doWaitUntilStackIsCreatedMutex.RUnlock()
 	argsForCall := fake.doWaitUntilStackIsCreatedArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeStackManager) DoWaitUntilStackIsCreatedReturns(result1 error) {

@@ -3,16 +3,14 @@ package manager
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-)
-
-const (
-	stackStatus     = "Stacks[].StackStatus"
-	changesetStatus = "Status"
 )
 
 func (c *StackCollection) troubleshootStackFailureCause(ctx context.Context, i *Stack, desiredStatus string) {
@@ -62,169 +60,100 @@ func (e *noChangeError) Error() string {
 
 // DoWaitUntilStackIsCreated blocks until the given stack's
 // creation has completed.
-func (c *StackCollection) DoWaitUntilStackIsCreated(i *Stack) error {
-	return nil
-	// return c.waitWithAcceptors(i,
-	// 	waiters.MakeAcceptors(
-	// 		stackStatus,
-	// 		types.StackStatusCreateComplete,
-	// 		[]string{
-	// 			string(types.StackStatusCreateFailed),
-	// 			string(types.StackStatusRollbackInProgress),
-	// 			string(types.StackStatusRollbackFailed),
-	// 			string(types.StackStatusRollbackComplete),
-	// 			string(types.StackStatusDeleteInProgress),
-	// 			string(types.StackStatusDeleteFailed),
-	// 			string(types.StackStatusDeleteComplete),
-	// 		},
-	// 		request.WaiterAcceptor{
-	// 			State:    request.FailureWaiterState,
-	// 			Matcher:  request.ErrorWaiterMatch,
-	// 			Expected: "ValidationError",
-	// 		},
-	// 	),
-	// )
+func (c *StackCollection) DoWaitUntilStackIsCreated(ctx context.Context, i *Stack) error {
+	setCustomRetryer := func(o *cloudformation.StackCreateCompleteWaiterOptions) {
+		defaultRetryer := o.Retryable
+		o.LogWaitAttempts = false
+		o.Retryable = func(ctx context.Context, in *cloudformation.DescribeStacksInput, out *cloudformation.DescribeStacksOutput, err error) (bool, error) {
+			logger.Info("waiting for CloudFormation stack %q", *i.StackName)
+			return defaultRetryer(ctx, in, out, err)
+		}
+	}
+
+	waiter := cloudformation.NewStackCreateCompleteWaiter(c.cloudformationAPI)
+	return waiter.Wait(ctx, &cloudformation.DescribeStacksInput{
+		StackName: i.StackName,
+	}, c.waitTimeout, setCustomRetryer)
 }
 
 func (c *StackCollection) waitUntilStackIsCreated(ctx context.Context, i *Stack, stack builder.ResourceSet, errs chan error) {
-	// defer close(errs)
+	defer close(errs)
 
-	// if err := c.DoWaitUntilStackIsCreated(ctx, i); err != nil {
-	// 	errs <- err
-	// 	return
-	// }
-	// s, err := c.DescribeStack(ctx, i)
-	// if err != nil {
-	// 	errs <- err
-	// 	return
-	// }
-	// if err := stack.GetAllOutputs(*s); err != nil {
-	// 	errs <- errors.Wrapf(err, "getting stack %q outputs", *i.StackName)
-	// 	return
-	// }
-	// errs <- nil
-	// }
-
-	// func (c *StackCollection) doWaitUntilStackIsDeleted(i *Stack) error {
-	// return c.waitWithAcceptors(i,
-	// 	waiters.MakeAcceptors(
-	// 		stackStatus,
-	// 		types.StackStatusDeleteComplete,
-	// 		[]string{
-	// 			string(types.StackStatusDeleteFailed),
-	// 			string(types.StackStatusCreateInProgress),
-	// 			string(types.StackStatusCreateFailed),
-	// 			string(types.StackStatusCreateComplete),
-	// 			string(types.StackStatusRollbackInProgress),
-	// 			string(types.StackStatusRollbackFailed),
-	// 			string(types.StackStatusRollbackComplete),
-	// 			string(types.StackStatusUpdateInProgress),
-	// 			string(types.StackStatusUpdateCompleteCleanupInProgress),
-	// 			string(types.StackStatusUpdateComplete),
-	// 			string(types.StackStatusUpdateRollbackInProgress),
-	// 			string(types.StackStatusUpdateRollbackFailed),
-	// 			string(types.StackStatusUpdateRollbackCompleteCleanupInProgress),
-	// 			string(types.StackStatusUpdateRollbackComplete),
-	// 			string(types.StackStatusReviewInProgress),
-	// 		},
-	// 		// ValidationError is expected as success, although
-	// 		// we use stack ARN, so should normally see actual
-	// 		// StackStatusDeleteComplete
-	// 		request.WaiterAcceptor{
-	// 			State:    request.SuccessWaiterState,
-	// 			Matcher:  request.ErrorWaiterMatch,
-	// 			Expected: "ValidationError",
-	// 		},
-	// 	),
-	// )
+	if err := c.DoWaitUntilStackIsCreated(ctx, i); err != nil {
+		errs <- err
+		return
+	}
+	s, err := c.DescribeStack(ctx, i)
+	if err != nil {
+		errs <- err
+		return
+	}
+	if err := stack.GetAllOutputs(*s); err != nil {
+		errs <- errors.Wrapf(err, "getting stack %q outputs", *i.StackName)
+		return
+	}
+	errs <- nil
 }
 
-func (c *StackCollection) doWaitUntilStackIsDeleted(i *Stack) error {
-	return nil
-	// return c.waitWithAcceptors(i,
-	// 	waiters.MakeAcceptors(
-	// 		stackStatus,
-	// 		cfn.StackStatusDeleteComplete,
-	// 		[]string{
-	// 			cfn.StackStatusDeleteFailed,
-	// 			cfn.StackStatusCreateInProgress,
-	// 			cfn.StackStatusCreateFailed,
-	// 			cfn.StackStatusCreateComplete,
-	// 			cfn.StackStatusRollbackInProgress,
-	// 			cfn.StackStatusRollbackFailed,
-	// 			cfn.StackStatusRollbackComplete,
-	// 			cfn.StackStatusUpdateInProgress,
-	// 			cfn.StackStatusUpdateCompleteCleanupInProgress,
-	// 			cfn.StackStatusUpdateComplete,
-	// 			cfn.StackStatusUpdateRollbackInProgress,
-	// 			cfn.StackStatusUpdateRollbackFailed,
-	// 			cfn.StackStatusUpdateRollbackCompleteCleanupInProgress,
-	// 			cfn.StackStatusUpdateRollbackComplete,
-	// 			cfn.StackStatusReviewInProgress,
-	// 		},
-	// 		// ValidationError is expected as success, although
-	// 		// we use stack ARN, so should normally see actual
-	// 		// StackStatusDeleteComplete
-	// 		request.WaiterAcceptor{
-	// 			State:    request.SuccessWaiterState,
-	// 			Matcher:  request.ErrorWaiterMatch,
-	// 			Expected: "ValidationError",
-	// 		},
-	// 	),
-	// )
+func (c *StackCollection) doWaitUntilStackIsDeleted(ctx context.Context, i *Stack) error {
+	setCustomRetryer := func(o *cloudformation.StackDeleteCompleteWaiterOptions) {
+		defaultRetryer := o.Retryable
+		o.LogWaitAttempts = false
+		o.Retryable = func(ctx context.Context, in *cloudformation.DescribeStacksInput, out *cloudformation.DescribeStacksOutput, err error) (bool, error) {
+			logger.Info("waiting for CloudFormation stack %q", *i.StackName)
+			return defaultRetryer(ctx, in, out, err)
+		}
+	}
+
+	waiter := cloudformation.NewStackDeleteCompleteWaiter(c.cloudformationAPI)
+	return waiter.Wait(ctx, &cloudformation.DescribeStacksInput{
+		StackName: i.StackName,
+	}, c.waitTimeout, setCustomRetryer)
 }
 
-func (c *StackCollection) waitUntilStackIsDeleted(i *Stack, errs chan error) {
-	// defer close(errs)
+func (c *StackCollection) waitUntilStackIsDeleted(ctx context.Context, i *Stack, errs chan error) {
+	defer close(errs)
 
-	// if err := c.doWaitUntilStackIsDeleted(i); err != nil {
-	// 	errs <- err
-	// 	return
-	// }
-	// errs <- nil
+	if err := c.doWaitUntilStackIsDeleted(ctx, i); err != nil {
+		errs <- err
+		return
+	}
+	errs <- nil
 }
 
-func (c *StackCollection) doWaitUntilStackIsUpdated(i *Stack) error {
-	return nil
-	// return c.waitWithAcceptors(i,
-	// 	waiters.MakeAcceptors(
-	// 		stackStatus,
-	// 		types.StackStatusUpdateComplete,
-	// 		[]string{
-	// 			string(types.StackStatusUpdateRollbackComplete),
-	// 			string(types.StackStatusUpdateRollbackFailed),
-	// 			string(types.StackStatusUpdateRollbackInProgress),
-	// 			string(types.StackStatusRollbackInProgress),
-	// 			string(types.StackStatusRollbackFailed),
-	// 			string(types.StackStatusRollbackComplete),
-	// 			string(types.StackStatusDeleteInProgress),
-	// 			string(types.StackStatusDeleteFailed),
-	// 			string(types.StackStatusDeleteComplete),
-	// 		},
-	// 		request.WaiterAcceptor{
-	// 			State:    request.FailureWaiterState,
-	// 			Matcher:  request.ErrorWaiterMatch,
-	// 			Expected: "ValidationError",
-	// 		},
-	// 	),
-	// )
+func (c *StackCollection) doWaitUntilStackIsUpdated(ctx context.Context, i *Stack) error {
+	setCustomRetryer := func(o *cloudformation.StackUpdateCompleteWaiterOptions) {
+		defaultRetryer := o.Retryable
+		o.LogWaitAttempts = false
+		o.Retryable = func(ctx context.Context, in *cloudformation.DescribeStacksInput, out *cloudformation.DescribeStacksOutput, err error) (bool, error) {
+			logger.Info("waiting for CloudFormation stack %q", *i.StackName)
+			return defaultRetryer(ctx, in, out, err)
+		}
+	}
+
+	waiter := cloudformation.NewStackUpdateCompleteWaiter(c.cloudformationAPI)
+	return waiter.Wait(ctx, &cloudformation.DescribeStacksInput{
+		StackName: i.StackName,
+	}, c.waitTimeout, setCustomRetryer)
 }
 
-func (c *StackCollection) doWaitUntilChangeSetIsCreated(i *Stack, changesetName string) error {
-	return nil
-	// return c.waitWithAcceptorsChangeSet(i, changesetName,
-	// 	waiters.MakeAcceptors(
-	// 		changesetStatus,
-	// 		types.ChangeSetStatusCreateComplete,
-	// 		[]string{
-	// 			string(types.ChangeSetStatusDeleteComplete),
-	// 			string(types.ChangeSetStatusFailed),
-	// 		},
-	// 		request.WaiterAcceptor{
-	// 			State:    request.FailureWaiterState,
-	// 			Matcher:  request.ErrorWaiterMatch,
-	// 			Expected: "ValidationError",
-	// 		},
-	// 	),
-	// )
+func (c *StackCollection) doWaitUntilChangeSetIsCreated(ctx context.Context, i *Stack, changesetName string) error {
+	setCustomRetryer := func(o *cloudformation.ChangeSetCreateCompleteWaiterOptions) {
+		defaultRetryer := o.Retryable
+		o.LogWaitAttempts = false
+		o.Retryable = func(ctx context.Context, in *cloudformation.DescribeChangeSetInput, out *cloudformation.DescribeChangeSetOutput, err error) (bool, error) {
+			logger.Info("waiting for CloudFormation changeset %q for stack %q", changesetName, *i.StackName)
+			if out.StatusReason != nil && strings.Contains(*out.StatusReason, "The submitted information didn't contain changes") {
+				logger.Info("nothing to update")
+				return false, &noChangeError{*out.StatusReason}
+			}
+			return defaultRetryer(ctx, in, out, err)
+		}
+	}
+
+	waiter := cloudformation.NewChangeSetCreateCompleteWaiter(c.cloudformationAPI, setCustomRetryer)
+	return waiter.Wait(ctx, &cloudformation.DescribeChangeSetInput{
+		StackName:     i.StackName,
+		ChangeSetName: &changesetName,
+	}, c.waitTimeout)
 }
