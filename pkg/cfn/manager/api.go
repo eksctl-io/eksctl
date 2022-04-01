@@ -352,19 +352,22 @@ func (c *StackCollection) ListStacksMatching(ctx context.Context, nameRegex stri
 	}
 	stacks := []*Stack{}
 
-	allStacks, err := c.cloudformationAPI.ListStacks(ctx, input)
+	paginator := cloudformation.NewListStacksPaginator(c.cloudformationAPI, input)
 
-	if err != nil {
-		return nil, err
-	}
+	for paginator.HasMorePages() {
+		out, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
 
-	for _, s := range allStacks.StackSummaries {
-		if re.MatchString(*s.StackName) {
-			stack, subErr = c.DescribeStack(ctx, &Stack{StackName: s.StackName, StackId: s.StackId})
-			if subErr != nil {
-				return nil, subErr
+		for _, s := range out.StackSummaries {
+			if re.MatchString(*s.StackName) {
+				stack, subErr = c.DescribeStack(ctx, &Stack{StackName: s.StackName, StackId: s.StackId})
+				if subErr != nil {
+					return nil, subErr
+				}
+				stacks = append(stacks, stack)
 			}
-			stacks = append(stacks, stack)
 		}
 	}
 
@@ -382,16 +385,21 @@ func (c *StackCollection) ListClusterStackNames(ctx context.Context) ([]string, 
 		StackStatusFilter: defaultStackStatusFilter(),
 	}
 
-	allStacks, err := c.cloudformationAPI.ListStacks(ctx, input)
-	if err != nil {
-		return nil, err
-	}
+	paginator := cloudformation.NewListStacksPaginator(c.cloudformationAPI, input)
 
-	for _, s := range allStacks.StackSummaries {
-		if re.MatchString(*s.StackName) {
-			stacks = append(stacks, *s.StackName)
+	for paginator.HasMorePages() {
+		out, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, s := range out.StackSummaries {
+			if re.MatchString(*s.StackName) {
+				stacks = append(stacks, *s.StackName)
+			}
 		}
 	}
+
 	return stacks, nil
 }
 
