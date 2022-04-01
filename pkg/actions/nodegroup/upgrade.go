@@ -1,14 +1,16 @@
 package nodegroup
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -46,7 +48,7 @@ type UpgradeOptions struct {
 	Stack *manager.NodeGroupStack
 }
 
-func (m *Manager) Upgrade(options UpgradeOptions) error {
+func (m *Manager) Upgrade(ctx context.Context, options UpgradeOptions) error {
 	stacks, err := m.stackManager.ListNodeGroupStacks()
 	if err != nil {
 		return err
@@ -73,7 +75,7 @@ func (m *Manager) Upgrade(options UpgradeOptions) error {
 
 	if hasStack != nil {
 		options.Stack = hasStack
-		return m.upgradeUsingStack(options, nodegroupOutput.Nodegroup)
+		return m.upgradeUsingStack(ctx, options, nodegroupOutput.Nodegroup)
 	}
 
 	return m.upgradeUsingAPI(options, nodegroupOutput.Nodegroup)
@@ -165,7 +167,7 @@ func (m *Manager) waitForUpgrade(options UpgradeOptions) error {
 // upgradeUsingStack upgrades nodegroup to the latest AMI release for the specified Kubernetes version, or
 // the current Kubernetes version if the version isn't specified
 // If options.LaunchTemplateVersion is set, it also upgrades the nodegroup to the specified launch template version
-func (m *Manager) upgradeUsingStack(options UpgradeOptions, nodegroup *eks.Nodegroup) error {
+func (m *Manager) upgradeUsingStack(ctx context.Context, options UpgradeOptions, nodegroup *eks.Nodegroup) error {
 	if options.KubernetesVersion != "" && options.ReleaseVersion != "" {
 		return errors.New("only one of kubernetes-version or release-version can be specified")
 	}
@@ -255,7 +257,7 @@ func (m *Manager) upgradeUsingStack(options UpgradeOptions, nodegroup *eks.Nodeg
 			kubernetesVersion = fmt.Sprintf("%v.%v", version.Major, version.Minor)
 		}
 
-		latestReleaseVersion, err := m.getLatestReleaseVersion(kubernetesVersion, nodegroup)
+		latestReleaseVersion, err := m.getLatestReleaseVersion(ctx, kubernetesVersion, nodegroup)
 		if err != nil {
 			return err
 		}
@@ -323,7 +325,7 @@ func (m *Manager) requiresStackUpdate(nodeGroupName string) (bool, error) {
 	return !ver.EQ(curVer), nil
 }
 
-func (m *Manager) getLatestReleaseVersion(kubernetesVersion string, nodeGroup *eks.Nodegroup) (string, error) {
+func (m *Manager) getLatestReleaseVersion(ctx context.Context, kubernetesVersion string, nodeGroup *eks.Nodegroup) (string, error) {
 	ssmParameterName, err := ami.MakeManagedSSMParameterName(kubernetesVersion, *nodeGroup.AmiType)
 	if err != nil {
 		return "", err
@@ -333,7 +335,7 @@ func (m *Manager) getLatestReleaseVersion(kubernetesVersion string, nodeGroup *e
 		return "", nil
 	}
 
-	ssmOutput, err := m.ctl.Provider.SSM().GetParameter(&ssm.GetParameterInput{
+	ssmOutput, err := m.ctl.Provider.SSM().GetParameter(ctx, &ssm.GetParameterInput{
 		Name: &ssmParameterName,
 	})
 	if err != nil {

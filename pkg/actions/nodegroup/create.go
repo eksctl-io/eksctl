@@ -1,6 +1,7 @@
 package nodegroup
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -33,7 +34,7 @@ type CreateOpts struct {
 }
 
 // Create creates a new nodegroup with the given options.
-func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFilter) error {
+func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilter filter.NodegroupFilter) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
 	ctl := m.ctl
@@ -80,7 +81,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 	}
 
 	if !options.DryRun {
-		if err := m.init.Normalize(nodePools, cfg.Metadata); err != nil {
+		if err := m.init.Normalize(ctx, nodePools, cfg.Metadata); err != nil {
 			return err
 		}
 	}

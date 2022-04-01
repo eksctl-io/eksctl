@@ -1,6 +1,7 @@
 package create
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -63,7 +64,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 		}
 
 		manager := nodegroup.New(cmd.ClusterConfig, ctl, clientSet)
-		return manager.Create(nodegroup.CreateOpts{
+		return manager.Create(context.TODO(), nodegroup.CreateOpts{
 			InstallNeuronDevicePlugin: options.InstallNeuronDevicePlugin,
 			InstallNvidiaDevicePlugin: options.InstallNvidiaDevicePlugin,
 			UpdateAuthConfigMap:       options.UpdateAuthConfigMap,

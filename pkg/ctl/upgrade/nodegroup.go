@@ -1,6 +1,7 @@
 package upgrade
 
 import (
+	"context"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -77,5 +78,5 @@ func upgradeNodeGroup(cmd *cmdutils.Cmd, options nodegroup.UpgradeOptions) error
 		return err
 	}
 
-	return nodegroup.New(cfg, ctl, clientSet).Upgrade(options)
+	return nodegroup.New(cfg, ctl, clientSet).Upgrade(context.TODO(), options)
 }

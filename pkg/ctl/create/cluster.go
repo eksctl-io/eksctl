@@ -1,6 +1,7 @@
 package create
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -227,7 +228,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return cmdutils.PrintDryRunConfig(cfg, os.Stdout)
 	}
 
-	if err := nodeGroupService.Normalize(nodePools, cfg.Metadata); err != nil {
+	if err := nodeGroupService.Normalize(context.TODO(), nodePools, cfg.Metadata); err != nil {
 		return err
 	}
 

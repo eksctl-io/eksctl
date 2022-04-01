@@ -105,6 +105,24 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	Describe("nodeGroups[*].ami validation", func() {
+		It("should require overrideBootstrapCommand if ami is set", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.AMI = "ami-1234"
+			Expect(api.ValidateNodeGroup(0, ng0)).To(MatchError(ContainSubstring("overrideBootstrapCommand is required when using a custom AMI ")))
+		})
+		It("should accept ami with a overrideBootstrapCommand set", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.AMI = "ami-1234"
+			ng0.OverrideBootstrapCommand = aws.String("echo 'yo'")
+			Expect(api.ValidateNodeGroup(0, ng0)).To(Succeed())
+		})
+	})
+
 	Describe("nodeGroups[*].maxInstanceLifetime validation", func() {
 		It("should reject if value is below a day", func() {
 			cfg := api.NewClusterConfig()

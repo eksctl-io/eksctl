@@ -1,6 +1,7 @@
 package nodegroup_test
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -53,7 +54,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		t.mockCalls(k, init, &ngFilter)
 	}
 
-	err := m.Create(t.opts, &ngFilter)
+	err := m.Create(context.Background(), t.opts, &ngFilter)
 
 	if t.expErr != nil {
 		Expect(err).To(HaveOccurred())
