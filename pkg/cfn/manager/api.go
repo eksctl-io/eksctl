@@ -618,12 +618,17 @@ func (c *StackCollection) LookupCloudTrailEvents(ctx context.Context, i *Stack) 
 		}},
 	}
 
-	out, err := c.cloudTrailAPI.LookupEvents(ctx, input)
-	if err != nil {
-		return nil, errors.Wrapf(err, "looking up CloudTrail events for stack %q", *i.StackName)
+	var events []types.Event
+	paginator := cloudtrail.NewLookupEventsPaginator(c.cloudTrailAPI, input)
+	for paginator.HasMorePages() {
+		out, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "looking up CloudTrail events for stack %q", *i.StackName)
+		}
+		events = append(events, out.Events...)
 	}
 
-	return out.Events, nil
+	return events, nil
 }
 
 func (c *StackCollection) doCreateChangeSetRequest(stackName, changeSetName, description string, templateData TemplateData,
