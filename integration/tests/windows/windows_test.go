@@ -6,6 +6,7 @@ package windows
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -37,7 +38,7 @@ var _ = BeforeSuite(func() {
 
 var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 
-	createCluster := func(withOIDC bool) {
+	createCluster := func(withOIDC bool, ami string) {
 		By("creating a new cluster with Windows nodegroups")
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = params.NewClusterName("windows")
@@ -49,7 +50,7 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 			{
 				NodeGroupBase: &api.NodeGroupBase{
 					Name:      "windows",
-					AMIFamily: api.NodeImageFamilyWindowsServer2019FullContainer,
+					AMIFamily: ami,
 				},
 			},
 		}
@@ -76,22 +77,23 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 		Expect(cmd).To(RunSuccessfully())
 	}
 
-	runWindowsPod := func() {
+	runWindowsPod := func(workload string) {
 		By("scheduling a Windows pod")
 		kubeTest, err := kube.NewTest(params.KubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
 
-		d := kubeTest.CreateDeploymentFromFile("default", "../../data/windows-server-iis.yaml")
+		d := kubeTest.CreateDeploymentFromFile("default", fmt.Sprintf("../../data/%s", workload))
 		kubeTest.WaitForDeploymentReady(d, 12*time.Minute)
 	}
 
 	Context("When creating a cluster with Windows nodegroups", func() {
-		DescribeTable("it should be able to run Windows pods", func(withOIDC bool) {
-			createCluster(withOIDC)
-			runWindowsPod()
+		DescribeTable("it should be able to run Windows pods", func(withOIDC bool, ami, workload string) {
+			createCluster(withOIDC, ami)
+			runWindowsPod(workload)
 		},
-			Entry("when withOIDC is disabled", false),
-			Entry("when withOIDC is enabled", true),
+			Entry("windows when withOIDC is disabled", false, api.NodeImageFamilyWindowsServer2019FullContainer, "windows-server-iis.yaml"),
+			Entry("windows when withOIDC is enabled", true, api.NodeImageFamilyWindowsServer2019FullContainer, "windows-server-iis.yaml"),
+			Entry("windows 20H2", true, api.NodeImageFamilyWindowsServer20H2CoreContainer, "windows-server-iis-20H2.yaml"),
 		)
 	})
 
