@@ -3,9 +3,7 @@ package addons
 import (
 	"context"
 	"fmt"
-	"strings"
 
-	"github.com/aws/smithy-go"
 	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/actions/irsa"
@@ -53,8 +51,7 @@ func (h *irsaHelper) CreateOrUpdate(ctx context.Context, sa *api.ClusterIAMServi
 	name := makeIAMServiceAccountStackName(h.clusterName, sa.Namespace, sa.Name)
 	stack, err := h.stackManager.DescribeStack(ctx, &manager.Stack{StackName: &name})
 	if err != nil {
-		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(*smithy.OperationError); !ok || ok &&
-			!strings.Contains(awsError.Error(), "ValidationError") {
+		if !manager.IsStackDoesNotExistError(err) {
 			return errors.Wrapf(err, "error checking if iamserviceaccount %s/%s exists", sa.Namespace, sa.Name)
 		}
 	}

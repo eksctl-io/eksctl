@@ -63,7 +63,6 @@ func (e *noChangeError) Error() string {
 func (c *StackCollection) DoWaitUntilStackIsCreated(ctx context.Context, i *Stack) error {
 	setCustomRetryer := func(o *cloudformation.StackCreateCompleteWaiterOptions) {
 		defaultRetryer := o.Retryable
-		o.LogWaitAttempts = false
 		o.Retryable = func(ctx context.Context, in *cloudformation.DescribeStacksInput, out *cloudformation.DescribeStacksOutput, err error) (bool, error) {
 			logger.Info("waiting for CloudFormation stack %q", *i.StackName)
 			return defaultRetryer(ctx, in, out, err)
@@ -98,7 +97,6 @@ func (c *StackCollection) waitUntilStackIsCreated(ctx context.Context, i *Stack,
 func (c *StackCollection) doWaitUntilStackIsDeleted(ctx context.Context, i *Stack) error {
 	setCustomRetryer := func(o *cloudformation.StackDeleteCompleteWaiterOptions) {
 		defaultRetryer := o.Retryable
-		o.LogWaitAttempts = false
 		o.Retryable = func(ctx context.Context, in *cloudformation.DescribeStacksInput, out *cloudformation.DescribeStacksOutput, err error) (bool, error) {
 			logger.Info("waiting for CloudFormation stack %q", *i.StackName)
 			return defaultRetryer(ctx, in, out, err)
@@ -124,7 +122,6 @@ func (c *StackCollection) waitUntilStackIsDeleted(ctx context.Context, i *Stack,
 func (c *StackCollection) doWaitUntilStackIsUpdated(ctx context.Context, i *Stack) error {
 	setCustomRetryer := func(o *cloudformation.StackUpdateCompleteWaiterOptions) {
 		defaultRetryer := o.Retryable
-		o.LogWaitAttempts = false
 		o.Retryable = func(ctx context.Context, in *cloudformation.DescribeStacksInput, out *cloudformation.DescribeStacksOutput, err error) (bool, error) {
 			logger.Info("waiting for CloudFormation stack %q", *i.StackName)
 			return defaultRetryer(ctx, in, out, err)
@@ -140,7 +137,6 @@ func (c *StackCollection) doWaitUntilStackIsUpdated(ctx context.Context, i *Stac
 func (c *StackCollection) doWaitUntilChangeSetIsCreated(ctx context.Context, i *Stack, changesetName string) error {
 	setCustomRetryer := func(o *cloudformation.ChangeSetCreateCompleteWaiterOptions) {
 		defaultRetryer := o.Retryable
-		o.LogWaitAttempts = false
 		o.Retryable = func(ctx context.Context, in *cloudformation.DescribeChangeSetInput, out *cloudformation.DescribeChangeSetOutput, err error) (bool, error) {
 			logger.Info("waiting for CloudFormation changeset %q for stack %q", changesetName, *i.StackName)
 			if out.StatusReason != nil && strings.Contains(*out.StatusReason, "The submitted information didn't contain changes") {

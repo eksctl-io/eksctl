@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
@@ -15,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
+	"github.com/aws/smithy-go"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -299,6 +301,12 @@ func (c *StackCollection) DescribeStack(ctx context.Context, i *Stack) (*Stack, 
 		return nil, fmt.Errorf("no CloudFormation stack found for %s", *i.StackName)
 	}
 	return &resp.Stacks[0], nil
+}
+
+func IsStackDoesNotExistError(err error) bool {
+	awsError, ok := errors.Unwrap(errors.Unwrap(err)).(*smithy.OperationError)
+	return ok && strings.Contains(awsError.Error(), "ValidationError")
+
 }
 
 // GetManagedNodeGroupTemplate returns the template for a ManagedNodeGroup resource
