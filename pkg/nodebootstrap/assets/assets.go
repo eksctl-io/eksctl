@@ -5,10 +5,6 @@ import (
 	_ "embed"
 )
 
-//EksctlAl2Conf holds the eksctl.al2.conf contents
-//go:embed scripts/10-eksctl.al2.conf
-var EksctlAl2Conf string
-
 //BootstrapAl2Sh holds the bootstrap.al2.sh contents
 //go:embed scripts/bootstrap.al2.sh
 var BootstrapAl2Sh string

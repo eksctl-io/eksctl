@@ -16,10 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/aws/aws-sdk-go/service/elb/elbiface"
-	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -652,10 +649,8 @@ type ClusterProvider interface {
 	ASG() awsapi.ASG
 	EKS() eksiface.EKSAPI
 	EC2() ec2iface.EC2API
-	ELB() elbiface.ELBAPI
-	ELBV2() elbv2iface.ELBV2API
 	STS() stsiface.STSAPI
-	SSM() ssmiface.SSMAPI
+	SSM() awsapi.SSM
 	IAM() iamiface.IAMAPI
 	CloudTrail() awsapi.CloudTrail
 	CloudWatchLogs() awsapi.CloudWatchLogs
@@ -666,6 +661,8 @@ type ClusterProvider interface {
 	Session() *session.Session
 
 	STSV2() awsapi.STS
+	ELB() awsapi.ELB
+	ELBV2() awsapi.ELBV2
 }
 
 // ProviderConfig holds global parameters for all interactions with AWS APIs
@@ -1389,11 +1386,6 @@ type NodeGroupBase struct {
 	// Bottlerocket specifies settings for Bottlerocket nodes
 	// +optional
 	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
-
-	// TODO remove this
-	// This is a hack, will be removed shortly. When this is true for Ubuntu and
-	// AL2 images a legacy bootstrapper will be used.
-	CustomAMI bool `json:"-"`
 
 	// Enable EC2 detailed monitoring
 	// +optional
