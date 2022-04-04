@@ -262,18 +262,22 @@ func validateLaunchTemplate(launchTemplateData *ec2.ResponseLaunchTemplateData, 
 
 func getAMIType(ng *api.ManagedNodeGroup, instanceType string) string {
 	amiTypeMapping := map[string]struct {
-		X86x64 string
-		GPU    string
+		X86    string
+		X86GPU string
 		ARM    string
+		ARMGPU string
 	}{
 		api.NodeImageFamilyAmazonLinux2: {
-			X86x64: eks.AMITypesAl2X8664,
-			GPU:    eks.AMITypesAl2X8664Gpu,
+			X86:    eks.AMITypesAl2X8664,
+			X86GPU: eks.AMITypesAl2X8664Gpu,
 			ARM:    eks.AMITypesAl2Arm64,
 		},
 		api.NodeImageFamilyBottlerocket: {
-			X86x64: eks.AMITypesBottlerocketX8664,
+			X86: eks.AMITypesBottlerocketX8664,
+			//TODO reference aws-sdk-go variable when published
+			X86GPU: "BOTTLEROCKET_x86_64_NVIDIA",
 			ARM:    eks.AMITypesBottlerocketArm64,
+			ARMGPU: "BOTTLEROCKET_ARM_64_NVIDIA",
 		},
 	}
 
@@ -283,12 +287,15 @@ func getAMIType(ng *api.ManagedNodeGroup, instanceType string) string {
 	}
 
 	switch {
+
+	case instanceutils.IsGPUInstanceType(instanceType) && instanceutils.IsARMInstanceType(instanceType):
+		return amiType.ARMGPU
 	case instanceutils.IsGPUInstanceType(instanceType):
-		return amiType.GPU
+		return amiType.X86GPU
 	case instanceutils.IsARMInstanceType(instanceType):
 		return amiType.ARM
 	default:
-		return amiType.X86x64
+		return amiType.X86
 	}
 }
 
