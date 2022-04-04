@@ -38,7 +38,7 @@ var (
 	newStackCollection StackManagerConstructor = manager.NewStackCollection
 )
 
-func GetClusters(provider api.ClusterProvider, listAllRegions bool, chunkSize int) ([]Description, error) {
+func GetClusters(ctx context.Context, provider api.ClusterProvider, listAllRegions bool, chunkSize int) ([]Description, error) {
 	if !listAllRegions {
 		return listClusters(provider, int64(chunkSize))
 	}
@@ -59,7 +59,7 @@ func GetClusters(provider api.ClusterProvider, listAllRegions bool, chunkSize in
 			continue
 		}
 		// Reset region and recreate the client.
-		ctl, err := newClusterProvider(context.TODO(), &api.ProviderConfig{
+		ctl, err := newClusterProvider(ctx, &api.ProviderConfig{
 			Region:      region,
 			Profile:     provider.Profile(),
 			WaitTimeout: provider.WaitTimeout(),
