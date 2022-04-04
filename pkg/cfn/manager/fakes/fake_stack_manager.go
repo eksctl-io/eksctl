@@ -2,11 +2,12 @@
 package fakes
 
 import (
+	"context"
 	"sync"
 
-	"github.com/aws/aws-sdk-go/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
+	typesa "github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -255,17 +256,18 @@ type FakeStackManager struct {
 	fixClusterCompatibilityReturnsOnCall map[int]struct {
 		result1 error
 	}
-	GetAutoScalingGroupDesiredCapacityStub        func(string) (autoscaling.Group, error)
+	GetAutoScalingGroupDesiredCapacityStub        func(context.Context, string) (types.AutoScalingGroup, error)
 	getAutoScalingGroupDesiredCapacityMutex       sync.RWMutex
 	getAutoScalingGroupDesiredCapacityArgsForCall []struct {
-		arg1 string
+		arg1 context.Context
+		arg2 string
 	}
 	getAutoScalingGroupDesiredCapacityReturns struct {
-		result1 autoscaling.Group
+		result1 types.AutoScalingGroup
 		result2 error
 	}
 	getAutoScalingGroupDesiredCapacityReturnsOnCall map[int]struct {
-		result1 autoscaling.Group
+		result1 types.AutoScalingGroup
 		result2 error
 	}
 	GetAutoScalingGroupNameStub        func(*cloudformation.Stack) (string, error)
@@ -492,17 +494,18 @@ type FakeStackManager struct {
 		result1 []*cloudformation.Stack
 		result2 error
 	}
-	LookupCloudTrailEventsStub        func(*cloudformation.Stack) ([]*cloudtrail.Event, error)
+	LookupCloudTrailEventsStub        func(context.Context, *cloudformation.Stack) ([]typesa.Event, error)
 	lookupCloudTrailEventsMutex       sync.RWMutex
 	lookupCloudTrailEventsArgsForCall []struct {
-		arg1 *cloudformation.Stack
+		arg1 context.Context
+		arg2 *cloudformation.Stack
 	}
 	lookupCloudTrailEventsReturns struct {
-		result1 []*cloudtrail.Event
+		result1 []typesa.Event
 		result2 error
 	}
 	lookupCloudTrailEventsReturnsOnCall map[int]struct {
-		result1 []*cloudtrail.Event
+		result1 []typesa.Event
 		result2 error
 	}
 	MakeChangeSetNameStub        func(string) string
@@ -1882,18 +1885,19 @@ func (fake *FakeStackManager) FixClusterCompatibilityReturnsOnCall(i int, result
 	}{result1}
 }
 
-func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacity(arg1 string) (autoscaling.Group, error) {
+func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacity(arg1 context.Context, arg2 string) (types.AutoScalingGroup, error) {
 	fake.getAutoScalingGroupDesiredCapacityMutex.Lock()
 	ret, specificReturn := fake.getAutoScalingGroupDesiredCapacityReturnsOnCall[len(fake.getAutoScalingGroupDesiredCapacityArgsForCall)]
 	fake.getAutoScalingGroupDesiredCapacityArgsForCall = append(fake.getAutoScalingGroupDesiredCapacityArgsForCall, struct {
-		arg1 string
-	}{arg1})
+		arg1 context.Context
+		arg2 string
+	}{arg1, arg2})
 	stub := fake.GetAutoScalingGroupDesiredCapacityStub
 	fakeReturns := fake.getAutoScalingGroupDesiredCapacityReturns
-	fake.recordInvocation("GetAutoScalingGroupDesiredCapacity", []interface{}{arg1})
+	fake.recordInvocation("GetAutoScalingGroupDesiredCapacity", []interface{}{arg1, arg2})
 	fake.getAutoScalingGroupDesiredCapacityMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -1907,41 +1911,41 @@ func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityCallCount() int 
 	return len(fake.getAutoScalingGroupDesiredCapacityArgsForCall)
 }
 
-func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityCalls(stub func(string) (autoscaling.Group, error)) {
+func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityCalls(stub func(context.Context, string) (types.AutoScalingGroup, error)) {
 	fake.getAutoScalingGroupDesiredCapacityMutex.Lock()
 	defer fake.getAutoScalingGroupDesiredCapacityMutex.Unlock()
 	fake.GetAutoScalingGroupDesiredCapacityStub = stub
 }
 
-func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityArgsForCall(i int) string {
+func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityArgsForCall(i int) (context.Context, string) {
 	fake.getAutoScalingGroupDesiredCapacityMutex.RLock()
 	defer fake.getAutoScalingGroupDesiredCapacityMutex.RUnlock()
 	argsForCall := fake.getAutoScalingGroupDesiredCapacityArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityReturns(result1 autoscaling.Group, result2 error) {
+func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityReturns(result1 types.AutoScalingGroup, result2 error) {
 	fake.getAutoScalingGroupDesiredCapacityMutex.Lock()
 	defer fake.getAutoScalingGroupDesiredCapacityMutex.Unlock()
 	fake.GetAutoScalingGroupDesiredCapacityStub = nil
 	fake.getAutoScalingGroupDesiredCapacityReturns = struct {
-		result1 autoscaling.Group
+		result1 types.AutoScalingGroup
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityReturnsOnCall(i int, result1 autoscaling.Group, result2 error) {
+func (fake *FakeStackManager) GetAutoScalingGroupDesiredCapacityReturnsOnCall(i int, result1 types.AutoScalingGroup, result2 error) {
 	fake.getAutoScalingGroupDesiredCapacityMutex.Lock()
 	defer fake.getAutoScalingGroupDesiredCapacityMutex.Unlock()
 	fake.GetAutoScalingGroupDesiredCapacityStub = nil
 	if fake.getAutoScalingGroupDesiredCapacityReturnsOnCall == nil {
 		fake.getAutoScalingGroupDesiredCapacityReturnsOnCall = make(map[int]struct {
-			result1 autoscaling.Group
+			result1 types.AutoScalingGroup
 			result2 error
 		})
 	}
 	fake.getAutoScalingGroupDesiredCapacityReturnsOnCall[i] = struct {
-		result1 autoscaling.Group
+		result1 types.AutoScalingGroup
 		result2 error
 	}{result1, result2}
 }
@@ -3035,18 +3039,19 @@ func (fake *FakeStackManager) ListStacksMatchingReturnsOnCall(i int, result1 []*
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) LookupCloudTrailEvents(arg1 *cloudformation.Stack) ([]*cloudtrail.Event, error) {
+func (fake *FakeStackManager) LookupCloudTrailEvents(arg1 context.Context, arg2 *cloudformation.Stack) ([]typesa.Event, error) {
 	fake.lookupCloudTrailEventsMutex.Lock()
 	ret, specificReturn := fake.lookupCloudTrailEventsReturnsOnCall[len(fake.lookupCloudTrailEventsArgsForCall)]
 	fake.lookupCloudTrailEventsArgsForCall = append(fake.lookupCloudTrailEventsArgsForCall, struct {
-		arg1 *cloudformation.Stack
-	}{arg1})
+		arg1 context.Context
+		arg2 *cloudformation.Stack
+	}{arg1, arg2})
 	stub := fake.LookupCloudTrailEventsStub
 	fakeReturns := fake.lookupCloudTrailEventsReturns
-	fake.recordInvocation("LookupCloudTrailEvents", []interface{}{arg1})
+	fake.recordInvocation("LookupCloudTrailEvents", []interface{}{arg1, arg2})
 	fake.lookupCloudTrailEventsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -3060,41 +3065,41 @@ func (fake *FakeStackManager) LookupCloudTrailEventsCallCount() int {
 	return len(fake.lookupCloudTrailEventsArgsForCall)
 }
 
-func (fake *FakeStackManager) LookupCloudTrailEventsCalls(stub func(*cloudformation.Stack) ([]*cloudtrail.Event, error)) {
+func (fake *FakeStackManager) LookupCloudTrailEventsCalls(stub func(context.Context, *cloudformation.Stack) ([]typesa.Event, error)) {
 	fake.lookupCloudTrailEventsMutex.Lock()
 	defer fake.lookupCloudTrailEventsMutex.Unlock()
 	fake.LookupCloudTrailEventsStub = stub
 }
 
-func (fake *FakeStackManager) LookupCloudTrailEventsArgsForCall(i int) *cloudformation.Stack {
+func (fake *FakeStackManager) LookupCloudTrailEventsArgsForCall(i int) (context.Context, *cloudformation.Stack) {
 	fake.lookupCloudTrailEventsMutex.RLock()
 	defer fake.lookupCloudTrailEventsMutex.RUnlock()
 	argsForCall := fake.lookupCloudTrailEventsArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeStackManager) LookupCloudTrailEventsReturns(result1 []*cloudtrail.Event, result2 error) {
+func (fake *FakeStackManager) LookupCloudTrailEventsReturns(result1 []typesa.Event, result2 error) {
 	fake.lookupCloudTrailEventsMutex.Lock()
 	defer fake.lookupCloudTrailEventsMutex.Unlock()
 	fake.LookupCloudTrailEventsStub = nil
 	fake.lookupCloudTrailEventsReturns = struct {
-		result1 []*cloudtrail.Event
+		result1 []typesa.Event
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) LookupCloudTrailEventsReturnsOnCall(i int, result1 []*cloudtrail.Event, result2 error) {
+func (fake *FakeStackManager) LookupCloudTrailEventsReturnsOnCall(i int, result1 []typesa.Event, result2 error) {
 	fake.lookupCloudTrailEventsMutex.Lock()
 	defer fake.lookupCloudTrailEventsMutex.Unlock()
 	fake.LookupCloudTrailEventsStub = nil
 	if fake.lookupCloudTrailEventsReturnsOnCall == nil {
 		fake.lookupCloudTrailEventsReturnsOnCall = make(map[int]struct {
-			result1 []*cloudtrail.Event
+			result1 []typesa.Event
 			result2 error
 		})
 	}
 	fake.lookupCloudTrailEventsReturnsOnCall[i] = struct {
-		result1 []*cloudtrail.Event
+		result1 []typesa.Event
 		result2 error
 	}{result1, result2}
 }

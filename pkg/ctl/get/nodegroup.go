@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"os"
 	"strconv"
 	"time"
@@ -71,12 +72,12 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 
 	var summaries []*nodegroup.Summary
 	if ng.Name == "" {
-		summaries, err = nodegroup.New(cfg, ctl, clientSet).GetAll()
+		summaries, err = nodegroup.New(cfg, ctl, clientSet).GetAll(context.Background())
 		if err != nil {
 			return err
 		}
 	} else {
-		summary, err := nodegroup.New(cfg, ctl, clientSet).Get(ng.Name)
+		summary, err := nodegroup.New(cfg, ctl, clientSet).Get(context.Background(), ng.Name)
 		if err != nil {
 			return err
 		}

@@ -1,6 +1,8 @@
 package scale
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -89,5 +91,5 @@ func scaleNodegroup(cmd *cmdutils.Cmd, ng *api.NodeGroupBase) error {
 		return err
 	}
 
-	return nodegroup.New(cfg, ctl, nil).Scale(ng)
+	return nodegroup.New(cfg, ctl, nil).Scale(context.Background(), ng)
 }

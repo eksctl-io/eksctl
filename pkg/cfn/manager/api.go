@@ -6,12 +6,11 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
+	"github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
-	"github.com/aws/aws-sdk-go/service/cloudtrail"
-	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
@@ -19,6 +18,7 @@ import (
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	"github.com/weaveworks/eksctl/pkg/version"
@@ -70,8 +70,8 @@ type StackCollection struct {
 	ec2API            ec2iface.EC2API
 	eksAPI            eksiface.EKSAPI
 	iamAPI            iamiface.IAMAPI
-	cloudTrailAPI     cloudtrailiface.CloudTrailAPI
-	asgAPI            autoscalingiface.AutoScalingAPI
+	cloudTrailAPI     awsapi.CloudTrail
+	asgAPI            awsapi.ASG
 	spec              *api.ClusterConfig
 	disableRollback   bool
 	roleARN           string
@@ -610,22 +610,22 @@ func (c *StackCollection) DescribeStackEvents(i *Stack) ([]*cloudformation.Stack
 }
 
 // LookupCloudTrailEvents looks up stack events in CloudTrail
-func (c *StackCollection) LookupCloudTrailEvents(i *Stack) ([]*cloudtrail.Event, error) {
+func (c *StackCollection) LookupCloudTrailEvents(ctx context.Context, i *Stack) ([]types.Event, error) {
 	input := &cloudtrail.LookupEventsInput{
-		LookupAttributes: []*cloudtrail.LookupAttribute{{
-			AttributeKey:   aws.String(cloudtrail.LookupAttributeKeyResourceName),
+		LookupAttributes: []types.LookupAttribute{{
+			AttributeKey:   types.LookupAttributeKeyResourceName,
 			AttributeValue: i.StackId,
 		}},
 	}
 
-	events := []*cloudtrail.Event{}
-
-	pager := func(p *cloudtrail.LookupEventsOutput, _ bool) bool {
-		events = append(events, p.Events...)
-		return true
-	}
-	if err := c.cloudTrailAPI.LookupEventsPages(input, pager); err != nil {
-		return nil, errors.Wrapf(err, "looking up CloudTrail events for stack %q", *i.StackName)
+	var events []types.Event
+	paginator := cloudtrail.NewLookupEventsPaginator(c.cloudTrailAPI, input)
+	for paginator.HasMorePages() {
+		out, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "looking up CloudTrail events for stack %q", *i.StackName)
+		}
+		events = append(events, out.Events...)
 	}
 
 	return events, nil

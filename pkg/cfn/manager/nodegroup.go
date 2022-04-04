@@ -1,11 +1,13 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/autoscaling"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/blang/semver"
@@ -214,21 +216,22 @@ func (c *StackCollection) getManagedNodeGroupAutoScalingGroupName(s *Stack) (str
 }
 
 // GetAutoScalingGroupDesiredCapacity returns the AutoScalingGroup's desired capacity
-func (c *StackCollection) GetAutoScalingGroupDesiredCapacity(name string) (autoscaling.Group, error) {
-	asg, err := c.asgAPI.DescribeAutoScalingGroups(&autoscaling.DescribeAutoScalingGroupsInput{
-		AutoScalingGroupNames: []*string{
-			&name,
+func (c *StackCollection) GetAutoScalingGroupDesiredCapacity(ctx context.Context, name string) (types.AutoScalingGroup, error) {
+	asg, err := c.asgAPI.DescribeAutoScalingGroups(ctx, &autoscaling.DescribeAutoScalingGroupsInput{
+		AutoScalingGroupNames: []string{
+			name,
 		},
 	})
+
 	if err != nil {
-		return autoscaling.Group{}, fmt.Errorf("couldn't describe ASG: %s", name)
+		return types.AutoScalingGroup{}, fmt.Errorf("couldn't describe ASG: %s", name)
 	}
 	if len(asg.AutoScalingGroups) != 1 {
 		logger.Warning("couldn't find ASG %s", name)
-		return autoscaling.Group{}, fmt.Errorf("couldn't find ASG: %s", name)
+		return types.AutoScalingGroup{}, fmt.Errorf("couldn't find ASG: %s", name)
 	}
 
-	return *asg.AutoScalingGroups[0], nil
+	return asg.AutoScalingGroups[0], nil
 }
 
 // DescribeNodeGroupStack gets the specified nodegroup stack
