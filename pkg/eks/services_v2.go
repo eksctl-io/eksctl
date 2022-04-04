@@ -31,8 +31,8 @@ type ServicesV2 struct {
 	ssm                    *ssm.Client
 }
 
-// STSV2 implements the AWS STS service.
-func (s *ServicesV2) STSV2() awsapi.STS {
+// STS implements the AWS STS service.
+func (s *ServicesV2) STS() awsapi.STS {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.sts == nil {
@@ -45,8 +45,8 @@ func (s *ServicesV2) STSV2() awsapi.STS {
 	return s.sts
 }
 
-// STSV2Presign provides a signed STS client for calls to Kubernetes.
-func (s *ServicesV2) STSV2Presign() api.STSPresigner {
+// STSPresign provides a signed STS client for calls to Kubernetes.
+func (s *ServicesV2) STSPresigner() api.STSPresigner {
 	// set up sts client.
 	s.mu.Lock()
 	defer s.mu.Unlock()

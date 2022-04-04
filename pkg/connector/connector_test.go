@@ -77,7 +77,7 @@ var _ = Describe("EKS Connector", func() {
 			},
 		}, nil)
 
-		mockProvider.MockSTSV2().On("GetCallerIdentity", mock.Anything, mock.Anything).Return(&sts.GetCallerIdentityOutput{
+		mockProvider.MockSTS().On("GetCallerIdentity", mock.Anything, mock.Anything).Return(&sts.GetCallerIdentityOutput{
 			Arn: aws.String("arn:aws:iam::12356:user/eksctl"),
 		}, nil)
 
