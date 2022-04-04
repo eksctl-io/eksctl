@@ -50,12 +50,7 @@ func (c *OwnedCluster) Upgrade(dryRun bool) error {
 		return err
 	}
 
-	supportsManagedNodes, err := c.ctl.SupportsManagedNodes(c.cfg)
-	if err != nil {
-		return err
-	}
-
-	stackUpdateRequired, err := c.stackManager.AppendNewClusterStackResource(dryRun, supportsManagedNodes)
+	stackUpdateRequired, err := c.stackManager.AppendNewClusterStackResource(dryRun)
 	if err != nil {
 		return err
 	}

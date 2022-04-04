@@ -109,7 +109,7 @@ var _ = Describe("eks auth helpers", func() {
 				})
 
 				It("should create config with embedded token", func() {
-					mockPresigner := ctl.Provider.STSV2Presign().(*fakes.FakeSTSPresigner)
+					mockPresigner := ctl.Provider.STSPresigner().(*fakes.FakeSTSPresigner)
 					mockPresigner.PresignGetCallerIdentityReturns(&v4.PresignedHTTPRequest{
 						URL: "https://example.com",
 					}, nil)

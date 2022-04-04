@@ -43,7 +43,7 @@ func registerClusterCmd(cmd *cmdutils.Cmd) {
 }
 
 func registerCluster(cmd *cmdutils.Cmd, cluster connector.ExternalCluster) error {
-	clusterProvider, err := eks.New(&cmd.ProviderConfig, nil)
+	clusterProvider, err := eks.New(context.TODO(), &cmd.ProviderConfig, nil)
 	if err != nil {
 		return err
 	}

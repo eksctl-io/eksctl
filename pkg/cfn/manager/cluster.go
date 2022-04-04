@@ -34,7 +34,7 @@ func (c *StackCollection) MakeClusterStackNameFromName(name string) string {
 func (c *StackCollection) createClusterTask(errs chan error, supportsManagedNodes bool) error {
 	name := c.MakeClusterStackName()
 	logger.Info("building cluster stack %q", name)
-	stack := builder.NewClusterResourceSet(c.ec2API, c.region, c.spec, supportsManagedNodes, nil)
+	stack := builder.NewClusterResourceSet(c.ec2API, c.region, c.spec, nil)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func (c *StackCollection) RefreshFargatePodExecutionRoleARN() error {
 
 // AppendNewClusterStackResource will update cluster
 // stack with new resources in append-only way
-func (c *StackCollection) AppendNewClusterStackResource(plan, supportsManagedNodes bool) (bool, error) {
+func (c *StackCollection) AppendNewClusterStackResource(plan bool) (bool, error) {
 	name := c.MakeClusterStackName()
 
 	// NOTE: currently we can only append new resources to the stack,
@@ -126,7 +126,7 @@ func (c *StackCollection) AppendNewClusterStackResource(plan, supportsManagedNod
 	}
 
 	logger.Info("re-building cluster stack %q", name)
-	newStack := builder.NewClusterResourceSet(c.ec2API, c.region, c.spec, supportsManagedNodes, &currentResources)
+	newStack := builder.NewClusterResourceSet(c.ec2API, c.region, c.spec, &currentResources)
 	if err := newStack.AddAllResources(); err != nil {
 		return false, err
 	}

@@ -38,7 +38,7 @@ var _ StackManager = &StackCollection{}
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_stack_manager.go . StackManager
 type StackManager interface {
-	AppendNewClusterStackResource(plan, supportsManagedNodes bool) (bool, error)
+	AppendNewClusterStackResource(plan bool) (bool, error)
 	CreateStack(name string, stack builder.ResourceSet, tags, parameters map[string]string, errs chan error) error
 	DeleteStackBySpec(s *Stack) (*Stack, error)
 	DeleteStackBySpecSync(s *Stack, errs chan error) error

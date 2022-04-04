@@ -152,13 +152,6 @@ var _ = Describe("AMI Auto Resolution", func() {
 						Expect(resolvedAmi).To(BeEquivalentTo(expectedAmi))
 						Expect(p.MockSSM().AssertNumberOfCalls(GinkgoT(), "GetParameter", 1)).To(BeTrue())
 					})
-
-					It("should return an error for versions below 1.14", func() {
-						resolver := NewSSMResolver(p.MockSSM())
-						resolvedAmi, err = resolver.Resolve(context.Background(), region, "1.13", instanceType, imageFamily)
-
-						Expect(err).To(HaveOccurred())
-					})
 				})
 
 				Context("Windows Server 20H2 Core", func() {
@@ -192,6 +185,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 			Context("and Ubuntu family", func() {
 				BeforeEach(func() {
 					p = mockprovider.NewMockProvider()
+					imageFamily = "Ubuntu2004"
 				})
 
 				It("should return an error", func() {
