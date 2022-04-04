@@ -194,9 +194,9 @@ var _ = Describe("Get", func() {
 				Expect(provider).To(Equal(providerRegion2))
 
 				Expect(awsProvider.CallCount()).To(Equal(2))
-				cfg, _ := awsProvider.ArgsForCall(0)
+				_, cfg, _ := awsProvider.ArgsForCall(0)
 				Expect(cfg.Region).To(Equal("us-west-1"))
-				cfg, _ = awsProvider.ArgsForCall(1)
+				_, cfg, _ = awsProvider.ArgsForCall(1)
 				Expect(cfg.Region).To(Equal("us-west-2"))
 
 				Expect(stackManagerRegion1.HasClusterStackFromListCallCount()).To(Equal(1))
@@ -262,9 +262,9 @@ var _ = Describe("Get", func() {
 				Expect(provider).To(Equal(providerRegion1))
 
 				Expect(awsProvider.CallCount()).To(Equal(2))
-				cfg, _ := awsProvider.ArgsForCall(0)
+				_, cfg, _ := awsProvider.ArgsForCall(0)
 				Expect(cfg.Region).To(Equal("us-west-1"))
-				cfg, _ = awsProvider.ArgsForCall(1)
+				_, cfg, _ = awsProvider.ArgsForCall(1)
 				Expect(cfg.Region).To(Equal("us-west-2"))
 
 				Expect(stackManagerRegion1.HasClusterStackFromListCallCount()).To(Equal(1))

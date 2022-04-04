@@ -17,6 +17,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	awsec2 "github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/xgfone/netaddr"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -25,10 +30,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-	"github.com/xgfone/netaddr"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -161,7 +162,7 @@ var _ = PDescribe("(Integration) [EKS IPv6 test]", func() {
 
 			By("ensuring the K8s cluster has IPv6 enabled")
 			var clientSet *kubernetes.Clientset
-			ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, clusterConfig)
+			ctl, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, clusterConfig)
 			Expect(err).NotTo(HaveOccurred())
 			err = ctl.RefreshClusterStatus(clusterConfig)
 			Expect(err).ShouldNot(HaveOccurred())

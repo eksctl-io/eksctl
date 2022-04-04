@@ -4,6 +4,7 @@
 package unowned
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -64,7 +65,7 @@ var _ = Describe("(Integration) [using existing VPC]", func() {
 		configFile, err = ioutil.TempFile("", "")
 		Expect(err).NotTo(HaveOccurred())
 
-		clusterProvider, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+		clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 		Expect(err).NotTo(HaveOccurred())
 		ctl = clusterProvider.Provider
 		cfg.VPC = createVPC(stackName, ctl)
