@@ -10,6 +10,8 @@ on:
     secrets:
       githubToken:
         required: true
+      slackToken:
+        required: true
 
 jobs:
   publish-release:
@@ -47,19 +49,19 @@ jobs:
         run: |
           ./build/scripts/do-release-candidate.sh
       - name: slack on success
-        if: success()
+        if: ${{ success() }}
         uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
         with:
-          slack_token: ${{ secrets.WEAVEWORKS_SLACK_EKSCTLBOT_TOKEN }}
+          slack_token: ${{ secrets.slackToken }}
           message: ":cool-doge: ${{ inputs.name }} successful"
           channel: team-pitch-black
           color: green
           verbose: false
       - name: slack on failure
-        if: failure()
+        if: ${{ failure() }}
         uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
         with:
-          slack_token: ${{ secrets.WEAVEWORKS_SLACK_EKSCTLBOT_TOKEN }}
+          slack_token: ${{ secrets.slackToken }}
           message: ":ahhhhhhhhh: ${{ inputs.name }} has failed"
           channel: team-pitch-black
           color: red

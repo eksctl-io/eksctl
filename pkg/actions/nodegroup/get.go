@@ -1,6 +1,7 @@
 package nodegroup
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -45,8 +46,8 @@ type Summary struct {
 	NodeGroupType        api.NodeGroupType `json:"Type"`
 }
 
-func (m *Manager) GetAll() ([]*Summary, error) {
-	unmanagedSummaries, err := m.getUnmanagedSummaries()
+func (m *Manager) GetAll(ctx context.Context) ([]*Summary, error) {
+	unmanagedSummaries, err := m.getUnmanagedSummaries(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -59,8 +60,8 @@ func (m *Manager) GetAll() ([]*Summary, error) {
 	return append(unmanagedSummaries, managedSummaries...), nil
 }
 
-func (m *Manager) Get(name string) (*Summary, error) {
-	summary, err := m.getUnmanagedSummary(name)
+func (m *Manager) Get(ctx context.Context, name string) (*Summary, error) {
+	summary, err := m.getUnmanagedSummary(ctx, name)
 	if err != nil {
 		return nil, fmt.Errorf("getting nodegroup stack summaries: %w", err)
 	}
@@ -99,7 +100,7 @@ func (m *Manager) getManagedSummaries() ([]*Summary, error) {
 	return summaries, nil
 }
 
-func (m *Manager) getUnmanagedSummaries() ([]*Summary, error) {
+func (m *Manager) getUnmanagedSummaries(ctx context.Context) ([]*Summary, error) {
 	stacks, err := m.stackManager.DescribeNodeGroupStacks()
 	if err != nil {
 		return nil, fmt.Errorf("getting nodegroup stacks: %w", err)
@@ -108,7 +109,7 @@ func (m *Manager) getUnmanagedSummaries() ([]*Summary, error) {
 	// Create an empty array here so that an object is returned rather than null
 	summaries := make([]*Summary, 0)
 	for _, s := range stacks {
-		summary, err := m.unmanagedStackToSummary(s)
+		summary, err := m.unmanagedStackToSummary(ctx, s)
 		if err != nil {
 			return nil, err
 		}
@@ -120,16 +121,16 @@ func (m *Manager) getUnmanagedSummaries() ([]*Summary, error) {
 	return summaries, nil
 }
 
-func (m *Manager) getUnmanagedSummary(name string) (*Summary, error) {
+func (m *Manager) getUnmanagedSummary(ctx context.Context, name string) (*Summary, error) {
 	stack, err := m.stackManager.DescribeNodeGroupStack(name)
 	if err != nil {
 		return nil, err
 	}
 
-	return m.unmanagedStackToSummary(stack)
+	return m.unmanagedStackToSummary(ctx, stack)
 }
 
-func (m *Manager) unmanagedStackToSummary(s *manager.Stack) (*Summary, error) {
+func (m *Manager) unmanagedStackToSummary(ctx context.Context, s *manager.Stack) (*Summary, error) {
 	nodeGroupType, err := manager.GetNodeGroupType(s.Tags)
 	if err != nil {
 		return nil, err
@@ -158,7 +159,7 @@ func (m *Manager) unmanagedStackToSummary(s *manager.Stack) (*Summary, error) {
 
 	summary.AutoScalingGroupName = asgName
 
-	scalingGroup, err := m.stackManager.GetAutoScalingGroupDesiredCapacity(asgName)
+	scalingGroup, err := m.stackManager.GetAutoScalingGroupDesiredCapacity(ctx, asgName)
 	if err != nil {
 		return nil, fmt.Errorf("getting autoscalinggroup desired capacity: %w", err)
 	}

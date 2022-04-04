@@ -6,22 +6,16 @@ import (
 	"path"
 	"time"
 
-	"github.com/pkg/errors"
-
+	"github.com/aws/aws-sdk-go-v2/aws"
 	awscredentials "github.com/aws/aws-sdk-go/aws/credentials"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/gomega"
+	"github.com/pkg/errors"
+	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"
 
 	"github.com/weaveworks/eksctl/pkg/credentials"
-
-	. "github.com/onsi/gomega"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
-
-	"github.com/spf13/afero"
-
 	"github.com/weaveworks/eksctl/pkg/credentials/fakes"
 )
 
