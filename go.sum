@@ -417,8 +417,8 @@ github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.15.5 h1:Xhev2SU4X5LDEYcP3E+Qw
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.15.5/go.mod h1:8DHmtyLloIycLx5Mo40eokftqod5j0Np2Zx+VedyP9Q=
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.4 h1:mBqjBKtZzvAc9j7gU+FEHbhTKSr02iqMOdQIL/7GZ78=
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.4/go.mod h1:R49Py2lGoKH7bCpwhjN9l7MfR/PU6zHXn1tCRR8cwOs=
-github.com/aws/aws-sdk-go-v2/service/ec2 v1.31.0 h1:8Q6WYZvgBylP7kh7S5gQvGKpsjphcZPEuytwl/JxxoA=
-github.com/aws/aws-sdk-go-v2/service/ec2 v1.31.0/go.mod h1:Z8942YP2VgLQpgPCx06iXCrOt7mxxCe0dESCm9FFhgs=
+github.com/aws/aws-sdk-go-v2/service/ec2 v1.34.0 h1:dfWleW7/a3+TR6qJynYZsaovCEStQOep5x+BxkiBDhc=
+github.com/aws/aws-sdk-go-v2/service/ec2 v1.34.0/go.mod h1:37MWOQMGyj8lcranOwo716OHvJgeFJUOaWu6vk1pWNE=
 github.com/aws/aws-sdk-go-v2/service/eks v1.20.3 h1:GfTUNRYJNfawf2rkt52gZF+mAK2BeYnlTQaZwpuwhMw=
 github.com/aws/aws-sdk-go-v2/service/eks v1.20.3/go.mod h1:yupLTNX++rKXEftkWRrXhxGZNsDKQYhRnbwC4NhFGOk=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.2 h1:sindaT1G1TtWETvt0i7K6BGD6LkH8Sfot284xt8xcJ4=
@@ -428,7 +428,6 @@ github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.0/go.mod h1:rT
 github.com/aws/aws-sdk-go-v2/service/iam v1.18.2 h1:yEeWl/BGtWGHnfMlUsQl+5TaFFoWszpgLlb2vGkTdRI=
 github.com/aws/aws-sdk-go-v2/service/iam v1.18.2/go.mod h1:PoLMz2CcwbvE5/dNtdvZHnPzw4/3EoW2lWfMN2hI2jQ=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.3.0/go.mod h1:R1KK+vY8AfalhG1AOu5e35pOD2SdoPKQCFLTvnxiohk=
-github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.0/go.mod h1:R31ot6BgESRCIoxwfKtIHzZMo/vsZn2un81g9BJ4nmo=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.3 h1:Gh1Gpyh01Yvn7ilO/b/hr01WgNpaszfbKMUgqM186xQ=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.3/go.mod h1:wlY6SVjuwvh3TVRpTqdy4I1JpBFLX4UGeKZdWntaocw=
 github.com/aws/aws-sdk-go-v2/service/kms v1.5.0/go.mod h1:w7JuP9Oq1IKMFQPkNe3V6s9rOssXzOVEMNEqK1L1bao=
