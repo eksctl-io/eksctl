@@ -7,19 +7,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/gofrs/flock"
-	"github.com/spf13/afero"
-
-	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
-
-	stsv2 "github.com/aws/aws-sdk-go-v2/service/sts"
-
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -31,14 +26,15 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/aws/aws-sdk-go/service/sts/stsiface"
+	"github.com/gofrs/flock"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/spf13/afero"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/yaml"
 
+	stsv2 "github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -77,7 +73,6 @@ type ProviderServices struct {
 	asg  awsapi.ASG
 	eks  eksiface.EKSAPI
 	ec2  ec2iface.EC2API
-	sts  stsiface.STSAPI
 	iam  iamiface.IAMAPI
 
 	cloudtrail     awsapi.CloudTrail
@@ -107,9 +102,6 @@ func (p ProviderServices) EKS() eksiface.EKSAPI { return p.eks }
 
 // EC2 returns a representation of the EC2 API
 func (p ProviderServices) EC2() ec2iface.EC2API { return p.ec2 }
-
-// STS returns a representation of the STS API
-func (p ProviderServices) STS() stsiface.STSAPI { return p.sts }
 
 // IAM returns a representation of the IAM API
 func (p ProviderServices) IAM() iamiface.IAMAPI { return p.iam }
@@ -189,21 +181,13 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	provider.cfn = cloudformation.New(s)
 	provider.eks = awseks.New(s)
 	provider.ec2 = ec2.New(s)
-	provider.sts = sts.New(s,
-		// STS retrier has to be disabled, as it's not very helpful
-		// (see https://github.com/weaveworks/eksctl/issues/705)
-		request.WithRetryer(s.Config.Copy(),
-			&client.DefaultRetryer{
-				NumMaxRetries: 1,
-			},
-		),
-	)
 	provider.iam = iam.New(s)
 
 	cfg, err := newV2Config(spec, c.Provider.Region(), credentialsCacheFilePath)
 	if err != nil {
 		return nil, err
 	}
+
 	provider.ServicesV2 = &ServicesV2{
 		config: cfg,
 	}
@@ -228,12 +212,6 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
 		logger.Debug("Setting EC2 endpoint to %s", endpoint)
 		provider.ec2 = ec2.New(s, s.Config.Copy().WithEndpoint(endpoint))
-
-	}
-
-	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
-		logger.Debug("Setting STS endpoint to %s", endpoint)
-		provider.sts = sts.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_IAM_ENDPOINT"); ok {
 		logger.Debug("Setting IAM endpoint to %s", endpoint)

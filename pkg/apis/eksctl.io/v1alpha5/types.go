@@ -2,14 +2,15 @@ package v1alpha5
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/awsapi"
-
+	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
+	stsv2 "github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
@@ -17,8 +18,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -649,7 +650,6 @@ type ClusterProvider interface {
 	ASG() awsapi.ASG
 	EKS() eksiface.EKSAPI
 	EC2() ec2iface.EC2API
-	STS() stsiface.STSAPI
 	SSM() awsapi.SSM
 	IAM() iamiface.IAMAPI
 	CloudTrail() awsapi.CloudTrail
@@ -660,9 +660,18 @@ type ClusterProvider interface {
 	ConfigProvider() client.ConfigProvider
 	Session() *session.Session
 
-	STSV2() awsapi.STS
 	ELB() awsapi.ELB
 	ELBV2() awsapi.ELBV2
+	STSV2() awsapi.STS
+	STSV2Presign() STSPresigner
+}
+
+// STSPresigner defines the method to pre-sign GetCallerIdentity requests to add a proper header required by EKS for
+// authentication from the outside.
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_sts_presigner.go . STSPresigner
+type STSPresigner interface {
+	PresignGetCallerIdentity(ctx context.Context, params *stsv2.GetCallerIdentityInput, optFns ...func(*stsv2.PresignOptions)) (*v4.PresignedHTTPRequest, error)
 }
 
 // ProviderConfig holds global parameters for all interactions with AWS APIs
