@@ -1,6 +1,7 @@
 package cluster_test
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -55,7 +56,7 @@ var _ = Describe("Get", func() {
 				stackManager.HasClusterStackFromListReturnsOnCall(2, false, fmt.Errorf("foo"))
 			})
 			It("returns the clusters in that region", func() {
-				clusters, err := cluster.GetClusters(intialProvider, false, 100)
+				clusters, err := cluster.GetClusters(context.TODO(), intialProvider, false, 100)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clusters).To(ConsistOf(
 					cluster.Description{
@@ -96,7 +97,7 @@ var _ = Describe("Get", func() {
 			})
 
 			It("errors", func() {
-				_, err := cluster.GetClusters(intialProvider, false, 100)
+				_, err := cluster.GetClusters(context.TODO(), intialProvider, false, 100)
 				Expect(err).To(MatchError(`failed to list cluster stacks in region "us-west-2": foo`))
 			})
 		})
@@ -110,7 +111,7 @@ var _ = Describe("Get", func() {
 			})
 
 			It("errors", func() {
-				_, err := cluster.GetClusters(intialProvider, false, 100)
+				_, err := cluster.GetClusters(context.TODO(), intialProvider, false, 100)
 				Expect(err).To(MatchError(`failed to list clusters in region "us-west-2": foo`))
 			})
 		})
@@ -172,7 +173,7 @@ var _ = Describe("Get", func() {
 			})
 
 			It("returns the clusters across all authorised regions", func() {
-				clusters, err := cluster.GetClusters(intialProvider, true, 100)
+				clusters, err := cluster.GetClusters(context.TODO(), intialProvider, true, 100)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clusters).To(ConsistOf(
 					cluster.Description{
@@ -194,9 +195,9 @@ var _ = Describe("Get", func() {
 				Expect(provider).To(Equal(providerRegion2))
 
 				Expect(awsProvider.CallCount()).To(Equal(2))
-				cfg, _ := awsProvider.ArgsForCall(0)
+				_, cfg, _ := awsProvider.ArgsForCall(0)
 				Expect(cfg.Region).To(Equal("us-west-1"))
-				cfg, _ = awsProvider.ArgsForCall(1)
+				_, cfg, _ = awsProvider.ArgsForCall(1)
 				Expect(cfg.Region).To(Equal("us-west-2"))
 
 				Expect(stackManagerRegion1.HasClusterStackFromListCallCount()).To(Equal(1))
@@ -215,7 +216,7 @@ var _ = Describe("Get", func() {
 			})
 
 			It("errors", func() {
-				_, err := cluster.GetClusters(intialProvider, true, 100)
+				_, err := cluster.GetClusters(context.TODO(), intialProvider, true, 100)
 				Expect(err).To(MatchError(`failed to describe regions: foo`))
 			})
 		})
@@ -247,7 +248,7 @@ var _ = Describe("Get", func() {
 			})
 
 			It("returns the clusters in the regions it was successful in", func() {
-				clusters, err := cluster.GetClusters(intialProvider, true, 100)
+				clusters, err := cluster.GetClusters(context.TODO(), intialProvider, true, 100)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(clusters).To(ConsistOf(
 					cluster.Description{
@@ -262,9 +263,9 @@ var _ = Describe("Get", func() {
 				Expect(provider).To(Equal(providerRegion1))
 
 				Expect(awsProvider.CallCount()).To(Equal(2))
-				cfg, _ := awsProvider.ArgsForCall(0)
+				_, cfg, _ := awsProvider.ArgsForCall(0)
 				Expect(cfg.Region).To(Equal("us-west-1"))
-				cfg, _ = awsProvider.ArgsForCall(1)
+				_, cfg, _ = awsProvider.ArgsForCall(1)
 				Expect(cfg.Region).To(Equal("us-west-2"))
 
 				Expect(stackManagerRegion1.HasClusterStackFromListCallCount()).To(Equal(1))

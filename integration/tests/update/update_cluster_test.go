@@ -11,14 +11,16 @@ import (
 	"testing"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 
+	"github.com/weaveworks/eksctl/pkg/eks"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -215,7 +217,7 @@ func getRawClient() *kubewrapper.RawClient {
 			Region: params.Region,
 		},
 	}
-	ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+	ctl, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 	Expect(err).NotTo(HaveOccurred())
 
 	err = ctl.RefreshClusterStatus(cfg)

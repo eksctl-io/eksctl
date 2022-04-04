@@ -7,7 +7,6 @@ import (
 	_ "github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	_ "github.com/aws/aws-sdk-go/service/eks/eksiface"
 	_ "github.com/aws/aws-sdk-go/service/iam/iamiface"
-	_ "github.com/aws/aws-sdk-go/service/sts/stsiface"
 	_ "github.com/vektra/mockery"
 )
 
@@ -16,7 +15,6 @@ import (
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/cloudformation/cloudformationiface --name=CloudFormationAPI --output=./
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/eks/eksiface --name=EKSAPI --output=./
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/ec2/ec2iface --name=EC2API --output=./
-//go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/sts/stsiface --name=STSAPI --output=./
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/iam/iamiface --name=IAMAPI --output=./
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/cloudtrail/cloudtrailiface --name=CloudTrailAPI --output=./
 //go:generate "${GOBIN}/mockery" --tags netgo --dir=${AWS_SDK_GO_DIR}/service/cloudwatchlogs/cloudwatchlogsiface --name=CloudWatchLogsAPI --output=./

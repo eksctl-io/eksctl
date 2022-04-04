@@ -4,6 +4,7 @@
 package managed
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -527,7 +528,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 					WithStdin(clusterutils.Reader(clusterConfig))
 				Expect(cmd).To(RunSuccessfully())
 
-				clusterProvider, err := eks.New(&api.ProviderConfig{Region: params.Region}, clusterConfig)
+				clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, clusterConfig)
 				Expect(err).NotTo(HaveOccurred())
 				ctl := clusterProvider.Provider
 				out, err := ctl.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{

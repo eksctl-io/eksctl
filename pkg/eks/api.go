@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
-
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -34,7 +34,6 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/yaml"
 
-	stsv2 "github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -144,7 +143,7 @@ type ProviderStatus struct {
 }
 
 // New creates a new setup of the used AWS APIs
-func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProvider, error) {
+func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProvider, error) {
 	provider := &ProviderServices{
 		spec: spec,
 	}
@@ -228,7 +227,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 		clusterSpec.Metadata.Region = c.Provider.Region()
 	}
 
-	return c, c.checkAuth()
+	return c, c.checkAuth(ctx)
 }
 
 // ParseConfig parses data into a ClusterConfig
@@ -299,8 +298,8 @@ func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 }
 
 // checkAuth checks the AWS authentication
-func (c *ClusterProvider) checkAuth() error {
-	output, err := c.Provider.STSV2().GetCallerIdentity(context.TODO(), &stsv2.GetCallerIdentityInput{})
+func (c *ClusterProvider) checkAuth(ctx context.Context) error {
+	output, err := c.Provider.STS().GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
 		return errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
 	}

@@ -5,6 +5,7 @@
 package eks_connector_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
@@ -93,7 +94,7 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 				Expect(rawClient.CreateOrReplace(bytes, false)).To(Succeed())
 			}
 
-			provider, err := eks.New(&api.ProviderConfig{Region: params.Region}, &api.ClusterConfig{
+			provider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, &api.ClusterConfig{
 				TypeMeta: api.ClusterConfigTypeMeta(),
 				Metadata: &api.ClusterMeta{
 					Name:   params.ClusterName,
@@ -172,7 +173,7 @@ func getRawClient(clusterName, region string) *kubewrapper.RawClient {
 			Region: region,
 		},
 	}
-	ctl, err := eks.New(&api.ProviderConfig{Region: region}, cfg)
+	ctl, err := eks.New(context.TODO(), &api.ProviderConfig{Region: region}, cfg)
 	Expect(err).NotTo(HaveOccurred())
 
 	err = ctl.RefreshClusterStatus(cfg)
