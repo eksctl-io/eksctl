@@ -12,8 +12,10 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.16.2
 	github.com/aws/aws-sdk-go-v2/config v1.15.3
 	github.com/aws/aws-sdk-go-v2/credentials v1.11.2
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.22.4
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.20.3
-	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.15.0
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.15.5
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.4
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.31.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.20.3
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.2

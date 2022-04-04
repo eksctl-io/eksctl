@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -106,7 +106,7 @@ var _ = Describe("Get", func() {
 						StackName: aws.String(stackName),
 					}, nil)
 
-					summaries, err := m.GetAll()
+					summaries, err := m.GetAll(context.Background())
 					Expect(err).NotTo(HaveOccurred())
 					Expect(summaries).To(HaveLen(1))
 
@@ -170,7 +170,7 @@ var _ = Describe("Get", func() {
 				It("returns a summary of the node group without a StackName", func() {
 					fakeStackManager.DescribeNodeGroupStackReturns(nil, fmt.Errorf("error describing cloudformation stack"))
 
-					summaries, err := m.GetAll()
+					summaries, err := m.GetAll(context.Background())
 					Expect(err).NotTo(HaveOccurred())
 					Expect(summaries).To(HaveLen(1))
 
@@ -249,7 +249,7 @@ var _ = Describe("Get", func() {
 				It("returns a summary of the node group with the instance type from the launch template", func() {
 					fakeStackManager.DescribeNodeGroupStackReturns(nil, fmt.Errorf("error describing cloudformation stack"))
 
-					summaries, err := m.GetAll()
+					summaries, err := m.GetAll(context.Background())
 					Expect(err).NotTo(HaveOccurred())
 					Expect(summaries).To(HaveLen(1))
 
@@ -319,7 +319,7 @@ var _ = Describe("Get", func() {
 				})
 
 				It("returns the AMI ID instead of `CUSTOM`", func() {
-					summaries, err := m.GetAll()
+					summaries, err := m.GetAll(context.Background())
 					Expect(err).NotTo(HaveOccurred())
 					Expect(summaries).To(HaveLen(1))
 
@@ -387,10 +387,10 @@ var _ = Describe("Get", func() {
 				}, nil)
 				fakeStackManager.GetStackTemplateReturns(unmanagedTemplate, nil)
 				fakeStackManager.GetUnmanagedNodeGroupAutoScalingGroupNameReturns("asg", nil)
-				fakeStackManager.GetAutoScalingGroupDesiredCapacityReturns(autoscaling.Group{
-					DesiredCapacity: aws.Int64(50),
-					MinSize:         aws.Int64(1),
-					MaxSize:         aws.Int64(100),
+				fakeStackManager.GetAutoScalingGroupDesiredCapacityReturns(types.AutoScalingGroup{
+					DesiredCapacity: aws.Int32(50),
+					MinSize:         aws.Int32(1),
+					MaxSize:         aws.Int32(100),
 				}, nil)
 
 				_, _ = fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &corev1.Node{
@@ -448,7 +448,7 @@ var _ = Describe("Get", func() {
 			})
 
 			It("returns the nodegroups with the kubernetes version", func() {
-				summaries, err := m.GetAll()
+				summaries, err := m.GetAll(context.Background())
 				Expect(err).NotTo(HaveOccurred())
 				Expect(summaries).To(HaveLen(2))
 
@@ -546,7 +546,7 @@ var _ = Describe("Get", func() {
 		})
 
 		It("returns the summary", func() {
-			summary, err := m.Get(ngName)
+			summary, err := m.Get(context.Background(), ngName)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(*summary).To(Equal(nodegroup.Summary{

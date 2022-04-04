@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"os"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation"
@@ -118,7 +119,7 @@ func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool, printer pri
 			}
 		}
 		if trail {
-			events, err := stackManager.LookupCloudTrailEvents(s)
+			events, err := stackManager.LookupCloudTrailEvents(context.Background(), s)
 			if err != nil {
 				logger.Critical(err.Error())
 			}

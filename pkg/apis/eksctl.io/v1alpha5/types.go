@@ -13,20 +13,17 @@ import (
 	stsv2 "github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
-	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/utils/taints"
 )
 
@@ -650,13 +647,13 @@ type ClusterProvider interface {
 	CloudFormation() cloudformationiface.CloudFormationAPI
 	CloudFormationRoleARN() string
 	CloudFormationDisableRollback() bool
-	ASG() autoscalingiface.AutoScalingAPI
+	ASG() awsapi.ASG
 	EKS() eksiface.EKSAPI
 	EC2() ec2iface.EC2API
 	SSM() awsapi.SSM
 	IAM() iamiface.IAMAPI
-	CloudTrail() cloudtrailiface.CloudTrailAPI
-	CloudWatchLogs() cloudwatchlogsiface.CloudWatchLogsAPI
+	CloudTrail() awsapi.CloudTrail
+	CloudWatchLogs() awsapi.CloudWatchLogs
 	Region() string
 	Profile() string
 	WaitTimeout() time.Duration

@@ -8,10 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/awstesting"
-	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
-	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
@@ -50,14 +47,14 @@ type MockProvider struct {
 
 	region         string
 	cfnRoleARN     string
-	asg            *mocks.AutoScalingAPI
+	asg            *mocksv2.ASG
 	cfn            *mocks.CloudFormationAPI
 	eks            *mocks.EKSAPI
 	ec2            *mocks.EC2API
 	ssm            *mocksv2.SSM
 	iam            *mocks.IAMAPI
-	cloudtrail     *mocks.CloudTrailAPI
-	cloudwatchlogs *mocks.CloudWatchLogsAPI
+	cloudtrail     *mocksv2.CloudTrail
+	cloudwatchlogs *mocksv2.CloudWatchLogs
 	configProvider *mocks.ConfigProvider
 
 	stsV2            *mocksv2.STS
@@ -72,14 +69,14 @@ func NewMockProvider() *MockProvider {
 	return &MockProvider{
 		Client: NewMockAWSClient(),
 
-		asg:            &mocks.AutoScalingAPI{},
+		asg:            &mocksv2.ASG{},
 		cfn:            &mocks.CloudFormationAPI{},
 		eks:            &mocks.EKSAPI{},
 		ec2:            &mocks.EC2API{},
 		ssm:            &mocksv2.SSM{},
 		iam:            &mocks.IAMAPI{},
-		cloudtrail:     &mocks.CloudTrailAPI{},
-		cloudwatchlogs: &mocks.CloudWatchLogsAPI{},
+		cloudtrail:     &mocksv2.CloudTrail{},
+		cloudwatchlogs: &mocksv2.CloudWatchLogs{},
 		configProvider: &mocks.ConfigProvider{},
 
 		stsV2:            &mocksv2.STS{},
@@ -152,10 +149,10 @@ func (m MockProvider) MockCloudFormation() *mocks.CloudFormationAPI {
 }
 
 // ASG returns a representation of the ASG API
-func (m MockProvider) ASG() autoscalingiface.AutoScalingAPI { return m.asg }
+func (m MockProvider) ASG() awsapi.ASG { return m.asg }
 
 // MockASG returns a mocked ASG API
-func (m MockProvider) MockASG() *mocks.AutoScalingAPI { return m.ASG().(*mocks.AutoScalingAPI) }
+func (m MockProvider) MockASG() *mocksv2.ASG { return m.ASG().(*mocksv2.ASG) }
 
 // EKS returns a representation of the EKS API
 func (m MockProvider) EKS() eksiface.EKSAPI { return m.eks }
@@ -182,19 +179,19 @@ func (m MockProvider) IAM() iamiface.IAMAPI { return m.iam }
 func (m MockProvider) MockIAM() *mocks.IAMAPI { return m.IAM().(*mocks.IAMAPI) }
 
 // CloudTrail returns a representation of the CloudTrail API
-func (m MockProvider) CloudTrail() cloudtrailiface.CloudTrailAPI { return m.cloudtrail }
+func (m MockProvider) CloudTrail() awsapi.CloudTrail { return m.cloudtrail }
 
 // MockCloudTrail returns a mocked CloudTrail API
-func (m MockProvider) MockCloudTrail() *mocks.CloudTrailAPI {
-	return m.CloudTrail().(*mocks.CloudTrailAPI)
+func (m MockProvider) MockCloudTrail() *mocksv2.CloudTrail {
+	return m.CloudTrail().(*mocksv2.CloudTrail)
 }
 
 // CloudWatchLogs returns a representation of the CloudWatchLogs API
-func (m MockProvider) CloudWatchLogs() cloudwatchlogsiface.CloudWatchLogsAPI { return m.cloudwatchlogs }
+func (m MockProvider) CloudWatchLogs() awsapi.CloudWatchLogs { return m.cloudwatchlogs }
 
 // MockCloudWatchLogs returns a mocked CloudWatchLogs API
-func (m MockProvider) MockCloudWatchLogs() *mocks.CloudWatchLogsAPI {
-	return m.CloudWatchLogs().(*mocks.CloudWatchLogsAPI)
+func (m MockProvider) MockCloudWatchLogs() *mocksv2.CloudWatchLogs {
+	return m.CloudWatchLogs().(*mocksv2.CloudWatchLogs)
 }
 
 // Profile returns current profile setting
