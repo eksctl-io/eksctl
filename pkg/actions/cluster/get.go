@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -27,7 +28,7 @@ type Description struct {
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_aws_provider.go . ProviderConstructor
-type ProviderConstructor func(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*eks.ClusterProvider, error)
+type ProviderConstructor func(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*eks.ClusterProvider, error)
 
 //counterfeiter:generate -o fakes/fake_stack_provider.go . StackManagerConstructor
 type StackManagerConstructor func(provider api.ClusterProvider, spec *api.ClusterConfig) manager.StackManager
@@ -37,7 +38,7 @@ var (
 	newStackCollection StackManagerConstructor = manager.NewStackCollection
 )
 
-func GetClusters(provider api.ClusterProvider, listAllRegions bool, chunkSize int) ([]Description, error) {
+func GetClusters(ctx context.Context, provider api.ClusterProvider, listAllRegions bool, chunkSize int) ([]Description, error) {
 	if !listAllRegions {
 		return listClusters(provider, int64(chunkSize))
 	}
@@ -58,7 +59,7 @@ func GetClusters(provider api.ClusterProvider, listAllRegions bool, chunkSize in
 			continue
 		}
 		// Reset region and recreate the client.
-		ctl, err := newClusterProvider(&api.ProviderConfig{
+		ctl, err := newClusterProvider(ctx, &api.ProviderConfig{
 			Region:      region,
 			Profile:     provider.Profile(),
 			WaitTimeout: provider.WaitTimeout(),

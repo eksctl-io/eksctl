@@ -34,7 +34,7 @@ type Client struct {
 // NewClient creates a new client config by embedding the STS token
 func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
 	config := kubeconfig.NewForUser(spec, c.GetUsername())
-	generator := NewGenerator(c.Provider.STSV2Presign(), &credentials.RealClock{})
+	generator := NewGenerator(c.Provider.STSPresigner(), &credentials.RealClock{})
 	client := &Client{
 		Config:    config,
 		Generator: generator,

@@ -5,6 +5,7 @@
 package unowned_clusters
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -68,7 +69,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		configFile, err = os.CreateTemp("", "")
 		Expect(err).NotTo(HaveOccurred())
 		if !params.SkipCreate {
-			clusterProvider, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+			clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 			Expect(err).NotTo(HaveOccurred())
 			ctl = clusterProvider.Provider
 			cfg.VPC = createClusterWithNodeGroup(params.ClusterName, stackName, mng1, version, ctl)
