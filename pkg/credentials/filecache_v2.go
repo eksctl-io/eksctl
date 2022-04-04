@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/spf13/afero"
-
-	"github.com/kris-nova/logger"
-
-	"github.com/aws/aws-sdk-go/aws/credentials"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/kris-nova/logger"
+	"github.com/spf13/afero"
 )
 
 // FileCacheV2 is a file-based credentials cache for AWS credentials that can expire,

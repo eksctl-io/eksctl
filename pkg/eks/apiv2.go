@@ -6,11 +6,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/gofrs/flock"
-	"github.com/spf13/afero"
-
-	"github.com/weaveworks/eksctl/pkg/credentials"
-
+	"github.com/aws/aws-sdk-go-v2/aws"
+	middlewarev2 "github.com/aws/aws-sdk-go-v2/aws/middleware"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -19,16 +18,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	middlewarev2 "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/smithy-go/middleware"
-
+	"github.com/gofrs/flock"
 	"github.com/kris-nova/logger"
+	"github.com/spf13/afero"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/credentials"
 	"github.com/weaveworks/eksctl/pkg/version"
 )
 

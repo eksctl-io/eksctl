@@ -2,17 +2,16 @@ package credentials
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
 
-	"github.com/spf13/afero"
-
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
+	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"
 )
 
