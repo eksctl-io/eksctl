@@ -49,14 +49,6 @@ func (r *SSMResolver) Resolve(ctx context.Context, region, version, instanceType
 
 // MakeSSMParameterName creates an SSM parameter name
 func MakeSSMParameterName(version, instanceType, imageFamily string) (string, error) {
-	if api.IsWindowsImage(imageFamily) {
-		if supportsWindows, err := utils.IsMinVersion(api.Version1_14, version); err != nil {
-			return "", err
-		} else if !supportsWindows {
-			return "", fmt.Errorf("cannot find Windows AMI for Kubernetes version %s. Minimum version supported: %s", version, api.Version1_14)
-		}
-	}
-
 	const fieldName = "image_id"
 
 	switch imageFamily {
