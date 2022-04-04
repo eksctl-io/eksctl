@@ -1,10 +1,12 @@
 package ami
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/kris-nova/logger"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 )
@@ -70,7 +72,7 @@ type AutoResolver struct {
 
 // Resolve will return an AMI to use based on the default AMI for
 // each region
-func (r *AutoResolver) Resolve(region, version, instanceType, imageFamily string) (string, error) {
+func (r *AutoResolver) Resolve(ctx context.Context, region, version, instanceType, imageFamily string) (string, error) {
 	logger.Debug("resolving AMI using AutoResolver for region %s, instanceType %s and imageFamily %s", region, instanceType, imageFamily)
 
 	imageClasses := MakeImageSearchPatterns(version)[imageFamily]
@@ -99,7 +101,7 @@ func (r *AutoResolver) Resolve(region, version, instanceType, imageFamily string
 		return "", NewErrFailedResolution(region, version, instanceType, imageFamily)
 	}
 
-	id, err := FindImage(r.api, ownerAccount, namePattern)
+	id, err := FindImage(ctx, r.api, ownerAccount, namePattern)
 	if err != nil {
 		return "", fmt.Errorf("error getting AMI from EC2 API: %w. please verify that AMI Family is supported", err)
 	}
