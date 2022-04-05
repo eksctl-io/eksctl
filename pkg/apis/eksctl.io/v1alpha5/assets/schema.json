@@ -1113,7 +1113,7 @@
             "type": "string"
           },
           "type": "object",
-          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged). Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
           "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
           "default": "{}"
         },
@@ -1325,6 +1325,12 @@
         "desiredCapacity": {
           "type": "integer"
         },
+        "disableASGTagPropagation": {
+          "type": "boolean",
+          "description": "disables the tag propagation to ASG in case desired capacity is 0.",
+          "x-intellij-html-description": "disables the tag propagation to ASG in case desired capacity is 0.",
+          "default": false
+        },
         "disableIMDSv1": {
           "type": "boolean",
           "description": "requires requests to the metadata service to use IMDSv2 tokens",
@@ -1451,8 +1457,8 @@
             "type": "string"
           },
           "type": "object",
-          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged). Applied to the ASG, the EKS Nodegroup resource and to the EC2 instances (managed)",
-          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged). Applied to the ASG, the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
           "default": "{}"
         },
         "taints": {
@@ -1557,6 +1563,7 @@
         "clusterDNS",
         "kubeletExtraConfig",
         "containerRuntime",
+        "disableASGTagPropagation",
         "maxInstanceLifetime"
       ],
       "additionalProperties": false,
