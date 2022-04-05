@@ -107,6 +107,9 @@ func (c *StackCollection) NewManagedNodeGroupTask(ctx context.Context, nodeGroup
 			ctx:               ctx,
 		})
 		if api.IsEnabled(ng.PropagateASGTags) {
+			// disable parallelisation if any tags propagation is done
+			// since nodegroup must be created to propagate tags to its ASGs
+			taskTree.Parallel = false
 			taskTree.Append(&managedNodeGroupTagsToASGPropagationTask{
 				stackCollection: c,
 				nodeGroup:       ng,
