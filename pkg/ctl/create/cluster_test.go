@@ -227,15 +227,30 @@ var _ = Describe("create cluster", func() {
 			})
 			It("can create a cluster", func() {
 				primer = func() string {
-					return "{}"
+					return `<GetCallerIdentityResponse xmlns="https://sts.amazonaws.com/doc/2011-06-15/">
+  <GetCallerIdentityResult>
+    <Arn>arn:aws:sts::083751696308:assumed-role/AdministratorAccess/gergely@weave.works</Arn>
+    <UserId>AROARG775O62J3TZYJ67R:gergely@weave.works</UserId>
+    <Account>083751696308</Account>
+  </GetCallerIdentityResult>
+  <ResponseMetadata>
+    <RequestId>df31e74e-a1c8-42f5-93d4-1d6558c935a3</RequestId>
+  </ResponseMetadata>
+</GetCallerIdentityResponse>`
 				}
 				cfg := api.NewClusterConfig()
 				cfg.Metadata.Name = "test-cluster"
+				cfg.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
 				cmd := &cmdutils.Cmd{
 					ClusterConfig: cfg,
 				}
 				ngFilter := &filter.NodeGroupFilter{}
-				params := &cmdutils.CreateClusterCmdParams{}
+				params := &cmdutils.CreateClusterCmdParams{
+					Subnets: map[api.SubnetTopology]*[]string{
+						api.SubnetTopologyPrivate: {},
+						api.SubnetTopologyPublic:  {},
+					},
+				}
 				Expect(doCreateCluster(cmd, ngFilter, params)).To(Succeed())
 			})
 		})

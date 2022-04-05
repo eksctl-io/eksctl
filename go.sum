@@ -423,8 +423,12 @@ github.com/aws/aws-sdk-go-v2/service/eks v1.20.3 h1:GfTUNRYJNfawf2rkt52gZF+mAK2B
 github.com/aws/aws-sdk-go-v2/service/eks v1.20.3/go.mod h1:yupLTNX++rKXEftkWRrXhxGZNsDKQYhRnbwC4NhFGOk=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.2 h1:sindaT1G1TtWETvt0i7K6BGD6LkH8Sfot284xt8xcJ4=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.2/go.mod h1:MBpcT7BmjPsmQsUHik1GmAAmfv5pCLmXjFXBnATz60g=
+github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.3 h1:pqMrK3Wp1a1+YJBUF6GCna4l2nQpx0U733npq8PUO6I=
+github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.3/go.mod h1:1iwimuU3hWhDijouXrnuy8nL19PDO5msLQgWyFLf/08=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.0 h1:EjtH+ASrFwynMxhNvCwwYtfz+6Qo8OwdOhaNsURUaYk=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.0/go.mod h1:rT2RJJpcxPIt3w5beOLIcJHMkfVJqftrGRXzzLfgDgk=
+github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.3 h1:0DBvRsDa2DSwCdO+wLot7fqRcz1xLdfebWzpsZBz3j8=
+github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.3/go.mod h1:1JGd5BAzP8exLWn1uZitVXHvjBcKcAmpcw7PWLiPzuM=
 github.com/aws/aws-sdk-go-v2/service/iam v1.18.2 h1:yEeWl/BGtWGHnfMlUsQl+5TaFFoWszpgLlb2vGkTdRI=
 github.com/aws/aws-sdk-go-v2/service/iam v1.18.2/go.mod h1:PoLMz2CcwbvE5/dNtdvZHnPzw4/3EoW2lWfMN2hI2jQ=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.3.0/go.mod h1:R1KK+vY8AfalhG1AOu5e35pOD2SdoPKQCFLTvnxiohk=
@@ -438,6 +442,8 @@ github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.6.0/go.mod h1:B+7C5UKdVq1
 github.com/aws/aws-sdk-go-v2/service/ssm v1.10.0/go.mod h1:4dXS5YNqI3SNbetQ7X7vfsMlX6ZnboJA2dulBwJx7+g=
 github.com/aws/aws-sdk-go-v2/service/ssm v1.24.0 h1:p22U2yL/AeRToERGcZv1R26Yci5VQnWIrpzcZdG54cg=
 github.com/aws/aws-sdk-go-v2/service/ssm v1.24.0/go.mod h1:chcyLYBEVRac/7rWJsD6cUHUR2osROwavvNqCplfwog=
+github.com/aws/aws-sdk-go-v2/service/ssm v1.24.1 h1:zc1YLcknvxdW/i1MuJKmEnFB2TNkOfguuQaGRvJXPng=
+github.com/aws/aws-sdk-go-v2/service/ssm v1.24.1/go.mod h1:NR/xoKjdbRJ+qx0pMR4mI+N/H1I1ynHwXnO6FowXJc0=
 github.com/aws/aws-sdk-go-v2/service/sso v1.4.0/go.mod h1:+1fpWnL96DL23aXPpMGbsmKe8jLTEfbjuQoA4WS1VaA=
 github.com/aws/aws-sdk-go-v2/service/sso v1.11.3 h1:frW4ikGcxfAEDfmQqWgMLp+F1n4nRo9sF39OcIb5BkQ=
 github.com/aws/aws-sdk-go-v2/service/sso v1.11.3/go.mod h1:7UQ/e69kU7LDPtY40OyoHYgRmgfGM4mgsLYtcObdveU=
