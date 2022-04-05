@@ -1,10 +1,18 @@
 package create
 
 import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"os"
+	"path"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 )
@@ -197,5 +205,39 @@ var _ = Describe("create cluster", func() {
 				error: "validation for --zones and --node-zones failed: node-zones [zone3] must be a subset of zones [zone1 zone2]; \"zone3\" was not found in zones",
 			}),
 		)
+	})
+	FDescribe("createClusterCmd", func() {
+		Context("create cluster", func() {
+			var (
+				ts     *httptest.Server
+				primer func() string
+			)
+			BeforeEach(func() {
+				ts = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					fmt.Fprintln(w, primer())
+				}))
+				u, err := url.Parse(ts.URL)
+				Expect(err).NotTo(HaveOccurred())
+				u.Path = path.Join(u.Path, "sts")
+				Expect(os.Setenv("AWS_STS_ENDPOINT", u.String())).To(Succeed())
+			})
+			AfterEach(func() {
+				Expect(os.Setenv("AWS_STS_ENDPOINT", "")).To(Succeed())
+				ts.Close()
+			})
+			It("can create a cluster", func() {
+				primer = func() string {
+					return "{}"
+				}
+				cfg := api.NewClusterConfig()
+				cfg.Metadata.Name = "test-cluster"
+				cmd := &cmdutils.Cmd{
+					ClusterConfig: cfg,
+				}
+				ngFilter := &filter.NodeGroupFilter{}
+				params := &cmdutils.CreateClusterCmdParams{}
+				Expect(doCreateCluster(cmd, ngFilter, params)).To(Succeed())
+			})
+		})
 	})
 })
