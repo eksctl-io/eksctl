@@ -17,9 +17,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
-	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/version"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
@@ -69,70 +67,9 @@ func (c *ClusterProvider) RefreshClusterStatus(spec *api.ClusterConfig) error {
 	}
 }
 
-// SupportsManagedNodes reports whether an existing cluster supports Managed Nodes
-// The minimum required control plane version and platform version are 1.14 and eks.3 respectively
-func (c *ClusterProvider) SupportsManagedNodes(clusterConfig *api.ClusterConfig) (bool, error) {
-	if err := c.RefreshClusterStatusIfStale(clusterConfig); err != nil {
-		return false, err
-	}
-
-	return ClusterSupportsManagedNodes(c.Status.ClusterInfo.Cluster)
-}
-
 // isNonEKSCluster returns true if the cluster is external
 func isNonEKSCluster(cluster *awseks.Cluster) bool {
 	return cluster.ConnectorConfig != nil
-}
-
-// ClusterSupportsManagedNodes reports whether the EKS cluster supports managed nodes
-func ClusterSupportsManagedNodes(cluster *awseks.Cluster) (bool, error) {
-	if cluster.PlatformVersion == nil {
-		logger.Warning("could not find cluster's platform version")
-		return false, nil
-	}
-	version, err := PlatformVersion(*cluster.PlatformVersion)
-	if err != nil {
-		return false, err
-	}
-	minSupportedVersion := 3
-	return version >= minSupportedVersion, nil
-}
-
-// SupportsFargate reports whether an existing cluster supports Fargate.
-func (c *ClusterProvider) SupportsFargate(clusterConfig *api.ClusterConfig) (bool, error) {
-	if err := c.RefreshClusterStatusIfStale(clusterConfig); err != nil {
-		return false, err
-	}
-	return ClusterSupportsFargate(c.Status.ClusterInfo.Cluster)
-}
-
-// ClusterSupportsFargate reports whether an existing cluster supports Fargate.
-func ClusterSupportsFargate(cluster *awseks.Cluster) (bool, error) {
-	supportsFargate, err := utils.IsMinVersion(api.Version1_15, *cluster.Version)
-	if err != nil {
-		return false, err
-	}
-	if supportsFargate {
-		return true, nil
-	}
-
-	versionSupportsFargate, err := utils.IsMinVersion(fargate.MinKubernetesVersion, *cluster.Version)
-	if err != nil {
-		return false, err
-	}
-	if !versionSupportsFargate {
-		return false, nil
-	}
-
-	if cluster.PlatformVersion == nil {
-		logger.Warning("could not find cluster's platform version")
-		return false, nil
-	}
-	version, err := PlatformVersion(*cluster.PlatformVersion)
-	if err != nil {
-		return false, err
-	}
-	return version >= fargate.MinPlatformVersion, nil
 }
 
 var (

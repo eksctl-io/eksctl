@@ -50,19 +50,6 @@ type FakeKubeProvider struct {
 		result1 string
 		result2 error
 	}
-	SupportsManagedNodesStub        func(*v1alpha5.ClusterConfig) (bool, error)
-	supportsManagedNodesMutex       sync.RWMutex
-	supportsManagedNodesArgsForCall []struct {
-		arg1 *v1alpha5.ClusterConfig
-	}
-	supportsManagedNodesReturns struct {
-		result1 bool
-		result2 error
-	}
-	supportsManagedNodesReturnsOnCall map[int]struct {
-		result1 bool
-		result2 error
-	}
 	UpdateAuthConfigMapStub        func([]*v1alpha5.NodeGroup, kubernetesa.Interface) error
 	updateAuthConfigMapMutex       sync.RWMutex
 	updateAuthConfigMapArgsForCall []struct {
@@ -293,70 +280,6 @@ func (fake *FakeKubeProvider) ServerVersionReturnsOnCall(i int, result1 string, 
 	}{result1, result2}
 }
 
-func (fake *FakeKubeProvider) SupportsManagedNodes(arg1 *v1alpha5.ClusterConfig) (bool, error) {
-	fake.supportsManagedNodesMutex.Lock()
-	ret, specificReturn := fake.supportsManagedNodesReturnsOnCall[len(fake.supportsManagedNodesArgsForCall)]
-	fake.supportsManagedNodesArgsForCall = append(fake.supportsManagedNodesArgsForCall, struct {
-		arg1 *v1alpha5.ClusterConfig
-	}{arg1})
-	stub := fake.SupportsManagedNodesStub
-	fakeReturns := fake.supportsManagedNodesReturns
-	fake.recordInvocation("SupportsManagedNodes", []interface{}{arg1})
-	fake.supportsManagedNodesMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeKubeProvider) SupportsManagedNodesCallCount() int {
-	fake.supportsManagedNodesMutex.RLock()
-	defer fake.supportsManagedNodesMutex.RUnlock()
-	return len(fake.supportsManagedNodesArgsForCall)
-}
-
-func (fake *FakeKubeProvider) SupportsManagedNodesCalls(stub func(*v1alpha5.ClusterConfig) (bool, error)) {
-	fake.supportsManagedNodesMutex.Lock()
-	defer fake.supportsManagedNodesMutex.Unlock()
-	fake.SupportsManagedNodesStub = stub
-}
-
-func (fake *FakeKubeProvider) SupportsManagedNodesArgsForCall(i int) *v1alpha5.ClusterConfig {
-	fake.supportsManagedNodesMutex.RLock()
-	defer fake.supportsManagedNodesMutex.RUnlock()
-	argsForCall := fake.supportsManagedNodesArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeKubeProvider) SupportsManagedNodesReturns(result1 bool, result2 error) {
-	fake.supportsManagedNodesMutex.Lock()
-	defer fake.supportsManagedNodesMutex.Unlock()
-	fake.SupportsManagedNodesStub = nil
-	fake.supportsManagedNodesReturns = struct {
-		result1 bool
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeKubeProvider) SupportsManagedNodesReturnsOnCall(i int, result1 bool, result2 error) {
-	fake.supportsManagedNodesMutex.Lock()
-	defer fake.supportsManagedNodesMutex.Unlock()
-	fake.SupportsManagedNodesStub = nil
-	if fake.supportsManagedNodesReturnsOnCall == nil {
-		fake.supportsManagedNodesReturnsOnCall = make(map[int]struct {
-			result1 bool
-			result2 error
-		})
-	}
-	fake.supportsManagedNodesReturnsOnCall[i] = struct {
-		result1 bool
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeKubeProvider) UpdateAuthConfigMap(arg1 []*v1alpha5.NodeGroup, arg2 kubernetesa.Interface) error {
 	var arg1Copy []*v1alpha5.NodeGroup
 	if arg1 != nil {
@@ -557,8 +480,6 @@ func (fake *FakeKubeProvider) Invocations() map[string][][]interface{} {
 	defer fake.newRawClientMutex.RUnlock()
 	fake.serverVersionMutex.RLock()
 	defer fake.serverVersionMutex.RUnlock()
-	fake.supportsManagedNodesMutex.RLock()
-	defer fake.supportsManagedNodesMutex.RUnlock()
 	fake.updateAuthConfigMapMutex.RLock()
 	defer fake.updateAuthConfigMapMutex.RUnlock()
 	fake.validateClusterForCompatibilityMutex.RLock()
