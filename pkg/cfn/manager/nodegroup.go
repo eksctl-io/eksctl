@@ -89,31 +89,15 @@ func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(errorCh chan er
 		return errors.Wrapf(err, "couldn't get managed nodegroup details for nodegroup %q", ng.Name)
 	}
 
-	// set the managed nodegroup tags to all the ASGs found
 	if res.Nodegroup.Resources != nil {
-		// build the input tags for all ASGs attached to the managed nodegroup
-		asgTags := []*autoscaling.Tag{}
-
+		asgNames := []string{}
 		for _, asg := range res.Nodegroup.Resources.AutoScalingGroups {
-			for ngTagKey, ngTagValue := range ng.Tags {
-				asgTag := &autoscaling.Tag{
-					ResourceId:        aws.String(*asg.Name),
-					ResourceType:      aws.String("auto-scaling-group"),
-					Key:               aws.String(ngTagKey),
-					Value:             aws.String(ngTagValue),
-					PropagateAtLaunch: aws.Bool(false),
-				}
-				asgTags = append(asgTags, asgTag)
+			if asg.Name != nil && *asg.Name != "" {
+				asgNames = append(asgNames, *asg.Name)
 			}
 		}
-
-		input := &autoscaling.CreateOrUpdateTagsInput{Tags: asgTags}
-		if _, err := c.asgAPI.CreateOrUpdateTags(input); err != nil {
-			return errors.Wrapf(err, "creating or updating asg tags for managed nodegroup %q", ng.Name)
-		}
+		return c.PropagateManagedNodeGroupTagsToASG(ng.Name, ng.Tags, asgNames, errorCh)
 	}
-
-	go func() { errorCh <- nil }()
 	return nil
 }
 

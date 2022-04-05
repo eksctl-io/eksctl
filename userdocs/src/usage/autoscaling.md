@@ -44,7 +44,7 @@ nodeGroups:
       k8s.io/cluster-autoscaler/node-template/taint/feaster: "true:NoSchedule"
 ```
 
-For unmanaged and managed noderoups, this is done by `eksctl` automatically if `propagateASGTags` is set to `true` like this:
+For unmanaged and managed nodegroups, this is done by `eksctl` automatically if `propagateASGTags` is set to `true` like this:
 
 ```yaml
 nodeGroups:

@@ -117,6 +117,19 @@ var _ = Describe("StackCollection Tasks", func() {
 				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar", "foo"), makeManagedNodeGroups("m1", "m2"))
 				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
+    4 parallel sub-tasks: { 
+        create nodegroup "bar",
+        create nodegroup "foo",
+        create managed nodegroup "m1",
+        create managed nodegroup "m2",
+    } 
+}
+`))
+			}
+			{
+				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar", "foo"), makeManagedNodeGroupsWithPropagatedTags("m1", "m2"))
+				Expect(tasks.Describe()).To(Equal(`
+2 sequential tasks: { create cluster control plane "test-cluster", 
     6 parallel sub-tasks: { 
         create nodegroup "bar",
         create nodegroup "foo",
