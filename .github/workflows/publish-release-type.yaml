@@ -66,12 +66,15 @@ jobs:
           channel: team-pitch-black
           color: red
           verbose: true
+      - name: get version
+        id: get_version
+        run: echo ::set-output name=VERSION::$(echo ${GITHUB_REF#refs/*/})
       - name: slack on success - aws-dev
         if: ${{ success() }}
         uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
         with:
           slack_token: ${{ secrets.slackToken }}
-          message: ":cool-doge: ${{ inputs.name }} successful"
+          message: ":tada: ${{ steps.get_version.outputs.VERSION }} released!"
           channel: aws-dev
           color: green
           verbose: false
@@ -80,7 +83,7 @@ jobs:
         uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
         with:
           slack_token: ${{ secrets.slackToken }}
-          message: ":ahhhhhhhhh: ${{ inputs.name }} has failed"
+          message: ":ahhhhhhhhh: ${{ steps.get_version.outputs.VERSION }} has failed"
           channel: aws-dev
           color: red
           verbose: true
