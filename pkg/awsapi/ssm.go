@@ -4,6 +4,7 @@ package awsapi
 
 import (
 	"context"
+
 	. "github.com/aws/aws-sdk-go-v2/service/ssm"
 )
 
@@ -829,3 +830,4 @@ type SSM interface {
 	// service team. Update the service setting for the account.
 	UpdateServiceSetting(ctx context.Context, params *UpdateServiceSettingInput, optFns ...func(*Options)) (*UpdateServiceSettingOutput, error)
 }
+
