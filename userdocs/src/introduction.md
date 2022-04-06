@@ -28,7 +28,7 @@ With `eksctl` you can deploy any of the supported versions by passing `--version
 
 ```
 
-eksctl create cluster --version=1.18
+eksctl create cluster --version=1.19
 
 ```
 
