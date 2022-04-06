@@ -13,7 +13,7 @@
 "k8s.io/code-generator v0.22.1"
 "k8s.io/code-generator v0.22.1"
 "sigs.k8s.io/mdtoc v1.1.0"
-"github.com/vburenin/ifacemaker v1.1.0"
+"github.com/vburenin/ifacemaker v1.2.1-0.20220402060045-b2018d8549dc"
 100644 blob 64dbad69a84662503fb89b37da2357b5b7c32c9a	build/docker/Dockerfile
-100644 blob c34d979a2ea660918fe8e23474943833fa6ed76c	.requirements
+100644 blob 46fc2bdd2cb8eb57b3f052fba587ed213934b941	.requirements
 100755 blob c1129ff1ff85ac2c53f908a577675ea59a9325a7	build/scripts/install-build-deps.sh

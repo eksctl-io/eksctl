@@ -2326,6 +2326,8 @@ github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyC
 github.com/valyala/fasttemplate v1.0.1/go.mod h1:UQGH1tvbgY+Nz5t2n7tXsz52dQxojPUpymEIMZ47gx8=
 github.com/vburenin/ifacemaker v1.1.0 h1:3ScCGZ+D65Ud9L0x9ofhN0dk5QrfauzMWYfaYsfA+HE=
 github.com/vburenin/ifacemaker v1.1.0/go.mod h1:SlS6qpTccQsoK3ln7mBkUxA4agA8wfPr/IFYqBWerPw=
+github.com/vburenin/ifacemaker v1.2.1-0.20220402060045-b2018d8549dc h1:j8hNiNphiFByGNZsF6z+MxVeP51sewsKmWwn4invn+s=
+github.com/vburenin/ifacemaker v1.2.1-0.20220402060045-b2018d8549dc/go.mod h1:5WqrzX2aD7/hi+okBjcaEQJMg4lDGrpuEX3B8L4Wgrs=
 github.com/vektah/gqlparser v1.1.2/go.mod h1:1ycwN7Ij5njmMkPPAOaRFY4rET2Enx7IkVv3vaXspKw=
 github.com/vektra/mockery v1.1.2 h1:uc0Yn67rJpjt8U/mAZimdCKn9AeA97BOkjpmtBSlfP4=
 github.com/vektra/mockery v1.1.2/go.mod h1:VcfZjKaFOPO+MpN4ZvwPjs4c48lkq1o3Ym8yHZJu0jU=
