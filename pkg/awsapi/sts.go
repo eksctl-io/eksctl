@@ -4,6 +4,7 @@ package awsapi
 
 import (
 	"context"
+
 	. "github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
@@ -536,3 +537,4 @@ type STS interface {
 	// in the IAM User Guide.
 	GetSessionToken(ctx context.Context, params *GetSessionTokenInput, optFns ...func(*Options)) (*GetSessionTokenOutput, error)
 }
+

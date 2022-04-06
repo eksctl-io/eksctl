@@ -4,6 +4,7 @@ package awsapi
 
 import (
 	"context"
+
 	. "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 )
 
@@ -255,3 +256,4 @@ type ELBV2 interface {
 	// previously, with their existing configurations, plus any additional subnets.
 	SetSubnets(ctx context.Context, params *SetSubnetsInput, optFns ...func(*Options)) (*SetSubnetsOutput, error)
 }
+

@@ -90,9 +90,7 @@ func getAddon(cmd *cmdutils.Cmd, params *getCmdParams) error {
 		}
 	}
 
-	if len(summaries) == 0 {
-		logger.Info("no addons found")
-	} else {
+	if len(summaries) > 0 {
 		logger.Info("to see issues for an addon run `eksctl get addon --name <addon-name> --cluster <cluster-name>`")
 	}
 
@@ -105,7 +103,7 @@ func getAddon(cmd *cmdutils.Cmd, params *getCmdParams) error {
 		addAddonSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	if err := printer.PrintObjWithKind("addonsummary", summaries, os.Stdout); err != nil {
+	if err := printer.PrintObjWithKind("addons", summaries, os.Stdout); err != nil {
 		return err
 	}
 

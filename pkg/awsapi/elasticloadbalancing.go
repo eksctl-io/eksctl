@@ -4,6 +4,7 @@ package awsapi
 
 import (
 	"context"
+
 	. "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 )
 
@@ -244,3 +245,4 @@ type ELB interface {
 	// in the Classic Load Balancers Guide.
 	SetLoadBalancerPoliciesOfListener(ctx context.Context, params *SetLoadBalancerPoliciesOfListenerInput, optFns ...func(*Options)) (*SetLoadBalancerPoliciesOfListenerOutput, error)
 }
+
