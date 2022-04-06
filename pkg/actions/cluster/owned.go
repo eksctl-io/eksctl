@@ -50,12 +50,7 @@ func (c *OwnedCluster) Upgrade(dryRun bool) error {
 		return err
 	}
 
-	supportsManagedNodes, err := c.ctl.SupportsManagedNodes(c.cfg)
-	if err != nil {
-		return err
-	}
-
-	stackUpdateRequired, err := c.stackManager.AppendNewClusterStackResource(dryRun, supportsManagedNodes)
+	stackUpdateRequired, err := c.stackManager.AppendNewClusterStackResource(dryRun)
 	if err != nil {
 		return err
 	}
@@ -69,7 +64,7 @@ func (c *OwnedCluster) Upgrade(dryRun bool) error {
 	return nil
 }
 
-func (c *OwnedCluster) Delete(_ time.Duration, wait, force, disableNodegroupEviction bool) error {
+func (c *OwnedCluster) Delete(_ time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error {
 	var (
 		clientSet kubernetes.Interface
 		oidc      *iamoidc.OpenIDConnectManager
@@ -111,7 +106,7 @@ func (c *OwnedCluster) Delete(_ time.Duration, wait, force, disableNodegroupEvic
 		}
 
 		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
-		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, nodeGroupManager, attemptVpcCniDeletion); err != nil {
+		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, attemptVpcCniDeletion); err != nil {
 			if !force {
 				return err
 			}

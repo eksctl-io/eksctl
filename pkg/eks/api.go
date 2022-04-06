@@ -1,50 +1,42 @@
 package eks
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs/cloudwatchlogsiface"
-
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
-	"github.com/aws/aws-sdk-go/service/cloudtrail"
-	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/aws/aws-sdk-go/service/elb"
-	"github.com/aws/aws-sdk-go/service/elb/elbiface"
-	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/aws/aws-sdk-go/service/sts/stsiface"
+	"github.com/gofrs/flock"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/spf13/afero"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/yaml"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	ekscreds "github.com/weaveworks/eksctl/pkg/credentials"
@@ -67,7 +59,6 @@ type KubeProvider interface {
 	NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error)
 	ServerVersion(rawClient *kubernetes.RawClient) (string, error)
 	LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, stackManager manager.StackManager) error
-	SupportsManagedNodes(clusterConfig *api.ClusterConfig) (bool, error)
 	ValidateClusterForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error
 	UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error
 	WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error
@@ -75,21 +66,19 @@ type KubeProvider interface {
 
 // ProviderServices stores the used APIs
 type ProviderServices struct {
-	spec  *api.ProviderConfig
-	cfn   cloudformationiface.CloudFormationAPI
-	asg   autoscalingiface.AutoScalingAPI
-	eks   eksiface.EKSAPI
-	ec2   ec2iface.EC2API
-	elb   elbiface.ELBAPI
-	elbv2 elbv2iface.ELBV2API
-	sts   stsiface.STSAPI
-	ssm   ssmiface.SSMAPI
-	iam   iamiface.IAMAPI
+	spec *api.ProviderConfig
+	cfn  cloudformationiface.CloudFormationAPI
+	asg  awsapi.ASG
+	eks  eksiface.EKSAPI
+	ec2  ec2iface.EC2API
+	iam  iamiface.IAMAPI
 
-	cloudtrail     cloudtrailiface.CloudTrailAPI
-	cloudwatchlogs cloudwatchlogsiface.CloudWatchLogsAPI
+	cloudtrail     awsapi.CloudTrail
+	cloudwatchlogs awsapi.CloudWatchLogs
 
 	session *session.Session
+
+	*ServicesV2
 }
 
 // CloudFormation returns a representation of the CloudFormation API
@@ -104,7 +93,7 @@ func (p ProviderServices) CloudFormationDisableRollback() bool {
 }
 
 // ASG returns a representation of the AutoScaling API
-func (p ProviderServices) ASG() autoscalingiface.AutoScalingAPI { return p.asg }
+func (p ProviderServices) ASG() awsapi.ASG { return p.asg }
 
 // EKS returns a representation of the EKS API
 func (p ProviderServices) EKS() eksiface.EKSAPI { return p.eks }
@@ -112,26 +101,14 @@ func (p ProviderServices) EKS() eksiface.EKSAPI { return p.eks }
 // EC2 returns a representation of the EC2 API
 func (p ProviderServices) EC2() ec2iface.EC2API { return p.ec2 }
 
-// ELB returns a representation of the ELB API
-func (p ProviderServices) ELB() elbiface.ELBAPI { return p.elb }
-
-// ELBV2 returns a representation of the ELBV2 API
-func (p ProviderServices) ELBV2() elbv2iface.ELBV2API { return p.elbv2 }
-
-// STS returns a representation of the STS API
-func (p ProviderServices) STS() stsiface.STSAPI { return p.sts }
-
-// SSM returns a representation of the STS API
-func (p ProviderServices) SSM() ssmiface.SSMAPI { return p.ssm }
-
 // IAM returns a representation of the IAM API
 func (p ProviderServices) IAM() iamiface.IAMAPI { return p.iam }
 
 // CloudTrail returns a representation of the CloudTrail API
-func (p ProviderServices) CloudTrail() cloudtrailiface.CloudTrailAPI { return p.cloudtrail }
+func (p ProviderServices) CloudTrail() awsapi.CloudTrail { return p.cloudtrail }
 
 // CloudWatchLogs returns a representation of the CloudWatchLogs API.
-func (p ProviderServices) CloudWatchLogs() cloudwatchlogsiface.CloudWatchLogsAPI {
+func (p ProviderServices) CloudWatchLogs() awsapi.CloudWatchLogs {
 	return p.cloudwatchlogs
 }
 
@@ -165,7 +142,7 @@ type ProviderStatus struct {
 }
 
 // New creates a new setup of the used AWS APIs
-func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProvider, error) {
+func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProvider, error) {
 	provider := &ProviderServices{
 		spec: spec,
 	}
@@ -176,9 +153,22 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	// later re-use if overriding sessions due to custom URL
 	s := c.newSession(spec)
 
-	cache := os.Getenv(ekscreds.EksctlGlobalEnableCachingEnvName)
-	if s.Config != nil && cache != "" {
-		if cachedProvider, err := ekscreds.NewFileCacheProvider(spec.Profile, s.Config.Credentials, &ekscreds.RealClock{}); err == nil {
+	cacheCredentials := os.Getenv(ekscreds.EksctlGlobalEnableCachingEnvName) != ""
+	var (
+		credentialsCacheFilePath string
+		err                      error
+	)
+	if cacheCredentials {
+		if s.Config == nil {
+			return nil, errors.New("expected Session.Config to be non-nil")
+		}
+		credentialsCacheFilePath, err = ekscreds.GetCacheFilePath()
+		if err != nil {
+			return nil, fmt.Errorf("error getting cache file path: %w", err)
+		}
+		if cachedProvider, err := ekscreds.NewFileCacheProvider(spec.Profile, s.Config.Credentials, &ekscreds.RealClock{}, afero.NewOsFs(), func(path string) ekscreds.Flock {
+			return flock.New(path)
+		}, credentialsCacheFilePath); err == nil {
 			s.Config.Credentials = credentials.NewCredentials(&cachedProvider)
 		} else {
 			logger.Warning("Failed to use cached provider: ", err)
@@ -186,29 +176,27 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	}
 
 	provider.session = s
-	provider.asg = autoscaling.New(s)
 	provider.cfn = cloudformation.New(s)
 	provider.eks = awseks.New(s)
 	provider.ec2 = ec2.New(s)
-	provider.elb = elb.New(s)
-	provider.elbv2 = elbv2.New(s)
-	provider.sts = sts.New(s,
-		// STS retrier has to be disabled, as it's not very helpful
-		// (see https://github.com/weaveworks/eksctl/issues/705)
-		request.WithRetryer(s.Config.Copy(),
-			&client.DefaultRetryer{
-				NumMaxRetries: 1,
-			},
-		),
-	)
-	provider.ssm = ssm.New(s)
 	provider.iam = iam.New(s)
-	provider.cloudtrail = cloudtrail.New(s)
-	provider.cloudwatchlogs = cloudwatchlogs.New(s)
+
+	cfg, err := newV2Config(spec, c.Provider.Region(), credentialsCacheFilePath)
+	if err != nil {
+		return nil, err
+	}
+
+	provider.ServicesV2 = &ServicesV2{
+		config: cfg,
+	}
 
 	c.Status = &ProviderStatus{
 		sessionCreds: s.Config.Credentials,
 	}
+
+	provider.asg = autoscaling.NewFromConfig(cfg)
+	provider.cloudwatchlogs = cloudwatchlogs.NewFromConfig(cfg)
+	provider.cloudtrail = cloudtrail.NewFromConfig(cfg)
 
 	// override sessions if any custom endpoints specified
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
@@ -222,21 +210,6 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
 		logger.Debug("Setting EC2 endpoint to %s", endpoint)
 		provider.ec2 = ec2.New(s, s.Config.Copy().WithEndpoint(endpoint))
-
-	}
-	if endpoint, ok := os.LookupEnv("AWS_ELB_ENDPOINT"); ok {
-		logger.Debug("Setting ELB endpoint to %s", endpoint)
-		provider.elb = elb.New(s, s.Config.Copy().WithEndpoint(endpoint))
-
-	}
-	if endpoint, ok := os.LookupEnv("AWS_ELBV2_ENDPOINT"); ok {
-		logger.Debug("Setting ELBV2 endpoint to %s", endpoint)
-		provider.elbv2 = elbv2.New(s, s.Config.Copy().WithEndpoint(endpoint))
-
-	}
-	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
-		logger.Debug("Setting STS endpoint to %s", endpoint)
-		provider.sts = sts.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_IAM_ENDPOINT"); ok {
 		logger.Debug("Setting IAM endpoint to %s", endpoint)
@@ -244,14 +217,16 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*ClusterProv
 	}
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDTRAIL_ENDPOINT"); ok {
 		logger.Debug("Setting CloudTrail endpoint to %s", endpoint)
-		provider.cloudtrail = cloudtrail.New(s, s.Config.Copy().WithEndpoint(endpoint))
+		provider.cloudtrail = cloudtrail.NewFromConfig(cfg, func(o *cloudtrail.Options) {
+			o.EndpointResolver = cloudtrail.EndpointResolverFromURL(endpoint)
+		})
 	}
 
 	if clusterSpec != nil {
 		clusterSpec.Metadata.Region = c.Provider.Region()
 	}
 
-	return c, c.checkAuth()
+	return c, c.checkAuth(ctx)
 }
 
 // ParseConfig parses data into a ClusterConfig
@@ -322,10 +297,8 @@ func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 }
 
 // checkAuth checks the AWS authentication
-func (c *ClusterProvider) checkAuth() error {
-
-	input := &sts.GetCallerIdentityInput{}
-	output, err := c.Provider.STS().GetCallerIdentity(input)
+func (c *ClusterProvider) checkAuth(ctx context.Context) error {
+	output, err := c.Provider.STS().GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
 		return errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
 	}
@@ -338,7 +311,7 @@ func (c *ClusterProvider) checkAuth() error {
 }
 
 // ResolveAMI ensures that the node AMI is set and is available
-func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) error {
+func ResolveAMI(ctx context.Context, provider api.ClusterProvider, version string, np api.NodePool) error {
 	var resolver ami.Resolver
 	ng := np.BaseNodeGroup()
 	switch ng.AMI {
@@ -356,7 +329,7 @@ func ResolveAMI(provider api.ClusterProvider, version string, np api.NodePool) e
 	}
 
 	instanceType := api.SelectInstanceType(np)
-	id, err := resolver.Resolve(provider.Region(), version, instanceType, ng.AMIFamily)
+	id, err := resolver.Resolve(ctx, provider.Region(), version, instanceType, ng.AMIFamily)
 	if err != nil {
 		return errors.Wrap(err, "unable to determine AMI to use")
 	}

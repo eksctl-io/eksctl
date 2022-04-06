@@ -1,6 +1,7 @@
 package eks
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -35,7 +37,7 @@ type InstanceSelector interface {
 //counterfeiter:generate -o fakes/fake_nodegroup_initialiser.go . NodeGroupInitialiser
 // NodeGroupInitialiser is an interface that provides helpers for nodegroup creation.
 type NodeGroupInitialiser interface {
-	Normalize(nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error
+	Normalize(ctx context.Context, nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error
 	ExpandInstanceSelectorOptions(nodePools []api.NodePool, clusterAZs []string) error
 	NewAWSSelectorSession(provider api.ClusterProvider)
 	ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.ClusterProvider) error
@@ -66,28 +68,22 @@ func (m *NodeGroupService) NewAWSSelectorSession(provider api.ClusterProvider) {
 }
 
 // Normalize normalizes nodegroups
-func (m *NodeGroupService) Normalize(nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error {
+func (m *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error {
 	for _, np := range nodePools {
 		switch ng := np.(type) {
 		case *api.ManagedNodeGroup:
 			hasNativeAMIFamilySupport := ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 || ng.AMIFamily == api.NodeImageFamilyBottlerocket
 			if !hasNativeAMIFamilySupport && !api.IsAMI(ng.AMI) {
-				if err := ResolveAMI(m.Provider, clusterMeta.Version, np); err != nil {
+				if err := ResolveAMI(ctx, m.Provider, clusterMeta.Version, np); err != nil {
 					return err
 				}
 			}
 
 		case *api.NodeGroup:
 			if !api.IsAMI(ng.AMI) {
-				if err := ResolveAMI(m.Provider, clusterMeta.Version, ng); err != nil {
+				if err := ResolveAMI(ctx, m.Provider, clusterMeta.Version, ng); err != nil {
 					return err
 				}
-			} else {
-				// TODO remove
-				// This is a temporary hack to go down a legacy bootstrap codepath for Ubuntu
-				// and AL2 images
-				logger.Warning("Custom AMI detected for nodegroup %s. Please refer to https://github.com/weaveworks/eksctl/issues/3563 for upcoming breaking changes", ng.Name)
-				ng.CustomAMI = true
 			}
 		}
 
@@ -96,7 +92,7 @@ func (m *NodeGroupService) Normalize(nodePools []api.NodePool, clusterMeta *api.
 		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, clusterMeta.Version)
 
 		if ng.AMI != "" {
-			if err := ami.Use(m.Provider.EC2(), ng); err != nil {
+			if err := ami.Use(ctx, m.Provider.EC2(), ng); err != nil {
 				return err
 			}
 		}

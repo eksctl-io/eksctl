@@ -4,6 +4,7 @@
 package tests
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -11,7 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
+
 	. "github.com/onsi/ginkgo"
 
 	"github.com/weaveworks/eksctl/integration/runner"
@@ -230,7 +232,7 @@ func NewParams(clusterNamePrefix string) *Params {
 // attemptSettingUserID will attempt to fetch the first 4 characters of the userID running the
 // integration tests to be used as a prefix for cluster names. It fails silently if an error occurs
 func (p *Params) attemptSettingUserID() {
-	clusterProvider, err := eks.New(&api.ProviderConfig{Region: p.Region}, &api.ClusterConfig{
+	clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: p.Region}, &api.ClusterConfig{
 		TypeMeta: api.ClusterConfigTypeMeta(),
 		Metadata: &api.ClusterMeta{
 			Version: p.Version,
@@ -245,7 +247,7 @@ func (p *Params) attemptSettingUserID() {
 		return
 	}
 
-	out, err := clusterProvider.Provider.STS().GetCallerIdentity(&sts.GetCallerIdentityInput{})
+	out, err := clusterProvider.Provider.STS().GetCallerIdentity(context.TODO(), &sts.GetCallerIdentityInput{})
 	if err != nil {
 		fmt.Fprintf(GinkgoWriter, msg, err)
 		return

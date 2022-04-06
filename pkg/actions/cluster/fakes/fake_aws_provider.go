@@ -2,6 +2,7 @@
 package fakes
 
 import (
+	"context"
 	"sync"
 
 	"github.com/weaveworks/eksctl/pkg/actions/cluster"
@@ -10,11 +11,12 @@ import (
 )
 
 type FakeProviderConstructor struct {
-	Stub        func(*v1alpha5.ProviderConfig, *v1alpha5.ClusterConfig) (*eks.ClusterProvider, error)
+	Stub        func(context.Context, *v1alpha5.ProviderConfig, *v1alpha5.ClusterConfig) (*eks.ClusterProvider, error)
 	mutex       sync.RWMutex
 	argsForCall []struct {
-		arg1 *v1alpha5.ProviderConfig
-		arg2 *v1alpha5.ClusterConfig
+		arg1 context.Context
+		arg2 *v1alpha5.ProviderConfig
+		arg3 *v1alpha5.ClusterConfig
 	}
 	returns struct {
 		result1 *eks.ClusterProvider
@@ -28,19 +30,20 @@ type FakeProviderConstructor struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeProviderConstructor) Spy(arg1 *v1alpha5.ProviderConfig, arg2 *v1alpha5.ClusterConfig) (*eks.ClusterProvider, error) {
+func (fake *FakeProviderConstructor) Spy(arg1 context.Context, arg2 *v1alpha5.ProviderConfig, arg3 *v1alpha5.ClusterConfig) (*eks.ClusterProvider, error) {
 	fake.mutex.Lock()
 	ret, specificReturn := fake.returnsOnCall[len(fake.argsForCall)]
 	fake.argsForCall = append(fake.argsForCall, struct {
-		arg1 *v1alpha5.ProviderConfig
-		arg2 *v1alpha5.ClusterConfig
-	}{arg1, arg2})
+		arg1 context.Context
+		arg2 *v1alpha5.ProviderConfig
+		arg3 *v1alpha5.ClusterConfig
+	}{arg1, arg2, arg3})
 	stub := fake.Stub
 	returns := fake.returns
-	fake.recordInvocation("ProviderConstructor", []interface{}{arg1, arg2})
+	fake.recordInvocation("ProviderConstructor", []interface{}{arg1, arg2, arg3})
 	fake.mutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -54,16 +57,16 @@ func (fake *FakeProviderConstructor) CallCount() int {
 	return len(fake.argsForCall)
 }
 
-func (fake *FakeProviderConstructor) Calls(stub func(*v1alpha5.ProviderConfig, *v1alpha5.ClusterConfig) (*eks.ClusterProvider, error)) {
+func (fake *FakeProviderConstructor) Calls(stub func(context.Context, *v1alpha5.ProviderConfig, *v1alpha5.ClusterConfig) (*eks.ClusterProvider, error)) {
 	fake.mutex.Lock()
 	defer fake.mutex.Unlock()
 	fake.Stub = stub
 }
 
-func (fake *FakeProviderConstructor) ArgsForCall(i int) (*v1alpha5.ProviderConfig, *v1alpha5.ClusterConfig) {
+func (fake *FakeProviderConstructor) ArgsForCall(i int) (context.Context, *v1alpha5.ProviderConfig, *v1alpha5.ClusterConfig) {
 	fake.mutex.RLock()
 	defer fake.mutex.RUnlock()
-	return fake.argsForCall[i].arg1, fake.argsForCall[i].arg2
+	return fake.argsForCall[i].arg1, fake.argsForCall[i].arg2, fake.argsForCall[i].arg3
 }
 
 func (fake *FakeProviderConstructor) Returns(result1 *eks.ClusterProvider, result2 error) {

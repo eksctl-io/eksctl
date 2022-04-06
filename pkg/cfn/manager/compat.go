@@ -74,7 +74,7 @@ func (c *StackCollection) FixClusterCompatibility() error {
 	}
 
 	logger.Info("adding missing resources to cluster stack")
-	_, err = c.AppendNewClusterStackResource(false, stackSupportsManagedNodes)
+	_, err = c.AppendNewClusterStackResource(false)
 	return err
 }
 

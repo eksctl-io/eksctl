@@ -5,6 +5,7 @@
 package unowned_clusters
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -68,7 +69,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		configFile, err = os.CreateTemp("", "")
 		Expect(err).NotTo(HaveOccurred())
 		if !params.SkipCreate {
-			clusterProvider, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+			clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 			Expect(err).NotTo(HaveOccurred())
 			ctl = clusterProvider.Provider
 			cfg.VPC = createClusterWithNodeGroup(params.ClusterName, stackName, mng1, version, ctl)
@@ -157,7 +158,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 				"--nodegroup", mng1,
 				"--verbose", "2",
 			)
-			// It sometimes takes forever for the above set to take effect
+		// It sometimes takes forever for the above set to take effect
 		Eventually(func() *gbytes.Buffer { return cmd.Run().Out }, time.Minute*4).Should(gbytes.Say("key=value"))
 
 		By("unsetting labels on a managed nodegroup")
@@ -319,6 +320,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 			WithArgs(
 				"--cluster", params.ClusterName,
 				"--name", mng1,
+				"--parallel", "2",
 				"--verbose", "2",
 			)
 		Expect(cmd).To(RunSuccessfully())

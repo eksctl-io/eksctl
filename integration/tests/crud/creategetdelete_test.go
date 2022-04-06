@@ -189,7 +189,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						Region: params.Region,
 					},
 				}
-				ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+				ctl, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 				Expect(err).NotTo(HaveOccurred())
 				err = ctl.RefreshClusterStatus(cfg)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -319,7 +319,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						Region: params.Region,
 					},
 				}
-				ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+				ctl, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 				Expect(err).NotTo(HaveOccurred())
 				cl, err := ctl.GetCluster(params.ClusterName)
 				Expect(err).NotTo(HaveOccurred())
@@ -585,7 +585,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						},
 					}
 					var err error
-					ctl, err = eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+					ctl, err = eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 					Expect(err).NotTo(HaveOccurred())
 				})
 
@@ -710,7 +710,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 							Region: params.Region,
 						},
 					}
-					ctl, err = eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+					ctl, err = eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 					Expect(err).NotTo(HaveOccurred())
 					err = ctl.RefreshClusterStatus(cfg)
 					Expect(err).ShouldNot(HaveOccurred())

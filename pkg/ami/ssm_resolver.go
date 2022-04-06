@@ -1,17 +1,18 @@
 package ami
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/pkg/errors"
 
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 )
@@ -19,22 +20,22 @@ import (
 // SSMResolver resolves the AMI to the defaults for the region
 // by querying AWS SSM get parameter API
 type SSMResolver struct {
-	ssmAPI ssmiface.SSMAPI
+	ssmAPI awsapi.SSM
 }
 
 // Resolve will return an AMI to use based on the default AMI for
 // each region
-func (r *SSMResolver) Resolve(region, version, instanceType, imageFamily string) (string, error) {
+func (r *SSMResolver) Resolve(ctx context.Context, region, version, instanceType, imageFamily string) (string, error) {
 	logger.Debug("resolving AMI using SSM Parameter resolver for region %s, instanceType %s and imageFamily %s", region, instanceType, imageFamily)
 
 	parameterName, err := MakeSSMParameterName(version, instanceType, imageFamily)
 	if err != nil {
 		return "", err
 	}
-	input := ssm.GetParameterInput{
+
+	output, err := r.ssmAPI.GetParameter(ctx, &ssm.GetParameterInput{
 		Name: aws.String(parameterName),
-	}
-	output, err := r.ssmAPI.GetParameter(&input)
+	})
 	if err != nil {
 		return "", fmt.Errorf("error getting AMI from SSM Parameter Store: %w. please verify that AMI Family is supported", err)
 	}
@@ -48,14 +49,6 @@ func (r *SSMResolver) Resolve(region, version, instanceType, imageFamily string)
 
 // MakeSSMParameterName creates an SSM parameter name
 func MakeSSMParameterName(version, instanceType, imageFamily string) (string, error) {
-	if api.IsWindowsImage(imageFamily) {
-		if supportsWindows, err := utils.IsMinVersion(api.Version1_14, version); err != nil {
-			return "", err
-		} else if !supportsWindows {
-			return "", fmt.Errorf("cannot find Windows AMI for Kubernetes version %s. Minimum version supported: %s", version, api.Version1_14)
-		}
-	}
-
 	const fieldName = "image_id"
 
 	switch imageFamily {

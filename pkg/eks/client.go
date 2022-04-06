@@ -8,7 +8,6 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/watch"
@@ -17,19 +16,17 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/aws/aws-sdk-go/service/sts/stsiface"
-	"sigs.k8s.io/aws-iam-authenticator/pkg/token"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
+	"github.com/weaveworks/eksctl/pkg/credentials"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 // Client stores information about the client config
 type Client struct {
-	Config *clientcmdapi.Config
+	Config    *clientcmdapi.Config
+	Generator TokenGenerator
 
 	rawConfig *restclient.Config
 }
@@ -37,10 +34,12 @@ type Client struct {
 // NewClient creates a new client config by embedding the STS token
 func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
 	config := kubeconfig.NewForUser(spec, c.GetUsername())
+	generator := NewGenerator(c.Provider.STSPresigner(), &credentials.RealClock{})
 	client := &Client{
-		Config: config,
+		Config:    config,
+		Generator: generator,
 	}
-	return client.new(spec, c.Provider.STS())
+	return client.new(spec)
 }
 
 // GetUsername extracts the username part from the IAM role ARN
@@ -52,8 +51,8 @@ func (c *ClusterProvider) GetUsername() string {
 	return "iam-root-account"
 }
 
-func (c *Client) new(spec *api.ClusterConfig, stsClient stsiface.STSAPI) (*Client, error) {
-	if err := c.useEmbeddedToken(spec, stsClient); err != nil {
+func (c *Client) new(spec *api.ClusterConfig) (*Client, error) {
+	if err := c.useEmbeddedToken(spec); err != nil {
 		return nil, err
 	}
 
@@ -61,18 +60,16 @@ func (c *Client) new(spec *api.ClusterConfig, stsClient stsiface.STSAPI) (*Clien
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create API client configuration from client config")
 	}
+
 	c.rawConfig = rawConfig
+	c.rawConfig.QPS = float32(25)
+	c.rawConfig.Burst = int(c.rawConfig.QPS) * 2
 
 	return c, nil
 }
 
-func (c *Client) useEmbeddedToken(spec *api.ClusterConfig, stsclient stsiface.STSAPI) error {
-	gen, err := token.NewGenerator(true, false)
-	if err != nil {
-		return errors.Wrap(err, "could not get token generator")
-	}
-
-	tok, err := gen.GetWithSTS(spec.Metadata.Name, stsclient.(*sts.STS))
+func (c *Client) useEmbeddedToken(spec *api.ClusterConfig) error {
+	tok, err := c.Generator.GetWithSTS(context.TODO(), spec.Metadata.Name)
 	if err != nil {
 		return errors.Wrap(err, "could not get token")
 	}

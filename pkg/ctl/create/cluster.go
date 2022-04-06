@@ -1,6 +1,7 @@
 package create
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -227,7 +228,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return cmdutils.PrintDryRunConfig(cfg, os.Stdout)
 	}
 
-	if err := nodeGroupService.Normalize(nodePools, cfg.Metadata); err != nil {
+	if err := nodeGroupService.Normalize(context.TODO(), nodePools, cfg.Metadata); err != nil {
 		return err
 	}
 
@@ -265,7 +266,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
 
 	eks.LogEnabledFeatures(cfg)
-	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(cfg)
+	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(context.Background(), cfg)
 
 	supported, err := utils.IsMinVersion(api.Version1_18, cfg.Metadata.Version)
 	if err != nil {

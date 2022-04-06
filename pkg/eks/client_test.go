@@ -4,16 +4,21 @@ import (
 	"fmt"
 	"strings"
 
+	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5/fakes"
 	. "github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 var _ = Describe("eks auth helpers", func() {
-	var ctl *ClusterProvider
+	var (
+		ctl *ClusterProvider
+	)
 
 	Describe("construct client configs", func() {
 		Context("with a mock provider", func() {
@@ -104,8 +109,13 @@ var _ = Describe("eks auth helpers", func() {
 				})
 
 				It("should create config with embedded token", func() {
-					// TODO: cannot test this, as token generator uses STS directly, we cannot pass the interface
-					// we can probably fix the package itself
+					mockPresigner := ctl.Provider.STSPresigner().(*fakes.FakeSTSPresigner)
+					mockPresigner.PresignGetCallerIdentityReturns(&v4.PresignedHTTPRequest{
+						URL: "https://example.com",
+					}, nil)
+					client, err := ctl.NewClient(cfg)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(client.Config.AuthInfos[client.Config.CurrentContext].Token).To(HavePrefix("k8s-aws-v1."))
 				})
 			})
 		})

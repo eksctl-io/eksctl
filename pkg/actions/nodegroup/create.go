@@ -1,6 +1,7 @@
 package nodegroup
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -33,7 +34,7 @@ type CreateOpts struct {
 }
 
 // Create creates a new nodegroup with the given options.
-func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFilter) error {
+func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilter filter.NodegroupFilter) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
 	ctl := m.ctl
@@ -62,16 +63,6 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 		}
 	}
 
-	// EKS 1.14 clusters created with prior versions of eksctl may not support Managed Nodes
-	supportsManagedNodes, err := kubeProvider.SupportsManagedNodes(cfg)
-	if err != nil {
-		return err
-	}
-
-	if len(cfg.ManagedNodeGroups) > 0 && !supportsManagedNodes {
-		return errors.New("Managed Nodegroups are not supported for this cluster version. Please update the cluster before adding managed nodegroups")
-	}
-
 	m.init.NewAWSSelectorSession(ctl.Provider)
 	nodePools := cmdutils.ToNodePools(cfg)
 
@@ -80,7 +71,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 	}
 
 	if !options.DryRun {
-		if err := m.init.Normalize(nodePools, cfg.Metadata); err != nil {
+		if err := m.init.Normalize(ctx, nodePools, cfg.Metadata); err != nil {
 			return err
 		}
 	}
@@ -128,7 +119,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 		return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, os.Stdout)
 	}
 
-	if err := m.nodeCreationTasks(supportsManagedNodes, isOwnedCluster); err != nil {
+	if err := m.nodeCreationTasks(isOwnedCluster); err != nil {
 		return err
 	}
 
@@ -143,7 +134,7 @@ func (m *Manager) Create(options CreateOpts, nodegroupFilter filter.NodegroupFil
 	return nil
 }
 
-func (m *Manager) nodeCreationTasks(supportsManagedNodes, isOwnedCluster bool) error {
+func (m *Manager) nodeCreationTasks(isOwnedCluster bool) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
 	init := m.init
@@ -152,7 +143,7 @@ func (m *Manager) nodeCreationTasks(supportsManagedNodes, isOwnedCluster bool) e
 		Parallel: false,
 	}
 
-	if supportsManagedNodes && isOwnedCluster {
+	if isOwnedCluster {
 		taskTree.Append(m.stackManager.NewClusterCompatTask())
 	}
 

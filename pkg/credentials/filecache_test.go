@@ -6,6 +6,10 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/gofrs/flock"
+
+	"github.com/spf13/afero"
+
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -40,6 +44,11 @@ func (s *stubProviderExpirer) ExpiresAt() time.Time {
 }
 
 var _ = Describe("filecache", func() {
+	newFileCacheProvider := func(profile string, c *credentials.Credentials, clock Clock, cacheDir string) (FileCacheProvider, error) {
+		return NewFileCacheProvider(profile, c, clock, afero.NewOsFs(), func(path string) Flock {
+			return flock.New(path)
+		}, filepath.Join(cacheDir, "credentials.yaml"))
+	}
 	Context("credential cache has being used", func() {
 		var (
 			tmp string
@@ -66,7 +75,7 @@ var _ = Describe("filecache", func() {
 			})
 			fakeClock := &fakes.FakeClock{}
 			fakeClock.NowReturns(time.Date(1981, 1, 1, 1, 1, 1, 1, time.UTC))
-			p, err := NewFileCacheProvider("profile", c, fakeClock)
+			p, err := newFileCacheProvider("profile", c, fakeClock, tmp)
 			Expect(err).NotTo(HaveOccurred())
 			value, err := p.Retrieve()
 			Expect(err).NotTo(HaveOccurred())
@@ -100,7 +109,7 @@ var _ = Describe("filecache", func() {
 				})
 				fakeClock := &fakes.FakeClock{}
 				fakeClock.NowReturns(time.Date(9999, 1, 1, 1, 1, 1, 1, time.UTC))
-				p, err := NewFileCacheProvider("profile", c, fakeClock)
+				p, err := newFileCacheProvider("profile", c, fakeClock, tmp)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(p.IsExpired()).To(BeTrue())
 			})
@@ -120,7 +129,7 @@ var _ = Describe("filecache", func() {
 				Expect(err).NotTo(HaveOccurred())
 				c := credentials.NewCredentials(&stubProviderExpirer{})
 				fakeClock := &fakes.FakeClock{}
-				p, err := NewFileCacheProvider("profile", c, fakeClock)
+				p, err := newFileCacheProvider("profile", c, fakeClock, tmp)
 				Expect(err).NotTo(HaveOccurred())
 				creds, err := p.Retrieve()
 				Expect(err).NotTo(HaveOccurred())
@@ -132,7 +141,7 @@ var _ = Describe("filecache", func() {
 		When("no underlying credentials have been supplied", func() {
 			It("returns an appropriate error", func() {
 				fakeClock := &fakes.FakeClock{}
-				_, err := NewFileCacheProvider("profile", nil, fakeClock)
+				_, err := newFileCacheProvider("profile", nil, fakeClock, tmp)
 				Expect(err).To(MatchError("no underlying Credentials object provided"))
 			})
 		})
@@ -140,7 +149,7 @@ var _ = Describe("filecache", func() {
 			It("won't create a cache file", func() {
 				fakeClock := &fakes.FakeClock{}
 				fakeClock.NowReturns(time.Date(9999, 1, 1, 1, 1, 1, 1, time.UTC))
-				p, err := NewFileCacheProvider("profile", credentials.NewStaticCredentials("id", "secret", "token"), fakeClock)
+				p, err := newFileCacheProvider("profile", credentials.NewStaticCredentials("id", "secret", "token"), fakeClock, tmp)
 				Expect(err).NotTo(HaveOccurred())
 				_, err = p.Retrieve()
 				Expect(err).NotTo(HaveOccurred())
@@ -156,8 +165,8 @@ var _ = Describe("filecache", func() {
 				Expect(err).NotTo(HaveOccurred())
 				c := credentials.NewCredentials(&stubProviderExpirer{})
 				fakeClock := &fakes.FakeClock{}
-				_, err = NewFileCacheProvider("profile", c, fakeClock)
-				Expect(err).To(MatchError(fmt.Sprintf("cache file %s is not private", filepath.Join(tmp, "credentials.yaml"))))
+				_, err = newFileCacheProvider("profile", c, fakeClock, tmp)
+				Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("cache file %s is not private", filepath.Join(tmp, "credentials.yaml")))))
 			})
 		})
 		When("the cache data has been corrupted", func() {
@@ -167,7 +176,7 @@ var _ = Describe("filecache", func() {
 				Expect(err).NotTo(HaveOccurred())
 				c := credentials.NewCredentials(&stubProviderExpirer{})
 				fakeClock := &fakes.FakeClock{}
-				_, err = NewFileCacheProvider("profile", c, fakeClock)
+				_, err = newFileCacheProvider("profile", c, fakeClock, tmp)
 				Expect(err).To(MatchError(ContainSubstring("unable to parse file")))
 			})
 		})

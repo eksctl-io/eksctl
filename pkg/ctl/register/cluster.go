@@ -1,6 +1,7 @@
 package register
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/connector"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -41,7 +43,7 @@ func registerClusterCmd(cmd *cmdutils.Cmd) {
 }
 
 func registerCluster(cmd *cmdutils.Cmd, cluster connector.ExternalCluster) error {
-	clusterProvider, err := eks.New(&cmd.ProviderConfig, nil)
+	clusterProvider, err := eks.New(context.TODO(), &cmd.ProviderConfig, nil)
 	if err != nil {
 		return err
 	}
@@ -55,7 +57,7 @@ func registerCluster(cmd *cmdutils.Cmd, cluster connector.ExternalCluster) error
 		Provider:         clusterProvider.Provider,
 		ManifestTemplate: manifestTemplate,
 	}
-	resourceList, err := c.RegisterCluster(cluster)
+	resourceList, err := c.RegisterCluster(context.TODO(), cluster)
 	if err != nil {
 		return errors.Wrap(err, "error registering cluster")
 	}

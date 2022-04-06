@@ -487,14 +487,15 @@
         },
         "version": {
           "type": "string",
-          "description": "Valid variants are: `\"1.18\"`, `\"1.19\"`, `\"1.20\"`, `\"1.21\"` (default).",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;1.18&quot;</code>, <code>&quot;1.19&quot;</code>, <code>&quot;1.20&quot;</code>, <code>&quot;1.21&quot;</code> (default).",
+          "description": "Valid variants are: `\"1.18\"`, `\"1.19\"`, `\"1.20\"`, `\"1.21\"` (default), `\"1.22\"`.",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;1.18&quot;</code>, <code>&quot;1.19&quot;</code>, <code>&quot;1.20&quot;</code>, <code>&quot;1.21&quot;</code> (default), <code>&quot;1.22&quot;</code>.",
           "default": "1.21",
           "enum": [
             "1.18",
             "1.19",
             "1.20",
-            "1.21"
+            "1.21",
+            "1.22"
           ]
         }
       },
@@ -1424,6 +1425,11 @@
           "x-intellij-html-description": "Enable <a href=\"/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup\">private networking</a> for nodegroup",
           "default": "false"
         },
+        "propagateASGTags": {
+          "type": "boolean",
+          "description": "Propagate all taints and labels to the ASG automatically.",
+          "x-intellij-html-description": "Propagate all taints and labels to the ASG automatically."
+        },
         "securityGroups": {
           "$ref": "#/definitions/NodeGroupSGs"
         },
@@ -1550,6 +1556,7 @@
         "clusterDNS",
         "kubeletExtraConfig",
         "containerRuntime",
+        "propagateASGTags",
         "disableASGTagPropagation",
         "maxInstanceLifetime"
       ],

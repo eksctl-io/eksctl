@@ -56,14 +56,6 @@ func doDeleteFargateProfile(cmd *cmdutils.Cmd, opts *fargate.Options) error {
 		return err
 	}
 
-	supportsFargate, err := ctl.SupportsFargate(cmd.ClusterConfig)
-	if err != nil {
-		return err
-	}
-	if !supportsFargate {
-		return fmt.Errorf("Fargate is not supported for this cluster version. Please update the cluster to be at least eks.%d", fargate.MinPlatformVersion)
-	}
-
 	clusterName := cmd.ClusterConfig.Metadata.Name
 	manager := fargate.NewFromProvider(clusterName, ctl.Provider, ctl.NewStackManager(cmd.ClusterConfig))
 	if cmd.Wait {
