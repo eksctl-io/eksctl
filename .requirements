@@ -13,4 +13,4 @@ k8s.io/code-generator/cmd/defaulter-gen
 k8s.io/code-generator/cmd/informer-gen
 k8s.io/code-generator/cmd/lister-gen
 sigs.k8s.io/mdtoc
-github.com/vburenin/ifacemaker
+github.com/vburenin/ifacemaker@b2018d8549dc4d51ce7e2254d6b0a743643613be

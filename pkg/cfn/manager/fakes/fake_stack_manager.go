@@ -19,11 +19,10 @@ import (
 )
 
 type FakeStackManager struct {
-	AppendNewClusterStackResourceStub        func(bool, bool) (bool, error)
+	AppendNewClusterStackResourceStub        func(bool) (bool, error)
 	appendNewClusterStackResourceMutex       sync.RWMutex
 	appendNewClusterStackResourceArgsForCall []struct {
 		arg1 bool
-		arg2 bool
 	}
 	appendNewClusterStackResourceReturns struct {
 		result1 bool
@@ -742,19 +741,18 @@ type FakeStackManager struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeStackManager) AppendNewClusterStackResource(arg1 bool, arg2 bool) (bool, error) {
+func (fake *FakeStackManager) AppendNewClusterStackResource(arg1 bool) (bool, error) {
 	fake.appendNewClusterStackResourceMutex.Lock()
 	ret, specificReturn := fake.appendNewClusterStackResourceReturnsOnCall[len(fake.appendNewClusterStackResourceArgsForCall)]
 	fake.appendNewClusterStackResourceArgsForCall = append(fake.appendNewClusterStackResourceArgsForCall, struct {
 		arg1 bool
-		arg2 bool
-	}{arg1, arg2})
+	}{arg1})
 	stub := fake.AppendNewClusterStackResourceStub
 	fakeReturns := fake.appendNewClusterStackResourceReturns
-	fake.recordInvocation("AppendNewClusterStackResource", []interface{}{arg1, arg2})
+	fake.recordInvocation("AppendNewClusterStackResource", []interface{}{arg1})
 	fake.appendNewClusterStackResourceMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -768,17 +766,17 @@ func (fake *FakeStackManager) AppendNewClusterStackResourceCallCount() int {
 	return len(fake.appendNewClusterStackResourceArgsForCall)
 }
 
-func (fake *FakeStackManager) AppendNewClusterStackResourceCalls(stub func(bool, bool) (bool, error)) {
+func (fake *FakeStackManager) AppendNewClusterStackResourceCalls(stub func(bool) (bool, error)) {
 	fake.appendNewClusterStackResourceMutex.Lock()
 	defer fake.appendNewClusterStackResourceMutex.Unlock()
 	fake.AppendNewClusterStackResourceStub = stub
 }
 
-func (fake *FakeStackManager) AppendNewClusterStackResourceArgsForCall(i int) (bool, bool) {
+func (fake *FakeStackManager) AppendNewClusterStackResourceArgsForCall(i int) bool {
 	fake.appendNewClusterStackResourceMutex.RLock()
 	defer fake.appendNewClusterStackResourceMutex.RUnlock()
 	argsForCall := fake.appendNewClusterStackResourceArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1
 }
 
 func (fake *FakeStackManager) AppendNewClusterStackResourceReturns(result1 bool, result2 error) {

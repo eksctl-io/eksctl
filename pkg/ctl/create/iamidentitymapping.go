@@ -1,6 +1,8 @@
 package create
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/kris-nova/logger"
 	"github.com/lithammer/dedent"
@@ -14,12 +16,13 @@ import (
 )
 
 type iamIdentityMappingOptions struct {
-	ARN         string
-	Username    string
-	Groups      []string
-	Account     string
-	ServiceName string
-	Namespace   string
+	ARN             string
+	Username        string
+	Groups          []string
+	Account         string
+	ServiceName     string
+	Namespace       string
+	NoDuplicateArns bool
 }
 
 func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
@@ -48,6 +51,7 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 		fs.StringSliceVar(&options.Groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
 		fs.StringVar(&options.ServiceName, "service-name", "", "Service name; valid value: emr-containers")
 		fs.StringVar(&options.Namespace, "namespace", "", "Namespace in which to create RBAC resources (only valid with --service-name)")
+		fs.BoolVar(&options.NoDuplicateArns, "no-duplicate-arns", false, "Throw error when an aws_auth record already exists with the given arn.")
 		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &options.ARN, "create")
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, &cmd.ProviderConfig)
@@ -132,6 +136,15 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 		createdArn := id.ARN() // The call to Valid above makes sure this cannot error
 		for _, identity := range identities {
 			arn := identity.ARN()
+
+			if iam.CompareIdentity(id, identity) {
+				logger.Warning("found existing mapping that matches the one being created, quitting.")
+				return nil
+			}
+
+			if createdArn == arn && options.NoDuplicateArns {
+				return fmt.Errorf("found existing mapping with the same arn %q and shadowing is disabled", createdArn)
+			}
 
 			if createdArn == arn {
 				logger.Warning("found existing mappings with same arn %q (which will be shadowed by your new mapping)", createdArn)

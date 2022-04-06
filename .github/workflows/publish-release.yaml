@@ -16,3 +16,4 @@ jobs:
       name: release
     secrets:
       githubToken: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
+      slackToken: ${{ secrets.WEAVEWORKS_SLACK_EKSCTLBOT_TOKEN }}

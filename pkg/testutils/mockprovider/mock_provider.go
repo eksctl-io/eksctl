@@ -57,7 +57,7 @@ type MockProvider struct {
 	cloudwatchlogs *mocksv2.CloudWatchLogs
 	configProvider *mocks.ConfigProvider
 
-	stsV2            *mocksv2.STS
+	sts              *mocksv2.STS
 	stsPresigner     api.STSPresigner
 	cloudformationV2 *mocksv2.CloudFormation
 	elb              *mocksv2.ELB
@@ -79,7 +79,7 @@ func NewMockProvider() *MockProvider {
 		cloudwatchlogs: &mocksv2.CloudWatchLogs{},
 		configProvider: &mocks.ConfigProvider{},
 
-		stsV2:            &mocksv2.STS{},
+		sts:              &mocksv2.STS{},
 		stsPresigner:     &fakes.FakeSTSPresigner{},
 		cloudformationV2: &mocksv2.CloudFormation{},
 		elb:              &mocksv2.ELB{},
@@ -87,22 +87,22 @@ func NewMockProvider() *MockProvider {
 	}
 }
 
-// STSV2 returns a representation of the STS v2 API
-func (m MockProvider) STSV2() awsapi.STS {
-	return m.stsV2
+// STS returns a representation of the STS v2 API
+func (m MockProvider) STS() awsapi.STS {
+	return m.sts
 }
 
-func (m MockProvider) STSV2Presign() api.STSPresigner {
+func (m MockProvider) STSPresigner() api.STSPresigner {
 	return m.stsPresigner
 }
 
-// MockSTSV2 returns a mocked STS v2 API
-func (m MockProvider) MockSTSV2() *mocksv2.STS {
-	return m.stsV2
+// MockSTS returns a mocked STS v2 API
+func (m MockProvider) MockSTS() *mocksv2.STS {
+	return m.sts
 }
 
-// MockSTSV2Presign returns a mocked STS v2 API
-func (m MockProvider) MockSTSV2Presign() *fakes.FakeSTSPresigner {
+// MockSTSPresigner returns a mocked STS v2 API
+func (m MockProvider) MockSTSPresigner() *fakes.FakeSTSPresigner {
 	return m.stsPresigner.(*fakes.FakeSTSPresigner)
 }
 
