@@ -48,21 +48,33 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.githubToken }}
         run: |
           ./build/scripts/do-release-candidate.sh
-      - name: slack on success
+      - name: get version
+        id: get_version
+        run: echo ::set-output name=VERSION::$(echo ${GITHUB_REF#refs/*/})
+      - name: slack on success - team-pitch-black
         if: ${{ success() }}
         uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
         with:
           slack_token: ${{ secrets.slackToken }}
-          message: ":cool-doge: ${{ inputs.name }} successful"
+          message: ":cool-doge: ${{ inputs.name }} successful for tag <https://github.com/weaveworks/eksctl/releases/tag/${{ steps.get_version.outputs.VERSION }}|${{ steps.get_version.outputs.VERSION }}>"
           channel: team-pitch-black
           color: green
           verbose: false
-      - name: slack on failure
+      - name: slack on failure - team-pitch-black
         if: ${{ failure() }}
         uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
         with:
           slack_token: ${{ secrets.slackToken }}
-          message: ":ahhhhhhhhh: ${{ inputs.name }} has failed"
+          message: ":ahhhhhhhhh: ${{ inputs.name }} has failed for tag <https://github.com/weaveworks/eksctl/releases/tag/${{ steps.get_version.outputs.VERSION }}|${{ steps.get_version.outputs.VERSION }}>"
           channel: team-pitch-black
           color: red
           verbose: true
+      - name: slack on success - aws-dev
+        if: ${{ success() }}
+        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
+        with:
+          slack_token: ${{ secrets.slackToken }}
+          message: ":tada: <https://github.com/weaveworks/eksctl/releases/tag/${{ steps.get_version.outputs.VERSION }}|${{ steps.get_version.outputs.VERSION }}> released!"
+          channel: aws-dev
+          color: green
+          verbose: false
