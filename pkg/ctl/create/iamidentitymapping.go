@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -137,7 +138,7 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 		for _, identity := range identities {
 			arn := identity.ARN()
 
-			if iam.CompareIdentity(id, identity) {
+			if iam.CompareIdentity(id, identity) && options.NoDuplicateArns {
 				logger.Warning("found existing mapping that matches the one being created, quitting.")
 				return nil
 			}
