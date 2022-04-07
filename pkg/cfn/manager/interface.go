@@ -3,9 +3,10 @@ package manager
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/aws/aws-sdk-go/service/cloudtrail"
+	asgtypes "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
+
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	cttypes "github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -38,7 +39,7 @@ var _ StackManager = &StackCollection{}
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_stack_manager.go . StackManager
 type StackManager interface {
-	AppendNewClusterStackResource(ctx context.Context, plan, supportsManagedNodes bool) (bool, error)
+	AppendNewClusterStackResource(ctx context.Context, plan bool) (bool, error)
 	CreateStack(ctx context.Context, name string, stack builder.ResourceSet, tags, parameters map[string]string, errs chan error) error
 	DeleteStackBySpec(ctx context.Context, s *Stack) (*Stack, error)
 	DeleteStackBySpecSync(ctx context.Context, s *Stack, errs chan error) error
@@ -51,13 +52,13 @@ type StackManager interface {
 	DescribeNodeGroupStacksAndResources(ctx context.Context) (map[string]StackInfo, error)
 	DescribeStack(ctx context.Context, i *Stack) (*Stack, error)
 	DescribeStackChangeSet(ctx context.Context, i *Stack, changeSetName string) (*ChangeSet, error)
-	DescribeStackEvents(ctx context.Context, i *Stack) ([]types.StackEvent, error)
+	DescribeStackEvents(ctx context.Context, i *Stack) ([]cfntypes.StackEvent, error)
 	DescribeStacks(ctx context.Context) ([]*Stack, error)
 	DoCreateStackRequest(ctx context.Context, i *Stack, templateData TemplateData, tags, parameters map[string]string, withIAM bool, withNamedIAM bool) error
 	DoWaitUntilStackIsCreated(ctx context.Context, i *Stack) error
 	EnsureMapPublicIPOnLaunchEnabled(ctx context.Context) error
 	FixClusterCompatibility(ctx context.Context) error
-	GetAutoScalingGroupDesiredCapacity(ctx context.Context, name string) (autoscaling.Group, error)
+	GetAutoScalingGroupDesiredCapacity(ctx context.Context, name string) (asgtypes.AutoScalingGroup, error)
 	GetAutoScalingGroupName(ctx context.Context, s *Stack) (string, error)
 	GetClusterStackIfExists(ctx context.Context) (*Stack, error)
 	GetFargateStack(ctx context.Context) (*Stack, error)
@@ -74,9 +75,9 @@ type StackManager interface {
 	ListClusterStackNames(ctx context.Context) ([]string, error)
 	ListIAMServiceAccountStacks(ctx context.Context) ([]string, error)
 	ListNodeGroupStacks(ctx context.Context) ([]NodeGroupStack, error)
-	ListStacks(ctx context.Context, statusFilters ...types.StackStatus) ([]*Stack, error)
-	ListStacksMatching(ctx context.Context, nameRegex string, statusFilters ...types.StackStatus) ([]*Stack, error)
-	LookupCloudTrailEvents(ctx context.Context, i *Stack) ([]*cloudtrail.Event, error)
+	ListStacks(ctx context.Context, statusFilters ...cfntypes.StackStatus) ([]*Stack, error)
+	ListStacksMatching(ctx context.Context, nameRegex string, statusFilters ...cfntypes.StackStatus) ([]*Stack, error)
+	LookupCloudTrailEvents(ctx context.Context, i *Stack) ([]cttypes.Event, error)
 	MakeChangeSetName(action string) string
 	MakeClusterStackName() string
 	NewClusterCompatTask() tasks.Task

@@ -28,14 +28,14 @@ func NewJSONPrinter() OutputPrinter {
 // PrintObj will print the passed object formatted as JSON to
 // the supplied writer.
 func (j *JSONPrinter) PrintObj(obj interface{}, writer io.Writer) error {
-	objVal := reflect.ValueOf(obj)
+	itemsValue := reflect.ValueOf(obj)
 	switch reflect.TypeOf(obj).Kind() {
 	case reflect.Array, reflect.Slice:
-		if objVal.Len() == 0 {
+		if itemsValue.Len() == 0 {
 			obj = make([]string, 0)
 		}
 	case reflect.Map:
-		if objVal.Len() == 0 {
+		if itemsValue.Len() == 0 {
 			obj = make(map[string]int)
 		}
 	}

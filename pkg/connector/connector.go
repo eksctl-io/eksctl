@@ -44,7 +44,8 @@ type EKSConnector struct {
 
 type provider interface {
 	EKS() eksiface.EKSAPI
-	STSV2() awsapi.STS
+	STS() awsapi.STS
+	STSPresigner() api.STSPresigner
 	IAM() iamiface.IAMAPI
 	Region() string
 }
@@ -102,7 +103,7 @@ func (c *EKSConnector) RegisterCluster(ctx context.Context, cluster ExternalClus
 }
 
 func (c *EKSConnector) createManifests(ctx context.Context, cluster *eks.Cluster) (*ManifestList, error) {
-	stsOutput, err := c.Provider.STSV2().GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+	stsOutput, err := c.Provider.STS().GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
 		return nil, err
 	}

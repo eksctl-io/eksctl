@@ -266,7 +266,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
 
 	eks.LogEnabledFeatures(cfg)
-	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(cfg)
+	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(context.Background(), cfg)
 
 	supported, err := utils.IsMinVersion(api.Version1_18, cfg.Metadata.Version)
 	if err != nil {

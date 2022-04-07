@@ -63,16 +63,6 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		}
 	}
 
-	// EKS 1.14 clusters created with prior versions of eksctl may not support Managed Nodes
-	supportsManagedNodes, err := kubeProvider.SupportsManagedNodes(cfg)
-	if err != nil {
-		return err
-	}
-
-	if len(cfg.ManagedNodeGroups) > 0 && !supportsManagedNodes {
-		return errors.New("Managed Nodegroups are not supported for this cluster version. Please update the cluster before adding managed nodegroups")
-	}
-
 	m.init.NewAWSSelectorSession(ctl.Provider)
 	nodePools := cmdutils.ToNodePools(cfg)
 
@@ -129,7 +119,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, os.Stdout)
 	}
 
-	if err := m.nodeCreationTasks(supportsManagedNodes, isOwnedCluster); err != nil {
+	if err := m.nodeCreationTasks(isOwnedCluster); err != nil {
 		return err
 	}
 
@@ -144,7 +134,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 	return nil
 }
 
-func (m *Manager) nodeCreationTasks(supportsManagedNodes, isOwnedCluster bool) error {
+func (m *Manager) nodeCreationTasks(isOwnedCluster bool) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
 	init := m.init
@@ -153,7 +143,7 @@ func (m *Manager) nodeCreationTasks(supportsManagedNodes, isOwnedCluster bool) e
 		Parallel: false,
 	}
 
-	if supportsManagedNodes && isOwnedCluster {
+	if isOwnedCluster {
 		taskTree.Append(m.stackManager.NewClusterCompatTask())
 	}
 

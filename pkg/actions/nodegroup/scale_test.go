@@ -7,10 +7,10 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/autoscaling"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -92,8 +92,7 @@ var _ = Describe("Scale", func() {
 				return nil
 			})
 
-			err := m.Scale(context.TODO(), ng)
-
+			err := m.Scale(context.Background(), ng)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(waitCallCount).To(Equal(1))
 		})
@@ -109,8 +108,7 @@ var _ = Describe("Scale", func() {
 					NodegroupName: &ngName,
 				}).Return(nil, fmt.Errorf("foo"))
 
-				err := m.Scale(context.TODO(), ng)
-
+				err := m.Scale(context.Background(), ng)
 				Expect(err).To(MatchError(fmt.Sprintf("failed to scale nodegroup for cluster %q, error: foo", clusterName)))
 			})
 		})
@@ -142,16 +140,16 @@ var _ = Describe("Scale", func() {
 				}
 				fakeStackManager.DescribeNodeGroupStacksAndResourcesReturns(nodegroups, nil)
 
-				p.MockASG().On("UpdateAutoScalingGroup", &autoscaling.UpdateAutoScalingGroupInput{
+				p.MockASG().On("UpdateAutoScalingGroup", mock.Anything, &autoscaling.UpdateAutoScalingGroupInput{
 					AutoScalingGroupName: aws.String("asg-name"),
-					MinSize:              aws.Int64(1),
-					DesiredCapacity:      aws.Int64(3),
+					MinSize:              aws.Int32(1),
+					DesiredCapacity:      aws.Int32(3),
 				}).Return(nil, nil)
 
 			})
 
 			It("scales the nodegroup", func() {
-				err := m.Scale(context.TODO(), ng)
+				err := m.Scale(context.Background(), ng)
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
@@ -179,7 +177,7 @@ var _ = Describe("Scale", func() {
 			})
 
 			It("returns an error", func() {
-				err := m.Scale(context.TODO(), ng)
+				err := m.Scale(context.Background(), ng)
 				Expect(err).To(MatchError(ContainSubstring("failed to find NodeGroup auto scaling group")))
 			})
 		})

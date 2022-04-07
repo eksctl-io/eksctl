@@ -91,5 +91,5 @@ func scaleNodegroup(cmd *cmdutils.Cmd, ng *api.NodeGroupBase) error {
 		return err
 	}
 
-	return nodegroup.New(cfg, ctl, nil).Scale(context.TODO(), ng)
+	return nodegroup.New(cfg, ctl, nil).Scale(context.Background(), ng)
 }

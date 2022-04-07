@@ -87,13 +87,13 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 	}
 
 	if cfg.Metadata.Name == "" {
-		return getAndPrinterClusters(ctl, params, listAllRegions)
+		return getAndPrinterClusters(context.TODO(), ctl, params, listAllRegions)
 	}
 
 	return getAndPrintCluster(cfg, ctl, params)
 }
 
-func getAndPrinterClusters(ctl *eks.ClusterProvider, params *getCmdParams, listAllRegions bool) error {
+func getAndPrinterClusters(ctx context.Context, ctl *eks.ClusterProvider, params *getCmdParams, listAllRegions bool) error {
 	printer, err := printers.NewPrinter(params.output)
 	if err != nil {
 		return err
@@ -103,7 +103,7 @@ func getAndPrinterClusters(ctl *eks.ClusterProvider, params *getCmdParams, listA
 		addGetClustersSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	clusters, err := cluster.GetClusters(context.TODO(), ctl.Provider, listAllRegions, params.chunkSize)
+	clusters, err := cluster.GetClusters(ctx, ctl.Provider, listAllRegions, params.chunkSize)
 	if err != nil {
 		return err
 	}

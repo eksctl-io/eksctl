@@ -19,16 +19,14 @@ import (
 
 var _ = Describe("Cluster Template Builder", func() {
 	var (
-		crs                  *builder.ClusterResourceSet
-		cfg                  *api.ClusterConfig
-		provider             *mockprovider.MockProvider
-		supportsManagedNodes bool
-		existingStack        *gjson.Result
+		crs           *builder.ClusterResourceSet
+		cfg           *api.ClusterConfig
+		provider      *mockprovider.MockProvider
+		existingStack *gjson.Result
 	)
 
 	BeforeEach(func() {
 		provider = mockprovider.NewMockProvider()
-		supportsManagedNodes = false
 		existingStack = nil
 		cfg = api.NewClusterConfig()
 		cfg.VPC = vpcConfig()
@@ -40,7 +38,7 @@ var _ = Describe("Cluster Template Builder", func() {
 	})
 
 	JustBeforeEach(func() {
-		crs = builder.NewClusterResourceSet(provider.EC2(), provider.Region(), cfg, supportsManagedNodes, existingStack)
+		crs = builder.NewClusterResourceSet(provider.EC2(), provider.Region(), cfg, existingStack)
 	})
 
 	Describe("AddAllResources", func() {
@@ -232,18 +230,17 @@ var _ = Describe("Cluster Template Builder", func() {
 					Description: "Allow Extra IPv6 CIDR 1 (2003::1234:abcd:ffff:c0a8:101/64) to communicate to controlplane",
 				}))
 			})
-		})
 
-		Context("when supportsManagedNodes is true", func() {
-			BeforeEach(func() {
-				supportsManagedNodes = true
-				enabled := true
-				cfg.VPC.ManageSharedNodeSecurityGroupRules = &enabled
-			})
+			Context("when managed nodegroups are configured is true", func() {
+				BeforeEach(func() {
+					enabled := true
+					cfg.VPC.ManageSharedNodeSecurityGroupRules = &enabled
+				})
 
-			It("sets IngressDefaultClusterToNodeSG and IngressNodeToDefaultClusterSG resources", func() {
-				Expect(clusterTemplate.Resources).To(HaveKey("IngressDefaultClusterToNodeSG"))
-				Expect(clusterTemplate.Resources).To(HaveKey("IngressNodeToDefaultClusterSG"))
+				It("sets IngressDefaultClusterToNodeSG and IngressNodeToDefaultClusterSG resources", func() {
+					Expect(clusterTemplate.Resources).To(HaveKey("IngressDefaultClusterToNodeSG"))
+					Expect(clusterTemplate.Resources).To(HaveKey("IngressNodeToDefaultClusterSG"))
+				})
 			})
 		})
 
@@ -343,7 +340,7 @@ var _ = Describe("Cluster Template Builder", func() {
 		})
 
 		It("should add cluster stack outputs", func() {
-			Expect(clusterTemplate.Outputs).To(HaveLen(11))
+			Expect(clusterTemplate.Outputs).To(HaveLen(12))
 			Expect(clusterTemplate.Outputs).To(HaveKey("ARN"))
 			Expect(clusterTemplate.Outputs).To(HaveKey("ClusterStackName"))
 			Expect(clusterTemplate.Outputs).To(HaveKey("SecurityGroup"))
@@ -355,6 +352,7 @@ var _ = Describe("Cluster Template Builder", func() {
 			Expect(clusterTemplate.Outputs).To(HaveKey("Endpoint"))
 			Expect(clusterTemplate.Outputs).To(HaveKey("FeatureNATMode"))
 			Expect(clusterTemplate.Outputs).To(HaveKey("ServiceRoleARN"))
+			Expect(clusterTemplate.Outputs).To(HaveKey("ClusterSecurityGroupId"))
 		})
 
 		It("should add partition mappings", func() {

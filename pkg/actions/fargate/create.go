@@ -2,7 +2,6 @@ package fargate
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
@@ -18,14 +17,6 @@ func (m *Manager) Create(ctx context.Context) error {
 	cfg := m.cfg
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return errors.Wrap(err, "couldn't check cluster operable status")
-	}
-
-	supportsFargate, err := ctl.SupportsFargate(cfg)
-	if err != nil {
-		return errors.Wrap(err, "couldn't check fargate support")
-	}
-	if !supportsFargate {
-		return fmt.Errorf("Fargate is not supported for this cluster version. Please update the cluster to be at least eks.%d", fargate.MinPlatformVersion)
 	}
 
 	clusterStack, err := m.stackManager.DescribeClusterStack(ctx)

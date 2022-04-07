@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	awsiam "github.com/aws/aws-sdk-go/service/iam"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	addons "github.com/weaveworks/eksctl/pkg/addons/default"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/iam"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
@@ -172,7 +172,8 @@ func (n *NodeGroupService) DoesAWSNodeUseIRSA(provider api.ClusterProvider, clie
 }
 
 type suspendProcesses struct {
-	asg             autoscalingiface.AutoScalingAPI
+	asg             awsapi.ASG
+	ctx             context.Context
 	nodegroup       *api.NodeGroupBase
 	stackCollection manager.StackManager
 }
@@ -190,9 +191,9 @@ func (t *suspendProcesses) Do() error {
 	if err != nil {
 		return errors.Wrapf(err, "couldn't get autoscalinggroup name nodegroup %s", t.nodegroup.Name)
 	}
-	_, err = t.asg.SuspendProcesses(&autoscaling.ScalingProcessQuery{
+	_, err = t.asg.SuspendProcesses(t.ctx, &autoscaling.SuspendProcessesInput{
 		AutoScalingGroupName: aws.String(asgName),
-		ScalingProcesses:     aws.StringSlice(t.nodegroup.ASGSuspendProcesses),
+		ScalingProcesses:     t.nodegroup.ASGSuspendProcesses,
 	})
 	logger.Info("suspended ASG processes %v for %s", t.nodegroup.ASGSuspendProcesses, t.nodegroup.Name)
 	return err
@@ -203,6 +204,7 @@ func (t *suspendProcesses) Do() error {
 func newSuspendProcesses(c *ClusterProvider, spec *api.ClusterConfig, nodegroup *api.NodeGroupBase) tasks.Task {
 	return tasks.SynchronousTask{
 		SynchronousTaskIface: &suspendProcesses{
+			ctx:             context.Background(),
 			asg:             c.Provider.ASG(),
 			stackCollection: c.NewStackManager(spec),
 			nodegroup:       nodegroup,
