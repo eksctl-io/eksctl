@@ -1,10 +1,13 @@
 package builder
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/pkg/errors"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
@@ -24,7 +27,7 @@ type ManagedNodeGroupResourceSet struct {
 	forceAddCNIPolicy     bool
 	nodeGroup             *api.ManagedNodeGroup
 	launchTemplateFetcher *LaunchTemplateFetcher
-	ec2API                ec2iface.EC2API
+	ec2API                awsapi.EC2
 	vpcImporter           vpc.Importer
 	bootstrapper          nodebootstrap.Bootstrapper
 	*resourceSet
@@ -33,7 +36,7 @@ type ManagedNodeGroupResourceSet struct {
 const ManagedNodeGroupResourceName = "ManagedNodeGroup"
 
 // NewManagedNodeGroup creates a new ManagedNodeGroupResourceSet
-func NewManagedNodeGroup(ec2API ec2iface.EC2API, cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher *LaunchTemplateFetcher, bootstrapper nodebootstrap.Bootstrapper, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *ManagedNodeGroupResourceSet {
+func NewManagedNodeGroup(ec2API awsapi.EC2, cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, launchTemplateFetcher *LaunchTemplateFetcher, bootstrapper nodebootstrap.Bootstrapper, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *ManagedNodeGroupResourceSet {
 	return &ManagedNodeGroupResourceSet{
 		clusterConfig:         cluster,
 		forceAddCNIPolicy:     forceAddCNIPolicy,
@@ -47,7 +50,7 @@ func NewManagedNodeGroup(ec2API ec2iface.EC2API, cluster *api.ClusterConfig, nod
 }
 
 // AddAllResources adds all required CloudFormation resources
-func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
+func (m *ManagedNodeGroupResourceSet) AddAllResources(ctx context.Context) error {
 	m.resourceSet.template.Description = fmt.Sprintf(
 		"%s (SSH access: %v) %s",
 		"EKS Managed Nodes",
@@ -66,7 +69,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		nodeRole = gfnt.NewString(NormalizeARN(m.nodeGroup.IAM.InstanceRoleARN))
 	}
 
-	subnets, err := AssignSubnets(m.nodeGroup.NodeGroupBase, m.vpcImporter, m.clusterConfig, m.ec2API)
+	subnets, err := AssignSubnets(ctx, m.nodeGroup.NodeGroupBase, m.vpcImporter, m.clusterConfig, m.ec2API)
 	if err != nil {
 		return err
 	}
@@ -133,7 +136,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	var launchTemplate *gfneks.Nodegroup_LaunchTemplateSpecification
 
 	if m.nodeGroup.LaunchTemplate != nil {
-		launchTemplateData, err := m.launchTemplateFetcher.Fetch(m.nodeGroup.LaunchTemplate)
+		launchTemplateData, err := m.launchTemplateFetcher.Fetch(ctx, m.nodeGroup.LaunchTemplate)
 		if err != nil {
 			return err
 		}
@@ -149,18 +152,18 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		}
 
 		if launchTemplateData.ImageId == nil {
-			if launchTemplateData.InstanceType == nil {
+			if launchTemplateData.InstanceType == "" {
 				managedResource.AmiType = makeAMIType()
 			} else {
-				managedResource.AmiType = gfnt.NewString(getAMIType(m.nodeGroup, *launchTemplateData.InstanceType))
+				managedResource.AmiType = gfnt.NewString(getAMIType(m.nodeGroup, string(launchTemplateData.InstanceType)))
 			}
 		}
 
-		if launchTemplateData.InstanceType == nil {
+		if launchTemplateData.InstanceType == "" {
 			managedResource.InstanceTypes = gfnt.NewStringSlice(instanceTypes...)
 		}
 	} else {
-		launchTemplateData, err := m.makeLaunchTemplateData()
+		launchTemplateData, err := m.makeLaunchTemplateData(ctx)
 		if err != nil {
 			return err
 		}
@@ -225,10 +228,10 @@ func selectManagedInstanceType(ng *api.ManagedNodeGroup) string {
 	return ng.InstanceType
 }
 
-func validateLaunchTemplate(launchTemplateData *ec2.ResponseLaunchTemplateData, ng *api.ManagedNodeGroup) error {
+func validateLaunchTemplate(launchTemplateData *ec2types.ResponseLaunchTemplateData, ng *api.ManagedNodeGroup) error {
 	const mngFieldName = "managedNodeGroup"
 
-	if launchTemplateData.InstanceType == nil {
+	if launchTemplateData.InstanceType == "" {
 		if len(ng.InstanceTypes) == 0 {
 			return errors.Errorf("instance type must be set in the launch template if %s.instanceTypes is not specified", mngFieldName)
 		}

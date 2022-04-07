@@ -44,7 +44,7 @@ func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackMa
 	}
 }
 
-func (c *UnownedCluster) Upgrade(dryRun bool) error {
+func (c *UnownedCluster) Upgrade(_ context.Context, dryRun bool) error {
 	versionUpdateRequired, err := upgrade(c.cfg, c.ctl, dryRun)
 	if err != nil {
 		return err
@@ -89,7 +89,7 @@ func (c *UnownedCluster) Delete(ctx context.Context, waitInterval time.Duration,
 		}
 	}
 
-	if err := deleteSharedResources(c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {
+	if err := deleteSharedResources(ctx, c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {
 		if err != nil {
 			if force {
 				logger.Warning("error occurred during deletion: %v", err)

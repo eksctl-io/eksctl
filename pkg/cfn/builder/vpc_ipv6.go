@@ -1,9 +1,11 @@
 package builder
 
 import (
+	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
 	"github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -17,11 +19,11 @@ import (
 type IPv6VPCResourceSet struct {
 	rs            *resourceSet
 	clusterConfig *api.ClusterConfig
-	ec2API        ec2iface.EC2API
+	ec2API        awsapi.EC2
 }
 
 // NewIPv6VPCResourceSet creates and returns a new VPCResourceSet
-func NewIPv6VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec2API ec2iface.EC2API) *IPv6VPCResourceSet {
+func NewIPv6VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec2API awsapi.EC2) *IPv6VPCResourceSet {
 	return &IPv6VPCResourceSet{
 		rs:            rs,
 		clusterConfig: clusterConfig,
@@ -29,7 +31,7 @@ func NewIPv6VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec
 	}
 }
 
-func (v *IPv6VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, error) {
+func (v *IPv6VPCResourceSet) CreateTemplate(ctx context.Context) (*gfnt.Value, *SubnetDetails, error) {
 	var publicSubnetResourceRefs, privateSubnetResourceRefs []*gfnt.Value
 	vpcResourceRef := v.rs.newResource(VPCResourceKey, &gfnec2.VPC{
 		CidrBlock:          gfnt.NewString(v.clusterConfig.VPC.CIDR.String()),
@@ -45,7 +47,7 @@ func (v *IPv6VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, erro
 
 	addSubnetOutput := func(subnetRefs []*gfnt.Value, topology api.SubnetTopology, outputName string) {
 		v.rs.defineJoinedOutput(outputName, subnetRefs, true, func(value string) error {
-			return vpc.ImportSubnetsFromIDList(v.ec2API, v.clusterConfig, topology, strings.Split(value, ","))
+			return vpc.ImportSubnetsFromIDList(ctx, v.ec2API, v.clusterConfig, topology, strings.Split(value, ","))
 		})
 	}
 

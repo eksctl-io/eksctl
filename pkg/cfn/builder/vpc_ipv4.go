@@ -1,10 +1,12 @@
 package builder
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
 	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -24,7 +26,7 @@ const (
 type IPv4VPCResourceSet struct {
 	rs            *resourceSet
 	clusterConfig *api.ClusterConfig
-	ec2API        ec2iface.EC2API
+	ec2API        awsapi.EC2
 	vpcID         *gfnt.Value
 	subnetDetails *SubnetDetails
 }
@@ -41,7 +43,7 @@ type SubnetDetails struct {
 }
 
 // NewIPv4VPCResourceSet creates and returns a new VPCResourceSet
-func NewIPv4VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec2API ec2iface.EC2API) *IPv4VPCResourceSet {
+func NewIPv4VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec2API awsapi.EC2) *IPv4VPCResourceSet {
 	return &IPv4VPCResourceSet{
 		rs:            rs,
 		clusterConfig: clusterConfig,
@@ -50,11 +52,11 @@ func NewIPv4VPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec
 	}
 }
 
-func (v *IPv4VPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, error) {
+func (v *IPv4VPCResourceSet) CreateTemplate(ctx context.Context) (*gfnt.Value, *SubnetDetails, error) {
 	if err := v.addResources(); err != nil {
 		return nil, nil, err
 	}
-	v.addOutputs()
+	v.addOutputs(ctx)
 	return v.vpcID, v.subnetDetails, nil
 }
 
@@ -133,7 +135,7 @@ func (s *SubnetDetails) PrivateSubnetRefs() []*gfnt.Value {
 }
 
 // addOutputs adds VPC resource outputs
-func (v *IPv4VPCResourceSet) addOutputs() {
+func (v *IPv4VPCResourceSet) addOutputs(ctx context.Context) {
 	v.rs.defineOutput(outputs.ClusterVPC, v.vpcID, true, func(val string) error {
 		v.clusterConfig.VPC.ID = val
 		return nil
@@ -144,7 +146,7 @@ func (v *IPv4VPCResourceSet) addOutputs() {
 
 	addSubnetOutput := func(subnetRefs []*gfnt.Value, topology api.SubnetTopology, outputName string) {
 		v.rs.defineJoinedOutput(outputName, subnetRefs, true, func(value string) error {
-			return vpc.ImportSubnetsFromIDList(v.ec2API, v.clusterConfig, topology, strings.Split(value, ","))
+			return vpc.ImportSubnetsFromIDList(ctx, v.ec2API, v.clusterConfig, topology, strings.Split(value, ","))
 		})
 	}
 

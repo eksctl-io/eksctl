@@ -321,7 +321,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				}
 				ctl, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 				Expect(err).NotTo(HaveOccurred())
-				cl, err := ctl.GetCluster(params.ClusterName)
+				cl, err := ctl.GetCluster(context.Background(), params.ClusterName)
 				Expect(err).NotTo(HaveOccurred())
 				awsSession := NewSession(params.Region)
 				ec2 := awsec2.New(awsSession)

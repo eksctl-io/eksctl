@@ -1,14 +1,18 @@
 package builder
 
 import (
+	"context"
 	"math"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
 	"github.com/pkg/errors"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 )
 
 func defaultNetworkInterface(securityGroups []*gfnt.Value, device, card int) gfnec2.LaunchTemplate_NetworkInterface {
@@ -22,19 +26,24 @@ func defaultNetworkInterface(securityGroups []*gfnt.Value, device, card int) gfn
 }
 
 func buildNetworkInterfaces(
+	ctx context.Context,
 	launchTemplateData *gfnec2.LaunchTemplate_LaunchTemplateData,
 	instanceTypes []string,
 	efaEnabled bool,
 	securityGroups []*gfnt.Value,
-	ec2api ec2iface.EC2API,
+	ec2API awsapi.EC2,
 ) error {
 	firstNI := defaultNetworkInterface(securityGroups, 0, 0)
 	if efaEnabled {
-		input := ec2.DescribeInstanceTypesInput{
-			InstanceTypes: aws.StringSlice(instanceTypes),
+		var instanceTypeList []ec2types.InstanceType
+		for _, it := range instanceTypes {
+			instanceTypeList = append(instanceTypeList, ec2types.InstanceType(it))
+		}
+		input := &ec2.DescribeInstanceTypesInput{
+			InstanceTypes: instanceTypeList,
 		}
 
-		info, err := ec2api.DescribeInstanceTypes(&input)
+		info, err := ec2API.DescribeInstanceTypes(ctx, input)
 		if err != nil {
 			return errors.Wrapf(err, "couldn't retrieve instance type description for %v", instanceTypes)
 		}
@@ -42,9 +51,9 @@ func buildNetworkInterfaces(
 		var numEFAs = math.MaxFloat64
 		for _, it := range info.InstanceTypes {
 			networkInfo := it.NetworkInfo
-			numEFAs = math.Min(float64(aws.Int64Value(networkInfo.MaximumNetworkCards)), numEFAs)
-			if !aws.BoolValue(networkInfo.EfaSupported) {
-				return errors.Errorf("instance type %s does not support EFA", *it.InstanceType)
+			numEFAs = math.Min(float64(aws.ToInt32(networkInfo.MaximumNetworkCards)), numEFAs)
+			if !aws.ToBool(networkInfo.EfaSupported) {
+				return errors.Errorf("instance type %s does not support EFA", it.InstanceType)
 			}
 		}
 

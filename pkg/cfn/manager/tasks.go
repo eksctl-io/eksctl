@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
@@ -21,12 +23,13 @@ type createClusterTask struct {
 	info                 string
 	stackCollection      *StackCollection
 	supportsManagedNodes bool
+	ctx                  context.Context
 }
 
 func (t *createClusterTask) Describe() string { return t.info }
 
 func (t *createClusterTask) Do(errorCh chan error) error {
-	return t.stackCollection.createClusterTask(errorCh, t.supportsManagedNodes)
+	return t.stackCollection.createClusterTask(t.ctx, errorCh, t.supportsManagedNodes)
 }
 
 type nodeGroupTask struct {
@@ -49,24 +52,26 @@ type managedNodeGroupTask struct {
 	stackCollection   *StackCollection
 	forceAddCNIPolicy bool
 	vpcImporter       vpc.Importer
+	ctx               context.Context
 }
 
 func (t *managedNodeGroupTask) Describe() string { return t.info }
 
 func (t *managedNodeGroupTask) Do(errorCh chan error) error {
-	return t.stackCollection.createManagedNodeGroupTask(errorCh, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
+	return t.stackCollection.createManagedNodeGroupTask(t.ctx, errorCh, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
 }
 
 type clusterCompatTask struct {
 	info            string
 	stackCollection *StackCollection
+	ctx             context.Context
 }
 
 func (t *clusterCompatTask) Describe() string { return t.info }
 
 func (t *clusterCompatTask) Do(errorCh chan error) error {
 	defer close(errorCh)
-	return t.stackCollection.FixClusterCompatibility()
+	return t.stackCollection.FixClusterCompatibility(t.ctx)
 }
 
 type taskWithClusterIAMServiceAccountSpec struct {
@@ -139,7 +144,8 @@ func (t *kubernetesTask) Do(errs chan error) error {
 }
 
 type AssignIpv6AddressOnCreationTask struct {
-	EC2API        ec2iface.EC2API
+	EC2API        awsapi.EC2
+	Context       context.Context
 	ClusterConfig *api.ClusterConfig
 }
 
@@ -151,8 +157,8 @@ func (t *AssignIpv6AddressOnCreationTask) Do(errs chan error) error {
 	defer close(errs)
 	if t.ClusterConfig.VPC.Subnets.Public != nil {
 		for _, subnet := range t.ClusterConfig.VPC.Subnets.Public.WithIDs() {
-			_, err := t.EC2API.ModifySubnetAttribute(&ec2.ModifySubnetAttributeInput{
-				AssignIpv6AddressOnCreation: &ec2.AttributeBooleanValue{
+			_, err := t.EC2API.ModifySubnetAttribute(t.Context, &ec2.ModifySubnetAttributeInput{
+				AssignIpv6AddressOnCreation: &ec2types.AttributeBooleanValue{
 					Value: aws.Bool(true),
 				},
 				SubnetId: aws.String(subnet),

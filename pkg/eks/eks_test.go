@@ -1,6 +1,8 @@
 package eks_test
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -53,7 +55,7 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				JustBeforeEach(func() {
-					cluster, err = c.GetCluster(clusterName)
+					cluster, err = c.GetCluster(context.Background(), clusterName)
 				})
 
 				It("should not error", func() {
@@ -109,7 +111,7 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				JustBeforeEach(func() {
-					cluster, err = c.GetCluster(clusterName)
+					cluster, err = c.GetCluster(context.Background(), clusterName)
 				})
 
 				It("should not error", func() {
@@ -149,7 +151,7 @@ var _ = Describe("EKS API wrapper", func() {
 			})
 
 			JustBeforeEach(func() {
-				cluster, err = c.GetCluster(clusterName)
+				cluster, err = c.GetCluster(context.Background(), clusterName)
 			})
 
 			It("should not error", func() {

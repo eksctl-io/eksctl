@@ -1,16 +1,19 @@
 package fargate
 
 import (
+	"context"
+
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
 	"github.com/pkg/errors"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 )
 
-func (m *Manager) Create() error {
+func (m *Manager) Create(ctx context.Context) error {
 	ctl := m.ctl
 	cfg := m.cfg
 	if ok, err := ctl.CanOperate(cfg); !ok {
@@ -39,7 +42,7 @@ func (m *Manager) Create() error {
 					return errors.Wrap(err, "couldn't ensure fargate role exists")
 				}
 			}
-			if err := ctl.LoadClusterIntoSpecFromStack(cfg, m.stackManager); err != nil {
+			if err := ctl.LoadClusterIntoSpecFromStack(ctx, cfg, m.stackManager); err != nil {
 				return errors.Wrap(err, "couldn't load cluster into spec")
 			}
 		} else {

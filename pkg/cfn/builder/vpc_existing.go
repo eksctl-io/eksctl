@@ -1,30 +1,33 @@
 package builder
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	awsec2 "github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/vpc"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 type ExistingVPCResourceSet struct {
 	rs            *resourceSet
 	clusterConfig *api.ClusterConfig
-	ec2API        ec2iface.EC2API
+	ec2API        awsapi.EC2
 	vpcID         *gfnt.Value
 	subnetDetails *SubnetDetails
 }
 
 // NewExistingVPCResourceSet creates and returns a new VPCResourceSet
-func NewExistingVPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec2API ec2iface.EC2API) *ExistingVPCResourceSet {
+func NewExistingVPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, ec2API awsapi.EC2) *ExistingVPCResourceSet {
 	return &ExistingVPCResourceSet{
 		rs:            rs,
 		clusterConfig: clusterConfig,
@@ -34,9 +37,9 @@ func NewExistingVPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig
 	}
 }
 
-func (v *ExistingVPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, error) {
-	out, err := v.ec2API.DescribeVpcs(&awsec2.DescribeVpcsInput{
-		VpcIds: aws.StringSlice([]string{v.clusterConfig.VPC.ID}),
+func (v *ExistingVPCResourceSet) CreateTemplate(ctx context.Context) (*gfnt.Value, *SubnetDetails, error) {
+	out, err := v.ec2API.DescribeVpcs(ctx, &ec2.DescribeVpcsInput{
+		VpcIds: []string{v.clusterConfig.VPC.ID},
 	})
 
 	if err != nil {
@@ -52,16 +55,16 @@ func (v *ExistingVPCResourceSet) CreateTemplate() (*gfnt.Value, *SubnetDetails, 
 			return nil, nil, err
 		}
 	}
-	if err := v.importExistingResources(); err != nil {
+	if err := v.importExistingResources(ctx); err != nil {
 		return nil, nil, errors.Wrap(err, "error importing VPC resources")
 	}
 
-	v.addOutputs()
+	v.addOutputs(ctx)
 	return v.vpcID, v.subnetDetails, nil
 }
 
 // addOutputs adds VPC resource outputs
-func (v *ExistingVPCResourceSet) addOutputs() {
+func (v *ExistingVPCResourceSet) addOutputs(ctx context.Context) {
 	v.rs.defineOutput(outputs.ClusterVPC, v.vpcID, true, func(val string) error {
 		v.clusterConfig.VPC.ID = val
 		return nil
@@ -73,7 +76,7 @@ func (v *ExistingVPCResourceSet) addOutputs() {
 
 	addSubnetOutput := func(subnetRefs []*gfnt.Value, topology api.SubnetTopology, outputName string) {
 		v.rs.defineJoinedOutput(outputName, subnetRefs, true, func(value string) error {
-			return vpc.ImportSubnetsFromIDList(v.ec2API, v.clusterConfig, topology, strings.Split(value, ","))
+			return vpc.ImportSubnetsFromIDList(ctx, v.ec2API, v.clusterConfig, topology, strings.Split(value, ","))
 		})
 	}
 
@@ -90,21 +93,21 @@ func (v *ExistingVPCResourceSet) addOutputs() {
 	}
 }
 
-func (v *ExistingVPCResourceSet) checkIPv6CidrBlockAssociated(describeVPCOutput *awsec2.DescribeVpcsOutput) error {
+func (v *ExistingVPCResourceSet) checkIPv6CidrBlockAssociated(describeVPCOutput *ec2.DescribeVpcsOutput) error {
 	if len(describeVPCOutput.Vpcs[0].Ipv6CidrBlockAssociationSet) == 0 {
 		return fmt.Errorf("VPC %q does not have any associated IPv6 CIDR blocks", v.clusterConfig.VPC.ID)
 	}
 	return nil
 }
 
-func (v *ExistingVPCResourceSet) importExistingResources() error {
+func (v *ExistingVPCResourceSet) importExistingResources(ctx context.Context) error {
 	if subnets := v.clusterConfig.VPC.Subnets.Private; subnets != nil {
 		var (
 			subnetRoutes map[string]string
 			err          error
 		)
 		if v.isFullyPrivate() {
-			subnetRoutes, err = importRouteTables(v.ec2API, v.clusterConfig.VPC.Subnets.Private)
+			subnetRoutes, err = importRouteTables(ctx, v.ec2API, v.clusterConfig.VPC.Subnets.Private)
 			if err != nil {
 				return err
 			}
@@ -150,35 +153,30 @@ func makeSubnetResources(subnets map[string]api.AZSubnetSpec, subnetRoutes map[s
 	return subnetResources, nil
 }
 
-func importRouteTables(ec2API ec2iface.EC2API, subnets map[string]api.AZSubnetSpec) (map[string]string, error) {
+func importRouteTables(ctx context.Context, ec2API awsapi.EC2, subnets map[string]api.AZSubnetSpec) (map[string]string, error) {
 	var subnetIDs []string
 	for _, subnet := range subnets {
 		subnetIDs = append(subnetIDs, subnet.ID)
 	}
 
-	var routeTables []*ec2.RouteTable
-	var nextToken *string
+	var routeTables []ec2types.RouteTable
 
-	for {
-		output, err := ec2API.DescribeRouteTables(&ec2.DescribeRouteTablesInput{
-			Filters: []*ec2.Filter{
-				{
-					Name:   aws.String("association.subnet-id"),
-					Values: aws.StringSlice(subnetIDs),
-				},
+	paginator := ec2.NewDescribeRouteTablesPaginator(ec2API, &ec2.DescribeRouteTablesInput{
+		Filters: []ec2types.Filter{
+			{
+				Name:   aws.String("association.subnet-id"),
+				Values: subnetIDs,
 			},
-			NextToken: nextToken,
-		})
+		},
+	})
 
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "error describing route tables")
 		}
 
 		routeTables = append(routeTables, output.RouteTables...)
-
-		if nextToken = output.NextToken; nextToken == nil {
-			break
-		}
 	}
 
 	subnetRoutes := make(map[string]string)

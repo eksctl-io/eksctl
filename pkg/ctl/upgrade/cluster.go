@@ -1,6 +1,7 @@
 package upgrade
 
 import (
+	"context"
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/actions/cluster"
@@ -77,5 +78,5 @@ func DoUpgradeCluster(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	return c.Upgrade(cmd.Plan)
+	return c.Upgrade(context.TODO(), cmd.Plan)
 }

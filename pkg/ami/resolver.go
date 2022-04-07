@@ -3,8 +3,6 @@ package ami
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-
 	"github.com/kris-nova/logger"
 
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -51,7 +49,7 @@ func NewMultiResolver(delegates ...Resolver) *MultiResolver {
 }
 
 // NewAutoResolver creates a new AutoResolver
-func NewAutoResolver(api ec2iface.EC2API) Resolver {
+func NewAutoResolver(api awsapi.EC2) Resolver {
 	return &AutoResolver{api: api}
 }
 

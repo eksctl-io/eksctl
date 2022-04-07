@@ -19,10 +19,11 @@ import (
 )
 
 type FakeStackManager struct {
-	AppendNewClusterStackResourceStub        func(bool) (bool, error)
+	AppendNewClusterStackResourceStub        func(context.Context, bool) (bool, error)
 	appendNewClusterStackResourceMutex       sync.RWMutex
 	appendNewClusterStackResourceArgsForCall []struct {
-		arg1 bool
+		arg1 context.Context
+		arg2 bool
 	}
 	appendNewClusterStackResourceReturns struct {
 		result1 bool
@@ -235,9 +236,10 @@ type FakeStackManager struct {
 	doWaitUntilStackIsCreatedReturnsOnCall map[int]struct {
 		result1 error
 	}
-	EnsureMapPublicIPOnLaunchEnabledStub        func() error
+	EnsureMapPublicIPOnLaunchEnabledStub        func(context.Context) error
 	ensureMapPublicIPOnLaunchEnabledMutex       sync.RWMutex
 	ensureMapPublicIPOnLaunchEnabledArgsForCall []struct {
+		arg1 context.Context
 	}
 	ensureMapPublicIPOnLaunchEnabledReturns struct {
 		result1 error
@@ -245,9 +247,10 @@ type FakeStackManager struct {
 	ensureMapPublicIPOnLaunchEnabledReturnsOnCall map[int]struct {
 		result1 error
 	}
-	FixClusterCompatibilityStub        func() error
+	FixClusterCompatibilityStub        func(context.Context) error
 	fixClusterCompatibilityMutex       sync.RWMutex
 	fixClusterCompatibilityArgsForCall []struct {
+		arg1 context.Context
 	}
 	fixClusterCompatibilityReturns struct {
 		result1 error
@@ -528,9 +531,10 @@ type FakeStackManager struct {
 	makeClusterStackNameReturnsOnCall map[int]struct {
 		result1 string
 	}
-	NewClusterCompatTaskStub        func() tasks.Task
+	NewClusterCompatTaskStub        func(context.Context) tasks.Task
 	newClusterCompatTaskMutex       sync.RWMutex
 	newClusterCompatTaskArgsForCall []struct {
+		arg1 context.Context
 	}
 	newClusterCompatTaskReturns struct {
 		result1 tasks.Task
@@ -538,12 +542,13 @@ type FakeStackManager struct {
 	newClusterCompatTaskReturnsOnCall map[int]struct {
 		result1 tasks.Task
 	}
-	NewManagedNodeGroupTaskStub        func([]*v1alpha5.ManagedNodeGroup, bool, vpc.Importer) *tasks.TaskTree
+	NewManagedNodeGroupTaskStub        func(context.Context, []*v1alpha5.ManagedNodeGroup, bool, vpc.Importer) *tasks.TaskTree
 	newManagedNodeGroupTaskMutex       sync.RWMutex
 	newManagedNodeGroupTaskArgsForCall []struct {
-		arg1 []*v1alpha5.ManagedNodeGroup
-		arg2 bool
-		arg3 vpc.Importer
+		arg1 context.Context
+		arg2 []*v1alpha5.ManagedNodeGroup
+		arg3 bool
+		arg4 vpc.Importer
 	}
 	newManagedNodeGroupTaskReturns struct {
 		result1 *tasks.TaskTree
@@ -745,18 +750,19 @@ type FakeStackManager struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeStackManager) AppendNewClusterStackResource(arg1 bool) (bool, error) {
+func (fake *FakeStackManager) AppendNewClusterStackResource(arg1 context.Context, arg2 bool) (bool, error) {
 	fake.appendNewClusterStackResourceMutex.Lock()
 	ret, specificReturn := fake.appendNewClusterStackResourceReturnsOnCall[len(fake.appendNewClusterStackResourceArgsForCall)]
 	fake.appendNewClusterStackResourceArgsForCall = append(fake.appendNewClusterStackResourceArgsForCall, struct {
-		arg1 bool
-	}{arg1})
+		arg1 context.Context
+		arg2 bool
+	}{arg1, arg2})
 	stub := fake.AppendNewClusterStackResourceStub
 	fakeReturns := fake.appendNewClusterStackResourceReturns
-	fake.recordInvocation("AppendNewClusterStackResource", []interface{}{arg1})
+	fake.recordInvocation("AppendNewClusterStackResource", []interface{}{arg1, arg2})
 	fake.appendNewClusterStackResourceMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -770,17 +776,17 @@ func (fake *FakeStackManager) AppendNewClusterStackResourceCallCount() int {
 	return len(fake.appendNewClusterStackResourceArgsForCall)
 }
 
-func (fake *FakeStackManager) AppendNewClusterStackResourceCalls(stub func(bool) (bool, error)) {
+func (fake *FakeStackManager) AppendNewClusterStackResourceCalls(stub func(context.Context, bool) (bool, error)) {
 	fake.appendNewClusterStackResourceMutex.Lock()
 	defer fake.appendNewClusterStackResourceMutex.Unlock()
 	fake.AppendNewClusterStackResourceStub = stub
 }
 
-func (fake *FakeStackManager) AppendNewClusterStackResourceArgsForCall(i int) bool {
+func (fake *FakeStackManager) AppendNewClusterStackResourceArgsForCall(i int) (context.Context, bool) {
 	fake.appendNewClusterStackResourceMutex.RLock()
 	defer fake.appendNewClusterStackResourceMutex.RUnlock()
 	argsForCall := fake.appendNewClusterStackResourceArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeStackManager) AppendNewClusterStackResourceReturns(result1 bool, result2 error) {
@@ -1781,17 +1787,18 @@ func (fake *FakeStackManager) DoWaitUntilStackIsCreatedReturnsOnCall(i int, resu
 	}{result1}
 }
 
-func (fake *FakeStackManager) EnsureMapPublicIPOnLaunchEnabled() error {
+func (fake *FakeStackManager) EnsureMapPublicIPOnLaunchEnabled(arg1 context.Context) error {
 	fake.ensureMapPublicIPOnLaunchEnabledMutex.Lock()
 	ret, specificReturn := fake.ensureMapPublicIPOnLaunchEnabledReturnsOnCall[len(fake.ensureMapPublicIPOnLaunchEnabledArgsForCall)]
 	fake.ensureMapPublicIPOnLaunchEnabledArgsForCall = append(fake.ensureMapPublicIPOnLaunchEnabledArgsForCall, struct {
-	}{})
+		arg1 context.Context
+	}{arg1})
 	stub := fake.EnsureMapPublicIPOnLaunchEnabledStub
 	fakeReturns := fake.ensureMapPublicIPOnLaunchEnabledReturns
-	fake.recordInvocation("EnsureMapPublicIPOnLaunchEnabled", []interface{}{})
+	fake.recordInvocation("EnsureMapPublicIPOnLaunchEnabled", []interface{}{arg1})
 	fake.ensureMapPublicIPOnLaunchEnabledMutex.Unlock()
 	if stub != nil {
-		return stub()
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
@@ -1805,10 +1812,17 @@ func (fake *FakeStackManager) EnsureMapPublicIPOnLaunchEnabledCallCount() int {
 	return len(fake.ensureMapPublicIPOnLaunchEnabledArgsForCall)
 }
 
-func (fake *FakeStackManager) EnsureMapPublicIPOnLaunchEnabledCalls(stub func() error) {
+func (fake *FakeStackManager) EnsureMapPublicIPOnLaunchEnabledCalls(stub func(context.Context) error) {
 	fake.ensureMapPublicIPOnLaunchEnabledMutex.Lock()
 	defer fake.ensureMapPublicIPOnLaunchEnabledMutex.Unlock()
 	fake.EnsureMapPublicIPOnLaunchEnabledStub = stub
+}
+
+func (fake *FakeStackManager) EnsureMapPublicIPOnLaunchEnabledArgsForCall(i int) context.Context {
+	fake.ensureMapPublicIPOnLaunchEnabledMutex.RLock()
+	defer fake.ensureMapPublicIPOnLaunchEnabledMutex.RUnlock()
+	argsForCall := fake.ensureMapPublicIPOnLaunchEnabledArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeStackManager) EnsureMapPublicIPOnLaunchEnabledReturns(result1 error) {
@@ -1834,17 +1848,18 @@ func (fake *FakeStackManager) EnsureMapPublicIPOnLaunchEnabledReturnsOnCall(i in
 	}{result1}
 }
 
-func (fake *FakeStackManager) FixClusterCompatibility() error {
+func (fake *FakeStackManager) FixClusterCompatibility(arg1 context.Context) error {
 	fake.fixClusterCompatibilityMutex.Lock()
 	ret, specificReturn := fake.fixClusterCompatibilityReturnsOnCall[len(fake.fixClusterCompatibilityArgsForCall)]
 	fake.fixClusterCompatibilityArgsForCall = append(fake.fixClusterCompatibilityArgsForCall, struct {
-	}{})
+		arg1 context.Context
+	}{arg1})
 	stub := fake.FixClusterCompatibilityStub
 	fakeReturns := fake.fixClusterCompatibilityReturns
-	fake.recordInvocation("FixClusterCompatibility", []interface{}{})
+	fake.recordInvocation("FixClusterCompatibility", []interface{}{arg1})
 	fake.fixClusterCompatibilityMutex.Unlock()
 	if stub != nil {
-		return stub()
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
@@ -1858,10 +1873,17 @@ func (fake *FakeStackManager) FixClusterCompatibilityCallCount() int {
 	return len(fake.fixClusterCompatibilityArgsForCall)
 }
 
-func (fake *FakeStackManager) FixClusterCompatibilityCalls(stub func() error) {
+func (fake *FakeStackManager) FixClusterCompatibilityCalls(stub func(context.Context) error) {
 	fake.fixClusterCompatibilityMutex.Lock()
 	defer fake.fixClusterCompatibilityMutex.Unlock()
 	fake.FixClusterCompatibilityStub = stub
+}
+
+func (fake *FakeStackManager) FixClusterCompatibilityArgsForCall(i int) context.Context {
+	fake.fixClusterCompatibilityMutex.RLock()
+	defer fake.fixClusterCompatibilityMutex.RUnlock()
+	argsForCall := fake.fixClusterCompatibilityArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeStackManager) FixClusterCompatibilityReturns(result1 error) {
@@ -3220,17 +3242,18 @@ func (fake *FakeStackManager) MakeClusterStackNameReturnsOnCall(i int, result1 s
 	}{result1}
 }
 
-func (fake *FakeStackManager) NewClusterCompatTask() tasks.Task {
+func (fake *FakeStackManager) NewClusterCompatTask(arg1 context.Context) tasks.Task {
 	fake.newClusterCompatTaskMutex.Lock()
 	ret, specificReturn := fake.newClusterCompatTaskReturnsOnCall[len(fake.newClusterCompatTaskArgsForCall)]
 	fake.newClusterCompatTaskArgsForCall = append(fake.newClusterCompatTaskArgsForCall, struct {
-	}{})
+		arg1 context.Context
+	}{arg1})
 	stub := fake.NewClusterCompatTaskStub
 	fakeReturns := fake.newClusterCompatTaskReturns
-	fake.recordInvocation("NewClusterCompatTask", []interface{}{})
+	fake.recordInvocation("NewClusterCompatTask", []interface{}{arg1})
 	fake.newClusterCompatTaskMutex.Unlock()
 	if stub != nil {
-		return stub()
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
@@ -3244,10 +3267,17 @@ func (fake *FakeStackManager) NewClusterCompatTaskCallCount() int {
 	return len(fake.newClusterCompatTaskArgsForCall)
 }
 
-func (fake *FakeStackManager) NewClusterCompatTaskCalls(stub func() tasks.Task) {
+func (fake *FakeStackManager) NewClusterCompatTaskCalls(stub func(context.Context) tasks.Task) {
 	fake.newClusterCompatTaskMutex.Lock()
 	defer fake.newClusterCompatTaskMutex.Unlock()
 	fake.NewClusterCompatTaskStub = stub
+}
+
+func (fake *FakeStackManager) NewClusterCompatTaskArgsForCall(i int) context.Context {
+	fake.newClusterCompatTaskMutex.RLock()
+	defer fake.newClusterCompatTaskMutex.RUnlock()
+	argsForCall := fake.newClusterCompatTaskArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeStackManager) NewClusterCompatTaskReturns(result1 tasks.Task) {
@@ -3273,25 +3303,26 @@ func (fake *FakeStackManager) NewClusterCompatTaskReturnsOnCall(i int, result1 t
 	}{result1}
 }
 
-func (fake *FakeStackManager) NewManagedNodeGroupTask(arg1 []*v1alpha5.ManagedNodeGroup, arg2 bool, arg3 vpc.Importer) *tasks.TaskTree {
-	var arg1Copy []*v1alpha5.ManagedNodeGroup
-	if arg1 != nil {
-		arg1Copy = make([]*v1alpha5.ManagedNodeGroup, len(arg1))
-		copy(arg1Copy, arg1)
+func (fake *FakeStackManager) NewManagedNodeGroupTask(arg1 context.Context, arg2 []*v1alpha5.ManagedNodeGroup, arg3 bool, arg4 vpc.Importer) *tasks.TaskTree {
+	var arg2Copy []*v1alpha5.ManagedNodeGroup
+	if arg2 != nil {
+		arg2Copy = make([]*v1alpha5.ManagedNodeGroup, len(arg2))
+		copy(arg2Copy, arg2)
 	}
 	fake.newManagedNodeGroupTaskMutex.Lock()
 	ret, specificReturn := fake.newManagedNodeGroupTaskReturnsOnCall[len(fake.newManagedNodeGroupTaskArgsForCall)]
 	fake.newManagedNodeGroupTaskArgsForCall = append(fake.newManagedNodeGroupTaskArgsForCall, struct {
-		arg1 []*v1alpha5.ManagedNodeGroup
-		arg2 bool
-		arg3 vpc.Importer
-	}{arg1Copy, arg2, arg3})
+		arg1 context.Context
+		arg2 []*v1alpha5.ManagedNodeGroup
+		arg3 bool
+		arg4 vpc.Importer
+	}{arg1, arg2Copy, arg3, arg4})
 	stub := fake.NewManagedNodeGroupTaskStub
 	fakeReturns := fake.newManagedNodeGroupTaskReturns
-	fake.recordInvocation("NewManagedNodeGroupTask", []interface{}{arg1Copy, arg2, arg3})
+	fake.recordInvocation("NewManagedNodeGroupTask", []interface{}{arg1, arg2Copy, arg3, arg4})
 	fake.newManagedNodeGroupTaskMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1
@@ -3305,17 +3336,17 @@ func (fake *FakeStackManager) NewManagedNodeGroupTaskCallCount() int {
 	return len(fake.newManagedNodeGroupTaskArgsForCall)
 }
 
-func (fake *FakeStackManager) NewManagedNodeGroupTaskCalls(stub func([]*v1alpha5.ManagedNodeGroup, bool, vpc.Importer) *tasks.TaskTree) {
+func (fake *FakeStackManager) NewManagedNodeGroupTaskCalls(stub func(context.Context, []*v1alpha5.ManagedNodeGroup, bool, vpc.Importer) *tasks.TaskTree) {
 	fake.newManagedNodeGroupTaskMutex.Lock()
 	defer fake.newManagedNodeGroupTaskMutex.Unlock()
 	fake.NewManagedNodeGroupTaskStub = stub
 }
 
-func (fake *FakeStackManager) NewManagedNodeGroupTaskArgsForCall(i int) ([]*v1alpha5.ManagedNodeGroup, bool, vpc.Importer) {
+func (fake *FakeStackManager) NewManagedNodeGroupTaskArgsForCall(i int) (context.Context, []*v1alpha5.ManagedNodeGroup, bool, vpc.Importer) {
 	fake.newManagedNodeGroupTaskMutex.RLock()
 	defer fake.newManagedNodeGroupTaskMutex.RUnlock()
 	argsForCall := fake.newManagedNodeGroupTaskArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
 func (fake *FakeStackManager) NewManagedNodeGroupTaskReturns(result1 *tasks.TaskTree) {

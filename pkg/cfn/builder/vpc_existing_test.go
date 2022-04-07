@@ -1,28 +1,31 @@
 package builder_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	awsec2 "github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder/fakes"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
-	"github.com/weaveworks/eksctl/pkg/eks/mocks"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
 )
 
 var _ = Describe("Existing VPC", func() {
 	var (
 		vpcRs   *builder.ExistingVPCResourceSet
 		cfg     *api.ClusterConfig
-		mockEC2 *mocks.EC2API
+		mockEC2 *mocksv2.EC2
 	)
 
 	BeforeEach(func() {
@@ -30,17 +33,17 @@ var _ = Describe("Existing VPC", func() {
 		cfg.VPC = vpcConfig()
 		cfg.AvailabilityZones = []string{azA, azB}
 		cfg.VPC.ID = "custom-vpc"
-		mockEC2 = &mocks.EC2API{}
+		mockEC2 = &mocksv2.EC2{}
 	})
 
 	JustBeforeEach(func() {
-		mockEC2.On("DescribeVpcs", &awsec2.DescribeVpcsInput{
-			VpcIds: aws.StringSlice([]string{"custom-vpc"}),
-		}).Return(&awsec2.DescribeVpcsOutput{
-			Vpcs: []*awsec2.Vpc{
+		mockEC2.On("DescribeVpcs", mock.Anything, &ec2.DescribeVpcsInput{
+			VpcIds: []string{"custom-vpc"},
+		}).Return(&ec2.DescribeVpcsOutput{
+			Vpcs: []ec2types.Vpc{
 				{
 					VpcId: aws.String("custom-vpc"),
-					Ipv6CidrBlockAssociationSet: []*awsec2.VpcIpv6CidrBlockAssociation{
+					Ipv6CidrBlockAssociationSet: []ec2types.VpcIpv6CidrBlockAssociation{
 						{
 							Ipv6CidrBlock: aws.String("foo"),
 						},
@@ -60,7 +63,7 @@ var _ = Describe("Existing VPC", func() {
 		)
 
 		JustBeforeEach(func() {
-			vpcID, subnetDetails, addErr = vpcRs.CreateTemplate()
+			vpcID, subnetDetails, addErr = vpcRs.CreateTemplate(context.Background())
 			vpcTemplate = &fakes.FakeTemplate{}
 			templateBody, err := vpcRs.RenderJSON()
 			Expect(err).ShouldNot(HaveOccurred())
@@ -151,10 +154,10 @@ var _ = Describe("Existing VPC", func() {
 
 		When("and the VPC does not exist", func() {
 			BeforeEach(func() {
-				mockEC2.On("DescribeVpcs", &awsec2.DescribeVpcsInput{
-					VpcIds: aws.StringSlice([]string{"custom-vpc"}),
-				}).Return(&awsec2.DescribeVpcsOutput{
-					Vpcs: []*awsec2.Vpc{},
+				mockEC2.On("DescribeVpcs", mock.Anything, &ec2.DescribeVpcsInput{
+					VpcIds: []string{"custom-vpc"},
+				}).Return(&ec2.DescribeVpcsOutput{
+					Vpcs: []ec2types.Vpc{},
 				}, nil)
 			})
 
@@ -165,8 +168,8 @@ var _ = Describe("Existing VPC", func() {
 
 		When("describing the VPC fails", func() {
 			BeforeEach(func() {
-				mockEC2.On("DescribeVpcs", &awsec2.DescribeVpcsInput{
-					VpcIds: aws.StringSlice([]string{"custom-vpc"}),
+				mockEC2.On("DescribeVpcs", mock.Anything, &ec2.DescribeVpcsInput{
+					VpcIds: []string{"custom-vpc"},
 				}).Return(nil, fmt.Errorf("foo"))
 			})
 
@@ -186,10 +189,10 @@ var _ = Describe("Existing VPC", func() {
 
 			When("and the VPC does not have ipv6 enabled", func() {
 				BeforeEach(func() {
-					mockEC2.On("DescribeVpcs", &awsec2.DescribeVpcsInput{
-						VpcIds: aws.StringSlice([]string{"custom-vpc"}),
-					}).Return(&awsec2.DescribeVpcsOutput{
-						Vpcs: []*awsec2.Vpc{
+					mockEC2.On("DescribeVpcs", mock.Anything, &ec2.DescribeVpcsInput{
+						VpcIds: []string{"custom-vpc"},
+					}).Return(&ec2.DescribeVpcsOutput{
+						Vpcs: []ec2types.Vpc{
 							{
 								VpcId: aws.String("custom-vpc"),
 							},
@@ -213,11 +216,11 @@ var _ = Describe("Existing VPC", func() {
 
 			Context("ec2 call succeeds", func() {
 				BeforeEach(func() {
-					mockResultFn := func(_ *ec2.DescribeRouteTablesInput) *ec2.DescribeRouteTablesOutput {
+					mockResultFn := func(_ context.Context, _ *ec2.DescribeRouteTablesInput, _ ...func(*ec2.Options)) *ec2.DescribeRouteTablesOutput {
 						return rtOutput
 					}
 
-					mockEC2.On("DescribeRouteTables", mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
+					mockEC2.On("DescribeRouteTables", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
 						return len(input.Filters) > 0
 					})).Return(mockResultFn, nil)
 				})
@@ -240,7 +243,7 @@ var _ = Describe("Existing VPC", func() {
 			Context("importing route tables fails because the rt association points to main", func() {
 				BeforeEach(func() {
 					rtOutput.RouteTables[0].Associations[0].Main = aws.Bool(true)
-					mockEC2.On("DescribeRouteTables", mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
+					mockEC2.On("DescribeRouteTables", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
 						return len(input.Filters) > 0
 					})).Return(rtOutput, nil)
 				})
@@ -253,7 +256,7 @@ var _ = Describe("Existing VPC", func() {
 			Context("adding the route table to the subnet resource fails", func() {
 				BeforeEach(func() {
 					rtOutput.RouteTables[0].Associations[0].SubnetId = aws.String("fake")
-					mockEC2.On("DescribeRouteTables", mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
+					mockEC2.On("DescribeRouteTables", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
 						return len(input.Filters) > 0
 					})).Return(rtOutput, nil)
 				})
