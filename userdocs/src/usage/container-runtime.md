@@ -1,6 +1,6 @@
 # Define Container Runtime
 
-For AL2 ( AmazonLinux2 ) AMIs it's possible to set container runtime to `containerd`.
+For AL2 ( AmazonLinux2 ) and Windows AMIs, it's possible to set container runtime to `containerd`.
 
 ## Un-managed Nodes
 
