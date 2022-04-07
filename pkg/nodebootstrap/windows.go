@@ -6,7 +6,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kris-nova/logger"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap/utils"
 )
@@ -64,6 +66,10 @@ func (b *Windows) makeBootstrapParams() string {
 		{
 			key:   "DNSClusterIP",
 			value: b.ng.ClusterDNS,
+		},
+		{
+			key:   "ContainerRuntime",
+			value: aws.ToString(b.ng.ContainerRuntime),
 		},
 		{
 			key:   "KubeletExtraArgs",
