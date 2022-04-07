@@ -16922,6 +16922,119 @@ func (_m *EC2API) DescribeExportTasksWithContext(_a0 context.Context, _a1 *ec2.D
 	return r0, r1
 }
 
+// DescribeFastLaunchImages provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeFastLaunchImages(_a0 *ec2.DescribeFastLaunchImagesInput) (*ec2.DescribeFastLaunchImagesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeFastLaunchImagesOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeFastLaunchImagesInput) *ec2.DescribeFastLaunchImagesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeFastLaunchImagesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeFastLaunchImagesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeFastLaunchImagesPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeFastLaunchImagesPages(_a0 *ec2.DescribeFastLaunchImagesInput, _a1 func(*ec2.DescribeFastLaunchImagesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeFastLaunchImagesInput, func(*ec2.DescribeFastLaunchImagesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeFastLaunchImagesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeFastLaunchImagesPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeFastLaunchImagesInput, _a2 func(*ec2.DescribeFastLaunchImagesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeFastLaunchImagesInput, func(*ec2.DescribeFastLaunchImagesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeFastLaunchImagesRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeFastLaunchImagesRequest(_a0 *ec2.DescribeFastLaunchImagesInput) (*request.Request, *ec2.DescribeFastLaunchImagesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeFastLaunchImagesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeFastLaunchImagesOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeFastLaunchImagesInput) *ec2.DescribeFastLaunchImagesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeFastLaunchImagesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeFastLaunchImagesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeFastLaunchImagesWithContext(_a0 context.Context, _a1 *ec2.DescribeFastLaunchImagesInput, _a2 ...request.Option) (*ec2.DescribeFastLaunchImagesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeFastLaunchImagesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeFastLaunchImagesInput, ...request.Option) *ec2.DescribeFastLaunchImagesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeFastLaunchImagesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeFastLaunchImagesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DescribeFastSnapshotRestores provides a mock function with given fields: _a0
 func (_m *EC2API) DescribeFastSnapshotRestores(_a0 *ec2.DescribeFastSnapshotRestoresInput) (*ec2.DescribeFastSnapshotRestoresOutput, error) {
 	ret := _m.Called(_a0)
@@ -28684,6 +28797,84 @@ func (_m *EC2API) DisableEbsEncryptionByDefaultWithContext(_a0 context.Context, 
 	return r0, r1
 }
 
+// DisableFastLaunch provides a mock function with given fields: _a0
+func (_m *EC2API) DisableFastLaunch(_a0 *ec2.DisableFastLaunchInput) (*ec2.DisableFastLaunchOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DisableFastLaunchOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DisableFastLaunchInput) *ec2.DisableFastLaunchOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisableFastLaunchOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DisableFastLaunchInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DisableFastLaunchRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DisableFastLaunchRequest(_a0 *ec2.DisableFastLaunchInput) (*request.Request, *ec2.DisableFastLaunchOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DisableFastLaunchInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DisableFastLaunchOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DisableFastLaunchInput) *ec2.DisableFastLaunchOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DisableFastLaunchOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DisableFastLaunchWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DisableFastLaunchWithContext(_a0 context.Context, _a1 *ec2.DisableFastLaunchInput, _a2 ...request.Option) (*ec2.DisableFastLaunchOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DisableFastLaunchOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisableFastLaunchInput, ...request.Option) *ec2.DisableFastLaunchOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisableFastLaunchOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisableFastLaunchInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DisableFastSnapshotRestores provides a mock function with given fields: _a0
 func (_m *EC2API) DisableFastSnapshotRestores(_a0 *ec2.DisableFastSnapshotRestoresInput) (*ec2.DisableFastSnapshotRestoresOutput, error) {
 	ret := _m.Called(_a0)
@@ -30236,6 +30427,84 @@ func (_m *EC2API) EnableEbsEncryptionByDefaultWithContext(_a0 context.Context, _
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.EnableEbsEncryptionByDefaultInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EnableFastLaunch provides a mock function with given fields: _a0
+func (_m *EC2API) EnableFastLaunch(_a0 *ec2.EnableFastLaunchInput) (*ec2.EnableFastLaunchOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.EnableFastLaunchOutput
+	if rf, ok := ret.Get(0).(func(*ec2.EnableFastLaunchInput) *ec2.EnableFastLaunchOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.EnableFastLaunchOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.EnableFastLaunchInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EnableFastLaunchRequest provides a mock function with given fields: _a0
+func (_m *EC2API) EnableFastLaunchRequest(_a0 *ec2.EnableFastLaunchInput) (*request.Request, *ec2.EnableFastLaunchOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.EnableFastLaunchInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.EnableFastLaunchOutput
+	if rf, ok := ret.Get(1).(func(*ec2.EnableFastLaunchInput) *ec2.EnableFastLaunchOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.EnableFastLaunchOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// EnableFastLaunchWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) EnableFastLaunchWithContext(_a0 context.Context, _a1 *ec2.EnableFastLaunchInput, _a2 ...request.Option) (*ec2.EnableFastLaunchOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.EnableFastLaunchOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.EnableFastLaunchInput, ...request.Option) *ec2.EnableFastLaunchOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.EnableFastLaunchOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.EnableFastLaunchInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -34938,6 +35207,119 @@ func (_m *EC2API) ImportVolumeWithContext(_a0 context.Context, _a1 *ec2.ImportVo
 	return r0, r1
 }
 
+// ListImagesInRecycleBin provides a mock function with given fields: _a0
+func (_m *EC2API) ListImagesInRecycleBin(_a0 *ec2.ListImagesInRecycleBinInput) (*ec2.ListImagesInRecycleBinOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ListImagesInRecycleBinOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ListImagesInRecycleBinInput) *ec2.ListImagesInRecycleBinOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ListImagesInRecycleBinOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ListImagesInRecycleBinInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListImagesInRecycleBinPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) ListImagesInRecycleBinPages(_a0 *ec2.ListImagesInRecycleBinInput, _a1 func(*ec2.ListImagesInRecycleBinOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.ListImagesInRecycleBinInput, func(*ec2.ListImagesInRecycleBinOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListImagesInRecycleBinPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) ListImagesInRecycleBinPagesWithContext(_a0 context.Context, _a1 *ec2.ListImagesInRecycleBinInput, _a2 func(*ec2.ListImagesInRecycleBinOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ListImagesInRecycleBinInput, func(*ec2.ListImagesInRecycleBinOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListImagesInRecycleBinRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ListImagesInRecycleBinRequest(_a0 *ec2.ListImagesInRecycleBinInput) (*request.Request, *ec2.ListImagesInRecycleBinOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ListImagesInRecycleBinInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ListImagesInRecycleBinOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ListImagesInRecycleBinInput) *ec2.ListImagesInRecycleBinOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ListImagesInRecycleBinOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListImagesInRecycleBinWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ListImagesInRecycleBinWithContext(_a0 context.Context, _a1 *ec2.ListImagesInRecycleBinInput, _a2 ...request.Option) (*ec2.ListImagesInRecycleBinOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ListImagesInRecycleBinOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ListImagesInRecycleBinInput, ...request.Option) *ec2.ListImagesInRecycleBinOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ListImagesInRecycleBinOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ListImagesInRecycleBinInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListSnapshotsInRecycleBin provides a mock function with given fields: _a0
 func (_m *EC2API) ListSnapshotsInRecycleBin(_a0 *ec2.ListSnapshotsInRecycleBinInput) (*ec2.ListSnapshotsInRecycleBinOutput, error) {
 	ret := _m.Called(_a0)
@@ -36447,6 +36829,84 @@ func (_m *EC2API) ModifyInstanceEventWindowWithContext(_a0 context.Context, _a1 
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyInstanceEventWindowInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyInstanceMaintenanceOptions provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyInstanceMaintenanceOptions(_a0 *ec2.ModifyInstanceMaintenanceOptionsInput) (*ec2.ModifyInstanceMaintenanceOptionsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ModifyInstanceMaintenanceOptionsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyInstanceMaintenanceOptionsInput) *ec2.ModifyInstanceMaintenanceOptionsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyInstanceMaintenanceOptionsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyInstanceMaintenanceOptionsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyInstanceMaintenanceOptionsRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyInstanceMaintenanceOptionsRequest(_a0 *ec2.ModifyInstanceMaintenanceOptionsInput) (*request.Request, *ec2.ModifyInstanceMaintenanceOptionsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyInstanceMaintenanceOptionsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ModifyInstanceMaintenanceOptionsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyInstanceMaintenanceOptionsInput) *ec2.ModifyInstanceMaintenanceOptionsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ModifyInstanceMaintenanceOptionsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ModifyInstanceMaintenanceOptionsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ModifyInstanceMaintenanceOptionsWithContext(_a0 context.Context, _a1 *ec2.ModifyInstanceMaintenanceOptionsInput, _a2 ...request.Option) (*ec2.ModifyInstanceMaintenanceOptionsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ModifyInstanceMaintenanceOptionsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyInstanceMaintenanceOptionsInput, ...request.Option) *ec2.ModifyInstanceMaintenanceOptionsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyInstanceMaintenanceOptionsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyInstanceMaintenanceOptionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -38601,6 +39061,84 @@ func (_m *EC2API) ModifyVpcEndpointServiceConfigurationWithContext(_a0 context.C
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyVpcEndpointServiceConfigurationInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyVpcEndpointServicePayerResponsibility provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyVpcEndpointServicePayerResponsibility(_a0 *ec2.ModifyVpcEndpointServicePayerResponsibilityInput) (*ec2.ModifyVpcEndpointServicePayerResponsibilityOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ModifyVpcEndpointServicePayerResponsibilityOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyVpcEndpointServicePayerResponsibilityInput) *ec2.ModifyVpcEndpointServicePayerResponsibilityOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyVpcEndpointServicePayerResponsibilityOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyVpcEndpointServicePayerResponsibilityInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyVpcEndpointServicePayerResponsibilityRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyVpcEndpointServicePayerResponsibilityRequest(_a0 *ec2.ModifyVpcEndpointServicePayerResponsibilityInput) (*request.Request, *ec2.ModifyVpcEndpointServicePayerResponsibilityOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyVpcEndpointServicePayerResponsibilityInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ModifyVpcEndpointServicePayerResponsibilityOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyVpcEndpointServicePayerResponsibilityInput) *ec2.ModifyVpcEndpointServicePayerResponsibilityOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ModifyVpcEndpointServicePayerResponsibilityOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ModifyVpcEndpointServicePayerResponsibilityWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ModifyVpcEndpointServicePayerResponsibilityWithContext(_a0 context.Context, _a1 *ec2.ModifyVpcEndpointServicePayerResponsibilityInput, _a2 ...request.Option) (*ec2.ModifyVpcEndpointServicePayerResponsibilityOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ModifyVpcEndpointServicePayerResponsibilityOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyVpcEndpointServicePayerResponsibilityInput, ...request.Option) *ec2.ModifyVpcEndpointServicePayerResponsibilityOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyVpcEndpointServicePayerResponsibilityOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyVpcEndpointServicePayerResponsibilityInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -42219,6 +42757,84 @@ func (_m *EC2API) RestoreAddressToClassicWithContext(_a0 context.Context, _a1 *e
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RestoreAddressToClassicInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RestoreImageFromRecycleBin provides a mock function with given fields: _a0
+func (_m *EC2API) RestoreImageFromRecycleBin(_a0 *ec2.RestoreImageFromRecycleBinInput) (*ec2.RestoreImageFromRecycleBinOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.RestoreImageFromRecycleBinOutput
+	if rf, ok := ret.Get(0).(func(*ec2.RestoreImageFromRecycleBinInput) *ec2.RestoreImageFromRecycleBinOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.RestoreImageFromRecycleBinOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.RestoreImageFromRecycleBinInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RestoreImageFromRecycleBinRequest provides a mock function with given fields: _a0
+func (_m *EC2API) RestoreImageFromRecycleBinRequest(_a0 *ec2.RestoreImageFromRecycleBinInput) (*request.Request, *ec2.RestoreImageFromRecycleBinOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.RestoreImageFromRecycleBinInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.RestoreImageFromRecycleBinOutput
+	if rf, ok := ret.Get(1).(func(*ec2.RestoreImageFromRecycleBinInput) *ec2.RestoreImageFromRecycleBinOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.RestoreImageFromRecycleBinOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// RestoreImageFromRecycleBinWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) RestoreImageFromRecycleBinWithContext(_a0 context.Context, _a1 *ec2.RestoreImageFromRecycleBinInput, _a2 ...request.Option) (*ec2.RestoreImageFromRecycleBinOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.RestoreImageFromRecycleBinOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.RestoreImageFromRecycleBinInput, ...request.Option) *ec2.RestoreImageFromRecycleBinOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.RestoreImageFromRecycleBinOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RestoreImageFromRecycleBinInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)

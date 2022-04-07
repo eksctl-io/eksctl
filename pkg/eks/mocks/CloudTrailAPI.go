@@ -95,6 +95,162 @@ func (_m *CloudTrailAPI) AddTagsWithContext(_a0 context.Context, _a1 *cloudtrail
 	return r0, r1
 }
 
+// CancelQuery provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) CancelQuery(_a0 *cloudtrail.CancelQueryInput) (*cloudtrail.CancelQueryOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudtrail.CancelQueryOutput
+	if rf, ok := ret.Get(0).(func(*cloudtrail.CancelQueryInput) *cloudtrail.CancelQueryOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.CancelQueryOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudtrail.CancelQueryInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CancelQueryRequest provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) CancelQueryRequest(_a0 *cloudtrail.CancelQueryInput) (*request.Request, *cloudtrail.CancelQueryOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudtrail.CancelQueryInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudtrail.CancelQueryOutput
+	if rf, ok := ret.Get(1).(func(*cloudtrail.CancelQueryInput) *cloudtrail.CancelQueryOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudtrail.CancelQueryOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CancelQueryWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudTrailAPI) CancelQueryWithContext(_a0 context.Context, _a1 *cloudtrail.CancelQueryInput, _a2 ...request.Option) (*cloudtrail.CancelQueryOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.CancelQueryOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.CancelQueryInput, ...request.Option) *cloudtrail.CancelQueryOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.CancelQueryOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.CancelQueryInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateEventDataStore provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) CreateEventDataStore(_a0 *cloudtrail.CreateEventDataStoreInput) (*cloudtrail.CreateEventDataStoreOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudtrail.CreateEventDataStoreOutput
+	if rf, ok := ret.Get(0).(func(*cloudtrail.CreateEventDataStoreInput) *cloudtrail.CreateEventDataStoreOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.CreateEventDataStoreOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudtrail.CreateEventDataStoreInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateEventDataStoreRequest provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) CreateEventDataStoreRequest(_a0 *cloudtrail.CreateEventDataStoreInput) (*request.Request, *cloudtrail.CreateEventDataStoreOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudtrail.CreateEventDataStoreInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudtrail.CreateEventDataStoreOutput
+	if rf, ok := ret.Get(1).(func(*cloudtrail.CreateEventDataStoreInput) *cloudtrail.CreateEventDataStoreOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudtrail.CreateEventDataStoreOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateEventDataStoreWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudTrailAPI) CreateEventDataStoreWithContext(_a0 context.Context, _a1 *cloudtrail.CreateEventDataStoreInput, _a2 ...request.Option) (*cloudtrail.CreateEventDataStoreOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.CreateEventDataStoreOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.CreateEventDataStoreInput, ...request.Option) *cloudtrail.CreateEventDataStoreOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.CreateEventDataStoreOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.CreateEventDataStoreInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateTrail provides a mock function with given fields: _a0
 func (_m *CloudTrailAPI) CreateTrail(_a0 *cloudtrail.CreateTrailInput) (*cloudtrail.CreateTrailOutput, error) {
 	ret := _m.Called(_a0)
@@ -165,6 +321,84 @@ func (_m *CloudTrailAPI) CreateTrailWithContext(_a0 context.Context, _a1 *cloudt
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.CreateTrailInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteEventDataStore provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) DeleteEventDataStore(_a0 *cloudtrail.DeleteEventDataStoreInput) (*cloudtrail.DeleteEventDataStoreOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudtrail.DeleteEventDataStoreOutput
+	if rf, ok := ret.Get(0).(func(*cloudtrail.DeleteEventDataStoreInput) *cloudtrail.DeleteEventDataStoreOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.DeleteEventDataStoreOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudtrail.DeleteEventDataStoreInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteEventDataStoreRequest provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) DeleteEventDataStoreRequest(_a0 *cloudtrail.DeleteEventDataStoreInput) (*request.Request, *cloudtrail.DeleteEventDataStoreOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudtrail.DeleteEventDataStoreInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudtrail.DeleteEventDataStoreOutput
+	if rf, ok := ret.Get(1).(func(*cloudtrail.DeleteEventDataStoreInput) *cloudtrail.DeleteEventDataStoreOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudtrail.DeleteEventDataStoreOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteEventDataStoreWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudTrailAPI) DeleteEventDataStoreWithContext(_a0 context.Context, _a1 *cloudtrail.DeleteEventDataStoreInput, _a2 ...request.Option) (*cloudtrail.DeleteEventDataStoreOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.DeleteEventDataStoreOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.DeleteEventDataStoreInput, ...request.Option) *cloudtrail.DeleteEventDataStoreOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.DeleteEventDataStoreOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.DeleteEventDataStoreInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -251,6 +485,84 @@ func (_m *CloudTrailAPI) DeleteTrailWithContext(_a0 context.Context, _a1 *cloudt
 	return r0, r1
 }
 
+// DescribeQuery provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) DescribeQuery(_a0 *cloudtrail.DescribeQueryInput) (*cloudtrail.DescribeQueryOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudtrail.DescribeQueryOutput
+	if rf, ok := ret.Get(0).(func(*cloudtrail.DescribeQueryInput) *cloudtrail.DescribeQueryOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.DescribeQueryOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudtrail.DescribeQueryInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeQueryRequest provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) DescribeQueryRequest(_a0 *cloudtrail.DescribeQueryInput) (*request.Request, *cloudtrail.DescribeQueryOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudtrail.DescribeQueryInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudtrail.DescribeQueryOutput
+	if rf, ok := ret.Get(1).(func(*cloudtrail.DescribeQueryInput) *cloudtrail.DescribeQueryOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudtrail.DescribeQueryOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeQueryWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudTrailAPI) DescribeQueryWithContext(_a0 context.Context, _a1 *cloudtrail.DescribeQueryInput, _a2 ...request.Option) (*cloudtrail.DescribeQueryOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.DescribeQueryOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.DescribeQueryInput, ...request.Option) *cloudtrail.DescribeQueryOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.DescribeQueryOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.DescribeQueryInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DescribeTrails provides a mock function with given fields: _a0
 func (_m *CloudTrailAPI) DescribeTrails(_a0 *cloudtrail.DescribeTrailsInput) (*cloudtrail.DescribeTrailsOutput, error) {
 	ret := _m.Called(_a0)
@@ -321,6 +633,84 @@ func (_m *CloudTrailAPI) DescribeTrailsWithContext(_a0 context.Context, _a1 *clo
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.DescribeTrailsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetEventDataStore provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) GetEventDataStore(_a0 *cloudtrail.GetEventDataStoreInput) (*cloudtrail.GetEventDataStoreOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudtrail.GetEventDataStoreOutput
+	if rf, ok := ret.Get(0).(func(*cloudtrail.GetEventDataStoreInput) *cloudtrail.GetEventDataStoreOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.GetEventDataStoreOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudtrail.GetEventDataStoreInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetEventDataStoreRequest provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) GetEventDataStoreRequest(_a0 *cloudtrail.GetEventDataStoreInput) (*request.Request, *cloudtrail.GetEventDataStoreOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudtrail.GetEventDataStoreInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudtrail.GetEventDataStoreOutput
+	if rf, ok := ret.Get(1).(func(*cloudtrail.GetEventDataStoreInput) *cloudtrail.GetEventDataStoreOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudtrail.GetEventDataStoreOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetEventDataStoreWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudTrailAPI) GetEventDataStoreWithContext(_a0 context.Context, _a1 *cloudtrail.GetEventDataStoreInput, _a2 ...request.Option) (*cloudtrail.GetEventDataStoreOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.GetEventDataStoreOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GetEventDataStoreInput, ...request.Option) *cloudtrail.GetEventDataStoreOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.GetEventDataStoreOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.GetEventDataStoreInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -485,6 +875,119 @@ func (_m *CloudTrailAPI) GetInsightSelectorsWithContext(_a0 context.Context, _a1
 	return r0, r1
 }
 
+// GetQueryResults provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) GetQueryResults(_a0 *cloudtrail.GetQueryResultsInput) (*cloudtrail.GetQueryResultsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudtrail.GetQueryResultsOutput
+	if rf, ok := ret.Get(0).(func(*cloudtrail.GetQueryResultsInput) *cloudtrail.GetQueryResultsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.GetQueryResultsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudtrail.GetQueryResultsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetQueryResultsPages provides a mock function with given fields: _a0, _a1
+func (_m *CloudTrailAPI) GetQueryResultsPages(_a0 *cloudtrail.GetQueryResultsInput, _a1 func(*cloudtrail.GetQueryResultsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudtrail.GetQueryResultsInput, func(*cloudtrail.GetQueryResultsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetQueryResultsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *CloudTrailAPI) GetQueryResultsPagesWithContext(_a0 context.Context, _a1 *cloudtrail.GetQueryResultsInput, _a2 func(*cloudtrail.GetQueryResultsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GetQueryResultsInput, func(*cloudtrail.GetQueryResultsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetQueryResultsRequest provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) GetQueryResultsRequest(_a0 *cloudtrail.GetQueryResultsInput) (*request.Request, *cloudtrail.GetQueryResultsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudtrail.GetQueryResultsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudtrail.GetQueryResultsOutput
+	if rf, ok := ret.Get(1).(func(*cloudtrail.GetQueryResultsInput) *cloudtrail.GetQueryResultsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudtrail.GetQueryResultsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetQueryResultsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudTrailAPI) GetQueryResultsWithContext(_a0 context.Context, _a1 *cloudtrail.GetQueryResultsInput, _a2 ...request.Option) (*cloudtrail.GetQueryResultsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.GetQueryResultsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GetQueryResultsInput, ...request.Option) *cloudtrail.GetQueryResultsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.GetQueryResultsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.GetQueryResultsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTrail provides a mock function with given fields: _a0
 func (_m *CloudTrailAPI) GetTrail(_a0 *cloudtrail.GetTrailInput) (*cloudtrail.GetTrailOutput, error) {
 	ret := _m.Called(_a0)
@@ -641,6 +1144,119 @@ func (_m *CloudTrailAPI) GetTrailWithContext(_a0 context.Context, _a1 *cloudtrai
 	return r0, r1
 }
 
+// ListEventDataStores provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) ListEventDataStores(_a0 *cloudtrail.ListEventDataStoresInput) (*cloudtrail.ListEventDataStoresOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudtrail.ListEventDataStoresOutput
+	if rf, ok := ret.Get(0).(func(*cloudtrail.ListEventDataStoresInput) *cloudtrail.ListEventDataStoresOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.ListEventDataStoresOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudtrail.ListEventDataStoresInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListEventDataStoresPages provides a mock function with given fields: _a0, _a1
+func (_m *CloudTrailAPI) ListEventDataStoresPages(_a0 *cloudtrail.ListEventDataStoresInput, _a1 func(*cloudtrail.ListEventDataStoresOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudtrail.ListEventDataStoresInput, func(*cloudtrail.ListEventDataStoresOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListEventDataStoresPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *CloudTrailAPI) ListEventDataStoresPagesWithContext(_a0 context.Context, _a1 *cloudtrail.ListEventDataStoresInput, _a2 func(*cloudtrail.ListEventDataStoresOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListEventDataStoresInput, func(*cloudtrail.ListEventDataStoresOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListEventDataStoresRequest provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) ListEventDataStoresRequest(_a0 *cloudtrail.ListEventDataStoresInput) (*request.Request, *cloudtrail.ListEventDataStoresOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudtrail.ListEventDataStoresInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudtrail.ListEventDataStoresOutput
+	if rf, ok := ret.Get(1).(func(*cloudtrail.ListEventDataStoresInput) *cloudtrail.ListEventDataStoresOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudtrail.ListEventDataStoresOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListEventDataStoresWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudTrailAPI) ListEventDataStoresWithContext(_a0 context.Context, _a1 *cloudtrail.ListEventDataStoresInput, _a2 ...request.Option) (*cloudtrail.ListEventDataStoresOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.ListEventDataStoresOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListEventDataStoresInput, ...request.Option) *cloudtrail.ListEventDataStoresOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.ListEventDataStoresOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.ListEventDataStoresInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListPublicKeys provides a mock function with given fields: _a0
 func (_m *CloudTrailAPI) ListPublicKeys(_a0 *cloudtrail.ListPublicKeysInput) (*cloudtrail.ListPublicKeysOutput, error) {
 	ret := _m.Called(_a0)
@@ -746,6 +1362,119 @@ func (_m *CloudTrailAPI) ListPublicKeysWithContext(_a0 context.Context, _a1 *clo
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.ListPublicKeysInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListQueries provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) ListQueries(_a0 *cloudtrail.ListQueriesInput) (*cloudtrail.ListQueriesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudtrail.ListQueriesOutput
+	if rf, ok := ret.Get(0).(func(*cloudtrail.ListQueriesInput) *cloudtrail.ListQueriesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.ListQueriesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudtrail.ListQueriesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListQueriesPages provides a mock function with given fields: _a0, _a1
+func (_m *CloudTrailAPI) ListQueriesPages(_a0 *cloudtrail.ListQueriesInput, _a1 func(*cloudtrail.ListQueriesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudtrail.ListQueriesInput, func(*cloudtrail.ListQueriesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListQueriesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *CloudTrailAPI) ListQueriesPagesWithContext(_a0 context.Context, _a1 *cloudtrail.ListQueriesInput, _a2 func(*cloudtrail.ListQueriesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListQueriesInput, func(*cloudtrail.ListQueriesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListQueriesRequest provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) ListQueriesRequest(_a0 *cloudtrail.ListQueriesInput) (*request.Request, *cloudtrail.ListQueriesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudtrail.ListQueriesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudtrail.ListQueriesOutput
+	if rf, ok := ret.Get(1).(func(*cloudtrail.ListQueriesInput) *cloudtrail.ListQueriesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudtrail.ListQueriesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListQueriesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudTrailAPI) ListQueriesWithContext(_a0 context.Context, _a1 *cloudtrail.ListQueriesInput, _a2 ...request.Option) (*cloudtrail.ListQueriesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.ListQueriesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListQueriesInput, ...request.Option) *cloudtrail.ListQueriesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.ListQueriesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.ListQueriesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1327,6 +2056,84 @@ func (_m *CloudTrailAPI) RemoveTagsWithContext(_a0 context.Context, _a1 *cloudtr
 	return r0, r1
 }
 
+// RestoreEventDataStore provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) RestoreEventDataStore(_a0 *cloudtrail.RestoreEventDataStoreInput) (*cloudtrail.RestoreEventDataStoreOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudtrail.RestoreEventDataStoreOutput
+	if rf, ok := ret.Get(0).(func(*cloudtrail.RestoreEventDataStoreInput) *cloudtrail.RestoreEventDataStoreOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.RestoreEventDataStoreOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudtrail.RestoreEventDataStoreInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RestoreEventDataStoreRequest provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) RestoreEventDataStoreRequest(_a0 *cloudtrail.RestoreEventDataStoreInput) (*request.Request, *cloudtrail.RestoreEventDataStoreOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudtrail.RestoreEventDataStoreInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudtrail.RestoreEventDataStoreOutput
+	if rf, ok := ret.Get(1).(func(*cloudtrail.RestoreEventDataStoreInput) *cloudtrail.RestoreEventDataStoreOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudtrail.RestoreEventDataStoreOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// RestoreEventDataStoreWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudTrailAPI) RestoreEventDataStoreWithContext(_a0 context.Context, _a1 *cloudtrail.RestoreEventDataStoreInput, _a2 ...request.Option) (*cloudtrail.RestoreEventDataStoreOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.RestoreEventDataStoreOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.RestoreEventDataStoreInput, ...request.Option) *cloudtrail.RestoreEventDataStoreOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.RestoreEventDataStoreOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.RestoreEventDataStoreInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // StartLogging provides a mock function with given fields: _a0
 func (_m *CloudTrailAPI) StartLogging(_a0 *cloudtrail.StartLoggingInput) (*cloudtrail.StartLoggingOutput, error) {
 	ret := _m.Called(_a0)
@@ -1405,6 +2212,84 @@ func (_m *CloudTrailAPI) StartLoggingWithContext(_a0 context.Context, _a1 *cloud
 	return r0, r1
 }
 
+// StartQuery provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) StartQuery(_a0 *cloudtrail.StartQueryInput) (*cloudtrail.StartQueryOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudtrail.StartQueryOutput
+	if rf, ok := ret.Get(0).(func(*cloudtrail.StartQueryInput) *cloudtrail.StartQueryOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.StartQueryOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudtrail.StartQueryInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StartQueryRequest provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) StartQueryRequest(_a0 *cloudtrail.StartQueryInput) (*request.Request, *cloudtrail.StartQueryOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudtrail.StartQueryInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudtrail.StartQueryOutput
+	if rf, ok := ret.Get(1).(func(*cloudtrail.StartQueryInput) *cloudtrail.StartQueryOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudtrail.StartQueryOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// StartQueryWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudTrailAPI) StartQueryWithContext(_a0 context.Context, _a1 *cloudtrail.StartQueryInput, _a2 ...request.Option) (*cloudtrail.StartQueryOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.StartQueryOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.StartQueryInput, ...request.Option) *cloudtrail.StartQueryOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.StartQueryOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.StartQueryInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // StopLogging provides a mock function with given fields: _a0
 func (_m *CloudTrailAPI) StopLogging(_a0 *cloudtrail.StopLoggingInput) (*cloudtrail.StopLoggingOutput, error) {
 	ret := _m.Called(_a0)
@@ -1475,6 +2360,84 @@ func (_m *CloudTrailAPI) StopLoggingWithContext(_a0 context.Context, _a1 *cloudt
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.StopLoggingInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateEventDataStore provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) UpdateEventDataStore(_a0 *cloudtrail.UpdateEventDataStoreInput) (*cloudtrail.UpdateEventDataStoreOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudtrail.UpdateEventDataStoreOutput
+	if rf, ok := ret.Get(0).(func(*cloudtrail.UpdateEventDataStoreInput) *cloudtrail.UpdateEventDataStoreOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.UpdateEventDataStoreOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudtrail.UpdateEventDataStoreInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateEventDataStoreRequest provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) UpdateEventDataStoreRequest(_a0 *cloudtrail.UpdateEventDataStoreInput) (*request.Request, *cloudtrail.UpdateEventDataStoreOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudtrail.UpdateEventDataStoreInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudtrail.UpdateEventDataStoreOutput
+	if rf, ok := ret.Get(1).(func(*cloudtrail.UpdateEventDataStoreInput) *cloudtrail.UpdateEventDataStoreOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudtrail.UpdateEventDataStoreOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UpdateEventDataStoreWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudTrailAPI) UpdateEventDataStoreWithContext(_a0 context.Context, _a1 *cloudtrail.UpdateEventDataStoreInput, _a2 ...request.Option) (*cloudtrail.UpdateEventDataStoreOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.UpdateEventDataStoreOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.UpdateEventDataStoreInput, ...request.Option) *cloudtrail.UpdateEventDataStoreOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.UpdateEventDataStoreOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.UpdateEventDataStoreInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
