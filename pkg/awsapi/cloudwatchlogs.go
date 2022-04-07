@@ -4,6 +4,7 @@ package awsapi
 
 import (
 	"context"
+
 	. "github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 )
 
@@ -375,3 +376,4 @@ type CloudWatchLogs interface {
 	// condition keys.
 	UntagLogGroup(ctx context.Context, params *UntagLogGroupInput, optFns ...func(*Options)) (*UntagLogGroupOutput, error)
 }
+

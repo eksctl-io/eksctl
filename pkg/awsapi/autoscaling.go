@@ -4,6 +4,7 @@ package awsapi
 
 import (
 	"context"
+
 	. "github.com/aws/aws-sdk-go-v2/service/autoscaling"
 )
 
@@ -630,3 +631,4 @@ type ASG interface {
 	// scaling policies, you can update them by calling the PutScalingPolicy API.
 	UpdateAutoScalingGroup(ctx context.Context, params *UpdateAutoScalingGroupInput, optFns ...func(*Options)) (*UpdateAutoScalingGroupOutput, error)
 }
+
