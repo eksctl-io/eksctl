@@ -1,5 +1,4 @@
 //go:build integration
-// +build integration
 
 package karpenter
 
@@ -28,7 +27,7 @@ func init() {
 	if err := api.Register(); err != nil {
 		panic(fmt.Errorf("unexpected error registering API scheme: %w", err))
 	}
-	params = tests.NewParams("karp")
+	params = tests.NewParams("")
 }
 
 func TestKarpenter(t *testing.T) {
@@ -36,9 +35,17 @@ func TestKarpenter(t *testing.T) {
 }
 
 var _ = Describe("(Integration) Karpenter", func() {
+	var (
+		clusterName string
+	)
+	BeforeEach(func() {
+		// the randomly generated name we get usually makes one of the resources have a longer than 64 characters name
+		// so create our own name here to avoid this error
+		clusterName = fmt.Sprintf("it-karpenter-%d", time.Now().Unix())
+	})
 	AfterEach(func() {
 		cmd := params.EksctlDeleteCmd.WithArgs(
-			"cluster", params.ClusterName,
+			"cluster", clusterName,
 			"--verbose", "4",
 		)
 		Expect(cmd).To(RunSuccessfully())
@@ -54,7 +61,7 @@ var _ = Describe("(Integration) Karpenter", func() {
 					"--kubeconfig", params.KubeconfigPath,
 				).
 				WithoutArg("--region", params.Region).
-				WithStdin(clusterutils.ReaderFromFile(params.ClusterName, params.Region, "testdata/cluster-config.yaml"))
+				WithStdin(clusterutils.ReaderFromFile(clusterName, params.Region, "testdata/cluster-config.yaml"))
 			Expect(cmd).To(RunSuccessfully())
 
 			kubeTest, err := kube.NewTest(params.KubeconfigPath)
