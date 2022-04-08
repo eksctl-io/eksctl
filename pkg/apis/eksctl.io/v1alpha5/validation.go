@@ -666,12 +666,13 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 			return fieldNotSupported("kubeletExtraConfig")
 		}
 
-		if ng.AMIFamily == NodeImageFamilyBottlerocket && ng.PreBootstrapCommands != nil {
-			return fieldNotSupported("preBootstrapCommands")
-
-		}
-		if ng.OverrideBootstrapCommand != nil {
-			return fieldNotSupported("overrideBootstrapCommand")
+		if ng.AMIFamily == NodeImageFamilyBottlerocket {
+			if ng.PreBootstrapCommands != nil {
+				return fieldNotSupported("preBootstrapCommands")
+			}
+			if ng.OverrideBootstrapCommand != nil {
+				return fieldNotSupported("overrideBootstrapCommand")
+			}
 		}
 	} else if err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig); err != nil {
 		return err
