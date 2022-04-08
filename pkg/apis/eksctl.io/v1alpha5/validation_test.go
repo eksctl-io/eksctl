@@ -1698,14 +1698,12 @@ var _ = Describe("ClusterConfig validation", func() {
 
 	Describe("Windows node groups", func() {
 		It("returns an error with unsupported fields", func() {
-			cmd := "start /wait msiexec.exe"
 			doc := api.InlineDocument{
 				"cgroupDriver": "systemd",
 			}
 
 			ngs := map[string]*api.NodeGroup{
-				"OverrideBootstrapCommand": {NodeGroupBase: &api.NodeGroupBase{OverrideBootstrapCommand: &cmd}},
-				"KubeletExtraConfig":       {KubeletExtraConfig: &doc, NodeGroupBase: &api.NodeGroupBase{}},
+				"KubeletExtraConfig": {KubeletExtraConfig: &doc, NodeGroupBase: &api.NodeGroupBase{}},
 			}
 
 			for name, ng := range ngs {
