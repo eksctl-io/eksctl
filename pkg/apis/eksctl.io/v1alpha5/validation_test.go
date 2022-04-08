@@ -904,7 +904,6 @@ var _ = Describe("ClusterConfig validation", func() {
 							cfg.VPC.NAT = nil
 							err = api.ValidateClusterConfig(cfg)
 							Expect(err).NotTo(HaveOccurred())
-							Expect(cfg.Addons[2].Version).To(Equal("1.10.0"))
 						})
 					})
 
