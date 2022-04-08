@@ -47,7 +47,7 @@ func TestIPv6(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-var _ = PDescribe("(Integration) [EKS IPv6 test]", func() {
+var _ = Describe("(Integration) [EKS IPv6 test]", func() {
 	var (
 		clusterConfig *api.ClusterConfig
 	)
@@ -63,23 +63,20 @@ var _ = PDescribe("(Integration) [EKS IPv6 test]", func() {
 
 			clusterConfig = api.NewClusterConfig()
 			clusterConfig.Metadata.Name = clusterName
-			clusterConfig.Metadata.Version = "1.21"
+			clusterConfig.Metadata.Version = api.LatestVersion
 			clusterConfig.Metadata.Region = params.Region
 			clusterConfig.KubernetesNetworkConfig.IPFamily = "iPv6"
 			clusterConfig.VPC.NAT = nil
 			clusterConfig.IAM.WithOIDC = api.Enabled()
 			clusterConfig.Addons = []*api.Addon{
 				{
-					Name:    api.VPCCNIAddon,
-					Version: "latest",
+					Name: api.VPCCNIAddon,
 				},
 				{
-					Name:    api.KubeProxyAddon,
-					Version: "latest",
+					Name: api.KubeProxyAddon,
 				},
 				{
-					Name:    api.CoreDNSAddon,
-					Version: "latest",
+					Name: api.CoreDNSAddon,
 				},
 			}
 			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{

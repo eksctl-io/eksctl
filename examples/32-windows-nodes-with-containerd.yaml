@@ -1,0 +1,22 @@
+# An example of ClusterConfig containing Windows and Linux node groups to support Windows workloads on containerd runtime.
+# This example should be run with `eksctl create cluster -f 32-windows-nodes-with-containerd.yaml`.
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: windows-cluster
+  region: us-west-2
+
+nodeGroups:
+  - name: windows-ng
+    amiFamily: WindowsServer2019FullContainer
+    minSize: 2
+    maxSize: 3
+    containerRuntime: containerd
+
+managedNodeGroups:
+  - name: linux-ng
+    instanceType: t2.large
+    minSize: 2
+    maxSize: 3

@@ -29,7 +29,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
-	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
@@ -268,13 +267,8 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	eks.LogEnabledFeatures(cfg)
 	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(context.Background(), cfg)
 
-	supported, err := utils.IsMinVersion(api.Version1_18, cfg.Metadata.Version)
-	if err != nil {
-		return err
-	}
-
 	var preNodegroupAddons, postNodegroupAddons *tasks.TaskTree
-	if supported && len(cfg.Addons) > 0 {
+	if len(cfg.Addons) > 0 {
 		preNodegroupAddons, postNodegroupAddons = addon.CreateAddonTasks(cfg, ctl, true, cmd.ProviderConfig.WaitTimeout)
 		postClusterCreationTasks.Append(preNodegroupAddons)
 	}

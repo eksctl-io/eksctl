@@ -29,8 +29,6 @@ import (
 // Values for `KubernetesVersion`
 // All valid values should go in this block
 const (
-	Version1_18 = "1.18"
-
 	Version1_19 = "1.19"
 
 	Version1_20 = "1.20"
@@ -69,6 +67,8 @@ const (
 
 	// Version1_17 represents Kubernetes version 1.17.x
 	Version1_17 = "1.17"
+
+	Version1_18 = "1.18"
 )
 
 // Not yet supported versions
@@ -188,8 +188,9 @@ const (
 
 // Container runtime values.
 const (
-	ContainerRuntimeContainerD = "containerd"
-	ContainerRuntimeDockerD    = "dockerd"
+	ContainerRuntimeContainerD       = "containerd"
+	ContainerRuntimeDockerD          = "dockerd"
+	ContainerRuntimeDockerForWindows = "docker"
 )
 
 const (
@@ -365,7 +366,8 @@ var (
 
 var (
 	// DefaultContainerRuntime defines the default container runtime.
-	DefaultContainerRuntime = ContainerRuntimeDockerD
+	DefaultContainerRuntime           = ContainerRuntimeDockerD
+	DefaultContainerRuntimeForWindows = ContainerRuntimeDockerForWindows
 )
 
 // Enabled return pointer to true value
@@ -450,6 +452,7 @@ func DeprecatedVersions() []string {
 		Version1_15,
 		Version1_16,
 		Version1_17,
+		Version1_18,
 	}
 }
 
@@ -466,7 +469,6 @@ func IsDeprecatedVersion(version string) bool {
 // SupportedVersions are the versions of Kubernetes that EKS supports
 func SupportedVersions() []string {
 	return []string{
-		Version1_18,
 		Version1_19,
 		Version1_20,
 		Version1_21,

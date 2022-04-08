@@ -16,8 +16,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	kubeclient "k8s.io/client-go/kubernetes"
 
-	"github.com/weaveworks/eksctl/pkg/utils"
-
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
@@ -36,10 +34,6 @@ type Manager struct {
 }
 
 func New(clusterConfig *api.ClusterConfig, eksAPI eksiface.EKSAPI, stackManager manager.StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface, timeout time.Duration) (*Manager, error) {
-	if err := supportedVersion(clusterConfig.Metadata.Version); err != nil {
-		return nil, err
-	}
-
 	return &Manager{
 		clusterConfig: clusterConfig,
 		eksAPI:        eksAPI,
@@ -116,19 +110,6 @@ func (a *Manager) getLatestMatchingVersion(addon *api.Addon) (string, error) {
 		return versions[j].LessThan(versions[i])
 	})
 	return versions[0].Original(), nil
-}
-
-func supportedVersion(version string) error {
-	supported, err := utils.IsMinVersion(api.Version1_18, version)
-	if err != nil {
-		return err
-	}
-	switch supported {
-	case true:
-		return nil
-	default:
-		return fmt.Errorf("addons not supported on %s. Must be using %s or newer", version, api.Version1_18)
-	}
 }
 
 func (a *Manager) makeAddonName(name string) string {
