@@ -64,9 +64,13 @@ func getZones(ec2API ec2iface.EC2API, region string) ([]string, error) {
 		Name:   aws.String("state"),
 		Values: []*string{aws.String(ec2.AvailabilityZoneStateAvailable)},
 	}
+	azFilter := &ec2.Filter{
+		Name:   aws.String("zone-type"),
+		Values: []*string{aws.String(ec2.LocationTypeAvailabilityZone)},
+	}
 
 	input := &ec2.DescribeAvailabilityZonesInput{
-		Filters: []*ec2.Filter{regionFilter, stateFilter},
+		Filters: []*ec2.Filter{regionFilter, stateFilter, azFilter},
 	}
 
 	output, err := ec2API.DescribeAvailabilityZones(input)

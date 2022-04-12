@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/az"
-
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
@@ -36,6 +36,10 @@ var _ = Describe("AZ", func() {
 						Name:   aws.String("state"),
 						Values: []*string{aws.String(ec2.AvailabilityZoneStateAvailable)},
 					},
+					{
+						Name:   aws.String("zone-type"),
+						Values: []*string{aws.String(ec2.LocationTypeAvailabilityZone)},
+					},
 				},
 			}).Return(&ec2.DescribeAvailabilityZonesOutput{
 				AvailabilityZones: []*ec2.AvailabilityZone{
@@ -61,6 +65,10 @@ var _ = Describe("AZ", func() {
 					{
 						Name:   aws.String("state"),
 						Values: []*string{aws.String(ec2.AvailabilityZoneStateAvailable)},
+					},
+					{
+						Name:   aws.String("zone-type"),
+						Values: []*string{aws.String(ec2.LocationTypeAvailabilityZone)},
 					},
 				},
 			}).Return(&ec2.DescribeAvailabilityZonesOutput{
@@ -91,6 +99,10 @@ var _ = Describe("AZ", func() {
 						Name:   aws.String("state"),
 						Values: []*string{aws.String(ec2.AvailabilityZoneStateAvailable)},
 					},
+					{
+						Name:   aws.String("zone-type"),
+						Values: []*string{aws.String(ec2.LocationTypeAvailabilityZone)},
+					},
 				},
 			}).Return(&ec2.DescribeAvailabilityZonesOutput{
 				AvailabilityZones: []*ec2.AvailabilityZone{
@@ -120,6 +132,10 @@ var _ = Describe("AZ", func() {
 					{
 						Name:   aws.String("state"),
 						Values: []*string{aws.String(ec2.AvailabilityZoneStateAvailable)},
+					},
+					{
+						Name:   aws.String("zone-type"),
+						Values: []*string{aws.String(ec2.LocationTypeAvailabilityZone)},
 					},
 				},
 			}).Return(&ec2.DescribeAvailabilityZonesOutput{
@@ -152,6 +168,10 @@ var _ = Describe("AZ", func() {
 						Name:   aws.String("state"),
 						Values: []*string{aws.String(ec2.AvailabilityZoneStateAvailable)},
 					},
+					{
+						Name:   aws.String("zone-type"),
+						Values: []*string{aws.String(ec2.LocationTypeAvailabilityZone)},
+					},
 				},
 			}).Return(&ec2.DescribeAvailabilityZonesOutput{}, fmt.Errorf("foo"))
 		})
@@ -175,6 +195,10 @@ var _ = Describe("AZ", func() {
 					{
 						Name:   aws.String("state"),
 						Values: []*string{aws.String(ec2.AvailabilityZoneStateAvailable)},
+					},
+					{
+						Name:   aws.String("zone-type"),
+						Values: []*string{aws.String(ec2.LocationTypeAvailabilityZone)},
 					},
 				},
 			}).Return(&ec2.DescribeAvailabilityZonesOutput{
@@ -207,6 +231,10 @@ var _ = Describe("AZ", func() {
 					{
 						Name:   aws.String("state"),
 						Values: []*string{aws.String(ec2.AvailabilityZoneStateAvailable)},
+					},
+					{
+						Name:   aws.String("zone-type"),
+						Values: []*string{aws.String(ec2.LocationTypeAvailabilityZone)},
 					},
 				},
 			}).Return(&ec2.DescribeAvailabilityZonesOutput{

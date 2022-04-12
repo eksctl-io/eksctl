@@ -234,6 +234,9 @@ var _ = Describe("Setting Availability Zones", func() {
 					}, {
 						Name:   aws.String("state"),
 						Values: []*string{aws.String(ec2.AvailabilityZoneStateAvailable)},
+					}, {
+						Name:   aws.String("zone-type"),
+						Values: []*string{aws.String(ec2.LocationTypeAvailabilityZone)},
 					}},
 				}).Return(&ec2.DescribeAvailabilityZonesOutput{
 					AvailabilityZones: []*ec2.AvailabilityZone{
