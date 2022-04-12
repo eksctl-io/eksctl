@@ -35,7 +35,7 @@ func (c *StackCollection) createClusterTask(ctx context.Context, errs chan error
 	name := c.MakeClusterStackName()
 	logger.Info("building cluster stack %q", name)
 	stack := builder.NewClusterResourceSet(c.ec2API, c.region, c.spec, nil)
-	if err := stack.AddAllResources(); err != nil {
+	if err := stack.AddAllResources(ctx); err != nil {
 		return err
 	}
 	return c.createClusterStack(ctx, name, stack, errs)
@@ -127,7 +127,7 @@ func (c *StackCollection) AppendNewClusterStackResource(ctx context.Context, pla
 
 	logger.Info("re-building cluster stack %q", name)
 	newStack := builder.NewClusterResourceSet(c.ec2API, c.region, c.spec, &currentResources)
-	if err := newStack.AddAllResources(); err != nil {
+	if err := newStack.AddAllResources(ctx); err != nil {
 		return false, err
 	}
 

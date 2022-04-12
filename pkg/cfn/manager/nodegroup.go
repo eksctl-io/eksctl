@@ -45,7 +45,7 @@ func (c *StackCollection) createNodeGroupTask(ctx context.Context, errs chan err
 		return errors.Wrap(err, "error creating bootstrapper")
 	}
 	stack := builder.NewNodeGroupResourceSet(c.ec2API, c.iamAPI, c.spec, ng, bootstrapper, forceAddCNIPolicy, vpcImporter)
-	if err := stack.AddAllResources(); err != nil {
+	if err := stack.AddAllResources(ctx); err != nil {
 		return err
 	}
 
@@ -71,7 +71,7 @@ func (c *StackCollection) createManagedNodeGroupTask(ctx context.Context, errorC
 	logger.Info("building managed nodegroup stack %q", name)
 	bootstrapper := nodebootstrap.NewManagedBootstrapper(c.spec, ng)
 	stack := builder.NewManagedNodeGroup(c.ec2API, c.spec, ng, builder.NewLaunchTemplateFetcher(c.ec2API), bootstrapper, forceAddCNIPolicy, vpcImporter)
-	if err := stack.AddAllResources(); err != nil {
+	if err := stack.AddAllResources(ctx); err != nil {
 		return err
 	}
 

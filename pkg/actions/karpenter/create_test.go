@@ -7,9 +7,12 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
+
 	"github.com/kris-nova/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -78,21 +81,21 @@ var _ = Describe("Create", func() {
 					},
 				},
 			}
-			fakeStackManager.CreateStackStub = func(_ context.Context, _ string, rs builder.ResourceSet, _ map[string]string, _ map[string]string, errs chan error) error {
+			fakeStackManager.CreateStackStub = func(_ context.Context, _ string, rs builder.ResourceSetReader, _ map[string]string, _ map[string]string, errs chan error) error {
 				go func() {
 					errs <- nil
 				}()
 				return nil
 			}
 
-			p.MockEC2().On("CreateTags", &ec2.CreateTagsInput{
-				Resources: []*string{
-					&privateSubnet1,
-					&privateSubnet2,
-					&publicSubnet1,
-					&publicSubnet2,
+			p.MockEC2().On("CreateTags", mock.Anything, &ec2.CreateTagsInput{
+				Resources: []string{
+					privateSubnet1,
+					privateSubnet2,
+					publicSubnet1,
+					publicSubnet2,
 				},
-				Tags: []*ec2.Tag{
+				Tags: []ec2types.Tag{
 					{
 						Key:   aws.String("kubernetes.io/cluster/" + clusterName),
 						Value: aws.String(""),
@@ -110,7 +113,7 @@ var _ = Describe("Create", func() {
 				KarpenterInstaller: fakeKarpenterInstaller,
 				ClientSet:          fakeClientSet,
 			}
-			Expect(install.Create()).To(Succeed())
+			Expect(install.Create(context.Background())).To(Succeed())
 			Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))
 		})
 		When("CreateTags fails", func() {
@@ -119,7 +122,7 @@ var _ = Describe("Create", func() {
 			)
 			BeforeEach(func() {
 				p = mockprovider.NewMockProvider()
-				p.MockEC2().On("CreateTags", mock.Anything).Return(nil, errors.New("nope"))
+				p.MockEC2().On("CreateTags", mock.Anything, mock.Anything).Return(nil, errors.New("nope"))
 				ctl = &eks.ClusterProvider{
 					Provider: p,
 					Status: &eks.ProviderStatus{
@@ -139,7 +142,7 @@ var _ = Describe("Create", func() {
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
 				}
-				err := install.Create()
+				err := install.Create(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("failed to install Karpenter on cluster")))
 				Expect(output.String()).To(ContainSubstring("failed to add tags for subnets: nope"))
 			})
@@ -154,7 +157,7 @@ var _ = Describe("Create", func() {
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
 				}
-				err := install.Create()
+				err := install.Create(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("nope")))
 			})
 		})
@@ -163,7 +166,7 @@ var _ = Describe("Create", func() {
 				output *bytes.Buffer
 			)
 			BeforeEach(func() {
-				fakeStackManager.CreateStackStub = func(_ context.Context, _ string, rs builder.ResourceSet, _ map[string]string, _ map[string]string, errs chan error) error {
+				fakeStackManager.CreateStackStub = func(_ context.Context, _ string, rs builder.ResourceSetReader, _ map[string]string, _ map[string]string, errs chan error) error {
 					go func() {
 						errs <- nil
 					}()
@@ -180,7 +183,7 @@ var _ = Describe("Create", func() {
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
 				}
-				err := install.Create()
+				err := install.Create(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("failed to install Karpenter on cluster")))
 				Expect(output.String()).To(ContainSubstring("failed to create stack: nope"))
 			})
@@ -197,7 +200,7 @@ var _ = Describe("Create", func() {
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
 				}
-				err := install.Create()
+				err := install.Create(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("unexpected or invalid ARN")))
 			})
 		})
@@ -219,7 +222,7 @@ var _ = Describe("Create", func() {
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
 				}
-				err := install.Create()
+				err := install.Create(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("failed to create/attach service account: failed to install Karpenter on cluster")))
 			})
 		})
@@ -238,7 +241,7 @@ var _ = Describe("Create", func() {
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
 				}
-				err := install.Create()
+				err := install.Create(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("failed to create client for auth config: getting auth ConfigMap: nope")))
 			})
 		})
@@ -257,7 +260,7 @@ var _ = Describe("Create", func() {
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
 				}
-				err := install.Create()
+				err := install.Create(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("failed to save the identity config: nope")))
 			})
 		})
@@ -288,7 +291,7 @@ var _ = Describe("Create", func() {
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
 				}
-				err := install.Create()
+				err := install.Create(context.Background())
 				Expect(err).To(MatchError(ContainSubstring("failed to save the identity config: nope")))
 			})
 		})
@@ -305,7 +308,7 @@ var _ = Describe("Create", func() {
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
 				}
-				Expect(install.Create()).To(Succeed())
+				Expect(install.Create(context.Background())).To(Succeed())
 				Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))
 				accounts, _, _ := fakeStackManager.NewTasksToCreateIAMServiceAccountsArgsForCall(0)
 				Expect(accounts).NotTo(BeEmpty())
@@ -325,7 +328,7 @@ var _ = Describe("Create", func() {
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
 				}
-				Expect(install.Create()).To(Succeed())
+				Expect(install.Create(context.Background())).To(Succeed())
 				Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))
 				accounts, _, _ := fakeStackManager.NewTasksToCreateIAMServiceAccountsArgsForCall(0)
 				Expect(accounts).NotTo(BeEmpty())
@@ -347,7 +350,7 @@ var _ = Describe("Create", func() {
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
 				}
-				Expect(install.Create()).To(Succeed())
+				Expect(install.Create(context.Background())).To(Succeed())
 				Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))
 				_, _, instanceProfile := fakeKarpenterInstaller.InstallArgsForCall(0)
 				instanceProfileName := fmt.Sprintf("eksctl-%s-%s", builder.KarpenterNodeInstanceProfile, cfg.Metadata.Name)
@@ -367,7 +370,7 @@ var _ = Describe("Create", func() {
 					KarpenterInstaller: fakeKarpenterInstaller,
 					ClientSet:          fakeClientSet,
 				}
-				Expect(install.Create()).To(Succeed())
+				Expect(install.Create(context.Background())).To(Succeed())
 				Expect(fakeKarpenterInstaller.InstallCallCount()).To(Equal(1))
 				_, _, instanceProfile := fakeKarpenterInstaller.InstallArgsForCall(0)
 				Expect(instanceProfile).To(Equal("profile"))

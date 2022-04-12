@@ -6,13 +6,14 @@ import (
 	"sort"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 )
 
 // Variations of image classes
@@ -30,12 +31,10 @@ var ImageClasses = []string{
 }
 
 // Use checks if a given AMI ID is available in AWS EC2 as well as checking and populating RootDevice information
-func Use(ctx context.Context, ec2API ec2iface.EC2API, ng *api.NodeGroupBase) error {
-	input := &ec2.DescribeImagesInput{
-		ImageIds: []*string{&ng.AMI},
-	}
-
-	output, err := ec2API.DescribeImagesWithContext(ctx, input)
+func Use(ctx context.Context, ec2API awsapi.EC2, ng *api.NodeGroupBase) error {
+	output, err := ec2API.DescribeImages(ctx, &ec2.DescribeImagesInput{
+		ImageIds: []string{ng.AMI},
+	})
 	if err != nil {
 		return errors.Wrapf(err, "unable to find image %q", ng.AMI)
 	}
@@ -47,12 +46,12 @@ func Use(ctx context.Context, ec2API ec2iface.EC2API, ng *api.NodeGroupBase) err
 
 	image := output.Images[0]
 
-	switch *image.RootDeviceType {
+	switch image.RootDeviceType {
 	// Instance-store AMIs cannot have their root volume size managed
-	case "instance-store":
+	case ec2types.DeviceTypeInstanceStore:
 		return fmt.Errorf("%q is an instance-store AMI and EBS block device mappings are not supported for instance-store AMIs", ng.AMI)
 
-	case "ebs":
+	case ec2types.DeviceTypeEbs:
 		if ng.AMIFamily != api.NodeImageFamilyBottlerocket && !api.IsSetAndNonEmptyString(ng.VolumeName) {
 			// Volume name is preset for Bottlerocket.
 			ng.VolumeName = image.RootDeviceName
@@ -76,46 +75,46 @@ func Use(ctx context.Context, ec2API ec2iface.EC2API, ng *api.NodeGroupBase) err
 	return nil
 }
 
-func findRootDeviceMapping(image *ec2.Image) (*ec2.BlockDeviceMapping, error) {
+func findRootDeviceMapping(image ec2types.Image) (ec2types.BlockDeviceMapping, error) {
 	for _, deviceMapping := range image.BlockDeviceMappings {
 		if *deviceMapping.DeviceName == *image.RootDeviceName {
 			return deviceMapping, nil
 		}
 	}
-	return nil, errors.Errorf("failed to find root device mapping for AMI %q", *image.ImageId)
+	return ec2types.BlockDeviceMapping{}, errors.Errorf("failed to find root device mapping for AMI %q", *image.ImageId)
 }
 
 // FindImage will get the AMI to use for the EKS nodes by querying AWS EC2 API.
 // It will only look for images with a status of available and it will pick the
 // image with the newest creation date.
-func FindImage(ctx context.Context, ec2api ec2iface.EC2API, ownerAccount, namePattern string) (string, error) {
+func FindImage(ctx context.Context, ec2API awsapi.EC2, ownerAccount, namePattern string) (string, error) {
 	input := &ec2.DescribeImagesInput{
-		Owners: []*string{&ownerAccount},
-		Filters: []*ec2.Filter{
+		Owners: []string{ownerAccount},
+		Filters: []ec2types.Filter{
 			{
 				Name:   aws.String("name"),
-				Values: []*string{&namePattern},
+				Values: []string{namePattern},
 			},
 			{
 				Name:   aws.String("virtualization-type"),
-				Values: []*string{aws.String("hvm")},
+				Values: []string{"hvm"},
 			},
 			{
 				Name:   aws.String("root-device-type"),
-				Values: []*string{aws.String("ebs")},
+				Values: []string{"ebs"},
 			},
 			{
 				Name:   aws.String("is-public"),
-				Values: []*string{aws.String("true")},
+				Values: []string{"true"},
 			},
 			{
 				Name:   aws.String("state"),
-				Values: []*string{aws.String("available")},
+				Values: []string{"available"},
 			},
 		},
 	}
 
-	output, err := ec2api.DescribeImagesWithContext(ctx, input)
+	output, err := ec2API.DescribeImages(ctx, input)
 	if err != nil {
 		return "", errors.Wrapf(err, "error querying AWS for images")
 	}

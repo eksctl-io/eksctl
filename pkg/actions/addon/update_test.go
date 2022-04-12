@@ -36,7 +36,7 @@ var _ = Describe("Update", func() {
 		mockProvider = mockprovider.NewMockProvider()
 		fakeStackManager = new(fakes.FakeStackManager)
 
-		fakeStackManager.CreateStackStub = func(_ context.Context, _ string, rs builder.ResourceSet, _ map[string]string, _ map[string]string, errs chan error) error {
+		fakeStackManager.CreateStackStub = func(_ context.Context, _ string, rs builder.ResourceSetReader, _ map[string]string, _ map[string]string, errs chan error) error {
 			go func() {
 				errs <- nil
 			}()

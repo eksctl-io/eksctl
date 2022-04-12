@@ -221,7 +221,7 @@ func (c *ClusterProvider) LoadClusterVPC(ctx context.Context, spec *api.ClusterC
 		return &manager.StackNotFoundErr{ClusterName: spec.Metadata.Name}
 	}
 
-	return vpc.UseFromClusterStack(c.Provider, stack, spec)
+	return vpc.UseFromClusterStack(ctx, c.Provider, stack, spec)
 }
 
 // loadClusterKubernetesNetworkConfig gets the network config of an existing

@@ -95,7 +95,7 @@ func (c *StackCollection) EnsureMapPublicIPOnLaunchEnabled(ctx context.Context) 
 	// and therefore the setting would not be updated)
 	publicIDs := c.spec.VPC.Subnets.Public.WithIDs()
 	logger.Debug("enabling attribute MapPublicIpOnLaunch via EC2 on subnets %q", publicIDs)
-	err := vpc.EnsureMapPublicIPOnLaunchEnabled(c.ec2API, publicIDs)
+	err := vpc.EnsureMapPublicIPOnLaunchEnabled(ctx, c.ec2API, publicIDs)
 	if err != nil {
 		return err
 	}

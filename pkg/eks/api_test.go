@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	gomegatypes "github.com/onsi/gomega/types"
@@ -18,7 +19,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-
 	. "github.com/weaveworks/eksctl/pkg/eks"
 )
 
@@ -120,7 +120,7 @@ var _ = Describe("eksctl API", func() {
 		It("should fall back to auto resolution for Ubuntu", func() {
 			ng.AMIFamily = api.NodeImageFamilyUbuntu1804
 			mockDescribeImages(provider, "ami-ubuntu", func(input *ec2.DescribeImagesInput) bool {
-				return *input.Owners[0] == "099720109477"
+				return input.Owners[0] == "099720109477"
 			})
 			testEnsureAMI(Equal("ami-ubuntu"))
 		})
@@ -139,19 +139,19 @@ var _ = Describe("eksctl API", func() {
 })
 
 func mockDescribeImages(p *mockprovider.MockProvider, amiID string, matcher func(*ec2.DescribeImagesInput) bool) {
-	p.MockEC2().On("DescribeImagesWithContext", mock.Anything, mock.MatchedBy(matcher)).
+	p.MockEC2().On("DescribeImages", mock.Anything, mock.MatchedBy(matcher)).
 		Return(&ec2.DescribeImagesOutput{
-			Images: []*ec2.Image{
+			Images: []ec2types.Image{
 				{
 					ImageId:        aws.String(amiID),
-					State:          aws.String("available"),
+					State:          ec2types.ImageStateAvailable,
 					OwnerId:        aws.String("123"),
-					RootDeviceType: aws.String("ebs"),
+					RootDeviceType: ec2types.DeviceTypeEbs,
 					RootDeviceName: aws.String("/dev/sda1"),
-					BlockDeviceMappings: []*ec2.BlockDeviceMapping{
+					BlockDeviceMappings: []ec2types.BlockDeviceMapping{
 						{
 							DeviceName: aws.String("/dev/sda1"),
-							Ebs: &ec2.EbsBlockDevice{
+							Ebs: &ec2types.EbsBlockDevice{
 								Encrypted: aws.Bool(false),
 							},
 						},
@@ -175,14 +175,14 @@ var _ = Describe("Setting Availability Zones", func() {
 	When("the AZs were set as CLI params", func() {
 		When("the given params contain enough AZs", func() {
 			It("sets them as the AZs to be used", func() {
-				err := eks.SetAvailabilityZones(cfg, []string{"us-east-2a", "us-east-2b"}, provider.EC2(), "")
+				err := eks.SetAvailabilityZones(context.Background(), cfg, []string{"us-east-2a", "us-east-2b"}, provider.EC2(), "")
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 
 		When("the given params contain too few AZs", func() {
 			It("returns an error", func() {
-				err := eks.SetAvailabilityZones(cfg, []string{"us-east-2a"}, provider.EC2(), "")
+				err := eks.SetAvailabilityZones(context.Background(), cfg, []string{"us-east-2a"}, provider.EC2(), "")
 				Expect(err).To(MatchError("only 1 zone(s) specified [us-east-2a], 2 are required (can be non-unique)"))
 			})
 		})
@@ -192,7 +192,7 @@ var _ = Describe("Setting Availability Zones", func() {
 		When("the config file contains enough AZs", func() {
 			It("sets them as the AZs to be used", func() {
 				cfg.AvailabilityZones = []string{"us-east-2a", "us-east-2b"}
-				err := eks.SetAvailabilityZones(cfg, []string{}, provider.EC2(), "")
+				err := eks.SetAvailabilityZones(context.Background(), cfg, []string{}, provider.EC2(), "")
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
@@ -200,7 +200,7 @@ var _ = Describe("Setting Availability Zones", func() {
 		When("the config file contains too few AZs", func() {
 			It("returns an error", func() {
 				cfg.AvailabilityZones = []string{"us-east-2a"}
-				err := eks.SetAvailabilityZones(cfg, []string{}, provider.EC2(), "")
+				err := eks.SetAvailabilityZones(context.Background(), cfg, []string{}, provider.EC2(), "")
 				Expect(err).To(MatchError("only 1 zone(s) specified [us-east-2a], 2 are required (can be non-unique)"))
 			})
 		})
@@ -210,16 +210,16 @@ var _ = Describe("Setting Availability Zones", func() {
 		When("the call to fetch AZs fails", func() {
 			It("returns an error", func() {
 				region := "us-east-2"
-				provider.MockEC2().On("DescribeAvailabilityZones", &ec2.DescribeAvailabilityZonesInput{
-					Filters: []*ec2.Filter{{
+				provider.MockEC2().On("DescribeAvailabilityZones", mock.Anything, &ec2.DescribeAvailabilityZonesInput{
+					Filters: []ec2types.Filter{{
 						Name:   aws.String("region-name"),
-						Values: []*string{aws.String(region)},
+						Values: []string{region},
 					}, {
 						Name:   aws.String("state"),
-						Values: []*string{aws.String(ec2.AvailabilityZoneStateAvailable)},
+						Values: []string{string(ec2types.AvailabilityZoneStateAvailable)},
 					}},
 				}).Return(&ec2.DescribeAvailabilityZonesOutput{}, fmt.Errorf("err"))
-				err := eks.SetAvailabilityZones(cfg, []string{}, provider.EC2(), region)
+				err := eks.SetAvailabilityZones(context.Background(), cfg, []string{}, provider.EC2(), region)
 				Expect(err).To(MatchError("getting availability zones: error getting availability zones for region us-east-2: err"))
 			})
 		})
@@ -227,16 +227,16 @@ var _ = Describe("Setting Availability Zones", func() {
 		When("the call to fetch AZs succeeds", func() {
 			It("sets random AZs", func() {
 				region := "us-east-2"
-				provider.MockEC2().On("DescribeAvailabilityZones", &ec2.DescribeAvailabilityZonesInput{
-					Filters: []*ec2.Filter{{
+				provider.MockEC2().On("DescribeAvailabilityZones", mock.Anything, &ec2.DescribeAvailabilityZonesInput{
+					Filters: []ec2types.Filter{{
 						Name:   aws.String("region-name"),
-						Values: []*string{aws.String(region)},
+						Values: []string{region},
 					}, {
 						Name:   aws.String("state"),
-						Values: []*string{aws.String(ec2.AvailabilityZoneStateAvailable)},
+						Values: []string{string(ec2types.AvailabilityZoneStateAvailable)},
 					}},
 				}).Return(&ec2.DescribeAvailabilityZonesOutput{
-					AvailabilityZones: []*ec2.AvailabilityZone{
+					AvailabilityZones: []ec2types.AvailabilityZone{
 						{
 							GroupName: aws.String("name"),
 							ZoneName:  aws.String(region),
@@ -248,7 +248,7 @@ var _ = Describe("Setting Availability Zones", func() {
 							ZoneId:    aws.String("id"),
 						}},
 				}, nil)
-				err := eks.SetAvailabilityZones(cfg, []string{}, provider.EC2(), region)
+				err := eks.SetAvailabilityZones(context.Background(), cfg, []string{}, provider.EC2(), region)
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})

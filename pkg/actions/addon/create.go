@@ -252,7 +252,7 @@ func (a *Manager) createRoleResourceSet(addon *api.Addon, namespace, serviceAcco
 	return resourceSet, resourceSet.AddAllResources()
 }
 
-func (a *Manager) createStack(ctx context.Context, resourceSet builder.ResourceSet, addon *api.Addon) error {
+func (a *Manager) createStack(ctx context.Context, resourceSet builder.ResourceSetReader, addon *api.Addon) error {
 	errChan := make(chan error)
 
 	tags := map[string]string{

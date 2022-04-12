@@ -42,7 +42,7 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterSt
 }
 
 func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
-	if err := vpc.UseFromClusterStack(c.ctl.Provider, c.clusterStack, c.cfg); err != nil {
+	if err := vpc.UseFromClusterStack(ctx, c.ctl.Provider, c.clusterStack, c.cfg); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
 	}
 
@@ -134,7 +134,7 @@ func (c *OwnedCluster) Delete(ctx context.Context, _ time.Duration, wait, force,
 		}
 
 		go func() {
-			errs <- vpc.CleanupNetworkInterfaces(c.ctl.Provider.EC2(), c.cfg)
+			errs <- vpc.CleanupNetworkInterfaces(ctx, c.ctl.Provider.EC2(), c.cfg)
 			close(errs)
 		}()
 		return nil

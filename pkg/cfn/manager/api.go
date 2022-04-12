@@ -10,13 +10,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
+	"github.com/aws/smithy-go"
 
 	cttypes "github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"github.com/aws/smithy-go"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -70,17 +68,18 @@ type ChangeSet = cloudformation.DescribeChangeSetOutput
 // StackCollection stores the CloudFormation stack information
 type StackCollection struct {
 	cloudformationAPI awsapi.CloudFormation
-	ec2API            ec2iface.EC2API
+	ec2API            awsapi.EC2
 	eksAPI            eksiface.EKSAPI
-	iamAPI            iamiface.IAMAPI
+	iamAPI            awsapi.IAM
 	cloudTrailAPI     awsapi.CloudTrail
 	asgAPI            awsapi.ASG
-	spec              *api.ClusterConfig
-	disableRollback   bool
-	roleARN           string
-	region            string
-	waitTimeout       time.Duration
-	sharedTags        []types.Tag
+
+	spec            *api.ClusterConfig
+	disableRollback bool
+	roleARN         string
+	region          string
+	waitTimeout     time.Duration
+	sharedTags      []types.Tag
 }
 
 func newTag(key, value string) types.Tag {
@@ -165,7 +164,7 @@ func (c *StackCollection) DoCreateStackRequest(ctx context.Context, i *Stack, te
 // any errors will be written to errs channel, when nil is written,
 // assume completion, do not expect more then one error value on the
 // channel, it's closed immediately after it is written to
-func (c *StackCollection) CreateStack(ctx context.Context, stackName string, resourceSet builder.ResourceSet, tags, parameters map[string]string, errs chan error) error {
+func (c *StackCollection) CreateStack(ctx context.Context, stackName string, resourceSet builder.ResourceSetReader, tags, parameters map[string]string, errs chan error) error {
 	stack, err := c.createStackRequest(ctx, stackName, resourceSet, tags, parameters)
 	if err != nil {
 		return err
@@ -176,7 +175,7 @@ func (c *StackCollection) CreateStack(ctx context.Context, stackName string, res
 }
 
 // createClusterStack creates the cluster stack
-func (c *StackCollection) createClusterStack(ctx context.Context, stackName string, resourceSet builder.ResourceSet, errCh chan error) error {
+func (c *StackCollection) createClusterStack(ctx context.Context, stackName string, resourceSet builder.ResourceSetReader, errCh chan error) error {
 	// Unlike with `createNodeGroupTask`, all tags are already set for the cluster stack
 	stack, err := c.createStackRequest(ctx, stackName, resourceSet, nil, nil)
 	if err != nil {
@@ -224,7 +223,7 @@ func (c *StackCollection) createClusterStack(ctx context.Context, stackName stri
 	return nil
 }
 
-func (c *StackCollection) createStackRequest(ctx context.Context, stackName string, resourceSet builder.ResourceSet, tags, parameters map[string]string) (*Stack, error) {
+func (c *StackCollection) createStackRequest(ctx context.Context, stackName string, resourceSet builder.ResourceSetReader, tags, parameters map[string]string) (*Stack, error) {
 	stack := &Stack{StackName: &stackName}
 	templateBody, err := resourceSet.RenderJSON()
 	if err != nil {

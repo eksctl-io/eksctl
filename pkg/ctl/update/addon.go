@@ -9,6 +9,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -60,7 +61,7 @@ func updateAddon(cmd *cmdutils.Cmd, force, wait bool) error {
 		return err
 	}
 
-	oidcProviderExists, err := oidc.CheckProviderExists()
+	oidcProviderExists, err := oidc.CheckProviderExists(context.TODO())
 	if err != nil {
 		return err
 	}

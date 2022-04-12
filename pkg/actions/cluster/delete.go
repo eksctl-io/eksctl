@@ -49,7 +49,7 @@ func deleteSharedResources(ctx context.Context, cfg *api.ClusterConfig, ctl *eks
 		return nil
 	}
 
-	ssh.DeleteKeys(cfg.Metadata.Name, ctl.Provider.EC2())
+	ssh.DeleteKeys(ctx, ctl.Provider.EC2(), cfg.Metadata.Name)
 
 	kubeconfig.MaybeDeleteConfig(cfg.Metadata)
 

@@ -15,6 +15,7 @@ import (
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
@@ -47,7 +48,7 @@ var _ = Describe("Create", func() {
 		mockProvider = mockprovider.NewMockProvider()
 		createStackReturnValue = nil
 
-		fakeStackManager.CreateStackStub = func(_ context.Context, _ string, rs builder.ResourceSet, _ map[string]string, _ map[string]string, errs chan error) error {
+		fakeStackManager.CreateStackStub = func(_ context.Context, _ string, rs builder.ResourceSetReader, _ map[string]string, _ map[string]string, errs chan error) error {
 			go func() {
 				errs <- nil
 			}()
@@ -385,7 +386,7 @@ var _ = Describe("Create", func() {
 
 		When("we know the recommended policies for the specified addon", func() {
 			BeforeEach(func() {
-				fakeStackManager.CreateStackStub = func(_ context.Context, _ string, rs builder.ResourceSet, _ map[string]string, _ map[string]string, errs chan error) error {
+				fakeStackManager.CreateStackStub = func(_ context.Context, _ string, rs builder.ResourceSetReader, _ map[string]string, _ map[string]string, errs chan error) error {
 					go func() {
 						errs <- nil
 					}()

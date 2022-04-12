@@ -14,7 +14,7 @@ import (
 
 // IRSAHelper provides methods for enabling IRSA
 type IRSAHelper interface {
-	IsSupported() (bool, error)
+	IsSupported(ctx context.Context) (bool, error)
 	CreateOrUpdate(ctx context.Context, serviceAccounts *api.ClusterIAMServiceAccount) error
 }
 
@@ -37,8 +37,8 @@ func NewIRSAHelper(oidc *iamoidc.OpenIDConnectManager, stackManager manager.Stac
 }
 
 // IsSupported checks whether IRSA is supported or not
-func (h *irsaHelper) IsSupported() (bool, error) {
-	exists, err := h.oidc.CheckProviderExists()
+func (h *irsaHelper) IsSupported(ctx context.Context) (bool, error) {
+	exists, err := h.oidc.CheckProviderExists(ctx)
 	if err != nil {
 		return false, errors.Wrapf(err, "error checking OIDC provider")
 	}

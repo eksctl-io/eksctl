@@ -79,5 +79,5 @@ func DoUpgradeCluster(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	return c.Upgrade(ctx, cmd.Plan)
+	return c.Upgrade(context.TODO(), cmd.Plan)
 }

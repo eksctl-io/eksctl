@@ -14,6 +14,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/goformation/v4"
 	"github.com/weaveworks/goformation/v4/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
@@ -235,7 +236,7 @@ func (m *Manager) upgradeUsingStack(ctx context.Context, options UpgradeOptions,
 		}
 	}
 
-	usesCustomAMI, err := m.usesCustomAMI(ltResources, ngResource)
+	usesCustomAMI, err := m.usesCustomAMI(ctx, ltResources, ngResource)
 	if err != nil {
 		return err
 	}
@@ -344,7 +345,7 @@ func (m *Manager) getLatestReleaseVersion(ctx context.Context, kubernetesVersion
 	return *ssmOutput.Parameter.Value, nil
 }
 
-func (m *Manager) usesCustomAMI(ltResources map[string]*gfnec2.LaunchTemplate, ng *gfneks.Nodegroup) (bool, error) {
+func (m *Manager) usesCustomAMI(ctx context.Context, ltResources map[string]*gfnec2.LaunchTemplate, ng *gfneks.Nodegroup) (bool, error) {
 	if lt, ok := ltResources["LaunchTemplate"]; ok {
 		return lt.LaunchTemplateData.ImageId != nil, nil
 	}
@@ -360,7 +361,7 @@ func (m *Manager) usesCustomAMI(ltResources map[string]*gfnec2.LaunchTemplate, n
 		lt.Version = aws.String(version.String())
 	}
 
-	customLaunchTemplate, err := m.launchTemplateFetcher.Fetch(lt)
+	customLaunchTemplate, err := m.launchTemplateFetcher.Fetch(ctx, lt)
 	if err != nil {
 		return false, errors.Wrap(err, "error fetching launch template data")
 	}

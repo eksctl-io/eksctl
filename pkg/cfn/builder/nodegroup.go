@@ -1,12 +1,11 @@
 package builder
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/pkg/errors"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
@@ -16,6 +15,7 @@ import (
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/vpc"
@@ -26,12 +26,13 @@ const MaximumTagNumber = 50
 
 // NodeGroupResourceSet stores the resource information of the nodegroup
 type NodeGroupResourceSet struct {
-	rs                 *resourceSet
-	clusterSpec        *api.ClusterConfig
-	spec               *api.NodeGroup
-	forceAddCNIPolicy  bool
-	ec2API             ec2iface.EC2API
-	iamAPI             iamiface.IAMAPI
+	rs                *resourceSet
+	clusterSpec       *api.ClusterConfig
+	spec              *api.NodeGroup
+	forceAddCNIPolicy bool
+	ec2API            awsapi.EC2
+
+	iamAPI             awsapi.IAM
 	instanceProfileARN *gfnt.Value
 	securityGroups     []*gfnt.Value
 	vpc                *gfnt.Value
@@ -40,7 +41,7 @@ type NodeGroupResourceSet struct {
 }
 
 // NewNodeGroupResourceSet returns a resource set for a nodegroup embedded in a cluster config
-func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spec *api.ClusterConfig, ng *api.NodeGroup, bootstrapper nodebootstrap.Bootstrapper, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *NodeGroupResourceSet {
+func NewNodeGroupResourceSet(ec2API awsapi.EC2, iamAPI awsapi.IAM, spec *api.ClusterConfig, ng *api.NodeGroup, bootstrapper nodebootstrap.Bootstrapper, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
 		rs:                newResourceSet(),
 		forceAddCNIPolicy: forceAddCNIPolicy,
@@ -54,7 +55,7 @@ func NewNodeGroupResourceSet(ec2API ec2iface.EC2API, iamAPI iamiface.IAMAPI, spe
 }
 
 // AddAllResources adds all the information about the nodegroup to the resource set
-func (n *NodeGroupResourceSet) AddAllResources() error {
+func (n *NodeGroupResourceSet) AddAllResources(ctx context.Context) error {
 
 	if n.clusterSpec.IPv6Enabled() {
 		return errors.New("unmanaged nodegroups are not supported with IPv6 clusters")
@@ -112,12 +113,12 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		return fmt.Errorf("--nodes-min value (%d) cannot be greater than --nodes-max value (%d)", *n.spec.MinSize, *n.spec.MaxSize)
 	}
 
-	if err := n.addResourcesForIAM(); err != nil {
+	if err := n.addResourcesForIAM(ctx); err != nil {
 		return err
 	}
 	n.addResourcesForSecurityGroups()
 
-	return n.addResourcesForNodeGroup()
+	return n.addResourcesForNodeGroup(ctx)
 }
 
 func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
@@ -215,9 +216,9 @@ func (n *NodeGroupResourceSet) newResource(name string, resource gfn.Resource) *
 	return n.rs.newResource(name, resource)
 }
 
-func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
+func (n *NodeGroupResourceSet) addResourcesForNodeGroup(ctx context.Context) error {
 	launchTemplateName := gfnt.MakeFnSubString(fmt.Sprintf("${%s}", gfnt.StackName))
-	launchTemplateData, err := newLaunchTemplateData(n)
+	launchTemplateData, err := newLaunchTemplateData(ctx, n)
 	if err != nil {
 		return errors.Wrap(err, "could not add resources for nodegroup")
 	}
@@ -233,7 +234,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		LaunchTemplateData: launchTemplateData,
 	})
 
-	vpcZoneIdentifier, err := AssignSubnets(n.spec.NodeGroupBase, n.vpcImporter, n.clusterSpec, n.ec2API)
+	vpcZoneIdentifier, err := AssignSubnets(ctx, n.spec.NodeGroupBase, n.vpcImporter, n.clusterSpec, n.ec2API)
 	if err != nil {
 		return err
 	}
@@ -327,8 +328,8 @@ func generateNodeName(ng *api.NodeGroupBase, meta *api.ClusterMeta) string {
 }
 
 // AssignSubnets subnets based on the specified availability zones
-func AssignSubnets(spec *api.NodeGroupBase, vpcImporter vpc.Importer, clusterSpec *api.ClusterConfig, ec2API ec2iface.EC2API) (*gfnt.Value, error) {
-	// currently goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
+func AssignSubnets(ctx context.Context, spec *api.NodeGroupBase, vpcImporter vpc.Importer, clusterSpec *api.ClusterConfig, ec2API awsapi.EC2) (*gfnt.Value, error) {
+	// Currently, goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
 
 	if len(spec.AvailabilityZones) > 0 || len(spec.Subnets) > 0 || api.IsEnabled(spec.EFAEnabled) {
@@ -338,7 +339,7 @@ func AssignSubnets(spec *api.NodeGroupBase, vpcImporter vpc.Importer, clusterSpe
 			subnets = clusterSpec.VPC.Subnets.Private
 			typ = "private"
 		}
-		subnetIDs, err := vpc.SelectNodeGroupSubnets(spec.AvailabilityZones, spec.Subnets, subnets, ec2API, clusterSpec.VPC.ID)
+		subnetIDs, err := vpc.SelectNodeGroupSubnets(ctx, spec.AvailabilityZones, spec.Subnets, subnets, ec2API, clusterSpec.VPC.ID)
 		if api.IsEnabled(spec.EFAEnabled) && len(subnetIDs) > 1 {
 			subnetIDs = []string{subnetIDs[0]}
 			logger.Info("EFA requires all nodes be in a single subnet, arbitrarily choosing one: %s", subnetIDs)
@@ -361,7 +362,7 @@ func (n *NodeGroupResourceSet) GetAllOutputs(stack types.Stack) error {
 	return n.rs.GetAllOutputs(stack)
 }
 
-func newLaunchTemplateData(n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
+func newLaunchTemplateData(ctx context.Context, n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
 	userData, err := n.bootstrapper.UserData()
 	if err != nil {
 		return nil, err
@@ -377,7 +378,7 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) (*gfnec2.LaunchTemplate_Laun
 		TagSpecifications: makeTags(n.spec.NodeGroupBase, n.clusterSpec.Metadata),
 	}
 
-	if err := buildNetworkInterfaces(launchTemplateData, n.spec.InstanceTypeList(), api.IsEnabled(n.spec.EFAEnabled), n.securityGroups, n.ec2API); err != nil {
+	if err := buildNetworkInterfaces(ctx, launchTemplateData, n.spec.InstanceTypeList(), api.IsEnabled(n.spec.EFAEnabled), n.securityGroups, n.ec2API); err != nil {
 		return nil, errors.Wrap(err, "couldn't build network interfaces for launch template data")
 	}
 

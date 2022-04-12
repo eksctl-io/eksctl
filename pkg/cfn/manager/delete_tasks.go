@@ -193,7 +193,7 @@ func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(ctx
 		taskTree.Append(saTasks)
 	}
 
-	providerExists, err := oidc.CheckProviderExists()
+	providerExists, err := oidc.CheckProviderExists(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +201,9 @@ func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(ctx
 	if providerExists {
 		taskTree.Append(&asyncTaskWithoutParams{
 			info: "delete IAM OIDC provider",
-			call: oidc.DeleteProvider,
+			call: func() error {
+				return oidc.DeleteProvider(ctx)
+			},
 		})
 	}
 

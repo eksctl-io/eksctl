@@ -23,7 +23,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-// Options controls specific steps of node group creation
+// CreateOpts controls specific steps of node group creation
 type CreateOpts struct {
 	UpdateAuthConfigMap       bool
 	InstallNeuronDevicePlugin bool
@@ -53,7 +53,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		switch e := err.(type) {
 		case *manager.StackNotFoundErr:
 			logger.Warning("%s, will attempt to create nodegroup(s) on non eksctl-managed cluster", e.Error())
-			if err := loadVPCFromConfig(ctl.Provider, cfg); err != nil {
+			if err := loadVPCFromConfig(ctx, ctl.Provider, cfg); err != nil {
 				return errors.Wrapf(err, "loading VPC spec for cluster %q", meta.Name)
 			}
 
@@ -87,7 +87,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		}
 	}
 
-	if err := m.init.ValidateLegacySubnetsForNodeGroups(cfg, ctl.Provider); err != nil {
+	if err := m.init.ValidateLegacySubnetsForNodeGroups(ctx, cfg, ctl.Provider); err != nil {
 		return err
 	}
 
@@ -119,7 +119,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, os.Stdout)
 	}
 
-	if err := m.nodeCreationTasks(isOwnedCluster); err != nil {
+	if err := m.nodeCreationTasks(ctx, isOwnedCluster); err != nil {
 		return err
 	}
 
@@ -134,7 +134,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 	return nil
 }
 
-func (m *Manager) nodeCreationTasks(isOwnedCluster bool) error {
+func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
 	init := m.init
@@ -144,10 +144,10 @@ func (m *Manager) nodeCreationTasks(isOwnedCluster bool) error {
 	}
 
 	if isOwnedCluster {
-		taskTree.Append(m.stackManager.NewClusterCompatTask())
+		taskTree.Append(m.stackManager.NewClusterCompatTask(ctx))
 	}
 
-	awsNodeUsesIRSA, err := init.DoesAWSNodeUseIRSA(m.ctl.Provider, m.clientSet)
+	awsNodeUsesIRSA, err := init.DoesAWSNodeUseIRSA(ctx, m.ctl.Provider, m.clientSet)
 	if err != nil {
 		return errors.Wrap(err, "couldn't check aws-node for annotation")
 	}
@@ -166,11 +166,11 @@ func (m *Manager) nodeCreationTasks(isOwnedCluster bool) error {
 	allNodeGroupTasks := &tasks.TaskTree{
 		Parallel: true,
 	}
-	nodeGroupTasks := m.stackManager.NewUnmanagedNodeGroupTask(cfg.NodeGroups, !awsNodeUsesIRSA, vpcImporter)
+	nodeGroupTasks := m.stackManager.NewUnmanagedNodeGroupTask(ctx, cfg.NodeGroups, !awsNodeUsesIRSA, vpcImporter)
 	if nodeGroupTasks.Len() > 0 {
 		allNodeGroupTasks.Append(nodeGroupTasks)
 	}
-	managedTasks := m.stackManager.NewManagedNodeGroupTask(cfg.ManagedNodeGroups, !awsNodeUsesIRSA, vpcImporter)
+	managedTasks := m.stackManager.NewManagedNodeGroupTask(ctx, cfg.ManagedNodeGroups, !awsNodeUsesIRSA, vpcImporter)
 	if managedTasks.Len() > 0 {
 		allNodeGroupTasks.Append(managedTasks)
 	}
@@ -276,12 +276,12 @@ func (m *Manager) checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes
 	return nil
 }
 
-func loadVPCFromConfig(provider api.ClusterProvider, cfg *api.ClusterConfig) error {
+func loadVPCFromConfig(ctx context.Context, provider api.ClusterProvider, cfg *api.ClusterConfig) error {
 	if cfg.VPC == nil || cfg.VPC.Subnets == nil || cfg.VPC.SecurityGroup == "" || cfg.VPC.ID == "" {
 		return errors.New("VPC configuration required for creating nodegroups on clusters not owned by eksctl: vpc.subnets, vpc.id, vpc.securityGroup")
 	}
 
-	if err := vpc.ImportSubnetsFromSpec(provider, cfg); err != nil {
+	if err := vpc.ImportSubnetsFromSpec(ctx, provider, cfg); err != nil {
 		return err
 	}
 

@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -56,7 +55,7 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				JustBeforeEach(func() {
-					cluster, err = c.GetCluster(context.TODO(), clusterName)
+					cluster, err = c.GetCluster(context.Background(), clusterName)
 				})
 
 				It("should not error", func() {
@@ -112,7 +111,7 @@ var _ = Describe("EKS API wrapper", func() {
 				})
 
 				JustBeforeEach(func() {
-					cluster, err = c.GetCluster(context.TODO(), clusterName)
+					cluster, err = c.GetCluster(context.Background(), clusterName)
 				})
 
 				It("should not error", func() {
@@ -152,7 +151,7 @@ var _ = Describe("EKS API wrapper", func() {
 			})
 
 			JustBeforeEach(func() {
-				cluster, err = c.GetCluster(context.TODO(), clusterName)
+				cluster, err = c.GetCluster(context.Background(), clusterName)
 			})
 
 			It("should not error", func() {

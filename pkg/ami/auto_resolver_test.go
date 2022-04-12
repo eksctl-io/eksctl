@@ -3,8 +3,10 @@ package ami_test
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
@@ -16,7 +18,7 @@ import (
 
 type returnAmi struct {
 	imageID     string
-	state       string
+	state       ec2types.ImageState
 	createdDate string
 }
 
@@ -33,7 +35,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 			imageFamily  string
 			resolvedAmi  string
 			expectedAmi  string
-			imageState   string
+			imageState   ec2types.ImageState
 		)
 
 		Context("setting proper AWS Account IDs based on instance families", func() {
@@ -77,7 +79,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				Context("and ami is available", func() {
 					BeforeEach(func() {
-						imageState = "available"
+						imageState = ec2types.ImageStateAvailable
 
 						p = mockprovider.NewMockProvider()
 						addMockDescribeImages(p, "amazon-eks-node-1.15-v*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", api.NodeImageFamilyAmazonLinux2)
@@ -90,7 +92,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 					})
 
 					It("should have called AWS EC2 DescribeImages", func() {
-						Expect(p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeImagesWithContext", 1)).To(BeTrue())
+						Expect(p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeImages", 1)).To(BeTrue())
 					})
 
 					It("should have returned an ami id", func() {
@@ -100,7 +102,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				Context("and ami is available", func() {
 					BeforeEach(func() {
-						imageState = "available"
+						imageState = ec2types.ImageStateAvailable
 						imageFamily = "Ubuntu1804"
 
 						p = mockprovider.NewMockProvider()
@@ -115,7 +117,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 					})
 
 					It("should have called AWS EC2 DescribeImages", func() {
-						Expect(p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeImagesWithContext", 1)).To(BeTrue())
+						Expect(p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeImages", 1)).To(BeTrue())
 					})
 
 					It("should have returned an ami id", func() {
@@ -125,7 +127,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				Context("and ami is NOT available", func() {
 					BeforeEach(func() {
-						imageState = "pending"
+						imageState = ec2types.ImageStatePending
 
 						p = mockprovider.NewMockProvider()
 						addMockDescribeImagesMultiple(p, "amazon-eks-node-1.15-v*", []returnAmi{})
@@ -139,7 +141,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 					})
 
 					It("should have called AWS EC2 DescribeImages", func() {
-						Expect(p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeImagesWithContext", 1)).To(BeTrue())
+						Expect(p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeImages", 1)).To(BeTrue())
 					})
 
 					It("should NOT have returned an ami id", func() {
@@ -177,7 +179,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 					})
 
 					It("should have called AWS EC2 DescribeImages", func() {
-						Expect(p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeImagesWithContext", 1)).To(BeTrue())
+						Expect(p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeImages", 1)).To(BeTrue())
 					})
 
 					It("should have returned an ami id", func() {
@@ -206,7 +208,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 					})
 
 					It("should have called AWS EC2 DescribeImages", func() {
-						Expect(p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeImagesWithContext", 1)).To(BeTrue())
+						Expect(p.MockEC2().AssertNumberOfCalls(GinkgoT(), "DescribeImages", 1)).To(BeTrue())
 					})
 
 					It("should have returned an ami id", func() {
@@ -218,14 +220,14 @@ var _ = Describe("AMI Auto Resolution", func() {
 	})
 })
 
-func addMockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern string, amiID string, amiState string, createdDate string, instanceFamily string) {
-	p.MockEC2().On("DescribeImagesWithContext",
+func addMockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern string, amiID string, amiState ec2types.ImageState, createdDate string, instanceFamily string) {
+	p.MockEC2().On("DescribeImages",
 		mock.Anything,
 		mock.MatchedBy(func(input *ec2.DescribeImagesInput) bool {
 			for _, filter := range input.Filters {
 				if *filter.Name == "name" {
 					if len(filter.Values) > 0 {
-						if *filter.Values[0] == expectedNamePattern {
+						if filter.Values[0] == expectedNamePattern {
 							return true
 						}
 					}
@@ -234,10 +236,10 @@ func addMockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern str
 			return false
 		}),
 	).Return(&ec2.DescribeImagesOutput{
-		Images: []*ec2.Image{
+		Images: []ec2types.Image{
 			{
 				ImageId:      aws.String(amiID),
-				State:        aws.String(amiState),
+				State:        amiState,
 				CreationDate: aws.String(createdDate),
 				Description:  aws.String(instanceFamily),
 			},
@@ -246,22 +248,22 @@ func addMockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern str
 }
 
 func addMockDescribeImagesMultiple(p *mockprovider.MockProvider, expectedNamePattern string, returnAmis []returnAmi) {
-	images := make([]*ec2.Image, len(returnAmis))
-	for index, ami := range returnAmis {
-		images[index] = &ec2.Image{
+	images := make([]ec2types.Image, len(returnAmis))
+	for i, ami := range returnAmis {
+		images[i] = ec2types.Image{
 			ImageId:      aws.String(ami.imageID),
-			State:        aws.String(ami.state),
+			State:        ami.state,
 			CreationDate: aws.String(ami.createdDate),
 		}
 	}
 
-	p.MockEC2().On("DescribeImagesWithContext",
+	p.MockEC2().On("DescribeImages",
 		mock.Anything,
 		mock.MatchedBy(func(input *ec2.DescribeImagesInput) bool {
 			for _, filter := range input.Filters {
 				if *filter.Name == "name" {
 					if len(filter.Values) > 0 {
-						if *filter.Values[0] == expectedNamePattern {
+						if filter.Values[0] == expectedNamePattern {
 							return true
 						}
 					}

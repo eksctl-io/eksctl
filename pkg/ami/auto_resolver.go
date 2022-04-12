@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -67,7 +68,7 @@ func OwnerAccountID(imageFamily, region string) (string, error) {
 // AutoResolver resolves the AMi to the defaults for the region
 // by querying AWS EC2 API for the AMI to use
 type AutoResolver struct {
-	api ec2iface.EC2API
+	api awsapi.EC2
 }
 
 // Resolve will return an AMI to use based on the default AMI for

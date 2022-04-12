@@ -3,10 +3,12 @@ package manager_test
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -28,10 +30,10 @@ var _ = Describe("CreateTasks", func() {
 			}
 			modifySubnetAttributeCallCount := 0
 			p := mockprovider.NewMockProvider()
-			p.MockEC2().On("ModifySubnetAttribute", mock.Anything).Run(func(args mock.Arguments) {
-				Expect(args).To(HaveLen(1))
-				Expect(args[0]).To(BeAssignableToTypeOf(&ec2.ModifySubnetAttributeInput{}))
-				modifySubnetAttributeInput := args[0].(*ec2.ModifySubnetAttributeInput)
+			p.MockEC2().On("ModifySubnetAttribute", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&ec2.ModifySubnetAttributeInput{}))
+				modifySubnetAttributeInput := args[1].(*ec2.ModifySubnetAttributeInput)
 				Expect(*modifySubnetAttributeInput.AssignIpv6AddressOnCreation.Value).To(BeTrue())
 				Expect(subnetIDs).To(ContainElement(*modifySubnetAttributeInput.SubnetId))
 				modifySubnetAttributeCallCount++
@@ -56,10 +58,10 @@ var _ = Describe("CreateTasks", func() {
 					"0": {ID: subnetIDs[0]},
 				}
 				p := mockprovider.NewMockProvider()
-				p.MockEC2().On("ModifySubnetAttribute", mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(1))
-					Expect(args[0]).To(BeAssignableToTypeOf(&ec2.ModifySubnetAttributeInput{}))
-					modifySubnetAttributeInput := args[0].(*ec2.ModifySubnetAttributeInput)
+				p.MockEC2().On("ModifySubnetAttribute", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(2))
+					Expect(args[1]).To(BeAssignableToTypeOf(&ec2.ModifySubnetAttributeInput{}))
+					modifySubnetAttributeInput := args[1].(*ec2.ModifySubnetAttributeInput)
 					Expect(*modifySubnetAttributeInput.AssignIpv6AddressOnCreation.Value).To(BeTrue())
 					Expect(subnetIDs).To(ContainElement(*modifySubnetAttributeInput.SubnetId))
 				}).Return(&ec2.ModifySubnetAttributeOutput{}, fmt.Errorf("foo"))

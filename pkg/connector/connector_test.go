@@ -7,16 +7,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/iam"
+	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/iam"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/connector"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
@@ -82,7 +84,7 @@ var _ = Describe("EKS Connector", func() {
 		}, nil)
 
 		if cc.cluster.ConnectorRoleARN == "" {
-			mockIAM(mockProvider)
+			mockIAM(mockProvider, cc.cluster.Name)
 		}
 
 		manifestTemplate, err := cc.getManifestTemplate()
@@ -190,13 +192,13 @@ var _ = Describe("EKS Connector", func() {
 				Message_: aws.String("test"),
 			})
 
-			mockIAM(mockProvider)
+			mockIAM(mockProvider, cluster.Name)
 
 			mockProvider.MockIAM().
-				On("DeleteRolePolicy", mock.MatchedBy(func(input *iam.DeleteRolePolicyInput) bool {
+				On("DeleteRolePolicy", mock.Anything, mock.MatchedBy(func(input *iam.DeleteRolePolicyInput) bool {
 					return matchesRole(*input.RoleName) && *input.PolicyName == "eks-connector-agent"
 				})).Return(&iam.DeleteRolePolicyOutput{}, nil).
-				On("DeleteRole", mock.MatchedBy(func(input *iam.DeleteRoleInput) bool {
+				On("DeleteRole", mock.Anything, mock.MatchedBy(func(input *iam.DeleteRoleInput) bool {
 					return matchesRole(*input.RoleName)
 				})).Return(&iam.DeleteRoleOutput{}, nil)
 
@@ -221,19 +223,29 @@ func matchesRole(roleName string) bool {
 	return strings.HasPrefix(roleName, "eksctl-")
 }
 
-func mockIAM(mockProvider *mockprovider.MockProvider) {
+func mockIAM(mockProvider *mockprovider.MockProvider, clusterName string) {
 	mockProvider.MockIAM().
-		On("CreateRole", mock.MatchedBy(func(input *iam.CreateRoleInput) bool {
+		On("CreateRole", mock.Anything, mock.MatchedBy(func(input *iam.CreateRoleInput) bool {
 			return matchesRole(*input.RoleName)
 		})).Return(&iam.CreateRoleOutput{
-		Role: &iam.Role{
+		Role: &iamtypes.Role{
 			Arn: aws.String("arn:aws:iam::1234567890:role/eksctl-12345"),
 		},
 	}, nil).
-		On("PutRolePolicy", mock.MatchedBy(func(input *iam.PutRolePolicyInput) bool {
+		On("PutRolePolicy", mock.Anything, mock.MatchedBy(func(input *iam.PutRolePolicyInput) bool {
 			return matchesRole(*input.RoleName)
 		})).Return(&iam.PutRolePolicyOutput{}, nil).
-		On("WaitUntilRoleExists", mock.MatchedBy(func(input *iam.GetRoleInput) bool {
+		On("GetRole", mock.Anything, mock.MatchedBy(func(input *iam.GetRoleInput) bool {
 			return matchesRole(*input.RoleName)
-		})).Return(nil)
+		}), mock.Anything).
+		Return(&iam.GetRoleOutput{
+			Role: &iamtypes.Role{
+				Tags: []iamtypes.Tag{
+					{
+						Key:   aws.String(v1alpha5.ClusterNameTag),
+						Value: aws.String(clusterName),
+					},
+				},
+			},
+		}, nil)
 }

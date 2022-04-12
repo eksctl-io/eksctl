@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
 
@@ -44,7 +45,7 @@ func GetClusters(ctx context.Context, provider api.ClusterProvider, listAllRegio
 	}
 
 	var clusters []Description
-	authorizedRegionsList, err := provider.EC2().DescribeRegions(&ec2.DescribeRegionsInput{})
+	authorizedRegionsList, err := provider.EC2().DescribeRegions(ctx, &ec2.DescribeRegionsInput{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to describe regions: %w", err)
 	}

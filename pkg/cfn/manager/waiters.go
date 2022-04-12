@@ -75,7 +75,7 @@ func (c *StackCollection) DoWaitUntilStackIsCreated(ctx context.Context, i *Stac
 	}, c.waitTimeout, setCustomRetryer)
 }
 
-func (c *StackCollection) waitUntilStackIsCreated(ctx context.Context, i *Stack, stack builder.ResourceSet, errs chan error) {
+func (c *StackCollection) waitUntilStackIsCreated(ctx context.Context, i *Stack, stack builder.ResourceSetReader, errs chan error) {
 	defer close(errs)
 
 	if err := c.DoWaitUntilStackIsCreated(ctx, i); err != nil {
