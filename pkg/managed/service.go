@@ -3,8 +3,9 @@ package managed
 import (
 	"fmt"
 
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/pkg/errors"
@@ -34,7 +35,7 @@ const (
 	labelsPath = "Resources.ManagedNodeGroup.Properties.Labels"
 )
 
-func NewService(eksAPI eksiface.EKSAPI, ec2API ec2iface.EC2API,
+func NewService(eksAPI eksiface.EKSAPI, ec2API awsapi.EC2,
 	stackCollection manager.StackManager, clusterName string) *Service {
 	return &Service{
 		eksAPI:                eksAPI,

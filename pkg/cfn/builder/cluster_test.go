@@ -1,10 +1,12 @@
 package builder_test
 
 import (
+	"context"
 	"encoding/json"
 
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
@@ -48,7 +50,7 @@ var _ = Describe("Cluster Template Builder", func() {
 		)
 
 		JustBeforeEach(func() {
-			addErr = crs.AddAllResources()
+			addErr = crs.AddAllResources(context.Background())
 			clusterTemplate = &fakes.FakeTemplate{}
 			templateBody, err := crs.RenderJSON()
 			Expect(err).ShouldNot(HaveOccurred())
@@ -366,7 +368,7 @@ var _ = Describe("Cluster Template Builder", func() {
 				detailsJSON := serviceDetailsJSON
 				var output *ec2.DescribeVpcEndpointServicesOutput
 				Expect(json.Unmarshal([]byte(detailsJSON), &output)).To(Succeed())
-				provider.MockEC2().On("DescribeVpcEndpointServices", mock.MatchedBy(func(e *ec2.DescribeVpcEndpointServicesInput) bool {
+				provider.MockEC2().On("DescribeVpcEndpointServices", mock.Anything, mock.MatchedBy(func(e *ec2.DescribeVpcEndpointServicesInput) bool {
 					return len(e.ServiceNames) == 5
 				})).Return(output, nil)
 			})
@@ -545,7 +547,7 @@ var _ = Describe("Cluster Template Builder", func() {
 		Context("when adding vpc endpoint resources fails", func() {
 			BeforeEach(func() {
 				cfg.PrivateCluster = &api.PrivateCluster{Enabled: true}
-				provider.MockEC2().On("DescribeVpcEndpointServices", mock.Anything).Return(nil, errors.New("o-noes"))
+				provider.MockEC2().On("DescribeVpcEndpointServices", mock.Anything, mock.Anything).Return(nil, errors.New("o-noes"))
 			})
 
 			It("should return the error", func() {
@@ -601,7 +603,7 @@ var _ = Describe("Cluster Template Builder", func() {
 	Describe("RenderJSON", func() {
 		It("returns the template rendered as JSON", func() {
 			// the work actually gets done on the internal resource set
-			Expect(crs.AddAllResources()).To(Succeed())
+			Expect(crs.AddAllResources(context.Background())).To(Succeed())
 			result, err := crs.RenderJSON()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result).To(ContainSubstring(vpcResourceKey))
@@ -611,7 +613,7 @@ var _ = Describe("Cluster Template Builder", func() {
 	Describe("Template", func() {
 		It("returns the template from the inner resource set", func() {
 			// the work actually gets done on the internal resource set
-			Expect(crs.AddAllResources()).To(Succeed())
+			Expect(crs.AddAllResources(context.Background())).To(Succeed())
 			clusterTemplate := crs.Template()
 			Expect(clusterTemplate.Resources).To(HaveKey(vpcResourceKey))
 		})

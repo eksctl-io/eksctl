@@ -4,9 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -111,9 +112,9 @@ var _ = Describe("Delete", func() {
 				}}},
 			}, nil)
 
-			p.MockEC2().On("DescribeKeyPairs", mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
+			p.MockEC2().On("DescribeKeyPairs", mock.Anything, mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
 
-			p.MockEC2().On("DescribeSecurityGroupsWithContext", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
+			p.MockEC2().On("DescribeSecurityGroups", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
 
 			fakeStackManager.GetFargateStackReturns(&cloudformation.Stack{StackName: aws.String("fargate-role")}, nil)
 			fakeStackManager.DeleteStackBySpecReturns(nil, nil)
@@ -199,9 +200,9 @@ var _ = Describe("Delete", func() {
 					Tasks: []tasks.Task{},
 				}, nil)
 
-				p.MockEC2().On("DescribeKeyPairs", mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
+				p.MockEC2().On("DescribeKeyPairs", mock.Anything, mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
 
-				p.MockEC2().On("DescribeSecurityGroupsWithContext", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
+				p.MockEC2().On("DescribeSecurityGroups", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
 
 				fakeStackManager.GetFargateStackReturns(nil, nil)
 				fakeStackManager.DeleteStackBySpecReturns(nil, nil)
@@ -302,9 +303,9 @@ var _ = Describe("Delete", func() {
 					Tasks: []tasks.Task{},
 				}, nil)
 
-				p.MockEC2().On("DescribeKeyPairs", mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
+				p.MockEC2().On("DescribeKeyPairs", mock.Anything, mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
 
-				p.MockEC2().On("DescribeSecurityGroupsWithContext", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
+				p.MockEC2().On("DescribeSecurityGroups", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
 
 				fakeStackManager.GetFargateStackReturns(nil, nil)
 				fakeStackManager.DeleteStackBySpecReturns(nil, nil)
@@ -385,9 +386,9 @@ var _ = Describe("Delete", func() {
 				}}},
 			}, nil)
 
-			p.MockEC2().On("DescribeKeyPairs", mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
+			p.MockEC2().On("DescribeKeyPairs", mock.Anything, mock.Anything).Return(&ec2.DescribeKeyPairsOutput{}, nil)
 
-			p.MockEC2().On("DescribeSecurityGroupsWithContext", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
+			p.MockEC2().On("DescribeSecurityGroups", mock.Anything, mock.Anything).Return(&ec2.DescribeSecurityGroupsOutput{}, nil)
 
 			p.MockEKS().On("ListNodegroups", mock.Anything).Return(&awseks.ListNodegroupsOutput{
 				Nodegroups: aws.StringSlice([]string{"ng-1", "ng-2"}),

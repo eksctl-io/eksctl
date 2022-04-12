@@ -32,6 +32,7 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(ctx context.Cont
 			info:                 fmt.Sprintf("create cluster control plane %q", c.spec.Metadata.Name),
 			stackCollection:      c,
 			supportsManagedNodes: true,
+			ctx:                  ctx,
 		},
 	)
 
@@ -40,6 +41,7 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(ctx context.Cont
 			&AssignIpv6AddressOnCreationTask{
 				ClusterConfig: c.spec,
 				EC2API:        c.ec2API,
+				Context:       ctx,
 			},
 		)
 	}
@@ -47,7 +49,7 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(ctx context.Cont
 	appendNodeGroupTasksTo := func(taskTree *tasks.TaskTree) {
 		vpcImporter := vpc.NewStackConfigImporter(c.MakeClusterStackName())
 		nodeGroupTasks := c.NewUnmanagedNodeGroupTask(ctx, nodeGroups, false, vpcImporter)
-		managedNodeGroupTasks := c.NewManagedNodeGroupTask(managedNodeGroups, false, vpcImporter)
+		managedNodeGroupTasks := c.NewManagedNodeGroupTask(ctx, managedNodeGroups, false, vpcImporter)
 		if managedNodeGroupTasks.Len() > 0 {
 			nodeGroupTasks.Append(managedNodeGroupTasks.Tasks...)
 		}
@@ -93,7 +95,7 @@ func (c *StackCollection) NewUnmanagedNodeGroupTask(ctx context.Context, nodeGro
 }
 
 // NewManagedNodeGroupTask defines tasks required to create managed nodegroups
-func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *tasks.TaskTree {
+func (c *StackCollection) NewManagedNodeGroupTask(ctx context.Context, nodeGroups []*api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) *tasks.TaskTree {
 	taskTree := &tasks.TaskTree{Parallel: true}
 	for _, ng := range nodeGroups {
 		taskTree.Append(&managedNodeGroupTask{
@@ -102,6 +104,7 @@ func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeG
 			forceAddCNIPolicy: forceAddCNIPolicy,
 			vpcImporter:       vpcImporter,
 			info:              fmt.Sprintf("create managed nodegroup %q", ng.Name),
+			ctx:               ctx,
 		})
 	}
 	return taskTree
@@ -109,10 +112,11 @@ func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeG
 
 // NewClusterCompatTask creates a new task that checks for cluster compatibility with new features like
 // Managed Nodegroups and Fargate, and updates the CloudFormation cluster stack if the required resources are missing
-func (c *StackCollection) NewClusterCompatTask() tasks.Task {
+func (c *StackCollection) NewClusterCompatTask(ctx context.Context) tasks.Task {
 	return &clusterCompatTask{
 		stackCollection: c,
 		info:            "fix cluster compatibility",
+		ctx:             ctx,
 	}
 }
 

@@ -1,9 +1,12 @@
 package ssh
 
 import (
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"context"
+
 	"github.com/kris-nova/logger"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/ssh/client"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
@@ -12,7 +15,7 @@ import (
 // in only one way: by name (for a key existing in EC2), by path (for a key in a local file)
 // or by its contents (in the config-file). It also assumes that if ssh is enabled (SSH.Allow
 // == true) then one key was specified
-func LoadKey(sshConfig *api.NodeGroupSSH, clusterName, nodeGroupName string, ec2API ec2iface.EC2API) (string, error) {
+func LoadKey(ctx context.Context, sshConfig *api.NodeGroupSSH, clusterName, nodeGroupName string, ec2API awsapi.EC2) (string, error) {
 	if sshConfig.Allow == nil || !*sshConfig.Allow {
 		return "", nil
 	}
@@ -21,7 +24,7 @@ func LoadKey(sshConfig *api.NodeGroupSSH, clusterName, nodeGroupName string, ec2
 
 	// Load Key by content
 	case sshConfig.PublicKey != nil:
-		keyName, err := client.LoadKeyByContent(sshConfig.PublicKey, clusterName, nodeGroupName, ec2API)
+		keyName, err := client.LoadKeyByContent(ctx, sshConfig.PublicKey, clusterName, nodeGroupName, ec2API)
 		if err != nil {
 			return "", err
 		}
@@ -29,7 +32,7 @@ func LoadKey(sshConfig *api.NodeGroupSSH, clusterName, nodeGroupName string, ec2
 
 	// Use key by name in EC2
 	case sshConfig.PublicKeyName != nil && *sshConfig.PublicKeyName != "":
-		if err := client.CheckKeyExistsInEC2(*sshConfig.PublicKeyName, ec2API); err != nil {
+		if err := client.CheckKeyExistsInEC2(ctx, ec2API, *sshConfig.PublicKeyName); err != nil {
 			return "", err
 		}
 		logger.Info("using EC2 key pair %q", *sshConfig.PublicKeyName)
@@ -37,7 +40,7 @@ func LoadKey(sshConfig *api.NodeGroupSSH, clusterName, nodeGroupName string, ec2
 
 	// Local ssh key file
 	case file.Exists(*sshConfig.PublicKeyPath):
-		keyName, err := client.LoadKeyFromFile(*sshConfig.PublicKeyPath, clusterName, nodeGroupName, ec2API)
+		keyName, err := client.LoadKeyFromFile(ctx, *sshConfig.PublicKeyPath, clusterName, nodeGroupName, ec2API)
 		if err != nil {
 			return "", err
 		}
@@ -45,7 +48,7 @@ func LoadKey(sshConfig *api.NodeGroupSSH, clusterName, nodeGroupName string, ec2
 
 	// A keyPath, when specified as a flag, can mean a local key (checked above) or a key name in EC2
 	default:
-		err := client.CheckKeyExistsInEC2(*sshConfig.PublicKeyPath, ec2API)
+		err := client.CheckKeyExistsInEC2(ctx, ec2API, *sshConfig.PublicKeyPath)
 		if err != nil {
 			return "", err
 		}

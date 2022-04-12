@@ -40,7 +40,7 @@ type NodeGroupInitialiser interface {
 	Normalize(ctx context.Context, nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error
 	ExpandInstanceSelectorOptions(nodePools []api.NodePool, clusterAZs []string) error
 	NewAWSSelectorSession(provider api.ClusterProvider)
-	ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.ClusterProvider) error
+	ValidateLegacySubnetsForNodeGroups(ctx context.Context, spec *api.ClusterConfig, provider api.ClusterProvider) error
 	DoesAWSNodeUseIRSA(ctx context.Context, provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error)
 	DoAllNodegroupStackTasks(taskTree *tasks.TaskTree, region, name string) error
 	ValidateExistingNodeGroupsForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error
@@ -100,7 +100,7 @@ func (m *NodeGroupService) Normalize(ctx context.Context, nodePools []api.NodePo
 		// fingerprint, so if unique keys are provided, each will get
 		// loaded and used as intended and there is no need to have
 		// nodegroup name in the key name
-		publicKeyName, err := ssh.LoadKey(ng.SSH, clusterMeta.Name, ng.Name, m.Provider.EC2())
+		publicKeyName, err := ssh.LoadKey(ctx, ng.SSH, clusterMeta.Name, ng.Name, m.Provider.EC2())
 		if err != nil {
 			return err
 		}
@@ -214,8 +214,8 @@ func (m *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 	return instanceTypes, nil
 }
 
-func (m *NodeGroupService) ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.ClusterProvider) error {
-	return vpc.ValidateLegacySubnetsForNodeGroups(spec, provider)
+func (m *NodeGroupService) ValidateLegacySubnetsForNodeGroups(ctx context.Context, spec *api.ClusterConfig, provider api.ClusterProvider) error {
+	return vpc.ValidateLegacySubnetsForNodeGroups(ctx, spec, provider)
 }
 
 // DoAllNodegroupStackTasks iterates over nodegroup tasks and returns any errors.

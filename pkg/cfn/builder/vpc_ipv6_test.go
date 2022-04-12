@@ -1,6 +1,7 @@
 package builder_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -28,7 +29,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 
 	It("creates the ipv6 VPC and its resources", func() {
 		vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
-		_, subnetDetails, err := vpcRs.CreateTemplate()
+		_, subnetDetails, err := vpcRs.CreateTemplate(context.Background())
 		Expect(err).NotTo(HaveOccurred())
 
 		By("returning the references of public subnets")
@@ -343,7 +344,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 		})
 		It("calculates the correct cidr blocks for the subnets", func() {
 			vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
-			_, subnetDetails, err := vpcRs.CreateTemplate()
+			_, subnetDetails, err := vpcRs.CreateTemplate(context.Background())
 			Expect(err).NotTo(HaveOccurred())
 
 			By("returning the references of public subnets")
@@ -408,7 +409,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 			cfg.AvailabilityZones = []string{azA, azB}
 			vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)
 
-			_, subnetDetails, err := vpcRs.CreateTemplate()
+			_, subnetDetails, err := vpcRs.CreateTemplate(context.Background())
 			Expect(err).NotTo(HaveOccurred())
 
 			By("returning the references of public subnets")
@@ -681,7 +682,7 @@ var _ = Describe("IPv6 VPC builder", func() {
 })
 
 func createAndRenderTemplate(vpcRs *builder.IPv6VPCResourceSet) (*fakes.FakeTemplate, error) {
-	_, _, err := vpcRs.CreateTemplate()
+	_, _, err := vpcRs.CreateTemplate(context.Background())
 	if err != nil {
 		return nil, err
 	}

@@ -1,9 +1,12 @@
 package fargate_test
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
@@ -121,7 +124,7 @@ var _ = Describe("Fargate", func() {
 				})
 
 				It("creates the fargateprofile using the newly created role", func() {
-					err := fargateManager.Create()
+					err := fargateManager.Create(context.Background())
 					Expect(err).NotTo(HaveOccurred())
 					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
 					name, stack, _, _, _ := fakeStackManager.CreateStackArgsForCall(0)
@@ -180,7 +183,7 @@ var _ = Describe("Fargate", func() {
 				})
 
 				It("creates the fargate profile using the existing role", func() {
-					err := fargateManager.Create()
+					err := fargateManager.Create(context.Background())
 					Expect(err).NotTo(HaveOccurred())
 					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
 					Expect(fakeStackManager.RefreshFargatePodExecutionRoleARNCallCount()).To(Equal(1))
@@ -239,7 +242,7 @@ var _ = Describe("Fargate", func() {
 				})
 
 				It("creates the fargateprofile using the existing role", func() {
-					err := fargateManager.Create()
+					err := fargateManager.Create(context.Background())
 					Expect(err).NotTo(HaveOccurred())
 					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
 					Expect(fakeStackManager.RefreshFargatePodExecutionRoleARNCallCount()).To(Equal(1))

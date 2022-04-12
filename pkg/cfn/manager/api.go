@@ -11,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -66,7 +65,7 @@ type ChangeSet = cloudformation.DescribeChangeSetOutput
 // StackCollection stores the CloudFormation stack information
 type StackCollection struct {
 	cloudformationAPI cloudformationiface.CloudFormationAPI
-	ec2API            ec2iface.EC2API
+	ec2API            awsapi.EC2
 	eksAPI            eksiface.EKSAPI
 	iamAPI            awsapi.IAM
 	cloudTrailAPI     awsapi.CloudTrail
@@ -174,7 +173,7 @@ func (c *StackCollection) CreateStack(stackName string, resourceSet builder.Reso
 }
 
 // createClusterStack creates the cluster stack
-func (c *StackCollection) createClusterStack(stackName string, resourceSet builder.ResourceSet, errCh chan error) error {
+func (c *StackCollection) createClusterStack(stackName string, resourceSet builder.ResourceSetReader, errCh chan error) error {
 	// Unlike with `createNodeGroupTask`, all tags are already set for the cluster stack
 	stack, err := c.createStackRequest(stackName, resourceSet, nil, nil)
 	if err != nil {

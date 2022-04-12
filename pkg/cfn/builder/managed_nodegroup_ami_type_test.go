@@ -1,13 +1,17 @@
 package builder
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
 	"github.com/weaveworks/goformation/v4"
+
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
 )
 
@@ -28,7 +32,7 @@ var _ = DescribeTable("Managed Nodegroup AMI type", func(e amiTypeEntry) {
 	bootstrapper := nodebootstrap.NewManagedBootstrapper(clusterConfig, e.nodeGroup)
 	stack := NewManagedNodeGroup(p.EC2(), clusterConfig, e.nodeGroup, nil, bootstrapper, false, fakeVPCImporter)
 
-	Expect(stack.AddAllResources()).To(Succeed())
+	Expect(stack.AddAllResources(context.Background())).To(Succeed())
 	bytes, err := stack.RenderJSON()
 	Expect(err).NotTo(HaveOccurred())
 

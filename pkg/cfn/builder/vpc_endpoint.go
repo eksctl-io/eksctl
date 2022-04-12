@@ -1,13 +1,18 @@
 package builder
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
+	"github.com/aws/smithy-go"
+
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -18,7 +23,7 @@ import (
 
 // A VPCEndpointResourceSet represents the resources required for VPC endpoints
 type VPCEndpointResourceSet struct {
-	ec2API          ec2iface.EC2API
+	ec2API          awsapi.EC2
 	region          string
 	rs              *resourceSet
 	vpc             *gfnt.Value
@@ -28,7 +33,7 @@ type VPCEndpointResourceSet struct {
 }
 
 // NewVPCEndpointResourceSet creates a new VPCEndpointResourceSet
-func NewVPCEndpointResourceSet(ec2API ec2iface.EC2API, region string, rs *resourceSet, clusterConfig *api.ClusterConfig, vpc *gfnt.Value, subnets []SubnetResource, clusterSharedSG *gfnt.Value) *VPCEndpointResourceSet {
+func NewVPCEndpointResourceSet(ec2API awsapi.EC2, region string, rs *resourceSet, clusterConfig *api.ClusterConfig, vpc *gfnt.Value, subnets []SubnetResource, clusterSharedSG *gfnt.Value) *VPCEndpointResourceSet {
 	return &VPCEndpointResourceSet{
 		ec2API:          ec2API,
 		region:          region,
@@ -49,12 +54,12 @@ type VPCEndpointServiceDetails struct {
 }
 
 // AddResources adds resources for VPC endpoints
-func (e *VPCEndpointResourceSet) AddResources() error {
+func (e *VPCEndpointResourceSet) AddResources(ctx context.Context) error {
 	endpointServices := append(api.RequiredEndpointServices(), e.clusterConfig.PrivateCluster.AdditionalEndpointServices...)
 	if e.clusterConfig.HasClusterCloudWatchLogging() && !e.hasEndpoint(api.EndpointServiceCloudWatch) {
 		endpointServices = append(endpointServices, api.EndpointServiceCloudWatch)
 	}
-	endpointServiceDetails, err := buildVPCEndpointServices(e.ec2API, e.region, endpointServices)
+	endpointServiceDetails, err := buildVPCEndpointServices(ctx, e.ec2API, e.region, endpointServices)
 	if err != nil {
 		return errors.Wrap(err, "error building endpoint service details")
 	}
@@ -66,7 +71,7 @@ func (e *VPCEndpointResourceSet) AddResources() error {
 			VpcEndpointType: gfnt.NewString(endpointDetail.EndpointType),
 		}
 
-		if endpointDetail.EndpointType == ec2.VpcEndpointTypeGateway {
+		if endpointDetail.EndpointType == string(ec2types.VpcEndpointTypeGateway) {
 			endpoint.RouteTableIds = gfnt.NewSlice(e.routeTableIDs()...)
 		} else {
 			endpoint.SubnetIds = gfnt.NewSlice(e.subnetsForAZs(endpointDetail.AvailabilityZones)...)
@@ -132,7 +137,7 @@ var chinaPartitionServiceHasChinaPrefix = map[string]bool{
 }
 
 // buildVPCEndpointServices builds a slice of VPCEndpointServiceDetails for the specified endpoint names
-func buildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints []string) ([]VPCEndpointServiceDetails, error) {
+func buildVPCEndpointServices(ctx context.Context, ec2API awsapi.EC2, region string, endpoints []string) ([]VPCEndpointServiceDetails, error) {
 	serviceNames := make([]string, len(endpoints))
 	serviceDomain := fmt.Sprintf("com.amazonaws.%s", region)
 	for i, endpoint := range endpoints {
@@ -143,23 +148,24 @@ func buildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 		serviceNames[i] = serviceName
 	}
 
-	var serviceDetails []*ec2.ServiceDetail
+	var serviceDetails []ec2types.ServiceDetail
 	var nextToken *string
 
 	for {
-		output, err := ec2API.DescribeVpcEndpointServices(&ec2.DescribeVpcEndpointServicesInput{
-			ServiceNames: aws.StringSlice(serviceNames),
-			Filters: []*ec2.Filter{
+		output, err := ec2API.DescribeVpcEndpointServices(ctx, &ec2.DescribeVpcEndpointServicesInput{
+			ServiceNames: serviceNames,
+			Filters: []ec2types.Filter{
 				{
 					Name:   aws.String("service-name"),
-					Values: aws.StringSlice(serviceNames),
+					Values: serviceNames,
 				},
 			},
 			NextToken: nextToken,
 		})
 
 		if err != nil {
-			if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "InvalidServiceName" {
+			var ae smithy.APIError
+			if errors.As(err, &ae) && ae.ErrorCode() == "InvalidServiceName" {
 				return nil, &api.UnsupportedFeatureError{
 					Message: fmt.Sprintf("fully-private clusters are not supported in region %q, please retry with a different region", region),
 					Err:     err,
@@ -185,7 +191,7 @@ func buildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 			return nil, errors.Errorf("endpoint service %q with multiple service types isn't supported", *sd.ServiceName)
 		}
 
-		endpointType := *sd.ServiceType[0].ServiceType
+		endpointType := sd.ServiceType[0].ServiceType
 		if !serviceEndpointTypeExpected(*sd.ServiceName, endpointType, s3EndpointName) {
 			continue
 		}
@@ -200,8 +206,8 @@ func buildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 		ret = append(ret, VPCEndpointServiceDetails{
 			ServiceName:         *sd.ServiceName,
 			ServiceReadableName: readableName,
-			EndpointType:        endpointType,
-			AvailabilityZones:   aws.StringValueSlice(sd.AvailabilityZones),
+			EndpointType:        string(endpointType),
+			AvailabilityZones:   sd.AvailabilityZones,
 		})
 	}
 
@@ -209,11 +215,11 @@ func buildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 }
 
 // serviceEndpointTypeExpected returns true if the endpoint service is expected to use the specified endpoint type
-func serviceEndpointTypeExpected(serviceName, endpointType, s3EndpointName string) bool {
+func serviceEndpointTypeExpected(serviceName string, endpointType ec2types.ServiceType, s3EndpointName string) bool {
 	if serviceName == s3EndpointName {
-		return endpointType == ec2.VpcEndpointTypeGateway
+		return endpointType == ec2types.ServiceTypeGateway
 	}
-	return endpointType == ec2.VpcEndpointTypeInterface
+	return endpointType == ec2types.ServiceTypeInterface
 }
 
 func makeServiceName(region, endpoint string) (string, error) {

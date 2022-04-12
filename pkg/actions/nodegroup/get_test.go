@@ -6,22 +6,25 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 	"k8s.io/client-go/kubernetes/fake"
 
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager/fakes"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("Get", func() {
@@ -234,12 +237,12 @@ var _ = Describe("Get", func() {
 						},
 					}, nil)
 
-					p.MockEC2().On("DescribeLaunchTemplateVersions", &ec2.DescribeLaunchTemplateVersionsInput{
+					p.MockEC2().On("DescribeLaunchTemplateVersions", mock.Anything, &ec2.DescribeLaunchTemplateVersionsInput{
 						LaunchTemplateId: aws.String("4"),
-					}).Return(&ec2.DescribeLaunchTemplateVersionsOutput{LaunchTemplateVersions: []*ec2.LaunchTemplateVersion{
+					}).Return(&ec2.DescribeLaunchTemplateVersionsOutput{LaunchTemplateVersions: []ec2types.LaunchTemplateVersion{
 						{
-							LaunchTemplateData: &ec2.ResponseLaunchTemplateData{
-								InstanceType: aws.String("big"),
+							LaunchTemplateData: &ec2types.ResponseLaunchTemplateData{
+								InstanceType: "big",
 							},
 							VersionNumber: aws.Int64(5),
 						},

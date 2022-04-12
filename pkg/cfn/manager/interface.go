@@ -38,7 +38,7 @@ var _ StackManager = &StackCollection{}
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_stack_manager.go . StackManager
 type StackManager interface {
-	AppendNewClusterStackResource(plan bool) (bool, error)
+	AppendNewClusterStackResource(ctx context.Context, plan bool) (bool, error)
 	CreateStack(name string, stack builder.ResourceSetReader, tags, parameters map[string]string, errs chan error) error
 	DeleteStackBySpec(s *Stack) (*Stack, error)
 	DeleteStackBySpecSync(s *Stack, errs chan error) error
@@ -55,8 +55,8 @@ type StackManager interface {
 	DescribeStacks() ([]*Stack, error)
 	DoCreateStackRequest(i *Stack, templateData TemplateData, tags, parameters map[string]string, withIAM bool, withNamedIAM bool) error
 	DoWaitUntilStackIsCreated(i *Stack) error
-	EnsureMapPublicIPOnLaunchEnabled() error
-	FixClusterCompatibility() error
+	EnsureMapPublicIPOnLaunchEnabled(ctx context.Context) error
+	FixClusterCompatibility(ctx context.Context) error
 	GetAutoScalingGroupDesiredCapacity(ctx context.Context, name string) (types.AutoScalingGroup, error)
 	GetAutoScalingGroupName(s *Stack) (string, error)
 	GetClusterStackIfExists() (*Stack, error)
@@ -79,8 +79,8 @@ type StackManager interface {
 	LookupCloudTrailEvents(ctx context.Context, i *Stack) ([]cttypes.Event, error)
 	MakeChangeSetName(action string) string
 	MakeClusterStackName() string
-	NewClusterCompatTask() tasks.Task
-	NewManagedNodeGroupTask(nodeGroups []*v1alpha5.ManagedNodeGroup, forceAddCNIPolicy bool, importer vpc.Importer) *tasks.TaskTree
+	NewClusterCompatTask(ctx context.Context) tasks.Task
+	NewManagedNodeGroupTask(ctx context.Context, nodeGroups []*v1alpha5.ManagedNodeGroup, forceAddCNIPolicy bool, importer vpc.Importer) *tasks.TaskTree
 	NewTaskToDeleteAddonIAM(wait bool) (*tasks.TaskTree, error)
 	NewTaskToDeleteUnownedNodeGroup(clusterName, nodegroup string, eksAPI eksiface.EKSAPI, waitCondition *DeleteWaitCondition) tasks.Task
 	NewTasksToCreateClusterWithNodeGroups(ctx context.Context, nodeGroups []*v1alpha5.NodeGroup, managedNodeGroups []*v1alpha5.ManagedNodeGroup, postClusterCreationTasks ...tasks.Task) *tasks.TaskTree

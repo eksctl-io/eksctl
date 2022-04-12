@@ -3,6 +3,8 @@ package eks
 import (
 	"sync"
 
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
@@ -31,6 +33,7 @@ type ServicesV2 struct {
 	elasticloadbalancingV2 *elasticloadbalancingv2.Client
 	ssm                    *ssm.Client
 	iam                    *iam.Client
+	ec2                    *ec2.Client
 }
 
 // STS implements the AWS STS service.
@@ -121,4 +124,14 @@ func (s *ServicesV2) IAM() awsapi.IAM {
 		s.iam = iam.NewFromConfig(s.config)
 	}
 	return s.iam
+}
+
+// EC2 implements the AWS EC2 service.
+func (s *ServicesV2) EC2() awsapi.EC2 {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.ec2 == nil {
+		s.ec2 = ec2.NewFromConfig(s.config)
+	}
+	return s.ec2
 }

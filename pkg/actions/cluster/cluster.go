@@ -16,7 +16,7 @@ import (
 )
 
 type Cluster interface {
-	Upgrade(dryRun bool) error
+	Upgrade(ctx context.Context, dryRun bool) error
 	Delete(ctx context.Context, waitInterval time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error
 }
 
