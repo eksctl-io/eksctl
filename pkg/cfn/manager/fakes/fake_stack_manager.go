@@ -853,7 +853,7 @@ func (fake *FakeStackManager) AppendNewClusterStackResourceReturnsOnCall(i int, 
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) CreateStack(arg1 context.Context, arg2 string, arg3 builder.ResourceSet, arg4 map[string]string, arg5 map[string]string, arg6 chan error) error {
+func (fake *FakeStackManager) CreateStack(arg1 context.Context, arg2 string, arg3 builder.ResourceSetReader, arg4 map[string]string, arg5 map[string]string, arg6 chan error) error {
 	fake.createStackMutex.Lock()
 	ret, specificReturn := fake.createStackReturnsOnCall[len(fake.createStackArgsForCall)]
 	fake.createStackArgsForCall = append(fake.createStackArgsForCall, struct {
