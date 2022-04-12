@@ -1,11 +1,12 @@
 package builder
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/pkg/errors"
@@ -24,14 +25,14 @@ import (
 type ClusterResourceSet struct {
 	rs             *resourceSet
 	spec           *api.ClusterConfig
-	ec2API         ec2iface.EC2API
+	ec2API         awsapi.EC2
 	region         string
 	vpcResourceSet VPCResourceSet
 	securityGroups []*gfnt.Value
 }
 
 // NewClusterResourceSet returns a resource set for the new cluster
-func NewClusterResourceSet(ec2API ec2iface.EC2API, region string, spec *api.ClusterConfig, existingStack *gjson.Result) *ClusterResourceSet {
+func NewClusterResourceSet(ec2API awsapi.EC2, region string, spec *api.ClusterConfig, existingStack *gjson.Result) *ClusterResourceSet {
 	if existingStack != nil {
 		unsetExistingResources(existingStack, spec)
 	}
@@ -53,12 +54,12 @@ func NewClusterResourceSet(ec2API ec2iface.EC2API, region string, spec *api.Clus
 }
 
 // AddAllResources adds all the information about the cluster to the resource set
-func (c *ClusterResourceSet) AddAllResources() error {
+func (c *ClusterResourceSet) AddAllResources(ctx context.Context) error {
 	if err := c.spec.HasSufficientSubnets(); err != nil {
 		return err
 	}
 
-	vpcID, subnetDetails, err := c.vpcResourceSet.CreateTemplate()
+	vpcID, subnetDetails, err := c.vpcResourceSet.CreateTemplate(ctx)
 	if err != nil {
 		return errors.Wrap(err, "error adding VPC resources")
 	}
@@ -68,7 +69,7 @@ func (c *ClusterResourceSet) AddAllResources() error {
 	if privateCluster := c.spec.PrivateCluster; privateCluster.Enabled && !privateCluster.SkipEndpointCreation {
 		vpcEndpointResourceSet := NewVPCEndpointResourceSet(c.ec2API, c.region, c.rs, c.spec, vpcID, subnetDetails.Private, clusterSG.ClusterSharedNode)
 
-		if err := vpcEndpointResourceSet.AddResources(); err != nil {
+		if err := vpcEndpointResourceSet.AddResources(ctx); err != nil {
 			return errors.Wrap(err, "error adding resources for VPC endpoints")
 		}
 	}

@@ -2,6 +2,7 @@
 package fakes
 
 import (
+	"context"
 	"sync"
 
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -12,11 +13,12 @@ import (
 )
 
 type FakeKubeProvider struct {
-	LoadClusterIntoSpecFromStackStub        func(*v1alpha5.ClusterConfig, manager.StackManager) error
+	LoadClusterIntoSpecFromStackStub        func(context.Context, *v1alpha5.ClusterConfig, manager.StackManager) error
 	loadClusterIntoSpecFromStackMutex       sync.RWMutex
 	loadClusterIntoSpecFromStackArgsForCall []struct {
-		arg1 *v1alpha5.ClusterConfig
-		arg2 manager.StackManager
+		arg1 context.Context
+		arg2 *v1alpha5.ClusterConfig
+		arg3 manager.StackManager
 	}
 	loadClusterIntoSpecFromStackReturns struct {
 		result1 error
@@ -90,19 +92,20 @@ type FakeKubeProvider struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStack(arg1 *v1alpha5.ClusterConfig, arg2 manager.StackManager) error {
+func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStack(arg1 context.Context, arg2 *v1alpha5.ClusterConfig, arg3 manager.StackManager) error {
 	fake.loadClusterIntoSpecFromStackMutex.Lock()
 	ret, specificReturn := fake.loadClusterIntoSpecFromStackReturnsOnCall[len(fake.loadClusterIntoSpecFromStackArgsForCall)]
 	fake.loadClusterIntoSpecFromStackArgsForCall = append(fake.loadClusterIntoSpecFromStackArgsForCall, struct {
-		arg1 *v1alpha5.ClusterConfig
-		arg2 manager.StackManager
-	}{arg1, arg2})
+		arg1 context.Context
+		arg2 *v1alpha5.ClusterConfig
+		arg3 manager.StackManager
+	}{arg1, arg2, arg3})
 	stub := fake.LoadClusterIntoSpecFromStackStub
 	fakeReturns := fake.loadClusterIntoSpecFromStackReturns
-	fake.recordInvocation("LoadClusterIntoSpecFromStack", []interface{}{arg1, arg2})
+	fake.recordInvocation("LoadClusterIntoSpecFromStack", []interface{}{arg1, arg2, arg3})
 	fake.loadClusterIntoSpecFromStackMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
@@ -116,17 +119,17 @@ func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackCallCount() int {
 	return len(fake.loadClusterIntoSpecFromStackArgsForCall)
 }
 
-func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackCalls(stub func(*v1alpha5.ClusterConfig, manager.StackManager) error) {
+func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackCalls(stub func(context.Context, *v1alpha5.ClusterConfig, manager.StackManager) error) {
 	fake.loadClusterIntoSpecFromStackMutex.Lock()
 	defer fake.loadClusterIntoSpecFromStackMutex.Unlock()
 	fake.LoadClusterIntoSpecFromStackStub = stub
 }
 
-func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackArgsForCall(i int) (*v1alpha5.ClusterConfig, manager.StackManager) {
+func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackArgsForCall(i int) (context.Context, *v1alpha5.ClusterConfig, manager.StackManager) {
 	fake.loadClusterIntoSpecFromStackMutex.RLock()
 	defer fake.loadClusterIntoSpecFromStackMutex.RUnlock()
 	argsForCall := fake.loadClusterIntoSpecFromStackArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackReturns(result1 error) {

@@ -49,11 +49,11 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 	}
 
 	var isOwnedCluster = true
-	if err := kubeProvider.LoadClusterIntoSpecFromStack(cfg, m.stackManager); err != nil {
+	if err := kubeProvider.LoadClusterIntoSpecFromStack(ctx, cfg, m.stackManager); err != nil {
 		switch e := err.(type) {
 		case *manager.StackNotFoundErr:
 			logger.Warning("%s, will attempt to create nodegroup(s) on non eksctl-managed cluster", e.Error())
-			if err := loadVPCFromConfig(ctl.Provider, cfg); err != nil {
+			if err := loadVPCFromConfig(ctx, ctl.Provider, cfg); err != nil {
 				return errors.Wrapf(err, "loading VPC spec for cluster %q", meta.Name)
 			}
 
@@ -87,7 +87,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		}
 	}
 
-	if err := m.init.ValidateLegacySubnetsForNodeGroups(cfg, ctl.Provider); err != nil {
+	if err := m.init.ValidateLegacySubnetsForNodeGroups(ctx, cfg, ctl.Provider); err != nil {
 		return err
 	}
 
@@ -144,7 +144,7 @@ func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) er
 	}
 
 	if isOwnedCluster {
-		taskTree.Append(m.stackManager.NewClusterCompatTask())
+		taskTree.Append(m.stackManager.NewClusterCompatTask(ctx))
 	}
 
 	awsNodeUsesIRSA, err := init.DoesAWSNodeUseIRSA(ctx, m.ctl.Provider, m.clientSet)
@@ -170,7 +170,7 @@ func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) er
 	if nodeGroupTasks.Len() > 0 {
 		allNodeGroupTasks.Append(nodeGroupTasks)
 	}
-	managedTasks := m.stackManager.NewManagedNodeGroupTask(cfg.ManagedNodeGroups, !awsNodeUsesIRSA, vpcImporter)
+	managedTasks := m.stackManager.NewManagedNodeGroupTask(ctx, cfg.ManagedNodeGroups, !awsNodeUsesIRSA, vpcImporter)
 	if managedTasks.Len() > 0 {
 		allNodeGroupTasks.Append(managedTasks)
 	}
@@ -276,12 +276,12 @@ func (m *Manager) checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes
 	return nil
 }
 
-func loadVPCFromConfig(provider api.ClusterProvider, cfg *api.ClusterConfig) error {
+func loadVPCFromConfig(ctx context.Context, provider api.ClusterProvider, cfg *api.ClusterConfig) error {
 	if cfg.VPC == nil || cfg.VPC.Subnets == nil || cfg.VPC.SecurityGroup == "" || cfg.VPC.ID == "" {
 		return errors.New("VPC configuration required for creating nodegroups on clusters not owned by eksctl: vpc.subnets, vpc.id, vpc.securityGroup")
 	}
 
-	if err := vpc.ImportSubnetsFromSpec(provider, cfg); err != nil {
+	if err := vpc.ImportSubnetsFromSpec(ctx, provider, cfg); err != nil {
 		return err
 	}
 

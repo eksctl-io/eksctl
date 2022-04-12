@@ -57,7 +57,7 @@ func (c *StackCollection) createNodeGroupTask(ctx context.Context, errs chan err
 	return c.CreateStack(name, stack, ng.Tags, nil, errs)
 }
 
-func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
+func (c *StackCollection) createManagedNodeGroupTask(ctx context.Context, errorCh chan error, ng *api.ManagedNodeGroup, forceAddCNIPolicy bool, vpcImporter vpc.Importer) error {
 	name := c.makeNodeGroupStackName(ng.Name)
 	cluster, err := c.DescribeClusterStack()
 	if err != nil {
@@ -69,7 +69,7 @@ func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api
 	logger.Info("building managed nodegroup stack %q", name)
 	bootstrapper := nodebootstrap.NewManagedBootstrapper(c.spec, ng)
 	stack := builder.NewManagedNodeGroup(c.ec2API, c.spec, ng, builder.NewLaunchTemplateFetcher(c.ec2API), bootstrapper, forceAddCNIPolicy, vpcImporter)
-	if err := stack.AddAllResources(); err != nil {
+	if err := stack.AddAllResources(ctx); err != nil {
 		return err
 	}
 

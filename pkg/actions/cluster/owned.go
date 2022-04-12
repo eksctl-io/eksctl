@@ -41,8 +41,8 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterSt
 	}
 }
 
-func (c *OwnedCluster) Upgrade(dryRun bool) error {
-	if err := vpc.UseFromClusterStack(c.ctl.Provider, c.clusterStack, c.cfg); err != nil {
+func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
+	if err := vpc.UseFromClusterStack(ctx, c.ctl.Provider, c.clusterStack, c.cfg); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
 	}
 
@@ -51,7 +51,7 @@ func (c *OwnedCluster) Upgrade(dryRun bool) error {
 		return err
 	}
 
-	stackUpdateRequired, err := c.stackManager.AppendNewClusterStackResource(dryRun)
+	stackUpdateRequired, err := c.stackManager.AppendNewClusterStackResource(ctx, dryRun)
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func (c *OwnedCluster) Delete(ctx context.Context, _ time.Duration, wait, force,
 		}
 	}
 
-	if err := deleteSharedResources(c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {
+	if err := deleteSharedResources(ctx, c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {
 		if err != nil {
 			if force {
 				logger.Warning("error occurred during deletion: %v", err)
@@ -129,12 +129,12 @@ func (c *OwnedCluster) Delete(ctx context.Context, _ time.Duration, wait, force,
 	deleteOIDCProvider := clusterOperable && oidcSupported
 	tasks, err := c.stackManager.NewTasksToDeleteClusterWithNodeGroups(ctx, c.clusterStack, allStacks, deleteOIDCProvider, oidc, kubernetes.NewCachedClientSet(clientSet), wait, func(errs chan error, _ string) error {
 		logger.Info("trying to cleanup dangling network interfaces")
-		if err := c.ctl.LoadClusterVPC(c.cfg, c.stackManager); err != nil {
+		if err := c.ctl.LoadClusterVPC(ctx, c.cfg, c.stackManager); err != nil {
 			return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
 		}
 
 		go func() {
-			errs <- vpc.CleanupNetworkInterfaces(c.ctl.Provider.EC2(), c.cfg)
+			errs <- vpc.CleanupNetworkInterfaces(ctx, c.ctl.Provider.EC2(), c.cfg)
 			close(errs)
 		}()
 		return nil

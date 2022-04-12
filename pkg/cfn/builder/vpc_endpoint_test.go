@@ -1,24 +1,28 @@
 package builder
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	awsec2 "github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+
+	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/vpc"
-	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 type vpcResourceSetCase struct {
@@ -58,7 +62,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 		if vc.clusterConfig.VPC.ID != "" {
 			vpcResourceSet = NewExistingVPCResourceSet(rs, vc.clusterConfig, provider.EC2())
 		}
-		vpcID, subnetDetails, err := vpcResourceSet.CreateTemplate()
+		vpcID, subnetDetails, err := vpcResourceSet.CreateTemplate(context.Background())
 		if vc.err != "" {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("subnets must be associated with a non-main route table"))
@@ -68,7 +72,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 		Expect(err).NotTo(HaveOccurred())
 		if vc.clusterConfig.PrivateCluster.Enabled {
 			vpcEndpointResourceSet := NewVPCEndpointResourceSet(provider.EC2(), provider.Region(), rs, vc.clusterConfig, vpcID, subnetDetails.Private, gfnt.NewString("sg-test"))
-			Expect(vpcEndpointResourceSet.AddResources()).To(Succeed())
+			Expect(vpcEndpointResourceSet.AddResources(context.Background())).To(Succeed())
 			s3Endpoint := rs.template.Resources["VPCEndpointS3"].(*gfnec2.VPCEndpoint)
 			routeIdsSlice, ok := s3Endpoint.RouteTableIds.Raw().(gfnt.Slice)
 			Expect(ok).To(BeTrue())
@@ -247,11 +251,11 @@ var _ = Describe("VPC Endpoint Builder", func() {
 				provider := mockprovider.NewMockProvider()
 				mockDescribeVPC(provider)
 				output := &ec2.DescribeRouteTablesOutput{
-					RouteTables: []*ec2.RouteTable{
+					RouteTables: []ec2types.RouteTable{
 						{
 							VpcId:        aws.String("vpc-custom"),
 							RouteTableId: aws.String("rt-main"),
-							Associations: []*ec2.RouteTableAssociation{
+							Associations: []ec2types.RouteTableAssociation{
 								{
 									RouteTableId:            aws.String("rt-main"),
 									RouteTableAssociationId: aws.String("rtbassoc-custom1"),
@@ -267,7 +271,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 						},
 					},
 				}
-				provider.MockEC2().On("DescribeRouteTables", mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
+				provider.MockEC2().On("DescribeRouteTables", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
 					return len(input.Filters) > 0
 				})).Return(output, nil)
 				return provider
@@ -577,13 +581,13 @@ var serviceDetailsJSONChina = `
 `
 
 func mockDescribeVPC(provider *mockprovider.MockProvider) {
-	provider.MockEC2().On("DescribeVpcs", &awsec2.DescribeVpcsInput{
-		VpcIds: aws.StringSlice([]string{"vpc-custom"}),
-	}).Return(&awsec2.DescribeVpcsOutput{
-		Vpcs: []*awsec2.Vpc{
+	provider.MockEC2().On("DescribeVpcs", mock.Anything, &ec2.DescribeVpcsInput{
+		VpcIds: []string{"vpc-custom"},
+	}).Return(&ec2.DescribeVpcsOutput{
+		Vpcs: []ec2types.Vpc{
 			{
 				VpcId: aws.String("vpc-custom"),
-				Ipv6CidrBlockAssociationSet: []*awsec2.VpcIpv6CidrBlockAssociation{
+				Ipv6CidrBlockAssociationSet: []ec2types.VpcIpv6CidrBlockAssociation{
 					{
 						Ipv6CidrBlock: aws.String("foo"),
 					},
@@ -602,7 +606,7 @@ func mockDescribeVPCEndpoints(provider *mockprovider.MockProvider, china bool) {
 	var output *ec2.DescribeVpcEndpointServicesOutput
 	Expect(json.Unmarshal([]byte(detailsJSON), &output)).To(Succeed())
 
-	provider.MockEC2().On("DescribeVpcEndpointServices", mock.MatchedBy(func(e *ec2.DescribeVpcEndpointServicesInput) bool {
+	provider.MockEC2().On("DescribeVpcEndpointServices", mock.Anything, mock.MatchedBy(func(e *ec2.DescribeVpcEndpointServicesInput) bool {
 		return len(e.ServiceNames) == 5
 	})).Return(output, nil)
 
@@ -610,15 +614,15 @@ func mockDescribeVPCEndpoints(provider *mockprovider.MockProvider, china bool) {
 
 func mockDescribeRouteTables(provider *mockprovider.MockProvider, subnetIDs []string) {
 	output := &ec2.DescribeRouteTablesOutput{
-		RouteTables: make([]*ec2.RouteTable, len(subnetIDs)),
+		RouteTables: make([]ec2types.RouteTable, len(subnetIDs)),
 	}
 
 	for i, subnetID := range subnetIDs {
 		rtID := aws.String(fmt.Sprintf("rtb-custom-%d", i+1))
-		output.RouteTables[i] = &ec2.RouteTable{
+		output.RouteTables[i] = ec2types.RouteTable{
 			VpcId:        aws.String("vpc-custom"),
 			RouteTableId: rtID,
-			Associations: []*ec2.RouteTableAssociation{
+			Associations: []ec2types.RouteTableAssociation{
 				{
 					RouteTableId:            rtID,
 					SubnetId:                aws.String(subnetID),
@@ -629,22 +633,22 @@ func mockDescribeRouteTables(provider *mockprovider.MockProvider, subnetIDs []st
 		}
 	}
 
-	provider.MockEC2().On("DescribeRouteTables", mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
+	provider.MockEC2().On("DescribeRouteTables", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
 		return len(input.Filters) > 0
 	})).Return(output, nil)
 }
 
 func mockDescribeRouteTablesSame(provider *mockprovider.MockProvider, subnetIDs []string) {
 	output := &ec2.DescribeRouteTablesOutput{
-		RouteTables: make([]*ec2.RouteTable, len(subnetIDs)),
+		RouteTables: make([]ec2types.RouteTable, len(subnetIDs)),
 	}
 
 	for i, subnetID := range subnetIDs {
 		rtID := aws.String("rtb-custom-1")
-		output.RouteTables[i] = &ec2.RouteTable{
+		output.RouteTables[i] = ec2types.RouteTable{
 			VpcId:        aws.String("vpc-custom"),
 			RouteTableId: rtID,
-			Associations: []*ec2.RouteTableAssociation{
+			Associations: []ec2types.RouteTableAssociation{
 				{
 					RouteTableId:            rtID,
 					SubnetId:                aws.String(subnetID),
@@ -655,7 +659,7 @@ func mockDescribeRouteTablesSame(provider *mockprovider.MockProvider, subnetIDs 
 		}
 	}
 
-	provider.MockEC2().On("DescribeRouteTables", mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
+	provider.MockEC2().On("DescribeRouteTables", mock.Anything, mock.MatchedBy(func(input *ec2.DescribeRouteTablesInput) bool {
 		return len(input.Filters) > 0
 	})).Return(output, nil)
 }

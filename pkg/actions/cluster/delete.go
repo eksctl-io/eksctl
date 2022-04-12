@@ -35,7 +35,7 @@ type NodeGroupDrainer interface {
 }
 type vpcCniDeleter func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface)
 
-func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clusterOperable bool, clientSet kubernetes.Interface) error {
+func deleteSharedResources(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clusterOperable bool, clientSet kubernetes.Interface) error {
 	if clusterOperable {
 		if err := deleteFargateProfiles(cfg.Metadata, ctl, stackManager); err != nil {
 			return err
@@ -49,7 +49,7 @@ func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, sta
 		return nil
 	}
 
-	ssh.DeleteKeys(cfg.Metadata.Name, ctl.Provider.EC2())
+	ssh.DeleteKeys(ctx, ctl.Provider.EC2(), cfg.Metadata.Name)
 
 	kubeconfig.MaybeDeleteConfig(cfg.Metadata)
 

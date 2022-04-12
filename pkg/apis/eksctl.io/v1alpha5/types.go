@@ -14,7 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 
@@ -654,7 +654,6 @@ type ClusterProvider interface {
 	CloudFormationDisableRollback() bool
 	ASG() awsapi.ASG
 	EKS() eksiface.EKSAPI
-	EC2() ec2iface.EC2API
 	SSM() awsapi.SSM
 	CloudTrail() awsapi.CloudTrail
 	CloudWatchLogs() awsapi.CloudWatchLogs
@@ -669,6 +668,7 @@ type ClusterProvider interface {
 	ELBV2() awsapi.ELBV2
 	STS() awsapi.STS
 	STSPresigner() STSPresigner
+	EC2() awsapi.EC2
 }
 
 // STSPresigner defines the method to pre-sign GetCallerIdentity requests to add a proper header required by EKS for

@@ -1,14 +1,20 @@
 package kops
 
 import (
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"context"
+	"fmt"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/vpc"
-	"k8s.io/kops/pkg/resources/aws"
 	"k8s.io/kops/upup/pkg/fi/cloudup/awsup"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 // Wrapper for interacting with a kops cluster
@@ -27,11 +33,7 @@ func NewWrapper(region, kopsClusterName string) (*Wrapper, error) {
 	return &Wrapper{kopsClusterName, cloud}, nil
 }
 
-func (k *Wrapper) isOwned(t *ec2.Tag) bool {
-	return *t.Key == "kubernetes.io/cluster/"+k.clusterName && *t.Value == "owned"
-}
-
-func (k *Wrapper) topologyOf(s *ec2.Subnet) api.SubnetTopology {
+func (k *Wrapper) topologyOf(s ec2types.Subnet) api.SubnetTopology {
 	for _, t := range s.Tags {
 		if *t.Key == "SubnetType" && *t.Value == "Private" {
 			return api.SubnetTopologyPrivate
@@ -41,33 +43,50 @@ func (k *Wrapper) topologyOf(s *ec2.Subnet) api.SubnetTopology {
 }
 
 // UseVPC finds VPC and subnets that give kops cluster uses and add those to EKS cluster config
-func (k *Wrapper) UseVPC(ec2API ec2iface.EC2API, spec *api.ClusterConfig) error {
+func (k *Wrapper) UseVPC(ctx context.Context, ec2API awsapi.EC2, spec *api.ClusterConfig) error {
 	spec.VPC.CIDR = nil // ensure to reset the CIDR
 
-	allSubnets, err := aws.ListSubnets(k.cloud, k.clusterName)
+	clusterTag := fmt.Sprintf("kubernetes.io/cluster/%s", k.clusterName)
+	output, err := ec2API.DescribeSubnets(ctx, &ec2.DescribeSubnetsInput{
+		Filters: []ec2types.Filter{
+			{
+				Name:   aws.String(fmt.Sprintf("tag:%s", clusterTag)),
+				Values: []string{"owned"},
+			},
+		},
+	})
 	if err != nil {
 		return err
 	}
 
-	subnetsByTopology := map[api.SubnetTopology][]*ec2.Subnet{
-		api.SubnetTopologyPrivate: {},
-		api.SubnetTopologyPublic:  {},
+	var (
+		publicSubnets  []ec2types.Subnet
+		privateSubnets []ec2types.Subnet
+	)
+
+	for _, subnet := range output.Subnets {
+		switch k.topologyOf(subnet) {
+		case api.SubnetTopologyPublic:
+			publicSubnets = append(publicSubnets, subnet)
+		case api.SubnetTopologyPrivate:
+			privateSubnets = append(privateSubnets, subnet)
+		}
 	}
 
-	for _, subnet := range allSubnets {
-		if subnet.Type != ec2.ResourceTypeSubnet {
-			continue
-		}
-		subnet := subnet.Obj.(*ec2.Subnet)
-		for _, tag := range subnet.Tags {
-			if k.isOwned(tag) {
-				t := k.topologyOf(subnet)
-				subnetsByTopology[t] = append(subnetsByTopology[t], subnet)
-			}
-		}
-	}
-	for t, subnets := range subnetsByTopology {
-		if err := vpc.ImportSubnets(ec2API, spec, t, subnets); err != nil {
+	for _, s := range []struct {
+		subnets  []ec2types.Subnet
+		topology api.SubnetTopology
+	}{
+		{
+			subnets:  publicSubnets,
+			topology: api.SubnetTopologyPublic,
+		},
+		{
+			subnets:  privateSubnets,
+			topology: api.SubnetTopologyPrivate,
+		},
+	} {
+		if err := vpc.ImportSubnets(ctx, ec2API, spec, s.topology, s.subnets); err != nil {
 			return err
 		}
 	}

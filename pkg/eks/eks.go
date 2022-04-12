@@ -201,8 +201,8 @@ func sharedTags(cluster *awseks.Cluster) map[string]string {
 // LoadClusterIntoSpecFromStack uses stack information to load the cluster
 // configuration into the spec
 // At the moment VPC and KubernetesNetworkConfig are respected
-func (c *ClusterProvider) LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, stackManager manager.StackManager) error {
-	if err := c.LoadClusterVPC(spec, stackManager); err != nil {
+func (c *ClusterProvider) LoadClusterIntoSpecFromStack(ctx context.Context, spec *api.ClusterConfig, stackManager manager.StackManager) error {
+	if err := c.LoadClusterVPC(ctx, spec, stackManager); err != nil {
 		return err
 	}
 	if err := c.RefreshClusterStatus(spec); err != nil {
@@ -212,7 +212,7 @@ func (c *ClusterProvider) LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, 
 }
 
 // LoadClusterVPC loads the VPC configuration
-func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig, stackManager manager.StackManager) error {
+func (c *ClusterProvider) LoadClusterVPC(ctx context.Context, spec *api.ClusterConfig, stackManager manager.StackManager) error {
 	stack, err := stackManager.DescribeClusterStack()
 	if err != nil {
 		return err
@@ -221,7 +221,7 @@ func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig, stackManager m
 		return &manager.StackNotFoundErr{ClusterName: spec.Metadata.Name}
 	}
 
-	return vpc.UseFromClusterStack(c.Provider, stack, spec)
+	return vpc.UseFromClusterStack(ctx, c.Provider, stack, spec)
 }
 
 // loadClusterKubernetesNetworkConfig gets the network config of an existing
@@ -240,7 +240,7 @@ func (c *ClusterProvider) loadClusterKubernetesNetworkConfig(spec *api.ClusterCo
 }
 
 // GetCluster display details of an EKS cluster in your account
-func (c *ClusterProvider) GetCluster(clusterName string) (*awseks.Cluster, error) {
+func (c *ClusterProvider) GetCluster(ctx context.Context, clusterName string) (*awseks.Cluster, error) {
 	input := &awseks.DescribeClusterInput{
 		Name: &clusterName,
 	}

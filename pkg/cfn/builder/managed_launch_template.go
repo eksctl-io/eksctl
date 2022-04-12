@@ -1,16 +1,18 @@
 package builder
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/pkg/errors"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
+func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData(ctx context.Context) (*gfnec2.LaunchTemplate_LaunchTemplateData, error) {
 	mng := m.nodeGroup
 	launchTemplateData := &gfnec2.LaunchTemplate_LaunchTemplateData{
 		TagSpecifications: makeTags(mng.NodeGroupBase, m.clusterConfig.Metadata),
@@ -55,7 +57,7 @@ func (m *ManagedNodeGroupResourceSet) makeLaunchTemplateData() (*gfnec2.LaunchTe
 		desc := "worker nodes in group " + m.nodeGroup.Name
 		efaSG := m.addEFASecurityGroup(m.vpcImporter.VPC(), m.clusterConfig.Metadata.Name, desc)
 		securityGroupIDs = append(securityGroupIDs, efaSG)
-		if err := buildNetworkInterfaces(launchTemplateData, mng.InstanceTypeList(), true, securityGroupIDs, m.ec2API); err != nil {
+		if err := buildNetworkInterfaces(ctx, launchTemplateData, mng.InstanceTypeList(), true, securityGroupIDs, m.ec2API); err != nil {
 			return nil, errors.Wrap(err, "couldn't build network interfaces for launch template data")
 		}
 		if mng.Placement == nil {

@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"context"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -57,12 +59,12 @@ func doUpdateLegacySubnetSettings(cmd *cmdutils.Cmd) error {
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
-	if err := ctl.LoadClusterVPC(cfg, stackManager); err != nil {
+	if err := ctl.LoadClusterVPC(context.TODO(), cfg, stackManager); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
 	}
 
 	logger.Info("updating settings { MapPublicIpOnLaunch: enabled } for public subnets %v", cfg.VPC.Subnets.Public)
-	err = stackManager.EnsureMapPublicIPOnLaunchEnabled()
+	err = stackManager.EnsureMapPublicIPOnLaunchEnabled(context.TODO())
 	if err != nil {
 		logger.Warning(err.Error())
 		return err
