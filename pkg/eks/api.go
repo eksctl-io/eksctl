@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/gofrs/flock"
+
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
@@ -22,11 +24,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"github.com/gofrs/flock"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
@@ -67,11 +68,10 @@ type KubeProvider interface {
 // ProviderServices stores the used APIs
 type ProviderServices struct {
 	spec *api.ProviderConfig
-	cfn  cloudformationiface.CloudFormationAPI
 	asg  awsapi.ASG
 	eks  eksiface.EKSAPI
 	ec2  ec2iface.EC2API
-	iam  iamiface.IAMAPI
+	cfn  cloudformationiface.CloudFormationAPI
 
 	cloudtrail     awsapi.CloudTrail
 	cloudwatchlogs awsapi.CloudWatchLogs
@@ -100,9 +100,6 @@ func (p ProviderServices) EKS() eksiface.EKSAPI { return p.eks }
 
 // EC2 returns a representation of the EC2 API
 func (p ProviderServices) EC2() ec2iface.EC2API { return p.ec2 }
-
-// IAM returns a representation of the IAM API
-func (p ProviderServices) IAM() iamiface.IAMAPI { return p.iam }
 
 // CloudTrail returns a representation of the CloudTrail API
 func (p ProviderServices) CloudTrail() awsapi.CloudTrail { return p.cloudtrail }
@@ -179,7 +176,6 @@ func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.Cluster
 	provider.cfn = cloudformation.New(s)
 	provider.eks = awseks.New(s)
 	provider.ec2 = ec2.New(s)
-	provider.iam = iam.New(s)
 
 	cfg, err := newV2Config(spec, c.Provider.Region(), credentialsCacheFilePath)
 	if err != nil {
@@ -210,10 +206,6 @@ func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.Cluster
 	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
 		logger.Debug("Setting EC2 endpoint to %s", endpoint)
 		provider.ec2 = ec2.New(s, s.Config.Copy().WithEndpoint(endpoint))
-	}
-	if endpoint, ok := os.LookupEnv("AWS_IAM_ENDPOINT"); ok {
-		logger.Debug("Setting IAM endpoint to %s", endpoint)
-		provider.iam = iam.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDTRAIL_ENDPOINT"); ok {
 		logger.Debug("Setting CloudTrail endpoint to %s", endpoint)

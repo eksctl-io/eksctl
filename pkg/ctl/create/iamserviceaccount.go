@@ -1,6 +1,7 @@
 package create
 
 import (
+	"context"
 	"errors"
 
 	"github.com/weaveworks/eksctl/pkg/actions/irsa"
@@ -96,7 +97,7 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 		return err
 	}
 
-	providerExists, err := oidc.CheckProviderExists()
+	providerExists, err := oidc.CheckProviderExists(context.TODO())
 	if err != nil {
 		return err
 	}

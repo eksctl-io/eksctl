@@ -8,11 +8,10 @@ import (
 	"github.com/cloudflare/cfssl/csr"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/assetutil"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
-	"k8s.io/apimachinery/pkg/watch"
-	"k8s.io/client-go/kubernetes/typed/certificates/v1beta1"
 
 	admv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -21,6 +20,8 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/kubernetes/typed/certificates/v1beta1"
 
 	// For go:embed
 	_ "embed"
@@ -73,7 +74,7 @@ type VPCController struct {
 }
 
 // Deploy deploys VPC controller to the specified cluster
-func (v *VPCController) Deploy() (err error) {
+func (v *VPCController) Deploy(ctx context.Context) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if ae, ok := r.(*assetutil.Error); ok {
@@ -84,7 +85,7 @@ func (v *VPCController) Deploy() (err error) {
 		}
 	}()
 
-	if err := v.deployVPCResourceController(); err != nil {
+	if err := v.deployVPCResourceController(ctx); err != nil {
 		return err
 	}
 
@@ -252,8 +253,8 @@ func makePolicyDocument() map[string]interface{} {
 	}
 }
 
-func (v *VPCController) deployVPCResourceController() error {
-	irsaEnabled, err := v.irsa.IsSupported()
+func (v *VPCController) deployVPCResourceController(ctx context.Context) error {
+	irsaEnabled, err := v.irsa.IsSupported(ctx)
 	if err != nil {
 		return err
 	}

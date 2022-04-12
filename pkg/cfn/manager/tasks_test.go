@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 
 	. "github.com/onsi/ginkgo"
@@ -71,26 +72,26 @@ var _ = Describe("StackCollection Tasks", func() {
 			// The supportsManagedNodes argument has no effect on the Describe call, so the values are alternated
 			// in these tests
 			{
-				tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("bar", "foo"), false, fakeVPCImporter)
+				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), makeNodeGroups("bar", "foo"), false, fakeVPCImporter)
 				Expect(tasks.Describe()).To(Equal(`
 2 parallel tasks: { create nodegroup "bar", create nodegroup "foo" 
 }
 `))
 			}
 			{
-				tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("bar"), false, fakeVPCImporter)
+				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), makeNodeGroups("bar"), false, fakeVPCImporter)
 				Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "bar" }`))
 			}
 			{
-				tasks := stackManager.NewUnmanagedNodeGroupTask(makeNodeGroups("foo"), false, fakeVPCImporter)
+				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), makeNodeGroups("foo"), false, fakeVPCImporter)
 				Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "foo" }`))
 			}
 			{
-				tasks := stackManager.NewUnmanagedNodeGroupTask(nil, false, fakeVPCImporter)
+				tasks := stackManager.NewUnmanagedNodeGroupTask(context.Background(), nil, false, fakeVPCImporter)
 				Expect(tasks.Describe()).To(Equal(`no tasks`))
 			}
 			{
-				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"), nil)
+				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar", "foo"), nil)
 				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
     2 parallel sub-tasks: { 
@@ -101,18 +102,18 @@ var _ = Describe("StackCollection Tasks", func() {
 `))
 			}
 			{
-				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar"), nil)
+				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar"), nil)
 				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", create nodegroup "bar" 
 }
 `))
 			}
 			{
-				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(nil, nil)
+				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), nil, nil)
 				Expect(tasks.Describe()).To(Equal(`1 task: { create cluster control plane "test-cluster" }`))
 			}
 			{
-				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"), makeManagedNodeGroups("m1", "m2"))
+				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar", "foo"), makeManagedNodeGroups("m1", "m2"))
 				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
     4 parallel sub-tasks: { 
@@ -125,7 +126,7 @@ var _ = Describe("StackCollection Tasks", func() {
 `))
 			}
 			{
-				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("foo"), makeManagedNodeGroups("m1"))
+				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("foo"), makeManagedNodeGroups("m1"))
 				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
     2 parallel sub-tasks: { 
@@ -136,7 +137,7 @@ var _ = Describe("StackCollection Tasks", func() {
 `))
 			}
 			{
-				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar"), nil, &task{id: 1})
+				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar"), nil, &task{id: 1})
 				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
     2 sequential sub-tasks: { 
@@ -153,7 +154,7 @@ var _ = Describe("StackCollection Tasks", func() {
 				cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
 			})
 			It("appends the AssignIpv6AddressOnCreation task to occur after the cluster creation", func() {
-				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"), nil)
+				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar", "foo"), nil)
 				Expect(tasks.Describe()).To(Equal(`
 3 sequential tasks: { create cluster control plane "test-cluster", set AssignIpv6AddressOnCreation to true for public subnets, 
     2 parallel sub-tasks: { 

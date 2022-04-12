@@ -6,8 +6,9 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go/aws"
-	awsiam "github.com/aws/aws-sdk-go/service/iam"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -143,7 +144,7 @@ func getAWSNodeSAARNAnnotation(clientSet kubernetes.Interface) (string, error) {
 }
 
 // DoesAWSNodeUseIRSA evaluates whether an aws-node uses IRSA
-func (n *NodeGroupService) DoesAWSNodeUseIRSA(provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error) {
+func (n *NodeGroupService) DoesAWSNodeUseIRSA(ctx context.Context, provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error) {
 	roleArn, err := getAWSNodeSAARNAnnotation(clientSet)
 	if err != nil {
 		return false, errors.Wrap(err, "error retrieving aws-node arn")
@@ -155,10 +156,10 @@ func (n *NodeGroupService) DoesAWSNodeUseIRSA(provider api.ClusterProvider, clie
 	if len(arnParts) <= 1 {
 		return false, errors.Errorf("invalid ARN %s", roleArn)
 	}
-	input := awsiam.ListAttachedRolePoliciesInput{
+	input := &awsiam.ListAttachedRolePoliciesInput{
 		RoleName: aws.String(arnParts[len(arnParts)-1]),
 	}
-	policies, err := provider.IAM().ListAttachedRolePolicies(&input)
+	policies, err := provider.IAM().ListAttachedRolePolicies(ctx, input)
 	if err != nil {
 		return false, errors.Wrap(err, "error listing attached policies")
 	}

@@ -23,7 +23,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-// Options controls specific steps of node group creation
+// CreateOpts controls specific steps of node group creation
 type CreateOpts struct {
 	UpdateAuthConfigMap       bool
 	InstallNeuronDevicePlugin bool
@@ -119,7 +119,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return cmdutils.PrintNodeGroupDryRunConfig(clusterConfigCopy, os.Stdout)
 	}
 
-	if err := m.nodeCreationTasks(isOwnedCluster); err != nil {
+	if err := m.nodeCreationTasks(ctx, isOwnedCluster); err != nil {
 		return err
 	}
 
@@ -134,7 +134,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 	return nil
 }
 
-func (m *Manager) nodeCreationTasks(isOwnedCluster bool) error {
+func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
 	init := m.init
@@ -147,7 +147,7 @@ func (m *Manager) nodeCreationTasks(isOwnedCluster bool) error {
 		taskTree.Append(m.stackManager.NewClusterCompatTask())
 	}
 
-	awsNodeUsesIRSA, err := init.DoesAWSNodeUseIRSA(m.ctl.Provider, m.clientSet)
+	awsNodeUsesIRSA, err := init.DoesAWSNodeUseIRSA(ctx, m.ctl.Provider, m.clientSet)
 	if err != nil {
 		return errors.Wrap(err, "couldn't check aws-node for annotation")
 	}
@@ -166,7 +166,7 @@ func (m *Manager) nodeCreationTasks(isOwnedCluster bool) error {
 	allNodeGroupTasks := &tasks.TaskTree{
 		Parallel: true,
 	}
-	nodeGroupTasks := m.stackManager.NewUnmanagedNodeGroupTask(cfg.NodeGroups, !awsNodeUsesIRSA, vpcImporter)
+	nodeGroupTasks := m.stackManager.NewUnmanagedNodeGroupTask(ctx, cfg.NodeGroups, !awsNodeUsesIRSA, vpcImporter)
 	if nodeGroupTasks.Len() > 0 {
 		allNodeGroupTasks.Append(nodeGroupTasks)
 	}

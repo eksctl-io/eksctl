@@ -41,7 +41,7 @@ type NodeGroupInitialiser interface {
 	ExpandInstanceSelectorOptions(nodePools []api.NodePool, clusterAZs []string) error
 	NewAWSSelectorSession(provider api.ClusterProvider)
 	ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.ClusterProvider) error
-	DoesAWSNodeUseIRSA(provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error)
+	DoesAWSNodeUseIRSA(ctx context.Context, provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error)
 	DoAllNodegroupStackTasks(taskTree *tasks.TaskTree, region, name string) error
 	ValidateExistingNodeGroupsForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error
 }

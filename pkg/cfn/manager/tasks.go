@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -9,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -29,6 +31,7 @@ func (t *createClusterTask) Do(errorCh chan error) error {
 
 type nodeGroupTask struct {
 	info              string
+	ctx               context.Context
 	nodeGroup         *api.NodeGroup
 	forceAddCNIPolicy bool
 	vpcImporter       vpc.Importer
@@ -37,7 +40,7 @@ type nodeGroupTask struct {
 
 func (t *nodeGroupTask) Describe() string { return t.info }
 func (t *nodeGroupTask) Do(errs chan error) error {
-	return t.stackCollection.createNodeGroupTask(errs, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
+	return t.stackCollection.createNodeGroupTask(t.ctx, errs, t.nodeGroup, t.forceAddCNIPolicy, t.vpcImporter)
 }
 
 type managedNodeGroupTask struct {

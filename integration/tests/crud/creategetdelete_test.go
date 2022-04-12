@@ -720,7 +720,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 				It("should enable OIDC, create two iamserviceaccounts and update the policies", func() {
 					{
-						exists, err := oidc.CheckProviderExists()
+						exists, err := oidc.CheckProviderExists(context.Background())
 						Expect(err).ShouldNot(HaveOccurred())
 						Expect(exists).To(BeFalse())
 					}
@@ -733,7 +733,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					Expect(setupCmd).To(RunSuccessfully())
 
 					{
-						exists, err := oidc.CheckProviderExists()
+						exists, err := oidc.CheckProviderExists(context.Background())
 						Expect(err).ShouldNot(HaveOccurred())
 						Expect(exists).To(BeTrue())
 					}

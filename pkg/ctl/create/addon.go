@@ -1,14 +1,16 @@
 package create
 
 import (
+	"context"
 	"fmt"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
-	"github.com/weaveworks/eksctl/pkg/actions/addon"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
+	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
@@ -57,7 +59,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 			return err
 		}
 
-		oidcProviderExists, err := oidc.CheckProviderExists()
+		oidcProviderExists, err := oidc.CheckProviderExists(context.TODO())
 		if err != nil {
 			return err
 		}

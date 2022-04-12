@@ -87,7 +87,7 @@ var _ = Describe("Fargate", func() {
 							},
 						},
 					}, nil)
-					fakeStackManager.CreateStackStub = func(_ string, _ builder.ResourceSet, _ map[string]string, _ map[string]string, errchan chan error) error {
+					fakeStackManager.CreateStackStub = func(_ string, _ builder.ResourceSetReader, _ map[string]string, _ map[string]string, errchan chan error) error {
 						go func() {
 							errchan <- nil
 						}()
@@ -205,7 +205,7 @@ var _ = Describe("Fargate", func() {
 							},
 						},
 					}, nil)
-					fakeStackManager.CreateStackStub = func(_ string, _ builder.ResourceSet, _ map[string]string, _ map[string]string, errchan chan error) error {
+					fakeStackManager.CreateStackStub = func(_ string, _ builder.ResourceSetReader, _ map[string]string, _ map[string]string, errchan chan error) error {
 						go func() {
 							errchan <- nil
 						}()

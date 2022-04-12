@@ -1,6 +1,7 @@
 package delete
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/kris-nova/logger"
@@ -88,7 +89,7 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 		return err
 	}
 
-	providerExists, err := oidc.CheckProviderExists()
+	providerExists, err := oidc.CheckProviderExists(context.TODO())
 	if err != nil {
 		return err
 	}

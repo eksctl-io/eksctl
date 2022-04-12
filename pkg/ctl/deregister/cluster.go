@@ -44,7 +44,7 @@ func deregisterCluster(cmd *cmdutils.Cmd, clusterName string) error {
 		Provider: clusterProvider.Provider,
 	}
 
-	if err := c.DeregisterCluster(clusterName); err != nil {
+	if err := c.DeregisterCluster(context.TODO(), clusterName); err != nil {
 		return errors.Wrap(err, "error deregistering cluster")
 	}
 
