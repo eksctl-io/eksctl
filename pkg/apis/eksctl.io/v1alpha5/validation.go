@@ -698,13 +698,12 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	}
 
 	if ng.ContainerRuntime != nil {
-		if *ng.ContainerRuntime == ContainerRuntimeContainerD {
-			if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && !IsWindowsImage(ng.AMIFamily) {
-				return fmt.Errorf("%s as runtime is only supported for AL2 or Windows ami family", ContainerRuntimeContainerD)
-			}
+		if *ng.ContainerRuntime == ContainerRuntimeContainerD && ng.AMIFamily != NodeImageFamilyAmazonLinux2 {
+			// check if it's dockerd or containerd
+			return fmt.Errorf("%s as runtime is only support for AL2 ami family", ContainerRuntimeContainerD)
 		}
-		if *ng.ContainerRuntime != ContainerRuntimeDockerD && *ng.ContainerRuntime != ContainerRuntimeContainerD && *ng.ContainerRuntime != ContainerRuntimeDockerForWindows {
-			return fmt.Errorf("only %s, %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD, ContainerRuntimeDockerForWindows)
+		if *ng.ContainerRuntime != ContainerRuntimeDockerD && *ng.ContainerRuntime != ContainerRuntimeContainerD {
+			return fmt.Errorf("only %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD)
 		}
 	}
 

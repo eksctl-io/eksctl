@@ -8,12 +8,10 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-
-	"github.com/weaveworks/eksctl/pkg/awsapi"
-
 	"github.com/aws/aws-sdk-go/aws"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
@@ -68,6 +66,9 @@ func getZones(ctx context.Context, ec2API awsapi.EC2, region string) ([]string, 
 			}, {
 				Name:   aws.String("state"),
 				Values: []string{string(ec2types.AvailabilityZoneStateAvailable)},
+			}, {
+				Name:   aws.String("zone-type"),
+				Values: []string{string(ec2types.LocationTypeAvailabilityZone)},
 			},
 		},
 	}

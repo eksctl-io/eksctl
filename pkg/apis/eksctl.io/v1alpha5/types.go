@@ -187,9 +187,8 @@ const (
 
 // Container runtime values.
 const (
-	ContainerRuntimeContainerD       = "containerd"
-	ContainerRuntimeDockerD          = "dockerd"
-	ContainerRuntimeDockerForWindows = "docker"
+	ContainerRuntimeContainerD = "containerd"
+	ContainerRuntimeDockerD    = "dockerd"
 )
 
 const (
@@ -365,8 +364,7 @@ var (
 
 var (
 	// DefaultContainerRuntime defines the default container runtime.
-	DefaultContainerRuntime           = ContainerRuntimeDockerD
-	DefaultContainerRuntimeForWindows = ContainerRuntimeDockerForWindows
+	DefaultContainerRuntime = ContainerRuntimeDockerD
 )
 
 // Enabled return pointer to true value
