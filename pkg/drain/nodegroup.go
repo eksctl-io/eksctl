@@ -238,13 +238,10 @@ func (n *NodeGroupDrainer) evictPods(ctx context.Context, node string) error {
 			if len(errs) > 0 {
 				return fmt.Errorf("errs: %v", errs) // TODO: improve formatting
 			}
-			if list == nil {
+			if list == nil || len(list.Pods()) == 0 {
 				return nil
 			}
 			pods := list.Pods()
-			if len(pods) == 0 {
-				return nil
-			}
 			if w := list.Warnings(); w != "" {
 				logger.Warning(w)
 			}
