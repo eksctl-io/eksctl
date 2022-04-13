@@ -261,7 +261,7 @@ func (n *NodeGroupDrainer) evictPods(ctx context.Context, node string) error {
 					if !isEvictionErrorRecoverable(err) {
 						return errors.Wrapf(err, "unrecoverable error evicting pod: %s/%s", pod.Namespace, pod.Name)
 					}
-					logger.Debug("pod eviction failed recoverably: %q", err)
+					logger.Debug("recoverable pod eviction failure: %q", err)
 					failedEvictions = true
 				}
 			}
