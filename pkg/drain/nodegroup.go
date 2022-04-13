@@ -3,11 +3,11 @@ package drain
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/weaveworks/eksctl/pkg/drain/evictor"
@@ -28,13 +28,6 @@ import (
 
 // retryDelay is how long is slept before retry after an error occurs during drainage
 const retryDelay = 5 * time.Second
-
-var recoverablePodEvictionErrors = [...]string{
-	"Cannot evict pod as it would violate the pod's disruption budget",
-	"TooManyRequests",
-	"NotFound",
-	"not found",
-}
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_evictor.go . Evictor
@@ -277,8 +270,21 @@ func cordonStatus(desired bool) string {
 }
 
 func isEvictionErrorRecoverable(err error) bool {
-	for _, recoverableError := range recoverablePodEvictionErrors {
-		if strings.Contains(err.Error(), recoverableError) {
+	var recoverableCheckerFuncs []func(error) bool
+	recoverableCheckerFuncs = append(
+		recoverableCheckerFuncs,
+		apierrors.IsGone,
+		apierrors.IsNotFound,
+		apierrors.IsResourceExpired,
+		apierrors.IsServerTimeout,
+		apierrors.IsServiceUnavailable,
+		apierrors.IsTimeout,
+		// IsTooManyRequests also captures PDB errors
+		apierrors.IsTooManyRequests,
+	)
+
+	for _, f := range recoverableCheckerFuncs {
+		if f(err) {
 			return true
 		}
 	}

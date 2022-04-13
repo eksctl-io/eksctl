@@ -7,6 +7,7 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/weaveworks/eksctl/pkg/drain/evictor"
 
@@ -246,7 +247,7 @@ var _ = Describe("Drain", func() {
 			}
 			fakeEvictor.GetPodsForEvictionReturnsOnCall(2, nil, nil)
 
-			fakeEvictor.EvictOrDeletePodReturnsOnCall(0, errors.New("Cannot evict pod as it would violate the pod's disruption budget"))
+			fakeEvictor.EvictOrDeletePodReturnsOnCall(0, apierrors.NewTooManyRequestsError("error1"))
 			fakeEvictor.EvictOrDeletePodReturnsOnCall(1, nil)
 
 			_, err := fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &corev1.Node{
@@ -361,7 +362,7 @@ var _ = Describe("Drain", func() {
 				},
 			}, nil)
 
-			evictionError = errors.New("Cannot evict pod as it would violate the pod's disruption budget")
+			evictionError = apierrors.NewTooManyRequestsError("error1")
 			fakeEvictor.EvictOrDeletePodReturns(evictionError)
 
 			_, err := fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &corev1.Node{
