@@ -9,17 +9,15 @@ import (
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	gomegatypes "github.com/onsi/gomega/types"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	. "github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
 var _ = Describe("eksctl API", func() {
@@ -217,6 +215,9 @@ var _ = Describe("Setting Availability Zones", func() {
 					}, {
 						Name:   aws.String("state"),
 						Values: []string{string(ec2types.AvailabilityZoneStateAvailable)},
+					}, {
+						Name:   aws.String("zone-type"),
+						Values: []string{string(ec2types.LocationTypeAvailabilityZone)},
 					}},
 				}).Return(&ec2.DescribeAvailabilityZonesOutput{}, fmt.Errorf("err"))
 				err := eks.SetAvailabilityZones(context.Background(), cfg, []string{}, provider.EC2(), region)
@@ -234,6 +235,9 @@ var _ = Describe("Setting Availability Zones", func() {
 					}, {
 						Name:   aws.String("state"),
 						Values: []string{string(ec2types.AvailabilityZoneStateAvailable)},
+					}, {
+						Name:   aws.String("zone-type"),
+						Values: []string{string(ec2types.LocationTypeAvailabilityZone)},
 					}},
 				}).Return(&ec2.DescribeAvailabilityZonesOutput{
 					AvailabilityZones: []ec2types.AvailabilityZone{
