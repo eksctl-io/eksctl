@@ -231,9 +231,6 @@ func setDefaultsForAdditionalVolumes(ng *NodeGroupBase) {
 func setContainerRuntimeDefault(ng *NodeGroup) {
 	if ng.ContainerRuntime == nil {
 		ng.ContainerRuntime = &DefaultContainerRuntime
-		if IsWindowsImage(ng.AMIFamily) {
-			ng.ContainerRuntime = &DefaultContainerRuntimeForWindows
-		}
 	}
 }
 
