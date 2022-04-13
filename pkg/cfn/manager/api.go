@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
-	astypes "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
+	asTypes "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
@@ -245,7 +245,7 @@ func (c *StackCollection) PropagateManagedNodeGroupTagsToASG(ngName string, ngTa
 	go func() {
 		defer close(errCh)
 		// build the input tags for all ASGs attached to the managed nodegroup
-		asgTags := []astypes.Tag{}
+		asgTags := []asTypes.Tag{}
 
 		for _, asgName := range asgNames {
 			// skip directly if not tags are required to be created
@@ -260,7 +260,7 @@ func (c *StackCollection) PropagateManagedNodeGroupTagsToASG(ngName string, ngTa
 			}
 			// build the list of tags to attach to the ASG
 			for ngTagKey, ngTagValue := range ngTags {
-				asgTag := astypes.Tag{
+				asgTag := asTypes.Tag{
 					ResourceId:        aws.String(asgName),
 					ResourceType:      aws.String("auto-scaling-group"),
 					Key:               aws.String(ngTagKey),
@@ -272,7 +272,7 @@ func (c *StackCollection) PropagateManagedNodeGroupTagsToASG(ngName string, ngTa
 		}
 
 		// consider the maximum number of tags we can create at once...
-		var chunkedASGTags [][]astypes.Tag
+		var chunkedASGTags [][]asTypes.Tag
 		chunkSize := builder.MaximumCreatedTagNumberPerCall
 		for start := 0; start < len(asgTags); start += chunkSize {
 			end := start + chunkSize
@@ -297,7 +297,7 @@ func (c *StackCollection) PropagateManagedNodeGroupTagsToASG(ngName string, ngTa
 // checkASGTagsNumber limit considering the new propagated tags
 func (c *StackCollection) checkASGTagsNumber(ngName, asgName string, propagatedTags map[string]string) error {
 	tagsFilter := &autoscaling.DescribeTagsInput{
-		Filters: []astypes.Filter{
+		Filters: []asTypes.Filter{
 			{
 				Name:   aws.String("auto-scaling-group"),
 				Values: []string{asgName},
