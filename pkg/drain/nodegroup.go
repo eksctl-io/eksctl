@@ -159,7 +159,7 @@ func (n *NodeGroupDrainer) Drain() error {
 			logger.Debug("already drained: %v", mapToList(drainedNodes.Items()))
 			logger.Debug("will drain: %v", newPendingNodes.List())
 
-			errorGroup, _ := errgroup.WithContext(ctx)
+			g, ctx := errgroup.WithContext(ctx)
 			for _, node := range newPendingNodes.List() {
 				node := node
 				errorGroup.Go(func() error {
