@@ -187,7 +187,7 @@ func (n *NodeGroupDrainer) Drain() error {
 			}
 			// We need to loop even if this is an error to check whether the error was a
 			// context timeout or something else.  This lets us log timout errors consistently
-			evictErr = errorGroup.Wait()
+			evictErr = g.Wait()
 		}
 	}
 }
