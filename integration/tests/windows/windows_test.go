@@ -10,7 +10,6 @@ import (
 	"time"
 
 	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
 	. "github.com/weaveworks/eksctl/integration/runner"
@@ -86,18 +85,32 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 		kubeTest.WaitForDeploymentReady(d, 12*time.Minute)
 	}
 
-	Context("When creating a cluster with Windows nodegroups", func() {
-		DescribeTable("it should be able to run Windows pods", func(withOIDC bool, ami, workload, containerRuntime string) {
-			createCluster(withOIDC, ami, containerRuntime)
-			runWindowsPod(workload)
-		},
-			Entry("windows when withOIDC is disabled", false, api.NodeImageFamilyWindowsServer2019FullContainer, "windows-server-iis.yaml", api.ContainerRuntimeDockerForWindows),
-			Entry("windows when withOIDC is enabled", true, api.NodeImageFamilyWindowsServer2019FullContainer, "windows-server-iis.yaml", api.ContainerRuntimeDockerForWindows),
-			Entry("windows 20H2", true, api.NodeImageFamilyWindowsServer20H2CoreContainer, "windows-server-iis-20H2.yaml", api.ContainerRuntimeDockerForWindows),
-			Entry("windows with container runtime containerd", true, api.NodeImageFamilyWindowsServer20H2CoreContainer, "windows-server-iis-20H2.yaml", api.ContainerRuntimeContainerD),
-		)
+	Context("windows with OIDC disabled", func() {
+		BeforeEach(func() {
+			createCluster(false, api.NodeImageFamilyWindowsServer2019FullContainer, api.ContainerRuntimeDockerForWindows)
+		})
+		It("should be able to run Windows pods", func() {
+			runWindowsPod("windows-server-iis.yaml")
+		})
 	})
 
+	Context("windows with OIDC enabled", func() {
+		BeforeEach(func() {
+			createCluster(true, api.NodeImageFamilyWindowsServer2019FullContainer, api.ContainerRuntimeDockerForWindows)
+		})
+		It("should be able to run Windows pods", func() {
+			runWindowsPod("windows-server-iis.yaml")
+		})
+	})
+
+	Context("windows with 20H2", func() {
+		BeforeEach(func() {
+			createCluster(true, api.NodeImageFamilyWindowsServer20H2CoreContainer, api.ContainerRuntimeContainerD)
+		})
+		It("should be able to run Windows pods", func() {
+			runWindowsPod("windows-server-iis-20H2.yaml")
+		})
+	})
 })
 
 var _ = AfterSuite(func() {
