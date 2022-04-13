@@ -19,16 +19,12 @@ type createFargateStackTask struct {
 
 func (t *createFargateStackTask) Describe() string { return "create fargate IAM stacK" }
 
-func makeClusterStackName(clusterName string) string {
-	return "eksctl-" + clusterName + "-fargate"
-}
-
 func (t *createFargateStackTask) Do(errs chan error) error {
 	rs := builder.NewFargateResourceSet(t.cfg)
 	if err := rs.AddAllResources(); err != nil {
 		return errors.Wrap(err, "couldn't add all resources to fargate resource set")
 	}
-	return t.stackManager.CreateStack(context.TODO(), makeClusterStackName(t.cfg.Metadata.Name), rs, nil, nil, errs)
+	return t.stackManager.CreateStack(context.TODO(), t.cfg.MakeStackName(api.FargateStackSuffix), rs, nil, nil, errs)
 }
 
 // ensureFargateRoleStackExists creates fargate IAM resources if they

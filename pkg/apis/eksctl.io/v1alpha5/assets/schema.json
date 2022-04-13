@@ -475,6 +475,12 @@
           "x-intellij-html-description": "arbitrary metadata ignored by <code>eksctl</code>.",
           "default": "{}"
         },
+        "disableStackPrefix": {
+          "type": "boolean",
+          "description": "stops eksctl from prefixing stacks with `eksctl-`.",
+          "x-intellij-html-description": "stops eksctl from prefixing stacks with <code>eksctl-</code>.",
+          "default": "false"
+        },
         "name": {
           "type": "string",
           "description": "of the cluster",
@@ -512,7 +518,8 @@
         "region",
         "version",
         "tags",
-        "annotations"
+        "annotations",
+        "disableStackPrefix"
       ],
       "additionalProperties": false,
       "description": "contains general cluster information",

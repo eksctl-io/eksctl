@@ -320,7 +320,13 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDe
 }
 
 func makeCFNTags(clusterConfig *api.ClusterConfig) []gfncfn.Tag {
-	var tags []gfncfn.Tag
+	tags := []gfncfn.Tag{}
+	if clusterConfig.Metadata.DisableStackPrefix {
+		tags = append(tags, gfncfn.Tag{
+			Key:   gfnt.NewString(api.DisableStackPrefixTag),
+			Value: gfnt.NewString("true"),
+		})
+	}
 	for k, v := range clusterConfig.Metadata.Tags {
 		tags = append(tags, gfncfn.Tag{
 			Key:   gfnt.NewString(k),

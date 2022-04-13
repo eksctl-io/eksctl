@@ -32,8 +32,8 @@ const (
 	resourceTypeAutoScalingGroup = "auto-scaling-group"
 	outputsRootPath              = "Outputs"
 	mappingsRootPath             = "Mappings"
-	ourStackRegexFmt             = "^(eksctl|EKS)-%s-((cluster|nodegroup-.+|addon-.+|fargate|karpenter)|(VPC|ServiceRole|ControlPlane|DefaultNodeGroup))$"
-	clusterStackRegex            = "eksctl-.*-cluster"
+	ourStackRegexFmt             = "^(eksctl-|EKS-)?%s-((cluster|nodegroup-.+|addon-.+|fargate|karpenter)|(VPC|ServiceRole|ControlPlane|DefaultNodeGroup))$"
+	clusterStackRegex            = ".*-cluster"
 )
 
 var (
@@ -95,6 +95,9 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) S
 		newTag(api.ClusterNameTag, spec.Metadata.Name),
 		newTag(api.OldClusterNameTag, spec.Metadata.Name),
 		newTag(api.EksctlVersionTag, version.GetVersion()),
+	}
+	if spec.Metadata.DisableStackPrefix {
+		tags = append(tags, newTag(api.DisableStackPrefixTag, "true"))
 	}
 	for key, value := range spec.Metadata.Tags {
 		tags = append(tags, newTag(key, value))
@@ -429,7 +432,8 @@ func (c *StackCollection) UpdateNodeGroupStack(ctx context.Context, nodeGroupNam
 	})
 }
 
-// ListStacksMatching gets all of CloudFormation stacks with names matching nameRegex.
+// ListStacksMatching gets all of CloudFormation stacks with names matching nameRegex
+// and tagged with the appropriate cluster name or the cluster name tag is missing.
 func (c *StackCollection) ListStacksMatching(ctx context.Context, nameRegex string, statusFilters ...types.StackStatus) ([]*Stack, error) {
 	var (
 		subErr error
@@ -463,7 +467,11 @@ func (c *StackCollection) ListStacksMatching(ctx context.Context, nameRegex stri
 					// this shouldn't return the error, but just stop the pagination and return whatever it gathered so far.
 					return stacks, nil
 				}
-				stacks = append(stacks, stack)
+
+				clusterName := getClusterName(stack)
+				if clusterName == "" || clusterName == c.spec.Metadata.Name {
+					stacks = append(stacks, stack)
+				}
 			}
 		}
 	}

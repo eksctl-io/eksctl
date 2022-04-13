@@ -2,7 +2,6 @@ package manager
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
@@ -15,7 +14,7 @@ import (
 
 // makeIAMServiceAccountStackName generates the name of the iamserviceaccount stack identified by its name, isolated by the cluster this StackCollection operates on and 'addon' suffix
 func (c *StackCollection) makeIAMServiceAccountStackName(namespace, name string) string {
-	return fmt.Sprintf("eksctl-%s-addon-iamserviceaccount-%s-%s", c.spec.Metadata.Name, namespace, name)
+	return c.spec.MakeStackName(api.AddonStackSuffix, api.IAMServiceAccountStackSuffix, namespace, name)
 }
 
 // createIAMServiceAccountTask creates the iamserviceaccount in CloudFormation

@@ -334,19 +334,19 @@ func addGroupB(cfg *api.ClusterConfig) {
 }
 
 const expected = `
-  {
+	{
 		"kind": "ClusterConfig",
 		"apiVersion": "eksctl.io/v1alpha5",
 		"metadata": {
-		  "name": "test-3x3-ngs",
-		  "region": "eu-central-1",
-		  "version": "1.22"
+			"name": "test-3x3-ngs",
+			"region": "eu-central-1",
+			"version": "1.22"
 		},
 		"kubernetesNetworkConfig": {
-        	"ipFamily": "IPv4"
-        },
+			"ipFamily": "IPv4"
+		},
 		"iam": {
-		  "withOIDC": false
+			"withOIDC": false
 		},
 		"vpc": {
 			"cidr": "192.168.0.0/16",
@@ -354,10 +354,10 @@ const expected = `
 			"autoAllocateIPv6": false,
 			"nat": {
 				"gateway": "Single"
-			  }
+			}
 		},
 		"cloudWatch": {
-		  "clusterLogging": {}
+			"clusterLogging": {}
 		},
 		"privateCluster": {
 			"enabled": false,
@@ -365,286 +365,286 @@ const expected = `
 		},
 		"nodeGroups": [
 		  {
-			  "name": "test-ng1a",
-			  "amiFamily": "AmazonLinux2",
-			  "instanceType": "m5.large",
-			  "privateNetworking": false,
-			  "securityGroups": {
-			    "withShared": true,
-			    "withLocal": true
-			  },
-			  "volumeSize": 768,
-			  "volumeType": "io1",
-			  "volumeIOPS": 100,
-			  "labels": {
-				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
-				"alpha.eksctl.io/nodegroup-name": "test-ng1a",
-			    "group": "a",
-			    "seq": "1"
-			  },
-			  "ssh": {
-				"allow": false
-			  },
-			  "iam": {
-			    "attachPolicyARNs": [
-				  "arn:aws:iam::aws:policy/Foo"
-			    ],
-			    "withAddonPolicies": {
-				  "imageBuilder": false,
-				  "autoScaler": false,
-				  "awsLoadBalancerController": false,
-				  "externalDNS": false,
-				  "certManager": false,
-				  "appMesh": false,
-				  "appMeshPreview": false,
-				  "ebs": false,
-				  "fsx": false,
-				  "efs": false,
-				  "albIngress": false,
-				  "xRay": false,
-				  "cloudWatch": false
-			    }
-			  },
-			  "disableIMDSv1": false,
-			  "disablePodIMDS": false,
-			  "instanceSelector": {},
-			  "containerRuntime": "dockerd"
-		  },
-		  {
-			  "name": "test-ng2a",
-			  "amiFamily": "AmazonLinux2",
-			  "instanceType": "m5.large",
-			  "privateNetworking": false,
-			  "securityGroups": {
-			    "withShared": true,
-			    "withLocal": true
-			  },
-			  "volumeSize": 80,
-			  "volumeType": "gp2",
-			  "labels": {
-				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
-				"alpha.eksctl.io/nodegroup-name": "test-ng2a",
-			    "group": "a",
-			    "seq": "2"
-			  },
-			  "ssh": {
-			    "allow": false
-			  },
-			  "iam": {
-			    "attachPolicyARNs": [
-				  "arn:aws:iam::aws:policy/Bar"
-			    ],
-			    "withAddonPolicies": {
-				  "imageBuilder": false,
-				  "autoScaler": false,
-				  "awsLoadBalancerController": false,
-				  "externalDNS": false,
-				  "certManager": false,
-				  "appMesh": false,
-				  "appMeshPreview": false,
-				  "ebs": false,
-				  "fsx": false,
-				  "efs": false,
-				  "albIngress": false,
-				  "xRay": false,
-				  "cloudWatch": false
-			    }
-			  },
-			  "disableIMDSv1": false,
-			  "disablePodIMDS": false,
-			  "instanceSelector": {},
-			  "containerRuntime": "dockerd"
-		  },
-		  {
-			  "name": "test-ng3a",
-			  "amiFamily": "AmazonLinux2",
-			  "instanceType": "m3.large",
-			  "privateNetworking": false,
-			  "securityGroups": {
-			    "withShared": true,
-			    "withLocal": true
-			  },
-			  "volumeSize": 80,
-			  "volumeType": "gp3",
+				"name": "test-ng1a",
+				"amiFamily": "AmazonLinux2",
+				"instanceType": "m5.large",
+				"privateNetworking": false,
+				"securityGroups": {
+					"withShared": true,
+					"withLocal": true
+				},
+				"volumeSize": 768,
+				"volumeType": "io1",
+				"volumeIOPS": 100,
+				"labels": {
+					"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
+					"alpha.eksctl.io/nodegroup-name": "test-ng1a",
+					"group": "a",
+					"seq": "1"
+				},
+				"ssh": {
+					"allow": false
+				},
+				"iam": {
+					"attachPolicyARNs": [
+						"arn:aws:iam::aws:policy/Foo"
+					],
+					"withAddonPolicies": {
+						"imageBuilder": false,
+						"autoScaler": false,
+						"awsLoadBalancerController": false,
+						"externalDNS": false,
+						"certManager": false,
+						"appMesh": false,
+						"appMeshPreview": false,
+						"ebs": false,
+						"fsx": false,
+						"efs": false,
+						"albIngress": false,
+						"xRay": false,
+						"cloudWatch": false
+					}
+				},
+				"disableIMDSv1": false,
+				"disablePodIMDS": false,
+				"instanceSelector": {},
+				"containerRuntime": "dockerd"
+			},
+			{
+				"name": "test-ng2a",
+				"amiFamily": "AmazonLinux2",
+				"instanceType": "m5.large",
+				"privateNetworking": false,
+				"securityGroups": {
+					"withShared": true,
+					"withLocal": true
+				},
+				"volumeSize": 80,
+				"volumeType": "gp2",
+				"labels": {
+					"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
+					"alpha.eksctl.io/nodegroup-name": "test-ng2a",
+					"group": "a",
+					"seq": "2"
+				},
+				"ssh": {
+					"allow": false
+				},
+				"iam": {
+					"attachPolicyARNs": [
+						"arn:aws:iam::aws:policy/Bar"
+					],
+					"withAddonPolicies": {
+						"imageBuilder": false,
+						"autoScaler": false,
+						"awsLoadBalancerController": false,
+						"externalDNS": false,
+						"certManager": false,
+						"appMesh": false,
+						"appMeshPreview": false,
+						"ebs": false,
+						"fsx": false,
+						"efs": false,
+						"albIngress": false,
+						"xRay": false,
+						"cloudWatch": false
+					}
+				},
+				"disableIMDSv1": false,
+				"disablePodIMDS": false,
+				"instanceSelector": {},
+				"containerRuntime": "dockerd"
+			},
+			{
+				"name": "test-ng3a",
+				"amiFamily": "AmazonLinux2",
+				"instanceType": "m3.large",
+				"privateNetworking": false,
+				"securityGroups": {
+					"withShared": true,
+					"withLocal": true
+				},
+				"volumeSize": 80,
+				"volumeType": "gp3",
 				"volumeIOPS": 3000,
 				"volumeThroughput": 125,
-			  "labels": {
-				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
-				"alpha.eksctl.io/nodegroup-name": "test-ng3a",
-			    "group": "a",
-			    "seq": "3"
-			  },
-			  "ssh": {
-			    "allow": true,
-			    "publicKeyPath": "~/.ssh/id_rsa.pub"
-			  },
-			  "iam": {
-				"withAddonPolicies": {
-				  "imageBuilder": false,
-				  "autoScaler": false,
-				  "awsLoadBalancerController": false,
-				  "externalDNS": false,
-				  "certManager": false,
-				  "appMesh": false,
-				  "appMeshPreview": false,
-				  "ebs": false,
-				  "fsx": false,
-				  "efs": false,
-				  "albIngress": false,
-				  "xRay": false,
-				  "cloudWatch": false
-			    }
-			  },
-			  "clusterDNS": "1.2.3.4",
-			  "disableIMDSv1": false,
-			  "disablePodIMDS": false,
-			  "instanceSelector": {},
-			  "containerRuntime": "dockerd"
-		  },
-		  {
-			  "name": "test-ng1b",
-			  "amiFamily": "AmazonLinux2",
-			  "instanceType": "m5.large",
-			  "privateNetworking": false,
-			  "securityGroups": {
-			    "withShared": true,
-			    "withLocal": true
-			  },
-			  "volumeSize": 80,
-			  "volumeType": "gp3",
+				"labels": {
+					"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
+					"alpha.eksctl.io/nodegroup-name": "test-ng3a",
+					"group": "a",
+					"seq": "3"
+				},
+				"ssh": {
+					"allow": true,
+					"publicKeyPath": "~/.ssh/id_rsa.pub"
+				},
+				"iam": {
+					"withAddonPolicies": {
+						"imageBuilder": false,
+						"autoScaler": false,
+						"awsLoadBalancerController": false,
+						"externalDNS": false,
+						"certManager": false,
+						"appMesh": false,
+						"appMeshPreview": false,
+						"ebs": false,
+						"fsx": false,
+						"efs": false,
+						"albIngress": false,
+						"xRay": false,
+						"cloudWatch": false
+					}
+				},
+				"clusterDNS": "1.2.3.4",
+				"disableIMDSv1": false,
+				"disablePodIMDS": false,
+				"instanceSelector": {},
+				"containerRuntime": "dockerd"
+			},
+			{
+				"name": "test-ng1b",
+				"amiFamily": "AmazonLinux2",
+				"instanceType": "m5.large",
+				"privateNetworking": false,
+				"securityGroups": {
+					"withShared": true,
+					"withLocal": true
+				},
+				"volumeSize": 80,
+				"volumeType": "gp3",
 				"volumeIOPS": 3000,
 				"volumeThroughput": 125,
-			  "labels": {
-				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
-				"alpha.eksctl.io/nodegroup-name": "test-ng1b",
-			    "group": "b",
-			    "seq": "1"
-			  },
-			  "ssh": {
-			    "allow": true,
-			    "publicKeyPath": "~/.ssh/id_rsa.pub"
-              },
-			  "iam": {
-			    "withAddonPolicies": {
-			  	  "imageBuilder": false,
-			  	  "autoScaler": false,
-				    "awsLoadBalancerController": false,
-			  	  "externalDNS": false,
-			  	  "certManager": false,
-			  	  "appMesh": false,
-				  "appMeshPreview": false,
-			  	  "ebs": false,
-			  	  "fsx": false,
-			  	  "efs": false,
-				  "albIngress": false,
-				  "xRay": false,
-				  "cloudWatch": false
-			    }
-			  },
-			  "disableIMDSv1": false,
-			  "disablePodIMDS": false,
-			  "instanceSelector": {},
-			  "containerRuntime": "dockerd"
-		  },
-		  {
-			  "name": "test-ng2b",
-			  "amiFamily": "AmazonLinux2",
-			  "instanceType": "m5.xlarge",
-			  "privateNetworking": false,
-			  "securityGroups": {
-			    "attachIDs": [
-			  	  "sg-1",
-			  	  "sg-2"
-			    ],
-			    "withShared": true,
-			    "withLocal": false
-			  },
-			  "volumeSize": 80,
-			  "volumeType": "gp3",
+				"labels": {
+					"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
+					"alpha.eksctl.io/nodegroup-name": "test-ng1b",
+					"group": "b",
+					"seq": "1"
+				},
+				"ssh": {
+					"allow": true,
+					"publicKeyPath": "~/.ssh/id_rsa.pub"
+				},
+				"iam": {
+					"withAddonPolicies": {
+						"imageBuilder": false,
+						"autoScaler": false,
+						"awsLoadBalancerController": false,
+						"externalDNS": false,
+						"certManager": false,
+						"appMesh": false,
+						"appMeshPreview": false,
+						"ebs": false,
+						"fsx": false,
+						"efs": false,
+						"albIngress": false,
+						"xRay": false,
+						"cloudWatch": false
+					}
+				},
+				"disableIMDSv1": false,
+				"disablePodIMDS": false,
+				"instanceSelector": {},
+				"containerRuntime": "dockerd"
+			},
+			{
+				"name": "test-ng2b",
+				"amiFamily": "AmazonLinux2",
+				"instanceType": "m5.xlarge",
+				"privateNetworking": false,
+				"securityGroups": {
+					"attachIDs": [
+						"sg-1",
+						"sg-2"
+					],
+					"withShared": true,
+					"withLocal": false
+				},
+				"volumeSize": 80,
+				"volumeType": "gp3",
 				"volumeIOPS": 3000,
 				"volumeThroughput": 125,
-			  "labels": {
-				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
-				"alpha.eksctl.io/nodegroup-name": "test-ng2b",
-			    "group": "b",
-			    "seq": "1"
-			  },
-			  "ssh": {
-			    "allow": false
-              },
-			  "iam": {
-			    "withAddonPolicies": {
-			  	  "imageBuilder": false,
-			  	  "autoScaler": false,
-				    "awsLoadBalancerController": false,
-			  	  "externalDNS": false,
-			  	  "certManager": false,
-			  	  "appMesh": false,
-				  "appMeshPreview": false,
-			  	  "ebs": false,
-			  	  "fsx": false,
-			  	  "efs": false,
-				  "albIngress": false,
-				  "xRay": false,
-				  "cloudWatch": false
-			    }
-			  },
-			  "clusterDNS": "4.2.8.14",
-			  "disableIMDSv1": false,
-			  "disablePodIMDS": false,
-			  "instanceSelector": {},
-			  "containerRuntime": "dockerd"
-		  },
-		  {
-			  "name": "test-ng3b",
-			  "amiFamily": "AmazonLinux2",
-			  "instanceType": "m5.large",
-			  "privateNetworking": false,
-			  "securityGroups": {
-			    "attachIDs": [
-			  	  "sg-1",
-			  	  "sg-2"
-			    ],
-			    "withShared": true,
-			    "withLocal": false
-			  },
-			  "volumeSize": 192,
-			  "volumeType": "gp3",
+				"labels": {
+					"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
+					"alpha.eksctl.io/nodegroup-name": "test-ng2b",
+					"group": "b",
+					"seq": "1"
+				},
+				"ssh": {
+					"allow": false
+				},
+				"iam": {
+					"withAddonPolicies": {
+						"imageBuilder": false,
+						"autoScaler": false,
+						"awsLoadBalancerController": false,
+						"externalDNS": false,
+						"certManager": false,
+						"appMesh": false,
+						"appMeshPreview": false,
+						"ebs": false,
+						"fsx": false,
+						"efs": false,
+						"albIngress": false,
+						"xRay": false,
+						"cloudWatch": false
+					}
+				},
+				"clusterDNS": "4.2.8.14",
+				"disableIMDSv1": false,
+				"disablePodIMDS": false,
+				"instanceSelector": {},
+				"containerRuntime": "dockerd"
+			},
+			{
+				"name": "test-ng3b",
+				"amiFamily": "AmazonLinux2",
+				"instanceType": "m5.large",
+				"privateNetworking": false,
+				"securityGroups": {
+					"attachIDs": [
+						"sg-1",
+						"sg-2"
+					],
+					"withShared": true,
+					"withLocal": false
+				},
+				"volumeSize": 192,
+				"volumeType": "gp3",
 				"volumeIOPS": 3000,
 				"volumeThroughput": 125,
-			  "labels": {
-				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
-				"alpha.eksctl.io/nodegroup-name": "test-ng3b",
-			    "group": "b",
-			    "seq": "1"
-			  },
-			  "ssh": {
-			    "allow": false
-			  },
-			  "iam": {
-			    "withAddonPolicies": {
-			  	  "imageBuilder": false,
-			  	  "autoScaler": false,
-				  "awsLoadBalancerController": false,
-			  	  "externalDNS": false,
-			  	  "certManager": false,
-			  	  "appMesh": false,
-				  "appMeshPreview": false,
-			  	  "ebs": false,
-			  	  "fsx": false,
-			  	  "efs": false,
-				  "albIngress": false,
-				  "xRay": false,
-				  "cloudWatch": false
-			    }
-			  },
-			  "disableIMDSv1": false,
-			  "disablePodIMDS": false,
-			  "instanceSelector": {},
-			  "containerRuntime": "dockerd"
-		  }
+				"labels": {
+					"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
+					"alpha.eksctl.io/nodegroup-name": "test-ng3b",
+					"group": "b",
+					"seq": "1"
+				},
+				"ssh": {
+					"allow": false
+				},
+				"iam": {
+					"withAddonPolicies": {
+						"imageBuilder": false,
+						"autoScaler": false,
+						"awsLoadBalancerController": false,
+						"externalDNS": false,
+						"certManager": false,
+						"appMesh": false,
+						"appMeshPreview": false,
+						"ebs": false,
+						"fsx": false,
+						"efs": false,
+						"albIngress": false,
+						"xRay": false,
+						"cloudWatch": false
+					}
+				},
+				"disableIMDSv1": false,
+				"disablePodIMDS": false,
+				"instanceSelector": {},
+				"containerRuntime": "dockerd"
+			}
 		]
-  }
+	}
 `
 
 type mockStackLister struct {

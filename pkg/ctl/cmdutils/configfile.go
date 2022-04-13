@@ -201,6 +201,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 	ngFilter.SetExcludeAll(params.WithoutNodeGroup)
 
 	clusterFlagsIncompatibleWithConfigFile := []string{
+		"disable-stack-prefix",
 		"tags",
 		"zones",
 		"fargate",

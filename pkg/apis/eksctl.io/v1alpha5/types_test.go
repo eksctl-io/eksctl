@@ -82,4 +82,42 @@ var _ = Describe("Types", func() {
 		})
 	})
 
+	Describe("MakeStackName", func() {
+		BeforeEach(func() {
+			cfg = NewClusterConfig()
+			cfg.Metadata.Name = "testing"
+		})
+
+		When("cluster name is set", func() {
+			It("returns formatted stack names", func() {
+				Expect(cfg.MakeStackName("cluster")).To(Equal("eksctl-testing-cluster"))
+			})
+		})
+
+		When("disableStackPrefix is true", func() {
+			It("returns stack name without prefix", func() {
+				cfg.Metadata.DisableStackPrefix = true
+				Expect(cfg.MakeStackName("cluster")).To(Equal("testing-cluster"))
+			})
+		})
+
+		When("using multiple suffixes", func() {
+			It("appends them to the stack name with dashes", func() {
+				Expect(cfg.MakeStackName("nodegroup", "my-nodegroup", "ng-1")).To(Equal("eksctl-testing-nodegroup-my-nodegroup-ng-1"))
+			})
+		})
+	})
+
+	Describe("MakeStackNameFromName", func() {
+		BeforeEach(func() {
+			cfg = NewClusterConfig()
+		})
+
+		When("clusterName is passed in", func() {
+			It("uses arg instead of metadata", func() {
+				cfg.Metadata.Name = "not-used"
+				Expect(cfg.MakeStackNameFromName("actual-cluster", "cluster")).To(Equal("eksctl-actual-cluster-cluster"))
+			})
+		})
+	})
 })

@@ -27,7 +27,7 @@ func (c *StackCollection) MakeClusterStackName() string {
 }
 
 func (c *StackCollection) MakeClusterStackNameFromName(name string) string {
-	return "eksctl-" + name + "-cluster"
+	return c.spec.MakeStackNameFromName(name, api.ClusterStackSuffix)
 }
 
 // createClusterTask creates the cluster

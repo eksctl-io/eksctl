@@ -440,4 +440,81 @@ var _ = Describe("StackCollection", func() {
 			})
 		})
 	})
+
+	Context("DescribeStacks", func() {
+		var (
+			cfg               *api.ClusterConfig
+			p                 *mockprovider.MockProvider
+			stackName         string
+			notStackName      string
+			untaggedStackName string
+		)
+		BeforeEach(func() {
+			clusterName := "my-cluster"
+			stackName = fmt.Sprintf("%s-cluster", clusterName)
+
+			p = mockprovider.NewMockProvider()
+
+			// stack matching clusterName
+			p.MockCloudFormation().On("DescribeStacks", mock.Anything, &cfn.DescribeStacksInput{StackName: &stackName}).Return(&cfn.DescribeStacksOutput{Stacks: []types.Stack{{
+				StackName:   &stackName,
+				StackStatus: types.StackStatusCreateComplete,
+				Tags: []types.Tag{
+					{
+						Key:   aws.String(api.ClusterNameTag),
+						Value: &clusterName,
+					},
+				},
+			}}}, nil)
+
+			// stack not matching clusterName
+			notStackName = fmt.Sprintf("not-%s-cluster", clusterName)
+			p.MockCloudFormation().On("DescribeStacks", mock.Anything, &cfn.DescribeStacksInput{StackName: &notStackName}).Return(&cfn.DescribeStacksOutput{Stacks: []types.Stack{{
+				StackName:   &notStackName,
+				StackStatus: types.StackStatusCreateComplete,
+				Tags: []types.Tag{
+					{
+						Key:   aws.String(api.ClusterNameTag),
+						Value: &notStackName,
+					},
+				},
+			}}}, nil)
+
+			// stack without tags
+			untaggedStackName = fmt.Sprintf("eksctl-%s-cluster", clusterName)
+			p.MockCloudFormation().On("DescribeStacks", mock.Anything, &cfn.DescribeStacksInput{StackName: &untaggedStackName}).Return(&cfn.DescribeStacksOutput{Stacks: []types.Stack{{
+				StackName:   &untaggedStackName,
+				StackStatus: types.StackStatusCreateComplete,
+			}}}, nil)
+
+			cfg = api.NewClusterConfig()
+			cfg.Metadata.Name = clusterName
+		})
+
+		It("can filter out non-matching stacks", func() {
+			p.MockCloudFormation().On("ListStacks", mock.Anything, &cfn.ListStacksInput{StackStatusFilter: allNonDeletedStackStatuses()}).Return(&cfn.ListStacksOutput{
+				StackSummaries: []types.StackSummary{
+					{StackName: &stackName},
+					{StackName: &notStackName},
+				},
+			}, nil)
+			sm := NewStackCollection(p, cfg)
+			stacks, err := sm.DescribeStacks(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(stacks).To(HaveLen(1))
+			Expect(stacks[0].StackName).To(Equal(&stackName))
+		})
+
+		It("can use untagged stacks", func() {
+			p.MockCloudFormation().On("ListStacks", mock.Anything, &cfn.ListStacksInput{StackStatusFilter: allNonDeletedStackStatuses()}).Return(&cfn.ListStacksOutput{
+				StackSummaries: []types.StackSummary{
+					{StackName: &untaggedStackName},
+				},
+			}, nil)
+			sm := NewStackCollection(p, cfg)
+			stacks, err := sm.DescribeStacks(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(stacks).To(HaveLen(1))
+		})
+	})
 })

@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -217,6 +218,9 @@ const (
 	// OldClusterNameTag defines the tag of the cluster name
 	OldClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
 
+	// DisableStackPrefixTag defines the flag for removing "eksctl-" prefix on stacks
+	DisableStackPrefixTag = "alpha.eksctl.io/disable-stack-prefix"
+
 	// NodeGroupNameTag defines the tag of the nodegroup name
 	NodeGroupNameTag = "alpha.eksctl.io/nodegroup-name"
 
@@ -294,6 +298,24 @@ const (
 
 	// eksResourceAccountAPSouthEast3 defines the AWS EKS account ID that provides node resources in ap-southeast-3
 	eksResourceAccountAPSouthEast3 = "296578399912"
+)
+
+// CloudFormation stack suffixes
+const (
+	// Stack suffix for fargate
+	FargateStackSuffix = "fargate"
+
+	// Stack suffix for cluster
+	ClusterStackSuffix = "cluster"
+
+	// Stack suffix for addons
+	AddonStackSuffix = "addon"
+
+	// Stack suffix for IAM Service Accounts
+	IAMServiceAccountStackSuffix = "iamserviceaccount"
+
+	// Stack suffix for node groups
+	NodeGroupStackSuffix = "nodegroup"
 )
 
 // Values for `VolumeType`
@@ -580,6 +602,9 @@ type ClusterMeta struct {
 	// Annotations are arbitrary metadata ignored by `eksctl`.
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
+	// DisableStackPrefix stops eksctl from prefixing stacks with `eksctl-`.
+	// +optional
+	DisableStackPrefix bool `json:"disableStackPrefix,omitempty"`
 }
 
 // KubernetesNetworkConfig contains cluster networking options
@@ -604,8 +629,9 @@ type ClusterStatus struct {
 	ARN                      string                   `json:"arn,omitempty"`
 	KubernetesNetworkConfig  *KubernetesNetworkConfig `json:"-"`
 
-	StackName     string        `json:"stackName,omitempty"`
-	EKSCTLCreated EKSCTLCreated `json:"eksctlCreated,omitempty"`
+	StackName          string        `json:"stackName,omitempty"`
+	DisableStackPrefix bool          `json:"disableStackPrefix,omitempty"`
+	EKSCTLCreated      EKSCTLCreated `json:"eksctlCreated,omitempty"`
 }
 
 // String returns canonical representation of ClusterMeta
@@ -873,7 +899,33 @@ func (c *ClusterConfig) SetClusterStatus(cluster *eks.Cluster) error {
 	c.Status.Endpoint = *cluster.Endpoint
 	c.Status.CertificateAuthorityData = data
 	c.Status.ARN = *cluster.Arn
+
+	for k, v := range cluster.Tags {
+		if k == DisableStackPrefixTag {
+			if disableStackPrefix, err := strconv.ParseBool(*v); err == nil {
+				c.Metadata.DisableStackPrefix = disableStackPrefix
+			}
+		}
+	}
+
 	return nil
+}
+
+// MakeStackName builds a consistent name for a CloudFormation stack
+func (c *ClusterConfig) MakeStackName(suffixes ...string) string {
+	return c.MakeStackNameFromName(c.Metadata.Name, suffixes...)
+}
+
+// MakeStackNameFromName builds a consistent name for a CloudFormation stack
+func (c *ClusterConfig) MakeStackNameFromName(clusterName string, suffixes ...string) string {
+	stackName := clusterName
+	if !c.Metadata.DisableStackPrefix {
+		stackName = fmt.Sprintf("eksctl-%s", stackName)
+	}
+	for _, suffix := range suffixes {
+		stackName = fmt.Sprintf("%s-%s", stackName, suffix)
+	}
+	return stackName
 }
 
 // NewNodeGroup creates a new NodeGroup, and returns a pointer to it

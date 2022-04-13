@@ -518,6 +518,18 @@ var _ = Describe("Cluster Template Builder", func() {
 					},
 				}))
 			})
+
+			When("disableStackPrefix is enabled", func() {
+				BeforeEach(func() {
+					cfg.Metadata.DisableStackPrefix = true
+				})
+				It("should set cluster disableStackPrefix tag", func() {
+					Expect(clusterTemplate.Resources["ControlPlane"].Properties.Tags).To(ContainElement(fakes.Tag{
+						Key:   api.DisableStackPrefixTag,
+						Value: "true",
+					}))
+				})
+			})
 		})
 
 		Context("cluster logging is enabled", func() {
