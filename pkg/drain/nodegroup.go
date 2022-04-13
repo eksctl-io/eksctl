@@ -170,8 +170,7 @@ func (n *NodeGroupDrainer) Drain() error {
 
 					drainedNodes.Set(node, nil)
 					logger.Debug("starting drain of node %s", node)
-					err := n.evictPods(ctx, node)
-					if err != nil {
+					if err := n.evictPods(ctx, node); err != nil {
 						logger.Warning("pod eviction error (%q) on node %s", err, node)
 						time.Sleep(retryDelay)
 						return err
