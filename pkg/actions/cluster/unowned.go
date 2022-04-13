@@ -55,7 +55,7 @@ func (c *UnownedCluster) Upgrade(_ context.Context, dryRun bool) error {
 	return nil
 }
 
-func (c *UnownedCluster) Delete(ctx context.Context, waitInterval time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error {
+func (c *UnownedCluster) Delete(ctx context.Context, waitInterval, podEvictionWaitPeriod time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error {
 	clusterName := c.cfg.Metadata.Name
 
 	if err := c.checkClusterExists(clusterName); err != nil {
@@ -80,7 +80,7 @@ func (c *UnownedCluster) Delete(ctx context.Context, waitInterval time.Duration,
 		}
 
 		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
-		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, attemptVpcCniDeletion); err != nil {
+		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, attemptVpcCniDeletion, podEvictionWaitPeriod); err != nil {
 			if !force {
 				return err
 			}

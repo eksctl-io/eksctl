@@ -65,7 +65,7 @@ func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
 	return nil
 }
 
-func (c *OwnedCluster) Delete(ctx context.Context, _ time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error {
+func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error {
 	var (
 		clientSet kubernetes.Interface
 		oidc      *iamoidc.OpenIDConnectManager
@@ -107,7 +107,7 @@ func (c *OwnedCluster) Delete(ctx context.Context, _ time.Duration, wait, force,
 		}
 
 		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
-		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, attemptVpcCniDeletion); err != nil {
+		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, attemptVpcCniDeletion, podEvictionWaitPeriod); err != nil {
 			if !force {
 				return err
 			}
