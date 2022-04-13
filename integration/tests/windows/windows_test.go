@@ -1,4 +1,5 @@
 //go:build integration
+// +build integration
 
 package windows
 
@@ -9,15 +10,15 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
-	. "github.com/onsi/gomega"
-
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 func init() {
@@ -37,7 +38,7 @@ var _ = BeforeSuite(func() {
 
 var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 
-	createCluster := func(withOIDC bool, ami, containerRuntime string) {
+	createCluster := func(withOIDC bool, ami string) {
 		By("creating a new cluster with Windows nodegroups")
 		clusterConfig := api.NewClusterConfig()
 		clusterConfig.Metadata.Name = params.NewClusterName("windows")
@@ -51,7 +52,6 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 					Name:      "windows",
 					AMIFamily: ami,
 				},
-				ContainerRuntime: &containerRuntime,
 			},
 		}
 		clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{
@@ -87,14 +87,13 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 	}
 
 	Context("When creating a cluster with Windows nodegroups", func() {
-		DescribeTable("it should be able to run Windows pods", func(withOIDC bool, ami, workload, containerRuntime string) {
-			createCluster(withOIDC, ami, containerRuntime)
+		DescribeTable("it should be able to run Windows pods", func(withOIDC bool, ami, workload string) {
+			createCluster(withOIDC, ami)
 			runWindowsPod(workload)
 		},
-			Entry("windows when withOIDC is disabled", false, api.NodeImageFamilyWindowsServer2019FullContainer, "windows-server-iis.yaml", api.ContainerRuntimeDockerForWindows),
-			Entry("windows when withOIDC is enabled", true, api.NodeImageFamilyWindowsServer2019FullContainer, "windows-server-iis.yaml", api.ContainerRuntimeDockerForWindows),
-			Entry("windows 20H2", true, api.NodeImageFamilyWindowsServer20H2CoreContainer, "windows-server-iis-20H2.yaml", api.ContainerRuntimeDockerForWindows),
-			Entry("windows with container runtime containerd", true, api.NodeImageFamilyWindowsServer20H2CoreContainer, "windows-server-iis-20H2.yaml", api.ContainerRuntimeContainerD),
+			Entry("windows when withOIDC is disabled", false, api.NodeImageFamilyWindowsServer2019FullContainer, "windows-server-iis.yaml"),
+			Entry("windows when withOIDC is enabled", true, api.NodeImageFamilyWindowsServer2019FullContainer, "windows-server-iis.yaml"),
+			Entry("windows 20H2", true, api.NodeImageFamilyWindowsServer20H2CoreContainer, "windows-server-iis-20H2.yaml"),
 		)
 	})
 
