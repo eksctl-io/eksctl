@@ -162,7 +162,7 @@ func (n *NodeGroupDrainer) Drain() error {
 			g, ctx := errgroup.WithContext(ctx)
 			for _, node := range newPendingNodes.List() {
 				node := node
-				errorGroup.Go(func() error {
+				g.Go(func() error {
 					if err := sem.Acquire(ctx, 1); err != nil {
 						return errors.Wrapf(err, "failed to acquire semaphore")
 					}
