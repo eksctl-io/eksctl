@@ -2,16 +2,24 @@ package flux
 
 import (
 	"context"
+	"strings"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/flux"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
 )
 
-const allNamespaces = ""
+const (
+	allNamespaces = ""
+	fluxNS        = "flux-system"
+	roleExt       = "-role-arn"
+	irsaCM        = "irsa-from-create-cluster"
+)
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_flux_client.go . InstallerClient
@@ -24,6 +32,10 @@ type Installer struct {
 	opts       *api.Flux
 	kubeClient kubeclient.Interface
 	fluxClient InstallerClient
+}
+
+func sanitizeSA(sa string) string {
+	return strings.Replace(sa+roleExt, "-", "_", -1)
 }
 
 func New(k8sClientSet kubeclient.Interface, opts *api.GitOps) (*Installer, error) {
@@ -43,6 +55,35 @@ func New(k8sClientSet kubeclient.Interface, opts *api.GitOps) (*Installer, error
 	}
 
 	return installer, nil
+}
+
+func (ti *Installer) InjectIRSA(irsas *[]outputs.IRSA) error {
+	if len(*irsas) != 0 {
+		ns := &corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: fluxNS,
+			},
+		}
+		if _, err := ti.kubeClient.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{}); err != nil {
+			return err
+		}
+		// create cmData from irsas
+		cmData := make(map[string]string)
+		for _, irsa := range *irsas {
+			cmData[sanitizeSA(irsa.ServiceAccount)] = irsa.IAMRole
+		}
+		cm := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      irsaCM,
+				Namespace: fluxNS,
+			},
+			Data: cmData,
+		}
+		if _, err := ti.kubeClient.CoreV1().ConfigMaps(fluxNS).Create(context.TODO(), cm, metav1.CreateOptions{}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (ti *Installer) Run() error {

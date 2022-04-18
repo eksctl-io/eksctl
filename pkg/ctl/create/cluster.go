@@ -23,6 +23,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -279,6 +280,18 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		postClusterCreationTasks.Append(preNodegroupAddons)
 	}
 
+	// collect IRSA outputs from cfn
+	var irsas []outputs.IRSA
+	go func() {
+		for {
+			select {
+			case irsa := <-outputs.IRSAOutput:
+				logger.Debug("ServiceAcount: %v, IAMRole: %v", irsa.ServiceAccount, irsa.IAMRole)
+				irsas = append(irsas, irsa)
+			}
+		}
+	}()
+
 	taskTree := stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, postClusterCreationTasks)
 
 	logger.Info(taskTree.Describe())
@@ -295,6 +308,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return fmt.Errorf("failed to create cluster %q", meta.Name)
 	}
 
+	logger.Info("IRSAs collected: %+v", irsas)
 	logger.Info("waiting for the control plane availability...")
 
 	// obtain cluster credentials, write kubeconfig
@@ -334,7 +348,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		if err != nil {
 			return err
 		}
-
 		for _, ng := range cfg.NodeGroups {
 			// authorise nodes to join
 			if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
@@ -380,7 +393,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			if err != nil {
 				return errors.Wrapf(err, "could not initialise Flux installer")
 			}
-
+			// inject IRSA for flux
+			if err := installer.InjectIRSA(&irsas); err != nil {
+				return err
+			}
 			if err := installer.Run(); err != nil {
 				return err
 			}

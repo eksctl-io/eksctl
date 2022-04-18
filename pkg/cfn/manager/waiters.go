@@ -11,6 +11,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
@@ -166,6 +167,12 @@ func (c *StackCollection) waitUntilStackIsCreated(i *Stack, stack builder.Resour
 	if err := stack.GetAllOutputs(*s); err != nil {
 		errs <- errors.Wrapf(err, "getting stack %q outputs", *i.StackName)
 		return
+	}
+	if roleARN := outputs.Get(*s, outputs.IAMServiceAccountRoleName); roleARN != nil {
+		outputs.IRSAOutput <- outputs.IRSA{
+			IAMRole:        *roleARN,
+			ServiceAccount: stack.(*builder.IAMRoleResourceSet).ServiceAccount(),
+		}
 	}
 	errs <- nil
 }

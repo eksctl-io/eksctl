@@ -269,6 +269,9 @@ func newIAMRoleResourceSet(name, namespace, serviceAccount, permissionsBoundary 
 	return rs
 }
 
+// ServiceAccount returns the serviceAccount
+func (rs *IAMRoleResourceSet) ServiceAccount() string { return rs.serviceAccount }
+
 // WithIAM returns true
 func (*IAMRoleResourceSet) WithIAM() bool { return true }
 
