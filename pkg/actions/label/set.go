@@ -2,17 +2,22 @@ package label
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/aws/smithy-go"
 )
 
 func (m *Manager) Set(ctx context.Context, nodeGroupName string, labels map[string]string) error {
 	err := m.service.UpdateLabels(ctx, nodeGroupName, labels, nil)
-	if err != nil && manager.IsStackDoesNotExistError(err) {
-		return m.setLabelsOnUnownedNodeGroup(nodeGroupName, labels)
+	if err != nil {
+		var apiErr smithy.APIError
+		if errors.As(err, &apiErr) {
+			if apiErr.ErrorCode() == "ValidationError" {
+				return m.setLabelsOnUnownedNodeGroup(nodeGroupName, labels)
+			}
+		}
 	}
 	return err
 }
