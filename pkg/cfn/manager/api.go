@@ -288,6 +288,7 @@ func (c *StackCollection) UpdateStack(ctx context.Context, options UpdateStackOp
 func (c *StackCollection) DescribeStack(ctx context.Context, i *Stack) (*Stack, error) {
 	input := &cloudformation.DescribeStacksInput{
 		StackName: i.StackName,
+		NextToken: aws.String("1"),
 	}
 	if api.IsSetAndNonEmptyString(i.StackId) {
 		input.StackName = i.StackId
