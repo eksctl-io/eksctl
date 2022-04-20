@@ -15,13 +15,13 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/onsi/ginkgo"
+	"k8s.io/client-go/kubernetes/fake"
 
 	"github.com/weaveworks/eksctl/pkg/drain"
 	"github.com/weaveworks/eksctl/pkg/eks/mocks"
-	"k8s.io/client-go/kubernetes/fake"
 )
 
 var _ = Describe("Drain", func() {

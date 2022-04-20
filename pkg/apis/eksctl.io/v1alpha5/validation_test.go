@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -1211,43 +1211,50 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
-	Describe("cpuCredits", func() {
-		var ng *api.NodeGroup
-		BeforeEach(func() {
-			unlimited := "unlimited"
-			ng = &api.NodeGroup{
-				NodeGroupBase: &api.NodeGroupBase{},
-				InstancesDistribution: &api.NodeGroupInstancesDistribution{
-					InstanceTypes: []string{"t3.medium", "t3.large"},
-				},
-				CPUCredits: &unlimited,
-			}
-		})
+	type cpuCreditsEntry struct {
+		modifyNodeGroup func(*api.NodeGroup)
+		expectedError   string
+	}
 
-		It("works independent of instanceType", func() {
-			Context("unset", func() {
-				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).NotTo(HaveOccurred())
-			})
-			Context("set", func() {
+	DescribeTable("cpuCredits", func(e cpuCreditsEntry) {
+		ng := &api.NodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{},
+			InstancesDistribution: &api.NodeGroupInstancesDistribution{
+				InstanceTypes: []string{"t3.medium", "t3.large"},
+			},
+			CPUCredits: aws.String("unlimited"),
+		}
+		if e.modifyNodeGroup != nil {
+			e.modifyNodeGroup(ng)
+		}
+
+		err := api.ValidateNodeGroup(0, ng)
+		if e.expectedError != "" {
+			Expect(err).To(MatchError(ContainSubstring(e.expectedError)))
+		} else {
+			Expect(err).NotTo(HaveOccurred())
+		}
+	},
+
+		Entry("instanceType is set", cpuCreditsEntry{
+			modifyNodeGroup: func(ng *api.NodeGroup) {
 				ng.InstanceType = "mixed"
-				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).NotTo(HaveOccurred())
-			})
-		})
-
-		It("errors if no instance distribution", func() {
-			ng.InstancesDistribution = nil
-			err := api.ValidateNodeGroup(0, ng)
-			Expect(err).To(HaveOccurred())
-		})
-
-		It("errors if no instance types", func() {
-			ng.InstancesDistribution.InstanceTypes = []string{}
-			err := api.ValidateNodeGroup(0, ng)
-			Expect(err).To(HaveOccurred())
-		})
-	})
+			},
+		}),
+		Entry("instanceType is not set", cpuCreditsEntry{}),
+		Entry("instancesDistribution is not set", cpuCreditsEntry{
+			modifyNodeGroup: func(ng *api.NodeGroup) {
+				ng.InstancesDistribution = nil
+			},
+			expectedError: "cpuCredits option set for nodegroup, but it has no t2/t3 instance types",
+		}),
+		Entry("instancesDistribution.instanceTypes is not set", cpuCreditsEntry{
+			modifyNodeGroup: func(ng *api.NodeGroup) {
+				ng.InstancesDistribution.InstanceTypes = nil
+			},
+			expectedError: "at least two instance types have to be specified for mixed nodegroups",
+		}),
+	)
 
 	Describe("ssh flags", func() {
 		var (

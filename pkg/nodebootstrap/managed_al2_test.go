@@ -5,10 +5,11 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	. "github.com/onsi/ginkgo/extensions/table"
-	. "github.com/onsi/gomega"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
 

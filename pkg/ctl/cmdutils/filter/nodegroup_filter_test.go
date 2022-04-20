@@ -10,7 +10,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"

@@ -16,7 +16,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 
 	"github.com/kubicorn/kubicorn/pkg/namer"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
