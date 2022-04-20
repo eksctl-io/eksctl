@@ -42,48 +42,41 @@ func TestE2E(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func() {
-	var (
-		stackName, ng1, mng1, mng2 string
-		version                    = "1.20"
-		upgradeVersion             = "1.21"
-		ctl                        api.ClusterProvider
-		configFile                 *os.File
-		cfg                        *api.ClusterConfig
-	)
+var (
+	stackName, ng1, mng1, mng2 string
+	version                    = "1.20"
+	upgradeVersion             = "1.21"
+	ctl                        api.ClusterProvider
+	configFile                 *os.File
+	cfg                        *api.ClusterConfig
+)
 
-	BeforeSuite(func() {
-		ng1 = "ng-1"
-		mng1 = "mng-1"
-		mng2 = "mng-2"
-		stackName = fmt.Sprintf("eksctl-%s", params.ClusterName)
-		cfg = &api.ClusterConfig{
-			TypeMeta: api.ClusterConfigTypeMeta(),
-			Metadata: &api.ClusterMeta{
-				Version: version,
-				Name:    params.ClusterName,
-				Region:  params.Region,
-			},
-		}
+var _ = BeforeSuite(func() {
+	ng1 = "ng-1"
+	mng1 = "mng-1"
+	mng2 = "mng-2"
+	stackName = fmt.Sprintf("eksctl-%s", params.ClusterName)
+	cfg = &api.ClusterConfig{
+		TypeMeta: api.ClusterConfigTypeMeta(),
+		Metadata: &api.ClusterMeta{
+			Version: version,
+			Name:    params.ClusterName,
+			Region:  params.Region,
+		},
+	}
 
-		var err error
-		configFile, err = os.CreateTemp("", "")
+	var err error
+	configFile, err = os.CreateTemp("", "")
+	Expect(err).NotTo(HaveOccurred())
+	if !params.SkipCreate {
+		clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 		Expect(err).NotTo(HaveOccurred())
-		if !params.SkipCreate {
-			clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
-			Expect(err).NotTo(HaveOccurred())
-			ctl = clusterProvider.Provider
-			cfg.VPC = createClusterWithNodeGroup(params.ClusterName, stackName, mng1, version, ctl)
-		}
-	})
+		ctl = clusterProvider.Provider
+		cfg.VPC = createClusterWithNodeGroup(params.ClusterName, stackName, mng1, version, ctl)
+	}
+})
 
-	AfterSuite(func() {
-		if !params.SkipCreate && !params.SkipDelete {
-			deleteStack(stackName, ctl)
-		}
-		Expect(os.RemoveAll(configFile.Name())).To(Succeed())
-
-	})
+var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func() {
 
 	It("supports creating nodegroups", func() {
 		cfg.NodeGroups = []*api.NodeGroup{{
@@ -479,3 +472,11 @@ func deleteStack(stackName string, ctl api.ClusterProvider) {
 	_, err := ctl.CloudFormation().DeleteStack(context.TODO(), deleteStackInput)
 	Expect(err).NotTo(HaveOccurred())
 }
+
+var _ = AfterSuite(func() {
+	if !params.SkipCreate && !params.SkipDelete {
+		deleteStack(stackName, ctl)
+	}
+	Expect(os.RemoveAll(configFile.Name())).To(Succeed())
+
+})

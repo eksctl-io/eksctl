@@ -54,10 +54,29 @@ func TestManaged(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
+const initialAl2Nodegroup = "al2-1"
+
+var _ = BeforeSuite(func() {
+	fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
+
+	cmd := params.EksctlCreateCmd.WithArgs(
+		"cluster",
+		"--verbose", "4",
+		"--name", params.ClusterName,
+		"--tags", "alpha.eksctl.io/description=eksctl integration test",
+		"--managed",
+		"--nodegroup-name", initialAl2Nodegroup,
+		"--node-labels", "ng-name="+initialAl2Nodegroup,
+		"--nodes", "2",
+		"--version", params.Version,
+		"--kubeconfig", params.KubeconfigPath,
+	)
+	Expect(cmd).To(RunSuccessfully())
+})
+
 var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 
 	const (
-		initialAl2Nodegroup   = "al2-1"
 		bottlerocketNodegroup = "bottlerocket-1"
 		ubuntuNodegroup       = "ubuntu-1"
 		newPublicNodeGroup    = "ng-public-1"
@@ -73,24 +92,6 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 	}
 
 	defaultTimeout := 20 * time.Minute
-
-	BeforeSuite(func() {
-		fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
-
-		cmd := params.EksctlCreateCmd.WithArgs(
-			"cluster",
-			"--verbose", "4",
-			"--name", params.ClusterName,
-			"--tags", "alpha.eksctl.io/description=eksctl integration test",
-			"--managed",
-			"--nodegroup-name", initialAl2Nodegroup,
-			"--node-labels", "ng-name="+initialAl2Nodegroup,
-			"--nodes", "2",
-			"--version", params.Version,
-			"--kubeconfig", params.KubeconfigPath,
-		)
-		Expect(cmd).To(RunSuccessfully())
-	})
 
 	type managedCLIEntry struct {
 		createArgs []string

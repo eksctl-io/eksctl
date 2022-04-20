@@ -58,16 +58,57 @@ func TestCRUD(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
+const (
+	mngNG1 = "mng-1"
+	mngNG2 = "mng-2"
 
-	const (
-		mngNG1 = "mng-1"
-		mngNG2 = "mng-2"
+	unmNG1 = "unm-1"
+	unmNG2 = "unm-2"
+)
 
-		unmNG1 = "unm-1"
-		unmNG2 = "unm-2"
+var _ = BeforeSuite(func() {
+	params.KubeconfigTemp = false
+	if params.KubeconfigPath == "" {
+		wd, _ := os.Getwd()
+		f, _ := os.CreateTemp(wd, "kubeconfig-")
+		params.KubeconfigPath = f.Name()
+		params.KubeconfigTemp = true
+	}
+
+	if params.SkipCreate {
+		fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", params.ClusterName)
+		if !file.Exists(params.KubeconfigPath) {
+			// Generate the Kubernetes configuration that eksctl create
+			// would have generated otherwise:
+			cmd := params.EksctlUtilsCmd.WithArgs(
+				"write-kubeconfig",
+				"--verbose", "4",
+				"--cluster", params.ClusterName,
+				"--kubeconfig", params.KubeconfigPath,
+			)
+			Expect(cmd).To(RunSuccessfully())
+		}
+		return
+	}
+
+	fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
+
+	cmd := params.EksctlCreateCmd.WithArgs(
+		"cluster",
+		"--verbose", "4",
+		"--name", params.ClusterName,
+		"--tags", "alpha.eksctl.io/description=eksctl integration test",
+		"--nodegroup-name", mngNG1,
+		"--node-labels", "ng-name="+mngNG1,
+		"--nodes", "1",
+		"--version", params.Version,
+		"--kubeconfig", params.KubeconfigPath,
+		"--zones", "us-west-2b,us-west-2c",
 	)
+	Expect(cmd).To(RunSuccessfully())
+})
 
+var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 	commonTimeout := 10 * time.Minute
 	makeClusterConfig := func() *api.ClusterConfig {
 		clusterConfig := api.NewClusterConfig()
@@ -76,57 +117,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		clusterConfig.Metadata.Version = params.Version
 		return clusterConfig
 	}
-
-	BeforeSuite(func() {
-		params.KubeconfigTemp = false
-		if params.KubeconfigPath == "" {
-			wd, _ := os.Getwd()
-			f, _ := os.CreateTemp(wd, "kubeconfig-")
-			params.KubeconfigPath = f.Name()
-			params.KubeconfigTemp = true
-		}
-
-		if params.SkipCreate {
-			fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", params.ClusterName)
-			if !file.Exists(params.KubeconfigPath) {
-				// Generate the Kubernetes configuration that eksctl create
-				// would have generated otherwise:
-				cmd := params.EksctlUtilsCmd.WithArgs(
-					"write-kubeconfig",
-					"--verbose", "4",
-					"--cluster", params.ClusterName,
-					"--kubeconfig", params.KubeconfigPath,
-				)
-				Expect(cmd).To(RunSuccessfully())
-			}
-			return
-		}
-
-		fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
-
-		cmd := params.EksctlCreateCmd.WithArgs(
-			"cluster",
-			"--verbose", "4",
-			"--name", params.ClusterName,
-			"--tags", "alpha.eksctl.io/description=eksctl integration test",
-			"--nodegroup-name", mngNG1,
-			"--node-labels", "ng-name="+mngNG1,
-			"--nodes", "1",
-			"--version", params.Version,
-			"--kubeconfig", params.KubeconfigPath,
-			"--zones", "us-west-2b,us-west-2c",
-		)
-		Expect(cmd).To(RunSuccessfully())
-	})
-
-	AfterSuite(func() {
-		params.DeleteClusters()
-		gexec.KillAndWait()
-		if params.KubeconfigTemp {
-			os.Remove(params.KubeconfigPath)
-		}
-		os.RemoveAll(params.TestDirectory)
-	})
 
 	Describe("cluster with 1 node", func() {
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
@@ -1250,6 +1240,15 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 	})
+})
+
+var _ = AfterSuite(func() {
+	params.DeleteClusters()
+	gexec.KillAndWait()
+	if params.KubeconfigTemp {
+		os.Remove(params.KubeconfigPath)
+	}
+	os.RemoveAll(params.TestDirectory)
 })
 
 func truncate(clusterName string) string {

@@ -22,7 +22,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var params *tests.Params
+var (
+	params    *tests.Params
+	rawClient *kubewrapper.RawClient
+)
 
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
@@ -34,63 +37,54 @@ func TestEKSAddons(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
+var _ = BeforeSuite(func() {
+	clusterConfig := api.NewClusterConfig()
+	clusterConfig.Metadata.Name = params.ClusterName
+	clusterConfig.Metadata.Version = api.LatestVersion
+	clusterConfig.Metadata.Region = params.Region
+	clusterConfig.IAM.WithOIDC = api.Enabled()
+	clusterConfig.Addons = []*api.Addon{
+		{
+			Name:             "vpc-cni",
+			AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
+		},
+		{
+			Name:    "coredns",
+			Version: "latest",
+		},
+	}
+
+	ng := &api.ManagedNodeGroup{
+		NodeGroupBase: &api.NodeGroupBase{
+			Name: "ng",
+		},
+	}
+	clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{ng}
+
+	data, err := json.Marshal(clusterConfig)
+	Expect(err).NotTo(HaveOccurred())
+
+	cmd := params.EksctlCreateCmd.
+		WithArgs(
+			"cluster",
+			"--config-file", "-",
+			"--verbose", "4",
+		).
+		WithoutArg("--region", params.Region).
+		WithStdin(bytes.NewReader(data))
+	Expect(cmd).To(RunSuccessfully())
+
+	rawClient = getRawClient(params.ClusterName)
+	serverVersion, err := rawClient.ServerVersion()
+	Expect(err).NotTo(HaveOccurred())
+	Expect(serverVersion).To(HavePrefix(api.LatestVersion))
+
+})
+
 var _ = Describe("(Integration) [EKS Addons test]", func() {
 
 	Context("Creating a cluster with addons", func() {
-		var rawClient *kubewrapper.RawClient
-		clusterName := params.NewClusterName("addons")
-
-		BeforeSuite(func() {
-			clusterConfig := api.NewClusterConfig()
-			clusterConfig.Metadata.Name = clusterName
-			clusterConfig.Metadata.Version = api.LatestVersion
-			clusterConfig.Metadata.Region = params.Region
-			clusterConfig.IAM.WithOIDC = api.Enabled()
-			clusterConfig.Addons = []*api.Addon{
-				{
-					Name:             "vpc-cni",
-					AttachPolicyARNs: []string{"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"},
-				},
-				{
-					Name:    "coredns",
-					Version: "latest",
-				},
-			}
-
-			ng := &api.ManagedNodeGroup{
-				NodeGroupBase: &api.NodeGroupBase{
-					Name: "ng",
-				},
-			}
-			clusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{ng}
-
-			data, err := json.Marshal(clusterConfig)
-			Expect(err).NotTo(HaveOccurred())
-
-			cmd := params.EksctlCreateCmd.
-				WithArgs(
-					"cluster",
-					"--config-file", "-",
-					"--verbose", "4",
-				).
-				WithoutArg("--region", params.Region).
-				WithStdin(bytes.NewReader(data))
-			Expect(cmd).To(RunSuccessfully())
-
-			rawClient = getRawClient(clusterName)
-			serverVersion, err := rawClient.ServerVersion()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(serverVersion).To(HavePrefix(api.LatestVersion))
-
-		})
-
-		AfterSuite(func() {
-			cmd := params.EksctlDeleteCmd.WithArgs(
-				"cluster", clusterName,
-				"--verbose", "2",
-			)
-			Expect(cmd).To(RunSuccessfully())
-		})
+		clusterName := params.ClusterName
 
 		It("should support addons", func() {
 			By("Asserting the addon is listed in `get addons`")
@@ -182,6 +176,14 @@ var _ = Describe("(Integration) [EKS Addons test]", func() {
 			ContainElement(ContainSubstring("vpc-cni")),
 		))
 	})
+})
+
+var _ = AfterSuite(func() {
+	cmd := params.EksctlDeleteCmd.WithArgs(
+		"cluster", params.ClusterName,
+		"--verbose", "2",
+	)
+	Expect(cmd).To(RunSuccessfully())
 })
 
 func getRawClient(clusterName string) *kubewrapper.RawClient {

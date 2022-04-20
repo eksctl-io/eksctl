@@ -51,10 +51,6 @@ var _ = BeforeSuite(func() {
 	}
 })
 
-var _ = AfterSuite(func() {
-	params.DeleteClusters()
-})
-
 var _ = Describe("Enable GitOps", func() {
 	var (
 		branch        string
@@ -105,4 +101,8 @@ var _ = Describe("Enable GitOps", func() {
 			AssertFlux2PodsPresentInKubernetes(params.KubeconfigPath)
 		})
 	})
+})
+
+var _ = AfterSuite(func() {
+	params.DeleteClusters()
 })

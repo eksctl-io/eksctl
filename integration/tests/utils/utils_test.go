@@ -25,9 +25,6 @@ func TestUtils(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-var _ = BeforeSuite(func() {
-})
-
 var _ = Describe("Utils", func() {
 	Context("schema", func() {
 		It("displays the schema", func() {
