@@ -42,7 +42,7 @@ func TestE2E(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
-var _ = FDescribe("(Integration) [non-eksctl cluster & nodegroup support]", func() {
+var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func() {
 	var (
 		stackName, ng1, mng1, mng2 string
 		version                    = "1.20"
