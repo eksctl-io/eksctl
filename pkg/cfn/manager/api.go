@@ -371,7 +371,8 @@ func (c *StackCollection) ListStacksMatching(ctx context.Context, nameRegex stri
 			if re.MatchString(*s.StackName) {
 				stack, subErr = c.DescribeStack(ctx, &Stack{StackName: s.StackName, StackId: s.StackId})
 				if subErr != nil {
-					return nil, subErr
+					// this shouldn't return the error, but just stop the pagination and return whatever it gathered so far.
+					return stacks, nil
 				}
 				stacks = append(stacks, stack)
 			}
