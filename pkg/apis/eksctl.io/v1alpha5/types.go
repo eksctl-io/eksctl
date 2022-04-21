@@ -39,7 +39,7 @@ const (
 	Version1_22 = "1.22"
 
 	// DefaultVersion (default)
-	DefaultVersion = Version1_21
+	DefaultVersion = Version1_22
 
 	LatestVersion = Version1_22
 )
@@ -189,8 +189,9 @@ const (
 
 // Container runtime values.
 const (
-	ContainerRuntimeContainerD = "containerd"
-	ContainerRuntimeDockerD    = "dockerd"
+	ContainerRuntimeContainerD       = "containerd"
+	ContainerRuntimeDockerD          = "dockerd"
+	ContainerRuntimeDockerForWindows = "docker"
 )
 
 const (
@@ -366,7 +367,8 @@ var (
 
 var (
 	// DefaultContainerRuntime defines the default container runtime.
-	DefaultContainerRuntime = ContainerRuntimeDockerD
+	DefaultContainerRuntime           = ContainerRuntimeDockerD
+	DefaultContainerRuntimeForWindows = ContainerRuntimeDockerForWindows
 )
 
 // Enabled return pointer to true value

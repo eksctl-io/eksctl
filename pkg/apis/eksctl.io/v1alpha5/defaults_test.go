@@ -232,6 +232,17 @@ var _ = Describe("ClusterConfig validation", func() {
 			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
 			Expect(*testNodeGroup.ContainerRuntime).To(Equal(DefaultContainerRuntime))
 		})
+		When("ami family is windows", func() {
+			It("defaults to docker as a container runtime", func() {
+				testNodeGroup := NodeGroup{
+					NodeGroupBase: &NodeGroupBase{
+						AMIFamily: NodeImageFamilyWindowsServer2019CoreContainer,
+					},
+				}
+				SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+				Expect(*testNodeGroup.ContainerRuntime).To(Equal(DefaultContainerRuntimeForWindows))
+			})
+		})
 	})
 
 	Describe("Cluster Managed Shared Node Security Group settings", func() {

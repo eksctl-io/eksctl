@@ -8,7 +8,7 @@ go 1.18
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.4-0.20220124212200-2aee60ac608e
-	github.com/aws/aws-sdk-go v1.43.31
+	github.com/aws/aws-sdk-go v1.43.42
 	github.com/aws/aws-sdk-go-v2 v1.16.2
 	github.com/aws/aws-sdk-go-v2/config v1.15.3
 	github.com/aws/aws-sdk-go-v2/credentials v1.11.2
@@ -16,7 +16,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.20.3
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.15.5
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.4
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.34.0
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.35.1
 	github.com/aws/aws-sdk-go-v2/service/eks v1.20.4
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.3
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.3
@@ -72,12 +72,12 @@ require (
 	golang.org/x/tools v0.1.10
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
 	gopkg.in/yaml.v2 v2.4.0
-	helm.sh/helm/v3 v3.8.1
-	k8s.io/api v0.23.4
-	k8s.io/apiextensions-apiserver v0.23.4
-	k8s.io/apimachinery v0.23.4
-	k8s.io/cli-runtime v0.23.4
-	k8s.io/client-go v0.23.4
+	helm.sh/helm/v3 v3.8.2
+	k8s.io/api v0.23.5
+	k8s.io/apiextensions-apiserver v0.23.5
+	k8s.io/apimachinery v0.23.5
+	k8s.io/cli-runtime v0.23.5
+	k8s.io/client-go v0.23.5
 	k8s.io/cloud-provider v0.21.2
 	k8s.io/code-generator v0.22.1
 	k8s.io/kops v1.21.2
@@ -100,7 +100,7 @@ require (
 	github.com/Azure/azure-pipeline-go v0.2.3 // indirect
 	github.com/Azure/azure-sdk-for-go v60.2.0+incompatible // indirect
 	github.com/Azure/azure-storage-blob-go v0.14.0 // indirect
-	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
+	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest v0.11.23 // indirect
 	github.com/Azure/go-autorest/autorest/adal v0.9.18 // indirect
@@ -330,7 +330,7 @@ require (
 	github.com/mmarkdown/mmark v2.0.40+incompatible // indirect
 	github.com/moby/locker v1.0.1 // indirect
 	github.com/moby/spdystream v0.2.0 // indirect
-	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
+	github.com/moby/term v0.0.0-20210610120745-9d4ed1856297 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
@@ -459,20 +459,20 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	honnef.co/go/tools v0.2.2 // indirect
-	k8s.io/apiserver v0.23.4 // indirect
+	k8s.io/apiserver v0.23.5 // indirect
 	k8s.io/component-base v0.22.5 // indirect
 	k8s.io/csi-translation-lib v0.21.2 // indirect
 	k8s.io/gengo v0.0.0-20210203185629-de9496dff47b // indirect
 	k8s.io/klog/v2 v2.30.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20210305001622-591a79e4bda7 // indirect
-	k8s.io/kubectl v0.23.4 // indirect
+	k8s.io/kubectl v0.23.5 // indirect
 	k8s.io/sample-controller v0.22.1 // indirect
 	k8s.io/utils v0.0.0-20210930125809-cb0fa318a74b // indirect
 	mvdan.cc/gofumpt v0.3.0 // indirect
 	mvdan.cc/interfacer v0.0.0-20180901003855-c20040233aed // indirect
 	mvdan.cc/lint v0.0.0-20170908181259-adc824a0674b // indirect
 	mvdan.cc/unparam v0.0.0-20211214103731-d0ef000c54e5 // indirect
-	oras.land/oras-go v1.1.0 // indirect
+	oras.land/oras-go v1.1.1 // indirect
 	sigs.k8s.io/kustomize/api v0.8.8 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.10.17 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.1.0 // indirect
