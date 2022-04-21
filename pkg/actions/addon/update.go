@@ -2,12 +2,10 @@ package addon
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/smithy-go"
 	"github.com/google/uuid"
 	"github.com/kris-nova/logger"
 
@@ -90,8 +88,7 @@ func (a *Manager) updateWithNewPolicies(ctx context.Context, addon *api.Addon) (
 	stackName := a.makeAddonName(addon.Name)
 	stack, err := a.stackManager.DescribeStack(ctx, &manager.Stack{StackName: aws.String(stackName)})
 	if err != nil {
-		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(smithy.APIError); !ok || ok &&
-			awsError.ErrorCode() != "ValidationError" {
+		if manager.IsStackDoesNotExistError(err) {
 			return "", fmt.Errorf("failed to get stack: %w", err)
 		}
 	}
