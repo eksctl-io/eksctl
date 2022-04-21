@@ -2,6 +2,7 @@ package label
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
@@ -12,6 +13,7 @@ import (
 func (m *Manager) Set(ctx context.Context, nodeGroupName string, labels map[string]string) error {
 	err := m.service.UpdateLabels(ctx, nodeGroupName, labels, nil)
 	if err != nil {
+		fmt.Println("THIS IS THE ERROR: ", err)
 		if awsErr, ok := errors.Cause(err).(smithy.APIError); ok {
 			if awsErr.ErrorCode() == "ValidationError" {
 				return m.setLabelsOnUnownedNodeGroup(nodeGroupName, labels)
