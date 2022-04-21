@@ -114,7 +114,7 @@ var _ = Describe("Delete", func() {
 				return fakeClientSet, nil
 			})
 
-			err := c.Delete(context.Background(), time.Microsecond, false, false, false, 1)
+			err := c.Delete(context.Background(), time.Microsecond, time.Second*0, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())
@@ -189,7 +189,7 @@ var _ = Describe("Delete", func() {
 					return mockedDrainer
 				})
 
-				err := c.Delete(context.Background(), time.Microsecond, false, true, false, 1)
+				err := c.Delete(context.Background(), time.Microsecond, time.Second*0, false, true, false, 1)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 				Expect(ranDeleteDeprecatedTasks).To(BeFalse())
@@ -262,7 +262,7 @@ var _ = Describe("Delete", func() {
 					return mockedDrainer
 				})
 
-				err := c.Delete(context.Background(), time.Microsecond, false, false, false, 1)
+				err := c.Delete(context.Background(), time.Microsecond, time.Second*0, false, false, false, 1)
 				Expect(err).To(MatchError(errorMessage))
 				Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(0))
 				Expect(ranDeleteDeprecatedTasks).To(BeFalse())
@@ -303,7 +303,7 @@ var _ = Describe("Delete", func() {
 
 			c := cluster.NewOwnedCluster(cfg, ctl, nil, fakeStackManager)
 
-			err := c.Delete(context.Background(), time.Microsecond, false, false, false, 1)
+			err := c.Delete(context.Background(), time.Microsecond, time.Second*0, false, false, false, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.DeleteTasksForDeprecatedStacksCallCount()).To(Equal(1))
 			Expect(ranDeleteDeprecatedTasks).To(BeTrue())

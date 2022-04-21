@@ -166,7 +166,7 @@ func checkForUndeletedStacks(ctx context.Context, stackManager manager.StackMana
 }
 
 func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack,
-	disableEviction bool, parallel int, nodeGroupDrainer NodeGroupDrainer, vpcCniDeleter vpcCniDeleter) error {
+	disableEviction bool, parallel int, nodeGroupDrainer NodeGroupDrainer, vpcCniDeleter vpcCniDeleter, podEvictionWaitPeriod time.Duration) error {
 	if len(allStacks) == 0 {
 		return nil
 	}
@@ -181,10 +181,11 @@ func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, client
 	logger.Info("will drain %d unmanaged nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 
 	drainInput := &nodegroup.DrainInput{
-		NodeGroups:      cmdutils.ToKubeNodeGroups(cfg),
-		MaxGracePeriod:  ctl.Provider.WaitTimeout(),
-		DisableEviction: disableEviction,
-		Parallel:        parallel,
+		NodeGroups:            cmdutils.ToKubeNodeGroups(cfg),
+		MaxGracePeriod:        ctl.Provider.WaitTimeout(),
+		DisableEviction:       disableEviction,
+		PodEvictionWaitPeriod: podEvictionWaitPeriod,
+		Parallel:              parallel,
 	}
 	if err := nodeGroupDrainer.Drain(drainInput); err != nil {
 		return err

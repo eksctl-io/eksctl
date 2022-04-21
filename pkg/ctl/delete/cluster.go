@@ -16,12 +16,12 @@ import (
 )
 
 func deleteClusterCmd(cmd *cmdutils.Cmd) {
-	deleteClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction bool, parallel int) error {
-		return doDeleteCluster(cmd, force, disableNodegroupEviction, parallel)
+	deleteClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction bool, podEvictionWaitPeriod time.Duration, parallel int) error {
+		return doDeleteCluster(cmd, force, disableNodegroupEviction, podEvictionWaitPeriod, parallel)
 	})
 }
 
-func deleteClusterWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction bool, parallel int) error) {
+func deleteClusterWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction bool, podEvictionWaitPeriod time.Duration, parallel int) error) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
@@ -30,11 +30,12 @@ func deleteClusterWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd,
 	var (
 		force                    bool
 		disableNodegroupEviction bool
+		podEvictionWaitPeriod    time.Duration
 		parallel                 int
 	)
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return runFunc(cmd, force, disableNodegroupEviction, parallel)
+		return runFunc(cmd, force, disableNodegroupEviction, podEvictionWaitPeriod, parallel)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -45,6 +46,8 @@ func deleteClusterWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd,
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "deletion of all resources")
 		fs.BoolVar(&force, "force", false, "Force deletion to continue when errors occur")
 		fs.BoolVar(&disableNodegroupEviction, "disable-nodegroup-eviction", false, "Force drain to use delete, even if eviction is supported. This will bypass checking PodDisruptionBudgets, use with caution.")
+		defaultPodEvictionWaitPeriod, _ := time.ParseDuration("10s")
+		fs.DurationVar(&podEvictionWaitPeriod, "pod-eviction-wait-period", defaultPodEvictionWaitPeriod, "Duration to wait after failing to evict a pod")
 		fs.IntVar(&parallel, "parallel", 1, "Number of nodes to drain in parallel. Max 25")
 
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
@@ -54,7 +57,7 @@ func deleteClusterWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd,
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
 }
 
-func doDeleteCluster(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction bool, parallel int) error {
+func doDeleteCluster(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction bool, podEvictionWaitPeriod time.Duration, parallel int) error {
 	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
@@ -89,5 +92,5 @@ func doDeleteCluster(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction boo
 
 	// ProviderConfig.WaitTimeout is not respected by cluster.Delete, which means the operation will never time out.
 	// When this is fixed, a deadline-based Context can be used here.
-	return cluster.Delete(context.TODO(), time.Second*20, cmd.Wait, force, disableNodegroupEviction, parallel)
+	return cluster.Delete(context.TODO(), time.Second*20, podEvictionWaitPeriod, cmd.Wait, force, disableNodegroupEviction, parallel)
 }

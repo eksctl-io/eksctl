@@ -29,7 +29,6 @@ import (
 
 const (
 	daemonSetFatal      = "DaemonSet-managed Pods (use --ignore-daemonsets to ignore)"
-	daemonSetWarning    = "ignoring DaemonSet-managed Pods"
 	localStorageFatal   = "Pods with local storage (use --delete-local-data to override)"
 	localStorageWarning = "deleting Pods with local storage"
 	unmanagedFatal      = "Pods not managed by ReplicationController, ReplicaSet, Job, DaemonSet or StatefulSet (use --force to override)"
@@ -204,7 +203,7 @@ func (d *Evictor) daemonSetFilter(pod corev1.Pod) PodDeleteStatus {
 		if controllerRef.Name == ignoreDaemonSet.Name {
 			switch ignoreDaemonSet.Namespace {
 			case pod.Namespace, metav1.NamespaceAll:
-				return makePodDeleteStatusWithWarning(false, daemonSetWarning)
+				return makePodDeleteStatusSkip()
 			}
 		}
 	}
@@ -213,7 +212,7 @@ func (d *Evictor) daemonSetFilter(pod corev1.Pod) PodDeleteStatus {
 		return makePodDeleteStatusWithError(daemonSetFatal)
 	}
 
-	return makePodDeleteStatusWithWarning(false, daemonSetWarning)
+	return makePodDeleteStatusSkip()
 }
 
 func (d *Evictor) mirrorPodFilter(pod corev1.Pod) PodDeleteStatus {
