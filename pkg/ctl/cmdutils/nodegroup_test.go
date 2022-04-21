@@ -1,6 +1,8 @@
 package cmdutils
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
@@ -30,7 +32,7 @@ var _ = Describe("PopulateNodegroup", func() {
 	Context("unmanaged nodegroup", func() {
 		It("is added to the cfg", func() {
 			fakeStackManager.GetNodeGroupStackTypeReturns(api.NodeGroupTypeUnmanaged, nil)
-			err = PopulateNodegroup(fakeStackManager, ngName, cfg, mockProvider)
+			err = PopulateNodegroup(context.TODO(), fakeStackManager, ngName, cfg, mockProvider)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.NodeGroups[0].Name).To(Equal(ngName))
 		})
@@ -39,7 +41,7 @@ var _ = Describe("PopulateNodegroup", func() {
 	Context("managed nodegroup", func() {
 		It("is added to the cfg", func() {
 			fakeStackManager.GetNodeGroupStackTypeReturns(api.NodeGroupTypeManaged, nil)
-			err = PopulateNodegroup(fakeStackManager, ngName, cfg, mockProvider)
+			err = PopulateNodegroup(context.TODO(), fakeStackManager, ngName, cfg, mockProvider)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.ManagedNodeGroups[0].Name).To(Equal(ngName))
 		})
@@ -55,7 +57,7 @@ var _ = Describe("PopulateNodegroup", func() {
 				NodegroupName: aws.String(ngName),
 			}).Return(&awseks.DescribeNodegroupOutput{Nodegroup: &awseks.Nodegroup{}}, nil)
 
-			err = PopulateNodegroup(fakeStackManager, ngName, cfg, mockProvider)
+			err = PopulateNodegroup(context.TODO(), fakeStackManager, ngName, cfg, mockProvider)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.ManagedNodeGroups[0].Name).To(Equal(ngName))
 		})

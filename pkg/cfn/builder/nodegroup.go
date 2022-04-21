@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/pkg/errors"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
@@ -359,7 +358,7 @@ func AssignSubnets(ctx context.Context, spec *api.NodeGroupBase, vpcImporter vpc
 }
 
 // GetAllOutputs collects all outputs of the nodegroup
-func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
+func (n *NodeGroupResourceSet) GetAllOutputs(stack types.Stack) error {
 	return n.rs.GetAllOutputs(stack)
 }
 

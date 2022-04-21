@@ -1,7 +1,7 @@
 package builder
 
 import (
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -25,7 +25,7 @@ func (r *resourceSet) defineOutputWithoutCollector(name string, value interface{
 
 // GetAllOutputs collects all outputs from an instance of an active stack,
 // the outputs are defined by the current resourceSet
-func (r *resourceSet) GetAllOutputs(stack cfn.Stack) error {
+func (r *resourceSet) GetAllOutputs(stack types.Stack) error {
 	logger.Debug("processing stack outputs")
 	return r.outputs.MustCollect(stack)
 }

@@ -7,26 +7,22 @@ import (
 	"net"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/eks"
-
-	"github.com/onsi/gomega/types"
-
-	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
-	"github.com/weaveworks/eksctl/pkg/utils/strings"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/types"
 	. "github.com/stretchr/testify/mock"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
 	. "github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
+	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 type setSubnetsCase struct {
@@ -55,7 +51,7 @@ func describeImportVPCCase(desc string) func(importVPCCase) string {
 
 type useFromClusterCase struct {
 	cfg          *api.ClusterConfig
-	stack        *cfn.Stack
+	stack        *cfntypes.Stack
 	errorMatcher types.GomegaMatcher
 }
 
@@ -242,7 +238,7 @@ var _ = Describe("VPC", func() {
 		},
 		Entry("No output", useFromClusterCase{
 			cfg:          api.NewClusterConfig(),
-			stack:        &cfn.Stack{},
+			stack:        &cfntypes.Stack{},
 			errorMatcher: MatchRegexp(`no output "(?:VPC|SecurityGroup)"`),
 		}),
 	)

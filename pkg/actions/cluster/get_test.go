@@ -85,11 +85,11 @@ var _ = Describe("Get", func() {
 				Expect(awsProvider.CallCount()).To(Equal(0))
 
 				Expect(stackManager.HasClusterStackFromListCallCount()).To(Equal(3))
-				_, clusterName := stackManager.HasClusterStackFromListArgsForCall(0)
+				_, _, clusterName := stackManager.HasClusterStackFromListArgsForCall(0)
 				Expect(clusterName).To(Equal("cluster1"))
-				_, clusterName = stackManager.HasClusterStackFromListArgsForCall(1)
+				_, _, clusterName = stackManager.HasClusterStackFromListArgsForCall(1)
 				Expect(clusterName).To(Equal("cluster2"))
-				_, clusterName = stackManager.HasClusterStackFromListArgsForCall(2)
+				_, _, clusterName = stackManager.HasClusterStackFromListArgsForCall(2)
 				Expect(clusterName).To(Equal("cluster3"))
 			})
 		})
@@ -204,11 +204,11 @@ var _ = Describe("Get", func() {
 				Expect(cfg.Region).To(Equal("us-west-2"))
 
 				Expect(stackManagerRegion1.HasClusterStackFromListCallCount()).To(Equal(1))
-				_, clusterName := stackManagerRegion1.HasClusterStackFromListArgsForCall(0)
+				_, _, clusterName := stackManagerRegion1.HasClusterStackFromListArgsForCall(0)
 				Expect(clusterName).To(Equal("cluster1"))
 
 				Expect(stackManagerRegion2.HasClusterStackFromListCallCount()).To(Equal(1))
-				_, clusterName = stackManagerRegion2.HasClusterStackFromListArgsForCall(0)
+				_, _, clusterName = stackManagerRegion2.HasClusterStackFromListArgsForCall(0)
 				Expect(clusterName).To(Equal("cluster2"))
 			})
 		})
@@ -272,7 +272,7 @@ var _ = Describe("Get", func() {
 				Expect(cfg.Region).To(Equal("us-west-2"))
 
 				Expect(stackManagerRegion1.HasClusterStackFromListCallCount()).To(Equal(1))
-				_, clusterName := stackManagerRegion1.HasClusterStackFromListArgsForCall(0)
+				_, _, clusterName := stackManagerRegion1.HasClusterStackFromListArgsForCall(0)
 				Expect(clusterName).To(Equal("cluster1"))
 			})
 		})

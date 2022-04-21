@@ -4,14 +4,15 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/aws/aws-sdk-go/aws"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	. "github.com/weaveworks/eksctl/pkg/cfn/outputs"
 )
 
-func appendOutput(stack *cfn.Stack, k, v string) {
-	stack.Outputs = append(stack.Outputs, &cfn.Output{
+func appendOutput(stack *types.Stack, k, v string) {
+	stack.Outputs = append(stack.Outputs, types.Output{
 		OutputKey:   &k,
 		OutputValue: &v,
 	})
@@ -20,7 +21,7 @@ func appendOutput(stack *cfn.Stack, k, v string) {
 var _ = Describe("CloudFormation stack outputs API", func() {
 
 	It("should handle nil args", func() {
-		err := Collect(cfn.Stack{Outputs: nil}, nil, nil)
+		err := Collect(types.Stack{Outputs: nil}, nil, nil)
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 
@@ -30,7 +31,7 @@ var _ = Describe("CloudFormation stack outputs API", func() {
 		}
 
 		{
-			stack := cfn.Stack{
+			stack := types.Stack{
 				Outputs: nil,
 			}
 			requiredCollectors := map[string]Collector{
@@ -48,8 +49,8 @@ var _ = Describe("CloudFormation stack outputs API", func() {
 		}
 
 		{
-			stack := cfn.Stack{}
-			stack.SetStackName("foo")
+			stack := types.Stack{}
+			stack.StackName = aws.String("foo")
 
 			appendOutput(&stack, ClusterVPC, "vpc-123")
 
@@ -106,7 +107,7 @@ var _ = Describe("CloudFormation stack outputs API", func() {
 		}
 
 		{
-			stack := cfn.Stack{
+			stack := types.Stack{
 				Outputs: nil,
 			}
 			requiredCollectors := map[string]Collector{
@@ -121,8 +122,8 @@ var _ = Describe("CloudFormation stack outputs API", func() {
 		}
 
 		{
-			stack := cfn.Stack{}
-			stack.SetStackName("foo")
+			stack := types.Stack{}
+			stack.StackName = aws.String("foo")
 
 			appendOutput(&stack, ClusterVPC, "vpc-123")
 			appendOutput(&stack, ClusterSecurityGroup, "sg-123")

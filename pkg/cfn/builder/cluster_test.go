@@ -4,9 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
-
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
@@ -596,7 +595,7 @@ var _ = Describe("Cluster Template Builder", func() {
 		It("should not error", func() {
 			// the actual work gets done right the way down in outputs where there is currently no interface
 			// so there is little value here right now
-			Expect(crs.GetAllOutputs(cfn.Stack{})).To(Succeed())
+			Expect(crs.GetAllOutputs(types.Stack{})).To(Succeed())
 		})
 	})
 

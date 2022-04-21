@@ -13,8 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
-
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 
@@ -649,7 +647,7 @@ func (c ClusterConfig) HasNodes() bool {
 
 // ClusterProvider is the interface to AWS APIs
 type ClusterProvider interface {
-	CloudFormation() cloudformationiface.CloudFormationAPI
+	CloudFormation() awsapi.CloudFormation
 	CloudFormationRoleARN() string
 	CloudFormationDisableRollback() bool
 	ASG() awsapi.ASG

@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-
-	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
-
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/awsapi"
@@ -47,7 +45,7 @@ func ImportInstanceRoleFromProfileARN(ctx context.Context, iamAPI awsapi.IAM, ng
 
 // UseFromNodeGroup retrieves the IAM configuration from an existing nodegroup
 // based on stack outputs
-func UseFromNodeGroup(stack *cfn.Stack, ng *api.NodeGroup) error {
+func UseFromNodeGroup(stack *types.Stack, ng *api.NodeGroup) error {
 	if ng.IAM == nil {
 		ng.IAM = &api.NodeGroupIAM{}
 	}

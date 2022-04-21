@@ -1,6 +1,7 @@
 package delete
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/kris-nova/logger"
@@ -63,7 +64,7 @@ func doDeleteFargateProfile(cmd *cmdutils.Cmd, opts *fargate.Options) error {
 	} else {
 		logger.Debug(deletingFargateProfileMsg(clusterName, opts.ProfileName))
 	}
-	if err := manager.DeleteProfile(opts.ProfileName, cmd.Wait); err != nil {
+	if err := manager.DeleteProfile(context.TODO(), opts.ProfileName, cmd.Wait); err != nil {
 		return err
 	}
 	logger.Info("deleted Fargate profile %q on EKS cluster %q", opts.ProfileName, clusterName)

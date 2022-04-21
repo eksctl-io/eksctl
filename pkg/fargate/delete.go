@@ -1,6 +1,7 @@
 package fargate
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 )
 
 // DeleteProfile drains and delete the Fargate profile with the provided name.
-func (c *Client) DeleteProfile(name string, waitForDeletion bool) error {
+func (c *Client) DeleteProfile(ctx context.Context, name string, waitForDeletion bool) error {
 	if name == "" {
 		return errors.New("invalid Fargate profile name: empty")
 	}
@@ -34,7 +35,7 @@ func (c *Client) DeleteProfile(name string, waitForDeletion bool) error {
 	//If waitForDeletion is false then the profile might still exist until deletion finishes
 	if len(profiles.FargateProfileNames) == 0 ||
 		(len(profiles.FargateProfileNames) == 1 && *profiles.FargateProfileNames[0] == name) {
-		stack, err := c.stackManager.GetFargateStack()
+		stack, err := c.stackManager.GetFargateStack(ctx)
 		if err != nil {
 			logger.Debug("failed to fetch fargate stack to delete, skipping deletion")
 			return nil
@@ -44,7 +45,7 @@ func (c *Client) DeleteProfile(name string, waitForDeletion bool) error {
 			logger.Info("no fargate stack to delete")
 		} else {
 			logger.Info("deleting unused fargate role")
-			_, err = c.stackManager.DeleteStackBySpec(stack)
+			_, err = c.stackManager.DeleteStackBySpec(ctx, stack)
 			return err
 		}
 	}

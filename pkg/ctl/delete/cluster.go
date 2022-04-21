@@ -81,7 +81,8 @@ func doDeleteCluster(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction boo
 		return err
 	}
 
-	cluster, err := cluster.New(cfg, ctl)
+	ctx := context.TODO()
+	cluster, err := cluster.New(ctx, cfg, ctl)
 	if err != nil {
 		return err
 	}

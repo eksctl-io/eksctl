@@ -71,11 +71,12 @@ type FakeNodeGroupInitialiser struct {
 	normalizeReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ValidateExistingNodeGroupsForCompatibilityStub        func(*v1alpha5.ClusterConfig, manager.StackManager) error
+	ValidateExistingNodeGroupsForCompatibilityStub        func(context.Context, *v1alpha5.ClusterConfig, manager.StackManager) error
 	validateExistingNodeGroupsForCompatibilityMutex       sync.RWMutex
 	validateExistingNodeGroupsForCompatibilityArgsForCall []struct {
-		arg1 *v1alpha5.ClusterConfig
-		arg2 manager.StackManager
+		arg1 context.Context
+		arg2 *v1alpha5.ClusterConfig
+		arg3 manager.StackManager
 	}
 	validateExistingNodeGroupsForCompatibilityReturns struct {
 		result1 error
@@ -401,19 +402,20 @@ func (fake *FakeNodeGroupInitialiser) NormalizeReturnsOnCall(i int, result1 erro
 	}{result1}
 }
 
-func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibility(arg1 *v1alpha5.ClusterConfig, arg2 manager.StackManager) error {
+func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibility(arg1 context.Context, arg2 *v1alpha5.ClusterConfig, arg3 manager.StackManager) error {
 	fake.validateExistingNodeGroupsForCompatibilityMutex.Lock()
 	ret, specificReturn := fake.validateExistingNodeGroupsForCompatibilityReturnsOnCall[len(fake.validateExistingNodeGroupsForCompatibilityArgsForCall)]
 	fake.validateExistingNodeGroupsForCompatibilityArgsForCall = append(fake.validateExistingNodeGroupsForCompatibilityArgsForCall, struct {
-		arg1 *v1alpha5.ClusterConfig
-		arg2 manager.StackManager
-	}{arg1, arg2})
+		arg1 context.Context
+		arg2 *v1alpha5.ClusterConfig
+		arg3 manager.StackManager
+	}{arg1, arg2, arg3})
 	stub := fake.ValidateExistingNodeGroupsForCompatibilityStub
 	fakeReturns := fake.validateExistingNodeGroupsForCompatibilityReturns
-	fake.recordInvocation("ValidateExistingNodeGroupsForCompatibility", []interface{}{arg1, arg2})
+	fake.recordInvocation("ValidateExistingNodeGroupsForCompatibility", []interface{}{arg1, arg2, arg3})
 	fake.validateExistingNodeGroupsForCompatibilityMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
@@ -427,17 +429,17 @@ func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibility
 	return len(fake.validateExistingNodeGroupsForCompatibilityArgsForCall)
 }
 
-func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibilityCalls(stub func(*v1alpha5.ClusterConfig, manager.StackManager) error) {
+func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibilityCalls(stub func(context.Context, *v1alpha5.ClusterConfig, manager.StackManager) error) {
 	fake.validateExistingNodeGroupsForCompatibilityMutex.Lock()
 	defer fake.validateExistingNodeGroupsForCompatibilityMutex.Unlock()
 	fake.ValidateExistingNodeGroupsForCompatibilityStub = stub
 }
 
-func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibilityArgsForCall(i int) (*v1alpha5.ClusterConfig, manager.StackManager) {
+func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibilityArgsForCall(i int) (context.Context, *v1alpha5.ClusterConfig, manager.StackManager) {
 	fake.validateExistingNodeGroupsForCompatibilityMutex.RLock()
 	defer fake.validateExistingNodeGroupsForCompatibilityMutex.RUnlock()
 	argsForCall := fake.validateExistingNodeGroupsForCompatibilityArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibilityReturns(result1 error) {
