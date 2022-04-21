@@ -83,29 +83,29 @@ type taskWithClusterIAMServiceAccountSpec struct {
 
 func (t *taskWithClusterIAMServiceAccountSpec) Describe() string { return t.info }
 func (t *taskWithClusterIAMServiceAccountSpec) Do(errs chan error) error {
-	return t.stackCollection.createIAMServiceAccountTask(errs, t.serviceAccount, t.oidc)
+	return t.stackCollection.createIAMServiceAccountTask(context.TODO(), errs, t.serviceAccount, t.oidc)
 }
 
 type taskWithStackSpec struct {
 	info  string
 	stack *Stack
-	call  func(*Stack, chan error) error
+	call  func(context.Context, *Stack, chan error) error
 }
 
 func (t *taskWithStackSpec) Describe() string { return t.info }
 func (t *taskWithStackSpec) Do(errs chan error) error {
-	return t.call(t.stack, errs)
+	return t.call(context.TODO(), t.stack, errs)
 }
 
 type asyncTaskWithStackSpec struct {
 	info  string
 	stack *Stack
-	call  func(*Stack) (*Stack, error)
+	call  func(context.Context, *Stack) (*Stack, error)
 }
 
 func (t *asyncTaskWithStackSpec) Describe() string { return t.info + " [async]" }
 func (t *asyncTaskWithStackSpec) Do(errs chan error) error {
-	_, err := t.call(t.stack)
+	_, err := t.call(context.TODO(), t.stack)
 	close(errs)
 	return err
 }

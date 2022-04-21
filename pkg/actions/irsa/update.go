@@ -1,6 +1,7 @@
 package irsa
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -20,7 +21,7 @@ const (
 	roleNamePath   = "RoleName"
 )
 
-func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMServiceAccount, existingIAMStacks []*manager.Stack, plan bool) error {
+func (a *Manager) UpdateIAMServiceAccounts(ctx context.Context, iamServiceAccounts []*api.ClusterIAMServiceAccount, existingIAMStacks []*manager.Stack, plan bool) error {
 	var nonExistingSAs []string
 	updateTasks := &tasks.TaskTree{Parallel: true}
 
@@ -36,7 +37,7 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 			continue
 		}
 
-		roleName, err := a.getRoleNameFromStackTemplate(stack)
+		roleName, err := a.getRoleNameFromStackTemplate(ctx, stack)
 		if err != nil {
 			return err
 		}
@@ -63,8 +64,8 @@ func (a *Manager) UpdateIAMServiceAccounts(iamServiceAccounts []*api.ClusterIAMS
 
 // getRoleNameFromStackTemplate returns the role if the initial stack's template contained it.
 // That means it was defined upon creation, and we need to re-use that same name.
-func (a *Manager) getRoleNameFromStackTemplate(stack *manager.Stack) (string, error) {
-	template, err := a.stackManager.GetStackTemplate(aws.StringValue(stack.StackName))
+func (a *Manager) getRoleNameFromStackTemplate(ctx context.Context, stack *manager.Stack) (string, error) {
+	template, err := a.stackManager.GetStackTemplate(ctx, aws.StringValue(stack.StackName))
 	if err != nil {
 		return "", fmt.Errorf("failed to get stack template: %w", err)
 	}

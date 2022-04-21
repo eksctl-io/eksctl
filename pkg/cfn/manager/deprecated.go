@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -25,8 +26,8 @@ func fmtDeprecatedStacksRegexForCluster(name string) string {
 }
 
 // DeleteTasksForDeprecatedStacks all deprecated stacks
-func (c *StackCollection) DeleteTasksForDeprecatedStacks() (*tasks.TaskTree, error) {
-	stacks, err := c.ListStacksMatching(fmtDeprecatedStacksRegexForCluster(c.spec.Metadata.Name))
+func (c *StackCollection) DeleteTasksForDeprecatedStacks(ctx context.Context) (*tasks.TaskTree, error) {
+	stacks, err := c.ListStacksMatching(ctx, fmtDeprecatedStacksRegexForCluster(c.spec.Metadata.Name))
 	if err != nil {
 		return nil, errors.Wrapf(err, "describing deprecated CloudFormation stacks for %q", c.spec.Metadata.Name)
 	}

@@ -64,11 +64,12 @@ type FakeKubeProvider struct {
 	updateAuthConfigMapReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ValidateClusterForCompatibilityStub        func(*v1alpha5.ClusterConfig, manager.StackManager) error
+	ValidateClusterForCompatibilityStub        func(context.Context, *v1alpha5.ClusterConfig, manager.StackManager) error
 	validateClusterForCompatibilityMutex       sync.RWMutex
 	validateClusterForCompatibilityArgsForCall []struct {
-		arg1 *v1alpha5.ClusterConfig
-		arg2 manager.StackManager
+		arg1 context.Context
+		arg2 *v1alpha5.ClusterConfig
+		arg3 manager.StackManager
 	}
 	validateClusterForCompatibilityReturns struct {
 		result1 error
@@ -350,19 +351,20 @@ func (fake *FakeKubeProvider) UpdateAuthConfigMapReturnsOnCall(i int, result1 er
 	}{result1}
 }
 
-func (fake *FakeKubeProvider) ValidateClusterForCompatibility(arg1 *v1alpha5.ClusterConfig, arg2 manager.StackManager) error {
+func (fake *FakeKubeProvider) ValidateClusterForCompatibility(arg1 context.Context, arg2 *v1alpha5.ClusterConfig, arg3 manager.StackManager) error {
 	fake.validateClusterForCompatibilityMutex.Lock()
 	ret, specificReturn := fake.validateClusterForCompatibilityReturnsOnCall[len(fake.validateClusterForCompatibilityArgsForCall)]
 	fake.validateClusterForCompatibilityArgsForCall = append(fake.validateClusterForCompatibilityArgsForCall, struct {
-		arg1 *v1alpha5.ClusterConfig
-		arg2 manager.StackManager
-	}{arg1, arg2})
+		arg1 context.Context
+		arg2 *v1alpha5.ClusterConfig
+		arg3 manager.StackManager
+	}{arg1, arg2, arg3})
 	stub := fake.ValidateClusterForCompatibilityStub
 	fakeReturns := fake.validateClusterForCompatibilityReturns
-	fake.recordInvocation("ValidateClusterForCompatibility", []interface{}{arg1, arg2})
+	fake.recordInvocation("ValidateClusterForCompatibility", []interface{}{arg1, arg2, arg3})
 	fake.validateClusterForCompatibilityMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
@@ -376,17 +378,17 @@ func (fake *FakeKubeProvider) ValidateClusterForCompatibilityCallCount() int {
 	return len(fake.validateClusterForCompatibilityArgsForCall)
 }
 
-func (fake *FakeKubeProvider) ValidateClusterForCompatibilityCalls(stub func(*v1alpha5.ClusterConfig, manager.StackManager) error) {
+func (fake *FakeKubeProvider) ValidateClusterForCompatibilityCalls(stub func(context.Context, *v1alpha5.ClusterConfig, manager.StackManager) error) {
 	fake.validateClusterForCompatibilityMutex.Lock()
 	defer fake.validateClusterForCompatibilityMutex.Unlock()
 	fake.ValidateClusterForCompatibilityStub = stub
 }
 
-func (fake *FakeKubeProvider) ValidateClusterForCompatibilityArgsForCall(i int) (*v1alpha5.ClusterConfig, manager.StackManager) {
+func (fake *FakeKubeProvider) ValidateClusterForCompatibilityArgsForCall(i int) (context.Context, *v1alpha5.ClusterConfig, manager.StackManager) {
 	fake.validateClusterForCompatibilityMutex.RLock()
 	defer fake.validateClusterForCompatibilityMutex.RUnlock()
 	argsForCall := fake.validateClusterForCompatibilityArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeKubeProvider) ValidateClusterForCompatibilityReturns(result1 error) {

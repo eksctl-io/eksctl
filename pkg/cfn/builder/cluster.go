@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/weaveworks/eksctl/pkg/awsapi"
-
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
@@ -18,6 +16,7 @@ import (
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 )
 
@@ -209,7 +208,7 @@ func (c *ClusterResourceSet) Template() gfn.Template {
 }
 
 // GetAllOutputs collects all outputs of the cluster
-func (c *ClusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
+func (c *ClusterResourceSet) GetAllOutputs(stack types.Stack) error {
 	return c.rs.GetAllOutputs(stack)
 }
 

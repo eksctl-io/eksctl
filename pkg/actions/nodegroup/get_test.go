@@ -5,20 +5,18 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
+	asgtypes "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
+	cftypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
-	"k8s.io/client-go/kubernetes/fake"
-
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes/fake"
 
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -105,7 +103,7 @@ var _ = Describe("Get", func() {
 				})
 
 				It("returns a summary of the node group and its StackName", func() {
-					fakeStackManager.DescribeNodeGroupStackReturns(&cloudformation.Stack{
+					fakeStackManager.DescribeNodeGroupStackReturns(&cftypes.Stack{
 						StackName: aws.String(stackName),
 					}, nil)
 
@@ -316,7 +314,7 @@ var _ = Describe("Get", func() {
 						},
 					}, nil)
 
-					fakeStackManager.DescribeNodeGroupStackReturns(&cloudformation.Stack{
+					fakeStackManager.DescribeNodeGroupStackReturns(&cftypes.Stack{
 						StackName: aws.String(stackName),
 					}, nil)
 				})
@@ -371,10 +369,10 @@ var _ = Describe("Get", func() {
 
 			BeforeEach(func() {
 				//unmanaged nodegroup
-				fakeStackManager.DescribeNodeGroupStacksReturns([]*cloudformation.Stack{
+				fakeStackManager.DescribeNodeGroupStacksReturns([]*cftypes.Stack{
 					{
 						StackName: aws.String(unmanagedStackName),
-						Tags: []*cloudformation.Tag{
+						Tags: []cftypes.Tag{
 							{
 								Key:   aws.String(api.NodeGroupNameTag),
 								Value: aws.String(unmanagedNodegroupName),
@@ -384,13 +382,13 @@ var _ = Describe("Get", func() {
 								Value: aws.String(clusterName),
 							},
 						},
-						StackStatus:  aws.String("CREATE_COMPLETE"),
+						StackStatus:  cftypes.StackStatus("CREATE_COMPLETE"),
 						CreationTime: aws.Time(creationTime),
 					},
 				}, nil)
 				fakeStackManager.GetStackTemplateReturns(unmanagedTemplate, nil)
 				fakeStackManager.GetUnmanagedNodeGroupAutoScalingGroupNameReturns("asg", nil)
-				fakeStackManager.GetAutoScalingGroupDesiredCapacityReturns(types.AutoScalingGroup{
+				fakeStackManager.GetAutoScalingGroupDesiredCapacityReturns(asgtypes.AutoScalingGroup{
 					DesiredCapacity: aws.Int32(50),
 					MinSize:         aws.Int32(1),
 					MaxSize:         aws.Int32(100),
@@ -445,7 +443,7 @@ var _ = Describe("Get", func() {
 					},
 				}, nil)
 
-				fakeStackManager.DescribeNodeGroupStackReturns(&cloudformation.Stack{
+				fakeStackManager.DescribeNodeGroupStackReturns(&cftypes.Stack{
 					StackName: aws.String(stackName),
 				}, nil)
 			})
@@ -492,9 +490,9 @@ var _ = Describe("Get", func() {
 
 	Describe("Get", func() {
 		BeforeEach(func() {
-			fakeStackManager.DescribeNodeGroupStackReturns(&cloudformation.Stack{
+			fakeStackManager.DescribeNodeGroupStackReturns(&cftypes.Stack{
 				StackName: aws.String(stackName),
-				Tags: []*cloudformation.Tag{
+				Tags: []cftypes.Tag{
 					{
 						Key:   aws.String(api.NodeGroupNameTag),
 						Value: aws.String(ngName),

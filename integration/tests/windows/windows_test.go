@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -48,8 +49,9 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 		clusterConfig.NodeGroups = []*api.NodeGroup{
 			{
 				NodeGroupBase: &api.NodeGroupBase{
-					Name:      "windows",
-					AMIFamily: ami,
+					Name:       "windows",
+					AMIFamily:  ami,
+					VolumeSize: aws.Int(120),
 				},
 				ContainerRuntime: &containerRuntime,
 			},
@@ -83,7 +85,7 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		d := kubeTest.CreateDeploymentFromFile("default", fmt.Sprintf("../../data/%s", workload))
-		kubeTest.WaitForDeploymentReady(d, 12*time.Minute)
+		kubeTest.WaitForDeploymentReady(d, 30*time.Minute)
 	}
 
 	Context("When creating a cluster with Windows nodegroups", func() {
@@ -93,8 +95,7 @@ var _ = Describe("(Integration) [Windows Nodegroups]", func() {
 		},
 			Entry("windows when withOIDC is disabled", false, api.NodeImageFamilyWindowsServer2019FullContainer, "windows-server-iis.yaml", api.ContainerRuntimeDockerForWindows),
 			Entry("windows when withOIDC is enabled", true, api.NodeImageFamilyWindowsServer2019FullContainer, "windows-server-iis.yaml", api.ContainerRuntimeDockerForWindows),
-			Entry("windows 20H2", true, api.NodeImageFamilyWindowsServer20H2CoreContainer, "windows-server-iis-20H2.yaml", api.ContainerRuntimeDockerForWindows),
-			Entry("windows with container runtime containerd", true, api.NodeImageFamilyWindowsServer20H2CoreContainer, "windows-server-iis-20H2.yaml", api.ContainerRuntimeContainerD),
+			Entry("windows 20H2", true, api.NodeImageFamilyWindowsServer20H2CoreContainer, "windows-server-iis-20H2.yaml", api.ContainerRuntimeContainerD),
 		)
 	})
 

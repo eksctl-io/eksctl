@@ -5,16 +5,14 @@ import (
 	"fmt"
 	"sort"
 
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-
-	"github.com/weaveworks/eksctl/pkg/awsapi"
-
 	"github.com/aws/aws-sdk-go/aws"
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
@@ -65,7 +63,7 @@ func (k *karpenterIAMRolesTask) createKarpenterIAMRolesTask(ctx context.Context,
 		api.KarpenterNameTag:    name,
 		api.KarpenterVersionTag: k.cfg.Karpenter.Version,
 	}
-	if err := k.stackManager.CreateStack(name, stack, tags, nil, errs); err != nil {
+	if err := k.stackManager.CreateStack(context.Background(), name, stack, tags, nil, errs); err != nil {
 		return fmt.Errorf("failed to create stack: %w", err)
 	}
 
@@ -109,7 +107,7 @@ func (k *karpenterIAMRolesTask) GetKarpenterName(s *manager.Stack) string {
 }
 
 // getKarpenterTagName returns the Karpenter name of a stack based on its tags.
-func getKarpenterTagName(tags []*cfn.Tag) string {
+func getKarpenterTagName(tags []cfntypes.Tag) string {
 	for _, tag := range tags {
 		if *tag.Key == api.KarpenterNameTag {
 			return *tag.Value

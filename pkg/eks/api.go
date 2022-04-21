@@ -58,7 +58,7 @@ type KubeProvider interface {
 	NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error)
 	ServerVersion(rawClient *kubernetes.RawClient) (string, error)
 	LoadClusterIntoSpecFromStack(ctx context.Context, spec *api.ClusterConfig, stackManager manager.StackManager) error
-	ValidateClusterForCompatibility(cfg *api.ClusterConfig, stackManager manager.StackManager) error
+	ValidateClusterForCompatibility(ctx context.Context, cfg *api.ClusterConfig, stackManager manager.StackManager) error
 	UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error
 	WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error
 }
@@ -76,9 +76,6 @@ type ProviderServices struct {
 
 	*ServicesV2
 }
-
-// CloudFormation returns a representation of the CloudFormation API
-func (p ProviderServices) CloudFormation() cloudformationiface.CloudFormationAPI { return p.cfn }
 
 // CloudFormationRoleARN returns, if any, a service role used by CloudFormation to call AWS API on your behalf
 func (p ProviderServices) CloudFormationRoleARN() string { return p.spec.CloudFormationRoleARN }

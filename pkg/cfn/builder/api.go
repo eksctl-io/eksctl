@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
@@ -41,7 +41,7 @@ type ResourceSetReader interface {
 	RenderJSON() ([]byte, error)
 	WithIAM() bool
 	WithNamedIAM() bool
-	GetAllOutputs(cfn.Stack) error
+	GetAllOutputs(types.Stack) error
 }
 
 type resourceSet struct {

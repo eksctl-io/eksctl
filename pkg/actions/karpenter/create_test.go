@@ -81,7 +81,7 @@ var _ = Describe("Create", func() {
 					},
 				},
 			}
-			fakeStackManager.CreateStackStub = func(_ string, rs builder.ResourceSetReader, _ map[string]string, _ map[string]string, errs chan error) error {
+			fakeStackManager.CreateStackStub = func(_ context.Context, _ string, rs builder.ResourceSetReader, _ map[string]string, _ map[string]string, errs chan error) error {
 				go func() {
 					errs <- nil
 				}()
@@ -166,7 +166,7 @@ var _ = Describe("Create", func() {
 				output *bytes.Buffer
 			)
 			BeforeEach(func() {
-				fakeStackManager.CreateStackStub = func(_ string, rs builder.ResourceSetReader, _ map[string]string, _ map[string]string, errs chan error) error {
+				fakeStackManager.CreateStackStub = func(_ context.Context, _ string, rs builder.ResourceSetReader, _ map[string]string, _ map[string]string, errs chan error) error {
 					go func() {
 						errs <- nil
 					}()

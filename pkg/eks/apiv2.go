@@ -35,10 +35,10 @@ func newV2Config(pc *api.ProviderConfig, region string, credentialsCacheFilePath
 	if region != "" {
 		options = append(options, config.WithRegion(region))
 	}
-	clientLogMode := aws.LogRetries
+	clientLogMode := aws.ClientLogMode(1)
 
 	if logger.Level >= api.AWSDebugLevel {
-		clientLogMode = clientLogMode | aws.LogRequestWithBody | aws.LogRequestEventMessage | aws.LogResponseWithBody
+		clientLogMode = clientLogMode | aws.LogRequestWithBody | aws.LogRequestEventMessage | aws.LogResponseWithBody | aws.LogRetries
 	}
 	options = append(options, config.WithClientLogMode(clientLogMode))
 

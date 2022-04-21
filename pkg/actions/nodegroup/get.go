@@ -7,18 +7,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
-
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/tidwall/gjson"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/eks"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
+	"github.com/tidwall/gjson"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -84,10 +81,10 @@ func (m *Manager) getManagedSummaries(ctx context.Context) ([]*Summary, error) {
 	}
 
 	for _, ngName := range managedNodeGroups.Nodegroups {
-		var stack *cloudformation.Stack
-		stack, err = m.stackManager.DescribeNodeGroupStack(*ngName)
+		var stack *types.Stack
+		stack, err = m.stackManager.DescribeNodeGroupStack(ctx, *ngName)
 		if err != nil {
-			stack = &cloudformation.Stack{}
+			stack = &types.Stack{}
 		}
 
 		summary, err := m.getManagedSummary(ctx, *ngName)
@@ -102,7 +99,7 @@ func (m *Manager) getManagedSummaries(ctx context.Context) ([]*Summary, error) {
 }
 
 func (m *Manager) getUnmanagedSummaries(ctx context.Context) ([]*Summary, error) {
-	stacks, err := m.stackManager.DescribeNodeGroupStacks()
+	stacks, err := m.stackManager.DescribeNodeGroupStacks(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting nodegroup stacks: %w", err)
 	}
@@ -123,7 +120,7 @@ func (m *Manager) getUnmanagedSummaries(ctx context.Context) ([]*Summary, error)
 }
 
 func (m *Manager) getUnmanagedSummary(ctx context.Context, name string) (*Summary, error) {
-	stack, err := m.stackManager.DescribeNodeGroupStack(name)
+	stack, err := m.stackManager.DescribeNodeGroupStack(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -146,14 +143,14 @@ func (m *Manager) unmanagedStackToSummary(ctx context.Context, s *manager.Stack)
 		return nil, err
 	}
 
-	summary, err := m.mapStackToNodeGroupSummary(s, ngPaths)
+	summary, err := m.mapStackToNodeGroupSummary(ctx, s, ngPaths)
 
 	if err != nil {
 		return nil, fmt.Errorf("mapping stack to nodegroup summary: %w", err)
 	}
 	summary.NodeGroupType = api.NodeGroupTypeUnmanaged
 
-	asgName, err := m.stackManager.GetUnmanagedNodeGroupAutoScalingGroupName(s)
+	asgName, err := m.stackManager.GetUnmanagedNodeGroupAutoScalingGroupName(ctx, s)
 	if err != nil {
 		return nil, fmt.Errorf("getting autoscalinggroupname: %w", err)
 	}
@@ -178,7 +175,7 @@ func (m *Manager) unmanagedStackToSummary(ctx context.Context, s *manager.Stack)
 	return summary, nil
 }
 
-func getNodeGroupPaths(tags []*cfn.Tag) (*nodeGroupPaths, error) {
+func getNodeGroupPaths(tags []types.Tag) (*nodeGroupPaths, error) {
 	nodeGroupType, err := manager.GetNodeGroupType(tags)
 	if err != nil {
 		return nil, err
@@ -224,8 +221,8 @@ type nodeGroupPaths struct {
 	MaxSize         string
 }
 
-func (m *Manager) mapStackToNodeGroupSummary(stack *manager.Stack, ngPaths *nodeGroupPaths) (*Summary, error) {
-	template, err := m.stackManager.GetStackTemplate(*stack.StackName)
+func (m *Manager) mapStackToNodeGroupSummary(ctx context.Context, stack *manager.Stack, ngPaths *nodeGroupPaths) (*Summary, error) {
+	template, err := m.stackManager.GetStackTemplate(ctx, *stack.StackName)
 	if err != nil {
 		return nil, fmt.Errorf("error getting CloudFormation template for stack %s: %w", *stack.StackName, err)
 	}
@@ -234,7 +231,7 @@ func (m *Manager) mapStackToNodeGroupSummary(stack *manager.Stack, ngPaths *node
 		StackName:       *stack.StackName,
 		Cluster:         getClusterNameTag(stack),
 		Name:            m.stackManager.GetNodeGroupName(stack),
-		Status:          *stack.StackStatus,
+		Status:          string(stack.StackStatus),
 		MaxSize:         int(gjson.Get(template, ngPaths.MaxSize).Int()),
 		MinSize:         int(gjson.Get(template, ngPaths.MinSize).Int()),
 		DesiredCapacity: int(gjson.Get(template, ngPaths.DesiredCapacity).Int()),

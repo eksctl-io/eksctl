@@ -121,7 +121,8 @@ var _ = Describe("Delete", func() {
 			Expect(fakeStackManager.NewTasksToDeleteClusterWithNodeGroupsCallCount()).To(Equal(1))
 			Expect(ranDeleteClusterTasks).To(BeTrue())
 			Expect(fakeStackManager.DeleteStackSyncCallCount()).To(Equal(1))
-			Expect(*fakeStackManager.DeleteStackSyncArgsForCall(0).StackName).To(Equal("karpenter"))
+			_, stack := fakeStackManager.DeleteStackSyncArgsForCall(0)
+			Expect(*stack.StackName).To(Equal("karpenter"))
 		})
 
 		When("force flag is set to true", func() {

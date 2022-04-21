@@ -213,7 +213,7 @@ func (c *ClusterProvider) LoadClusterIntoSpecFromStack(ctx context.Context, spec
 
 // LoadClusterVPC loads the VPC configuration
 func (c *ClusterProvider) LoadClusterVPC(ctx context.Context, spec *api.ClusterConfig, stackManager manager.StackManager) error {
-	stack, err := stackManager.DescribeClusterStack()
+	stack, err := stackManager.DescribeClusterStack(ctx)
 	if err != nil {
 		return err
 	}
@@ -254,7 +254,7 @@ func (c *ClusterProvider) GetCluster(ctx context.Context, clusterName string) (*
 	if *output.Cluster.Status == awseks.ClusterStatusActive {
 		if logger.Level >= 4 {
 			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: clusterName}}
-			stacks, err := c.NewStackManager(spec).ListStacks()
+			stacks, err := c.NewStackManager(spec).ListStacks(ctx)
 			if err != nil {
 				return nil, errors.Wrapf(err, "listing CloudFormation stack for %q", clusterName)
 			}
