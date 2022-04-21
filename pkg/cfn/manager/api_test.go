@@ -1,13 +1,15 @@
 package manager
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
+	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/awstesting"
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -29,75 +31,61 @@ var _ = Describe("StackCollection", func() {
 			stackName := "eksctl-stack"
 			changeSetName := "eksctl-changeset"
 			describeInput := &cfn.DescribeStacksInput{StackName: &stackName}
-			describeOutput := &cfn.DescribeStacksOutput{Stacks: []*cfn.Stack{{
+			describeOutput := &cfn.DescribeStacksOutput{Stacks: []types.Stack{{
 				StackName:   &stackName,
-				StackStatus: aws.String(cfn.StackStatusCreateComplete),
+				StackStatus: types.StackStatusCreateComplete,
 			}}}
-			describeChangeSetFailed := &cfn.DescribeChangeSetOutput{
-				StackName:     &stackName,
-				ChangeSetName: &changeSetName,
-				Status:        aws.String(cfn.ChangeSetStatusFailed),
-			}
 			describeChangeSetNoChange := &cfn.DescribeChangeSetOutput{
 				StackName:    &stackName,
 				StatusReason: aws.String("The submitted information didn't contain changes"),
 			}
 			p := mockprovider.NewMockProvider()
-			p.MockCloudFormation().On("DescribeStacks", describeInput).Return(describeOutput, nil)
-			p.MockCloudFormation().On("CreateChangeSet", mock.Anything).Return(nil, nil)
-			req := awstesting.NewClient(nil).NewRequest(&request.Operation{Name: "Operation"}, nil, describeChangeSetFailed)
-			p.MockCloudFormation().On("DescribeChangeSetRequest", mock.Anything).Return(req, describeChangeSetFailed)
-			p.MockCloudFormation().On("DescribeChangeSet", mock.Anything).Return(describeChangeSetNoChange, nil)
+			p.MockCloudFormation().On("DescribeStacks", mock.Anything, describeInput).Return(describeOutput, nil)
+			p.MockCloudFormation().On("CreateChangeSet", mock.Anything, mock.Anything).Return(nil, nil)
+			p.MockCloudFormation().On("DescribeChangeSet", mock.Anything, mock.Anything, mock.Anything).Return(describeChangeSetNoChange, nil)
 
 			sm := NewStackCollection(p, api.NewClusterConfig())
-			err := sm.UpdateStack(UpdateStackOptions{
+			err := sm.UpdateStack(context.TODO(), UpdateStackOptions{
 				StackName:     stackName,
 				ChangeSetName: changeSetName,
 				Description:   "description",
 				TemplateData:  TemplateBody(""),
-				Wait:          true,
+				Wait:          false,
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})
+
 		It("can update when only the stack is provided", func() {
 			// Order of AWS SDK invocation
 			// 1) DescribeStacks
 			// 2) CreateChangeSet
-			// 3) DescribeChangeSetRequest (FAILED to abort early)
-			// 4) DescribeChangeSet (StatusReason contains "The submitted information didn't contain changes" to exit with noChangeError)
+			// 3) DescribeChangeSet (StatusReason contains "The submitted information didn't contain changes" to exit with noChangeError)
 
 			stackName := "eksctl-stack"
 			changeSetName := "eksctl-changeset"
 			describeInput := &cfn.DescribeStacksInput{StackName: &stackName}
-			describeOutput := &cfn.DescribeStacksOutput{Stacks: []*cfn.Stack{{
+			describeOutput := &cfn.DescribeStacksOutput{Stacks: []types.Stack{{
 				StackName:   &stackName,
-				StackStatus: aws.String(cfn.StackStatusCreateComplete),
+				StackStatus: types.StackStatusCreateComplete,
 			}}}
-			describeChangeSetFailed := &cfn.DescribeChangeSetOutput{
-				StackName:     &stackName,
-				ChangeSetName: &changeSetName,
-				Status:        aws.String(cfn.ChangeSetStatusFailed),
-			}
 			describeChangeSetNoChange := &cfn.DescribeChangeSetOutput{
 				StackName:    &stackName,
 				StatusReason: aws.String("The submitted information didn't contain changes"),
 			}
 			p := mockprovider.NewMockProvider()
-			p.MockCloudFormation().On("DescribeStacks", describeInput).Return(describeOutput, nil)
-			p.MockCloudFormation().On("CreateChangeSet", mock.Anything).Return(nil, nil)
-			req := awstesting.NewClient(nil).NewRequest(&request.Operation{Name: "Operation"}, nil, describeChangeSetFailed)
-			p.MockCloudFormation().On("DescribeChangeSetRequest", mock.Anything).Return(req, describeChangeSetFailed)
-			p.MockCloudFormation().On("DescribeChangeSet", mock.Anything).Return(describeChangeSetNoChange, nil)
+			p.MockCloudFormation().On("DescribeStacks", mock.Anything, describeInput).Return(describeOutput, nil)
+			p.MockCloudFormation().On("CreateChangeSet", mock.Anything, mock.Anything).Return(nil, nil)
+			p.MockCloudFormation().On("DescribeChangeSet", mock.Anything, mock.Anything, mock.Anything).Return(describeChangeSetNoChange, nil)
 
 			sm := NewStackCollection(p, api.NewClusterConfig())
-			err := sm.UpdateStack(UpdateStackOptions{
+			err := sm.UpdateStack(context.TODO(), UpdateStackOptions{
 				Stack: &Stack{
 					StackName: &stackName,
 				},
 				ChangeSetName: changeSetName,
 				Description:   "description",
 				TemplateData:  TemplateBody(""),
-				Wait:          true,
+				Wait:          false,
 			})
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -107,36 +95,26 @@ var _ = Describe("StackCollection", func() {
 		// Order of execution
 		// 1) DescribeStacks
 		// 2) CreateChangeSet
-		// 3) DescribeChangeSetRequest (until CREATE_COMPLETE)
-		// 4) DescribeChangeSet
-		// 5) ExecuteChangeSet
-		// 6) DescribeStacksRequest (until UPDATE_COMPLETE)
+		// 3) DescribeChangeSet
+		// 4) ExecuteChangeSet
 
 		clusterName := "clusteur"
 		stackName := "eksctl-stack"
 		changeSetName := "eksctl-changeset"
 		describeInput := &cfn.DescribeStacksInput{StackName: &stackName}
-		existingTag := &cfn.Tag{
+		existingTag := types.Tag{
 			Key:   aws.String("existing"),
 			Value: aws.String("tag"),
 		}
-		describeOutput := &cfn.DescribeStacksOutput{Stacks: []*cfn.Stack{{
+		describeOutput := &cfn.DescribeStacksOutput{Stacks: []types.Stack{{
 			StackName:   &stackName,
-			StackStatus: aws.String(cfn.StackStatusCreateComplete),
-			Tags:        []*cfn.Tag{existingTag},
+			StackStatus: types.StackStatusCreateComplete,
+			Tags:        []types.Tag{existingTag},
 		}}}
 		describeChangeSetCreateCompleteOutput := &cfn.DescribeChangeSetOutput{
 			StackName:     &stackName,
 			ChangeSetName: &changeSetName,
-			Status:        aws.String(cfn.ChangeSetStatusCreateComplete),
-		}
-		describeStacksUpdateCompleteOutput := &cfn.DescribeStacksOutput{
-			Stacks: []*cfn.Stack{
-				{
-					StackName:   &stackName,
-					StackStatus: aws.String(cfn.StackStatusUpdateComplete),
-				},
-			},
+			Status:        types.ChangeSetStatusCreateComplete,
 		}
 		executeChangeSetInput := &cfn.ExecuteChangeSetInput{
 			ChangeSetName: &changeSetName,
@@ -144,37 +122,33 @@ var _ = Describe("StackCollection", func() {
 		}
 
 		p := mockprovider.NewMockProvider()
-		p.MockCloudFormation().On("DescribeStacks", describeInput).Return(describeOutput, nil)
-		p.MockCloudFormation().On("CreateChangeSet", mock.Anything).Return(nil, nil)
-		req := awstesting.NewClient(nil).NewRequest(&request.Operation{Name: "Operation"}, nil, describeChangeSetCreateCompleteOutput)
-		p.MockCloudFormation().On("DescribeChangeSetRequest", mock.Anything).Return(req, describeChangeSetCreateCompleteOutput)
-		p.MockCloudFormation().On("DescribeChangeSet", mock.Anything).Return(describeChangeSetCreateCompleteOutput, nil)
-		p.MockCloudFormation().On("ExecuteChangeSet", executeChangeSetInput).Return(nil, nil)
-		req = awstesting.NewClient(nil).NewRequest(&request.Operation{Name: "Operation"}, nil, describeStacksUpdateCompleteOutput)
-		p.MockCloudFormation().On("DescribeStacksRequest", mock.Anything).Return(req, describeStacksUpdateCompleteOutput)
+		p.MockCloudFormation().On("DescribeStacks", mock.Anything, describeInput, mock.Anything).Return(describeOutput, nil)
+		p.MockCloudFormation().On("CreateChangeSet", mock.Anything, mock.Anything).Return(nil, nil)
+		p.MockCloudFormation().On("DescribeChangeSet", mock.Anything, mock.Anything, mock.Anything).Return(describeChangeSetCreateCompleteOutput, nil)
+		p.MockCloudFormation().On("ExecuteChangeSet", mock.Anything, executeChangeSetInput).Return(nil, nil)
 
 		spec := api.NewClusterConfig()
 		spec.Metadata.Name = clusterName
 		spec.Metadata.Tags = map[string]string{"meta": "data"}
 		sm := NewStackCollection(p, spec)
-		err := sm.UpdateStack(UpdateStackOptions{
+		err := sm.UpdateStack(context.TODO(), UpdateStackOptions{
 			StackName:     stackName,
 			ChangeSetName: changeSetName,
 			Description:   "description",
 			TemplateData:  TemplateBody(""),
-			Wait:          true,
+			Wait:          false,
 		})
 		Expect(err).NotTo(HaveOccurred())
 
 		// Second is CreateChangeSet() call which we are interested in
-		args := p.MockCloudFormation().Calls[1].Arguments.Get(0)
+		args := p.MockCloudFormation().Calls[1].Arguments.Get(1)
 		createChangeSetInput := args.(*cfn.CreateChangeSetInput)
 		// Existing tag
 		Expect(createChangeSetInput.Tags).To(ContainElement(existingTag))
 		// Auto-populated tag
-		Expect(createChangeSetInput.Tags).To(ContainElement(&cfn.Tag{Key: aws.String(api.ClusterNameTag), Value: &clusterName}))
+		Expect(createChangeSetInput.Tags).To(ContainElement(types.Tag{Key: aws.String(api.ClusterNameTag), Value: &clusterName}))
 		// Metadata tag
-		Expect(createChangeSetInput.Tags).To(ContainElement(&cfn.Tag{Key: aws.String("meta"), Value: aws.String("data")}))
+		Expect(createChangeSetInput.Tags).To(ContainElement(types.Tag{Key: aws.String("meta"), Value: aws.String("data")}))
 	})
 	When("wait is set to false", func() {
 		It("will skip the last wait sequence", func() {
@@ -182,19 +156,19 @@ var _ = Describe("StackCollection", func() {
 			stackName := "eksctl-stack"
 			changeSetName := "eksctl-changeset"
 			describeInput := &cfn.DescribeStacksInput{StackName: &stackName}
-			existingTag := &cfn.Tag{
+			existingTag := types.Tag{
 				Key:   aws.String("existing"),
 				Value: aws.String("tag"),
 			}
-			describeOutput := &cfn.DescribeStacksOutput{Stacks: []*cfn.Stack{{
+			describeOutput := &cfn.DescribeStacksOutput{Stacks: []types.Stack{{
 				StackName:   &stackName,
-				StackStatus: aws.String(cfn.StackStatusCreateComplete),
-				Tags:        []*cfn.Tag{existingTag},
+				StackStatus: types.StackStatusCreateComplete,
+				Tags:        []types.Tag{existingTag},
 			}}}
 			describeChangeSetCreateCompleteOutput := &cfn.DescribeChangeSetOutput{
 				StackName:     &stackName,
 				ChangeSetName: &changeSetName,
-				Status:        aws.String(cfn.ChangeSetStatusCreateComplete),
+				Status:        types.ChangeSetStatusCreateComplete,
 			}
 			executeChangeSetInput := &cfn.ExecuteChangeSetInput{
 				ChangeSetName: &changeSetName,
@@ -202,12 +176,12 @@ var _ = Describe("StackCollection", func() {
 			}
 
 			p := mockprovider.NewMockProvider()
-			p.MockCloudFormation().On("DescribeStacks", describeInput).Return(describeOutput, nil)
-			p.MockCloudFormation().On("CreateChangeSet", mock.Anything).Return(nil, nil)
+			p.MockCloudFormation().On("DescribeStacks", mock.Anything, describeInput).Return(describeOutput, nil)
+			p.MockCloudFormation().On("CreateChangeSet", mock.Anything, mock.Anything).Return(nil, nil)
 			req := awstesting.NewClient(nil).NewRequest(&request.Operation{Name: "Operation"}, nil, describeChangeSetCreateCompleteOutput)
-			p.MockCloudFormation().On("DescribeChangeSetRequest", mock.Anything).Return(req, describeChangeSetCreateCompleteOutput)
-			p.MockCloudFormation().On("DescribeChangeSet", mock.Anything).Return(describeChangeSetCreateCompleteOutput, nil)
-			p.MockCloudFormation().On("ExecuteChangeSet", executeChangeSetInput).Return(nil, nil)
+			p.MockCloudFormation().On("DescribeChangeSetRequest", mock.Anything, mock.Anything).Return(req, describeChangeSetCreateCompleteOutput)
+			p.MockCloudFormation().On("DescribeChangeSet", mock.Anything, mock.Anything, mock.Anything).Return(describeChangeSetCreateCompleteOutput, nil)
+			p.MockCloudFormation().On("ExecuteChangeSet", mock.Anything, executeChangeSetInput).Return(nil, nil)
 			// For the future, this is the call we do not expect to happen, and this is the difference compared to the
 			// above test case.
 			// p.MockCloudFormation().On("DescribeStacksRequest", mock.Anything).Return(req, describeStacksUpdateCompleteOutput)
@@ -216,7 +190,7 @@ var _ = Describe("StackCollection", func() {
 			spec.Metadata.Name = clusterName
 			spec.Metadata.Tags = map[string]string{"meta": "data"}
 			sm := NewStackCollection(p, spec)
-			err := sm.UpdateStack(UpdateStackOptions{
+			err := sm.UpdateStack(context.TODO(), UpdateStackOptions{
 				StackName:     stackName,
 				ChangeSetName: changeSetName,
 				Description:   "description",
@@ -226,14 +200,14 @@ var _ = Describe("StackCollection", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// Second is CreateChangeSet() call which we are interested in
-			args := p.MockCloudFormation().Calls[1].Arguments.Get(0)
+			args := p.MockCloudFormation().Calls[1].Arguments.Get(1)
 			createChangeSetInput := args.(*cfn.CreateChangeSetInput)
 			// Existing tag
 			Expect(createChangeSetInput.Tags).To(ContainElement(existingTag))
 			// Auto-populated tag
-			Expect(createChangeSetInput.Tags).To(ContainElement(&cfn.Tag{Key: aws.String(api.ClusterNameTag), Value: &clusterName}))
+			Expect(createChangeSetInput.Tags).To(ContainElement(types.Tag{Key: aws.String(api.ClusterNameTag), Value: &clusterName}))
 			// Metadata tag
-			Expect(createChangeSetInput.Tags).To(ContainElement(&cfn.Tag{Key: aws.String("meta"), Value: aws.String("data")}))
+			Expect(createChangeSetInput.Tags).To(ContainElement(types.Tag{Key: aws.String("meta"), Value: aws.String("data")}))
 		})
 	})
 
@@ -251,10 +225,10 @@ var _ = Describe("StackCollection", func() {
 			var out *cfn.DescribeStacksOutput
 			if ci.eksctlCreated {
 				out = &cfn.DescribeStacksOutput{
-					Stacks: []*cfn.Stack{
+					Stacks: []types.Stack{
 						{
 							StackName: stackName,
-							Tags: []*cfn.Tag{
+							Tags: []types.Tag{
 								{
 									Key:   aws.String("alpha.eksctl.io/cluster-name"),
 									Value: aws.String(clusterConfig.Metadata.Name),
@@ -268,10 +242,10 @@ var _ = Describe("StackCollection", func() {
 			}
 
 			p := mockprovider.NewMockProvider()
-			p.MockCloudFormation().On("DescribeStacks", &cfn.DescribeStacksInput{StackName: stackName}).Return(out, nil)
+			p.MockCloudFormation().On("DescribeStacks", mock.Anything, &cfn.DescribeStacksInput{StackName: stackName}).Return(out, nil)
 
 			s := NewStackCollection(p, clusterConfig)
-			hasClusterStack, err := s.HasClusterStackFromList([]string{
+			hasClusterStack, err := s.HasClusterStackFromList(context.TODO(), []string{
 				"eksctl-test-cluster",
 				*stackName,
 			}, clusterConfig.Metadata.Name)
@@ -304,10 +278,10 @@ var _ = Describe("StackCollection", func() {
 			stackName := "confirm-this"
 			stackNameWithEksctl = "eksctl-" + stackName + "-cluster"
 			describeInput := &cfn.DescribeStacksInput{StackName: &stackNameWithEksctl}
-			describeOutput := &cfn.DescribeStacksOutput{Stacks: []*cfn.Stack{{
+			describeOutput := &cfn.DescribeStacksOutput{Stacks: []types.Stack{{
 				StackName:   &stackName,
-				StackStatus: aws.String(cfn.StackStatusCreateComplete),
-				Tags: []*cfn.Tag{
+				StackStatus: types.StackStatusCreateComplete,
+				Tags: []types.Tag{
 					{
 						Key:   aws.String(api.ClusterNameTag),
 						Value: &stackName,
@@ -315,54 +289,42 @@ var _ = Describe("StackCollection", func() {
 				},
 			}}}
 			p = mockprovider.NewMockProvider()
-			p.MockCloudFormation().On("DescribeStacks", describeInput).Return(describeOutput, nil)
+			p.MockCloudFormation().On("DescribeStacks", mock.Anything, describeInput).Return(describeOutput, nil)
 
 			cfg = api.NewClusterConfig()
 			cfg.Metadata.Name = stackName
 		})
 
 		It("can retrieve stacks", func() {
-			p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.AnythingOfType("func(*cloudformation.ListStacksOutput, bool) bool")).Run(func(args mock.Arguments) {
-				fn := args.Get(1) // the passed in function
-				fn.(func(p *cfn.ListStacksOutput, _ bool) bool)(&cfn.ListStacksOutput{
-					StackSummaries: []*cfn.StackSummary{
-						{
-							StackName: &stackNameWithEksctl,
-						},
+			p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cfn.ListStacksOutput{
+				StackSummaries: []types.StackSummary{
+					{
+						StackName: &stackNameWithEksctl,
 					},
-				}, true)
-			}).Return(nil)
+				},
+			}, nil)
 			sm := NewStackCollection(p, cfg)
-			stack, err := sm.GetClusterStackIfExists()
+			stack, err := sm.GetClusterStackIfExists(context.TODO())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(stack).NotTo(BeNil())
 		})
 
 		When("the config stack doesn't match", func() {
 			It("returns no stack", func() {
-				p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.AnythingOfType("func(*cloudformation.ListStacksOutput, bool) bool")).Run(func(args mock.Arguments) {
-					fn := args.Get(1) // the passed in function
-					fn.(func(p *cfn.ListStacksOutput, _ bool) bool)(&cfn.ListStacksOutput{
-						StackSummaries: []*cfn.StackSummary{
-							{
-								StackName: &stackNameWithEksctl,
-							},
-						},
-					}, true)
-				}).Return(nil)
+				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(&cfn.ListStacksOutput{}, nil)
 				cfg.Metadata.Name = "not-this"
 				sm := NewStackCollection(p, cfg)
-				stack, err := sm.GetClusterStackIfExists()
+				stack, err := sm.GetClusterStackIfExists(context.TODO())
 				Expect(err).NotTo(HaveOccurred())
 				Expect(stack).To(BeNil())
 			})
 		})
 
-		When("ListStacksPages errors", func() {
+		When("ListStacks errors", func() {
 			It("errors", func() {
-				p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.AnythingOfType("func(*cloudformation.ListStacksOutput, bool) bool")).Return(errors.New("nope"))
+				p.MockCloudFormation().On("ListStacks", mock.Anything, mock.Anything).Return(nil, errors.New("nope"))
 				sm := NewStackCollection(p, cfg)
-				_, err := sm.GetClusterStackIfExists()
+				_, err := sm.GetClusterStackIfExists(context.TODO())
 				Expect(err).To(MatchError(ContainSubstring("nope")))
 			})
 		})

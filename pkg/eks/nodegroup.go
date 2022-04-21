@@ -104,8 +104,8 @@ type KubeNodeGroup interface {
 }
 
 // GetNodeGroupIAM retrieves the IAM configuration of the given nodegroup
-func (c *ClusterProvider) GetNodeGroupIAM(stackManager manager.StackManager, ng *api.NodeGroup) error {
-	stacks, err := stackManager.DescribeNodeGroupStacks()
+func (c *ClusterProvider) GetNodeGroupIAM(ctx context.Context, stackManager manager.StackManager, ng *api.NodeGroup) error {
+	stacks, err := stackManager.DescribeNodeGroupStacks(ctx)
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func (c *ClusterProvider) GetNodeGroupIAM(stackManager manager.StackManager, ng 
 			if err != nil {
 				return errors.Wrapf(
 					err, "couldn't get iam configuration for nodegroup %q (perhaps state %q is transitional)",
-					ng.Name, *s.StackStatus,
+					ng.Name, s.StackStatus,
 				)
 			}
 			return nil
@@ -184,11 +184,11 @@ func (t *suspendProcesses) Describe() string {
 }
 
 func (t *suspendProcesses) Do() error {
-	ngStack, err := t.stackCollection.DescribeNodeGroupStack(t.nodegroup.Name)
+	ngStack, err := t.stackCollection.DescribeNodeGroupStack(context.TODO(), t.nodegroup.Name)
 	if err != nil {
 		return errors.Wrapf(err, "couldn't describe nodegroup stack for nodegroup %s", t.nodegroup.Name)
 	}
-	asgName, err := t.stackCollection.GetAutoScalingGroupName(ngStack)
+	asgName, err := t.stackCollection.GetAutoScalingGroupName(context.TODO(), ngStack)
 	if err != nil {
 		return errors.Wrapf(err, "couldn't get autoscalinggroup name nodegroup %s", t.nodegroup.Name)
 	}

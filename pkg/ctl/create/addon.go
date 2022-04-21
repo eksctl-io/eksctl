@@ -95,7 +95,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 			if force { //force is specified at cmdline level
 				a.Force = true
 			}
-			err := addonManager.Create(a, wait)
+			err := addonManager.Create(context.TODO(), a, wait)
 			if err != nil {
 				return err
 			}

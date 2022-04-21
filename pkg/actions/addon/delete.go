@@ -1,6 +1,7 @@
 package addon
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -31,7 +32,7 @@ func (a *Manager) DeleteWithPreserve(addon *api.Addon) error {
 	return nil
 }
 
-func (a *Manager) Delete(addon *api.Addon) error {
+func (a *Manager) Delete(ctx context.Context, addon *api.Addon) error {
 	addonExists := true
 	logger.Debug("addon: %v", addon)
 	logger.Info("deleting addon: %s", addon.Name)
@@ -51,16 +52,15 @@ func (a *Manager) Delete(addon *api.Addon) error {
 		logger.Info("deleted addon: %s", addon.Name)
 	}
 
-	stack, err := a.stackManager.DescribeStack(&manager.Stack{StackName: aws.String(a.makeAddonName(addon.Name))})
+	stack, err := a.stackManager.DescribeStack(ctx, &manager.Stack{StackName: aws.String(a.makeAddonName(addon.Name))})
 	if err != nil {
-		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); !ok || ok &&
-			awsError.Code() != "ValidationError" {
+		if !manager.IsStackDoesNotExistError(err) {
 			return fmt.Errorf("failed to get stack: %w", err)
 		}
 	}
 	if stack != nil {
 		logger.Info("deleting associated IAM stacks")
-		if _, err = a.stackManager.DeleteStackBySpec(stack); err != nil {
+		if _, err = a.stackManager.DeleteStackBySpec(ctx, stack); err != nil {
 			return fmt.Errorf("failed to delete cloudformation stack %q: %v", a.makeAddonName(addon.Name), err)
 		}
 	} else {

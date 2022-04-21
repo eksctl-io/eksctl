@@ -50,7 +50,7 @@ type UpgradeOptions struct {
 }
 
 func (m *Manager) Upgrade(ctx context.Context, options UpgradeOptions) error {
-	stacks, err := m.stackManager.ListNodeGroupStacks()
+	stacks, err := m.stackManager.ListNodeGroupStacks(ctx)
 	if err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ func (m *Manager) upgradeUsingStack(ctx context.Context, options UpgradeOptions,
 		return errors.New("only one of kubernetes-version or release-version can be specified")
 	}
 
-	template, err := m.stackManager.GetManagedNodeGroupTemplate(manager.GetNodegroupOption{
+	template, err := m.stackManager.GetManagedNodeGroupTemplate(ctx, manager.GetNodegroupOption{
 		Stack:         options.Stack,
 		NodeGroupName: options.NodegroupName,
 	})
@@ -198,13 +198,13 @@ func (m *Manager) upgradeUsingStack(ctx context.Context, options UpgradeOptions,
 			return err
 		}
 
-		if err := m.stackManager.UpdateNodeGroupStack(options.NodegroupName, string(bytes), true); err != nil {
+		if err := m.stackManager.UpdateNodeGroupStack(ctx, options.NodegroupName, string(bytes), true); err != nil {
 			return errors.Wrap(err, "error updating nodegroup stack")
 		}
 		return nil
 	}
 
-	requiresUpdate, err := m.requiresStackUpdate(options.NodegroupName)
+	requiresUpdate, err := m.requiresStackUpdate(ctx, options.NodegroupName)
 	if err != nil {
 		return err
 	}
@@ -305,8 +305,8 @@ func (m *Manager) updateReleaseVersion(latestReleaseVersion, launchTemplateVersi
 	return nil
 }
 
-func (m *Manager) requiresStackUpdate(nodeGroupName string) (bool, error) {
-	ngStack, err := m.stackManager.DescribeNodeGroupStack(nodeGroupName)
+func (m *Manager) requiresStackUpdate(ctx context.Context, nodeGroupName string) (bool, error) {
+	ngStack, err := m.stackManager.DescribeNodeGroupStack(ctx, nodeGroupName)
 	if err != nil {
 		return false, err
 	}

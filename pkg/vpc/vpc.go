@@ -8,12 +8,10 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
-
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -205,7 +203,7 @@ func describeVPC(ctx context.Context, ec2API awsapi.EC2, vpcID string) (ec2types
 // based on stack outputs
 // NOTE: it doesn't expect any fields in spec.VPC to be set, the remote state
 // is treated as the source of truth
-func UseFromClusterStack(ctx context.Context, provider api.ClusterProvider, stack *cfn.Stack, spec *api.ClusterConfig) error {
+func UseFromClusterStack(ctx context.Context, provider api.ClusterProvider, stack *types.Stack, spec *api.ClusterConfig) error {
 	if spec.VPC == nil {
 		spec.VPC = api.NewClusterVPC(spec.IPv6Enabled())
 	}

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/kris-nova/logger"
@@ -47,7 +47,7 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(ctx context.Cont
 		}
 	}
 
-	deleteAddonIAMtasks, err := c.NewTaskToDeleteAddonIAM(wait)
+	deleteAddonIAMtasks, err := c.NewTaskToDeleteAddonIAM(ctx, wait)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (c *StackCollection) NewTasksToDeleteNodeGroups(nodeGroupStacks []NodeGroup
 			continue
 		}
 
-		if *s.Stack.StackStatus == cloudformation.StackStatusDeleteFailed && cleanup != nil {
+		if s.Stack.StackStatus == types.StackStatusDeleteFailed && cleanup != nil {
 			taskTree.Append(&tasks.TaskWithNameParam{
 				Info: fmt.Sprintf("cleanup for nodegroup %q", s.NodeGroupName),
 				Call: cleanup,
@@ -179,11 +179,11 @@ func (c *StackCollection) NewTaskToDeleteUnownedNodeGroup(clusterName, nodegroup
 func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(ctx context.Context, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) (*tasks.TaskTree, error) {
 	taskTree := &tasks.TaskTree{Parallel: false}
 
-	allServiceAccountsWithStacks, err := c.getAllServiceAccounts()
+	allServiceAccountsWithStacks, err := c.getAllServiceAccounts(ctx)
 	if err != nil {
 		return nil, err
 	}
-	saTasks, err := c.NewTasksToDeleteIAMServiceAccounts(allServiceAccountsWithStacks, clientSetGetter, true)
+	saTasks, err := c.NewTasksToDeleteIAMServiceAccounts(ctx, allServiceAccountsWithStacks, clientSetGetter, true)
 	if err != nil {
 		return nil, err
 	}
@@ -210,8 +210,8 @@ func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(ctx
 	return taskTree, nil
 }
 
-func (c *StackCollection) getAllServiceAccounts() ([]string, error) {
-	serviceAccountStacks, err := c.DescribeIAMServiceAccountStacks()
+func (c *StackCollection) getAllServiceAccounts(ctx context.Context) ([]string, error) {
+	serviceAccountStacks, err := c.DescribeIAMServiceAccountStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -225,8 +225,8 @@ func (c *StackCollection) getAllServiceAccounts() ([]string, error) {
 }
 
 // NewTasksToDeleteIAMServiceAccounts defines tasks required to delete all of the iamserviceaccounts
-func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(serviceAccounts []string, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*tasks.TaskTree, error) {
-	serviceAccountStacks, err := c.DescribeIAMServiceAccountStacks()
+func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(ctx context.Context, serviceAccounts []string, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*tasks.TaskTree, error) {
+	serviceAccountStacks, err := c.DescribeIAMServiceAccountStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -273,8 +273,8 @@ func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(serviceAccounts []s
 	return taskTree, nil
 }
 
-func stacksToServiceAccountMap(stacks []*cloudformation.Stack) map[string]*cloudformation.Stack {
-	stackMap := make(map[string]*cloudformation.Stack)
+func stacksToServiceAccountMap(stacks []*types.Stack) map[string]*types.Stack {
+	stackMap := make(map[string]*types.Stack)
 	for _, stack := range stacks {
 		stackMap[GetIAMServiceAccountName(stack)] = stack
 	}
@@ -283,8 +283,8 @@ func stacksToServiceAccountMap(stacks []*cloudformation.Stack) map[string]*cloud
 }
 
 // NewTaskToDeleteAddonIAM defines tasks required to delete all of the addons
-func (c *StackCollection) NewTaskToDeleteAddonIAM(wait bool) (*tasks.TaskTree, error) {
-	stacks, err := c.GetIAMAddonsStacks()
+func (c *StackCollection) NewTaskToDeleteAddonIAM(ctx context.Context, wait bool) (*tasks.TaskTree, error) {
+	stacks, err := c.GetIAMAddonsStacks(ctx)
 	if err != nil {
 		return nil, err
 	}

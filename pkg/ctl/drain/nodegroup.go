@@ -1,6 +1,7 @@
 package drain
 
 import (
+	"context"
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
@@ -86,17 +87,17 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
-
+	ctx := context.TODO()
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d nodegroups defined in the given config (%q) against remote state", len(cfg.NodeGroups), cmd.ClusterConfigFile)
 		if onlyMissing {
-			err = ngFilter.SetOnlyRemote(ctl.Provider.EKS(), stackManager, cfg)
+			err = ngFilter.SetOnlyRemote(ctx, ctl.Provider.EKS(), stackManager, cfg)
 			if err != nil {
 				return err
 			}
 		}
 	} else {
-		err := cmdutils.PopulateNodegroup(stackManager, ng.Name, cfg, ctl.Provider)
+		err := cmdutils.PopulateNodegroup(ctx, stackManager, ng.Name, cfg, ctl.Provider)
 		if err != nil {
 			return err
 		}

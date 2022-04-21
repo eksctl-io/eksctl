@@ -1,9 +1,10 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -18,7 +19,7 @@ func (c *StackCollection) makeIAMServiceAccountStackName(namespace, name string)
 }
 
 // createIAMServiceAccountTask creates the iamserviceaccount in CloudFormation
-func (c *StackCollection) createIAMServiceAccountTask(errs chan error, spec *api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager) error {
+func (c *StackCollection) createIAMServiceAccountTask(ctx context.Context, errs chan error, spec *api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager) error {
 	name := c.makeIAMServiceAccountStackName(spec.Namespace, spec.Name)
 	logger.Info("building iamserviceaccount stack %q", name)
 	stack := builder.NewIAMRoleResourceSetForServiceAccount(spec, oidc)
@@ -31,7 +32,7 @@ func (c *StackCollection) createIAMServiceAccountTask(errs chan error, spec *api
 	}
 	spec.Tags[api.IAMServiceAccountNameTag] = spec.NameString()
 
-	if err := c.CreateStack(name, stack, spec.Tags, nil, errs); err != nil {
+	if err := c.CreateStack(ctx, name, stack, spec.Tags, nil, errs); err != nil {
 		logger.Info("an error occurred creating the stack, to cleanup resources, run 'eksctl delete iamserviceaccount --region=%s --name=%s --namespace=%s'", c.spec.Metadata.Region, spec.Name, spec.Namespace)
 		return err
 	}
@@ -39,15 +40,15 @@ func (c *StackCollection) createIAMServiceAccountTask(errs chan error, spec *api
 }
 
 // DescribeIAMServiceAccountStacks calls DescribeStacks and filters out iamserviceaccounts
-func (c *StackCollection) DescribeIAMServiceAccountStacks() ([]*Stack, error) {
-	stacks, err := c.DescribeStacks()
+func (c *StackCollection) DescribeIAMServiceAccountStacks(ctx context.Context) ([]*Stack, error) {
+	stacks, err := c.DescribeStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	iamServiceAccountStacks := []*Stack{}
 	for _, s := range stacks {
-		if *s.StackStatus == cfn.StackStatusDeleteComplete {
+		if s.StackStatus == types.StackStatusDeleteComplete {
 			continue
 		}
 		if GetIAMServiceAccountName(s) != "" {
@@ -59,8 +60,8 @@ func (c *StackCollection) DescribeIAMServiceAccountStacks() ([]*Stack, error) {
 }
 
 // ListIAMServiceAccountStacks calls DescribeIAMServiceAccountStacks and returns only iamserviceaccount names
-func (c *StackCollection) ListIAMServiceAccountStacks() ([]string, error) {
-	stacks, err := c.DescribeIAMServiceAccountStacks()
+func (c *StackCollection) ListIAMServiceAccountStacks(ctx context.Context) ([]string, error) {
+	stacks, err := c.DescribeIAMServiceAccountStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +74,8 @@ func (c *StackCollection) ListIAMServiceAccountStacks() ([]string, error) {
 }
 
 // GetIAMServiceAccounts calls DescribeIAMServiceAccountStacks and return native iamserviceaccounts
-func (c *StackCollection) GetIAMServiceAccounts() ([]*api.ClusterIAMServiceAccount, error) {
-	stacks, err := c.DescribeIAMServiceAccountStacks()
+func (c *StackCollection) GetIAMServiceAccounts(ctx context.Context) ([]*api.ClusterIAMServiceAccount, error) {
+	stacks, err := c.DescribeIAMServiceAccountStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -122,15 +123,15 @@ func GetIAMServiceAccountName(s *Stack) string {
 	return ""
 }
 
-func (c *StackCollection) GetIAMAddonsStacks() ([]*Stack, error) {
-	stacks, err := c.DescribeStacks()
+func (c *StackCollection) GetIAMAddonsStacks(ctx context.Context) ([]*Stack, error) {
+	stacks, err := c.DescribeStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	iamAddonStacks := []*Stack{}
 	for _, s := range stacks {
-		if *s.StackStatus == cfn.StackStatusDeleteComplete {
+		if s.StackStatus == types.StackStatusDeleteComplete {
 			continue
 		}
 		if c.GetIAMAddonName(s) != "" {

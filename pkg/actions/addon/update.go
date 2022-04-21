@@ -1,11 +1,10 @@
 package addon
 
 import (
-	"errors"
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/google/uuid"
 	"github.com/kris-nova/logger"
@@ -14,7 +13,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
-func (a *Manager) Update(addon *api.Addon, wait bool) error {
+func (a *Manager) Update(ctx context.Context, addon *api.Addon, wait bool) error {
 	logger.Debug("addon: %v", addon)
 
 	updateAddonInput := &eks.UpdateAddonInput{
@@ -57,7 +56,7 @@ func (a *Manager) Update(addon *api.Addon, wait bool) error {
 	if addon.ServiceAccountRoleARN != "" {
 		updateAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
 	} else if hasPoliciesSet(addon) {
-		serviceAccountRoleARN, err := a.updateWithNewPolicies(addon)
+		serviceAccountRoleARN, err := a.updateWithNewPolicies(ctx, addon)
 		if err != nil {
 			return err
 		}
@@ -85,12 +84,11 @@ func (a *Manager) Update(addon *api.Addon, wait bool) error {
 	return nil
 }
 
-func (a *Manager) updateWithNewPolicies(addon *api.Addon) (string, error) {
+func (a *Manager) updateWithNewPolicies(ctx context.Context, addon *api.Addon) (string, error) {
 	stackName := a.makeAddonName(addon.Name)
-	stack, err := a.stackManager.DescribeStack(&manager.Stack{StackName: aws.String(stackName)})
+	stack, err := a.stackManager.DescribeStack(ctx, &manager.Stack{StackName: aws.String(stackName)})
 	if err != nil {
-		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); !ok || ok &&
-			awsError.Code() != "ValidationError" {
+		if manager.IsStackDoesNotExistError(err) {
 			return "", fmt.Errorf("failed to get stack: %w", err)
 		}
 	}
@@ -98,7 +96,7 @@ func (a *Manager) updateWithNewPolicies(addon *api.Addon) (string, error) {
 	namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
 
 	if stack == nil {
-		return a.createRole(addon, namespace, serviceAccount)
+		return a.createRole(ctx, addon, namespace, serviceAccount)
 	}
 
 	createNewTemplate, err := a.createNewTemplate(addon, namespace, serviceAccount)
@@ -106,7 +104,7 @@ func (a *Manager) updateWithNewPolicies(addon *api.Addon) (string, error) {
 		return "", err
 	}
 	var templateBody manager.TemplateBody = createNewTemplate
-	err = a.stackManager.UpdateStack(manager.UpdateStackOptions{
+	err = a.stackManager.UpdateStack(ctx, manager.UpdateStackOptions{
 		Stack:         stack,
 		ChangeSetName: fmt.Sprintf("updating-policy-%s", uuid.NewString()),
 		Description:   "updating policies",
@@ -117,7 +115,7 @@ func (a *Manager) updateWithNewPolicies(addon *api.Addon) (string, error) {
 		return "", err
 	}
 
-	stack, err = a.stackManager.DescribeStack(&manager.Stack{StackName: aws.String(stackName)})
+	stack, err = a.stackManager.DescribeStack(ctx, &manager.Stack{StackName: aws.String(stackName)})
 	if err != nil {
 		return "", err
 	}

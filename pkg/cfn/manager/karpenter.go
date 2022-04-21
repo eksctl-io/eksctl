@@ -1,21 +1,22 @@
 package manager
 
 import (
+	"context"
 	"strings"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 )
 
 // GetKarpenterStack returns the stack holding the karpenter IAM
 // resources
-func (c *StackCollection) GetKarpenterStack() (*Stack, error) {
-	stacks, err := c.DescribeStacks()
+func (c *StackCollection) GetKarpenterStack(ctx context.Context) (*Stack, error) {
+	stacks, err := c.DescribeStacks(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, s := range stacks {
-		if *s.StackStatus == cfn.StackStatusDeleteComplete {
+		if s.StackStatus == types.StackStatusDeleteComplete {
 			continue
 		}
 		if isKarpenterStack(s) {

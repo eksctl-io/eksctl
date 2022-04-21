@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"os"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -55,7 +56,7 @@ func getLabels(cmd *cmdutils.Cmd, nodeGroupName string) error {
 
 	service := managed.NewService(ctl.Provider.EKS(), ctl.Provider.EC2(), manager.NewStackCollection(ctl.Provider, cfg), cfg.Metadata.Name)
 	manager := label.New(cfg.Metadata.Name, service, ctl.Provider.EKS())
-	labels, err := manager.Get(nodeGroupName)
+	labels, err := manager.Get(context.TODO(), nodeGroupName)
 	if err != nil {
 		return err
 	}

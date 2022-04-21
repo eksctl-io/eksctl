@@ -19,7 +19,7 @@ import (
 // like Managed Nodegroups and Fargate
 func (c *StackCollection) FixClusterCompatibility(ctx context.Context) error {
 	logger.Info("checking cluster stack for missing resources")
-	stack, err := c.DescribeClusterStack()
+	stack, err := c.DescribeClusterStack(ctx)
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func (c *StackCollection) FixClusterCompatibility(ctx context.Context) error {
 
 	stackSupportsManagedNodes := false
 	if clusterDefaultSG != "" {
-		stackSupportsManagedNodes, err = c.hasManagedToUnmanagedSG()
+		stackSupportsManagedNodes, err = c.hasManagedToUnmanagedSG(ctx)
 		if err != nil {
 			return err
 		}
@@ -79,8 +79,8 @@ func (c *StackCollection) FixClusterCompatibility(ctx context.Context) error {
 	return err
 }
 
-func (c *StackCollection) hasManagedToUnmanagedSG() (bool, error) {
-	stackTemplate, err := c.GetStackTemplate(c.MakeClusterStackName())
+func (c *StackCollection) hasManagedToUnmanagedSG(ctx context.Context) (bool, error) {
+	stackTemplate, err := c.GetStackTemplate(ctx, c.MakeClusterStackName())
 	if err != nil {
 		return false, errors.Wrap(err, "error getting cluster stack template")
 	}
@@ -102,7 +102,7 @@ func (c *StackCollection) EnsureMapPublicIPOnLaunchEnabled(ctx context.Context) 
 
 	// Get stack template
 	stackName := c.MakeClusterStackName()
-	currentTemplate, err := c.GetStackTemplate(stackName)
+	currentTemplate, err := c.GetStackTemplate(ctx, stackName)
 	if err != nil {
 		return errors.Wrapf(err, "unable to retrieve cluster stack %q", stackName)
 	}
@@ -130,7 +130,7 @@ func (c *StackCollection) EnsureMapPublicIPOnLaunchEnabled(ctx context.Context) 
 		}
 	}
 	description := fmt.Sprintf("update public subnets %q with property MapPublicIpOnLaunch enabled", publicSubnetsNames)
-	if err := c.UpdateStack(UpdateStackOptions{
+	if err := c.UpdateStack(ctx, UpdateStackOptions{
 		StackName:     stackName,
 		ChangeSetName: c.MakeChangeSetName("update-subnets"),
 		Description:   description,

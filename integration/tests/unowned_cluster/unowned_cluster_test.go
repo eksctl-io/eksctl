@@ -15,8 +15,9 @@ import (
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
 
+	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/aws"
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -432,21 +433,21 @@ func createVPCAndRole(stackName string, ctl api.ClusterProvider) ([]string, []st
 	createStackInput := &cfn.CreateStackInput{
 		StackName: &stackName,
 	}
-	createStackInput.SetTemplateBody(string(templateBody))
-	createStackInput.SetCapabilities(aws.StringSlice([]string{cfn.CapabilityCapabilityIam}))
-	createStackInput.SetCapabilities(aws.StringSlice([]string{cfn.CapabilityCapabilityNamedIam}))
+	createStackInput.TemplateBody = aws.String(string(templateBody))
+	createStackInput.Capabilities = []types.Capability{types.CapabilityCapabilityIam, types.CapabilityCapabilityNamedIam}
 
-	_, err = ctl.CloudFormation().CreateStack(createStackInput)
+	ctx := context.TODO()
+	_, err = ctl.CloudFormation().CreateStack(ctx, createStackInput)
 	Expect(err).NotTo(HaveOccurred())
 
 	var describeStackOut *cfn.DescribeStacksOutput
-	Eventually(func() string {
-		describeStackOut, err = ctl.CloudFormation().DescribeStacks(&cfn.DescribeStacksInput{
+	Eventually(func() types.StackStatus {
+		describeStackOut, err = ctl.CloudFormation().DescribeStacks(ctx, &cfn.DescribeStacksInput{
 			StackName: &stackName,
 		})
 		Expect(err).NotTo(HaveOccurred())
-		return *describeStackOut.Stacks[0].StackStatus
-	}, time.Minute*10, time.Second*15).Should(Equal(cfn.StackStatusCreateComplete))
+		return describeStackOut.Stacks[0].StackStatus
+	}, time.Minute*10, time.Second*15).Should(Equal(types.StackStatusCreateComplete))
 
 	var clusterRoleARN, nodeRoleARN, vpcID string
 	var publicSubnets, privateSubnets, securityGroups []string
@@ -475,6 +476,6 @@ func deleteStack(stackName string, ctl api.ClusterProvider) {
 		StackName: &stackName,
 	}
 
-	_, err := ctl.CloudFormation().DeleteStack(deleteStackInput)
+	_, err := ctl.CloudFormation().DeleteStack(context.TODO(), deleteStackInput)
 	Expect(err).NotTo(HaveOccurred())
 }

@@ -1,8 +1,10 @@
 package manager
 
 import (
+	"context"
+
+	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go/aws"
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
@@ -83,12 +85,12 @@ Outputs:
 		Context("With an existing stack name", func() {
 			Context("and a json template response", func() {
 				BeforeEach(func() {
-					p.MockCloudFormation().On("GetTemplate", mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
+					p.MockCloudFormation().On("GetTemplate", mock.Anything, mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
 						return input.StackName != nil && *input.StackName == "foobar"
 					})).Return(&cfn.GetTemplateOutput{
 						TemplateBody: &rawJSONTemplate,
 					}, nil)
-					out, err = sc.GetStackTemplate("foobar")
+					out, err = sc.GetStackTemplate(context.TODO(), "foobar")
 				})
 
 				It("returns the template", func() {
@@ -100,12 +102,12 @@ Outputs:
 
 			Context("and a yaml template response", func() {
 				BeforeEach(func() {
-					p.MockCloudFormation().On("GetTemplate", mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
+					p.MockCloudFormation().On("GetTemplate", mock.Anything, mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
 						return input.StackName != nil && *input.StackName == "foobar"
 					})).Return(&cfn.GetTemplateOutput{
 						TemplateBody: &rawYamlTemplate,
 					}, nil)
-					out, err = sc.GetStackTemplate("foobar")
+					out, err = sc.GetStackTemplate(context.TODO(), "foobar")
 				})
 
 				It("returns the template in json format", func() {
@@ -118,8 +120,8 @@ Outputs:
 
 		Context("With a non-existing stack name", func() {
 			BeforeEach(func() {
-				p.MockCloudFormation().On("GetTemplate", mock.Anything).Return(nil, errors.New("GetTemplate failed"))
-				out, err = sc.GetStackTemplate("non_existing_stack")
+				p.MockCloudFormation().On("GetTemplate", mock.Anything, mock.Anything).Return(nil, errors.New("GetTemplate failed"))
+				out, err = sc.GetStackTemplate(context.TODO(), "non_existing_stack")
 			})
 
 			It("returns an error", func() {
@@ -130,13 +132,13 @@ Outputs:
 
 		When("the response isn't valid json or yaml", func() {
 			BeforeEach(func() {
-				p.MockCloudFormation().On("GetTemplate", mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
+				p.MockCloudFormation().On("GetTemplate", mock.Anything, mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
 					return input.StackName != nil && *input.StackName == "foobar"
 				})).Return(&cfn.GetTemplateOutput{
 					TemplateBody: aws.String("~123"),
 				}, nil)
 
-				out, err = sc.GetStackTemplate("foobar")
+				out, err = sc.GetStackTemplate(context.TODO(), "foobar")
 			})
 
 			It("returns an error", func() {

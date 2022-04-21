@@ -2,16 +2,18 @@
 package fakes
 
 import (
+	"context"
 	"sync"
 
 	"github.com/weaveworks/eksctl/pkg/actions/label"
 )
 
 type FakeService struct {
-	GetLabelsStub        func(string) (map[string]string, error)
+	GetLabelsStub        func(context.Context, string) (map[string]string, error)
 	getLabelsMutex       sync.RWMutex
 	getLabelsArgsForCall []struct {
-		arg1 string
+		arg1 context.Context
+		arg2 string
 	}
 	getLabelsReturns struct {
 		result1 map[string]string
@@ -21,12 +23,13 @@ type FakeService struct {
 		result1 map[string]string
 		result2 error
 	}
-	UpdateLabelsStub        func(string, map[string]string, []string) error
+	UpdateLabelsStub        func(context.Context, string, map[string]string, []string) error
 	updateLabelsMutex       sync.RWMutex
 	updateLabelsArgsForCall []struct {
-		arg1 string
-		arg2 map[string]string
-		arg3 []string
+		arg1 context.Context
+		arg2 string
+		arg3 map[string]string
+		arg4 []string
 	}
 	updateLabelsReturns struct {
 		result1 error
@@ -38,18 +41,19 @@ type FakeService struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeService) GetLabels(arg1 string) (map[string]string, error) {
+func (fake *FakeService) GetLabels(arg1 context.Context, arg2 string) (map[string]string, error) {
 	fake.getLabelsMutex.Lock()
 	ret, specificReturn := fake.getLabelsReturnsOnCall[len(fake.getLabelsArgsForCall)]
 	fake.getLabelsArgsForCall = append(fake.getLabelsArgsForCall, struct {
-		arg1 string
-	}{arg1})
+		arg1 context.Context
+		arg2 string
+	}{arg1, arg2})
 	stub := fake.GetLabelsStub
 	fakeReturns := fake.getLabelsReturns
-	fake.recordInvocation("GetLabels", []interface{}{arg1})
+	fake.recordInvocation("GetLabels", []interface{}{arg1, arg2})
 	fake.getLabelsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -63,17 +67,17 @@ func (fake *FakeService) GetLabelsCallCount() int {
 	return len(fake.getLabelsArgsForCall)
 }
 
-func (fake *FakeService) GetLabelsCalls(stub func(string) (map[string]string, error)) {
+func (fake *FakeService) GetLabelsCalls(stub func(context.Context, string) (map[string]string, error)) {
 	fake.getLabelsMutex.Lock()
 	defer fake.getLabelsMutex.Unlock()
 	fake.GetLabelsStub = stub
 }
 
-func (fake *FakeService) GetLabelsArgsForCall(i int) string {
+func (fake *FakeService) GetLabelsArgsForCall(i int) (context.Context, string) {
 	fake.getLabelsMutex.RLock()
 	defer fake.getLabelsMutex.RUnlock()
 	argsForCall := fake.getLabelsArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeService) GetLabelsReturns(result1 map[string]string, result2 error) {
@@ -102,25 +106,26 @@ func (fake *FakeService) GetLabelsReturnsOnCall(i int, result1 map[string]string
 	}{result1, result2}
 }
 
-func (fake *FakeService) UpdateLabels(arg1 string, arg2 map[string]string, arg3 []string) error {
-	var arg3Copy []string
-	if arg3 != nil {
-		arg3Copy = make([]string, len(arg3))
-		copy(arg3Copy, arg3)
+func (fake *FakeService) UpdateLabels(arg1 context.Context, arg2 string, arg3 map[string]string, arg4 []string) error {
+	var arg4Copy []string
+	if arg4 != nil {
+		arg4Copy = make([]string, len(arg4))
+		copy(arg4Copy, arg4)
 	}
 	fake.updateLabelsMutex.Lock()
 	ret, specificReturn := fake.updateLabelsReturnsOnCall[len(fake.updateLabelsArgsForCall)]
 	fake.updateLabelsArgsForCall = append(fake.updateLabelsArgsForCall, struct {
-		arg1 string
-		arg2 map[string]string
-		arg3 []string
-	}{arg1, arg2, arg3Copy})
+		arg1 context.Context
+		arg2 string
+		arg3 map[string]string
+		arg4 []string
+	}{arg1, arg2, arg3, arg4Copy})
 	stub := fake.UpdateLabelsStub
 	fakeReturns := fake.updateLabelsReturns
-	fake.recordInvocation("UpdateLabels", []interface{}{arg1, arg2, arg3Copy})
+	fake.recordInvocation("UpdateLabels", []interface{}{arg1, arg2, arg3, arg4Copy})
 	fake.updateLabelsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1
@@ -134,17 +139,17 @@ func (fake *FakeService) UpdateLabelsCallCount() int {
 	return len(fake.updateLabelsArgsForCall)
 }
 
-func (fake *FakeService) UpdateLabelsCalls(stub func(string, map[string]string, []string) error) {
+func (fake *FakeService) UpdateLabelsCalls(stub func(context.Context, string, map[string]string, []string) error) {
 	fake.updateLabelsMutex.Lock()
 	defer fake.updateLabelsMutex.Unlock()
 	fake.UpdateLabelsStub = stub
 }
 
-func (fake *FakeService) UpdateLabelsArgsForCall(i int) (string, map[string]string, []string) {
+func (fake *FakeService) UpdateLabelsArgsForCall(i int) (context.Context, string, map[string]string, []string) {
 	fake.updateLabelsMutex.RLock()
 	defer fake.updateLabelsMutex.RUnlock()
 	argsForCall := fake.updateLabelsArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
 func (fake *FakeService) UpdateLabelsReturns(result1 error) {

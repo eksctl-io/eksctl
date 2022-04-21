@@ -1,20 +1,22 @@
 package manager
 
 import (
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/goformation/v4"
 )
 
 // GetStackTemplate gets the Cloudformation template for a stack
 // and returns a json string representation
-func (c *StackCollection) GetStackTemplate(stackName string) (string, error) {
+func (c *StackCollection) GetStackTemplate(ctx context.Context, stackName string) (string, error) {
 	input := &cloudformation.GetTemplateInput{
 		StackName: aws.String(stackName),
 	}
 
-	output, err := c.cloudformationAPI.GetTemplate(input)
+	output, err := c.cloudformationAPI.GetTemplate(ctx, input)
 	if err != nil {
 		return "", err
 	}

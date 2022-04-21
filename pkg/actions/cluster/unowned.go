@@ -67,7 +67,7 @@ func (c *UnownedCluster) Delete(ctx context.Context, waitInterval time.Duration,
 		logger.Debug("failed to check if cluster is operable: %v", err)
 	}
 
-	allStacks, err := c.stackManager.ListNodeGroupStacks()
+	allStacks, err := c.stackManager.ListNodeGroupStacks(ctx)
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func (c *UnownedCluster) Delete(ctx context.Context, waitInterval time.Duration,
 		}
 	}
 
-	if err := c.deleteFargateRoleIfExists(); err != nil {
+	if err := c.deleteFargateRoleIfExists(ctx); err != nil {
 		return err
 	}
 
@@ -123,7 +123,7 @@ func (c *UnownedCluster) Delete(ctx context.Context, waitInterval time.Duration,
 		return err
 	}
 
-	if err := checkForUndeletedStacks(c.stackManager); err != nil {
+	if err := checkForUndeletedStacks(ctx, c.stackManager); err != nil {
 		return err
 	}
 
@@ -131,15 +131,15 @@ func (c *UnownedCluster) Delete(ctx context.Context, waitInterval time.Duration,
 	return nil
 }
 
-func (c *UnownedCluster) deleteFargateRoleIfExists() error {
-	stack, err := c.stackManager.GetFargateStack()
+func (c *UnownedCluster) deleteFargateRoleIfExists(ctx context.Context) error {
+	stack, err := c.stackManager.GetFargateStack(ctx)
 	if err != nil {
 		return err
 	}
 
 	if stack != nil {
 		logger.Info("deleting fargate role")
-		_, err = c.stackManager.DeleteStackBySpec(stack)
+		_, err = c.stackManager.DeleteStackBySpec(ctx, stack)
 		return err
 	}
 
@@ -190,7 +190,7 @@ func (c *UnownedCluster) deleteIAMAndOIDC(ctx context.Context, wait bool, cluste
 		}
 	}
 
-	deleteAddonIAMtasks, err := c.stackManager.NewTaskToDeleteAddonIAM(wait)
+	deleteAddonIAMtasks, err := c.stackManager.NewTaskToDeleteAddonIAM(ctx, wait)
 	if err != nil {
 		return err
 	}

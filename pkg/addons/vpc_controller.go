@@ -2,6 +2,8 @@ package addons
 
 import (
 	"context"
+	// For go:embed
+	_ "embed"
 	"fmt"
 	"time"
 
@@ -22,9 +24,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes/typed/certificates/v1beta1"
-
-	// For go:embed
-	_ "embed"
 )
 
 //go:embed assets/vpc-admission-webhook-config.yaml
@@ -266,7 +265,7 @@ func (v *VPCController) deployVPCResourceController(ctx context.Context) error {
 			},
 			AttachPolicy: makePolicyDocument(),
 		}
-		if err := v.irsa.CreateOrUpdate(sa); err != nil {
+		if err := v.irsa.CreateOrUpdate(ctx, sa); err != nil {
 			return errors.Wrap(err, "error enabling IRSA")
 		}
 	} else {

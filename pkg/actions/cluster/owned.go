@@ -57,7 +57,7 @@ func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
 	}
 
 	nodeGroupService := eks.NodeGroupService{Provider: c.ctl.Provider}
-	if err := nodeGroupService.ValidateExistingNodeGroupsForCompatibility(c.cfg, c.stackManager); err != nil {
+	if err := nodeGroupService.ValidateExistingNodeGroupsForCompatibility(ctx, c.cfg, c.stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
@@ -77,7 +77,7 @@ func (c *OwnedCluster) Delete(ctx context.Context, _ time.Duration, wait, force,
 	}
 
 	// moving this here was fine because inside `NewTasksToDeleteClusterWithNodeGroups` we did it anyway.
-	allStacks, err := c.stackManager.ListNodeGroupStacks()
+	allStacks, err := c.stackManager.ListNodeGroupStacks(ctx)
 	if err != nil {
 		return err
 	}
@@ -154,11 +154,11 @@ func (c *OwnedCluster) Delete(ctx context.Context, _ time.Duration, wait, force,
 		return handleErrors(errs, "cluster with nodegroup(s)")
 	}
 
-	if err := c.deleteKarpenterStackIfExists(); err != nil {
+	if err := c.deleteKarpenterStackIfExists(ctx); err != nil {
 		return err
 	}
 
-	if err := checkForUndeletedStacks(c.stackManager); err != nil {
+	if err := checkForUndeletedStacks(ctx, c.stackManager); err != nil {
 		return err
 	}
 
@@ -167,15 +167,15 @@ func (c *OwnedCluster) Delete(ctx context.Context, _ time.Duration, wait, force,
 	return nil
 }
 
-func (c *OwnedCluster) deleteKarpenterStackIfExists() error {
-	stack, err := c.stackManager.GetKarpenterStack()
+func (c *OwnedCluster) deleteKarpenterStackIfExists(ctx context.Context) error {
+	stack, err := c.stackManager.GetKarpenterStack(ctx)
 	if err != nil {
 		return err
 	}
 
 	if stack != nil {
 		logger.Info("deleting karpenter stack")
-		return c.stackManager.DeleteStackSync(stack)
+		return c.stackManager.DeleteStackSync(ctx, stack)
 	}
 
 	return nil
