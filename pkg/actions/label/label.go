@@ -3,9 +3,7 @@ package label
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/pkg/errors"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -27,14 +25,4 @@ func New(clusterName string, service Service, eksAPI eksiface.EKSAPI) *Manager {
 		eksAPI:      eksAPI,
 		clusterName: clusterName,
 	}
-}
-
-// If a ValidationError code is returned then an eksctl-marked stack was not
-// found for that nodegroup so we can then try to call the EKS api directly.
-func isValidationError(err error) bool {
-	awsErr, ok := errors.Cause(err).(awserr.Error)
-	if !ok {
-		return false
-	}
-	return awsErr.Code() == "ValidationError"
 }

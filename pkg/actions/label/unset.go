@@ -5,13 +5,15 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
+
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
 func (m *Manager) Unset(ctx context.Context, nodeGroupName string, labels []string) error {
 	err := m.service.UpdateLabels(ctx, nodeGroupName, nil, labels)
 	if err != nil {
 		switch {
-		case isValidationError(err):
+		case manager.IsStackDoesNotExistError(err):
 			return m.unsetLabelsOnUnownedNodeGroup(nodeGroupName, labels)
 		default:
 			return err

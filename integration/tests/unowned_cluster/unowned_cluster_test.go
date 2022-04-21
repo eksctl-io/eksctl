@@ -140,7 +140,7 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 		))
 	})
 
-	It("supports labels", func() {
+	FIt("supports labels", func() {
 		By("setting labels on a managed nodegroup")
 		cmd := params.EksctlSetLabelsCmd.
 			WithArgs(
