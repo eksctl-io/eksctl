@@ -7,9 +7,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/smithy-go"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	perrors "github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/weaveworks/eksctl/pkg/actions/label"
 	"github.com/weaveworks/eksctl/pkg/actions/label/fakes"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -133,7 +136,12 @@ var _ = Describe("Labels", func() {
 
 			BeforeEach(func() {
 				eksLabels = map[string]*string{"k1": aws.String("v1")}
-				fakeManagedService.UpdateLabelsReturns(awserr.New("ValidationError", "stack not found", errors.New("omg")))
+				err := &smithy.GenericAPIError{
+					Code:    "ValidationError",
+					Message: "ValidationError",
+					Fault:   400,
+				}
+				fakeManagedService.UpdateLabelsReturns(perrors.Wrap(err, "omg"))
 			})
 
 			It("updates the labels through the EKS api", func() {
