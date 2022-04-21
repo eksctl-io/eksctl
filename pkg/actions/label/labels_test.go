@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/smithy-go"
 	. "github.com/onsi/ginkgo"
@@ -73,7 +72,10 @@ var _ = Describe("Labels", func() {
 
 			BeforeEach(func() {
 				returnedLabels = map[string]*string{"k1": aws.String("v1")}
-				fakeManagedService.GetLabelsReturns(nil, awserr.New("ValidationError", "stack not found", errors.New("omg")))
+				err := &smithy.OperationError{
+					Err: errors.New("ValidationError"),
+				}
+				fakeManagedService.GetLabelsReturns(nil, perrors.Wrapf(err, "omg %s", "what"))
 			})
 
 			It("returns the labels from the EKS api", func() {
@@ -88,10 +90,6 @@ var _ = Describe("Labels", func() {
 			})
 
 			When("the EKS api returns an error", func() {
-				BeforeEach(func() {
-					fakeManagedService.GetLabelsReturns(nil, awserr.New("ValidationError", "stack not found", errors.New("omg")))
-				})
-
 				It("fails", func() {
 					mockProvider.MockEKS().On("DescribeNodegroup", mock.Anything).Return(&awseks.DescribeNodegroupOutput{}, errors.New("oh-noes"))
 
@@ -155,10 +153,6 @@ var _ = Describe("Labels", func() {
 			})
 
 			When("the EKS api returns an error", func() {
-				BeforeEach(func() {
-					fakeManagedService.GetLabelsReturns(nil, awserr.New("ValidationError", "stack not found", errors.New("omg")))
-				})
-
 				It("fails", func() {
 					mockProvider.MockEKS().On("UpdateNodegroupConfig", mock.Anything).Return(&awseks.UpdateNodegroupConfigOutput{}, errors.New("oh-noes"))
 
@@ -202,7 +196,10 @@ var _ = Describe("Labels", func() {
 
 			BeforeEach(func() {
 				eksLabels = []*string{aws.String("k1")}
-				fakeManagedService.UpdateLabelsReturns(awserr.New("ValidationError", "stack not found", errors.New("omg")))
+				err := &smithy.OperationError{
+					Err: errors.New("ValidationError"),
+				}
+				fakeManagedService.UpdateLabelsReturns(perrors.Wrapf(err, "omg %s", "what"))
 			})
 
 			It("removes the labels through the EKS api", func() {
@@ -218,10 +215,6 @@ var _ = Describe("Labels", func() {
 			})
 
 			When("the EKS api returns an error", func() {
-				BeforeEach(func() {
-					fakeManagedService.GetLabelsReturns(nil, awserr.New("ValidationError", "stack not found", errors.New("omg")))
-				})
-
 				It("fails", func() {
 					mockProvider.MockEKS().On("UpdateNodegroupConfig", mock.Anything).Return(&awseks.UpdateNodegroupConfigOutput{}, errors.New("oh-noes"))
 
