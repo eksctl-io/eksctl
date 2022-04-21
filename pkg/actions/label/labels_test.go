@@ -136,12 +136,10 @@ var _ = Describe("Labels", func() {
 
 			BeforeEach(func() {
 				eksLabels = map[string]*string{"k1": aws.String("v1")}
-				err := &smithy.GenericAPIError{
-					Code:    "ValidationError",
-					Message: "ValidationError",
-					Fault:   400,
+				err := &smithy.OperationError{
+					Err: errors.New("ValidationError"),
 				}
-				fakeManagedService.UpdateLabelsReturns(perrors.Wrap(err, "omg"))
+				fakeManagedService.UpdateLabelsReturns(perrors.Wrapf(err, "omg %s", "what"))
 			})
 
 			It("updates the labels through the EKS api", func() {
