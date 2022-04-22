@@ -56,7 +56,7 @@ func fingerprint(filePath string, key []byte) (string, error) {
 		return "", fmt.Errorf("parsing key %q: %w", filePath, err)
 	}
 
-	if pk.Type() == "ssh-ed25519" {
+	if pk.Type() == ssh.KeyAlgoED25519 {
 		return strings.TrimPrefix(ssh.FingerprintSHA256(pk), "SHA256:"), nil
 	}
 
@@ -133,8 +133,12 @@ func importKey(ctx context.Context, keyName, fingerprint string, keyContent *str
 	if existing, err := findKeyInEC2(ctx, ec2API, keyName); err != nil {
 		return err
 	} else if existing != nil {
-		if *existing.KeyFingerprint != fingerprint {
-			return fmt.Errorf("SSH public key %s already exists, but fingerprints don't match (exected: %q, got: %q)", keyName, fingerprint, *existing.KeyFingerprint)
+		// AWS uses a slightly different encoding than what Go is doing and ends up with an extra padding.
+		// They are using a combination of base64 and sha256 together. Since sha256 generates 32 bytes,
+		// base64 pads it to 33 with an extra `=`. The padding is safe to remove.
+		trimmedAWSFingerprint := strings.TrimSuffix(*existing.KeyFingerprint, "=")
+		if trimmedAWSFingerprint != fingerprint {
+			return fmt.Errorf("SSH public key %s already exists, but fingerprints don't match (expected: %q, got: %q)", keyName, fingerprint, trimmedAWSFingerprint)
 		}
 
 		logger.Debug("SSH public key %s already exists", keyName)
