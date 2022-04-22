@@ -45,7 +45,7 @@ var _ = Describe("StackCollection", func() {
 		It("can create propagate tag", func() {
 			// DescribeTags classic mock
 			describeTagsInput := &autoscaling.DescribeTagsInput{
-				Filters: []asTypes.Filter{{Name: aws.String("auto-scaling-group"), Values: []string{asgName}}},
+				Filters: []asTypes.Filter{{Name: aws.String(resourceTypeAutoScalingGroup), Values: []string{asgName}}},
 			}
 			p.MockASG().On("DescribeTags", mock.Anything, describeTagsInput).Return(&autoscaling.DescribeTagsOutput{}, nil)
 
@@ -54,7 +54,7 @@ var _ = Describe("StackCollection", func() {
 				Tags: []asTypes.Tag{
 					{
 						ResourceId:        aws.String(asgName),
-						ResourceType:      aws.String("auto-scaling-group"),
+						ResourceType:      aws.String(resourceTypeAutoScalingGroup),
 						Key:               aws.String("tag_key_1"),
 						Value:             aws.String("tag_value_1"),
 						PropagateAtLaunch: aws.Bool(false),
@@ -77,7 +77,7 @@ var _ = Describe("StackCollection", func() {
 				ngTags[tagKey] = tagValue
 				createOrUpdateTagsSliceInput = append(createOrUpdateTagsSliceInput, asTypes.Tag{
 					ResourceId:        aws.String(asgName),
-					ResourceType:      aws.String("auto-scaling-group"),
+					ResourceType:      aws.String(resourceTypeAutoScalingGroup),
 					Key:               aws.String(tagKey),
 					Value:             aws.String(tagValue),
 					PropagateAtLaunch: aws.Bool(false),
@@ -86,7 +86,7 @@ var _ = Describe("StackCollection", func() {
 
 			// DescribeTags classic mock
 			describeTagsInput := &autoscaling.DescribeTagsInput{
-				Filters: []asTypes.Filter{{Name: aws.String("auto-scaling-group"), Values: []string{asgName}}},
+				Filters: []asTypes.Filter{{Name: aws.String(resourceTypeAutoScalingGroup), Values: []string{asgName}}},
 			}
 			p.MockASG().On("DescribeTags", mock.Anything, describeTagsInput).Return(&autoscaling.DescribeTagsOutput{}, nil)
 
@@ -119,7 +119,7 @@ var _ = Describe("StackCollection", func() {
 
 			// DescribeTags classic mock
 			describeTagsInput := &autoscaling.DescribeTagsInput{
-				Filters: []asTypes.Filter{{Name: aws.String("auto-scaling-group"), Values: []string{asgName}}},
+				Filters: []asTypes.Filter{{Name: aws.String(resourceTypeAutoScalingGroup), Values: []string{asgName}}},
 			}
 			p.MockASG().On("DescribeTags", mock.Anything, describeTagsInput).Return(&autoscaling.DescribeTagsOutput{}, nil)
 

@@ -29,11 +29,12 @@ import (
 )
 
 const (
-	resourcesRootPath = "Resources"
-	outputsRootPath   = "Outputs"
-	mappingsRootPath  = "Mappings"
-	ourStackRegexFmt  = "^(eksctl|EKS)-%s-((cluster|nodegroup-.+|addon-.+|fargate|karpenter)|(VPC|ServiceRole|ControlPlane|DefaultNodeGroup))$"
-	clusterStackRegex = "eksctl-.*-cluster"
+	resourcesRootPath            = "Resources"
+	resourceTypeAutoScalingGroup = "auto-scaling-group"
+	outputsRootPath              = "Outputs"
+	mappingsRootPath             = "Mappings"
+	ourStackRegexFmt             = "^(eksctl|EKS)-%s-((cluster|nodegroup-.+|addon-.+|fargate|karpenter)|(VPC|ServiceRole|ControlPlane|DefaultNodeGroup))$"
+	clusterStackRegex            = "eksctl-.*-cluster"
 )
 
 var (
@@ -262,7 +263,7 @@ func (c *StackCollection) PropagateManagedNodeGroupTagsToASG(ngName string, ngTa
 			for ngTagKey, ngTagValue := range ngTags {
 				asgTag := asTypes.Tag{
 					ResourceId:        aws.String(asgName),
-					ResourceType:      aws.String("auto-scaling-group"),
+					ResourceType:      aws.String(resourceTypeAutoScalingGroup),
 					Key:               aws.String(ngTagKey),
 					Value:             aws.String(ngTagValue),
 					PropagateAtLaunch: aws.Bool(false),
@@ -299,7 +300,7 @@ func (c *StackCollection) checkASGTagsNumber(ngName, asgName string, propagatedT
 	tagsFilter := &autoscaling.DescribeTagsInput{
 		Filters: []asTypes.Filter{
 			{
-				Name:   aws.String("auto-scaling-group"),
+				Name:   aws.String(resourceTypeAutoScalingGroup),
 				Values: []string{asgName},
 			},
 		},
