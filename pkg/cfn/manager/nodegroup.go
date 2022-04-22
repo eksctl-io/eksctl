@@ -89,16 +89,17 @@ func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(errorCh chan er
 		return errors.Wrapf(err, "couldn't get managed nodegroup details for nodegroup %q", ng.Name)
 	}
 
-	if res.Nodegroup.Resources != nil {
-		asgNames := []string{}
-		for _, asg := range res.Nodegroup.Resources.AutoScalingGroups {
-			if asg.Name != nil && *asg.Name != "" {
-				asgNames = append(asgNames, *asg.Name)
-			}
-		}
-		return c.PropagateManagedNodeGroupTagsToASG(ng.Name, ng.Tags, asgNames, errorCh)
+	if res.Nodegroup.Resources == nil {
+		return nil
 	}
-	return nil
+
+	asgNames := []string{}
+	for _, asg := range res.Nodegroup.Resources.AutoScalingGroups {
+		if asg.Name != nil && *asg.Name != "" {
+			asgNames = append(asgNames, *asg.Name)
+		}
+	}
+	return c.PropagateManagedNodeGroupTagsToASG(ng.Name, ng.Tags, asgNames, errorCh)
 }
 
 // DescribeNodeGroupStacks calls DescribeStacks and filters out nodegroups

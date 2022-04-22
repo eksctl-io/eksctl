@@ -16,7 +16,6 @@ import (
 
 	cttypes "github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -316,7 +315,7 @@ func (c *StackCollection) checkASGTagsNumber(ngName, asgName string, propagatedT
 	for ngTagKey := range propagatedTags {
 		for _, asgTag := range asgTags {
 			// decrease the unique tag key count if there is a match
-			if asgTag.Key != nil && *asgTag.Key == ngTagKey {
+			if aws.StringValue(asgTag.Key) == ngTagKey {
 				uniqueTagKeyCount--
 				break
 			}
