@@ -218,6 +218,13 @@ var _ = Describe("EKS API wrapper", func() {
 		})
 	})
 
+	type managedNodesSupportCase struct {
+		platformVersion string
+
+		expectError bool
+		supports    bool
+	}
+
 	type platformVersionCase struct {
 		platformVersion string
 		expectedVersion int
