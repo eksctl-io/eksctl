@@ -127,6 +127,21 @@ var _ = Describe("StackCollection Tasks", func() {
 `))
 			}
 			{
+				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar", "foo"), makeManagedNodeGroupsWithPropagatedTags("m1", "m2"))
+				Expect(tasks.Describe()).To(Equal(`
+2 sequential tasks: { create cluster control plane "test-cluster", 
+    6 parallel sub-tasks: { 
+        create nodegroup "bar",
+        create nodegroup "foo",
+        create managed nodegroup "m1",
+        propagate tags to ASG for managed nodegroup "m1",
+        create managed nodegroup "m2",
+        propagate tags to ASG for managed nodegroup "m2",
+    } 
+}
+`))
+			}
+			{
 				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("foo"), makeManagedNodeGroups("m1"))
 				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
@@ -220,6 +235,18 @@ func makeManagedNodeGroups(names ...string) []*api.ManagedNodeGroup {
 	for _, name := range names {
 		ng := api.NewManagedNodeGroup()
 		ng.Name = name
+		managedNodeGroups = append(managedNodeGroups, ng)
+	}
+	return managedNodeGroups
+}
+
+func makeManagedNodeGroupsWithPropagatedTags(names ...string) []*api.ManagedNodeGroup {
+	propagate := true
+	var managedNodeGroups []*api.ManagedNodeGroup
+	for _, name := range names {
+		ng := api.NewManagedNodeGroup()
+		ng.Name = name
+		ng.PropagateASGTags = &propagate
 		managedNodeGroups = append(managedNodeGroups, ng)
 	}
 	return managedNodeGroups

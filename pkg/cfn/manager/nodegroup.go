@@ -78,6 +78,30 @@ func (c *StackCollection) createManagedNodeGroupTask(ctx context.Context, errorC
 	return c.CreateStack(ctx, name, stack, ng.Tags, nil, errorCh)
 }
 
+func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(errorCh chan error, ng *api.ManagedNodeGroup) error {
+	// describe node group to retrieve ASG names
+	input := &eks.DescribeNodegroupInput{
+		ClusterName:   aws.String(c.spec.Metadata.Name),
+		NodegroupName: aws.String(ng.Name),
+	}
+	res, err := c.eksAPI.DescribeNodegroup(input)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't get managed nodegroup details for nodegroup %q", ng.Name)
+	}
+
+	if res.Nodegroup.Resources == nil {
+		return nil
+	}
+
+	asgNames := []string{}
+	for _, asg := range res.Nodegroup.Resources.AutoScalingGroups {
+		if asg.Name != nil && *asg.Name != "" {
+			asgNames = append(asgNames, *asg.Name)
+		}
+	}
+	return c.PropagateManagedNodeGroupTagsToASG(ng.Name, ng.Tags, asgNames, errorCh)
+}
+
 // DescribeNodeGroupStacks calls DescribeStacks and filters out nodegroups
 func (c *StackCollection) DescribeNodeGroupStacks(ctx context.Context) ([]*Stack, error) {
 	stacks, err := c.DescribeStacks(ctx)

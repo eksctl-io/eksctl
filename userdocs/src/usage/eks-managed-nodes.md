@@ -246,8 +246,6 @@ eksctl scale nodegroup --name=managed-ng-1 --cluster=managed-cluster --nodes=4 -
 EKS Managed Nodegroups are managed by AWS EKS and do not offer the same level of configuration as unmanaged nodegroups.
 The unsupported options are noted below.
 
-- Tags (managedNodeGroups[*].tags) in managed nodegroups apply to the EKS Nodegroup resource and to the EC2 instances launched as part of the nodegroup.
-They do not propagate to the provisioned Autoscaling Group like in unmanaged nodegroups.
 - `iam.instanceProfileARN` is not supported for managed nodegroups.
 - The `amiFamily` field supports only `AmazonLinux2`
 - `instancesDistribution` field is not supported

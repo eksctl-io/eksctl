@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	asTypes "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
@@ -26,11 +28,12 @@ import (
 )
 
 const (
-	resourcesRootPath = "Resources"
-	outputsRootPath   = "Outputs"
-	mappingsRootPath  = "Mappings"
-	ourStackRegexFmt  = "^(eksctl|EKS)-%s-((cluster|nodegroup-.+|addon-.+|fargate|karpenter)|(VPC|ServiceRole|ControlPlane|DefaultNodeGroup))$"
-	clusterStackRegex = "eksctl-.*-cluster"
+	resourcesRootPath            = "Resources"
+	resourceTypeAutoScalingGroup = "auto-scaling-group"
+	outputsRootPath              = "Outputs"
+	mappingsRootPath             = "Mappings"
+	ourStackRegexFmt             = "^(eksctl|EKS)-%s-((cluster|nodegroup-.+|addon-.+|fargate|karpenter)|(VPC|ServiceRole|ControlPlane|DefaultNodeGroup))$"
+	clusterStackRegex            = "eksctl-.*-cluster"
 )
 
 var (
@@ -236,6 +239,92 @@ func (c *StackCollection) createStackRequest(ctx context.Context, stackName stri
 
 	logger.Info("deploying stack %q", stackName)
 	return stack, nil
+}
+
+func (c *StackCollection) PropagateManagedNodeGroupTagsToASG(ngName string, ngTags map[string]string, asgNames []string, errCh chan error) error {
+	go func() {
+		defer close(errCh)
+		// build the input tags for all ASGs attached to the managed nodegroup
+		asgTags := []asTypes.Tag{}
+
+		for _, asgName := range asgNames {
+			// skip directly if not tags are required to be created
+			if len(ngTags) == 0 {
+				continue
+			}
+
+			// check if the number of tags on the ASG would go over the defined limit
+			if err := c.checkASGTagsNumber(ngName, asgName, ngTags); err != nil {
+				errCh <- err
+				return
+			}
+			// build the list of tags to attach to the ASG
+			for ngTagKey, ngTagValue := range ngTags {
+				asgTag := asTypes.Tag{
+					ResourceId:        aws.String(asgName),
+					ResourceType:      aws.String(resourceTypeAutoScalingGroup),
+					Key:               aws.String(ngTagKey),
+					Value:             aws.String(ngTagValue),
+					PropagateAtLaunch: aws.Bool(false),
+				}
+				asgTags = append(asgTags, asgTag)
+			}
+		}
+
+		// consider the maximum number of tags we can create at once...
+		var chunkedASGTags [][]asTypes.Tag
+		chunkSize := builder.MaximumCreatedTagNumberPerCall
+		for start := 0; start < len(asgTags); start += chunkSize {
+			end := start + chunkSize
+			if end > len(asgTags) {
+				end = len(asgTags)
+			}
+			chunkedASGTags = append(chunkedASGTags, asgTags[start:end])
+		}
+		// ...then create all of them in a loop
+		for _, asgTags := range chunkedASGTags {
+			input := &autoscaling.CreateOrUpdateTagsInput{Tags: asgTags}
+			if _, err := c.asgAPI.CreateOrUpdateTags(context.Background(), input); err != nil {
+				errCh <- errors.Wrapf(err, "creating or updating asg tags for managed nodegroup %q", ngName)
+				return
+			}
+		}
+		errCh <- nil
+	}()
+	return nil
+}
+
+// checkASGTagsNumber limit considering the new propagated tags
+func (c *StackCollection) checkASGTagsNumber(ngName, asgName string, propagatedTags map[string]string) error {
+	tagsFilter := &autoscaling.DescribeTagsInput{
+		Filters: []asTypes.Filter{
+			{
+				Name:   aws.String(resourceTypeAutoScalingGroup),
+				Values: []string{asgName},
+			},
+		},
+	}
+	output, err := c.asgAPI.DescribeTags(context.Background(), tagsFilter)
+	if err != nil {
+		return errors.Wrapf(err, "describing asg %q tags for managed nodegroup %q", asgName, ngName)
+	}
+	asgTags := output.Tags
+	// intersection of key tags to consider the number of tags going
+	// to be attached to the ASG
+	uniqueTagKeyCount := len(asgTags) + len(propagatedTags)
+	for ngTagKey := range propagatedTags {
+		for _, asgTag := range asgTags {
+			// decrease the unique tag key count if there is a match
+			if aws.StringValue(asgTag.Key) == ngTagKey {
+				uniqueTagKeyCount--
+				break
+			}
+		}
+	}
+	if uniqueTagKeyCount > builder.MaximumTagNumber {
+		return fmt.Errorf("number of tags is exceeding the maximum amount for asg %d, was: %d", builder.MaximumTagNumber, uniqueTagKeyCount)
+	}
+	return nil
 }
 
 // UpdateStack will update a CloudFormation stack by creating and executing a ChangeSet
