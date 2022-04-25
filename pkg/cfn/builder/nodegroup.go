@@ -23,6 +23,7 @@ import (
 
 // MaximumTagNumber for ASGs as described here https://docs.aws.amazon.com/autoscaling/ec2/userguide/autoscaling-tagging.html
 const MaximumTagNumber = 50
+const MaximumCreatedTagNumberPerCall = 25
 
 // NodeGroupResourceSet stores the resource information of the nodegroup
 type NodeGroupResourceSet struct {

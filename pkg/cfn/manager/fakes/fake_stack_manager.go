@@ -725,6 +725,20 @@ type FakeStackManager struct {
 	newUnmanagedNodeGroupTaskReturnsOnCall map[int]struct {
 		result1 *tasks.TaskTree
 	}
+	PropagateManagedNodeGroupTagsToASGStub        func(string, map[string]string, []string, chan error) error
+	propagateManagedNodeGroupTagsToASGMutex       sync.RWMutex
+	propagateManagedNodeGroupTagsToASGArgsForCall []struct {
+		arg1 string
+		arg2 map[string]string
+		arg3 []string
+		arg4 chan error
+	}
+	propagateManagedNodeGroupTagsToASGReturns struct {
+		result1 error
+	}
+	propagateManagedNodeGroupTagsToASGReturnsOnCall map[int]struct {
+		result1 error
+	}
 	RefreshFargatePodExecutionRoleARNStub        func(context.Context) error
 	refreshFargatePodExecutionRoleARNMutex       sync.RWMutex
 	refreshFargatePodExecutionRoleARNArgsForCall []struct {
@@ -4166,6 +4180,75 @@ func (fake *FakeStackManager) NewUnmanagedNodeGroupTaskReturnsOnCall(i int, resu
 	}{result1}
 }
 
+func (fake *FakeStackManager) PropagateManagedNodeGroupTagsToASG(arg1 string, arg2 map[string]string, arg3 []string, arg4 chan error) error {
+	var arg3Copy []string
+	if arg3 != nil {
+		arg3Copy = make([]string, len(arg3))
+		copy(arg3Copy, arg3)
+	}
+	fake.propagateManagedNodeGroupTagsToASGMutex.Lock()
+	ret, specificReturn := fake.propagateManagedNodeGroupTagsToASGReturnsOnCall[len(fake.propagateManagedNodeGroupTagsToASGArgsForCall)]
+	fake.propagateManagedNodeGroupTagsToASGArgsForCall = append(fake.propagateManagedNodeGroupTagsToASGArgsForCall, struct {
+		arg1 string
+		arg2 map[string]string
+		arg3 []string
+		arg4 chan error
+	}{arg1, arg2, arg3Copy, arg4})
+	stub := fake.PropagateManagedNodeGroupTagsToASGStub
+	fakeReturns := fake.propagateManagedNodeGroupTagsToASGReturns
+	fake.recordInvocation("PropagateManagedNodeGroupTagsToASG", []interface{}{arg1, arg2, arg3Copy, arg4})
+	fake.propagateManagedNodeGroupTagsToASGMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeStackManager) PropagateManagedNodeGroupTagsToASGCallCount() int {
+	fake.propagateManagedNodeGroupTagsToASGMutex.RLock()
+	defer fake.propagateManagedNodeGroupTagsToASGMutex.RUnlock()
+	return len(fake.propagateManagedNodeGroupTagsToASGArgsForCall)
+}
+
+func (fake *FakeStackManager) PropagateManagedNodeGroupTagsToASGCalls(stub func(string, map[string]string, []string, chan error) error) {
+	fake.propagateManagedNodeGroupTagsToASGMutex.Lock()
+	defer fake.propagateManagedNodeGroupTagsToASGMutex.Unlock()
+	fake.PropagateManagedNodeGroupTagsToASGStub = stub
+}
+
+func (fake *FakeStackManager) PropagateManagedNodeGroupTagsToASGArgsForCall(i int) (string, map[string]string, []string, chan error) {
+	fake.propagateManagedNodeGroupTagsToASGMutex.RLock()
+	defer fake.propagateManagedNodeGroupTagsToASGMutex.RUnlock()
+	argsForCall := fake.propagateManagedNodeGroupTagsToASGArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeStackManager) PropagateManagedNodeGroupTagsToASGReturns(result1 error) {
+	fake.propagateManagedNodeGroupTagsToASGMutex.Lock()
+	defer fake.propagateManagedNodeGroupTagsToASGMutex.Unlock()
+	fake.PropagateManagedNodeGroupTagsToASGStub = nil
+	fake.propagateManagedNodeGroupTagsToASGReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeStackManager) PropagateManagedNodeGroupTagsToASGReturnsOnCall(i int, result1 error) {
+	fake.propagateManagedNodeGroupTagsToASGMutex.Lock()
+	defer fake.propagateManagedNodeGroupTagsToASGMutex.Unlock()
+	fake.PropagateManagedNodeGroupTagsToASGStub = nil
+	if fake.propagateManagedNodeGroupTagsToASGReturnsOnCall == nil {
+		fake.propagateManagedNodeGroupTagsToASGReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.propagateManagedNodeGroupTagsToASGReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeStackManager) RefreshFargatePodExecutionRoleARN(arg1 context.Context) error {
 	fake.refreshFargatePodExecutionRoleARNMutex.Lock()
 	ret, specificReturn := fake.refreshFargatePodExecutionRoleARNReturnsOnCall[len(fake.refreshFargatePodExecutionRoleARNArgsForCall)]
@@ -4582,6 +4665,8 @@ func (fake *FakeStackManager) Invocations() map[string][][]interface{} {
 	defer fake.newTasksToDeleteOIDCProviderWithIAMServiceAccountsMutex.RUnlock()
 	fake.newUnmanagedNodeGroupTaskMutex.RLock()
 	defer fake.newUnmanagedNodeGroupTaskMutex.RUnlock()
+	fake.propagateManagedNodeGroupTagsToASGMutex.RLock()
+	defer fake.propagateManagedNodeGroupTagsToASGMutex.RUnlock()
 	fake.refreshFargatePodExecutionRoleARNMutex.RLock()
 	defer fake.refreshFargatePodExecutionRoleARNMutex.RUnlock()
 	fake.stackStatusIsNotReadyMutex.RLock()

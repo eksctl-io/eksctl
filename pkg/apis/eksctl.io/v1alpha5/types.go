@@ -997,11 +997,8 @@ type NodeGroup struct {
 	// +optional
 	ContainerRuntime *string `json:"containerRuntime,omitempty"`
 
-	// Propagate all taints and labels to the ASG automatically.
-	// +optional
-	PropagateASGTags *bool `json:"propagateASGTags,omitempty"`
-
-	// DisableASGTagPropagation disable the tag propagation in case desired capacity is 0.
+	// DisableASGTagPropagation disables the tag propagation to ASG in case desired capacity is 0.
+	// Defaults to `false`
 	// +optional
 	DisableASGTagPropagation *bool `json:"disableASGTagPropagation,omitempty"`
 
@@ -1315,7 +1312,7 @@ type NodeGroupBase struct {
 	// +optional
 	PrivateNetworking bool `json:"privateNetworking"`
 	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
-	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
+	// Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
 	// +optional
@@ -1367,6 +1364,10 @@ type NodeGroupBase struct {
 	// Override `eksctl`'s bootstrapping script
 	// +optional
 	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
+
+	// Propagate all taints and labels to the ASG automatically.
+	// +optional
+	PropagateASGTags *bool `json:"propagateASGTags,omitempty"`
 
 	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
 	// Defaults to `false`

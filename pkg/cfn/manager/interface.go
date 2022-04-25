@@ -91,6 +91,7 @@ type StackManager interface {
 	NewTasksToDeleteNodeGroups(stacks []NodeGroupStack, shouldDelete func(_ string) bool, wait bool, cleanup func(chan error, string) error) (*tasks.TaskTree, error)
 	NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(ctx context.Context, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) (*tasks.TaskTree, error)
 	NewUnmanagedNodeGroupTask(ctx context.Context, nodeGroups []*v1alpha5.NodeGroup, forceAddCNIPolicy bool, importer vpc.Importer) *tasks.TaskTree
+	PropagateManagedNodeGroupTagsToASG(ngName string, ngTags map[string]string, asgNames []string, errCh chan error) error
 	RefreshFargatePodExecutionRoleARN(ctx context.Context) error
 	StackStatusIsNotReady(s *Stack) bool
 	StackStatusIsNotTransitional(s *Stack) bool

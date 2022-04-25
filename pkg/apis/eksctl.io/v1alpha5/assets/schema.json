@@ -1076,6 +1076,11 @@
           "x-intellij-html-description": "Enable <a href=\"/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup\">private networking</a> for nodegroup",
           "default": "false"
         },
+        "propagateASGTags": {
+          "type": "boolean",
+          "description": "Propagate all taints and labels to the ASG automatically.",
+          "x-intellij-html-description": "Propagate all taints and labels to the ASG automatically."
+        },
         "releaseVersion": {
           "type": "string",
           "description": "the AMI version of the EKS optimized AMI to use",
@@ -1108,8 +1113,8 @@
             "type": "string"
           },
           "type": "object",
-          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
-          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
           "default": "{}"
         },
         "taints": {
@@ -1191,6 +1196,7 @@
         "additionalVolumes",
         "preBootstrapCommands",
         "overrideBootstrapCommand",
+        "propagateASGTags",
         "disableIMDSv1",
         "disablePodIMDS",
         "placement",
@@ -1321,8 +1327,9 @@
         },
         "disableASGTagPropagation": {
           "type": "boolean",
-          "description": "disable the tag propagation in case desired capacity is 0.",
-          "x-intellij-html-description": "disable the tag propagation in case desired capacity is 0."
+          "description": "disables the tag propagation to ASG in case desired capacity is 0.",
+          "x-intellij-html-description": "disables the tag propagation to ASG in case desired capacity is 0.",
+          "default": false
         },
         "disableIMDSv1": {
           "type": "boolean",
@@ -1450,8 +1457,8 @@
             "type": "string"
           },
           "type": "object",
-          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
-          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
           "default": "{}"
         },
         "taints": {
@@ -1538,6 +1545,7 @@
         "additionalVolumes",
         "preBootstrapCommands",
         "overrideBootstrapCommand",
+        "propagateASGTags",
         "disableIMDSv1",
         "disablePodIMDS",
         "placement",
@@ -1555,7 +1563,6 @@
         "clusterDNS",
         "kubeletExtraConfig",
         "containerRuntime",
-        "propagateASGTags",
         "disableASGTagPropagation",
         "maxInstanceLifetime"
       ],

@@ -5,21 +5,132 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	asTypes "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/awstesting"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
 var _ = Describe("StackCollection", func() {
+	Context("PropagateManagedNodeGroupTagsToASG", func() {
+		var (
+			asgName string
+			ngName  string
+			ngTags  map[string]string
+			errCh   chan error
+			p       *mockprovider.MockProvider
+		)
+		BeforeEach(func() {
+			asgName = "asg-test-name"
+			ngName = "ng-test-name"
+			ngTags = map[string]string{
+				"tag_key_1": "tag_value_1",
+			}
+			errCh = make(chan error)
+			p = mockprovider.NewMockProvider()
+		})
+
+		It("can create propagate tag", func() {
+			// DescribeTags classic mock
+			describeTagsInput := &autoscaling.DescribeTagsInput{
+				Filters: []asTypes.Filter{{Name: aws.String(resourceTypeAutoScalingGroup), Values: []string{asgName}}},
+			}
+			p.MockASG().On("DescribeTags", mock.Anything, describeTagsInput).Return(&autoscaling.DescribeTagsOutput{}, nil)
+
+			// CreateOrUpdateTags classic mock
+			createOrUpdateTagsInput := &autoscaling.CreateOrUpdateTagsInput{
+				Tags: []asTypes.Tag{
+					{
+						ResourceId:        aws.String(asgName),
+						ResourceType:      aws.String(resourceTypeAutoScalingGroup),
+						Key:               aws.String("tag_key_1"),
+						Value:             aws.String("tag_value_1"),
+						PropagateAtLaunch: aws.Bool(false),
+					},
+				},
+			}
+			p.MockASG().On("CreateOrUpdateTags", mock.Anything, createOrUpdateTagsInput).Return(&autoscaling.CreateOrUpdateTagsOutput{}, nil)
+
+			sm := NewStackCollection(p, api.NewClusterConfig())
+			err := sm.PropagateManagedNodeGroupTagsToASG(ngName, ngTags, []string{asgName}, errCh)
+			Expect(err).NotTo(HaveOccurred())
+			err = <-errCh
+			Expect(err).NotTo(HaveOccurred())
+		})
+		It("cannot propagate tags in chunks of 25", func() {
+			// populate the createOrUpdateTagsSliceInput for easier generation of chunks
+			createOrUpdateTagsSliceInput := []asTypes.Tag{}
+			for i := 0; i < 30; i++ {
+				tagKey, tagValue := fmt.Sprintf("tag_key_%d", i), fmt.Sprintf("tag_value_%d", i)
+				ngTags[tagKey] = tagValue
+				createOrUpdateTagsSliceInput = append(createOrUpdateTagsSliceInput, asTypes.Tag{
+					ResourceId:        aws.String(asgName),
+					ResourceType:      aws.String(resourceTypeAutoScalingGroup),
+					Key:               aws.String(tagKey),
+					Value:             aws.String(tagValue),
+					PropagateAtLaunch: aws.Bool(false),
+				})
+			}
+
+			// DescribeTags classic mock
+			describeTagsInput := &autoscaling.DescribeTagsInput{
+				Filters: []asTypes.Filter{{Name: aws.String(resourceTypeAutoScalingGroup), Values: []string{asgName}}},
+			}
+			p.MockASG().On("DescribeTags", mock.Anything, describeTagsInput).Return(&autoscaling.DescribeTagsOutput{}, nil)
+
+			// CreateOrUpdateTags chunked mock
+			// generate the expected chunk of tags
+			chunkSize := builder.MaximumCreatedTagNumberPerCall
+			firstchunkLenMatcher := func(input *autoscaling.CreateOrUpdateTagsInput) bool {
+				return len(input.Tags) == len(createOrUpdateTagsSliceInput[:chunkSize])
+			}
+			secondChunkLenMatcher := func(input *autoscaling.CreateOrUpdateTagsInput) bool {
+				return len(input.Tags) == len(createOrUpdateTagsSliceInput[chunkSize:])
+			}
+
+			// setup the call verification of the two chunks
+			// NOTE: because of the use of map (unordered processing), we just verify size of chunk
+			p.MockASG().On("CreateOrUpdateTags", mock.Anything, mock.MatchedBy(firstchunkLenMatcher)).Return(&autoscaling.CreateOrUpdateTagsOutput{}, nil)
+			p.MockASG().On("CreateOrUpdateTags", mock.Anything, mock.MatchedBy(secondChunkLenMatcher)).Return(&autoscaling.CreateOrUpdateTagsOutput{}, nil)
+
+			sm := NewStackCollection(p, api.NewClusterConfig())
+			err := sm.PropagateManagedNodeGroupTagsToASG(ngName, ngTags, []string{asgName}, errCh)
+			Expect(err).NotTo(HaveOccurred())
+			err = <-errCh
+			Expect(err).NotTo(HaveOccurred())
+		})
+		It("cannot propagate if too many tags", func() {
+			// fill parameters
+			for i := 0; i < builder.MaximumTagNumber+1; i++ {
+				ngTags[fmt.Sprintf("tag_key_%d", i)] = fmt.Sprintf("tag_value_%d", i)
+			}
+
+			// DescribeTags classic mock
+			describeTagsInput := &autoscaling.DescribeTagsInput{
+				Filters: []asTypes.Filter{{Name: aws.String(resourceTypeAutoScalingGroup), Values: []string{asgName}}},
+			}
+			p.MockASG().On("DescribeTags", mock.Anything, describeTagsInput).Return(&autoscaling.DescribeTagsOutput{}, nil)
+
+			sm := NewStackCollection(p, api.NewClusterConfig())
+			err := sm.PropagateManagedNodeGroupTagsToASG(ngName, ngTags, []string{asgName}, errCh)
+			Expect(err).NotTo(HaveOccurred())
+			err = <-errCh
+			Expect(err).To(MatchError(ContainSubstring("maximum amount for asg")))
+		})
+	})
+
 	Context("UpdateStack", func() {
 		It("succeeds if no changes required", func() {
 			// Order of AWS SDK invocation
