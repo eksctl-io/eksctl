@@ -6,8 +6,9 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go/aws"
-	awsiam "github.com/aws/aws-sdk-go/service/iam"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -103,8 +104,8 @@ type KubeNodeGroup interface {
 }
 
 // GetNodeGroupIAM retrieves the IAM configuration of the given nodegroup
-func (c *ClusterProvider) GetNodeGroupIAM(stackManager manager.StackManager, ng *api.NodeGroup) error {
-	stacks, err := stackManager.DescribeNodeGroupStacks()
+func (c *ClusterProvider) GetNodeGroupIAM(ctx context.Context, stackManager manager.StackManager, ng *api.NodeGroup) error {
+	stacks, err := stackManager.DescribeNodeGroupStacks(ctx)
 	if err != nil {
 		return err
 	}
@@ -119,7 +120,7 @@ func (c *ClusterProvider) GetNodeGroupIAM(stackManager manager.StackManager, ng 
 			if err != nil {
 				return errors.Wrapf(
 					err, "couldn't get iam configuration for nodegroup %q (perhaps state %q is transitional)",
-					ng.Name, *s.StackStatus,
+					ng.Name, s.StackStatus,
 				)
 			}
 			return nil
@@ -143,7 +144,7 @@ func getAWSNodeSAARNAnnotation(clientSet kubernetes.Interface) (string, error) {
 }
 
 // DoesAWSNodeUseIRSA evaluates whether an aws-node uses IRSA
-func (n *NodeGroupService) DoesAWSNodeUseIRSA(provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error) {
+func (n *NodeGroupService) DoesAWSNodeUseIRSA(ctx context.Context, provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error) {
 	roleArn, err := getAWSNodeSAARNAnnotation(clientSet)
 	if err != nil {
 		return false, errors.Wrap(err, "error retrieving aws-node arn")
@@ -155,10 +156,10 @@ func (n *NodeGroupService) DoesAWSNodeUseIRSA(provider api.ClusterProvider, clie
 	if len(arnParts) <= 1 {
 		return false, errors.Errorf("invalid ARN %s", roleArn)
 	}
-	input := awsiam.ListAttachedRolePoliciesInput{
+	input := &awsiam.ListAttachedRolePoliciesInput{
 		RoleName: aws.String(arnParts[len(arnParts)-1]),
 	}
-	policies, err := provider.IAM().ListAttachedRolePolicies(&input)
+	policies, err := provider.IAM().ListAttachedRolePolicies(ctx, input)
 	if err != nil {
 		return false, errors.Wrap(err, "error listing attached policies")
 	}
@@ -183,11 +184,11 @@ func (t *suspendProcesses) Describe() string {
 }
 
 func (t *suspendProcesses) Do() error {
-	ngStack, err := t.stackCollection.DescribeNodeGroupStack(t.nodegroup.Name)
+	ngStack, err := t.stackCollection.DescribeNodeGroupStack(context.TODO(), t.nodegroup.Name)
 	if err != nil {
 		return errors.Wrapf(err, "couldn't describe nodegroup stack for nodegroup %s", t.nodegroup.Name)
 	}
-	asgName, err := t.stackCollection.GetAutoScalingGroupName(ngStack)
+	asgName, err := t.stackCollection.GetAutoScalingGroupName(context.TODO(), ngStack)
 	if err != nil {
 		return errors.Wrapf(err, "couldn't get autoscalinggroup name nodegroup %s", t.nodegroup.Name)
 	}

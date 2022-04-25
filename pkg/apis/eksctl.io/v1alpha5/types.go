@@ -10,38 +10,36 @@ import (
 	"time"
 
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	stsv2 "github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
+
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/awsapi"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/utils/taints"
 )
 
 // Values for `KubernetesVersion`
 // All valid values should go in this block
 const (
-	Version1_18 = "1.18"
-
 	Version1_19 = "1.19"
 
 	Version1_20 = "1.20"
 
 	Version1_21 = "1.21"
 
-	// DefaultVersion (default)
-	DefaultVersion = Version1_21
+	Version1_22 = "1.22"
 
-	LatestVersion = Version1_21
+	// DefaultVersion (default)
+	DefaultVersion = Version1_22
+
+	LatestVersion = Version1_22
 )
 
 // No longer supported versions
@@ -68,12 +66,14 @@ const (
 
 	// Version1_17 represents Kubernetes version 1.17.x
 	Version1_17 = "1.17"
+
+	Version1_18 = "1.18"
 )
 
 // Not yet supported versions
 const (
-	// Version1_22 represents Kubernetes version 1.22.x
-	Version1_22 = "1.22"
+	// Version1_23 represents Kubernetes version 1.23.x
+	Version1_23 = "1.23"
 )
 
 const (
@@ -187,8 +187,9 @@ const (
 
 // Container runtime values.
 const (
-	ContainerRuntimeContainerD = "containerd"
-	ContainerRuntimeDockerD    = "dockerd"
+	ContainerRuntimeContainerD       = "containerd"
+	ContainerRuntimeDockerD          = "dockerd"
+	ContainerRuntimeDockerForWindows = "docker"
 )
 
 const (
@@ -364,7 +365,8 @@ var (
 
 var (
 	// DefaultContainerRuntime defines the default container runtime.
-	DefaultContainerRuntime = ContainerRuntimeDockerD
+	DefaultContainerRuntime           = ContainerRuntimeDockerD
+	DefaultContainerRuntimeForWindows = ContainerRuntimeDockerForWindows
 )
 
 // Enabled return pointer to true value
@@ -449,6 +451,7 @@ func DeprecatedVersions() []string {
 		Version1_15,
 		Version1_16,
 		Version1_17,
+		Version1_18,
 	}
 }
 
@@ -465,10 +468,10 @@ func IsDeprecatedVersion(version string) bool {
 // SupportedVersions are the versions of Kubernetes that EKS supports
 func SupportedVersions() []string {
 	return []string{
-		Version1_18,
 		Version1_19,
 		Version1_20,
 		Version1_21,
+		Version1_22,
 	}
 }
 
@@ -644,16 +647,15 @@ func (c ClusterConfig) HasNodes() bool {
 
 // ClusterProvider is the interface to AWS APIs
 type ClusterProvider interface {
-	CloudFormation() cloudformationiface.CloudFormationAPI
+	CloudFormation() awsapi.CloudFormation
 	CloudFormationRoleARN() string
 	CloudFormationDisableRollback() bool
 	ASG() awsapi.ASG
 	EKS() eksiface.EKSAPI
-	EC2() ec2iface.EC2API
 	SSM() awsapi.SSM
-	IAM() iamiface.IAMAPI
 	CloudTrail() awsapi.CloudTrail
 	CloudWatchLogs() awsapi.CloudWatchLogs
+	IAM() awsapi.IAM
 	Region() string
 	Profile() string
 	WaitTimeout() time.Duration
@@ -662,8 +664,9 @@ type ClusterProvider interface {
 
 	ELB() awsapi.ELB
 	ELBV2() awsapi.ELBV2
-	STSV2() awsapi.STS
-	STSV2Presign() STSPresigner
+	STS() awsapi.STS
+	STSPresigner() STSPresigner
+	EC2() awsapi.EC2
 }
 
 // STSPresigner defines the method to pre-sign GetCallerIdentity requests to add a proper header required by EKS for
@@ -671,7 +674,7 @@ type ClusterProvider interface {
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_sts_presigner.go . STSPresigner
 type STSPresigner interface {
-	PresignGetCallerIdentity(ctx context.Context, params *stsv2.GetCallerIdentityInput, optFns ...func(*stsv2.PresignOptions)) (*v4.PresignedHTTPRequest, error)
+	PresignGetCallerIdentity(ctx context.Context, params *sts.GetCallerIdentityInput, optFns ...func(*sts.PresignOptions)) (*v4.PresignedHTTPRequest, error)
 }
 
 // ProviderConfig holds global parameters for all interactions with AWS APIs
@@ -994,11 +997,8 @@ type NodeGroup struct {
 	// +optional
 	ContainerRuntime *string `json:"containerRuntime,omitempty"`
 
-	// Propagate all taints and labels to the ASG automatically.
-	// +optional
-	PropagateASGTags *bool `json:"propagateASGTags,omitempty"`
-
-	// DisableASGTagPropagation disable the tag propagation in case desired capacity is 0.
+	// DisableASGTagPropagation disables the tag propagation to ASG in case desired capacity is 0.
+	// Defaults to `false`
 	// +optional
 	DisableASGTagPropagation *bool `json:"disableASGTagPropagation,omitempty"`
 
@@ -1312,7 +1312,7 @@ type NodeGroupBase struct {
 	// +optional
 	PrivateNetworking bool `json:"privateNetworking"`
 	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
-	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
+	// Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
 	// +optional
@@ -1364,6 +1364,10 @@ type NodeGroupBase struct {
 	// Override `eksctl`'s bootstrapping script
 	// +optional
 	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
+
+	// Propagate all taints and labels to the ASG automatically.
+	// +optional
+	PropagateASGTags *bool `json:"propagateASGTags,omitempty"`
 
 	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
 	// Defaults to `false`

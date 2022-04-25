@@ -4,6 +4,7 @@ package awsapi
 
 import (
 	"context"
+
 	. "github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 )
 
@@ -242,3 +243,4 @@ type CloudTrail interface {
 	// which the trail was created; otherwise, an InvalidHomeRegionException is thrown.
 	UpdateTrail(ctx context.Context, params *UpdateTrailInput, optFns ...func(*Options)) (*UpdateTrailOutput, error)
 }
+

@@ -189,7 +189,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						Region: params.Region,
 					},
 				}
-				ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+				ctl, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 				Expect(err).NotTo(HaveOccurred())
 				err = ctl.RefreshClusterStatus(cfg)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -319,9 +319,9 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						Region: params.Region,
 					},
 				}
-				ctl, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+				ctl, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 				Expect(err).NotTo(HaveOccurred())
-				cl, err := ctl.GetCluster(params.ClusterName)
+				cl, err := ctl.GetCluster(context.Background(), params.ClusterName)
 				Expect(err).NotTo(HaveOccurred())
 				awsSession := NewSession(params.Region)
 				ec2 := awsec2.New(awsSession)
@@ -585,7 +585,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						},
 					}
 					var err error
-					ctl, err = eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+					ctl, err = eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 					Expect(err).NotTo(HaveOccurred())
 				})
 
@@ -710,7 +710,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 							Region: params.Region,
 						},
 					}
-					ctl, err = eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+					ctl, err = eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 					Expect(err).NotTo(HaveOccurred())
 					err = ctl.RefreshClusterStatus(cfg)
 					Expect(err).ShouldNot(HaveOccurred())
@@ -720,7 +720,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 				It("should enable OIDC, create two iamserviceaccounts and update the policies", func() {
 					{
-						exists, err := oidc.CheckProviderExists()
+						exists, err := oidc.CheckProviderExists(context.Background())
 						Expect(err).ShouldNot(HaveOccurred())
 						Expect(exists).To(BeFalse())
 					}
@@ -733,7 +733,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					Expect(setupCmd).To(RunSuccessfully())
 
 					{
-						exists, err := oidc.CheckProviderExists()
+						exists, err := oidc.CheckProviderExists(context.Background())
 						Expect(err).ShouldNot(HaveOccurred())
 						Expect(exists).To(BeTrue())
 					}

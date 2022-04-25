@@ -1,28 +1,28 @@
 package vpc
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
 
-	"github.com/aws/aws-sdk-go/aws"
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/onsi/gomega/types"
-
-	"github.com/weaveworks/eksctl/pkg/eks/mocks"
-	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
-	"github.com/weaveworks/eksctl/pkg/utils/strings"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/types"
 	. "github.com/stretchr/testify/mock"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
 	. "github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
+	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 type setSubnetsCase struct {
@@ -51,7 +51,7 @@ func describeImportVPCCase(desc string) func(importVPCCase) string {
 
 type useFromClusterCase struct {
 	cfg          *api.ClusterConfig
-	stack        *cfn.Stack
+	stack        *cfntypes.Stack
 	errorMatcher types.GomegaMatcher
 }
 
@@ -229,7 +229,7 @@ var _ = Describe("VPC", func() {
 				return input != nil
 			})).Return(mockResultFn, nil)
 
-			err := UseFromClusterStack(p, clusterCase.stack, clusterCase.cfg)
+			err := UseFromClusterStack(context.Background(), p, clusterCase.stack, clusterCase.cfg)
 			if clusterCase.errorMatcher != nil {
 				Expect(err.Error()).To(clusterCase.errorMatcher)
 			} else {
@@ -238,7 +238,7 @@ var _ = Describe("VPC", func() {
 		},
 		Entry("No output", useFromClusterCase{
 			cfg:          api.NewClusterConfig(),
-			stack:        &cfn.Stack{},
+			stack:        &cfntypes.Stack{},
 			errorMatcher: MatchRegexp(`no output "(?:VPC|SecurityGroup)"`),
 		}),
 	)
@@ -246,17 +246,18 @@ var _ = Describe("VPC", func() {
 	DescribeTable("importVPC",
 		func(vpcCase importVPCCase) {
 			p := mockprovider.NewMockProvider()
-			p.MockEC2()
 
-			mockResultFn := func(_ *ec2.DescribeVpcsInput) *ec2.DescribeVpcsOutput {
+			mockResultFn := func(context.Context, *ec2.DescribeVpcsInput, ...func(*ec2.Options)) *ec2.DescribeVpcsOutput {
 				return vpcCase.describeVPCOutput
 			}
 
-			p.MockEC2().On("DescribeVpcs", MatchedBy(func(input *ec2.DescribeVpcsInput) bool {
+			p.MockEC2().On("DescribeVpcs", Anything, MatchedBy(func(input *ec2.DescribeVpcsInput) bool {
 				return input != nil
-			})).Return(mockResultFn, vpcCase.describeVPCError)
+			})).Return(mockResultFn, func(context.Context, *ec2.DescribeVpcsInput, ...func(*ec2.Options)) error {
+				return vpcCase.describeVPCError
+			})
 
-			err := importVPC(p.EC2(), vpcCase.cfg, vpcCase.id)
+			err := importVPC(context.Background(), p.EC2(), vpcCase.cfg, vpcCase.id)
 			if vpcCase.error != nil {
 				Expect(err).To(MatchError(vpcCase.error.Error()))
 			} else {
@@ -268,7 +269,7 @@ var _ = Describe("VPC", func() {
 			cfg: api.NewClusterConfig(),
 			id:  "validID",
 			describeVPCOutput: &ec2.DescribeVpcsOutput{
-				Vpcs: []*ec2.Vpc{
+				Vpcs: []ec2types.Vpc{
 					{
 						CidrBlock: strings.Pointer("192.168.0.0/16"),
 						VpcId:     strings.Pointer("validID"),
@@ -294,7 +295,7 @@ var _ = Describe("VPC", func() {
 			},
 			id: "validID",
 			describeVPCOutput: &ec2.DescribeVpcsOutput{
-				Vpcs: []*ec2.Vpc{
+				Vpcs: []ec2types.Vpc{
 					{
 						VpcId: strings.Pointer("validID"),
 					},
@@ -307,7 +308,7 @@ var _ = Describe("VPC", func() {
 			cfg: api.NewClusterConfig(),
 			id:  "validID",
 			describeVPCOutput: &ec2.DescribeVpcsOutput{
-				Vpcs: []*ec2.Vpc{
+				Vpcs: []ec2types.Vpc{
 					{
 						CidrBlock: strings.Pointer("10.168.0.0/16"),
 						VpcId:     strings.Pointer("validID"),
@@ -335,7 +336,7 @@ var _ = Describe("VPC", func() {
 			},
 			id: "validID",
 			describeVPCOutput: &ec2.DescribeVpcsOutput{
-				Vpcs: []*ec2.Vpc{
+				Vpcs: []ec2types.Vpc{
 					{
 						CidrBlock: strings.Pointer("10.168.0.0/16"),
 						VpcId:     strings.Pointer("validID"),
@@ -363,7 +364,7 @@ var _ = Describe("VPC", func() {
 			},
 			id: "validID",
 			describeVPCOutput: &ec2.DescribeVpcsOutput{
-				Vpcs: []*ec2.Vpc{
+				Vpcs: []ec2types.Vpc{
 					{
 						CidrBlock: strings.Pointer("*"),
 						VpcId:     strings.Pointer("validID"),
@@ -381,10 +382,10 @@ var _ = Describe("VPC", func() {
 			}(),
 			id: "validID",
 			describeVPCOutput: &ec2.DescribeVpcsOutput{
-				Vpcs: []*ec2.Vpc{
+				Vpcs: []ec2types.Vpc{
 					{
 						CidrBlock: strings.Pointer("10.0.0.0/16"),
-						CidrBlockAssociationSet: []*ec2.VpcCidrBlockAssociation{
+						CidrBlockAssociationSet: []ec2types.VpcCidrBlockAssociation{
 							{
 								CidrBlock: strings.Pointer("10.1.0.0/16"),
 							},
@@ -404,10 +405,10 @@ var _ = Describe("VPC", func() {
 			}(),
 			id: "validID",
 			describeVPCOutput: &ec2.DescribeVpcsOutput{
-				Vpcs: []*ec2.Vpc{
+				Vpcs: []ec2types.Vpc{
 					{
 						CidrBlock: strings.Pointer("10.0.0.0/16"),
-						CidrBlockAssociationSet: []*ec2.VpcCidrBlockAssociation{
+						CidrBlockAssociationSet: []ec2types.VpcCidrBlockAssociation{
 							{
 								CidrBlock: strings.Pointer("10.1.0.0/16"),
 							},
@@ -637,13 +638,14 @@ var _ = Describe("VPC", func() {
 			p := mockprovider.NewMockProvider()
 
 			p.MockEC2().On("DescribeSubnets",
-				&ec2.DescribeSubnetsInput{Filters: []*ec2.Filter{{
-					Name: strings.Pointer("vpc-id"), Values: aws.StringSlice([]string{"vpc1"}),
+				Anything,
+				&ec2.DescribeSubnetsInput{Filters: []ec2types.Filter{{
+					Name: strings.Pointer("vpc-id"), Values: []string{"vpc1"},
 				}, {
-					Name: strings.Pointer("cidr-block"), Values: aws.StringSlice([]string{"192.168.64.0/18"}),
+					Name: strings.Pointer("cidr-block"), Values: []string{"192.168.64.0/18"},
 				}}},
 			).Return(&ec2.DescribeSubnetsOutput{
-				Subnets: []*ec2.Subnet{
+				Subnets: []ec2types.Subnet{
 					{
 						AvailabilityZone: strings.Pointer("az2"),
 						CidrBlock:        strings.Pointer("192.168.64.0/18"),
@@ -653,13 +655,14 @@ var _ = Describe("VPC", func() {
 				},
 			}, nil)
 			p.MockEC2().On("DescribeSubnets",
-				&ec2.DescribeSubnetsInput{Filters: []*ec2.Filter{{
-					Name: strings.Pointer("vpc-id"), Values: aws.StringSlice([]string{"vpc1"}),
+				Anything,
+				&ec2.DescribeSubnetsInput{Filters: []ec2types.Filter{{
+					Name: strings.Pointer("vpc-id"), Values: []string{"vpc1"},
 				}, {
-					Name: strings.Pointer("availability-zone"), Values: aws.StringSlice([]string{"az3"}),
+					Name: strings.Pointer("availability-zone"), Values: []string{"az3"},
 				}}},
 			).Return(&ec2.DescribeSubnetsOutput{
-				Subnets: []*ec2.Subnet{
+				Subnets: []ec2types.Subnet{
 					{
 						AvailabilityZone: strings.Pointer("az3"),
 						CidrBlock:        strings.Pointer("192.168.128.0/18"),
@@ -669,9 +672,10 @@ var _ = Describe("VPC", func() {
 				},
 			}, nil)
 			p.MockEC2().On("DescribeSubnets",
-				&ec2.DescribeSubnetsInput{SubnetIds: aws.StringSlice([]string{"private1"})},
+				Anything,
+				&ec2.DescribeSubnetsInput{SubnetIds: []string{"private1"}},
 			).Return(&ec2.DescribeSubnetsOutput{
-				Subnets: []*ec2.Subnet{
+				Subnets: []ec2types.Subnet{
 					{
 						AvailabilityZone: strings.Pointer("az1"),
 						CidrBlock:        strings.Pointer("192.168.0.0/20"),
@@ -681,9 +685,10 @@ var _ = Describe("VPC", func() {
 				},
 			}, nil)
 			p.MockEC2().On("DescribeSubnets",
-				&ec2.DescribeSubnetsInput{SubnetIds: aws.StringSlice([]string{"public1"})},
+				Anything,
+				&ec2.DescribeSubnetsInput{SubnetIds: []string{"public1"}},
 			).Return(&ec2.DescribeSubnetsOutput{
-				Subnets: []*ec2.Subnet{
+				Subnets: []ec2types.Subnet{
 					{
 						AvailabilityZone: strings.Pointer("az1"),
 						CidrBlock:        strings.Pointer("192.168.1.0/20"),
@@ -694,10 +699,11 @@ var _ = Describe("VPC", func() {
 			}, nil)
 
 			p.MockEC2().On("DescribeVpcs",
-				&ec2.DescribeVpcsInput{VpcIds: aws.StringSlice([]string{"vpc1"})},
+				Anything,
+				&ec2.DescribeVpcsInput{VpcIds: []string{"vpc1"}},
 			).Return(&ec2.DescribeVpcsOutput{
 				NextToken: nil,
-				Vpcs: []*ec2.Vpc{
+				Vpcs: []ec2types.Vpc{
 					{
 						CidrBlock: strings.Pointer("192.168.0.0/16"),
 						VpcId:     strings.Pointer("vpc1"),
@@ -705,7 +711,7 @@ var _ = Describe("VPC", func() {
 				},
 			}, nil)
 
-			err := ImportSubnetsFromSpec(p, &e.cfg)
+			err := ImportSubnetsFromSpec(context.Background(), p, &e.cfg)
 			if e.error != nil {
 				Expect(err).To(MatchError(e.error.Error()))
 			} else {
@@ -922,7 +928,7 @@ var _ = Describe("VPC", func() {
 
 	DescribeTable("select subnets",
 		func(e selectSubnetsCase) {
-			ids, err := SelectNodeGroupSubnets(e.nodegroupAZs, e.nodegroupSubnets, e.subnets, nil, "")
+			ids, err := SelectNodeGroupSubnets(context.Background(), e.nodegroupAZs, e.nodegroupSubnets, e.subnets, nil, "")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(ids).To(ConsistOf(e.expectIDs))
 		},
@@ -965,7 +971,7 @@ var _ = Describe("VPC", func() {
 	Context("the user provides an optional subnet id", func() {
 		var (
 			subnetID string
-			mockEC2  *mocks.EC2API
+			mockEC2  *mocksv2.EC2
 			vpcID    string
 			az       string
 			azMap    map[string]api.AZSubnetSpec
@@ -973,7 +979,7 @@ var _ = Describe("VPC", func() {
 		BeforeEach(func() {
 			subnetID = "user-defined-id"
 			vpcID = "vpc-id"
-			mockEC2 = &mocks.EC2API{}
+			mockEC2 = &mocksv2.EC2{}
 			az = "us-east-1a"
 			azMap = map[string]api.AZSubnetSpec{
 				"a": {
@@ -988,17 +994,17 @@ var _ = Describe("VPC", func() {
 		})
 		When("the provided subnet exists", func() {
 			It("gets information about the subnet and returns it if it exists", func() {
-				mockEC2.On("DescribeSubnets", &ec2.DescribeSubnetsInput{
-					SubnetIds: aws.StringSlice([]string{subnetID}),
+				mockEC2.On("DescribeSubnets", Anything, &ec2.DescribeSubnetsInput{
+					SubnetIds: []string{subnetID},
 				}).Return(&ec2.DescribeSubnetsOutput{
-					Subnets: []*ec2.Subnet{
+					Subnets: []ec2types.Subnet{
 						{
 							SubnetId: &subnetID,
 							VpcId:    &vpcID,
 						},
 					},
 				}, nil)
-				ids, err := SelectNodeGroupSubnets([]string{az}, []string{subnetID}, api.AZSubnetMappingFromMap(azMap), mockEC2, vpcID)
+				ids, err := SelectNodeGroupSubnets(context.Background(), []string{az}, []string{subnetID}, api.AZSubnetMappingFromMap(azMap), mockEC2, vpcID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(ids).To(ConsistOf("id-1", "id-2", subnetID))
 			})
@@ -1006,27 +1012,27 @@ var _ = Describe("VPC", func() {
 
 		When("the provided subnet doesn't exist", func() {
 			It("returns a proper error", func() {
-				mockEC2.On("DescribeSubnets", &ec2.DescribeSubnetsInput{
-					SubnetIds: aws.StringSlice([]string{subnetID}),
+				mockEC2.On("DescribeSubnets", Anything, &ec2.DescribeSubnetsInput{
+					SubnetIds: []string{subnetID},
 				}).Return(nil, errors.New("nope"))
-				_, err := SelectNodeGroupSubnets([]string{az}, []string{subnetID}, api.AZSubnetMappingFromMap(azMap), mockEC2, vpcID)
+				_, err := SelectNodeGroupSubnets(context.Background(), []string{az}, []string{subnetID}, api.AZSubnetMappingFromMap(azMap), mockEC2, vpcID)
 				Expect(err).To(MatchError(ContainSubstring("nope")))
 			})
 		})
 
 		When("the provided subnet is not part of the cluster's VPC", func() {
 			It("returns a proper error", func() {
-				mockEC2.On("DescribeSubnets", &ec2.DescribeSubnetsInput{
-					SubnetIds: aws.StringSlice([]string{subnetID}),
+				mockEC2.On("DescribeSubnets", Anything, &ec2.DescribeSubnetsInput{
+					SubnetIds: []string{subnetID},
 				}).Return(&ec2.DescribeSubnetsOutput{
-					Subnets: []*ec2.Subnet{
+					Subnets: []ec2types.Subnet{
 						{
 							SubnetId: &subnetID,
 							VpcId:    aws.String("different-vpc-id"),
 						},
 					},
 				}, nil)
-				_, err := SelectNodeGroupSubnets([]string{az}, []string{subnetID}, api.AZSubnetMappingFromMap(azMap), mockEC2, vpcID)
+				_, err := SelectNodeGroupSubnets(context.Background(), []string{az}, []string{subnetID}, api.AZSubnetMappingFromMap(azMap), mockEC2, vpcID)
 				Expect(err).To(MatchError(ContainSubstring("subnet with id \"user-defined-id\" is not in the attached vpc with id \"vpc-id\"")))
 			})
 		})

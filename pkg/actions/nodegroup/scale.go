@@ -20,7 +20,7 @@ import (
 func (m *Manager) Scale(ctx context.Context, ng *api.NodeGroupBase) error {
 	logger.Info("scaling nodegroup %q in cluster %s", ng.Name, m.cfg.Metadata.Name)
 
-	nodegroupStackInfos, err := m.stackManager.DescribeNodeGroupStacksAndResources()
+	nodegroupStackInfos, err := m.stackManager.DescribeNodeGroupStacksAndResources(ctx)
 	if err != nil {
 		return err
 	}

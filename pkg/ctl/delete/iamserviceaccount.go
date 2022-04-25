@@ -1,6 +1,7 @@
 package delete
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/kris-nova/logger"
@@ -88,7 +89,7 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 		return err
 	}
 
-	providerExists, err := oidc.CheckProviderExists()
+	providerExists, err := oidc.CheckProviderExists(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -101,7 +102,7 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d iamserviceaccounts defined in the given config (%q) against remote state", len(cfg.IAM.ServiceAccounts), cmd.ClusterConfigFile)
-		if err := saFilter.SetDeleteFilter(stackManager, onlyMissing, cfg); err != nil {
+		if err := saFilter.SetDeleteFilter(context.TODO(), stackManager, onlyMissing, cfg); err != nil {
 			return err
 		}
 	}
@@ -115,5 +116,5 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
-	return irsaManager.Delete(saSubset.List(), cmd.Plan, cmd.Wait)
+	return irsaManager.Delete(context.TODO(), saSubset.List(), cmd.Plan, cmd.Wait)
 }

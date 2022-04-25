@@ -1,6 +1,7 @@
 package update
 
 import (
+	"context"
 	"errors"
 
 	"github.com/kris-nova/logger"
@@ -84,7 +85,7 @@ func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	providerExists, err := oidc.CheckProviderExists()
+	providerExists, err := oidc.CheckProviderExists(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -99,10 +100,10 @@ func doUpdateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	existingIAMStacks, err := stackManager.ListStacksMatching("eksctl-.*-addon-iamserviceaccount")
+	existingIAMStacks, err := stackManager.ListStacksMatching(context.TODO(), "eksctl-.*-addon-iamserviceaccount")
 	if err != nil {
 		return err
 	}
 
-	return irsa.New(cfg.Metadata.Name, stackManager, oidc, clientSet).UpdateIAMServiceAccounts(cfg.IAM.ServiceAccounts, existingIAMStacks, cmd.Plan)
+	return irsa.New(cfg.Metadata.Name, stackManager, oidc, clientSet).UpdateIAMServiceAccounts(context.TODO(), cfg.IAM.ServiceAccounts, existingIAMStacks, cmd.Plan)
 }

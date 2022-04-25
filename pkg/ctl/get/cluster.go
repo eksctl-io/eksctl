@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -85,14 +86,15 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 		logger.Writer = os.Stderr
 	}
 
+	ctx := context.TODO()
 	if cfg.Metadata.Name == "" {
-		return getAndPrinterClusters(ctl, params, listAllRegions)
+		return getAndPrinterClusters(ctx, ctl, params, listAllRegions)
 	}
 
-	return getAndPrintCluster(cfg, ctl, params)
+	return getAndPrintCluster(ctx, cfg, ctl, params)
 }
 
-func getAndPrinterClusters(ctl *eks.ClusterProvider, params *getCmdParams, listAllRegions bool) error {
+func getAndPrinterClusters(ctx context.Context, ctl *eks.ClusterProvider, params *getCmdParams, listAllRegions bool) error {
 	printer, err := printers.NewPrinter(params.output)
 	if err != nil {
 		return err
@@ -102,7 +104,7 @@ func getAndPrinterClusters(ctl *eks.ClusterProvider, params *getCmdParams, listA
 		addGetClustersSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	clusters, err := cluster.GetClusters(ctl.Provider, listAllRegions, params.chunkSize)
+	clusters, err := cluster.GetClusters(ctx, ctl.Provider, listAllRegions, params.chunkSize)
 	if err != nil {
 		return err
 	}
@@ -122,7 +124,7 @@ func addGetClustersSummaryTableColumns(printer *printers.TablePrinter) {
 	})
 }
 
-func getAndPrintCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, params *getCmdParams) error {
+func getAndPrintCluster(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, params *getCmdParams) error {
 	printer, err := printers.NewPrinter(params.output)
 	if err != nil {
 		return err
@@ -132,7 +134,7 @@ func getAndPrintCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, params
 		addGetClusterSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	cluster, err := ctl.GetCluster(cfg.Metadata.Name)
+	cluster, err := ctl.GetCluster(ctx, cfg.Metadata.Name)
 
 	if err != nil {
 		return err

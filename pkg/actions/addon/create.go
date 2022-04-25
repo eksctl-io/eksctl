@@ -27,7 +27,7 @@ const (
 	ebsCSIDriverName    = "aws-ebs-csi-driver"
 )
 
-func (a *Manager) Create(addon *api.Addon, wait bool) error {
+func (a *Manager) Create(ctx context.Context, addon *api.Addon, wait bool) error {
 	version := addon.Version
 	if version != "" {
 		var err error
@@ -64,7 +64,7 @@ func (a *Manager) Create(addon *api.Addon, wait bool) error {
 			logger.Info("using provided ServiceAccountRoleARN %q", addon.ServiceAccountRoleARN)
 			createAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
 		} else if hasPoliciesSet(addon) {
-			outputRole, err := a.createRole(addon, namespace, serviceAccount)
+			outputRole, err := a.createRole(ctx, addon, namespace, serviceAccount)
 			if err != nil {
 				return err
 			}
@@ -86,7 +86,7 @@ func (a *Manager) Create(addon *api.Addon, wait bool) error {
 				if err := resourceSet.AddAllResources(); err != nil {
 					return err
 				}
-				err := a.createStack(resourceSet, addon)
+				err := a.createStack(ctx, resourceSet, addon)
 				if err != nil {
 					return err
 				}
@@ -223,14 +223,14 @@ func hasPoliciesSet(addon *api.Addon) bool {
 	return len(addon.AttachPolicyARNs) != 0 || addon.WellKnownPolicies.HasPolicy() || addon.AttachPolicy != nil
 }
 
-func (a *Manager) createRole(addon *api.Addon, namespace, serviceAccount string) (string, error) {
+func (a *Manager) createRole(ctx context.Context, addon *api.Addon, namespace, serviceAccount string) (string, error) {
 	resourceSet, err := a.createRoleResourceSet(addon, namespace, serviceAccount)
 
 	if err != nil {
 		return "", err
 	}
 
-	err = a.createStack(resourceSet, addon)
+	err = a.createStack(ctx, resourceSet, addon)
 	if err != nil {
 		return "", err
 	}
@@ -252,14 +252,14 @@ func (a *Manager) createRoleResourceSet(addon *api.Addon, namespace, serviceAcco
 	return resourceSet, resourceSet.AddAllResources()
 }
 
-func (a *Manager) createStack(resourceSet builder.ResourceSet, addon *api.Addon) error {
+func (a *Manager) createStack(ctx context.Context, resourceSet builder.ResourceSetReader, addon *api.Addon) error {
 	errChan := make(chan error)
 
 	tags := map[string]string{
 		api.AddonNameTag: addon.Name,
 	}
 
-	err := a.stackManager.CreateStack(a.makeAddonName(addon.Name), resourceSet, tags, nil, errChan)
+	err := a.stackManager.CreateStack(ctx, a.makeAddonName(addon.Name), resourceSet, tags, nil, errChan)
 	if err != nil {
 		return err
 	}

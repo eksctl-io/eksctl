@@ -82,6 +82,25 @@ var _ = Describe("ClusterConfig validation", func() {
 	})
 
 	Describe("nodeGroups[*].containerRuntime validation", func() {
+
+		It("allows accepted values", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeDockerForWindows)
+			err := api.ValidateNodeGroup(0, ng0)
+			Expect(err).NotTo(HaveOccurred())
+
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeDockerD)
+			err = api.ValidateNodeGroup(0, ng0)
+			Expect(err).NotTo(HaveOccurred())
+
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeContainerD)
+			ng0.AMIFamily = api.NodeImageFamilyAmazonLinux2
+			err = api.ValidateNodeGroup(0, ng0)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
 		It("should reject invalid container runtime", func() {
 			cfg := api.NewClusterConfig()
 			ng0 := cfg.NewNodeGroup()
@@ -92,7 +111,8 @@ var _ = Describe("ClusterConfig validation", func() {
 			err = api.ValidateNodeGroup(0, ng0)
 			Expect(err).To(HaveOccurred())
 		})
-		It("containerd is only allowed for AL2", func() {
+
+		It("containerd is only allowed for AL2 or Windows", func() {
 			cfg := api.NewClusterConfig()
 			ng0 := cfg.NewNodeGroup()
 			ng0.Name = "node-group"
@@ -102,6 +122,11 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).NotTo(HaveOccurred())
 			err = api.ValidateNodeGroup(0, ng0)
 			Expect(err).To(HaveOccurred())
+			ng0.AMIFamily = api.NodeImageFamilyWindowsServer2019CoreContainer
+			err = api.ValidateClusterConfig(cfg)
+			Expect(err).NotTo(HaveOccurred())
+			err = api.ValidateNodeGroup(0, ng0)
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 
@@ -879,7 +904,6 @@ var _ = Describe("ClusterConfig validation", func() {
 							cfg.VPC.NAT = nil
 							err = api.ValidateClusterConfig(cfg)
 							Expect(err).NotTo(HaveOccurred())
-							Expect(cfg.Addons[2].Version).To(Equal("1.10.0"))
 						})
 					})
 
@@ -1674,14 +1698,12 @@ var _ = Describe("ClusterConfig validation", func() {
 
 	Describe("Windows node groups", func() {
 		It("returns an error with unsupported fields", func() {
-			cmd := "start /wait msiexec.exe"
 			doc := api.InlineDocument{
 				"cgroupDriver": "systemd",
 			}
 
 			ngs := map[string]*api.NodeGroup{
-				"OverrideBootstrapCommand": {NodeGroupBase: &api.NodeGroupBase{OverrideBootstrapCommand: &cmd}},
-				"KubeletExtraConfig":       {KubeletExtraConfig: &doc, NodeGroupBase: &api.NodeGroupBase{}},
+				"KubeletExtraConfig": {KubeletExtraConfig: &doc, NodeGroupBase: &api.NodeGroupBase{}},
 			}
 
 			for name, ng := range ngs {

@@ -18,7 +18,7 @@ import (
 )
 
 // Create creates a Karpenter installer task and waits for it to finish.
-func (i *Installer) Create() error {
+func (i *Installer) Create(ctx context.Context) error {
 	// create the needed service account before Karpenter, otherwise, Karpenter will fail to be created.
 	parsedARN, err := arn.Parse(i.Config.Status.ARN)
 	if err != nil {
@@ -35,7 +35,7 @@ func (i *Installer) Create() error {
 	}
 
 	// Create IAM roles
-	taskTree := newTasksToInstallKarpenterIAMRoles(i.Config, i.StackManager, i.CTL.Provider.EC2(), instanceProfileName)
+	taskTree := newTasksToInstallKarpenterIAMRoles(ctx, i.Config, i.StackManager, i.CTL.Provider.EC2(), instanceProfileName)
 	if err := doTasks(taskTree); err != nil {
 		return err
 	}

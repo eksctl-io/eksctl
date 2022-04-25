@@ -1,6 +1,7 @@
 package delete
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -17,30 +18,31 @@ import (
 )
 
 func deleteNodeGroupCmd(cmd *cmdutils.Cmd) {
-	deleteNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod time.Duration, disableEviction bool, parallel int) error {
-		return doDeleteNodeGroup(cmd, ng, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, maxGracePeriod, disableEviction, parallel)
+	deleteNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod, podEvictionWaitPeriod time.Duration, disableEviction bool, parallel int) error {
+		return doDeleteNodeGroup(cmd, ng, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, maxGracePeriod, podEvictionWaitPeriod, disableEviction, parallel)
 	})
 }
 
-func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod time.Duration, disableEviction bool, parallel int) error) {
+func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod, podEvictionWaitPeriod time.Duration, disableEviction bool, parallel int) error) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
 	var (
-		updateAuthConfigMap  bool
-		deleteNodeGroupDrain bool
-		onlyMissing          bool
-		maxGracePeriod       time.Duration
-		disableEviction      bool
-		parallel             int
+		updateAuthConfigMap   bool
+		deleteNodeGroupDrain  bool
+		onlyMissing           bool
+		maxGracePeriod        time.Duration
+		podEvictionWaitPeriod time.Duration
+		disableEviction       bool
+		parallel              int
 	)
 
 	cmd.SetDescription("nodegroup", "Delete a nodegroup", "", "ng")
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return runFunc(cmd, ng, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, maxGracePeriod, disableEviction, parallel)
+		return runFunc(cmd, ng, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing, maxGracePeriod, podEvictionWaitPeriod, disableEviction, parallel)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -55,6 +57,8 @@ func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cm
 		fs.BoolVar(&deleteNodeGroupDrain, "drain", true, "Drain and cordon all nodes in the nodegroup before deletion")
 		defaultMaxGracePeriod, _ := time.ParseDuration("10m")
 		fs.DurationVar(&maxGracePeriod, "max-grace-period", defaultMaxGracePeriod, "Maximum pods termination grace period")
+		defaultPodEvictionWaitPeriod, _ := time.ParseDuration("10s")
+		fs.DurationVar(&podEvictionWaitPeriod, "pod-eviction-wait-period", defaultPodEvictionWaitPeriod, "Duration to wait after failing to evict a pod")
 		defaultDisableEviction := false
 		fs.BoolVar(&disableEviction, "disable-eviction", defaultDisableEviction, "Force drain to use delete, even if eviction is supported. This will bypass checking PodDisruptionBudgets, use with caution.")
 		fs.IntVar(&parallel, "parallel", 1, "Number of nodes to drain in parallel. Max 25")
@@ -67,7 +71,7 @@ func deleteNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cm
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, &cmd.ProviderConfig, true)
 }
 
-func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod time.Duration, disableEviction bool, parallel int) error {
+func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool, maxGracePeriod time.Duration, podEvictionWaitPeriod time.Duration, disableEviction bool, parallel int) error {
 	ngFilter := filter.NewNodeGroupFilter()
 
 	if err := cmdutils.NewDeleteAndDrainNodeGroupLoader(cmd, ng, ngFilter).Load(); err != nil {
@@ -91,17 +95,18 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
+	ctx := context.TODO()
 
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d nodegroups defined in the given config (%q) against remote state", len(cfg.NodeGroups), cmd.ClusterConfigFile)
 		if onlyMissing {
-			err = ngFilter.SetOnlyRemote(ctl.Provider.EKS(), stackManager, cfg)
+			err = ngFilter.SetOnlyRemote(ctx, ctl.Provider.EKS(), stackManager, cfg)
 			if err != nil {
 				return err
 			}
 		}
 	} else {
-		err := cmdutils.PopulateNodegroup(stackManager, ng.Name, cfg, ctl.Provider)
+		err := cmdutils.PopulateNodegroup(ctx, stackManager, ng.Name, cfg, ctl.Provider)
 		if err != nil {
 			return err
 		}
@@ -114,7 +119,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	if updateAuthConfigMap {
 		for _, ng := range cfg.NodeGroups {
 			if ng.IAM == nil || ng.IAM.InstanceRoleARN == "" {
-				if err := ctl.GetNodeGroupIAM(stackManager, ng); err != nil {
+				if err := ctl.GetNodeGroupIAM(ctx, stackManager, ng); err != nil {
 					err := fmt.Sprintf("error getting instance role ARN for nodegroup %q: %v", ng.Name, err)
 					logger.Warning("continuing with deletion, error occurred: %s", err)
 				}
@@ -128,11 +133,12 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		cmdutils.LogIntendedAction(cmd.Plan, "drain %d nodegroup(s) in cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
 		drainInput := &nodegroup.DrainInput{
-			NodeGroups:      allNodeGroups,
-			Plan:            cmd.Plan,
-			MaxGracePeriod:  maxGracePeriod,
-			DisableEviction: disableEviction,
-			Parallel:        parallel,
+			NodeGroups:            allNodeGroups,
+			Plan:                  cmd.Plan,
+			MaxGracePeriod:        maxGracePeriod,
+			PodEvictionWaitPeriod: podEvictionWaitPeriod,
+			DisableEviction:       disableEviction,
+			Parallel:              parallel,
 		}
 		err := nodeGroupManager.Drain(drainInput)
 		if err != nil {
@@ -143,7 +149,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 	cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
-	err = nodeGroupManager.Delete(cfg.NodeGroups, cfg.ManagedNodeGroups, cmd.Wait, cmd.Plan)
+	err = nodeGroupManager.Delete(context.TODO(), cfg.NodeGroups, cfg.ManagedNodeGroups, cmd.Wait, cmd.Plan)
 	if err != nil {
 		return err
 	}

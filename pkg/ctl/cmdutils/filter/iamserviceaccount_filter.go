@@ -1,6 +1,8 @@
 package filter
 
 import (
+	"context"
+
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/kris-nova/logger"
@@ -16,7 +18,7 @@ type IAMServiceAccountFilter struct {
 
 // A stackLister lists nodegroup stacks
 type serviceAccountLister interface {
-	ListIAMServiceAccountStacks() ([]string, error)
+	ListIAMServiceAccountStacks(context.Context) ([]string, error)
 }
 
 // NewIAMServiceAccountFilter create new ServiceAccountFilter instance
@@ -45,12 +47,12 @@ func (f *IAMServiceAccountFilter) AppendIncludeGlobs(serviceAccounts []*api.Clus
 
 // SetExcludeExistingFilter uses stackManager to list existing nodegroup stacks and configures
 // the filter accordingly
-func (f *IAMServiceAccountFilter) SetExcludeExistingFilter(stackManager serviceAccountLister, clientSet kubernetes.Interface, serviceAccounts []*api.ClusterIAMServiceAccount, overrideExistingServiceAccounts bool) error {
+func (f *IAMServiceAccountFilter) SetExcludeExistingFilter(ctx context.Context, stackManager serviceAccountLister, clientSet kubernetes.Interface, serviceAccounts []*api.ClusterIAMServiceAccount, overrideExistingServiceAccounts bool) error {
 	if f.ExcludeAll {
 		return nil
 	}
 
-	existing, err := stackManager.ListIAMServiceAccountStacks()
+	existing, err := stackManager.ListIAMServiceAccountStacks(ctx)
 	if err != nil {
 		return err
 	}
@@ -79,8 +81,8 @@ func (f *IAMServiceAccountFilter) SetExcludeExistingFilter(stackManager serviceA
 
 // SetDeleteFilter uses stackManager to list existing iamserviceaccount stacks and configures
 // the filter to either explictily exluce or include iamserviceaccounts that are missing from given serviceAccounts
-func (f *IAMServiceAccountFilter) SetDeleteFilter(lister serviceAccountLister, includeOnlyMissing bool, cfg *api.ClusterConfig) error {
-	existing, err := lister.ListIAMServiceAccountStacks()
+func (f *IAMServiceAccountFilter) SetDeleteFilter(ctx context.Context, lister serviceAccountLister, includeOnlyMissing bool, cfg *api.ClusterConfig) error {
+	existing, err := lister.ListIAMServiceAccountStacks(ctx)
 	if err != nil {
 		return err
 	}

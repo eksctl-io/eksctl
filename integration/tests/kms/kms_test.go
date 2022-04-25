@@ -5,6 +5,7 @@ package kms
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
+
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -62,7 +64,7 @@ var _ = Describe("(Integration) [EKS kms test]", func() {
 				WithStdin(bytes.NewReader(data))
 			Expect(cmd).To(RunSuccessfully())
 
-			clusterProvider, err := eks.New(&api.ProviderConfig{Region: params.Region}, clusterConfig)
+			clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, clusterConfig)
 			Expect(err).NotTo(HaveOccurred())
 			ctl = clusterProvider.Provider
 

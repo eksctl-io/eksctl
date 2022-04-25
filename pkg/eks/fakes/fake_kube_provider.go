@@ -2,6 +2,7 @@
 package fakes
 
 import (
+	"context"
 	"sync"
 
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -12,11 +13,12 @@ import (
 )
 
 type FakeKubeProvider struct {
-	LoadClusterIntoSpecFromStackStub        func(*v1alpha5.ClusterConfig, manager.StackManager) error
+	LoadClusterIntoSpecFromStackStub        func(context.Context, *v1alpha5.ClusterConfig, manager.StackManager) error
 	loadClusterIntoSpecFromStackMutex       sync.RWMutex
 	loadClusterIntoSpecFromStackArgsForCall []struct {
-		arg1 *v1alpha5.ClusterConfig
-		arg2 manager.StackManager
+		arg1 context.Context
+		arg2 *v1alpha5.ClusterConfig
+		arg3 manager.StackManager
 	}
 	loadClusterIntoSpecFromStackReturns struct {
 		result1 error
@@ -50,19 +52,6 @@ type FakeKubeProvider struct {
 		result1 string
 		result2 error
 	}
-	SupportsManagedNodesStub        func(*v1alpha5.ClusterConfig) (bool, error)
-	supportsManagedNodesMutex       sync.RWMutex
-	supportsManagedNodesArgsForCall []struct {
-		arg1 *v1alpha5.ClusterConfig
-	}
-	supportsManagedNodesReturns struct {
-		result1 bool
-		result2 error
-	}
-	supportsManagedNodesReturnsOnCall map[int]struct {
-		result1 bool
-		result2 error
-	}
 	UpdateAuthConfigMapStub        func([]*v1alpha5.NodeGroup, kubernetesa.Interface) error
 	updateAuthConfigMapMutex       sync.RWMutex
 	updateAuthConfigMapArgsForCall []struct {
@@ -75,11 +64,12 @@ type FakeKubeProvider struct {
 	updateAuthConfigMapReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ValidateClusterForCompatibilityStub        func(*v1alpha5.ClusterConfig, manager.StackManager) error
+	ValidateClusterForCompatibilityStub        func(context.Context, *v1alpha5.ClusterConfig, manager.StackManager) error
 	validateClusterForCompatibilityMutex       sync.RWMutex
 	validateClusterForCompatibilityArgsForCall []struct {
-		arg1 *v1alpha5.ClusterConfig
-		arg2 manager.StackManager
+		arg1 context.Context
+		arg2 *v1alpha5.ClusterConfig
+		arg3 manager.StackManager
 	}
 	validateClusterForCompatibilityReturns struct {
 		result1 error
@@ -103,19 +93,20 @@ type FakeKubeProvider struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStack(arg1 *v1alpha5.ClusterConfig, arg2 manager.StackManager) error {
+func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStack(arg1 context.Context, arg2 *v1alpha5.ClusterConfig, arg3 manager.StackManager) error {
 	fake.loadClusterIntoSpecFromStackMutex.Lock()
 	ret, specificReturn := fake.loadClusterIntoSpecFromStackReturnsOnCall[len(fake.loadClusterIntoSpecFromStackArgsForCall)]
 	fake.loadClusterIntoSpecFromStackArgsForCall = append(fake.loadClusterIntoSpecFromStackArgsForCall, struct {
-		arg1 *v1alpha5.ClusterConfig
-		arg2 manager.StackManager
-	}{arg1, arg2})
+		arg1 context.Context
+		arg2 *v1alpha5.ClusterConfig
+		arg3 manager.StackManager
+	}{arg1, arg2, arg3})
 	stub := fake.LoadClusterIntoSpecFromStackStub
 	fakeReturns := fake.loadClusterIntoSpecFromStackReturns
-	fake.recordInvocation("LoadClusterIntoSpecFromStack", []interface{}{arg1, arg2})
+	fake.recordInvocation("LoadClusterIntoSpecFromStack", []interface{}{arg1, arg2, arg3})
 	fake.loadClusterIntoSpecFromStackMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
@@ -129,17 +120,17 @@ func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackCallCount() int {
 	return len(fake.loadClusterIntoSpecFromStackArgsForCall)
 }
 
-func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackCalls(stub func(*v1alpha5.ClusterConfig, manager.StackManager) error) {
+func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackCalls(stub func(context.Context, *v1alpha5.ClusterConfig, manager.StackManager) error) {
 	fake.loadClusterIntoSpecFromStackMutex.Lock()
 	defer fake.loadClusterIntoSpecFromStackMutex.Unlock()
 	fake.LoadClusterIntoSpecFromStackStub = stub
 }
 
-func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackArgsForCall(i int) (*v1alpha5.ClusterConfig, manager.StackManager) {
+func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackArgsForCall(i int) (context.Context, *v1alpha5.ClusterConfig, manager.StackManager) {
 	fake.loadClusterIntoSpecFromStackMutex.RLock()
 	defer fake.loadClusterIntoSpecFromStackMutex.RUnlock()
 	argsForCall := fake.loadClusterIntoSpecFromStackArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeKubeProvider) LoadClusterIntoSpecFromStackReturns(result1 error) {
@@ -293,70 +284,6 @@ func (fake *FakeKubeProvider) ServerVersionReturnsOnCall(i int, result1 string, 
 	}{result1, result2}
 }
 
-func (fake *FakeKubeProvider) SupportsManagedNodes(arg1 *v1alpha5.ClusterConfig) (bool, error) {
-	fake.supportsManagedNodesMutex.Lock()
-	ret, specificReturn := fake.supportsManagedNodesReturnsOnCall[len(fake.supportsManagedNodesArgsForCall)]
-	fake.supportsManagedNodesArgsForCall = append(fake.supportsManagedNodesArgsForCall, struct {
-		arg1 *v1alpha5.ClusterConfig
-	}{arg1})
-	stub := fake.SupportsManagedNodesStub
-	fakeReturns := fake.supportsManagedNodesReturns
-	fake.recordInvocation("SupportsManagedNodes", []interface{}{arg1})
-	fake.supportsManagedNodesMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeKubeProvider) SupportsManagedNodesCallCount() int {
-	fake.supportsManagedNodesMutex.RLock()
-	defer fake.supportsManagedNodesMutex.RUnlock()
-	return len(fake.supportsManagedNodesArgsForCall)
-}
-
-func (fake *FakeKubeProvider) SupportsManagedNodesCalls(stub func(*v1alpha5.ClusterConfig) (bool, error)) {
-	fake.supportsManagedNodesMutex.Lock()
-	defer fake.supportsManagedNodesMutex.Unlock()
-	fake.SupportsManagedNodesStub = stub
-}
-
-func (fake *FakeKubeProvider) SupportsManagedNodesArgsForCall(i int) *v1alpha5.ClusterConfig {
-	fake.supportsManagedNodesMutex.RLock()
-	defer fake.supportsManagedNodesMutex.RUnlock()
-	argsForCall := fake.supportsManagedNodesArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeKubeProvider) SupportsManagedNodesReturns(result1 bool, result2 error) {
-	fake.supportsManagedNodesMutex.Lock()
-	defer fake.supportsManagedNodesMutex.Unlock()
-	fake.SupportsManagedNodesStub = nil
-	fake.supportsManagedNodesReturns = struct {
-		result1 bool
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeKubeProvider) SupportsManagedNodesReturnsOnCall(i int, result1 bool, result2 error) {
-	fake.supportsManagedNodesMutex.Lock()
-	defer fake.supportsManagedNodesMutex.Unlock()
-	fake.SupportsManagedNodesStub = nil
-	if fake.supportsManagedNodesReturnsOnCall == nil {
-		fake.supportsManagedNodesReturnsOnCall = make(map[int]struct {
-			result1 bool
-			result2 error
-		})
-	}
-	fake.supportsManagedNodesReturnsOnCall[i] = struct {
-		result1 bool
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeKubeProvider) UpdateAuthConfigMap(arg1 []*v1alpha5.NodeGroup, arg2 kubernetesa.Interface) error {
 	var arg1Copy []*v1alpha5.NodeGroup
 	if arg1 != nil {
@@ -424,19 +351,20 @@ func (fake *FakeKubeProvider) UpdateAuthConfigMapReturnsOnCall(i int, result1 er
 	}{result1}
 }
 
-func (fake *FakeKubeProvider) ValidateClusterForCompatibility(arg1 *v1alpha5.ClusterConfig, arg2 manager.StackManager) error {
+func (fake *FakeKubeProvider) ValidateClusterForCompatibility(arg1 context.Context, arg2 *v1alpha5.ClusterConfig, arg3 manager.StackManager) error {
 	fake.validateClusterForCompatibilityMutex.Lock()
 	ret, specificReturn := fake.validateClusterForCompatibilityReturnsOnCall[len(fake.validateClusterForCompatibilityArgsForCall)]
 	fake.validateClusterForCompatibilityArgsForCall = append(fake.validateClusterForCompatibilityArgsForCall, struct {
-		arg1 *v1alpha5.ClusterConfig
-		arg2 manager.StackManager
-	}{arg1, arg2})
+		arg1 context.Context
+		arg2 *v1alpha5.ClusterConfig
+		arg3 manager.StackManager
+	}{arg1, arg2, arg3})
 	stub := fake.ValidateClusterForCompatibilityStub
 	fakeReturns := fake.validateClusterForCompatibilityReturns
-	fake.recordInvocation("ValidateClusterForCompatibility", []interface{}{arg1, arg2})
+	fake.recordInvocation("ValidateClusterForCompatibility", []interface{}{arg1, arg2, arg3})
 	fake.validateClusterForCompatibilityMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
@@ -450,17 +378,17 @@ func (fake *FakeKubeProvider) ValidateClusterForCompatibilityCallCount() int {
 	return len(fake.validateClusterForCompatibilityArgsForCall)
 }
 
-func (fake *FakeKubeProvider) ValidateClusterForCompatibilityCalls(stub func(*v1alpha5.ClusterConfig, manager.StackManager) error) {
+func (fake *FakeKubeProvider) ValidateClusterForCompatibilityCalls(stub func(context.Context, *v1alpha5.ClusterConfig, manager.StackManager) error) {
 	fake.validateClusterForCompatibilityMutex.Lock()
 	defer fake.validateClusterForCompatibilityMutex.Unlock()
 	fake.ValidateClusterForCompatibilityStub = stub
 }
 
-func (fake *FakeKubeProvider) ValidateClusterForCompatibilityArgsForCall(i int) (*v1alpha5.ClusterConfig, manager.StackManager) {
+func (fake *FakeKubeProvider) ValidateClusterForCompatibilityArgsForCall(i int) (context.Context, *v1alpha5.ClusterConfig, manager.StackManager) {
 	fake.validateClusterForCompatibilityMutex.RLock()
 	defer fake.validateClusterForCompatibilityMutex.RUnlock()
 	argsForCall := fake.validateClusterForCompatibilityArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeKubeProvider) ValidateClusterForCompatibilityReturns(result1 error) {
@@ -557,8 +485,6 @@ func (fake *FakeKubeProvider) Invocations() map[string][][]interface{} {
 	defer fake.newRawClientMutex.RUnlock()
 	fake.serverVersionMutex.RLock()
 	defer fake.serverVersionMutex.RUnlock()
-	fake.supportsManagedNodesMutex.RLock()
-	defer fake.supportsManagedNodesMutex.RUnlock()
 	fake.updateAuthConfigMapMutex.RLock()
 	defer fake.updateAuthConfigMapMutex.RUnlock()
 	fake.validateClusterForCompatibilityMutex.RLock()

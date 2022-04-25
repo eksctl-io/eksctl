@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"os"
 
 	"github.com/kris-nova/logger"
@@ -76,7 +77,7 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, options IAMServiceAccountOptions)
 
 	stackManager := ctl.NewStackManager(cfg)
 	irsaManager := irsa.New(cfg.Metadata.Name, stackManager, nil, nil)
-	serviceAccounts, err := irsaManager.Get(options.GetOptions)
+	serviceAccounts, err := irsaManager.Get(context.TODO(), options.GetOptions)
 
 	if err != nil {
 		return err

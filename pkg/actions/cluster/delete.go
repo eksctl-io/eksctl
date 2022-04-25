@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
@@ -35,21 +35,21 @@ type NodeGroupDrainer interface {
 }
 type vpcCniDeleter func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface)
 
-func deleteSharedResources(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clusterOperable bool, clientSet kubernetes.Interface) error {
+func deleteSharedResources(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.StackManager, clusterOperable bool, clientSet kubernetes.Interface) error {
 	if clusterOperable {
-		if err := deleteFargateProfiles(cfg.Metadata, ctl, stackManager); err != nil {
+		if err := deleteFargateProfiles(ctx, cfg.Metadata, ctl, stackManager); err != nil {
 			return err
 		}
 	}
 
-	if hasDeprecatedStacks, err := deleteDeprecatedStacks(stackManager); hasDeprecatedStacks {
+	if hasDeprecatedStacks, err := deleteDeprecatedStacks(ctx, stackManager); hasDeprecatedStacks {
 		if err != nil {
 			return err
 		}
 		return nil
 	}
 
-	ssh.DeleteKeys(cfg.Metadata.Name, ctl.Provider.EC2())
+	ssh.DeleteKeys(ctx, ctl.Provider.EC2(), cfg.Metadata.Name)
 
 	kubeconfig.MaybeDeleteConfig(cfg.Metadata)
 
@@ -76,7 +76,7 @@ func handleErrors(errs []error, subject string) error {
 	return fmt.Errorf("failed to delete %s", subject)
 }
 
-func deleteFargateProfiles(clusterMeta *api.ClusterMeta, ctl *eks.ClusterProvider, stackManager manager.StackManager) error {
+func deleteFargateProfiles(ctx context.Context, clusterMeta *api.ClusterMeta, ctl *eks.ClusterProvider, stackManager manager.StackManager) error {
 	manager := fargate.NewFromProvider(
 		clusterMeta.Name,
 		ctl.Provider,
@@ -104,20 +104,20 @@ func deleteFargateProfiles(clusterMeta *api.ClusterMeta, ctl *eks.ClusterProvide
 		// All Fargate profiles must be completely deleted by waiting for the deletion to complete, before deleting
 		// the cluster itself, otherwise it can result in this error:
 		//   Cannot delete because cluster <cluster> currently has Fargate profile <profile> in status DELETING
-		if err := manager.DeleteProfile(*profileName, true); err != nil {
+		if err := manager.DeleteProfile(ctx, *profileName, true); err != nil {
 			return err
 		}
 		logger.Info("deleted Fargate profile %q", *profileName)
 	}
 	logger.Info("deleted %v Fargate profile(s)", len(profileNames))
 
-	stack, err := stackManager.GetFargateStack()
+	stack, err := stackManager.GetFargateStack(ctx)
 	if err != nil {
 		return err
 	}
 
 	if stack != nil {
-		_, err := stackManager.DeleteStackBySpec(stack)
+		_, err := stackManager.DeleteStackBySpec(ctx, stack)
 		if err != nil {
 			return err
 		}
@@ -125,8 +125,8 @@ func deleteFargateProfiles(clusterMeta *api.ClusterMeta, ctl *eks.ClusterProvide
 	return nil
 }
 
-func deleteDeprecatedStacks(stackManager manager.StackManager) (bool, error) {
-	tasks, err := stackManager.DeleteTasksForDeprecatedStacks()
+func deleteDeprecatedStacks(ctx context.Context, stackManager manager.StackManager) (bool, error) {
+	tasks, err := stackManager.DeleteTasksForDeprecatedStacks(ctx)
 	if err != nil {
 		return true, err
 	}
@@ -141,8 +141,8 @@ func deleteDeprecatedStacks(stackManager manager.StackManager) (bool, error) {
 	return false, nil
 }
 
-func checkForUndeletedStacks(stackManager manager.StackManager) error {
-	stacks, err := stackManager.DescribeStacks()
+func checkForUndeletedStacks(ctx context.Context, stackManager manager.StackManager) error {
+	stacks, err := stackManager.DescribeStacks(ctx)
 	if err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func checkForUndeletedStacks(stackManager manager.StackManager) error {
 	var undeletedStacks []string
 
 	for _, stack := range stacks {
-		if *stack.StackStatus == cloudformation.StackStatusDeleteInProgress {
+		if stack.StackStatus == types.StackStatusDeleteInProgress {
 			continue
 		}
 
@@ -166,7 +166,7 @@ func checkForUndeletedStacks(stackManager manager.StackManager) error {
 }
 
 func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack,
-	disableEviction bool, parallel int, nodeGroupDrainer NodeGroupDrainer, vpcCniDeleter vpcCniDeleter) error {
+	disableEviction bool, parallel int, nodeGroupDrainer NodeGroupDrainer, vpcCniDeleter vpcCniDeleter, podEvictionWaitPeriod time.Duration) error {
 	if len(allStacks) == 0 {
 		return nil
 	}
@@ -181,10 +181,11 @@ func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, client
 	logger.Info("will drain %d unmanaged nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 
 	drainInput := &nodegroup.DrainInput{
-		NodeGroups:      cmdutils.ToKubeNodeGroups(cfg),
-		MaxGracePeriod:  ctl.Provider.WaitTimeout(),
-		DisableEviction: disableEviction,
-		Parallel:        parallel,
+		NodeGroups:            cmdutils.ToKubeNodeGroups(cfg),
+		MaxGracePeriod:        ctl.Provider.WaitTimeout(),
+		DisableEviction:       disableEviction,
+		PodEvictionWaitPeriod: podEvictionWaitPeriod,
+		Parallel:              parallel,
 	}
 	if err := nodeGroupDrainer.Drain(drainInput); err != nil {
 		return err

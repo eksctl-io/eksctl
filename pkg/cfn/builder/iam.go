@@ -1,13 +1,14 @@
 package builder
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
 
 	"github.com/weaveworks/eksctl/pkg/iam"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfniam "github.com/weaveworks/goformation/v4/cloudformation/iam"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
@@ -119,7 +120,7 @@ func (n *NodeGroupResourceSet) WithNamedIAM() bool {
 	return n.rs.withNamedIAM
 }
 
-func (n *NodeGroupResourceSet) addResourcesForIAM() error {
+func (n *NodeGroupResourceSet) addResourcesForIAM(ctx context.Context) error {
 	if n.spec.IAM.InstanceProfileARN != "" {
 		n.rs.withIAM = false
 		n.rs.withNamedIAM = false
@@ -134,7 +135,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() error {
 		}
 		// if instance role is not given, export profile and use the getter to call importer function
 		n.rs.defineOutput(outputs.NodeGroupInstanceProfileARN, n.spec.IAM.InstanceProfileARN, true, func(v string) error {
-			return iam.ImportInstanceRoleFromProfileARN(n.iamAPI, n.spec, v)
+			return iam.ImportInstanceRoleFromProfileARN(ctx, n.iamAPI, n.spec, v)
 		})
 
 		return nil
@@ -330,6 +331,6 @@ func (rs *IAMRoleResourceSet) RenderJSON() ([]byte, error) {
 }
 
 // GetAllOutputs will get all outputs from iamserviceaccount stack
-func (rs *IAMRoleResourceSet) GetAllOutputs(stack cfn.Stack) error {
+func (rs *IAMRoleResourceSet) GetAllOutputs(stack types.Stack) error {
 	return rs.outputs.MustCollect(stack)
 }

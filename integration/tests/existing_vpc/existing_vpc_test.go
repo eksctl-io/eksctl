@@ -4,6 +4,7 @@
 package unowned
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -14,8 +15,8 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/eks"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-
+	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go/aws"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -64,7 +65,7 @@ var _ = Describe("(Integration) [using existing VPC]", func() {
 		configFile, err = ioutil.TempFile("", "")
 		Expect(err).NotTo(HaveOccurred())
 
-		clusterProvider, err := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+		clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 		Expect(err).NotTo(HaveOccurred())
 		ctl = clusterProvider.Provider
 		cfg.VPC = createVPC(stackName, ctl)
@@ -174,21 +175,20 @@ func createVPCStackAndGetOutputs(stackName string, ctl api.ClusterProvider) ([]s
 		StackName: &stackName,
 	}
 	By("creating the stack")
-	createStackInput.SetTemplateBody(string(templateBody))
-	createStackInput.SetCapabilities(aws.StringSlice([]string{cfn.CapabilityCapabilityIam}))
-	createStackInput.SetCapabilities(aws.StringSlice([]string{cfn.CapabilityCapabilityNamedIam}))
+	createStackInput.TemplateBody = aws.String(string(templateBody))
+	createStackInput.Capabilities = []types.Capability{types.CapabilityCapabilityIam, types.CapabilityCapabilityNamedIam}
 
-	_, err = ctl.CloudFormation().CreateStack(createStackInput)
+	_, err = ctl.CloudFormation().CreateStack(context.TODO(), createStackInput)
 	Expect(err).NotTo(HaveOccurred())
 
 	var describeStackOut *cfn.DescribeStacksOutput
-	Eventually(func() string {
-		describeStackOut, err = ctl.CloudFormation().DescribeStacks(&cfn.DescribeStacksInput{
+	Eventually(func() types.StackStatus {
+		describeStackOut, err = ctl.CloudFormation().DescribeStacks(context.TODO(), &cfn.DescribeStacksInput{
 			StackName: &stackName,
 		})
 		Expect(err).NotTo(HaveOccurred())
-		return *describeStackOut.Stacks[0].StackStatus
-	}, time.Minute*10, time.Second*15).Should(Equal(cfn.StackStatusCreateComplete))
+		return describeStackOut.Stacks[0].StackStatus
+	}, time.Minute*10, time.Second*15).Should(Equal(types.StackStatusCreateComplete))
 
 	By("fetching the outputs of the stack")
 	var vpcID string
@@ -214,6 +214,6 @@ func deleteStack(stackName string, ctl api.ClusterProvider) {
 		StackName: &stackName,
 	}
 
-	_, err := ctl.CloudFormation().DeleteStack(deleteStackInput)
+	_, err := ctl.CloudFormation().DeleteStack(context.TODO(), deleteStackInput)
 	Expect(err).NotTo(HaveOccurred())
 }

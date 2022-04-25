@@ -1,10 +1,12 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
 
@@ -27,7 +29,7 @@ type Description struct {
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_aws_provider.go . ProviderConstructor
-type ProviderConstructor func(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*eks.ClusterProvider, error)
+type ProviderConstructor func(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) (*eks.ClusterProvider, error)
 
 //counterfeiter:generate -o fakes/fake_stack_provider.go . StackManagerConstructor
 type StackManagerConstructor func(provider api.ClusterProvider, spec *api.ClusterConfig) manager.StackManager
@@ -37,13 +39,13 @@ var (
 	newStackCollection StackManagerConstructor = manager.NewStackCollection
 )
 
-func GetClusters(provider api.ClusterProvider, listAllRegions bool, chunkSize int) ([]Description, error) {
+func GetClusters(ctx context.Context, provider api.ClusterProvider, listAllRegions bool, chunkSize int) ([]Description, error) {
 	if !listAllRegions {
-		return listClusters(provider, int64(chunkSize))
+		return listClusters(ctx, provider, int64(chunkSize))
 	}
 
 	var clusters []Description
-	authorizedRegionsList, err := provider.EC2().DescribeRegions(&ec2.DescribeRegionsInput{})
+	authorizedRegionsList, err := provider.EC2().DescribeRegions(ctx, &ec2.DescribeRegionsInput{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to describe regions: %w", err)
 	}
@@ -58,7 +60,7 @@ func GetClusters(provider api.ClusterProvider, listAllRegions bool, chunkSize in
 			continue
 		}
 		// Reset region and recreate the client.
-		ctl, err := newClusterProvider(&api.ProviderConfig{
+		ctl, err := newClusterProvider(ctx, &api.ProviderConfig{
 			Region:      region,
 			Profile:     provider.Profile(),
 			WaitTimeout: provider.WaitTimeout(),
@@ -69,7 +71,7 @@ func GetClusters(provider api.ClusterProvider, listAllRegions bool, chunkSize in
 			continue
 		}
 
-		newClusters, err := listClusters(ctl.Provider, int64(chunkSize))
+		newClusters, err := listClusters(ctx, ctl.Provider, int64(chunkSize))
 		if err != nil {
 			logger.Critical("error listing clusters in %q region: %v", region, err)
 			continue
@@ -81,12 +83,12 @@ func GetClusters(provider api.ClusterProvider, listAllRegions bool, chunkSize in
 	return clusters, nil
 }
 
-func listClusters(provider api.ClusterProvider, chunkSize int64) ([]Description, error) {
+func listClusters(ctx context.Context, provider api.ClusterProvider, chunkSize int64) ([]Description, error) {
 	var allClusters []Description
 
 	spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: ""}}
 	stackManager := newStackCollection(provider, spec)
-	allStacks, err := stackManager.ListClusterStackNames()
+	allStacks, err := stackManager.ListClusterStackNames(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list cluster stacks in region %q: %w", provider.Region(), err)
 	}
@@ -99,7 +101,7 @@ func listClusters(provider api.ClusterProvider, chunkSize int64) ([]Description,
 		}
 
 		for _, clusterName := range clusters {
-			hasClusterStack, err := stackManager.HasClusterStackFromList(allStacks, *clusterName)
+			hasClusterStack, err := stackManager.HasClusterStackFromList(ctx, allStacks, *clusterName)
 			managed := eksctlCreatedFalse
 			if err != nil {
 				managed = eksctlCreatedUnknown

@@ -1,6 +1,8 @@
 package cluster_test
 
 import (
+	"time"
+
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 
@@ -68,7 +70,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 					vpcCniDeleterCalled++
 				}
 
-				err := cluster.DrainAllNodeGroups(cfg, ctl, fakeClientSet, nodeGroupStacks, false, 1, mockedDrainer, vpcCniDeleter)
+				err := cluster.DrainAllNodeGroups(cfg, ctl, fakeClientSet, nodeGroupStacks, false, 1, mockedDrainer, vpcCniDeleter, time.Second*0)
 				Expect(err).NotTo(HaveOccurred())
 				mockedDrainer.AssertNumberOfCalls(GinkgoT(), "Drain", 1)
 				Expect(vpcCniDeleterCalled).To(Equal(1))
@@ -97,7 +99,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 					vpcCniDeleterCalled++
 				}
 
-				err := cluster.DrainAllNodeGroups(cfg, ctl, fakeClientSet, nodeGroupStacks, true, 1, mockedDrainer, vpcCniDeleter)
+				err := cluster.DrainAllNodeGroups(cfg, ctl, fakeClientSet, nodeGroupStacks, true, 1, mockedDrainer, vpcCniDeleter, time.Second*0)
 				Expect(err).NotTo(HaveOccurred())
 				mockedDrainer.AssertNumberOfCalls(GinkgoT(), "Drain", 1)
 				Expect(vpcCniDeleterCalled).To(Equal(1))
@@ -125,7 +127,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 					vpcCniDeleterCalled++
 				}
 
-				err := cluster.DrainAllNodeGroups(cfg, ctl, fakeClientSet, nodeGroupStacks, false, 1, mockedDrainer, vpcCniDeleter)
+				err := cluster.DrainAllNodeGroups(cfg, ctl, fakeClientSet, nodeGroupStacks, false, 1, mockedDrainer, vpcCniDeleter, time.Second*0)
 				Expect(err).NotTo(HaveOccurred())
 				mockedDrainer.AssertNotCalled(GinkgoT(), "Drain")
 				Expect(vpcCniDeleterCalled).To(Equal(0))

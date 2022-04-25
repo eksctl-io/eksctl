@@ -3,7 +3,7 @@ package outputs
 import (
 	"fmt"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 
@@ -68,7 +68,7 @@ func NewCollectorSet(set map[string]Collector) *CollectorSet {
 	return &CollectorSet{set}
 }
 
-func get(stack cfn.Stack, key string) *string {
+func get(stack types.Stack, key string) *string {
 	for _, x := range stack.Outputs {
 		if *x.OutputKey == key {
 			return x.OutputValue
@@ -77,7 +77,7 @@ func get(stack cfn.Stack, key string) *string {
 	return nil
 }
 
-func (c *CollectorSet) doCollect(must bool, stack cfn.Stack) error {
+func (c *CollectorSet) doCollect(must bool, stack types.Stack) error {
 	for key, collector := range c.set {
 		value := get(stack, key)
 		if value == nil {
@@ -98,12 +98,12 @@ func (c *CollectorSet) doCollect(must bool, stack cfn.Stack) error {
 }
 
 // Exists checks if the stack has given output key
-func Exists(stack cfn.Stack, key string) bool {
+func Exists(stack types.Stack, key string) bool {
 	return get(stack, key) != nil
 }
 
 // Collect the outputs of a stack using required and optional CollectorSets
-func Collect(stack cfn.Stack, required, optional map[string]Collector) error {
+func Collect(stack types.Stack, required, optional map[string]Collector) error {
 	if err := NewCollectorSet(optional).doCollect(false, stack); err != nil {
 		return err
 	}
@@ -111,7 +111,7 @@ func Collect(stack cfn.Stack, required, optional map[string]Collector) error {
 }
 
 // MustCollect will error if any of the outputs are missing
-func (c *CollectorSet) MustCollect(stack cfn.Stack) error {
+func (c *CollectorSet) MustCollect(stack types.Stack) error {
 	return c.doCollect(true, stack)
 }
 

@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -115,7 +116,7 @@ func TestManagedPolicyResources(t *testing.T) {
 				return "", nil
 			}
 			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, ng, nil, bootstrapper, false, fakeVPCImporter)
-			err := stack.AddAllResources()
+			err := stack.AddAllResources(context.Background())
 			require.Nil(err)
 
 			bytes, err := stack.RenderJSON()
@@ -202,7 +203,7 @@ func TestManagedNodeRole(t *testing.T) {
 			fakeVPCImporter := new(vpcfakes.FakeImporter)
 			bootstrapper := nodebootstrap.NewManagedBootstrapper(clusterConfig, tt.nodeGroup)
 			stack := NewManagedNodeGroup(p.EC2(), clusterConfig, tt.nodeGroup, nil, bootstrapper, false, fakeVPCImporter)
-			err := stack.AddAllResources()
+			err := stack.AddAllResources(context.Background())
 			require.NoError(err)
 
 			bytes, err := stack.RenderJSON()

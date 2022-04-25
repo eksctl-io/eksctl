@@ -14,6 +14,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/goformation/v4"
 	"github.com/weaveworks/goformation/v4/cloudformation"
 	gfnec2 "github.com/weaveworks/goformation/v4/cloudformation/ec2"
@@ -49,7 +50,7 @@ type UpgradeOptions struct {
 }
 
 func (m *Manager) Upgrade(ctx context.Context, options UpgradeOptions) error {
-	stacks, err := m.stackManager.ListNodeGroupStacks()
+	stacks, err := m.stackManager.ListNodeGroupStacks(ctx)
 	if err != nil {
 		return err
 	}
@@ -172,7 +173,7 @@ func (m *Manager) upgradeUsingStack(ctx context.Context, options UpgradeOptions,
 		return errors.New("only one of kubernetes-version or release-version can be specified")
 	}
 
-	template, err := m.stackManager.GetManagedNodeGroupTemplate(manager.GetNodegroupOption{
+	template, err := m.stackManager.GetManagedNodeGroupTemplate(ctx, manager.GetNodegroupOption{
 		Stack:         options.Stack,
 		NodeGroupName: options.NodegroupName,
 	})
@@ -197,13 +198,13 @@ func (m *Manager) upgradeUsingStack(ctx context.Context, options UpgradeOptions,
 			return err
 		}
 
-		if err := m.stackManager.UpdateNodeGroupStack(options.NodegroupName, string(bytes), true); err != nil {
+		if err := m.stackManager.UpdateNodeGroupStack(ctx, options.NodegroupName, string(bytes), true); err != nil {
 			return errors.Wrap(err, "error updating nodegroup stack")
 		}
 		return nil
 	}
 
-	requiresUpdate, err := m.requiresStackUpdate(options.NodegroupName)
+	requiresUpdate, err := m.requiresStackUpdate(ctx, options.NodegroupName)
 	if err != nil {
 		return err
 	}
@@ -235,7 +236,7 @@ func (m *Manager) upgradeUsingStack(ctx context.Context, options UpgradeOptions,
 		}
 	}
 
-	usesCustomAMI, err := m.usesCustomAMI(ltResources, ngResource)
+	usesCustomAMI, err := m.usesCustomAMI(ctx, ltResources, ngResource)
 	if err != nil {
 		return err
 	}
@@ -304,8 +305,8 @@ func (m *Manager) updateReleaseVersion(latestReleaseVersion, launchTemplateVersi
 	return nil
 }
 
-func (m *Manager) requiresStackUpdate(nodeGroupName string) (bool, error) {
-	ngStack, err := m.stackManager.DescribeNodeGroupStack(nodeGroupName)
+func (m *Manager) requiresStackUpdate(ctx context.Context, nodeGroupName string) (bool, error) {
+	ngStack, err := m.stackManager.DescribeNodeGroupStack(ctx, nodeGroupName)
 	if err != nil {
 		return false, err
 	}
@@ -344,7 +345,7 @@ func (m *Manager) getLatestReleaseVersion(ctx context.Context, kubernetesVersion
 	return *ssmOutput.Parameter.Value, nil
 }
 
-func (m *Manager) usesCustomAMI(ltResources map[string]*gfnec2.LaunchTemplate, ng *gfneks.Nodegroup) (bool, error) {
+func (m *Manager) usesCustomAMI(ctx context.Context, ltResources map[string]*gfnec2.LaunchTemplate, ng *gfneks.Nodegroup) (bool, error) {
 	if lt, ok := ltResources["LaunchTemplate"]; ok {
 		return lt.LaunchTemplateData.ImageId != nil, nil
 	}
@@ -360,7 +361,7 @@ func (m *Manager) usesCustomAMI(ltResources map[string]*gfnec2.LaunchTemplate, n
 		lt.Version = aws.String(version.String())
 	}
 
-	customLaunchTemplate, err := m.launchTemplateFetcher.Fetch(lt)
+	customLaunchTemplate, err := m.launchTemplateFetcher.Fetch(ctx, lt)
 	if err != nil {
 		return false, errors.Wrap(err, "error fetching launch template data")
 	}

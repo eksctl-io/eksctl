@@ -1,6 +1,8 @@
 package filter
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -47,7 +49,7 @@ var _ = Describe("iamserviceaccount filter", func() {
 				"sa/only-remote-2",
 				"kube-system/aws-node",
 			)
-			err := filter.SetDeleteFilter(mockLister, true, cfg)
+			err := filter.SetDeleteFilter(context.TODO(), mockLister, true, cfg)
 			Expect(err).NotTo(HaveOccurred())
 
 			included, excluded := filter.MatchAll(cfg.IAM.ServiceAccounts)
@@ -75,7 +77,7 @@ var _ = Describe("iamserviceaccount filter", func() {
 				"sa/only-remote-1",
 				"sa/only-remote-2",
 			)
-			err := filter.SetExcludeExistingFilter(mockLister, clientSet, cfg.IAM.ServiceAccounts, true)
+			err := filter.SetExcludeExistingFilter(context.TODO(), mockLister, clientSet, cfg.IAM.ServiceAccounts, true)
 			Expect(err).NotTo(HaveOccurred())
 
 			included, excluded := filter.MatchAll(cfg.IAM.ServiceAccounts)
@@ -114,7 +116,7 @@ var _ = Describe("iamserviceaccount filter", func() {
 			err = kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa2)
 			Expect(err).NotTo(HaveOccurred())
 
-			err = filter.SetExcludeExistingFilter(mockLister, clientSet, cfg.IAM.ServiceAccounts, false)
+			err = filter.SetExcludeExistingFilter(context.TODO(), mockLister, clientSet, cfg.IAM.ServiceAccounts, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			included, excluded := filter.MatchAll(cfg.IAM.ServiceAccounts)
@@ -152,7 +154,7 @@ type mockSALister struct {
 	result []string
 }
 
-func (l *mockSALister) ListIAMServiceAccountStacks() ([]string, error) {
+func (l *mockSALister) ListIAMServiceAccountStacks(_ context.Context) ([]string, error) {
 	return l.result, nil
 }
 

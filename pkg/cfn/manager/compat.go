@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/kris-nova/logger"
@@ -16,9 +17,9 @@ import (
 
 // FixClusterCompatibility adds any resources missing in the CloudFormation stack in order to support new features
 // like Managed Nodegroups and Fargate
-func (c *StackCollection) FixClusterCompatibility() error {
+func (c *StackCollection) FixClusterCompatibility(ctx context.Context) error {
 	logger.Info("checking cluster stack for missing resources")
-	stack, err := c.DescribeClusterStack()
+	stack, err := c.DescribeClusterStack(ctx)
 	if err != nil {
 		return err
 	}
@@ -50,7 +51,7 @@ func (c *StackCollection) FixClusterCompatibility() error {
 
 	stackSupportsManagedNodes := false
 	if clusterDefaultSG != "" {
-		stackSupportsManagedNodes, err = c.hasManagedToUnmanagedSG()
+		stackSupportsManagedNodes, err = c.hasManagedToUnmanagedSG(ctx)
 		if err != nil {
 			return err
 		}
@@ -74,12 +75,12 @@ func (c *StackCollection) FixClusterCompatibility() error {
 	}
 
 	logger.Info("adding missing resources to cluster stack")
-	_, err = c.AppendNewClusterStackResource(false, stackSupportsManagedNodes)
+	_, err = c.AppendNewClusterStackResource(ctx, false)
 	return err
 }
 
-func (c *StackCollection) hasManagedToUnmanagedSG() (bool, error) {
-	stackTemplate, err := c.GetStackTemplate(c.MakeClusterStackName())
+func (c *StackCollection) hasManagedToUnmanagedSG(ctx context.Context) (bool, error) {
+	stackTemplate, err := c.GetStackTemplate(ctx, c.MakeClusterStackName())
 	if err != nil {
 		return false, errors.Wrap(err, "error getting cluster stack template")
 	}
@@ -88,20 +89,20 @@ func (c *StackCollection) hasManagedToUnmanagedSG() (bool, error) {
 }
 
 // EnsureMapPublicIPOnLaunchEnabled sets this subnet property to true when it is not set or is set to false
-func (c *StackCollection) EnsureMapPublicIPOnLaunchEnabled() error {
+func (c *StackCollection) EnsureMapPublicIPOnLaunchEnabled(ctx context.Context) error {
 	// First, make sure we enable the options in EC2. This is to make sure the settings are applied even
 	// if the stacks in Cloudformation have the setting enabled (since a stack update would produce "nothing to change"
 	// and therefore the setting would not be updated)
 	publicIDs := c.spec.VPC.Subnets.Public.WithIDs()
 	logger.Debug("enabling attribute MapPublicIpOnLaunch via EC2 on subnets %q", publicIDs)
-	err := vpc.EnsureMapPublicIPOnLaunchEnabled(c.ec2API, publicIDs)
+	err := vpc.EnsureMapPublicIPOnLaunchEnabled(ctx, c.ec2API, publicIDs)
 	if err != nil {
 		return err
 	}
 
 	// Get stack template
 	stackName := c.MakeClusterStackName()
-	currentTemplate, err := c.GetStackTemplate(stackName)
+	currentTemplate, err := c.GetStackTemplate(ctx, stackName)
 	if err != nil {
 		return errors.Wrapf(err, "unable to retrieve cluster stack %q", stackName)
 	}
@@ -129,7 +130,7 @@ func (c *StackCollection) EnsureMapPublicIPOnLaunchEnabled() error {
 		}
 	}
 	description := fmt.Sprintf("update public subnets %q with property MapPublicIpOnLaunch enabled", publicSubnetsNames)
-	if err := c.UpdateStack(UpdateStackOptions{
+	if err := c.UpdateStack(ctx, UpdateStackOptions{
 		StackName:     stackName,
 		ChangeSetName: c.MakeChangeSetName("update-subnets"),
 		Description:   description,

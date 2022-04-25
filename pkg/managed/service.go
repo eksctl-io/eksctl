@@ -1,10 +1,12 @@
 package managed
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/pkg/errors"
@@ -34,7 +36,7 @@ const (
 	labelsPath = "Resources.ManagedNodeGroup.Properties.Labels"
 )
 
-func NewService(eksAPI eksiface.EKSAPI, ec2API ec2iface.EC2API,
+func NewService(eksAPI eksiface.EKSAPI, ec2API awsapi.EC2,
 	stackCollection manager.StackManager, clusterName string) *Service {
 	return &Service{
 		eksAPI:                eksAPI,
@@ -77,8 +79,8 @@ func (m *Service) GetHealth(nodeGroupName string) ([]HealthIssue, error) {
 }
 
 // UpdateLabels adds or removes labels for a nodegroup
-func (m *Service) UpdateLabels(nodeGroupName string, labelsToAdd map[string]string, labelsToRemove []string) error {
-	template, err := m.stackCollection.GetManagedNodeGroupTemplate(manager.GetNodegroupOption{
+func (m *Service) UpdateLabels(ctx context.Context, nodeGroupName string, labelsToAdd map[string]string, labelsToRemove []string) error {
+	template, err := m.stackCollection.GetManagedNodeGroupTemplate(ctx, manager.GetNodegroupOption{
 		NodeGroupName: nodeGroupName,
 	})
 	if err != nil {
@@ -103,12 +105,12 @@ func (m *Service) UpdateLabels(nodeGroupName string, labelsToAdd map[string]stri
 		return err
 	}
 
-	return m.stackCollection.UpdateNodeGroupStack(nodeGroupName, template, true)
+	return m.stackCollection.UpdateNodeGroupStack(ctx, nodeGroupName, template, true)
 }
 
 // GetLabels fetches the labels for a nodegroup
-func (m *Service) GetLabels(nodeGroupName string) (map[string]string, error) {
-	template, err := m.stackCollection.GetManagedNodeGroupTemplate(manager.GetNodegroupOption{
+func (m *Service) GetLabels(ctx context.Context, nodeGroupName string) (map[string]string, error) {
+	template, err := m.stackCollection.GetManagedNodeGroupTemplate(ctx, manager.GetNodegroupOption{
 		NodeGroupName: nodeGroupName,
 	})
 	if err != nil {

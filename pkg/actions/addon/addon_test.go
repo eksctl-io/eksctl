@@ -17,11 +17,4 @@ var _ = Describe("Addon", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
-
-	When("the version is not supported", func() {
-		It("errors", func() {
-			_, err := addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{Version: "1.17"}}, &mocks.EKSAPI{}, nil, false, nil, nil, 5*time.Minute)
-			Expect(err).To(MatchError("addons not supported on 1.17. Must be using 1.18 or newer"))
-		})
-	})
 })

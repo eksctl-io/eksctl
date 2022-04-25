@@ -1,14 +1,19 @@
 package builder
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"context"
+
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/pkg/errors"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 type launchTemplateFetcher interface {
-	DescribeLaunchTemplateVersions(input *ec2.DescribeLaunchTemplateVersionsInput) (*ec2.DescribeLaunchTemplateVersionsOutput, error)
+	DescribeLaunchTemplateVersions(ctx context.Context, params *ec2.DescribeLaunchTemplateVersionsInput, optFns ...func(*ec2.Options)) (*ec2.DescribeLaunchTemplateVersionsOutput, error)
 }
 
 // LaunchTemplateFetcher fetches launch template data
@@ -22,17 +27,17 @@ func NewLaunchTemplateFetcher(fetcher launchTemplateFetcher) *LaunchTemplateFetc
 }
 
 // Fetch fetches the specified launch template
-func (l *LaunchTemplateFetcher) Fetch(launchTemplate *api.LaunchTemplate) (*ec2.ResponseLaunchTemplateData, error) {
+func (l *LaunchTemplateFetcher) Fetch(ctx context.Context, launchTemplate *api.LaunchTemplate) (*ec2types.ResponseLaunchTemplateData, error) {
 	input := &ec2.DescribeLaunchTemplateVersionsInput{
 		LaunchTemplateId: aws.String(launchTemplate.ID),
 	}
 	if version := launchTemplate.Version; version != nil {
-		input.Versions = []*string{version}
+		input.Versions = []string{*version}
 	} else {
-		input.Versions = []*string{aws.String("$Default")}
+		input.Versions = []string{"$Default"}
 	}
 
-	output, err := l.fetcher.DescribeLaunchTemplateVersions(input)
+	output, err := l.fetcher.DescribeLaunchTemplateVersions(ctx, input)
 	if err != nil {
 		return nil, err
 	}

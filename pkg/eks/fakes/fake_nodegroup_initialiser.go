@@ -26,11 +26,12 @@ type FakeNodeGroupInitialiser struct {
 	doAllNodegroupStackTasksReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DoesAWSNodeUseIRSAStub        func(v1alpha5.ClusterProvider, kubernetes.Interface) (bool, error)
+	DoesAWSNodeUseIRSAStub        func(context.Context, v1alpha5.ClusterProvider, kubernetes.Interface) (bool, error)
 	doesAWSNodeUseIRSAMutex       sync.RWMutex
 	doesAWSNodeUseIRSAArgsForCall []struct {
-		arg1 v1alpha5.ClusterProvider
-		arg2 kubernetes.Interface
+		arg1 context.Context
+		arg2 v1alpha5.ClusterProvider
+		arg3 kubernetes.Interface
 	}
 	doesAWSNodeUseIRSAReturns struct {
 		result1 bool
@@ -70,11 +71,12 @@ type FakeNodeGroupInitialiser struct {
 	normalizeReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ValidateExistingNodeGroupsForCompatibilityStub        func(*v1alpha5.ClusterConfig, manager.StackManager) error
+	ValidateExistingNodeGroupsForCompatibilityStub        func(context.Context, *v1alpha5.ClusterConfig, manager.StackManager) error
 	validateExistingNodeGroupsForCompatibilityMutex       sync.RWMutex
 	validateExistingNodeGroupsForCompatibilityArgsForCall []struct {
-		arg1 *v1alpha5.ClusterConfig
-		arg2 manager.StackManager
+		arg1 context.Context
+		arg2 *v1alpha5.ClusterConfig
+		arg3 manager.StackManager
 	}
 	validateExistingNodeGroupsForCompatibilityReturns struct {
 		result1 error
@@ -82,11 +84,12 @@ type FakeNodeGroupInitialiser struct {
 	validateExistingNodeGroupsForCompatibilityReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ValidateLegacySubnetsForNodeGroupsStub        func(*v1alpha5.ClusterConfig, v1alpha5.ClusterProvider) error
+	ValidateLegacySubnetsForNodeGroupsStub        func(context.Context, *v1alpha5.ClusterConfig, v1alpha5.ClusterProvider) error
 	validateLegacySubnetsForNodeGroupsMutex       sync.RWMutex
 	validateLegacySubnetsForNodeGroupsArgsForCall []struct {
-		arg1 *v1alpha5.ClusterConfig
-		arg2 v1alpha5.ClusterProvider
+		arg1 context.Context
+		arg2 *v1alpha5.ClusterConfig
+		arg3 v1alpha5.ClusterProvider
 	}
 	validateLegacySubnetsForNodeGroupsReturns struct {
 		result1 error
@@ -161,19 +164,20 @@ func (fake *FakeNodeGroupInitialiser) DoAllNodegroupStackTasksReturnsOnCall(i in
 	}{result1}
 }
 
-func (fake *FakeNodeGroupInitialiser) DoesAWSNodeUseIRSA(arg1 v1alpha5.ClusterProvider, arg2 kubernetes.Interface) (bool, error) {
+func (fake *FakeNodeGroupInitialiser) DoesAWSNodeUseIRSA(arg1 context.Context, arg2 v1alpha5.ClusterProvider, arg3 kubernetes.Interface) (bool, error) {
 	fake.doesAWSNodeUseIRSAMutex.Lock()
 	ret, specificReturn := fake.doesAWSNodeUseIRSAReturnsOnCall[len(fake.doesAWSNodeUseIRSAArgsForCall)]
 	fake.doesAWSNodeUseIRSAArgsForCall = append(fake.doesAWSNodeUseIRSAArgsForCall, struct {
-		arg1 v1alpha5.ClusterProvider
-		arg2 kubernetes.Interface
-	}{arg1, arg2})
+		arg1 context.Context
+		arg2 v1alpha5.ClusterProvider
+		arg3 kubernetes.Interface
+	}{arg1, arg2, arg3})
 	stub := fake.DoesAWSNodeUseIRSAStub
 	fakeReturns := fake.doesAWSNodeUseIRSAReturns
-	fake.recordInvocation("DoesAWSNodeUseIRSA", []interface{}{arg1, arg2})
+	fake.recordInvocation("DoesAWSNodeUseIRSA", []interface{}{arg1, arg2, arg3})
 	fake.doesAWSNodeUseIRSAMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -187,17 +191,17 @@ func (fake *FakeNodeGroupInitialiser) DoesAWSNodeUseIRSACallCount() int {
 	return len(fake.doesAWSNodeUseIRSAArgsForCall)
 }
 
-func (fake *FakeNodeGroupInitialiser) DoesAWSNodeUseIRSACalls(stub func(v1alpha5.ClusterProvider, kubernetes.Interface) (bool, error)) {
+func (fake *FakeNodeGroupInitialiser) DoesAWSNodeUseIRSACalls(stub func(context.Context, v1alpha5.ClusterProvider, kubernetes.Interface) (bool, error)) {
 	fake.doesAWSNodeUseIRSAMutex.Lock()
 	defer fake.doesAWSNodeUseIRSAMutex.Unlock()
 	fake.DoesAWSNodeUseIRSAStub = stub
 }
 
-func (fake *FakeNodeGroupInitialiser) DoesAWSNodeUseIRSAArgsForCall(i int) (v1alpha5.ClusterProvider, kubernetes.Interface) {
+func (fake *FakeNodeGroupInitialiser) DoesAWSNodeUseIRSAArgsForCall(i int) (context.Context, v1alpha5.ClusterProvider, kubernetes.Interface) {
 	fake.doesAWSNodeUseIRSAMutex.RLock()
 	defer fake.doesAWSNodeUseIRSAMutex.RUnlock()
 	argsForCall := fake.doesAWSNodeUseIRSAArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeNodeGroupInitialiser) DoesAWSNodeUseIRSAReturns(result1 bool, result2 error) {
@@ -398,19 +402,20 @@ func (fake *FakeNodeGroupInitialiser) NormalizeReturnsOnCall(i int, result1 erro
 	}{result1}
 }
 
-func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibility(arg1 *v1alpha5.ClusterConfig, arg2 manager.StackManager) error {
+func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibility(arg1 context.Context, arg2 *v1alpha5.ClusterConfig, arg3 manager.StackManager) error {
 	fake.validateExistingNodeGroupsForCompatibilityMutex.Lock()
 	ret, specificReturn := fake.validateExistingNodeGroupsForCompatibilityReturnsOnCall[len(fake.validateExistingNodeGroupsForCompatibilityArgsForCall)]
 	fake.validateExistingNodeGroupsForCompatibilityArgsForCall = append(fake.validateExistingNodeGroupsForCompatibilityArgsForCall, struct {
-		arg1 *v1alpha5.ClusterConfig
-		arg2 manager.StackManager
-	}{arg1, arg2})
+		arg1 context.Context
+		arg2 *v1alpha5.ClusterConfig
+		arg3 manager.StackManager
+	}{arg1, arg2, arg3})
 	stub := fake.ValidateExistingNodeGroupsForCompatibilityStub
 	fakeReturns := fake.validateExistingNodeGroupsForCompatibilityReturns
-	fake.recordInvocation("ValidateExistingNodeGroupsForCompatibility", []interface{}{arg1, arg2})
+	fake.recordInvocation("ValidateExistingNodeGroupsForCompatibility", []interface{}{arg1, arg2, arg3})
 	fake.validateExistingNodeGroupsForCompatibilityMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
@@ -424,17 +429,17 @@ func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibility
 	return len(fake.validateExistingNodeGroupsForCompatibilityArgsForCall)
 }
 
-func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibilityCalls(stub func(*v1alpha5.ClusterConfig, manager.StackManager) error) {
+func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibilityCalls(stub func(context.Context, *v1alpha5.ClusterConfig, manager.StackManager) error) {
 	fake.validateExistingNodeGroupsForCompatibilityMutex.Lock()
 	defer fake.validateExistingNodeGroupsForCompatibilityMutex.Unlock()
 	fake.ValidateExistingNodeGroupsForCompatibilityStub = stub
 }
 
-func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibilityArgsForCall(i int) (*v1alpha5.ClusterConfig, manager.StackManager) {
+func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibilityArgsForCall(i int) (context.Context, *v1alpha5.ClusterConfig, manager.StackManager) {
 	fake.validateExistingNodeGroupsForCompatibilityMutex.RLock()
 	defer fake.validateExistingNodeGroupsForCompatibilityMutex.RUnlock()
 	argsForCall := fake.validateExistingNodeGroupsForCompatibilityArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibilityReturns(result1 error) {
@@ -460,19 +465,20 @@ func (fake *FakeNodeGroupInitialiser) ValidateExistingNodeGroupsForCompatibility
 	}{result1}
 }
 
-func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroups(arg1 *v1alpha5.ClusterConfig, arg2 v1alpha5.ClusterProvider) error {
+func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroups(arg1 context.Context, arg2 *v1alpha5.ClusterConfig, arg3 v1alpha5.ClusterProvider) error {
 	fake.validateLegacySubnetsForNodeGroupsMutex.Lock()
 	ret, specificReturn := fake.validateLegacySubnetsForNodeGroupsReturnsOnCall[len(fake.validateLegacySubnetsForNodeGroupsArgsForCall)]
 	fake.validateLegacySubnetsForNodeGroupsArgsForCall = append(fake.validateLegacySubnetsForNodeGroupsArgsForCall, struct {
-		arg1 *v1alpha5.ClusterConfig
-		arg2 v1alpha5.ClusterProvider
-	}{arg1, arg2})
+		arg1 context.Context
+		arg2 *v1alpha5.ClusterConfig
+		arg3 v1alpha5.ClusterProvider
+	}{arg1, arg2, arg3})
 	stub := fake.ValidateLegacySubnetsForNodeGroupsStub
 	fakeReturns := fake.validateLegacySubnetsForNodeGroupsReturns
-	fake.recordInvocation("ValidateLegacySubnetsForNodeGroups", []interface{}{arg1, arg2})
+	fake.recordInvocation("ValidateLegacySubnetsForNodeGroups", []interface{}{arg1, arg2, arg3})
 	fake.validateLegacySubnetsForNodeGroupsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
@@ -486,17 +492,17 @@ func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroupsCallCoun
 	return len(fake.validateLegacySubnetsForNodeGroupsArgsForCall)
 }
 
-func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroupsCalls(stub func(*v1alpha5.ClusterConfig, v1alpha5.ClusterProvider) error) {
+func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroupsCalls(stub func(context.Context, *v1alpha5.ClusterConfig, v1alpha5.ClusterProvider) error) {
 	fake.validateLegacySubnetsForNodeGroupsMutex.Lock()
 	defer fake.validateLegacySubnetsForNodeGroupsMutex.Unlock()
 	fake.ValidateLegacySubnetsForNodeGroupsStub = stub
 }
 
-func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroupsArgsForCall(i int) (*v1alpha5.ClusterConfig, v1alpha5.ClusterProvider) {
+func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroupsArgsForCall(i int) (context.Context, *v1alpha5.ClusterConfig, v1alpha5.ClusterProvider) {
 	fake.validateLegacySubnetsForNodeGroupsMutex.RLock()
 	defer fake.validateLegacySubnetsForNodeGroupsMutex.RUnlock()
 	argsForCall := fake.validateLegacySubnetsForNodeGroupsArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeNodeGroupInitialiser) ValidateLegacySubnetsForNodeGroupsReturns(result1 error) {

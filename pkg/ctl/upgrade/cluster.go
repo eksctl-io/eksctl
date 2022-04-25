@@ -1,6 +1,7 @@
 package upgrade
 
 import (
+	"context"
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/actions/cluster"
@@ -72,10 +73,11 @@ func DoUpgradeCluster(cmd *cmdutils.Cmd) error {
 		logger.Warning("NOTE: cluster VPC (subnets, routing & NAT Gateway) configuration changes are not yet implemented")
 	}
 
-	c, err := cluster.New(cfg, ctl)
+	ctx := context.TODO()
+	c, err := cluster.New(ctx, cfg, ctl)
 	if err != nil {
 		return err
 	}
 
-	return c.Upgrade(cmd.Plan)
+	return c.Upgrade(context.TODO(), cmd.Plan)
 }

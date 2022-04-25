@@ -1,6 +1,7 @@
 package filter
 
 import (
+	"context"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/eks"
@@ -18,14 +19,14 @@ import (
 //counterfeiter:generate . NodegroupFilter
 // NodegroupFilter is an interface that holds filter configuration
 type NodegroupFilter interface {
-	SetOnlyLocal(eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) error
+	SetOnlyLocal(ctx context.Context, eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) error
 	Match(ngName string) bool
 	LogInfo(cfg *api.ClusterConfig)
 }
 
 // StackLister lists nodegroup stacks
 type StackLister interface {
-	ListNodeGroupStacks() ([]manager.NodeGroupStack, error)
+	ListNodeGroupStacks(ctx context.Context) ([]manager.NodeGroupStack, error)
 }
 
 // NodeGroupFilter holds filter configuration
@@ -77,10 +78,10 @@ func (f *NodeGroupFilter) AppendIncludeNames(names ...string) {
 // the filter to only include the nodegroups that don't exist in the cluster already.
 // Note: they are present in the config file but not in the cluster. This is used by
 // the create nodegroup command
-func (f *NodeGroupFilter) SetOnlyLocal(eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) error {
+func (f *NodeGroupFilter) SetOnlyLocal(ctx context.Context, eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) error {
 	f.onlyLocal = true
 
-	err := f.loadLocalAndRemoteNodegroups(eksAPI, lister, clusterConfig)
+	err := f.loadLocalAndRemoteNodegroups(ctx, eksAPI, lister, clusterConfig)
 	if err != nil {
 		return err
 	}
@@ -95,10 +96,10 @@ func (f *NodeGroupFilter) SetOnlyLocal(eksAPI eksiface.EKSAPI, lister StackListe
 // SetOnlyRemote uses StackLister to list existing nodegroup stacks and configures
 // the filter to exclude nodegroups already defined in the config file. It will include the
 //  nodegroups that exist in the cluster but not in the config
-func (f *NodeGroupFilter) SetOnlyRemote(eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) error {
+func (f *NodeGroupFilter) SetOnlyRemote(ctx context.Context, eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) error {
 	f.onlyRemote = true
 
-	err := f.loadLocalAndRemoteNodegroups(eksAPI, lister, clusterConfig)
+	err := f.loadLocalAndRemoteNodegroups(ctx, eksAPI, lister, clusterConfig)
 	if err != nil {
 		return err
 	}
@@ -120,8 +121,8 @@ func (f *NodeGroupFilter) GetExcludeAll() bool {
 	return f.delegate.ExcludeAll
 }
 
-func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) error {
-	nodeGroupsWithStacks, nodeGroupsWithoutStacks, err := f.findAllNodeGroups(eksAPI, lister, clusterConfig)
+func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(ctx context.Context, eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) error {
+	nodeGroupsWithStacks, nodeGroupsWithoutStacks, err := f.findAllNodeGroups(ctx, eksAPI, lister, clusterConfig)
 	if err != nil {
 		return err
 	}
@@ -166,9 +167,9 @@ func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(eksAPI eksiface.EKSAPI, l
 	return nil
 }
 
-func (f *NodeGroupFilter) findAllNodeGroups(eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) ([]manager.NodeGroupStack, []string, error) {
+func (f *NodeGroupFilter) findAllNodeGroups(ctx context.Context, eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) ([]manager.NodeGroupStack, []string, error) {
 	// Get remote nodegroups stacks
-	nodeGroupsWithStacks, err := lister.ListNodeGroupStacks()
+	nodeGroupsWithStacks, err := lister.ListNodeGroupStacks(ctx)
 	if err != nil {
 		return nil, nil, err
 	}

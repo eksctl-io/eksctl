@@ -3,11 +3,14 @@ package eks
 import (
 	"sync"
 
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
@@ -29,10 +32,12 @@ type ServicesV2 struct {
 	elasticloadbalancing   *elasticloadbalancing.Client
 	elasticloadbalancingV2 *elasticloadbalancingv2.Client
 	ssm                    *ssm.Client
+	iam                    *iam.Client
+	ec2                    *ec2.Client
 }
 
-// STSV2 implements the AWS STS service.
-func (s *ServicesV2) STSV2() awsapi.STS {
+// STS implements the AWS STS service.
+func (s *ServicesV2) STS() awsapi.STS {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.sts == nil {
@@ -45,8 +50,8 @@ func (s *ServicesV2) STSV2() awsapi.STS {
 	return s.sts
 }
 
-// STSV2Presign provides a signed STS client for calls to Kubernetes.
-func (s *ServicesV2) STSV2Presign() api.STSPresigner {
+// STSPresign provides a signed STS client for calls to Kubernetes.
+func (s *ServicesV2) STSPresigner() api.STSPresigner {
 	// set up sts client.
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -62,7 +67,7 @@ func (s *ServicesV2) STSV2Presign() api.STSPresigner {
 }
 
 // CloudFormationV2 implements the AWS CloudFormation service.
-func (s *ServicesV2) CloudFormationV2() awsapi.CloudFormation {
+func (s *ServicesV2) CloudFormation() awsapi.CloudFormation {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.cloudformation == nil {
@@ -109,4 +114,24 @@ func (s *ServicesV2) SSM() awsapi.SSM {
 		s.ssm = ssm.NewFromConfig(s.config)
 	}
 	return s.ssm
+}
+
+// IAM implements the AWS IAM service.
+func (s *ServicesV2) IAM() awsapi.IAM {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.iam == nil {
+		s.iam = iam.NewFromConfig(s.config)
+	}
+	return s.iam
+}
+
+// EC2 implements the AWS EC2 service.
+func (s *ServicesV2) EC2() awsapi.EC2 {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.ec2 == nil {
+		s.ec2 = ec2.NewFromConfig(s.config)
+	}
+	return s.ec2
 }

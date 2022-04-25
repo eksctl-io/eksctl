@@ -1,10 +1,11 @@
 package builder_test
 
 import (
+	"context"
 	"encoding/json"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
@@ -19,16 +20,14 @@ import (
 
 var _ = Describe("Cluster Template Builder", func() {
 	var (
-		crs                  *builder.ClusterResourceSet
-		cfg                  *api.ClusterConfig
-		provider             *mockprovider.MockProvider
-		supportsManagedNodes bool
-		existingStack        *gjson.Result
+		crs           *builder.ClusterResourceSet
+		cfg           *api.ClusterConfig
+		provider      *mockprovider.MockProvider
+		existingStack *gjson.Result
 	)
 
 	BeforeEach(func() {
 		provider = mockprovider.NewMockProvider()
-		supportsManagedNodes = false
 		existingStack = nil
 		cfg = api.NewClusterConfig()
 		cfg.VPC = vpcConfig()
@@ -40,7 +39,7 @@ var _ = Describe("Cluster Template Builder", func() {
 	})
 
 	JustBeforeEach(func() {
-		crs = builder.NewClusterResourceSet(provider.EC2(), provider.Region(), cfg, supportsManagedNodes, existingStack)
+		crs = builder.NewClusterResourceSet(provider.EC2(), provider.Region(), cfg, existingStack)
 	})
 
 	Describe("AddAllResources", func() {
@@ -50,7 +49,7 @@ var _ = Describe("Cluster Template Builder", func() {
 		)
 
 		JustBeforeEach(func() {
-			addErr = crs.AddAllResources()
+			addErr = crs.AddAllResources(context.Background())
 			clusterTemplate = &fakes.FakeTemplate{}
 			templateBody, err := crs.RenderJSON()
 			Expect(err).ShouldNot(HaveOccurred())
@@ -232,18 +231,17 @@ var _ = Describe("Cluster Template Builder", func() {
 					Description: "Allow Extra IPv6 CIDR 1 (2003::1234:abcd:ffff:c0a8:101/64) to communicate to controlplane",
 				}))
 			})
-		})
 
-		Context("when supportsManagedNodes is true", func() {
-			BeforeEach(func() {
-				supportsManagedNodes = true
-				enabled := true
-				cfg.VPC.ManageSharedNodeSecurityGroupRules = &enabled
-			})
+			Context("when managed nodegroups are configured is true", func() {
+				BeforeEach(func() {
+					enabled := true
+					cfg.VPC.ManageSharedNodeSecurityGroupRules = &enabled
+				})
 
-			It("sets IngressDefaultClusterToNodeSG and IngressNodeToDefaultClusterSG resources", func() {
-				Expect(clusterTemplate.Resources).To(HaveKey("IngressDefaultClusterToNodeSG"))
-				Expect(clusterTemplate.Resources).To(HaveKey("IngressNodeToDefaultClusterSG"))
+				It("sets IngressDefaultClusterToNodeSG and IngressNodeToDefaultClusterSG resources", func() {
+					Expect(clusterTemplate.Resources).To(HaveKey("IngressDefaultClusterToNodeSG"))
+					Expect(clusterTemplate.Resources).To(HaveKey("IngressNodeToDefaultClusterSG"))
+				})
 			})
 		})
 
@@ -343,7 +341,7 @@ var _ = Describe("Cluster Template Builder", func() {
 		})
 
 		It("should add cluster stack outputs", func() {
-			Expect(clusterTemplate.Outputs).To(HaveLen(11))
+			Expect(clusterTemplate.Outputs).To(HaveLen(12))
 			Expect(clusterTemplate.Outputs).To(HaveKey("ARN"))
 			Expect(clusterTemplate.Outputs).To(HaveKey("ClusterStackName"))
 			Expect(clusterTemplate.Outputs).To(HaveKey("SecurityGroup"))
@@ -355,6 +353,7 @@ var _ = Describe("Cluster Template Builder", func() {
 			Expect(clusterTemplate.Outputs).To(HaveKey("Endpoint"))
 			Expect(clusterTemplate.Outputs).To(HaveKey("FeatureNATMode"))
 			Expect(clusterTemplate.Outputs).To(HaveKey("ServiceRoleARN"))
+			Expect(clusterTemplate.Outputs).To(HaveKey("ClusterSecurityGroupId"))
 		})
 
 		It("should add partition mappings", func() {
@@ -368,7 +367,7 @@ var _ = Describe("Cluster Template Builder", func() {
 				detailsJSON := serviceDetailsJSON
 				var output *ec2.DescribeVpcEndpointServicesOutput
 				Expect(json.Unmarshal([]byte(detailsJSON), &output)).To(Succeed())
-				provider.MockEC2().On("DescribeVpcEndpointServices", mock.MatchedBy(func(e *ec2.DescribeVpcEndpointServicesInput) bool {
+				provider.MockEC2().On("DescribeVpcEndpointServices", mock.Anything, mock.MatchedBy(func(e *ec2.DescribeVpcEndpointServicesInput) bool {
 					return len(e.ServiceNames) == 5
 				})).Return(output, nil)
 			})
@@ -547,7 +546,7 @@ var _ = Describe("Cluster Template Builder", func() {
 		Context("when adding vpc endpoint resources fails", func() {
 			BeforeEach(func() {
 				cfg.PrivateCluster = &api.PrivateCluster{Enabled: true}
-				provider.MockEC2().On("DescribeVpcEndpointServices", mock.Anything).Return(nil, errors.New("o-noes"))
+				provider.MockEC2().On("DescribeVpcEndpointServices", mock.Anything, mock.Anything).Return(nil, errors.New("o-noes"))
 			})
 
 			It("should return the error", func() {
@@ -596,14 +595,14 @@ var _ = Describe("Cluster Template Builder", func() {
 		It("should not error", func() {
 			// the actual work gets done right the way down in outputs where there is currently no interface
 			// so there is little value here right now
-			Expect(crs.GetAllOutputs(cfn.Stack{})).To(Succeed())
+			Expect(crs.GetAllOutputs(types.Stack{})).To(Succeed())
 		})
 	})
 
 	Describe("RenderJSON", func() {
 		It("returns the template rendered as JSON", func() {
 			// the work actually gets done on the internal resource set
-			Expect(crs.AddAllResources()).To(Succeed())
+			Expect(crs.AddAllResources(context.Background())).To(Succeed())
 			result, err := crs.RenderJSON()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result).To(ContainSubstring(vpcResourceKey))
@@ -613,7 +612,7 @@ var _ = Describe("Cluster Template Builder", func() {
 	Describe("Template", func() {
 		It("returns the template from the inner resource set", func() {
 			// the work actually gets done on the internal resource set
-			Expect(crs.AddAllResources()).To(Succeed())
+			Expect(crs.AddAllResources(context.Background())).To(Succeed())
 			clusterTemplate := crs.Template()
 			Expect(clusterTemplate.Resources).To(HaveKey(vpcResourceKey))
 		})

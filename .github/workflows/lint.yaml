@@ -10,7 +10,7 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    container: weaveworks/eksctl-build:130fc812ab94a306ed0dcf232a5962a1626fe9ea
+    container: weaveworks/eksctl-build:ade448cab58af16007a9975c668de59b4763c8ab
     steps:
       - name: Checkout
         uses: actions/checkout@v2
