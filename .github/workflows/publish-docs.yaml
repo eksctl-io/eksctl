@@ -4,6 +4,9 @@ on:
   release:
     types:
       - published
+permissions:
+  contents: read
+
 jobs:
   publish-docs:
     name: Publish docs to Netlify

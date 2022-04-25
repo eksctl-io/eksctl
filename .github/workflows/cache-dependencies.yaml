@@ -3,8 +3,13 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   cache-dependencies:
+    permissions:
+      contents: none
     name: Cache dependencies
     runs-on: ubuntu-latest
     steps:

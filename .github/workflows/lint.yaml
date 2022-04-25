@@ -6,6 +6,9 @@ on:
 env:
   GOPRIVATE: github.com/weaveworks/aws-sdk-go-private
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: Lint

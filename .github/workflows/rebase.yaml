@@ -2,6 +2,9 @@ name: PR Rebase
 on:
   issue_comment:
     types: [created]
+permissions:
+  contents: read
+
 jobs:
   rebase:
     name: Rebase
