@@ -185,7 +185,6 @@ func (v *IPv6VPCResourceSet) isFullyPrivate() bool {
 }
 
 func (v *IPv6VPCResourceSet) createSubnet(az, azFormatted string, i, cidrPartitions int, private bool) *gfnt.Value {
-	var assignIpv6AddressOnCreation *gfnt.Value
 	subnetKey := PublicSubnetKey + azFormatted
 	mapPublicIPOnLaunch := gfnt.True()
 	elbTagKey := "kubernetes.io/role/elb"
@@ -193,7 +192,6 @@ func (v *IPv6VPCResourceSet) createSubnet(az, azFormatted string, i, cidrPartiti
 	if private {
 		subnetKey = PrivateSubnetKey + azFormatted
 		mapPublicIPOnLaunch = nil
-		assignIpv6AddressOnCreation = gfnt.True()
 		elbTagKey = "kubernetes.io/role/internal-elb"
 	}
 
@@ -203,7 +201,7 @@ func (v *IPv6VPCResourceSet) createSubnet(az, azFormatted string, i, cidrPartiti
 		CidrBlock:                   gfnt.MakeFnSelect(gfnt.NewInteger(i), getSubnetIPv4CIDRBlock(cidrPartitions, v.clusterConfig.VPC.Network.CIDR)),
 		Ipv6CidrBlock:               gfnt.MakeFnSelect(gfnt.NewInteger(i), getSubnetIPv6CIDRBlock(cidrPartitions)),
 		MapPublicIpOnLaunch:         mapPublicIPOnLaunch,
-		AssignIpv6AddressOnCreation: assignIpv6AddressOnCreation,
+		AssignIpv6AddressOnCreation: gfnt.True(),
 		VpcId:                       gfnt.MakeRef(VPCResourceKey),
 		Tags: []cloudformation.Tag{{
 			Key:   gfnt.NewString(elbTagKey),
