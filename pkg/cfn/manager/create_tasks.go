@@ -36,16 +36,6 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(ctx context.Cont
 		},
 	)
 
-	if c.spec.IPv6Enabled() {
-		taskTree.Append(
-			&AssignIpv6AddressOnCreationTask{
-				ClusterConfig: c.spec,
-				EC2API:        c.ec2API,
-				Context:       ctx,
-			},
-		)
-	}
-
 	appendNodeGroupTasksTo := func(taskTree *tasks.TaskTree) {
 		vpcImporter := vpc.NewStackConfigImporter(c.MakeClusterStackName())
 		nodeGroupTasks := c.NewUnmanagedNodeGroupTask(ctx, nodeGroups, false, vpcImporter)
