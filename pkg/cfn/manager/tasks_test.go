@@ -164,23 +164,6 @@ var _ = Describe("StackCollection Tasks", func() {
 `))
 			}
 		})
-
-		When("IPFamily is set to ipv6", func() {
-			BeforeEach(func() {
-				cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
-			})
-			It("appends the AssignIpv6AddressOnCreation task to occur after the cluster creation", func() {
-				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar", "foo"), nil)
-				Expect(tasks.Describe()).To(Equal(`
-3 sequential tasks: { create cluster control plane "test-cluster", set AssignIpv6AddressOnCreation to true for public subnets, 
-    2 parallel sub-tasks: { 
-        create nodegroup "bar",
-        create nodegroup "foo",
-    } 
-}
-`))
-			})
-		})
 	})
 
 	Describe("ManagedNodeGroupTask", func() {
