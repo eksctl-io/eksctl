@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -138,24 +137,6 @@ var _ = Describe("(Integration) [EKS IPv6 test]", func() {
 			})
 			Expect(err).NotTo(HaveOccurred(), vpcOutput.GoString())
 			Expect(vpcOutput.Vpcs[0].Ipv6CidrBlockAssociationSet).To(HaveLen(1))
-
-			// TODO: get rid of this once CF bug is fixed https://github.com/weaveworks/eksctl/issues/4363
-			By("setting AssignIpv6AddressOnCreation to true for each public subnet")
-			var publicSubnets string
-			for _, output := range describeStackOut.Stacks[0].Outputs {
-				if *output.OutputKey == builder.PublicSubnetsOutputKey {
-					publicSubnets = *output.OutputValue
-				}
-			}
-
-			subnetsOutput, err := ec2.DescribeSubnets(&awsec2.DescribeSubnetsInput{
-				SubnetIds: aws.StringSlice(strings.Split(publicSubnets, ",")),
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(len(subnetsOutput.Subnets)).To(BeNumerically(">", 0))
-			for _, s := range subnetsOutput.Subnets {
-				Expect(*s.AssignIpv6AddressOnCreation).To(BeTrue())
-			}
 
 			By("ensuring the K8s cluster has IPv6 enabled")
 			var clientSet *kubernetes.Clientset

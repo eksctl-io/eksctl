@@ -259,9 +259,9 @@ var _ = Describe("IPv6 VPC builder", func() {
 			assertCidrBlockCreatedWithSelect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock, expectedFnIPv6CIDR, cidrBlockIndex)
 		}
 		assertSubnetSet(azA, builder.PublicSubnetKey+azAFormatted, "kubernetes.io/role/elb", float64(0), true)
-		Expect(vpcTemplate.Resources[builder.PublicSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(BeNil())
+		Expect(*vpcTemplate.Resources[builder.PublicSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
 		assertSubnetSet(azB, builder.PublicSubnetKey+azBFormatted, "kubernetes.io/role/elb", float64(1), true)
-		Expect(vpcTemplate.Resources[builder.PublicSubnetKey+azBFormatted].Properties.AssignIpv6AddressOnCreation).To(BeNil())
+		Expect(*vpcTemplate.Resources[builder.PublicSubnetKey+azBFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
 
 		assertSubnetSet(azA, builder.PrivateSubnetKey+azAFormatted, "kubernetes.io/role/internal-elb", float64(2), false)
 		Expect(*vpcTemplate.Resources[builder.PrivateSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
@@ -389,9 +389,9 @@ var _ = Describe("IPv6 VPC builder", func() {
 				assertCidrBlockCreatedWithSelect(vpcTemplate.Resources[subnetKey].Properties.Ipv6CidrBlock, expectedFnIPv6CIDR, cidrBlockIndex)
 			}
 			assertSubnetSet(azA, builder.PublicSubnetKey+azAFormatted, "kubernetes.io/role/elb", float64(0), true)
-			Expect(vpcTemplate.Resources[builder.PublicSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(BeNil())
+			Expect(*vpcTemplate.Resources[builder.PublicSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
 			assertSubnetSet(azB, builder.PublicSubnetKey+azBFormatted, "kubernetes.io/role/elb", float64(1), true)
-			Expect(vpcTemplate.Resources[builder.PublicSubnetKey+azBFormatted].Properties.AssignIpv6AddressOnCreation).To(BeNil())
+			Expect(*vpcTemplate.Resources[builder.PublicSubnetKey+azBFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
 
 			assertSubnetSet(azA, builder.PrivateSubnetKey+azAFormatted, "kubernetes.io/role/internal-elb", float64(2), false)
 			Expect(*vpcTemplate.Resources[builder.PrivateSubnetKey+azAFormatted].Properties.AssignIpv6AddressOnCreation).To(Equal(true))
