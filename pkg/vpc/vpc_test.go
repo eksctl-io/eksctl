@@ -228,6 +228,138 @@ var _ = Describe("VPC", func() {
 		}),
 	)
 
+	type setSubnetsEntry struct {
+		availabilityZones []string
+		localZones        []string
+
+		expectedSubnets          *api.ClusterSubnets
+		expectedLocalZoneSubnets *api.ClusterSubnets
+	}
+
+	DescribeTable("SetSubnets CIDR assignment", func(e setSubnetsEntry) {
+		vpc := api.NewClusterVPC(false)
+		err := SetSubnets(vpc, e.availabilityZones, e.localZones)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(vpc.Subnets).To(Equal(e.expectedSubnets))
+		Expect(vpc.LocalZoneSubnets).To(Equal(e.expectedLocalZoneSubnets))
+
+	},
+		Entry("both availabilityZones and localZones are set", setSubnetsEntry{
+			availabilityZones: []string{"us-west-2a", "us-west-2b", "us-west-2c"},
+			localZones:        []string{"us-west-2-lax-1a", "us-west-2-lax-1b"},
+
+			expectedSubnets: &api.ClusterSubnets{
+				Public: api.AZSubnetMapping{
+					"us-west-2a": api.AZSubnetSpec{
+						AZ:        "us-west-2a",
+						CIDR:      ipnet.MustParseCIDR("192.168.0.0/20"),
+						CIDRIndex: 0,
+					},
+					"us-west-2b": api.AZSubnetSpec{
+						AZ:        "us-west-2b",
+						CIDR:      ipnet.MustParseCIDR("192.168.16.0/20"),
+						CIDRIndex: 1,
+					},
+					"us-west-2c": api.AZSubnetSpec{
+						AZ:        "us-west-2c",
+						CIDR:      ipnet.MustParseCIDR("192.168.32.0/20"),
+						CIDRIndex: 2,
+					},
+				},
+				Private: api.AZSubnetMapping{
+					"us-west-2a": api.AZSubnetSpec{
+						AZ:        "us-west-2a",
+						CIDR:      ipnet.MustParseCIDR("192.168.80.0/20"),
+						CIDRIndex: 5,
+					},
+					"us-west-2b": api.AZSubnetSpec{
+						AZ:        "us-west-2b",
+						CIDR:      ipnet.MustParseCIDR("192.168.96.0/20"),
+						CIDRIndex: 6,
+					},
+					"us-west-2c": api.AZSubnetSpec{
+						AZ:        "us-west-2c",
+						CIDR:      ipnet.MustParseCIDR("192.168.112.0/20"),
+						CIDRIndex: 7,
+					},
+				},
+			},
+
+			expectedLocalZoneSubnets: &api.ClusterSubnets{
+				Public: api.AZSubnetMapping{
+					"us-west-2-lax-1a": api.AZSubnetSpec{
+						AZ:        "us-west-2-lax-1a",
+						CIDR:      ipnet.MustParseCIDR("192.168.48.0/20"),
+						CIDRIndex: 3,
+					},
+					"us-west-2-lax-1b": api.AZSubnetSpec{
+						AZ:        "us-west-2-lax-1b",
+						CIDR:      ipnet.MustParseCIDR("192.168.64.0/20"),
+						CIDRIndex: 4,
+					},
+				},
+				Private: api.AZSubnetMapping{
+					"us-west-2-lax-1a": api.AZSubnetSpec{
+						AZ:        "us-west-2-lax-1a",
+						CIDR:      ipnet.MustParseCIDR("192.168.128.0/20"),
+						CIDRIndex: 8,
+					},
+					"us-west-2-lax-1b": api.AZSubnetSpec{
+						AZ:        "us-west-2-lax-1b",
+						CIDR:      ipnet.MustParseCIDR("192.168.144.0/20"),
+						CIDRIndex: 9,
+					},
+				},
+			},
+		}),
+
+		Entry("only availabilityZones is set", setSubnetsEntry{
+			availabilityZones: []string{"us-west-2a", "us-west-2b", "us-west-2c"},
+
+			expectedSubnets: &api.ClusterSubnets{
+				Public: api.AZSubnetMapping{
+					"us-west-2a": api.AZSubnetSpec{
+						AZ:        "us-west-2a",
+						CIDR:      ipnet.MustParseCIDR("192.168.0.0/19"),
+						CIDRIndex: 0,
+					},
+					"us-west-2b": api.AZSubnetSpec{
+						AZ:        "us-west-2b",
+						CIDR:      ipnet.MustParseCIDR("192.168.32.0/19"),
+						CIDRIndex: 1,
+					},
+					"us-west-2c": api.AZSubnetSpec{
+						AZ:        "us-west-2c",
+						CIDR:      ipnet.MustParseCIDR("192.168.64.0/19"),
+						CIDRIndex: 2,
+					},
+				},
+				Private: api.AZSubnetMapping{
+					"us-west-2a": api.AZSubnetSpec{
+						AZ:        "us-west-2a",
+						CIDR:      ipnet.MustParseCIDR("192.168.96.0/19"),
+						CIDRIndex: 3,
+					},
+					"us-west-2b": api.AZSubnetSpec{
+						AZ:        "us-west-2b",
+						CIDR:      ipnet.MustParseCIDR("192.168.128.0/19"),
+						CIDRIndex: 4,
+					},
+					"us-west-2c": api.AZSubnetSpec{
+						AZ:        "us-west-2c",
+						CIDR:      ipnet.MustParseCIDR("192.168.160.0/19"),
+						CIDRIndex: 5,
+					},
+				},
+			},
+
+			expectedLocalZoneSubnets: &api.ClusterSubnets{
+				Public:  api.NewAZSubnetMapping(),
+				Private: api.NewAZSubnetMapping(),
+			},
+		}),
+	)
+
 	DescribeTable("Use from Cluster",
 		func(clusterCase useFromClusterCase) {
 			p := mockprovider.NewMockProvider()
