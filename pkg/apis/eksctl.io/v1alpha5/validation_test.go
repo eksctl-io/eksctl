@@ -690,6 +690,79 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	type localZonesEntry struct {
+		updateClusterConfig func(*api.ClusterConfig)
+
+		expectedErr string
+	}
+
+	DescribeTable("AWS Local Zones", func(e localZonesEntry) {
+		clusterConfig := api.NewClusterConfig()
+		e.updateClusterConfig(clusterConfig)
+		clusterConfig.LocalZones = []string{"us-west-2-lax-1a", "us-west-2-lax-1b"}
+
+		err := api.ValidateClusterConfig(clusterConfig)
+		if e.expectedErr != "" {
+			Expect(err).To(MatchError(ContainSubstring(e.expectedErr)))
+			return
+		}
+		Expect(err).NotTo(HaveOccurred())
+	},
+		Entry("custom VPC", localZonesEntry{
+			updateClusterConfig: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.VPC = &api.ClusterVPC{
+					Network: api.Network{
+						ID: "vpc-custom",
+					},
+				}
+
+			},
+			expectedErr: "localZones are not supported with a pre-existing VPC",
+		}),
+
+		Entry("HighlyAvailable NAT gateway", localZonesEntry{
+			updateClusterConfig: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.VPC = &api.ClusterVPC{
+					NAT: &api.ClusterNAT{
+						Gateway: aws.String("HighlyAvailable"),
+					},
+				}
+			},
+			expectedErr: "HighlyAvailable NAT gateway is not supported for localZones",
+		}),
+
+		Entry("private cluster", localZonesEntry{
+			updateClusterConfig: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.PrivateCluster = &api.PrivateCluster{
+					Enabled: true,
+				}
+			},
+
+			expectedErr: "localZones cannot be used in a fully-private cluster",
+		}),
+
+		Entry("IPv6", localZonesEntry{
+			updateClusterConfig: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
+					IPFamily: api.IPV6Family,
+				}
+				clusterConfig.Addons = []*api.Addon{
+					{
+						Name: "vpc-cni",
+					},
+					{
+						Name: "coredns",
+					},
+					{
+						Name: "kube-proxy",
+					},
+				}
+			},
+
+			expectedErr: "localZones are not supported with IPv6",
+		}),
+	)
+
 	Describe("ValidatePrivateCluster", func() {
 		var (
 			cfg *api.ClusterConfig
@@ -1157,6 +1230,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					Expect(err).To(MatchError("cannot specify vpc.extraIPv6CIDRs with an IPv4 cluster"))
 				})
 			})
+
 		})
 	})
 

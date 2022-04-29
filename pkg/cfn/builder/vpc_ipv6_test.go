@@ -25,6 +25,10 @@ var _ = Describe("IPv6 VPC builder", func() {
 		cfg = api.NewClusterConfig()
 		cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
 		cfg.AvailabilityZones = []string{azA, azB}
+		cfg.VPC.Subnets = &api.ClusterSubnets{
+			Public:  api.NewAZSubnetMapping(),
+			Private: api.NewAZSubnetMapping(),
+		}
 	})
 
 	It("creates the ipv6 VPC and its resources", func() {
@@ -341,6 +345,10 @@ var _ = Describe("IPv6 VPC builder", func() {
 			cfg.KubernetesNetworkConfig.IPFamily = api.IPV6Family
 			cfg.AvailabilityZones = []string{azA, azB}
 			cfg.VPC.Network.CIDR = ipnet.MustParseCIDR("10.1.0.0/20")
+			cfg.VPC.Subnets = &api.ClusterSubnets{
+				Public:  api.NewAZSubnetMapping(),
+				Private: api.NewAZSubnetMapping(),
+			}
 		})
 		It("calculates the correct cidr blocks for the subnets", func() {
 			vpcRs := builder.NewIPv6VPCResourceSet(builder.NewRS(), cfg, nil)

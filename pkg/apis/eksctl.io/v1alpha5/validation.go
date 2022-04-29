@@ -256,11 +256,23 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		if c.VPC.NAT != nil {
 			return fmt.Errorf("setting NAT is not supported with IPv6")
 		}
+		if len(c.LocalZones) > 0 {
+			return errors.New("localZones are not supported with IPv6")
+		}
 	}
 
 	// manageSharedNodeSecurityGroupRules cannot be disabled if using eksctl managed security groups
 	if c.VPC.SharedNodeSecurityGroup == "" && IsDisabled(c.VPC.ManageSharedNodeSecurityGroupRules) {
 		return errors.New("vpc.manageSharedNodeSecurityGroupRules must be enabled when using ekstcl-managed security groups")
+	}
+
+	if len(c.LocalZones) > 0 {
+		if c.VPC.ID != "" {
+			return errors.New("localZones are not supported with a pre-existing VPC")
+		}
+		if c.VPC.NAT != nil && c.VPC.NAT.Gateway != nil && *c.VPC.NAT.Gateway == ClusterHighlyAvailableNAT {
+			return fmt.Errorf("%s NAT gateway is not supported for localZones", ClusterHighlyAvailableNAT)
+		}
 	}
 
 	return nil
@@ -367,6 +379,9 @@ func (c *ClusterConfig) ValidatePrivateCluster() error {
 
 		if c.VPC != nil && c.VPC.ClusterEndpoints == nil {
 			c.VPC.ClusterEndpoints = &ClusterEndpoints{}
+		}
+		if len(c.LocalZones) > 0 {
+			return errors.New("localZones cannot be used in a fully-private cluster")
 		}
 		// public access is initially enabled to allow running operations that access the Kubernetes API
 		c.VPC.ClusterEndpoints.PublicAccess = Enabled()
@@ -716,6 +731,10 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		if *ng.MaxInstanceLifetime < OneDay {
 			return fmt.Errorf("maximum instance lifetime must have a minimum value of 86,400 seconds (one day), but was: %d", *ng.MaxInstanceLifetime)
 		}
+	}
+
+	if len(ng.LocalZones) > 0 && len(ng.AvailabilityZones) > 0 {
+		return errors.New("cannot specify both localZones and availabilityZones")
 	}
 
 	return nil

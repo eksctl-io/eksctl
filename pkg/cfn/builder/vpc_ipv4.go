@@ -38,8 +38,10 @@ type SubnetResource struct {
 }
 
 type SubnetDetails struct {
-	Private []SubnetResource
-	Public  []SubnetResource
+	Private          []SubnetResource
+	Public           []SubnetResource
+	PrivateLocalZone []SubnetResource
+	PublicLocalZone  []SubnetResource
 }
 
 // NewIPv4VPCResourceSet creates and returns a new VPCResourceSet
@@ -115,20 +117,37 @@ func (v *IPv4VPCResourceSet) addResources() error {
 	}
 
 	v.subnetDetails.Private = v.addSubnets(nil, api.SubnetTopologyPrivate, vpc.Subnets.Private)
+	if vpc.LocalZoneSubnets != nil {
+		if len(vpc.LocalZoneSubnets.Public) > 0 {
+			v.subnetDetails.PublicLocalZone = v.addSubnets(refPublicRT, api.SubnetTopologyPublic, vpc.LocalZoneSubnets.Public)
+		}
+		if len(vpc.LocalZoneSubnets.Public) > 0 {
+			v.subnetDetails.PrivateLocalZone = v.addSubnets(nil, api.SubnetTopologyPrivate, vpc.LocalZoneSubnets.Private)
+		}
+	}
+
 	return nil
 }
 
 func (s *SubnetDetails) PublicSubnetRefs() []*gfnt.Value {
-	var subnetRefs []*gfnt.Value
-	for _, subnetAZ := range s.Public {
-		subnetRefs = append(subnetRefs, subnetAZ.Subnet)
-	}
-	return subnetRefs
+	return collectSubnetRefs(s.Public)
 }
 
 func (s *SubnetDetails) PrivateSubnetRefs() []*gfnt.Value {
+	return collectSubnetRefs(s.Private)
+}
+
+func (s *SubnetDetails) PublicLocalZoneSubnetRefs() []*gfnt.Value {
+	return collectSubnetRefs(s.PublicLocalZone)
+}
+
+func (s *SubnetDetails) PrivateLocalZoneSubnetRefs() []*gfnt.Value {
+	return collectSubnetRefs(s.PrivateLocalZone)
+}
+
+func collectSubnetRefs(subnetResources []SubnetResource) []*gfnt.Value {
 	var subnetRefs []*gfnt.Value
-	for _, subnetAZ := range s.Private {
+	for _, subnetAZ := range subnetResources {
 		subnetRefs = append(subnetRefs, subnetAZ.Subnet)
 	}
 	return subnetRefs
@@ -144,18 +163,27 @@ func (v *IPv4VPCResourceSet) addOutputs(ctx context.Context) {
 		v.rs.defineOutputWithoutCollector(outputs.ClusterFeatureNATMode, v.clusterConfig.VPC.NAT.Gateway, false)
 	}
 
-	addSubnetOutput := func(subnetRefs []*gfnt.Value, topology api.SubnetTopology, outputName string) {
+	addSubnetOutput := func(subnetRefs []*gfnt.Value, subnetMapping api.AZSubnetMapping, outputName string) {
 		v.rs.defineJoinedOutput(outputName, subnetRefs, true, func(value string) error {
-			return vpc.ImportSubnetsFromIDList(ctx, v.ec2API, v.clusterConfig, topology, strings.Split(value, ","))
+			return vpc.ImportSubnetsFromIDList(ctx, v.ec2API, v.clusterConfig, subnetMapping, strings.Split(value, ","))
 		})
 	}
 
+	clusterVPC := v.clusterConfig.VPC
 	if subnetAZs := v.subnetDetails.PrivateSubnetRefs(); len(subnetAZs) > 0 {
-		addSubnetOutput(subnetAZs, api.SubnetTopologyPrivate, outputs.ClusterSubnetsPrivate)
+		addSubnetOutput(subnetAZs, clusterVPC.Subnets.Private, outputs.ClusterSubnetsPrivate)
 	}
 
 	if subnetAZs := v.subnetDetails.PublicSubnetRefs(); len(subnetAZs) > 0 {
-		addSubnetOutput(subnetAZs, api.SubnetTopologyPublic, outputs.ClusterSubnetsPublic)
+		addSubnetOutput(subnetAZs, clusterVPC.Subnets.Public, outputs.ClusterSubnetsPublic)
+	}
+
+	if subnetAZs := v.subnetDetails.PrivateLocalZoneSubnetRefs(); len(subnetAZs) > 0 {
+		addSubnetOutput(subnetAZs, clusterVPC.LocalZoneSubnets.Private, outputs.ClusterSubnetsPrivateLocal)
+	}
+
+	if subnetAZs := v.subnetDetails.PublicLocalZoneSubnetRefs(); len(subnetAZs) > 0 {
+		addSubnetOutput(subnetAZs, clusterVPC.LocalZoneSubnets.Public, outputs.ClusterSubnetsPublicLocal)
 	}
 
 	if v.isFullyPrivate() {
@@ -173,31 +201,22 @@ func (v *IPv4VPCResourceSet) RenderJSON() ([]byte, error) {
 }
 
 func (v *IPv4VPCResourceSet) addSubnets(refRT *gfnt.Value, topology api.SubnetTopology, subnets map[string]api.AZSubnetSpec) []SubnetResource {
-	var subnetIndexForIPv6 int
-	if api.IsEnabled(v.clusterConfig.VPC.AutoAllocateIPv6) {
-		// this is same kind of indexing we have in vpc.SetSubnets
-		switch topology {
-		case api.SubnetTopologyPrivate:
-			subnetIndexForIPv6 = len(v.clusterConfig.AvailabilityZones)
-		case api.SubnetTopologyPublic:
-			subnetIndexForIPv6 = 0
-		}
-	}
+	autoAllocateIPV6 := api.IsEnabled(v.clusterConfig.VPC.AutoAllocateIPv6)
 
 	var subnetResources []SubnetResource
 
-	for name, subnet := range subnets {
-		az := subnet.AZ
+	for name, s := range subnets {
+		az := s.AZ
 		nameAlias := strings.ToUpper(strings.Join(strings.Split(name, "-"), ""))
 		subnet := &gfnec2.Subnet{
 			AvailabilityZone: gfnt.NewString(az),
-			CidrBlock:        gfnt.NewString(subnet.CIDR.String()),
+			CidrBlock:        gfnt.NewString(s.CIDR.String()),
 			VpcId:            v.vpcID,
 		}
 
 		switch topology {
 		case api.SubnetTopologyPrivate:
-			// Choose the appropriate route table for private subnets
+			// Choose the appropriate route table for private subnets.
 			refRT = gfnt.MakeRef("PrivateRouteTable" + nameAlias)
 			subnet.Tags = []gfncfn.Tag{{
 				Key:   gfnt.NewString("kubernetes.io/role/internal-elb"),
@@ -210,6 +229,7 @@ func (v *IPv4VPCResourceSet) addSubnets(refRT *gfnt.Value, topology api.SubnetTo
 			}}
 			subnet.MapPublicIpOnLaunch = gfnt.True()
 		}
+
 		subnetAlias := string(topology) + nameAlias
 		refSubnet := v.rs.newResource("Subnet"+subnetAlias, subnet)
 		v.rs.newResource("RouteTableAssociation"+subnetAlias, &gfnec2.SubnetRouteTableAssociation{
@@ -217,13 +237,12 @@ func (v *IPv4VPCResourceSet) addSubnets(refRT *gfnt.Value, topology api.SubnetTo
 			RouteTableId: refRT,
 		})
 
-		if api.IsEnabled(v.clusterConfig.VPC.AutoAllocateIPv6) {
+		if autoAllocateIPV6 {
 			refSubnetSlices := getSubnetIPv6CIDRBlock((len(v.clusterConfig.AvailabilityZones) * 2) + 2)
 			v.rs.newResource(subnetAlias+"CIDRv6", &gfnec2.SubnetCidrBlock{
 				SubnetId:      refSubnet,
-				Ipv6CidrBlock: gfnt.MakeFnSelect(gfnt.NewInteger(subnetIndexForIPv6), refSubnetSlices),
+				Ipv6CidrBlock: gfnt.MakeFnSelect(gfnt.NewInteger(s.CIDRIndex), refSubnetSlices),
 			})
-			subnetIndexForIPv6++
 		}
 
 		subnetResources = append(subnetResources, SubnetResource{
@@ -312,8 +331,8 @@ func (v *IPv4VPCResourceSet) singleNAT() {
 		SubnetId:     gfnt.MakeRef("SubnetPublic" + firstUpperAZ),
 	})
 
-	for _, az := range v.clusterConfig.AvailabilityZones {
-		alphanumericUpperAZ := strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
+	for _, zone := range makeAllZones(v.clusterConfig) {
+		alphanumericUpperAZ := strings.ToUpper(strings.Join(strings.Split(zone, "-"), ""))
 
 		refRT := v.rs.newResource("PrivateRouteTable"+alphanumericUpperAZ, &gfnec2.RouteTable{
 			VpcId: v.vpcID,
@@ -332,7 +351,7 @@ func (v *IPv4VPCResourceSet) singleNAT() {
 }
 
 func (v *IPv4VPCResourceSet) noNAT() {
-	for _, az := range v.clusterConfig.AvailabilityZones {
+	for _, az := range makeAllZones(v.clusterConfig) {
 		alphanumericUpperAZ := strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
 
 		refRT := v.rs.newResource("PrivateRouteTable"+alphanumericUpperAZ, &gfnec2.RouteTable{
@@ -343,4 +362,11 @@ func (v *IPv4VPCResourceSet) noNAT() {
 			RouteTableId: refRT,
 		})
 	}
+}
+
+func makeAllZones(clusterConfig *api.ClusterConfig) []string {
+	zones := make([]string, len(clusterConfig.AvailabilityZones)+len(clusterConfig.LocalZones))
+	copy(zones, clusterConfig.AvailabilityZones)
+	copy(zones[len(clusterConfig.AvailabilityZones):], clusterConfig.LocalZones)
+	return zones
 }

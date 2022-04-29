@@ -165,7 +165,7 @@ var _ = Describe("VPC Configuration", func() {
 				},
 			}),
 		}),
-		Entry("ID disamiguating list", subnetCase{
+		Entry("ID disambiguating list", subnetCase{
 			subnets: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
 				"main-subnet": {
 					AZ: "us-east-1a",
