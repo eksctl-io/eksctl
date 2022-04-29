@@ -6,7 +6,7 @@ package utils
 import (
 	"testing"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -24,9 +24,6 @@ func init() {
 func TestUtils(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
-
-var _ = BeforeSuite(func() {
-})
 
 var _ = Describe("Utils", func() {
 	Context("schema", func() {

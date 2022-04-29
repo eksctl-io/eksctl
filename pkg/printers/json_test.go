@@ -6,12 +6,13 @@ import (
 	"os"
 	"time"
 
-	. "github.com/weaveworks/eksctl/pkg/printers"
-
 	"github.com/aws/aws-sdk-go/aws"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	. "github.com/weaveworks/eksctl/pkg/printers"
 )
 
 var _ = Describe("JSON Printer", func() {

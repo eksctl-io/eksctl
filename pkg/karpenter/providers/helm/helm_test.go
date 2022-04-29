@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/otiai10/copy"
 	"helm.sh/helm/v3/pkg/action"
