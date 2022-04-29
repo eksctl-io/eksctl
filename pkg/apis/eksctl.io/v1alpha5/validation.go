@@ -630,8 +630,8 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 	}
 
-	if ng.AMI != "" && ng.OverrideBootstrapCommand == nil {
-		return errors.Errorf("%s.overrideBootstrapCommand is required when using a custom AMI (%s.ami)", path, path)
+	if ng.AMI != "" && ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyBottlerocket {
+		return errors.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI (%[1]s.ami)", path)
 	}
 
 	if err := validateTaints(ng.Taints); err != nil {
