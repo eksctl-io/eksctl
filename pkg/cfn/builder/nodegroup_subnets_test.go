@@ -16,8 +16,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"

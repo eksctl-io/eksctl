@@ -757,6 +757,8 @@ var _ = Describe("ClusterConfig validation", func() {
 						Name: "kube-proxy",
 					},
 				}
+				clusterConfig.IAM.WithOIDC = api.Enabled()
+				clusterConfig.VPC.NAT = nil
 			},
 
 			expectedErr: "localZones are not supported with IPv6",
