@@ -668,6 +668,8 @@ type ClusterProvider interface {
 	Region() string
 	Profile() string
 	WaitTimeout() time.Duration
+
+	// TODO: Remove this, the implementation is no longer used effectively anywhere.
 	ConfigProvider() client.ConfigProvider
 	Session() *session.Session
 

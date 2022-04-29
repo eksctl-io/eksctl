@@ -47,8 +47,8 @@ var _ = BeforeSuite(func() {
 		"--version", params.Version,
 	)
 	cmd.Start()
-	awsSession := NewSession(params.Region)
-	Eventually(awsSession, timeOutSeconds, pollInterval).Should(
+	cfg := NewConfig(params.Region)
+	Eventually(cfg, timeOutSeconds, pollInterval).Should(
 		HaveExistingCluster(params.ClusterName, awseks.ClusterStatusCreating, params.Version))
 })
 
@@ -67,12 +67,12 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 
 	Context("after the delete of the cluster in progress has been initiated", func() {
 		It("should eventually delete the EKS cluster and both CloudFormation stacks", func() {
-			awsSession := NewSession(params.Region)
-			Eventually(awsSession, timeOutSeconds, pollInterval).ShouldNot(
+			cfg := NewConfig(params.Region)
+			Eventually(cfg, timeOutSeconds, pollInterval).ShouldNot(
 				HaveExistingCluster(params.ClusterName, awseks.ClusterStatusActive, params.Version))
-			Eventually(awsSession, timeOutSeconds, pollInterval).ShouldNot(
+			Eventually(cfg, timeOutSeconds, pollInterval).ShouldNot(
 				HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
-			Eventually(awsSession, timeOutSeconds, pollInterval).ShouldNot(
+			Eventually(cfg, timeOutSeconds, pollInterval).ShouldNot(
 				HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initNG)))
 		})
 	})

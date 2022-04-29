@@ -10,7 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	harness "github.com/dlespiau/kube-test-harness"
 
@@ -227,14 +228,14 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 		})
 
 		It("should have created an EKS cluster and 4 CloudFormation stacks", func() {
-			awsSession := NewSession(params.Region)
+			config := NewConfig(params.Region)
 
-			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, awseks.ClusterStatusActive, params.Version))
+			Expect(config).To(HaveExistingCluster(params.ClusterName, string(ekstypes.ClusterStatusActive), params.Version))
 
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initialAl2Nodegroup)))
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, bottlerocketNodegroup)))
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, ubuntuNodegroup)))
+			Expect(config).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
+			Expect(config).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initialAl2Nodegroup)))
+			Expect(config).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, bottlerocketNodegroup)))
+			Expect(config).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, ubuntuNodegroup)))
 		})
 
 		It("should have created a valid kubectl config file", func() {
@@ -531,6 +532,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, clusterConfig)
 				Expect(err).NotTo(HaveOccurred())
 				ctl := clusterProvider.Provider
+				// TODO: Fix this
 				out, err := ctl.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{
 					ClusterName:   &params.ClusterName,
 					NodegroupName: aws.String("update-config-ng"),

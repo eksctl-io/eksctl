@@ -13,20 +13,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/eks"
-
+	"github.com/aws/aws-sdk-go-v2/aws"
 	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/aws/aws-sdk-go/aws"
-
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
 var params *tests.Params

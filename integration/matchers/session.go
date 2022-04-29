@@ -1,16 +1,17 @@
 package matchers
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
 )
 
-// NewSession creates a new session
-func NewSession(region string) *session.Session {
-	config := aws.NewConfig()
-	config = config.WithRegion(region)
-	opts := session.Options{
-		Config: *config,
+// NewConfig creates a new session
+func NewConfig(region string) aws.Config {
+	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion(region))
+	if err != nil {
+		panic(err)
 	}
-	return session.Must(session.NewSessionWithOptions(opts))
+	return cfg
 }

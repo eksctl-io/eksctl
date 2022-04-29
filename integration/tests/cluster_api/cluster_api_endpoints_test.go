@@ -108,8 +108,8 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 					return
 				}
 				Expect(cmd).Should(RunSuccessfully())
-				awsSession := NewSession(params.Region)
-				Eventually(awsSession, timeOutSeconds, pollInterval).Should(
+				config := NewConfig(params.Region)
+				Eventually(config, timeOutSeconds, pollInterval).Should(
 					HaveExistingCluster(clName, awseks.ClusterStatusActive, params.Version))
 			} else if e.Type == updateCluster {
 				utilsCmd := params.EksctlUtilsCmd.
@@ -152,8 +152,8 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 					"--name", clName,
 				)
 				Expect(deleteCmd).Should(RunSuccessfully())
-				awsSession := NewSession(params.Region)
-				Eventually(awsSession, timeOutSeconds, pollInterval).
+				config := NewConfig(params.Region)
+				Eventually(config, timeOutSeconds, pollInterval).
 					ShouldNot(HaveExistingCluster(clName, awseks.ClusterStatusActive, params.Version))
 			}
 		},

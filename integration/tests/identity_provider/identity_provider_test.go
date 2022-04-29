@@ -12,11 +12,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
-	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider/cognitoidentityprovideriface"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
+	cogtypes "github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -125,7 +124,8 @@ var _ = Describe("(Integration) [Identity Provider]", func() {
 		test.CreateClusterRoleBindingFromFile("testdata/cluster-role-binding.yaml")
 
 		By("creating an OIDC Clientset")
-		clientset, err := createOIDCClientset(eks.New(NewSession(params.Region)), oidcConfig, params.ClusterName)
+		e := eks.NewFromConfig(NewConfig(params.Region))
+		clientset, err := createOIDCClientset(e, oidcConfig, params.ClusterName)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("reading Kubernetes resources")
@@ -176,7 +176,7 @@ var _ = AfterSuite(func() {
 	}
 })
 
-func createOIDCClientset(eksAPI eksiface.EKSAPI, o *OIDCConfig, clusterName string) (kubernetes.Interface, error) {
+func createOIDCClientset(eksAPI EKSAPI, o *OIDCConfig, clusterName string) (kubernetes.Interface, error) {
 	contextName := fmt.Sprintf("%s@%s", "test", clusterName)
 
 	cluster, err := eksAPI.DescribeCluster(&eks.DescribeClusterInput{
@@ -234,7 +234,7 @@ type userPoolClient struct {
 }
 
 func setupCognitoProvider(clusterName, region string) (*OIDCConfig, error) {
-	c := cognitoidentityprovider.New(NewSession(region))
+	c := cognitoidentityprovider.NewFromConfig(NewConfig(region))
 
 	userPoolClient, err := createCognitoUserPoolClient(c, clusterName)
 	if err != nil {
@@ -251,11 +251,11 @@ func setupCognitoProvider(clusterName, region string) (*OIDCConfig, error) {
 		return nil, err
 	}
 
-	auth, err := c.AdminInitiateAuth(&cognitoidentityprovider.AdminInitiateAuthInput{
-		AuthFlow: aws.String(cognitoidentityprovider.AuthFlowTypeAdminUserPasswordAuth),
-		AuthParameters: map[string]*string{
-			"USERNAME": clientUsername,
-			"PASSWORD": aws.String(userPass),
+	auth, err := c.AdminInitiateAuth(context.Background(), &cognitoidentityprovider.AdminInitiateAuthInput{
+		AuthFlow: cogtypes.AuthFlowTypeAdminUserPasswordAuth,
+		AuthParameters: map[string]string{
+			"USERNAME": *clientUsername,
+			"PASSWORD": userPass,
 		},
 		ClientId:   userPoolClient.clientID,
 		UserPoolId: userPoolClient.userPoolID,
@@ -273,19 +273,19 @@ func setupCognitoProvider(clusterName, region string) (*OIDCConfig, error) {
 	}, nil
 }
 
-func createCognitoUserPoolClient(c cognitoidentityprovideriface.CognitoIdentityProviderAPI, clusterName string) (*userPoolClient, error) {
-	pool, err := c.CreateUserPool(&cognitoidentityprovider.CreateUserPoolInput{
-		Policies: &cognitoidentityprovider.UserPoolPolicyType{
-			PasswordPolicy: &cognitoidentityprovider.PasswordPolicyType{
-				MinimumLength:    aws.Int64(10),
-				RequireLowercase: aws.Bool(false),
-				RequireNumbers:   aws.Bool(true),
-				RequireSymbols:   aws.Bool(true),
-				RequireUppercase: aws.Bool(false),
+func createCognitoUserPoolClient(c *cognitoidentityprovider.Client, clusterName string) (*userPoolClient, error) {
+	pool, err := c.CreateUserPool(context.Background(), &cognitoidentityprovider.CreateUserPoolInput{
+		Policies: &cogtypes.UserPoolPolicyType{
+			PasswordPolicy: &cogtypes.PasswordPolicyType{
+				MinimumLength:    10,
+				RequireLowercase: false,
+				RequireNumbers:   true,
+				RequireSymbols:   true,
+				RequireUppercase: false,
 			},
 		},
 		PoolName:           aws.String(clusterName),
-		UsernameAttributes: aws.StringSlice([]string{"email"}),
+		UsernameAttributes: []cogtypes.UsernameAttributeType{"email"},
 	})
 
 	if err != nil {
@@ -293,34 +293,34 @@ func createCognitoUserPoolClient(c cognitoidentityprovideriface.CognitoIdentityP
 	}
 
 	cleanupCognitoResources = func() error {
-		_, err := c.DeleteUserPool(&cognitoidentityprovider.DeleteUserPoolInput{
+		_, err := c.DeleteUserPool(context.Background(), &cognitoidentityprovider.DeleteUserPoolInput{
 			UserPoolId: pool.UserPool.Id,
 		})
 		return err
 	}
 
-	client, err := c.CreateUserPoolClient(&cognitoidentityprovider.CreateUserPoolClientInput{
+	client, err := c.CreateUserPoolClient(context.Background(), &cognitoidentityprovider.CreateUserPoolClientInput{
 		ClientName: aws.String("eks-client"),
-		ExplicitAuthFlows: aws.StringSlice([]string{
-			cognitoidentityprovider.ExplicitAuthFlowsTypeAllowAdminUserPasswordAuth,
-			cognitoidentityprovider.ExplicitAuthFlowsTypeAllowUserPasswordAuth,
-			cognitoidentityprovider.ExplicitAuthFlowsTypeAllowRefreshTokenAuth,
-		}),
-		AllowedOAuthFlows: aws.StringSlice([]string{
-			cognitoidentityprovider.OAuthFlowTypeImplicit,
-		}),
-		AllowedOAuthScopes: aws.StringSlice([]string{
+		ExplicitAuthFlows: []cogtypes.ExplicitAuthFlowsType{
+			cogtypes.ExplicitAuthFlowsTypeAllowAdminUserPasswordAuth,
+			cogtypes.ExplicitAuthFlowsTypeAllowUserPasswordAuth,
+			cogtypes.ExplicitAuthFlowsTypeAllowRefreshTokenAuth,
+		},
+		AllowedOAuthFlows: []cogtypes.OAuthFlowType{
+			cogtypes.OAuthFlowTypeImplicit,
+		},
+		AllowedOAuthScopes: []string{
 			"profile",
 			"phone",
 			"email",
 			"openid",
 			"aws.cognito.signin.user.admin",
-		}),
+		},
 		UserPoolId:                 pool.UserPool.Id,
-		GenerateSecret:             aws.Bool(false),
-		SupportedIdentityProviders: aws.StringSlice([]string{"COGNITO"}),
+		GenerateSecret:             false,
+		SupportedIdentityProviders: []string{"COGNITO"},
 		// TODO this is likely not required, check if this can be removed.
-		CallbackURLs: aws.StringSlice([]string{"https://example.com"}),
+		CallbackURLs: []string{"https://example.com"},
 	})
 
 	if err != nil {
@@ -332,8 +332,8 @@ func createCognitoUserPoolClient(c cognitoidentityprovideriface.CognitoIdentityP
 	}, nil
 }
 
-func createCognitoUserGroup(c cognitoidentityprovideriface.CognitoIdentityProviderAPI, userPoolID, clientUsername *string, userPass string) error {
-	_, err := c.AdminCreateUser(&cognitoidentityprovider.AdminCreateUserInput{
+func createCognitoUserGroup(c *cognitoidentityprovider.Client, userPoolID, clientUsername *string, userPass string) error {
+	_, err := c.AdminCreateUser(context.Background(), &cognitoidentityprovider.AdminCreateUserInput{
 		UserPoolId: userPoolID,
 		Username:   clientUsername,
 	})
@@ -342,11 +342,11 @@ func createCognitoUserGroup(c cognitoidentityprovideriface.CognitoIdentityProvid
 		return fmt.Errorf("creating user: %w", err)
 	}
 
-	_, err = c.AdminSetUserPassword(&cognitoidentityprovider.AdminSetUserPasswordInput{
+	_, err = c.AdminSetUserPassword(context.Background(), &cognitoidentityprovider.AdminSetUserPasswordInput{
 		UserPoolId: userPoolID,
 		Username:   clientUsername,
 		Password:   aws.String(userPass),
-		Permanent:  aws.Bool(true),
+		Permanent:  true,
 	})
 
 	if err != nil {
@@ -355,7 +355,7 @@ func createCognitoUserGroup(c cognitoidentityprovideriface.CognitoIdentityProvid
 
 	groupName := aws.String(oidcGroupName)
 
-	_, err = c.CreateGroup(&cognitoidentityprovider.CreateGroupInput{
+	_, err = c.CreateGroup(context.Background(), &cognitoidentityprovider.CreateGroupInput{
 		UserPoolId: userPoolID,
 		GroupName:  groupName,
 	})
@@ -364,7 +364,7 @@ func createCognitoUserGroup(c cognitoidentityprovideriface.CognitoIdentityProvid
 		return fmt.Errorf("creating group: %w", err)
 	}
 
-	_, err = c.AdminAddUserToGroup(&cognitoidentityprovider.AdminAddUserToGroupInput{
+	_, err = c.AdminAddUserToGroup(context.Background(), &cognitoidentityprovider.AdminAddUserToGroupInput{
 		GroupName:  groupName,
 		UserPoolId: userPoolID,
 		Username:   clientUsername,

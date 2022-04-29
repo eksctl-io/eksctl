@@ -1,6 +1,7 @@
 //go:build integration
 // +build integration
 
+//TODO: Migrate this.
 //revive:disable Not changing package name
 package eks_connector_test
 

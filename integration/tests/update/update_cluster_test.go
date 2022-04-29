@@ -10,22 +10,20 @@ import (
 	"strings"
 	"testing"
 
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
-
-	"github.com/weaveworks/eksctl/pkg/eks"
-
+	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	"github.com/weaveworks/eksctl/pkg/addons"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
@@ -114,11 +112,11 @@ var _ = Describe("(Integration) Update addons", func() {
 
 	Context(fmt.Sprintf("cluster with version %s", eksVersion), func() {
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
-			awsSession := NewSession(params.Region)
+			config := NewConfig(params.Region)
 
-			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, awseks.ClusterStatusActive, eksVersion))
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initNG)))
+			Expect(config).To(HaveExistingCluster(params.ClusterName, string(types.ClusterStatusActive), eksVersion))
+			Expect(config).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
+			Expect(config).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, initNG)))
 		})
 
 		It(fmt.Sprintf("should upgrade the control plane to version %s", nextEKSVersion), func() {

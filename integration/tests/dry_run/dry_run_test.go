@@ -10,9 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	. "github.com/onsi/ginkgo/v2"
-
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 

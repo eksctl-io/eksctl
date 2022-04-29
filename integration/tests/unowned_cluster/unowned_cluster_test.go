@@ -13,12 +13,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+
 	. "github.com/weaveworks/eksctl/integration/matchers"
 
 	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go/service/eks" // TODO: Remove this
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
