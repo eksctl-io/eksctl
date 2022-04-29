@@ -17,7 +17,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/eks"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 
@@ -52,73 +52,65 @@ func TestUpdate(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
+var (
+	eksVersion     string
+	nextEKSVersion string
+)
+
+const (
+	initNG = "kp-ng-0"
+)
+
+var _ = BeforeSuite(func() {
+	params.KubeconfigTemp = false
+	if params.KubeconfigPath == "" {
+		wd, _ := os.Getwd()
+		f, _ := os.CreateTemp(wd, "kubeconfig-")
+		params.KubeconfigPath = f.Name()
+		params.KubeconfigTemp = true
+	}
+
+	if params.SkipCreate {
+		fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", defaultCluster)
+		if !file.Exists(params.KubeconfigPath) {
+			// Generate the Kubernetes configuration that eksctl create
+			// would have generated otherwise:
+			cmd := params.EksctlUtilsCmd.WithArgs(
+				"write-kubeconfig",
+				"--verbose", "4",
+				"--cluster", defaultCluster,
+				"--kubeconfig", params.KubeconfigPath,
+			)
+			Expect(cmd).To(RunSuccessfully())
+		}
+		return
+	}
+
+	fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
+
+	supportedVersions := api.SupportedVersions()
+	if len(supportedVersions) < 2 {
+		Fail("Update cluster test requires at least two supported EKS versions")
+	}
+
+	// Use the lowest supported version
+	eksVersion, nextEKSVersion = supportedVersions[0], supportedVersions[1]
+
+	cmd := params.EksctlCreateCmd.WithArgs(
+		"cluster",
+		"--verbose", "4",
+		"--name", defaultCluster,
+		"--tags", "alpha.eksctl.io/description=eksctl integration test",
+		"--nodegroup-name", initNG,
+		"--node-labels", "ng-name="+initNG,
+		"--nodes", "1",
+		"--node-type", "t3.large",
+		"--version", eksVersion,
+		"--kubeconfig", params.KubeconfigPath,
+	)
+	Expect(cmd).To(RunSuccessfully())
+})
 var _ = Describe("(Integration) Update addons", func() {
-	const (
-		initNG = "kp-ng-0"
-	)
-	var (
-		eksVersion     string
-		nextEKSVersion string
-	)
-
-	BeforeSuite(func() {
-		params.KubeconfigTemp = false
-		if params.KubeconfigPath == "" {
-			wd, _ := os.Getwd()
-			f, _ := os.CreateTemp(wd, "kubeconfig-")
-			params.KubeconfigPath = f.Name()
-			params.KubeconfigTemp = true
-		}
-
-		if params.SkipCreate {
-			fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", defaultCluster)
-			if !file.Exists(params.KubeconfigPath) {
-				// Generate the Kubernetes configuration that eksctl create
-				// would have generated otherwise:
-				cmd := params.EksctlUtilsCmd.WithArgs(
-					"write-kubeconfig",
-					"--verbose", "4",
-					"--cluster", defaultCluster,
-					"--kubeconfig", params.KubeconfigPath,
-				)
-				Expect(cmd).To(RunSuccessfully())
-			}
-			return
-		}
-
-		fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
-
-		supportedVersions := api.SupportedVersions()
-		if len(supportedVersions) < 2 {
-			Fail("Update cluster test requires at least two supported EKS versions")
-		}
-
-		// Use the lowest supported version
-		eksVersion, nextEKSVersion = supportedVersions[0], supportedVersions[1]
-
-		cmd := params.EksctlCreateCmd.WithArgs(
-			"cluster",
-			"--verbose", "4",
-			"--name", defaultCluster,
-			"--tags", "alpha.eksctl.io/description=eksctl integration test",
-			"--nodegroup-name", initNG,
-			"--node-labels", "ng-name="+initNG,
-			"--nodes", "1",
-			"--node-type", "t3.large",
-			"--version", eksVersion,
-			"--kubeconfig", params.KubeconfigPath,
-		)
-		Expect(cmd).To(RunSuccessfully())
-	})
-
-	AfterSuite(func() {
-		params.DeleteClusters()
-		gexec.KillAndWait()
-		if params.KubeconfigTemp {
-			os.Remove(params.KubeconfigPath)
-		}
-		os.RemoveAll(params.TestDirectory)
-	})
 
 	Context(fmt.Sprintf("cluster with version %s", eksVersion), func() {
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
@@ -208,6 +200,15 @@ var _ = Describe("(Integration) Update addons", func() {
 		})
 
 	})
+})
+
+var _ = AfterSuite(func() {
+	params.DeleteClusters()
+	gexec.KillAndWait()
+	if params.KubeconfigTemp {
+		os.Remove(params.KubeconfigPath)
+	}
+	os.RemoveAll(params.TestDirectory)
 })
 
 func getRawClient() *kubewrapper.RawClient {

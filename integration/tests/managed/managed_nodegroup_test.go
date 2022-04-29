@@ -13,12 +13,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	harness "github.com/dlespiau/kube-test-harness"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
-	. "github.com/onsi/gomega"
-	corev1 "k8s.io/api/core/v1"
 
-	"github.com/weaveworks/eksctl/pkg/eks"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
@@ -26,11 +28,8 @@ import (
 	clusterutils "github.com/weaveworks/eksctl/integration/utilities/cluster"
 	"github.com/weaveworks/eksctl/integration/utilities/kube"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 const (
@@ -55,10 +54,29 @@ func TestManaged(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
 
+const initialAl2Nodegroup = "al2-1"
+
+var _ = BeforeSuite(func() {
+	fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
+
+	cmd := params.EksctlCreateCmd.WithArgs(
+		"cluster",
+		"--verbose", "4",
+		"--name", params.ClusterName,
+		"--tags", "alpha.eksctl.io/description=eksctl integration test",
+		"--managed",
+		"--nodegroup-name", initialAl2Nodegroup,
+		"--node-labels", "ng-name="+initialAl2Nodegroup,
+		"--nodes", "2",
+		"--version", params.Version,
+		"--kubeconfig", params.KubeconfigPath,
+	)
+	Expect(cmd).To(RunSuccessfully())
+})
+
 var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 
 	const (
-		initialAl2Nodegroup   = "al2-1"
 		bottlerocketNodegroup = "bottlerocket-1"
 		ubuntuNodegroup       = "ubuntu-1"
 		newPublicNodeGroup    = "ng-public-1"
@@ -74,24 +92,6 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 	}
 
 	defaultTimeout := 20 * time.Minute
-
-	BeforeSuite(func() {
-		fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", params.KubeconfigPath)
-
-		cmd := params.EksctlCreateCmd.WithArgs(
-			"cluster",
-			"--verbose", "4",
-			"--name", params.ClusterName,
-			"--tags", "alpha.eksctl.io/description=eksctl integration test",
-			"--managed",
-			"--nodegroup-name", initialAl2Nodegroup,
-			"--node-labels", "ng-name="+initialAl2Nodegroup,
-			"--nodes", "2",
-			"--version", params.Version,
-			"--kubeconfig", params.KubeconfigPath,
-		)
-		Expect(cmd).To(RunSuccessfully())
-	})
 
 	type managedCLIEntry struct {
 		createArgs []string

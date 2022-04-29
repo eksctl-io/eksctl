@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
@@ -37,23 +37,23 @@ const (
 	timeOutSeconds = 1200 // 20 minutes
 )
 
+var _ = BeforeSuite(func() {
+	cmd := params.EksctlCreateCmd.WithArgs(
+		"cluster",
+		"--verbose", "2",
+		"--name", params.ClusterName,
+		"--tags", "alpha.eksctl.io/description=eksctl delete before active test",
+		"--without-nodegroup",
+		"--version", params.Version,
+	)
+	cmd.Start()
+	awsSession := NewSession(params.Region)
+	Eventually(awsSession, timeOutSeconds, pollInterval).Should(
+		HaveExistingCluster(params.ClusterName, awseks.ClusterStatusCreating, params.Version))
+})
+
 var _ = Describe("(Integration) Create & Delete before Active", func() {
 	const initNG = "ng-0"
-
-	BeforeSuite(func() {
-		cmd := params.EksctlCreateCmd.WithArgs(
-			"cluster",
-			"--verbose", "2",
-			"--name", params.ClusterName,
-			"--tags", "alpha.eksctl.io/description=eksctl delete before active test",
-			"--without-nodegroup",
-			"--version", params.Version,
-		)
-		cmd.Start()
-		awsSession := NewSession(params.Region)
-		Eventually(awsSession, timeOutSeconds, pollInterval).Should(
-			HaveExistingCluster(params.ClusterName, awseks.ClusterStatusCreating, params.Version))
-	})
 
 	Context("when deleting the cluster in process of being created", func() {
 		It("deleting cluster should have a zero exitcode", func() {

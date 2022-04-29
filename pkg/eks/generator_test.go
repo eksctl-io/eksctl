@@ -5,7 +5,7 @@ import (
 	"time"
 
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 

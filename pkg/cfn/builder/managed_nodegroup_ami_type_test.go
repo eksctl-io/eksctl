@@ -3,15 +3,15 @@ package builder
 import (
 	"context"
 
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	vpcfakes "github.com/weaveworks/eksctl/pkg/vpc/fakes"
-	"github.com/weaveworks/goformation/v4"
 
+	"github.com/weaveworks/goformation/v4"
 	gfneks "github.com/weaveworks/goformation/v4/cloudformation/eks"
 )
 

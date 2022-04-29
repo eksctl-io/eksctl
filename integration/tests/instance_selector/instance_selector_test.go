@@ -7,8 +7,9 @@ package instance_selector
 import (
 	"testing"
 
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/integration/tests"
@@ -16,8 +17,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
-
-	. "github.com/onsi/ginkgo"
 )
 
 var params *tests.Params
