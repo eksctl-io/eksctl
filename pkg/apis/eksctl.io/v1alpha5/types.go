@@ -346,8 +346,8 @@ const (
 
 // supported version of Karpenter
 const (
-	supportedKarpenterVersion      = "0.6"
-	supportedKarpenterVersionMinor = 6
+	supportedKarpenterVersion      = "0.9"
+	supportedKarpenterVersionMinor = 9
 )
 
 var (
