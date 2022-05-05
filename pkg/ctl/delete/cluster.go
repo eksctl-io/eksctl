@@ -65,7 +65,8 @@ func doDeleteCluster(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction boo
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 	printer := printers.NewJSONPrinter()
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		if !force {
 			return err
@@ -84,7 +85,6 @@ func doDeleteCluster(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction boo
 		return err
 	}
 
-	ctx := context.TODO()
 	cluster, err := cluster.New(ctx, cfg, ctl)
 	if err != nil {
 		return err

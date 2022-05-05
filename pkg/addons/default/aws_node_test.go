@@ -35,7 +35,7 @@ var _ = Describe("AWS Node", func() {
 			input.ControlPlaneVersion = "1.15.0"
 			rawClient.AssumeObjectsMissing = false
 
-			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(input)
+			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), input)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeFalse())
 		})
@@ -44,7 +44,7 @@ var _ = Describe("AWS Node", func() {
 			loadSamples(rawClient, "testdata/sample-1.16-eksbuild.1.json")
 			rawClient.AssumeObjectsMissing = false
 
-			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(input)
+			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), input)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeTrue())
 		})
@@ -53,7 +53,7 @@ var _ = Describe("AWS Node", func() {
 			loadSamples(rawClient, "testdata/sample-1.16-v1.7.json")
 			rawClient.AssumeObjectsMissing = false
 
-			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(input)
+			needsUpdate, err := da.DoesAWSNodeSupportMultiArch(context.Background(), input)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(needsUpdate).To(BeTrue())
 		})
@@ -73,7 +73,7 @@ var _ = Describe("AWS Node", func() {
 			It("updates it", func() {
 				input.Region = "us-east-1"
 
-				_, err := da.UpdateAWSNode(input, false)
+				_, err := da.UpdateAWSNode(context.Background(), input, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
@@ -93,7 +93,7 @@ var _ = Describe("AWS Node", func() {
 			It("updates it and uses the amazonaws.com.cn address", func() {
 				input.Region = "cn-northwest-1"
 
-				_, err := da.UpdateAWSNode(input, false)
+				_, err := da.UpdateAWSNode(context.Background(), input, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
@@ -112,7 +112,7 @@ var _ = Describe("AWS Node", func() {
 		When("dry run is true", func() {
 			When("it needs an update", func() {
 				It("returns true", func() {
-					needsUpdate, err := da.UpdateAWSNode(input, true)
+					needsUpdate, err := da.UpdateAWSNode(context.Background(), input, true)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(needsUpdate).To(BeTrue())
 
@@ -135,7 +135,7 @@ var _ = Describe("AWS Node", func() {
 				})
 
 				It("returns false", func() {
-					needsUpdate, err := da.UpdateAWSNode(input, true)
+					needsUpdate, err := da.UpdateAWSNode(context.Background(), input, true)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(needsUpdate).To(BeFalse())
 

@@ -414,7 +414,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			// disable public access
 			logger.Info("disabling public endpoint access for the cluster")
 			cfg.VPC.ClusterEndpoints.PublicAccess = api.Disabled()
-			if err := ctl.UpdateClusterConfigForEndpoints(cfg); err != nil {
+			if err := ctl.UpdateClusterConfigForEndpoints(ctx, cfg); err != nil {
 				return errors.Wrap(err, "error disabling public endpoint access for the cluster")
 			}
 			logger.Info("fully private cluster %q has been created. For subsequent operations, eksctl must be run from within the cluster's VPC, a peered VPC or some other means like AWS Direct Connect", cfg.Metadata.Name)

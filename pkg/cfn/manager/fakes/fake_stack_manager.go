@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	typesb "github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
@@ -603,13 +603,14 @@ type FakeStackManager struct {
 		result1 *tasks.TaskTree
 		result2 error
 	}
-	NewTaskToDeleteUnownedNodeGroupStub        func(string, string, eksiface.EKSAPI, *manager.DeleteWaitCondition) tasks.Task
+	NewTaskToDeleteUnownedNodeGroupStub        func(context.Context, string, string, awsapi.EKS, *manager.DeleteWaitCondition) tasks.Task
 	newTaskToDeleteUnownedNodeGroupMutex       sync.RWMutex
 	newTaskToDeleteUnownedNodeGroupArgsForCall []struct {
-		arg1 string
+		arg1 context.Context
 		arg2 string
-		arg3 eksiface.EKSAPI
-		arg4 *manager.DeleteWaitCondition
+		arg3 string
+		arg4 awsapi.EKS
+		arg5 *manager.DeleteWaitCondition
 	}
 	newTaskToDeleteUnownedNodeGroupReturns struct {
 		result1 tasks.Task
@@ -3619,21 +3620,22 @@ func (fake *FakeStackManager) NewTaskToDeleteAddonIAMReturnsOnCall(i int, result
 	}{result1, result2}
 }
 
-func (fake *FakeStackManager) NewTaskToDeleteUnownedNodeGroup(arg1 string, arg2 string, arg3 eksiface.EKSAPI, arg4 *manager.DeleteWaitCondition) tasks.Task {
+func (fake *FakeStackManager) NewTaskToDeleteUnownedNodeGroup(arg1 context.Context, arg2 string, arg3 string, arg4 awsapi.EKS, arg5 *manager.DeleteWaitCondition) tasks.Task {
 	fake.newTaskToDeleteUnownedNodeGroupMutex.Lock()
 	ret, specificReturn := fake.newTaskToDeleteUnownedNodeGroupReturnsOnCall[len(fake.newTaskToDeleteUnownedNodeGroupArgsForCall)]
 	fake.newTaskToDeleteUnownedNodeGroupArgsForCall = append(fake.newTaskToDeleteUnownedNodeGroupArgsForCall, struct {
-		arg1 string
+		arg1 context.Context
 		arg2 string
-		arg3 eksiface.EKSAPI
-		arg4 *manager.DeleteWaitCondition
-	}{arg1, arg2, arg3, arg4})
+		arg3 string
+		arg4 awsapi.EKS
+		arg5 *manager.DeleteWaitCondition
+	}{arg1, arg2, arg3, arg4, arg5})
 	stub := fake.NewTaskToDeleteUnownedNodeGroupStub
 	fakeReturns := fake.newTaskToDeleteUnownedNodeGroupReturns
-	fake.recordInvocation("NewTaskToDeleteUnownedNodeGroup", []interface{}{arg1, arg2, arg3, arg4})
+	fake.recordInvocation("NewTaskToDeleteUnownedNodeGroup", []interface{}{arg1, arg2, arg3, arg4, arg5})
 	fake.newTaskToDeleteUnownedNodeGroupMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4)
+		return stub(arg1, arg2, arg3, arg4, arg5)
 	}
 	if specificReturn {
 		return ret.result1
@@ -3647,17 +3649,17 @@ func (fake *FakeStackManager) NewTaskToDeleteUnownedNodeGroupCallCount() int {
 	return len(fake.newTaskToDeleteUnownedNodeGroupArgsForCall)
 }
 
-func (fake *FakeStackManager) NewTaskToDeleteUnownedNodeGroupCalls(stub func(string, string, eksiface.EKSAPI, *manager.DeleteWaitCondition) tasks.Task) {
+func (fake *FakeStackManager) NewTaskToDeleteUnownedNodeGroupCalls(stub func(context.Context, string, string, awsapi.EKS, *manager.DeleteWaitCondition) tasks.Task) {
 	fake.newTaskToDeleteUnownedNodeGroupMutex.Lock()
 	defer fake.newTaskToDeleteUnownedNodeGroupMutex.Unlock()
 	fake.NewTaskToDeleteUnownedNodeGroupStub = stub
 }
 
-func (fake *FakeStackManager) NewTaskToDeleteUnownedNodeGroupArgsForCall(i int) (string, string, eksiface.EKSAPI, *manager.DeleteWaitCondition) {
+func (fake *FakeStackManager) NewTaskToDeleteUnownedNodeGroupArgsForCall(i int) (context.Context, string, string, awsapi.EKS, *manager.DeleteWaitCondition) {
 	fake.newTaskToDeleteUnownedNodeGroupMutex.RLock()
 	defer fake.newTaskToDeleteUnownedNodeGroupMutex.RUnlock()
 	argsForCall := fake.newTaskToDeleteUnownedNodeGroupArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
 func (fake *FakeStackManager) NewTaskToDeleteUnownedNodeGroupReturns(result1 tasks.Task) {

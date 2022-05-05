@@ -176,10 +176,11 @@ func newClientSet(name string) *kubernetes.Clientset {
 			Region: params.Region,
 		},
 	}
-	ctl, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
+	ctx := context.Background()
+	ctl, err := eks.New(ctx, &api.ProviderConfig{Region: params.Region}, cfg)
 	Expect(err).NotTo(HaveOccurred())
 
-	err = ctl.RefreshClusterStatus(cfg)
+	err = ctl.RefreshClusterStatus(ctx, cfg)
 	Expect(err).ShouldNot(HaveOccurred())
 
 	clientSet, err := ctl.NewStdClientSet(cfg)

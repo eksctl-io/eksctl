@@ -16,6 +16,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/eks"
 
 	cmap "github.com/orcaman/concurrent-map"

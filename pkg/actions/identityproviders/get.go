@@ -1,8 +1,12 @@
 package identityproviders
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -28,14 +32,14 @@ type GetIdentityProvidersOptions struct {
 	Name string
 }
 
-func (m *Manager) Get(options GetIdentityProvidersOptions) ([]Summary, error) {
-	summaries := []Summary{}
-	var configs []*eks.IdentityProviderConfig
+func (m *Manager) Get(ctx context.Context, options GetIdentityProvidersOptions) ([]Summary, error) {
+	var summaries []Summary
+	var configs []ekstypes.IdentityProviderConfig
 
 	input := eks.ListIdentityProviderConfigsInput{
 		ClusterName: aws.String(m.metadata.Name),
 	}
-	list, err := m.eksAPI.ListIdentityProviderConfigs(&input)
+	list, err := m.eksAPI.ListIdentityProviderConfigs(ctx, &input)
 	if err != nil {
 		return summaries, err
 	}
@@ -43,10 +47,10 @@ func (m *Manager) Get(options GetIdentityProvidersOptions) ([]Summary, error) {
 	if options.Name == "" {
 		configs = list.IdentityProviderConfigs
 	} else {
-		var getCfg *eks.IdentityProviderConfig
+		var getCfg *ekstypes.IdentityProviderConfig
 		for _, cfg := range list.IdentityProviderConfigs {
-			if aws.StringValue(cfg.Name) == options.Name {
-				getCfg = &eks.IdentityProviderConfig{
+			if aws.ToString(cfg.Name) == options.Name {
+				getCfg = &ekstypes.IdentityProviderConfig{
 					Name: aws.String(options.Name),
 					Type: cfg.Type,
 				}
@@ -55,31 +59,31 @@ func (m *Manager) Get(options GetIdentityProvidersOptions) ([]Summary, error) {
 		if getCfg == nil {
 			return summaries, errors.Errorf("couldn't find identity provider %s", options.Name)
 		}
-		configs = []*eks.IdentityProviderConfig{getCfg}
+		configs = []ekstypes.IdentityProviderConfig{*getCfg}
 	}
 	for _, idp := range configs {
 		input := eks.DescribeIdentityProviderConfigInput{
 			ClusterName:            aws.String(m.metadata.Name),
-			IdentityProviderConfig: idp,
+			IdentityProviderConfig: &idp,
 		}
-		idP, err := m.eksAPI.DescribeIdentityProviderConfig(&input)
+		idP, err := m.eksAPI.DescribeIdentityProviderConfig(ctx, &input)
 		if err != nil {
 			return summaries, err
 		}
 		if cfg := idP.IdentityProviderConfig.Oidc; cfg != nil {
 			summaries = append(summaries, Summary{
 				Type:           api.OIDCIdentityProviderType,
-				Name:           aws.StringValue(cfg.IdentityProviderConfigName),
-				ClientID:       aws.StringValue(cfg.ClientId),
-				IssuerURL:      aws.StringValue(cfg.IssuerUrl),
-				Status:         aws.StringValue(cfg.Status),
-				Arn:            aws.StringValue(cfg.IdentityProviderConfigArn),
+				Name:           aws.ToString(cfg.IdentityProviderConfigName),
+				ClientID:       aws.ToString(cfg.ClientId),
+				IssuerURL:      aws.ToString(cfg.IssuerUrl),
+				Status:         string(cfg.Status),
+				Arn:            aws.ToString(cfg.IdentityProviderConfigArn),
 				UsernameClaim:  cfg.UsernameClaim,
 				UsernamePrefix: cfg.UsernamePrefix,
 				GroupsClaim:    cfg.GroupsClaim,
 				GroupsPrefix:   cfg.GroupsPrefix,
-				RequiredClaims: aws.StringValueMap(cfg.RequiredClaims),
-				Tags:           aws.StringValueMap(cfg.Tags),
+				RequiredClaims: cfg.RequiredClaims,
+				Tags:           cfg.Tags,
 			})
 		}
 	}

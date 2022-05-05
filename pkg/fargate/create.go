@@ -1,12 +1,16 @@
 package fargate
 
 import (
+	"context"
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
@@ -48,18 +52,18 @@ func (o CreateOptions) ToFargateProfile() *api.FargateProfile {
 }
 
 // CreateProfile creates the provided Fargate profile.
-func (c *Client) CreateProfile(profile *api.FargateProfile, waitForCreation bool) error {
+func (c *Client) CreateProfile(ctx context.Context, profile *api.FargateProfile, waitForCreation bool) error {
 	if profile == nil {
 		return errors.New("invalid Fargate profile: nil")
 	}
 	logger.Debug("Fargate profile: create request input: %#v", profile)
-	out, err := c.api.CreateFargateProfile(createRequest(c.clusterName, profile))
+	out, err := c.api.CreateFargateProfile(ctx, createRequest(c.clusterName, profile))
 	logger.Debug("Fargate profile: create request: received: %#v", out)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create Fargate profile %q", profile.Name)
 	}
 	if waitForCreation {
-		return c.waitForCreation(profile.Name)
+		return c.waitForCreation(ctx, profile.Name)
 	}
 	return nil
 }
@@ -70,18 +74,18 @@ func createRequest(clusterName string, profile *api.FargateProfile) *eks.CreateF
 		FargateProfileName:  &profile.Name,
 		Selectors:           toSelectorPointers(profile.Selectors),
 		PodExecutionRoleArn: strings.NilIfEmpty(profile.PodExecutionRoleARN),
-		Subnets:             strings.NilPointersArrayIfEmpty(strings.ToPointersArray(profile.Subnets)),
-		Tags:                strings.NilPointersMapIfEmpty(strings.ToPointersMap(profile.Tags)),
+		Subnets:             profile.Subnets,
+		Tags:                profile.Tags,
 	}
 	logger.Debug("Fargate profile: create request: sending: %#v", request)
 	return request
 }
 
-func (c *Client) waitForCreation(name string) error {
+func (c *Client) waitForCreation(ctx context.Context, name string) error {
 	// Clone this client's policy to ensure this method is re-entrant/thread-safe:
 	retryPolicy := c.retryPolicy.Clone()
 	for !retryPolicy.Done() {
-		out, err := c.api.DescribeFargateProfile(describeRequest(c.clusterName, name))
+		out, err := c.api.DescribeFargateProfile(ctx, describeRequest(c.clusterName, name))
 		if err != nil {
 			return errors.Wrapf(err, "failed while waiting for Fargate profile %q's creation", name)
 		}
@@ -89,7 +93,15 @@ func (c *Client) waitForCreation(name string) error {
 		if created(out) {
 			return nil
 		}
-		time.Sleep(retryPolicy.Duration())
+		timer := time.NewTimer(retryPolicy.Duration())
+		select {
+		case <-timer.C:
+
+		case <-ctx.Done():
+			timer.Stop()
+			return ctx.Err()
+		}
+
 	}
 	return fmt.Errorf("timed out while waiting for Fargate profile %q's creation", name)
 }
@@ -97,16 +109,15 @@ func (c *Client) waitForCreation(name string) error {
 func created(out *eks.DescribeFargateProfileOutput) bool {
 	return out != nil &&
 		out.FargateProfile != nil &&
-		out.FargateProfile.Status != nil &&
-		*out.FargateProfile.Status == eks.FargateProfileStatusActive
+		out.FargateProfile.Status == ekstypes.FargateProfileStatusActive
 }
 
-func toSelectorPointers(in []api.FargateProfileSelector) []*eks.FargateProfileSelector {
-	out := make([]*eks.FargateProfileSelector, len(in))
+func toSelectorPointers(in []api.FargateProfileSelector) []ekstypes.FargateProfileSelector {
+	out := make([]ekstypes.FargateProfileSelector, len(in))
 	for i, selector := range in {
-		out[i] = &eks.FargateProfileSelector{
+		out[i] = ekstypes.FargateProfileSelector{
 			Namespace: strings.Pointer(selector.Namespace),
-			Labels:    strings.NilPointersMapIfEmpty(strings.ToPointersMap(selector.Labels)),
+			Labels:    selector.Labels,
 		}
 	}
 	return out

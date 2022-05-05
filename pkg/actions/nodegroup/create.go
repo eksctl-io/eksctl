@@ -44,7 +44,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return err
 	}
 
-	if err := m.checkARMSupport(ctl, m.clientSet, cfg, options.SkipOutdatedAddonsCheck); err != nil {
+	if err := m.checkARMSupport(ctx, ctl, m.clientSet, cfg, options.SkipOutdatedAddonsCheck); err != nil {
 		return err
 	}
 
@@ -250,7 +250,7 @@ func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
 	return nil
 }
 
-func (m *Manager) checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes.Interface, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
+func (m *Manager) checkARMSupport(ctx context.Context, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
 	kubeProvider := m.kubeProvider
 	rawClient, err := kubeProvider.NewRawClient(cfg)
 	if err != nil {
@@ -262,7 +262,7 @@ func (m *Manager) checkARMSupport(ctl *eks.ClusterProvider, clientSet kubernetes
 		return err
 	}
 	if api.ClusterHasInstanceType(cfg, instanceutils.IsARMInstanceType) {
-		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(ctl.Provider.EKS(), rawClient, kubernetesVersion, ctl.Provider.Region())
+		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(ctx, ctl.Provider.EKS(), rawClient, kubernetesVersion, ctl.Provider.Region())
 		if err != nil {
 			return err
 		}

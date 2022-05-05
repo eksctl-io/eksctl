@@ -80,7 +80,8 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -95,7 +96,6 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
-	ctx := context.TODO()
 
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d nodegroups defined in the given config (%q) against remote state", len(cfg.NodeGroups), cmd.ClusterConfigFile)
@@ -149,7 +149,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 	cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
-	err = nodeGroupManager.Delete(context.TODO(), cfg.NodeGroups, cfg.ManagedNodeGroups, cmd.Wait, cmd.Plan)
+	err = nodeGroupManager.Delete(ctx, cfg.NodeGroups, cfg.ManagedNodeGroups, cmd.Wait, cmd.Plan)
 	if err != nil {
 		return err
 	}

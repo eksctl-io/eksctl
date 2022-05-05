@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -53,7 +54,8 @@ func enableSecretsEncryptionCmd(cmd *cmdutils.Cmd) {
 func doEnableSecretsEncryption(cmd *cmdutils.Cmd, encryptExistingSecrets bool) error {
 	clusterConfig := cmd.ClusterConfig
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -62,7 +64,7 @@ func doEnableSecretsEncryption(cmd *cmdutils.Cmd, encryptExistingSecrets bool) e
 		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
 	}
 
-	if err := ctl.RefreshClusterStatus(clusterConfig); err != nil {
+	if err := ctl.RefreshClusterStatus(ctx, clusterConfig); err != nil {
 		return err
 	}
 

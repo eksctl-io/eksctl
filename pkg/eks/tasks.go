@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
-	"github.com/aws/aws-sdk-go/aws"
 
 	"github.com/weaveworks/eksctl/pkg/actions/identityproviders"
 	"github.com/weaveworks/eksctl/pkg/windows"
@@ -90,7 +90,7 @@ func (v *VPCControllerTask) Do(errCh chan error) error {
 	if err != nil {
 		return err
 	}
-	oidc, err := v.ClusterProvider.NewOpenIDConnectManager(v.ClusterConfig)
+	oidc, err := v.ClusterProvider.NewOpenIDConnectManager(v.Context, v.ClusterConfig)
 	if err != nil {
 		return err
 	}
@@ -236,7 +236,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 			if err := c.WaitForControlPlane(cfg.Metadata, clientSet); err != nil {
 				return err
 			}
-			return c.RefreshClusterStatus(cfg)
+			return c.RefreshClusterStatus(ctx, cfg)
 		},
 	})
 
@@ -268,6 +268,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 			spec:            cfg,
 			clusterProvider: c,
 			manager:         &manager,
+			ctx:             ctx,
 		})
 	}
 
@@ -276,7 +277,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 	}
 
 	if len(cfg.IdentityProviders) > 0 {
-		newTasks.Append(identityproviders.NewAssociateProvidersTask(*cfg.Metadata, cfg.IdentityProviders, c.Provider.EKS()))
+		newTasks.Append(identityproviders.NewAssociateProvidersTask(ctx, *cfg.Metadata, cfg.IdentityProviders, c.Provider.EKS()))
 	}
 
 	if cfg.HasWindowsNodeGroup() {
@@ -402,7 +403,7 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(ctx context.Con
 		info: "associate IAM OIDC provider",
 		spec: cfg,
 		call: func(cfg *api.ClusterConfig) error {
-			oidc, err := c.NewOpenIDConnectManager(cfg)
+			oidc, err := c.NewOpenIDConnectManager(ctx, cfg)
 			if err != nil {
 				return err
 			}

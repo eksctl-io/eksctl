@@ -66,7 +66,7 @@ type createAddonTask struct {
 func (t *createAddonTask) Describe() string { return t.info }
 
 func (t *createAddonTask) Do(errorCh chan error) error {
-	oidc, err := t.clusterProvider.NewOpenIDConnectManager(t.cfg)
+	oidc, err := t.clusterProvider.NewOpenIDConnectManager(t.ctx, t.cfg)
 	if err != nil {
 		return err
 	}

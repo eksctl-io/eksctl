@@ -10,13 +10,14 @@ import (
 
 // CloudTrail provides an interface to the AWS CloudTrail service.
 type CloudTrail interface {
-	// Adds one or more tags to a trail, up to a limit of 50. Overwrites an existing
-	// tag's value when a new value is specified for an existing tag key. Tag key names
-	// must be unique for a trail; you cannot have two keys with the same name but
-	// different values. If you specify a key without a value, the tag will be created
-	// with the specified key and a value of null. You can tag a trail that applies to
-	// all Amazon Web Services Regions only from the Region in which the trail was
-	// created (also known as its home region).
+	// Adds one or more tags to a trail or event data store, up to a limit of 50.
+	// Overwrites an existing tag's value when a new value is specified for an existing
+	// tag key. Tag key names must be unique for a trail; you cannot have two keys with
+	// the same name but different values. If you specify a key without a value, the
+	// tag will be created with the specified key and a value of null. You can tag a
+	// trail or event data store that applies to all Amazon Web Services Regions only
+	// from the Region in which the trail or event data store was created (also known
+	// as its home region).
 	AddTags(ctx context.Context, params *AddTagsInput, optFns ...func(*Options)) (*AddTagsOutput, error)
 	// Cancels a query if the query is not in a terminated state, such as CANCELLED,
 	// FAILED, TIMED_OUT, or FINISHED. You must specify an ARN value for
@@ -108,7 +109,7 @@ type CloudTrail interface {
 	// StartTime and EndTime parameters, and a QueryStatus value. Valid values for
 	// QueryStatus include QUEUED, RUNNING, FINISHED, FAILED, TIMED_OUT, or CANCELLED.
 	ListQueries(ctx context.Context, params *ListQueriesInput, optFns ...func(*Options)) (*ListQueriesOutput, error)
-	// Lists the tags for the trail in the current region.
+	// Lists the tags for the trail or event data store in the current region.
 	ListTags(ctx context.Context, params *ListTagsInput, optFns ...func(*Options)) (*ListTagsOutput, error)
 	// Lists trails that are in the current account.
 	ListTrails(ctx context.Context, params *ListTrailsInput, optFns ...func(*Options)) (*ListTrailsOutput, error)
@@ -202,7 +203,7 @@ type CloudTrail interface {
 	// valid Insights event types in this release are ApiErrorRateInsight and
 	// ApiCallRateInsight.
 	PutInsightSelectors(ctx context.Context, params *PutInsightSelectorsInput, optFns ...func(*Options)) (*PutInsightSelectorsOutput, error)
-	// Removes the specified tags from a trail.
+	// Removes the specified tags from a trail or event data store.
 	RemoveTags(ctx context.Context, params *RemoveTagsInput, optFns ...func(*Options)) (*RemoveTagsOutput, error)
 	// Restores a deleted event data store specified by EventDataStore, which accepts
 	// an event data store ARN. You can only restore a deleted event data store within
