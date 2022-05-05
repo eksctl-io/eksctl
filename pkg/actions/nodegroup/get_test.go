@@ -11,6 +11,8 @@ import (
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go/aws"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/smithy-go"
+	"github.com/pkg/errors"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -569,6 +571,32 @@ var _ = Describe("Get", func() {
 				Version:              "1.18",
 				NodeGroupType:        api.NodeGroupTypeManaged,
 			}))
+		})
+		When("there is no associated stack to the nodegroup", func() {
+			It("returns a summary of the node group without a StackName", func() {
+				fakeStackManager.DescribeNodeGroupStackReturns(nil, errors.Wrap(&smithy.OperationError{
+					Err: fmt.Errorf("ValidationError"),
+				}, "nope"))
+				summary, err := m.Get(context.Background(), ngName)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(*summary).To(Equal(nodegroup.Summary{
+					StackName:            "",
+					Cluster:              clusterName,
+					Name:                 ngName,
+					Status:               "my-status",
+					MaxSize:              4,
+					MinSize:              0,
+					DesiredCapacity:      2,
+					InstanceType:         "m5.xlarge",
+					ImageID:              "ami-type",
+					CreationTime:         t,
+					NodeInstanceRoleARN:  "node-role",
+					AutoScalingGroupName: "asg-1,asg-2",
+					Version:              "1.18",
+					NodeGroupType:        api.NodeGroupTypeManaged,
+				}))
+			})
 		})
 	})
 })
