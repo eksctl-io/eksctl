@@ -47,7 +47,7 @@ var _ = Describe("VPC Endpoint Builder", func() {
 			}
 		}
 		if vc.clusterConfig.VPC.ID == "" {
-			Expect(vpc.SetSubnets(vc.clusterConfig.VPC, vc.clusterConfig.AvailabilityZones)).To(Succeed())
+			Expect(vpc.SetSubnets(vc.clusterConfig.VPC, vc.clusterConfig.AvailabilityZones, nil)).To(Succeed())
 		}
 
 		var provider api.ClusterProvider

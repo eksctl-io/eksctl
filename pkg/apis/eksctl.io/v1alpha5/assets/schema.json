@@ -16,8 +16,8 @@
       "properties": {
         "az": {
           "type": "string",
-          "description": "can be omitted if the key is an AZ",
-          "x-intellij-html-description": "can be omitted if the key is an AZ"
+          "description": "zone name for this subnet, it can either be an availability zone name or a local zone name. AZ can be omitted if the key is an AZ.",
+          "x-intellij-html-description": "zone name for this subnet, it can either be an availability zone name or a local zone name. AZ can be omitted if the key is an AZ."
         },
         "cidr": {
           "$ref": "#/definitions/github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet"
@@ -204,6 +204,14 @@
         "kubernetesNetworkConfig": {
           "$ref": "#/definitions/KubernetesNetworkConfig"
         },
+        "localZones": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "specifies a list of local zones where the subnets should be created. Only self-managed nodegroups can be launched in local zones. These subnets are not passed to EKS.",
+          "x-intellij-html-description": "specifies a list of local zones where the subnets should be created. Only self-managed nodegroups can be launched in local zones. These subnets are not passed to EKS."
+        },
         "managedNodeGroups": {
           "items": {
             "$ref": "#/definitions/ManagedNodeGroup"
@@ -249,6 +257,7 @@
         "managedNodeGroups",
         "fargateProfiles",
         "availabilityZones",
+        "localZones",
         "cloudWatch",
         "secretsEncryption",
         "gitops",
@@ -1390,6 +1399,14 @@
           "type": "object",
           "default": "{}"
         },
+        "localZones": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "specifies a list of local zones where the nodegroup should be launched. The cluster should have been created with all of the local zones specified in this field.",
+          "x-intellij-html-description": "specifies a list of local zones where the nodegroup should be launched. The cluster should have been created with all of the local zones specified in this field."
+        },
         "maxInstanceLifetime": {
           "type": "integer",
           "description": "defines the maximum amount of time in seconds an instance stays alive.",
@@ -1564,7 +1581,8 @@
         "kubeletExtraConfig",
         "containerRuntime",
         "disableASGTagPropagation",
-        "maxInstanceLifetime"
+        "maxInstanceLifetime",
+        "localZones"
       ],
       "additionalProperties": false,
       "description": "holds configuration attributes that are specific to an unmanaged nodegroup",
