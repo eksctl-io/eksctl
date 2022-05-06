@@ -60,7 +60,7 @@ func (m *Manager) GetAll(ctx context.Context) ([]*Summary, error) {
 
 func (m *Manager) Get(ctx context.Context, name string) (*Summary, error) {
 	summary, err := m.getUnmanagedSummary(ctx, name)
-	if err != nil {
+	if err != nil && !manager.IsStackDoesNotExistError(err) {
 		return nil, fmt.Errorf("getting nodegroup stack summaries: %w", err)
 	}
 
