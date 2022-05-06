@@ -3,9 +3,10 @@ package vpc
 import (
 	"fmt"
 
+	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
-	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -70,7 +71,7 @@ func (si *StackConfigImporter) SubnetsPublic() *gfnt.Value {
 }
 
 // SubnetsPrivate returns a gfnt value based on the cluster stack name
-// and the public subnets from the cluster stack output
+// and the private subnets from the cluster stack output
 func (si *StackConfigImporter) SubnetsPrivate() *gfnt.Value {
 	return gfnt.MakeFnSplit(",", makeImportValue(si.clusterStackName, outputs.ClusterSubnetsPrivate))
 }

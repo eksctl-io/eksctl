@@ -100,8 +100,8 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 	cmd.FlagSetGroup.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {
 		fs.IPNetVar(&cfg.VPC.CIDR.IPNet, "vpc-cidr", cfg.VPC.CIDR.IPNet, "global CIDR to use for VPC")
 		params.Subnets = map[api.SubnetTopology]*[]string{
-			api.SubnetTopologyPrivate: fs.StringSlice("vpc-private-subnets", nil, "re-use private subnets of an existing VPC"),
-			api.SubnetTopologyPublic:  fs.StringSlice("vpc-public-subnets", nil, "re-use public subnets of an existing VPC"),
+			api.SubnetTopologyPrivate: fs.StringSlice("vpc-private-subnets", nil, "re-use private subnets of an existing VPC; the subnets must exist in availability zones and not other types of zones"),
+			api.SubnetTopologyPublic:  fs.StringSlice("vpc-public-subnets", nil, "re-use public subnets of an existing VPC; the subnets must exist in availability zones and not other types of zones"),
 		}
 		fs.StringVar(&params.KopsClusterNameForVPC, "vpc-from-kops-cluster", "", "re-use VPC from a given kops cluster")
 		fs.StringVar(cfg.VPC.NAT.Gateway, "vpc-nat-mode", api.ClusterSingleNAT, "VPC NAT mode, valid options: HighlyAvailable, Single, Disable")
@@ -187,11 +187,27 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		// default value here causes errors as vpc.ImportVPC doesn't
 		// treat remote state as authority over local state
 		cfg.VPC.CIDR = nil
-		// load subnets from local map created from flags, into the config
-		for topology := range params.Subnets {
-			if err := vpc.ImportSubnetsFromIDList(ctx, ctl.Provider.EC2(), cfg, topology, *params.Subnets[topology]); err != nil {
-				return err
+		if cfg.VPC.Subnets == nil {
+			cfg.VPC.Subnets = &api.ClusterSubnets{
+				Private: api.NewAZSubnetMapping(),
+				Public:  api.NewAZSubnetMapping(),
 			}
+		}
+
+		// load subnets from local map created from flags, into the config
+		importSubnets := func(subnetMapping api.AZSubnetMapping, subnetIDs *[]string) error {
+			if subnetIDs != nil {
+				if err := vpc.ImportSubnetsFromIDList(ctx, ctl.Provider.EC2(), cfg, subnetMapping, *subnetIDs); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+		if err := importSubnets(cfg.VPC.Subnets.Public, params.Subnets[api.SubnetTopologyPublic]); err != nil {
+			return err
+		}
+		if err := importSubnets(cfg.VPC.Subnets.Private, params.Subnets[api.SubnetTopologyPrivate]); err != nil {
+			return err
 		}
 	}
 	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
@@ -436,6 +452,12 @@ func createOrImportVPC(ctx context.Context, cmd *cmdutils.Cmd, cfg *api.ClusterC
 			return err
 		}
 
+		if len(cfg.LocalZones) > 0 {
+			if err := eks.ValidateLocalZones(ctx, ctl.Provider.EC2(), cfg.LocalZones, ctl.Provider.Region()); err != nil {
+				return err
+			}
+		}
+
 		// Skip setting subnets
 		// The default subnet config set by SetSubnets will fail validation on a subsequent run of `create cluster`
 		// because those fields indicate usage of pre-existing VPC and subnets
@@ -444,7 +466,7 @@ func createOrImportVPC(ctx context.Context, cmd *cmdutils.Cmd, cfg *api.ClusterC
 			return nil
 		}
 
-		return vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones)
+		return vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones, cfg.LocalZones)
 	}
 
 	if params.KopsClusterNameForVPC != "" {

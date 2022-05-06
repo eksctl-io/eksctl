@@ -45,9 +45,9 @@ func (v *IPv6VPCResourceSet) CreateTemplate(ctx context.Context) (*gfnt.Value, *
 
 	v.addIpv6CidrBlock()
 
-	addSubnetOutput := func(subnetRefs []*gfnt.Value, topology api.SubnetTopology, outputName string) {
+	addSubnetOutput := func(subnetRefs []*gfnt.Value, subnetMapping api.AZSubnetMapping, outputName string) {
 		v.rs.defineJoinedOutput(outputName, subnetRefs, true, func(value string) error {
-			return vpc.ImportSubnetsFromIDList(ctx, v.ec2API, v.clusterConfig, topology, strings.Split(value, ","))
+			return vpc.ImportSubnetsFromIDList(ctx, v.ec2API, v.clusterConfig, subnetMapping, strings.Split(value, ","))
 		})
 	}
 
@@ -72,7 +72,7 @@ func (v *IPv6VPCResourceSet) CreateTemplate(ctx context.Context) (*gfnt.Value, *
 			SubnetId:     subnet,
 		})
 	}
-	addSubnetOutput(privateSubnetResourceRefs, api.SubnetTopologyPrivate, outputs.ClusterSubnetsPrivate)
+	addSubnetOutput(privateSubnetResourceRefs, v.clusterConfig.VPC.Subnets.Private, outputs.ClusterSubnetsPrivate)
 
 	if v.isFullyPrivate() {
 		return vpcResourceRef, &SubnetDetails{
@@ -151,7 +151,7 @@ func (v *IPv6VPCResourceSet) CreateTemplate(ctx context.Context) (*gfnt.Value, *
 			RouteTableId:               gfnt.MakeRef(PrivateRouteTableKey + azFormatted),
 		})
 	}
-	addSubnetOutput(publicSubnetResourceRefs, api.SubnetTopologyPublic, outputs.ClusterSubnetsPublic)
+	addSubnetOutput(publicSubnetResourceRefs, v.clusterConfig.VPC.Subnets.Public, outputs.ClusterSubnetsPublic)
 
 	return vpcResourceRef, &SubnetDetails{
 		Private: privateSubnets,

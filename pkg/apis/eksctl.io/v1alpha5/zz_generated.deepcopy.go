@@ -224,6 +224,11 @@ func (in *ClusterConfig) DeepCopyInto(out *ClusterConfig) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.LocalZones != nil {
+		in, out := &in.LocalZones, &out.LocalZones
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.CloudWatch != nil {
 		in, out := &in.CloudWatch, &out.CloudWatch
 		*out = new(ClusterCloudWatch)
@@ -591,6 +596,11 @@ func (in *ClusterVPC) DeepCopyInto(out *ClusterVPC) {
 	in.Network.DeepCopyInto(&out.Network)
 	if in.Subnets != nil {
 		in, out := &in.Subnets, &out.Subnets
+		*out = new(ClusterSubnets)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.LocalZoneSubnets != nil {
+		in, out := &in.LocalZoneSubnets, &out.LocalZoneSubnets
 		*out = new(ClusterSubnets)
 		(*in).DeepCopyInto(*out)
 	}
@@ -1024,6 +1034,11 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		in, out := &in.MaxInstanceLifetime, &out.MaxInstanceLifetime
 		*out = new(int)
 		**out = **in
+	}
+	if in.LocalZones != nil {
+		in, out := &in.LocalZones, &out.LocalZones
+		*out = make([]string, len(*in))
+		copy(*out, *in)
 	}
 	return
 }

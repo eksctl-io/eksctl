@@ -48,7 +48,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return err
 	}
 
-	var isOwnedCluster = true
+	isOwnedCluster := true
 	if err := kubeProvider.LoadClusterIntoSpecFromStack(ctx, cfg, m.stackManager); err != nil {
 		switch e := err.(type) {
 		case *manager.StackNotFoundErr:
