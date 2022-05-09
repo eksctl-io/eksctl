@@ -412,8 +412,8 @@ github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.0 h1:MDlKqnIXFvHNLQbC7Wapo
 github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.0/go.mod h1:BtxxBo47isKtD23evzMhPTl+Whv7nCZ2V586DPUGZNc=
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.5 h1:aPK8IBVKeozo/pNGshT8xOJ2V3Y7ykOM49QcY0vhUSM=
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.5/go.mod h1:ErjxucZaraVbYm66xxub00qmGBw7md2RFqy6624KbR8=
-github.com/aws/aws-sdk-go-v2/service/ec2 v1.39.0 h1:0GLbQ5mgzrHt11w88AoD3RHeVYPdeLFCQBemsK/htRc=
-github.com/aws/aws-sdk-go-v2/service/ec2 v1.39.0/go.mod h1:KOy1O7Fc2+GRgsbn/Kjr15vYDVXMEQALBaPRia3twSY=
+github.com/aws/aws-sdk-go-v2/service/ec2 v1.40.0 h1:QZHnwlJbt+M6/h7yzw081WkOk5cSmt8tJNXUnLpT1SY=
+github.com/aws/aws-sdk-go-v2/service/ec2 v1.40.0/go.mod h1:KOy1O7Fc2+GRgsbn/Kjr15vYDVXMEQALBaPRia3twSY=
 github.com/aws/aws-sdk-go-v2/service/eks v1.20.6 h1:8PoDU6PcQd1w2dC7Pod7ypRAAF0F9XD4US763MHF7Zg=
 github.com/aws/aws-sdk-go-v2/service/eks v1.20.6/go.mod h1:kj0ENB75cMvtcyxOmnvu3FbNwZWAIoCzOaISXzsGHIE=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.4 h1:vpGKxT9NBdQuXBUYfzKWV93NIU0lGg9rjtrVoQ/Iols=
