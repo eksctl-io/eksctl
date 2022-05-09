@@ -414,8 +414,8 @@ github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.5 h1:aPK8IBVKeozo/pNGs
 github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.5/go.mod h1:ErjxucZaraVbYm66xxub00qmGBw7md2RFqy6624KbR8=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.39.0 h1:0GLbQ5mgzrHt11w88AoD3RHeVYPdeLFCQBemsK/htRc=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.39.0/go.mod h1:KOy1O7Fc2+GRgsbn/Kjr15vYDVXMEQALBaPRia3twSY=
-github.com/aws/aws-sdk-go-v2/service/eks v1.20.6 h1:8PoDU6PcQd1w2dC7Pod7ypRAAF0F9XD4US763MHF7Zg=
-github.com/aws/aws-sdk-go-v2/service/eks v1.20.6/go.mod h1:kj0ENB75cMvtcyxOmnvu3FbNwZWAIoCzOaISXzsGHIE=
+github.com/aws/aws-sdk-go-v2/service/eks v1.20.7 h1:UfxQSaxTTffOmQPoVMvsxuBw+oSV2QN3S9ZjyT5Xwek=
+github.com/aws/aws-sdk-go-v2/service/eks v1.20.7/go.mod h1:kj0ENB75cMvtcyxOmnvu3FbNwZWAIoCzOaISXzsGHIE=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.4 h1:vpGKxT9NBdQuXBUYfzKWV93NIU0lGg9rjtrVoQ/Iols=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.4/go.mod h1:NyDTeVqx/5iD/x2jXOjLdiof6JJ7hjVcImTGoZ1hBPk=
 github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.4 h1:ZBYifRGfN3dOKzvk0+XJiUKOFzqoJddYqCVsN5quCh4=
