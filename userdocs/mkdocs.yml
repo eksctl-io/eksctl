@@ -73,22 +73,35 @@ extra:
       link: https://twitter.com/weaveworks
 
 theme:
-    name: 'material'
-    custom_dir: 'theme'
-    favicon: 'assets/images/favicon.png'
-    logo: 'assets/images/logo.png'
+    name: 'material' 
+    #custom_dir: 'theme'
+    favicon: '/theme/assets/images/favicon.png'
+    logo: '/theme/assets/images/logo.png'
     font:
         text: 'Montserrat'
         code: 'Roboto Mono'
     palette:
-      primary: 'white'
-      accent: 'light blue'
-      scheme: preference
+      - media: "(prefers-color-scheme: light)" 
+        scheme: default
+        toggle:
+          icon: material/weather-night
+          name: Switch to dark mode
+      - media: "(prefers-color-scheme: dark)" 
+        scheme: slate
+        toggle:
+          icon: material/weather-sunny
+          name: Switch to light mode
     highlightjs: true
     hljs_languages:
         - yaml
         - json
         - bash
+    features:
+      - header.autohide
+      - navigation.instant
+    plugins:
+      - search
+
 
 markdown_extensions:
     - toc:
