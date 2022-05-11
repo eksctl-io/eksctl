@@ -51,7 +51,8 @@ func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
 		return err
 	}
 	cfg := cmd.ClusterConfig
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -65,7 +66,6 @@ func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
 	}
 
 	manager := label.New(cfg.Metadata.Name, service, ctl.Provider.EKS())
-	ctx := context.TODO()
 	// when there is no config file provided
 	if cmd.ClusterConfigFile == "" {
 		if err := manager.Set(ctx, options.nodeGroupName, options.labels); err != nil {

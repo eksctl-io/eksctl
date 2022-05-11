@@ -3,8 +3,9 @@ package label
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
@@ -14,7 +15,7 @@ func (m *Manager) Unset(ctx context.Context, nodeGroupName string, labels []stri
 	if err != nil {
 		switch {
 		case manager.IsStackDoesNotExistError(err):
-			return m.unsetLabelsOnUnownedNodeGroup(nodeGroupName, labels)
+			return m.unsetLabelsOnUnownedNodeGroup(ctx, nodeGroupName, labels)
 		default:
 			return err
 		}
@@ -22,15 +23,11 @@ func (m *Manager) Unset(ctx context.Context, nodeGroupName string, labels []stri
 	return nil
 }
 
-func (m *Manager) unsetLabelsOnUnownedNodeGroup(nodeGroupName string, labels []string) error {
-	var pointyLabels []*string
-	for _, v := range labels {
-		pointyLabels = append(pointyLabels, &v)
-	}
-	_, err := m.eksAPI.UpdateNodegroupConfig(&eks.UpdateNodegroupConfigInput{
+func (m *Manager) unsetLabelsOnUnownedNodeGroup(ctx context.Context, nodeGroupName string, labels []string) error {
+	_, err := m.eksAPI.UpdateNodegroupConfig(ctx, &eks.UpdateNodegroupConfigInput{
 		ClusterName:   aws.String(m.clusterName),
 		NodegroupName: aws.String(nodeGroupName),
-		Labels:        &eks.UpdateLabelsPayload{RemoveLabels: pointyLabels},
+		Labels:        &ekstypes.UpdateLabelsPayload{RemoveLabels: labels},
 	})
 	if err != nil {
 		return err

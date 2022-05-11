@@ -3,7 +3,7 @@ package label
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -15,11 +15,11 @@ type Service interface {
 
 type Manager struct {
 	service     Service
-	eksAPI      eksiface.EKSAPI
+	eksAPI      awsapi.EKS
 	clusterName string
 }
 
-func New(clusterName string, service Service, eksAPI eksiface.EKSAPI) *Manager {
+func New(clusterName string, service Service, eksAPI awsapi.EKS) *Manager {
 	return &Manager{
 		service:     service,
 		eksAPI:      eksAPI,

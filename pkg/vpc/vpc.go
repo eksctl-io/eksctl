@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -243,7 +243,7 @@ func UseFromClusterStack(ctx context.Context, provider api.ClusterProvider, stac
 
 	// Cluster Endpoint Access isn't part of the EKS CloudFormation Cluster stack at this point
 	// Retrieve the current configuration via the SDK
-	if err := UseEndpointAccessFromCluster(provider, spec); err != nil {
+	if err := UseEndpointAccessFromCluster(ctx, provider, spec); err != nil {
 		return err
 	}
 
@@ -522,19 +522,19 @@ func ImportSubnetsFromSpec(ctx context.Context, provider api.ClusterProvider, sp
 
 //UseEndpointAccessFromCluster retrieves the Cluster's endpoint access configuration via the SDK
 // as the CloudFormation Stack doesn't support that configuration currently
-func UseEndpointAccessFromCluster(provider api.ClusterProvider, spec *api.ClusterConfig) error {
+func UseEndpointAccessFromCluster(ctx context.Context, provider api.ClusterProvider, spec *api.ClusterConfig) error {
 	input := &awseks.DescribeClusterInput{
 		Name: &spec.Metadata.Name,
 	}
-	output, err := provider.EKS().DescribeCluster(input)
+	output, err := provider.EKS().DescribeCluster(ctx, input)
 	if err != nil {
 		return err
 	}
 	if spec.VPC.ClusterEndpoints == nil {
 		spec.VPC.ClusterEndpoints = &api.ClusterEndpoints{}
 	}
-	spec.VPC.ClusterEndpoints.PublicAccess = output.Cluster.ResourcesVpcConfig.EndpointPublicAccess
-	spec.VPC.ClusterEndpoints.PrivateAccess = output.Cluster.ResourcesVpcConfig.EndpointPrivateAccess
+	spec.VPC.ClusterEndpoints.PublicAccess = &output.Cluster.ResourcesVpcConfig.EndpointPublicAccess
+	spec.VPC.ClusterEndpoints.PrivateAccess = &output.Cluster.ResourcesVpcConfig.EndpointPrivateAccess
 	return nil
 }
 

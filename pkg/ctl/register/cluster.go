@@ -3,12 +3,10 @@ package register
 import (
 	"context"
 	"fmt"
-	"strings"
-
-	"github.com/spf13/afero"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -28,7 +26,7 @@ func registerClusterCmd(cmd *cmdutils.Cmd) {
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cluster.Name, "name", "", "EKS cluster name")
-		fs.StringVar(&cluster.Provider, "provider", "", fmt.Sprintf("Kubernetes provider name (one of %s)", strings.Join(connector.ValidProviders(), ", ")))
+		fs.StringVar(&cluster.Provider, "provider", "", fmt.Sprintf("Kubernetes provider name (one of %v)", connector.ValidProviders()))
 		fs.StringVar(&cluster.ConnectorRoleARN, "role-arn", "", "EKS Connector role ARN")
 
 		requiredFlags := []string{"name", "provider"}

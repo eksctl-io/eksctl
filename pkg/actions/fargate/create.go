@@ -60,7 +60,7 @@ func (m *Manager) Create(ctx context.Context) error {
 	}
 
 	fargateClient := fargate.NewFromProvider(cfg.Metadata.Name, ctl.Provider, m.stackManager)
-	if err := eks.DoCreateFargateProfiles(cfg, &fargateClient); err != nil {
+	if err := eks.DoCreateFargateProfiles(ctx, cfg, &fargateClient); err != nil {
 		return errors.Wrap(err, "could not create fargate profiles")
 	}
 	clientSet, err := m.newStdClientSet()
