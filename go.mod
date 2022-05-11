@@ -47,6 +47,7 @@ require (
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
+	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/ginkgo/v2 v2.1.4
 	github.com/onsi/gomega v1.19.0
 	github.com/orcaman/concurrent-map v1.0.0
@@ -83,7 +84,7 @@ require (
 	k8s.io/kops v1.21.2
 	k8s.io/kubelet v0.21.2
 	k8s.io/legacy-cloud-providers v0.21.2
-	sigs.k8s.io/aws-iam-authenticator v0.5.8
+	sigs.k8s.io/aws-iam-authenticator v0.5.5
 	sigs.k8s.io/mdtoc v1.1.0
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -289,7 +290,6 @@ require (
 	github.com/jmoiron/sqlx v1.3.4 // indirect
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/juju/ansiterm v0.0.0-20180109212912-720a0952cc2a // indirect
 	github.com/julz/importas v0.1.0 // indirect
 	github.com/kevinburke/rest v0.0.0-20210106114233-22cd0577e450 // indirect
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
@@ -309,7 +309,6 @@ require (
 	github.com/leonklingele/grouper v1.1.0 // indirect
 	github.com/lib/pq v1.10.4 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
-	github.com/lunixbochs/vtclean v0.0.0-20180621232353-2d01aacdc34a // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/manifoldco/promptui v0.9.0 // indirect
