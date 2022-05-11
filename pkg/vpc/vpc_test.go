@@ -2,18 +2,16 @@ package vpc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 
-	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
-
 	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/pkg/errors"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -21,6 +19,7 @@ import (
 	. "github.com/stretchr/testify/mock"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks/mocksv2"
 	. "github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
@@ -88,11 +87,13 @@ type selectSubnetsCase struct {
 	expectIDs        []string
 }
 
-func newFakeClusterWithEndpoints(private, public bool, name string) *eks.Cluster {
-	cluster := NewFakeCluster(name, eks.ClusterStatusActive)
-	vpcCfgReq := eks.VpcConfigResponse{}
-	vpcCfgReq.SetEndpointPrivateAccess(private).SetEndpointPublicAccess(public)
-	cluster.SetResourcesVpcConfig(&vpcCfgReq)
+func newFakeClusterWithEndpoints(private, public bool, name string) *ekstypes.Cluster {
+	cluster := NewFakeCluster(name, ekstypes.ClusterStatusActive)
+	vpcCfgReq := &ekstypes.VpcConfigResponse{
+		EndpointPrivateAccess: private,
+		EndpointPublicAccess:  public,
+	}
+	cluster.ResourcesVpcConfig = vpcCfgReq
 	return cluster
 }
 
@@ -364,17 +365,14 @@ var _ = Describe("VPC", func() {
 		func(clusterCase useFromClusterCase) {
 			p := mockprovider.NewMockProvider()
 			cluster := newFakeClusterWithEndpoints(true, true, "dummy cluster")
-			mockResultFn := func(_ *eks.DescribeClusterInput) *eks.DescribeClusterOutput {
-				return &eks.DescribeClusterOutput{Cluster: cluster}
-			}
 
-			p.MockEKS().On("DescribeCluster", MatchedBy(func(input *eks.DescribeClusterInput) bool {
+			p.MockEKS().On("DescribeCluster", Anything, MatchedBy(func(input *eks.DescribeClusterInput) bool {
 				return input != nil
-			})).Return(mockResultFn, nil)
+			})).Return(&eks.DescribeClusterOutput{Cluster: cluster}, nil)
+
 			if clusterCase.mockEC2 != nil {
 				clusterCase.mockEC2(p.MockEC2())
 			}
-
 			err := UseFromClusterStack(context.Background(), p, clusterCase.stack, clusterCase.cfg)
 			if clusterCase.errorMatcher != nil {
 				Expect(err.Error()).To(clusterCase.errorMatcher)
@@ -730,17 +728,13 @@ var _ = Describe("VPC", func() {
 	DescribeTable("can set cluster endpoint configuration on VPC from running Cluster",
 		func(e endpointAccessCase) {
 			p := mockprovider.NewMockProvider()
-			p.MockEKS()
 			cluster := newFakeClusterWithEndpoints(e.private, e.public, e.clusterName)
-			mockResultFn := func(_ *eks.DescribeClusterInput) *eks.DescribeClusterOutput {
-				return &eks.DescribeClusterOutput{Cluster: cluster}
-			}
 
-			p.MockEKS().On("DescribeCluster", MatchedBy(func(input *eks.DescribeClusterInput) bool {
+			p.MockEKS().On("DescribeCluster", Anything, MatchedBy(func(input *eks.DescribeClusterInput) bool {
 				return input != nil
-			})).Return(mockResultFn, e.error)
+			})).Return(&eks.DescribeClusterOutput{Cluster: cluster}, e.error)
 
-			err := UseEndpointAccessFromCluster(p, e.cfg)
+			err := UseEndpointAccessFromCluster(context.Background(), p, e.cfg)
 			if e.error != nil {
 				Expect(err).To(MatchError(e.error.Error()))
 			} else {
@@ -775,7 +769,7 @@ var _ = Describe("VPC", func() {
 			clusterName: "notFoundCluster",
 			private:     false,
 			public:      false,
-			error:       errors.New(eks.ErrCodeResourceNotFoundException),
+			error:       &ekstypes.ResourceNotFoundException{},
 		}),
 		Entry("Nil Cluster endpoint from config", endpointAccessCase{
 			cfg: &api.ClusterConfig{

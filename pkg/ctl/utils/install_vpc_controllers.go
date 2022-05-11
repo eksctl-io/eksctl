@@ -45,7 +45,8 @@ func doInstallWindowsVPCController(cmd *cmdutils.Cmd) error {
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	parentCtx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(parentCtx)
 	if err != nil {
 		return err
 	}
@@ -55,7 +56,7 @@ func doInstallWindowsVPCController(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(cmd.ProviderConfig.WaitTimeout))
+	ctx, cancel := context.WithDeadline(parentCtx, time.Now().Add(cmd.ProviderConfig.WaitTimeout))
 	defer cancel()
 
 	vpcControllerTask := &eks.VPCControllerTask{

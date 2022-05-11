@@ -4,14 +4,13 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/eks"
-
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 
 	"github.com/kris-nova/logger"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
@@ -19,7 +18,7 @@ import (
 //counterfeiter:generate . NodegroupFilter
 // NodegroupFilter is an interface that holds filter configuration
 type NodegroupFilter interface {
-	SetOnlyLocal(ctx context.Context, eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) error
+	SetOnlyLocal(ctx context.Context, eksAPI awsapi.EKS, lister StackLister, clusterConfig *api.ClusterConfig) error
 	Match(ngName string) bool
 	LogInfo(cfg *api.ClusterConfig)
 }
@@ -78,7 +77,7 @@ func (f *NodeGroupFilter) AppendIncludeNames(names ...string) {
 // the filter to only include the nodegroups that don't exist in the cluster already.
 // Note: they are present in the config file but not in the cluster. This is used by
 // the create nodegroup command
-func (f *NodeGroupFilter) SetOnlyLocal(ctx context.Context, eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) error {
+func (f *NodeGroupFilter) SetOnlyLocal(ctx context.Context, eksAPI awsapi.EKS, lister StackLister, clusterConfig *api.ClusterConfig) error {
 	f.onlyLocal = true
 
 	err := f.loadLocalAndRemoteNodegroups(ctx, eksAPI, lister, clusterConfig)
@@ -96,7 +95,7 @@ func (f *NodeGroupFilter) SetOnlyLocal(ctx context.Context, eksAPI eksiface.EKSA
 // SetOnlyRemote uses StackLister to list existing nodegroup stacks and configures
 // the filter to exclude nodegroups already defined in the config file. It will include the
 //  nodegroups that exist in the cluster but not in the config
-func (f *NodeGroupFilter) SetOnlyRemote(ctx context.Context, eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) error {
+func (f *NodeGroupFilter) SetOnlyRemote(ctx context.Context, eksAPI awsapi.EKS, lister StackLister, clusterConfig *api.ClusterConfig) error {
 	f.onlyRemote = true
 
 	err := f.loadLocalAndRemoteNodegroups(ctx, eksAPI, lister, clusterConfig)
@@ -121,7 +120,7 @@ func (f *NodeGroupFilter) GetExcludeAll() bool {
 	return f.delegate.ExcludeAll
 }
 
-func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(ctx context.Context, eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) error {
+func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(ctx context.Context, eksAPI awsapi.EKS, lister StackLister, clusterConfig *api.ClusterConfig) error {
 	nodeGroupsWithStacks, nodeGroupsWithoutStacks, err := f.findAllNodeGroups(ctx, eksAPI, lister, clusterConfig)
 	if err != nil {
 		return err
@@ -167,7 +166,7 @@ func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(ctx context.Context, eksA
 	return nil
 }
 
-func (f *NodeGroupFilter) findAllNodeGroups(ctx context.Context, eksAPI eksiface.EKSAPI, lister StackLister, clusterConfig *api.ClusterConfig) ([]manager.NodeGroupStack, []string, error) {
+func (f *NodeGroupFilter) findAllNodeGroups(ctx context.Context, eksAPI awsapi.EKS, lister StackLister, clusterConfig *api.ClusterConfig) ([]manager.NodeGroupStack, []string, error) {
 	// Get remote nodegroups stacks
 	nodeGroupsWithStacks, err := lister.ListNodeGroupStacks(ctx)
 	if err != nil {
@@ -175,7 +174,7 @@ func (f *NodeGroupFilter) findAllNodeGroups(ctx context.Context, eksAPI eksiface
 	}
 
 	// Get all nodegroups
-	allNodeGroups, err := eksAPI.ListNodegroups(&eks.ListNodegroupsInput{
+	allNodeGroups, err := eksAPI.ListNodegroups(ctx, &eks.ListNodegroupsInput{
 		ClusterName: &clusterConfig.Metadata.Name,
 	})
 
@@ -190,9 +189,9 @@ func (f *NodeGroupFilter) findAllNodeGroups(ctx context.Context, eksAPI eksiface
 
 	var nodeGroupsWithoutStacks []string
 
-	for _, node := range allNodeGroups.Nodegroups {
-		if !nodeGroupsWithStacksSet.Has(*node) {
-			nodeGroupsWithoutStacks = append(nodeGroupsWithoutStacks, *node)
+	for _, nodeGroupName := range allNodeGroups.Nodegroups {
+		if !nodeGroupsWithStacksSet.Has(nodeGroupName) {
+			nodeGroupsWithoutStacks = append(nodeGroupsWithoutStacks, nodeGroupName)
 		}
 	}
 

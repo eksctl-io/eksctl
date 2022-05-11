@@ -1,14 +1,16 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/kris-nova/logger"
 
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -49,12 +51,14 @@ func describeAddonVersions(cmd *cmdutils.Cmd, addonName, k8sVersion, clusterName
 		return err
 	}
 
+	ctx := context.TODO()
+
 	//you can provide kubernetes version or cluster name
 	//if cluster name we lookup its version
 	if k8sVersion != "" {
 		cmd.ClusterConfig.Metadata.Version = k8sVersion
 	} else if clusterName != "" {
-		output, err := clusterProvider.Provider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
+		output, err := clusterProvider.Provider.EKS().DescribeCluster(ctx, &eks.DescribeClusterInput{
 			Name: &clusterName,
 		})
 
@@ -80,12 +84,12 @@ func describeAddonVersions(cmd *cmdutils.Cmd, addonName, k8sVersion, clusterName
 
 	switch addonName {
 	case "":
-		summary, err = addonManager.DescribeAllVersions()
+		summary, err = addonManager.DescribeAllVersions(ctx)
 		if err != nil {
 			return err
 		}
 	default:
-		summary, err = addonManager.DescribeVersions(&api.Addon{Name: addonName})
+		summary, err = addonManager.DescribeVersions(ctx, &api.Addon{Name: addonName})
 		if err != nil {
 			return err
 		}

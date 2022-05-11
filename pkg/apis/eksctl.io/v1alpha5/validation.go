@@ -9,7 +9,7 @@ import (
 
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
@@ -942,7 +942,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		if ng.UpdateConfig.MaxUnavailable != nil && ng.UpdateConfig.MaxUnavailablePercentage != nil {
 			return fmt.Errorf("cannot use maxUnavailable=%d and maxUnavailablePercentage=%d at the same time", *ng.UpdateConfig.MaxUnavailable, *ng.UpdateConfig.MaxUnavailablePercentage)
 		}
-		if aws.IntValue(ng.UpdateConfig.MaxUnavailable) > aws.IntValue(ng.MaxSize) {
+		if aws.ToInt(ng.UpdateConfig.MaxUnavailable) > aws.ToInt(ng.MaxSize) {
 			return fmt.Errorf("maxUnavailable=%d cannot be greater than maxSize=%d", *ng.UpdateConfig.MaxUnavailable, *ng.MaxSize)
 		}
 	}

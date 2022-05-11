@@ -104,6 +104,7 @@ func (c *StackCollection) NewManagedNodeGroupTask(ctx context.Context, nodeGroup
 				stackCollection: c,
 				nodeGroup:       ng,
 				info:            fmt.Sprintf("propagate tags to ASG for managed nodegroup %q", ng.Name),
+				ctx:             ctx,
 			})
 		}
 	}

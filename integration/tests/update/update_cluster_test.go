@@ -155,7 +155,7 @@ var _ = Describe("(Integration) Update addons", func() {
 			)
 			Expect(cmd).To(RunSuccessfully())
 
-			rawClient := getRawClient()
+			rawClient := getRawClient(context.Background())
 			kubernetesVersion, err := rawClient.ServerVersion()
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(func() string {
@@ -168,7 +168,7 @@ var _ = Describe("(Integration) Update addons", func() {
 		})
 
 		It("should upgrade aws-node", func() {
-			rawClient := getRawClient()
+			rawClient := getRawClient(context.Background())
 			getAWSNodeVersion := func() string {
 				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), "aws-node", metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
@@ -211,7 +211,7 @@ var _ = AfterSuite(func() {
 	os.RemoveAll(params.TestDirectory)
 })
 
-func getRawClient() *kubewrapper.RawClient {
+func getRawClient(ctx context.Context) *kubewrapper.RawClient {
 	cfg := &api.ClusterConfig{
 		Metadata: &api.ClusterMeta{
 			Name:   params.ClusterName,
@@ -221,7 +221,7 @@ func getRawClient() *kubewrapper.RawClient {
 	ctl, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 	Expect(err).NotTo(HaveOccurred())
 
-	err = ctl.RefreshClusterStatus(cfg)
+	err = ctl.RefreshClusterStatus(ctx, cfg)
 	Expect(err).ShouldNot(HaveOccurred())
 	rawClient, err := ctl.NewRawClient(cfg)
 	Expect(err).NotTo(HaveOccurred())

@@ -74,7 +74,7 @@ var _ = BeforeSuite(func() {
 		WithStdin(bytes.NewReader(data))
 	Expect(cmd).To(RunSuccessfully())
 
-	rawClient = getRawClient(params.ClusterName)
+	rawClient = getRawClient(context.Background(), params.ClusterName)
 	serverVersion, err := rawClient.ServerVersion()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(serverVersion).To(HavePrefix(api.LatestVersion))
@@ -186,7 +186,7 @@ var _ = AfterSuite(func() {
 	Expect(cmd).To(RunSuccessfully())
 })
 
-func getRawClient(clusterName string) *kubewrapper.RawClient {
+func getRawClient(ctx context.Context, clusterName string) *kubewrapper.RawClient {
 	cfg := &api.ClusterConfig{
 		Metadata: &api.ClusterMeta{
 			Name:   clusterName,
@@ -196,7 +196,7 @@ func getRawClient(clusterName string) *kubewrapper.RawClient {
 	ctl, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 	Expect(err).NotTo(HaveOccurred())
 
-	err = ctl.RefreshClusterStatus(cfg)
+	err = ctl.RefreshClusterStatus(ctx, cfg)
 	Expect(err).ShouldNot(HaveOccurred())
 	rawClient, err := ctl.NewRawClient(cfg)
 	Expect(err).NotTo(HaveOccurred())

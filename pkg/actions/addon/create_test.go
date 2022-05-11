@@ -11,8 +11,10 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -30,7 +32,7 @@ var _ = Describe("Create", func() {
 		oidc                   *iamoidc.OpenIDConnectManager
 		fakeStackManager       *fakes.FakeStackManager
 		mockProvider           *mockprovider.MockProvider
-		createAddonInput       *awseks.CreateAddonInput
+		createAddonInput       *eks.CreateAddonInput
 		returnedErr            error
 		createStackReturnValue error
 		rawClient              *testutils.FakeRawClient
@@ -82,25 +84,25 @@ var _ = Describe("Create", func() {
 		Expect(err).NotTo(HaveOccurred())
 		oidc.ProviderARN = "arn:aws:iam::456123987123:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E"
 
-		mockProvider.MockEKS().On("CreateAddon", mock.Anything).Run(func(args mock.Arguments) {
-			Expect(args).To(HaveLen(1))
-			Expect(args[0]).To(BeAssignableToTypeOf(&awseks.CreateAddonInput{}))
-			createAddonInput = args[0].(*awseks.CreateAddonInput)
+		mockProvider.MockEKS().On("CreateAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+			Expect(args).To(HaveLen(2))
+			Expect(args[1]).To(BeAssignableToTypeOf(&eks.CreateAddonInput{}))
+			createAddonInput = args[1].(*eks.CreateAddonInput)
 		}).Return(nil, returnedErr)
 
 		manager, err = addon.New(clusterConfig, mockProvider.EKS(), fakeStackManager, withOIDC, oidc, rawClient.ClientSet(), 5*time.Minute)
 		Expect(err).NotTo(HaveOccurred())
 		manager.SetTimeout(time.Second)
 
-		mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything).Run(func(args mock.Arguments) {
-			Expect(args).To(HaveLen(1))
-			Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
-		}).Return(&awseks.DescribeAddonVersionsOutput{
-			Addons: []*awseks.AddonInfo{
+		mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+			Expect(args).To(HaveLen(2))
+			Expect(args[1]).To(BeAssignableToTypeOf(&eks.DescribeAddonVersionsInput{}))
+		}).Return(&eks.DescribeAddonVersionsOutput{
+			Addons: []ekstypes.AddonInfo{
 				{
 					AddonName: aws.String("my-addon"),
 					Type:      aws.String("type"),
-					AddonVersions: []*awseks.AddonVersionInfo{
+					AddonVersions: []ekstypes.AddonVersionInfo{
 						{
 							AddonVersion: aws.String("v1.0.0-eksbuild.1"),
 						},
@@ -231,15 +233,15 @@ var _ = Describe("Create", func() {
 			BeforeEach(func() {
 				withOIDC = false
 
-				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(1))
-					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
-				}).Return(&awseks.DescribeAddonVersionsOutput{
-					Addons: []*awseks.AddonInfo{
+				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(2))
+					Expect(args[1]).To(BeAssignableToTypeOf(&eks.DescribeAddonVersionsInput{}))
+				}).Return(&eks.DescribeAddonVersionsOutput{
+					Addons: []ekstypes.AddonInfo{
 						{
 							AddonName: aws.String("my-addon"),
 							Type:      aws.String("type"),
-							AddonVersions: []*awseks.AddonVersionInfo{
+							AddonVersions: []ekstypes.AddonVersionInfo{
 								{
 									AddonVersion: aws.String("v1.7.5-eksbuild.1"),
 								},
@@ -270,15 +272,15 @@ var _ = Describe("Create", func() {
 			BeforeEach(func() {
 				withOIDC = false
 
-				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything).Run(func(args mock.Arguments) {
-					Expect(args).To(HaveLen(1))
-					Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
-				}).Return(&awseks.DescribeAddonVersionsOutput{
-					Addons: []*awseks.AddonInfo{
+				mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+					Expect(args).To(HaveLen(2))
+					Expect(args[1]).To(BeAssignableToTypeOf(&eks.DescribeAddonVersionsInput{}))
+				}).Return(&eks.DescribeAddonVersionsOutput{
+					Addons: []ekstypes.AddonInfo{
 						{
 							AddonName:     aws.String("my-addon"),
 							Type:          aws.String("type"),
-							AddonVersions: []*awseks.AddonVersionInfo{},
+							AddonVersions: []ekstypes.AddonVersionInfo{},
 						},
 					},
 				}, nil)
@@ -313,7 +315,7 @@ var _ = Describe("Create", func() {
 			Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
 			Expect(*createAddonInput.AddonName).To(Equal("my-addon"))
 			Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
-			Expect(*createAddonInput.ResolveConflicts).To(Equal("overwrite"))
+			Expect(createAddonInput.ResolveConflicts).To(Equal(ekstypes.ResolveConflictsOverwrite))
 			Expect(createAddonInput.ServiceAccountRoleArn).To(BeNil())
 		})
 	})
@@ -322,11 +324,11 @@ var _ = Describe("Create", func() {
 		When("the addon creation succeeds", func() {
 			BeforeEach(func() {
 				withOIDC = false
-				mockProvider.MockEKS().On("DescribeAddon", mock.Anything).
-					Return(&awseks.DescribeAddonOutput{
-						Addon: &awseks.Addon{
+				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).
+					Return(&eks.DescribeAddonOutput{
+						Addon: &ekstypes.Addon{
 							AddonName: aws.String("my-addon"),
-							Status:    aws.String("ACTIVE"),
+							Status:    ekstypes.AddonStatusActive,
 						},
 					}, nil)
 			})
@@ -348,11 +350,11 @@ var _ = Describe("Create", func() {
 		When("the addon creation fails", func() {
 			BeforeEach(func() {
 				withOIDC = false
-				mockProvider.MockEKS().On("DescribeAddon", mock.Anything).
-					Return(&awseks.DescribeAddonOutput{
-						Addon: &awseks.Addon{
+				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).
+					Return(&eks.DescribeAddonOutput{
+						Addon: &ekstypes.Addon{
 							AddonName: aws.String("my-addon"),
-							Status:    aws.String("DEGRADED"),
+							Status:    ekstypes.AddonStatusDegraded,
 						},
 					}, nil)
 			})
@@ -581,8 +583,8 @@ var _ = Describe("Create", func() {
 			Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
 			Expect(*createAddonInput.AddonName).To(Equal("my-addon"))
 			Expect(*createAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.1"))
-			Expect(*createAddonInput.Tags["foo"]).To(Equal("bar"))
-			Expect(*createAddonInput.Tags["fox"]).To(Equal("brown"))
+			Expect(createAddonInput.Tags["foo"]).To(Equal("bar"))
+			Expect(createAddonInput.Tags["fox"]).To(Equal("brown"))
 		})
 	})
 })

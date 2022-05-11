@@ -6,28 +6,27 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/pkg/errors"
 
-	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
-
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/fargate"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
-
-	awseks "github.com/aws/aws-sdk-go/service/eks"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/kris-nova/logger"
+
+	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/elb"
+	"github.com/weaveworks/eksctl/pkg/fargate"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	ssh "github.com/weaveworks/eksctl/pkg/ssh/client"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
-
-	"github.com/kris-nova/logger"
 )
 
 type NodeGroupDrainer interface {
@@ -82,7 +81,7 @@ func deleteFargateProfiles(ctx context.Context, clusterMeta *api.ClusterMeta, ct
 		ctl.Provider,
 		stackManager,
 	)
-	profileNames, err := manager.ListProfiles()
+	profileNames, err := manager.ListProfiles(ctx)
 	if err != nil {
 		if fargate.IsUnauthorizedError(err) {
 			logger.Debug("Fargate: unauthorized error: %v", err)
@@ -100,14 +99,14 @@ func deleteFargateProfiles(ctx context.Context, clusterMeta *api.ClusterMeta, ct
 	//   status DELETING
 
 	for _, profileName := range profileNames {
-		logger.Info("deleting Fargate profile %q", *profileName)
+		logger.Info("deleting Fargate profile %q", profileName)
 		// All Fargate profiles must be completely deleted by waiting for the deletion to complete, before deleting
 		// the cluster itself, otherwise it can result in this error:
 		//   Cannot delete because cluster <cluster> currently has Fargate profile <profile> in status DELETING
-		if err := manager.DeleteProfile(ctx, *profileName, true); err != nil {
+		if err := manager.DeleteProfile(ctx, profileName, true); err != nil {
 			return err
 		}
-		logger.Info("deleted Fargate profile %q", *profileName)
+		logger.Info("deleted Fargate profile %q", profileName)
 	}
 	logger.Info("deleted %v Fargate profile(s)", len(profileNames))
 
@@ -197,16 +196,17 @@ func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, client
 
 // Attempts to delete the vpc-cni, and fails silently if an error occurs. This is an attempt
 // to prevent a race condition in the vpc-cni #1849
-func attemptVpcCniDeletion(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
+func attemptVpcCniDeletion(ctx context.Context, clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
 	vpcCNI := "vpc-cni"
 	logger.Debug("deleting EKS addon %q if it exists", vpcCNI)
-	_, err := ctl.Provider.EKS().DeleteAddon(&awseks.DeleteAddonInput{
+	_, err := ctl.Provider.EKS().DeleteAddon(ctx, &awseks.DeleteAddonInput{
 		ClusterName: &clusterName,
 		AddonName:   aws.String(vpcCNI),
 	})
 
 	if err != nil {
-		if awsError, ok := err.(awserr.Error); ok && awsError.Code() == awseks.ErrCodeResourceNotFoundException {
+		var notFoundErr *ekstypes.ResourceNotFoundException
+		if errors.As(err, &notFoundErr) {
 			logger.Debug("EKS addon %q does not exist", vpcCNI)
 		} else {
 			logger.Debug("failed to delete addon %q: %v", vpcCNI, err)
@@ -214,7 +214,7 @@ func attemptVpcCniDeletion(clusterName string, ctl *eks.ClusterProvider, clientS
 	}
 
 	logger.Debug("deleting kube-system/aws-node DaemonSet")
-	err = clientSet.AppsV1().DaemonSets("kube-system").Delete(context.TODO(), "aws-node", metav1.DeleteOptions{})
+	err = clientSet.AppsV1().DaemonSets("kube-system").Delete(ctx, "aws-node", metav1.DeleteOptions{})
 	if err != nil {
 		logger.Debug("failed to delete kube-system/aws-node DaemonSet: %w", err)
 	}

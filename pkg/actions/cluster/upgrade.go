@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/weaveworks/eksctl/pkg/printers"
@@ -13,7 +14,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
-func upgrade(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, dryRun bool) (bool, error) {
+func upgrade(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, dryRun bool) (bool, error) {
 	currentVersion := ctl.ControlPlaneVersion()
 	versionUpdateRequired, err := requiresVersionUpgrade(cfg.Metadata, currentVersion)
 	if err != nil {
@@ -29,7 +30,7 @@ func upgrade(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, dryRun bool) (boo
 		msgNodeGroupsAndAddons := "you will need to follow the upgrade procedure for all of nodegroups and add-ons"
 		cmdutils.LogIntendedAction(dryRun, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, currentVersion, cfg.Metadata.Version)
 		if !dryRun {
-			if err := ctl.UpdateClusterVersionBlocking(cfg); err != nil {
+			if err := ctl.UpdateClusterVersionBlocking(ctx, cfg); err != nil {
 				return false, err
 			}
 			logger.Success("cluster %q control plane has been upgraded to version %q", cfg.Metadata.Name, cfg.Metadata.Version)

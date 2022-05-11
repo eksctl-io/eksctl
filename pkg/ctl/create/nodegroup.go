@@ -49,7 +49,8 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 			}()
 		}
 
-		ctl, err := cmd.NewProviderForExistingCluster()
+		ctx := context.TODO()
+		ctl, err := cmd.NewProviderForExistingCluster(ctx)
 		if err != nil {
 			return errors.Wrap(err, "couldn't create cluster provider from options")
 		}
@@ -64,7 +65,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 		}
 
 		manager := nodegroup.New(cmd.ClusterConfig, ctl, clientSet)
-		return manager.Create(context.TODO(), nodegroup.CreateOpts{
+		return manager.Create(ctx, nodegroup.CreateOpts{
 			InstallNeuronDevicePlugin: options.InstallNeuronDevicePlugin,
 			InstallNvidiaDevicePlugin: options.InstallNvidiaDevicePlugin,
 			UpdateAuthConfigMap:       options.UpdateAuthConfigMap,

@@ -1,6 +1,7 @@
 package associate
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -59,7 +60,8 @@ func doAssociateIdentityProvider(cmd *cmdutils.Cmd, timeout time.Duration) error
 
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -80,5 +82,5 @@ func doAssociateIdentityProvider(cmd *cmdutils.Cmd, timeout time.Duration) error
 		options.WaitTimeout = &timeout
 	}
 
-	return manager.Associate(options)
+	return manager.Associate(ctx, options)
 }

@@ -1,6 +1,7 @@
 package enable
 
 import (
+	"context"
 	"os"
 
 	"github.com/kris-nova/logger"
@@ -50,7 +51,7 @@ func flux2Install(cmd *cmdutils.Cmd) error {
 	logger.Info("will install Flux v2 components on cluster %s", cmd.ClusterConfig.Metadata.Name)
 
 	if kubeconfAndContextNotSet(cmd.ClusterConfig.GitOps.Flux.Flags) {
-		ctl, err := cmd.NewProviderForExistingCluster()
+		ctl, err := cmd.NewProviderForExistingCluster(context.TODO())
 		if err != nil {
 			return err
 		}

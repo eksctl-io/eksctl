@@ -1,6 +1,8 @@
 package update
 
 import (
+	"context"
+
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -20,7 +22,7 @@ func updateNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 		Please consult the eksctl documentation for more info on which config fields can be updated with this command.
 		To upgrade a nodegroup, please use 'eksctl upgrade nodegroup' instead.
-		Note that this is only available for managed nodegroups. 
+		Note that this is only available for managed nodegroups.
 	`),
 	)
 
@@ -42,7 +44,8 @@ func updateNodegroup(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -51,5 +54,5 @@ func updateNodegroup(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	return nodegroup.New(cmd.ClusterConfig, ctl, nil).Update()
+	return nodegroup.New(cmd.ClusterConfig, ctl, nil).Update(ctx)
 }

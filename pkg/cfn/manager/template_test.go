@@ -3,8 +3,8 @@ package manager
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
-	"github.com/aws/aws-sdk-go/aws"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

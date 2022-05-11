@@ -30,8 +30,8 @@ const (
 var latestAWSNodeYaml []byte
 
 // DoesAWSNodeSupportMultiArch makes sure awsnode supports ARM nodes
-func DoesAWSNodeSupportMultiArch(input AddonInput) (bool, error) {
-	clusterDaemonSet, err := input.RawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
+func DoesAWSNodeSupportMultiArch(ctx context.Context, input AddonInput) (bool, error) {
+	clusterDaemonSet, err := input.RawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(ctx, AWSNode, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", AWSNode)
@@ -70,8 +70,8 @@ func DoesAWSNodeSupportMultiArch(input AddonInput) (bool, error) {
 
 // UpdateAWSNode will update the `aws-node` add-on and returns true
 // if an update is available.
-func UpdateAWSNode(input AddonInput, plan bool) (bool, error) {
-	clusterDaemonSet, err := input.RawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), AWSNode, metav1.GetOptions{})
+func UpdateAWSNode(ctx context.Context, input AddonInput, plan bool) (bool, error) {
+	clusterDaemonSet, err := input.RawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(ctx, AWSNode, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", AWSNode)

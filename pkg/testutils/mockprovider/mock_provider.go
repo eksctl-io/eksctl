@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/awstesting"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5/fakes"
@@ -45,7 +44,7 @@ type MockProvider struct {
 	region         string
 	cfnRoleARN     string
 	asg            *mocksv2.ASG
-	eks            *mocks.EKSAPI
+	eks            *mocksv2.EKS
 	cloudtrail     *mocksv2.CloudTrail
 	cloudwatchlogs *mocksv2.CloudWatchLogs
 	configProvider *mocks.ConfigProvider
@@ -67,7 +66,7 @@ func NewMockProvider() *MockProvider {
 		Client: NewMockAWSClient(),
 
 		asg:            &mocksv2.ASG{},
-		eks:            &mocks.EKSAPI{},
+		eks:            &mocksv2.EKS{},
 		cloudtrail:     &mocksv2.CloudTrail{},
 		cloudwatchlogs: &mocksv2.CloudWatchLogs{},
 		configProvider: &mocks.ConfigProvider{},
@@ -145,10 +144,10 @@ func (m MockProvider) ASG() awsapi.ASG { return m.asg }
 func (m MockProvider) MockASG() *mocksv2.ASG { return m.ASG().(*mocksv2.ASG) }
 
 // EKS returns a representation of the EKS API
-func (m MockProvider) EKS() eksiface.EKSAPI { return m.eks }
+func (m MockProvider) EKS() awsapi.EKS { return m.eks }
 
 // MockEKS returns a mocked EKS API
-func (m MockProvider) MockEKS() *mocks.EKSAPI { return m.EKS().(*mocks.EKSAPI) }
+func (m MockProvider) MockEKS() *mocksv2.EKS { return m.eks }
 
 // EC2 returns a representation of the EC2 API
 func (m MockProvider) EC2() awsapi.EC2 { return m.ec2 }

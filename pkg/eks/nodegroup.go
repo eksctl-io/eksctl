@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	awsiam "github.com/aws/aws-sdk-go-v2/service/iam"
-	"github.com/aws/aws-sdk-go/aws"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
