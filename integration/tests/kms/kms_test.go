@@ -12,16 +12,16 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/aws/aws-sdk-go-v2/service/kms"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 
+	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
 var params *tests.Params
@@ -64,8 +64,9 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	ctl = clusterProvider.Provider
 
-	kmsClient := kms.New(ctl.ConfigProvider())
-	output, err := kmsClient.CreateKey(&kms.CreateKeyInput{
+	cfg := NewConfig(params.Region)
+	kmsClient := kms.NewFromConfig(cfg)
+	output, err := kmsClient.CreateKey(context.Background(), &kms.CreateKeyInput{
 		Description: aws.String(fmt.Sprintf("Key to test KMS encryption on EKS cluster %s", params.ClusterName)),
 	})
 	Expect(err).NotTo(HaveOccurred())
@@ -110,10 +111,11 @@ var _ = AfterSuite(func() {
 	)
 	Expect(cmd).To(RunSuccessfully())
 
-	kmsClient := kms.New(ctl.ConfigProvider())
-	_, err := kmsClient.ScheduleKeyDeletion(&kms.ScheduleKeyDeletionInput{
+	cfg := NewConfig(params.Region)
+	kmsClient := kms.NewFromConfig(cfg)
+	_, err := kmsClient.ScheduleKeyDeletion(context.Background(), &kms.ScheduleKeyDeletionInput{
 		KeyId:               kmsKeyARN,
-		PendingWindowInDays: aws.Int64(7),
+		PendingWindowInDays: aws.Int32(7),
 	})
 	Expect(err).NotTo(HaveOccurred())
 })

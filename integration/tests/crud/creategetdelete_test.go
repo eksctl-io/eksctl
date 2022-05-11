@@ -12,20 +12,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/pkg/errors"
-	corev1 "k8s.io/api/core/v1"
-
-	"k8s.io/client-go/kubernetes"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
-	awsec2 "github.com/aws/aws-sdk-go/service/ec2"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	awsec2 "github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	harness "github.com/dlespiau/kube-test-harness"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"github.com/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/yaml"
 
@@ -120,12 +119,12 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 	Describe("cluster with 1 node", func() {
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
-			awsSession := NewSession(params.Region)
+			config := NewConfig(params.Region)
 
-			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, awseks.ClusterStatusActive, params.Version))
+			Expect(config).To(HaveExistingCluster(params.ClusterName, string(ekstypes.ClusterStatusActive), params.Version))
 
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, mngNG1)))
+			Expect(config).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", params.ClusterName)))
+			Expect(config).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", params.ClusterName, mngNG1)))
 		})
 
 		It("should have created a valid kubectl config file", func() {
@@ -156,7 +155,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				cmd := params.EksctlUtilsCmd.WithArgs("describe-stacks", "--cluster", params.ClusterName, "-o", "yaml")
 				session := cmd.Run()
 				Expect(session.ExitCode()).To(BeZero())
-				var stacks []*cloudformation.Stack
+				var stacks []*cfntypes.Stack
 				Expect(yaml.Unmarshal(session.Out.Contents(), &stacks)).To(Succeed())
 				Expect(stacks).To(HaveLen(2))
 				nodegroupStack := stacks[0]
@@ -279,7 +278,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("can add a nodegroup into a new subnet", func() {
 			var (
-				subnet        *awsec2.Subnet
+				subnet        *types.Subnet
 				nodegroupName string
 			)
 			BeforeEach(func() {
@@ -294,12 +293,12 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					nodegroupName,
 				)
 				Expect(cmd).To(RunSuccessfully())
-				awsSession := NewSession(params.Region)
-				ec2 := awsec2.New(awsSession)
-				output, err := ec2.DeleteSubnet(&awsec2.DeleteSubnetInput{
+				config := NewConfig(params.Region)
+				ec2 := awsec2.NewFromConfig(config)
+				output, err := ec2.DeleteSubnet(context.Background(), &awsec2.DeleteSubnetInput{
 					SubnetId: subnet.SubnetId,
 				})
-				Expect(err).NotTo(HaveOccurred(), output.GoString())
+				Expect(err).NotTo(HaveOccurred(), output.ResultMetadata)
 
 			})
 			It("creates a new nodegroup", func() {
@@ -313,10 +312,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				Expect(err).NotTo(HaveOccurred())
 				cl, err := ctl.GetCluster(context.Background(), params.ClusterName)
 				Expect(err).NotTo(HaveOccurred())
-				awsSession := NewSession(params.Region)
-				ec2 := awsec2.New(awsSession)
-				existingSubnets, err := ec2.DescribeSubnets(&awsec2.DescribeSubnetsInput{
-					SubnetIds: aws.StringSlice(cl.ResourcesVpcConfig.SubnetIds),
+				config := NewConfig(params.Region)
+				ec2 := awsec2.NewFromConfig(config)
+				existingSubnets, err := ec2.DescribeSubnets(context.Background(), &awsec2.DescribeSubnetsInput{
+					SubnetIds: cl.ResourcesVpcConfig.SubnetIds,
 				})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(len(existingSubnets.Subnets) > 0).To(BeTrue())
@@ -329,7 +328,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				fmt.Sscanf(cidr, "%d.%d.%d.%d/%d", &i1, &i2, &i3, &i4, &ic)
 				cidr = fmt.Sprintf("%d.%d.%s.%d/%d", i1, i2, "255", i4, ic)
 
-				var tags []*awsec2.Tag
+				var tags []types.Tag
 
 				// filter aws: tags
 				for _, t := range s.Tags {
@@ -337,38 +336,38 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						tags = append(tags, t)
 					}
 				}
-				output, err := ec2.CreateSubnet(&awsec2.CreateSubnetInput{
+				output, err := ec2.CreateSubnet(context.Background(), &awsec2.CreateSubnetInput{
 					AvailabilityZone: aws.String("us-west-2a"),
 					CidrBlock:        aws.String(cidr),
-					TagSpecifications: []*awsec2.TagSpecification{
+					TagSpecifications: []types.TagSpecification{
 						{
-							ResourceType: aws.String(awsec2.ResourceTypeSubnet),
+							ResourceType: types.ResourceTypeSubnet,
 							Tags:         tags,
 						},
 					},
 					VpcId: s.VpcId,
 				})
 				Expect(err).NotTo(HaveOccurred())
-				moutput, err := ec2.ModifySubnetAttribute(&awsec2.ModifySubnetAttributeInput{
-					MapPublicIpOnLaunch: &awsec2.AttributeBooleanValue{
+				moutput, err := ec2.ModifySubnetAttribute(context.Background(), &awsec2.ModifySubnetAttributeInput{
+					MapPublicIpOnLaunch: &types.AttributeBooleanValue{
 						Value: aws.Bool(true),
 					},
 					SubnetId: output.Subnet.SubnetId,
 				})
-				Expect(err).NotTo(HaveOccurred(), moutput.GoString())
+				Expect(err).NotTo(HaveOccurred(), moutput.ResultMetadata)
 				subnet = output.Subnet
 
-				routeTables, err := ec2.DescribeRouteTables(&awsec2.DescribeRouteTablesInput{
-					Filters: []*awsec2.Filter{
+				routeTables, err := ec2.DescribeRouteTables(context.Background(), &awsec2.DescribeRouteTablesInput{
+					Filters: []types.Filter{
 						{
 							Name:   aws.String("association.subnet-id"),
-							Values: aws.StringSlice([]string{*s.SubnetId}),
+							Values: []string{*s.SubnetId},
 						},
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(len(routeTables.RouteTables) > 0).To(BeTrue(), fmt.Sprintf("route table ended up being empty: %+v", routeTables))
-				routput, err := ec2.AssociateRouteTable(&awsec2.AssociateRouteTableInput{
+				routput, err := ec2.AssociateRouteTable(context.Background(), &awsec2.AssociateRouteTableInput{
 					RouteTableId: routeTables.RouteTables[0].RouteTableId,
 					SubnetId:     subnet.SubnetId,
 				})
@@ -750,7 +749,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 					Expect(cmds).To(RunSuccessfully())
 
-					awsSession := NewSession(params.Region)
+					awsSession := NewConfig(params.Region)
 
 					stackNamePrefix := fmt.Sprintf("eksctl-%s-addon-iamserviceaccount-", params.ClusterName)
 
@@ -823,7 +822,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					}
 					Expect(cmds).To(RunSuccessfully())
 
-					awsSession := NewSession(params.Region)
+					awsSession := NewConfig(params.Region)
 
 					stackNamePrefix := fmt.Sprintf("eksctl-%s-addon-iamserviceaccount-", params.ClusterName)
 
