@@ -29,7 +29,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
-	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
@@ -101,8 +100,8 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 	cmd.FlagSetGroup.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {
 		fs.IPNetVar(&cfg.VPC.CIDR.IPNet, "vpc-cidr", cfg.VPC.CIDR.IPNet, "global CIDR to use for VPC")
 		params.Subnets = map[api.SubnetTopology]*[]string{
-			api.SubnetTopologyPrivate: fs.StringSlice("vpc-private-subnets", nil, "re-use private subnets of an existing VPC"),
-			api.SubnetTopologyPublic:  fs.StringSlice("vpc-public-subnets", nil, "re-use public subnets of an existing VPC"),
+			api.SubnetTopologyPrivate: fs.StringSlice("vpc-private-subnets", nil, "re-use private subnets of an existing VPC; the subnets must exist in availability zones and not other types of zones"),
+			api.SubnetTopologyPublic:  fs.StringSlice("vpc-public-subnets", nil, "re-use public subnets of an existing VPC; the subnets must exist in availability zones and not other types of zones"),
 		}
 		fs.StringVar(&params.KopsClusterNameForVPC, "vpc-from-kops-cluster", "", "re-use VPC from a given kops cluster")
 		fs.StringVar(cfg.VPC.NAT.Gateway, "vpc-nat-mode", api.ClusterSingleNAT, "VPC NAT mode, valid options: HighlyAvailable, Single, Disable")
@@ -181,16 +180,34 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		params.KubeconfigPath = kubeconfig.AutoPath(meta.Name)
 	}
 
+	ctx := context.TODO()
+
 	if checkSubnetsGivenAsFlags(params) {
 		// undo defaulting and reset it, as it's not set via config file;
 		// default value here causes errors as vpc.ImportVPC doesn't
 		// treat remote state as authority over local state
 		cfg.VPC.CIDR = nil
-		// load subnets from local map created from flags, into the config
-		for topology := range params.Subnets {
-			if err := vpc.ImportSubnetsFromIDList(ctl.Provider.EC2(), cfg, topology, *params.Subnets[topology]); err != nil {
-				return err
+		if cfg.VPC.Subnets == nil {
+			cfg.VPC.Subnets = &api.ClusterSubnets{
+				Private: api.NewAZSubnetMapping(),
+				Public:  api.NewAZSubnetMapping(),
 			}
+		}
+
+		// load subnets from local map created from flags, into the config
+		importSubnets := func(subnetMapping api.AZSubnetMapping, subnetIDs *[]string) error {
+			if subnetIDs != nil {
+				if err := vpc.ImportSubnetsFromIDList(ctx, ctl.Provider.EC2(), cfg, subnetMapping, *subnetIDs); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+		if err := importSubnets(cfg.VPC.Subnets.Public, params.Subnets[api.SubnetTopologyPublic]); err != nil {
+			return err
+		}
+		if err := importSubnets(cfg.VPC.Subnets.Private, params.Subnets[api.SubnetTopologyPrivate]); err != nil {
+			return err
 		}
 	}
 	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
@@ -214,7 +231,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		eks.LogWindowsCompatibility(kubeNodeGroups, cfg.Metadata)
 	}
 
-	if err := createOrImportVPC(cmd, cfg, params, ctl); err != nil {
+	if err := createOrImportVPC(ctx, cmd, cfg, params, ctl); err != nil {
 		return err
 	}
 
@@ -228,7 +245,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return cmdutils.PrintDryRunConfig(cfg, os.Stdout)
 	}
 
-	if err := nodeGroupService.Normalize(context.TODO(), nodePools, cfg.Metadata); err != nil {
+	if err := nodeGroupService.Normalize(ctx, nodePools, cfg.Metadata); err != nil {
 		return err
 	}
 
@@ -266,20 +283,15 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
 
 	eks.LogEnabledFeatures(cfg)
-	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(context.Background(), cfg)
-
-	supported, err := utils.IsMinVersion(api.Version1_18, cfg.Metadata.Version)
-	if err != nil {
-		return err
-	}
+	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(ctx, cfg)
 
 	var preNodegroupAddons, postNodegroupAddons *tasks.TaskTree
-	if supported && len(cfg.Addons) > 0 {
-		preNodegroupAddons, postNodegroupAddons = addon.CreateAddonTasks(cfg, ctl, true, cmd.ProviderConfig.WaitTimeout)
+	if len(cfg.Addons) > 0 {
+		preNodegroupAddons, postNodegroupAddons = addon.CreateAddonTasks(ctx, cfg, ctl, true, cmd.ProviderConfig.WaitTimeout)
 		postClusterCreationTasks.Append(preNodegroupAddons)
 	}
 
-	taskTree := stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, postClusterCreationTasks)
+	taskTree := stackManager.NewTasksToCreateClusterWithNodeGroups(ctx, cfg.NodeGroups, cfg.ManagedNodeGroups, postClusterCreationTasks)
 
 	logger.Info(taskTree.Describe())
 	if errs := taskTree.DoAllSync(); len(errs) > 0 {
@@ -369,7 +381,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			if err != nil {
 				return errors.Wrap(err, "generating kubeconfig")
 			}
-			if err := installKarpenter(ctl, cfg, stackManager, clientSet, kubernetes.NewRESTClientGetter("karpenter", string(kubeConfigBytes))); err != nil {
+			if err := installKarpenter(ctx, ctl, cfg, stackManager, clientSet, kubernetes.NewRESTClientGetter("karpenter", string(kubeConfigBytes))); err != nil {
 				return err
 			}
 		}
@@ -402,7 +414,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			// disable public access
 			logger.Info("disabling public endpoint access for the cluster")
 			cfg.VPC.ClusterEndpoints.PublicAccess = api.Disabled()
-			if err := ctl.UpdateClusterConfigForEndpoints(cfg); err != nil {
+			if err := ctl.UpdateClusterConfigForEndpoints(ctx, cfg); err != nil {
 				return errors.Wrap(err, "error disabling public endpoint access for the cluster")
 			}
 			logger.Info("fully private cluster %q has been created. For subsequent operations, eksctl must be run from within the cluster's VPC, a peered VPC or some other means like AWS Direct Connect", cfg.Metadata.Name)
@@ -419,25 +431,31 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 // - service account
 // - identity mapping
 // then proceeds with installing Karpenter using Helm.
-func installKarpenter(ctl *eks.ClusterProvider, cfg *api.ClusterConfig, stackManager manager.StackManager, clientSet *kubeclient.Clientset, restClientGetter *kubernetes.SimpleRESTClientGetter) error {
-	installer, err := karpenteractions.NewInstaller(cfg, ctl, stackManager, clientSet, restClientGetter)
+func installKarpenter(ctx context.Context, ctl *eks.ClusterProvider, cfg *api.ClusterConfig, stackManager manager.StackManager, clientSet *kubeclient.Clientset, restClientGetter *kubernetes.SimpleRESTClientGetter) error {
+	installer, err := karpenteractions.NewInstaller(ctx, cfg, ctl, stackManager, clientSet, restClientGetter)
 	if err != nil {
 		return fmt.Errorf("failed to create installer: %w", err)
 	}
-	if err := installer.Create(); err != nil {
+	if err := installer.Create(ctx); err != nil {
 		return fmt.Errorf("failed to install Karpenter: %w", err)
 	}
 
 	return nil
 }
 
-func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmdutils.CreateClusterCmdParams, ctl *eks.ClusterProvider) error {
+func createOrImportVPC(ctx context.Context, cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmdutils.CreateClusterCmdParams, ctl *eks.ClusterProvider) error {
 	customNetworkingNotice := "custom VPC/subnets will be used; if resulting cluster doesn't function as expected, make sure to review the configuration of VPC/subnets"
 
 	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets
 	if !subnetsGiven && params.KopsClusterNameForVPC == "" {
-		if err := eks.SetAvailabilityZones(cfg, params.AvailabilityZones, ctl.Provider.EC2(), ctl.Provider.Region()); err != nil {
+		if err := eks.SetAvailabilityZones(ctx, cfg, params.AvailabilityZones, ctl.Provider.EC2(), ctl.Provider.Region()); err != nil {
 			return err
+		}
+
+		if len(cfg.LocalZones) > 0 {
+			if err := eks.ValidateLocalZones(ctx, ctl.Provider.EC2(), cfg.LocalZones, ctl.Provider.Region()); err != nil {
+				return err
+			}
 		}
 
 		// Skip setting subnets
@@ -448,7 +466,7 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 			return nil
 		}
 
-		return vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones)
+		return vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones, cfg.LocalZones)
 	}
 
 	if params.KopsClusterNameForVPC != "" {
@@ -473,7 +491,7 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 			return nil
 		}
 
-		if err := kw.UseVPC(ctl.Provider.EC2(), cfg); err != nil {
+		if err := kw.UseVPC(ctx, ctl.Provider.EC2(), cfg); err != nil {
 			return err
 		}
 
@@ -499,7 +517,7 @@ func createOrImportVPC(cmd *cmdutils.Cmd, cfg *api.ClusterConfig, params *cmduti
 		return nil
 	}
 
-	if err := vpc.ImportSubnetsFromSpec(ctl.Provider, cfg); err != nil {
+	if err := vpc.ImportSubnetsFromSpec(ctx, ctl.Provider, cfg); err != nil {
 		return err
 	}
 

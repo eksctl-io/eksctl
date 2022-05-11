@@ -3,17 +3,17 @@ package nodegroup_test
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/stretchr/testify/mock"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -56,7 +56,7 @@ var _ = Describe("Scale", func() {
 			nodegroups := make(map[string]manager.StackInfo)
 			nodegroups["my-ng"] = manager.StackInfo{
 				Stack: &manager.Stack{
-					Tags: []*cloudformation.Tag{
+					Tags: []types.Tag{
 						{
 							Key:   aws.String(api.NodeGroupNameTag),
 							Value: aws.String("my-ng"),
@@ -72,45 +72,40 @@ var _ = Describe("Scale", func() {
 		})
 
 		It("scales the nodegroup using the values provided", func() {
-			p.MockEKS().On("UpdateNodegroupConfig", &awseks.UpdateNodegroupConfigInput{
-				ScalingConfig: &awseks.NodegroupScalingConfig{
-					MinSize:     aws.Int64(1),
-					DesiredSize: aws.Int64(3),
+			p.MockEKS().On("UpdateNodegroupConfig", mock.Anything, &awseks.UpdateNodegroupConfigInput{
+				ScalingConfig: &ekstypes.NodegroupScalingConfig{
+					MinSize:     aws.Int32(1),
+					DesiredSize: aws.Int32(3),
 				},
 				ClusterName:   &clusterName,
 				NodegroupName: &ngName,
 			}).Return(nil, nil)
 
-			p.MockEKS().On("DescribeNodegroupRequest", &awseks.DescribeNodegroupInput{
+			p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 				ClusterName:   &clusterName,
 				NodegroupName: &ngName,
-			}).Return(&request.Request{}, nil)
-
-			waitCallCount := 0
-			m.SetWaiter(func(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error {
-				waitCallCount++
-				return nil
-			})
+			}, mock.Anything).Return(&awseks.DescribeNodegroupOutput{
+				Nodegroup: &ekstypes.Nodegroup{
+					Status: ekstypes.NodegroupStatusActive,
+				},
+			}, nil)
 
 			err := m.Scale(context.Background(), ng)
-
 			Expect(err).NotTo(HaveOccurred())
-			Expect(waitCallCount).To(Equal(1))
 		})
 
 		When("update fails", func() {
 			It("returns an error", func() {
-				p.MockEKS().On("UpdateNodegroupConfig", &awseks.UpdateNodegroupConfigInput{
-					ScalingConfig: &awseks.NodegroupScalingConfig{
-						MinSize:     aws.Int64(1),
-						DesiredSize: aws.Int64(3),
+				p.MockEKS().On("UpdateNodegroupConfig", mock.Anything, &awseks.UpdateNodegroupConfigInput{
+					ScalingConfig: &ekstypes.NodegroupScalingConfig{
+						MinSize:     aws.Int32(1),
+						DesiredSize: aws.Int32(3),
 					},
 					ClusterName:   &clusterName,
 					NodegroupName: &ngName,
 				}).Return(nil, fmt.Errorf("foo"))
 
 				err := m.Scale(context.Background(), ng)
-
 				Expect(err).To(MatchError(fmt.Sprintf("failed to scale nodegroup for cluster %q, error: foo", clusterName)))
 			})
 		})
@@ -122,7 +117,7 @@ var _ = Describe("Scale", func() {
 				nodegroups := make(map[string]manager.StackInfo)
 				nodegroups["my-ng"] = manager.StackInfo{
 					Stack: &manager.Stack{
-						Tags: []*cloudformation.Tag{
+						Tags: []types.Tag{
 							{
 								Key:   aws.String(api.NodeGroupNameTag),
 								Value: aws.String("my-ng"),
@@ -133,7 +128,7 @@ var _ = Describe("Scale", func() {
 							},
 						},
 					},
-					Resources: []*cloudformation.StackResource{
+					Resources: []types.StackResource{
 						{
 							PhysicalResourceId: aws.String("asg-name"),
 							LogicalResourceId:  aws.String("NodeGroup"),
@@ -161,7 +156,7 @@ var _ = Describe("Scale", func() {
 				nodegroups := make(map[string]manager.StackInfo)
 				nodegroups["my-ng"] = manager.StackInfo{
 					Stack: &manager.Stack{
-						Tags: []*cloudformation.Tag{
+						Tags: []types.Tag{
 							{
 								Key:   aws.String(api.NodeGroupNameTag),
 								Value: aws.String("my-ng"),
@@ -172,7 +167,7 @@ var _ = Describe("Scale", func() {
 							},
 						},
 					},
-					Resources: []*cloudformation.StackResource{},
+					Resources: []types.StackResource{},
 				}
 				fakeStackManager.DescribeNodeGroupStacksAndResourcesReturns(nodegroups, nil)
 

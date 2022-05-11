@@ -37,6 +37,20 @@ command:
       /etc/eks/bootstrap.sh test-override-11 --container-runtime containerd --kubelet-extra-args "--node-labels=${NODE_LABELS}"
 ```
 
+For nodegroups that have no outbound internet access, you'll need to supply `--apiserver-endpoint` and `--b64-cluster-ca`
+to the bootstrap script as follows:
+
+```yaml
+    overrideBootstrapCommand: |
+      #!/bin/bash
+
+      source /var/lib/cloud/scripts/eksctl/bootstrap.helper.sh
+
+      # Note "--node-labels=${NODE_LABELS}" needs the above helper sourced to work, otherwise will have to be defined manually.
+      /etc/eks/bootstrap.sh test-override-11 --container-runtime containerd --kubelet-extra-args "--node-labels=${NODE_LABELS}" \
+        --apiserver-endpoint ${API_SERVER_URL} --b64-cluster-ca ${B64_CLUSTER_CA}
+```
+
 Note the _`--node-labels`_ setting. If this is not defined, the node will join the cluster, but `eksctl` will ultimately
 time out on the last step when it's waiting for the nodes to be `Ready`. It's doing a Kubernetes lookup for nodes that
 have the label `alpha.eksctl.io/nodegroup-name=<cluster-name>`. This is only true for unmanaged nodegroups. For managed

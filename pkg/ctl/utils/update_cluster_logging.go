@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -63,12 +64,13 @@ func doEnableLogging(cmd *cmdutils.Cmd, logTypesToEnable []string, logTypesToDis
 
 	printer := printers.NewJSONPrinter()
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
 
-	currentlyEnabled, _, err := ctl.GetCurrentClusterConfigForLogging(cfg)
+	currentlyEnabled, _, err := ctl.GetCurrentClusterConfigForLogging(ctx, cfg)
 	if err != nil {
 		return err
 	}
@@ -104,7 +106,7 @@ func doEnableLogging(cmd *cmdutils.Cmd, logTypesToEnable []string, logTypesToDis
 			meta.Name, meta.Region, describeTypesToEnable, describeTypesToDisable,
 		)
 		if !cmd.Plan {
-			if err := ctl.UpdateClusterConfigForLogging(cfg); err != nil {
+			if err := ctl.UpdateClusterConfigForLogging(ctx, cfg); err != nil {
 				return err
 			}
 		}
@@ -117,7 +119,7 @@ func doEnableLogging(cmd *cmdutils.Cmd, logTypesToEnable []string, logTypesToDis
 	return nil
 }
 
-func validateLoggingFlags(toEnable []string, toDisable []string) error {
+func validateLoggingFlags(toEnable, toDisable []string) error {
 	// At least enable-types or disable-types should be provided
 	if len(toEnable) == 0 && len(toDisable) == 0 {
 		return fmt.Errorf("at least one flag has to be provided: --enable-types, --disable-types")

@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+
 	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -17,20 +17,18 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/weaveworks/eksctl/pkg/addons"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/printers"
-	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 const (
 	// KubeProxy is the name of the kube-proxy addon
-	KubeProxy     = "kube-proxy"
-	ArchBetaLabel = "beta.kubernetes.io/arch"
-	ArchLabel     = "kubernetes.io/arch"
+	KubeProxy = "kube-proxy"
+	ArchLabel = "kubernetes.io/arch"
 )
 
-func IsKubeProxyUpToDate(input AddonInput) (bool, error) {
-	d, err := input.RawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), KubeProxy, metav1.GetOptions{})
+func IsKubeProxyUpToDate(ctx context.Context, input AddonInput) (bool, error) {
+	d, err := input.RawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(ctx, KubeProxy, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", KubeProxy)
@@ -42,12 +40,7 @@ func IsKubeProxyUpToDate(input AddonInput) (bool, error) {
 		return false, fmt.Errorf("%s has %d containers, expected at least 1", KubeProxy, numContainers)
 	}
 
-	greaterThanOrEqualTo1_18, err := utils.IsMinVersion(api.Version1_18, input.ControlPlaneVersion)
-	if err != nil {
-		return false, err
-	}
-
-	desiredTag, err := getLatestKubeProxyImage(input, greaterThanOrEqualTo1_18)
+	desiredTag, err := getLatestKubeProxyImage(ctx, input)
 	if err != nil {
 		return false, err
 	}
@@ -60,7 +53,7 @@ func IsKubeProxyUpToDate(input AddonInput) (bool, error) {
 }
 
 // UpdateKubeProxy updates image tag for kube-system:daemonset/kube-proxy based to match ControlPlaneVersion
-func UpdateKubeProxy(input AddonInput, plan bool) (bool, error) {
+func UpdateKubeProxy(ctx context.Context, input AddonInput, plan bool) (bool, error) {
 	printer := printers.NewJSONPrinter()
 
 	d, err := input.RawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), KubeProxy, metav1.GetOptions{})
@@ -72,16 +65,7 @@ func UpdateKubeProxy(input AddonInput, plan bool) (bool, error) {
 		return false, errors.Wrapf(err, "getting %q", KubeProxy)
 	}
 
-	archLabel := ArchLabel
-	greaterThanOrEqualTo1_18, err := utils.IsMinVersion(api.Version1_18, input.ControlPlaneVersion)
-	if err != nil {
-		return false, err
-	}
-	if !greaterThanOrEqualTo1_18 {
-		archLabel = ArchBetaLabel
-	}
-
-	hasArm64NodeSelector := daemeonSetHasArm64NodeSelector(d, archLabel)
+	hasArm64NodeSelector := daemeonSetHasArm64NodeSelector(d)
 	if !hasArm64NodeSelector {
 		logger.Info("missing arm64 nodeSelector value")
 	}
@@ -101,7 +85,7 @@ func UpdateKubeProxy(input AddonInput, plan bool) (bool, error) {
 		return false, fmt.Errorf("unexpected image format %q for %q", *image, KubeProxy)
 	}
 
-	desiredTag, err := getLatestKubeProxyImage(input, greaterThanOrEqualTo1_18)
+	desiredTag, err := getLatestKubeProxyImage(ctx, input)
 	if err != nil {
 		return false, err
 	}
@@ -124,7 +108,7 @@ func UpdateKubeProxy(input AddonInput, plan bool) (bool, error) {
 	}
 
 	if !hasArm64NodeSelector {
-		if err := addArm64NodeSelector(d, archLabel); err != nil {
+		if err := addArm64NodeSelector(d); err != nil {
 			return false, err
 		}
 	}
@@ -137,13 +121,13 @@ func UpdateKubeProxy(input AddonInput, plan bool) (bool, error) {
 	return false, nil
 }
 
-func daemeonSetHasArm64NodeSelector(daemonSet *v1.DaemonSet, archLabel string) bool {
+func daemeonSetHasArm64NodeSelector(daemonSet *v1.DaemonSet) bool {
 	if daemonSet.Spec.Template.Spec.Affinity != nil &&
 		daemonSet.Spec.Template.Spec.Affinity.NodeAffinity != nil &&
 		daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution != nil {
 		for _, nodeSelectorTerms := range daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms {
 			for _, nodeSelector := range nodeSelectorTerms.MatchExpressions {
-				if nodeSelector.Key == archLabel {
+				if nodeSelector.Key == ArchLabel {
 					for _, value := range nodeSelector.Values {
 						if value == "arm64" {
 							return true
@@ -156,12 +140,12 @@ func daemeonSetHasArm64NodeSelector(daemonSet *v1.DaemonSet, archLabel string) b
 	return false
 }
 
-func addArm64NodeSelector(daemonSet *v1.DaemonSet, archLabel string) error {
+func addArm64NodeSelector(daemonSet *v1.DaemonSet) error {
 	if daemonSet.Spec.Template.Spec.Affinity != nil && daemonSet.Spec.Template.Spec.Affinity.NodeAffinity != nil {
 		for nodeSelectorTermsIndex, nodeSelectorTerms := range daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.
 			RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms {
 			for nodeSelectorIndex, nodeSelector := range nodeSelectorTerms.MatchExpressions {
-				if nodeSelector.Key == archLabel {
+				if nodeSelector.Key == ArchLabel {
 					daemonSet.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.
 						NodeSelectorTerms[nodeSelectorTermsIndex].MatchExpressions[nodeSelectorIndex].Values = append(nodeSelector.Values, "arm64")
 				}
@@ -172,14 +156,9 @@ func addArm64NodeSelector(daemonSet *v1.DaemonSet, archLabel string) error {
 	return fmt.Errorf("NodeAffinity not configured on kube-proxy. Either manually update the proxy deployment, or switch to Managed Addons")
 }
 
-func getLatestKubeProxyImage(input AddonInput, greaterThanOrEqualTo1_18 bool) (string, error) {
+func getLatestKubeProxyImage(ctx context.Context, input AddonInput) (string, error) {
 	defaultClusterVersion := generateImageVersionFromClusterVersion(input.ControlPlaneVersion)
-	// EKS Addons API only works for 1.18 and above
-	if !greaterThanOrEqualTo1_18 {
-		return defaultClusterVersion, nil
-	}
-
-	latestEKSReportedVersion, err := getLatestImageVersionFromEKS(input.EKSAPI, input.ControlPlaneVersion)
+	latestEKSReportedVersion, err := getLatestImageVersionFromEKS(ctx, input.EKSAPI, input.ControlPlaneVersion)
 	if err != nil {
 		return "", err
 	}
@@ -213,7 +192,7 @@ func generateImageVersionFromClusterVersion(controlPlaneVersion string) string {
 	return fmt.Sprintf("v%s-eksbuild.1", controlPlaneVersion)
 }
 
-func getLatestImageVersionFromEKS(eksAPI eksiface.EKSAPI, controlPlaneVersion string) (string, error) {
+func getLatestImageVersionFromEKS(ctx context.Context, eksAPI awsapi.EKS, controlPlaneVersion string) (string, error) {
 	controlPlaneMajorMinor, err := versionWithOnlyMajorAndMinor(controlPlaneVersion)
 	if err != nil {
 		return "", err
@@ -223,7 +202,7 @@ func getLatestImageVersionFromEKS(eksAPI eksiface.EKSAPI, controlPlaneVersion st
 		AddonName:         aws.String(KubeProxy),
 	}
 
-	addonInfos, err := eksAPI.DescribeAddonVersions(input)
+	addonInfos, err := eksAPI.DescribeAddonVersions(ctx, input)
 	if err != nil {
 		return "", fmt.Errorf("failed to describe addon versions: %v", err)
 	}

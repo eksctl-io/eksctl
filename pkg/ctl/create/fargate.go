@@ -1,9 +1,12 @@
 package create
 
 import (
+	"context"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	actionsfargate "github.com/weaveworks/eksctl/pkg/actions/fargate"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -32,13 +35,14 @@ func createFargateProfile(cmd *cmdutils.Cmd) {
 }
 
 func doCreateFargateProfile(cmd *cmdutils.Cmd) error {
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return errors.Wrap(err, "couldn't create cluster provider from command line options")
 	}
 
 	manager := actionsfargate.New(cmd.ClusterConfig, ctl, ctl.NewStackManager(cmd.ClusterConfig))
-	return manager.Create()
+	return manager.Create(ctx)
 }
 
 func configureCreateFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.CreateOptions {

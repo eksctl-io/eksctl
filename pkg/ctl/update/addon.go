@@ -1,13 +1,15 @@
 package update
 
 import (
+	"context"
 	"fmt"
 
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/actions/addon"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -49,17 +51,19 @@ func updateAddon(cmd *cmdutils.Cmd, force, wait bool) error {
 	if err := cmdutils.NewCreateOrUpgradeAddonLoader(cmd).Load(); err != nil {
 		return err
 	}
-	clusterProvider, err := cmd.NewProviderForExistingCluster()
+
+	ctx := context.TODO()
+	clusterProvider, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
 
-	oidc, err := clusterProvider.NewOpenIDConnectManager(cmd.ClusterConfig)
+	oidc, err := clusterProvider.NewOpenIDConnectManager(ctx, cmd.ClusterConfig)
 	if err != nil {
 		return err
 	}
 
-	oidcProviderExists, err := oidc.CheckProviderExists()
+	oidcProviderExists, err := oidc.CheckProviderExists(ctx)
 	if err != nil {
 		return err
 	}
@@ -70,7 +74,7 @@ func updateAddon(cmd *cmdutils.Cmd, force, wait bool) error {
 
 	stackManager := clusterProvider.NewStackManager(cmd.ClusterConfig)
 
-	output, err := clusterProvider.Provider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
+	output, err := clusterProvider.Provider.EKS().DescribeCluster(ctx, &awseks.DescribeClusterInput{
 		Name: &cmd.ClusterConfig.Metadata.Name,
 	})
 
@@ -91,7 +95,7 @@ func updateAddon(cmd *cmdutils.Cmd, force, wait bool) error {
 		if force { //force is specified at cmdline level
 			a.Force = true
 		}
-		err := addonManager.Update(a, wait)
+		err := addonManager.Update(ctx, a, wait)
 		if err != nil {
 			return err
 		}

@@ -1,9 +1,13 @@
 package utils
 
 import (
+	"context"
+	"time"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 
@@ -41,7 +45,8 @@ func doInstallWindowsVPCController(cmd *cmdutils.Cmd) error {
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	parentCtx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(parentCtx)
 	if err != nil {
 		return err
 	}
@@ -51,8 +56,12 @@ func doInstallWindowsVPCController(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
+	ctx, cancel := context.WithDeadline(parentCtx, time.Now().Add(cmd.ProviderConfig.WaitTimeout))
+	defer cancel()
+
 	vpcControllerTask := &eks.VPCControllerTask{
 		Info:            "install Windows VPC controller",
+		Context:         ctx,
 		ClusterConfig:   cfg,
 		ClusterProvider: ctl,
 		PlanMode:        cmd.Plan,

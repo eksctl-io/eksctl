@@ -1,9 +1,7 @@
-ARG BUILD_IMAGE=weaveworks/eksctl-build:130fc812ab94a306ed0dcf232a5962a1626fe9ea
+ARG BUILD_IMAGE=weaveworks/eksctl-build:0eb3a29941b9740f055ecb3fd9b663762a7ee9bd
 FROM $BUILD_IMAGE as build
 
 WORKDIR /src
-ENV JUNIT_REPORT_DIR="${JUNIT_REPORT_DIR:-/src/test-results/ginkgo}"
-RUN mkdir -p "${JUNIT_REPORT_DIR}"
 
 COPY . /src
 

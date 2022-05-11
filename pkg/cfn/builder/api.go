@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"reflect"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	gfn "github.com/weaveworks/goformation/v4/cloudformation"
 	gfncfn "github.com/weaveworks/goformation/v4/cloudformation/cloudformation"
 	gfnt "github.com/weaveworks/goformation/v4/cloudformation/types"
+
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 )
 
 const (
@@ -32,10 +33,15 @@ func (r *awsCloudFormationResource) AWSCloudFormationType() string {
 // must implement
 type ResourceSet interface {
 	AddAllResources() error
+	ResourceSetReader
+}
+
+// ResourceSetReader contains the set of operations required to create a stack and to collect outputs.
+type ResourceSetReader interface {
+	RenderJSON() ([]byte, error)
 	WithIAM() bool
 	WithNamedIAM() bool
-	RenderJSON() ([]byte, error)
-	GetAllOutputs(cfn.Stack) error
+	GetAllOutputs(types.Stack) error
 }
 
 type resourceSet struct {

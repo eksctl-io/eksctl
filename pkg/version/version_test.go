@@ -1,7 +1,7 @@
 package version
 
 import (
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )

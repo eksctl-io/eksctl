@@ -7,9 +7,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go/aws/arn"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
@@ -17,19 +19,17 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
-	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/version"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 // DescribeControlPlane describes the cluster control plane
-func (c *ClusterProvider) DescribeControlPlane(meta *api.ClusterMeta) (*awseks.Cluster, error) {
+func (c *ClusterProvider) DescribeControlPlane(ctx context.Context, meta *api.ClusterMeta) (*ekstypes.Cluster, error) {
 	input := &awseks.DescribeClusterInput{
 		Name: &meta.Name,
 	}
-	output, err := c.Provider.EKS().DescribeCluster(input)
+	output, err := c.Provider.EKS().DescribeCluster(ctx, input)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to describe cluster control plane")
 	}
@@ -41,8 +41,8 @@ func (c *ClusterProvider) DescribeControlPlane(meta *api.ClusterMeta) (*awseks.C
 // so that a Kubernetes client can be constructed; additionally it caches Kubernetes
 // version (use ctl.ControlPlaneVersion to retrieve it) and other properties in
 // c.Status.cachedClusterInfo
-func (c *ClusterProvider) RefreshClusterStatus(spec *api.ClusterConfig) error {
-	cluster, err := c.DescribeControlPlane(spec.Metadata)
+func (c *ClusterProvider) RefreshClusterStatus(ctx context.Context, spec *api.ClusterConfig) error {
+	cluster, err := c.DescribeControlPlane(ctx, spec.Metadata)
 	if err != nil {
 		return err
 	}
@@ -61,78 +61,17 @@ func (c *ClusterProvider) RefreshClusterStatus(spec *api.ClusterConfig) error {
 		Cluster: cluster,
 	}
 
-	switch *cluster.Status {
-	case awseks.ClusterStatusCreating, awseks.ClusterStatusDeleting, awseks.ClusterStatusFailed:
+	switch cluster.Status {
+	case ekstypes.ClusterStatusCreating, ekstypes.ClusterStatusDeleting, ekstypes.ClusterStatusFailed:
 		return nil
 	default:
 		return spec.SetClusterStatus(cluster)
 	}
 }
 
-// SupportsManagedNodes reports whether an existing cluster supports Managed Nodes
-// The minimum required control plane version and platform version are 1.14 and eks.3 respectively
-func (c *ClusterProvider) SupportsManagedNodes(clusterConfig *api.ClusterConfig) (bool, error) {
-	if err := c.RefreshClusterStatusIfStale(clusterConfig); err != nil {
-		return false, err
-	}
-
-	return ClusterSupportsManagedNodes(c.Status.ClusterInfo.Cluster)
-}
-
 // isNonEKSCluster returns true if the cluster is external
-func isNonEKSCluster(cluster *awseks.Cluster) bool {
+func isNonEKSCluster(cluster *ekstypes.Cluster) bool {
 	return cluster.ConnectorConfig != nil
-}
-
-// ClusterSupportsManagedNodes reports whether the EKS cluster supports managed nodes
-func ClusterSupportsManagedNodes(cluster *awseks.Cluster) (bool, error) {
-	if cluster.PlatformVersion == nil {
-		logger.Warning("could not find cluster's platform version")
-		return false, nil
-	}
-	version, err := PlatformVersion(*cluster.PlatformVersion)
-	if err != nil {
-		return false, err
-	}
-	minSupportedVersion := 3
-	return version >= minSupportedVersion, nil
-}
-
-// SupportsFargate reports whether an existing cluster supports Fargate.
-func (c *ClusterProvider) SupportsFargate(clusterConfig *api.ClusterConfig) (bool, error) {
-	if err := c.RefreshClusterStatusIfStale(clusterConfig); err != nil {
-		return false, err
-	}
-	return ClusterSupportsFargate(c.Status.ClusterInfo.Cluster)
-}
-
-// ClusterSupportsFargate reports whether an existing cluster supports Fargate.
-func ClusterSupportsFargate(cluster *awseks.Cluster) (bool, error) {
-	supportsFargate, err := utils.IsMinVersion(api.Version1_15, *cluster.Version)
-	if err != nil {
-		return false, err
-	}
-	if supportsFargate {
-		return true, nil
-	}
-
-	versionSupportsFargate, err := utils.IsMinVersion(fargate.MinKubernetesVersion, *cluster.Version)
-	if err != nil {
-		return false, err
-	}
-	if !versionSupportsFargate {
-		return false, nil
-	}
-
-	if cluster.PlatformVersion == nil {
-		logger.Warning("could not find cluster's platform version")
-		return false, nil
-	}
-	version, err := PlatformVersion(*cluster.PlatformVersion)
-	if err != nil {
-		return false, err
-	}
-	return version >= fargate.MinPlatformVersion, nil
 }
 
 var (
@@ -154,9 +93,9 @@ func PlatformVersion(platformVersion string) (int, error) {
 }
 
 // RefreshClusterStatusIfStale refreshes the cluster status if enough time has passed since the last refresh
-func (c *ClusterProvider) RefreshClusterStatusIfStale(spec *api.ClusterConfig) error {
+func (c *ClusterProvider) RefreshClusterStatusIfStale(ctx context.Context, spec *api.ClusterConfig) error {
 	if c.Status.ClusterInfo == nil {
-		return c.RefreshClusterStatus(spec)
+		return c.RefreshClusterStatus(ctx, spec)
 	}
 	return nil
 }
@@ -168,8 +107,8 @@ func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
 	if c.Status.ClusterInfo == nil {
 		return false, fmt.Errorf("cluster info not available")
 	}
-	switch status := *c.Status.ClusterInfo.Cluster.Status; status {
-	case awseks.ClusterStatusCreating, awseks.ClusterStatusDeleting, awseks.ClusterStatusFailed:
+	switch status := c.Status.ClusterInfo.Cluster.Status; status {
+	case ekstypes.ClusterStatusCreating, ekstypes.ClusterStatusDeleting, ekstypes.ClusterStatusFailed:
 		return false, fmt.Errorf("cannot perform Kubernetes API operations on cluster %q in %q region due to status %q", spec.Metadata.Name, spec.Metadata.Region, status)
 	default:
 		return true, nil
@@ -177,13 +116,13 @@ func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
 }
 
 // CanOperateWithRefresh returns true when a cluster can be operated, otherwise it returns false along with an error explaining the reason
-func (c *ClusterProvider) CanOperateWithRefresh(spec *api.ClusterConfig) (bool, error) {
-	if err := c.RefreshClusterStatusIfStale(spec); err != nil {
+func (c *ClusterProvider) CanOperateWithRefresh(ctx context.Context, spec *api.ClusterConfig) (bool, error) {
+	if err := c.RefreshClusterStatusIfStale(ctx, spec); err != nil {
 		return false, errors.Wrapf(err, "unable to fetch cluster status to determine operability")
 	}
 
-	switch status := *c.Status.ClusterInfo.Cluster.Status; status {
-	case awseks.ClusterStatusCreating, awseks.ClusterStatusDeleting, awseks.ClusterStatusFailed:
+	switch status := c.Status.ClusterInfo.Cluster.Status; status {
+	case ekstypes.ClusterStatusCreating, ekstypes.ClusterStatusDeleting, ekstypes.ClusterStatusFailed:
 		return false, fmt.Errorf("cannot perform Kubernetes API operations on cluster %q in %q region due to status %q", spec.Metadata.Name, spec.Metadata.Region, status)
 	default:
 		return true, nil
@@ -195,8 +134,8 @@ func (c *ClusterProvider) CanUpdate(spec *api.ClusterConfig) (bool, error) {
 	if c.Status.ClusterInfo == nil {
 		return false, nil
 	}
-	switch status := *c.Status.ClusterInfo.Cluster.Status; status {
-	case awseks.ClusterStatusActive:
+	switch status := c.Status.ClusterInfo.Cluster.Status; status {
+	case ekstypes.ClusterStatusActive:
 		// only active cluster can be upgraded
 		return true, nil
 	default:
@@ -213,9 +152,9 @@ func (c *ClusterProvider) ControlPlaneVersion() string {
 }
 
 // ControlPlaneVPCInfo returns cached version (EKS API)
-func (c *ClusterProvider) ControlPlaneVPCInfo() awseks.VpcConfigResponse {
+func (c *ClusterProvider) ControlPlaneVPCInfo() ekstypes.VpcConfigResponse {
 	if c.Status.ClusterInfo == nil || c.Status.ClusterInfo.Cluster == nil || c.Status.ClusterInfo.Cluster.ResourcesVpcConfig == nil {
-		return awseks.VpcConfigResponse{}
+		return ekstypes.VpcConfigResponse{}
 	}
 	return *c.Status.ClusterInfo.Cluster.ResourcesVpcConfig
 }
@@ -230,8 +169,8 @@ func (u *UnsupportedOIDCError) Error() string {
 }
 
 // NewOpenIDConnectManager returns OpenIDConnectManager
-func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iamoidc.OpenIDConnectManager, error) {
-	if _, err := c.CanOperateWithRefresh(spec); err != nil {
+func (c *ClusterProvider) NewOpenIDConnectManager(ctx context.Context, spec *api.ClusterConfig) (*iamoidc.OpenIDConnectManager, error) {
+	if _, err := c.CanOperateWithRefresh(ctx, spec); err != nil {
 		return nil, err
 	}
 
@@ -253,7 +192,7 @@ func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iam
 		*c.Status.ClusterInfo.Cluster.Identity.Oidc.Issuer, parsedARN.Partition, sharedTags(c.Status.ClusterInfo.Cluster))
 }
 
-func sharedTags(cluster *awseks.Cluster) map[string]string {
+func sharedTags(cluster *ekstypes.Cluster) map[string]string {
 	return map[string]string{
 		api.ClusterNameTag:   *cluster.Name,
 		api.EksctlVersionTag: version.GetVersion(),
@@ -264,19 +203,19 @@ func sharedTags(cluster *awseks.Cluster) map[string]string {
 // LoadClusterIntoSpecFromStack uses stack information to load the cluster
 // configuration into the spec
 // At the moment VPC and KubernetesNetworkConfig are respected
-func (c *ClusterProvider) LoadClusterIntoSpecFromStack(spec *api.ClusterConfig, stackManager manager.StackManager) error {
-	if err := c.LoadClusterVPC(spec, stackManager); err != nil {
+func (c *ClusterProvider) LoadClusterIntoSpecFromStack(ctx context.Context, spec *api.ClusterConfig, stackManager manager.StackManager) error {
+	if err := c.LoadClusterVPC(ctx, spec, stackManager); err != nil {
 		return err
 	}
-	if err := c.RefreshClusterStatus(spec); err != nil {
+	if err := c.RefreshClusterStatus(ctx, spec); err != nil {
 		return err
 	}
 	return c.loadClusterKubernetesNetworkConfig(spec)
 }
 
 // LoadClusterVPC loads the VPC configuration
-func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig, stackManager manager.StackManager) error {
-	stack, err := stackManager.DescribeClusterStack()
+func (c *ClusterProvider) LoadClusterVPC(ctx context.Context, spec *api.ClusterConfig, stackManager manager.StackManager) error {
+	stack, err := stackManager.DescribeClusterStack(ctx)
 	if err != nil {
 		return err
 	}
@@ -284,7 +223,7 @@ func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig, stackManager m
 		return &manager.StackNotFoundErr{ClusterName: spec.Metadata.Name}
 	}
 
-	return vpc.UseFromClusterStack(c.Provider, stack, spec)
+	return vpc.UseFromClusterStack(ctx, c.Provider, stack, spec)
 }
 
 // loadClusterKubernetesNetworkConfig gets the network config of an existing
@@ -296,28 +235,28 @@ func (c *ClusterProvider) loadClusterKubernetesNetworkConfig(spec *api.ClusterCo
 	knCfg := c.Status.ClusterInfo.Cluster.KubernetesNetworkConfig
 	if knCfg != nil {
 		spec.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
-			ServiceIPv4CIDR: aws.StringValue(knCfg.ServiceIpv4Cidr),
+			ServiceIPv4CIDR: aws.ToString(knCfg.ServiceIpv4Cidr),
 		}
 	}
 	return nil
 }
 
 // GetCluster display details of an EKS cluster in your account
-func (c *ClusterProvider) GetCluster(clusterName string) (*awseks.Cluster, error) {
+func (c *ClusterProvider) GetCluster(ctx context.Context, clusterName string) (*ekstypes.Cluster, error) {
 	input := &awseks.DescribeClusterInput{
 		Name: &clusterName,
 	}
 
-	output, err := c.Provider.EKS().DescribeCluster(input)
+	output, err := c.Provider.EKS().DescribeCluster(ctx, input)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to describe control plane %q", clusterName)
 	}
 	logger.Debug("cluster = %#v", output)
 
-	if *output.Cluster.Status == awseks.ClusterStatusActive {
+	if output.Cluster.Status == ekstypes.ClusterStatusActive {
 		if logger.Level >= 4 {
 			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: clusterName}}
-			stacks, err := c.NewStackManager(spec).ListStacks()
+			stacks, err := c.NewStackManager(spec).ListStacks(ctx)
 			if err != nil {
 				return nil, errors.Wrapf(err, "listing CloudFormation stack for %q", clusterName)
 			}

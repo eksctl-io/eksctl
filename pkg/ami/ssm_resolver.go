@@ -6,9 +6,10 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
+
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -49,14 +50,6 @@ func (r *SSMResolver) Resolve(ctx context.Context, region, version, instanceType
 
 // MakeSSMParameterName creates an SSM parameter name
 func MakeSSMParameterName(version, instanceType, imageFamily string) (string, error) {
-	if api.IsWindowsImage(imageFamily) {
-		if supportsWindows, err := utils.IsMinVersion(api.Version1_14, version); err != nil {
-			return "", err
-		} else if !supportsWindows {
-			return "", fmt.Errorf("cannot find Windows AMI for Kubernetes version %s. Minimum version supported: %s", version, api.Version1_14)
-		}
-	}
-
 	const fieldName = "image_id"
 
 	switch imageFamily {
@@ -88,12 +81,12 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 }
 
 // MakeManagedSSMParameterName creates an SSM parameter name for a managed nodegroup
-func MakeManagedSSMParameterName(version, amiType string) (string, error) {
+func MakeManagedSSMParameterName(version string, amiType ekstypes.AMITypes) (string, error) {
 	switch amiType {
-	case eks.AMITypesAl2X8664:
+	case ekstypes.AMITypesAl2X8664:
 		imageType := utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2)
 		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/release_version", version, imageType), nil
-	case eks.AMITypesAl2X8664Gpu:
+	case ekstypes.AMITypesAl2X8664Gpu:
 		imageType := utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2) + "-gpu"
 		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/release_version", version, imageType), nil
 	}

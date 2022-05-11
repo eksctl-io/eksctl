@@ -1,16 +1,16 @@
 package identityproviders
 
 import (
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 )
 
 type Manager struct {
 	metadata api.ClusterMeta
-	eksAPI   eksiface.EKSAPI
+	eksAPI   awsapi.EKS
 }
 
-func NewManager(metadata api.ClusterMeta, eksAPI eksiface.EKSAPI) Manager {
+func NewManager(metadata api.ClusterMeta, eksAPI awsapi.EKS) Manager {
 	return Manager{
 		metadata: metadata,
 		eksAPI:   eksAPI,

@@ -1,10 +1,14 @@
 package fargate_test
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	. "github.com/onsi/ginkgo"
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 	"k8s.io/client-go/kubernetes"
@@ -49,8 +53,8 @@ var _ = Describe("Fargate", func() {
 		cfg.Metadata.Name = clusterName
 		ctl := &eks.ClusterProvider{Provider: mockProvider, Status: &eks.ProviderStatus{
 			ClusterInfo: &eks.ClusterInfo{
-				Cluster: &awseks.Cluster{
-					Status:  aws.String(awseks.ClusterStatusActive),
+				Cluster: &ekstypes.Cluster{
+					Status:  ekstypes.ClusterStatusActive,
 					Version: aws.String("1.21"),
 				},
 			},
@@ -62,11 +66,11 @@ var _ = Describe("Fargate", func() {
 			return fakeClientSet, nil
 		})
 
-		mockProvider.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+		mockProvider.MockEKS().On("DescribeCluster", mock.Anything, mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 			Expect(*input.Name).To(Equal(clusterName))
 			return true
 		})).Return(&awseks.DescribeClusterOutput{
-			Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive),
+			Cluster: testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusActive),
 		}, nil)
 	})
 
@@ -75,8 +79,8 @@ var _ = Describe("Fargate", func() {
 			When("the fargate role doesn't exist", func() {
 				BeforeEach(func() {
 					fakeStackManager.ListStacksReturns(nil, nil)
-					fakeStackManager.DescribeClusterStackReturns(&cloudformation.Stack{
-						Outputs: []*cloudformation.Output{
+					fakeStackManager.DescribeClusterStackReturns(&types.Stack{
+						Outputs: []types.Output{
 							{
 								OutputKey:   aws.String("VPC"),
 								OutputValue: aws.String("vpc-123"),
@@ -87,22 +91,22 @@ var _ = Describe("Fargate", func() {
 							},
 						},
 					}, nil)
-					fakeStackManager.CreateStackStub = func(_ string, _ builder.ResourceSet, _ map[string]string, _ map[string]string, errchan chan error) error {
+					fakeStackManager.CreateStackStub = func(_ context.Context, _ string, _ builder.ResourceSetReader, _ map[string]string, _ map[string]string, errchan chan error) error {
 						go func() {
 							errchan <- nil
 						}()
 						return nil
 					}
 
-					fakeStackManager.RefreshFargatePodExecutionRoleARNStub = func() error {
+					fakeStackManager.RefreshFargatePodExecutionRoleARNStub = func(_ context.Context) error {
 						cfg.IAM.FargatePodExecutionRoleARN = aws.String("fargate-role-arn")
 						return nil
 					}
 
-					mockProvider.MockEKS().On("CreateFargateProfile", &awseks.CreateFargateProfileInput{
+					mockProvider.MockEKS().On("CreateFargateProfile", mock.Anything, &awseks.CreateFargateProfileInput{
 						PodExecutionRoleArn: aws.String("fargate-role-arn"),
 						ClusterName:         &clusterName,
-						Selectors: []*awseks.FargateProfileSelector{
+						Selectors: []ekstypes.FargateProfileSelector{
 							{
 								Namespace: aws.String("default"),
 							},
@@ -110,21 +114,21 @@ var _ = Describe("Fargate", func() {
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(nil, nil)
 
-					mockProvider.MockEKS().On("DescribeFargateProfile", &awseks.DescribeFargateProfileInput{
+					mockProvider.MockEKS().On("DescribeFargateProfile", mock.Anything, &awseks.DescribeFargateProfileInput{
 						ClusterName:        &clusterName,
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(&awseks.DescribeFargateProfileOutput{
-						FargateProfile: &awseks.FargateProfile{
-							Status: aws.String(awseks.FargateProfileStatusActive),
+						FargateProfile: &ekstypes.FargateProfile{
+							Status: ekstypes.FargateProfileStatusActive,
 						},
 					}, nil)
 				})
 
 				It("creates the fargateprofile using the newly created role", func() {
-					err := fargateManager.Create()
+					err := fargateManager.Create(context.Background())
 					Expect(err).NotTo(HaveOccurred())
 					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
-					name, stack, _, _, _ := fakeStackManager.CreateStackArgsForCall(0)
+					_, name, stack, _, _, _ := fakeStackManager.CreateStackArgsForCall(0)
 					Expect(name).To(Equal("eksctl-my-cluster-fargate"))
 					output, err := stack.RenderJSON()
 					Expect(err).NotTo(HaveOccurred())
@@ -136,8 +140,8 @@ var _ = Describe("Fargate", func() {
 
 			When("the fargate role exists in the cluster stack", func() {
 				BeforeEach(func() {
-					fakeStackManager.DescribeClusterStackReturns(&cloudformation.Stack{
-						Outputs: []*cloudformation.Output{
+					fakeStackManager.DescribeClusterStackReturns(&types.Stack{
+						Outputs: []types.Output{
 							{
 								OutputKey:   aws.String("VPC"),
 								OutputValue: aws.String("vpc-123"),
@@ -153,15 +157,15 @@ var _ = Describe("Fargate", func() {
 						},
 					}, nil)
 
-					fakeStackManager.RefreshFargatePodExecutionRoleARNStub = func() error {
+					fakeStackManager.RefreshFargatePodExecutionRoleARNStub = func(_ context.Context) error {
 						cfg.IAM.FargatePodExecutionRoleARN = aws.String("fargate-existing-role-arn")
 						return nil
 					}
 
-					mockProvider.MockEKS().On("CreateFargateProfile", &awseks.CreateFargateProfileInput{
+					mockProvider.MockEKS().On("CreateFargateProfile", mock.Anything, &awseks.CreateFargateProfileInput{
 						PodExecutionRoleArn: aws.String("fargate-existing-role-arn"),
 						ClusterName:         &clusterName,
-						Selectors: []*awseks.FargateProfileSelector{
+						Selectors: []ekstypes.FargateProfileSelector{
 							{
 								Namespace: aws.String("default"),
 							},
@@ -169,18 +173,18 @@ var _ = Describe("Fargate", func() {
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(nil, nil)
 
-					mockProvider.MockEKS().On("DescribeFargateProfile", &awseks.DescribeFargateProfileInput{
+					mockProvider.MockEKS().On("DescribeFargateProfile", mock.Anything, &awseks.DescribeFargateProfileInput{
 						ClusterName:        &clusterName,
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(&awseks.DescribeFargateProfileOutput{
-						FargateProfile: &awseks.FargateProfile{
-							Status: aws.String(awseks.FargateProfileStatusActive),
+						FargateProfile: &ekstypes.FargateProfile{
+							Status: ekstypes.FargateProfileStatusActive,
 						},
 					}, nil)
 				})
 
 				It("creates the fargate profile using the existing role", func() {
-					err := fargateManager.Create()
+					err := fargateManager.Create(context.Background())
 					Expect(err).NotTo(HaveOccurred())
 					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
 					Expect(fakeStackManager.RefreshFargatePodExecutionRoleARNCallCount()).To(Equal(1))
@@ -193,8 +197,8 @@ var _ = Describe("Fargate", func() {
 						StackName: aws.String("fargate"),
 					}, nil)
 
-					fakeStackManager.DescribeClusterStackReturns(&cloudformation.Stack{
-						Outputs: []*cloudformation.Output{
+					fakeStackManager.DescribeClusterStackReturns(&types.Stack{
+						Outputs: []types.Output{
 							{
 								OutputKey:   aws.String("VPC"),
 								OutputValue: aws.String("vpc-123"),
@@ -205,22 +209,22 @@ var _ = Describe("Fargate", func() {
 							},
 						},
 					}, nil)
-					fakeStackManager.CreateStackStub = func(_ string, _ builder.ResourceSet, _ map[string]string, _ map[string]string, errchan chan error) error {
+					fakeStackManager.CreateStackStub = func(_ context.Context, _ string, _ builder.ResourceSetReader, _ map[string]string, _ map[string]string, errchan chan error) error {
 						go func() {
 							errchan <- nil
 						}()
 						return nil
 					}
 
-					fakeStackManager.RefreshFargatePodExecutionRoleARNStub = func() error {
+					fakeStackManager.RefreshFargatePodExecutionRoleARNStub = func(_ context.Context) error {
 						cfg.IAM.FargatePodExecutionRoleARN = aws.String("fargate-role-arn")
 						return nil
 					}
 
-					mockProvider.MockEKS().On("CreateFargateProfile", &awseks.CreateFargateProfileInput{
+					mockProvider.MockEKS().On("CreateFargateProfile", mock.Anything, &awseks.CreateFargateProfileInput{
 						PodExecutionRoleArn: aws.String("fargate-role-arn"),
 						ClusterName:         &clusterName,
-						Selectors: []*awseks.FargateProfileSelector{
+						Selectors: []ekstypes.FargateProfileSelector{
 							{
 								Namespace: aws.String("default"),
 							},
@@ -228,18 +232,18 @@ var _ = Describe("Fargate", func() {
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(nil, nil)
 
-					mockProvider.MockEKS().On("DescribeFargateProfile", &awseks.DescribeFargateProfileInput{
+					mockProvider.MockEKS().On("DescribeFargateProfile", mock.Anything, &awseks.DescribeFargateProfileInput{
 						ClusterName:        &clusterName,
 						FargateProfileName: aws.String("fp-1"),
 					}).Return(&awseks.DescribeFargateProfileOutput{
-						FargateProfile: &awseks.FargateProfile{
-							Status: aws.String(awseks.FargateProfileStatusActive),
+						FargateProfile: &ekstypes.FargateProfile{
+							Status: ekstypes.FargateProfileStatusActive,
 						},
 					}, nil)
 				})
 
 				It("creates the fargateprofile using the existing role", func() {
-					err := fargateManager.Create()
+					err := fargateManager.Create(context.Background())
 					Expect(err).NotTo(HaveOccurred())
 					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
 					Expect(fakeStackManager.RefreshFargatePodExecutionRoleARNCallCount()).To(Equal(1))

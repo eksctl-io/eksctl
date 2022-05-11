@@ -9,7 +9,7 @@ import (
 
 	instanceutils "github.com/weaveworks/eksctl/pkg/utils/instance"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
@@ -256,11 +256,23 @@ func (c *ClusterConfig) ValidateVPCConfig() error {
 		if c.VPC.NAT != nil {
 			return fmt.Errorf("setting NAT is not supported with IPv6")
 		}
+		if len(c.LocalZones) > 0 {
+			return errors.New("localZones are not supported with IPv6")
+		}
 	}
 
 	// manageSharedNodeSecurityGroupRules cannot be disabled if using eksctl managed security groups
 	if c.VPC.SharedNodeSecurityGroup == "" && IsDisabled(c.VPC.ManageSharedNodeSecurityGroupRules) {
 		return errors.New("vpc.manageSharedNodeSecurityGroupRules must be enabled when using ekstcl-managed security groups")
+	}
+
+	if len(c.LocalZones) > 0 {
+		if c.VPC.ID != "" {
+			return errors.New("localZones are not supported with a pre-existing VPC")
+		}
+		if c.VPC.NAT != nil && c.VPC.NAT.Gateway != nil && *c.VPC.NAT.Gateway == ClusterHighlyAvailableNAT {
+			return fmt.Errorf("%s NAT gateway is not supported for localZones", ClusterHighlyAvailableNAT)
+		}
 	}
 
 	return nil
@@ -270,7 +282,6 @@ func (c *ClusterConfig) unsupportedVPCCNIAddonVersion() (bool, error) {
 	for _, addon := range c.Addons {
 		if addon.Name == VPCCNIAddon {
 			if addon.Version == "" {
-				addon.Version = minimumVPCCNIVersionForIPv6
 				return false, nil
 			}
 			if addon.Version == "latest" {
@@ -368,6 +379,9 @@ func (c *ClusterConfig) ValidatePrivateCluster() error {
 
 		if c.VPC != nil && c.VPC.ClusterEndpoints == nil {
 			c.VPC.ClusterEndpoints = &ClusterEndpoints{}
+		}
+		if len(c.LocalZones) > 0 {
+			return errors.New("localZones cannot be used in a fully-private cluster")
 		}
 		// public access is initially enabled to allow running operations that access the Kubernetes API
 		c.VPC.ClusterEndpoints.PublicAccess = Enabled()
@@ -631,8 +645,8 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 	}
 
-	if ng.AMI != "" && ng.OverrideBootstrapCommand == nil {
-		return errors.Errorf("%s.overrideBootstrapCommand is required when using a custom AMI (%s.ami)", path, path)
+	if ng.AMI != "" && ng.OverrideBootstrapCommand == nil && ng.AMIFamily != NodeImageFamilyBottlerocket {
+		return errors.Errorf("%[1]s.overrideBootstrapCommand is required when using a custom AMI (%[1]s.ami)", path)
 	}
 
 	if err := validateTaints(ng.Taints); err != nil {
@@ -667,12 +681,13 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 			return fieldNotSupported("kubeletExtraConfig")
 		}
 
-		if ng.AMIFamily == NodeImageFamilyBottlerocket && ng.PreBootstrapCommands != nil {
-			return fieldNotSupported("preBootstrapCommands")
-
-		}
-		if ng.OverrideBootstrapCommand != nil {
-			return fieldNotSupported("overrideBootstrapCommand")
+		if ng.AMIFamily == NodeImageFamilyBottlerocket {
+			if ng.PreBootstrapCommands != nil {
+				return fieldNotSupported("preBootstrapCommands")
+			}
+			if ng.OverrideBootstrapCommand != nil {
+				return fieldNotSupported("overrideBootstrapCommand")
+			}
 		}
 	} else if err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig); err != nil {
 		return err
@@ -683,6 +698,10 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	if instanceutils.IsARMGPUInstanceType(SelectInstanceType(ng)) {
+		return errors.Errorf("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily %s", ng.AMIFamily)
 	}
 
 	if err := validateInstancesDistribution(ng); err != nil {
@@ -698,12 +717,13 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	}
 
 	if ng.ContainerRuntime != nil {
-		if *ng.ContainerRuntime == ContainerRuntimeContainerD && ng.AMIFamily != NodeImageFamilyAmazonLinux2 {
-			// check if it's dockerd or containerd
-			return fmt.Errorf("%s as runtime is only support for AL2 ami family", ContainerRuntimeContainerD)
+		if *ng.ContainerRuntime == ContainerRuntimeContainerD {
+			if ng.AMIFamily != NodeImageFamilyAmazonLinux2 && !IsWindowsImage(ng.AMIFamily) {
+				return fmt.Errorf("%s as runtime is only supported for AL2 or Windows ami family", ContainerRuntimeContainerD)
+			}
 		}
-		if *ng.ContainerRuntime != ContainerRuntimeDockerD && *ng.ContainerRuntime != ContainerRuntimeContainerD {
-			return fmt.Errorf("only %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD)
+		if *ng.ContainerRuntime != ContainerRuntimeDockerD && *ng.ContainerRuntime != ContainerRuntimeContainerD && *ng.ContainerRuntime != ContainerRuntimeDockerForWindows {
+			return fmt.Errorf("only %s, %s and %s are supported for container runtime", ContainerRuntimeContainerD, ContainerRuntimeDockerD, ContainerRuntimeDockerForWindows)
 		}
 	}
 
@@ -711,6 +731,10 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		if *ng.MaxInstanceLifetime < OneDay {
 			return fmt.Errorf("maximum instance lifetime must have a minimum value of 86,400 seconds (one day), but was: %d", *ng.MaxInstanceLifetime)
 		}
+	}
+
+	if len(ng.LocalZones) > 0 && len(ng.AvailabilityZones) > 0 {
+		return errors.New("cannot specify both localZones and availabilityZones")
 	}
 
 	return nil
@@ -918,7 +942,7 @@ func ValidateManagedNodeGroup(index int, ng *ManagedNodeGroup) error {
 		if ng.UpdateConfig.MaxUnavailable != nil && ng.UpdateConfig.MaxUnavailablePercentage != nil {
 			return fmt.Errorf("cannot use maxUnavailable=%d and maxUnavailablePercentage=%d at the same time", *ng.UpdateConfig.MaxUnavailable, *ng.UpdateConfig.MaxUnavailablePercentage)
 		}
-		if aws.IntValue(ng.UpdateConfig.MaxUnavailable) > aws.IntValue(ng.MaxSize) {
+		if aws.ToInt(ng.UpdateConfig.MaxUnavailable) > aws.ToInt(ng.MaxSize) {
 			return fmt.Errorf("maxUnavailable=%d cannot be greater than maxSize=%d", *ng.UpdateConfig.MaxUnavailable, *ng.MaxSize)
 		}
 	}

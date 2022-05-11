@@ -9,15 +9,13 @@ import (
 	"strings"
 	"time"
 
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
-	"github.com/aws/aws-sdk-go/service/iam/iamiface"
+
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,18 +28,18 @@ import (
 // Values for `KubernetesVersion`
 // All valid values should go in this block
 const (
-	Version1_18 = "1.18"
-
 	Version1_19 = "1.19"
 
 	Version1_20 = "1.20"
 
 	Version1_21 = "1.21"
 
-	// DefaultVersion (default)
-	DefaultVersion = Version1_21
+	Version1_22 = "1.22"
 
-	LatestVersion = Version1_21
+	// DefaultVersion (default)
+	DefaultVersion = Version1_22
+
+	LatestVersion = Version1_22
 )
 
 // No longer supported versions
@@ -68,12 +66,14 @@ const (
 
 	// Version1_17 represents Kubernetes version 1.17.x
 	Version1_17 = "1.17"
+
+	Version1_18 = "1.18"
 )
 
 // Not yet supported versions
 const (
-	// Version1_22 represents Kubernetes version 1.22.x
-	Version1_22 = "1.22"
+	// Version1_23 represents Kubernetes version 1.23.x
+	Version1_23 = "1.23"
 )
 
 const (
@@ -131,6 +131,9 @@ const (
 	// RegionAPSouthEast2 represents the Asia-Pacific South East Region Sydney
 	RegionAPSouthEast2 = "ap-southeast-2"
 
+	// RegionAPSouthEast3 represents the Asia-Pacific South East Region Jakarta
+	RegionAPSouthEast3 = "ap-southeast-3"
+
 	// RegionAPSouth1 represents the Asia-Pacific South Region Mumbai
 	RegionAPSouth1 = "ap-south-1"
 
@@ -187,8 +190,9 @@ const (
 
 // Container runtime values.
 const (
-	ContainerRuntimeContainerD = "containerd"
-	ContainerRuntimeDockerD    = "dockerd"
+	ContainerRuntimeContainerD       = "containerd"
+	ContainerRuntimeDockerD          = "dockerd"
+	ContainerRuntimeDockerForWindows = "docker"
 )
 
 const (
@@ -287,6 +291,9 @@ const (
 
 	// eksResourceAccountUSGovEast1 defines the AWS EKS account ID that provides node resources in us-gov-east-1
 	eksResourceAccountUSGovEast1 = "151742754352"
+
+	// eksResourceAccountAPSouthEast3 defines the AWS EKS account ID that provides node resources in ap-southeast-3
+	eksResourceAccountAPSouthEast3 = "296578399912"
 )
 
 // Values for `VolumeType`
@@ -339,8 +346,8 @@ const (
 
 // supported version of Karpenter
 const (
-	supportedKarpenterVersion      = "0.6"
-	supportedKarpenterVersionMinor = 6
+	supportedKarpenterVersion      = "0.9"
+	supportedKarpenterVersionMinor = 9
 )
 
 var (
@@ -364,7 +371,8 @@ var (
 
 var (
 	// DefaultContainerRuntime defines the default container runtime.
-	DefaultContainerRuntime = ContainerRuntimeDockerD
+	DefaultContainerRuntime           = ContainerRuntimeDockerD
+	DefaultContainerRuntimeForWindows = ContainerRuntimeDockerForWindows
 )
 
 // Enabled return pointer to true value
@@ -390,7 +398,7 @@ func IsDisabled(v *bool) bool { return v != nil && !*v }
 // IsSetAndNonEmptyString will only return true if s is not nil and not empty
 func IsSetAndNonEmptyString(s *string) bool { return s != nil && *s != "" }
 
-// IsSetAndNonEmptyString will only return true if s is not nil and not empty
+// IsEmpty will only return true if s is not nil and not empty
 func IsEmpty(s *string) bool { return !IsSetAndNonEmptyString(s) }
 
 // SupportedRegions are the regions where EKS is available
@@ -412,6 +420,7 @@ func SupportedRegions() []string {
 		RegionAPNorthEast3,
 		RegionAPSouthEast1,
 		RegionAPSouthEast2,
+		RegionAPSouthEast3,
 		RegionAPSouth1,
 		RegionAPEast1,
 		RegionMESouth1,
@@ -449,6 +458,7 @@ func DeprecatedVersions() []string {
 		Version1_15,
 		Version1_16,
 		Version1_17,
+		Version1_18,
 	}
 }
 
@@ -465,10 +475,10 @@ func IsDeprecatedVersion(version string) bool {
 // SupportedVersions are the versions of Kubernetes that EKS supports
 func SupportedVersions() []string {
 	return []string{
-		Version1_18,
 		Version1_19,
 		Version1_20,
 		Version1_21,
+		Version1_22,
 	}
 }
 
@@ -546,6 +556,8 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountAFSouth1
 	case RegionEUSouth1:
 		return eksResourceAccountEUSouth1
+	case RegionAPSouthEast3:
+		return eksResourceAccountAPSouthEast3
 	default:
 		return eksResourceAccountStandard
 	}
@@ -644,16 +656,15 @@ func (c ClusterConfig) HasNodes() bool {
 
 // ClusterProvider is the interface to AWS APIs
 type ClusterProvider interface {
-	CloudFormation() cloudformationiface.CloudFormationAPI
+	CloudFormation() awsapi.CloudFormation
 	CloudFormationRoleARN() string
 	CloudFormationDisableRollback() bool
 	ASG() awsapi.ASG
-	EKS() eksiface.EKSAPI
-	EC2() ec2iface.EC2API
+	EKS() awsapi.EKS
 	SSM() awsapi.SSM
-	IAM() iamiface.IAMAPI
 	CloudTrail() awsapi.CloudTrail
 	CloudWatchLogs() awsapi.CloudWatchLogs
+	IAM() awsapi.IAM
 	Region() string
 	Profile() string
 	WaitTimeout() time.Duration
@@ -664,6 +675,7 @@ type ClusterProvider interface {
 	ELBV2() awsapi.ELBV2
 	STS() awsapi.STS
 	STSPresigner() STSPresigner
+	EC2() awsapi.EC2
 }
 
 // STSPresigner defines the method to pre-sign GetCallerIdentity requests to add a proper header required by EKS for
@@ -729,6 +741,11 @@ type ClusterConfig struct {
 
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
+
+	// LocalZones specifies a list of local zones where the subnets should be created.
+	// Only self-managed nodegroups can be launched in local zones. These subnets are not passed to EKS.
+	// +optional
+	LocalZones []string `json:"localZones,omitempty"`
 
 	// See [CloudWatch support](/usage/cloudwatch-cluster-logging/)
 	// +optional
@@ -843,7 +860,7 @@ func (c *ClusterConfig) IPv6Enabled() bool {
 }
 
 // SetClusterStatus populates ClusterStatus using *eks.Cluster.
-func (c *ClusterConfig) SetClusterStatus(cluster *eks.Cluster) error {
+func (c *ClusterConfig) SetClusterStatus(cluster *ekstypes.Cluster) error {
 	if networkConfig := cluster.KubernetesNetworkConfig; networkConfig != nil && networkConfig.ServiceIpv4Cidr != nil {
 		c.Status.KubernetesNetworkConfig = &KubernetesNetworkConfig{
 			ServiceIPv4CIDR: *networkConfig.ServiceIpv4Cidr,
@@ -994,17 +1011,19 @@ type NodeGroup struct {
 	// +optional
 	ContainerRuntime *string `json:"containerRuntime,omitempty"`
 
-	// Propagate all taints and labels to the ASG automatically.
-	// +optional
-	PropagateASGTags *bool `json:"propagateASGTags,omitempty"`
-
-	// DisableASGTagPropagation disable the tag propagation in case desired capacity is 0.
+	// DisableASGTagPropagation disables the tag propagation to ASG in case desired capacity is 0.
+	// Defaults to `false`
 	// +optional
 	DisableASGTagPropagation *bool `json:"disableASGTagPropagation,omitempty"`
 
 	// MaxInstanceLifetime defines the maximum amount of time in seconds an instance stays alive.
 	// +optional
 	MaxInstanceLifetime *int `json:"maxInstanceLifetime,omitempty"`
+
+	// LocalZones specifies a list of local zones where the nodegroup should be launched.
+	// The cluster should have been created with all of the local zones specified in this field.
+	// +optional
+	LocalZones []string `json:"localZones,omitempty"`
 }
 
 // GetContainerRuntime returns the container runtime.
@@ -1312,7 +1331,7 @@ type NodeGroupBase struct {
 	// +optional
 	PrivateNetworking bool `json:"privateNetworking"`
 	// Applied to the Autoscaling Group and to the EC2 instances (unmanaged),
-	// Applied to the EKS Nodegroup resource and to the EC2 instances (managed)
+	// Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
 	// +optional
@@ -1364,6 +1383,10 @@ type NodeGroupBase struct {
 	// Override `eksctl`'s bootstrapping script
 	// +optional
 	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
+
+	// Propagate all taints and labels to the ASG automatically.
+	// +optional
+	PropagateASGTags *bool `json:"propagateASGTags,omitempty"`
 
 	// DisableIMDSv1 requires requests to the metadata service to use IMDSv2 tokens
 	// Defaults to `false`

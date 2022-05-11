@@ -10,9 +10,8 @@ import (
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
-	"github.com/aws/aws-sdk-go/aws"
-
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/kris-nova/logger"
 
 	"k8s.io/apimachinery/pkg/types"
@@ -27,11 +26,11 @@ const (
 	ebsCSIDriverName    = "aws-ebs-csi-driver"
 )
 
-func (a *Manager) Create(addon *api.Addon, wait bool) error {
+func (a *Manager) Create(ctx context.Context, addon *api.Addon, wait bool) error {
 	version := addon.Version
 	if version != "" {
 		var err error
-		version, err = a.getLatestMatchingVersion(addon)
+		version, err = a.getLatestMatchingVersion(ctx, addon)
 		if err != nil {
 			return fmt.Errorf("failed to fetch version %s for addon %s: %w", version, addon.Name, err)
 		}
@@ -40,11 +39,10 @@ func (a *Manager) Create(addon *api.Addon, wait bool) error {
 		AddonName:    &addon.Name,
 		AddonVersion: &version,
 		ClusterName:  &a.clusterConfig.Metadata.Name,
-		//ResolveConflicts: 		"enum":["OVERWRITE","NONE"]
 	}
 
 	if addon.Force {
-		createAddonInput.ResolveConflicts = aws.String("overwrite")
+		createAddonInput.ResolveConflicts = ekstypes.ResolveConflictsOverwrite
 		logger.Debug("setting resolve conflicts to overwrite")
 	} else {
 		addonName := strings.ToLower(addon.Name)
@@ -57,14 +55,14 @@ func (a *Manager) Create(addon *api.Addon, wait bool) error {
 	namespace, serviceAccount := a.getKnownServiceAccountLocation(addon)
 
 	if len(addon.Tags) > 0 {
-		createAddonInput.Tags = aws.StringMap(addon.Tags)
+		createAddonInput.Tags = addon.Tags
 	}
 	if a.withOIDC {
 		if addon.ServiceAccountRoleARN != "" {
 			logger.Info("using provided ServiceAccountRoleARN %q", addon.ServiceAccountRoleARN)
 			createAddonInput.ServiceAccountRoleArn = &addon.ServiceAccountRoleARN
 		} else if hasPoliciesSet(addon) {
-			outputRole, err := a.createRole(addon, namespace, serviceAccount)
+			outputRole, err := a.createRole(ctx, addon, namespace, serviceAccount)
 			if err != nil {
 				return err
 			}
@@ -86,7 +84,7 @@ func (a *Manager) Create(addon *api.Addon, wait bool) error {
 				if err := resourceSet.AddAllResources(); err != nil {
 					return err
 				}
-				err := a.createStack(resourceSet, addon)
+				err := a.createStack(ctx, resourceSet, addon)
 				if err != nil {
 					return err
 				}
@@ -105,37 +103,37 @@ func (a *Manager) Create(addon *api.Addon, wait bool) error {
 
 	if addon.CanonicalName() == vpcCNIName {
 		logger.Debug("patching AWS node")
-		err := a.patchAWSNodeSA()
+		err := a.patchAWSNodeSA(ctx)
 		if err != nil {
 			return err
 		}
 
-		err = a.patchAWSNodeDaemonSet()
+		err = a.patchAWSNodeDaemonSet(ctx)
 		if err != nil {
 			return err
 		}
 	}
 
 	logger.Info("creating addon")
-	output, err := a.eksAPI.CreateAddon(createAddonInput)
+	output, err := a.eksAPI.CreateAddon(ctx, createAddonInput)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create addon %q", addon.Name)
 	}
 
 	if output != nil {
-		logger.Debug("EKS Create Addon output: %s", output.String())
+		logger.Debug("EKS Create Addon output: %s", *output.Addon)
 	}
 
 	if wait {
-		return a.waitForAddonToBeActive(addon)
+		return a.waitForAddonToBeActive(ctx, addon)
 	}
 	logger.Info("successfully created addon")
 	return nil
 }
 
-func (a *Manager) patchAWSNodeSA() error {
-	serviceaccounts := a.clientSet.CoreV1().ServiceAccounts("kube-system")
-	sa, err := serviceaccounts.Get(context.TODO(), "aws-node", metav1.GetOptions{})
+func (a *Manager) patchAWSNodeSA(ctx context.Context) error {
+	serviceAccounts := a.clientSet.CoreV1().ServiceAccounts("kube-system")
+	sa, err := serviceAccounts.Get(ctx, "aws-node", metav1.GetOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			logger.Debug("could not find aws-node SA, skipping patching")
@@ -154,7 +152,7 @@ func (a *Manager) patchAWSNodeSA() error {
 		return nil
 	}
 
-	_, err = serviceaccounts.Patch(context.TODO(), "aws-node", types.JSONPatchType, []byte(fmt.Sprintf(`[{"op": "remove", "path": "/metadata/managedFields/%d"}]`, managerIndex)), metav1.PatchOptions{})
+	_, err = serviceAccounts.Patch(ctx, "aws-node", types.JSONPatchType, []byte(fmt.Sprintf(`[{"op": "remove", "path": "/metadata/managedFields/%d"}]`, managerIndex)), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to patch sa")
 	}
@@ -162,9 +160,9 @@ func (a *Manager) patchAWSNodeSA() error {
 	return nil
 }
 
-func (a *Manager) patchAWSNodeDaemonSet() error {
-	daemonsets := a.clientSet.AppsV1().DaemonSets(kubeSystemNamespace)
-	sa, err := daemonsets.Get(context.TODO(), "aws-node", metav1.GetOptions{})
+func (a *Manager) patchAWSNodeDaemonSet(ctx context.Context) error {
+	daemonSets := a.clientSet.AppsV1().DaemonSets(kubeSystemNamespace)
+	sa, err := daemonSets.Get(ctx, "aws-node", metav1.GetOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			logger.Debug("could not find aws-node daemon set, skipping patching")
@@ -183,7 +181,7 @@ func (a *Manager) patchAWSNodeDaemonSet() error {
 		return nil
 	}
 
-	_, err = daemonsets.Patch(context.TODO(), "aws-node", types.JSONPatchType, []byte(fmt.Sprintf(`[{"op": "remove", "path": "/metadata/managedFields/%d"}]`, managerIndex)), metav1.PatchOptions{})
+	_, err = daemonSets.Patch(ctx, "aws-node", types.JSONPatchType, []byte(fmt.Sprintf(`[{"op": "remove", "path": "/metadata/managedFields/%d"}]`, managerIndex)), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to patch daemon set")
 	}
@@ -192,7 +190,7 @@ func (a *Manager) patchAWSNodeDaemonSet() error {
 }
 
 func (a *Manager) getRecommendedPolicies(addon *api.Addon) (api.InlineDocument, []string, *api.WellKnownPolicies) {
-	// API isn't case sensitive
+	// API isn't case-sensitive
 	switch addon.CanonicalName() {
 	case vpcCNIName:
 		if a.clusterConfig.IPv6Enabled() {
@@ -223,14 +221,14 @@ func hasPoliciesSet(addon *api.Addon) bool {
 	return len(addon.AttachPolicyARNs) != 0 || addon.WellKnownPolicies.HasPolicy() || addon.AttachPolicy != nil
 }
 
-func (a *Manager) createRole(addon *api.Addon, namespace, serviceAccount string) (string, error) {
+func (a *Manager) createRole(ctx context.Context, addon *api.Addon, namespace, serviceAccount string) (string, error) {
 	resourceSet, err := a.createRoleResourceSet(addon, namespace, serviceAccount)
 
 	if err != nil {
 		return "", err
 	}
 
-	err = a.createStack(resourceSet, addon)
+	err = a.createStack(ctx, resourceSet, addon)
 	if err != nil {
 		return "", err
 	}
@@ -252,14 +250,14 @@ func (a *Manager) createRoleResourceSet(addon *api.Addon, namespace, serviceAcco
 	return resourceSet, resourceSet.AddAllResources()
 }
 
-func (a *Manager) createStack(resourceSet builder.ResourceSet, addon *api.Addon) error {
+func (a *Manager) createStack(ctx context.Context, resourceSet builder.ResourceSetReader, addon *api.Addon) error {
 	errChan := make(chan error)
 
 	tags := map[string]string{
 		api.AddonNameTag: addon.Name,
 	}
 
-	err := a.stackManager.CreateStack(a.makeAddonName(addon.Name), resourceSet, tags, nil, errChan)
+	err := a.stackManager.CreateStack(ctx, a.makeAddonName(addon.Name), resourceSet, tags, nil, errChan)
 	if err != nil {
 		return err
 	}

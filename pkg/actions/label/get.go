@@ -1,8 +1,12 @@
 package label
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
 type Summary struct {
@@ -11,17 +15,17 @@ type Summary struct {
 	Labels    map[string]string
 }
 
-func (m *Manager) Get(nodeGroupName string) ([]Summary, error) {
+func (m *Manager) Get(ctx context.Context, nodeGroupName string) ([]Summary, error) {
 	var (
 		labels map[string]string
 		err    error
 	)
 
-	labels, err = m.service.GetLabels(nodeGroupName)
+	labels, err = m.service.GetLabels(ctx, nodeGroupName)
 	if err != nil {
 		switch {
-		case isValidationError(err):
-			labels, err = m.getLabelsFromUnownedNodeGroup(nodeGroupName)
+		case manager.IsStackDoesNotExistError(err):
+			labels, err = m.getLabelsFromUnownedNodeGroup(ctx, nodeGroupName)
 			if err != nil {
 				return nil, err
 			}
@@ -39,8 +43,8 @@ func (m *Manager) Get(nodeGroupName string) ([]Summary, error) {
 	}, nil
 }
 
-func (m *Manager) getLabelsFromUnownedNodeGroup(nodeGroupName string) (map[string]string, error) {
-	out, err := m.eksAPI.DescribeNodegroup(&eks.DescribeNodegroupInput{
+func (m *Manager) getLabelsFromUnownedNodeGroup(ctx context.Context, nodeGroupName string) (map[string]string, error) {
+	out, err := m.eksAPI.DescribeNodegroup(ctx, &eks.DescribeNodegroupInput{
 		ClusterName:   aws.String(m.clusterName),
 		NodegroupName: aws.String(nodeGroupName),
 	})
@@ -48,10 +52,5 @@ func (m *Manager) getLabelsFromUnownedNodeGroup(nodeGroupName string) (map[strin
 		return nil, err
 	}
 
-	labels := make(map[string]string, len(out.Nodegroup.Labels))
-	for k, v := range out.Nodegroup.Labels {
-		labels[k] = *v
-	}
-
-	return labels, nil
+	return out.Nodegroup.Labels, nil
 }

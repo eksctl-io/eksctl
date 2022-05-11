@@ -1,0 +1,14 @@
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-33
+  region: us-west-2
+
+localZones: ["us-west-2-lax-1a", "us-west-2-lax-1b"]
+
+nodeGroups:
+  - name: local-ng
+    # `nodeGroup.localZones` should be a subset of the zones specified in `ClusterConfig.localZones`
+    localZones: ["us-west-2-lax-1a", "us-west-2-lax-1b"]

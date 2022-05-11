@@ -1,8 +1,9 @@
 package delete
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	"time"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -18,7 +19,7 @@ var _ = Describe("delete cluster", func() {
 			cmd := newMockEmptyCmd(args...)
 			count := 0
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				deleteClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction bool, parallel int) error {
+				deleteClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd, force bool, disableNodegroupEviction bool, podEvictionWaitPeriod time.Duration, parallel int) error {
 					Expect(cmd.ClusterConfig.Metadata.Name).To(Equal(clusterName))
 					Expect(force).To(Equal(forceExpected))
 					Expect(disableNodegroupEviction).To(Equal(disableNodegroupEvictionExpected))

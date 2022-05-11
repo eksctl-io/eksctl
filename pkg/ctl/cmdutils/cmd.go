@@ -82,12 +82,12 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 
 // NewProviderForExistingCluster is a wrapper for NewCtl that also validates that the cluster exists and is not a
 // registered/connected cluster.
-func (c *Cmd) NewProviderForExistingCluster() (*eks.ClusterProvider, error) {
+func (c *Cmd) NewProviderForExistingCluster(ctx context.Context) (*eks.ClusterProvider, error) {
 	provider, err := c.NewCtl()
 	if err != nil {
 		return nil, err
 	}
-	if err := provider.RefreshClusterStatus(c.ClusterConfig); err != nil {
+	if err := provider.RefreshClusterStatus(ctx, c.ClusterConfig); err != nil {
 		return nil, err
 	}
 

@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"context"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -41,7 +43,8 @@ func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 
 	printer := printers.NewJSONPrinter()
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -50,7 +53,7 @@ func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	oidc, err := ctl.NewOpenIDConnectManager(cfg)
+	oidc, err := ctl.NewOpenIDConnectManager(ctx, cfg)
 	if err != nil {
 		return err
 	}
@@ -59,7 +62,7 @@ func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	providerExists, err := oidc.CheckProviderExists()
+	providerExists, err := oidc.CheckProviderExists(ctx)
 	if err != nil {
 		return err
 	}
@@ -67,7 +70,7 @@ func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 	if !providerExists {
 		cmdutils.LogIntendedAction(cmd.Plan, "create IAM Open ID Connect provider for cluster %q in %q", meta.Name, meta.Region)
 		if !cmd.Plan {
-			if err := oidc.CreateProvider(); err != nil {
+			if err := oidc.CreateProvider(ctx); err != nil {
 				return err
 			}
 			logger.Success("created IAM Open ID Connect provider for cluster %q in %q", meta.Name, meta.Region)

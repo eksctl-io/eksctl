@@ -1,12 +1,11 @@
 package cluster
 
 import (
-	"fmt"
+	"context"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/request"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -18,7 +17,6 @@ import (
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
-	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
 type UnownedCluster struct {
@@ -43,8 +41,8 @@ func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackMa
 	}
 }
 
-func (c *UnownedCluster) Upgrade(dryRun bool) error {
-	versionUpdateRequired, err := upgrade(c.cfg, c.ctl, dryRun)
+func (c *UnownedCluster) Upgrade(ctx context.Context, dryRun bool) error {
+	versionUpdateRequired, err := upgrade(ctx, c.cfg, c.ctl, dryRun)
 	if err != nil {
 		return err
 	}
@@ -54,10 +52,10 @@ func (c *UnownedCluster) Upgrade(dryRun bool) error {
 	return nil
 }
 
-func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error {
+func (c *UnownedCluster) Delete(ctx context.Context, waitInterval, podEvictionWaitPeriod time.Duration, wait, force, disableNodegroupEviction bool, parallel int) error {
 	clusterName := c.cfg.Metadata.Name
 
-	if err := c.checkClusterExists(clusterName); err != nil {
+	if err := c.checkClusterExists(ctx, clusterName); err != nil {
 		return err
 	}
 
@@ -66,7 +64,7 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force, disable
 		logger.Debug("failed to check if cluster is operable: %v", err)
 	}
 
-	allStacks, err := c.stackManager.ListNodeGroupStacks()
+	allStacks, err := c.stackManager.ListNodeGroupStacks(ctx)
 	if err != nil {
 		return err
 	}
@@ -79,7 +77,9 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force, disable
 		}
 
 		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
-		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, attemptVpcCniDeletion); err != nil {
+		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
+			attemptVpcCniDeletion(ctx, clusterName, ctl, clientSet)
+		}, podEvictionWaitPeriod); err != nil {
 			if !force {
 				return err
 			}
@@ -88,7 +88,7 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force, disable
 		}
 	}
 
-	if err := deleteSharedResources(c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {
+	if err := deleteSharedResources(ctx, c.cfg, c.ctl, c.stackManager, clusterOperable, clientSet); err != nil {
 		if err != nil {
 			if force {
 				logger.Warning("error occurred during deletion: %v", err)
@@ -98,17 +98,17 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force, disable
 		}
 	}
 
-	if err := c.deleteFargateRoleIfExists(); err != nil {
+	if err := c.deleteFargateRoleIfExists(ctx); err != nil {
 		return err
 	}
 
 	// we have to wait for nodegroups to delete before deleting the cluster
 	// so the `wait` value is ignored here
-	if err := c.deleteAndWaitForNodegroupsDeletion(waitInterval, allStacks); err != nil {
+	if err := c.deleteAndWaitForNodegroupsDeletion(ctx, waitInterval, allStacks); err != nil {
 		return err
 	}
 
-	if err := c.deleteIAMAndOIDC(wait, clusterOperable, clientSet); err != nil {
+	if err := c.deleteIAMAndOIDC(ctx, wait, clusterOperable, clientSet); err != nil {
 		if err != nil {
 			if force {
 				logger.Warning("error occurred during deletion: %v", err)
@@ -118,11 +118,11 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force, disable
 		}
 	}
 
-	if err := c.deleteCluster(wait); err != nil {
+	if err := c.deleteCluster(ctx, wait); err != nil {
 		return err
 	}
 
-	if err := checkForUndeletedStacks(c.stackManager); err != nil {
+	if err := checkForUndeletedStacks(ctx, c.stackManager); err != nil {
 		return err
 	}
 
@@ -130,15 +130,15 @@ func (c *UnownedCluster) Delete(waitInterval time.Duration, wait, force, disable
 	return nil
 }
 
-func (c *UnownedCluster) deleteFargateRoleIfExists() error {
-	stack, err := c.stackManager.GetFargateStack()
+func (c *UnownedCluster) deleteFargateRoleIfExists(ctx context.Context) error {
+	stack, err := c.stackManager.GetFargateStack(ctx)
 	if err != nil {
 		return err
 	}
 
 	if stack != nil {
 		logger.Info("deleting fargate role")
-		_, err = c.stackManager.DeleteStackBySpec(stack)
+		_, err = c.stackManager.DeleteStackBySpec(ctx, stack)
 		return err
 	}
 
@@ -146,8 +146,8 @@ func (c *UnownedCluster) deleteFargateRoleIfExists() error {
 	return nil
 }
 
-func (c *UnownedCluster) checkClusterExists(clusterName string) error {
-	_, err := c.ctl.Provider.EKS().DescribeCluster(&awseks.DescribeClusterInput{
+func (c *UnownedCluster) checkClusterExists(ctx context.Context, clusterName string) error {
+	_, err := c.ctl.Provider.EKS().DescribeCluster(ctx, &awseks.DescribeClusterInput{
 		Name: &c.cfg.Metadata.Name,
 	})
 	if err != nil {
@@ -159,13 +159,13 @@ func (c *UnownedCluster) checkClusterExists(clusterName string) error {
 	return nil
 }
 
-func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clusterOperable bool, clientSet kubernetes.Interface) error {
+func (c *UnownedCluster) deleteIAMAndOIDC(ctx context.Context, wait bool, clusterOperable bool, clientSet kubernetes.Interface) error {
 	var oidc *iamoidc.OpenIDConnectManager
 	oidcSupported := true
 
 	if clusterOperable {
 		var err error
-		oidc, err = c.ctl.NewOpenIDConnectManager(c.cfg)
+		oidc, err = c.ctl.NewOpenIDConnectManager(ctx, c.cfg)
 		if err != nil {
 			if _, ok := err.(*eks.UnsupportedOIDCError); !ok {
 				return err
@@ -178,7 +178,7 @@ func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clusterOperable bool, clien
 
 	if clusterOperable && oidcSupported {
 		clientSetGetter := kubernetes.NewCachedClientSet(clientSet)
-		serviceAccountAndOIDCTasks, err := c.stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc, clientSetGetter)
+		serviceAccountAndOIDCTasks, err := c.stackManager.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(ctx, oidc, clientSetGetter)
 		if err != nil {
 			return err
 		}
@@ -189,7 +189,7 @@ func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clusterOperable bool, clien
 		}
 	}
 
-	deleteAddonIAMtasks, err := c.stackManager.NewTaskToDeleteAddonIAM(wait)
+	deleteAddonIAMtasks, err := c.stackManager.NewTaskToDeleteAddonIAM(ctx, wait)
 	if err != nil {
 		return err
 	}
@@ -213,10 +213,10 @@ func (c *UnownedCluster) deleteIAMAndOIDC(wait bool, clusterOperable bool, clien
 	return nil
 }
 
-func (c *UnownedCluster) deleteCluster(wait bool) error {
+func (c *UnownedCluster) deleteCluster(ctx context.Context, wait bool) error {
 	clusterName := c.cfg.Metadata.Name
 
-	out, err := c.ctl.Provider.EKS().DeleteCluster(&awseks.DeleteClusterInput{
+	out, err := c.ctl.Provider.EKS().DeleteCluster(ctx, &awseks.DeleteClusterInput{
 		Name: &clusterName,
 	})
 
@@ -226,34 +226,27 @@ func (c *UnownedCluster) deleteCluster(wait bool) error {
 
 	logger.Info("initiated deletion of cluster %q", clusterName)
 	if out != nil {
-		logger.Debug("delete cluster response: %s", out.String())
+		logger.Debug("delete cluster response: %+v", out.Cluster)
 	}
 
 	if !wait {
 		logger.Info("to see the status of the deletion run `eksctl get cluster --name %s --region %s`", clusterName, c.cfg.Metadata.Region)
 		return nil
 	}
-	newRequest := func() *request.Request {
-		input := &awseks.DescribeClusterInput{
-			Name: &clusterName,
-		}
-		req, _ := c.ctl.Provider.EKS().DescribeClusterRequest(input)
-		return req
-	}
 
-	acceptors := waiters.MakeErrorCodeAcceptors(awseks.ErrCodeResourceNotFoundException)
-
-	msg := fmt.Sprintf("waiting for cluster %q to be deleted", clusterName)
-
-	return waiters.Wait(clusterName, msg, acceptors, newRequest, c.ctl.Provider.WaitTimeout(), nil)
+	logger.Info("waiting for cluster %q to be deleted", clusterName)
+	waiter := awseks.NewClusterDeletedWaiter(c.ctl.Provider.EKS())
+	return waiter.Wait(ctx, &awseks.DescribeClusterInput{
+		Name: &clusterName,
+	}, c.ctl.Provider.WaitTimeout())
 }
 
-func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(waitInterval time.Duration, allStacks []manager.NodeGroupStack) error {
+func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(ctx context.Context, waitInterval time.Duration, allStacks []manager.NodeGroupStack) error {
 	clusterName := c.cfg.Metadata.Name
 	eksAPI := c.ctl.Provider.EKS()
 
 	// get all managed nodegroups for this cluster
-	nodeGroups, err := eksAPI.ListNodegroups(&awseks.ListNodegroupsInput{
+	nodeGroups, err := eksAPI.ListNodegroups(ctx, &awseks.ListNodegroupsInput{
 		ClusterName: &clusterName,
 	})
 	if err != nil {
@@ -274,7 +267,7 @@ func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(waitInterval time.Du
 	for _, n := range nodeGroups.Nodegroups {
 		isUnowned := func() bool {
 			for _, stack := range allStacks {
-				if stack.NodeGroupName == *n {
+				if stack.NodeGroupName == n {
 					return false
 				}
 			}
@@ -283,7 +276,7 @@ func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(waitInterval time.Du
 
 		if isUnowned() {
 			// if a managed ng does not have a stack, we queue if for deletion via api
-			tasks.Append(c.stackManager.NewTaskToDeleteUnownedNodeGroup(clusterName, *n, eksAPI, c.waitForUnownedNgsDeletion(waitInterval)))
+			tasks.Append(c.stackManager.NewTaskToDeleteUnownedNodeGroup(ctx, clusterName, n, eksAPI, c.waitForUnownedNgsDeletion(ctx, waitInterval)))
 		}
 	}
 
@@ -297,13 +290,13 @@ func (c *UnownedCluster) deleteAndWaitForNodegroupsDeletion(waitInterval time.Du
 }
 
 func isNotFound(err error) bool {
-	awsError, ok := err.(awserr.Error)
-	return ok && awsError.Code() == awseks.ErrCodeResourceNotFoundException
+	var notFoundErr *ekstypes.ResourceNotFoundException
+	return errors.As(err, &notFoundErr)
 }
 
-func (c *UnownedCluster) waitForUnownedNgsDeletion(interval time.Duration) *manager.DeleteWaitCondition {
+func (c *UnownedCluster) waitForUnownedNgsDeletion(ctx context.Context, interval time.Duration) *manager.DeleteWaitCondition {
 	condition := func() (bool, error) {
-		nodeGroups, err := c.ctl.Provider.EKS().ListNodegroups(&awseks.ListNodegroupsInput{
+		nodeGroups, err := c.ctl.Provider.EKS().ListNodegroups(ctx, &awseks.ListNodegroupsInput{
 			ClusterName: &c.cfg.Metadata.Name,
 		})
 		if err != nil {

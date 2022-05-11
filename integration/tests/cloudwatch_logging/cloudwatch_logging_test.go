@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
@@ -21,7 +21,7 @@ import (
 
 	. "github.com/weaveworks/eksctl/integration/runner"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/eksctl/integration/tests"

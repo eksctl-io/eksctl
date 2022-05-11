@@ -8,11 +8,12 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/addons"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/weaveworks/eksctl/pkg/addons"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/fargate/coredns"
@@ -31,8 +32,8 @@ const (
 //go:embed assets/coredns*.json
 var coreDNSDir embed.FS
 
-func IsCoreDNSUpToDate(input AddonInput) (bool, error) {
-	kubeDNSDeployment, err := input.RawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), CoreDNS, metav1.GetOptions{})
+func IsCoreDNSUpToDate(ctx context.Context, input AddonInput) (bool, error) {
+	kubeDNSDeployment, err := input.RawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(ctx, CoreDNS, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", CoreDNS)
@@ -82,8 +83,8 @@ func IsCoreDNSUpToDate(input AddonInput) (bool, error) {
 
 // UpdateCoreDNS will update the `coredns` add-on and returns true
 // if an update is available
-func UpdateCoreDNS(input AddonInput, plan bool) (bool, error) {
-	kubeDNSSevice, err := input.RawClient.ClientSet().CoreV1().Services(metav1.NamespaceSystem).Get(context.TODO(), KubeDNS, metav1.GetOptions{})
+func UpdateCoreDNS(ctx context.Context, input AddonInput, plan bool) (bool, error) {
+	kubeDNSSevice, err := input.RawClient.ClientSet().CoreV1().Services(metav1.NamespaceSystem).Get(ctx, KubeDNS, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q service was not found", KubeDNS)
@@ -92,7 +93,7 @@ func UpdateCoreDNS(input AddonInput, plan bool) (bool, error) {
 		return false, errors.Wrapf(err, "getting %q service", KubeDNS)
 	}
 
-	kubeDNSDeployment, err := input.RawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), CoreDNS, metav1.GetOptions{})
+	kubeDNSDeployment, err := input.RawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(ctx, CoreDNS, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", CoreDNS)

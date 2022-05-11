@@ -7,17 +7,16 @@ import (
 	"strings"
 	"time"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/tidwall/gjson"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/eks"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
+	"github.com/tidwall/gjson"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -52,7 +51,7 @@ func (m *Manager) GetAll(ctx context.Context) ([]*Summary, error) {
 		return nil, err
 	}
 
-	managedSummaries, err := m.getManagedSummaries()
+	managedSummaries, err := m.getManagedSummaries(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +61,7 @@ func (m *Manager) GetAll(ctx context.Context) ([]*Summary, error) {
 
 func (m *Manager) Get(ctx context.Context, name string) (*Summary, error) {
 	summary, err := m.getUnmanagedSummary(ctx, name)
-	if err != nil {
+	if err != nil && !manager.IsStackDoesNotExistError(err) {
 		return nil, fmt.Errorf("getting nodegroup stack summaries: %w", err)
 	}
 
@@ -70,12 +69,12 @@ func (m *Manager) Get(ctx context.Context, name string) (*Summary, error) {
 		return summary, nil
 	}
 
-	return m.getManagedSummary(name)
+	return m.getManagedSummary(ctx, name)
 }
 
-func (m *Manager) getManagedSummaries() ([]*Summary, error) {
+func (m *Manager) getManagedSummaries(ctx context.Context) ([]*Summary, error) {
 	var summaries []*Summary
-	managedNodeGroups, err := m.ctl.Provider.EKS().ListNodegroups(&eks.ListNodegroupsInput{
+	managedNodeGroups, err := m.ctl.Provider.EKS().ListNodegroups(ctx, &eks.ListNodegroupsInput{
 		ClusterName: aws.String(m.cfg.Metadata.Name),
 	})
 	if err != nil {
@@ -83,17 +82,17 @@ func (m *Manager) getManagedSummaries() ([]*Summary, error) {
 	}
 
 	for _, ngName := range managedNodeGroups.Nodegroups {
-		var stack *cloudformation.Stack
-		stack, err = m.stackManager.DescribeNodeGroupStack(*ngName)
+		var stack *types.Stack
+		stack, err = m.stackManager.DescribeNodeGroupStack(ctx, ngName)
 		if err != nil {
-			stack = &cloudformation.Stack{}
+			stack = &types.Stack{}
 		}
 
-		summary, err := m.getManagedSummary(*ngName)
+		summary, err := m.getManagedSummary(ctx, ngName)
 		if err != nil {
 			return nil, err
 		}
-		summary.StackName = aws.StringValue(stack.StackName)
+		summary.StackName = aws.ToString(stack.StackName)
 		summaries = append(summaries, summary)
 	}
 
@@ -101,7 +100,7 @@ func (m *Manager) getManagedSummaries() ([]*Summary, error) {
 }
 
 func (m *Manager) getUnmanagedSummaries(ctx context.Context) ([]*Summary, error) {
-	stacks, err := m.stackManager.DescribeNodeGroupStacks()
+	stacks, err := m.stackManager.DescribeNodeGroupStacks(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting nodegroup stacks: %w", err)
 	}
@@ -122,7 +121,7 @@ func (m *Manager) getUnmanagedSummaries(ctx context.Context) ([]*Summary, error)
 }
 
 func (m *Manager) getUnmanagedSummary(ctx context.Context, name string) (*Summary, error) {
-	stack, err := m.stackManager.DescribeNodeGroupStack(name)
+	stack, err := m.stackManager.DescribeNodeGroupStack(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -145,14 +144,14 @@ func (m *Manager) unmanagedStackToSummary(ctx context.Context, s *manager.Stack)
 		return nil, err
 	}
 
-	summary, err := m.mapStackToNodeGroupSummary(s, ngPaths)
+	summary, err := m.mapStackToNodeGroupSummary(ctx, s, ngPaths)
 
 	if err != nil {
 		return nil, fmt.Errorf("mapping stack to nodegroup summary: %w", err)
 	}
 	summary.NodeGroupType = api.NodeGroupTypeUnmanaged
 
-	asgName, err := m.stackManager.GetUnmanagedNodeGroupAutoScalingGroupName(s)
+	asgName, err := m.stackManager.GetUnmanagedNodeGroupAutoScalingGroupName(ctx, s)
 	if err != nil {
 		return nil, fmt.Errorf("getting autoscalinggroupname: %w", err)
 	}
@@ -177,7 +176,7 @@ func (m *Manager) unmanagedStackToSummary(ctx context.Context, s *manager.Stack)
 	return summary, nil
 }
 
-func getNodeGroupPaths(tags []*cfn.Tag) (*nodeGroupPaths, error) {
+func getNodeGroupPaths(tags []types.Tag) (*nodeGroupPaths, error) {
 	nodeGroupType, err := manager.GetNodeGroupType(tags)
 	if err != nil {
 		return nil, err
@@ -198,7 +197,7 @@ func getNodeGroupPaths(tags []*cfn.Tag) (*nodeGroupPaths, error) {
 			MaxSize:         makeScalingPath("MaxSize"),
 		}, nil
 
-		// Tag may not exist for existing nodegroups
+	// Tag may not exist for existing nodegroups
 	case api.NodeGroupTypeUnmanaged, "":
 		makePath := func(field string) string {
 			return fmt.Sprintf("%s.NodeGroup.Properties.%s", resourcesRootPath, field)
@@ -223,8 +222,8 @@ type nodeGroupPaths struct {
 	MaxSize         string
 }
 
-func (m *Manager) mapStackToNodeGroupSummary(stack *manager.Stack, ngPaths *nodeGroupPaths) (*Summary, error) {
-	template, err := m.stackManager.GetStackTemplate(*stack.StackName)
+func (m *Manager) mapStackToNodeGroupSummary(ctx context.Context, stack *manager.Stack, ngPaths *nodeGroupPaths) (*Summary, error) {
+	template, err := m.stackManager.GetStackTemplate(ctx, *stack.StackName)
 	if err != nil {
 		return nil, fmt.Errorf("error getting CloudFormation template for stack %s: %w", *stack.StackName, err)
 	}
@@ -233,7 +232,7 @@ func (m *Manager) mapStackToNodeGroupSummary(stack *manager.Stack, ngPaths *node
 		StackName:       *stack.StackName,
 		Cluster:         getClusterNameTag(stack),
 		Name:            m.stackManager.GetNodeGroupName(stack),
-		Status:          *stack.StackStatus,
+		Status:          string(stack.StackStatus),
 		MaxSize:         int(gjson.Get(template, ngPaths.MaxSize).Int()),
 		MinSize:         int(gjson.Get(template, ngPaths.MinSize).Int()),
 		DesiredCapacity: int(gjson.Get(template, ngPaths.DesiredCapacity).Int()),
@@ -276,8 +275,8 @@ func getClusterNameTag(s *manager.Stack) string {
 	return ""
 }
 
-func (m *Manager) getManagedSummary(nodeGroupName string) (*Summary, error) {
-	describeOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
+func (m *Manager) getManagedSummary(ctx context.Context, nodeGroupName string) (*Summary, error) {
+	describeOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(ctx, &eks.DescribeNodegroupInput{
 		ClusterName:   aws.String(m.cfg.Metadata.Name),
 		NodegroupName: aws.String(nodeGroupName),
 	})
@@ -291,26 +290,26 @@ func (m *Manager) getManagedSummary(nodeGroupName string) (*Summary, error) {
 	var asgs []string
 	if ng.Resources != nil {
 		for _, asg := range ng.Resources.AutoScalingGroups {
-			asgs = append(asgs, aws.StringValue(asg.Name))
+			asgs = append(asgs, aws.ToString(asg.Name))
 		}
 	}
 
 	var imageID string
-	if *ng.AmiType == awseks.AMITypesCustom {
+	if ng.AmiType == ekstypes.AMITypesCustom {
 		// ReleaseVersion contains the AMI ID for custom AMIs.
 		imageID = *ng.ReleaseVersion
 	} else {
-		imageID = *ng.AmiType
+		imageID = string(ng.AmiType)
 	}
 
 	return &Summary{
 		Name:                 *ng.NodegroupName,
 		Cluster:              *ng.ClusterName,
-		Status:               *ng.Status,
+		Status:               string(ng.Status),
 		MaxSize:              int(*ng.ScalingConfig.MaxSize),
 		MinSize:              int(*ng.ScalingConfig.MinSize),
 		DesiredCapacity:      int(*ng.ScalingConfig.DesiredSize),
-		InstanceType:         m.getInstanceTypes(ng),
+		InstanceType:         m.getInstanceTypes(ctx, ng),
 		ImageID:              imageID,
 		CreationTime:         *ng.CreatedAt,
 		NodeInstanceRoleARN:  *ng.NodeRole,
@@ -320,9 +319,9 @@ func (m *Manager) getManagedSummary(nodeGroupName string) (*Summary, error) {
 	}, nil
 }
 
-func (m *Manager) getInstanceTypes(ng *awseks.Nodegroup) string {
+func (m *Manager) getInstanceTypes(ctx context.Context, ng *ekstypes.Nodegroup) string {
 	if len(ng.InstanceTypes) > 0 {
-		return strings.Join(aws.StringValueSlice(ng.InstanceTypes), ",")
+		return strings.Join(ng.InstanceTypes, ",")
 	}
 
 	if ng.LaunchTemplate == nil {
@@ -330,7 +329,7 @@ func (m *Manager) getInstanceTypes(ng *awseks.Nodegroup) string {
 		return "-"
 	}
 
-	resp, err := m.ctl.Provider.EC2().DescribeLaunchTemplateVersions(&ec2.DescribeLaunchTemplateVersionsInput{
+	resp, err := m.ctl.Provider.EC2().DescribeLaunchTemplateVersions(ctx, &ec2.DescribeLaunchTemplateVersionsInput{
 		LaunchTemplateId: ng.LaunchTemplate.Id,
 	})
 	if err != nil {
@@ -339,7 +338,7 @@ func (m *Manager) getInstanceTypes(ng *awseks.Nodegroup) string {
 
 	for _, template := range resp.LaunchTemplateVersions {
 		if strconv.Itoa(int(*template.VersionNumber)) == *ng.LaunchTemplate.Version {
-			return *template.LaunchTemplateData.InstanceType
+			return string(template.LaunchTemplateData.InstanceType)
 		}
 	}
 

@@ -7,16 +7,17 @@ import (
 	"strings"
 	"time"
 
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/hashicorp/go-version"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
-	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	kubeclient "k8s.io/client-go/kubernetes"
 
-	"github.com/weaveworks/eksctl/pkg/utils"
+	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
@@ -27,7 +28,7 @@ import (
 
 type Manager struct {
 	clusterConfig *api.ClusterConfig
-	eksAPI        eksiface.EKSAPI
+	eksAPI        awsapi.EKS
 	withOIDC      bool
 	oidcManager   *iamoidc.OpenIDConnectManager
 	stackManager  manager.StackManager
@@ -35,11 +36,7 @@ type Manager struct {
 	timeout       time.Duration
 }
 
-func New(clusterConfig *api.ClusterConfig, eksAPI eksiface.EKSAPI, stackManager manager.StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface, timeout time.Duration) (*Manager, error) {
-	if err := supportedVersion(clusterConfig.Metadata.Version); err != nil {
-		return nil, err
-	}
-
+func New(clusterConfig *api.ClusterConfig, eksAPI awsapi.EKS, stackManager manager.StackManager, withOIDC bool, oidcManager *iamoidc.OpenIDConnectManager, clientSet kubeclient.Interface, timeout time.Duration) (*Manager, error) {
 	return &Manager{
 		clusterConfig: clusterConfig,
 		eksAPI:        eksAPI,
@@ -51,21 +48,18 @@ func New(clusterConfig *api.ClusterConfig, eksAPI eksiface.EKSAPI, stackManager 
 	}, nil
 }
 
-func (a *Manager) waitForAddonToBeActive(addon *api.Addon) error {
-	var out *awseks.DescribeAddonOutput
+func (a *Manager) waitForAddonToBeActive(ctx context.Context, addon *api.Addon) error {
+	var out *eks.DescribeAddonOutput
 	operation := func() (bool, error) {
 		var err error
-		out, err = a.eksAPI.DescribeAddon(&awseks.DescribeAddonInput{
+		out, err = a.eksAPI.DescribeAddon(ctx, &eks.DescribeAddonInput{
 			ClusterName: &a.clusterConfig.Metadata.Name,
 			AddonName:   &addon.Name,
 		})
 		if err != nil {
 			return false, err
 		}
-		if *out.Addon.Status == awseks.AddonStatusActive {
-			return true, nil
-		}
-		return false, nil
+		return out.Addon.Status == ekstypes.AddonStatusActive, nil
 	}
 
 	w := waiter.Waiter{
@@ -78,7 +72,7 @@ func (a *Manager) waitForAddonToBeActive(addon *api.Addon) error {
 	err := w.WaitWithTimeout(a.timeout)
 	if err != nil {
 		if err == context.DeadlineExceeded {
-			return errors.Errorf("timed out waiting for addon %q to become active, status: %q", addon.Name, *out.Addon.Status)
+			return errors.Errorf("timed out waiting for addon %q to become active, status: %q", addon.Name, out.Addon.Status)
 		}
 		return err
 	}
@@ -86,8 +80,8 @@ func (a *Manager) waitForAddonToBeActive(addon *api.Addon) error {
 	return nil
 }
 
-func (a *Manager) getLatestMatchingVersion(addon *api.Addon) (string, error) {
-	addonInfos, err := a.describeVersions(addon)
+func (a *Manager) getLatestMatchingVersion(ctx context.Context, addon *api.Addon) (string, error) {
+	addonInfos, err := a.describeVersions(ctx, addon)
 	if err != nil {
 		return "", err
 	}
@@ -116,19 +110,6 @@ func (a *Manager) getLatestMatchingVersion(addon *api.Addon) (string, error) {
 		return versions[j].LessThan(versions[i])
 	})
 	return versions[0].Original(), nil
-}
-
-func supportedVersion(version string) error {
-	supported, err := utils.IsMinVersion(api.Version1_18, version)
-	if err != nil {
-		return err
-	}
-	switch supported {
-	case true:
-		return nil
-	default:
-		return fmt.Errorf("addons not supported on %s. Must be using %s or newer", version, api.Version1_18)
-	}
 }
 
 func (a *Manager) makeAddonName(name string) string {

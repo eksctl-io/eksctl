@@ -3,9 +3,9 @@ package v1alpha5_test
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	"github.com/aws/aws-sdk-go-v2/aws"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -82,6 +82,25 @@ var _ = Describe("ClusterConfig validation", func() {
 	})
 
 	Describe("nodeGroups[*].containerRuntime validation", func() {
+
+		It("allows accepted values", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeDockerForWindows)
+			err := api.ValidateNodeGroup(0, ng0)
+			Expect(err).NotTo(HaveOccurred())
+
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeDockerD)
+			err = api.ValidateNodeGroup(0, ng0)
+			Expect(err).NotTo(HaveOccurred())
+
+			ng0.ContainerRuntime = aws.String(api.ContainerRuntimeContainerD)
+			ng0.AMIFamily = api.NodeImageFamilyAmazonLinux2
+			err = api.ValidateNodeGroup(0, ng0)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
 		It("should reject invalid container runtime", func() {
 			cfg := api.NewClusterConfig()
 			ng0 := cfg.NewNodeGroup()
@@ -92,7 +111,8 @@ var _ = Describe("ClusterConfig validation", func() {
 			err = api.ValidateNodeGroup(0, ng0)
 			Expect(err).To(HaveOccurred())
 		})
-		It("containerd is only allowed for AL2", func() {
+
+		It("containerd is only allowed for AL2 or Windows", func() {
 			cfg := api.NewClusterConfig()
 			ng0 := cfg.NewNodeGroup()
 			ng0.Name = "node-group"
@@ -102,6 +122,11 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).NotTo(HaveOccurred())
 			err = api.ValidateNodeGroup(0, ng0)
 			Expect(err).To(HaveOccurred())
+			ng0.AMIFamily = api.NodeImageFamilyWindowsServer2019CoreContainer
+			err = api.ValidateClusterConfig(cfg)
+			Expect(err).NotTo(HaveOccurred())
+			err = api.ValidateNodeGroup(0, ng0)
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 
@@ -112,6 +137,14 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng0.Name = "node-group"
 			ng0.AMI = "ami-1234"
 			Expect(api.ValidateNodeGroup(0, ng0)).To(MatchError(ContainSubstring("overrideBootstrapCommand is required when using a custom AMI ")))
+		})
+		It("should not require overrideBootstrapCommand if ami is set and type is Bottlerocket", func() {
+			cfg := api.NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "node-group"
+			ng0.AMI = "ami-1234"
+			ng0.AMIFamily = api.NodeImageFamilyBottlerocket
+			Expect(api.ValidateNodeGroup(0, ng0)).To(Succeed())
 		})
 		It("should accept ami with a overrideBootstrapCommand set", func() {
 			cfg := api.NewClusterConfig()
@@ -657,6 +690,81 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	type localZonesEntry struct {
+		updateClusterConfig func(*api.ClusterConfig)
+
+		expectedErr string
+	}
+
+	DescribeTable("AWS Local Zones", func(e localZonesEntry) {
+		clusterConfig := api.NewClusterConfig()
+		e.updateClusterConfig(clusterConfig)
+		clusterConfig.LocalZones = []string{"us-west-2-lax-1a", "us-west-2-lax-1b"}
+
+		err := api.ValidateClusterConfig(clusterConfig)
+		if e.expectedErr != "" {
+			Expect(err).To(MatchError(ContainSubstring(e.expectedErr)))
+			return
+		}
+		Expect(err).NotTo(HaveOccurred())
+	},
+		Entry("custom VPC", localZonesEntry{
+			updateClusterConfig: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.VPC = &api.ClusterVPC{
+					Network: api.Network{
+						ID: "vpc-custom",
+					},
+				}
+
+			},
+			expectedErr: "localZones are not supported with a pre-existing VPC",
+		}),
+
+		Entry("HighlyAvailable NAT gateway", localZonesEntry{
+			updateClusterConfig: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.VPC = &api.ClusterVPC{
+					NAT: &api.ClusterNAT{
+						Gateway: aws.String("HighlyAvailable"),
+					},
+				}
+			},
+			expectedErr: "HighlyAvailable NAT gateway is not supported for localZones",
+		}),
+
+		Entry("private cluster", localZonesEntry{
+			updateClusterConfig: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.PrivateCluster = &api.PrivateCluster{
+					Enabled: true,
+				}
+			},
+
+			expectedErr: "localZones cannot be used in a fully-private cluster",
+		}),
+
+		Entry("IPv6", localZonesEntry{
+			updateClusterConfig: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.KubernetesNetworkConfig = &api.KubernetesNetworkConfig{
+					IPFamily: api.IPV6Family,
+				}
+				clusterConfig.Addons = []*api.Addon{
+					{
+						Name: "vpc-cni",
+					},
+					{
+						Name: "coredns",
+					},
+					{
+						Name: "kube-proxy",
+					},
+				}
+				clusterConfig.IAM.WithOIDC = api.Enabled()
+				clusterConfig.VPC.NAT = nil
+			},
+
+			expectedErr: "localZones are not supported with IPv6",
+		}),
+	)
+
 	Describe("ValidatePrivateCluster", func() {
 		var (
 			cfg *api.ClusterConfig
@@ -879,7 +987,6 @@ var _ = Describe("ClusterConfig validation", func() {
 							cfg.VPC.NAT = nil
 							err = api.ValidateClusterConfig(cfg)
 							Expect(err).NotTo(HaveOccurred())
-							Expect(cfg.Addons[2].Version).To(Equal("1.10.0"))
 						})
 					})
 
@@ -1125,6 +1232,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					Expect(err).To(MatchError("cannot specify vpc.extraIPv6CIDRs with an IPv4 cluster"))
 				})
 			})
+
 		})
 	})
 
@@ -1187,43 +1295,50 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
-	Describe("cpuCredits", func() {
-		var ng *api.NodeGroup
-		BeforeEach(func() {
-			unlimited := "unlimited"
-			ng = &api.NodeGroup{
-				NodeGroupBase: &api.NodeGroupBase{},
-				InstancesDistribution: &api.NodeGroupInstancesDistribution{
-					InstanceTypes: []string{"t3.medium", "t3.large"},
-				},
-				CPUCredits: &unlimited,
-			}
-		})
+	type cpuCreditsEntry struct {
+		modifyNodeGroup func(*api.NodeGroup)
+		expectedError   string
+	}
 
-		It("works independent of instanceType", func() {
-			Context("unset", func() {
-				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).NotTo(HaveOccurred())
-			})
-			Context("set", func() {
+	DescribeTable("cpuCredits", func(e cpuCreditsEntry) {
+		ng := &api.NodeGroup{
+			NodeGroupBase: &api.NodeGroupBase{},
+			InstancesDistribution: &api.NodeGroupInstancesDistribution{
+				InstanceTypes: []string{"t3.medium", "t3.large"},
+			},
+			CPUCredits: aws.String("unlimited"),
+		}
+		if e.modifyNodeGroup != nil {
+			e.modifyNodeGroup(ng)
+		}
+
+		err := api.ValidateNodeGroup(0, ng)
+		if e.expectedError != "" {
+			Expect(err).To(MatchError(ContainSubstring(e.expectedError)))
+		} else {
+			Expect(err).NotTo(HaveOccurred())
+		}
+	},
+
+		Entry("instanceType is set", cpuCreditsEntry{
+			modifyNodeGroup: func(ng *api.NodeGroup) {
 				ng.InstanceType = "mixed"
-				err := api.ValidateNodeGroup(0, ng)
-				Expect(err).NotTo(HaveOccurred())
-			})
-		})
-
-		It("errors if no instance distribution", func() {
-			ng.InstancesDistribution = nil
-			err := api.ValidateNodeGroup(0, ng)
-			Expect(err).To(HaveOccurred())
-		})
-
-		It("errors if no instance types", func() {
-			ng.InstancesDistribution.InstanceTypes = []string{}
-			err := api.ValidateNodeGroup(0, ng)
-			Expect(err).To(HaveOccurred())
-		})
-	})
+			},
+		}),
+		Entry("instanceType is not set", cpuCreditsEntry{}),
+		Entry("instancesDistribution is not set", cpuCreditsEntry{
+			modifyNodeGroup: func(ng *api.NodeGroup) {
+				ng.InstancesDistribution = nil
+			},
+			expectedError: "cpuCredits option set for nodegroup, but it has no t2/t3 instance types",
+		}),
+		Entry("instancesDistribution.instanceTypes is not set", cpuCreditsEntry{
+			modifyNodeGroup: func(ng *api.NodeGroup) {
+				ng.InstancesDistribution.InstanceTypes = nil
+			},
+			expectedError: "at least two instance types have to be specified for mixed nodegroups",
+		}),
+	)
 
 	Describe("ssh flags", func() {
 		var (
@@ -1299,6 +1414,22 @@ var _ = Describe("ClusterConfig validation", func() {
 
 				err := api.ValidateNodeGroup(0, ng)
 				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("fails in case of arm-gpu distribution instance type", func() {
+				ng.InstanceType = "mixed"
+				ng.InstancesDistribution.InstanceTypes = []string{"r6g.medium"}
+				ng.AMIFamily = api.NodeImageFamilyAmazonLinux2
+				err := api.ValidateNodeGroup(0, ng)
+				Expect(err).To(MatchError("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily AmazonLinux2"))
+			})
+
+			It("fails in case of arm-gpu instance type", func() {
+				ng.InstanceType = "r6g.medium"
+				ng.InstancesDistribution.InstanceTypes = nil
+				ng.AMIFamily = api.NodeImageFamilyAmazonLinux2
+				err := api.ValidateNodeGroup(0, ng)
+				Expect(err).To(MatchError("ARM GPU instance types are not supported for unmanaged nodegroups with AMIFamily AmazonLinux2"))
 			})
 
 			It("It fails when instance distribution is enabled and instanceType set", func() {
@@ -1674,14 +1805,12 @@ var _ = Describe("ClusterConfig validation", func() {
 
 	Describe("Windows node groups", func() {
 		It("returns an error with unsupported fields", func() {
-			cmd := "start /wait msiexec.exe"
 			doc := api.InlineDocument{
 				"cgroupDriver": "systemd",
 			}
 
 			ngs := map[string]*api.NodeGroup{
-				"OverrideBootstrapCommand": {NodeGroupBase: &api.NodeGroupBase{OverrideBootstrapCommand: &cmd}},
-				"KubeletExtraConfig":       {KubeletExtraConfig: &doc, NodeGroupBase: &api.NodeGroupBase{}},
+				"KubeletExtraConfig": {KubeletExtraConfig: &doc, NodeGroupBase: &api.NodeGroupBase{}},
 			}
 
 			for name, ng := range ngs {
@@ -1735,9 +1864,9 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg := api.NewClusterConfig()
 			cfg.IAM.WithOIDC = aws.Bool(true)
 			cfg.Karpenter = &api.Karpenter{
-				Version: "0.7.0",
+				Version: "0.10.0",
 			}
-			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate karpenter config: maximum supported version is 0.6")))
+			Expect(api.ValidateClusterConfig(cfg)).To(MatchError(ContainSubstring("failed to validate karpenter config: maximum supported version is 0.9")))
 		})
 	})
 

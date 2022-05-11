@@ -1,9 +1,9 @@
 package v1alpha5
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 )
 
@@ -165,7 +165,7 @@ var _ = Describe("VPC Configuration", func() {
 				},
 			}),
 		}),
-		Entry("ID disamiguating list", subnetCase{
+		Entry("ID disambiguating list", subnetCase{
 			subnets: AZSubnetMappingFromMap(map[string]AZSubnetSpec{
 				"main-subnet": {
 					AZ: "us-east-1a",

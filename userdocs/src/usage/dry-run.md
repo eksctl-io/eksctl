@@ -63,7 +63,7 @@ managedNodeGroups:
 metadata:
   name: development
   region: us-west-2
-  version: "1.18"
+  version: "1.19"
 privateCluster:
   enabled: false
 vpc:

@@ -6,7 +6,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 )
 
 const (
@@ -231,6 +231,9 @@ func setDefaultsForAdditionalVolumes(ng *NodeGroupBase) {
 func setContainerRuntimeDefault(ng *NodeGroup) {
 	if ng.ContainerRuntime == nil {
 		ng.ContainerRuntime = &DefaultContainerRuntime
+		if IsWindowsImage(ng.AMIFamily) {
+			ng.ContainerRuntime = &DefaultContainerRuntimeForWindows
+		}
 	}
 }
 

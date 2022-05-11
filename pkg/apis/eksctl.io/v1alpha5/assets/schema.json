@@ -16,8 +16,8 @@
       "properties": {
         "az": {
           "type": "string",
-          "description": "can be omitted if the key is an AZ",
-          "x-intellij-html-description": "can be omitted if the key is an AZ"
+          "description": "zone name for this subnet, it can either be an availability zone name or a local zone name. AZ can be omitted if the key is an AZ.",
+          "x-intellij-html-description": "zone name for this subnet, it can either be an availability zone name or a local zone name. AZ can be omitted if the key is an AZ."
         },
         "cidr": {
           "$ref": "#/definitions/github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet"
@@ -204,6 +204,14 @@
         "kubernetesNetworkConfig": {
           "$ref": "#/definitions/KubernetesNetworkConfig"
         },
+        "localZones": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "specifies a list of local zones where the subnets should be created. Only self-managed nodegroups can be launched in local zones. These subnets are not passed to EKS.",
+          "x-intellij-html-description": "specifies a list of local zones where the subnets should be created. Only self-managed nodegroups can be launched in local zones. These subnets are not passed to EKS."
+        },
         "managedNodeGroups": {
           "items": {
             "$ref": "#/definitions/ManagedNodeGroup"
@@ -249,6 +257,7 @@
         "managedNodeGroups",
         "fargateProfiles",
         "availabilityZones",
+        "localZones",
         "cloudWatch",
         "secretsEncryption",
         "gitops",
@@ -487,14 +496,14 @@
         },
         "version": {
           "type": "string",
-          "description": "Valid variants are: `\"1.18\"`, `\"1.19\"`, `\"1.20\"`, `\"1.21\"` (default).",
-          "x-intellij-html-description": "Valid variants are: <code>&quot;1.18&quot;</code>, <code>&quot;1.19&quot;</code>, <code>&quot;1.20&quot;</code>, <code>&quot;1.21&quot;</code> (default).",
-          "default": "1.21",
+          "description": "Valid variants are: `\"1.19\"`, `\"1.20\"`, `\"1.21\"`, `\"1.22\"` (default).",
+          "x-intellij-html-description": "Valid variants are: <code>&quot;1.19&quot;</code>, <code>&quot;1.20&quot;</code>, <code>&quot;1.21&quot;</code>, <code>&quot;1.22&quot;</code> (default).",
+          "default": "1.22",
           "enum": [
-            "1.18",
             "1.19",
             "1.20",
-            "1.21"
+            "1.21",
+            "1.22"
           ]
         }
       },
@@ -1076,6 +1085,11 @@
           "x-intellij-html-description": "Enable <a href=\"/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup\">private networking</a> for nodegroup",
           "default": "false"
         },
+        "propagateASGTags": {
+          "type": "boolean",
+          "description": "Propagate all taints and labels to the ASG automatically.",
+          "x-intellij-html-description": "Propagate all taints and labels to the ASG automatically."
+        },
         "releaseVersion": {
           "type": "string",
           "description": "the AMI version of the EKS optimized AMI to use",
@@ -1108,8 +1122,8 @@
             "type": "string"
           },
           "type": "object",
-          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
-          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
           "default": "{}"
         },
         "taints": {
@@ -1191,6 +1205,7 @@
         "additionalVolumes",
         "preBootstrapCommands",
         "overrideBootstrapCommand",
+        "propagateASGTags",
         "disableIMDSv1",
         "disablePodIMDS",
         "placement",
@@ -1321,8 +1336,9 @@
         },
         "disableASGTagPropagation": {
           "type": "boolean",
-          "description": "disable the tag propagation in case desired capacity is 0.",
-          "x-intellij-html-description": "disable the tag propagation in case desired capacity is 0."
+          "description": "disables the tag propagation to ASG in case desired capacity is 0.",
+          "x-intellij-html-description": "disables the tag propagation to ASG in case desired capacity is 0.",
+          "default": false
         },
         "disableIMDSv1": {
           "type": "boolean",
@@ -1382,6 +1398,14 @@
           },
           "type": "object",
           "default": "{}"
+        },
+        "localZones": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "specifies a list of local zones where the nodegroup should be launched. The cluster should have been created with all of the local zones specified in this field.",
+          "x-intellij-html-description": "specifies a list of local zones where the nodegroup should be launched. The cluster should have been created with all of the local zones specified in this field."
         },
         "maxInstanceLifetime": {
           "type": "integer",
@@ -1450,8 +1474,8 @@
             "type": "string"
           },
           "type": "object",
-          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
-          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
+          "x-intellij-html-description": "Applied to the Autoscaling Group and to the EC2 instances (unmanaged), Applied to the Autoscaling Group, the EKS Nodegroup resource and to the EC2 instances (managed)",
           "default": "{}"
         },
         "taints": {
@@ -1538,6 +1562,7 @@
         "additionalVolumes",
         "preBootstrapCommands",
         "overrideBootstrapCommand",
+        "propagateASGTags",
         "disableIMDSv1",
         "disablePodIMDS",
         "placement",
@@ -1555,9 +1580,9 @@
         "clusterDNS",
         "kubeletExtraConfig",
         "containerRuntime",
-        "propagateASGTags",
         "disableASGTagPropagation",
-        "maxInstanceLifetime"
+        "maxInstanceLifetime",
+        "localZones"
       ],
       "additionalProperties": false,
       "description": "holds configuration attributes that are specific to an unmanaged nodegroup",

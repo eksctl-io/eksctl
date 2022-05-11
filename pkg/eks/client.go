@@ -148,13 +148,13 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNo
 	if minSize == 0 {
 		return nil
 	}
-	timer := time.After(c.Provider.WaitTimeout())
-	timeout := false
+	timeout := time.After(c.Provider.WaitTimeout())
 	readyNodes := sets.NewString()
 	watcher, err := clientSet.CoreV1().Nodes().Watch(context.TODO(), ng.ListOptions())
 	if err != nil {
 		return errors.Wrap(err, "creating node watcher")
 	}
+	defer watcher.Stop()
 
 	counter, err := getNodes(clientSet, ng)
 	if err != nil {
@@ -162,10 +162,14 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNo
 	}
 
 	logger.Info("waiting for at least %d node(s) to become ready in %q", minSize, ng.NameString())
-	for !timeout && counter < minSize {
+	for {
 		select {
-		case event := <-watcher.ResultChan():
+		case event, ok := <-watcher.ResultChan():
 			logger.Debug("event = %#v", event)
+			if !ok {
+				logger.Debug("the watcher channel was closed... stop processing events from it")
+				return fmt.Errorf("the watcher channel for the nodes was closed by Kubernetes due to an unknown error")
+			}
 			if event.Object != nil && event.Type != watch.Deleted {
 				if node, ok := event.Object.(*corev1.Node); ok {
 					if isNodeReady(node) {
@@ -178,13 +182,13 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNo
 					}
 				}
 			}
-		case <-timer:
-			timeout = true
+		case <-timeout:
+			return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.Provider.WaitTimeout(), minSize, ng.NameString())
 		}
-	}
-	watcher.Stop()
-	if timeout {
-		return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.Provider.WaitTimeout(), minSize, ng.NameString())
+
+		if counter >= minSize {
+			break
+		}
 	}
 
 	if _, err = getNodes(clientSet, ng); err != nil {

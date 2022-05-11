@@ -3,7 +3,7 @@ package builder
 import (
 	"fmt"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
@@ -57,7 +57,7 @@ func (rs *FargateResourceSet) RenderJSON() ([]byte, error) {
 	return rs.rs.renderJSON()
 }
 
-func (rs *FargateResourceSet) GetAllOutputs(stack cfn.Stack) error {
+func (rs *FargateResourceSet) GetAllOutputs(stack types.Stack) error {
 	return rs.rs.GetAllOutputs(stack)
 }
 

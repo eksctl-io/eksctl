@@ -1,8 +1,8 @@
 package v1alpha5
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	. "github.com/onsi/ginkgo"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -231,6 +231,17 @@ var _ = Describe("ClusterConfig validation", func() {
 			}
 			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
 			Expect(*testNodeGroup.ContainerRuntime).To(Equal(DefaultContainerRuntime))
+		})
+		When("ami family is windows", func() {
+			It("defaults to docker as a container runtime", func() {
+				testNodeGroup := NodeGroup{
+					NodeGroupBase: &NodeGroupBase{
+						AMIFamily: NodeImageFamilyWindowsServer2019CoreContainer,
+					},
+				}
+				SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+				Expect(*testNodeGroup.ContainerRuntime).To(Equal(DefaultContainerRuntimeForWindows))
+			})
 		})
 	})
 

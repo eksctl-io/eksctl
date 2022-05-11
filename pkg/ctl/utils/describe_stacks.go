@@ -4,11 +4,12 @@ import (
 	"context"
 	"os"
 
-	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/printers"
 
@@ -71,7 +72,8 @@ func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool, printer pri
 		logger.Writer = os.Stderr
 	}
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -90,8 +92,7 @@ func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool, printer pri
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
-
-	stacks, err := stackManager.DescribeStacks()
+	stacks, err := stackManager.DescribeStacks(ctx)
 	if err != nil {
 		return err
 	}
@@ -105,12 +106,12 @@ func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool, printer pri
 	}
 
 	for _, s := range stacks {
-		if !all && *s.StackStatus == cloudformation.StackStatusDeleteComplete {
+		if !all && s.StackStatus == types.StackStatusDeleteComplete {
 			continue
 		}
 		logger.Info("stack/%s = %#v", *s.StackName, s)
 		if events {
-			events, err := stackManager.DescribeStackEvents(s)
+			events, err := stackManager.DescribeStackEvents(ctx, s)
 			if err != nil {
 				logger.Critical(err.Error())
 			}
@@ -119,7 +120,7 @@ func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool, printer pri
 			}
 		}
 		if trail {
-			events, err := stackManager.LookupCloudTrailEvents(context.Background(), s)
+			events, err := stackManager.LookupCloudTrailEvents(ctx, s)
 			if err != nil {
 				logger.Critical(err.Error())
 			}
