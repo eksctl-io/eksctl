@@ -18,7 +18,7 @@ import (
 
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	awsec2 "github.com/aws/aws-sdk-go/service/ec2"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	harness "github.com/dlespiau/kube-test-harness"
@@ -161,10 +161,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				Expect(stacks).To(HaveLen(2))
 				nodegroupStack := stacks[0]
 				clusterStack := stacks[1]
-				Expect(aws.StringValue(clusterStack.StackName)).To(ContainSubstring(params.ClusterName))
-				Expect(aws.StringValue(nodegroupStack.StackName)).To(ContainSubstring(params.ClusterName))
-				Expect(aws.StringValue(clusterStack.Description)).To(Equal("EKS cluster (dedicated VPC: true, dedicated IAM: true) [created and managed by eksctl]"))
-				Expect(aws.StringValue(nodegroupStack.Description)).To(Equal("EKS Managed Nodes (SSH access: false) [created by eksctl]"))
+				Expect(aws.ToString(clusterStack.StackName)).To(ContainSubstring(params.ClusterName))
+				Expect(aws.ToString(nodegroupStack.StackName)).To(ContainSubstring(params.ClusterName))
+				Expect(aws.ToString(clusterStack.Description)).To(Equal("EKS cluster (dedicated VPC: true, dedicated IAM: true) [created and managed by eksctl]"))
+				Expect(aws.ToString(nodegroupStack.Description)).To(Equal("EKS Managed Nodes (SSH access: false) [created by eksctl]"))
 			})
 		})
 
@@ -181,7 +181,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				}
 				ctl, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 				Expect(err).NotTo(HaveOccurred())
-				err = ctl.RefreshClusterStatus(cfg)
+				err = ctl.RefreshClusterStatus(context.Background(), cfg)
 				Expect(err).ShouldNot(HaveOccurred())
 				clientSet, err = ctl.NewStdClientSet(cfg)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -316,7 +316,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				awsSession := NewSession(params.Region)
 				ec2 := awsec2.New(awsSession)
 				existingSubnets, err := ec2.DescribeSubnets(&awsec2.DescribeSubnetsInput{
-					SubnetIds: cl.ResourcesVpcConfig.SubnetIds,
+					SubnetIds: aws.StringSlice(cl.ResourcesVpcConfig.SubnetIds),
 				})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(len(existingSubnets.Subnets) > 0).To(BeTrue())
@@ -580,7 +580,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should have all types disabled by default", func() {
-					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(context.Background(), cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(0))
 					Expect(disable.List()).To(HaveLen(5))
@@ -594,7 +594,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 					Expect(cmd).To(RunSuccessfully())
 
-					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(context.Background(), cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(0))
 					Expect(disable.List()).To(HaveLen(5))
@@ -609,7 +609,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 					Expect(cmd).To(RunSuccessfully())
 
-					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(context.Background(), cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(2))
 					Expect(disable.List()).To(HaveLen(3))
@@ -626,7 +626,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 					Expect(cmd).To(RunSuccessfully())
 
-					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(context.Background(), cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(5))
 					Expect(disable.List()).To(HaveLen(0))
@@ -642,7 +642,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 					Expect(cmd).To(RunSuccessfully())
 
-					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(context.Background(), cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(4))
 					Expect(disable.List()).To(HaveLen(1))
@@ -660,7 +660,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 					Expect(cmd).To(RunSuccessfully())
 
-					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(context.Background(), cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(disable.List()).To(HaveLen(4))
 					Expect(enabled.List()).To(HaveLen(1))
@@ -677,7 +677,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 					Expect(cmd).To(RunSuccessfully())
 
-					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(context.Background(), cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(0))
 					Expect(disable.List()).To(HaveLen(5))
@@ -702,9 +702,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					}
 					ctl, err = eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 					Expect(err).NotTo(HaveOccurred())
-					err = ctl.RefreshClusterStatus(cfg)
+					ctx := context.Background()
+					err = ctl.RefreshClusterStatus(ctx, cfg)
 					Expect(err).ShouldNot(HaveOccurred())
-					oidc, err = ctl.NewOpenIDConnectManager(cfg)
+					oidc, err = ctl.NewOpenIDConnectManager(ctx, cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 

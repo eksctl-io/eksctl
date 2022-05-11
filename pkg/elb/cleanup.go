@@ -19,7 +19,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kris-nova/logger"
 	corev1 "k8s.io/api/core/v1"
 
@@ -279,7 +279,7 @@ func deleteOrphanLoadBalancerSecurityGroups(ctx context.Context, ec2API awsapi.E
 	return nil
 }
 
-func deleteFailedSecurityGroups(ctx aws.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancersAPI, securityGroups []ec2types.SecurityGroup) error {
+func deleteFailedSecurityGroups(ctx context.Context, ec2API awsapi.EC2, elbAPI DescribeLoadBalancersAPI, securityGroups []ec2types.SecurityGroup) error {
 	for _, sg := range securityGroups {
 		// wait for the security group's load balancer to complete deletion
 		if err := ensureLoadBalancerDeleted(ctx, elbAPI, sg); err != nil {
@@ -340,7 +340,7 @@ func ensureLoadBalancerDeleted(ctx context.Context, elbAPI DescribeLoadBalancers
 
 func deleteSecurityGroup(ctx context.Context, ec2API awsapi.EC2, sg ec2types.SecurityGroup) error {
 	logger.Debug("deleting orphan Load Balancer security group %s with description %q",
-		aws.StringValue(sg.GroupId), aws.StringValue(sg.Description))
+		aws.ToString(sg.GroupId), aws.ToString(sg.Description))
 	input := &ec2.DeleteSecurityGroupInput{
 		GroupId: sg.GroupId,
 	}
@@ -362,7 +362,7 @@ func describeSecurityGroupsByID(ctx context.Context, ec2API awsapi.EC2, groupIDs
 func tagsIncludeClusterName(tags []ec2types.Tag, clusterName string) bool {
 	clusterTagKey := awsprovider.TagNameKubernetesClusterPrefix + clusterName
 	for _, tag := range tags {
-		if aws.StringValue(tag.Key) == clusterTagKey {
+		if aws.ToString(tag.Key) == clusterTagKey {
 			return true
 		}
 	}
@@ -394,7 +394,7 @@ func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API awsapi.EC2
 	result := map[string]struct{}{}
 
 	for _, sg := range sgResponse.SecurityGroups {
-		sgID := aws.StringValue(sg.GroupId)
+		sgID := aws.ToString(sg.GroupId)
 
 		// FIXME(fons): AWS' CloudConfig accepts a global ELB security group, which shouldn't be deleted.
 		//              However, there doesn't seem to be a way to access the CloudConfiguration through the API Server.

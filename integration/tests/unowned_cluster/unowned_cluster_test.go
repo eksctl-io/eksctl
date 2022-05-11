@@ -13,16 +13,18 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/weaveworks/eksctl/integration/matchers"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 
+	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/integration/tests"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -72,7 +74,7 @@ var _ = BeforeSuite(func() {
 		clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 		Expect(err).NotTo(HaveOccurred())
 		ctl = clusterProvider.Provider
-		cfg.VPC = createClusterWithNodeGroup(params.ClusterName, stackName, mng1, version, ctl)
+		cfg.VPC = createClusterWithNodeGroup(context.Background(), params.ClusterName, stackName, mng1, version, ctl)
 	}
 })
 
@@ -347,25 +349,25 @@ var _ = Describe("(Integration) [non-eksctl cluster & nodegroup support]", func(
 	})
 })
 
-func createClusterWithNodeGroup(clusterName, stackName, ng1, version string, ctl api.ClusterProvider) *api.ClusterVPC {
+func createClusterWithNodeGroup(ctx context.Context, clusterName, stackName, ng1, version string, ctl api.ClusterProvider) *api.ClusterVPC {
 	timeoutDuration := time.Minute * 30
 	publicSubnets, privateSubnets, clusterRoleArn, nodeRoleArn, vpcID, securityGroup := createVPCAndRole(stackName, ctl)
 
-	_, err := ctl.EKS().CreateCluster(&awseks.CreateClusterInput{
+	_, err := ctl.EKS().CreateCluster(ctx, &awseks.CreateClusterInput{
 		Name: &clusterName,
-		ResourcesVpcConfig: &awseks.VpcConfigRequest{
-			SubnetIds: aws.StringSlice(append(publicSubnets, privateSubnets...)),
+		ResourcesVpcConfig: &ekstypes.VpcConfigRequest{
+			SubnetIds: append(publicSubnets, privateSubnets...),
 		},
 		RoleArn: &clusterRoleArn,
 		Version: aws.String(version),
 	})
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(func() string {
-		out, err := ctl.EKS().DescribeCluster(&awseks.DescribeClusterInput{
+		out, err := ctl.EKS().DescribeCluster(ctx, &awseks.DescribeClusterInput{
 			Name: &clusterName,
 		})
 		Expect(err).NotTo(HaveOccurred())
-		return *out.Cluster.Status
+		return string(out.Cluster.Status)
 	}, timeoutDuration, time.Second*30).Should(Equal("ACTIVE"))
 
 	newVPC := api.NewClusterVPC(false)
@@ -396,25 +398,25 @@ func createClusterWithNodeGroup(clusterName, stackName, ng1, version string, ctl
 		},
 	}
 
-	_, err = ctl.EKS().CreateNodegroup(&awseks.CreateNodegroupInput{
+	_, err = ctl.EKS().CreateNodegroup(ctx, &awseks.CreateNodegroupInput{
 		NodegroupName: &ng1,
 		ClusterName:   &clusterName,
 		NodeRole:      &nodeRoleArn,
-		Subnets:       aws.StringSlice(publicSubnets),
-		ScalingConfig: &awseks.NodegroupScalingConfig{
-			MaxSize:     aws.Int64(1),
-			DesiredSize: aws.Int64(1),
-			MinSize:     aws.Int64(1),
+		Subnets:       publicSubnets,
+		ScalingConfig: &ekstypes.NodegroupScalingConfig{
+			MaxSize:     aws.Int32(1),
+			DesiredSize: aws.Int32(1),
+			MinSize:     aws.Int32(1),
 		},
 	})
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(func() string {
-		out, err := ctl.EKS().DescribeNodegroup(&awseks.DescribeNodegroupInput{
+		out, err := ctl.EKS().DescribeNodegroup(ctx, &awseks.DescribeNodegroupInput{
 			ClusterName:   &clusterName,
 			NodegroupName: &ng1,
 		})
 		Expect(err).NotTo(HaveOccurred())
-		return *out.Nodegroup.Status
+		return string(out.Nodegroup.Status)
 	}, timeoutDuration, time.Second*30).Should(Equal("ACTIVE"))
 
 	return newVPC

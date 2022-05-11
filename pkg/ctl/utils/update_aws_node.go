@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -39,7 +41,8 @@ func doUpdateAWSNode(cmd *cmdutils.Cmd) error {
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -53,7 +56,7 @@ func doUpdateAWSNode(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	updateRequired, err := defaultaddons.UpdateAWSNode(defaultaddons.AddonInput{
+	updateRequired, err := defaultaddons.UpdateAWSNode(ctx, defaultaddons.AddonInput{
 		RawClient: rawClient,
 		Region:    meta.Region,
 	}, cmd.Plan)

@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -25,9 +26,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 
 	"github.com/gofrs/flock"
-
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -70,7 +68,6 @@ type KubeProvider interface {
 type ProviderServices struct {
 	spec *api.ProviderConfig
 	asg  awsapi.ASG
-	eks  eksiface.EKSAPI
 	cfn  cloudformationiface.CloudFormationAPI
 
 	cloudtrail     awsapi.CloudTrail
@@ -90,9 +87,6 @@ func (p ProviderServices) CloudFormationDisableRollback() bool {
 
 // ASG returns a representation of the AutoScaling API
 func (p ProviderServices) ASG() awsapi.ASG { return p.asg }
-
-// EKS returns a representation of the EKS API
-func (p ProviderServices) EKS() eksiface.EKSAPI { return p.eks }
 
 // CloudTrail returns a representation of the CloudTrail API
 func (p ProviderServices) CloudTrail() awsapi.CloudTrail { return p.cloudtrail }
@@ -121,7 +115,7 @@ func (p ProviderServices) Session() *session.Session {
 
 // ClusterInfo provides information about the cluster.
 type ClusterInfo struct {
-	Cluster *awseks.Cluster
+	Cluster *ekstypes.Cluster
 }
 
 // ProviderStatus stores information about the used IAM role and the resulting session
@@ -167,7 +161,6 @@ func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.Cluster
 
 	provider.session = s
 	provider.cfn = cloudformation.New(s)
-	provider.eks = awseks.New(s)
 
 	cfg, err := newV2Config(spec, c.Provider.Region(), credentialsCacheFilePath)
 	if err != nil {
@@ -190,10 +183,6 @@ func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.Cluster
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
 		logger.Debug("Setting CloudFormation endpoint to %s", endpoint)
 		provider.cfn = cloudformation.New(s, s.Config.Copy().WithEndpoint(endpoint))
-	}
-	if endpoint, ok := os.LookupEnv("AWS_EKS_ENDPOINT"); ok {
-		logger.Debug("Setting EKS endpoint to %s", endpoint)
-		provider.eks = awseks.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
 
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDTRAIL_ENDPOINT"); ok {

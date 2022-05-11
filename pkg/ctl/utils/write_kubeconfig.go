@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/kris-nova/logger"
@@ -71,7 +72,7 @@ func doWriteKubeconfigCmd(cmd *cmdutils.Cmd, outputPath, roleARN string, setCont
 		outputPath = kubeconfig.AutoPath(cfg.Metadata.Name)
 	}
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctl, err := cmd.NewProviderForExistingCluster(context.TODO())
 	if err != nil {
 		return err
 	}

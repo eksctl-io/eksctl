@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -660,7 +660,7 @@ type ClusterProvider interface {
 	CloudFormationRoleARN() string
 	CloudFormationDisableRollback() bool
 	ASG() awsapi.ASG
-	EKS() eksiface.EKSAPI
+	EKS() awsapi.EKS
 	SSM() awsapi.SSM
 	CloudTrail() awsapi.CloudTrail
 	CloudWatchLogs() awsapi.CloudWatchLogs
@@ -860,7 +860,7 @@ func (c *ClusterConfig) IPv6Enabled() bool {
 }
 
 // SetClusterStatus populates ClusterStatus using *eks.Cluster.
-func (c *ClusterConfig) SetClusterStatus(cluster *eks.Cluster) error {
+func (c *ClusterConfig) SetClusterStatus(cluster *ekstypes.Cluster) error {
 	if networkConfig := cluster.KubernetesNetworkConfig; networkConfig != nil && networkConfig.ServiceIpv4Cidr != nil {
 		c.Status.KubernetesNetworkConfig = &KubernetesNetworkConfig{
 			ServiceIPv4CIDR: *networkConfig.ServiceIpv4Cidr,

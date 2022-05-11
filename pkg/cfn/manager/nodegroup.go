@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
+	asgtypes "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 
-	asgtypes "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -78,13 +78,13 @@ func (c *StackCollection) createManagedNodeGroupTask(ctx context.Context, errorC
 	return c.CreateStack(ctx, name, stack, ng.Tags, nil, errorCh)
 }
 
-func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(errorCh chan error, ng *api.ManagedNodeGroup) error {
+func (c *StackCollection) propagateManagedNodeGroupTagsToASGTask(ctx context.Context, errorCh chan error, ng *api.ManagedNodeGroup) error {
 	// describe node group to retrieve ASG names
 	input := &eks.DescribeNodegroupInput{
 		ClusterName:   aws.String(c.spec.Metadata.Name),
 		NodegroupName: aws.String(ng.Name),
 	}
-	res, err := c.eksAPI.DescribeNodegroup(input)
+	res, err := c.eksAPI.DescribeNodegroup(ctx, input)
 	if err != nil {
 		return errors.Wrapf(err, "couldn't get managed nodegroup details for nodegroup %q", ng.Name)
 	}
@@ -225,7 +225,7 @@ func (c *StackCollection) getManagedNodeGroupAutoScalingGroupName(ctx context.Co
 		NodegroupName: aws.String(c.GetNodeGroupName(s)),
 	}
 
-	res, err := c.eksAPI.DescribeNodegroup(input)
+	res, err := c.eksAPI.DescribeNodegroup(ctx, input)
 	if err != nil {
 		logger.Warning("couldn't get managed nodegroup details for stack %q", *s.StackName)
 		return "", nil
@@ -235,7 +235,7 @@ func (c *StackCollection) getManagedNodeGroupAutoScalingGroupName(ctx context.Co
 
 	if res.Nodegroup.Resources != nil {
 		for _, v := range res.Nodegroup.Resources.AutoScalingGroups {
-			asgs = append(asgs, aws.StringValue(v.Name))
+			asgs = append(asgs, aws.ToString(v.Name))
 		}
 	}
 	return strings.Join(asgs, ","), nil

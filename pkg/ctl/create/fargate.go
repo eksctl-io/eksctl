@@ -35,13 +35,14 @@ func createFargateProfile(cmd *cmdutils.Cmd) {
 }
 
 func doCreateFargateProfile(cmd *cmdutils.Cmd) error {
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return errors.Wrap(err, "couldn't create cluster provider from command line options")
 	}
 
 	manager := actionsfargate.New(cmd.ClusterConfig, ctl, ctl.NewStackManager(cmd.ClusterConfig))
-	return manager.Create(context.TODO())
+	return manager.Create(ctx)
 }
 
 func configureCreateFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.CreateOptions {

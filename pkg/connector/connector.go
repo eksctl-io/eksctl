@@ -7,15 +7,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/smithy-go"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
-	"github.com/aws/aws-sdk-go/aws"
 	awsarn "github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 
 	"github.com/cenk/backoff"
 	"github.com/kris-nova/logger"
@@ -43,7 +44,7 @@ type EKSConnector struct {
 }
 
 type provider interface {
-	EKS() eksiface.EKSAPI
+	EKS() awsapi.EKS
 	STS() awsapi.STS
 	STSPresigner() api.STSPresigner
 	IAM() awsapi.IAM
@@ -58,8 +59,6 @@ type ManifestList struct {
 	IAMIdentityARN         string
 }
 
-var ValidProviders = eks.ConnectorConfigProvider_Values
-
 // RegisterCluster registers the specified external cluster with EKS and returns a list of Kubernetes resources
 // for EKS Connector.
 func (c *EKSConnector) RegisterCluster(ctx context.Context, cluster ExternalCluster) (*ManifestList, error) {
@@ -68,13 +67,13 @@ func (c *EKSConnector) RegisterCluster(ctx context.Context, cluster ExternalClus
 		return nil, err
 	}
 
-	_, err := c.Provider.EKS().DescribeCluster(&eks.DescribeClusterInput{
+	_, err := c.Provider.EKS().DescribeCluster(ctx, &eks.DescribeClusterInput{
 		Name: aws.String(cluster.Name),
 	})
 
 	if err != nil {
-		awsErr, ok := err.(awserr.Error)
-		if !ok || awsErr.Code() != eks.ErrCodeResourceNotFoundException {
+		var notFoundError *ekstypes.ResourceNotFoundException
+		if !errors.As(err, &notFoundError) {
 			return nil, errors.New("unexpected error calling DescribeCluster")
 		}
 	} else {
@@ -90,7 +89,7 @@ func (c *EKSConnector) RegisterCluster(ctx context.Context, cluster ExternalClus
 		}
 	}
 
-	registerOutput, err := c.registerCluster(cluster, connectorRoleARN)
+	registerOutput, err := c.registerCluster(ctx, cluster, connectorRoleARN)
 	if err != nil {
 		if cluster.ConnectorRoleARN == "" {
 			if deleteErr := c.deleteRoleByARN(ctx, connectorRoleARN); deleteErr != nil {
@@ -102,7 +101,7 @@ func (c *EKSConnector) RegisterCluster(ctx context.Context, cluster ExternalClus
 	return c.createManifests(ctx, registerOutput.Cluster)
 }
 
-func (c *EKSConnector) createManifests(ctx context.Context, cluster *eks.Cluster) (*ManifestList, error) {
+func (c *EKSConnector) createManifests(ctx context.Context, cluster *ekstypes.Cluster) (*ManifestList, error) {
 	stsOutput, err := c.Provider.STS().GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
 		return nil, err
@@ -132,16 +131,23 @@ func (c *EKSConnector) createManifests(ctx context.Context, cluster *eks.Cluster
 	}, nil
 }
 
+// ValidProviders returns a list of supported providers.
+func ValidProviders() []ekstypes.ConnectorConfigProvider {
+	var providerConfig ekstypes.ConnectorConfigProvider
+	return providerConfig.Values()
+}
+
 func validateProvider(provider string) error {
-	for _, p := range ValidProviders() {
-		if p == provider {
+	validProviders := ValidProviders()
+	for _, p := range validProviders {
+		if string(p) == provider {
 			return nil
 		}
 	}
-	return errors.Errorf("invalid provider %q; must be one of %s", provider, strings.Join(ValidProviders(), ", "))
+	return errors.Errorf("invalid provider %q; must be one of %s", provider, validProviders)
 }
 
-func (c *EKSConnector) registerCluster(cluster ExternalCluster, connectorRoleARN string) (*eks.RegisterClusterOutput, error) {
+func (c *EKSConnector) registerCluster(ctx context.Context, cluster ExternalCluster, connectorRoleARN string) (*eks.RegisterClusterOutput, error) {
 	bo := backoff.NewExponentialBackOff()
 	bo.MaxElapsedTime = 3 * time.Minute
 
@@ -151,18 +157,18 @@ func (c *EKSConnector) registerCluster(cluster ExternalCluster, connectorRoleARN
 	err := backoff.RetryNotify(func() error {
 		var err error
 
-		registerOutput, err = c.Provider.EKS().RegisterCluster(&eks.RegisterClusterInput{
+		registerOutput, err = c.Provider.EKS().RegisterCluster(ctx, &eks.RegisterClusterInput{
 			Name: aws.String(cluster.Name),
-			ConnectorConfig: &eks.ConnectorConfigRequest{
-				Provider: aws.String(cluster.Provider),
+			ConnectorConfig: &ekstypes.ConnectorConfigRequest{
+				Provider: ekstypes.ConnectorConfigProvider(cluster.Provider),
 				RoleArn:  aws.String(connectorRoleARN),
 				// TODO add tags when they're supported by the API.
 			},
 		})
 
 		if err != nil {
-			awsErr, ok := err.(awserr.Error)
-			if ok && awsErr.Code() == eks.ErrCodeInvalidRequestException && strings.HasPrefix(awsErr.Message(), "Not existing role") {
+			var oe *smithy.OperationError
+			if errors.As(err, &oe) && strings.Contains(oe.Error(), "Not existing role") {
 				logger.Debug("IAM role could not be found; retrying RegisterCluster")
 				return err
 			}
@@ -175,8 +181,8 @@ func (c *EKSConnector) registerCluster(cluster ExternalCluster, connectorRoleARN
 	})
 
 	if err != nil {
-		awsErr, ok := err.(awserr.Error)
-		if ok && awsErr.Code() == eks.ErrCodeInvalidRequestException && strings.Contains(awsErr.Message(), "AWSServiceRoleForAmazonEKSConnector is not available") {
+		var oe *smithy.OperationError
+		if errors.As(err, &oe) && strings.Contains(oe.Error(), "AWSServiceRoleForAmazonEKSConnector is not available") {
 			return nil, errors.Wrap(err, "SLR for EKS Connector does not exist; please run `aws iam create-service-linked-role --aws-service-name eks-connector.amazonaws.com` first")
 		}
 		return nil, err
@@ -185,7 +191,7 @@ func (c *EKSConnector) registerCluster(cluster ExternalCluster, connectorRoleARN
 	return registerOutput, nil
 }
 
-func (c *EKSConnector) parseConnectorTemplate(cluster *eks.Cluster) ManifestFile {
+func (c *EKSConnector) parseConnectorTemplate(cluster *ekstypes.Cluster) ManifestFile {
 	activationCode := base64.StdEncoding.EncodeToString([]byte(*cluster.ConnectorConfig.ActivationCode))
 	manifestFile := c.ManifestTemplate.Connector
 	connectorResources := applyVariables(manifestFile.Data, "%EKS_ACTIVATION_ID%", *cluster.ConnectorConfig.ActivationId)
@@ -211,13 +217,13 @@ func applyVariables(template []byte, field, value string) []byte {
 
 // DeregisterCluster deregisters the cluster and removes associated IAM resources.
 func (c *EKSConnector) DeregisterCluster(ctx context.Context, clusterName string) error {
-	clusterOutput, err := c.Provider.EKS().DeregisterCluster(&eks.DeregisterClusterInput{
+	clusterOutput, err := c.Provider.EKS().DeregisterCluster(ctx, &eks.DeregisterClusterInput{
 		Name: aws.String(clusterName),
 	})
 
 	if err != nil {
-		awsErr, ok := err.(awserr.Error)
-		if ok && awsErr.Code() == eks.ErrCodeResourceNotFoundException {
+		var notFoundErr *ekstypes.ResourceNotFoundException
+		if errors.As(err, &notFoundErr) {
 			return errors.Errorf("cluster %q does not exist", clusterName)
 		}
 		return errors.Wrap(err, "unexpected error deregistering cluster")

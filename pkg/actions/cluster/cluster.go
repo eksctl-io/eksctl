@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
-
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -22,9 +20,9 @@ type Cluster interface {
 
 func New(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (Cluster, error) {
 	clusterExists := true
-	if err := ctl.RefreshClusterStatusIfStale(cfg); err != nil {
-		if awsError, ok := errors.Unwrap(errors.Unwrap(err)).(awserr.Error); ok &&
-			awsError.Code() == awseks.ErrCodeResourceNotFoundException {
+	if err := ctl.RefreshClusterStatusIfStale(ctx, cfg); err != nil {
+		var notFoundErr *ekstypes.ResourceNotFoundException
+		if errors.As(err, &notFoundErr) {
 			clusterExists = false
 		} else {
 			return nil, err

@@ -46,7 +46,7 @@ func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
 	}
 
-	versionUpdateRequired, err := upgrade(c.cfg, c.ctl, dryRun)
+	versionUpdateRequired, err := upgrade(ctx, c.cfg, c.ctl, dryRun)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 			}
 		}
 
-		oidc, err = c.ctl.NewOpenIDConnectManager(c.cfg)
+		oidc, err = c.ctl.NewOpenIDConnectManager(ctx, c.cfg)
 		if err != nil {
 			if _, ok := err.(*eks.UnsupportedOIDCError); !ok {
 				if force {
@@ -107,7 +107,9 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 		}
 
 		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
-		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, attemptVpcCniDeletion, podEvictionWaitPeriod); err != nil {
+		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
+			attemptVpcCniDeletion(ctx, clusterName, ctl, clientSet)
+		}, podEvictionWaitPeriod); err != nil {
 			if !force {
 				return err
 			}

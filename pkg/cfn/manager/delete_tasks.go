@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
 	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -125,7 +126,8 @@ type DeleteUnownedNodegroupTask struct {
 	nodegroup string
 	wait      *DeleteWaitCondition
 	info      string
-	eksAPI    eksiface.EKSAPI
+	eksAPI    awsapi.EKS
+	ctx       context.Context
 }
 
 func (d *DeleteUnownedNodegroupTask) Describe() string {
@@ -133,7 +135,7 @@ func (d *DeleteUnownedNodegroupTask) Describe() string {
 }
 
 func (d *DeleteUnownedNodegroupTask) Do() error {
-	out, err := d.eksAPI.DeleteNodegroup(&eks.DeleteNodegroupInput{
+	out, err := d.eksAPI.DeleteNodegroup(d.ctx, &eks.DeleteNodegroupInput{
 		ClusterName:   &d.cluster,
 		NodegroupName: &d.nodegroup,
 	})
@@ -158,12 +160,12 @@ func (d *DeleteUnownedNodegroupTask) Do() error {
 	}
 
 	if out != nil {
-		logger.Debug("delete nodegroup %q output: %s", d.nodegroup, out.String())
+		logger.Debug("delete nodegroup %q output: %+v", d.nodegroup, out.Nodegroup)
 	}
 	return nil
 }
 
-func (c *StackCollection) NewTaskToDeleteUnownedNodeGroup(clusterName, nodegroup string, eksAPI eksiface.EKSAPI, waitCondition *DeleteWaitCondition) tasks.Task {
+func (c *StackCollection) NewTaskToDeleteUnownedNodeGroup(ctx context.Context, clusterName, nodegroup string, eksAPI awsapi.EKS, waitCondition *DeleteWaitCondition) tasks.Task {
 	return tasks.SynchronousTask{
 		SynchronousTaskIface: &DeleteUnownedNodegroupTask{
 			cluster:   clusterName,
@@ -171,6 +173,7 @@ func (c *StackCollection) NewTaskToDeleteUnownedNodeGroup(clusterName, nodegroup
 			eksAPI:    eksAPI,
 			wait:      waitCondition,
 			info:      fmt.Sprintf("delete unowned nodegroup %s", nodegroup),
+			ctx:       ctx,
 		}}
 }
 

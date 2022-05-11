@@ -13,9 +13,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	awsec2 "github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/xgfone/netaddr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -125,11 +126,12 @@ var _ = Describe("(Integration) [EKS IPv6 test]", func() {
 			Expect(err).NotTo(HaveOccurred(), vpcOutput.GoString())
 			Expect(vpcOutput.Vpcs[0].Ipv6CidrBlockAssociationSet).To(HaveLen(1))
 
+			ctx := context.Background()
 			By("ensuring the K8s cluster has IPv6 enabled")
 			var clientSet *kubernetes.Clientset
-			ctl, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, clusterConfig)
+			ctl, err := eks.New(ctx, &api.ProviderConfig{Region: params.Region}, clusterConfig)
 			Expect(err).NotTo(HaveOccurred())
-			err = ctl.RefreshClusterStatus(clusterConfig)
+			err = ctl.RefreshClusterStatus(ctx, clusterConfig)
 			Expect(err).ShouldNot(HaveOccurred())
 			clientSet, err = ctl.NewStdClientSet(clusterConfig)
 			Expect(err).ShouldNot(HaveOccurred())
