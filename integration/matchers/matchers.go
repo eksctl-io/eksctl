@@ -84,7 +84,8 @@ func (m *existingCluster) Match(actual interface{}) (success bool, err error) {
 
 	if err != nil {
 		// Check if it's a not found error: ResourceNotFoundException
-		if !strings.Contains(err.Error(), "ResourceNotFoundException") {
+		var notFoundErr *ekstypes.ResourceNotFoundException
+		if !errors.As(err, &notFoundErr) {
 			return false, err
 		}
 

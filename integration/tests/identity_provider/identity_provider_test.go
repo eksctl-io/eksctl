@@ -122,7 +122,6 @@ var _ = Describe("(Integration) [Identity Provider]", func() {
 
 		By("creating an OIDC Clientset")
 		e := eks.NewFromConfig(NewConfig(params.Region))
-		//clientset, err := createOIDCClientset(e, oidcConfig, params.ClusterName)
 		clientset, err := createOIDCClientset(e, oidcConfig, params.ClusterName)
 		Expect(err).NotTo(HaveOccurred())
 
