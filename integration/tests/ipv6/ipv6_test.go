@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	awsec2 "github.com/aws/aws-sdk-go/service/ec2"
+	cfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	awsec2 "github.com/aws/aws-sdk-go-v2/service/ec2"
 
 	"github.com/xgfone/netaddr"
 	corev1 "k8s.io/api/core/v1"
@@ -103,11 +103,11 @@ var _ = Describe("(Integration) [EKS IPv6 test]", func() {
 
 		It("should support ipv6", func() {
 			By("creating a VPC that has an IPv6 CIDR")
-			awsSession := NewSession(params.Region)
-			cfnSession := cfn.New(awsSession)
+			config := NewConfig(params.Region)
+			cfnSession := cfn.NewFromConfig(config)
 
 			var describeStackOut *cfn.DescribeStacksOutput
-			describeStackOut, err := cfnSession.DescribeStacks(&cfn.DescribeStacksInput{
+			describeStackOut, err := cfnSession.DescribeStacks(context.Background(), &cfn.DescribeStacksInput{
 				StackName: aws.String(fmt.Sprintf("eksctl-%s-cluster", clusterName)),
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -119,11 +119,11 @@ var _ = Describe("(Integration) [EKS IPv6 test]", func() {
 				}
 			}
 
-			ec2 := awsec2.New(awsSession)
-			vpcOutput, err := ec2.DescribeVpcs(&awsec2.DescribeVpcsInput{
-				VpcIds: aws.StringSlice([]string{vpcID}),
+			ec2 := awsec2.NewFromConfig(config)
+			vpcOutput, err := ec2.DescribeVpcs(context.Background(), &awsec2.DescribeVpcsInput{
+				VpcIds: []string{vpcID},
 			})
-			Expect(err).NotTo(HaveOccurred(), vpcOutput.GoString())
+			Expect(err).NotTo(HaveOccurred(), vpcOutput.ResultMetadata)
 			Expect(vpcOutput.Vpcs[0].Ipv6CidrBlockAssociationSet).To(HaveLen(1))
 
 			ctx := context.Background()

@@ -16,11 +16,13 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.20.4
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.0
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.5
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.15.4
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.40.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.20.7
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.4
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.4
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.4
+	github.com/aws/aws-sdk-go-v2/service/kms v1.11.1
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.27.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.4
 	github.com/aws/smithy-go v1.11.2
@@ -83,7 +85,7 @@ require (
 	k8s.io/kops v1.21.2
 	k8s.io/kubelet v0.21.2
 	k8s.io/legacy-cloud-providers v0.21.2
-	sigs.k8s.io/aws-iam-authenticator v0.5.8
+	sigs.k8s.io/aws-iam-authenticator v0.5.5
 	sigs.k8s.io/mdtoc v1.1.0
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -140,7 +142,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.4 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.11 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/kms v1.11.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.4 // indirect
 	github.com/awslabs/goformation/v4 v4.15.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -289,7 +290,6 @@ require (
 	github.com/jmoiron/sqlx v1.3.4 // indirect
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/juju/ansiterm v0.0.0-20180109212912-720a0952cc2a // indirect
 	github.com/julz/importas v0.1.0 // indirect
 	github.com/kevinburke/rest v0.0.0-20210106114233-22cd0577e450 // indirect
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
@@ -309,7 +309,6 @@ require (
 	github.com/leonklingele/grouper v1.1.0 // indirect
 	github.com/lib/pq v1.10.4 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
-	github.com/lunixbochs/vtclean v0.0.0-20180621232353-2d01aacdc34a // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/manifoldco/promptui v0.9.0 // indirect
