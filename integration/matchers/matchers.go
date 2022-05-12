@@ -27,8 +27,8 @@ func (m *existingStack) Match(actual interface{}) (success bool, err error) {
 		return false, errors.New("input is nil")
 	}
 
-	if reflect.TypeOf(actual).String() != "*aws.Config" {
-		return false, errors.New("not a AWS config")
+	if v := reflect.TypeOf(actual).String(); v != "aws.Config" {
+		return false, fmt.Errorf("%s was not of type aws.Config", v)
 	}
 
 	found, err := stackExists(m.expectedStackName, actual.(aws.Config))

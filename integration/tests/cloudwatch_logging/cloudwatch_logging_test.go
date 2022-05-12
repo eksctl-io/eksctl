@@ -58,7 +58,7 @@ var _ = Describe("(Integration) [CloudWatch Logging test]", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(logGroups.LogGroups).To(HaveLen(1))
-			Expect(*logGroups.LogGroups[0].RetentionInDays).To(Equal(int64(545)))
+			Expect(*logGroups.LogGroups[0].RetentionInDays).To(Equal(int32(545)))
 		})
 	})
 })
