@@ -1,0 +1,10 @@
+<GetCallerIdentityResponse xmlns="https://sts.amazonaws.com/doc/2011-06-15/">
+    <GetCallerIdentityResult>
+        <Arn>arn:aws:sts::123456789101:assumed-role/AdministratorAccess/admin@mctest.testface</Arn>
+        <UserId>USERID:admin@mctest.testface</UserId>
+        <Account>123456789101</Account>
+    </GetCallerIdentityResult>
+    <ResponseMetadata>
+        <RequestId>df31e74e-a1c8-42f5-93d4-1d6558c935a3</RequestId>
+    </ResponseMetadata>
+</GetCallerIdentityResponse>

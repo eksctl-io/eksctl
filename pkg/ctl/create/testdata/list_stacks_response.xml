@@ -1,0 +1,19 @@
+<ListStacksResponse xmlns="http://cloudformation.amazonaws.com/doc/2010-05-15/">
+    <ListStacksResult>
+        <StackSummaries>
+            <member>
+                <CreationTime>2022-05-12T11:14:36.621Z</CreationTime>
+                <StackId>arn:aws:cloudformation:us-west-2:123456789101:stack/eksctl-gb-test-cluster-1-cluster/b53ff8e0-d1e4-11ec-bc75-0288bf388723</StackId>
+                <TemplateDescription>EKS cluster (dedicated VPC: true, dedicated IAM: true) [created and managed by eksctl]</TemplateDescription>
+                <StackName>eksctl-gb-test-cluster-1-cluster</StackName>
+                <DriftInformation>
+                    <StackDriftStatus>NOT_CHECKED</StackDriftStatus>
+                </DriftInformation>
+                <StackStatus>CREATE_COMPLETE</StackStatus>
+            </member>
+        </StackSummaries>
+    </ListStacksResult>
+    <ResponseMetadata>
+        <RequestId>580c723b-f408-44ac-87ec-fc4efc3d78b3</RequestId>
+    </ResponseMetadata>
+</ListStacksResponse>

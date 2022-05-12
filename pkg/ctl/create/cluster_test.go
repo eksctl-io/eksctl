@@ -2,14 +2,19 @@ package create
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
-	"path"
+	"path/filepath"
+	"strings"
+	"time"
 
-	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	"github.com/pkg/errors"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
@@ -212,35 +217,51 @@ var _ = Describe("create cluster", func() {
 			)
 			BeforeEach(func() {
 				ts = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					fmt.Fprintln(w, primer())
+					body, err := io.ReadAll(r.Body)
+					Expect(err).NotTo(HaveOccurred())
+					defer r.Body.Close()
+					if primer != nil {
+						fmt.Fprintln(w, primer())
+					} else {
+						response, err := responseHandler(string(body))
+						Expect(err).NotTo(HaveOccurred())
+						fmt.Fprintln(w, response)
+					}
 				}))
 				u, err := url.Parse(ts.URL)
 				Expect(err).NotTo(HaveOccurred())
-				u.Path = path.Join(u.Path, "sts")
 				Expect(os.Setenv("AWS_STS_ENDPOINT", u.String())).To(Succeed())
+				Expect(os.Setenv("AWS_IAM_ENDPOINT", u.String())).To(Succeed())
+				Expect(os.Setenv("AWS_EKS_ENDPOINT", u.String())).To(Succeed())
+				Expect(os.Setenv("AWS_EC2_ENDPOINT", u.String())).To(Succeed())
+				Expect(os.Setenv("AWS_CLOUDFORMATION_ENDPOINT", u.String())).To(Succeed())
+				Expect(os.Setenv("AWS_CLOUDTRAIL_ENDPOINT", u.String())).To(Succeed())
+				Expect(os.Setenv("AWS_ELB_ENDPOINT", u.String())).To(Succeed())
+				Expect(os.Setenv("AWS_ELBV2_ENDPOINT", u.String())).To(Succeed())
 			})
 			AfterEach(func() {
 				Expect(os.Setenv("AWS_STS_ENDPOINT", "")).To(Succeed())
+				Expect(os.Setenv("AWS_IAM_ENDPOINT", "")).To(Succeed())
+				Expect(os.Setenv("AWS_EKS_ENDPOINT", "")).To(Succeed())
+				Expect(os.Setenv("AWS_EC2_ENDPOINT", "")).To(Succeed())
+				Expect(os.Setenv("AWS_CLOUDFORMATION_ENDPOINT", "")).To(Succeed())
+				Expect(os.Setenv("AWS_CLOUDTRAIL_ENDPOINT", "")).To(Succeed())
+				Expect(os.Setenv("AWS_ELB_ENDPOINT", "")).To(Succeed())
+				Expect(os.Setenv("AWS_ELBV2_ENDPOINT", "")).To(Succeed())
 				ts.Close()
 			})
 			It("can create a cluster", func() {
-				primer = func() string {
-					return `<GetCallerIdentityResponse xmlns="https://sts.amazonaws.com/doc/2011-06-15/">
-  <GetCallerIdentityResult>
-    <Arn>arn:aws:sts::083751696308:assumed-role/AdministratorAccess/gergely@weave.works</Arn>
-    <UserId>AROARG775O62J3TZYJ67R:gergely@weave.works</UserId>
-    <Account>083751696308</Account>
-  </GetCallerIdentityResult>
-  <ResponseMetadata>
-    <RequestId>df31e74e-a1c8-42f5-93d4-1d6558c935a3</RequestId>
-  </ResponseMetadata>
-</GetCallerIdentityResponse>`
-				}
+
+				// Context deadline exceeded because
+				// waitTimeout
 				cfg := api.NewClusterConfig()
-				cfg.Metadata.Name = "test-cluster"
+				cfg.Metadata.Name = "gb-test-cluster-1"
 				cfg.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
 				cmd := &cmdutils.Cmd{
 					ClusterConfig: cfg,
+					ProviderConfig: api.ProviderConfig{
+						WaitTimeout: time.Minute * 10,
+					},
 				}
 				ngFilter := &filter.NodeGroupFilter{}
 				params := &cmdutils.CreateClusterCmdParams{
@@ -254,3 +275,33 @@ var _ = Describe("create cluster", func() {
 		})
 	})
 })
+
+// responseHandler returns the required response based on the body and Request type in the body.
+// TODO: Extend this to allow to return an error response for a specific
+// response.
+func responseHandler(body string) (string, error) {
+	getContent := func(file string) string {
+		content, err := os.ReadFile(filepath.Join("testdata", file))
+		Expect(err).NotTo(HaveOccurred())
+		return string(content)
+	}
+	switch {
+	case strings.Contains(body, "Action=DescribeAvailabilityZones"):
+		return getContent("describe_availability_zones.xml"), nil
+	case strings.Contains(body, "Action=GetCallerIdentity"):
+		return getContent("caller_identity_success_response.xml"), nil
+	case strings.Contains(body, "Action=CreateStack"):
+		return getContent("create_stack_success_response.xml"), nil
+	case strings.Contains(body, "Action=DescribeStacks"):
+		return getContent("describe_stacks_response.xml"), nil
+	case strings.Contains(body, "Action=DescribeSubnets"):
+		return getContent("describe_subnet_response.xml"), nil
+	case strings.Contains(body, "Action=DescribeVpcs"):
+		return getContent("describe_vpcs_response.xml"), nil
+	case strings.Contains(body, "Action=ListStacks"):
+		return getContent("list_stacks_response.xml"), nil
+	default:
+		fmt.Println("Body: ", body)
+		return "", errors.New("unknown request in body")
+	}
+}
