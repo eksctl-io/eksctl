@@ -16,11 +16,13 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.20.4
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.0
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.5
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.15.4
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.40.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.20.7
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.14.4
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.18.4
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.4
+	github.com/aws/aws-sdk-go-v2/service/kms v1.11.1
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.27.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.4
 	github.com/aws/smithy-go v1.11.2
@@ -47,7 +49,6 @@ require (
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
-	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/ginkgo/v2 v2.1.4
 	github.com/onsi/gomega v1.19.0
 	github.com/orcaman/concurrent-map v1.0.0
@@ -141,7 +142,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.4 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.11 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/kms v1.11.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.4 // indirect
 	github.com/awslabs/goformation/v4 v4.15.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -476,7 +476,6 @@ require (
 )
 
 replace (
-	github.com/aws/aws-sdk-go-v2 => /Users/skarlso/goprojects/aws/aws-sdk-go-v2
 	// Used to pin the k8s library versions regardless of what other dependencies enforce
 	k8s.io/api => k8s.io/api v0.21.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.21.2

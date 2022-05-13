@@ -230,7 +230,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 		})
 
 		It("should have created an EKS cluster and 4 CloudFormation stacks", func() {
-			awsSession := NewSession(params.Region)
+			awsSession := NewConfig(params.Region)
 
 			Expect(awsSession).To(HaveExistingCluster(params.ClusterName, string(ekstypes.ClusterStatusActive), params.Version))
 

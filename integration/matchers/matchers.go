@@ -1,17 +1,15 @@
 package matchers
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"reflect"
-	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/onsi/gomega/types"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-
-	awseks "github.com/aws/aws-sdk-go/service/eks"
 )
 
 // HaveExistingStack returns a GoMega matcher that will check for the existence of an cloudformation stack
@@ -29,11 +27,11 @@ func (m *existingStack) Match(actual interface{}) (success bool, err error) {
 		return false, errors.New("input is nil")
 	}
 
-	if reflect.TypeOf(actual).String() != "*session.Session" {
-		return false, errors.New("not a AWS session")
+	if v := reflect.TypeOf(actual).String(); v != "aws.Config" {
+		return false, fmt.Errorf("%s was not of type aws.Config", v)
 	}
 
-	found, err := stackExists(m.expectedStackName, actual.(*session.Session))
+	found, err := stackExists(m.expectedStackName, actual.(aws.Config))
 	if err != nil {
 		return false, err
 	}
@@ -73,20 +71,21 @@ func (m *existingCluster) Match(actual interface{}) (success bool, err error) {
 		return false, errors.New("input is nil")
 	}
 
-	if reflect.TypeOf(actual).String() != "*session.Session" {
-		return false, errors.New("not a AWS session")
+	if v := reflect.TypeOf(actual).String(); v != "aws.Config" {
+		return false, fmt.Errorf("%s was not of type aws.Config", v)
 	}
 
-	eks := awseks.New(actual.(*session.Session))
+	client := eks.NewFromConfig(actual.(aws.Config))
 
-	input := &awseks.DescribeClusterInput{
+	input := &eks.DescribeClusterInput{
 		Name: aws.String(m.expectedName),
 	}
-	output, err := eks.DescribeCluster(input)
+	output, err := client.DescribeCluster(context.Background(), input)
 
 	if err != nil {
-		// Check if its a not found error: ResourceNotFoundException
-		if !strings.Contains(err.Error(), awseks.ErrCodeResourceNotFoundException) {
+		// Check if it's a not found error: ResourceNotFoundException
+		var notFoundErr *ekstypes.ResourceNotFoundException
+		if !errors.As(err, &notFoundErr) {
 			return false, err
 		}
 
@@ -94,7 +93,7 @@ func (m *existingCluster) Match(actual interface{}) (success bool, err error) {
 		return false, nil
 	}
 
-	m.actualStatus = *output.Cluster.Status
+	m.actualStatus = string(output.Cluster.Status)
 	if m.actualStatus != m.expectedStatus {
 		m.statusMismatch = true
 		return false, nil
