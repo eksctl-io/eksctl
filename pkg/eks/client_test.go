@@ -29,8 +29,8 @@ var _ = Describe("eks auth helpers", func() {
 				p := mockprovider.NewMockProvider()
 
 				ctl = &ClusterProvider{
-					Provider: p,
-					Status:   &ProviderStatus{},
+					AWSProvider: p,
+					Status:      &ProviderStatus{},
 				}
 
 			})
@@ -48,7 +48,7 @@ var _ = Describe("eks auth helpers", func() {
 				}
 
 				testAuthenticatorConfig := func(roleARN string) {
-					clientConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), roleARN, ctl.Provider.Profile())
+					clientConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), roleARN, ctl.AWSProvider.Profile())
 					Expect(clientConfig).To(Not(BeNil()))
 					ctx := clientConfig.CurrentContext
 					cluster := strings.Split(ctx, "@")[1]
@@ -109,7 +109,7 @@ var _ = Describe("eks auth helpers", func() {
 				})
 
 				It("should create config with embedded token", func() {
-					mockPresigner := ctl.Provider.STSPresigner().(*fakes.FakeSTSPresigner)
+					mockPresigner := ctl.AWSProvider.STSPresigner().(*fakes.FakeSTSPresigner)
 					mockPresigner.PresignGetCallerIdentityReturns(&v4.PresignedHTTPRequest{
 						URL: "https://example.com",
 					}, nil)

@@ -74,7 +74,7 @@ func (m *Manager) Get(ctx context.Context, name string) (*Summary, error) {
 
 func (m *Manager) getManagedSummaries(ctx context.Context) ([]*Summary, error) {
 	var summaries []*Summary
-	managedNodeGroups, err := m.ctl.Provider.EKS().ListNodegroups(ctx, &eks.ListNodegroupsInput{
+	managedNodeGroups, err := m.ctl.AWSProvider.EKS().ListNodegroups(ctx, &eks.ListNodegroupsInput{
 		ClusterName: aws.String(m.cfg.Metadata.Name),
 	})
 	if err != nil {
@@ -276,7 +276,7 @@ func getClusterNameTag(s *manager.Stack) string {
 }
 
 func (m *Manager) getManagedSummary(ctx context.Context, nodeGroupName string) (*Summary, error) {
-	describeOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(ctx, &eks.DescribeNodegroupInput{
+	describeOutput, err := m.ctl.AWSProvider.EKS().DescribeNodegroup(ctx, &eks.DescribeNodegroupInput{
 		ClusterName:   aws.String(m.cfg.Metadata.Name),
 		NodegroupName: aws.String(nodeGroupName),
 	})
@@ -329,7 +329,7 @@ func (m *Manager) getInstanceTypes(ctx context.Context, ng *ekstypes.Nodegroup) 
 		return "-"
 	}
 
-	resp, err := m.ctl.Provider.EC2().DescribeLaunchTemplateVersions(ctx, &ec2.DescribeLaunchTemplateVersionsInput{
+	resp, err := m.ctl.AWSProvider.EC2().DescribeLaunchTemplateVersions(ctx, &ec2.DescribeLaunchTemplateVersionsInput{
 		LaunchTemplateId: ng.LaunchTemplate.Id,
 	})
 	if err != nil {

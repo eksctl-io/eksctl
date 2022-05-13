@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DescribeSubnetsResponse xmlns="http://ec2.amazonaws.com/doc/2016-11-15/">
+    <requestId>17fa4905-c055-47ba-90e6-26ab6b27457b</requestId>
+    <subnetSet>
+    </subnetSet>
+</DescribeSubnetsResponse>

@@ -534,7 +534,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				ctx := context.Background()
 				clusterProvider, err := eks.New(ctx, &api.ProviderConfig{Region: params.Region}, clusterConfig)
 				Expect(err).NotTo(HaveOccurred())
-				ctl := clusterProvider.Provider
+				ctl := clusterProvider.AWSProvider
 				out, err := ctl.EKS().DescribeNodegroup(ctx, &awseks.DescribeNodegroupInput{
 					ClusterName:   &params.ClusterName,
 					NodegroupName: aws.String("update-config-ng"),

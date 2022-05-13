@@ -53,7 +53,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		switch e := err.(type) {
 		case *manager.StackNotFoundErr:
 			logger.Warning("%s, will attempt to create nodegroup(s) on non eksctl-managed cluster", e.Error())
-			if err := loadVPCFromConfig(ctx, ctl.Provider, cfg); err != nil {
+			if err := loadVPCFromConfig(ctx, ctl.AWSProvider, cfg); err != nil {
 				return errors.Wrapf(err, "loading VPC spec for cluster %q", meta.Name)
 			}
 
@@ -63,7 +63,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		}
 	}
 
-	m.init.NewAWSSelectorSession(ctl.Provider)
+	m.init.NewAWSSelectorSession(ctl.AWSProvider)
 	nodePools := cmdutils.ToNodePools(cfg)
 
 	if err := m.init.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
@@ -87,11 +87,11 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		}
 	}
 
-	if err := m.init.ValidateLegacySubnetsForNodeGroups(ctx, cfg, ctl.Provider); err != nil {
+	if err := m.init.ValidateLegacySubnetsForNodeGroups(ctx, cfg, ctl.AWSProvider); err != nil {
 		return err
 	}
 
-	if err := nodegroupFilter.SetOnlyLocal(ctx, m.ctl.Provider.EKS(), m.stackManager, cfg); err != nil {
+	if err := nodegroupFilter.SetOnlyLocal(ctx, m.ctl.AWSProvider.EKS(), m.stackManager, cfg); err != nil {
 		return err
 	}
 
@@ -147,7 +147,7 @@ func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) er
 		taskTree.Append(m.stackManager.NewClusterCompatTask(ctx))
 	}
 
-	awsNodeUsesIRSA, err := init.DoesAWSNodeUseIRSA(ctx, m.ctl.Provider, m.clientSet)
+	awsNodeUsesIRSA, err := init.DoesAWSNodeUseIRSA(ctx, m.ctl.AWSProvider, m.clientSet)
 	if err != nil {
 		return errors.Wrap(err, "couldn't check aws-node for annotation")
 	}
@@ -262,7 +262,7 @@ func (m *Manager) checkARMSupport(ctx context.Context, ctl *eks.ClusterProvider,
 		return err
 	}
 	if api.ClusterHasInstanceType(cfg, instanceutils.IsARMInstanceType) {
-		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(ctx, ctl.Provider.EKS(), rawClient, kubernetesVersion, ctl.Provider.Region())
+		upToDate, err := defaultaddons.DoAddonsSupportMultiArch(ctx, ctl.AWSProvider.EKS(), rawClient, kubernetesVersion, ctl.AWSProvider.Region())
 		if err != nil {
 			return err
 		}

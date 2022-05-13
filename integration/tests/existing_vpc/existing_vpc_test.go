@@ -66,7 +66,7 @@ var _ = BeforeSuite(func() {
 
 	clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 	Expect(err).NotTo(HaveOccurred())
-	ctl = clusterProvider.Provider
+	ctl = clusterProvider.AWSProvider
 	cfg.VPC = createVPC(stackName, ctl)
 
 	configData, err := json.Marshal(&cfg)

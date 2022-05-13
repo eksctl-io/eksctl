@@ -35,7 +35,7 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 
 	p := mockprovider.NewMockProvider()
 	ctl := &eks.ClusterProvider{
-		Provider: p,
+		AWSProvider: p,
 		Status: &eks.ProviderStatus{
 			ClusterInfo: &eks.ClusterInfo{
 				Cluster: testutils.NewFakeCluster("my-cluster", ""),

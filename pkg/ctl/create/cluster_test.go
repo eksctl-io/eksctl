@@ -2,10 +2,6 @@ package create
 
 import (
 	"fmt"
-	"io"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,6 +14,9 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
+	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/testutils"
+	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
 var _ = Describe("create cluster", func() {
@@ -211,44 +210,9 @@ var _ = Describe("create cluster", func() {
 	})
 	FDescribe("createClusterCmd", func() {
 		Context("create cluster", func() {
-			var (
-				ts     *httptest.Server
-				primer func() string
-			)
 			BeforeEach(func() {
-				ts = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					body, err := io.ReadAll(r.Body)
-					Expect(err).NotTo(HaveOccurred())
-					defer r.Body.Close()
-					if primer != nil {
-						fmt.Fprintln(w, primer())
-					} else {
-						response, err := responseHandler(string(body))
-						Expect(err).NotTo(HaveOccurred())
-						fmt.Fprintln(w, response)
-					}
-				}))
-				u, err := url.Parse(ts.URL)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(os.Setenv("AWS_STS_ENDPOINT", u.String())).To(Succeed())
-				Expect(os.Setenv("AWS_IAM_ENDPOINT", u.String())).To(Succeed())
-				Expect(os.Setenv("AWS_EKS_ENDPOINT", u.String())).To(Succeed())
-				Expect(os.Setenv("AWS_EC2_ENDPOINT", u.String())).To(Succeed())
-				Expect(os.Setenv("AWS_CLOUDFORMATION_ENDPOINT", u.String())).To(Succeed())
-				Expect(os.Setenv("AWS_CLOUDTRAIL_ENDPOINT", u.String())).To(Succeed())
-				Expect(os.Setenv("AWS_ELB_ENDPOINT", u.String())).To(Succeed())
-				Expect(os.Setenv("AWS_ELBV2_ENDPOINT", u.String())).To(Succeed())
 			})
 			AfterEach(func() {
-				Expect(os.Setenv("AWS_STS_ENDPOINT", "")).To(Succeed())
-				Expect(os.Setenv("AWS_IAM_ENDPOINT", "")).To(Succeed())
-				Expect(os.Setenv("AWS_EKS_ENDPOINT", "")).To(Succeed())
-				Expect(os.Setenv("AWS_EC2_ENDPOINT", "")).To(Succeed())
-				Expect(os.Setenv("AWS_CLOUDFORMATION_ENDPOINT", "")).To(Succeed())
-				Expect(os.Setenv("AWS_CLOUDTRAIL_ENDPOINT", "")).To(Succeed())
-				Expect(os.Setenv("AWS_ELB_ENDPOINT", "")).To(Succeed())
-				Expect(os.Setenv("AWS_ELBV2_ENDPOINT", "")).To(Succeed())
-				ts.Close()
 			})
 			It("can create a cluster", func() {
 
@@ -257,10 +221,11 @@ var _ = Describe("create cluster", func() {
 				cfg := api.NewClusterConfig()
 				cfg.Metadata.Name = "gb-test-cluster-1"
 				cfg.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
+				cfg.Metadata.Version = "1.22"
 				cmd := &cmdutils.Cmd{
 					ClusterConfig: cfg,
 					ProviderConfig: api.ProviderConfig{
-						WaitTimeout: time.Minute * 10,
+						WaitTimeout: time.Minute * 1,
 					},
 				}
 				ngFilter := &filter.NodeGroupFilter{}
@@ -270,7 +235,16 @@ var _ = Describe("create cluster", func() {
 						api.SubnetTopologyPublic:  {},
 					},
 				}
-				Expect(doCreateCluster(cmd, ngFilter, params)).To(Succeed())
+				p := mockprovider.NewMockProvider()
+				ctl := &eks.ClusterProvider{
+					AWSProvider: p,
+					Status: &eks.ProviderStatus{
+						ClusterInfo: &eks.ClusterInfo{
+							Cluster: testutils.NewFakeCluster("my-cluster", ""),
+						},
+					},
+				}
+				Expect(doCreateCluster(cmd, ngFilter, params, ctl)).To(Succeed())
 			})
 		})
 	})
@@ -295,7 +269,7 @@ func responseHandler(body string) (string, error) {
 	case strings.Contains(body, "Action=DescribeStacks"):
 		return getContent("describe_stacks_response.xml"), nil
 	case strings.Contains(body, "Action=DescribeSubnets"):
-		return getContent("describe_subnet_response.xml"), nil
+		return getContent("describe_subnet_response_empty.xml"), nil
 	case strings.Contains(body, "Action=DescribeVpcs"):
 		return getContent("describe_vpcs_response.xml"), nil
 	case strings.Contains(body, "Action=ListStacks"):

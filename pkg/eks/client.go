@@ -18,6 +18,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/credentials"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -34,7 +35,7 @@ type Client struct {
 // NewClient creates a new client config by embedding the STS token
 func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
 	config := kubeconfig.NewForUser(spec, c.GetUsername())
-	generator := NewGenerator(c.Provider.STSPresigner(), &credentials.RealClock{})
+	generator := NewGenerator(c.AWSProvider.STSPresigner(), &credentials.RealClock{})
 	client := &Client{
 		Config:    config,
 		Generator: generator,
@@ -112,7 +113,7 @@ func (c *ClusterProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig)
 }
 
 // NewRawClient creates a new raw REST client in one go with an embedded STS token
-func (c *ClusterProvider) NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error) {
+func (c *KubernetesProvider) NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error) {
 	client, clientSet, err := c.newClientSetWithEmbeddedToken(spec)
 	if err != nil {
 		return nil, err
@@ -122,12 +123,12 @@ func (c *ClusterProvider) NewRawClient(spec *api.ClusterConfig) (*kubewrapper.Ra
 }
 
 // ServerVersion will use discovery API to fetch version of Kubernetes control plane
-func (c *ClusterProvider) ServerVersion(rawClient *kubewrapper.RawClient) (string, error) {
+func (c *KubernetesProvider) ServerVersion(rawClient *kubewrapper.RawClient) (string, error) {
 	return rawClient.ServerVersion()
 }
 
 // UpdateAuthConfigMap creates or adds a nodegroup IAM role in the auth ConfigMap for the given nodegroup.
-func (c *ClusterProvider) UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error {
+func (c *KubernetesProvider) UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error {
 	for _, ng := range nodeGroups {
 		// authorise nodes to join
 		if err := authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
@@ -143,12 +144,12 @@ func (c *ClusterProvider) UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clien
 }
 
 // WaitForNodes waits till the nodes are ready
-func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error {
+func (c *KubernetesProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error {
 	minSize := ng.Size()
 	if minSize == 0 {
 		return nil
 	}
-	timeout := time.After(c.Provider.WaitTimeout())
+	timeout := time.After(c.AWSProvider.WaitTimeout())
 	readyNodes := sets.NewString()
 	watcher, err := clientSet.CoreV1().Nodes().Watch(context.TODO(), ng.ListOptions())
 	if err != nil {
@@ -183,7 +184,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNo
 				}
 			}
 		case <-timeout:
-			return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.Provider.WaitTimeout(), minSize, ng.NameString())
+			return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.AWSProvider.WaitTimeout(), minSize, ng.NameString())
 		}
 
 		if counter >= minSize {
@@ -196,4 +197,17 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNo
 	}
 
 	return nil
+}
+
+// LoadClusterIntoSpecFromStack uses stack information to load the cluster
+// configuration into the spec
+// At the moment VPC and KubernetesNetworkConfig are respected
+func (c *KubernetesProvider) LoadClusterIntoSpecFromStack(ctx context.Context, spec *api.ClusterConfig, stackManager manager.StackManager) error {
+	if err := c.LoadClusterVPC(ctx, spec, stackManager); err != nil {
+		return err
+	}
+	if err := c.RefreshClusterStatus(ctx, spec); err != nil {
+		return err
+	}
+	return c.loadClusterKubernetesNetworkConfig(spec)
 }

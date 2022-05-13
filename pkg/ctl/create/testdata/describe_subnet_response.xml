@@ -8,7 +8,7 @@
             <state>available</state>
             <ownerId>123456789101</ownerId>
             <vpcId>vpc-026514c248d3e7fec</vpcId>
-            <cidrBlock>192.168.96.0/19</cidrBlock>
+            <cidrBlock>192.168.0.0/19</cidrBlock>
             <ipv6CidrBlockAssociationSet/>
             <availableIpAddressCount>8186</availableIpAddressCount>
             <availabilityZone>us-west-2d</availabilityZone>
@@ -65,7 +65,7 @@
             <state>available</state>
             <ownerId>123456789101</ownerId>
             <vpcId>vpc-026514c248d3e7fec</vpcId>
-            <cidrBlock>192.168.160.0/19</cidrBlock>
+            <cidrBlock>192.168.32.0/19</cidrBlock>
             <ipv6CidrBlockAssociationSet/>
             <availableIpAddressCount>8187</availableIpAddressCount>
             <availabilityZone>us-west-2a</availabilityZone>
@@ -122,7 +122,7 @@
             <state>available</state>
             <ownerId>123456789101</ownerId>
             <vpcId>vpc-026514c248d3e7fec</vpcId>
-            <cidrBlock>192.168.128.0/19</cidrBlock>
+            <cidrBlock>192.168.64.0/19</cidrBlock>
             <ipv6CidrBlockAssociationSet/>
             <availableIpAddressCount>8186</availableIpAddressCount>
             <availabilityZone>us-west-2b</availabilityZone>
@@ -161,6 +161,177 @@
                 <item>
                     <key>eksctl.cluster.k8s.io/v1alpha1/cluster-name</key>
                     <value>gb-test-cluster-1</value>
+                </item>
+            </tagSet>
+            <assignIpv6AddressOnCreation>false</assignIpv6AddressOnCreation>
+            <mapCustomerOwnedIpOnLaunch>false</mapCustomerOwnedIpOnLaunch>
+            <privateDnsNameOptionsOnLaunch>
+                <hostnameType>ip-name</hostnameType>
+                <enableResourceNameDnsARecord>false</enableResourceNameDnsARecord>
+                <enableResourceNameDnsAAAARecord>false</enableResourceNameDnsAAAARecord>
+            </privateDnsNameOptionsOnLaunch>
+            <ipv6Native>false</ipv6Native>
+            <enableDns64>false</enableDns64>
+        </item>
+        <item>
+            <subnetId>subnet-0b86d280e539cf2bb</subnetId>
+            <subnetArn>arn:aws:ec2:us-west-2:083751696308:subnet/subnet-0b86d280e539cf2bb</subnetArn>
+            <state>available</state>
+            <ownerId>083751696308</ownerId>
+            <vpcId>vpc-026514c248d3e7fec</vpcId>
+            <cidrBlock>192.168.96.0/19</cidrBlock>
+            <ipv6CidrBlockAssociationSet/>
+            <availableIpAddressCount>8187</availableIpAddressCount>
+            <availabilityZone>us-west-2a</availabilityZone>
+            <availabilityZoneId>usw2-az2</availabilityZoneId>
+            <defaultForAz>false</defaultForAz>
+            <mapPublicIpOnLaunch>true</mapPublicIpOnLaunch>
+            <tagSet>
+                <item>
+                    <key>aws:cloudformation:stack-id</key>
+                    <value>arn:aws:cloudformation:us-west-2:083751696308:stack/eksctl-gb-test-cluster-1-cluster/b53ff8e0-d1e4-11ec-bc75-0288bf388723</value>
+                </item>
+                <item>
+                    <key>alpha.eksctl.io/eksctl-version</key>
+                    <value>0.98.0-dev+b834d17e0.2022-05-12T13:02:42Z</value>
+                </item>
+                <item>
+                    <key>aws:cloudformation:logical-id</key>
+                    <value>SubnetPublicUSWEST2A</value>
+                </item>
+                <item>
+                    <key>aws:cloudformation:stack-name</key>
+                    <value>eksctl-gb-test-cluster-1-cluster</value>
+                </item>
+                <item>
+                    <key>eksctl.cluster.k8s.io/v1alpha1/cluster-name</key>
+                    <value>gb-test-cluster-1</value>
+                </item>
+                <item>
+                    <key>alpha.eksctl.io/cluster-name</key>
+                    <value>gb-test-cluster-1</value>
+                </item>
+                <item>
+                    <key>kubernetes.io/role/elb</key>
+                    <value>1</value>
+                </item>
+                <item>
+                    <key>Name</key>
+                    <value>eksctl-gb-test-cluster-1-cluster/SubnetPublicUSWEST2A</value>
+                </item>
+            </tagSet>
+            <assignIpv6AddressOnCreation>false</assignIpv6AddressOnCreation>
+            <mapCustomerOwnedIpOnLaunch>false</mapCustomerOwnedIpOnLaunch>
+            <privateDnsNameOptionsOnLaunch>
+                <hostnameType>ip-name</hostnameType>
+                <enableResourceNameDnsARecord>false</enableResourceNameDnsARecord>
+                <enableResourceNameDnsAAAARecord>false</enableResourceNameDnsAAAARecord>
+            </privateDnsNameOptionsOnLaunch>
+            <ipv6Native>false</ipv6Native>
+            <enableDns64>false</enableDns64>
+        </item>
+        <item>
+            <subnetId>subnet-0624e939038c95899</subnetId>
+            <subnetArn>arn:aws:ec2:us-west-2:083751696308:subnet/subnet-0624e939038c95899</subnetArn>
+            <state>available</state>
+            <ownerId>083751696308</ownerId>
+            <vpcId>vpc-026514c248d3e7fec</vpcId>
+            <cidrBlock>192.168.128.0/19</cidrBlock>
+            <ipv6CidrBlockAssociationSet/>
+            <availableIpAddressCount>8186</availableIpAddressCount>
+            <availabilityZone>us-west-2d</availabilityZone>
+            <availabilityZoneId>usw2-az4</availabilityZoneId>
+            <defaultForAz>false</defaultForAz>
+            <mapPublicIpOnLaunch>true</mapPublicIpOnLaunch>
+            <tagSet>
+                <item>
+                    <key>aws:cloudformation:stack-id</key>
+                    <value>arn:aws:cloudformation:us-west-2:083751696308:stack/eksctl-gb-test-cluster-1-cluster/b53ff8e0-d1e4-11ec-bc75-0288bf388723</value>
+                </item>
+                <item>
+                    <key>kubernetes.io/role/elb</key>
+                    <value>1</value>
+                </item>
+                <item>
+                    <key>alpha.eksctl.io/cluster-name</key>
+                    <value>gb-test-cluster-1</value>
+                </item>
+                <item>
+                    <key>eksctl.cluster.k8s.io/v1alpha1/cluster-name</key>
+                    <value>gb-test-cluster-1</value>
+                </item>
+                <item>
+                    <key>Name</key>
+                    <value>eksctl-gb-test-cluster-1-cluster/SubnetPublicUSWEST2D</value>
+                </item>
+                <item>
+                    <key>aws:cloudformation:stack-name</key>
+                    <value>eksctl-gb-test-cluster-1-cluster</value>
+                </item>
+                <item>
+                    <key>alpha.eksctl.io/eksctl-version</key>
+                    <value>0.98.0-dev+b834d17e0.2022-05-12T13:02:42Z</value>
+                </item>
+                <item>
+                    <key>aws:cloudformation:logical-id</key>
+                    <value>SubnetPublicUSWEST2D</value>
+                </item>
+            </tagSet>
+            <assignIpv6AddressOnCreation>false</assignIpv6AddressOnCreation>
+            <mapCustomerOwnedIpOnLaunch>false</mapCustomerOwnedIpOnLaunch>
+            <privateDnsNameOptionsOnLaunch>
+                <hostnameType>ip-name</hostnameType>
+                <enableResourceNameDnsARecord>false</enableResourceNameDnsARecord>
+                <enableResourceNameDnsAAAARecord>false</enableResourceNameDnsAAAARecord>
+            </privateDnsNameOptionsOnLaunch>
+            <ipv6Native>false</ipv6Native>
+            <enableDns64>false</enableDns64>
+        </item>
+        <item>
+            <subnetId>subnet-05c20c36ffaa859c9</subnetId>
+            <subnetArn>arn:aws:ec2:us-west-2:083751696308:subnet/subnet-05c20c36ffaa859c9</subnetArn>
+            <state>available</state>
+            <ownerId>083751696308</ownerId>
+            <vpcId>vpc-026514c248d3e7fec</vpcId>
+            <cidrBlock>192.168.160.0/19</cidrBlock>
+            <ipv6CidrBlockAssociationSet/>
+            <availableIpAddressCount>8187</availableIpAddressCount>
+            <availabilityZone>us-west-2b</availabilityZone>
+            <availabilityZoneId>usw2-az1</availabilityZoneId>
+            <defaultForAz>false</defaultForAz>
+            <mapPublicIpOnLaunch>true</mapPublicIpOnLaunch>
+            <tagSet>
+                <item>
+                    <key>aws:cloudformation:stack-id</key>
+                    <value>arn:aws:cloudformation:us-west-2:083751696308:stack/eksctl-gb-test-cluster-1-cluster/b53ff8e0-d1e4-11ec-bc75-0288bf388723</value>
+                </item>
+                <item>
+                    <key>alpha.eksctl.io/eksctl-version</key>
+                    <value>0.98.0-dev+b834d17e0.2022-05-12T13:02:42Z</value>
+                </item>
+                <item>
+                    <key>aws:cloudformation:logical-id</key>
+                    <value>SubnetPublicUSWEST2B</value>
+                </item>
+                <item>
+                    <key>Name</key>
+                    <value>eksctl-gb-test-cluster-1-cluster/SubnetPublicUSWEST2B</value>
+                </item>
+                <item>
+                    <key>alpha.eksctl.io/cluster-name</key>
+                    <value>gb-test-cluster-1</value>
+                </item>
+                <item>
+                    <key>kubernetes.io/role/elb</key>
+                    <value>1</value>
+                </item>
+                <item>
+                    <key>eksctl.cluster.k8s.io/v1alpha1/cluster-name</key>
+                    <value>gb-test-cluster-1</value>
+                </item>
+                <item>
+                    <key>aws:cloudformation:stack-name</key>
+                    <value>eksctl-gb-test-cluster-1-cluster</value>
                 </item>
             </tagSet>
             <assignIpv6AddressOnCreation>false</assignIpv6AddressOnCreation>

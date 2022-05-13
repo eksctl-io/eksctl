@@ -35,10 +35,10 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.
 		clientSet:    clientSet,
 		wait:         waiters.Wait,
 		init: &eks.NodeGroupService{
-			Provider: ctl.Provider,
+			Provider: ctl.AWSProvider,
 		},
-		kubeProvider:          ctl,
-		launchTemplateFetcher: builder.NewLaunchTemplateFetcher(ctl.Provider.EC2()),
+		kubeProvider:          ctl.KubernetesProvider,
+		launchTemplateFetcher: builder.NewLaunchTemplateFetcher(ctl.AWSProvider.EC2()),
 	}
 }
 

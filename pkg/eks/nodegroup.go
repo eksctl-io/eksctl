@@ -206,7 +206,7 @@ func newSuspendProcesses(c *ClusterProvider, spec *api.ClusterConfig, nodegroup 
 	return tasks.SynchronousTask{
 		SynchronousTaskIface: &suspendProcesses{
 			ctx:             context.Background(),
-			asg:             c.Provider.ASG(),
+			asg:             c.AWSProvider.ASG(),
 			stackCollection: c.NewStackManager(spec),
 			nodegroup:       nodegroup,
 		},

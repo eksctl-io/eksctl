@@ -46,7 +46,7 @@ var _ = Describe("Update", func() {
 			NodegroupName: &ngName,
 		}).Return(nil, &ekstypes.ResourceNotFoundException{})
 
-		m = New(cfg, &eks.ClusterProvider{Provider: p}, nil)
+		m = New(cfg, &eks.ClusterProvider{AWSProvider: p}, nil)
 		err := m.Update(context.Background())
 		Expect(err).To(HaveOccurred())
 		Expect(err).To(MatchError(ContainSubstring("could not find managed nodegroup with name \"my-ng\"")))
@@ -76,7 +76,7 @@ var _ = Describe("Update", func() {
 			MaxUnavailable: aws.Int(6),
 		}
 
-		m = New(cfg, &eks.ClusterProvider{Provider: p}, nil)
+		m = New(cfg, &eks.ClusterProvider{AWSProvider: p}, nil)
 		err := m.Update(context.Background())
 		Expect(err).NotTo(HaveOccurred())
 	})
@@ -135,7 +135,7 @@ var _ = Describe("Update", func() {
 
 		cfg.ManagedNodeGroups = append(cfg.ManagedNodeGroups, newNg)
 
-		m = New(cfg, &eks.ClusterProvider{Provider: p}, nil)
+		m = New(cfg, &eks.ClusterProvider{AWSProvider: p}, nil)
 		err := m.Update(context.Background())
 		Expect(err).NotTo(HaveOccurred())
 	})
