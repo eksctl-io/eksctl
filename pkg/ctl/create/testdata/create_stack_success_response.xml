@@ -1,8 +1,0 @@
-<CreateStackResponse xmlns="http://cloudformation.amazonaws.com/doc/2010-05-15/">
-    <CreateStackResult>
-        <StackId>arn:aws:cloudformation:us-west-2:123456789101:stack/eksctl-gb-test-cluster-1-nodegroup-managed-ng-1/909a0920-d1e6-11ec-8165-06b230f7c17f</StackId>
-    </CreateStackResult>
-    <ResponseMetadata>
-        <RequestId>528acbd8-ad8b-4b3d-bea1-25fbc8e835cb</RequestId>
-    </ResponseMetadata>
-</CreateStackResponse>

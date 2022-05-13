@@ -1,15 +1,10 @@
 package create
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -249,33 +244,3 @@ var _ = Describe("create cluster", func() {
 		})
 	})
 })
-
-// responseHandler returns the required response based on the body and Request type in the body.
-// TODO: Extend this to allow to return an error response for a specific
-// response.
-func responseHandler(body string) (string, error) {
-	getContent := func(file string) string {
-		content, err := os.ReadFile(filepath.Join("testdata", file))
-		Expect(err).NotTo(HaveOccurred())
-		return string(content)
-	}
-	switch {
-	case strings.Contains(body, "Action=DescribeAvailabilityZones"):
-		return getContent("describe_availability_zones.xml"), nil
-	case strings.Contains(body, "Action=GetCallerIdentity"):
-		return getContent("caller_identity_success_response.xml"), nil
-	case strings.Contains(body, "Action=CreateStack"):
-		return getContent("create_stack_success_response.xml"), nil
-	case strings.Contains(body, "Action=DescribeStacks"):
-		return getContent("describe_stacks_response.xml"), nil
-	case strings.Contains(body, "Action=DescribeSubnets"):
-		return getContent("describe_subnet_response_empty.xml"), nil
-	case strings.Contains(body, "Action=DescribeVpcs"):
-		return getContent("describe_vpcs_response.xml"), nil
-	case strings.Contains(body, "Action=ListStacks"):
-		return getContent("list_stacks_response.xml"), nil
-	default:
-		fmt.Println("Body: ", body)
-		return "", errors.New("unknown request in body")
-	}
-}

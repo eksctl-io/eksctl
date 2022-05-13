@@ -1,5 +1,0 @@
-<DescribeVpcsResponse xmlns="http://ec2.amazonaws.com/doc/2016-11-15/">
-    <requestId>65ebee25-5d3d-4c61-977c-013ac606ce8d</requestId>
-    <vpcSet>
-    </vpcSet>
-</DescribeVpcsResponse>
