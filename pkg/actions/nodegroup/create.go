@@ -38,7 +38,6 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 	cfg := m.cfg
 	meta := cfg.Metadata
 	ctl := m.ctl
-	kubeProvider := m.kubeProvider
 
 	if err := checkVersion(ctl, meta); err != nil {
 		return err
@@ -49,7 +48,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 	}
 
 	isOwnedCluster := true
-	if err := kubeProvider.LoadClusterIntoSpecFromStack(ctx, cfg, m.stackManager); err != nil {
+	if err := ctl.LoadClusterIntoSpecFromStack(ctx, cfg, m.stackManager); err != nil {
 		switch e := err.(type) {
 		case *manager.StackNotFoundErr:
 			logger.Warning("%s, will attempt to create nodegroup(s) on non eksctl-managed cluster", e.Error())
@@ -82,7 +81,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 	}
 
 	if isOwnedCluster {
-		if err := kubeProvider.ValidateClusterForCompatibility(ctx, cfg, m.stackManager); err != nil {
+		if err := ctl.ValidateClusterForCompatibility(ctx, cfg, m.stackManager); err != nil {
 			return errors.Wrap(err, "cluster compatibility check failed")
 		}
 	}

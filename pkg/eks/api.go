@@ -28,6 +28,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 	"k8s.io/apimachinery/pkg/runtime"
+	k8sclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/yaml"
 
@@ -53,15 +54,18 @@ type ClusterProvider struct {
 }
 
 // KubernetesProvider provides helper methods to handle Kubernetes operations.
-type KubernetesProvider struct{}
+type KubernetesProvider struct {
+	WaitTimeout time.Duration
+	RoleARN     string
+	Signer      api.STSPresigner
+}
 
 //counterfeiter:generate -o fakes/fake_kube_provider.go . KubeProvider
 // KubeProvider is an interface with helper funcs for k8s and EKS that are part of ClusterProvider
 type KubeProvider interface {
 	NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error)
+	NewStdClientSet(spec *api.ClusterConfig) (*k8sclient.Clientset, error)
 	ServerVersion(rawClient *kubernetes.RawClient) (string, error)
-	LoadClusterIntoSpecFromStack(ctx context.Context, spec *api.ClusterConfig, stackManager manager.StackManager) error
-	ValidateClusterForCompatibility(ctx context.Context, cfg *api.ClusterConfig, stackManager manager.StackManager) error
 	UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error
 	WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error
 }
@@ -122,7 +126,7 @@ type ClusterInfo struct {
 
 // ProviderStatus stores information about the used IAM role and the resulting session
 type ProviderStatus struct {
-	iamRoleARN   string
+	IAMRoleARN   string
 	sessionCreds *credentials.Credentials
 	ClusterInfo  *ClusterInfo
 }
@@ -198,7 +202,18 @@ func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.Cluster
 		clusterSpec.Metadata.Region = c.AWSProvider.Region()
 	}
 
-	return c, c.checkAuth(ctx)
+	// c.Status.IAMRoleARN is set up in checkAuth which is later on needed by the kubeProvider.
+	if err := c.checkAuth(ctx); err != nil {
+		return nil, err
+	}
+	kubeProvider := &KubernetesProvider{
+		WaitTimeout: spec.WaitTimeout,
+		RoleARN:     c.Status.IAMRoleARN,
+		Signer:      provider.STSPresigner(),
+	}
+	c.KubernetesProvider = kubeProvider
+
+	return c, nil
 }
 
 // ParseConfig parses data into a ClusterConfig
@@ -277,8 +292,8 @@ func (c *ClusterProvider) checkAuth(ctx context.Context) error {
 	if output == nil || output.Arn == nil {
 		return fmt.Errorf("unexpected response from AWS STS")
 	}
-	c.Status.iamRoleARN = *output.Arn
-	logger.Debug("role ARN for the current session is %q", c.Status.iamRoleARN)
+	c.Status.IAMRoleARN = *output.Arn
+	logger.Debug("role ARN for the current session is %q", c.Status.IAMRoleARN)
 	return nil
 }
 
@@ -428,4 +443,17 @@ func (c *ClusterProvider) newSession(spec *api.ProviderConfig) *session.Session 
 // NewStackManager returns a new stack manager
 func (c *ClusterProvider) NewStackManager(spec *api.ClusterConfig) manager.StackManager {
 	return manager.NewStackCollection(c.AWSProvider, spec)
+}
+
+// LoadClusterIntoSpecFromStack uses stack information to load the cluster
+// configuration into the spec
+// At the moment VPC and KubernetesNetworkConfig are respected
+func (c *ClusterProvider) LoadClusterIntoSpecFromStack(ctx context.Context, spec *api.ClusterConfig, stackManager manager.StackManager) error {
+	if err := c.LoadClusterVPC(ctx, spec, stackManager); err != nil {
+		return err
+	}
+	if err := c.RefreshClusterStatus(ctx, spec); err != nil {
+		return err
+	}
+	return c.loadClusterKubernetesNetworkConfig(spec)
 }

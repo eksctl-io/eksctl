@@ -18,7 +18,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/credentials"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -33,9 +32,9 @@ type Client struct {
 }
 
 // NewClient creates a new client config by embedding the STS token
-func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
-	config := kubeconfig.NewForUser(spec, c.GetUsername())
-	generator := NewGenerator(c.AWSProvider.STSPresigner(), &credentials.RealClock{})
+func (c *KubernetesProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
+	config := kubeconfig.NewForUser(spec, GetUsername(c.RoleARN))
+	generator := NewGenerator(c.Signer, &credentials.RealClock{})
 	client := &Client{
 		Config:    config,
 		Generator: generator,
@@ -44,8 +43,8 @@ func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
 }
 
 // GetUsername extracts the username part from the IAM role ARN
-func (c *ClusterProvider) GetUsername() string {
-	usernameParts := strings.Split(c.Status.iamRoleARN, "/")
+func GetUsername(roleArn string) string {
+	usernameParts := strings.Split(roleArn, "/")
 	if len(usernameParts) > 1 {
 		return usernameParts[len(usernameParts)-1]
 	}
@@ -89,7 +88,7 @@ func (c *Client) NewClientSet() (*kubernetes.Clientset, error) {
 }
 
 // NewStdClientSet creates a new API client in one go with an embedded STS token, this is most commonly used option
-func (c *ClusterProvider) NewStdClientSet(spec *api.ClusterConfig) (*kubernetes.Clientset, error) {
+func (c *KubernetesProvider) NewStdClientSet(spec *api.ClusterConfig) (*kubernetes.Clientset, error) {
 	_, clientSet, err := c.newClientSetWithEmbeddedToken(spec)
 	if err != nil {
 		return nil, err
@@ -98,7 +97,7 @@ func (c *ClusterProvider) NewStdClientSet(spec *api.ClusterConfig) (*kubernetes.
 	return clientSet, nil
 }
 
-func (c *ClusterProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig) (*Client, *kubernetes.Clientset, error) {
+func (c *KubernetesProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig) (*Client, *kubernetes.Clientset, error) {
 	client, err := c.NewClient(spec)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "creating Kubernetes client config with embedded token")
@@ -149,7 +148,7 @@ func (c *KubernetesProvider) WaitForNodes(clientSet kubernetes.Interface, ng Kub
 	if minSize == 0 {
 		return nil
 	}
-	timeout := time.After(c.AWSProvider.WaitTimeout())
+	timeout := time.After(c.WaitTimeout)
 	readyNodes := sets.NewString()
 	watcher, err := clientSet.CoreV1().Nodes().Watch(context.TODO(), ng.ListOptions())
 	if err != nil {
@@ -184,7 +183,7 @@ func (c *KubernetesProvider) WaitForNodes(clientSet kubernetes.Interface, ng Kub
 				}
 			}
 		case <-timeout:
-			return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.AWSProvider.WaitTimeout(), minSize, ng.NameString())
+			return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.WaitTimeout, minSize, ng.NameString())
 		}
 
 		if counter >= minSize {
@@ -197,17 +196,4 @@ func (c *KubernetesProvider) WaitForNodes(clientSet kubernetes.Interface, ng Kub
 	}
 
 	return nil
-}
-
-// LoadClusterIntoSpecFromStack uses stack information to load the cluster
-// configuration into the spec
-// At the moment VPC and KubernetesNetworkConfig are respected
-func (c *KubernetesProvider) LoadClusterIntoSpecFromStack(ctx context.Context, spec *api.ClusterConfig, stackManager manager.StackManager) error {
-	if err := c.LoadClusterVPC(ctx, spec, stackManager); err != nil {
-		return err
-	}
-	if err := c.RefreshClusterStatus(ctx, spec); err != nil {
-		return err
-	}
-	return c.loadClusterKubernetesNetworkConfig(spec)
 }

@@ -121,7 +121,7 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 	})
 }
 
-func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams, ctl *eks.ClusterProvider, kubeProvider eks.KubeProvider) error {
+func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams, ctl *eks.ClusterProvider) error {
 	var err error
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
@@ -315,7 +315,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		var kubeconfigContextName string
 
 		if params.WriteKubeconfig {
-			kubectlConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), params.AuthenticatorRoleARN, ctl.AWSProvider.Profile())
+			kubectlConfig := kubeconfig.NewForKubectl(cfg, eks.GetUsername(ctl.Status.IAMRoleARN), params.AuthenticatorRoleARN, ctl.AWSProvider.Profile())
 			kubeconfigContextName = kubectlConfig.CurrentContext
 
 			params.KubeconfigPath, err = kubeconfig.Write(params.KubeconfigPath, *kubectlConfig, params.SetContext)
@@ -342,7 +342,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		logger.Success("all EKS cluster resources for %q have been created", meta.Name)
 
 		// create Kubernetes client
-		clientSet, err := ctl.NewStdClientSet(cfg)
+		clientSet, err := ctl.KubernetesProvider.NewStdClientSet(cfg)
 		if err != nil {
 			return err
 		}
@@ -354,13 +354,13 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			}
 
 			// wait for nodes to join
-			if err = ctl.WaitForNodes(clientSet, ng); err != nil {
+			if err = ctl.KubernetesProvider.WaitForNodes(clientSet, ng); err != nil {
 				return err
 			}
 		}
 
 		for _, ng := range cfg.ManagedNodeGroups {
-			if err := ctl.WaitForNodes(clientSet, ng); err != nil {
+			if err := ctl.KubernetesProvider.WaitForNodes(clientSet, ng); err != nil {
 				return err
 			}
 		}
@@ -376,7 +376,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 
 		// After we have the cluster config and all the nodes are done, we install Karpenter if necessary.
 		if cfg.Karpenter != nil {
-			config := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), params.AuthenticatorRoleARN, ctl.AWSProvider.Profile())
+			config := kubeconfig.NewForKubectl(cfg, eks.GetUsername(ctl.Status.IAMRoleARN), params.AuthenticatorRoleARN, ctl.AWSProvider.Profile())
 			kubeConfigBytes, err := runtime.Encode(clientcmdlatest.Codec, config)
 			if err != nil {
 				return errors.Wrap(err, "generating kubeconfig")

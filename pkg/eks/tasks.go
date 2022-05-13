@@ -86,7 +86,7 @@ func (v *VPCControllerTask) Describe() string { return v.Info }
 // Do implements Task
 func (v *VPCControllerTask) Do(errCh chan error) error {
 	defer close(errCh)
-	rawClient, err := v.ClusterProvider.NewRawClient(v.ClusterConfig)
+	rawClient, err := v.ClusterProvider.KubernetesProvider.NewRawClient(v.ClusterConfig)
 	if err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func (v *VPCControllerTask) Do(errCh chan error) error {
 
 	stackCollection := manager.NewStackCollection(v.ClusterProvider.AWSProvider, v.ClusterConfig)
 
-	clientSet, err := v.ClusterProvider.NewStdClientSet(v.ClusterConfig)
+	clientSet, err := v.ClusterProvider.KubernetesProvider.NewStdClientSet(v.ClusterConfig)
 	if err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func (n *devicePluginTask) Describe() string { return fmt.Sprintf("install %s de
 
 func (n *devicePluginTask) Do(errCh chan error) error {
 	defer close(errCh)
-	rawClient, err := n.clusterProvider.NewRawClient(n.spec)
+	rawClient, err := n.clusterProvider.KubernetesProvider.NewRawClient(n.spec)
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func (t *restartDaemonsetTask) Describe() string {
 
 func (t *restartDaemonsetTask) Do(errCh chan error) error {
 	defer close(errCh)
-	clientSet, err := t.clusterProvider.NewStdClientSet(t.spec)
+	clientSet, err := t.clusterProvider.KubernetesProvider.NewStdClientSet(t.spec)
 	if err != nil {
 		return err
 	}
@@ -229,7 +229,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 	newTasks.Append(&tasks.GenericTask{
 		Description: "wait for control plane to become ready",
 		Doer: func() error {
-			clientSet, err := c.NewStdClientSet(cfg)
+			clientSet, err := c.KubernetesProvider.NewStdClientSet(cfg)
 			if err != nil {
 				return errors.Wrap(err, "error creating Clientset")
 			}
@@ -284,7 +284,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 		newTasks.Append(&WindowsIPAMTask{
 			Info: "enable Windows IP address management",
 			ClientsetFunc: func() (kubernetes.Interface, error) {
-				return c.NewStdClientSet(cfg)
+				return c.KubernetesProvider.NewStdClientSet(cfg)
 			},
 		})
 	}
@@ -417,7 +417,7 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(ctx context.Con
 
 	clientSet := &kubernetes.CallbackClientSet{
 		Callback: func() (kubernetes.Interface, error) {
-			return c.NewStdClientSet(cfg)
+			return c.KubernetesProvider.NewStdClientSet(cfg)
 		},
 	}
 
