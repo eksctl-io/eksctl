@@ -11,6 +11,7 @@ on:
       mustBeGreen:
         description: 'Only combine PRs that are green (status is success)'
         required: true
+        default: 'true'
       combineBranchName:
         description: 'Name of the branch to combine PRs into'
         required: true
