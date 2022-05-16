@@ -26,7 +26,7 @@ jobs:
           token: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
           fetch-depth: 0
       - name: Cache go-build and mod
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build/
