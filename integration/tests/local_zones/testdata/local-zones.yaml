@@ -1,0 +1,17 @@
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+localZones: ["us-west-2-lax-1a", "us-west-2-lax-1b"]
+
+metadata:
+  name: <generated>
+
+nodeGroups:
+  - name: ng
+    desiredCapacity: 1
+    localZones: ["us-west-2-lax-1a", "us-west-2-lax-1b"]
+
+managedNodeGroups:
+  - name: mng
+    desiredCapacity: 1
