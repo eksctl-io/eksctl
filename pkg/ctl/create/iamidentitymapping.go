@@ -84,7 +84,7 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
 	}
-	clientSet, err := ctl.NewStdClientSet(cfg)
+	clientSet, err := ctl.KubernetesProvider.NewStdClientSet(cfg)
 	if err != nil {
 		return err
 	}
@@ -109,7 +109,7 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, options iamIdentityMappingOpt
 		if hasARNOptions() {
 			return errors.New("cannot use --arn, --username, and --groups with --service-name")
 		}
-		rawClient, err := ctl.NewRawClient(cfg)
+		rawClient, err := ctl.KubernetesProvider.NewRawClient(cfg)
 		if err != nil {
 			return err
 		}

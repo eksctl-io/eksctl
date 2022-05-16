@@ -59,7 +59,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 			return err
 		}
 
-		clientSet, err := ctl.NewStdClientSet(cmd.ClusterConfig)
+		clientSet, err := ctl.KubernetesProvider.NewStdClientSet(cmd.ClusterConfig)
 		if err != nil {
 			return err
 		}

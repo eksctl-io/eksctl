@@ -1,10 +1,11 @@
 package fargate
 
 import (
+	"k8s.io/client-go/kubernetes"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"k8s.io/client-go/kubernetes"
 )
 
 type Manager struct {
@@ -19,6 +20,6 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.
 		ctl:             ctl,
 		cfg:             cfg,
 		stackManager:    stackManager,
-		newStdClientSet: func() (kubernetes.Interface, error) { return ctl.NewStdClientSet(cfg) },
+		newStdClientSet: func() (kubernetes.Interface, error) { return ctl.KubernetesProvider.NewStdClientSet(cfg) },
 	}
 }

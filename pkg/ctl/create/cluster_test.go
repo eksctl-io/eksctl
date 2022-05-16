@@ -1,17 +1,11 @@
 package create
 
 import (
-	"time"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
-	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/testutils"
-	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
 var _ = Describe("create cluster", func() {
@@ -105,14 +99,6 @@ var _ = Describe("create cluster", func() {
 				args:  []string{"cluster", "--invalid", "dummy"},
 				error: "unknown flag: --invalid",
 			}),
-			Entry("with --name option with invalid characters that are rejected by cloudformation", invalidParamsCase{
-				args:  []string{"test-k8_cluster01"},
-				error: "validation for test-k8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
-			}),
-			Entry("with cluster name argument with invalid characters that are rejected by cloudformation", invalidParamsCase{
-				args:  []string{"--name", "eksctl-testing-k_8_cluster01"},
-				error: "validation for eksctl-testing-k_8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
-			}),
 		)
 	})
 
@@ -185,14 +171,6 @@ var _ = Describe("create cluster", func() {
 				args:  []string{"cluster", "--invalid", "dummy"},
 				error: "unknown flag: --invalid",
 			}),
-			Entry("with --name option with invalid characters that are rejected by cloudformation", invalidParamsCase{
-				args:  []string{"test-k8_cluster01"},
-				error: "validation for test-k8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
-			}),
-			Entry("with cluster name argument with invalid characters that are rejected by cloudformation", invalidParamsCase{
-				args:  []string{"--name", "eksctl-testing-k_8_cluster01"},
-				error: "validation for eksctl-testing-k_8_cluster01 failed, name must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*",
-			}),
 			Entry("with enableSsm disabled", invalidParamsCase{
 				args:  []string{"--name=test", "--enable-ssm=false"},
 				error: "SSM agent is now built into EKS AMIs and cannot be disabled",
@@ -202,45 +180,5 @@ var _ = Describe("create cluster", func() {
 				error: "validation for --zones and --node-zones failed: node-zones [zone3] must be a subset of zones [zone1 zone2]; \"zone3\" was not found in zones",
 			}),
 		)
-	})
-	FDescribe("createClusterCmd", func() {
-		Context("create cluster", func() {
-			BeforeEach(func() {
-			})
-			AfterEach(func() {
-			})
-			It("can create a cluster", func() {
-
-				// Context deadline exceeded because
-				// waitTimeout
-				cfg := api.NewClusterConfig()
-				cfg.Metadata.Name = "gb-test-cluster-1"
-				cfg.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
-				cfg.Metadata.Version = "1.22"
-				cmd := &cmdutils.Cmd{
-					ClusterConfig: cfg,
-					ProviderConfig: api.ProviderConfig{
-						WaitTimeout: time.Minute * 1,
-					},
-				}
-				ngFilter := &filter.NodeGroupFilter{}
-				params := &cmdutils.CreateClusterCmdParams{
-					Subnets: map[api.SubnetTopology]*[]string{
-						api.SubnetTopologyPrivate: {},
-						api.SubnetTopologyPublic:  {},
-					},
-				}
-				p := mockprovider.NewMockProvider()
-				ctl := &eks.ClusterProvider{
-					AWSProvider: p,
-					Status: &eks.ProviderStatus{
-						ClusterInfo: &eks.ClusterInfo{
-							Cluster: testutils.NewFakeCluster("my-cluster", ""),
-						},
-					},
-				}
-				Expect(doCreateCluster(cmd, ngFilter, params, ctl)).To(Succeed())
-			})
-		})
 	})
 })
