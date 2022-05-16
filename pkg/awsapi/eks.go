@@ -143,9 +143,9 @@ type EKS interface {
 	// Returns descriptive information about an Amazon EKS node group.
 	DescribeNodegroup(ctx context.Context, params *DescribeNodegroupInput, optFns ...func(*Options)) (*DescribeNodegroupOutput, error)
 	// Returns descriptive information about an update against your Amazon EKS cluster
-	// or associated managed node group. When the status of the update is Succeeded,
-	// the update is complete. If an update fails, the status is Failed, and an error
-	// detail explains the reason for the failure.
+	// or associated managed node group or Amazon EKS add-on. When the status of the
+	// update is Succeeded, the update is complete. If an update fails, the status is
+	// Failed, and an error detail explains the reason for the failure.
 	DescribeUpdate(ctx context.Context, params *DescribeUpdateInput, optFns ...func(*Options)) (*DescribeUpdateOutput, error)
 	// Disassociates an identity provider configuration from a cluster. If you
 	// disassociate an identity provider from your cluster, users included in the

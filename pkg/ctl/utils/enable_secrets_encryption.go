@@ -81,7 +81,7 @@ func doEnableSecretsEncryption(cmd *cmdutils.Cmd, encryptExistingSecrets bool) e
 
 	if encryptExistingSecrets {
 		logger.Info("updating all Secret resources to apply KMS encryption")
-		clientSet, err := ctl.NewStdClientSet(clusterConfig)
+		clientSet, err := ctl.KubernetesProvider.NewStdClientSet(clusterConfig)
 		if err != nil {
 			return err
 		}

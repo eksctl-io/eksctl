@@ -33,7 +33,7 @@ func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackMa
 		ctl:          ctl,
 		stackManager: stackManager,
 		newClientSet: func() (kubernetes.Interface, error) {
-			return ctl.NewStdClientSet(cfg)
+			return ctl.KubernetesProvider.NewStdClientSet(cfg)
 		},
 		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer {
 			return nodegroup.New(cfg, ctl, clientSet)

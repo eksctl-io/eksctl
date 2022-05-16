@@ -51,7 +51,7 @@ func doUpdateCoreDNS(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	rawClient, err := ctl.NewRawClient(cfg)
+	rawClient, err := ctl.KubernetesProvider.NewRawClient(cfg)
 	if err != nil {
 		return err
 	}

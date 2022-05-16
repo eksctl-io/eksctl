@@ -85,7 +85,7 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 		return err
 	}
 
-	clientSet, err := ctl.NewStdClientSet(cfg)
+	clientSet, err := ctl.KubernetesProvider.NewStdClientSet(cfg)
 	if err != nil {
 		return err
 	}

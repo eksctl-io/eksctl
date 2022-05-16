@@ -133,7 +133,7 @@ var _ = Describe("(Integration) [EKS IPv6 test]", func() {
 			Expect(err).NotTo(HaveOccurred())
 			err = ctl.RefreshClusterStatus(ctx, clusterConfig)
 			Expect(err).ShouldNot(HaveOccurred())
-			clientSet, err = ctl.NewStdClientSet(clusterConfig)
+			clientSet, err = ctl.KubernetesProvider.NewStdClientSet(clusterConfig)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			svcName := "ipv6-service"

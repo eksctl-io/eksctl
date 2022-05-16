@@ -80,7 +80,7 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 		return err
 	}
 
-	clientSet, err := ctl.NewStdClientSet(cfg)
+	clientSet, err := ctl.KubernetesProvider.NewStdClientSet(cfg)
 	if err != nil {
 		return err
 	}

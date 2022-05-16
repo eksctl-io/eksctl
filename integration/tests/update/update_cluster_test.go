@@ -221,7 +221,7 @@ func getRawClient(ctx context.Context) *kubewrapper.RawClient {
 
 	err = ctl.RefreshClusterStatus(ctx, cfg)
 	Expect(err).ShouldNot(HaveOccurred())
-	rawClient, err := ctl.NewRawClient(cfg)
+	rawClient, err := ctl.KubernetesProvider.NewRawClient(cfg)
 	Expect(err).NotTo(HaveOccurred())
 	return rawClient
 }
