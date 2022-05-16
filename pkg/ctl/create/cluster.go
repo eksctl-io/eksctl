@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 	"github.com/kris-nova/logger"
@@ -43,6 +44,8 @@ const (
 		"Windows IP address management when a Windows nodegroup is created. For existing clusters, you can enable it manually " +
 		"and run `eksctl utils install-vpc-controllers` with the --delete ﬂag to remove the worker node installation of the VPC resource controller"
 )
+
+var once sync.Once
 
 func createClusterCmd(cmd *cmdutils.Cmd) {
 	createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams) error {
@@ -129,7 +132,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	if meta.Name != "" && api.IsInvalidNameArg(meta.Name) {
 		return api.ErrInvalidName(meta.Name)
 	}
-
 	printer := printers.NewJSONPrinter()
 
 	if params.DryRun {
@@ -139,6 +141,11 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			logger.Writer = originalWriter
 		}()
 	}
+
+	//prevent logging multiple times
+	once.Do(func() {
+		cmdutils.LogRegionAndVersionInfo(meta)
+	})
 
 	if cfg.Metadata.Version == "" || cfg.Metadata.Version == "auto" {
 		cfg.Metadata.Version = api.DefaultVersion
