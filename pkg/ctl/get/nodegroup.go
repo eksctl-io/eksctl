@@ -55,7 +55,8 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		logger.Writer = os.Stderr
 	}
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -72,12 +73,12 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 
 	var summaries []*nodegroup.Summary
 	if ng.Name == "" {
-		summaries, err = nodegroup.New(cfg, ctl, clientSet).GetAll(context.Background())
+		summaries, err = nodegroup.New(cfg, ctl, clientSet).GetAll(ctx)
 		if err != nil {
 			return err
 		}
 	} else {
-		summary, err := nodegroup.New(cfg, ctl, clientSet).Get(context.Background(), ng.Name)
+		summary, err := nodegroup.New(cfg, ctl, clientSet).Get(ctx, ng.Name)
 		if err != nil {
 			return err
 		}

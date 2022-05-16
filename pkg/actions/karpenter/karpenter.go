@@ -47,7 +47,7 @@ func NewInstaller(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterP
 		Namespace:     karpenter.DefaultNamespace,
 		ClusterConfig: cfg,
 	})
-	oidc, err := ctl.NewOpenIDConnectManager(cfg)
+	oidc, err := ctl.NewOpenIDConnectManager(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}

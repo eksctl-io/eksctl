@@ -5,13 +5,15 @@ package override_bootstrap
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
-	awsssm "github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awsssm "github.com/aws/aws-sdk-go-v2/service/ssm"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -39,12 +41,12 @@ var (
 )
 
 var _ = BeforeSuite(func() {
-	awsSession := NewSession(params.Region)
-	ssm := awsssm.New(awsSession)
+	cfg := NewConfig(params.Region)
+	ssm := awsssm.NewFromConfig(cfg)
 	input := &awsssm.GetParameterInput{
 		Name: aws.String("/aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/image_id"),
 	}
-	output, err := ssm.GetParameter(input)
+	output, err := ssm.GetParameter(context.Background(), input)
 	Expect(err).NotTo(HaveOccurred())
 	customAMI = *output.Parameter.Value
 	cmd := params.EksctlCreateCmd.WithArgs(

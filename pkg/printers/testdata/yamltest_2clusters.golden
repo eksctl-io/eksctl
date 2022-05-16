@@ -12,8 +12,8 @@
   PlatformVersion: null
   ResourcesVpcConfig:
     ClusterSecurityGroupId: null
-    EndpointPrivateAccess: null
-    EndpointPublicAccess: null
+    EndpointPrivateAccess: false
+    EndpointPublicAccess: false
     PublicAccessCidrs: null
     SecurityGroupIds: null
     SubnetIds:
@@ -38,8 +38,8 @@
   PlatformVersion: null
   ResourcesVpcConfig:
     ClusterSecurityGroupId: null
-    EndpointPrivateAccess: null
-    EndpointPublicAccess: null
+    EndpointPrivateAccess: false
+    EndpointPublicAccess: false
     PublicAccessCidrs: null
     SecurityGroupIds: null
     SubnetIds:

@@ -43,7 +43,8 @@ func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 
 	printer := printers.NewJSONPrinter()
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -52,7 +53,7 @@ func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	oidc, err := ctl.NewOpenIDConnectManager(cfg)
+	oidc, err := ctl.NewOpenIDConnectManager(ctx, cfg)
 	if err != nil {
 		return err
 	}
@@ -61,7 +62,6 @@ func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	ctx := context.TODO()
 	providerExists, err := oidc.CheckProviderExists(ctx)
 	if err != nil {
 		return err

@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"context"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -48,7 +50,8 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -58,7 +61,7 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 		return err
 	}
 
-	clusterVPCConfig, err := ctl.GetCurrentClusterVPCConfig(cfg)
+	clusterVPCConfig, err := ctl.GetCurrentClusterVPCConfig(ctx, cfg)
 	if err != nil {
 		return err
 	}
@@ -103,7 +106,7 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 	}
 
 	if !cmd.Plan {
-		if err := ctl.UpdateClusterConfigForEndpoints(cfg); err != nil {
+		if err := ctl.UpdateClusterConfigForEndpoints(ctx, cfg); err != nil {
 			return err
 		}
 		cmdutils.LogCompletedAction(

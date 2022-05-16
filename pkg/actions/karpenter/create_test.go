@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"net"
 
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/aws"
 
 	"github.com/kris-nova/logger"
 	. "github.com/onsi/ginkgo/v2"
@@ -77,7 +78,7 @@ var _ = Describe("Create", func() {
 				Provider: p,
 				Status: &eks.ProviderStatus{
 					ClusterInfo: &eks.ClusterInfo{
-						Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive),
+						Cluster: testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusActive),
 					},
 				},
 			}

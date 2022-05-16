@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"context"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -44,7 +46,8 @@ func doUpdatePublicAccessCIDRs(cmd *cmdutils.Cmd) error {
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -54,7 +57,7 @@ func doUpdatePublicAccessCIDRs(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	clusterVPCConfig, err := ctl.GetCurrentClusterVPCConfig(cfg)
+	clusterVPCConfig, err := ctl.GetCurrentClusterVPCConfig(ctx, cfg)
 	if err != nil {
 		return err
 	}
@@ -72,7 +75,7 @@ func doUpdatePublicAccessCIDRs(cmd *cmdutils.Cmd) error {
 		meta.Name, meta.Region, cfg.VPC.PublicAccessCIDRs)
 
 	if !cmd.Plan {
-		if err := ctl.UpdatePublicAccessCIDRs(cfg); err != nil {
+		if err := ctl.UpdatePublicAccessCIDRs(ctx, cfg); err != nil {
 			return errors.Wrap(err, "error updating CIDRs for public access")
 		}
 		cmdutils.LogCompletedAction(

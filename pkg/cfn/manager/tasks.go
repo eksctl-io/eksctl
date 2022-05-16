@@ -59,12 +59,13 @@ type managedNodeGroupTagsToASGPropagationTask struct {
 	info            string
 	nodeGroup       *api.ManagedNodeGroup
 	stackCollection *StackCollection
+	ctx             context.Context
 }
 
 func (t *managedNodeGroupTagsToASGPropagationTask) Describe() string { return t.info }
 
 func (t *managedNodeGroupTagsToASGPropagationTask) Do(errorCh chan error) error {
-	return t.stackCollection.propagateManagedNodeGroupTagsToASGTask(errorCh, t.nodeGroup)
+	return t.stackCollection.propagateManagedNodeGroupTagsToASGTask(t.ctx, errorCh, t.nodeGroup)
 }
 
 type clusterCompatTask struct {

@@ -6,9 +6,10 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
+
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -80,12 +81,12 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 }
 
 // MakeManagedSSMParameterName creates an SSM parameter name for a managed nodegroup
-func MakeManagedSSMParameterName(version, amiType string) (string, error) {
+func MakeManagedSSMParameterName(version string, amiType ekstypes.AMITypes) (string, error) {
 	switch amiType {
-	case eks.AMITypesAl2X8664:
+	case ekstypes.AMITypesAl2X8664:
 		imageType := utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2)
 		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/release_version", version, imageType), nil
-	case eks.AMITypesAl2X8664Gpu:
+	case ekstypes.AMITypesAl2X8664Gpu:
 		imageType := utils.ToKebabCase(api.NodeImageFamilyAmazonLinux2) + "-gpu"
 		return fmt.Sprintf("/aws/service/eks/optimized-ami/%s/%s/recommended/release_version", version, imageType), nil
 	}

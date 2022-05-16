@@ -64,7 +64,8 @@ func upgradeNodeGroup(cmd *cmdutils.Cmd, options nodegroup.UpgradeOptions) error
 		return cmdutils.ErrMustBeSet("name")
 	}
 
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctx := context.TODO()
+	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
 	}
@@ -78,5 +79,5 @@ func upgradeNodeGroup(cmd *cmdutils.Cmd, options nodegroup.UpgradeOptions) error
 		return err
 	}
 
-	return nodegroup.New(cfg, ctl, clientSet).Upgrade(context.TODO(), options)
+	return nodegroup.New(cfg, ctl, clientSet).Upgrade(ctx, options)
 }

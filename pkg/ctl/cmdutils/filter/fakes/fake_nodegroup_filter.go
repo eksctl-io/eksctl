@@ -5,7 +5,8 @@ import (
 	"context"
 	"sync"
 
-	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/weaveworks/eksctl/pkg/awsapi"
+
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 )
@@ -27,11 +28,11 @@ type FakeNodegroupFilter struct {
 	matchReturnsOnCall map[int]struct {
 		result1 bool
 	}
-	SetOnlyLocalStub        func(context.Context, eksiface.EKSAPI, filter.StackLister, *v1alpha5.ClusterConfig) error
+	SetOnlyLocalStub        func(context.Context, awsapi.EKS, filter.StackLister, *v1alpha5.ClusterConfig) error
 	setOnlyLocalMutex       sync.RWMutex
 	setOnlyLocalArgsForCall []struct {
 		arg1 context.Context
-		arg2 eksiface.EKSAPI
+		arg2 awsapi.EKS
 		arg3 filter.StackLister
 		arg4 *v1alpha5.ClusterConfig
 	}
@@ -138,12 +139,12 @@ func (fake *FakeNodegroupFilter) MatchReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeNodegroupFilter) SetOnlyLocal(arg1 context.Context, arg2 eksiface.EKSAPI, arg3 filter.StackLister, arg4 *v1alpha5.ClusterConfig) error {
+func (fake *FakeNodegroupFilter) SetOnlyLocal(arg1 context.Context, arg2 awsapi.EKS, arg3 filter.StackLister, arg4 *v1alpha5.ClusterConfig) error {
 	fake.setOnlyLocalMutex.Lock()
 	ret, specificReturn := fake.setOnlyLocalReturnsOnCall[len(fake.setOnlyLocalArgsForCall)]
 	fake.setOnlyLocalArgsForCall = append(fake.setOnlyLocalArgsForCall, struct {
 		arg1 context.Context
-		arg2 eksiface.EKSAPI
+		arg2 awsapi.EKS
 		arg3 filter.StackLister
 		arg4 *v1alpha5.ClusterConfig
 	}{arg1, arg2, arg3, arg4})
@@ -166,13 +167,13 @@ func (fake *FakeNodegroupFilter) SetOnlyLocalCallCount() int {
 	return len(fake.setOnlyLocalArgsForCall)
 }
 
-func (fake *FakeNodegroupFilter) SetOnlyLocalCalls(stub func(context.Context, eksiface.EKSAPI, filter.StackLister, *v1alpha5.ClusterConfig) error) {
+func (fake *FakeNodegroupFilter) SetOnlyLocalCalls(stub func(context.Context, awsapi.EKS, filter.StackLister, *v1alpha5.ClusterConfig) error) {
 	fake.setOnlyLocalMutex.Lock()
 	defer fake.setOnlyLocalMutex.Unlock()
 	fake.SetOnlyLocalStub = stub
 }
 
-func (fake *FakeNodegroupFilter) SetOnlyLocalArgsForCall(i int) (context.Context, eksiface.EKSAPI, filter.StackLister, *v1alpha5.ClusterConfig) {
+func (fake *FakeNodegroupFilter) SetOnlyLocalArgsForCall(i int) (context.Context, awsapi.EKS, filter.StackLister, *v1alpha5.ClusterConfig) {
 	fake.setOnlyLocalMutex.RLock()
 	defer fake.setOnlyLocalMutex.RUnlock()
 	argsForCall := fake.setOnlyLocalArgsForCall[i]

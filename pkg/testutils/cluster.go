@@ -3,24 +3,24 @@ package testutils
 import (
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 )
 
 // NewFakeCluster creates a new fake cluster to be used in the tests
-func NewFakeCluster(clusterName string, status string) *awseks.Cluster {
+func NewFakeCluster(clusterName string, status ekstypes.ClusterStatus) *ekstypes.Cluster {
 	created := &time.Time{}
 
-	cluster := &awseks.Cluster{
+	cluster := &ekstypes.Cluster{
 		Name:      aws.String(clusterName),
-		Status:    aws.String(status),
+		Status:    status,
 		Arn:       aws.String("arn:aws:eks:us-west-2:12345:cluster/test-12345"),
 		CreatedAt: created,
-		ResourcesVpcConfig: &awseks.VpcConfigResponse{
+		ResourcesVpcConfig: &ekstypes.VpcConfigResponse{
 			VpcId:     aws.String("vpc-1234"),
-			SubnetIds: aws.StringSlice([]string{"sub1", "sub2"}),
+			SubnetIds: []string{"sub1", "sub2"},
 		},
-		CertificateAuthority: &awseks.Certificate{
+		CertificateAuthority: &ekstypes.Certificate{
 			Data: aws.String("dGVzdAo="),
 		},
 		Endpoint: aws.String("https://localhost/"),

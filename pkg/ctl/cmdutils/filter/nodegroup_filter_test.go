@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -43,7 +43,7 @@ var _ = Describe("nodegroup filter", func() {
 			filter = NewNodeGroupFilter()
 
 			mockProvider = mockprovider.NewMockProvider()
-			mockProvider.MockEKS().On("ListNodegroups", mock.Anything).Return(&eks.ListNodegroupsOutput{Nodegroups: nil}, nil)
+			mockProvider.MockEKS().On("ListNodegroups", mock.Anything, mock.Anything, mock.Anything).Return(&eks.ListNodegroupsOutput{Nodegroups: nil}, nil)
 		})
 
 		It("regression: should only match the ones included in the filter when non existing ngs are present in the config file", func() {
@@ -148,7 +148,7 @@ var _ = Describe("nodegroup filter", func() {
 
 			filter := NewNodeGroupFilter()
 			printer := printers.NewJSONPrinter()
-			names := []string{}
+			var names []string
 
 			err := filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				api.SetNodeGroupDefaults(nodeGroup, cfg.Metadata)
@@ -203,7 +203,7 @@ var _ = Describe("nodegroup filter", func() {
 			addGroupA(cfg)
 
 			filter := NewNodeGroupFilter()
-			names := []string{}
+			var names []string
 
 			err := filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
@@ -233,7 +233,7 @@ var _ = Describe("nodegroup filter", func() {
 			addGroupB(cfg)
 
 			filter := NewNodeGroupFilter()
-			names := []string{}
+			var names []string
 
 			err := filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))

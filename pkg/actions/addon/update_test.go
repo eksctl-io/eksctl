@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
@@ -49,15 +51,15 @@ var _ = Describe("Update", func() {
 		Expect(err).NotTo(HaveOccurred())
 		oidc.ProviderARN = "arn:aws:iam::456123987123:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/A39A2842863C47208955D753DE205E6E"
 
-		mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything).Run(func(args mock.Arguments) {
-			Expect(args).To(HaveLen(1))
-			Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
+		mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+			Expect(args).To(HaveLen(2))
+			Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonVersionsInput{}))
 		}).Return(&awseks.DescribeAddonVersionsOutput{
-			Addons: []*awseks.AddonInfo{
+			Addons: []ekstypes.AddonInfo{
 				{
 					AddonName: aws.String("my-addon"),
 					Type:      aws.String("type"),
-					AddonVersions: []*awseks.AddonVersionInfo{
+					AddonVersions: []ekstypes.AddonVersionInfo{
 						{
 							AddonVersion: aws.String("v1.7.5-eksbuild.1"),
 						},
@@ -79,16 +81,16 @@ var _ = Describe("Update", func() {
 			},
 		}, nil)
 
-		mockProvider.MockEKS().On("DescribeAddon", mock.Anything).Run(func(args mock.Arguments) {
-			Expect(args).To(HaveLen(1))
-			Expect(args[0]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
-			describeAddonInput = args[0].(*awseks.DescribeAddonInput)
+		mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+			Expect(args).To(HaveLen(2))
+			Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
+			describeAddonInput = args[1].(*awseks.DescribeAddonInput)
 		}).Return(&awseks.DescribeAddonOutput{
-			Addon: &awseks.Addon{
+			Addon: &ekstypes.Addon{
 				AddonName:             aws.String("my-addon"),
 				AddonVersion:          aws.String("v1.0.0-eksbuild.2"),
 				ServiceAccountRoleArn: aws.String("original-arn"),
-				Status:                aws.String("created"),
+				Status:                "created",
 			},
 		}, nil).Once()
 
@@ -102,10 +104,10 @@ var _ = Describe("Update", func() {
 
 	When("EKS returns an UpdateAddonOutput", func() {
 		BeforeEach(func() {
-			mockProvider.MockEKS().On("UpdateAddon", mock.Anything).Run(func(args mock.Arguments) {
-				Expect(args).To(HaveLen(1))
-				Expect(args[0]).To(BeAssignableToTypeOf(&awseks.UpdateAddonInput{}))
-				updateAddonInput = args[0].(*awseks.UpdateAddonInput)
+			mockProvider.MockEKS().On("UpdateAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.UpdateAddonInput{}))
+				updateAddonInput = args[1].(*awseks.UpdateAddonInput)
 			}).Return(&awseks.UpdateAddonOutput{}, nil)
 		})
 
@@ -124,7 +126,7 @@ var _ = Describe("Update", func() {
 				Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
 				Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.2"))
 				Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("original-arn"))
-				Expect(*updateAddonInput.ResolveConflicts).To(Equal("overwrite"))
+				Expect(updateAddonInput.ResolveConflicts).To(Equal(ekstypes.ResolveConflictsOverwrite))
 			})
 
 			When("the version is not set", func() {
@@ -194,11 +196,11 @@ var _ = Describe("Update", func() {
 		When("wait is true", func() {
 			When("the addon update succeeds", func() {
 				BeforeEach(func() {
-					mockProvider.MockEKS().On("DescribeAddon", mock.Anything).
+					mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).
 						Return(&awseks.DescribeAddonOutput{
-							Addon: &awseks.Addon{
+							Addon: &ekstypes.Addon{
 								AddonName: aws.String("my-addon"),
-								Status:    aws.String("ACTIVE"),
+								Status:    ekstypes.AddonStatusActive,
 							},
 						}, nil)
 				})
@@ -216,17 +218,17 @@ var _ = Describe("Update", func() {
 					Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))
 					Expect(*updateAddonInput.AddonVersion).To(Equal("v1.0.0-eksbuild.2"))
 					Expect(*updateAddonInput.ServiceAccountRoleArn).To(Equal("original-arn"))
-					Expect(*updateAddonInput.ResolveConflicts).To(Equal("overwrite"))
+					Expect(updateAddonInput.ResolveConflicts).To(Equal(ekstypes.ResolveConflictsOverwrite))
 				})
 			})
 
 			When("the addon update fails", func() {
 				BeforeEach(func() {
-					mockProvider.MockEKS().On("DescribeAddon", mock.Anything).
+					mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).
 						Return(&awseks.DescribeAddonOutput{
-							Addon: &awseks.Addon{
+							Addon: &ekstypes.Addon{
 								AddonName: aws.String("my-addon"),
-								Status:    aws.String("DEGRADED"),
+								Status:    ekstypes.AddonStatusDegraded,
 							},
 						}, nil)
 				})
@@ -472,10 +474,10 @@ var _ = Describe("Update", func() {
 
 	When("EKS fails to return an UpdateAddonOutput", func() {
 		It("returns an error", func() {
-			mockProvider.MockEKS().On("UpdateAddon", mock.Anything).Run(func(args mock.Arguments) {
-				Expect(args).To(HaveLen(1))
-				Expect(args[0]).To(BeAssignableToTypeOf(&awseks.UpdateAddonInput{}))
-				updateAddonInput = args[0].(*awseks.UpdateAddonInput)
+			mockProvider.MockEKS().On("UpdateAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+				Expect(args).To(HaveLen(2))
+				Expect(args[1]).To(BeAssignableToTypeOf(&awseks.UpdateAddonInput{}))
+				updateAddonInput = args[1].(*awseks.UpdateAddonInput)
 			}).Return(nil, fmt.Errorf("foo"))
 
 			err := addonManager.Update(context.TODO(), &api.Addon{

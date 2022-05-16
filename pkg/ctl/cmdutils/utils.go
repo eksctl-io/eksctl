@@ -1,6 +1,8 @@
 package cmdutils
 
 import (
+	"context"
+
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -10,7 +12,7 @@ import (
 // KubernetesClientAndConfigFrom returns a Kubernetes client set and REST
 // configuration object for the currently configured cluster.
 func KubernetesClientAndConfigFrom(cmd *Cmd) (*kubernetes.Clientset, *rest.Config, error) {
-	ctl, err := cmd.NewProviderForExistingCluster()
+	ctl, err := cmd.NewProviderForExistingCluster(context.TODO())
 	if err != nil {
 		return nil, nil, err
 	}

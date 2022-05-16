@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 
-	"github.com/aws/aws-sdk-go/aws"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	"github.com/aws/smithy-go"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -70,10 +72,10 @@ var _ = Describe("Labels", func() {
 		})
 
 		When("the nodegroup is not owned by eksctl", func() {
-			var returnedLabels map[string]*string
+			var returnedLabels map[string]string
 
 			BeforeEach(func() {
-				returnedLabels = map[string]*string{"k1": aws.String("v1")}
+				returnedLabels = map[string]string{"k1": "v1"}
 				err := &smithy.OperationError{
 					Err: errors.New("ValidationError"),
 				}
@@ -81,10 +83,10 @@ var _ = Describe("Labels", func() {
 			})
 
 			It("returns the labels from the EKS api", func() {
-				mockProvider.MockEKS().On("DescribeNodegroup", &awseks.DescribeNodegroupInput{
+				mockProvider.MockEKS().On("DescribeNodegroup", mock.Anything, &eks.DescribeNodegroupInput{
 					ClusterName:   aws.String(clusterName),
 					NodegroupName: aws.String(nodegroupName),
-				}).Return(&awseks.DescribeNodegroupOutput{Nodegroup: &awseks.Nodegroup{Labels: returnedLabels}}, nil)
+				}).Return(&eks.DescribeNodegroupOutput{Nodegroup: &ekstypes.Nodegroup{Labels: returnedLabels}}, nil)
 
 				summary, err := manager.Get(context.TODO(), nodegroupName)
 				Expect(err).NotTo(HaveOccurred())
@@ -93,7 +95,7 @@ var _ = Describe("Labels", func() {
 
 			When("the EKS api returns an error", func() {
 				It("fails", func() {
-					mockProvider.MockEKS().On("DescribeNodegroup", mock.Anything).Return(&awseks.DescribeNodegroupOutput{}, errors.New("oh-noes"))
+					mockProvider.MockEKS().On("DescribeNodegroup", mock.Anything, mock.Anything).Return(&eks.DescribeNodegroupOutput{}, errors.New("oh-noes"))
 
 					summary, err := manager.Get(context.TODO(), nodegroupName)
 					Expect(err).To(HaveOccurred())
@@ -132,10 +134,10 @@ var _ = Describe("Labels", func() {
 		})
 
 		When("the nodegroup is not owned by eksctl", func() {
-			var eksLabels map[string]*string
+			var eksLabels map[string]string
 
 			BeforeEach(func() {
-				eksLabels = map[string]*string{"k1": aws.String("v1")}
+				eksLabels = map[string]string{"k1": "v1"}
 				err := &smithy.OperationError{
 					Err: errors.New("ValidationError"),
 				}
@@ -143,20 +145,20 @@ var _ = Describe("Labels", func() {
 			})
 
 			It("updates the labels through the EKS api", func() {
-				mockProvider.MockEKS().On("UpdateNodegroupConfig", &awseks.UpdateNodegroupConfigInput{
+				mockProvider.MockEKS().On("UpdateNodegroupConfig", mock.Anything, &eks.UpdateNodegroupConfigInput{
 					ClusterName:   aws.String(clusterName),
 					NodegroupName: aws.String(nodegroupName),
-					Labels: &awseks.UpdateLabelsPayload{
+					Labels: &ekstypes.UpdateLabelsPayload{
 						AddOrUpdateLabels: eksLabels,
 					},
-				}).Return(&awseks.UpdateNodegroupConfigOutput{}, nil)
+				}).Return(&eks.UpdateNodegroupConfigOutput{}, nil)
 
 				Expect(manager.Set(context.TODO(), nodegroupName, labels)).To(Succeed())
 			})
 
 			When("the EKS api returns an error", func() {
 				It("fails", func() {
-					mockProvider.MockEKS().On("UpdateNodegroupConfig", mock.Anything).Return(&awseks.UpdateNodegroupConfigOutput{}, errors.New("oh-noes"))
+					mockProvider.MockEKS().On("UpdateNodegroupConfig", mock.Anything, mock.Anything).Return(&eks.UpdateNodegroupConfigOutput{}, errors.New("oh-noes"))
 
 					err := manager.Set(context.TODO(), nodegroupName, labels)
 					Expect(err).To(HaveOccurred())
@@ -194,10 +196,10 @@ var _ = Describe("Labels", func() {
 		})
 
 		When("the nodegroup is not owned by eksctl", func() {
-			var eksLabels []*string
+			var eksLabels []string
 
 			BeforeEach(func() {
-				eksLabels = []*string{aws.String("k1")}
+				eksLabels = []string{"k1"}
 				err := &smithy.OperationError{
 					Err: errors.New("ValidationError"),
 				}
@@ -205,20 +207,20 @@ var _ = Describe("Labels", func() {
 			})
 
 			It("removes the labels through the EKS api", func() {
-				mockProvider.MockEKS().On("UpdateNodegroupConfig", &awseks.UpdateNodegroupConfigInput{
+				mockProvider.MockEKS().On("UpdateNodegroupConfig", mock.Anything, &eks.UpdateNodegroupConfigInput{
 					ClusterName:   aws.String(clusterName),
 					NodegroupName: aws.String(nodegroupName),
-					Labels: &awseks.UpdateLabelsPayload{
+					Labels: &ekstypes.UpdateLabelsPayload{
 						RemoveLabels: eksLabels,
 					},
-				}).Return(&awseks.UpdateNodegroupConfigOutput{}, nil)
+				}).Return(&eks.UpdateNodegroupConfigOutput{}, nil)
 
 				Expect(manager.Unset(context.TODO(), nodegroupName, labels)).To(Succeed())
 			})
 
 			When("the EKS api returns an error", func() {
 				It("fails", func() {
-					mockProvider.MockEKS().On("UpdateNodegroupConfig", mock.Anything).Return(&awseks.UpdateNodegroupConfigOutput{}, errors.New("oh-noes"))
+					mockProvider.MockEKS().On("UpdateNodegroupConfig", mock.Anything, mock.Anything).Return(&eks.UpdateNodegroupConfigOutput{}, errors.New("oh-noes"))
 
 					err := manager.Unset(context.TODO(), nodegroupName, labels)
 					Expect(err).To(HaveOccurred())
