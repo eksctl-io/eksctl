@@ -17,11 +17,11 @@ jobs:
       GOPRIVATE: ""
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Cache go-build and mod
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build/
@@ -46,7 +46,7 @@ jobs:
           echo "::set-output name=changes::true"
           ! git diff --exit-code $DEFAULT_BRANCH HEAD
           git push --force-with-lease origin HEAD
-      - uses: actions/github-script@v6.0.0
+      - uses: actions/github-script@v6.1.0
         name: Open PR to ${{env.DEFAULT_BRANCH}}
         if: ${{ steps.commit.outputs.changes }} == 'true'
         with:
