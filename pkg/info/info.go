@@ -20,12 +20,12 @@ type Info struct {
 
 // clientVersion holds git version info of kubectl client
 type clientVersion struct {
-	GitVersion string
+	GitVersion string `json:"gitVersion"`
 }
 
-// kubectlInfo holds version inof of kubectl client
+// kubectlInfo holds version info of kubectl client
 type kubectlInfo struct {
-	ClientVersion clientVersion
+	ClientVersion clientVersion `json:"clientVersion"`
 }
 
 // GetInfo returns versions info
@@ -52,11 +52,11 @@ func getKubectlVersion() string {
 
 	var info kubectlInfo
 
-	if err := json.Unmarshal([]byte(string(out)), &info); err != nil {
-		return fmt.Sprintf("error : %v", err)
+	if err := json.Unmarshal(out, &info); err != nil {
+		return fmt.Sprintf("error parsing `kubectl version` output: %v", err)
 	}
 
-	if len(info.ClientVersion.GitVersion) == 0 {
+	if info.ClientVersion.GitVersion == "" {
 		return "unknown version"
 	}
 
