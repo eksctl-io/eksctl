@@ -131,7 +131,7 @@ var _ = Describe("Update", func() {
 
 			When("the version is not set", func() {
 				It("preserves the existing addon version", func() {
-					err := addonManager.Update(context.TODO(), &api.Addon{
+					err := addonManager.Update(context.Background(), &api.Addon{
 						Name:    "my-addon",
 						Version: "",
 					}, 0)
@@ -148,7 +148,7 @@ var _ = Describe("Update", func() {
 
 			When("the version is set to a numeric version", func() {
 				It("discovers and uses the latest available version", func() {
-					err := addonManager.Update(context.TODO(), &api.Addon{
+					err := addonManager.Update(context.Background(), &api.Addon{
 						Name:    "my-addon",
 						Version: "1.7.5",
 					}, 0)
@@ -165,7 +165,7 @@ var _ = Describe("Update", func() {
 
 			When("the version is set to latest", func() {
 				It("discovers and uses the latest available version", func() {
-					err := addonManager.Update(context.TODO(), &api.Addon{
+					err := addonManager.Update(context.Background(), &api.Addon{
 						Name:    "my-addon",
 						Version: "latest",
 					}, 0)
@@ -182,7 +182,7 @@ var _ = Describe("Update", func() {
 
 			When("the version is set to a version that does not exist", func() {
 				It("returns an error", func() {
-					err := addonManager.Update(context.TODO(), &api.Addon{
+					err := addonManager.Update(context.Background(), &api.Addon{
 						Name:             "my-addon",
 						Version:          "1.7.8",
 						AttachPolicyARNs: []string{"arn-1"},
@@ -234,7 +234,7 @@ var _ = Describe("Update", func() {
 				})
 
 				It("returns an error", func() {
-					err := addonManager.Update(context.TODO(), &api.Addon{
+					err := addonManager.Update(context.Background(), &api.Addon{
 						Name:    "my-addon",
 						Version: "v1.0.0-eksbuild.2",
 						Force:   true,
@@ -247,7 +247,7 @@ var _ = Describe("Update", func() {
 		When("updating the policy", func() {
 			When("specifying a new serviceAccountRoleARN", func() {
 				It("updates the addon", func() {
-					err := addonManager.Update(context.TODO(), &api.Addon{
+					err := addonManager.Update(context.Background(), &api.Addon{
 						Name:                  "my-addon",
 						Version:               "v1.0.0-eksbuild.2",
 						ServiceAccountRoleARN: "new-arn",
@@ -276,7 +276,7 @@ var _ = Describe("Update", func() {
 							},
 						}, nil)
 
-						err := addonManager.Update(context.TODO(), &api.Addon{
+						err := addonManager.Update(context.Background(), &api.Addon{
 							Name:             "vpc-cni",
 							Version:          "v1.0.0-eksbuild.2",
 							AttachPolicyARNs: []string{"arn-1"},
@@ -303,7 +303,7 @@ var _ = Describe("Update", func() {
 
 				When("its a new set of ARNs", func() {
 					It("creates a role with the ARNs", func() {
-						err := addonManager.Update(context.TODO(), &api.Addon{
+						err := addonManager.Update(context.Background(), &api.Addon{
 							Name:             "my-addon",
 							Version:          "v1.0.0-eksbuild.2",
 							AttachPolicyARNs: []string{"arn-1"},
@@ -343,7 +343,7 @@ var _ = Describe("Update", func() {
 							},
 						}, nil)
 
-						err := addonManager.Update(context.TODO(), &api.Addon{
+						err := addonManager.Update(context.Background(), &api.Addon{
 							Name:    "vpc-cni",
 							Version: "v1.0.0-eksbuild.2",
 							AttachPolicy: api.InlineDocument{
@@ -371,7 +371,7 @@ var _ = Describe("Update", func() {
 
 				When("its a new set of policies", func() {
 					It("creates a role with the policies", func() {
-						err := addonManager.Update(context.TODO(), &api.Addon{
+						err := addonManager.Update(context.Background(), &api.Addon{
 							Name:    "my-addon",
 							Version: "v1.0.0-eksbuild.2",
 							AttachPolicy: api.InlineDocument{
@@ -413,7 +413,7 @@ var _ = Describe("Update", func() {
 							},
 						}, nil)
 
-						err := addonManager.Update(context.TODO(), &api.Addon{
+						err := addonManager.Update(context.Background(), &api.Addon{
 							Name:    "vpc-cni",
 							Version: "v1.0.0-eksbuild.2",
 							WellKnownPolicies: api.WellKnownPolicies{
@@ -441,7 +441,7 @@ var _ = Describe("Update", func() {
 
 				When("its a new set of well known policies", func() {
 					It("creates a role with the well known policies", func() {
-						err := addonManager.Update(context.TODO(), &api.Addon{
+						err := addonManager.Update(context.Background(), &api.Addon{
 							Name:    "my-addon",
 							Version: "v1.0.0-eksbuild.2",
 							WellKnownPolicies: api.WellKnownPolicies{
@@ -480,7 +480,7 @@ var _ = Describe("Update", func() {
 				updateAddonInput = args[1].(*awseks.UpdateAddonInput)
 			}).Return(nil, fmt.Errorf("foo"))
 
-			err := addonManager.Update(context.TODO(), &api.Addon{
+			err := addonManager.Update(context.Background(), &api.Addon{
 				Name: "my-addon",
 			}, 0)
 			Expect(err).To(MatchError(`failed to update addon "my-addon": foo`))

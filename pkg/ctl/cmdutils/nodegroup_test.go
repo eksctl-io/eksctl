@@ -36,7 +36,7 @@ var _ = Describe("PopulateNodegroup", func() {
 	Context("unmanaged nodegroup", func() {
 		It("is added to the cfg", func() {
 			fakeStackManager.GetNodeGroupStackTypeReturns(api.NodeGroupTypeUnmanaged, nil)
-			err = PopulateNodegroup(context.TODO(), fakeStackManager, ngName, cfg, mockProvider)
+			err = PopulateNodegroup(context.Background(), fakeStackManager, ngName, cfg, mockProvider)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.NodeGroups[0].Name).To(Equal(ngName))
 		})
@@ -45,7 +45,7 @@ var _ = Describe("PopulateNodegroup", func() {
 	Context("managed nodegroup", func() {
 		It("is added to the cfg", func() {
 			fakeStackManager.GetNodeGroupStackTypeReturns(api.NodeGroupTypeManaged, nil)
-			err = PopulateNodegroup(context.TODO(), fakeStackManager, ngName, cfg, mockProvider)
+			err = PopulateNodegroup(context.Background(), fakeStackManager, ngName, cfg, mockProvider)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.ManagedNodeGroups[0].Name).To(Equal(ngName))
 		})
@@ -61,7 +61,7 @@ var _ = Describe("PopulateNodegroup", func() {
 				NodegroupName: aws.String(ngName),
 			}).Return(&awseks.DescribeNodegroupOutput{Nodegroup: &ekstypes.Nodegroup{}}, nil)
 
-			err = PopulateNodegroup(context.TODO(), fakeStackManager, ngName, cfg, mockProvider)
+			err = PopulateNodegroup(context.Background(), fakeStackManager, ngName, cfg, mockProvider)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.ManagedNodeGroups[0].Name).To(Equal(ngName))
 		})

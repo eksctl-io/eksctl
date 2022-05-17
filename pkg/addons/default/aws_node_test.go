@@ -65,7 +65,7 @@ var _ = Describe("AWS Node", func() {
 			loadSamples(rawClient, "testdata/sample-1.15.json")
 
 			var err error
-			preUpdateAwsNode, err = rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+			preUpdateAwsNode, err = rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.Background(), da.AWSNode, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -76,7 +76,7 @@ var _ = Describe("AWS Node", func() {
 				_, err := da.UpdateAWSNode(context.Background(), input, false)
 				Expect(err).NotTo(HaveOccurred())
 
-				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.Background(), da.AWSNode, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 				Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
@@ -96,7 +96,7 @@ var _ = Describe("AWS Node", func() {
 				_, err := da.UpdateAWSNode(context.Background(), input, false)
 				Expect(err).NotTo(HaveOccurred())
 
-				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+				awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.Background(), da.AWSNode, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 				Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
@@ -116,7 +116,7 @@ var _ = Describe("AWS Node", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(needsUpdate).To(BeTrue())
 
-					awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+					awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.Background(), da.AWSNode, metav1.GetOptions{})
 					Expect(err).NotTo(HaveOccurred())
 					//should be unchanged
 					Expect(awsNode.Spec).To(Equal(preUpdateAwsNode.Spec))
@@ -130,7 +130,7 @@ var _ = Describe("AWS Node", func() {
 					loadSamples(rawClient, "assets/aws-node.yaml")
 
 					var err error
-					preUpdateAwsNode, err = rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+					preUpdateAwsNode, err = rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.Background(), da.AWSNode, metav1.GetOptions{})
 					Expect(err).NotTo(HaveOccurred())
 				})
 
@@ -139,7 +139,7 @@ var _ = Describe("AWS Node", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(needsUpdate).To(BeFalse())
 
-					awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.AWSNode, metav1.GetOptions{})
+					awsNode, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.Background(), da.AWSNode, metav1.GetOptions{})
 					Expect(err).NotTo(HaveOccurred())
 					//should be unchanged
 					Expect(awsNode.Spec).To(Equal(preUpdateAwsNode.Spec))

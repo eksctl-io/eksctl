@@ -68,7 +68,7 @@ var _ = Describe("Drain", func() {
 
 			fakeEvictor.EvictOrDeletePodReturns(nil)
 
-			_, err := fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &corev1.Node{
+			_, err := fakeClientSet.CoreV1().Nodes().Create(context.Background(), &corev1.Node{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: nodeName,
 				},
@@ -90,7 +90,7 @@ var _ = Describe("Drain", func() {
 			Expect(fakeEvictor.EvictOrDeletePodCallCount()).To(Equal(1))
 			Expect(fakeEvictor.EvictOrDeletePodArgsForCall(0)).To(Equal(pod))
 
-			node, err := fakeClientSet.CoreV1().Nodes().Get(context.TODO(), nodeName, metav1.GetOptions{})
+			node, err := fakeClientSet.CoreV1().Nodes().Get(context.Background(), nodeName, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(node.Spec.Unschedulable).To(BeTrue())
 		})
@@ -119,7 +119,7 @@ var _ = Describe("Drain", func() {
 
 			fakeEvictor.EvictOrDeletePodReturns(nil)
 
-			_, err := fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &corev1.Node{}, metav1.CreateOptions{})
+			_, err := fakeClientSet.CoreV1().Nodes().Create(context.Background(), &corev1.Node{}, metav1.CreateOptions{})
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -174,7 +174,7 @@ var _ = Describe("Drain", func() {
 
 			fakeEvictor.EvictOrDeletePodReturns(nil)
 
-			_, err := fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &corev1.Node{
+			_, err := fakeClientSet.CoreV1().Nodes().Create(context.Background(), &corev1.Node{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: nodeName,
 				},
@@ -195,7 +195,7 @@ var _ = Describe("Drain", func() {
 			Expect(fakeEvictor.EvictOrDeletePodCallCount()).To(Equal(1))
 			Expect(fakeEvictor.EvictOrDeletePodArgsForCall(0)).To(Equal(pod))
 
-			node, err := fakeClientSet.CoreV1().Nodes().Get(context.TODO(), nodeName, metav1.GetOptions{})
+			node, err := fakeClientSet.CoreV1().Nodes().Get(context.Background(), nodeName, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(node.Spec.Unschedulable).To(BeTrue())
 		})
@@ -203,7 +203,7 @@ var _ = Describe("Drain", func() {
 
 	When("undo is true", func() {
 		BeforeEach(func() {
-			_, err := fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &corev1.Node{
+			_, err := fakeClientSet.CoreV1().Nodes().Create(context.Background(), &corev1.Node{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: nodeName,
 				},
@@ -257,7 +257,7 @@ var _ = Describe("Drain", func() {
 			fakeEvictor.EvictOrDeletePodReturnsOnCall(0, apierrors.NewTooManyRequestsError("error1"))
 			fakeEvictor.EvictOrDeletePodReturnsOnCall(1, nil)
 
-			_, err := fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &corev1.Node{
+			_, err := fakeClientSet.CoreV1().Nodes().Create(context.Background(), &corev1.Node{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: nodeName,
 				},
@@ -307,7 +307,7 @@ var _ = Describe("Drain", func() {
 			evictionError = errors.New("error1")
 			fakeEvictor.EvictOrDeletePodReturns(evictionError)
 
-			_, err := fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &corev1.Node{
+			_, err := fakeClientSet.CoreV1().Nodes().Create(context.Background(), &corev1.Node{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: nodeName,
 				},
@@ -371,7 +371,7 @@ var _ = Describe("Drain", func() {
 			evictionError = apierrors.NewTooManyRequestsError("error1")
 			fakeEvictor.EvictOrDeletePodReturns(evictionError)
 
-			_, err := fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &corev1.Node{
+			_, err := fakeClientSet.CoreV1().Nodes().Create(context.Background(), &corev1.Node{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: nodeName,
 				},

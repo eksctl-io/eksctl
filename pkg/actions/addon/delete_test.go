@@ -53,7 +53,7 @@ var _ = Describe("Delete", func() {
 
 			fakeStackManager.DescribeStackReturns(&types.Stack{StackName: aws.String("eksctl-my-cluster-addon-my-addon")}, nil)
 
-			err := manager.Delete(context.TODO(), &api.Addon{
+			err := manager.Delete(context.Background(), &api.Addon{
 				Name: "my-addon",
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -70,7 +70,7 @@ var _ = Describe("Delete", func() {
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, fmt.Errorf("foo"))
 
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -87,7 +87,7 @@ var _ = Describe("Delete", func() {
 
 				fakeStackManager.DescribeStackReturns(nil, fmt.Errorf("foo"))
 
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -107,7 +107,7 @@ var _ = Describe("Delete", func() {
 					StackName: aws.String("eksctl-my-cluster-addon-my-addon"),
 				}, nil)
 
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -129,7 +129,7 @@ var _ = Describe("Delete", func() {
 					Err: fmt.Errorf("ValidationError"),
 				}, "nope"))
 
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -148,7 +148,7 @@ var _ = Describe("Delete", func() {
 
 				fakeStackManager.DescribeStackReturns(&types.Stack{StackName: aws.String("eksctl-my-cluster-addon-my-addon")}, nil)
 
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -170,7 +170,7 @@ var _ = Describe("Delete", func() {
 				fakeStackManager.DescribeStackReturns(nil, errors.Wrap(&smithy.OperationError{
 					Err: fmt.Errorf("ValidationError"),
 				}, "nope"))
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
