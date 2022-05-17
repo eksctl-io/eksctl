@@ -122,11 +122,11 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return err
 	}
 
-	if err := m.postNodeCreationTasks(m.clientSet, options); err != nil {
+	if err := m.postNodeCreationTasks(ctx, m.clientSet, options); err != nil {
 		return err
 	}
 
-	if err := m.init.ValidateExistingNodeGroupsForCompatibility(ctx, cfg, m.stackManager); err != nil {
+	if err := eks.ValidateExistingNodeGroupsForCompatibility(ctx, cfg, m.stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
@@ -175,10 +175,10 @@ func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) er
 	}
 
 	taskTree.Append(allNodeGroupTasks)
-	return m.init.DoAllNodegroupStackTasks(taskTree, meta.Region, meta.Name)
+	return eks.DoAllNodegroupStackTasks(taskTree, meta.Region, meta.Name)
 }
 
-func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options CreateOpts) error {
+func (m *Manager) postNodeCreationTasks(ctx context.Context, clientSet kubernetes.Interface, options CreateOpts) error {
 	tasks := m.ctl.ClusterTasksForNodeGroups(m.cfg, options.InstallNeuronDevicePlugin, options.InstallNvidiaDevicePlugin)
 	logger.Info(tasks.Describe())
 	errs := tasks.DoAllSync()
@@ -193,15 +193,17 @@ func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options 
 		return fmt.Errorf("failed to create nodegroups for cluster %q", m.cfg.Metadata.Name)
 	}
 
+	timeoutCtx, cancel := context.WithTimeout(ctx, m.ctl.AWSProvider.WaitTimeout())
+	defer cancel()
+
 	if options.UpdateAuthConfigMap {
-		if err := m.ctl.UpdateAuthConfigMap(m.cfg.NodeGroups, clientSet); err != nil {
+		if err := eks.UpdateAuthConfigMap(timeoutCtx, m.cfg.NodeGroups, clientSet); err != nil {
 			return err
 		}
 	}
 	logger.Success("created %d nodegroup(s) in cluster %q", len(m.cfg.NodeGroups), m.cfg.Metadata.Name)
-
 	for _, ng := range m.cfg.ManagedNodeGroups {
-		if err := m.ctl.WaitForNodes(clientSet, ng); err != nil {
+		if err := eks.WaitForNodes(timeoutCtx, clientSet, ng); err != nil {
 			if m.cfg.PrivateCluster.Enabled {
 				logger.Info("error waiting for nodes to join the cluster; this command was likely run from outside the cluster's VPC as the API server is not reachable, nodegroup(s) should still be able to join the cluster, underlying error is: %v", err)
 				break

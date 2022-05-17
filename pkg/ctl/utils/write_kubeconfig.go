@@ -73,7 +73,7 @@ func doWriteKubeconfigCmd(cmd *cmdutils.Cmd, outputPath, roleARN string, setCont
 		outputPath = kubeconfig.AutoPath(cfg.Metadata.Name)
 	}
 
-	ctl, err := cmd.NewProviderForExistingCluster(context.TODO())
+	ctl, err := cmd.NewProviderForExistingCluster(context.Background())
 	if err != nil {
 		return err
 	}

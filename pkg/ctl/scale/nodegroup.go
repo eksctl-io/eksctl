@@ -86,7 +86,7 @@ func scaleAllNodegroups(cmd *cmdutils.Cmd) error {
 
 func scaleNodegroup(cmd *cmdutils.Cmd, ng *api.NodeGroupBase) error {
 	cfg := cmd.ClusterConfig
-	ctx := context.TODO()
+	ctx := context.Background()
 	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err

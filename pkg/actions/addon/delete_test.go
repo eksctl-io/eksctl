@@ -3,7 +3,6 @@ package addon_test
 import (
 	"context"
 	"fmt"
-	"time"
 
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
@@ -42,7 +41,7 @@ var _ = Describe("Delete", func() {
 			manager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
 				Version: "1.18",
 				Name:    "my-cluster",
-			}}, mockProvider.EKS(), fakeStackManager, withOIDC, nil, nil, 5*time.Minute)
+			}}, mockProvider.EKS(), fakeStackManager, withOIDC, nil, nil)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -191,7 +190,7 @@ var _ = Describe("Delete", func() {
 			manager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
 				Version: "1.18",
 				Name:    "my-cluster",
-			}}, mockProvider.EKS(), fakeStackManager, withOIDC, nil, nil, 5*time.Minute)
+			}}, mockProvider.EKS(), fakeStackManager, withOIDC, nil, nil)
 			Expect(err).NotTo(HaveOccurred())
 		})
 

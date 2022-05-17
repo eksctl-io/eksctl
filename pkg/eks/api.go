@@ -67,8 +67,6 @@ type KubeProvider interface {
 	NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error)
 	NewStdClientSet(spec *api.ClusterConfig) (*k8sclient.Clientset, error)
 	ServerVersion(rawClient *kubernetes.RawClient) (string, error)
-	UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error
-	WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error
 }
 
 // ProviderServices stores the used APIs

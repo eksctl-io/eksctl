@@ -31,6 +31,7 @@ var _ = Describe("Update", func() {
 		updateAddonInput   *awseks.UpdateAddonInput
 		describeAddonInput *awseks.DescribeAddonInput
 		fakeStackManager   *fakes.FakeStackManager
+		waitTimeout        = 5 * time.Minute
 	)
 
 	BeforeEach(func() {
@@ -67,7 +68,7 @@ var _ = Describe("Update", func() {
 							AddonVersion: aws.String("v1.7.5-eksbuild.2"),
 						},
 						{
-							//not sure if all versions come with v prefix or not, so test a mix
+							// not sure if all versions come with v prefix or not, so test a mix.
 							AddonVersion: aws.String("v1.7.7-eksbuild.2"),
 						},
 						{
@@ -81,7 +82,7 @@ var _ = Describe("Update", func() {
 			},
 		}, nil)
 
-		mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+		mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 			Expect(args).To(HaveLen(2))
 			Expect(args[1]).To(BeAssignableToTypeOf(&awseks.DescribeAddonInput{}))
 			describeAddonInput = args[1].(*awseks.DescribeAddonInput)
@@ -97,9 +98,8 @@ var _ = Describe("Update", func() {
 		addonManager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
 			Version: "1.18",
 			Name:    "my-cluster",
-		}}, mockProvider.EKS(), fakeStackManager, true, oidc, nil, 5*time.Minute)
+		}}, mockProvider.EKS(), fakeStackManager, true, oidc, nil)
 		Expect(err).NotTo(HaveOccurred())
-		addonManager.SetTimeout(time.Second)
 	})
 
 	When("EKS returns an UpdateAddonOutput", func() {
@@ -113,11 +113,11 @@ var _ = Describe("Update", func() {
 
 		When("updating the version", func() {
 			It("updates the addon and preserves the existing role", func() {
-				err := addonManager.Update(context.TODO(), &api.Addon{
+				err := addonManager.Update(context.Background(), &api.Addon{
 					Name:    "my-addon",
 					Version: "v1.0.0-eksbuild.2",
 					Force:   true,
-				}, false)
+				}, 0)
 
 				Expect(err).NotTo(HaveOccurred())
 				Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
@@ -134,7 +134,7 @@ var _ = Describe("Update", func() {
 					err := addonManager.Update(context.TODO(), &api.Addon{
 						Name:    "my-addon",
 						Version: "",
-					}, false)
+					}, 0)
 
 					Expect(err).NotTo(HaveOccurred())
 					Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
@@ -151,7 +151,7 @@ var _ = Describe("Update", func() {
 					err := addonManager.Update(context.TODO(), &api.Addon{
 						Name:    "my-addon",
 						Version: "1.7.5",
-					}, false)
+					}, 0)
 
 					Expect(err).NotTo(HaveOccurred())
 					Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
@@ -168,7 +168,7 @@ var _ = Describe("Update", func() {
 					err := addonManager.Update(context.TODO(), &api.Addon{
 						Name:    "my-addon",
 						Version: "latest",
-					}, false)
+					}, 0)
 
 					Expect(err).NotTo(HaveOccurred())
 					Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
@@ -186,7 +186,7 @@ var _ = Describe("Update", func() {
 						Name:             "my-addon",
 						Version:          "1.7.8",
 						AttachPolicyARNs: []string{"arn-1"},
-					}, false)
+					}, 0)
 					Expect(err).To(HaveOccurred())
 					Expect(err).To(MatchError(ContainSubstring("no version(s) found matching \"1.7.8\" for \"my-addon\"")))
 				})
@@ -196,7 +196,7 @@ var _ = Describe("Update", func() {
 		When("wait is true", func() {
 			When("the addon update succeeds", func() {
 				BeforeEach(func() {
-					mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).
+					mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything, mock.Anything).
 						Return(&awseks.DescribeAddonOutput{
 							Addon: &ekstypes.Addon{
 								AddonName: aws.String("my-addon"),
@@ -206,11 +206,11 @@ var _ = Describe("Update", func() {
 				})
 
 				It("creates the addon and waits for it to be running", func() {
-					err := addonManager.Update(context.TODO(), &api.Addon{
+					err := addonManager.Update(context.Background(), &api.Addon{
 						Name:    "my-addon",
 						Version: "v1.0.0-eksbuild.2",
 						Force:   true,
-					}, true)
+					}, waitTimeout)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
 					Expect(*describeAddonInput.AddonName).To(Equal("my-addon"))
@@ -224,7 +224,7 @@ var _ = Describe("Update", func() {
 
 			When("the addon update fails", func() {
 				BeforeEach(func() {
-					mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).
+					mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything, mock.Anything).
 						Return(&awseks.DescribeAddonOutput{
 							Addon: &ekstypes.Addon{
 								AddonName: aws.String("my-addon"),
@@ -238,8 +238,8 @@ var _ = Describe("Update", func() {
 						Name:    "my-addon",
 						Version: "v1.0.0-eksbuild.2",
 						Force:   true,
-					}, true)
-					Expect(err).To(MatchError("timed out waiting for addon \"my-addon\" to become active, status: \"DEGRADED\""))
+					}, waitTimeout)
+					Expect(err).To(MatchError(`addon status transitioned to "DEGRADED"`))
 				})
 			})
 		})
@@ -251,7 +251,7 @@ var _ = Describe("Update", func() {
 						Name:                  "my-addon",
 						Version:               "v1.0.0-eksbuild.2",
 						ServiceAccountRoleARN: "new-arn",
-					}, false)
+					}, 0)
 
 					Expect(err).NotTo(HaveOccurred())
 					Expect(*describeAddonInput.ClusterName).To(Equal("my-cluster"))
@@ -280,7 +280,7 @@ var _ = Describe("Update", func() {
 							Name:             "vpc-cni",
 							Version:          "v1.0.0-eksbuild.2",
 							AttachPolicyARNs: []string{"arn-1"},
-						}, false)
+						}, 0)
 
 						Expect(err).NotTo(HaveOccurred())
 
@@ -307,7 +307,7 @@ var _ = Describe("Update", func() {
 							Name:             "my-addon",
 							Version:          "v1.0.0-eksbuild.2",
 							AttachPolicyARNs: []string{"arn-1"},
-						}, false)
+						}, 0)
 
 						Expect(err).NotTo(HaveOccurred())
 
@@ -349,7 +349,7 @@ var _ = Describe("Update", func() {
 							AttachPolicy: api.InlineDocument{
 								"foo": "policy-bar",
 							},
-						}, false)
+						}, 0)
 
 						Expect(err).NotTo(HaveOccurred())
 
@@ -377,7 +377,7 @@ var _ = Describe("Update", func() {
 							AttachPolicy: api.InlineDocument{
 								"foo": "policy-bar",
 							},
-						}, false)
+						}, 0)
 
 						Expect(err).NotTo(HaveOccurred())
 
@@ -419,7 +419,7 @@ var _ = Describe("Update", func() {
 							WellKnownPolicies: api.WellKnownPolicies{
 								AutoScaler: true,
 							},
-						}, false)
+						}, 0)
 
 						Expect(err).NotTo(HaveOccurred())
 
@@ -447,7 +447,7 @@ var _ = Describe("Update", func() {
 							WellKnownPolicies: api.WellKnownPolicies{
 								AutoScaler: true,
 							},
-						}, false)
+						}, 0)
 
 						Expect(err).NotTo(HaveOccurred())
 
@@ -482,7 +482,7 @@ var _ = Describe("Update", func() {
 
 			err := addonManager.Update(context.TODO(), &api.Addon{
 				Name: "my-addon",
-			}, false)
+			}, 0)
 			Expect(err).To(MatchError(`failed to update addon "my-addon": foo`))
 			Expect(*updateAddonInput.ClusterName).To(Equal("my-cluster"))
 			Expect(*updateAddonInput.AddonName).To(Equal("my-addon"))

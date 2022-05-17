@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -26,7 +27,7 @@ const (
 	ebsCSIDriverName    = "aws-ebs-csi-driver"
 )
 
-func (a *Manager) Create(ctx context.Context, addon *api.Addon, wait bool) error {
+func (a *Manager) Create(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
 	version := addon.Version
 	if version != "" {
 		var err error
@@ -124,8 +125,8 @@ func (a *Manager) Create(ctx context.Context, addon *api.Addon, wait bool) error
 		logger.Debug("EKS Create Addon output: %s", *output.Addon)
 	}
 
-	if wait {
-		return a.waitForAddonToBeActive(ctx, addon)
+	if waitTimeout > 0 {
+		return a.waitForAddonToBeActive(ctx, addon, waitTimeout)
 	}
 	logger.Info("successfully created addon")
 	return nil

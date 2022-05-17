@@ -30,6 +30,7 @@ var _ = Describe("Drain", func() {
 		fakeClientSet *fake.Clientset
 		fakeEvictor   *fakes.FakeEvictor
 		nodeName      = "node-1"
+		ctx           context.Context
 	)
 
 	BeforeEach(func() {
@@ -38,6 +39,9 @@ var _ = Describe("Drain", func() {
 		mockNG.Mock.On("ListOptions").Return(metav1.ListOptions{})
 		fakeClientSet = fake.NewSimpleClientset()
 		fakeEvictor = new(fakes.FakeEvictor)
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+		DeferCleanup(cancel)
 	})
 
 	When("all nodes drain successfully", func() {
@@ -76,10 +80,10 @@ var _ = Describe("Drain", func() {
 		})
 
 		It("does not error", func() {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second*10, time.Second, time.Second*0, false, false, 1)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, 0, false, false, 1)
 			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
-			err := nodeGroupDrainer.Drain()
+			err := nodeGroupDrainer.Drain(ctx)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(BeNumerically(">=", 2))
@@ -120,11 +124,13 @@ var _ = Describe("Drain", func() {
 		})
 
 		It("times out and errors", func() {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*2, time.Second*0, time.Second, time.Second*0, false, false, 1)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, 0, time.Second, 0, false, false, 1)
 			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
-			err := nodeGroupDrainer.Drain()
-			Expect(err).To(MatchError("timed out (after 2s) waiting for nodegroup \"node-1\" to be drained"))
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			defer cancel()
+			err := nodeGroupDrainer.Drain(ctx)
+			Expect(err).To(MatchError(`timed out waiting for nodegroup "node-1" to be drained`))
 		})
 	})
 
@@ -134,10 +140,12 @@ var _ = Describe("Drain", func() {
 		})
 
 		It("errors", func() {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second, time.Second, time.Second, time.Second*0, false, false, 1)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second, time.Second, 0, false, false, 1)
 			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
-			err := nodeGroupDrainer.Drain()
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			defer cancel()
+			err := nodeGroupDrainer.Drain(ctx)
 			Expect(err).To(MatchError("checking if cluster implements policy API: error1"))
 		})
 	})
@@ -178,11 +186,10 @@ var _ = Describe("Drain", func() {
 		})
 
 		It("does not error", func() {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, time.Second, time.Second*0, false, true, 1)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second, time.Second, time.Second*0, false, true, 1)
 			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
-			err := nodeGroupDrainer.Drain()
-			Expect(err).NotTo(HaveOccurred())
+			Expect(nodeGroupDrainer.Drain(ctx)).To(Succeed())
 
 			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(BeNumerically(">=", 2))
 			Expect(fakeEvictor.EvictOrDeletePodCallCount()).To(Equal(1))
@@ -208,13 +215,13 @@ var _ = Describe("Drain", func() {
 		})
 
 		It("uncordons all the nodes", func() {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, time.Second, time.Second*0, true, false, 1)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second, time.Second, time.Second*0, true, false, 1)
 			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
-			err := nodeGroupDrainer.Drain()
+			err := nodeGroupDrainer.Drain(ctx)
 			Expect(err).NotTo(HaveOccurred())
 
-			node, err := fakeClientSet.CoreV1().Nodes().Get(context.TODO(), nodeName, metav1.GetOptions{})
+			node, err := fakeClientSet.CoreV1().Nodes().Get(context.Background(), nodeName, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(node.Spec.Unschedulable).To(BeFalse())
 
@@ -262,11 +269,10 @@ var _ = Describe("Drain", func() {
 		})
 
 		It("does not error", func() {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, time.Second, time.Second*0, false, false, 1)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second, time.Second, 0, false, false, 1)
 			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
-			err := nodeGroupDrainer.Drain()
-			Expect(err).NotTo(HaveOccurred())
+			Expect(nodeGroupDrainer.Drain(ctx)).To(Succeed())
 
 			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(Equal(3))
 			Expect(fakeEvictor.EvictOrDeletePodCallCount()).To(Equal(2))
@@ -313,10 +319,10 @@ var _ = Describe("Drain", func() {
 		})
 
 		It("returns an error", func() {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, time.Second, time.Second*0, false, false, 1)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second, time.Second, 0, false, false, 1)
 			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
-			err := nodeGroupDrainer.Drain()
+			err := nodeGroupDrainer.Drain(ctx)
 			Expect(err.Error()).To(ContainSubstring("unrecoverable error evicting pod: ns-1/pod-1"))
 
 			Expect(fakeEvictor.GetPodsForEvictionCallCount()).To(Equal(1))
@@ -377,10 +383,10 @@ var _ = Describe("Drain", func() {
 		})
 
 		It("it attempts to drain all pods", func() {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second*10, time.Second, time.Second, time.Second*0, false, false, 1)
+			nodeGroupDrainer := drain.NewNodeGroupDrainer(fakeClientSet, &mockNG, time.Second, time.Second, time.Second*0, false, false, 1)
 			nodeGroupDrainer.SetDrainer(fakeEvictor)
 
-			_ = nodeGroupDrainer.Drain()
+			_ = nodeGroupDrainer.Drain(ctx)
 
 			Expect(fakeEvictor.EvictOrDeletePodCallCount()).To(BeNumerically(">=", 2))
 			Expect(fakeEvictor.EvictOrDeletePodArgsForCall(0)).To(Equal(pods[0]))

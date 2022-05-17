@@ -80,7 +80,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 	cfg := cmd.ClusterConfig
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
@@ -140,7 +140,9 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 			DisableEviction:       disableEviction,
 			Parallel:              parallel,
 		}
-		err := nodeGroupManager.Drain(drainInput)
+		ctx, cancel := context.WithTimeout(ctx, cmd.ProviderConfig.WaitTimeout)
+		defer cancel()
+		err := nodeGroupManager.Drain(ctx, drainInput)
 		if err != nil {
 			logger.Warning("error occurred during drain, to skip drain use '--drain=false' flag")
 			return err

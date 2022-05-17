@@ -77,7 +77,7 @@ func (c *UnownedCluster) Delete(ctx context.Context, waitInterval, podEvictionWa
 		}
 
 		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
-		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
+		if err := drainAllNodeGroups(ctx, c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
 			attemptVpcCniDeletion(ctx, clusterName, ctl, clientSet)
 		}, podEvictionWaitPeriod); err != nil {
 			if !force {

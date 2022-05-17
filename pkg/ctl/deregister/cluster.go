@@ -2,10 +2,10 @@ package deregister
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -35,7 +35,8 @@ func deregisterClusterCmd(cmd *cmdutils.Cmd) {
 }
 
 func deregisterCluster(cmd *cmdutils.Cmd, clusterName string) error {
-	clusterProvider, err := eks.New(context.TODO(), &cmd.ProviderConfig, nil)
+	ctx := context.Background()
+	clusterProvider, err := eks.New(ctx, &cmd.ProviderConfig, nil)
 	if err != nil {
 		return err
 	}
@@ -44,8 +45,8 @@ func deregisterCluster(cmd *cmdutils.Cmd, clusterName string) error {
 		Provider: clusterProvider.AWSProvider,
 	}
 
-	if err := c.DeregisterCluster(context.TODO(), clusterName); err != nil {
-		return errors.Wrap(err, "error deregistering cluster")
+	if err := c.DeregisterCluster(ctx, clusterName); err != nil {
+		return fmt.Errorf("error deregistering cluster: %w", err)
 	}
 
 	logger.Info("unregistered cluster %q successfully", clusterName)

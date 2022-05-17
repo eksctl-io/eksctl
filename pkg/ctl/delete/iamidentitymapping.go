@@ -49,8 +49,7 @@ func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn, account string, all bool
 
 	cfg := cmd.ClusterConfig
 
-	ctx := context.TODO()
-	ctl, err := cmd.NewProviderForExistingCluster(ctx)
+	ctl, err := cmd.NewProviderForExistingCluster(context.Background())
 	if err != nil {
 		return err
 	}

@@ -44,7 +44,7 @@ func updateNodegroup(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err

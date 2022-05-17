@@ -92,7 +92,7 @@ var _ = Describe("Upgrade", func() {
 			})
 		})
 
-		When("launchTemplate Name is set", func() {
+		When("launchTemplate name is set", func() {
 			BeforeEach(func() {
 				p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 					ClusterName:   aws.String(clusterName),
