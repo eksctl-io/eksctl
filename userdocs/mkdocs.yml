@@ -7,8 +7,8 @@ docs_dir: src
 edit_uri: ""
 
 extra_css:
-    - extra.css
-    - usage/schema.css
+  - stylesheets/extra.css
+  - stylesheets/schema.css
 
 nav:
     - Introduction: introduction.md
@@ -64,6 +64,9 @@ nav:
         - usage/eksctl-karpenter.md
         - usage/troubleshooting.md
         - FAQ: usage/faq.md
+    - Announcements:
+      - announcements/managed-nodegroups-announcement.md
+      - announcements/nodegroup-override-announcement.md
     - Examples: "https://github.com/weaveworks/eksctl/tree/main/examples"
     - Community: community.md
 
@@ -71,9 +74,12 @@ extra:
     social:
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/weaveworks
+    analytics:
+      provider: google
+      property: G-EQKYCQY5Q
 
 theme:
-    name: 'material'
+    name: 'material' 
     custom_dir: 'theme'
     favicon: 'assets/images/favicon.png'
     logo: 'assets/images/logo.png'
@@ -81,14 +87,33 @@ theme:
         text: 'Montserrat'
         code: 'Roboto Mono'
     palette:
-      primary: 'white'
-      accent: 'light blue'
-      scheme: preference
+      - media: "(prefers-color-scheme: light)" 
+        scheme: default
+        toggle:
+          icon: fontawesome/solid/moon
+          name: Switch to dark mode
+        primary: white
+        accent: blue
+      - media: "(prefers-color-scheme: dark)" 
+        scheme: slate
+        toggle:
+          icon: material/weather-sunny
+          name: Switch to light mode
+        primary: black
+        accent: blue
     highlightjs: true
     hljs_languages:
         - yaml
         - json
         - bash
+    features:
+      - header.autohide
+      - navigation.instant
+      - navigation.sections
+      - navigation.top
+    plugins:
+      - search
+
 
 markdown_extensions:
     - toc:
