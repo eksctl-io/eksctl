@@ -52,7 +52,7 @@ func registerCluster(cmd *cmdutils.Cmd, cluster connector.ExternalCluster) error
 	}
 
 	c := connector.EKSConnector{
-		Provider:         clusterProvider.Provider,
+		Provider:         clusterProvider.AWSProvider,
 		ManifestTemplate: manifestTemplate,
 	}
 	resourceList, err := c.RegisterCluster(context.TODO(), cluster)

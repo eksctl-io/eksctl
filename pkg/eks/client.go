@@ -32,9 +32,9 @@ type Client struct {
 }
 
 // NewClient creates a new client config by embedding the STS token
-func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
-	config := kubeconfig.NewForUser(spec, c.GetUsername())
-	generator := NewGenerator(c.Provider.STSPresigner(), &credentials.RealClock{})
+func (c *KubernetesProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
+	config := kubeconfig.NewForUser(spec, GetUsername(c.RoleARN))
+	generator := NewGenerator(c.Signer, &credentials.RealClock{})
 	client := &Client{
 		Config:    config,
 		Generator: generator,
@@ -43,8 +43,8 @@ func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
 }
 
 // GetUsername extracts the username part from the IAM role ARN
-func (c *ClusterProvider) GetUsername() string {
-	usernameParts := strings.Split(c.Status.iamRoleARN, "/")
+func GetUsername(roleArn string) string {
+	usernameParts := strings.Split(roleArn, "/")
 	if len(usernameParts) > 1 {
 		return usernameParts[len(usernameParts)-1]
 	}
@@ -88,7 +88,7 @@ func (c *Client) NewClientSet() (*kubernetes.Clientset, error) {
 }
 
 // NewStdClientSet creates a new API client in one go with an embedded STS token, this is most commonly used option
-func (c *ClusterProvider) NewStdClientSet(spec *api.ClusterConfig) (*kubernetes.Clientset, error) {
+func (c *KubernetesProvider) NewStdClientSet(spec *api.ClusterConfig) (*kubernetes.Clientset, error) {
 	_, clientSet, err := c.newClientSetWithEmbeddedToken(spec)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (c *ClusterProvider) NewStdClientSet(spec *api.ClusterConfig) (*kubernetes.
 	return clientSet, nil
 }
 
-func (c *ClusterProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig) (*Client, *kubernetes.Clientset, error) {
+func (c *KubernetesProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig) (*Client, *kubernetes.Clientset, error) {
 	client, err := c.NewClient(spec)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "creating Kubernetes client config with embedded token")
@@ -112,7 +112,7 @@ func (c *ClusterProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig)
 }
 
 // NewRawClient creates a new raw REST client in one go with an embedded STS token
-func (c *ClusterProvider) NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error) {
+func (c *KubernetesProvider) NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error) {
 	client, clientSet, err := c.newClientSetWithEmbeddedToken(spec)
 	if err != nil {
 		return nil, err
@@ -122,12 +122,12 @@ func (c *ClusterProvider) NewRawClient(spec *api.ClusterConfig) (*kubewrapper.Ra
 }
 
 // ServerVersion will use discovery API to fetch version of Kubernetes control plane
-func (c *ClusterProvider) ServerVersion(rawClient *kubewrapper.RawClient) (string, error) {
+func (c *KubernetesProvider) ServerVersion(rawClient *kubewrapper.RawClient) (string, error) {
 	return rawClient.ServerVersion()
 }
 
 // UpdateAuthConfigMap creates or adds a nodegroup IAM role in the auth ConfigMap for the given nodegroup.
-func (c *ClusterProvider) UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error {
+func (c *KubernetesProvider) UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clientSet kubernetes.Interface) error {
 	for _, ng := range nodeGroups {
 		// authorise nodes to join
 		if err := authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
@@ -143,12 +143,12 @@ func (c *ClusterProvider) UpdateAuthConfigMap(nodeGroups []*api.NodeGroup, clien
 }
 
 // WaitForNodes waits till the nodes are ready
-func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error {
+func (c *KubernetesProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error {
 	minSize := ng.Size()
 	if minSize == 0 {
 		return nil
 	}
-	timeout := time.After(c.Provider.WaitTimeout())
+	timeout := time.After(c.WaitTimeout)
 	readyNodes := sets.NewString()
 	watcher, err := clientSet.CoreV1().Nodes().Watch(context.TODO(), ng.ListOptions())
 	if err != nil {
@@ -183,7 +183,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNo
 				}
 			}
 		case <-timeout:
-			return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.Provider.WaitTimeout(), minSize, ng.NameString())
+			return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.WaitTimeout, minSize, ng.NameString())
 		}
 
 		if counter >= minSize {

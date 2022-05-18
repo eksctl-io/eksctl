@@ -247,7 +247,7 @@ func (p *Params) attemptSettingUserID() {
 		return
 	}
 
-	out, err := clusterProvider.Provider.STS().GetCallerIdentity(context.TODO(), &sts.GetCallerIdentityInput{})
+	out, err := clusterProvider.AWSProvider.STS().GetCallerIdentity(context.TODO(), &sts.GetCallerIdentityInput{})
 	if err != nil {
 		fmt.Fprintf(GinkgoWriter, msg, err)
 		return

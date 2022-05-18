@@ -9,6 +9,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+	"k8s.io/client-go/kubernetes/fake"
+
 	"github.com/weaveworks/eksctl/pkg/actions/cluster"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -16,7 +18,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
-	"k8s.io/client-go/kubernetes/fake"
 )
 
 type drainerMock struct {
@@ -45,7 +46,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 		cfg.Metadata.Name = clusterName
 		fakeStackManager = new(fakes.FakeStackManager)
 		fakeClientSet = fake.NewSimpleClientset()
-		ctl = &eks.ClusterProvider{Provider: p, Status: &eks.ProviderStatus{}}
+		ctl = &eks.ClusterProvider{AWSProvider: p, Status: &eks.ProviderStatus{}}
 	})
 
 	Context("draining node groups", func() {
@@ -59,7 +60,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 				nodeGroupStacks := []manager.NodeGroupStack{{NodeGroupName: "ng-1"}}
 				mockedDrainInput := &nodegroup.DrainInput{
 					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
-					MaxGracePeriod: ctl.Provider.WaitTimeout(),
+					MaxGracePeriod: ctl.AWSProvider.WaitTimeout(),
 					Parallel:       1,
 				}
 
@@ -87,7 +88,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 				nodeGroupStacks := []manager.NodeGroupStack{{NodeGroupName: "ng-1"}}
 				mockedDrainInput := &nodegroup.DrainInput{
 					NodeGroups:      cmdutils.ToKubeNodeGroups(cfg),
-					MaxGracePeriod:  ctl.Provider.WaitTimeout(),
+					MaxGracePeriod:  ctl.AWSProvider.WaitTimeout(),
 					DisableEviction: true,
 					Parallel:        1,
 				}
@@ -116,7 +117,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 				var nodeGroupStacks []manager.NodeGroupStack
 				mockedDrainInput := &nodegroup.DrainInput{
 					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
-					MaxGracePeriod: ctl.Provider.WaitTimeout(),
+					MaxGracePeriod: ctl.AWSProvider.WaitTimeout(),
 					Parallel:       1,
 				}
 

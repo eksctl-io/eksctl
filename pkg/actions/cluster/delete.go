@@ -48,7 +48,7 @@ func deleteSharedResources(ctx context.Context, cfg *api.ClusterConfig, ctl *eks
 		return nil
 	}
 
-	ssh.DeleteKeys(ctx, ctl.Provider.EC2(), cfg.Metadata.Name)
+	ssh.DeleteKeys(ctx, ctl.AWSProvider.EC2(), cfg.Metadata.Name)
 
 	kubeconfig.MaybeDeleteConfig(cfg.Metadata)
 
@@ -60,7 +60,7 @@ func deleteSharedResources(ctx context.Context, cfg *api.ClusterConfig, ctl *eks
 		cfg.Metadata.Version = *ctl.Status.ClusterInfo.Cluster.Version
 
 		logger.Info("cleaning up AWS load balancers created by Kubernetes objects of Kind Service or Ingress")
-		if err := elb.Cleanup(ctx, ctl.Provider.EC2(), ctl.Provider.ELB(), ctl.Provider.ELBV2(), clientSet, cfg); err != nil {
+		if err := elb.Cleanup(ctx, ctl.AWSProvider.EC2(), ctl.AWSProvider.ELB(), ctl.AWSProvider.ELBV2(), clientSet, cfg); err != nil {
 			return err
 		}
 	}
@@ -78,7 +78,7 @@ func handleErrors(errs []error, subject string) error {
 func deleteFargateProfiles(ctx context.Context, clusterMeta *api.ClusterMeta, ctl *eks.ClusterProvider, stackManager manager.StackManager) error {
 	manager := fargate.NewFromProvider(
 		clusterMeta.Name,
-		ctl.Provider,
+		ctl.AWSProvider,
 		stackManager,
 	)
 	profileNames, err := manager.ListProfiles(ctx)
@@ -181,7 +181,7 @@ func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, client
 
 	drainInput := &nodegroup.DrainInput{
 		NodeGroups:            cmdutils.ToKubeNodeGroups(cfg),
-		MaxGracePeriod:        ctl.Provider.WaitTimeout(),
+		MaxGracePeriod:        ctl.AWSProvider.WaitTimeout(),
 		DisableEviction:       disableEviction,
 		PodEvictionWaitPeriod: podEvictionWaitPeriod,
 		Parallel:              parallel,
@@ -199,7 +199,7 @@ func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, client
 func attemptVpcCniDeletion(ctx context.Context, clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
 	vpcCNI := "vpc-cni"
 	logger.Debug("deleting EKS addon %q if it exists", vpcCNI)
-	_, err := ctl.Provider.EKS().DeleteAddon(ctx, &awseks.DeleteAddonInput{
+	_, err := ctl.AWSProvider.EKS().DeleteAddon(ctx, &awseks.DeleteAddonInput{
 		ClusterName: &clusterName,
 		AddonName:   aws.String(vpcCNI),
 	})

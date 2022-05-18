@@ -35,7 +35,7 @@ func (i *Installer) Create(ctx context.Context) error {
 	}
 
 	// Create IAM roles
-	taskTree := newTasksToInstallKarpenterIAMRoles(ctx, i.Config, i.StackManager, i.CTL.Provider.EC2(), instanceProfileName)
+	taskTree := newTasksToInstallKarpenterIAMRoles(ctx, i.Config, i.StackManager, i.CTL.AWSProvider.EC2(), instanceProfileName)
 	if err := doTasks(taskTree); err != nil {
 		return err
 	}

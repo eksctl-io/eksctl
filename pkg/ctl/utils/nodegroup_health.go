@@ -67,8 +67,8 @@ func getNodeGroupHealth(cmd *cmdutils.Cmd, nodeGroupName string) error {
 		return err
 	}
 
-	stackCollection := manager.NewStackCollection(ctl.Provider, cfg)
-	managedService := managed.NewService(ctl.Provider.EKS(), ctl.Provider.EC2(), stackCollection, cfg.Metadata.Name)
+	stackCollection := manager.NewStackCollection(ctl.AWSProvider, cfg)
+	managedService := managed.NewService(ctl.AWSProvider.EKS(), ctl.AWSProvider.EC2(), stackCollection, cfg.Metadata.Name)
 	healthIssues, err := managedService.GetHealth(ctx, nodeGroupName)
 	if err != nil {
 		return err
