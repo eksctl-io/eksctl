@@ -119,11 +119,15 @@ var _ = Describe("StackCollection Tasks", func() {
 				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar", "foo"), makeManagedNodeGroups("m1", "m2"))
 				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
-    4 parallel sub-tasks: { 
-        create nodegroup "bar",
-        create nodegroup "foo",
-        create managed nodegroup "m1",
-        create managed nodegroup "m2",
+    2 parallel sub-tasks: { 
+        2 parallel sub-tasks: { 
+            create nodegroup "bar",
+            create nodegroup "foo",
+        },
+        2 parallel sub-tasks: { 
+            create managed nodegroup "m1",
+            create managed nodegroup "m2",
+        },
     } 
 }
 `))
@@ -132,13 +136,21 @@ var _ = Describe("StackCollection Tasks", func() {
 				tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(context.Background(), makeNodeGroups("bar", "foo"), makeManagedNodeGroupsWithPropagatedTags("m1", "m2"))
 				Expect(tasks.Describe()).To(Equal(`
 2 sequential tasks: { create cluster control plane "test-cluster", 
-    6 parallel sub-tasks: { 
-        create nodegroup "bar",
-        create nodegroup "foo",
-        create managed nodegroup "m1",
-        propagate tags to ASG for managed nodegroup "m1",
-        create managed nodegroup "m2",
-        propagate tags to ASG for managed nodegroup "m2",
+    2 parallel sub-tasks: { 
+        2 parallel sub-tasks: { 
+            create nodegroup "bar",
+            create nodegroup "foo",
+        },
+        2 parallel sub-tasks: { 
+            2 sequential sub-tasks: { 
+                create managed nodegroup "m1",
+                propagate tags to ASG for managed nodegroup "m1",
+            },
+            2 sequential sub-tasks: { 
+                create managed nodegroup "m2",
+                propagate tags to ASG for managed nodegroup "m2",
+            },
+        },
     } 
 }
 `))
