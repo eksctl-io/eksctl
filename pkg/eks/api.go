@@ -45,10 +45,11 @@ import (
 
 // ClusterProvider stores information about the cluster
 type ClusterProvider struct {
+	// KubeProvider offers helper methods to handle Kubernetes operations
+	KubeProvider
+
 	// core fields used for config and AWS APIs
 	AWSProvider api.ClusterProvider
-	// KubernetesProvider offers helper methods to handle Kubernetes operations
-	KubernetesProvider KubeProvider
 	// informative fields, i.e. used as outputs
 	Status *ProviderStatus
 }
@@ -211,7 +212,7 @@ func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.Cluster
 		RoleARN:     c.Status.IAMRoleARN,
 		Signer:      provider.STSPresigner(),
 	}
-	c.KubernetesProvider = kubeProvider
+	c.KubeProvider = kubeProvider
 
 	return c, nil
 }

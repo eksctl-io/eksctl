@@ -66,7 +66,7 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		return err
 	}
 
-	clientSet, err := ctl.KubernetesProvider.NewStdClientSet(cfg)
+	clientSet, err := ctl.NewStdClientSet(cfg)
 	if err != nil {
 		return err
 	}

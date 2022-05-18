@@ -78,7 +78,7 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 
 	stackManager := t.clusterProvider.NewStackManager(t.cfg)
 
-	clientSet, err := t.clusterProvider.KubernetesProvider.NewStdClientSet(t.cfg)
+	clientSet, err := t.clusterProvider.NewStdClientSet(t.cfg)
 	if err != nil {
 		return err
 	}

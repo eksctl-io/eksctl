@@ -183,7 +183,7 @@ func newClientSet(name string) *kubernetes.Clientset {
 	err = ctl.RefreshClusterStatus(ctx, cfg)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	clientSet, err := ctl.KubernetesProvider.NewStdClientSet(cfg)
+	clientSet, err := ctl.NewStdClientSet(cfg)
 	Expect(err).ShouldNot(HaveOccurred())
 	return clientSet
 }

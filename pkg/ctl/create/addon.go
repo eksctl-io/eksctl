@@ -82,7 +82,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 		logger.Info("Kubernetes version %q in use by cluster %q", *output.Cluster.Version, cmd.ClusterConfig.Metadata.Name)
 		cmd.ClusterConfig.Metadata.Version = *output.Cluster.Version
 
-		clientSet, err := clusterProvider.KubernetesProvider.NewStdClientSet(cmd.ClusterConfig)
+		clientSet, err := clusterProvider.NewStdClientSet(cmd.ClusterConfig)
 		if err != nil {
 			return err
 		}

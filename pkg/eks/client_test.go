@@ -40,7 +40,7 @@ var _ = Describe("eks auth helpers", func() {
 					Status: &ProviderStatus{
 						IAMRoleARN: "eksctl",
 					},
-					KubernetesProvider: kubeProvider,
+					KubeProvider: kubeProvider,
 				}
 
 			})

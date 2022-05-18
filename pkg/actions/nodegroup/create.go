@@ -194,14 +194,14 @@ func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options 
 	}
 
 	if options.UpdateAuthConfigMap {
-		if err := m.kubeProvider.UpdateAuthConfigMap(m.cfg.NodeGroups, clientSet); err != nil {
+		if err := m.ctl.UpdateAuthConfigMap(m.cfg.NodeGroups, clientSet); err != nil {
 			return err
 		}
 	}
 	logger.Success("created %d nodegroup(s) in cluster %q", len(m.cfg.NodeGroups), m.cfg.Metadata.Name)
 
 	for _, ng := range m.cfg.ManagedNodeGroups {
-		if err := m.kubeProvider.WaitForNodes(clientSet, ng); err != nil {
+		if err := m.ctl.WaitForNodes(clientSet, ng); err != nil {
 			if m.cfg.PrivateCluster.Enabled {
 				logger.Info("error waiting for nodes to join the cluster; this command was likely run from outside the cluster's VPC as the API server is not reachable, nodegroup(s) should still be able to join the cluster, underlying error is: %v", err)
 				break
@@ -250,7 +250,7 @@ func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
 }
 
 func (m *Manager) checkARMSupport(ctx context.Context, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, cfg *api.ClusterConfig, skipOutdatedAddonsCheck bool) error {
-	kubeProvider := m.kubeProvider
+	kubeProvider := m.ctl
 	rawClient, err := kubeProvider.NewRawClient(cfg)
 	if err != nil {
 		return err

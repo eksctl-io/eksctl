@@ -17,7 +17,7 @@ func KubernetesClientAndConfigFrom(cmd *Cmd) (*kubernetes.Clientset, error) {
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return nil, err
 	}
-	k8sClientSet, err := ctl.KubernetesProvider.NewStdClientSet(cfg)
+	k8sClientSet, err := ctl.NewStdClientSet(cfg)
 	if err != nil {
 		return nil, err
 	}

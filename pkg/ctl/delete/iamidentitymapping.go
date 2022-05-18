@@ -65,7 +65,7 @@ func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn, account string, all bool
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
 	}
-	clientSet, err := ctl.KubernetesProvider.NewStdClientSet(cfg)
+	clientSet, err := ctl.NewStdClientSet(cfg)
 	if err != nil {
 		return err
 	}

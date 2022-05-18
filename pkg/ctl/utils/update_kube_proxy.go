@@ -51,7 +51,7 @@ func doUpdateKubeProxy(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	rawClient, err := ctl.KubernetesProvider.NewRawClient(cfg)
+	rawClient, err := ctl.NewRawClient(cfg)
 	if err != nil {
 		return err
 	}

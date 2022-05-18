@@ -349,7 +349,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		logger.Success("all EKS cluster resources for %q have been created", meta.Name)
 
 		// create Kubernetes client
-		clientSet, err := ctl.KubernetesProvider.NewStdClientSet(cfg)
+		clientSet, err := ctl.NewStdClientSet(cfg)
 		if err != nil {
 			return err
 		}
@@ -361,13 +361,13 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			}
 
 			// wait for nodes to join
-			if err = ctl.KubernetesProvider.WaitForNodes(clientSet, ng); err != nil {
+			if err = ctl.WaitForNodes(clientSet, ng); err != nil {
 				return err
 			}
 		}
 
 		for _, ng := range cfg.ManagedNodeGroups {
-			if err := ctl.KubernetesProvider.WaitForNodes(clientSet, ng); err != nil {
+			if err := ctl.WaitForNodes(clientSet, ng); err != nil {
 				return err
 			}
 		}

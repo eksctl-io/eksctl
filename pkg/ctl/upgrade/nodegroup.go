@@ -74,7 +74,7 @@ func upgradeNodeGroup(cmd *cmdutils.Cmd, options nodegroup.UpgradeOptions) error
 		return err
 	}
 
-	clientSet, err := ctl.KubernetesProvider.NewStdClientSet(cfg)
+	clientSet, err := ctl.NewStdClientSet(cfg)
 	if err != nil {
 		return err
 	}

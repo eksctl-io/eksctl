@@ -20,6 +20,6 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackManager manager.
 		ctl:             ctl,
 		cfg:             cfg,
 		stackManager:    stackManager,
-		newStdClientSet: func() (kubernetes.Interface, error) { return ctl.KubernetesProvider.NewStdClientSet(cfg) },
+		newStdClientSet: func() (kubernetes.Interface, error) { return ctl.NewStdClientSet(cfg) },
 	}
 }

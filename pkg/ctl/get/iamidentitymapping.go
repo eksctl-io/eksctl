@@ -68,7 +68,7 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
 	}
-	clientSet, err := ctl.KubernetesProvider.NewStdClientSet(cfg)
+	clientSet, err := ctl.NewStdClientSet(cfg)
 	if err != nil {
 		return err
 	}

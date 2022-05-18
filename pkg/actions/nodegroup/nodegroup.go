@@ -20,7 +20,6 @@ type Manager struct {
 	clientSet             kubernetes.Interface
 	wait                  WaitFunc
 	init                  eks.NodeGroupInitialiser
-	kubeProvider          eks.KubeProvider
 	launchTemplateFetcher *builder.LaunchTemplateFetcher
 }
 
@@ -37,7 +36,6 @@ func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.
 		init: &eks.NodeGroupService{
 			Provider: ctl.AWSProvider,
 		},
-		kubeProvider:          ctl.KubernetesProvider,
 		launchTemplateFetcher: builder.NewLaunchTemplateFetcher(ctl.AWSProvider.EC2()),
 	}
 }

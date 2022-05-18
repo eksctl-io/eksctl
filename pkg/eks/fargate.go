@@ -50,7 +50,7 @@ func (t *fargateProfilesTask) Do(errCh chan error) error {
 		return t.ctx.Err()
 	}
 
-	clientSet, err := t.clusterProvider.KubernetesProvider.NewStdClientSet(t.spec)
+	clientSet, err := t.clusterProvider.NewStdClientSet(t.spec)
 	if err != nil {
 		return errors.Wrap(err, "failed to get ClientSet")
 	}

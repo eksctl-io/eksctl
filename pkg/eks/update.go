@@ -273,7 +273,7 @@ func (c *ClusterProvider) waitForControlPlaneVersion(cfg *api.ClusterConfig) err
 		TimeUnit: time.Second,
 	}
 
-	clientSet, err := c.KubernetesProvider.NewStdClientSet(cfg)
+	clientSet, err := c.NewStdClientSet(cfg)
 	if err != nil {
 		return err
 	}
