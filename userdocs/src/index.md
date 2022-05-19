@@ -95,10 +95,3 @@ To learn more about how to create clusters and other features continue reading t
 
 [ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
 
-[![Coverage Status](https://coveralls.io/repos/github/weaveworks/eksctl/badge.svg?branch=master)](https://coveralls.io/github/weaveworks/eksctl?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/weaveworks/eksctl)](https://goreportcard.com/report/github.com/weaveworks/eksctl)
-![Gophers: E, K, S, C, T, & L](img/eksctl.png)
-
-!!! credits
-    _Original Gophers drawn by [Ashley McNamara](https://twitter.com/ashleymcnamara), unique E, K, S, C, T & L Gopher identities had been produced with [Gopherize.me](https://github.com/matryer/gopherize.me)._
-
-    Site powered by [Netlify ©](https://netlify.com)

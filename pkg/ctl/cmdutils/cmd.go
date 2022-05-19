@@ -2,7 +2,6 @@ package cmdutils
 
 import (
 	"context"
-	"sync"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
@@ -10,8 +9,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
-
-var once sync.Once
 
 // Cmd holds attributes that are common between commands;
 // not all commands use each attribute, but they can if needed
@@ -67,11 +64,6 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	//prevent logging multiple times
-	once.Do(func() {
-		logRegionAndVersionInfo(c.ClusterConfig.Metadata)
-	})
 
 	if !ctl.IsSupportedRegion() {
 		return nil, ErrUnsupportedRegion(&c.ProviderConfig)

@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 
 	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
 	"github.com/kris-nova/logger"
@@ -44,9 +45,15 @@ const (
 		"and run `eksctl utils install-vpc-controllers` with the --delete ﬂag to remove the worker node installation of the VPC resource controller"
 )
 
+var once sync.Once
+
 func createClusterCmd(cmd *cmdutils.Cmd) {
 	createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams) error {
-		return doCreateCluster(cmd, ngFilter, params)
+		ctl, err := cmd.NewCtl()
+		if err != nil {
+			return err
+		}
+		return doCreateCluster(cmd, ngFilter, params, ctl)
 	})
 }
 
@@ -117,14 +124,14 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 	})
 }
 
-func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams) error {
+func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params *cmdutils.CreateClusterCmdParams, ctl *eks.ClusterProvider) error {
+	var err error
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
 	if meta.Name != "" && api.IsInvalidNameArg(meta.Name) {
 		return api.ErrInvalidName(meta.Name)
 	}
-
 	printer := printers.NewJSONPrinter()
 
 	if params.DryRun {
@@ -135,10 +142,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		}()
 	}
 
-	ctl, err := cmd.NewCtl()
-	if err != nil {
-		return err
-	}
+	//prevent logging multiple times
+	once.Do(func() {
+		cmdutils.LogRegionAndVersionInfo(meta)
+	})
 
 	if cfg.Metadata.Version == "" || cfg.Metadata.Version == "auto" {
 		cfg.Metadata.Version = api.DefaultVersion
@@ -197,7 +204,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		// load subnets from local map created from flags, into the config
 		importSubnets := func(subnetMapping api.AZSubnetMapping, subnetIDs *[]string) error {
 			if subnetIDs != nil {
-				if err := vpc.ImportSubnetsFromIDList(ctx, ctl.Provider.EC2(), cfg, subnetMapping, *subnetIDs); err != nil {
+				if err := vpc.ImportSubnetsFromIDList(ctx, ctl.AWSProvider.EC2(), cfg, subnetMapping, *subnetIDs); err != nil {
 					return err
 				}
 			}
@@ -235,7 +242,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		return err
 	}
 
-	nodeGroupService := eks.NewNodeGroupService(ctl.Provider, selector.New(ctl.Provider.Session()))
+	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, selector.New(ctl.AWSProvider.Session()))
 	nodePools := cmdutils.ToNodePools(cfg)
 	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err
@@ -283,7 +290,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 	logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
 
 	eks.LogEnabledFeatures(cfg)
-	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(ctx, cfg)
+	postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(ctx, cfg) // THIS IS WHERE WE TIME OUT
 
 	var preNodegroupAddons, postNodegroupAddons *tasks.TaskTree
 	if len(cfg.Addons) > 0 {
@@ -315,7 +322,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		var kubeconfigContextName string
 
 		if params.WriteKubeconfig {
-			kubectlConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), params.AuthenticatorRoleARN, ctl.Provider.Profile())
+			kubectlConfig := kubeconfig.NewForKubectl(cfg, eks.GetUsername(ctl.Status.IAMRoleARN), params.AuthenticatorRoleARN, ctl.AWSProvider.Profile())
 			kubeconfigContextName = kubectlConfig.CurrentContext
 
 			params.KubeconfigPath, err = kubeconfig.Write(params.KubeconfigPath, *kubectlConfig, params.SetContext)
@@ -376,7 +383,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 
 		// After we have the cluster config and all the nodes are done, we install Karpenter if necessary.
 		if cfg.Karpenter != nil {
-			config := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), params.AuthenticatorRoleARN, ctl.Provider.Profile())
+			config := kubeconfig.NewForKubectl(cfg, eks.GetUsername(ctl.Status.IAMRoleARN), params.AuthenticatorRoleARN, ctl.AWSProvider.Profile())
 			kubeConfigBytes, err := runtime.Encode(clientcmdlatest.Codec, config)
 			if err != nil {
 				return errors.Wrap(err, "generating kubeconfig")
@@ -448,12 +455,12 @@ func createOrImportVPC(ctx context.Context, cmd *cmdutils.Cmd, cfg *api.ClusterC
 
 	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets
 	if !subnetsGiven && params.KopsClusterNameForVPC == "" {
-		if err := eks.SetAvailabilityZones(ctx, cfg, params.AvailabilityZones, ctl.Provider.EC2(), ctl.Provider.Region()); err != nil {
+		if err := eks.SetAvailabilityZones(ctx, cfg, params.AvailabilityZones, ctl.AWSProvider.EC2(), ctl.AWSProvider.Region()); err != nil {
 			return err
 		}
 
 		if len(cfg.LocalZones) > 0 {
-			if err := eks.ValidateLocalZones(ctx, ctl.Provider.EC2(), cfg.LocalZones, ctl.Provider.Region()); err != nil {
+			if err := eks.ValidateLocalZones(ctx, ctl.AWSProvider.EC2(), cfg.LocalZones, ctl.AWSProvider.Region()); err != nil {
 				return err
 			}
 		}
@@ -491,7 +498,7 @@ func createOrImportVPC(ctx context.Context, cmd *cmdutils.Cmd, cfg *api.ClusterC
 			return nil
 		}
 
-		if err := kw.UseVPC(ctx, ctl.Provider.EC2(), cfg); err != nil {
+		if err := kw.UseVPC(ctx, ctl.AWSProvider.EC2(), cfg); err != nil {
 			return err
 		}
 
@@ -517,7 +524,7 @@ func createOrImportVPC(ctx context.Context, cmd *cmdutils.Cmd, cfg *api.ClusterC
 		return nil
 	}
 
-	if err := vpc.ImportSubnetsFromSpec(ctx, ctl.Provider, cfg); err != nil {
+	if err := vpc.ImportSubnetsFromSpec(ctx, ctl.AWSProvider, cfg); err != nil {
 		return err
 	}
 

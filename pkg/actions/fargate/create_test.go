@@ -51,7 +51,7 @@ var _ = Describe("Fargate", func() {
 
 		clusterName = "my-cluster"
 		cfg.Metadata.Name = clusterName
-		ctl := &eks.ClusterProvider{Provider: mockProvider, Status: &eks.ProviderStatus{
+		ctl := &eks.ClusterProvider{AWSProvider: mockProvider, Status: &eks.ProviderStatus{
 			ClusterInfo: &eks.ClusterInfo{
 				Cluster: &ekstypes.Cluster{
 					Status:  ekstypes.ClusterStatusActive,

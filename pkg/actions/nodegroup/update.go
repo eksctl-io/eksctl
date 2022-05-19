@@ -27,7 +27,7 @@ func (m *Manager) Update(ctx context.Context) error {
 func (m *Manager) updateNodegroup(ctx context.Context, ng *api.ManagedNodeGroup) error {
 	logger.Info("checking that nodegroup %s is a managed nodegroup", ng.Name)
 
-	_, err := m.ctl.Provider.EKS().DescribeNodegroup(ctx, &eks.DescribeNodegroupInput{
+	_, err := m.ctl.AWSProvider.EKS().DescribeNodegroup(ctx, &eks.DescribeNodegroupInput{
 		ClusterName:   &m.cfg.Metadata.Name,
 		NodegroupName: &ng.Name,
 	})
@@ -48,7 +48,7 @@ func (m *Manager) updateNodegroup(ctx context.Context, ng *api.ManagedNodeGroup)
 		return err
 	}
 
-	_, err = m.ctl.Provider.EKS().UpdateNodegroupConfig(ctx, &eks.UpdateNodegroupConfigInput{
+	_, err = m.ctl.AWSProvider.EKS().UpdateNodegroupConfig(ctx, &eks.UpdateNodegroupConfigInput{
 		UpdateConfig:  updateConfig,
 		ClusterName:   &m.cfg.Metadata.Name,
 		NodegroupName: &ng.Name,

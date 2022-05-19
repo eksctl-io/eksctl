@@ -82,7 +82,7 @@ func (t *createAddonTask) Do(errorCh chan error) error {
 	if err != nil {
 		return err
 	}
-	addonManager, err := New(t.cfg, t.clusterProvider.Provider.EKS(), stackManager, oidcProviderExists, oidc, clientSet, t.timeout)
+	addonManager, err := New(t.cfg, t.clusterProvider.AWSProvider.EKS(), stackManager, oidcProviderExists, oidc, clientSet, t.timeout)
 	if err != nil {
 		return err
 	}

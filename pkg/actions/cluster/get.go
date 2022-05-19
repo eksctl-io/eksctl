@@ -69,7 +69,7 @@ func GetClusters(ctx context.Context, provider api.ClusterProvider, listAllRegio
 			continue
 		}
 
-		newClusters, err := listClusters(ctx, ctl.Provider, int32(chunkSize))
+		newClusters, err := listClusters(ctx, ctl.AWSProvider, int32(chunkSize))
 		if err != nil {
 			logger.Critical("error listing clusters in %q region: %v", region, err)
 			continue

@@ -29,7 +29,7 @@ func (c *ClusterProvider) DescribeControlPlane(ctx context.Context, meta *api.Cl
 	input := &awseks.DescribeClusterInput{
 		Name: &meta.Name,
 	}
-	output, err := c.Provider.EKS().DescribeCluster(ctx, input)
+	output, err := c.AWSProvider.EKS().DescribeCluster(ctx, input)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to describe cluster control plane")
 	}
@@ -188,7 +188,7 @@ func (c *ClusterProvider) NewOpenIDConnectManager(ctx context.Context, spec *api
 		return nil, fmt.Errorf("unknown EKS ARN: %q", spec.Status.ARN)
 	}
 
-	return iamoidc.NewOpenIDConnectManager(c.Provider.IAM(), parsedARN.AccountID,
+	return iamoidc.NewOpenIDConnectManager(c.AWSProvider.IAM(), parsedARN.AccountID,
 		*c.Status.ClusterInfo.Cluster.Identity.Oidc.Issuer, parsedARN.Partition, sharedTags(c.Status.ClusterInfo.Cluster))
 }
 
@@ -198,19 +198,6 @@ func sharedTags(cluster *ekstypes.Cluster) map[string]string {
 		api.EksctlVersionTag: version.GetVersion(),
 	}
 
-}
-
-// LoadClusterIntoSpecFromStack uses stack information to load the cluster
-// configuration into the spec
-// At the moment VPC and KubernetesNetworkConfig are respected
-func (c *ClusterProvider) LoadClusterIntoSpecFromStack(ctx context.Context, spec *api.ClusterConfig, stackManager manager.StackManager) error {
-	if err := c.LoadClusterVPC(ctx, spec, stackManager); err != nil {
-		return err
-	}
-	if err := c.RefreshClusterStatus(ctx, spec); err != nil {
-		return err
-	}
-	return c.loadClusterKubernetesNetworkConfig(spec)
 }
 
 // LoadClusterVPC loads the VPC configuration
@@ -223,7 +210,7 @@ func (c *ClusterProvider) LoadClusterVPC(ctx context.Context, spec *api.ClusterC
 		return &manager.StackNotFoundErr{ClusterName: spec.Metadata.Name}
 	}
 
-	return vpc.UseFromClusterStack(ctx, c.Provider, stack, spec)
+	return vpc.UseFromClusterStack(ctx, c.AWSProvider, stack, spec)
 }
 
 // loadClusterKubernetesNetworkConfig gets the network config of an existing
@@ -247,7 +234,7 @@ func (c *ClusterProvider) GetCluster(ctx context.Context, clusterName string) (*
 		Name: &clusterName,
 	}
 
-	output, err := c.Provider.EKS().DescribeCluster(ctx, input)
+	output, err := c.AWSProvider.EKS().DescribeCluster(ctx, input)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to describe control plane %q", clusterName)
 	}
@@ -291,9 +278,9 @@ func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *
 		},
 	}
 
-	if err := w.WaitWithTimeout(c.Provider.WaitTimeout()); err != nil {
+	if err := w.WaitWithTimeout(c.AWSProvider.WaitTimeout()); err != nil {
 		if err == context.DeadlineExceeded {
-			return errors.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.Provider.WaitTimeout())
+			return errors.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.AWSProvider.WaitTimeout())
 		}
 		return err
 	}

@@ -75,7 +75,7 @@ var _ = Describe("Create", func() {
 			fakeStackManager = &fakes.FakeStackManager{}
 			fakeKarpenterInstaller = &karpenterfakes.FakeChartInstaller{}
 			ctl = &eks.ClusterProvider{
-				Provider: p,
+				AWSProvider: p,
 				Status: &eks.ProviderStatus{
 					ClusterInfo: &eks.ClusterInfo{
 						Cluster: testutils.NewFakeCluster(clusterName, ekstypes.ClusterStatusActive),
@@ -125,7 +125,7 @@ var _ = Describe("Create", func() {
 				p = mockprovider.NewMockProvider()
 				p.MockEC2().On("CreateTags", mock.Anything, mock.Anything).Return(nil, errors.New("nope"))
 				ctl = &eks.ClusterProvider{
-					Provider: p,
+					AWSProvider: p,
 					Status: &eks.ProviderStatus{
 						ClusterInfo: &eks.ClusterInfo{
 							Cluster: testutils.NewFakeCluster(clusterName, ""),

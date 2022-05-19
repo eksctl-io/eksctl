@@ -15,7 +15,7 @@ func (m *Manager) SetStackManager(stackManager manager.StackManager) {
 
 // MockKubeProvider can be used for passing a mock of the kube provider.
 func (m *Manager) MockKubeProvider(k eks.KubeProvider) {
-	m.kubeProvider = k
+	m.ctl.KubeProvider = k
 }
 
 // MockNodeGroupService can be used for passing a mock of the nodegroup initialiser.
