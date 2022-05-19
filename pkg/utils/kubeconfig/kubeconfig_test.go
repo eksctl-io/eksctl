@@ -415,7 +415,7 @@ var _ = Describe("Kubeconfig", func() {
 		})
 		It("defaults to beta1 if we detect kubectl 1.24.0 or above", func() {
 			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
-				return exec.Command(filepath.Join("testdata", "fake-version"), "Client Version: v1.24.0")
+				return exec.Command(filepath.Join("testdata", "fake-version"), `{"clientVersion": {"gitVersion": "v1.24.0"}}`)
 			})
 			kubeconfig.AppendAuthenticator(config, clusterMeta, kubeconfig.AWSEKSAuthenticator, "", "")
 			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1beta1"))
@@ -423,7 +423,7 @@ var _ = Describe("Kubeconfig", func() {
 		It("doesn't default to beta1 if we detect kubectl 1.23.0 or below", func() {
 			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
 				if name == "kubectl" {
-					return exec.Command(filepath.Join("testdata", "fake-version"), "Client Version: v1.23.6")
+					return exec.Command(filepath.Join("testdata", "fake-version"), `{"clientVersion": {"gitVersion": "v1.23.6"}}`)
 				}
 				return exec.Command(filepath.Join("testdata", "fake-version"), "fail")
 			})

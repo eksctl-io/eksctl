@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/gofrs/flock"
@@ -251,20 +250,39 @@ func getAWSIAMAuthenticatorVersion() (string, error) {
 	return parsedVersion.Version, nil
 }
 
+/* KubectlVersionFormat is the format used by kubectl version --format=json, example output:
+{
+  "clientVersion": {
+    "major": "1",
+    "minor": "23",
+    "gitVersion": "v1.23.6",
+    "gitCommit": "ad3338546da947756e8a88aa6822e9c11e7eac22",
+    "gitTreeState": "archive",
+    "buildDate": "2022-04-29T06:39:16Z",
+    "goVersion": "go1.18.1",
+    "compiler": "gc",
+    "platform": "linux/amd64"
+  }
+} */
+type KubectlVersionData struct {
+	Version string `json:"gitVersion"`
+}
+
+type KubectlVersionFormat struct {
+	ClientVersion KubectlVersionData `json:"clientVersion"`
+}
+
 func getKubectlVersion() string {
-	// Currently, the non-short version is the default, but in the future the short version will become the default
-	// When EKS no longer supports any version where short is not the default the `--short=true` param can be removed
-	cmd := execCommand("kubectl", "version", "--client", "--short")
+	cmd := execCommand("kubectl", "version", "--client", "--output=json")
 	output, err := cmd.Output()
 	if err != nil {
 		return ""
 	}
-	r := regexp.MustCompile("Client Version: v([\\d.]*)")
-	matches := r.FindStringSubmatch(string(output))
-	if len(matches) != 2 {
+	var parsedVersion KubectlVersionFormat
+	if err := json.Unmarshal(output, &parsedVersion); err != nil {
 		return ""
 	}
-	return matches[1]
+	return strings.TrimLeft(parsedVersion.ClientVersion.Version, "v")
 }
 
 func lockFileName(filePath string) string {
