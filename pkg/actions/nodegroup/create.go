@@ -62,15 +62,15 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		}
 	}
 
-	m.init.NewAWSSelectorSession(ctl.AWSProvider)
 	nodePools := cmdutils.ToNodePools(cfg)
 
-	if err := m.init.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
+	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, m.instanceSelector)
+	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err
 	}
 
 	if !options.DryRun {
-		if err := m.init.Normalize(ctx, nodePools, cfg.Metadata); err != nil {
+		if err := nodeGroupService.Normalize(ctx, nodePools, cfg.Metadata); err != nil {
 			return err
 		}
 	}
@@ -86,7 +86,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		}
 	}
 
-	if err := m.init.ValidateLegacySubnetsForNodeGroups(ctx, cfg, ctl.AWSProvider); err != nil {
+	if err := vpc.ValidateLegacySubnetsForNodeGroups(ctx, cfg, ctl.AWSProvider); err != nil {
 		return err
 	}
 
@@ -136,7 +136,6 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
-	init := m.init
 
 	taskTree := &tasks.TaskTree{
 		Parallel: false,
@@ -146,7 +145,7 @@ func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) er
 		taskTree.Append(m.stackManager.NewClusterCompatTask(ctx))
 	}
 
-	awsNodeUsesIRSA, err := init.DoesAWSNodeUseIRSA(ctx, m.ctl.AWSProvider, m.clientSet)
+	awsNodeUsesIRSA, err := eks.DoesAWSNodeUseIRSA(ctx, m.ctl.AWSProvider, m.clientSet)
 	if err != nil {
 		return errors.Wrap(err, "couldn't check aws-node for annotation")
 	}

@@ -45,7 +45,7 @@ var _ = Describe("Scale", func() {
 				DesiredCapacity: aws.Int(3),
 			},
 		}
-		m = nodegroup.New(cfg, &eks.ClusterProvider{AWSProvider: p}, nil)
+		m = nodegroup.New(cfg, &eks.ClusterProvider{AWSProvider: p}, nil, nil)
 		fakeStackManager = new(fakes.FakeStackManager)
 		m.SetStackManager(fakeStackManager)
 		p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Return(nil, nil)

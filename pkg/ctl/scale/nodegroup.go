@@ -3,6 +3,8 @@ package scale
 import (
 	"context"
 
+	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -92,5 +94,5 @@ func scaleNodegroup(cmd *cmdutils.Cmd, ng *api.NodeGroupBase) error {
 		return err
 	}
 
-	return nodegroup.New(cfg, ctl, nil).Scale(ctx, ng)
+	return nodegroup.New(cfg, ctl, nil, selector.New(ctl.AWSProvider.Session())).Scale(ctx, ng)
 }

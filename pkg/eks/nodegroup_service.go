@@ -15,10 +15,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/ssh"
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
-	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 // MaxInstanceTypes is the maximum number of instance types you can specify in
@@ -32,16 +30,6 @@ const maxInstanceTypes = 40
 type InstanceSelector interface {
 	// Filter returns a set of instance types matching the specified instance selector filters
 	Filter(selector.Filters) ([]string, error)
-}
-
-//counterfeiter:generate -o fakes/fake_nodegroup_initialiser.go . NodeGroupInitialiser
-// NodeGroupInitialiser is an interface that provides helpers for nodegroup creation.
-type NodeGroupInitialiser interface {
-	Normalize(ctx context.Context, nodePools []api.NodePool, clusterMeta *api.ClusterMeta) error
-	ExpandInstanceSelectorOptions(nodePools []api.NodePool, clusterAZs []string) error
-	NewAWSSelectorSession(provider api.ClusterProvider)
-	ValidateLegacySubnetsForNodeGroups(ctx context.Context, spec *api.ClusterConfig, provider api.ClusterProvider) error
-	DoesAWSNodeUseIRSA(ctx context.Context, provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error)
 }
 
 // A NodeGroupService provides helpers for nodegroup creation
@@ -210,10 +198,6 @@ func (m *NodeGroupService) expandInstanceSelector(ins *api.InstanceSelector, azs
 	}
 
 	return instanceTypes, nil
-}
-
-func (m *NodeGroupService) ValidateLegacySubnetsForNodeGroups(ctx context.Context, spec *api.ClusterConfig, provider api.ClusterProvider) error {
-	return vpc.ValidateLegacySubnetsForNodeGroups(ctx, spec, provider)
 }
 
 // DoAllNodegroupStackTasks iterates over nodegroup tasks and returns any errors.

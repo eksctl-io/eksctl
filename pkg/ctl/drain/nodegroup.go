@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 
 	"github.com/kris-nova/logger"
@@ -140,5 +142,5 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 		DisableEviction:       disableEviction,
 		Parallel:              parallel,
 	}
-	return nodegroup.New(cfg, ctl, clientSet).Drain(ctx, drainInput)
+	return nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session())).Drain(ctx, drainInput)
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -36,7 +38,7 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterSt
 			return ctl.NewStdClientSet(cfg)
 		},
 		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer {
-			return nodegroup.New(cfg, ctl, clientSet)
+			return nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session()))
 		},
 	}
 }
