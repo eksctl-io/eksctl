@@ -1,0 +1,16 @@
+name: Greetings
+
+on: [pull_request_target, issues]
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+    - uses: actions/first-interaction@v1
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        issue-message: 'Hello **#** :wave: Thank you for opening an issue in `eksctl` project. The team will review the issue and aim to respond within 1-3 business days. Meanwhile, please read about the Contribution and Code of Conduct guidelines [here](https://github.com/weaveworks/eksctl#contributions). You can find out more information about `eksctl` on our [website](https://eksctl.io)'
+        pr-message: 'Hello **#** :wave: Thanky ou for opening a Pull Request in `eksctl` project. The team will review the Pull Request and aim to respond within 1-5 business days. Meanwhile, please read about the Contribution and Code of Conduct guidelines [here](https://github.com/weaveworks/eksctl#contributions). You can find out more information about `eksctl` on our [website](https://eksctl.io)'
