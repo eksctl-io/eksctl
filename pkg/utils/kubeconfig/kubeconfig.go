@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/gofrs/flock"
@@ -189,6 +190,18 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 			args = append(args, "--region", clusterMeta.Region)
 		}
 	}
+	// If the alpha API version is selected, check the kubectl version
+	// If kubectl 1.24.0 or above is detected, override with the beta API version
+	// kubectl 1.24.0 removes the alpha API version, so it will never work
+	// Therefore as a best effort try the beta version even if it might not work
+	if execConfig.APIVersion == alphaAPIVersion {
+		kubectlVersion := getKubectlVersion()
+		// Silently ignore errors because kubectl is not required to run eksctl
+		compareVersions, err := utils.CompareVersions(kubectlVersion, "1.24.0")
+		if kubectlVersion != "" && err == nil && compareVersions >= 0 {
+			execConfig.APIVersion = betaAPIVersion
+		}
+	}
 	if roleARN != "" {
 		args = append(args, roleARNFlag, roleARN)
 	}
@@ -236,6 +249,22 @@ func getAWSIAMAuthenticatorVersion() (string, error) {
 		return "", fmt.Errorf("failed to parse version information: %w", err)
 	}
 	return parsedVersion.Version, nil
+}
+
+func getKubectlVersion() string {
+	// Currently, the non-short version is the default, but in the future the short version will become the default
+	// When EKS no longer supports any version where short is not the default the `--short=true` param can be removed
+	cmd := execCommand("kubectl", "version", "--client", "--short")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	r := regexp.MustCompile("Client Version: v([\\d.]*)")
+	matches := r.FindStringSubmatch(string(output))
+	if len(matches) != 2 {
+		return ""
+	}
+	return matches[1]
 }
 
 func lockFileName(filePath string) string {
