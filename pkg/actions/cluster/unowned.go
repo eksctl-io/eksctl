@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/kris-nova/logger"
@@ -36,7 +38,7 @@ func NewUnownedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, stackMa
 			return ctl.NewStdClientSet(cfg)
 		},
 		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer {
-			return nodegroup.New(cfg, ctl, clientSet)
+			return nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session()))
 		},
 	}
 }
@@ -77,7 +79,7 @@ func (c *UnownedCluster) Delete(ctx context.Context, waitInterval, podEvictionWa
 		}
 
 		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
-		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
+		if err := drainAllNodeGroups(ctx, c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
 			attemptVpcCniDeletion(ctx, clusterName, ctl, clientSet)
 		}, podEvictionWaitPeriod); err != nil {
 			if !force {

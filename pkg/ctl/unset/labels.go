@@ -58,7 +58,7 @@ func unsetLabels(cmd *cmdutils.Cmd, nodeGroupName string, removeLabels []string)
 		return cmdutils.ErrUnsupportedNameArg()
 	}
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err

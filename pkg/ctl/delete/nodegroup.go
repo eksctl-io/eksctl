@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 
 	"github.com/kris-nova/logger"
@@ -80,7 +82,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 	cfg := cmd.ClusterConfig
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
@@ -128,7 +130,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	}
 	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 
-	nodeGroupManager := nodegroup.New(cfg, ctl, clientSet)
+	nodeGroupManager := nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session()))
 	if deleteNodeGroupDrain {
 		cmdutils.LogIntendedAction(cmd.Plan, "drain %d nodegroup(s) in cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
@@ -140,7 +142,9 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 			DisableEviction:       disableEviction,
 			Parallel:              parallel,
 		}
-		err := nodeGroupManager.Drain(drainInput)
+		ctx, cancel := context.WithTimeout(ctx, cmd.ProviderConfig.WaitTimeout)
+		defer cancel()
+		err := nodeGroupManager.Drain(ctx, drainInput)
 		if err != nil {
 			logger.Warning("error occurred during drain, to skip drain use '--drain=false' flag")
 			return err

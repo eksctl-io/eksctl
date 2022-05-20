@@ -86,7 +86,7 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 		logger.Writer = os.Stderr
 	}
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	if cfg.Metadata.Name == "" {
 		return getAndPrinterClusters(ctx, ctl, params, listAllRegions)
 	}

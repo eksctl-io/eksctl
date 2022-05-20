@@ -65,7 +65,7 @@ func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
 		logger.Writer = os.Stderr
 	}
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err

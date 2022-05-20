@@ -139,7 +139,7 @@ var _ = Describe("fargate", func() {
 			It("fails fast if the provided profile name is empty", func() {
 				client := fargate.NewWithRetryPolicy(clusterName, &mocksv2.EKS{}, &retryPolicy, neverCalledStackManager)
 				waitForDeletion := false
-				err := client.DeleteProfile(context.TODO(), "", waitForDeletion)
+				err := client.DeleteProfile(context.Background(), "", waitForDeletion)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("invalid Fargate profile name: empty"))
 			})
@@ -148,7 +148,7 @@ var _ = Describe("fargate", func() {
 				profileName := "test-green"
 				client := fargate.NewWithRetryPolicy(clusterName, mockForDeleteFargateProfile(profileName), &retryPolicy, neverCalledStackManager)
 				waitForDeletion := false
-				err := client.DeleteProfile(context.TODO(), profileName, waitForDeletion)
+				err := client.DeleteProfile(context.Background(), profileName, waitForDeletion)
 				Expect(err).To(Not(HaveOccurred()))
 			})
 
@@ -160,7 +160,7 @@ var _ = Describe("fargate", func() {
 				profileName := "test-green"
 				client := fargate.NewWithRetryPolicy(clusterName, mockForDeleteFargateProfileWithoutAnyRemaining(profileName), &retryPolicy, fakeStackManager)
 				waitForDeletion := false
-				err := client.DeleteProfile(context.TODO(), profileName, waitForDeletion)
+				err := client.DeleteProfile(context.Background(), profileName, waitForDeletion)
 				Expect(err).To(Not(HaveOccurred()))
 				Expect(fakeStackManager.GetFargateStackCallCount()).To(Equal(1))
 				Expect(fakeStackManager.DeleteStackBySpecCallCount()).To(Equal(1))
@@ -172,7 +172,7 @@ var _ = Describe("fargate", func() {
 				profileName := "test-green"
 				client := fargate.NewWithRetryPolicy(clusterName, mockForFailureOnDeleteFargateProfile(profileName), &retryPolicy, neverCalledStackManager)
 				waitForDeletion := false
-				err := client.DeleteProfile(context.TODO(), profileName, waitForDeletion)
+				err := client.DeleteProfile(context.Background(), profileName, waitForDeletion)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("failed to delete Fargate profile \"test-green\": the Internet broke down"))
 			})
@@ -186,7 +186,7 @@ var _ = Describe("fargate", func() {
 				numRetriesBeforeDeletion := 3 // < MaxRetries
 				client := fargate.NewWithRetryPolicy(clusterName, mockForDeleteFargateProfileWithWait(profileName, numRetriesBeforeDeletion), retryPolicy, nil)
 				waitForDeletion := true
-				err := client.DeleteProfile(context.TODO(), profileName, waitForDeletion)
+				err := client.DeleteProfile(context.Background(), profileName, waitForDeletion)
 				Expect(err).To(Not(HaveOccurred()))
 			})
 
@@ -199,7 +199,7 @@ var _ = Describe("fargate", func() {
 				numRetriesBeforeDeletion := 5 // == MaxRetries, i.e. we will time out.
 				client := fargate.NewWithRetryPolicy(clusterName, mockForDeleteFargateProfileWithWait(profileName, numRetriesBeforeDeletion), retryPolicy, nil)
 				waitForDeletion := true
-				err := client.DeleteProfile(context.TODO(), profileName, waitForDeletion)
+				err := client.DeleteProfile(context.Background(), profileName, waitForDeletion)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("timed out while waiting for Fargate profile \"test-green\"'s deletion"))
 			})

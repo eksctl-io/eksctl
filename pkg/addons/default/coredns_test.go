@@ -131,7 +131,7 @@ func createCoreDNSFromTestSample(rawClient *testutils.FakeRawClient, kubernetesV
 }
 
 func coreDNSImage(rawClient *testutils.FakeRawClient) string {
-	coreDNS, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.TODO(), da.CoreDNS, metav1.GetOptions{})
+	coreDNS, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(context.Background(), da.CoreDNS, metav1.GetOptions{})
 
 	Expect(err).NotTo(HaveOccurred())
 	Expect(coreDNS).NotTo(BeNil())

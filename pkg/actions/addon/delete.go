@@ -16,41 +16,18 @@ import (
 
 func (a *Manager) DeleteWithPreserve(ctx context.Context, addon *api.Addon) error {
 	logger.Info("deleting addon %q and preserving its resources", addon.Name)
-	_, err := a.eksAPI.DeleteAddon(ctx, &eks.DeleteAddonInput{
-		AddonName:   &addon.Name,
-		ClusterName: &a.clusterConfig.Metadata.Name,
-		Preserve:    true,
-	})
-
-	if err != nil {
-		var notFoundErr *ekstypes.ResourceNotFoundException
-		if errors.As(err, &notFoundErr) {
-			logger.Info("addon %q does not exist", addon.Name)
-		} else {
-			return fmt.Errorf("failed to delete addon %q: %v", addon.Name, err)
-		}
-	}
-	return nil
+	_, err := a.deleteAddon(ctx, addon, true)
+	return err
 }
 
 func (a *Manager) Delete(ctx context.Context, addon *api.Addon) error {
-	addonExists := true
 	logger.Debug("addon: %v", addon)
 	logger.Info("deleting addon: %s", addon.Name)
-	_, err := a.eksAPI.DeleteAddon(ctx, &eks.DeleteAddonInput{
-		AddonName:   &addon.Name,
-		ClusterName: &a.clusterConfig.Metadata.Name,
-	})
-
+	addonExists, err := a.deleteAddon(ctx, addon, false)
 	if err != nil {
-		var notFoundErr *ekstypes.ResourceNotFoundException
-		if errors.As(err, &notFoundErr) {
-			logger.Info("addon %q does not exist", addon.Name)
-			addonExists = false
-		} else {
-			return fmt.Errorf("failed to delete addon %q: %v", addon.Name, err)
-		}
-	} else {
+		return err
+	}
+	if addonExists {
 		logger.Info("deleted addon: %s", addon.Name)
 	}
 
@@ -73,4 +50,22 @@ func (a *Manager) Delete(ctx context.Context, addon *api.Addon) error {
 		}
 	}
 	return nil
+}
+
+func (a *Manager) deleteAddon(ctx context.Context, addon *api.Addon, preserve bool) (addonExists bool, err error) {
+	_, err = a.eksAPI.DeleteAddon(ctx, &eks.DeleteAddonInput{
+		AddonName:   &addon.Name,
+		ClusterName: &a.clusterConfig.Metadata.Name,
+		Preserve:    preserve,
+	})
+
+	if err != nil {
+		var notFoundErr *ekstypes.ResourceNotFoundException
+		if errors.As(err, &notFoundErr) {
+			logger.Info("addon %q does not exist", addon.Name)
+			return false, nil
+		}
+		return true, fmt.Errorf("failed to delete addon %q: %v", addon.Name, err)
+	}
+	return true, nil
 }
