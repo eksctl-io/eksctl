@@ -3,7 +3,6 @@ package addon_test
 import (
 	"context"
 	"fmt"
-	"time"
 
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
@@ -42,7 +41,7 @@ var _ = Describe("Delete", func() {
 			manager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
 				Version: "1.18",
 				Name:    "my-cluster",
-			}}, mockProvider.EKS(), fakeStackManager, withOIDC, nil, nil, 5*time.Minute)
+			}}, mockProvider.EKS(), fakeStackManager, withOIDC, nil, nil)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -54,7 +53,7 @@ var _ = Describe("Delete", func() {
 
 			fakeStackManager.DescribeStackReturns(&types.Stack{StackName: aws.String("eksctl-my-cluster-addon-my-addon")}, nil)
 
-			err := manager.Delete(context.TODO(), &api.Addon{
+			err := manager.Delete(context.Background(), &api.Addon{
 				Name: "my-addon",
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -71,7 +70,7 @@ var _ = Describe("Delete", func() {
 					ClusterName: aws.String("my-cluster"),
 				}).Return(&awseks.DeleteAddonOutput{}, fmt.Errorf("foo"))
 
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -88,7 +87,7 @@ var _ = Describe("Delete", func() {
 
 				fakeStackManager.DescribeStackReturns(nil, fmt.Errorf("foo"))
 
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -108,7 +107,7 @@ var _ = Describe("Delete", func() {
 					StackName: aws.String("eksctl-my-cluster-addon-my-addon"),
 				}, nil)
 
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -130,7 +129,7 @@ var _ = Describe("Delete", func() {
 					Err: fmt.Errorf("ValidationError"),
 				}, "nope"))
 
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -149,7 +148,7 @@ var _ = Describe("Delete", func() {
 
 				fakeStackManager.DescribeStackReturns(&types.Stack{StackName: aws.String("eksctl-my-cluster-addon-my-addon")}, nil)
 
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -171,7 +170,7 @@ var _ = Describe("Delete", func() {
 				fakeStackManager.DescribeStackReturns(nil, errors.Wrap(&smithy.OperationError{
 					Err: fmt.Errorf("ValidationError"),
 				}, "nope"))
-				err := manager.Delete(context.TODO(), &api.Addon{
+				err := manager.Delete(context.Background(), &api.Addon{
 					Name: "my-addon",
 				})
 
@@ -191,7 +190,7 @@ var _ = Describe("Delete", func() {
 			manager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
 				Version: "1.18",
 				Name:    "my-cluster",
-			}}, mockProvider.EKS(), fakeStackManager, withOIDC, nil, nil, 5*time.Minute)
+			}}, mockProvider.EKS(), fakeStackManager, withOIDC, nil, nil)
 			Expect(err).NotTo(HaveOccurred())
 		})
 

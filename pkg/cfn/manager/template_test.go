@@ -93,7 +93,7 @@ Outputs:
 					})).Return(&cfn.GetTemplateOutput{
 						TemplateBody: &rawJSONTemplate,
 					}, nil)
-					out, err = sc.GetStackTemplate(context.TODO(), "foobar")
+					out, err = sc.GetStackTemplate(context.Background(), "foobar")
 				})
 
 				It("returns the template", func() {
@@ -110,7 +110,7 @@ Outputs:
 					})).Return(&cfn.GetTemplateOutput{
 						TemplateBody: &rawYamlTemplate,
 					}, nil)
-					out, err = sc.GetStackTemplate(context.TODO(), "foobar")
+					out, err = sc.GetStackTemplate(context.Background(), "foobar")
 				})
 
 				It("returns the template in json format", func() {
@@ -124,7 +124,7 @@ Outputs:
 		Context("With a non-existing stack name", func() {
 			BeforeEach(func() {
 				p.MockCloudFormation().On("GetTemplate", mock.Anything, mock.Anything).Return(nil, errors.New("GetTemplate failed"))
-				out, err = sc.GetStackTemplate(context.TODO(), "non_existing_stack")
+				out, err = sc.GetStackTemplate(context.Background(), "non_existing_stack")
 			})
 
 			It("returns an error", func() {
@@ -141,7 +141,7 @@ Outputs:
 					TemplateBody: aws.String("~123"),
 				}, nil)
 
-				out, err = sc.GetStackTemplate(context.TODO(), "foobar")
+				out, err = sc.GetStackTemplate(context.Background(), "foobar")
 			})
 
 			It("returns an error", func() {

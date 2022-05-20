@@ -187,7 +187,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 		params.KubeconfigPath = kubeconfig.AutoPath(meta.Name)
 	}
 
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	if checkSubnetsGivenAsFlags(params) {
 		// undo defaulting and reset it, as it's not set via config file;
@@ -354,21 +354,25 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			return err
 		}
 
-		for _, ng := range cfg.NodeGroups {
-			// authorise nodes to join
-			if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
-				return err
+		{
+			ngCtx, cancel := context.WithTimeout(ctx, cmd.ProviderConfig.WaitTimeout)
+			defer cancel()
+			for _, ng := range cfg.NodeGroups {
+				// authorise nodes to join
+				if err := authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
+					return err
+				}
+
+				// wait for nodes to join
+				if err := eks.WaitForNodes(ngCtx, clientSet, ng); err != nil {
+					return err
+				}
 			}
 
-			// wait for nodes to join
-			if err = ctl.WaitForNodes(clientSet, ng); err != nil {
-				return err
-			}
-		}
-
-		for _, ng := range cfg.ManagedNodeGroups {
-			if err := ctl.WaitForNodes(clientSet, ng); err != nil {
-				return err
+			for _, ng := range cfg.ManagedNodeGroups {
+				if err := eks.WaitForNodes(ngCtx, clientSet, ng); err != nil {
+					return err
+				}
 			}
 		}
 		if postNodegroupAddons != nil && postNodegroupAddons.Len() > 0 {

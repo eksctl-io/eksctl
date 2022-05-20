@@ -80,7 +80,7 @@ var _ = Describe("nodegroup filter", func() {
 				"non-existing-in-cfg-1",
 				"non-existing-in-cfg-2",
 			)
-			err := filter.SetOnlyRemote(context.TODO(), mockProvider.EKS(), mockLister, cfg)
+			err := filter.SetOnlyRemote(context.Background(), mockProvider.EKS(), mockLister, cfg)
 			Expect(err).NotTo(HaveOccurred())
 
 			included, excluded := filter.matchAll(filter.collectNames(cfg.NodeGroups))
@@ -106,7 +106,7 @@ var _ = Describe("nodegroup filter", func() {
 				"test-ng2a",
 				"test-ng3a",
 			)
-			err = filter.SetOnlyLocal(context.TODO(), mockProvider.EKS(), mockLister, cfg)
+			err = filter.SetOnlyLocal(context.Background(), mockProvider.EKS(), mockLister, cfg)
 			Expect(err).NotTo(HaveOccurred())
 
 			included, excluded := filter.matchAll(filter.collectNames(cfg.NodeGroups))
@@ -125,7 +125,7 @@ var _ = Describe("nodegroup filter", func() {
 				"test-ng1b",
 				"test-ng2b",
 			)
-			err = filter.SetOnlyLocal(context.TODO(), mockProvider.EKS(), mockLister, cfg)
+			err = filter.SetOnlyLocal(context.Background(), mockProvider.EKS(), mockLister, cfg)
 			Expect(err).NotTo(HaveOccurred())
 
 			err = filter.AppendExcludeGlobs("test-ng1a", "test-ng2?")

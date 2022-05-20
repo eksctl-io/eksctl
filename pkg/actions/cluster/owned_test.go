@@ -33,8 +33,8 @@ type drainerMockOwned struct {
 	mock.Mock
 }
 
-func (drainer *drainerMockOwned) Drain(input *nodegroup.DrainInput) error {
-	args := drainer.Called(input)
+func (d *drainerMockOwned) Drain(ctx context.Context, input *nodegroup.DrainInput) error {
+	args := d.Called(input)
 	return args.Error(0)
 }
 

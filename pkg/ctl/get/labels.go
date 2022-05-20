@@ -49,7 +49,7 @@ func getLabels(cmd *cmdutils.Cmd, nodeGroupName string) error {
 	}
 	cfg := cmd.ClusterConfig
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err

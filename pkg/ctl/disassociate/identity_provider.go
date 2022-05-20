@@ -74,7 +74,7 @@ func doDisassociateIdentityProvider(cmd *cmdutils.Cmd, cliProvidedIDP cliProvide
 
 	cfg := cmd.ClusterConfig
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
@@ -95,7 +95,7 @@ func doDisassociateIdentityProvider(cmd *cmdutils.Cmd, cliProvidedIDP cliProvide
 		Providers: providers,
 	}
 	if cmd.Wait {
-		options.WaitTimeout = &timeout
+		options.WaitTimeout = timeout
 	}
 
 	return manager.Disassociate(ctx, options)

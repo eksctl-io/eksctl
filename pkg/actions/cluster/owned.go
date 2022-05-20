@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -36,7 +38,7 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterSt
 			return ctl.NewStdClientSet(cfg)
 		},
 		newNodeGroupManager: func(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) NodeGroupDrainer {
-			return nodegroup.New(cfg, ctl, clientSet)
+			return nodegroup.New(cfg, ctl, clientSet, selector.New(ctl.AWSProvider.Session()))
 		},
 	}
 }
@@ -56,8 +58,7 @@ func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
 		return err
 	}
 
-	nodeGroupService := eks.NodeGroupService{Provider: c.ctl.AWSProvider}
-	if err := nodeGroupService.ValidateExistingNodeGroupsForCompatibility(ctx, c.cfg, c.stackManager); err != nil {
+	if err := eks.ValidateExistingNodeGroupsForCompatibility(ctx, c.cfg, c.stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
@@ -107,7 +108,7 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 		}
 
 		nodeGroupManager := c.newNodeGroupManager(c.cfg, c.ctl, clientSet)
-		if err := drainAllNodeGroups(c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
+		if err := drainAllNodeGroups(ctx, c.cfg, c.ctl, clientSet, allStacks, disableNodegroupEviction, parallel, nodeGroupManager, func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) {
 			attemptVpcCniDeletion(ctx, clusterName, ctl, clientSet)
 		}, podEvictionWaitPeriod); err != nil {
 			if !force {
