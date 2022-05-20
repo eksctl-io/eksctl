@@ -104,7 +104,7 @@ func getAndPrinterClusters(ctx context.Context, ctl *eks.ClusterProvider, params
 		addGetClustersSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	clusters, err := cluster.GetClusters(ctx, ctl.Provider, listAllRegions, params.chunkSize)
+	clusters, err := cluster.GetClusters(ctx, ctl.AWSProvider, listAllRegions, params.chunkSize)
 	if err != nil {
 		return err
 	}

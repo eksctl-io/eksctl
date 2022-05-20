@@ -64,7 +64,7 @@ func (m *Manager) Upgrade(ctx context.Context, options UpgradeOptions) error {
 		}
 	}
 
-	nodegroupOutput, err := m.ctl.Provider.EKS().DescribeNodegroup(ctx, &eks.DescribeNodegroupInput{
+	nodegroupOutput, err := m.ctl.AWSProvider.EKS().DescribeNodegroup(ctx, &eks.DescribeNodegroupInput{
 		ClusterName:   &m.cfg.Metadata.Name,
 		NodegroupName: &options.NodegroupName,
 	})
@@ -119,7 +119,7 @@ func (m *Manager) upgradeUsingAPI(ctx context.Context, options UpgradeOptions, n
 		input.Version = aws.String(fmt.Sprintf("%v.%v", version.Major, version.Minor))
 	}
 
-	upgradeResponse, err := m.ctl.Provider.EKS().UpdateNodegroupVersion(ctx, input)
+	upgradeResponse, err := m.ctl.AWSProvider.EKS().UpdateNodegroupVersion(ctx, input)
 
 	if err != nil {
 		return err
@@ -140,13 +140,13 @@ func (m *Manager) upgradeUsingAPI(ctx context.Context, options UpgradeOptions, n
 
 func (m *Manager) waitForUpgrade(ctx context.Context, options UpgradeOptions, update *ekstypes.Update) error {
 	logger.Info("waiting for upgrade of nodegroup %q to complete", options.NodegroupName)
-	updateWaiter := waiter.NewUpdateWaiter(m.ctl.Provider.EKS())
+	updateWaiter := waiter.NewUpdateWaiter(m.ctl.AWSProvider.EKS())
 
 	if err := updateWaiter.Wait(ctx, &eks.DescribeUpdateInput{
 		Name:          aws.String(m.cfg.Metadata.Name),
 		UpdateId:      update.Id,
 		NodegroupName: &options.NodegroupName,
-	}, m.ctl.Provider.WaitTimeout()); err != nil {
+	}, m.ctl.AWSProvider.WaitTimeout()); err != nil {
 		return err
 	}
 	logger.Info("nodegroup successfully upgraded")
@@ -324,7 +324,7 @@ func (m *Manager) getLatestReleaseVersion(ctx context.Context, kubernetesVersion
 		return "", nil
 	}
 
-	ssmOutput, err := m.ctl.Provider.SSM().GetParameter(ctx, &ssm.GetParameterInput{
+	ssmOutput, err := m.ctl.AWSProvider.SSM().GetParameter(ctx, &ssm.GetParameterInput{
 		Name: &ssmParameterName,
 	})
 	if err != nil {

@@ -94,13 +94,13 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d nodegroups defined in the given config (%q) against remote state", len(cfg.NodeGroups), cmd.ClusterConfigFile)
 		if onlyMissing {
-			err = ngFilter.SetOnlyRemote(ctx, ctl.Provider.EKS(), stackManager, cfg)
+			err = ngFilter.SetOnlyRemote(ctx, ctl.AWSProvider.EKS(), stackManager, cfg)
 			if err != nil {
 				return err
 			}
 		}
 	} else {
-		err := cmdutils.PopulateNodegroup(ctx, stackManager, ng.Name, cfg, ctl.Provider)
+		err := cmdutils.PopulateNodegroup(ctx, stackManager, ng.Name, cfg, ctl.AWSProvider)
 		if err != nil {
 			return err
 		}

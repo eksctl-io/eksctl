@@ -142,8 +142,8 @@ var _ = Describe("Get", func() {
 
 		When("it succeeds", func() {
 			BeforeEach(func() {
-				awsProvider.ReturnsOnCall(0, &eks.ClusterProvider{Provider: providerRegion1}, nil)
-				awsProvider.ReturnsOnCall(1, &eks.ClusterProvider{Provider: providerRegion2}, nil)
+				awsProvider.ReturnsOnCall(0, &eks.ClusterProvider{AWSProvider: providerRegion1}, nil)
+				awsProvider.ReturnsOnCall(1, &eks.ClusterProvider{AWSProvider: providerRegion2}, nil)
 				intialProvider.MockEC2().On("DescribeRegions", mock.Anything, &ec2.DescribeRegionsInput{}).Return(&ec2.DescribeRegionsOutput{
 					Regions: []ec2types.Region{
 						{
@@ -226,7 +226,7 @@ var _ = Describe("Get", func() {
 
 		When("error occurs in a region", func() {
 			BeforeEach(func() {
-				awsProvider.ReturnsOnCall(0, &eks.ClusterProvider{Provider: providerRegion1}, nil)
+				awsProvider.ReturnsOnCall(0, &eks.ClusterProvider{AWSProvider: providerRegion1}, nil)
 				awsProvider.ReturnsOnCall(1, nil, fmt.Errorf("foo"))
 				intialProvider.MockEC2().On("DescribeRegions", mock.Anything, &ec2.DescribeRegionsInput{}).Return(&ec2.DescribeRegionsOutput{
 					Regions: []ec2types.Region{

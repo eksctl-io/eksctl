@@ -112,7 +112,7 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 				Name: aws.String(connectedClusterName),
 			}
 			Eventually(func() string {
-				connectedCluster, err := provider.Provider.EKS().DescribeCluster(ctx, describeClusterInput)
+				connectedCluster, err := provider.AWSProvider.EKS().DescribeCluster(ctx, describeClusterInput)
 				Expect(err).NotTo(HaveOccurred())
 				return string(connectedCluster.Cluster.Status)
 			}, "5m", "8s").Should(Equal("ACTIVE"))
@@ -138,7 +138,7 @@ var _ = Describe("(Integration) [EKS Connector test]", func() {
 				WithArgs("--name", connectedClusterName)
 			Expect(cmd).To(RunSuccessfully())
 
-			_, err = provider.Provider.EKS().DescribeCluster(ctx, describeClusterInput)
+			_, err = provider.AWSProvider.EKS().DescribeCluster(ctx, describeClusterInput)
 			Expect(err).To(HaveOccurred())
 			var notFoundErr *ekstypes.ResourceNotFoundException
 			Expect(errors.As(err, &notFoundErr)).To(BeTrue())

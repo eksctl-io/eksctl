@@ -42,7 +42,7 @@ func NewOwnedCluster(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clusterSt
 }
 
 func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
-	if err := vpc.UseFromClusterStack(ctx, c.ctl.Provider, c.clusterStack, c.cfg); err != nil {
+	if err := vpc.UseFromClusterStack(ctx, c.ctl.AWSProvider, c.clusterStack, c.cfg); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", c.cfg.Metadata.Name)
 	}
 
@@ -56,7 +56,7 @@ func (c *OwnedCluster) Upgrade(ctx context.Context, dryRun bool) error {
 		return err
 	}
 
-	nodeGroupService := eks.NodeGroupService{Provider: c.ctl.Provider}
+	nodeGroupService := eks.NodeGroupService{Provider: c.ctl.AWSProvider}
 	if err := nodeGroupService.ValidateExistingNodeGroupsForCompatibility(ctx, c.cfg, c.stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
@@ -136,7 +136,7 @@ func (c *OwnedCluster) Delete(ctx context.Context, _, podEvictionWaitPeriod time
 		}
 
 		go func() {
-			errs <- vpc.CleanupNetworkInterfaces(ctx, c.ctl.Provider.EC2(), c.cfg)
+			errs <- vpc.CleanupNetworkInterfaces(ctx, c.ctl.AWSProvider.EC2(), c.cfg)
 			close(errs)
 		}()
 		return nil

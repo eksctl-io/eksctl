@@ -39,8 +39,8 @@ var _ = Describe("EKS API wrapper", func() {
 		BeforeEach(func() {
 			p := mockprovider.NewMockProvider()
 			ctl = &ClusterProvider{
-				Provider: p,
-				Status:   &ProviderStatus{},
+				AWSProvider: p,
+				Status:      &ProviderStatus{},
 			}
 
 			cfg = api.NewClusterConfig()

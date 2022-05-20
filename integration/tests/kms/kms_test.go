@@ -62,7 +62,7 @@ var _ = BeforeSuite(func() {
 
 	clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, clusterConfig)
 	Expect(err).NotTo(HaveOccurred())
-	ctl = clusterProvider.Provider
+	ctl = clusterProvider.AWSProvider
 
 	cfg := NewConfig(params.Region)
 	kmsClient := kms.NewFromConfig(cfg)

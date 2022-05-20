@@ -73,7 +73,7 @@ var _ = BeforeSuite(func() {
 	if !params.SkipCreate {
 		clusterProvider, err := eks.New(context.TODO(), &api.ProviderConfig{Region: params.Region}, cfg)
 		Expect(err).NotTo(HaveOccurred())
-		ctl = clusterProvider.Provider
+		ctl = clusterProvider.AWSProvider
 		cfg.VPC = createClusterWithNodeGroup(context.Background(), params.ClusterName, stackName, mng1, version, ctl)
 	}
 })

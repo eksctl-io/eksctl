@@ -84,7 +84,7 @@ func (c *ClusterProvider) UpdateClusterConfigForLogging(ctx context.Context, cfg
 		},
 	}
 
-	output, err := c.Provider.EKS().UpdateClusterConfig(ctx, input)
+	output, err := c.AWSProvider.EKS().UpdateClusterConfig(ctx, input)
 	if err != nil {
 		return err
 	}
@@ -136,7 +136,7 @@ func (c *ClusterProvider) UpdateClusterConfigForEndpoints(ctx context.Context, c
 		},
 	}
 
-	output, err := c.Provider.EKS().UpdateClusterConfig(ctx, input)
+	output, err := c.AWSProvider.EKS().UpdateClusterConfig(ctx, input)
 	if err != nil {
 		return err
 	}
@@ -152,7 +152,7 @@ func (c *ClusterProvider) UpdatePublicAccessCIDRs(ctx context.Context, clusterCo
 			PublicAccessCidrs: clusterConfig.VPC.PublicAccessCIDRs,
 		},
 	}
-	output, err := c.Provider.EKS().UpdateClusterConfig(ctx, input)
+	output, err := c.AWSProvider.EKS().UpdateClusterConfig(ctx, input)
 	if err != nil {
 		return err
 	}
@@ -162,7 +162,7 @@ func (c *ClusterProvider) UpdatePublicAccessCIDRs(ctx context.Context, clusterCo
 // EnableKMSEncryption enables KMS encryption for the specified cluster
 func (c *ClusterProvider) EnableKMSEncryption(ctx context.Context, clusterConfig *api.ClusterConfig) error {
 	clusterName := aws.String(clusterConfig.Metadata.Name)
-	clusterOutput, err := c.Provider.EKS().DescribeCluster(ctx, &eks.DescribeClusterInput{
+	clusterOutput, err := c.AWSProvider.EKS().DescribeCluster(ctx, &eks.DescribeClusterInput{
 		Name: clusterName,
 	})
 	if err != nil {
@@ -178,7 +178,7 @@ func (c *ClusterProvider) EnableKMSEncryption(ctx context.Context, clusterConfig
 		}
 	}
 
-	output, err := c.Provider.EKS().AssociateEncryptionConfig(ctx, &eks.AssociateEncryptionConfigInput{
+	output, err := c.AWSProvider.EKS().AssociateEncryptionConfig(ctx, &eks.AssociateEncryptionConfigInput{
 		ClusterName: clusterName,
 		EncryptionConfig: []ekstypes.EncryptionConfig{
 			{
@@ -196,13 +196,13 @@ func (c *ClusterProvider) EnableKMSEncryption(ctx context.Context, clusterConfig
 
 	logger.Info("initiated KMS encryption, this may take up to 45 minutes to complete")
 
-	updateWaiter := waiter.NewUpdateWaiter(c.Provider.EKS(), func(options *waiter.UpdateWaiterOptions) {
+	updateWaiter := waiter.NewUpdateWaiter(c.AWSProvider.EKS(), func(options *waiter.UpdateWaiterOptions) {
 		options.RetryAttemptLogMessage = fmt.Sprintf("waiting for update %q in cluster %q to complete", *output.Update.Id, *clusterName)
 	})
 	err = updateWaiter.Wait(ctx, &eks.DescribeUpdateInput{
 		Name:     clusterName,
 		UpdateId: output.Update.Id,
-	}, c.Provider.WaitTimeout())
+	}, c.AWSProvider.WaitTimeout())
 
 	switch e := err.(type) {
 	case *waiter.UpdateFailedError:
@@ -227,7 +227,7 @@ func (c *ClusterProvider) UpdateClusterVersion(ctx context.Context, cfg *api.Clu
 		Name:    &cfg.Metadata.Name,
 		Version: &cfg.Metadata.Version,
 	}
-	output, err := c.Provider.EKS().UpdateClusterVersion(ctx, input)
+	output, err := c.AWSProvider.EKS().UpdateClusterVersion(ctx, input)
 	if err != nil {
 		return nil, err
 	}
@@ -250,13 +250,13 @@ func (c *ClusterProvider) UpdateClusterVersionBlocking(ctx context.Context, cfg 
 }
 
 func (c *ClusterProvider) waitForUpdateToSucceed(ctx context.Context, clusterName string, update *ekstypes.Update) error {
-	updateWaiter := waiter.NewUpdateWaiter(c.Provider.EKS(), func(options *waiter.UpdateWaiterOptions) {
+	updateWaiter := waiter.NewUpdateWaiter(c.AWSProvider.EKS(), func(options *waiter.UpdateWaiterOptions) {
 		options.RetryAttemptLogMessage = fmt.Sprintf("waiting for requested %q in cluster %q to succeed", update.Type, clusterName)
 	})
 	return updateWaiter.Wait(ctx, &eks.DescribeUpdateInput{
 		Name:     &clusterName,
 		UpdateId: update.Id,
-	}, c.Provider.WaitTimeout())
+	}, c.AWSProvider.WaitTimeout())
 }
 
 func controlPlaneIsVersion(clientSet *kubeclient.Clientset, version string) (bool, error) {
@@ -269,7 +269,7 @@ func controlPlaneIsVersion(clientSet *kubeclient.Clientset, version string) (boo
 
 func (c *ClusterProvider) waitForControlPlaneVersion(cfg *api.ClusterConfig) error {
 	retryPolicy := retry.TimingOutExponentialBackoff{
-		Timeout:  c.Provider.WaitTimeout(),
+		Timeout:  c.AWSProvider.WaitTimeout(),
 		TimeUnit: time.Second,
 	}
 

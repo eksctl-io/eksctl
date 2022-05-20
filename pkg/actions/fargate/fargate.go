@@ -1,10 +1,11 @@
 package fargate
 
 import (
+	"k8s.io/client-go/kubernetes"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"k8s.io/client-go/kubernetes"
 )
 
 type Manager struct {

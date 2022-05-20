@@ -72,7 +72,7 @@ func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
 	}
 
 	clusterName := cmd.ClusterConfig.Metadata.Name
-	manager := fargate.NewFromProvider(clusterName, ctl.Provider, ctl.NewStackManager(cmd.ClusterConfig))
+	manager := fargate.NewFromProvider(clusterName, ctl.AWSProvider, ctl.NewStackManager(cmd.ClusterConfig))
 
 	logger.Debug("getting EKS cluster %q's Fargate profile(s)", clusterName)
 	profiles, err := getProfiles(ctx, &manager, options.ProfileName)
