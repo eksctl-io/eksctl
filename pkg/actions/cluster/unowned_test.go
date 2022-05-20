@@ -35,8 +35,8 @@ type drainerMockUnowned struct {
 	mock.Mock
 }
 
-func (drainer *drainerMockUnowned) Drain(input *nodegroup.DrainInput) error {
-	args := drainer.Called(input)
+func (d *drainerMockUnowned) Drain(ctx context.Context, input *nodegroup.DrainInput) error {
+	args := d.Called(input)
 	return args.Error(0)
 }
 

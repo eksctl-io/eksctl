@@ -73,7 +73,7 @@ var _ = Describe("FileCacheV2", func() {
 		}
 		Expect(err).NotTo(HaveOccurred())
 
-		_, err = f.Retrieve(context.TODO())
+		_, err = f.Retrieve(context.Background())
 		if e.expectedRetrieveErr != "" {
 			Expect(err).To(MatchError(ContainSubstring(e.expectedRetrieveErr)))
 			return

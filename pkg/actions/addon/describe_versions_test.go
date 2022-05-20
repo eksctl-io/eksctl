@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
 
@@ -31,7 +30,7 @@ var _ = Describe("DescribeVersions", func() {
 		manager, err = addon.New(&api.ClusterConfig{Metadata: &api.ClusterMeta{
 			Version: "1.18",
 			Name:    "my-cluster",
-		}}, mockProvider.EKS(), nil, false, nil, nil, 5*time.Minute)
+		}}, mockProvider.EKS(), nil, false, nil, nil)
 		Expect(err).NotTo(HaveOccurred())
 	})
 

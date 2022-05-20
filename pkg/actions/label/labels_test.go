@@ -53,7 +53,7 @@ var _ = Describe("Labels", func() {
 			})
 
 			It("returns the labels from the nodegroup stack", func() {
-				summary, err := manager.Get(context.TODO(), nodegroupName)
+				summary, err := manager.Get(context.Background(), nodegroupName)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(summary[0].Labels).To(Equal(expectedLabels))
 			})
@@ -64,7 +64,7 @@ var _ = Describe("Labels", func() {
 				})
 
 				It("fails", func() {
-					summary, err := manager.Get(context.TODO(), nodegroupName)
+					summary, err := manager.Get(context.Background(), nodegroupName)
 					Expect(err).To(HaveOccurred())
 					Expect(summary).To(BeNil())
 				})
@@ -88,7 +88,7 @@ var _ = Describe("Labels", func() {
 					NodegroupName: aws.String(nodegroupName),
 				}).Return(&eks.DescribeNodegroupOutput{Nodegroup: &ekstypes.Nodegroup{Labels: returnedLabels}}, nil)
 
-				summary, err := manager.Get(context.TODO(), nodegroupName)
+				summary, err := manager.Get(context.Background(), nodegroupName)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(summary[0].Labels).To(Equal(expectedLabels))
 			})
@@ -97,7 +97,7 @@ var _ = Describe("Labels", func() {
 				It("fails", func() {
 					mockProvider.MockEKS().On("DescribeNodegroup", mock.Anything, mock.Anything).Return(&eks.DescribeNodegroupOutput{}, errors.New("oh-noes"))
 
-					summary, err := manager.Get(context.TODO(), nodegroupName)
+					summary, err := manager.Get(context.Background(), nodegroupName)
 					Expect(err).To(HaveOccurred())
 					Expect(summary).To(BeNil())
 				})
@@ -118,7 +118,7 @@ var _ = Describe("Labels", func() {
 			})
 
 			It("sets new labels by updating the nodegroup stack", func() {
-				Expect(manager.Set(context.TODO(), nodegroupName, labels)).To(Succeed())
+				Expect(manager.Set(context.Background(), nodegroupName, labels)).To(Succeed())
 			})
 
 			When("the service returns an error", func() {
@@ -127,7 +127,7 @@ var _ = Describe("Labels", func() {
 				})
 
 				It("fails", func() {
-					err := manager.Set(context.TODO(), nodegroupName, labels)
+					err := manager.Set(context.Background(), nodegroupName, labels)
 					Expect(err).To(HaveOccurred())
 				})
 			})
@@ -153,14 +153,14 @@ var _ = Describe("Labels", func() {
 					},
 				}).Return(&eks.UpdateNodegroupConfigOutput{}, nil)
 
-				Expect(manager.Set(context.TODO(), nodegroupName, labels)).To(Succeed())
+				Expect(manager.Set(context.Background(), nodegroupName, labels)).To(Succeed())
 			})
 
 			When("the EKS api returns an error", func() {
 				It("fails", func() {
 					mockProvider.MockEKS().On("UpdateNodegroupConfig", mock.Anything, mock.Anything).Return(&eks.UpdateNodegroupConfigOutput{}, errors.New("oh-noes"))
 
-					err := manager.Set(context.TODO(), nodegroupName, labels)
+					err := manager.Set(context.Background(), nodegroupName, labels)
 					Expect(err).To(HaveOccurred())
 				})
 			})
@@ -180,7 +180,7 @@ var _ = Describe("Labels", func() {
 			})
 
 			It("removes labels by updating the nodegroup stack", func() {
-				Expect(manager.Unset(context.TODO(), nodegroupName, labels)).To(Succeed())
+				Expect(manager.Unset(context.Background(), nodegroupName, labels)).To(Succeed())
 			})
 
 			When("the service returns an error", func() {
@@ -189,7 +189,7 @@ var _ = Describe("Labels", func() {
 				})
 
 				It("fails", func() {
-					err := manager.Unset(context.TODO(), nodegroupName, labels)
+					err := manager.Unset(context.Background(), nodegroupName, labels)
 					Expect(err).To(HaveOccurred())
 				})
 			})
@@ -215,14 +215,14 @@ var _ = Describe("Labels", func() {
 					},
 				}).Return(&eks.UpdateNodegroupConfigOutput{}, nil)
 
-				Expect(manager.Unset(context.TODO(), nodegroupName, labels)).To(Succeed())
+				Expect(manager.Unset(context.Background(), nodegroupName, labels)).To(Succeed())
 			})
 
 			When("the EKS api returns an error", func() {
 				It("fails", func() {
 					mockProvider.MockEKS().On("UpdateNodegroupConfig", mock.Anything, mock.Anything).Return(&eks.UpdateNodegroupConfigOutput{}, errors.New("oh-noes"))
 
-					err := manager.Unset(context.TODO(), nodegroupName, labels)
+					err := manager.Unset(context.Background(), nodegroupName, labels)
 					Expect(err).To(HaveOccurred())
 				})
 			})
