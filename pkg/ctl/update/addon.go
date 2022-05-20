@@ -52,7 +52,7 @@ func updateAddon(cmd *cmdutils.Cmd, force, wait bool) error {
 		return err
 	}
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	clusterProvider, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
@@ -85,7 +85,7 @@ func updateAddon(cmd *cmdutils.Cmd, force, wait bool) error {
 	logger.Info("Kubernetes version %q in use by cluster %q", *output.Cluster.Version, cmd.ClusterConfig.Metadata.Name)
 	cmd.ClusterConfig.Metadata.Version = *output.Cluster.Version
 
-	addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.AWSProvider.EKS(), stackManager, oidcProviderExists, oidc, nil, cmd.ProviderConfig.WaitTimeout)
+	addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.AWSProvider.EKS(), stackManager, oidcProviderExists, oidc, nil)
 
 	if err != nil {
 		return err
@@ -95,8 +95,7 @@ func updateAddon(cmd *cmdutils.Cmd, force, wait bool) error {
 		if force { //force is specified at cmdline level
 			a.Force = true
 		}
-		err := addonManager.Update(ctx, a, wait)
-		if err != nil {
+		if err := addonManager.Update(ctx, a, cmd.ProviderConfig.WaitTimeout); err != nil {
 			return err
 		}
 	}

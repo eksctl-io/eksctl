@@ -62,15 +62,15 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		}
 	}
 
-	m.init.NewAWSSelectorSession(ctl.AWSProvider)
 	nodePools := cmdutils.ToNodePools(cfg)
 
-	if err := m.init.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
+	nodeGroupService := eks.NewNodeGroupService(ctl.AWSProvider, m.instanceSelector)
+	if err := nodeGroupService.ExpandInstanceSelectorOptions(nodePools, cfg.AvailabilityZones); err != nil {
 		return err
 	}
 
 	if !options.DryRun {
-		if err := m.init.Normalize(ctx, nodePools, cfg.Metadata); err != nil {
+		if err := nodeGroupService.Normalize(ctx, nodePools, cfg.Metadata); err != nil {
 			return err
 		}
 	}
@@ -86,7 +86,7 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		}
 	}
 
-	if err := m.init.ValidateLegacySubnetsForNodeGroups(ctx, cfg, ctl.AWSProvider); err != nil {
+	if err := vpc.ValidateLegacySubnetsForNodeGroups(ctx, cfg, ctl.AWSProvider); err != nil {
 		return err
 	}
 
@@ -122,11 +122,11 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 		return err
 	}
 
-	if err := m.postNodeCreationTasks(m.clientSet, options); err != nil {
+	if err := m.postNodeCreationTasks(ctx, m.clientSet, options); err != nil {
 		return err
 	}
 
-	if err := m.init.ValidateExistingNodeGroupsForCompatibility(ctx, cfg, m.stackManager); err != nil {
+	if err := eks.ValidateExistingNodeGroupsForCompatibility(ctx, cfg, m.stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
@@ -136,7 +136,6 @@ func (m *Manager) Create(ctx context.Context, options CreateOpts, nodegroupFilte
 func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) error {
 	cfg := m.cfg
 	meta := cfg.Metadata
-	init := m.init
 
 	taskTree := &tasks.TaskTree{
 		Parallel: false,
@@ -146,7 +145,7 @@ func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) er
 		taskTree.Append(m.stackManager.NewClusterCompatTask(ctx))
 	}
 
-	awsNodeUsesIRSA, err := init.DoesAWSNodeUseIRSA(ctx, m.ctl.AWSProvider, m.clientSet)
+	awsNodeUsesIRSA, err := eks.DoesAWSNodeUseIRSA(ctx, m.ctl.AWSProvider, m.clientSet)
 	if err != nil {
 		return errors.Wrap(err, "couldn't check aws-node for annotation")
 	}
@@ -175,10 +174,10 @@ func (m *Manager) nodeCreationTasks(ctx context.Context, isOwnedCluster bool) er
 	}
 
 	taskTree.Append(allNodeGroupTasks)
-	return m.init.DoAllNodegroupStackTasks(taskTree, meta.Region, meta.Name)
+	return eks.DoAllNodegroupStackTasks(taskTree, meta.Region, meta.Name)
 }
 
-func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options CreateOpts) error {
+func (m *Manager) postNodeCreationTasks(ctx context.Context, clientSet kubernetes.Interface, options CreateOpts) error {
 	tasks := m.ctl.ClusterTasksForNodeGroups(m.cfg, options.InstallNeuronDevicePlugin, options.InstallNvidiaDevicePlugin)
 	logger.Info(tasks.Describe())
 	errs := tasks.DoAllSync()
@@ -193,15 +192,17 @@ func (m *Manager) postNodeCreationTasks(clientSet kubernetes.Interface, options 
 		return fmt.Errorf("failed to create nodegroups for cluster %q", m.cfg.Metadata.Name)
 	}
 
+	timeoutCtx, cancel := context.WithTimeout(ctx, m.ctl.AWSProvider.WaitTimeout())
+	defer cancel()
+
 	if options.UpdateAuthConfigMap {
-		if err := m.ctl.UpdateAuthConfigMap(m.cfg.NodeGroups, clientSet); err != nil {
+		if err := eks.UpdateAuthConfigMap(timeoutCtx, m.cfg.NodeGroups, clientSet); err != nil {
 			return err
 		}
 	}
 	logger.Success("created %d nodegroup(s) in cluster %q", len(m.cfg.NodeGroups), m.cfg.Metadata.Name)
-
 	for _, ng := range m.cfg.ManagedNodeGroups {
-		if err := m.ctl.WaitForNodes(clientSet, ng); err != nil {
+		if err := eks.WaitForNodes(timeoutCtx, clientSet, ng); err != nil {
 			if m.cfg.PrivateCluster.Enabled {
 				logger.Info("error waiting for nodes to join the cluster; this command was likely run from outside the cluster's VPC as the API server is not reachable, nodegroup(s) should still be able to join the cluster, underlying error is: %v", err)
 				break

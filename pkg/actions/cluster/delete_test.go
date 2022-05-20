@@ -1,7 +1,7 @@
 package cluster_test
 
 import (
-	"time"
+	"context"
 
 	"github.com/weaveworks/eksctl/pkg/actions/nodegroup"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -24,8 +24,8 @@ type drainerMock struct {
 	mock.Mock
 }
 
-func (drainer *drainerMock) Drain(input *nodegroup.DrainInput) error {
-	args := drainer.Called(input)
+func (d *drainerMock) Drain(ctx context.Context, input *nodegroup.DrainInput) error {
+	args := d.Called(input)
 	return args.Error(0)
 }
 
@@ -71,7 +71,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 					vpcCniDeleterCalled++
 				}
 
-				err := cluster.DrainAllNodeGroups(cfg, ctl, fakeClientSet, nodeGroupStacks, false, 1, mockedDrainer, vpcCniDeleter, time.Second*0)
+				err := cluster.DrainAllNodeGroups(context.Background(), cfg, ctl, fakeClientSet, nodeGroupStacks, false, 1, mockedDrainer, vpcCniDeleter, 0)
 				Expect(err).NotTo(HaveOccurred())
 				mockedDrainer.AssertNumberOfCalls(GinkgoT(), "Drain", 1)
 				Expect(vpcCniDeleterCalled).To(Equal(1))
@@ -100,7 +100,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 					vpcCniDeleterCalled++
 				}
 
-				err := cluster.DrainAllNodeGroups(cfg, ctl, fakeClientSet, nodeGroupStacks, true, 1, mockedDrainer, vpcCniDeleter, time.Second*0)
+				err := cluster.DrainAllNodeGroups(context.Background(), cfg, ctl, fakeClientSet, nodeGroupStacks, true, 1, mockedDrainer, vpcCniDeleter, 0)
 				Expect(err).NotTo(HaveOccurred())
 				mockedDrainer.AssertNumberOfCalls(GinkgoT(), "Drain", 1)
 				Expect(vpcCniDeleterCalled).To(Equal(1))
@@ -128,7 +128,7 @@ var _ = Describe("DrainAllNodeGroups", func() {
 					vpcCniDeleterCalled++
 				}
 
-				err := cluster.DrainAllNodeGroups(cfg, ctl, fakeClientSet, nodeGroupStacks, false, 1, mockedDrainer, vpcCniDeleter, time.Second*0)
+				err := cluster.DrainAllNodeGroups(context.Background(), cfg, ctl, fakeClientSet, nodeGroupStacks, false, 1, mockedDrainer, vpcCniDeleter, 0)
 				Expect(err).NotTo(HaveOccurred())
 				mockedDrainer.AssertNotCalled(GinkgoT(), "Drain")
 				Expect(vpcCniDeleterCalled).To(Equal(0))

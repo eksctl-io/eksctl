@@ -3,6 +3,8 @@ package update
 import (
 	"context"
 
+	"github.com/aws/amazon-ec2-instance-selector/v2/pkg/selector"
+
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -44,7 +46,7 @@ func updateNodegroup(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err
@@ -54,5 +56,5 @@ func updateNodegroup(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	return nodegroup.New(cmd.ClusterConfig, ctl, nil).Update(ctx)
+	return nodegroup.New(cmd.ClusterConfig, ctl, nil, selector.New(ctl.AWSProvider.Session())).Update(ctx)
 }

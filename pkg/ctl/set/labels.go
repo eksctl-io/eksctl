@@ -51,7 +51,7 @@ func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
 		return err
 	}
 	cfg := cmd.ClusterConfig
-	ctx := context.TODO()
+	ctx := context.Background()
 	ctl, err := cmd.NewProviderForExistingCluster(ctx)
 	if err != nil {
 		return err

@@ -63,7 +63,7 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		Expect(ok).To(BeTrue())
 
 		{
-			resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
+			resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.Background(), sa.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(resp.Labels).To(BeEmpty())
@@ -81,7 +81,7 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		{
-			resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
+			resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.Background(), sa.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(resp.Labels).To(HaveKey("foo"))
@@ -95,7 +95,7 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		{
-			resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
+			resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.Background(), sa.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(resp.Labels).To(HaveKey("foo"))
@@ -131,7 +131,7 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		err = MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa)
 		Expect(err).NotTo(HaveOccurred())
 
-		resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
+		resp, err := clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.Background(), sa.Name, metav1.GetOptions{})
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(resp.Labels).To(HaveKeyWithValue("label", "value"))
@@ -142,7 +142,7 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		err = MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa)
 		Expect(err).NotTo(HaveOccurred())
 
-		resp, err = clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
+		resp, err = clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.Background(), sa.Name, metav1.GetOptions{})
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(resp.Labels).To(HaveKeyWithValue("label", "value"))
@@ -154,7 +154,7 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 		err = MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa)
 		Expect(err).NotTo(HaveOccurred())
 
-		resp, err = clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.TODO(), sa.Name, metav1.GetOptions{})
+		resp, err = clientSet.CoreV1().ServiceAccounts(sa.Namespace).Get(context.Background(), sa.Name, metav1.GetOptions{})
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(resp.Labels).To(HaveKeyWithValue("label", "value"))

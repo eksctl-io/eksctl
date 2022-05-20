@@ -19,23 +19,21 @@ type Manager struct {
 	cfg                   *api.ClusterConfig
 	clientSet             kubernetes.Interface
 	wait                  WaitFunc
-	init                  eks.NodeGroupInitialiser
+	instanceSelector      eks.InstanceSelector
 	launchTemplateFetcher *builder.LaunchTemplateFetcher
 }
 
 type WaitFunc func(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error
 
 // New creates a new manager.
-func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface) *Manager {
+func New(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, instanceSelector eks.InstanceSelector) *Manager {
 	return &Manager{
-		stackManager: ctl.NewStackManager(cfg),
-		ctl:          ctl,
-		cfg:          cfg,
-		clientSet:    clientSet,
-		wait:         waiters.Wait,
-		init: &eks.NodeGroupService{
-			Provider: ctl.AWSProvider,
-		},
+		stackManager:          ctl.NewStackManager(cfg),
+		ctl:                   ctl,
+		cfg:                   cfg,
+		clientSet:             clientSet,
+		wait:                  waiters.Wait,
+		instanceSelector:      instanceSelector,
 		launchTemplateFetcher: builder.NewLaunchTemplateFetcher(ctl.AWSProvider.EC2()),
 	}
 }

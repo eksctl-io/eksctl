@@ -292,7 +292,7 @@ var _ = Describe("KubeProxy", func() {
 })
 
 func kubeProxyImage(clientSet kubernetes.Interface) string {
-	kubeProxy, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.KubeProxy, metav1.GetOptions{})
+	kubeProxy, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.Background(), da.KubeProxy, metav1.GetOptions{})
 
 	Expect(err).NotTo(HaveOccurred())
 	Expect(kubeProxy).NotTo(BeNil())
@@ -302,7 +302,7 @@ func kubeProxyImage(clientSet kubernetes.Interface) string {
 }
 
 func kubeProxyNodeSelectorValues(clientSet kubernetes.Interface) []string {
-	kubeProxy, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.TODO(), da.KubeProxy, metav1.GetOptions{})
+	kubeProxy, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(context.Background(), da.KubeProxy, metav1.GetOptions{})
 
 	Expect(err).NotTo(HaveOccurred())
 	Expect(kubeProxy).NotTo(BeNil())

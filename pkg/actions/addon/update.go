@@ -3,6 +3,7 @@ package addon
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
@@ -14,7 +15,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
-func (a *Manager) Update(ctx context.Context, addon *api.Addon, wait bool) error {
+func (a *Manager) Update(ctx context.Context, addon *api.Addon, waitTimeout time.Duration) error {
 	logger.Debug("addon: %v", addon)
 
 	updateAddonInput := &eks.UpdateAddonInput{
@@ -78,8 +79,8 @@ func (a *Manager) Update(ctx context.Context, addon *api.Addon, wait bool) error
 	if output != nil {
 		logger.Debug("%+v", output.Update)
 	}
-	if wait {
-		return a.waitForAddonToBeActive(ctx, addon)
+	if waitTimeout > 0 {
+		return a.waitForAddonToBeActive(ctx, addon, waitTimeout)
 	}
 	return nil
 }

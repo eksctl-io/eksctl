@@ -90,9 +90,8 @@ var _ = Describe("Create", func() {
 			createAddonInput = args[1].(*eks.CreateAddonInput)
 		}).Return(nil, returnedErr)
 
-		manager, err = addon.New(clusterConfig, mockProvider.EKS(), fakeStackManager, withOIDC, oidc, rawClient.ClientSet(), 5*time.Minute)
+		manager, err = addon.New(clusterConfig, mockProvider.EKS(), fakeStackManager, withOIDC, oidc, rawClient.ClientSet())
 		Expect(err).NotTo(HaveOccurred())
-		manager.SetTimeout(time.Second)
 
 		mockProvider.MockEKS().On("DescribeAddonVersions", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 			Expect(args).To(HaveLen(2))
@@ -130,10 +129,10 @@ var _ = Describe("Create", func() {
 			returnedErr = fmt.Errorf("foo")
 		})
 		It("returns an error", func() {
-			err := manager.Create(context.TODO(), &api.Addon{
+			err := manager.Create(context.Background(), &api.Addon{
 				Name:    "my-addon",
 				Version: "v1.0.0-eksbuild.1",
-			}, false)
+			}, 0)
 			Expect(err).To(MatchError(`failed to create addon "my-addon": foo`))
 
 		})
@@ -144,11 +143,11 @@ var _ = Describe("Create", func() {
 			withOIDC = false
 		})
 		It("creates the addons but not the policies", func() {
-			err := manager.Create(context.TODO(), &api.Addon{
+			err := manager.Create(context.Background(), &api.Addon{
 				Name:             "my-addon",
 				Version:          "v1.0.0-eksbuild.1",
 				AttachPolicyARNs: []string{"arn-1"},
-			}, false)
+			}, 0)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
@@ -167,11 +166,11 @@ var _ = Describe("Create", func() {
 
 			When("version is set to a numeric value", func() {
 				It("discovers and uses the latest available version", func() {
-					err := manager.Create(context.TODO(), &api.Addon{
+					err := manager.Create(context.Background(), &api.Addon{
 						Name:             "my-addon",
 						Version:          "1.7.5",
 						AttachPolicyARNs: []string{"arn-1"},
-					}, false)
+					}, 0)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
@@ -184,11 +183,11 @@ var _ = Describe("Create", func() {
 
 			When("version is set to an alphanumeric value", func() {
 				It("discovers and uses the latest available version", func() {
-					err := manager.Create(context.TODO(), &api.Addon{
+					err := manager.Create(context.Background(), &api.Addon{
 						Name:             "my-addon",
 						Version:          "1.7.5-eksbuild",
 						AttachPolicyARNs: []string{"arn-1"},
-					}, false)
+					}, 0)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
@@ -201,11 +200,11 @@ var _ = Describe("Create", func() {
 
 			When("version is set to latest", func() {
 				It("discovers and uses the latest available version", func() {
-					err := manager.Create(context.TODO(), &api.Addon{
+					err := manager.Create(context.Background(), &api.Addon{
 						Name:             "my-addon",
 						Version:          "latest",
 						AttachPolicyARNs: []string{"arn-1"},
-					}, false)
+					}, 0)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
@@ -218,11 +217,11 @@ var _ = Describe("Create", func() {
 
 			When("the version is set to a version that does not exist", func() {
 				It("returns an error", func() {
-					err := manager.Create(context.TODO(), &api.Addon{
+					err := manager.Create(context.Background(), &api.Addon{
 						Name:             "my-addon",
 						Version:          "1.7.8",
 						AttachPolicyARNs: []string{"arn-1"},
-					}, false)
+					}, 0)
 					Expect(err).To(HaveOccurred())
 					Expect(err).To(MatchError(ContainSubstring("no version(s) found matching \"1.7.8\" for \"my-addon\"")))
 				})
@@ -259,11 +258,11 @@ var _ = Describe("Create", func() {
 			})
 
 			It("returns an error", func() {
-				err := manager.Create(context.TODO(), &api.Addon{
+				err := manager.Create(context.Background(), &api.Addon{
 					Name:             "my-addon",
 					Version:          "latest",
 					AttachPolicyARNs: []string{"arn-1"},
-				}, false)
+				}, 0)
 				Expect(err).To(MatchError(ContainSubstring("failed to parse version \"totally not semver\":")))
 			})
 		})
@@ -287,11 +286,11 @@ var _ = Describe("Create", func() {
 			})
 
 			It("returns an error", func() {
-				err := manager.Create(context.TODO(), &api.Addon{
+				err := manager.Create(context.Background(), &api.Addon{
 					Name:             "my-addon",
 					Version:          "latest",
 					AttachPolicyARNs: []string{"arn-1"},
-				}, false)
+				}, 0)
 				Expect(err).To(MatchError(ContainSubstring("no versions available for \"my-addon\"")))
 			})
 		})
@@ -303,12 +302,12 @@ var _ = Describe("Create", func() {
 		})
 
 		It("creates the addons but not the policies", func() {
-			err := manager.Create(context.TODO(), &api.Addon{
+			err := manager.Create(context.Background(), &api.Addon{
 				Name:             "my-addon",
 				Version:          "v1.0.0-eksbuild.1",
 				AttachPolicyARNs: []string{"arn-1"},
 				Force:            true,
-			}, false)
+			}, 0)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
@@ -334,10 +333,10 @@ var _ = Describe("Create", func() {
 			})
 
 			It("creates the addon and waits for it to be active", func() {
-				err := manager.Create(context.TODO(), &api.Addon{
+				err := manager.Create(context.Background(), &api.Addon{
 					Name:    "my-addon",
 					Version: "v1.0.0-eksbuild.1",
-				}, true)
+				}, 0)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
@@ -350,7 +349,7 @@ var _ = Describe("Create", func() {
 		When("the addon creation fails", func() {
 			BeforeEach(func() {
 				withOIDC = false
-				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything).
+				mockProvider.MockEKS().On("DescribeAddon", mock.Anything, mock.Anything, mock.Anything).
 					Return(&eks.DescribeAddonOutput{
 						Addon: &ekstypes.Addon{
 							AddonName: aws.String("my-addon"),
@@ -360,11 +359,11 @@ var _ = Describe("Create", func() {
 			})
 
 			It("returns an error", func() {
-				err := manager.Create(context.TODO(), &api.Addon{
+				err := manager.Create(context.Background(), &api.Addon{
 					Name:    "my-addon",
 					Version: "v1.0.0-eksbuild.1",
-				}, true)
-				Expect(err).To(MatchError("timed out waiting for addon \"my-addon\" to become active, status: \"DEGRADED\""))
+				}, 5*time.Minute)
+				Expect(err).To(MatchError(`addon status transitioned to "DEGRADED"`))
 			})
 		})
 	})
@@ -372,10 +371,10 @@ var _ = Describe("Create", func() {
 	When("No policy/role is specified", func() {
 		When("we don't know the recommended policies for the specified addon", func() {
 			It("does not provide a role", func() {
-				err := manager.Create(context.TODO(), &api.Addon{
+				err := manager.Create(context.Background(), &api.Addon{
 					Name:    "my-addon",
 					Version: "v1.0.0-eksbuild.1",
-				}, false)
+				}, 0)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
@@ -402,10 +401,10 @@ var _ = Describe("Create", func() {
 			When("it's the vpc-cni addon", func() {
 				Context("ipv4", func() {
 					It("creates a role with the recommended policies and attaches it to the addon", func() {
-						err := manager.Create(context.TODO(), &api.Addon{
+						err := manager.Create(context.Background(), &api.Addon{
 							Name:    "vpc-cni",
 							Version: "v1.0.0-eksbuild.1",
-						}, false)
+						}, 0)
 						Expect(err).NotTo(HaveOccurred())
 
 						Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
@@ -435,10 +434,10 @@ var _ = Describe("Create", func() {
 					})
 
 					It("creates a role with the recommended policies and attaches it to the addon", func() {
-						err := manager.Create(context.TODO(), &api.Addon{
+						err := manager.Create(context.Background(), &api.Addon{
 							Name:    "vpc-cni",
 							Version: "v1.0.0-eksbuild.1",
-						}, false)
+						}, 0)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
 						_, name, resourceSet, tags, _, _ := fakeStackManager.CreateStackArgsForCall(0)
@@ -460,10 +459,10 @@ var _ = Describe("Create", func() {
 
 			When("it's the aws-ebs-csi-driver addon", func() {
 				It("creates a role with the recommended policies and attaches it to the addon", func() {
-					err := manager.Create(context.TODO(), &api.Addon{
+					err := manager.Create(context.Background(), &api.Addon{
 						Name:    "aws-ebs-csi-driver",
 						Version: "v1.0.0-eksbuild.1",
-					}, false)
+					}, 0)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
@@ -487,11 +486,11 @@ var _ = Describe("Create", func() {
 
 	When("attachPolicyARNs is configured", func() {
 		It("uses AttachPolicyARNS to create a role to attach to the addon", func() {
-			err := manager.Create(context.TODO(), &api.Addon{
+			err := manager.Create(context.Background(), &api.Addon{
 				Name:             "my-addon",
 				Version:          "v1.0.0-eksbuild.1",
 				AttachPolicyARNs: []string{"arn-1"},
-			}, false)
+			}, 0)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
@@ -509,13 +508,13 @@ var _ = Describe("Create", func() {
 
 	When("wellKnownPolicies is configured", func() {
 		It("uses wellKnownPolicies to create a role to attach to the addon", func() {
-			err := manager.Create(context.TODO(), &api.Addon{
+			err := manager.Create(context.Background(), &api.Addon{
 				Name:    "my-addon",
 				Version: "v1.0.0-eksbuild.1",
 				WellKnownPolicies: api.WellKnownPolicies{
 					AutoScaler: true,
 				},
-			}, false)
+			}, 0)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
@@ -533,13 +532,13 @@ var _ = Describe("Create", func() {
 
 	When("AttachPolicy is configured", func() {
 		It("uses AttachPolicy to create a role to attach to the addon", func() {
-			err := manager.Create(context.TODO(), &api.Addon{
+			err := manager.Create(context.Background(), &api.Addon{
 				Name:    "my-addon",
 				Version: "v1.0.0-eksbuild.1",
 				AttachPolicy: api.InlineDocument{
 					"foo": "policy-bar",
 				},
-			}, false)
+			}, 0)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(1))
@@ -557,11 +556,11 @@ var _ = Describe("Create", func() {
 
 	When("serviceAccountRoleARN is configured", func() {
 		It("uses the serviceAccountRoleARN to create the addon", func() {
-			err := manager.Create(context.TODO(), &api.Addon{
+			err := manager.Create(context.Background(), &api.Addon{
 				Name:                  "my-addon",
 				Version:               "v1.0.0-eksbuild.1",
 				ServiceAccountRoleARN: "foo",
-			}, false)
+			}, 0)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
 			Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))
@@ -573,11 +572,11 @@ var _ = Describe("Create", func() {
 
 	When("tags are configured", func() {
 		It("uses the Tags to create the addon", func() {
-			err := manager.Create(context.TODO(), &api.Addon{
+			err := manager.Create(context.Background(), &api.Addon{
 				Name:    "my-addon",
 				Version: "v1.0.0-eksbuild.1",
 				Tags:    map[string]string{"foo": "bar", "fox": "brown"},
-			}, false)
+			}, 0)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeStackManager.CreateStackCallCount()).To(Equal(0))
 			Expect(*createAddonInput.ClusterName).To(Equal("my-cluster"))

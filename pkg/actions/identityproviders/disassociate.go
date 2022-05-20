@@ -18,7 +18,7 @@ import (
 
 type DisassociateIdentityProvidersOptions struct {
 	Providers   []DisassociateIdentityProvider
-	WaitTimeout *time.Duration
+	WaitTimeout time.Duration
 }
 
 type DisassociateIdentityProvider struct {
@@ -65,14 +65,14 @@ func (m *Manager) Disassociate(ctx context.Context, options DisassociateIdentity
 
 				logger.Info("started disassociating identity provider %s", idP.Name)
 
-				if options.WaitTimeout != nil {
+				if options.WaitTimeout > 0 {
 					updateWaiter := waiter.NewUpdateWaiter(m.eksAPI, func(options *waiter.UpdateWaiterOptions) {
 						options.RetryAttemptLogMessage = "waiting for update %q in cluster %q to succeed"
 					})
 					if err := updateWaiter.Wait(ctx, &eks.DescribeUpdateInput{
 						Name:     aws.String(m.metadata.Name),
 						UpdateId: update.Update.Id,
-					}, *options.WaitTimeout); err != nil {
+					}, options.WaitTimeout); err != nil {
 						return err
 					}
 				}

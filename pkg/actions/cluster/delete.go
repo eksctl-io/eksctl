@@ -30,7 +30,7 @@ import (
 )
 
 type NodeGroupDrainer interface {
-	Drain(input *nodegroup.DrainInput) error
+	Drain(ctx context.Context, input *nodegroup.DrainInput) error
 }
 type vpcCniDeleter func(clusterName string, ctl *eks.ClusterProvider, clientSet kubernetes.Interface)
 
@@ -164,7 +164,7 @@ func checkForUndeletedStacks(ctx context.Context, stackManager manager.StackMana
 	return nil
 }
 
-func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack,
+func drainAllNodeGroups(ctx context.Context, cfg *api.ClusterConfig, ctl *eks.ClusterProvider, clientSet kubernetes.Interface, allStacks []manager.NodeGroupStack,
 	disableEviction bool, parallel int, nodeGroupDrainer NodeGroupDrainer, vpcCniDeleter vpcCniDeleter, podEvictionWaitPeriod time.Duration) error {
 	if len(allStacks) == 0 {
 		return nil
@@ -186,7 +186,7 @@ func drainAllNodeGroups(cfg *api.ClusterConfig, ctl *eks.ClusterProvider, client
 		PodEvictionWaitPeriod: podEvictionWaitPeriod,
 		Parallel:              parallel,
 	}
-	if err := nodeGroupDrainer.Drain(drainInput); err != nil {
+	if err := nodeGroupDrainer.Drain(ctx, drainInput); err != nil {
 		return err
 	}
 
