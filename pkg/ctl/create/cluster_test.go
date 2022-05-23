@@ -10,15 +10,19 @@ import (
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+	kubefake "k8s.io/client-go/kubernetes/fake"
+	restclient "k8s.io/client-go/rest"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/fakes"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
@@ -196,7 +200,7 @@ var _ = Describe("create cluster", func() {
 			}),
 		)
 	})
-	FDescribe("doCreateCluster", func() {
+	Describe("doCreateCluster", func() {
 		var (
 			ctl *eks.ClusterProvider
 			cfg *api.ClusterConfig
@@ -205,12 +209,20 @@ var _ = Describe("create cluster", func() {
 			p := mockprovider.NewMockProvider()
 			defaultProviderMocks(p, defaultOutput)
 			fk := &fakes.FakeKubeProvider{}
+			clientset := kubefake.NewSimpleClientset()
+			//testClient := testutils.NewFakeRawClient()
+			client, err := kubernetes.NewRawClient(clientset, &restclient.Config{})
+			Expect(err).NotTo(HaveOccurred())
+			fk.NewRawClientReturns(client, nil)
+			fk.ServerVersionReturns("1.22", nil)
+			msp := &mockSessionProvider{}
 			ctl = &eks.ClusterProvider{
 				AWSProvider: p,
 				Status: &eks.ProviderStatus{
 					ClusterInfo: &eks.ClusterInfo{
 						Cluster: testutils.NewFakeCluster("gb-test-cluster-1", ""),
 					},
+					SessionCreds: msp,
 				},
 				KubeProvider: fk,
 			}
@@ -221,7 +233,6 @@ var _ = Describe("create cluster", func() {
 			cfg.Metadata.Version = "1.22"
 		})
 		It("successfully creates a cluster", func() {
-
 			cmd := &cmdutils.Cmd{
 				ClusterConfig: cfg,
 				ProviderConfig: api.ProviderConfig{
@@ -272,7 +283,23 @@ var defaultOutput = []cftypes.Output{
 	},
 	{
 		OutputKey:   aws.String("ServiceRoleARN"),
-		OutputValue: aws.String("arn:aws:iam::123456:role/amazingrole"),
+		OutputValue: aws.String("arn:aws:iam::123456:role/amazingrole-1"),
+	},
+	{
+		OutputKey:   aws.String("ARN"),
+		OutputValue: aws.String("arn:aws:iam::123456:role/amazingrole-2"),
+	},
+	{
+		OutputKey:   aws.String("CertificateAuthorityData"),
+		OutputValue: aws.String("dGVzdAo="),
+	},
+	{
+		OutputKey:   aws.String("ClusterStackName"),
+		OutputValue: aws.String("eksctl-my-cluster-cluster"),
+	},
+	{
+		OutputKey:   aws.String("Endpoint"),
+		OutputValue: aws.String("https://endpoint.com"),
 	},
 }
 
@@ -372,54 +399,29 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output)
 			},
 		}, nil)
 	p.MockEC2().On("DescribeSubnets", mock.Anything, mock.Anything).Return(&ec2.DescribeSubnetsOutput{
-		Subnets: []ec2types.Subnet{
-			{
-				SubnetId:         aws.String("sub-pub-1"),
-				AvailabilityZone: aws.String("us-west-2-1a"),
-				VpcId:            aws.String("vpc-1"),
-				CidrBlock:        aws.String("192.168.0.0/16"),
-			},
-			{
-				SubnetId:         aws.String("sub-pub-2"),
-				AvailabilityZone: aws.String("us-west-2-1a"),
-				VpcId:            aws.String("vpc-1"),
-				CidrBlock:        aws.String("192.168.0.16/16"),
-			},
-			{
-				SubnetId:         aws.String("sub-pub-3"),
-				AvailabilityZone: aws.String("us-west-2-1a"),
-				VpcId:            aws.String("vpc-1"),
-				CidrBlock:        aws.String("192.168.0.32/16"),
-			},
-			{
-				SubnetId:         aws.String("sub-priv-1"),
-				AvailabilityZone: aws.String("us-west-2-1a"),
-				VpcId:            aws.String("vpc-1"),
-				CidrBlock:        aws.String("192.168.0.64/16"),
-			},
-			{
-				SubnetId:         aws.String("sub-priv-1"),
-				AvailabilityZone: aws.String("us-west-2-1a"),
-				VpcId:            aws.String("vpc-1"),
-				CidrBlock:        aws.String("192.168.0.128/16"),
-			},
-			{
-				SubnetId:         aws.String("sub-priv-1"),
-				AvailabilityZone: aws.String("us-west-2-1a"),
-				VpcId:            aws.String("vpc-1"),
-				CidrBlock:        aws.String("192.168.0.169/16"),
-			},
-		},
+		Subnets: []ec2types.Subnet{},
 	}, nil)
 	p.MockEC2().On("DescribeVpcs", mock.Anything, mock.Anything).Return(&ec2.DescribeVpcsOutput{
 		Vpcs: []ec2types.Vpc{
 			{
 				VpcId:     aws.String("vpc-1"),
-				CidrBlock: aws.String("192.168.0.0/24"),
+				CidrBlock: aws.String("192.168.0.0/16"),
 			},
 		},
 	}, nil)
 	p.MockCloudFormation().On("CreateStack", mock.Anything, mock.Anything).Return(&cloudformation.CreateStackOutput{
 		StackId: aws.String("eksctl-my-cluster-cluster"),
 	}, nil)
+}
+
+type mockSessionProvider struct {
+}
+
+func (m *mockSessionProvider) Get() (credentials.Value, error) {
+	return credentials.Value{
+		AccessKeyID:     "key-id",
+		SecretAccessKey: "secret-access-key",
+		SessionToken:    "token",
+		ProviderName:    "aws",
+	}, nil
 }

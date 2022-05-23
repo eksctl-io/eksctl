@@ -123,11 +123,16 @@ type ClusterInfo struct {
 	Cluster *ekstypes.Cluster
 }
 
+// SessionProvider abstracts an aws credentials.Value provider.
+type SessionProvider interface {
+	Get() (credentials.Value, error)
+}
+
 // ProviderStatus stores information about the used IAM role and the resulting session
 type ProviderStatus struct {
 	IAMRoleARN   string
-	sessionCreds *credentials.Credentials
 	ClusterInfo  *ClusterInfo
+	SessionCreds SessionProvider
 }
 
 // New creates a new setup of the used AWS APIs
@@ -177,7 +182,7 @@ func New(ctx context.Context, spec *api.ProviderConfig, clusterSpec *api.Cluster
 	}
 
 	c.Status = &ProviderStatus{
-		sessionCreds: s.Config.Credentials,
+		SessionCreds: s.Config.Credentials,
 	}
 
 	provider.asg = autoscaling.NewFromConfig(cfg)
@@ -271,7 +276,7 @@ func (c *ClusterProvider) IsSupportedRegion() bool {
 
 // GetCredentialsEnv returns the AWS credentials for env usage
 func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
-	creds, err := c.Status.sessionCreds.Get()
+	creds, err := c.Status.SessionCreds.Get()
 	if err != nil {
 		return nil, errors.Wrap(err, "getting effective credentials")
 	}

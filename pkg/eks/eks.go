@@ -14,12 +14,12 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"k8s.io/client-go/kubernetes"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
+	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/version"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
@@ -256,10 +256,10 @@ func (c *ClusterProvider) GetCluster(ctx context.Context, clusterName string) (*
 }
 
 // WaitForControlPlane waits till the control plane is ready
-func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *kubernetes.Clientset) error {
+func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *kubewrapper.RawClient) error {
 	successCount := 0
 	operation := func() (bool, error) {
-		_, err := clientSet.ServerVersion()
+		_, err := c.KubeProvider.ServerVersion(clientSet)
 		if err == nil {
 			if successCount >= 5 {
 				return true, nil

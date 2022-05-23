@@ -229,7 +229,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 	newTasks.Append(&tasks.GenericTask{
 		Description: "wait for control plane to become ready",
 		Doer: func() error {
-			clientSet, err := c.NewStdClientSet(cfg)
+			clientSet, err := c.NewRawClient(cfg)
 			if err != nil {
 				return errors.Wrap(err, "error creating Clientset")
 			}
