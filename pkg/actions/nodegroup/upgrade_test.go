@@ -43,7 +43,7 @@ var _ = Describe("Upgrade", func() {
 		cfg.Metadata.Name = clusterName
 		p = mockprovider.NewMockProvider()
 		fakeClientSet = fake.NewSimpleClientset()
-		m = nodegroup.New(cfg, &eks.ClusterProvider{AWSProvider: p}, fakeClientSet)
+		m = nodegroup.New(cfg, &eks.ClusterProvider{AWSProvider: p}, fakeClientSet, nil)
 
 		fakeStackManager = new(fakes.FakeStackManager)
 		m.SetStackManager(fakeStackManager)
@@ -92,7 +92,7 @@ var _ = Describe("Upgrade", func() {
 			})
 		})
 
-		When("launchTemplate Name is set", func() {
+		When("launchTemplate name is set", func() {
 			BeforeEach(func() {
 				p.MockEKS().On("DescribeNodegroup", mock.Anything, &awseks.DescribeNodegroupInput{
 					ClusterName:   aws.String(clusterName),

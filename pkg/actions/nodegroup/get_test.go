@@ -50,7 +50,7 @@ var _ = Describe("Get", func() {
 		cfg.Metadata.Name = clusterName
 		p = mockprovider.NewMockProvider()
 		fakeClientSet = fake.NewSimpleClientset()
-		m = nodegroup.New(cfg, &eks.ClusterProvider{AWSProvider: p}, fakeClientSet)
+		m = nodegroup.New(cfg, &eks.ClusterProvider{AWSProvider: p}, fakeClientSet, nil)
 		fakeStackManager = new(fakes.FakeStackManager)
 		m.SetStackManager(fakeStackManager)
 	})
@@ -399,7 +399,7 @@ var _ = Describe("Get", func() {
 					MaxSize:         aws.Int32(100),
 				}, nil)
 
-				_, _ = fakeClientSet.CoreV1().Nodes().Create(context.TODO(), &corev1.Node{
+				_, _ = fakeClientSet.CoreV1().Nodes().Create(context.Background(), &corev1.Node{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
 							"alpha.eksctl.io/nodegroup-name": unmanagedNodegroupName,
