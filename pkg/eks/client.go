@@ -8,6 +8,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
@@ -169,6 +170,15 @@ func WaitForNodes(ctx context.Context, clientSet kubernetes.Interface, ng KubeNo
 				logger.Debug("the watcher channel was closed... stop processing events from it")
 				return fmt.Errorf("the watcher channel for the nodes was closed by Kubernetes due to an unknown error")
 			}
+			if event.Type == watch.Error {
+				logger.Debug("received an error event type from watcher: %+v", event.Object)
+				msg := "unexpected error event type from node watcher"
+				if statusErr, ok := event.Object.(*metav1.Status); ok {
+					return fmt.Errorf("%s: %s", msg, statusErr.String())
+				}
+				return fmt.Errorf("%s: %+v", msg, event.Object)
+			}
+
 			if event.Object != nil && event.Type != watch.Deleted {
 				if node, ok := event.Object.(*corev1.Node); ok {
 					if isNodeReady(node) {
