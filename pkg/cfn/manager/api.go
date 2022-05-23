@@ -178,6 +178,7 @@ func (c *StackCollection) CreateStack(ctx context.Context, stackName string, res
 
 // createClusterStack creates the cluster stack
 func (c *StackCollection) createClusterStack(ctx context.Context, stackName string, resourceSet builder.ResourceSetReader, errCh chan error) error {
+	// TODO: Fix this because it waits first before checking making the unit test horribly slow.
 	// Unlike with `createNodeGroupTask`, all tags are already set for the cluster stack
 	stack, err := c.createStackRequest(ctx, stackName, resourceSet, nil, nil)
 	if err != nil {

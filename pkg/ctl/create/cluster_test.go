@@ -258,6 +258,22 @@ var defaultOutput = []cftypes.Output{
 		OutputKey:   aws.String("SharedNodeSecurityGroup"),
 		OutputValue: aws.String("sg-1"),
 	},
+	{
+		OutputKey:   aws.String("FeatureNATMode"),
+		OutputValue: aws.String("Single"),
+	},
+	{
+		OutputKey:   aws.String("SubnetsPrivate"),
+		OutputValue: aws.String("sub-priv-1 sub-priv-2 sub-priv-3"),
+	},
+	{
+		OutputKey:   aws.String("SubnetsPublic"),
+		OutputValue: aws.String("sub-pub-1 sub-pub-2 sub-pub-3"),
+	},
+	{
+		OutputKey:   aws.String("ServiceRoleARN"),
+		OutputValue: aws.String("arn:aws:iam::123456:role/amazingrole"),
+	},
 }
 
 func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output) {
@@ -276,12 +292,12 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output)
 		AvailabilityZones: []ec2types.AvailabilityZone{
 			{
 				GroupName: aws.String("name"),
-				ZoneName:  aws.String("us-west-2"),
+				ZoneName:  aws.String("us-west-2-1b"),
 				ZoneId:    aws.String("id"),
 			},
 			{
 				GroupName: aws.String("name"),
-				ZoneName:  aws.String("us-west-2"),
+				ZoneName:  aws.String("us-west-2-1a"),
 				ZoneId:    aws.String("id"),
 			}},
 	}, nil)
@@ -355,4 +371,55 @@ func defaultProviderMocks(p *mockprovider.MockProvider, output []cftypes.Output)
 				},
 			},
 		}, nil)
+	p.MockEC2().On("DescribeSubnets", mock.Anything, mock.Anything).Return(&ec2.DescribeSubnetsOutput{
+		Subnets: []ec2types.Subnet{
+			{
+				SubnetId:         aws.String("sub-pub-1"),
+				AvailabilityZone: aws.String("us-west-2-1a"),
+				VpcId:            aws.String("vpc-1"),
+				CidrBlock:        aws.String("192.168.0.0/16"),
+			},
+			{
+				SubnetId:         aws.String("sub-pub-2"),
+				AvailabilityZone: aws.String("us-west-2-1a"),
+				VpcId:            aws.String("vpc-1"),
+				CidrBlock:        aws.String("192.168.0.16/16"),
+			},
+			{
+				SubnetId:         aws.String("sub-pub-3"),
+				AvailabilityZone: aws.String("us-west-2-1a"),
+				VpcId:            aws.String("vpc-1"),
+				CidrBlock:        aws.String("192.168.0.32/16"),
+			},
+			{
+				SubnetId:         aws.String("sub-priv-1"),
+				AvailabilityZone: aws.String("us-west-2-1a"),
+				VpcId:            aws.String("vpc-1"),
+				CidrBlock:        aws.String("192.168.0.64/16"),
+			},
+			{
+				SubnetId:         aws.String("sub-priv-1"),
+				AvailabilityZone: aws.String("us-west-2-1a"),
+				VpcId:            aws.String("vpc-1"),
+				CidrBlock:        aws.String("192.168.0.128/16"),
+			},
+			{
+				SubnetId:         aws.String("sub-priv-1"),
+				AvailabilityZone: aws.String("us-west-2-1a"),
+				VpcId:            aws.String("vpc-1"),
+				CidrBlock:        aws.String("192.168.0.169/16"),
+			},
+		},
+	}, nil)
+	p.MockEC2().On("DescribeVpcs", mock.Anything, mock.Anything).Return(&ec2.DescribeVpcsOutput{
+		Vpcs: []ec2types.Vpc{
+			{
+				VpcId:     aws.String("vpc-1"),
+				CidrBlock: aws.String("192.168.0.0/24"),
+			},
+		},
+	}, nil)
+	p.MockCloudFormation().On("CreateStack", mock.Anything, mock.Anything).Return(&cloudformation.CreateStackOutput{
+		StackId: aws.String("eksctl-my-cluster-cluster"),
+	}, nil)
 }
