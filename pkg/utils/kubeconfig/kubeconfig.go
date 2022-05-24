@@ -194,11 +194,12 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 	// kubectl 1.24.0 removes the alpha API version, so it will never work
 	// Therefore as a best effort try the beta version even if it might not work
 	if execConfig.APIVersion == alphaAPIVersion {
-		kubectlVersion := getKubectlVersion()
-		// Silently ignore errors because kubectl is not required to run eksctl
-		compareVersions, err := utils.CompareVersions(kubectlVersion, "1.24.0")
-		if kubectlVersion != "" && err == nil && compareVersions >= 0 {
-			execConfig.APIVersion = betaAPIVersion
+		if kubectlVersion := getKubectlVersion(); kubectlVersion != "" {
+			// Silently ignore errors because kubectl is not required to run eksctl
+			compareVersions, err := utils.CompareVersions(kubectlVersion, "1.24.0")
+			if err == nil && compareVersions >= 0 {
+				execConfig.APIVersion = betaAPIVersion
+			}
 		}
 	}
 	if roleARN != "" {
