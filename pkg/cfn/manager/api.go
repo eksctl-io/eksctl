@@ -182,13 +182,15 @@ func (c *StackCollection) createClusterStack(ctx context.Context, stackName stri
 	stack, err := c.DescribeStack(ctx, &types.Stack{
 		StackName: &stackName,
 	})
-	if err != nil {
+	if err != nil && !IsStackDoesNotExistError(err) {
 		return err
 	}
-	switch stack.StackStatus {
-	case types.StackStatusCreateComplete, types.StackStatusDeleteComplete:
-		close(errCh) // no need to wait on this task anymore
-		return nil
+	if stack != nil {
+		switch stack.StackStatus {
+		case types.StackStatusCreateComplete, types.StackStatusDeleteComplete:
+			close(errCh) // no need to wait on this task anymore
+			return nil
+		}
 	}
 
 	// Unlike with `createNodeGroupTask`, all tags are already set for the cluster stack
