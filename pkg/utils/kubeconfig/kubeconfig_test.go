@@ -430,5 +430,33 @@ var _ = Describe("Kubeconfig", func() {
 			kubeconfig.AppendAuthenticator(config, clusterMeta, kubeconfig.AWSIAMAuthenticator, "", "")
 			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
 		})
+		It("defaults to beta1 if we detect aws-cli v1 is at or above 1.23.9", func() {
+			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
+				return exec.Command(filepath.Join("testdata", "fake-version"), `aws-cli/1.23.9 Python/3.8.8 Linux/5.4.181-109.354.amzn2int.x86_64 exe/x86_64.amzn.2 prompt/off`)
+			})
+			kubeconfig.AppendAuthenticator(config, clusterMeta, kubeconfig.AWSEKSAuthenticator, "", "")
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1beta1"))
+		})
+		It("doesn't default to beta1 if we detect aws-cli v1 is below 1.23.9", func() {
+			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
+				return exec.Command(filepath.Join("testdata", "fake-version"), `aws-cli/1.21.9 Python/3.8.8 Linux/5.4.181-109.354.amzn2int.x86_64 exe/x86_64.amzn.2 prompt/off`)
+			})
+			kubeconfig.AppendAuthenticator(config, clusterMeta, kubeconfig.AWSEKSAuthenticator, "", "")
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
+		})
+		It("defaults to beta1 if we detect aws-cli v2 is at or above 2.6.3", func() {
+			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
+				return exec.Command(filepath.Join("testdata", "fake-version"), `aws-cli/2.6.3 Python/3.8.8 Linux/5.4.181-109.354.amzn2int.x86_64 exe/x86_64.amzn.2 prompt/off`)
+			})
+			kubeconfig.AppendAuthenticator(config, clusterMeta, kubeconfig.AWSEKSAuthenticator, "", "")
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1beta1"))
+		})
+		It("doesn't default to beta1 if we detect aws-cli v2 below 2.6.3", func() {
+			kubeconfig.SetExecCommand(func(name string, arg ...string) *exec.Cmd {
+				return exec.Command(filepath.Join("testdata", "fake-version"), `aws-cli/2.4.3 Python/3.8.8 Linux/5.4.181-109.354.amzn2int.x86_64 exe/x86_64.amzn.2 prompt/off`)
+			})
+			kubeconfig.AppendAuthenticator(config, clusterMeta, kubeconfig.AWSEKSAuthenticator, "", "")
+			Expect(config.AuthInfos["test"].Exec.APIVersion).To(Equal("client.authentication.k8s.io/v1alpha1"))
+		})
 	})
 })
