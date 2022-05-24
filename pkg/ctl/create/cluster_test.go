@@ -210,7 +210,6 @@ var _ = Describe("create cluster", func() {
 			defaultProviderMocks(p, defaultOutput)
 			fk := &fakes.FakeKubeProvider{}
 			clientset := kubefake.NewSimpleClientset()
-			//testClient := testutils.NewFakeRawClient()
 			client, err := kubernetes.NewRawClient(clientset, &restclient.Config{})
 			Expect(err).NotTo(HaveOccurred())
 			fk.NewRawClientReturns(client, nil)
@@ -220,7 +219,7 @@ var _ = Describe("create cluster", func() {
 				AWSProvider: p,
 				Status: &eks.ProviderStatus{
 					ClusterInfo: &eks.ClusterInfo{
-						Cluster: testutils.NewFakeCluster("gb-test-cluster-1", ""),
+						Cluster: testutils.NewFakeCluster("my-cluster", ""),
 					},
 					SessionCreds: msp,
 				},
@@ -228,7 +227,7 @@ var _ = Describe("create cluster", func() {
 			}
 
 			cfg = api.NewClusterConfig()
-			cfg.Metadata.Name = "gb-test-cluster-1"
+			cfg.Metadata.Name = "my-cluster"
 			cfg.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
 			cfg.Metadata.Version = "1.22"
 		})
@@ -236,7 +235,7 @@ var _ = Describe("create cluster", func() {
 			cmd := &cmdutils.Cmd{
 				ClusterConfig: cfg,
 				ProviderConfig: api.ProviderConfig{
-					WaitTimeout: time.Minute * 1,
+					WaitTimeout: time.Second * 1,
 				},
 			}
 			filter := filter.NewNodeGroupFilter()

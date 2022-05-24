@@ -3,6 +3,7 @@ package fakes
 
 import (
 	"sync"
+	"time"
 
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -49,6 +50,19 @@ type FakeKubeProvider struct {
 	serverVersionReturnsOnCall map[int]struct {
 		result1 string
 		result2 error
+	}
+	WaitForControlPlaneStub        func(*v1alpha5.ClusterMeta, *kubernetes.RawClient, time.Duration) error
+	waitForControlPlaneMutex       sync.RWMutex
+	waitForControlPlaneArgsForCall []struct {
+		arg1 *v1alpha5.ClusterMeta
+		arg2 *kubernetes.RawClient
+		arg3 time.Duration
+	}
+	waitForControlPlaneReturns struct {
+		result1 error
+	}
+	waitForControlPlaneReturnsOnCall map[int]struct {
+		result1 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -246,6 +260,69 @@ func (fake *FakeKubeProvider) ServerVersionReturnsOnCall(i int, result1 string, 
 	}{result1, result2}
 }
 
+func (fake *FakeKubeProvider) WaitForControlPlane(arg1 *v1alpha5.ClusterMeta, arg2 *kubernetes.RawClient, arg3 time.Duration) error {
+	fake.waitForControlPlaneMutex.Lock()
+	ret, specificReturn := fake.waitForControlPlaneReturnsOnCall[len(fake.waitForControlPlaneArgsForCall)]
+	fake.waitForControlPlaneArgsForCall = append(fake.waitForControlPlaneArgsForCall, struct {
+		arg1 *v1alpha5.ClusterMeta
+		arg2 *kubernetes.RawClient
+		arg3 time.Duration
+	}{arg1, arg2, arg3})
+	stub := fake.WaitForControlPlaneStub
+	fakeReturns := fake.waitForControlPlaneReturns
+	fake.recordInvocation("WaitForControlPlane", []interface{}{arg1, arg2, arg3})
+	fake.waitForControlPlaneMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeKubeProvider) WaitForControlPlaneCallCount() int {
+	fake.waitForControlPlaneMutex.RLock()
+	defer fake.waitForControlPlaneMutex.RUnlock()
+	return len(fake.waitForControlPlaneArgsForCall)
+}
+
+func (fake *FakeKubeProvider) WaitForControlPlaneCalls(stub func(*v1alpha5.ClusterMeta, *kubernetes.RawClient, time.Duration) error) {
+	fake.waitForControlPlaneMutex.Lock()
+	defer fake.waitForControlPlaneMutex.Unlock()
+	fake.WaitForControlPlaneStub = stub
+}
+
+func (fake *FakeKubeProvider) WaitForControlPlaneArgsForCall(i int) (*v1alpha5.ClusterMeta, *kubernetes.RawClient, time.Duration) {
+	fake.waitForControlPlaneMutex.RLock()
+	defer fake.waitForControlPlaneMutex.RUnlock()
+	argsForCall := fake.waitForControlPlaneArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeKubeProvider) WaitForControlPlaneReturns(result1 error) {
+	fake.waitForControlPlaneMutex.Lock()
+	defer fake.waitForControlPlaneMutex.Unlock()
+	fake.WaitForControlPlaneStub = nil
+	fake.waitForControlPlaneReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeKubeProvider) WaitForControlPlaneReturnsOnCall(i int, result1 error) {
+	fake.waitForControlPlaneMutex.Lock()
+	defer fake.waitForControlPlaneMutex.Unlock()
+	fake.WaitForControlPlaneStub = nil
+	if fake.waitForControlPlaneReturnsOnCall == nil {
+		fake.waitForControlPlaneReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.waitForControlPlaneReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeKubeProvider) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -255,6 +332,8 @@ func (fake *FakeKubeProvider) Invocations() map[string][][]interface{} {
 	defer fake.newStdClientSetMutex.RUnlock()
 	fake.serverVersionMutex.RLock()
 	defer fake.serverVersionMutex.RUnlock()
+	fake.waitForControlPlaneMutex.RLock()
+	defer fake.waitForControlPlaneMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

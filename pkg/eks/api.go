@@ -67,6 +67,7 @@ type KubeProvider interface {
 	NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error)
 	NewStdClientSet(spec *api.ClusterConfig) (*k8sclient.Clientset, error)
 	ServerVersion(rawClient *kubernetes.RawClient) (string, error)
+	WaitForControlPlane(meta *api.ClusterMeta, clientSet *kubewrapper.RawClient, waitTimeout time.Duration) error
 }
 
 // ProviderServices stores the used APIs

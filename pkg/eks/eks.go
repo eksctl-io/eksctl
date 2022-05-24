@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
@@ -17,9 +16,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/cfn/waiter"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/version"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
@@ -253,36 +250,4 @@ func (c *ClusterProvider) GetCluster(ctx context.Context, clusterName string) (*
 		}
 	}
 	return output.Cluster, nil
-}
-
-// WaitForControlPlane waits till the control plane is ready
-func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *kubewrapper.RawClient) error {
-	successCount := 0
-	operation := func() (bool, error) {
-		_, err := c.KubeProvider.ServerVersion(clientSet)
-		if err == nil {
-			if successCount >= 5 {
-				return true, nil
-			}
-			successCount++
-			return false, nil
-		}
-		logger.Debug("control plane not ready yet – %s", err.Error())
-		return false, nil
-	}
-
-	w := waiter.Waiter{
-		Operation: operation,
-		NextDelay: func(_ int) time.Duration {
-			return 20 * time.Second
-		},
-	}
-
-	if err := w.WaitWithTimeout(c.AWSProvider.WaitTimeout()); err != nil {
-		if err == context.DeadlineExceeded {
-			return errors.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.AWSProvider.WaitTimeout())
-		}
-		return err
-	}
-	return nil
 }
