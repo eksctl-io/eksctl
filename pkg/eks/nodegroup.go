@@ -144,7 +144,7 @@ func getAWSNodeSAARNAnnotation(clientSet kubernetes.Interface) (string, error) {
 }
 
 // DoesAWSNodeUseIRSA evaluates whether an aws-node uses IRSA
-func (n *NodeGroupService) DoesAWSNodeUseIRSA(ctx context.Context, provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error) {
+func DoesAWSNodeUseIRSA(ctx context.Context, provider api.ClusterProvider, clientSet kubernetes.Interface) (bool, error) {
 	roleArn, err := getAWSNodeSAARNAnnotation(clientSet)
 	if err != nil {
 		return false, errors.Wrap(err, "error retrieving aws-node arn")
@@ -206,7 +206,7 @@ func newSuspendProcesses(c *ClusterProvider, spec *api.ClusterConfig, nodegroup 
 	return tasks.SynchronousTask{
 		SynchronousTaskIface: &suspendProcesses{
 			ctx:             context.Background(),
-			asg:             c.Provider.ASG(),
+			asg:             c.AWSProvider.ASG(),
 			stackCollection: c.NewStackManager(spec),
 			nodegroup:       nodegroup,
 		},

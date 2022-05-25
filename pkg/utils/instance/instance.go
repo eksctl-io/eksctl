@@ -26,11 +26,7 @@ func IsGPUInstanceType(instanceType string) bool {
 
 // IsARMGPUInstanceType returns true if the instance type is ARM-GPU architecture
 func IsARMGPUInstanceType(instanceType string) bool {
-	return strings.HasPrefix(instanceType, "t4g") ||
-		strings.HasPrefix(instanceType, "m6g") ||
-		strings.HasPrefix(instanceType, "c6g") ||
-		strings.HasPrefix(instanceType, "r6g") ||
-		strings.HasPrefix(instanceType, "g5g")
+	return strings.HasPrefix(instanceType, "g5g")
 }
 
 // IsNvidiaInstanceType returns true if the instance type has NVIDIA accelerated hardware

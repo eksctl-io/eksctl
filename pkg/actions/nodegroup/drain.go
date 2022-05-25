@@ -1,6 +1,7 @@
 package nodegroup
 
 import (
+	"context"
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -19,13 +20,14 @@ type DrainInput struct {
 	Parallel              int
 }
 
-func (m *Manager) Drain(input *DrainInput) error {
-	if !input.Plan {
-		for _, n := range input.NodeGroups {
-			nodeGroupDrainer := drain.NewNodeGroupDrainer(m.clientSet, n, m.ctl.Provider.WaitTimeout(), input.MaxGracePeriod, input.NodeDrainWaitPeriod, input.PodEvictionWaitPeriod, input.Undo, input.DisableEviction, input.Parallel)
-			if err := nodeGroupDrainer.Drain(); err != nil {
-				return err
-			}
+func (m *Manager) Drain(ctx context.Context, input *DrainInput) error {
+	if input.Plan {
+		return nil
+	}
+	for _, n := range input.NodeGroups {
+		nodeGroupDrainer := drain.NewNodeGroupDrainer(m.clientSet, n, input.MaxGracePeriod, input.NodeDrainWaitPeriod, input.PodEvictionWaitPeriod, input.Undo, input.DisableEviction, input.Parallel)
+		if err := nodeGroupDrainer.Drain(ctx); err != nil {
+			return err
 		}
 	}
 	return nil

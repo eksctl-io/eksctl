@@ -367,6 +367,13 @@ var _ = Describe("AssignSubnets", func() {
 				},
 			},
 
+			setSubnetMapping: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.VPC.Subnets = &api.ClusterSubnets{
+					Public:  api.NewAZSubnetMapping(),
+					Private: api.NewAZSubnetMapping(),
+				}
+			},
+
 			expectedErr: `subnet with ID "subnet-1" is not in the attached VPC with ID "vpc-1"`,
 
 			mockEC2: func(ec2Mock *mocksv2.EC2) {
@@ -426,6 +433,13 @@ var _ = Describe("AssignSubnets", func() {
 				},
 			},
 
+			setSubnetMapping: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.VPC.Subnets = &api.ClusterSubnets{
+					Public:  api.NewAZSubnetMapping(),
+					Private: api.NewAZSubnetMapping(),
+				}
+			},
+
 			mockEC2: func(ec2Mock *mocksv2.EC2) {
 				mockDescribeSubnets(ec2Mock, "us-west-2d", vpcID)
 				mockDescribeAZs(ec2Mock, []ec2types.AvailabilityZone{
@@ -445,6 +459,50 @@ var _ = Describe("AssignSubnets", func() {
 			},
 
 			expectedSubnetIDs: []string{"subnet-1"},
+		}),
+
+		Entry("nodegroup with subnet names", assignSubnetsEntry{
+			np: &api.NodeGroup{
+				NodeGroupBase: &api.NodeGroupBase{
+					Subnets: []string{"subnet-1", "subnet-2", "subnet-3"},
+				},
+			},
+			mockEC2: func(ec2Mock *mocksv2.EC2) {
+				mockDescribeAZs(ec2Mock, []ec2types.AvailabilityZone{
+					{
+						ZoneType: aws.String("availability-zone"),
+						ZoneName: aws.String("us-west-2a"),
+					},
+					{
+						ZoneType: aws.String("availability-zone"),
+						ZoneName: aws.String("us-west-2d"),
+					},
+					{
+						ZoneType: aws.String("availability-zone"),
+						ZoneName: aws.String("us-west-2b"),
+					},
+				})
+			},
+			setSubnetMapping: func(clusterConfig *api.ClusterConfig) {
+				clusterConfig.VPC.Subnets = &api.ClusterSubnets{
+					Public: api.AZSubnetMapping{
+						"subnet-1": api.AZSubnetSpec{
+							ID: "subnet-1a",
+							AZ: "us-west-1a",
+						},
+						"subnet-2": api.AZSubnetSpec{
+							ID: "subnet-1b",
+							AZ: "us-west-1b",
+						},
+						"subnet-3": api.AZSubnetSpec{
+							ID: "subnet-1c",
+							AZ: "us-west-1c",
+						},
+					},
+					Private: api.NewAZSubnetMapping(),
+				}
+			},
+			expectedSubnetIDs: []string{"subnet-1a", "subnet-1b", "subnet-1c"},
 		}),
 	)
 })

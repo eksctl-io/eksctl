@@ -80,9 +80,8 @@ var _ = Describe("Associate", func() {
 			},
 		}
 		eksAPI.On("DescribeUpdate", mock.Anything, updateInput, mock.Anything).Return(updateOutput, nil)
-		wait := 1 * time.Minute
 		err := manager.Associate(context.Background(), identityproviders.AssociateIdentityProvidersOptions{
-			WaitTimeout: &wait,
+			WaitTimeout: 1 * time.Minute,
 			Providers: []api.IdentityProvider{
 				{Inner: &api.OIDCIdentityProvider{
 					Name:           "pool-1",

@@ -13,12 +13,11 @@ func (m *Manager) SetStackManager(stackManager manager.StackManager) {
 	m.stackManager = stackManager
 }
 
-// MockKubeProvider can be used for passing a mock of the kube provider.
-func (m *Manager) MockKubeProvider(k eks.KubeProvider) {
-	m.kubeProvider = k
+func (m *Manager) GetStackManager() manager.StackManager {
+	return m.stackManager
 }
 
-// MockNodeGroupService can be used for passing a mock of the nodegroup initialiser.
-func (m *Manager) MockNodeGroupService(ngSvc eks.NodeGroupInitialiser) {
-	m.init = ngSvc
+// MockKubeProvider can be used for passing a mock of the kube provider.
+func (m *Manager) MockKubeProvider(k eks.KubeProvider) {
+	m.ctl.KubeProvider = k
 }

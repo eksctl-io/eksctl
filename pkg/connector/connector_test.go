@@ -101,7 +101,7 @@ var _ = Describe("EKS Connector", func() {
 			ManifestTemplate: manifestTemplate,
 		}
 
-		resourceList, err := c.RegisterCluster(context.TODO(), cc.cluster)
+		resourceList, err := c.RegisterCluster(context.Background(), cc.cluster)
 		if cc.expectedErr != "" {
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring(cc.expectedErr)))
@@ -178,7 +178,7 @@ var _ = Describe("EKS Connector", func() {
 			c := &connector.EKSConnector{
 				Provider: mockProvider,
 			}
-			_, err := c.RegisterCluster(context.TODO(), cluster)
+			_, err := c.RegisterCluster(context.Background(), cluster)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring("SLR for EKS Connector does not exist; please run `aws iam create-service-linked-role --aws-service-name eks-connector.amazonaws.com` first")))
 		})
@@ -211,7 +211,7 @@ var _ = Describe("EKS Connector", func() {
 			c := &connector.EKSConnector{
 				Provider: mockProvider,
 			}
-			_, err := c.RegisterCluster(context.TODO(), cluster)
+			_, err := c.RegisterCluster(context.Background(), cluster)
 			Expect(err).To(HaveOccurred())
 		})
 	})

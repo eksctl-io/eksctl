@@ -55,8 +55,7 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 		logger.Writer = os.Stderr
 	}
 
-	ctx := context.TODO()
-	ctl, err := cmd.NewProviderForExistingCluster(ctx)
+	ctl, err := cmd.NewProviderForExistingCluster(context.Background())
 	if err != nil {
 		return err
 	}

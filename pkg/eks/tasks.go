@@ -95,7 +95,7 @@ func (v *VPCControllerTask) Do(errCh chan error) error {
 		return err
 	}
 
-	stackCollection := manager.NewStackCollection(v.ClusterProvider.Provider, v.ClusterConfig)
+	stackCollection := manager.NewStackCollection(v.ClusterProvider.AWSProvider, v.ClusterConfig)
 
 	clientSet, err := v.ClusterProvider.NewStdClientSet(v.ClusterConfig)
 	if err != nil {
@@ -105,7 +105,7 @@ func (v *VPCControllerTask) Do(errCh chan error) error {
 	irsa := addons.NewIRSAHelper(oidc, stackCollection, irsaManager, v.ClusterConfig.Metadata.Name)
 
 	// TODO PlanMode doesn't work as intended
-	vpcController := addons.NewVPCController(rawClient, irsa, v.ClusterConfig.Status, v.ClusterProvider.Provider.Region(), v.PlanMode)
+	vpcController := addons.NewVPCController(rawClient, irsa, v.ClusterConfig.Status, v.ClusterProvider.AWSProvider.Region(), v.PlanMode)
 	if err := vpcController.Deploy(v.Context); err != nil {
 		return errors.Wrap(err, "error installing VPC controller")
 	}
@@ -128,7 +128,7 @@ func (n *devicePluginTask) Do(errCh chan error) error {
 	if err != nil {
 		return err
 	}
-	devicePlugin := n.mkPlugin(rawClient, n.clusterProvider.Provider.Region(), false)
+	devicePlugin := n.mkPlugin(rawClient, n.clusterProvider.AWSProvider.Region(), false)
 	if err := devicePlugin.Deploy(); err != nil {
 		return errors.Wrap(err, "error installing device plugin")
 	}
@@ -246,7 +246,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 				info: "update CloudWatch log retention",
 				spec: cfg,
 				call: func(clusterConfig *api.ClusterConfig) error {
-					_, err := c.Provider.CloudWatchLogs().PutRetentionPolicy(ctx, &cloudwatchlogs.PutRetentionPolicyInput{
+					_, err := c.AWSProvider.CloudWatchLogs().PutRetentionPolicy(ctx, &cloudwatchlogs.PutRetentionPolicyInput{
 						// The format for log group name is documented here: https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html
 						LogGroupName:    aws.String(fmt.Sprintf("/aws/eks/%s/cluster", cfg.Metadata.Name)),
 						RetentionInDays: aws.Int32(int32(logRetentionDays)),
@@ -262,7 +262,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 	}
 
 	if cfg.IsFargateEnabled() {
-		manager := fargate.NewFromProvider(cfg.Metadata.Name, c.Provider, c.NewStackManager(cfg))
+		manager := fargate.NewFromProvider(cfg.Metadata.Name, c.AWSProvider, c.NewStackManager(cfg))
 		newTasks.Append(&fargateProfilesTask{
 			info:            "create fargate profiles",
 			spec:            cfg,
@@ -277,7 +277,7 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(ctx context.Context, cfg
 	}
 
 	if len(cfg.IdentityProviders) > 0 {
-		newTasks.Append(identityproviders.NewAssociateProvidersTask(ctx, *cfg.Metadata, cfg.IdentityProviders, c.Provider.EKS()))
+		newTasks.Append(identityproviders.NewAssociateProvidersTask(ctx, *cfg.Metadata, cfg.IdentityProviders, c.AWSProvider.EKS()))
 	}
 
 	if cfg.HasWindowsNodeGroup() {

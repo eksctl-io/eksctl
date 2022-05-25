@@ -123,7 +123,11 @@ func runGinkgo(ctx context.Context, wg *sync.WaitGroup, summaries chan []string,
 		}
 	}
 
-	args := []string{"--no-color", fmt.Sprintf("--timeout=%s", suiteTimeout), "-tags", "integration", "-v", "--progress", fmt.Sprintf("%s/...", dir), "--"}
+	args := []string{"--no-color", fmt.Sprintf("--timeout=%s", suiteTimeout), "-tags", "integration", "-v", "--progress"}
+	if focus := os.Getenv("INTEGRATION_TEST_FOCUS"); focus != "" {
+		args = append(args, fmt.Sprintf(`--focus="%s"`, focus))
+	}
+	args = append(args, fmt.Sprintf("%s/...", dir), "--")
 	args = append(args, os.Args[1:]...)
 	name := "ginkgo"
 	prefix := fmt.Sprintf("[%d]", id)

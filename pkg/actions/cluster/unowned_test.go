@@ -35,8 +35,8 @@ type drainerMockUnowned struct {
 	mock.Mock
 }
 
-func (drainer *drainerMockUnowned) Drain(input *nodegroup.DrainInput) error {
-	args := drainer.Called(input)
+func (d *drainerMockUnowned) Drain(ctx context.Context, input *nodegroup.DrainInput) error {
+	args := d.Called(input)
 	return args.Error(0)
 }
 
@@ -57,7 +57,7 @@ var _ = Describe("Delete", func() {
 		cfg.Metadata.Name = clusterName
 		fakeStackManager = new(fakes.FakeStackManager)
 		ranDeleteDeprecatedTasks = false
-		ctl = &eks.ClusterProvider{Provider: p, Status: &eks.ProviderStatus{}}
+		ctl = &eks.ClusterProvider{AWSProvider: p, Status: &eks.ProviderStatus{}}
 	})
 
 	Context("when the cluster is operable", func() {
@@ -247,7 +247,7 @@ var _ = Describe("Delete", func() {
 
 				mockedDrainInput := &nodegroup.DrainInput{
 					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
-					MaxGracePeriod: ctl.Provider.WaitTimeout(),
+					MaxGracePeriod: ctl.AWSProvider.WaitTimeout(),
 					Parallel:       1,
 				}
 
@@ -349,7 +349,7 @@ var _ = Describe("Delete", func() {
 				}
 				mockedDrainInput := &nodegroup.DrainInput{
 					NodeGroups:     cmdutils.ToKubeNodeGroups(cfg),
-					MaxGracePeriod: ctl.Provider.WaitTimeout(),
+					MaxGracePeriod: ctl.AWSProvider.WaitTimeout(),
 					Parallel:       1,
 				}
 

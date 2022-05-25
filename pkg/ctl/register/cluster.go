@@ -41,7 +41,8 @@ func registerClusterCmd(cmd *cmdutils.Cmd) {
 }
 
 func registerCluster(cmd *cmdutils.Cmd, cluster connector.ExternalCluster) error {
-	clusterProvider, err := eks.New(context.TODO(), &cmd.ProviderConfig, nil)
+	ctx := context.Background()
+	clusterProvider, err := eks.New(ctx, &cmd.ProviderConfig, nil)
 	if err != nil {
 		return err
 	}
@@ -52,10 +53,10 @@ func registerCluster(cmd *cmdutils.Cmd, cluster connector.ExternalCluster) error
 	}
 
 	c := connector.EKSConnector{
-		Provider:         clusterProvider.Provider,
+		Provider:         clusterProvider.AWSProvider,
 		ManifestTemplate: manifestTemplate,
 	}
-	resourceList, err := c.RegisterCluster(context.TODO(), cluster)
+	resourceList, err := c.RegisterCluster(ctx, cluster)
 	if err != nil {
 		return errors.Wrap(err, "error registering cluster")
 	}

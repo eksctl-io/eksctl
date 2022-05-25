@@ -604,7 +604,7 @@ func SelectNodeGroupSubnets(ctx context.Context, np api.NodePool, clusterConfig 
 		} else {
 			subnetMapping = clusterConfig.VPC.LocalZoneSubnets.Public
 		}
-	} else if len(ng.AvailabilityZones) > 0 {
+	} else {
 		zones = ng.AvailabilityZones
 		if ng.PrivateNetworking {
 			subnetMapping = clusterConfig.VPC.Subnets.Private

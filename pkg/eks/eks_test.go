@@ -42,7 +42,7 @@ var _ = Describe("EKS API wrapper", func() {
 				p = mockprovider.NewMockProvider()
 
 				c = &ClusterProvider{
-					Provider: p,
+					AWSProvider: p,
 				}
 
 				p.MockEKS().On("DescribeCluster", mock.Anything, mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
@@ -143,7 +143,7 @@ var _ = Describe("EKS API wrapper", func() {
 				p = mockprovider.NewMockProvider()
 
 				c = &ClusterProvider{
-					Provider: p,
+					AWSProvider: p,
 				}
 
 				p.MockEKS().On("DescribeCluster", mock.Anything, mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
@@ -184,8 +184,8 @@ var _ = Describe("EKS API wrapper", func() {
 		BeforeEach(func() {
 			p := mockprovider.NewMockProvider()
 			ctl = &ClusterProvider{
-				Provider: p,
-				Status:   &ProviderStatus{},
+				AWSProvider: p,
+				Status:      &ProviderStatus{},
 			}
 
 			cfg = api.NewClusterConfig()

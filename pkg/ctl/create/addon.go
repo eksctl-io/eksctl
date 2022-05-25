@@ -71,7 +71,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 
 		stackManager := clusterProvider.NewStackManager(cmd.ClusterConfig)
 
-		output, err := clusterProvider.Provider.EKS().DescribeCluster(ctx, &awseks.DescribeClusterInput{
+		output, err := clusterProvider.AWSProvider.EKS().DescribeCluster(ctx, &awseks.DescribeClusterInput{
 			Name: &cmd.ClusterConfig.Metadata.Name,
 		})
 
@@ -87,7 +87,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 			return err
 		}
 
-		addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.Provider.EKS(), stackManager, oidcProviderExists, oidc, clientSet, cmd.ProviderConfig.WaitTimeout)
+		addonManager, err := addon.New(cmd.ClusterConfig, clusterProvider.AWSProvider.EKS(), stackManager, oidcProviderExists, oidc, clientSet)
 		if err != nil {
 			return err
 		}
@@ -96,8 +96,7 @@ func createAddonCmd(cmd *cmdutils.Cmd) {
 			if force { //force is specified at cmdline level
 				a.Force = true
 			}
-			err := addonManager.Create(ctx, a, wait)
-			if err != nil {
+			if err := addonManager.Create(ctx, a, cmd.ProviderConfig.WaitTimeout); err != nil {
 				return err
 			}
 		}

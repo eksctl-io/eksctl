@@ -79,9 +79,8 @@ var _ = Describe("Disassociate", func() {
 			},
 		}
 		eksAPI.On("DescribeUpdate", mock.Anything, updateInput, mock.Anything).Return(updateOutput, nil)
-		wait := 1 * time.Minute
 		err := manager.Disassociate(context.Background(), identityproviders.DisassociateIdentityProvidersOptions{
-			WaitTimeout: &wait,
+			WaitTimeout: 1 * time.Minute,
 			Providers: []identityproviders.DisassociateIdentityProvider{
 				{
 					Name: "pool-1",
